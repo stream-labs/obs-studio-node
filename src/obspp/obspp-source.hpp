@@ -85,12 +85,13 @@ protected:
     source();
     source(std::string &id, std::string &name, obs_data_t *settings = nullptr);
     source(obs_source_t *source);
-    source(source &&source);
+    source(source &copy);
 
     static void check_type(obs_source_t * source, obs_source_type type);
 
 public:
     void release(); /* Two-step destruction for managed languages. */
+    void remove(); /* Signals other references to release */
     ~source();
     bool operator!() const;
     obs_source_t *dangerous();
@@ -102,96 +103,5 @@ public:
     uint32_t width();
     uint32_t height();
 };
-
-source::source()
- : m_handle(nullptr), m_status(status_type::invalid)
-{
-}
-
-source::source(std::string &id, std::string &name, obs_data_t *settings)
-    : m_handle(obs_source_create(id.c_str(), name.c_str(), settings, nullptr)),
-    m_status(status_type::okay)
-{
-    if (!m_handle)
-        m_status = status_type::invalid;
-}
-
-
-source::source(obs_source_t *source)
-    : m_handle(source),
-    m_status(status_type::okay)
-{
-    if (!m_handle)
-        m_status = status_type::invalid;
-}
-
-source::source(source &&source)
-    : m_handle(source.m_handle),
-    m_status(status_type::okay)
-{
-    obs_source_addref(m_handle);
-
-    if (!m_handle)
-        m_status = status_type::invalid;
-}
-
-void source::release() {
-    obs_source_release(m_handle);
-    m_handle = nullptr;
-}
-
-source::~source() {
-    obs_source_release(m_handle);
-}
-
-void source::check_type(obs_source_t * source, obs_source_type type)
-{
-    obs_source_type source_type = obs_source_get_type(source);
-
-    if (source_type == type)
-        return;
-
-    throw std::runtime_error("Incorrect source type used");
-}
-
-bool source::operator!() const
-{
-    return m_status != status_type::okay;
-}
-
-obs_source_t *source::dangerous()
-{
-    return m_handle;
-}
-
-source::status_type source::status()
-{
-    return m_status;
-}
-
-const std::string source::name()
-{
-    return obs_source_get_name(m_handle);
-}
-
-const std::string source::id()
-{
-    return obs_source_get_id(m_handle);
-}
-
-bool source::configurable()
-{
-    return obs_source_configurable(m_handle);
-}
-
-uint32_t source::height()
-{
-    return obs_source_get_height(m_handle);
-}
-
-uint32_t source::width()
-{
-    return obs_source_get_width(m_handle);
-}
 
 }

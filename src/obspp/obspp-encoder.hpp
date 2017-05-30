@@ -1,23 +1,31 @@
 #pragma once
 
+#include <obs.h>
+#include <string>
+#include <vector>
+
 namespace obs {
 
 class encoder {
+    obs_encoder_t *m_handle;
 
 public:
-    static std::list<std::string>> types();
+    std::string display_name();
+    void name(std::string name);
+    std::string name();
+    std::string id();
+    obs_encoder_type type();
+    uint32_t caps();
+    std::string codec();
+    void *type_data();
+    void update();
+    bool active();
+
+    static std::string display_name(std::string id);
+    static std::string codec(std::string id);
+    static obs_encoder_type type(std::string id);
+    static uint32_t caps(std::string id);
+    static std::vector<std::string> types();
 };
-
-std::list<std::string>> encoder::types()
-{
-    const char *id = nullptr;
-    std::list<std::string> type_list;
-
-    for (int i = 0; obs_enum_encoder_types(i, &id); ++i) {
-        type_list.push_back(id);
-    }
-
-    return type_list;
-}
 
 }

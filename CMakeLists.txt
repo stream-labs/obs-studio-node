@@ -3,13 +3,18 @@ cmake_minimum_required(VERSION 3.1)
 project(obs-studio-node VERSION 1.0.0)
 
 set(
-    OSN_NODE_NAME "obs-node"
+    OSN_NODE_NAME "obs_node"
     CACHE PATH "Name of the node binary output"
 )
 
 set(
+    OSN_DIST_DIR "node-obs"
+    CACHE PATH "Name of distribution directory"
+)
+
+set(
     OBS_BUILD_TYPE "Release"
-    CACHE PATH "Configuration of OBS binaries to copy"
+    CACHE STRING "Configuration of OBS binaries to copy"
 )
 
 set(
@@ -35,26 +40,64 @@ else()
     )
 endif()
 
-add_library(
-    ${OSN_NODE_NAME} SHARED
+add_library(${OSN_NODE_NAME} SHARED
+    "src/SceneItem.cpp"
+    "src/SceneItem.h"
+    "src/Scene.cpp"
+    "src/Scene.h"
+    "src/IEncoder.cpp"
+    "src/IEncoder.h"
+    "src/Display.cpp"
+    "src/Display.h"
+    "src/RenderPlugin.h"
+    "src/RenderPlugin.c"
+    "src/Global.cpp"
+    "src/Global.h"
+    "src/Input.cpp"
+    "src/Input.h"
+    "src/ISource.cpp"
+    "src/ISource.h"
+    "src/Module.cpp"
+    "src/Module.h"
+    "src/Audio.cpp"
+    "src/Audio.h"
+    "src/Video.cpp"
+    "src/Video.h"
     "src/obs-node.cpp"
     "src/obspp/obspp.hpp"
+    "src/obspp/obspp.cpp"
     "src/obspp/obspp-audio.hpp"
+    "src/obspp/obspp-audio.cpp"
     "src/obspp/obspp-display.hpp"
+    "src/obspp/obspp-display.cpp"
     "src/obspp/obspp-encoder.hpp"
+    "src/obspp/obspp-encoder.cpp"
     "src/obspp/obspp-filter.hpp"
+    "src/obspp/obspp-filter.cpp"
     "src/obspp/obspp-index.hpp"
     "src/obspp/obspp-input.hpp"
+    "src/obspp/obspp-input.cpp"
     "src/obspp/obspp-module.hpp"
+    "src/obspp/obspp-module.cpp"
     "src/obspp/obspp-output.hpp"
     "src/obspp/obspp-scene.hpp"
+    "src/obspp/obspp-scene.cpp"
     "src/obspp/obspp-service.hpp"
     "src/obspp/obspp-source.hpp"
+    "src/obspp/obspp-source.cpp"
     "src/obspp/obspp-transition.hpp"
     "src/obspp/obspp-video.hpp"
+    "src/obspp/obspp-video.cpp"
 )
 
-target_link_libraries(${OSN_NODE_NAME} obs ${CMAKE_JS_LIB})
+target_link_libraries(${OSN_NODE_NAME} ${CMAKE_JS_LIB} obs)
+
+add_library(simple_draw SHARED
+    "src/simple_draw/draw.c")
+
+target_link_libraries(simple_draw
+    ${OSN_NODE_NAME}
+    obs)
 
 target_compile_definitions(
     ${OSN_NODE_NAME} PUBLIC
@@ -108,38 +151,38 @@ set( OBS_DEPENDENCIES
 )
 
 add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/dist")
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}")
 
 foreach( DEPENDENCY ${OBS_DEPENDENCIES})
     add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD 
         COMMAND ${CMAKE_COMMAND}
-        ARGS -E copy ${DEPENDENCY} "${CMAKE_SOURCE_DIR}/dist/"
+        ARGS -E copy ${DEPENDENCY} "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/"
     )
 endforeach()
 
 add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory 
-    "${CMAKE_SOURCE_DIR}/dist/data")
+    "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/data")
 
 add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory 
-    "${CMAKE_SOURCE_DIR}/dist/data/libobs")
+    "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/data/libobs")
 
 add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory 
-    "${CMAKE_SOURCE_DIR}/dist/data/obs-plugins")
+    "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/data/obs-plugins")
 
 function(copy_obs_plugin PLUGIN_NAME)
     install(
         DIRECTORY "${OBS_STUDIO_PATH}/plugins/${PLUGIN_NAME}/data"
-        DESTINATION "${CMAKE_SOURCE_DIR}/dist/data/obs-plugins/${PLUGIN_NAME}"
+        DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/data/obs-plugins/${PLUGIN_NAME}"
     )
 
     install(
         FILES
         "${OBS_STUDIO_BUILD64}/plugins/${PLUGIN_NAME}/Debug/${PLUGIN_NAME}.dll"
         "${OBS_STUDIO_BUILD64}/plugins/${PLUGIN_NAME}/Debug/${PLUGIN_NAME}.pdb"
-        DESTINATION "${CMAKE_SOURCE_DIR}/dist/obs-plugins"
+        DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/obs-plugins"
     )
 endfunction()
 
@@ -149,7 +192,7 @@ file(GLOB DATA_LIBOBS
 foreach( DATA_FILES ${DATA_LIBOBS})
     add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND}
-        ARGS -E copy ${DATA_FILES} "${CMAKE_SOURCE_DIR}/dist/data/libobs")
+        ARGS -E copy ${DATA_FILES} "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/data/libobs")
 endforeach()
 
 copy_obs_plugin("image-source")
@@ -167,4 +210,4 @@ copy_obs_plugin("win-dshow")
 copy_obs_plugin("win-mf")
 copy_obs_plugin("win-wasapi")
 
-install(TARGETS ${OSN_NODE_NAME} DESTINATION "${CMAKE_SOURCE_DIR}/dist")
+install(TARGETS ${OSN_NODE_NAME} simple_draw DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}")

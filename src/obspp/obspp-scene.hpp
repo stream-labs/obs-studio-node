@@ -1,6 +1,4 @@
-#pragma once
-
-#include "obspp-source.hpp"
+#include "obspp-input.hpp"
 
 namespace obs {
 
@@ -10,56 +8,73 @@ private:
     obs_scene_t *m_scene;
 
 public:
+    class item {
+        friend scene;
+
+        obs_sceneitem_t *m_handle;
+
+        item() = delete;
+
+    public:
+        item(obs_sceneitem_t *item);
+        item(item &copy);
+
+        void remove();
+        obs::scene scene();
+        obs::input source();
+        uint64_t id();
+
+        bool selected();
+        void selected(bool select);
+
+        void position(const vec2 &pos);
+        vec2 position();
+
+        void rotation(float rot);
+        float rotation();
+
+        void scale(const vec2 &scale);
+        vec2 scale();
+
+        void alignment(uint32_t alignment);
+        uint32_t alignment();
+
+        void bounds_alignment(uint32_t alignment);
+        uint32_t bounds_alignment();
+
+        void bounds(const vec2 &bounds);
+        vec2 bounds();
+
+        void transform_info(const obs_transform_info &info);
+        obs_transform_info transform_info();
+
+        void order(obs_order_movement movement);
+
+        void order_position(int position);
+
+        void bounds_type(obs_bounds_type type);
+        obs_bounds_type bounds_type();
+
+        void crop(const obs_sceneitem_crop &crop);
+        obs_sceneitem_crop crop();
+
+        void scale_filter(obs_scale_type filter);
+        obs_scale_type scale_filter();
+
+        /* When accessing tranform data (crop, tranform, etc.)
+         * you need to do it between a begin and end call. Else
+         * It's a data race. This acts as a basic barrier to 
+         * the data from updating while you're accessing it. */
+        void defer_update_begin();
+        void defer_update_end();
+    };
 
     scene(std::string name);
-    scene(scene &&copy);
+    scene(scene &copy);
     scene(obs_scene_t *source);
 
     bool operator!();
-    void add(input &sceneitem);
-
-    static std::list<std::string> types();
+    scene::item add(input source);
 };
-
-scene::scene(std::string name)
- : m_scene(obs_scene_create(name.c_str()))
-{
-    if (m_scene) {
-		m_status = status_type::okay;
-	}
-
-    /* Will return NULL if m_scene is invalid */
-    m_handle = obs_scene_get_source(m_scene);
-}
-
-scene::scene(scene &&move)
-{
-    m_scene = move.m_scene;
-    m_handle = move.m_handle;
-    
-    if (!m_scene || !m_handle) {
-        m_status = status_type::invalid;
-    }
-}
-
-scene::scene(obs_scene_t *scene)
- : m_scene(scene)
-{
-    if (!scene)
-        m_status = status_type::invalid;
-        
-    obs_scene_addref(scene);
-    m_handle = obs_scene_get_source(scene);
-}
-
-bool scene::operator!()
-{
-    return m_status != status_type::okay;
-}
-
-void scene::add(input &sceneitem)
-{
-    obs_scene_add(m_scene, sceneitem.dangerous());
-}
 
 }
