@@ -91,41 +91,20 @@ NAN_GETTER(SceneItem::selected)
     info.GetReturnValue().Set(handle->selected());
 }
 
-/* Note that we use typed arrays here!
- * I chose to do this because of the following:
- * 1. Most IPCs handle it correctly. 
- * 2. It's typed to make sure we aren't being passed weird things. 
- * 3. It's faster than most alternatives. 
- 
- * We use V8 directly here since Nan abstraction for this sucks
- * and uses node::Buffer, except for where we can use 
- * Nan::TypedArrayContents. 
- 
- * That said, NOTE: ArrayBuffers can be tricky. They take byte counts,
- * not element counts. You must make sure that anytime you're making
- * a new typed array, that the underlying arraybuffer has enough
- * room to accomdate. SERIOUSLY. PAY ATTENTION PLEASE.
- * Also... apparently, Nan::New doesn't work with ArrayBuffer. */
-
 NAN_SETTER(SceneItem::position)
 {
     obs::scene::item *handle = SceneItem::GetHandle(info.Holder());
 
-    if (!value->IsArray()) {
-        Nan::ThrowError("Expected array");
+    if (!value->IsObject()) {
+        Nan::ThrowError("Expected object");
         return;
     }
 
-    Nan::TypedArrayContents<float> data(value);
-
-    if (data.length() != 2) {
-        Nan::ThrowError("Array of unexpected size (expected size of 2)");
-        return;
-    }
+    auto object = Nan::To<v8::Object>(value).ToLocalChecked();
 
     vec2 position = {
-        (*data)[0],
-        (*data)[1]
+        Nan::Get(object, FIELD_NAME("x")).ToLocalChecked()->Value();
+        Nan::Get(object, FIELD_NAME("y")).ToLocalChecked()->Value();
     };
 
     handle->position(position);
@@ -133,23 +112,14 @@ NAN_SETTER(SceneItem::position)
 
 NAN_GETTER(SceneItem::position)
 {
-    v8::Isolate *isolate = v8::Isolate::GetCurrent();
     obs::scene::item *handle = SceneItem::GetHandle(info.Holder());
-
-    auto buffer = 
-        v8::ArrayBuffer::New(isolate, sizeof(float) * 2);
-
-    auto float_array = 
-        v8::Float32Array::New(buffer, 0, 2);
-
-    float *data = reinterpret_cast<float*>(buffer->GetContents().Data());
-
+    auto object = Nan::New<v8::Object>();
     vec2 position = handle->position();
 
-    data[0] = position.x;
-    data[1] = position.y;
+    Nan::Set(object, FIELD_NAME("x"), position.x);
+    Nan::Set(object, FIELD_NAME("y"), position.y);
 
-    info.GetReturnValue().Set(float_array);
+    info.GetReturnValue().Set(object);
 }
 
 NAN_SETTER(SceneItem::rotation)
@@ -179,21 +149,14 @@ NAN_SETTER(SceneItem::scale)
 {
     obs::scene::item *handle = SceneItem::GetHandle(info.Holder());
 
-    if (!value->IsArray()) {
+    if (!value->IsObject()) {
         Nan::ThrowError("Expected array");
         return;
     }
 
-    Nan::TypedArrayContents<float> data(value);
-
-    if (data.length() != 2) {
-        Nan::ThrowError("Array of unexpected size (expected size of 2)");
-        return;
-    }
-
     vec2 scale = {
-        (*data)[0],
-        (*data)[1]
+        Nan::Get(object, FIELD_NAME("x")).ToLocalChecked()->Value();
+        Nan::Get(object, FIELD_NAME("y")).ToLocalChecked()->Value();
     };
 
     handle->scale(scale);
@@ -201,23 +164,14 @@ NAN_SETTER(SceneItem::scale)
 
 NAN_GETTER(SceneItem::scale)
 {
-    v8::Isolate *isolate = v8::Isolate::GetCurrent();
     obs::scene::item *handle = SceneItem::GetHandle(info.Holder());
-
-    auto buffer = 
-        v8::ArrayBuffer::New(isolate, sizeof(float) * 2);
-
-    auto float_array = 
-        v8::Float32Array::New(buffer, 0, 2);
-
-    float *data = reinterpret_cast<float*>(buffer->GetContents().Data());
-
+    auto object = Nan::New<v8::Object>();
     vec2 scale = handle->scale();
 
-    data[0] = scale.x;
-    data[1] = scale.y;
+    Nan::Set(object, FIELD_NAME("x"), scale.x);
+    Nan::Set(object, FIELD_NAME("y"), scale.y);
 
-    info.GetReturnValue().Set(float_array);
+    info.GetReturnValue().Set(object);
 }
 
 NAN_SETTER(SceneItem::alignment)
@@ -264,45 +218,29 @@ NAN_SETTER(SceneItem::bounds)
 {
     obs::scene::item *handle = SceneItem::GetHandle(info.Holder());
 
-    if (!value->IsArray()) {
+    if (!value->IsObject()) {
         Nan::ThrowError("Expected array");
         return;
     }
 
-    Nan::TypedArrayContents<float> data(value);
-
-    if (data.length() != 2) {
-        Nan::ThrowError("Array of unexpected size (expected size of 2)");
-        return;
-    }
-
     vec2 bounds = {
-        (*data)[0],
-        (*data)[1]
+        Nan::Get(object, FIELD_NAME("x")).ToLocalChecked()->Value();
+        Nan::Get(object, FIELD_NAME("y")).ToLocalChecked()->Value();
     };
 
-    handle->bounds(bounds);
+    handle->scale(bounds);
 }
 
 NAN_GETTER(SceneItem::bounds)
 {
-    v8::Isolate *isolate = v8::Isolate::GetCurrent();
     obs::scene::item *handle = SceneItem::GetHandle(info.Holder());
-
-    auto buffer = 
-        v8::ArrayBuffer::New(isolate, sizeof(float) * 2);
-
-    auto float_array = 
-        v8::Float32Array::New(buffer, 0, 2);
-
-    float *data = reinterpret_cast<float*>(buffer->GetContents().Data());
-
+    auto object = Nan::New<v8::Object>();
     vec2 bounds = handle->bounds();
 
-    data[0] = bounds.x;
-    data[1] = bounds.y;
+    Nan::Set(object, FIELD_NAME("x"), bounds.x);
+    Nan::Set(object, FIELD_NAME("y"), bounds.y);
 
-    info.GetReturnValue().Set(float_array);
+    info.GetReturnValue().Set(object);
 }
 
 NAN_SETTER(SceneItem::transform_info)
@@ -378,6 +316,5 @@ NAN_METHOD(SceneItem::defer_update_end)
 
     handle->defer_update_end();
 }
-
 
 }
