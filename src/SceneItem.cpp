@@ -103,8 +103,11 @@ NAN_SETTER(SceneItem::position)
     auto object = Nan::To<v8::Object>(value).ToLocalChecked();
 
     vec2 position = {
-        Nan::Get(object, FIELD_NAME("x")).ToLocalChecked()->Value();
-        Nan::Get(object, FIELD_NAME("y")).ToLocalChecked()->Value();
+        static_cast<float>(Nan::Get(object, FIELD_NAME("x"))
+            .ToLocalChecked()->ToNumber()->Value()),
+
+        static_cast<float>(Nan::Get(object, FIELD_NAME("y"))
+            .ToLocalChecked()->ToNumber()->Value())
     };
 
     handle->position(position);
@@ -116,8 +119,8 @@ NAN_GETTER(SceneItem::position)
     auto object = Nan::New<v8::Object>();
     vec2 position = handle->position();
 
-    Nan::Set(object, FIELD_NAME("x"), position.x);
-    Nan::Set(object, FIELD_NAME("y"), position.y);
+    Nan::Set(object, FIELD_NAME("x"), Nan::New<v8::Number>(position.x));
+    Nan::Set(object, FIELD_NAME("y"), Nan::New<v8::Number>(position.y));
 
     info.GetReturnValue().Set(object);
 }
@@ -154,9 +157,14 @@ NAN_SETTER(SceneItem::scale)
         return;
     }
 
+    auto object = Nan::To<v8::Object>(value).ToLocalChecked();
+
     vec2 scale = {
-        Nan::Get(object, FIELD_NAME("x")).ToLocalChecked()->Value();
-        Nan::Get(object, FIELD_NAME("y")).ToLocalChecked()->Value();
+        static_cast<float>(Nan::Get(object, FIELD_NAME("x"))
+            .ToLocalChecked()->ToNumber()->Value()),
+
+        static_cast<float>(Nan::Get(object, FIELD_NAME("y"))
+            .ToLocalChecked()->ToNumber()->Value())
     };
 
     handle->scale(scale);
@@ -168,8 +176,8 @@ NAN_GETTER(SceneItem::scale)
     auto object = Nan::New<v8::Object>();
     vec2 scale = handle->scale();
 
-    Nan::Set(object, FIELD_NAME("x"), scale.x);
-    Nan::Set(object, FIELD_NAME("y"), scale.y);
+    Nan::Set(object, FIELD_NAME("x"), Nan::New<v8::Number>(scale.x));
+    Nan::Set(object, FIELD_NAME("y"), Nan::New<v8::Number>(scale.y));
 
     info.GetReturnValue().Set(object);
 }
@@ -223,9 +231,14 @@ NAN_SETTER(SceneItem::bounds)
         return;
     }
 
+    auto object = Nan::To<v8::Object>(value).ToLocalChecked();
+
     vec2 bounds = {
-        Nan::Get(object, FIELD_NAME("x")).ToLocalChecked()->Value();
-        Nan::Get(object, FIELD_NAME("y")).ToLocalChecked()->Value();
+        static_cast<float>(Nan::Get(object, FIELD_NAME("x"))
+            .ToLocalChecked()->ToNumber()->Value()),
+
+        static_cast<float>(Nan::Get(object, FIELD_NAME("y"))
+            .ToLocalChecked()->ToNumber()->Value())
     };
 
     handle->scale(bounds);
@@ -237,8 +250,8 @@ NAN_GETTER(SceneItem::bounds)
     auto object = Nan::New<v8::Object>();
     vec2 bounds = handle->bounds();
 
-    Nan::Set(object, FIELD_NAME("x"), bounds.x);
-    Nan::Set(object, FIELD_NAME("y"), bounds.y);
+    Nan::Set(object, FIELD_NAME("x"), Nan::New<v8::Number>(bounds.x));
+    Nan::Set(object, FIELD_NAME("y"), Nan::New<v8::Number>(bounds.y));
 
     info.GetReturnValue().Set(object);
 }
