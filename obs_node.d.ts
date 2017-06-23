@@ -3,21 +3,21 @@
 // Definitions by: Zachary Lund <admin@computerquip.com>
 
 declare namespace obs {
-    export enum EOrderMovement {
-        MOVE_UP,
-        MOVE_DOWN,
-        MOVE_TOP,
-        MOVE_BOTTOM
+    const enum EOrderMovement {
+        MoveUp,
+        MoveDown,
+        MoveTop,
+        MoveBottom
     }
 
     function startup(locale: string, path?: string): void;
     function shutdown(): void;
-    
+
     const status: number;
     const locale: string;
     const version: number;
 
-    class TVec2 {
+    interface TVec2 {
         x: number;
         y: number;
     }
@@ -100,38 +100,38 @@ declare namespace obs.module {
 }
 
 declare namespace obs.video {
-    export enum EScaleType {
-        DEFAULT,
-        POINT,
-        FAST_BILINEAR,
-        BILINEAR,
-        BICUBIC
+    const enum EScaleType {
+        Default,
+        Point,
+        FastBilinear,
+        Bilinear,
+        Bicubic
     }
 
-    export enum EBoundsType {
-        NONE,
-        STRETCH,
-        SCALE_INNER,
-        SCALE_OUTER,
-        SCALE_TO_WIDTH,
-        SCALE_TO_HEIGHT,
-        MAX_ONLY
+    const enum EBoundsType {
+        None,
+        Stretch,
+        ScaleInner,
+        ScaleOuter,
+        ScaleToWidth,
+        ScaleToHeight,
+        MaxOnly
     }
 
-    export enum EColorSpace {
-        DEFAULT,
+    const enum EColorSpace {
+        Default,
         CS601,
         CS709
     }
 
-    export enum ERangeType {
-        DEFAULT,
-        PARTIAL,
-        FULL
+    const enum ERangeType {
+        Default,
+        Partial,
+        Full
     }
 
-    export enum EFormat {
-        NONE,
+    const enum EFormat {
+        None,
         I420,
         NV12,
         YVYU,
