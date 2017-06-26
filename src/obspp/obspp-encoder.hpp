@@ -10,6 +10,7 @@ class encoder {
     obs_encoder_t *m_handle;
 
 public:
+    obs_encoder_t *dangerous();
     std::string display_name();
     void name(std::string name);
     std::string name();

@@ -4,6 +4,11 @@
 
 namespace obs {
 
+obs_encoder_t *encoder::dangerous()
+{
+    return m_handle;
+}
+
 std::string encoder::display_name()
 {
     return obs_encoder_get_display_name(id().c_str());

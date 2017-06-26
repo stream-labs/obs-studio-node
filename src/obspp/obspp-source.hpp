@@ -83,7 +83,8 @@ protected:
     status_type m_status;
 
     source();
-    source(std::string &id, std::string &name, obs_data_t *settings = nullptr);
+    source(std::string &id, std::string &name, obs_data_t *hotkey, obs_data_t *settings);
+    source(std::string &id, std::string &name, obs_data_t *settings, bool is_private = false);
     source(obs_source_t *source);
     source(source &copy);
 

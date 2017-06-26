@@ -25,7 +25,8 @@ public:
     static obs::input* GetHandle(v8::Local<v8::Object> object);
 
     Input(obs::input &input);
-    Input(std::string id, std::string name, obs_data_t *settings);
+    Input(std::string id, std::string name, obs_data_t *hotkey, obs_data_t *settings);
+    Input(std::string id, std::string name, obs_data_t *settings, bool is_private);
 
     virtual obs::source *GetHandle();
     static NAN_MODULE_INIT(Init);
@@ -39,6 +40,8 @@ public:
     static NAN_SETTER(flags);
     static NAN_GETTER(audio_mixers);
     static NAN_SETTER(audio_mixers);
+    static NAN_METHOD(add_filter);
+    static NAN_METHOD(remove_filter);
 };
 
 }

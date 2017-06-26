@@ -74,7 +74,6 @@ NAN_METHOD(AudioEncoder::New)
 
 NAN_GETTER(AudioEncoder::sample_rate)
 {
-
 }
 
 Nan::Persistent<v8::FunctionTemplate> AudioEncoder::prototype = 

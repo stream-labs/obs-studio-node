@@ -2,8 +2,14 @@
 
 namespace obs {
 
-input::input(std::string id, std::string name, obs_data_t *settings)
- : source(id, name, settings)
+input::input(std::string id, std::string name, obs_data_t *hotkey, obs_data_t *settings)
+ : source(id, name, hotkey, settings)
+{
+    check_type(m_handle, OBS_SOURCE_TYPE_INPUT);
+}
+
+input::input(std::string id, std::string name, obs_data_t *settings, bool is_private)
+ : source(id, name, settings, is_private)
 {
     check_type(m_handle, OBS_SOURCE_TYPE_INPUT);
 }
@@ -53,6 +59,16 @@ void input::audio_mixers(uint32_t flags)
 uint32_t input::audio_mixers()
 {
     return obs_source_get_audio_mixers(m_handle);
+}
+
+void input::add_filter(obs::filter filter)
+{
+    obs_source_filter_add(m_handle, filter.dangerous());
+}
+
+void input::remove_filter(obs::filter filter)
+{
+    obs_source_filter_remove(m_handle, filter.dangerous());
 }
 
 std::vector<filter> input::filters()

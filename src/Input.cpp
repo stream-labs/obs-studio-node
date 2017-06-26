@@ -1,20 +1,26 @@
 #include <nan.h>
 
 #include "Input.h"
+#include "Filter.h"
 #include "Common.h"
 
 namespace osn {
 
-Nan::Persistent<v8::FunctionTemplate> Input::prototype = Nan::Persistent<v8::FunctionTemplate>();
+Nan::Persistent<v8::FunctionTemplate> Input::prototype = 
+    Nan::Persistent<v8::FunctionTemplate>();
 
 v8::Local<v8::Object> Input::GenerateObject(obs::input input)
 {
     Input *output_source = new Input(input);
+
     v8::Local<v8::FunctionTemplate> input_templ =
         Nan::New<v8::FunctionTemplate>(Input::prototype);
+
     v8::Local<v8::Object> object = 
         Nan::NewInstance(input_templ->InstanceTemplate()).ToLocalChecked();
+
     output_source->Wrap(object);
+
     return object;
 }
 
@@ -24,8 +30,13 @@ obs::input* Input::GetHandle(v8::Local<v8::Object> object)
     return &input->handle;
 }
 
-Input::Input(std::string id, std::string name, obs_data_t *settings)
-    : handle(id, name, settings)
+Input::Input(std::string id, std::string name, obs_data_t *hotkey, obs_data_t *settings)
+    : handle(id, name, hotkey, settings)
+{
+}
+
+Input::Input(std::string id, std::string name, obs_data_t *settings, bool is_private)
+    : handle(id, name, settings, is_private)
 {
 }
 
@@ -71,7 +82,7 @@ NAN_METHOD(Input::New)
     
     Nan::Utf8String id(info[0]);
     Nan::Utf8String name(info[1]);
-    Input *object = new Input(*id, *name, nullptr);
+    Input *object = new Input(*id, *name, nullptr, nullptr);
     object->Wrap(info.This());
     info.GetReturnValue().Set(info.This());
 }
@@ -153,5 +164,36 @@ NAN_SETTER(Input::audio_mixers)
     handle->audio_mixers(flags);
 }
 
+NAN_METHOD(Input::add_filter)
+{
+    obs::input *handle = Input::GetHandle(info.Holder());
+
+    if (!info[0]->IsObject()) {
+        Nan::ThrowError("Expected object");
+        return;
+    }
+
+    auto filter_object = Nan::To<v8::Object>(info[0]).ToLocalChecked();
+
+    obs::filter *filter = Filter::GetHandle(filter_object);
+
+    handle->add_filter(*filter);
+}
+
+NAN_METHOD(Input::remove_filter)
+{
+    obs::input *handle = Input::GetHandle(info.Holder());
+
+    if (!info[0]->IsObject()) {
+        Nan::ThrowError("Expected object");
+        return;
+    }
+
+    auto filter_object = Nan::To<v8::Object>(info[0]).ToLocalChecked();
+
+    obs::filter *filter = Filter::GetHandle(filter_object);
+
+    handle->remove_filter(*filter);
+}
 
 }

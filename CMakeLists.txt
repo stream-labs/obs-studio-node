@@ -41,6 +41,12 @@ else()
 endif()
 
 add_library(${OSN_NODE_NAME} SHARED
+    "src/Properties.cpp"
+    "src/Properties.h"
+    "src/Transition.cpp"
+    "src/Transition.h"
+    "src/Filter.cpp"
+    "src/Filter.h"
     "src/SceneItem.cpp"
     "src/SceneItem.h"
     "src/Scene.cpp"
@@ -80,12 +86,15 @@ add_library(${OSN_NODE_NAME} SHARED
     "src/obspp/obspp-module.hpp"
     "src/obspp/obspp-module.cpp"
     "src/obspp/obspp-output.hpp"
+    "src/obspp/obspp-properties.hpp"
+    "src/obspp/obspp-properties.cpp"
     "src/obspp/obspp-scene.hpp"
     "src/obspp/obspp-scene.cpp"
     "src/obspp/obspp-service.hpp"
     "src/obspp/obspp-source.hpp"
     "src/obspp/obspp-source.cpp"
     "src/obspp/obspp-transition.hpp"
+    "src/obspp/obspp-transition.cpp"
     "src/obspp/obspp-video.hpp"
     "src/obspp/obspp-video.cpp"
 )

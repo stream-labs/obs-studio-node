@@ -10,37 +10,33 @@
 #include "Video.h"
 #include "Scene.h"
 #include "SceneItem.h"
-
-#include <sstream>
-#include <iostream>
+#include "Transition.h"
+#include "Properties.h"
 
 NAN_MODULE_INIT(node_initialize)
 {
-    using namespace osn;
-
-    auto global_ns = Nan::New<v8::Object>();
-    
-    Nan::SetAccessor(global_ns, FIELD_NAME("status"), osn::status);
-    Nan::SetAccessor(global_ns, FIELD_NAME("locale"), osn::locale, osn::locale);
-    Nan::SetAccessor(global_ns, FIELD_NAME("version"), osn::version);
-    Nan::SetMethod(global_ns, "startup", osn::startup);
-    Nan::SetMethod(global_ns, "shutdown", osn::shutdown);
+    Nan::SetAccessor(target, FIELD_NAME("status"), osn::status);
+    Nan::SetAccessor(target, FIELD_NAME("locale"), osn::locale, osn::locale);
+    Nan::SetAccessor(target, FIELD_NAME("version"), osn::version);
+    Nan::SetMethod(target, "startup", osn::startup);
+    Nan::SetMethod(target, "shutdown", osn::shutdown);
     //Nan::SetMethod(video_ns, "reset", osn::Video::reset);
 
     /* NOTE: Init order matters here. */
-    osn::IEncoder::Init(global_ns);
-    osn::Audio::Init(global_ns);
-    osn::AudioEncoder::Init(global_ns);
-    osn::Video::Init(global_ns);
-    osn::VideoEncoder::Init(global_ns);
-    osn::Display::Init(global_ns);
-    osn::Module::Init(global_ns);
-    osn::ISource::Init(global_ns);
-    osn::Input::Init(global_ns);
+    osn::IEncoder::Init(target);
+    osn::Audio::Init(target);
+    osn::AudioEncoder::Init(target);
+    osn::Video::Init(target);
+    osn::VideoEncoder::Init(target);
+    osn::Display::Init(target);
+    osn::Module::Init(target);
+    osn::ISource::Init(target);
+    osn::Input::Init(target);
     osn::SceneItem::Init();
-    osn::Scene::Init(global_ns);
-
-    Nan::Set(target, FIELD_NAME("obs"), global_ns);
+    osn::Scene::Init(target);
+    osn::Transition::Init(target);
+    osn::Properties::Init(target);
+    osn::Property::Init(target);
 }
 
 NODE_MODULE(obs_node, node_initialize)

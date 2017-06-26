@@ -7,16 +7,25 @@ source::source()
 {
 }
 
-source::source(std::string &id, std::string &name, obs_data_t *settings)
-    : m_handle(obs_source_create(id.c_str(), name.c_str(), settings, nullptr)),
+source::source(std::string &id, std::string &name, obs_data_t *settings, obs_data_t *hotkey)
+    : m_handle(obs_source_create(id.c_str(), name.c_str(), settings, hotkey)),
     m_status(status_type::okay)
 {
     /* obs_source_create implicitly creates a reference. */
-
     if (!m_handle)
         m_status = status_type::invalid;
 }
 
+source::source(std::string &id, std::string &name, obs_data_t *settings, bool is_private)
+{
+    if (is_private)
+        m_handle = obs_source_create_private(id.c_str(), name.c_str(), settings);
+    else
+        m_handle = obs_source_create(id.c_str(), name.c_str(), settings, NULL);
+
+    if (!m_handle)
+        m_status = status_type::invalid;
+}
 
 source::source(obs_source_t *source)
     : m_handle(source),
