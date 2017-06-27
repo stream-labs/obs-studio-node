@@ -3,6 +3,11 @@ cmake_minimum_required(VERSION 3.1)
 project(obs-studio-node VERSION 1.0.0)
 
 set(
+    ENABLE_DISTRIBUTION false
+    CACHE BOOL "Whether to pull in OBS distribution files"
+)
+
+set(
     OSN_NODE_NAME "obs_node"
     CACHE PATH "Name of the node binary output"
 )
@@ -162,61 +167,75 @@ set( OBS_DEPENDENCIES
 add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}")
 
-foreach( DEPENDENCY ${OBS_DEPENDENCIES})
+if (ENABLE_DISTRIBUTION)
+    foreach( DEPENDENCY ${OBS_DEPENDENCIES})
+        add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD 
+            COMMAND ${CMAKE_COMMAND}
+            ARGS -E copy ${DEPENDENCY} "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/"
+        )
+    endforeach()
+
+    add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory 
+        "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/data")
+
+    add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory 
+        "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/data/libobs")
+
+    add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory 
+        "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/data/obs-plugins")
+
+    function(copy_obs_plugin PLUGIN_NAME)
+        install(
+            DIRECTORY "${OBS_STUDIO_PATH}/plugins/${PLUGIN_NAME}/data"
+            DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/data/obs-plugins/${PLUGIN_NAME}"
+        )
+
+        install(
+            FILES
+            "${OBS_STUDIO_BUILD64}/plugins/${PLUGIN_NAME}/Debug/${PLUGIN_NAME}.dll"
+            "${OBS_STUDIO_BUILD64}/plugins/${PLUGIN_NAME}/Debug/${PLUGIN_NAME}.pdb"
+            DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/obs-plugins"
+        )
+    endfunction()
+
+    file(GLOB DATA_LIBOBS
+        "${OBS_STUDIO_PATH}/libobs/data/*")
+
+    foreach( DATA_FILES ${DATA_LIBOBS})
+        add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND}
+            ARGS -E copy ${DATA_FILES} "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/data/libobs")
+    endforeach()
+
+    copy_obs_plugin("image-source")
+    copy_obs_plugin("obs-ffmpeg")
+    copy_obs_plugin("obs-filters")
+    copy_obs_plugin("obs-outputs")
+    copy_obs_plugin("obs-qsv11")
+    copy_obs_plugin("obs-text")
+    copy_obs_plugin("obs-transitions")
+    copy_obs_plugin("obs-x264")
+    copy_obs_plugin("rtmp-services")
+    copy_obs_plugin("text-freetype2")
+    copy_obs_plugin("win-capture")
+    copy_obs_plugin("win-dshow")
+    copy_obs_plugin("win-mf")
+    copy_obs_plugin("win-wasapi")
+endif()
+
+set(MISC_FILES
+    "obs_node.js"
+    "obs_node.d.ts"
+)
+
+foreach(FILE ${MISC_FILES})
     add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD 
         COMMAND ${CMAKE_COMMAND}
-        ARGS -E copy ${DEPENDENCY} "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/"
+        ARGS -E copy "${CMAKE_SOURCE_DIR}/${FILE}" "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/"
     )
 endforeach()
-
-add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory 
-    "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/data")
-
-add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory 
-    "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/data/libobs")
-
-add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory 
-    "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/data/obs-plugins")
-
-function(copy_obs_plugin PLUGIN_NAME)
-    install(
-        DIRECTORY "${OBS_STUDIO_PATH}/plugins/${PLUGIN_NAME}/data"
-        DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/data/obs-plugins/${PLUGIN_NAME}"
-    )
-
-    install(
-        FILES
-        "${OBS_STUDIO_BUILD64}/plugins/${PLUGIN_NAME}/Debug/${PLUGIN_NAME}.dll"
-        "${OBS_STUDIO_BUILD64}/plugins/${PLUGIN_NAME}/Debug/${PLUGIN_NAME}.pdb"
-        DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/obs-plugins"
-    )
-endfunction()
-
-file(GLOB DATA_LIBOBS
-    "${OBS_STUDIO_PATH}/libobs/data/*")
-
-foreach( DATA_FILES ${DATA_LIBOBS})
-    add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND}
-        ARGS -E copy ${DATA_FILES} "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/data/libobs")
-endforeach()
-
-copy_obs_plugin("image-source")
-copy_obs_plugin("obs-ffmpeg")
-copy_obs_plugin("obs-filters")
-copy_obs_plugin("obs-outputs")
-copy_obs_plugin("obs-qsv11")
-copy_obs_plugin("obs-text")
-copy_obs_plugin("obs-transitions")
-copy_obs_plugin("obs-x264")
-copy_obs_plugin("rtmp-services")
-copy_obs_plugin("text-freetype2")
-copy_obs_plugin("win-capture")
-copy_obs_plugin("win-dshow")
-copy_obs_plugin("win-mf")
-copy_obs_plugin("win-wasapi")
 
 install(TARGETS ${OSN_NODE_NAME} simple_draw DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}")
