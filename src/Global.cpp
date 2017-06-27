@@ -1,11 +1,25 @@
-#include "Global.h"
 #include "obspp/obspp.hpp"
+
+#include "Global.h"
+#include "Common.h"
 
 namespace osn {
 
 #define OBS_VALID \
     if (obs::status() != obs::status_type::okay) \
         return;
+
+NAN_MODULE_INIT(Init)
+{
+    auto ObsGlobal = Nan::New<v8::Object>();
+
+    Nan::SetMethod(ObsGlobal, "startup", startup);
+    Nan::SetMethod(ObsGlobal, "shutdown", shutdown);
+    Nan::SetAccessor(ObsGlobal, FIELD_NAME("status"), status);
+    Nan::SetAccessor(ObsGlobal, FIELD_NAME("locale"), locale);
+
+    Nan::Set(target, FIELD_NAME("Global"), ObsGlobal);
+}
 
 NAN_METHOD(startup)
 {

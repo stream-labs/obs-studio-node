@@ -15,14 +15,11 @@
 
 NAN_MODULE_INIT(node_initialize)
 {
-    Nan::SetAccessor(target, FIELD_NAME("status"), osn::status);
-    Nan::SetAccessor(target, FIELD_NAME("locale"), osn::locale, osn::locale);
-    Nan::SetAccessor(target, FIELD_NAME("version"), osn::version);
-    Nan::SetMethod(target, "startup", osn::startup);
-    Nan::SetMethod(target, "shutdown", osn::shutdown);
-    //Nan::SetMethod(video_ns, "reset", osn::Video::reset);
-
     /* NOTE: Init order matters here. */
+    /* NOTE: Each one adds a corresponding
+       constructions function or object to
+       the module.exports equivalent */
+    osn::Init(target);
     osn::IEncoder::Init(target);
     osn::Audio::Init(target);
     osn::AudioEncoder::Init(target);
