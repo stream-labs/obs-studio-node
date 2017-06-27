@@ -231,11 +231,9 @@ set(MISC_FILES
     "obs_node.d.ts"
 )
 
-foreach(FILE ${MISC_FILES})
-    add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD 
-        COMMAND ${CMAKE_COMMAND}
-        ARGS -E copy "${CMAKE_SOURCE_DIR}/${FILE}" "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/"
-    )
-endforeach()
+install(
+    FILES ${MISC_FILES}
+    DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}"
+)
 
 install(TARGETS ${OSN_NODE_NAME} simple_draw DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}")
