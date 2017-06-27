@@ -22,9 +22,6 @@ public:
 
     bool showing();
 
-    uint32_t flags();
-    void flags(uint32_t flag);
-
     void audio_mixers(uint32_t mixer);
     uint32_t audio_mixers();
 

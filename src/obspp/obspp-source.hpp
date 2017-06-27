@@ -97,8 +97,13 @@ public:
     bool operator!() const;
     obs_source_t *dangerous();
     status_type status();
+    
+    uint32_t flags();
+    void flags(uint32_t flag);
+
     const std::string name();
     void name(std::string name);
+    
     const std::string id();
     bool configurable();
     uint32_t width();

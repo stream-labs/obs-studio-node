@@ -20,6 +20,8 @@ public:
     static NAN_MODULE_INIT(Init);
     static NAN_GETTER(name);
     static NAN_SETTER(name);
+    static NAN_GETTER(flags);
+    static NAN_SETTER(flags);
     static NAN_METHOD(remove);
     static NAN_METHOD(release);
     static NAN_GETTER(status);

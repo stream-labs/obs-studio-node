@@ -41,16 +41,6 @@ bool input::showing()
     return obs_source_showing(m_handle);
 }
 
-void input::flags(uint32_t flags)
-{
-    obs_source_set_flags(m_handle, flags);
-}
-
-uint32_t input::flags()
-{
-    return obs_source_get_flags(m_handle);
-}
-
 void input::audio_mixers(uint32_t flags)
 {
     obs_source_set_audio_mixers(m_handle, flags);

@@ -38,7 +38,6 @@ NAN_MODULE_INIT(Input::Init)
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("volume"), volume, volume);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("sync_offset"), sync_offset, sync_offset);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("showing"), showing);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("flags"), flags, flags);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("audio_mixers"), audio_mixers, audio_mixers);
     Nan::Set(target, FIELD_NAME("Input"), locProto->GetFunction());
     prototype.Reset(locProto);
@@ -98,26 +97,6 @@ NAN_GETTER(Input::showing)
     obs::input *handle = Input::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle->showing());
-}
-
-NAN_GETTER(Input::flags)
-{
-    obs::input *handle = Input::Object::GetHandle(info.Holder());
-
-    info.GetReturnValue().Set(handle->flags());
-}
-
-NAN_SETTER(Input::flags)
-{
-    obs::input *handle = Input::Object::GetHandle(info.Holder());
-
-    if (!value->IsUint32()) {
-        Nan::ThrowTypeError("Expected unsigned 32-bit integer");
-        return;
-    }
-
-    uint32_t flags = Nan::To<uint32_t>(value).FromJust();
-    handle->flags(flags);
 }
 
 NAN_GETTER(Input::audio_mixers)

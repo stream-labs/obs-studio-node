@@ -37,8 +37,6 @@ public:
     static NAN_GETTER(sync_offset);
     static NAN_SETTER(sync_offset);
     static NAN_GETTER(showing);
-    static NAN_GETTER(flags);
-    static NAN_SETTER(flags);
     static NAN_GETTER(audio_mixers);
     static NAN_SETTER(audio_mixers);
     static NAN_METHOD(add_filter);

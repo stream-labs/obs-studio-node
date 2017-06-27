@@ -19,6 +19,7 @@ NAN_MODULE_INIT(ISource::Init)
     auto locProto = Nan::New<v8::FunctionTemplate>();
     locProto->SetClassName(FIELD_NAME("Source"));
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("name"), name, name);
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("flags"), flags, flags);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("width"), width);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("height"), height);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("name"), name, name);
@@ -68,6 +69,26 @@ NAN_SETTER(ISource::name)
 
     Nan::Utf8String name(value);
     handle->name(*name);
+}
+
+NAN_GETTER(ISource::flags)
+{
+    obs::source *handle = ISource::GetHandle(info.Holder());
+
+    info.GetReturnValue().Set(handle->flags());
+}
+
+NAN_SETTER(ISource::flags)
+{
+    obs::source *handle = ISource::GetHandle(info.Holder());
+
+    if (!value->IsUint32()) {
+        Nan::ThrowTypeError("Expected unsigned 32-bit integer");
+        return;
+    }
+
+    uint32_t flags = Nan::To<uint32_t>(value).FromJust();
+    handle->flags(flags);
 }
 
 NAN_GETTER(ISource::status)
