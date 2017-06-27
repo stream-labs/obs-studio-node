@@ -3,6 +3,7 @@
 #include <nan.h>
 
 #include "obspp/obspp-properties.hpp"
+#include "Common.h"
 
 namespace osn {
 
@@ -15,8 +16,8 @@ public:
     static Nan::Persistent<v8::FunctionTemplate> prototype;
     obs::properties handle;
 
-    static v8::Local<v8::Object> Properties::GenerateObject(obs::properties &handle);
-    static obs::properties* GetHandle(v8::Local<v8::Object> object);
+    typedef common::Object<Properties, obs::properties> Object;
+    friend Object;
 
     Properties(obs::properties &properties);
     Properties(std::string id, obs::properties::object_type type);
@@ -39,8 +40,8 @@ public:
     static Nan::Persistent<v8::FunctionTemplate> prototype;
     obs::properties::property handle;
 
-    static v8::Local<v8::Object> GenerateObject(obs::properties::property handle);
-    static obs::properties::property* GetHandle(v8::Local<v8::Object> object);
+    typedef common::Object<Property, obs::properties::property> Object;
+    friend Object;
 
     Property(obs::properties::property &property);
 

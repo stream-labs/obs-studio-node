@@ -1,15 +1,8 @@
 #include "Scene.h"
 #include "SceneItem.h"
 #include "Input.h"
-#include "Common.h"
 
 namespace osn {
-
-obs::scene *Scene::GetHandle(v8::Local<v8::Object> object)
-{
-    Scene* scene = Nan::ObjectWrap::Unwrap<Scene>(object);
-    return &scene->handle;
-}
 
 obs::source *Scene::GetHandle()
 {
@@ -21,24 +14,25 @@ Scene::Scene(std::string name)
 {
 }
 
+Nan::Persistent<v8::FunctionTemplate> Scene::prototype =
+    Nan::Persistent<v8::FunctionTemplate>();
+
 NAN_MODULE_INIT(Scene::Init)
 {
-    auto locProto = Nan::New<v8::FunctionTemplate>(New);
+    auto locProto = Nan::New<v8::FunctionTemplate>();
     locProto->Inherit(Nan::New(ISource::prototype));
     locProto->SetClassName(FIELD_NAME("Scene"));
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
 
     Nan::SetMethod(locProto->PrototypeTemplate(), "add", add);
+    Nan::SetMethod(locProto, "create", create);
 
     Nan::Set(target, FIELD_NAME("Scene"), locProto->GetFunction());
+    prototype.Reset(locProto);
 }
 
-NAN_METHOD(Scene::New)
+NAN_METHOD(Scene::create)
 {
-    if (!info.IsConstructCall()) {
-        Nan::ThrowError("Must be used as a construct call");
-        return;
-    }
     if (info.Length() != 1) {
         Nan::ThrowError("Unexpected number of arguments");
         return;
@@ -50,21 +44,21 @@ NAN_METHOD(Scene::New)
 
     Nan::Utf8String name(info[0]);
 
-    Scene *object = new Scene(*name);
-    object->Wrap(info.This());
-    info.GetReturnValue().Set(info.This());
+    Scene *binding = new Scene(*name);
+    auto object = Scene::Object::GenerateObject(binding);
+    info.GetReturnValue().Set(object);
 }
 
 NAN_METHOD(Scene::add)
 {
-    obs::scene *scene = Scene::GetHandle(info.Holder());
+    obs::scene *scene = Scene::Object::GetHandle(info.Holder());
 
     if (info.Length() != 1) {
         Nan::ThrowError("Expected one argument");
         return;
     }
 
-    obs::input *input = Input::GetHandle(info[0]->ToObject());
+    obs::input *input = Input::Object::GetHandle(info[0]->ToObject());
 
     auto item_object = SceneItem::GenerateObject(scene->add(*input));
 

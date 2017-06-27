@@ -2,33 +2,11 @@
 
 #include "Input.h"
 #include "Filter.h"
-#include "Common.h"
 
 namespace osn {
 
 Nan::Persistent<v8::FunctionTemplate> Input::prototype = 
     Nan::Persistent<v8::FunctionTemplate>();
-
-v8::Local<v8::Object> Input::GenerateObject(obs::input input)
-{
-    Input *output_source = new Input(input);
-
-    v8::Local<v8::FunctionTemplate> input_templ =
-        Nan::New<v8::FunctionTemplate>(Input::prototype);
-
-    v8::Local<v8::Object> object = 
-        Nan::NewInstance(input_templ->InstanceTemplate()).ToLocalChecked();
-
-    output_source->Wrap(object);
-
-    return object;
-}
-
-obs::input* Input::GetHandle(v8::Local<v8::Object> object)
-{
-    Input* input = Nan::ObjectWrap::Unwrap<Input>(object);
-    return &input->handle;
-}
 
 Input::Input(std::string id, std::string name, obs_data_t *hotkey, obs_data_t *settings)
     : handle(id, name, hotkey, settings)
@@ -52,10 +30,11 @@ obs::source *Input::GetHandle()
 
 NAN_MODULE_INIT(Input::Init)
 {
-    auto locProto = Nan::New<v8::FunctionTemplate>(New);
+    auto locProto = Nan::New<v8::FunctionTemplate>();
     locProto->Inherit(Nan::New(ISource::prototype));
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("Input"));
+    Nan::SetMethod(locProto->PrototypeTemplate(), "create", create);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("volume"), volume, volume);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("sync_offset"), sync_offset, sync_offset);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("showing"), showing);
@@ -65,16 +44,13 @@ NAN_MODULE_INIT(Input::Init)
     prototype.Reset(locProto);
 }
 
-NAN_METHOD(Input::New)
+NAN_METHOD(Input::create)
 {
-    if (!info.IsConstructCall()) {
-        Nan::ThrowError("Must be used as a construct call");
-        return;
-    }
     if (info.Length() < 2) {
         Nan::ThrowError("Too few arguments provided");
         return;
     }
+    
     if (!info[0]->IsString() || !info[1]->IsString()) {
         Nan::ThrowError("Invalid type passed");
         return;
@@ -82,21 +58,21 @@ NAN_METHOD(Input::New)
     
     Nan::Utf8String id(info[0]);
     Nan::Utf8String name(info[1]);
-    Input *object = new Input(*id, *name, nullptr, nullptr);
-    object->Wrap(info.This());
-    info.GetReturnValue().Set(info.This());
+    Input *binding = new Input(*id, *name, nullptr, nullptr);
+    auto object = Input::Object::GenerateObject(binding);
+    info.GetReturnValue().Set(object);
 }
 
 NAN_GETTER(Input::volume)
 {
-    obs::input *handle = Input::GetHandle(info.Holder());
+    obs::input *handle = Input::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle->volume());
 }
 
 NAN_SETTER(Input::volume)
 {
-    obs::input *handle = Input::GetHandle(info.Holder());
+    obs::input *handle = Input::Object::GetHandle(info.Holder());
 
     if (!value->IsNumber()) {
         Nan::ThrowTypeError("Expected number");
@@ -119,21 +95,21 @@ NAN_SETTER(Input::sync_offset)
 
 NAN_GETTER(Input::showing)
 {
-    obs::input *handle = Input::GetHandle(info.Holder());
+    obs::input *handle = Input::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle->showing());
 }
 
 NAN_GETTER(Input::flags)
 {
-    obs::input *handle = Input::GetHandle(info.Holder());
+    obs::input *handle = Input::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle->flags());
 }
 
 NAN_SETTER(Input::flags)
 {
-    obs::input *handle = Input::GetHandle(info.Holder());
+    obs::input *handle = Input::Object::GetHandle(info.Holder());
 
     if (!value->IsUint32()) {
         Nan::ThrowTypeError("Expected unsigned 32-bit integer");
@@ -146,14 +122,14 @@ NAN_SETTER(Input::flags)
 
 NAN_GETTER(Input::audio_mixers)
 {
-    obs::input *handle = Input::GetHandle(info.Holder());
+    obs::input *handle = Input::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle->audio_mixers());
 }
 
 NAN_SETTER(Input::audio_mixers)
 {
-    obs::input *handle = Input::GetHandle(info.Holder());
+    obs::input *handle = Input::Object::GetHandle(info.Holder());
 
     if (!value->IsUint32()) {
         Nan::ThrowTypeError("Expected unsigned 32-bit integer");
@@ -166,7 +142,7 @@ NAN_SETTER(Input::audio_mixers)
 
 NAN_METHOD(Input::add_filter)
 {
-    obs::input *handle = Input::GetHandle(info.Holder());
+    obs::input *handle = Input::Object::GetHandle(info.Holder());
 
     if (!info[0]->IsObject()) {
         Nan::ThrowError("Expected object");
@@ -175,14 +151,14 @@ NAN_METHOD(Input::add_filter)
 
     auto filter_object = Nan::To<v8::Object>(info[0]).ToLocalChecked();
 
-    obs::filter *filter = Filter::GetHandle(filter_object);
+    obs::filter *filter = Filter::Object::GetHandle(filter_object);
 
     handle->add_filter(*filter);
 }
 
 NAN_METHOD(Input::remove_filter)
 {
-    obs::input *handle = Input::GetHandle(info.Holder());
+    obs::input *handle = Input::Object::GetHandle(info.Holder());
 
     if (!info[0]->IsObject()) {
         Nan::ThrowError("Expected object");
@@ -191,7 +167,7 @@ NAN_METHOD(Input::remove_filter)
 
     auto filter_object = Nan::To<v8::Object>(info[0]).ToLocalChecked();
 
-    obs::filter *filter = Filter::GetHandle(filter_object);
+    obs::filter *filter = Filter::Object::GetHandle(filter_object);
 
     handle->remove_filter(*filter);
 }

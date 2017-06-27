@@ -1,31 +1,9 @@
 #include "Transition.h"
 #include "Input.h"
-#include "Common.h"
 
 namespace osn {
 
 Nan::Persistent<v8::FunctionTemplate> Transition::prototype;
-
-v8::Local<v8::Object> Transition::GenerateObject(obs::transition transition)
-{
-    Transition *handle = new Transition(transition);
-
-    v8::Local<v8::FunctionTemplate> trans_templ =
-        Nan::New<v8::FunctionTemplate>(Transition::prototype);
-
-    v8::Local<v8::Object> object = 
-        Nan::NewInstance(trans_templ->InstanceTemplate()).ToLocalChecked();
-
-    handle->Wrap(object);
-
-    return object;
-}
-
-obs::transition* Transition::GetHandle(v8::Local<v8::Object> object)
-{
-    Transition* transition = Nan::ObjectWrap::Unwrap<Transition>(object);
-    return &transition->handle;
-}
 
 Transition::Transition(std::string id, std::string name, obs_data_t *settings)
  : handle(id, name, settings)
@@ -44,7 +22,7 @@ obs::source *Transition::GetHandle()
 
 NAN_MODULE_INIT(Transition::Init)
 {
-    auto locProto = Nan::New<v8::FunctionTemplate>(New);
+    auto locProto = Nan::New<v8::FunctionTemplate>();
     locProto->Inherit(Nan::New(ISource::prototype));
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("Transition"));
@@ -53,13 +31,8 @@ NAN_MODULE_INIT(Transition::Init)
     prototype.Reset(locProto);
 }
 
-NAN_METHOD(Transition::New)
+NAN_METHOD(Transition::create)
 {
-    if (!info.IsConstructCall()) {
-        Nan::ThrowError("Must be used as a construct call");
-        return;
-    }
-
     if (info.Length() < 2) {
         Nan::ThrowError("Too few arguments provided");
         return;
@@ -72,14 +45,14 @@ NAN_METHOD(Transition::New)
     
     Nan::Utf8String id(info[0]);
     Nan::Utf8String name(info[1]);
-    Transition *object = new Transition(*id, *name, nullptr);
-    object->Wrap(info.This());
-    info.GetReturnValue().Set(info.This());
+    Transition *binding = new Transition(*id, *name, nullptr);
+    auto object = Transition::Object::GenerateObject(binding);
+    info.GetReturnValue().Set(object);
 }
 
 NAN_METHOD(Transition::start)
 {
-    obs::transition *handle = Transition::GetHandle(info.Holder());
+    obs::transition *handle = Transition::Object::GetHandle(info.Holder());
 
     if (info.Length() != 2) {
         Nan::ThrowError("Unexpected number of arguments");
@@ -99,7 +72,7 @@ NAN_METHOD(Transition::start)
     int ms = Nan::To<int32_t>(info[0]).FromJust();
 
     auto source_object = Nan::To<v8::Object>(info[1]).ToLocalChecked();
-    obs::input *source = Input::GetHandle(source_object);
+    obs::input *source = Input::Object::GetHandle(source_object);
 
     handle->start(ms, *source);
 }

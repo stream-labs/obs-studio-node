@@ -1,31 +1,9 @@
 #include "Properties.h"
-#include "Common.h"
 
 namespace osn {
 
 Nan::Persistent<v8::FunctionTemplate> Properties::prototype = 
     Nan::Persistent<v8::FunctionTemplate>();
-
-v8::Local<v8::Object> Properties::GenerateObject(obs::properties &handle)
-{
-    Properties *bindings = new Properties(handle);
-
-    v8::Local<v8::FunctionTemplate> templ =
-        Nan::New<v8::FunctionTemplate>(Properties::prototype);
-
-    v8::Local<v8::Object> object = 
-        Nan::NewInstance(templ->InstanceTemplate()).ToLocalChecked();
-
-    bindings->Wrap(object);
-
-    return object;
-}
-
-obs::properties* Properties::GetHandle(v8::Local<v8::Object> object)
-{
-    Properties* properties = Nan::ObjectWrap::Unwrap<Properties>(object);
-    return &properties->handle;
-}
 
 Properties::Properties(obs::properties &handle)
  : handle(handle)
@@ -81,23 +59,24 @@ NAN_METHOD(Properties::New)
 
 NAN_GETTER(Properties::status)
 {
-    obs::properties *handle = Properties::GetHandle(info.Holder());
+    obs::properties *handle = Properties::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle->status());
 }
 
 NAN_METHOD(Properties::first)
 {
-    obs::properties *handle = Properties::GetHandle(info.Holder());
+    obs::properties *handle = Properties::Object::GetHandle(info.Holder());
 
-    auto object = Property::GenerateObject(handle->first());
+    Property *binding = new Property(handle->first());
+    auto object = Property::Object::GenerateObject(binding);
 
     info.GetReturnValue().Set(object);
 }
 
 NAN_METHOD(Properties::get)
 {
-    obs::properties *handle = Properties::GetHandle(info.Holder());
+    obs::properties *handle = Properties::Object::GetHandle(info.Holder());
 
     if (info.Length() != 1 || !info[0]->IsString()) {
         Nan::ThrowError("Unexpected arguments");
@@ -106,7 +85,8 @@ NAN_METHOD(Properties::get)
 
     Nan::Utf8String property_name(info[0]);
     
-    auto object = Property::GenerateObject(handle->get(*property_name));
+    Property *binding = new Property(handle->get(*property_name));
+    auto object = Property::Object::GenerateObject(binding);
 
     info.GetReturnValue().Set(object);
 }
@@ -122,27 +102,6 @@ Nan::Persistent<v8::FunctionTemplate> Property::prototype =
 Property::Property(obs::properties::property &property)
  : handle(property)
 {
-}
-
-v8::Local<v8::Object> Property::GenerateObject(obs::properties::property handle)
-{
-    Property *bindings = new Property(handle);
-
-    v8::Local<v8::FunctionTemplate> templ =
-        Nan::New<v8::FunctionTemplate>(Properties::prototype);
-
-    v8::Local<v8::Object> object = 
-        Nan::NewInstance(templ->InstanceTemplate()).ToLocalChecked();
-
-    bindings->Wrap(object);
-
-    return object;
-}
-
-obs::properties::property* Property::GetHandle(v8::Local<v8::Object> object)
-{
-    Property* property = Nan::ObjectWrap::Unwrap<Property>(object);
-    return &property->handle;
 }
 
 NAN_MODULE_INIT(Property::Init)
@@ -165,56 +124,56 @@ NAN_MODULE_INIT(Property::Init)
 
 NAN_GETTER(Property::status)
 {
-    obs::properties::property *handle = Property::GetHandle(info.Holder());
+    obs::properties::property *handle = Property::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle->status());
 }
 
 NAN_GETTER(Property::name)
 {
-    obs::properties::property *handle = Property::GetHandle(info.Holder());
+    obs::properties::property *handle = Property::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(Nan::New(handle->name().c_str()).ToLocalChecked());
 }
 
 NAN_GETTER(Property::description)
 {
-    obs::properties::property *handle = Property::GetHandle(info.Holder());
+    obs::properties::property *handle = Property::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(Nan::New(handle->description().c_str()).ToLocalChecked());
 }
 
 NAN_GETTER(Property::long_description)
 {
-    obs::properties::property *handle = Property::GetHandle(info.Holder());
+    obs::properties::property *handle = Property::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(Nan::New(handle->long_description().c_str()).ToLocalChecked());
 }
 
 NAN_GETTER(Property::type)
 {
-    obs::properties::property *handle = Property::GetHandle(info.Holder());
+    obs::properties::property *handle = Property::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle->type());
 }
 
 NAN_GETTER(Property::enabled)
 {
-    obs::properties::property *handle = Property::GetHandle(info.Holder());
+    obs::properties::property *handle = Property::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle->enabled());
 }
 
 NAN_GETTER(Property::visible)
 {
-    obs::properties::property *handle = Property::GetHandle(info.Holder());
+    obs::properties::property *handle = Property::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle->visible());
 }
 
 NAN_METHOD(Property::next)
 {
-    obs::properties::property *handle = Property::GetHandle(info.Holder());
+    obs::properties::property *handle = Property::Object::GetHandle(info.Holder());
 
     handle->next();
 }

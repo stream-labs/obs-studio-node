@@ -5,6 +5,7 @@
 
 #include "ISource.h"
 #include "Video.h"
+#include "Common.h"
 
 namespace osn {
 
@@ -19,10 +20,10 @@ class Input : public ISource
 public:
     static Nan::Persistent<v8::FunctionTemplate> prototype;
 
-    obs::input handle;
+    typedef common::Object<Input, obs::input> Object;
+    friend Object;
 
-    static v8::Local<v8::Object> GenerateObject(obs::input input);
-    static obs::input* GetHandle(v8::Local<v8::Object> object);
+    obs::input handle;
 
     Input(obs::input &input);
     Input(std::string id, std::string name, obs_data_t *hotkey, obs_data_t *settings);
@@ -30,7 +31,7 @@ public:
 
     virtual obs::source *GetHandle();
     static NAN_MODULE_INIT(Init);
-    static NAN_METHOD(New);
+    static NAN_METHOD(create);
     static NAN_GETTER(volume);
     static NAN_SETTER(volume);
     static NAN_GETTER(sync_offset);

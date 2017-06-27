@@ -86,8 +86,10 @@ NAN_METHOD(Video::output)
 
     switch(info.Length()) {
     case 1: {
+        Input *binding = new Input(obs::video::output(channel));
+
         v8::Local<v8::Object> object = 
-            Input::GenerateObject(obs::video::output(channel));
+            Input::Object::GenerateObject(binding);
 
         info.GetReturnValue().Set(object);
         break;
@@ -101,7 +103,7 @@ NAN_METHOD(Video::output)
         }
 
         obs::input *handle = 
-            Input::GetHandle(info[1]->ToObject());
+            Input::Object::GetHandle(info[1]->ToObject());
 
         obs::video::output(channel, *handle);
         break;
