@@ -3,6 +3,14 @@
 
 namespace obs {
 
+properties::properties(obs::properties &&properties)
+ : m_handle(properties.m_handle),
+   m_status(properties.m_status)
+{
+    properties.m_handle = nullptr;
+    properties.m_status = status_type::invalid;
+}
+
 properties::properties(obs_properties_t *properties)
  : m_handle(properties),
    m_status(status_type::okay)

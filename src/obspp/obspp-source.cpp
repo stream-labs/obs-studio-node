@@ -117,6 +117,16 @@ bool source::configurable()
     return obs_source_configurable(m_handle);
 }
 
+obs::properties source::properties()
+{
+    return std::move(obs::properties(obs_source_properties(m_handle)));
+}
+
+void source::update(obs_data_t *data)
+{
+    obs_source_update(m_handle, data);
+}
+
 uint32_t source::height()
 {
     return obs_source_get_height(m_handle);

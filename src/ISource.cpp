@@ -1,4 +1,5 @@
 #include "ISource.h"
+#include "Properties.h"
 #include "Common.h"
 
 /* FIXME or NOTE:
@@ -26,6 +27,7 @@ NAN_MODULE_INIT(ISource::Init)
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("status"), status);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("id"), id);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("configurable"), configurable);
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("properties"), properties);
 
     Nan::SetMethod(locProto->PrototypeTemplate(), "release", release);
     Nan::SetMethod(locProto->PrototypeTemplate(), "remove", remove);
@@ -110,6 +112,23 @@ NAN_GETTER(ISource::configurable)
     obs::source *handle = ISource::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle->configurable());
+}
+
+NAN_GETTER(ISource::properties)
+{
+    obs::source *handle = ISource::GetHandle(info.Holder());
+
+    Properties *bindings = new Properties(handle->properties());
+    auto object = Properties::Object::GenerateObject(bindings);
+
+    info.GetReturnValue().Set(object);
+}
+
+NAN_METHOD(ISource::update)
+{
+    obs::source *handle = ISource::GetHandle(info.Holder());
+
+
 }
 
 NAN_GETTER(ISource::width)

@@ -5,8 +5,8 @@ namespace osn {
 Nan::Persistent<v8::FunctionTemplate> Properties::prototype = 
     Nan::Persistent<v8::FunctionTemplate>();
 
-Properties::Properties(obs::properties &handle)
- : handle(handle)
+Properties::Properties(obs::properties &&handle)
+ : handle(std::move(handle))
 {
 }
 

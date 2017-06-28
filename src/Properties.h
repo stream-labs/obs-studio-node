@@ -7,10 +7,6 @@
 
 namespace osn {
 
-/* WARNING: Properties destroys itself once the object
-   is out of scope and ON DESTRUCTION. This means be 
-   careful about passing properties by value */
-
 class Properties : public Nan::ObjectWrap {
 public:
     static Nan::Persistent<v8::FunctionTemplate> prototype;
@@ -19,7 +15,8 @@ public:
     typedef common::Object<Properties, obs::properties> Object;
     friend Object;
 
-    Properties(obs::properties &properties);
+    Properties(obs::properties &properties) = delete;
+    Properties(obs::properties &&properties);
     Properties(std::string id, obs::properties::object_type type);
 
     static NAN_MODULE_INIT(Init);
