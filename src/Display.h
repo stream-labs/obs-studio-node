@@ -21,12 +21,12 @@ public:
      * not done in javascript) */
     static NAN_GETTER(status);
     static NAN_METHOD(destroy);
-    static NAN_METHOD(add_drawer);
-    static NAN_METHOD(remove_drawer);
+    static NAN_METHOD(addDrawer);
+    static NAN_METHOD(removeDrawer);
     static NAN_METHOD(resize);
     static NAN_GETTER(enabled);
     static NAN_SETTER(enabled);
-    static NAN_SETTER(background_color);
+    static NAN_SETTER(backgroundColor);
 };
 
 };

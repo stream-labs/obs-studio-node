@@ -39,18 +39,18 @@ void SceneItem::Init()
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("rotation"), rotation, rotation);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("scale"), scale, scale);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("alignment"), alignment, alignment);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("bounds_alignment"), bounds_alignment, bounds_alignment);
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("boundsAlignment"), boundsAlignment, boundsAlignment);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("bounds"), bounds, bounds);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("transform_info"), transform_info, transform_info);
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("transformInfo"), transformInfo, transformInfo);
     // Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("order"), 0, order);
-    // Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("order_position"), 0, order_position);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("bounds_type"), bounds_type, bounds_type);
+    // Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("orderPosition"), 0, orderPosition);
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("boundsType"), boundsType, boundsType);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("crop"), crop, crop);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("scale_filter"), scale_filter, scale_filter);
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("scaleFilter"), scaleFilter, scaleFilter);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("id"), id);
     Nan::SetMethod(locProto->PrototypeTemplate(), "remove", remove);
-    Nan::SetMethod(locProto->PrototypeTemplate(), "defer_update_begin", defer_update_begin);
-    Nan::SetMethod(locProto->PrototypeTemplate(), "defer_update_end", defer_update_end);
+    Nan::SetMethod(locProto->PrototypeTemplate(), "deferUpdateBegin", deferUpdateBegin);
+    Nan::SetMethod(locProto->PrototypeTemplate(), "deferUpdateEnd", deferUpdateEnd);
     locProto->SetClassName(FIELD_NAME("SceneItem"));
     prototype.Reset(locProto);
 }
@@ -202,7 +202,7 @@ NAN_GETTER(SceneItem::alignment)
     info.GetReturnValue().Set(handle->alignment());
 }
 
-NAN_SETTER(SceneItem::bounds_alignment)
+NAN_SETTER(SceneItem::boundsAlignment)
 {
     obs::scene::item *handle = SceneItem::GetHandle(info.Holder());
 
@@ -215,7 +215,7 @@ NAN_SETTER(SceneItem::bounds_alignment)
     handle->bounds_alignment(alignment);
 }
 
-NAN_GETTER(SceneItem::bounds_alignment)
+NAN_GETTER(SceneItem::boundsAlignment)
 {
     obs::scene::item *handle = SceneItem::GetHandle(info.Holder());
 
@@ -256,13 +256,13 @@ NAN_GETTER(SceneItem::bounds)
     info.GetReturnValue().Set(object);
 }
 
-NAN_SETTER(SceneItem::transform_info)
+NAN_SETTER(SceneItem::transformInfo)
 {
     obs::scene::item *handle = SceneItem::GetHandle(info.Holder());
 
 }
 
-NAN_GETTER(SceneItem::transform_info)
+NAN_GETTER(SceneItem::transformInfo)
 {
     obs::scene::item *handle = SceneItem::GetHandle(info.Holder());
 
@@ -274,19 +274,19 @@ NAN_SETTER(SceneItem::order)
 
 }
 
-NAN_SETTER(SceneItem::order_position)
+NAN_SETTER(SceneItem::orderPosition)
 {
     obs::scene::item *handle = SceneItem::GetHandle(info.Holder());
 
 }
 
-NAN_SETTER(SceneItem::bounds_type)
+NAN_SETTER(SceneItem::boundsType)
 {
     obs::scene::item *handle = SceneItem::GetHandle(info.Holder());
 
 }
 
-NAN_GETTER(SceneItem::bounds_type)
+NAN_GETTER(SceneItem::boundsType)
 {
     obs::scene::item *handle = SceneItem::GetHandle(info.Holder());
 
@@ -304,26 +304,26 @@ NAN_GETTER(SceneItem::crop)
 
 }
 
-NAN_SETTER(SceneItem::scale_filter)
+NAN_SETTER(SceneItem::scaleFilter)
 {
     obs::scene::item *handle = SceneItem::GetHandle(info.Holder());
 
 }
 
-NAN_GETTER(SceneItem::scale_filter)
+NAN_GETTER(SceneItem::scaleFilter)
 {
     obs::scene::item *handle = SceneItem::GetHandle(info.Holder());
 
 }
 
-NAN_METHOD(SceneItem::defer_update_begin)
+NAN_METHOD(SceneItem::deferUpdateBegin)
 {
     obs::scene::item *handle = SceneItem::GetHandle(info.Holder());
 
     handle->defer_update_begin();
 }
 
-NAN_METHOD(SceneItem::defer_update_end)
+NAN_METHOD(SceneItem::deferUpdateEnd)
 {
     obs::scene::item *handle = SceneItem::GetHandle(info.Holder());
 

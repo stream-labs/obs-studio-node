@@ -39,12 +39,12 @@ NAN_MODULE_INIT(Module::Init)
     prototype->SetClassName(FIELD_NAME("Module"));
     prototype->InstanceTemplate()->SetInternalFieldCount(1);
 
-    Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("file_name"), file_name);
+    Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("fileName"), fileName);
     Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("name"), name);
     Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("author"), author);
     Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("description"), description);
-    Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("bin_path"), bin_path);
-    Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("data_path"), data_path);
+    Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("binPath"), binPath);
+    Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("dataPath"), dataPath);
     Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("status"), status);
 
     Nan::SetMethod(module_ns, "load_all", load_all);
@@ -96,7 +96,7 @@ NAN_METHOD(Module::initialize)
     handle.initialize();
 }
 
-NAN_GETTER(Module::file_name)
+NAN_GETTER(Module::fileName)
 {
     MODULE_UNWRAP
 
@@ -124,14 +124,14 @@ NAN_GETTER(Module::description)
     info.GetReturnValue().Set(Nan::New(handle.description()).ToLocalChecked());
 }
 
-NAN_GETTER(Module::bin_path)
+NAN_GETTER(Module::binPath)
 {
     MODULE_UNWRAP
 
     info.GetReturnValue().Set(Nan::New(handle.binary_path()).ToLocalChecked());
 }
 
-NAN_GETTER(Module::data_path)
+NAN_GETTER(Module::dataPath)
 {
     MODULE_UNWRAP
 

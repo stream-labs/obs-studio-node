@@ -40,30 +40,30 @@ public:
     static NAN_SETTER(alignment);
     static NAN_GETTER(alignment);
 
-    static NAN_SETTER(bounds_alignment);
-    static NAN_GETTER(bounds_alignment);
+    static NAN_SETTER(boundsAlignment);
+    static NAN_GETTER(boundsAlignment);
 
     static NAN_SETTER(bounds);
     static NAN_GETTER(bounds);
 
-    static NAN_SETTER(transform_info);
-    static NAN_GETTER(transform_info);
+    static NAN_SETTER(transformInfo);
+    static NAN_GETTER(transformInfo);
 
     static NAN_SETTER(order);
 
-    static NAN_SETTER(order_position);
+    static NAN_SETTER(orderPosition);
 
-    static NAN_SETTER(bounds_type);
-    static NAN_GETTER(bounds_type);
+    static NAN_SETTER(boundsType);
+    static NAN_GETTER(boundsType);
 
     static NAN_SETTER(crop);
     static NAN_GETTER(crop);
 
-    static NAN_SETTER(scale_filter);
-    static NAN_GETTER(scale_filter);
+    static NAN_SETTER(scaleFilter);
+    static NAN_GETTER(scaleFilter);
 
-    static NAN_METHOD(defer_update_begin);
-    static NAN_METHOD(defer_update_end);
+    static NAN_METHOD(deferUpdateBegin);
+    static NAN_METHOD(deferUpdateEnd);
 };
 
 }

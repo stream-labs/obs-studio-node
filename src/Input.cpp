@@ -36,9 +36,9 @@ NAN_MODULE_INIT(Input::Init)
     locProto->SetClassName(FIELD_NAME("Input"));
     Nan::SetMethod(locProto->PrototypeTemplate(), "create", create);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("volume"), volume, volume);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("sync_offset"), sync_offset, sync_offset);
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("syncOffset"), syncOffset, syncOffset);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("showing"), showing);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("audio_mixers"), audio_mixers, audio_mixers);
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("audioMixers"), audioMixers, audioMixers);
     Nan::Set(target, FIELD_NAME("Input"), locProto->GetFunction());
     prototype.Reset(locProto);
 }
@@ -82,12 +82,12 @@ NAN_SETTER(Input::volume)
     handle->volume(volume);
 }
 
-NAN_GETTER(Input::sync_offset)
+NAN_GETTER(Input::syncOffset)
 {
     /* TODO Needs a 64-bit offset */
 }
 
-NAN_SETTER(Input::sync_offset)
+NAN_SETTER(Input::syncOffset)
 {
     /* TODO Needs a 64-bit offset */
 }
@@ -99,14 +99,14 @@ NAN_GETTER(Input::showing)
     info.GetReturnValue().Set(handle->showing());
 }
 
-NAN_GETTER(Input::audio_mixers)
+NAN_GETTER(Input::audioMixers)
 {
     obs::input *handle = Input::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle->audio_mixers());
 }
 
-NAN_SETTER(Input::audio_mixers)
+NAN_SETTER(Input::audioMixers)
 {
     obs::input *handle = Input::Object::GetHandle(info.Holder());
 

@@ -84,8 +84,8 @@ NAN_MODULE_INIT(Display::Init)
     auto prototype = Nan::New<v8::FunctionTemplate>(New);
     prototype->InstanceTemplate()->SetInternalFieldCount(1);
     prototype->SetClassName(FIELD_NAME("Display"));
-    Nan::SetPrototypeMethod(prototype, "add_drawer", add_drawer);
-    Nan::SetPrototypeMethod(prototype, "remove_drawer", remove_drawer);
+    Nan::SetPrototypeMethod(prototype, "addDrawer", addDrawer);
+    Nan::SetPrototypeMethod(prototype, "removeDrawer", removeDrawer);
     Nan::SetPrototypeMethod(prototype, "resize", resize);
     Nan::SetPrototypeMethod(prototype, "destroy", destroy);
     Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("status"), status);
@@ -187,7 +187,7 @@ NAN_METHOD(Display::destroy)
     handle.destroy();
 }
 
-NAN_METHOD(Display::add_drawer)
+NAN_METHOD(Display::addDrawer)
 {
     UNWRAP_DISPLAY
 
@@ -206,7 +206,7 @@ NAN_METHOD(Display::add_drawer)
     }
 }
 
-NAN_METHOD(Display::remove_drawer)
+NAN_METHOD(Display::removeDrawer)
 {
     /* TODO */
 }
@@ -245,7 +245,7 @@ NAN_SETTER(Display::enabled)
     handle.enabled(is_enabled);
 }
 
-NAN_SETTER(Display::background_color)
+NAN_SETTER(Display::backgroundColor)
 {
     UNWRAP_DISPLAY
 

@@ -28,12 +28,12 @@ public:
 
     /* Instance Scope */
     static NAN_METHOD(initialize);
-    static NAN_GETTER(file_name);
+    static NAN_GETTER(fileName);
     static NAN_GETTER(name);
     static NAN_GETTER(author);
     static NAN_GETTER(description);
-    static NAN_GETTER(bin_path);
-    static NAN_GETTER(data_path);
+    static NAN_GETTER(binPath);
+    static NAN_GETTER(dataPath);
     static NAN_GETTER(status);
 };
 

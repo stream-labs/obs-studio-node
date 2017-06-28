@@ -134,9 +134,9 @@ export class ObsInput implements ObsSource {
     private constructor();
     static create(id: string, name: string, hotkeys?: object, settings?: object): ObsInput;
     volume: number;
-    sync_offset: number;
+    syncOffset: number;
     showing: boolean;
-    audio_mixers: number;
+    audioMixers: number;
 
     readonly filters: ObsFilter[];
 
@@ -213,19 +213,19 @@ export class ObsSceneItem {
     rotation: number;
     scale: IVec2;
     alignment: number;
-    bounds_alignment: number;
+    boundsAlignment: number;
     bounds: IVec2;
-    bounds_type: number;
-    scale_filter: number;
+    boundsType: number;
+    scaleFilter: number;
     // transform_info: TTransformInfo;
     // crop: TCropInfo;
 
     order(movement: EOrderMovement): void;
-    order_position(pos: number): void;
+    orderPosition(pos: number): void;
 
 
-    defer_update_begin(): void;
-    defer_update_end(): void;
+    defeUpdateBegin(): void;
+    deferUpdateEnd(): void;
 }
 
 /**
@@ -235,7 +235,7 @@ export class ObsProperty {
     status: number;
     name: string;
     description: string;
-    long_description: string;
+    longDescription: string;
     type: number;
     enabled: boolean;
     visible: boolean;

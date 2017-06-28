@@ -34,11 +34,11 @@ public:
     static NAN_METHOD(create);
     static NAN_GETTER(volume);
     static NAN_SETTER(volume);
-    static NAN_GETTER(sync_offset);
-    static NAN_SETTER(sync_offset);
+    static NAN_GETTER(syncOffset);
+    static NAN_SETTER(syncOffset);
     static NAN_GETTER(showing);
-    static NAN_GETTER(audio_mixers);
-    static NAN_SETTER(audio_mixers);
+    static NAN_GETTER(audioMixers);
+    static NAN_SETTER(audioMixers);
     static NAN_METHOD(add_filter);
     static NAN_METHOD(remove_filter);
 };
