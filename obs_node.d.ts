@@ -60,6 +60,7 @@ export interface ObsSource {
     release(): void;
     remove(): void;
 
+    readonly properties: ObsProperties;
     readonly status: number;
     readonly id: string;
     readonly configurable: boolean;
@@ -83,6 +84,7 @@ export class ObsFilter implements ObsSource {
     release(): void;
     remove(): void;
 
+    readonly properties: ObsProperties;
     readonly status: number;
     readonly id: string;
     readonly configurable: boolean;
@@ -109,6 +111,7 @@ export class ObsTransition implements ObsSource {
     release(): void;
     remove(): void;
 
+    readonly properties: ObsProperties;
     readonly status: number;
     readonly id: string;
     readonly configurable: boolean;
@@ -133,6 +136,7 @@ export class ObsTransition implements ObsSource {
 export class ObsInput implements ObsSource {
     private constructor();
     static create(id: string, name: string, hotkeys?: object, settings?: object): ObsInput;
+    static fromName(name: string): ObsInput;
     volume: number;
     syncOffset: number;
     showing: boolean;
@@ -144,6 +148,7 @@ export class ObsInput implements ObsSource {
     release(): void;
     remove(): void;
 
+    readonly properties: ObsProperties;
     readonly status: number;
     readonly id: string;
     readonly configurable: boolean;
@@ -165,6 +170,7 @@ export class ObsInput implements ObsSource {
  */
 export class ObsScene implements ObsSource {
     static create(name: string): ObsScene;
+    static fromName(name: string): ObsScene;
     private constructor();
     add(source: ObsInput): ObsSceneItem;
 
@@ -172,6 +178,7 @@ export class ObsScene implements ObsSource {
     release(): void;
     remove(): void;
 
+    readonly properties: ObsProperties;
     readonly status: number;
     readonly id: string;
     readonly configurable: boolean;
