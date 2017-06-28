@@ -32,6 +32,7 @@ public:
     virtual obs::source *GetHandle();
     static NAN_MODULE_INIT(Init);
     static NAN_METHOD(create);
+    static NAN_METHOD(fromName);
     static NAN_GETTER(volume);
     static NAN_SETTER(volume);
     static NAN_GETTER(syncOffset);

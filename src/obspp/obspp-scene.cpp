@@ -30,6 +30,25 @@ scene::scene(obs_scene_t *scene)
     m_handle = obs_scene_get_source(scene);
 }
 
+scene::scene(obs_source_t *source)
+ : m_scene(obs_scene_from_source(source))
+{
+    if (!m_scene) {
+        m_status = status_type::invalid;
+        m_handle = nullptr;
+        return;
+    }
+
+    m_handle = source;
+}
+
+scene scene::from_name(std::string name)
+{
+    obs_source_t *source = obs_get_source_by_name(name.c_str());
+    obs_source_release(source);
+    return obs::scene(source);
+}
+
 bool scene::operator!()
 {
     return m_status != status_type::okay;

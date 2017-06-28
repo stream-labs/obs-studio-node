@@ -14,6 +14,11 @@ Scene::Scene(std::string name)
 {
 }
 
+Scene::Scene(obs::scene &handle)
+ : handle(handle)
+{
+}
+
 Nan::Persistent<v8::FunctionTemplate> Scene::prototype =
     Nan::Persistent<v8::FunctionTemplate>();
 
@@ -26,6 +31,7 @@ NAN_MODULE_INIT(Scene::Init)
 
     Nan::SetMethod(locProto->PrototypeTemplate(), "add", add);
     Nan::SetMethod(locProto, "create", create);
+    Nan::SetMethod(locProto, "fromName", fromName);
 
     Nan::Set(target, FIELD_NAME("Scene"), locProto->GetFunction());
     prototype.Reset(locProto);
@@ -45,6 +51,25 @@ NAN_METHOD(Scene::create)
     Nan::Utf8String name(info[0]);
 
     Scene *binding = new Scene(*name);
+    auto object = Scene::Object::GenerateObject(binding);
+    info.GetReturnValue().Set(object);
+}
+
+
+NAN_METHOD(Scene::fromName)
+{
+    if (info.Length() != 1) {
+        Nan::ThrowError("Unexpected arguments");
+        return;
+    }
+
+    if (!info[0]->IsString()) {
+        Nan::ThrowError("Expected string");
+        return;
+    }
+
+    Nan::Utf8String name(info[0]);
+    Scene *binding = new Scene(obs::scene::from_name(*name));
     auto object = Scene::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }

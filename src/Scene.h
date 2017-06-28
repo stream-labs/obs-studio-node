@@ -22,11 +22,13 @@ public:
     obs::scene handle;
 
     Scene(std::string name);
+    Scene(obs::scene &handle);
 
     virtual obs::source* GetHandle();
     
     static NAN_MODULE_INIT(Init);
     static NAN_METHOD(create);
+    static NAN_METHOD(fromName);
     
     static NAN_METHOD(add);
 };

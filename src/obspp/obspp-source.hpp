@@ -91,7 +91,6 @@ protected:
     source(source &copy);
 
     static void check_type(obs_source_t * source, obs_source_type type);
-
 public:
     void release(); /* Two-step destruction for managed languages. */
     void remove(); /* Signals other references to release */

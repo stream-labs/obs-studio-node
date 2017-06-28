@@ -26,6 +26,13 @@ input::input(obs_source_t * handle)
     source::check_type(m_handle, OBS_SOURCE_TYPE_INPUT);
 }
 
+input input::from_name(std::string name)
+{
+    obs_source_t * source = obs_get_source_by_name(name.c_str());
+    obs_source_release(source);
+    return obs::input(source);
+}
+
 void input::volume(float volume)
 {
     obs_source_set_volume(m_handle, volume);

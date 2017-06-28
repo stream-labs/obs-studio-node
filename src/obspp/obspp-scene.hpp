@@ -72,6 +72,9 @@ public:
     scene(std::string name);
     scene(scene &copy);
     scene(obs_scene_t *source);
+    scene(obs_source_t *source);
+
+    static scene from_name(std::string name);
 
     bool operator!();
     scene::item add(input source);

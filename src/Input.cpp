@@ -35,6 +35,7 @@ NAN_MODULE_INIT(Input::Init)
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("Input"));
     Nan::SetMethod(locProto->PrototypeTemplate(), "create", create);
+    Nan::SetMethod(locProto->PrototypeTemplate(), "fromName", fromName);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("volume"), volume, volume);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("syncOffset"), syncOffset, syncOffset);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("showing"), showing);
@@ -58,6 +59,24 @@ NAN_METHOD(Input::create)
     Nan::Utf8String id(info[0]);
     Nan::Utf8String name(info[1]);
     Input *binding = new Input(*id, *name, nullptr, nullptr);
+    auto object = Input::Object::GenerateObject(binding);
+    info.GetReturnValue().Set(object);
+}
+
+NAN_METHOD(Input::fromName)
+{
+    if (info.Length() != 1) {
+        Nan::ThrowError("Unexpected arguments");
+        return;
+    }
+
+    if (!info[0]->IsString()) {
+        Nan::ThrowError("Expected string");
+        return;
+    }
+
+    Nan::Utf8String name(info[0]);
+    Input *binding = new Input(obs::input::from_name(*name));
     auto object = Input::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }

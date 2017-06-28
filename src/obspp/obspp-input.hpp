@@ -14,6 +14,8 @@ public:
     input(input &copy);
     input(obs_source_t *source);
 
+    static input from_name(std::string name);
+
     void volume(float volume);
     float volume();
 
