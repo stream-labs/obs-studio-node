@@ -109,6 +109,7 @@ public:
     bool configurable();
 
     obs::properties properties();
+    obs_data_t *settings();
     void update(obs_data_t *data);
 
     uint32_t width();

@@ -52,12 +52,12 @@ properties::status_type properties::status()
     return m_status;
 }
 
-properties::property properties::first()
+property properties::first()
 {
     return obs_properties_first(m_handle);
 }
 
-properties::property properties::get(std::string property_name)
+property properties::get(std::string property_name)
 {
     return obs_properties_get(m_handle, property_name.c_str());
 }
@@ -67,59 +67,215 @@ obs_properties_t *properties::dangerous()
     return m_handle;
 }
 
-properties::property::property(obs_property_t *handle)
+property::property(obs_property_t *handle)
  : m_handle(handle)
 {
     if (!m_handle) m_status = status_type::invalid;
 }
 
-properties::property::status_type properties::property::status()
+property::status_type property::status()
 {
     return m_status;
 }
 
-obs_property_t *properties::property::dangerous()
+obs_property_t *property::dangerous()
 {
     return m_handle;
 }
 
-std::string properties::property::name()
+std::string property::name()
 {
     return obs_property_name(m_handle);
 }
 
-std::string properties::property::description()
+std::string property::description()
 {
     return obs_property_description(m_handle);
 }
 
-std::string properties::property::long_description()
+std::string property::long_description()
 {
     return obs_property_long_description(m_handle);
 }
 
-obs_property_type properties::property::type()
+obs_property_type property::type()
 {
     return obs_property_get_type(m_handle);
 }
 
-bool properties::property::enabled()
+bool property::enabled()
 {
     return obs_property_enabled(m_handle);
 }
 
-bool properties::property::visible()
+bool property::visible()
 {
     return obs_property_visible(m_handle);
 }
 
-bool properties::property::next()
+bool property::next()
 {
     bool result = obs_property_next(&m_handle);
 
     if (!m_handle) m_status = status_type::invalid;
 
     return result;
+}
+
+list_property property::list_property()
+{
+    return obs::list_property(m_handle);
+}
+
+float_property property::float_property()
+{
+    return obs::float_property(m_handle);
+}
+
+text_property property::text_property()
+{
+    return obs::text_property(m_handle);
+}
+
+path_property property::path_property()
+{
+    return obs::path_property(m_handle);
+}
+
+list_property::list_property(obs_property_t *handle) 
+    : property(handle)
+{
+    
+}
+
+obs_combo_type list_property::type()
+{
+    return obs_property_list_type(m_handle);
+}
+
+const char *list_property::get_name(size_t idx)
+{
+    return obs_property_list_item_name(m_handle, idx);
+}
+
+size_t list_property::count()
+{
+    return obs_property_list_item_count(m_handle);
+}
+
+const char* list_property::get_string(size_t idx)
+{
+    return obs_property_list_item_string(m_handle, idx);
+}
+
+long long list_property::get_integer(size_t idx)
+{
+    return obs_property_list_item_int(m_handle, idx);
+}
+
+double list_property::get_float(size_t idx)
+{
+    return obs_property_list_item_float(m_handle, idx);
+}
+
+editable_list_property::editable_list_property(obs_property_t *handle)
+    : list_property(handle)
+{
+}
+
+obs_editable_list_type editable_list_property::type()
+{
+    return obs_property_editable_list_type(m_handle);
+}
+
+const char *editable_list_property::filter()
+{
+    return obs_property_editable_list_filter(m_handle);
+}
+
+const char *editable_list_property::default_path()
+{
+    return obs_property_editable_list_default_path(m_handle);
+}
+
+float_property::float_property(obs_property_t *handle)
+    : property(handle)
+{
+}
+
+obs_number_type float_property::type()
+{
+    return obs_property_float_type(m_handle);
+}
+
+double float_property::min()
+{
+    return obs_property_float_min(m_handle);
+}
+
+double float_property::max()
+{
+    return obs_property_float_max(m_handle);
+}
+
+double float_property::step()
+{
+    return obs_property_float_step(m_handle);
+}
+
+integer_property::integer_property(obs_property_t *handle)
+    : property(handle)
+{
+}
+
+obs_number_type integer_property::type()
+{
+    return obs_property_int_type(m_handle);
+}
+
+int integer_property::min()
+{
+    return obs_property_int_min(m_handle);
+}
+
+int integer_property::max()
+{
+    return obs_property_int_max(m_handle);
+}
+
+int integer_property::step()
+{
+    return obs_property_int_step(m_handle);
+}
+
+text_property::text_property(obs_property_t *handle)
+    : property(handle)
+{
+}
+
+obs_text_type text_property::type()
+{
+    return obs_proprety_text_type(m_handle);
+}
+
+path_property::path_property(obs_property_t *handle)
+    : property(handle)
+{
+}
+
+obs_path_type path_property::type()
+{
+    return obs_property_path_type(m_handle);
+}
+
+const char *path_property::filter()
+{
+    return obs_property_path_filter(m_handle);
+}
+
+const char *path_property::default_path()
+{
+    return obs_property_path_filter(m_handle);
 }
 
 

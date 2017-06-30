@@ -24,6 +24,9 @@ public:
         obs::input source();
         uint64_t id();
 
+        bool visible();
+        void visible(bool is_visible);
+
         bool selected();
         void selected(bool select);
 

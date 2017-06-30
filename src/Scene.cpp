@@ -30,11 +30,35 @@ NAN_MODULE_INIT(Scene::Init)
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
 
     Nan::SetMethod(locProto->PrototypeTemplate(), "add", add);
+    Nan::SetMethod(locProto, "getCurrentListDeprecated", getCurrentListDeprecated);
     Nan::SetMethod(locProto, "create", create);
     Nan::SetMethod(locProto, "fromName", fromName);
 
     Nan::Set(target, FIELD_NAME("Scene"), locProto->GetFunction());
     prototype.Reset(locProto);
+}
+
+NAN_METHOD(Scene::getCurrentListDeprecated)
+{
+    std::vector<obs_source_t *> sources;
+
+    auto cb = [] (void *data, obs_source_t *source) -> bool {
+        std::vector<obs_source_t *> *sources = 
+            reinterpret_cast<std::vector<obs_source_t *>*>(data);
+
+        if (obs_source_get_type(source) == OBS_SOURCE_TYPE_SCENE)
+            sources->push_back(obs_source_get_ref(source));
+    };
+
+    auto array = Nan::New<v8::Array>(static_cast<int>(sources.size()));
+
+    for (int i = 0; i < sources.size(); ++i) {
+        Scene *binding = new Scene(obs::scene(sources[i]));
+        auto object = Scene::Object::GenerateObject(binding);
+        Nan::Set(array, i, object);
+    }
+
+    info.GetReturnValue().Set(array);
 }
 
 NAN_METHOD(Scene::create)

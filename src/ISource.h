@@ -28,6 +28,7 @@ public:
     static NAN_GETTER(id);
     static NAN_GETTER(configurable);
     static NAN_GETTER(properties);
+    static NAN_GETTER(settings);
     static NAN_METHOD(update);
     static NAN_GETTER(width);
     static NAN_GETTER(height);

@@ -31,6 +31,24 @@ NAN_MODULE_INIT(Transition::Init)
     prototype.Reset(locProto);
 }
 
+NAN_METHOD(Transition::types)
+{
+    int count = 0;
+    const char *id; 
+
+    while (obs_enum_transition_types(count, &id)) {
+        ++count;
+    }
+
+    auto array = Nan::New<v8::Array>(count);
+
+    for (int i = 0; i < count; ++i) {
+        Nan::Set(array, i, Nan::New<v8::String>(id).ToLocalChecked());
+    }
+
+    info.GetReturnValue().Set(array);
+}
+
 NAN_METHOD(Transition::create)
 {
     if (info.Length() < 2) {
@@ -65,7 +83,7 @@ NAN_METHOD(Transition::start)
     }
 
     if (!info[1]->IsObject()) {
-        Nan::ThrowTypeError("Expected input objectt");
+        Nan::ThrowTypeError("Expected input object");
         return;
     }
 

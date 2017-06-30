@@ -26,9 +26,28 @@ NAN_MODULE_INIT(Filter::Init)
     locProto->Inherit(Nan::New(ISource::prototype));
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("Filter"));
+    Nan::SetMethod(locProto->PrototypeTemplate(), "types", types);
     Nan::SetMethod(locProto->PrototypeTemplate(), "create", create);
     Nan::Set(target, FIELD_NAME("Filter"), locProto->GetFunction());
     prototype.Reset(locProto);
+}
+
+NAN_METHOD(Filter::types)
+{
+    int count = 0;
+    const char *id; 
+
+    while (obs_enum_filter_types(count, &id)) {
+        ++count;
+    }
+
+    auto array = Nan::New<v8::Array>(count);
+
+    for (int i = 0; i < count; ++i) {
+        Nan::Set(array, i, Nan::New<v8::String>(id).ToLocalChecked());
+    }
+
+    info.GetReturnValue().Set(array);
 }
 
 NAN_METHOD(Filter::create)

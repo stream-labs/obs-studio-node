@@ -34,6 +34,7 @@ NAN_MODULE_INIT(Input::Init)
     locProto->Inherit(Nan::New(ISource::prototype));
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("Input"));
+    Nan::SetMethod(locProto->PrototypeTemplate(), "types", types);
     Nan::SetMethod(locProto->PrototypeTemplate(), "create", create);
     Nan::SetMethod(locProto->PrototypeTemplate(), "fromName", fromName);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("volume"), volume, volume);
@@ -42,6 +43,24 @@ NAN_MODULE_INIT(Input::Init)
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("audioMixers"), audioMixers, audioMixers);
     Nan::Set(target, FIELD_NAME("Input"), locProto->GetFunction());
     prototype.Reset(locProto);
+}
+
+NAN_METHOD(Input::types)
+{
+    int count = 0;
+    const char *id; 
+
+    while (obs_enum_input_types(count, &id)) {
+        ++count;
+    }
+
+    auto array = Nan::New<v8::Array>(count);
+
+    for (int i = 0; i < count; ++i) {
+        Nan::Set(array, i, Nan::New<v8::String>(id).ToLocalChecked());
+    }
+
+    info.GetReturnValue().Set(array);
 }
 
 NAN_METHOD(Input::create)
@@ -58,7 +77,34 @@ NAN_METHOD(Input::create)
     
     Nan::Utf8String id(info[0]);
     Nan::Utf8String name(info[1]);
-    Input *binding = new Input(*id, *name, nullptr, nullptr);
+
+    Input *binding;
+
+    switch (info.Length()) {
+    case 2: 
+        binding = new Input(*id, *name, nullptr, nullptr);
+        break;
+    case 3:
+        if (info[2]->IsBoolean()) {
+            bool is_private = Nan::To<bool>(info[2]).FromJust();
+
+            binding = new Input(*id, *name, nullptr, is_private);
+        }
+        else if (info[2]->IsObject()) {
+            Nan::ThrowError("Unfinished implementation");
+            return;
+        }
+        else {
+            Nan::ThrowError("Unexpected argument");
+            return;
+        }
+
+        break;
+    case 4:
+        Nan::ThrowError("Unfinished implementation");
+        return;
+    }
+
     auto object = Input::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }
@@ -138,7 +184,7 @@ NAN_SETTER(Input::audioMixers)
     handle->audio_mixers(flags);
 }
 
-NAN_METHOD(Input::add_filter)
+NAN_METHOD(Input::addFilter)
 {
     obs::input *handle = Input::Object::GetHandle(info.Holder());
 
@@ -154,7 +200,7 @@ NAN_METHOD(Input::add_filter)
     handle->add_filter(*filter);
 }
 
-NAN_METHOD(Input::remove_filter)
+NAN_METHOD(Input::removeFilter)
 {
     obs::input *handle = Input::Object::GetHandle(info.Holder());
 

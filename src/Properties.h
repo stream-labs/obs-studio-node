@@ -28,30 +28,59 @@ public:
 
     static NAN_GETTER(status);
     static NAN_METHOD(first);
+    static NAN_METHOD(count);
     static NAN_METHOD(get);
     static NAN_METHOD(apply);
+    static NAN_METHOD(items);
 };
 
 class Property : public Nan::ObjectWrap {
 public:
     static Nan::Persistent<v8::FunctionTemplate> prototype;
-    obs::properties::property handle;
+    obs::property handle;
 
-    typedef common::Object<Property, obs::properties::property> Object;
+    typedef common::Object<Property, obs::property> Object;
     friend Object;
 
-    Property(obs::properties::property &property);
+    Property(obs::property &property);
 
     static NAN_MODULE_INIT(Init);
     /* Can only be created through properties */
     static NAN_GETTER(status);
     static NAN_GETTER(name);
     static NAN_GETTER(description);
-    static NAN_GETTER(long_description);
+    static NAN_GETTER(longDescription);
     static NAN_GETTER(type);
     static NAN_GETTER(enabled);
     static NAN_GETTER(visible);
+    static NAN_METHOD(getListProperty);
     static NAN_METHOD(next);
+};
+
+class ListProperty : public Nan::ObjectWrap {
+public:
+    static NAN_MODULE_INIT(Init);
+    static NAN_GETTER(items);
+};
+
+class IntegerProperty : public Nan::ObjectWrap {
+public:
+    static NAN_MODULE_INIT(Init);
+};
+
+class FloatProperty : public Nan::ObjectWrap {
+public:
+    static NAN_MODULE_INIT(Init);
+};
+
+class TextProperty : public Nan::ObjectWrap {
+public:
+    static NAN_MODULE_INIT(Init);
+};
+
+class PathProperty : public Nan::ObjectWrap {
+public:
+    static NAN_MODULE_INIT(Init);
 };
 
 }

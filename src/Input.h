@@ -40,8 +40,9 @@ public:
     static NAN_GETTER(showing);
     static NAN_GETTER(audioMixers);
     static NAN_SETTER(audioMixers);
-    static NAN_METHOD(add_filter);
-    static NAN_METHOD(remove_filter);
+    static NAN_METHOD(addFilter);
+    static NAN_METHOD(removeFilter);
+    static NAN_METHOD(types);
 };
 
 }

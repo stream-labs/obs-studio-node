@@ -79,6 +79,16 @@ void scene::item::remove()
     obs_sceneitem_remove(m_handle);
 }
 
+bool scene::item::visible()
+{
+    return obs_sceneitem_visible(m_handle);
+}
+
+void scene::item::visible(bool is_visible)
+{
+    obs_sceneitem_set_visible(m_handle, is_visible);
+}
+
 obs::scene scene::item::scene()
 {
     return obs_sceneitem_get_scene(m_handle);

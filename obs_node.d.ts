@@ -60,6 +60,7 @@ export interface ObsSource {
     release(): void;
     remove(): void;
 
+    readonly settings: object;
     readonly properties: ObsProperties;
     readonly status: number;
     readonly id: string;
@@ -78,12 +79,14 @@ export interface ObsSource {
  */
 export class ObsFilter implements ObsSource {
     private constructor();
+    static types(): string[];
     static create(id: string, name: string, settings?: object): ObsFilter;
 
     //Source
     release(): void;
     remove(): void;
 
+    readonly settings: object;
     readonly properties: ObsProperties;
     readonly status: number;
     readonly id: string;
@@ -104,6 +107,7 @@ export class ObsFilter implements ObsSource {
  */
 export class ObsTransition implements ObsSource {
     private constructor();
+    static types(): string[];
     static create(id: string, name: string, settings?: object): ObsTransition;
     start(ms: number, input: ObsInput | ObsScene): void;
 
@@ -111,6 +115,7 @@ export class ObsTransition implements ObsSource {
     release(): void;
     remove(): void;
 
+    readonly settings: object;
     readonly properties: ObsProperties;
     readonly status: number;
     readonly id: string;
@@ -135,7 +140,9 @@ export class ObsTransition implements ObsSource {
  */
 export class ObsInput implements ObsSource {
     private constructor();
+    static types(): string[];
     static create(id: string, name: string, hotkeys?: object, settings?: object): ObsInput;
+    static create(id: string, name: string, is_private: bool, settings?: object): ObsInput;
     static fromName(name: string): ObsInput;
     volume: number;
     syncOffset: number;
@@ -148,6 +155,7 @@ export class ObsInput implements ObsSource {
     release(): void;
     remove(): void;
 
+    readonly settings: object;
     readonly properties: ObsProperties;
     readonly status: number;
     readonly id: string;
@@ -169,6 +177,7 @@ export class ObsInput implements ObsSource {
  * You must call release() before all reference run out. 
  */
 export class ObsScene implements ObsSource {
+    static types(): string[];
     static create(name: string): ObsScene;
     static fromName(name: string): ObsScene;
     private constructor();
@@ -178,6 +187,7 @@ export class ObsScene implements ObsSource {
     release(): void;
     remove(): void;
 
+    readonly settings: object;
     readonly properties: ObsProperties;
     readonly status: number;
     readonly id: string;
@@ -224,6 +234,7 @@ export class ObsSceneItem {
     bounds: IVec2;
     boundsType: number;
     scaleFilter: number;
+    visible: boolean;
     // transform_info: TTransformInfo;
     // crop: TCropInfo;
 
@@ -274,6 +285,7 @@ export class ObsProperties {
      * Obtains the first property in the list.
      */
     first(): ObsProperty;
+    count(): number;
 
     /**
      * Obtains property matching name.

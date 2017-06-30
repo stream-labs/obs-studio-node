@@ -25,6 +25,9 @@ public:
     static NAN_METHOD(remove);
     static NAN_GETTER(id);
 
+    static NAN_GETTER(visible);
+    static NAN_SETTER(visible);
+
     static NAN_GETTER(selected);
     static NAN_SETTER(selected);
 

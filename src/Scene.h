@@ -27,6 +27,7 @@ public:
     virtual obs::source* GetHandle();
     
     static NAN_MODULE_INIT(Init);
+    static NAN_METHOD(getCurrentListDeprecated);
     static NAN_METHOD(create);
     static NAN_METHOD(fromName);
     

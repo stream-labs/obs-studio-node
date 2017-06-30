@@ -70,6 +70,26 @@ NAN_GETTER(SceneItem::id)
     info.GetReturnValue().Set((uint32_t)handle->id());
 }
 
+NAN_GETTER(SceneItem::visible)
+{
+    obs::scene::item *handle = SceneItem::GetHandle(info.Holder());
+
+    info.GetReturnValue().Set(Nan::New<v8::Boolean>(handle->visible()));
+}
+
+NAN_SETTER(SceneItem::visible)
+{
+    obs::scene::item *handle = SceneItem::GetHandle(info.Holder());
+
+    if (!value->IsBoolean()) {
+        Nan::ThrowError("Expected boolean");
+        return;
+    }
+
+    bool visible = Nan::To<bool>(value).FromJust();
+    handle->visible(visible);
+}
+
 NAN_SETTER(SceneItem::selected)
 {
     obs::scene::item *handle = SceneItem::GetHandle(info.Holder());

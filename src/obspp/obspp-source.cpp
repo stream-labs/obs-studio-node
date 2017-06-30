@@ -122,6 +122,11 @@ obs::properties source::properties()
     return std::move(obs::properties(obs_source_properties(m_handle)));
 }
 
+obs_data_t *source::settings()
+{
+    return obs_source_get_settings(m_handle);
+}
+
 void source::update(obs_data_t *data)
 {
     obs_source_update(m_handle, data);

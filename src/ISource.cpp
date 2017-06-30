@@ -1,4 +1,5 @@
 #include "ISource.h"
+#include "Data.h"
 #include "Properties.h"
 #include "Common.h"
 
@@ -28,9 +29,11 @@ NAN_MODULE_INIT(ISource::Init)
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("id"), id);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("configurable"), configurable);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("properties"), properties);
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("settings"), settings);
 
     Nan::SetMethod(locProto->PrototypeTemplate(), "release", release);
     Nan::SetMethod(locProto->PrototypeTemplate(), "remove", remove);
+    Nan::SetMethod(locProto->PrototypeTemplate(), "update", update);
 
     Nan::Set(target, FIELD_NAME("Source"), locProto->GetFunction());
     prototype.Reset(locProto);
@@ -124,11 +127,30 @@ NAN_GETTER(ISource::properties)
     info.GetReturnValue().Set(object);
 }
 
+NAN_GETTER(ISource::settings)
+{
+    obs::source *handle = ISource::GetHandle(info.Holder());
+
+    obs_data_t *data = handle->settings();
+    auto result = FromDataToObject(data);
+
+    info.GetReturnValue().Set(result);
+}
+
 NAN_METHOD(ISource::update)
 {
     obs::source *handle = ISource::GetHandle(info.Holder());
 
+    if (!info[0]->IsObject()) {
+        Nan::ThrowError("Expected object");
+        return;
+    }
 
+    auto object = Nan::To<v8::Object>(info[0]).ToLocalChecked();
+
+    obs_data_t *data = FromObjectToData(object);
+    handle->update(data);
+    obs_data_release(data);
 }
 
 NAN_GETTER(ISource::width)
