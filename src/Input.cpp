@@ -34,9 +34,9 @@ NAN_MODULE_INIT(Input::Init)
     locProto->Inherit(Nan::New(ISource::prototype));
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("Input"));
-    Nan::SetMethod(locProto->PrototypeTemplate(), "types", types);
-    Nan::SetMethod(locProto->PrototypeTemplate(), "create", create);
-    Nan::SetMethod(locProto->PrototypeTemplate(), "fromName", fromName);
+    Nan::SetMethod(locProto, "types", types);
+    Nan::SetMethod(locProto, "create", create);
+    Nan::SetMethod(locProto, "fromName", fromName);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("volume"), volume, volume);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("syncOffset"), syncOffset, syncOffset);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("showing"), showing);
@@ -61,6 +61,41 @@ NAN_METHOD(Input::types)
     }
 
     info.GetReturnValue().Set(array);
+}
+
+NAN_METHOD(Input::duplicate)
+{
+    obs::input *handle = Input::Object::GetHandle(info.Holder());
+    Input *binding;
+    std::string name = "";
+    bool is_private = false;
+
+    switch (info.Length()) {
+    case 2: {
+        if (!info[1]->IsBoolean()) {
+            Nan::ThrowError("Unexpected argument type");
+            return;
+        }
+
+        is_private = Nan::To<bool>(info[1]).FromJust();
+    }
+    case 1: {
+        if (!info[0]->IsString()) {
+            Nan::ThrowError("Unexpected argument type");
+            return;
+        }
+
+        Nan::Utf8String nan_name(info[0]);
+        name = *nan_name;
+    }
+    case 0: {
+        binding = new Input(handle->duplicate(name, is_private));
+
+    }
+    default:
+        Nan::ThrowError("Unexpected number of arguments");
+        return;
+    }
 }
 
 NAN_METHOD(Input::create)
@@ -122,7 +157,14 @@ NAN_METHOD(Input::fromName)
     }
 
     Nan::Utf8String name(info[0]);
-    Input *binding = new Input(obs::input::from_name(*name));
+    obs::input input_ref = obs::input::from_name(*name);
+
+    if (input_ref.status() != obs::input::status_type::okay) {
+        info.GetReturnValue().Set(Nan::Null());
+        return;
+    }
+
+    Input *binding = new Input(input_ref);
     auto object = Input::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }

@@ -159,8 +159,6 @@ NAN_METHOD(Display::New)
         0, 0, init_data.cx, init_data.cy,
         NULL, NULL, NULL, NULL);
 
-    SetParent(new_window, (HWND)init_data.window.hwnd);
-
     /* RESOURCE LEAK */
     init_data.window.hwnd = new_window;
 

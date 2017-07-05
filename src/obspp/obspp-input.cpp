@@ -26,6 +26,11 @@ input::input(obs_source_t * handle)
     source::check_type(m_handle, OBS_SOURCE_TYPE_INPUT);
 }
 
+input input::duplicate(std::string name, bool is_private)
+{
+    return obs::input(obs_source_duplicate(m_handle, name.c_str(), is_private));
+}
+
 input input::from_name(std::string name)
 {
     obs_source_t * source = obs_get_source_by_name(name.c_str());

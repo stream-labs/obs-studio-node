@@ -59,6 +59,21 @@ scene::item scene::add(input source)
     return obs_scene_add(m_scene, source.dangerous());
 }
 
+std::vector<scene::item> scene::items()
+{
+    std::vector<scene::item> items;
+
+    auto enum_cb =
+    [] (obs_scene_t*, obs_sceneitem_t *item, void *data) {
+        std::vector<scene::item> *items = 
+            reinterpret_cast<std::vector<scene::item> *>(data);
+
+        items->push_back(item);
+    };
+
+    return std::move(items);
+}
+
 
 /* 
     Scene Item implementation

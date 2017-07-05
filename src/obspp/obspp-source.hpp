@@ -98,6 +98,8 @@ public:
     bool operator!() const;
     obs_source_t *dangerous();
     status_type status();
+
+    source duplicate(std::string name, bool is_private);
     
     uint32_t flags();
     void flags(uint32_t flag);

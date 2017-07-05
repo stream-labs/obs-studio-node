@@ -55,6 +55,7 @@ void source::release()
 {
     obs_source_release(m_handle);
     m_handle = nullptr;
+    m_status = status_type::invalid;
 }
 
 void source::remove() 

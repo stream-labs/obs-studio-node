@@ -29,6 +29,7 @@ NAN_MODULE_INIT(Scene::Init)
     locProto->SetClassName(FIELD_NAME("Scene"));
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
 
+    Nan::SetMethod(locProto->PrototypeTemplate(), "getItems", getItems);
     Nan::SetMethod(locProto->PrototypeTemplate(), "add", add);
     Nan::SetMethod(locProto, "getCurrentListDeprecated", getCurrentListDeprecated);
     Nan::SetMethod(locProto, "create", create);
@@ -98,6 +99,22 @@ NAN_METHOD(Scene::fromName)
     info.GetReturnValue().Set(object);
 }
 
+NAN_METHOD(Scene::getItems)
+{
+    obs::scene *scene = Scene::Object::GetHandle(info.Holder());
+    std::vector<obs::scene::item> items = scene->items();
+    int size = static_cast<int>(items.size());
+    auto array = Nan::New<v8::Array>(size);
+
+    for (int i = 0; i < size; ++i) {
+        SceneItem *binding = new SceneItem(items[i]);
+        auto object = SceneItem::Object::GenerateObject(binding);
+        Nan::Set(array, i, object);
+    }
+
+    info.GetReturnValue().Set(array);
+}
+
 NAN_METHOD(Scene::add)
 {
     obs::scene *scene = Scene::Object::GetHandle(info.Holder());
@@ -109,9 +126,10 @@ NAN_METHOD(Scene::add)
 
     obs::input *input = Input::Object::GetHandle(info[0]->ToObject());
 
-    auto item_object = SceneItem::GenerateObject(scene->add(*input));
+    SceneItem *binding = new SceneItem(scene->add(*input));
+    auto object = SceneItem::Object::GenerateObject(binding);
 
-    info.GetReturnValue().Set(item_object);
+    info.GetReturnValue().Set(object);
 }
 
 }

@@ -2,6 +2,7 @@
 
 #include <nan.h>
 #include "obspp/obspp-source.hpp"
+#include "Common.h"
 
 namespace osn {
 
@@ -14,6 +15,8 @@ class ISource : public ISourceHandle, public Nan::ObjectWrap
 {
 public:
     static Nan::Persistent<v8::FunctionTemplate> prototype;
+
+    ~ISource();
 
     static obs::source* GetHandle(v8::Local<v8::Object> object);
 

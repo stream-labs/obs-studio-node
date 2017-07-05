@@ -24,6 +24,7 @@ public:
     friend Object;
 
     obs::input handle;
+    bool released;
 
     Input(obs::input &input);
     Input(std::string id, std::string name, obs_data_t *hotkey, obs_data_t *settings);
@@ -31,6 +32,7 @@ public:
 
     virtual obs::source *GetHandle();
     static NAN_MODULE_INIT(Init);
+    static NAN_METHOD(duplicate);
     static NAN_METHOD(create);
     static NAN_METHOD(fromName);
     static NAN_GETTER(volume);

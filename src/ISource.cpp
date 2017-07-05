@@ -44,9 +44,6 @@ NAN_METHOD(ISource::release)
     obs::source *handle = ISource::GetHandle(info.Holder());
 
     handle->release();
-    /* Any use of the object passed this point is undefined! 
-     * The wrapper will clean up the allocated object whenever
-     * the garbage collector is called. */
 }
 
 NAN_METHOD(ISource::remove)

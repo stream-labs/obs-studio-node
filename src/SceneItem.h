@@ -3,6 +3,7 @@
 #include <nan.h>
 
 #include "Scene.h"
+#include "Common.h"
 
 namespace osn {
 
@@ -11,7 +12,8 @@ class SceneItem : public Nan::ObjectWrap
     friend Scene;
     static Nan::Persistent<v8::FunctionTemplate> prototype;
 
-    static v8::Local<v8::Object> GenerateObject(obs::scene::item item);
+    typedef common::Object<SceneItem, obs::scene::item> Object;
+    friend Object;
 
 public:
     SceneItem(obs::scene::item item);
