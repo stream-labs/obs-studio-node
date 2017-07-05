@@ -142,7 +142,7 @@ export class ObsInput implements ObsSource {
     private constructor();
     static types(): string[];
     static create(id: string, name: string, hotkeys?: object, settings?: object): ObsInput;
-    static create(id: string, name: string, is_private: bool, settings?: object): ObsInput;
+    static create(id: string, name: string, is_private: boolean, settings?: object): ObsInput;
     static fromName(name: string): ObsInput;
     volume: number;
     syncOffset: number;
@@ -180,8 +180,11 @@ export class ObsScene implements ObsSource {
     static types(): string[];
     static create(name: string): ObsScene;
     static fromName(name: string): ObsScene;
+    static getCurrentListDeprecated: ObsScene[];
     private constructor();
     add(source: ObsInput): ObsSceneItem;
+
+    getItems(): ObsSceneItem[];
 
     //Source
     release(): void;
