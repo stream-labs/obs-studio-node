@@ -14,6 +14,7 @@ public:
     transition(obs_source_t *source);
 
     void start(int ms, obs::input source);
+    void set(obs::input source);
 
     static std::vector<std::string> types();
 };

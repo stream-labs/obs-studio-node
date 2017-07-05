@@ -47,17 +47,13 @@ NAN_MODULE_INIT(Input::Init)
 
 NAN_METHOD(Input::types)
 {
-    int count = 0;
-    const char *id; 
-
-    while (obs_enum_input_types(count, &id)) {
-        ++count;
-    }
+    auto type_list = obs::input::types();
+    int count = static_cast<int>(type_list.size());
 
     auto array = Nan::New<v8::Array>(count);
 
     for (int i = 0; i < count; ++i) {
-        Nan::Set(array, i, Nan::New<v8::String>(id).ToLocalChecked());
+        Nan::Set(array, i, Nan::New<v8::String>(type_list[i]).ToLocalChecked());
     }
 
     info.GetReturnValue().Set(array);

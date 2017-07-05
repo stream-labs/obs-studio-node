@@ -12,6 +12,7 @@
 #include "SceneItem.h"
 #include "Transition.h"
 #include "Properties.h"
+#include "Filter.h"
 
 NAN_MODULE_INIT(node_initialize)
 {
@@ -32,6 +33,7 @@ NAN_MODULE_INIT(node_initialize)
     osn::SceneItem::Init();
     osn::Scene::Init(target);
     osn::Transition::Init(target);
+    osn::Filter::Init(target);
     osn::Properties::Init(target);
     osn::Property::Init(target);
 }

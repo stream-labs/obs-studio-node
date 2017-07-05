@@ -24,6 +24,7 @@ public:
     static NAN_MODULE_INIT(Init);
     static NAN_METHOD(types);
     static NAN_METHOD(create);
+    static NAN_METHOD(set);
 
     static NAN_METHOD(start);
 };
