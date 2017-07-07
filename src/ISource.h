@@ -19,6 +19,7 @@ public:
     static obs::source* GetHandle(v8::Local<v8::Object> object);
 
     static NAN_MODULE_INIT(Init);
+    static NAN_GETTER(type);
     static NAN_GETTER(name);
     static NAN_SETTER(name);
     static NAN_GETTER(flags);

@@ -87,11 +87,12 @@ protected:
     source();
     source(std::string &id, std::string &name, obs_data_t *hotkey, obs_data_t *settings);
     source(std::string &id, std::string &name, obs_data_t *settings, bool is_private = false);
-    source(obs_source_t *source);
-    source(source &copy);
 
     static void check_type(obs_source_t * source, obs_source_type type);
 public:
+    source(source &copy);
+    source(obs_source_t *source);
+
     void release(); /* Two-step destruction for managed languages. */
     void remove(); /* Signals other references to release */
     ~source();
@@ -100,6 +101,8 @@ public:
     status_type status();
 
     source duplicate(std::string name, bool is_private);
+
+    obs_source_type type();
     
     uint32_t flags();
     void flags(uint32_t flag);

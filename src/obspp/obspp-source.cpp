@@ -93,6 +93,11 @@ obs_source_t *source::dangerous()
     return m_handle;
 }
 
+obs_source_type source::type()
+{
+    return obs_source_get_type(m_handle);
+}
+
 source::status_type source::status()
 {
     return m_status;
