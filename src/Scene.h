@@ -22,7 +22,7 @@ public:
     obs::scene handle;
 
     Scene(std::string name);
-    Scene(obs::scene &handle);
+    Scene(obs::scene handle);
 
     virtual obs::source* GetHandle();
     

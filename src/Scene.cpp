@@ -14,7 +14,7 @@ Scene::Scene(std::string name)
 {
 }
 
-Scene::Scene(obs::scene &handle)
+Scene::Scene(obs::scene handle)
  : handle(handle)
 {
 }
@@ -49,8 +49,11 @@ NAN_METHOD(Scene::getCurrentListDeprecated)
 
         if (obs_source_get_type(source) == OBS_SOURCE_TYPE_SCENE)
             sources->push_back(obs_source_get_ref(source));
+
+        return true;
     };
 
+    obs_enum_sources(cb, &sources);
     auto array = Nan::New<v8::Array>(static_cast<int>(sources.size()));
 
     for (int i = 0; i < sources.size(); ++i) {
@@ -124,7 +127,14 @@ NAN_METHOD(Scene::add)
         return;
     }
 
-    obs::input *input = Input::Object::GetHandle(info[0]->ToObject());
+    if (!info[0]->IsObject()) {
+        Nan::ThrowError("Expected object");
+        return;
+    }
+
+    obs::input *input = 
+        Input::Object::GetHandle(
+            Nan::To<v8::Object>(info[0]).ToLocalChecked());
 
     SceneItem *binding = new SceneItem(scene->add(*input));
     auto object = SceneItem::Object::GenerateObject(binding);
