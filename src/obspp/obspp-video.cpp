@@ -20,14 +20,16 @@ int video::reset(struct obs_video_info *info)
     return obs_reset_video(info);
 }
 
-void video::output(int channel, input &source)
+void video::output(int channel, obs::source source)
 {
     obs_set_output_source(channel, source.dangerous());
 }
 
-input video::output(int channel)
+obs::source video::output(int channel)
 {
-    return obs_get_output_source(channel);
+    obs_source_t * source = obs_get_output_source(channel);
+    obs_source_release(source);
+    return source;
 }
 
 /* Video Encoder */
