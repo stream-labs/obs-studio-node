@@ -92,6 +92,8 @@ v8::Local<v8::Object> FromDataToObject(obs_data_t *data)
                 FromDataToArray(obs_data_item_get_array(item_it)));
             break;
         }
+
+        obs_data_item_next(&item_it);
     }
 
     return object;
