@@ -109,6 +109,7 @@ export class ObsTransition implements ObsSource {
     private constructor();
     static types(): string[];
     static create(id: string, name: string, settings?: object): ObsTransition;
+    set(input: ObsInput | ObsScene): void;
     start(ms: number, input: ObsInput | ObsScene): void;
 
     //Source
@@ -249,6 +250,76 @@ export class ObsSceneItem {
     deferUpdateEnd(): void;
 }
 
+export const enum EPropertyType {
+    Invalid,
+    Boolean,
+    Int,
+    Float,
+    Text,
+    Path,
+    List,
+    Color,
+    Button,
+    Font,
+    EditableList,
+    FrameRate
+}
+
+export const enum EListFormat {
+    Invalid,
+    Int,
+    Float,
+    String
+}
+
+export const enum EEditableListType {
+    Strings,
+    Files,
+    FilesAndUrls
+}
+
+export const enum EPathType {
+    File,
+    FileSave,
+    Directory
+}
+
+export const enum ETextType {
+    Default,
+    Password,
+    Multiline
+}
+
+export const enum ENumberType {
+    Scroller,
+    Slider
+}
+
+export interface IListProperty {
+    readonly format: EListFormat;
+    readonly items: string[] | number[];
+}
+
+export interface IEditableListProperty extends IListProperty {
+    readonly format: EListFormat;
+    readonly items: string[] | number[];
+    readonly type: EEditableListType;
+    readonly filter: string;
+    readonly defaultPath: string;
+}
+
+export interface IPathProperty {
+    readonly type: EPathType;
+}
+
+export interface ITextProperty {
+    readonly type: ETextType;
+}
+
+export interface INumberProperty {
+    readonly type: ENumberType;
+}
+
 /**
  * Object representing an entry in a properties list (Properties).
  */
@@ -257,9 +328,15 @@ export class ObsProperty {
     name: string;
     description: string;
     longDescription: string;
-    type: number;
     enabled: boolean;
     visible: boolean;
+    type: EPropertyType;
+    details: 
+        IListProperty | IEditableListProperty | 
+        IPathProperty | ITextProperty | 
+        INumberProperty | {};
+    value: ObsProperty;
+    done: boolean;
 
     /**
      * Uses the current object to obtain the next
@@ -278,7 +355,6 @@ export class ObsProperty {
  * to obtain an instance. 
  */
 export class ObsProperties {
-
     /**
      * Obtains the status of the list.
      */
@@ -295,19 +371,7 @@ export class ObsProperties {
      * @param name The name of the property to fetch.
      */
     get(name: string): ObsProperty;
-
-    /**
-     * This applies settings associated with the object
-     * the settings were obtained from. For instance,
-     * if you obtained the settings from an instance
-     * of an encoder, it would be applied to that instance.
-     * 
-     * NOTE: Settings are a WIP
-     * @param settings Settings to apply
-     */
-    apply(settings: object): void;
 }
-
 
 // export class ObsModule {
 //     constructor(bin_path: string, data_path: string);
@@ -332,71 +396,68 @@ export class ObsProperties {
 //     function log_loaded(): void;
 // }
 
-// /**
-//  * @namespace video
-//  * A namespace meant for functions interacting with global context 
-//  * conerning modules. 
-//  */
-// export namespace video {
-//     const enum EScaleType {
-//         Default,
-//         Point,
-//         FastBilinear,
-//         Bilinear,
-//         Bicubic
-//     };
+export const enum EScaleType {
+  Default,
+  Point,
+  FastBilinear,
+  Bilinear,
+  Bicubic
+}
 
-//     const enum EBoundsType {
-//         None,
-//         Stretch,
-//         ScaleInner,
-//         ScaleOuter,
-//         ScaleToWidth,
-//         ScaleToHeight,
-//         MaxOnly
-//     };
+export const enum EBoundsType {
+    None,
+    Stretch,
+    ScaleInner,
+    ScaleOuter,
+    ScaleToWidth,
+    ScaleToHeight,
+    MaxOnly
+}
 
-//     const enum EColorSpace {
-//         Default,
-//         CS601,
-//         CS709
-//     };
+export const enum EColorSpace {
+    Default,
+    CS601,
+    CS709
+}
 
-//     const enum ERangeType {
-//         Default,
-//         Partial,
-//         Full
-//     };
+export const enum ERangeType {
+    Default,
+    Partial,
+    Full
+}
 
-//     const enum EFormat {
-//         None,
-//         I420,
-//         NV12,
-//         YVYU,
-//         YUY2,
-//         UYVY,
-//         RGBA,
-//         BGRA,
-//         BGRX,
-//         Y800,
-//         I444
-//     };
+export const enum EFormat {
+    None,
+    I420,
+    NV12,
+    YVYU,
+    YUY2,
+    UYVY,
+    RGBA,
+    BGRA,
+    BGRX,
+    Y800,
+    I444
+}
 
-//     interface IVideoInfo {
-//         graphics_module: string,
-//         fps_num: number,
-//         fps_den: number,
-//         base_width: number,
-//         base_height: number,
-//         output_width: number,
-//         output_height: number,
-//         output_format: EFormat,
-//         adapter: number,
-//         gpu_conversion: boolean,
-//         colorspace: EColorSpace,
-//         range: ERangeType,
-//         scale_type: EScaleType
-//     };
+interface IVideoInfo {
+    graphics_module: string;
+    fps_num: number;
+    fps_den: number;
+    base_width: number;
+    base_height: number;
+    output_width: number;
+    output_height: number;
+    output_format: EFormat;
+    adapter: number;
+    gpu_conversion: boolean;
+    colorspace: EColorSpace;
+    range: ERangeType;
+    scale_type: EScaleType;
+}
 
-//     function reset(info: IVideoInfo): void;
-// }
+export class ObsVideo {
+    static reset(info: IVideoInfo): void;
+    static setOutputSource(channel: number, input: ObsInput | ObsTransition | ObsScene): void;
+    static getOutputSource(channel: number): ObsInput | ObsTransition | ObsScene;
+}
