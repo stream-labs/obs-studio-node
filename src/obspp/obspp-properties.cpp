@@ -68,7 +68,8 @@ obs_properties_t *properties::dangerous()
 }
 
 property::property(obs_property_t *handle)
- : m_handle(handle)
+ : m_handle(handle),
+   m_status(status_type::okay)
 {
     if (!m_handle) m_status = status_type::invalid;
 }
@@ -85,17 +86,23 @@ obs_property_t *property::dangerous()
 
 std::string property::name()
 {
-    return obs_property_name(m_handle);
+    const char * value = obs_property_name(m_handle);
+
+    return value ? value : "";
 }
 
 std::string property::description()
 {
-    return obs_property_description(m_handle);
+    const char * value = obs_property_description(m_handle);
+
+    return value ? value : "";
 }
 
 std::string property::long_description()
 {
-    return obs_property_long_description(m_handle);
+    const char * value = obs_property_long_description(m_handle);
+
+    return value ? value : "";
 }
 
 obs_property_type property::type()
@@ -127,6 +134,16 @@ list_property property::list_property()
     return obs::list_property(m_handle);
 }
 
+editable_list_property property::editable_list_property()
+{
+    return obs::editable_list_property(m_handle);
+}
+
+integer_property property::integer_property()
+{
+    return obs::integer_property(m_handle);
+}
+
 float_property property::float_property()
 {
     return obs::float_property(m_handle);
@@ -146,6 +163,11 @@ list_property::list_property(obs_property_t *handle)
     : property(handle)
 {
     
+}
+
+obs_combo_format list_property::format()
+{
+    return obs_property_list_format(m_handle);
 }
 
 obs_combo_type list_property::type()

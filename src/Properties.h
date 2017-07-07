@@ -46,6 +46,9 @@ public:
 
     static NAN_MODULE_INIT(Init);
     /* Can only be created through properties */
+    static NAN_GETTER(done);
+    static NAN_GETTER(value);
+    
     static NAN_GETTER(status);
     static NAN_GETTER(name);
     static NAN_GETTER(description);
@@ -53,34 +56,8 @@ public:
     static NAN_GETTER(type);
     static NAN_GETTER(enabled);
     static NAN_GETTER(visible);
-    static NAN_METHOD(getListProperty);
+    static NAN_GETTER(details);
     static NAN_METHOD(next);
-};
-
-class ListProperty : public Nan::ObjectWrap {
-public:
-    static NAN_MODULE_INIT(Init);
-    static NAN_GETTER(items);
-};
-
-class IntegerProperty : public Nan::ObjectWrap {
-public:
-    static NAN_MODULE_INIT(Init);
-};
-
-class FloatProperty : public Nan::ObjectWrap {
-public:
-    static NAN_MODULE_INIT(Init);
-};
-
-class TextProperty : public Nan::ObjectWrap {
-public:
-    static NAN_MODULE_INIT(Init);
-};
-
-class PathProperty : public Nan::ObjectWrap {
-public:
-    static NAN_MODULE_INIT(Init);
 };
 
 }

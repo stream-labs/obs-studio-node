@@ -127,11 +127,16 @@ NAN_MODULE_INIT(Property::Init)
     locProto->SetClassName(FIELD_NAME("Property"));
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
 
+    /* iterable */
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("done"), done);
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("value"), value);
+
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("name"), name);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("type"), type);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("status"), status);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("description"), description);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("longDescription"), longDescription);
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("details"), details);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("enabled"), enabled);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("visible"), visible);
     Nan::SetMethod(locProto->PrototypeTemplate(), "next", next);
@@ -189,93 +194,154 @@ NAN_GETTER(Property::visible)
     info.GetReturnValue().Set(handle->visible());
 }
 
-#if 0
+NAN_GETTER(Property::value)
+{
+    info.GetReturnValue().Set(info.Holder());
+}
 
-NAN_GETTER(Property::list_type)
+NAN_GETTER(Property::done)
 {
     obs::property *handle = Property::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(handle->list_type());
+    info.GetReturnValue().Set(
+        Nan::New<v8::Boolean>(
+            handle->status() != obs::property::status_type::okay));
 }
-
-NAN_GETTER(Property::editable_list_type)
-{
-    obs::property *handle = Property::Object::GetHandle(info.Holder());
-
-    info.GetReturnValue().Set(handle->editable_list_type());
-}
-
-NAN_GETTER(Property::path_type)
-{
-    obs::property *handle = Property::Object::GetHandle(info.Holder());
-
-    info.GetReturnValue().Set(handle->path_type());
-}
-
-NAN_GETTER(Property::number_type)
-{
-    obs::property *handle = Property::Object::GetHandle(info.Holder());
-
-    info.GetReturnValue().Set(handle->number_type());
-}
-
-NAN_GETTER(Property::text_type)
-{
-    obs::property *handle = Property::Object::GetHandle(info.Holder());
-
-    info.GetReturnValue().Set(handle->text_type());
-}
-
-#endif
 
 NAN_METHOD(Property::next)
 {
     obs::property *handle = Property::Object::GetHandle(info.Holder());
 
     handle->next();
+
+    info.GetReturnValue().Set(info.Holder());
 }
 
-#if 0
-NAN_METHOD(Property::getListItems)
-{
-    obs::property *handle_ = Property::Object::GetHandle(info.Holder());
-    obs_property_t *handle = handle_->dangerous();
+namespace {
 
-    int count = static_cast<int>(obs_property_list_item_count(handle));
+v8::Local<v8::Array> GetListItems(obs::list_property &property)
+{
+    int count = static_cast<int>(property.count());
     auto array = Nan::New<v8::Array>(count);
-    obs_combo_type combo_type = obs_property_list_type(handle);
 
     for (int i = 0; i < count; ++i) {
-        const char *name = obs_property_list_item_name(handle, i);
-        auto item = Nan::New<v8::Object>();
+        auto object = Nan::New<v8::Object>();
 
-        switch (combo_type) {
+        Nan::Set(object, 
+            FIELD_NAME("name"), 
+            Nan::New<v8::String>(property.get_name(i)).ToLocalChecked());
+
+        switch (property.format()) {
         case OBS_COMBO_FORMAT_INT:
-            Nan::Set(item, 
-                FIELD_NAME(name), 
-                Nan::New<v8::Integer>(static_cast<int32_t>(obs_property_list_item_int(handle, i))));
-
+            Nan::Set(object, 
+                FIELD_NAME("value"), 
+                Nan::New<v8::Integer>(static_cast<int>(property.get_integer(i))));
             break;
         case OBS_COMBO_FORMAT_STRING:
-            Nan::Set(item, 
-                FIELD_NAME(name), 
-                Nan::New<v8::String>(obs_property_list_item_string(handle, i)).ToLocalChecked());
-            
+            Nan::Set(object, 
+                FIELD_NAME("value"), 
+                Nan::New<v8::String>(property.get_string(i)).ToLocalChecked());
             break;
-
         case OBS_COMBO_FORMAT_FLOAT:
-            Nan::Set(item, 
-                FIELD_NAME(name), 
-                Nan::New<v8::Number>(obs_property_list_item_float(handle, i)));
-
+            Nan::Set(object, 
+                FIELD_NAME("value"), 
+                Nan::New<v8::Number>(property.get_float(i)));
             break;
         }
 
-        Nan::Set(array, i, item);
+        Nan::Set(array, i, object);
     }
 
-    info.GetReturnValue().Set(array);
+    return array;
 }
-#endif
+
+}
+
+NAN_GETTER(Property::details)
+{
+    obs::property *handle = Property::Object::GetHandle(info.Holder());
+
+    /* Some types have extra data. Associated with them. Construct objects
+       and pass them with the property since you're more likely to need them
+       than not. */
+    auto object = Nan::New<v8::Object>();
+
+    switch (handle->type()) {
+    case OBS_PROPERTY_LIST: {
+        obs::list_property list_prop = 
+            handle->list_property();
+
+        Nan::Set(object, 
+            FIELD_NAME("format"), 
+            Nan::New<v8::Integer>(list_prop.format()));
+
+        Nan::Set(object, 
+            FIELD_NAME("items"), 
+            GetListItems(list_prop));
+        break;
+    }
+    case OBS_PROPERTY_EDITABLE_LIST: {
+        obs::editable_list_property edit_list_prop = 
+            handle->editable_list_property();
+
+        Nan::Set(object, 
+            FIELD_NAME("type"), 
+            Nan::New<v8::Integer>(edit_list_prop.type()));
+
+        Nan::Set(object, 
+            FIELD_NAME("format"), 
+            Nan::New<v8::Integer>(edit_list_prop.format()));
+
+        Nan::Set(object, 
+            FIELD_NAME("items"), 
+            GetListItems(static_cast<obs::list_property>(edit_list_prop)));
+
+        Nan::Set(object, 
+            FIELD_NAME("filter"), 
+            Nan::New<v8::String>(edit_list_prop.filter()).ToLocalChecked());
+
+        Nan::Set(object, 
+            FIELD_NAME("defaultPath"), 
+            Nan::New<v8::String>(edit_list_prop.default_path()).ToLocalChecked());
+        break;
+    }
+    case OBS_PROPERTY_TEXT:  {
+        obs::text_property text_prop = handle->text_property();
+
+        Nan::Set(object, 
+            FIELD_NAME("type"), 
+            Nan::New<v8::Integer>(text_prop.type()));
+        break;
+    }
+    case OBS_PROPERTY_PATH: {
+        obs::path_property path_prop = handle->path_property();
+
+        Nan::Set(object, 
+            FIELD_NAME("type"), 
+            Nan::New<v8::Integer>(path_prop.type()));
+        break;
+    }
+    case OBS_PROPERTY_FLOAT: {
+        obs::float_property float_prop = 
+            handle->float_property();
+
+        Nan::Set(object, 
+            FIELD_NAME("type"), 
+            Nan::New<v8::Integer>(float_prop.type()));
+        break;
+    }
+    case OBS_PROPERTY_INT: {
+        obs::integer_property int_prop = 
+            handle->integer_property();
+
+        Nan::Set(object, 
+            FIELD_NAME("type"), 
+            Nan::New<v8::Integer>(int_prop.type()));
+        break;
+    }
+    }
+
+    info.GetReturnValue().Set(object);
+}
 
 }

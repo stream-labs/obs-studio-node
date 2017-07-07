@@ -15,6 +15,8 @@ namespace obs {
 
 class properties;
 class list_property;
+class editable_list_property;
+class integer_property;
 class float_property;
 class text_property;
 class path_property;
@@ -40,6 +42,8 @@ public:
     std::string long_description();
     obs_property_type type();
     list_property list_property();
+    editable_list_property editable_list_property();
+    integer_property integer_property();
     float_property float_property();
     text_property text_property();
     path_property path_property();
@@ -57,6 +61,7 @@ class list_property : public property
 
 public:
     obs_combo_type type();
+    obs_combo_format format();
     size_t count();
     const char* get_name(size_t idx);
     const char* get_string(size_t idx);
@@ -64,7 +69,7 @@ public:
     double get_float(size_t idx);
 };
 
-class editable_list_property : public list_property{
+class editable_list_property : public list_property {
     friend property;
     editable_list_property(obs_property_t *);
 
