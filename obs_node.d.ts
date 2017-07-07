@@ -145,6 +145,7 @@ export class ObsInput implements ObsSource {
     static create(id: string, name: string, hotkeys?: object, settings?: object): ObsInput;
     static create(id: string, name: string, is_private: boolean, settings?: object): ObsInput;
     static fromName(name: string): ObsInput;
+    static getPublicSources(): ObsInput[];
     volume: number;
     syncOffset: number;
     showing: boolean;
@@ -245,6 +246,8 @@ export class ObsSceneItem {
     order(movement: EOrderMovement): void;
     orderPosition(pos: number): void;
 
+    getSource(): ObsInput;
+    remove(): void;
 
     defeUpdateBegin(): void;
     deferUpdateEnd(): void;
@@ -340,7 +343,7 @@ export class ObsProperty {
 
     /**
      * Uses the current object to obtain the next
-     * property in the properties list. 
+     * property in the properties list.
      * 
      * Check the status property in order to make
      * sure the property is still valid after using.

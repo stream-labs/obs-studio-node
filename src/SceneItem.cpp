@@ -1,4 +1,5 @@
 #include "SceneItem.h"
+#include "Input.h"
 
 namespace osn {
 
@@ -29,10 +30,21 @@ void SceneItem::Init()
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("scaleFilter"), scaleFilter, scaleFilter);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("id"), id);
     Nan::SetMethod(locProto->PrototypeTemplate(), "remove", remove);
+    Nan::SetMethod(locProto->PrototypeTemplate(), "getSource", getSource);
     Nan::SetMethod(locProto->PrototypeTemplate(), "deferUpdateBegin", deferUpdateBegin);
     Nan::SetMethod(locProto->PrototypeTemplate(), "deferUpdateEnd", deferUpdateEnd);
     locProto->SetClassName(FIELD_NAME("SceneItem"));
     prototype.Reset(locProto);
+}
+
+NAN_METHOD(SceneItem::getSource)
+{
+    obs::scene::item *handle = SceneItem::Object::GetHandle(info.Holder());
+
+    Input *binding = new Input(handle->source());
+    auto object = Input::Object::GenerateObject(binding);
+
+    info.GetReturnValue().Set(object);
 }
 
 NAN_METHOD(SceneItem::remove)

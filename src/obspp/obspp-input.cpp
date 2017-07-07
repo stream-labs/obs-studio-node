@@ -92,4 +92,21 @@ std::vector<std::string> input::types()
     return std::move(type_list);
 }
 
+std::vector<obs::input> input::public_sources()
+{
+    std::vector<obs::input> inputs;
+
+    auto enum_cb = 
+    [] (void *data, obs_source_t *source) {
+        std::vector<obs::input> *inputs = 
+            reinterpret_cast<std::vector<obs::input> *>(data);
+        
+        inputs->push_back(obs_source_get_ref(source));
+        return true;
+    };
+
+    obs_enum_sources(enum_cb, &inputs);
+
+    return std::move(inputs);
+}
 }

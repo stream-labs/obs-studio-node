@@ -24,6 +24,8 @@ public:
 
     static void Init();
 
+    static NAN_METHOD(getSource);
+
     static NAN_METHOD(remove);
     static NAN_GETTER(id);
 

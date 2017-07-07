@@ -37,6 +37,7 @@ NAN_MODULE_INIT(Input::Init)
     Nan::SetMethod(locProto, "types", types);
     Nan::SetMethod(locProto, "create", create);
     Nan::SetMethod(locProto, "fromName", fromName);
+    Nan::SetMethod(locProto, "getPublicSources", getPublicSources);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("volume"), volume, volume);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("syncOffset"), syncOffset, syncOffset);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("showing"), showing);
@@ -54,6 +55,23 @@ NAN_METHOD(Input::types)
 
     for (int i = 0; i < count; ++i) {
         Nan::Set(array, i, Nan::New<v8::String>(type_list[i]).ToLocalChecked());
+    }
+
+    info.GetReturnValue().Set(array);
+}
+
+NAN_METHOD(Input::getPublicSources)
+{
+    auto inputs = obs::input::public_sources();
+    int count = static_cast<int>(inputs.size());
+
+    auto array = Nan::New<v8::Array>(count);
+
+    for (int i = 0; i < count; ++i) {
+        obs_source_release(inputs[i].dangerous());
+        Input *binding = new Input(inputs[i]);
+        auto object = Input::Object::GenerateObject(binding);
+        Nan::Set(array, i, object);
     }
 
     info.GetReturnValue().Set(array);

@@ -35,5 +35,6 @@ public:
     std::vector<filter> filters();
 
     static std::vector<std::string> types();
+    static std::vector<obs::input> public_sources();
 };
 }
