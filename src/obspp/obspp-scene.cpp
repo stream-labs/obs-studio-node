@@ -69,7 +69,10 @@ std::vector<scene::item> scene::items()
             reinterpret_cast<std::vector<scene::item> *>(data);
 
         items->push_back(item);
+        return true;
     };
+
+    obs_scene_enum_items(m_scene, enum_cb, &items);
 
     return std::move(items);
 }
