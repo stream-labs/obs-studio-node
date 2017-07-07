@@ -15,7 +15,7 @@ class Input : public ISource
      * this class must be a friend. For once, using friends
      * in this case is good since it helps keep track of 
      * functions and objects that interact with this one. */
-     friend NAN_METHOD(Video::output);
+     friend NAN_METHOD(Video::getOutputSource);
 
 public:
     static Nan::Persistent<v8::FunctionTemplate> prototype;
@@ -26,7 +26,7 @@ public:
     obs::input handle;
     bool released;
 
-    Input(obs::input &input);
+    Input(obs::input input);
     Input(std::string id, std::string name, obs_data_t *hotkey, obs_data_t *settings);
     Input(std::string id, std::string name, obs_data_t *settings, bool is_private);
 

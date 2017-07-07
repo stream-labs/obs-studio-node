@@ -18,7 +18,7 @@ Input::Input(std::string id, std::string name, obs_data_t *settings, bool is_pri
 {
 }
 
-Input::Input(obs::input &input)
+Input::Input(obs::input input)
  : handle(input)
 {
 }
