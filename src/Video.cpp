@@ -1,6 +1,8 @@
 #include "Common.h"
 #include "Video.h"
 #include "Input.h"
+#include "Scene.h"
+#include "Transition.h"
 
 namespace osn {
 
@@ -15,16 +17,15 @@ VideoEncoder::VideoEncoder(std::string id, std::string name)
  */
 NAN_MODULE_INIT(Video::Init)
 {
-    auto video_ns = Nan::New<v8::Object>();
-    auto prototype = Nan::New<v8::FunctionTemplate>(New);
-    prototype->SetClassName(FIELD_NAME("Video"));
-    prototype->InstanceTemplate()->SetInternalFieldCount(1);
+    auto locProto = Nan::New<v8::FunctionTemplate>(New);
+    locProto->SetClassName(FIELD_NAME("Video"));
+    locProto->InstanceTemplate()->SetInternalFieldCount(1);
 
-    Nan::SetMethod(video_ns, "reset", reset);
-    Nan::SetMethod(video_ns, "output", output);
+    Nan::SetMethod(locProto, "reset", reset);
+    Nan::SetMethod(locProto, "getOutputSource", getOutputSource);
+    Nan::SetMethod(locProto, "setOutputSource", setOutputSource);
 
-    Nan::Set(target, FIELD_NAME("Video"), prototype->GetFunction());
-    Nan::Set(target, FIELD_NAME("video"), video_ns);
+    Nan::Set(target, FIELD_NAME("Video"), locProto->GetFunction());
 }
 
 NAN_METHOD(Video::New)
@@ -79,38 +80,61 @@ NAN_METHOD(Video::reset)
     info.GetReturnValue().Set(obs::video::reset(&vi));
 }
 
-NAN_METHOD(Video::output)
+NAN_METHOD(Video::setOutputSource)
 {
     uint32_t channel = 
         Nan::To<uint32_t>(info[0]).FromJust();
+    
+    if (info[1]->IsNull()) {
+        obs::video::output(channel, obs::source(nullptr));
+        return;
+    }
+    else if (!info[1]->IsObject()) {
+        Nan::ThrowError("Expected object");
+        return;
+    }
 
-    switch(info.Length()) {
-    case 1: {
-        Input *binding = new Input(obs::video::output(channel));
+    obs::input *handle = 
+        Input::Object::GetHandle(Nan::To<v8::Object>(info[1]).ToLocalChecked());
+
+    obs::video::output(channel, *handle);
+}
+
+NAN_METHOD(Video::getOutputSource)
+{
+    if (info.Length() != 1) {
+        Nan::ThrowError("Unexpected number of arguments");
+        return;
+    }
+
+    uint32_t channel = 
+        Nan::To<uint32_t>(info[0]).FromJust();
+
+    obs::source source = obs::video::output(channel);
+
+    if (source.type() == OBS_SOURCE_TYPE_INPUT) {
+        Input *binding = new Input(source.dangerous());
 
         v8::Local<v8::Object> object = 
             Input::Object::GenerateObject(binding);
 
         info.GetReturnValue().Set(object);
-        break;
     }
-    case 2: {
-        
+    else if (source.type() == OBS_SOURCE_TYPE_SCENE) {
+        Scene *binding = new Scene(source.dangerous());
 
-        if (info[1]->IsNull()) {
-            obs::video::output(channel, obs::input(nullptr));
-            break;
-        }
+        v8::Local<v8::Object> object = 
+            Scene::Object::GenerateObject(binding);
 
-        obs::input *handle = 
-            Input::Object::GetHandle(info[1]->ToObject());
-
-        obs::video::output(channel, *handle);
-        break;
+        info.GetReturnValue().Set(object);
     }
-    default: 
-        Nan::ThrowError("Unexpected number of arguments");
-        break;
+    else if (source.type() == OBS_SOURCE_TYPE_TRANSITION) {
+        Transition *binding = new Transition(source.dangerous());
+
+        v8::Local<v8::Object> object = 
+            Transition::Object::GenerateObject(binding);
+
+        info.GetReturnValue().Set(object);
     }
 }
 
