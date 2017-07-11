@@ -59,6 +59,8 @@ For now, it automatically generates VC++ files for version 14 (2015). Ye be warn
 __Environment Variables__
 =========================
 
+- __ENABLE_DISTRIBUTION__ - \[ Default: "false" \]
+- __OSN_DIST_DIR__ - \[ Default: "node-obs" \]
 - __OSN_NODE_NAME__ - \[ Default: "obs-node" \]
 - __OBS_BUILD_TYPE__ - \[ Default: Release \]
 - __OBS_STUDIO_PATH__ - \[ Default: ${CMAKE_SOURCE_DIR}/.. \]
