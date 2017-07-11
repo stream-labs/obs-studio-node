@@ -237,8 +237,8 @@ export class ObsSceneItem {
     alignment: number;
     boundsAlignment: number;
     bounds: IVec2;
-    boundsType: number;
-    scaleFilter: number;
+    boundsType: EBoundsType;
+    scaleFilter: EScaleType;
     visible: boolean;
     // transform_info: TTransformInfo;
     // crop: TCropInfo;
@@ -400,11 +400,11 @@ export class ObsProperties {
 // }
 
 export const enum EScaleType {
-  Default,
-  Point,
-  FastBilinear,
-  Bilinear,
-  Bicubic
+    Default,
+    Point,
+    FastBilinear,
+    Bilinear,
+    Bicubic
 }
 
 export const enum EBoundsType {
