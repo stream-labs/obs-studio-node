@@ -9,7 +9,7 @@
   },
   "cmake-js": {
     "runtime": "electron",
-    "runtimeVersion": "1.6.10",
+    "runtimeVersion": "1.7.4",
     "arch": "x64"
   },
   "author": "Zachary Lund <zachary.lund@streamlabs.com>",
@@ -19,7 +19,7 @@
     "nan": "^2.6.2"
   },
   "dependencies": {
-    "electron": "^1.6.10",
+    "electron": "^1.7.4",
     "electron-rebuild": "^1.5.11"
   }
 }
