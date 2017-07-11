@@ -4,18 +4,18 @@
 
 namespace osn {
 
-obs::source *Scene::GetHandle()
+obs::source Scene::GetHandle()
 {
-    return static_cast<obs::source*>(&handle);
+    return handle.get();
 }
 
 Scene::Scene(std::string name)
- : handle(name)
+ : handle(obs::scene(name))
 {
 }
 
 Scene::Scene(obs::scene handle)
- : handle(handle)
+ : handle(obs::scene(handle))
 {
 }
 
@@ -104,8 +104,8 @@ NAN_METHOD(Scene::fromName)
 
 NAN_METHOD(Scene::getItems)
 {
-    obs::scene *scene = Scene::Object::GetHandle(info.Holder());
-    std::vector<obs::scene::item> items = scene->items();
+    obs::weak<obs::scene> &scene = Scene::Object::GetHandle(info.Holder());
+    std::vector<obs::scene::item> items = scene.get()->items();
     int size = static_cast<int>(items.size());
     auto array = Nan::New<v8::Array>(size);
 
@@ -120,7 +120,7 @@ NAN_METHOD(Scene::getItems)
 
 NAN_METHOD(Scene::add)
 {
-    obs::scene *scene = Scene::Object::GetHandle(info.Holder());
+    obs::weak<obs::scene> &scene = Scene::Object::GetHandle(info.Holder());
 
     if (info.Length() != 1) {
         Nan::ThrowError("Expected one argument");
@@ -132,11 +132,11 @@ NAN_METHOD(Scene::add)
         return;
     }
 
-    obs::input *input = 
+    obs::weak<obs::input> &input = 
         Input::Object::GetHandle(
             Nan::To<v8::Object>(info[0]).ToLocalChecked());
 
-    SceneItem *binding = new SceneItem(scene->add(*input));
+    SceneItem *binding = new SceneItem(scene.get()->add(input.get().get()));
     auto object = SceneItem::Object::GenerateObject(binding);
 
     info.GetReturnValue().Set(object);

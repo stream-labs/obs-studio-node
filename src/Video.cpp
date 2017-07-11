@@ -94,10 +94,9 @@ NAN_METHOD(Video::setOutputSource)
         return;
     }
 
-    obs::input *handle = 
-        Input::Object::GetHandle(Nan::To<v8::Object>(info[1]).ToLocalChecked());
-
-    obs::video::output(channel, *handle);
+    auto source_object = Nan::To<v8::Object>(info[1]).ToLocalChecked();
+    obs::source source = ISource::GetHandle(source_object);
+    obs::video::output(channel, source);
 }
 
 NAN_METHOD(Video::getOutputSource)

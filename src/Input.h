@@ -20,17 +20,17 @@ class Input : public ISource
 public:
     static Nan::Persistent<v8::FunctionTemplate> prototype;
 
-    typedef common::Object<Input, obs::input> Object;
+    typedef common::Object<Input, obs::weak<obs::input>> Object;
     friend Object;
 
-    obs::input handle;
+    obs::weak<obs::input> handle;
     bool released;
 
     Input(obs::input input);
     Input(std::string id, std::string name, obs_data_t *hotkey, obs_data_t *settings);
     Input(std::string id, std::string name, obs_data_t *settings, bool is_private);
 
-    virtual obs::source *GetHandle();
+    virtual obs::source GetHandle();
     static NAN_MODULE_INIT(Init);
     static NAN_METHOD(getPublicSources);
     static NAN_METHOD(duplicate);

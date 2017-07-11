@@ -6,18 +6,18 @@ Nan::Persistent<v8::FunctionTemplate> Filter::prototype =
     Nan::Persistent<v8::FunctionTemplate>();
 
 Filter::Filter(std::string id, std::string name, obs_data_t *settings)
- : handle(id, name, settings)
+ : handle(obs::filter(id, name, settings))
 {
 }
 
 Filter::Filter(obs::filter &filter)
- : handle(filter)
+ : handle(obs::filter(filter))
 {
 }
 
-obs::source* Filter::GetHandle()
+obs::source Filter::GetHandle()
 {
-    return static_cast<obs::source*>(&handle);
+    return handle.get();
 }
 
 NAN_MODULE_INIT(Filter::Init)

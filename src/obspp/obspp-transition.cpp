@@ -22,12 +22,12 @@ transition::transition(obs_source_t * handle)
     source::check_type(m_handle, OBS_SOURCE_TYPE_TRANSITION);
 }
 
-void transition::set(obs::input source) 
+void transition::set(obs::source &source) 
 {
     obs_transition_set(m_handle, source.dangerous());
 }
 
-void transition::start(int ms, obs::input source)
+void transition::start(int ms, obs::source &source)
 {
     obs_transition_start(m_handle, 
         OBS_TRANSITION_MODE_AUTO, ms, source.dangerous());

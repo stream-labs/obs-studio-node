@@ -10,17 +10,18 @@ namespace osn {
 
 class Transition : public ISource {
 public:
-    obs::transition handle;
-
     static Nan::Persistent<v8::FunctionTemplate> prototype;
 
-    typedef common::Object<Transition, obs::transition> Object;
+    typedef obs::weak<obs::transition> weak_handle_t;
+    typedef common::Object<Transition, weak_handle_t> Object;
     friend Object;
+
+    weak_handle_t handle;
 
     Transition(std::string id, std::string name, obs_data_t *settings);
     Transition(obs::transition transition);
 
-    virtual obs::source *GetHandle();
+    virtual obs::source GetHandle();
     static NAN_MODULE_INIT(Init);
     static NAN_METHOD(types);
     static NAN_METHOD(create);

@@ -70,6 +70,7 @@
 #include <exception>
 
 #include "obspp-properties.hpp"
+#include "obspp-weak.hpp"
 
 namespace obs {
 
@@ -93,7 +94,14 @@ public:
     source(source &copy);
     source(obs_source_t *source);
 
-    void release(); /* Two-step destruction for managed languages. */
+    template <typename T>
+    source(obs::strong<T> &source) : m_handle(source->dangerous())
+    { 
+        if (!m_handle) m_status = status_type::invalid;
+    }
+
+    void addref();
+    void release(); /* Nullifies handle! */
     void remove(); /* Signals other references to release */
     ~source();
     bool operator!() const;

@@ -16,15 +16,16 @@ class Scene : public ISource
 public:
     static Nan::Persistent<v8::FunctionTemplate> prototype;
 
-    typedef common::Object<Scene, obs::scene> Object;
+    typedef obs::weak<obs::scene> weak_handle_t;
+    typedef common::Object<Scene, weak_handle_t> Object;
     friend Object;
 
-    obs::scene handle;
+    weak_handle_t handle;
 
     Scene(std::string name);
     Scene(obs::scene handle);
 
-    virtual obs::source* GetHandle();
+    virtual obs::source GetHandle();
     
     static NAN_MODULE_INIT(Init);
     static NAN_METHOD(getCurrentListDeprecated);

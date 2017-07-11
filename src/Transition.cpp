@@ -6,18 +6,18 @@ namespace osn {
 Nan::Persistent<v8::FunctionTemplate> Transition::prototype;
 
 Transition::Transition(std::string id, std::string name, obs_data_t *settings)
- : handle(id, name, settings)
+ : handle(obs::transition(id, name, settings))
 {
 }
 
 Transition::Transition(obs::transition transition) 
- : handle(transition)
+ : handle(obs::transition(transition))
 {
 }
 
-obs::source *Transition::GetHandle()
+obs::source Transition::GetHandle()
 {
-    return static_cast<obs::source*>(&handle);
+    return handle.get();
 }
 
 NAN_MODULE_INIT(Transition::Init)
@@ -70,7 +70,7 @@ NAN_METHOD(Transition::create)
 
 NAN_METHOD(Transition::set)
 {
-    obs::transition *handle = Transition::Object::GetHandle(info.Holder());
+    obs::weak<obs::transition> &handle = Transition::Object::GetHandle(info.Holder());
 
     if (info.Length() != 1) {
         Nan::ThrowError("Unexpected number of arguments");
@@ -82,15 +82,17 @@ NAN_METHOD(Transition::set)
         return;
     }
 
-    auto input_object = Nan::To<v8::Object>(info[0]).ToLocalChecked();
-    obs::input *input = Input::Object::GetHandle(input_object);
+    auto source_object = Nan::To<v8::Object>(info[0]).ToLocalChecked();
 
-    handle->set(*input);
+    /* We don't know what type of source this is... so fetch
+       the source interface instead. */
+    obs::source source = ISource::GetHandle(source_object);
+    handle.get()->set(source);
 }
 
 NAN_METHOD(Transition::start)
 {
-    obs::transition *handle = Transition::Object::GetHandle(info.Holder());
+    obs::weak<obs::transition> &handle = Transition::Object::GetHandle(info.Holder());
 
     if (info.Length() != 2) {
         Nan::ThrowError("Unexpected number of arguments");
@@ -110,9 +112,12 @@ NAN_METHOD(Transition::start)
     int ms = Nan::To<int32_t>(info[0]).FromJust();
 
     auto source_object = Nan::To<v8::Object>(info[1]).ToLocalChecked();
-    obs::input *source = Input::Object::GetHandle(source_object);
 
-    handle->start(ms, *source);
+    /* We don't know what type of source this is... so fetch
+       the source interface instead. */
+    obs::source source = ISource::GetHandle(source_object);
+
+    handle.get()->start(ms, source);
 }
 
 }

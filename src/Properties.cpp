@@ -61,16 +61,16 @@ NAN_METHOD(Properties::New)
 
 NAN_GETTER(Properties::status)
 {
-    obs::properties *handle = Properties::Object::GetHandle(info.Holder());
+    obs::properties &handle = Properties::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(handle->status());
+    info.GetReturnValue().Set(handle.status());
 }
 
 NAN_METHOD(Properties::first)
 {
-    obs::properties *handle = Properties::Object::GetHandle(info.Holder());
+    obs::properties &handle = Properties::Object::GetHandle(info.Holder());
 
-    Property *binding = new Property(handle->first());
+    Property *binding = new Property(handle.first());
     auto object = Property::Object::GenerateObject(binding);
 
     info.GetReturnValue().Set(object);
@@ -78,9 +78,9 @@ NAN_METHOD(Properties::first)
 
 NAN_METHOD(Properties::count)
 {
-    obs::properties *handle = Properties::Object::GetHandle(info.Holder());
+    obs::properties &handle = Properties::Object::GetHandle(info.Holder());
 
-    obs::property it = handle->first();
+    obs::property it = handle.first();
 
     int result = 0;
 
@@ -93,7 +93,7 @@ NAN_METHOD(Properties::count)
 
 NAN_METHOD(Properties::get)
 {
-    obs::properties *handle = Properties::Object::GetHandle(info.Holder());
+    obs::properties &handle = Properties::Object::GetHandle(info.Holder());
 
     if (info.Length() != 1 || !info[0]->IsString()) {
         Nan::ThrowError("Unexpected arguments");
@@ -102,7 +102,7 @@ NAN_METHOD(Properties::get)
 
     Nan::Utf8String property_name(info[0]);
     
-    Property *binding = new Property(handle->get(*property_name));
+    Property *binding = new Property(handle.get(*property_name));
     auto object = Property::Object::GenerateObject(binding);
 
     info.GetReturnValue().Set(object);
@@ -147,51 +147,51 @@ NAN_MODULE_INIT(Property::Init)
 
 NAN_GETTER(Property::status)
 {
-    obs::property *handle = Property::Object::GetHandle(info.Holder());
+    obs::property &handle = Property::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(handle->status());
+    info.GetReturnValue().Set(handle.status());
 }
 
 NAN_GETTER(Property::name)
 {
-    obs::property *handle = Property::Object::GetHandle(info.Holder());
+    obs::property &handle = Property::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(Nan::New(handle->name().c_str()).ToLocalChecked());
+    info.GetReturnValue().Set(Nan::New(handle.name().c_str()).ToLocalChecked());
 }
 
 NAN_GETTER(Property::description)
 {
-    obs::property *handle = Property::Object::GetHandle(info.Holder());
+    obs::property &handle = Property::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(Nan::New(handle->description().c_str()).ToLocalChecked());
+    info.GetReturnValue().Set(Nan::New(handle.description().c_str()).ToLocalChecked());
 }
 
 NAN_GETTER(Property::longDescription)
 {
-    obs::property *handle = Property::Object::GetHandle(info.Holder());
+    obs::property &handle = Property::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(Nan::New(handle->long_description().c_str()).ToLocalChecked());
+    info.GetReturnValue().Set(Nan::New(handle.long_description().c_str()).ToLocalChecked());
 }
 
 NAN_GETTER(Property::type)
 {
-    obs::property *handle = Property::Object::GetHandle(info.Holder());
+    obs::property &handle = Property::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(handle->type());
+    info.GetReturnValue().Set(handle.type());
 }
 
 NAN_GETTER(Property::enabled)
 {
-    obs::property *handle = Property::Object::GetHandle(info.Holder());
+    obs::property &handle = Property::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(handle->enabled());
+    info.GetReturnValue().Set(handle.enabled());
 }
 
 NAN_GETTER(Property::visible)
 {
-    obs::property *handle = Property::Object::GetHandle(info.Holder());
+    obs::property &handle = Property::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(handle->visible());
+    info.GetReturnValue().Set(handle.visible());
 }
 
 NAN_GETTER(Property::value)
@@ -201,18 +201,18 @@ NAN_GETTER(Property::value)
 
 NAN_GETTER(Property::done)
 {
-    obs::property *handle = Property::Object::GetHandle(info.Holder());
+    obs::property &handle = Property::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(
         Nan::New<v8::Boolean>(
-            handle->status() != obs::property::status_type::okay));
+            handle.status() != obs::property::status_type::okay));
 }
 
 NAN_METHOD(Property::next)
 {
-    obs::property *handle = Property::Object::GetHandle(info.Holder());
+    obs::property &handle = Property::Object::GetHandle(info.Holder());
 
-    handle->next();
+    handle.next();
 
     info.GetReturnValue().Set(info.Holder());
 }
@@ -259,17 +259,17 @@ v8::Local<v8::Array> GetListItems(obs::list_property &property)
 
 NAN_GETTER(Property::details)
 {
-    obs::property *handle = Property::Object::GetHandle(info.Holder());
+    obs::property &handle = Property::Object::GetHandle(info.Holder());
 
     /* Some types have extra data. Associated with them. Construct objects
        and pass them with the property since you're more likely to need them
        than not. */
     auto object = Nan::New<v8::Object>();
 
-    switch (handle->type()) {
+    switch (handle.type()) {
     case OBS_PROPERTY_LIST: {
         obs::list_property list_prop = 
-            handle->list_property();
+            handle.list_property();
 
         Nan::Set(object, 
             FIELD_NAME("format"), 
@@ -282,7 +282,7 @@ NAN_GETTER(Property::details)
     }
     case OBS_PROPERTY_EDITABLE_LIST: {
         obs::editable_list_property edit_list_prop = 
-            handle->editable_list_property();
+            handle.editable_list_property();
 
         Nan::Set(object, 
             FIELD_NAME("type"), 
@@ -306,7 +306,7 @@ NAN_GETTER(Property::details)
         break;
     }
     case OBS_PROPERTY_TEXT:  {
-        obs::text_property text_prop = handle->text_property();
+        obs::text_property text_prop = handle.text_property();
 
         Nan::Set(object, 
             FIELD_NAME("type"), 
@@ -314,7 +314,7 @@ NAN_GETTER(Property::details)
         break;
     }
     case OBS_PROPERTY_PATH: {
-        obs::path_property path_prop = handle->path_property();
+        obs::path_property path_prop = handle.path_property();
 
         Nan::Set(object, 
             FIELD_NAME("type"), 
@@ -323,7 +323,7 @@ NAN_GETTER(Property::details)
     }
     case OBS_PROPERTY_FLOAT: {
         obs::float_property float_prop = 
-            handle->float_property();
+            handle.float_property();
 
         Nan::Set(object, 
             FIELD_NAME("type"), 
@@ -332,7 +332,7 @@ NAN_GETTER(Property::details)
     }
     case OBS_PROPERTY_INT: {
         obs::integer_property int_prop = 
-            handle->integer_property();
+            handle.integer_property();
 
         Nan::Set(object, 
             FIELD_NAME("type"), 

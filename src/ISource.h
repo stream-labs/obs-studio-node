@@ -2,13 +2,14 @@
 
 #include <nan.h>
 #include "obspp/obspp-source.hpp"
+#include "obspp/obspp-weak.hpp"
 #include "Common.h"
 
 namespace osn {
 
 class ISourceHandle {
 public:
-	virtual obs::source *GetHandle() = 0;
+	virtual obs::source GetHandle() = 0;
 };
 
 class ISource : public ISourceHandle, public Nan::ObjectWrap
@@ -16,7 +17,7 @@ class ISource : public ISourceHandle, public Nan::ObjectWrap
 public:
     static Nan::Persistent<v8::FunctionTemplate> prototype;
 
-    static obs::source* GetHandle(v8::Local<v8::Object> object);
+    static obs::source GetHandle(v8::Local<v8::Object> object);
 
     static NAN_MODULE_INIT(Init);
     static NAN_GETTER(type);

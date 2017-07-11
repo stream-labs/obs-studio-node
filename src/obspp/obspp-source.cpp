@@ -51,11 +51,14 @@ uint32_t source::flags()
     return obs_source_get_flags(m_handle);
 }
 
+void source::addref()
+{
+    obs_source_addref(m_handle);
+}
+
 void source::release() 
 {
     obs_source_release(m_handle);
-    m_handle = nullptr;
-    m_status = status_type::invalid;
 }
 
 void source::remove() 
@@ -105,7 +108,8 @@ source::status_type source::status()
 
 const std::string source::name()
 {
-    return obs_source_get_name(m_handle);
+    const char *name = obs_source_get_name(m_handle);
+    return name ? name : "";
 }
 
 void source::name(std::string name)
@@ -115,7 +119,8 @@ void source::name(std::string name)
 
 const std::string source::id()
 {
-    return obs_source_get_id(m_handle);
+    const char * id = obs_source_get_id(m_handle);
+    return id ? id : "";
 }
 
 bool source::configurable()
