@@ -1,8 +1,7 @@
-const {app, BrowserWindow} = require('electron');
+const { app } = require('electron');
 var path = require('path');
 const obs = require('../node-obs/obs_node.node');
 
-let display;
 let test_transition;
 let test_input;
 let test_scene;
@@ -47,20 +46,7 @@ function ready() {
         console.log("Failed to reset video");
     }
 
-    /* Initialize and start display */
-    var renderer = new BrowserWindow();
-
-    let test_renderer_html = require('url').format({
-        protocol: 'file',
-        slashes: true,
-        pathname: require('path').join(__dirname, 'test.renderer.html')
-    })
-
-    renderer.loadURL(test_renderer_html);
-    renderer.webContents.openDevTools();
-
     var display_init = {
-        'hwnd': renderer.getNativeWindowHandle(),
         'width': 800,
         'height': 600,
         'format': 3,

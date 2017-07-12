@@ -129,26 +129,14 @@ NAN_METHOD(Display::New)
     ASSERT_GET_OBJECT_FIELD(init_object, "format", init_data.format);
     ASSERT_GET_OBJECT_FIELD(init_object, "zsformat", init_data.zsformat);
 
-    /* TODO Currently only handle the Windows scenario */
-    Nan::TypedArrayContents<uint8_t> hwnd_view(Nan::Get(init_object, FIELD_NAME("hwnd")).ToLocalChecked());
-
-    if (*hwnd_view) {
-        HWND hwnd = (HWND)*reinterpret_cast<uint64_t*>(*hwnd_view);
-        init_data.window.hwnd = hwnd;
-    }
-
-    FixChromeD3DIssue((HWND)init_data.window.hwnd);
     DisplayWndClass();
 
-    HWND new_window = CreateWindowEx(
+    init_data.window.hwnd = CreateWindowEx(
         0, //WS_EX_COMPOSITED | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST,
         TEXT("Win32DisplayClass"), TEXT("SlobsChildWindowPreview"),
         WS_VISIBLE | WS_POPUP,
         0, 0, init_data.cx, init_data.cy,
         NULL, NULL, NULL, NULL);
-
-    /* RESOURCE LEAK */
-    init_data.window.hwnd = new_window;
 
     Display *object = new Display(init_data);
     object->Wrap(info.This());
