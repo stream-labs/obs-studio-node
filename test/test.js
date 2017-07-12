@@ -147,7 +147,7 @@ function ready() {
         test_transition.release();
         display.destroy();
 
-        console.log("Moment of truth...");
+        console.log("Moment of truth... (should get messages about null source)");
         console.log(some_other_input.name);
     }, 10000);
 }; 
