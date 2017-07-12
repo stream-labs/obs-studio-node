@@ -20,8 +20,6 @@ public:
 
     obs::scene::item handle;
 
-    static obs::scene::item *GetHandle(v8::Local<v8::Object> object);
-
     static void Init();
 
     static NAN_METHOD(getSource);

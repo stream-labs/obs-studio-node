@@ -1,6 +1,5 @@
 #include "Display.h"
 #include "RenderPlugin.h"
-#include "Common.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -116,34 +115,23 @@ NAN_METHOD(Display::New)
         return;
     }
 
-    if (!info[0]->IsObject()) {
-        Nan::ThrowError("Expected object");
-        return;
-    }
-
-    if (info.Length() != 1) {
-        Nan::ThrowError("Unexpected number of arguments");
-        return;
-    }
-
-    auto init_object = info[0]->ToObject();
+    v8::Local<v8::Object> init_object;
+ 
+    ASSERT_INFO_LENGTH(info, 1);
+    ASSERT_GET_VALUE(info[0], init_object);
 
     gs_init_data init_data = {};
 
     DisplayWndClass();
 
-    Nan::TypedArrayContents<uint8_t> hwnd_view(Nan::Get(init_object, FIELD_NAME("hwnd")).ToLocalChecked());
-    auto cx_local = Nan::Get(init_object, FIELD_NAME("width")).ToLocalChecked()->ToUint32();
-    auto cy_local = Nan::Get(init_object, FIELD_NAME("height")).ToLocalChecked()->ToUint32();
-    auto format_local = Nan::Get(init_object, FIELD_NAME("format")).ToLocalChecked()->ToUint32();
-    auto zsformat_local = Nan::Get(init_object, FIELD_NAME("zsformat")).ToLocalChecked()->ToUint32();
-
-    init_data.cx = cx_local->Value();
-    init_data.cy = cy_local->Value();
-    init_data.format = static_cast<gs_color_format>(format_local->Value());
-    init_data.zsformat = static_cast<gs_zstencil_format>(zsformat_local->Value());
+    ASSERT_GET_OBJECT_FIELD(init_object, "width", init_data.cx);
+    ASSERT_GET_OBJECT_FIELD(init_object, "height", init_data.cy);
+    ASSERT_GET_OBJECT_FIELD(init_object, "format", init_data.format);
+    ASSERT_GET_OBJECT_FIELD(init_object, "zsformat", init_data.zsformat);
 
     /* TODO Currently only handle the Windows scenario */
+    Nan::TypedArrayContents<uint8_t> hwnd_view(Nan::Get(init_object, FIELD_NAME("hwnd")).ToLocalChecked());
+
     if (*hwnd_view) {
         HWND hwnd = (HWND)*reinterpret_cast<uint64_t*>(*hwnd_view);
         init_data.window.hwnd = hwnd;
@@ -167,27 +155,23 @@ NAN_METHOD(Display::New)
     info.GetReturnValue().Set(info.This());
 }
 
-#define UNWRAP_DISPLAY \
-    Display* object = Nan::ObjectWrap::Unwrap<Display>(info.Holder()); \
-    obs::display &handle = object->handle;
-
 NAN_GETTER(Display::status)
 {
-    UNWRAP_DISPLAY
+    obs::display &handle = Display::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle.status());
 }
 
 NAN_METHOD(Display::destroy)
 {
-    UNWRAP_DISPLAY
+    obs::display &handle = Display::Object::GetHandle(info.Holder());
 
     handle.destroy();
 }
 
 NAN_METHOD(Display::addDrawer)
 {
-    UNWRAP_DISPLAY
+    obs::display &handle = Display::Object::GetHandle(info.Holder());
 
     if (!info[0]->IsString()) {
         Nan::ThrowTypeError("Expected string");
@@ -211,7 +195,7 @@ NAN_METHOD(Display::removeDrawer)
 
 NAN_METHOD(Display::resize)
 {
-    UNWRAP_DISPLAY
+    obs::display &handle = Display::Object::GetHandle(info.Holder());
 
     if (info.Length() != 2) {
         Nan::ThrowError("Unexpected number of arguments");
@@ -229,14 +213,14 @@ NAN_METHOD(Display::resize)
 
 NAN_GETTER(Display::enabled)
 {
-    UNWRAP_DISPLAY
+    obs::display &handle = Display::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle.enabled());
 }
 
 NAN_SETTER(Display::enabled)
 {
-    UNWRAP_DISPLAY
+    obs::display &handle = Display::Object::GetHandle(info.Holder());
 
     bool is_enabled = Nan::To<bool>(value).FromJust();
 
@@ -245,7 +229,7 @@ NAN_SETTER(Display::enabled)
 
 NAN_SETTER(Display::backgroundColor)
 {
-    UNWRAP_DISPLAY
+    obs::display &handle = Display::Object::GetHandle(info.Holder());
 
     uint32_t color = Nan::To<uint32_t>(value).FromJust();
 

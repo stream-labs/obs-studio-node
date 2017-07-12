@@ -1,5 +1,4 @@
 #include "Module.h"
-#include "Common.h"
 
 namespace osn {
 
@@ -58,20 +57,14 @@ NAN_MODULE_INIT(Module::Init)
 /* Prototype Methods */
 NAN_METHOD(Module::add_path)
 {
-    if (info.Length() != 2) {
-        Nan::ThrowError("add_path requires two arguments");
-        return;
-    }
+    ASSERT_INFO_LENGTH(info, 2);
+    
+    std::string bin_path, data_path;
 
-    if (!info[0]->IsString() || !info[1]->IsString()) {
-        Nan::ThrowTypeError("Expected string");
-        return;
-    }
+    ASSERT_GET_VALUE(info[0], bin_path);
+    ASSERT_GET_VALUE(info[1], data_path);
 
-    Nan::Utf8String bin_path(info[0]);
-    Nan::Utf8String data_path(info[1]);
-
-    obs::module::add_path(*bin_path, *data_path);
+    obs::module::add_path(bin_path, data_path);
 }
 
 NAN_METHOD(Module::load_all)
@@ -84,65 +77,61 @@ NAN_METHOD(Module::log_loaded)
     obs::module::log_loaded();
 }
 
-#define MODULE_UNWRAP \
-    Module* object = Nan::ObjectWrap::Unwrap<Module>(info.Holder()); \
-    obs::module &handle = object->handle;
-
 /* Instance Methods */
 NAN_METHOD(Module::initialize)
 {
-    MODULE_UNWRAP
+    obs::module &handle = Module::Object::GetHandle(info.Holder());
 
     handle.initialize();
 }
 
 NAN_GETTER(Module::fileName)
 {
-    MODULE_UNWRAP
+    obs::module &handle = Module::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(Nan::New(handle.file_name()).ToLocalChecked());
+    info.GetReturnValue().Set(common::ToValue(handle.file_name()));
 }
 
 NAN_GETTER(Module::name)
 {
-    MODULE_UNWRAP
+    obs::module &handle = Module::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(Nan::New(handle.name()).ToLocalChecked());
+    info.GetReturnValue().Set(common::ToValue(handle.name()));
 }
 
 NAN_GETTER(Module::author)
 {
-    MODULE_UNWRAP
+    obs::module &handle = Module::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(Nan::New(handle.author()).ToLocalChecked());
+    info.GetReturnValue().Set(common::ToValue(handle.author()));
 }
 
 NAN_GETTER(Module::description)
 {
-    MODULE_UNWRAP
+    obs::module &handle = Module::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(Nan::New(handle.description()).ToLocalChecked());
+    info.GetReturnValue().Set(common::ToValue(handle.description()));
 }
 
 NAN_GETTER(Module::binPath)
 {
-    MODULE_UNWRAP
+    obs::module &handle = Module::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(Nan::New(handle.binary_path()).ToLocalChecked());
+    info.GetReturnValue().Set(common::ToValue(handle.binary_path()));
 }
 
 NAN_GETTER(Module::dataPath)
 {
-    MODULE_UNWRAP
+    obs::module &handle = Module::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(Nan::New(handle.data_path()).ToLocalChecked());
+    info.GetReturnValue().Set(common::ToValue(handle.data_path()));
 }
 
 NAN_GETTER(Module::status)
 {
-    MODULE_UNWRAP
+    obs::module &handle = Module::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(Nan::New(handle.status()));
+    info.GetReturnValue().Set(handle.status());
 }
 
 }

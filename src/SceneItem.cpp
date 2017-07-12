@@ -39,7 +39,7 @@ void SceneItem::Init()
 
 NAN_METHOD(SceneItem::getSource)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
     Input *binding = new Input(handle.source());
     auto object = Input::Object::GenerateObject(binding);
@@ -49,14 +49,14 @@ NAN_METHOD(SceneItem::getSource)
 
 NAN_METHOD(SceneItem::remove)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
     handle.remove();
 }
 
 NAN_GETTER(SceneItem::id)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
     /* FIXME: id() returns uint64_t but JS can't hold that */
     info.GetReturnValue().Set((uint32_t)handle.id());
@@ -64,280 +64,222 @@ NAN_GETTER(SceneItem::id)
 
 NAN_GETTER(SceneItem::visible)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(Nan::New<v8::Boolean>(handle.visible()));
+    info.GetReturnValue().Set(common::ToValue(handle.visible()));
 }
 
 NAN_SETTER(SceneItem::visible)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
-    if (!value->IsBoolean()) {
-        Nan::ThrowError("Expected boolean");
-        return;
-    }
+    bool visible;
 
-    bool visible = Nan::To<bool>(value).FromJust();
+    ASSERT_GET_VALUE(value, visible);
+
     handle.visible(visible);
 }
 
 NAN_SETTER(SceneItem::selected)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
-    if (!value->IsBoolean()) {
-        Nan::ThrowError("Expected boolean");
-        return;
-    }
+    bool selected;
 
-    bool selected = value->ToBoolean()->Value();
+    ASSERT_GET_VALUE(value, selected);
 
     handle.selected(selected);
 }
 
 NAN_GETTER(SceneItem::selected)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(handle.selected());
+    info.GetReturnValue().Set(common::ToValue(handle.selected()));
 }
 
 NAN_SETTER(SceneItem::position)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
-    if (!value->IsObject()) {
-        Nan::ThrowError("Expected object");
-        return;
-    }
+    vec2 position;
 
-    auto object = Nan::To<v8::Object>(value).ToLocalChecked();
-
-    vec2 position = {
-        static_cast<float>(Nan::Get(object, FIELD_NAME("x"))
-            .ToLocalChecked()->ToNumber()->Value()),
-
-        static_cast<float>(Nan::Get(object, FIELD_NAME("y"))
-            .ToLocalChecked()->ToNumber()->Value())
-    };
+    ASSERT_GET_VALUE(value, position);
 
     handle.position(position);
 }
 
 NAN_GETTER(SceneItem::position)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
-    auto object = Nan::New<v8::Object>();
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
     vec2 position = handle.position();
 
-    Nan::Set(object, FIELD_NAME("x"), Nan::New<v8::Number>(position.x));
-    Nan::Set(object, FIELD_NAME("y"), Nan::New<v8::Number>(position.y));
-
-    info.GetReturnValue().Set(object);
+    info.GetReturnValue().Set(common::ToValue(position));
 }
 
 NAN_SETTER(SceneItem::rotation)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
-    if (!value->IsNumber()) {
-        Nan::ThrowError("Expected float");
-        return;
-    }
+    float rotation;
 
-    float rotation = static_cast<float>(Nan::To<double>(value).FromJust());
+    ASSERT_GET_VALUE(value, rotation);
 
     handle.rotation(rotation);
 }
 
 NAN_GETTER(SceneItem::rotation)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
     float rotation = handle.rotation();
 
-    info.GetReturnValue().Set(rotation);
+    info.GetReturnValue().Set(common::ToValue(rotation));
 }
 
 NAN_SETTER(SceneItem::scale)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
-    if (!value->IsObject()) {
-        Nan::ThrowError("Expected array");
-        return;
-    }
+    vec2 scale;
 
-    auto object = Nan::To<v8::Object>(value).ToLocalChecked();
-
-    vec2 scale = {
-        static_cast<float>(Nan::Get(object, FIELD_NAME("x"))
-            .ToLocalChecked()->ToNumber()->Value()),
-
-        static_cast<float>(Nan::Get(object, FIELD_NAME("y"))
-            .ToLocalChecked()->ToNumber()->Value())
-    };
+    ASSERT_GET_VALUE(value, scale);
 
     handle.scale(scale);
 }
 
 NAN_GETTER(SceneItem::scale)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
-    auto object = Nan::New<v8::Object>();
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
     vec2 scale = handle.scale();
 
-    Nan::Set(object, FIELD_NAME("x"), Nan::New<v8::Number>(scale.x));
-    Nan::Set(object, FIELD_NAME("y"), Nan::New<v8::Number>(scale.y));
-
-    info.GetReturnValue().Set(object);
+    info.GetReturnValue().Set(common::ToValue(scale));
 }
 
 NAN_SETTER(SceneItem::alignment)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
-    if (!value->IsUint32()) {
-        Nan::ThrowError("Expected unsigned integer");
-        return;
-    }
+    uint32_t alignment;
 
-    uint32_t alignment = Nan::To<uint32_t>(value).FromJust();
+    ASSERT_GET_VALUE(value, alignment);
+
     handle.alignment(alignment);
 }
 
 NAN_GETTER(SceneItem::alignment)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(handle.alignment());
+    info.GetReturnValue().Set(common::ToValue(handle.alignment()));
 }
 
 NAN_SETTER(SceneItem::boundsAlignment)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
-    if (!value->IsUint32()) {
-        Nan::ThrowError("Expected unsigned integer");
-        return;
-    }
+    uint32_t alignment;
 
-    uint32_t alignment = Nan::To<uint32_t>(value).FromJust();
+    ASSERT_GET_VALUE(value, alignment);
+
     handle.bounds_alignment(alignment);
 }
 
 NAN_GETTER(SceneItem::boundsAlignment)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(handle.bounds_alignment());
+    info.GetReturnValue().Set(common::ToValue(handle.bounds_alignment()));
 }
 
 NAN_SETTER(SceneItem::bounds)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
-    if (!value->IsObject()) {
-        Nan::ThrowError("Expected array");
-        return;
-    }
+    vec2 bounds;
 
-    auto object = Nan::To<v8::Object>(value).ToLocalChecked();
-
-    vec2 bounds = {
-        static_cast<float>(Nan::Get(object, FIELD_NAME("x"))
-            .ToLocalChecked()->ToNumber()->Value()),
-
-        static_cast<float>(Nan::Get(object, FIELD_NAME("y"))
-            .ToLocalChecked()->ToNumber()->Value())
-    };
+    ASSERT_GET_VALUE(value, bounds);
 
     handle.scale(bounds);
 }
 
 NAN_GETTER(SceneItem::bounds)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
-    auto object = Nan::New<v8::Object>();
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
     vec2 bounds = handle.bounds();
 
-    Nan::Set(object, FIELD_NAME("x"), Nan::New<v8::Number>(bounds.x));
-    Nan::Set(object, FIELD_NAME("y"), Nan::New<v8::Number>(bounds.y));
-
-    info.GetReturnValue().Set(object);
+    info.GetReturnValue().Set(common::ToValue(bounds));
 }
 
 NAN_SETTER(SceneItem::transformInfo)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
-
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 }
 
 NAN_GETTER(SceneItem::transformInfo)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
 }
 
 NAN_SETTER(SceneItem::order)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
 }
 
 NAN_SETTER(SceneItem::orderPosition)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
 }
 
 NAN_SETTER(SceneItem::boundsType)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
 }
 
 NAN_GETTER(SceneItem::boundsType)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
 }
 
 NAN_SETTER(SceneItem::crop)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
 }
 
 NAN_GETTER(SceneItem::crop)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
 }
 
 NAN_SETTER(SceneItem::scaleFilter)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
 }
 
 NAN_GETTER(SceneItem::scaleFilter)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
 }
 
 NAN_METHOD(SceneItem::deferUpdateBegin)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
     handle.defer_update_begin();
 }
 
 NAN_METHOD(SceneItem::deferUpdateEnd)
 {
-    obs::scene::item handle = SceneItem::Object::GetHandle(info.Holder());
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
     handle.defer_update_end();
 }

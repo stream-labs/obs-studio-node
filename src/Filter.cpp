@@ -49,19 +49,14 @@ NAN_METHOD(Filter::types)
 
 NAN_METHOD(Filter::create)
 {
-    if (info.Length() < 2) {
-        Nan::ThrowError("Too few arguments provided");
-        return;
-    }
+    ASSERT_INFO_LENGTH(info, 2);
 
-    if (!info[0]->IsString() || !info[1]->IsString()) {
-        Nan::ThrowError("Invalid type passed");
-        return;
-    }
-    
-    Nan::Utf8String id(info[0]);
-    Nan::Utf8String name(info[1]);
-    Filter *binding = new Filter(*id, *name, nullptr);
+    std::string id, name;
+
+    ASSERT_GET_VALUE(info[0], id);
+    ASSERT_GET_VALUE(info[1], name);
+
+    Filter *binding = new Filter(id, name, nullptr);
     auto object = Filter::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }

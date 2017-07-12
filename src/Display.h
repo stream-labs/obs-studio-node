@@ -1,6 +1,7 @@
 #pragma once
 
 #include "obspp/obspp-display.hpp"
+#include "Common.h"
 
 #include <nan.h>
 
@@ -9,6 +10,9 @@ namespace osn {
 class Display : public Nan::ObjectWrap
 {
 public:
+    typedef common::Object<Display, obs::display> Object;
+    friend Object;
+
     obs::display handle;
 
     Display(gs_init_data &data);

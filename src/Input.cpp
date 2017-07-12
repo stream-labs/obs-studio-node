@@ -86,21 +86,10 @@ NAN_METHOD(Input::duplicate)
 
     switch (info.Length()) {
     case 2: {
-        if (!info[1]->IsBoolean()) {
-            Nan::ThrowError("Unexpected argument type");
-            return;
-        }
-
-        is_private = Nan::To<bool>(info[1]).FromJust();
+        ASSERT_GET_VALUE(info[1], is_private);
     }
     case 1: {
-        if (!info[0]->IsString()) {
-            Nan::ThrowError("Unexpected argument type");
-            return;
-        }
-
-        Nan::Utf8String nan_name(info[0]);
-        name = *nan_name;
+        ASSERT_GET_VALUE(info[0], name);
     }
     case 0: {
         binding = new Input(handle.get()->duplicate(name, is_private));
@@ -114,30 +103,26 @@ NAN_METHOD(Input::duplicate)
 
 NAN_METHOD(Input::create)
 {
-    if (info.Length() < 2) {
-        Nan::ThrowError("Too few arguments provided");
-        return;
-    }
+    ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
     
-    if (!info[0]->IsString() || !info[1]->IsString()) {
-        Nan::ThrowError("Invalid type passed");
-        return;
-    }
-    
-    Nan::Utf8String id(info[0]);
-    Nan::Utf8String name(info[1]);
+    std::string id, name;
+
+    ASSERT_GET_VALUE(info[0], id);
+    ASSERT_GET_VALUE(info[1], name);
 
     Input *binding;
 
     switch (info.Length()) {
     case 2: 
-        binding = new Input(*id, *name, nullptr, nullptr);
+        binding = new Input(id, name, nullptr, nullptr);
         break;
     case 3:
         if (info[2]->IsBoolean()) {
-            bool is_private = Nan::To<bool>(info[2]).FromJust();
+            bool is_private;
 
-            binding = new Input(*id, *name, nullptr, is_private);
+            ASSERT_GET_VALUE(info[2], is_private);
+
+            binding = new Input(id, name, nullptr, is_private);
         }
         else if (info[2]->IsObject()) {
             Nan::ThrowError("Unfinished implementation");
@@ -160,18 +145,13 @@ NAN_METHOD(Input::create)
 
 NAN_METHOD(Input::fromName)
 {
-    if (info.Length() != 1) {
-        Nan::ThrowError("Unexpected arguments");
-        return;
-    }
+    ASSERT_INFO_LENGTH(info, 1);
 
-    if (!info[0]->IsString()) {
-        Nan::ThrowError("Expected string");
-        return;
-    }
+    std::string name;
 
-    Nan::Utf8String name(info[0]);
-    obs::input input_ref = obs::input::from_name(*name);
+    ASSERT_GET_VALUE(info[0], name);
+
+    obs::input input_ref = obs::input::from_name(name);
 
     if (input_ref.status() != obs::input::status_type::okay) {
         info.GetReturnValue().Set(Nan::Null());
@@ -194,12 +174,10 @@ NAN_SETTER(Input::volume)
 {
     obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
 
-    if (!value->IsNumber()) {
-        Nan::ThrowTypeError("Expected number");
-        return;
-    }
+    float volume;
 
-    float volume = static_cast<float>(Nan::To<double>(value).FromJust());
+    ASSERT_GET_VALUE(value, volume);
+
     handle.get()->volume(volume);
 }
 
@@ -231,12 +209,10 @@ NAN_SETTER(Input::audioMixers)
 {
     obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
 
-    if (!value->IsUint32()) {
-        Nan::ThrowTypeError("Expected unsigned 32-bit integer");
-        return;
-    }
+    uint32_t flags;
 
-    uint32_t flags = Nan::To<uint32_t>(value).FromJust();
+    ASSERT_GET_VALUE(value, flags);
+
     handle.get()->audio_mixers(flags);
 }
 
@@ -244,14 +220,13 @@ NAN_METHOD(Input::addFilter)
 {
     obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
 
-    if (!info[0]->IsObject()) {
-        Nan::ThrowError("Expected object");
-        return;
-    }
+    ASSERT_INFO_LENGTH(info, 1);
 
-    auto filter_object = Nan::To<v8::Object>(info[0]).ToLocalChecked();
+    v8::Local<v8::Object> filter_obj;
 
-    obs::weak<obs::filter> &filter = Filter::Object::GetHandle(filter_object);
+    ASSERT_GET_VALUE(info[0], filter_obj);
+
+    obs::weak<obs::filter> &filter = Filter::Object::GetHandle(filter_obj);
 
     handle.get()->add_filter(filter.get().get());
 }
@@ -260,14 +235,13 @@ NAN_METHOD(Input::removeFilter)
 {
     obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
 
-    if (!info[0]->IsObject()) {
-        Nan::ThrowError("Expected object");
-        return;
-    }
+    ASSERT_INFO_LENGTH(info, 1);
 
-    auto filter_object = Nan::To<v8::Object>(info[0]).ToLocalChecked();
+    v8::Local<v8::Object> filter_obj;
 
-    obs::weak<obs::filter> &filter = Filter::Object::GetHandle(filter_object);
+    ASSERT_GET_VALUE(info[1], filter_obj);
+
+    obs::weak<obs::filter> &filter = Filter::Object::GetHandle(filter_obj);
 
     handle.get()->remove_filter(filter.get().get());
 }

@@ -23,23 +23,21 @@ NAN_MODULE_INIT(Init)
 
 NAN_METHOD(startup)
 {
-    Nan::Utf8String locale(info[0]);
-    Nan::Utf8String path(info[1]);
+    std::string locale, path;
 
     auto ReturnValue = info.GetReturnValue();
 
+    ASSERT_INFO_LENGTH_AT_LEAST(info, 1);
+    ASSERT_GET_VALUE(info[0], locale);
+
     switch (info.Length()) {
-    case 0:
-        Nan::ThrowError("Locale must be specified");
-        break;
     case 1:
-        ReturnValue.Set(obs::startup(*locale));
+        ReturnValue.Set(common::ToValue(obs::startup(locale)));
         break;
     case 2:
-        ReturnValue.Set(obs::startup(*locale, *path));
+        ASSERT_GET_VALUE(info[1], path);
+        ReturnValue.Set(common::ToValue(obs::startup(locale, path)));
         break;
-    default:
-        Nan::ThrowError("Incorrect number of arguments");
     }
 }
 
@@ -52,17 +50,18 @@ NAN_GETTER(locale)
 {
     OBS_VALID
 
-    info.GetReturnValue().Set(
-        Nan::New(obs::locale()).ToLocalChecked());
+    info.GetReturnValue().Set(common::ToValue(obs::locale()));
 }
 
 NAN_SETTER(locale)
 {
     OBS_VALID
 
-    Nan::Utf8String locale(value);
+    std::string locale;
 
-    obs::locale(*locale);
+    ASSERT_GET_VALUE(value, locale);
+
+    obs::locale(locale);
 }
 
 NAN_GETTER(status)
@@ -72,7 +71,7 @@ NAN_GETTER(status)
 
 NAN_GETTER(version)
 {
-    info.GetReturnValue().Set(obs::version());
+    info.GetReturnValue().Set(common::ToValue(obs::version()));
 }
 
 }

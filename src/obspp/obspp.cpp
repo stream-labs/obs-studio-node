@@ -20,7 +20,7 @@ void shutdown()
     obs_shutdown();
 }
 
-unsigned char status()
+status_type status()
 {
     return static_cast<obs::status_type>(!obs_initialized());
 }

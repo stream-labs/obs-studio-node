@@ -51,19 +51,14 @@ NAN_METHOD(Transition::types)
 
 NAN_METHOD(Transition::create)
 {
-    if (info.Length() < 2) {
-        Nan::ThrowError("Too few arguments provided");
-        return;
-    }
+    ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
 
-    if (!info[0]->IsString() || !info[1]->IsString()) {
-        Nan::ThrowError("Invalid type passed");
-        return;
-    }
+    std::string id, name;
     
-    Nan::Utf8String id(info[0]);
-    Nan::Utf8String name(info[1]);
-    Transition *binding = new Transition(*id, *name, nullptr);
+    ASSERT_GET_VALUE(info[0], id);
+    ASSERT_GET_VALUE(info[1], name);
+
+    Transition *binding = new Transition(id, name, nullptr);
     auto object = Transition::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }
@@ -72,17 +67,11 @@ NAN_METHOD(Transition::set)
 {
     obs::weak<obs::transition> &handle = Transition::Object::GetHandle(info.Holder());
 
-    if (info.Length() != 1) {
-        Nan::ThrowError("Unexpected number of arguments");
-        return;
-    }
+    ASSERT_INFO_LENGTH(info, 1);
 
-    if (!info[0]->IsObject()) {
-        Nan::ThrowTypeError("Expected input object");
-        return;
-    }
+    v8::Local<v8::Object> source_object;
 
-    auto source_object = Nan::To<v8::Object>(info[0]).ToLocalChecked();
+    ASSERT_GET_VALUE(info[0], source_object);
 
     /* We don't know what type of source this is... so fetch
        the source interface instead. */
@@ -94,25 +83,13 @@ NAN_METHOD(Transition::start)
 {
     obs::weak<obs::transition> &handle = Transition::Object::GetHandle(info.Holder());
 
-    if (info.Length() != 2) {
-        Nan::ThrowError("Unexpected number of arguments");
-        return;
-    }
+    ASSERT_INFO_LENGTH(info, 2);
 
-    if (!info[0]->IsInt32()) {
-        Nan::ThrowTypeError("Expected integer");
-        return;
-    }
+    int ms;
+    v8::Local<v8::Object> source_object;
 
-    if (!info[1]->IsObject()) {
-        Nan::ThrowTypeError("Expected input object");
-        return;
-    }
-
-    int ms = Nan::To<int32_t>(info[0]).FromJust();
-
-    auto source_object = Nan::To<v8::Object>(info[1]).ToLocalChecked();
-
+    ASSERT_GET_VALUE(info[0], ms);
+    ASSERT_GET_VALUE(info[1], source_object);
     /* We don't know what type of source this is... so fetch
        the source interface instead. */
     obs::source source = ISource::GetHandle(source_object);

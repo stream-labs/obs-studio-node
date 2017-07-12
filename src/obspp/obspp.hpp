@@ -15,7 +15,7 @@ enum status_type {
 bool startup(std::string locale, std::string path);
 bool startup(std::string locale);
 void shutdown();
-unsigned char status();
+status_type status();
 uint32_t version();
 std::string locale();
 void locale(std::string locale);

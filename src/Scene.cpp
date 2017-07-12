@@ -67,18 +67,13 @@ NAN_METHOD(Scene::getCurrentListDeprecated)
 
 NAN_METHOD(Scene::create)
 {
-    if (info.Length() != 1) {
-        Nan::ThrowError("Unexpected number of arguments");
-        return;
-    }
-    if (!info[0]->IsString()) {
-        Nan::ThrowError("Invalid type passed");
-        return;
-    }
+    ASSERT_INFO_LENGTH(info, 1);
+    
+    std::string name;
 
-    Nan::Utf8String name(info[0]);
+    ASSERT_GET_VALUE(info[0], name);
 
-    Scene *binding = new Scene(*name);
+    Scene *binding = new Scene(name);
     auto object = Scene::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }
@@ -86,18 +81,13 @@ NAN_METHOD(Scene::create)
 
 NAN_METHOD(Scene::fromName)
 {
-    if (info.Length() != 1) {
-        Nan::ThrowError("Unexpected arguments");
-        return;
-    }
+    ASSERT_INFO_LENGTH(info, 1);
 
-    if (!info[0]->IsString()) {
-        Nan::ThrowError("Expected string");
-        return;
-    }
+    std::string name;
 
-    Nan::Utf8String name(info[0]);
-    Scene *binding = new Scene(obs::scene::from_name(*name));
+    ASSERT_GET_VALUE(info[0], name);
+
+    Scene *binding = new Scene(obs::scene::from_name(name));
     auto object = Scene::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }
@@ -122,19 +112,14 @@ NAN_METHOD(Scene::add)
 {
     obs::weak<obs::scene> &scene = Scene::Object::GetHandle(info.Holder());
 
-    if (info.Length() != 1) {
-        Nan::ThrowError("Expected one argument");
-        return;
-    }
+    ASSERT_INFO_LENGTH(info, 1);
 
-    if (!info[0]->IsObject()) {
-        Nan::ThrowError("Expected object");
-        return;
-    }
+    v8::Local<v8::Object> input_obj;
+
+    ASSERT_GET_VALUE(info[0], input_obj);
 
     obs::weak<obs::input> &input = 
-        Input::Object::GetHandle(
-            Nan::To<v8::Object>(info[0]).ToLocalChecked());
+        Input::Object::GetHandle(input_obj);
 
     SceneItem *binding = new SceneItem(scene.get()->add(input.get().get()));
     auto object = SceneItem::Object::GenerateObject(binding);

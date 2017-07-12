@@ -65,20 +65,18 @@ NAN_GETTER(ISource::name)
 {
     obs::source handle = ISource::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(Nan::New(handle.name()).ToLocalChecked());
+    info.GetReturnValue().Set(common::ToValue(handle.name()));
 }
 
 NAN_SETTER(ISource::name)
 {
     obs::source handle = ISource::GetHandle(info.Holder());
 
-    if (!value->IsString()) {
-        Nan::ThrowTypeError("Expected string");
-        return;
-    }
+    std::string name;
 
-    Nan::Utf8String name(value);
-    handle.name(*name);
+    ASSERT_GET_VALUE(value, name);
+
+    handle.name(name);
 }
 
 NAN_GETTER(ISource::flags)
@@ -92,12 +90,10 @@ NAN_SETTER(ISource::flags)
 {
     obs::source handle = ISource::GetHandle(info.Holder());
 
-    if (!value->IsUint32()) {
-        Nan::ThrowTypeError("Expected unsigned 32-bit integer");
-        return;
-    }
+    uint32_t flags;
 
-    uint32_t flags = Nan::To<uint32_t>(value).FromJust();
+    ASSERT_GET_VALUE(value, flags);
+
     handle.flags(flags);
 }
 
@@ -137,23 +133,18 @@ NAN_GETTER(ISource::settings)
     obs::source handle = ISource::GetHandle(info.Holder());
 
     obs_data_t *data = handle.settings();
-    auto result = FromDataToObject(data);
 
-    info.GetReturnValue().Set(result);
+    info.GetReturnValue().Set(common::ToValue(data));
 }
 
 NAN_METHOD(ISource::update)
 {
     obs::source handle = ISource::GetHandle(info.Holder());
 
-    if (!info[0]->IsObject()) {
-        Nan::ThrowError("Expected object");
-        return;
-    }
+    obs_data_t *data;
+    
+    ASSERT_GET_VALUE(info[0], data);
 
-    auto object = Nan::To<v8::Object>(info[0]).ToLocalChecked();
-
-    obs_data_t *data = FromObjectToData(object);
     handle.update(data);
     obs_data_release(data);
 }

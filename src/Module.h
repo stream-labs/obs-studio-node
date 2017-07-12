@@ -2,6 +2,7 @@
 #include <nan.h>
 
 #include "obspp/obspp-module.hpp"
+#include "Common.h"
 
 namespace osn {
 
@@ -16,6 +17,9 @@ private:
     static NAN_METHOD(New);
 
 public:
+    typedef common::Object<Module, obs::module> Object;
+    friend Object;
+
     obs::module handle;
 
     Module(std::string path, std::string data_path);

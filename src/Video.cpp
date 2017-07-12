@@ -82,32 +82,30 @@ NAN_METHOD(Video::reset)
 
 NAN_METHOD(Video::setOutputSource)
 {
-    uint32_t channel = 
-        Nan::To<uint32_t>(info[0]).FromJust();
+    uint32_t channel;
+    v8::Local<v8::Object> source_object;
+
+    ASSERT_INFO_LENGTH(info, 2);
+    ASSERT_GET_VALUE(info[0], channel);
     
     if (info[1]->IsNull()) {
         obs::video::output(channel, obs::source(nullptr));
         return;
     }
-    else if (!info[1]->IsObject()) {
-        Nan::ThrowError("Expected object");
-        return;
-    }
+    
+    ASSERT_GET_VALUE(info[1], source_object);
 
-    auto source_object = Nan::To<v8::Object>(info[1]).ToLocalChecked();
     obs::source source = ISource::GetHandle(source_object);
     obs::video::output(channel, source);
 }
 
 NAN_METHOD(Video::getOutputSource)
 {
-    if (info.Length() != 1) {
-        Nan::ThrowError("Unexpected number of arguments");
-        return;
-    }
+    ASSERT_INFO_LENGTH(info, 1);
 
-    uint32_t channel = 
-        Nan::To<uint32_t>(info[0]).FromJust();
+    uint32_t channel;
+
+    ASSERT_GET_VALUE(info[0], channel);
 
     obs::source source = obs::video::output(channel);
 
@@ -167,18 +165,14 @@ NAN_METHOD(VideoEncoder::New)
         return;
     }
 
-    if (info.Length() < 2) {
-        Nan::ThrowError("Too few arguments provided");
-        return;
-    }
+    ASSERT_INFO_LENGTH(info, 2);
     
-    if (!info[0]->IsString() || !info[1]->IsString()) {
-        Nan::ThrowError("Invalid type passed");
-        return;
-    }
-    Nan::Utf8String id(info[0]);
-    Nan::Utf8String name(info[1]);
-    VideoEncoder *object = new VideoEncoder(*id, *name);
+    std::string id, name;
+
+    ASSERT_GET_VALUE(info[0], id);
+    ASSERT_GET_VALUE(info[1], name);
+
+    VideoEncoder *object = new VideoEncoder(id, name);
     object->Wrap(info.This());
     info.GetReturnValue().Set(info.This());
 }
