@@ -1,5 +1,4 @@
 #include "Properties.h"
-#include "Data.h"
 
 namespace osn {
 
