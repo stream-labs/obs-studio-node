@@ -5,18 +5,15 @@
   "main": "index.js",
   "scripts": {
     "install": "cmake-js configure --debug && cmake --build build --target install",
-    "test": "electron test/test.js"
-  },
-  "cmake-js": {
-    "runtime": "electron",
-    "runtimeVersion": "1.6.10",
-    "arch": "x64"
+    "test": "tsc --project test && ava --serial"
   },
   "author": "Zachary Lund <zachary.lund@streamlabs.com>",
   "license": "GPL-3.0",
   "devDependencies": {
+    "ava": "^0.20.0",
     "cmake-js": "^3.4.1",
-    "nan": "^2.6.2"
+    "nan": "^2.6.2",
+    "typescript": "^2.4.1"
   },
   "dependencies": {
     "electron": "1.6.10",
