@@ -6,7 +6,7 @@ namespace osn {
 
 obs::source Scene::GetHandle()
 {
-    return handle.get();
+    return handle.get().get();
 }
 
 Scene::Scene(std::string name)
@@ -29,6 +29,7 @@ NAN_MODULE_INIT(Scene::Init)
     locProto->SetClassName(FIELD_NAME("Scene"));
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
 
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("source"), source);
     Nan::SetMethod(locProto->PrototypeTemplate(), "getItems", getItems);
     Nan::SetMethod(locProto->PrototypeTemplate(), "add", add);
     Nan::SetMethod(locProto, "getCurrentListDeprecated", getCurrentListDeprecated);
@@ -37,6 +38,16 @@ NAN_MODULE_INIT(Scene::Init)
 
     Nan::Set(target, FIELD_NAME("Scene"), locProto->GetFunction());
     prototype.Reset(locProto);
+}
+
+NAN_GETTER(Scene::source)
+{
+    obs::weak<obs::scene> &scene = Scene::Object::GetHandle(info.Holder());
+
+    Input *binding = new Input(scene.get()->source());
+    auto object = Input::Object::GenerateObject(binding);
+
+    info.GetReturnValue().Set(object);
 }
 
 NAN_METHOD(Scene::getCurrentListDeprecated)

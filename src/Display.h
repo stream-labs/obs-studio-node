@@ -10,6 +10,8 @@ namespace osn {
 class Display : public Nan::ObjectWrap
 {
 public:
+    static Nan::Persistent<v8::FunctionTemplate> prototype;
+
     typedef common::Object<Display, obs::display> Object;
     friend Object;
 
@@ -24,6 +26,7 @@ public:
      * on how actual drawing is done (hint: it's
      * not done in javascript) */
     static NAN_GETTER(status);
+    static NAN_METHOD(create);
     static NAN_METHOD(destroy);
     static NAN_METHOD(addDrawer);
     static NAN_METHOD(removeDrawer);

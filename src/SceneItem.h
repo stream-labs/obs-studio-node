@@ -22,7 +22,8 @@ public:
 
     static void Init();
 
-    static NAN_METHOD(getSource);
+    static NAN_GETTER(source);
+    static NAN_GETTER(scene);
 
     static NAN_METHOD(remove);
     static NAN_GETTER(id);

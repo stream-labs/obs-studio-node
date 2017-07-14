@@ -15,6 +15,8 @@ void SceneItem::Init()
 {
     auto locProto = Nan::New<v8::FunctionTemplate>();
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("source"), source);
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("scene"), scene);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("selected"), selected, selected);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("position"), position, position);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("rotation"), rotation, rotation);
@@ -30,19 +32,28 @@ void SceneItem::Init()
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("scaleFilter"), scaleFilter, scaleFilter);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("id"), id);
     Nan::SetMethod(locProto->PrototypeTemplate(), "remove", remove);
-    Nan::SetMethod(locProto->PrototypeTemplate(), "getSource", getSource);
     Nan::SetMethod(locProto->PrototypeTemplate(), "deferUpdateBegin", deferUpdateBegin);
     Nan::SetMethod(locProto->PrototypeTemplate(), "deferUpdateEnd", deferUpdateEnd);
     locProto->SetClassName(FIELD_NAME("SceneItem"));
     prototype.Reset(locProto);
 }
 
-NAN_METHOD(SceneItem::getSource)
+NAN_GETTER(SceneItem::source)
 {
     obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
     Input *binding = new Input(handle.source());
     auto object = Input::Object::GenerateObject(binding);
+
+    info.GetReturnValue().Set(object);
+}
+
+NAN_GETTER(SceneItem::scene)
+{
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
+
+    Scene *binding = new Scene(handle.scene());
+    auto object = Scene::Object::GenerateObject(binding);
 
     info.GetReturnValue().Set(object);
 }

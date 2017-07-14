@@ -20,9 +20,9 @@ void shutdown()
     obs_shutdown();
 }
 
-status_type status()
+bool initialized()
 {
-    return static_cast<obs::status_type>(!obs_initialized());
+    return obs_initialized();
 }
 
 uint32_t version()

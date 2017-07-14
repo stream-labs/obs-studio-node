@@ -2,41 +2,14 @@
 
 namespace obs {
 
-#if 0
-template <
-    typename T,
-    typename void Addref(T),
-    typename void Release(T)>
-struct raw_strong_base {
-    T strong_ref;
-
-    raw_strong_base(T source)
-        : strong_ref(source) { }
-
-    ~raw_strong_base() { release(); }
-    operator T() { return strong_ref; }
-
-    void addref(){ Addref(strong_ref); }
-    void release() { Release(strong_ref); }
-};
-
-template <typename T> 
-struct raw_strong { };
-
-template <>
-struct raw_strong<obs_source_t*> 
-    : raw_strong_base<
-        obs_source_t*,
-        obs_source_addref,
-        obs_source_release>
-{ 
-    raw_strong(obs_source_t *ref) 
-        : raw_strong_base(ref) { }
-};
-
-#endif 
-
-template <class T>
+/* FIXME: Since any type is accepted here, 
+   it's actually a bug since a source can 
+   now be generically created by a strong
+   container that contains virtually anything.
+   
+   We should have some metaprogramming that 
+   tests for only obs types, otherwise error. */
+template <typename T>
 class strong {
 public:
     T strong_ref;

@@ -1,5 +1,4 @@
 #include "ISource.h"
-#include "Data.h"
 #include "Properties.h"
 #include "Common.h"
 
@@ -122,7 +121,14 @@ NAN_GETTER(ISource::properties)
 {
     obs::source handle = ISource::GetHandle(info.Holder());
 
-    Properties *bindings = new Properties(handle.properties());
+    obs::properties props = handle.properties();
+
+    if (props.status() != obs::properties::status_type::okay) {
+        info.GetReturnValue().Set(Nan::Null());
+        return;
+    }
+
+    Properties *bindings = new Properties(std::move(props));
     auto object = Properties::Object::GenerateObject(bindings);
 
     info.GetReturnValue().Set(object);

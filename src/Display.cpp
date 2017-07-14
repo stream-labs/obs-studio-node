@@ -78,18 +78,24 @@ Display::Display(gs_init_data &data)
 {
 }
 
+
+Nan::Persistent<v8::FunctionTemplate> Display::prototype = 
+    Nan::Persistent<v8::FunctionTemplate>();
+
 NAN_MODULE_INIT(Display::Init)
 {
-    auto prototype = Nan::New<v8::FunctionTemplate>(New);
-    prototype->InstanceTemplate()->SetInternalFieldCount(1);
-    prototype->SetClassName(FIELD_NAME("Display"));
-    Nan::SetPrototypeMethod(prototype, "addDrawer", addDrawer);
-    Nan::SetPrototypeMethod(prototype, "removeDrawer", removeDrawer);
-    Nan::SetPrototypeMethod(prototype, "resize", resize);
-    Nan::SetPrototypeMethod(prototype, "destroy", destroy);
-    Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("status"), status);
-    Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("enabled"), enabled, enabled);
-    Nan::Set(target, FIELD_NAME("Display"), prototype->GetFunction());
+    auto locProto = Nan::New<v8::FunctionTemplate>(create);
+    locProto->InstanceTemplate()->SetInternalFieldCount(1);
+    locProto->SetClassName(FIELD_NAME("Display"));
+    Nan::SetMethod(locProto, "create", create);
+    Nan::SetPrototypeMethod(locProto, "addDrawer", addDrawer);
+    Nan::SetPrototypeMethod(locProto, "removeDrawer", removeDrawer);
+    Nan::SetPrototypeMethod(locProto, "resize", resize);
+    Nan::SetPrototypeMethod(locProto, "destroy", destroy);
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("status"), status);
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("enabled"), enabled, enabled);
+    Nan::Set(target, FIELD_NAME("Display"), locProto->GetFunction());
+    prototype.Reset(locProto);
 }
 
 static LRESULT CALLBACK sceneProc(HWND hwnd, UINT message, WPARAM wParam,
@@ -108,13 +114,8 @@ static LRESULT CALLBACK sceneProc(HWND hwnd, UINT message, WPARAM wParam,
     return 0;
 }
 
-NAN_METHOD(Display::New)
+NAN_METHOD(Display::create)
 {
-    if (!info.IsConstructCall()) {
-        Nan::ThrowError("Must be used as a construct call");
-        return;
-    }
-
     v8::Local<v8::Object> init_object;
  
     ASSERT_INFO_LENGTH(info, 1);
@@ -138,9 +139,9 @@ NAN_METHOD(Display::New)
         0, 0, init_data.cx, init_data.cy,
         NULL, NULL, NULL, NULL);
 
-    Display *object = new Display(init_data);
-    object->Wrap(info.This());
-    info.GetReturnValue().Set(info.This());
+    Display *binding = new Display(init_data);
+    auto object = Display::Object::GenerateObject(binding);
+    info.GetReturnValue().Set(object);
 }
 
 NAN_GETTER(Display::status)
@@ -161,14 +162,13 @@ NAN_METHOD(Display::addDrawer)
 {
     obs::display &handle = Display::Object::GetHandle(info.Holder());
 
-    if (!info[0]->IsString()) {
-        Nan::ThrowTypeError("Expected string");
-        return;
-    }
+    ASSERT_INFO_LENGTH(info, 1);
+    
+    std::string path;
 
-    Nan::Utf8String path(info[0]);
+    ASSERT_GET_VALUE(info[0], path);
 
-    void *module = osn_load_plugin(handle.dangerous(), *path);
+    void *module = osn_load_plugin(handle.dangerous(), path.c_str());
 
     if (!module) {
         Nan::ThrowError("Failed to find drawer plugin");
@@ -185,18 +185,6 @@ NAN_METHOD(Display::resize)
 {
     obs::display &handle = Display::Object::GetHandle(info.Holder());
 
-    if (info.Length() != 2) {
-        Nan::ThrowError("Unexpected number of arguments");
-        return;
-    }
-
-    if (!info[0]->IsUint32() || !info[1]->IsUint32()) {
-        Nan::ThrowTypeError("Expected unsigned integers");
-        return;
-    }
-
-    uint32_t cx = Nan::To<uint32_t>(info[0]).FromJust();
-    uint32_t cy = Nan::To<uint32_t>(info[1]).FromJust();
 }
 
 NAN_GETTER(Display::enabled)
@@ -210,7 +198,9 @@ NAN_SETTER(Display::enabled)
 {
     obs::display &handle = Display::Object::GetHandle(info.Holder());
 
-    bool is_enabled = Nan::To<bool>(value).FromJust();
+    bool is_enabled;
+
+    ASSERT_GET_VALUE(value, is_enabled);
 
     handle.enabled(is_enabled);
 }
@@ -219,7 +209,9 @@ NAN_SETTER(Display::backgroundColor)
 {
     obs::display &handle = Display::Object::GetHandle(info.Holder());
 
-    uint32_t color = Nan::To<uint32_t>(value).FromJust();
+    uint32_t color;
+
+    ASSERT_GET_VALUE(value, color);
 
     handle.background_color(color);
 }

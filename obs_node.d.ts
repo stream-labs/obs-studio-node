@@ -14,7 +14,7 @@ export namespace ObsGlobal {
     /**
      * Current status of the global libobs context
      */
-    const status: number;
+    const initialized: boolean;
 
     /**
      * Current locale of current libobs context
@@ -56,6 +56,13 @@ export interface IVec2 {
  * @method remove Send remove signal to other holders of the current reference.
  */
 
+export const enum ESourceType {
+    Input,
+    Filter,
+    Transition,
+    Scene,
+}
+
 export interface ObsSource {
     release(): void;
     remove(): void;
@@ -63,6 +70,7 @@ export interface ObsSource {
     readonly settings: object;
     readonly properties: ObsProperties;
     readonly status: number;
+    readonly type: ESourceType;
     readonly id: string;
     readonly configurable: boolean;
     readonly width: number;
@@ -89,6 +97,7 @@ export class ObsFilter implements ObsSource {
     readonly settings: object;
     readonly properties: ObsProperties;
     readonly status: number;
+    readonly type: ESourceType;
     readonly id: string;
     readonly configurable: boolean;
     readonly width: number;
@@ -119,6 +128,7 @@ export class ObsTransition implements ObsSource {
     readonly settings: object;
     readonly properties: ObsProperties;
     readonly status: number;
+    readonly type: ESourceType;
     readonly id: string;
     readonly configurable: boolean;
     readonly width: number;
@@ -160,6 +170,7 @@ export class ObsInput implements ObsSource {
     readonly settings: object;
     readonly properties: ObsProperties;
     readonly status: number;
+    readonly type: ESourceType;
     readonly id: string;
     readonly configurable: boolean;
     readonly width: number;
@@ -179,12 +190,14 @@ export class ObsInput implements ObsSource {
  * You must call release() before all reference run out. 
  */
 export class ObsScene implements ObsSource {
+    private constructor();
     static types(): string[];
     static create(name: string): ObsScene;
     static fromName(name: string): ObsScene;
     static getCurrentListDeprecated: ObsScene[];
-    private constructor();
     add(source: ObsInput): ObsSceneItem;
+    
+    readonly source: ObsInput;
 
     getItems(): ObsSceneItem[];
 
@@ -195,6 +208,7 @@ export class ObsScene implements ObsSource {
     readonly settings: object;
     readonly properties: ObsProperties;
     readonly status: number;
+    readonly type: ESourceType;
     readonly id: string;
     readonly configurable: boolean;
     readonly width: number;
@@ -226,6 +240,7 @@ export const enum EOrderMovement {
  * input source is rendered for that particular item.
  */
 export class ObsSceneItem {
+    private constructor();
     readonly source: ObsInput;
     readonly scene: ObsScene;
     readonly id: number;
@@ -246,7 +261,6 @@ export class ObsSceneItem {
     order(movement: EOrderMovement): void;
     orderPosition(pos: number): void;
 
-    getSource(): ObsInput;
     remove(): void;
 
     defeUpdateBegin(): void;
@@ -327,6 +341,7 @@ export interface INumberProperty {
  * Object representing an entry in a properties list (Properties).
  */
 export class ObsProperty {
+    private constructor();
     status: number;
     name: string;
     description: string;
@@ -358,6 +373,7 @@ export class ObsProperty {
  * to obtain an instance. 
  */
 export class ObsProperties {
+    private constructor();
     /**
      * Obtains the status of the list.
      */
@@ -376,28 +392,32 @@ export class ObsProperties {
     get(name: string): ObsProperty;
 }
 
-// export class ObsModule {
-//     constructor(bin_path: string, data_path: string);
-//     initialize(): void;
-//     file_name(): string;
-//     name(): string;
-//     author(): string;
-//     description(): string;
-//     bin_path(): string;
-//     data_path(): string;
-//     status(): number;
-// }
+export class ObsModule {
+    private constructor();
+    static create(bin_path: string, data_path: string): ObsModule;
+    static load_all(): void;
+    static add_path(path: string, data_path: string): void;
+    static log_loaded(): void;
+    initialize(): void;
+    file_name(): string;
+    name(): string;
+    author(): string;
+    description(): string;
+    bin_path(): string;
+    data_path(): string;
+    status(): number;
+}
 
-// /**
-//  * @namespace module 
-//  * A namespace meant for functions interacting with global context 
-//  * conerning modules. 
-//  */
-// export namespace module {
-//     function add_path(bin_path: string, data_path: string): void;
-//     function load_all(): void;
-//     function log_loaded(): void;
-// }
+/**
+ * @namespace module 
+ * A namespace meant for functions interacting with global context 
+ * conerning modules. 
+ */
+export namespace module {
+    function add_path(bin_path: string, data_path: string): void;
+    function load_all(): void;
+    function log_loaded(): void;
+}
 
 export const enum EScaleType {
     Default,
@@ -463,4 +483,52 @@ export class ObsVideo {
     static reset(info: IVideoInfo): void;
     static setOutputSource(channel: number, input: ObsInput | ObsTransition | ObsScene): void;
     static getOutputSource(channel: number): ObsInput | ObsTransition | ObsScene;
+}
+
+export const enum EColorFormat {
+	Unknown,
+	A8,
+	R8,
+	RGBA,
+	BGRX,
+	BGRA,
+	R10G10B10A2,
+	RGBA16,
+	R16,
+	RGBA16F,
+	RGBA32F,
+	RG16F,
+	RG32F,
+	R16F,
+	R32F,
+	DXT1,
+	DXT3,
+	DXT5
+}
+
+export const enum EZStencilFormat {
+	None,
+	Z16,
+	Z24_S8,
+	Z32F,
+	Z32F_S8X24
+}
+
+export interface IDisplayInit {
+    width: number;
+    height: number;
+    format: EColorFormat;
+    zsformat: EZStencilFormat;
+}
+
+export class ObsDisplay {
+    private constructor();
+    static create(info: IDisplayInit): ObsDisplay;
+    destroy(): void;
+
+    addDrawer(path: string): void;
+    removeDrawer(path: string): void;
+    
+    readonly status: number;
+    readonly enabled: boolean;
 }

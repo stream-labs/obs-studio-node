@@ -81,6 +81,7 @@ public:
 
     bool operator!();
     scene::item add(input source);
+    obs::input source();
     std::vector<scene::item> items();
 };
 

@@ -7,8 +7,10 @@ namespace obs {
 scene::scene(std::string name)
  : m_scene(obs_scene_create(name.c_str()))
 {
-    if (m_scene) {
-		m_status = status_type::okay;
+    m_status = status_type::okay;
+
+    if (!m_scene) {
+		m_status = status_type::invalid;
 	}
 
     /* Will return NULL if m_scene is invalid */
@@ -17,13 +19,15 @@ scene::scene(std::string name)
 
 scene::scene(scene &copy)
     : m_scene(copy.m_scene),
-      source(copy.m_handle)
+      obs::source(copy.m_handle)
 {
 }
 
 scene::scene(obs_scene_t *scene)
  : m_scene(scene)
 {
+    m_status = status_type::okay;
+
     if (!scene)
         m_status = status_type::invalid;
         
@@ -33,6 +37,8 @@ scene::scene(obs_scene_t *scene)
 scene::scene(obs_source_t *source)
  : m_scene(obs_scene_from_source(source))
 {
+    m_status = status_type::okay;
+
     if (!m_scene) {
         m_status = status_type::invalid;
         m_handle = nullptr;
@@ -52,6 +58,11 @@ scene scene::from_name(std::string name)
 bool scene::operator!()
 {
     return m_status != status_type::okay;
+}
+
+obs::input scene::source()
+{
+    return m_handle;
 }
 
 scene::item scene::add(input source)

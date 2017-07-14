@@ -9,7 +9,7 @@ NAN_METHOD(startup);
 NAN_METHOD(shutdown);
 NAN_GETTER(locale);
 NAN_SETTER(locale);
-NAN_GETTER(status);
+NAN_GETTER(initialized);
 NAN_GETTER(version);
 
 }

@@ -31,6 +31,7 @@ public:
     static NAN_METHOD(getCurrentListDeprecated);
     static NAN_METHOD(create);
     static NAN_METHOD(fromName);
+    static NAN_GETTER(source);
     static NAN_METHOD(getItems);
     static NAN_METHOD(add);
 };

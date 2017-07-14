@@ -7,34 +7,23 @@ Module::Module(std::string path, std::string data_path)
 {
 }
 
-NAN_METHOD(Module::New)
+NAN_METHOD(Module::create)
 {
-    if (!info.IsConstructCall()) {
-        Nan::ThrowError("Must be used as a construct call");
-        return;
-    }
-    if (info.Length() < 2) {
-        Nan::ThrowError("Too few arguments provided");
-        return;
-    }
-    if (!info[0]->IsString() || !info[1]->IsString()) {
-        Nan::ThrowError("Invalid type passed");
-        return;
-    }
+    ASSERT_INFO_LENGTH(info, 2);
+    
+    std::string path, data_path;
 
-    Nan::Utf8String path(info[0]);
-    Nan::Utf8String data_path(info[1]);
+    ASSERT_GET_VALUE(info[0], path);
+    ASSERT_GET_VALUE(info[1], data_path);
 
-    Module *object = new Module(*path, *data_path);
+    Module *object = new Module(path, data_path);
     object->Wrap(info.This());
     info.GetReturnValue().Set(info.This());
 }
 
 NAN_MODULE_INIT(Module::Init)
 {
-    auto module_ns = Nan::New<v8::Object>();
-
-    auto prototype = Nan::New<v8::FunctionTemplate>(New);
+    auto prototype = Nan::New<v8::FunctionTemplate>();
     prototype->SetClassName(FIELD_NAME("Module"));
     prototype->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -46,12 +35,11 @@ NAN_MODULE_INIT(Module::Init)
     Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("dataPath"), dataPath);
     Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("status"), status);
 
-    Nan::SetMethod(module_ns, "load_all", load_all);
-    Nan::SetMethod(module_ns, "add_path", add_path);
-    Nan::SetMethod(module_ns, "log_loaded", log_loaded);
+    Nan::SetMethod(prototype, "load_all", load_all);
+    Nan::SetMethod(prototype, "add_path", add_path);
+    Nan::SetMethod(prototype, "log_loaded", log_loaded);
 
     Nan::Set(target, FIELD_NAME("Module"), prototype->GetFunction());
-    Nan::Set(target, FIELD_NAME("module"), module_ns);
 }
 
 /* Prototype Methods */

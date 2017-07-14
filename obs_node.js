@@ -1,13 +1,17 @@
-const {remote} = require('electron');
-const obs = remote.require('./obs_node.node');
+const obs = require('./obs_node.node');
 
-export const ObsGlobal = obs.Global;
-export const ObsInput = obs.Input;
-export const ObsScene = obs.Scene;
-export const ObsFilter = obs.Filter;
-export const ObsTransition = obs.Transition;
-export const ObsSceneItem = obs.SceneItem;
-export const ObsProperties = obs.Properties;
-export const ObsProperty = obs.Property;
-export const ObsDisplay = obs.Display;
-export const ObsSource = obs.ISource;
+module.exports = {
+    ObsVideo: obs.Video,
+    ObsModule: obs.Module,
+    ObsGlobal: obs.Global,
+    ObsDisplay: obs.Display,
+    ObsInput: obs.Input,
+    ObsScene: obs.Scene,
+    ObsFilter: obs.Filter,
+    ObsTransition: obs.Transition,
+    ObsSceneItem: obs.SceneItem,
+    ObsProperties: obs.Properties,
+    ObsProperty: obs.Property,
+    ObsDisplay: obs.Display,
+    ObsSource: obs.ISource
+};

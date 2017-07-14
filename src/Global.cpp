@@ -6,7 +6,7 @@
 namespace osn {
 
 #define OBS_VALID \
-    if (obs::status() != obs::status_type::okay) \
+    if (!obs::initialized()) \
         return;
 
 NAN_MODULE_INIT(Init)
@@ -15,11 +15,15 @@ NAN_MODULE_INIT(Init)
 
     Nan::SetMethod(ObsGlobal, "startup", startup);
     Nan::SetMethod(ObsGlobal, "shutdown", shutdown);
-    Nan::SetAccessor(ObsGlobal, FIELD_NAME("status"), status);
+    Nan::SetAccessor(ObsGlobal, FIELD_NAME("initialized"), initialized);
     Nan::SetAccessor(ObsGlobal, FIELD_NAME("locale"), locale);
 
     Nan::Set(target, FIELD_NAME("Global"), ObsGlobal);
 }
+
+/* Technically, we can control logs from JS. This will require a bit of
+   engineering since logging might be executed in a secondary thread. 
+   For now, just pick a spot and keep it there.  */
 
 NAN_METHOD(startup)
 {
@@ -64,9 +68,9 @@ NAN_SETTER(locale)
     obs::locale(locale);
 }
 
-NAN_GETTER(status)
+NAN_GETTER(initialized)
 {
-    info.GetReturnValue().Set(obs::status());
+    info.GetReturnValue().Set(common::ToValue(obs::initialized()));
 }
 
 NAN_GETTER(version)

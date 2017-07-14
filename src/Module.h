@@ -24,8 +24,10 @@ public:
 
     Module(std::string path, std::string data_path);
     Module(obs::module &module);
+
     /* Prototype Scope */
     static NAN_MODULE_INIT(Init);
+    static NAN_METHOD(create);
     static NAN_METHOD(add_path);
     static NAN_METHOD(load_all);
     static NAN_METHOD(log_loaded);

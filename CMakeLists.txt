@@ -8,6 +8,11 @@ set(
 )
 
 set(
+    BUILD_FOR_TEST false
+    cache BOOL "Builds as a node module to be used with ava"
+)
+
+set(
     OSN_NODE_NAME "obs_node"
     CACHE PATH "Name of the node binary output"
 )
@@ -45,6 +50,15 @@ else()
     )
 endif()
 
+if (BUILD_FOR_TEST)
+    set(NODE_RUNTIME "node")
+    set(NODE_RUNTIMEVERSION "7.4.0")
+elseif() 
+    set(NODE_RUNTIME "electron")
+    set(NODE_RUNTIMEVERSION "1.6.10")
+endif()
+
+# FIXME: Organize
 add_library(${OSN_NODE_NAME} SHARED
     "src/Common.cpp"
     "src/Common.cpp"
