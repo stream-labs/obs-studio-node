@@ -8,7 +8,7 @@ test('scene creation and destruction', t => {
         let test_scene = obs.ObsScene.create('test scene');
         let sources: obs.ObsSource[] = [];
         let items: obs.ObsSceneItem[] = [];
-        const iterations = 800;
+        const iterations = 100;
 
         for (let i = 0; i < iterations; i++) {
             let source = obs.ObsInput.create('color_source', `test source ${i}`);

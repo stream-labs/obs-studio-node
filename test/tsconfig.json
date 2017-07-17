@@ -11,8 +11,6 @@
     "removeComments": true,
     "suppressImplicitAnyIndexErrors": true,
     "allowSyntheticDefaultImports": true,
-    "sourceMap": true,
-    "strictNullChecks": false,
     "emitDecoratorMetadata": true
   },
   "exclude": [
@@ -20,7 +18,6 @@
   ],
   "files": [
     "helpers/startup_shutdown.ts",
-    "simple.ts",
     "startup.ts",
     "wrapper_startup.ts",
     "filters.ts",
