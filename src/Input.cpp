@@ -279,9 +279,10 @@ NAN_GETTER(Input::filters)
 
     std::vector<obs::filter> filters = handle.get()->filters();
 
-    v8::Local<v8::Array> array = Nan::New<v8::Array>(filters.size());
+    int size = static_cast<int>(filters.size());
+    v8::Local<v8::Array> array = Nan::New<v8::Array>(size);
 
-    for (int i = 0; i < filters.size(); ++i) {
+    for (int i = 0; i < size; ++i) {
         Filter *binding = new Filter(filters[i]);
         filters[i].release();
         auto object = Filter::Object::GenerateObject(binding);
