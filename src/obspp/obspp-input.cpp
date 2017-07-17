@@ -73,9 +73,26 @@ void input::remove_filter(obs::filter filter)
     obs_source_filter_remove(m_handle, filter.dangerous());
 }
 
-std::vector<filter> input::filters()
+obs::filter input::find_filter(std::string name)
 {
-    return std::vector<filter>();
+    return obs_source_get_filter_by_name(m_handle, name.c_str());
+}
+
+std::vector<obs::filter> input::filters()
+{
+    std::vector<obs::filter> filters;
+
+    auto enum_cb = 
+    [] (obs_source_t *parent, obs_source_t *filter, void *data) {
+        std::vector<obs::filter> *filters = 
+            reinterpret_cast<std::vector<obs::filter> *>(data);
+
+        filters->push_back(obs_source_get_ref(filter));
+    };
+
+    obs_source_enum_filters(m_handle, enum_cb, &filters);
+
+    return filters;
 }
 
 std::vector<std::string> input::types()

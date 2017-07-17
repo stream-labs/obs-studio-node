@@ -32,6 +32,7 @@ public:
     void add_filter(obs::filter filter);
     void remove_filter(obs::filter filter);
 
+    obs::filter find_filter(std::string name);
     std::vector<filter> filters();
 
     static std::vector<std::string> types();

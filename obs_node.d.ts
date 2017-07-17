@@ -161,6 +161,9 @@ export class ObsInput implements ObsSource {
     showing: boolean;
     audioMixers: number;
 
+    findFilter(name: string): ObsFilter;
+    addFilter(filter: ObsFilter): void;
+    removeFilter(filter: ObsFilter): void;
     readonly filters: ObsFilter[];
 
     //Source

@@ -43,6 +43,8 @@ public:
     static NAN_GETTER(showing);
     static NAN_GETTER(audioMixers);
     static NAN_SETTER(audioMixers);
+    static NAN_GETTER(filters);
+    static NAN_METHOD(findFilter);
     static NAN_METHOD(addFilter);
     static NAN_METHOD(removeFilter);
     static NAN_METHOD(types);

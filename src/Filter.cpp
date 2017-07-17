@@ -17,7 +17,7 @@ Filter::Filter(obs::filter &filter)
 
 obs::source Filter::GetHandle()
 {
-    return handle.get();
+    return handle.get().get();
 }
 
 NAN_MODULE_INIT(Filter::Init)

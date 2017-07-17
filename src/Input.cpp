@@ -38,6 +38,10 @@ NAN_MODULE_INIT(Input::Init)
     Nan::SetMethod(locProto, "create", create);
     Nan::SetMethod(locProto, "fromName", fromName);
     Nan::SetMethod(locProto, "getPublicSources", getPublicSources);
+    Nan::SetMethod(locProto->InstanceTemplate(), "findFilter", findFilter);
+    Nan::SetMethod(locProto->InstanceTemplate(), "addFilter", addFilter);
+    Nan::SetMethod(locProto->InstanceTemplate(), "removeFilter", removeFilter);
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("filters"), filters);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("volume"), volume, volume);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("syncOffset"), syncOffset, syncOffset);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("showing"), showing);
@@ -216,6 +220,29 @@ NAN_SETTER(Input::audioMixers)
     handle.get()->audio_mixers(flags);
 }
 
+NAN_METHOD(Input::findFilter)
+{
+    obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
+    
+    ASSERT_INFO_LENGTH(info, 1);
+
+    std::string filter_name;
+
+    ASSERT_GET_VALUE(info[0], filter_name);
+
+    obs::filter found = handle.get()->find_filter(filter_name.c_str());
+
+    if (found.status() != obs::source::status_type::okay) {
+        info.GetReturnValue().Set(Nan::Null());
+        return;
+    }
+
+    obs_source_release(found.dangerous());
+    Filter *binding = new Filter(found);
+    auto object = Filter::Object::GenerateObject(binding);
+    info.GetReturnValue().Set(object);
+}
+
 NAN_METHOD(Input::addFilter)
 {
     obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
@@ -239,11 +266,30 @@ NAN_METHOD(Input::removeFilter)
 
     v8::Local<v8::Object> filter_obj;
 
-    ASSERT_GET_VALUE(info[1], filter_obj);
+    ASSERT_GET_VALUE(info[0], filter_obj);
 
     obs::weak<obs::filter> &filter = Filter::Object::GetHandle(filter_obj);
 
     handle.get()->remove_filter(filter.get().get());
+}
+
+NAN_GETTER(Input::filters)
+{
+    obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
+
+    std::vector<obs::filter> filters = handle.get()->filters();
+
+    v8::Local<v8::Array> array = Nan::New<v8::Array>(filters.size());
+
+    for (int i = 0; i < filters.size(); ++i) {
+        Filter *binding = new Filter(filters[i]);
+        filters[i].release();
+        auto object = Filter::Object::GenerateObject(binding);
+
+        common::SetObjectField(array, i, object);
+    }
+
+    info.GetReturnValue().Set(array);
 }
 
 }

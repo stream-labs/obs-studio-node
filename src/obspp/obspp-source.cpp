@@ -72,6 +72,8 @@ source::~source()
 
 void source::check_type(obs_source_t * source, obs_source_type type)
 {
+    if (!source) return;
+
     obs_source_type source_type = obs_source_get_type(source);
 
     if (source_type == OBS_SOURCE_TYPE_SCENE &&
