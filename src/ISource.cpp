@@ -22,8 +22,8 @@ NAN_MODULE_INIT(ISource::Init)
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("name"), name, name);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("type"), type);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("flags"), flags, flags);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("width"), width);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("height"), height);
+    // Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("width"), width);
+    // Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("height"), height);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("name"), name, name);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("status"), status);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("id"), id);
@@ -107,7 +107,7 @@ NAN_GETTER(ISource::id)
 {
     obs::source handle = ISource::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(Nan::New(handle.id()).ToLocalChecked());
+    info.GetReturnValue().Set(common::ToValue(handle.id()));
 }
 
 NAN_GETTER(ISource::configurable)
