@@ -22,6 +22,16 @@ transition::transition(obs_source_t * handle)
     source::check_type(m_handle, OBS_SOURCE_TYPE_TRANSITION);
 }
 
+obs::source transition::get_active_source()
+{
+    return obs_transition_get_active_source(m_handle);
+}
+
+void transition::clear()
+{
+    obs_transition_clear(m_handle);
+}
+
 void transition::set(obs::source &source) 
 {
     obs_transition_set(m_handle, source.dangerous());

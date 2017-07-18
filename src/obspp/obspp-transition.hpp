@@ -15,6 +15,8 @@ public:
 
     void start(int ms, obs::source &source);
     void set(obs::source &source);
+    obs::source get_active_source();
+    void clear();
 
     static std::vector<std::string> types();
 };

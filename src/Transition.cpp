@@ -1,5 +1,6 @@
 #include "Transition.h"
 #include "Input.h"
+#include "Scene.h"
 
 namespace osn {
 
@@ -17,7 +18,7 @@ Transition::Transition(obs::transition transition)
 
 obs::source Transition::GetHandle()
 {
-    return handle.get();
+    return handle.get().get();
 }
 
 NAN_MODULE_INIT(Transition::Init)
@@ -28,6 +29,7 @@ NAN_MODULE_INIT(Transition::Init)
     locProto->SetClassName(FIELD_NAME("Transition"));
     Nan::SetMethod(locProto, "create", create);
     Nan::SetMethod(locProto, "types", types);
+    Nan::SetMethod(locProto->InstanceTemplate(), "getActiveSource", getActiveSource);
     Nan::SetMethod(locProto->InstanceTemplate(), "start", start);
     Nan::SetMethod(locProto->InstanceTemplate(), "set", set);
     Nan::Set(target, FIELD_NAME("Transition"), locProto->GetFunction());
@@ -61,6 +63,39 @@ NAN_METHOD(Transition::create)
     Transition *binding = new Transition(id, name, nullptr);
     auto object = Transition::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
+}
+
+NAN_METHOD(Transition::getActiveSource)
+{
+    obs::weak<obs::transition> &handle = Transition::Object::GetHandle(info.Holder());
+
+    obs::source source = handle.get()->get_active_source();
+    
+    if (source.type() == OBS_SOURCE_TYPE_INPUT) {
+        Input *binding = new Input(source.dangerous());
+
+        v8::Local<v8::Object> object = 
+            Input::Object::GenerateObject(binding);
+
+        info.GetReturnValue().Set(object);
+    }
+    else if (source.type() == OBS_SOURCE_TYPE_SCENE) {
+        Scene *binding = new Scene(source.dangerous());
+
+        v8::Local<v8::Object> object = 
+            Scene::Object::GenerateObject(binding);
+
+        info.GetReturnValue().Set(object);
+    }
+
+    obs_source_release(source.dangerous());
+}
+
+NAN_METHOD(Transition::clear)
+{
+    obs::weak<obs::transition> &handle = Transition::Object::GetHandle(info.Holder());
+
+    handle.get()->clear();
 }
 
 NAN_METHOD(Transition::set)
