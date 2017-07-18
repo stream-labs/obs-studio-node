@@ -43,6 +43,7 @@ test('source creation and destruction', t => {
                 t.is(test_filters[index].id, `${element}`);
                 t.is(test_filters[index].name, `${element} ${i}`);
                 t.is(test_filters[index].configurable, true);
+                t.is(test_filters[index].type, obs.ESourceType.Filter);
                 t.is(test_filters[index].status, 0);
 
                 let found_filter = test_source.findFilter(test_filters[index].name);
@@ -63,6 +64,6 @@ test('source creation and destruction', t => {
         }
 
         test_source.release();
-        t.is(test_source.status, 1);
+        t.is(test_source.status, 1, "Failed to destroy source");
     });
 });

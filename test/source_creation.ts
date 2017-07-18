@@ -12,9 +12,10 @@ test('source creation and destruction', t => {
         t.is(test_source.name, 'test source');
         t.is(test_source.id, 'monitor_capture');
         t.is(test_source.configurable, true);
+        t.is(test_source.type, obs.ESourceType.Input);
         
         test_source.release();
         
-        t.is(test_source.status, 1);
+        t.is(test_source.status, 1, "Failed to destory source");
     });
 });
