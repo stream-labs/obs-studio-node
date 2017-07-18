@@ -36,6 +36,7 @@ NAN_MODULE_INIT(Input::Init)
     locProto->SetClassName(FIELD_NAME("Input"));
     Nan::SetMethod(locProto, "types", types);
     Nan::SetMethod(locProto, "create", create);
+    Nan::SetMethod(locProto, "createPrivate", createPrivate);
     Nan::SetMethod(locProto, "fromName", fromName);
     Nan::SetMethod(locProto, "getPublicSources", getPublicSources);
     Nan::SetMethod(locProto->InstanceTemplate(), "findFilter", findFilter);
@@ -84,25 +85,23 @@ NAN_METHOD(Input::getPublicSources)
 NAN_METHOD(Input::duplicate)
 {
     obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
-    Input *binding;
+
     std::string name = "";
     bool is_private = false;
 
     switch (info.Length()) {
-    case 2: {
-        ASSERT_GET_VALUE(info[1], is_private);
-    }
-    case 1: {
-        ASSERT_GET_VALUE(info[0], name);
-    }
-    case 0: {
-        binding = new Input(handle.get()->duplicate(name, is_private));
-
-    }
     default:
-        Nan::ThrowError("Unexpected number of arguments");
-        return;
+    case 2:
+        ASSERT_GET_VALUE(info[1], is_private);
+    case 1: 
+        ASSERT_GET_VALUE(info[0], name);
+    case 0:
+        break;
     }
+
+    Input *binding = new Input(handle.get()->duplicate(name, is_private));
+    auto object = Input::Object::GenerateObject(binding);
+    info.GetReturnValue().Set(object);
 }
 
 NAN_METHOD(Input::create)
@@ -110,39 +109,45 @@ NAN_METHOD(Input::create)
     ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
     
     std::string id, name;
+    obs_data_t *settings = nullptr, *hotkeys = nullptr;
+    bool is_private = false;
+
+    ASSERT_GET_VALUE(info[0], id);
+    ASSERT_GET_VALUE(info[1], name);
+
+    switch (info.Length()) {
+    default:
+    case 4:
+        ASSERT_GET_VALUE(info[3], settings);
+    case 3:
+        ASSERT_GET_VALUE(info[2], hotkeys);
+    case 2:
+        break;
+    }
+
+
+    Input *binding = new Input(id, name, hotkeys, settings);
+    auto object = Input::Object::GenerateObject(binding);
+    info.GetReturnValue().Set(object);
+}
+
+NAN_METHOD(Input::createPrivate)
+{
+    ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
+    
+    std::string id, name;
+    obs_data_t *settings = nullptr;
 
     ASSERT_GET_VALUE(info[0], id);
     ASSERT_GET_VALUE(info[1], name);
 
     Input *binding;
 
-    switch (info.Length()) {
-    case 2: 
-        binding = new Input(id, name, nullptr, nullptr);
-        break;
-    case 3:
-        if (info[2]->IsBoolean()) {
-            bool is_private;
+    if (info.Length() > 2)
+        ASSERT_GET_VALUE(info[2], settings);
 
-            ASSERT_GET_VALUE(info[2], is_private);
 
-            binding = new Input(id, name, nullptr, is_private);
-        }
-        else if (info[2]->IsObject()) {
-            Nan::ThrowError("Unfinished implementation");
-            return;
-        }
-        else {
-            Nan::ThrowError("Unexpected argument");
-            return;
-        }
-
-        break;
-    case 4:
-        Nan::ThrowError("Unfinished implementation");
-        return;
-    }
-
+    binding = new Input(id, name, settings, true);
     auto object = Input::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }

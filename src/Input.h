@@ -35,6 +35,7 @@ public:
     static NAN_METHOD(getPublicSources);
     static NAN_METHOD(duplicate);
     static NAN_METHOD(create);
+    static NAN_METHOD(createPrivate);
     static NAN_METHOD(fromName);
     static NAN_GETTER(volume);
     static NAN_SETTER(volume);
