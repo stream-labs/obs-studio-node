@@ -27,6 +27,7 @@
     "transitions.ts",
     "output.ts",
     "multiple_references.ts",
-    "multiple_releases.ts"
+    "multiple_releases.ts",
+    "audio_controls.ts"
   ]
 }

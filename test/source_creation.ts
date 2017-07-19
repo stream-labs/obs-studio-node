@@ -16,6 +16,6 @@ test('source creation and destruction', t => {
         
         test_source.release();
         
-        t.is(test_source.status, 1, "Failed to destory source");
+        t.is(test_source.status, 1);
     });
 });

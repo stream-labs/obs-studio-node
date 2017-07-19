@@ -22,6 +22,13 @@ test('scene creation and destruction', t => {
             t.is(items[i].source.name, `test source ${i}`);
             t.is(items[i].scene.name, 'test scene');
 
+            let found_scene_item = items[i].scene.findItem(items[i].source.name);
+            t.is(found_scene_item.source.name, `test source ${i}`);
+            t.is(found_scene_item.scene.name, 'test scene');
+
+            let null_scene_item = items[i].scene.findItem('a bad name');
+            t.is(null_scene_item, null);
+
             items[i].remove();
             sources[i].release();
             t.is(sources[i].status, 1);
