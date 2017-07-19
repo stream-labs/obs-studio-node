@@ -28,7 +28,6 @@ void video::output(int channel, obs::source source)
 obs::source video::output(int channel)
 {
     obs_source_t * source = obs_get_output_source(channel);
-    obs_source_release(source);
     return source;
 }
 
