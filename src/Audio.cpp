@@ -8,17 +8,34 @@ namespace osn {
  */
 NAN_MODULE_INIT(Audio::Init)
 {
+    auto locProto = Nan::New<v8::FunctionTemplate>();
+    locProto->SetClassName(FIELD_NAME("Audio"));
+    locProto->InstanceTemplate()->SetInternalFieldCount(1);
 
-}
+    Nan::SetMethod(locProto, "reset", reset);
 
-NAN_METHOD(Audio::New)
-{
-
+    Nan::Set(target, FIELD_NAME("Audio"), locProto->GetFunction());
 }
 
 NAN_METHOD(Audio::reset)
 {
+    ASSERT_INFO_LENGTH(info, 1);
 
+    uint32_t samples;
+    int speakers;
+
+    v8::Local<v8::Object> info_object;
+
+    ASSERT_GET_VALUE(info[0], info_object);
+    ASSERT_GET_OBJECT_FIELD(info_object, "samplesPerSec", samples);
+    ASSERT_GET_OBJECT_FIELD(info_object, "speakers", speakers);
+
+    obs_audio_info audio_info;
+
+    audio_info.samples_per_sec = samples;
+    audio_info.speakers = static_cast<speaker_layout>(speakers);
+
+    obs_reset_audio(&audio_info);
 }
 
 
