@@ -85,7 +85,7 @@ export class ObsFader {
     attach(source: ObsInput): void;
     detach(): void;
 
-    addCallback(cb: (db: number) => void): ObsCallbackData;
+    addCallback(cb: ({ db: number }) => void): ObsCallbackData;
     removeCallback(cbData: ObsCallbackData): void;
 }
 
@@ -101,11 +101,11 @@ export class ObsVolmeter {
     detach(): void;
 
     addCallback(
-        callback: (
+        callback: ({
             level: number, 
             magnitude: number, 
             peak: number, 
-            muted: boolean) => void): ObsCallbackData;
+            muted: boolean }) => void): ObsCallbackData;
 
     removeCallback(cbData: ObsCallbackData): void;
 }
