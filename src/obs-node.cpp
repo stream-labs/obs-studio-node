@@ -13,6 +13,7 @@
 #include "Transition.h"
 #include "Properties.h"
 #include "Filter.h"
+#include "AudioControls.h"
 
 NAN_MODULE_INIT(node_initialize)
 {
@@ -36,6 +37,11 @@ NAN_MODULE_INIT(node_initialize)
     osn::Filter::Init(target);
     osn::Properties::Init(target);
     osn::Property::Init(target);
+
+    osn::VolmeterCallback::Init(target);
+    osn::Volmeter::Init(target);
+    osn::FaderCallback::Init(target);
+    osn::Fader::Init(target);
 }
 
 NODE_MODULE(obs_node, node_initialize)
