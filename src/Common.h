@@ -3,6 +3,10 @@
 #include <nan.h>
 #include <obs.h>
 
+#include <iostream>
+
+#include "Async.h"
+
 #define FIELD_NAME(name) \
     Nan::New(name).ToLocalChecked()
 
@@ -67,7 +71,6 @@ class Object {
 public:
     static v8::Local<v8::Object> GenerateObject(BindingType *binding)
     {
-
         v8::Local<v8::FunctionTemplate> templ =
             Nan::New<v8::FunctionTemplate>(BindingType::prototype);
 
@@ -84,6 +87,43 @@ public:
         BindingType* binding = Nan::ObjectWrap::Unwrap<BindingType>(object);
         return binding->handle;
     }
+};
+
+template <typename Item, typename Parent>
+struct CallbackData : public Nan::ObjectWrap {
+    static Nan::Persistent<v8::FunctionTemplate> prototype;
+
+    typedef common::Object<CallbackData, CallbackData*> Object;
+    friend Object;
+
+    static NAN_MODULE_INIT(Init)
+    {
+        auto locProto = Nan::New<v8::FunctionTemplate>();
+        locProto->InstanceTemplate()->SetInternalFieldCount(1);
+        prototype.Reset(locProto);
+    }
+
+    CallbackData(
+        Parent *parent, 
+        typename Async<Item, Parent>::Callback callback,
+        v8::Local<v8::Function> func)
+     : handle(this), cb(func),
+       queue(parent, callback),
+       stopped(false)
+    {
+    }
+
+    Async<Item, Parent> queue;
+    CallbackData *handle;
+    
+    Nan::Persistent<v8::Object> obj_ref;
+    Nan::Callback cb;
+
+    /* Since events are deferred, we need
+     * some way to know if we should actually
+     * fire off an event when it's finally 
+     * being executed. */
+    bool stopped;
 };
 
 }

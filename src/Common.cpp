@@ -52,6 +52,14 @@ const char *GetErrorString<enum obs_combo_format>()
 { return "Expected obs_combo_format enum"; }
 
 template <>
+const char *GetErrorString<v8::Local<v8::Function>>()
+{ return "Expected function"; }
+
+template <>
+const char *GetErrorString<Nan::Callback>()
+{ return "Expected function"; }
+
+template <>
 v8::Local<v8::Value> ToValue(bool value) 
 { return Nan::New<v8::Boolean>(value); }
 
@@ -331,6 +339,29 @@ bool FromValue(v8::Local<v8::Value> value, v8::Local<v8::Object> &var)
     if (!value->IsObject()) return false;
 
     var = Nan::To<v8::Object>(value).ToLocalChecked();
+    return true;
+}
+
+template <>
+bool FromValue(v8::Local<v8::Value> value, v8::Local<v8::Function> &var)
+{
+    if (!value->IsFunction()) return false;
+
+    var = value.As<v8::Function>();
+    return true;
+}
+
+template <>
+bool FromValue(v8::Local<v8::Value> value, Nan::Callback &var)
+{
+    v8::Local<v8::Function> func;
+
+    if (!FromValue(value, func)) {
+        var.Reset();
+        return false;
+    }
+
+    var.Reset(func);
     return true;
 }
 
