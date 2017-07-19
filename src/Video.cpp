@@ -133,6 +133,8 @@ NAN_METHOD(Video::getOutputSource)
 
         info.GetReturnValue().Set(object);
     }
+
+    obs_source_release(source.dangerous());
 }
 
 /* 
