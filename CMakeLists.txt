@@ -50,18 +50,12 @@ else()
     )
 endif()
 
-if (BUILD_FOR_TEST)
-    set(NODE_RUNTIME "node")
-    set(NODE_RUNTIMEVERSION "7.4.0")
-elseif() 
-    set(NODE_RUNTIME "electron")
-    set(NODE_RUNTIMEVERSION "1.6.10")
-endif()
-
 # FIXME: Organize
 add_library(${OSN_NODE_NAME} SHARED
+    "src/AudioControls.cpp"
+    "src/AudioControls.h"
     "src/Common.cpp"
-    "src/Common.cpp"
+    "src/Common.h"
     "src/Properties.cpp"
     "src/Properties.h"
     "src/Transition.cpp"
