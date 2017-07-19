@@ -63,6 +63,53 @@ export const enum ESourceType {
     Scene,
 }
 
+export const enum EFaderType {
+    Cubic,
+    IEC,
+    Log
+}
+
+export class ObsCallbackData {
+
+}
+
+export class ObsFader {
+    private constructor();
+
+    static create(type: EFaderType): ObsFader;
+
+    db: number;
+    deflection: number;
+    mul: number;
+
+    attach(source: ObsInput): void;
+    detach();
+
+    addCallback(cb: (db: number) => void): ObsCallbackData;
+    removeCallback(cbData: ObsCallbackData): void;
+}
+
+export class ObsVolmeter {
+    private constructor();
+
+    static create(type: EFaderType): ObsVolmeter;
+
+    peakHold: number;
+    updateInterval: number;
+
+    attach(source: ObsInput): void;
+    detach(): void;
+
+    addCallback(
+        callback: (
+            level: number, 
+            magnitude: number, 
+            peak: number, 
+            muted: boolean) => void): ObsCallbackData;
+
+    removeCallback(cbData: ObsCallbackData): void;
+}
+
 export interface ObsSource {
     release(): void;
     remove(): void;
@@ -118,6 +165,8 @@ export class ObsTransition implements ObsSource {
     private constructor();
     static types(): string[];
     static create(id: string, name: string, settings?: object): ObsTransition;
+    getActiveSource(): ObsScene | ObsInput;
+    clear(): void;
     set(input: ObsInput | ObsScene): void;
     start(ms: number, input: ObsInput | ObsScene): void;
 
@@ -153,7 +202,7 @@ export class ObsInput implements ObsSource {
     private constructor();
     static types(): string[];
     static create(id: string, name: string, hotkeys?: object, settings?: object): ObsInput;
-    static create(id: string, name: string, is_private: boolean, settings?: object): ObsInput;
+    static createPrivate(id: string, name: string, settings?: object): ObsInput;
     static fromName(name: string): ObsInput;
     static getPublicSources(): ObsInput[];
     volume: number;
@@ -197,11 +246,11 @@ export class ObsScene implements ObsSource {
     static types(): string[];
     static create(name: string): ObsScene;
     static fromName(name: string): ObsScene;
-    static getCurrentListDeprecated: ObsScene[];
     add(source: ObsInput): ObsSceneItem;
     
     readonly source: ObsInput;
 
+    findItem(name: string): ObsSceneItem;
     getItems(): ObsSceneItem[];
 
     //Source
