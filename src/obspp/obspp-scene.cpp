@@ -70,6 +70,11 @@ scene::item scene::add(input source)
     return obs_scene_add(m_scene, source.dangerous());
 }
 
+scene::item scene::item_from_name(std::string name)
+{
+    return obs_scene_find_source(m_scene, name.c_str());
+}
+
 std::vector<scene::item> scene::items()
 {
     std::vector<scene::item> items;
@@ -93,15 +98,25 @@ std::vector<scene::item> scene::items()
     Scene Item implementation
  */
 scene::item::item(obs_sceneitem_t *item)
-    : m_handle(item)
+    : m_handle(item), 
+      m_status(source::status_type::okay)
 {
+    if (!m_handle)
+        m_status = source::status_type::invalid;
 }
 
 scene::item::item(item &copy)
- : m_handle(copy.m_handle)
+ : m_handle(copy.m_handle),
+   m_status(source::status_type::okay)
 {
+    if (!m_handle)
+        m_status = source::status_type::invalid;
 }
 
+obs::source::status_type scene::item::status()
+{
+    return m_status;
+}
 
 void scene::item::remove()
 {

@@ -12,10 +12,10 @@ class SceneItem : public Nan::ObjectWrap
     friend Scene;
     static Nan::Persistent<v8::FunctionTemplate> prototype;
 
+public:
     typedef common::Object<SceneItem, obs::scene::item> Object;
     friend Object;
 
-public:
     SceneItem(obs::scene::item item);
 
     obs::scene::item handle;

@@ -12,12 +12,15 @@ public:
         friend scene;
 
         obs_sceneitem_t *m_handle;
+        obs::source::status_type m_status;
 
         item() = delete;
 
     public:
         item(obs_sceneitem_t *item);
         item(item &copy);
+
+        obs::source::status_type status();
 
         void remove();
         obs::scene scene();
@@ -82,6 +85,7 @@ public:
     bool operator!();
     scene::item add(input source);
     obs::input source();
+    obs::scene::item item_from_name(std::string name);
     std::vector<scene::item> items();
 };
 
