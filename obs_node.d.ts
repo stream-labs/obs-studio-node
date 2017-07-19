@@ -83,7 +83,7 @@ export class ObsFader {
     mul: number;
 
     attach(source: ObsInput): void;
-    detach();
+    detach(): void;
 
     addCallback(cb: (db: number) => void): ObsCallbackData;
     removeCallback(cbData: ObsCallbackData): void;
