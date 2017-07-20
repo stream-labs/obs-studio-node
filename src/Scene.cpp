@@ -72,7 +72,14 @@ NAN_METHOD(Scene::fromName)
 
     ASSERT_GET_VALUE(info[0], name);
 
-    Scene *binding = new Scene(obs::scene::from_name(name));
+    obs::scene scene = obs::scene::from_name(name);
+
+    if (scene.status() != obs::scene::status_type::okay) {
+        info.GetReturnValue().Set(Nan::Null());
+        return;
+    }
+
+    Scene *binding = new Scene(scene);
     auto object = Scene::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }
