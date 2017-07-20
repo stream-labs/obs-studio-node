@@ -85,7 +85,7 @@ export class ObsFader {
     attach(source: ObsInput): void;
     detach(): void;
 
-    addCallback(cb: ({ db: number }) => void): ObsCallbackData;
+    addCallback(cb: (data: { db: number; }) => void): ObsCallbackData;
     removeCallback(cbData: ObsCallbackData): void;
 }
 
@@ -101,11 +101,11 @@ export class ObsVolmeter {
     detach(): void;
 
     addCallback(
-        callback: ({
-            level: number, 
-            magnitude: number, 
-            peak: number, 
-            muted: boolean }) => void): ObsCallbackData;
+        cb: (data: {
+            level: number;
+            magnitude: number;
+            peak: number;
+            muted: boolean; }) => void): ObsCallbackData;
 
     removeCallback(cbData: ObsCallbackData): void;
 }
@@ -210,6 +210,7 @@ export class ObsInput implements ObsSource {
     showing: boolean;
     audioMixers: number;
 
+    duplicate(name: string, is_private: boolean): ObsInput;
     findFilter(name: string): ObsFilter;
     addFilter(filter: ObsFilter): void;
     removeFilter(filter: ObsFilter): void;

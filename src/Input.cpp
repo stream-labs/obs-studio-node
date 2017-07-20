@@ -39,6 +39,7 @@ NAN_MODULE_INIT(Input::Init)
     Nan::SetMethod(locProto, "createPrivate", createPrivate);
     Nan::SetMethod(locProto, "fromName", fromName);
     Nan::SetMethod(locProto, "getPublicSources", getPublicSources);
+    Nan::SetMethod(locProto->InstanceTemplate(), "duplicate", duplicate);
     Nan::SetMethod(locProto->InstanceTemplate(), "findFilter", findFilter);
     Nan::SetMethod(locProto->InstanceTemplate(), "addFilter", addFilter);
     Nan::SetMethod(locProto->InstanceTemplate(), "removeFilter", removeFilter);
