@@ -18,5 +18,21 @@ test('scene creation and destruction', t => {
         t.is(test_scene.source.configurable, false);
         t.is(test_scene.source.properties, null);
         t.is(test_scene.source.type, obs.ESourceType.Scene);
+
+        let test_scene_from_name = obs.ObsScene.fromName('test scene');
+        t.is(test_scene_from_name.status, 0);
+        t.is(test_scene_from_name.id, 'scene');
+        t.is(test_scene_from_name.name, 'test scene');
+        t.is(test_scene_from_name.configurable, false);
+        t.is(test_scene_from_name.properties, null);
+        t.is(test_scene_from_name.type, obs.ESourceType.Scene);
+        t.is(test_scene_from_name.source.id, 'scene');
+        t.is(test_scene_from_name.source.name, 'test scene');
+        t.is(test_scene_from_name.source.configurable, false);
+        t.is(test_scene_from_name.source.properties, null);
+        t.is(test_scene_from_name.source.type, obs.ESourceType.Scene);
+
+        test_scene_from_name.release();
+        t.is(test_scene.status, 1);
     });
 });

@@ -13,9 +13,15 @@ test('scene creation and destruction', t => {
         for (let i = 0; i < iterations; i++) {
             let source = obs.ObsInput.create('color_source', `test source ${i}`);
             let item = test_scene.add(source);
-            sources.push(source);
+            source.release();
+            sources.push(item.source);
+            t.is(sources[i].status, 0);
             items.push(item);
         };
+
+        let test_scene_item_list = test_scene.getItems();
+        t.is(test_scene_item_list.length, iterations);
+        console.log(test_scene.settings);
 
         for (let i = 0; i < iterations; i++) {
             t.is(items[i].id, i + 1);
@@ -30,7 +36,6 @@ test('scene creation and destruction', t => {
             t.is(null_scene_item, null);
 
             items[i].remove();
-            sources[i].release();
             t.is(sources[i].status, 1);
         };
 
