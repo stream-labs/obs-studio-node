@@ -2,8 +2,8 @@
 
 namespace obs {
 
-input::input(std::string id, std::string name, obs_data_t *hotkey, obs_data_t *settings)
- : source(id, name, hotkey, settings)
+input::input(std::string id, std::string name, obs_data_t *settings, obs_data_t *hotkey)
+ : source(id, name, settings, hotkey)
 {
     check_type(m_handle, OBS_SOURCE_TYPE_INPUT);
 }

@@ -9,8 +9,8 @@ namespace obs {
 
 class input : public source {
 public:
-    input(std::string id, std::string name, obs_data_t *hotkey, obs_data_t *settings);
-    input(std::string id, std::string name, obs_data_t *settings, bool is_private);
+    input(std::string id, std::string name, obs_data_t *settings = nullptr, obs_data_t *hotkey = nullptr);
+    input(std::string id, std::string name, obs_data_t *settings, bool is_private = false);
     input(input &copy);
     input(obs_source_t *source);
 

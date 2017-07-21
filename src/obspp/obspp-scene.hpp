@@ -75,7 +75,7 @@ public:
         void defer_update_end();
     };
 
-    scene(std::string name);
+    scene(std::string name, bool is_private = false);
     scene(scene &copy);
     scene(obs_scene_t *source);
     scene(obs_source_t *source);

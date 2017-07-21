@@ -27,7 +27,7 @@ public:
     bool released;
 
     Input(obs::input input);
-    Input(std::string id, std::string name, obs_data_t *hotkey, obs_data_t *settings);
+    Input(std::string id, std::string name, obs_data_t *settings, obs_data_t *hotkey);
     Input(std::string id, std::string name, obs_data_t *settings, bool is_private);
 
     virtual obs::source GetHandle();

@@ -8,8 +8,8 @@ namespace osn {
 Nan::Persistent<v8::FunctionTemplate> Input::prototype = 
     Nan::Persistent<v8::FunctionTemplate>();
 
-Input::Input(std::string id, std::string name, obs_data_t *hotkey, obs_data_t *settings)
-    : handle(obs::input(id, name, hotkey, settings))
+Input::Input(std::string id, std::string name, obs_data_t *settings, obs_data_t *hotkey)
+    : handle(obs::input(id, name, settings, hotkey))
 {
 }
 
@@ -123,15 +123,15 @@ NAN_METHOD(Input::create)
     switch (info.Length()) {
     default:
     case 4:
-        ASSERT_GET_VALUE(info[3], settings);
+        ASSERT_GET_VALUE(info[3], hotkeys);
     case 3:
-        ASSERT_GET_VALUE(info[2], hotkeys);
+        ASSERT_GET_VALUE(info[2], settings);
     case 2:
         break;
     }
 
 
-    Input *binding = new Input(id, name, hotkeys, settings);
+    Input *binding = new Input(id, name, settings, hotkeys);
     auto object = Input::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }

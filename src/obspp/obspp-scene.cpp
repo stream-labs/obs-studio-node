@@ -4,9 +4,13 @@
 
 namespace obs {
 
-scene::scene(std::string name)
- : m_scene(obs_scene_create(name.c_str()))
+scene::scene(std::string name, bool is_private)
 {
+    if (is_private) 
+        m_scene = obs_scene_create_private(name.c_str());
+    else 
+        m_scene = obs_scene_create(name.c_str());
+        
     m_status = status_type::okay;
 
     if (!m_scene) {
