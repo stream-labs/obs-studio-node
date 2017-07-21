@@ -33,6 +33,7 @@ NAN_MODULE_INIT(Scene::Init)
     Nan::SetMethod(locProto->PrototypeTemplate(), "findItem", findItem);
     Nan::SetMethod(locProto->PrototypeTemplate(), "getItems", getItems);
     Nan::SetMethod(locProto->PrototypeTemplate(), "add", add);
+    Nan::SetMethod(locProto->PrototypeTemplate(), "duplicate", duplicate);
     Nan::SetMethod(locProto, "create", create);
     Nan::SetMethod(locProto, "fromName", fromName);
 
@@ -63,6 +64,30 @@ NAN_METHOD(Scene::create)
     info.GetReturnValue().Set(object);
 }
 
+NAN_METHOD(Scene::duplicate)
+{
+    obs::weak<obs::scene> &scene = Scene::Object::GetHandle(info.Holder());
+
+    ASSERT_INFO_LENGTH(info, 2);
+    
+    std::string name;
+    int duplicate_type;
+
+    ASSERT_GET_VALUE(info[0], name);
+    ASSERT_GET_VALUE(info[1], duplicate_type);
+
+    obs::scene dup_scene = 
+        scene.get()->duplicate(name, static_cast<obs_scene_duplicate_type>(duplicate_type));
+
+    if (dup_scene.status() != obs::scene::status_type::okay) {
+        info.GetReturnValue().Set(Nan::Null());
+        return;
+    }
+
+    Scene *binding = new Scene(dup_scene);
+    auto object = Scene::Object::GenerateObject(binding);
+    info.GetReturnValue().Set(object);
+}
 
 NAN_METHOD(Scene::fromName)
 {

@@ -83,6 +83,7 @@ public:
     static scene from_name(std::string name);
 
     bool operator!();
+    obs::scene duplicate(std::string name, enum obs_scene_duplicate_type type);
     scene::item add(input source);
     obs::input source();
     obs::scene::item item_from_name(std::string name);

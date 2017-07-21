@@ -30,6 +30,7 @@ public:
     static NAN_MODULE_INIT(Init);
     static NAN_METHOD(create);
     static NAN_METHOD(fromName);
+    static NAN_METHOD(duplicate);
     static NAN_GETTER(source);
     static NAN_METHOD(findItem);
     static NAN_METHOD(getItems);

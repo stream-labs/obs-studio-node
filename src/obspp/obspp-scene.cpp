@@ -48,6 +48,11 @@ scene::scene(obs_source_t *source)
     m_handle = source;
 }
 
+obs::scene scene::duplicate(std::string name, enum obs_scene_duplicate_type type)
+{
+    return obs_scene_duplicate(m_scene, name.c_str(), type);
+}
+
 scene scene::from_name(std::string name)
 {
     obs_source_t *source = obs_get_source_by_name(name.c_str());

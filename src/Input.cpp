@@ -89,6 +89,7 @@ NAN_METHOD(Input::duplicate)
 
     std::string name = "";
     bool is_private = false;
+    Input *binding = nullptr;
 
     switch (info.Length()) {
     default:
@@ -96,11 +97,14 @@ NAN_METHOD(Input::duplicate)
         ASSERT_GET_VALUE(info[1], is_private);
     case 1: 
         ASSERT_GET_VALUE(info[0], name);
+        binding = new Input(handle.get()->duplicate(name, is_private));
+        break;
     case 0:
+        handle.get()->addref();
+        binding = new Input(handle.get().get());
         break;
     }
 
-    Input *binding = new Input(handle.get()->duplicate(name, is_private));
     auto object = Input::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }

@@ -210,7 +210,7 @@ export class ObsInput implements ObsSource {
     showing: boolean;
     audioMixers: number;
 
-    duplicate(name: string, is_private: boolean): ObsInput;
+    duplicate(name?: string, is_private?: boolean): ObsInput;
     findFilter(name: string): ObsFilter;
     addFilter(filter: ObsFilter): void;
     removeFilter(filter: ObsFilter): void;
@@ -233,6 +233,13 @@ export class ObsInput implements ObsSource {
     flags: number;
 }
 
+export const enum ESceneDupType {
+    Refs,
+    Copy,
+    PrivateRefs,
+    PrivateCopy
+}
+
 /**
  * Object representing a scene.
  * 
@@ -247,6 +254,7 @@ export class ObsScene implements ObsSource {
     static types(): string[];
     static create(name: string): ObsScene;
     static fromName(name: string): ObsScene;
+    duplicate(name: string, type: ESceneDupType): ObsScene;
     add(source: ObsInput): ObsSceneItem;
     
     readonly source: ObsInput;
