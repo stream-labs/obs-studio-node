@@ -68,6 +68,11 @@ public:
     static NAN_SETTER(scaleFilter);
     static NAN_GETTER(scaleFilter);
 
+    static NAN_METHOD(moveUp);
+    static NAN_METHOD(moveDown);
+    static NAN_METHOD(moveTop);
+    static NAN_METHOD(moveBottom);
+    static NAN_METHOD(move);
     static NAN_METHOD(deferUpdateBegin);
     static NAN_METHOD(deferUpdateEnd);
 };
