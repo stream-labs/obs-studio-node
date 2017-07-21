@@ -55,10 +55,6 @@ public:
     static NAN_SETTER(transformInfo);
     static NAN_GETTER(transformInfo);
 
-    static NAN_SETTER(order);
-
-    static NAN_SETTER(orderPosition);
-
     static NAN_SETTER(boundsType);
     static NAN_GETTER(boundsType);
 

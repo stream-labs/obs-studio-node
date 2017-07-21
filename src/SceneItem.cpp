@@ -239,8 +239,8 @@ NAN_SETTER(SceneItem::transformInfo)
     ASSERT_GET_OBJECT_FIELD(tf_info_object, "rot", tf_info.rot);
     ASSERT_GET_OBJECT_FIELD(tf_info_object, "scale", tf_info.scale);
     ASSERT_GET_OBJECT_FIELD(tf_info_object, "alignment", tf_info.alignment);
-    ASSERT_GET_OBJECT_FIELD(tf_info_object, "bounds_type", tf_info.bounds_type);
-    ASSERT_GET_OBJECT_FIELD(tf_info_object, "bounds_alignment", tf_info.bounds_alignment);
+    ASSERT_GET_OBJECT_FIELD(tf_info_object, "boundsType", tf_info.bounds_type);
+    ASSERT_GET_OBJECT_FIELD(tf_info_object, "boundsAlignment", tf_info.bounds_alignment);
     ASSERT_GET_OBJECT_FIELD(tf_info_object, "bounds", tf_info.bounds);
 
     handle.transform_info(tf_info);
@@ -258,8 +258,8 @@ NAN_GETTER(SceneItem::transformInfo)
     common::SetObjectField(object, "rot", tf_info.rot);
     common::SetObjectField(object, "scale", tf_info.scale);
     common::SetObjectField(object, "alignment", tf_info.alignment);
-    common::SetObjectField(object, "bounds_type", tf_info.bounds_type);
-    common::SetObjectField(object, "bounds_alignment", tf_info.bounds_alignment);
+    common::SetObjectField(object, "boundsType", tf_info.bounds_type);
+    common::SetObjectField(object, "boundsAlignment", tf_info.bounds_alignment);
     common::SetObjectField(object, "bounds", tf_info.bounds);
 
     info.GetReturnValue().Set(object);
