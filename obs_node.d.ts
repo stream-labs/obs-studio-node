@@ -113,6 +113,7 @@ export class ObsVolmeter {
 export interface ObsSource {
     release(): void;
     remove(): void;
+    update(settings: object): void;
 
     readonly settings: object;
     readonly properties: ObsProperties;
@@ -140,6 +141,7 @@ export class ObsFilter implements ObsSource {
     //Source
     release(): void;
     remove(): void;
+    update(settings: object): void;
 
     readonly settings: object;
     readonly properties: ObsProperties;
@@ -173,6 +175,7 @@ export class ObsTransition implements ObsSource {
     //Source
     release(): void;
     remove(): void;
+    update(settings: object): void;
 
     readonly settings: object;
     readonly properties: ObsProperties;
@@ -201,7 +204,7 @@ export class ObsTransition implements ObsSource {
 export class ObsInput implements ObsSource {
     private constructor();
     static types(): string[];
-    static create(id: string, name: string, hotkeys?: object, settings?: object): ObsInput;
+    static create(id: string, name: string, settings?: object, hotkeys?: object): ObsInput;
     static createPrivate(id: string, name: string, settings?: object): ObsInput;
     static fromName(name: string): ObsInput;
     static getPublicSources(): ObsInput[];
@@ -219,6 +222,7 @@ export class ObsInput implements ObsSource {
     //Source
     release(): void;
     remove(): void;
+    update(settings: object): void;
 
     readonly settings: object;
     readonly properties: ObsProperties;
@@ -265,6 +269,7 @@ export class ObsScene implements ObsSource {
     //Source
     release(): void;
     remove(): void;
+    update(settings: object): void;
 
     readonly settings: object;
     readonly properties: ObsProperties;
@@ -284,6 +289,35 @@ export const enum EOrderMovement {
     MoveDown,
     MoveTop,
     MoveBottom
+}
+
+export interface ITransformInfo {
+    readonly pos: IVec2;
+    readonly rot: number;
+    readonly scale: IVec2;
+    readonly alignment: number;
+    readonly boundsType: EBoundsType;
+    readonly boundsAlignment: number;
+    readonly bounds: IVec2;
+}
+
+export interface ICropInfo {
+    readonly left: number;
+    readonly right: number;
+    readonly top: number;
+    readonly bottom: number;
+}
+
+export const enum EAlignment {
+    Center,
+    Left = (1 << 0),
+    Right = (1 << 1),
+    Top = (1 << 2),
+    Bottom = (1 << 3),
+    TopLeft = (Top | Left),
+    TopRight = (Top | Right),
+    BottomLeft = (Bottom | Left),
+    BottomRight = (Bottom | Right)
 }
 
 /**
@@ -316,11 +350,14 @@ export class ObsSceneItem {
     boundsType: EBoundsType;
     scaleFilter: EScaleType;
     visible: boolean;
-    // transform_info: TTransformInfo;
-    // crop: TCropInfo;
+    readonly transformInfo: ITransformInfo;
+    readonly crop: ICropInfo;
 
-    order(movement: EOrderMovement): void;
-    orderPosition(pos: number): void;
+    moveUp(): void;
+    moveDown(): void;
+    moveTop(): void;
+    moveBottom(): void;
+    move(position: number): void;
 
     remove(): void;
 
@@ -403,19 +440,19 @@ export interface INumberProperty {
  */
 export class ObsProperty {
     private constructor();
-    status: number;
-    name: string;
-    description: string;
-    longDescription: string;
-    enabled: boolean;
-    visible: boolean;
-    type: EPropertyType;
-    details: 
+    readonly status: number;
+    readonly name: string;
+    readonly description: string;
+    readonly longDescription: string;
+    readonly enabled: boolean;
+    readonly visible: boolean;
+    readonly type: EPropertyType;
+    readonly details: 
         IListProperty | IEditableListProperty | 
         IPathProperty | ITextProperty | 
         INumberProperty | {};
-    value: ObsProperty;
-    done: boolean;
+    readonly value: ObsProperty;
+    readonly done: boolean;
 
     /**
      * Uses the current object to obtain the next
@@ -525,19 +562,19 @@ export const enum EFormat {
 }
 
 interface IVideoInfo {
-    graphics_module: string;
-    fps_num: number;
-    fps_den: number;
-    base_width: number;
-    base_height: number;
-    output_width: number;
-    output_height: number;
-    output_format: EFormat;
-    adapter: number;
-    gpu_conversion: boolean;
-    colorspace: EColorSpace;
-    range: ERangeType;
-    scale_type: EScaleType;
+    readonly graphics_module: string;
+    readonly fps_num: number;
+    readonly fps_den: number;
+    readonly base_width: number;
+    readonly base_height: number;
+    readonly output_width: number;
+    readonly output_height: number;
+    readonly output_format: EFormat;
+    readonly adapter: number;
+    readonly gpu_conversion: boolean;
+    readonly colorspace: EColorSpace;
+    readonly range: ERangeType;
+    readonly scale_type: EScaleType;
 }
 
 export class ObsVideo {
