@@ -72,6 +72,16 @@ v8::Local<v8::Value> ToValue(int value)
 { return Nan::New<v8::Integer>(value); }
 
 template <>
+v8::Local<v8::Value> ToValue(long long value)
+{
+    /* Pass an unsigned integer in case of max value */
+    if (value == 0xffffffff)
+        return Nan::New<v8::Integer>(0xffffffff);
+    
+    return Nan::New<v8::Integer>(static_cast<int32_t>(value));
+}
+
+template <>
 v8::Local<v8::Value> ToValue(unsigned int value)
 { return Nan::New<v8::Uint32>(value); }
 
@@ -159,7 +169,7 @@ v8::Local<v8::Value> ToValue<obs_data_t*>(obs_data_t *data)
             switch (number_type) {
             case OBS_DATA_NUM_INT: 
                 SetObjectField(object, name,
-                    static_cast<int32_t>(obs_data_item_get_int(item_it)));
+                    obs_data_item_get_int(item_it));
                 break;
 
             case OBS_DATA_NUM_DOUBLE:
