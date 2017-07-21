@@ -52,6 +52,10 @@ const char *GetErrorString<enum obs_combo_format>()
 { return "Expected obs_combo_format enum"; }
 
 template <>
+const char *GetErrorString<enum obs_bounds_type>()
+{ return "Expected obs_bounds_type enum"; }
+
+template <>
 const char *GetErrorString<v8::Local<v8::Function>>()
 { return "Expected function"; }
 
@@ -106,6 +110,10 @@ v8::Local<v8::Value> ToValue(enum obs_number_type value)
 
 template <>
 v8::Local<v8::Value> ToValue(enum obs_editable_list_type value)
+{ return Nan::New<v8::Integer>(value); }
+
+template <>
+v8::Local<v8::Value> ToValue(enum obs_bounds_type value)
 { return Nan::New<v8::Integer>(value); }
 
 template <>
@@ -269,12 +277,16 @@ bool FromValueToEnum(
 }
 
 template <>
-bool FromValue(v8::Local<v8::Value> value, gs_color_format &var)
-{ return FromValueToEnum<gs_color_format>(value, var); }
+bool FromValue(v8::Local<v8::Value> value, enum gs_color_format &var)
+{ return FromValueToEnum<enum gs_color_format>(value, var); }
 
 template <>
-bool FromValue(v8::Local<v8::Value> value, gs_zstencil_format &var)
-{ return FromValueToEnum<gs_zstencil_format>(value, var); }
+bool FromValue(v8::Local<v8::Value> value, enum gs_zstencil_format &var)
+{ return FromValueToEnum<enum gs_zstencil_format>(value, var); }
+
+template <>
+bool FromValue(v8::Local<v8::Value> value, enum obs_bounds_type &var)
+{ return FromValueToEnum<enum obs_bounds_type>(value, var); }
 
 template <>
 bool FromValue(v8::Local<v8::Value> value, double &var)
