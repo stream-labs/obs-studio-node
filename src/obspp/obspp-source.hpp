@@ -108,8 +108,6 @@ public:
     obs_source_t *dangerous();
     status_type status();
 
-    source duplicate(std::string name, bool is_private);
-
     obs_source_type type();
     
     uint32_t flags();
