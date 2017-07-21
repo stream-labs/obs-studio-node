@@ -6,10 +6,10 @@ import test from 'ava';
 test('transition creation and destruction', t => {
     startup_shutdown(t, (t) => {
         let test_source_a = 
-            obs.ObsInput.createPrivate('monitor_capture', 'test source a', { color: 0x000000 });
+            obs.ObsInput.createPrivate('monitor_capture', 'test source a');
 
         let test_source_b = 
-            obs.ObsInput.createPrivate('color_source', 'test source b', { color: 0xffffff });
+            obs.ObsInput.createPrivate('color_source', 'test source b');
 
         let test_scene =
             obs.ObsScene.create('test scene');
@@ -22,14 +22,12 @@ test('transition creation and destruction', t => {
         t.is(test_source_a.id, 'monitor_capture');
         t.is(test_source_a.configurable, true);
         t.is(test_source_a.type, obs.ESourceType.Input);
-        t.is(test_source_a.settings['color'], 0x000000);
 
         t.is(test_source_b.status, 0);
         t.is(test_source_b.name, 'test source b');
         t.is(test_source_b.id, 'color_source');
         t.is(test_source_b.configurable, true);
         t.is(test_source_b.type, obs.ESourceType.Input);
-        t.is(test_source_b.settings['color'], 0xffffff);
 
         test_scene.add(test_source_b);
 

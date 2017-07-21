@@ -21,6 +21,7 @@
     "startup.ts",
     "wrapper_startup.ts",
     "filters.ts",
+    "properties.ts",
     "source_creation.ts",
     "scene_creation.ts",
     "scene_items.ts",

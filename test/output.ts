@@ -9,7 +9,6 @@ test('output channel setting', t => {
             obs.ObsInput.createPrivate(
                 'color_source',
                 'test source',
-                { color: 0x000000 }
             );
 
         let test_scene =
