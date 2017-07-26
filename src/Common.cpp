@@ -4,6 +4,10 @@ namespace osn {
 namespace common {
 
 template <>
+const char *GetErrorString<int64_t>()
+{ return "Expected signed integer"; }
+
+template <>
 const char *GetErrorString<uint32_t>() 
 { return "Expected unsigned integer"; }
 
@@ -238,6 +242,20 @@ bool FromValue<obs_data_t *>(v8::Local<v8::Value> value, obs_data_t * &var)
     Nan::Utf8String string(result.ToLocalChecked());
 
     var = obs_data_create_from_json(*string);
+    return true;
+}
+
+template<>
+bool FromValue(v8::Local<v8::Value> value, int64_t &var)
+{
+    /* There are no checks for anything past a 32-bit integer
+     * Though, we can just check for a number here.  */
+    if (!value->IsNumber()) {
+        var = 0;
+        return false;
+    }
+
+    var = Nan::To<int64_t>(value).FromJust();
     return true;
 }
 
