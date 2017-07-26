@@ -30,7 +30,9 @@ NAN_MODULE_INIT(Scene::Init)
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
 
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("source"), source);
+    Nan::SetMethod(locProto->PrototypeTemplate(), "moveItem", moveItem);
     Nan::SetMethod(locProto->PrototypeTemplate(), "findItem", findItem);
+    Nan::SetMethod(locProto->PrototypeTemplate(), "getItemAtIdx", getItemAtIdx);
     Nan::SetMethod(locProto->PrototypeTemplate(), "getItems", getItems);
     Nan::SetMethod(locProto->PrototypeTemplate(), "add", add);
     Nan::SetMethod(locProto->PrototypeTemplate(), "duplicate", duplicate);
@@ -109,26 +111,107 @@ NAN_METHOD(Scene::fromName)
     info.GetReturnValue().Set(object);
 }
 
+struct ItemMoveData{
+    int64_t count;
+    int64_t old_index;
+    int64_t new_index;
+};
+
+NAN_METHOD(Scene::moveItem)
+{
+    obs::weak<obs::scene> &scene = Scene::Object::GetHandle(info.Holder());
+
+    /* FIXME Race condition from iterating twice */
+    ASSERT_INFO_LENGTH(info, 2);
+
+    auto items = scene.get()->items();
+
+    ItemMoveData move_data;
+
+    ASSERT_GET_VALUE(info[0], move_data.old_index);
+    ASSERT_GET_VALUE(info[1], move_data.new_index);
+    move_data.count = items.size();
+
+    move_data.old_index = (items.size() - 1) - move_data.old_index;
+
+    auto item_enum_cb =
+    [] (obs_scene_t *scene, obs_sceneitem_t *item, void *data) {
+         ItemMoveData *move_data = 
+            reinterpret_cast<ItemMoveData*>(data);
+
+        if (move_data->old_index == 0) {
+            obs::scene::item(item)
+                .order_position((move_data->count - 1) - move_data->new_index);
+
+            return false;
+        }
+
+        move_data->old_index--;
+        return true;
+    };
+
+    obs_scene_enum_items(scene.get().get().dangerous_scene(), item_enum_cb, &move_data);
+}
+
 NAN_METHOD(Scene::findItem)
 {
     obs::weak<obs::scene> &scene = Scene::Object::GetHandle(info.Holder());
 
     ASSERT_INFO_LENGTH_AT_LEAST(info, 1);
 
-    std::string name;
-    ASSERT_GET_VALUE(info[0], name);
+    obs::scene::item item;
 
-    obs::scene::item item = 
-        scene.get()->item_from_name(name);
+    if (info[0]->IsString()) {
+        std::string name;
+        ASSERT_GET_VALUE(info[0], name);
+
+        item = scene.get()->find_item(name);
+    }
+    else if (info[0]->IsNumber()) {
+        int64_t position;
+        ASSERT_GET_VALUE(info[0], position);
+
+        item = scene.get()->find_item(position);
+    }
+    else {
+        Nan::TypeError("Expected string or number");
+        return;
+    }
 
     if (item.status() != obs::source::status_type::okay) {
         info.GetReturnValue().Set(Nan::Null());
         return;
     }
-
+    
     SceneItem *si_binding = new SceneItem(item);
     auto object = SceneItem::Object::GenerateObject(si_binding);
 
+    info.GetReturnValue().Set(object);
+}
+
+NAN_METHOD(Scene::getItemAtIdx)
+{
+    obs::weak<obs::scene> &scene = Scene::Object::GetHandle(info.Holder());
+    std::vector<obs::scene::item> items = scene.get()->items();
+
+    if (items.size() == 0) {
+        info.GetReturnValue().Set(Nan::Null());
+        return;
+    }
+
+    int64_t index;
+
+    ASSERT_GET_VALUE(info[0], index);
+
+    index = (items.size() - 1) - index;
+
+    if (index < 0) {
+        info.GetReturnValue().Set(Nan::Null());
+        return;
+    }
+
+    SceneItem *binding = new SceneItem(items[index]);
+    auto object = SceneItem::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }
 

@@ -32,8 +32,10 @@ public:
     static NAN_METHOD(fromName);
     static NAN_METHOD(duplicate);
     static NAN_GETTER(source);
+    static NAN_METHOD(moveItem);
     static NAN_METHOD(findItem);
     static NAN_METHOD(getItems);
+    static NAN_METHOD(getItemAtIdx);
     static NAN_METHOD(add);
 };
 
