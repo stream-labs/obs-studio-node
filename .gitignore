@@ -1,0 +1,12 @@
+.vs
+.vscode
+test/*.js
+test/helpers.js
+*.js
+*.opendb
+*.db
+*.sln
+node-obs
+node_modules
+yarn-error.log
+build
