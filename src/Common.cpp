@@ -369,8 +369,8 @@ bool FromValue(v8::Local<v8::Value> value, vec2 &var)
     auto value_obj = Nan::To<v8::Object>(value).ToLocalChecked();
 
     return
-        !GetFromObject(value_obj, "x", var.x) ||
-        !GetFromObject(value_obj, "y", var.y);
+        GetFromObject(value_obj, "x", var.x) &&
+        GetFromObject(value_obj, "y", var.y);
 }
 
 template <>
