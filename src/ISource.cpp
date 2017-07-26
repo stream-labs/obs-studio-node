@@ -44,6 +44,9 @@ NAN_METHOD(ISource::release)
     obs::source handle = ISource::GetHandle(info.Holder());
 
     handle.release();
+    /* Invalidate said handle to help prevent abuse. 
+     * Note that this can still be abused if you try! */
+    handle = nullptr;
 }
 
 NAN_METHOD(ISource::remove)
