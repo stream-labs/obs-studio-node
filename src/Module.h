@@ -28,13 +28,13 @@ public:
     /* Prototype Scope */
     static NAN_MODULE_INIT(Init);
     static NAN_METHOD(create);
-    static NAN_METHOD(add_path);
-    static NAN_METHOD(load_all);
-    static NAN_METHOD(log_loaded);
+    static NAN_METHOD(addPath);
+    static NAN_METHOD(loadAll);
+    static NAN_METHOD(logLoaded);
 
     /* Instance Scope */
     static NAN_METHOD(initialize);
-    static NAN_GETTER(fileName);
+    static NAN_GETTER(filename);
     static NAN_GETTER(name);
     static NAN_GETTER(author);
     static NAN_GETTER(description);

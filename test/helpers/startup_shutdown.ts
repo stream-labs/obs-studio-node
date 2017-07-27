@@ -43,10 +43,10 @@ export function startup_shutdown(t: any, cb: (t: any) => void, locale?: string, 
     console.log(`Data Path: ${data_path}`);
     console.log(`Plugin Bin Path: ${plugin_bin_path}`);
     console.log(`Plugin Data Path: ${plugin_data_path}`);
-    obs.ObsModule.add_path(bin_path, data_path);
-    obs.ObsModule.add_path(plugin_bin_path, plugin_data_path);
-    obs.ObsModule.load_all();
-    obs.ObsModule.log_loaded();
+    obs.ObsModule.addPath(bin_path, data_path);
+    obs.ObsModule.addPath(plugin_bin_path, plugin_data_path);
+    obs.ObsModule.loadAll();
+    obs.ObsModule.logLoaded();
 
     /* Dummy Display */
     var display_init = {

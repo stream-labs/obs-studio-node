@@ -27,7 +27,7 @@ NAN_MODULE_INIT(Module::Init)
     prototype->SetClassName(FIELD_NAME("Module"));
     prototype->InstanceTemplate()->SetInternalFieldCount(1);
 
-    Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("fileName"), fileName);
+    Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("filename"), filename);
     Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("name"), name);
     Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("author"), author);
     Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("description"), description);
@@ -35,15 +35,15 @@ NAN_MODULE_INIT(Module::Init)
     Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("dataPath"), dataPath);
     Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("status"), status);
 
-    Nan::SetMethod(prototype, "load_all", load_all);
-    Nan::SetMethod(prototype, "add_path", add_path);
-    Nan::SetMethod(prototype, "log_loaded", log_loaded);
+    Nan::SetMethod(prototype, "loadAll", loadAll);
+    Nan::SetMethod(prototype, "addPath", addPath);
+    Nan::SetMethod(prototype, "logLoaded", logLoaded);
 
     Nan::Set(target, FIELD_NAME("Module"), prototype->GetFunction());
 }
 
 /* Prototype Methods */
-NAN_METHOD(Module::add_path)
+NAN_METHOD(Module::addPath)
 {
     ASSERT_INFO_LENGTH(info, 2);
     
@@ -55,12 +55,12 @@ NAN_METHOD(Module::add_path)
     obs::module::add_path(bin_path, data_path);
 }
 
-NAN_METHOD(Module::load_all)
+NAN_METHOD(Module::loadAll)
 {
     obs::module::load_all();
 }
 
-NAN_METHOD(Module::log_loaded)
+NAN_METHOD(Module::logLoaded)
 {
     obs::module::log_loaded();
 }
@@ -73,7 +73,7 @@ NAN_METHOD(Module::initialize)
     handle.initialize();
 }
 
-NAN_GETTER(Module::fileName)
+NAN_GETTER(Module::filename)
 {
     obs::module &handle = Module::Object::GetHandle(info.Holder());
 
