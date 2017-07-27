@@ -25,6 +25,7 @@
     "source_creation.ts",
     "scene_creation.ts",
     "scene_items.ts",
+    "scene_item_deletion.ts",
     "transitions.ts",
     "output.ts",
     "multiple_references.ts",

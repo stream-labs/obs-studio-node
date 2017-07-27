@@ -46,6 +46,10 @@ test('scene creation and destruction', t => {
                 t.is(items[i].scaleFilter, obs.EScaleType.Default);
                 t.is(items[i].id, i + 1);
 
+                items[i].position = { x: 1, y: 1 }
+                t.is(items[i].position.x, 1);
+                t.is(items[i].position.y, 1);
+
                 /* TODO: Use other move functions */
                 items[i].move(items[i].id);
                 t.is(items[i].id, i + 1);
@@ -53,8 +57,8 @@ test('scene creation and destruction', t => {
                 let transInfo = items[i].transformInfo;
 
                 // Default values
-                t.is(transInfo.pos.x, 0);
-                t.is(transInfo.pos.y, 0);
+                t.is(transInfo.pos.x, 1);
+                t.is(transInfo.pos.y, 1);
                 t.is(transInfo.rot, 0);
                 t.is(transInfo.scale.x, 1);
                 t.is(transInfo.scale.y, 1);
@@ -70,6 +74,14 @@ test('scene creation and destruction', t => {
                 t.is(cropInfo.top, 0);
                 t.is(cropInfo.right, 0);
                 t.is(cropInfo.bottom, 0);
+
+                items[i].crop = { left: 1, right: 1, top: 1, bottom: 1 }
+                cropInfo = items[i].crop;
+
+                t.is(cropInfo.left, 1);
+                t.is(cropInfo.top, 1);
+                t.is(cropInfo.right, 1);
+                t.is(cropInfo.bottom, 1);
 
                 items[i].alignment = obs.EAlignment.BottomRight;
                 t.is(transInfo.alignment, obs.EAlignment.TopLeft);
@@ -168,6 +180,10 @@ test('scene creation and destruction', t => {
                 let found_scene_item = items[i].scene.findItem(items[i].source.name);
                 t.is(found_scene_item.source.name, `test source ${i}`);
                 t.is(found_scene_item.scene.name, 'test scene');
+
+                let found_id_scene_item = items[i].scene.findItem(items[i].id);
+                t.is(found_id_scene_item.source.name, `test source ${i}`);
+                t.is(found_id_scene_item.scene.name, 'test scene');
 
                 let null_scene_item = items[i].scene.findItem('a bad name');
                 t.is(null_scene_item, null);
