@@ -26,14 +26,14 @@ export namespace ObsGlobal {
      * @param channel - The output channel to assign source
      * @param input - The source to assign to the output channel
      */
-    setOutputSource(channel: number, input: ObsInput | ObsTransition | ObsScene): void;
+    export function setOutputSource(channel: number, input: ObsInput | ObsTransition | ObsScene): void;
 
     /**
      * Obtains the source associated with a given output channel
      * @param channel - The output channel to fetch source of
      * @returns - The associated source or null if none was assigned to the given channel or channel was invalid.
      */
-    getOutputSource(channel: number): ObsInput | ObsTransition | ObsScene;
+    export function getOutputSource(channel: number): ObsInput | ObsTransition | ObsScene;
 
     /**
      * Current status of the global libobs context
