@@ -52,6 +52,11 @@ scene::scene(obs_source_t *source)
     m_handle = source;
 }
 
+obs_scene_t *scene::dangerous_scene() 
+{
+    return m_scene;
+}
+
 obs::scene scene::duplicate(std::string name, enum obs_scene_duplicate_type type)
 {
     return obs_scene_duplicate(m_scene, name.c_str(), type);
@@ -79,9 +84,14 @@ scene::item scene::add(input source)
     return obs_scene_add(m_scene, source.dangerous());
 }
 
-scene::item scene::item_from_name(std::string name)
+scene::item scene::find_item(std::string name)
 {
     return obs_scene_find_source(m_scene, name.c_str());
+}
+
+scene::item scene::find_item(int64_t position)
+{
+    return obs_scene_find_sceneitem_by_id(m_scene, position);
 }
 
 std::vector<scene::item> scene::items()
@@ -106,6 +116,14 @@ std::vector<scene::item> scene::items()
 /* 
     Scene Item implementation
  */
+
+scene::item::item()
+    : m_handle(nullptr),
+      m_status(source::status_type::invalid)
+{
+
+}
+
 scene::item::item(obs_sceneitem_t *item)
     : m_handle(item), 
       m_status(source::status_type::okay)

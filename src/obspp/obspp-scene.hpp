@@ -14,9 +14,8 @@ public:
         obs_sceneitem_t *m_handle;
         obs::source::status_type m_status;
 
-        item() = delete;
-
     public:
+        item();
         item(obs_sceneitem_t *item);
         item(item &copy);
 
@@ -83,10 +82,12 @@ public:
     static scene from_name(std::string name);
 
     bool operator!();
+    obs_scene_t *dangerous_scene();
     obs::scene duplicate(std::string name, enum obs_scene_duplicate_type type);
     scene::item add(input source);
     obs::input source();
-    obs::scene::item item_from_name(std::string name);
+    obs::scene::item find_item(std::string name);
+    obs::scene::item find_item(int64_t position);
     std::vector<scene::item> items();
 };
 
