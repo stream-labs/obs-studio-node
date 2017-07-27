@@ -14,24 +14,6 @@ node-obs proved to be difficult to work with. The following are just a few reaso
 - What objects we do use, v8 cannot control their lifetimes
 - Difficult to use over the Electron IPC (or any IPC)
 
-~~__Why nbind?__~~
-----------------
-~~I don't think the node object wrapper is bad but in exchange for complete control over how your object maps to V8, you gain a large amount of complexity and verbosity. nbind has a few advantages:~~
-
-~~- Automatic type checking~~
-~~- Automatic type conversion of arguments~~
-~~- Simple, straight-forward binding API~~
-
-~~It also allows me to use obspp (a C++ wrapper for OBS) as a base for the binding.~~
-
-__What happened to nbind?__
----------------------------
-Unfortunately, nbind doesn't currently support passing JS objects. I felt that this was too big of a problem to ignore or work around. There are unfortunately no other significant wrappers that are worth the effort of integrating. Someone mentioned v8pp of which I wasn't impressed. It's more of a v8 wrapper that has overlapping functionality with Node.js Nan. I also would prefer not using v8 directly (where possible anyways) in the case of future changes which v8 is notorious for. 
-
-There are other reasons as well such as not being able to control prototyping from a class, not having a decent C++ object wrapper (though their method did work hence why I didn't think it was a deal breaker). They didn't unsigned integers even though v8 does. Passing them as signed integers and using them as unsigned is possible but potentially buggy. 
-
-All in all, I like the nbind syntax but it removes a lot of freedom for the sake of simplicity. In this case, it's just far too much freedom lost to justify using it. 
-
 __Why cmake?__
 --------------
 Because the alternative is gyp which is deprecated. Frankly, node-gyp shouldn't be used anymore since it's incredibly difficult to use outside of simple use-cases.
