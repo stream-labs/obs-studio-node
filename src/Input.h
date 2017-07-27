@@ -11,12 +11,6 @@ namespace osn {
 
 class Input : public ISource
 {
-    /* Anything that wants to make a new object from 
-     * this class must be a friend. For once, using friends
-     * in this case is good since it helps keep track of 
-     * functions and objects that interact with this one. */
-     friend NAN_METHOD(Video::getOutputSource);
-
 public:
     static Nan::Persistent<v8::FunctionTemplate> prototype;
 
