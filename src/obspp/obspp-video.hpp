@@ -14,8 +14,6 @@ public:
     ~video();
 
     static int reset(struct obs_video_info *info);
-    static void output(int channel, source source);
-    static source output(int channel);
 };
 
 class video_encoder : public encoder {

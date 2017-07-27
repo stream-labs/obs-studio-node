@@ -51,4 +51,15 @@ log_handler_t log_handler()
     return nullptr;
 }
 
+void output(int channel, obs::source source)
+{
+    obs_set_output_source(channel, source.dangerous());
+}
+
+obs::source output(int channel)
+{
+    obs_source_t * source = obs_get_output_source(channel);
+    return source;
+}
+
 }

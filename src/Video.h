@@ -15,8 +15,6 @@ public:
     static NAN_MODULE_INIT(Init);
     static NAN_METHOD(New);
     static NAN_METHOD(reset);
-    static NAN_METHOD(getOutputSource);
-    static NAN_METHOD(setOutputSource);
 };
 
 class VideoEncoder : public IEncoder
@@ -30,9 +28,9 @@ public:
     static NAN_METHOD(New);
     static NAN_GETTER(height);
     static NAN_GETTER(width);
-    static NAN_SETTER(scaled_size);
-    static NAN_SETTER(preferred_format);
-    static NAN_GETTER(preferred_format);
+    static NAN_SETTER(scaledSize);
+    static NAN_SETTER(preferredFormat);
+    static NAN_GETTER(preferredFormat);
 };
 
 }

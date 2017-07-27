@@ -3,6 +3,10 @@
 #include "Global.h"
 #include "Common.h"
 
+#include "Input.h"
+#include "Scene.h"
+#include "Transition.h"
+
 namespace osn {
 
 #define OBS_VALID \
@@ -15,6 +19,8 @@ NAN_MODULE_INIT(Init)
 
     Nan::SetMethod(ObsGlobal, "startup", startup);
     Nan::SetMethod(ObsGlobal, "shutdown", shutdown);
+    Nan::SetMethod(ObsGlobal, "getOutputSource", getOutputSource);
+    Nan::SetMethod(ObsGlobal, "setOutputSource", setOutputSource);
     Nan::SetAccessor(ObsGlobal, FIELD_NAME("initialized"), initialized);
     Nan::SetAccessor(ObsGlobal, FIELD_NAME("locale"), locale);
 
@@ -76,6 +82,64 @@ NAN_GETTER(initialized)
 NAN_GETTER(version)
 {
     info.GetReturnValue().Set(common::ToValue(obs::version()));
+}
+
+
+NAN_METHOD(setOutputSource)
+{
+    uint32_t channel;
+    v8::Local<v8::Object> source_object;
+
+    ASSERT_INFO_LENGTH(info, 2);
+    ASSERT_GET_VALUE(info[0], channel);
+    
+    if (info[1]->IsNull()) {
+        obs::output(channel, obs::source(nullptr));
+        return;
+    }
+    
+    ASSERT_GET_VALUE(info[1], source_object);
+
+    obs::source source = ISource::GetHandle(source_object);
+    obs::output(channel, source);
+}
+
+NAN_METHOD(getOutputSource)
+{
+    ASSERT_INFO_LENGTH(info, 1);
+
+    uint32_t channel;
+
+    ASSERT_GET_VALUE(info[0], channel);
+
+    obs::source source = obs::output(channel);
+
+    if (source.type() == OBS_SOURCE_TYPE_INPUT) {
+        Input *binding = new Input(source.dangerous());
+
+        v8::Local<v8::Object> object = 
+            Input::Object::GenerateObject(binding);
+
+        info.GetReturnValue().Set(object);
+    }
+    else if (source.type() == OBS_SOURCE_TYPE_SCENE) {
+        Scene *binding = new Scene(source.dangerous());
+
+        v8::Local<v8::Object> object = 
+            Scene::Object::GenerateObject(binding);
+
+        info.GetReturnValue().Set(object);
+    }
+    else if (source.type() == OBS_SOURCE_TYPE_TRANSITION) {
+        Transition *binding = new Transition(source.dangerous());
+
+        v8::Local<v8::Object> object = 
+            Transition::Object::GenerateObject(binding);
+
+        info.GetReturnValue().Set(object);
+    }
+
+    obs_source_release(source.dangerous());
 }
 
 }

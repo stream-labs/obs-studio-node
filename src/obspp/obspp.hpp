@@ -5,6 +5,8 @@
 #include <string>
 #include <exception>
 
+#include "obspp-source.hpp"
+
 namespace obs {
 
 bool startup(std::string locale, std::string path);
@@ -16,5 +18,7 @@ std::string locale();
 void locale(std::string locale);
 void log_handler(log_handler_t handler);
 log_handler_t log_handler();
+void output(int channel, source source);
+source output(int channel);
 
 }
