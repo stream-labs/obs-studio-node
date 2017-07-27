@@ -35,47 +35,28 @@ NAN_METHOD(Video::New)
 
 NAN_METHOD(Video::reset)
 {
-    v8::Local<v8::Object> vi_object = 
-        Nan::To<v8::Object>(info[0]).ToLocalChecked();
+    v8::Local<v8::Object> vi_object;
 
-    #define VI_OBJECT_FETCH(name) \
-        v8::Local<v8::Value> name ## _local = \
-            Nan::Get(vi_object, FIELD_NAME(#name)).ToLocalChecked();
+    ASSERT_GET_VALUE(info[0], vi_object);
 
-    /* Note that the compiler should optimize these away. */
-    VI_OBJECT_FETCH(graphics_module);
-    VI_OBJECT_FETCH(fps_num);
-    VI_OBJECT_FETCH(fps_den);
-    VI_OBJECT_FETCH(base_width);
-    VI_OBJECT_FETCH(base_height);
-    VI_OBJECT_FETCH(output_width);
-    VI_OBJECT_FETCH(output_height);
-    VI_OBJECT_FETCH(output_format);
-    VI_OBJECT_FETCH(adapter);
-    VI_OBJECT_FETCH(gpu_conversion);
-    VI_OBJECT_FETCH(colorspace);
-    VI_OBJECT_FETCH(range);
-    VI_OBJECT_FETCH(scale_type);
+    obs_video_info vi;
+    std::string graphics_module;
 
-    #undef VI_OBJECT_FETCH
+    ASSERT_GET_OBJECT_FIELD(vi_object, "graphicsModule", graphics_module);
+    ASSERT_GET_OBJECT_FIELD(vi_object, "fpsNum", vi.fps_num);
+    ASSERT_GET_OBJECT_FIELD(vi_object, "fpsDen", vi.fps_den);
+    ASSERT_GET_OBJECT_FIELD(vi_object, "baseWidth", vi.base_width);
+    ASSERT_GET_OBJECT_FIELD(vi_object, "baseHeight", vi.base_height);
+    ASSERT_GET_OBJECT_FIELD(vi_object, "outputWidth", vi.output_width);
+    ASSERT_GET_OBJECT_FIELD(vi_object, "outputHeight", vi.output_height);
+    ASSERT_GET_OBJECT_FIELD(vi_object, "outputFormat", vi.output_format);
+    ASSERT_GET_OBJECT_FIELD(vi_object, "adapter", vi.adapter);
+    ASSERT_GET_OBJECT_FIELD(vi_object, "gpuConversion", vi.gpu_conversion);
+    ASSERT_GET_OBJECT_FIELD(vi_object, "colorspace", vi.colorspace);
+    ASSERT_GET_OBJECT_FIELD(vi_object, "range", vi.range);
+    ASSERT_GET_OBJECT_FIELD(vi_object, "scaleType", vi.scale_type);
 
-    Nan::Utf8String graphics_module(graphics_module_local);
-
-    struct obs_video_info vi = {
-        *graphics_module,
-        Nan::To<uint32_t>(fps_num_local).FromJust(),
-        Nan::To<uint32_t>(fps_den_local).FromJust(),
-        Nan::To<uint32_t>(base_width_local).FromJust(),
-        Nan::To<uint32_t>(base_height_local).FromJust(),
-        Nan::To<uint32_t>(output_width_local).FromJust(),
-        Nan::To<uint32_t>(output_height_local).FromJust(),
-        static_cast<video_format>(Nan::To<int>(output_format_local).FromJust()),
-        Nan::To<uint32_t>(adapter_local).FromJust(),
-        Nan::To<bool>(gpu_conversion_local).FromJust(),
-        static_cast<video_colorspace>(Nan::To<int>(colorspace_local).FromJust()),
-        static_cast<video_range_type>(Nan::To<int>(range_local).FromJust()),
-        static_cast<obs_scale_type>(Nan::To<int>(scale_type_local).FromJust())
-    };
+    vi.graphics_module = graphics_module.c_str();
 
     info.GetReturnValue().Set(obs::video::reset(&vi));
 }

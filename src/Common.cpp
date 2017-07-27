@@ -49,7 +49,23 @@ const char *GetErrorString<enum gs_color_format>()
 
 template <>
 const char *GetErrorString<enum gs_zstencil_format>()
-{ return "Expected gs_zstencile_format enum"; }
+{ return "Expected gs_zstencil_format enum"; }
+
+template <>
+const char *GetErrorString<enum video_format>()
+{ return "Expected video_format enum"; }
+
+template <>
+const char *GetErrorString<enum video_colorspace>()
+{ return "Expected video_colorspace enum"; }
+
+template <>
+const char *GetErrorString<enum video_range_type>()
+{ return "Expected video_range_type enum"; }
+
+template <>
+const char *GetErrorString<enum obs_scale_type>()
+{ return "Expected obs_scale_type enum"; }
 
 template <>
 const char *GetErrorString<enum obs_combo_format>()
@@ -315,6 +331,22 @@ bool FromValue(v8::Local<v8::Value> value, enum gs_zstencil_format &var)
 template <>
 bool FromValue(v8::Local<v8::Value> value, enum obs_bounds_type &var)
 { return FromValueToEnum<enum obs_bounds_type>(value, var); }
+
+template <>
+bool FromValue(v8::Local<v8::Value> value, enum obs_scale_type &var)
+{ return FromValueToEnum<enum obs_scale_type>(value, var); }
+
+template <>
+bool FromValue(v8::Local<v8::Value> value, enum video_format &var)
+{ return FromValueToEnum<enum video_format>(value, var); }
+
+template <>
+bool FromValue(v8::Local<v8::Value> value, enum video_colorspace &var)
+{ return FromValueToEnum<enum video_colorspace>(value, var); }
+
+template <>
+bool FromValue(v8::Local<v8::Value> value, enum video_range_type &var)
+{ return FromValueToEnum<enum video_range_type>(value, var); }
 
 template <>
 bool FromValue(v8::Local<v8::Value> value, double &var)

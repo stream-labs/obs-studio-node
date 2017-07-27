@@ -1,28 +1,28 @@
 /** 
  * Namespace representing the global libobs functionality
  */
-export module ObsGlobal {
+export namespace ObsGlobal {
     /**
      * Initializes libobs global context
      * @param locale - Locale to be used within libobs
      * @param path - Data path of libobs
      */
-    function startup(locale: string, path?: string): void;
+    export function startup(locale: string, path?: string): void;
 
     /**
      * Uninitializes libobs global context
      */
-    function shutdown(): void;
+    export function shutdown(): void;
 
     /**
      * Current status of the global libobs context
      */
-    const initialized: boolean;
+    export const initialized: boolean;
 
     /**
      * Current locale of current libobs context
      */
-    const locale: string;
+    export const locale: string;
 
     /**
      * Version of current libobs context.
@@ -31,7 +31,7 @@ export module ObsGlobal {
      * Second 2 bytes are minor.
      * Last 4 bytes are patch.
      */
-    const version: number;
+    export const version: number;
 }
 
 /**
@@ -835,16 +835,16 @@ export class ObsProperties {
 export class ObsModule {
     private constructor();
     static create(bin_path: string, data_path: string): ObsModule;
-    static load_all(): void;
-    static add_path(path: string, data_path: string): void;
-    static log_loaded(): void;
+    static loadAll(): void;
+    static addPath(path: string, data_path: string): void;
+    static logLoaded(): void;
     initialize(): void;
-    file_name(): string;
+    filename(): string;
     name(): string;
     author(): string;
     description(): string;
-    bin_path(): string;
-    data_path(): string;
+    binPath(): string;
+    dataPath(): string;
     status(): number;
 }
 
@@ -892,20 +892,20 @@ export const enum EOutputFormat {
     I444
 }
 
-interface IVideoInfo {
-    readonly graphics_module: string;
-    readonly fps_num: number;
-    readonly fps_den: number;
-    readonly base_width: number;
-    readonly base_height: number;
-    readonly output_width: number;
-    readonly output_height: number;
-    readonly output_format: EOutputFormat;
+export interface IVideoInfo {
+    readonly graphicsModule: string;
+    readonly fpsNum: number;
+    readonly fpsDen: number;
+    readonly baseWidth: number;
+    readonly baseHeight: number;
+    readonly outputWidth: number;
+    readonly outputHeight: number;
+    readonly outputFormat: EOutputFormat;
     readonly adapter: number;
-    readonly gpu_conversion: boolean;
+    readonly gpuConversion: boolean;
     readonly colorspace: EColorSpace;
     readonly range: ERangeType;
-    readonly scale_type: EScaleType;
+    readonly scaleType: EScaleType;
 }
 
 /**
