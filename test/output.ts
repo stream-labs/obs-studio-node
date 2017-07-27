@@ -22,22 +22,22 @@ test('output channel setting', async t => {
         
         let source_check;
 
-        obs.ObsVideo.setOutputSource(0, test_source);
-        source_check = obs.ObsVideo.getOutputSource(0);
-        source_check = obs.ObsVideo.getOutputSource(0);
-        source_check = obs.ObsVideo.getOutputSource(0);
+        obs.ObsGlobal.setOutputSource(0, test_source);
+        source_check = obs.ObsGlobal.getOutputSource(0);
+        source_check = obs.ObsGlobal.getOutputSource(0);
+        source_check = obs.ObsGlobal.getOutputSource(0);
         t.is(source_check.name, 'test source');
 
-        obs.ObsVideo.setOutputSource(0, test_scene);
-        source_check = obs.ObsVideo.getOutputSource(0);
-        source_check = obs.ObsVideo.getOutputSource(0);
-        source_check = obs.ObsVideo.getOutputSource(0);
+        obs.ObsGlobal.setOutputSource(0, test_scene);
+        source_check = obs.ObsGlobal.getOutputSource(0);
+        source_check = obs.ObsGlobal.getOutputSource(0);
+        source_check = obs.ObsGlobal.getOutputSource(0);
         t.is(source_check.name, 'test scene');
 
-        obs.ObsVideo.setOutputSource(0, test_transition);
-        source_check = obs.ObsVideo.getOutputSource(0);
-        source_check = obs.ObsVideo.getOutputSource(0);
-        source_check = obs.ObsVideo.getOutputSource(0);
+        obs.ObsGlobal.setOutputSource(0, test_transition);
+        source_check = obs.ObsGlobal.getOutputSource(0);
+        source_check = obs.ObsGlobal.getOutputSource(0);
+        source_check = obs.ObsGlobal.getOutputSource(0);
         t.is(source_check.name, 'test transition');
 
         test_source.release();
@@ -48,7 +48,7 @@ test('output channel setting', async t => {
         t.is(test_scene.status, 0);
         t.is(test_transition.status, 0);
 
-        obs.ObsVideo.setOutputSource(0, null);
+        obs.ObsGlobal.setOutputSource(0, null);
 
         t.is(test_source.status, 1);
         t.is(test_scene.status, 1);

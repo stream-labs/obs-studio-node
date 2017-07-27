@@ -15,6 +15,27 @@ export namespace ObsGlobal {
     export function shutdown(): void;
 
     /**
+     * Output channels are useful in that we can attach multiple
+     * sources for output. For the most part, you're generally only
+     * going to use one channel for video. However, if you so wanted, 
+     * you could assign more to be layered on top of other channels. 
+     * 
+     * This also accepts audio input sources which are automatically 
+     * mixed into the audio output. This means you can have a standalone
+     * input source that isn't attached to the scene being rendered. 
+     * @param channel - The output channel to assign source
+     * @param input - The source to assign to the output channel
+     */
+    setOutputSource(channel: number, input: ObsInput | ObsTransition | ObsScene): void;
+
+    /**
+     * Obtains the source associated with a given output channel
+     * @param channel - The output channel to fetch source of
+     * @returns - The associated source or null if none was assigned to the given channel or channel was invalid.
+     */
+    getOutputSource(channel: number): ObsInput | ObsTransition | ObsScene;
+
+    /**
      * Current status of the global libobs context
      */
     export const initialized: boolean;
@@ -392,9 +413,9 @@ export class ObsInput implements ObsSource {
      * If no parameters are provide, an instance is created
      * using the current instance as if it were new. 
      * @param name - Name of new source
-     * @param is_private - Whether or not the new source is private
+     * @param isPrivate - Whether or not the new source is private
      */
-    duplicate(name?: string, is_private?: boolean): ObsInput;
+    duplicate(name?: string, isPrivate?: boolean): ObsInput;
 
     /**
      * Find a filter associated with the input source by name.
@@ -834,9 +855,9 @@ export class ObsProperties {
 
 export class ObsModule {
     private constructor();
-    static create(bin_path: string, data_path: string): ObsModule;
+    static create(binPath: string, dataPath: string): ObsModule;
     static loadAll(): void;
-    static addPath(path: string, data_path: string): void;
+    static addPath(path: string, dataPath: string): void;
     static logLoaded(): void;
     initialize(): void;
     filename(): string;
@@ -916,27 +937,6 @@ export class ObsVideo {
     private constructor();
     
     static reset(info: IVideoInfo): void;
-
-    /**
-     * Output channels are useful in that we can attach multiple
-     * sources for output. For the most part, you're generally only
-     * going to use one channel for video. However, if you so wanted, 
-     * you could assign more to be layered on top of other channels. 
-     * 
-     * This also accepts audio input sources which are automatically 
-     * mixed into the audio output. This means you can have a standalone
-     * input source that isn't attached to the scene being rendered. 
-     * @param channel - The output channel to assign source
-     * @param input - The source to assign to the output channel
-     */
-    static setOutputSource(channel: number, input: ObsInput | ObsTransition | ObsScene): void;
-
-    /**
-     * Obtains the source associated with a given output channel
-     * @param channel - The output channel to fetch source of
-     * @returns - The associated source or null if none was assigned to the given channel or channel was invalid.
-     */
-    static getOutputSource(channel: number): ObsInput | ObsTransition | ObsScene;
 }
 
 export const enum EColorFormat {
