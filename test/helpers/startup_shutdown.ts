@@ -4,7 +4,7 @@ import test from 'ava';
 
 let node_dist_dir = 'node-obs'
 
-export function startup_shutdown(t: any, cb: (t: any) => void, locale?: string, start_path?: string) {
+export async function startup_shutdown(t: any, cb: (t: any) => void, locale?: string, start_path?: string) {
     if (arguments.length == 2) {
         var locale = 'en-US';
     }
@@ -17,19 +17,19 @@ export function startup_shutdown(t: any, cb: (t: any) => void, locale?: string, 
     console.log(`Searching for libobs-d3d11 at ${obs_d3d11_path}`);
 
     let error = obs.ObsVideo.reset({
-        'graphics_module': obs_d3d11_path,
-        'fps_num': 30,
-        'fps_den': 1,
-        'output_width': 800,
-        'output_height': 600,
-        'output_format': obs.EOutputFormat.NV12,
-        'base_width': 800,
-        'base_height': 600,
-        'gpu_conversion': true,
+        'graphicsModule': obs_d3d11_path,
+        'fpsNum': 30,
+        'fpsDen': 1,
+        'outputWidth': 800,
+        'outputHeight': 600,
+        'outputFormat': obs.EOutputFormat.NV12,
+        'baseWidth': 800,
+        'baseHeight': 600,
+        'gpuConversion': true,
         'adapter': 0,
         'colorspace': 0,
         'range': 0,
-        'scale_type': 0
+        'scaleType': 0
     });
 
     if (error) t.fail();
@@ -60,7 +60,7 @@ export function startup_shutdown(t: any, cb: (t: any) => void, locale?: string, 
     let simple_draw_path = path.resolve(`${node_dist_dir}/simple_draw`);
     display.addDrawer(simple_draw_path);
 
-    cb(t);
+    await cb(t);
 
     display.removeDrawer(simple_draw_path);
     display.destroy();

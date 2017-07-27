@@ -3,8 +3,8 @@ import { startup_shutdown } from './helpers/startup_shutdown'
 import * as path from 'path';
 import test from 'ava';
 
-test('output channel setting', t => {
-    startup_shutdown(t, (t) => {
+test('output channel setting', async t => {
+    await startup_shutdown(t, (t) => {
         let test_source = 
             obs.ObsInput.createPrivate(
                 'color_source',

@@ -3,8 +3,8 @@ import { startup_shutdown } from './helpers/startup_shutdown'
 import * as path from 'path';
 import test from 'ava';
 
-test('source properties', t => {
-    startup_shutdown(t, (t) => {
+test('source properties', async t => {
+    await startup_shutdown(t, (t) => {
         let test_source_1 = 
             obs.ObsInput.createPrivate('color_source', 'test source' /* color: 0xffffffff */);
 

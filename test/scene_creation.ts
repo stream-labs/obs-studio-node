@@ -3,8 +3,8 @@ import { startup_shutdown } from './helpers/startup_shutdown'
 import * as path from 'path';
 import test from 'ava';
 
-test('scene creation and destruction', t => {
-    startup_shutdown(t, (t) => {
+test('scene creation and destruction', async t => {
+    await startup_shutdown(t, (t) => {
         let test_scene = obs.ObsScene.create('test scene');
 
         t.is(test_scene.status, 0);

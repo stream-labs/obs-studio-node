@@ -3,8 +3,8 @@ import { startup_shutdown } from './helpers/startup_shutdown'
 import * as path from 'path';
 import test from 'ava';
 
-test('transition creation and destruction', t => {
-    startup_shutdown(t, (t) => {
+test('transition creation and destruction', async t => {
+    await startup_shutdown(t, (t) => {
         let test_source_a = 
             obs.ObsInput.createPrivate('monitor_capture', 'test source a');
 

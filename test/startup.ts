@@ -2,7 +2,7 @@ import * as obs from '../node-obs/obs_node.js';
 import * as path from 'path';
 import test from 'ava';
 
-test('startup and shutdown', t => {
+test('startup and shutdown', async t => {
     t.plan(4);
 
     let locale = 'en-US';

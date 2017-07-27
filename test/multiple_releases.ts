@@ -3,8 +3,8 @@ import { startup_shutdown } from './helpers/startup_shutdown'
 import * as path from 'path';
 import test from 'ava';
 
-test.failing('multiple releases', t => {
-    startup_shutdown(t, (t) => {
+test.failing('multiple releases', async t => {
+    await startup_shutdown(t, async (t) => {
         let test_source = 
             obs.ObsInput.create('color_source', 'test source');
 
@@ -34,6 +34,8 @@ test.failing('multiple releases', t => {
         t.is(test_ref_2.configurable, true);
         t.is(test_ref_2.type, obs.ESourceType.Input);
 
+        test_scene.release();
+
         test_ref_2.release();
         
         t.is(test_source.status, 1);
@@ -49,7 +51,7 @@ test.failing('multiple releases', t => {
            javascript, you can refetch those handles by requesting scene items 
            from javascript and fetching their corresponding input sources. 
            I'm going to let this fail on purpose to act as a reminder. FIXME */
-        test_ref_1.release();
-        test_source.release();
+        await t.notThrows(test_ref_1.release());
+        await t.notThrows(test_source.release());
     });
 });

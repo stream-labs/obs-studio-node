@@ -3,8 +3,8 @@ import { startup_shutdown } from './helpers/startup_shutdown'
 import * as path from 'path';
 import test from 'ava';
 
-test('scene item deletion', t => {
-    startup_shutdown(t, (t) => {
+test('scene item deletion', async t => {
+    await startup_shutdown(t, (t) => {
         let test_source = 
             obs.ObsInput.create('color_source', 'test source');
 
