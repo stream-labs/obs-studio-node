@@ -112,9 +112,9 @@ NAN_METHOD(Scene::fromName)
 }
 
 struct ItemMoveData{
-    int64_t count;
-    int64_t old_index;
-    int64_t new_index;
+    int count;
+    int old_index;
+    int new_index;
 };
 
 NAN_METHOD(Scene::moveItem)
@@ -130,9 +130,9 @@ NAN_METHOD(Scene::moveItem)
 
     ASSERT_GET_VALUE(info[0], move_data.old_index);
     ASSERT_GET_VALUE(info[1], move_data.new_index);
-    move_data.count = items.size();
+    move_data.count = static_cast<int>(items.size());
 
-    move_data.old_index = (items.size() - 1) - move_data.old_index;
+    move_data.old_index = (move_data.count - 1) - move_data.old_index;
 
     auto item_enum_cb =
     [] (obs_scene_t *scene, obs_sceneitem_t *item, void *data) {
