@@ -35,6 +35,11 @@ The rest are handled through package management.
 
 ### __Building__ ###
 The build assumes a few things about location (see [Environment Variables](#enviroment-variables)). To build out of the box, clone the obs-studio-node repository within the obs-studio directory. Build 64-bit obs-studio in "build64" within the root directory of obs-studio. We use an environment variable "OBS_BUILD_TYPE" to determine which binaries to copy. Place the obs-studio dependencies (see [Requirements](#requirements)) inside a directory called "obs-studio-deps" next to the obs-studio directory. Only one command is required: `yarn`
+
+### __Building Documentation__ ###
+Building the documentation couldn't be more simple. Make sure you've done the initial setup and do `yarn docs`. It will output static HTML inside of a folder called 'docs' in the
+root directory. I plan on hosting the documentation somewhere once I find a safe location to do so. 
+
 #### __Warning__ ####
 For now, it automatically generates VC++ files for version 14 (2015). Ye be warned. To change this, modify package.json for now until I can figure out a cleaner way to manage it.
 
