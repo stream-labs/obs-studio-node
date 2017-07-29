@@ -1,8 +1,10 @@
 .vs
 .vscode
 test/*.js
+test/*.map
 test/helpers.js
 *.js
+*.map
 *.opendb
 *.db
 *.sln
