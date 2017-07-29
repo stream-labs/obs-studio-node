@@ -75,13 +75,18 @@ test('scene creation and destruction', async t => {
                 t.is(cropInfo.right, 0);
                 t.is(cropInfo.bottom, 0);
 
-                items[i].crop = { left: 1, right: 1, top: 1, bottom: 1 }
+                items[i].crop = { left: 1, right: 2, top: 3, bottom: 4 }
                 cropInfo = items[i].crop;
 
                 t.is(cropInfo.left, 1);
-                t.is(cropInfo.top, 1);
-                t.is(cropInfo.right, 1);
-                t.is(cropInfo.bottom, 1);
+                t.is(cropInfo.top, 3);
+                t.is(cropInfo.right, 2);
+                t.is(cropInfo.bottom, 4);
+
+                t.is(items[i].crop.left, 1);
+                t.is(items[i].crop.top, 3);
+                t.is(items[i].crop.right, 2);
+                t.is(items[i].crop.bottom, 4);
 
                 items[i].alignment = obs.EAlignment.BottomRight;
                 t.is(transInfo.alignment, obs.EAlignment.TopLeft);

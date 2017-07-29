@@ -13,9 +13,6 @@
     "allowSyntheticDefaultImports": true,
     "emitDecoratorMetadata": true
   },
-  "exclude": [
-    "node_modules"
-  ],
   "files": [
     "helpers/startup_shutdown.ts",
     "startup.ts",
@@ -29,7 +26,6 @@
     "transitions.ts",
     "output.ts",
     "multiple_references.ts",
-    "multiple_releases.ts",
-    "audio_controls.ts"
+    "multiple_releases.ts"
   ]
 }
