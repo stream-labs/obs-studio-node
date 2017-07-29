@@ -20,6 +20,9 @@
     "node-obs"
   ],
   "files": [
-    "obs_node.ts"
+    "obs_node.ts",
+    "build-obs.ts",
+    "build-docs.ts",
+    "build-bindings.ts"
   ]
 }

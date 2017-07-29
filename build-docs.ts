@@ -1,5 +1,5 @@
-import * as typedoc from 'gulp-typedoc';
-import * as gulp from 'gulp'
+const typedoc: any = require('gulp-typedoc');
+const gulp: any = require('gulp');
 
 gulp.task("docs", function() {
     return gulp

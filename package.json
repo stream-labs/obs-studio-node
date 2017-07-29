@@ -3,16 +3,21 @@
   "version": "1.0.0",
   "description": "Experimental bindings to obs-studio using nan directly",
   "main": "index.js",
+  "config": {
+    "build_type": "Release"
+  },
   "scripts": {
-    "docs": "tsc build_docs.ts && node build_docs.js",
-    "install": "cmake-js configure --debug && cmake --build build --target install",
+    "build:obs": "tsc && node build-obs.js",
+    "build:docs": "tsc && node build-docs.js",
+    "build:bindings": "tsc && node build-bindings.js",
+    "install": "yarn build:obs && yarn build:bindings",
     "test": "tsc --project test && ava --serial"
   },
   "author": "Zachary Lund <zachary.lund@streamlabs.com>",
   "license": "GPL-3.0",
   "cmake-js": {
-    "runtime": "node",
-    "runtimeVersion": "7.4.0",
+    "runtime": "electron",
+    "runtimeVersion": "1.6.10",
     "arch": "x64"
   },
   "devDependencies": {
@@ -20,8 +25,10 @@
     "cmake-js": "^3.4.1",
     "gulp": "^3.9.1",
     "gulp-typedoc": "^2.0.2",
+    "gulp-unzip": "^0.2.0",
     "nan": "^2.6.2",
     "run-sequence": "^2.0.0",
+    "simple-git": "^1.74.1",
     "typedoc": "^0.7.2",
     "typescript": "^2.4.1"
   },
