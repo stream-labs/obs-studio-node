@@ -10,3 +10,5 @@ node-obs
 node_modules
 yarn-error.log
 build
+docs
+obs-build
