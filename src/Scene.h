@@ -22,13 +22,14 @@ public:
 
     weak_handle_t handle;
 
-    Scene(std::string name);
+    Scene(std::string name, bool is_private = false);
     Scene(obs::scene handle);
 
     virtual obs::source GetHandle();
     
     static NAN_MODULE_INIT(Init);
     static NAN_METHOD(create);
+    static NAN_METHOD(createPrivate);
     static NAN_METHOD(fromName);
     static NAN_METHOD(duplicate);
     static NAN_GETTER(source);

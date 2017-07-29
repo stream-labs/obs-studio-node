@@ -9,8 +9,8 @@ obs::source Scene::GetHandle()
     return handle.get().get();
 }
 
-Scene::Scene(std::string name)
- : handle(obs::scene(name))
+Scene::Scene(std::string name, bool is_private)
+ : handle(obs::scene(name, is_private))
 {
 }
 
@@ -37,6 +37,7 @@ NAN_MODULE_INIT(Scene::Init)
     Nan::SetMethod(locProto->PrototypeTemplate(), "add", add);
     Nan::SetMethod(locProto->PrototypeTemplate(), "duplicate", duplicate);
     Nan::SetMethod(locProto, "create", create);
+    Nan::SetMethod(locProto, "createPrivate", createPrivate);
     Nan::SetMethod(locProto, "fromName", fromName);
 
     Nan::Set(target, FIELD_NAME("Scene"), locProto->GetFunction());
@@ -62,6 +63,19 @@ NAN_METHOD(Scene::create)
     ASSERT_GET_VALUE(info[0], name);
 
     Scene *binding = new Scene(name);
+    auto object = Scene::Object::GenerateObject(binding);
+    info.GetReturnValue().Set(object);
+}
+
+NAN_METHOD(Scene::createPrivate)
+{
+    ASSERT_INFO_LENGTH(info, 1);
+    
+    std::string name;
+
+    ASSERT_GET_VALUE(info[0], name);
+
+    Scene *binding = new Scene(name, true);
     auto object = Scene::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }

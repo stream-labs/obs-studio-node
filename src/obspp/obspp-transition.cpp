@@ -4,8 +4,14 @@
 
 namespace obs {
 
-transition::transition(std::string &id, std::string &name, obs_data_t *settings)
- : source(id, name, settings, true)
+transition::transition(std::string id, std::string name, obs_data_t *settings, obs_data_t *hotkey)
+ : source(id, name, settings, hotkey)
+{
+    source::check_type(m_handle, OBS_SOURCE_TYPE_TRANSITION);
+}
+
+transition::transition(std::string id, std::string name, obs_data_t *settings, bool is_private)
+ : source(id, name, settings, is_private)
 {
     source::check_type(m_handle, OBS_SOURCE_TYPE_TRANSITION);
 }

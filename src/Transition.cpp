@@ -6,10 +6,18 @@ namespace osn {
 
 Nan::Persistent<v8::FunctionTemplate> Transition::prototype;
 
-Transition::Transition(std::string id, std::string name, obs_data_t *settings)
- : handle(obs::transition(id, name, settings))
+Transition::Transition(std::string id, std::string name, obs_data_t *settings, obs_data_t *hotkey)
+ : handle(obs::transition(id, name, settings, hotkey))
 {
+
 }
+
+Transition::Transition(std::string id, std::string name, obs_data_t *settings, bool is_private)
+ : handle(obs::transition(id, name, settings, is_private))
+{
+
+}
+
 
 Transition::Transition(obs::transition transition) 
  : handle(obs::transition(transition))
@@ -28,6 +36,7 @@ NAN_MODULE_INIT(Transition::Init)
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("Transition"));
     Nan::SetMethod(locProto, "create", create);
+    Nan::SetMethod(locProto, "createPrivate", createPrivate);
     Nan::SetMethod(locProto, "types", types);
     Nan::SetMethod(locProto->InstanceTemplate(), "getActiveSource", getActiveSource);
     Nan::SetMethod(locProto->InstanceTemplate(), "start", start);
@@ -50,17 +59,48 @@ NAN_METHOD(Transition::types)
     info.GetReturnValue().Set(array);
 }
 
-
 NAN_METHOD(Transition::create)
 {
     ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
-
-    std::string id, name;
     
+    std::string id, name;
+    obs_data_t *settings = nullptr, *hotkeys = nullptr;
+    bool is_private = false;
+
     ASSERT_GET_VALUE(info[0], id);
     ASSERT_GET_VALUE(info[1], name);
 
-    Transition *binding = new Transition(id, name, nullptr);
+    switch (info.Length()) {
+    default:
+    case 4:
+        ASSERT_GET_VALUE(info[3], hotkeys);
+    case 3:
+        ASSERT_GET_VALUE(info[2], settings);
+    case 2:
+        break;
+    }
+
+    Transition *binding = new Transition(id, name, settings, hotkeys);
+    auto object = Transition::Object::GenerateObject(binding);
+    info.GetReturnValue().Set(object);
+}
+
+NAN_METHOD(Transition::createPrivate)
+{
+    ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
+    
+    std::string id, name;
+    obs_data_t *settings = nullptr;
+
+    ASSERT_GET_VALUE(info[0], id);
+    ASSERT_GET_VALUE(info[1], name);
+
+    Transition *binding;
+
+    if (info.Length() > 2)
+        ASSERT_GET_VALUE(info[2], settings);
+
+    binding = new Transition(id, name, settings, true);
     auto object = Transition::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }

@@ -18,7 +18,8 @@ public:
 
     weak_handle_t handle;
 
-    Transition(std::string id, std::string name, obs_data_t *settings);
+    Transition(std::string id, std::string name, obs_data_t *settings, obs_data_t *hotkey);
+    Transition(std::string id, std::string name, obs_data_t *settings, bool is_private);
     Transition(obs::transition transition);
 
     virtual obs::source GetHandle();
@@ -26,6 +27,7 @@ public:
     static NAN_METHOD(types);
     static NAN_METHOD(getActiveSource);
     static NAN_METHOD(create);
+    static NAN_METHOD(createPrivate);
     static NAN_METHOD(clear);
     static NAN_METHOD(set);
 

@@ -9,7 +9,8 @@ namespace obs {
 
 class transition : public source {
 public:
-    transition(std::string &id, std::string &name, obs_data_t *settings = nullptr);
+    transition(std::string id, std::string name, obs_data_t *settings = nullptr, obs_data_t *hotkey = nullptr);
+    transition(std::string id, std::string name, obs_data_t *settings, bool is_private = false);
     transition(transition &copy);
     transition(obs_source_t *source);
 
