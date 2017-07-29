@@ -1,4 +1,3 @@
-///<reference path="obs_node.d.ts"/>
 const obs = require('./obs_node.node');
 
 export const ObsGlobal = obs.Global;
