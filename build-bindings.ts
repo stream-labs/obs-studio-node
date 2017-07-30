@@ -2,8 +2,6 @@ import * as shell from 'shelljs';
 import * as path from 'path';
 import * as os from 'os';
 
-console.log(shell.env);
-
 let configType = shell.env['npm_config_cmake_OBS_BUILD_TYPE'] || 'Release';
 let obsGenerator = shell.env['npm_config_OSN_GENERATOR'];
 
