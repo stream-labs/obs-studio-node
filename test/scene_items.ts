@@ -1,4 +1,4 @@
-import * as obs from '../node-obs/obs_node.js';
+import * as obs from 'obs-studio-node';
 import { startup_shutdown } from './helpers/startup_shutdown'
 import * as path from 'path';
 import test from 'ava';
