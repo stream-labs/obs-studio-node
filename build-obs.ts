@@ -139,7 +139,7 @@ function obsCloneFinish(error: any, data: any) {
 function obsClone(error: any) {
     if (error) {
         console.log(`Cloning ${obsPath}`);
-        git.clone(obsGitURL, obsPath, [], obsCloneFinish);
+        git.clone(obsGitURL, obsPath, ['-b', 'slobs-npm-package'], obsCloneFinish);
     }
     else {
         console.log(`${obsPath} already exists.`);
