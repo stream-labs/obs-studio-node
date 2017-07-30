@@ -126,25 +126,6 @@ export interface ObsSource {
 }
 
 /**
- * Describes the type of source
- */
-export const enum ESourceType {
-    Input,
-    Filter,
-    Transition,
-    Scene,
-}
-
-/**
- * Describes algorithm type to use for volume representation.
- */
-export const enum EFaderType {
-    Cubic,
-    IEC /* IEC 60-268-18 */,
-    Log /* Logarithmic */
-}
-
-/**
  * This is simply used to type check
  * objects passed back that hold internal
  * information when dealing with callbacks.
@@ -472,13 +453,6 @@ export class ObsInput implements ObsSource {
     flags: number;
 }
 
-export const enum ESceneDupType {
-    Refs,
-    Copy,
-    PrivateRefs,
-    PrivateCopy
-}
-
 /**
  * Class representing a scene
  */
@@ -601,21 +575,6 @@ export interface ICropInfo {
 }
 
 /**
- * A binary flag representing alignment
- */
-export const enum EAlignment {
-    Center = 0,
-    Left = (1 << 0),
-    Right = (1 << 1),
-    Top = (1 << 2),
-    Bottom = (1 << 3),
-    TopLeft = (Top | Left),
-    TopRight = (Top | Right),
-    BottomLeft = (Bottom | Left),
-    BottomRight = (Bottom | Right)
-}
-
-/**
  * Class representing an item within a scene. 
  * 
  * When you add an input source to a scene, a few things
@@ -701,54 +660,6 @@ export class ObsSceneItem {
 
     /** Allow updating of the item after calling {@link deferUpdateBegin} */
     deferUpdateEnd(): void;
-}
-
-/**
- * Enumeration describing the type of a property
- */
-export const enum EPropertyType {
-    Invalid,
-    Boolean,
-    Int,
-    Float,
-    Text,
-    Path,
-    List,
-    Color,
-    Button,
-    Font,
-    EditableList,
-    FrameRate
-}
-
-export const enum EListFormat {
-    Invalid,
-    Int,
-    Float,
-    String
-}
-
-export const enum EEditableListType {
-    Strings,
-    Files,
-    FilesAndUrls
-}
-
-export const enum EPathType {
-    File,
-    FileSave,
-    Directory
-}
-
-export const enum ETextType {
-    Default,
-    Password,
-    Multiline
-}
-
-export const enum ENumberType {
-    Scroller,
-    Slider
 }
 
 export interface IListProperty {
@@ -889,50 +800,6 @@ export class ObsModule {
     status(): number;
 }
 
-export const enum EScaleType {
-    Default,
-    Point,
-    FastBilinear,
-    Bilinear,
-    Bicubic
-}
-
-export const enum EBoundsType {
-    None,
-    Stretch,
-    ScaleInner,
-    ScaleOuter,
-    ScaleToWidth,
-    ScaleToHeight,
-    MaxOnly
-}
-
-export const enum EColorSpace {
-    Default,
-    CS601,
-    CS709
-}
-
-export const enum ERangeType {
-    Default,
-    Partial,
-    Full
-}
-
-export const enum EOutputFormat {
-    None,
-    I420,
-    NV12,
-    YVYU,
-    YUY2,
-    UYVY,
-    RGBA,
-    BGRA,
-    BGRX,
-    Y800,
-    I444
-}
-
 export interface IVideoInfo {
     readonly graphicsModule: string;
     readonly fpsNum: number;
@@ -957,35 +824,6 @@ export class ObsVideo {
     private constructor();
     
     static reset(info: IVideoInfo): void;
-}
-
-export const enum EColorFormat {
-	Unknown,
-	A8,
-	R8,
-	RGBA,
-	BGRX,
-	BGRA,
-	R10G10B10A2,
-	RGBA16,
-	R16,
-	RGBA16F,
-	RGBA32F,
-	RG16F,
-	RG32F,
-	R16F,
-	R32F,
-	DXT1,
-	DXT3,
-	DXT5
-}
-
-export const enum EZStencilFormat {
-	None,
-	Z16,
-	Z24_S8,
-	Z32F,
-	Z32F_S8X24
 }
 
 export interface IDisplayInit {
