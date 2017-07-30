@@ -1,3 +1,5 @@
+///<reference path="index.d.ts" />
+
 const obs = require('./distribute/obs_node.node');
 import * as path from 'path';
 

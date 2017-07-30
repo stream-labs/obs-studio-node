@@ -1,7 +1,9 @@
+import * as obs from './index'
+
 /** 
  * Namespace representing the global libobs functionality
  */
-export namespace ObsGlobal {
+declare namespace ObsGlobal {
     /**
      * Initializes libobs global context
      * @param locale - Locale to be used within libobs
@@ -58,7 +60,7 @@ export namespace ObsGlobal {
 /**
  * Used for various 2-dimensional functions
  */
-export interface IVec2 {
+declare interface IVec2 {
     readonly x: number;
     readonly y: number;
 }
@@ -66,7 +68,7 @@ export interface IVec2 {
 /**
  * Base class for Filter, Transition, Scene, and Input
  */
-export interface ObsSource {
+declare interface ObsSource {
     /**
      * Release the underlying reference
      */
@@ -102,7 +104,7 @@ export interface ObsSource {
     /**
      * Type of the source
      */
-    readonly type: ESourceType;
+    readonly type: obs.ESourceType;
 
     /**
      * The corresponding id of the source
@@ -130,19 +132,19 @@ export interface ObsSource {
  * objects passed back that hold internal
  * information when dealing with callbacks.
  */
-export class ObsCallbackData {
+declare class ObsCallbackData {
     private constructor();
 }
 
 /**
  * Class representing a fader control corresponding to a source.
  */
-export class ObsFader {
+declare class ObsFader {
     /**
      * Create an instance of a fader object
      * @param type - What algorithm to use for new fader.
      */
-    static create(type: EFaderType): ObsFader;
+    static create(type: obs.EFaderType): ObsFader;
 
     /**
      * Negative float representing volume using decibels.
@@ -189,14 +191,14 @@ export class ObsFader {
 /**
  * Object representing a volmeter control corresponding to a source.
  */
-export class ObsVolmeter {
+declare class ObsVolmeter {
     private constructor();
 
     /**
      * Create an instance of a volmeter object
      * @param type - What algorithm to use for new fader.
      */
-    static create(type: EFaderType): ObsVolmeter;
+    static create(type: obs.EFaderType): ObsVolmeter;
 
     /**
      * How long should the volmeter hold the peak volume value for?
@@ -241,7 +243,7 @@ export class ObsVolmeter {
 /**
  * Class representing a filter
  */
-export class ObsFilter implements ObsSource {
+declare class ObsFilter implements ObsSource {
     private constructor();
 
     /**
@@ -266,7 +268,7 @@ export class ObsFilter implements ObsSource {
     readonly settings: object;
     readonly properties: ObsProperties;
     readonly status: number;
-    readonly type: ESourceType;
+    readonly type: obs.ESourceType;
     readonly id: string;
     readonly configurable: boolean;
     readonly width: number;
@@ -279,7 +281,7 @@ export class ObsFilter implements ObsSource {
 /**
  * Class representing a transition
  */
-export class ObsTransition implements ObsSource {
+declare class ObsTransition implements ObsSource {
     private constructor();
 
     /**
@@ -339,7 +341,7 @@ export class ObsTransition implements ObsSource {
     readonly settings: object;
     readonly properties: ObsProperties;
     readonly status: number;
-    readonly type: ESourceType;
+    readonly type: obs.ESourceType;
     readonly id: string;
     readonly configurable: boolean;
     readonly width: number;
@@ -356,7 +358,7 @@ export class ObsTransition implements ObsSource {
  * So some of these don't make sense right now. For instance, there's
  * no reason tot call volume on a source that only provides video input. 
  */
-export class ObsInput implements ObsSource {
+declare class ObsInput implements ObsSource {
     private constructor();
 
     /**
@@ -443,7 +445,7 @@ export class ObsInput implements ObsSource {
     readonly settings: object;
     readonly properties: ObsProperties;
     readonly status: number;
-    readonly type: ESourceType;
+    readonly type: obs.ESourceType;
     readonly id: string;
     readonly configurable: boolean;
     readonly width: number;
@@ -456,7 +458,7 @@ export class ObsInput implements ObsSource {
 /**
  * Class representing a scene
  */
-export class ObsScene implements ObsSource {
+declare class ObsScene implements ObsSource {
     private constructor();
 
     /**
@@ -485,7 +487,7 @@ export class ObsScene implements ObsSource {
      * @param name - New name of the duplicated scene
      * @param type - Method of scene item duplication
      */
-    duplicate(name: string, type: ESceneDupType): ObsScene;
+    duplicate(name: string, type: obs.ESceneDupType): ObsScene;
 
     /**
      * Add an input source to the scene, creating a scene item.
@@ -541,7 +543,7 @@ export class ObsScene implements ObsSource {
     readonly settings: object;
     readonly properties: ObsProperties;
     readonly status: number;
-    readonly type: ESourceType;
+    readonly type: obs.ESourceType;
     readonly id: string;
     readonly configurable: boolean;
     readonly width: number;
@@ -554,12 +556,12 @@ export class ObsScene implements ObsSource {
 /**
  * Interface describing the transform information in an item
  */
-export interface ITransformInfo {
+declare interface ITransformInfo {
     readonly pos: IVec2;
     readonly rot: number;
     readonly scale: IVec2;
-    readonly alignment: EAlignment;
-    readonly boundsType: EBoundsType;
+    readonly alignment: obs.EAlignment;
+    readonly boundsType: obs.EBoundsType;
     readonly boundsAlignment: number;
     readonly bounds: IVec2;
 }
@@ -567,7 +569,7 @@ export interface ITransformInfo {
 /**
  * Interface describing the crop of an item.
  */
-export interface ICropInfo {
+declare interface ICropInfo {
     readonly left: number;
     readonly right: number;
     readonly top: number;
@@ -588,7 +590,7 @@ export interface ICropInfo {
  * Changing any of the properties will change how the 
  * input source is rendered for that particular item.
  */
-export class ObsSceneItem {
+declare class ObsSceneItem {
     private constructor();
 
     /** The underlying input source associated with this item */
@@ -612,15 +614,15 @@ export class ObsSceneItem {
     /** Scale of the item, with 1 being to scale */
     scale: IVec2;
 
-    alignment: EAlignment;
+    alignment: obs.EAlignment;
     boundsAlignment: number;
     bounds: IVec2;
 
     /** How to apply bounds */
-    boundsType: EBoundsType;
+    boundsType: obs.EBoundsType;
 
     /** How to apply scale */
-    scaleFilter: EScaleType;
+    scaleFilter: obs.EScaleType;
 
     /** Whether or not the item is visible */
     visible: boolean;
@@ -662,8 +664,8 @@ export class ObsSceneItem {
     deferUpdateEnd(): void;
 }
 
-export interface IListProperty {
-    readonly format: EListFormat;
+declare interface IListProperty {
+    readonly format: obs.EListFormat;
 
     /**
      * A list of options to be made available within the list.
@@ -673,8 +675,8 @@ export interface IListProperty {
     readonly items: string[] | number[];
 }
 
-export interface IEditableListProperty extends IListProperty {
-    readonly type: EEditableListType;
+declare interface IEditableListProperty extends IListProperty {
+    readonly type: obs.EEditableListType;
 
      /** String describing allowed valued */
     readonly filter: string;
@@ -683,26 +685,26 @@ export interface IEditableListProperty extends IListProperty {
     readonly defaultPath: string;
 
     //IListProperty
-    readonly format: EListFormat;
+    readonly format: obs.EListFormat;
     readonly items: string[] | number[];
 }
 
-export interface IPathProperty {
-    readonly type: EPathType;
+declare interface IPathProperty {
+    readonly type: obs.EPathType;
 }
 
-export interface ITextProperty {
-    readonly type: ETextType;
+declare interface ITextProperty {
+    readonly type: obs.ETextType;
 }
 
-export interface INumberProperty {
-    readonly type: ENumberType;
+declare interface INumberProperty {
+    readonly type: obs.ENumberType;
 }
 
 /**
  * Class representing an entry in a properties list (Properties).
  */
-export class ObsProperty {
+declare class ObsProperty {
     private constructor();
 
     /** The validity of the current property instance */
@@ -729,7 +731,7 @@ export class ObsProperty {
     readonly visible: boolean;
 
     /** Type of the property */
-    readonly type: EPropertyType;
+    readonly type: obs.EPropertyType;
 
     /**
      * If a property instance is of a certain type, you can
@@ -766,7 +768,7 @@ export class ObsProperty {
  * Use .properties member on an encoder, source, output, or service
  * to obtain an instance.
  */
-export class ObsProperties {
+declare class ObsProperties {
     private constructor();
     /** Obtains the status of the list */
     readonly status: number;
@@ -784,7 +786,7 @@ export class ObsProperties {
     get(name: string): ObsProperty;
 }
 
-export class ObsModule {
+declare class ObsModule {
     private constructor();
     static create(binPath: string, dataPath: string): ObsModule;
     static loadAll(): void;
@@ -800,7 +802,7 @@ export class ObsModule {
     status(): number;
 }
 
-export interface IVideoInfo {
+declare interface IVideoInfo {
     readonly graphicsModule: string;
     readonly fpsNum: number;
     readonly fpsDen: number;
@@ -808,32 +810,32 @@ export interface IVideoInfo {
     readonly baseHeight: number;
     readonly outputWidth: number;
     readonly outputHeight: number;
-    readonly outputFormat: EOutputFormat;
+    readonly outputFormat: obs.EOutputFormat;
     readonly adapter: number;
     readonly gpuConversion: boolean;
-    readonly colorspace: EColorSpace;
-    readonly range: ERangeType;
-    readonly scaleType: EScaleType;
+    readonly colorspace: obs.EColorSpace;
+    readonly range: obs.ERangeType;
+    readonly scaleType: obs.EScaleType;
 }
 
 /**
  * This represents a video_t structure from within libobs
  * For now, only the global context functions are implemented
  */
-export class ObsVideo {
+declare class ObsVideo {
     private constructor();
     
     static reset(info: IVideoInfo): void;
 }
 
-export interface IDisplayInit {
+declare interface IDisplayInit {
     width: number;
     height: number;
-    format: EColorFormat;
-    zsformat: EZStencilFormat;
+    format: obs.EColorFormat;
+    zsformat: obs.EZStencilFormat;
 }
 
-export class ObsDisplay {
+declare class ObsDisplay {
     private constructor();
     static create(info: IDisplayInit): ObsDisplay;
     destroy(): void;

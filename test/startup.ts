@@ -1,4 +1,4 @@
-import * as obs from '../node-obs/obs_node.js';
+import * as obs from 'obs-studio-node';
 import * as path from 'path';
 import test from 'ava';
 
