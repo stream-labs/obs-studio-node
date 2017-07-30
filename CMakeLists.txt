@@ -3,13 +3,8 @@ cmake_minimum_required(VERSION 3.1)
 project(obs-studio-node VERSION 1.0.0)
 
 set(
-    ENABLE_DISTRIBUTION false
+    OSN_ENABLE_DISTRIBUTION true
     CACHE BOOL "Whether to pull in OBS distribution files"
-)
-
-set(
-    BUILD_FOR_TEST false
-    cache BOOL "Builds as a node module to be used with ava"
 )
 
 set(
@@ -18,7 +13,7 @@ set(
 )
 
 set(
-    OSN_DIST_DIR "node-obs"
+    OSN_DIST_DIR "distribute"
     CACHE PATH "Name of distribution directory"
 )
 
@@ -177,7 +172,7 @@ set( OBS_DEPENDENCIES
 add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}")
 
-if (ENABLE_DISTRIBUTION)
+if (OSN_ENABLE_DISTRIBUTION)
     foreach( DEPENDENCY ${OBS_DEPENDENCIES})
         add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD 
             COMMAND ${CMAKE_COMMAND}
@@ -205,8 +200,7 @@ if (ENABLE_DISTRIBUTION)
 
         install(
             FILES
-            "${OBS_STUDIO_BUILD64}/plugins/${PLUGIN_NAME}/Debug/${PLUGIN_NAME}.dll"
-            "${OBS_STUDIO_BUILD64}/plugins/${PLUGIN_NAME}/Debug/${PLUGIN_NAME}.pdb"
+            "${OBS_STUDIO_BUILD64}/plugins/${PLUGIN_NAME}/${OBS_BUILD_TYPE}/${PLUGIN_NAME}.dll"
             DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/obs-plugins"
         )
     endfunction()
@@ -235,11 +229,6 @@ if (ENABLE_DISTRIBUTION)
     copy_obs_plugin("win-mf")
     copy_obs_plugin("win-wasapi")
 endif()
-
-set(MISC_FILES
-    "obs_node.js"
-    "obs_node.d.ts"
-)
 
 install(
     FILES ${MISC_FILES}
