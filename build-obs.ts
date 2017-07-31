@@ -2,6 +2,7 @@ const git: any = require('simple-git')();
 const gulp: any = require('gulp');
 const unzip: any = require('gulp-unzip');
 import * as shell from 'shelljs';
+import * as process from 'process';
 import * as https from 'https';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -33,7 +34,7 @@ function obsBuild() {
 function finishConfigure(error: any, stdout: string, stderr: string) {
     if (error) {
         console.log(`Failed to execute cmake: ${error}`);
-        return;
+        process.exit(1);
     }
 
     console.log(`${stdout}`)
@@ -51,7 +52,7 @@ function obsConfigure() {
         generator = `-G"Visual Studio 14 2015 Win64"`
     else {
         console.log(`Unsupported platform!`);
-        return;
+        process.exit(1);
     }
 
     const configCmd = `cmake ${generator} -DENABLE_UI=false -DDepsPath=${obsDepsPath64} -H${obsPath} -B${obsBuild64}`;
@@ -81,6 +82,7 @@ function downloadObsDeps(missing: any) {
 
     let file =  fs.createWriteStream(obsDepsZipPath);
     let reqUrl = 'https://obsproject.com/downloads/dependencies2015.zip';
+
     let reqFinish = (response: any) => {
         console.log(`Saving file to ${obsDepsZipPath}`);
         response.on('data', (data: any) => {
@@ -94,7 +96,7 @@ function downloadObsDeps(missing: any) {
 
     let req = https.get(reqUrl, reqFinish);
 
-    req.on('error', (error) => {
+    req.on('error', (error: any) => {
         console.log('Failed to download dependencies!');
     });
 }
@@ -106,7 +108,7 @@ function checkObsDeps() {
 function obsUpdateModulesFinish(error: any, data: any) {
     if (error) {
         console.log(`Failed to update submodules.`);
-        return;
+        process.exit(1);
     }
 
     checkObsDeps();
@@ -133,7 +135,7 @@ function obsAlreadyCloned() {
 }
 
 function obsCloneFinish(error: any, data: any) {
-    if (error) return;
+    if (error) process.exit(1);
 
     obsUpdateModules();
 }

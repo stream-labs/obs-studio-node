@@ -1,8 +1,10 @@
 import * as shell from 'shelljs';
+import * as process from 'process';
 import * as path from 'path';
 import * as os from 'os';
 
 let configType = shell.env['npm_config_cmake_OBS_BUILD_TYPE'] || 'Release';
+let obsDistribution = shell.env['npm_config_OSN_ENABLE_DISTRIBUTION'] || false;
 let obsGenerator = shell.env['npm_config_OSN_GENERATOR'];
 
 let npm_bin_path: string;
@@ -12,7 +14,7 @@ function finishInstall(error: any, stdout: string, stderr: string) {
         console.log(`Failed to exec cmake: ${error}`);
         console.log(`${stdout}`);
         console.log(`${stderr}`);
-        return;
+        process.exit(1);
     }
 }
 
@@ -29,7 +31,7 @@ function finishBuild(error: any, stdout: string, stderr: string) {
         console.log(`Failed to exec cmake: ${error}`);
         console.log(`${stdout}`);
         console.log(`${stderr}`);
-        return;
+        process.exit(1);
     }
 
     installBindings();
@@ -48,7 +50,7 @@ function finishConfigure(error: any, stdout: string, stderr: string) {
         console.log(`Failed to exec cmake: ${error}`);
         console.log(`${stdout}`);
         console.log(`${stderr}`);
-        return;
+        process.exit(1);
     }
 
     console.log(stdout);
@@ -65,7 +67,7 @@ function configureBindings() {
         generator = `-G"Visual Studio 14 2015 Win64"`
     else {
         console.log(`Unsupported platform!`);
-        return;
+        process.exit(1);
     }
     let cmake_js_path = path.normalize(`${npm_bin_path}/cmake-js`);
     let configureCmd = `${cmake_js_path} configure ${generator} -d "${__dirname}"`;
@@ -78,7 +80,7 @@ function configureBindings() {
 shell.exec('npm bin', { async: true, silent:true}, (error: any, stdout: string, stderr: string) => {
     if (error) {
         console.log(`Failed to fetch npm bin path: ${error}`);
-        return;
+        process.exit(1);
     }
 
     npm_bin_path = stdout.trim();
