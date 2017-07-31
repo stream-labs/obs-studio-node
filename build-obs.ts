@@ -6,6 +6,8 @@ import * as https from 'https';
 import * as fs from 'fs';
 import * as os from 'os';
 
+console.log(shell.env);
+
 /* This can work on other platforms with some modifications:
     1. Remove dependency download for platforms that don't use it. 
     

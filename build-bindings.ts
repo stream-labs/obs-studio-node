@@ -17,7 +17,7 @@ function finishInstall(error: any, stdout: string, stderr: string) {
 }
 
 function installBindings() {
-    let installCmd = `cmake --build build --config ${configType} --target install`;
+    let installCmd = `cmake --build "${path.resolve(__dirname, 'build')}" --config ${configType} --target install`;
 
     console.log(installCmd);
 
@@ -36,7 +36,7 @@ function finishBuild(error: any, stdout: string, stderr: string) {
 }
 
 function buildBindings() {
-    let buildCmd = `cmake --build build --config ${configType}`;
+    let buildCmd = `cmake --build "${path.resolve(__dirname, 'build')}" --config ${configType}`;
 
     console.log(buildCmd);
 
@@ -68,14 +68,14 @@ function configureBindings() {
         return;
     }
     let cmake_js_path = path.normalize(`${npm_bin_path}/cmake-js`);
-    let configureCmd = `${cmake_js_path} configure ${generator}`;
+    let configureCmd = `${cmake_js_path} configure ${generator} -d "${__dirname}"`;
 
     console.log(configureCmd);
 
     shell.exec(configureCmd, { async: true, silent: true}, finishConfigure);
 }
 
-shell.exec('npm bin', { async: true, silent:true}, (error, stdout, stderr) => {
+shell.exec('npm bin', { async: true, silent:true}, (error: any, stdout: string, stderr: string) => {
     if (error) {
         console.log(`Failed to fetch npm bin path: ${error}`);
         return;

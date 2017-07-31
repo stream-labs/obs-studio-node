@@ -7,9 +7,6 @@
   },
   "author": "Zachary Lund <zachary.lund@streamlabs.com>",
   "license": "GPL-3.0",
-  "config": {
-    "cmake_OSN_ENABLE_DISTRIBUTION": true
-  },
   "cmake-js": {
     "runtime": "node",
     "runtimeVersion": "7.4.0",
