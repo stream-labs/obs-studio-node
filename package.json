@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build:obs": "tsc && node build-obs.js",
-    "build:docs": "tsc && node build-docs.js",
+    "build:docs": "typedoc --out docs",
     "build:bindings": "tsc && node build-bindings.js",
     "install": "tsc && node build-obs.js && node build-bindings.js"
   },
@@ -20,7 +20,6 @@
     "shelljs": "^0.7.8",
     "simple-git": "^1.74.1",
     "gulp": "^3.9.1",
-    "gulp-typedoc": "^2.0.2",
     "gulp-unzip": "^0.2.0"
   }
 }

@@ -22,7 +22,6 @@
   "files": [
     "index.ts",
     "build-obs.ts",
-    "build-docs.ts",
     "build-bindings.ts"
   ]
 }
