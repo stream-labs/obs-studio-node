@@ -17,7 +17,7 @@ void SceneItem::Init()
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("source"), source);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("scene"), scene);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("visibile"), visibile, visibile);
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("visible"), visible, visible);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("selected"), selected, selected);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("position"), position, position);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("rotation"), rotation, rotation);
