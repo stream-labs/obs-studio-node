@@ -49,15 +49,24 @@ NAN_METHOD(Filter::types)
 
 NAN_METHOD(Filter::create)
 {
-    ASSERT_INFO_LENGTH(info, 2);
-
+    ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
+    
     std::string id, name;
+    obs_data_t *settings = nullptr;
 
     ASSERT_GET_VALUE(info[0], id);
     ASSERT_GET_VALUE(info[1], name);
 
-    Filter *binding = new Filter(id, name, nullptr);
-    auto object = Filter::Object::GenerateObject(binding);
+    switch (info.Length()) {
+    default:
+    case 3:
+        ASSERT_GET_VALUE(info[2], settings);
+    case 2:
+        break;
+    }
+
+    Transition *binding = new Transition(id, name, settings);
+    auto object = Transition::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }
 
