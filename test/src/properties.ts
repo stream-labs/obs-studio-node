@@ -1,18 +1,18 @@
 import * as obs from 'obs-studio-node';
-import { startup_shutdown } from './helpers/startup_shutdown'
+import { startup_shutdown } from '../helpers/startup_shutdown'
 import * as path from 'path';
 import test from 'ava';
 
 test('source properties', async t => {
     await startup_shutdown(t, (t) => {
         let test_source_1 = 
-            obs.ObsInput.createPrivate('color_source', 'test source' /* color: 0xffffffff */);
+            obs.ObsInputFactory.createPrivate('color_source', 'test source' /* color: 0xffffffff */);
 
         let test_source_2 = 
-            obs.ObsInput.createPrivate('color_source', 'test source', { color: 0x00000000 });
+            obs.ObsInputFactory.createPrivate('color_source', 'test source', { color: 0x00000000 });
 
         let test_source_3 = 
-            obs.ObsInput.createPrivate('window_capture', 'test source');
+            obs.ObsInputFactory.createPrivate('window_capture', 'test source');
 
         t.is(test_source_1.status, 0);
         t.is(test_source_1.name, 'test source');

@@ -1,11 +1,11 @@
 import * as obs from 'obs-studio-node';
-import { startup_shutdown } from './helpers/startup_shutdown'
+import { startup_shutdown } from '../helpers/startup_shutdown'
 import * as path from 'path';
 import test from 'ava';
 
 test('scene creation and destruction', async t => {
     await startup_shutdown(t, (t) => {
-        let test_scene = obs.ObsScene.create('test scene');
+        let test_scene = obs.ObsSceneFactory.create('test scene');
 
         t.is(test_scene.status, 0);
         t.is(test_scene.id, 'scene');
@@ -19,7 +19,7 @@ test('scene creation and destruction', async t => {
         t.is(test_scene.source.properties, null);
         t.is(test_scene.source.type, obs.ESourceType.Scene);
 
-        let test_scene_from_name = obs.ObsScene.fromName('test scene');
+        let test_scene_from_name = obs.ObsSceneFactory.fromName('test scene');
         t.is(test_scene_from_name.status, 0);
         t.is(test_scene_from_name.id, 'scene');
         t.is(test_scene_from_name.name, 'test scene');

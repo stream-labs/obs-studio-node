@@ -1,12 +1,12 @@
 import * as obs from 'obs-studio-node';
-import { startup_shutdown } from './helpers/startup_shutdown'
+import { startup_shutdown } from '../helpers/startup_shutdown'
 import * as path from 'path';
 import test from 'ava';
 
 test('source creation and destruction', async t => {
     await startup_shutdown(t, (t) => {
         let test_source =
-            obs.ObsInput.create('ffmpeg_source', 'test source');
+            obs.ObsInputFactory.create('ffmpeg_source', 'test source');
 
         const iterations = 100;
 
@@ -15,13 +15,13 @@ test('source creation and destruction', async t => {
         t.is(test_source.id, 'ffmpeg_source');
         t.is(test_source.configurable, true);
 
-        let test_filters: obs.ObsFilter[] = [];
-        let filter_types = obs.ObsFilter.types();
+        let test_filters: obs.IFilter[] = [];
+        let filter_types = obs.ObsFilterFactory.types();
 
         for (var i = 0; i < iterations; i++) {
             filter_types.forEach((element) => {
                 let filter =
-                    obs.ObsFilter.create(element, `${element} ${i}`);
+                    obs.ObsFilterFactory.create(element, `${element} ${i}`);
 
                 t.is(filter.id, `${element}`);
                 t.is(filter.name, `${element} ${i}`);

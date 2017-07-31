@@ -1,15 +1,15 @@
 import * as obs from 'obs-studio-node';
-import { startup_shutdown } from './helpers/startup_shutdown'
+import { startup_shutdown } from '../helpers/startup_shutdown'
 import * as path from 'path';
 import test from 'ava';
 
 test('scene item deletion', async t => {
     await startup_shutdown(t, (t) => {
         let test_source = 
-            obs.ObsInput.create('color_source', 'test source');
+            obs.ObsInputFactory.create('color_source', 'test source');
 
         let test_scene = 
-            obs.ObsScene.create('test scene');
+            obs.ObsSceneFactory.create('test scene');
 
         let item1 = test_scene.add(test_source);
         let item2 = test_scene.add(test_source);

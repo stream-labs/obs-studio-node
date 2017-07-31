@@ -1,18 +1,18 @@
 import * as obs from 'obs-studio-node';
-import { startup_shutdown } from './helpers/startup_shutdown'
+import { startup_shutdown } from '../helpers/startup_shutdown'
 import * as path from 'path';
 import test from 'ava';
 
 test('scene creation and destruction', async t => {
     await startup_shutdown(t, (t) => {
         {
-            let test_scene = obs.ObsScene.create('test scene');
-            let sources: obs.ObsSource[] = [];
-            let items: obs.ObsSceneItem[] = [];
+            let test_scene = obs.ObsSceneFactory.create('test scene');
+            let sources: obs.ISource[] = [];
+            let items: obs.ISceneItem[] = [];
             const iterations = 100;
 
             for (let i = 0; i < iterations; i++) {
-                let source = obs.ObsInput.create('color_source', `test source ${i}`);
+                let source = obs.ObsInputFactory.create('color_source', `test source ${i}`);
                 let item = test_scene.add(source);
                 source.release();
                 sources.push(item.source);
@@ -117,13 +117,13 @@ test('scene creation and destruction', async t => {
         }
 
         {
-            let test_scene = obs.ObsScene.create('test scene');
-            let sources: obs.ObsSource[] = [];
-            let items: obs.ObsSceneItem[] = [];
+            let test_scene = obs.ObsSceneFactory.create('test scene');
+            let sources: obs.ISource[] = [];
+            let items: obs.ISceneItem[] = [];
             const iterations = 100;
 
             for (let i = 0; i < iterations; i++) {
-                let source = obs.ObsInput.create('color_source', `test source ${i}`);
+                let source = obs.ObsInputFactory.create('color_source', `test source ${i}`);
                 let item = test_scene.add(source);
                 sources.push(item.source);
                 t.is(sources[i].status, 0);
@@ -159,19 +159,19 @@ test('scene creation and destruction', async t => {
         }
 
         {
-            let test_scene = obs.ObsScene.create('test scene');
-            let sources: obs.ObsSource[] = [];
-            let items: obs.ObsSceneItem[] = [];
+            let test_scene = obs.ObsSceneFactory.create('test scene');
+            let sources: obs.ISource[] = [];
+            let items: obs.ISceneItem[] = [];
             const iterations = 100;
 
             for (let i = 0; i < iterations; i++) {
-                let source = obs.ObsInput.create('color_source', `test source ${i}`);
+                let source = obs.ObsInputFactory.create('color_source', `test source ${i}`);
                 let item = test_scene.add(source);
                 sources.push(item.source);
                 t.is(sources[i].status, 0);
                 items.push(item);
-                t.is(obs.ObsInput.fromName(source.name) != null, true);
-                t.is(obs.ObsScene.fromName(test_scene.name) != null, true);
+                t.is(obs.ObsInputFactory.fromName(source.name) != null, true);
+                t.is(obs.ObsSceneFactory.fromName(test_scene.name) != null, true);
             };
 
             let test_scene_item_list = test_scene.getItems();

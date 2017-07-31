@@ -15,17 +15,17 @@
   },
   "files": [
     "helpers/startup_shutdown.ts",
-    "startup.ts",
-    "wrapper_startup.ts",
-    "filters.ts",
-    "properties.ts",
-    "source_creation.ts",
-    "scene_creation.ts",
-    "scene_items.ts",
-    "scene_item_deletion.ts",
-    "transitions.ts",
-    "output.ts",
-    "multiple_references.ts",
-    "multiple_releases.ts"
+    "src/startup.ts",
+    "src/wrapper_startup.ts",
+    "src/filters.ts",
+    "src/properties.ts",
+    "src/source_creation.ts",
+    "src/scene_creation.ts",
+    "src/scene_items.ts",
+    "src/scene_item_deletion.ts",
+    "src/transitions.ts",
+    "src/output.ts",
+    "src/multiple_references.ts",
+    "src/multiple_releases.ts"
   ]
 }

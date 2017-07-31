@@ -1,15 +1,15 @@
 import * as obs from 'obs-studio-node';
-import { startup_shutdown } from './helpers/startup_shutdown'
+import { startup_shutdown } from '../helpers/startup_shutdown'
 import * as path from 'path';
 import test from 'ava';
 
 test('multiple references', async t => {
     await startup_shutdown(t, (t) => {
         let test_source = 
-            obs.ObsInput.create('color_source', 'test source');
+            obs.ObsInputFactory.create('color_source', 'test source');
 
-        let test_ref_1 = obs.ObsInput.fromName('test source');
-        let test_ref_2 = obs.ObsInput.getPublicSources()[0];
+        let test_ref_1 = obs.ObsInputFactory.fromName('test source');
+        let test_ref_2 = obs.ObsInputFactory.getPublicSources()[0];
 
         t.is(test_source.status, 0);
         t.is(test_source.name, 'test source');

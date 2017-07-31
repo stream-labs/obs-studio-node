@@ -43,10 +43,10 @@ export async function startup_shutdown(t: any, cb: (t: any) => void, locale?: st
     console.log(`Data Path: ${data_path}`);
     console.log(`Plugin Bin Path: ${plugin_bin_path}`);
     console.log(`Plugin Data Path: ${plugin_data_path}`);
-    obs.ObsModule.addPath(bin_path, data_path);
-    obs.ObsModule.addPath(plugin_bin_path, plugin_data_path);
-    obs.ObsModule.loadAll();
-    obs.ObsModule.logLoaded();
+    obs.ObsModuleFactory.addPath(bin_path, data_path);
+    obs.ObsModuleFactory.addPath(plugin_bin_path, plugin_data_path);
+    obs.ObsModuleFactory.loadAll();
+    obs.ObsModuleFactory.logLoaded();
 
     /* Dummy Display */
     var display_init = {
@@ -56,7 +56,7 @@ export async function startup_shutdown(t: any, cb: (t: any) => void, locale?: st
         'zsformat': obs.EZStencilFormat.None
     };
 
-    let display = obs.ObsDisplay.create(display_init);
+    let display = obs.ObsDisplayFactory.create(display_init);
     let simple_draw_path = obs.DefaultDrawPluginPath;
     display.addDrawer(simple_draw_path);
 

@@ -1,21 +1,21 @@
 import * as obs from 'obs-studio-node';
-import { startup_shutdown } from './helpers/startup_shutdown'
+import { startup_shutdown } from '../helpers/startup_shutdown'
 import * as path from 'path';
 import test from 'ava';
 
 test('transition creation and destruction', async t => {
     await startup_shutdown(t, (t) => {
         let test_source_a = 
-            obs.ObsInput.createPrivate('monitor_capture', 'test source a');
+            obs.ObsInputFactory.createPrivate('monitor_capture', 'test source a');
 
         let test_source_b = 
-            obs.ObsInput.createPrivate('color_source', 'test source b');
+            obs.ObsInputFactory.createPrivate('color_source', 'test source b');
 
         let test_scene =
-            obs.ObsScene.create('test scene');
+            obs.ObsSceneFactory.create('test scene');
 
         let test_transition = 
-            obs.ObsTransition.create('fade_transition', 'test transition');
+            obs.ObsTransitionFactory.create('fade_transition', 'test transition');
 
         t.is(test_source_a.status, 0);
         t.is(test_source_a.name, 'test source a');

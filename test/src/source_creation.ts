@@ -1,12 +1,12 @@
 import * as obs from 'obs-studio-node';
-import { startup_shutdown } from './helpers/startup_shutdown'
+import { startup_shutdown } from '../helpers/startup_shutdown'
 import * as path from 'path';
 import test from 'ava';
 
 test('source creation and destruction', async t => {
     await startup_shutdown(t, (t) => {
         let test_source = 
-            obs.ObsInput.create('color_source', 'test source');
+            obs.ObsInputFactory.create('color_source', 'test source');
 
         t.is(test_source.status, 0);
         t.is(test_source.name, 'test source');
