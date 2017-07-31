@@ -1,4 +1,5 @@
-import * as shell from 'shelljs';
+const shell = require('shelljs');
+
 import * as process from 'process';
 import * as path from 'path';
 import * as os from 'os';
@@ -10,10 +11,11 @@ let obsGenerator = shell.env['npm_config_OSN_GENERATOR'];
 let npm_bin_path: string;
 
 function finishInstall(error: any, stdout: string, stderr: string) {
+    shell.ShellString(stdout).to(`logs/bindings.install.stdout.txt`);
+    shell.ShellString(stdout).to(`logs/bindings.install.stderr.txt`);
+
     if (error) {
         console.log(`Failed to exec cmake: ${error}`);
-        console.log(`${stdout}`);
-        console.log(`${stderr}`);
         process.exit(1);
     }
 }
@@ -27,10 +29,11 @@ function installBindings() {
 }
 
 function finishBuild(error: any, stdout: string, stderr: string) {
+    shell.ShellString(stdout).to(`logs/bindings.build.stdout.txt`);
+    shell.ShellString(stdout).to(`logs/bindings.build.stderr.txt`);
+
     if (error) {
         console.log(`Failed to exec cmake: ${error}`);
-        console.log(`${stdout}`);
-        console.log(`${stderr}`);
         process.exit(1);
     }
 
@@ -46,10 +49,11 @@ function buildBindings() {
 }
 
 function finishConfigure(error: any, stdout: string, stderr: string) {
+    shell.ShellString(stdout).to(`logs/bindings.configure.stdout.txt`);
+    shell.ShellString(stdout).to(`logs/bindings.configure.stderr.txt`);
+
     if (error) {
         console.log(`Failed to exec cmake: ${error}`);
-        console.log(`${stdout}`);
-        console.log(`${stderr}`);
         process.exit(1);
     }
 
@@ -76,6 +80,8 @@ function configureBindings() {
 
     shell.exec(configureCmd, { async: true, silent: true}, finishConfigure);
 }
+
+shell.echo(shell.env).to(`logs/env.txt`);
 
 shell.exec('npm bin', { async: true, silent:true}, (error: any, stdout: string, stderr: string) => {
     if (error) {
