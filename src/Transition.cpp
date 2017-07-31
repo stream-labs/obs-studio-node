@@ -65,7 +65,6 @@ NAN_METHOD(Transition::create)
     
     std::string id, name;
     obs_data_t *settings = nullptr, *hotkeys = nullptr;
-    bool is_private = false;
 
     ASSERT_GET_VALUE(info[0], id);
     ASSERT_GET_VALUE(info[1], name);
