@@ -65,8 +65,8 @@ NAN_METHOD(Filter::create)
         break;
     }
 
-    Transition *binding = new Transition(id, name, settings);
-    auto object = Transition::Object::GenerateObject(binding);
+    Filter *binding = new Filter(id, name, settings);
+    auto object = Filter::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }
 
