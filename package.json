@@ -13,6 +13,7 @@
   "license": "GPL-3.0",
   "dependencies": {
     "@types/shelljs": "^0.7.2",
+    "config": "^1.26.1",
     "cmake-js": "^3.4.1",
     "nan": "^2.6.2",
     "typedoc": "^0.7.2",

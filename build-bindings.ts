@@ -1,11 +1,16 @@
 const shell = require('shelljs');
-
+const config = require('config');
 import * as process from 'process';
 import * as path from 'path';
 import * as os from 'os';
 
+let obsDistribution = false;
+
+if (config.has('osn.ENABLE_DISTRIBUTION')) {
+    obsDistribution = config.get('osn.ENABLE_DISTRIBUTION');
+}
+
 let configType = shell.env['npm_config_cmake_OBS_BUILD_TYPE'] || 'Release';
-let obsDistribution = shell.env['npm_config_OSN_ENABLE_DISTRIBUTION'] || false;
 let obsGenerator = shell.env['npm_config_OSN_GENERATOR'];
 
 let npm_bin_path: string;
@@ -74,14 +79,14 @@ function configureBindings() {
         process.exit(1);
     }
     let cmake_js_path = path.normalize(`${npm_bin_path}/cmake-js`);
-    let configureCmd = `${cmake_js_path} configure ${generator} -d "${__dirname}"`;
+    let configureCmd = `${cmake_js_path} configure ${generator} --CDOSN_ENABLE_DISTRIBUTION=${obsDistribution} -d "${__dirname}"`;
 
     console.log(configureCmd);
 
     shell.exec(configureCmd, { async: true, silent: true}, finishConfigure);
 }
 
-shell.echo(shell.env).to(`logs/env.txt`);
+shell.echo(JSON.stringify(process.env)).to(`logs/env.txt`);
 
 shell.exec('npm bin', { async: true, silent:true}, (error: any, stdout: string, stderr: string) => {
     if (error) {
