@@ -10,6 +10,8 @@ if (config.has('osn.ENABLE_DISTRIBUTION')) {
     obsDistribution = config.get('osn.ENABLE_DISTRIBUTION');
 }
 
+shell.echo(`${obsDistribution}`).to(`logs/bindings.ENABLE_DISTRIBUTION`);
+
 let configType = shell.env['npm_config_cmake_OBS_BUILD_TYPE'] || 'Release';
 let obsGenerator = shell.env['npm_config_OSN_GENERATOR'];
 
