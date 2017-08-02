@@ -79,8 +79,6 @@ function configureBindings() {
     shell.exec(configureCmd, { async: true, silent: true}, finishConfigure);
 }
 
-shell.echo(JSON.stringify(process.env)).to(`logs/env.txt`);
-
 shell.exec('npm bin', { async: true, silent:true}, (error: any, stdout: string, stderr: string) => {
     if (error) {
         console.log(`Failed to fetch npm bin path: ${error}`);
