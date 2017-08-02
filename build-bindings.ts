@@ -4,14 +4,6 @@ import * as process from 'process';
 import * as path from 'path';
 import * as os from 'os';
 
-let obsDistribution = false;
-
-if (config.has('osn.ENABLE_DISTRIBUTION')) {
-    obsDistribution = config.get('osn.ENABLE_DISTRIBUTION');
-}
-
-shell.echo(`${obsDistribution}`).to(`logs/bindings.ENABLE_DISTRIBUTION`);
-
 let configType = shell.env['npm_config_cmake_OBS_BUILD_TYPE'] || 'Release';
 let obsGenerator = shell.env['npm_config_OSN_GENERATOR'];
 
@@ -81,7 +73,7 @@ function configureBindings() {
         process.exit(1);
     }
     let cmake_js_path = path.normalize(`${npm_bin_path}/cmake-js`);
-    let configureCmd = `${cmake_js_path} configure ${generator} --CDOSN_ENABLE_DISTRIBUTION=${obsDistribution} -d "${__dirname}"`;
+    let configureCmd = `${cmake_js_path} configure ${generator} -d "${__dirname}"`;
 
     console.log(configureCmd);
 
