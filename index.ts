@@ -18,7 +18,7 @@ export const DefaultPluginPath: string =
     path.resolve(__dirname, `distribute/obs-plugins`);
 
 export const DefaultPluginDataPath: string = 
-    path.resolve(__dirname, `distribute/obs-plugins/%module%/data`);
+    path.resolve(__dirname, `distribute/data/obs-plugins/%module%/data`);
 
 /**
  * Enumeration describing the type of a property
