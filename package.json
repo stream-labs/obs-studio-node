@@ -13,14 +13,13 @@
   "license": "GPL-3.0",
   "dependencies": {
     "@types/shelljs": "^0.7.2",
-    "config": "^1.26.1",
     "cmake-js": "^3.4.1",
+    "gulp": "^3.9.1",
+    "gulp-unzip": "^0.2.0",
     "nan": "^2.6.2",
-    "typedoc": "^0.7.2",
-    "typescript": "^2.4.1",
     "shelljs": "^0.7.8",
     "simple-git": "^1.74.1",
-    "gulp": "^3.9.1",
-    "gulp-unzip": "^0.2.0"
+    "typedoc": "^0.7.2",
+    "typescript": "^2.4.1"
   }
 }

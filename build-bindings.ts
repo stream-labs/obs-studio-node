@@ -1,5 +1,4 @@
 const shell = require('shelljs');
-const config = require('config');
 import * as process from 'process';
 import * as path from 'path';
 import * as os from 'os';
