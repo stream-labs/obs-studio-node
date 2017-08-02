@@ -1,5 +1,6 @@
 const git: any = require('simple-git')();
-const gulp: any = require('gulp');
+const gulp: any = require('gulp')
+const url = require('url');
 const unzip: any = require('gulp-unzip');
 import * as shell from 'shelljs';
 import * as process from 'process';
@@ -81,7 +82,7 @@ function downloadObsDeps(missing: any) {
     }
 
     let file =  fs.createWriteStream(obsDepsZipPath);
-    let reqUrl = 'https://obsproject.com/downloads/dependencies2015.zip';
+    let reqUrl = url.parse('https://obsproject.com/downloads/dependencies2015.zip');
 
     let reqFinish = (response: any) => {
         console.log(`Saving file to ${obsDepsZipPath}`);
