@@ -13,6 +13,11 @@ node-obs proved to be difficult to work with. The following are just a few reaso
 - Lack of objects altogether making context harder to control
 - What objects we do use, v8 cannot control their lifetimes
 - Difficult to use over the Electron IPC (or any IPC)
+- Requirement to constantly sync between frontend and backend
+- Lack of flexibility and feature for the frontend
+- An unintuitive interface that was difficult to use and error prone
+- The lack of a scene item object which didn't allow for duplicate sources.
+- And probably more I'm not thinking of right now.
 
 __Why cmake?__
 --------------
@@ -25,40 +30,31 @@ I've tried to simplify the build system as much as possible to streamline going 
 ### __Requirements__ ###
 - Currently only Windows is supported
   - Note that it shouldn't take much to add other platforms.
-- VC++ 15 (2017), 14 (2015), or 12 (2013)
-- CMake 3.0 or higher - [Website](https://cmake.org)
-- obs-studio source - [Github](https://github.com/jp9000/obs-studio)
-- obs-studio dependencies - [VS2015](https://obsproject.com/downloads/dependencies2015.zip) or [VS2013](https://obsproject.com/downloads/dependencies2013.zip)
-- yarn - [Website](https://yarnpkg.com)
+- VC++ 14 (2015)
+- CMake 3.0 or higher - [Website](https://cmake.org)(https://obsproject.com/downloads/dependencies2013.zip)
+- yarn  - [Website](https://yarnpkg.com)
 
 The rest are handled through package management.
 
 ### __Building__ ###
-The build assumes a few things about location (see [Environment Variables](#enviroment-variables)). To build out of the box, clone the obs-studio-node repository within the obs-studio directory. Build 64-bit obs-studio in "build64" within the root directory of obs-studio. We use an environment variable "OBS_BUILD_TYPE" to determine which binaries to copy. Place the obs-studio dependencies (see [Requirements](#requirements)) inside a directory called "obs-studio-deps" next to the obs-studio directory. Only one command is required: `yarn`
+Simply checkout the module and use `yarn` or `yarn install`. `npm install` should also work although I've not tested it. 
 
 ### __Building Documentation__ ###
-Building the documentation couldn't be more simple. Make sure you've done the initial setup and do `yarn docs`. It will output static HTML inside of a folder called 'docs' in the
-root directory. I plan on hosting the documentation somewhere once I find a safe location to do so. 
-
-#### __Warning__ ####
-For now, it automatically generates VC++ files for version 14 (2015). Ye be warned. To change this, modify package.json for now until I can figure out a cleaner way to manage it.
+Building the documentation couldn't be more simple. Make sure you've done the initial setup and do `yarn docs`. It will output static HTML inside of a folder called 'docs' in the root directory.
 
 __Environment Variables__
 =========================
+The environment variables are only used if you build manually or if you set them as globals. I don't recommend either but these are used to get the build system working so changing them is also required to work. In particular, a useful variable is `OBS_BUILD_TYPE` which you can set to `Debug` to magically compile things in debug mode. Note that since index loads the node by name, changing `OSN_NODE_NAME` will current break the export script. 
 
-- __ENABLE_DISTRIBUTION__ - \[ Default: "false" \]
-- __OSN_DIST_DIR__ - \[ Default: "node-obs" \]
-- __OSN_NODE_NAME__ - \[ Default: "obs-node" \]
-- __OBS_BUILD_TYPE__ - \[ Default: Release \]
-- __OBS_STUDIO_PATH__ - \[ Default: ${CMAKE_SOURCE_DIR}/.. \]
-- __OBS_STUDIO_BUILD64__ - \[ Default: ${CMAKE_SOURCE_DIR}/../build64 \]
-- __OBS_STUDIO_DEPS64__ - \[ Default: ${CMAKE_SOURCE_DIR}/../../obs-studio-deps/win64 \]
+- __ENABLE_DISTRIBUTION__ - \[ Default: `false` \]
+- __OSN_DIST_DIR__ - \[ Default: `"distribute"` \]
+- __OSN_NODE_NAME__ - \[ Default: `"obs_node"` \]
+- __OBS_BUILD_TYPE__ - \[ Default: `Release` \]
+- __OBS_STUDIO_PATH__ - \[ Default: `${CMAKE_SOURCE_DIR}/obs-build` \]
+- __OBS_STUDIO_BUILD64__ - \[ Default: `${OBS_STUDIO_PATH}/build64` \]
+- __OBS_STUDIO_DEPS64__ - \[ Default: `${OBS_STUDIO_PATH}/dependencies2015/win64` \]
 
 __Issues__
 ==========
-- We don't quite have a complete distribution folder.
 - Need to add support for other platforms.
-- Obviously any bindings that are missing (most of them for right now).
-- Some more detail on how to build obs-studio for our use case would be fitting.
-  - How to disable Qt dependencies (which heavily speeds up build time).
-  - Eventually, perhaps building from obs-studio instead of internally would better.
+- Need the code base to be used and practically tested. 
