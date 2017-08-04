@@ -48,6 +48,9 @@ NAN_MODULE_INIT(Input::Init)
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("syncOffset"), syncOffset, syncOffset);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("showing"), showing);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("audioMixers"), audioMixers, audioMixers);
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("monitoringType"), monitoringType, monitoringType);
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("deinterlaceFieldOrder"), deinterlaceFieldOrder, deinterlaceFieldOrder);
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("deinterlaceMode"), deinterlaceMode, deinterlaceMode);
     Nan::Set(target, FIELD_NAME("Input"), locProto->GetFunction());
     prototype.Reset(locProto);
 }
@@ -251,6 +254,60 @@ NAN_METHOD(Input::findFilter)
     Filter *binding = new Filter(found);
     auto object = Filter::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
+}
+
+NAN_GETTER(Input::monitoringType)
+{
+    obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
+
+    info.GetReturnValue().Set(common::ToValue(handle.get()->monitoring_type()));
+}
+
+NAN_SETTER(Input::monitoringType)
+{
+    obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
+
+    int type;
+
+    ASSERT_GET_VALUE(value, type);
+
+    handle.get()->monitoring_type(static_cast<obs_monitoring_type>(type));
+}
+
+NAN_GETTER(Input::deinterlaceFieldOrder)
+{
+    obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
+
+    info.GetReturnValue().Set(common::ToValue(handle.get()->deinterlace_field_order()));
+}
+
+NAN_SETTER(Input::deinterlaceFieldOrder)
+{
+    obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
+
+    int order;
+
+    ASSERT_GET_VALUE(value, order);
+
+    handle.get()->deinterlace_field_order(static_cast<obs_deinterlace_field_order>(order));
+}
+
+NAN_GETTER(Input::deinterlaceMode)
+{
+    obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
+
+    info.GetReturnValue().Set(common::ToValue(handle.get()->deinterlace_mode()));
+}
+
+NAN_SETTER(Input::deinterlaceMode)
+{
+    obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
+
+    int mode;
+
+    ASSERT_GET_VALUE(value, mode);
+
+    handle.get()->deinterlace_mode(static_cast<obs_deinterlace_mode>(mode));
 }
 
 NAN_METHOD(Input::addFilter)

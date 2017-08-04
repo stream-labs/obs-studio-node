@@ -32,6 +32,15 @@ public:
     void add_filter(obs::filter filter);
     void remove_filter(obs::filter filter);
 
+    void deinterlace_mode(obs_deinterlace_mode mode);
+    obs_deinterlace_mode deinterlace_mode();
+
+    void deinterlace_field_order(obs_deinterlace_field_order order);
+    obs_deinterlace_field_order deinterlace_field_order();
+
+    void monitoring_type(obs_monitoring_type type);
+    obs_monitoring_type monitoring_type();
+
     obs::filter find_filter(std::string name);
     std::vector<filter> filters();
 

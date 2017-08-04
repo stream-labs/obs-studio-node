@@ -73,6 +73,36 @@ void input::remove_filter(obs::filter filter)
     obs_source_filter_remove(m_handle, filter.dangerous());
 }
 
+void input::deinterlace_mode(obs_deinterlace_mode mode)
+{
+    obs_source_set_deinterlace_mode(m_handle, mode);
+}
+
+obs_deinterlace_mode input::deinterlace_mode()
+{
+    return obs_source_get_deinterlace_mode(m_handle);
+}
+
+void input::deinterlace_field_order(obs_deinterlace_field_order order)
+{
+    obs_source_set_deinterlace_field_order(m_handle, order);
+}
+
+obs_deinterlace_field_order input::deinterlace_field_order()
+{
+    return obs_source_get_deinterlace_field_order(m_handle);
+}
+
+void input::monitoring_type(obs_monitoring_type type)
+{
+    obs_source_set_monitoring_type(m_handle, type);
+}
+
+obs_monitoring_type input::monitoring_type()
+{
+    return obs_source_get_monitoring_type(m_handle);
+}
+
 obs::filter input::find_filter(std::string name)
 {
     return obs_source_get_filter_by_name(m_handle, name.c_str());

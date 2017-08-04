@@ -145,6 +145,26 @@ void source::update(obs_data_t *data)
     obs_source_update(m_handle, data);
 }
 
+bool source::muted()
+{
+    return obs_source_muted(m_handle);
+}
+
+void source::muted(bool is_muted)
+{
+    obs_source_set_muted(m_handle, is_muted);
+}
+
+bool source::enabled()
+{
+    return obs_source_enabled(m_handle);
+}
+
+void source::enabled(bool is_enabled)
+{
+    obs_source_set_enabled(m_handle, is_enabled);
+}
+
 uint32_t source::height()
 {
     return obs_source_get_height(m_handle);
