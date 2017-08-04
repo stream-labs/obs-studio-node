@@ -123,6 +123,12 @@ public:
     obs_data_t *settings();
     void update(obs_data_t *data);
 
+    bool enabled();
+    void enabled(bool is_enabled);
+
+    bool muted();
+    void muted(bool is_muted);
+
     uint32_t width();
     uint32_t height();
 };

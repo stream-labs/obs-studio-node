@@ -27,6 +27,8 @@ NAN_MODULE_INIT(ISource::Init)
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("name"), name, name);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("status"), status);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("id"), id);
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("muted"), muted, muted);
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("enabled"), enabled, enabled);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("configurable"), configurable);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("properties"), properties);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("settings"), settings);
@@ -156,6 +158,42 @@ NAN_METHOD(ISource::update)
 
     handle.update(data);
     obs_data_release(data);
+}
+
+NAN_GETTER(ISource::muted)
+{
+    obs::source handle = ISource::GetHandle(info.Holder());
+
+    info.GetReturnValue().Set(common::ToValue(handle.muted()));
+}
+
+NAN_SETTER(ISource::muted)
+{
+    obs::source handle = ISource::GetHandle(info.Holder());
+
+    bool muted;
+
+    ASSERT_GET_VALUE(value, muted);
+
+    handle.muted(muted);
+}
+
+NAN_GETTER(ISource::enabled)
+{
+    obs::source handle = ISource::GetHandle(info.Holder());
+
+    info.GetReturnValue().Set(common::ToValue(handle.enabled()));
+}
+
+NAN_SETTER(ISource::enabled)
+{
+    obs::source handle = ISource::GetHandle(info.Holder());
+
+    bool enabled;
+
+    ASSERT_GET_VALUE(value, enabled);
+
+    handle.enabled(enabled);
 }
 
 NAN_GETTER(ISource::width)

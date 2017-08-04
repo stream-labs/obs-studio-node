@@ -76,6 +76,18 @@ const char *GetErrorString<enum obs_bounds_type>()
 { return "Expected obs_bounds_type enum"; }
 
 template <>
+const char *GetErrorString<enum obs_monitoring_type>()
+{ return "Expected obs_monitoring_type enum"; }
+
+template <>
+const char *GetErrorString<enum obs_deinterlace_mode>()
+{ return "Expected obs_deinterlace_mode enum"; }
+
+template <>
+const char *GetErrorString<enum obs_deinterlace_field_order>()
+{ return "Expected obs_deinterlace_field_order enum"; }
+
+template <>
 const char *GetErrorString<v8::Local<v8::Function>>()
 { return "Expected function"; }
 
@@ -144,6 +156,18 @@ v8::Local<v8::Value> ToValue(enum obs_editable_list_type value)
 
 template <>
 v8::Local<v8::Value> ToValue(enum obs_bounds_type value)
+{ return Nan::New<v8::Integer>(value); }
+
+template <>
+v8::Local<v8::Value> ToValue(enum obs_monitoring_type value)
+{ return Nan::New<v8::Integer>(value); }
+
+template <>
+v8::Local<v8::Value> ToValue(enum obs_deinterlace_field_order value)
+{ return Nan::New<v8::Integer>(value); }
+
+template <>
+v8::Local<v8::Value> ToValue(enum obs_deinterlace_mode value)
 { return Nan::New<v8::Integer>(value); }
 
 template <>

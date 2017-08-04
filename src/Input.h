@@ -42,6 +42,12 @@ public:
     static NAN_METHOD(findFilter);
     static NAN_METHOD(addFilter);
     static NAN_METHOD(removeFilter);
+    static NAN_GETTER(monitoringType);
+    static NAN_SETTER(monitoringType);
+    static NAN_GETTER(deinterlaceFieldOrder);
+    static NAN_SETTER(deinterlaceFieldOrder);
+    static NAN_GETTER(deinterlaceMode);
+    static NAN_SETTER(deinterlaceMode);
     static NAN_METHOD(types);
 };
 

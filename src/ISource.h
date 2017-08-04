@@ -33,6 +33,10 @@ public:
     static NAN_GETTER(properties);
     static NAN_GETTER(settings);
     static NAN_METHOD(update);
+    static NAN_GETTER(muted);
+    static NAN_SETTER(muted);
+    static NAN_GETTER(enabled);
+    static NAN_SETTER(enabled);
     static NAN_GETTER(width);
     static NAN_GETTER(height);
 };
