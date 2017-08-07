@@ -103,7 +103,7 @@ function downloadObsDeps(missing: any) {
 }
 
 function checkObsDeps() {
-    fs.access(obsDepsZipPath, fs.constants.F_OK, downloadObsDeps);
+    fs.access(obsDepsZipPath, downloadObsDeps);
 }
 
 function obsUpdateModulesFinish(error: any, data: any) {
@@ -152,4 +152,4 @@ function obsClone(error: any) {
     }
 }
 
-fs.access(obsPath, fs.constants.F_OK, obsClone);
+fs.access(obsPath, obsClone);
