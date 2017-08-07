@@ -1,7 +1,6 @@
 const git: any = require('simple-git')();
-const gulp: any = require('gulp')
 const url = require('url');
-const unzip: any = require('gulp-unzip');
+const unzip: any = require('unzipper');
 import * as shell from 'shelljs';
 import * as process from 'process';
 import * as https from 'https';
@@ -66,11 +65,11 @@ function obsConfigure() {
 function unpackObsDeps() {
     console.log(`Unpacking ${obsDepsZipPath}`);
 
-    gulp.src(`${obsDepsZipPath}`)
-        .pipe(unzip())
-        .pipe(gulp.dest(`${obsDepsPath}`));
-
-    obsConfigure();
+    fs.createReadStream(`${obsDepsZipPath}`)
+        .pipe(unzip.Extract({ path: `${obsDepsPath}` })
+            .once('close', () => {
+                obsConfigure();
+            }));
 }
 
 function downloadObsDeps(missing: any) {
