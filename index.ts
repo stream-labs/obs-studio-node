@@ -194,6 +194,13 @@ export const ObsVideo: IVideo = obs.Video;
 export const ObsModuleFactory: IModuleFactory = obs.Module;
 
 /**
+ * Meta object in order to better describe settings
+ */
+export interface ISettings {
+    [key: string]: any;
+}
+
+/**
  * Used for various 2-dimensional functions
  */
 export interface IVec2 {
@@ -432,7 +439,7 @@ export interface IFilterFactory {
      * @param settings - Optional, settings to create the filter with
      * @returns - Created instance of ObsFilter or null if failure
      */
-    create(id: string, name: string, settings?: object): IFilter;
+    create(id: string, name: string, settings?: ISettings): IFilter;
 
     /**
      * Returns a list of available filter types for creation
@@ -464,7 +471,7 @@ export interface IInputFactory {
      * @param hotkeys - Optional, hotkey data associated with input
      * @returns - Returns instance or null if failure
      */
-    create(id: string, name: string, settings?: object, hotkeys?: object): IInput;
+    create(id: string, name: string, settings?: ISettings, hotkeys?: ISettings): IInput;
 
     /**
      * Create a new instance of an ObsInput that's private
@@ -475,7 +482,7 @@ export interface IInputFactory {
      * @param settings - Optional, settings to create input source with
      * @returns - Returns instance or null if failure
      */
-    createPrivate(id: string, name: string, settings?: object): IInput;
+    createPrivate(id: string, name: string, settings?: ISettings): IInput;
 
     /**
      * Create an instance of an ObsInput by fetching the source by name.
@@ -535,23 +542,6 @@ export interface IInput extends ISource {
      * Obtain a list of all filters associated with the input source
      */
     readonly filters: IFilter[];
-
-    //Source
-    release(): void;
-    remove(): void;
-    update(settings: object): void;
-
-    readonly settings: object;
-    readonly properties: IProperties;
-    readonly status: number;
-    readonly type: ESourceType;
-    readonly id: string;
-    readonly configurable: boolean;
-    readonly width: number;
-    readonly height: number;
-
-    name: string;
-    flags: number;
 }
 
 export interface ISceneFactory {
@@ -633,23 +623,6 @@ export interface IScene extends ISource {
      * @returns - The array of item instances
      */
     getItems(): ISceneItem[];
-
-    //Source
-    release(): void;
-    remove(): void;
-    update(settings: object): void;
-
-    readonly settings: object;
-    readonly properties: IProperties;
-    readonly status: number;
-    readonly type: ESourceType;
-    readonly id: string;
-    readonly configurable: boolean;
-    readonly width: number;
-    readonly height: number;
-
-    name: string;
-    flags: number;
 }
 
 /**
@@ -749,7 +722,7 @@ export interface ITransitionFactory {
      * @param hotkeys - Optional, hotkey data associated with transition
      * @returns - Returns instance or null if failure
      */
-    create(id: string, name: string, settings?: object, hotkeys?: object): ITransition;
+    create(id: string, name: string, settings?: ISettings, hotkeys?: ISettings): ITransition;
 
     /**
      * Create a new instance of an ObsTransition that's private
@@ -760,7 +733,7 @@ export interface ITransitionFactory {
      * @param settings - Optional, settings to create transition source with
      * @returns - Returns instance or null if failure
      */
-    createPrivate(id: string, name: string, settings?: object): ITransition;
+    createPrivate(id: string, name: string, settings?: ISettings): ITransition;
 }
 
 /**
@@ -793,23 +766,6 @@ export interface ITransition extends ISource {
      * @param input - Source to transition to
      */
     start(ms: number, input: ISource): void;
-
-    //Source
-    release(): void;
-    remove(): void;
-    update(settings: object): void;
-
-    readonly settings: object;
-    readonly properties: IProperties;
-    readonly status: number;
-    readonly type: ESourceType;
-    readonly id: string;
-    readonly configurable: boolean;
-    readonly width: number;
-    readonly height: number;
-
-    name: string;
-    flags: number;
 }
 
 /**
@@ -831,12 +787,12 @@ export interface ISource {
      * correlating to the values held within the
      * object passed. 
      */
-    update(settings: object): void;
+    update(settings: ISettings): void;
 
     /**
      * Object holding current settings of the source
      */
-    readonly settings: object;
+    readonly settings: ISettings;
     
     /**
      * The properties of the source
