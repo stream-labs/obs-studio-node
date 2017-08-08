@@ -3,22 +3,22 @@ import * as path from 'path';
 
 /* Convenient paths to modules */
 export const DefaultD3D11Path: string = 
-    path.resolve(__dirname, `distribute/libobs-d3d11.dll`);
+    path.resolve(__dirname, `libobs-d3d11.dll`);
 
 export const DefaultDrawPluginPath: string = 
-    path.resolve(__dirname, `distribute/simple_draw.dll`);
+    path.resolve(__dirname, `simple_draw.dll`);
 
 export const DefaultBinPath: string = 
-    path.resolve(__dirname, `distribute`);
+    path.resolve(__dirname);
 
 export const DefaultDataPath: string =
-    path.resolve(__dirname, `distribute/data`);
+    path.resolve(__dirname, `data`);
 
 export const DefaultPluginPath: string = 
-    path.resolve(__dirname, `distribute/obs-plugins`);
+    path.resolve(__dirname, `obs-plugins`);
 
 export const DefaultPluginDataPath: string = 
-    path.resolve(__dirname, `distribute/data/obs-plugins/%module%/data`);
+    path.resolve(__dirname, `data/obs-plugins/%module%/data`);
 
 /**
  * Enumeration describing the type of a property
