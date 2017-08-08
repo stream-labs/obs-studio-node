@@ -40,6 +40,7 @@ NAN_MODULE_INIT(Input::Init)
     Nan::SetMethod(locProto, "fromName", fromName);
     Nan::SetMethod(locProto, "getPublicSources", getPublicSources);
     Nan::SetMethod(locProto->InstanceTemplate(), "duplicate", duplicate);
+    Nan::SetMethod(locProto->InstanceTemplate(), "copyFilters", copyFilters);
     Nan::SetMethod(locProto->InstanceTemplate(), "findFilter", findFilter);
     Nan::SetMethod(locProto->InstanceTemplate(), "addFilter", addFilter);
     Nan::SetMethod(locProto->InstanceTemplate(), "removeFilter", removeFilter);
@@ -231,6 +232,19 @@ NAN_SETTER(Input::audioMixers)
     ASSERT_GET_VALUE(value, flags);
 
     handle.get()->audio_mixers(flags);
+}
+
+NAN_METHOD(Input::copyFilters)
+{
+    obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
+
+    v8::Local<v8::Object> source_src_obj;
+
+    ASSERT_GET_VALUE(info[0], source_src_obj);
+
+    obs::weak<obs::input> &source_src = Input::Object::GetHandle(source_src_obj);
+
+    handle.get()->copy_filters(source_src.get().get());
 }
 
 NAN_METHOD(Input::findFilter)
