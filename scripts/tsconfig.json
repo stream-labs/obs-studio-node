@@ -1,8 +1,7 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
-    "outDir": "./distribute",
-    "declaration": true,
+    "outDir": "../",
     "target": "es6",
     "module": "commonjs",
     "moduleResolution": "node",
@@ -16,12 +15,8 @@
     "strictNullChecks": false,
     "emitDecoratorMetadata": true
   },
-  "exclude": [
-    "node_modules",
-    "distribute",
-    "obs-build"
-  ],
   "files": [
-    "index.ts"
+    "build-obs.ts",
+    "build-bindings.ts"
   ]
 }
