@@ -2,24 +2,30 @@
   "name": "obs-studio-node",
   "version": "1.0.0",
   "description": "Experimental bindings to obs-studio using nan directly",
-  "main": "index.js",
+  "main": "./distribute/index.js",
+  "types": "./distribute/index.d.ts",
   "scripts": {
-    "build:obs": "tsc && node build-obs.js",
-    "build:docs": "typedoc --out docs",
-    "build:bindings": "tsc && node build-bindings.js",
-    "install": "tsc && node build-obs.js && node build-bindings.js"
+    "clean": "rimraf *.{js,map} distribute obs-build build",
+    "compile": "tsc && tsc -p scripts",
+    "install": "npm run compile",
+    "build:obs": "node build-obs.js",
+    "build:bindings": "node build-bindings.js",
+    "postinstall": "npm run build:obs && npm run build:bindings",
+    "build:docs": "typedoc --out docs"
   },
   "author": "Zachary Lund <zachary.lund@streamlabs.com>",
   "license": "GPL-3.0",
+  "devDependencies": {
+    "rimraf": "^2.6.1",
+    "typescript": "^2.4.1",
+    "typedoc": "^0.7.2"
+  },
   "dependencies": {
     "@types/shelljs": "^0.7.2",
     "cmake-js": "^3.4.1",
-    "gulp": "^3.9.1",
-    "gulp-unzip": "^0.2.0",
+    "unzipper": "^0.8.9",
     "nan": "^2.6.2",
     "shelljs": "^0.7.8",
-    "simple-git": "^1.74.1",
-    "typedoc": "^0.7.2",
-    "typescript": "^2.4.1"
+    "simple-git": "^1.74.1"
   }
 }

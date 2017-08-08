@@ -41,6 +41,7 @@ public:
     void monitoring_type(obs_monitoring_type type);
     obs_monitoring_type monitoring_type();
 
+    void copy_filters(obs::input &source);
     obs::filter find_filter(std::string name);
     std::vector<filter> filters();
 

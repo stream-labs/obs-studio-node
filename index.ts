@@ -23,7 +23,7 @@ export const DefaultPluginDataPath: string =
 /**
  * Enumeration describing the type of a property
  */
-export enum EPropertyType {
+export const enum EPropertyType {
     Invalid,
     Boolean,
     Int,
@@ -38,32 +38,32 @@ export enum EPropertyType {
     FrameRate
 }
 
-export enum EListFormat {
+export const enum EListFormat {
     Invalid,
     Int,
     Float,
     String
 }
 
-export enum EEditableListType {
+export const enum EEditableListType {
     Strings,
     Files,
     FilesAndUrls
 }
 
-export enum EPathType {
+export const enum EPathType {
     File,
     FileSave,
     Directory
 }
 
-export enum ETextType {
+export const enum ETextType {
     Default,
     Password,
     Multiline
 }
 
-export enum ENumberType {
+export const enum ENumberType {
     Scroller,
     Slider
 }
@@ -71,7 +71,7 @@ export enum ENumberType {
 /**
  * A binary flag representing alignment
  */
-export enum EAlignment {
+export const enum EAlignment {
     Center = 0,
     Left = (1 << 0),
     Right = (1 << 1),
@@ -83,7 +83,7 @@ export enum EAlignment {
     BottomRight = (Bottom | Right)
 }
 
-export enum ESceneDupType {
+export const enum ESceneDupType {
     Refs,
     Copy,
     PrivateRefs,
@@ -93,7 +93,7 @@ export enum ESceneDupType {
 /**
  * Describes the type of source
  */
-export enum ESourceType {
+export const enum ESourceType {
     Input,
     Filter,
     Transition,
@@ -103,13 +103,13 @@ export enum ESourceType {
 /**
  * Describes algorithm type to use for volume representation.
  */
-export enum EFaderType {
+export const enum EFaderType {
     Cubic,
     IEC /* IEC 60-268-18 */,
     Log /* Logarithmic */
 }
 
-export enum EColorFormat {
+export const enum EColorFormat {
 	Unknown,
 	A8,
 	R8,
@@ -130,7 +130,7 @@ export enum EColorFormat {
 	DXT5
 }
 
-export enum EZStencilFormat {
+export const enum EZStencilFormat {
 	None,
 	Z16,
 	Z24_S8,
@@ -138,7 +138,7 @@ export enum EZStencilFormat {
 	Z32F_S8X24
 }
 
-export enum EScaleType {
+export const enum EScaleType {
     Default,
     Point,
     FastBilinear,
@@ -146,13 +146,13 @@ export enum EScaleType {
     Bicubic
 }
 
-export enum ERangeType {
+export const enum ERangeType {
     Default,
     Partial,
     Full
 }
 
-export enum EOutputFormat {
+export const enum EOutputFormat {
     None,
     I420,
     NV12,
@@ -166,7 +166,7 @@ export enum EOutputFormat {
     I444
 }
 
-export enum EBoundsType {
+export const enum EBoundsType {
     None,
     Stretch,
     ScaleInner,
@@ -176,22 +176,29 @@ export enum EBoundsType {
     MaxOnly
 }
 
-export enum EColorSpace {
+export const enum EColorSpace {
     Default,
     CS601,
     CS709
 }
 
-export const ObsGlobal: IGlobal = obs.Global;
-export const ObsInputFactory: IInputFactory = obs.Input;
-export const ObsSceneFactory: ISceneFactory = obs.Scene;
-export const ObsFilterFactory: IFilterFactory = obs.Filter;
-export const ObsTransitionFactory: ITransitionFactory = obs.Transition;
-export const ObsDisplayFactory: IDisplayFactory = obs.Display;
-export const ObsVolmeterFactory: IVolmeterFactory = obs.Volmeter;
-export const ObsFaderFactory: IFaderFactory = obs.Fader;
-export const ObsVideo: IVideo = obs.Video;
-export const ObsModuleFactory: IModuleFactory = obs.Module;
+export const Global: IGlobal = obs.Global;
+export const InputFactory: IInputFactory = obs.Input;
+export const SceneFactory: ISceneFactory = obs.Scene;
+export const FilterFactory: IFilterFactory = obs.Filter;
+export const TransitionFactory: ITransitionFactory = obs.Transition;
+export const DisplayFactory: IDisplayFactory = obs.Display;
+export const VolmeterFactory: IVolmeterFactory = obs.Volmeter;
+export const FaderFactory: IFaderFactory = obs.Fader;
+export const Video: IVideo = obs.Video;
+export const ModuleFactory: IModuleFactory = obs.Module;
+
+/**
+ * Meta object in order to better describe settings
+ */
+export interface ISettings {
+    [key: string]: any;
+}
 
 /**
  * Used for various 2-dimensional functions
@@ -312,7 +319,7 @@ export interface IListProperty {
      * You can determine if it's a string or number by testing
      * {@link IListProperty#format}
      */
-    readonly items: string[] | number[];
+    readonly items: { name: string, value: string | number }[];
 }
 
 export interface IEditableListProperty extends IListProperty {
@@ -323,10 +330,6 @@ export interface IEditableListProperty extends IListProperty {
 
     /** Default value for the editable box */
     readonly defaultPath: string;
-
-    //IListProperty
-    readonly format: EListFormat;
-    readonly items: string[] | number[];
 }
 
 export interface IPathProperty {
@@ -432,7 +435,7 @@ export interface IFilterFactory {
      * @param settings - Optional, settings to create the filter with
      * @returns - Created instance of ObsFilter or null if failure
      */
-    create(id: string, name: string, settings?: object): IFilter;
+    create(id: string, name: string, settings?: ISettings): IFilter;
 
     /**
      * Returns a list of available filter types for creation
@@ -464,7 +467,7 @@ export interface IInputFactory {
      * @param hotkeys - Optional, hotkey data associated with input
      * @returns - Returns instance or null if failure
      */
-    create(id: string, name: string, settings?: object, hotkeys?: object): IInput;
+    create(id: string, name: string, settings?: ISettings, hotkeys?: ISettings): IInput;
 
     /**
      * Create a new instance of an ObsInput that's private
@@ -475,7 +478,7 @@ export interface IInputFactory {
      * @param settings - Optional, settings to create input source with
      * @returns - Returns instance or null if failure
      */
-    createPrivate(id: string, name: string, settings?: object): IInput;
+    createPrivate(id: string, name: string, settings?: ISettings): IInput;
 
     /**
      * Create an instance of an ObsInput by fetching the source by name.
@@ -535,23 +538,6 @@ export interface IInput extends ISource {
      * Obtain a list of all filters associated with the input source
      */
     readonly filters: IFilter[];
-
-    //Source
-    release(): void;
-    remove(): void;
-    update(settings: object): void;
-
-    readonly settings: object;
-    readonly properties: IProperties;
-    readonly status: number;
-    readonly type: ESourceType;
-    readonly id: string;
-    readonly configurable: boolean;
-    readonly width: number;
-    readonly height: number;
-
-    name: string;
-    flags: number;
 }
 
 export interface ISceneFactory {
@@ -633,23 +619,6 @@ export interface IScene extends ISource {
      * @returns - The array of item instances
      */
     getItems(): ISceneItem[];
-
-    //Source
-    release(): void;
-    remove(): void;
-    update(settings: object): void;
-
-    readonly settings: object;
-    readonly properties: IProperties;
-    readonly status: number;
-    readonly type: ESourceType;
-    readonly id: string;
-    readonly configurable: boolean;
-    readonly width: number;
-    readonly height: number;
-
-    name: string;
-    flags: number;
 }
 
 /**
@@ -749,7 +718,7 @@ export interface ITransitionFactory {
      * @param hotkeys - Optional, hotkey data associated with transition
      * @returns - Returns instance or null if failure
      */
-    create(id: string, name: string, settings?: object, hotkeys?: object): ITransition;
+    create(id: string, name: string, settings?: ISettings, hotkeys?: ISettings): ITransition;
 
     /**
      * Create a new instance of an ObsTransition that's private
@@ -760,7 +729,7 @@ export interface ITransitionFactory {
      * @param settings - Optional, settings to create transition source with
      * @returns - Returns instance or null if failure
      */
-    createPrivate(id: string, name: string, settings?: object): ITransition;
+    createPrivate(id: string, name: string, settings?: ISettings): ITransition;
 }
 
 /**
@@ -793,23 +762,6 @@ export interface ITransition extends ISource {
      * @param input - Source to transition to
      */
     start(ms: number, input: ISource): void;
-
-    //Source
-    release(): void;
-    remove(): void;
-    update(settings: object): void;
-
-    readonly settings: object;
-    readonly properties: IProperties;
-    readonly status: number;
-    readonly type: ESourceType;
-    readonly id: string;
-    readonly configurable: boolean;
-    readonly width: number;
-    readonly height: number;
-
-    name: string;
-    flags: number;
 }
 
 /**
@@ -831,12 +783,12 @@ export interface ISource {
      * correlating to the values held within the
      * object passed. 
      */
-    update(settings: object): void;
+    update(settings: ISettings): void;
 
     /**
      * Object holding current settings of the source
      */
-    readonly settings: object;
+    readonly settings: ISettings;
     
     /**
      * The properties of the source
