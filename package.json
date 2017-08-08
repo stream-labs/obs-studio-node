@@ -14,8 +14,7 @@
   "dependencies": {
     "@types/shelljs": "^0.7.2",
     "cmake-js": "^3.4.1",
-    "gulp": "^3.9.1",
-    "gulp-unzip": "^0.2.0",
+    "unzipper": "^0.8.9",
     "nan": "^2.6.2",
     "shelljs": "^0.7.8",
     "simple-git": "^1.74.1",

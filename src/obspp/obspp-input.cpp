@@ -103,6 +103,11 @@ obs_monitoring_type input::monitoring_type()
     return obs_source_get_monitoring_type(m_handle);
 }
 
+void input::copy_filters(obs::input &source)
+{
+    obs_source_copy_filters(m_handle, source.dangerous());
+}
+
 obs::filter input::find_filter(std::string name)
 {
     return obs_source_get_filter_by_name(m_handle, name.c_str());
