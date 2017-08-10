@@ -1,24 +1,24 @@
-const obs = require('./distribute/obs_node.node');
+const obs = require('./obs_node.node');
 import * as path from 'path';
 
 /* Convenient paths to modules */
 export const DefaultD3D11Path: string = 
-    path.resolve(__dirname, `distribute/libobs-d3d11.dll`);
+    path.resolve(__dirname, `libobs-d3d11.dll`);
 
 export const DefaultDrawPluginPath: string = 
-    path.resolve(__dirname, `distribute/simple_draw.dll`);
+    path.resolve(__dirname, `simple_draw.dll`);
 
 export const DefaultBinPath: string = 
-    path.resolve(__dirname, `distribute`);
+    path.resolve(__dirname);
 
 export const DefaultDataPath: string =
-    path.resolve(__dirname, `distribute/data`);
+    path.resolve(__dirname, `data`);
 
 export const DefaultPluginPath: string = 
-    path.resolve(__dirname, `distribute/obs-plugins`);
+    path.resolve(__dirname, `obs-plugins`);
 
 export const DefaultPluginDataPath: string = 
-    path.resolve(__dirname, `distribute/data/obs-plugins/%module%/data`);
+    path.resolve(__dirname, `data/obs-plugins/%module%/data`);
 
 /**
  * Enumeration describing the type of a property
@@ -182,6 +182,20 @@ export const enum EColorSpace {
     CS709
 }
 
+export const enum ESpeakerLayout {
+    Unknown,
+    Mono,
+    Stereo,
+    TwoOne,
+    Quad,
+    FourOne,
+    FiveOne,
+    FiveOneSurround,
+    SevenOne,
+    SevenOneSurround,
+    Surround
+};
+
 export const Global: IGlobal = obs.Global;
 export const InputFactory: IInputFactory = obs.Input;
 export const SceneFactory: ISceneFactory = obs.Scene;
@@ -190,6 +204,7 @@ export const TransitionFactory: ITransitionFactory = obs.Transition;
 export const DisplayFactory: IDisplayFactory = obs.Display;
 export const VolmeterFactory: IVolmeterFactory = obs.Volmeter;
 export const FaderFactory: IFaderFactory = obs.Fader;
+export const Audio: IAudio = obs.Audio;
 export const Video: IVideo = obs.Video;
 export const ModuleFactory: IModuleFactory = obs.Module;
 
@@ -245,6 +260,11 @@ export interface IVideoInfo {
     readonly colorspace: EColorSpace;
     readonly range: ERangeType;
     readonly scaleType: EScaleType;
+}
+
+export interface IAudioInfo {
+    readonly samplesPerSec: number;
+    readonly speakerLayout: ESpeakerLayout;
 }
 
 export interface IDisplayInit {
@@ -960,6 +980,15 @@ export interface IDisplay {
 export interface IVideo {
     reset(info: IVideoInfo): void;
 }
+
+/**
+ * This represents a video_t structure from within libobs
+ * For now, only the global context functions are implemented
+ */
+export interface IAudio {
+    reset(info: IAudioInfo): void;
+}
+
 
 export interface IModuleFactory {
     create(binPath: string, dataPath: string): IModule;
