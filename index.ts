@@ -182,6 +182,20 @@ export const enum EColorSpace {
     CS709
 }
 
+export const enum ESpeakerLayout {
+    Unknown,
+    Mono,
+    Stereo,
+    TwoOne,
+    Quad,
+    FourOne,
+    FiveOne,
+    FiveOneSurround,
+    SevenOne,
+    SevenOneSurround,
+    Surround
+};
+
 export const Global: IGlobal = obs.Global;
 export const InputFactory: IInputFactory = obs.Input;
 export const SceneFactory: ISceneFactory = obs.Scene;
@@ -190,6 +204,7 @@ export const TransitionFactory: ITransitionFactory = obs.Transition;
 export const DisplayFactory: IDisplayFactory = obs.Display;
 export const VolmeterFactory: IVolmeterFactory = obs.Volmeter;
 export const FaderFactory: IFaderFactory = obs.Fader;
+export const Audio: IAudio = obs.Audio;
 export const Video: IVideo = obs.Video;
 export const ModuleFactory: IModuleFactory = obs.Module;
 
@@ -245,6 +260,11 @@ export interface IVideoInfo {
     readonly colorspace: EColorSpace;
     readonly range: ERangeType;
     readonly scaleType: EScaleType;
+}
+
+export interface IAudioInfo {
+    readonly samplesPerSec: number;
+    readonly speakerLayout: ESpeakerLayout;
 }
 
 export interface IDisplayInit {
@@ -960,6 +980,15 @@ export interface IDisplay {
 export interface IVideo {
     reset(info: IVideoInfo): void;
 }
+
+/**
+ * This represents a video_t structure from within libobs
+ * For now, only the global context functions are implemented
+ */
+export interface IAudio {
+    reset(info: IAudioInfo): void;
+}
+
 
 export interface IModuleFactory {
     create(binPath: string, dataPath: string): IModule;

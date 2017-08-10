@@ -137,6 +137,19 @@ export declare const enum EColorSpace {
     CS601 = 1,
     CS709 = 2,
 }
+export declare const enum ESpeakerLayout {
+    Unknown = 0,
+    Mono = 1,
+    Stereo = 2,
+    TwoOne = 3,
+    Quad = 4,
+    FourOne = 5,
+    FiveOne = 6,
+    FiveOneSurround = 7,
+    SevenOne = 8,
+    SevenOneSurround = 9,
+    Surround = 10,
+}
 export declare const Global: IGlobal;
 export declare const InputFactory: IInputFactory;
 export declare const SceneFactory: ISceneFactory;
@@ -145,6 +158,7 @@ export declare const TransitionFactory: ITransitionFactory;
 export declare const DisplayFactory: IDisplayFactory;
 export declare const VolmeterFactory: IVolmeterFactory;
 export declare const FaderFactory: IFaderFactory;
+export declare const Audio: IAudio;
 export declare const Video: IVideo;
 export declare const ModuleFactory: IModuleFactory;
 export interface ISettings {
@@ -183,6 +197,10 @@ export interface IVideoInfo {
     readonly colorspace: EColorSpace;
     readonly range: ERangeType;
     readonly scaleType: EScaleType;
+}
+export interface IAudioInfo {
+    readonly samplesPerSec: number;
+    readonly speakerLayout: ESpeakerLayout;
 }
 export interface IDisplayInit {
     width: number;
@@ -371,6 +389,9 @@ export interface IDisplay {
 }
 export interface IVideo {
     reset(info: IVideoInfo): void;
+}
+export interface IAudio {
+    reset(info: IAudioInfo): void;
 }
 export interface IModuleFactory {
     create(binPath: string, dataPath: string): IModule;

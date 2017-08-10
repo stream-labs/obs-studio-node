@@ -7,10 +7,9 @@
   "scripts": {
     "clean": "rimraf *.{js,map} distribute obs-build build",
     "compile": "tsc && tsc -p scripts",
-    "install": "npm run compile",
+    "install": "npm run build:obs && npm run build:bindings",
     "build:obs": "node build-obs.js",
     "build:bindings": "node build-bindings.js",
-    "postinstall": "npm run build:obs && npm run build:bindings",
     "build:docs": "typedoc --out docs"
   },
   "author": "Zachary Lund <zachary.lund@streamlabs.com>",
