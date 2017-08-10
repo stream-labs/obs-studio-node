@@ -28,7 +28,7 @@ NAN_METHOD(Audio::reset)
 
     ASSERT_GET_VALUE(info[0], info_object);
     ASSERT_GET_OBJECT_FIELD(info_object, "samplesPerSec", samples);
-    ASSERT_GET_OBJECT_FIELD(info_object, "speakers", speakers);
+    ASSERT_GET_OBJECT_FIELD(info_object, "speakerLayout", speakers);
 
     obs_audio_info audio_info;
 
