@@ -118,10 +118,7 @@ NAN_MODULE_INIT(Property::Init)
     locProto->SetClassName(FIELD_NAME("Property"));
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
 
-    /* iterable */
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("done"), done);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("value"), value);
-
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("name"), name);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("type"), type);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("status"), status);
@@ -190,22 +187,13 @@ NAN_GETTER(Property::value)
     info.GetReturnValue().Set(info.Holder());
 }
 
-NAN_GETTER(Property::done)
-{
-    obs::property &handle = Property::Object::GetHandle(info.Holder());
-
-    info.GetReturnValue().Set(
-        ToValue<bool>(
-            handle.status() != obs::property::status_type::okay));
-}
-
 NAN_METHOD(Property::next)
 {
     obs::property &handle = Property::Object::GetHandle(info.Holder());
 
-    handle.next();
+    bool result = handle.next();
 
-    info.GetReturnValue().Set(info.Holder());
+    info.GetReturnValue().Set(common::ToValue(result));
 }
 
 namespace {
