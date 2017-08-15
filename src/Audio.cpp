@@ -35,7 +35,7 @@ NAN_METHOD(Audio::reset)
     audio_info.samples_per_sec = samples;
     audio_info.speakers = static_cast<speaker_layout>(speakers);
 
-    obs_reset_audio(&audio_info);
+    info.GetReturnValue().Set(common::ToValue(obs_reset_audio(&audio_info)));
 }
 
 
