@@ -410,17 +410,14 @@ export interface IProperty {
         IPathProperty | ITextProperty | 
         INumberProperty | {};
 
-    /** Whether or not iterating is finished. */
-    readonly done: boolean;
-
     /**
      * Uses the current object to obtain the next
      * property in the properties list.
      * 
-     * Check status or done in order to make
-     * sure the property is still valid after using.
+     * @returns If it's successful, returns true.
+     * Otherwise or if end of the list, returns false. 
      */
-    next(): void;
+    next(): boolean;
 }
 
 /**
