@@ -45,10 +45,7 @@ public:
     Property(obs::property &property);
 
     static NAN_MODULE_INIT(Init);
-    /* Can only be created through properties */
-    static NAN_GETTER(done);
     static NAN_GETTER(value);
-    
     static NAN_GETTER(status);
     static NAN_GETTER(name);
     static NAN_GETTER(description);
