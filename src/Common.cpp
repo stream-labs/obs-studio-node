@@ -106,10 +106,6 @@ v8::Local<v8::Value> ToValue(int value)
 template <>
 v8::Local<v8::Value> ToValue(long long value)
 {
-    /* Pass an unsigned integer in case of max value */
-    if (value == 0xffffffff)
-        return Nan::New<v8::Integer>(0xffffffff);
-    
     return Nan::New<v8::Integer>(static_cast<int32_t>(value));
 }
 
