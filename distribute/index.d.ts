@@ -247,8 +247,7 @@ export interface IProperty {
     readonly visible: boolean;
     readonly type: EPropertyType;
     readonly details: IListProperty | IEditableListProperty | IPathProperty | ITextProperty | INumberProperty | {};
-    readonly done: boolean;
-    next(): void;
+    next(): IProperty;
 }
 export interface IProperties {
     readonly status: number;
