@@ -417,7 +417,7 @@ export interface IProperty {
      * @returns If it's successful, returns true.
      * Otherwise or if end of the list, returns false. 
      */
-    next(): boolean;
+    next(): IProperty;
 }
 
 /**
