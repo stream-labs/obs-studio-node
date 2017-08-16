@@ -97,7 +97,7 @@ public:
 
     ~weak() { weak_ref.release(); }
 
-    obs::strong<T> get() { return T(static_cast<decltype(T::m_handle)>(weak_ref.get())); }
+    obs::strong<T> get() { return T(weak_ref.get()); }
     bool test(T handle) { weak_ref.test(handle.dangerous()); }
 };
 
