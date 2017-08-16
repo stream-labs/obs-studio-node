@@ -120,13 +120,12 @@ bool property::visible()
     return obs_property_visible(m_handle);
 }
 
-bool property::next()
+obs::property property::next()
 {
-    bool result = obs_property_next(&m_handle);
+    obs_property_t *next = m_handle;
+    obs_property_next(&next);
 
-    if (!m_handle) m_status = status_type::invalid;
-
-    return result;
+    return obs::property(next);
 }
 
 list_property property::list_property()

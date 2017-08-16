@@ -190,10 +190,17 @@ NAN_GETTER(Property::value)
 NAN_METHOD(Property::next)
 {
     obs::property &handle = Property::Object::GetHandle(info.Holder());
+    obs::property next(handle.next());
 
-    bool result = handle.next();
+    if (next.status() == obs::property::status_type::invalid) {
+        info.GetReturnValue().Set(Nan::Null());
+        return;
+    }
 
-    info.GetReturnValue().Set(common::ToValue(result));
+    Property *binding = new Property(next);
+    auto object = Property::Object::GenerateObject(binding);
+
+    info.GetReturnValue().Set(object);
 }
 
 namespace {

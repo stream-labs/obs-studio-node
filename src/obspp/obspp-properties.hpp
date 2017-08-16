@@ -50,7 +50,7 @@ public:
     
     bool enabled();
     bool visible();
-    bool next();
+    obs::property next();
 };
 
 class list_property : public property 
