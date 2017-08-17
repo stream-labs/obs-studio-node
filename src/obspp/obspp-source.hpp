@@ -113,6 +113,8 @@ public:
     uint32_t flags();
     void flags(uint32_t flag);
 
+    uint32_t output_flags();
+
     const std::string name();
     void name(std::string name);
     

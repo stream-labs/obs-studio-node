@@ -41,6 +41,11 @@ source::source(source &copy)
 {
 }
 
+uint32_t source::output_flags()
+{
+    return obs_source_get_output_flags(m_handle);
+}
+
 void source::flags(uint32_t flags)
 {
     obs_source_set_flags(m_handle, flags);
