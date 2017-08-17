@@ -285,6 +285,9 @@ NAN_GETTER(Property::details)
             handle.float_property();
 
         SetObjectField(object, "type", float_prop.type());
+        SetObjectField(object, "min", float_prop.min());
+        SetObjectField(object, "max", float_prop.max());
+        SetObjectField(object, "step", float_prop.step());
         break;
     }
     case OBS_PROPERTY_INT: {
@@ -292,6 +295,9 @@ NAN_GETTER(Property::details)
             handle.integer_property();
 
         SetObjectField(object, "type", int_prop.type());
+        SetObjectField(object, "min", int_prop.min());
+        SetObjectField(object, "max", int_prop.max());
+        SetObjectField(object, "step", int_prop.step());
         break;
     }
     }
