@@ -83,6 +83,22 @@ export const enum EAlignment {
     BottomRight = (Bottom | Right)
 }
 
+/**
+ * A binary flag representing output capabilities
+ */
+export const enum EOutputFlags {
+    Video = (1 << 0),
+    Audio = (1 << 1),
+    Async = (1 << 2), 
+    AsyncVideo = Async | Video,
+    CustomDraw = (1 << 3),
+    Interaction = (1 << 5),
+    Composite = (1 << 6),
+    DoNotDuplicate = (1 << 7),
+    Deprecated = (1 << 8),
+    DoNotSelfMonitor = (1 << 9)
+}
+
 export const enum ESceneDupType {
     Refs,
     Copy,
@@ -832,6 +848,15 @@ export interface ISource {
      */
     readonly configurable: boolean;
  
+    /**
+     * Not to be confused with flags. This set
+     * of flags provides the capabilities in the
+     * output associated with the source. See
+     * EOutputFlags for possible options. Is
+     * represented as 32-bit binary flag. 
+     */
+    readonly outputFlags: number;
+
     /**
      * Name of the source when referencing it
      */

@@ -23,6 +23,7 @@ public:
     static NAN_GETTER(type);
     static NAN_GETTER(name);
     static NAN_SETTER(name);
+    static NAN_GETTER(outputFlags);
     static NAN_GETTER(flags);
     static NAN_SETTER(flags);
     static NAN_METHOD(remove);

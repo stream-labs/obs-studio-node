@@ -54,6 +54,18 @@ export declare const enum EAlignment {
     BottomLeft = 9,
     BottomRight = 10,
 }
+export declare const enum EOutputFlags {
+    Video = 1,
+    Audio = 2,
+    Async = 4,
+    AsyncVideo = 5,
+    CustomDraw = 8,
+    Interaction = 32,
+    Composite = 64,
+    DoNotDuplicate = 128,
+    Deprecated = 256,
+    DoNotSelfMonitor = 512,
+}
 export declare const enum ESceneDupType {
     Refs = 0,
     Copy = 1,
@@ -341,6 +353,7 @@ export interface ISource {
     readonly type: ESourceType;
     readonly id: string;
     readonly configurable: boolean;
+    readonly outputFlags: number;
     name: string;
     flags: number;
 }
