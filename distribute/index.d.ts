@@ -249,6 +249,9 @@ export interface ITextProperty {
 }
 export interface INumberProperty {
     readonly type: ENumberType;
+    readonly min: number;
+    readonly max: number;
+    readonly step: number;
 }
 export interface IProperty {
     readonly status: number;
