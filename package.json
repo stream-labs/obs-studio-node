@@ -5,9 +5,10 @@
   "main": "./distribute/index.js",
   "types": "./distribute/index.d.ts",
   "scripts": {
-    "clean": "rimraf *.{js,map} distribute obs-build build",
+    "clean": "rimraf *.{js,map} distribute/*.{js,map} obs-build build",
     "compile": "tsc && tsc -p scripts",
     "install": "npm run build:obs && npm run build:bindings",
+    "postinstall": "rimraf obs-build build",
     "build:obs": "node build-obs.js",
     "build:bindings": "node build-bindings.js",
     "build:docs": "typedoc --out docs"

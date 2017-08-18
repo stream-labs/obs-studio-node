@@ -7,8 +7,6 @@ import * as https from 'https';
 import * as fs from 'fs';
 import * as os from 'os';
 
-console.log(shell.env);
-
 /* This can work on other platforms with some modifications:
     1. Remove dependency download for platforms that don't use it. 
     
@@ -25,19 +23,29 @@ const obsBuild64 = `${obsPath}/build64`;
 let configType = shell.env['npm_config_cmake_OBS_BUILD_TYPE'] || 'Release';
 let obsGenerator = shell.env['npm_config_OSN_GENERATOR'];
 
+function finishBuild(error: any, stdout: string, stderr: string) {
+    if (error) {
+        console.log(`Failed to execute cmake: ${error}`);
+        console.log(`${stdout}`);
+        console.log(`${stderr}`);
+        process.exit(1);
+    }
+}
+
 function obsBuild() {
-    let buildCmd = `cmake --build ${obsBuild64} --config ${configType}`;
+    let buildCmd = `cmake --build \"${obsBuild64}\" --config ${configType}`;
     console.log(buildCmd);
-    shell.exec(buildCmd);
+    shell.exec(buildCmd, { async: true, silent: true}, finishBuild);
 }
 
 function finishConfigure(error: any, stdout: string, stderr: string) {
     if (error) {
         console.log(`Failed to execute cmake: ${error}`);
+        console.log(`${stdout}`);
+        console.log(`${stderr}`);
         process.exit(1);
     }
 
-    console.log(`${stdout}`)
     obsBuild();
 }
 
@@ -47,7 +55,7 @@ function obsConfigure() {
     let generator: string;
 
     if (obsGenerator)
-        generator = `-G${obsGenerator}`;
+        generator = `-G"${obsGenerator}"`;
     else if (os.platform() == 'win32')
         generator = `-G"Visual Studio 14 2015 Win64"`
     else {
@@ -55,11 +63,11 @@ function obsConfigure() {
         process.exit(1);
     }
 
-    const configCmd = `cmake ${generator} -DENABLE_UI=false -DDepsPath=${obsDepsPath64} -H${obsPath} -B${obsBuild64}`;
+    const configCmd = `cmake ${generator} -DENABLE_UI=false -DDepsPath="${obsDepsPath64}" -H"${obsPath}" -B"${obsBuild64}"`;
 
     console.log(configCmd);
 
-    shell.exec(configCmd, { async: true }, finishConfigure);
+    shell.exec(configCmd, { async: true, silent: true }, finishConfigure);
 }
 
 function unpackObsDeps() {
