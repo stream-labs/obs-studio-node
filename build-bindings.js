@@ -55,7 +55,7 @@ function configureBindings() {
         process.exit(1);
     }
     let cmake_js_path = path.normalize(`${npm_bin_path}/cmake-js`);
-    let configureCmd = `${cmake_js_path} configure ${generator} -d "${__dirname}"`;
+    let configureCmd = `"${cmake_js_path}" configure ${generator} -d "${__dirname}"`;
     console.log(configureCmd);
     shell.exec(configureCmd, { async: true, silent: true }, finishConfigure);
 }
