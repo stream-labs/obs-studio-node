@@ -22,6 +22,8 @@
     "obs-build"
   ],
   "files": [
-    "index.ts"
+    "index.ts",
+    "module.ts",
+    "type_check.ts"
   ]
 }
