@@ -14,7 +14,7 @@
     "build:docs": "typedoc --out docs"
   },
   "author": "Zachary Lund <zachary.lund@streamlabs.com>",
-  "license": "GPL-3.0",
+  "license": "GPL-2.0",
   "devDependencies": {
     "rimraf": "^2.6.1",
     "typescript": "^2.4.1",
