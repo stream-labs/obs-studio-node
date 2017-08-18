@@ -8,7 +8,6 @@ const process = require("process");
 const https = require("https");
 const fs = require("fs");
 const os = require("os");
-console.log(shell.env);
 const obsGitURL = 'git@github.com:twitchalerts/obs-studio_fork.git';
 const obsPath = require('path').join(__dirname, 'obs-build');
 const obsDepsZipPath = `${obsPath}/dependencies2015.zip`;
@@ -17,32 +16,41 @@ const obsDepsPath64 = `${obsDepsPath}/win64`;
 const obsBuild64 = `${obsPath}/build64`;
 let configType = shell.env['npm_config_cmake_OBS_BUILD_TYPE'] || 'Release';
 let obsGenerator = shell.env['npm_config_OSN_GENERATOR'];
+function finishBuild(error, stdout, stderr) {
+    if (error) {
+        console.log(`Failed to execute cmake: ${error}`);
+        console.log(`${stdout}`);
+        console.log(`${stderr}`);
+        process.exit(1);
+    }
+}
 function obsBuild() {
-    let buildCmd = `cmake --build ${obsBuild64} --config ${configType}`;
+    let buildCmd = `cmake --build \"${obsBuild64}\" --config ${configType}`;
     console.log(buildCmd);
-    shell.exec(buildCmd);
+    shell.exec(buildCmd, { async: true, silent: true }, finishBuild);
 }
 function finishConfigure(error, stdout, stderr) {
     if (error) {
         console.log(`Failed to execute cmake: ${error}`);
+        console.log(`${stdout}`);
+        console.log(`${stderr}`);
         process.exit(1);
     }
-    console.log(`${stdout}`);
     obsBuild();
 }
 function obsConfigure() {
     let generator;
     if (obsGenerator)
-        generator = `-G${obsGenerator}`;
+        generator = `-G"${obsGenerator}"`;
     else if (os.platform() == 'win32')
         generator = `-G"Visual Studio 14 2015 Win64"`;
     else {
         console.log(`Unsupported platform!`);
         process.exit(1);
     }
-    const configCmd = `cmake ${generator} -DENABLE_UI=false -DDepsPath=${obsDepsPath64} -H${obsPath} -B${obsBuild64}`;
+    const configCmd = `cmake ${generator} -DENABLE_UI=false -DDepsPath="${obsDepsPath64}" -H"${obsPath}" -B"${obsBuild64}"`;
     console.log(configCmd);
-    shell.exec(configCmd, { async: true }, finishConfigure);
+    shell.exec(configCmd, { async: true, silent: true }, finishConfigure);
 }
 function unpackObsDeps() {
     console.log(`Unpacking ${obsDepsZipPath}`);

@@ -64,7 +64,7 @@ function configureBindings() {
     let generator: string;
 
     if (obsGenerator)
-        generator = `-G${obsGenerator}`;
+        generator = `-G"${obsGenerator}"`;
     else if (os.platform() == 'win32')
         generator = `-G"Visual Studio 14 2015 Win64"`
     else {
