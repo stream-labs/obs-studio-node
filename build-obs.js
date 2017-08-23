@@ -8,7 +8,6 @@ const process = require("process");
 const https = require("https");
 const fs = require("fs");
 const os = require("os");
-const obsGitURL = 'git@github.com:twitchalerts/obs-studio_fork.git';
 const obsPath = require('path').join(__dirname, 'obs-build');
 const obsDepsZipPath = `${obsPath}/dependencies2015.zip`;
 const obsDepsPath = `${obsPath}/dependencies2015`;
@@ -81,42 +80,4 @@ function downloadObsDeps(missing) {
         console.log('Failed to download dependencies!');
     });
 }
-function checkObsDeps() {
-    fs.access(obsDepsZipPath, downloadObsDeps);
-}
-function obsUpdateModulesFinish(error, data) {
-    if (error) {
-        console.log(`Failed to update submodules.`);
-        process.exit(1);
-    }
-    checkObsDeps();
-}
-function obsUpdateModules() {
-    git.cwd(obsPath);
-    let submodules = [
-        'plugins/enc-amf',
-        'plugins/mac-syphon/syphon-framework',
-        'plugins/win-dshow/libdshowcapture'
-    ];
-    console.log(`Updating submodules: ${submodules}`);
-    git.submoduleUpdate(['--init'].concat(submodules), obsUpdateModulesFinish);
-}
-function obsAlreadyCloned() {
-    obsUpdateModules();
-}
-function obsCloneFinish(error, data) {
-    if (error)
-        process.exit(1);
-    obsUpdateModules();
-}
-function obsClone(error) {
-    if (error) {
-        console.log(`Cloning ${obsPath}`);
-        git.clone(obsGitURL, obsPath, ['-b', 'slobs-npm-package'], obsCloneFinish);
-    }
-    else {
-        console.log(`${obsPath} already exists.`);
-        obsAlreadyCloned();
-    }
-}
-fs.access(obsPath, obsClone);
+fs.access(obsDepsZipPath, downloadObsDeps);
