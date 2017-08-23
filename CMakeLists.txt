@@ -23,17 +23,17 @@ set(
 )
 
 set(
-    OBS_STUDIO_PATH "${CMAKE_SOURCE_DIR}/obs-build" 
+    OBS_STUDIO_PATH "${CMAKE_SOURCE_DIR}/obs-studio" 
     CACHE PATH "Path to 64-bit build directory"
 )
 
 set(
-    OBS_STUDIO_BUILD64 "${CMAKE_SOURCE_DIR}/obs-build/build64" 
+    OBS_STUDIO_BUILD64 "${CMAKE_SOURCE_DIR}/obs-build64" 
     CACHE PATH "Path to 64-bit build directory"
 )
 
 set(
-    OBS_STUDIO_DEPS64 "${CMAKE_SOURCE_DIR}/obs-build/dependencies2015/win64"
+    OBS_STUDIO_DEPS64 "${CMAKE_SOURCE_DIR}/dependencies2015/win64"
     CACHE PATH "Path to 64-bit dependencies for obs studio"
 )
 
