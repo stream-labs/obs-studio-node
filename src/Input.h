@@ -35,6 +35,7 @@ public:
     static NAN_SETTER(volume);
     static NAN_GETTER(syncOffset);
     static NAN_SETTER(syncOffset);
+    static NAN_GETTER(active);
     static NAN_GETTER(showing);
     static NAN_GETTER(audioMixers);
     static NAN_SETTER(audioMixers);

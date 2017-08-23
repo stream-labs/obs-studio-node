@@ -209,6 +209,13 @@ NAN_SETTER(Input::syncOffset)
     /* TODO Needs a 64-bit offset */
 }
 
+NAN_GETTER(Input::active)
+{
+    obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
+
+    info.GetReturnValue().Set(handle.get()->active());
+}
+
 NAN_GETTER(Input::showing)
 {
     obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());

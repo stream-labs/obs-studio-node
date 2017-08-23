@@ -48,6 +48,11 @@ float input::volume()
     return obs_source_get_volume(m_handle);
 }
 
+bool input::active()
+{
+    return obs_source_active(m_handle);
+}
+
 bool input::showing()
 {
     return obs_source_showing(m_handle);
