@@ -127,7 +127,13 @@ v8::Local<v8::Value> ToValue(std::string value)
 
 template <>
 v8::Local<v8::Value> ToValue<char const*>(char const *value)
-{ return Nan::New<v8::String>(value).ToLocalChecked(); }
+{ 
+    if (!value) {
+        value = "";
+    }
+
+    return Nan::New<v8::String>(value).ToLocalChecked(); 
+}
 
 /* See comment below. I ended up just making a function per enum... */
 template <>
