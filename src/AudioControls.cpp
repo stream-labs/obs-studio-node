@@ -308,7 +308,7 @@ static void volmeter_cb_wrapper(
     data->level = level;
     data->magnitude = magnitude;
     data->peak = peak;
-    data->muted = muted != 0.0f;
+    data->muted = muted;
 
     cb_binding->queue.send(data);
 }
@@ -329,7 +329,7 @@ void Volmeter::Callback(Volmeter *volmeter, Volmeter::Data *item)
     common::SetObjectField(object, "level", item->level);
     common::SetObjectField(object, "magnitude", item->magnitude);
     common::SetObjectField(object, "peak", item->peak);
-    common::SetObjectField(object, "muted", item->muted);
+    common::SetObjectField(object, "muted", static_cast<bool>(item->muted));
 
     delete item;
 
