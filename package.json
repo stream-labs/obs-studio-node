@@ -5,9 +5,10 @@
   "main": "./distribute/index.js",
   "types": "./distribute/index.d.ts",
   "scripts": {
-    "clean": "rimraf *.{js,map} distribute/*.{js,map} obs-build build",
+    "clean": "rimraf obs-build64 build dependencies2015* logs",
+    "fullclean": "npm run clean && rimraf *.js distribute/*.{js,node,dll,d.ts,lib}",
     "compile": "tsc && tsc -p scripts",
-    "install": "npm run build:obs && npm run build:bindings",
+    "install": "npm run build:obs && npm run build:bindings && npm run clean",
     "build:obs": "node build-obs.js",
     "build:bindings": "node build-bindings.js",
     "build:docs": "typedoc --out docs"
@@ -15,7 +16,6 @@
   "author": "Zachary Lund <zachary.lund@streamlabs.com>",
   "license": "GPL-2.0",
   "devDependencies": {
-    "rimraf": "^2.6.1",
     "typescript": "^2.4.2",
     "typedoc": "^0.8.0",
     "typedoc-default-themes": "^0.5.0"
@@ -25,6 +25,7 @@
     "cmake-js": "^3.5.0",
     "unzipper": "^0.8.9",
     "nan": "^2.6.2",
+    "rimraf": "^2.6.1",
     "shelljs": "^0.7.8",
     "simple-git": "^1.74.1"
   }
