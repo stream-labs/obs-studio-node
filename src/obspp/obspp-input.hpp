@@ -24,6 +24,7 @@ public:
     int64_t sync_offset();
     void sync_offset(int64_t offset);
 
+    bool active();
     bool showing();
 
     void audio_mixers(uint32_t mixer);

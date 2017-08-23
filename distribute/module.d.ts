@@ -5,6 +5,26 @@ export declare const DefaultDataPath: string;
 export declare const DefaultPluginPath: string;
 export declare const DefaultPluginDataPath: string;
 export declare type TPropertyDetails = IListProperty | IEditableListProperty | IPathProperty | ITextProperty | INumberProperty | {};
+export declare const enum EMonitoringType {
+    None = 0,
+    MonitoringOnly = 1,
+    MonitoringAndOutput = 2,
+}
+export declare const enum EDeinterlaceFieldOrder {
+    Top = 0,
+    Bottom = 1,
+}
+export declare const enum EDeinterlaceMode {
+    Disable = 0,
+    Discard = 1,
+    Retro = 2,
+    Blend = 3,
+    Blend2X = 4,
+    Linear = 5,
+    Linear2X = 6,
+    Yadif = 7,
+    Yadif2X = 8,
+}
 export declare const enum EPropertyType {
     Invalid = 0,
     Boolean = 1,
@@ -278,8 +298,6 @@ export interface IFilterFactory {
 export interface IFilter extends ISource {
 }
 export interface IInputFactory {
-}
-export interface IInputFactory {
     types(): string[];
     create(id: string, name: string, settings?: ISettings, hotkeys?: ISettings): IInput;
     createPrivate(id: string, name: string, settings?: ISettings): IInput;
@@ -291,6 +309,9 @@ export interface IInput extends ISource {
     syncOffset: number;
     showing: boolean;
     audioMixers: number;
+    monitoringType: EMonitoringType;
+    deinterlaceFieldOrder: EDeinterlaceFieldOrder;
+    deinterlaceMode: EDeinterlaceMode;
     duplicate(name?: string, isPrivate?: boolean): IInput;
     findFilter(name: string): IFilter;
     addFilter(filter: IFilter): void;
@@ -360,6 +381,7 @@ export interface ISource {
     readonly outputFlags: number;
     name: string;
     flags: number;
+    muted: boolean;
 }
 export interface IFaderFactory {
     create(type: EFaderType): IFader;

@@ -25,6 +25,29 @@ export type TPropertyDetails =
     IPathProperty | ITextProperty | 
     INumberProperty | {};
 
+export const enum EMonitoringType {
+    None,
+    MonitoringOnly,
+    MonitoringAndOutput
+}
+
+export const enum EDeinterlaceFieldOrder {
+    Top,
+    Bottom
+}
+
+export const enum EDeinterlaceMode {
+    Disable,
+    Discard,
+    Retro,
+    Blend,
+    Blend2X,
+    Linear,
+    Linear2X,
+    Yadif,
+    Yadif2X
+}
+
 /**
  * Enumeration describing the type of a property
  */
@@ -488,10 +511,6 @@ export interface IFilter extends ISource {
 }
 
 export interface IInputFactory {
-
-}
-
-export interface IInputFactory {
     /**
      * Returns a list of available filter types for creation
      */
@@ -543,6 +562,9 @@ export interface IInput extends ISource {
     syncOffset: number;
     showing: boolean;
     audioMixers: number;
+    monitoringType: EMonitoringType;
+    deinterlaceFieldOrder: EDeinterlaceFieldOrder;
+    deinterlaceMode: EDeinterlaceMode;
 
     /**
      * Create a new instance using the current instance. 
@@ -871,6 +893,11 @@ export interface ISource {
      * Unsigned bit-field concerning various flags
      */
     flags: number;
+
+    /** 
+     * Muted flag, separate of the current volume
+     */
+    muted: boolean;
 }
 
 export interface IFaderFactory {
