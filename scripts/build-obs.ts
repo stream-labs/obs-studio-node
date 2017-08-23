@@ -1,6 +1,7 @@
 const git: any = require('simple-git')();
 const url = require('url');
 const unzip: any = require('unzipper');
+import * as path from 'path';
 import * as shell from 'shelljs';
 import * as process from 'process';
 import * as https from 'https';
@@ -13,11 +14,11 @@ import * as os from 'os';
    That's it!
  */
 
-const obsPath = require('path').join(__dirname, 'obs-build');
-const obsDepsZipPath = `${obsPath}/dependencies2015.zip`;
-const obsDepsPath = `${obsPath}/dependencies2015`;
-const obsDepsPath64 = `${obsDepsPath}/win64`;
-const obsBuild64 = `${obsPath}/build64`;
+const obsPath = path.join(__dirname, 'obs-studio');
+const obsDepsZipPath = path.join(__dirname, `dependencies2015.zip`);
+const obsDepsPath = path.join(__dirname, `dependencies2015`);
+const obsDepsPath64 = path.join(`${obsDepsPath}`, `win64`);
+const obsBuild64 = path.join(__dirname, `obs-build64`);
 
 let configType = shell.env['npm_config_cmake_OBS_BUILD_TYPE'] || 'Release';
 let obsGenerator = shell.env['npm_config_OSN_GENERATOR'];
