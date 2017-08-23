@@ -426,10 +426,10 @@ export interface IDisplay {
     readonly enabled: boolean;
 }
 export interface IVideo {
-    reset(info: IVideoInfo): void;
+    reset(info: IVideoInfo): number;
 }
 export interface IAudio {
-    reset(info: IAudioInfo): void;
+    reset(info: IAudioInfo): boolean;
 }
 export interface IModuleFactory {
     create(binPath: string, dataPath: string): IModule;

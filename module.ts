@@ -1032,7 +1032,7 @@ export interface IDisplay {
  * For now, only the global context functions are implemented
  */
 export interface IVideo {
-    reset(info: IVideoInfo): void;
+    reset(info: IVideoInfo): number;
 }
 
 /**
@@ -1040,7 +1040,7 @@ export interface IVideo {
  * For now, only the global context functions are implemented
  */
 export interface IAudio {
-    reset(info: IAudioInfo): void;
+    reset(info: IAudioInfo): boolean;
 }
 
 
