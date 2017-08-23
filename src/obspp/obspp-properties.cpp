@@ -45,6 +45,7 @@ properties::properties(std::string id, object_type type)
 properties::~properties()
 {
     obs_properties_destroy(m_handle);
+    m_handle = nullptr;
 }
 
 properties::status_type properties::status()
