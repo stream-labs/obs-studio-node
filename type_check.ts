@@ -1,28 +1,49 @@
 import * as obs from './module'
 
-export function isNumberProperty(details: obs.TPropertyDetails, type: obs.EPropertyType): details is obs.INumberProperty {
-    return type === obs.EPropertyType.Int ||
-        type === obs.EPropertyType.Float;
+export function isNumberProperty(property: obs.IProperty): property is obs.INumberProperty {
+    return property.type === obs.EPropertyType.Int ||
+        property.type === obs.EPropertyType.Float;
 }
 
-export function isTextProperty(details: obs.TPropertyDetails, type: obs.EPropertyType): details is obs.ITextProperty {
-    return type === obs.EPropertyType.Text;
+export function isTextProperty(property: obs.IProperty): property is obs.ITextProperty {
+    return property.type === obs.EPropertyType.Text;
 }
 
-export function isPathProperty(details: obs.TPropertyDetails, type: obs.EPropertyType): details is obs.IPathProperty {
-    return type === obs.EPropertyType.Path;
+export function isPathProperty(property: obs.IProperty): property is obs.IPathProperty {
+    return property.type === obs.EPropertyType.Path;
 }
 
-export function isListProperty(details: obs.TPropertyDetails, type: obs.EPropertyType): details is obs.IListProperty {
-    return type === obs.EPropertyType.List;
+export function isListProperty(property: obs.IProperty): property is obs.IListProperty {
+    return property.type === obs.EPropertyType.List;
 }
 
-export function isEditableListProperty(details: obs.TPropertyDetails, type: obs.EPropertyType): details is obs.IEditableListProperty {
-    return type === obs.EPropertyType.EditableList;
+export function isEditableListProperty(property: obs.IProperty): property is obs.IEditableListProperty {
+    return property.type === obs.EPropertyType.EditableList;
 }
 
-export function isEmptyProperty(details: obs.TPropertyDetails, type: obs.EPropertyType): details is {} {
-    switch (type) {
+export function isBooleanProperty(property: obs.IProperty): property is obs.IBooleanProperty {
+    return property.type === obs.EPropertyType.Boolean;
+}
+
+export function isButtonProperty(property: obs.IProperty): property is obs.IButtonProperty {
+    return property.type === obs.EPropertyType.Button;
+}
+
+export function isColorProperty(property: obs.IProperty): property is obs.IColorProperty {
+    return property.type === obs.EPropertyType.Color;
+}
+
+export function isFontProperty(property: obs.IProperty): property is obs.IFontProperty {
+    return property.type === obs.EPropertyType.Font;
+}
+
+/**
+ * An empty property is a property defined as having no extra
+ * data required to be useful. For instance, a color is just 
+ * a color picker. There is no default value to pick from or range allowed.
+ */
+export function isEmptyProperty(property: obs.IProperty): boolean {
+    switch (property.type) {
     case obs.EPropertyType.Boolean:
     case obs.EPropertyType.Button:
     case obs.EPropertyType.Color:

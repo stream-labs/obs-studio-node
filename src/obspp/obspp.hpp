@@ -20,5 +20,6 @@ void log_handler(log_handler_t handler);
 log_handler_t log_handler();
 void output(int channel, source source);
 source output(int channel);
+uint32_t output_flags_from_id(std::string id);
 
 }

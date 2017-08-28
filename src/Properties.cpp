@@ -62,7 +62,7 @@ NAN_METHOD(Properties::first)
 {
     obs::properties &handle = Properties::Object::GetHandle(info.Holder());
 
-    Property *binding = new Property(handle.first());
+    Property *binding = new Property(info.Holder(), handle.first());
     auto object = Property::Object::GenerateObject(binding);
 
     info.GetReturnValue().Set(object);
@@ -93,7 +93,7 @@ NAN_METHOD(Properties::get)
 
     ASSERT_GET_VALUE(info[0], property_name);
     
-    Property *binding = new Property(handle.get(property_name));
+    Property *binding = new Property(info.Holder(), handle.get(property_name));
     auto object = Property::Object::GenerateObject(binding);
 
     info.GetReturnValue().Set(object);
@@ -107,8 +107,9 @@ NAN_METHOD(Properties::apply)
 Nan::Persistent<v8::FunctionTemplate> Property::prototype =
     Nan::Persistent<v8::FunctionTemplate>();
 
-Property::Property(obs::property &property)
- : handle(property)
+Property::Property(v8::Local<v8::Object> parent, obs::property &property)
+ :  parent(parent),
+    handle(property)
 {
 }
 
@@ -127,6 +128,7 @@ NAN_MODULE_INIT(Property::Init)
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("details"), details);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("enabled"), enabled);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("visible"), visible);
+    Nan::SetMethod(locProto->PrototypeTemplate(), "buttonClicked", buttonClicked);
     Nan::SetMethod(locProto->PrototypeTemplate(), "next", next);
 
     Nan::Set(target, FIELD_NAME("Property"), locProto->GetFunction());
@@ -182,6 +184,28 @@ NAN_GETTER(Property::visible)
     info.GetReturnValue().Set(handle.visible());
 }
 
+NAN_METHOD(Property::modified)
+{
+    obs::property &handle = Property::Object::GetHandle(info.Holder());
+
+    obs_data_t *settings;
+
+    ASSERT_GET_VALUE(info[0], settings);
+
+    bool refresh = handle.modified(settings);
+
+    info.GetReturnValue().Set(refresh);
+}
+
+NAN_METHOD(Property::buttonClicked)
+{
+    obs::property &handle = Property::Object::GetHandle(info.Holder());
+
+    obs::button_property button_prop = handle.button_property();
+
+    button_prop.clicked();
+}
+
 NAN_GETTER(Property::value)
 {
     info.GetReturnValue().Set(info.Holder());
@@ -189,7 +213,8 @@ NAN_GETTER(Property::value)
 
 NAN_METHOD(Property::next)
 {
-    obs::property &handle = Property::Object::GetHandle(info.Holder());
+    Property* this_binding = Nan::ObjectWrap::Unwrap<Property>(info.Holder());
+    obs::property &handle = this_binding->handle;
     obs::property next(handle.next());
 
     if (next.status() == obs::property::status_type::invalid) {
@@ -197,7 +222,7 @@ NAN_METHOD(Property::next)
         return;
     }
 
-    Property *binding = new Property(next);
+    Property *binding = new Property(this_binding->parent, next);
     auto object = Property::Object::GenerateObject(binding);
 
     info.GetReturnValue().Set(object);

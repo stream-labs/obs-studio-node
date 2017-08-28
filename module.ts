@@ -20,11 +20,6 @@ export const DefaultPluginPath: string =
 export const DefaultPluginDataPath: string = 
     path.resolve(__dirname, `data/obs-plugins/%module%/data`);
 
-export type TPropertyDetails =
-    IListProperty | IEditableListProperty | 
-    IPathProperty | ITextProperty | 
-    INumberProperty | {};
-
 export const enum EMonitoringType {
     None,
     MonitoringOnly,
@@ -381,7 +376,27 @@ export interface IGlobal {
     readonly version: number;
 }
 
-export interface IListProperty {
+export interface IBooleanProperty extends IProperty {
+
+}
+
+export interface IColorProperty extends IProperty {
+
+}
+
+export interface IButtonProperty extends IProperty {
+    clicked(): void;
+}
+
+export interface IFontProperty extends IProperty {
+
+}
+
+export interface IListProperty extends IProperty {
+    readonly details: IListDetails;
+}
+
+export interface IListDetails {
     readonly format: EListFormat;
 
     /**
@@ -392,7 +407,11 @@ export interface IListProperty {
     readonly items: { name: string, value: string | number }[];
 }
 
-export interface IEditableListProperty extends IListProperty {
+export interface IEditableListProperty extends IProperty {
+    readonly details: IEditableListDetails;
+}
+
+export interface IEditableListDetails extends IListDetails {
     readonly type: EEditableListType;
 
      /** String describing allowed valued */
@@ -402,15 +421,27 @@ export interface IEditableListProperty extends IListProperty {
     readonly defaultPath: string;
 }
 
-export interface IPathProperty {
+export interface IPathProperty extends IProperty {
+    readonly details: IPathDetails;
+}
+
+export interface IPathDetails {
     readonly type: EPathType;
 }
 
-export interface ITextProperty {
+export interface ITextProperty extends IProperty {
+    readonly details: ITextDetails;
+}
+
+export interface ITextDetails {
     readonly type: ETextType;
 }
 
-export interface INumberProperty {
+export interface INumberProperty extends IProperty {
+    readonly details: INumberDetails;
+}
+
+export interface INumberDetails {
     readonly type: ENumberType;
     readonly min: number;
     readonly max: number;
@@ -448,19 +479,6 @@ export interface IProperty {
     readonly type: EPropertyType;
 
     /**
-     * If a property instance is of a certain type, you can
-     * fetch additional data (such as items that should
-     * be available within a list box) from this.
-     * 
-     * Check each individual enumeration for more details.
-     * 
-     * Use {@link ObsProperty#type} to test for property type.
-     * If the type doesn't have additional info, this will be
-     * a value of `{}`
-     */
-    readonly details: TPropertyDetails;
-
-    /**
      * Uses the current object to obtain the next
      * property in the properties list.
      * 
@@ -468,6 +486,7 @@ export interface IProperty {
      * Otherwise or if end of the list, returns false. 
      */
     next(): IProperty;
+    modified(): boolean;
 }
 
 /**

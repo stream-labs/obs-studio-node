@@ -91,7 +91,7 @@ NAN_METHOD(getOutputFlagsFromId)
 
     ASSERT_GET_VALUE(info[0], id);
 
-    uint32_t flags = obs_get_source_output_flags(id.c_str());
+    uint32_t flags = obs::output_flags_from_id(id.c_str());
 
     info.GetReturnValue().Set(flags);
 }

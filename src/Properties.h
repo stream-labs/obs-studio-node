@@ -36,13 +36,15 @@ public:
 
 class Property : public Nan::ObjectWrap {
 public:
+    v8::Local<v8::Object> parent; /** Properties object reference */
+
     static Nan::Persistent<v8::FunctionTemplate> prototype;
     obs::property handle;
 
     typedef common::Object<Property, obs::property> Object;
     friend Object;
 
-    Property(obs::property &property);
+    Property(v8::Local<v8::Object> parent, obs::property &property);
 
     static NAN_MODULE_INIT(Init);
     static NAN_GETTER(value);
@@ -55,6 +57,8 @@ public:
     static NAN_GETTER(visible);
     static NAN_GETTER(details);
     static NAN_METHOD(next);
+    static NAN_METHOD(modified);
+    static NAN_METHOD(buttonClicked);
 };
 
 }

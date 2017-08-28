@@ -4,7 +4,6 @@ export declare const DefaultBinPath: string;
 export declare const DefaultDataPath: string;
 export declare const DefaultPluginPath: string;
 export declare const DefaultPluginDataPath: string;
-export declare type TPropertyDetails = IListProperty | IEditableListProperty | IPathProperty | ITextProperty | INumberProperty | {};
 export declare const enum EMonitoringType {
     None = 0,
     MonitoringOnly = 1,
@@ -251,25 +250,49 @@ export interface IGlobal {
     readonly locale: string;
     readonly version: number;
 }
-export interface IListProperty {
+export interface IBooleanProperty extends IProperty {
+}
+export interface IColorProperty extends IProperty {
+}
+export interface IButtonProperty extends IProperty {
+    clicked(): void;
+}
+export interface IFontProperty extends IProperty {
+}
+export interface IListProperty extends IProperty {
+    readonly details: IListDetails;
+}
+export interface IListDetails {
     readonly format: EListFormat;
     readonly items: {
         name: string;
         value: string | number;
     }[];
 }
-export interface IEditableListProperty extends IListProperty {
+export interface IEditableListProperty extends IProperty {
+    readonly details: IEditableListDetails;
+}
+export interface IEditableListDetails extends IListDetails {
     readonly type: EEditableListType;
     readonly filter: string;
     readonly defaultPath: string;
 }
-export interface IPathProperty {
+export interface IPathProperty extends IProperty {
+    readonly details: IPathDetails;
+}
+export interface IPathDetails {
     readonly type: EPathType;
 }
-export interface ITextProperty {
+export interface ITextProperty extends IProperty {
+    readonly details: ITextDetails;
+}
+export interface ITextDetails {
     readonly type: ETextType;
 }
-export interface INumberProperty {
+export interface INumberProperty extends IProperty {
+    readonly details: INumberDetails;
+}
+export interface INumberDetails {
     readonly type: ENumberType;
     readonly min: number;
     readonly max: number;
@@ -283,8 +306,8 @@ export interface IProperty {
     readonly enabled: boolean;
     readonly visible: boolean;
     readonly type: EPropertyType;
-    readonly details: TPropertyDetails;
     next(): IProperty;
+    modified(): boolean;
 }
 export interface IProperties {
     readonly status: number;

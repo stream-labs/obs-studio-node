@@ -1,7 +1,11 @@
 import * as obs from './module';
-export declare function isNumberProperty(details: obs.TPropertyDetails, type: obs.EPropertyType): details is obs.INumberProperty;
-export declare function isTextProperty(details: obs.TPropertyDetails, type: obs.EPropertyType): details is obs.ITextProperty;
-export declare function isPathProperty(details: obs.TPropertyDetails, type: obs.EPropertyType): details is obs.IPathProperty;
-export declare function isListProperty(details: obs.TPropertyDetails, type: obs.EPropertyType): details is obs.IListProperty;
-export declare function isEditableListProperty(details: obs.TPropertyDetails, type: obs.EPropertyType): details is obs.IEditableListProperty;
-export declare function isEmptyProperty(details: obs.TPropertyDetails, type: obs.EPropertyType): details is {};
+export declare function isNumberProperty(property: obs.IProperty): property is obs.INumberProperty;
+export declare function isTextProperty(property: obs.IProperty): property is obs.ITextProperty;
+export declare function isPathProperty(property: obs.IProperty): property is obs.IPathProperty;
+export declare function isListProperty(property: obs.IProperty): property is obs.IListProperty;
+export declare function isEditableListProperty(property: obs.IProperty): property is obs.IEditableListProperty;
+export declare function isBooleanProperty(property: obs.IProperty): property is obs.IBooleanProperty;
+export declare function isButtonProperty(property: obs.IProperty): property is obs.IButtonProperty;
+export declare function isColorProperty(property: obs.IProperty): property is obs.IColorProperty;
+export declare function isFontProperty(property: obs.IProperty): property is obs.IFontProperty;
+export declare function isEmptyProperty(property: obs.IProperty): boolean;
