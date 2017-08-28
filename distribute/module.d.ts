@@ -255,7 +255,7 @@ export interface IBooleanProperty extends IProperty {
 export interface IColorProperty extends IProperty {
 }
 export interface IButtonProperty extends IProperty {
-    clicked(): void;
+    buttonClicked(): void;
 }
 export interface IFontProperty extends IProperty {
 }
