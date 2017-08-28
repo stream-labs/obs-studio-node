@@ -335,6 +335,12 @@ export interface IGlobal {
     shutdown(): void;
 
     /**
+     * @param id - String ID of the source
+     * @returns - The output flags (capabilities) of the source type
+     */
+    getOutputFlagsFromId(id: string): number;
+
+    /**
      * Output channels are useful in that we can attach multiple
      * sources for output. For the most part, you're generally only
      * going to use one channel for video. However, if you so wanted, 

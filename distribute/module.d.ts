@@ -244,6 +244,7 @@ export interface IDisplayInit {
 export interface IGlobal {
     startup(locale: string, path?: string): void;
     shutdown(): void;
+    getOutputFlagsFromId(id: string): number;
     setOutputSource(channel: number, input: ISource): void;
     getOutputSource(channel: number): ISource;
     readonly initialized: boolean;

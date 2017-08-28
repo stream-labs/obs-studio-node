@@ -21,6 +21,7 @@ NAN_MODULE_INIT(Init)
     Nan::SetMethod(ObsGlobal, "shutdown", shutdown);
     Nan::SetMethod(ObsGlobal, "getOutputSource", getOutputSource);
     Nan::SetMethod(ObsGlobal, "setOutputSource", setOutputSource);
+    Nan::SetMethod(ObsGlobal, "getOutputFlagsFromId", getOutputFlagsFromId);
     Nan::SetAccessor(ObsGlobal, FIELD_NAME("initialized"), initialized);
     Nan::SetAccessor(ObsGlobal, FIELD_NAME("locale"), locale);
 
@@ -84,6 +85,16 @@ NAN_GETTER(version)
     info.GetReturnValue().Set(common::ToValue(obs::version()));
 }
 
+NAN_METHOD(getOutputFlagsFromId)
+{
+    std::string id;
+
+    ASSERT_GET_VALUE(info[0], id);
+
+    uint32_t flags = obs_get_source_output_flags(id.c_str());
+
+    info.GetReturnValue().Set(flags);
+}
 
 NAN_METHOD(setOutputSource)
 {
