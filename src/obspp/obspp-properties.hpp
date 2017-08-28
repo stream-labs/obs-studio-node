@@ -14,6 +14,7 @@
 namespace obs {
 
 class properties;
+class button_property;
 class list_property;
 class editable_list_property;
 class integer_property;
@@ -30,9 +31,10 @@ public:
     };
 
 protected:
+    obs_properties_t *m_parent;
     obs_property_t *m_handle;
     status_type m_status;
-    property(obs_property_t *property);
+    property(obs_properties_t *parent, obs_property_t *property);
 
 public:
     obs_property_t *dangerous();
@@ -41,6 +43,8 @@ public:
     std::string description();
     std::string long_description();
     obs_property_type type();
+    bool modified(obs_data_t *settings);
+    button_property button_property();
     list_property list_property();
     editable_list_property editable_list_property();
     integer_property integer_property();
@@ -53,11 +57,20 @@ public:
     obs::property next();
 };
 
+class button_property : public property
+{
+    friend property;
+    button_property(obs_properties_t *parent, obs_property_t *);
+
+public:
+    void clicked();
+};
+
 class list_property : public property 
 {
     friend property;
     friend class editable_list_property;
-    list_property(obs_property_t *);
+    list_property(obs_properties_t *parent, obs_property_t *);
 
 public:
     obs_combo_type type();
@@ -71,7 +84,7 @@ public:
 
 class editable_list_property : public list_property {
     friend property;
-    editable_list_property(obs_property_t *);
+    editable_list_property(obs_properties_t *parent, obs_property_t *);
 
 public:
     obs_editable_list_type type();
@@ -81,7 +94,7 @@ public:
 
 class float_property : public property {
     friend property;
-    float_property(obs_property_t *);
+    float_property(obs_properties_t *parent, obs_property_t *);
 
 public:
     obs_number_type type();
@@ -92,7 +105,7 @@ public:
 
 class integer_property : public property {
     friend property;
-    integer_property(obs_property_t *);
+    integer_property(obs_properties_t *parent, obs_property_t *);
 
 public:
     obs_number_type type();
@@ -103,7 +116,7 @@ public:
 
 class text_property : public property {
     friend property;
-    text_property(obs_property_t *);
+    text_property(obs_properties_t *parent, obs_property_t *);
 
 public:
     obs_text_type type();
@@ -111,7 +124,7 @@ public:
 
 class path_property : public property {
     friend property;
-    path_property(obs_property_t *);
+    path_property(obs_properties_t *parent, obs_property_t *);
 
 public:
     obs_path_type type();
@@ -148,6 +161,7 @@ public:
     status_type status();
     property first();
     property get(std::string property_name);
+    void *param();
     obs_properties_t *dangerous();
 };
 
