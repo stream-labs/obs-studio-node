@@ -5,7 +5,7 @@
   "main": "./distribute/index.js",
   "types": "./distribute/index.d.ts",
   "scripts": {
-    "clean": "rimraf obs-build64 build dependencies2015* logs",
+    "clean": "rimraf obs-build64 build dependencies2015*",
     "fullclean": "npm run clean && rimraf *.js distribute/*.{js,node,dll,d.ts,lib}",
     "compile": "tsc && tsc -p scripts",
     "install": "npm run build:obs && npm run build:bindings && npm run clean",
