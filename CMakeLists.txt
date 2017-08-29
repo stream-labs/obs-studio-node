@@ -142,7 +142,9 @@ if (WIN32)
         IMPORTED_IMPLIB_RELEASE "${OBS_STUDIO_BUILD64}/libobs/Release/obs.lib"
     )
     install(
-        FILES "${OBS_STUDOBS_STUDIO_BUILD64_PATH}/libobs/Release/obs.pdb" 
+        TARGETS obs
+        FILES "${OBS_STUDOBS_STUDIO_BUILD64_PATH}/libobs/Debug/obs.pdb"
+        CONFIGURATIONS Debug
         DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}")
 elseif()
     message(FATAL_ERROR "Only Windows supported for right now")
