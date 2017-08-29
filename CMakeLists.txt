@@ -138,12 +138,11 @@ if (WIN32)
         IMPORTED_LOCATION_DEBUG "${OBS_STUDIO_BUILD64}/libobs/Debug/obs.dll"
         IMPORTED_IMPLIB_DEBUG "${OBS_STUDIO_BUILD64}/libobs/Debug/obs.lib"
 
-        IMPORTED_LOCATION_RELEASE "${OBS_STUDOBS_STUDIO_BUILD64_PATH}/libobs/Release/obs.dll"
+        IMPORTED_LOCATION_RELEASE "${OBS_STUDIO_BUILD64}/libobs/Release/obs.dll"
         IMPORTED_IMPLIB_RELEASE "${OBS_STUDIO_BUILD64}/libobs/Release/obs.lib"
     )
     install(
-        TARGETS obs
-        FILES "${OBS_STUDOBS_STUDIO_BUILD64_PATH}/libobs/Debug/obs.pdb"
+        FILES "${OBS_STUDIO_BUILD64}/libobs/Debug/obs.pdb"
         CONFIGURATIONS Debug
         DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}")
 elseif()
