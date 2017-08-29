@@ -175,9 +175,9 @@ button_property::button_property(obs_properties_t *parent, obs_property_t *handl
     
 }
 
-void button_property::clicked()
+void button_property::clicked(void *source)
 {
-    obs_property_button_clicked(m_handle, obs_properties_get_param(m_parent));
+    obs_property_button_clicked(m_handle, source);
 }
 
 list_property::list_property(obs_properties_t *parent, obs_property_t *handle) 
