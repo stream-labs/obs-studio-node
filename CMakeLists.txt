@@ -137,9 +137,13 @@ if (WIN32)
     set_target_properties(obs PROPERTIES
         IMPORTED_LOCATION_DEBUG "${OBS_STUDIO_BUILD64}/libobs/Debug/obs.dll"
         IMPORTED_IMPLIB_DEBUG "${OBS_STUDIO_BUILD64}/libobs/Debug/obs.lib"
+
         IMPORTED_LOCATION_RELEASE "${OBS_STUDOBS_STUDIO_BUILD64_PATH}/libobs/Release/obs.dll"
         IMPORTED_IMPLIB_RELEASE "${OBS_STUDIO_BUILD64}/libobs/Release/obs.lib"
     )
+    install(
+        FILES "${OBS_STUDOBS_STUDIO_BUILD64_PATH}/libobs/Release/obs.pdb" 
+        DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}")
 elseif()
     message(FATAL_ERROR "Only Windows supported for right now")
 endif()
