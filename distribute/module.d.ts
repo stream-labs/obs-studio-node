@@ -255,7 +255,7 @@ export interface IBooleanProperty extends IProperty {
 export interface IColorProperty extends IProperty {
 }
 export interface IButtonProperty extends IProperty {
-    buttonClicked(): void;
+    buttonClicked(source: object): void;
 }
 export interface IFontProperty extends IProperty {
 }
@@ -406,6 +406,7 @@ export interface ISource {
     name: string;
     flags: number;
     muted: boolean;
+    enabled: boolean;
 }
 export interface IFaderFactory {
     create(type: EFaderType): IFader;
