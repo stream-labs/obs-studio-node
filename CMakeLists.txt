@@ -201,6 +201,7 @@ if (OSN_ENABLE_DISTRIBUTION)
         install(
             FILES
             "${OBS_STUDIO_BUILD64}/plugins/${PLUGIN_NAME}/${OBS_BUILD_TYPE}/${PLUGIN_NAME}.dll"
+            "${OBS_STUDIO_BUILD64}/plugins/${PLUGIN_NAME}/${OBS_BUILD_TYPE}/${PLUGIN_NAME}.pdb"
             DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/obs-plugins"
         )
     endfunction()
