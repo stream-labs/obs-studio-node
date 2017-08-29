@@ -930,6 +930,12 @@ export interface ISource {
      * Muted flag, separate of the current volume
      */
     muted: boolean;
+
+    /**
+     * Whether or not the source is disabled.
+     * Easy way to disable a filter.
+     */
+    enabled: boolean;
 }
 
 export interface IFaderFactory {
