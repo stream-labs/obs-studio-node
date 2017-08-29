@@ -385,7 +385,14 @@ export interface IColorProperty extends IProperty {
 }
 
 export interface IButtonProperty extends IProperty {
-    buttonClicked(): void;
+    /**
+     * @param source An object containing context
+     * used by the plugin. This is always the source
+     * associated with the property. Right now, I 
+     * just accept a generic object for forward
+     * compatibility. 
+     */
+    buttonClicked(source: object): void;
 }
 
 export interface IFontProperty extends IProperty {

@@ -1,4 +1,5 @@
 #include "Properties.h"
+#include "ISource.h"
 
 namespace osn {
 
@@ -201,9 +202,13 @@ NAN_METHOD(Property::buttonClicked)
 {
     obs::property &handle = Property::Object::GetHandle(info.Holder());
 
+    v8::Local<v8::Object> source_object;
+    ASSERT_GET_VALUE(info[1], source_object);
+
+    obs::source source = ISource::GetHandle(source_object);
     obs::button_property button_prop = handle.button_property();
 
-    button_prop.clicked();
+    button_prop.clicked(source.dangerous());
 }
 
 NAN_GETTER(Property::value)

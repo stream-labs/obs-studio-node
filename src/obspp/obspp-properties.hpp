@@ -63,7 +63,7 @@ class button_property : public property
     button_property(obs_properties_t *parent, obs_property_t *);
 
 public:
-    void clicked();
+    void clicked(void *source);
 };
 
 class list_property : public property 
