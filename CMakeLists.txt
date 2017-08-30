@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.1)
 project(obs-studio-node VERSION 1.0.0)
 
 set(
-    OSN_ENABLE_DISTRIBUTION true
+    OSN_ENABLE_DISTRIBUTION false
     CACHE BOOL "Whether to pull in OBS distribution files"
 )
 
