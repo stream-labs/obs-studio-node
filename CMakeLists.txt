@@ -23,7 +23,7 @@ set(
 )
 
 set(
-    OBS_STUDIO_BUILD "${CMAKE_SOURCE_DIR}/obs-build" 
+    OBS_STUDIO_BUILD "${CMAKE_SOURCE_DIR}/obs-prebuild" 
     CACHE PATH "Path to 64-bit build directory"
 )
 
