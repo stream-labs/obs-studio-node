@@ -1,3 +1,6 @@
 [submodule "obs-studio"]
 	path = obs-studio
 	url = git@github.com:twitchalerts/obs-studio_fork.git
+[submodule "obs-build"]
+	path = obs-build
+	url = git@github.com:twitchalerts/obs-studio_fork-prebuilt.git

@@ -16,6 +16,9 @@ const obsDepsPath64 = path.join(`${obsDepsPath}`, `win64`);
 const obsBuild64 = path.join(__dirname, `obs-build64`);
 let configType = shell.env['npm_config_cmake_OBS_BUILD_TYPE'] || 'Release';
 let obsGenerator = shell.env['npm_config_OSN_GENERATOR'];
+if (configType === 'Release') {
+    configType = 'RelWithDebInfo';
+}
 function finishBuild(error, stdout, stderr) {
     if (error) {
         console.log(`Failed to execute cmake: ${error}`);

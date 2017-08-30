@@ -8,7 +8,7 @@
     "clean": "rimraf obs-build64 build dependencies2015*",
     "fullclean": "npm run clean && rimraf *.js distribute/*.{js,node,dll,d.ts,lib}",
     "compile": "tsc && tsc -p scripts",
-    "install": "npm run build:obs && npm run build:bindings && npm run clean",
+    "install": "npm run build:bindings",
     "build:obs": "node build-obs.js",
     "build:bindings": "node build-bindings.js",
     "build:docs": "typedoc --out docs"

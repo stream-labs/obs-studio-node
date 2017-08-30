@@ -23,26 +23,34 @@ set(
 )
 
 set(
-    OBS_STUDIO_PATH "${CMAKE_SOURCE_DIR}/obs-studio" 
+    OBS_STUDIO_BUILD "${CMAKE_SOURCE_DIR}/obs-build" 
     CACHE PATH "Path to 64-bit build directory"
 )
 
 set(
-    OBS_STUDIO_BUILD64 "${CMAKE_SOURCE_DIR}/obs-build64" 
+    OBS_STUDIO_INCLUDE "${OBS_STUDIO_BUILD}/includes" 
     CACHE PATH "Path to 64-bit build directory"
 )
 
 set(
-    OBS_STUDIO_DEPS64 "${CMAKE_SOURCE_DIR}/dependencies2015/win64"
-    CACHE PATH "Path to 64-bit dependencies for obs studio"
+    OBS_STUDIO_BIN "${OBS_STUDIO_BUILD}/bin" 
+    CACHE PATH "Path to 64-bit build directory"
 )
 
-if(IS_DIRECTORY ${OBS_STUDIO_PATH})
-    message("OBS Studio 64-bit Build Path: ${OBS_STUDIO_BUILD64}")
+if(IS_DIRECTORY ${OBS_STUDIO_BIN})
+    message("OBS Studio 64-bit Build Path: ${OBS_STUDIO_BIN}")
 else()
     message(FATAL_ERROR 
-        "Failed to find OBS Studio using OBS_STUDIO_PATH: ${OBS_STUDIO_PATH}"
+        "Failed to find OBS Studio using OBS_STUDIO_BIN: ${OBS_STUDIO_BIN}"
     )
+endif()
+
+if (OBS_BUILD_TYPE STREQUAL "Release")
+    set(OBS_BUILD_TYPE "RelWithDebInfo")
+    # Since we are not allowed to specify RelWithDebInfo,
+    # simply copy over the flags and force it make PDBs
+    set(CMAKE_C_FLAGS_RELEASE ${CMAKE_C_FLAGS_RELWITHDEBINFO})
+    set(CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELWITHDEBINFO})
 endif()
 
 # FIXME: Organize
@@ -126,7 +134,7 @@ target_compile_definitions(
 target_include_directories(
     ${OSN_NODE_NAME} PUBLIC
     "${CMAKE_JS_INC}"
-    "${OBS_STUDIO_PATH}/libobs"
+    "${OBS_STUDIO_INCLUDE}/libobs"
 )
 
 set_target_properties(${OSN_NODE_NAME} PROPERTIES PREFIX "" SUFFIX ".node")
@@ -135,15 +143,11 @@ add_library(obs SHARED IMPORTED)
 
 if (WIN32)
     set_target_properties(obs PROPERTIES
-        IMPORTED_LOCATION_DEBUG "${OBS_STUDIO_BUILD64}/libobs/Debug/obs.dll"
-        IMPORTED_IMPLIB_DEBUG "${OBS_STUDIO_BUILD64}/libobs/Debug/obs.lib"
-
-        IMPORTED_LOCATION_RELEASE "${OBS_STUDIO_BUILD64}/libobs/Release/obs.dll"
-        IMPORTED_IMPLIB_RELEASE "${OBS_STUDIO_BUILD64}/libobs/Release/obs.lib"
+        IMPORTED_LOCATION "${OBS_STUDIO_BIN}/obs.dll"
+        IMPORTED_IMPLIB "${OBS_STUDIO_BIN}/obs.lib"
     )
     install(
-        FILES "${OBS_STUDIO_BUILD64}/libobs/Debug/obs.pdb"
-        CONFIGURATIONS Debug
+        FILES "${OBS_STUDIO_BIN}/obs.pdb"
         DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}")
 elseif()
     message(FATAL_ERROR "Only Windows supported for right now")
@@ -151,27 +155,27 @@ endif()
 
 # Just copy all dependencies into a local folder so we can run our tests.
 set( OBS_DEPENDENCIES 
-    "${OBS_STUDIO_DEPS64}/bin/avcodec-57.dll"
-    "${OBS_STUDIO_DEPS64}/bin/avdevice-57.dll"
-    "${OBS_STUDIO_DEPS64}/bin/avfilter-6.dll"
-    "${OBS_STUDIO_DEPS64}/bin/avformat-57.dll"
-    "${OBS_STUDIO_DEPS64}/bin/avutil-55.dll"
-    "${OBS_STUDIO_DEPS64}/bin/libcurl.dll"
-    "${OBS_STUDIO_DEPS64}/bin/libogg-0.dll"
-    "${OBS_STUDIO_DEPS64}/bin/libopus-0.dll"
-    "${OBS_STUDIO_DEPS64}/bin/libpng16-16.dll"
-    "${OBS_STUDIO_DEPS64}/bin/libvorbis-0.dll"
-    "${OBS_STUDIO_DEPS64}/bin/libvorbisenc-2.dll"
-    "${OBS_STUDIO_DEPS64}/bin/libvorbisfile-3.dll"
-    "${OBS_STUDIO_DEPS64}/bin/libvpx-1.dll"
-    "${OBS_STUDIO_DEPS64}/bin/libx264-148.dll"
-    "${OBS_STUDIO_DEPS64}/bin/swresample-2.dll"
-    "${OBS_STUDIO_DEPS64}/bin/swscale-4.dll"
-    "${OBS_STUDIO_DEPS64}/bin/zlib.dll"
-    "${OBS_STUDIO_BUILD64}/libobs/${OBS_BUILD_TYPE}/obs.dll"
-    "${OBS_STUDIO_BUILD64}/libobs-d3d11/${OBS_BUILD_TYPE}/libobs-d3d11.dll"
-    "${OBS_STUDIO_BUILD64}/deps/glad/${OBS_BUILD_TYPE}/obsglad.dll"
-    "${OBS_STUDIO_BUILD64}/deps/w32-pthreads/${OBS_BUILD_TYPE}/w32-pthreads.dll"
+    "${OBS_STUDIO_BIN}/avcodec-57.dll"
+    "${OBS_STUDIO_BIN}/avdevice-57.dll"
+    "${OBS_STUDIO_BIN}/avfilter-6.dll"
+    "${OBS_STUDIO_BIN}/avformat-57.dll"
+    "${OBS_STUDIO_BIN}/avutil-55.dll"
+    "${OBS_STUDIO_BIN}/libcurl.dll"
+    "${OBS_STUDIO_BIN}/libogg-0.dll"
+    "${OBS_STUDIO_BIN}/libopus-0.dll"
+    "${OBS_STUDIO_BIN}/libpng16-16.dll"
+    "${OBS_STUDIO_BIN}/libvorbis-0.dll"
+    "${OBS_STUDIO_BIN}/libvorbisenc-2.dll"
+    "${OBS_STUDIO_BIN}/libvorbisfile-3.dll"
+    "${OBS_STUDIO_BIN}/libvpx-1.dll"
+    "${OBS_STUDIO_BIN}/libx264-148.dll"
+    "${OBS_STUDIO_BIN}/swresample-2.dll"
+    "${OBS_STUDIO_BIN}/swscale-4.dll"
+    "${OBS_STUDIO_BIN}/zlib.dll"
+    "${OBS_STUDIO_BIN}/obs.dll"
+    "${OBS_STUDIO_BIN}/libobs-d3d11.dll"
+    "${OBS_STUDIO_BIN}/obsglad.dll"
+    "${OBS_STUDIO_BIN}/w32-pthreads.dll"
 )
 
 add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD
@@ -199,20 +203,20 @@ if (OSN_ENABLE_DISTRIBUTION)
 
     function(copy_obs_plugin PLUGIN_NAME)
         install(
-            DIRECTORY "${OBS_STUDIO_PATH}/plugins/${PLUGIN_NAME}/data"
+            DIRECTORY "${OBS_STUDIO_BIN}/data/obs-plugins/${PLUGIN_NAME}/data"
             DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/data/obs-plugins/${PLUGIN_NAME}"
         )
 
         install(
             FILES
-            "${OBS_STUDIO_BUILD64}/plugins/${PLUGIN_NAME}/${OBS_BUILD_TYPE}/${PLUGIN_NAME}.dll"
-            "${OBS_STUDIO_BUILD64}/plugins/${PLUGIN_NAME}/${OBS_BUILD_TYPE}/${PLUGIN_NAME}.pdb"
+            "${OBS_STUDIO_BIN}/obs-plugins/${PLUGIN_NAME}.dll"
+            "${OBS_STUDIO_BIN}/obs-plugins/${PLUGIN_NAME}.pdb"
             DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/obs-plugins"
         )
     endfunction()
 
     file(GLOB DATA_LIBOBS
-        "${OBS_STUDIO_PATH}/libobs/data/*")
+        "${OBS_STUDIO_BIN}/data/libobs/*")
 
     foreach( DATA_FILES ${DATA_LIBOBS})
         add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD
