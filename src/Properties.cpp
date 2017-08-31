@@ -108,10 +108,15 @@ NAN_METHOD(Properties::apply)
 Nan::Persistent<v8::FunctionTemplate> Property::prototype =
     Nan::Persistent<v8::FunctionTemplate>();
 
-Property::Property(v8::Local<v8::Object> parent, obs::property &property)
- :  parent(parent),
-    handle(property)
+Property::Property(v8::Local<v8::Object> _parent, obs::property &property)
+ : handle(property)
 {
+    parent.Reset(_parent);
+}
+
+Property::~Property()
+{
+    parent.Reset();
 }
 
 NAN_MODULE_INIT(Property::Init)
@@ -227,7 +232,7 @@ NAN_METHOD(Property::next)
         return;
     }
 
-    Property *binding = new Property(this_binding->parent, next);
+    Property *binding = new Property(Nan::New(this_binding->parent), next);
     auto object = Property::Object::GenerateObject(binding);
 
     info.GetReturnValue().Set(object);

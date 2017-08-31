@@ -36,7 +36,7 @@ public:
 
 class Property : public Nan::ObjectWrap {
 public:
-    v8::Local<v8::Object> parent; /** Properties object reference */
+    Nan::Persistent<v8::Object> parent; /** Properties object reference */
 
     static Nan::Persistent<v8::FunctionTemplate> prototype;
     obs::property handle;
@@ -45,6 +45,7 @@ public:
     friend Object;
 
     Property(v8::Local<v8::Object> parent, obs::property &property);
+    ~Property();
 
     static NAN_MODULE_INIT(Init);
     static NAN_GETTER(value);
