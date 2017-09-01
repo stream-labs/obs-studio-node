@@ -146,9 +146,12 @@ if (WIN32)
         IMPORTED_LOCATION "${OBS_STUDIO_BIN}/obs.dll"
         IMPORTED_IMPLIB "${OBS_STUDIO_BIN}/obs.lib"
     )
-    install(
-        FILES "${OBS_STUDIO_BIN}/obs.pdb"
-        DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}")
+
+    if (OSN_ENABLE_DISTRIBUTION)
+        install(
+            FILES "${OBS_STUDIO_BIN}/obs.pdb"
+            DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}")
+    endif()
 elseif()
     message(FATAL_ERROR "Only Windows supported for right now")
 endif()

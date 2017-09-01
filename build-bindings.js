@@ -4,7 +4,7 @@ const shell = require('shelljs');
 const process = require("process");
 const path = require("path");
 const os = require("os");
-let configType = shell.env['npm_config_cmake_OBS_BUILD_TYPE'] || 'Release';
+let configType = shell.env['npm_config_OBS_BUILD_TYPE'] || 'Release';
 let obsGenerator = shell.env['npm_config_OSN_GENERATOR'];
 let npm_bin_path;
 function finishInstall(error, stdout, stderr) {
@@ -59,6 +59,7 @@ function configureBindings() {
     console.log(configureCmd);
     shell.exec(configureCmd, { async: true, silent: true }, finishConfigure);
 }
+shell.mkdir(`logs`);
 shell.exec('npm bin', { async: true, silent: true }, (error, stdout, stderr) => {
     if (error) {
         console.log(`Failed to fetch npm bin path: ${error}`);

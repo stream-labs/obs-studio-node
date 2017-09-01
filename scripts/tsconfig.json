@@ -16,7 +16,6 @@
     "emitDecoratorMetadata": true
   },
   "files": [
-    "build-obs.ts",
     "build-bindings.ts"
   ]
 }

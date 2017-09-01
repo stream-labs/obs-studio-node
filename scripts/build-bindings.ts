@@ -3,7 +3,7 @@ import * as process from 'process';
 import * as path from 'path';
 import * as os from 'os';
 
-let configType = shell.env['npm_config_cmake_OBS_BUILD_TYPE'] || 'Release';
+let configType = shell.env['npm_config_OBS_BUILD_TYPE'] || 'Release';
 let obsGenerator = shell.env['npm_config_OSN_GENERATOR'];
 
 let npm_bin_path: string;
@@ -78,6 +78,8 @@ function configureBindings() {
 
     shell.exec(configureCmd, { async: true, silent: true}, finishConfigure);
 }
+
+shell.mkdir(`logs`);
 
 shell.exec('npm bin', { async: true, silent:true}, (error: any, stdout: string, stderr: string) => {
     if (error) {
