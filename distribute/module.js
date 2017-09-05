@@ -47,7 +47,7 @@ function createSources(sources) {
     console.log('inside createSources');
     if (Array.isArray(sources)) {
         sources.forEach(function (source) {
-            const newSource = obs.Input.create(source.id, source.name, source.settings, source.hotkeys);
+            const newSource = obs.Input.create(source.id, source.name, null, null);
             items.push(newSource);
         });
     }
