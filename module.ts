@@ -1126,5 +1126,5 @@ export function addItems(scene: IScene, sceneItems: any[]): ISceneItem[] {
     return items;
 }
 export function createSources(): void {
-    debugger;
+    console.log('inside createSources');
 }

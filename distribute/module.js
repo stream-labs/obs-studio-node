@@ -44,6 +44,6 @@ function addItems(scene, sceneItems) {
 }
 exports.addItems = addItems;
 function createSources() {
-    debugger;
+    console.log('inside createSources');
 }
 exports.createSources = createSources;
