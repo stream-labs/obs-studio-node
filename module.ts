@@ -1130,7 +1130,8 @@ export function createSources(sources: any[]): void {
     if (Array.isArray(sources)) {
         sources.forEach(function(source) {
             // Input(id, name, settings, hotkeys);
-            obs.Input.create(source.id, source.name, source.settings, source.hotkeys);
+            const newSource = obs.Input.create(source.id, source.name, source.settings, source.hotkeys);
+            console.log(newSource);
         });
     }
 }
