@@ -43,7 +43,12 @@ function addItems(scene, sceneItems) {
     return items;
 }
 exports.addItems = addItems;
-function createSources() {
+function createSources(sources) {
     console.log('inside createSources');
+    if (Array.isArray(sources)) {
+        sources.forEach(function (source) {
+            obs.Input.create(source.id, source.name, source.settings, source.hotkeys);
+        });
+    }
 }
 exports.createSources = createSources;
