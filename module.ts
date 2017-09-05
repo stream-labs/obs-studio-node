@@ -1099,3 +1099,32 @@ export interface IModule {
     dataPath(): string;
     status(): number;
 }
+export function addItems(scene: IScene, sceneItems: any[]): ISceneItem[] {
+    const items: any = [];
+    if (Array.isArray(sceneItems)) {
+        sceneItems.forEach(function(sceneItem) {
+            const source = obs.Input.fromName(sceneItem.name);
+            const item = scene.add(source);
+
+            item.position = {x: sceneItem.x, y: sceneItem.y};
+            item.scale = {x: sceneItem.scaleX, y: sceneItem.scaleY};
+            item.visible = sceneItem.visible;
+
+            const cropModel = {
+                top: Math.round(sceneItem.crop.top),
+                right: Math.round(sceneItem.crop.right),
+                bottom: Math.round(sceneItem.crop.bottom),
+                left: Math.round(sceneItem.crop.left)
+              };
+
+            item.crop = cropModel;
+        // item.setLocked(obj.locked || false);
+            items.push(item);
+        });
+    }
+    console.log('test');
+    return items;
+}
+export function createSources(): void {
+    
+}
