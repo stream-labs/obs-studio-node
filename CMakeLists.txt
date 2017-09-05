@@ -115,6 +115,8 @@ add_library(${OSN_NODE_NAME} SHARED
     "src/obspp/obspp-transition.cpp"
     "src/obspp/obspp-video.hpp"
     "src/obspp/obspp-video.cpp"
+    "src/obspp/obspp-view.hpp"
+    "src/obspp/obspp-view.cpp"
 )
 
 target_link_libraries(${OSN_NODE_NAME} ${CMAKE_JS_LIB} obs)
