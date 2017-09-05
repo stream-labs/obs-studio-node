@@ -39,17 +39,18 @@ function addItems(scene, sceneItems) {
             items.push(item);
         });
     }
-    console.log('test');
     return items;
 }
 exports.addItems = addItems;
 function createSources(sources) {
+    const items = [];
     console.log('inside createSources');
     if (Array.isArray(sources)) {
         sources.forEach(function (source) {
             const newSource = obs.Input.create(source.id, source.name, source.settings, source.hotkeys);
-            console.log(newSource);
+            items.push(newSource);
         });
     }
+    return items;
 }
 exports.createSources = createSources;

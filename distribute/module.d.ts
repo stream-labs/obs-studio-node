@@ -473,4 +473,4 @@ export interface IModule {
     status(): number;
 }
 export declare function addItems(scene: IScene, sceneItems: any[]): ISceneItem[];
-export declare function createSources(sources: any[]): void;
+export declare function createSources(sources: any[]): IInput;

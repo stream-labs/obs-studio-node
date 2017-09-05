@@ -1122,16 +1122,16 @@ export function addItems(scene: IScene, sceneItems: any[]): ISceneItem[] {
             items.push(item);
         });
     }
-    console.log('test');
     return items;
 }
-export function createSources(sources: any[]): void {
+export function createSources(sources: any[]): IInput {
+    const items: any = [];
     console.log('inside createSources');
     if (Array.isArray(sources)) {
         sources.forEach(function(source) {
-            // Input(id, name, settings, hotkeys);
             const newSource = obs.Input.create(source.id, source.name, source.settings, source.hotkeys);
-            console.log(newSource);
+            items.push(newSource);
         });
     }
+    return items;
 }
