@@ -1124,9 +1124,8 @@ export function addItems(scene: IScene, sceneItems: any[]): ISceneItem[] {
     }
     return items;
 }
-export function createSources(sources: any[]): IInput {
+export function createSources(sources: any[]): IInput[] {
     const items: any = [];
-    console.log('inside createSources');
     if (Array.isArray(sources)) {
         sources.forEach(function(source) {
             const newSource = obs.Input.create(source.id, source.name, null, null);
@@ -1134,4 +1133,15 @@ export function createSources(sources: any[]): IInput {
         });
     }
     return items;
+}
+export function getSourcesSize(sources: any[]): any[] {
+    const sourcesSize: any = [];
+    if (Array.isArray(sources)) {
+        sources.forEach(function(source) {
+            const ObsInput = obs.Input.fromName(source.name);
+            console.log(source.name + ObsInput.height + ObsInput.width);
+            sourcesSize.push({id: source.id, height: ObsInput.height, width: ObsInput.width});
+        });
+    }
+    return sourcesSize;
 }

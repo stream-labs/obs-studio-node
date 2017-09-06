@@ -44,7 +44,6 @@ function addItems(scene, sceneItems) {
 exports.addItems = addItems;
 function createSources(sources) {
     const items = [];
-    console.log('inside createSources');
     if (Array.isArray(sources)) {
         sources.forEach(function (source) {
             const newSource = obs.Input.create(source.id, source.name, null, null);
@@ -54,3 +53,15 @@ function createSources(sources) {
     return items;
 }
 exports.createSources = createSources;
+function getSourcesSize(sources) {
+    const sourcesSize = [];
+    if (Array.isArray(sources)) {
+        sources.forEach(function (source) {
+            const ObsInput = obs.Input.fromName(source.name);
+            console.log(source.name + ObsInput.height + ObsInput.width);
+            sourcesSize.push({ id: source.id, height: ObsInput.height, width: ObsInput.width });
+        });
+    }
+    return sourcesSize;
+}
+exports.getSourcesSize = getSourcesSize;
