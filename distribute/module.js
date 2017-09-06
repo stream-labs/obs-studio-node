@@ -46,7 +46,7 @@ function createSources(sources) {
     const items = [];
     if (Array.isArray(sources)) {
         sources.forEach(function (source) {
-            const newSource = obs.Input.create(source.id, source.name, null, null);
+            const newSource = obs.Input.create(source.type, source.name, source.settings);
             items.push(newSource);
         });
     }
@@ -58,7 +58,7 @@ function getSourcesSize(sources) {
     if (Array.isArray(sources)) {
         sources.forEach(function (source) {
             const ObsInput = obs.Input.fromName(source.source.displayName);
-            sourcesSize.push({ id: source.source.sourceState.id, height: ObsInput.height, width: ObsInput.width });
+            sourcesSize.push({ id: source.source.sourceState.id, height: ObsInput.height, width: ObsInput.width, flags: ObsInput.flags });
         });
     }
     return sourcesSize;
