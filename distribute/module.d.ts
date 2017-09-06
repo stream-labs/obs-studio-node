@@ -341,6 +341,8 @@ export interface IInput extends ISource {
     addFilter(filter: IFilter): void;
     removeFilter(filter: IFilter): void;
     readonly filters: IFilter[];
+    readonly width: number;
+    readonly height: number;
 }
 export interface ISceneFactory {
     create(name: string): IScene;

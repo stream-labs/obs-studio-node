@@ -630,6 +630,16 @@ export interface IInput extends ISource {
      * Obtain a list of all filters associated with the input source
      */
     readonly filters: IFilter[];
+
+    /**
+     * Width of the underlying source
+     */
+    readonly width: number;
+
+    /**
+     * Height of the underlying source
+     */
+    readonly height: number;
 }
 
 export interface ISceneFactory {
