@@ -1137,10 +1137,12 @@ export function createSources(sources: any[]): IInput[] {
 export function getSourcesSize(sources: any[]): any[] {
     const sourcesSize: any = [];
     if (Array.isArray(sources)) {
-        sources.forEach(function(source) {
-            const ObsInput = obs.Input.fromName(source.name);
+        sources.forEach(function (source) {
+            console.log(source.source.displayName);
+            debugger;
+            const ObsInput = obs.Input.fromName(source.source.displayName);
             console.log(source.name + ObsInput.height + ObsInput.width);
-            sourcesSize.push({id: source.id, height: ObsInput.height, width: ObsInput.width});
+            sourcesSize.push({ id: source.source.sourceState.id, height: ObsInput.height, width: ObsInput.width });
         });
     }
     return sourcesSize;

@@ -57,9 +57,11 @@ function getSourcesSize(sources) {
     const sourcesSize = [];
     if (Array.isArray(sources)) {
         sources.forEach(function (source) {
-            const ObsInput = obs.Input.fromName(source.name);
+            console.log(source.source.displayName);
+            debugger;
+            const ObsInput = obs.Input.fromName(source.source.displayName);
             console.log(source.name + ObsInput.height + ObsInput.width);
-            sourcesSize.push({ id: source.id, height: ObsInput.height, width: ObsInput.width });
+            sourcesSize.push({ id: source.source.sourceState.id, height: ObsInput.height, width: ObsInput.width });
         });
     }
     return sourcesSize;
