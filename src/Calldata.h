@@ -90,7 +90,16 @@ osn_value_from_calldata(callback_data *data)
     }
 
     for (int i = 0; data->desc[i].param_type != CALLDATA_TYPE_END; ++i) {
-        blog(LOG_WARNING, "Param Type: %i", data->desc[i].param_type);
+        const char *name = data->desc[i].param_name;
+        calldata_type type = data->desc[i].param_type;
+        
+        if (type == CALLDATA_TYPE_SCENE) {
+            obs_scene_t *scene = 
+                (obs_scene_t*)calldata_ptr(&data->calldata, name);
+
+            obs_source_t *source = obs_scene_get_source(scene);
+            blog(LOG_WARNING, "Scene Name: %s", obs_source_get_name(source)); 
+        }
     }
 
     return result;
