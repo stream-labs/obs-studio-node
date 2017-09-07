@@ -37,6 +37,8 @@ NAN_MODULE_INIT(Scene::Init)
     Nan::SetMethod(locProto->PrototypeTemplate(), "add", add);
     Nan::SetMethod(locProto->PrototypeTemplate(), "duplicate", duplicate);
     Nan::SetMethod(locProto, "create", create);
+    Nan::SetMethod(locProto, "connect", connect);
+    //Nan::SetMethod(locProto, "disconnect", disconnect);
     Nan::SetMethod(locProto, "createPrivate", createPrivate);
     Nan::SetMethod(locProto, "fromName", fromName);
 
