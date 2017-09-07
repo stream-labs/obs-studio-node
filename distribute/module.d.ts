@@ -474,6 +474,17 @@ export interface IModule {
     dataPath(): string;
     status(): number;
 }
-export declare function addItems(scene: IScene, sceneItems: any[]): ISceneItem[];
+export interface ISceneItemInfo {
+    name: string;
+    sourceId: string;
+    sceneItemId: string;
+    crop: ICropInfo;
+    scaleX: number;
+    scaleY: number;
+    visible: boolean;
+    x: number;
+    y: number;
+}
+export declare function addItems(scene: IScene, sceneItems: ISceneItemInfo[]): ISceneItem[];
 export declare function createSources(sources: any[]): IInput[];
 export declare function getSourcesSize(sources: any[]): any[];

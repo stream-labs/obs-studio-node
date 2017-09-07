@@ -1109,8 +1109,20 @@ export interface IModule {
     dataPath(): string;
     status(): number;
 }
-export function addItems(scene: IScene, sceneItems: any[]): ISceneItem[] {
-    const items: any = [];
+
+export interface ISceneItemInfo {
+    name: string,
+    sourceId: string,
+    sceneItemId: string,
+    crop: ICropInfo,
+    scaleX: number,
+    scaleY: number,
+    visible: boolean,
+    x: number,
+    y:number
+}
+export function addItems(scene: IScene, sceneItems: ISceneItemInfo[]): ISceneItem[] {
+    const items: ISceneItem[] = [];
     if (Array.isArray(sceneItems)) {
         sceneItems.forEach(function(sceneItem) {
             const source = obs.Input.fromName(sceneItem.name);
@@ -1135,7 +1147,7 @@ export function addItems(scene: IScene, sceneItems: any[]): ISceneItem[] {
     return items;
 }
 export function createSources(sources: any[]): IInput[] {
-    const items: any = [];
+    const items: IInput[] = [];
     if (Array.isArray(sources)) {
         sources.forEach(function (source) {
             const newSource = obs.Input.create(source.type, source.name, source.settings);
