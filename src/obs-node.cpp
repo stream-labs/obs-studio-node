@@ -42,6 +42,8 @@ NAN_MODULE_INIT(node_initialize)
     osn::Volmeter::Init(target);
     osn::FaderCallback::Init(target);
     osn::Fader::Init(target);
+
+    osn::SceneSignalCallback::Init(target);
 }
 
 NODE_MODULE(obs_node, node_initialize)
