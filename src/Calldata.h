@@ -95,3 +95,29 @@ osn_value_from_calldata(callback_data *data)
 
     return result;
 }
+
+template <typename BindingType>
+static void osn_generic_signal_cb(void *data, calldata_t *calldata)
+{
+    BindingType *cb_binding = 
+        reinterpret_cast<BindingType*>(data);
+
+    uint32_t signal_type = *((uint32_t*)cb_binding->user_data);
+
+    /* Careful not to use v8 reliant stuff here */
+    callback_data *params = 
+        new callback_data(osn_copy_calldata(calldata), (calldata_desc*)cb_binding->user_data);
+    
+    params->param = cb_binding;
+
+    cb_binding->queue.send(params);
+}
+
+template <typename Parent, typename Item>
+static void osn_generic_js_event(Parent *scene, Item *item)
+{
+    v8::Local<v8::Value> result = 
+    osn_value_from_calldata(item);
+
+    delete item;
+}

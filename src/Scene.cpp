@@ -328,38 +328,6 @@ static calldata_desc *callback_desc_map[] = {
     item_signal_desc
 };
 
-void Scene::SignalHandler(Scene *scene, callback_data *item)
-{
-    v8::Local<v8::Value> result = 
-        osn_value_from_calldata(item);
-
-    delete item;
-}
-
-struct SceneSignalData {
-    SceneSignalData(SceneSignalCallback *callback, enum signal_types type) 
-      : callback(callback), type(type) { }
-
-    SceneSignalCallback *callback; // Actual JS Callback
-    enum signal_types type;
-};
-
-static void scene_signal_cb(void *data, calldata_t *calldata)
-{
-    SceneSignalCallback *cb_binding = 
-        reinterpret_cast<SceneSignalCallback*>(data);
-
-    uint32_t signal_type = *((uint32_t*)cb_binding->user_data);
-
-    /* Careful not to use v8 reliant stuff here */
-    callback_data *params = 
-        new callback_data(osn_copy_calldata(calldata), (calldata_desc*)cb_binding->user_data);
-    
-    params->param = cb_binding;
-
-    cb_binding->queue.send(params);
-}
-
 NAN_METHOD(Scene::connect)
 {
     obs::weak<obs::scene> &scene = Scene::Object::GetHandle(info.Holder());
@@ -377,12 +345,18 @@ NAN_METHOD(Scene::connect)
     }
 
     SceneSignalCallback *cb_binding = 
-        new SceneSignalCallback(this_binding, Scene::SignalHandler, callback);
+        new SceneSignalCallback(
+            this_binding, 
+            osn_generic_js_event<Scene, callback_data>, 
+            callback);
 
     cb_binding->user_data =
         callback_desc_map[signal_type];
 
-    scene.get()->connect(signal_type_map[signal_type], scene_signal_cb, cb_binding);
+    scene.get()->connect(
+        signal_type_map[signal_type],
+        osn_generic_signal_cb<SceneSignalCallback>,
+        cb_binding);
 
     auto object = SceneSignalCallback::Object::GenerateObject(cb_binding);
     cb_binding->obj_ref.Reset(object);
