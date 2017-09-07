@@ -118,6 +118,7 @@ struct CallbackData : public Nan::ObjectWrap {
     
     Nan::Persistent<v8::Object> obj_ref;
     Nan::Callback cb;
+    void *user_data; /* Extra user data */
 
     /* Since events are deferred, we need
      * some way to know if we should actually

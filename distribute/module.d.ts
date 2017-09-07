@@ -182,6 +182,15 @@ export declare const enum ESpeakerLayout {
     SevenOneSurround = 9,
     Surround = 10,
 }
+export declare const enum ESceneSignalType {
+    ItemAdd = 0,
+    ItemRemove = 1,
+    Reorder = 2,
+    ItemVisible = 3,
+    ItemSelect = 4,
+    ItemDeselect = 5,
+    ItemTransform = 6,
+}
 export declare const Global: IGlobal;
 export declare const InputFactory: IInputFactory;
 export declare const SceneFactory: ISceneFactory;
@@ -357,6 +366,8 @@ export interface IScene extends ISource {
     findItem(id: string | number): ISceneItem;
     getItemAtIdx(idx: number): ISceneItem;
     getItems(): ISceneItem[];
+    connect(sigType: ESceneSignalType, cb: () => void): ICallbackData;
+    disconnect(data: ICallbackData): void;
 }
 export interface ISceneItem {
     readonly source: IInput;

@@ -344,20 +344,18 @@ struct SceneSignalData {
 
 static void scene_signal_cb(void *data, calldata_t *calldata)
 {
-    SceneSignalData *sig_data = 
-        reinterpret_cast<SceneSignalData*>(data);
+    SceneSignalCallback *cb_binding = 
+        reinterpret_cast<SceneSignalCallback*>(data);
 
-    SceneSignalCallback *cb_binding = sig_data->callback;
-    calldata_desc *desc = callback_desc_map[sig_data->type];
+    uint32_t signal_type = *((uint32_t*)cb_binding->user_data);
 
     /* Careful not to use v8 reliant stuff here */
     callback_data *params = 
-        new callback_data(osn_copy_calldata(calldata), desc);
+        new callback_data(osn_copy_calldata(calldata), (calldata_desc*)cb_binding->user_data);
     
     params->param = cb_binding;
 
     cb_binding->queue.send(params);
-    delete sig_data;
 }
 
 NAN_METHOD(Scene::connect)
@@ -379,10 +377,10 @@ NAN_METHOD(Scene::connect)
     SceneSignalCallback *cb_binding = 
         new SceneSignalCallback(this_binding, Scene::SignalHandler, callback);
 
-    SceneSignalData *sig_data =
-        new SceneSignalData(cb_binding, (enum signal_types)signal_type);
+    cb_binding->user_data =
+        callback_desc_map[signal_type];
 
-    scene.get()->connect(signal_type_map[signal_type], scene_signal_cb, sig_data);
+    scene.get()->connect(signal_type_map[signal_type], scene_signal_cb, cb_binding);
 
     auto object = SceneSignalCallback::Object::GenerateObject(cb_binding);
     cb_binding->obj_ref.Reset(object);

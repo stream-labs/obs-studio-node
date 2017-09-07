@@ -235,6 +235,16 @@ export const enum ESpeakerLayout {
     Surround
 };
 
+export const enum ESceneSignalType {
+    ItemAdd,
+    ItemRemove,
+    Reorder,
+    ItemVisible,
+    ItemSelect,
+    ItemDeselect,
+    ItemTransform
+}
+
 export const Global: IGlobal = obs.Global;
 export const InputFactory: IInputFactory = obs.Input;
 export const SceneFactory: ISceneFactory = obs.Scene;
@@ -721,6 +731,17 @@ export interface IScene extends ISource {
      * @returns - The array of item instances
      */
     getItems(): ISceneItem[];
+
+    /**
+     * Connect a callback to a particular signal 
+     * associated with this scene. 
+     */
+    connect(sigType: ESceneSignalType, cb: () => void): ICallbackData;
+
+    /**
+     * Disconnect the signal registered with connect()
+     */
+    disconnect(data: ICallbackData): void;
 }
 
 /**
