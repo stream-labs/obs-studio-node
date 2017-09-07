@@ -17,5 +17,7 @@ obs-build64
 dependencies2015*
 distribute/obs_node.lib
 distribute/obs_node.node
+distribute/obs_node.pdb
 distribute/simple_draw.dll
 distribute/simple_draw.lib
+distribute/simple_draw.pdb
