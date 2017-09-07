@@ -1,8 +1,8 @@
-#include "Scene.h"
-#include "SceneItem.h"
-#include "Input.h"
+#include "Calldata.h"
 
 namespace osn {
+
+typedef common::CallbackData<callback_data, Scene> SceneSignalCallback;
 
 obs::source Scene::GetHandle()
 {
@@ -24,6 +24,8 @@ Nan::Persistent<v8::FunctionTemplate> Scene::prototype =
 
 NAN_MODULE_INIT(Scene::Init)
 {
+    SceneSignalCallback::Init(target);
+
     auto locProto = Nan::New<v8::FunctionTemplate>();
     locProto->Inherit(Nan::New(ISource::prototype));
     locProto->SetClassName(FIELD_NAME("Scene"));
@@ -347,7 +349,7 @@ NAN_METHOD(Scene::connect)
     SceneSignalCallback *cb_binding = 
         new SceneSignalCallback(
             this_binding, 
-            osn_generic_js_event<Scene, callback_data>, 
+            osn_generic_js_event<Scene, callback_data, SceneSignalCallback>,
             callback);
 
     cb_binding->user_data =

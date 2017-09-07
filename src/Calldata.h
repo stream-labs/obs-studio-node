@@ -1,7 +1,15 @@
 #pragma once
 
+#include "Scene.h"
+#include "Input.h"
+#include "Filter.h"
+#include "Transition.h"
+#include "SceneItem.h"
+#include "Common.h"
+
 #include <callback/calldata.h>
-#include "Async.h"
+
+namespace osn {
 
 /**
  Problems with this approach:
@@ -30,7 +38,6 @@ enum calldata_type {
     CALLDATA_TYPE_FILTER,
     CALLDATA_TYPE_SCENE,
     CALLDATA_TYPE_SCENEITEM,
-    CALLDATA_TYPE_VOID,
     CALLDATA_TYPE_INT,
     CALLDATA_TYPE_FLOAT,
     CALLDATA_TYPE_BOOL,
@@ -45,6 +52,15 @@ enum calldata_type {
 struct calldata_desc {
     const char *param_name;
     enum calldata_type param_type;
+};
+
+/** Generic callback data for signals */
+struct callback_data { 
+    callback_data(calldata_t data, calldata_desc *desc) 
+      : calldata(data), desc(desc) { }
+    calldata_t calldata;
+    calldata_desc *desc;
+    void *param;
 };
 
 /**
@@ -71,14 +87,42 @@ osn_copy_calldata(calldata_t *data)
     return copy;
 }
 
-/** Generic callback data for signals */
-struct callback_data { 
-    callback_data(calldata_t data, calldata_desc *desc) 
-      : calldata(data), desc(desc) { }
-    calldata_t calldata;
-    calldata_desc *desc;
-    void *param;
-};
+static v8::Local<v8::Value>
+osn_value_from_calldata_param(calldata_t *cd, const char* name, calldata_type type)
+{
+    switch (type) {
+   case CALLDATA_TYPE_INPUT: {
+       Input *binding = new Input((obs_source_t*)calldata_ptr(cd, name));
+       return Input::Object::GenerateObject(binding);
+   }
+   case CALLDATA_TYPE_FILTER: {
+       Filter *binding = new Filter((obs_source_t*)calldata_ptr(cd, name));
+       return Filter::Object::GenerateObject(binding);
+   }
+   case CALLDATA_TYPE_SCENEITEM: {
+       SceneItem *binding = new SceneItem((obs_sceneitem_t*)calldata_ptr(cd, name));
+       return SceneItem::Object::GenerateObject(binding);
+   }
+   case CALLDATA_TYPE_TRANSITION: {
+       Transition *binding = new Transition((obs_source_t*)calldata_ptr(cd, name));
+       return Transition::Object::GenerateObject(binding);
+   }
+    case CALLDATA_TYPE_SCENE: {
+        Scene *binding = new Scene((obs_scene_t*)calldata_ptr(cd, name));
+        return Scene::Object::GenerateObject(binding);
+    }
+    case CALLDATA_TYPE_INT:
+        return common::ToValue(calldata_int(cd, name));
+    case CALLDATA_TYPE_FLOAT: 
+        return common::ToValue(calldata_float(cd, name));
+    case CALLDATA_TYPE_BOOL:
+        return common::ToValue(calldata_bool(cd, name));
+    case CALLDATA_TYPE_STRING:
+        return common::ToValue(calldata_string(cd, name));
+    case CALLDATA_TYPE_END:
+        return Nan::Null();
+    }
+}
 
 static inline v8::Local<v8::Value> 
 osn_value_from_calldata(callback_data *data)
@@ -92,14 +136,12 @@ osn_value_from_calldata(callback_data *data)
     for (int i = 0; data->desc[i].param_type != CALLDATA_TYPE_END; ++i) {
         const char *name = data->desc[i].param_name;
         calldata_type type = data->desc[i].param_type;
-        
-        if (type == CALLDATA_TYPE_SCENE) {
-            obs_scene_t *scene = 
-                (obs_scene_t*)calldata_ptr(&data->calldata, name);
+        calldata_t *calldata = &data->calldata;
 
-            obs_source_t *source = obs_scene_get_source(scene);
-            blog(LOG_WARNING, "Scene Name: %s", obs_source_get_name(source)); 
-        }
+        v8::Local<v8::Value> value = 
+            osn_value_from_calldata_param(calldata, name, type);
+        
+        common::SetObjectField(result, name, value);
     }
 
     return result;
@@ -122,11 +164,29 @@ static void osn_generic_signal_cb(void *data, calldata_t *calldata)
     cb_binding->queue.send(params);
 }
 
-template <typename Parent, typename Item>
+template <typename Parent, typename Item, typename Callback>
 static void osn_generic_js_event(Parent *scene, Item *item)
 {
+    /* We're in v8 context here */
+    Callback *cb_binding = 
+        reinterpret_cast<Callback*>(item->param);
+
+    /** We're in v8 context here */
     v8::Local<v8::Value> result = 
-    osn_value_from_calldata(item);
+        osn_value_from_calldata(item);
+
+    if (cb_binding->stopped) {
+        delete item; 
+        return;
+    }
+
+    v8::Local<v8::Value> args[] = {
+        result
+    };
+
+    cb_binding->cb.Call(1, args);
 
     delete item;
+}
+
 }

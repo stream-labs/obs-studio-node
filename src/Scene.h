@@ -5,12 +5,9 @@
 #include "obspp/obspp-scene.hpp"
 
 #include "ISource.h"
-#include "Calldata.h"
 #include "Common.h"
 
 namespace osn {
-
-class Scene;
 
 class Scene : public ISource
 {
@@ -26,7 +23,6 @@ public:
     Scene(std::string name, bool is_private = false);
     Scene(obs::scene handle);
 
-    static void SignalHandler(Scene *scene, callback_data *item);
     virtual obs::source GetHandle();
     
     static NAN_MODULE_INIT(Init);
@@ -42,7 +38,5 @@ public:
     static NAN_METHOD(add);
     static NAN_METHOD(connect);
 };
-
-typedef common::CallbackData<callback_data, Scene> SceneSignalCallback;
 
 }
