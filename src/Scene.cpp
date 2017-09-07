@@ -1,3 +1,6 @@
+#include "Scene.h"
+#include "SceneItem.h"
+#include "Input.h"
 #include "Calldata.h"
 
 namespace osn {
@@ -349,7 +352,7 @@ NAN_METHOD(Scene::connect)
     SceneSignalCallback *cb_binding = 
         new SceneSignalCallback(
             this_binding, 
-            osn_generic_js_event<Scene, callback_data, SceneSignalCallback>,
+            CalldataEventHandler<Scene, callback_data, SceneSignalCallback>,
             callback);
 
     cb_binding->user_data =
@@ -357,7 +360,7 @@ NAN_METHOD(Scene::connect)
 
     scene.get()->connect(
         signal_type_map[signal_type],
-        osn_generic_signal_cb<SceneSignalCallback>,
+        GenericSignalHandler<SceneSignalCallback>,
         cb_binding);
 
     auto object = SceneSignalCallback::Object::GenerateObject(cb_binding);
@@ -367,5 +370,4 @@ NAN_METHOD(Scene::connect)
 
 Nan::Persistent<v8::FunctionTemplate> SceneSignalCallback::prototype = 
     Nan::Persistent<v8::FunctionTemplate>();
-
 }

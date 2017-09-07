@@ -57,6 +57,8 @@ endif()
 add_library(${OSN_NODE_NAME} SHARED
     "src/AudioControls.cpp"
     "src/AudioControls.h"
+    "src/Calldata.cpp"
+    "src/Calldata.h"
     "src/Common.cpp"
     "src/Common.h"
     "src/Properties.cpp"
