@@ -44,6 +44,8 @@ NAN_MODULE_INIT(Input::Init)
     Nan::SetMethod(locProto->InstanceTemplate(), "findFilter", findFilter);
     Nan::SetMethod(locProto->InstanceTemplate(), "addFilter", addFilter);
     Nan::SetMethod(locProto->InstanceTemplate(), "removeFilter", removeFilter);
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("width"), width);
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("height"), height);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("filters"), filters);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("volume"), volume, volume);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("syncOffset"), syncOffset, syncOffset);
@@ -159,6 +161,20 @@ NAN_METHOD(Input::createPrivate)
     binding = new Input(id, name, settings, true);
     auto object = Input::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
+}
+
+NAN_GETTER(Input::width)
+{
+    obs::source handle = ISource::GetHandle(info.Holder());
+
+    info.GetReturnValue().Set(handle.width());
+}
+
+NAN_GETTER(Input::height)
+{
+    obs::source handle = ISource::GetHandle(info.Holder());
+
+    info.GetReturnValue().Set(handle.height());
 }
 
 NAN_METHOD(Input::fromName)
