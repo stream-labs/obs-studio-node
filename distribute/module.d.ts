@@ -366,7 +366,7 @@ export interface IScene extends ISource {
     findItem(id: string | number): ISceneItem;
     getItemAtIdx(idx: number): ISceneItem;
     getItems(): ISceneItem[];
-    connect(sigType: ESceneSignalType, cb: () => void): ICallbackData;
+    connect(sigType: ESceneSignalType, cb: (info: ISettings) => void): ICallbackData;
     disconnect(data: ICallbackData): void;
 }
 export interface ISceneItem {

@@ -736,7 +736,7 @@ export interface IScene extends ISource {
      * Connect a callback to a particular signal 
      * associated with this scene. 
      */
-    connect(sigType: ESceneSignalType, cb: () => void): ICallbackData;
+    connect(sigType: ESceneSignalType, cb: (info: ISettings) => void): ICallbackData;
 
     /**
      * Disconnect the signal registered with connect()
