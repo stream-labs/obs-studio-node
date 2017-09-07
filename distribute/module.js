@@ -48,6 +48,13 @@ function createSources(sources) {
         sources.forEach(function (source) {
             const newSource = obs.Input.create(source.type, source.name, source.settings);
             items.push(newSource);
+            const filters = source.filters.data.items;
+            if (Array.isArray(filters)) {
+                filters.forEach(function (filter) {
+                    const ObsFilter = obs.Filter.create(filter.type, filter.name, filter.settings);
+                    newSource.addFilter(ObsFilter);
+                });
+            }
         });
     }
     return items;
