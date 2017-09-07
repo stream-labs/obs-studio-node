@@ -264,4 +264,132 @@ NAN_METHOD(Scene::add)
     info.GetReturnValue().Set(object);
 }
 
+/**
+    If libobs allowed us the ability to parse
+    or obtain info about the signals associated with
+    a handler, this could be done generically instead of a
+    hard coded table like this.
+
+    Notice that in this case, the signal handler of a scene
+    is in addition to the signals a source can receive. 
+    However, I just require you use the signal handler
+    associated with the input object instead to keep things
+    simple.
+ */
+static const char *signal_type_map[] = {
+    "item_add",
+    "item_remove",
+    "reorder",
+    "item_visible",
+    "item_select",
+    "item_deselect",
+    "item_transform"
+};
+
+enum signal_types {
+    SIG_ITEM_ADD,
+    SIG_ITEM_REMOVE,
+    SIG_REORDER,
+    SIG_ITEM_VISIBLE,
+    SIG_ITEM_SELECT,
+    SIG_ITEM_DESELECT,
+    SIG_ITEM_TRANSORM,
+    SIG_TYPE_OVERFLOW
+};
+
+static calldata_desc scene_signal_desc[] = {
+    { "scene", CALLDATA_TYPE_SCENE },
+    { "", CALLDATA_TYPE_END }
+};
+
+static calldata_desc item_signal_desc[] = {
+    { "scene", CALLDATA_TYPE_SCENE },
+    { "item", CALLDATA_TYPE_SCENEITEM },
+    { "", CALLDATA_TYPE_END }
+};
+
+static calldata_desc item_visible_signal_desc[] = {
+    { "scene", CALLDATA_TYPE_SCENE },
+    { "item", CALLDATA_TYPE_SCENEITEM },
+    { "visibility", CALLDATA_TYPE_BOOL },
+    { "", CALLDATA_TYPE_END }
+};
+
+
+static calldata_desc *callback_desc_map[] = {
+    item_signal_desc, 
+    item_signal_desc,
+    scene_signal_desc,
+    item_visible_signal_desc,
+    item_signal_desc,
+    item_signal_desc,
+    item_signal_desc
+};
+
+void Scene::SignalHandler(Scene *scene, callback_data *item)
+{
+    v8::Local<v8::Value> result = 
+        osn_value_from_calldata(item);
+
+    delete item;
+}
+
+struct SceneSignalData {
+    SceneSignalData(SceneSignalCallback *callback, enum signal_types type) 
+      : callback(callback), type(type) { }
+
+    SceneSignalCallback *callback; // Actual JS Callback
+    enum signal_types type;
+};
+
+static void scene_signal_cb(void *data, calldata_t *calldata)
+{
+    SceneSignalData *sig_data = 
+        reinterpret_cast<SceneSignalData*>(data);
+
+    SceneSignalCallback *cb_binding = sig_data->callback;
+    calldata_desc *desc = callback_desc_map[sig_data->type];
+
+    /* Careful not to use v8 reliant stuff here */
+    callback_data *params = 
+        new callback_data(osn_copy_calldata(calldata), desc);
+    
+    params->param = cb_binding;
+
+    cb_binding->queue.send(params);
+    delete sig_data;
+}
+
+NAN_METHOD(Scene::connect)
+{
+    obs::weak<obs::scene> &scene = Scene::Object::GetHandle(info.Holder());
+    Scene* this_binding = Nan::ObjectWrap::Unwrap<Scene>(info.Holder());
+
+    uint32_t signal_type;
+    v8::Local<v8::Function> callback;
+
+    ASSERT_GET_VALUE(info[0], signal_type);
+    ASSERT_GET_VALUE(info[1], callback);
+
+    if (signal_type >= SIG_TYPE_OVERFLOW) {
+        Nan::ThrowError("Detected signal map overflow");
+        return;
+    }
+
+    SceneSignalCallback *cb_binding = 
+        new SceneSignalCallback(this_binding, Scene::SignalHandler, callback);
+
+    SceneSignalData *sig_data =
+        new SceneSignalData(cb_binding, (enum signal_types)signal_type);
+
+    scene.get()->connect(signal_type_map[signal_type], scene_signal_cb, sig_data);
+
+    auto object = SceneSignalCallback::Object::GenerateObject(cb_binding);
+    cb_binding->obj_ref.Reset(object);
+    info.GetReturnValue().Set(object);
+}
+
+Nan::Persistent<v8::FunctionTemplate> SceneSignalCallback::prototype = 
+    Nan::Persistent<v8::FunctionTemplate>();
+
 }
