@@ -127,7 +127,7 @@ osn_value_from_calldata_param(calldata_t *cd, const char* name, calldata_type ty
 static inline v8::Local<v8::Value> 
 osn_value_from_calldata(callback_data *data)
 {
-    v8::Local<v8::Object> result;
+    auto result = Nan::New<v8::Object>();
 
     if (!data) { 
         return Nan::Null();
