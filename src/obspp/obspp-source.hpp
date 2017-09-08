@@ -133,6 +133,9 @@ public:
 
     uint32_t width();
     uint32_t height();
+
+    void connect(const char *signal, signal_callback_t callback, void *data);
+    void disconnect(const char *signal, signal_callback_t callback, void *data);
 };
 
 }

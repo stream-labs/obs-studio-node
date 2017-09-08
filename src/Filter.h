@@ -17,7 +17,7 @@ public:
     weak_handle_t handle;
 
     Filter(std::string id, std::string name, obs_data_t *settings);
-    Filter(obs::filter &filter);
+    Filter(obs::filter filter);
 
     virtual obs::source GetHandle();
     static NAN_MODULE_INIT(Init);

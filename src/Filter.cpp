@@ -10,7 +10,7 @@ Filter::Filter(std::string id, std::string name, obs_data_t *settings)
 {
 }
 
-Filter::Filter(obs::filter &filter)
+Filter::Filter(obs::filter filter)
  : handle(obs::filter(filter))
 {
 }

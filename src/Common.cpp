@@ -177,6 +177,10 @@ v8::Local<v8::Value> ToValue(v8::Local<v8::Object> value)
 { return value; }
 
 template <>
+v8::Local<v8::Value> ToValue(v8::Local<v8::Value> value)
+{ return value; }
+
+template <>
 v8::Local<v8::Value> ToValue(v8::Local<v8::Array> value)
 { return value; }
 

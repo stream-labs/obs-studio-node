@@ -21,10 +21,10 @@ function installBindings() {
     shell.exec(installCmd, { silent: true, async: true }, finishInstall);
 }
 function finishBuild(error, stdout, stderr) {
-    shell.ShellString(stdout).to(`logs/bindings.build.stdout.txt`);
-    shell.ShellString(stdout).to(`logs/bindings.build.stderr.txt`);
     if (error) {
-        console.log(`Failed to exec cmake: ${error}`);
+        console.log(`Failed to exec cmake build: ${error}`);
+        console.log(stdout);
+        console.log(stderr);
         process.exit(1);
     }
     installBindings();
@@ -35,13 +35,12 @@ function buildBindings() {
     shell.exec(buildCmd, { silent: true, async: true }, finishBuild);
 }
 function finishConfigure(error, stdout, stderr) {
-    shell.ShellString(stdout).to(`logs/bindings.configure.stdout.txt`);
-    shell.ShellString(stdout).to(`logs/bindings.configure.stderr.txt`);
     if (error) {
-        console.log(`Failed to exec cmake: ${error}`);
+        console.log(`Failed to exec cmake configure: ${error}`);
+        console.log(stdout);
+        console.log(stderr);
         process.exit(1);
     }
-    console.log(stdout);
     buildBindings();
 }
 function configureBindings() {
@@ -60,11 +59,14 @@ function configureBindings() {
     shell.exec(configureCmd, { async: true, silent: true }, finishConfigure);
 }
 shell.mkdir(`logs`);
-shell.exec('npm bin', { async: true, silent: true }, (error, stdout, stderr) => {
+function fetchNpmBin(error, stdout, stderr) {
     if (error) {
+        console.log(stdout);
+        console.log(stderr);
         console.log(`Failed to fetch npm bin path: ${error}`);
         process.exit(1);
     }
     npm_bin_path = stdout.trim();
     configureBindings();
-});
+}
+shell.exec('npm bin', { async: true, silent: true }, fetchNpmBin);
