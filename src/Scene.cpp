@@ -42,7 +42,7 @@ NAN_MODULE_INIT(Scene::Init)
     Nan::SetMethod(locProto->PrototypeTemplate(), "add", add);
     Nan::SetMethod(locProto->PrototypeTemplate(), "duplicate", duplicate);
     Nan::SetMethod(locProto->PrototypeTemplate(), "connect", connect);
-    //Nan::SetMethod(locProto->PrototypeTemplate(), "disconnect", disconnect);
+    Nan::SetMethod(locProto->PrototypeTemplate(), "disconnect", disconnect);
     Nan::SetMethod(locProto, "create", create);
     Nan::SetMethod(locProto, "createPrivate", createPrivate);
     Nan::SetMethod(locProto, "fromName", fromName);
@@ -344,8 +344,8 @@ NAN_METHOD(Scene::connect)
     ASSERT_GET_VALUE(info[0], signal_type);
     ASSERT_GET_VALUE(info[1], callback);
 
-    if (signal_type >= SIG_TYPE_OVERFLOW) {
-        Nan::ThrowError("Detected signal map overflow");
+    if (signal_type >= SIG_TYPE_OVERFLOW || signal_type < 0) {
+        Nan::ThrowError("Detected signal type out of range");
         return;
     }
 
@@ -366,6 +366,33 @@ NAN_METHOD(Scene::connect)
     auto object = SceneSignalCallback::Object::GenerateObject(cb_binding);
     cb_binding->obj_ref.Reset(object);
     info.GetReturnValue().Set(object);
+}
+
+NAN_METHOD(Scene::disconnect)
+{
+    obs::weak<obs::scene> &scene = Scene::Object::GetHandle(info.Holder());
+
+    uint32_t signal_type;
+    v8::Local<v8::Object> cb_data_object;
+
+    ASSERT_GET_VALUE(info[0], signal_type);
+    ASSERT_GET_VALUE(info[1], cb_data_object);
+
+    if (signal_type >= SIG_TYPE_OVERFLOW || signal_type < 0) {
+        Nan::ThrowError("Detected signal type out of range");
+        return;
+    }
+
+    SceneSignalCallback *cb_binding =
+        SceneSignalCallback::Object::GetHandle(cb_data_object);
+
+    cb_binding->stopped = true;
+    cb_binding->obj_ref.Reset();
+
+    scene.get()->disconnect(
+        signal_type_map[signal_type],
+        GenericSignalHandler<SceneSignalCallback>,
+        cb_binding);
 }
 
 Nan::Persistent<v8::FunctionTemplate> SceneSignalCallback::prototype = 
