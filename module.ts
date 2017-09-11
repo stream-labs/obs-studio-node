@@ -1185,7 +1185,7 @@ export function createSources(sources: any[]): IInput[] {
     return items;
 }
 export function getSourcesSize(sources: any[]): any[] {
-    const t0 = performance.now();
+    const time = process.hrtime();
     const sourcesSize: any = [];
     if (Array.isArray(sources)) {
         sources.forEach(function (source) {
@@ -1193,7 +1193,7 @@ export function getSourcesSize(sources: any[]): any[] {
             sourcesSize.push({ id: source.source.sourceState.id, height: ObsInput.height, width: ObsInput.width, outputFlags: ObsInput.outputFlags });
         });
     }
-    const t1 = performance.now();
-    console.log('Call to getSourcesSize took ' + (t1 - t0) + ' milliseconds.');
+    const diff = process.hrtime(time);
+    console.log('Call to getSourcesSize took ' + diff + ' nanoseconds.');
     return sourcesSize;
 }
