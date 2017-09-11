@@ -498,4 +498,10 @@ export interface ISceneItemInfo {
 }
 export declare function addItems(scene: IScene, sceneItems: ISceneItemInfo[]): ISceneItem[];
 export declare function createSources(sources: any[]): IInput[];
-export declare function getSourcesSize(sources: any[]): any[];
+export interface ISourceSize {
+    name: string;
+    width: number;
+    height: number;
+    outputFlags: number;
+}
+export declare function getSourcesSize(sourcesNames: string[]): ISourceSize[];

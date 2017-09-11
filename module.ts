@@ -1184,17 +1184,19 @@ export function createSources(sources: any[]): IInput[] {
     }
     return items;
 }
-export function getSourcesSize(sources: any[]): any[] {
-    const NS_PER_SEC = 1e9;
-    const time = process.hrtime();
-    const sourcesSize: any = [];
-    if (Array.isArray(sources)) {
-        sources.forEach(function (source) {
-            const ObsInput = obs.Input.fromName(source.source.displayName);
-            sourcesSize.push({ id: source.source.sourceState.id, height: ObsInput.height, width: ObsInput.width, outputFlags: ObsInput.outputFlags });
+export interface ISourceSize {
+    name: string,
+    width: number,
+    height: number,
+    outputFlags: number,
+}
+export function getSourcesSize(sourcesNames: string[]): ISourceSize[] {
+    const sourcesSize: ISourceSize[] = [];
+    if (Array.isArray(sourcesNames)) {
+        sourcesNames.forEach(function (sourceName) {
+            const ObsInput = obs.Input.fromName(sourceName);
+            sourcesSize.push({ name: sourceName, height: ObsInput.height, width: ObsInput.width, outputFlags: ObsInput.outputFlags });
         });
     }
-    const diff = process.hrtime(time);
-    console.log('Call to getSourcesSize took ' + diff[0] * NS_PER_SEC + diff[1] + ' nanoseconds.');
     return sourcesSize;
 }
