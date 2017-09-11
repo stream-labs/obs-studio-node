@@ -61,6 +61,7 @@ function createSources(sources) {
 }
 exports.createSources = createSources;
 function getSourcesSize(sources) {
+    const t0 = performance.now();
     const sourcesSize = [];
     if (Array.isArray(sources)) {
         sources.forEach(function (source) {
@@ -68,6 +69,8 @@ function getSourcesSize(sources) {
             sourcesSize.push({ id: source.source.sourceState.id, height: ObsInput.height, width: ObsInput.width, outputFlags: ObsInput.outputFlags });
         });
     }
+    const t1 = performance.now();
+    console.log('Call to getSourcesSize took ' + (t1 - t0) + ' milliseconds.');
     return sourcesSize;
 }
 exports.getSourcesSize = getSourcesSize;
