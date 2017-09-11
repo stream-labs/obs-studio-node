@@ -61,6 +61,7 @@ function createSources(sources) {
 }
 exports.createSources = createSources;
 function getSourcesSize(sources) {
+    const NS_PER_SEC = 1e9;
     const time = process.hrtime();
     const sourcesSize = [];
     if (Array.isArray(sources)) {
@@ -70,7 +71,7 @@ function getSourcesSize(sources) {
         });
     }
     const diff = process.hrtime(time);
-    console.log('Call to getSourcesSize took ' + diff + ' nanoseconds.');
+    console.log('Call to getSourcesSize took ' + diff[0] * NS_PER_SEC + diff[1] + ' nanoseconds.');
     return sourcesSize;
 }
 exports.getSourcesSize = getSourcesSize;

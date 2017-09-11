@@ -1185,6 +1185,7 @@ export function createSources(sources: any[]): IInput[] {
     return items;
 }
 export function getSourcesSize(sources: any[]): any[] {
+    const NS_PER_SEC = 1e9;
     const time = process.hrtime();
     const sourcesSize: any = [];
     if (Array.isArray(sources)) {
@@ -1194,6 +1195,6 @@ export function getSourcesSize(sources: any[]): any[] {
         });
     }
     const diff = process.hrtime(time);
-    console.log('Call to getSourcesSize took ' + diff + ' nanoseconds.');
+    console.log('Call to getSourcesSize took ' + diff[0] * NS_PER_SEC + diff[1] + ' nanoseconds.');
     return sourcesSize;
 }
