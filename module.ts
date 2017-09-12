@@ -1140,7 +1140,8 @@ export interface ISceneItemInfo {
     scaleY: number,
     visible: boolean,
     x: number,
-    y:number
+    y:number,
+    locked: boolean
 }
 export function addItems(scene: IScene, sceneItems: ISceneItemInfo[]): ISceneItem[] {
     const items: ISceneItem[] = [];
