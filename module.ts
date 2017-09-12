@@ -5,6 +5,9 @@ import * as path from 'path';
 export const DefaultD3D11Path: string = 
     path.resolve(__dirname, `libobs-d3d11.dll`);
 
+export const DefaultOpenGLPath: string = 
+    path.resolve(__dirname, `libobs-opengl.dll`);
+
 export const DefaultDrawPluginPath: string = 
     path.resolve(__dirname, `simple_draw.dll`);
 

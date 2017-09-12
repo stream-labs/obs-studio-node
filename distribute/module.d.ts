@@ -1,4 +1,5 @@
 export declare const DefaultD3D11Path: string;
+export declare const DefaultOpenGLPath: string;
 export declare const DefaultDrawPluginPath: string;
 export declare const DefaultBinPath: string;
 export declare const DefaultDataPath: string;
