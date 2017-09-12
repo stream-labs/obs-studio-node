@@ -495,7 +495,6 @@ export interface ISceneItemInfo {
     visible: boolean;
     x: number;
     y: number;
-    locked: boolean;
 }
 export declare function addItems(scene: IScene, sceneItems: ISceneItemInfo[]): ISceneItem[];
 export declare function createSources(sources: any[]): IInput[];

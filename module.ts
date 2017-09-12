@@ -1140,8 +1140,7 @@ export interface ISceneItemInfo {
     scaleY: number,
     visible: boolean,
     x: number,
-    y:number,
-    locked: boolean
+    y:number
 }
 export function addItems(scene: IScene, sceneItems: ISceneItemInfo[]): ISceneItem[] {
     const items: ISceneItem[] = [];
@@ -1162,7 +1161,6 @@ export function addItems(scene: IScene, sceneItems: ISceneItemInfo[]): ISceneIte
               };
 
             item.crop = cropModel;
-        // item.setLocked(obj.locked || false);
             items.push(item);
         });
     }
