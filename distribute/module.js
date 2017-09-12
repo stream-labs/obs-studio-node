@@ -47,6 +47,9 @@ function createSources(sources) {
     if (Array.isArray(sources)) {
         sources.forEach(function (source) {
             const newSource = obs.Input.create(source.type, source.name, source.settings);
+            if (newSource.audioMixers) {
+                newSource.muted = source.muted || false;
+            }
             items.push(newSource);
             const filters = source.filters.data.items;
             if (Array.isArray(filters)) {
