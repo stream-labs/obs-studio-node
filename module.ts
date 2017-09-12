@@ -1133,3 +1133,75 @@ export interface IModule {
     dataPath(): string;
     status(): number;
 }
+
+export interface ISceneItemInfo {
+    name: string,
+    sourceId: string,
+    sceneItemId: string,
+    crop: ICropInfo,
+    scaleX: number,
+    scaleY: number,
+    visible: boolean,
+    x: number,
+    y:number
+}
+export function addItems(scene: IScene, sceneItems: ISceneItemInfo[]): ISceneItem[] {
+    const items: ISceneItem[] = [];
+    if (Array.isArray(sceneItems)) {
+        sceneItems.forEach(function(sceneItem) {
+            const source = obs.Input.fromName(sceneItem.name);
+            const item = scene.add(source);
+
+            item.position = {x: sceneItem.x, y: sceneItem.y};
+            item.scale = {x: sceneItem.scaleX, y: sceneItem.scaleY};
+            item.visible = sceneItem.visible;
+
+            const cropModel = {
+                top: Math.round(sceneItem.crop.top),
+                right: Math.round(sceneItem.crop.right),
+                bottom: Math.round(sceneItem.crop.bottom),
+                left: Math.round(sceneItem.crop.left)
+              };
+
+            item.crop = cropModel;
+            items.push(item);
+        });
+    }
+    return items;
+}
+export function createSources(sources: any[]): IInput[] {
+    const items: IInput[] = [];
+    if (Array.isArray(sources)) {
+        sources.forEach(function (source) {
+            const newSource = obs.Input.create(source.type, source.name, source.settings);
+            if (newSource.audioMixers) {
+                newSource.muted = source.muted || false;
+            }
+            items.push(newSource);
+            const filters = source.filters.data.items;
+            if (Array.isArray(filters)) {
+                    filters.forEach(function (filter) {
+                    const ObsFilter = obs.Filter.create(filter.type, filter.name, filter.settings);
+                    newSource.addFilter(ObsFilter);
+                });
+            }
+        });
+    }
+    return items;
+}
+export interface ISourceSize {
+    name: string,
+    width: number,
+    height: number,
+    outputFlags: number,
+}
+export function getSourcesSize(sourcesNames: string[]): ISourceSize[] {
+    const sourcesSize: ISourceSize[] = [];
+    if (Array.isArray(sourcesNames)) {
+        sourcesNames.forEach(function (sourceName) {
+            const ObsInput = obs.Input.fromName(sourceName);
+            sourcesSize.push({ name: sourceName, height: ObsInput.height, width: ObsInput.width, outputFlags: ObsInput.outputFlags });
+        });
+    }
+    return sourcesSize;
+}
