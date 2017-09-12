@@ -37,6 +37,7 @@ public:
     static NAN_METHOD(getItemAtIdx);
     static NAN_METHOD(add);
     static NAN_METHOD(connect);
+    static NAN_METHOD(disconnect);
 };
 
 }
