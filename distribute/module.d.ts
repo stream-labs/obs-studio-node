@@ -1,4 +1,5 @@
 export declare const DefaultD3D11Path: string;
+export declare const DefaultOpenGLPath: string;
 export declare const DefaultDrawPluginPath: string;
 export declare const DefaultBinPath: string;
 export declare const DefaultDataPath: string;
@@ -182,6 +183,15 @@ export declare const enum ESpeakerLayout {
     SevenOneSurround = 9,
     Surround = 10,
 }
+export declare const enum ESceneSignalType {
+    ItemAdd = 0,
+    ItemRemove = 1,
+    Reorder = 2,
+    ItemVisible = 3,
+    ItemSelect = 4,
+    ItemDeselect = 5,
+    ItemTransform = 6,
+}
 export declare const Global: IGlobal;
 export declare const InputFactory: IInputFactory;
 export declare const SceneFactory: ISceneFactory;
@@ -341,6 +351,8 @@ export interface IInput extends ISource {
     addFilter(filter: IFilter): void;
     removeFilter(filter: IFilter): void;
     readonly filters: IFilter[];
+    readonly width: number;
+    readonly height: number;
 }
 export interface ISceneFactory {
     create(name: string): IScene;
@@ -355,6 +367,8 @@ export interface IScene extends ISource {
     findItem(id: string | number): ISceneItem;
     getItemAtIdx(idx: number): ISceneItem;
     getItems(): ISceneItem[];
+    connect(sigType: ESceneSignalType, cb: (info: ISettings) => void): ICallbackData;
+    disconnect(data: ICallbackData): void;
 }
 export interface ISceneItem {
     readonly source: IInput;

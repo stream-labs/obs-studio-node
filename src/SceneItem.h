@@ -9,7 +9,6 @@ namespace osn {
 
 class SceneItem : public Nan::ObjectWrap
 {
-    friend Scene;
     static Nan::Persistent<v8::FunctionTemplate> prototype;
 
 public:

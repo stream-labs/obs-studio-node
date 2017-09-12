@@ -5,6 +5,9 @@ import * as path from 'path';
 export const DefaultD3D11Path: string = 
     path.resolve(__dirname, `libobs-d3d11.dll`);
 
+export const DefaultOpenGLPath: string = 
+    path.resolve(__dirname, `libobs-opengl.dll`);
+
 export const DefaultDrawPluginPath: string = 
     path.resolve(__dirname, `simple_draw.dll`);
 
@@ -234,6 +237,16 @@ export const enum ESpeakerLayout {
     SevenOneSurround,
     Surround
 };
+
+export const enum ESceneSignalType {
+    ItemAdd,
+    ItemRemove,
+    Reorder,
+    ItemVisible,
+    ItemSelect,
+    ItemDeselect,
+    ItemTransform
+}
 
 export const Global: IGlobal = obs.Global;
 export const InputFactory: IInputFactory = obs.Input;
@@ -630,6 +643,16 @@ export interface IInput extends ISource {
      * Obtain a list of all filters associated with the input source
      */
     readonly filters: IFilter[];
+
+    /**
+     * Width of the underlying source
+     */
+    readonly width: number;
+
+    /**
+     * Height of the underlying source
+     */
+    readonly height: number;
 }
 
 export interface ISceneFactory {
@@ -711,6 +734,17 @@ export interface IScene extends ISource {
      * @returns - The array of item instances
      */
     getItems(): ISceneItem[];
+
+    /**
+     * Connect a callback to a particular signal 
+     * associated with this scene. 
+     */
+    connect(sigType: ESceneSignalType, cb: (info: ISettings) => void): ICallbackData;
+
+    /**
+     * Disconnect the signal registered with connect()
+     */
+    disconnect(data: ICallbackData): void;
 }
 
 /**

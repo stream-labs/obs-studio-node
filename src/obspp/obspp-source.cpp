@@ -180,4 +180,20 @@ uint32_t source::width()
     return obs_source_get_width(m_handle);
 }
 
+void source::connect(const char *signal, signal_callback_t callback, void *data)
+{
+    signal_handler_t *handler =
+        obs_source_get_signal_handler(m_handle);
+
+    signal_handler_connect(handler, signal, callback, data);
+}
+
+void source::disconnect(const char *signal, signal_callback_t callback, void *data)
+{
+    signal_handler_t *handler =
+        obs_source_get_signal_handler(m_handle);
+
+    signal_handler_disconnect(handler, signal, callback, data);
+}
+
 }
