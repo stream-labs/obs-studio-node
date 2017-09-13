@@ -30,6 +30,7 @@ function addItems(scene, sceneItems) {
             item.position = { x: sceneItem.x, y: sceneItem.y };
             item.scale = { x: sceneItem.scaleX, y: sceneItem.scaleY };
             item.visible = sceneItem.visible;
+            item.rotation = sceneItem.rotation;
             const cropModel = {
                 top: Math.round(sceneItem.crop.top),
                 right: Math.round(sceneItem.crop.right),
