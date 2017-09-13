@@ -16,7 +16,6 @@ display::display(gs_init_data &data)
 
 display::~display()
 {
-    obs_display_destroy(m_handle);
 }
 
 display::status_type display::status()

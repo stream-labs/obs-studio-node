@@ -488,8 +488,6 @@ export interface IModule {
 }
 export interface ISceneItemInfo {
     name: string;
-    sourceId: string;
-    sceneItemId: string;
     crop: ICropInfo;
     scaleX: number;
     scaleY: number;
