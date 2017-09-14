@@ -1016,10 +1016,7 @@ Display::Display()
     // Text
     m_textVertices = new VertexBufferHelper();
     m_textEffect = obs_get_base_effect(OBS_EFFECT_DEFAULT);
-    m_textTexture = gs_texture_create_from_file("node-obs/roboto.png");
-    if (!m_textTexture) {
-        throw std::runtime_error("couldn't load roboto font");
-    }
+    m_textTexture = nullptr;
 
     obs_leave_graphics();
 
@@ -1073,14 +1070,19 @@ Display::Display(uint64_t windowHandle, obs_source_t *source) : Display(windowHa
 
 NAN_METHOD(Display::create)
 {
+    Display *binding;
     v8::Local<v8::Object> buffer_obj;
- 
-    ASSERT_INFO_LENGTH(info, 1);
-    ASSERT_GET_VALUE(info[0], buffer_obj);
 
-    int64_t window = *((int64_t*)node::Buffer::Data(buffer_obj));
+    switch (info.Length()) {
+    case 1:
+        ASSERT_GET_VALUE(info[0], buffer_obj);
+        binding = new Display(*((int64_t*)node::Buffer::Data(buffer_obj)));
+        break;
+    case 0:
+        binding = new Display();
+        break;
+    }
 
-    Display *binding = new Display(window);
     auto object = Display::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }
