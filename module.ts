@@ -1141,7 +1141,8 @@ export interface ISceneItemInfo {
     scaleY: number,
     visible: boolean,
     x: number,
-    y:number
+    y: number,
+    rotation: number
 }
 export function addItems(scene: IScene, sceneItems: ISceneItemInfo[]): ISceneItem[] {
     const items: ISceneItem[] = [];
@@ -1153,6 +1154,7 @@ export function addItems(scene: IScene, sceneItems: ISceneItemInfo[]): ISceneIte
             item.position = {x: sceneItem.x, y: sceneItem.y};
             item.scale = {x: sceneItem.scaleX, y: sceneItem.scaleY};
             item.visible = sceneItem.visible;
+            item.rotation = sceneItem.rotation;
 
             const cropModel = {
                 top: Math.round(sceneItem.crop.top),

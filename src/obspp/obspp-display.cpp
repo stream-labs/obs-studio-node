@@ -40,14 +40,14 @@ void display::resize(uint32_t width, uint32_t height)
     obs_display_resize(m_handle, width, height);
 }
 
-void display::add_drawer(draw_callback_t drawer)
+void display::add_drawer(draw_callback_t drawer, void *data)
 {
-
+    obs_display_add_draw_callback(m_handle, drawer, data);
 }
 
-void display::remove_drawer(draw_callback_t drawer)
+void display::remove_drawer(draw_callback_t drawer, void *data)
 {
-
+    obs_display_remove_draw_callback(m_handle, drawer, data);
 }
 
 void display::enabled(bool is_enabled)

@@ -1,5 +1,7 @@
 #include "Common.h"
 
+#include <cstdint>
+
 namespace osn {
 namespace common {
 
@@ -14,6 +16,14 @@ const char *GetErrorString<uint32_t>()
 template <>
 const char *GetErrorString<int32_t>()
 { return "Expected signed integer"; }
+
+template <>
+const char *GetErrorString<int8_t>()
+{ return "Expected signed 8-bit integer or character"; }
+
+template <>
+const char *GetErrorString<uint8_t>()
+{ return "Expected signed 8-bit integer or character"; }
 
 template <>
 const char *GetErrorString<double>()
@@ -34,6 +44,14 @@ const char *GetErrorString<std::string>()
 template <>
 const char *GetErrorString<vec2>()
 { return "Expected vec2 object"; }
+
+template <>
+const char *GetErrorString<std::pair<uint32_t, uint32_t>>()
+{ return "Expected an unsigned position object"; }
+
+template <>
+const char *GetErrorString<std::pair<int32_t, int32_t>>()
+{ return "Expected an signed position object"; }
 
 template <>
 const char *GetErrorString<v8::Local<v8::Object>>()
@@ -196,6 +214,28 @@ v8::Local<v8::Value> ToValue(vec2 value)
 }
 
 template <>
+v8::Local<v8::Value> ToValue(std::pair<uint32_t, uint32_t> value)
+{
+    auto object = Nan::New<v8::Object>();
+
+    SetObjectField(object, "x", value.first);
+    SetObjectField(object, "y", value.second);
+
+    return object;
+}
+
+template <>
+v8::Local<v8::Value> ToValue(std::pair<int32_t, int32_t> value)
+{
+    auto object = Nan::New<v8::Object>();
+
+    SetObjectField(object, "x", value.first);
+    SetObjectField(object, "y", value.second);
+
+    return object;
+}
+
+template <>
 v8::Local<v8::Value> ToValue<obs_data_array_t *>(obs_data_array_t *array_data);
 
 template <>
@@ -329,6 +369,52 @@ bool FromValue(v8::Local<v8::Value> value, int32_t &var)
     return true;
 }
 
+template <>
+bool FromValue(v8::Local<v8::Value> value, int8_t &var)
+{
+    int32_t tmp = 0;
+
+    if (!value->IsInt32()) {
+        var = 0;
+        return false;
+    }
+
+    tmp = Nan::To<int32_t>(value).FromJust();
+
+    if (tmp > INT8_MAX) {
+        var = INT8_MAX;
+    } else if (tmp < INT8_MIN) {
+        var = INT8_MIN;
+    } else {
+        var = tmp;
+    }
+
+    return true;
+}
+
+
+template <>
+bool FromValue(v8::Local<v8::Value> value, uint8_t &var)
+{
+    uint32_t tmp = 0;
+    
+    if (!value->IsUint32()) {
+        var = 0;
+        return false;
+    }
+
+    tmp = Nan::To<uint32_t>(value).FromJust();
+
+    if (tmp > UINT8_MAX) {
+        var = INT8_MAX;
+    } else {
+        var = tmp;
+    }
+
+    return true;
+}
+
+
 /* Since C++ is a piece of shit, we need to list each and every enum
  * as its own explicit specialization. There are probably better ways
  * but I'd like to finish this before I throw my laptop from our 
@@ -433,6 +519,30 @@ bool FromValue(v8::Local<v8::Value> value, vec2 &var)
     return
         GetFromObject(value_obj, "x", var.x) &&
         GetFromObject(value_obj, "y", var.y);
+}
+
+template <>
+bool FromValue(v8::Local<v8::Value> value, std::pair<int32_t, int32_t> &var)
+{
+    if (!value->IsObject()) return false;
+
+    auto value_obj = Nan::To<v8::Object>(value).ToLocalChecked();
+
+    return
+        GetFromObject(value_obj, "x", var.first) &&
+        GetFromObject(value_obj, "y", var.second);
+}
+
+template <>
+bool FromValue(v8::Local<v8::Value> value, std::pair<uint32_t, uint32_t> &var)
+{
+    if (!value->IsObject()) return false;
+
+    auto value_obj = Nan::To<v8::Object>(value).ToLocalChecked();
+
+    return
+        GetFromObject(value_obj, "x", var.first) &&
+        GetFromObject(value_obj, "y", var.second);
 }
 
 template <>
