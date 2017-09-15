@@ -127,5 +127,21 @@ struct CallbackData : public Nan::ObjectWrap {
     bool stopped;
 };
 
+struct RelativeTime {
+    RelativeTime() {};
+    RelativeTime(uint64_t value) 
+      : ms(value / 1000000), 
+        ns(value % 1000000)
+    {
+    }
+
+    uint32_t ms;
+    uint32_t ns;
+
+    uint64_t value() { 
+        return (ms * 1000000) + ns;
+    }
+};
+
 }
 }

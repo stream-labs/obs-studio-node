@@ -48,6 +48,17 @@ float input::volume()
     return obs_source_get_volume(m_handle);
 }
 
+int64_t input::sync_offset()
+{
+    return obs_source_get_sync_offset(m_handle);
+}
+
+void input::sync_offset(int64_t offset)
+{
+    return obs_source_set_sync_offset(m_handle, offset);
+}
+
+
 bool input::active()
 {
     return obs_source_active(m_handle);

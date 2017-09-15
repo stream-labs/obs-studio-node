@@ -217,12 +217,20 @@ NAN_SETTER(Input::volume)
 
 NAN_GETTER(Input::syncOffset)
 {
-    /* TODO Needs a 64-bit offset */
+    obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
+    common::RelativeTime time(handle.get()->sync_offset());
+
+    info.GetReturnValue().Set(common::ToValue(time));
 }
 
 NAN_SETTER(Input::syncOffset)
 {
-    /* TODO Needs a 64-bit offset */
+    obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
+    common::RelativeTime time;
+    
+    ASSERT_GET_VALUE(value, time);
+    
+    handle.get()->sync_offset(time.value());
 }
 
 NAN_GETTER(Input::active)

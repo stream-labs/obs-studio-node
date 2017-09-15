@@ -46,6 +46,10 @@ const char *GetErrorString<vec2>()
 { return "Expected vec2 object"; }
 
 template <>
+const char *GetErrorString<common::RelativeTime>()
+{ return "Expected a RelativeTime object"; }
+
+template <>
 const char *GetErrorString<std::pair<uint32_t, uint32_t>>()
 { return "Expected an unsigned position object"; }
 
@@ -209,6 +213,17 @@ v8::Local<v8::Value> ToValue(vec2 value)
 
     SetObjectField(object, "x", value.x);
     SetObjectField(object, "y", value.y);
+
+    return object;
+}
+
+template <>
+v8::Local<v8::Value> ToValue(common::RelativeTime value)
+{
+    auto object = Nan::New<v8::Object>();
+
+    SetObjectField(object, "ms", value.ns / 1000000);
+    SetObjectField(object, "ns", value.ns % 1000000);
 
     return object;
 }
@@ -519,6 +534,18 @@ bool FromValue(v8::Local<v8::Value> value, vec2 &var)
     return
         GetFromObject(value_obj, "x", var.x) &&
         GetFromObject(value_obj, "y", var.y);
+}
+
+template <>
+bool FromValue(v8::Local<v8::Value> value, common::RelativeTime &var)
+{
+    if (!value->IsObject()) return false;
+
+    auto value_obj = Nan::To<v8::Object>(value).ToLocalChecked();
+
+    return
+        GetFromObject(value_obj, "ms", var.ms) &&
+        GetFromObject(value_obj, "ns", var.ns);
 }
 
 template <>
