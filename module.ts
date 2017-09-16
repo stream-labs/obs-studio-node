@@ -276,6 +276,16 @@ export interface IVec2 {
 }
 
 /**
+ * Used to represented a time in nanoseconds
+ * JS can't hold 64-bit integers thus can
+ * easily overflow when representing time in ns.
+ */
+export interface ITimeSpec {
+    readonly sec: number;
+    readonly nsec: number;
+}
+
+/**
  * Interface describing the transform information in an item
  */
 export interface ITransformInfo {

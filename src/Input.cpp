@@ -218,26 +218,33 @@ NAN_SETTER(Input::volume)
 NAN_GETTER(Input::syncOffset)
 {
     obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
-    common::RelativeTime time(handle.get()->sync_offset());
+    uint64_t offset = handle.get()->sync_offset();
+    timespec tv;
 
-    info.GetReturnValue().Set(common::ToValue(time));
+    tv.tv_sec = offset / 1000000000;
+    tv.tv_nsec = offset % 1000000000;
+
+    info.GetReturnValue().Set(common::ToValue(tv));
 }
 
 NAN_SETTER(Input::syncOffset)
 {
     obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
-    common::RelativeTime time;
+    uint64_t offset;
+    timespec tv;
     
-    ASSERT_GET_VALUE(value, time);
+    ASSERT_GET_VALUE(value, tv);
+
+    offset = (tv.tv_sec * 1000000000) + tv.tv_nsec;
     
-    handle.get()->sync_offset(time.value());
+    handle.get()->sync_offset(offset);
 }
 
 NAN_GETTER(Input::active)
 {
     obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(handle.get()->active());
+    info.GetReturnValue().Set(common::ToValue(handle.get()->active()));
 }
 
 NAN_GETTER(Input::showing)

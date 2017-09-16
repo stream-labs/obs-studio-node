@@ -46,8 +46,8 @@ const char *GetErrorString<vec2>()
 { return "Expected vec2 object"; }
 
 template <>
-const char *GetErrorString<common::RelativeTime>()
-{ return "Expected a RelativeTime object"; }
+const char *GetErrorString<timespec>()
+{ return "Expected a time object"; }
 
 template <>
 const char *GetErrorString<std::pair<uint32_t, uint32_t>>()
@@ -122,18 +122,32 @@ v8::Local<v8::Value> ToValue(bool value)
 { return Nan::New<v8::Boolean>(value); }
 
 template <>
-v8::Local<v8::Value> ToValue(int value)
+v8::Local<v8::Value> ToValue(int16_t value)
 { return Nan::New<v8::Integer>(value); }
 
 template <>
-v8::Local<v8::Value> ToValue(long long value)
+v8::Local<v8::Value> ToValue(uint16_t value)
+{ return Nan::New<v8::Uint32>(value); }
+
+template <>
+v8::Local<v8::Value> ToValue(int32_t value)
+{ return Nan::New<v8::Integer>(value); }
+
+template <>
+v8::Local<v8::Value> ToValue(uint32_t value)
+{ return Nan::New<v8::Uint32>(value); }
+
+template <>
+v8::Local<v8::Value> ToValue(int64_t value)
 {
     return Nan::New<v8::Integer>(static_cast<int32_t>(value));
 }
 
 template <>
-v8::Local<v8::Value> ToValue(unsigned int value)
-{ return Nan::New<v8::Uint32>(value); }
+v8::Local<v8::Value> ToValue(uint64_t value)
+{
+    return Nan::New<v8::Uint32>(static_cast<uint32_t>(value));
+}
 
 template <>
 v8::Local<v8::Value> ToValue(float value)
@@ -218,12 +232,12 @@ v8::Local<v8::Value> ToValue(vec2 value)
 }
 
 template <>
-v8::Local<v8::Value> ToValue(common::RelativeTime value)
+v8::Local<v8::Value> ToValue(timespec value)
 {
     auto object = Nan::New<v8::Object>();
 
-    SetObjectField(object, "ms", value.ns / 1000000);
-    SetObjectField(object, "ns", value.ns % 1000000);
+    SetObjectField(object, "sec", static_cast<uint32_t>(value.tv_sec));
+    SetObjectField(object, "nsec", static_cast<uint32_t>(value.tv_nsec));
 
     return object;
 }
@@ -537,15 +551,22 @@ bool FromValue(v8::Local<v8::Value> value, vec2 &var)
 }
 
 template <>
-bool FromValue(v8::Local<v8::Value> value, common::RelativeTime &var)
+bool FromValue(v8::Local<v8::Value> value, timespec &var)
 {
     if (!value->IsObject()) return false;
 
     auto value_obj = Nan::To<v8::Object>(value).ToLocalChecked();
+    uint32_t sec;
+    uint32_t nsec;
 
-    return
-        GetFromObject(value_obj, "ms", var.ms) &&
-        GetFromObject(value_obj, "ns", var.ns);
+    if (GetFromObject(value_obj, "ms", sec) &&
+        GetFromObject(value_obj, "ns", nsec)) {
+            var.tv_sec = sec;
+            var.tv_nsec = nsec;
+            return true;
+        }
+
+    return false;
 }
 
 template <>

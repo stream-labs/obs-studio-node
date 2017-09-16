@@ -4,6 +4,7 @@
 #include <obs.h>
 
 #include <iostream>
+#include <ctime>
 
 #include "Async.h"
 
@@ -125,22 +126,6 @@ struct CallbackData : public Nan::ObjectWrap {
      * fire off an event when it's finally 
      * being executed. */
     bool stopped;
-};
-
-struct RelativeTime {
-    RelativeTime() {};
-    RelativeTime(uint64_t value) 
-      : ms(value / 1000000), 
-        ns(value % 1000000)
-    {
-    }
-
-    uint32_t ms;
-    uint32_t ns;
-
-    uint64_t value() { 
-        return (ms * 1000000) + ns;
-    }
 };
 
 }
