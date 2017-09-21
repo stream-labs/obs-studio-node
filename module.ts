@@ -1199,6 +1199,7 @@ export function createSources(sources: any[]): IInput[] {
             const newSource = obs.Input.create(source.type, source.name, source.settings);
             if (newSource.audioMixers) {
                 newSource.muted = source.muted || false;
+                newSource.volume = source.volume;
             }
             items.push(newSource);
             const filters = source.filters.data.items;
