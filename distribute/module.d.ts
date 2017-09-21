@@ -511,7 +511,15 @@ export interface ISceneItemInfo {
     rotation: number;
 }
 export declare function addItems(scene: IScene, sceneItems: ISceneItemInfo[]): ISceneItem[];
-export declare function createSources(sources: any[]): IInput[];
+export interface SourceInfo {
+    filters: ISource[];
+    muted: boolean;
+    name: string;
+    settings: ISettings[];
+    type: string;
+    volume: number;
+}
+export declare function createSources(sources: SourceInfo[]): IInput[];
 export interface ISourceSize {
     name: string;
     width: number;

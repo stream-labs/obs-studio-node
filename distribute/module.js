@@ -54,7 +54,7 @@ function createSources(sources) {
                 newSource.volume = source.volume;
             }
             items.push(newSource);
-            const filters = source.filters.data.items;
+            const filters = source.filters;
             if (Array.isArray(filters)) {
                 filters.forEach(function (filter) {
                     const ObsFilter = obs.Filter.create(filter.type, filter.name, filter.settings);
