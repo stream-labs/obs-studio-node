@@ -1192,8 +1192,14 @@ export function addItems(scene: IScene, sceneItems: ISceneItemInfo[]): ISceneIte
     }
     return items;
 }
+export interface FilterInfo {
+    name: string,
+    type: string,
+    settings: ISettings,
+    enabled: boolean
+}
 export interface SourceInfo {
-    filters: ISource[],
+    filters: FilterInfo[],
     muted: boolean,
     name: string,
     settings: ISettings[],

@@ -511,8 +511,14 @@ export interface ISceneItemInfo {
     rotation: number;
 }
 export declare function addItems(scene: IScene, sceneItems: ISceneItemInfo[]): ISceneItem[];
+export interface FilterInfo {
+    name: string;
+    type: string;
+    settings: ISettings;
+    enabled: boolean;
+}
 export interface SourceInfo {
-    filters: ISource[];
+    filters: FilterInfo[];
     muted: boolean;
     name: string;
     settings: ISettings[];
