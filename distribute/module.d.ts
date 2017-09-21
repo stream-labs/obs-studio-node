@@ -210,6 +210,10 @@ export interface IVec2 {
     readonly x: number;
     readonly y: number;
 }
+export interface ITimeSpec {
+    readonly sec: number;
+    readonly nsec: number;
+}
 export interface ITransformInfo {
     readonly pos: IVec2;
     readonly rot: number;
