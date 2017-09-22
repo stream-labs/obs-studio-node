@@ -1192,19 +1192,35 @@ export function addItems(scene: IScene, sceneItems: ISceneItemInfo[]): ISceneIte
     }
     return items;
 }
-export function createSources(sources: any[]): IInput[] {
+export interface FilterInfo {
+    name: string,
+    type: string,
+    settings: ISettings,
+    enabled: boolean
+}
+export interface SourceInfo {
+    filters: FilterInfo[],
+    muted: boolean,
+    name: string,
+    settings: ISettings,
+    type: string,
+    volume: number
+}
+export function createSources(sources: SourceInfo[]): IInput[] {
     const items: IInput[] = [];
     if (Array.isArray(sources)) {
         sources.forEach(function (source) {
             const newSource = obs.Input.create(source.type, source.name, source.settings);
             if (newSource.audioMixers) {
                 newSource.muted = source.muted || false;
+                newSource.volume = source.volume;
             }
             items.push(newSource);
-            const filters = source.filters.data.items;
+            const filters = source.filters;
             if (Array.isArray(filters)) {
                     filters.forEach(function (filter) {
                     const ObsFilter = obs.Filter.create(filter.type, filter.name, filter.settings);
+                    ObsFilter.enabled = filter.enabled;
                     newSource.addFilter(ObsFilter);
                 });
             }

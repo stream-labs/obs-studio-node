@@ -210,6 +210,10 @@ export interface IVec2 {
     readonly x: number;
     readonly y: number;
 }
+export interface ITimeSpec {
+    readonly sec: number;
+    readonly nsec: number;
+}
 export interface ITransformInfo {
     readonly pos: IVec2;
     readonly rot: number;
@@ -507,7 +511,21 @@ export interface ISceneItemInfo {
     rotation: number;
 }
 export declare function addItems(scene: IScene, sceneItems: ISceneItemInfo[]): ISceneItem[];
-export declare function createSources(sources: any[]): IInput[];
+export interface FilterInfo {
+    name: string;
+    type: string;
+    settings: ISettings;
+    enabled: boolean;
+}
+export interface SourceInfo {
+    filters: FilterInfo[];
+    muted: boolean;
+    name: string;
+    settings: ISettings;
+    type: string;
+    volume: number;
+}
+export declare function createSources(sources: SourceInfo[]): IInput[];
 export interface ISourceSize {
     name: string;
     width: number;
