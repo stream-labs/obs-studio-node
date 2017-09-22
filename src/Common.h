@@ -4,6 +4,7 @@
 #include <obs.h>
 
 #include <iostream>
+#include <ctime>
 
 #include "Async.h"
 
@@ -24,13 +25,13 @@
 
 #define ASSERT_GET_OBJECT_FIELD(object, field, var) \
     if (!osn::common::GetFromObject((object), (field), (var))) { \
-        Nan::ThrowTypeError(osn::common::GetErrorString<decltype(var)>()); \
+        Nan::ThrowTypeError(osn::common::GetErrorString<std::remove_reference<decltype(var)>::type>()); \
         return; \
     }
 
 #define ASSERT_GET_VALUE(value, var) \
     if (!osn::common::FromValue((value), (var))) { \
-        Nan::ThrowTypeError(osn::common::GetErrorString<decltype(var)>()); \
+        Nan::ThrowTypeError(osn::common::GetErrorString<std::remove_reference<decltype(var)>::type>()); \
         return; \
     }
 

@@ -210,6 +210,10 @@ export interface IVec2 {
     readonly x: number;
     readonly y: number;
 }
+export interface ITimeSpec {
+    readonly sec: number;
+    readonly nsec: number;
+}
 export interface ITransformInfo {
     readonly pos: IVec2;
     readonly rot: number;
@@ -455,14 +459,24 @@ export interface IVolmeter {
 export interface ICallbackData {
 }
 export interface IDisplayFactory {
-    create(info: IDisplayInit): IDisplay;
+    create(source?: IInput): IDisplay;
 }
 export interface IDisplay {
     destroy(): void;
-    addDrawer(path: string): void;
-    removeDrawer(path: string): void;
-    readonly status: number;
-    readonly enabled: boolean;
+    setPosition(x: number, y: number): void;
+    getPosition(): IVec2;
+    setSize(x: number, y: number): void;
+    getSize(): IVec2;
+    getPreviewOffset(): IVec2;
+    getPreviewSize(x: number, y: number): void;
+    shouldDrawUI: boolean;
+    paddingSize: number;
+    setPaddingColor(r: number, g: number, b: number, a: number): void;
+    setBackgroundColor(r: number, g: number, b: number, a: number): void;
+    setOutlineColor(r: number, g: number, b: number, a: number): void;
+    setGuidelineColor(r: number, g: number, b: number, a: number): void;
+    setResizeBoxOuterColor(r: number, g: number, b: number, a: number): void;
+    setResizeBoxInnerColor(r: number, g: number, b: number, a: number): void;
 }
 export interface IVideo {
     reset(info: IVideoInfo): number;
@@ -497,7 +511,21 @@ export interface ISceneItemInfo {
     rotation: number;
 }
 export declare function addItems(scene: IScene, sceneItems: ISceneItemInfo[]): ISceneItem[];
-export declare function createSources(sources: any[]): IInput[];
+export interface FilterInfo {
+    name: string;
+    type: string;
+    settings: ISettings;
+    enabled: boolean;
+}
+export interface SourceInfo {
+    filters: FilterInfo[];
+    muted: boolean;
+    name: string;
+    settings: ISettings;
+    type: string;
+    volume: number;
+}
+export declare function createSources(sources: SourceInfo[]): IInput[];
 export interface ISourceSize {
     name: string;
     width: number;

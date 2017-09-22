@@ -51,12 +51,14 @@ function createSources(sources) {
             const newSource = obs.Input.create(source.type, source.name, source.settings);
             if (newSource.audioMixers) {
                 newSource.muted = source.muted || false;
+                newSource.volume = source.volume;
             }
             items.push(newSource);
-            const filters = source.filters.data.items;
+            const filters = source.filters;
             if (Array.isArray(filters)) {
                 filters.forEach(function (filter) {
                     const ObsFilter = obs.Filter.create(filter.type, filter.name, filter.settings);
+                    ObsFilter.enabled = filter.enabled;
                     newSource.addFilter(ObsFilter);
                 });
             }

@@ -1,86 +1,219 @@
 #include "Display.h"
 #include "RenderPlugin.h"
 
-#ifdef _WIN32
+#include <graphics/matrix4.h>
+
+#if defined(_WIN32)
 #include <windows.h>
 #endif
 
+static const uint32_t grayPaddingArea = 10ul;
+
 namespace osn {
 
-static bool DisplayWndClassRegistered;
+/* Originally from node-obs display code */
+#if defined(_WIN32)
 
-static WNDCLASSEX DisplayWndClassObj;
-
-static ATOM DisplayWndClassAtom;
+bool DisplayWndClassRegistered;
+WNDCLASSEX DisplayWndClassObj;
+ATOM DisplayWndClassAtom;
 
 static LRESULT CALLBACK DisplayWndProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam) {
-	switch (uMsg) {
-		case WM_NCHITTEST:
-			return HTTRANSPARENT;
-	}
-	return DefWindowProc(hwnd, uMsg, wParam, lParam);
+    switch (uMsg) {
+        case WM_NCHITTEST:
+            return HTTRANSPARENT;
+    }
+    return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
 static void DisplayWndClass() {
-	if (DisplayWndClassRegistered)
-		return;
+    if (DisplayWndClassRegistered)
+        return;
 
-	DisplayWndClassObj.cbSize = sizeof(WNDCLASSEX);
-	DisplayWndClassObj.style = CS_OWNDC | CS_NOCLOSE | CS_HREDRAW | CS_VREDRAW;// CS_DBLCLKS | CS_HREDRAW | CS_NOCLOSE | CS_VREDRAW | CS_OWNDC;
-	DisplayWndClassObj.lpfnWndProc = DisplayWndProc;
-	DisplayWndClassObj.cbClsExtra = 0;
-	DisplayWndClassObj.cbWndExtra = 0;
-	DisplayWndClassObj.hInstance = NULL;// HINST_THISCOMPONENT;
-	DisplayWndClassObj.hIcon = NULL;
-	DisplayWndClassObj.hCursor = NULL;
-	DisplayWndClassObj.hbrBackground = NULL;
-	DisplayWndClassObj.lpszMenuName = NULL;
-	DisplayWndClassObj.lpszClassName = TEXT("Win32DisplayClass");
-	DisplayWndClassObj.hIconSm = NULL;
+    DisplayWndClassObj.cbSize = sizeof(WNDCLASSEX);
+    DisplayWndClassObj.style = CS_OWNDC | CS_NOCLOSE | CS_HREDRAW | CS_VREDRAW;// CS_DBLCLKS | CS_HREDRAW | CS_NOCLOSE | CS_VREDRAW | CS_OWNDC;
+    DisplayWndClassObj.lpfnWndProc = DisplayWndProc;
+    DisplayWndClassObj.cbClsExtra = 0;
+    DisplayWndClassObj.cbWndExtra = 0;
+    DisplayWndClassObj.hInstance = NULL;// HINST_THISCOMPONENT;
+    DisplayWndClassObj.hIcon = NULL;
+    DisplayWndClassObj.hCursor = NULL;
+    DisplayWndClassObj.hbrBackground = NULL;
+    DisplayWndClassObj.lpszMenuName = NULL;
+    DisplayWndClassObj.lpszClassName = TEXT("Win32DisplayClass");
+    DisplayWndClassObj.hIconSm = NULL;
 
-	DisplayWndClassAtom = RegisterClassEx(&DisplayWndClassObj);
-	if (DisplayWndClassAtom == NULL) {
-		DWORD errorCode = GetLastError();
-		LPSTR errorStr = nullptr;
-		DWORD errorStrSize = 16;
-		DWORD errorStrLen = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, LANG_USER_DEFAULT, errorStr, errorStrSize, NULL);
-		//    MessageBox((HWND)windowHandle, errorStr, "Unexpected Runtime Error", MB_OK | MB_ICONERROR);
-		std::string exceptionMessage(errorStr, errorStrLen);
-		exceptionMessage = "Unexpected WinAPI error: " + exceptionMessage;
-		LocalFree(errorStr);
+    DisplayWndClassAtom = RegisterClassEx(&DisplayWndClassObj);
+    if (DisplayWndClassAtom == NULL) {
+        DWORD errorCode = GetLastError();
+        LPSTR errorStr = nullptr;
+        DWORD errorStrSize = 16;
+        DWORD errorStrLen = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, LANG_USER_DEFAULT, errorStr, errorStrSize, NULL);
+        //    MessageBox((HWND)windowHandle, errorStr, "Unexpected Runtime Error", MB_OK | MB_ICONERROR);
+        std::string exceptionMessage(errorStr, errorStrLen);
+        exceptionMessage = "Unexpected WinAPI error: " + exceptionMessage;
+        LocalFree(errorStr);
 
-		throw std::system_error(errorCode, std::system_category(), exceptionMessage);
-	}
+        throw std::system_error(errorCode, std::system_category(), exceptionMessage);
+    }
 
-	DisplayWndClassRegistered = true;
+    DisplayWndClassRegistered = true;
 }
 
 static BOOL CALLBACK EnumChromeWindowsProc(HWND hwnd, LPARAM lParam) {
-	char buf[256];
-	if (GetClassNameA(hwnd, buf, sizeof(buf) / sizeof(*buf))) {
-		if (strstr(buf, "Intermediate D3D Window")) {
-			LONG_PTR style = GetWindowLongPtr(hwnd, GWL_STYLE);
-			if ((style & WS_CLIPSIBLINGS) == 0) {
-				style |= WS_CLIPSIBLINGS;
-				(void)SetWindowLongPtr(hwnd, GWL_STYLE, style);
-			}
-		}
-	}
-	return TRUE;
+    char buf[256];
+    if (GetClassNameA(hwnd, buf, sizeof(buf) / sizeof(*buf))) {
+        if (strstr(buf, "Intermediate D3D Window")) {
+            LONG_PTR style = GetWindowLongPtr(hwnd, GWL_STYLE);
+            if ((style & WS_CLIPSIBLINGS) == 0) {
+                style |= WS_CLIPSIBLINGS;
+                (void)SetWindowLongPtr(hwnd, GWL_STYLE, style);
+            }
+        }
+    }
+    return TRUE;
 }
 
 static void FixChromeD3DIssue(HWND chromeWindow) {
-	(void)EnumChildWindows(chromeWindow, EnumChromeWindowsProc, (LPARAM)NULL);
+    (void)EnumChildWindows(chromeWindow, EnumChromeWindowsProc, (LPARAM)NULL);
 }
 
-Display::Display(gs_init_data &data)
- : handle(data)
-{
+#endif
+
+VertexHelper::VertexHelper() {
+    vec3_set(&pos, 0, 0, 0);
+    vec3_set(&normal, 0, 0, 0);
+    vec3_set(&tangent, 0, 0, 0);
+    color = 0xFFFFFFFF;
+    vec2_set(&uv0, 0, 0);
+    vec2_set(&uv1, 0, 0);
 }
 
+VertexBufferHelper::VertexBufferHelper(size_t initialSize) {
+    t_vertices.reserve(initialSize);
+    t_normals.reserve(initialSize);
+    t_tangents.reserve(initialSize);
+    t_colors.reserve(initialSize);
+    t_uv0.reserve(initialSize);
+    t_uv1.reserve(initialSize);
+
+    vbdata = gs_vbdata_create();
+    std::memset(vbdata, 0, sizeof(gs_vb_data));
+    vbdata->num = t_vertices.capacity();
+    vbdata->points = t_vertices.data();
+    vbdata->colors = t_colors.data();
+    vbdata->normals = t_normals.data();
+    vbdata->tangents = t_tangents.data();
+    vbdata->num_tex = 2;
+    vbuvdata.resize(2);
+    vbdata->tvarray = vbuvdata.data();
+
+    vbuvdata[0].width = 2;
+    vbuvdata[0].array = t_uv0.data();
+    vbuvdata[1].width = 2;
+    vbuvdata[1].array = t_uv1.data();
+
+    vb = gs_vertexbuffer_create(vbdata, GS_DYNAMIC);
+}
+
+VertexBufferHelper::~VertexBufferHelper() {
+    if (vb) {
+        std::memset(vbdata, 0, sizeof(gs_vb_data));
+        gs_vertexbuffer_destroy(vb);
+    }
+    if (vbdata) {
+        gs_vbdata_destroy(vbdata);
+    }
+}
+
+void VertexBufferHelper::clear() {
+    vertices.clear();
+}
+
+VertexHelper* VertexBufferHelper::add() {
+    vertices.emplace_back();
+    return &vertices.back();
+}
+
+gs_vertbuffer_t* VertexBufferHelper::update() {
+    size_t verts = vertices.size();
+    t_vertices.resize(verts);
+    t_normals.resize(verts);
+    t_tangents.resize(verts);
+    t_colors.resize(verts);
+    t_uv0.resize(verts);
+    t_uv1.resize(verts);
+
+    for (size_t n = 0; n < verts; n++) {
+        VertexHelper& v = vertices[n];
+        vec3_copy(&t_vertices[n], &v.pos);
+        vec3_copy(&t_normals[n], &v.normal);
+        vec3_copy(&t_tangents[n], &v.tangent);
+        t_colors[n] = v.color;
+        vec2_copy(&t_uv0[n], &v.uv0);
+        vec2_copy(&t_uv1[n], &v.uv1);
+    }
+
+    vbdata->num = verts;
+    vbdata->points = t_vertices.data();
+    vbdata->normals = t_normals.data();
+    vbdata->tangents = t_tangents.data();
+    vbdata->colors = t_colors.data();
+    vbdata->tvarray = vbuvdata.data();
+    vbdata->num_tex = 2;
+    vbuvdata[0].width = 2;
+    vbuvdata[0].array = t_uv0.data();
+    vbuvdata[1].width = 2;
+    vbuvdata[1].array = t_uv1.data();
+
+    gs_vertexbuffer_flush(vb);
+    return vb;
+}
+
+size_t VertexBufferHelper::size() {
+    return vertices.size();
+}
+
+static void RecalculateApectRatioConstrainedSize(
+    uint32_t origW, uint32_t origH, uint32_t sourceW, uint32_t sourceH,
+    int32_t& outX, int32_t& outY, uint32_t& outW, uint32_t& outH) {
+
+    double_t sourceAR = double_t(sourceW) / double_t(sourceH);
+    double_t origAR = double_t(origW) / double_t(origH);
+    if (origAR > sourceAR) {
+        outW = uint32_t(double_t(origH) * sourceAR);
+        outH = origH;
+    } else {
+        outW = origW;
+        outH = uint32_t(double_t(origW) * (1.0 / sourceAR));
+    }
+    outX = (int32_t(origW / 2) - int32_t(outW / 2));
+    outY = (int32_t(origH / 2) - int32_t(outH / 2));
+}
 
 Nan::Persistent<v8::FunctionTemplate> Display::prototype = 
     Nan::Persistent<v8::FunctionTemplate>();
+
+static void RGBAFromInfo(
+        const Nan::FunctionCallbackInfo<v8::Value> &info,
+        uint8_t &r, uint8_t &g, uint8_t &b, uint8_t &a)
+{
+    a = 255;
+
+    ASSERT_GET_VALUE(info[0], r);
+    ASSERT_GET_VALUE(info[1], g);
+    ASSERT_GET_VALUE(info[2], b);
+    
+    if (info[3]->IsUint32()) {
+        ASSERT_GET_VALUE(info[3], a);
+    }
+}
+
+static inline 
+uint32_t IntFromRGBA(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255)
+{
+	return (a << 24 | b << 16 | g << 8 | r);
+}
 
 NAN_MODULE_INIT(Display::Init)
 {
@@ -88,132 +221,875 @@ NAN_MODULE_INIT(Display::Init)
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("Display"));
     Nan::SetMethod(locProto, "create", create);
-    Nan::SetPrototypeMethod(locProto, "addDrawer", addDrawer);
-    Nan::SetPrototypeMethod(locProto, "removeDrawer", removeDrawer);
-    Nan::SetPrototypeMethod(locProto, "resize", resize);
     Nan::SetPrototypeMethod(locProto, "destroy", destroy);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("status"), status);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("enabled"), enabled, enabled);
     Nan::Set(target, FIELD_NAME("Display"), locProto->GetFunction());
     prototype.Reset(locProto);
 }
 
-static LRESULT CALLBACK sceneProc(HWND hwnd, UINT message, WPARAM wParam,
-    LPARAM lParam)
-{
-    switch (message) {
-
-    case WM_CLOSE:
-        PostQuitMessage(0);
-        break;
-
-    default:
-        return DefWindowProc(hwnd, message, wParam, lParam);
+Display::~Display() {
+    if (m_source) {
+        obs_source_release(m_source);
     }
 
-    return 0;
+    obs_enter_graphics();
+    if (m_textVertices)
+        delete m_textVertices;
+    if (m_triangles)
+        delete m_triangles;
+    if (m_lines)
+        delete m_lines;
+    obs_leave_graphics();
+
+    #if defined(_WIN32)
+    if (m_ourWindow) {
+        DestroyWindow((HWND)(m_gsInitData.window.hwnd));
+    }
+    #elif defined(__APPLE__)
+    // ToDo
+    #elif defined(__linux__) || defined(__FreeBSD__)
+    // ToDo
+    #endif
+}
+
+NAN_METHOD(Display::setPosition)
+{
+    Display *binding = Nan::ObjectWrap::Unwrap<Display>(info.Holder());
+
+    auto &source = binding->m_source;
+    auto &ourWindow = binding->m_ourWindow;
+    auto &gsInitData = binding->m_gsInitData;
+    auto &position = binding->m_position;
+
+    uint32_t x, y;
+
+    ASSERT_GET_VALUE(info[0], x);
+    ASSERT_GET_VALUE(info[1], y);
+
+    if (source != NULL) {
+        blog(LOG_DEBUG, "<" __FUNCTION__ "> Adjusting display position for source %s to %ldx%ld.",
+            obs_source_get_name(source), x, y);
+    }
+
+    // Move Window
+    #if defined(_WIN32)
+    SetWindowPos(ourWindow, NULL,
+        x, y, gsInitData.cx, gsInitData.cy,
+        SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE);
+    #elif defined(__APPLE__)
+    #elif defined(__linux__) || defined(__FreeBSD__)
+    #endif
+
+    // Store new position.
+    position.first = x;
+    position.second = y;
+}
+
+NAN_METHOD(Display::getPosition)
+{
+    Display *binding = Nan::ObjectWrap::Unwrap<Display>(info.Holder());
+
+    info.GetReturnValue().Set(common::ToValue(binding->m_position));
+}
+
+NAN_METHOD(Display::setSize)
+{
+    obs::display *handle = Display::Object::GetHandle(info.Holder());
+    Display *binding = Nan::ObjectWrap::Unwrap<Display>(info.Holder());
+
+    uint32_t width, height;
+
+    ASSERT_GET_VALUE(info[0], width);
+    ASSERT_GET_VALUE(info[1], height);
+
+    auto &source = binding->m_source;
+    auto &gsInitData = binding->m_gsInitData;
+    auto &position = binding->m_position;
+
+    if (source != NULL) {
+        blog(LOG_DEBUG, "<" __FUNCTION__ "> Adjusting display size for source %s to %ldx%ld.",
+            obs_source_get_name(source), width, height);
+    }
+
+    // Resize Window
+    #if defined(_WIN32)
+    SetWindowPos((HWND)(gsInitData.window.hwnd), NULL,
+        position.first, position.second, width, height,
+        SWP_NOCOPYBITS | SWP_NOMOVE | SWP_NOACTIVATE);
+    #elif defined(__APPLE__)
+    #elif defined(__linux__) || defined(__FreeBSD__)
+    #endif
+
+    // Resize Display
+    handle->resize(width, height);
+
+    // Store new size.
+    gsInitData.cx = width;
+    gsInitData.cy = height;
+    binding->UpdatePreviewArea();
+}
+
+NAN_METHOD(Display::getSize)
+{
+    Display *binding = Nan::ObjectWrap::Unwrap<Display>(info.Holder());
+
+    auto &gsInitData = binding->m_gsInitData;
+
+    info.GetReturnValue().Set(
+        common::ToValue(std::make_pair(gsInitData.cx, gsInitData.cy)));
+}
+
+NAN_METHOD(Display::getPreviewOffset)
+{
+    Display *binding = Nan::ObjectWrap::Unwrap<Display>(info.Holder());
+
+    info.GetReturnValue().Set(common::ToValue(binding->m_previewOffset));
+}
+
+NAN_METHOD(Display::getPreviewSize)
+{
+    Display *binding = Nan::ObjectWrap::Unwrap<Display>(info.Holder());
+
+    info.GetReturnValue().Set(common::ToValue(binding->m_previewSize));
+}
+
+NAN_SETTER(Display::shouldDrawUI)
+{
+    Display *binding = Nan::ObjectWrap::Unwrap<Display>(info.Holder());
+
+    bool shouldDraw;
+
+    ASSERT_GET_VALUE(value, shouldDraw);
+
+    binding->m_shouldDrawUI = shouldDraw;
+}
+
+NAN_GETTER(Display::shouldDrawUI)
+{
+    Display *binding = Nan::ObjectWrap::Unwrap<Display>(info.Holder());
+
+    info.GetReturnValue().Set(binding->m_shouldDrawUI);
+}
+
+NAN_METHOD(Display::setPaddingColor) 
+{
+    Display *binding = Nan::ObjectWrap::Unwrap<Display>(info.Holder());
+    uint8_t r, g, b, a;
+    
+    auto &paddingColor = binding->m_paddingColor;
+
+    RGBAFromInfo(info, r, g, b, a);
+
+    paddingColor[0] = float_t(r) / 255.0f;
+    paddingColor[1] = float_t(g) / 255.0f;
+    paddingColor[2] = float_t(b) / 255.0f;
+    paddingColor[3] = float_t(a) / 255.0f;
+}
+
+NAN_SETTER(Display::paddingSize)
+{
+    Display *binding = Nan::ObjectWrap::Unwrap<Display>(info.Holder());
+
+    uint32_t pixels;
+
+    ASSERT_GET_VALUE(value, pixels);
+
+    binding->m_paddingSize = pixels;
+    binding->UpdatePreviewArea();
+}
+
+NAN_METHOD(Display::setBackgroundColor)
+{
+    Display *binding = Nan::ObjectWrap::Unwrap<Display>(info.Holder());
+    uint8_t r, g, b, a;
+
+    RGBAFromInfo(info, r, g, b, a);
+    binding->m_backgroundColor = IntFromRGBA(r, g, b, a);
+}
+
+NAN_METHOD(Display::setOutlineColor)
+{
+    Display *binding = Nan::ObjectWrap::Unwrap<Display>(info.Holder());
+    uint8_t r, g, b, a;
+
+    RGBAFromInfo(info, r, g, b, a);
+    binding->m_outlineColor = IntFromRGBA(r, g, b, a);
+}
+
+NAN_METHOD(Display::setGuidelineColor)
+{
+    Display *binding = Nan::ObjectWrap::Unwrap<Display>(info.Holder());
+    uint8_t r, g, b, a;
+
+    RGBAFromInfo(info, r, g, b, a);
+    binding->m_guidelineColor = IntFromRGBA(r, g, b, a);
+}
+
+NAN_METHOD(Display::setResizeBoxOuterColor)
+{
+    Display *binding = Nan::ObjectWrap::Unwrap<Display>(info.Holder());
+    uint8_t r, g, b, a;
+
+    RGBAFromInfo(info, r, g, b, a);
+    binding->m_resizeOuterColor = IntFromRGBA(r, g, b, a);
+}
+
+NAN_METHOD(Display::setResizeBoxInnerColor)
+{
+    Display *binding = Nan::ObjectWrap::Unwrap<Display>(info.Holder());
+    uint8_t r, g, b, a;
+
+    RGBAFromInfo(info, r, g, b, a);
+    binding->m_resizeInnerColor = IntFromRGBA(r, g, b, a);
+}
+
+static void DrawGlyph(VertexBufferHelper* vb, float_t x, float_t y, float_t scale, float_t depth, char glyph, uint32_t color) {
+    // I'll be fully honest here, this code is pretty much shit. It works but
+    //  it is far from ideal and can just render very basic text. It does the
+    //  job but, well, lets just say it shouldn't be used for other things.
+
+    float uvX = 0, uvY = 0, uvO = 1.0 / 4.0;
+    switch (glyph) {
+        default:
+            return;
+            break;
+        case '1':
+            uvX = 0;
+            uvY = 0;
+            break;
+        case '2':
+            uvX = uvO;
+            uvY = 0;
+            break;
+        case '3':
+            uvX = uvO * 2;
+            uvY = 0;
+            break;
+        case '4':
+            uvX = uvO * 3;
+            uvY = 0;
+            break;
+        case '5':
+            uvX = 0;
+            uvY = uvO * 1;
+            break;
+        case '6':
+            uvX = uvO;
+            uvY = uvO * 1;
+            break;
+        case '7':
+            uvX = uvO * 2;
+            uvY = uvO * 1;
+            break;
+        case '8':
+            uvX = uvO * 3;
+            uvY = uvO * 1;
+            break;
+        case '9':
+            uvX = 0;
+            uvY = uvO * 2;
+            break;
+        case '0':
+            uvX = uvO;
+            uvY = uvO * 2;
+            break;
+        case 'p':
+            uvX = uvO * 2;
+            uvY = uvO * 2;
+            break;
+        case 'x':
+            uvX = uvO * 3;
+            uvY = uvO * 2;
+            break;
+    }
+
+    // Top Left
+    VertexHelper* v = vb->add();
+    vec3_set(&v->pos, x, y, depth);
+    vec2_set(&v->uv0, uvX, uvY);
+    v->color = color;
+    // Top Right
+    v = vb->add();
+    vec3_set(&v->pos, x + scale, y, depth);
+    vec2_set(&v->uv0, uvX + uvO, uvY);
+    v->color = color;
+    // Bottom Left
+    v = vb->add();
+    vec3_set(&v->pos, x, y + scale * 2, depth);
+    vec2_set(&v->uv0, uvX, uvY + uvO);
+    v->color = color;
+
+    // Top Right
+    v = vb->add();
+    vec3_set(&v->pos, x + scale, y, depth);
+    vec2_set(&v->uv0, uvX + uvO, uvY);
+    v->color = color;
+    // Bottom Left
+    v = vb->add();
+    vec3_set(&v->pos, x, y + scale * 2, depth);
+    vec2_set(&v->uv0, uvX, uvY + uvO);
+    v->color = color;
+    // Bottom Right
+    v = vb->add();
+    vec3_set(&v->pos, x + scale, y + scale * 2, depth);
+    vec2_set(&v->uv0, uvX + uvO, uvY + uvO);
+    v->color = color;
+}
+
+inline static
+void DrawBox(float_t x, float_t y, float_t w, float_t h, float_t depth, uint32_t color, VertexBufferHelper* vbh) {
+    VertexHelper* v;
+
+    v = vbh->add();
+    vec3_set(&v->pos, x, y, depth);
+    v->color = color;
+
+    v = vbh->add();
+    vec3_set(&v->pos, x + w, y, depth);
+    v->color = color;
+
+    v = vbh->add();
+    vec3_set(&v->pos, x, y + h, depth);
+    v->color = color;
+
+    v = vbh->add();
+    vec3_set(&v->pos, x, y + h, depth);
+    v->color = color;
+
+    v = vbh->add();
+    vec3_set(&v->pos, x + w, y, depth);
+    v->color = color;
+
+    v = vbh->add();
+    vec3_set(&v->pos, x + w, y + h, depth);
+    v->color = color;
+}
+
+inline static 
+void DrawBoxOutline(float_t x, float_t y, float_t w, float_t h, float_t depth, uint32_t color, VertexBufferHelper* vbh) {
+    VertexHelper* v;
+
+    v = vbh->add();
+    vec3_set(&v->pos, x, y, depth);
+    v->color = color;
+
+    v = vbh->add();
+    vec3_set(&v->pos, x + w, y, depth);
+    v->color = color;
+
+
+    v = vbh->add();
+    vec3_set(&v->pos, x + w, y, depth);
+    v->color = color;
+
+    v = vbh->add();
+    vec3_set(&v->pos, x + w, y + h, depth);
+    v->color = color;
+
+
+    v = vbh->add();
+    vec3_set(&v->pos, x + w, y + h, depth);
+    v->color = color;
+
+    v = vbh->add();
+    vec3_set(&v->pos, x, y + h, depth);
+    v->color = color;
+
+
+    v = vbh->add();
+    vec3_set(&v->pos, x, y + h, depth);
+    v->color = color;
+
+    v = vbh->add();
+    vec3_set(&v->pos, x, y, depth);
+    v->color = color;
+}
+
+bool Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item, void *param) {
+    osn::Display* dp = reinterpret_cast<osn::Display*>(param);
+
+    obs_source_t* itemSource = obs_sceneitem_get_source(item);
+    obs_source_t* sceneSource = obs_scene_get_source(scene);
+    uint32_t sceneWidth = obs_source_get_width(sceneSource); // Xaymar: this actually works \o/
+    uint32_t sceneHeight = obs_source_get_height(sceneSource);
+    uint32_t itemWidth = obs_source_get_width(itemSource);
+    uint32_t itemHeight = obs_source_get_height(itemSource);
+
+    uint32_t flags = obs_source_get_output_flags(itemSource);
+    bool isOnlyAudio = (flags & OBS_SOURCE_VIDEO) == 0;
+
+    if (obs_sceneitem_selected(item) && !isOnlyAudio && ((itemWidth > 0) && (itemHeight > 0))) {
+        VertexHelper* v;
+
+        matrix4 itemMatrix, sceneToView;
+        obs_sceneitem_get_box_transform(item, &itemMatrix);
+        matrix4_identity(&sceneToView);
+        sceneToView.x.x = dp->m_worldToPreviewScale.x;
+        sceneToView.y.y = dp->m_worldToPreviewScale.y;
+
+        // Retrieve actual corner and edge positions.
+        vec3 corner[4], edge[4], center;
+        {
+            vec3_set(&corner[0], 0, 0, 0);
+            vec3_transform(&corner[0], &corner[0], &itemMatrix);
+            vec3_transform(&corner[0], &corner[0], &sceneToView);
+            vec3_set(&corner[1], 1, 0, 0);
+            vec3_transform(&corner[1], &corner[1], &itemMatrix);
+            vec3_transform(&corner[1], &corner[1], &sceneToView);
+            vec3_set(&corner[2], 1, 1, 0);
+            vec3_transform(&corner[2], &corner[2], &itemMatrix);
+            vec3_transform(&corner[2], &corner[2], &sceneToView);
+            vec3_set(&corner[3], 0, 1, 0);
+            vec3_transform(&corner[3], &corner[3], &itemMatrix);
+            vec3_transform(&corner[3], &corner[3], &sceneToView);
+
+            vec3_set(&edge[0], 0, 0.5, 0);
+            vec3_transform(&edge[0], &edge[0], &itemMatrix);
+            vec3_transform(&edge[0], &edge[0], &sceneToView);
+            vec3_set(&edge[1], 0.5, 0, 0);
+            vec3_transform(&edge[1], &edge[1], &itemMatrix);
+            vec3_transform(&edge[1], &edge[1], &sceneToView);
+            vec3_set(&edge[2], 1, 0.5, 0);
+            vec3_transform(&edge[2], &edge[2], &itemMatrix);
+            vec3_transform(&edge[2], &edge[2], &sceneToView);
+            vec3_set(&edge[3], 0.5, 1, 0);
+            vec3_transform(&edge[3], &edge[3], &itemMatrix);
+            vec3_transform(&edge[3], &edge[3], &sceneToView);
+
+            vec3_set(&center, 0.5, 0.5, 0);
+            vec3_transform(&center, &center, &itemMatrix);
+            vec3_transform(&center, &center, &sceneToView);
+        }
+
+        float_t pt = 8;
+        for (size_t n = 0; n < 4; n++) {
+            bool isIn = (edge[n].x >= 0) && (edge[n].x < sceneWidth * dp->m_worldToPreviewScale.x)
+                && (edge[n].y >= 0) && (edge[n].y < sceneHeight * dp->m_worldToPreviewScale.y);
+
+            if (!isIn)
+                continue;
+
+            vec3 alignLeft = { -1, 0, 0 };
+            vec3 alignTop = { 0, -1, 0 };
+
+            vec3 temp;
+            vec3_sub(&temp, &edge[n], &center);
+            vec3_norm(&temp, &temp);
+            float left = vec3_dot(&temp, &alignLeft),
+                top = vec3_dot(&temp, &alignTop);
+            if (left > 0.5) { // LEFT
+                v = dp->m_lines->add();
+                vec3_set(&v->pos, 0, edge[n].y, 0);
+                v->color = dp->m_guidelineColor;
+
+                v = dp->m_lines->add();
+                vec3_set(&v->pos, edge[n].x, edge[n].y, 0);
+                v->color = dp->m_guidelineColor;
+
+                float_t dist = edge[n].x;
+                if (dist > (pt * 4)) {
+                    float_t textdist = float(dist * (1.0 / dp->m_worldToPreviewScale.x));
+                    std::vector<char> buf(1024);
+                    size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)textdist);
+                    float_t offset = float((pt * len) / 2.0);
+
+                    for (size_t p = 0; p < len; p++) {
+                        char v = buf.data()[p];
+                        DrawGlyph(dp->m_textVertices,
+                            (edge[n].x / 2) - offset + (p * pt), edge[n].y - pt * 2,
+                            pt, 0, v, dp->m_guidelineColor);
+                    }
+                }
+            } else if (left < -0.5) { // RIGHT
+                v = dp->m_lines->add();
+                vec3_set(&v->pos, sceneWidth * dp->m_worldToPreviewScale.x, edge[n].y, 0);
+                v->color = dp->m_guidelineColor;
+
+                v = dp->m_lines->add();
+                vec3_set(&v->pos, edge[n].x, edge[n].y, 0);
+                v->color = dp->m_guidelineColor;
+
+                float_t dist = sceneWidth * dp->m_worldToPreviewScale.x - edge[n].x;
+                if (dist > (pt * 4)) {
+                    float_t textdist = float(dist * (1.0 / dp->m_worldToPreviewScale.x));
+                    std::vector<char> buf(1024);
+                    size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)textdist);
+                    float_t offset = float((pt * len) / 2.0);
+
+                    for (size_t p = 0; p < len; p++) {
+                        char v = buf.data()[p];
+                        DrawGlyph(dp->m_textVertices,
+                            edge[n].x + (dist / 2) - offset + (p * pt), edge[n].y - pt * 2,
+                            pt, 0, v, dp->m_guidelineColor);
+                    }
+                }
+            } else if (top > 0.5) { // UP
+                v = dp->m_lines->add();
+                vec3_set(&v->pos, edge[n].x, 0, 0);
+                v->color = dp->m_guidelineColor;
+
+                v = dp->m_lines->add();
+                vec3_set(&v->pos, edge[n].x, edge[n].y, 0);
+                v->color = dp->m_guidelineColor;
+
+                float_t dist = edge[n].y;
+                if (dist > pt) {
+                    float_t textdist = float(dist * (1.0 / dp->m_worldToPreviewScale.y));
+                    std::vector<char> buf(1024);
+                    size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)textdist);
+                    float_t offset = float((pt * len) / 2.0);
+
+                    for (size_t p = 0; p < len; p++) {
+                        char v = buf.data()[p];
+                        DrawGlyph(dp->m_textVertices,
+                            edge[n].x + (p * pt), edge[n].y - (dist / 2) - pt,
+                            pt, 0, v, dp->m_guidelineColor);
+                    }
+                }
+            } else if (top < -0.5) { // DOWN
+                v = dp->m_lines->add();
+                vec3_set(&v->pos, edge[n].x, sceneHeight * dp->m_worldToPreviewScale.y, 0);
+                v->color = dp->m_guidelineColor;
+
+                v = dp->m_lines->add();
+                vec3_set(&v->pos, edge[n].x, edge[n].y, 0);
+                v->color = dp->m_guidelineColor;
+
+                float_t dist = sceneHeight * dp->m_worldToPreviewScale.y - edge[n].y;
+                if (dist > (pt * 4)) {
+                    float_t textdist = float(dist * (1.0 / dp->m_worldToPreviewScale.y));
+                    std::vector<char> buf(1024);
+                    size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)textdist);
+                    float_t offset = float((pt * len) / 2.0);
+
+                    for (size_t p = 0; p < len; p++) {
+                        char v = buf.data()[p];
+                        DrawGlyph(dp->m_textVertices,
+                            edge[n].x + (p * pt), edge[n].y + (dist / 2) - pt,
+                            pt, 0, v, dp->m_guidelineColor);
+                    }
+                }
+            }
+        }
+
+        // Drawing
+        /// Outline
+        v = dp->m_lines->add();
+        vec3_set(&v->pos, corner[0].x, corner[0].y, 0);
+        v->color = dp->m_outlineColor;
+        v = dp->m_lines->add();
+        vec3_set(&v->pos, corner[1].x, corner[1].y, 0);
+        v->color = dp->m_outlineColor;
+
+        v = dp->m_lines->add();
+        vec3_set(&v->pos, corner[1].x, corner[1].y, 0);
+        v->color = dp->m_outlineColor;
+        v = dp->m_lines->add();
+        vec3_set(&v->pos, corner[2].x, corner[2].y, 0);
+        v->color = dp->m_outlineColor;
+
+        v = dp->m_lines->add();
+        vec3_set(&v->pos, corner[2].x, corner[2].y, 0);
+        v->color = dp->m_outlineColor;
+        v = dp->m_lines->add();
+        vec3_set(&v->pos, corner[3].x, corner[3].y, 0);
+        v->color = dp->m_outlineColor;
+
+        v = dp->m_lines->add();
+        vec3_set(&v->pos, corner[3].x, corner[3].y, 0);
+        v->color = dp->m_outlineColor;
+        v = dp->m_lines->add();
+        vec3_set(&v->pos, corner[0].x, corner[0].y, 0);
+        v->color = dp->m_outlineColor;
+
+        /// Resize Boxes
+        DrawBox(corner[0].x - 5, corner[0].y - 5, 10, 10, 0, dp->m_resizeOuterColor, dp->m_triangles);
+        DrawBox(corner[0].x - 4, corner[0].y - 4, 8, 8, 0, dp->m_resizeInnerColor, dp->m_triangles);
+        DrawBox(corner[1].x - 5, corner[1].y - 5, 10, 10, 0, dp->m_resizeOuterColor, dp->m_triangles);
+        DrawBox(corner[1].x - 4, corner[1].y - 4, 8, 8, 0, dp->m_resizeInnerColor, dp->m_triangles);
+        DrawBox(corner[2].x - 5, corner[2].y - 5, 10, 10, 0, dp->m_resizeOuterColor, dp->m_triangles);
+        DrawBox(corner[2].x - 4, corner[2].y - 4, 8, 8, 0, dp->m_resizeInnerColor, dp->m_triangles);
+        DrawBox(corner[3].x - 5, corner[3].y - 5, 10, 10, 0, dp->m_resizeOuterColor, dp->m_triangles);
+        DrawBox(corner[3].x - 4, corner[3].y - 4, 8, 8, 0, dp->m_resizeInnerColor, dp->m_triangles);
+        DrawBox(edge[0].x - 5, edge[0].y - 5, 10, 10, 0, dp->m_resizeOuterColor, dp->m_triangles);
+        DrawBox(edge[0].x - 4, edge[0].y - 4, 8, 8, 0, dp->m_resizeInnerColor, dp->m_triangles);
+        DrawBox(edge[1].x - 5, edge[1].y - 5, 10, 10, 0, dp->m_resizeOuterColor, dp->m_triangles);
+        DrawBox(edge[1].x - 4, edge[1].y - 4, 8, 8, 0, dp->m_resizeInnerColor, dp->m_triangles);
+        DrawBox(edge[2].x - 5, edge[2].y - 5, 10, 10, 0, dp->m_resizeOuterColor, dp->m_triangles);
+        DrawBox(edge[2].x - 4, edge[2].y - 4, 8, 8, 0, dp->m_resizeInnerColor, dp->m_triangles);
+        DrawBox(edge[3].x - 5, edge[3].y - 5, 10, 10, 0, dp->m_resizeOuterColor, dp->m_triangles);
+        DrawBox(edge[3].x - 4, edge[3].y - 4, 8, 8, 0, dp->m_resizeInnerColor, dp->m_triangles);
+    }
+
+    return true;
+}
+
+void Display::UpdatePreviewArea() {
+    int32_t offsetX = 0, offsetY = 0; uint32_t sourceW, sourceH;
+    if (m_source) {
+        sourceW = obs_source_get_width(m_source);
+        sourceH = obs_source_get_height(m_source);
+        if (sourceW == 0) sourceW = 1;
+        if (sourceH == 0) sourceH = 1;
+    } else {
+        obs_video_info ovi;
+        obs_get_video_info(&ovi);
+
+        sourceW = ovi.base_width;
+        sourceH = ovi.base_height;
+
+        if (sourceW == 0) sourceW = 1;
+        if (sourceH == 0) sourceH = 1;
+
+        offsetX = grayPaddingArea;
+        offsetY = grayPaddingArea;
+    }
+
+    RecalculateApectRatioConstrainedSize(
+        m_gsInitData.cx, m_gsInitData.cy,
+        sourceW, sourceH,
+        m_previewOffset.first, m_previewOffset.second, m_previewSize.first, m_previewSize.second
+    );
+
+    m_previewOffset.first += offsetX;
+    m_previewOffset.second += offsetY;
+    m_previewSize.first -= offsetX * 2;
+    m_previewSize.second -= offsetY * 2;
+    m_worldToPreviewScale.x = float_t(m_previewSize.first) / float_t(sourceW);
+    m_worldToPreviewScale.y = float_t(m_previewSize.second) / float_t(sourceH);
+}
+
+
+void Display::DisplayCallback(void* _dp, uint32_t cx, uint32_t cy) 
+{
+    osn::Display *dp = reinterpret_cast<osn::Display*>(_dp);
+    
+    dp->UpdatePreviewArea();
+    vec4 color;
+
+    gs_viewport_push();
+    gs_projection_push();
+
+    // Padding Area
+    vec4_set(&color, dp->m_paddingColor[0], dp->m_paddingColor[1],
+        dp->m_paddingColor[2], dp->m_paddingColor[3]);
+    gs_clear(GS_CLEAR_COLOR | GS_CLEAR_DEPTH | GS_CLEAR_STENCIL, &color, 100, 0);
+
+    // Get proper source/base size.
+    uint32_t sourceW, sourceH;
+    if (dp->m_source) {
+        sourceW = obs_source_get_width(dp->m_source);
+        sourceH = obs_source_get_height(dp->m_source);
+        if (sourceW == 0) sourceW = 1;
+        if (sourceH == 0) sourceH = 1;
+    } else {
+        obs_video_info ovi;
+        obs_get_video_info(&ovi);
+
+        sourceW = ovi.base_width;
+        sourceH = ovi.base_height;
+        if (sourceW == 0) sourceW = 1;
+        if (sourceH == 0) sourceH = 1;
+    }
+    gs_ortho(0.0f, float(sourceW), 0.0f, float(sourceH), -100.0f, 100.0f);
+    gs_set_viewport(dp->m_previewOffset.first, dp->m_previewOffset.second,
+        dp->m_previewSize.first, dp->m_previewSize.second);
+
+    #pragma region Background
+    dp->m_triangles->clear();
+    {
+        VertexHelper* v = dp->m_triangles->add();
+        vec3_set(&v->pos, 0, 0, 0);
+        v->color = dp->m_backgroundColor;
+
+        v = dp->m_triangles->add();
+        vec3_set(&v->pos, float(sourceW), 0, 0);
+        v->color = dp->m_backgroundColor;
+
+        v = dp->m_triangles->add();
+        vec3_set(&v->pos, 0, float(sourceH), 0);
+        v->color = dp->m_backgroundColor;
+
+        v = dp->m_triangles->add();
+        vec3_set(&v->pos, float(sourceW), float(sourceH), 0);
+        v->color = dp->m_backgroundColor;
+    }
+
+    gs_vertbuffer_t *vb = dp->m_triangles->update();
+    while (gs_effect_loop(dp->m_gsSolidEffect, "SolidColored")) {
+        gs_load_vertexbuffer(vb);
+        gs_load_indexbuffer(nullptr);
+        gs_draw(GS_TRISTRIP, 0, (uint32_t)dp->m_triangles->size());
+    }
+    #pragma endregion Background
+
+    if (dp->m_source) {
+        obs_source_video_render(dp->m_source);
+    } else {
+        obs_render_main_view();
+
+        if (dp->m_shouldDrawUI) {
+            // Display-Aligned Drawing
+            gs_set_viewport(0, 0, dp->m_gsInitData.cx, dp->m_gsInitData.cy);
+            gs_ortho((float)-dp->m_previewOffset.first, (float)(dp->m_gsInitData.cx - dp->m_previewOffset.first),
+                (float)-dp->m_previewOffset.second, (float)(dp->m_gsInitData.cy - dp->m_previewOffset.second),
+                -100.0f, 100.0f);
+
+            // Clear Buffers
+            dp->m_lines->clear();
+            dp->m_triangles->clear();
+            dp->m_textVertices->clear();
+
+            /* Here we assume that channel 0 holds the one and only transition.
+             * We also assume that the active source within that transition is
+             * the scene that we need */
+            obs_source_t *transition = obs_get_output_source(0);
+            obs_source_t *source = obs_transition_get_active_source(transition);
+            obs_source_release(transition);
+            obs_scene_t *scene = obs_scene_from_source(source);
+            if (scene)
+                obs_scene_enum_items(scene, DrawSelectedSource, dp);
+            obs_source_release(source);
+
+            // Lines
+            if (dp->m_lines->size() > 0) {
+                gs_vertbuffer_t* vb = dp->m_lines->update();
+                while (gs_effect_loop(dp->m_gsSolidEffect, "SolidColored")) {
+                    gs_load_vertexbuffer(vb);
+                    gs_load_indexbuffer(nullptr);
+                    gs_draw(GS_LINES, 0, (uint32_t)dp->m_lines->size());
+                }
+            }
+
+            // Triangles
+            if (dp->m_triangles->size() > 0) {
+                gs_vertbuffer_t* vb = dp->m_triangles->update();
+                while (gs_effect_loop(dp->m_gsSolidEffect, "SolidColored")) {
+                    gs_load_vertexbuffer(vb);
+                    gs_load_indexbuffer(nullptr);
+                    gs_draw(GS_TRIS, 0, (uint32_t)dp->m_triangles->size());
+                }
+            }
+
+            // Text Rendering
+            if (dp->m_textVertices->size() > 0) {
+                gs_vertbuffer_t* vb = dp->m_textVertices->update();
+                while (gs_effect_loop(dp->m_textEffect, "Draw")) {
+                    gs_effect_set_texture(
+                        gs_effect_get_param_by_name(dp->m_textEffect, "image"),
+                        dp->m_textTexture);
+                    gs_load_vertexbuffer(vb);
+                    gs_load_indexbuffer(nullptr);
+                    gs_draw(GS_TRIS, 0, (uint32_t)dp->m_textVertices->size());
+                }
+            }
+        }
+    }
+
+    gs_projection_pop();
+    gs_viewport_pop();
+}
+
+Display::Display() 
+{
+    #if defined(_WIN32)
+    DisplayWndClass();
+    #elif defined(__APPLE__)
+    #elif defined(__linux__) || defined(__FreeBSD__)
+    #endif
+
+    m_gsInitData.adapter = 0;
+    m_gsInitData.cx = 960;
+    m_gsInitData.cy = 540;
+    m_gsInitData.format = GS_RGBA;
+    m_gsInitData.zsformat = GS_ZS_NONE;
+    m_gsInitData.num_backbuffers = 1;
+    m_source = nullptr;
+    m_position.first = 0;
+    m_position.second = 0;
+
+    obs_enter_graphics();
+    m_gsSolidEffect = obs_get_base_effect(OBS_EFFECT_SOLID);
+
+    m_lines = new VertexBufferHelper();
+    m_triangles = new VertexBufferHelper();
+
+    // Text
+    m_textVertices = new VertexBufferHelper();
+    m_textEffect = obs_get_base_effect(OBS_EFFECT_DEFAULT);
+    m_textTexture = nullptr;
+
+    obs_leave_graphics();
+
+    m_outlineColor = IntFromRGBA(26, 230, 168);
+    m_guidelineColor = IntFromRGBA(26, 230, 168);
+
+    UpdatePreviewArea();
+}
+
+Display::Display(uint64_t windowHandle) : Display() {
+    #if defined(_WIN32)
+    FixChromeD3DIssue((HWND)windowHandle);
+
+    m_ourWindow = CreateWindowEx(
+        0,//WS_EX_COMPOSITED | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST,
+        TEXT("Win32DisplayClass"), TEXT("SlobsChildWindowPreview"),
+        WS_VISIBLE | WS_POPUP,
+        0, 0, m_gsInitData.cx, m_gsInitData.cy,
+        NULL,
+        NULL, NULL, this);
+    if (m_ourWindow == NULL) {
+        DWORD errorCode = GetLastError();
+        LPSTR errorStr = nullptr;
+        DWORD errorStrSize = 16,
+            errorStrLen = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, LANG_USER_DEFAULT, errorStr, errorStrSize, NULL);
+        std::string exceptionMessage(errorStr, errorStrLen);
+        exceptionMessage = "Unexpected WinAPI error: " + exceptionMessage;
+        LocalFree(errorStr);
+
+        throw std::system_error(errorCode, std::system_category(), exceptionMessage);
+    }
+
+    SetParent(m_ourWindow, (HWND)windowHandle);
+    m_gsInitData.window.hwnd = reinterpret_cast<void*>(m_ourWindow);
+    #elif defined(__APPLE__)
+    // ToDo
+    #elif defined(__linux__) || defined(__FreeBSD__)
+    // ToDo
+    #endif
+
+    handle = new obs::display(m_gsInitData);
+
+    handle->add_drawer(DisplayCallback, this);
+    handle->background_color(0x0);
+}
+
+Display::Display(uint64_t windowHandle, obs_source_t *source) : Display(windowHandle) {
+    std::cout << "creating display" << std::endl;
+    m_source = source;
 }
 
 NAN_METHOD(Display::create)
 {
-    v8::Local<v8::Object> init_object;
- 
-    ASSERT_INFO_LENGTH(info, 1);
-    ASSERT_GET_VALUE(info[0], init_object);
+    Display *binding;
+    v8::Local<v8::Object> buffer_obj;
 
-    gs_init_data init_data = {};
+    switch (info.Length()) {
+    case 1:
+        ASSERT_GET_VALUE(info[0], buffer_obj);
+        binding = new Display(*((int64_t*)node::Buffer::Data(buffer_obj)));
+        break;
+    case 0:
+        binding = new Display();
+        break;
+    }
 
-    DisplayWndClass();
-
-    ASSERT_GET_OBJECT_FIELD(init_object, "width", init_data.cx);
-    ASSERT_GET_OBJECT_FIELD(init_object, "height", init_data.cy);
-    ASSERT_GET_OBJECT_FIELD(init_object, "format", init_data.format);
-    ASSERT_GET_OBJECT_FIELD(init_object, "zsformat", init_data.zsformat);
-
-    DisplayWndClass();
-
-    init_data.window.hwnd = CreateWindowEx(
-        0, //WS_EX_COMPOSITED | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST,
-        TEXT("Win32DisplayClass"), TEXT("SlobsChildWindowPreview"),
-        WS_VISIBLE | WS_POPUP,
-        0, 0, init_data.cx, init_data.cy,
-        NULL, NULL, NULL, NULL);
-
-    Display *binding = new Display(init_data);
     auto object = Display::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }
 
-NAN_GETTER(Display::status)
-{
-    obs::display &handle = Display::Object::GetHandle(info.Holder());
-
-    info.GetReturnValue().Set(handle.status());
-}
-
 NAN_METHOD(Display::destroy)
 {
-    obs::display &handle = Display::Object::GetHandle(info.Holder());
-
-    handle.destroy();
-}
-
-NAN_METHOD(Display::addDrawer)
-{
-    obs::display &handle = Display::Object::GetHandle(info.Holder());
-
-    ASSERT_INFO_LENGTH(info, 1);
-    
-    std::string path;
-
-    ASSERT_GET_VALUE(info[0], path);
-
-    void *module = osn_load_plugin(handle.dangerous(), path.c_str());
-
-    if (!module) {
-        Nan::ThrowError("Failed to find drawer plugin");
-        return;
-    }
-}
-
-NAN_METHOD(Display::removeDrawer)
-{
-    /* TODO */
-}
-
-NAN_METHOD(Display::resize)
-{
-    obs::display &handle = Display::Object::GetHandle(info.Holder());
-
-}
-
-NAN_GETTER(Display::enabled)
-{
-    obs::display &handle = Display::Object::GetHandle(info.Holder());
-
-    info.GetReturnValue().Set(handle.enabled());
-}
-
-NAN_SETTER(Display::enabled)
-{
-    obs::display &handle = Display::Object::GetHandle(info.Holder());
-
-    bool is_enabled;
-
-    ASSERT_GET_VALUE(value, is_enabled);
-
-    handle.enabled(is_enabled);
-}
-
-NAN_SETTER(Display::backgroundColor)
-{
-    obs::display &handle = Display::Object::GetHandle(info.Holder());
-
-    uint32_t color;
-
-    ASSERT_GET_VALUE(value, color);
-
-    handle.background_color(color);
+    obs::display *handle = Display::Object::GetHandle(info.Holder());
 }
 
 }

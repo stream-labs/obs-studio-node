@@ -276,6 +276,16 @@ export interface IVec2 {
 }
 
 /**
+ * Used to represented a time in nanoseconds
+ * JS can't hold 64-bit integers thus can
+ * easily overflow when representing time in ns.
+ */
+export interface ITimeSpec {
+    readonly sec: number;
+    readonly nsec: number;
+}
+
+/**
  * Interface describing the transform information in an item
  */
 export interface ITransformInfo {
@@ -1086,17 +1096,30 @@ export interface ICallbackData {
 }
 
 export interface IDisplayFactory {
-    create(info: IDisplayInit): IDisplay;
+    create(source?: IInput): IDisplay;
 }
 
 export interface IDisplay {
     destroy(): void;
 
-    addDrawer(path: string): void;
-    removeDrawer(path: string): void;
-    
-    readonly status: number;
-    readonly enabled: boolean;
+    setPosition(x: number, y: number): void;
+    getPosition(): IVec2;
+
+    setSize(x: number, y: number): void;
+    getSize(): IVec2;
+
+    getPreviewOffset(): IVec2;
+    getPreviewSize(x: number, y: number): void;
+
+    shouldDrawUI: boolean;
+    paddingSize: number;
+
+    setPaddingColor(r: number, g: number, b: number, a: number): void;
+    setBackgroundColor(r: number, g: number, b: number, a: number): void;
+    setOutlineColor(r: number, g: number, b: number, a: number): void;
+    setGuidelineColor(r: number, g: number, b: number, a: number): void;
+    setResizeBoxOuterColor(r: number, g: number, b: number, a: number): void;
+    setResizeBoxInnerColor(r: number, g: number, b: number, a: number): void;
 }
 
 /**
@@ -1169,19 +1192,35 @@ export function addItems(scene: IScene, sceneItems: ISceneItemInfo[]): ISceneIte
     }
     return items;
 }
-export function createSources(sources: any[]): IInput[] {
+export interface FilterInfo {
+    name: string,
+    type: string,
+    settings: ISettings,
+    enabled: boolean
+}
+export interface SourceInfo {
+    filters: FilterInfo[],
+    muted: boolean,
+    name: string,
+    settings: ISettings,
+    type: string,
+    volume: number
+}
+export function createSources(sources: SourceInfo[]): IInput[] {
     const items: IInput[] = [];
     if (Array.isArray(sources)) {
         sources.forEach(function (source) {
             const newSource = obs.Input.create(source.type, source.name, source.settings);
             if (newSource.audioMixers) {
                 newSource.muted = source.muted || false;
+                newSource.volume = source.volume;
             }
             items.push(newSource);
-            const filters = source.filters.data.items;
+            const filters = source.filters;
             if (Array.isArray(filters)) {
                     filters.forEach(function (filter) {
                     const ObsFilter = obs.Filter.create(filter.type, filter.name, filter.settings);
+                    ObsFilter.enabled = filter.enabled;
                     newSource.addFilter(ObsFilter);
                 });
             }
