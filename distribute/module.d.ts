@@ -521,7 +521,7 @@ export interface SourceInfo {
     filters: FilterInfo[];
     muted: boolean;
     name: string;
-    settings: ISettings[];
+    settings: ISettings;
     type: string;
     volume: number;
 }
