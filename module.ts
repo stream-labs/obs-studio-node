@@ -1026,7 +1026,7 @@ export interface IFader {
      * each time volume associated with the attached source changes. 
      * @param cb - A callback that occurs when volume changes.
      */
-    addCallback(cb: (data: { db: number; }) => void): ICallbackData;
+    addCallback(cb: (db: number) => void): ICallbackData;
 
     /**
      * Remove a callback to prevent events from occuring immediately. 
@@ -1074,11 +1074,10 @@ export interface IVolmeter {
      * @param cb - A callback that occurs when volume changes.
      */
     addCallback(
-        cb: (data: {
-            level: number;
-            magnitude: number;
-            peak: number;
-            muted: boolean; }) => void): ICallbackData;
+        cb: (level: number,
+             magnitude: number,
+             peak: number,
+             muted: boolean) => void): ICallbackData;
 
     /**
      * Remove a callback to prevent events from occuring immediately. 
