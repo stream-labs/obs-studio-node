@@ -435,9 +435,7 @@ export interface IFader {
     mul: number;
     attach(source: IInput): void;
     detach(): void;
-    addCallback(cb: (data: {
-        db: number;
-    }) => void): ICallbackData;
+    addCallback(cb: (db: number) => void): ICallbackData;
     removeCallback(cbData: ICallbackData): void;
 }
 export interface IVolmeterFactory {
@@ -448,12 +446,7 @@ export interface IVolmeter {
     updateInterval: number;
     attach(source: IInput): void;
     detach(): void;
-    addCallback(cb: (data: {
-        level: number;
-        magnitude: number;
-        peak: number;
-        muted: boolean;
-    }) => void): ICallbackData;
+    addCallback(cb: (level: number, magnitude: number, peak: number, muted: boolean) => void): ICallbackData;
     removeCallback(cbData: ICallbackData): void;
 }
 export interface ICallbackData {

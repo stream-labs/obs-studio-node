@@ -139,15 +139,16 @@ void Fader::Callback(Fader *fader, Fader::Data *item)
     FaderCallback *cb_binding = 
         reinterpret_cast<FaderCallback*>(item->param);
 
-    v8::Local<v8::Object> object = Nan::New<v8::Object>();
-
-    common::SetObjectField(object, "db", item->db);
-
-    delete item;
+    if (cb_binding->stopped) {
+        delete item;
+        return;
+    }
 
     v8::Local<v8::Value> args[] = {
-        object
+        Nan::New<v8::Number>(item->db)
     };
+
+    delete item;
 
     cb_binding->cb.Call(1, args);
 }
@@ -326,18 +327,16 @@ void Volmeter::Callback(Volmeter *volmeter, Volmeter::Data *item)
         return;
     }
 
-    common::SetObjectField(object, "level", item->level);
-    common::SetObjectField(object, "magnitude", item->magnitude);
-    common::SetObjectField(object, "peak", item->peak);
-    common::SetObjectField(object, "muted", static_cast<bool>(item->muted));
+    v8::Local<v8::Value> args[] = {
+        Nan::New<v8::Number>(item->level),
+        Nan::New<v8::Number>(item->magnitude),
+        Nan::New<v8::Number>(item->peak),
+        Nan::New<v8::Boolean>(static_cast<bool>(item->muted))
+    };
 
     delete item;
 
-    v8::Local<v8::Value> args[] = {
-        object
-    };
-
-    cb_binding->cb.Call(1, args);
+    cb_binding->cb.Call(4, args);
 }
 
 NAN_METHOD(Volmeter::addCallback)
