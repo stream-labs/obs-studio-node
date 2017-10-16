@@ -22,6 +22,13 @@ export const DefaultPluginPath: string =
 
 export const DefaultPluginDataPath: string = 
     path.resolve(__dirname, `data/obs-plugins/%module%/data`);
+/**
+ * To be passed to Input.flags
+ */
+export const enum ESourceFlags {
+    Unbuffered = (1 << 0),
+    ForceMono = (1 << 1)
+}
 
 export const enum EMonitoringType {
     None,

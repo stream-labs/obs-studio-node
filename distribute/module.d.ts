@@ -5,6 +5,10 @@ export declare const DefaultBinPath: string;
 export declare const DefaultDataPath: string;
 export declare const DefaultPluginPath: string;
 export declare const DefaultPluginDataPath: string;
+export declare const enum ESourceFlags {
+    Unbuffered = 1,
+    ForceMono = 2,
+}
 export declare const enum EMonitoringType {
     None = 0,
     MonitoringOnly = 1,
