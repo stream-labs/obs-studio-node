@@ -621,7 +621,7 @@ export interface IInputFactory {
  */
 export interface IInput extends ISource {
     volume: number;
-    syncOffset: number;
+    syncOffset: ITimeSpec;
     showing: boolean;
     audioMixers: number;
     monitoringType: EMonitoringType;
