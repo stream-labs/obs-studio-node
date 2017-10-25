@@ -556,11 +556,11 @@ bool FromValue(v8::Local<v8::Value> value, timespec &var)
     if (!value->IsObject()) return false;
 
     auto value_obj = Nan::To<v8::Object>(value).ToLocalChecked();
-    uint32_t sec;
-    uint32_t nsec;
+    uint32_t sec = 0;
+    uint32_t nsec = 0;
 
-    if (GetFromObject(value_obj, "ms", sec) &&
-        GetFromObject(value_obj, "ns", nsec)) {
+    if (GetFromObject(value_obj, "sec", sec) &&
+        GetFromObject(value_obj, "nsec", nsec)) {
             var.tv_sec = sec;
             var.tv_nsec = nsec;
             return true;
