@@ -264,6 +264,8 @@ export interface IGlobal {
     getOutputFlagsFromId(id: string): number;
     setOutputSource(channel: number, input: ISource): void;
     getOutputSource(channel: number): ISource;
+    readonly totalFrames: number;
+    readonly laggedFrames: number;
     readonly initialized: boolean;
     readonly locale: string;
     readonly version: number;
@@ -477,6 +479,8 @@ export interface IDisplay {
 }
 export interface IVideo {
     reset(info: IVideoInfo): number;
+    readonly totalFrames: number;
+    readonly skippedFrames: number;
 }
 export interface IAudio {
     reset(info: IAudioInfo): boolean;

@@ -387,6 +387,17 @@ export interface IGlobal {
     getOutputSource(channel: number): ISource;
 
     /**
+     * Number of total render frames
+     */
+    readonly totalFrames: number;
+
+    /**
+     * Number of total lost frames due to being short 
+     * of rendering time.
+     */
+    readonly laggedFrames: number;
+
+    /**
      * Current status of the global libobs context
      */
     readonly initialized: boolean;
@@ -1134,6 +1145,8 @@ export interface IDisplay {
  */
 export interface IVideo {
     reset(info: IVideoInfo): number;
+    readonly totalFrames: number;
+    readonly skippedFrames: number;
 }
 
 /**
