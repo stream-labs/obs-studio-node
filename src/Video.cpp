@@ -1,6 +1,10 @@
 #include "Common.h"
 #include "Video.h"
 
+/**
+ * A wrapper over video_t and 
+ * associated media-io functionality
+ */
 namespace osn {
 
 VideoEncoder::VideoEncoder(std::string id, std::string name)
@@ -19,6 +23,8 @@ NAN_MODULE_INIT(Video::Init)
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
 
     Nan::SetMethod(locProto, "reset", reset);
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("skippedFrames"), skippedFrames);
+    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("totalFrames"), totalFrames);
 
     Nan::Set(target, FIELD_NAME("Video"), locProto->GetFunction());
 }
@@ -26,6 +32,16 @@ NAN_MODULE_INIT(Video::Init)
 NAN_METHOD(Video::New)
 {
     Nan::ThrowError("video_t is not supported yet!");
+}
+
+NAN_GETTER(Video::skippedFrames)
+{
+    info.GetReturnValue().Set(common::ToValue(obs::video::skipped_frames()));
+}
+
+NAN_GETTER(Video::totalFrames)
+{
+    info.GetReturnValue().Set(common::ToValue(obs::video::total_frames()));
 }
 
 NAN_METHOD(Video::reset)
@@ -101,7 +117,7 @@ NAN_METHOD(VideoEncoder::New)
 
 NAN_GETTER(VideoEncoder::height)
 {
-
+    
 }
 
 NAN_GETTER(VideoEncoder::width)

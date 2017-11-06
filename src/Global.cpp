@@ -22,6 +22,8 @@ NAN_MODULE_INIT(Init)
     Nan::SetMethod(ObsGlobal, "getOutputSource", getOutputSource);
     Nan::SetMethod(ObsGlobal, "setOutputSource", setOutputSource);
     Nan::SetMethod(ObsGlobal, "getOutputFlagsFromId", getOutputFlagsFromId);
+    Nan::SetAccessor(ObsGlobal, FIELD_NAME("laggedFrames"), laggedFrames);
+    Nan::SetAccessor(ObsGlobal, FIELD_NAME("totalFrames"), totalFrames);
     Nan::SetAccessor(ObsGlobal, FIELD_NAME("initialized"), initialized);
     Nan::SetAccessor(ObsGlobal, FIELD_NAME("locale"), locale);
 
@@ -55,6 +57,20 @@ NAN_METHOD(startup)
 NAN_METHOD(shutdown)
 {
     obs::shutdown();
+}
+
+NAN_GETTER(laggedFrames)
+{
+    OBS_VALID
+
+    info.GetReturnValue().Set(common::ToValue(obs::lagged_frames()));
+}
+
+NAN_GETTER(totalFrames)
+{
+    OBS_VALID
+
+    info.GetReturnValue().Set(common::ToValue(obs::total_frames()));
 }
 
 NAN_GETTER(locale)

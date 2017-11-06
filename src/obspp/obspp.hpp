@@ -21,5 +21,7 @@ log_handler_t log_handler();
 void output(int channel, source source);
 source output(int channel);
 uint32_t output_flags_from_id(std::string id);
+uint32_t total_frames();
+uint32_t lagged_frames();
 
 }

@@ -67,4 +67,14 @@ obs::source output(int channel)
     return source;
 }
 
+uint32_t lagged_frames()
+{
+    return obs_get_lagged_frames();
+}
+
+uint32_t total_frames()
+{
+    return obs_get_total_frames();
+}
+
 }

@@ -14,5 +14,7 @@ NAN_GETTER(locale);
 NAN_SETTER(locale);
 NAN_GETTER(initialized);
 NAN_GETTER(version);
+NAN_GETTER(laggedFrames);
+NAN_GETTER(totalFrames);
 
 }
