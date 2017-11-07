@@ -23,8 +23,8 @@ NAN_MODULE_INIT(Video::Init)
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
 
     Nan::SetMethod(locProto, "reset", reset);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("skippedFrames"), skippedFrames);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("totalFrames"), totalFrames);
+    Nan::SetAccessor(locProto->PrototypeTemplate(), FIELD_NAME("skippedFrames"), skippedFrames);
+    Nan::SetAccessor(locProto->PrototypeTemplate(), FIELD_NAME("totalFrames"), totalFrames);
 
     Nan::Set(target, FIELD_NAME("Video"), locProto->GetFunction());
 }
