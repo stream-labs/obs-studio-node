@@ -19,8 +19,6 @@ VideoEncoder::VideoEncoder(std::string id, std::string name)
 NAN_MODULE_INIT(Video::Init)
 {
     auto ObsVideo = Nan::New<v8::Object>();
-    locProto->SetClassName(FIELD_NAME("Video"));
-    locProto->InstanceTemplate()->SetInternalFieldCount(1);
 
     Nan::SetMethod(ObsVideo, "reset", reset);
     Nan::SetAccessor(ObsVideo, FIELD_NAME("skippedFrames"), skippedFrames);
