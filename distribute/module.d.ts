@@ -420,8 +420,8 @@ export interface ISource {
     release(): void;
     remove(): void;
     update(settings: ISettings): void;
+    properties(): IProperties;
     readonly settings: ISettings;
-    readonly properties: IProperties;
     readonly status: number;
     readonly type: ESourceType;
     readonly id: string;
