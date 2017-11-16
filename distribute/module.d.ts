@@ -302,6 +302,8 @@ export interface IPathProperty extends IProperty {
 }
 export interface IPathDetails {
     readonly type: EPathType;
+    readonly filter: string;
+    readonly defaultPath: string;
 }
 export interface ITextProperty extends IProperty {
     readonly details: ITextDetails;
