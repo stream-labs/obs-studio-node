@@ -475,6 +475,8 @@ export interface IPathProperty extends IProperty {
 
 export interface IPathDetails {
     readonly type: EPathType;
+    readonly filter: string;
+    readonly defaultPath: string;
 }
 
 export interface ITextProperty extends IProperty {
@@ -940,14 +942,14 @@ export interface ISource {
     update(settings: ISettings): void;
 
     /**
+     * The properties of the source
+     */
+    properties(): IProperties;
+
+    /**
      * Object holding current settings of the source
      */
     readonly settings: ISettings;
-    
-    /**
-     * The properties of the source
-     */
-    readonly properties: IProperties;
 
     /**
      * The validity of the source

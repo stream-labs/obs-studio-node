@@ -29,12 +29,12 @@ NAN_MODULE_INIT(ISource::Init)
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("muted"), muted, muted);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("enabled"), enabled, enabled);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("configurable"), configurable);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("properties"), properties);
     Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("settings"), settings);
 
     Nan::SetMethod(locProto->PrototypeTemplate(), "release", release);
     Nan::SetMethod(locProto->PrototypeTemplate(), "remove", remove);
     Nan::SetMethod(locProto->PrototypeTemplate(), "update", update);
+    Nan::SetMethod(locProto->PrototypeTemplate(), "properties", properties);
 
     Nan::Set(target, FIELD_NAME("Source"), locProto->GetFunction());
     prototype.Reset(locProto);
@@ -128,7 +128,7 @@ NAN_GETTER(ISource::configurable)
     info.GetReturnValue().Set(handle.configurable());
 }
 
-NAN_GETTER(ISource::properties)
+NAN_METHOD(ISource::properties)
 {
     obs::source handle = ISource::GetHandle(info.Holder());
 

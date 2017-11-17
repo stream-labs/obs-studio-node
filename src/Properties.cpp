@@ -313,6 +313,8 @@ NAN_GETTER(Property::details)
         obs::path_property path_prop = handle.path_property();
 
         SetObjectField(object, "type", path_prop.type());
+        SetObjectField(object, "filter", path_prop.filter());
+        SetObjectField(object, "defaultPath", path_prop.default_path());
         break;
     }
     case OBS_PROPERTY_FLOAT: {
