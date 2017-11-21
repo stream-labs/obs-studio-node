@@ -27,19 +27,19 @@ NAN_MODULE_INIT(Module::Init)
     prototype->SetClassName(FIELD_NAME("Module"));
     prototype->InstanceTemplate()->SetInternalFieldCount(1);
 
-    Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("filename"), filename);
-    Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("name"), name);
-    Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("author"), author);
-    Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("description"), description);
-    Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("binPath"), binPath);
-    Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("dataPath"), dataPath);
-    Nan::SetAccessor(prototype->InstanceTemplate(), FIELD_NAME("status"), status);
+    common::SetObjectTemplateLazyAccessor(prototype->InstanceTemplate(), "filename", get_filename);
+    common::SetObjectTemplateLazyAccessor(prototype->InstanceTemplate(), "name", get_name);
+    common::SetObjectTemplateLazyAccessor(prototype->InstanceTemplate(), "author", get_author);
+    common::SetObjectTemplateLazyAccessor(prototype->InstanceTemplate(), "description", get_description);
+    common::SetObjectTemplateLazyAccessor(prototype->InstanceTemplate(), "binPath", get_binPath);
+    common::SetObjectTemplateLazyAccessor(prototype->InstanceTemplate(), "dataPath", get_dataPath);
+    common::SetObjectTemplateLazyAccessor(prototype->InstanceTemplate(), "status", get_status);
 
-    Nan::SetMethod(prototype, "loadAll", loadAll);
-    Nan::SetMethod(prototype, "addPath", addPath);
-    Nan::SetMethod(prototype, "logLoaded", logLoaded);
+    common::SetObjectTemplateField(prototype, "loadAll", loadAll);
+    common::SetObjectTemplateField(prototype, "addPath", addPath);
+    common::SetObjectTemplateField(prototype, "logLoaded", logLoaded);
 
-    Nan::Set(target, FIELD_NAME("Module"), prototype->GetFunction());
+    common::SetObjectField(target, "Module", prototype->GetFunction());
 }
 
 /* Prototype Methods */
@@ -73,49 +73,49 @@ NAN_METHOD(Module::initialize)
     handle.initialize();
 }
 
-NAN_GETTER(Module::filename)
+NAN_METHOD(Module::get_filename)
 {
     obs::module &handle = Module::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(common::ToValue(handle.file_name()));
 }
 
-NAN_GETTER(Module::name)
+NAN_METHOD(Module::get_name)
 {
     obs::module &handle = Module::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(common::ToValue(handle.name()));
 }
 
-NAN_GETTER(Module::author)
+NAN_METHOD(Module::get_author)
 {
     obs::module &handle = Module::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(common::ToValue(handle.author()));
 }
 
-NAN_GETTER(Module::description)
+NAN_METHOD(Module::get_description)
 {
     obs::module &handle = Module::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(common::ToValue(handle.description()));
 }
 
-NAN_GETTER(Module::binPath)
+NAN_METHOD(Module::get_binPath)
 {
     obs::module &handle = Module::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(common::ToValue(handle.binary_path()));
 }
 
-NAN_GETTER(Module::dataPath)
+NAN_METHOD(Module::get_dataPath)
 {
     obs::module &handle = Module::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(common::ToValue(handle.data_path()));
 }
 
-NAN_GETTER(Module::status)
+NAN_METHOD(Module::get_status)
 {
     obs::module &handle = Module::Object::GetHandle(info.Holder());
 

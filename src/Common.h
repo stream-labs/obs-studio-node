@@ -44,10 +44,68 @@ const char *GetErrorString();
 template <typename Type>
 v8::Local<v8::Value> ToValue(Type value);
 
+namespace {
+
+inline void SetObjectAccessor(
+                       v8::Local<v8::Object> object,
+                       const char *name,
+                       Nan::GetterCallback getter,
+                       Nan::SetterCallback setter = 0)
+{
+    Nan::SetAccessor(object, Nan::New(name).ToLocalChecked(), getter, setter);
+}
+
+inline void SetObjectAccessor(
+                       v8::Local<v8::ObjectTemplate> templ,
+                       const char *name,
+                       Nan::GetterCallback getter,
+                       Nan::SetterCallback setter = 0)
+{
+    Nan::SetAccessor(templ, Nan::New(name).ToLocalChecked(), getter, setter);
+}
+
+inline void SetObjectLazyAccessor(
+                           v8::Local<v8::Object> object,
+                           const char *name,
+                           Nan::FunctionCallback getter,
+                           Nan::FunctionCallback setter = 0)
+{
+    /* Note that a lazy accessor is what I'm calling a standard JS accessor. 
+     * By default, V8 SetAccessor does some wierd quasi accessor that is 
+     * fetched anytime the parent object is fetched, as if it's a constant value. */
+    object->SetAccessorProperty(Nan::New(name).ToLocalChecked(),
+        Nan::New<v8::Function>(getter), Nan::New<v8::Function>(setter));
+}
+
+inline void SetObjectTemplateLazyAccessor(
+                           v8::Local<v8::Template> templ,
+                           const char *name,
+                           Nan::FunctionCallback getter,
+                           Nan::FunctionCallback setter = 0)
+{
+    /* Note that a lazy accessor is what I'm calling a standard JS accessor. 
+     * By default, V8 SetAccessor does some wierd quasi accessor that is 
+     * fetched anytime the parent object is fetched, as if it's a constant value. */
+    templ->SetAccessorProperty(Nan::New(name).ToLocalChecked(),
+        Nan::New<v8::FunctionTemplate>(getter), Nan::New<v8::FunctionTemplate>(setter));
+}
+
 template <typename Type>
 void SetObjectField(v8::Local<v8::Object> object, const char *field, Type value)
 {
     Nan::Set(object, ToValue(field), ToValue(value));
+}
+
+void SetObjectTemplateField(v8::Local<v8::Template> templ, const char *field, Nan::FunctionCallback value)
+{
+    Nan::SetMethod(templ, field, value);
+}
+
+
+template <>
+void SetObjectField<Nan::FunctionCallback>(v8::Local<v8::Object> object, const char *field, Nan::FunctionCallback value)
+{
+    Nan::SetMethod(object, field, value);
 }
 
 template <typename Type>
@@ -56,6 +114,9 @@ void SetObjectField(v8::Local<v8::Object> object, const int field, Type value)
     Nan::Set(object, field, ToValue(value));
 }
 
+} //Anonymous Namespace
+
+/* This should eventually be moved into the header as well. */
 template <typename Type>
 bool FromValue(v8::Local<v8::Value> value, Type &var);
 

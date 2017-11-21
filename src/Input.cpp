@@ -34,27 +34,27 @@ NAN_MODULE_INIT(Input::Init)
     locProto->Inherit(Nan::New(ISource::prototype));
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("Input"));
-    Nan::SetMethod(locProto, "types", types);
-    Nan::SetMethod(locProto, "create", create);
-    Nan::SetMethod(locProto, "createPrivate", createPrivate);
-    Nan::SetMethod(locProto, "fromName", fromName);
-    Nan::SetMethod(locProto, "getPublicSources", getPublicSources);
-    Nan::SetMethod(locProto->InstanceTemplate(), "duplicate", duplicate);
-    Nan::SetMethod(locProto->InstanceTemplate(), "copyFilters", copyFilters);
-    Nan::SetMethod(locProto->InstanceTemplate(), "findFilter", findFilter);
-    Nan::SetMethod(locProto->InstanceTemplate(), "addFilter", addFilter);
-    Nan::SetMethod(locProto->InstanceTemplate(), "removeFilter", removeFilter);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("width"), width);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("height"), height);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("filters"), filters);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("volume"), volume, volume);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("syncOffset"), syncOffset, syncOffset);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("showing"), showing);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("audioMixers"), audioMixers, audioMixers);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("monitoringType"), monitoringType, monitoringType);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("deinterlaceFieldOrder"), deinterlaceFieldOrder, deinterlaceFieldOrder);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("deinterlaceMode"), deinterlaceMode, deinterlaceMode);
-    Nan::Set(target, FIELD_NAME("Input"), locProto->GetFunction());
+    common::SetObjectTemplateField(locProto, "types", types);
+    common::SetObjectTemplateField(locProto, "create", create);
+    common::SetObjectTemplateField(locProto, "createPrivate", createPrivate);
+    common::SetObjectTemplateField(locProto, "fromName", fromName);
+    common::SetObjectTemplateField(locProto, "getPublicSources", getPublicSources);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "duplicate", duplicate);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "copyFilters", copyFilters);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "findFilter", findFilter);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "addFilter", addFilter);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "removeFilter", removeFilter);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "width", get_width);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "height", get_height);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "filters", get_filters);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "volume", get_volume, set_volume);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "syncOffset", get_syncOffset, set_syncOffset);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "showing", get_showing);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "audioMixers", get_audioMixers, set_audioMixers);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "monitoringType", get_monitoringType, set_monitoringType);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "deinterlaceFieldOrder", get_deinterlaceFieldOrder, set_deinterlaceFieldOrder);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "deinterlaceMode", get_deinterlaceMode, set_deinterlaceMode);
+    common::SetObjectField(target, "Input", locProto->GetFunction());
     prototype.Reset(locProto);
 }
 
@@ -163,14 +163,14 @@ NAN_METHOD(Input::createPrivate)
     info.GetReturnValue().Set(object);
 }
 
-NAN_GETTER(Input::width)
+NAN_METHOD(Input::get_width)
 {
     obs::source handle = ISource::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle.width());
 }
 
-NAN_GETTER(Input::height)
+NAN_METHOD(Input::get_height)
 {
     obs::source handle = ISource::GetHandle(info.Holder());
 
@@ -197,25 +197,25 @@ NAN_METHOD(Input::fromName)
     info.GetReturnValue().Set(object);
 }
 
-NAN_GETTER(Input::volume)
+NAN_METHOD(Input::get_volume)
 {
     obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle.get()->volume());
 }
 
-NAN_SETTER(Input::volume)
+NAN_METHOD(Input::set_volume)
 {
     obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
 
     float volume;
 
-    ASSERT_GET_VALUE(value, volume);
+    ASSERT_GET_VALUE(info[0], volume);
 
     handle.get()->volume(volume);
 }
 
-NAN_GETTER(Input::syncOffset)
+NAN_METHOD(Input::get_syncOffset)
 {
     obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
     uint64_t offset = handle.get()->sync_offset();
@@ -227,47 +227,47 @@ NAN_GETTER(Input::syncOffset)
     info.GetReturnValue().Set(common::ToValue(tv));
 }
 
-NAN_SETTER(Input::syncOffset)
+NAN_METHOD(Input::set_syncOffset)
 {
     obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
     uint64_t offset;
     timespec tv;
     
-    ASSERT_GET_VALUE(value, tv);
+    ASSERT_GET_VALUE(info[0], tv);
 
     offset = (tv.tv_sec * 1000000000) + tv.tv_nsec;
     
     handle.get()->sync_offset(offset);
 }
 
-NAN_GETTER(Input::active)
+NAN_METHOD(Input::get_active)
 {
     obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(common::ToValue(handle.get()->active()));
 }
 
-NAN_GETTER(Input::showing)
+NAN_METHOD(Input::get_showing)
 {
     obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle.get()->showing());
 }
 
-NAN_GETTER(Input::audioMixers)
+NAN_METHOD(Input::get_audioMixers)
 {
     obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle.get()->audio_mixers());
 }
 
-NAN_SETTER(Input::audioMixers)
+NAN_METHOD(Input::set_audioMixers)
 {
     obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
 
     uint32_t flags;
 
-    ASSERT_GET_VALUE(value, flags);
+    ASSERT_GET_VALUE(info[0], flags);
 
     handle.get()->audio_mixers(flags);
 }
@@ -308,56 +308,56 @@ NAN_METHOD(Input::findFilter)
     info.GetReturnValue().Set(object);
 }
 
-NAN_GETTER(Input::monitoringType)
+NAN_METHOD(Input::get_monitoringType)
 {
     obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(common::ToValue(handle.get()->monitoring_type()));
 }
 
-NAN_SETTER(Input::monitoringType)
+NAN_METHOD(Input::set_monitoringType)
 {
     obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
 
     int type;
 
-    ASSERT_GET_VALUE(value, type);
+    ASSERT_GET_VALUE(info[0], type);
 
     handle.get()->monitoring_type(static_cast<obs_monitoring_type>(type));
 }
 
-NAN_GETTER(Input::deinterlaceFieldOrder)
+NAN_METHOD(Input::get_deinterlaceFieldOrder)
 {
     obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(common::ToValue(handle.get()->deinterlace_field_order()));
 }
 
-NAN_SETTER(Input::deinterlaceFieldOrder)
+NAN_METHOD(Input::set_deinterlaceFieldOrder)
 {
     obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
 
     int order;
 
-    ASSERT_GET_VALUE(value, order);
+    ASSERT_GET_VALUE(info[0], order);
 
     handle.get()->deinterlace_field_order(static_cast<obs_deinterlace_field_order>(order));
 }
 
-NAN_GETTER(Input::deinterlaceMode)
+NAN_METHOD(Input::get_deinterlaceMode)
 {
     obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(common::ToValue(handle.get()->deinterlace_mode()));
 }
 
-NAN_SETTER(Input::deinterlaceMode)
+NAN_METHOD(Input::set_deinterlaceMode)
 {
     obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
 
     int mode;
 
-    ASSERT_GET_VALUE(value, mode);
+    ASSERT_GET_VALUE(info[0], mode);
 
     handle.get()->deinterlace_mode(static_cast<obs_deinterlace_mode>(mode));
 }
@@ -392,7 +392,7 @@ NAN_METHOD(Input::removeFilter)
     handle.get()->remove_filter(filter.get().get());
 }
 
-NAN_GETTER(Input::filters)
+NAN_METHOD(Input::get_filters)
 {
     obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
 

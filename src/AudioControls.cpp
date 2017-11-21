@@ -17,15 +17,15 @@ NAN_MODULE_INIT(Fader::Init)
     auto locProto = Nan::New<v8::FunctionTemplate>();
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("Fader"));
-    Nan::SetMethod(locProto, "create", create);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("db"), db, db);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("deflection"), deflection, deflection);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("mul"), mul, mul);
-    Nan::SetMethod(locProto->InstanceTemplate(), "attach", attach);
-    Nan::SetMethod(locProto->InstanceTemplate(), "detach", detach);
-    Nan::SetMethod(locProto->InstanceTemplate(), "addCallback", addCallback);
-    Nan::SetMethod(locProto->InstanceTemplate(), "removeCallback", removeCallback);
-    Nan::Set(target, FIELD_NAME("Fader"), locProto->GetFunction());
+    common::SetObjectTemplateField(locProto, "create", create);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "db", get_db, set_db);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "deflection", get_deflection, set_deflection);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "mul", get_mul, set_mul);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "attach", attach);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "detach", detach);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "addCallback", addCallback);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "removeCallback", removeCallback);
+    common::SetObjectField(target, "Fader", locProto->GetFunction());
     prototype.Reset(locProto);
 }
 
@@ -42,56 +42,56 @@ NAN_METHOD(Fader::create)
     info.GetReturnValue().Set(object);
 }
 
-NAN_GETTER(Fader::db)
+NAN_METHOD(Fader::get_db)
 {
     obs::fader &handle = Fader::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle.db());
 }
 
-NAN_SETTER(Fader::db)
+NAN_METHOD(Fader::set_db)
 {
     obs::fader &handle = Fader::Object::GetHandle(info.Holder());
 
     float db;
 
-    ASSERT_GET_VALUE(value, db);
+    ASSERT_GET_VALUE(info[0], db);
 
     handle.db(db);
 }
 
-NAN_GETTER(Fader::deflection)
+NAN_METHOD(Fader::get_deflection)
 {
     obs::fader &handle = Fader::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle.deflection());
 }
 
-NAN_SETTER(Fader::deflection)
+NAN_METHOD(Fader::set_deflection)
 {
     obs::fader &handle = Fader::Object::GetHandle(info.Holder());
 
     float def;
 
-    ASSERT_GET_VALUE(value, def);
+    ASSERT_GET_VALUE(info[0], def);
 
     handle.deflection(def);
 }
 
-NAN_GETTER(Fader::mul)
+NAN_METHOD(Fader::get_mul)
 {
     obs::fader &handle = Fader::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle.mul());
 }
 
-NAN_SETTER(Fader::mul)
+NAN_METHOD(Fader::set_mul)
 {
     obs::fader &handle = Fader::Object::GetHandle(info.Holder());
 
     float mul;
 
-    ASSERT_GET_VALUE(value, mul);
+    ASSERT_GET_VALUE(info[0], mul);
 
     handle.mul(mul);
 }
@@ -213,9 +213,9 @@ NAN_MODULE_INIT(Volmeter::Init)
     auto locProto = Nan::New<v8::FunctionTemplate>();
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("Volmeter"));
-    Nan::SetMethod(locProto, "create", create);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("peakHold"), peakHold, peakHold);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("updateInterval"), updateInterval, updateInterval);
+    common::SetObjectTemplateField(locProto, "create", create);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "peakHold", get_peakHold, set_peakHold);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "updateInterval", get_updateInterval, set_updateInterval);
     Nan::SetMethod(locProto->InstanceTemplate(), "attach", attach);
     Nan::SetMethod(locProto->InstanceTemplate(), "detach", detach);
     Nan::SetMethod(locProto->InstanceTemplate(), "addCallback", addCallback);
@@ -237,38 +237,38 @@ NAN_METHOD(Volmeter::create)
     info.GetReturnValue().Set(object);
 }
 
-NAN_GETTER(Volmeter::peakHold)
+NAN_METHOD(Volmeter::get_peakHold)
 {
     obs::volmeter &handle = Volmeter::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle.peak_hold());
 }
 
-NAN_SETTER(Volmeter::peakHold)
+NAN_METHOD(Volmeter::set_peakHold)
 {
     obs::volmeter &handle = Volmeter::Object::GetHandle(info.Holder());
 
     int peak_hold;
 
-    ASSERT_GET_VALUE(value, peak_hold);
+    ASSERT_GET_VALUE(info[0], peak_hold);
 
     handle.peak_hold(peak_hold);
 }
 
-NAN_GETTER(Volmeter::updateInterval)
+NAN_METHOD(Volmeter::get_updateInterval)
 {
     obs::volmeter &handle = Volmeter::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle.interval());
 }
 
-NAN_SETTER(Volmeter::updateInterval)
+NAN_METHOD(Volmeter::set_updateInterval)
 {
     obs::volmeter &handle = Volmeter::Object::GetHandle(info.Holder());
 
     int ms;
 
-    ASSERT_GET_VALUE(value, ms);
+    ASSERT_GET_VALUE(info[0], ms);
 
     handle.interval(ms);
 }

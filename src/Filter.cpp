@@ -26,9 +26,9 @@ NAN_MODULE_INIT(Filter::Init)
     locProto->Inherit(Nan::New(ISource::prototype));
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("Filter"));
-    Nan::SetMethod(locProto, "types", types);
-    Nan::SetMethod(locProto, "create", create);
-    Nan::Set(target, FIELD_NAME("Filter"), locProto->GetFunction());
+    common::SetObjectTemplateField(locProto, "types", types);
+    common::SetObjectTemplateField(locProto, "create", create);
+    common::SetObjectField(target, "Filter", locProto->GetFunction());
     prototype.Reset(locProto);
 }
 

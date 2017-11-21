@@ -944,7 +944,7 @@ export interface ISource {
     /**
      * The properties of the source
      */
-    properties(): IProperties;
+    readonly properties: IProperties;
 
     /**
      * Object holding current settings of the source

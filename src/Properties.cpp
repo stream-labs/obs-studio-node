@@ -52,13 +52,6 @@ NAN_METHOD(Properties::New)
     info.GetReturnValue().Set(info.This());
 }
 
-NAN_GETTER(Properties::status)
-{
-    obs::properties &handle = Properties::Object::GetHandle(info.Holder());
-
-    info.GetReturnValue().Set(handle.status());
-}
-
 NAN_METHOD(Properties::first)
 {
     obs::properties &handle = Properties::Object::GetHandle(info.Holder());
@@ -125,65 +118,65 @@ NAN_MODULE_INIT(Property::Init)
     locProto->SetClassName(FIELD_NAME("Property"));
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
 
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("value"), value);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("name"), name);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("type"), type);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("status"), status);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("description"), description);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("longDescription"), longDescription);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("details"), details);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("enabled"), enabled);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("visible"), visible);
-    Nan::SetMethod(locProto->PrototypeTemplate(), "buttonClicked", buttonClicked);
-    Nan::SetMethod(locProto->PrototypeTemplate(), "next", next);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "value", get_value);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "name", get_name);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "type", get_type);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "status", get_status);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "description", get_description);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "longDescription", get_longDescription);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "details", get_details);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "enabled", get_enabled);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "visible", get_visible);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "buttonClicked", buttonClicked);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "next", next);
 
     Nan::Set(target, FIELD_NAME("Property"), locProto->GetFunction());
     prototype.Reset(locProto);
 }
 
-NAN_GETTER(Property::status)
+NAN_METHOD(Property::get_status)
 {
     obs::property &handle = Property::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle.status());
 }
 
-NAN_GETTER(Property::name)
+NAN_METHOD(Property::get_name)
 {
     obs::property &handle = Property::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(ToValue(handle.name()));
 }
 
-NAN_GETTER(Property::description)
+NAN_METHOD(Property::get_description)
 {
     obs::property &handle = Property::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(ToValue(handle.description().c_str()));
 }
 
-NAN_GETTER(Property::longDescription)
+NAN_METHOD(Property::get_longDescription)
 {
     obs::property &handle = Property::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(ToValue(handle.long_description().c_str()));
 }
 
-NAN_GETTER(Property::type)
+NAN_METHOD(Property::get_type)
 {
     obs::property &handle = Property::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle.type());
 }
 
-NAN_GETTER(Property::enabled)
+NAN_METHOD(Property::get_enabled)
 {
     obs::property &handle = Property::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle.enabled());
 }
 
-NAN_GETTER(Property::visible)
+NAN_METHOD(Property::get_visible)
 {
     obs::property &handle = Property::Object::GetHandle(info.Holder());
 
@@ -216,7 +209,7 @@ NAN_METHOD(Property::buttonClicked)
     button_prop.clicked(source.dangerous());
 }
 
-NAN_GETTER(Property::value)
+NAN_METHOD(Property::get_value)
 {
     info.GetReturnValue().Set(info.Holder());
 }
@@ -271,7 +264,7 @@ v8::Local<v8::Array> GetListItems(obs::list_property &property)
 
 }
 
-NAN_GETTER(Property::details)
+NAN_METHOD(Property::get_details)
 {
     obs::property &handle = Property::Object::GetHandle(info.Holder());
 

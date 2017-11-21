@@ -15,8 +15,8 @@ public:
     static NAN_MODULE_INIT(Init);
     static NAN_METHOD(New);
     static NAN_METHOD(reset);
-    static NAN_GETTER(skippedFrames);
-    static NAN_GETTER(totalFrames);
+    static NAN_METHOD(get_skippedFrames);
+    static NAN_METHOD(get_totalFrames);
 };
 
 class VideoEncoder : public IEncoder
@@ -28,11 +28,11 @@ public:
     virtual obs::encoder *GetHandle();
     static NAN_MODULE_INIT(Init);
     static NAN_METHOD(New);
-    static NAN_GETTER(height);
-    static NAN_GETTER(width);
-    static NAN_SETTER(scaledSize);
-    static NAN_SETTER(preferredFormat);
-    static NAN_GETTER(preferredFormat);
+    static NAN_METHOD(get_height);
+    static NAN_METHOD(get_width);
+    static NAN_METHOD(get_scaledSize);
+    static NAN_METHOD(get_preferredFormat);
+    static NAN_METHOD(set_preferredFormat);
 };
 
 }
