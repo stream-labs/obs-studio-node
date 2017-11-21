@@ -422,7 +422,7 @@ export interface ISource {
     release(): void;
     remove(): void;
     update(settings: ISettings): void;
-    properties(): IProperties;
+    readonly properties: IProperties;
     readonly settings: ISettings;
     readonly status: number;
     readonly type: ESourceType;

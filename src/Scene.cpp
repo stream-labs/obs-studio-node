@@ -34,24 +34,24 @@ NAN_MODULE_INIT(Scene::Init)
     locProto->SetClassName(FIELD_NAME("Scene"));
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
 
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("source"), source);
-    Nan::SetMethod(locProto->PrototypeTemplate(), "moveItem", moveItem);
-    Nan::SetMethod(locProto->PrototypeTemplate(), "findItem", findItem);
-    Nan::SetMethod(locProto->PrototypeTemplate(), "getItemAtIdx", getItemAtIdx);
-    Nan::SetMethod(locProto->PrototypeTemplate(), "getItems", getItems);
-    Nan::SetMethod(locProto->PrototypeTemplate(), "add", add);
-    Nan::SetMethod(locProto->PrototypeTemplate(), "duplicate", duplicate);
-    Nan::SetMethod(locProto->PrototypeTemplate(), "connect", connect);
-    Nan::SetMethod(locProto->PrototypeTemplate(), "disconnect", disconnect);
-    Nan::SetMethod(locProto, "create", create);
-    Nan::SetMethod(locProto, "createPrivate", createPrivate);
-    Nan::SetMethod(locProto, "fromName", fromName);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "source", get_source);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "moveItem", moveItem);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "findItem", findItem);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "getItemAtIdx", getItemAtIdx);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "getItems", getItems);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "add", add);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "duplicate", duplicate);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "connect", connect);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "disconnect", disconnect);
+    common::SetObjectTemplateField(locProto, "create", create);
+    common::SetObjectTemplateField(locProto, "createPrivate", createPrivate);
+    common::SetObjectTemplateField(locProto, "fromName", fromName);
 
     Nan::Set(target, FIELD_NAME("Scene"), locProto->GetFunction());
     prototype.Reset(locProto);
 }
 
-NAN_GETTER(Scene::source)
+NAN_METHOD(Scene::get_source)
 {
     obs::weak<obs::scene> &scene = Scene::Object::GetHandle(info.Holder());
 

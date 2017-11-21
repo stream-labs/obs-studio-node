@@ -26,7 +26,6 @@ public:
        method on that object. */
     static NAN_METHOD(New);
 
-    static NAN_GETTER(status);
     static NAN_METHOD(first);
     static NAN_METHOD(count);
     static NAN_METHOD(get);
@@ -48,15 +47,15 @@ public:
     ~Property();
 
     static NAN_MODULE_INIT(Init);
-    static NAN_GETTER(value);
-    static NAN_GETTER(status);
-    static NAN_GETTER(name);
-    static NAN_GETTER(description);
-    static NAN_GETTER(longDescription);
-    static NAN_GETTER(type);
-    static NAN_GETTER(enabled);
-    static NAN_GETTER(visible);
-    static NAN_GETTER(details);
+    static NAN_METHOD(get_value);
+    static NAN_METHOD(get_status);
+    static NAN_METHOD(get_name);
+    static NAN_METHOD(get_description);
+    static NAN_METHOD(get_longDescription);
+    static NAN_METHOD(get_type);
+    static NAN_METHOD(get_enabled);
+    static NAN_METHOD(get_visible);
+    static NAN_METHOD(get_details);
     static NAN_METHOD(next);
     static NAN_METHOD(modified);
     static NAN_METHOD(buttonClicked);

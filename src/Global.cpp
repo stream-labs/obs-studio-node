@@ -17,15 +17,15 @@ NAN_MODULE_INIT(Init)
 {
     auto ObsGlobal = Nan::New<v8::Object>();
 
-    Nan::SetMethod(ObsGlobal, "startup", startup);
-    Nan::SetMethod(ObsGlobal, "shutdown", shutdown);
-    Nan::SetMethod(ObsGlobal, "getOutputSource", getOutputSource);
-    Nan::SetMethod(ObsGlobal, "setOutputSource", setOutputSource);
-    Nan::SetMethod(ObsGlobal, "getOutputFlagsFromId", getOutputFlagsFromId);
-    Nan::SetAccessor(ObsGlobal, FIELD_NAME("laggedFrames"), laggedFrames);
-    Nan::SetAccessor(ObsGlobal, FIELD_NAME("totalFrames"), totalFrames);
-    Nan::SetAccessor(ObsGlobal, FIELD_NAME("initialized"), initialized);
-    Nan::SetAccessor(ObsGlobal, FIELD_NAME("locale"), locale);
+    common::SetObjectField(ObsGlobal, "startup", startup);
+    common::SetObjectField(ObsGlobal, "shutdown", shutdown);
+    common::SetObjectField(ObsGlobal, "getOutputSource", getOutputSource);
+    common::SetObjectField(ObsGlobal, "setOutputSource", setOutputSource);
+    common::SetObjectField(ObsGlobal, "getOutputFlagsFromId", getOutputFlagsFromId);
+    common::SetObjectLazyAccessor(ObsGlobal, "laggedFrames", laggedFrames);
+    common::SetObjectLazyAccessor(ObsGlobal, "totalFrames", totalFrames);
+    common::SetObjectLazyAccessor(ObsGlobal, "initialized", initialized);
+    common::SetObjectLazyAccessor(ObsGlobal, "locale", get_locale, set_locale);
 
     Nan::Set(target, FIELD_NAME("Global"), ObsGlobal);
 }
@@ -59,44 +59,44 @@ NAN_METHOD(shutdown)
     obs::shutdown();
 }
 
-NAN_GETTER(laggedFrames)
+NAN_METHOD(laggedFrames)
 {
     OBS_VALID
 
     info.GetReturnValue().Set(common::ToValue(obs::lagged_frames()));
 }
 
-NAN_GETTER(totalFrames)
+NAN_METHOD(totalFrames)
 {
     OBS_VALID
 
     info.GetReturnValue().Set(common::ToValue(obs::total_frames()));
 }
 
-NAN_GETTER(locale)
+NAN_METHOD(get_locale)
 {
     OBS_VALID
 
     info.GetReturnValue().Set(common::ToValue(obs::locale()));
 }
 
-NAN_SETTER(locale)
+NAN_METHOD(set_locale)
 {
     OBS_VALID
 
     std::string locale;
 
-    ASSERT_GET_VALUE(value, locale);
+    ASSERT_GET_VALUE(info[0], locale);
 
     obs::locale(locale);
 }
 
-NAN_GETTER(initialized)
+NAN_METHOD(initialized)
 {
     info.GetReturnValue().Set(common::ToValue(obs::initialized()));
 }
 
-NAN_GETTER(version)
+NAN_METHOD(version)
 {
     info.GetReturnValue().Set(common::ToValue(obs::version()));
 }

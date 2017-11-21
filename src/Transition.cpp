@@ -35,13 +35,13 @@ NAN_MODULE_INIT(Transition::Init)
     locProto->Inherit(Nan::New(ISource::prototype));
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("Transition"));
-    Nan::SetMethod(locProto, "create", create);
-    Nan::SetMethod(locProto, "createPrivate", createPrivate);
-    Nan::SetMethod(locProto, "types", types);
-    Nan::SetMethod(locProto->InstanceTemplate(), "getActiveSource", getActiveSource);
-    Nan::SetMethod(locProto->InstanceTemplate(), "start", start);
-    Nan::SetMethod(locProto->InstanceTemplate(), "set", set);
-    Nan::Set(target, FIELD_NAME("Transition"), locProto->GetFunction());
+    common::SetObjectTemplateField(locProto, "create", create);
+    common::SetObjectTemplateField(locProto, "createPrivate", createPrivate);
+    common::SetObjectTemplateField(locProto, "types", types);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "getActiveSource", getActiveSource);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "start", start);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "set", set);
+    common::SetObjectField(target, "Transition", locProto->GetFunction());
     prototype.Reset(locProto);
 }
 

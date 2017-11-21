@@ -10,11 +10,11 @@ NAN_METHOD(shutdown);
 NAN_METHOD(getOutputFlagsFromId);
 NAN_METHOD(getOutputSource);
 NAN_METHOD(setOutputSource);
-NAN_GETTER(locale);
-NAN_SETTER(locale);
-NAN_GETTER(initialized);
-NAN_GETTER(version);
-NAN_GETTER(laggedFrames);
-NAN_GETTER(totalFrames);
+NAN_METHOD(get_locale);
+NAN_METHOD(set_locale);
+NAN_METHOD(initialized);
+NAN_METHOD(version);
+NAN_METHOD(laggedFrames);
+NAN_METHOD(totalFrames);
 
 }

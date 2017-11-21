@@ -21,47 +21,47 @@ public:
 
     static void Init();
 
-    static NAN_GETTER(source);
-    static NAN_GETTER(scene);
+    static NAN_METHOD(get_source);
+    static NAN_METHOD(get_scene);
 
     static NAN_METHOD(remove);
-    static NAN_GETTER(id);
+    static NAN_METHOD(get_id);
 
-    static NAN_GETTER(visible);
-    static NAN_SETTER(visible);
+    static NAN_METHOD(get_visible);
+    static NAN_METHOD(set_visible);
 
-    static NAN_GETTER(selected);
-    static NAN_SETTER(selected);
+    static NAN_METHOD(get_selected);
+    static NAN_METHOD(set_selected);
 
-    static NAN_SETTER(position);
-    static NAN_GETTER(position);
+    static NAN_METHOD(get_position);
+    static NAN_METHOD(set_position);
 
-    static NAN_SETTER(rotation);
-    static NAN_GETTER(rotation);
+    static NAN_METHOD(get_rotation);
+    static NAN_METHOD(set_rotation);
 
-    static NAN_SETTER(scale);
-    static NAN_GETTER(scale);
+    static NAN_METHOD(get_scale);
+    static NAN_METHOD(set_scale);
 
-    static NAN_SETTER(alignment);
-    static NAN_GETTER(alignment);
+    static NAN_METHOD(get_alignment);
+    static NAN_METHOD(set_alignment);
 
-    static NAN_SETTER(boundsAlignment);
-    static NAN_GETTER(boundsAlignment);
+    static NAN_METHOD(get_boundsAlignment);
+    static NAN_METHOD(set_boundsAlignment);
 
-    static NAN_SETTER(bounds);
-    static NAN_GETTER(bounds);
+    static NAN_METHOD(get_bounds);
+    static NAN_METHOD(set_bounds);
 
-    static NAN_SETTER(transformInfo);
-    static NAN_GETTER(transformInfo);
+    static NAN_METHOD(get_transformInfo);
+    static NAN_METHOD(set_transformInfo);
 
-    static NAN_SETTER(boundsType);
-    static NAN_GETTER(boundsType);
+    static NAN_METHOD(get_boundsType);
+    static NAN_METHOD(set_boundsType);
 
-    static NAN_SETTER(crop);
-    static NAN_GETTER(crop);
+    static NAN_METHOD(get_crop);
+    static NAN_METHOD(set_crop);
 
-    static NAN_SETTER(scaleFilter);
-    static NAN_GETTER(scaleFilter);
+    static NAN_METHOD(get_scaleFilter);
+    static NAN_METHOD(set_scaleFilter);
 
     static NAN_METHOD(moveUp);
     static NAN_METHOD(moveDown);

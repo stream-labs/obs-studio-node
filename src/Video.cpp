@@ -20,11 +20,11 @@ NAN_MODULE_INIT(Video::Init)
 {
     auto ObsVideo = Nan::New<v8::Object>();
 
-    Nan::SetMethod(ObsVideo, "reset", reset);
-    Nan::SetAccessor(ObsVideo, FIELD_NAME("skippedFrames"), skippedFrames);
-    Nan::SetAccessor(ObsVideo, FIELD_NAME("totalFrames"), totalFrames);
+    common::SetObjectField(ObsVideo, "reset", reset);
+    common::SetObjectLazyAccessor(ObsVideo, "skippedFrames", get_skippedFrames);
+    common::SetObjectLazyAccessor(ObsVideo, "totalFrames", get_totalFrames);
 
-    Nan::Set(target, FIELD_NAME("Video"), ObsVideo);
+    common::SetObjectField(target, "Video", ObsVideo);
 }
 
 NAN_METHOD(Video::New)
@@ -32,12 +32,12 @@ NAN_METHOD(Video::New)
     Nan::ThrowError("video_t is not supported yet!");
 }
 
-NAN_GETTER(Video::skippedFrames)
+NAN_METHOD(Video::get_skippedFrames)
 {
     info.GetReturnValue().Set(common::ToValue(obs::video::skipped_frames()));
 }
 
-NAN_GETTER(Video::totalFrames)
+NAN_METHOD(Video::get_totalFrames)
 {
     info.GetReturnValue().Set(common::ToValue(obs::video::total_frames()));
 }
@@ -86,10 +86,10 @@ NAN_MODULE_INIT(VideoEncoder::Init)
     locProto->Inherit(Nan::New(IEncoder::prototype));
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("VideoEncoder"));
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("height"), height);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("width"), width);
-    //Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("scaledSize"), scaledSize);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("preferredFormat"), preferredFormat, preferredFormat);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "height", get_height);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "width", get_width);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "scaledSize", get_scaledSize);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "preferredFormat", get_preferredFormat, set_preferredFormat);
     Nan::Set(target, FIELD_NAME("VideoEncoder"), locProto->GetFunction());
     prototype.Reset(locProto);
 }
@@ -113,27 +113,27 @@ NAN_METHOD(VideoEncoder::New)
     info.GetReturnValue().Set(info.This());
 }
 
-NAN_GETTER(VideoEncoder::height)
+NAN_METHOD(VideoEncoder::get_height)
 {
     
 }
 
-NAN_GETTER(VideoEncoder::width)
+NAN_METHOD(VideoEncoder::get_width)
 {
 
 }
 
-NAN_SETTER(VideoEncoder::scaledSize)
+NAN_METHOD(VideoEncoder::get_scaledSize)
 {
 
 }
 
-NAN_SETTER(VideoEncoder::preferredFormat)
+NAN_METHOD(VideoEncoder::get_preferredFormat)
 {
 
 }
 
-NAN_GETTER(VideoEncoder::preferredFormat)
+NAN_METHOD(VideoEncoder::set_preferredFormat)
 {
 
 }

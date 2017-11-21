@@ -48,7 +48,7 @@ v8::Local<v8::Value> ValueFromCalldata(callback_data *data)
 {
     v8::Local<v8::Object> result = Nan::New<v8::Object>();
 
-    if (!data) { 
+    if (!data) {
         return Nan::Null();
     }
 

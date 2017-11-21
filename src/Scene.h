@@ -30,7 +30,7 @@ public:
     static NAN_METHOD(createPrivate);
     static NAN_METHOD(fromName);
     static NAN_METHOD(duplicate);
-    static NAN_GETTER(source);
+    static NAN_METHOD(get_source);
     static NAN_METHOD(moveItem);
     static NAN_METHOD(findItem);
     static NAN_METHOD(getItems);

@@ -15,34 +15,34 @@ void SceneItem::Init()
 {
     auto locProto = Nan::New<v8::FunctionTemplate>();
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("source"), source);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("scene"), scene);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("visible"), visible, visible);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("selected"), selected, selected);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("position"), position, position);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("rotation"), rotation, rotation);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("scale"), scale, scale);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("alignment"), alignment, alignment);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("boundsAlignment"), boundsAlignment, boundsAlignment);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("bounds"), bounds, bounds);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("transformInfo"), transformInfo, transformInfo);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("boundsType"), boundsType, boundsType);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("crop"), crop, crop);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("scaleFilter"), scaleFilter, scaleFilter);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("id"), id);
-    Nan::SetMethod(locProto->InstanceTemplate(), "moveUp", moveUp);
-    Nan::SetMethod(locProto->InstanceTemplate(), "moveDown", moveDown);
-    Nan::SetMethod(locProto->InstanceTemplate(), "moveTop", moveTop);
-    Nan::SetMethod(locProto->InstanceTemplate(), "moveBottom", moveBottom);
-    Nan::SetMethod(locProto->InstanceTemplate(), "move", move);
-    Nan::SetMethod(locProto->InstanceTemplate(), "remove", remove);
-    Nan::SetMethod(locProto->InstanceTemplate(), "deferUpdateBegin", deferUpdateBegin);
-    Nan::SetMethod(locProto->InstanceTemplate(), "deferUpdateEnd", deferUpdateEnd);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "source", get_source);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "scene", get_scene);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "visible", get_visible, set_visible);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "selected", get_selected, set_selected);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "position", get_position, set_position);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "rotation", get_rotation, set_rotation);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "scale", get_scale, set_scale);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "alignment", get_alignment, set_alignment);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "boundsAlignment", get_boundsAlignment, set_boundsAlignment);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "bounds", get_bounds, set_bounds);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "transformInfo", get_transformInfo, set_transformInfo);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "boundsType", get_boundsType, set_boundsType);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "crop", get_crop, set_crop);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "scaleFilter", get_scaleFilter, set_scaleFilter);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "id", get_id);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "moveUp", moveUp);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "moveDown", moveDown);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "moveTop", moveTop);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "moveBottom", moveBottom);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "move", move);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "remove", remove);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "deferUpdateBegin", deferUpdateBegin);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "deferUpdateEnd", deferUpdateEnd);
     locProto->SetClassName(FIELD_NAME("SceneItem"));
     prototype.Reset(locProto);
 }
 
-NAN_GETTER(SceneItem::source)
+NAN_METHOD(SceneItem::get_source)
 {
     obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
@@ -52,7 +52,7 @@ NAN_GETTER(SceneItem::source)
     info.GetReturnValue().Set(object);
 }
 
-NAN_GETTER(SceneItem::scene)
+NAN_METHOD(SceneItem::get_scene)
 {
     obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
@@ -69,7 +69,7 @@ NAN_METHOD(SceneItem::remove)
     handle.remove();
 }
 
-NAN_GETTER(SceneItem::id)
+NAN_METHOD(SceneItem::get_id)
 {
     obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
@@ -77,54 +77,54 @@ NAN_GETTER(SceneItem::id)
     info.GetReturnValue().Set((uint32_t)handle.id());
 }
 
-NAN_GETTER(SceneItem::visible)
+NAN_METHOD(SceneItem::get_visible)
 {
     obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(common::ToValue(handle.visible()));
 }
 
-NAN_SETTER(SceneItem::visible)
+NAN_METHOD(SceneItem::set_visible)
 {
     obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
     bool visible;
 
-    ASSERT_GET_VALUE(value, visible);
+    ASSERT_GET_VALUE(info[0], visible);
 
     handle.visible(visible);
 }
 
-NAN_SETTER(SceneItem::selected)
+NAN_METHOD(SceneItem::set_selected)
 {
     obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
     bool selected;
 
-    ASSERT_GET_VALUE(value, selected);
+    ASSERT_GET_VALUE(info[0], selected);
 
     handle.selected(selected);
 }
 
-NAN_GETTER(SceneItem::selected)
+NAN_METHOD(SceneItem::get_selected)
 {
     obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(common::ToValue(handle.selected()));
 }
 
-NAN_SETTER(SceneItem::position)
+NAN_METHOD(SceneItem::set_position)
 {
     obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
     vec2 position;
 
-    ASSERT_GET_VALUE(value, position);
+    ASSERT_GET_VALUE(info[0], position);
 
     handle.position(position);
 }
 
-NAN_GETTER(SceneItem::position)
+NAN_METHOD(SceneItem::get_position)
 {
     obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
     vec2 position = handle.position();
@@ -132,18 +132,18 @@ NAN_GETTER(SceneItem::position)
     info.GetReturnValue().Set(common::ToValue(position));
 }
 
-NAN_SETTER(SceneItem::rotation)
+NAN_METHOD(SceneItem::set_rotation)
 {
     obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
     float rotation;
 
-    ASSERT_GET_VALUE(value, rotation);
+    ASSERT_GET_VALUE(info[0], rotation);
 
     handle.rotation(rotation);
 }
 
-NAN_GETTER(SceneItem::rotation)
+NAN_METHOD(SceneItem::get_rotation)
 {
     obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
@@ -152,18 +152,18 @@ NAN_GETTER(SceneItem::rotation)
     info.GetReturnValue().Set(common::ToValue(rotation));
 }
 
-NAN_SETTER(SceneItem::scale)
+NAN_METHOD(SceneItem::set_scale)
 {
     obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
     vec2 scale;
 
-    ASSERT_GET_VALUE(value, scale);
+    ASSERT_GET_VALUE(info[0], scale);
 
     handle.scale(scale);
 }
 
-NAN_GETTER(SceneItem::scale)
+NAN_METHOD(SceneItem::get_scale)
 {
     obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
     vec2 scale = handle.scale();
@@ -171,54 +171,54 @@ NAN_GETTER(SceneItem::scale)
     info.GetReturnValue().Set(common::ToValue(scale));
 }
 
-NAN_SETTER(SceneItem::alignment)
+NAN_METHOD(SceneItem::set_alignment)
 {
     obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
     uint32_t alignment;
 
-    ASSERT_GET_VALUE(value, alignment);
+    ASSERT_GET_VALUE(info[0], alignment);
 
     handle.alignment(alignment);
 }
 
-NAN_GETTER(SceneItem::alignment)
+NAN_METHOD(SceneItem::get_alignment)
 {
     obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(common::ToValue(handle.alignment()));
 }
 
-NAN_SETTER(SceneItem::boundsAlignment)
+NAN_METHOD(SceneItem::set_boundsAlignment)
 {
     obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
     uint32_t alignment;
 
-    ASSERT_GET_VALUE(value, alignment);
+    ASSERT_GET_VALUE(info[0], alignment);
 
     handle.bounds_alignment(alignment);
 }
 
-NAN_GETTER(SceneItem::boundsAlignment)
+NAN_METHOD(SceneItem::get_boundsAlignment)
 {
     obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(common::ToValue(handle.bounds_alignment()));
 }
 
-NAN_SETTER(SceneItem::bounds)
+NAN_METHOD(SceneItem::set_bounds)
 {
     obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
     vec2 bounds;
 
-    ASSERT_GET_VALUE(value, bounds);
+    ASSERT_GET_VALUE(info[0], bounds);
 
     handle.scale(bounds);
 }
 
-NAN_GETTER(SceneItem::bounds)
+NAN_METHOD(SceneItem::get_bounds)
 {
     obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
     vec2 bounds = handle.bounds();
@@ -226,13 +226,13 @@ NAN_GETTER(SceneItem::bounds)
     info.GetReturnValue().Set(common::ToValue(bounds));
 }
 
-NAN_SETTER(SceneItem::transformInfo)
+NAN_METHOD(SceneItem::set_transformInfo)
 {
     obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
     v8::Local<v8::Object> tf_info_object;
 
-    ASSERT_GET_VALUE(value, tf_info_object);
+    ASSERT_GET_VALUE(info[0], tf_info_object);
 
     obs_transform_info tf_info;
 
@@ -247,7 +247,7 @@ NAN_SETTER(SceneItem::transformInfo)
     handle.transform_info(tf_info);
 }
 
-NAN_GETTER(SceneItem::transformInfo)
+NAN_METHOD(SceneItem::get_transformInfo)
 {
     obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
@@ -303,42 +303,26 @@ NAN_METHOD(SceneItem::move)
     handle.order_position(position);
 }
 
-NAN_SETTER(SceneItem::boundsType)
-{
-    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
-    enum obs_bounds_type bounds_type;
-
-    ASSERT_GET_VALUE(value, bounds_type);
-
-    handle.bounds_type(bounds_type);
-}
-
-NAN_GETTER(SceneItem::boundsType)
+NAN_METHOD(SceneItem::get_boundsType)
 {
     obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle.bounds_type());
 }
 
-NAN_SETTER(SceneItem::crop)
+NAN_METHOD(SceneItem::set_boundsType)
 {
     obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
-    v8::Local<v8::Object> crop_info_object;
-    obs_sceneitem_crop crop_info;
+    enum obs_bounds_type bounds_type;
 
-    ASSERT_GET_VALUE(value, crop_info_object);
+    ASSERT_GET_VALUE(info[0], bounds_type);
 
-    ASSERT_GET_OBJECT_FIELD(crop_info_object, "left", crop_info.left);
-    ASSERT_GET_OBJECT_FIELD(crop_info_object, "right", crop_info.right);
-    ASSERT_GET_OBJECT_FIELD(crop_info_object, "top", crop_info.top);
-    ASSERT_GET_OBJECT_FIELD(crop_info_object, "bottom", crop_info.bottom);
-
-    handle.crop(crop_info);
+    handle.bounds_type(bounds_type);
 }
 
-NAN_GETTER(SceneItem::crop)
+NAN_METHOD(SceneItem::get_crop)
 {
     obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
@@ -353,22 +337,40 @@ NAN_GETTER(SceneItem::crop)
     info.GetReturnValue().Set(object);
 }
 
-NAN_SETTER(SceneItem::scaleFilter)
+
+NAN_METHOD(SceneItem::set_crop)
+{
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
+
+    v8::Local<v8::Object> crop_info_object;
+    obs_sceneitem_crop crop_info;
+
+    ASSERT_GET_VALUE(info[0], crop_info_object);
+
+    ASSERT_GET_OBJECT_FIELD(crop_info_object, "left", crop_info.left);
+    ASSERT_GET_OBJECT_FIELD(crop_info_object, "right", crop_info.right);
+    ASSERT_GET_OBJECT_FIELD(crop_info_object, "top", crop_info.top);
+    ASSERT_GET_OBJECT_FIELD(crop_info_object, "bottom", crop_info.bottom);
+
+    handle.crop(crop_info);
+}
+
+NAN_METHOD(SceneItem::get_scaleFilter)
+{
+    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
+
+    info.GetReturnValue().Set(handle.scale_filter());
+}
+
+NAN_METHOD(SceneItem::set_scaleFilter)
 {
     obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
     int scale_filter;
 
-    ASSERT_GET_VALUE(value, scale_filter);
+    ASSERT_GET_VALUE(info[0], scale_filter);
 
     handle.scale_filter(static_cast<enum obs_scale_type>(scale_filter));
-}
-
-NAN_GETTER(SceneItem::scaleFilter)
-{
-    obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
-
-    info.GetReturnValue().Set(handle.scale_filter());
 }
 
 NAN_METHOD(SceneItem::deferUpdateBegin)

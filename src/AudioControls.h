@@ -27,14 +27,14 @@ public:
     static NAN_MODULE_INIT(Init);
     static NAN_METHOD(create);
 
-    static NAN_GETTER(db);
-    static NAN_SETTER(db);
+    static NAN_METHOD(get_db);
+    static NAN_METHOD(set_db);
 
-    static NAN_GETTER(deflection);
-    static NAN_SETTER(deflection);
+    static NAN_METHOD(get_deflection);
+    static NAN_METHOD(set_deflection);
 
-    static NAN_GETTER(mul);
-    static NAN_SETTER(mul);
+    static NAN_METHOD(get_mul);
+    static NAN_METHOD(set_mul);
 
     static NAN_METHOD(attach);
     static NAN_METHOD(detach);
@@ -68,11 +68,11 @@ public:
     static NAN_MODULE_INIT(Init);
     static NAN_METHOD(create);
 
-    static NAN_GETTER(peakHold);
-    static NAN_SETTER(peakHold);
+    static NAN_METHOD(get_peakHold);
+    static NAN_METHOD(set_peakHold);
     
-    static NAN_GETTER(updateInterval);
-    static NAN_SETTER(updateInterval);
+    static NAN_METHOD(get_updateInterval);
+    static NAN_METHOD(set_updateInterval);
 
     static NAN_METHOD(attach);
     static NAN_METHOD(detach);

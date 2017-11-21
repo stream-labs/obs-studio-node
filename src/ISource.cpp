@@ -19,24 +19,26 @@ NAN_MODULE_INIT(ISource::Init)
 {
     auto locProto = Nan::New<v8::FunctionTemplate>();
     locProto->SetClassName(FIELD_NAME("Source"));
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("name"), name, name);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("type"), type);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("outputFlags"), outputFlags);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("flags"), flags, flags);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("name"), name, name);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("status"), status);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("id"), id);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("muted"), muted, muted);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("enabled"), enabled, enabled);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("configurable"), configurable);
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("settings"), settings);
+    v8::Local<v8::ObjectTemplate> proto_templ = locProto->PrototypeTemplate();
 
-    Nan::SetMethod(locProto->PrototypeTemplate(), "release", release);
-    Nan::SetMethod(locProto->PrototypeTemplate(), "remove", remove);
-    Nan::SetMethod(locProto->PrototypeTemplate(), "update", update);
-    Nan::SetMethod(locProto->PrototypeTemplate(), "properties", properties);
+    common::SetObjectTemplateLazyAccessor(proto_templ, "name", get_name, set_name);
+    common::SetObjectTemplateLazyAccessor(proto_templ, "type", get_type);
+    common::SetObjectTemplateLazyAccessor(proto_templ, "outputFlags", get_outputFlags);
+    common::SetObjectTemplateLazyAccessor(proto_templ, "flags", get_flags, set_flags);
+    common::SetObjectTemplateLazyAccessor(proto_templ, "name", get_name, set_name);
+    common::SetObjectTemplateLazyAccessor(proto_templ, "status", get_status);
+    common::SetObjectTemplateLazyAccessor(proto_templ, "id", get_id);
+    common::SetObjectTemplateLazyAccessor(proto_templ, "muted", get_muted, set_muted);
+    common::SetObjectTemplateLazyAccessor(proto_templ, "enabled", get_enabled, set_enabled);
+    common::SetObjectTemplateLazyAccessor(proto_templ, "configurable", get_configurable);
+    common::SetObjectTemplateLazyAccessor(proto_templ, "properties", get_properties);
+    common::SetObjectTemplateLazyAccessor(proto_templ, "settings", get_settings);
 
-    Nan::Set(target, FIELD_NAME("Source"), locProto->GetFunction());
+    common::SetObjectTemplateField(proto_templ, "release", release);
+    common::SetObjectTemplateField(proto_templ, "remove", remove);
+    common::SetObjectTemplateField(proto_templ, "update", update);
+
+    common::SetObjectField(target, "Source", locProto->GetFunction());
     prototype.Reset(locProto);
 }
 
@@ -57,78 +59,78 @@ NAN_METHOD(ISource::remove)
     handle.remove();
 }
 
-NAN_GETTER(ISource::type)
+NAN_METHOD(ISource::get_type)
 {
     obs::source handle = ISource::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle.type());
 }
 
-NAN_GETTER(ISource::name)
+NAN_METHOD(ISource::get_name)
 {
     obs::source handle = ISource::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(common::ToValue(handle.name()));
 }
 
-NAN_SETTER(ISource::name)
+NAN_METHOD(ISource::set_name)
 {
     obs::source handle = ISource::GetHandle(info.Holder());
 
     std::string name;
 
-    ASSERT_GET_VALUE(value, name);
+    ASSERT_GET_VALUE(info[0], name);
 
     handle.name(name);
 }
 
-NAN_GETTER(ISource::outputFlags)
+NAN_METHOD(ISource::get_outputFlags)
 {
     obs::source handle = ISource::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle.output_flags());
 }
 
-NAN_GETTER(ISource::flags)
+NAN_METHOD(ISource::get_flags)
 {
     obs::source handle = ISource::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle.flags());
 }
 
-NAN_SETTER(ISource::flags)
+NAN_METHOD(ISource::set_flags)
 {
     obs::source handle = ISource::GetHandle(info.Holder());
 
     uint32_t flags;
 
-    ASSERT_GET_VALUE(value, flags);
+    ASSERT_GET_VALUE(info[0], flags);
 
     handle.flags(flags);
 }
 
-NAN_GETTER(ISource::status)
+NAN_METHOD(ISource::get_status)
 {
     obs::source handle = ISource::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle.status());
 }
 
-NAN_GETTER(ISource::id)
+NAN_METHOD(ISource::get_id)
 {
     obs::source handle = ISource::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(common::ToValue(handle.id()));
 }
 
-NAN_GETTER(ISource::configurable)
+NAN_METHOD(ISource::get_configurable)
 {
     obs::source handle = ISource::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle.configurable());
 }
 
-NAN_METHOD(ISource::properties)
+NAN_METHOD(ISource::get_properties)
 {
     obs::source handle = ISource::GetHandle(info.Holder());
 
@@ -145,7 +147,7 @@ NAN_METHOD(ISource::properties)
     info.GetReturnValue().Set(object);
 }
 
-NAN_GETTER(ISource::settings)
+NAN_METHOD(ISource::get_settings)
 {
     obs::source handle = ISource::GetHandle(info.Holder());
 
@@ -166,38 +168,38 @@ NAN_METHOD(ISource::update)
     obs_data_release(data);
 }
 
-NAN_GETTER(ISource::muted)
+NAN_METHOD(ISource::get_muted)
 {
     obs::source handle = ISource::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(common::ToValue(handle.muted()));
 }
 
-NAN_SETTER(ISource::muted)
+NAN_METHOD(ISource::set_muted)
 {
     obs::source handle = ISource::GetHandle(info.Holder());
 
     bool muted;
 
-    ASSERT_GET_VALUE(value, muted);
+    ASSERT_GET_VALUE(info[0], muted);
 
     handle.muted(muted);
 }
 
-NAN_GETTER(ISource::enabled)
+NAN_METHOD(ISource::get_enabled)
 {
     obs::source handle = ISource::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(common::ToValue(handle.enabled()));
 }
 
-NAN_SETTER(ISource::enabled)
+NAN_METHOD(ISource::set_enabled)
 {
     obs::source handle = ISource::GetHandle(info.Holder());
 
     bool enabled;
 
-    ASSERT_GET_VALUE(value, enabled);
+    ASSERT_GET_VALUE(info[0], enabled);
 
     handle.enabled(enabled);
 }
