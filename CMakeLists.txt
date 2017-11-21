@@ -85,8 +85,6 @@ add_library(${OSN_NODE_NAME} SHARED
     "src/IEncoder.h"
     "src/Display.cpp"
     "src/Display.h"
-    "src/RenderPlugin.h"
-    "src/RenderPlugin.c"
     "src/Global.cpp"
     "src/Global.h"
     "src/Input.cpp"
@@ -132,13 +130,6 @@ add_library(${OSN_NODE_NAME} SHARED
 )
 
 target_link_libraries(${OSN_NODE_NAME} ${CMAKE_JS_LIB} obs)
-
-add_library(simple_draw SHARED
-    "src/simple_draw/draw.c")
-
-target_link_libraries(simple_draw
-    ${OSN_NODE_NAME}
-    obs)
 
 target_compile_definitions(
     ${OSN_NODE_NAME} PUBLIC
@@ -262,5 +253,4 @@ install(
     DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}"
 )
 
-install(TARGETS ${OSN_NODE_NAME} simple_draw DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}")
 install(FILES $<TARGET_PDB_FILE:${OSN_NODE_NAME}> DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}" OPTIONAL)
