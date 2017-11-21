@@ -1,5 +1,4 @@
 #include "Display.h"
-#include "RenderPlugin.h"
 
 #include <graphics/matrix4.h>
 
