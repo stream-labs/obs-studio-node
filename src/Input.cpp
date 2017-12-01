@@ -121,7 +121,6 @@ NAN_METHOD(Input::create)
     
     std::string id, name;
     obs_data_t *settings = nullptr, *hotkeys = nullptr;
-    bool is_private = false;
 
     ASSERT_GET_VALUE(info[0], id);
     ASSERT_GET_VALUE(info[1], name);
@@ -152,13 +151,10 @@ NAN_METHOD(Input::createPrivate)
     ASSERT_GET_VALUE(info[0], id);
     ASSERT_GET_VALUE(info[1], name);
 
-    Input *binding;
-
     if (info.Length() > 2)
         ASSERT_GET_VALUE(info[2], settings);
 
-
-    binding = new Input(id, name, settings, true);
+    Input *binding = new Input(id, name, settings, true);
     auto object = Input::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }
