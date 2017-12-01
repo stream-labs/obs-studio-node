@@ -65,6 +65,8 @@ endif()
 
 # FIXME: Organize
 add_library(${OSN_NODE_NAME} SHARED
+    "src/Service.cpp"
+    "src/Service.h"
     "src/AudioControls.cpp"
     "src/AudioControls.h"
     "src/Calldata.cpp"
@@ -119,6 +121,7 @@ add_library(${OSN_NODE_NAME} SHARED
     "src/obspp/obspp-scene.hpp"
     "src/obspp/obspp-scene.cpp"
     "src/obspp/obspp-service.hpp"
+    "src/obspp/obspp-service.cpp"
     "src/obspp/obspp-source.hpp"
     "src/obspp/obspp-source.cpp"
     "src/obspp/obspp-transition.hpp"

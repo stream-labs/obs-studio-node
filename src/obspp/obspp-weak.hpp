@@ -84,6 +84,21 @@ struct raw_weak <obs_source_t*>
         : raw_weak_base(ref) { }
 };
 
+template <>
+struct raw_weak <obs_service_t*>
+    : raw_weak_base< 
+        obs_weak_service_t*,
+        obs_service_t*,
+        obs_service_get_weak_service,
+        obs_weak_service_get_service,
+        obs_weak_service_references_service,
+        obs_weak_service_addref,
+        obs_weak_service_release>
+{ 
+    raw_weak(obs_service_t* ref) 
+        : raw_weak_base(ref) { }
+};
+
 template <class T>
 class weak {
 public:

@@ -1,23 +1,66 @@
 #pragma once
 
+#include <obs.h>
+#include <string>
+#include <vector>
+
+#include "obspp-properties.hpp"
+#include "obspp-weak.hpp"
+
 namespace obs {
 
 class service {
+public:
+    enum status_type {
+        okay,
+        invalid
+    };
+
+private:
+    obs_service_t *m_handle;
+    status_type m_status;
+
+    service();
 
 public:
-    static std::list<std::string>> types();
-};
+    service(std::string &id, std::string &name, obs_data_t *settings = nullptr, obs_data_t *hotkey = nullptr);
+    service(std::string &id, std::string &name, obs_data_t *settings, bool is_private = false);
 
-std::list<std::string>> service::types()
-{
-    const char *id = nullptr;
-    std::list<std::string> type_list;
+    service(service &copy);
+    service(obs_service_t *service);
 
-    for (int i = 0; obs_enum_service_types(i, &id); ++i) {
-        type_list.push_back(id);
+    template <typename T>
+    service(obs::strong<T> &service) : m_handle(service->dangerous())
+    {
+        if (!m_handle) m_status = status_type::invalid;
     }
 
-    return type_list;
-}
+    void addref();
+    void release();
+    ~service();
+    bool operator!() const;
+    obs_service_t *dangerous();
+    status_type status();
+
+    static std::vector<std::string> types();
+    static service from_name(std::string name);
+
+    /** Configurable concept */
+    bool configurable();
+    obs::properties properties();
+    obs_data_t *settings();
+    void update(obs_data_t *data);
+
+    /** Convenience functions. 
+      * These are generally the same as
+      * the current setting values. */
+    const std::string url();
+    const std::string key();
+    const std::string username();
+    const std::string password();
+
+    const std::string name();
+    const std::string id();
+};
 
 }
