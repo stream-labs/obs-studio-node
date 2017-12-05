@@ -1,23 +1,16 @@
-.vs
-.vscode
-test/*.js
-test/*.map
-test/helpers.js
-*.js
-*.map
-*.opendb
-*.db
+# Ignore Build directory
+build/
+logs/
+node_modules/
+distribute/
+
+# Binaries
+*.dll
+*.lib
+*.pdb
+*.node
+
+# IDE Files
 *.sln
-node-obs
-node_modules
-yarn-error.log
-build
-docs
-obs-build64
-dependencies2015*
-distribute/obs_node.lib
-distribute/obs_node.node
-distribute/obs_node.pdb
-distribute/simple_draw.dll
-distribute/simple_draw.lib
-distribute/simple_draw.pdb
+*.vcxproj
+*.opendb
