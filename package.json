@@ -1,32 +1,32 @@
 {
-  "name": "obs-studio-node",
-  "version": "1.0.0",
-  "description": "Experimental bindings to obs-studio using nan directly",
-  "main": "./distribute/index.js",
-  "types": "./distribute/index.d.ts",
-  "scripts": {
-    "clean": "rimraf obs-build64 build dependencies2015*",
-    "fullclean": "npm run clean && rimraf *.js distribute/*.{js,node,dll,d.ts,lib}",
-    "compile": "tsc && tsc -p scripts",
-    "install": "npm run build:bindings",
-    "build:obs": "node build-obs.js",
-    "build:bindings": "node build-bindings.js",
-    "build:docs": "typedoc --out docs"
-  },
-  "author": "Zachary Lund <zachary.lund@streamlabs.com>",
-  "license": "GPL-2.0",
-  "devDependencies": {
-    "typedoc": "^0.8.0",
-    "typedoc-default-themes": "^0.5.0",
-    "typedoc-plugin-markdown": "^1.0.8",
-    "typescript": "^2.4.2"
-  },
-  "dependencies": {
-    "@types/shelljs": "^0.7.2",
-    "cmake-js": "^3.5.0",
-    "nan": "^2.6.2",
-    "rimraf": "^2.6.1",
-    "shelljs": "^0.7.8",
-    "simple-git": "^1.74.1"
-  }
+	"name": "obs-studio-node",
+	"version": "1.0.0",
+	"description": "Experimental bindings to obs-studio using nan directly",
+	"main": "./distribute/index.js",
+	"types": "./distribute/index.d.ts",
+	"scripts": {
+		"clean": "rimraf obs-build64 build dependencies2015*",
+		"fullclean": "npm run clean && rimraf *.js distribute/*.{js,node,dll,d.ts,lib}",
+		"compile": "tsc && tsc -p scripts",
+		"install": "npm run build:bindings",
+		"build:obs": "node build-obs.js",
+		"build:bindings": "node build-bindings.js",
+		"build:docs": "typedoc --out docs"
+	},
+	"author": "Streamlabs <support@streamlabs.com>, Zachary Lund <zachary.lund@streamlabs.com>, Michael Fabian Dirks <michael.dirks@streamlabs.com>",
+	"license": "GPL-2.0",
+	"devDependencies": {
+	"typedoc": "^0.8.0",
+	"typedoc-default-themes": "^0.5.0",
+	"typedoc-plugin-markdown": "^1.0.8",
+	"typescript": "^2.4.2"
+	},
+	"dependencies": {
+	"@types/shelljs": "^0.7.2",
+	"cmake-js": "^3.5.0",
+	"nan": "^2.6.2",
+	"rimraf": "^2.6.1",
+	"shelljs": "^0.7.8",
+	"simple-git": "^1.74.1"
+	}
 }
