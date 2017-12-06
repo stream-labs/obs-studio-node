@@ -112,6 +112,7 @@ ENDIF()
 # Source, Libraries & Directories
 #############################
 SET(PROJECT_SOURCE 
+    "src/obs-node.cpp"
 	"src/Service.cpp" "src/Service.h"
     "src/AudioControls.cpp" "src/AudioControls.h"
     "src/Calldata.cpp" "src/Calldata.h"
@@ -129,7 +130,6 @@ SET(PROJECT_SOURCE
     "src/Module.cpp" "src/Module.h"
     "src/Audio.cpp" "src/Audio.h"
     "src/Video.cpp" "src/Video.h"
-    "src/obs-node.cpp"
     "src/obspp/obspp.cpp" "src/obspp/obspp.hpp"
     "src/obspp/obspp-audio.cpp" "src/obspp/obspp-audio.hpp"
     "src/obspp/obspp-display.cpp" "src/obspp/obspp-display.hpp"
@@ -146,6 +146,19 @@ SET(PROJECT_SOURCE
     "src/obspp/obspp-transition.cpp" "src/obspp/obspp-transition.hpp"
     "src/obspp/obspp-video.cpp" "src/obspp/obspp-video.hpp"
     "src/obspp/obspp-view.cpp" "src/obspp/obspp-view.hpp"
+	"src/nodeobs_api.h" "src/nodeobs_api.cpp"
+	"src/nodeobs_audio.h" "src/nodeobs_audio.cpp"
+	"src/nodeobs_audio_encoders.h" "src/nodeobs_audio_encoders.cpp"
+	"src/nodeobs_autoconfig.h" "src/nodeobs_autoconfig.cpp"
+	"src/nodeobs_common.h" "src/nodeobs_common.cpp"
+	"src/nodeobs_display.h" "src/nodeobs_display.cpp"
+	"src/nodeobs_event.h" "src/nodeobs_event.cpp"
+	"src/nodeobs_service.h" "src/nodeobs_service.cpp"
+	"src/nodeobs_settings.h" "src/nodeobs_settings.cpp"
+	"src/nodeobs_obspp_manager.h" "src/nodeobs_obspp_manager.cpp"
+	"src/nodeobs_obspp_index.h" "src/nodeobs_obspp_index.cpp"
+	"src/nodeobs_content.h"
+	"src/nodeobs_module.cpp"
 )
 SET(PROJECT_LIBRARIES
 	${CMAKE_JS_LIB}
