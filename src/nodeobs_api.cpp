@@ -5,7 +5,7 @@
 #ifdef _WIN32
 #define _WIN32_WINNT 0x0502
 
-#include "OBS_content.h"
+#include "nodeobs_content.h"
 #include <mutex>
 #include <fstream>
 #include <locale>

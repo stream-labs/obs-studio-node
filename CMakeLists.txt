@@ -155,8 +155,8 @@ SET(PROJECT_SOURCE
 	"src/nodeobs_event.h" "src/nodeobs_event.cpp"
 	"src/nodeobs_service.h" "src/nodeobs_service.cpp"
 	"src/nodeobs_settings.h" "src/nodeobs_settings.cpp"
-	"src/nodeobs_obspp_manager.h" "src/nodeobs_obspp_manager.cpp"
-	"src/nodeobs_obspp_index.h" "src/nodeobs_obspp_index.cpp"
+	"src/nodeobs_obspp_manager.hpp" "src/nodeobs_obspp_manager.cpp"
+	"src/nodeobs_obspp_index.hpp" "src/nodeobs_obspp_index.cpp"
 	"src/nodeobs_content.h"
 	"src/nodeobs_module.cpp"
 )

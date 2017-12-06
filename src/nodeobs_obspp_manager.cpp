@@ -1,4 +1,4 @@
-#include "obspp-manager.hpp"
+#include "nodeobs_obspp_manager.hpp"
 
 obs::objectManager g_objectManager;
 
