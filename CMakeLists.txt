@@ -146,6 +146,7 @@ SET(PROJECT_SOURCE
     "src/obspp/obspp-transition.cpp" "src/obspp/obspp-transition.hpp"
     "src/obspp/obspp-video.cpp" "src/obspp/obspp-video.hpp"
     "src/obspp/obspp-view.cpp" "src/obspp/obspp-view.hpp"
+	"src/nodeobs_module.h" "src/nodeobs_module.cpp"
 	"src/nodeobs_api.h" "src/nodeobs_api.cpp"
 	"src/nodeobs_audio.h" "src/nodeobs_audio.cpp"
 	"src/nodeobs_audio_encoders.h" "src/nodeobs_audio_encoders.cpp"
@@ -158,7 +159,6 @@ SET(PROJECT_SOURCE
 	"src/nodeobs_obspp_manager.hpp" "src/nodeobs_obspp_manager.cpp"
 	"src/nodeobs_obspp_index.hpp" "src/nodeobs_obspp_index.cpp"
 	"src/nodeobs_content.h"
-	"src/nodeobs_module.cpp"
 )
 SET(PROJECT_LIBRARIES
 	${CMAKE_JS_LIB}

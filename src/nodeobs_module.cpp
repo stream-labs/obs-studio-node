@@ -9,7 +9,7 @@
 
 using namespace v8;
 
-void init(Local<Object> exports) {
+void nodeobs_init(Local<Object> exports) {
     /// Functions ///
 
     //OBS_AutoConfig
@@ -289,4 +289,4 @@ void init(Local<Object> exports) {
     NODE_SET_METHOD(exports, "OBS_settings_saveSettings", OBS_settings::OBS_settings_saveSettings);
 }
 
-NODE_MODULE(OBSmodule, init)
+//NODE_MODULE(OBSmodule, init)
