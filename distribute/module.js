@@ -22,8 +22,8 @@ exports.TransitionFactory = obs.Transition;
 exports.DisplayFactory = obs.Display;
 exports.VolmeterFactory = obs.Volmeter;
 exports.FaderFactory = obs.Fader;
-exports.Audio = obs.Audio;
-exports.Video = obs.Video;
+exports.AudioFactory = obs.Audio;
+exports.VideoFactory = obs.Video;
 exports.ModuleFactory = obs.Module;
 var EDelayFlags;
 (function (EDelayFlags) {

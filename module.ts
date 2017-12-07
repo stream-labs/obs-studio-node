@@ -288,8 +288,8 @@ export const TransitionFactory: ITransitionFactory = obs.Transition;
 export const DisplayFactory: IDisplayFactory = obs.Display;
 export const VolmeterFactory: IVolmeterFactory = obs.Volmeter;
 export const FaderFactory: IFaderFactory = obs.Fader;
-export const Audio: IAudioFactory = obs.Audio;
-export const Video: IVideoFactory = obs.Video;
+export const AudioFactory: IAudioFactory = obs.Audio;
+export const VideoFactory: IVideoFactory = obs.Video;
 export const ModuleFactory: IModuleFactory = obs.Module;
 
 /**

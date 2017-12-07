@@ -220,8 +220,8 @@ export declare const TransitionFactory: ITransitionFactory;
 export declare const DisplayFactory: IDisplayFactory;
 export declare const VolmeterFactory: IVolmeterFactory;
 export declare const FaderFactory: IFaderFactory;
-export declare const Audio: IAudioFactory;
-export declare const Video: IVideoFactory;
+export declare const AudioFactory: IAudioFactory;
+export declare const VideoFactory: IVideoFactory;
 export declare const ModuleFactory: IModuleFactory;
 export interface ISettings {
     [key: string]: any;
