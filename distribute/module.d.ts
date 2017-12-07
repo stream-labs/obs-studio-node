@@ -82,6 +82,14 @@ export declare const enum EAlignment {
 export declare const enum EOutputFlags {
     Video = 1,
     Audio = 2,
+    AV = 3,
+    Encoded = 4,
+    Service = 8,
+    MultiTrack = 16,
+}
+export declare const enum ESourceOutputFlags {
+    Video = 1,
+    Audio = 2,
     Async = 4,
     AsyncVideo = 5,
     CustomDraw = 8,
@@ -102,6 +110,10 @@ export declare const enum ESourceType {
     Filter = 1,
     Transition = 2,
     Scene = 3,
+}
+export declare const enum EEncoderType {
+    Audio = 0,
+    Video = 1,
 }
 export declare const enum EFaderType {
     Cubic = 0,
@@ -197,6 +209,10 @@ export declare const enum ESceneSignalType {
     ItemTransform = 6,
 }
 export declare const Global: IGlobal;
+export declare const OutputFactory: IOutputFactory;
+export declare const AudioEncoderFactory: IAudioEncoderFactory;
+export declare const VideoEncoderFactory: IVideoEncoderFactory;
+export declare const ServiceFactory: IServiceFactory;
 export declare const InputFactory: IInputFactory;
 export declare const SceneFactory: ISceneFactory;
 export declare const FilterFactory: IFilterFactory;
@@ -337,14 +353,78 @@ export interface IProperties {
     count(): number;
     get(name: string): IProperty;
 }
-export interface IFilterFactory {
-    create(id: string, name: string, settings?: ISettings): IFilter;
+export interface IFactoryTypes {
     types(): string[];
+}
+export interface IEncoder extends IConfigurable {
+    name: string;
+    readonly id: string;
+    readonly type: EEncoderType;
+    readonly caps: number;
+    readonly codec: string;
+    readonly active: boolean;
+}
+export interface IVideoEncoderFactory extends IFactoryTypes {
+    create(id: string, name: string, settings?: ISettings, hotkeys?: ISettings): IVideoEncoder;
+}
+export interface IVideoEncoder extends IEncoder {
+}
+export interface IAudioEncoderFactory extends IFactoryTypes {
+    create(id: string, name: string, settings?: ISettings, track?: number, hotkeys?: ISettings): IAudioEncoder;
+}
+export interface IAudioEncoder extends IEncoder {
+}
+export interface IOutput extends IConfigurable {
+    setMedia(video: IVideo, audio: IAudio): void;
+    getVideo(): IVideo;
+    getAudio(): IAudio;
+    mixer: number;
+    getVideoEncoder(): IVideoEncoder;
+    setVideoEncoder(encoder: IVideoEncoder): void;
+    getAudioEncoder(idx: number): IAudioEncoder;
+    setAudioEncoder(encoder: IAudioEncoder, idx: number): void;
+    service: IService;
+    setReconnectOptions(retry_count: number, retry_sec: number): void;
+    setPreferredSize(width: number, height: number): void;
+    readonly width: number;
+    readonly height: number;
+    readonly congestion: number;
+    readonly connectTime: number;
+    readonly reconnecting: boolean;
+    readonly supportedVideoCodecs: string[];
+    readonly supportedAudioCodecs: string[];
+    readonly framesDropped: number;
+    readonly totalFrames: number;
+    start(): void;
+    stop(): void;
+    setDelay(ms: number, flags: EDelayFlags): void;
+    getDelay(): void;
+    getActiveDelay(): void;
+}
+export interface IOutputFactory extends IFactoryTypes {
+    create(id: string, name: string, settings?: ISettings, hotkeys?: ISettings): IOutput;
+}
+export declare enum EDelayFlags {
+    PreserveDelay = 1,
+}
+export interface IServiceFactory extends IFactoryTypes {
+    create(id: string, name: string, settings?: ISettings, hotkeys?: ISettings): IService;
+    createPrivate(id: string, name: string, settings?: ISettings): IService;
+}
+export interface IService extends IConfigurable {
+    readonly url: string;
+    readonly key: string;
+    readonly username: string;
+    readonly password: string;
+    readonly name: string;
+    readonly id: string;
+}
+export interface IFilterFactory extends IFactoryTypes {
+    create(id: string, name: string, settings?: ISettings): IFilter;
 }
 export interface IFilter extends ISource {
 }
-export interface IInputFactory {
-    types(): string[];
+export interface IInputFactory extends IFactoryTypes {
     create(id: string, name: string, settings?: ISettings, hotkeys?: ISettings): IInput;
     createPrivate(id: string, name: string, settings?: ISettings): IInput;
     fromName(name: string): IInput;
@@ -407,8 +487,7 @@ export interface ISceneItem {
     deferUpdateBegin(): void;
     deferUpdateEnd(): void;
 }
-export interface ITransitionFactory {
-    types(): string[];
+export interface ITransitionFactory extends IFactoryTypes {
     create(id: string, name: string, settings?: ISettings, hotkeys?: ISettings): ITransition;
     createPrivate(id: string, name: string, settings?: ISettings): ITransition;
 }
@@ -418,19 +497,21 @@ export interface ITransition extends ISource {
     set(input: ISource): void;
     start(ms: number, input: ISource): void;
 }
-export interface ISource {
-    release(): void;
-    remove(): void;
+export interface IConfigurable {
     update(settings: ISettings): void;
+    readonly configurable: boolean;
     readonly properties: IProperties;
     readonly settings: ISettings;
+}
+export interface ISource extends IConfigurable {
+    release(): void;
+    remove(): void;
     readonly status: number;
     readonly type: ESourceType;
     readonly id: string;
-    readonly configurable: boolean;
-    readonly outputFlags: number;
+    readonly outputFlags: ESourceOutputFlags;
     name: string;
-    flags: number;
+    flags: ESourceFlags;
     muted: boolean;
     enabled: boolean;
 }
