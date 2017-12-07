@@ -23,7 +23,6 @@ Output::Output(obs::output output)
 NAN_MODULE_INIT(Output::Init)
 {
     auto locProto = Nan::New<v8::FunctionTemplate>();
-    locProto->Inherit(Nan::New(Output::prototype));
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("Output"));
     common::SetObjectTemplateField(locProto, "types", get_types);

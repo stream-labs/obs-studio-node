@@ -24,7 +24,6 @@ Service::Service(obs::service service)
 NAN_MODULE_INIT(Service::Init)
 {
     auto locProto = Nan::New<v8::FunctionTemplate>();
-    locProto->Inherit(Nan::New(Service::prototype));
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("Service"));
     common::SetObjectTemplateField(locProto, "types", get_types);
