@@ -25,15 +25,11 @@ NAN_MODULE_INIT(Video::Init)
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
 
     common::SetObjectTemplateField(locProto, "reset", reset);
+    common::SetObjectTemplateField(locProto, "getGlobal", getGlobal);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "skippedFrames", get_skippedFrames);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "totalFrames", get_totalFrames);
 
     common::SetObjectField(target, "Video", locProto->GetFunction());
-}
-
-NAN_METHOD(Video::New)
-{
-    Nan::ThrowError("video_t is not supported yet!");
 }
 
 NAN_METHOD(Video::get_skippedFrames)
@@ -74,6 +70,12 @@ NAN_METHOD(Video::reset)
     info.GetReturnValue().Set(obs::video::reset(&vi));
 }
 
+NAN_METHOD(Video::getGlobal)
+{
+    Video *binding = new Video(obs::video::global());
+    auto object = Video::Object::GenerateObject(binding);
+    info.GetReturnValue().Set(object);
+}
 
 /* 
  * VideoEncoder
