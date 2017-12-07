@@ -9,7 +9,7 @@
 namespace obs {
 
 class audio {
-    audio_t *handle;
+    audio_t *m_handle;
 
 public:
     enum status {
@@ -19,15 +19,23 @@ public:
     };
 
     audio(audio_t *ctx);
-    audio(struct audio_output_info *info);
     ~audio();
+
+    audio_t *dangerous();
+
+    static obs::audio global();
 };
 
 class audio_encoder : public encoder {
-    obs_encoder_t *handle;
+    obs_encoder_t *m_handle;
 
 public:
-    audio_encoder(std::string id, std::string name);
+    audio_encoder(obs_encoder_t *encoder);
+    audio_encoder(std::string id, std::string name, obs_data_t *settings = NULL, size_t idx = 0, obs_data_t *hotkeys = NULL);
+
+    static std::vector<std::string> types();
+
+    obs_encoder_t *dangerous();
 };
 
 class fader {

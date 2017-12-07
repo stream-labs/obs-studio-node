@@ -7,24 +7,28 @@
  */
 namespace osn {
 
-VideoEncoder::VideoEncoder(std::string id, std::string name)
- : handle(id, name)
-{
-
-}
-
 /*
  * Video (video_t) and associated functions
  */
+Nan::Persistent<v8::FunctionTemplate> Video::prototype = 
+    Nan::Persistent<v8::FunctionTemplate>();
+
+Video::Video(obs::video video)
+ : handle(video)
+{
+}
+
 NAN_MODULE_INIT(Video::Init)
 {
-    auto ObsVideo = Nan::New<v8::Object>();
+    auto locProto = Nan::New<v8::FunctionTemplate>();
+    locProto->SetClassName(FIELD_NAME("Audio"));
+    locProto->InstanceTemplate()->SetInternalFieldCount(1);
 
-    common::SetObjectField(ObsVideo, "reset", reset);
-    common::SetObjectLazyAccessor(ObsVideo, "skippedFrames", get_skippedFrames);
-    common::SetObjectLazyAccessor(ObsVideo, "totalFrames", get_totalFrames);
+    common::SetObjectTemplateField(locProto, "reset", reset);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "skippedFrames", get_skippedFrames);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "totalFrames", get_totalFrames);
 
-    common::SetObjectField(target, "Video", ObsVideo);
+    common::SetObjectField(target, "Video", locProto->GetFunction());
 }
 
 NAN_METHOD(Video::New)
@@ -34,12 +38,12 @@ NAN_METHOD(Video::New)
 
 NAN_METHOD(Video::get_skippedFrames)
 {
-    info.GetReturnValue().Set(common::ToValue(obs::video::skipped_frames()));
+    info.GetReturnValue().Set(common::ToValue(obs::video::global().skipped_frames()));
 }
 
 NAN_METHOD(Video::get_totalFrames)
 {
-    info.GetReturnValue().Set(common::ToValue(obs::video::total_frames()));
+    info.GetReturnValue().Set(common::ToValue(obs::video::global().total_frames()));
 }
 
 NAN_METHOD(Video::reset)
@@ -74,10 +78,22 @@ NAN_METHOD(Video::reset)
 /* 
  * VideoEncoder
  */
+Nan::Persistent<v8::FunctionTemplate> VideoEncoder::prototype = 
+    Nan::Persistent<v8::FunctionTemplate>();
 
-obs::encoder *VideoEncoder::GetHandle()
+VideoEncoder::VideoEncoder(std::string id, std::string name, obs_data_t *settings, obs_data_t *hotkeys)
+ : handle(obs::video_encoder(id, name, settings, hotkeys))
 {
-    return static_cast<obs::encoder*>(&handle);
+}
+
+VideoEncoder::VideoEncoder(obs::video_encoder encoder)
+ : handle(encoder)
+{
+}
+
+obs::encoder VideoEncoder::GetHandle()
+{
+    return handle.get().get();
 }
 
 NAN_MODULE_INIT(VideoEncoder::Init)

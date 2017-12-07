@@ -3,26 +3,58 @@
 namespace obs {
 
 audio::audio(audio_t *ctx) 
- : handle(ctx) 
+ : m_handle(ctx) 
 {
 
-}
-
-audio::audio(audio_output_info *info)
-{
-    /* TODO */
 }
 
 audio::~audio()
 {
-
 }
 
-audio_encoder::audio_encoder(std::string id, std::string name)
- : handle(obs_audio_encoder_create(id.c_str(), name.c_str(), NULL, 0, NULL))
+audio_t *audio::dangerous()
 {
-
+    return m_handle;
 }
+
+obs::audio audio::global()
+{
+    return obs_get_audio();
+}
+
+audio_encoder::audio_encoder(std::string id, std::string name, obs_data_t *settings, size_t mixer, obs_data_t *hotkeys)
+ : m_handle(obs_audio_encoder_create(id.c_str(), name.c_str(), settings, mixer, hotkeys))
+{
+}
+
+audio_encoder::audio_encoder(obs_encoder_t *encoder)
+ : m_handle(encoder)
+{
+}
+
+
+obs_encoder_t *audio_encoder::dangerous()
+{
+    return m_handle;
+}
+
+std::vector<std::string> audio_encoder::types()
+{
+    const char *id = nullptr;
+    std::vector<std::string> type_list;
+
+    int i = 0;
+
+    while (obs_enum_encoder_types(i++, &id)) {
+        if (obs_get_encoder_type(id) != OBS_ENCODER_AUDIO)
+            continue;
+
+        type_list.push_back(std::move(std::string(id)));
+    }
+
+    return type_list;
+}
+
 
 fader::fader(obs_fader_type type)
  : m_handle(obs_fader_create(type))

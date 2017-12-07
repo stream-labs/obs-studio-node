@@ -9,6 +9,11 @@ obs_encoder_t *encoder::dangerous()
     return m_handle;
 }
 
+void encoder::release()
+{
+    obs_encoder_release(m_handle);
+}
+
 std::string encoder::display_name()
 {
     return obs_encoder_get_display_name(id().c_str());
@@ -49,9 +54,9 @@ void *encoder::type_data()
     return obs_encoder_get_type_data(m_handle);
 }
 
-void encoder::update()
+void encoder::update(obs_data_t *data)
 {
-    obs_encoder_update(m_handle, nullptr);
+    obs_encoder_update(m_handle, data);
 }
 
 bool encoder::active()
@@ -72,18 +77,6 @@ obs_encoder_type encoder::type(std::string id)
 uint32_t encoder::caps(std::string id)
 {
     return obs_get_encoder_caps(id.c_str());
-}
-
-std::vector<std::string> encoder::types()
-{
-    const char *id = nullptr;
-    std::vector<std::string> type_list;
-
-    for (int i = 0; obs_enum_encoder_types(i, &id); ++i) {
-        type_list.push_back(id);
-    }
-
-    return type_list;
 }
 
 }
