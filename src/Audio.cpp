@@ -121,7 +121,7 @@ NAN_METHOD(AudioEncoder::create)
 
     AudioEncoder *binding = new AudioEncoder(id, name, settings, idx, hotkeys);
     auto object = AudioEncoder::Object::GenerateObject(binding);
-    info.GetReturnValue().Set(info.This());
+    info.GetReturnValue().Set(object);
 }
 
 NAN_METHOD(AudioEncoder::get_sampleRate)

@@ -110,7 +110,7 @@ NAN_MODULE_INIT(VideoEncoder::Init)
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "width", get_width);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "scaledSize", get_scaledSize);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "preferredFormat", get_preferredFormat, set_preferredFormat);
-    Nan::Set(target, FIELD_NAME("VideoEncoder"), locProto->GetFunction());
+    common::SetObjectField(target, "VideoEncoder", locProto->GetFunction());
     prototype.Reset(locProto);
 }
 
@@ -136,7 +136,7 @@ NAN_METHOD(VideoEncoder::create)
 
     VideoEncoder *binding = new VideoEncoder(id, name, settings, hotkeys);
     auto object = VideoEncoder::Object::GenerateObject(binding);
-    info.GetReturnValue().Set(info.This());
+    info.GetReturnValue().Set(object);
 }
 
 NAN_METHOD(VideoEncoder::get_height)
