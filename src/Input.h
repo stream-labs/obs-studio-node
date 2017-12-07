@@ -14,10 +14,12 @@ class Input : public ISource
 public:
     static Nan::Persistent<v8::FunctionTemplate> prototype;
 
-    typedef common::Object<Input, obs::weak<obs::input>> Object;
+    typedef obs::weak<obs::input> weak_handle_t;
+    typedef common::Object<Input, weak_handle_t> Object;
     friend Object;
 
-    obs::weak<obs::input> handle;
+    weak_handle_t handle;
+
     bool released;
 
     Input(obs::input input);
