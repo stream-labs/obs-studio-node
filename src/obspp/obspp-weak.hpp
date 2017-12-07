@@ -99,6 +99,36 @@ struct raw_weak <obs_service_t*>
         : raw_weak_base(ref) { }
 };
 
+template <>
+struct raw_weak <obs_encoder_t*>
+    : raw_weak_base< 
+        obs_weak_encoder_t*,
+        obs_encoder_t*,
+        obs_encoder_get_weak_encoder,
+        obs_weak_encoder_get_encoder,
+        obs_weak_encoder_references_encoder,
+        obs_weak_encoder_addref,
+        obs_weak_encoder_release>
+{ 
+    raw_weak(obs_encoder_t* ref) 
+        : raw_weak_base(ref) { }
+};
+
+template <>
+struct raw_weak <obs_output_t*>
+    : raw_weak_base< 
+        obs_weak_output_t*,
+        obs_output_t*,
+        obs_output_get_weak_output,
+        obs_weak_output_get_output,
+        obs_weak_output_references_output,
+        obs_weak_output_addref,
+        obs_weak_output_release>
+{ 
+    raw_weak(obs_output_t* ref) 
+        : raw_weak_base(ref) { }
+};
+
 template <class T>
 class weak {
 public:
