@@ -592,7 +592,11 @@ export interface IFactoryTypes {
     types(): string[];
 }
 
-export interface IEncoder extends IConfigurable {
+export interface IReleasable {
+    release(): void;
+}
+
+export interface IEncoder extends IConfigurable, IReleasable {
     name: string;
     readonly id: string;
     readonly type: EEncoderType;
@@ -617,7 +621,7 @@ export interface IAudioEncoder extends IEncoder {
     
 }
 
-export interface IOutput extends IConfigurable {
+export interface IOutput extends IConfigurable, IReleasable {
     setMedia(video: IVideo, audio: IAudio): void;
     getVideo(): IVideo;
     getAudio(): IAudio;
@@ -739,7 +743,7 @@ export interface IServiceFactory extends IFactoryTypes {
     createPrivate(id: string, name: string, settings?: ISettings): IService;
 }
 
-export interface IService extends IConfigurable {
+export interface IService extends IConfigurable, IReleasable {
     readonly url: string;
     readonly key: string;
     readonly username: string;
@@ -1120,12 +1124,7 @@ export interface IConfigurable {
 /**
  * Base class for Filter, Transition, Scene, and Input
  */
-export interface ISource extends IConfigurable {
-    /**
-     * Release the underlying reference
-     */
-    release(): void;
-
+export interface ISource extends IConfigurable, IReleasable {
     /**
      * Send remove signal to other holders of the current reference.
      */
