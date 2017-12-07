@@ -56,12 +56,12 @@ uint32_t output_flags_from_id(std::string id)
     return obs_get_source_output_flags(id.c_str());
 }
 
-void output(int channel, obs::source source)
+void output_source(int channel, obs::source source)
 {
     obs_set_output_source(channel, source.dangerous());
 }
 
-obs::source output(int channel)
+obs::source output_source(int channel)
 {
     obs_source_t * source = obs_get_output_source(channel);
     return source;
