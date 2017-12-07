@@ -89,6 +89,7 @@ NAN_MODULE_INIT(AudioEncoder::Init)
     locProto->Inherit(Nan::New(IEncoder::prototype));
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("AudioEncoder"));
+    common::SetObjectTemplateField(locProto, "create", create);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "sampleRate", get_sampleRate);
     common::SetObjectField(target, "AudioEncoder", locProto->GetFunction());
     prototype.Reset(locProto);
@@ -96,14 +97,28 @@ NAN_MODULE_INIT(AudioEncoder::Init)
 
 NAN_METHOD(AudioEncoder::create)
 {
-    if (!info[0]->IsString() || !info[1]->IsString()) {
-        Nan::ThrowError("Invalid type passed");
-        return;
+    ASSERT_INFO_LENGTH(info, 2);
+    
+    std::string id, name;
+    uint32_t idx = 0;
+    obs_data_t *settings = nullptr, *hotkeys = nullptr;
+
+    ASSERT_GET_VALUE(info[0], id);
+    ASSERT_GET_VALUE(info[1], name);
+
+    switch (info.Length()) {
+    default:
+    case 5:
+        ASSERT_GET_VALUE(info[4], hotkeys);
+    case 4:
+        ASSERT_GET_VALUE(info[3], settings);
+    case 3:
+        ASSERT_GET_VALUE(info[2], idx);
+    case 2:
+        break;
     }
 
-    Nan::Utf8String id(info[0]);
-    Nan::Utf8String name(info[1]);
-    AudioEncoder *object = new AudioEncoder(*id, *name);
+    AudioEncoder *object = new AudioEncoder(id, name, settings, idx, hotkeys);
     object->Wrap(info.This());
     info.GetReturnValue().Set(info.This());
 }

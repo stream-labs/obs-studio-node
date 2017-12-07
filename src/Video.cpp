@@ -98,10 +98,11 @@ obs::encoder VideoEncoder::GetHandle()
 
 NAN_MODULE_INIT(VideoEncoder::Init)
 {
-    auto locProto = Nan::New<v8::FunctionTemplate>(New);
+    auto locProto = Nan::New<v8::FunctionTemplate>();
     locProto->Inherit(Nan::New(IEncoder::prototype));
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("VideoEncoder"));
+    common::SetObjectTemplateField(locProto, "create", create);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "height", get_height);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "width", get_width);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "scaledSize", get_scaledSize);
@@ -110,21 +111,27 @@ NAN_MODULE_INIT(VideoEncoder::Init)
     prototype.Reset(locProto);
 }
 
-NAN_METHOD(VideoEncoder::New)
+NAN_METHOD(VideoEncoder::create)
 {
-    if (!info.IsConstructCall()) {
-        Nan::ThrowError("Must be used as a construct call");
-        return;
-    }
-
     ASSERT_INFO_LENGTH(info, 2);
     
     std::string id, name;
+    obs_data_t *settings = nullptr, *hotkeys = nullptr;
 
     ASSERT_GET_VALUE(info[0], id);
     ASSERT_GET_VALUE(info[1], name);
 
-    VideoEncoder *object = new VideoEncoder(id, name);
+    switch (info.Length()) {
+    default:
+    case 4:
+        ASSERT_GET_VALUE(info[3], hotkeys);
+    case 3:
+        ASSERT_GET_VALUE(info[2], settings);
+    case 2:
+        break;
+    }
+
+    VideoEncoder *object = new VideoEncoder(id, name, settings, hotkeys);
     object->Wrap(info.This());
     info.GetReturnValue().Set(info.This());
 }
