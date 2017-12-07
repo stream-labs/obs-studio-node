@@ -28,7 +28,7 @@ set(
 )
 
 set(
-    OBS_STUDIO_INCLUDE "${OBS_STUDIO_BUILD}/includes" 
+    OBS_STUDIO_INCLUDE "${OBS_STUDIO_BUILD}/include" 
     CACHE PATH "Path to 64-bit build directory"
 )
 
@@ -65,6 +65,8 @@ endif()
 
 # FIXME: Organize
 add_library(${OSN_NODE_NAME} SHARED
+    "src/Output.cpp"
+    "src/Output.h"
     "src/Service.cpp"
     "src/Service.h"
     "src/AudioControls.cpp"
@@ -116,6 +118,7 @@ add_library(${OSN_NODE_NAME} SHARED
     "src/obspp/obspp-module.hpp"
     "src/obspp/obspp-module.cpp"
     "src/obspp/obspp-output.hpp"
+    "src/obspp/obspp-output.cpp"
     "src/obspp/obspp-properties.hpp"
     "src/obspp/obspp-properties.cpp"
     "src/obspp/obspp-scene.hpp"
@@ -142,7 +145,7 @@ target_compile_definitions(
 target_include_directories(
     ${OSN_NODE_NAME} PUBLIC
     "${CMAKE_JS_INC}"
-    "${OBS_STUDIO_INCLUDE}/libobs"
+    "${OBS_STUDIO_INCLUDE}"
 )
 
 set_target_properties(${OSN_NODE_NAME} PROPERTIES PREFIX "" SUFFIX ".node")
