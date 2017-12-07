@@ -27,6 +27,7 @@ NAN_MODULE_INIT(Output::Init)
     locProto->SetClassName(FIELD_NAME("Output"));
     common::SetObjectTemplateField(locProto, "types", get_types);
     common::SetObjectTemplateField(locProto, "create", create);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "release", release);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "setMedia", setMedia);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "getVideo", getVideo);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "getAudio", getAudio);
@@ -83,6 +84,13 @@ NAN_METHOD(Output::create)
     Output *binding = new Output(id, name, settings, hotkeys);
     auto object = Output::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
+}
+
+NAN_METHOD(Output::release)
+{
+    obs::weak<obs::output> &handle = Output::Object::GetHandle(info.Holder());
+
+    handle.get()->release();
 }
 
 NAN_METHOD(Output::get_types)

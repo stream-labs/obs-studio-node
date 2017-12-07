@@ -26,6 +26,7 @@ public:
     static NAN_METHOD(get_name);
     static NAN_METHOD(get_id);
 
+    static NAN_METHOD(release);
     static NAN_METHOD(setMedia);
     static NAN_METHOD(getVideo);
     static NAN_METHOD(getAudio);
