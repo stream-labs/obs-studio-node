@@ -30,6 +30,7 @@ NAN_MODULE_INIT(Video::Init)
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "totalFrames", get_totalFrames);
 
     common::SetObjectField(target, "Video", locProto->GetFunction());
+    prototype.Reset(locProto);
 }
 
 NAN_METHOD(Video::get_skippedFrames)

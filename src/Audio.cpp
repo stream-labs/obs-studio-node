@@ -31,6 +31,7 @@ NAN_MODULE_INIT(Audio::Init)
     common::SetObjectTemplateField(locProto, "getGlobal", getGlobal);
 
     common::SetObjectField(target, "Audio", locProto->GetFunction());
+    prototype.Reset(locProto);
 }
 
 NAN_METHOD(Audio::reset)
