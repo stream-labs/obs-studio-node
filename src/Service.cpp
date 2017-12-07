@@ -30,6 +30,8 @@ NAN_MODULE_INIT(Service::Init)
     common::SetObjectTemplateField(locProto, "types", get_types);
     common::SetObjectTemplateField(locProto, "create", create);
     common::SetObjectTemplateField(locProto, "createPrivate", createPrivate);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "properties", get_properties);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "settings", get_settings);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "url", get_url);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "key", get_key);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "username", get_username);
