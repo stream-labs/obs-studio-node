@@ -220,8 +220,8 @@ export declare const TransitionFactory: ITransitionFactory;
 export declare const DisplayFactory: IDisplayFactory;
 export declare const VolmeterFactory: IVolmeterFactory;
 export declare const FaderFactory: IFaderFactory;
-export declare const Audio: IAudio;
-export declare const Video: IVideo;
+export declare const Audio: IAudioFactory;
+export declare const Video: IVideoFactory;
 export declare const ModuleFactory: IModuleFactory;
 export interface ISettings {
     [key: string]: any;
@@ -563,12 +563,18 @@ export interface IDisplay {
     setResizeBoxInnerColor(r: number, g: number, b: number, a: number): void;
 }
 export interface IVideo {
-    reset(info: IVideoInfo): number;
     readonly totalFrames: number;
     readonly skippedFrames: number;
 }
+export interface IVideoFactory {
+    reset(info: IVideoInfo): number;
+    getGlobal(): IVideo;
+}
 export interface IAudio {
+}
+export interface IAudioFactory {
     reset(info: IAudioInfo): boolean;
+    getGlobal(): IAudio;
 }
 export interface IModuleFactory {
     create(binPath: string, dataPath: string): IModule;

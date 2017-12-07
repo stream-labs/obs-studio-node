@@ -288,8 +288,8 @@ export const TransitionFactory: ITransitionFactory = obs.Transition;
 export const DisplayFactory: IDisplayFactory = obs.Display;
 export const VolmeterFactory: IVolmeterFactory = obs.Volmeter;
 export const FaderFactory: IFaderFactory = obs.Fader;
-export const Audio: IAudio = obs.Audio;
-export const Video: IVideo = obs.Video;
+export const Audio: IAudioFactory = obs.Audio;
+export const Video: IVideoFactory = obs.Video;
 export const ModuleFactory: IModuleFactory = obs.Module;
 
 /**
@@ -1321,17 +1321,26 @@ export interface IDisplay {
  * For now, only the global context functions are implemented
  */
 export interface IVideo {
-    reset(info: IVideoInfo): number;
     readonly totalFrames: number;
     readonly skippedFrames: number;
 }
 
+export interface IVideoFactory {
+    reset(info: IVideoInfo): number;
+    getGlobal(): IVideo;
+}
+
 /**
- * This represents a video_t structure from within libobs
+ * This represents a audio_t structure from within libobs
  * For now, only the global context functions are implemented
  */
 export interface IAudio {
+
+}
+
+export interface IAudioFactory {
     reset(info: IAudioInfo): boolean;
+    getGlobal(): IAudio;
 }
 
 
