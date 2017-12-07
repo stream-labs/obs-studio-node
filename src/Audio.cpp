@@ -118,8 +118,8 @@ NAN_METHOD(AudioEncoder::create)
         break;
     }
 
-    AudioEncoder *object = new AudioEncoder(id, name, settings, idx, hotkeys);
-    object->Wrap(info.This());
+    AudioEncoder *binding = new AudioEncoder(id, name, settings, idx, hotkeys);
+    auto object = AudioEncoder::Object::GenerateObject(binding);
     info.GetReturnValue().Set(info.This());
 }
 

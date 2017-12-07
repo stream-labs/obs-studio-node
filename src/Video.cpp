@@ -131,8 +131,8 @@ NAN_METHOD(VideoEncoder::create)
         break;
     }
 
-    VideoEncoder *object = new VideoEncoder(id, name, settings, hotkeys);
-    object->Wrap(info.This());
+    VideoEncoder *binding = new VideoEncoder(id, name, settings, hotkeys);
+    auto object = VideoEncoder::Object::GenerateObject(binding);
     info.GetReturnValue().Set(info.This());
 }
 
