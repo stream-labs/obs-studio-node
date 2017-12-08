@@ -1,25 +1,26 @@
 {
-  "name": "obs-studio-node",
-  "version": "1.0.0",
+  "name": "@streamlabs/obs-studio-node",
+  "version": "0.0.1",
   "description": "Experimental bindings to obs-studio using nan directly",
+  "author": "Streamlabs <support@streamlabs.com>",
+  "license": "GPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stream-labs/obs-studio-node.git"
+  },
+  "bugs": {
+    "url": "https://github.com/stream-labs/obs-studio-node/issues"
+  },
+  "homepage": "https://github.com/stream-labs/obs-studio-node#readme",
   "main": "./distribute/index.js",
   "types": "./distribute/index.d.ts",
   "scripts": {
-    "clean": "rimraf obs-build64 build dependencies2015*",
-    "fullclean": "npm run clean && rimraf *.js distribute/*.{js,node,dll,d.ts,lib}",
-    "compile": "tsc && tsc -p scripts",
-    "install": "npm run build:bindings",
-    "build:obs": "node build-obs.js",
-    "build:bindings": "node build-bindings.js",
+    "clean": "git clean -fxd",
+    "compile": "npm run build:javascript && npm run build:bindings",
+    "install": "npm run compile",
+    "build:javascript": "tsc -p js",
+    "build:bindings": "tsc && node build-bindings.js",
     "build:docs": "typedoc --out docs"
-  },
-  "author": "Zachary Lund <zachary.lund@streamlabs.com>",
-  "license": "GPL-2.0",
-  "devDependencies": {
-    "typedoc": "^0.8.0",
-    "typedoc-default-themes": "^0.5.0",
-    "typedoc-plugin-markdown": "^1.0.8",
-    "typescript": "^2.4.2"
   },
   "dependencies": {
     "@types/shelljs": "^0.7.2",
@@ -27,6 +28,33 @@
     "nan": "^2.6.2",
     "rimraf": "^2.6.1",
     "shelljs": "^0.7.8",
-    "simple-git": "^1.74.1"
-  }
+    "simple-git": "^1.74.1",
+    "typescript": "^2.4.2"
+  },
+  "devDependencies": {
+    "typedoc": "^0.8.0",
+    "typedoc-default-themes": "^0.5.0",
+    "typedoc-plugin-markdown": "^1.0.8"
+  },
+  "keywords": [
+    "capture",
+    "stream",
+    "record",
+    "twitch",
+    "youtube",
+    "obs",
+    "open",
+    "broadcaster",
+    "software",
+    "obs",
+    "studio",
+    "c++",
+    "c",
+    "native",
+    "desktop",
+    "video",
+    "audio",
+    "mixer",
+    "beam"
+  ]
 }

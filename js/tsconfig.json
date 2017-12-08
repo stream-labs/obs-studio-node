@@ -1,7 +1,8 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
-    "outDir": "../",
+    "outDir": "../distribute",
+    "declaration": true,
     "target": "es6",
     "module": "commonjs",
     "moduleResolution": "node",
@@ -16,6 +17,8 @@
     "emitDecoratorMetadata": true
   },
   "files": [
-    "build-bindings.ts"
+    "index.ts",
+    "module.ts",
+    "type_check.ts"
   ]
 }

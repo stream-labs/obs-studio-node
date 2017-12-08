@@ -14,6 +14,7 @@
 #include "Properties.h"
 #include "Filter.h"
 #include "AudioControls.h"
+#include "nodeobs_module.h"
 #include "Output.h"
 #include "Service.h"
 
@@ -23,6 +24,7 @@ NAN_MODULE_INIT(node_initialize)
     /* NOTE: Each one adds a corresponding
        constructions function or object to
        the module.exports equivalent */
+	nodeobs_init(target);
     osn::Init(target);
     osn::IEncoder::Init(target);
     osn::Audio::Init(target);

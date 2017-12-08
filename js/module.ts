@@ -1,4 +1,4 @@
-const obs = require('./obs_node.node');
+const obs = require('./obs-studio-node.node');
 import * as path from 'path';
 
 /* Convenient paths to modules */

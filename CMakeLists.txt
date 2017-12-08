@@ -1,49 +1,9 @@
-cmake_minimum_required(VERSION 3.1)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
+PROJECT(obs-studio-node VERSION 1.0.0)
 
-project(obs-studio-node VERSION 1.0.0)
-
-set(
-    OSN_ENABLE_DISTRIBUTION false
-    CACHE BOOL "Whether to pull in OBS distribution files"
-)
-
-set(
-    OSN_NODE_NAME "obs_node"
-    CACHE PATH "Name of the node binary output"
-)
-
-set(
-    OSN_DIST_DIR "distribute"
-    CACHE PATH "Name of distribution directory"
-)
-
-set(
-    OBS_BUILD_TYPE "Release"
-    CACHE STRING "Configuration of OBS binaries to copy"
-)
-
-set(
-    OBS_STUDIO_BUILD "${CMAKE_SOURCE_DIR}/obs-prebuild" 
-    CACHE PATH "Path to 64-bit build directory"
-)
-
-set(
-    OBS_STUDIO_INCLUDE "${OBS_STUDIO_BUILD}/include" 
-    CACHE PATH "Path to 64-bit build directory"
-)
-
-set(
-    OBS_STUDIO_BIN "${OBS_STUDIO_BUILD}/bin" 
-    CACHE PATH "Path to 64-bit build directory"
-)
-
-if(IS_DIRECTORY ${OBS_STUDIO_BIN})
-    message("OBS Studio 64-bit Build Path: ${OBS_STUDIO_BIN}")
-else()
-    message(FATAL_ERROR 
-        "Failed to find OBS Studio using OBS_STUDIO_BIN: ${OBS_STUDIO_BIN}"
-    )
-endif()
+#############################
+# CMake Settings
+#############################
 
 # Only allow Debug or Release builds.
 SET(CMAKE_CONFIGURATION_TYPES           "Debug;Release")
@@ -55,209 +15,178 @@ SET(CMAKE_RC_LINKER_FLAGS_RELEASE       "${CMAKE_RC_LINKER_FLAGS_RELWITHDEBINFO}
 SET(CMAKE_SHARED_LINKER_FLAGS_RELEASE   "${CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO}")
 SET(CMAKE_STATIC_LINKER_FLAGS_RELEASE   "${CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO}")
 
-if (OBS_BUILD_TYPE STREQUAL "Release")
-    set(OBS_BUILD_TYPE "RelWithDebInfo")
-    # Since we are not allowed to specify RelWithDebInfo,
-    # simply copy over the flags and force it make PDBs
-    set(CMAKE_C_FLAGS_RELEASE ${CMAKE_C_FLAGS_RELWITHDEBINFO})
-    set(CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELWITHDEBINFO})
-endif()
+#############################
+# Configuration
+#############################
 
-# FIXME: Organize
-add_library(${OSN_NODE_NAME} SHARED
-    "src/Output.cpp"
-    "src/Output.h"
-    "src/Service.cpp"
-    "src/Service.h"
-    "src/AudioControls.cpp"
-    "src/AudioControls.h"
-    "src/Calldata.cpp"
-    "src/Calldata.h"
-    "src/Common.cpp"
-    "src/Common.h"
-    "src/Properties.cpp"
-    "src/Properties.h"
-    "src/Transition.cpp"
-    "src/Transition.h"
-    "src/Filter.cpp"
-    "src/Filter.h"
-    "src/SceneItem.cpp"
-    "src/SceneItem.h"
-    "src/Scene.cpp"
-    "src/Scene.h"
-    "src/IEncoder.cpp"
-    "src/IEncoder.h"
-    "src/Display.cpp"
-    "src/Display.h"
-    "src/Global.cpp"
-    "src/Global.h"
-    "src/Input.cpp"
-    "src/Input.h"
-    "src/ISource.cpp"
-    "src/ISource.h"
-    "src/Module.cpp"
-    "src/Module.h"
-    "src/Audio.cpp"
-    "src/Audio.h"
-    "src/Video.cpp"
-    "src/Video.h"
-    "src/obs-node.cpp"
-    "src/obspp/obspp.hpp"
-    "src/obspp/obspp.cpp"
-    "src/obspp/obspp-audio.hpp"
-    "src/obspp/obspp-audio.cpp"
-    "src/obspp/obspp-display.hpp"
-    "src/obspp/obspp-display.cpp"
-    "src/obspp/obspp-encoder.hpp"
-    "src/obspp/obspp-encoder.cpp"
-    "src/obspp/obspp-filter.hpp"
-    "src/obspp/obspp-filter.cpp"
-    "src/obspp/obspp-index.hpp"
-    "src/obspp/obspp-input.hpp"
-    "src/obspp/obspp-input.cpp"
-    "src/obspp/obspp-module.hpp"
-    "src/obspp/obspp-module.cpp"
-    "src/obspp/obspp-output.hpp"
-    "src/obspp/obspp-output.cpp"
-    "src/obspp/obspp-properties.hpp"
-    "src/obspp/obspp-properties.cpp"
-    "src/obspp/obspp-scene.hpp"
-    "src/obspp/obspp-scene.cpp"
-    "src/obspp/obspp-service.hpp"
-    "src/obspp/obspp-service.cpp"
-    "src/obspp/obspp-source.hpp"
-    "src/obspp/obspp-source.cpp"
-    "src/obspp/obspp-transition.hpp"
-    "src/obspp/obspp-transition.cpp"
-    "src/obspp/obspp-video.hpp"
-    "src/obspp/obspp-video.cpp"
-    "src/obspp/obspp-view.hpp"
-    "src/obspp/obspp-view.cpp"
+# Binary
+SET(BINARY_PREFIX "" CACHE STRING "Binary File prefix")
+SET(BINARY_NAME "obs-studio-node" CACHE STRING "Binary File name")
+SET(BINARY_SUFFIX ".node" CACHE STRING "Binary File suffix")
+
+# Distribution
+#SET(ENABLE_INSTALL true CACHE BOOL "Binary File prefix")
+SET(INSTALL_DIR "${CMAKE_SOURCE_DIR}/distribute" CACHE PATH "Path at which to install this module")
+
+# OBS Studio
+SET(OBSSTUDIO_PREBUILT true CACHE BOOL "Use prebuilt binaries?")
+SET(OBSSTUDIO_PATH "${CMAKE_SOURCE_DIR}/obs-prebuild" CACHE PATH "Path to OBS Studio or prebuilt binaries")
+
+#############################
+# OBS Specific Stuff
+#############################
+if(OBSSTUDIO_PREBUILT)
+	SET(OBSSTUDIO_INCLUDE
+		"${OBSSTUDIO_PATH}/include"
+	)
+	SET(OBSSTUDIO_LIBRARIES
+		debug "${OBSSTUDIO_PATH}/bin/Debug/obs.lib"
+		debug "${OBSSTUDIO_PATH}/bin/Debug/w32-pthreads.lib"
+		optimized "${OBSSTUDIO_PATH}/bin/Release/obs.lib"
+		optimized "${OBSSTUDIO_PATH}/bin/Release/w32-pthreads.lib"
+	)
+	SET(OBSSTUDIO_PLUGINS_DATA
+		"${OBSSTUDIO_PATH}/data/"
+	)
+	SET(OBSSTUDIO_BINARIES_DEBUG
+		"${OBSSTUDIO_PATH}/bin/Debug/obs.dll"
+		"${OBSSTUDIO_PATH}/bin/Debug/obs.pdb"
+		"${OBSSTUDIO_PATH}/bin/Debug/obsglad.dll"
+		"${OBSSTUDIO_PATH}/bin/Debug/obsglad.pdb"
+		"${OBSSTUDIO_PATH}/bin/Debug/w32-pthreads.dll"
+		"${OBSSTUDIO_PATH}/bin/Debug/w32-pthreads.pdb"
+		"${OBSSTUDIO_PATH}/bin/Debug/avcodec-57.dll"
+		"${OBSSTUDIO_PATH}/bin/Debug/avdevice-57.dll"
+		"${OBSSTUDIO_PATH}/bin/Debug/avfilter-6.dll"
+		"${OBSSTUDIO_PATH}/bin/Debug/avformat-57.dll"
+		"${OBSSTUDIO_PATH}/bin/Debug/avutil-55.dll"
+		"${OBSSTUDIO_PATH}/bin/Debug/libcurl.dll"
+		"${OBSSTUDIO_PATH}/bin/Debug/libEGLd.dll"
+		"${OBSSTUDIO_PATH}/bin/Debug/libGLESv2d.dll"
+		"${OBSSTUDIO_PATH}/bin/Debug/libobs-d3d11.dll"
+		"${OBSSTUDIO_PATH}/bin/Debug/libobs-opengl.dll"
+		"${OBSSTUDIO_PATH}/bin/Debug/libogg-0.dll"
+		"${OBSSTUDIO_PATH}/bin/Debug/libopus-0.dll"
+		"${OBSSTUDIO_PATH}/bin/Debug/libvorbis-0.dll"
+		"${OBSSTUDIO_PATH}/bin/Debug/libvorbisenc-2.dll"
+		"${OBSSTUDIO_PATH}/bin/Debug/libvorbisfile-3.dll"
+		"${OBSSTUDIO_PATH}/bin/Debug/libvpx-1.dll"
+		"${OBSSTUDIO_PATH}/bin/Debug/libx264-148.dll"
+		"${OBSSTUDIO_PATH}/bin/Debug/swresample-2.dll"
+		"${OBSSTUDIO_PATH}/bin/Debug/swscale-4.dll"
+		"${OBSSTUDIO_PATH}/bin/Debug/zlib.dll"
+	)
+	SET(OBSSTUDIO_PLUGINS_DEBUG "${OBSSTUDIO_PATH}/obs-plugins/Debug/")
+	SET(OBSSTUDIO_BINARIES_RELEASE
+		"${OBSSTUDIO_PATH}/bin/Release/obs.dll"
+		"${OBSSTUDIO_PATH}/bin/Release/obs.pdb"
+		"${OBSSTUDIO_PATH}/bin/Release/obsglad.dll"
+		"${OBSSTUDIO_PATH}/bin/Release/obsglad.pdb"
+		"${OBSSTUDIO_PATH}/bin/Release/w32-pthreads.dll"
+		"${OBSSTUDIO_PATH}/bin/Release/w32-pthreads.pdb"
+		"${OBSSTUDIO_PATH}/bin/Release/avcodec-57.dll"
+		"${OBSSTUDIO_PATH}/bin/Release/avdevice-57.dll"
+		"${OBSSTUDIO_PATH}/bin/Release/avfilter-6.dll"
+		"${OBSSTUDIO_PATH}/bin/Release/avformat-57.dll"
+		"${OBSSTUDIO_PATH}/bin/Release/avutil-55.dll"
+		"${OBSSTUDIO_PATH}/bin/Release/libcurl.dll"
+		"${OBSSTUDIO_PATH}/bin/Release/libEGL.dll"
+		"${OBSSTUDIO_PATH}/bin/Release/libGLESv2.dll"
+		"${OBSSTUDIO_PATH}/bin/Release/libobs-d3d11.dll"
+		"${OBSSTUDIO_PATH}/bin/Release/libobs-opengl.dll"
+		"${OBSSTUDIO_PATH}/bin/Release/libogg-0.dll"
+		"${OBSSTUDIO_PATH}/bin/Release/libopus-0.dll"
+		"${OBSSTUDIO_PATH}/bin/Release/libvorbis-0.dll"
+		"${OBSSTUDIO_PATH}/bin/Release/libvorbisenc-2.dll"
+		"${OBSSTUDIO_PATH}/bin/Release/libvorbisfile-3.dll"
+		"${OBSSTUDIO_PATH}/bin/Release/libvpx-1.dll"
+		"${OBSSTUDIO_PATH}/bin/Release/libx264-148.dll"
+		"${OBSSTUDIO_PATH}/bin/Release/swresample-2.dll"
+		"${OBSSTUDIO_PATH}/bin/Release/swscale-4.dll"
+		"${OBSSTUDIO_PATH}/bin/Release/zlib.dll"
+	)
+	SET(OBSSTUDIO_PLUGINS_RELEASE "${OBSSTUDIO_PATH}/obs-plugins/Release/")
+ENDIF()	
+
+#############################
+# Source, Libraries & Directories
+#############################
+SET(PROJECT_SOURCE 
+	"src/obs-node.cpp"
+	"src/Service.cpp" "src/Service.h"
+	"src/AudioControls.cpp" "src/AudioControls.h"
+	"src/Calldata.cpp" "src/Calldata.h"
+	"src/Common.cpp" "src/Common.h"
+	"src/Properties.cpp" "src/Properties.h"
+	"src/Transition.cpp" "src/Transition.h"
+	"src/Filter.cpp" "src/Filter.h"
+	"src/SceneItem.cpp" "src/SceneItem.h"
+	"src/Scene.cpp" "src/Scene.h"
+	"src/IEncoder.cpp" "src/IEncoder.h"
+	"src/Display.cpp" "src/Display.h"
+	"src/Global.cpp" "src/Global.h"
+	"src/Input.cpp" "src/Input.h"
+	"src/Output.cpp" "src/Output.h"
+	"src/ISource.cpp" "src/ISource.h"
+	"src/Module.cpp" "src/Module.h"
+	"src/Audio.cpp" "src/Audio.h"
+	"src/Video.cpp" "src/Video.h"
+	"src/obspp/obspp.cpp" "src/obspp/obspp.hpp"
+	"src/obspp/obspp-audio.cpp" "src/obspp/obspp-audio.hpp"
+	"src/obspp/obspp-display.cpp" "src/obspp/obspp-display.hpp"
+	"src/obspp/obspp-encoder.cpp" "src/obspp/obspp-encoder.hpp"
+	"src/obspp/obspp-filter.cpp" "src/obspp/obspp-filter.hpp"
+	"src/obspp/obspp-index.hpp"
+	"src/obspp/obspp-input.cpp" "src/obspp/obspp-input.hpp"
+	"src/obspp/obspp-output.cpp" "src/obspp/obspp-output.hpp"
+	"src/obspp/obspp-module.cpp" "src/obspp/obspp-module.hpp"
+	"src/obspp/obspp-output.hpp"
+	"src/obspp/obspp-properties.cpp" "src/obspp/obspp-properties.hpp"
+	"src/obspp/obspp-scene.cpp" "src/obspp/obspp-scene.hpp"
+	"src/obspp/obspp-service.cpp" "src/obspp/obspp-service.hpp"
+	"src/obspp/obspp-source.cpp" "src/obspp/obspp-source.hpp"
+	"src/obspp/obspp-transition.cpp" "src/obspp/obspp-transition.hpp"
+	"src/obspp/obspp-video.cpp" "src/obspp/obspp-video.hpp"
+	"src/obspp/obspp-view.cpp" "src/obspp/obspp-view.hpp"
+	"src/nodeobs_module.h" "src/nodeobs_module.cpp"
+	"src/nodeobs_api.h" "src/nodeobs_api.cpp"
+	"src/nodeobs_audio.h" "src/nodeobs_audio.cpp"
+	"src/nodeobs_audio_encoders.h" "src/nodeobs_audio_encoders.cpp"
+	"src/nodeobs_autoconfig.h" "src/nodeobs_autoconfig.cpp"
+	"src/nodeobs_common.h" "src/nodeobs_common.cpp"
+	"src/nodeobs_display.h" "src/nodeobs_display.cpp"
+	"src/nodeobs_event.h" "src/nodeobs_event.cpp"
+	"src/nodeobs_service.h" "src/nodeobs_service.cpp"
+	"src/nodeobs_settings.h" "src/nodeobs_settings.cpp"
+	"src/nodeobs_obspp_manager.hpp" "src/nodeobs_obspp_manager.cpp"
+	"src/nodeobs_obspp_index.hpp" "src/nodeobs_obspp_index.cpp"
+	"src/nodeobs_content.h"
 )
-
-target_link_libraries(${OSN_NODE_NAME} ${CMAKE_JS_LIB} obs)
-
-target_compile_definitions(
-    ${OSN_NODE_NAME} PUBLIC
-    "BUILDING_NODE_EXTENSION"
+SET(PROJECT_LIBRARIES
+	${CMAKE_JS_LIB}
+	${OBSSTUDIO_LIBRARIES}
 )
-
-target_include_directories(
-    ${OSN_NODE_NAME} PUBLIC
-    "${CMAKE_JS_INC}"
-    "${OBS_STUDIO_INCLUDE}"
+SET(PROJECT_INCLUDE_PATHS
+	${CMAKE_JS_INC}
+	${OBSSTUDIO_INCLUDE}
 )
+ADD_DEFINITIONS(-DBUILDING_NODE_EXTENSION)
 
-set_target_properties(${OSN_NODE_NAME} PROPERTIES PREFIX "" SUFFIX ".node")
+#############################
+# Building
+#############################
+ADD_LIBRARY(obs-studio-node SHARED ${PROJECT_SOURCE})
+TARGET_LINK_LIBRARIES(obs-studio-node ${PROJECT_LIBRARIES})
+TARGET_INCLUDE_DIRECTORIES(obs-studio-node PUBLIC ${PROJECT_INCLUDE_PATHS})
+SET_TARGET_PROPERTIES(obs-studio-node PROPERTIES PREFIX "${BINARY_PREFIX}" SUFFIX "${BINARY_SUFFIX}")
 
-add_library(obs SHARED IMPORTED)
-
-if (WIN32)
-    set_target_properties(obs PROPERTIES
-        IMPORTED_LOCATION "${OBS_STUDIO_BIN}/obs.dll"
-        IMPORTED_IMPLIB "${OBS_STUDIO_BIN}/obs.lib"
-    )
-
-    if (OSN_ENABLE_DISTRIBUTION)
-        install(
-            FILES "${OBS_STUDIO_BIN}/obs.pdb"
-            DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}")
-    endif()
-elseif()
-    message(FATAL_ERROR "Only Windows supported for right now")
-endif()
-
-# Just copy all dependencies into a local folder so we can run our tests.
-set( OBS_DEPENDENCIES 
-    "${OBS_STUDIO_BIN}/avcodec-57.dll"
-    "${OBS_STUDIO_BIN}/avdevice-57.dll"
-    "${OBS_STUDIO_BIN}/avfilter-6.dll"
-    "${OBS_STUDIO_BIN}/avformat-57.dll"
-    "${OBS_STUDIO_BIN}/avutil-55.dll"
-    "${OBS_STUDIO_BIN}/libcurl.dll"
-    "${OBS_STUDIO_BIN}/libogg-0.dll"
-    "${OBS_STUDIO_BIN}/libopus-0.dll"
-    "${OBS_STUDIO_BIN}/libpng16-16.dll"
-    "${OBS_STUDIO_BIN}/libvorbis-0.dll"
-    "${OBS_STUDIO_BIN}/libvorbisenc-2.dll"
-    "${OBS_STUDIO_BIN}/libvorbisfile-3.dll"
-    "${OBS_STUDIO_BIN}/libvpx-1.dll"
-    "${OBS_STUDIO_BIN}/libx264-148.dll"
-    "${OBS_STUDIO_BIN}/swresample-2.dll"
-    "${OBS_STUDIO_BIN}/swscale-4.dll"
-    "${OBS_STUDIO_BIN}/zlib.dll"
-    "${OBS_STUDIO_BIN}/obs.dll"
-    "${OBS_STUDIO_BIN}/libobs-d3d11.dll"
-    "${OBS_STUDIO_BIN}/obsglad.dll"
-    "${OBS_STUDIO_BIN}/w32-pthreads.dll"
-)
-
-add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}")
-
-if (OSN_ENABLE_DISTRIBUTION)
-    foreach( DEPENDENCY ${OBS_DEPENDENCIES})
-        add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD 
-            COMMAND ${CMAKE_COMMAND}
-            ARGS -E copy ${DEPENDENCY} "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/"
-        )
-    endforeach()
-
-    add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory 
-        "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/data")
-
-    add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory 
-        "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/data/libobs")
-
-    add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory 
-        "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/data/obs-plugins")
-
-    function(copy_obs_plugin PLUGIN_NAME)
-        install(
-            DIRECTORY "${OBS_STUDIO_BIN}/data/obs-plugins/${PLUGIN_NAME}/data"
-            DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/data/obs-plugins/${PLUGIN_NAME}"
-        )
-
-        install(
-            FILES
-            "${OBS_STUDIO_BIN}/obs-plugins/${PLUGIN_NAME}.dll"
-            "${OBS_STUDIO_BIN}/obs-plugins/${PLUGIN_NAME}.pdb"
-            DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/obs-plugins"
-        )
-    endfunction()
-
-    file(GLOB DATA_LIBOBS
-        "${OBS_STUDIO_BIN}/data/libobs/*")
-
-    foreach( DATA_FILES ${DATA_LIBOBS})
-        add_custom_command(TARGET ${OSN_NODE_NAME} POST_BUILD
-            COMMAND ${CMAKE_COMMAND}
-            ARGS -E copy ${DATA_FILES} "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}/data/libobs")
-    endforeach()
-
-    copy_obs_plugin("image-source")
-    copy_obs_plugin("obs-ffmpeg")
-    copy_obs_plugin("obs-filters")
-    copy_obs_plugin("obs-outputs")
-    copy_obs_plugin("obs-qsv11")
-    copy_obs_plugin("obs-text")
-    copy_obs_plugin("obs-transitions")
-    copy_obs_plugin("obs-x264")
-    copy_obs_plugin("rtmp-services")
-    copy_obs_plugin("text-freetype2")
-    copy_obs_plugin("win-capture")
-    copy_obs_plugin("win-dshow")
-    copy_obs_plugin("win-mf")
-    copy_obs_plugin("win-wasapi")
-endif()
-
-install(
-    FILES ${MISC_FILES}
-    DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}"
-)
-
-install(TARGETS ${OSN_NODE_NAME} DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}")
-install(FILES $<TARGET_PDB_FILE:${OSN_NODE_NAME}> DESTINATION "${CMAKE_SOURCE_DIR}/${OSN_DIST_DIR}" OPTIONAL)
+#############################
+# Distribute
+#############################
+INSTALL(TARGETS obs-studio-node DESTINATION "${INSTALL_DIR}")
+INSTALL(FILES $<TARGET_PDB_FILE:obs-studio-node> DESTINATION "${INSTALL_DIR}" OPTIONAL)
+INSTALL(FILES ${OBSSTUDIO_BINARIES_DEBUG} CONFIGURATIONS Debug DESTINATION "${INSTALL_DIR}")
+INSTALL(DIRECTORY ${OBSSTUDIO_PLUGINS_DEBUG} CONFIGURATIONS Debug DESTINATION "${INSTALL_DIR}/plugins/")
+INSTALL(FILES ${OBSSTUDIO_BINARIES_RELEASE} CONFIGURATIONS Release DESTINATION "${INSTALL_DIR}")
+INSTALL(DIRECTORY ${OBSSTUDIO_PLUGINS_RELEASE} CONFIGURATIONS Release DESTINATION "${INSTALL_DIR}/plugins/")
+INSTALL(DIRECTORY ${OBSSTUDIO_PLUGINS_DATA} DESTINATION "${INSTALL_DIR}/data/")
