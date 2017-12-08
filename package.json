@@ -15,11 +15,11 @@
   "main": "./distribute/index.js",
   "types": "./distribute/index.d.ts",
   "scripts": {
-    "clean": "rimraf obs-build64 build dependencies2015*",
-    "fullclean": "npm run clean && rimraf *.js distribute/*.{js,node,dll,d.ts,lib}",
-    "compile": "tsc && tsc -p js",
-    "install": "npm run build:bindings",
-    "build:bindings": "node build-bindings.js",
+    "clean": "git clean -fxd",
+    "compile": "npm run build:javascript && npm run build:bindings",
+    "install": "npm run compile",
+    "build:javascript": "tsc -p js",
+    "build:bindings": "tsc && node build-bindings.js",
     "build:docs": "typedoc --out docs"
   },
   "dependencies": {
@@ -28,13 +28,13 @@
     "nan": "^2.6.2",
     "rimraf": "^2.6.1",
     "shelljs": "^0.7.8",
-    "simple-git": "^1.74.1"
+    "simple-git": "^1.74.1",
+    "typescript": "^2.4.2"
   },
   "devDependencies": {
     "typedoc": "^0.8.0",
     "typedoc-default-themes": "^0.5.0",
-    "typedoc-plugin-markdown": "^1.0.8",
-    "typescript": "^2.4.2"
+    "typedoc-plugin-markdown": "^1.0.8"
   },
   "keywords": [
     "capture",
