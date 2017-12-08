@@ -172,6 +172,10 @@ v8::Local<v8::Value> ToValue<char const*>(char const *value)
 }
 
 template <>
+v8::Local<v8::Value> ToValue(enum video_format value)
+{ return Nan::New<v8::Integer>(value); }
+
+template <>
 v8::Local<v8::Value> ToValue(enum obs_combo_format value)
 { return Nan::New<v8::Integer>(value); }
 
