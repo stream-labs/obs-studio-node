@@ -17,13 +17,17 @@
     "emitDecoratorMetadata": true
   },
   "exclude": [
-    "node_modules",
-    "distribute",
-    "obs-build"
+	"build",
+	"distribute",
+	"logs",
+	"node_modules",
+	"obs-prebuild",
+	"resources",
+	"src",
   ],
   "files": [
-    "index.ts",
-    "module.ts",
-    "type_check.ts"
+    "js/index.ts",
+    "js/module.ts",
+    "js/type_check.ts"
   ]
 }
