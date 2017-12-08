@@ -1460,3 +1460,9 @@ export function getSourcesSize(sourcesNames: string[]): ISourceSize[] {
     }
     return sourcesSize;
 }
+
+/**
+ * This is a temporary change that exposes the entirety of node-obs as actual
+ *  functions. Necessary for node-obs exported functions to be seen.
+ */
+export const NodeObs = obs;
