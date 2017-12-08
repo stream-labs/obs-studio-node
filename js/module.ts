@@ -118,8 +118,21 @@ export const enum EAlignment {
 
 /**
  * A binary flag representing output capabilities
+ * Apparently you can't fetch these for now (???)
  */
 export const enum EOutputFlags {
+    Video = (1<<0),
+    Audio = (1<<1),
+    AV = (Video | Audio),
+    Encoded = (1<<2),
+    Service = (1<<3),
+    MultiTrack = (1<<4)
+}
+
+/**
+ * A binary flag representing source output capabilities
+ */
+export const enum ESourceOutputFlags {
     Video = (1 << 0),
     Audio = (1 << 1),
     Async = (1 << 2), 
@@ -147,6 +160,14 @@ export const enum ESourceType {
     Filter,
     Transition,
     Scene,
+}
+
+/**
+ * Describes the type of encoder
+ */
+export const enum EEncoderType {
+    Audio,
+    Video
 }
 
 /**
@@ -256,6 +277,10 @@ export const enum ESceneSignalType {
 }
 
 export const Global: IGlobal = obs.Global;
+export const OutputFactory: IOutputFactory = obs.Output;
+export const AudioEncoderFactory: IAudioEncoderFactory = obs.AudioEncoder;
+export const VideoEncoderFactory: IVideoEncoderFactory = obs.VideoEncoder;
+export const ServiceFactory: IServiceFactory = obs.Service;
 export const InputFactory: IInputFactory = obs.Input;
 export const SceneFactory: ISceneFactory = obs.Scene;
 export const FilterFactory: IFilterFactory = obs.Filter;
@@ -263,8 +288,8 @@ export const TransitionFactory: ITransitionFactory = obs.Transition;
 export const DisplayFactory: IDisplayFactory = obs.Display;
 export const VolmeterFactory: IVolmeterFactory = obs.Volmeter;
 export const FaderFactory: IFaderFactory = obs.Fader;
-export const Audio: IAudio = obs.Audio;
-export const Video: IVideo = obs.Video;
+export const AudioFactory: IAudioFactory = obs.Audio;
+export const VideoFactory: IVideoFactory = obs.Video;
 export const ModuleFactory: IModuleFactory = obs.Module;
 
 /**
@@ -563,7 +588,171 @@ export interface IProperties {
     get(name: string): IProperty;
 }
 
-export interface IFilterFactory {
+export interface IFactoryTypes {
+    types(): string[];
+}
+
+export interface IReleasable {
+    release(): void;
+}
+
+export interface IEncoder extends IConfigurable, IReleasable {
+    name: string;
+    readonly id: string;
+    readonly type: EEncoderType;
+    readonly caps: number;
+    readonly codec: string;
+    readonly active: boolean;
+}
+
+export interface IVideoEncoderFactory extends IFactoryTypes {
+    create(id: string, name: string, settings?: ISettings, hotkeys?: ISettings): IVideoEncoder;
+}
+
+export interface IVideoEncoder extends IEncoder {
+
+}
+
+export interface IAudioEncoderFactory extends IFactoryTypes {
+    create(id: string, name: string, settings?: ISettings, track?: number, hotkeys?: ISettings): IAudioEncoder;
+}
+
+export interface IAudioEncoder extends IEncoder {
+    
+}
+
+export interface IOutput extends IConfigurable, IReleasable {
+    setMedia(video: IVideo, audio: IAudio): void;
+    getVideo(): IVideo;
+    getAudio(): IAudio;
+
+    /** 32-bit integer representing mixer track.
+      * Note that the backend treats this as size_t.
+      * The bindings only accept a 32-bit integer
+      * to prevent complication.  */
+    mixer: number;
+
+    getVideoEncoder(): IVideoEncoder;
+    setVideoEncoder(encoder: IVideoEncoder): void;
+
+    getAudioEncoder(idx: number): IAudioEncoder;
+    setAudioEncoder(encoder: IAudioEncoder, idx: number): void;
+
+    service: IService;
+
+    setReconnectOptions(retry_count: number, retry_sec: number): void;
+    setPreferredSize(width: number, height: number): void;
+
+    readonly width: number;
+    readonly height: number;
+
+    /** Statistic from 0.0f to 1.0f 
+      * representing congestion */
+    readonly congestion: number;
+
+    /** Time output spent connecting its service */
+    readonly connectTime: number;
+
+    /** If it's in the state of reconnecting */
+    readonly reconnecting: boolean;
+
+    /** 
+      * This will return a list of supported codec
+      * standards, not the implementations. For instance
+      * rtmp_output will return 'h264'.
+      *
+      * You may fetch what codecs are implemented by
+      * iterating through the video encoders.
+      */
+    readonly supportedVideoCodecs: string[];
+
+    /** 
+      * This will return a list of supported codec
+      * standards, not the implementations. For instance
+      * rtmp_output will return 'aac'.
+      *
+      * You may fetch what codecs are implemented by
+      * iterating through the audio encoders.
+      */
+    readonly supportedAudioCodecs: string[];
+
+    /** Number of frames dropped total */
+    readonly framesDropped: number;
+
+    /** Total number of processed frames, 
+      * including dropped frames */
+    readonly totalFrames: number;
+
+    /** Start outputing data. Please 
+      * note that this doesn't mean the
+      * output starts immediately. In order
+      * to determine when the output 
+      * actually starts, you must use signals.
+      * libobs will provide a start signal
+      * when it's actually started. */
+    start(): void;
+
+    /** Stop outputing data. Please 
+      * note that this doesn't mean the
+      * output stops immediately. In order
+      * to determine when the output 
+      * actually starts, you must use signals.
+      * libobs will provide a stop signal
+      * when it's actually stopped. */
+    stop(): void;
+
+    /** Set delay to output */
+    setDelay(ms: number, flags: EDelayFlags): void;
+    getDelay(): void;
+    getActiveDelay(): void;
+}
+
+export interface IOutputFactory extends IFactoryTypes {
+    create(id: string, name: string, settings?: ISettings, hotkeys?: ISettings): IOutput;
+}
+
+export enum EDelayFlags {
+    PreserveDelay = (1<<0)
+}
+
+/** 
+ * A service represents the service we're generally streaming to.
+ * Note that in order to use a service, you need an output that takes
+ * advantage of a service. This makes sense since not all outputs will
+ * use a service (think recording or NDI). */
+export interface IServiceFactory extends IFactoryTypes {
+    /**
+     * Create a new instance of a Service
+     * @param id - The type of service source to create, possibly from {@link types}
+     * @param name - Name of the created input source
+     * @param settings - Optional, settings to create input sourc with
+     * @param hotkeys - Optional, hotkey data associated with input
+     * @returns - Returns instance or null if failure
+     */
+    create(id: string, name: string, settings?: ISettings, hotkeys?: ISettings): IService;
+
+    /**
+     * Create a new instance of a Service that's private
+     * Private in this context means any function that returns an 
+     * Service will not return this source
+     * @param id - The type of input source to create, possibly from {@link types}
+     * @param name - Name of the created input source
+     * @param settings - Optional, settings to create input source with
+     * @returns - Returns instance or null if failure
+     */
+    createPrivate(id: string, name: string, settings?: ISettings): IService;
+}
+
+export interface IService extends IConfigurable, IReleasable {
+    readonly url: string;
+    readonly key: string;
+    readonly username: string;
+    readonly password: string;
+    readonly name: string;
+    readonly id: string;
+}
+
+export interface IFilterFactory extends IFactoryTypes {
     /**
      * Create an instance of an ObsFilter
      * @param id - ID of the filter, possibly returned from types()
@@ -572,11 +761,6 @@ export interface IFilterFactory {
      * @returns - Created instance of ObsFilter or null if failure
      */
     create(id: string, name: string, settings?: ISettings): IFilter;
-
-    /**
-     * Returns a list of available filter types for creation
-     */
-    types(): string[];
 }
 
 /**
@@ -585,12 +769,7 @@ export interface IFilterFactory {
 export interface IFilter extends ISource {
 }
 
-export interface IInputFactory {
-    /**
-     * Returns a list of available filter types for creation
-     */
-    types(): string[];
-    
+export interface IInputFactory extends IFactoryTypes {
     /**
      * Create a new instance of an ObsInput
      * @param id - The type of input source to create, possibly from {@link types}
@@ -863,9 +1042,7 @@ export interface ISceneItem {
     deferUpdateEnd(): void;
 }
 
-export interface ITransitionFactory {
-    types(): string[];
-
+export interface ITransitionFactory extends IFactoryTypes {
     /**
      * Create a new instance of an ObsTransition
      * @param id - The type of transition source to create, possibly from {@link types}
@@ -920,26 +1097,18 @@ export interface ITransition extends ISource {
     start(ms: number, input: ISource): void;
 }
 
-/**
- * Base class for Filter, Transition, Scene, and Input
- */
-export interface ISource {
-    /**
-     * Release the underlying reference
-     */
-    release(): void;
-
-    /**
-     * Send remove signal to other holders of the current reference.
-     */
-    remove(): void;
-
+export interface IConfigurable { 
     /**
      * Update the settings of the source instance
      * correlating to the values held within the
      * object passed. 
      */
     update(settings: ISettings): void;
+
+    /**
+     * Whether the source has properties or not
+     */
+    readonly configurable: boolean;
 
     /**
      * The properties of the source
@@ -950,6 +1119,17 @@ export interface ISource {
      * Object holding current settings of the source
      */
     readonly settings: ISettings;
+}
+
+/**
+ * Base class for Filter, Transition, Scene, and Input
+ */
+export interface ISource extends IConfigurable, IReleasable {
+    /**
+     * Send remove signal to other holders of the current reference.
+     */
+    remove(): void;
+
 
     /**
      * The validity of the source
@@ -967,18 +1147,13 @@ export interface ISource {
     readonly id: string;
     
     /**
-     * Whether the source has properties or not
-     */
-    readonly configurable: boolean;
- 
-    /**
      * Not to be confused with flags. This set
      * of flags provides the capabilities in the
      * output associated with the source. See
      * EOutputFlags for possible options. Is
-     * represented as 32-bit binary flag. 
+     * represented as 32-bit binary flag.
      */
-    readonly outputFlags: number;
+    readonly outputFlags: ESourceOutputFlags;
 
     /**
      * Name of the source when referencing it
@@ -988,7 +1163,7 @@ export interface ISource {
     /**
      * Unsigned bit-field concerning various flags
      */
-    flags: number;
+    flags: ESourceFlags;
 
     /** 
      * Muted flag, separate of the current volume
@@ -1146,17 +1321,26 @@ export interface IDisplay {
  * For now, only the global context functions are implemented
  */
 export interface IVideo {
-    reset(info: IVideoInfo): number;
     readonly totalFrames: number;
     readonly skippedFrames: number;
 }
 
+export interface IVideoFactory {
+    reset(info: IVideoInfo): number;
+    getGlobal(): IVideo;
+}
+
 /**
- * This represents a video_t structure from within libobs
+ * This represents a audio_t structure from within libobs
  * For now, only the global context functions are implemented
  */
 export interface IAudio {
+
+}
+
+export interface IAudioFactory {
     reset(info: IAudioInfo): boolean;
+    getGlobal(): IAudio;
 }
 
 

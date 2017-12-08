@@ -11,6 +11,10 @@ exports.DefaultPluginPath = path.resolve(__dirname, `obs-plugins`);
 exports.DefaultPluginDataPath = path.resolve(__dirname, `data/obs-plugins/%module%/data`);
 ;
 exports.Global = obs.Global;
+exports.OutputFactory = obs.Output;
+exports.AudioEncoderFactory = obs.AudioEncoder;
+exports.VideoEncoderFactory = obs.VideoEncoder;
+exports.ServiceFactory = obs.Service;
 exports.InputFactory = obs.Input;
 exports.SceneFactory = obs.Scene;
 exports.FilterFactory = obs.Filter;
@@ -18,9 +22,13 @@ exports.TransitionFactory = obs.Transition;
 exports.DisplayFactory = obs.Display;
 exports.VolmeterFactory = obs.Volmeter;
 exports.FaderFactory = obs.Fader;
-exports.Audio = obs.Audio;
-exports.Video = obs.Video;
+exports.AudioFactory = obs.Audio;
+exports.VideoFactory = obs.Video;
 exports.ModuleFactory = obs.Module;
+var EDelayFlags;
+(function (EDelayFlags) {
+    EDelayFlags[EDelayFlags["PreserveDelay"] = 1] = "PreserveDelay";
+})(EDelayFlags = exports.EDelayFlags || (exports.EDelayFlags = {}));
 function addItems(scene, sceneItems) {
     const items = [];
     if (Array.isArray(sceneItems)) {

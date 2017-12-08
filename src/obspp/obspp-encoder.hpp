@@ -11,6 +11,7 @@ class encoder {
 
 public:
     obs_encoder_t *dangerous();
+    void release();
     std::string display_name();
     void name(std::string name);
     std::string name();
@@ -19,14 +20,13 @@ public:
     uint32_t caps();
     std::string codec();
     void *type_data();
-    void update();
+    void update(obs_data_t *settings);
     bool active();
 
     static std::string display_name(std::string id);
     static std::string codec(std::string id);
     static obs_encoder_type type(std::string id);
     static uint32_t caps(std::string id);
-    static std::vector<std::string> types();
 };
 
 }

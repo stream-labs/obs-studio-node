@@ -6,15 +6,32 @@ namespace osn {
 /*
  * Audio (audio_t) 
  */
+Nan::Persistent<v8::FunctionTemplate> Audio::prototype = 
+    Nan::Persistent<v8::FunctionTemplate>();
+
+Audio::Audio(audio_t *audio)
+ : handle(audio)
+{
+
+}
+
+Audio::Audio(obs::audio audio)
+ : handle(audio)
+{
+}
+
+
 NAN_MODULE_INIT(Audio::Init)
 {
     auto locProto = Nan::New<v8::FunctionTemplate>();
     locProto->SetClassName(FIELD_NAME("Audio"));
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
 
-    Nan::SetMethod(locProto, "reset", reset);
+    common::SetObjectTemplateField(locProto, "reset", reset);
+    common::SetObjectTemplateField(locProto, "getGlobal", getGlobal);
 
-    Nan::Set(target, FIELD_NAME("Audio"), locProto->GetFunction());
+    common::SetObjectField(target, "Audio", locProto->GetFunction());
+    prototype.Reset(locProto);
 }
 
 NAN_METHOD(Audio::reset)
@@ -38,62 +55,77 @@ NAN_METHOD(Audio::reset)
     info.GetReturnValue().Set(common::ToValue(obs_reset_audio(&audio_info)));
 }
 
+NAN_METHOD(Audio::getGlobal)
+{
+    Audio *binding = new Audio(obs::audio::global());
+    auto object = Audio::Object::GenerateObject(binding);
+    info.GetReturnValue().Set(object);
+}
+
 
 /* 
  * Audio Encoder (obs_encoder_t)
  */
+Nan::Persistent<v8::FunctionTemplate> AudioEncoder::prototype = 
+    Nan::Persistent<v8::FunctionTemplate>();
 
-AudioEncoder::AudioEncoder(std::string id, std::string name)
- : handle(id, name)
+AudioEncoder::AudioEncoder(std::string id, std::string name, obs_data_t *settings, size_t idx, obs_data_t *hotkeys)
+ : handle(obs::audio_encoder(id, name, settings, idx, hotkeys))
 {
-
 }
 
-obs::encoder *AudioEncoder::GetHandle()
+AudioEncoder::AudioEncoder(obs::audio_encoder encoder)
+ : handle(encoder)
 {
-    return static_cast<obs::encoder*>(&handle);
+}
+
+obs::encoder AudioEncoder::GetHandle()
+{
+    return handle.get().get();
 }
 
 NAN_MODULE_INIT(AudioEncoder::Init)
 {
-    auto locProto = Nan::New<v8::FunctionTemplate>(New);
+    auto locProto = Nan::New<v8::FunctionTemplate>();
     locProto->Inherit(Nan::New(IEncoder::prototype));
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("AudioEncoder"));
-    Nan::SetAccessor(locProto->InstanceTemplate(), FIELD_NAME("sample_rate"), sample_rate);
-    Nan::Set(target, FIELD_NAME("AudioEncoder"), locProto->GetFunction());
+    common::SetObjectTemplateField(locProto, "create", create);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "sampleRate", get_sampleRate);
+    common::SetObjectField(target, "AudioEncoder", locProto->GetFunction());
     prototype.Reset(locProto);
 }
 
-NAN_METHOD(AudioEncoder::New)
+NAN_METHOD(AudioEncoder::create)
 {
-    if (!info.IsConstructCall()) {
-        Nan::ThrowError("Must be used as a construct call");
-        return;
-    }
-
-    if (info.Length() < 2) {
-        Nan::ThrowError("Too few arguments provided");
-        return;
-    }
+    ASSERT_INFO_LENGTH(info, 2);
     
-    if (!info[0]->IsString() || !info[1]->IsString()) {
-        Nan::ThrowError("Invalid type passed");
-        return;
+    std::string id, name;
+    uint32_t idx = 0;
+    obs_data_t *settings = nullptr, *hotkeys = nullptr;
+
+    ASSERT_GET_VALUE(info[0], id);
+    ASSERT_GET_VALUE(info[1], name);
+
+    switch (info.Length()) {
+    default:
+    case 5:
+        ASSERT_GET_VALUE(info[4], hotkeys);
+    case 4:
+        ASSERT_GET_VALUE(info[3], settings);
+    case 3:
+        ASSERT_GET_VALUE(info[2], idx);
+    case 2:
+        break;
     }
 
-    Nan::Utf8String id(info[0]);
-    Nan::Utf8String name(info[1]);
-    AudioEncoder *object = new AudioEncoder(*id, *name);
-    object->Wrap(info.This());
-    info.GetReturnValue().Set(info.This());
+    AudioEncoder *binding = new AudioEncoder(id, name, settings, idx, hotkeys);
+    auto object = AudioEncoder::Object::GenerateObject(binding);
+    info.GetReturnValue().Set(object);
 }
 
-NAN_GETTER(AudioEncoder::sample_rate)
+NAN_METHOD(AudioEncoder::get_sampleRate)
 {
 }
-
-Nan::Persistent<v8::FunctionTemplate> AudioEncoder::prototype = 
-    Nan::Persistent<v8::FunctionTemplate>();
 
 }

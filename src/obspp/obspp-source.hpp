@@ -101,8 +101,8 @@ public:
     }
 
     void addref();
-    void release(); /* Nullifies handle! */
-    void remove(); /* Signals other references to release */
+    void release();
+    void remove();
     ~source();
     bool operator!() const;
     obs_source_t *dangerous();
@@ -119,8 +119,9 @@ public:
     void name(std::string name);
     
     const std::string id();
-    bool configurable();
 
+    /** Configurable concept */
+    bool configurable();
     obs::properties properties();
     obs_data_t *settings();
     void update(obs_data_t *data);

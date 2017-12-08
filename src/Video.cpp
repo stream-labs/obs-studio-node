@@ -7,39 +7,40 @@
  */
 namespace osn {
 
-VideoEncoder::VideoEncoder(std::string id, std::string name)
- : handle(id, name)
-{
-
-}
-
 /*
  * Video (video_t) and associated functions
  */
-NAN_MODULE_INIT(Video::Init)
+Nan::Persistent<v8::FunctionTemplate> Video::prototype = 
+    Nan::Persistent<v8::FunctionTemplate>();
+
+Video::Video(obs::video video)
+ : handle(video)
 {
-    auto ObsVideo = Nan::New<v8::Object>();
-
-    common::SetObjectField(ObsVideo, "reset", reset);
-    common::SetObjectLazyAccessor(ObsVideo, "skippedFrames", get_skippedFrames);
-    common::SetObjectLazyAccessor(ObsVideo, "totalFrames", get_totalFrames);
-
-    common::SetObjectField(target, "Video", ObsVideo);
 }
 
-NAN_METHOD(Video::New)
+NAN_MODULE_INIT(Video::Init)
 {
-    Nan::ThrowError("video_t is not supported yet!");
+    auto locProto = Nan::New<v8::FunctionTemplate>();
+    locProto->SetClassName(FIELD_NAME("Audio"));
+    locProto->InstanceTemplate()->SetInternalFieldCount(1);
+
+    common::SetObjectTemplateField(locProto, "reset", reset);
+    common::SetObjectTemplateField(locProto, "getGlobal", getGlobal);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "skippedFrames", get_skippedFrames);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "totalFrames", get_totalFrames);
+
+    common::SetObjectField(target, "Video", locProto->GetFunction());
+    prototype.Reset(locProto);
 }
 
 NAN_METHOD(Video::get_skippedFrames)
 {
-    info.GetReturnValue().Set(common::ToValue(obs::video::skipped_frames()));
+    info.GetReturnValue().Set(common::ToValue(obs::video::global().skipped_frames()));
 }
 
 NAN_METHOD(Video::get_totalFrames)
 {
-    info.GetReturnValue().Set(common::ToValue(obs::video::total_frames()));
+    info.GetReturnValue().Set(common::ToValue(obs::video::global().total_frames()));
 }
 
 NAN_METHOD(Video::reset)
@@ -70,47 +71,72 @@ NAN_METHOD(Video::reset)
     info.GetReturnValue().Set(obs::video::reset(&vi));
 }
 
+NAN_METHOD(Video::getGlobal)
+{
+    Video *binding = new Video(obs::video::global());
+    auto object = Video::Object::GenerateObject(binding);
+    info.GetReturnValue().Set(object);
+}
 
 /* 
  * VideoEncoder
  */
+Nan::Persistent<v8::FunctionTemplate> VideoEncoder::prototype = 
+    Nan::Persistent<v8::FunctionTemplate>();
 
-obs::encoder *VideoEncoder::GetHandle()
+VideoEncoder::VideoEncoder(std::string id, std::string name, obs_data_t *settings, obs_data_t *hotkeys)
+ : handle(obs::video_encoder(id, name, settings, hotkeys))
 {
-    return static_cast<obs::encoder*>(&handle);
+}
+
+VideoEncoder::VideoEncoder(obs::video_encoder encoder)
+ : handle(encoder)
+{
+}
+
+obs::encoder VideoEncoder::GetHandle()
+{
+    return handle.get().get();
 }
 
 NAN_MODULE_INIT(VideoEncoder::Init)
 {
-    auto locProto = Nan::New<v8::FunctionTemplate>(New);
+    auto locProto = Nan::New<v8::FunctionTemplate>();
     locProto->Inherit(Nan::New(IEncoder::prototype));
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("VideoEncoder"));
+    common::SetObjectTemplateField(locProto, "create", create);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "height", get_height);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "width", get_width);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "scaledSize", get_scaledSize);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "preferredFormat", get_preferredFormat, set_preferredFormat);
-    Nan::Set(target, FIELD_NAME("VideoEncoder"), locProto->GetFunction());
+    common::SetObjectField(target, "VideoEncoder", locProto->GetFunction());
     prototype.Reset(locProto);
 }
 
-NAN_METHOD(VideoEncoder::New)
+NAN_METHOD(VideoEncoder::create)
 {
-    if (!info.IsConstructCall()) {
-        Nan::ThrowError("Must be used as a construct call");
-        return;
-    }
-
     ASSERT_INFO_LENGTH(info, 2);
     
     std::string id, name;
+    obs_data_t *settings = nullptr, *hotkeys = nullptr;
 
     ASSERT_GET_VALUE(info[0], id);
     ASSERT_GET_VALUE(info[1], name);
 
-    VideoEncoder *object = new VideoEncoder(id, name);
-    object->Wrap(info.This());
-    info.GetReturnValue().Set(info.This());
+    switch (info.Length()) {
+    default:
+    case 4:
+        ASSERT_GET_VALUE(info[3], hotkeys);
+    case 3:
+        ASSERT_GET_VALUE(info[2], settings);
+    case 2:
+        break;
+    }
+
+    VideoEncoder *binding = new VideoEncoder(id, name, settings, hotkeys);
+    auto object = VideoEncoder::Object::GenerateObject(binding);
+    info.GetReturnValue().Set(object);
 }
 
 NAN_METHOD(VideoEncoder::get_height)

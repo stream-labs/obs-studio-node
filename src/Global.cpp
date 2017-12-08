@@ -121,14 +121,14 @@ NAN_METHOD(setOutputSource)
     ASSERT_GET_VALUE(info[0], channel);
     
     if (info[1]->IsNull()) {
-        obs::output(channel, obs::source(nullptr));
+        obs::output_source(channel, obs::source(nullptr));
         return;
     }
     
     ASSERT_GET_VALUE(info[1], source_object);
 
     obs::source source = ISource::GetHandle(source_object);
-    obs::output(channel, source);
+    obs::output_source(channel, source);
 }
 
 NAN_METHOD(getOutputSource)
@@ -139,7 +139,7 @@ NAN_METHOD(getOutputSource)
 
     ASSERT_GET_VALUE(info[0], channel);
 
-    obs::source source = obs::output(channel);
+    obs::source source = obs::output_source(channel);
 
     if (source.type() == OBS_SOURCE_TYPE_INPUT) {
         Input *binding = new Input(source.dangerous());

@@ -15,6 +15,8 @@
 #include "Filter.h"
 #include "AudioControls.h"
 #include "nodeobs_module.h"
+#include "Output.h"
+#include "Service.h"
 
 NAN_MODULE_INIT(node_initialize)
 {
@@ -31,6 +33,8 @@ NAN_MODULE_INIT(node_initialize)
     osn::VideoEncoder::Init(target);
     osn::Display::Init(target);
     osn::Module::Init(target);
+    osn::Output::Init(target);
+    osn::Service::Init(target);
     osn::ISource::Init(target);
     osn::Input::Init(target);
     osn::SceneItem::Init();

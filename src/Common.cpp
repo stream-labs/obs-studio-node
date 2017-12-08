@@ -171,7 +171,6 @@ v8::Local<v8::Value> ToValue<char const*>(char const *value)
     return Nan::New<v8::String>(value).ToLocalChecked(); 
 }
 
-/* See comment below. I ended up just making a function per enum... */
 template <>
 v8::Local<v8::Value> ToValue(enum obs_combo_format value)
 { return Nan::New<v8::Integer>(value); }
@@ -333,7 +332,7 @@ v8::Local<v8::Value> ToValue<obs_data_array_t *>(obs_data_array_t *array_data)
     size_t count = obs_data_array_count(array_data);
 
     /* Potential bug here */
-    auto array = Nan::New<v8::Array>(static_cast<int>(count));
+    auto array = Nan::New<v8::Array>(static_cast<unsigned int>(count));
 
     for (int i = 0; i < count; ++i) {
         obs_data_t *data = obs_data_array_item(array_data, i);
@@ -425,7 +424,6 @@ bool FromValue(v8::Local<v8::Value> value, int8_t &var)
     return true;
 }
 
-
 template <>
 bool FromValue(v8::Local<v8::Value> value, uint8_t &var)
 {
@@ -447,11 +445,6 @@ bool FromValue(v8::Local<v8::Value> value, uint8_t &var)
     return true;
 }
 
-
-/* Since C++ is a piece of shit, we need to list each and every enum
- * as its own explicit specialization. There are probably better ways
- * but I'd like to finish this before I throw my laptop from our 
- * 4th floor office. */
 namespace {
 
 template <typename Type>

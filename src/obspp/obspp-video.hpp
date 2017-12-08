@@ -7,29 +7,49 @@
 namespace obs {
 
 class video {
-    video_t *handle;
+public:
+    enum status_type {
+        Success = 0,
+        InvalidParam = -1,
+        GenericFailure = -2
+    };
+
+private:
+    video_t *m_handle;
+    status_type m_status;
 
 public:
     video(video_t *video);
+    video(video_output_info *info);
     ~video();
 
-    static bool active();
-    static void stop();
-    static bool stopped();
-    static enum video_format format();
-    static uint32_t height();
-    static uint32_t width();
-    static uint32_t frame_rate();
-    static uint32_t skipped_frames();
-    static uint32_t total_frames();
+    void close();
+    bool active();
+    void stop();
+    bool stopped();
+    enum video_format format();
+    uint32_t height();
+    uint32_t width();
+    uint32_t frame_rate();
+    uint32_t skipped_frames();
+    uint32_t total_frames();
     static int reset(struct obs_video_info *info);
+
+    video_t *dangerous();
+
+    static obs::video global();
 };
 
 class video_encoder : public encoder {
-    obs_encoder_t *handle;
+    obs_encoder_t *m_handle;
 
 public:
-    video_encoder(std::string id, std::string name);
+    video_encoder(obs_encoder_t *encoder);
+    video_encoder(std::string id, std::string name, obs_data_t *settings = nullptr, obs_data_t *hotkeys = nullptr);
+
+    static std::vector<std::string> types();
+
+    obs_encoder_t *dangerous();
 };
 
 }
