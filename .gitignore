@@ -17,3 +17,4 @@ distribute/
 
 # Javascript
 *.d.ts
+/*.js
