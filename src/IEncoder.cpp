@@ -22,7 +22,7 @@ NAN_MODULE_INIT(IEncoder::Init)
     common::SetObjectTemplateLazyAccessor(locProto->PrototypeTemplate(), "properties", get_properties);
     common::SetObjectTemplateLazyAccessor(locProto->PrototypeTemplate(), "settings", get_settings);
     common::SetObjectTemplateField(locProto->PrototypeTemplate(), "update", update);
-    //Nan::SetAccessor(locProto->PrototypeTemplate(), FIELD_NAME("status"), status);
+    common::SetObjectTemplateField(locProto->PrototypeTemplate(), "release", release);
 
     common::SetObjectField(target, "Encoder", locProto->GetFunction());
     prototype.Reset(locProto);
@@ -84,6 +84,14 @@ NAN_METHOD(IEncoder::update)
 
     handle.update(settings);
 }
+
+NAN_METHOD(IEncoder::release)
+{
+    obs::encoder handle = IEncoder::GetHandle(info.Holder());
+
+    handle.release();
+}
+
 
 NAN_METHOD(IEncoder::get_properties)
 {

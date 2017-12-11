@@ -24,6 +24,7 @@ public:
     static NAN_METHOD(create);
     static NAN_METHOD(createPrivate);
     static NAN_METHOD(update);
+    static NAN_METHOD(release);
     static NAN_METHOD(get_url);
     static NAN_METHOD(get_key);
     static NAN_METHOD(get_username);
