@@ -50,4 +50,4 @@ NAN_MODULE_INIT(node_initialize)
     osn::Fader::Init(target);
 }
 
-NODE_MODULE(obs_node, node_initialize)
+NODE_MODULE(obs_studio_node, node_initialize)
