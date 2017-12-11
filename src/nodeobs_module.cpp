@@ -1,3 +1,4 @@
+#include "nodeobs_module.h"
 #include <node.h>
 #include "nodeobs_api.h"
 #include "nodeobs_service.h"
@@ -7,9 +8,39 @@
 #include "nodeobs_audio.h"
 #include "nodeobs_autoconfig.h"
 
+std::string g_moduleDirectory = "";
+
 using namespace v8;
 
+void replaceAll(std::string& str, const std::string& from, const std::string& to) {
+	if (from.empty())
+		return;
+	size_t start_pos = 0;
+	while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
+		str.replace(start_pos, from.length(), to);
+		start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
+	}
+};
+
+void SetWorkingDirectory(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	v8::String::Utf8Value param0(args[0]->ToString());
+	g_moduleDirectory = std::string(*param0);
+	replaceAll(g_moduleDirectory, "\\", "/");
+}
+
 void nodeobs_init(Local<Object> exports) {
+	// Find current directory.
+	{
+		std::vector<char> pathCWD(65535); // Should use MAX_PATH here
+		char *answer = getcwd(pathCWD.data(), pathCWD.size() - 1);
+		g_moduleDirectory = std::string(pathCWD.data()) + "/node_modules/obs-studio-node/distribute";
+		replaceAll(g_moduleDirectory, "\\", "/");
+	}
+
+	// EDIT: Add function to specify actual load directory.
+	NODE_SET_METHOD(exports, "SetWorkingDirectory", SetWorkingDirectory);
+	// END OF EDIT:
+
     /// Functions ///
 
     //OBS_AutoConfig
@@ -288,5 +319,3 @@ void nodeobs_init(Local<Object> exports) {
     NODE_SET_METHOD(exports, "OBS_settings_getSettings", OBS_settings::OBS_settings_getSettings);
     NODE_SET_METHOD(exports, "OBS_settings_saveSettings", OBS_settings::OBS_settings_saveSettings);
 }
-
-//NODE_MODULE(OBSmodule, init)

@@ -1,5 +1,5 @@
 #include "nodeobs_service.h"
-
+#include "nodeobs_module.h"
 #include <windows.h>
 #include <ShlObj.h>
 
@@ -835,28 +835,14 @@ static const size_t numVals = sizeof(vals)/sizeof(double);
 
 bool OBS_service::resetVideoContext(const char* outputType)
 {
-	#ifdef _WIN32
-	#define PATH_DELIM "\\"
-	#else
-	#define PATH_DELIM "/"
-	#endif
-
-	// Retrieve current directory. TODO: Replace with proper initialization function so that CWD changes do not mess us up.
-	std::string currentDirectory;
-	{
-		char* buffer = getcwd(nullptr, 1);
-		currentDirectory = std::string(buffer);
-		free(buffer);
-	}
-
     config_t* basicConfig = OBS_API::openConfigFile(OBS_API::getBasicConfigPath());
 
 	obs_video_info ovi;
 	std::string gslib = "";
     #ifdef _WIN32
-    gslib = std::string(currentDirectory + PATH_DELIM + "distribute" + PATH_DELIM + GetRenderModule(basicConfig)).c_str();
+    gslib = std::string(g_moduleDirectory + '/' + GetRenderModule(basicConfig)).c_str();
     #else
-	gslib = std::string(currentDirectory + PATH_DELIM + "distribute" + PATH_DELIM + "libobs-opengl.dll").c_str();
+	gslib = std::string(g_moduleDirectory + '/' + "libobs-opengl.dll").c_str();
     #endif
     ovi.graphics_module = gslib.c_str();
 

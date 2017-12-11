@@ -1,6 +1,7 @@
+#include "nodeobs_api.h"
+#include "nodeobs_module.h"
 #include "util/platform.h"
 #include "util/lexer.h"
-#include "nodeobs_api.h"
 
 #ifdef _WIN32
 #define _WIN32_WINNT 0x0502
@@ -690,16 +691,6 @@ void OBS_API::destroyOBS_API(void) {
 	profiler_free();*/
 }
 
-void replaceAll(std::string& str, const std::string& from, const std::string& to) {
-	if (from.empty())
-		return;
-	size_t start_pos = 0;
-	while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
-		str.replace(start_pos, from.length(), to);
-		start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
-	}
-};
-
 #pragma region Case-Insensitive String
 struct ci_char_traits : public char_traits<char> {
 	static bool eq(char c1, char c2) {
@@ -732,17 +723,9 @@ typedef std::basic_string<char, ci_char_traits> istring;
 
 vector<pair<obs_module_t *, int>>  OBS_API::openAllModules(void) {
 	OBS_service::resetVideoContext(NULL);
-	// Retrieve current directory. TODO: Replace with proper initialization function so that CWD changes do not mess us up.
-	std::string currentDirectory;
-	{
-		std::vector<char> pathCWD(257); // Should use MAX_PATH here
-		char *answer = getcwd(pathCWD.data(), pathCWD.size() - 1);
-		currentDirectory = std::string(pathCWD.data());
-		replaceAll(currentDirectory, "\\", "/");
-	}
 
 	// Set up several directories used.
-	std::string pathOBS = currentDirectory + "/distribute";
+	std::string pathOBS = g_moduleDirectory;
 	std::string pathOBSPlugins = pathOBS + "/obs-plugins";
 	std::string pathOBSPluginData = pathOBS + "/data/obs-plugins";
 
@@ -808,7 +791,7 @@ vector<pair<obs_module_t *, int>>  OBS_API::openAllModules(void) {
 			}
 		}
 	// Restore old working directory.
-	_chdir(currentDirectory.c_str());
+	_chdir(g_moduleDirectory.c_str());
 
 	return listModules;
 	}

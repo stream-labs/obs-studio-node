@@ -1,6 +1,10 @@
 const obs = require('./obs-studio-node.node');
 import * as path from 'path';
 
+// EDIT: Add function to specify actual load directory.
+obs.SetWorkingDirectory(__dirname);
+// END OF EDIT:
+
 /* Convenient paths to modules */
 export const DefaultD3D11Path: string = 
     path.resolve(__dirname, `libobs-d3d11.dll`);
