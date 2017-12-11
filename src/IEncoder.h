@@ -23,6 +23,7 @@ public:
     static NAN_METHOD(get_properties);
     static NAN_METHOD(get_settings);
     static NAN_METHOD(update);
+    static NAN_METHOD(release);
     static NAN_METHOD(get_displayName);
     static NAN_METHOD(get_name);
     static NAN_METHOD(set_name);

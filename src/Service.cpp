@@ -30,6 +30,7 @@ NAN_MODULE_INIT(Service::Init)
     common::SetObjectTemplateField(locProto, "create", create);
     common::SetObjectTemplateField(locProto, "createPrivate", createPrivate);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "update", update);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "release", release);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "properties", get_properties);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "settings", get_settings);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "url", get_url);
@@ -94,6 +95,13 @@ NAN_METHOD(Service::update)
     ASSERT_GET_VALUE(info[0], data);
 
     handle.get()->update(data);
+}
+
+NAN_METHOD(Service::release)
+{
+    obs::weak<obs::service> &handle = Service::Object::GetHandle(info.Holder());
+
+    handle.get()->release();
 }
 
 NAN_METHOD(Service::get_types)
