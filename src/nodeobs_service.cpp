@@ -854,9 +854,9 @@ bool OBS_service::resetVideoContext(const char* outputType)
 	obs_video_info ovi;
 	std::string gslib = "";
     #ifdef _WIN32
-    gslib = std::string(currentDirectory + PATH_DELIM + "node-obs" + PATH_DELIM + GetRenderModule(basicConfig)).c_str();
+    gslib = std::string(currentDirectory + PATH_DELIM + "distribute" + PATH_DELIM + GetRenderModule(basicConfig)).c_str();
     #else
-	gslib = std::string(currentDirectory + PATH_DELIM + "node-obs" + PATH_DELIM + "libobs-opengl.dll").c_str();
+	gslib = std::string(currentDirectory + PATH_DELIM + "distribute" + PATH_DELIM + "libobs-opengl.dll").c_str();
     #endif
     ovi.graphics_module = gslib.c_str();
 
