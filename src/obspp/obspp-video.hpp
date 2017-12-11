@@ -50,6 +50,16 @@ public:
     static std::vector<std::string> types();
 
     obs_encoder_t *dangerous();
+
+    obs::video video();
+    void video(obs::video video);
+
+    void preferred_format(video_format format);
+    video_format preferred_format();
+
+    void scaled_size(uint32_t width, uint32_t height);
+    uint32_t height();
+    uint32_t width();
 };
 
 }

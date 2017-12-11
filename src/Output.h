@@ -21,6 +21,7 @@ public:
     static NAN_MODULE_INIT(Init);
     static NAN_METHOD(get_types);
     static NAN_METHOD(create);
+    static NAN_METHOD(update);
     static NAN_METHOD(get_settings);
     static NAN_METHOD(get_properties);
     static NAN_METHOD(get_name);

@@ -44,11 +44,13 @@ public:
     virtual obs::encoder GetHandle();
     static NAN_MODULE_INIT(Init);
     static NAN_METHOD(create);
-    static NAN_METHOD(get_height);
-    static NAN_METHOD(get_width);
-    static NAN_METHOD(get_scaledSize);
-    static NAN_METHOD(get_preferredFormat);
-    static NAN_METHOD(set_preferredFormat);
+    static NAN_METHOD(getVideo);
+    static NAN_METHOD(setVideo);
+    static NAN_METHOD(getHeight);
+    static NAN_METHOD(getWidth);
+    static NAN_METHOD(setScaledSize);
+    static NAN_METHOD(getPreferredFormat);
+    static NAN_METHOD(setPreferredFormat);
 };
 
 }

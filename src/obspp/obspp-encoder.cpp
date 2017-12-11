@@ -59,6 +59,16 @@ void encoder::update(obs_data_t *data)
     obs_encoder_update(m_handle, data);
 }
 
+obs_data_t *encoder::settings()
+{
+    return obs_encoder_get_settings(m_handle);
+}
+
+obs::properties encoder::properties()
+{
+    return obs_encoder_properties(m_handle);
+}
+
 bool encoder::active()
 {
     return obs_encoder_active(m_handle);

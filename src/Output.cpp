@@ -42,6 +42,7 @@ NAN_MODULE_INIT(Output::Init)
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "setAudioEncoder", setAudioEncoder);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "getVideoEncoder", getVideoEncoder);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "setVideoEncoder", setVideoEncoder);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "update", update);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "properties", get_properties);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "settings", get_settings);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "name", get_name);
@@ -105,6 +106,17 @@ NAN_METHOD(Output::get_types)
     }
 
     info.GetReturnValue().Set(array);
+}
+
+NAN_METHOD(Output::update)
+{
+    obs::weak<obs::output> &handle = Output::Object::GetHandle(info.Holder());
+
+    obs_data_t *data;
+
+    ASSERT_GET_VALUE(info[0], data);
+
+    handle.get()->update(data);
 }
 
 NAN_METHOD(Output::get_settings)

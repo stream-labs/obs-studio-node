@@ -55,13 +55,27 @@ std::vector<std::string> audio_encoder::types()
     return type_list;
 }
 
+uint32_t audio_encoder::sample_rate()
+{
+    return obs_encoder_get_sample_rate(m_handle);
+}
+
+void audio_encoder::audio(obs::audio audio)
+{
+    obs_encoder_set_audio(m_handle, audio.dangerous());
+}
+
+obs::audio audio_encoder::audio()
+{
+    return obs_encoder_audio(m_handle);
+}
 
 fader::fader(obs_fader_type type)
  : m_handle(obs_fader_create(type))
 {
 }
 
-fader::~fader() 
+fader::~fader()
 {
     obs_fader_destroy(m_handle);
 }

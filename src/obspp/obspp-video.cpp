@@ -101,6 +101,42 @@ obs_encoder_t *video_encoder::dangerous()
     return m_handle;
 }
 
+video_format video_encoder::preferred_format()
+{
+    return obs_encoder_get_preferred_video_format(m_handle);
+}
+
+void video_encoder::preferred_format(video_format format)
+{
+    return obs_encoder_set_preferred_video_format(m_handle, format);
+}
+
+void video_encoder::scaled_size(uint32_t width, uint32_t height)
+{
+    obs_encoder_set_scaled_size(m_handle, width, height);
+}
+
+uint32_t video_encoder::width()
+{
+    return obs_encoder_get_width(m_handle);
+}
+
+uint32_t video_encoder::height()
+{
+    return obs_encoder_get_height(m_handle);
+}
+
+void video_encoder::video(obs::video video)
+{
+    obs_encoder_set_video(m_handle, video.dangerous());
+}
+
+obs::video video_encoder::video()
+{
+    return obs_encoder_video(m_handle);
+}
+
+
 std::vector<std::string> video_encoder::types()
 {
     const char *id = nullptr;

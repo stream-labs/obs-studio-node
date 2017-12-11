@@ -222,7 +222,7 @@ export const enum ERangeType {
     Full
 }
 
-export const enum EOutputFormat {
+export const enum EVideoFormat {
     None,
     I420,
     NV12,
@@ -348,7 +348,7 @@ export interface IVideoInfo {
     readonly baseHeight: number;
     readonly outputWidth: number;
     readonly outputHeight: number;
-    readonly outputFormat: EOutputFormat;
+    readonly outputFormat: EVideoFormat;
     readonly adapter: number;
     readonly gpuConversion: boolean;
     readonly colorspace: EColorSpace;
@@ -610,7 +610,15 @@ export interface IVideoEncoderFactory extends IFactoryTypes {
 }
 
 export interface IVideoEncoder extends IEncoder {
+    setVideo(video: IVideo): void;
+    getVideo(): IVideo;
 
+    getHeight(): number;
+    getWidth(): number;
+
+    setScaledSize(width: number, height: number): void;
+    setPreferredFormat(format: EVideoFormat): void;
+    getPreferredFormat(): EVideoFormat;
 }
 
 export interface IAudioEncoderFactory extends IFactoryTypes {
@@ -618,7 +626,10 @@ export interface IAudioEncoderFactory extends IFactoryTypes {
 }
 
 export interface IAudioEncoder extends IEncoder {
-    
+    setAudio(video: IAudio): void;
+    getAudio(): IAudio;
+
+    getSampleRate(): number;
 }
 
 export interface IOutput extends IConfigurable, IReleasable {

@@ -91,7 +91,9 @@ NAN_MODULE_INIT(AudioEncoder::Init)
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("AudioEncoder"));
     common::SetObjectTemplateField(locProto, "create", create);
-    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "sampleRate", get_sampleRate);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "sampleRate", getSampleRate);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "getAudio", getAudio);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "setAudio", setAudio);
     common::SetObjectField(target, "AudioEncoder", locProto->GetFunction());
     prototype.Reset(locProto);
 }
@@ -124,8 +126,35 @@ NAN_METHOD(AudioEncoder::create)
     info.GetReturnValue().Set(object);
 }
 
-NAN_METHOD(AudioEncoder::get_sampleRate)
+NAN_METHOD(AudioEncoder::setAudio)
 {
+    obs::weak<obs::audio_encoder> &handle = AudioEncoder::Object::GetHandle(info.Holder());
+
+    v8::Local<v8::Object> audio_obj;
+
+    ASSERT_GET_VALUE(info[0], audio_obj);
+
+    obs::audio &audio = 
+        Audio::Object::GetHandle(audio_obj);
+
+    handle.get()->audio(audio);
+}
+
+NAN_METHOD(AudioEncoder::getAudio)
+{
+    obs::weak<obs::audio_encoder> &handle = AudioEncoder::Object::GetHandle(info.Holder());
+
+    Audio *binding = new Audio(handle.get()->audio());
+    auto ret_obj = Audio::Object::GenerateObject(binding);
+
+    info.GetReturnValue().Set(ret_obj);
+}
+
+NAN_METHOD(AudioEncoder::getSampleRate)
+{
+    obs::weak<obs::audio_encoder> &handle = AudioEncoder::Object::GetHandle(info.Holder());
+
+    info.GetReturnValue().Set(common::ToValue(handle.get()->sample_rate()));
 }
 
 }

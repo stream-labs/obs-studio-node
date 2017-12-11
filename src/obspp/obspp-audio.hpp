@@ -36,6 +36,10 @@ public:
     static std::vector<std::string> types();
 
     obs_encoder_t *dangerous();
+    uint32_t sample_rate();
+
+    void audio(obs::audio audio);
+    obs::audio audio();
 };
 
 class fader {

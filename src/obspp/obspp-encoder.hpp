@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "obspp-properties.hpp"
+
 namespace obs {
 
 class encoder {
@@ -22,6 +24,10 @@ public:
     void *type_data();
     void update(obs_data_t *settings);
     bool active();
+
+    void update();
+    obs_data_t *settings();
+    obs::properties properties();
 
     static std::string display_name(std::string id);
     static std::string codec(std::string id);

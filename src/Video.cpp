@@ -106,10 +106,13 @@ NAN_MODULE_INIT(VideoEncoder::Init)
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("VideoEncoder"));
     common::SetObjectTemplateField(locProto, "create", create);
-    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "height", get_height);
-    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "width", get_width);
-    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "scaledSize", get_scaledSize);
-    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "preferredFormat", get_preferredFormat, set_preferredFormat);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "getVideo", getVideo);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "setVideo", setVideo);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "getHeight", getHeight);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "getWidth", getWidth);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "setScaledSize", setScaledSize);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "getPreferredFormat", getPreferredFormat);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "setPreferredFormat", setPreferredFormat);
     common::SetObjectField(target, "VideoEncoder", locProto->GetFunction());
     prototype.Reset(locProto);
 }
@@ -139,29 +142,78 @@ NAN_METHOD(VideoEncoder::create)
     info.GetReturnValue().Set(object);
 }
 
-NAN_METHOD(VideoEncoder::get_height)
+NAN_METHOD(VideoEncoder::getHeight)
 {
-    
+    obs::weak<obs::video_encoder> &handle = VideoEncoder::Object::GetHandle(info.Holder());
+
+    uint32_t height = handle.get()->height();
+
+    info.GetReturnValue().Set(common::ToValue(height));
 }
 
-NAN_METHOD(VideoEncoder::get_width)
+NAN_METHOD(VideoEncoder::getWidth)
 {
+    obs::weak<obs::video_encoder> &handle = VideoEncoder::Object::GetHandle(info.Holder());
 
+    uint32_t width = handle.get()->width();
+
+    info.GetReturnValue().Set(common::ToValue(width));
 }
 
-NAN_METHOD(VideoEncoder::get_scaledSize)
+NAN_METHOD(VideoEncoder::setScaledSize)
 {
+    obs::weak<obs::video_encoder> &handle = VideoEncoder::Object::GetHandle(info.Holder());
 
+    uint32_t width, height;
+
+    ASSERT_GET_VALUE(info[0], width);
+    ASSERT_GET_VALUE(info[1], height);
+
+    handle.get()->scaled_size(width, height);
 }
 
-NAN_METHOD(VideoEncoder::get_preferredFormat)
+NAN_METHOD(VideoEncoder::getPreferredFormat)
 {
+    obs::weak<obs::video_encoder> &handle = VideoEncoder::Object::GetHandle(info.Holder());
 
+    auto format = handle.get()->preferred_format();
+
+    info.GetReturnValue().Set(common::ToValue(format));
 }
 
-NAN_METHOD(VideoEncoder::set_preferredFormat)
+NAN_METHOD(VideoEncoder::setPreferredFormat)
 {
+    obs::weak<obs::video_encoder> &handle = VideoEncoder::Object::GetHandle(info.Holder());
 
+    uint32_t format;
+
+    ASSERT_GET_VALUE(info[0], format);
+
+    handle.get()->preferred_format(static_cast<video_format>(format));
+}
+
+NAN_METHOD(VideoEncoder::setVideo)
+{
+    obs::weak<obs::video_encoder> &handle = VideoEncoder::Object::GetHandle(info.Holder());
+
+    v8::Local<v8::Object> video_obj;
+
+    ASSERT_GET_VALUE(info[0], video_obj);
+
+    obs::video &video = 
+        Video::Object::GetHandle(video_obj);
+
+    handle.get()->video(video);
+}
+
+NAN_METHOD(VideoEncoder::getVideo)
+{
+    obs::weak<obs::video_encoder> &handle = VideoEncoder::Object::GetHandle(info.Holder());
+
+    Video *binding = new Video(handle.get()->video());
+    auto ret_obj = Video::Object::GenerateObject(binding);
+
+    info.GetReturnValue().Set(ret_obj);
 }
 
 }

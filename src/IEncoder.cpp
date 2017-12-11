@@ -1,4 +1,5 @@
 #include "IEncoder.h"
+#include "Properties.h"
 #include "Common.h"
 
 namespace osn{
@@ -13,17 +14,17 @@ NAN_MODULE_INIT(IEncoder::Init)
 {
     auto locProto = Nan::New<v8::FunctionTemplate>();
     locProto->SetClassName(FIELD_NAME("Encoder"));
-    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "name", get_name, set_name);
-    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "id", get_id);
-    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "type", get_type);
-    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "caps", get_caps);
-    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "codec", get_codec);
-    common::SetObjectTemplateField(locProto->PrototypeTemplate(), "type", type_static);
-    common::SetObjectTemplateField(locProto->PrototypeTemplate(), "caps", caps_static);
-    common::SetObjectTemplateField(locProto->PrototypeTemplate(), "codec", codec_static);
+    common::SetObjectTemplateLazyAccessor(locProto->PrototypeTemplate(), "name", get_name, set_name);
+    common::SetObjectTemplateLazyAccessor(locProto->PrototypeTemplate(), "id", get_id);
+    common::SetObjectTemplateLazyAccessor(locProto->PrototypeTemplate(), "type", get_type);
+    common::SetObjectTemplateLazyAccessor(locProto->PrototypeTemplate(), "caps", get_caps);
+    common::SetObjectTemplateLazyAccessor(locProto->PrototypeTemplate(), "codec", get_codec);
+    common::SetObjectTemplateLazyAccessor(locProto->PrototypeTemplate(), "properties", get_properties);
+    common::SetObjectTemplateLazyAccessor(locProto->PrototypeTemplate(), "settings", get_settings);
+    common::SetObjectTemplateField(locProto->PrototypeTemplate(), "update", update);
     //Nan::SetAccessor(locProto->PrototypeTemplate(), FIELD_NAME("status"), status);
 
-    Nan::Set(target, FIELD_NAME("Encoder"), locProto->GetFunction());
+    common::SetObjectField(target, "Encoder", locProto->GetFunction());
     prototype.Reset(locProto);
 }
 
@@ -84,41 +85,30 @@ NAN_METHOD(IEncoder::update)
     handle.update(settings);
 }
 
-NAN_METHOD(IEncoder::caps_static)
+NAN_METHOD(IEncoder::get_properties)
 {
-    if (!info[0]->IsString()) {
-        Nan::ThrowTypeError("Unexpected argument type");
+    obs::encoder handle = IEncoder::GetHandle(info.Holder());
+
+    obs::properties props = handle.properties();
+
+    if (props.status() != obs::properties::status_type::okay) {
+        info.GetReturnValue().Set(Nan::Null());
         return;
     }
 
-    Nan::Utf8String id(info[0]);
+    Properties *bindings = new Properties(std::move(props));
+    auto object = Properties::Object::GenerateObject(bindings);
 
-    info.GetReturnValue().Set(obs::encoder::caps(*id));
+    info.GetReturnValue().Set(object);
 }
 
-NAN_METHOD(IEncoder::type_static)
+NAN_METHOD(IEncoder::get_settings)
 {
-    if (!info[0]->IsString()) {
-        Nan::ThrowTypeError("Unexpected argument type");
-        return;
-    }
+    obs::encoder handle = IEncoder::GetHandle(info.Holder());
 
-    Nan::Utf8String id(info[0]);
+    obs_data_t *data = handle.settings();
 
-    info.GetReturnValue().Set(obs::encoder::type(*id));
-}
-
-NAN_METHOD(IEncoder::codec_static)
-{
-    if (!info[0]->IsString()) {
-        Nan::ThrowTypeError("Unexpected argument type");
-        return;
-    }
-
-    Nan::Utf8String id(info[0]);
-
-    info.GetReturnValue().Set(
-        Nan::New(obs::encoder::codec(*id)).ToLocalChecked());
+    info.GetReturnValue().Set(common::ToValue(data));
 }
 
 Nan::Persistent<v8::FunctionTemplate> IEncoder::prototype = 
