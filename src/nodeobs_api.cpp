@@ -742,7 +742,7 @@ vector<pair<obs_module_t *, int>>  OBS_API::openAllModules(void) {
 	}
 
 	// Set up several directories used.
-	std::string pathOBS = currentDirectory + "/node-obs";
+	std::string pathOBS = currentDirectory + "/distribute";
 	std::string pathOBSPlugins = pathOBS + "/obs-plugins";
 	std::string pathOBSPluginData = pathOBS + "/data/obs-plugins";
 
