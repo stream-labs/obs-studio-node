@@ -1,4 +1,5 @@
 #include "nodeobs_display.h"
+#include "nodeobs_module.h"
 #include <iostream>
 #include <string>
 #include <map>
@@ -82,7 +83,7 @@ OBS::Display::Display() {
 	// Text
 	m_textVertices = new VertexBufferHelper();
 	m_textEffect = obs_get_base_effect(OBS_EFFECT_DEFAULT);
-	m_textTexture = gs_texture_create_from_file("distribute/roboto.png");
+	m_textTexture = gs_texture_create_from_file((g_moduleDirectory + "/resources/roboto.png").c_str());
 	if (!m_textTexture) {
 		throw std::runtime_error("couldn't load roboto font");
 	}
