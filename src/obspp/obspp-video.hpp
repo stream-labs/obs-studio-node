@@ -41,12 +41,11 @@ public:
 };
 
 class video_encoder : public encoder {
-    obs_encoder_t *m_handle;
-
 public:
     video_encoder(obs_encoder_t *encoder);
     video_encoder(std::string id, std::string name, obs_data_t *settings = nullptr, obs_data_t *hotkeys = nullptr);
 
+    static video_encoder from_name(std::string name);
     static std::vector<std::string> types();
 
     obs_encoder_t *dangerous();

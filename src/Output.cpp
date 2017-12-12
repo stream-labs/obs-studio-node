@@ -25,6 +25,7 @@ NAN_MODULE_INIT(Output::Init)
     auto locProto = Nan::New<v8::FunctionTemplate>();
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("Output"));
+    common::SetObjectTemplateField(locProto, "fromName", fromName);
     common::SetObjectTemplateField(locProto, "types", get_types);
     common::SetObjectTemplateField(locProto, "create", create);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "release", release);
@@ -83,6 +84,26 @@ NAN_METHOD(Output::create)
     }
 
     Output *binding = new Output(id, name, settings, hotkeys);
+    auto object = Output::Object::GenerateObject(binding);
+    info.GetReturnValue().Set(object);
+}
+
+NAN_METHOD(Output::fromName)
+{
+    ASSERT_INFO_LENGTH(info, 1);
+
+    std::string name;
+
+    ASSERT_GET_VALUE(info[0], name);
+
+    obs::output output_ref = obs::output::from_name(name);
+
+    if (output_ref.status() != obs::output::status_type::okay) {
+        info.GetReturnValue().Set(Nan::Null());
+        return;
+    }
+
+    Output *binding = new Output(output_ref);
     auto object = Output::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }

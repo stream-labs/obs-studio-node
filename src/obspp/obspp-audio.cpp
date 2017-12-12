@@ -23,19 +23,35 @@ obs::audio audio::global()
 }
 
 audio_encoder::audio_encoder(std::string id, std::string name, obs_data_t *settings, size_t mixer, obs_data_t *hotkeys)
- : m_handle(obs_audio_encoder_create(id.c_str(), name.c_str(), settings, mixer, hotkeys))
 {
+    m_handle = obs_audio_encoder_create(id.c_str(), name.c_str(), settings, mixer, hotkeys);
+    m_status = encoder::status_type::okay; 
+
+    if (!m_handle) {
+        m_status = encoder::status_type::invalid;
+    }
 }
 
 audio_encoder::audio_encoder(obs_encoder_t *encoder)
- : m_handle(encoder)
 {
-}
+    m_handle = encoder;
+    m_status = encoder::status_type::okay;
 
+    if (!m_handle) {
+        m_status = encoder::status_type::invalid;
+    }
+}
 
 obs_encoder_t *audio_encoder::dangerous()
 {
     return m_handle;
+}
+
+obs::audio_encoder audio_encoder::from_name(std::string name)
+{
+    obs_encoder_t *encoder = obs_get_encoder_by_name(name.c_str());
+    encoder::check_type(encoder, OBS_ENCODER_AUDIO);
+    return encoder;
 }
 
 std::vector<std::string> audio_encoder::types()

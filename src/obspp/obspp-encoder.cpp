@@ -9,6 +9,18 @@ obs_encoder_t *encoder::dangerous()
     return m_handle;
 }
 
+void encoder::check_type(obs_encoder_t *encoder, obs_encoder_type type)
+{
+    if (!encoder) return;
+
+    obs_encoder_type encoder_type = obs_encoder_get_type(encoder);
+
+    if (encoder_type == type)
+        return;
+
+    throw std::logic_error("Incorrect encoder type used");
+}
+
 void encoder::release()
 {
     obs_encoder_release(m_handle);

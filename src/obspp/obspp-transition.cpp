@@ -61,4 +61,11 @@ std::vector<std::string> transition::types()
     return std::move(type_list);
 }
 
+obs::transition transition::from_name(std::string name)
+{
+    obs_source_t * source = obs_get_source_by_name(name.c_str());
+    obs_source_release(source);
+    return obs::transition(source);
+}
+
 }

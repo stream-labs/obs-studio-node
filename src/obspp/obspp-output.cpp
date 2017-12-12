@@ -18,8 +18,8 @@ output::output(std::string &id, std::string &name, obs_data_t *settings, obs_dat
 }
 
 output::output(obs_output_t *output)
-    : m_handle(output),
-    m_status(status_type::okay)
+ : m_handle(output),
+   m_status(status_type::okay)
 {
     if (!m_handle)
         m_status = status_type::invalid;
@@ -34,6 +34,11 @@ output::output(output &copy)
 void output::release()
 {
     obs_output_release(m_handle);
+}
+
+output::status_type output::status()
+{
+    return m_status;
 }
 
 obs_output_t *output::dangerous()
@@ -82,7 +87,9 @@ obs_data_t *output::defaults(std::string id)
 
 output output::from_name(std::string name)
 {
-    return obs_get_output_by_name(name.c_str());
+    obs_output_t *output = obs_get_output_by_name(name.c_str());
+    obs_output_release(output);
+    return output;
 }
 
 void output::media(obs::video video, obs::audio audio)

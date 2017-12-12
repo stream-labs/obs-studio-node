@@ -20,6 +20,7 @@ public:
     void clear();
 
     static std::vector<std::string> types();
+    static obs::transition from_name(std::string name);
 };
 
 }

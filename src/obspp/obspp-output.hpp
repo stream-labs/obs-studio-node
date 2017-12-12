@@ -19,7 +19,7 @@ public:
 
 private:
     obs_output_t *m_handle;
-    status_type m_status;
+    status_type   m_status;
 
     output();
 
@@ -30,6 +30,7 @@ public:
     output(obs_output_t *output);
 
     void release();
+    status_type status();
     obs_output_t *dangerous();
 
     std::string name();

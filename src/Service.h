@@ -23,6 +23,7 @@ public:
     static NAN_METHOD(get_types);
     static NAN_METHOD(create);
     static NAN_METHOD(createPrivate);
+    static NAN_METHOD(fromName);
     static NAN_METHOD(update);
     static NAN_METHOD(release);
     static NAN_METHOD(get_url);

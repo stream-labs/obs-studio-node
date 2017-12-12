@@ -27,12 +27,11 @@ public:
 };
 
 class audio_encoder : public encoder {
-    obs_encoder_t *m_handle;
-
 public:
     audio_encoder(obs_encoder_t *encoder);
     audio_encoder(std::string id, std::string name, obs_data_t *settings = NULL, size_t idx = 0, obs_data_t *hotkeys = NULL);
 
+    static audio_encoder from_name(std::string name);
     static std::vector<std::string> types();
 
     obs_encoder_t *dangerous();

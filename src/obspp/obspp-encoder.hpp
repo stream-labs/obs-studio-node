@@ -9,7 +9,17 @@
 namespace obs {
 
 class encoder {
+public:
+    enum status_type {
+        okay,
+        invalid
+    };
+
+protected:
     obs_encoder_t *m_handle;
+    status_type    m_status;
+
+    static void check_type(obs_encoder_t *encoder, obs_encoder_type type);
 
 public:
     obs_encoder_t *dangerous();

@@ -37,6 +37,7 @@ NAN_MODULE_INIT(Transition::Init)
     locProto->SetClassName(FIELD_NAME("Transition"));
     common::SetObjectTemplateField(locProto, "create", create);
     common::SetObjectTemplateField(locProto, "createPrivate", createPrivate);
+    common::SetObjectTemplateField(locProto, "fromName", fromName);
     common::SetObjectTemplateField(locProto, "types", types);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "getActiveSource", getActiveSource);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "start", start);
@@ -100,6 +101,26 @@ NAN_METHOD(Transition::createPrivate)
         ASSERT_GET_VALUE(info[2], settings);
 
     binding = new Transition(id, name, settings, true);
+    auto object = Transition::Object::GenerateObject(binding);
+    info.GetReturnValue().Set(object);
+}
+
+NAN_METHOD(Transition::fromName)
+{
+    ASSERT_INFO_LENGTH(info, 1);
+
+    std::string name;
+
+    ASSERT_GET_VALUE(info[0], name);
+
+    obs::transition transition_ref = obs::transition::from_name(name);
+
+    if (transition_ref.status() != obs::transition::status_type::okay) {
+        info.GetReturnValue().Set(Nan::Null());
+        return;
+    }
+
+    Transition *binding = new Transition(transition_ref);
     auto object = Transition::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }

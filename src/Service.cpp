@@ -26,6 +26,7 @@ NAN_MODULE_INIT(Service::Init)
     auto locProto = Nan::New<v8::FunctionTemplate>();
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("Service"));
+    common::SetObjectTemplateField(locProto, "fromName", fromName);
     common::SetObjectTemplateField(locProto, "types", get_types);
     common::SetObjectTemplateField(locProto, "create", create);
     common::SetObjectTemplateField(locProto, "createPrivate", createPrivate);
@@ -82,6 +83,26 @@ NAN_METHOD(Service::createPrivate)
         ASSERT_GET_VALUE(info[2], settings);
 
     Service *binding = new Service(id, name, settings, true);
+    auto object = Service::Object::GenerateObject(binding);
+    info.GetReturnValue().Set(object);
+}
+
+NAN_METHOD(Service::fromName)
+{
+    ASSERT_INFO_LENGTH(info, 1);
+
+    std::string name;
+
+    ASSERT_GET_VALUE(info[0], name);
+
+    obs::service service_ref = obs::service::from_name(name);
+
+    if (service_ref.status() != obs::service::status_type::okay) {
+        info.GetReturnValue().Set(Nan::Null());
+        return;
+    }
+
+    Service *binding = new Service(service_ref);
     auto object = Service::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }

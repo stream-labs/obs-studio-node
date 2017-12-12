@@ -611,6 +611,7 @@ export interface IEncoder extends IConfigurable, IReleasable {
 
 export interface IVideoEncoderFactory extends IFactoryTypes {
     create(id: string, name: string, settings?: ISettings, hotkeys?: ISettings): IVideoEncoder;
+    fromName(name: string): IVideoEncoder;
 }
 
 export interface IVideoEncoder extends IEncoder {
@@ -724,6 +725,7 @@ export interface IOutput extends IConfigurable, IReleasable {
 
 export interface IOutputFactory extends IFactoryTypes {
     create(id: string, name: string, settings?: ISettings, hotkeys?: ISettings): IOutput;
+    fromName(name: string): IOutput;
 }
 
 export enum EDelayFlags {
@@ -756,6 +758,8 @@ export interface IServiceFactory extends IFactoryTypes {
      * @returns - Returns instance or null if failure
      */
     createPrivate(id: string, name: string, settings?: ISettings): IService;
+
+    fromName(name: string): IService;
 }
 
 export interface IService extends IConfigurable, IReleasable {
@@ -1078,6 +1082,8 @@ export interface ITransitionFactory extends IFactoryTypes {
      * @returns - Returns instance or null if failure
      */
     createPrivate(id: string, name: string, settings?: ISettings): ITransition;
+
+    fromName(name: string): ITransition;
 }
 
 /**

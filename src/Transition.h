@@ -24,6 +24,7 @@ public:
 
     virtual obs::source GetHandle();
     static NAN_MODULE_INIT(Init);
+    static NAN_METHOD(fromName);
     static NAN_METHOD(types);
     static NAN_METHOD(getActiveSource);
     static NAN_METHOD(create);
