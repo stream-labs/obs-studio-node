@@ -91,6 +91,7 @@ NAN_MODULE_INIT(AudioEncoder::Init)
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("AudioEncoder"));
     common::SetObjectTemplateField(locProto, "create", create);
+    common::SetObjectTemplateField(locProto, "fromName", fromName);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "sampleRate", getSampleRate);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "getAudio", getAudio);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "setAudio", setAudio);
@@ -125,6 +126,27 @@ NAN_METHOD(AudioEncoder::create)
     auto object = AudioEncoder::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }
+
+NAN_METHOD(AudioEncoder::fromName)
+{
+    ASSERT_INFO_LENGTH(info, 1);
+
+    std::string name;
+
+    ASSERT_GET_VALUE(info[0], name);
+
+    obs::audio_encoder audio_encoder_ref = obs::audio_encoder::from_name(name);
+
+    if (audio_encoder_ref.status() != obs::audio_encoder::status_type::okay) {
+        info.GetReturnValue().Set(Nan::Null());
+        return;
+    }
+
+    AudioEncoder *binding = new AudioEncoder(audio_encoder_ref);
+    auto object = AudioEncoder::Object::GenerateObject(binding);
+    info.GetReturnValue().Set(object);
+}
+
 
 NAN_METHOD(AudioEncoder::setAudio)
 {

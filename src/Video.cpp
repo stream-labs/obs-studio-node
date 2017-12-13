@@ -106,6 +106,7 @@ NAN_MODULE_INIT(VideoEncoder::Init)
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("VideoEncoder"));
     common::SetObjectTemplateField(locProto, "create", create);
+    common::SetObjectTemplateField(locProto, "fromName", fromName);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "getVideo", getVideo);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "setVideo", setVideo);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "getHeight", getHeight);
@@ -141,6 +142,27 @@ NAN_METHOD(VideoEncoder::create)
     auto object = VideoEncoder::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }
+
+NAN_METHOD(VideoEncoder::fromName)
+{
+    ASSERT_INFO_LENGTH(info, 1);
+
+    std::string name;
+
+    ASSERT_GET_VALUE(info[0], name);
+
+    obs::video_encoder video_encoder_ref = obs::video_encoder::from_name(name);
+
+    if (video_encoder_ref.status() != obs::video_encoder::status_type::okay) {
+        info.GetReturnValue().Set(Nan::Null());
+        return;
+    }
+
+    VideoEncoder *binding = new VideoEncoder(video_encoder_ref);
+    auto object = VideoEncoder::Object::GenerateObject(binding);
+    info.GetReturnValue().Set(object);
+}
+
 
 NAN_METHOD(VideoEncoder::getHeight)
 {

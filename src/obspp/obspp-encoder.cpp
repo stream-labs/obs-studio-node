@@ -86,6 +86,11 @@ bool encoder::active()
     return obs_encoder_active(m_handle);
 }
 
+encoder::status_type encoder::status()
+{
+    return m_status;
+}
+
 std::string encoder::codec(std::string id)
 {
     return obs_get_encoder_codec(id.c_str());

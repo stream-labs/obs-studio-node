@@ -45,6 +45,7 @@ public:
     virtual obs::encoder GetHandle();
     static NAN_MODULE_INIT(Init);
     static NAN_METHOD(create);
+    static NAN_METHOD(fromName);
     static NAN_METHOD(getAudio);
     static NAN_METHOD(setAudio);
     static NAN_METHOD(getSampleRate);

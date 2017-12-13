@@ -34,6 +34,7 @@ public:
     void *type_data();
     void update(obs_data_t *settings);
     bool active();
+    status_type status();
 
     void update();
     obs_data_t *settings();
