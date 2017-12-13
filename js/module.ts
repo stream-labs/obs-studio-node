@@ -628,6 +628,7 @@ export interface IVideoEncoder extends IEncoder {
 
 export interface IAudioEncoderFactory extends IFactoryTypes {
     create(id: string, name: string, settings?: ISettings, track?: number, hotkeys?: ISettings): IAudioEncoder;
+    fromName(name: string): IAudioEncoder;
 }
 
 export interface IAudioEncoder extends IEncoder {
