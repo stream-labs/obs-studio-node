@@ -31,11 +31,11 @@ Controller::Controller() {
 }
 
 Controller::~Controller() {
-
+	Disconnect();
 }
 
 std::shared_ptr<IPC::Client> Controller::Host(std::string uri) {
-	if (m_isRunning)
+	if (m_isServer)
 		return nullptr;
 
 	// Concatenate command line.
@@ -54,6 +54,7 @@ std::shared_ptr<IPC::Client> Controller::Host(std::string uri) {
 		&m_win32_processInformation)) {
 		return nullptr;
 	}
+	m_isServer = true;
 	
 	// Try and connect.
 	std::shared_ptr<IPC::Client> cl;
@@ -63,20 +64,38 @@ std::shared_ptr<IPC::Client> Controller::Host(std::string uri) {
 	}
 	
 	if (!cl) { // Assume the server broke or was not allowed to run. 
-		TerminateProcess(m_win32_processInformation.hProcess, -1);
+		Disconnect();
 		return nullptr;
 	}
 	
-	m_isRunning = true;
-	return cl;
+	m_connection = cl;
+	return m_connection;
 }
 
 std::shared_ptr<IPC::Client> Controller::Connect(std::string uri) {
+	if (m_isServer)
+		return nullptr;
+
 	// Try and connect.
 	std::shared_ptr<IPC::Client> cl;
 	for (size_t n = 0; n < 5; n++) { // Attempt 5 times.
 		if (!cl) cl = Connect(uri);
 		if (cl) break;
 	}
-	return cl;
+	m_connection = cl;
+	return m_connection;
+}
+
+void Controller::Disconnect() {
+	if (m_isServer) {
+	#ifdef _WIN32
+		TerminateProcess(m_win32_processInformation.hProcess, -1);
+	#endif
+		m_isServer = false;
+	}
+	m_connection = nullptr;
+}
+
+std::shared_ptr<IPC::Client> Controller::GetConnection() {
+	return m_connection;
 }

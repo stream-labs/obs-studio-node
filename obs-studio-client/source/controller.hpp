@@ -16,6 +16,8 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
 
 #pragma once
+#include <memory>
+#include <string>
 #include "ipc-client.hpp"
 
 #ifdef _WIN32
@@ -45,9 +47,13 @@ class Controller {
 	public:
 	std::shared_ptr<IPC::Client> Host(std::string uri);
 	std::shared_ptr<IPC::Client> Connect(std::string uri);
+	void Disconnect();
+
+	std::shared_ptr<IPC::Client> GetConnection();
 
 	private:
-	bool m_isRunning = false;
+	bool m_isServer = false;
+	std::shared_ptr<IPC::Client> m_connection;
 
 #ifdef _WIN32
 	PROCESS_INFORMATION m_win32_processInformation;
