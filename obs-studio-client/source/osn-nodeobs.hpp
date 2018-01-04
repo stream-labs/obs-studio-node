@@ -223,7 +223,7 @@ namespace NodeOBS {
 		static void SourceLoaded(const v8::FunctionCallbackInfo<v8::Value>& args);
 		static void SourceActivated(const v8::FunctionCallbackInfo<v8::Value>& args);
 		static void SourceDeactivated(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void SourceRemoved(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void SourceRemoved(const v8::FunctionCallbackInfo<v8::Value>& args);
+		//static void SourceRemoved(const v8::FunctionCallbackInfo<v8::Value>& args);
+		//static void SourceRemoved(const v8::FunctionCallbackInfo<v8::Value>& args);
 	};
 }

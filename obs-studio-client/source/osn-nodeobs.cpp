@@ -213,36 +213,36 @@ INITIALIZER(osn_nodeobs) {
 		NODE_SET_METHOD(exports, "OBS_settings_saveSettings", NodeOBS::Settings::SaveSettings);
 		
 		//OBS_event
-	#define SET_SIGNAL_METHOD(name) NODE_SET_METHOD(exports, #name , name)
-		SET_SIGNAL_METHOD(OBS_signal_sourceRemoved);
-		SET_SIGNAL_METHOD(OBS_signal_sourceDestroyed);
-		SET_SIGNAL_METHOD(OBS_signal_sourceSaved);
-		SET_SIGNAL_METHOD(OBS_signal_sourceLoaded);
-		SET_SIGNAL_METHOD(OBS_signal_sourceActivated);
-		SET_SIGNAL_METHOD(OBS_signal_sourceDeactivated);
-		SET_SIGNAL_METHOD(OBS_signal_sourceShown);
-		SET_SIGNAL_METHOD(OBS_signal_sourceHidden);
-		SET_SIGNAL_METHOD(OBS_signal_sourceMuted);
+	//#define SET_SIGNAL_METHOD(name) NODE_SET_METHOD(exports, #name , name)
+	//	SET_SIGNAL_METHOD(OBS_signal_sourceRemoved);
+	//	SET_SIGNAL_METHOD(OBS_signal_sourceDestroyed);
+	//	SET_SIGNAL_METHOD(OBS_signal_sourceSaved);
+	//	SET_SIGNAL_METHOD(OBS_signal_sourceLoaded);
+	//	SET_SIGNAL_METHOD(OBS_signal_sourceActivated);
+	//	SET_SIGNAL_METHOD(OBS_signal_sourceDeactivated);
+	//	SET_SIGNAL_METHOD(OBS_signal_sourceShown);
+	//	SET_SIGNAL_METHOD(OBS_signal_sourceHidden);
+	//	SET_SIGNAL_METHOD(OBS_signal_sourceMuted);
 
-		SET_SIGNAL_METHOD(OBS_signal_createdSource);
-		SET_SIGNAL_METHOD(OBS_signal_removedSource);
-		SET_SIGNAL_METHOD(OBS_signal_destroyedSource);
-		SET_SIGNAL_METHOD(OBS_signal_savedSource);
-		SET_SIGNAL_METHOD(OBS_signal_loadedSource);
-		SET_SIGNAL_METHOD(OBS_signal_activatedSource);
-		SET_SIGNAL_METHOD(OBS_signal_deactivatedSource);
-		SET_SIGNAL_METHOD(OBS_signal_showedSource);
-		SET_SIGNAL_METHOD(OBS_signal_hidSource);
+	//	SET_SIGNAL_METHOD(OBS_signal_createdSource);
+	//	SET_SIGNAL_METHOD(OBS_signal_removedSource);
+	//	SET_SIGNAL_METHOD(OBS_signal_destroyedSource);
+	//	SET_SIGNAL_METHOD(OBS_signal_savedSource);
+	//	SET_SIGNAL_METHOD(OBS_signal_loadedSource);
+	//	SET_SIGNAL_METHOD(OBS_signal_activatedSource);
+	//	SET_SIGNAL_METHOD(OBS_signal_deactivatedSource);
+	//	SET_SIGNAL_METHOD(OBS_signal_showedSource);
+	//	SET_SIGNAL_METHOD(OBS_signal_hidSource);
 
-		SET_SIGNAL_METHOD(OBS_signal_outputStarted);
-		SET_SIGNAL_METHOD(OBS_signal_outputStopped);
-		SET_SIGNAL_METHOD(OBS_signal_outputStarting);
-		SET_SIGNAL_METHOD(OBS_signal_outputStopping);
-		SET_SIGNAL_METHOD(OBS_signal_outputActivated);
-		SET_SIGNAL_METHOD(OBS_signal_outputDeactivated);
-		SET_SIGNAL_METHOD(OBS_signal_outputReconnecting);
-		SET_SIGNAL_METHOD(OBS_signal_outputReconnected);
-	#undef SET_SIGNAL_METHOD
+	//	SET_SIGNAL_METHOD(OBS_signal_outputStarted);
+	//	SET_SIGNAL_METHOD(OBS_signal_outputStopped);
+	//	SET_SIGNAL_METHOD(OBS_signal_outputStarting);
+	//	SET_SIGNAL_METHOD(OBS_signal_outputStopping);
+	//	SET_SIGNAL_METHOD(OBS_signal_outputActivated);
+	//	SET_SIGNAL_METHOD(OBS_signal_outputDeactivated);
+	//	SET_SIGNAL_METHOD(OBS_signal_outputReconnecting);
+	//	SET_SIGNAL_METHOD(OBS_signal_outputReconnected);
+	//#undef SET_SIGNAL_METHOD
 	});
 }
 
