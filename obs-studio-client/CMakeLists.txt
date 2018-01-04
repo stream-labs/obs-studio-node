@@ -22,6 +22,7 @@ SET(PROJECT_SOURCE
 	"${PROJECT_SOURCE_DIR}/source/main.cpp"
 	"${PROJECT_SOURCE_DIR}/source/shared.cpp" "${PROJECT_SOURCE_DIR}/source/shared.hpp"
 	"${PROJECT_SOURCE_DIR}/source/utility.cpp" "${PROJECT_SOURCE_DIR}/source/utility.hpp"
+	"${PROJECT_SOURCE_DIR}/source/controller.cpp" "${PROJECT_SOURCE_DIR}/source/controller.hpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-nodeobs.cpp" "${PROJECT_SOURCE_DIR}/source/osn-nodeobs.hpp"
 )
 SET(PROJECT_LIBRARIES
@@ -29,6 +30,7 @@ SET(PROJECT_LIBRARIES
 )
 SET(PROJECT_INCLUDE_PATHS
 	${CMAKE_JS_INC}
+	"${CMAKE_SOURCE_DIR}/lib-streamlabs-ipc/include"
 )
 SET(PROJECT_DATA
 	"resources/"
