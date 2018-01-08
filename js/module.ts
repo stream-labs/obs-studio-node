@@ -1152,6 +1152,13 @@ export interface ISource extends IConfigurable, IReleasable {
      */
     remove(): void;
 
+    /**
+     * Send a save signal to sources themselves. 
+     * This should always be called before saving to disk 
+     * as it allows the source to know it needs to update 
+     * its settings.
+     */
+     save(): void;
 
     /**
      * The validity of the source

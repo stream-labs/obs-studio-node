@@ -107,6 +107,7 @@ public:
     bool operator!() const;
     obs_source_t *dangerous();
     status_type status();
+    void save();
 
     obs_source_type type();
     

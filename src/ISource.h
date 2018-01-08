@@ -28,6 +28,7 @@ public:
     static NAN_METHOD(set_flags);
     static NAN_METHOD(remove);
     static NAN_METHOD(release);
+    static NAN_METHOD(save);
     static NAN_METHOD(get_status);
     static NAN_METHOD(get_id);
     static NAN_METHOD(get_configurable);

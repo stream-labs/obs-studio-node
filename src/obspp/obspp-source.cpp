@@ -61,17 +61,22 @@ void source::addref()
     obs_source_addref(m_handle);
 }
 
-void source::release() 
+void source::release()
 {
     obs_source_release(m_handle);
 }
 
-void source::remove() 
+void source::remove()
 {
     obs_source_remove(m_handle);
 }
 
-source::~source() 
+void source::save()
+{
+    obs_source_save(m_handle);
+}
+
+source::~source()
 {
 }
 

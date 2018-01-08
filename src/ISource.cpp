@@ -34,12 +34,20 @@ NAN_MODULE_INIT(ISource::Init)
     common::SetObjectTemplateLazyAccessor(proto_templ, "properties", get_properties);
     common::SetObjectTemplateLazyAccessor(proto_templ, "settings", get_settings);
 
+    common::SetObjectTemplateField(proto_templ, "save", save);
     common::SetObjectTemplateField(proto_templ, "release", release);
     common::SetObjectTemplateField(proto_templ, "remove", remove);
     common::SetObjectTemplateField(proto_templ, "update", update);
 
     common::SetObjectField(target, "Source", locProto->GetFunction());
     prototype.Reset(locProto);
+}
+
+NAN_METHOD(ISource::save)
+{
+    obs::source handle = ISource::GetHandle(info.Holder());
+
+    handle.save();
 }
 
 NAN_METHOD(ISource::release)
