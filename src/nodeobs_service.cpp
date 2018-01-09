@@ -1260,8 +1260,6 @@ void OBS_service::createRecordingOutput(void)
 
 bool OBS_service::startStreaming(void)
 {
-	/* --------------------- */
-
 	const char *type = obs_service_get_output_type(service);
 	if (!type)
 		type = "rtmp_output";
