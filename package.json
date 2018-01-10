@@ -17,7 +17,6 @@
   "scripts": {
     "clean": "git clean -fxd",
     "compile": "npm run build:javascript && npm run build:bindings",
-    "install": "npm run compile",
     "build:javascript": "tsc -p js",
     "build:bindings": "tsc && node build-bindings.js",
     "build:docs": "typedoc --out docs"
