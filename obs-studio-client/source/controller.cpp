@@ -16,8 +16,11 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
 
 #include "controller.hpp"
+#include "shared.hpp"
+#include "utility.hpp"
 #include <string>
 #include <sstream>
+#include <node.h>
 
 #ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
@@ -25,6 +28,51 @@
 #endif
 #include <windows.h>
 #endif
+
+#pragma region JavaScript
+
+void ConnectOrHost(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	auto isol = args.GetIsolate();
+	if (args.Length() == 0) {
+		isol->ThrowException(v8::Exception::SyntaxError(v8::String::NewFromUtf8(isol, "Too few arguments, usage: ConnectOrHost(uri).")));
+		return;
+	} else if (args.Length() > 1) {
+		isol->ThrowException(v8::Exception::SyntaxError(v8::String::NewFromUtf8(isol, "Too many arguments.")));
+		return;
+	} else if (!args[0]->IsString()) {
+		isol->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isol, "Argument 'uri' must be of type 'String'.")));
+		return;
+	}
+
+	std::string uri = *v8::String::Utf8Value(args[0]);
+	auto cl = Controller::GetInstance().Connect(uri);
+	if (!cl) {
+		cl = Controller::GetInstance().Host(uri);
+		if (!cl) {
+			isol->ThrowException(v8::Exception::Error(v8::String::NewFromUtf8(isol, "IPC failed to connect or host.")));
+			return;
+		}
+	}
+
+	return;
+}
+
+void Disconnect(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	Controller::GetInstance().Disconnect();
+}
+
+INITIALIZER(js_ipc) {
+	initializerFunctions.push([](v8::Local<v8::Object>& exports) {
+		// IPC related functions will be under the IPC object.
+		auto obj = v8::Object::New(exports->GetIsolate());
+		exports->Set(v8::String::NewFromUtf8(exports->GetIsolate(), "IPC"), obj);
+
+		NODE_SET_METHOD(obj, "ConnectOrHost", ConnectOrHost);
+		NODE_SET_METHOD(obj, "Disconnect", Disconnect);
+
+	});
+}
+#pragma endregion JavaScript
 
 Controller::Controller() {
 

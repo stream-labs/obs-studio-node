@@ -59,5 +59,4 @@ class Controller {
 	PROCESS_INFORMATION m_win32_processInformation;
 	STARTUPINFO m_win32_startupInfo;
 #endif
-
 };

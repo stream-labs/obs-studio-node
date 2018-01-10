@@ -22,7 +22,7 @@ SET(PROJECT_SOURCE
 	"${PROJECT_SOURCE_DIR}/source/main.cpp"
 	"${PROJECT_SOURCE_DIR}/source/shared.cpp" "${PROJECT_SOURCE_DIR}/source/shared.hpp"
 	"${PROJECT_SOURCE_DIR}/source/utility.cpp" "${PROJECT_SOURCE_DIR}/source/utility.hpp"
-	"${PROJECT_SOURCE_DIR}/source/controller.cpp" "${PROJECT_SOURCE_DIR}/source/controller.hpp" "${PROJECT_SOURCE_DIR}/source/controller_js.cpp"
+	"${PROJECT_SOURCE_DIR}/source/controller.cpp" "${PROJECT_SOURCE_DIR}/source/controller.hpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-NodeOBS.cpp" "${PROJECT_SOURCE_DIR}/source/osn-NodeOBS.hpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-Audio.cpp" "${PROJECT_SOURCE_DIR}/source/osn-Audio.hpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-AudioControls.cpp" "${PROJECT_SOURCE_DIR}/source/osn-AudioControls.hpp"
