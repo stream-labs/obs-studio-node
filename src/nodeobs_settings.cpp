@@ -2637,7 +2637,7 @@ Local<Array>  OBS_settings::getVideoSettings()
 	//Base (Canvas) Resolution
 	std::vector<std::pair<std::string, std::string>> baseResolution;
 	baseResolution.push_back(std::make_pair("name", "Base"));
-	baseResolution.push_back(std::make_pair("type", "OBS_PROPERTY_LIST"));
+	baseResolution.push_back(std::make_pair("type", "OBS_INPUT_RESOLUTION_LIST"));
 	baseResolution.push_back(std::make_pair("description", "Base (Canvas) Resolution"));
 
 	uint32_t base_cx = config_get_uint(config, "Video", "BaseCX");
@@ -2693,7 +2693,7 @@ Local<Array>  OBS_settings::getVideoSettings()
 
 	std::vector<std::pair<std::string, std::string>> outputResolution;
 	outputResolution.push_back(std::make_pair("name", "Output"));
-	outputResolution.push_back(std::make_pair("type", "OBS_PROPERTY_LIST"));
+	outputResolution.push_back(std::make_pair("type", "OBS_INPUT_RESOLUTION_LIST"));
 	outputResolution.push_back(std::make_pair("description", "Output (Scaled) Resolution"));
 
 	uint32_t out_cx = config_get_uint(config, "Video", "OutputCX");
