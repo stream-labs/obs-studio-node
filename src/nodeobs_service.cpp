@@ -2062,7 +2062,12 @@ void OBS_service::updateStreamSettings(void)
 	if(strcmp(currentOutputMode, "Simple") == 0) {
         OBS_service::updateVideoStreamingEncoder();
 	} else if (strcmp(currentOutputMode, "Advanced") == 0) {
+		bool applyServiceSettings = config_get_bool(config, "AdvOut", "ApplyServiceSettings");
 
+		if (applyServiceSettings) {
+			obs_data_t* encoderSettings = obs_encoder_get_settings(videoStreamingEncoder);
+			obs_service_apply_encoder_settings(OBS_service::getService(), encoderSettings, nullptr);
+		}
     }
 
     resetVideoContext("Stream");
