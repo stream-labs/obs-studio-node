@@ -15,15 +15,4 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
 
-#include <node.h>
-#include "shared.hpp"
-
-// Definition based on addon_register_func, see 'node.h:L384'.
-void main(v8::Local<v8::Object> exports, v8::Local<v8::Value> module, void* priv) {
-	while (initializerFunctions.size() > 0) {
-		initializerFunctions.front()(exports);
-		initializerFunctions.pop();
-	}
-};
-
-NODE_MODULE(obs_studio_node, main); // Upgrade to NAPI_MODULE once N-API hits stable/beta.
+#include "osn-Service.hpp"

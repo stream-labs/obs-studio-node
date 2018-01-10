@@ -18,7 +18,7 @@
 #include "controller.hpp"
 #include "utility.hpp"
 #include "shared.hpp"
-#include <nan.h>
+//#include <nan.h>
 
 void ConnectOrHost(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	auto isol = args.GetIsolate();
