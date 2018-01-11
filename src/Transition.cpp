@@ -42,6 +42,7 @@ NAN_MODULE_INIT(Transition::Init)
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "getActiveSource", getActiveSource);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "start", start);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "set", set);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "clear", clear);
     common::SetObjectField(target, "Transition", locProto->GetFunction());
     prototype.Reset(locProto);
 }

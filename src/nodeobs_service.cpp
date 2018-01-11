@@ -1260,6 +1260,12 @@ void OBS_service::createRecordingOutput(void)
 
 bool OBS_service::startStreaming(void)
 {
+	const char *type = obs_service_get_output_type(service);
+	if (!type)
+		type = "rtmp_output";
+
+    obs_output_release(streamingOutput);
+	streamingOutput = obs_output_create(type, "simple_stream", nullptr, nullptr);
     updateService();
     updateStreamSettings();
 
@@ -2056,7 +2062,12 @@ void OBS_service::updateStreamSettings(void)
 	if(strcmp(currentOutputMode, "Simple") == 0) {
         OBS_service::updateVideoStreamingEncoder();
 	} else if (strcmp(currentOutputMode, "Advanced") == 0) {
+		bool applyServiceSettings = config_get_bool(config, "AdvOut", "ApplyServiceSettings");
 
+		if (applyServiceSettings) {
+			obs_data_t* encoderSettings = obs_encoder_get_settings(videoStreamingEncoder);
+			obs_service_apply_encoder_settings(OBS_service::getService(), encoderSettings, nullptr);
+		}
     }
 
     resetVideoContext("Stream");

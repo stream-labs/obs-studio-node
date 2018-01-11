@@ -2247,14 +2247,9 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(Local<Array> settings, st
 	if (ret != 0) {
 		blog(LOG_WARNING, "Failed to config file %s", basicConfigFile.c_str());
 	}
-	
-	bool applyServiceSettings = config_get_bool(config, "AdvOut", "ApplyServiceSettings");
 
-	if (applyServiceSettings)
-		obs_service_apply_encoder_settings(OBS_service::getService(), encoderSettings, nullptr);
-	
 	obs_encoder_update(encoder, encoderSettings);
-	
+
 	std::string path = OBS_API::getStreamingEncoderConfigPath();
 	if (!obs_data_save_json_safe(encoderSettings, path.c_str(), "tmp", "bak")) {
 		blog(LOG_WARNING, "Failed to save encoder %s", path.c_str());
