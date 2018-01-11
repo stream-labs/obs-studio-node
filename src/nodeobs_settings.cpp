@@ -2868,25 +2868,6 @@ void OBS_settings::saveVideoSettings(Local<Array> videoSettings)
 	config_set_uint(config, "Video", "OutputCX", outputWidth);
 	config_set_uint(config, "Video", "OutputCY", outputHeight);
 
-	bool valueFound = false;
-
-	for (size_t idx = 0; idx < numVals; idx++) {
-		uint32_t outDownscaleCX = uint32_t(double(baseWidth) / vals[idx]);
-		uint32_t outDownscaleCY = uint32_t(double(baseHeight) / vals[idx]);
-
-		string outRes = ResString(outDownscaleCX, outDownscaleCY);
-
-		if(outputResString.compare(outRes) == 0) {
-			valueFound = true;
-		}
-	}
-
-	if(!valueFound) {
-		cout << "VALUE NOT FOUND " << endl;
-		config_set_uint(config, "Video", "OutputCX", baseWidth);
-		config_set_uint(config, "Video", "OutputCY", baseHeight);
-	}
-
 	Local<Object> scaleParameter = v8::Local<v8::Object>::Cast(parameters->Get(2));
 
 	v8::String::Utf8Value param2(scaleParameter->Get(String::NewFromUtf8(isolate, "currentValue")));
