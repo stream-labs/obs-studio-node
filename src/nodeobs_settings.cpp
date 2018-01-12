@@ -2632,7 +2632,7 @@ Local<Array>  OBS_settings::getVideoSettings()
 	//Base (Canvas) Resolution
 	std::vector<std::pair<std::string, std::string>> baseResolution;
 	baseResolution.push_back(std::make_pair("name", "Base"));
-	baseResolution.push_back(std::make_pair("type", "OBS_PROPERTY_LIST"));
+	baseResolution.push_back(std::make_pair("type", "OBS_INPUT_RESOLUTION_LIST"));
 	baseResolution.push_back(std::make_pair("description", "Base (Canvas) Resolution"));
 
 	uint32_t base_cx = config_get_uint(config, "Video", "BaseCX");
@@ -2688,7 +2688,7 @@ Local<Array>  OBS_settings::getVideoSettings()
 
 	std::vector<std::pair<std::string, std::string>> outputResolution;
 	outputResolution.push_back(std::make_pair("name", "Output"));
-	outputResolution.push_back(std::make_pair("type", "OBS_PROPERTY_LIST"));
+	outputResolution.push_back(std::make_pair("type", "OBS_INPUT_RESOLUTION_LIST"));
 	outputResolution.push_back(std::make_pair("description", "Output (Scaled) Resolution"));
 
 	uint32_t out_cx = config_get_uint(config, "Video", "OutputCX");
@@ -2862,25 +2862,6 @@ void OBS_settings::saveVideoSettings(Local<Array> videoSettings)
 	ConvertResText(outputResString.c_str(), outputWidth, outputHeight);
 	config_set_uint(config, "Video", "OutputCX", outputWidth);
 	config_set_uint(config, "Video", "OutputCY", outputHeight);
-
-	bool valueFound = false;
-
-	for (size_t idx = 0; idx < numVals; idx++) {
-		uint32_t outDownscaleCX = uint32_t(double(baseWidth) / vals[idx]);
-		uint32_t outDownscaleCY = uint32_t(double(baseHeight) / vals[idx]);
-
-		string outRes = ResString(outDownscaleCX, outDownscaleCY);
-
-		if(outputResString.compare(outRes) == 0) {
-			valueFound = true;
-		}
-	}
-
-	if(!valueFound) {
-		cout << "VALUE NOT FOUND " << endl;
-		config_set_uint(config, "Video", "OutputCX", baseWidth);
-		config_set_uint(config, "Video", "OutputCY", baseHeight);
-	}
 
 	Local<Object> scaleParameter = v8::Local<v8::Object>::Cast(parameters->Get(2));
 
