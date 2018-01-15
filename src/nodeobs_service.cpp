@@ -1804,6 +1804,7 @@ void OBS_service::updateVideoRecordingEncoder()
     ffmpegOutput = false;
 
 	if (strcmp(quality, "Stream") == 0) {
+		updateVideoStreamingEncoder();
 		if (videoRecordingEncoder != videoStreamingEncoder) {
 			obs_encoder_release(videoRecordingEncoder);
 			videoRecordingEncoder = videoStreamingEncoder;
@@ -2060,7 +2061,7 @@ void OBS_service::updateStreamSettings(void)
     const char* currentOutputMode = config_get_string(config, "Output", "Mode");
 
 	if(strcmp(currentOutputMode, "Simple") == 0) {
-        OBS_service::updateVideoStreamingEncoder();
+        updateVideoStreamingEncoder();
 	} else if (strcmp(currentOutputMode, "Advanced") == 0) {
 		bool applyServiceSettings = config_get_bool(config, "AdvOut", "ApplyServiceSettings");
 
