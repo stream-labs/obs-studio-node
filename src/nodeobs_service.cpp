@@ -1291,12 +1291,58 @@ void OBS_service::stopRecording(void)
 
 void OBS_service::associateAudioAndVideoToTheCurrentStreamingContext(void)
 {
+	std::string basicConfigFile = OBS_API::getBasicConfigPath();
+	config_t* config = OBS_API::openConfigFile(basicConfigFile);
+
+	const char* advancedMode = config_get_string(config, "Output", "Mode");
+
+	if (strcmp(advancedMode, "Advanced") == 0) {
+		unsigned int cx = 0;
+		unsigned int cy = 0;
+
+		bool rescale = config_get_bool(config, "AdvOut",
+			"Rescale");
+		const char *rescaleRes = config_get_string(config, "AdvOut",
+			"RescaleRes");
+
+		if (rescale && rescaleRes && *rescaleRes) {
+			if (sscanf(rescaleRes, "%ux%u", &cx, &cy) != 2) {
+				cx = 0;
+				cy = 0;
+			}
+			obs_encoder_set_scaled_size(videoStreamingEncoder, cx, cy);
+		}
+	}
+
     obs_encoder_set_video(videoStreamingEncoder, obs_get_video());
     obs_encoder_set_audio(audioEncoder, obs_get_audio());
 }
 
 void OBS_service::associateAudioAndVideoToTheCurrentRecordingContext(void)
 {
+	std::string basicConfigFile = OBS_API::getBasicConfigPath();
+	config_t* config = OBS_API::openConfigFile(basicConfigFile);
+
+	const char* advancedMode = config_get_string(config, "Output", "Mode");
+
+	if (strcmp(advancedMode, "Advanced") == 0) {
+		unsigned int cx = 0;
+		unsigned int cy = 0;
+
+		bool rescale = config_get_bool(config, "AdvOut",
+			"RecRescale");
+		const char *rescaleRes = config_get_string(config, "AdvOut",
+			"RecRescaleRes");
+
+		if (rescale && rescaleRes && *rescaleRes) {
+			if (sscanf(rescaleRes, "%ux%u", &cx, &cy) != 2) {
+				cx = 0;
+				cy = 0;
+			}
+			obs_encoder_set_scaled_size(videoRecordingEncoder, cx, cy);
+		}
+	}
+
     obs_encoder_set_video(videoRecordingEncoder, obs_get_video());
     obs_encoder_set_audio(audioEncoder, obs_get_audio());
 }

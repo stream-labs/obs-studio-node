@@ -1186,6 +1186,8 @@ Local<Object> OBS_settings::getAdvancedOutputStreamingSettings(config_t* config,
 
 		if (outputResString == NULL) {
 			outputResString = "1280x720";
+			config_set_string(config, "AdvOut", "RescaleRes", outputResString);
+			config_save_safe(config, "tmp", nullptr);
 		}
 
 		RescaleRes->Set(String::NewFromUtf8(isolate, "currentValue"), String::NewFromUtf8(isolate, outputResString));
@@ -1438,6 +1440,8 @@ void OBS_settings::getStandardRecordingSettings(Local<Array>* subCategoryParamet
 
 		if (outputResString == NULL) {
 			outputResString = "1280x720";
+			config_set_string(config, "AdvOut", "RecRescaleRes", outputResString);
+			config_save_safe(config, "tmp", nullptr);
 		}
 
 		RecRescaleRes->Set(String::NewFromUtf8(isolate, "currentValue"), String::NewFromUtf8(isolate, outputResString));
