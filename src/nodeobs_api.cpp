@@ -474,6 +474,34 @@ bool containsDirectory(const std::string& path)
     return false;
 }
 
+void OBS_API::SetProcessPriority(const char *priority)
+{
+	if (!priority)
+		return;
+
+	if (strcmp(priority, "High") == 0)
+		SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
+	else if (strcmp(priority, "AboveNormal") == 0)
+		SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
+	else if (strcmp(priority, "Normal") == 0)
+		SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
+	else if (strcmp(priority, "BelowNormal") == 0)
+		SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
+	else if (strcmp(priority, "Idle") == 0)
+		SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
+}
+
+void OBS_API::UpdateProcessPriority()
+{
+	std::string globalConfigFile = OBS_API::getGlobalConfigPath();
+	config_t* globalConfig = OBS_API::openConfigFile(globalConfigFile);
+
+	const char *priority = config_get_string(globalConfig,
+		"General", "ProcessPriority");
+	if (priority && strcmp(priority, "Normal") != 0)
+		SetProcessPriority(priority);
+}
+
 void OBS_API::initAPI(void)
 {
 	initOBS_API();
@@ -501,6 +529,7 @@ void OBS_API::initAPI(void)
 	OBS_service::setServiceToTheStreamingOutput();
 
 	setAudioDeviceMonitoring();
+	UpdateProcessPriority();
 }
 
 bool DisableAudioDucking(bool disable)
