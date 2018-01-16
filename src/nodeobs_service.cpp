@@ -1291,12 +1291,58 @@ void OBS_service::stopRecording(void)
 
 void OBS_service::associateAudioAndVideoToTheCurrentStreamingContext(void)
 {
+	std::string basicConfigFile = OBS_API::getBasicConfigPath();
+	config_t* config = OBS_API::openConfigFile(basicConfigFile);
+
+	const char* advancedMode = config_get_string(config, "Output", "Mode");
+
+	if (strcmp(advancedMode, "Advanced") == 0) {
+		unsigned int cx = 0;
+		unsigned int cy = 0;
+
+		bool rescale = config_get_bool(config, "AdvOut",
+			"Rescale");
+		const char *rescaleRes = config_get_string(config, "AdvOut",
+			"RescaleRes");
+
+		if (rescale && rescaleRes && *rescaleRes) {
+			if (sscanf(rescaleRes, "%ux%u", &cx, &cy) != 2) {
+				cx = 0;
+				cy = 0;
+			}
+			obs_encoder_set_scaled_size(videoStreamingEncoder, cx, cy);
+		}
+	}
+
     obs_encoder_set_video(videoStreamingEncoder, obs_get_video());
     obs_encoder_set_audio(audioEncoder, obs_get_audio());
 }
 
 void OBS_service::associateAudioAndVideoToTheCurrentRecordingContext(void)
 {
+	std::string basicConfigFile = OBS_API::getBasicConfigPath();
+	config_t* config = OBS_API::openConfigFile(basicConfigFile);
+
+	const char* advancedMode = config_get_string(config, "Output", "Mode");
+
+	if (strcmp(advancedMode, "Advanced") == 0) {
+		unsigned int cx = 0;
+		unsigned int cy = 0;
+
+		bool rescale = config_get_bool(config, "AdvOut",
+			"RecRescale");
+		const char *rescaleRes = config_get_string(config, "AdvOut",
+			"RecRescaleRes");
+
+		if (rescale && rescaleRes && *rescaleRes) {
+			if (sscanf(rescaleRes, "%ux%u", &cx, &cy) != 2) {
+				cx = 0;
+				cy = 0;
+			}
+			obs_encoder_set_scaled_size(videoRecordingEncoder, cx, cy);
+		}
+	}
+
     obs_encoder_set_video(videoRecordingEncoder, obs_get_video());
     obs_encoder_set_audio(audioEncoder, obs_get_audio());
 }
@@ -1633,7 +1679,7 @@ void OBS_service::updateAdvancedRecordingOutput(void)
 	// 	}
 	// }
 
-	obs_data_set_string(settings, "path", path);
+	obs_data_set_string(settings, "path", strPath.c_str());
 	obs_data_set_string(settings, "muxer_settings", mux);
 	obs_output_update(recordingOutput, settings);
 	// obs_data_release(settings);
@@ -1804,6 +1850,7 @@ void OBS_service::updateVideoRecordingEncoder()
     ffmpegOutput = false;
 
 	if (strcmp(quality, "Stream") == 0) {
+		updateVideoStreamingEncoder();
 		if (videoRecordingEncoder != videoStreamingEncoder) {
 			obs_encoder_release(videoRecordingEncoder);
 			videoRecordingEncoder = videoStreamingEncoder;
@@ -2060,7 +2107,7 @@ void OBS_service::updateStreamSettings(void)
     const char* currentOutputMode = config_get_string(config, "Output", "Mode");
 
 	if(strcmp(currentOutputMode, "Simple") == 0) {
-        OBS_service::updateVideoStreamingEncoder();
+        updateVideoStreamingEncoder();
 	} else if (strcmp(currentOutputMode, "Advanced") == 0) {
 		bool applyServiceSettings = config_get_bool(config, "AdvOut", "ApplyServiceSettings");
 
@@ -2093,8 +2140,7 @@ void OBS_service::updateRecordSettings(void)
             UpdateFFmpegOutput();
             return;
         }
-        // updateAdvancedRecordingOutput();
-		updateRecordingOutput();
+        updateAdvancedRecordingOutput();
     }
 
     resetVideoContext("Record");

@@ -1186,6 +1186,8 @@ Local<Object> OBS_settings::getAdvancedOutputStreamingSettings(config_t* config,
 
 		if (outputResString == NULL) {
 			outputResString = "1280x720";
+			config_set_string(config, "AdvOut", "RescaleRes", outputResString);
+			config_save_safe(config, "tmp", nullptr);
 		}
 
 		RescaleRes->Set(String::NewFromUtf8(isolate, "currentValue"), String::NewFromUtf8(isolate, outputResString));
@@ -1438,6 +1440,8 @@ void OBS_settings::getStandardRecordingSettings(Local<Array>* subCategoryParamet
 
 		if (outputResString == NULL) {
 			outputResString = "1280x720";
+			config_set_string(config, "AdvOut", "RecRescaleRes", outputResString);
+			config_save_safe(config, "tmp", nullptr);
 		}
 
 		RecRescaleRes->Set(String::NewFromUtf8(isolate, "currentValue"), String::NewFromUtf8(isolate, outputResString));
@@ -2261,11 +2265,11 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(Local<Array> settings, st
 	config_t* config = OBS_API::openConfigFile(basicConfigFile);
 	Isolate *isolate = v8::Isolate::GetCurrent();
 	int indexStreamingCategory = 2;
-	Local<Array> streamSettings = v8::Local<v8::Array>::Cast(settings->Get(indexStreamingCategory));
+	Local<Array> recordSettings = v8::Local<v8::Array>::Cast(settings->Get(indexStreamingCategory));
 	std::string section = "AdvOut";
 
 	Local<Array> parameters =
-		v8::Local<v8::Array>::Cast(streamSettings->Get(String::NewFromUtf8(isolate, "parameters")));
+		v8::Local<v8::Array>::Cast(recordSettings->Get(String::NewFromUtf8(isolate, "parameters")));
 
 	obs_encoder_t* encoder = OBS_service::getRecordingEncoder();
 	obs_data_t* encoderSettings = obs_encoder_get_settings(encoder);
