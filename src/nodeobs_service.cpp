@@ -1679,7 +1679,7 @@ void OBS_service::updateAdvancedRecordingOutput(void)
 	// 	}
 	// }
 
-	obs_data_set_string(settings, "path", path);
+	obs_data_set_string(settings, "path", strPath.c_str());
 	obs_data_set_string(settings, "muxer_settings", mux);
 	obs_output_update(recordingOutput, settings);
 	// obs_data_release(settings);
@@ -2140,8 +2140,7 @@ void OBS_service::updateRecordSettings(void)
             UpdateFFmpegOutput();
             return;
         }
-        // updateAdvancedRecordingOutput();
-		updateRecordingOutput();
+        updateAdvancedRecordingOutput();
     }
 
     resetVideoContext("Record");
