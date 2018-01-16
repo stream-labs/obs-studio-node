@@ -105,4 +105,7 @@ public:
 	static std::string getRecordingEncoderConfigPath(void);
 
 	static config_t* openConfigFile(std::string configFile);
+
+	static void UpdateProcessPriority(void);
+	static void SetProcessPriority(const char *priority);
 };
