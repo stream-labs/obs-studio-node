@@ -69,8 +69,7 @@ private:
 	static void initAPI(void);
 	static bool initOBS_API();
     static void destroyOBS_API(void);
-	static vector<pair<obs_module_t *,int>> openAllModules(void);
-	static int initAllModules(void);
+	static void openAllModules(void);
 	static Local<Object> getPerformanceStatistics(void);
 
 	static double 	getCPU_Percentage(void);
