@@ -57,6 +57,13 @@ export const enum EDeinterlaceMode {
     Yadif2X
 }
 
+export const enum EFontStyle {
+  Bold = (1<<0),
+  Italic = (1<<1),
+  Underline = (1<<2),
+  Strikeout = (1<<3),
+}
+
 /**
  * Enumeration describing the type of a property
  */
