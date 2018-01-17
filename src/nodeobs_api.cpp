@@ -781,13 +781,19 @@ void OBS_API::openAllModules(void) {
 
 	for (int i = 0; i < g_modules_size; ++i) {
 		std::string module_path;
+		void *handle = NULL;
 		
 		module_path.reserve(pathOBS.size() + strlen(g_modules[i]) + 1);
 		module_path.append(pathOBS);
 		module_path.append("/");
 		module_path.append(g_modules[i]);
 
-		os_dlopen(module_path.c_str());
+		handle = os_dlopen(module_path.c_str());
+
+		if (!handle) {
+			std::cerr << "Failed to open dependency " << g_modules[i] << std::endl;
+		}
+
 		/* This is an intentional leak. 
 		 * We leave these open and let the 
 		 * OS clean these up for us as
