@@ -1266,6 +1266,40 @@ bool OBS_service::startStreaming(void)
 
     obs_output_release(streamingOutput);
 	streamingOutput = obs_output_create(type, "simple_stream", nullptr, nullptr);
+
+	std::string basicConfigFile = OBS_API::getBasicConfigPath();
+	config_t* config = OBS_API::openConfigFile(basicConfigFile);
+
+	int trackIndex = config_get_int(config, "AdvOut",
+		"TrackIndex");
+
+	const char *codec =
+		obs_output_get_supported_audio_codecs(streamingOutput);
+	if (!codec) {
+		return false;
+	}
+
+	if (strcmp(codec, "aac") == 0) {
+		createAudioEncoder();
+	}
+	else {
+		const char *id = FindAudioEncoderFromCodec(codec);
+		int audioBitrate = GetAudioBitrate();
+		obs_data_t *settings = obs_data_create();
+		obs_data_set_int(settings, "bitrate", audioBitrate);
+
+		audioEncoder = obs_audio_encoder_create(id,
+			"alt_audio_enc", nullptr,
+			trackIndex - 1, nullptr);
+		if (!audioEncoder)
+			return false;
+
+		obs_encoder_update(audioEncoder, settings);
+		obs_encoder_set_audio(audioEncoder, obs_get_audio());
+
+		obs_data_release(settings);
+	}
+
     updateService();
     updateStreamSettings();
 
@@ -1274,6 +1308,7 @@ bool OBS_service::startStreaming(void)
 
 bool OBS_service::startRecording(void)
 {
+	createAudioEncoder();
     updateRecordSettings();
 
 	return obs_output_start(recordingOutput);
@@ -1412,7 +1447,7 @@ bool OBS_service::isStreamingOutputActive(void)
     return obs_output_active(streamingOutput);
 }
 
-int GetAudioBitrate()
+int OBS_service::GetAudioBitrate()
 {
     std::string basicConfigFile = OBS_API::getBasicConfigPath();
     config_t* config = OBS_API::openConfigFile(basicConfigFile);
