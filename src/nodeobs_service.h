@@ -272,4 +272,6 @@ public:
 	static void associateAudioAndVideoToTheCurrentRecordingContext(void);
 	static void associateAudioAndVideoEncodersToTheCurrentStreamingOutput(void);
 	static void associateAudioAndVideoEncodersToTheCurrentRecordingOutput(void);
+
+	static int GetAudioBitrate(void);
 };
