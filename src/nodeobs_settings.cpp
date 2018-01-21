@@ -3089,11 +3089,11 @@ Local<Array>  OBS_settings::getAdvancedSettings()
 	entries.push_back(delaySec);
 
 
-	//Preserved curtoff point (increase delay) when reconnecting
+	//Preserved cutoff point (increase delay) when reconnecting
 	std::vector<std::pair<std::string, std::string>> delayPreserve;
 	delayPreserve.push_back(std::make_pair("name", "DelayPreserve"));
 	delayPreserve.push_back(std::make_pair("type", "OBS_PROPERTY_BOOL"));
-	delayPreserve.push_back(std::make_pair("description", "Preserved curtoff point (increase delay) when reconnecting"));
+	delayPreserve.push_back(std::make_pair("description", "Preserved cutoff point (increase delay) when reconnecting"));
 	entries.push_back(delayPreserve);
 
 	advancedSettings->Set(4, serializeSettingsData("Stream Delay", entries, config, "Output", true, true));
