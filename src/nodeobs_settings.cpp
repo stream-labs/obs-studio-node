@@ -291,7 +291,7 @@ Local<Array> OBS_settings::getGeneralSettings()
 	std::vector<std::pair<std::string, std::string>> sysTrayMinimizeToTray;
 	sysTrayMinimizeToTray.push_back(std::make_pair("name", "SysTrayMinimizeToTray"));
 	sysTrayMinimizeToTray.push_back(std::make_pair("type", "OBS_PROPERTY_BOOL"));
-	sysTrayMinimizeToTray.push_back(std::make_pair("description", "Always minimize to system try instead of task bar"));
+	sysTrayMinimizeToTray.push_back(std::make_pair("description", "Always minimize to system tray instead of task bar"));
 	entries.push_back(sysTrayMinimizeToTray);
 
 	generalSettings->Set(4, serializeSettingsData("System Tray", entries, config, "BasicWindow", true, true));
