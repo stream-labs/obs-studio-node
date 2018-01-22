@@ -291,7 +291,7 @@ Local<Array> OBS_settings::getGeneralSettings()
 	std::vector<std::pair<std::string, std::string>> sysTrayMinimizeToTray;
 	sysTrayMinimizeToTray.push_back(std::make_pair("name", "SysTrayMinimizeToTray"));
 	sysTrayMinimizeToTray.push_back(std::make_pair("type", "OBS_PROPERTY_BOOL"));
-	sysTrayMinimizeToTray.push_back(std::make_pair("description", "Always minimize to system try instead of task bar"));
+	sysTrayMinimizeToTray.push_back(std::make_pair("description", "Always minimize to system tray instead of task bar"));
 	entries.push_back(sysTrayMinimizeToTray);
 
 	generalSettings->Set(4, serializeSettingsData("System Tray", entries, config, "BasicWindow", true, true));
@@ -2717,7 +2717,7 @@ Local<Array>  OBS_settings::getVideoSettings()
 	scaleType.push_back(std::make_pair("type", "OBS_PROPERTY_LIST"));
 	scaleType.push_back(std::make_pair("description", "Downscale Filter"));
 	scaleType.push_back(std::make_pair("Bilinear (Fastest, but blurry if scaling)", "bilinear"));
-	scaleType.push_back(std::make_pair("Bicubic (Sharpened scaling, 16 samples", "bicubic"));
+	scaleType.push_back(std::make_pair("Bicubic (Sharpened scaling, 16 samples)", "bicubic"));
 	scaleType.push_back(std::make_pair("Lanczos (Sharpened scaling, 32 samples)", "lanczos"));
 	entries.push_back(scaleType);
 
@@ -3096,11 +3096,11 @@ Local<Array>  OBS_settings::getAdvancedSettings()
 	entries.push_back(delaySec);
 
 
-	//Preserved curtoff point (increase delay) when reconnecting
+	//Preserved cutoff point (increase delay) when reconnecting
 	std::vector<std::pair<std::string, std::string>> delayPreserve;
 	delayPreserve.push_back(std::make_pair("name", "DelayPreserve"));
 	delayPreserve.push_back(std::make_pair("type", "OBS_PROPERTY_BOOL"));
-	delayPreserve.push_back(std::make_pair("description", "Preserved curtoff point (increase delay) when reconnecting"));
+	delayPreserve.push_back(std::make_pair("description", "Preserved cutoff point (increase delay) when reconnecting"));
 	entries.push_back(delayPreserve);
 
 	advancedSettings->Set(4, serializeSettingsData("Stream Delay", entries, config, "Output", true, true));
