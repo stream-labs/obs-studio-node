@@ -189,7 +189,7 @@ Local<Array> OBS_settings::getGeneralSettings()
 	std::vector<std::pair<std::string, std::string>> warnBeforeStoppingStream;
 	warnBeforeStoppingStream.push_back(std::make_pair("name", "WarnBeforeStoppingStream"));
 	warnBeforeStoppingStream.push_back(std::make_pair("type", "OBS_PROPERTY_BOOL"));
-	warnBeforeStoppingStream.push_back(std::make_pair("description", "Show confirmation dialog when stoping streams"));
+	warnBeforeStoppingStream.push_back(std::make_pair("description", "Show confirmation dialog when stopping streams"));
 	entries.push_back(warnBeforeStoppingStream);
 
 	std::vector<std::pair<std::string, std::string>> recordWhenStreaming;
