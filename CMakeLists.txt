@@ -161,6 +161,10 @@ SET(PROJECT_SOURCE
 	"src/nodeobs_obspp_manager.hpp" "src/nodeobs_obspp_manager.cpp"
 	"src/nodeobs_obspp_index.hpp" "src/nodeobs_obspp_index.cpp"
 	"src/nodeobs_content.h"
+	"src/gs-limits.h"
+	"src/gs-vertex.h" "src/gs-vertex.cpp"
+	"src/gs-vertexbuffer.h" "src/gs-vertexbuffer.cpp"
+	"src/util-memory.h" "src/util-memory.cpp"
 )
 SET(PROJECT_LIBRARIES
 	${CMAKE_JS_LIB}
