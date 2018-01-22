@@ -513,7 +513,6 @@ void OBS_API::initAPI(void)
 	OBS_service::setServiceToTheStreamingOutput();
 
 	setAudioDeviceMonitoring();
-	UpdateProcessPriority();
 }
 
 bool DisableAudioDucking(bool disable)

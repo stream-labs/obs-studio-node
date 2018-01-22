@@ -2940,6 +2940,13 @@ Local<Array>  OBS_settings::getAdvancedSettings()
 
 	const char* processPriorityCurrentValue = config_get_string(globalConfig, "General", "ProcessPriority");
 
+	if (processPriorityCurrentValue == NULL) {
+		processPriorityCurrentValue = "Normal";
+		config_set_string(globalConfig, "General", "ProcessPriority", processPriorityCurrentValue);
+	}
+
+	OBS_API::SetProcessPriority(processPriorityCurrentValue);
+
 	entries.push_back(processPriority);
 
 	advancedSettings->Set(0, serializeSettingsData("General", entries, globalConfig, "General", true, true));
@@ -3182,12 +3189,7 @@ void OBS_settings::saveAdvancedSettings(Local<Array> advancedSettings)
 
 	generalAdvancedSettings->Set(0, advancedSettings->Get(0));
 	saveGenericSettings(generalAdvancedSettings, "General", globalConfigFile);
-
-	// Set Process priority
-	config_t* globalConfig = OBS_API::openConfigFile(globalConfigFile);
-	const char *processPriority = config_get_string(globalConfig, "General", "ProcessPriority");
-	OBS_API::SetProcessPriority(processPriority);
-
+	
 	//Video
 	Local<Array> videoAdvancedSettings = Array::New(isolate);
 
