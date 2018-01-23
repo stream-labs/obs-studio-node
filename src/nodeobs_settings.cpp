@@ -2243,12 +2243,10 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(Local<Array> settings, st
 				if (subType.compare("OBS_COMBO_FORMAT_INT") == 0) {
 					int64_t value = parameter->Get(String::NewFromUtf8(isolate, "currentValue"))->NumberValue();
 					obs_data_set_int(encoderSettings, name.c_str(), value);
-				}
-				if (subType.compare("OBS_COMBO_FORMAT_FLOAT") == 0) {
+				} else if (subType.compare("OBS_COMBO_FORMAT_FLOAT") == 0) {
 					double value = parameter->Get(String::NewFromUtf8(isolate, "currentValue"))->NumberValue();
 					obs_data_set_double(encoderSettings, name.c_str(), value);
-				}
-				if (subType.compare("OBS_COMBO_FORMAT_STRING") == 0) {
+				} else {
 					v8::String::Utf8Value param2(parameter->Get(String::NewFromUtf8(isolate, "currentValue")));
 					std::string value = std::string(*param2);
 					obs_data_set_string(encoderSettings, name.c_str(), value.c_str());
@@ -2320,7 +2318,7 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(Local<Array> settings, st
 	obs_encoder_t* encoder = OBS_service::getRecordingEncoder();
 	obs_data_t* encoderSettings = obs_encoder_get_settings(encoder);
 
-	int indexEncoderSettings = 9;
+	int indexEncoderSettings = 8;
 
 	bool newEncoderType = false;
 	
@@ -2361,16 +2359,14 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(Local<Array> settings, st
 			} else {
 				v8::String::Utf8Value param2(parameter->Get(String::NewFromUtf8(isolate, "subType")));
 				std::string subType = std::string(*param2);
-
+				
 				if (subType.compare("OBS_COMBO_FORMAT_INT") == 0) {
 					int64_t value = parameter->Get(String::NewFromUtf8(isolate, "currentValue"))->NumberValue();
 					obs_data_set_int(encoderSettings, name.c_str(), value);
-				}
-				if (subType.compare("OBS_COMBO_FORMAT_FLOAT") == 0) {
+				} else if (subType.compare("OBS_COMBO_FORMAT_FLOAT") == 0) {
 					double value = parameter->Get(String::NewFromUtf8(isolate, "currentValue"))->NumberValue();
 					obs_data_set_double(encoderSettings, name.c_str(), value);
-				}
-				if (subType.compare("OBS_COMBO_FORMAT_STRING") == 0) {
+				} else {
 					v8::String::Utf8Value param2(parameter->Get(String::NewFromUtf8(isolate, "currentValue")));
 					std::string value = std::string(*param2);
 					obs_data_set_string(encoderSettings, name.c_str(), value.c_str());
