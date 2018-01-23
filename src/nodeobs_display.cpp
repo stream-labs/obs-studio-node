@@ -77,11 +77,11 @@ OBS::Display::Display() {
 	obs_enter_graphics();
 	m_gsSolidEffect = obs_get_base_effect(OBS_EFFECT_SOLID);
 
-	m_lines = new VertexBufferHelper();
-	m_triangles = new VertexBufferHelper();
+	m_lines = new GS::VertexBuffer(65535);
+	m_triangles = new GS::VertexBuffer(65535);
 
 	// Text
-	m_textVertices = new VertexBufferHelper();
+	m_textVertices = new GS::VertexBuffer(65535);
 	m_textEffect = obs_get_base_effect(OBS_EFFECT_DEFAULT);
 	m_textTexture = gs_texture_create_from_file((g_moduleDirectory + "/resources/roboto.png").c_str());
 	if (!m_textTexture) {
@@ -268,7 +268,7 @@ void OBS::Display::SetResizeBoxInnerColor(uint8_t r, uint8_t g, uint8_t b, uint8
 	m_resizeInnerColor = a << 24 | b << 16 | g << 8 | r;
 }
 
-static void DrawGlyph(OBS::VertexBufferHelper* vb, float_t x, float_t y, float_t scale, float_t depth, char glyph, uint32_t color) {
+static void DrawGlyph(GS::VertexBuffer* vb, float_t x, float_t y, float_t scale, float_t depth, char glyph, uint32_t color) {
 	// I'll be fully honest here, this code is pretty much shit. It works but
 	//  it is far from ideal and can just render very basic text. It does the
 	//  job but, well, lets just say it shouldn't be used for other things.
@@ -328,104 +328,112 @@ static void DrawGlyph(OBS::VertexBufferHelper* vb, float_t x, float_t y, float_t
 			break;
 	}
 
+	GS::Vertex v;
+	size_t bs = vb->Size();
+	vb->Resize(bs + 6);
+
 	// Top Left
-	OBS::VertexHelper* v = vb->add();
-	vec3_set(&v->pos, x, y, depth);
-	vec2_set(&v->uv0, uvX, uvY);
-	v->color = color;
+	v = vb->At(bs + 0);
+	vec3_set(v.position, x, y, depth);
+	vec4_set(v.uv[0], uvX, uvY, 0, 0);
+	*v.color = color;
 	// Top Right
-	v = vb->add();
-	vec3_set(&v->pos, x + scale, y, depth);
-	vec2_set(&v->uv0, uvX + uvO, uvY);
-	v->color = color;
+	v = vb->At(bs + 1);
+	vec3_set(v.position, x + scale, y, depth);
+	vec4_set(v.uv[0], uvX + uvO, uvY, 0, 0);
+	*v.color = color;
 	// Bottom Left
-	v = vb->add();
-	vec3_set(&v->pos, x, y + scale * 2, depth);
-	vec2_set(&v->uv0, uvX, uvY + uvO);
-	v->color = color;
+	v = vb->At(bs + 2);
+	vec3_set(v.position, x, y + scale * 2, depth);
+	vec4_set(v.uv[0], uvX, uvY + uvO, 0, 0);
+	*v.color = color;
 
 	// Top Right
-	v = vb->add();
-	vec3_set(&v->pos, x + scale, y, depth);
-	vec2_set(&v->uv0, uvX + uvO, uvY);
-	v->color = color;
+	v = vb->At(bs + 3);
+	vec3_set(v.position, x + scale, y, depth);
+	vec4_set(v.uv[0], uvX + uvO, uvY, 0, 0);
+	*v.color = color;
 	// Bottom Left
-	v = vb->add();
-	vec3_set(&v->pos, x, y + scale * 2, depth);
-	vec2_set(&v->uv0, uvX, uvY + uvO);
-	v->color = color;
+	v = vb->At(bs + 4);
+	vec3_set(v.position, x, y + scale * 2, depth);
+	vec4_set(v.uv[0], uvX, uvY + uvO, 0, 0);
+	*v.color = color;
 	// Bottom Right
-	v = vb->add();
-	vec3_set(&v->pos, x + scale, y + scale * 2, depth);
-	vec2_set(&v->uv0, uvX + uvO, uvY + uvO);
-	v->color = color;
+	v = vb->At(bs + 5);
+	vec3_set(v.position, x + scale, y + scale * 2, depth);
+	vec4_set(v.uv[0], uvX + uvO, uvY + uvO, 0, 0);
+	*v.color = color;
 }
 
-inline void DrawBox(float_t x, float_t y, float_t w, float_t h, float_t depth, uint32_t color, OBS::VertexBufferHelper* vbh) {
-	OBS::VertexHelper* v;
+inline void DrawBox(float_t x, float_t y, float_t w, float_t h, float_t depth, uint32_t color, GS::VertexBuffer* vbh) {
+	GS::Vertex v;
+	size_t bs = vbh->Size();
+	vbh->Resize(bs + 6);
 
-	v = vbh->add();
-	vec3_set(&v->pos, x, y, depth);
-	v->color = color;
+	v = vbh->At(bs + 0);
+	vec3_set(v.position, x, y, depth);
+	*v.color = color;
 
-	v = vbh->add();
-	vec3_set(&v->pos, x + w, y, depth);
-	v->color = color;
+	v = vbh->At(bs + 1);
+	vec3_set(v.position, x + w, y, depth);
+	*v.color = color;
 
-	v = vbh->add();
-	vec3_set(&v->pos, x, y + h, depth);
-	v->color = color;
+	v = vbh->At(bs + 2);
+	vec3_set(v.position, x, y + h, depth);
+	*v.color = color;
 
-	v = vbh->add();
-	vec3_set(&v->pos, x, y + h, depth);
-	v->color = color;
+	v = vbh->At(bs + 3);
+	vec3_set(v.position, x, y + h, depth);
+	*v.color = color;
 
-	v = vbh->add();
-	vec3_set(&v->pos, x + w, y, depth);
-	v->color = color;
+	v = vbh->At(bs + 4);
+	vec3_set(v.position, x + w, y, depth);
+	*v.color = color;
 
-	v = vbh->add();
-	vec3_set(&v->pos, x + w, y + h, depth);
-	v->color = color;
+	v = vbh->At(bs + 5);
+	vec3_set(v.position, x + w, y + h, depth);
+	*v.color = color;
 }
 
-inline void DrawBoxOutline(float_t x, float_t y, float_t w, float_t h, float_t depth, uint32_t color, OBS::VertexBufferHelper* vbh) {
-	OBS::VertexHelper* v;
+inline void DrawBoxOutline(float_t x, float_t y, float_t w, float_t h, float_t depth, uint32_t color, GS::VertexBuffer* vbh) {
+	GS::Vertex v;
+	size_t bs = vbh->Size();
+	vbh->Resize(bs + 8);
 
-	v = vbh->add();
-	vec3_set(&v->pos, x, y, depth);
-	v->color = color;
+	v = vbh->At(bs + 0);
+	vec3_set(v.position, x, y, depth);
+	*v.color = color;
 
-	v = vbh->add();
-	vec3_set(&v->pos, x + w, y, depth);
-	v->color = color;
-
-
-	v = vbh->add();
-	vec3_set(&v->pos, x + w, y, depth);
-	v->color = color;
-
-	v = vbh->add();
-	vec3_set(&v->pos, x + w, y + h, depth);
-	v->color = color;
+	v = vbh->At(bs + 1);
+	vec3_set(v.position, x + w, y, depth);
+	*v.color = color;
 
 
-	v = vbh->add();
-	vec3_set(&v->pos, x + w, y + h, depth);
-	v->color = color;
+	v = vbh->At(bs + 2);
+	vec3_set(v.position, x + w, y, depth);
+	*v.color = color;
 
-	v = vbh->add();
-	vec3_set(&v->pos, x, y + h, depth);
-	v->color = color;
+	v = vbh->At(bs + 3);
+	vec3_set(v.position, x + w, y + h, depth);
+	*v.color = color;
 
 
-	v = vbh->add();
-	vec3_set(&v->pos, x, y + h, depth);
-	v->color = color;
+	v = vbh->At(bs + 4);
+	vec3_set(v.position, x + w, y + h, depth);
+	*v.color = color;
 
-	v = vbh->add();
-	vec3_set(&v->pos, x, y, depth);
-	v->color = color;
+	v = vbh->At(bs + 5);
+	vec3_set(v.position, x, y + h, depth);
+	*v.color = color;
+
+
+	v = vbh->At(bs + 6);
+	vec3_set(v.position, x, y + h, depth);
+	*v.color = color;
+
+	v = vbh->At(bs + 7);
+	vec3_set(v.position, x, y, depth);
+	*v.color = color;
 }
 
 bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item, void *param) {
@@ -441,8 +449,8 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 	uint32_t flags = obs_source_get_output_flags(itemSource);
 	bool isOnlyAudio = (flags & OBS_SOURCE_VIDEO) == 0;
 
+	GS::Vertex v(nullptr, nullptr, nullptr, nullptr, nullptr);
 	if (obs_sceneitem_selected(item) && !isOnlyAudio && ((itemWidth > 0) && (itemHeight > 0))) {
-		VertexHelper* v;
 
 		matrix4 itemMatrix, sceneToView;
 		obs_sceneitem_get_box_transform(item, &itemMatrix);
@@ -486,11 +494,15 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 
 		float_t pt = 8;
 		for (size_t n = 0; n < 4; n++) {
+
 			bool isIn = (edge[n].x >= 0) && (edge[n].x < sceneWidth * dp->m_worldToPreviewScale.x)
 				&& (edge[n].y >= 0) && (edge[n].y < sceneHeight * dp->m_worldToPreviewScale.y);
 
 			if (!isIn)
 				continue;
+
+			size_t bs = dp->m_lines->Size();
+			dp->m_lines->Resize(bs + 2);
 
 			vec3 alignLeft = { -1, 0, 0 };
 			vec3 alignTop = { 0, -1, 0 };
@@ -501,13 +513,13 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 			float left = vec3_dot(&temp, &alignLeft),
 				top = vec3_dot(&temp, &alignTop);
 			if (left > 0.5) { // LEFT
-				v = dp->m_lines->add();
-				vec3_set(&v->pos, 0, edge[n].y, 0);
-				v->color = dp->m_guidelineColor;
+				v = dp->m_lines->At(bs + 0);
+				vec3_set(v.position, 0, edge[n].y, 0);
+				*v.color = dp->m_guidelineColor;
 
-				v = dp->m_lines->add();
-				vec3_set(&v->pos, edge[n].x, edge[n].y, 0);
-				v->color = dp->m_guidelineColor;
+				v = dp->m_lines->At(bs + 1);
+				vec3_set(v.position, edge[n].x, edge[n].y, 0);
+				*v.color = dp->m_guidelineColor;
 
 				float_t dist = edge[n].x;
 				if (dist > (pt * 4)) {
@@ -524,13 +536,13 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 					}
 				}
 			} else if (left < -0.5) { // RIGHT
-				v = dp->m_lines->add();
-				vec3_set(&v->pos, sceneWidth * dp->m_worldToPreviewScale.x, edge[n].y, 0);
-				v->color = dp->m_guidelineColor;
+				v = dp->m_lines->At(bs + 0);
+				vec3_set(v.position, sceneWidth * dp->m_worldToPreviewScale.x, edge[n].y, 0);
+				*v.color = dp->m_guidelineColor;
 
-				v = dp->m_lines->add();
-				vec3_set(&v->pos, edge[n].x, edge[n].y, 0);
-				v->color = dp->m_guidelineColor;
+				v = dp->m_lines->At(bs + 1);
+				vec3_set(v.position, edge[n].x, edge[n].y, 0);
+				*v.color = dp->m_guidelineColor;
 
 				float_t dist = sceneWidth * dp->m_worldToPreviewScale.x - edge[n].x;
 				if (dist > (pt * 4)) {
@@ -547,13 +559,13 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 					}
 				}
 			} else if (top > 0.5) { // UP
-				v = dp->m_lines->add();
-				vec3_set(&v->pos, edge[n].x, 0, 0);
-				v->color = dp->m_guidelineColor;
+				v = dp->m_lines->At(bs + 0);
+				vec3_set(v.position, edge[n].x, 0, 0);
+				*v.color = dp->m_guidelineColor;
 
-				v = dp->m_lines->add();
-				vec3_set(&v->pos, edge[n].x, edge[n].y, 0);
-				v->color = dp->m_guidelineColor;
+				v = dp->m_lines->At(bs + 1);
+				vec3_set(v.position, edge[n].x, edge[n].y, 0);
+				*v.color = dp->m_guidelineColor;
 
 				float_t dist = edge[n].y;
 				if (dist > pt) {
@@ -570,13 +582,13 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 					}
 				}
 			} else if (top < -0.5) { // DOWN
-				v = dp->m_lines->add();
-				vec3_set(&v->pos, edge[n].x, sceneHeight * dp->m_worldToPreviewScale.y, 0);
-				v->color = dp->m_guidelineColor;
+				v = dp->m_lines->At(bs + 0);
+				vec3_set(v.position, edge[n].x, sceneHeight * dp->m_worldToPreviewScale.y, 0);
+				*v.color = dp->m_guidelineColor;
 
-				v = dp->m_lines->add();
-				vec3_set(&v->pos, edge[n].x, edge[n].y, 0);
-				v->color = dp->m_guidelineColor;
+				v = dp->m_lines->At(bs + 1);
+				vec3_set(v.position, edge[n].x, edge[n].y, 0);
+				*v.color = dp->m_guidelineColor;
 
 				float_t dist = sceneHeight * dp->m_worldToPreviewScale.y - edge[n].y;
 				if (dist > (pt * 4)) {
@@ -594,36 +606,38 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 				}
 			}
 		}
+		size_t bs = dp->m_lines->Size();
+		dp->m_lines->Resize(bs + 8);
 
 		// Drawing
 		/// Outline
-		v = dp->m_lines->add();
-		vec3_set(&v->pos, corner[0].x, corner[0].y, 0);
-		v->color = dp->m_outlineColor;
-		v = dp->m_lines->add();
-		vec3_set(&v->pos, corner[1].x, corner[1].y, 0);
-		v->color = dp->m_outlineColor;
+		v = dp->m_lines->At(bs + 0);
+		vec3_set(v.position, corner[0].x, corner[0].y, 0);
+		*v.color = dp->m_outlineColor;
+		v = dp->m_lines->At(bs + 1);
+		vec3_set(v.position, corner[1].x, corner[1].y, 0);
+		*v.color = dp->m_outlineColor;
 
-		v = dp->m_lines->add();
-		vec3_set(&v->pos, corner[1].x, corner[1].y, 0);
-		v->color = dp->m_outlineColor;
-		v = dp->m_lines->add();
-		vec3_set(&v->pos, corner[2].x, corner[2].y, 0);
-		v->color = dp->m_outlineColor;
+		v = dp->m_lines->At(bs + 2);
+		vec3_set(v.position, corner[1].x, corner[1].y, 0);
+		*v.color = dp->m_outlineColor;
+		v = dp->m_lines->At(bs + 3);
+		vec3_set(v.position, corner[2].x, corner[2].y, 0);
+		*v.color = dp->m_outlineColor;
 
-		v = dp->m_lines->add();
-		vec3_set(&v->pos, corner[2].x, corner[2].y, 0);
-		v->color = dp->m_outlineColor;
-		v = dp->m_lines->add();
-		vec3_set(&v->pos, corner[3].x, corner[3].y, 0);
-		v->color = dp->m_outlineColor;
+		v = dp->m_lines->At(bs + 4);
+		vec3_set(v.position, corner[2].x, corner[2].y, 0);
+		*v.color = dp->m_outlineColor;
+		v = dp->m_lines->At(bs + 5);
+		vec3_set(v.position, corner[3].x, corner[3].y, 0);
+		*v.color = dp->m_outlineColor;
 
-		v = dp->m_lines->add();
-		vec3_set(&v->pos, corner[3].x, corner[3].y, 0);
-		v->color = dp->m_outlineColor;
-		v = dp->m_lines->add();
-		vec3_set(&v->pos, corner[0].x, corner[0].y, 0);
-		v->color = dp->m_outlineColor;
+		v = dp->m_lines->At(bs + 6);
+		vec3_set(v.position, corner[3].x, corner[3].y, 0);
+		*v.color = dp->m_outlineColor;
+		v = dp->m_lines->At(bs + 7);
+		vec3_set(v.position, corner[0].x, corner[0].y, 0);
+		*v.color = dp->m_outlineColor;
 
 		/// Resize Boxes
 		DrawBox(corner[0].x - 5, corner[0].y - 5, 10, 10, 0, dp->m_resizeOuterColor, dp->m_triangles);
@@ -680,30 +694,30 @@ void OBS::Display::DisplayCallback(OBS::Display* dp, uint32_t cx, uint32_t cy) {
 		dp->m_previewSize.first, dp->m_previewSize.second);
 
 	#pragma region Background
-	dp->m_triangles->clear();
+	dp->m_triangles->Resize(4);
 	{
-		VertexHelper* v = dp->m_triangles->add();
-		vec3_set(&v->pos, 0, 0, 0);
-		v->color = dp->m_backgroundColor;
+		GS::Vertex v = dp->m_triangles->At(0);
+		vec3_set(v.position, 0, 0, 0);
+		*v.color = dp->m_backgroundColor;
 
-		v = dp->m_triangles->add();
-		vec3_set(&v->pos, float(sourceW), 0, 0);
-		v->color = dp->m_backgroundColor;
+		v = dp->m_triangles->At(1);
+		vec3_set(v.position, float(sourceW), 0, 0);
+		*v.color = dp->m_backgroundColor;
 
-		v = dp->m_triangles->add();
-		vec3_set(&v->pos, 0, float(sourceH), 0);
-		v->color = dp->m_backgroundColor;
+		v = dp->m_triangles->At(2);
+		vec3_set(v.position, 0, float(sourceH), 0);
+		*v.color = dp->m_backgroundColor;
 
-		v = dp->m_triangles->add();
-		vec3_set(&v->pos, float(sourceW), float(sourceH), 0);
-		v->color = dp->m_backgroundColor;
+		v = dp->m_triangles->At(3);
+		vec3_set(v.position, float(sourceW), float(sourceH), 0);
+		*v.color = dp->m_backgroundColor;
 	}
 
-	gs_vertbuffer_t *vb = dp->m_triangles->update();
+	gs_vertbuffer_t *vb = dp->m_triangles->Update();
 	while (gs_effect_loop(dp->m_gsSolidEffect, "SolidColored")) {
 		gs_load_vertexbuffer(vb);
 		gs_load_indexbuffer(nullptr);
-		gs_draw(GS_TRISTRIP, 0, (uint32_t)dp->m_triangles->size());
+		gs_draw(GS_TRISTRIP, 0, (uint32_t)dp->m_triangles->Size());
 	}
 	#pragma endregion Background
 
@@ -720,9 +734,9 @@ void OBS::Display::DisplayCallback(OBS::Display* dp, uint32_t cx, uint32_t cy) {
 				-100.0f, 100.0f);
 
 			// Clear Buffers
-			dp->m_lines->clear();
-			dp->m_triangles->clear();
-			dp->m_textVertices->clear();
+			dp->m_lines->Resize(0);
+			dp->m_triangles->Resize(0);
+			dp->m_textVertices->Resize(0);
 
 			/* Here we assume that channel 0 holds the one and only transition.
 			 * We also assume that the active source within that transition is
@@ -736,35 +750,35 @@ void OBS::Display::DisplayCallback(OBS::Display* dp, uint32_t cx, uint32_t cy) {
 			obs_source_release(source);
 
 			// Lines
-			if (dp->m_lines->size() > 0) {
-				gs_vertbuffer_t* vb = dp->m_lines->update();
+			if (dp->m_lines->Size() > 0) {
+				gs_vertbuffer_t* vb = dp->m_lines->Update();
 				while (gs_effect_loop(dp->m_gsSolidEffect, "SolidColored")) {
 					gs_load_vertexbuffer(vb);
 					gs_load_indexbuffer(nullptr);
-					gs_draw(GS_LINES, 0, (uint32_t)dp->m_lines->size());
+					gs_draw(GS_LINES, 0, (uint32_t)dp->m_lines->Size());
 				}
 			}
 
 			// Triangles
-			if (dp->m_triangles->size() > 0) {
-				gs_vertbuffer_t* vb = dp->m_triangles->update();
+			if (dp->m_triangles->Size() > 0) {
+				gs_vertbuffer_t* vb = dp->m_triangles->Update();
 				while (gs_effect_loop(dp->m_gsSolidEffect, "SolidColored")) {
 					gs_load_vertexbuffer(vb);
 					gs_load_indexbuffer(nullptr);
-					gs_draw(GS_TRIS, 0, (uint32_t)dp->m_triangles->size());
+					gs_draw(GS_TRIS, 0, (uint32_t)dp->m_triangles->Size());
 				}
 			}
 
 			// Text Rendering
-			if (dp->m_textVertices->size() > 0) {
-				gs_vertbuffer_t* vb = dp->m_textVertices->update();
+			if (dp->m_textVertices->Size() > 0) {
+				gs_vertbuffer_t* vb = dp->m_textVertices->Update();
 				while (gs_effect_loop(dp->m_textEffect, "Draw")) {
 					gs_effect_set_texture(
 						gs_effect_get_param_by_name(dp->m_textEffect, "image"),
 						dp->m_textTexture);
 					gs_load_vertexbuffer(vb);
 					gs_load_indexbuffer(nullptr);
-					gs_draw(GS_TRIS, 0, (uint32_t)dp->m_textVertices->size());
+					gs_draw(GS_TRIS, 0, (uint32_t)dp->m_textVertices->Size());
 				}
 			}
 		}
@@ -860,97 +874,3 @@ LRESULT CALLBACK OBS::Display::DisplayWndProc(_In_ HWND hwnd, _In_ UINT uMsg, _I
 }
 
 #endif
-
-OBS::VertexHelper::VertexHelper() {
-	vec3_set(&pos, 0, 0, 0);
-	vec3_set(&normal, 0, 0, 0);
-	vec3_set(&tangent, 0, 0, 0);
-	color = 0xFFFFFFFF;
-	vec2_set(&uv0, 0, 0);
-	vec2_set(&uv1, 0, 0);
-}
-
-OBS::VertexBufferHelper::VertexBufferHelper(size_t initialSize) {
-	t_vertices.reserve(initialSize);
-	t_normals.reserve(initialSize);
-	t_tangents.reserve(initialSize);
-	t_colors.reserve(initialSize);
-	t_uv0.reserve(initialSize);
-	t_uv1.reserve(initialSize);
-
-	vbdata = gs_vbdata_create();
-	std::memset(vbdata, 0, sizeof(gs_vb_data));
-	vbdata->num = t_vertices.capacity();
-	vbdata->points = t_vertices.data();
-	vbdata->colors = t_colors.data();
-	vbdata->normals = t_normals.data();
-	vbdata->tangents = t_tangents.data();
-	vbdata->num_tex = 2;
-	vbuvdata.resize(2);
-	vbdata->tvarray = vbuvdata.data();
-
-	vbuvdata[0].width = 2;
-	vbuvdata[0].array = t_uv0.data();
-	vbuvdata[1].width = 2;
-	vbuvdata[1].array = t_uv1.data();
-
-	vb = gs_vertexbuffer_create(vbdata, GS_DYNAMIC);
-}
-
-OBS::VertexBufferHelper::~VertexBufferHelper() {
-	if (vb) {
-		std::memset(vbdata, 0, sizeof(gs_vb_data));
-		gs_vertexbuffer_destroy(vb);
-	}
-	if (vbdata) {
-		gs_vbdata_destroy(vbdata);
-	}
-}
-
-void OBS::VertexBufferHelper::clear() {
-	vertices.clear();
-}
-
-OBS::VertexHelper* OBS::VertexBufferHelper::add() {
-	vertices.emplace_back();
-	return &vertices.back();
-}
-
-gs_vertbuffer_t* OBS::VertexBufferHelper::update() {
-	size_t verts = vertices.size();
-	t_vertices.resize(verts);
-	t_normals.resize(verts);
-	t_tangents.resize(verts);
-	t_colors.resize(verts);
-	t_uv0.resize(verts);
-	t_uv1.resize(verts);
-
-	for (size_t n = 0; n < verts; n++) {
-		VertexHelper& v = vertices[n];
-		vec3_copy(&t_vertices[n], &v.pos);
-		vec3_copy(&t_normals[n], &v.normal);
-		vec3_copy(&t_tangents[n], &v.tangent);
-		t_colors[n] = v.color;
-		vec2_copy(&t_uv0[n], &v.uv0);
-		vec2_copy(&t_uv1[n], &v.uv1);
-	}
-
-	vbdata->num = verts;
-	vbdata->points = t_vertices.data();
-	vbdata->normals = t_normals.data();
-	vbdata->tangents = t_tangents.data();
-	vbdata->colors = t_colors.data();
-	vbdata->tvarray = vbuvdata.data();
-	vbdata->num_tex = 2;
-	vbuvdata[0].width = 2;
-	vbuvdata[0].array = t_uv0.data();
-	vbuvdata[1].width = 2;
-	vbuvdata[1].array = t_uv1.data();
-
-	gs_vertexbuffer_flush(vb);
-	return vb;
-}
-
-size_t OBS::VertexBufferHelper::size() {
-	return vertices.size();
-}
