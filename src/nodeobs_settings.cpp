@@ -990,42 +990,61 @@ void OBS_settings::getEncoderSettings(Isolate *isolate, const obs_encoder_t *enc
 				entryObject->Set(String::NewFromUtf8(isolate, "description"),
 									String::NewFromUtf8(isolate, obs_property_description(property)));
 
-				const char* currentValue = obs_data_get_string(settings, name.c_str());
-
-				if(currentValue == NULL) {
-					currentValue = "";
+				obs_combo_format format = obs_property_list_format(property);
+				
+				if (format == OBS_COMBO_FORMAT_INT) {
+					int64_t value = obs_data_get_int(settings, name.c_str());
+					entryObject->Set(String::NewFromUtf8(isolate, "currentValue"),
+						Integer::New(isolate, value));
+				} else if (format == OBS_COMBO_FORMAT_FLOAT) {
+					double value = obs_data_get_double(settings, name.c_str());
+					entryObject->Set(String::NewFromUtf8(isolate, "currentValue"),
+						Number::New(isolate, value));
 				}
-				entryObject->Set(String::NewFromUtf8(isolate, "currentValue"),
-									String::NewFromUtf8(isolate, currentValue));
+				else if (format == OBS_COMBO_FORMAT_STRING) {
+					const char* currentValue = obs_data_get_string(settings, name.c_str());
 
+					if (currentValue == NULL) {
+						currentValue = "";
+					}
+					entryObject->Set(String::NewFromUtf8(isolate, "currentValue"),
+						String::NewFromUtf8(isolate, currentValue));
+				}
+				
 				Local<Array> listValues = Array::New(isolate);
 				int count = (int)obs_property_list_item_count(property);
 				for(int i=0;i<count;i++) {
 					// Name
 					std::string itemName = obs_property_list_item_name(property, i);
 
-					//Value
-					obs_combo_format format = obs_property_list_format(property);
 
 					std::string valueString;
+					Local<Object> object = Object::New(isolate);
 
 					if (format == OBS_COMBO_FORMAT_INT)
 					{
 						long long val = obs_property_list_item_int(property, i);
-						valueString = std::to_string(val);
+
+						entryObject->Set(String::NewFromUtf8(isolate, "subType"), String::NewFromUtf8(isolate, "OBS_COMBO_FORMAT_INT"));
+						object->Set(String::NewFromUtf8(isolate, itemName.c_str()),
+							Integer::New(isolate, val));
 					}
 					else if (format == OBS_COMBO_FORMAT_FLOAT)
 					{
 						double val = obs_property_list_item_float(property, i);
-						valueString = to_string(val).c_str();
+
+						entryObject->Set(String::NewFromUtf8(isolate, "subType"), String::NewFromUtf8(isolate, "OBS_COMBO_FORMAT_FLOAT"));
+						object->Set(String::NewFromUtf8(isolate, itemName.c_str()),
+							Number::New(isolate, val));
 					}
 					else if (format == OBS_COMBO_FORMAT_STRING)
 					{
 						valueString = obs_property_list_item_string(property, i);
+						entryObject->Set(String::NewFromUtf8(isolate, "subType"), String::NewFromUtf8(isolate, "OBS_COMBO_FORMAT_STRING"));
+						object->Set(String::NewFromUtf8(isolate, itemName.c_str()),
+							String::NewFromUtf8(isolate, valueString.c_str()));
 					}
-					Local<Object> object = Object::New(isolate);
-					object->Set(String::NewFromUtf8(isolate, itemName.c_str()),
-									String::NewFromUtf8(isolate, valueString.c_str()));
+
 					listValues->Set(i, object);
 				}
 				entryObject->Set(String::NewFromUtf8(isolate, "values"), listValues);
@@ -2188,11 +2207,13 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(Local<Array> settings, st
 	obs_data_t* encoderSettings = obs_encoder_get_settings(encoder);
 
 	int indexEncoderSettings = 4;
+
+	bool newEncoderType = false;
 	
 	for(int i=0;i<parameters->Length();i++) {
 		Local<Object> parameter = v8::Local<v8::Object>::Cast(parameters->Get(i));
 
-		std::string name, type, value;
+		std::string name, type;
 
 		v8::String::Utf8Value param0(parameter->Get(String::NewFromUtf8(isolate, "name")));
 		name = std::string(*param0);
@@ -2204,12 +2225,34 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(Local<Array> settings, st
 			type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 ||
 			type.compare("OBS_PROPERTY_PATH") == 0 ||
 			type.compare("OBS_PROPERTY_TEXT") == 0) {
-			v8::String::Utf8Value param2(parameter->Get(String::NewFromUtf8(isolate, "currentValue")));
-			value = std::string(*param2);
 			if(i < indexEncoderSettings) {
+				v8::String::Utf8Value param2(parameter->Get(String::NewFromUtf8(isolate, "currentValue")));
+				std::string value = std::string(*param2);
+
+				if (name.compare("Encoder") == 0) {
+					const char *currentEncoder = config_get_string(config, section.c_str(), name.c_str());
+
+					if (currentEncoder != NULL) newEncoderType = value.compare(currentEncoder) != 0;
+				}
+
 				config_set_string(config, section.c_str(), name.c_str(), value.c_str());
 			} else {
-				obs_data_set_string(encoderSettings, name.c_str(), value.c_str());
+				v8::String::Utf8Value param2(parameter->Get(String::NewFromUtf8(isolate, "subType")));
+				std::string subType = std::string(*param2);
+
+				if (subType.compare("OBS_COMBO_FORMAT_INT") == 0) {
+					int64_t value = parameter->Get(String::NewFromUtf8(isolate, "currentValue"))->NumberValue();
+					obs_data_set_int(encoderSettings, name.c_str(), value);
+				}
+				if (subType.compare("OBS_COMBO_FORMAT_FLOAT") == 0) {
+					double value = parameter->Get(String::NewFromUtf8(isolate, "currentValue"))->NumberValue();
+					obs_data_set_double(encoderSettings, name.c_str(), value);
+				}
+				if (subType.compare("OBS_COMBO_FORMAT_STRING") == 0) {
+					v8::String::Utf8Value param2(parameter->Get(String::NewFromUtf8(isolate, "currentValue")));
+					std::string value = std::string(*param2);
+					obs_data_set_string(encoderSettings, name.c_str(), value.c_str());
+				}
 			}
 		} else if(type.compare("OBS_PROPERTY_INT") == 0) {
 			int64_t value = parameter->Get(String::NewFromUtf8(isolate, "currentValue"))->NumberValue();
@@ -2235,7 +2278,8 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(Local<Array> settings, st
 			} else {
 				obs_data_set_bool(encoderSettings, name.c_str(), value);
 			}
-		} else if(type.compare("OBS_PROPERTY_DOUBLE") == 0) {
+		} else if(type.compare("OBS_PROPERTY_DOUBLE") == 0 || 
+					type.compare("OBS_PROPERTY_FLOAT") == 0) {
 			double value = parameter->Get(String::NewFromUtf8(isolate, "currentValue"))->NumberValue();
 			if(i < indexEncoderSettings) {
 				config_set_double(config, section.c_str(), name.c_str(), value);
@@ -2251,6 +2295,8 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(Local<Array> settings, st
 	if (ret != 0) {
 		blog(LOG_WARNING, "Failed to config file %s", basicConfigFile.c_str());
 	}
+
+	if (newEncoderType) encoderSettings = obs_encoder_defaults(config_get_string(config, section.c_str(), "Encoder"));
 
 	obs_encoder_update(encoder, encoderSettings);
 
@@ -2275,18 +2321,20 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(Local<Array> settings, st
 	obs_data_t* encoderSettings = obs_encoder_get_settings(encoder);
 
 	int indexEncoderSettings = 9;
+
+	bool newEncoderType = false;
 	
 	for(int i=0;i<parameters->Length();i++) {
 		Local<Object> parameter = v8::Local<v8::Object>::Cast(parameters->Get(i));
 
-		std::string name, type, value;
+		std::string name, type;
 
 		v8::String::Utf8Value param0(parameter->Get(String::NewFromUtf8(isolate, "name")));
 		name = std::string(*param0);
 
 		if(name.compare("RecType") == 0) {
 			v8::String::Utf8Value param2(parameter->Get(String::NewFromUtf8(isolate, "currentValue")));
-			value = std::string(*param2);
+			std::string value = std::string(*param2);
 			if(value.compare("Custom Output (FFmpeg)") == 0) {
 				indexEncoderSettings = parameters->Length();
 			}
@@ -2295,15 +2343,38 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(Local<Array> settings, st
 		v8::String::Utf8Value param1(parameter->Get(String::NewFromUtf8(isolate, "type")));
 		type = std::string(*param1);
 
-		if(type.compare("OBS_PROPERTY_LIST") == 0 ||
+		if (type.compare("OBS_PROPERTY_LIST") == 0 ||
 			type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 ||
-			type.compare("OBS_PROPERTY_PATH") == 0) {
-			v8::String::Utf8Value param2(parameter->Get(String::NewFromUtf8(isolate, "currentValue")));
-			value = std::string(*param2);
+			type.compare("OBS_PROPERTY_PATH") == 0 ||
+			type.compare("OBS_PROPERTY_TEXT") == 0) {
 			if(i < indexEncoderSettings) {
+				v8::String::Utf8Value param2(parameter->Get(String::NewFromUtf8(isolate, "currentValue")));
+				std::string value = std::string(*param2);
+
+				if (name.compare("RecEncoder") == 0) {
+					const char *currentEncoder = config_get_string(config, section.c_str(), name.c_str());
+
+					if (currentEncoder != NULL) newEncoderType = value.compare(currentEncoder) != 0;
+				}
+
 				config_set_string(config, section.c_str(), name.c_str(), value.c_str());
 			} else {
-				obs_data_set_string(encoderSettings, name.c_str(), value.c_str());
+				v8::String::Utf8Value param2(parameter->Get(String::NewFromUtf8(isolate, "subType")));
+				std::string subType = std::string(*param2);
+
+				if (subType.compare("OBS_COMBO_FORMAT_INT") == 0) {
+					int64_t value = parameter->Get(String::NewFromUtf8(isolate, "currentValue"))->NumberValue();
+					obs_data_set_int(encoderSettings, name.c_str(), value);
+				}
+				if (subType.compare("OBS_COMBO_FORMAT_FLOAT") == 0) {
+					double value = parameter->Get(String::NewFromUtf8(isolate, "currentValue"))->NumberValue();
+					obs_data_set_double(encoderSettings, name.c_str(), value);
+				}
+				if (subType.compare("OBS_COMBO_FORMAT_STRING") == 0) {
+					v8::String::Utf8Value param2(parameter->Get(String::NewFromUtf8(isolate, "currentValue")));
+					std::string value = std::string(*param2);
+					obs_data_set_string(encoderSettings, name.c_str(), value.c_str());
+				}
 			}
 		} else if(type.compare("OBS_PROPERTY_INT") == 0) {
 			int64_t value = parameter->Get(String::NewFromUtf8(isolate, "currentValue"))->NumberValue();
@@ -2329,7 +2400,8 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(Local<Array> settings, st
 			} else {
 				obs_data_set_bool(encoderSettings, name.c_str(), value);
 			}
-		} else if(type.compare("OBS_PROPERTY_DOUBLE") == 0) {
+		} else if(type.compare("OBS_PROPERTY_DOUBLE") == 0 ||
+					type.compare("OBS_PROPERTY_FLOAT") == 0) {
 			double value = parameter->Get(String::NewFromUtf8(isolate, "currentValue"))->NumberValue();
 			if(i < indexEncoderSettings) {
 				config_set_double(config, section.c_str(), name.c_str(), value);
@@ -2345,6 +2417,9 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(Local<Array> settings, st
 	if (ret != 0) {
 		blog(LOG_WARNING, "Failed to config file %s", basicConfigFile.c_str());
 	}
+
+	if (newEncoderType) encoderSettings = obs_encoder_defaults(config_get_string(config, section.c_str(), "RecEncoder"));
+
 	obs_encoder_update(encoder, encoderSettings);
 
 	std::string path = OBS_API::getRecordingEncoderConfigPath();
