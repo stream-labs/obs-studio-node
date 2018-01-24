@@ -330,7 +330,7 @@ void Volmeter::Callback(Volmeter *volmeter, Volmeter::Data *item)
 
     delete item;
 
-    cb_binding->cb.Call(4, args);
+    cb_binding->cb.Call(3, args);
 }
 
 NAN_METHOD(Volmeter::addCallback)
