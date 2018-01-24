@@ -214,7 +214,6 @@ NAN_MODULE_INIT(Volmeter::Init)
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("Volmeter"));
     common::SetObjectTemplateField(locProto, "create", create);
-    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "peakHold", get_peakHold, set_peakHold);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "updateInterval", get_updateInterval, set_updateInterval);
     Nan::SetMethod(locProto->InstanceTemplate(), "attach", attach);
     Nan::SetMethod(locProto->InstanceTemplate(), "detach", detach);
@@ -235,24 +234,6 @@ NAN_METHOD(Volmeter::create)
     Volmeter *binding = new Volmeter(static_cast<obs_fader_type>(fader_type));
     auto object = Volmeter::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
-}
-
-NAN_METHOD(Volmeter::get_peakHold)
-{
-    obs::volmeter &handle = Volmeter::Object::GetHandle(info.Holder());
-
-    info.GetReturnValue().Set(handle.peak_hold());
-}
-
-NAN_METHOD(Volmeter::set_peakHold)
-{
-    obs::volmeter &handle = Volmeter::Object::GetHandle(info.Holder());
-
-    int peak_hold;
-
-    ASSERT_GET_VALUE(info[0], peak_hold);
-
-    handle.peak_hold(peak_hold);
 }
 
 NAN_METHOD(Volmeter::get_updateInterval)
@@ -296,8 +277,10 @@ NAN_METHOD(Volmeter::detach)
 }
 
 static void volmeter_cb_wrapper(
-    void *param, float level,
-    float magnitude, float peak, float muted)
+    void *param, 
+    const float magnitude[MAX_AUDIO_CHANNELS],
+    const float peak[MAX_AUDIO_CHANNELS],
+    const float input_peak[MAX_AUDIO_CHANNELS])
 {
     VolmeterCallback *cb_binding = 
         reinterpret_cast<VolmeterCallback*>(param);
@@ -306,10 +289,12 @@ static void volmeter_cb_wrapper(
     Volmeter::Data *data = new Volmeter::Data;
 
     data->param = param;
-    data->level = level;
-    data->magnitude = magnitude;
-    data->peak = peak;
-    data->muted = muted;
+
+    const size_t copy_size = MAX_AUDIO_CHANNELS * sizeof(float);
+
+    memcpy(data->magnitude,  magnitude,  copy_size);
+    memcpy(data->peak,       peak,       copy_size);
+    memcpy(data->input_peak, input_peak, copy_size);
 
     cb_binding->queue.send(data);
 }
@@ -327,11 +312,20 @@ void Volmeter::Callback(Volmeter *volmeter, Volmeter::Data *item)
         return;
     }
 
+    v8::Local<v8::Object> magnitude_array  = Nan::New<v8::Object>();
+    v8::Local<v8::Object> peak_array       = Nan::New<v8::Object>();
+    v8::Local<v8::Object> input_peak_array = Nan::New<v8::Object>();
+
+    for (int i = 0; i < MAX_AUDIO_CHANNELS; ++i) {
+        common::SetObjectField(magnitude_array,  i, item->magnitude[i]);
+        common::SetObjectField(peak_array,       i, item->peak[i]);
+        common::SetObjectField(input_peak_array, i, item->input_peak[i]);
+    }
+
     v8::Local<v8::Value> args[] = {
-        Nan::New<v8::Number>(item->level),
-        Nan::New<v8::Number>(item->magnitude),
-        Nan::New<v8::Number>(item->peak),
-        Nan::New<v8::Boolean>(static_cast<bool>(item->muted))
+        magnitude_array,
+        peak_array,
+        input_peak_array
     };
 
     delete item;

@@ -77,9 +77,6 @@ public:
     void interval(int ms);
     int interval();
 
-    void peak_hold(int hold_time);
-    int peak_hold();
-
     void add_callback(obs_volmeter_updated_t cb, void *data);
     void remove_callback(obs_volmeter_updated_t cb, void *data);
 };

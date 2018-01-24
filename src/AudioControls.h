@@ -52,10 +52,9 @@ public:
 
     struct Data {
         void *param;
-        float level;
-        float magnitude;
-        float peak;
-        bool muted;
+        float magnitude[MAX_AUDIO_CHANNELS];
+        float peak[MAX_AUDIO_CHANNELS];
+        float input_peak[MAX_AUDIO_CHANNELS];
     };
 
     static void Callback(Volmeter *volmeter, Volmeter::Data *item);
@@ -67,9 +66,6 @@ public:
     
     static NAN_MODULE_INIT(Init);
     static NAN_METHOD(create);
-
-    static NAN_METHOD(get_peakHold);
-    static NAN_METHOD(set_peakHold);
     
     static NAN_METHOD(get_updateInterval);
     static NAN_METHOD(set_updateInterval);

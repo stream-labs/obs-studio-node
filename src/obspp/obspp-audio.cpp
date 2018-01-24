@@ -178,16 +178,6 @@ int volmeter::interval()
     return obs_volmeter_get_update_interval(m_handle);
 }
 
-void volmeter::peak_hold(int hold_time)
-{
-    obs_volmeter_set_peak_hold(m_handle, hold_time);
-}
-
-int volmeter::peak_hold()
-{
-    return obs_volmeter_get_peak_hold(m_handle);
-}
-
 void volmeter::add_callback(obs_volmeter_updated_t cb, void *data)
 {
     obs_volmeter_add_callback(m_handle, cb, data);
