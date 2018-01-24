@@ -150,7 +150,6 @@ SET(PROJECT_SOURCE
 	"src/obspp/obspp-view.cpp" "src/obspp/obspp-view.hpp"
 	"src/nodeobs_module.h" "src/nodeobs_module.cpp"
 	"src/nodeobs_api.h" "src/nodeobs_api.cpp"
-	"src/nodeobs_audio.h" "src/nodeobs_audio.cpp"
 	"src/nodeobs_audio_encoders.h" "src/nodeobs_audio_encoders.cpp"
 	"src/nodeobs_autoconfig.h" "src/nodeobs_autoconfig.cpp"
 	"src/nodeobs_common.h" "src/nodeobs_common.cpp"
