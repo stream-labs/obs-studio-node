@@ -858,28 +858,6 @@ bool OBS_service::resetVideoContext(const char* outputType)
     ovi.output_width   = (uint32_t)config_get_uint(basicConfig, "Video", "OutputCX");
     ovi.output_height  = (uint32_t)config_get_uint(basicConfig, "Video", "OutputCY");
 
-    if(strcmp(outputMode, "Advanced") == 0 && outputType != NULL) {
-        if(strcmp(outputType, "Stream") == 0) {
-            bool doRescale = config_get_bool(basicConfig, "AdvOut", "Rescale");
-            if(doRescale) {
-                const char* rescaleRes = config_get_string(basicConfig, "AdvOut", "RescaleRes");
-                if (rescaleRes == NULL) {
-                    rescaleRes = "1280x720";
-                }
-                sscanf(rescaleRes, "%ux%u", &ovi.output_width, &ovi.output_height);
-            }
-        } else if (strcmp(outputType, "Record") == 0) {
-            bool doRescale = config_get_bool(basicConfig, "AdvOut", "RecRescale");
-            if(doRescale) {
-                const char* recRescaleRes = config_get_string(basicConfig, "AdvOut", "RecRescaleRes");
-                if (recRescaleRes == NULL) {
-                    recRescaleRes = "1280x720";
-                }
-                sscanf(recRescaleRes, "%ux%u", &ovi.output_width, &ovi.output_height);
-            }
-        }
-    }
-
 	std::vector<Screen> resolutions = OBS_API::availableResolutions();
 
     if (ovi.base_width == 0 || ovi.base_height == 0) {
