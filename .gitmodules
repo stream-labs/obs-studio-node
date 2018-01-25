@@ -1,3 +1,0 @@
-[submodule "obs-prebuild"]
-	path = obs-prebuild
-	url = https://github.com/stream-labs/obs-prebuild.git

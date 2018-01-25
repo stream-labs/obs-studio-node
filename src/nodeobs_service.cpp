@@ -1117,9 +1117,14 @@ char *os_generate_formatted_filename(const char *extension, bool space,
 std::string GenerateSpecifiedFilename(const char *extension, bool noSpace,
         const char *format)
 {
-    BPtr<char> filename = os_generate_formatted_filename(extension,
+    char *filename = os_generate_formatted_filename(extension,
             !noSpace, format);
-    return string(filename);
+    
+    std::string result(filename);
+
+    bfree(filename);
+
+    return result;
 }
 
 static void ensure_directory_exists(string &path)
