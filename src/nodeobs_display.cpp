@@ -328,7 +328,7 @@ static void DrawGlyph(GS::VertexBuffer* vb, float_t x, float_t y, float_t scale,
 			break;
 	}
 
-	GS::Vertex v;
+	GS::Vertex v(nullptr, nullptr, nullptr, nullptr, nullptr);
 	size_t bs = vb->Size();
 	vb->Resize(bs + 6);
 
@@ -366,7 +366,7 @@ static void DrawGlyph(GS::VertexBuffer* vb, float_t x, float_t y, float_t scale,
 }
 
 inline void DrawBox(float_t x, float_t y, float_t w, float_t h, float_t depth, uint32_t color, GS::VertexBuffer* vbh) {
-	GS::Vertex v;
+	GS::Vertex v(nullptr, nullptr, nullptr, nullptr, nullptr);
 	size_t bs = vbh->Size();
 	vbh->Resize(bs + 6);
 
@@ -396,7 +396,7 @@ inline void DrawBox(float_t x, float_t y, float_t w, float_t h, float_t depth, u
 }
 
 inline void DrawBoxOutline(float_t x, float_t y, float_t w, float_t h, float_t depth, uint32_t color, GS::VertexBuffer* vbh) {
-	GS::Vertex v;
+	GS::Vertex v(nullptr, nullptr, nullptr, nullptr, nullptr);
 	size_t bs = vbh->Size();
 	vbh->Resize(bs + 8);
 
