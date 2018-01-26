@@ -34,43 +34,43 @@ namespace NodeOBS {
 		static void GetPerformanceStatistics(const v8::FunctionCallbackInfo<v8::Value>& args);
 		static void GetPathConfigDirectory(const v8::FunctionCallbackInfo<v8::Value>& args);
 		static void SetPathConfigDirectory(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void GetExistingOBSProfiles(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void GetExistingOBSSceneCollections(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void GetCurrentOBSProfile(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void SetCurrentOBSProfile(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void GetCurrentOBSSceneCollection(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void SetCurrentOBSSceneCollection(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void IsOBSInstalled(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void UseOBSConfiguration(const v8::FunctionCallbackInfo<v8::Value>& args);
+		//static void GetExistingOBSProfiles(const v8::FunctionCallbackInfo<v8::Value>& args);
+		//static void GetExistingOBSSceneCollections(const v8::FunctionCallbackInfo<v8::Value>& args);
+		//static void GetCurrentOBSProfile(const v8::FunctionCallbackInfo<v8::Value>& args);
+		//static void SetCurrentOBSProfile(const v8::FunctionCallbackInfo<v8::Value>& args);
+		//static void GetCurrentOBSSceneCollection(const v8::FunctionCallbackInfo<v8::Value>& args);
+		//static void SetCurrentOBSSceneCollection(const v8::FunctionCallbackInfo<v8::Value>& args);
+		//static void IsOBSInstalled(const v8::FunctionCallbackInfo<v8::Value>& args);
+		//static void UseOBSConfiguration(const v8::FunctionCallbackInfo<v8::Value>& args);
 	};
 
-	class Audio {
-		public:
-		static void CreateFader(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void DestroyFader(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void FaderAddCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void FaderRemoveCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void FaderSetDb(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void FaderGetDb(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void FaderSetDeflection(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void FaderGetDeflection(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void FaderSetMul(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void FaderGetMul(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void FaderAttachSource(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void FaderDetachSource(const v8::FunctionCallbackInfo<v8::Value>& args);
+	//class Audio {
+	//	public:
+	//	static void CreateFader(const v8::FunctionCallbackInfo<v8::Value>& args);
+	//	static void DestroyFader(const v8::FunctionCallbackInfo<v8::Value>& args);
+	//	static void FaderAddCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
+	//	static void FaderRemoveCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
+	//	static void FaderSetDb(const v8::FunctionCallbackInfo<v8::Value>& args);
+	//	static void FaderGetDb(const v8::FunctionCallbackInfo<v8::Value>& args);
+	//	static void FaderSetDeflection(const v8::FunctionCallbackInfo<v8::Value>& args);
+	//	static void FaderGetDeflection(const v8::FunctionCallbackInfo<v8::Value>& args);
+	//	static void FaderSetMul(const v8::FunctionCallbackInfo<v8::Value>& args);
+	//	static void FaderGetMul(const v8::FunctionCallbackInfo<v8::Value>& args);
+	//	static void FaderAttachSource(const v8::FunctionCallbackInfo<v8::Value>& args);
+	//	static void FaderDetachSource(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-		public:
-		static void CreateVolMeter(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void DestroyVolMeter(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void VolMeterAttachSource(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void VolMeterDetachSource(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void VolMeterSetUpdateInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void VolMeterGetUpdateInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void VolMeterSetPeakHold(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void VolMeterGetPeakHold(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void VolMeterAddCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
-		static void VolMeterRemoveCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
-	};
+	//	public:
+	//	static void CreateVolMeter(const v8::FunctionCallbackInfo<v8::Value>& args);
+	//	static void DestroyVolMeter(const v8::FunctionCallbackInfo<v8::Value>& args);
+	//	static void VolMeterAttachSource(const v8::FunctionCallbackInfo<v8::Value>& args);
+	//	static void VolMeterDetachSource(const v8::FunctionCallbackInfo<v8::Value>& args);
+	//	static void VolMeterSetUpdateInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
+	//	static void VolMeterGetUpdateInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
+	//	static void VolMeterSetPeakHold(const v8::FunctionCallbackInfo<v8::Value>& args);
+	//	static void VolMeterGetPeakHold(const v8::FunctionCallbackInfo<v8::Value>& args);
+	//	static void VolMeterAddCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
+	//	static void VolMeterRemoveCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
+	//};
 
 	class AutoConfig {
 		public:

@@ -209,7 +209,7 @@ INITIALIZER(osn_nodeobs) {
 		NODE_SET_METHOD(exports, "OBS_settings_getListCategories", NodeOBS::Settings::GetListCategories);
 		NODE_SET_METHOD(exports, "OBS_settings_getSettings", NodeOBS::Settings::GetSettings);
 		NODE_SET_METHOD(exports, "OBS_settings_saveSettings", NodeOBS::Settings::SaveSettings);
-		
+
 		//OBS_event
 	//#define SET_SIGNAL_METHOD(name) NODE_SET_METHOD(exports, #name , name)
 	//	SET_SIGNAL_METHOD(OBS_signal_sourceRemoved);
@@ -251,163 +251,190 @@ void NodeOBS::Module::SetWorkingDirectory(const v8::FunctionCallbackInfo<v8::Val
 }
 
 void NodeOBS::API::InitAPI(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
+	v8::String::Utf8Value param0(args[0]->ToString());
+	Controller::GetInstance().GetConnection()->Call("NodeOBSAPI", "InitAPI",
+		std::vector<IPC::Value>{std::string(*param0)}, nullptr, nullptr);
 }
 
 void NodeOBS::API::InitOBSAPI(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
+	v8::String::Utf8Value param0(args[0]->ToString());
+	Controller::GetInstance().GetConnection()->Call("NodeOBSAPI", "InitOBSAPI",
+		std::vector<IPC::Value>{std::string(*param0)}, nullptr, nullptr);
 }
 
 void NodeOBS::API::DestroyOBSAPI(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
+	Controller::GetInstance().GetConnection()->Call("NodeOBSAPI", "DestroyOBSAPI",
+		{}, nullptr, nullptr);
 }
 
 void NodeOBS::API::OpenAllModules(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
+	Controller::GetInstance().GetConnection()->Call("NodeOBSAPI", "OpenAllModules",
+		{}, nullptr, nullptr);
 }
 
 void NodeOBS::API::InitAllModules(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
+	Controller::GetInstance().GetConnection()->Call("NodeOBSAPI", "InitAllModules",
+		{}, nullptr, nullptr);
 }
 
 void NodeOBS::API::GetPerformanceStatistics(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	v8::Local<v8::Object> stats = v8::Object::New(args.GetIsolate());
 
+	// Return from opposite will be `[key], [value], ...` in IPC format.
+	// [key] (String)
+	// [value] (Integer64, Double, ...)
+	struct CallData {
+		std::mutex mtx;
+		std::condition_variable cv;
+		bool finished = false;
+		v8::Local<v8::Object>* stats;
+		v8::Isolate* iso;
+	} cd;
+	cd.stats = &stats;
+	cd.iso = args.GetIsolate();
+
+	Controller::GetInstance().GetConnection()->Call("NodeOBSAPI", "GetPerformanceStatistics",
+		{}, [](const void* data, const std::vector<IPC::Value>& rval) {
+		CallData* cd = const_cast<CallData*>(reinterpret_cast<const CallData*>(data));
+
+		if ((rval.size() % 2) != 0)
+			throw std::runtime_error("GetPerformanceStatistics returned invalid message.");
+
+		for (size_t n = 0; n < rval.size(); n += 2) {
+			IPC::Value key, value;
+			key = rval[n];
+			value = rval[n + 1];
+
+			switch (value.type) {
+				case IPC::Type::Float:
+					(*cd->stats)->Set(v8::String::NewFromUtf8(cd->iso, key.value_str.c_str()),
+						v8::Number::New(cd->iso, value.value.fp32));
+					break;
+				case IPC::Type::Double:
+					(*cd->stats)->Set(v8::String::NewFromUtf8(cd->iso, key.value_str.c_str()),
+						v8::Number::New(cd->iso, value.value.fp64));
+					break;
+				case IPC::Type::Int32:
+					(*cd->stats)->Set(v8::String::NewFromUtf8(cd->iso, key.value_str.c_str()),
+						v8::Number::New(cd->iso, value.value.i32));
+					break;
+				case IPC::Type::Int64:
+					(*cd->stats)->Set(v8::String::NewFromUtf8(cd->iso, key.value_str.c_str()),
+						v8::Number::New(cd->iso, value.value.i64));
+					break;
+				case IPC::Type::UInt32:
+					(*cd->stats)->Set(v8::String::NewFromUtf8(cd->iso, key.value_str.c_str()),
+						v8::Number::New(cd->iso, value.value.ui32));
+					break;
+				case IPC::Type::UInt64:
+					(*cd->stats)->Set(v8::String::NewFromUtf8(cd->iso, key.value_str.c_str()),
+						v8::Number::New(cd->iso, value.value.ui64));
+					break;
+			}
+		}
+
+		cd->cv.notify_all();
+	}, &cd);
+
+	{
+		std::unique_lock<std::mutex> ulock;
+		cd.cv.wait(ulock, [&cd]() { return cd.finished; });
+	}
+
+	args.GetReturnValue().Set(stats);
 }
 
 void NodeOBS::API::GetPathConfigDirectory(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	struct CallData {
+		std::mutex mtx;
+		std::condition_variable cv;
+		bool finished = false;
+		std::string dir;
+	} cd;
 
+	Controller::GetInstance().GetConnection()->Call("NodeOBSAPI", "GetPathConfigDirectory",
+		{}, [](const void* data, const std::vector<IPC::Value>& rval) {
+		CallData* cd = const_cast<CallData*>(reinterpret_cast<const CallData*>(data));
+		cd->dir = rval[0].value_str;
+		cd->cv.notify_all();
+	}, &cd);
+
+	{
+		std::unique_lock<std::mutex> ulock;
+		cd.cv.wait(ulock, [&cd]() { return cd.finished; });
+	}
+
+	args.GetReturnValue().Set(v8::String::NewFromUtf8(args.GetIsolate(), cd.dir.c_str()));
 }
 
 void NodeOBS::API::SetPathConfigDirectory(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::API::GetExistingOBSProfiles(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::API::GetExistingOBSSceneCollections(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::API::GetCurrentOBSProfile(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::API::SetCurrentOBSProfile(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::API::GetCurrentOBSSceneCollection(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::API::SetCurrentOBSSceneCollection(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::API::IsOBSInstalled(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::API::UseOBSConfiguration(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::Audio::CreateFader(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::Audio::DestroyFader(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::Audio::FaderAddCallback(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::Audio::FaderRemoveCallback(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::Audio::FaderSetDb(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::Audio::FaderGetDb(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::Audio::FaderSetDeflection(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::Audio::FaderGetDeflection(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::Audio::FaderSetMul(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::Audio::FaderGetMul(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::Audio::FaderAttachSource(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::Audio::FaderDetachSource(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::Audio::CreateVolMeter(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::Audio::DestroyVolMeter(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::Audio::VolMeterAttachSource(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::Audio::VolMeterDetachSource(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::Audio::VolMeterSetUpdateInterval(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::Audio::VolMeterGetUpdateInterval(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::Audio::VolMeterSetPeakHold(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::Audio::VolMeterGetPeakHold(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::Audio::VolMeterAddCallback(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
-}
-
-void NodeOBS::Audio::VolMeterRemoveCallback(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
+	v8::String::Utf8Value param0(args[0]->ToString());
+	Controller::GetInstance().GetConnection()->Call("NodeOBSAPI", "SetPathConfigDirectory",
+		std::vector<IPC::Value>{std::string(*param0)}, nullptr, nullptr);
 }
 
 void NodeOBS::AutoConfig::GetListServer(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	v8::String::Utf8Value param0(args[0]->ToString());
+	v8::String::Utf8Value param1(args[1]->ToString());
 
+	// Remote returns structure in the following order:
+	// - name (String)
+	// - address (String)
+	// - bitrate (UInt64)
+	// - ping (UInt64)
+
+	struct CallData {
+		std::mutex mtx;
+		std::condition_variable cv;
+		bool finished = false;
+
+		std::vector<std::string> names;
+		std::vector<std::string> addresses;
+	} cd;
+
+	Controller::GetInstance().GetConnection()->Call("NodeOBSAutoConfig", "GetListServer",
+		std::vector<IPC::Value>{std::string(*param0), std::string(*param1)}, 
+		[](const void* data, const std::vector<IPC::Value>& rval) {
+		CallData* cd = const_cast<CallData*>(reinterpret_cast<const CallData*>(data));
+
+		if ((rval.size() % 2) != 0)
+			throw std::runtime_error("GetListServer returned invalid message.");
+
+		size_t fsz = rval.size() / 2;
+		cd->names.reserve(fsz);
+		cd->addresses.reserve(fsz);
+
+		for (size_t n = 0; n < fsz; n++) {
+			cd->names.push_back(rval[n * 2].value_str);
+			cd->addresses.push_back(rval[n * 2 + 1].value_str);
+		}
+
+		cd->cv.notify_all();
+	}, &cd);
+
+	{
+		std::unique_lock<std::mutex> ulock;
+		cd.cv.wait(ulock, [&cd]() { return cd.finished; });
+	}
+
+	// Convert to JavaScript object.
+	v8::Local<v8::Array> res = v8::Array::New(args.GetIsolate());
+	for (size_t n = 0; n < cd.names.size(); n++) {
+		v8::Local<v8::Object> obj = v8::Object::New(args.GetIsolate());
+		obj->Set(v8::String::NewFromUtf8(args.GetIsolate(), "server_name"),
+			v8::String::NewFromUtf8(args.GetIsolate(), cd.names[n].c_str()));
+		obj->Set(v8::String::NewFromUtf8(args.GetIsolate(), "server"),
+			v8::String::NewFromUtf8(args.GetIsolate(), cd.addresses[n].c_str()));
+		res->Set(n, obj);
+	}
+
+	args.GetReturnValue().Set(res);
 }
 
 void NodeOBS::AutoConfig::InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
+	v8::Local<v8::Function> param0(args[0].As<v8::Function>());
+	v8::Local<v8::Object> param1(args[1].As<v8::Object>());
+	// ToDo. Requires two-way calling.
 }
 
 void NodeOBS::AutoConfig::StartBandwidthTest(const v8::FunctionCallbackInfo<v8::Value>& args) {
