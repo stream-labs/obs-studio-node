@@ -1,9 +1,26 @@
 environment:
-  nodejs_version: "8"
+  NodeVersion: 8
+  SLBuildDirectory: streamlabs-build
+  SLRuntime: electron
+  SLRuntimeVersion: 1.7.11
+  SLGenerator: Visual Studio 14 2015
+  SLDistributeDirectory: distribute
+  SLArch: x64
+  SLArtifact: streamlabs-x86_64.zip
   
 install:
-  - ps: Install-Product node $env:nodejs_version
+  - ps: Install-Product node $env:NodeVersion
   - yarn install
 
+build_script:
+  - yarn run cmake-js configure --out %SLBuildDirectory% -r="%SLRuntime%" -v="%SLRuntimeVersion%" -G"%%SLGenerator" -a "%SLArch" --CDCMAKE_INSTALL_PREFIX="%SLDistributeDirectory"
+  - cmake --build %SLBuildDirectory% --target install --config Release
+
+after_build:
+  - 7z a "%SLArtifact%" "%SLBuildDirectory%\%SLDistributeDirectory%\*"
+
+artifact:
+  - path: $(SLArtifact)
+    name: Streamlabs Aritfact
+
 test: off
-build: off
