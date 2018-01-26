@@ -1,0 +1,5 @@
+environment:
+  nodejs_version: "8"
+  
+install:
+  - yarn install
