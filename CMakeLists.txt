@@ -5,6 +5,7 @@ project(obs-studio-node VERSION 1.0.0)
 # CMake Settings
 #############################
 
+set(PROJECT_NAME "obs_studio_node")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 include(ExternalProject)
@@ -26,8 +27,6 @@ set(CMAKE_STATIC_LINKER_FLAGS_RELEASE   "${CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBI
 
 # Binary
 set(BINARY_PREFIX "" CACHE STRING "Binary File prefix")
-set(BINARY_NAME "obs-studio-node" CACHE STRING "Binary File name")
-set(BINARY_SUFFIX ".node" CACHE STRING "Binary File suffix")
 
 # Distribution
 #SET(ENABLE_INSTALL true CACHE BOOL "Binary File prefix")
@@ -127,6 +126,11 @@ set(PROJECT_SOURCE
 	"src/util-memory.h" "src/util-memory.cpp"
 )
 
+set(PROJECT_EXTRAS
+	"js/index.d.ts"	"js/index.js"
+	"js/module.d.ts" "js/module.js"
+	"js/type_check.d.ts" "js/type_check.js")
+
 set(PROJECT_RESOURCES resources)
 
 add_definitions(-DBUILDING_NODE_EXTENSION)
@@ -134,15 +138,35 @@ add_definitions(-DBUILDING_NODE_EXTENSION)
 #############################
 # Building
 #############################
-add_library(obs-studio-node SHARED ${PROJECT_SOURCE})
-target_link_libraries(obs-studio-node ${PROJECT_LIBRARIES} libobs ${CMAKE_JS_LIB})
-target_include_directories(obs-studio-node PUBLIC ${CMAKE_JS_INC})
-set_target_properties(obs-studio-node PROPERTIES PREFIX "${BINARY_PREFIX}" SUFFIX "${BINARY_SUFFIX}")
+add_library(${PROJECT_NAME} SHARED ${PROJECT_SOURCE})
+set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node")
+
+# Delay loading of obs.dll so we can decide
+# where to load obs.dll from during runtime.
+# We must be careful not to call obs functions
+# before we load the DLL though.
+
+if(WIN32)
+	set_target_properties(${PROJECT_NAME} PROPERTIES
+		LINK_FLAGS_RELEASE "/DELAYLOAD:obs.dll")
+		
+	list(APPEND PROJECT_LIBRARIES "Delayimp.lib")
+
+endif()
+target_link_libraries(${PROJECT_NAME} libobs ${PROJECT_LIBRARIES} ${CMAKE_JS_LIB} ${PROJECT_LINKER_FLAGS})
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+	$<TARGET_PROPERTY:libobs,INTERFACE_INCLUDE_DIRECTORIES>
+	${CMAKE_JS_INC})
+
 
 #############################
 # Distribute
 #############################
-install(TARGETS obs-studio-node DESTINATION ${CMAKE_INSTALL_PREFIX})
-install(FILES $<TARGET_PDB_FILE:obs-studio-node> DESTINATION ${CMAKE_INSTALL_PREFIX})
-install(DIRECTORY ${libobs_SOURCE_DIR} DESTINATION "libobs")
-install(DIRECTORY ${PROJECT_RESOURCES} DESTINATION "resources")
+install(TARGETS ${PROJECT_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(FILES $<TARGET_PDB_FILE:${PROJECT_NAME}> DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(FILES ${PROJECT_EXTRAS} DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(DIRECTORY ${libobs_SOURCE_DIR}/bin DESTINATION "libobs" PATTERN "*.lib" EXCLUDE)
+install(DIRECTORY ${libobs_SOURCE_DIR}/data DESTINATION "libobs")
+install(DIRECTORY ${libobs_SOURCE_DIR}/obs-plugins DESTINATION "libobs")
+install(DIRECTORY ${PROJECT_RESOURCES}/ DESTINATION "resources")
