@@ -16,3 +16,15 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
 
 #include "osn-Audio.hpp"
+#include "shared.hpp"
+#include "utility.hpp"
+
+// Initializer
+INITIALIZER(osn_audio) {
+	// Add initializer function
+	initializerFunctions.push([](v8::Local<v8::Object>& exports) {
+
+
+	});
+}
+

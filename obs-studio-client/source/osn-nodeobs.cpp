@@ -18,13 +18,11 @@
 #include "osn-NodeOBS.hpp"
 #include "utility.hpp"
 #include "shared.hpp"
+#include "controller.hpp"
 
 #ifdef _WIN32
 #include <direct.h>
 #endif
-
-// Global Storage (Should be changed in the future)
-static std::string g_moduleDirectory = ""; // Module Directory
 
 // Initializer
 INITIALIZER(osn_nodeobs) {
@@ -248,6 +246,658 @@ INITIALIZER(osn_nodeobs) {
 
 void NodeOBS::Module::SetWorkingDirectory(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	v8::String::Utf8Value param0(args[0]->ToString());
-	g_moduleDirectory = std::string(*param0);
-	replaceAll(g_moduleDirectory, "\\", "/");
+	Controller::GetInstance().GetConnection()->Call("NodeOBSModule", "SetWorkingDirectory",
+		std::vector<IPC::Value>{std::string(*param0)}, nullptr, nullptr);
+}
+
+void NodeOBS::API::InitAPI(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::API::InitOBSAPI(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::API::DestroyOBSAPI(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::API::OpenAllModules(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::API::InitAllModules(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::API::GetPerformanceStatistics(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::API::GetPathConfigDirectory(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::API::SetPathConfigDirectory(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::API::GetExistingOBSProfiles(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::API::GetExistingOBSSceneCollections(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::API::GetCurrentOBSProfile(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::API::SetCurrentOBSProfile(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::API::GetCurrentOBSSceneCollection(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::API::SetCurrentOBSSceneCollection(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::API::IsOBSInstalled(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::API::UseOBSConfiguration(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Audio::CreateFader(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Audio::DestroyFader(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Audio::FaderAddCallback(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Audio::FaderRemoveCallback(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Audio::FaderSetDb(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Audio::FaderGetDb(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Audio::FaderSetDeflection(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Audio::FaderGetDeflection(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Audio::FaderSetMul(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Audio::FaderGetMul(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Audio::FaderAttachSource(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Audio::FaderDetachSource(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Audio::CreateVolMeter(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Audio::DestroyVolMeter(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Audio::VolMeterAttachSource(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Audio::VolMeterDetachSource(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Audio::VolMeterSetUpdateInterval(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Audio::VolMeterGetUpdateInterval(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Audio::VolMeterSetPeakHold(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Audio::VolMeterGetPeakHold(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Audio::VolMeterAddCallback(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Audio::VolMeterRemoveCallback(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::AutoConfig::GetListServer(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::AutoConfig::InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::AutoConfig::StartBandwidthTest(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::AutoConfig::StartStreamEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::AutoConfig::StartRecordingEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::AutoConfig::StartCheckSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::AutoConfig::StartSetDefaultSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::AutoConfig::StartSaveStreamSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::AutoConfig::StartSaveSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::AutoConfig::TerminateAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetSourceFilterVisibility(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::SetSourceFilterVisibility(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetSourceFader(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetSourceVolmeter(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::FlipHorizontalSceneItems(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::FlipVerticalSceneItems(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::ResetSceneItems(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::StretchSceneItems(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::FitSceneItems(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::CenterSceneItems(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetSceneItemRotation(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetSceneItemCrop(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::SetSceneItemRotation(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::SetSceneItemCrop(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetListCurrentScenes(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetListCurrentSourcesFromScene(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetListInputSources(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetListFilters(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetListCurrentTransitions(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetListTransitions(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::CreateScene(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::RemoveScene(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::AddSource(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::RemoveSource(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetSourceFrame(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetSourceProperties(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetSourcePropertiesSubParameters(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetSourcePropertyCurrentValue(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::SetProperty(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::SetCurrentScene(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::SetSourcePosition(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::SetSourceScaling(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::RenameTransition(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::RenameSourceFilter(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::RenameSource(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::RenameScene(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetCurrentTransition(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::SetTransitionDuration(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetTransitionDuration(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::AddTransition(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::RemoveTransition(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::SetTransition(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::UpdateTransitionProperties(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetTransitionProperties(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetTransitionPropertiesSubParameters(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::SetTransitionProperty(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetTransitionPropertyCurrentValue(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::AddSourceFilter(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::RemoveSourceFilter(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::UpdateSourceFilterProperties(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetSourceFilterProperties(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetListSourceFilters(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetSourceFilterPropertyCurrentValue(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::SetSourceFilterProperty(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetSourceFilterPropertiesSubParameters(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetSourcePosition(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetSourceScaling(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetSourceSize(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::SetSourceOrder(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::UpdateSourceProperties(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::CreateDisplay(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::DestroyDisplay(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetDisplayPreviewOffset(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetDisplayPreviewSize(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::CreateSourcePreviewDisplay(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::ResizeDisplay(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::MoveDisplay(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::SetPaddingSize(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::SetPaddingColor(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::SetBackgroundColor(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::SetOutlineColor(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::SetGuidelineColor(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::SetResizeBoxOuterColor(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::SetResizeBoxInnerColor(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::SetShouldDrawUI(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::SelectSource(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::SelectSources(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::DragSelectedSource(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::LoadConfigFile(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::SaveIntoConfigFile(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetSourceFlags(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::SourceSetMuted(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::IsSourceMuted(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::GetSourceVisibility(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::SetSourceVisibility(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Content::FillTabScenes(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Service::ResetAudioContext(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Service::ResetVideoContext(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Service::CreateAudioEncoder(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Service::CreateVideoStreamingEncoder(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Service::CreateVideoRecordingEncoder(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Service::CreateService(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Service::CreateRecordingSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Service::CreateStreamingOutput(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Service::CreateRecordingOutput(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Service::StartStreaming(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Service::StopStreaming(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Service::StartRecording(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Service::StopRecording(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Service::AssociateAVToStreamingContext(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Service::AssociateAVToRecordingContext(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Service::AssociateAVEncodersToStreamingOutput(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Service::AssociateAVEncodersToRecordingOutput(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Service::SetServiceToStreamingOutput(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Service::SetRecordingSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Service::IsStreamingOutputActive(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Settings::GetListCategories(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Settings::GetSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Settings::SaveSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Signal::SourceRemoved(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Signal::SourceDestroyed(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Signal::SourceSaved(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Signal::SourceLoaded(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Signal::SourceActivated(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
+}
+
+void NodeOBS::Signal::SourceDeactivated(const v8::FunctionCallbackInfo<v8::Value>& args) {
+
 }

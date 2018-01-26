@@ -21,11 +21,15 @@
 
 #include "obspp/obspp-audio.hpp"
 
-#include "Common.h"
-#include "IEncoder.h"
+#include "osn-Common.h"
+#include "osn-IEncoder.h"
 
 namespace osn {
 	class Audio : public Nan::ObjectWrap {
+		public:
+		Audio(audio_t *audio);
+		Audio(obs::audio audio);
+
 		public:
 		static Nan::Persistent<v8::FunctionTemplate> prototype;
 
@@ -34,8 +38,6 @@ namespace osn {
 
 		obs::audio handle;
 
-		Audio(audio_t *audio);
-		Audio(obs::audio audio);
 
 		static NAN_MODULE_INIT(Init);
 		static NAN_METHOD(New);
