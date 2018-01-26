@@ -19,7 +19,7 @@ build_script:
 after_build:
   - 7z a "%SLArtifact%" "%SLBuildDirectory%\%SLDistributeDirectory%\*"
 
-artifact:
+artifacts:
   - path: $(SLArtifact)
     name: Streamlabs Aritfact
 
