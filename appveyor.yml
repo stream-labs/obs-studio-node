@@ -3,7 +3,7 @@ environment:
   SLBuildDirectory: streamlabs-build
   SLRuntime: electron
   SLRuntimeVersion: 1.7.11
-  SLGenerator: Visual Studio 14 2015
+  SLGenerator: Visual Studio 14 2015 Win64
   SLDistributeDirectory: distribute
   SLArch: x64
   SLArtifact: streamlabs-x86_64.zip
