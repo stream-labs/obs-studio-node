@@ -17,7 +17,7 @@ build_script:
   - cmake --build %SLBuildDirectory% --target install --config Release
 
 after_build:
-  - 7z a "%SLArtifact%" "%SLBuildDirectory%\%SLDistributeDirectory%\*"
+  - 7z a "%SLArtifact%" "%APPVEYOR_BUILD_FOLDER%\%SLBuildDirectory%\%SLDistributeDirectory%\*"
 
 artifacts:
   - path: $(SLArtifact)
