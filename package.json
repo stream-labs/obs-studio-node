@@ -17,7 +17,7 @@
   "scripts": {
     "clean": "git clean -fxd",
 	"install": "npm run build:bindings",
-	"build:bindings": "cmake-js configure --CDCMAKE_PREFIX_INSTALL=distribute && cmake --build build --target install -config Release",
+	"build:bindings": "cmake-js configure --CDCMAKE_PREFIX_INSTALL=distribute && cmake --build build --target install --config Release",
     "build:javascript": "tsc -p js",
     "build:docs": "typedoc --out docs"
   },
