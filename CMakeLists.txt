@@ -127,6 +127,7 @@ set(PROJECT_SOURCE
 )
 
 set(PROJECT_EXTRAS
+	"package.json"
 	"js/index.d.ts"	"js/index.js"
 	"js/module.d.ts" "js/module.js"
 	"js/type_check.d.ts" "js/type_check.js")
