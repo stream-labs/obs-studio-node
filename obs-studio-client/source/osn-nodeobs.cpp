@@ -49,39 +49,39 @@ INITIALIZER(osn_nodeobs) {
 		NODE_SET_METHOD(exports, "OBS_API_getPerformanceStatistics", NodeOBS::API::GetPerformanceStatistics);
 		NODE_SET_METHOD(exports, "OBS_API_getPathConfigDirectory", NodeOBS::API::GetPathConfigDirectory);
 		NODE_SET_METHOD(exports, "OBS_API_setPathConfigDirectory", NodeOBS::API::SetPathConfigDirectory);
-		NODE_SET_METHOD(exports, "OBS_API_getOBS_existingProfiles", NodeOBS::API::GetExistingOBSProfiles);
-		NODE_SET_METHOD(exports, "OBS_API_getOBS_existingSceneCollections", NodeOBS::API::GetExistingOBSSceneCollections);
-		NODE_SET_METHOD(exports, "OBS_API_getOBS_currentProfile", NodeOBS::API::GetCurrentOBSProfile);
-		NODE_SET_METHOD(exports, "OBS_API_setOBS_currentProfile", NodeOBS::API::SetCurrentOBSProfile);
-		NODE_SET_METHOD(exports, "OBS_API_getOBS_currentSceneCollection", NodeOBS::API::GetCurrentOBSSceneCollection);
-		NODE_SET_METHOD(exports, "OBS_API_setOBS_currentSceneCollection", NodeOBS::API::SetCurrentOBSSceneCollection);
-		NODE_SET_METHOD(exports, "OBS_API_isOBS_installed", NodeOBS::API::IsOBSInstalled);
-		NODE_SET_METHOD(exports, "OBS_API_useOBS_config", NodeOBS::API::UseOBSConfiguration);
+		//NODE_SET_METHOD(exports, "OBS_API_getOBS_existingProfiles", NodeOBS::API::GetExistingOBSProfiles);
+		//NODE_SET_METHOD(exports, "OBS_API_getOBS_existingSceneCollections", NodeOBS::API::GetExistingOBSSceneCollections);
+		//NODE_SET_METHOD(exports, "OBS_API_getOBS_currentProfile", NodeOBS::API::GetCurrentOBSProfile);
+		//NODE_SET_METHOD(exports, "OBS_API_setOBS_currentProfile", NodeOBS::API::SetCurrentOBSProfile);
+		//NODE_SET_METHOD(exports, "OBS_API_getOBS_currentSceneCollection", NodeOBS::API::GetCurrentOBSSceneCollection);
+		//NODE_SET_METHOD(exports, "OBS_API_setOBS_currentSceneCollection", NodeOBS::API::SetCurrentOBSSceneCollection);
+		//NODE_SET_METHOD(exports, "OBS_API_isOBS_installed", NodeOBS::API::IsOBSInstalled);
+		//NODE_SET_METHOD(exports, "OBS_API_useOBS_config", NodeOBS::API::UseOBSConfiguration);
 
 		// Audio
-		NODE_SET_METHOD(exports, "OBS_audio_createFader", NodeOBS::Audio::CreateFader);
-		NODE_SET_METHOD(exports, "OBS_audio_destroyFader", NodeOBS::Audio::DestroyFader);
-		NODE_SET_METHOD(exports, "OBS_audio_faderAddCallback", NodeOBS::Audio::FaderAddCallback);
-		NODE_SET_METHOD(exports, "OBS_audio_faderRemoveCallback", NodeOBS::Audio::FaderRemoveCallback);
-		NODE_SET_METHOD(exports, "OBS_audio_faderSetDb", NodeOBS::Audio::FaderSetDb);
-		NODE_SET_METHOD(exports, "OBS_audio_faderGetDb", NodeOBS::Audio::FaderGetDb);
-		NODE_SET_METHOD(exports, "OBS_audio_faderSetDeflection", NodeOBS::Audio::FaderSetDeflection);
-		NODE_SET_METHOD(exports, "OBS_audio_faderGetDeflection", NodeOBS::Audio::FaderGetDeflection);
-		NODE_SET_METHOD(exports, "OBS_audio_faderSetMul", NodeOBS::Audio::FaderSetMul);
-		NODE_SET_METHOD(exports, "OBS_audio_faderGetMul", NodeOBS::Audio::FaderGetMul);
-		NODE_SET_METHOD(exports, "OBS_audio_faderAttachSource", NodeOBS::Audio::FaderAttachSource);
-		NODE_SET_METHOD(exports, "OBS_audio_faderDetachSource", NodeOBS::Audio::FaderDetachSource);
+		//NODE_SET_METHOD(exports, "OBS_audio_createFader", NodeOBS::Audio::CreateFader);
+		//NODE_SET_METHOD(exports, "OBS_audio_destroyFader", NodeOBS::Audio::DestroyFader);
+		//NODE_SET_METHOD(exports, "OBS_audio_faderAddCallback", NodeOBS::Audio::FaderAddCallback);
+		//NODE_SET_METHOD(exports, "OBS_audio_faderRemoveCallback", NodeOBS::Audio::FaderRemoveCallback);
+		//NODE_SET_METHOD(exports, "OBS_audio_faderSetDb", NodeOBS::Audio::FaderSetDb);
+		//NODE_SET_METHOD(exports, "OBS_audio_faderGetDb", NodeOBS::Audio::FaderGetDb);
+		//NODE_SET_METHOD(exports, "OBS_audio_faderSetDeflection", NodeOBS::Audio::FaderSetDeflection);
+		//NODE_SET_METHOD(exports, "OBS_audio_faderGetDeflection", NodeOBS::Audio::FaderGetDeflection);
+		//NODE_SET_METHOD(exports, "OBS_audio_faderSetMul", NodeOBS::Audio::FaderSetMul);
+		//NODE_SET_METHOD(exports, "OBS_audio_faderGetMul", NodeOBS::Audio::FaderGetMul);
+		//NODE_SET_METHOD(exports, "OBS_audio_faderAttachSource", NodeOBS::Audio::FaderAttachSource);
+		//NODE_SET_METHOD(exports, "OBS_audio_faderDetachSource", NodeOBS::Audio::FaderDetachSource);
 
-		NODE_SET_METHOD(exports, "OBS_audio_createVolmeter", NodeOBS::Audio::CreateVolMeter);
-		NODE_SET_METHOD(exports, "OBS_audio_destroyVolmeter", NodeOBS::Audio::DestroyVolMeter);
-		NODE_SET_METHOD(exports, "OBS_audio_volmeterAttachSource", NodeOBS::Audio::VolMeterAttachSource);
-		NODE_SET_METHOD(exports, "OBS_audio_volmeterDetachSource", NodeOBS::Audio::VolMeterDetachSource);
-		NODE_SET_METHOD(exports, "OBS_audio_volmeterSetUpdateInterval", NodeOBS::Audio::VolMeterSetUpdateInterval);
-		NODE_SET_METHOD(exports, "OBS_audio_volmeterGetUpdateInterval", NodeOBS::Audio::VolMeterGetUpdateInterval);
-		NODE_SET_METHOD(exports, "OBS_audio_volmeterSetPeakHold", NodeOBS::Audio::VolMeterSetPeakHold);
-		NODE_SET_METHOD(exports, "OBS_audio_volmeterGetPeakHold", NodeOBS::Audio::VolMeterGetPeakHold);
-		NODE_SET_METHOD(exports, "OBS_audio_volmeterAddCallback", NodeOBS::Audio::VolMeterAddCallback);
-		NODE_SET_METHOD(exports, "OBS_audio_volmeterRemoveCallback", NodeOBS::Audio::VolMeterRemoveCallback);
+		//NODE_SET_METHOD(exports, "OBS_audio_createVolmeter", NodeOBS::Audio::CreateVolMeter);
+		//NODE_SET_METHOD(exports, "OBS_audio_destroyVolmeter", NodeOBS::Audio::DestroyVolMeter);
+		//NODE_SET_METHOD(exports, "OBS_audio_volmeterAttachSource", NodeOBS::Audio::VolMeterAttachSource);
+		//NODE_SET_METHOD(exports, "OBS_audio_volmeterDetachSource", NodeOBS::Audio::VolMeterDetachSource);
+		//NODE_SET_METHOD(exports, "OBS_audio_volmeterSetUpdateInterval", NodeOBS::Audio::VolMeterSetUpdateInterval);
+		//NODE_SET_METHOD(exports, "OBS_audio_volmeterGetUpdateInterval", NodeOBS::Audio::VolMeterGetUpdateInterval);
+		//NODE_SET_METHOD(exports, "OBS_audio_volmeterSetPeakHold", NodeOBS::Audio::VolMeterSetPeakHold);
+		//NODE_SET_METHOD(exports, "OBS_audio_volmeterGetPeakHold", NodeOBS::Audio::VolMeterGetPeakHold);
+		//NODE_SET_METHOD(exports, "OBS_audio_volmeterAddCallback", NodeOBS::Audio::VolMeterAddCallback);
+		//NODE_SET_METHOD(exports, "OBS_audio_volmeterRemoveCallback", NodeOBS::Audio::VolMeterRemoveCallback);
 
 		// AutoConfig
 		NODE_SET_METHOD(exports, "GetListServer", NodeOBS::AutoConfig::GetListServer);
@@ -434,7 +434,7 @@ void NodeOBS::AutoConfig::GetListServer(const v8::FunctionCallbackInfo<v8::Value
 void NodeOBS::AutoConfig::InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	v8::Local<v8::Function> param0(args[0].As<v8::Function>());
 	v8::Local<v8::Object> param1(args[1].As<v8::Object>());
-	// ToDo. Requires two-way calling.
+	// ToDo. May require two-way calling.
 }
 
 void NodeOBS::AutoConfig::StartBandwidthTest(const v8::FunctionCallbackInfo<v8::Value>& args) {
