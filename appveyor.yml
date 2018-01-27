@@ -17,11 +17,10 @@ build_script:
   - cmake --build %SLBuildDirectory% --target install --config Release
 
 after_build:
-  - 7z a "%SLArtifact%.tar" "%APPVEYOR_BUILD_FOLDER%\%SLBuildDirectory%\%SLDistributeDirectory%\*"
-  - 7z a "%SLArtifact%.tar.gz" "%SLArtifact%.tar"
+  - tar cvaf "%SLArtifact%" -C "%SLBuildDirectory%\%SLDistributeDirectory%" "obs-studio-node"
 
 artifacts:
-  - path: $(SLArtifact).tar.gz
+  - path: $(SLArtifact)
     name: Streamlabs Aritfact
 
 test: off
