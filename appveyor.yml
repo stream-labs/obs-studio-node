@@ -21,7 +21,7 @@ after_build:
   - 7z a "%SLArtifact%.tar.gz" "%SLArtifact%.tar"
 
 artifacts:
-  - path: $(SLArtifact)
+  - path: $(SLArtifact).tar.gz
     name: Streamlabs Aritfact
 
 test: off
