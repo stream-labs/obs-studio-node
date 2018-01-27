@@ -6,7 +6,7 @@ environment:
   SLGenerator: Visual Studio 14 2015 Win64
   SLDistributeDirectory: distribute
   SLArch: x64
-  SLArtifact: streamlabs-x86_64.zip
+  SLArtifact: streamlabs-x86_64.tar.gz
   
 install:
   - ps: Install-Product node $env:NodeVersion
@@ -17,7 +17,7 @@ build_script:
   - cmake --build %SLBuildDirectory% --target install --config Release
 
 after_build:
-  - 7z a "%SLArtifact%" "%APPVEYOR_BUILD_FOLDER%\%SLBuildDirectory%\%SLDistributeDirectory%\*"
+  - tar cvaf "%SLArtifact%" -C "%APPVEYOR_BUILD_FOLDER%\%SLBuildDirectory%\%SLDistributeDirectory%" *
 
 artifacts:
   - path: $(SLArtifact)
