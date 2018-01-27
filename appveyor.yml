@@ -17,7 +17,7 @@ build_script:
   - cmake --build %SLBuildDirectory% --target install --config Release
 
 after_build:
-  - tar cvaf "%SLArtifact%" -C "%APPVEYOR_BUILD_FOLDER%\%SLBuildDirectory%\%SLDistributeDirectory%" *
+  - tar cvaf "%SLArtifact%" -C "%APPVEYOR_BUILD_FOLDER%\%SLBuildDirectory%\%SLDistributeDirectory%" "%SLBuildDirectory%\%SLDistributeDirectory%\*"
 
 artifacts:
   - path: $(SLArtifact)
