@@ -20,7 +20,7 @@ after_build:
   - tar cvaf "%SLArtifact%.tar.gz" -C "%SLBuildDirectory%\%SLDistributeDirectory%" "obs-studio-node"
 
 artifacts:
-  - path: $(SLArtifact)
+  - path: $(SLArtifact).tar.gz
     name: Streamlabs Aritfact
 
 test: off
