@@ -17,7 +17,7 @@ build_script:
   - cmake --build %SLBuildDirectory% --target install --config Release
 
 after_build:
-  - tar cvaf "%SLArtifact%" -C "%SLBuildDirectory%\%SLDistributeDirectory%" "obs-studio-node"
+  - tar cvaf "%SLArtifact%.tar.gz" -C "%SLBuildDirectory%\%SLDistributeDirectory%" "obs-studio-node"
 
 artifacts:
   - path: $(SLArtifact)
