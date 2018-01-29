@@ -1,113 +1,76 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
-PROJECT(obs-studio-node VERSION 1.0.0)
+cmake_minimum_required(VERSION 3.0)
+project(obs-studio-node VERSION 1.0.0)
 
 #############################
 # CMake Settings
 #############################
 
+set(PROJECT_NAME "obs_studio_node")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+
+include(ExternalProject)
+include(DownloadProject)
+
 # Only allow Debug or Release builds.
-SET(CMAKE_CONFIGURATION_TYPES           "Debug;Release")
-SET(CMAKE_CXX_FLAGS_RELEASE             "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
-SET(CMAKE_C_FLAGS_RELEASE               "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
-SET(CMAKE_EXE_LINKER_FLAGS_RELEASE      "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO}")
-SET(CMAKE_MODULE_LINKER_FLAGS_RELEASE   "${CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO}")
-SET(CMAKE_RC_LINKER_FLAGS_RELEASE       "${CMAKE_RC_LINKER_FLAGS_RELWITHDEBINFO}")
-SET(CMAKE_SHARED_LINKER_FLAGS_RELEASE   "${CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO}")
-SET(CMAKE_STATIC_LINKER_FLAGS_RELEASE   "${CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO}")
+set(CMAKE_CONFIGURATION_TYPES           "Debug;Release")
+set(CMAKE_CXX_FLAGS_RELEASE             "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+set(CMAKE_C_FLAGS_RELEASE               "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
+set(CMAKE_EXE_LINKER_FLAGS_RELEASE      "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO}")
+set(CMAKE_MODULE_LINKER_FLAGS_RELEASE   "${CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO}")
+set(CMAKE_RC_LINKER_FLAGS_RELEASE       "${CMAKE_RC_LINKER_FLAGS_RELWITHDEBINFO}")
+set(CMAKE_SHARED_LINKER_FLAGS_RELEASE   "${CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO}")
+set(CMAKE_STATIC_LINKER_FLAGS_RELEASE   "${CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO}")
 
 #############################
 # Configuration
 #############################
 
 # Binary
-SET(BINARY_PREFIX "" CACHE STRING "Binary File prefix")
-SET(BINARY_NAME "obs-studio-node" CACHE STRING "Binary File name")
-SET(BINARY_SUFFIX ".node" CACHE STRING "Binary File suffix")
+set(BINARY_PREFIX "" CACHE STRING "Binary File prefix")
 
 # Distribution
 #SET(ENABLE_INSTALL true CACHE BOOL "Binary File prefix")
-SET(INSTALL_DIR "${CMAKE_SOURCE_DIR}/distribute" CACHE PATH "Path at which to install this module")
+set(INSTALL_DIR "${CMAKE_SOURCE_DIR}/distribute" CACHE PATH "Path at which to install this module")
 
-# OBS Studio
-SET(OBSSTUDIO_PREBUILT true CACHE BOOL "Use prebuilt binaries?")
-SET(OBSSTUDIO_PATH "${CMAKE_SOURCE_DIR}/obs-prebuild" CACHE PATH "Path to OBS Studio or prebuilt binaries")
+###########################################
+# Add libobs as an imported project
 
-#############################
-# OBS Specific Stuff
-#############################
-if(OBSSTUDIO_PREBUILT)
-	SET(OBSSTUDIO_INCLUDE
-		"${OBSSTUDIO_PATH}/include"
-	)
-	SET(OBSSTUDIO_LIBRARIES
-		debug "${OBSSTUDIO_PATH}/bin/Debug/obs.lib"
-		debug "${OBSSTUDIO_PATH}/bin/Debug/w32-pthreads.lib"
-		optimized "${OBSSTUDIO_PATH}/bin/Release/obs.lib"
-		optimized "${OBSSTUDIO_PATH}/bin/Release/w32-pthreads.lib"
-	)
-	SET(OBSSTUDIO_PLUGINS_DATA
-		"${OBSSTUDIO_PATH}/data/"
-	)
-	SET(OBSSTUDIO_BINARIES_DEBUG
-		"${OBSSTUDIO_PATH}/bin/Debug/obs.dll"
-		"${OBSSTUDIO_PATH}/bin/Debug/obs.pdb"
-		"${OBSSTUDIO_PATH}/bin/Debug/obsglad.dll"
-		"${OBSSTUDIO_PATH}/bin/Debug/obsglad.pdb"
-		"${OBSSTUDIO_PATH}/bin/Debug/w32-pthreads.dll"
-		"${OBSSTUDIO_PATH}/bin/Debug/w32-pthreads.pdb"
-		"${OBSSTUDIO_PATH}/bin/Debug/avcodec-57.dll"
-		"${OBSSTUDIO_PATH}/bin/Debug/avdevice-57.dll"
-		"${OBSSTUDIO_PATH}/bin/Debug/avfilter-6.dll"
-		"${OBSSTUDIO_PATH}/bin/Debug/avformat-57.dll"
-		"${OBSSTUDIO_PATH}/bin/Debug/avutil-55.dll"
-		"${OBSSTUDIO_PATH}/bin/Debug/libcurl.dll"
-		"${OBSSTUDIO_PATH}/bin/Debug/libobs-d3d11.dll"
-		"${OBSSTUDIO_PATH}/bin/Debug/libobs-opengl.dll"
-		"${OBSSTUDIO_PATH}/bin/Debug/libogg-0.dll"
-		"${OBSSTUDIO_PATH}/bin/Debug/libopus-0.dll"
-		"${OBSSTUDIO_PATH}/bin/Debug/libvorbis-0.dll"
-		"${OBSSTUDIO_PATH}/bin/Debug/libvorbisenc-2.dll"
-		"${OBSSTUDIO_PATH}/bin/Debug/libvorbisfile-3.dll"
-		"${OBSSTUDIO_PATH}/bin/Debug/libvpx-1.dll"
-		"${OBSSTUDIO_PATH}/bin/Debug/libx264-148.dll"
-		"${OBSSTUDIO_PATH}/bin/Debug/swresample-2.dll"
-		"${OBSSTUDIO_PATH}/bin/Debug/swscale-4.dll"
-		"${OBSSTUDIO_PATH}/bin/Debug/zlib.dll"
-	)
-	SET(OBSSTUDIO_PLUGINS_DEBUG "${OBSSTUDIO_PATH}/obs-plugins/Debug/")
-	SET(OBSSTUDIO_BINARIES_RELEASE
-		"${OBSSTUDIO_PATH}/bin/Release/obs.dll"
-		"${OBSSTUDIO_PATH}/bin/Release/obs.pdb"
-		"${OBSSTUDIO_PATH}/bin/Release/obsglad.dll"
-		"${OBSSTUDIO_PATH}/bin/Release/obsglad.pdb"
-		"${OBSSTUDIO_PATH}/bin/Release/w32-pthreads.dll"
-		"${OBSSTUDIO_PATH}/bin/Release/w32-pthreads.pdb"
-		"${OBSSTUDIO_PATH}/bin/Release/avcodec-57.dll"
-		"${OBSSTUDIO_PATH}/bin/Release/avdevice-57.dll"
-		"${OBSSTUDIO_PATH}/bin/Release/avfilter-6.dll"
-		"${OBSSTUDIO_PATH}/bin/Release/avformat-57.dll"
-		"${OBSSTUDIO_PATH}/bin/Release/avutil-55.dll"
-		"${OBSSTUDIO_PATH}/bin/Release/libcurl.dll"
-		"${OBSSTUDIO_PATH}/bin/Release/libobs-d3d11.dll"
-		"${OBSSTUDIO_PATH}/bin/Release/libobs-opengl.dll"
-		"${OBSSTUDIO_PATH}/bin/Release/libogg-0.dll"
-		"${OBSSTUDIO_PATH}/bin/Release/libopus-0.dll"
-		"${OBSSTUDIO_PATH}/bin/Release/libvorbis-0.dll"
-		"${OBSSTUDIO_PATH}/bin/Release/libvorbisenc-2.dll"
-		"${OBSSTUDIO_PATH}/bin/Release/libvorbisfile-3.dll"
-		"${OBSSTUDIO_PATH}/bin/Release/libvpx-1.dll"
-		"${OBSSTUDIO_PATH}/bin/Release/libx264-148.dll"
-		"${OBSSTUDIO_PATH}/bin/Release/swresample-2.dll"
-		"${OBSSTUDIO_PATH}/bin/Release/swscale-4.dll"
-		"${OBSSTUDIO_PATH}/bin/Release/zlib.dll"
-	)
-	SET(OBSSTUDIO_PLUGINS_RELEASE "${OBSSTUDIO_PATH}/obs-plugins/Release/")
-ENDIF()	
+# Since building libobs takes a bit of time
+# and the build should be reproducible anyways, 
+# we build obs separately and download 
+# prebuilt binaries of libobs. 
+
+# The format of the downloaded blob follows
+# what libobs installs into or what cpack
+# provides in a zip file (which should be
+# the same). 
+
+# Now, cmake is a bit dumb. You cannot 
+# normally have it download files and
+# unpack them during configure time. The
+# problem with this is if we want a flexible
+# build system, and we want to use imported
+# targets... we have to. So we instead make
+# a separate project that downloads the
+# binary during build time then build it
+# during configure time. Why doesn't cmake
+# have something to do this for us or why
+# doesn't it allow to add an external project
+# during configure time? We'll probably never know.
+###########################################
+
+download_project(
+	PROJ libobs
+	URL https://ci.appveyor.com/api/buildjobs/xyr3a9990el4tpun/artifacts/windows-x86_64-dev.zip
+	UPDATE_DISCONNECTED 1
+)
+
+include("${libobs_SOURCE_DIR}/cmake/LibObs/LibObsTarget.cmake")
 
 #############################
 # Source, Libraries & Directories
 #############################
-SET(PROJECT_SOURCE 
+set(PROJECT_SOURCE 
 	"src/obs-node.cpp"
 	"src/Service.cpp" "src/Service.h"
 	"src/AudioControls.cpp" "src/AudioControls.h"
@@ -162,35 +125,49 @@ SET(PROJECT_SOURCE
 	"src/gs-vertexbuffer.h" "src/gs-vertexbuffer.cpp"
 	"src/util-memory.h" "src/util-memory.cpp"
 )
-SET(PROJECT_LIBRARIES
-	${CMAKE_JS_LIB}
-	${OBSSTUDIO_LIBRARIES}
-)
-SET(PROJECT_INCLUDE_PATHS
-	${CMAKE_JS_INC}
-	${OBSSTUDIO_INCLUDE}
-)
-SET(PROJECT_DATA
-	"resources/"
-)
-ADD_DEFINITIONS(-DBUILDING_NODE_EXTENSION)
+
+set(PROJECT_EXTRAS
+	"package.json"
+	"js/index.d.ts"	"js/index.js"
+	"js/module.d.ts" "js/module.js"
+	"js/type_check.d.ts" "js/type_check.js")
+
+set(PROJECT_RESOURCES resources)
+
+add_definitions(-DBUILDING_NODE_EXTENSION)
 
 #############################
 # Building
 #############################
-ADD_LIBRARY(obs-studio-node SHARED ${PROJECT_SOURCE})
-TARGET_LINK_LIBRARIES(obs-studio-node ${PROJECT_LIBRARIES})
-TARGET_INCLUDE_DIRECTORIES(obs-studio-node PUBLIC ${PROJECT_INCLUDE_PATHS})
-SET_TARGET_PROPERTIES(obs-studio-node PROPERTIES PREFIX "${BINARY_PREFIX}" SUFFIX "${BINARY_SUFFIX}")
+add_library(${PROJECT_NAME} SHARED ${PROJECT_SOURCE})
+set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node")
+
+# Delay loading of obs.dll so we can decide
+# where to load obs.dll from during runtime.
+# We must be careful not to call obs functions
+# before we load the DLL though.
+
+if(WIN32)
+	set_target_properties(${PROJECT_NAME} PROPERTIES
+		LINK_FLAGS_RELEASE "/DELAYLOAD:obs.dll")
+		
+	list(APPEND PROJECT_LIBRARIES "Delayimp.lib")
+
+endif()
+target_link_libraries(${PROJECT_NAME} libobs ${PROJECT_LIBRARIES} ${CMAKE_JS_LIB} ${PROJECT_LINKER_FLAGS})
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+	$<TARGET_PROPERTY:libobs,INTERFACE_INCLUDE_DIRECTORIES>
+	${CMAKE_JS_INC})
+
 
 #############################
 # Distribute
 #############################
-INSTALL(TARGETS obs-studio-node DESTINATION "${INSTALL_DIR}")
-INSTALL(FILES $<TARGET_PDB_FILE:obs-studio-node> DESTINATION "${INSTALL_DIR}")
-INSTALL(DIRECTORY ${PROJECT_DATA} DESTINATION "${INSTALL_DIR}/resources/")
-INSTALL(FILES ${OBSSTUDIO_BINARIES_DEBUG} CONFIGURATIONS Debug DESTINATION "${INSTALL_DIR}")
-INSTALL(DIRECTORY ${OBSSTUDIO_PLUGINS_DEBUG} CONFIGURATIONS Debug DESTINATION "${INSTALL_DIR}/obs-plugins/")
-INSTALL(FILES ${OBSSTUDIO_BINARIES_RELEASE} CONFIGURATIONS Release DESTINATION "${INSTALL_DIR}")
-INSTALL(DIRECTORY ${OBSSTUDIO_PLUGINS_RELEASE} CONFIGURATIONS Release DESTINATION "${INSTALL_DIR}/obs-plugins/")
-INSTALL(DIRECTORY ${OBSSTUDIO_PLUGINS_DATA} DESTINATION "${INSTALL_DIR}/data/")
+install(TARGETS ${PROJECT_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(FILES $<TARGET_PDB_FILE:${PROJECT_NAME}> DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(FILES ${PROJECT_EXTRAS} DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(DIRECTORY ${libobs_SOURCE_DIR}/bin DESTINATION "libobs" PATTERN "*.lib" EXCLUDE)
+install(DIRECTORY ${libobs_SOURCE_DIR}/data DESTINATION "libobs")
+install(DIRECTORY ${libobs_SOURCE_DIR}/obs-plugins DESTINATION "libobs")
+install(DIRECTORY ${PROJECT_RESOURCES}/ DESTINATION "resources")
