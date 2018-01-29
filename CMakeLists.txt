@@ -61,7 +61,7 @@ set(INSTALL_DIR "${CMAKE_SOURCE_DIR}/distribute" CACHE PATH "Path at which to in
 
 download_project(
 	PROJ libobs
-	URL https://ci.appveyor.com/api/buildjobs/fvksb22x6h0j4ye5/artifacts/windows-x86_64-dev.zip
+	URL https://ci.appveyor.com/api/buildjobs/xyr3a9990el4tpun/artifacts/windows-x86_64-dev.zip
 	UPDATE_DISCONNECTED 1
 )
 
