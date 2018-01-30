@@ -810,70 +810,84 @@ typedef std::basic_string<char, ci_char_traits> istring;
 void OBS_API::openAllModules(void) {
 	OBS_service::resetVideoContext(NULL);
 
-	std::string pathOBSPlugins = g_moduleDirectory + "/libobs/obs-plugins/64bit";
-	std::string pathOBSPluginData = g_moduleDirectory + "/libobs/data/obs-plugins";
+	std::string plugins_paths[] = {
+		g_moduleDirectory + "/libobs/obs-plugins/64bit",
+		g_moduleDirectory + "/libobs/obs-plugins"
+	};
 	
-	/* FIXME Plugins could be in individual folders, maybe
-	 * with some metainfo so we don't attempt just any
-	 * shared library. */
-	if (!os_file_exists(pathOBSPlugins.c_str())) {
-		std::cerr << "Plugin Path provided is invalid: " << pathOBSPlugins << std::endl;
-		return;
+	std::string plugins_data_paths[] = {
+		g_moduleDirectory + "/libobs/data/obs-plugins",
+		plugins_data_paths[0]
+	};
+
+	size_t num_paths = sizeof(plugins_paths) / sizeof(plugins_paths[0]);
+
+	for (int i = 0; i < num_paths; ++i) {
+		std::string &plugins_path = plugins_paths[i];
+		std::string &plugins_data_path = plugins_data_paths[i];
+
+		/* FIXME Plugins could be in individual folders, maybe
+		* with some metainfo so we don't attempt just any
+		* shared library. */
+		if (!os_file_exists(plugins_path.c_str())) {
+			std::cerr << "Plugin Path provided is invalid: " << plugins_path << std::endl;
+			return;
+		}
+
+		os_dir_t* plugin_dir = os_opendir(plugins_path.c_str());
+		if (!plugin_dir) {
+			std::cerr << "Failed to open plugin diretory: " << plugins_path << std::endl;
+			return;
+		}
+
+		for (os_dirent* ent = os_readdir(plugin_dir); ent != nullptr; ent = os_readdir(plugin_dir)) {
+			std::string fullname = ent->d_name;
+			std::string basename = fullname.substr(0, fullname.find_last_of('.'));
+			std::string plugin_path = plugins_path + "/" + fullname;
+			std::string plugin_data_path = plugins_data_path + "/" + basename;
+
+			if (ent->directory) {
+				continue;
+			}
+
+			#ifdef _WIN32
+			if (fullname.substr(fullname.find_last_of(".") + 1) != "dll") {
+				continue;
+			}
+			#endif
+
+			obs_module_t *module;
+			int result = obs_open_module(&module, plugin_path.c_str(), plugin_data_path.c_str());
+
+			switch (result) {
+				case MODULE_SUCCESS:
+					break;
+				case MODULE_FILE_NOT_FOUND:
+					std::cerr << "Unable to load '" << plugin_path << "', could not find file." << std::endl;
+					continue;
+				case MODULE_MISSING_EXPORTS:
+					std::cerr << "Unable to load '" << plugin_path << "', missing exports." << std::endl;
+					continue;
+				case MODULE_INCOMPATIBLE_VER:
+					std::cerr << "Unable to load '" << plugin_path << "', incompatible version." << std::endl;
+					continue;
+				case MODULE_ERROR:
+					std::cerr << "Unable to load '" << plugin_path << "', generic error." << std::endl;
+					continue;
+				default:
+					continue;
+			}
+
+			bool success = obs_init_module(module);
+
+			if (!success) {
+				std::cerr << "Failed to initialize module " << plugin_path << std::endl;
+				/* Just continue to next one */
+			}
+		}
+
+		os_closedir(plugin_dir);
 	}
-
-	os_dir_t* odPlugins = os_opendir(pathOBSPlugins.c_str());
-	if (!odPlugins) {
-		std::cerr << "Failed to open plugin diretory: " << pathOBSPlugins << std::endl;
-		return;
-	}
-
-	for (os_dirent* ent = os_readdir(odPlugins); ent != nullptr; ent = os_readdir(odPlugins)) {
-		std::string pathFile = ent->d_name;
-		std::string pathFileName = pathFile.substr(0, pathFile.find_last_of('.'));
-		std::string pathPlugin = pathOBSPlugins + "/" + pathFile;
-		std::string pathPluginData = pathOBSPluginData + "/" + pathFileName;
-
-		if (ent->directory) {
-			continue;
-		}
-
-		#ifdef _WIN32
-		if (pathFile.substr(pathFile.find_last_of(".") + 1) != "dll") {
-			continue;
-		}
-		#endif
-
-		obs_module_t *module;
-		int result = obs_open_module(&module, pathPlugin.c_str(), pathPluginData.c_str());
-
-		switch (result) {
-			case MODULE_SUCCESS:
-				break;
-			case MODULE_FILE_NOT_FOUND:
-				std::cerr << "Unable to load '" << pathPlugin << "', could not find file." << std::endl;
-				continue;
-			case MODULE_MISSING_EXPORTS:
-				std::cerr << "Unable to load '" << pathPlugin << "', missing exports." << std::endl;
-				continue;
-			case MODULE_INCOMPATIBLE_VER:
-				std::cerr << "Unable to load '" << pathPlugin << "', incompatible version." << std::endl;
-				continue;
-			case MODULE_ERROR:
-				std::cerr << "Unable to load '" << pathPlugin << "', generic error." << std::endl;
-				continue;
-			default:
-				continue;
-		}
-
-		bool success = obs_init_module(module);
-
-		if (!success) {
-			std::cerr << "Failed to initialize module " << pathPlugin << std::endl;
-			/* Just continue to next one */
-		}
-	}
-
-	os_closedir(odPlugins);
 }
 
 Local<Object> OBS_API::getPerformanceStatistics(void) 
