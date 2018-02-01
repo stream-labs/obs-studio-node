@@ -52,6 +52,8 @@ before_deploy:
 deploy:
   - provider: GitHub
     artifact: $(SignedArtifact).tar.gz
+    auth_token:
+      secure: nP2TonQxdUNyL65bmBKVPi0/jYX3h6mPCdFgJs1WeD+kNhgoUJ4mqxZ2FWkjpE0N
     draft: false
     prerelease: false
     on:
