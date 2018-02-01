@@ -7,7 +7,8 @@ environment:
   SLDistributeDirectory: distribute
   SLFullDistributePath: $(SLBuildDirectory)\$(SLDistributeDirectory)
   SLArch: x64
-  SLArtifact: streamlabs-x86_64
+  UnsignedArtifact: streamlabs-x86_64-unsigned
+  SignedArtifact: streamlabs-x86_64-signed
   SignTool: C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe
   StreamlabsPfxSecret:
     secure: iZlMSWnmH5FQDpa+/0SgXIyvCobkElj2y5lu94Uo8VnTWHTeTC1/bpVkzsLreENocomvDB5ywsa3+QdathRp8A==
@@ -21,10 +22,13 @@ install:
 build_script:
   - yarn run cmake-js configure --out "%SLBuildDirectory%" -r="%SLRuntime%" -v="%SLRuntimeVersion%" -G"%SLGenerator%" -a "%SLArch%" --CDCMAKE_INSTALL_PREFIX="%SLDistributeDirectory%\obs-studio-node"
   - cmake --build %SLBuildDirectory% --target install --config Release
+  - tar cvaf "%UnsignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
+
+before_deploy:
   - nuget install secure-file -ExcludeVersion
   
   - ps: |
-      & secure-file\tools\secure-file -decrypt CI\streamlabsp12.pfx.enc -secret $env:StreamlabsPfxSecret -out CI\streamlabsp12.pfx
+      & secure-file\tools\secure-file -decrypt CI\streamlabsp12.pfx.enc -secret "$env:StreamlabsPfxSecret" -out CI\streamlabsp12.pfx
       if ($LASTEXITCODE -ne 0) {
         exit 1
       }
@@ -42,10 +46,22 @@ build_script:
   - if not exist "OBS-Studio-21.0.1-Small.zip" appveyor DownloadFile "https://github.com/jp9000/obs-studio/releases/download/21.0.1/OBS-Studio-21.0.1-Small.zip"
   - 7z x "OBS-Studio-21.0.1-Small.zip" -oobs-studio-jp9000
   - robocopy "obs-studio-jp9000\data\obs-plugins\win-capture" "%SLFullDistributePath%\obs-studio-node\libobs\data\obs-plugins\win-capture" & exit 0
-  - tar cvaf "%SLArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
+  - tar cvaf "%SignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
+
+deploy:
+  - provider: GitHub
+    artifact: $(SignedArtifact).tar.gz
+    draft: false
+    prerelease: false
+    on:
+      branch: master
+      appveyor_repo_tag: true
 
 artifacts:
-  - path: $(SLArtifact).tar.gz
-    name: Streamlabs Aritfact
+  - path: $(UnsignedArtifact).tar.gz
+    name: Unsigned Aritfact
+
+  - path: $(SignedArtifact).tar.gz
+    name: Signed Artifact
 
 test: off
