@@ -47,6 +47,7 @@ before_deploy:
   - 7z x "OBS-Studio-21.0.1-Small.zip" -oobs-studio-jp9000
   - robocopy "obs-studio-jp9000\data\obs-plugins\win-capture" "%SLFullDistributePath%\obs-studio-node\libobs\data\obs-plugins\win-capture" & exit 0
   - tar cvaf "%SignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
+  - ps: Push-AppveyorArtifact "$env:SignedArtifact.tar.gz"
 
 deploy:
   - provider: GitHub
@@ -60,8 +61,5 @@ deploy:
 artifacts:
   - path: $(UnsignedArtifact).tar.gz
     name: Unsigned Aritfact
-
-  - path: $(SignedArtifact).tar.gz
-    name: Signed Artifact
 
 test: off
