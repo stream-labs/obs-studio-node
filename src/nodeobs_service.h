@@ -8,7 +8,6 @@
 #include <util/config-file.h>
 #include <util/dstr.h>
 #include <util/platform.h>
-#include <util/util.hpp>
 #include <algorithm>
 #include <sys/stat.h>
 #include "nodeobs_api.h"

@@ -60,6 +60,71 @@ OBS_API::~OBS_API() {
 
 void OBS_API::OBS_API_initAPI(const FunctionCallbackInfo<Value>& args)
 {
+	/* Map base DLLs as soon as possible into the current process space.
+	 * In particular, we need to load obs.dll into memory before we call
+	 * any functions from obs else if we delay-loaded the dll, it will
+	 * fail miserably. */
+	
+	// Set up several directories used.
+	/* FIXME These should be configurable */
+	/* FIXME g_moduleDirectory really needs to be a wstring */
+	std::string pathOBS = g_moduleDirectory + "/libobs/bin/64bit";
+
+	/* Also note that this method is possible on POSIX
+	 * as well. You can call dlopen with RTLD_GLOBAL */
+	// ORDER MATTERS HERE
+	static const char *g_modules[] = {
+		"zlib.dll",
+		"libopus-0.dll",
+		"libogg-0.dll",
+		"libvorbis-0.dll",
+		"libvorbisenc-2.dll",
+		"libvpx-1.dll",
+		"libx264-152.dll",
+		"avutil-55.dll",
+		"swscale-4.dll",
+		"swresample-2.dll",
+		"avcodec-57.dll",
+		"avformat-57.dll",
+		"avfilter-6.dll",
+		"avdevice-57.dll",
+		"libcurl.dll",
+		"libvorbisfile-3.dll",
+		"w32-pthreads.dll",
+		"obsglad.dll",
+		"obs.dll",
+		"libobs-d3d11.dll",
+		"libobs-opengl.dll"
+	};
+
+	static const int g_modules_size = sizeof(g_modules) / sizeof(g_modules[0]);
+
+	for (int i = 0; i < g_modules_size; ++i) {
+		std::string module_path;
+		void *handle = NULL;
+		
+		module_path.reserve(pathOBS.size() + strlen(g_modules[i]) + 1);
+		module_path.append(pathOBS);
+		module_path.append("/");
+		module_path.append(g_modules[i]);
+
+		#ifdef _WIN32
+			handle = LoadLibrary(module_path.c_str());
+		#endif
+
+		if (!handle) {
+			std::cerr << "Failed to open dependency " << module_path << std::endl;
+		}
+
+		/* This is an intentional leak. 
+		 * We leave these open and let the 
+		 * OS clean these up for us as
+		 * they should be available through
+		 * out the application */
+	}
+	
+	/* We may now use obs functions */
+	
 	String::Utf8Value path(args[0]);
 
 	if (args[0]->IsString()) {
@@ -584,7 +649,7 @@ bool OBS_API::initOBS_API()
 	 * 2. ${OBS_DATA_PATH}/libobs <- This works but is inflexible
 	 * 3. getenv(OBS_DATA_PATH) + /libobs <- Can be set anywhere
 	 *    on the cli, in the frontend, or the backend. */
-	_putenv_s("OBS_DATA_PATH", std::string(g_moduleDirectory + "/data").c_str());
+	_putenv_s("OBS_DATA_PATH", std::string(g_moduleDirectory + "/libobs/data").c_str());
 
 	std::vector<char> userData = std::vector<char>(1024);
 	os_get_config_path(userData.data(), userData.capacity() - 1, "slobs-client/plugin_config");
@@ -745,126 +810,84 @@ typedef std::basic_string<char, ci_char_traits> istring;
 void OBS_API::openAllModules(void) {
 	OBS_service::resetVideoContext(NULL);
 
-	// Set up several directories used.
-	/* FIXME These should be configurable */
-	/* FIXME g_moduleDirectory really needs to be a wstring */
-	std::string pathOBS = g_moduleDirectory;
-	std::string pathOBSPlugins = pathOBS + "/obs-plugins";
-	std::string pathOBSPluginData = pathOBS + "/data/obs-plugins";
-
-	/* Also note that this method is possible on POSIX
-	 * as well. You can call dlopen with RTLD_GLOBAL */
-	static const char *g_modules[] = {
-		"avcodec-57.dll",
-		"avdevice-57.dll",
-		"avfilter-6.dll",
-		"avformat-57.dll",
-		"avutil-55.dll",
-		"libcurl.dll",
-		"libobs-d3d11.dll",
-		"libobs-opengl.dll",
-		"libogg-0.dll",
-		"libopus-0.dll",
-		"libvorbis-0.dll",
-		"libvorbisenc-2.dll",
-		"libvorbisfile-3.dll",
-		"libvpx-1.dll",
-		"libx264-148.dll",
-		"swresample-2.dll",
-		"swscale-4.dll",
-		"w32-pthreads.dll",
-		"zlib.dll"
+	std::string plugins_paths[] = {
+		g_moduleDirectory + "/libobs/obs-plugins/64bit",
+		g_moduleDirectory + "/libobs/obs-plugins"
+	};
+	
+	std::string plugins_data_paths[] = {
+		g_moduleDirectory + "/libobs/data/obs-plugins",
+		plugins_data_paths[0]
 	};
 
-	static const int g_modules_size = sizeof(g_modules) / sizeof(g_modules[0]);
+	size_t num_paths = sizeof(plugins_paths) / sizeof(plugins_paths[0]);
 
-	for (int i = 0; i < g_modules_size; ++i) {
-		std::string module_path;
-		void *handle = NULL;
-		
-		module_path.reserve(pathOBS.size() + strlen(g_modules[i]) + 1);
-		module_path.append(pathOBS);
-		module_path.append("/");
-		module_path.append(g_modules[i]);
+	for (int i = 0; i < num_paths; ++i) {
+		std::string &plugins_path = plugins_paths[i];
+		std::string &plugins_data_path = plugins_data_paths[i];
 
-		handle = os_dlopen(module_path.c_str());
-
-		if (!handle) {
-			std::cerr << "Failed to open dependency " << g_modules[i] << std::endl;
+		/* FIXME Plugins could be in individual folders, maybe
+		* with some metainfo so we don't attempt just any
+		* shared library. */
+		if (!os_file_exists(plugins_path.c_str())) {
+			std::cerr << "Plugin Path provided is invalid: " << plugins_path << std::endl;
+			return;
 		}
 
-		/* This is an intentional leak. 
-		 * We leave these open and let the 
-		 * OS clean these up for us as
-		 * they should be available through
-		 * out the application */
+		os_dir_t* plugin_dir = os_opendir(plugins_path.c_str());
+		if (!plugin_dir) {
+			std::cerr << "Failed to open plugin diretory: " << plugins_path << std::endl;
+			return;
+		}
+
+		for (os_dirent* ent = os_readdir(plugin_dir); ent != nullptr; ent = os_readdir(plugin_dir)) {
+			std::string fullname = ent->d_name;
+			std::string basename = fullname.substr(0, fullname.find_last_of('.'));
+			std::string plugin_path = plugins_path + "/" + fullname;
+			std::string plugin_data_path = plugins_data_path + "/" + basename;
+
+			if (ent->directory) {
+				continue;
+			}
+
+			#ifdef _WIN32
+			if (fullname.substr(fullname.find_last_of(".") + 1) != "dll") {
+				continue;
+			}
+			#endif
+
+			obs_module_t *module;
+			int result = obs_open_module(&module, plugin_path.c_str(), plugin_data_path.c_str());
+
+			switch (result) {
+				case MODULE_SUCCESS:
+					break;
+				case MODULE_FILE_NOT_FOUND:
+					std::cerr << "Unable to load '" << plugin_path << "', could not find file." << std::endl;
+					continue;
+				case MODULE_MISSING_EXPORTS:
+					std::cerr << "Unable to load '" << plugin_path << "', missing exports." << std::endl;
+					continue;
+				case MODULE_INCOMPATIBLE_VER:
+					std::cerr << "Unable to load '" << plugin_path << "', incompatible version." << std::endl;
+					continue;
+				case MODULE_ERROR:
+					std::cerr << "Unable to load '" << plugin_path << "', generic error." << std::endl;
+					continue;
+				default:
+					continue;
+			}
+
+			bool success = obs_init_module(module);
+
+			if (!success) {
+				std::cerr << "Failed to initialize module " << plugin_path << std::endl;
+				/* Just continue to next one */
+			}
+		}
+
+		os_closedir(plugin_dir);
 	}
-
-	/* At this point, we've made any symbols included
-	 * with libobs available. Any dependencies not provided
-	 * now should be provided with each individual plugin. */
-
-	/* FIXME Plugins could be in individual folders, maybe
-	 * with some metainfo so we don't attempt just any
-	 * shared library. */
-	if (!os_file_exists(pathOBSPlugins.c_str())) {
-		std::cerr << "Plugin Path provided is invalid: " << pathOBSPlugins << std::endl;
-		return;
-	}
-
-	os_dir_t* odPlugins = os_opendir(pathOBSPlugins.c_str());
-	if (!odPlugins) {
-		std::cerr << "Failed to open plugin diretory: " << pathOBSPlugins << std::endl;
-		return;
-	}
-
-	for (os_dirent* ent = os_readdir(odPlugins); ent != nullptr; ent = os_readdir(odPlugins)) {
-		std::string pathFile = ent->d_name;
-		std::string pathFileName = pathFile.substr(0, pathFile.find_last_of('.'));
-		std::string pathPlugin = pathOBSPlugins + "/" + pathFile;
-		std::string pathPluginData = pathOBSPluginData + "/" + pathFileName;
-
-		if (ent->directory) {
-			continue;
-		}
-
-		#ifdef _WIN32
-		if (pathFile.substr(pathFile.find_last_of(".") + 1) != "dll") {
-			continue;
-		}
-		#endif
-
-		obs_module_t *module;
-		int result = obs_open_module(&module, pathPlugin.c_str(), pathPluginData.c_str());
-
-		switch (result) {
-			case MODULE_SUCCESS:
-				break;
-			case MODULE_FILE_NOT_FOUND:
-				std::cerr << "Unable to load '" << pathPlugin << "', could not find file." << std::endl;
-				continue;
-			case MODULE_MISSING_EXPORTS:
-				std::cerr << "Unable to load '" << pathPlugin << "', missing exports." << std::endl;
-				continue;
-			case MODULE_INCOMPATIBLE_VER:
-				std::cerr << "Unable to load '" << pathPlugin << "', incompatible version." << std::endl;
-				continue;
-			case MODULE_ERROR:
-				std::cerr << "Unable to load '" << pathPlugin << "', generic error." << std::endl;
-				continue;
-			default:
-				continue;
-		}
-
-		bool success = obs_init_module(module);
-
-		if (!success) {
-			std::cerr << "Failed to initialize module " << pathPlugin << std::endl;
-			/* Just continue to next one */
-		}
-	}
-
-	os_closedir(odPlugins);
 }
 
 Local<Object> OBS_API::getPerformanceStatistics(void) 

@@ -1,4 +1,4 @@
-const obs = require('./obs-studio-node.node');
+const obs = require('./obs_studio_node.node');
 import * as path from 'path';
 
 // EDIT: Add function to specify actual load directory.

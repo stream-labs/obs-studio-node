@@ -16,25 +16,19 @@
   "types": "./distribute/index.d.ts",
   "scripts": {
     "clean": "git clean -fxd",
-    "compile": "npm run build:javascript && npm run build:bindings",
-    "install": "npm run compile",
+	"build:bindings": "cmake-js configure -a x64 --CDCMAKE_PREFIX_INSTALL=distribute && cmake --build build --target install --config Release",
     "build:javascript": "tsc -p js",
-    "build:bindings": "tsc && node build-bindings.js",
     "build:docs": "typedoc --out docs"
   },
   "dependencies": {
-    "@types/shelljs": "^0.7.2",
-    "cmake-js": "^3.5.0",
-    "nan": "^2.6.2",
-    "rimraf": "^2.6.1",
-    "shelljs": "^0.7.8",
-    "simple-git": "^1.74.1",
-    "typescript": "^2.6.2"
+    "nan": "^2.8.0"
   },
   "devDependencies": {
-    "typedoc": "^0.8.0",
+    "cmake-js": "^3.6.1",
+    "typedoc": "^0.9.0",
     "typedoc-default-themes": "^0.5.0",
-    "typedoc-plugin-markdown": "^1.0.8"
+    "typedoc-plugin-markdown": "^1.0.12",
+    "typescript": "^2.6.2"
   },
   "keywords": [
     "capture",

@@ -840,9 +840,9 @@ bool OBS_service::resetVideoContext(const char* outputType)
 	obs_video_info ovi;
 	std::string gslib = "";
     #ifdef _WIN32
-    gslib = std::string(g_moduleDirectory + '/' + GetRenderModule(basicConfig)).c_str();
+    gslib = GetRenderModule(basicConfig);
     #else
-	gslib = std::string(g_moduleDirectory + '/' + "libobs-opengl.dll").c_str();
+	gslib = "libobs-opengl";
     #endif
     ovi.graphics_module = gslib.c_str();
 
@@ -857,28 +857,6 @@ bool OBS_service::resetVideoContext(const char* outputType)
 
     ovi.output_width   = (uint32_t)config_get_uint(basicConfig, "Video", "OutputCX");
     ovi.output_height  = (uint32_t)config_get_uint(basicConfig, "Video", "OutputCY");
-
-    if(strcmp(outputMode, "Advanced") == 0 && outputType != NULL) {
-        if(strcmp(outputType, "Stream") == 0) {
-            bool doRescale = config_get_bool(basicConfig, "AdvOut", "Rescale");
-            if(doRescale) {
-                const char* rescaleRes = config_get_string(basicConfig, "AdvOut", "RescaleRes");
-                if (rescaleRes == NULL) {
-                    rescaleRes = "1280x720";
-                }
-                sscanf(rescaleRes, "%ux%u", &ovi.output_width, &ovi.output_height);
-            }
-        } else if (strcmp(outputType, "Record") == 0) {
-            bool doRescale = config_get_bool(basicConfig, "AdvOut", "RecRescale");
-            if(doRescale) {
-                const char* recRescaleRes = config_get_string(basicConfig, "AdvOut", "RecRescaleRes");
-                if (recRescaleRes == NULL) {
-                    recRescaleRes = "1280x720";
-                }
-                sscanf(recRescaleRes, "%ux%u", &ovi.output_width, &ovi.output_height);
-            }
-        }
-    }
 
 	std::vector<Screen> resolutions = OBS_API::availableResolutions();
 
@@ -1117,9 +1095,14 @@ char *os_generate_formatted_filename(const char *extension, bool space,
 std::string GenerateSpecifiedFilename(const char *extension, bool noSpace,
         const char *format)
 {
-    BPtr<char> filename = os_generate_formatted_filename(extension,
+    char *filename = os_generate_formatted_filename(extension,
             !noSpace, format);
-    return string(filename);
+    
+    std::string result(filename);
+
+    bfree(filename);
+
+    return result;
 }
 
 static void ensure_directory_exists(string &path)
