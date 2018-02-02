@@ -293,7 +293,7 @@ static void volmeter_cb_wrapper(
     for (int i = 0; i < MAX_AUDIO_CHANNELS; ++i) {
         data->magnitude[i] = magnitude[i];
         data->peak[i] = peak[i];
-        data->input_peak[i] = peak[i];
+        data->input_peak[i] = input_peak[i];
     }
 
     cb_binding->queue.send(data);
@@ -312,9 +312,9 @@ void Volmeter::Callback(Volmeter *volmeter, Volmeter::Data *item)
         return;
     }
 
-    v8::Local<v8::Object> magnitude_array  = Nan::New<v8::Object>();
-    v8::Local<v8::Object> peak_array       = Nan::New<v8::Object>();
-    v8::Local<v8::Object> input_peak_array = Nan::New<v8::Object>();
+    v8::Local<v8::Array> magnitude_array  = Nan::New<v8::Array>();
+    v8::Local<v8::Array> peak_array       = Nan::New<v8::Array>();
+    v8::Local<v8::Array> input_peak_array = Nan::New<v8::Array>();
 
     for (int i = 0; i < MAX_AUDIO_CHANNELS; ++i) {
         common::SetObjectField(magnitude_array,  i, item->magnitude[i]);
