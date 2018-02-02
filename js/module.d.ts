@@ -555,11 +555,10 @@ export interface IVolmeterFactory {
     create(type: EFaderType): IVolmeter;
 }
 export interface IVolmeter {
-    peakHold: number;
     updateInterval: number;
     attach(source: IInput): void;
     detach(): void;
-    addCallback(cb: (level: number, magnitude: number, peak: number, muted: boolean) => void): ICallbackData;
+    addCallback(cb: (magnitude: number[], peak: number[], inputPeak: number[]) => void): ICallbackData;
     removeCallback(cbData: ICallbackData): void;
 }
 export interface ICallbackData {
