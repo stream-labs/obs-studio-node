@@ -290,11 +290,11 @@ static void volmeter_cb_wrapper(
 
     data->param = param;
 
-    const size_t copy_size = MAX_AUDIO_CHANNELS * sizeof(float);
-
-    memcpy(data->magnitude,  magnitude,  copy_size);
-    memcpy(data->peak,       peak,       copy_size);
-    memcpy(data->input_peak, input_peak, copy_size);
+    for (int i = 0; i < MAX_AUDIO_CHANNELS; ++i) {
+        data->magnitude[i] = magnitude[i];
+        data->peak[i] = peak[i];
+        data->input_peak[i] = peak[i];
+    }
 
     cb_binding->queue.send(data);
 }
