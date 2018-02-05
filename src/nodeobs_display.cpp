@@ -425,11 +425,17 @@ inline void DrawBoxAt(OBS::Display* dp, float_t x, float_t y, matrix4& mtx) {
 
 	vec3 pos = { x, y, 0.0f };
 	vec3_transform(&pos, &pos, &mtx);
-
+	
 	vec3 offset = { -HANDLE_RADIUS, -HANDLE_RADIUS, 0.0f };
+	offset.x *= dp->m_previewToWorldScale.x;
+	offset.y *= dp->m_previewToWorldScale.y;
+	
 	gs_matrix_translate(&pos);
 	gs_matrix_translate(&offset);
-	gs_matrix_scale3f(HANDLE_DIAMETER, HANDLE_DIAMETER, 1.0f);
+	gs_matrix_scale3f(
+		HANDLE_DIAMETER * dp->m_previewToWorldScale.x,
+		HANDLE_DIAMETER * dp->m_previewToWorldScale.y,
+		1.0f);
 
 	gs_draw(GS_LINESTRIP, 0, 0);
 	gs_matrix_pop();
@@ -442,9 +448,16 @@ inline void DrawSquareAt(OBS::Display* dp, float_t x, float_t y, matrix4& mtx) {
 	vec3_transform(&pos, &pos, &mtx);
 
 	vec3 offset = { -HANDLE_RADIUS, -HANDLE_RADIUS, 0.0f };
+	offset.x *= dp->m_previewToWorldScale.x;
+	offset.y *= dp->m_previewToWorldScale.y;
+
+
 	gs_matrix_translate(&pos);
 	gs_matrix_translate(&offset);
-	gs_matrix_scale3f(HANDLE_DIAMETER, HANDLE_DIAMETER, 1.0f);
+	gs_matrix_scale3f(
+		HANDLE_DIAMETER * dp->m_previewToWorldScale.x,
+		HANDLE_DIAMETER * dp->m_previewToWorldScale.y,
+		1.0f);
 
 	gs_draw(GS_TRISTRIP, 0, 0);
 	gs_matrix_pop();
@@ -511,22 +524,24 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 	obs_sceneitem_get_box_transform(item, &boxTransform);
 	matrix4_inv(&invBoxTransform, &boxTransform);
 
-	vec3 bounds[] = {
-		{ { { 0.f, 0.f, 0.f } } },
-		{ { { 1.f, 0.f, 0.f } } },
-		{ { { 0.f, 1.f, 0.f } } },
-		{ { { 1.f, 1.f, 0.f } } },
-	};
-	bool visible = std::all_of(std::begin(bounds), std::end(bounds),
-		[&](const vec3 &b) {
-		vec3 pos;
-		vec3_transform(&pos, &b, &boxTransform);
-		vec3_transform(&pos, &pos, &invBoxTransform);
-		return CloseFloat(pos.x, b.x) && CloseFloat(pos.y, b.y);
-	});
+	{
+		vec3 bounds[] = {
+			{ { { 0.f, 0.f, 0.f } } },
+			{ { { 1.f, 0.f, 0.f } } },
+			{ { { 0.f, 1.f, 0.f } } },
+			{ { { 1.f, 1.f, 0.f } } },
+		};
+		bool visible = std::all_of(std::begin(bounds), std::end(bounds),
+			[&](const vec3 &b) {
+			vec3 pos;
+			vec3_transform(&pos, &b, &boxTransform);
+			vec3_transform(&pos, &pos, &invBoxTransform);
+			return CloseFloat(pos.x, b.x) && CloseFloat(pos.y, b.y);
+		});
 
-	if (!visible)
-		return true;
+		if (!visible)
+			return true;
+	}
 
 	OBS::Display* dp = reinterpret_cast<OBS::Display*>(param);
 
@@ -629,7 +644,7 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 		}
 
 		std::vector<char> buf(8);
-		float_t pt = 16 * dp->m_worldToPreviewScale.y;
+		float_t pt = 12 * dp->m_previewToWorldScale.y;
 		for (size_t n = 0; n < 4; n++) {
 			bool isIn = (edge[n].x >= 0) && (edge[n].x < sceneWidth)
 				&& (edge[n].y >= 0) && (edge[n].y < sceneHeight);
@@ -782,11 +797,11 @@ void OBS::Display::DisplayCallback(OBS::Display* dp, uint32_t cx, uint32_t cy) {
 		vec2_mul(&tlCorner, &tlCorner, &dp->m_previewToWorldScale);
 		vec2_mul(&brCorner, &brCorner, &dp->m_previewToWorldScale);
 
-		gs_set_viewport(0, 0, cx, cy);
 		gs_ortho(
 			tlCorner.x, brCorner.x,
 			tlCorner.y, brCorner.y,
 			-100.0f, 100.0f);
+		gs_reset_viewport();
 
 		/* Here we assume that channel 0 holds the one and only transition.
 		 * We also assume that the active source within that transition is
