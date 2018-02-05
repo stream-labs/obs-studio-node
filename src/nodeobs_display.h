@@ -58,10 +58,6 @@ namespace OBS {
 		static bool DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item, void* param);
 		void UpdatePreviewArea();
 
-		public: // Rendering code needs it.
-		vec2 m_worldToPreviewScale,
-			m_previewToWorldScale;
-
 		private:
 		gs_init_data m_gsInitData;
 		obs_display_t* m_display;
@@ -74,6 +70,7 @@ namespace OBS {
 		std::pair<int32_t, int32_t> m_previewOffset;
 		/// Actual Preview Size
 		std::pair<uint32_t, uint32_t> m_previewSize;
+		vec2 m_worldToPreviewScale;
 
 		// OBS Graphics API
 		gs_effect_t 
@@ -82,12 +79,9 @@ namespace OBS {
 		gs_texture_t *m_textTexture;
 
 		GS::VertexBuffer
+			*m_lines,
+			*m_triangles,
 			*m_textVertices;
-
-		std::unique_ptr<GS::VertexBuffer>
-			m_boxLine,
-			m_boxTris;
-
 
 		// Theme/Style
 		/// Padding
