@@ -21,17 +21,6 @@ set(CMAKE_RC_LINKER_FLAGS_RELEASE       "${CMAKE_RC_LINKER_FLAGS_RELWITHDEBINFO}
 set(CMAKE_SHARED_LINKER_FLAGS_RELEASE   "${CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO}")
 set(CMAKE_STATIC_LINKER_FLAGS_RELEASE   "${CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO}")
 
-#############################
-# Configuration
-#############################
-
-# Binary
-set(BINARY_PREFIX "" CACHE STRING "Binary File prefix")
-
-# Distribution
-#SET(ENABLE_INSTALL true CACHE BOOL "Binary File prefix")
-set(INSTALL_DIR "${CMAKE_SOURCE_DIR}/distribute" CACHE PATH "Path at which to install this module")
-
 ###########################################
 # Add libobs as an imported project
 
