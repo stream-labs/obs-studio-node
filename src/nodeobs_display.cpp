@@ -369,7 +369,7 @@ static void DrawGlyph(GS::VertexBuffer* vb, float_t x, float_t y, float_t scale,
 			break;
 	}
 
-	GS::Vertex v(nullptr, nullptr, nullptr, nullptr, nullptr);
+	GS::Vertex v;
 	size_t bs = vb->Size();
 	vb->Resize(uint32_t(bs + 6));
 
@@ -406,19 +406,39 @@ static void DrawGlyph(GS::VertexBuffer* vb, float_t x, float_t y, float_t scale,
 	*v.color = color;
 }
 
-#define HANDLE_RADIUS 5.0f
-#define HANDLE_DIAMETER 10.0f
+inline void DrawBox(float_t x, float_t y, float_t w, float_t h, float_t depth, uint32_t color, GS::VertexBuffer* vbh) {
+	GS::Vertex v;
+	size_t bs = vbh->Size();
+	vbh->Resize(bs + 6);
+
+	v = vbh->At(bs + 0);
+	vec3_set(v.position, x, y, depth);
+	*v.color = color;
+
+	v = vbh->At(bs + 1);
+	vec3_set(v.position, x + w, y, depth);
+	*v.color = color;
+
+	v = vbh->At(bs + 2);
+	vec3_set(v.position, x, y + h, depth);
+	*v.color = color;
+
+	v = vbh->At(bs + 3);
+	vec3_set(v.position, x, y + h, depth);
+	*v.color = color;
+
+	v = vbh->At(bs + 4);
+	vec3_set(v.position, x + w, y, depth);
+	*v.color = color;
 
 inline bool CloseFloat(float a, float b, float epsilon = 0.01) {
 	return std::abs(a - b) <= epsilon;
 }
 
-inline void DrawOutline(OBS::Display* dp, matrix4& mtx, obs_transform_info& info) {
-	gs_matrix_push();
-	gs_matrix_set(&mtx);
-	gs_draw(GS_LINESTRIP, 0, 0);
-	gs_matrix_pop();
-}
+inline void DrawBoxOutline(float_t x, float_t y, float_t w, float_t h, float_t depth, uint32_t color, GS::VertexBuffer* vbh) {
+	GS::Vertex v;
+	size_t bs = vbh->Size();
+	vbh->Resize(bs + 8);
 
 inline void DrawBoxAt(OBS::Display* dp, float_t x, float_t y, matrix4& mtx) {
 	gs_matrix_push();
