@@ -644,7 +644,7 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 		}
 
 		std::vector<char> buf(8);
-		float_t pt = 12 * dp->m_previewToWorldScale.y;
+		float_t pt = 8 * dp->m_previewToWorldScale.y;
 		for (size_t n = 0; n < 4; n++) {
 			bool isIn = (edge[n].x >= 0) && (edge[n].x < sceneWidth)
 				&& (edge[n].y >= 0) && (edge[n].y < sceneHeight);
