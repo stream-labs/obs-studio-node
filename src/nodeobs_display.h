@@ -5,7 +5,6 @@
 #include <system_error>
 #include <algorithm>
 #include <vector>
-#include "gs-vertexbuffer.h"
 
 #if defined(_WIN32)
 #ifdef NOWINOFFSETS
@@ -22,6 +21,34 @@ EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 #endif
 
 namespace OBS {
+	struct VertexHelper {
+		VertexHelper();
+
+		vec3 pos, normal, tangent;
+		uint32_t color;
+		vec2 uv0, uv1;
+	};
+
+	class VertexBufferHelper {
+		private:
+		gs_vertbuffer_t* vb;
+		gs_vb_data* vbdata;
+		std::vector<VertexHelper> vertices;
+		std::vector<gs_tvertarray> vbuvdata;
+		std::vector<vec3> t_vertices, t_normals, t_tangents;
+		std::vector<uint32_t> t_colors;
+		std::vector<vec2> t_uv0, t_uv1;
+
+		public:
+		VertexBufferHelper(size_t initialSize = 65535);
+		virtual ~VertexBufferHelper();
+
+		void clear();
+		VertexHelper* add();
+		gs_vertbuffer_t* update();
+		size_t size();
+	};
+
 	class Display {
 		#pragma region Constructors & Finalizer
 		private:
@@ -81,7 +108,9 @@ namespace OBS {
 			*m_textEffect;
 		gs_texture_t *m_textTexture;
 
-		GS::VertexBuffer
+		VertexBufferHelper
+			*m_lines,
+			*m_triangles,
 			*m_textVertices;
 
 		std::unique_ptr<GS::VertexBuffer>
