@@ -344,7 +344,7 @@ NAN_METHOD(Volmeter::addCallback)
     ASSERT_GET_VALUE(info[0], callback);
 
     VolmeterCallback *cb_binding = 
-        new VolmeterCallback(binding, Volmeter::Callback, callback);
+        new VolmeterCallback(binding, Volmeter::Callback, callback, 50);
 
     handle.add_callback(volmeter_cb_wrapper, cb_binding);
 

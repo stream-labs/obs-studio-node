@@ -168,9 +168,10 @@ struct CallbackData : public Nan::ObjectWrap {
     CallbackData(
         Parent *parent, 
         typename Async<Item, Parent>::Callback callback,
-        v8::Local<v8::Function> func)
+        v8::Local<v8::Function> func,
+        uint32_t interval = 0)
      : handle(this), cb(func),
-       queue(parent, callback),
+       queue(parent, callback, interval),
        stopped(false)
     {
     }

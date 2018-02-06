@@ -16,16 +16,19 @@ public:
     typedef void (*Callback)(Parent* parent, Item* item);
     
 protected:
+    uint32_t interval;
+    uint64_t last_event_ms;
     uv_async_t watcher;
     std::mutex mutex;
     std::vector<Item*> data;
     Callback callback;
+
 public:
     Parent* parent;
 
 public:
-    Async(Parent* parent_, Callback cb_)
-        : callback(cb_), parent(parent_) {
+    Async(Parent* parent_, Callback cb_, uint32_t interval_ = 0)
+        : callback(cb_), parent(parent_), interval(interval_), last_event_ms(0) {
         watcher.data = this;
         uv_async_init(uv_default_loop(), &watcher, reinterpret_cast<uv_async_cb>(listener));
     }
@@ -62,7 +65,14 @@ public:
     }
 
     void send() {
-        uv_async_send(&watcher);
+        uint64_t ts = uv_hrtime();
+        
+        uint64_t ts_ms = ts / 1000000;
+
+        if (ts_ms - last_event_ms >= interval) {
+            last_event_ms = ts_ms;
+            uv_async_send(&watcher);
+        }
     }
 
     void send(Item* item) {
