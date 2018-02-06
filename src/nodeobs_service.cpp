@@ -840,7 +840,7 @@ bool OBS_service::resetVideoContext(const char* outputType)
 	obs_video_info ovi;
 	std::string gslib = "";
     #ifdef _WIN32
-    gslib = GetRenderModule(basicConfig);
+	gslib = "libobs-d3d11.dll";
     #else
 	gslib = "libobs-opengl";
     #endif

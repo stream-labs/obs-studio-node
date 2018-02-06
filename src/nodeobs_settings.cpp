@@ -3031,24 +3031,6 @@ Local<Array>  OBS_settings::getAdvancedSettings()
 	const char *videoColorSpace = config_get_string(config, "Video", "ColorSpace");
 	const char *videoColorRange = config_get_string(config, "Video", "ColorRange");
 
-	//Renderer
-	std::vector<std::pair<std::string, std::string>> renderer;
-	renderer.push_back(std::make_pair("name", "Renderer"));
-	renderer.push_back(std::make_pair("type", "OBS_PROPERTY_LIST"));
-	renderer.push_back(std::make_pair("description", "Renderer"));
-
-	const char* rendererValue = config_get_string(config, "Video", "Renderer");
-	if(rendererValue == NULL) {
-		rendererValue = "";
-	} 
-
-	renderer.push_back(std::make_pair("currentValue", rendererValue));
-	renderer.push_back(std::make_pair("Direct3D 11", "Direct3D 11"));
-	renderer.push_back(std::make_pair("OpenGL", "OpenGL"));
-	entries.push_back(renderer);
-
-	//Video Adapter
-
 	//Color Format
 	std::vector<std::pair<std::string, std::string>> colorFormat;
 	colorFormat.push_back(std::make_pair("name", "ColorFormat"));
