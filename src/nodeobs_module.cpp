@@ -28,14 +28,6 @@ void SetWorkingDirectory(const v8::FunctionCallbackInfo<v8::Value>& args) {
 }
 
 void nodeobs_init(Local<Object> exports) {
-	// Find current directory.
-	{
-		std::vector<char> pathCWD(65535); // Should use MAX_PATH here
-		char *answer = getcwd(pathCWD.data(), pathCWD.size() - 1);
-		g_moduleDirectory = std::string(pathCWD.data()) + "/node_modules/obs-studio-node/distribute";
-		replaceAll(g_moduleDirectory, "\\", "/");
-	}
-
 	// EDIT: Add function to specify actual load directory.
 	NODE_SET_METHOD(exports, "SetWorkingDirectory", SetWorkingDirectory);
 	// END OF EDIT:
