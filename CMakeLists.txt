@@ -149,7 +149,8 @@ set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node")
 
 if(WIN32)
 	set_target_properties(${PROJECT_NAME} PROPERTIES
-		LINK_FLAGS_RELEASE "/DELAYLOAD:obs.dll")
+		LINK_FLAGS_RELEASE "/DELAYLOAD:obs.dll"
+		LINK_FLAGS_DEBUG   "/DELAYLOAD:obs.dll")
 		
 	list(APPEND PROJECT_LIBRARIES "Delayimp.lib")
 
