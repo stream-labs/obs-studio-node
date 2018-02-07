@@ -178,6 +178,11 @@ int volmeter::interval()
     return obs_volmeter_get_update_interval(m_handle);
 }
 
+int volmeter::nr_channels()
+{
+    return obs_volmeter_get_nr_channels(m_handle);
+}
+
 void volmeter::add_callback(obs_volmeter_updated_t cb, void *data)
 {
     obs_volmeter_add_callback(m_handle, cb, data);

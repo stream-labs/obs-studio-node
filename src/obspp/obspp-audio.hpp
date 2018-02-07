@@ -79,6 +79,8 @@ public:
 
     void add_callback(obs_volmeter_updated_t cb, void *data);
     void remove_callback(obs_volmeter_updated_t cb, void *data);
+
+    int nr_channels();
 };
 
 }
