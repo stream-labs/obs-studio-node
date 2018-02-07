@@ -214,7 +214,6 @@ NAN_MODULE_INIT(Volmeter::Init)
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("Volmeter"));
     common::SetObjectTemplateField(locProto, "create", create);
-    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "peakHold", get_peakHold, set_peakHold);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "updateInterval", get_updateInterval, set_updateInterval);
     Nan::SetMethod(locProto->InstanceTemplate(), "attach", attach);
     Nan::SetMethod(locProto->InstanceTemplate(), "detach", detach);
@@ -235,24 +234,6 @@ NAN_METHOD(Volmeter::create)
     Volmeter *binding = new Volmeter(static_cast<obs_fader_type>(fader_type));
     auto object = Volmeter::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
-}
-
-NAN_METHOD(Volmeter::get_peakHold)
-{
-    obs::volmeter &handle = Volmeter::Object::GetHandle(info.Holder());
-
-    info.GetReturnValue().Set(handle.peak_hold());
-}
-
-NAN_METHOD(Volmeter::set_peakHold)
-{
-    obs::volmeter &handle = Volmeter::Object::GetHandle(info.Holder());
-
-    int peak_hold;
-
-    ASSERT_GET_VALUE(info[0], peak_hold);
-
-    handle.peak_hold(peak_hold);
 }
 
 NAN_METHOD(Volmeter::get_updateInterval)
@@ -296,20 +277,25 @@ NAN_METHOD(Volmeter::detach)
 }
 
 static void volmeter_cb_wrapper(
-    void *param, float level,
-    float magnitude, float peak, float muted)
+    void *param, 
+    const float magnitude[MAX_AUDIO_CHANNELS],
+    const float peak[MAX_AUDIO_CHANNELS],
+    const float input_peak[MAX_AUDIO_CHANNELS])
 {
     VolmeterCallback *cb_binding = 
         reinterpret_cast<VolmeterCallback*>(param);
 
     /* Careful not to use v8 reliant stuff here */
     Volmeter::Data *data = new Volmeter::Data;
+    int nr_channels = cb_binding->user_data ? *((int*)cb_binding->user_data) : 0;
 
     data->param = param;
-    data->level = level;
-    data->magnitude = magnitude;
-    data->peak = peak;
-    data->muted = muted;
+
+    for (int i = 0; i < nr_channels; ++i) {
+        data->magnitude[i] = magnitude[i];
+        data->peak[i] = peak[i];
+        data->input_peak[i] = input_peak[i];
+    }
 
     cb_binding->queue.send(data);
 }
@@ -321,22 +307,44 @@ void Volmeter::Callback(Volmeter *volmeter, Volmeter::Data *item)
         reinterpret_cast<VolmeterCallback*>(item->param);
 
     v8::Local<v8::Object> object = Nan::New<v8::Object>();
+    int nr_channels = cb_binding->user_data ? *((int*)cb_binding->user_data) : 0;
 
     if (cb_binding->stopped) {
         delete item; 
         return;
     }
 
+    v8::Local<v8::Array> magnitude_array  = Nan::New<v8::Array>();
+    v8::Local<v8::Array> peak_array       = Nan::New<v8::Array>();
+    v8::Local<v8::Array> input_peak_array = Nan::New<v8::Array>();
+
+    /* FIXME - It seems if we provide -inf, it somehow turns
+     * to 0 by the time it's found in Javascript. 
+     * Here, we just set any infinite to -60.0
+     * where we consider -60.0 pretty close to silence. */
+    #define ANTI_INF(db) db = std::isfinite(db) ? db : -60
+
+    for (int i = 0; i < nr_channels; ++i) {
+        ANTI_INF(item->magnitude[i]);
+        ANTI_INF(item->peak[i]);
+        ANTI_INF(item->input_peak[i]);
+
+        common::SetObjectField(magnitude_array,  i, item->magnitude[i]);
+        common::SetObjectField(peak_array,       i, item->peak[i]);
+        common::SetObjectField(input_peak_array, i, item->input_peak[i]);
+    }
+
+    #undef ANTI_INF
+
     v8::Local<v8::Value> args[] = {
-        Nan::New<v8::Number>(item->level),
-        Nan::New<v8::Number>(item->magnitude),
-        Nan::New<v8::Number>(item->peak),
-        Nan::New<v8::Boolean>(static_cast<bool>(item->muted))
+        magnitude_array,
+        peak_array,
+        input_peak_array
     };
 
     delete item;
 
-    cb_binding->cb.Call(4, args);
+    cb_binding->cb.Call(3, args);
 }
 
 NAN_METHOD(Volmeter::addCallback)
@@ -350,7 +358,10 @@ NAN_METHOD(Volmeter::addCallback)
     ASSERT_GET_VALUE(info[0], callback);
 
     VolmeterCallback *cb_binding = 
-        new VolmeterCallback(binding, Volmeter::Callback, callback);
+        new VolmeterCallback(binding, Volmeter::Callback, callback, 50);
+
+    cb_binding->user_data = new int;
+    *((int*)cb_binding->user_data) = binding->handle.nr_channels();
 
     handle.add_callback(volmeter_cb_wrapper, cb_binding);
 
@@ -373,6 +384,9 @@ NAN_METHOD(Volmeter::removeCallback)
     cb_binding->obj_ref.Reset();
 
     handle.remove_callback(volmeter_cb_wrapper, cb_binding);
+
+    delete cb_binding->user_data;
+    cb_binding->user_data = 0;
 
     /* What's this? A memory leak? Nope! The GC will automagically
      * destroy the CallbackData structure when it becomes weak. We

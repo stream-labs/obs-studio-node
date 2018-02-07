@@ -1279,11 +1279,6 @@ export interface IVolmeterFactory {
  */
 export interface IVolmeter {
     /**
-     * How long should the volmeter hold the peak volume value for?
-     */
-    peakHold: number;
-
-    /**
      * The interval at which the volmeter will call the callback.
      */
     updateInterval: number;
@@ -1300,15 +1295,14 @@ export interface IVolmeter {
     detach(): void;
 
     /**
-     * Add a callback to the fader. Callback will be called
+     * Add a callback to the volmeter. Callback will be called
      * each time volume associated with the attached source changes. 
      * @param cb - A callback that occurs when volume changes.
      */
     addCallback(
-        cb: (level: number,
-             magnitude: number,
-             peak: number,
-             muted: boolean) => void): ICallbackData;
+        cb: (magnitude: number[],
+             peak: number[],
+             inputPeak: number[]) => void): ICallbackData;
 
     /**
      * Remove a callback to prevent events from occuring immediately. 

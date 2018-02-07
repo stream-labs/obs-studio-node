@@ -21,17 +21,6 @@ set(CMAKE_RC_LINKER_FLAGS_RELEASE       "${CMAKE_RC_LINKER_FLAGS_RELWITHDEBINFO}
 set(CMAKE_SHARED_LINKER_FLAGS_RELEASE   "${CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO}")
 set(CMAKE_STATIC_LINKER_FLAGS_RELEASE   "${CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO}")
 
-#############################
-# Configuration
-#############################
-
-# Binary
-set(BINARY_PREFIX "" CACHE STRING "Binary File prefix")
-
-# Distribution
-#SET(ENABLE_INSTALL true CACHE BOOL "Binary File prefix")
-set(INSTALL_DIR "${CMAKE_SOURCE_DIR}/distribute" CACHE PATH "Path at which to install this module")
-
 ###########################################
 # Add libobs as an imported project
 
@@ -61,7 +50,7 @@ set(INSTALL_DIR "${CMAKE_SOURCE_DIR}/distribute" CACHE PATH "Path at which to in
 
 download_project(
 	PROJ libobs
-	URL https://ci.appveyor.com/api/buildjobs/j9ga9v58itwk6sc6/artifacts/windows-x86_64-dev.zip
+	URL https://ci.appveyor.com/api/buildjobs/io1e23q5s8nt0n1x/artifacts/windows-x86_64-dev.zip
 	UPDATE_DISCONNECTED 1
 )
 
@@ -109,7 +98,6 @@ set(PROJECT_SOURCE
 	"src/obspp/obspp-view.cpp" "src/obspp/obspp-view.hpp"
 	"src/nodeobs_module.h" "src/nodeobs_module.cpp"
 	"src/nodeobs_api.h" "src/nodeobs_api.cpp"
-	"src/nodeobs_audio.h" "src/nodeobs_audio.cpp"
 	"src/nodeobs_audio_encoders.h" "src/nodeobs_audio_encoders.cpp"
 	"src/nodeobs_autoconfig.h" "src/nodeobs_autoconfig.cpp"
 	"src/nodeobs_common.h" "src/nodeobs_common.cpp"

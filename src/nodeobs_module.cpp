@@ -5,7 +5,6 @@
 #include "nodeobs_content.h"
 #include "nodeobs_settings.h"
 #include "nodeobs_event.h"
-#include "nodeobs_audio.h"
 #include "nodeobs_autoconfig.h"
 
 std::string g_moduleDirectory = "";
@@ -29,14 +28,6 @@ void SetWorkingDirectory(const v8::FunctionCallbackInfo<v8::Value>& args) {
 }
 
 void nodeobs_init(Local<Object> exports) {
-	// Find current directory.
-	{
-		std::vector<char> pathCWD(65535); // Should use MAX_PATH here
-		char *answer = getcwd(pathCWD.data(), pathCWD.size() - 1);
-		g_moduleDirectory = std::string(pathCWD.data()) + "/node_modules/obs-studio-node/distribute";
-		replaceAll(g_moduleDirectory, "\\", "/");
-	}
-
 	// EDIT: Add function to specify actual load directory.
 	NODE_SET_METHOD(exports, "SetWorkingDirectory", SetWorkingDirectory);
 	// END OF EDIT:
@@ -59,34 +50,6 @@ void nodeobs_init(Local<Object> exports) {
     NODE_SET_METHOD(exports, "StartSaveSettings", StartSaveSettings);
 
     NODE_SET_METHOD(exports, "TerminateAutoConfig", TerminateAutoConfig);
-
-    // OBS_audio
-    NODE_SET_METHOD(exports, "OBS_audio_createFader", OBS_audio_createFader);
-    NODE_SET_METHOD(exports, "OBS_audio_destroyFader", OBS_audio_destroyFader);
-    NODE_SET_METHOD(exports, "OBS_audio_faderAddCallback", OBS_audio_faderAddCallback);
-    NODE_SET_METHOD(exports, "OBS_audio_faderRemoveCallback", OBS_audio_faderRemoveCallback);
-    NODE_SET_METHOD(exports, "OBS_audio_faderSetDb", OBS_audio_faderSetDb);
-    NODE_SET_METHOD(exports, "OBS_audio_faderGetDb", OBS_audio_faderGetDb);
-    NODE_SET_METHOD(exports, "OBS_audio_faderSetDeflection", OBS_audio_faderSetDeflection);
-    NODE_SET_METHOD(exports, "OBS_audio_faderGetDeflection", OBS_audio_faderGetDeflection);
-    NODE_SET_METHOD(exports, "OBS_audio_faderSetMul", OBS_audio_faderSetMul);
-    NODE_SET_METHOD(exports, "OBS_audio_faderGetMul", OBS_audio_faderGetMul);
-    NODE_SET_METHOD(exports, "OBS_audio_faderAttachSource", OBS_audio_faderAttachSource);
-    NODE_SET_METHOD(exports, "OBS_audio_faderDetachSource", OBS_audio_faderDetachSource);
-    NODE_SET_METHOD(exports, "OBS_audio_faderAddCallback", OBS_audio_faderAddCallback);
-    NODE_SET_METHOD(exports, "OBS_audio_faderRemoveCallback", OBS_audio_faderRemoveCallback);
-
-    // OBS_volmeter
-    NODE_SET_METHOD(exports, "OBS_audio_createVolmeter", OBS_audio_createVolmeter);
-    NODE_SET_METHOD(exports, "OBS_audio_destroyVolmeter", OBS_audio_destroyVolmeter);
-    NODE_SET_METHOD(exports, "OBS_audio_volmeterAttachSource", OBS_audio_volmeterAttachSource);
-    NODE_SET_METHOD(exports, "OBS_audio_volmeterDetachSource", OBS_audio_volmeterDetachSource);
-    NODE_SET_METHOD(exports, "OBS_audio_volmeterSetUpdateInterval", OBS_audio_volmeterSetUpdateInterval);
-    NODE_SET_METHOD(exports, "OBS_audio_volmeterGetUpdateInterval", OBS_audio_volmeterGetUpdateInterval);
-    NODE_SET_METHOD(exports, "OBS_audio_volmeterSetPeakHold", OBS_audio_volmeterSetPeakHold);
-    NODE_SET_METHOD(exports, "OBS_audio_volmeterGetPeakHold", OBS_audio_volmeterGetPeakHold);
-    NODE_SET_METHOD(exports, "OBS_audio_volmeterAddCallback", OBS_audio_volmeterAddCallback);
-    NODE_SET_METHOD(exports, "OBS_audio_volmeterRemoveCallback", OBS_audio_volmeterRemoveCallback);
 
     //OBS_API
     NODE_SET_METHOD(exports, "OBS_API_initAPI", OBS_API::OBS_API_initAPI);
