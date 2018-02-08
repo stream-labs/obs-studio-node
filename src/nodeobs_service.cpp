@@ -2135,7 +2135,6 @@ void OBS_service::updateStreamSettings(void)
 		}
     }
 
-    resetVideoContext("Stream");
     associateAudioAndVideoToTheCurrentStreamingContext();
     associateAudioAndVideoEncodersToTheCurrentStreamingOutput();
 }
@@ -2161,7 +2160,6 @@ void OBS_service::updateRecordSettings(void)
         updateAdvancedRecordingOutput();
     }
 
-    resetVideoContext("Record");
     associateAudioAndVideoToTheCurrentRecordingContext();
     associateAudioAndVideoEncodersToTheCurrentRecordingOutput();
 }
