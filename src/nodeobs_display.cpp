@@ -516,7 +516,12 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 	// This is partially code from OBS Studio. See window-basic-preview.cpp in obs-studio for copyright/license.
 	if (obs_sceneitem_locked(item))
 		return true;
-	if (!obs_sceneitem_selected(item))
+	
+	obs_source_t* itemSource = obs_sceneitem_get_source(item);
+	uint32_t flags = obs_source_get_output_flags(itemSource);
+	bool isOnlyAudio = (flags & OBS_SOURCE_VIDEO) == 0;
+
+	if (!obs_sceneitem_selected(item) || isOnlyAudio)
 		return true;
 
 	matrix4 boxTransform;
@@ -607,7 +612,6 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 	// TEXT RENDERING
 	// THIS DESPERATELY NEEDS TO BE REWRITTEN INTO SHADER CODE
 	// DO SO WHENEVER...
-	obs_source_t* itemSource = obs_sceneitem_get_source(item);
 	obs_source_t* sceneSource = obs_scene_get_source(scene);
 
 	uint32_t sceneWidth = obs_source_get_width(sceneSource); // Xaymar: this actually works \o/
@@ -615,11 +619,8 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 	uint32_t itemWidth = obs_source_get_width(itemSource);
 	uint32_t itemHeight = obs_source_get_height(itemSource);
 
-	uint32_t flags = obs_source_get_output_flags(itemSource);
-	bool isOnlyAudio = (flags & OBS_SOURCE_VIDEO) == 0;
-
 	GS::Vertex v(nullptr, nullptr, nullptr, nullptr, nullptr);
-	if (obs_sceneitem_selected(item) && !isOnlyAudio && ((itemWidth > 0) && (itemHeight > 0))) {
+	if (((itemWidth > 0) && (itemHeight > 0))) {
 
 		matrix4 itemMatrix, sceneToView;
 		obs_sceneitem_get_box_transform(item, &itemMatrix);
