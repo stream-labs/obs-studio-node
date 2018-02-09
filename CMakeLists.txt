@@ -37,19 +37,6 @@ set(CMAKE_STATIC_LINKER_FLAGS_RELEASE   "${CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBI
 # what libobs installs into or what cpack
 # provides in a zip file (which should be
 # the same). 
-
-# Now, cmake is a bit dumb. You cannot 
-# normally have it download files and
-# unpack them during configure time. The
-# problem with this is if we want a flexible
-# build system, and we want to use imported
-# targets... we have to. So we instead make
-# a separate project that downloads the
-# binary during build time then build it
-# during configure time. Why doesn't cmake
-# have something to do this for us or why
-# doesn't it allow to add an external project
-# during configure time? We'll probably never know.
 ###########################################
 
 download_project(
