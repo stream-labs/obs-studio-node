@@ -4,7 +4,6 @@
 #include "nodeobs_service.h"
 #include "nodeobs_content.h"
 #include "nodeobs_settings.h"
-#include "nodeobs_event.h"
 #include "nodeobs_autoconfig.h"
 
 std::string g_moduleDirectory = "";
@@ -93,130 +92,7 @@ void nodeobs_init(Local<Object> exports) {
     NODE_SET_METHOD(exports, "OBS_service_setRecordingSettings", OBS_service::OBS_service_setRecordingSettings);
     NODE_SET_METHOD(exports, "OBS_service_isStreamingOutputActive", OBS_service::OBS_service_isStreamingOutputActive);
 
-    //OBS_service unit tests
-    NODE_SET_METHOD(exports, "OBS_service_test_resetAudioContext", OBS_service::OBS_service_test_resetAudioContext);
-    NODE_SET_METHOD(exports, "OBS_service_test_resetVideoContext", OBS_service::OBS_service_test_resetVideoContext);
-    NODE_SET_METHOD(exports, "OBS_service_test_createAudioEncoder", OBS_service::OBS_service_test_createAudioEncoder);
-    NODE_SET_METHOD(exports, "OBS_service_test_createVideoStreamingEncoder", OBS_service::OBS_service_test_createVideoStreamingEncoder);
-    NODE_SET_METHOD(exports, "OBS_service_test_createVideoRecordingEncoder", OBS_service::OBS_service_test_createVideoRecordingEncoder);
-    NODE_SET_METHOD(exports, "OBS_service_test_createService", OBS_service::OBS_service_test_createService);
-    NODE_SET_METHOD(exports, "OBS_service_test_createRecordingSettings", OBS_service::OBS_service_test_createRecordingSettings);
-    NODE_SET_METHOD(exports, "OBS_service_test_createStreamingOutput", OBS_service::OBS_service_test_createStreamingOutput);
-    NODE_SET_METHOD(exports, "OBS_service_test_createRecordingOutput", OBS_service::OBS_service_test_createRecordingOutput);
-    NODE_SET_METHOD(exports, "OBS_service_test_startStreaming", OBS_service::OBS_service_test_startStreaming);
-    NODE_SET_METHOD(exports, "OBS_service_test_startRecording", OBS_service::OBS_service_test_startRecording);
-    NODE_SET_METHOD(exports, "OBS_service_test_stopStreaming", OBS_service::OBS_service_test_stopStreaming);
-    NODE_SET_METHOD(exports, "OBS_service_test_stopRecording", OBS_service::OBS_service_test_stopRecording);
-    NODE_SET_METHOD(exports, "OBS_service_test_associateAudioAndVideoToTheCurrentStreamingContext", OBS_service::OBS_service_test_associateAudioAndVideoToTheCurrentStreamingContext);
-    NODE_SET_METHOD(exports, "OBS_service_test_associateAudioAndVideoToTheCurrentRecordingContext", OBS_service::OBS_service_test_associateAudioAndVideoToTheCurrentRecordingContext);
-    NODE_SET_METHOD(exports, "OBS_service_test_associateAudioAndVideoEncodersToTheCurrentStreamingOutput", OBS_service::OBS_service_test_associateAudioAndVideoEncodersToTheCurrentStreamingOutput);
-    NODE_SET_METHOD(exports, "OBS_service_test_associateAudioAndVideoEncodersToTheCurrentRecordingOutput", OBS_service::OBS_service_test_associateAudioAndVideoEncodersToTheCurrentRecordingOutput);
-    NODE_SET_METHOD(exports, "OBS_service_test_setServiceToTheStreamingOutput", OBS_service::OBS_service_test_setServiceToTheStreamingOutput);
-    NODE_SET_METHOD(exports, "OBS_service_test_setRecordingSettings", OBS_service::OBS_service_test_setRecordingSettings);
-
-    //OBS_event
-    #define SET_SIGNAL_METHOD(name) \
-        NODE_SET_METHOD(exports, #name , name)
-
-    SET_SIGNAL_METHOD(OBS_signal_sourceRemoved);
-    SET_SIGNAL_METHOD(OBS_signal_sourceDestroyed);
-    SET_SIGNAL_METHOD(OBS_signal_sourceSaved);
-    SET_SIGNAL_METHOD(OBS_signal_sourceLoaded);
-    SET_SIGNAL_METHOD(OBS_signal_sourceActivated);
-    SET_SIGNAL_METHOD(OBS_signal_sourceDeactivated);
-    SET_SIGNAL_METHOD(OBS_signal_sourceShown);
-    SET_SIGNAL_METHOD(OBS_signal_sourceHidden);
-    SET_SIGNAL_METHOD(OBS_signal_sourceMuted);
-
-    SET_SIGNAL_METHOD(OBS_signal_createdSource);
-    SET_SIGNAL_METHOD(OBS_signal_removedSource);
-    SET_SIGNAL_METHOD(OBS_signal_destroyedSource);
-    SET_SIGNAL_METHOD(OBS_signal_savedSource);
-    SET_SIGNAL_METHOD(OBS_signal_loadedSource);
-    SET_SIGNAL_METHOD(OBS_signal_activatedSource);
-    SET_SIGNAL_METHOD(OBS_signal_deactivatedSource);
-    SET_SIGNAL_METHOD(OBS_signal_showedSource);
-    SET_SIGNAL_METHOD(OBS_signal_hidSource);
-
-    SET_SIGNAL_METHOD(OBS_signal_outputStarted);
-    SET_SIGNAL_METHOD(OBS_signal_outputStopped);
-    SET_SIGNAL_METHOD(OBS_signal_outputStarting);
-    SET_SIGNAL_METHOD(OBS_signal_outputStopping);
-    SET_SIGNAL_METHOD(OBS_signal_outputActivated);
-    SET_SIGNAL_METHOD(OBS_signal_outputDeactivated);
-    SET_SIGNAL_METHOD(OBS_signal_outputReconnecting);
-    SET_SIGNAL_METHOD(OBS_signal_outputReconnected);
-
-    #undef SET_SIGNAL_METHOD
-
     //OBS_content
-
-    NODE_SET_METHOD(exports, "OBS_content_getSourceFilterVisibility", OBS_content::OBS_content_getSourceFilterVisibility);
-    NODE_SET_METHOD(exports, "OBS_content_setSourceFilterVisibility", OBS_content::OBS_content_setSourceFilterVisibility);
-    NODE_SET_METHOD(exports, "OBS_content_getSourceFader", OBS_content::OBS_content_getSourceFader);
-    NODE_SET_METHOD(exports, "OBS_content_getSourceVolmeter", OBS_content::OBS_content_getSourceVolmeter);
-    NODE_SET_METHOD(exports, "OBS_content_flipHorzSceneItems", OBS_content::OBS_content_flipHorzSceneItems);
-    NODE_SET_METHOD(exports, "OBS_content_flipVertSceneItems", OBS_content::OBS_content_flipVertSceneItems);
-    NODE_SET_METHOD(exports, "OBS_content_resetSceneItems", OBS_content::OBS_content_resetSceneItems);
-    NODE_SET_METHOD(exports, "OBS_content_stretchSceneItems", OBS_content::OBS_content_stretchSceneItems);
-    NODE_SET_METHOD(exports, "OBS_content_fitSceneItems", OBS_content::OBS_content_fitSceneItems);
-    NODE_SET_METHOD(exports, "OBS_content_centerSceneItems", OBS_content::OBS_content_centerSceneItems);
-    NODE_SET_METHOD(exports, "OBS_content_getSceneItemRot", OBS_content::OBS_content_getSceneItemRot);
-    NODE_SET_METHOD(exports, "OBS_content_getSceneItemCrop", OBS_content::OBS_content_getSceneItemCrop);
-    NODE_SET_METHOD(exports, "OBS_content_setSceneItemRot", OBS_content::OBS_content_setSceneItemRot);
-    NODE_SET_METHOD(exports, "OBS_content_setSceneItemCrop", OBS_content::OBS_content_setSceneItemCrop);
-    NODE_SET_METHOD(exports, "OBS_content_getListCurrentScenes", OBS_content::OBS_content_getListCurrentScenes);
-    NODE_SET_METHOD(exports, "OBS_content_getListCurrentSourcesFromScene", OBS_content::OBS_content_getListCurrentSourcesFromScene);
-    NODE_SET_METHOD(exports, "OBS_content_getListInputSources", OBS_content::OBS_content_getListInputSources);
-    NODE_SET_METHOD(exports, "OBS_content_getListFilters", OBS_content::OBS_content_getListFilters);
-    NODE_SET_METHOD(exports, "OBS_content_getListCurrentTransitions", OBS_content::OBS_content_getListCurrentTransitions);
-    NODE_SET_METHOD(exports, "OBS_content_getListTransitions", OBS_content::OBS_content_getListTransitions);
-    NODE_SET_METHOD(exports, "OBS_content_createScene", OBS_content::OBS_content_createScene);
-    NODE_SET_METHOD(exports, "OBS_content_removeScene", OBS_content::OBS_content_removeScene);
-    NODE_SET_METHOD(exports, "OBS_content_addSource", OBS_content::OBS_content_addSource);
-    NODE_SET_METHOD(exports, "OBS_content_removeSource", OBS_content::OBS_content_removeSource);
-    NODE_SET_METHOD(exports, "OBS_content_getSourceFrame", OBS_content::OBS_content_getSourceFrame);
-    NODE_SET_METHOD(exports, "OBS_content_getSourceProperties", OBS_content::OBS_content_getSourceProperties);
-    NODE_SET_METHOD(exports, "OBS_content_getSourcePropertiesSubParameters", OBS_content::OBS_content_getSourcePropertiesSubParameters);
-    NODE_SET_METHOD(exports, "OBS_content_getSourcePropertyCurrentValue", OBS_content::OBS_content_getSourcePropertyCurrentValue);
-    NODE_SET_METHOD(exports, "OBS_content_setProperty", OBS_content::OBS_content_setProperty);
-    NODE_SET_METHOD(exports, "OBS_content_setCurrentScene", OBS_content::OBS_content_setCurrentScene);
-    NODE_SET_METHOD(exports, "OBS_content_setSourcePosition", OBS_content::OBS_content_setSourcePosition);
-    NODE_SET_METHOD(exports, "OBS_content_setSourceScaling", OBS_content::OBS_content_setSourceScaling);
-
-    NODE_SET_METHOD(exports, "OBS_content_renameTransition", OBS_content::OBS_content_renameTransition);
-    NODE_SET_METHOD(exports, "OBS_content_renameSourceFilter", OBS_content::OBS_content_renameSourceFilter);
-    NODE_SET_METHOD(exports, "OBS_content_renameSource", OBS_content::OBS_content_renameSource);
-    NODE_SET_METHOD(exports, "OBS_content_renameScene", OBS_content::OBS_content_renameScene);
-
-    NODE_SET_METHOD(exports, "OBS_content_getCurrentTransition", OBS_content::OBS_content_getCurrentTransition);
-    NODE_SET_METHOD(exports, "OBS_content_setTransitionDuration", OBS_content::OBS_content_setTransitionDuration);
-    NODE_SET_METHOD(exports, "OBS_content_getTransitionDuration", OBS_content::OBS_content_getTransitionDuration);
-    NODE_SET_METHOD(exports, "OBS_content_addTransition", OBS_content::OBS_content_addTransition);
-    NODE_SET_METHOD(exports, "OBS_content_removeTransition", OBS_content::OBS_content_removeTransition);
-    NODE_SET_METHOD(exports, "OBS_content_setTransition", OBS_content::OBS_content_setTransition);
-    NODE_SET_METHOD(exports, "OBS_content_updateTransitionProperties", OBS_content::OBS_content_updateTransitionProperties);
-    NODE_SET_METHOD(exports, "OBS_content_getTransitionProperties", OBS_content::OBS_content_getTransitionProperties);
-    NODE_SET_METHOD(exports, "OBS_content_getTransitionPropertiesSubParameters", OBS_content::OBS_content_getTransitionPropertiesSubParameters);
-    NODE_SET_METHOD(exports, "OBS_content_setTransitionProperty", OBS_content::OBS_content_setTransitionProperty);
-    NODE_SET_METHOD(exports, "OBS_content_getTransitionPropertyCurrentValue", OBS_content::OBS_content_getTransitionPropertyCurrentValue);
-
-    NODE_SET_METHOD(exports, "OBS_content_addSourceFilter", OBS_content::OBS_content_addSourceFilter);
-    NODE_SET_METHOD(exports, "OBS_content_removeSourceFilter", OBS_content::OBS_content_removeSourceFilter);
-    NODE_SET_METHOD(exports, "OBS_content_updateSourceFilterProperties", OBS_content::OBS_content_updateSourceFilterProperties);
-    NODE_SET_METHOD(exports, "OBS_content_getSourceFilterProperties", OBS_content::OBS_content_getSourceFilterProperties);
-    NODE_SET_METHOD(exports, "OBS_content_getListSourceFilters", OBS_content::OBS_content_getListSourceFilters);
-    NODE_SET_METHOD(exports, "OBS_content_getSourceFilterPropertyCurrentValue", OBS_content::OBS_content_getSourceFilterPropertyCurrentValue);
-    NODE_SET_METHOD(exports, "OBS_content_setSourceFilterProperty", OBS_content::OBS_content_setSourceFilterProperty);
-    NODE_SET_METHOD(exports, "OBS_content_getSourceFilterPropertiesSubParameters", OBS_content::OBS_content_getSourceFilterPropertiesSubParameters);
-
-    NODE_SET_METHOD(exports, "OBS_content_getSourcePosition", OBS_content::OBS_content_getSourcePosition);
-    NODE_SET_METHOD(exports, "OBS_content_getSourceScaling", OBS_content::OBS_content_getSourceScaling);
-    NODE_SET_METHOD(exports, "OBS_content_getSourceSize", OBS_content::OBS_content_getSourceSize);
-
-    NODE_SET_METHOD(exports, "OBS_content_setSourceOrder", OBS_content::OBS_content_setSourceOrder);
-    NODE_SET_METHOD(exports, "OBS_content_updateSourceProperties", OBS_content::OBS_content_updateSourceProperties);
-
     NODE_SET_METHOD(exports, "OBS_content_createDisplay", OBS_content::OBS_content_createDisplay);
     NODE_SET_METHOD(exports, "OBS_content_destroyDisplay", OBS_content::OBS_content_destroyDisplay);
     NODE_SET_METHOD(exports, "OBS_content_getDisplayPreviewOffset", OBS_content::OBS_content_getDisplayPreviewOffset);
@@ -234,50 +110,11 @@ void nodeobs_init(Local<Object> exports) {
 	NODE_SET_METHOD(exports, "OBS_content_selectSource", OBS_content::OBS_content_selectSource);
     NODE_SET_METHOD(exports, "OBS_content_selectSources", OBS_content::OBS_content_selectSources);
     NODE_SET_METHOD(exports, "OBS_content_dragSelectedSource", OBS_content::OBS_content_dragSelectedSource);
-    NODE_SET_METHOD(exports, "OBS_content_loadConfigFile", OBS_content::OBS_content_loadConfigFile);
-    NODE_SET_METHOD(exports, "OBS_content_saveIntoConfigFile", OBS_content::OBS_content_saveIntoConfigFile);
-    NODE_SET_METHOD(exports, "OBS_content_getSourceFlags", OBS_content::OBS_content_getSourceFlags);
-    NODE_SET_METHOD(exports, "OBS_content_sourceSetMuted", OBS_content::OBS_content_sourceSetMuted);
-    NODE_SET_METHOD(exports, "OBS_content_isSourceMuted", OBS_content::OBS_content_isSourceMuted);
-    NODE_SET_METHOD(exports, "OBS_content_getSourceVisibility", OBS_content::OBS_content_getSourceVisibility);
-    NODE_SET_METHOD(exports, "OBS_content_setSourceVisibility", OBS_content::OBS_content_setSourceVisibility);
-    NODE_SET_METHOD(exports, "OBS_content_fillTabScenes", OBS_content::OBS_content_fillTabScenes);
 	NODE_SET_METHOD(exports, "OBS_content_setShouldDrawUI", OBS_content::OBS_content_setShouldDrawUI);
 	NODE_SET_METHOD(exports, "OBS_content_setShouldDrawUI", OBS_content::OBS_content_setShouldDrawUI);
 	NODE_SET_METHOD(exports, "OBS_content_setShouldDrawUI", OBS_content::OBS_content_setShouldDrawUI);
 	NODE_SET_METHOD(exports, "OBS_content_getDrawGuideLines", OBS_content::OBS_content_getDrawGuideLines);
 	NODE_SET_METHOD(exports, "OBS_content_setDrawGuideLines", OBS_content::OBS_content_setDrawGuideLines);
-
-    //OBS_content unit tests
-    NODE_SET_METHOD(exports, "OBS_content_test_getListCurrentScenes", OBS_content::OBS_content_test_getListCurrentScenes);
-    NODE_SET_METHOD(exports, "OBS_content_test_getListCurrentSourcesFromScene", OBS_content::OBS_content_test_getListCurrentSourcesFromScene);
-    NODE_SET_METHOD(exports, "OBS_content_test_getListInputSources", OBS_content::OBS_content_test_getListInputSources);
-    NODE_SET_METHOD(exports, "OBS_content_test_getListFilters", OBS_content::OBS_content_test_getListFilters);
-    NODE_SET_METHOD(exports, "OBS_content_test_getListTransitions", OBS_content::OBS_content_test_getListTransitions);
-    NODE_SET_METHOD(exports, "OBS_content_test_createScene", OBS_content::OBS_content_test_createScene);
-    NODE_SET_METHOD(exports, "OBS_content_test_removeScene", OBS_content::OBS_content_test_removeScene);
-    NODE_SET_METHOD(exports, "OBS_content_test_addSource", OBS_content::OBS_content_test_addSource);
-    NODE_SET_METHOD(exports, "OBS_content_test_removeSource", OBS_content::OBS_content_test_removeSource);
-    NODE_SET_METHOD(exports, "OBS_content_test_getSourceProperties", OBS_content::OBS_content_test_getSourceProperties);
-    NODE_SET_METHOD(exports, "OBS_content_test_getSourcePropertiesSubParameters", OBS_content::OBS_content_test_getSourcePropertiesSubParameters);
-    NODE_SET_METHOD(exports, "OBS_content_test_getSourcePropertyCurrentValue", OBS_content::OBS_content_test_getSourcePropertyCurrentValue);
-    NODE_SET_METHOD(exports, "OBS_content_test_getSourcePropertyCurrentValue_boolType", OBS_content::OBS_content_test_getSourcePropertyCurrentValue_boolType);
-    NODE_SET_METHOD(exports, "OBS_content_test_getSourcePropertyCurrentValue_colorType", OBS_content::OBS_content_test_getSourcePropertyCurrentValue_colorType);
-    NODE_SET_METHOD(exports, "OBS_content_test_getSourcePropertyCurrentValue_intType", OBS_content::OBS_content_test_getSourcePropertyCurrentValue_intType);
-    NODE_SET_METHOD(exports, "OBS_content_test_getSourcePropertyCurrentValue_floatType", OBS_content::OBS_content_test_getSourcePropertyCurrentValue_floatType);
-    NODE_SET_METHOD(exports, "OBS_content_test_getSourcePropertyCurrentValue_textType", OBS_content::OBS_content_test_getSourcePropertyCurrentValue_textType);
-    NODE_SET_METHOD(exports, "OBS_content_test_getSourcePropertyCurrentValue_fontType", OBS_content::OBS_content_test_getSourcePropertyCurrentValue_fontType);
-    NODE_SET_METHOD(exports, "OBS_content_test_getSourcePropertyCurrentValue_pathType", OBS_content::OBS_content_test_getSourcePropertyCurrentValue_pathType);
-    NODE_SET_METHOD(exports, "OBS_content_test_getSourcePropertyCurrentValue_buttonType", OBS_content::OBS_content_test_getSourcePropertyCurrentValue_buttonType);
-    NODE_SET_METHOD(exports, "OBS_content_test_getSourcePropertyCurrentValue_editableListType", OBS_content::OBS_content_test_getSourcePropertyCurrentValue_editableListType);
-    NODE_SET_METHOD(exports, "OBS_content_test_getSourcePropertyCurrentValue_listType_intFormat", OBS_content::OBS_content_test_getSourcePropertyCurrentValue_listType_intFormat);
-    NODE_SET_METHOD(exports, "OBS_content_test_getSourcePropertyCurrentValue_listType_floatFormat", OBS_content::OBS_content_test_getSourcePropertyCurrentValue_listType_floatFormat);
-    NODE_SET_METHOD(exports, "OBS_content_test_getSourcePropertyCurrentValue_listType_stringFormat", OBS_content::OBS_content_test_getSourcePropertyCurrentValue_listType_stringFormat);
-    NODE_SET_METHOD(exports, "OBS_content_test_getSourcePropertyCurrentValue_frameRateType", OBS_content::OBS_content_test_getSourcePropertyCurrentValue_frameRateType);
-    NODE_SET_METHOD(exports, "OBS_content_test_setProperty", OBS_content::OBS_content_test_setProperty);
-    NODE_SET_METHOD(exports, "OBS_content_test_setSourcePosition", OBS_content::OBS_content_test_setSourcePosition);
-    NODE_SET_METHOD(exports, "OBS_content_test_setSourceScaling", OBS_content::OBS_content_test_setSourceScaling);
-    NODE_SET_METHOD(exports, "OBS_content_test_setSourceOrder", OBS_content::OBS_content_test_setSourceOrder);
 
     //OBS_settings
     NODE_SET_METHOD(exports, "OBS_settings_getListCategories", OBS_settings::OBS_settings_getListCategories);

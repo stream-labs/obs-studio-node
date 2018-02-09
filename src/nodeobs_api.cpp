@@ -49,15 +49,6 @@ std::string OBS_currentSceneCollection;
 bool useOBS_configFiles = false;
 bool isOBS_installedValue;
 
-OBS_API::OBS_API() {
-
-}
-OBS_API::~OBS_API() {
-	while (listModules.size() != 0) {
-		listModules.pop_back();
-	}
-}
-
 void OBS_API::OBS_API_initAPI(const FunctionCallbackInfo<Value>& args)
 {
 	/* Map base DLLs as soon as possible into the current process space.
