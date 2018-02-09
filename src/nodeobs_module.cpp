@@ -52,7 +52,6 @@ void nodeobs_init(Local<Object> exports) {
 
     //OBS_API
     NODE_SET_METHOD(exports, "OBS_API_initAPI", OBS_API::OBS_API_initAPI);
-    NODE_SET_METHOD(exports, "OBS_API_initOBS_API", OBS_API::OBS_API_initOBS_API);
     NODE_SET_METHOD(exports, "OBS_API_destroyOBS_API", OBS_API::OBS_API_destroyOBS_API);
     NODE_SET_METHOD(exports, "OBS_API_openAllModules", OBS_API::OBS_API_openAllModules);
     NODE_SET_METHOD(exports, "OBS_API_getPerformanceStatistics", OBS_API::OBS_API_getPerformanceStatistics);
@@ -66,9 +65,6 @@ void nodeobs_init(Local<Object> exports) {
     NODE_SET_METHOD(exports, "OBS_API_setOBS_currentSceneCollection", OBS_API::OBS_API_setOBS_currentSceneCollection);
     NODE_SET_METHOD(exports, "OBS_API_isOBS_installed", OBS_API::OBS_API_isOBS_installed);
     NODE_SET_METHOD(exports, "OBS_API_useOBS_config", OBS_API::OBS_API_useOBS_config);
-
-    //OBS_API unit tests
-    NODE_SET_METHOD(exports, "OBS_API_test_openAllModules", OBS_API::OBS_API_test_openAllModules);
 
     //OBS_service
     NODE_SET_METHOD(exports, "OBS_service_resetAudioContext", OBS_service::OBS_service_resetAudioContext);
