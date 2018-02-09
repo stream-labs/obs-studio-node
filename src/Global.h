@@ -2,7 +2,8 @@
 
 #include <nan.h>
 
-namespace osn {
+namespace osn
+{
 
 NAN_MODULE_INIT(Init);
 NAN_METHOD(startup);

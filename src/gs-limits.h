@@ -20,7 +20,8 @@
 #pragma once
 #include <inttypes.h>
 
-namespace GS {
-	static const uint32_t MAXIMUM_VERTICES = 0xFFFFFFu;
-	static const uint32_t MAXIMUM_UVW_LAYERS = 1u;
+namespace GS
+{
+static const uint32_t MAXIMUM_VERTICES = 0xFFFFFFu;
+static const uint32_t MAXIMUM_UVW_LAYERS = 1u;
 }

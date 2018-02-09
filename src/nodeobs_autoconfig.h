@@ -11,17 +11,17 @@
 #include <v8.h>
 
 
-void GetListServer(const v8::FunctionCallbackInfo<v8::Value>& args);
-void InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args);
-void StartBandwidthTest(const v8::FunctionCallbackInfo<v8::Value>& args);
-void StartStreamEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args);
-void StartRecordingEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args);
-void StartCheckSettings(const v8::FunctionCallbackInfo<v8::Value>& args);
-void StartSetDefaultSettings(const v8::FunctionCallbackInfo<v8::Value>& args);
-void StartSaveStreamSettings(const v8::FunctionCallbackInfo<v8::Value>& args);
-void StartSaveSettings(const v8::FunctionCallbackInfo<v8::Value>& args);
-void TerminateAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args);
-void StopThread(); 
+void GetListServer(const v8::FunctionCallbackInfo<v8::Value> &args);
+void InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value> &args);
+void StartBandwidthTest(const v8::FunctionCallbackInfo<v8::Value> &args);
+void StartStreamEncoderTest(const v8::FunctionCallbackInfo<v8::Value> &args);
+void StartRecordingEncoderTest(const v8::FunctionCallbackInfo<v8::Value> &args);
+void StartCheckSettings(const v8::FunctionCallbackInfo<v8::Value> &args);
+void StartSetDefaultSettings(const v8::FunctionCallbackInfo<v8::Value> &args);
+void StartSaveStreamSettings(const v8::FunctionCallbackInfo<v8::Value> &args);
+void StartSaveSettings(const v8::FunctionCallbackInfo<v8::Value> &args);
+void TerminateAutoConfig(const v8::FunctionCallbackInfo<v8::Value> &args);
+void StopThread();
 void FindIdealHardwareResolution();
 bool TestSoftwareEncoding();
 void TestBandwidthThread();
