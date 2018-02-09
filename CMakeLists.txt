@@ -13,17 +13,17 @@ include(DownloadProject)
 include(CPack)
 include(NodeJS)
 
-nodejs_init()
+set(STREAMLABS_BUILD false CACHE BOOL "Whether to build for streamlabs-obs")
 
-# Only allow Debug or Release builds.
-set(CMAKE_CONFIGURATION_TYPES           "Debug;Release")
-set(CMAKE_CXX_FLAGS_RELEASE             "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
-set(CMAKE_C_FLAGS_RELEASE               "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
-set(CMAKE_EXE_LINKER_FLAGS_RELEASE      "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO}")
-set(CMAKE_MODULE_LINKER_FLAGS_RELEASE   "${CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO}")
-set(CMAKE_RC_LINKER_FLAGS_RELEASE       "${CMAKE_RC_LINKER_FLAGS_RELWITHDEBINFO}")
-set(CMAKE_SHARED_LINKER_FLAGS_RELEASE   "${CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO}")
-set(CMAKE_STATIC_LINKER_FLAGS_RELEASE   "${CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO}")
+if (STREAMLABS_BUILD)
+	nodejs_init(
+		URL https://atom.io/download/atom-shell
+		NAME iojs
+		VERSION v1.7.12
+	)
+else()
+	nodejs_init()
+endif()
 
 ###########################################
 # Add libobs as an imported project
