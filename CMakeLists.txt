@@ -10,6 +10,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 include(ExternalProject)
 include(DownloadProject)
+include(CPack)
 include(NodeJS)
 
 nodejs_init()
