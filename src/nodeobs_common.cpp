@@ -4960,3 +4960,95 @@ void OBS_content::fillTabScenes(v8::Local<v8::Array> arrayScenes)
 		tabScenes.push_back(std::string(*sceneName));
 	}
 }
+
+void OBS_content::OBS_content_getDrawGuideLines(const FunctionCallbackInfo<Value>& args)
+{
+	Isolate *isolate = args.GetIsolate();
+	
+	// Validate Arguments
+	/// Amount
+	switch (args.Length()) {
+	case 0:
+		isolate->ThrowException(
+			v8::Exception::SyntaxError(
+				v8::String::NewFromUtf8(isolate, "Usage: OBS_content_getDrawGuideLines(displayKey<string>)")
+			)
+		);
+		return;
+	}
+
+	/// Types
+	if (args[0]->IsUndefined() && !args[0]->IsString()) {
+		isolate->ThrowException(
+			v8::Exception::SyntaxError(
+				v8::String::NewFromUtf8(isolate, "{displayKey} is not a <string>!")
+			)
+		);
+		return;
+	}
+
+	// Find Display
+	v8::String::Utf8Value key(args[0]->ToString());
+	auto it = displays.find(*key);
+	if (it == displays.end()) {
+		isolate->ThrowException(
+			v8::Exception::SyntaxError(
+				v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
+			)
+		);
+		return;
+	}
+
+	args.GetReturnValue().Set(Boolean::New(isolate, it->second->GetDrawGuideLines()));
+}
+
+void OBS_content::OBS_content_setDrawGuideLines(const FunctionCallbackInfo<Value>& args)
+{
+	Isolate *isolate = args.GetIsolate();
+
+	// Validate Arguments
+	/// Amount
+	switch (args.Length()) {
+	case 0:
+	case 1:
+		isolate->ThrowException(
+			v8::Exception::SyntaxError(
+				v8::String::NewFromUtf8(isolate, "Usage: OBS_content_getDrawGuideLines(displayKey<string>, drawGuideLines<boolean>)")
+			)
+		);
+		return;
+	}
+
+	/// Types
+	if (args[0]->IsUndefined() && !args[0]->IsString()) {
+		isolate->ThrowException(
+			v8::Exception::SyntaxError(
+				v8::String::NewFromUtf8(isolate, "{displayKey} is not a <string>!")
+			)
+		);
+		return;
+	}
+
+	if (args[1]->IsUndefined() && !args[1]->IsBoolean()) {
+		isolate->ThrowException(
+			v8::Exception::SyntaxError(
+				v8::String::NewFromUtf8(isolate, "{size} is not a <boolean>!")
+			)
+		);
+		return;
+	}
+
+	// Find Display
+	v8::String::Utf8Value key(args[0]->ToString());
+	auto it = displays.find(*key);
+	if (it == displays.end()) {
+		isolate->ThrowException(
+			v8::Exception::SyntaxError(
+				v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
+			)
+		);
+		return;
+	}
+
+	it->second->SetDrawGuideLines(args[1]->BooleanValue());
+}

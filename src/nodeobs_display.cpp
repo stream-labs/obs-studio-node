@@ -137,6 +137,8 @@ OBS::Display::Display() {
 	SetGuidelineColor(26, 230, 168);
 
 	UpdatePreviewArea();
+
+	m_drawGuideLines = true;
 }
 
 OBS::Display::Display(uint64_t windowHandle) : Display() {
@@ -573,17 +575,6 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 	gs_effect_set_vec4(solid_color, &color);
 	DrawOutline(dp, boxTransform, info);
 
-	vec4_set(&color,
-		(dp->m_guidelineColor & 0xFF) / 255.0f,
-		((dp->m_guidelineColor & 0xFF00) >> 8) / 255.0f,
-		((dp->m_guidelineColor & 0xFF0000) >> 16) / 255.0f,
-		((dp->m_guidelineColor & 0xFF000000) >> 24) / 255.0f);
-	gs_effect_set_vec4(solid_color, &color);
-	DrawGuideline(dp, 0.5, 0, boxTransform);
-	DrawGuideline(dp, 0.5, 1, boxTransform);
-	DrawGuideline(dp, 0, 0.5, boxTransform);
-	DrawGuideline(dp, 1, 0.5, boxTransform);
-
 	gs_load_vertexbuffer(dp->m_boxTris->Update(false));
 	vec4_set(&color,
 		(dp->m_resizeInnerColor & 0xFF) / 255.0f,
@@ -616,100 +607,116 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 	DrawBoxAt(dp, 0, 0.5, boxTransform);
 	DrawBoxAt(dp, 1, 0.5, boxTransform);
 
-	// TEXT RENDERING
-	// THIS DESPERATELY NEEDS TO BE REWRITTEN INTO SHADER CODE
-	// DO SO WHENEVER...
-	GS::Vertex v(nullptr, nullptr, nullptr, nullptr, nullptr);
+	if (dp->m_drawGuideLines) {
+		vec4_set(&color,
+			(dp->m_guidelineColor & 0xFF) / 255.0f,
+			((dp->m_guidelineColor & 0xFF00) >> 8) / 255.0f,
+			((dp->m_guidelineColor & 0xFF0000) >> 16) / 255.0f,
+			((dp->m_guidelineColor & 0xFF000000) >> 24) / 255.0f);
+		gs_effect_set_vec4(solid_color, &color);
+		DrawGuideline(dp, 0.5, 0, boxTransform);
+		DrawGuideline(dp, 0.5, 1, boxTransform);
+		DrawGuideline(dp, 0, 0.5, boxTransform);
+		DrawGuideline(dp, 1, 0.5, boxTransform);
 
-	matrix4 itemMatrix, sceneToView;
-	obs_sceneitem_get_box_transform(item, &itemMatrix);
-	matrix4_identity(&sceneToView);
-	sceneToView.x.x = dp->m_worldToPreviewScale.x;
-	sceneToView.y.y = dp->m_worldToPreviewScale.y;
+		// TEXT RENDERING
+		// THIS DESPERATELY NEEDS TO BE REWRITTEN INTO SHADER CODE
+		// DO SO WHENEVER...
+		GS::Vertex v(nullptr, nullptr, nullptr, nullptr, nullptr);
 
-	// Retrieve actual corner and edge positions.
-	vec3 edge[4], center;
-	{
-		vec3_set(&edge[0], 0, 0.5, 0);
-		vec3_transform(&edge[0], &edge[0], &itemMatrix);
-		vec3_set(&edge[1], 0.5, 0, 0);
-		vec3_transform(&edge[1], &edge[1], &itemMatrix);
-		vec3_set(&edge[2], 1, 0.5, 0);
-		vec3_transform(&edge[2], &edge[2], &itemMatrix);
-		vec3_set(&edge[3], 0.5, 1, 0);
-		vec3_transform(&edge[3], &edge[3], &itemMatrix);
+		matrix4 itemMatrix, sceneToView;
+		obs_sceneitem_get_box_transform(item, &itemMatrix);
+		matrix4_identity(&sceneToView);
+		sceneToView.x.x = dp->m_worldToPreviewScale.x;
+		sceneToView.y.y = dp->m_worldToPreviewScale.y;
 
-		vec3_set(&center, 0.5, 0.5, 0);
-		vec3_transform(&center, &center, &itemMatrix);;
-	}
+		// Retrieve actual corner and edge positions.
+		vec3 edge[4], center;
+		{
+			vec3_set(&edge[0], 0, 0.5, 0);
+			vec3_transform(&edge[0], &edge[0], &itemMatrix);
+			vec3_set(&edge[1], 0.5, 0, 0);
+			vec3_transform(&edge[1], &edge[1], &itemMatrix);
+			vec3_set(&edge[2], 1, 0.5, 0);
+			vec3_transform(&edge[2], &edge[2], &itemMatrix);
+			vec3_set(&edge[3], 0.5, 1, 0);
+			vec3_transform(&edge[3], &edge[3], &itemMatrix);
 
-	std::vector<char> buf(8);
-	float_t pt = 8 * dp->m_previewToWorldScale.y;
-	for (size_t n = 0; n < 4; n++) {
-		bool isIn = (edge[n].x >= 0) && (edge[n].x < sceneWidth)
-			&& (edge[n].y >= 0) && (edge[n].y < sceneHeight);
+			vec3_set(&center, 0.5, 0.5, 0);
+			vec3_transform(&center, &center, &itemMatrix);;
+		}
 
-		if (!isIn)
-			continue;
+		std::vector<char> buf(8);
+		float_t pt = 8 * dp->m_previewToWorldScale.y;
+		for (size_t n = 0; n < 4; n++) {
+			bool isIn = (edge[n].x >= 0) && (edge[n].x < sceneWidth)
+				&& (edge[n].y >= 0) && (edge[n].y < sceneHeight);
 
-		vec3 alignLeft = { -1, 0, 0 };
-		vec3 alignTop = { 0, -1, 0 };
+			if (!isIn)
+				continue;
 
-		vec3 temp;
-		vec3_sub(&temp, &edge[n], &center);
-		vec3_norm(&temp, &temp);
-		float left = vec3_dot(&temp, &alignLeft),
-			top = vec3_dot(&temp, &alignTop);
-		if (left > 0.5) { // LEFT
-			float_t dist = edge[n].x;
-			if (dist > (pt * 4)) {
-				size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
-				float_t offset = float((pt * len) / 2.0);
+			vec3 alignLeft = { -1, 0, 0 };
+			vec3 alignTop = { 0, -1, 0 };
 
-				for (size_t p = 0; p < len; p++) {
-					char v = buf.data()[p];
-					DrawGlyph(dp->m_textVertices,
-						(edge[n].x / 2) - offset + (p * pt), edge[n].y - pt * 2,
-						pt, 0, v, dp->m_guidelineColor);
+			vec3 temp;
+			vec3_sub(&temp, &edge[n], &center);
+			vec3_norm(&temp, &temp);
+			float left = vec3_dot(&temp, &alignLeft),
+				top = vec3_dot(&temp, &alignTop);
+			if (left > 0.5) { // LEFT
+				float_t dist = edge[n].x;
+				if (dist > (pt * 4)) {
+					size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
+					float_t offset = float((pt * len) / 2.0);
+
+					for (size_t p = 0; p < len; p++) {
+						char v = buf.data()[p];
+						DrawGlyph(dp->m_textVertices,
+							(edge[n].x / 2) - offset + (p * pt), edge[n].y - pt * 2,
+							pt, 0, v, dp->m_guidelineColor);
+					}
 				}
 			}
-		} else if (left < -0.5) { // RIGHT
-			float_t dist = sceneWidth - edge[n].x;
-			if (dist > (pt * 4)) {
-				size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
-				float_t offset = float((pt * len) / 2.0);
+			else if (left < -0.5) { // RIGHT
+				float_t dist = sceneWidth - edge[n].x;
+				if (dist >(pt * 4)) {
+					size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
+					float_t offset = float((pt * len) / 2.0);
 
-				for (size_t p = 0; p < len; p++) {
-					char v = buf.data()[p];
-					DrawGlyph(dp->m_textVertices,
-						edge[n].x + (dist / 2) - offset + (p * pt), edge[n].y - pt * 2,
-						pt, 0, v, dp->m_guidelineColor);
+					for (size_t p = 0; p < len; p++) {
+						char v = buf.data()[p];
+						DrawGlyph(dp->m_textVertices,
+							edge[n].x + (dist / 2) - offset + (p * pt), edge[n].y - pt * 2,
+							pt, 0, v, dp->m_guidelineColor);
+					}
 				}
 			}
-		} else if (top > 0.5) { // UP
-			float_t dist = edge[n].y;
-			if (dist > pt) {
-				size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
-				float_t offset = float((pt * len) / 2.0);
+			else if (top > 0.5) { // UP
+				float_t dist = edge[n].y;
+				if (dist > pt) {
+					size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
+					float_t offset = float((pt * len) / 2.0);
 
-				for (size_t p = 0; p < len; p++) {
-					char v = buf.data()[p];
-					DrawGlyph(dp->m_textVertices,
-						edge[n].x + (p * pt), edge[n].y - (dist / 2) - pt,
-						pt, 0, v, dp->m_guidelineColor);
+					for (size_t p = 0; p < len; p++) {
+						char v = buf.data()[p];
+						DrawGlyph(dp->m_textVertices,
+							edge[n].x + (p * pt), edge[n].y - (dist / 2) - pt,
+							pt, 0, v, dp->m_guidelineColor);
+					}
 				}
 			}
-		} else if (top < -0.5) { // DOWN
-			float_t dist = sceneHeight - edge[n].y;
-			if (dist > (pt * 4)) {
-				size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
-				float_t offset = float((pt * len) / 2.0);
+			else if (top < -0.5) { // DOWN
+				float_t dist = sceneHeight - edge[n].y;
+				if (dist >(pt * 4)) {
+					size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
+					float_t offset = float((pt * len) / 2.0);
 
-				for (size_t p = 0; p < len; p++) {
-					char v = buf.data()[p];
-					DrawGlyph(dp->m_textVertices,
-						edge[n].x + (p * pt), edge[n].y + (dist / 2) - pt,
-						pt, 0, v, dp->m_guidelineColor);
+					for (size_t p = 0; p < len; p++) {
+						char v = buf.data()[p];
+						DrawGlyph(dp->m_textVertices,
+							edge[n].x + (p * pt), edge[n].y + (dist / 2) - pt,
+							pt, 0, v, dp->m_guidelineColor);
+					}
 				}
 			}
 		}
@@ -931,4 +938,12 @@ LRESULT CALLBACK OBS::Display::DisplayWndProc(_In_ HWND hwnd, _In_ UINT uMsg, _I
 }
 
 #endif
+
+bool OBS::Display::GetDrawGuideLines(void) {
+	return m_drawGuideLines;
+}
+
+void OBS::Display::SetDrawGuideLines(bool drawGuideLines) {
+	m_drawGuideLines = drawGuideLines;
+}
 
