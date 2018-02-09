@@ -638,15 +638,21 @@ void OBS_content::OBS_content_setResizeBoxOuterColor(const
 	} color;
 	Isolate *isolate = args.GetIsolate();
 
+	const char *usage_string =
+		"Usage: OBS_content_setResizeBoxOuterColor"
+		"(displayKey<string>, red<number>{0.0, 255.0}, "
+		"green<number>{0.0, 255.0}, blue<number>{0.0, 255.0}"
+		"[, alpha<number>{0.0, 1.0}])";
+
+
 	// Validate Arguments
 	/// Amount
 	switch (args.Length()) {
 	case 0:
 		isolate->ThrowException(
 		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate,
-		                                    "Usage: OBS_content_setResizeBoxOuterColor(displayKey<string>, red<number>{0.0, 255.0}, green<number>{0.0, 255.0}, blue<number>{0.0, 255.0}[, alpha<number>{0.0, 1.0}])")
-		      )
+		            v8::String::NewFromUtf8(isolate, usage_string)
+			)
 		);
 		return;
 	case 1:
@@ -729,15 +735,21 @@ void OBS_content::OBS_content_setResizeBoxInnerColor(const
 	} color;
 	Isolate *isolate = args.GetIsolate();
 
+	const char *usage_string = 
+		"Usage: OBS_content_setResizeBoxInnerColor"
+		"(displayKey<string>, red<number>{0.0, 255.0},"
+		" green<number>{0.0, 255.0}, blue<number>{0.0, 255.0}"
+		"[, alpha<number>{0.0, 1.0}])";
+
+
 	// Validate Arguments
 	/// Amount
 	switch (args.Length()) {
 	case 0:
 		isolate->ThrowException(
 		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate,
-		                                    "Usage: OBS_content_setResizeBoxInnerColor(displayKey<string>, red<number>{0.0, 255.0}, green<number>{0.0, 255.0}, blue<number>{0.0, 255.0}[, alpha<number>{0.0, 1.0}])")
-		      )
+		            v8::String::NewFromUtf8(isolate, usage_string)
+			)
 		);
 		return;
 	case 1:
@@ -816,14 +828,17 @@ void OBS_content::OBS_content_setShouldDrawUI(const
 {
 	Isolate *isolate = args.GetIsolate();
 
+	const char *usage_string = 
+		"Usage: OBS_content_setShouldDrawUI"
+		"(displayKey<string>, value<boolean>)";
+
 	// Validate Arguments
 	/// Amount
 	switch (args.Length()) {
 	case 0:
 		isolate->ThrowException(
 		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate,
-		                                    "Usage: OBS_content_setShouldDrawUI(displayKey<string>, value<boolean>)")
+		            v8::String::NewFromUtf8(isolate, usage_string)
 		      )
 		);
 		return;
@@ -1064,14 +1079,16 @@ void OBS_content::OBS_content_getDrawGuideLines(const
 {
 	Isolate *isolate = args.GetIsolate();
 
+	const char *usage_string =
+		"Usage: OBS_content_getDrawGuideLines(displayKey<string>)";
+
 	// Validate Arguments
 	/// Amount
 	switch (args.Length()) {
 	case 0:
 		isolate->ThrowException(
 		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate,
-		                                    "Usage: OBS_content_getDrawGuideLines(displayKey<string>)")
+		            v8::String::NewFromUtf8(isolate, usage_string)
 		      )
 		);
 		return;
@@ -1107,6 +1124,10 @@ void OBS_content::OBS_content_setDrawGuideLines(const FunctionCallbackInfo<Value
 {
 	Isolate *isolate = args.GetIsolate();
 
+	const char *usage_string =
+		"Usage: OBS_content_getDrawGuideLines"
+		"(displayKey<string>, drawGuideLines<boolean>)";
+
 	// Validate Arguments
 	/// Amount
 	switch (args.Length()) {
@@ -1114,8 +1135,7 @@ void OBS_content::OBS_content_setDrawGuideLines(const FunctionCallbackInfo<Value
 	case 1:
 		isolate->ThrowException(
 		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate,
-		                                    "Usage: OBS_content_getDrawGuideLines(displayKey<string>, drawGuideLines<boolean>)")
+		            v8::String::NewFromUtf8(isolate, usage_string)
 		      )
 		);
 		return;
@@ -1149,7 +1169,7 @@ void OBS_content::OBS_content_setDrawGuideLines(const FunctionCallbackInfo<Value
 		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 		      )
 		);
-		
+
 		return;
 	}
 
