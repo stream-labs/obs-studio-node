@@ -52,6 +52,8 @@ namespace OBS {
 		void SetGuidelineColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
 		void SetResizeBoxOuterColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
 		void SetResizeBoxInnerColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
+		bool GetDrawGuideLines(void);
+		void SetDrawGuideLines(bool drawGuideLines);
 
 		private:
 		static void DisplayCallback(OBS::Display* displayPtr, uint32_t cx, uint32_t cy);
@@ -66,6 +68,7 @@ namespace OBS {
 		gs_init_data m_gsInitData;
 		obs_display_t* m_display;
 		obs_source_t* m_source;
+		bool m_drawGuideLines;
 
 		// Preview
 		/// Window Position

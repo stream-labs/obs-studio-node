@@ -242,7 +242,11 @@ void nodeobs_init(Local<Object> exports) {
     NODE_SET_METHOD(exports, "OBS_content_getSourceVisibility", OBS_content::OBS_content_getSourceVisibility);
     NODE_SET_METHOD(exports, "OBS_content_setSourceVisibility", OBS_content::OBS_content_setSourceVisibility);
     NODE_SET_METHOD(exports, "OBS_content_fillTabScenes", OBS_content::OBS_content_fillTabScenes);
-    NODE_SET_METHOD(exports, "OBS_content_setShouldDrawUI", OBS_content::OBS_content_setShouldDrawUI);
+	NODE_SET_METHOD(exports, "OBS_content_setShouldDrawUI", OBS_content::OBS_content_setShouldDrawUI);
+	NODE_SET_METHOD(exports, "OBS_content_setShouldDrawUI", OBS_content::OBS_content_setShouldDrawUI);
+	NODE_SET_METHOD(exports, "OBS_content_setShouldDrawUI", OBS_content::OBS_content_setShouldDrawUI);
+	NODE_SET_METHOD(exports, "OBS_content_getDrawGuideLines", OBS_content::OBS_content_getDrawGuideLines);
+	NODE_SET_METHOD(exports, "OBS_content_setDrawGuideLines", OBS_content::OBS_content_setDrawGuideLines);
 
     //OBS_content unit tests
     NODE_SET_METHOD(exports, "OBS_content_test_getListCurrentScenes", OBS_content::OBS_content_test_getListCurrentScenes);
