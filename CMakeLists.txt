@@ -141,9 +141,13 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 #############################
 # Distribute
 #############################
-install(TARGETS ${PROJECT_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX})
-install(FILES $<TARGET_PDB_FILE:${PROJECT_NAME}> DESTINATION ${CMAKE_INSTALL_PREFIX})
-install(FILES ${PROJECT_EXTRAS} DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(
+	FILES
+		$<TARGET_PDB_FILE:${PROJECT_NAME}>
+		$<TARGET_FILE:${PROJECT_NAME}>
+		${PROJECT_EXTRAS}
+	DESTINATION ${CMAKE_INSTALL_PREFIX})
+
 install(DIRECTORY ${libobs_SOURCE_DIR}/bin DESTINATION "libobs" PATTERN "*.lib" EXCLUDE)
 install(DIRECTORY ${libobs_SOURCE_DIR}/data DESTINATION "libobs")
 install(DIRECTORY ${libobs_SOURCE_DIR}/obs-plugins DESTINATION "libobs")
