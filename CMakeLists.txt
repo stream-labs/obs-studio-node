@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.1)
 project(obs-studio-node VERSION 1.0.0)
 
 #############################
@@ -10,6 +10,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 include(ExternalProject)
 include(DownloadProject)
+include(NodeJS)
+
+nodejs_init()
 
 # Only allow Debug or Release builds.
 set(CMAKE_CONFIGURATION_TYPES           "Debug;Release")
@@ -122,13 +125,10 @@ set(PROJECT_EXTRAS
 
 set(PROJECT_RESOURCES resources)
 
-add_definitions(-DBUILDING_NODE_EXTENSION)
-
 #############################
 # Building
 #############################
-add_library(${PROJECT_NAME} SHARED ${PROJECT_SOURCE})
-set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node")
+add_nodejs_module(${PROJECT_NAME} ${PROJECT_SOURCE})
 
 # Delay loading of obs.dll so we can decide
 # where to load obs.dll from during runtime.
