@@ -2,195 +2,201 @@
 #include "Input.h"
 #include "Scene.h"
 
-namespace osn {
+namespace osn
+{
 
 Nan::Persistent<v8::FunctionTemplate> Transition::prototype;
 
-Transition::Transition(std::string id, std::string name, obs_data_t *settings, obs_data_t *hotkey)
- : handle(obs::transition(id, name, settings, hotkey))
+Transition::Transition(std::string id, std::string name, obs_data_t *settings,
+                       obs_data_t *hotkey)
+	: handle(obs::transition(id, name, settings, hotkey))
 {
 
 }
 
-Transition::Transition(std::string id, std::string name, obs_data_t *settings, bool is_private)
- : handle(obs::transition(id, name, settings, is_private))
+Transition::Transition(std::string id, std::string name, obs_data_t *settings,
+                       bool is_private)
+	: handle(obs::transition(id, name, settings, is_private))
 {
 
 }
 
 
-Transition::Transition(obs::transition transition) 
- : handle(obs::transition(transition))
+Transition::Transition(obs::transition transition)
+	: handle(obs::transition(transition))
 {
 }
 
 obs::source Transition::GetHandle()
 {
-    return handle.get().get();
+	return handle.get().get();
 }
 
 NAN_MODULE_INIT(Transition::Init)
 {
-    auto locProto = Nan::New<v8::FunctionTemplate>();
-    locProto->Inherit(Nan::New(ISource::prototype));
-    locProto->InstanceTemplate()->SetInternalFieldCount(1);
-    locProto->SetClassName(FIELD_NAME("Transition"));
-    common::SetObjectTemplateField(locProto, "create", create);
-    common::SetObjectTemplateField(locProto, "createPrivate", createPrivate);
-    common::SetObjectTemplateField(locProto, "fromName", fromName);
-    common::SetObjectTemplateField(locProto, "types", types);
-    common::SetObjectTemplateField(locProto->InstanceTemplate(), "getActiveSource", getActiveSource);
-    common::SetObjectTemplateField(locProto->InstanceTemplate(), "start", start);
-    common::SetObjectTemplateField(locProto->InstanceTemplate(), "set", set);
-    common::SetObjectTemplateField(locProto->InstanceTemplate(), "clear", clear);
-    common::SetObjectField(target, "Transition", locProto->GetFunction());
-    prototype.Reset(locProto);
+	auto locProto = Nan::New<v8::FunctionTemplate>();
+	locProto->Inherit(Nan::New(ISource::prototype));
+	locProto->InstanceTemplate()->SetInternalFieldCount(1);
+	locProto->SetClassName(FIELD_NAME("Transition"));
+	common::SetObjectTemplateField(locProto, "create", create);
+	common::SetObjectTemplateField(locProto, "createPrivate", createPrivate);
+	common::SetObjectTemplateField(locProto, "fromName", fromName);
+	common::SetObjectTemplateField(locProto, "types", types);
+	common::SetObjectTemplateField(locProto->InstanceTemplate(), "getActiveSource",
+	                               getActiveSource);
+	common::SetObjectTemplateField(locProto->InstanceTemplate(), "start", start);
+	common::SetObjectTemplateField(locProto->InstanceTemplate(), "set", set);
+	common::SetObjectTemplateField(locProto->InstanceTemplate(), "clear", clear);
+	common::SetObjectField(target, "Transition", locProto->GetFunction());
+	prototype.Reset(locProto);
 }
 
 NAN_METHOD(Transition::types)
 {
-    auto type_list = obs::transition::types();
-    int count = static_cast<int>(type_list.size());
+	auto type_list = obs::transition::types();
+	int count = static_cast<int>(type_list.size());
 
-    auto array = Nan::New<v8::Array>(count);
+	auto array = Nan::New<v8::Array>(count);
 
-    for (int i = 0; i < count; ++i) {
-        Nan::Set(array, i, Nan::New<v8::String>(type_list[i]).ToLocalChecked());
-    }
+	for (int i = 0; i < count; ++i)
+		Nan::Set(array, i, Nan::New<v8::String>(type_list[i]).ToLocalChecked());
 
-    info.GetReturnValue().Set(array);
+	info.GetReturnValue().Set(array);
 }
 
 NAN_METHOD(Transition::create)
 {
-    ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
-    
-    std::string id, name;
-    obs_data_t *settings = nullptr, *hotkeys = nullptr;
+	ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
 
-    ASSERT_GET_VALUE(info[0], id);
-    ASSERT_GET_VALUE(info[1], name);
+	std::string id, name;
+	obs_data_t *settings = nullptr, *hotkeys = nullptr;
 
-    switch (info.Length()) {
-    default:
-    case 4:
-        ASSERT_GET_VALUE(info[3], hotkeys);
-    case 3:
-        ASSERT_GET_VALUE(info[2], settings);
-    case 2:
-        break;
-    }
+	ASSERT_GET_VALUE(info[0], id);
+	ASSERT_GET_VALUE(info[1], name);
 
-    Transition *binding = new Transition(id, name, settings, hotkeys);
-    auto object = Transition::Object::GenerateObject(binding);
-    info.GetReturnValue().Set(object);
+	switch (info.Length()) {
+	default:
+	case 4:
+		ASSERT_GET_VALUE(info[3], hotkeys);
+	case 3:
+		ASSERT_GET_VALUE(info[2], settings);
+	case 2:
+		break;
+	}
+
+	Transition *binding = new Transition(id, name, settings, hotkeys);
+	auto object = Transition::Object::GenerateObject(binding);
+	info.GetReturnValue().Set(object);
 }
 
 NAN_METHOD(Transition::createPrivate)
 {
-    ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
-    
-    std::string id, name;
-    obs_data_t *settings = nullptr;
+	ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
 
-    ASSERT_GET_VALUE(info[0], id);
-    ASSERT_GET_VALUE(info[1], name);
+	std::string id, name;
+	obs_data_t *settings = nullptr;
 
-    Transition *binding;
+	ASSERT_GET_VALUE(info[0], id);
+	ASSERT_GET_VALUE(info[1], name);
 
-    if (info.Length() > 2)
-        ASSERT_GET_VALUE(info[2], settings);
+	Transition *binding;
 
-    binding = new Transition(id, name, settings, true);
-    auto object = Transition::Object::GenerateObject(binding);
-    info.GetReturnValue().Set(object);
+	if (info.Length() > 2)
+		ASSERT_GET_VALUE(info[2], settings);
+
+	binding = new Transition(id, name, settings, true);
+	auto object = Transition::Object::GenerateObject(binding);
+	info.GetReturnValue().Set(object);
 }
 
 NAN_METHOD(Transition::fromName)
 {
-    ASSERT_INFO_LENGTH(info, 1);
+	ASSERT_INFO_LENGTH(info, 1);
 
-    std::string name;
+	std::string name;
 
-    ASSERT_GET_VALUE(info[0], name);
+	ASSERT_GET_VALUE(info[0], name);
 
-    obs::transition transition_ref = obs::transition::from_name(name);
+	obs::transition transition_ref = obs::transition::from_name(name);
 
-    if (transition_ref.status() != obs::transition::status_type::okay) {
-        info.GetReturnValue().Set(Nan::Null());
-        return;
-    }
+	if (transition_ref.status() != obs::transition::status_type::okay) {
+		info.GetReturnValue().Set(Nan::Null());
+		return;
+	}
 
-    Transition *binding = new Transition(transition_ref);
-    auto object = Transition::Object::GenerateObject(binding);
-    info.GetReturnValue().Set(object);
+	Transition *binding = new Transition(transition_ref);
+	auto object = Transition::Object::GenerateObject(binding);
+	info.GetReturnValue().Set(object);
 }
 
 NAN_METHOD(Transition::getActiveSource)
 {
-    obs::weak<obs::transition> &handle = Transition::Object::GetHandle(info.Holder());
+	obs::weak<obs::transition> &handle = Transition::Object::GetHandle(
+	                                           info.Holder());
 
-    obs::source source = handle.get()->get_active_source();
-    
-    if (source.type() == OBS_SOURCE_TYPE_INPUT) {
-        Input *binding = new Input(source.dangerous());
+	obs::source source = handle.get()->get_active_source();
 
-        v8::Local<v8::Object> object = 
-            Input::Object::GenerateObject(binding);
+	if (source.type() == OBS_SOURCE_TYPE_INPUT) {
+		Input *binding = new Input(source.dangerous());
 
-        info.GetReturnValue().Set(object);
-    }
-    else if (source.type() == OBS_SOURCE_TYPE_SCENE) {
-        Scene *binding = new Scene(source.dangerous());
+		v8::Local<v8::Object> object =
+		      Input::Object::GenerateObject(binding);
 
-        v8::Local<v8::Object> object = 
-            Scene::Object::GenerateObject(binding);
+		info.GetReturnValue().Set(object);
+	} else if (source.type() == OBS_SOURCE_TYPE_SCENE) {
+		Scene *binding = new Scene(source.dangerous());
 
-        info.GetReturnValue().Set(object);
-    }
+		v8::Local<v8::Object> object =
+		      Scene::Object::GenerateObject(binding);
 
-    obs_source_release(source.dangerous());
+		info.GetReturnValue().Set(object);
+	}
+
+	obs_source_release(source.dangerous());
 }
 
 NAN_METHOD(Transition::clear)
 {
-    obs::weak<obs::transition> &handle = Transition::Object::GetHandle(info.Holder());
+	obs::weak<obs::transition> &handle = Transition::Object::GetHandle(
+	                                           info.Holder());
 
-    handle.get()->clear();
+	handle.get()->clear();
 }
 
 NAN_METHOD(Transition::set)
 {
-    obs::weak<obs::transition> &handle = Transition::Object::GetHandle(info.Holder());
+	obs::weak<obs::transition> &handle = Transition::Object::GetHandle(
+	                                           info.Holder());
 
-    ASSERT_INFO_LENGTH(info, 1);
+	ASSERT_INFO_LENGTH(info, 1);
 
-    v8::Local<v8::Object> source_object;
+	v8::Local<v8::Object> source_object;
 
-    ASSERT_GET_VALUE(info[0], source_object);
+	ASSERT_GET_VALUE(info[0], source_object);
 
-    /* We don't know what type of source this is... so fetch
-       the source interface instead. */
-    obs::source source = ISource::GetHandle(source_object);
-    handle.get()->set(source);
+	/* We don't know what type of source this is... so fetch
+	   the source interface instead. */
+	obs::source source = ISource::GetHandle(source_object);
+	handle.get()->set(source);
 }
 
 NAN_METHOD(Transition::start)
 {
-    obs::weak<obs::transition> &handle = Transition::Object::GetHandle(info.Holder());
+	obs::weak<obs::transition> &handle = Transition::Object::GetHandle(
+	                                           info.Holder());
 
-    ASSERT_INFO_LENGTH(info, 2);
+	ASSERT_INFO_LENGTH(info, 2);
 
-    int ms;
-    v8::Local<v8::Object> source_object;
+	int ms;
+	v8::Local<v8::Object> source_object;
 
-    ASSERT_GET_VALUE(info[0], ms);
-    ASSERT_GET_VALUE(info[1], source_object);
-    /* We don't know what type of source this is... so fetch
-       the source interface instead. */
-    obs::source source = ISource::GetHandle(source_object);
+	ASSERT_GET_VALUE(info[0], ms);
+	ASSERT_GET_VALUE(info[1], source_object);
+	/* We don't know what type of source this is... so fetch
+	   the source interface instead. */
+	obs::source source = ISource::GetHandle(source_object);
 
-    handle.get()->start(ms, source);
+	handle.get()->start(ms, source);
 }
 
 }

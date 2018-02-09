@@ -1,0 +1,7 @@
+--align-pointer=name
+--align-reference=name
+--remove-braces
+--indent=tab=6
+--max-code-length=80
+--max-continuation-indent=80
+--style=kr
