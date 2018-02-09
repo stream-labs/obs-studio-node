@@ -60,8 +60,6 @@ void nodeobs_init(Local<Object> exports)
 	NODE_SET_METHOD(exports, "OBS_API_initAPI", OBS_API::OBS_API_initAPI);
 	NODE_SET_METHOD(exports, "OBS_API_destroyOBS_API",
 	                OBS_API::OBS_API_destroyOBS_API);
-	NODE_SET_METHOD(exports, "OBS_API_openAllModules",
-	                OBS_API::OBS_API_openAllModules);
 	NODE_SET_METHOD(exports, "OBS_API_getPerformanceStatistics",
 	                OBS_API::OBS_API_getPerformanceStatistics);
 	NODE_SET_METHOD(exports, "OBS_API_getPathConfigDirectory",
