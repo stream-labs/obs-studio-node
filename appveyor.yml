@@ -20,8 +20,8 @@ install:
   - yarn install
 
 build_script:
-  - yarn run cmake-js configure --out "%SLBuildDirectory%" -r="%SLRuntime%" -v="%SLRuntimeVersion%" -G"%SLGenerator%" -a "%SLArch%" --CDCMAKE_INSTALL_PREFIX="%SLDistributeDirectory%\obs-studio-node"
-  - cmake --build %SLBuildDirectory% --target install --config Release
+  - cmake -H. -B"%SLBuildDirectory%" -G"%SLGenerator%"  -DCMAKE_INSTALL_PREFIX="%SLDistributeDirectory%\obs-studio-node"
+  - cmake --build %SLBuildDirectory% --target install --config RelWithDebInfo
   - tar cvaf "%UnsignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
 
 before_deploy:
