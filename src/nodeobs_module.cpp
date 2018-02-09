@@ -106,7 +106,11 @@ void nodeobs_init(Local<Object> exports) {
 	NODE_SET_METHOD(exports, "OBS_content_selectSource", OBS_content::OBS_content_selectSource);
     NODE_SET_METHOD(exports, "OBS_content_selectSources", OBS_content::OBS_content_selectSources);
     NODE_SET_METHOD(exports, "OBS_content_dragSelectedSource", OBS_content::OBS_content_dragSelectedSource);
-    NODE_SET_METHOD(exports, "OBS_content_setShouldDrawUI", OBS_content::OBS_content_setShouldDrawUI);
+	NODE_SET_METHOD(exports, "OBS_content_setShouldDrawUI", OBS_content::OBS_content_setShouldDrawUI);
+	NODE_SET_METHOD(exports, "OBS_content_setShouldDrawUI", OBS_content::OBS_content_setShouldDrawUI);
+	NODE_SET_METHOD(exports, "OBS_content_setShouldDrawUI", OBS_content::OBS_content_setShouldDrawUI);
+	NODE_SET_METHOD(exports, "OBS_content_getDrawGuideLines", OBS_content::OBS_content_getDrawGuideLines);
+	NODE_SET_METHOD(exports, "OBS_content_setDrawGuideLines", OBS_content::OBS_content_setDrawGuideLines);
 
     //OBS_settings
     NODE_SET_METHOD(exports, "OBS_settings_getListCategories", OBS_settings::OBS_settings_getListCategories);

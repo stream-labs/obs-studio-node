@@ -1628,7 +1628,13 @@ void OBS_service::updateStreamSettings(void)
 		}
     }
 
-    resetVideoContext("Stream");
+	bool useDelay = config_get_bool(config, "Output", "DelayEnable");
+	int delaySec = config_get_int(config, "Output", "DelaySec");
+	bool preserveDelay = config_get_bool(config, "Output", "DelayPreserve");
+
+	obs_output_set_delay(streamingOutput, useDelay ? delaySec : 0,
+		preserveDelay ? OBS_OUTPUT_DELAY_PRESERVE : 0);
+
     associateAudioAndVideoToTheCurrentStreamingContext();
     associateAudioAndVideoEncodersToTheCurrentStreamingOutput();
 }
@@ -1654,7 +1660,6 @@ void OBS_service::updateRecordSettings(void)
         updateAdvancedRecordingOutput();
     }
 
-    resetVideoContext("Record");
     associateAudioAndVideoToTheCurrentRecordingContext();
     associateAudioAndVideoEncodersToTheCurrentRecordingOutput();
 }

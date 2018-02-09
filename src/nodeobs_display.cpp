@@ -137,6 +137,8 @@ OBS::Display::Display() {
 	SetGuidelineColor(26, 230, 168);
 
 	UpdatePreviewArea();
+
+	m_drawGuideLines = true;
 }
 
 OBS::Display::Display(uint64_t windowHandle) : Display() {
@@ -516,12 +518,19 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 	// This is partially code from OBS Studio. See window-basic-preview.cpp in obs-studio for copyright/license.
 	if (obs_sceneitem_locked(item))
 		return true;
-	
+
 	obs_source_t* itemSource = obs_sceneitem_get_source(item);
 	uint32_t flags = obs_source_get_output_flags(itemSource);
 	bool isOnlyAudio = (flags & OBS_SOURCE_VIDEO) == 0;
 
-	if (!obs_sceneitem_selected(item) || isOnlyAudio)
+	obs_source_t* sceneSource = obs_scene_get_source(scene);
+
+	uint32_t sceneWidth = obs_source_get_width(sceneSource); // Xaymar: this actually works \o/
+	uint32_t sceneHeight = obs_source_get_height(sceneSource);
+	uint32_t itemWidth = obs_source_get_width(itemSource);
+	uint32_t itemHeight = obs_source_get_height(itemSource);
+
+	if (!obs_sceneitem_selected(item) || isOnlyAudio || ((itemWidth <= 0) && (itemHeight <= 0)))
 		return true;
 
 	matrix4 boxTransform;
@@ -566,17 +575,6 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 	gs_effect_set_vec4(solid_color, &color);
 	DrawOutline(dp, boxTransform, info);
 
-	vec4_set(&color,
-		(dp->m_guidelineColor & 0xFF) / 255.0f,
-		((dp->m_guidelineColor & 0xFF00) >> 8) / 255.0f,
-		((dp->m_guidelineColor & 0xFF0000) >> 16) / 255.0f,
-		((dp->m_guidelineColor & 0xFF000000) >> 24) / 255.0f);
-	gs_effect_set_vec4(solid_color, &color);
-	DrawGuideline(dp, 0.5, 0, boxTransform);
-	DrawGuideline(dp, 0.5, 1, boxTransform);
-	DrawGuideline(dp, 0, 0.5, boxTransform);
-	DrawGuideline(dp, 1, 0.5, boxTransform);
-
 	gs_load_vertexbuffer(dp->m_boxTris->Update(false));
 	vec4_set(&color,
 		(dp->m_resizeInnerColor & 0xFF) / 255.0f,
@@ -609,18 +607,22 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 	DrawBoxAt(dp, 0, 0.5, boxTransform);
 	DrawBoxAt(dp, 1, 0.5, boxTransform);
 
-	// TEXT RENDERING
-	// THIS DESPERATELY NEEDS TO BE REWRITTEN INTO SHADER CODE
-	// DO SO WHENEVER...
-	obs_source_t* sceneSource = obs_scene_get_source(scene);
+	if (dp->m_drawGuideLines) {
+		vec4_set(&color,
+			(dp->m_guidelineColor & 0xFF) / 255.0f,
+			((dp->m_guidelineColor & 0xFF00) >> 8) / 255.0f,
+			((dp->m_guidelineColor & 0xFF0000) >> 16) / 255.0f,
+			((dp->m_guidelineColor & 0xFF000000) >> 24) / 255.0f);
+		gs_effect_set_vec4(solid_color, &color);
+		DrawGuideline(dp, 0.5, 0, boxTransform);
+		DrawGuideline(dp, 0.5, 1, boxTransform);
+		DrawGuideline(dp, 0, 0.5, boxTransform);
+		DrawGuideline(dp, 1, 0.5, boxTransform);
 
-	uint32_t sceneWidth = obs_source_get_width(sceneSource); // Xaymar: this actually works \o/
-	uint32_t sceneHeight = obs_source_get_height(sceneSource);
-	uint32_t itemWidth = obs_source_get_width(itemSource);
-	uint32_t itemHeight = obs_source_get_height(itemSource);
-
-	GS::Vertex v(nullptr, nullptr, nullptr, nullptr, nullptr);
-	if (((itemWidth > 0) && (itemHeight > 0))) {
+		// TEXT RENDERING
+		// THIS DESPERATELY NEEDS TO BE REWRITTEN INTO SHADER CODE
+		// DO SO WHENEVER...
+		GS::Vertex v(nullptr, nullptr, nullptr, nullptr, nullptr);
 
 		matrix4 itemMatrix, sceneToView;
 		obs_sceneitem_get_box_transform(item, &itemMatrix);
@@ -674,9 +676,10 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 							pt, 0, v, dp->m_guidelineColor);
 					}
 				}
-			} else if (left < -0.5) { // RIGHT
+			}
+			else if (left < -0.5) { // RIGHT
 				float_t dist = sceneWidth - edge[n].x;
-				if (dist > (pt * 4)) {
+				if (dist >(pt * 4)) {
 					size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
 					float_t offset = float((pt * len) / 2.0);
 
@@ -687,7 +690,8 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 							pt, 0, v, dp->m_guidelineColor);
 					}
 				}
-			} else if (top > 0.5) { // UP
+			}
+			else if (top > 0.5) { // UP
 				float_t dist = edge[n].y;
 				if (dist > pt) {
 					size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
@@ -700,9 +704,10 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 							pt, 0, v, dp->m_guidelineColor);
 					}
 				}
-			} else if (top < -0.5) { // DOWN
+			}
+			else if (top < -0.5) { // DOWN
 				float_t dist = sceneHeight - edge[n].y;
-				if (dist > (pt * 4)) {
+				if (dist >(pt * 4)) {
 					size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
 					float_t offset = float((pt * len) / 2.0);
 
@@ -933,4 +938,12 @@ LRESULT CALLBACK OBS::Display::DisplayWndProc(_In_ HWND hwnd, _In_ UINT uMsg, _I
 }
 
 #endif
+
+bool OBS::Display::GetDrawGuideLines(void) {
+	return m_drawGuideLines;
+}
+
+void OBS::Display::SetDrawGuideLines(bool drawGuideLines) {
+	m_drawGuideLines = drawGuideLines;
+}
 

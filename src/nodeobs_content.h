@@ -231,6 +231,8 @@ public:
 	static void OBS_content_getSourceVisibility(const FunctionCallbackInfo<Value>& args);
 	static void OBS_content_setSourceVisibility(const FunctionCallbackInfo<Value>& args);
 	static void OBS_content_fillTabScenes(const FunctionCallbackInfo<Value>& args);
+	static void OBS_content_getDrawGuideLines(const FunctionCallbackInfo<Value>& args);
+	static void OBS_content_setDrawGuideLines(const FunctionCallbackInfo<Value>& args);
 
 	static void OBS_content_test_getListCurrentScenes(const FunctionCallbackInfo<Value>& args);
 	static void OBS_content_test_getListCurrentSourcesFromScene(const FunctionCallbackInfo<Value>& args);

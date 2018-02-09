@@ -316,7 +316,6 @@ gs_vertbuffer_t* GS::VertexBuffer::Update(bool refreshGPU) {
 	obs_leave_graphics();
 
 	// WORKAROUND: OBS Studio 20.x and below incorrectly deletes data that it doesn't own.
-	std::memset(m_vertexbufferdata, 0, sizeof(gs_vb_data));
 	m_vertexbufferdata->num = m_capacity;
 	m_vertexbufferdata->num_tex = m_layers;
 	for (uint32_t n = 0; n < m_layers; n++) {
