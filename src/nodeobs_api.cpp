@@ -464,11 +464,6 @@ void OBS_API::OBS_API_destroyOBS_API(const FunctionCallbackInfo<Value> &args)
 	destroyOBS_API();
 }
 
-void OBS_API::OBS_API_openAllModules(const FunctionCallbackInfo<Value> &args)
-{
-	openAllModules();
-}
-
 void OBS_API::OBS_API_getPerformanceStatistics(const
                                                FunctionCallbackInfo<Value> &args)
 {

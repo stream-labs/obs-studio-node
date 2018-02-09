@@ -6,21 +6,8 @@
  * We should consider moving this to another module */
 #include <graphics/matrix4.h>
 
-vector<std::string> tabScenes;
-map<obs_source_t *, obs_properties_t *> propsCache;
-vector<const char *> tabTypeInputSources;
-map<std::string, SourceInfo *> sourceInfo;
-map<std::string, OBS::Display *> displays;
-string currentScene;
-string currentTransition;
-map<string, obs_source_t *> privateSources;
-map<string, SourceInfo *> privateSourceInfo;
-map<string, obs_source_t *> transitions;
-uint32_t transitionDuration = 300;
-bool isMuted;
-bool isUpdatePropertiesThreadRunning = false;
-std::mutex updatePropertiesMutex;
-string sourceSelected;
+std::map<std::string, OBS::Display *> displays;
+std::string sourceSelected;
 
 /* A lot of the sceneitem functionality is a lazy copy-pasta from the Qt UI. */
 // https://github.com/jp9000/obs-studio/blob/master/UI/window-basic-main.cpp#L4888
@@ -940,8 +927,15 @@ void OBS_content::OBS_content_getDisplayPreviewSize(const
 void OBS_content::OBS_content_selectSource(const FunctionCallbackInfo<Value>
                                            &args)
 {
-	obs_source_t *sourceScene = obs_get_source_by_name(currentScene.c_str());
-	obs_scene_t *scene = obs_scene_from_source(sourceScene);
+	/* Here we assume that channel 0 holds the one and only transition.
+	 * We also assume that the active source within that transition is
+	 * the scene that we need */
+	obs_source_t *transition = obs_get_output_source(0);
+	obs_source_t *source = obs_transition_get_active_source(transition);
+	obs_scene_t *scene = obs_scene_from_source(source);
+
+	obs_source_release(transition);
+
 	int x = args[0]->NumberValue();
 	int y = args[1]->NumberValue();
 
@@ -986,7 +980,7 @@ void OBS_content::OBS_content_selectSource(const FunctionCallbackInfo<Value>
 		cout << "source not found !!!!" << endl;
 	}
 
-	obs_source_release(sourceScene);
+	obs_source_release(source);
 }
 
 /* Deprecated */
@@ -1006,22 +1000,22 @@ bool selectItems(obs_scene_t *scene, obs_sceneitem_t *item, void *param)
 }
 
 /* Deprecated */
-void OBS_content::OBS_content_selectSources(const FunctionCallbackInfo<Value>
-                                            &args)
+void OBS_content::OBS_content_selectSources(const FunctionCallbackInfo<Value> &args)
 {
-	Isolate *isolate = args.GetIsolate();
-
 	v8::Local<v8::Array> sources = v8::Local<v8::Array>::Cast(args[0]);
 
-	obs_source_t *source = obs_get_source_by_name(currentScene.c_str());
+	obs_source_t *transition = obs_get_output_source(0);
+	obs_source_t *source = obs_transition_get_active_source(transition);
 	obs_scene_t *scene = obs_scene_from_source(source);
+
+	obs_source_release(transition);
 
 	vector<std::string> tabSources;
 
 	{
 		for(int i = 0; i < sources->Length(); i++) {
 			v8::Local<v8::Object> object = v8::Local<v8::Object>::Cast(sources->Get(i));
-			v8::String::Utf8Value value(object->Get(String::NewFromUtf8(isolate, "name")));
+			v8::String::Utf8Value value(object->Get(Nan::New("name").ToLocalChecked()));
 			std::string sourceName = std::string(*value);
 
 			tabSources.push_back(sourceName);
@@ -1034,8 +1028,7 @@ void OBS_content::OBS_content_selectSources(const FunctionCallbackInfo<Value>
 	obs_source_release(source);
 }
 
-void OBS_content::OBS_content_dragSelectedSource(const
-                                                 FunctionCallbackInfo<Value> &args)
+void OBS_content::OBS_content_dragSelectedSource(const FunctionCallbackInfo<Value> &args)
 {
 	int x = args[0]->NumberValue();
 	int y = args[1]->NumberValue();
@@ -1049,17 +1042,21 @@ void OBS_content::OBS_content_dragSelectedSource(const
 	if(y < 0)
 		y = 0;
 
-	obs_source_t *sourceScene = obs_get_source_by_name(currentScene.c_str());
-	obs_scene_t *scene = obs_scene_from_source(sourceScene);
-	obs_sceneitem_t *sourceItem = obs_scene_find_source(scene,
-	                                                    sourceSelected.c_str());
+	obs_source_t *transition = obs_get_output_source(0);
+	obs_source_t *source = obs_transition_get_active_source(transition);
+	obs_scene_t *scene = obs_scene_from_source(source);
+
+	obs_source_release(transition);
+
+	obs_sceneitem_t *sourceItem = 
+		obs_scene_find_source(scene, sourceSelected.c_str());
 
 	struct vec2 position;
 	position.x = x;
 	position.y = y;
 
 	obs_sceneitem_set_pos(sourceItem, &position);
-	obs_source_release(sourceScene);
+	obs_source_release(source);
 }
 
 void OBS_content::OBS_content_getDrawGuideLines(const
@@ -1102,12 +1099,11 @@ void OBS_content::OBS_content_getDrawGuideLines(const
 		return;
 	}
 
-	args.GetReturnValue().Set(Boolean::New(isolate,
-	                                       it->second->GetDrawGuideLines()));
+	args.GetReturnValue().Set(
+		Boolean::New(isolate, it->second->GetDrawGuideLines()));
 }
 
-void OBS_content::OBS_content_setDrawGuideLines(const
-                                                FunctionCallbackInfo<Value> &args)
+void OBS_content::OBS_content_setDrawGuideLines(const FunctionCallbackInfo<Value> &args)
 {
 	Isolate *isolate = args.GetIsolate();
 
@@ -1153,6 +1149,7 @@ void OBS_content::OBS_content_setDrawGuideLines(const
 		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 		      )
 		);
+		
 		return;
 	}
 
