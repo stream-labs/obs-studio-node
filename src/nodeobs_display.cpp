@@ -516,12 +516,19 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 	// This is partially code from OBS Studio. See window-basic-preview.cpp in obs-studio for copyright/license.
 	if (obs_sceneitem_locked(item))
 		return true;
-	
+
 	obs_source_t* itemSource = obs_sceneitem_get_source(item);
 	uint32_t flags = obs_source_get_output_flags(itemSource);
 	bool isOnlyAudio = (flags & OBS_SOURCE_VIDEO) == 0;
 
-	if (!obs_sceneitem_selected(item) || isOnlyAudio)
+	obs_source_t* sceneSource = obs_scene_get_source(scene);
+
+	uint32_t sceneWidth = obs_source_get_width(sceneSource); // Xaymar: this actually works \o/
+	uint32_t sceneHeight = obs_source_get_height(sceneSource);
+	uint32_t itemWidth = obs_source_get_width(itemSource);
+	uint32_t itemHeight = obs_source_get_height(itemSource);
+
+	if (!obs_sceneitem_selected(item) || isOnlyAudio || ((itemWidth <= 0) && (itemHeight <= 0)))
 		return true;
 
 	matrix4 boxTransform;
@@ -612,106 +619,97 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 	// TEXT RENDERING
 	// THIS DESPERATELY NEEDS TO BE REWRITTEN INTO SHADER CODE
 	// DO SO WHENEVER...
-	obs_source_t* sceneSource = obs_scene_get_source(scene);
-
-	uint32_t sceneWidth = obs_source_get_width(sceneSource); // Xaymar: this actually works \o/
-	uint32_t sceneHeight = obs_source_get_height(sceneSource);
-	uint32_t itemWidth = obs_source_get_width(itemSource);
-	uint32_t itemHeight = obs_source_get_height(itemSource);
-
 	GS::Vertex v(nullptr, nullptr, nullptr, nullptr, nullptr);
-	if (((itemWidth > 0) && (itemHeight > 0))) {
 
-		matrix4 itemMatrix, sceneToView;
-		obs_sceneitem_get_box_transform(item, &itemMatrix);
-		matrix4_identity(&sceneToView);
-		sceneToView.x.x = dp->m_worldToPreviewScale.x;
-		sceneToView.y.y = dp->m_worldToPreviewScale.y;
+	matrix4 itemMatrix, sceneToView;
+	obs_sceneitem_get_box_transform(item, &itemMatrix);
+	matrix4_identity(&sceneToView);
+	sceneToView.x.x = dp->m_worldToPreviewScale.x;
+	sceneToView.y.y = dp->m_worldToPreviewScale.y;
 
-		// Retrieve actual corner and edge positions.
-		vec3 edge[4], center;
-		{
-			vec3_set(&edge[0], 0, 0.5, 0);
-			vec3_transform(&edge[0], &edge[0], &itemMatrix);
-			vec3_set(&edge[1], 0.5, 0, 0);
-			vec3_transform(&edge[1], &edge[1], &itemMatrix);
-			vec3_set(&edge[2], 1, 0.5, 0);
-			vec3_transform(&edge[2], &edge[2], &itemMatrix);
-			vec3_set(&edge[3], 0.5, 1, 0);
-			vec3_transform(&edge[3], &edge[3], &itemMatrix);
+	// Retrieve actual corner and edge positions.
+	vec3 edge[4], center;
+	{
+		vec3_set(&edge[0], 0, 0.5, 0);
+		vec3_transform(&edge[0], &edge[0], &itemMatrix);
+		vec3_set(&edge[1], 0.5, 0, 0);
+		vec3_transform(&edge[1], &edge[1], &itemMatrix);
+		vec3_set(&edge[2], 1, 0.5, 0);
+		vec3_transform(&edge[2], &edge[2], &itemMatrix);
+		vec3_set(&edge[3], 0.5, 1, 0);
+		vec3_transform(&edge[3], &edge[3], &itemMatrix);
 
-			vec3_set(&center, 0.5, 0.5, 0);
-			vec3_transform(&center, &center, &itemMatrix);;
-		}
+		vec3_set(&center, 0.5, 0.5, 0);
+		vec3_transform(&center, &center, &itemMatrix);;
+	}
 
-		std::vector<char> buf(8);
-		float_t pt = 8 * dp->m_previewToWorldScale.y;
-		for (size_t n = 0; n < 4; n++) {
-			bool isIn = (edge[n].x >= 0) && (edge[n].x < sceneWidth)
-				&& (edge[n].y >= 0) && (edge[n].y < sceneHeight);
+	std::vector<char> buf(8);
+	float_t pt = 8 * dp->m_previewToWorldScale.y;
+	for (size_t n = 0; n < 4; n++) {
+		bool isIn = (edge[n].x >= 0) && (edge[n].x < sceneWidth)
+			&& (edge[n].y >= 0) && (edge[n].y < sceneHeight);
 
-			if (!isIn)
-				continue;
+		if (!isIn)
+			continue;
 
-			vec3 alignLeft = { -1, 0, 0 };
-			vec3 alignTop = { 0, -1, 0 };
+		vec3 alignLeft = { -1, 0, 0 };
+		vec3 alignTop = { 0, -1, 0 };
 
-			vec3 temp;
-			vec3_sub(&temp, &edge[n], &center);
-			vec3_norm(&temp, &temp);
-			float left = vec3_dot(&temp, &alignLeft),
-				top = vec3_dot(&temp, &alignTop);
-			if (left > 0.5) { // LEFT
-				float_t dist = edge[n].x;
-				if (dist > (pt * 4)) {
-					size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
-					float_t offset = float((pt * len) / 2.0);
+		vec3 temp;
+		vec3_sub(&temp, &edge[n], &center);
+		vec3_norm(&temp, &temp);
+		float left = vec3_dot(&temp, &alignLeft),
+			top = vec3_dot(&temp, &alignTop);
+		if (left > 0.5) { // LEFT
+			float_t dist = edge[n].x;
+			if (dist > (pt * 4)) {
+				size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
+				float_t offset = float((pt * len) / 2.0);
 
-					for (size_t p = 0; p < len; p++) {
-						char v = buf.data()[p];
-						DrawGlyph(dp->m_textVertices,
-							(edge[n].x / 2) - offset + (p * pt), edge[n].y - pt * 2,
-							pt, 0, v, dp->m_guidelineColor);
-					}
+				for (size_t p = 0; p < len; p++) {
+					char v = buf.data()[p];
+					DrawGlyph(dp->m_textVertices,
+						(edge[n].x / 2) - offset + (p * pt), edge[n].y - pt * 2,
+						pt, 0, v, dp->m_guidelineColor);
 				}
-			} else if (left < -0.5) { // RIGHT
-				float_t dist = sceneWidth - edge[n].x;
-				if (dist > (pt * 4)) {
-					size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
-					float_t offset = float((pt * len) / 2.0);
+			}
+		} else if (left < -0.5) { // RIGHT
+			float_t dist = sceneWidth - edge[n].x;
+			if (dist > (pt * 4)) {
+				size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
+				float_t offset = float((pt * len) / 2.0);
 
-					for (size_t p = 0; p < len; p++) {
-						char v = buf.data()[p];
-						DrawGlyph(dp->m_textVertices,
-							edge[n].x + (dist / 2) - offset + (p * pt), edge[n].y - pt * 2,
-							pt, 0, v, dp->m_guidelineColor);
-					}
+				for (size_t p = 0; p < len; p++) {
+					char v = buf.data()[p];
+					DrawGlyph(dp->m_textVertices,
+						edge[n].x + (dist / 2) - offset + (p * pt), edge[n].y - pt * 2,
+						pt, 0, v, dp->m_guidelineColor);
 				}
-			} else if (top > 0.5) { // UP
-				float_t dist = edge[n].y;
-				if (dist > pt) {
-					size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
-					float_t offset = float((pt * len) / 2.0);
+			}
+		} else if (top > 0.5) { // UP
+			float_t dist = edge[n].y;
+			if (dist > pt) {
+				size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
+				float_t offset = float((pt * len) / 2.0);
 
-					for (size_t p = 0; p < len; p++) {
-						char v = buf.data()[p];
-						DrawGlyph(dp->m_textVertices,
-							edge[n].x + (p * pt), edge[n].y - (dist / 2) - pt,
-							pt, 0, v, dp->m_guidelineColor);
-					}
+				for (size_t p = 0; p < len; p++) {
+					char v = buf.data()[p];
+					DrawGlyph(dp->m_textVertices,
+						edge[n].x + (p * pt), edge[n].y - (dist / 2) - pt,
+						pt, 0, v, dp->m_guidelineColor);
 				}
-			} else if (top < -0.5) { // DOWN
-				float_t dist = sceneHeight - edge[n].y;
-				if (dist > (pt * 4)) {
-					size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
-					float_t offset = float((pt * len) / 2.0);
+			}
+		} else if (top < -0.5) { // DOWN
+			float_t dist = sceneHeight - edge[n].y;
+			if (dist > (pt * 4)) {
+				size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
+				float_t offset = float((pt * len) / 2.0);
 
-					for (size_t p = 0; p < len; p++) {
-						char v = buf.data()[p];
-						DrawGlyph(dp->m_textVertices,
-							edge[n].x + (p * pt), edge[n].y + (dist / 2) - pt,
-							pt, 0, v, dp->m_guidelineColor);
-					}
+				for (size_t p = 0; p < len; p++) {
+					char v = buf.data()[p];
+					DrawGlyph(dp->m_textVertices,
+						edge[n].x + (p * pt), edge[n].y + (dist / 2) - pt,
+						pt, 0, v, dp->m_guidelineColor);
 				}
 			}
 		}
