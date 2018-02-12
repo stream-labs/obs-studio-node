@@ -121,16 +121,16 @@ add_nodejs_module(${PROJECT_NAME} ${PROJECT_SOURCE})
 
 if(WIN32)
 	set_target_properties(${PROJECT_NAME} PROPERTIES
-		LINK_FLAGS_RELEASE "/DELAYLOAD:obs.dll"
-		LINK_FLAGS_DEBUG   "/DELAYLOAD:obs.dll")
+		LINK_FLAGS "/DELAYLOAD:obs.dll")
 		
 	list(APPEND PROJECT_LIBRARIES "Delayimp.lib")
-
 endif()
-target_link_libraries(${PROJECT_NAME} libobs ${PROJECT_LIBRARIES} ${CMAKE_JS_LIB} ${PROJECT_LINKER_FLAGS})
+
+target_link_libraries(${PROJECT_NAME} libobs 
+	${PROJECT_LIBRARIES}
+	${CMAKE_JS_LIB})
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-	$<TARGET_PROPERTY:libobs,INTERFACE_INCLUDE_DIRECTORIES>
 	${CMAKE_JS_INC})
 
 
