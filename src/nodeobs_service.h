@@ -137,12 +137,12 @@ public:
 
 	/**
 	 * Stop the streaming output
-	*/	
+	*/
 	static void OBS_service_stopStreaming(const FunctionCallbackInfo<Value>& args);
 
 	/**
 	 * Stop the recording output
-	*/	
+	*/
 	static void OBS_service_stopRecording(const FunctionCallbackInfo<Value>& args);
 
 	/**
@@ -201,7 +201,7 @@ private:
 	static obs_data_t* createRecordingSettings(void);
 	static bool startStreaming(void);
 	static bool startRecording(void);
-	static void stopStreaming(void);
+	static void stopStreaming(bool forceStop);
 	static void stopRecording(void);
 	static void setRecordingSettings(void);
 

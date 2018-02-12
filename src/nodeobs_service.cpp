@@ -87,7 +87,17 @@ void OBS_service::OBS_service_startRecording(const FunctionCallbackInfo<Value>& 
 
 void OBS_service::OBS_service_stopStreaming(const FunctionCallbackInfo<Value>& args)
 {
-	stopStreaming();
+	Isolate *isolate = args.GetIsolate();
+
+	if (args[0]->IsUndefined() && !args[0]->IsBoolean()) {
+		isolate->ThrowException(
+			v8::Exception::SyntaxError(
+				v8::String::NewFromUtf8(isolate, "{forceStop} is not a <boolean>!")
+			)
+		);
+		return;
+	}
+	stopStreaming(args[0]->BooleanValue());
 }
 
 void OBS_service::OBS_service_stopRecording(const FunctionCallbackInfo<Value>& args)
@@ -312,7 +322,7 @@ void OBS_service::OBS_service_test_startStreaming(const FunctionCallbackInfo<Val
 		}
     }
 
-    stopStreaming();
+    stopStreaming(false);
 
     timeout = 8;
     while(obs_output_active(streamingOutput)) {
@@ -436,7 +446,7 @@ void OBS_service::OBS_service_test_stopStreaming(const FunctionCallbackInfo<Valu
 		}
     }
 
-    stopStreaming();
+    stopStreaming(false);
 
     timeout = 8;
     while(obs_output_active(streamingOutput)) {
@@ -1297,9 +1307,12 @@ bool OBS_service::startRecording(void)
 	return obs_output_start(recordingOutput);
 }
 
-void OBS_service::stopStreaming(void)
+void OBS_service::stopStreaming(bool forceStop)
 {
-	obs_output_stop(streamingOutput);
+	if(forceStop)
+		obs_output_force_stop(streamingOutput);
+	else
+		obs_output_stop(streamingOutput);
 }
 
 void OBS_service::stopRecording(void)
