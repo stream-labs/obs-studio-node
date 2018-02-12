@@ -22,26 +22,27 @@
 #include <inttypes.h>
 #include <xmmintrin.h>
 extern "C" {
-	#pragma warning( push )
-	#pragma warning( disable: 4201 )
-	#include <graphics/vec3.h>
-	#pragma warning( pop )
+#pragma warning( push )
+#pragma warning( disable: 4201 )
+#include <graphics/vec3.h>
+#pragma warning( pop )
 }
 
-namespace GS {
-	struct Vertex {
-		vec3* position;
-		vec3* normal;
-		vec3* tangent;
-		uint32_t* color;
-		vec4* uv[MAXIMUM_UVW_LAYERS];
+namespace GS
+{
+struct Vertex {
+	vec3 *position;
+	vec3 *normal;
+	vec3 *tangent;
+	uint32_t *color;
+	vec4 *uv[MAXIMUM_UVW_LAYERS];
 
-		Vertex();
-		Vertex(vec3* p, vec3* n, vec3* t, uint32_t* col, vec4* uv[MAXIMUM_UVW_LAYERS]);
-		~Vertex();
+	Vertex();
+	Vertex(vec3 *p, vec3 *n, vec3 *t, uint32_t *col, vec4 *uv[MAXIMUM_UVW_LAYERS]);
+	~Vertex();
 
-		private:
-		bool hasStore;
-		void* store;
-	};
+private:
+	bool hasStore;
+	void *store;
+};
 }

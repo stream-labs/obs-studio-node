@@ -21,9 +21,9 @@ public:
 	OBS_settings();
 	~OBS_settings();
 
-	static void OBS_settings_getSettings(const FunctionCallbackInfo<Value>& args);
-	static void OBS_settings_saveSettings(const FunctionCallbackInfo<Value>& args);
-	static void OBS_settings_getListCategories(const FunctionCallbackInfo<Value>& args);
+	static void OBS_settings_getSettings(const FunctionCallbackInfo<Value> &args);
+	static void OBS_settings_saveSettings(const FunctionCallbackInfo<Value> &args);
+	static void OBS_settings_getListCategories(const FunctionCallbackInfo<Value> &args);
 
 private:
 	static Local<Array> getListCategories(void);
@@ -52,31 +52,31 @@ private:
 
 	static void saveGenericSettings(Local<Array> genericSettings, std::string section, std::string pathFile);
 
-	static Local<Object> serializeSettingsData(std::string nameSubCategory, 
-												std::vector<std::vector<std::pair<std::string, std::string>>> entries, 
-												config_t* config, std::string section, bool isVisible, bool isEnabled);
+	static Local<Object> serializeSettingsData(std::string nameSubCategory,
+	                std::vector<std::vector<std::pair<std::string, std::string>>> entries,
+	                config_t *config, std::string section, bool isVisible, bool isEnabled);
 
 
 	/****** Get Output Settings ******/
 
 	// Simple Output mode
 	static void 				getSimpleOutputSettings(Local<Array> outputSettings,
-														config_t* config, bool isCategoryEnabled);
+	                config_t *config, bool isCategoryEnabled);
 
 	// Advanced Output mode
 	static void 				getAdvancedOutputSettings(Local<Array> outputSettings,
-															config_t* config, bool isCategoryEnabled);
+	                config_t *config, bool isCategoryEnabled);
 
-	static Local<Object> 		getAdvancedOutputStreamingSettings(config_t* config, bool isCategoryEnabled);
+	static Local<Object> 		getAdvancedOutputStreamingSettings(config_t *config, bool isCategoryEnabled);
 
-	static Local<Object> 		getAdvancedOutputRecordingSettings(config_t* config, bool isCategoryEnabled);
-	static void 				getStandardRecordingSettings(Local<Array>* subCategoryParameters,
-																config_t* config, bool isCategoryEnabled);
-	static void					getFFmpegOutputRecordingSettings(Local<Array>* subCategoryParameters,
-																	config_t* config, bool isCategoryEnabled);
+	static Local<Object> 		getAdvancedOutputRecordingSettings(config_t *config, bool isCategoryEnabled);
+	static void 				getStandardRecordingSettings(Local<Array> *subCategoryParameters,
+	                config_t *config, bool isCategoryEnabled);
+	static void					getFFmpegOutputRecordingSettings(Local<Array> *subCategoryParameters,
+	                config_t *config, bool isCategoryEnabled);
 
 	static void 				getAdvancedOutputAudioSettings(Local<Array> outputSettings,
-																config_t* config, bool isCategoryEnabled);
+	                config_t *config, bool isCategoryEnabled);
 
 
 	/****** Save Output Settings ******/
@@ -94,11 +94,11 @@ private:
 
 	//Utility functions
 	static void 							getAvailableEncoders	(std::vector<std::pair<std::string,
-																		std::string>>* streamEncoder);
+	                std::string>> *streamEncoder);
 	static std::vector<pair<int, int>> 		getOutputResolutions	(int base_cx, int base_cy);
 	static void 							getEncoderSettings		(Isolate *isolate,
-																		const obs_encoder_t *encoder,
-																		obs_data_t *settings,
-																		Local<Array>* subCategoryParameters,
-																		int index, bool isCategoryEnabled);
+	                const obs_encoder_t *encoder,
+	                obs_data_t *settings,
+	                Local<Array> *subCategoryParameters,
+	                int index, bool isCategoryEnabled);
 };

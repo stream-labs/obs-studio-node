@@ -1,4 +1,47 @@
 #include "nodeobs_autoconfig.h"
+#include "nodeobs_async.h"
+
+enum class Type {
+	Invalid,
+	Streaming,
+	Recording
+};
+
+enum class Service {
+	Twitch,
+	Hitbox,
+	Beam,
+	Other
+};
+
+enum class Encoder {
+	x264,
+	NVENC,
+	QSV,
+	AMD,
+	Stream
+};
+
+enum class Quality {
+	Stream,
+	High
+};
+
+enum class FPSType : int {
+	PreferHighFPS,
+	PreferHighRes,
+	UseCurrent,
+	fps30,
+	fps60
+};
+
+struct Event {
+	obs::CallbackInfo *cb_info;
+
+	std::string event;
+	std::string description;
+	int percentage;
+};
 
 Service serviceSelected = Service::Other;
 Quality recordingQuality = Quality::Stream;
@@ -47,6 +90,82 @@ bool started = false;
 
 bool softwareTested = false;
 
+struct ServerInfo {
+	std::string name;
+	std::string address;
+	int bitrate = 0;
+	int ms = -1;
+
+	inline ServerInfo() {}
+
+	inline ServerInfo(const char *name_, const char *address_)
+		: name(name_), address(address_) {}
+};
+
+class TestMode
+{
+	obs_video_info ovi;
+	OBSSource source[6];
+
+	static void render_rand(void *, uint32_t cx, uint32_t cy)
+	{
+		gs_effect_t *solid = obs_get_base_effect(OBS_EFFECT_SOLID);
+		gs_eparam_t *randomvals[3] = {
+			gs_effect_get_param_by_name(solid, "randomvals1"),
+			gs_effect_get_param_by_name(solid, "randomvals2"),
+			gs_effect_get_param_by_name(solid, "randomvals3")
+		};
+
+		struct vec4 r;
+
+		for (int i = 0; i < 3; i++) {
+			vec4_set(&r,
+			         rand_float(true) * 100.0f,
+			         rand_float(true) * 100.0f,
+			         rand_float(true) * 50000.0f + 10000.0f,
+			         0.0f);
+			gs_effect_set_vec4(randomvals[i], &r);
+		}
+
+		while (gs_effect_loop(solid, "Random"))
+			gs_draw_sprite(nullptr, 0, cx, cy);
+	}
+
+public:
+	inline TestMode()
+	{
+		obs_get_video_info(&ovi);
+		obs_add_main_render_callback(render_rand, this);
+
+		for (uint32_t i = 0; i < 6; i++) {
+			source[i] = obs_get_output_source(i);
+			obs_source_release(source[i]);
+			obs_set_output_source(i, nullptr);
+		}
+	}
+
+	inline ~TestMode()
+	{
+		for (uint32_t i = 0; i < 6; i++)
+			obs_set_output_source(i, source[i]);
+
+		obs_remove_main_render_callback(render_rand, this);
+		obs_reset_video(&ovi);
+	}
+
+	inline void SetVideo(int cx, int cy, int fps_num, int fps_den)
+	{
+		obs_video_info newOVI = ovi;
+
+		newOVI.output_width = (uint32_t)cx;
+		newOVI.output_height = (uint32_t)cy;
+		newOVI.fps_num = (uint32_t)fps_num;
+		newOVI.fps_den = (uint32_t)fps_den;
+
+		obs_reset_video(&newOVI);
+	}
+};
+
 void TestHardwareEncoding(void)
 {
 	size_t idx = 0;
@@ -79,61 +198,73 @@ bool CanTestServer(const char *server)
 
 	if (serviceSelected == Service::Twitch) {
 		if (astrcmp_n(server, "NA:", 3) == 0 ||
-			astrcmp_n(server, "US West:", 8) == 0 ||
-		    astrcmp_n(server, "US East:", 8) == 0 ||
-		    astrcmp_n(server, "US Central:", 11) == 0) {
+		            astrcmp_n(server, "US West:", 8) == 0 ||
+		            astrcmp_n(server, "US East:", 8) == 0 ||
+		            astrcmp_n(server, "US Central:", 11) == 0)
 			return regionNA;
-		} else if (astrcmp_n(server, "South America:", 14) == 0) {
+
+		else if (astrcmp_n(server, "South America:", 14) == 0)
 			return regionSA;
-		} else if (astrcmp_n(server, "EU:", 3) == 0) {
+
+		else if (astrcmp_n(server, "EU:", 3) == 0)
 			return regionEU;
-		} else if (astrcmp_n(server, "Asia:", 5) == 0) {
+
+		else if (astrcmp_n(server, "Asia:", 5) == 0)
 			return regionAS;
-		} else if (astrcmp_n(server, "Australia:", 10) == 0) {
+
+		else if (astrcmp_n(server, "Australia:", 10) == 0)
 			return regionOC;
-		} else {
+
+		else
 			return true;
-		}
 	} else if (serviceSelected == Service::Hitbox) {
-		if (strcmp(server, "Default") == 0) {
+		if (strcmp(server, "Default") == 0)
 			return true;
-		} else if (astrcmp_n(server, "US-West:", 8) == 0 ||
-		           astrcmp_n(server, "US-East:", 8) == 0) {
+
+		else if (astrcmp_n(server, "US-West:", 8) == 0 ||
+		            astrcmp_n(server, "US-East:", 8) == 0)
 			return regionNA;
-		} else if (astrcmp_n(server, "South America:", 14) == 0) {
+
+		else if (astrcmp_n(server, "South America:", 14) == 0)
 			return regionSA;
-		} else if (astrcmp_n(server, "EU-", 3) == 0) {
+
+		else if (astrcmp_n(server, "EU-", 3) == 0)
 			return regionEU;
-		} else if (astrcmp_n(server, "South Korea:", 12) == 0 ||
-		           astrcmp_n(server, "Asia:", 5) == 0 ||
-		           astrcmp_n(server, "China:", 6) == 0) {
+
+		else if (astrcmp_n(server, "South Korea:", 12) == 0 ||
+		            astrcmp_n(server, "Asia:", 5) == 0 ||
+		            astrcmp_n(server, "China:", 6) == 0)
 			return regionAS;
-		} else if (astrcmp_n(server, "Oceania:", 8) == 0) {
+
+		else if (astrcmp_n(server, "Oceania:", 8) == 0)
 			return regionOC;
-		} else {
+
+		else
 			return true;
-		}
 	} else if (serviceSelected == Service::Beam) {
 		if (astrcmp_n(server, "US:", 3) == 0 ||
-			astrcmp_n(server, "Canada:", 7) ||
-			astrcmp_n(server, "Mexico:", 7)) {
+		            astrcmp_n(server, "Canada:", 7) ||
+		            astrcmp_n(server, "Mexico:", 7))
 			return regionNA;
-		} else if (astrcmp_n(server, "Brazil:", 7) == 0) {
+
+		else if (astrcmp_n(server, "Brazil:", 7) == 0)
 			return regionSA;
-		} else if (astrcmp_n(server, "EU:", 3) == 0) {
+
+		else if (astrcmp_n(server, "EU:", 3) == 0)
 			return regionEU;
-		} else if (astrcmp_n(server, "South Korea:", 12) == 0 ||
-		           astrcmp_n(server, "Asia:", 5) == 0 ||
-		           astrcmp_n(server, "India:", 6) == 0) {
+
+		else if (astrcmp_n(server, "South Korea:", 12) == 0 ||
+		            astrcmp_n(server, "Asia:", 5) == 0 ||
+		            astrcmp_n(server, "India:", 6) == 0)
 			return regionAS;
-		} else if (astrcmp_n(server, "Australia:", 10) == 0) {
+
+		else if (astrcmp_n(server, "Australia:", 10) == 0)
 			return regionOC;
-		} else {
+
+		else
 			return true;
-		}
-	} else {
+	} else
 		return true;
-	}
 
 	return false;
 }
@@ -167,65 +298,67 @@ void GetServers(std::vector<ServerInfo> &servers)
 	obs_properties_destroy(ppts);
 }
 
-void event_main_loop_cb(uv_async_t* handle);
+void event_main_loop_cb(uv_async_t *handle);
 
 obs::CallbackQueue<Event> eventCallbackQueue(event_main_loop_cb);
 
-void event_main_loop_cb(uv_async_t* handle) {
+void event_main_loop_cb(uv_async_t *handle)
+{
 	v8::Isolate *isolate = v8::Isolate::GetCurrent();
 
 	std::unique_lock<std::mutex> lock(eventCallbackQueue.mutex);
 
-   	while (!eventCallbackQueue.work_queue.empty()) {
-        auto &data = eventCallbackQueue.work_queue.front();
+	while (!eventCallbackQueue.work_queue.empty()) {
+		auto &data = eventCallbackQueue.work_queue.front();
 
-        if (data.cb_info->stopped)
-            goto next_element;
+		if (data.cb_info->stopped)
+			goto next_element;
 
-        auto result = Nan::New<v8::Object>();
+		auto result = Nan::New<v8::Object>();
 
-        Nan::Set(result,
-            Nan::New("event").ToLocalChecked(),
-            Nan::New(data.event.c_str()).ToLocalChecked());
+		Nan::Set(result,
+		         Nan::New("event").ToLocalChecked(),
+		         Nan::New(data.event.c_str()).ToLocalChecked());
 
-	    Nan::Set(result,
-	        Nan::New("description").ToLocalChecked(),
-	        Nan::New(data.description.c_str()).ToLocalChecked());
+		Nan::Set(result,
+		         Nan::New("description").ToLocalChecked(),
+		         Nan::New(data.description.c_str()).ToLocalChecked());
 
-	    if(data.event.compare("error") != 0) {
-		    Nan::Set(result,
-		        Nan::New("percentage").ToLocalChecked(),
-		        Nan::New(data.percentage));	
-	    }
-	    	       
-        v8::Local<v8::Value> params[] = {
-            result
-        };
+		if(data.event.compare("error") != 0) {
+			Nan::Set(result,
+			         Nan::New("percentage").ToLocalChecked(),
+			         Nan::New(data.percentage));
+		}
 
-        data.cb_info->callback.Call(1, params);
+		v8::Local<v8::Value> params[] = {
+			result
+		};
+
+		data.cb_info->callback.Call(1, params);
 
 next_element:
-        eventCallbackQueue.work_queue.pop_front();
-    }
+		eventCallbackQueue.work_queue.pop_front();
+	}
 }
 
 obs::CallbackInfo *cb;
 
-void start_next_step(void (*task)(), std::string event, std::string description, int percentage)
+void start_next_step(void (*task)(), std::string event, std::string description,
+                     int percentage)
 {
 	eventCallbackQueue.work_queue.push_back({cb, event, description, percentage});
-    eventCallbackQueue.Signal();
+	eventCallbackQueue.Signal();
 
-    if(task)
-    	std::thread(*task).detach();
+	if(task)
+		std::thread(*task).detach();
 }
 
-void TerminateAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args)
+void TerminateAutoConfig(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
 	StopThread();
 }
 
-void StopThread(void) 
+void StopThread(void)
 {
 	unique_lock<mutex> ul(m);
 	cancel = true;
@@ -233,7 +366,7 @@ void StopThread(void)
 }
 
 
-void InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args)
+void InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
 	v8::Local<v8::Function> function = args[0].As<v8::Function>();
 	cb = new obs::CallbackInfo(function);
@@ -242,10 +375,12 @@ void InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 	Local<Object> serverInfo = args[1].As<v8::Object>();
 
-	v8::String::Utf8Value param0(serverInfo->Get(String::NewFromUtf8(isolate, "continent")));
+	v8::String::Utf8Value param0(serverInfo->Get(String::NewFromUtf8(isolate,
+	                                                                 "continent")));
 	std::string continent = std::string(*param0);
 
-	v8::String::Utf8Value param1(serverInfo->Get(String::NewFromUtf8(isolate, "service_name")));
+	v8::String::Utf8Value param1(serverInfo->Get(String::NewFromUtf8(isolate,
+	                                                                 "service_name")));
 	serviceName = std::string(*param1);
 
 	if(continent.compare("undefined") == 0) {
@@ -253,13 +388,15 @@ void InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args)
 		if (serviceName.compare("undefined") == 0)
 			serviceName = "";
 
-		v8::String::Utf8Value param2(serverInfo->Get(String::NewFromUtf8(isolate, "server_name")));
+		v8::String::Utf8Value param2(serverInfo->Get(String::NewFromUtf8(isolate,
+		                                                                 "server_name")));
 		serverName = std::string(*param2);
 
 		if (serverName.compare("undefined") == 0)
 			serverName = "";
 
-		v8::String::Utf8Value param3(serverInfo->Get(String::NewFromUtf8(isolate, "server")));
+		v8::String::Utf8Value param3(serverInfo->Get(String::NewFromUtf8(isolate,
+		                                                                 "server")));
 		server = std::string(*param3);
 
 		if (server.compare("undefined") == 0)
@@ -285,50 +422,53 @@ void InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args)
 				serverName = "US West: San Francisco, CA";
 				server = "rtmp://live-sfo.twitch.tv/app";
 			}
-		} 
+		}
 	}
 
 	cancel = false;
 }
 
-void StartBandwidthTest(const v8::FunctionCallbackInfo<v8::Value>& args)
+void StartBandwidthTest(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
 	start_next_step(TestBandwidthThread, "starting_step", "bandwidth_test", 0);
 }
 
-void StartStreamEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args)
+void StartStreamEncoderTest(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-	start_next_step(TestStreamEncoderThread, "starting_step", "streamingEncoder_test", 0);
+	start_next_step(TestStreamEncoderThread, "starting_step",
+	                "streamingEncoder_test", 0);
 }
 
-void StartRecordingEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args)
+void StartRecordingEncoderTest(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-	start_next_step(TestRecordingEncoderThread, "starting_step", "recordingEncoder_test", 0);
+	start_next_step(TestRecordingEncoderThread, "starting_step",
+	                "recordingEncoder_test", 0);
 }
 
-void StartSaveStreamSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
+void StartSaveStreamSettings(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
 	start_next_step(SaveStreamSettings, "starting_step", "saving_service", 0);
 }
 
-void StartSaveSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
+void StartSaveSettings(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
 	start_next_step(SaveSettings, "starting_step", "saving_settings", 0);
 
 	cancel = false;
 }
 
-void StartCheckSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
+void StartCheckSettings(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
 	start_next_step(CheckSettings, "starting_step", "checking_settings", 0);
 }
 
-void StartSetDefaultSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
+void StartSetDefaultSettings(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-	start_next_step(SetDefaultSettings, "starting_step", "setting_default_settings", 0);
+	start_next_step(SetDefaultSettings, "starting_step", "setting_default_settings",
+	                0);
 }
 
-void GetListServer(const v8::FunctionCallbackInfo<v8::Value>& args)
+void GetListServer(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
 	Isolate *isolate = v8::Isolate::GetCurrent();
 
@@ -345,24 +485,29 @@ void GetListServer(const v8::FunctionCallbackInfo<v8::Value>& args)
 	regionAS = false;
 	regionOC = false;
 
-	if(continent.compare("North America") == 0) {
+	if(continent.compare("North America") == 0)
 		regionNA = true;
-	} else if (continent.compare("South America") == 0) {
+
+	else if (continent.compare("South America") == 0)
 		regionSA = true;
-	} else if (continent.compare("Europe") == 0) {
+
+	else if (continent.compare("Europe") == 0)
 		regionEU = true;
-	} else if (continent.compare("Asia") == 0) {
+
+	else if (continent.compare("Asia") == 0)
 		regionAS = true;
-	} else if (continent.compare("Oceania") == 0) {
+
+	else if (continent.compare("Oceania") == 0)
 		regionOC = true;
-	} else {
+
+	else {
 		regionNA = true;
 		regionSA = true;
 		regionEU = true;
 		regionAS = true;
 		regionOC = true;
 	}
-	
+
 	if (serviceName == "Twitch")
 		serviceSelected = Service::Twitch;
 	else if (serviceName == "hitbox.tv")
@@ -378,11 +523,13 @@ void GetListServer(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 	Local<Array> listServer = Array::New(isolate);
 
-	for(int i=0;i<servers.size();i++) {
+	for(int i=0; i<servers.size(); i++) {
 		Local<Object> object = Object::New(isolate);
 
-		object->Set(String::NewFromUtf8(isolate, "server_name"), String::NewFromUtf8(isolate, servers[i].name.c_str()));
-		object->Set(String::NewFromUtf8(isolate, "server"), String::NewFromUtf8(isolate, servers[i].address.c_str()));
+		object->Set(String::NewFromUtf8(isolate, "server_name"),
+		            String::NewFromUtf8(isolate, servers[i].name.c_str()));
+		object->Set(String::NewFromUtf8(isolate, "server"), String::NewFromUtf8(isolate,
+		                                                                        servers[i].address.c_str()));
 
 		listServer->Set(i, object);
 	}
@@ -390,83 +537,82 @@ void GetListServer(const v8::FunctionCallbackInfo<v8::Value>& args)
 	args.GetReturnValue().Set(listServer);
 }
 
-int EvaluateBandwidth(ServerInfo &server, bool &connected, bool &stopped, bool &success,
-						OBSData &service_settings, OBSService &service, OBSOutput &output,
-						OBSData &vencoder_settings)
+int EvaluateBandwidth(ServerInfo &server, bool &connected, bool &stopped,
+                      bool &success,
+                      OBSData &service_settings, OBSService &service, OBSOutput &output,
+                      OBSData &vencoder_settings)
 {
-			// auto &server = servers[i];
+	// auto &server = servers[i];
 
-			connected = false;
-			stopped = false;
+	connected = false;
+	stopped = false;
 
-			// int per = int((i + 1) * 100 / servers.size());
+	// int per = int((i + 1) * 100 / servers.size());
 
-			obs_data_set_string(service_settings, "server",
-					server.address.c_str());
-			obs_service_update(service, service_settings);
+	obs_data_set_string(service_settings, "server",
+	                    server.address.c_str());
+	obs_service_update(service, service_settings);
 
-			if (!obs_output_start(output))
-				return -1;
+	if (!obs_output_start(output))
+		return -1;
 
-			unique_lock<mutex> ul(m);
-			if (cancel) {
-				ul.unlock();
-				obs_output_force_stop(output);
-				return -1;
-			}
-			if (!stopped && !connected)
-				cv.wait(ul);
-			if (cancel) {
-				ul.unlock();
-				obs_output_force_stop(output);
-				return -1;
-			}
-			if (!connected) {
-				return -1;
-			}	
+	unique_lock<mutex> ul(m);
+	if (cancel) {
+		ul.unlock();
+		obs_output_force_stop(output);
+		return -1;
+	}
+	if (!stopped && !connected)
+		cv.wait(ul);
+	if (cancel) {
+		ul.unlock();
+		obs_output_force_stop(output);
+		return -1;
+	}
+	if (!connected)
+		return -1;
 
-			uint64_t t_start = os_gettime_ns();
+	uint64_t t_start = os_gettime_ns();
 
-			cv.wait_for(ul, chrono::seconds(10));
-			if (stopped)
-				return -1;
-			if (cancel) {
-				ul.unlock();
-				obs_output_force_stop(output);
-				return -1;
-			}
+	cv.wait_for(ul, chrono::seconds(10));
+	if (stopped)
+		return -1;
+	if (cancel) {
+		ul.unlock();
+		obs_output_force_stop(output);
+		return -1;
+	}
 
-			obs_output_stop(output);
+	obs_output_stop(output);
 
-			while (!obs_output_active(output)) {
-				std::this_thread::sleep_for(std::chrono::milliseconds(500));
-			}
-			cv.wait(ul);
+	while (!obs_output_active(output))
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	cv.wait(ul);
 
-			uint64_t total_time = os_gettime_ns() - t_start;
+	uint64_t total_time = os_gettime_ns() - t_start;
 
-			int total_bytes = (int)obs_output_get_total_bytes(output);
-			uint64_t bitrate = (uint64_t)total_bytes * 8
-				* 1000000000 / total_time / 1000;
-			startingBitrate = (int)obs_data_get_int(vencoder_settings, "bitrate");
-			if (obs_output_get_frames_dropped(output) ||
-			    (int)bitrate < (startingBitrate * 75 / 100)) {
-				server.bitrate = (int)bitrate * 70 / 100;
-			} else {
+	int total_bytes = (int)obs_output_get_total_bytes(output);
+	uint64_t bitrate = (uint64_t)total_bytes * 8
+	                   * 1000000000 / total_time / 1000;
+	startingBitrate = (int)obs_data_get_int(vencoder_settings, "bitrate");
+	if (obs_output_get_frames_dropped(output) ||
+	            (int)bitrate < (startingBitrate * 75 / 100))
+		server.bitrate = (int)bitrate * 70 / 100;
 
-				server.bitrate = startingBitrate;
-			}
+	else
 
-			server.ms = obs_output_get_connect_time_ms(output);
-			success = true;
-			return 0;
+		server.bitrate = startingBitrate;
+
+	server.ms = obs_output_get_connect_time_ms(output);
+	success = true;
+	return 0;
 }
 
 void TestBandwidthThread(void)
 {
 	bool connected = false;
 	bool stopped = false;
-	
+
 	obs_video_info ovi;
 	obs_get_video_info(&ovi);
 
@@ -476,17 +622,17 @@ void TestBandwidthThread(void)
 	ovi.fps_den = 1;
 
 	obs_reset_video(&ovi);
-	
+
 	const char *serverType = "rtmp_common";
 
 	OBSEncoder vencoder = obs_video_encoder_create("obs_x264",
-			"test_x264", nullptr, nullptr);
+	                                               "test_x264", nullptr, nullptr);
 	OBSEncoder aencoder = obs_audio_encoder_create("ffmpeg_aac",
-			"test_aac", nullptr, 0, nullptr);
+	                                               "test_aac", nullptr, 0, nullptr);
 	OBSService service = obs_service_create(serverType,
-			"test_service", nullptr, nullptr);
+	                                        "test_service", nullptr, nullptr);
 	OBSOutput output = obs_output_create("rtmp_output",
-			"test_stream", nullptr, nullptr);
+	                                     "test_stream", nullptr, nullptr);
 	obs_output_release(output);
 	obs_encoder_release(vencoder);
 	obs_encoder_release(aencoder);
@@ -511,22 +657,20 @@ void TestBandwidthThread(void)
 	obs_data_release(aencoder_settings);
 	obs_data_release(output_settings);
 
-	obs_service_t* currentService = OBS_service::getService();
+	obs_service_t *currentService = OBS_service::getService();
 	if(currentService) {
-		obs_data_t* currentServiceSettings = obs_service_get_settings(currentService);
+		obs_data_t *currentServiceSettings = obs_service_get_settings(currentService);
 		if(currentServiceSettings) {
 			if(serviceName.compare("") == 0)
 				serviceName = obs_data_get_string(currentServiceSettings, "service");
-			
+
 			key = obs_service_get_key(currentService);
 			if (key.empty())
 				return;
-		} else {
+		} else
 			return;
-		}
-	} else {
+	} else
 		return;
-	}
 
 	if (!customServer) {
 		if (serviceName == "Twitch")
@@ -537,10 +681,8 @@ void TestBandwidthThread(void)
 			serviceSelected = Service::Beam;
 		else
 			serviceSelected = Service::Other;
-	}
-	else {
+	} else
 		serviceSelected = Service::Other;
-	}
 
 	std::string keyToEvaluate = key;
 
@@ -558,7 +700,8 @@ void TestBandwidthThread(void)
 
 	obs_data_set_string(service_settingsawd, "service", serviceName.c_str());
 
-	OBSService servicewad = obs_service_create(serverType, "temp_service", service_settingsawd, nullptr);
+	OBSService servicewad = obs_service_create(serverType, "temp_service",
+	                                           service_settingsawd, nullptr);
 	obs_service_release(servicewad);
 
 	int bitrate = 10000;
@@ -577,10 +720,10 @@ void TestBandwidthThread(void)
 	obs_data_set_int(aencoder_settings, "bitrate", 32);
 
 	std::string basicConfigFile = OBS_API::getBasicConfigPath();
-	config_t* config = OBS_API::openConfigFile(basicConfigFile);
+	config_t *config = OBS_API::openConfigFile(basicConfigFile);
 
 	const char *bind_ip = config_get_string(config, "Output",
-			"BindIP");
+	                                        "BindIP");
 	obs_data_set_string(output_settings, "bind_ip", bind_ip);
 
 	/* -----------------------------------*/
@@ -601,7 +744,7 @@ void TestBandwidthThread(void)
 
 	obs_service_update(service, service_settings);
 	obs_service_apply_encoder_settings(service,
-			vencoder_settings, aencoder_settings);
+	                                   vencoder_settings, aencoder_settings);
 
 	obs_encoder_update(vencoder, vencoder_settings);
 	obs_encoder_update(aencoder, aencoder_settings);
@@ -621,16 +764,14 @@ void TestBandwidthThread(void)
 	/* -----------------------------------*/
 	/* connect signals                    */
 
-	auto on_started = [&] ()
-	{
+	auto on_started = [&] () {
 		unique_lock<mutex> lock(m);
 		connected = true;
 		stopped = false;
 		cv.notify_one();
 	};
 
-	auto on_stopped = [&] ()
-	{
+	auto on_stopped = [&] () {
 		unique_lock<mutex> lock(m);
 		connected = false;
 		stopped = true;
@@ -640,17 +781,15 @@ void TestBandwidthThread(void)
 	using on_started_t = decltype(on_started);
 	using on_stopped_t = decltype(on_stopped);
 
-	auto pre_on_started = [] (void *data, calldata_t *)
-	{
+	auto pre_on_started = [] (void *data, calldata_t *) {
 		on_started_t &on_started =
-			*reinterpret_cast<on_started_t*>(data);
+		      *reinterpret_cast<on_started_t *>(data);
 		on_started();
 	};
 
-	auto pre_on_stopped = [] (void *data, calldata_t *)
-	{
+	auto pre_on_stopped = [] (void *data, calldata_t *) {
 		on_stopped_t &on_stopped =
-			*reinterpret_cast<on_stopped_t*>(data);
+		      *reinterpret_cast<on_stopped_t *>(data);
 		on_stopped();
 	};
 
@@ -671,7 +810,7 @@ void TestBandwidthThread(void)
 		ServerInfo info(serverName.c_str(), server.c_str());
 
 		if (EvaluateBandwidth(info, connected, stopped, success,
-			service_settings, service, output, vencoder_settings) < 0) {
+		                      service_settings, service, output, vencoder_settings) < 0) {
 			start_next_step(NULL, "error", "invalid_stream_settings", 0);
 			return;
 		}
@@ -685,10 +824,10 @@ void TestBandwidthThread(void)
 	} else {
 		for (size_t i = 0; i < servers.size(); i++) {
 			EvaluateBandwidth(servers[i], connected, stopped, success,
-								service_settings, service, output,
-								vencoder_settings);
+			                  service_settings, service, output,
+			                  vencoder_settings);
 			start_next_step(NULL, "progress", "bandwidth_test", (i+1)*100/servers.size());
-		}	
+		}
 	}
 
 	if (!success) {
@@ -700,7 +839,7 @@ void TestBandwidthThread(void)
 		bool close = abs(server.bitrate - bestBitrate) < 400;
 
 		if ((!close && server.bitrate > bestBitrate) ||
-		    (close && server.ms < bestMS)) {
+		            (close && server.ms < bestMS)) {
 			bestServer = server.address;
 			bestServerName = server.name;
 			bestBitrate = server.bitrate;
@@ -727,11 +866,13 @@ static long double EstimateBitrateVal(int cx, int cy, int fps_num, int fps_den)
 
 static long double EstimateMinBitrate(int cx, int cy, int fps_num, int fps_den)
 {
-	long double val = EstimateBitrateVal(baseResolutionCX, baseResolutionCY, 60, 1) / 5800.0l;
+	long double val = EstimateBitrateVal(baseResolutionCX, baseResolutionCY, 60,
+	                                     1) / 5800.0l;
 	return EstimateBitrateVal(cx, cy, fps_num, fps_den) / val;
 }
 
-static long double EstimateUpperBitrate(int cx, int cy, int fps_num, int fps_den)
+static long double EstimateUpperBitrate(int cx, int cy, int fps_num,
+                                        int fps_den)
 {
 	long double val = EstimateBitrateVal(1280, 720, 30, 1) / 3000.0l;
 	return EstimateBitrateVal(cx, cy, fps_num, fps_den) / val;
@@ -758,15 +899,14 @@ void FindIdealHardwareResolution()
 
 	int pcores = os_get_physical_cores();
 	int maxDataRate;
-	if (pcores >= 4) {
+	if (pcores >= 4)
 		maxDataRate = baseResolutionCX * baseResolutionCY * 60 + 1000;
-	} else {
+
+	else
 		maxDataRate = 1280 * 720 * 30 + 1000;
-	}
 
 	auto testRes = [&] (long double div, int fps_num, int fps_den,
-			bool force)
-	{
+	bool force) {
 		if (results.size() >= 3)
 			return;
 
@@ -785,7 +925,7 @@ void FindIdealHardwareResolution()
 			return;
 
 		int minBitrate = EstimateMinBitrate(cx, cy, fps_num, fps_den)
-			* 114 / 100;
+		                 * 114 / 100;
 		if (type == Type::Recording)
 			force = true;
 		if (force || idealBitrate >= minBitrate)
@@ -840,11 +980,11 @@ void FindIdealHardwareResolution()
 bool TestSoftwareEncoding()
 {
 	OBSEncoder vencoder = obs_video_encoder_create("obs_x264",
-			"test_x264", nullptr, nullptr);
+	                                               "test_x264", nullptr, nullptr);
 	OBSEncoder aencoder = obs_audio_encoder_create("ffmpeg_aac",
-			"test_aac", nullptr, 0, nullptr);
+	                                               "test_aac", nullptr, 0, nullptr);
 	OBSOutput output = obs_output_create("null_output",
-			"null", nullptr, nullptr);
+	                                     "null", nullptr, nullptr);
 	obs_output_release(output);
 	obs_encoder_release(vencoder);
 	obs_encoder_release(aencoder);
@@ -886,18 +1026,16 @@ bool TestSoftwareEncoding()
 	/* -----------------------------------*/
 	/* connect signals                    */
 
-	auto on_stopped = [&] ()
-	{
+	auto on_stopped = [&] () {
 		unique_lock<mutex> lock(m);
 		cv.notify_one();
 	};
 
 	using on_stopped_t = decltype(on_stopped);
 
-	auto pre_on_stopped = [] (void *data, calldata_t *)
-	{
+	auto pre_on_stopped = [] (void *data, calldata_t *) {
 		on_stopped_t &on_stopped =
-			*reinterpret_cast<on_stopped_t*>(data);
+		      *reinterpret_cast<on_stopped_t *>(data);
 		on_stopped();
 	};
 
@@ -941,8 +1079,7 @@ bool TestSoftwareEncoding()
 	int count = 1;
 
 	auto testRes = [&] (long double div, int fps_num, int fps_den,
-			bool force)
-	{
+	bool force) {
 		int per = ++i * 100 / count;
 
 		/* no need for more than 3 tests max */
@@ -989,9 +1126,8 @@ bool TestSoftwareEncoding()
 		if (cancel)
 			return false;
 
-		if (!obs_output_start(output)) {
+		if (!obs_output_start(output))
 			return false;
-		}
 
 		cv.wait_for(ul, chrono::seconds(5));
 
@@ -999,7 +1135,7 @@ bool TestSoftwareEncoding()
 		cv.wait(ul);
 
 		int skipped = (int)video_output_get_skipped_frames(
-				obs_get_video());
+		                    obs_get_video());
 		if (force || skipped <= 10)
 			results.emplace_back(cx, cy, fps_num, fps_den);
 
@@ -1056,7 +1192,7 @@ bool TestSoftwareEncoding()
 	idealFPSDen = result.fps_den;
 
 	long double fUpperBitrate = EstimateUpperBitrate(
-			result.cx, result.cy, result.fps_num, result.fps_den);
+	                                  result.cx, result.cy, result.fps_num, result.fps_den);
 
 	int upperBitrate = int(floor(fUpperBitrate / 50.0l) * 50.0l);
 
@@ -1073,9 +1209,9 @@ bool TestSoftwareEncoding()
 }
 
 void TestStreamEncoderThread()
-{	
+{
 	std::string basicConfigFile = OBS_API::getBasicConfigPath();
-	config_t* config = OBS_API::openConfigFile(basicConfigFile);
+	config_t *config = OBS_API::openConfigFile(basicConfigFile);
 
 	baseResolutionCX = config_get_int(config, "Video", "BaseCX");
 	baseResolutionCY = config_get_int(config, "Video", "BaseCY");
@@ -1084,9 +1220,8 @@ void TestStreamEncoderThread()
 
 	if (!softwareTested) {
 		if (!preferHardware || !hardwareEncodingAvailable) {
-			if (!TestSoftwareEncoding()) {
+			if (!TestSoftwareEncoding())
 				return;
-			}
 		}
 	}
 
@@ -1100,9 +1235,8 @@ void TestStreamEncoderThread()
 			streamingEncoder = Encoder::QSV;
 		else
 			streamingEncoder = Encoder::AMD;
-	} else {
+	} else
 		streamingEncoder = Encoder::x264;
-	}
 
 	start_next_step(NULL, "stopping_step", "streamingEncoder_test", 100);
 }
@@ -1112,13 +1246,12 @@ void TestRecordingEncoderThread()
 	TestHardwareEncoding();
 
 	if (!hardwareEncodingAvailable && !softwareTested) {
-		if (!TestSoftwareEncoding()) {
+		if (!TestSoftwareEncoding())
 			return;
-		}
 	}
 
 	if (type == Type::Recording &&
-	    hardwareEncodingAvailable)
+	            hardwareEncodingAvailable)
 		FindIdealHardwareResolution();
 
 	recordingQuality = Quality::High;
@@ -1132,9 +1265,8 @@ void TestRecordingEncoderThread()
 			recordingEncoder = Encoder::QSV;
 		else
 			recordingEncoder = Encoder::AMD;
-	} else {
+	} else
 		recordingEncoder = Encoder::x264;
-	}
 
 	if (recordingEncoder != Encoder::NVENC) {
 		if (!recordingOnly) {
@@ -1183,20 +1315,19 @@ void CheckSettings(void)
 
 	std::string testKey = key;
 
-	if(serviceName.compare("Twitch") == 0) {
+	if(serviceName.compare("Twitch") == 0)
 		testKey += "?bandwidthtest";
-	}
 
 	obs_data_set_string(settings, "key", testKey.c_str());
 
 	OBSService service = obs_service_create("rtmp_common",
-			"serviceTest", settings, NULL);
+	                                        "serviceTest", settings, NULL);
 
 	if (!service) {
 		start_next_step(NULL, "error", "invalid_service", 0);
 		return;
 	}
-	
+
 	obs_video_info ovi;
 	obs_get_video_info(&ovi);
 
@@ -1208,11 +1339,11 @@ void CheckSettings(void)
 	obs_reset_video(&ovi);
 
 	OBSEncoder vencoder = obs_video_encoder_create(GetEncoderId(streamingEncoder),
-			"test_encoder", nullptr, nullptr);
+	                                               "test_encoder", nullptr, nullptr);
 	OBSEncoder aencoder = obs_audio_encoder_create("ffmpeg_aac",
-			"test_aac", nullptr, 0, nullptr);
+	                                               "test_aac", nullptr, 0, nullptr);
 	OBSOutput output = obs_output_create("rtmp_output",
-			"test_stream", nullptr, nullptr);
+	                                     "test_stream", nullptr, nullptr);
 	obs_output_release(output);
 	obs_encoder_release(vencoder);
 	obs_encoder_release(aencoder);
@@ -1233,12 +1364,12 @@ void CheckSettings(void)
 	obs_data_set_int(vencoder_settings, "keyint_sec", 2);
 
 	obs_data_set_int(aencoder_settings, "bitrate", 32);
-	
+
 	/* -----------------------------------*/
 	/* apply settings                     */
 
 	obs_service_apply_encoder_settings(service,
-			vencoder_settings, aencoder_settings);
+	                                   vencoder_settings, aencoder_settings);
 
 	obs_encoder_update(vencoder, vencoder_settings);
 	obs_encoder_update(aencoder, aencoder_settings);
@@ -1260,34 +1391,34 @@ void CheckSettings(void)
 	int timeout = 8;
 	bool success = true;
 
-    while(!obs_output_active(output) && success) {
+	while(!obs_output_active(output) && success) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 		timeout--;
-		if(timeout == 0) {
+		if(timeout == 0)
 			success = false;
-		}
-    }
+	}
 
-    if(success) {
+	if(success)
 		obs_output_stop(output);
-    } else {
+
+	else {
 		start_next_step(NULL, "error", "invalid_settings", 0);
 		return;
-    }
-	
+	}
+
 	start_next_step(NULL, "stopping_step", "checking_settings", 100);
 }
 
 void SetDefaultSettings(void)
 {
-    idealResolutionCX = 1280;
-    idealResolutionCY = 720;
-    idealFPSNum = 30;
-    recordingQuality == Quality::High;
-    idealBitrate = 2500;
-    streamingEncoder = Encoder::x264;
-    recordingEncoder = Encoder::Stream;
-    start_next_step(NULL, "stopping_step", "setting_default_settings", 100);
+	idealResolutionCX = 1280;
+	idealResolutionCY = 720;
+	idealFPSNum = 30;
+	recordingQuality == Quality::High;
+	idealBitrate = 2500;
+	streamingEncoder = Encoder::x264;
+	recordingEncoder = Encoder::Stream;
+	start_next_step(NULL, "stopping_step", "setting_default_settings", 100);
 }
 
 void SaveStreamSettings()
@@ -1309,7 +1440,7 @@ void SaveStreamSettings()
 	obs_data_set_string(settings, "key", key.c_str());
 
 	OBSService newService = obs_service_create(service_id,
-			"default_service", settings, hotkeyData);
+	                                           "default_service", settings, hotkeyData);
 
 	if (!newService)
 		return;
@@ -1321,12 +1452,12 @@ void SaveStreamSettings()
 	/* save stream settings               */
 
 	std::string basicConfigFile = OBS_API::getBasicConfigPath();
-	config_t* config = OBS_API::openConfigFile(basicConfigFile);
+	config_t *config = OBS_API::openConfigFile(basicConfigFile);
 
 	config_set_int(config, "SimpleOutput", "VBitrate",
-			idealBitrate);
+	               idealBitrate);
 	config_set_string(config, "SimpleOutput", "StreamEncoder",
-			GetEncoderDisplayName(streamingEncoder));
+	                  GetEncoderDisplayName(streamingEncoder));
 	config_remove_value(config, "SimpleOutput", "UseAdvanced");
 
 	config_save_safe(config, "tmp", nullptr);
@@ -1337,15 +1468,15 @@ void SaveStreamSettings()
 void SaveSettings()
 {
 	std::string basicConfigFile = OBS_API::getBasicConfigPath();
-	config_t* config = OBS_API::openConfigFile(basicConfigFile);
+	config_t *config = OBS_API::openConfigFile(basicConfigFile);
 
 	if (recordingEncoder != Encoder::Stream)
 		config_set_string(config, "SimpleOutput", "RecEncoder",
-				GetEncoderDisplayName(recordingEncoder));
+		                  GetEncoderDisplayName(recordingEncoder));
 
 	const char *quality = recordingQuality == Quality::High
-		? "Small"
-		: "Stream";
+	                      ? "Small"
+	                      : "Stream";
 
 	config_set_string(config, "Output", "Mode", "Simple");
 	config_set_string(config, "SimpleOutput", "RecQuality", quality);
@@ -1355,7 +1486,7 @@ void SaveSettings()
 	if (fpsType != FPSType::UseCurrent) {
 		config_set_uint(config, "Video", "FPSType", 0);
 		config_set_string(config, "Video", "FPSCommon",
-				std::to_string(idealFPSNum).c_str());
+		                  std::to_string(idealFPSNum).c_str());
 		std::string fpsvalue = config_get_string(config, "Video", "FPSCommon");
 	}
 

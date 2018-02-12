@@ -20,24 +20,29 @@
 #include "util-memory.h"
 #include <cstdlib>
 
-void* util::malloc_aligned(size_t align, size_t size) {
+void *util::malloc_aligned(size_t align, size_t size)
+{
 	// Ensure that we have space for the pointer and the data.
-	size_t asize = aligned_offset(align, size + sizeof(void*));
+	size_t asize = aligned_offset(align, size + sizeof(void *));
 
 	// Allocate memory and store integer representation of pointer.
-	void* ptr = malloc(asize);
+	void *ptr = malloc(asize);
 
 	// Calculate actual aligned position
-	intptr_t ptr_off = aligned_offset(align, reinterpret_cast<size_t>(ptr)+sizeof(void*));
+	intptr_t ptr_off = aligned_offset(align,
+	                                  reinterpret_cast<size_t>(ptr)+sizeof(void *));
 
 	// Store actual pointer at ptr_off - sizeof(void*).
-	*reinterpret_cast<intptr_t*>(ptr_off - sizeof(void*)) = reinterpret_cast<intptr_t>(ptr);
+	*reinterpret_cast<intptr_t *>(ptr_off - sizeof(void *)) =
+	      reinterpret_cast<intptr_t>(ptr);
 
 	// Return aligned pointer
-	return reinterpret_cast<void*>(ptr_off);
+	return reinterpret_cast<void *>(ptr_off);
 }
 
-void util::free_aligned(void* mem) {
-	void* ptr = reinterpret_cast<void*>(*reinterpret_cast<intptr_t*>(static_cast<char*>(mem)-sizeof(void*)));
+void util::free_aligned(void *mem)
+{
+	void *ptr = reinterpret_cast<void *>(*reinterpret_cast<intptr_t *>
+	                                     (static_cast<char *>(mem)-sizeof(void *)));
 	free(ptr);
 }

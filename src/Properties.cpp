@@ -1,338 +1,350 @@
 #include "Properties.h"
 #include "ISource.h"
 
-namespace osn {
+namespace osn
+{
 
 using namespace osn::common;
 
-Nan::Persistent<v8::FunctionTemplate> Properties::prototype = 
-    Nan::Persistent<v8::FunctionTemplate>();
+Nan::Persistent<v8::FunctionTemplate> Properties::prototype =
+      Nan::Persistent<v8::FunctionTemplate>();
 
 Properties::Properties(obs::properties &&handle)
- : handle(std::move(handle))
+	: handle(std::move(handle))
 {
 }
 
 Properties::Properties(std::string id, obs::properties::object_type type)
- : handle(id, type)
+	: handle(id, type)
 {
 }
 
 NAN_MODULE_INIT(Properties::Init)
 {
-    auto locProto = Nan::New<v8::FunctionTemplate>(New);
-    locProto->SetClassName(FIELD_NAME("Properties"));
-    locProto->InstanceTemplate()->SetInternalFieldCount(1);
+	auto locProto = Nan::New<v8::FunctionTemplate>(New);
+	locProto->SetClassName(FIELD_NAME("Properties"));
+	locProto->InstanceTemplate()->SetInternalFieldCount(1);
 
-    Nan::SetMethod(locProto->PrototypeTemplate(), "first", first);
-    Nan::SetMethod(locProto->PrototypeTemplate(), "count", count);
-    Nan::SetMethod(locProto->PrototypeTemplate(), "get", get);
+	Nan::SetMethod(locProto->PrototypeTemplate(), "first", first);
+	Nan::SetMethod(locProto->PrototypeTemplate(), "count", count);
+	Nan::SetMethod(locProto->PrototypeTemplate(), "get", get);
 
-    Nan::Set(target, FIELD_NAME("Properties"), locProto->GetFunction());
-    prototype.Reset(locProto);
+	Nan::Set(target, FIELD_NAME("Properties"), locProto->GetFunction());
+	prototype.Reset(locProto);
 }
 
 NAN_METHOD(Properties::New)
 {
-    if (!info.IsConstructCall()) {
-        Nan::ThrowError("Must be used as a construct call");
-        return;
-    }
+	if (!info.IsConstructCall()) {
+		Nan::ThrowError("Must be used as a construct call");
+		return;
+	}
 
-    ASSERT_INFO_LENGTH(info, 2);
+	ASSERT_INFO_LENGTH(info, 2);
 
-    std::string id;
-    uint32_t object_type;
+	std::string id;
+	uint32_t object_type;
 
-    ASSERT_GET_VALUE(info[0], id);
-    ASSERT_GET_VALUE(info[1], object_type);
+	ASSERT_GET_VALUE(info[0], id);
+	ASSERT_GET_VALUE(info[1], object_type);
 
-    Properties *object = new Properties(id, static_cast<obs::properties::object_type>(object_type));
-    object->Wrap(info.This());
-    info.GetReturnValue().Set(info.This());
+	Properties *object = new Properties(id,
+	                                    static_cast<obs::properties::object_type>(object_type));
+	object->Wrap(info.This());
+	info.GetReturnValue().Set(info.This());
 }
 
 NAN_METHOD(Properties::first)
 {
-    obs::properties &handle = Properties::Object::GetHandle(info.Holder());
+	obs::properties &handle = Properties::Object::GetHandle(info.Holder());
 
-    Property *binding = new Property(info.Holder(), handle.first());
-    auto object = Property::Object::GenerateObject(binding);
+	Property *binding = new Property(info.Holder(), handle.first());
+	auto object = Property::Object::GenerateObject(binding);
 
-    info.GetReturnValue().Set(object);
+	info.GetReturnValue().Set(object);
 }
 
 NAN_METHOD(Properties::count)
 {
-    obs::properties &handle = Properties::Object::GetHandle(info.Holder());
+	obs::properties &handle = Properties::Object::GetHandle(info.Holder());
 
-    obs::property it = handle.first();
+	obs::property it = handle.first();
 
-    int result = 0;
+	int result = 0;
 
-    while (it.status() == obs::property::status_type::okay) {
-        ++result;
-    }
+	while (it.status() == obs::property::status_type::okay)
+		++result;
 
-    info.GetReturnValue().Set(result);
+	info.GetReturnValue().Set(result);
 }
 
 NAN_METHOD(Properties::get)
 {
-    obs::properties &handle = Properties::Object::GetHandle(info.Holder());
+	obs::properties &handle = Properties::Object::GetHandle(info.Holder());
 
-    ASSERT_INFO_LENGTH(info, 1);
+	ASSERT_INFO_LENGTH(info, 1);
 
-    std::string property_name;
+	std::string property_name;
 
-    ASSERT_GET_VALUE(info[0], property_name);
-    
-    Property *binding = new Property(info.Holder(), handle.get(property_name));
-    auto object = Property::Object::GenerateObject(binding);
+	ASSERT_GET_VALUE(info[0], property_name);
 
-    info.GetReturnValue().Set(object);
+	Property *binding = new Property(info.Holder(), handle.get(property_name));
+	auto object = Property::Object::GenerateObject(binding);
+
+	info.GetReturnValue().Set(object);
 }
 
 NAN_METHOD(Properties::apply)
 {
-    /* TODO */
+	/* TODO */
 }
 
 Nan::Persistent<v8::FunctionTemplate> Property::prototype =
-    Nan::Persistent<v8::FunctionTemplate>();
+      Nan::Persistent<v8::FunctionTemplate>();
 
 Property::Property(v8::Local<v8::Object> _parent, obs::property &property)
- : handle(property)
+	: handle(property)
 {
-    parent.Reset(_parent);
+	parent.Reset(_parent);
 }
 
 Property::~Property()
 {
-    parent.Reset();
+	parent.Reset();
 }
 
 NAN_MODULE_INIT(Property::Init)
 {
-    auto locProto = Nan::New<v8::FunctionTemplate>();
-    locProto->SetClassName(FIELD_NAME("Property"));
-    locProto->InstanceTemplate()->SetInternalFieldCount(1);
+	auto locProto = Nan::New<v8::FunctionTemplate>();
+	locProto->SetClassName(FIELD_NAME("Property"));
+	locProto->InstanceTemplate()->SetInternalFieldCount(1);
 
-    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "value", get_value);
-    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "name", get_name);
-    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "type", get_type);
-    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "status", get_status);
-    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "description", get_description);
-    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "longDescription", get_longDescription);
-    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "details", get_details);
-    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "enabled", get_enabled);
-    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "visible", get_visible);
-    common::SetObjectTemplateField(locProto->InstanceTemplate(), "buttonClicked", buttonClicked);
-    common::SetObjectTemplateField(locProto->InstanceTemplate(), "next", next);
+	common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "value",
+	                                      get_value);
+	common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "name",
+	                                      get_name);
+	common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "type",
+	                                      get_type);
+	common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "status",
+	                                      get_status);
+	common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(),
+	                                      "description", get_description);
+	common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(),
+	                                      "longDescription", get_longDescription);
+	common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "details",
+	                                      get_details);
+	common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "enabled",
+	                                      get_enabled);
+	common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "visible",
+	                                      get_visible);
+	common::SetObjectTemplateField(locProto->InstanceTemplate(), "buttonClicked",
+	                               buttonClicked);
+	common::SetObjectTemplateField(locProto->InstanceTemplate(), "next", next);
 
-    Nan::Set(target, FIELD_NAME("Property"), locProto->GetFunction());
-    prototype.Reset(locProto);
+	Nan::Set(target, FIELD_NAME("Property"), locProto->GetFunction());
+	prototype.Reset(locProto);
 }
 
 NAN_METHOD(Property::get_status)
 {
-    obs::property &handle = Property::Object::GetHandle(info.Holder());
+	obs::property &handle = Property::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(handle.status());
+	info.GetReturnValue().Set(handle.status());
 }
 
 NAN_METHOD(Property::get_name)
 {
-    obs::property &handle = Property::Object::GetHandle(info.Holder());
+	obs::property &handle = Property::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(ToValue(handle.name()));
+	info.GetReturnValue().Set(ToValue(handle.name()));
 }
 
 NAN_METHOD(Property::get_description)
 {
-    obs::property &handle = Property::Object::GetHandle(info.Holder());
+	obs::property &handle = Property::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(ToValue(handle.description().c_str()));
+	info.GetReturnValue().Set(ToValue(handle.description().c_str()));
 }
 
 NAN_METHOD(Property::get_longDescription)
 {
-    obs::property &handle = Property::Object::GetHandle(info.Holder());
+	obs::property &handle = Property::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(ToValue(handle.long_description().c_str()));
+	info.GetReturnValue().Set(ToValue(handle.long_description().c_str()));
 }
 
 NAN_METHOD(Property::get_type)
 {
-    obs::property &handle = Property::Object::GetHandle(info.Holder());
+	obs::property &handle = Property::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(handle.type());
+	info.GetReturnValue().Set(handle.type());
 }
 
 NAN_METHOD(Property::get_enabled)
 {
-    obs::property &handle = Property::Object::GetHandle(info.Holder());
+	obs::property &handle = Property::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(handle.enabled());
+	info.GetReturnValue().Set(handle.enabled());
 }
 
 NAN_METHOD(Property::get_visible)
 {
-    obs::property &handle = Property::Object::GetHandle(info.Holder());
+	obs::property &handle = Property::Object::GetHandle(info.Holder());
 
-    info.GetReturnValue().Set(handle.visible());
+	info.GetReturnValue().Set(handle.visible());
 }
 
 NAN_METHOD(Property::modified)
 {
-    obs::property &handle = Property::Object::GetHandle(info.Holder());
+	obs::property &handle = Property::Object::GetHandle(info.Holder());
 
-    obs_data_t *settings;
+	obs_data_t *settings;
 
-    ASSERT_GET_VALUE(info[0], settings);
+	ASSERT_GET_VALUE(info[0], settings);
 
-    bool refresh = handle.modified(settings);
+	bool refresh = handle.modified(settings);
 
-    info.GetReturnValue().Set(refresh);
+	info.GetReturnValue().Set(refresh);
 }
 
 NAN_METHOD(Property::buttonClicked)
 {
-    obs::property &handle = Property::Object::GetHandle(info.Holder());
+	obs::property &handle = Property::Object::GetHandle(info.Holder());
 
-    v8::Local<v8::Object> source_object;
-    ASSERT_GET_VALUE(info[0], source_object);
+	v8::Local<v8::Object> source_object;
+	ASSERT_GET_VALUE(info[0], source_object);
 
-    obs::source source = ISource::GetHandle(source_object);
-    obs::button_property button_prop = handle.button_property();
+	obs::source source = ISource::GetHandle(source_object);
+	obs::button_property button_prop = handle.button_property();
 
-    button_prop.clicked(source.dangerous());
+	button_prop.clicked(source.dangerous());
 }
 
 NAN_METHOD(Property::get_value)
 {
-    info.GetReturnValue().Set(info.Holder());
+	info.GetReturnValue().Set(info.Holder());
 }
 
 NAN_METHOD(Property::next)
 {
-    Property* this_binding = Nan::ObjectWrap::Unwrap<Property>(info.Holder());
-    obs::property &handle = this_binding->handle;
-    obs::property next(handle.next());
+	Property *this_binding = Nan::ObjectWrap::Unwrap<Property>(info.Holder());
+	obs::property &handle = this_binding->handle;
+	obs::property next(handle.next());
 
-    if (next.status() == obs::property::status_type::invalid) {
-        info.GetReturnValue().Set(Nan::Null());
-        return;
-    }
+	if (next.status() == obs::property::status_type::invalid) {
+		info.GetReturnValue().Set(Nan::Null());
+		return;
+	}
 
-    Property *binding = new Property(Nan::New(this_binding->parent), next);
-    auto object = Property::Object::GenerateObject(binding);
+	Property *binding = new Property(Nan::New(this_binding->parent), next);
+	auto object = Property::Object::GenerateObject(binding);
 
-    info.GetReturnValue().Set(object);
+	info.GetReturnValue().Set(object);
 }
 
-namespace {
+namespace
+{
 
 v8::Local<v8::Array> GetListItems(obs::list_property &property)
 {
-    int count = static_cast<int>(property.count());
-    auto array = Nan::New<v8::Array>(count);
+	int count = static_cast<int>(property.count());
+	auto array = Nan::New<v8::Array>(count);
 
-    for (int i = 0; i < count; ++i) {
-        auto object = Nan::New<v8::Object>();
+	for (int i = 0; i < count; ++i) {
+		auto object = Nan::New<v8::Object>();
 
-        SetObjectField(object, "name", property.get_name(i));
+		SetObjectField(object, "name", property.get_name(i));
 
-        switch (property.format()) {
-        case OBS_COMBO_FORMAT_INT:
-            SetObjectField(object, "value", 
-                static_cast<int32_t>(property.get_integer(i)));
-            break;
-        case OBS_COMBO_FORMAT_STRING:
-            SetObjectField(object, "value", property.get_string(i));
-            break;
-        case OBS_COMBO_FORMAT_FLOAT:
-            SetObjectField(object, "value", property.get_float(i));
-            break;
-        }
+		switch (property.format()) {
+		case OBS_COMBO_FORMAT_INT:
+			SetObjectField(object, "value",
+			               static_cast<int32_t>(property.get_integer(i)));
+			break;
+		case OBS_COMBO_FORMAT_STRING:
+			SetObjectField(object, "value", property.get_string(i));
+			break;
+		case OBS_COMBO_FORMAT_FLOAT:
+			SetObjectField(object, "value", property.get_float(i));
+			break;
+		}
 
-        SetObjectField(array, i, object);
-    }
+		SetObjectField(array, i, object);
+	}
 
-    return array;
+	return array;
 }
 
 }
 
 NAN_METHOD(Property::get_details)
 {
-    obs::property &handle = Property::Object::GetHandle(info.Holder());
+	obs::property &handle = Property::Object::GetHandle(info.Holder());
 
-    /* Some types have extra data. Associated with them. Construct objects
-       and pass them with the property since you're more likely to need them
-       than not. */
-    auto object = Nan::New<v8::Object>();
+	/* Some types have extra data. Associated with them. Construct objects
+	   and pass them with the property since you're more likely to need them
+	   than not. */
+	auto object = Nan::New<v8::Object>();
 
-    switch (handle.type()) {
-    case OBS_PROPERTY_LIST: {
-        obs::list_property list_prop = 
-            handle.list_property();
+	switch (handle.type()) {
+	case OBS_PROPERTY_LIST: {
+		obs::list_property list_prop =
+		      handle.list_property();
 
-        SetObjectField(object, "format", list_prop.format());
+		SetObjectField(object, "format", list_prop.format());
 
-        SetObjectField(object, "items", GetListItems(list_prop));
-        break;
-    }
-    case OBS_PROPERTY_EDITABLE_LIST: {
-        obs::editable_list_property edit_list_prop = 
-            handle.editable_list_property();
+		SetObjectField(object, "items", GetListItems(list_prop));
+		break;
+	}
+	case OBS_PROPERTY_EDITABLE_LIST: {
+		obs::editable_list_property edit_list_prop =
+		      handle.editable_list_property();
 
-        SetObjectField(object, "type", edit_list_prop.type());
-        SetObjectField(object, "format", edit_list_prop.format());
-        SetObjectField(object, "items", 
-            GetListItems(static_cast<obs::list_property>(edit_list_prop)));
+		SetObjectField(object, "type", edit_list_prop.type());
+		SetObjectField(object, "format", edit_list_prop.format());
+		SetObjectField(object, "items",
+		               GetListItems(static_cast<obs::list_property>(edit_list_prop)));
 
-        SetObjectField(object, "filter", edit_list_prop.filter());
-        SetObjectField(object, "defaultPath", edit_list_prop.default_path());
-        break;
-    }
-    case OBS_PROPERTY_TEXT:  {
-        obs::text_property text_prop = handle.text_property();
+		SetObjectField(object, "filter", edit_list_prop.filter());
+		SetObjectField(object, "defaultPath", edit_list_prop.default_path());
+		break;
+	}
+	case OBS_PROPERTY_TEXT:  {
+		obs::text_property text_prop = handle.text_property();
 
-        SetObjectField(object, "type", text_prop.type());
-        break;
-    }
-    case OBS_PROPERTY_PATH: {
-        obs::path_property path_prop = handle.path_property();
+		SetObjectField(object, "type", text_prop.type());
+		break;
+	}
+	case OBS_PROPERTY_PATH: {
+		obs::path_property path_prop = handle.path_property();
 
-        SetObjectField(object, "type", path_prop.type());
-        SetObjectField(object, "filter", path_prop.filter());
-        SetObjectField(object, "defaultPath", path_prop.default_path());
-        break;
-    }
-    case OBS_PROPERTY_FLOAT: {
-        obs::float_property float_prop = 
-            handle.float_property();
+		SetObjectField(object, "type", path_prop.type());
+		SetObjectField(object, "filter", path_prop.filter());
+		SetObjectField(object, "defaultPath", path_prop.default_path());
+		break;
+	}
+	case OBS_PROPERTY_FLOAT: {
+		obs::float_property float_prop =
+		      handle.float_property();
 
-        SetObjectField(object, "type", float_prop.type());
-        SetObjectField(object, "min", float_prop.min());
-        SetObjectField(object, "max", float_prop.max());
-        SetObjectField(object, "step", float_prop.step());
-        break;
-    }
-    case OBS_PROPERTY_INT: {
-        obs::integer_property int_prop = 
-            handle.integer_property();
+		SetObjectField(object, "type", float_prop.type());
+		SetObjectField(object, "min", float_prop.min());
+		SetObjectField(object, "max", float_prop.max());
+		SetObjectField(object, "step", float_prop.step());
+		break;
+	}
+	case OBS_PROPERTY_INT: {
+		obs::integer_property int_prop =
+		      handle.integer_property();
 
-        SetObjectField(object, "type", int_prop.type());
-        SetObjectField(object, "min", int_prop.min());
-        SetObjectField(object, "max", int_prop.max());
-        SetObjectField(object, "step", int_prop.step());
-        break;
-    }
-    }
+		SetObjectField(object, "type", int_prop.type());
+		SetObjectField(object, "min", int_prop.min());
+		SetObjectField(object, "max", int_prop.max());
+		SetObjectField(object, "step", int_prop.step());
+		break;
+	}
+	}
 
-    info.GetReturnValue().Set(object);
+	info.GetReturnValue().Set(object);
 }
 
 }

@@ -26,7 +26,7 @@ public:
 	OBS_API();
 	~OBS_API();
 
-	static void OBS_API_initAPI(const FunctionCallbackInfo<Value>& args);
+	static void OBS_API_initAPI(const FunctionCallbackInfo<Value> &args);
 	/**
 	 * Initializes OBS
 	 *
@@ -35,40 +35,26 @@ public:
 	 *                             (or NULL if none)
 	 * @param  store               The profiler name store for OBS to use or NULL
 	 */
-	static void OBS_API_initOBS_API(const FunctionCallbackInfo<Value>& args);
-    static void OBS_API_destroyOBS_API(const FunctionCallbackInfo<Value>& args);
+	static void OBS_API_initOBS_API(const FunctionCallbackInfo<Value> &args);
+	static void OBS_API_destroyOBS_API(const FunctionCallbackInfo<Value> &args);
 
-	/**
-	 * Opens all plugins module.
-	 */
-	static void OBS_API_openAllModules(const FunctionCallbackInfo<Value>& args);
+	static void OBS_API_getPerformanceStatistics(const FunctionCallbackInfo<Value> &args);
 
-	/**
-	 * Initialize all plugins module.
-	 */
-	static void OBS_API_initAllModules(const FunctionCallbackInfo<Value>& args);
+	static void OBS_API_getPathConfigDirectory(const FunctionCallbackInfo<Value> &args);
+	static void OBS_API_setPathConfigDirectory(const FunctionCallbackInfo<Value> &args);
 
-	static void OBS_API_getPerformanceStatistics(const FunctionCallbackInfo<Value>& args);
-
-	static void OBS_API_getPathConfigDirectory(const FunctionCallbackInfo<Value>& args);
-	static void OBS_API_setPathConfigDirectory(const FunctionCallbackInfo<Value>& args);
-
-	static void OBS_API_getOBS_existingProfiles(const FunctionCallbackInfo<Value>& args);
-	static void OBS_API_getOBS_existingSceneCollections(const FunctionCallbackInfo<Value>& args);
-	static void OBS_API_getOBS_currentProfile(const FunctionCallbackInfo<Value>& args);
-	static void OBS_API_setOBS_currentProfile(const FunctionCallbackInfo<Value>& args);
-	static void OBS_API_getOBS_currentSceneCollection(const FunctionCallbackInfo<Value>& args);
-	static void OBS_API_setOBS_currentSceneCollection(const FunctionCallbackInfo<Value>& args);
-	static void OBS_API_isOBS_installed(const FunctionCallbackInfo<Value>& args);
-	static void OBS_API_useOBS_config(const FunctionCallbackInfo<Value>& args);
-
-	static void OBS_API_test_openAllModules(const FunctionCallbackInfo<Value>& args);
-	static void OBS_API_test_initAllModules(const FunctionCallbackInfo<Value>& args);
+	static void OBS_API_getOBS_existingProfiles(const FunctionCallbackInfo<Value> &args);
+	static void OBS_API_getOBS_existingSceneCollections(const FunctionCallbackInfo<Value> &args);
+	static void OBS_API_getOBS_currentProfile(const FunctionCallbackInfo<Value> &args);
+	static void OBS_API_setOBS_currentProfile(const FunctionCallbackInfo<Value> &args);
+	static void OBS_API_getOBS_currentSceneCollection(const FunctionCallbackInfo<Value> &args);
+	static void OBS_API_setOBS_currentSceneCollection(const FunctionCallbackInfo<Value> &args);
+	static void OBS_API_isOBS_installed(const FunctionCallbackInfo<Value> &args);
+	static void OBS_API_useOBS_config(const FunctionCallbackInfo<Value> &args);
 
 private:
 	static void initAPI(void);
-	static bool initOBS_API();
-    static void destroyOBS_API(void);
+	static void destroyOBS_API(void);
 	static void openAllModules(void);
 	static Local<Object> getPerformanceStatistics(void);
 
@@ -89,7 +75,7 @@ public:
 	static std::string 			getOBS_currentSceneCollection(void);
 	static void 				setOBS_currentSceneCollection(std::string sceneCollectionName);
 	static bool 				isOBS_configFilesUsed(void);
-	static std::vector<Screen> 	availableResolutions(void); 
+	static std::vector<Screen> 	availableResolutions(void);
 
 
 	static std::string getGlobalConfigPath(void);
@@ -103,7 +89,7 @@ public:
 	static std::string getStreamingEncoderConfigPath(void);
 	static std::string getRecordingEncoderConfigPath(void);
 
-	static config_t* openConfigFile(std::string configFile);
+	static config_t *openConfigFile(std::string configFile);
 
 	static void UpdateProcessPriority(void);
 	static void SetProcessPriority(const char *priority);
