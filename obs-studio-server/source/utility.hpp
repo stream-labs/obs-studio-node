@@ -17,46 +17,29 @@
 
 #pragma once
 #include <inttypes.h>
-#include <vector>
-#include <string>
-#include <memory>
-#include <ipc-value.hpp>
-#include <ipc-server.hpp>
+#include <list>
 
-namespace OBS {
-	class Main {
-	#pragma region Singleton
-		friend class std::shared_ptr<OBS::Main>;
+namespace utility {
+	class unique_id {
+		typedef std::pair<uint64_t, uint64_t> range_t;
 
 		public:
-		static std::shared_ptr<OBS::Main> GetInstance();
+		unique_id();
+		virtual ~unique_id();
 
-		public: // No Copy
-		Main(Main&) = delete;
-		Main& operator=(Main&) = delete;
+		uint64_t allocate();
+		void free(uint64_t);
+
+		bool is_allocated(uint64_t);
+		uint64_t count(bool count_free);
 
 		protected:
-		Main();
-		~Main();
-	#pragma endregion Singleton
+		bool mark_used(uint64_t);
+		void mark_used_range(uint64_t, uint64_t);
+		bool mark_free(uint64_t);
+		void mark_free_range(uint64_t, uint64_t);
 
-		public: // IPC
-		static void Register(IPC::Server& server);
-
-		public:
-		static bool Initialize(std::string workingDirectory, std::string appDataDirectory);
-		static bool Finalize();
-
-		os_cpu_usage_info_t* GetCPUUsageInfo();
-		
 		private:
-		bool m_isInitialized;
-		std::string m_workingDirectory;
-		std::string m_appDataDirectory;
-		std::string m_obsDataPath;
-		std::string m_pluginConfigPath;
-
-		// OBS
-		os_cpu_usage_info_t* m_cpuUsageInfo;
+		std::list<range_t> allocated;
 	};
 }

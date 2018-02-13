@@ -15,92 +15,155 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
 
-#include "obs-main.hpp"
-#include <ipc-class.hpp>
-// OBS
-#include "obs.h"
-#include "util/platform.h"
+#include "utility.hpp"
 
-#pragma region Singleton
-std::shared_ptr<OBS::Main> OBS::Main::GetInstance() {
-	static std::shared_ptr<OBS::Main> inst;
-	static std::mutex inst_mutex;
-	if (inst == nullptr) {
-		std::unique_lock<std::mutex> ulock(inst_mutex);
-		if (inst == nullptr) {
-			inst = std::make_shared<OBS::Main>();
+utility::unique_id::unique_id() {}
+
+utility::unique_id::~unique_id() {}
+
+uint64_t utility::unique_id::allocate() {
+	if (allocated.size() > 0) {
+		for (auto& v : allocated) {
+			if (v.first > 0) {
+				uint64_t v2 = v.first - 1;
+				mark_used(v2);
+				return v2;
+			} else if (v.second < UINT64_MAX) {
+				uint64_t v2 = v.second + 1;
+				mark_used(v2);
+				return v2;
+			}
+		}
+	} else {
+		mark_used(0);
+		return 0;
+	}
+
+	// No more free indexes. However that has happened.
+	return UINT64_MAX;
+}
+
+void utility::unique_id::free(uint64_t v) {
+	mark_free(v);
+}
+
+bool utility::unique_id::is_allocated(uint64_t v) {
+	for (auto& v2 : allocated) {
+		if ((v >= v2.first) && (v <= v2.second))
+			return true;
+	}
+	return false;
+}
+
+uint64_t utility::unique_id::count(bool count_free) {
+	uint64_t count = 0;
+	for (auto& v : allocated) {
+		count += (v.second - v.first);
+	}
+	return count_free ? (UINT64_MAX - count) : count;
+}
+
+bool utility::unique_id::mark_used(uint64_t v) {
+	// If no elements have been assigned, simply insert v as used.
+	if (allocated.size() == 0) {
+		range_t r;
+		r.first = r.second = v;
+		allocated.push_back(r);
+		return true;
+	}
+
+	// Otherwise, attempt to find the best fitting element.
+	bool lastWasSmaller = false;
+	for (auto iter = allocated.begin(); iter != allocated.end(); iter++) {
+		auto iter2 = iter;		
+		if ((iter->first > 0) && (v == (iter->first - 1))) {
+			// If the minimum of the selected element is > 0 and v is equal to
+			//  (minimum - 1), decrease the minimum.
+			iter->first--;
+
+			// Then test if the previous elements maximum is equal to (v - 1),
+			//  if so merge the two since they are now continuous.
+			iter2--;
+			if ((iter2 != allocated.end()) && (iter2->second == (v - 1))) {
+				iter2->second = iter->second;
+				allocated.erase(iter);
+			}
+
+			return true;
+		} else if ((iter->second < UINT64_MAX) && (v == (iter->second + 1))) {
+			// If the maximum of the selected element is < UINT_MAX and v is 
+			//  equal to (maximum + 1), increase the maximum.
+			iter->second++;
+
+			// Then test if the next elements minimum is equal to (v + 1),
+			//  if so merge the two since they are now continuous.
+			iter2++;
+			if ((iter2 != allocated.end()) && (iter2->first == (v + 1))) {
+				iter->second = iter2->second;
+				allocated.erase(iter2);
+			}
+
+			return true;
+		} else if (lastWasSmaller && (v < iter->first)) {
+			// If we are between two ranges that are smaller and larger than v
+			//  insert a new element before the larger range containing only v.
+			allocated.insert(iter, { v, v });
+			return true;
+		} else if ((iter2++) == allocated.end()) {
+			// Otherwise if we reached the end of the list, append v.
+			allocated.insert(iter2, { v, v });
+			return true;
+		}
+		lastWasSmaller = (v > iter->second);
+	}
+	return false;
+}
+
+void utility::unique_id::mark_used_range(uint64_t min, uint64_t max) {
+	for (uint64_t v = min; v < max; v++) {
+		mark_used(v);
+	}
+}
+
+bool utility::unique_id::mark_free(uint64_t v) {
+	for (auto iter = allocated.begin(); iter != allocated.end(); iter++) {
+		// Is v inside this range?
+		if ((v >= iter->first) && (v <= iter->second)) {
+			if (v == iter->first) {
+				// If v is simply the beginning of the range, increase the 
+				//  minimum and test if the range is now no longer valid.
+				iter->first++;
+				if (iter->first > iter->second) {
+					// If the range is no longer valid, just erase it.
+					allocated.erase(iter);
+				}
+				return true;
+			} else if (v == iter->second) {
+				// If v is simply the end of the range, decrease the maximum
+				//  and test if the range is now no longer valid.
+				iter->second--;
+				if (iter->second < iter->first) {
+					// If the range is no longer valid, just erase it.
+					allocated.erase(iter);
+				}
+				return true;
+			} else {
+				// Otherwise, since v is inside the range, split the range at
+				// v and insert a new element.
+				range_t x;
+				x.first = iter->first;
+				x.second = v - 1;
+				iter->first = v + 1;
+				allocated.insert(iter, x);
+				return true;
+			}
 		}
 	}
-	return inst;
+	return false;
 }
 
-OBS::Main::Main() {}
-
-OBS::Main::~Main() {}
-#pragma endregion Singleton
-
-void OBS::Main::Register(IPC::Server& server) {
-	IPC::Class cls("OBS");
-	cls.RegisterFunction(std::make_shared<IPC::Function>("Initialize", std::vector<IPC::Type>{IPC::Type::String},
-		[](int64_t, void*, std::vector<IPC::Value> vals) {
-		return IPC::Value(OBS::Main::GetInstance()->Initialize(vals[0].value_str, ""));
-	}, nullptr));
-	cls.RegisterFunction(std::make_shared<IPC::Function>("Initialize", std::vector<IPC::Type>{IPC::Type::String, IPC::Type::String},
-		[](int64_t, void*, std::vector<IPC::Value> vals) {
-		return IPC::Value(OBS::Main::GetInstance()->Initialize(vals[0].value_str, vals[1].value_str));
-	}, nullptr));
-	cls.RegisterFunction(std::make_shared<IPC::Function>("Initialize",
-		[](int64_t, void*, std::vector<IPC::Value> vals) {
-		return IPC::Value(OBS::Main::GetInstance()->Finalize());
-	}, nullptr));
-	server.RegisterClass(cls);
-}
-
-bool OBS::Main::Initialize(std::string workingDirectory, std::string appDataDirectory) {
-	auto obs = OBS::Main::GetInstance();
-	if (obs_initialized())
-		return false;
-
-	obs->m_workingDirectory = workingDirectory;
-	if (appDataDirectory.length() == 0) {
-		char* tmp;
-		obs->m_appDataDirectory = tmp = os_get_config_path_ptr("slobs-client");
-		bfree(tmp);
-		obs->m_obsDataPath = tmp = os_get_config_path_ptr("slobs-client/node-obs");
-		bfree(tmp);
-		obs->m_pluginConfigPath = tmp = os_get_config_path_ptr("slobs-client/plugin_config");
-		bfree(tmp);
-	} else {
-		obs->m_appDataDirectory = appDataDirectory;
-		obs->m_obsDataPath = obs->m_appDataDirectory + "/node-obs";
-		obs->m_pluginConfigPath = obs->m_appDataDirectory + "/plugin_config";
+void utility::unique_id::mark_free_range(uint64_t min, uint64_t max) {
+	for (uint64_t v = min; v < max; v++) {
+		mark_free(v);
 	}
-
-	// Initialize OBS.
-	if (!obs_startup("en-US", obs->m_pluginConfigPath.c_str(), NULL)) {
-		return false;
-	}
-
-	// CPU Usage Info
-	obs->m_cpuUsageInfo = os_cpu_usage_info_start();
-
-
-	obs->m_isInitialized = obs_initialized();
-	return obs->m_isInitialized;
-}
-
-bool OBS::Main::Finalize() {
-	auto obs = OBS::Main::GetInstance();
-	if (!obs->m_isInitialized)
-		return false;
-
-	// CPU Usage Info
-	os_cpu_usage_info_destroy(obs->m_cpuUsageInfo);
-	obs->m_cpuUsageInfo = nullptr;
-
-	// OBS
-	obs_shutdown();
-
-	obs->m_isInitialized = obs_initialized();
-	return !obs->m_isInitialized;
 }
