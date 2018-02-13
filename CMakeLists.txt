@@ -50,7 +50,7 @@ set(CMAKE_STATIC_LINKER_FLAGS_RELEASE   "${CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBI
 
 download_project(
 	PROJ libobs
-	URL https://ci.appveyor.com/api/buildjobs/jj7y5oouvn3bug4k/artifacts/windows-x86_64-dev.zip
+	URL https://ci.appveyor.com/api/buildjobs/45gyrepd2hqmvj5a/artifacts/windows-x86_64-dev.zip
 	UPDATE_DISCONNECTED 1
 )
 
