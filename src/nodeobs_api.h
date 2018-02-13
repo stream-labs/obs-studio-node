@@ -62,12 +62,8 @@ public:
 	static void OBS_API_isOBS_installed(const FunctionCallbackInfo<Value>& args);
 	static void OBS_API_useOBS_config(const FunctionCallbackInfo<Value>& args);
 
-	static void OBS_API_test_openAllModules(const FunctionCallbackInfo<Value>& args);
-	static void OBS_API_test_initAllModules(const FunctionCallbackInfo<Value>& args);
-
 private:
 	static void initAPI(void);
-	static bool initOBS_API();
     static void destroyOBS_API(void);
 	static void openAllModules(void);
 	static Local<Object> getPerformanceStatistics(void);

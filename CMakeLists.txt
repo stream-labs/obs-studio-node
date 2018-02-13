@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.1)
 project(obs-studio-node VERSION 1.0.0)
 
 #############################
@@ -10,16 +10,20 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 include(ExternalProject)
 include(DownloadProject)
+include(CPack)
+include(NodeJS)
 
-# Only allow Debug or Release builds.
-set(CMAKE_CONFIGURATION_TYPES           "Debug;Release")
-set(CMAKE_CXX_FLAGS_RELEASE             "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
-set(CMAKE_C_FLAGS_RELEASE               "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
-set(CMAKE_EXE_LINKER_FLAGS_RELEASE      "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO}")
-set(CMAKE_MODULE_LINKER_FLAGS_RELEASE   "${CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO}")
-set(CMAKE_RC_LINKER_FLAGS_RELEASE       "${CMAKE_RC_LINKER_FLAGS_RELWITHDEBINFO}")
-set(CMAKE_SHARED_LINKER_FLAGS_RELEASE   "${CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO}")
-set(CMAKE_STATIC_LINKER_FLAGS_RELEASE   "${CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO}")
+set(STREAMLABS_BUILD false CACHE BOOL "Whether to build for streamlabs-obs")
+
+if (STREAMLABS_BUILD)
+	nodejs_init(
+		URL https://atom.io/download/atom-shell
+		NAME iojs
+		VERSION v1.7.12
+	)
+else()
+	nodejs_init()
+endif()
 
 ###########################################
 # Add libobs as an imported project
@@ -33,19 +37,6 @@ set(CMAKE_STATIC_LINKER_FLAGS_RELEASE   "${CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBI
 # what libobs installs into or what cpack
 # provides in a zip file (which should be
 # the same). 
-
-# Now, cmake is a bit dumb. You cannot 
-# normally have it download files and
-# unpack them during configure time. The
-# problem with this is if we want a flexible
-# build system, and we want to use imported
-# targets... we have to. So we instead make
-# a separate project that downloads the
-# binary during build time then build it
-# during configure time. Why doesn't cmake
-# have something to do this for us or why
-# doesn't it allow to add an external project
-# during configure time? We'll probably never know.
 ###########################################
 
 download_project(
@@ -84,7 +75,6 @@ set(PROJECT_SOURCE
 	"src/obspp/obspp-display.cpp" "src/obspp/obspp-display.hpp"
 	"src/obspp/obspp-encoder.cpp" "src/obspp/obspp-encoder.hpp"
 	"src/obspp/obspp-filter.cpp" "src/obspp/obspp-filter.hpp"
-	"src/obspp/obspp-index.hpp"
 	"src/obspp/obspp-input.cpp" "src/obspp/obspp-input.hpp"
 	"src/obspp/obspp-output.cpp" "src/obspp/obspp-output.hpp"
 	"src/obspp/obspp-module.cpp" "src/obspp/obspp-module.hpp"
@@ -100,13 +90,10 @@ set(PROJECT_SOURCE
 	"src/nodeobs_api.h" "src/nodeobs_api.cpp"
 	"src/nodeobs_audio_encoders.h" "src/nodeobs_audio_encoders.cpp"
 	"src/nodeobs_autoconfig.h" "src/nodeobs_autoconfig.cpp"
-	"src/nodeobs_common.h" "src/nodeobs_common.cpp"
+	"src/nodeobs_common.cpp"
 	"src/nodeobs_display.h" "src/nodeobs_display.cpp"
-	"src/nodeobs_event.h" "src/nodeobs_event.cpp"
 	"src/nodeobs_service.h" "src/nodeobs_service.cpp"
 	"src/nodeobs_settings.h" "src/nodeobs_settings.cpp"
-	"src/nodeobs_obspp_manager.hpp" "src/nodeobs_obspp_manager.cpp"
-	"src/nodeobs_obspp_index.hpp" "src/nodeobs_obspp_index.cpp"
 	"src/nodeobs_content.h"
 	"src/gs-limits.h"
 	"src/gs-vertex.h" "src/gs-vertex.cpp"
@@ -122,13 +109,10 @@ set(PROJECT_EXTRAS
 
 set(PROJECT_RESOURCES resources)
 
-add_definitions(-DBUILDING_NODE_EXTENSION)
-
 #############################
 # Building
 #############################
-add_library(${PROJECT_NAME} SHARED ${PROJECT_SOURCE})
-set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node")
+add_nodejs_module(${PROJECT_NAME} ${PROJECT_SOURCE})
 
 # Delay loading of obs.dll so we can decide
 # where to load obs.dll from during runtime.
@@ -137,25 +121,29 @@ set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node")
 
 if(WIN32)
 	set_target_properties(${PROJECT_NAME} PROPERTIES
-		LINK_FLAGS_RELEASE "/DELAYLOAD:obs.dll"
-		LINK_FLAGS_DEBUG   "/DELAYLOAD:obs.dll")
+		LINK_FLAGS "/DELAYLOAD:obs.dll")
 		
 	list(APPEND PROJECT_LIBRARIES "Delayimp.lib")
-
 endif()
-target_link_libraries(${PROJECT_NAME} libobs ${PROJECT_LIBRARIES} ${CMAKE_JS_LIB} ${PROJECT_LINKER_FLAGS})
+
+target_link_libraries(${PROJECT_NAME} libobs 
+	${PROJECT_LIBRARIES}
+	${CMAKE_JS_LIB})
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-	$<TARGET_PROPERTY:libobs,INTERFACE_INCLUDE_DIRECTORIES>
 	${CMAKE_JS_INC})
 
 
 #############################
 # Distribute
 #############################
-install(TARGETS ${PROJECT_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX})
-install(FILES $<TARGET_PDB_FILE:${PROJECT_NAME}> DESTINATION ${CMAKE_INSTALL_PREFIX})
-install(FILES ${PROJECT_EXTRAS} DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(
+	FILES
+		$<TARGET_FILE:${PROJECT_NAME}>
+		${PROJECT_EXTRAS}
+	DESTINATION ${CMAKE_INSTALL_PREFIX})
+
+install(FILES $<TARGET_PDB_FILE:${PROJECT_NAME}> DESTINATION ${CMAKE_INSTALL_PREFIX} OPTIONAL)
 install(DIRECTORY ${libobs_SOURCE_DIR}/bin DESTINATION "libobs" PATTERN "*.lib" EXCLUDE)
 install(DIRECTORY ${libobs_SOURCE_DIR}/data DESTINATION "libobs")
 install(DIRECTORY ${libobs_SOURCE_DIR}/obs-plugins DESTINATION "libobs")

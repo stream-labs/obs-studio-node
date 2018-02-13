@@ -49,96 +49,53 @@ std::string OBS_currentSceneCollection;
 bool useOBS_configFiles = false;
 bool isOBS_installedValue;
 
-OBS_API::OBS_API() {
-
-}
-OBS_API::~OBS_API() {
-	while (listModules.size() != 0) {
-		listModules.pop_back();
-	}
-}
-
-void OBS_API::OBS_API_initAPI(const FunctionCallbackInfo<Value>& args)
+/* FIXME Platform specific and uses ASCII functions */
+static bool dirExists(const std::string& path)
 {
-	/* Map base DLLs as soon as possible into the current process space.
-	 * In particular, we need to load obs.dll into memory before we call
-	 * any functions from obs else if we delay-loaded the dll, it will
-	 * fail miserably. */
-	
-	// Set up several directories used.
-	/* FIXME These should be configurable */
-	/* FIXME g_moduleDirectory really needs to be a wstring */
-	std::string pathOBS = g_moduleDirectory + "/libobs/bin/64bit";
+  DWORD ftyp = GetFileAttributesA(path.c_str());
+  if (ftyp == INVALID_FILE_ATTRIBUTES)
+    return false;  
 
-	/* Also note that this method is possible on POSIX
-	 * as well. You can call dlopen with RTLD_GLOBAL */
-	// ORDER MATTERS HERE
-	static const char *g_modules[] = {
-		"zlib.dll",
-		"libopus-0.dll",
-		"libogg-0.dll",
-		"libvorbis-0.dll",
-		"libvorbisenc-2.dll",
-		"libvpx-1.dll",
-		"libx264-152.dll",
-		"avutil-55.dll",
-		"swscale-4.dll",
-		"swresample-2.dll",
-		"avcodec-57.dll",
-		"avformat-57.dll",
-		"avfilter-6.dll",
-		"avdevice-57.dll",
-		"libcurl.dll",
-		"libvorbisfile-3.dll",
-		"w32-pthreads.dll",
-		"obsglad.dll",
-		"obs.dll",
-		"libobs-d3d11.dll",
-		"libobs-opengl.dll"
-	};
+  if (ftyp & FILE_ATTRIBUTE_DIRECTORY)
+    return true;   
 
-	static const int g_modules_size = sizeof(g_modules) / sizeof(g_modules[0]);
+  return false;
+}
 
-	for (int i = 0; i < g_modules_size; ++i) {
-		std::string module_path;
-		void *handle = NULL;
-		
-		module_path.reserve(pathOBS.size() + strlen(g_modules[i]) + 1);
-		module_path.append(pathOBS);
-		module_path.append("/");
-		module_path.append(g_modules[i]);
+/* FIXME Platform-specific */
+static bool containsDirectory(const std::string& path)
+{
+	const char* pszDir = path.c_str();
+    char szBuffer[MAX_PATH];
 
-		#ifdef _WIN32
-			handle = LoadLibrary(module_path.c_str());
-		#endif
+    DWORD dwRet = GetCurrentDirectory(MAX_PATH, szBuffer);
+    SetCurrentDirectory(pszDir);
 
-		if (!handle) {
-			std::cerr << "Failed to open dependency " << module_path << std::endl;
-		}
+    WIN32_FIND_DATA fd;
 
-		/* This is an intentional leak. 
-		 * We leave these open and let the 
-		 * OS clean these up for us as
-		 * they should be available through
-		 * out the application */
-	}
-	
-	/* We may now use obs functions */
-	
-	String::Utf8Value path(args[0]);
+    HANDLE hFind = ::FindFirstFile("*.", &fd);
 
-	if (args[0]->IsString()) {
-		appdata_path = *path;
-		appdata_path += "/node-obs/";
-		pathConfigDirectory = *path;
-	}
-	else {
-		char *tmp;
-		appdata_path = tmp = os_get_config_path_ptr("node-obs/");
-		bfree(tmp);
-	}
+    // Get all sub-folders:
 
-	initAPI();
+    if (hFind != INVALID_HANDLE_VALUE)
+    {
+        do
+        {
+            char* pszName = fd.cFileName;
+            if (_stricmp(pszName, ".") != 0 && _stricmp(pszName, "..") != 0)
+            {
+				//Only look for at least one directory
+				::FindClose(hFind);
+				SetCurrentDirectory(szBuffer);
+				return true;
+            }
+
+        } while (::FindNextFile(hFind, &fd));
+        ::FindClose(hFind);
+    }
+    // Set the current folder back to what it was:
+    SetCurrentDirectory(szBuffer);
+    return false;
 }
 
 static string GenerateTimeDateFilename(const char *extension)
@@ -158,6 +115,98 @@ static string GenerateTimeDateFilename(const char *extension)
 		extension);
 
 	return string(file);
+}
+
+static bool GetToken(lexer *lex, string &str, base_token_type type)
+{
+	base_token token;
+	if (!lexer_getbasetoken(lex, &token, IGNORE_WHITESPACE))
+		return false;
+	if (token.type != type)
+		return false;
+
+	str.assign(token.text.array, token.text.len);
+	return true;
+}
+
+static bool ExpectToken(lexer *lex, const char *str, base_token_type type)
+{
+	base_token token;
+	if (!lexer_getbasetoken(lex, &token, IGNORE_WHITESPACE))
+		return false;
+	if (token.type != type)
+		return false;
+
+	return strref_cmp(&token.text, str) == 0;
+}
+
+/* os_dirent mimics POSIX dirent structure. 
+ * Perhaps a better cross-platform solution can take 
+ * place but this is as cross-platform as it gets
+ * for right now.  */
+static uint64_t ConvertLogName(const char *name)
+{
+	lexer  lex;
+	string     year, month, day, hour, minute, second;
+
+	lexer_init(&lex);
+	lexer_start(&lex, name);
+
+	if (!GetToken(&lex, year,   BASETOKEN_DIGIT)) return 0;
+	if (!ExpectToken(&lex, "-", BASETOKEN_OTHER)) return 0;
+	if (!GetToken(&lex, month,  BASETOKEN_DIGIT)) return 0;
+	if (!ExpectToken(&lex, "-", BASETOKEN_OTHER)) return 0;
+	if (!GetToken(&lex, day,    BASETOKEN_DIGIT)) return 0;
+	if (!GetToken(&lex, hour,   BASETOKEN_DIGIT)) return 0;
+	if (!ExpectToken(&lex, "-", BASETOKEN_OTHER)) return 0;
+	if (!GetToken(&lex, minute, BASETOKEN_DIGIT)) return 0;
+	if (!ExpectToken(&lex, "-", BASETOKEN_OTHER)) return 0;
+	if (!GetToken(&lex, second, BASETOKEN_DIGIT)) return 0;
+
+	std::string timestring(year);
+	timestring += month + day + hour + minute + second;
+	lexer_free(&lex);
+	return std::stoull(timestring);
+}
+
+static void DeleteOldestFile(const char *location, unsigned maxLogs)
+{
+	string           oldestLog;
+	uint64_t         oldest_ts = (uint64_t)-1;
+	struct os_dirent *entry;
+
+	os_dir_t *dir = os_opendir(location);
+
+	if (!dir) {
+		std::cout << "Failed to open log directory." << std::endl;
+	}
+
+	unsigned count = 0;
+
+	while ((entry = os_readdir(dir)) != NULL) {
+		if (entry->directory || *entry->d_name == '.')
+			continue;
+
+		uint64_t ts = ConvertLogName(entry->d_name);
+
+		if (ts) {
+			if (ts < oldest_ts) {
+				oldestLog = entry->d_name;
+				oldest_ts = ts;
+			}
+
+			count++;
+		}
+	}
+
+	os_closedir(dir);
+
+	if (count > maxLogs) {
+		string delPath;
+
+		delPath = delPath + location + "/" + oldestLog;
+		os_unlink(delPath.c_str());
+	}
 }
 
 static void stdout_log_handler(int log_level, const char *format,
@@ -190,7 +239,7 @@ static void stdout_log_handler(int log_level, const char *format,
 	UNUSED_PARAMETER(param);
 }
 
-void node_obs_log
+static void node_obs_log
 		(int log_level, const char *msg,
 		 va_list args, void *param)
 {
@@ -249,102 +298,74 @@ void node_obs_log
 #endif
 }
 
-static bool get_token(lexer *lex, string &str, base_token_type type)
+void OBS_API::OBS_API_initAPI(const FunctionCallbackInfo<Value>& args)
 {
-	base_token token;
-	if (!lexer_getbasetoken(lex, &token, IGNORE_WHITESPACE))
-		return false;
-	if (token.type != type)
-		return false;
+	/* Map base DLLs as soon as possible into the current process space.
+	 * In particular, we need to load obs.dll into memory before we call
+	 * any functions from obs else if we delay-loaded the dll, it will
+	 * fail miserably. */
+	
+	/* FIXME These should be configurable */
+	/* FIXME g_moduleDirectory really needs to be a wstring */
+	std::string pathOBS = g_moduleDirectory + "/libobs/bin/64bit";
 
-	str.assign(token.text.array, token.text.len);
-	return true;
-}
+	/* Also note that this method is possible on POSIX
+	 * as well. You can call dlopen with RTLD_GLOBAL
+	 * Order matters here. Loading a library out of order
+	 * will cause a failure to resolve dependencies. */
+	static const char *g_modules[] = {
+		"zlib.dll",
+		"libopus-0.dll",
+		"libogg-0.dll",
+		"libvorbis-0.dll",
+		"libvorbisenc-2.dll",
+		"libvpx-1.dll",
+		"libx264-152.dll",
+		"avutil-55.dll",
+		"swscale-4.dll",
+		"swresample-2.dll",
+		"avcodec-57.dll",
+		"avformat-57.dll",
+		"avfilter-6.dll",
+		"avdevice-57.dll",
+		"libcurl.dll",
+		"libvorbisfile-3.dll",
+		"w32-pthreads.dll",
+		"obsglad.dll",
+		"obs.dll",
+		"libobs-d3d11.dll",
+		"libobs-opengl.dll"
+	};
 
-static bool expect_token(lexer *lex, const char *str, base_token_type type)
-{
-	base_token token;
-	if (!lexer_getbasetoken(lex, &token, IGNORE_WHITESPACE))
-		return false;
-	if (token.type != type)
-		return false;
+	static const int g_modules_size = sizeof(g_modules) / sizeof(g_modules[0]);
 
-	return strref_cmp(&token.text, str) == 0;
-}
+	for (int i = 0; i < g_modules_size; ++i) {
+		std::string module_path;
+		void *handle = NULL;
+		
+		module_path.reserve(pathOBS.size() + strlen(g_modules[i]) + 1);
+		module_path.append(pathOBS);
+		module_path.append("/");
+		module_path.append(g_modules[i]);
 
-/* os_dirent mimics POSIX dirent structure. 
- * Perhaps a better cross-platform solution can take 
- * place but this is as cross-platform as it gets
- * for right now.  */
-static uint64_t convert_log_name(const char *name)
-{
-	lexer  lex;
-	string     year, month, day, hour, minute, second;
+		#ifdef _WIN32
+			handle = LoadLibrary(module_path.c_str());
+		#endif
 
-	lexer_init(&lex);
-	lexer_start(&lex, name);
-
-	if (!get_token(&lex, year,   BASETOKEN_DIGIT)) return 0;
-	if (!expect_token(&lex, "-", BASETOKEN_OTHER)) return 0;
-	if (!get_token(&lex, month,  BASETOKEN_DIGIT)) return 0;
-	if (!expect_token(&lex, "-", BASETOKEN_OTHER)) return 0;
-	if (!get_token(&lex, day,    BASETOKEN_DIGIT)) return 0;
-	if (!get_token(&lex, hour,   BASETOKEN_DIGIT)) return 0;
-	if (!expect_token(&lex, "-", BASETOKEN_OTHER)) return 0;
-	if (!get_token(&lex, minute, BASETOKEN_DIGIT)) return 0;
-	if (!expect_token(&lex, "-", BASETOKEN_OTHER)) return 0;
-	if (!get_token(&lex, second, BASETOKEN_DIGIT)) return 0;
-
-	std::string timestring(year);
-	timestring += month + day + hour + minute + second;
-	lexer_free(&lex);
-	return std::stoull(timestring);
-}
-
-static void delete_oldest_file(const char *location, unsigned maxLogs)
-{
-	string           oldestLog;
-	uint64_t         oldest_ts = (uint64_t)-1;
-	struct os_dirent *entry;
-
-	os_dir_t *dir = os_opendir(location);
-
-	if (!dir) {
-		std::cout << "Failed to open log directory." << std::endl;
-	}
-
-	unsigned count = 0;
-
-	while ((entry = os_readdir(dir)) != NULL) {
-		if (entry->directory || *entry->d_name == '.')
-			continue;
-
-		uint64_t ts = convert_log_name(entry->d_name);
-
-		if (ts) {
-			if (ts < oldest_ts) {
-				oldestLog = entry->d_name;
-				oldest_ts = ts;
-			}
-
-			count++;
+		if (!handle) {
+			std::cerr << "Failed to open dependency " << module_path << std::endl;
 		}
+
+		/* This is an intentional leak. 
+		 * We leave these open and let the 
+		 * OS clean these up for us as
+		 * they should be available through
+		 * out the application */
 	}
-
-	os_closedir(dir);
-
-	if (count > maxLogs) {
-		string delPath;
-
-		delPath = delPath + location + "/" + oldestLog;
-		os_unlink(delPath.c_str());
-	}
-}
-
-void OBS_API::OBS_API_initOBS_API(const FunctionCallbackInfo<Value>& args) {
-	String::Utf8Value path(args[0]);
-
+	
+	/* We may now use obs functions */
 	if (args[0]->IsString()) {
+		String::Utf8Value path(args[0]);
 		appdata_path = *path;
 		appdata_path += "/node-obs/";
 		pathConfigDirectory = *path;
@@ -355,15 +376,96 @@ void OBS_API::OBS_API_initOBS_API(const FunctionCallbackInfo<Value>& args) {
 		bfree(tmp);
 	}
 
-	initOBS_API();
+	/* libobs will use three methods of finding data files:
+	 * 1. ${CWD}/data/libobs <- This doesn't work for us
+	 * 2. ${OBS_DATA_PATH}/libobs <- This works but is inflexible
+	 * 3. getenv(OBS_DATA_PATH) + /libobs <- Can be set anywhere
+	 *    on the cli, in the frontend, or the backend. */
+
+	SetEnvironmentVariable("OBS_DATA_PATH", std::string(g_moduleDirectory + "/libobs/data").c_str());
+
+	std::vector<char> userData = std::vector<char>(1024);
+	os_get_config_path(userData.data(), userData.capacity() - 1, "slobs-client/plugin_config");
+	obs_startup("en-US", userData.data(), NULL);
+    cpuUsageInfo = os_cpu_usage_info_start();
+
+	//Setting obs-studio config directory
+	char path[512];
+	int ret = os_get_config_path(path, 512, "obs-studio");
+
+	if(ret > 0) {
+		OBS_pathConfigDirectory = path;
+	}
+
+	std::string profiles = OBS_pathConfigDirectory + "\\basic\\profiles";
+	std::string scenes = OBS_pathConfigDirectory + "\\basic\\scenes";
+
+	isOBS_installedValue = dirExists(OBS_pathConfigDirectory) &&
+		containsDirectory(profiles) &&
+		os_file_exists(scenes.c_str());
+
+	if(isOBS_installedValue) {
+	    v8::String::Utf8Value firstProfile(getOBS_existingProfiles()->Get(0)->ToString());
+	    OBS_currentProfile = std::string(*firstProfile);
+
+	    v8::String::Utf8Value firstSceneCollection(getOBS_existingSceneCollections()->Get(0)->ToString());
+	    OBS_currentSceneCollection = std::string(*firstSceneCollection);
+	}
+
+	/* Logging */
+	string filename = GenerateTimeDateFilename("txt");
+	string log_path = appdata_path;
+	log_path.append("/logs/");
+
+	/* Make sure the path is created
+	   before attempting to make a file there. */
+	if (os_mkdirs(log_path.c_str()) == MKDIR_ERROR) {
+		cerr << "Failed to open log file" << endl;
+	}
+
+	DeleteOldestFile(log_path.c_str(), 3);
+	log_path.append(filename);
+
+	/* Leak although not that big of a deal since it should always be open. */
+	fstream *logfile = new fstream(log_path, ios_base::out | ios_base::trunc);
+
+	if (!logfile) {
+		cerr << "Failed to open log file" << endl;
+	}
+
+	/* Delete oldest file in the folder to imitate rotating */
+	base_set_log_handler(node_obs_log, logfile);
+
+	/* Profiling */
+	//profiler_start();
+
+	openAllModules();
+	OBS_service::createStreamingOutput();
+	OBS_service::createRecordingOutput();
+
+	OBS_service::createVideoStreamingEncoder();
+	OBS_service::createVideoRecordingEncoder();
+
+	OBS_service::createAudioEncoder();
+
+	OBS_service::resetAudioContext();
+	OBS_service::resetVideoContext(NULL);
+
+	OBS_service::associateAudioAndVideoToTheCurrentStreamingContext();
+	OBS_service::associateAudioAndVideoToTheCurrentRecordingContext();
+
+	OBS_service::createService();
+
+	OBS_service::associateAudioAndVideoEncodersToTheCurrentStreamingOutput();
+	OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput();
+
+	OBS_service::setServiceToTheStreamingOutput();
+
+	setAudioDeviceMonitoring();
 }
 
 void OBS_API::OBS_API_destroyOBS_API(const FunctionCallbackInfo<Value>& args) {
     destroyOBS_API();
-}
-
-void OBS_API::OBS_API_openAllModules(const FunctionCallbackInfo<Value>& args) {
-	openAllModules();
 }
 
 void OBS_API::OBS_API_getPerformanceStatistics(const FunctionCallbackInfo<Value>& args) {
@@ -457,73 +559,6 @@ void OBS_API::OBS_API_useOBS_config(const FunctionCallbackInfo<Value>& args)
 	pathConfigDirectory = OBS_pathConfigDirectory;
 }
 
-void OBS_API::OBS_API_test_openAllModules(const FunctionCallbackInfo<Value>& args) {
-	Isolate* isolate = args.GetIsolate();
-	openAllModules();
-
-	string result = "SUCCESS";
-
-	for (int i = 0; i < listModules.size(); i++) {
-		if (listModules.at(i).second != MODULE_SUCCESS) {
-			result = "FAILURE";
-		}
-	}
-
-	args.GetReturnValue().Set(String::NewFromUtf8(isolate, result.c_str()));
-}
-
-int GetConfigPath(char *path, size_t size, const char *name)
-{
-	return os_get_config_path(path, size, name);
-}
-
-bool dirExists(const std::string& path)
-{
-  DWORD ftyp = GetFileAttributesA(path.c_str());
-  if (ftyp == INVALID_FILE_ATTRIBUTES)
-    return false;  
-
-  if (ftyp & FILE_ATTRIBUTE_DIRECTORY)
-    return true;   
-
-  return false;
-}
-
-bool containsDirectory(const std::string& path)
-{
-	const char* pszDir = path.c_str();
-    char szBuffer[MAX_PATH];
-
-    DWORD dwRet = GetCurrentDirectory(MAX_PATH, szBuffer);
-    SetCurrentDirectory(pszDir);
-
-    WIN32_FIND_DATA fd;
-
-    HANDLE hFind = ::FindFirstFile("*.", &fd);
-
-    // Get all sub-folders:
-
-    if (hFind != INVALID_HANDLE_VALUE)
-    {
-        do
-        {
-            char* pszName = fd.cFileName;
-            if (_stricmp(pszName, ".") != 0 && _stricmp(pszName, "..") != 0)
-            {
-				//Only look for at least one directory
-				::FindClose(hFind);
-				SetCurrentDirectory(szBuffer);
-				return true;
-            }
-
-        } while (::FindNextFile(hFind, &fd));
-        ::FindClose(hFind);
-    }
-    // Set the current folder back to what it was:
-    SetCurrentDirectory(szBuffer);
-    return false;
-}
-
 void OBS_API::SetProcessPriority(const char *priority)
 {
 	if (!priority)
@@ -550,34 +585,6 @@ void OBS_API::UpdateProcessPriority()
 		"General", "ProcessPriority");
 	if (priority && strcmp(priority, "Normal") != 0)
 		SetProcessPriority(priority);
-}
-
-void OBS_API::initAPI(void)
-{
-	initOBS_API();
-	openAllModules();
-	OBS_service::createStreamingOutput();
-	OBS_service::createRecordingOutput();
-
-	OBS_service::createVideoStreamingEncoder();
-	OBS_service::createVideoRecordingEncoder();
-
-	OBS_service::createAudioEncoder();
-
-	OBS_service::resetAudioContext();
-	OBS_service::resetVideoContext(NULL);
-
-	OBS_service::associateAudioAndVideoToTheCurrentStreamingContext();
-	OBS_service::associateAudioAndVideoToTheCurrentRecordingContext();
-
-	OBS_service::createService();
-
-	OBS_service::associateAudioAndVideoEncodersToTheCurrentStreamingOutput();
-	OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput();
-
-	OBS_service::setServiceToTheStreamingOutput();
-
-	setAudioDeviceMonitoring();
 }
 
 bool DisableAudioDucking(bool disable)
@@ -640,76 +647,6 @@ void OBS_API::setAudioDeviceMonitoring(void)
 	if (disableAudioDucking)
 		DisableAudioDucking(true);
 #endif
-}
-
-bool OBS_API::initOBS_API()
-{
-	/* libobs will use three methods of finding data files:
-	 * 1. ${CWD}/data/libobs <- This doesn't work for us
-	 * 2. ${OBS_DATA_PATH}/libobs <- This works but is inflexible
-	 * 3. getenv(OBS_DATA_PATH) + /libobs <- Can be set anywhere
-	 *    on the cli, in the frontend, or the backend. */
-
-	SetEnvironmentVariable("OBS_DATA_PATH", std::string(g_moduleDirectory + "/libobs/data").c_str());
-
-	std::vector<char> userData = std::vector<char>(1024);
-	os_get_config_path(userData.data(), userData.capacity() - 1, "slobs-client/plugin_config");
-	obs_startup("en-US", userData.data(), NULL);
-    cpuUsageInfo = os_cpu_usage_info_start();
-
-	//Setting obs-studio config directory
-	char path[512];
-	int ret = GetConfigPath(path, 512, "obs-studio");
-
-	if(ret > 0) {
-		OBS_pathConfigDirectory = path;
-	}
-
-	std::string profiles = OBS_pathConfigDirectory + "\\basic\\profiles";
-	std::string scenes = OBS_pathConfigDirectory + "\\basic\\scenes";
-
-	isOBS_installedValue = dirExists(OBS_pathConfigDirectory) &&
-		containsDirectory(profiles) &&
-		os_file_exists(scenes.c_str());
-
-	if(isOBS_installedValue) {
-	    v8::String::Utf8Value firstProfile(getOBS_existingProfiles()->Get(0)->ToString());
-	    OBS_currentProfile = std::string(*firstProfile);
-
-	    v8::String::Utf8Value firstSceneCollection(getOBS_existingSceneCollections()->Get(0)->ToString());
-	    OBS_currentSceneCollection = std::string(*firstSceneCollection);
-	}
-
-	/* Logging */
-	string filename = GenerateTimeDateFilename("txt");
-	string log_path = appdata_path;
-	log_path.append("/logs/");
-
-	/* Make sure the path is created
-	   before attempting to make a file there. */
-	if (os_mkdirs(log_path.c_str()) == MKDIR_ERROR) {
-		cerr << "Failed to open log file" << endl;
-	}
-
-	delete_oldest_file(log_path.c_str(), 3);
-	log_path.append(filename);
-
-	/* Leak although not that big of a deal since it should always be open. */
-	fstream *logfile = new fstream(log_path, ios_base::out | ios_base::trunc);
-
-	if (!logfile) {
-		cerr << "Failed to open log file" << endl;
-	}
-
-	/* Delete oldest file in the folder to imitate rotating */
-	base_set_log_handler(node_obs_log, logfile);
-
-	/* Profiling */
-	//profiler_start();
-
-
-
-	return obs_initialized();
 }
 
 static void SaveProfilerData(const profiler_snapshot_t *snap)
