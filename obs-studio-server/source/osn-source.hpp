@@ -15,4 +15,40 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
 
-#include "osn-ISource.hpp"
+#pragma once
+#include "utility.hpp"
+#include <map>
+#include <obs.h>
+
+namespace osn {
+	class SourceManager {
+		utility::unique_id sourceIdGenerator;
+		std::map<uint64_t, obs_source_t*> sourceMap;
+
+	#pragma region Singleton
+		private:
+		SourceManager() {};
+		~SourceManager() {};
+
+		public:
+		SourceManager(SourceManager&) = delete;
+		SourceManager(SourceManager const&) = delete;
+		SourceManager operator=(SourceManager&) = delete;
+		SourceManager operator=(SourceManager const&) = delete;
+
+		static bool Initialize();
+		static SourceManager* GetInstance();
+		static bool Finalize();
+	#pragma endregion Singleton
+
+		public:
+		uint64_t Allocate(obs_source_t*);
+		obs_source_t* Free(uint64_t);
+
+		obs_source_t* Get(uint64_t);
+		uint64_t Get(obs_source_t*);
+	};
+	
+	class Source {
+	};
+}
