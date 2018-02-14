@@ -16,47 +16,29 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
 
 #pragma once
-#include <inttypes.h>
-#include <vector>
-#include <string>
+#include "osn-source.hpp"
+#include "osn-scene.hpp"
+#include <list>
 #include <memory>
-#include <ipc-value.hpp>
-#include <ipc-server.hpp>
 
-namespace OBS {
-	class Main {
-	#pragma region Singleton
-		friend class std::shared_ptr<OBS::Main>;
-
-		public:
-		static std::shared_ptr<OBS::Main> GetInstance();
-
-		public: // No Copy
-		Main(Main&) = delete;
-		Main& operator=(Main&) = delete;
-
-		protected:
-		Main();
-		~Main();
-	#pragma endregion Singleton
-
-		public: // IPC
-		static void Register(IPC::Server& server);
+namespace shared {
+	//// An object used by the server to determine which objects are in use by the client connected.
+	//
+	class ClientStorage {
+		std::list<std::shared_ptr<osn::Source>> activeSources;
+		//std::list<std::shared_ptr<osn::Scene>> activeScenes;
+		//std::list<std::shared_ptr<osn::SceneItem>> activeScenes;
+		//std::list<std::shared_ptr<osn::Transition>> activeScenes;
+		//std::list<std::shared_ptr<osn::Video>> activeScenes;
+		//std::list<std::shared_ptr<osn::Filter>> activeScenes;
+		//std::list<std::shared_ptr<osn::Input>> activeScenes;
 
 		public:
-		static bool Initialize(std::string workingDirectory, std::string appDataDirectory);
-		static bool Finalize();
+		ClientStorage();
+		~ClientStorage();
 
-		os_cpu_usage_info_t* GetCPUUsageInfo();
-		
-		private:
-		bool m_isInitialized;
-		std::string m_workingDirectory;
-		std::string m_appDataDirectory;
-		std::string m_obsDataPath;
-		std::string m_pluginConfigPath;
 
-		// OBS
-		os_cpu_usage_info_t* m_cpuUsageInfo;
 	};
+
+
 }
