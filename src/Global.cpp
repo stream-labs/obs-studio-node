@@ -1,4 +1,8 @@
+#include <limits>
+
 #include "obspp/obspp.hpp"
+#include <util/base.h>
+#include <util/platform.h>
 
 #include "Global.h"
 #include "Common.h"
@@ -7,7 +11,46 @@
 #include "Scene.h"
 #include "Transition.h"
 
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/ansicolor_sink.h"
+
 namespace osn {
+
+std::shared_ptr<spdlog::logger> logger;
+
+static void custom_log_handler(int level, const char *msg, va_list args, void *data)
+{
+	switch (level) {
+	case LOG_ERROR:
+		logger->error(msg, args);
+		break;
+	case LOG_WARNING:
+		logger->warn(msg, args);
+		break;
+	case LOG_INFO:
+		logger->info(msg, args);
+		break;
+	case LOG_DEBUG:
+		logger->debug(msg, args);
+		break;
+	default:
+		logger->info(msg, args);
+	}
+}
+
+static void custom_crash_handler(const char *msg, va_list args, void *param)
+{
+	/* Frontend handles crash catching right now. So just
+	 * immediately crash in a way the crash report will catch. */
+	*(char *)0 = 0;
+
+	/* The above will normally cause a crash.
+	 * If it doesn't, we manually raise the segfault signal. */
+	raise(SIGSEGV);
+
+	/* If we get to this point... 
+	 * the OS is doing something really dumb and insecure. */
+}
 
 #define OBS_VALID \
     if (!obs::initialized()) \
@@ -30,28 +73,142 @@ NAN_MODULE_INIT(Init)
     Nan::Set(target, FIELD_NAME("Global"), ObsGlobal);
 }
 
-/* Technically, we can control logs from JS. This will require a bit of
-   engineering since logging might be executed in a secondary thread. 
-   For now, just pick a spot and keep it there.  */
-
 NAN_METHOD(startup)
 {
-    std::string locale, path;
+	/* Map base DLLs as soon as possible into the current process space.
+	 * In particular, we need to load obs.dll into memory before we call
+	 * any functions from obs else if we delay-loaded the dll, it will
+	 * fail miserably. */
 
-    auto ReturnValue = info.GetReturnValue();
+	/* Also note that this method is possible on POSIX
+	 * as well. You can call dlopen with RTLD_GLOBAL
+	 * Order matters here. Loading a library out of order
+	 * will cause a failure to resolve dependencies. */
+	static const char *g_modules[] = {
+		"zlib.dll",
+		"libopus-0.dll",
+		"libogg-0.dll",
+		"libvorbis-0.dll",
+		"libvorbisenc-2.dll",
+		"libvpx-1.dll",
+		"libx264-152.dll",
+		"avutil-55.dll",
+		"swscale-4.dll",
+		"swresample-2.dll",
+		"avcodec-57.dll",
+		"avformat-57.dll",
+		"avfilter-6.dll",
+		"avdevice-57.dll",
+		"libcurl.dll",
+		"libvorbisfile-3.dll",
+		"w32-pthreads.dll",
+		"obsglad.dll",
+		"obs.dll",
+		"libobs-d3d11.dll",
+		"libobs-opengl.dll"
+	};
 
-    ASSERT_INFO_LENGTH_AT_LEAST(info, 1);
-    ASSERT_GET_VALUE(info[0], locale);
+	static const int g_modules_size = sizeof(g_modules) / sizeof(g_modules[0]);
 
-    switch (info.Length()) {
-    case 1:
-        ReturnValue.Set(common::ToValue(obs::startup(locale)));
-        break;
-    case 2:
-        ASSERT_GET_VALUE(info[1], path);
-        ReturnValue.Set(common::ToValue(obs::startup(locale, path)));
-        break;
-    }
+	std::string locale;
+	std::string libobs_path;
+
+	ASSERT_INFO_LENGTH_AT_LEAST(info, 1);
+	ASSERT_GET_VALUE(info[0], locale);
+
+	switch (info.Length()) {
+	default:
+		ASSERT_GET_VALUE(info[1], libobs_path);
+	}
+
+	/* Note that we shouldn't use obs functions here yet
+	 * as obs.dll is possibly not loaded yet. */
+	for (int i = 0; i < g_modules_size; ++i) {
+		std::string module_path;
+		void *handle = NULL;
+		
+		/* libobs_path should be an absolute path. 
+		 * If it's not provided, assume that it can
+		 * be found in dll search path. */
+
+		if (!libobs_path.empty()) {
+			const char rel_bin_path[] = "/bin/64bit/";
+
+			module_path.reserve(
+				libobs_path.size() + 
+				(sizeof(rel_bin_path) / sizeof(char)) +
+				(sizeof(g_modules[i]) / sizeof(char)));
+
+			module_path.append(libobs_path);
+			module_path.append(rel_bin_path);
+		}
+
+		module_path.append(g_modules[i]);
+
+		#ifdef _WIN32
+			handle = LoadLibrary(module_path.c_str());
+		#endif
+
+		if (!handle) {
+			std::cerr << "Failed to open dependency " << module_path << std::endl;
+		}
+
+		/* This is an intentional leak. 
+		 * We leave these open and let the 
+		 * OS clean these up for us as
+		 * they should be available through
+		 * out the application */
+	}
+
+	/* At this point, we can use OBS functions. If delayload failed
+	 * we will never reach this point. 
+	 * POSSIBLE TODO - Customize the delayload function to give more
+	 * information on when it fails. */
+
+	char *log_path = os_get_config_path_ptr("slobs-client/libobs/logs/log");
+	char *data_path = os_get_config_path_ptr("slobs-client/libobs/data");
+	char *plugin_config_path = 
+		os_get_config_path_ptr("slobs-client/libobs/plugin-config");
+
+	std::array<spdlog::sink_ptr, 2> sinks;
+
+	/* Windows uses _wenviron which ends up causing confusing
+	 * issues where ANSI and Wide Character env maps get 
+	 * desynchronized. Even more confusing is compiling in debug
+	 * and release showcase this issue. As a result, we use
+	 * SetEnvironmentVariable which will always use the wide
+	 * version of the function internally. For POSIX, there
+	 * is no wide-character version of set/getenv */
+
+	/* libobs will use three methods of finding data files:
+	 * 1. ${CWD}/data/libobs <- This doesn't work for us
+	 * 2. ${OBS_DATA_PATH}/libobs <- This works but is inflexible
+	 * 3. getenv(OBS_DATA_PATH) + /libobs <- Can be set anywhere
+	 *    on the cli, in the frontend, or the backend. */
+	#ifdef _WIN32
+		SetEnvironmentVariable("OBS_DATA_PATH", data_path);
+	#else
+		setenv("OBS_DATA_PATH", data_path);
+	#endif
+
+	/* Even though we're single-threaded, we still need multi-threaded 
+	 * loggers since libobs itself can log from multiple threads. */
+	sinks[0] = std::make_shared<spdlog::sinks::ansicolor_stdout_sink_mt>();
+	sinks[1] = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
+		log_path, SIZE_MAX, 5);
+
+	/* This will throw an exception on failure. I'm alright with that */
+	logger = spdlog::create("libobs", sinks.begin(), sinks.end());
+
+	base_set_log_handler(custom_log_handler, 0);
+	base_set_crash_handler(custom_crash_handler, 0);
+
+	info.GetReturnValue().Set(
+		obs_startup(locale.c_str(), plugin_config_path, 0));
+
+	bfree(log_path);
+	bfree(data_path);
+	bfree(plugin_config_path);
 }
 
 NAN_METHOD(shutdown)
