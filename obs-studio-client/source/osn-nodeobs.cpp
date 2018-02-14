@@ -28,14 +28,6 @@
 INITIALIZER(osn_nodeobs) {
 	// Add initializer function
 	initializerFunctions.push([](v8::Local<v8::Object>& exports) {
-		// Find current directory.
-		{
-			std::vector<char> pathCWD(65535); // Should use MAX_PATH here
-			char *answer = _getcwd(pathCWD.data(), pathCWD.size() - 1);
-			g_moduleDirectory = std::string(pathCWD.data()) + "/node_modules/obs-studio-node/distribute";
-			replaceAll(g_moduleDirectory, "\\", "/");
-		}
-
 		// EDIT: Add function to specify actual load directory.
 		NODE_SET_METHOD(exports, "SetWorkingDirectory", NodeOBS::Module::SetWorkingDirectory);
 		// END OF EDIT:
@@ -434,39 +426,39 @@ void NodeOBS::AutoConfig::GetListServer(const v8::FunctionCallbackInfo<v8::Value
 void NodeOBS::AutoConfig::InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	v8::Local<v8::Function> param0(args[0].As<v8::Function>());
 	v8::Local<v8::Object> param1(args[1].As<v8::Object>());
-	// ToDo. May require two-way calling.
+	// TODO: May require two-way calling.
 }
 
 void NodeOBS::AutoConfig::StartBandwidthTest(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
+	// TODO: May require two-way calling.
 }
 
 void NodeOBS::AutoConfig::StartStreamEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
+	// TODO: May require two-way calling.
 }
 
 void NodeOBS::AutoConfig::StartRecordingEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
+	// TODO: May require two-way calling.
 }
 
 void NodeOBS::AutoConfig::StartCheckSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
+	// TODO: May require two-way calling.
 }
 
 void NodeOBS::AutoConfig::StartSetDefaultSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
+	// TODO: May require two-way calling.
 }
 
 void NodeOBS::AutoConfig::StartSaveStreamSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
+	// TODO: May require two-way calling.
 }
 
 void NodeOBS::AutoConfig::StartSaveSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
+	// TODO: May require two-way calling.
 }
 
 void NodeOBS::AutoConfig::TerminateAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
+	// TODO: May require two-way calling.
 }
 
 void NodeOBS::Content::GetSourceFilterVisibility(const v8::FunctionCallbackInfo<v8::Value>& args) {
