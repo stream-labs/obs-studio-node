@@ -1211,7 +1211,7 @@ Local<Object> OBS_settings::getAdvancedOutputStreamingSettings(config_t* config,
 
 		RescaleRes->Set(String::NewFromUtf8(isolate, "currentValue"), String::NewFromUtf8(isolate, outputResString));
 
-		std::vector<pair<int, int>> outputResolutions = getOutputResolutions(base_cx, base_cy);
+		std::vector<pair<uint32_t, uint32_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
 
 		Local<Array> RescaleResValues = Array::New(isolate);
 		for(int i = 0;i<outputResolutions.size();i++) {
@@ -1465,7 +1465,7 @@ void OBS_settings::getStandardRecordingSettings(Local<Array>* subCategoryParamet
 
 		RecRescaleRes->Set(String::NewFromUtf8(isolate, "currentValue"), String::NewFromUtf8(isolate, outputResString));
 
-		std::vector<pair<int, int>> outputResolutions = getOutputResolutions(base_cx, base_cy);
+		std::vector<pair<uint32_t, uint32_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
 
 		Local<Array> RecRescaleResValues = Array::New(isolate);
 		for(int i = 0;i<outputResolutions.size();i++) {
@@ -2680,12 +2680,15 @@ static inline void LoadFPSFraction(config_t* config)
 	uint32_t den = config_get_uint(config, "Video", "FPSDen");
 }
 
-std::vector<pair<int, int>> OBS_settings::getOutputResolutions(int base_cx, int base_cy)
+std::vector<pair<uint32_t, uint32_t>> OBS_settings::getOutputResolutions(int base_cx, int base_cy)
 {
-	std::vector<pair<int, int>> outputResolutions;
+	std::vector<pair<uint32_t, uint32_t>> outputResolutions;
 	for (size_t idx = 0; idx < numVals; idx++) {
 		uint32_t outDownscaleCX = uint32_t(double(base_cx) / vals[idx]);
 		uint32_t outDownscaleCY = uint32_t(double(base_cy) / vals[idx]);
+		
+		outDownscaleCX &= 0xFFFFFFFE;
+		outDownscaleCY &= 0xFFFFFFFE;
 
 		outputResolutions.push_back(std::make_pair(outDownscaleCX, outDownscaleCY));
 	}
@@ -2773,7 +2776,7 @@ Local<Array>  OBS_settings::getVideoSettings()
 
 	outputResolution.push_back(std::make_pair("currentValue", outputResString));
 
-	std::vector<pair<int, int>> outputResolutions = getOutputResolutions(base_cx, base_cy);
+	std::vector<pair<uint32_t, uint32_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
 
 	for(int i = 0;i<outputResolutions.size();i++) {
 		string outRes = ResString(outputResolutions.at(i).first, outputResolutions.at(i).second);
