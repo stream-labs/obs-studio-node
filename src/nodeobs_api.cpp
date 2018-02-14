@@ -99,7 +99,7 @@ static bool containsDirectory(const std::string& path)
 }
 
 void OBS_API::OBS_API_initAPI(const FunctionCallbackInfo<Value>& args)
-{	
+{
 	//Setting obs-studio config directory
 	char *path = os_get_config_path_ptr("obs-studio");
 

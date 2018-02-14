@@ -1,4 +1,5 @@
-#include <limits>
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/ansicolor_sink.h"
 
 #include "obspp/obspp.hpp"
 #include <util/base.h>
@@ -11,30 +12,31 @@
 #include "Scene.h"
 #include "Transition.h"
 
-#include "spdlog/spdlog.h"
-#include "spdlog/sinks/ansicolor_sink.h"
-
 namespace osn {
 
 std::shared_ptr<spdlog::logger> logger;
 
-static void custom_log_handler(int level, const char *msg, va_list args, void *data)
+static void custom_log_handler(int level, const char *format, 
+	                           va_list args, void *data)
 {
+	char out[4096];
+	vsnprintf(out, sizeof(out), format, args);
+
 	switch (level) {
 	case LOG_ERROR:
-		logger->error(msg, args);
+		logger->error("{0}", out);
 		break;
 	case LOG_WARNING:
-		logger->warn(msg, args);
+		logger->warn("{0}", out);
 		break;
 	case LOG_INFO:
-		logger->info(msg, args);
+		logger->info("{0}", out);
 		break;
 	case LOG_DEBUG:
-		logger->debug(msg, args);
+		logger->debug("{0}", out);
 		break;
 	default:
-		logger->info(msg, args);
+		logger->info("{0}", out);
 	}
 }
 
@@ -112,12 +114,22 @@ NAN_METHOD(startup)
 
 	std::string locale;
 	std::string libobs_path;
+	std::string libobs_data_path;
 
 	ASSERT_INFO_LENGTH_AT_LEAST(info, 1);
 	ASSERT_GET_VALUE(info[0], locale);
 
 	if (info.Length() > 1) {
+		const char data_path_suffix[] = "/data";
+
 		ASSERT_GET_VALUE(info[1], libobs_path);
+
+		libobs_data_path.reserve(
+			libobs_path.size() +
+			(sizeof(data_path_suffix) / sizeof(char)));
+
+		libobs_data_path.append(libobs_path);
+		libobs_data_path.append(data_path_suffix);
 	}
 
 	/* Note that we shouldn't use obs functions here yet
@@ -140,6 +152,8 @@ NAN_METHOD(startup)
 
 			module_path.append(libobs_path);
 			module_path.append(rel_bin_path);
+		} else {
+			module_path.reserve(sizeof(g_modules[i]) / sizeof(char));
 		}
 
 		module_path.append(g_modules[i]);
@@ -166,8 +180,9 @@ NAN_METHOD(startup)
 
 	/* We are assuming here the slobs-client folder is already */
 
-	char *log_path  = os_get_config_path_ptr("slobs-client/libobs/logs/log");
-	char *data_path = os_get_config_path_ptr("slobs-client/libobs/data");
+	char *log_path  = os_get_config_path_ptr("slobs-client/libobs/logs");
+	char *log_file_base_path = 
+		os_get_config_path_ptr("slobs-client/libobs/logs/log.txt");
 	char *plugin_config_path = 
 		os_get_config_path_ptr("slobs-client/libobs/plugin-config");
 
@@ -188,43 +203,56 @@ NAN_METHOD(startup)
 	 * 3. getenv(OBS_DATA_PATH) + /libobs <- Can be set anywhere
 	 *    on the cli, in the frontend, or the backend. */
 	#ifdef _WIN32
-		SetEnvironmentVariable("OBS_DATA_PATH", data_path);
+		SetEnvironmentVariable("OBS_DATA_PATH", libobs_data_path.c_str());
 	#else
-		setenv("OBS_DATA_PATH", data_path);
+		setenv("OBS_DATA_PATH", libobs_data_path.c_str());
 	#endif
 
 	/* Makre sure our config folders exist */
 	status = os_mkdirs(log_path);
-	status |= os_mkdirs(data_path);
-	status |= os_mkdirs(plugin_config_path);
+	status = status == MKDIR_ERROR ? status : os_mkdirs(plugin_config_path);
 
-	if (status != 0) {
-		/* What do we do here? We're about to crash. */
+	if (status == MKDIR_ERROR) {
+		Nan::ThrowError("Failed to create config directories!");
+		return;
 	}
 
 	/* Even though we're single-threaded, we still need multi-threaded 
 	 * loggers since libobs itself can log from multiple threads. */
 	sinks[0] = std::make_shared<spdlog::sinks::ansicolor_stdout_sink_mt>();
 	sinks[1] = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
-		log_path, SIZE_MAX, 5);
+		log_file_base_path, 1024 * 1024 * 2 /* 1 MB */, 20);
 
 	/* This will throw an exception on failure. I'm alright with that */
 	logger = spdlog::create("libobs", sinks.begin(), sinks.end());
 
+	/* If the previous log resulted from a crash, it won't have an new line */
+	logger->info("\n");
+	logger->info("***************************************************************************");
+	logger->info("* Starting up libobs... ");
+	logger->info("***************************************************************************");
+
 	base_set_log_handler(custom_log_handler, 0);
 	base_set_crash_handler(custom_crash_handler, 0);
 
-	info.GetReturnValue().Set(
-		obs_startup(locale.c_str(), plugin_config_path, 0));
+	status = obs_startup(locale.c_str(), plugin_config_path, 0);
+
+	if (!status) {
+		Nan::ThrowError("Failed to start obs!");
+		return;
+	}
 
 	bfree(log_path);
-	bfree(data_path);
+	bfree(log_file_base_path);
 	bfree(plugin_config_path);
 }
 
 NAN_METHOD(shutdown)
 {
-    obs::shutdown();
+	logger->info("***************************************************************************");
+	logger->info("* Shutting libobs down... ");
+	logger->info("***************************************************************************");
+	obs::shutdown();
 }
 
 NAN_METHOD(laggedFrames)
