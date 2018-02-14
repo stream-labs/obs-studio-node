@@ -116,8 +116,7 @@ NAN_METHOD(startup)
 	ASSERT_INFO_LENGTH_AT_LEAST(info, 1);
 	ASSERT_GET_VALUE(info[0], locale);
 
-	switch (info.Length()) {
-	default:
+	if (info.Length() > 1) {
 		ASSERT_GET_VALUE(info[1], libobs_path);
 	}
 
@@ -165,12 +164,15 @@ NAN_METHOD(startup)
 	 * POSSIBLE TODO - Customize the delayload function to give more
 	 * information on when it fails. */
 
-	char *log_path = os_get_config_path_ptr("slobs-client/libobs/logs/log");
+	/* We are assuming here the slobs-client folder is already */
+
+	char *log_path  = os_get_config_path_ptr("slobs-client/libobs/logs/log");
 	char *data_path = os_get_config_path_ptr("slobs-client/libobs/data");
 	char *plugin_config_path = 
 		os_get_config_path_ptr("slobs-client/libobs/plugin-config");
 
 	std::array<spdlog::sink_ptr, 2> sinks;
+	int status = 0;
 
 	/* Windows uses _wenviron which ends up causing confusing
 	 * issues where ANSI and Wide Character env maps get 
@@ -190,6 +192,15 @@ NAN_METHOD(startup)
 	#else
 		setenv("OBS_DATA_PATH", data_path);
 	#endif
+
+	/* Makre sure our config folders exist */
+	status = os_mkdirs(log_path);
+	status |= os_mkdirs(data_path);
+	status |= os_mkdirs(plugin_config_path);
+
+	if (status != 0) {
+		/* What do we do here? We're about to crash. */
+	}
 
 	/* Even though we're single-threaded, we still need multi-threaded 
 	 * loggers since libobs itself can log from multiple threads. */
