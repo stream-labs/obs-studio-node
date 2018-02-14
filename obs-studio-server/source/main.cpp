@@ -24,7 +24,22 @@
 #include <ipc-function.hpp>
 #include <ipc-class.hpp>
 #include <ipc-server.hpp>
-#include "obs-main.hpp"
+
+// Eddy said only the following are used in osn:
+// `ISource` `Input` `Filter` `AudioControls` `Global` `IProperties` `Scene` `SceneItem` `transition` `Video`
+// Prioritize these first.
+// 
+// Inheritance Graph
+//	ISource
+//	- Input
+//	- Filter
+//	- Scene
+//	- Transition
+//	AudioControls
+//	Global
+//	IProperties
+//	SceneItem
+//	Video
 
 namespace System {
 	IPC::Value Shutdown(int64_t id, void* data, std::vector<IPC::Value>) {
@@ -49,7 +64,7 @@ int main(int argc, char* argv[]) {
 	bool doShutdown = false;
 
 	// Classes
-	OBS::Main::Register(myServer);
+	//OBS::Main::Register(myServer);
 	/// System
 	{
 		IPC::Class system("System");
