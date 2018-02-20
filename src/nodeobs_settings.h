@@ -93,10 +93,10 @@ private:
 
 
 	//Utility functions
-	static void 							getAvailableEncoders	(std::vector<std::pair<std::string,
-																		std::string>>* streamEncoder);
-	static std::vector<pair<int, int>> 		getOutputResolutions	(int base_cx, int base_cy);
-	static void 							getEncoderSettings		(Isolate *isolate,
+	static void 									getAvailableEncoders (std::vector<std::pair<std::string,
+																			std::string>>* streamEncoder);
+	static std::vector<pair<uint32_t, uint32_t>> 	getOutputResolutions (int base_cx, int base_cy);
+	static void 									getEncoderSettings(Isolate *isolate,
 																		const obs_encoder_t *encoder,
 																		obs_data_t *settings,
 																		Local<Array>* subCategoryParameters,
