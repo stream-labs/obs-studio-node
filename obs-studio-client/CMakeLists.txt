@@ -60,25 +60,7 @@ SET(PROJECT_SOURCE
 	"${PROJECT_SOURCE_DIR}/source/gs-limits.h"
 	"${PROJECT_SOURCE_DIR}/source/gs-vertex.h" "${PROJECT_SOURCE_DIR}/source/gs-vertex.cpp"
 	"${PROJECT_SOURCE_DIR}/source/gs-vertexbuffer.h" "${PROJECT_SOURCE_DIR}/source/gs-vertexbuffer.cpp"
-	"${PROJECT_SOURCE_DIR}/source/util-memory.h" "${PROJECT_SOURCE_DIR}/source/util-memory.cpp"	
-	
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-audio.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-audio.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-display.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-display.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-encoder.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-encoder.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-filter.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-filter.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-index.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-input.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-input.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-output.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-output.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-module.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-module.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-output.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-properties.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-properties.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-scene.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-scene.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-service.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-service.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-source.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-source.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-transition.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-transition.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-video.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-video.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-view.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-view.hpp"
+	"${PROJECT_SOURCE_DIR}/source/util-memory.h" "${PROJECT_SOURCE_DIR}/source/util-memory.cpp"
 )
 SET(PROJECT_LIBRARIES
 	${CMAKE_JS_LIB}
