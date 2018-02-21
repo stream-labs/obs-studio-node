@@ -2,7 +2,3 @@
 	path = lib-streamlabs-ipc
 	url = https://github.com/stream-labs/lib-streamlabs-ipc.git
 	branch = master
-[submodule "obs-studio-server/obs-prebuild"]
-	path = obs-studio-server/obs-prebuild
-	url = git@github.com:stream-labs/obs-prebuild.git
-	branch = master
