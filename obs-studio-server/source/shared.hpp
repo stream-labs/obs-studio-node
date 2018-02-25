@@ -20,25 +20,63 @@
 #include "osn-scene.hpp"
 #include <list>
 #include <memory>
+#include <mutex>
 
 namespace shared {
-	//// An object used by the server to determine which objects are in use by the client connected.
-	//
-	class ClientStorage {
-		std::list<std::shared_ptr<osn::Source>> activeSources;
-		//std::list<std::shared_ptr<osn::Scene>> activeScenes;
-		//std::list<std::shared_ptr<osn::SceneItem>> activeScenes;
-		//std::list<std::shared_ptr<osn::Transition>> activeScenes;
-		//std::list<std::shared_ptr<osn::Video>> activeScenes;
-		//std::list<std::shared_ptr<osn::Filter>> activeScenes;
-		//std::list<std::shared_ptr<osn::Input>> activeScenes;
+	template<class T>
+	class SingletonObjectManager {
+		utility::unique_id idGenerator;
+		std::map<uint64_t, T> objectMap;
+
+		private:
+		SingletonObjectManager() {};
+		~SingletonObjectManager() {};
+
+		static std::shared_ptr<SingletonObjectManager> _inst = nullptr;
 
 		public:
-		ClientStorage();
-		~ClientStorage();
+		SingletonObjectManager(SingletonObjectManager const&) = delete;
+		SingletonObjectManager operator=(SingletonObjectManager const&) = delete;
 
+		static bool Initialize() {
+			if (_inst)
+				return false;
+			_inst = std::make_shared<SingletonObjectManager>();
+			return true;
+		}
+		static std::shared_ptr<SingletonObjectManager> GetInstance() {
+			return _inst;
+		}
+		static bool Finalize() {
+			if (!_inst)
+				return false;
+			_inst = nullptr;
+			return true;
+		}
 
+		public:
+		uint64_t Allocate(T obj) {
+			uint64_t id = idGenerator.allocate();
+			objectMap.insert_or_assign(id, obj);
+			return id;
+		}
+		T Free(uint64_t id) {
+			T obj = nullptr;
+			auto iter = objectMap.find(id);
+			if (iter != objectMap.end()) {
+				obj = iter->second;
+			}
+			objectMap.erase(iter);
+			idGenerator.free(id);
+			return obj;
+		}
+		T Get(uint64_t id) {
+			T obj = nullptr;
+			auto iter = objectMap.find(id);
+			if (iter != objectMap.end()) {
+				obj = iter->second;
+			}
+			return obj;
+		}
 	};
-
-
 }
