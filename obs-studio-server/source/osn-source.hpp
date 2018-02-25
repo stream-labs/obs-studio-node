@@ -17,38 +17,42 @@
 
 #pragma once
 #include "utility.hpp"
+#include "shared.hpp"
+#include <ipc-server.hpp>
 #include <map>
+#include <memory>
 #include <obs.h>
+#include "obspp/obspp-source.hpp"
 
 namespace osn {
-	class SourceManager {
-		utility::unique_id sourceIdGenerator;
-		std::map<uint64_t, obs_source_t*> sourceMap;
-
-	#pragma region Singleton
-		private:
-		SourceManager() {};
-		~SourceManager() {};
-
+	class Source : public shared::SingletonObjectManager<std::shared_ptr<obs::source>> {
 		public:
-		SourceManager(SourceManager&) = delete;
-		SourceManager(SourceManager const&) = delete;
-		SourceManager operator=(SourceManager&) = delete;
-		SourceManager operator=(SourceManager const&) = delete;
+		static void Register(IPC::Server&);
 
-		static bool Initialize();
-		static SourceManager* GetInstance();
-		static bool Finalize();
-	#pragma endregion Singleton
+		// References
+		static void Remove(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
+		static void Release(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
 
-		public:
-		uint64_t Allocate(obs_source_t*);
-		obs_source_t* Free(uint64_t);
+		// Settings & Properties
+		static void IsConfigurable(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
+		static void GetProperties(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
+		static void GetSettings(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
+		static void Update(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
+		static void Load(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
+		static void Save(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
 
-		obs_source_t* Get(uint64_t);
-		uint64_t Get(obs_source_t*);
-	};
-	
-	class Source {
+		
+		static void GetType(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
+		static void GetName(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
+		static void SetName(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
+		static void GetOutputFlags(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
+		static void GetFlags(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
+		static void SetFlags(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
+		static void GetStatus(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
+		static void GetId(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
+		
+		// Flags
+		static void Muted(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
+		static void Enabled(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
 	};
 }
