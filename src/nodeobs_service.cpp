@@ -20,6 +20,7 @@ bool recordingConfigured = false;
 bool ffmpegOutput = false;
 bool lowCPUx264 = false;
 
+Nan::Callback *JS_OutputSignalCallback;
 
 OBS_service::OBS_service()
 {
@@ -736,12 +737,13 @@ obs_data_t* OBS_service::createRecordingSettings(void)
 void OBS_service::createStreamingOutput(void)
 {
     streamingOutput = obs_output_create("rtmp_output", "simple_stream", nullptr, nullptr);
+	connectOutputSignals();
 }
 
 void OBS_service::createRecordingOutput(void)
 {
 	recordingOutput = obs_output_create("ffmpeg_muxer", "simple_file_output", nullptr, nullptr);
-    // updateRecordingOutput();
+	connectOutputSignals();
 }
 
 bool OBS_service::startStreaming(void)
@@ -752,6 +754,7 @@ bool OBS_service::startStreaming(void)
 
     obs_output_release(streamingOutput);
 	streamingOutput = obs_output_create(type, "simple_stream", nullptr, nullptr);
+	connectOutputSignals();
 
 	std::string basicConfigFile = OBS_API::getBasicConfigPath();
 	config_t* config = OBS_API::openConfigFile(basicConfigFile);
@@ -788,7 +791,7 @@ bool OBS_service::startStreaming(void)
 
     updateService();
     updateStreamSettings();
-
+	
     return obs_output_start(streamingOutput);
 }
 
@@ -1216,6 +1219,7 @@ void OBS_service::LoadRecordingPreset_Lossless()
     }
 	recordingOutput = obs_output_create("ffmpeg_output",
 			"simple_ffmpeg_output", nullptr, nullptr);
+	connectOutputSignals();
 	if (!recordingOutput)
 		throw "Failed to create recording FFmpeg output "
 		      "(simple output)";
@@ -1293,6 +1297,7 @@ void OBS_service::UpdateFFmpegOutput(void)
     }
 	recordingOutput = obs_output_create("ffmpeg_output",
 			"simple_ffmpeg_output", nullptr, nullptr);
+	connectOutputSignals();
 
 	const char *url = config_get_string(config, "AdvOut", "FFURL");
 	int vBitrate = config_get_int(config, "AdvOut",
@@ -1672,3 +1677,59 @@ void OBS_service::updateRecordSettings(void)
     associateAudioAndVideoEncodersToTheCurrentRecordingOutput();
 }
 
+std::vector<SignalInfo> streamingSignals;
+std::vector<SignalInfo> recordingSignals;
+
+void OBS_service::OBS_service_connectOutputSignals(const FunctionCallbackInfo<Value>& args)
+{
+	v8::Local<v8::Object> function = args[0]->ToObject();
+	JS_OutputSignalCallback = new Nan::Callback(function.As<v8::Function>());
+
+	streamingSignals.push_back(SignalInfo("streaming", "start"));
+	streamingSignals.push_back(SignalInfo("streaming", "stop"));
+	streamingSignals.push_back(SignalInfo("streaming", "starting"));
+	streamingSignals.push_back(SignalInfo("streaming", "stopping"));
+	streamingSignals.push_back(SignalInfo("streaming", "activate"));
+	streamingSignals.push_back(SignalInfo("streaming", "deactivate"));
+	streamingSignals.push_back(SignalInfo("streaming", "reconnect"));
+	streamingSignals.push_back(SignalInfo("streaming", "reconnect_success"));
+
+	recordingSignals.push_back(SignalInfo("recording", "start"));
+	recordingSignals.push_back(SignalInfo("recording", "stop"));
+	recordingSignals.push_back(SignalInfo("recording", "starting"));
+	recordingSignals.push_back(SignalInfo("recording", "stopping"));
+	recordingSignals.push_back(SignalInfo("recording", "activate"));
+	recordingSignals.push_back(SignalInfo("recording", "deactivate"));
+	recordingSignals.push_back(SignalInfo("recording", "reconnect"));
+	recordingSignals.push_back(SignalInfo("recording", "reconnect_success"));
+}
+
+void OBS_service::function(void *data, calldata_t *) 
+{
+	SignalInfo &signal = 
+		*reinterpret_cast<SignalInfo*>(data);
+
+	Worker *worker = new Worker(JS_OutputSignalCallback, signal);
+	worker->Send();
+}
+
+void OBS_service::connectOutputSignals(void)
+{
+	signal_handler *streamingOutputSignalHandler =
+		obs_output_get_signal_handler(streamingOutput);
+			
+	// Connect streaming output
+	for (int i = 0; i<streamingSignals.size(); i++) {
+		signal_handler_connect(streamingOutputSignalHandler, 
+			streamingSignals.at(i).getSignal().c_str(), function, &(streamingSignals.at(i)));
+	}
+
+	signal_handler *recordingOutputSignalHandler =
+		obs_output_get_signal_handler(recordingOutput);
+
+	// Connect recording output
+	for (int i = 0; i<recordingSignals.size(); i++) {
+		signal_handler_connect(recordingOutputSignalHandler, 
+			recordingSignals.at(i).getSignal().c_str(), function, &(recordingSignals.at(i)));
+	}
+}
