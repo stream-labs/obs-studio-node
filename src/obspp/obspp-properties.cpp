@@ -21,6 +21,7 @@ properties::properties(obs_properties_t *properties)
 }
 
 properties::properties(std::string id, object_type type)
+ : m_status(status_type::okay)
 {
     switch (type) {
     case object_type::source:
