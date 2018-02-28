@@ -201,40 +201,40 @@ export const enum EFaderType {
 }
 
 export const enum EColorFormat {
-	Unknown,
-	A8,
-	R8,
-	RGBA,
-	BGRX,
-	BGRA,
-	R10G10B10A2,
-	RGBA16,
-	R16,
-	RGBA16F,
-	RGBA32F,
-	RG16F,
-	RG32F,
-	R16F,
-	R32F,
-	DXT1,
-	DXT3,
-	DXT5
+    Unknown,
+    A8,
+    R8,
+    RGBA,
+    BGRX,
+    BGRA,
+    R10G10B10A2,
+    RGBA16,
+    R16,
+    RGBA16F,
+    RGBA32F,
+    RG16F,
+    RG32F,
+    R16F,
+    R32F,
+    DXT1,
+    DXT3,
+    DXT5
 }
 
 export const enum EZStencilFormat {
-	None,
-	Z16,
-	Z24_S8,
-	Z32F,
-	Z32F_S8X24
+    None,
+    Z16,
+    Z24_S8,
+    Z32F,
+    Z32F_S8X24
 }
 
 export const enum EScaleType {
     Default,
     Point,
-    FastBilinear,
+    Bicubic,
     Bilinear,
-    Bicubic
+    Lanczos
 }
 
 export const enum ERangeType {

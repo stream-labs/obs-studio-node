@@ -162,9 +162,9 @@ export declare const enum EZStencilFormat {
 export declare const enum EScaleType {
     Default = 0,
     Point = 1,
-    FastBilinear = 2,
+    Bicubic = 2,
     Bilinear = 3,
-    Bicubic = 4,
+    Lanczos = 4,
 }
 export declare const enum ERangeType {
     Default = 0,
