@@ -164,6 +164,16 @@ export const enum ESceneDupType {
 }
 
 /**
+ * Enumeration describing different OBS objects.
+ */
+export const enum EObjectType {
+    Source,
+    Encoder,
+    Service,
+    Output
+}
+
+/**
  * Describes the type of source
  */
 export const enum ESourceType {
@@ -421,6 +431,18 @@ export interface IGlobal {
      * @returns - The associated source or null if none was assigned to the given channel or channel was invalid.
      */
     getOutputSource(channel: number): ISource;
+
+    /**
+     * Obtain properties from an id. This properties
+     * structure is similar to what a source of the
+     * same id and no settings would provide. 
+     * @param id - The id of a source type to fetch properties for.
+     * @param type - Since id isn't associated with a type itself, 
+     *               there's no way to tell its actual type. So it
+     *               must be specified explicity via EObjectType
+     * @returns - The associated properties structure. 
+     */
+    getProperties(id: string, type: EObjectType): IProperties;
 
     /**
      * Number of total render frames

@@ -111,6 +111,12 @@ export declare const enum ESceneDupType {
     PrivateRefs = 2,
     PrivateCopy = 3,
 }
+export declare const enum EObjectType {
+    Source = 0,
+    Encoder = 1,
+    Service = 2,
+    Output = 3,
+}
 export declare const enum ESourceType {
     Input = 0,
     Filter = 1,
@@ -286,6 +292,7 @@ export interface IGlobal {
     getOutputFlagsFromId(id: string): number;
     setOutputSource(channel: number, input: ISource): void;
     getOutputSource(channel: number): ISource;
+    getProperties(id: string, type: EObjectType): IProperties;
     readonly totalFrames: number;
     readonly laggedFrames: number;
     readonly initialized: boolean;

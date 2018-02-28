@@ -6,6 +6,7 @@
 #include "Input.h"
 #include "Scene.h"
 #include "Transition.h"
+#include "Properties.h"
 
 namespace osn {
 
@@ -22,6 +23,7 @@ NAN_MODULE_INIT(Init)
     common::SetObjectField(ObsGlobal, "getOutputSource", getOutputSource);
     common::SetObjectField(ObsGlobal, "setOutputSource", setOutputSource);
     common::SetObjectField(ObsGlobal, "getOutputFlagsFromId", getOutputFlagsFromId);
+    common::SetObjectField(ObsGlobal, "getProperties", getProperties);
     common::SetObjectLazyAccessor(ObsGlobal, "laggedFrames", laggedFrames);
     common::SetObjectLazyAccessor(ObsGlobal, "totalFrames", totalFrames);
     common::SetObjectLazyAccessor(ObsGlobal, "initialized", initialized);
@@ -167,6 +169,29 @@ NAN_METHOD(getOutputSource)
     }
 
     obs_source_release(source.dangerous());
+}
+
+NAN_METHOD(getProperties)
+{
+    ASSERT_INFO_LENGTH_AT_LEAST(info, 1);
+
+    std::string id;
+    uint32_t type;
+
+    ASSERT_GET_VALUE(info[0], id);
+    ASSERT_GET_VALUE(info[1], type);
+
+    obs::properties props(id.c_str(), (obs::properties::object_type)type);
+
+    if (props.status() != obs::properties::status_type::okay) {
+        info.GetReturnValue().Set(Nan::Null());
+        return;
+    }
+
+    Properties *bindings = new Properties(std::move(props));
+    auto object = Properties::Object::GenerateObject(bindings);
+
+    info.GetReturnValue().Set(object);
 }
 
 }
