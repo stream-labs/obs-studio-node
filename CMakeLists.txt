@@ -41,7 +41,7 @@ endif()
 
 download_project(
 	PROJ libobs
-	URL https://ci.appveyor.com/api/buildjobs/io1e23q5s8nt0n1x/artifacts/windows-x86_64-dev.zip
+	URL https://ci.appveyor.com/api/buildjobs/45gyrepd2hqmvj5a/artifacts/windows-x86_64-dev.zip
 	UPDATE_DISCONNECTED 1
 )
 
