@@ -109,38 +109,43 @@ void service::update(obs_data_t *data)
     obs_service_update(m_handle, data);
 }
 
-
 /** Convenience functions. 
   * These are generally the same as
   * the current setting values. */
+
+static std::string safe_string(const char *str)
+{
+    return str ? str : "";
+}
+
 const std::string service::url()
 {
-    return obs_service_get_url(m_handle);
+    return safe_string(obs_service_get_url(m_handle));
 }
 
 const std::string service::key()
 {
-    return obs_service_get_key(m_handle);
+    return safe_string(obs_service_get_key(m_handle));
 }
 
 const std::string service::username()
 {
-    return obs_service_get_username(m_handle);
+    return safe_string(obs_service_get_username(m_handle));
 }
 
 const std::string service::password()
 {
-   return obs_service_get_password(m_handle);
+    return safe_string(obs_service_get_password(m_handle));
 }
 
 const std::string service::name()
 {
-    return obs_service_get_name(m_handle);
+    return safe_string(obs_service_get_name(m_handle));
 }
 
 const std::string service::id()
 {
-    return obs_service_get_id(m_handle);
+    return safe_string(obs_service_get_id(m_handle));
 }
 
 

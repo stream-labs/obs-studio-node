@@ -164,6 +164,16 @@ export const enum ESceneDupType {
 }
 
 /**
+ * Enumeration describing different OBS objects.
+ */
+export const enum EObjectType {
+    Source,
+    Encoder,
+    Service,
+    Output
+}
+
+/**
  * Describes the type of source
  */
 export const enum ESourceType {
@@ -191,40 +201,40 @@ export const enum EFaderType {
 }
 
 export const enum EColorFormat {
-	Unknown,
-	A8,
-	R8,
-	RGBA,
-	BGRX,
-	BGRA,
-	R10G10B10A2,
-	RGBA16,
-	R16,
-	RGBA16F,
-	RGBA32F,
-	RG16F,
-	RG32F,
-	R16F,
-	R32F,
-	DXT1,
-	DXT3,
-	DXT5
+    Unknown,
+    A8,
+    R8,
+    RGBA,
+    BGRX,
+    BGRA,
+    R10G10B10A2,
+    RGBA16,
+    R16,
+    RGBA16F,
+    RGBA32F,
+    RG16F,
+    RG32F,
+    R16F,
+    R32F,
+    DXT1,
+    DXT3,
+    DXT5
 }
 
 export const enum EZStencilFormat {
-	None,
-	Z16,
-	Z24_S8,
-	Z32F,
-	Z32F_S8X24
+    None,
+    Z16,
+    Z24_S8,
+    Z32F,
+    Z32F_S8X24
 }
 
 export const enum EScaleType {
     Default,
     Point,
-    FastBilinear,
+    Bicubic,
     Bilinear,
-    Bicubic
+    Lanczos
 }
 
 export const enum ERangeType {
@@ -421,6 +431,18 @@ export interface IGlobal {
      * @returns - The associated source or null if none was assigned to the given channel or channel was invalid.
      */
     getOutputSource(channel: number): ISource;
+
+    /**
+     * Obtain properties from an id. This properties
+     * structure is similar to what a source of the
+     * same id and no settings would provide. 
+     * @param id - The id of a source type to fetch properties for.
+     * @param type - Since id isn't associated with a type itself, 
+     *               there's no way to tell its actual type. So it
+     *               must be specified explicity via EObjectType
+     * @returns - The associated properties structure. 
+     */
+    getProperties(id: string, type: EObjectType): IProperties;
 
     /**
      * Number of total render frames

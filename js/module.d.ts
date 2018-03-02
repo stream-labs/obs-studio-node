@@ -111,6 +111,12 @@ export declare const enum ESceneDupType {
     PrivateRefs = 2,
     PrivateCopy = 3,
 }
+export declare const enum EObjectType {
+    Source = 0,
+    Encoder = 1,
+    Service = 2,
+    Output = 3,
+}
 export declare const enum ESourceType {
     Input = 0,
     Filter = 1,
@@ -156,9 +162,9 @@ export declare const enum EZStencilFormat {
 export declare const enum EScaleType {
     Default = 0,
     Point = 1,
-    FastBilinear = 2,
+    Bicubic = 2,
     Bilinear = 3,
-    Bicubic = 4,
+    Lanczos = 4,
 }
 export declare const enum ERangeType {
     Default = 0,
@@ -286,6 +292,7 @@ export interface IGlobal {
     getOutputFlagsFromId(id: string): number;
     setOutputSource(channel: number, input: ISource): void;
     getOutputSource(channel: number): ISource;
+    getProperties(id: string, type: EObjectType): IProperties;
     readonly totalFrames: number;
     readonly laggedFrames: number;
     readonly initialized: boolean;
