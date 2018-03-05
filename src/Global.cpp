@@ -2,6 +2,7 @@
 #include "spdlog/sinks/ansicolor_sink.h"
 
 #include "obspp/obspp.hpp"
+#include "obspp/obspp-module.hpp" /* For libobs data path */
 #include <util/base.h>
 #include <util/platform.h>
 
@@ -192,7 +193,7 @@ NAN_METHOD(startup)
 	int status = 0;
 
 	/* Windows uses _wenviron which ends up causing confusing
-	 * issues where ANSI and Wide Character env maps get 
+	 * issues where ANSI and Wide Character env maps get
 	 * desynchronized. Even more confusing is compiling in debug
 	 * and release showcase this issue. As a result, we use
 	 * SetEnvironmentVariable which will always use the wide
@@ -204,13 +205,19 @@ NAN_METHOD(startup)
 	 * 2. ${OBS_DATA_PATH}/libobs <- This works but is inflexible
 	 * 3. getenv(OBS_DATA_PATH) + /libobs <- Can be set anywhere
 	 *    on the cli, in the frontend, or the backend. */
-	#ifdef _WIN32
-		SetEnvironmentVariable("OBS_DATA_PATH", libobs_data_path.c_str());
-	#else
-		setenv("OBS_DATA_PATH", libobs_data_path.c_str());
-	#endif
 
-	/* Makre sure our config folders exist */
+	/* Don't overwrite the environment variable if nothing is passed.
+	 * This allows the user to pass an environment variable instead
+	 * passing it directly to the API */
+	if (!libobs_data_path.empty()) {
+		#ifdef _WIN32
+			SetEnvironmentVariable("OBS_DATA_PATH", libobs_data_path.c_str());
+		#else
+			setenv("OBS_DATA_PATH", libobs_data_path.c_str());
+		#endif
+	}
+
+	/* Make sure our config folders exist */
 	status = os_mkdirs(log_path);
 	status = status == MKDIR_ERROR ? status : os_mkdirs(plugin_config_path);
 
@@ -242,6 +249,25 @@ NAN_METHOD(startup)
 	if (!status) {
 		Nan::ThrowError("Failed to start obs!");
 		return;
+	}
+
+	/* Note that these must be delayed until
+	 * after we call obs. obs needs to be initialized
+	 * in order to add modules paths */
+	if (!libobs_data_path.empty()) {
+		std::string plugin_bin_path(libobs_path);
+		std::string plugin_data_path(libobs_path);
+
+		plugin_bin_path.append("/obs-plugins");
+		plugin_data_path.append("/data/obs-plugins/%module%");
+
+		obs::module::add_path(plugin_bin_path, plugin_data_path);
+
+		/* The top-most directory was originally used to hold binaries.
+		 * We moved to one folder deeper since that's what obs does.
+		 * So we now support both for compatibility reasons. */
+		plugin_bin_path.append("/64bit");
+		obs::module::add_path(plugin_bin_path, plugin_data_path);
 	}
 
 	bfree(log_path);
