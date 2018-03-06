@@ -1,6 +1,8 @@
-#include "nodeobs_content.h"
+#include <iostream>
+#include <vector>
 #include <map>
-#include <iomanip>
+
+#include "nodeobs_content.h"
 
 /* For sceneitem transform modifications.
  * We should consider moving this to another module */
@@ -8,6 +10,13 @@
 
 std::map<std::string, OBS::Display *> displays;
 std::string sourceSelected;
+
+using v8::Boolean;
+using v8::Isolate;
+using v8::Data;
+using std::vector;
+using std::cout;
+using std::endl;
 
 /* A lot of the sceneitem functionality is a lazy copy-pasta from the Qt UI. */
 // https://github.com/jp9000/obs-studio/blob/master/UI/window-basic-main.cpp#L4888
