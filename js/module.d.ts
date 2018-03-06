@@ -206,10 +206,7 @@ export declare const enum ESpeakerLayout {
     Quad = 4,
     FourOne = 5,
     FiveOne = 6,
-    FiveOneSurround = 7,
     SevenOne = 8,
-    SevenOneSurround = 9,
-    Surround = 10,
 }
 export declare const enum ESceneSignalType {
     ItemAdd = 0,

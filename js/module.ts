@@ -281,10 +281,7 @@ export const enum ESpeakerLayout {
     Quad,
     FourOne,
     FiveOne,
-    FiveOneSurround,
-    SevenOne,
-    SevenOneSurround,
-    Surround
+    SevenOne = 8
 };
 
 export const enum ESceneSignalType {
