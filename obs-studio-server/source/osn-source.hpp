@@ -19,13 +19,10 @@
 #include "utility.hpp"
 #include "shared.hpp"
 #include <ipc-server.hpp>
-#include <map>
-#include <memory>
 #include <obs.h>
-#include "obspp/obspp-source.hpp"
 
 namespace osn {
-	class Source : public shared::SingletonObjectManager<std::shared_ptr<obs::source>> {
+	class Source : public shared::SingletonObjectManager<obs_source_t*> {
 		public:
 		static void Register(IPC::Server&);
 

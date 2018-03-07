@@ -16,9 +16,12 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
 
 #include "osn-source.hpp"
-#include "error.hpp"
 #include "osn-common.hpp"
+#include "error.hpp"
 #include <ipc-server.hpp>
+#include <ipc-class.hpp>
+#include <ipc-function.hpp>
+#include <ipc-value.hpp>
 #include <map>
 #include <memory>
 #include <obs.h>
@@ -48,14 +51,14 @@ void osn::Source::Register(IPC::Server& srv) {
 
 void osn::Source::Remove(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
 	// Attempt to find the source asked to load.
-	std::shared_ptr<obs::source> src = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value.ui64);
 	if (src == nullptr) {
 		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Source reference is no longer valid."));
+		rval.push_back(IPC::Value("Source reference is not valid."));
 		return;
 	}
 
-	src->remove();
+	obs_source_remove(src);
 	osn::Source::GetInstance()->Free(args[0].value.ui64);
 
 	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
@@ -64,15 +67,15 @@ void osn::Source::Remove(void* data, const int64_t id, const std::vector<IPC::Va
 
 void osn::Source::Release(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
 	// Attempt to find the source asked to load.
-	std::shared_ptr<obs::source> src = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value.ui64);
 	if (src == nullptr) {
 		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Source reference is no longer valid."));
+		rval.push_back(IPC::Value("Source reference is not valid."));
 		return;
 	}
 
-	src->release();
-	if (src->removed()) {
+	obs_source_release(src);
+	if (obs_source_removed(src)) {
 		osn::Source::GetInstance()->Free(args[0].value.ui64);
 	}
 
@@ -82,29 +85,28 @@ void osn::Source::Release(void* data, const int64_t id, const std::vector<IPC::V
 
 void osn::Source::IsConfigurable(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
 	// Attempt to find the source asked to load.
-	std::shared_ptr<obs::source> src = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value.ui64);
 	if (src == nullptr) {
 		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Source reference is no longer valid."));
+		rval.push_back(IPC::Value("Source reference is not valid."));
 		return;
 	}
 
 	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(src->configurable()));
+	rval.push_back(IPC::Value(obs_source_configurable(src)));
 	return;
 }
 
 void osn::Source::GetProperties(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
 	// Attempt to find the source asked to load.
-	std::shared_ptr<obs::source> src = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value.ui64);
 	if (src == nullptr) {
 		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Source reference is no longer valid."));
+		rval.push_back(IPC::Value("Source reference is not valid."));
 		return;
 	}
 
-	obs::properties prop = src->properties();
-	obs_properties_t* prp = prop.dangerous();
+	obs_properties_t* prp = obs_source_properties(src);
 
 	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
 	for (obs_property_t* p = obs_properties_first(prp); (p != nullptr) && obs_property_next(&p);) {
@@ -149,14 +151,14 @@ void osn::Source::GetProperties(void* data, const int64_t id, const std::vector<
 
 void osn::Source::GetSettings(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
 	// Attempt to find the source asked to load.
-	std::shared_ptr<obs::source> src = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value.ui64);
 	if (src == nullptr) {
 		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Source reference is no longer valid."));
+		rval.push_back(IPC::Value("Source reference is not valid."));
 		return;
 	}
 
-	obs_data_t* sets = src->settings();
+	obs_data_t* sets = obs_source_get_settings(src);
 	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
 	rval.push_back(IPC::Value(obs_data_get_json(sets)));
 	obs_data_release(sets);
@@ -165,15 +167,15 @@ void osn::Source::GetSettings(void* data, const int64_t id, const std::vector<IP
 
 void osn::Source::Update(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
 	// Attempt to find the source asked to load.
-	std::shared_ptr<obs::source> src = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value.ui64);
 	if (src == nullptr) {
 		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Source reference is no longer valid."));
+		rval.push_back(IPC::Value("Source reference is not valid."));
 		return;
 	}
 
 	obs_data_t* sets = obs_data_create_from_json(args[1].value_str.c_str());
-	src->update(sets);
+	obs_source_update(src, sets);
 	obs_data_release(sets);
 
 	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
@@ -182,14 +184,14 @@ void osn::Source::Update(void* data, const int64_t id, const std::vector<IPC::Va
 
 void osn::Source::Load(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
 	// Attempt to find the source asked to load.
-	std::shared_ptr<obs::source> src = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value.ui64);
 	if (src == nullptr) {
 		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Source reference is no longer valid."));
+		rval.push_back(IPC::Value("Source reference is not valid."));
 		return;
 	}
 
-	src->load();
+	obs_source_load(src);
 
 	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
 	return;
@@ -197,14 +199,14 @@ void osn::Source::Load(void* data, const int64_t id, const std::vector<IPC::Valu
 
 void osn::Source::Save(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
 	// Attempt to find the source asked to load.
-	std::shared_ptr<obs::source> src = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value.ui64);
 	if (src == nullptr) {
 		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Source reference is no longer valid."));
+		rval.push_back(IPC::Value("Source reference is not valid."));
 		return;
 	}
 
-	src->save();
+	obs_source_save(src);
 
 	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
 	return;
@@ -212,144 +214,145 @@ void osn::Source::Save(void* data, const int64_t id, const std::vector<IPC::Valu
 
 void osn::Source::GetType(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
 	// Attempt to find the source asked to load.
-	std::shared_ptr<obs::source> src = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value.ui64);
 	if (src == nullptr) {
 		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Source reference is no longer valid."));
+		rval.push_back(IPC::Value("Source reference is not valid."));
 		return;
 	}
 
 	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(src->type()));
+	rval.push_back(IPC::Value(obs_source_get_type(src)));
 	return;
 }
 
 void osn::Source::GetName(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
 	// Attempt to find the source asked to load.
-	std::shared_ptr<obs::source> src = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value.ui64);
 	if (src == nullptr) {
 		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Source reference is no longer valid."));
+		rval.push_back(IPC::Value("Source reference is not valid."));
 		return;
 	}
 
 	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(src->name()));
+	rval.push_back(IPC::Value(obs_source_get_name(src)));
 	return;
 }
 
 void osn::Source::SetName(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
 	// Attempt to find the source asked to load.
-	std::shared_ptr<obs::source> src = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value.ui64);
 	if (src == nullptr) {
 		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Source reference is no longer valid."));
+		rval.push_back(IPC::Value("Source reference is not valid."));
 		return;
 	}
 
-	src->name(args[1].value_str);
+	obs_source_set_name(src, args[1].value_str.c_str());
 
 	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(src->name()));
+	rval.push_back(IPC::Value(obs_source_get_name(src)));
 	return;
 }
 
 void osn::Source::GetOutputFlags(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
 	// Attempt to find the source asked to load.
-	std::shared_ptr<obs::source> src = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value.ui64);
 	if (src == nullptr) {
 		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Source reference is no longer valid."));
+		rval.push_back(IPC::Value("Source reference is not valid."));
 		return;
 	}
 
 	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(src->output_flags()));
+	rval.push_back(IPC::Value(obs_source_get_output_flags(src)));
 	return;
 }
 
 void osn::Source::GetFlags(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
 	// Attempt to find the source asked to load.
-	std::shared_ptr<obs::source> src = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value.ui64);
 	if (src == nullptr) {
 		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Source reference is no longer valid."));
+		rval.push_back(IPC::Value("Source reference is not valid."));
 		return;
 	}
 
 	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(src->flags()));
+	rval.push_back(IPC::Value(obs_source_get_flags(src)));
 	return;
 }
 
 void osn::Source::SetFlags(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
 	// Attempt to find the source asked to load.
-	std::shared_ptr<obs::source> src = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value.ui64);
 	if (src == nullptr) {
 		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Source reference is no longer valid."));
+		rval.push_back(IPC::Value("Source reference is not valid."));
 		return;
 	}
 
-	src->flags(args[1].value.ui32);
+	obs_source_set_flags(src, args[1].value.ui32);
 
 	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(src->flags()));
+	rval.push_back(IPC::Value(obs_source_get_flags(src)));
 	return;
 }
 
 void osn::Source::GetStatus(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
 	// Attempt to find the source asked to load.
-	std::shared_ptr<obs::source> src = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value.ui64);
 	if (src == nullptr) {
 		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Source reference is no longer valid."));
+		rval.push_back(IPC::Value("Source reference is not valid."));
 		return;
 	}
 
 	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value((uint64_t)src->status()));
+	rval.push_back(IPC::Value((uint64_t)true));
 	return;
 }
 
 void osn::Source::GetId(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
 	// Attempt to find the source asked to load.
-	std::shared_ptr<obs::source> src = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value.ui64);
 	if (src == nullptr) {
 		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Source reference is no longer valid."));
+		rval.push_back(IPC::Value("Source reference is not valid."));
 		return;
 	}
 
 	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(src->id()));
+	const char* sid = obs_source_get_id(src);
+	rval.push_back(IPC::Value(sid ? sid : ""));
 	return;
 }
 
 void osn::Source::Muted(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
 	// Attempt to find the source asked to load.
-	std::shared_ptr<obs::source> src = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value.ui64);
 	if (src == nullptr) {
 		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Source reference is no longer valid."));
+		rval.push_back(IPC::Value("Source reference is not valid."));
 		return;
 	}
 
 	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(src->muted()));
+	rval.push_back(IPC::Value(obs_source_muted(src)));
 	return;
 }
 
 void osn::Source::Enabled(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
 	// Attempt to find the source asked to load.
-	std::shared_ptr<obs::source> src = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value.ui64);
 	if (src == nullptr) {
 		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Source reference is no longer valid."));
+		rval.push_back(IPC::Value("Source reference is not valid."));
 		return;
 	}
 
 	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(src->enabled()));
+	rval.push_back(IPC::Value(obs_source_enabled(src)));
 	return;	
 }
