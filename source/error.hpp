@@ -24,5 +24,7 @@ enum class ErrorCode : long long {
 	Error = 1,
 	// The reference specified in the arguments is not valid.
 	InvalidReference = 2,
-
+	// There are no further Ids free to use.
+	OutOfIndexes = 3,
+	
 };
