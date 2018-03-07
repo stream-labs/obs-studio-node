@@ -78,5 +78,12 @@ namespace shared {
 			}
 			return obj;
 		}
+		uint64_t Get(T obj) {
+			for (auto kv : objectMap) {
+				if (kv.second == obj)
+					return kv.first;
+			}
+			return UINT64_MAX;
+		}
 	};
 }
