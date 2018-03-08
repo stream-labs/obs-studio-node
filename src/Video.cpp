@@ -120,7 +120,7 @@ NAN_MODULE_INIT(VideoEncoder::Init)
 
 NAN_METHOD(VideoEncoder::create)
 {
-    ASSERT_INFO_LENGTH(info, 2);
+    ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
     
     std::string id, name;
     obs_data_t *settings = nullptr, *hotkeys = nullptr;

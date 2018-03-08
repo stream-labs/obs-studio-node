@@ -101,7 +101,7 @@ NAN_MODULE_INIT(AudioEncoder::Init)
 
 NAN_METHOD(AudioEncoder::create)
 {
-    ASSERT_INFO_LENGTH(info, 2);
+    ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
     
     std::string id, name;
     uint32_t idx = 0;
