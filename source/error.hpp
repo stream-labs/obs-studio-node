@@ -19,12 +19,20 @@
 
 enum class ErrorCode : long long {
 	// Everything is okay.
-	Ok = 0,
+	Ok,
+
 	// A generic error (no specific error code) happened.
-	Error = 1,
+	Error,
+
+	// A critical generic error happened.
+	CriticalError,
+
 	// The reference specified in the arguments is not valid.
-	InvalidReference = 2,
+	InvalidReference,
+
 	// There are no further Ids free to use.
-	OutOfIndexes = 3,
-	
+	OutOfIndexes,
+
+	// Something could not be found.
+	NotFound,
 };
