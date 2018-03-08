@@ -38,6 +38,15 @@ void osn::Transition::Register(IPC::Server& srv) {
 	srv.RegisterClass(cls);
 }
 
+void osn::Transition::Types(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+	const char* typeId = nullptr;
+	for (size_t idx = 0; obs_enum_transition_types(idx, &typeId); idx++) {
+		rval.push_back(IPC::Value(typeId ? typeId : ""));
+	}
+	return;
+}
+
 void osn::Transition::Create(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
 	std::string sourceId, name;
 	obs_data_t *settings = nullptr, *hotkeys = nullptr;
@@ -130,15 +139,6 @@ void osn::Transition::FromName(void* data, const int64_t id, const std::vector<I
 
 	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
 	rval.push_back(IPC::Value(uid));
-	return;
-}
-
-void osn::Transition::Types(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	const char* typeId = nullptr;
-	for (size_t idx = 0; obs_enum_transition_types(idx, &typeId); idx++) {
-		rval.push_back(IPC::Value(typeId ? typeId : ""));
-	}
 	return;
 }
 
