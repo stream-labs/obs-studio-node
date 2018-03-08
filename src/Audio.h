@@ -39,7 +39,7 @@ public:
 
     weak_handle_t handle;
 
-    AudioEncoder(std::string id, std::string name, obs_data_t *settings = NULL, size_t idx = 0, obs_data_t *hotkeys = NULL);
+    AudioEncoder(std::string id, std::string name, obs_data_t *settings = NULL, size_t idx = 0);
     AudioEncoder(obs::audio_encoder encoder);
 
     virtual obs::encoder GetHandle();

@@ -69,8 +69,8 @@ NAN_METHOD(Audio::getGlobal)
 Nan::Persistent<v8::FunctionTemplate> AudioEncoder::prototype = 
     Nan::Persistent<v8::FunctionTemplate>();
 
-AudioEncoder::AudioEncoder(std::string id, std::string name, obs_data_t *settings, size_t idx, obs_data_t *hotkeys)
- : handle(obs::audio_encoder(id, name, settings, idx, hotkeys))
+AudioEncoder::AudioEncoder(std::string id, std::string name, obs_data_t *settings, size_t idx)
+ : handle(obs::audio_encoder(id, name, settings, idx, nullptr))
 {
 }
 
@@ -105,24 +105,22 @@ NAN_METHOD(AudioEncoder::create)
     
     std::string id, name;
     uint32_t idx = 0;
-    obs_data_t *settings = nullptr, *hotkeys = nullptr;
+    obs_data_t *settings = nullptr;
 
     ASSERT_GET_VALUE(info[0], id);
     ASSERT_GET_VALUE(info[1], name);
 
     switch (info.Length()) {
     default:
-    case 5:
-        ASSERT_GET_VALUE(info[4], hotkeys);
     case 4:
-        ASSERT_GET_VALUE(info[3], settings);
+        ASSERT_GET_VALUE(info[3], idx);
     case 3:
-        ASSERT_GET_VALUE(info[2], idx);
+        ASSERT_GET_VALUE(info[2], settings);
     case 2:
         break;
     }
 
-    AudioEncoder *binding = new AudioEncoder(id, name, settings, idx, hotkeys);
+    AudioEncoder *binding = new AudioEncoder(id, name, settings, idx);
     auto object = AudioEncoder::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }

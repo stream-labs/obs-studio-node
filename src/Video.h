@@ -39,7 +39,7 @@ public:
     weak_handle_t handle;
 
     VideoEncoder(obs::video_encoder encoder);
-    VideoEncoder(std::string id, std::string name, obs_data_t *settings = nullptr, obs_data_t *hotkeys = nullptr);
+    VideoEncoder(std::string id, std::string name, obs_data_t *settings = nullptr);
     
     virtual obs::encoder GetHandle();
     static NAN_MODULE_INIT(Init);

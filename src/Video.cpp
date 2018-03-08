@@ -84,8 +84,8 @@ NAN_METHOD(Video::getGlobal)
 Nan::Persistent<v8::FunctionTemplate> VideoEncoder::prototype = 
     Nan::Persistent<v8::FunctionTemplate>();
 
-VideoEncoder::VideoEncoder(std::string id, std::string name, obs_data_t *settings, obs_data_t *hotkeys)
- : handle(obs::video_encoder(id, name, settings, hotkeys))
+VideoEncoder::VideoEncoder(std::string id, std::string name, obs_data_t *settings)
+ : handle(obs::video_encoder(id, name, settings, nullptr))
 {
 }
 
@@ -123,22 +123,15 @@ NAN_METHOD(VideoEncoder::create)
     ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
     
     std::string id, name;
-    obs_data_t *settings = nullptr, *hotkeys = nullptr;
+    obs_data_t *settings = nullptr;
 
     ASSERT_GET_VALUE(info[0], id);
     ASSERT_GET_VALUE(info[1], name);
 
-    switch (info.Length()) {
-    default:
-    case 4:
-        ASSERT_GET_VALUE(info[3], hotkeys);
-    case 3:
+    if (info.Length() > 2)
         ASSERT_GET_VALUE(info[2], settings);
-    case 2:
-        break;
-    }
 
-    VideoEncoder *binding = new VideoEncoder(id, name, settings, hotkeys);
+    VideoEncoder *binding = new VideoEncoder(id, name, settings);
     auto object = VideoEncoder::Object::GenerateObject(binding);
     info.GetReturnValue().Set(object);
 }
