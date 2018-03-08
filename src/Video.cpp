@@ -105,6 +105,7 @@ NAN_MODULE_INIT(VideoEncoder::Init)
     locProto->Inherit(Nan::New(IEncoder::prototype));
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
     locProto->SetClassName(FIELD_NAME("VideoEncoder"));
+    common::SetObjectTemplateField(locProto, "types", get_types);
     common::SetObjectTemplateField(locProto, "create", create);
     common::SetObjectTemplateField(locProto, "fromName", fromName);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "getVideo", getVideo);
@@ -116,6 +117,20 @@ NAN_MODULE_INIT(VideoEncoder::Init)
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "setPreferredFormat", setPreferredFormat);
     common::SetObjectField(target, "VideoEncoder", locProto->GetFunction());
     prototype.Reset(locProto);
+}
+
+NAN_METHOD(VideoEncoder::get_types)
+{
+    auto type_list = obs::video_encoder::types();
+    int count = static_cast<int>(type_list.size());
+
+    auto array = Nan::New<v8::Array>(count);
+
+    for (int i = 0; i < count; ++i) {
+        Nan::Set(array, i, Nan::New<v8::String>(type_list[i]).ToLocalChecked());
+    }
+
+    info.GetReturnValue().Set(array);
 }
 
 NAN_METHOD(VideoEncoder::create)
