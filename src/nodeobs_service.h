@@ -42,14 +42,24 @@ class SignalInfo {
 private: 
 	std::string m_outputType;
 	std::string m_signal;
+	int m_code;
+	std::string m_errorMessage;
 public:
+
 	SignalInfo() {};
 	SignalInfo(std::string outputType, std::string signal) {
 		m_outputType = outputType;
 		m_signal = signal;
+		m_code = 0;
+		m_errorMessage = "";
 	}
 	std::string getOutputType(void) { return m_outputType; };
 	std::string getSignal(void) { return m_signal; };
+
+	int getCode(void) { return m_code; };
+	void setCode(int code) { m_code = code; };
+	std::string getErrorMessage(void) { return m_errorMessage; };
+	void setErrorMessage(std::string errorMessage) { m_errorMessage = errorMessage; };
 };
 
 class ForeignWorker {
@@ -121,6 +131,8 @@ public:
 		v8::Local<v8::Value> argv = v8::Object::New(isolate);
 		argv->ToObject()->Set(String::NewFromUtf8(isolate, "type"), String::NewFromUtf8(isolate, m_signalInfo.getOutputType().c_str()));
 		argv->ToObject()->Set(String::NewFromUtf8(isolate, "signal"), String::NewFromUtf8(isolate, m_signalInfo.getSignal().c_str()));
+		argv->ToObject()->Set(String::NewFromUtf8(isolate, "code"), Number::New(isolate, m_signalInfo.getCode()));
+		argv->ToObject()->Set(String::NewFromUtf8(isolate, "error"), String::NewFromUtf8(isolate, m_signalInfo.getErrorMessage().c_str()));
 		args[0] = argv;
 
 		Call(1, args);

@@ -214,6 +214,16 @@ export declare const enum ESceneSignalType {
     ItemDeselect = 5,
     ItemTransform = 6,
 }
+export declare const enum EOutputCode {
+    Success = 0,
+    BadPath = -1,
+    ConnectFailed = -2,
+    InvalidStream = -3,
+    Error = -4,
+    Disconnected = -5,
+    Unsupported = -6,
+    NoSpace = -7,
+}
 export declare const Global: IGlobal;
 export declare const OutputFactory: IOutputFactory;
 export declare const AudioEncoderFactory: IAudioEncoderFactory;

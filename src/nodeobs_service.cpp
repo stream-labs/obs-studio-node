@@ -1709,10 +1709,21 @@ void OBS_service::OBS_service_connectOutputSignals(const FunctionCallbackInfo<Va
 	recordingSignals.push_back(SignalInfo("recording", "reconnect_success"));
 }
 
-void OBS_service::function(void *data, calldata_t *) 
+int code = 20;
+
+void OBS_service::function(void *data, calldata_t *params) 
 {
 	SignalInfo &signal = 
 		*reinterpret_cast<SignalInfo*>(data);
+
+	std::string signalReceived = signal.getSignal();
+
+	if (signalReceived.compare("stop") == 0) {
+		signal.setCode((int)calldata_int(params, "code"));
+
+		const char* error = obs_output_get_last_error(streamingOutput);
+		if(error) signal.setErrorMessage(error);
+	}
 
 	Worker *worker = new Worker(JS_OutputSignalCallback, signal);
 	worker->Send();
