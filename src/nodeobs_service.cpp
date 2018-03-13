@@ -1701,12 +1701,7 @@ void OBS_service::OBS_service_connectOutputSignals(const FunctionCallbackInfo<Va
 
 	recordingSignals.push_back(SignalInfo("recording", "start"));
 	recordingSignals.push_back(SignalInfo("recording", "stop"));
-	recordingSignals.push_back(SignalInfo("recording", "starting"));
 	recordingSignals.push_back(SignalInfo("recording", "stopping"));
-	recordingSignals.push_back(SignalInfo("recording", "activate"));
-	recordingSignals.push_back(SignalInfo("recording", "deactivate"));
-	recordingSignals.push_back(SignalInfo("recording", "reconnect"));
-	recordingSignals.push_back(SignalInfo("recording", "reconnect_success"));
 
 	connectOutputSignals();
 }
