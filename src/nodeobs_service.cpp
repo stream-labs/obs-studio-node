@@ -164,18 +164,15 @@ bool OBS_service::resetAudioContext(void)
 {
     struct obs_audio_info ai;
     
-    ai.samples_per_sec = 44100;
-    ai.speakers = SPEAKERS_STEREO;
-    
-    // const char* file = "./config/Untitled.json";
-    // obs_data_t *data = obs_data_create_from_json_file_safe(file, "bak");
+	config_t* basicConfig = OBS_API::openConfigFile(OBS_API::getBasicConfigPath());
 
-    // //Loading all audio devices
-    // LoadAudioDevice("DesktopAudioDevice1", 1, data);
-    // LoadAudioDevice("DesktopAudioDevice2", 2, data);
-    // LoadAudioDevice("AuxAudioDevice1", 3, data);
-    // LoadAudioDevice("AuxAudioDevice2", 4, data);
-    // LoadAudioDevice("AuxAudioDevice3", 5, data);
+	ai.samples_per_sec = config_get_uint(basicConfig, "Audio", "SampleRate");
+	const char *channelSetupStr = config_get_string(basicConfig, "Audio", "ChannelSetup");
+
+	if (strcmp(channelSetupStr, "Mono") == 0)
+		ai.speakers = SPEAKERS_MONO;
+	else
+		ai.speakers = SPEAKERS_STEREO;
 
     return obs_reset_audio(&ai);
 }
