@@ -788,7 +788,7 @@ bool OBS_service::startStreaming(void)
 
     updateService();
     updateStreamSettings();
-	
+
     return obs_output_start(streamingOutput);
 }
 
@@ -1702,8 +1702,6 @@ void OBS_service::OBS_service_connectOutputSignals(const FunctionCallbackInfo<Va
 
 	connectOutputSignals();
 }
-
-int code = 20;
 
 void OBS_service::function(void *data, calldata_t *params) 
 {
