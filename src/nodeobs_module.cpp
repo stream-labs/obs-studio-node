@@ -127,7 +127,9 @@ void nodeobs_init(Local<Object> exports)
 	NODE_SET_METHOD(exports, "OBS_service_setRecordingSettings",
 	                OBS_service::OBS_service_setRecordingSettings);
 	NODE_SET_METHOD(exports, "OBS_service_isStreamingOutputActive",
-	                OBS_service::OBS_service_isStreamingOutputActive);
+					OBS_service::OBS_service_isStreamingOutputActive);
+	NODE_SET_METHOD(exports, "OBS_service_connectOutputSignals",
+					OBS_service::OBS_service_connectOutputSignals);
 
 	//OBS_content
 	NODE_SET_METHOD(exports, "OBS_content_createDisplay",

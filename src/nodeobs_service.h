@@ -14,6 +14,9 @@
 #include <map>
 #include <mutex>
 
+#include <nan.h>
+#include <uv.h>
+
 #include "nodeobs_audio_encoders.h"
 
 #ifdef _WIN32
@@ -34,6 +37,111 @@
 
 using namespace std;
 using namespace v8;
+
+class SignalInfo {
+private: 
+	std::string m_outputType;
+	std::string m_signal;
+	int m_code;
+	std::string m_errorMessage;
+public:
+
+	SignalInfo() {};
+	SignalInfo(std::string outputType, std::string signal) {
+		m_outputType = outputType;
+		m_signal = signal;
+		m_code = 0;
+		m_errorMessage = "";
+	}
+	std::string getOutputType(void) { return m_outputType; };
+	std::string getSignal(void) { return m_signal; };
+
+	int getCode(void) { return m_code; };
+	void setCode(int code) { m_code = code; };
+	std::string getErrorMessage(void) { return m_errorMessage; };
+	void setErrorMessage(std::string errorMessage) { m_errorMessage = errorMessage; };
+};
+
+class ForeignWorker {
+private:
+	uv_async_t * async;
+
+	static void AsyncClose(uv_handle_t *handle) {
+		ForeignWorker *worker =
+			reinterpret_cast<ForeignWorker*>(handle->data);
+
+		worker->Destroy();
+	}
+
+	static NAUV_WORK_CB(AsyncCallback) {
+		ForeignWorker *worker =
+			reinterpret_cast<ForeignWorker*>(async->data);
+		worker->Execute();
+		uv_close(reinterpret_cast<uv_handle_t*>(async), ForeignWorker::AsyncClose);
+	}
+
+protected:
+	Nan::Callback *callback;
+
+	v8::Local<v8::Value> Call(int argc = 0, v8::Local<v8::Value> params[] = 0) {
+		return callback->Call(argc, params);
+	}
+
+public:
+	ForeignWorker(Nan::Callback *callback) {
+		async = new uv_async_t;
+
+		uv_async_init(
+			uv_default_loop()
+			, async
+			, AsyncCallback
+		);
+
+		async->data = this;
+		this->callback = callback;
+	}
+
+	void Send() {
+		uv_async_send(async);
+	}
+
+	virtual void Execute() = 0;
+	virtual void Destroy() {
+		delete this;
+	};
+
+	virtual ~ForeignWorker() {
+		delete async;
+	}
+};
+
+class Worker : public ForeignWorker {
+public:
+	SignalInfo m_signalInfo;
+	
+	Worker(Nan::Callback *callback, SignalInfo signalInfo)
+		: ForeignWorker(callback) {
+		m_signalInfo = signalInfo;
+	}
+
+	virtual void Execute() {
+		Isolate *isolate = v8::Isolate::GetCurrent();
+		v8::Local<v8::Value> args[1];
+		
+		v8::Local<v8::Value> argv = v8::Object::New(isolate);
+		argv->ToObject()->Set(String::NewFromUtf8(isolate, "type"), String::NewFromUtf8(isolate, m_signalInfo.getOutputType().c_str()));
+		argv->ToObject()->Set(String::NewFromUtf8(isolate, "signal"), String::NewFromUtf8(isolate, m_signalInfo.getSignal().c_str()));
+		argv->ToObject()->Set(String::NewFromUtf8(isolate, "code"), Number::New(isolate, m_signalInfo.getCode()));
+		argv->ToObject()->Set(String::NewFromUtf8(isolate, "error"), String::NewFromUtf8(isolate, m_signalInfo.getErrorMessage().c_str()));
+		args[0] = argv;
+
+		Call(1, args);
+	}
+
+	virtual void Destroy() {
+		delete this;
+	}
+};
 
 class OBS_service
 {
@@ -177,6 +285,8 @@ public:
 
 	static void OBS_service_isStreamingOutputActive(const FunctionCallbackInfo<Value>& args);
 
+	static void OBS_service_connectOutputSignals(const FunctionCallbackInfo<Value>& args);
+
 	static void OBS_service_test_resetAudioContext(const FunctionCallbackInfo<Value>& args);	
 	static void OBS_service_test_resetVideoContext(const FunctionCallbackInfo<Value>& args);
 	static void OBS_service_test_createAudioEncoder(const FunctionCallbackInfo<Value>& args);
@@ -273,4 +383,8 @@ public:
 	static void associateAudioAndVideoEncodersToTheCurrentRecordingOutput(void);
 
 	static int GetAudioBitrate(void);
+
+	// Output signals
+	static void connectOutputSignals(void);
+	static void function(void *data, calldata_t *);
 };
