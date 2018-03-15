@@ -440,6 +440,8 @@ void OBS_service::createAudioEncoder(void)
         return;
 	}
 
+	obs_encoder_release(audioEncoder);
+
 	audioEncoder = obs_audio_encoder_create(id, "simple_audio", nullptr, 0, nullptr);
 }
 
@@ -785,7 +787,7 @@ bool OBS_service::startStreaming(void)
 
 		obs_data_release(settings);
 	}
-
+	
     updateService();
     updateStreamSettings();
 
@@ -983,12 +985,10 @@ void OBS_service::updateVideoStreamingEncoder()
         }
         preset = config_get_string(config, "SimpleOutput", presetType);
 
-		if(strcmp(obs_encoder_get_id(videoStreamingEncoder), encoderID) != 0) {
-            if(videoStreamingEncoder != NULL) {
-                obs_encoder_release(videoStreamingEncoder);
-            }
-            videoStreamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
+		if(videoStreamingEncoder != NULL) {
+			obs_encoder_release(videoStreamingEncoder);
         }
+		videoStreamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
     }
 
     if(videoBitrate == 0) {
