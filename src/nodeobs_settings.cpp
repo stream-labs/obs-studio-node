@@ -2469,8 +2469,8 @@ void OBS_settings::saveOutputSettings(Local<Array> settings)
 		useAdvancedOutput = true;
 	} else {
 		if(!useAdvancedOutput) {
-		saveSimpleOutputSettings(settings, basicConfigFile);
-	}
+			saveSimpleOutputSettings(settings, basicConfigFile);
+		}
 		useAdvancedOutput = false;
 	}
 }
