@@ -24,7 +24,7 @@
 
 void osn::Filter::Register(IPC::Server& srv) {
 	std::shared_ptr<IPC::Class> cls = std::make_shared<IPC::Class>("Filter");
-	cls->RegisterFunction(std::make_shared<IPC::Function>("Types", std::vector<IPC::Type>{IPC::Type::UInt64}, Types));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("Types", std::vector<IPC::Type>{}, Types));
 	cls->RegisterFunction(std::make_shared<IPC::Function>("Create", std::vector<IPC::Type>{IPC::Type::String, IPC::Type::String}, Create));
 	cls->RegisterFunction(std::make_shared<IPC::Function>("Create", std::vector<IPC::Type>{IPC::Type::String, IPC::Type::String, IPC::Type::String}, Create));
 	srv.RegisterClass(cls);
