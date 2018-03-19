@@ -28,7 +28,7 @@ NAN_MODULE_INIT(Output::Init)
     common::SetObjectTemplateField(locProto, "fromName", fromName);
     common::SetObjectTemplateField(locProto, "types", get_types);
     common::SetObjectTemplateField(locProto, "create", create);
-    common::SetObjectTemplateField(locProto, "on", on);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "on", on);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "release", release);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "setMedia", setMedia);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "getVideo", getVideo);
