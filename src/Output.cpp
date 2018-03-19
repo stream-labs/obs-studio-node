@@ -200,7 +200,7 @@ NAN_METHOD(Output::on) {
         signal_handler_connect(sig_handler, "start", handle_start_signal, cb_binding);
     }
     else if (signal_type.compare("stop") == 0) {
-        signal_handler_connect(sig_handler, "start", handle_stop_signal, cb_binding);
+        signal_handler_connect(sig_handler, "stop", handle_stop_signal, cb_binding);
     }
     else
         Nan::ThrowError("Invalid signal type provided");
