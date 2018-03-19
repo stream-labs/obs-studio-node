@@ -15,6 +15,12 @@ public:
 
     weak_handle_t handle;
 
+    struct SignalData {
+        void *param;
+        obs_output_t *output;
+        int code;
+    };
+
     Output(obs::output output);
     Output(std::string id, std::string name, obs_data_t *settings, obs_data_t *hotkey);
 

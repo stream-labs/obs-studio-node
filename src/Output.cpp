@@ -116,34 +116,91 @@ NAN_METHOD(Output::release)
     handle.get()->release();
 }
 
-void handle_start_signal(void* data, calldata_t* cd)
-{
-    blog(LOG_ERROR, "START SIGNAL");
+typedef common::CallbackData<Output::SignalData, Output> OutputSignalCallback;
+
+static void SignalCallback(Output *output, Output::SignalData *item) {
+    /* We're in v8 context here */
+    OutputSignalCallback *cb_binding =
+        reinterpret_cast<OutputSignalCallback*>(item->param);
+
+    if (cb_binding->stopped) {
+        delete item; 
+        return;
+    }
+
+    v8::Local<v8::Value> args[] = {
+        common::ToValue(obs_output_get_name(item->output)),
+        common::ToValue(item->code)
+    };
+
+    delete item;
+
+    cb_binding->cb.Call(2, args);
+    obs_output_release(item->output);
 }
 
-void handle_stop_signal(void *data, calldata_t* cd)
+void handle_start_signal(void* param, calldata_t* cd)
 {
-    blog(LOG_ERROR, "STOP SIGNAL");
+    blog(LOG_INFO, "Received start signal");
+
+    OutputSignalCallback *cb_binding = 
+        static_cast<OutputSignalCallback*>(param);
+
+    Output::SignalData *data = new Output::SignalData;
+    data->output = (obs_output_t*)calldata_ptr(cd, "output");
+    data->param  = param;
+    data->code   = 0;
+
+    /* We need to make sure the output is valid until
+     * the javascript callback is made */
+    obs_output_addref(data->output);
+
+    cb_binding->queue.send(data);
+}
+
+void handle_stop_signal(void *param, calldata_t* cd)
+{
+    blog(LOG_INFO, "Received stop signal");
+
+    OutputSignalCallback *cb_binding = 
+        static_cast<OutputSignalCallback*>(param);
+
+    Output::SignalData *data = new Output::SignalData;
+    data->output = (obs_output_t*)calldata_ptr(cd, "output");
+    data->code = calldata_int(cd, "code");
+    data->param = param;
+
+    /* We need to make sure the output is valid until
+     * the javascript callback is made */
+    obs_output_addref(data->output);
+
+    cb_binding->queue.send(data);
 }
 
 NAN_METHOD(Output::on) {
     ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
 
     std::string signal_type;
+    v8::Local<v8::Function> callback;
 
     ASSERT_GET_VALUE(info[0], signal_type);
+    ASSERT_GET_VALUE(info[1], callback);
 
     obs::weak<obs::output> &handle = Output::Object::GetHandle(info.Holder());
+    Output* binding = Nan::ObjectWrap::Unwrap<Output>(info.Holder());
 
     /* There is no obspp abstraction for this yet as I'm
      * not sure how to handle it very well */
     signal_handler_t *sig_handler = obs_output_get_signal_handler(handle.get()->dangerous());
 
+    OutputSignalCallback *cb_binding = 
+        new OutputSignalCallback(binding, SignalCallback, callback);
+
     if (signal_type.compare("start") == 0) {
-        signal_handler_connect(sig_handler, "start", handle_start_signal, NULL);
+        signal_handler_connect(sig_handler, "start", handle_start_signal, cb_binding);
     }
     else if (signal_type.compare("stop") == 0) {
-        signal_handler_connect(sig_handler, "start", handle_stop_signal, NULL);
+        signal_handler_connect(sig_handler, "start", handle_stop_signal, cb_binding);
     }
     else
         Nan::ThrowError("Invalid signal type provided");
