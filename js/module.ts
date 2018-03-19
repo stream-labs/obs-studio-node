@@ -294,6 +294,17 @@ export const enum ESceneSignalType {
     ItemTransform
 }
 
+export const enum EOutputCode {
+    Success = 0,
+    BadPath = -1,
+    ConnectFailed = -2,
+    InvalidStream = -3,
+    Error = -4,
+    Disconnected = -5,
+    Unsupported = -6,
+    NoSpace = -7
+}
+
 export const Global: IGlobal = obs.Global;
 export const OutputFactory: IOutputFactory = obs.Output;
 export const AudioEncoderFactory: IAudioEncoderFactory = obs.AudioEncoder;
