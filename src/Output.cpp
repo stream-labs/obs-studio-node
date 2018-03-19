@@ -28,6 +28,7 @@ NAN_MODULE_INIT(Output::Init)
     common::SetObjectTemplateField(locProto, "fromName", fromName);
     common::SetObjectTemplateField(locProto, "types", get_types);
     common::SetObjectTemplateField(locProto, "create", create);
+    common::SetObjectTemplateField(locProto, "on", on);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "release", release);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "setMedia", setMedia);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "getVideo", getVideo);
@@ -113,6 +114,39 @@ NAN_METHOD(Output::release)
     obs::weak<obs::output> &handle = Output::Object::GetHandle(info.Holder());
 
     handle.get()->release();
+}
+
+void handle_start_signal(void* data, calldata_t* cd)
+{
+    blog(LOG_ERROR, "START SIGNAL");
+}
+
+void handle_stop_signal(void *data, calldata_t* cd)
+{
+    blog(LOG_ERROR, "STOP SIGNAL");
+}
+
+NAN_METHOD(Output::on) {
+    ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
+
+    std::string signal_type;
+
+    ASSERT_GET_VALUE(info[0], signal_type);
+
+    obs::weak<obs::output> &handle = Output::Object::GetHandle(info.Holder());
+
+    /* There is no obspp abstraction for this yet as I'm
+     * not sure how to handle it very well */
+    signal_handler_t *sig_handler = obs_output_get_signal_handler(handle.get()->dangerous());
+
+    if (signal_type.compare("start") == 0) {
+        signal_handler_connect(sig_handler, "start", handle_start_signal, NULL);
+    }
+    else if (signal_type.compare("stop") == 0) {
+        signal_handler_connect(sig_handler, "start", handle_stop_signal, NULL);
+    }
+    else
+        Nan::ThrowError("Invalid signal type provided");
 }
 
 NAN_METHOD(Output::get_types)
