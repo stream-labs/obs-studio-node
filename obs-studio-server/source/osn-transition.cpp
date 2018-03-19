@@ -24,13 +24,13 @@
 
 void osn::Transition::Register(IPC::Server& srv) {
 	std::shared_ptr<IPC::Class> cls = std::make_shared<IPC::Class>("Transition");
+	cls->RegisterFunction(std::make_shared<IPC::Function>("Types", std::vector<IPC::Type>{}, Types));
 	cls->RegisterFunction(std::make_shared<IPC::Function>("Create", std::vector<IPC::Type>{IPC::Type::String, IPC::Type::String}, Create));
 	cls->RegisterFunction(std::make_shared<IPC::Function>("Create", std::vector<IPC::Type>{IPC::Type::String, IPC::Type::String, IPC::Type::String}, Create));
 	cls->RegisterFunction(std::make_shared<IPC::Function>("Create", std::vector<IPC::Type>{IPC::Type::String, IPC::Type::String, IPC::Type::String, IPC::Type::String}, Create));
 	cls->RegisterFunction(std::make_shared<IPC::Function>("CreatePrivate", std::vector<IPC::Type>{IPC::Type::String, IPC::Type::String}, CreatePrivate));
 	cls->RegisterFunction(std::make_shared<IPC::Function>("CreatePrivate", std::vector<IPC::Type>{IPC::Type::String, IPC::Type::String, IPC::Type::String}, CreatePrivate));
 	cls->RegisterFunction(std::make_shared<IPC::Function>("FromName", std::vector<IPC::Type>{IPC::Type::UInt64}, FromName));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("Types", std::vector<IPC::Type>{IPC::Type::UInt64}, Types));
 	cls->RegisterFunction(std::make_shared<IPC::Function>("GetActiveSource", std::vector<IPC::Type>{IPC::Type::UInt64}, GetActiveSource));
 	cls->RegisterFunction(std::make_shared<IPC::Function>("Clear", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::UInt64}, Clear));
 	cls->RegisterFunction(std::make_shared<IPC::Function>("Set", std::vector<IPC::Type>{IPC::Type::UInt64}, Set));
