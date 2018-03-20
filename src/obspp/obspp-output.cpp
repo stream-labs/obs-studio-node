@@ -219,7 +219,8 @@ uint32_t output::active_delay()
 
 std::string output::last_error()
 {
-    return obs_output_get_last_error(m_handle);
+    const char * error = obs_output_get_last_error(m_handle);
+    return error ? error : "";
 }
 
 bool output::configurable()
