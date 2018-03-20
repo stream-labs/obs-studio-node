@@ -80,7 +80,7 @@ public:
     int frames_dropped();
     int total_frames();
 
-    void start();
+    bool start();
     void stop();
     void delay(uint32_t ms, uint32_t flags);
     uint32_t delay();

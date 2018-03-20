@@ -192,9 +192,9 @@ std::string output::supported_audio_codecs()
     return std::string(obs_output_get_supported_audio_codecs(m_handle));
 }
 
-void output::start()
+bool output::start()
 {
-    obs_output_start(m_handle);
+    return obs_output_start(m_handle);
 }
 
 void output::stop()
