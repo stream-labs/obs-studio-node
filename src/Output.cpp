@@ -140,10 +140,8 @@ static void SignalCallback(Output *output, Output::SignalData *item) {
     obs_output_release(item->output);
 }
 
-void handle_start_signal(void* param, calldata_t* cd)
+void handle_generic_signal(void* param, calldata_t* cd)
 {
-    blog(LOG_INFO, "Received start signal");
-
     OutputSignalCallback *cb_binding = 
         static_cast<OutputSignalCallback*>(param);
 
@@ -161,8 +159,6 @@ void handle_start_signal(void* param, calldata_t* cd)
 
 void handle_stop_signal(void *param, calldata_t* cd)
 {
-    blog(LOG_INFO, "Received stop signal");
-
     OutputSignalCallback *cb_binding = 
         static_cast<OutputSignalCallback*>(param);
 
@@ -198,10 +194,16 @@ NAN_METHOD(Output::on) {
         new OutputSignalCallback(binding, SignalCallback, callback);
 
     if (signal_type.compare("start") == 0) {
-        signal_handler_connect(sig_handler, "start", handle_start_signal, cb_binding);
+        signal_handler_connect(sig_handler, "start", handle_generic_signal, cb_binding);
     }
     else if (signal_type.compare("stop") == 0) {
         signal_handler_connect(sig_handler, "stop", handle_stop_signal, cb_binding);
+    }
+    else if (signal_type.compare("reconnect") == 0) {
+        signal_handler_connect(sig_handler, "reconnect", handle_generic_signal, cb_binding);
+    }
+    else if (signal_type.compare("reconnect_success") == 0) {
+        signal_handler_connect(sig_handler, "reconnect_success", handle_generic_signal, cb_binding);
     }
     else
         Nan::ThrowError("Invalid signal type provided");
