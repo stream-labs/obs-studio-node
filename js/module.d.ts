@@ -435,6 +435,7 @@ export interface IOutput extends IConfigurable, IReleasable {
     setDelay(ms: number, flags: EDelayFlags): void;
     getDelay(): void;
     getActiveDelay(): void;
+    getLastError(): string;
     on(signal: string, callback: (...param: any[]) => void): any;
 }
 export interface IOutputFactory extends IFactoryTypes {
