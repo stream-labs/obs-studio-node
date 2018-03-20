@@ -217,6 +217,11 @@ uint32_t output::active_delay()
     return obs_output_get_active_delay(m_handle);
 }
 
+std::string output::last_error()
+{
+    return obs_output_get_last_error(m_handle);
+}
+
 bool output::configurable()
 {
     /* Since apprently only source can be tested. */

@@ -85,6 +85,7 @@ public:
     void delay(uint32_t ms, uint32_t flags);
     uint32_t delay();
     uint32_t active_delay();
+    std::string last_error();
 
     /** Configurable concept */
     bool configurable();
