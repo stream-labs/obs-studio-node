@@ -44,6 +44,7 @@ NAN_MODULE_INIT(Output::Init)
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "setAudioEncoder", setAudioEncoder);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "getVideoEncoder", getVideoEncoder);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "setVideoEncoder", setVideoEncoder);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "getLastError", getLastError);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "update", update);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "properties", get_properties);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "settings", get_settings);
@@ -508,6 +509,13 @@ NAN_METHOD(Output::get_totalFrames)
     int total_frames = handle.get()->total_frames();
 
     info.GetReturnValue().Set(common::ToValue(total_frames));
+}
+
+NAN_METHOD(Output::getLastError)
+{
+    obs::weak<obs::output> &handle = Output::Object::GetHandle(info.Holder());
+
+    info.GetReturnValue().Set(common::ToValue(handle.get()->last_error()));
 }
 
 NAN_METHOD(Output::start)

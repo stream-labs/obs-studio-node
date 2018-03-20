@@ -62,6 +62,7 @@ public:
     static NAN_METHOD(setDelay);
     static NAN_METHOD(getDelay);
     static NAN_METHOD(getActiveDelay);
+    static NAN_METHOD(getLastError);
 };
 
 }
