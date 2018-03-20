@@ -431,6 +431,7 @@ export interface IOutput extends IConfigurable, IReleasable {
     readonly supportedAudioCodecs: string[];
     readonly framesDropped: number;
     readonly totalFrames: number;
+    readonly totalBytes: number;
     start(): void;
     stop(): void;
     setDelay(ms: number, flags: EDelayFlags): void;

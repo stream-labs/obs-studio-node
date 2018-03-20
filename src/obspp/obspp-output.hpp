@@ -79,6 +79,7 @@ public:
 
     int frames_dropped();
     int total_frames();
+    int total_bytes();
 
     bool start();
     void stop();

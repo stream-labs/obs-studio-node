@@ -57,6 +57,7 @@ public:
     static NAN_METHOD(get_supportedAudioCodecs);
     static NAN_METHOD(get_framesDropped);
     static NAN_METHOD(get_totalFrames);
+    static NAN_METHOD(get_totalBytes);
     static NAN_METHOD(start);
     static NAN_METHOD(stop);
     static NAN_METHOD(setDelay);

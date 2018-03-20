@@ -743,6 +743,9 @@ export interface IOutput extends IConfigurable, IReleasable {
       * including dropped frames */
     readonly totalFrames: number;
 
+    /** Total bytes sent by this output */
+    readonly totalBytes: number;
+
     /** Start outputing data. Please 
       * note that this doesn't mean the
       * output starts immediately. In order

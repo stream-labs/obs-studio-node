@@ -61,6 +61,7 @@ NAN_MODULE_INIT(Output::Init)
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "supportedAudioCodecs", get_supportedAudioCodecs);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "framesDropped", get_framesDropped);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "totalFrames", get_totalFrames);
+    common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "totalBytes", get_totalBytes);
     common::SetObjectField(target, "Output", locProto->GetFunction());
     prototype.Reset(locProto);
 }
@@ -563,6 +564,15 @@ NAN_METHOD(Output::getActiveDelay)
     uint32_t delay_amount = handle.get()->delay();
 
     info.GetReturnValue().Set(delay_amount);
+}
+
+NAN_METHOD(Output::get_totalBytes)
+{
+    obs::weak<obs::output> &handle = Output::Object::GetHandle(info.Holder());
+
+    int total_bytes = handle.get()->total_bytes();
+
+    info.GetReturnValue().Set(total_bytes);
 }
 
 }

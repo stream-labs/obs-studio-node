@@ -78,6 +78,10 @@ int output::total_frames()
     return obs_output_get_total_frames(m_handle);
 }
 
+int output::total_bytes()
+{
+    return obs_output_get_total_bytes(m_handle);
+}
 
 obs_data_t *output::defaults(std::string id)
 {
