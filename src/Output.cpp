@@ -522,7 +522,7 @@ NAN_METHOD(Output::start)
 {
     obs::weak<obs::output> &handle = Output::Object::GetHandle(info.Holder());
 
-    handle.get()->start();
+    info.GetReturnValue().Set(common::ToValue(handle.get()->start()));
 }
 
 NAN_METHOD(Output::stop)
