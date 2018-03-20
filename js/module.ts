@@ -453,6 +453,12 @@ export interface IGlobal {
     getProperties(id: string, type: EObjectType): IProperties;
 
     /**
+     * Obtain FPS from current global video context.
+     * @returns FPS value
+     */
+    getActiveFps(): number;
+
+    /**
      * Number of total render frames
      */
     readonly totalFrames: number;

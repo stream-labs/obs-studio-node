@@ -70,6 +70,7 @@ NAN_MODULE_INIT(Init)
     common::SetObjectField(ObsGlobal, "setOutputSource", setOutputSource);
     common::SetObjectField(ObsGlobal, "getOutputFlagsFromId", getOutputFlagsFromId);
     common::SetObjectField(ObsGlobal, "getProperties", getProperties);
+    common::SetObjectField(ObsGlobal, "getActiveFps", getActiveFps);
     common::SetObjectLazyAccessor(ObsGlobal, "laggedFrames", laggedFrames);
     common::SetObjectLazyAccessor(ObsGlobal, "totalFrames", totalFrames);
     common::SetObjectLazyAccessor(ObsGlobal, "initialized", initialized);
@@ -414,6 +415,11 @@ NAN_METHOD(getProperties)
     auto object = Properties::Object::GenerateObject(bindings);
 
     info.GetReturnValue().Set(object);
+}
+
+NAN_METHOD(getActiveFps)
+{
+    info.GetReturnValue().Set(common::ToValue(obs_get_active_fps()));
 }
 
 }

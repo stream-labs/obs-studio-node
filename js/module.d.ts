@@ -300,6 +300,7 @@ export interface IGlobal {
     setOutputSource(channel: number, input: ISource): void;
     getOutputSource(channel: number): ISource;
     getProperties(id: string, type: EObjectType): IProperties;
+    getActiveFps(): number;
     readonly totalFrames: number;
     readonly laggedFrames: number;
     readonly initialized: boolean;
