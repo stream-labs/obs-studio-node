@@ -462,7 +462,7 @@ export interface IGlobal {
      * Obtain a list of viable audio monitoring devices
      * @returns A list of audio monitoring devices
      */
-    getAudioMonitoringDevices(): { name: string, id: string }
+    getAudioMonitoringDevices(): { name: string, id: string }[]
 
     /**
      * Number of total render frames
