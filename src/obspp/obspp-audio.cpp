@@ -50,6 +50,7 @@ obs_encoder_t *audio_encoder::dangerous()
 obs::audio_encoder audio_encoder::from_name(std::string name)
 {
     obs_encoder_t *encoder = obs_get_encoder_by_name(name.c_str());
+    obs_encoder_release(encoder);
     encoder::check_type(encoder, OBS_ENCODER_AUDIO);
     return encoder;
 }

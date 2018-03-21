@@ -149,6 +149,7 @@ obs::video video_encoder::video()
 obs::video_encoder video_encoder::from_name(std::string name)
 {
     obs_encoder_t *encoder = obs_get_encoder_by_name(name.c_str());
+    obs_encoder_release(encoder);
     encoder::check_type(encoder, OBS_ENCODER_VIDEO);
     return encoder;
 }
