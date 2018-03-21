@@ -71,6 +71,7 @@ NAN_MODULE_INIT(Init)
     common::SetObjectField(ObsGlobal, "getOutputFlagsFromId", getOutputFlagsFromId);
     common::SetObjectField(ObsGlobal, "getProperties", getProperties);
     common::SetObjectField(ObsGlobal, "getActiveFps", getActiveFps);
+	common::SetObjectField(ObsGlobal, "getAudioMonitoringDevices", getAudioMonitoringDevices);
     common::SetObjectLazyAccessor(ObsGlobal, "laggedFrames", laggedFrames);
     common::SetObjectLazyAccessor(ObsGlobal, "totalFrames", totalFrames);
     common::SetObjectLazyAccessor(ObsGlobal, "initialized", initialized);

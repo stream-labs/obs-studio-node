@@ -18,4 +18,6 @@ NAN_METHOD(laggedFrames);
 NAN_METHOD(totalFrames);
 NAN_METHOD(getProperties);
 NAN_METHOD(getActiveFps);
+NAN_METHOD(getAudioMonitoringDevices);
+
 }
