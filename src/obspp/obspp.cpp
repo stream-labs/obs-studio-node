@@ -96,4 +96,22 @@ monitoring_devices_type monitoring_devices()
     return devices;
 }
 
+void monitoring_device(std::string name, std::string id)
+{
+    obs_set_audio_monitoring_device(name.c_str(), id.c_str());
+}
+
+std::pair<std::string, std::string> monitoring_device()
+{
+    const char* name;
+    const char* id;
+
+    obs_get_audio_monitoring_device(&name, &id);
+
+    if (!name) name = "";
+    if (!id) id = "";
+
+    return std::pair<std::string, std::string>(name, id);
+}
+
 }

@@ -19,5 +19,7 @@ NAN_METHOD(totalFrames);
 NAN_METHOD(getProperties);
 NAN_METHOD(getActiveFps);
 NAN_METHOD(getAudioMonitoringDevices);
+NAN_METHOD(setAudioMonitoringDevice);
+NAN_METHOD(getAudioMonitoringDevice);
 
 }

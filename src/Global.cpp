@@ -71,7 +71,9 @@ NAN_MODULE_INIT(Init)
     common::SetObjectField(ObsGlobal, "getOutputFlagsFromId", getOutputFlagsFromId);
     common::SetObjectField(ObsGlobal, "getProperties", getProperties);
     common::SetObjectField(ObsGlobal, "getActiveFps", getActiveFps);
-	common::SetObjectField(ObsGlobal, "getAudioMonitoringDevices", getAudioMonitoringDevices);
+    common::SetObjectField(ObsGlobal, "getAudioMonitoringDevices", getAudioMonitoringDevices);
+    common::SetObjectField(ObsGlobal, "setAudioMonitoringDevice", setAudioMonitoringDevice);
+    common::SetObjectField(ObsGlobal, "getAudioMonitoringDevice", getAudioMonitoringDevice);
     common::SetObjectLazyAccessor(ObsGlobal, "laggedFrames", laggedFrames);
     common::SetObjectLazyAccessor(ObsGlobal, "totalFrames", totalFrames);
     common::SetObjectLazyAccessor(ObsGlobal, "initialized", initialized);
@@ -440,6 +442,29 @@ NAN_METHOD(getAudioMonitoringDevices)
     }
 
     info.GetReturnValue().Set(array);
+}
+
+NAN_METHOD(setAudioMonitoringDevice)
+{
+    std::string name, id;
+
+    ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
+    ASSERT_GET_VALUE(info[0], name);
+    ASSERT_GET_VALUE(info[1], id);
+
+    obs::monitoring_device(name, id);
+}
+
+NAN_METHOD(getAudioMonitoringDevice)
+{
+    v8::Local<v8::Object> result = Nan::New<v8::Object>();
+
+    auto device = obs::monitoring_device();
+
+    common::SetObjectField(result, "name", device.first);
+    common::SetObjectField(result, "id", device.second);
+
+    info.GetReturnValue().Set(result);
 }
 
 }

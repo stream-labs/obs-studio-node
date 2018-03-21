@@ -28,5 +28,7 @@ uint32_t output_flags_from_id(std::string id);
 uint32_t total_frames();
 uint32_t lagged_frames();
 monitoring_devices_type monitoring_devices();
+void monitoring_device(std::string name, std::string id);
+std::pair<std::string, std::string> monitoring_device();
 
 }
