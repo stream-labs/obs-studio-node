@@ -459,6 +459,12 @@ export interface IGlobal {
     getActiveFps(): number;
 
     /**
+     * Obtain a list of viable audio monitoring devices
+     * @returns A list of audio monitoring devices
+     */
+    getAudioMonitoringDevices(): { name: string, id: string }
+
+    /**
      * Number of total render frames
      */
     readonly totalFrames: number;

@@ -301,6 +301,10 @@ export interface IGlobal {
     getOutputSource(channel: number): ISource;
     getProperties(id: string, type: EObjectType): IProperties;
     getActiveFps(): number;
+    getAudioMonitoringDevices(): {
+        name: string;
+        id: string;
+    };
     readonly totalFrames: number;
     readonly laggedFrames: number;
     readonly initialized: boolean;
