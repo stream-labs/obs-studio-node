@@ -77,4 +77,23 @@ uint32_t total_frames()
     return obs_get_total_frames();
 }
 
+monitoring_devices_type monitoring_devices()
+{
+    monitoring_devices_type devices;
+
+    auto device_enum = 
+    [] (void *data, const char *name, const char *id) -> bool {
+        monitoring_devices_type *devices = 
+            static_cast<monitoring_devices_type*>(data);
+
+        devices->push_back(std::make_pair(name, id));
+
+        return true;
+    };
+
+    obs_enum_audio_monitoring_devices(device_enum, &devices);
+
+    return devices;
+}
+
 }

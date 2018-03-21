@@ -4,10 +4,14 @@
 
 #include <string>
 #include <exception>
+#include <vector>
 
 #include "obspp-source.hpp"
 
 namespace obs {
+
+typedef std::vector<std::pair<std::string, std::string>>
+    monitoring_devices_type;
 
 bool startup(std::string locale, std::string path);
 bool startup(std::string locale);
@@ -23,5 +27,6 @@ source output_source(int channel);
 uint32_t output_flags_from_id(std::string id);
 uint32_t total_frames();
 uint32_t lagged_frames();
+monitoring_devices_type monitoring_devices();
 
 }

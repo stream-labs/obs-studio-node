@@ -422,4 +422,23 @@ NAN_METHOD(getActiveFps)
     info.GetReturnValue().Set(common::ToValue(obs_get_active_fps()));
 }
 
+NAN_METHOD(getAudioMonitoringDevices)
+{
+    auto monitoring_devices = obs::monitoring_devices();
+
+    int count = static_cast<int>(monitoring_devices.size());
+    auto array = Nan::New<v8::Array>(count);
+
+    for (int i = 0; i < count; ++i) {
+        v8::Local<v8::Object> element = Nan::New<v8::Object>();
+
+        common::SetObjectField(element, "name", monitoring_devices[i].first);
+        common::SetObjectField(element, "id", monitoring_devices[i].second);
+
+        Nan::Set(array, i, element);
+    }
+
+    info.GetReturnValue().Set(array);
+}
+
 }
