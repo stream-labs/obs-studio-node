@@ -446,7 +446,11 @@ void OBS_API::OBS_API_initAPI(const FunctionCallbackInfo<Value>& args)
 	OBS_service::createVideoStreamingEncoder();
 	OBS_service::createVideoRecordingEncoder();
 
-	OBS_service::createAudioEncoder();
+	obs_encoder_t* audioStreamingEncoder = OBS_service::getAudioStreamingEncoder();
+	obs_encoder_t* audioRecordingEncoder = OBS_service::getAudioRecordingEncoder();
+
+	OBS_service::createAudioEncoder(&audioStreamingEncoder);
+	OBS_service::createAudioEncoder(&audioRecordingEncoder);
 
 	OBS_service::resetAudioContext();
 	OBS_service::resetVideoContext(NULL);
@@ -686,9 +690,13 @@ void OBS_API::destroyOBS_API(void) {
 	if(recordingEncoder != NULL)
 		obs_encoder_release(recordingEncoder);
 
-	obs_encoder_t* audioEncoder = OBS_service::getAudioEncoder();
-	if(audioEncoder != NULL)
-		obs_encoder_release(audioEncoder);
+	obs_encoder_t* audioStreamingEncoder = OBS_service::getAudioStreamingEncoder();
+	if (audioStreamingEncoder != NULL)
+		obs_encoder_release(audioStreamingEncoder);
+
+	obs_encoder_t* audioRecordingEncoder = OBS_service::getAudioRecordingEncoder();
+	if (audioRecordingEncoder != NULL)
+		obs_encoder_release(audioRecordingEncoder);
 
 	obs_output_t* streamingOutput = OBS_service::getStreamingOutput();
 	if(streamingOutput != NULL)

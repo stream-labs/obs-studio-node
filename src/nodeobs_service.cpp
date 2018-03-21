@@ -5,7 +5,8 @@
 
 obs_output_t* streamingOutput;
 obs_output_t* recordingOutput;
-obs_encoder_t* audioEncoder;
+obs_encoder_t* audioStreamingEncoder;
+obs_encoder_t* audioRecordingEncoder;
 obs_encoder_t* videoStreamingEncoder;
 obs_encoder_t* videoRecordingEncoder;
 obs_service_t* service;
@@ -19,6 +20,7 @@ bool usingRecordingPreset = false;
 bool recordingConfigured = false;
 bool ffmpegOutput = false;
 bool lowCPUx264 = false;
+bool isUsingStreamingEncoder = false;
 
 Nan::Callback *JS_OutputSignalCallback;
 
@@ -43,7 +45,7 @@ void OBS_service::OBS_service_resetVideoContext(const FunctionCallbackInfo<Value
 
 void OBS_service::OBS_service_createAudioEncoder(const FunctionCallbackInfo<Value>& args)
 {
-	createAudioEncoder();
+	createAudioEncoder(NULL);
 }
 
 void OBS_service::OBS_service_createVideoStreamingEncoder(const FunctionCallbackInfo<Value>& args)
@@ -427,7 +429,7 @@ const char *FindAudioEncoderFromCodec(const char *type)
 	return nullptr;
 }
 
-void OBS_service::createAudioEncoder(void)
+void OBS_service::createAudioEncoder(obs_encoder_t** audioEncoder)
 {
     config_t* basicConfig = OBS_API::openConfigFile(OBS_API::getBasicConfigPath());
 
@@ -440,9 +442,10 @@ void OBS_service::createAudioEncoder(void)
         return;
 	}
 
-	obs_encoder_release(audioEncoder);
+	if (usingRecordingPreset)
+		obs_encoder_release(*audioEncoder);
 
-	audioEncoder = obs_audio_encoder_create(id, "simple_audio", nullptr, 0, nullptr);
+	*audioEncoder =  obs_audio_encoder_create(id, "simple_audio", nullptr, 0, nullptr);
 }
 
 
@@ -768,7 +771,7 @@ bool OBS_service::startStreaming(void)
 	}
 
 	if (strcmp(codec, "aac") == 0) {
-		createAudioEncoder();
+		createAudioEncoder(&audioStreamingEncoder);
 	}
 	else {
 		const char *id = FindAudioEncoderFromCodec(codec);
@@ -776,14 +779,14 @@ bool OBS_service::startStreaming(void)
 		obs_data_t *settings = obs_data_create();
 		obs_data_set_int(settings, "bitrate", audioBitrate);
 
-		audioEncoder = obs_audio_encoder_create(id,
+		audioStreamingEncoder = obs_audio_encoder_create(id,
 			"alt_audio_enc", nullptr,
 			trackIndex - 1, nullptr);
-		if (!audioEncoder)
+		if (!audioStreamingEncoder)
 			return false;
 
-		obs_encoder_update(audioEncoder, settings);
-		obs_encoder_set_audio(audioEncoder, obs_get_audio());
+		obs_encoder_update(audioStreamingEncoder, settings);
+		obs_encoder_set_audio(audioStreamingEncoder, obs_get_audio());
 
 		obs_data_release(settings);
 	}
@@ -794,12 +797,20 @@ bool OBS_service::startStreaming(void)
     return obs_output_start(streamingOutput);
 }
 
+const char* errormessageOutput;
+
 bool OBS_service::startRecording(void)
 {
-	createAudioEncoder();
+	createAudioEncoder(&audioRecordingEncoder);
     updateRecordSettings();
+	
+	if (!obs_output_start(recordingOutput)) {
+		SignalInfo signal = SignalInfo("recording", "stop");
+		function(&signal, NULL);
+		return false;
+	}
 
-	return obs_output_start(recordingOutput);
+	return true;
 }
 
 void OBS_service::stopStreaming(bool forceStop)
@@ -841,7 +852,7 @@ void OBS_service::associateAudioAndVideoToTheCurrentStreamingContext(void)
 	}
 
     obs_encoder_set_video(videoStreamingEncoder, obs_get_video());
-    obs_encoder_set_audio(audioEncoder, obs_get_audio());
+    obs_encoder_set_audio(audioStreamingEncoder, obs_get_audio());
 }
 
 void OBS_service::associateAudioAndVideoToTheCurrentRecordingContext(void)
@@ -870,19 +881,19 @@ void OBS_service::associateAudioAndVideoToTheCurrentRecordingContext(void)
 	}
 
     obs_encoder_set_video(videoRecordingEncoder, obs_get_video());
-    obs_encoder_set_audio(audioEncoder, obs_get_audio());
+    obs_encoder_set_audio(audioRecordingEncoder, obs_get_audio());
 }
 
 void OBS_service::associateAudioAndVideoEncodersToTheCurrentStreamingOutput(void)
 {
     obs_output_set_video_encoder(streamingOutput, videoStreamingEncoder);
-    obs_output_set_audio_encoder(streamingOutput, audioEncoder, 0);
+    obs_output_set_audio_encoder(streamingOutput, audioStreamingEncoder, 0);
 }
 
 void OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(void)
 {
     obs_output_set_video_encoder(recordingOutput, videoRecordingEncoder);
-    obs_output_set_audio_encoder(recordingOutput, audioEncoder, 0);
+    obs_output_set_audio_encoder(recordingOutput, audioRecordingEncoder, 0);
 }
 
 void OBS_service::setServiceToTheStreamingOutput(void)
@@ -985,7 +996,7 @@ void OBS_service::updateVideoStreamingEncoder()
         }
         preset = config_get_string(config, "SimpleOutput", presetType);
 
-		if(videoStreamingEncoder != NULL) {
+		if(videoStreamingEncoder != NULL && usingRecordingPreset) {
 			obs_encoder_release(videoStreamingEncoder);
         }
 		videoStreamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
@@ -1025,7 +1036,7 @@ void OBS_service::updateVideoStreamingEncoder()
                 VIDEO_FORMAT_NV12);
 
     obs_encoder_update(videoStreamingEncoder, h264Settings);
-    obs_encoder_update(audioEncoder,  aacSettings);
+    obs_encoder_update(audioStreamingEncoder,  aacSettings);
 
     obs_data_release(h264Settings);
     obs_data_release(aacSettings);
@@ -1592,15 +1603,26 @@ void OBS_service::setRecordingEncoder(obs_encoder_t* encoder)
     videoRecordingEncoder = encoder;
 }
 
-obs_encoder_t* OBS_service::getAudioEncoder(void)
+obs_encoder_t* OBS_service::getAudioStreamingEncoder(void)
 {
-    return audioEncoder;
+	return audioStreamingEncoder;
 }
 
-void OBS_service::setAudioEncoder(obs_encoder_t* encoder)
+void OBS_service::setAudioStreamingEncoder(obs_encoder_t* encoder)
 {
-    obs_encoder_release(audioEncoder);
-    audioEncoder = encoder;
+	obs_encoder_release(audioStreamingEncoder);
+	audioStreamingEncoder = encoder;
+}
+
+obs_encoder_t* OBS_service::getAudioRecordingEncoder(void)
+{
+	return audioRecordingEncoder;
+}
+
+void OBS_service::setAudioRecordingEncoder(obs_encoder_t* encoder)
+{
+	obs_encoder_release(audioRecordingEncoder);
+	audioRecordingEncoder = encoder;
 }
 
 obs_output_t* OBS_service::getStreamingOutput(void)
@@ -1710,11 +1732,24 @@ void OBS_service::function(void *data, calldata_t *params)
 
 	std::string signalReceived = signal.getSignal();
 
-	if (signalReceived.compare("stop") == 0) {
+	if (signalReceived.compare("stop") == 0 || 
+		signalReceived.compare("start") == 0) {
 		signal.setCode((int)calldata_int(params, "code"));
 
-		const char* error = obs_output_get_last_error(streamingOutput);
-		if(error) signal.setErrorMessage(error);
+		obs_output_t* output;
+
+		if (signal.getOutputType().compare("streaming") == 0)
+			output = streamingOutput;
+		else
+			output = recordingOutput;
+
+		const char* error = obs_output_get_last_error(output);
+		if (error) {
+			if (signal.getOutputType().compare("recording") == 0 &&
+				signal.getCode() == 0)
+				signal.setCode(OBS_OUTPUT_ERROR);
+			signal.setErrorMessage(error);
+		}
 	}
 
 	Worker *worker = new Worker(JS_OutputSignalCallback, signal);
