@@ -20,7 +20,6 @@ bool usingRecordingPreset = false;
 bool recordingConfigured = false;
 bool ffmpegOutput = false;
 bool lowCPUx264 = false;
-bool isUsingStreamingEncoder = false;
 
 Nan::Callback *JS_OutputSignalCallback;
 
@@ -445,7 +444,7 @@ void OBS_service::createAudioEncoder(obs_encoder_t** audioEncoder)
 	if (usingRecordingPreset)
 		obs_encoder_release(*audioEncoder);
 
-	*audioEncoder =  obs_audio_encoder_create(id, "simple_audio", nullptr, 0, nullptr);
+	*audioEncoder = obs_audio_encoder_create(id, "simple_audio", nullptr, 0, nullptr);
 }
 
 
@@ -797,8 +796,6 @@ bool OBS_service::startStreaming(void)
     return obs_output_start(streamingOutput);
 }
 
-const char* errormessageOutput;
-
 bool OBS_service::startRecording(void)
 {
 	createAudioEncoder(&audioRecordingEncoder);
@@ -806,7 +803,7 @@ bool OBS_service::startRecording(void)
 	
 	if (!obs_output_start(recordingOutput)) {
 		SignalInfo signal = SignalInfo("recording", "stop");
-		function(&signal, NULL);
+		JSCallbackOutputSignal(&signal, NULL);
 		return false;
 	}
 
@@ -1725,15 +1722,14 @@ void OBS_service::OBS_service_connectOutputSignals(const FunctionCallbackInfo<Va
 	connectOutputSignals();
 }
 
-void OBS_service::function(void *data, calldata_t *params) 
+void OBS_service::JSCallbackOutputSignal(void *data, calldata_t *params) 
 {
 	SignalInfo &signal = 
 		*reinterpret_cast<SignalInfo*>(data);
 
 	std::string signalReceived = signal.getSignal();
 
-	if (signalReceived.compare("stop") == 0 || 
-		signalReceived.compare("start") == 0) {
+	if (signalReceived.compare("stop") == 0) {
 		signal.setCode((int)calldata_int(params, "code"));
 
 		obs_output_t* output;
@@ -1764,7 +1760,7 @@ void OBS_service::connectOutputSignals(void)
 	// Connect streaming output
 	for (int i = 0; i<streamingSignals.size(); i++) {
 		signal_handler_connect(streamingOutputSignalHandler, 
-			streamingSignals.at(i).getSignal().c_str(), function, &(streamingSignals.at(i)));
+			streamingSignals.at(i).getSignal().c_str(), JSCallbackOutputSignal, &(streamingSignals.at(i)));
 	}
 
 	signal_handler *recordingOutputSignalHandler =
@@ -1773,6 +1769,6 @@ void OBS_service::connectOutputSignals(void)
 	// Connect recording output
 	for (int i = 0; i<recordingSignals.size(); i++) {
 		signal_handler_connect(recordingOutputSignalHandler, 
-			recordingSignals.at(i).getSignal().c_str(), function, &(recordingSignals.at(i)));
+			recordingSignals.at(i).getSignal().c_str(), JSCallbackOutputSignal, &(recordingSignals.at(i)));
 	}
 }

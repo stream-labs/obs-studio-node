@@ -371,7 +371,7 @@ public:
 	static void updateAdvancedRecordingOutput(void);
 	static void UpdateFFmpegOutput(void);
 
-	static std::string OBS_service::GetDefaultVideoSavePath(void);
+	static std::string GetDefaultVideoSavePath(void);
 
 	static bool isStreamingOutputActive(void);
 
@@ -388,5 +388,5 @@ public:
 
 	// Output signals
 	static void connectOutputSignals(void);
-	static void function(void *data, calldata_t *);
+	static void JSCallbackOutputSignal(void *data, calldata_t *);
 };
