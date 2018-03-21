@@ -337,15 +337,17 @@ public:
 	static void 				setServiceToTheStreamingOutput(void);
 
 	// Encoders
-	static void 				createAudioEncoder(void);
+	static void					createAudioEncoder(obs_encoder_t** audioEncoder);
 	static void 				createVideoStreamingEncoder();
 	static void 				createVideoRecordingEncoder();
 	static obs_encoder_t* 		getStreamingEncoder(void);
 	static void 				setStreamingEncoder(obs_encoder_t* encoder);
 	static obs_encoder_t*		getRecordingEncoder(void);
 	static void 				setRecordingEncoder(obs_encoder_t* encoder);
-	static obs_encoder_t*		getAudioEncoder(void);
-	static void 				setAudioEncoder(obs_encoder_t* encoder);
+	static obs_encoder_t*		getAudioStreamingEncoder(void);
+	static void 				setAudioStreamingEncoder(obs_encoder_t* encoder);
+	static obs_encoder_t*		getAudioRecordingEncoder(void);
+	static void 				setAudioRecordingEncoder(obs_encoder_t* encoder);
 
 	// Outputs
 	static void 				createStreamingOutput(void);
@@ -369,7 +371,7 @@ public:
 	static void updateAdvancedRecordingOutput(void);
 	static void UpdateFFmpegOutput(void);
 
-	static std::string OBS_service::GetDefaultVideoSavePath(void);
+	static std::string GetDefaultVideoSavePath(void);
 
 	static bool isStreamingOutputActive(void);
 
@@ -386,5 +388,5 @@ public:
 
 	// Output signals
 	static void connectOutputSignals(void);
-	static void function(void *data, calldata_t *);
+	static void JSCallbackOutputSignal(void *data, calldata_t *);
 };
