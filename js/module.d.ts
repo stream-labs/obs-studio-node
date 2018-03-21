@@ -305,6 +305,11 @@ export interface IGlobal {
         name: string;
         id: string;
     }[];
+    getAudioMonitoringDevice(): {
+        name: string;
+        id: string;
+    };
+    setAudioMonitoringDevice(name: string, id: string): void;
     readonly totalFrames: number;
     readonly laggedFrames: number;
     readonly initialized: boolean;

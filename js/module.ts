@@ -460,9 +460,21 @@ export interface IGlobal {
 
     /**
      * Obtain a list of viable audio monitoring devices
-     * @returns A list of audio monitoring devices
      */
-    getAudioMonitoringDevices(): { name: string, id: string }[]
+    getAudioMonitoringDevices(): { name: string, id: string }[];
+
+    /**
+     * Obtain the currently set audio monitoring device
+     */
+    getAudioMonitoringDevice(): { name: string, id: string };
+
+    /**
+     * Sets the device to output monitored audio to. A list of
+     * viable values can be found from getAudioMonitoringDevices
+     * @param name The name of the device
+     * @param id The id of the device
+     */
+    setAudioMonitoringDevice(name: string, id: string): void;
 
     /**
      * Number of total render frames
