@@ -19,7 +19,7 @@ if (STREAMLABS_BUILD)
 	nodejs_init(
 		URL https://atom.io/download/atom-shell
 		NAME iojs
-		VERSION v1.7.12
+		VERSION v1.8.4
 	)
 else()
 	nodejs_init()
