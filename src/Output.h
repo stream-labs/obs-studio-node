@@ -60,6 +60,7 @@ public:
     static NAN_METHOD(get_totalBytes);
     static NAN_METHOD(start);
     static NAN_METHOD(stop);
+    static NAN_METHOD(forceStop);
     static NAN_METHOD(setDelay);
     static NAN_METHOD(getDelay);
     static NAN_METHOD(getActiveDelay);

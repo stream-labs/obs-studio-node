@@ -206,6 +206,11 @@ void output::stop()
     obs_output_stop(m_handle);
 }
 
+void output::force_stop()
+{
+    obs_output_force_stop(m_handle);
+}
+
 void output::delay(uint32_t ms, uint32_t flags)
 {
     obs_output_set_delay(m_handle, ms, flags);

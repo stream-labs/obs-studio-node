@@ -443,6 +443,7 @@ export interface IOutput extends IConfigurable, IReleasable {
     readonly totalBytes: number;
     start(): void;
     stop(): void;
+    forceStop(): void;
     setDelay(ms: number, flags: EDelayFlags): void;
     getDelay(): void;
     getActiveDelay(): void;

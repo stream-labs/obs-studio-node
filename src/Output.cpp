@@ -37,6 +37,7 @@ NAN_MODULE_INIT(Output::Init)
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "setPreferredSize", setPreferredSize);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "start", start);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "stop", stop);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "forceStop", forceStop);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "setDelay", setDelay);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "getDelay", getDelay);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "getActiveDelay", getActiveDelay);
@@ -533,6 +534,13 @@ NAN_METHOD(Output::stop)
     obs::weak<obs::output> &handle = Output::Object::GetHandle(info.Holder());
 
     handle.get()->stop();
+}
+
+NAN_METHOD(Output::forceStop)
+{
+    obs::weak<obs::output> &handle = Output::Object::GetHandle(info.Holder());
+
+    handle.get()->force_stop();
 }
 
 NAN_METHOD(Output::setDelay)

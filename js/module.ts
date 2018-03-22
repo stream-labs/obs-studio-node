@@ -782,6 +782,12 @@ export interface IOutput extends IConfigurable, IReleasable {
       * when it's actually stopped. */
     stop(): void;
 
+    /**
+     * This is similar to stop except 
+     * will ignore any set delay.
+     */
+    forceStop(): void;
+
     /** Set delay to output */
     setDelay(ms: number, flags: EDelayFlags): void;
     getDelay(): void;
