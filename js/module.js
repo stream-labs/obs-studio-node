@@ -69,6 +69,7 @@ function createSources(sources) {
                     const ObsFilter = obs.Filter.create(filter.type, filter.name, filter.settings);
                     ObsFilter.enabled = (filter.enabled != null) ? filter.enabled : true;
                     newSource.addFilter(ObsFilter);
+                    ObsFilter.release();
                 });
             }
         });
