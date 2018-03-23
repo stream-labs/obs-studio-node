@@ -16,6 +16,13 @@
 
 namespace osn {
 
+static bool is_shutdown = true;
+
+bool IsShutdown()
+{
+    return is_shutdown;
+}
+
 std::shared_ptr<spdlog::logger> logger;
 
 static void custom_log_handler(int level, const char *format, 
@@ -84,6 +91,8 @@ NAN_MODULE_INIT(Init)
 
 NAN_METHOD(startup)
 {
+	is_shutdown = false;
+
 	/* Map base DLLs as soon as possible into the current process space.
 	 * In particular, we need to load obs.dll into memory before we call
 	 * any functions from obs else if we delay-loaded the dll, it will
@@ -281,9 +290,12 @@ NAN_METHOD(startup)
 
 NAN_METHOD(shutdown)
 {
+	is_shutdown = true;
+
 	logger->info("***************************************************************************");
 	logger->info("* Shutting libobs down... ");
 	logger->info("***************************************************************************");
+
 	obs::shutdown();
 }
 

@@ -4,6 +4,17 @@
 
 namespace osn {
 
+/* obs signal callbacks need to
+ * check this. JS should expect
+ * no more callbacks once shutdown
+ * is called. If true, no JS events
+ * should be injected into the libuv
+ * event loop anymore. */
+bool IsShutdown();
+
+#define CHECK_SHUTDOWN() \
+    if (osn::IsShutdown() == true) return
+
 NAN_MODULE_INIT(Init);
 NAN_METHOD(startup);
 NAN_METHOD(shutdown);

@@ -3,6 +3,7 @@
 #include "Audio.h"
 #include "Service.h"
 #include "Properties.h"
+#include "Global.h"
 
 namespace osn {
 
@@ -26,7 +27,7 @@ void Output::RegisterCallback(RegisteredCallback &cb)
 
 void Output::UnregisterCallback(RegisteredCallback &cb)
 {
-    signal_handler_t *sig_handler = 
+    signal_handler_t *sig_handler =
         obs_output_get_signal_handler(handle.get()->dangerous());
 
     for (auto it = signals.begin(); it != signals.end(); ++it) {
@@ -169,7 +170,6 @@ NAN_METHOD(Output::release)
 }
 
 static void SignalCallback(Output *output, Output::SignalData *item) {
-    /* We're in v8 context here */
     OutputSignalCallback *cb_binding =
         reinterpret_cast<OutputSignalCallback*>(item->param);
 
@@ -186,6 +186,11 @@ static void SignalCallback(Output *output, Output::SignalData *item) {
     delete item;
 
     cb_binding->cb.Call(2, args);
+
+    /* If shutdown, don't release the object,
+     * it's already invalid. */
+    CHECK_SHUTDOWN();
+
     obs_output_release(item->output);
 }
 
@@ -208,7 +213,7 @@ void handle_generic_signal(void* param, calldata_t* cd)
 
 void handle_stop_signal(void *param, calldata_t* cd)
 {
-    OutputSignalCallback *cb_binding = 
+    OutputSignalCallback *cb_binding =
         static_cast<OutputSignalCallback*>(param);
 
     Output::SignalData *data = new Output::SignalData;
@@ -216,8 +221,6 @@ void handle_stop_signal(void *param, calldata_t* cd)
     data->code = calldata_int(cd, "code");
     data->param = param;
 
-    /* We need to make sure the output is valid until
-     * the javascript callback is made */
     obs_output_addref(data->output);
 
     cb_binding->queue.send(data);
