@@ -17,12 +17,80 @@
 
 #pragma once
 #include "utility.hpp"
-#include "shared.hpp"
 #include <ipc-server.hpp>
 #include <obs.h>
 
 namespace osn {
-	class Source : public shared::SingletonObjectManager<obs_source_t*> {
+	class Source {
+	#pragma region Singleton
+		public:
+		class SingletonObjectManager {
+			utility::unique_id idGenerator;
+			std::map<uint64_t, obs_source_t*> objectMap;
+
+			protected:
+			SingletonObjectManager() {};
+			~SingletonObjectManager() {};
+
+			public:
+			SingletonObjectManager(SingletonObjectManager const&) = delete;
+			SingletonObjectManager operator=(SingletonObjectManager const&) = delete;
+
+			uint64_t Allocate(obs_source_t* obj) {
+				uint64_t id = idGenerator.allocate();
+				objectMap.insert_or_assign(id, obj);
+				return id;
+			}
+			obs_source_t* Free(uint64_t id) {
+				obs_source_t* obj = nullptr;
+				auto iter = objectMap.find(id);
+				if (iter != objectMap.end()) {
+					obj = iter->second;
+				}
+				objectMap.erase(iter);
+				idGenerator.free(id);
+				return obj;
+			}
+			obs_source_t* Get(uint64_t id) {
+				obs_source_t* obj = nullptr;
+				auto iter = objectMap.find(id);
+				if (iter != objectMap.end()) {
+					obj = iter->second;
+				}
+				return obj;
+			}
+			uint64_t Get(obs_source_t* obj) {
+				for (auto kv : objectMap) {
+					if (kv.second == obj)
+						return kv.first;
+				}
+				return UINT64_MAX;
+			}
+
+			friend class Source;
+		};
+
+		private:
+		static std::shared_ptr<SingletonObjectManager> _inst;
+
+		public:
+		static bool Initialize() {
+			if (_inst)
+				return false;
+			_inst = std::make_shared<SingletonObjectManager>();
+			return true;
+		}
+		static std::shared_ptr<SingletonObjectManager> GetInstance() {
+			return _inst;
+		}
+		static bool Finalize() {
+			if (!_inst)
+				return false;
+			_inst = nullptr;
+			return true;
+		}
+	#pragma endregion Singleton
+
 		public:
 		static void Register(IPC::Server&);
 
@@ -38,7 +106,7 @@ namespace osn {
 		static void Load(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
 		static void Save(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
 
-		
+
 		static void GetType(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
 		static void GetName(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
 		static void SetName(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
@@ -47,7 +115,7 @@ namespace osn {
 		static void SetFlags(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
 		static void GetStatus(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
 		static void GetId(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
-		
+
 		// Flags
 		static void Muted(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
 		static void Enabled(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);

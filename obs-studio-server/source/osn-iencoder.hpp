@@ -34,5 +34,5 @@ namespace osn {
 
 		// Lifetime
 		static void Release(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
-	}
+	};
 }

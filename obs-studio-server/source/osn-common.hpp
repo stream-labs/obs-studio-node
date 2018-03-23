@@ -22,16 +22,6 @@
 
 namespace osn {
 	namespace common {
-		// obj -> IPC::Value
-		static void OBSDataItemToIPCValue(obs_data_item_t* val, std::vector<IPC::Value>& arr);
-		static void OBSDataArrayToIPCValue(obs_data_array_t* val, std::vector<IPC::Value>& arr);
-		static void OBSDataToIPCValue(obs_data_t* val, std::vector<IPC::Value>& arr);
-
-		// obj <- IPC::Value
-		static void OBSDataItemFromIPCValue(obs_data_t* val, std::vector<IPC::Value>::const_iterator& begin, std::vector<IPC::Value>::const_iterator& end);
-		static void OBSDataArrayFromIPCValue(obs_data_array_t* val, std::vector<IPC::Value>::const_iterator& begin, std::vector<IPC::Value>::const_iterator& end);
-		static void OBSDataFromIPCValue(obs_data_t** val, std::vector<IPC::Value>::const_iterator& begin, std::vector<IPC::Value>::const_iterator& end);
-		static void OBSDataFromIPCValue(obs_data_t** val, std::vector<IPC::Value> const& arr);
 
 	}
 }

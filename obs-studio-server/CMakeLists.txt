@@ -59,25 +59,6 @@ SET(PROJECT_SOURCE
 	"${PROJECT_SOURCE_DIR}/source/osn-source.cpp" "${PROJECT_SOURCE_DIR}/source/osn-source.hpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-transition.cpp" "${PROJECT_SOURCE_DIR}/source/osn-transition.hpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-video.cpp" "${PROJECT_SOURCE_DIR}/source/osn-video.hpp"
-	
-	# libobs++ Wrapper
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-audio.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-audio.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-display.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-display.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-encoder.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-encoder.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-filter.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-filter.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-index.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-input.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-input.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-output.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-output.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-module.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-module.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-output.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-properties.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-properties.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-scene.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-scene.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-service.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-service.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-source.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-source.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-transition.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-transition.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-video.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-video.hpp"
-	"${PROJECT_SOURCE_DIR}/source/obspp/obspp-view.cpp" "${PROJECT_SOURCE_DIR}/source/obspp/obspp-view.hpp"
 )
 SET(PROJECT_LIBRARIES
 	lib-streamlabs-ipc

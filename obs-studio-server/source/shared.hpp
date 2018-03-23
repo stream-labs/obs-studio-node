@@ -21,69 +21,66 @@
 #include <list>
 #include <memory>
 #include <mutex>
+#include <map>
 
-namespace shared {
-	template<class T>
-	class SingletonObjectManager {
-		utility::unique_id idGenerator;
-		std::map<uint64_t, T> objectMap;
-
-		private:
-		SingletonObjectManager() {};
-		~SingletonObjectManager() {};
-
-		static std::shared_ptr<SingletonObjectManager> _inst = nullptr;
-
-		public:
-		SingletonObjectManager(SingletonObjectManager const&) = delete;
-		SingletonObjectManager operator=(SingletonObjectManager const&) = delete;
-
-		static bool Initialize() {
-			if (_inst)
-				return false;
-			_inst = std::make_shared<SingletonObjectManager>();
-			return true;
-		}
-		static std::shared_ptr<SingletonObjectManager> GetInstance() {
-			return _inst;
-		}
-		static bool Finalize() {
-			if (!_inst)
-				return false;
-			_inst = nullptr;
-			return true;
-		}
-
-		public:
-		uint64_t Allocate(T obj) {
-			uint64_t id = idGenerator.allocate();
-			objectMap.insert_or_assign(id, obj);
-			return id;
-		}
-		T Free(uint64_t id) {
-			T obj = nullptr;
-			auto iter = objectMap.find(id);
-			if (iter != objectMap.end()) {
-				obj = iter->second;
-			}
-			objectMap.erase(iter);
-			idGenerator.free(id);
-			return obj;
-		}
-		T Get(uint64_t id) {
-			T obj = nullptr;
-			auto iter = objectMap.find(id);
-			if (iter != objectMap.end()) {
-				obj = iter->second;
-			}
-			return obj;
-		}
-		uint64_t Get(T obj) {
-			for (auto kv : objectMap) {
-				if (kv.second == obj)
-					return kv.first;
-			}
-			return UINT64_MAX;
-		}
-	};
-}
+//namespace shared {
+//	template<class T>
+//	class SingletonObjectManager {
+//		utility::unique_id idGenerator;
+//		std::map<uint64_t, T> objectMap;
+//
+//		private:
+//
+//		public:
+//		SingletonObjectManager(SingletonObjectManager const&) = delete;
+//		SingletonObjectManager operator=(SingletonObjectManager const&) = delete;
+//
+//		static bool Initialize() {
+//			if (_inst)
+//				return false;
+//			_inst = std::make_shared<SingletonObjectManager>();
+//			return true;
+//		}
+//		static std::shared_ptr<SingletonObjectManager> GetInstance() {
+//			return _inst;
+//		}
+//		static bool Finalize() {
+//			if (!_inst)
+//				return false;
+//			_inst = nullptr;
+//			return true;
+//		}
+//
+//		public:
+//		uint64_t Allocate(T obj) {
+//			uint64_t id = idGenerator.allocate();
+//			objectMap.insert_or_assign(id, obj);
+//			return id;
+//		}
+//		T Free(uint64_t id) {
+//			T obj = nullptr;
+//			auto iter = objectMap.find(id);
+//			if (iter != objectMap.end()) {
+//				obj = iter->second;
+//			}
+//			objectMap.erase(iter);
+//			idGenerator.free(id);
+//			return obj;
+//		}
+//		T Get(uint64_t id) {
+//			T obj = nullptr;
+//			auto iter = objectMap.find(id);
+//			if (iter != objectMap.end()) {
+//				obj = iter->second;
+//			}
+//			return obj;
+//		}
+//		uint64_t Get(T obj) {
+//			for (auto kv : objectMap) {
+//				if (kv.second == obj)
+//					return kv.first;
+//			}
+//			return UINT64_MAX;
+//		}
+//	};
+//}
