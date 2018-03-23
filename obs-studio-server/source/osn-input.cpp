@@ -288,11 +288,31 @@ void osn::Input::SetSyncOffset(void* data, const int64_t id, const std::vector<I
 }
 
 void osn::Input::GetAudioMixers(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	if (!input) {
+		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(IPC::Value("Input reference is not valid."));
+		return;
+	}
 
+	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+	rval.push_back(IPC::Value(obs_source_get_audio_mixers(input)));
+	return;
 }
 
 void osn::Input::SetAudioMixers(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	if (!input) {
+		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(IPC::Value("Input reference is not valid."));
+		return;
+	}
 
+	obs_source_set_audio_mixers(input, (obs_monitoring_type)args[1].value.i64);
+
+	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+	rval.push_back(IPC::Value(obs_source_get_audio_mixers(input)));
+	return;
 }
 
 void osn::Input::GetMonitoringType(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
@@ -309,31 +329,100 @@ void osn::Input::GetMonitoringType(void* data, const int64_t id, const std::vect
 }
 
 void osn::Input::SetMonitoringType(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	if (!input) {
+		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(IPC::Value("Input reference is not valid."));
+		return;
+	}
 
+	obs_source_set_monitoring_type(input, (obs_monitoring_type)args[1].value.i64);
+
+	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+	rval.push_back(IPC::Value(obs_source_get_monitoring_type(input)));
+	return;
 }
 
 void osn::Input::GetWidth(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	if (!input) {
+		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(IPC::Value("Input reference is not valid."));
+		return;
+	}
 
+	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+	rval.push_back(IPC::Value(obs_source_get_width(input)));
+	return;
 }
 
 void osn::Input::GetHeight(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	if (!input) {
+		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(IPC::Value("Input reference is not valid."));
+		return;
+	}
 
+	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+	rval.push_back(IPC::Value(obs_source_get_height(input)));
+	return;
 }
 
 void osn::Input::GetDeInterlaceFieldOrder(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	if (!input) {
+		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(IPC::Value("Input reference is not valid."));
+		return;
+	}
 
+	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+	rval.push_back(IPC::Value(obs_source_get_deinterlace_field_order(input)));
+	return;
 }
 
 void osn::Input::SetDeInterlaceFieldOrder(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	if (!input) {
+		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(IPC::Value("Input reference is not valid."));
+		return;
+	}
 
+	obs_source_set_deinterlace_field_order(input, (obs_deinterlace_field_order)args[1].value.i64);
+
+	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+	rval.push_back(IPC::Value(obs_source_get_deinterlace_field_order(input)));
+	return;
 }
 
 void osn::Input::GetDeInterlaceMode(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	if (!input) {
+		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(IPC::Value("Input reference is not valid."));
+		return;
+	}
 
+	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+	rval.push_back(IPC::Value(obs_source_get_deinterlace_mode(input)));
+	return;
 }
 
 void osn::Input::SetDeInterlaceMode(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	if (!input) {
+		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(IPC::Value("Input reference is not valid."));
+		return;
+	}
 
+	obs_source_set_deinterlace_mode(input, (obs_deinterlace_mode)args[1].value.i64);
+
+	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+	rval.push_back(IPC::Value(obs_source_get_deinterlace_mode(input)));
+	return;
 }
 
 void osn::Input::AddFilter(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
