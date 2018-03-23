@@ -19,6 +19,49 @@ Output::Output(obs::output output)
 {
 }
 
+void Output::RegisterCallback(RegisteredCallback &cb)
+{
+    this->signals.push_back(cb);
+}
+
+void Output::UnregisterCallback(RegisteredCallback &cb)
+{
+    signal_handler_t *sig_handler = 
+        obs_output_get_signal_handler(handle.get()->dangerous());
+
+    for (auto it = signals.begin(); it != signals.end(); ++it) {
+        if (strcmp(cb.signal, it->signal) != 0) continue;
+        if (cb.signal_cb != it->signal_cb) continue;
+        if (cb.param != it->param) continue;
+
+        signal_handler_disconnect(
+            sig_handler, cb.signal,
+            cb.signal_cb, cb.param);
+
+        signals.erase(it);
+
+        break;
+    }
+}
+
+
+void Output::UnregisterAllCallbacks()
+{
+    signal_handler_t *sig_handler =
+        obs_output_get_signal_handler(handle.get()->dangerous());
+
+    for (auto it = signals.begin(); it != signals.end(); ++it) {
+        signal_handler_disconnect(
+            sig_handler, it->signal,
+            it->signal_cb, it->param);
+
+        break;
+    }
+
+    signals.clear();
+}
+
+typedef common::CallbackData<Output::SignalData, Output> OutputSignalCallback;
 
 NAN_MODULE_INIT(Output::Init)
 {
@@ -117,9 +160,13 @@ NAN_METHOD(Output::release)
     obs::weak<obs::output> &handle = Output::Object::GetHandle(info.Holder());
 
     handle.get()->release();
-}
 
-typedef common::CallbackData<Output::SignalData, Output> OutputSignalCallback;
+    /* From the bindings perspective, we're done with this object and
+     * it should be collected soon. Make sure the callbacks are dead. */
+    Output* binding = Nan::ObjectWrap::Unwrap<Output>(info.Holder());
+
+    binding->UnregisterAllCallbacks();
+}
 
 static void SignalCallback(Output *output, Output::SignalData *item) {
     /* We're in v8 context here */
@@ -182,6 +229,8 @@ NAN_METHOD(Output::on) {
     std::string signal_type;
     v8::Local<v8::Function> callback;
 
+    Output::RegisteredCallback reg_cb;
+
     ASSERT_GET_VALUE(info[0], signal_type);
     ASSERT_GET_VALUE(info[1], callback);
 
@@ -196,19 +245,30 @@ NAN_METHOD(Output::on) {
         new OutputSignalCallback(binding, SignalCallback, callback);
 
     if (signal_type.compare("start") == 0) {
-        signal_handler_connect(sig_handler, "start", handle_generic_signal, cb_binding);
+        reg_cb.signal = "start";
+        reg_cb.signal_cb = handle_generic_signal;
     }
     else if (signal_type.compare("stop") == 0) {
-        signal_handler_connect(sig_handler, "stop", handle_stop_signal, cb_binding);
+        reg_cb.signal = "stop";
+        reg_cb.signal_cb = handle_generic_signal;
     }
     else if (signal_type.compare("reconnect") == 0) {
-        signal_handler_connect(sig_handler, "reconnect", handle_generic_signal, cb_binding);
+        reg_cb.signal = "reconnect";
+        reg_cb.signal_cb = handle_generic_signal;
     }
     else if (signal_type.compare("reconnect_success") == 0) {
-        signal_handler_connect(sig_handler, "reconnect_success", handle_generic_signal, cb_binding);
+        reg_cb.signal = "reconnect_success";
+        reg_cb.signal_cb = handle_generic_signal;
     }
-    else
+    else {
         Nan::ThrowError("Invalid signal type provided");
+        return;
+    }
+
+    signal_handler_connect(sig_handler, reg_cb.signal, reg_cb.signal_cb, cb_binding);
+    reg_cb.param = cb_binding;
+
+    binding->RegisterCallback(reg_cb);
 }
 
 NAN_METHOD(Output::get_types)

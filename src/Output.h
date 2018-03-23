@@ -1,3 +1,5 @@
+#include <list>
+
 #include "obspp/obspp-output.hpp"
 #include "Common.h"
 
@@ -12,6 +14,18 @@ public:
     typedef obs::weak<obs::output> weak_handle_t;
     typedef common::Object<Output, weak_handle_t> Object;
     friend Object;
+
+    struct RegisteredCallback{
+        const char* signal;
+        signal_callback_t signal_cb;
+        void *param;
+    };
+
+    std::list<RegisteredCallback> signals;
+
+    void RegisterCallback(RegisteredCallback &callback);
+    void UnregisterCallback(RegisteredCallback &callback);
+    void UnregisterAllCallbacks();
 
     weak_handle_t handle;
 
