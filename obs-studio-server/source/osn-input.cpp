@@ -35,6 +35,29 @@ void osn::Input::Register(IPC::Server& srv) {
 	cls->RegisterFunction(std::make_shared<IPC::Function>("Duplicate", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::String, IPC::Type::Int32}, Duplicate));
 	cls->RegisterFunction(std::make_shared<IPC::Function>("FromName", std::vector<IPC::Type>{IPC::Type::String}, FromName));
 	cls->RegisterFunction(std::make_shared<IPC::Function>("GetPublicSources", std::vector<IPC::Type>{}, GetPublicSources));
+
+	cls->RegisterFunction(std::make_shared<IPC::Function>("GetActive", std::vector<IPC::Type>{IPC::Type::UInt64}, GetActive));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("GetShowing", std::vector<IPC::Type>{IPC::Type::UInt64}, GetShowing));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("GetVolume", std::vector<IPC::Type>{IPC::Type::UInt64}, GetVolume));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("SetVolume", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::Float}, SetVolume));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("GetSyncOffset", std::vector<IPC::Type>{IPC::Type::UInt64}, GetSyncOffset));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("SetSyncOffset", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::Int64}, SetSyncOffset));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("GetAudioMixers", std::vector<IPC::Type>{IPC::Type::UInt64}, GetAudioMixers));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("SetAudioMixers", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::UInt32}, SetAudioMixers));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("GetMonitoringType", std::vector<IPC::Type>{IPC::Type::UInt64}, GetMonitoringType));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("SetMonitoringType", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::UInt32}, SetMonitoringType));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("GetWidth", std::vector<IPC::Type>{IPC::Type::UInt64}, GetWidth));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("GetHeight", std::vector<IPC::Type>{IPC::Type::UInt64}, GetHeight));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("GetDeInterlaceFieldOrder", std::vector<IPC::Type>{IPC::Type::UInt64}, Duplicate));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("SetDeInterlaceFieldOrder", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::UInt32}, Duplicate));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("GetDeInterlaceMode", std::vector<IPC::Type>{IPC::Type::UInt64}, Duplicate));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("SetDeInterlaceMode", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::UInt32}, Duplicate));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("AddFilter", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::UInt64}, AddFilter));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("RemoveFilter", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::UInt64}, RemoveFilter));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("FindFilter", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::String}, FindFilter));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("GetFilters", std::vector<IPC::Type>{IPC::Type::UInt64}, GetFilters));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("CopyFiltersTo", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::UInt64}, CopyFiltersTo));
+
 	srv.RegisterClass(cls);
 }
 
@@ -188,6 +211,7 @@ void osn::Input::FromName(void* data, const int64_t id, const std::vector<IPC::V
 void osn::Input::GetPublicSources(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
 	std::list<uint64_t> inputs;
 
+	// !FIXME! Optimize for zero-copy operation, can directly write to rval.
 	auto enum_cb = [](void *data, obs_source_t *source) {
 		uint64_t uid = osn::Source::GetInstance()->Get(source);
 		if (uid != UINT64_MAX) {
@@ -308,7 +332,7 @@ void osn::Input::SetAudioMixers(void* data, const int64_t id, const std::vector<
 		return;
 	}
 
-	obs_source_set_audio_mixers(input, (obs_monitoring_type)args[1].value.i64);
+	obs_source_set_audio_mixers(input, (obs_monitoring_type)args[1].value.ui32);
 
 	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
 	rval.push_back(IPC::Value(obs_source_get_audio_mixers(input)));
@@ -336,7 +360,7 @@ void osn::Input::SetMonitoringType(void* data, const int64_t id, const std::vect
 		return;
 	}
 
-	obs_source_set_monitoring_type(input, (obs_monitoring_type)args[1].value.i64);
+	obs_source_set_monitoring_type(input, (obs_monitoring_type)args[1].value.ui32);
 
 	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
 	rval.push_back(IPC::Value(obs_source_get_monitoring_type(input)));
@@ -390,7 +414,7 @@ void osn::Input::SetDeInterlaceFieldOrder(void* data, const int64_t id, const st
 		return;
 	}
 
-	obs_source_set_deinterlace_field_order(input, (obs_deinterlace_field_order)args[1].value.i64);
+	obs_source_set_deinterlace_field_order(input, (obs_deinterlace_field_order)args[1].value.ui32);
 
 	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
 	rval.push_back(IPC::Value(obs_source_get_deinterlace_field_order(input)));
@@ -418,7 +442,7 @@ void osn::Input::SetDeInterlaceMode(void* data, const int64_t id, const std::vec
 		return;
 	}
 
-	obs_source_set_deinterlace_mode(input, (obs_deinterlace_mode)args[1].value.i64);
+	obs_source_set_deinterlace_mode(input, (obs_deinterlace_mode)args[1].value.ui32);
 
 	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
 	rval.push_back(IPC::Value(obs_source_get_deinterlace_mode(input)));
@@ -426,21 +450,114 @@ void osn::Input::SetDeInterlaceMode(void* data, const int64_t id, const std::vec
 }
 
 void osn::Input::AddFilter(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	if (!input) {
+		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(IPC::Value("Input reference is not valid."));
+		return;
+	}
 
+	obs_source_t* filter = osn::Source::GetInstance()->Get(args[1].value.ui64);
+	if (!filter) {
+		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(IPC::Value("Filter reference is not valid."));
+		return;
+	}
+
+	obs_source_filter_add(input, filter);
+
+	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+	return;
 }
 
 void osn::Input::RemoveFilter(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	if (!input) {
+		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(IPC::Value("Input reference is not valid."));
+		return;
+	}
 
+	obs_source_t* filter = osn::Source::GetInstance()->Get(args[1].value.ui64);
+	if (!filter) {
+		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(IPC::Value("Filter reference is not valid."));
+		return;
+	}
+
+	obs_source_filter_remove(input, filter);
+
+	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+	return;
 }
 
 void osn::Input::FindFilter(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	if (!input) {
+		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(IPC::Value("Input reference is not valid."));
+		return;
+	}
 
+	obs_source_t* filter = obs_source_get_filter_by_name(input, args[1].value_str.c_str());
+	if (!filter) {
+		rval.push_back(IPC::Value((uint64_t)ErrorCode::NotFound));
+		rval.push_back(IPC::Value("Filter not found."));
+		return;
+	}
+	obs_source_release(filter);
+
+	uint64_t id = osn::Source::GetInstance()->Get(filter);
+	if (id == UINT64_MAX) {
+		rval.push_back(IPC::Value((uint64_t)ErrorCode::CriticalError));
+		rval.push_back(IPC::Value("Filter found but not indexed."));
+		return;
+	}
+	
+	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+	rval.push_back(IPC::Value(id));
+	return;
 }
 
 void osn::Input::GetFilters(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	if (!input) {
+		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(IPC::Value("Input reference is not valid."));
+		return;
+	}
 
+	auto enum_cb = [](obs_source_t *parent, obs_source_t *filter, void *data) {
+		std::vector<IPC::Value> *rval = reinterpret_cast<std::vector<IPC::Value>*>(data);
+
+		uint64_t id = osn::Source::GetInstance()->Get(filter);
+		if (id != UINT64_MAX) {
+			rval->push_back(id);
+		}
+	};
+
+	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+	obs_source_enum_filters(input, enum_cb, &rval);
+	return;
 }
 
 void osn::Input::CopyFiltersTo(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+	obs_source_t* input_from = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	if (!input_from) {
+		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(IPC::Value("1st Input reference is not valid."));
+		return;
+	}
 
+	obs_source_t* input_to = osn::Source::GetInstance()->Get(args[1].value.ui64);
+	if (!input_to) {
+		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(IPC::Value("2nd Input reference is not valid."));
+		return;
+	}
+
+	obs_source_copy_filters(input_to, input_from);
+
+	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+	return;
 }
