@@ -187,10 +187,6 @@ static void SignalCallback(Output *output, Output::SignalData *item) {
 
     cb_binding->cb.Call(2, args);
 
-    /* If shutdown, don't release the object,
-     * it's already invalid. */
-    CHECK_SHUTDOWN();
-
     obs_output_release(item->output);
 }
 
