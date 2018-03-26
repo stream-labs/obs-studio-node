@@ -246,7 +246,7 @@ NAN_METHOD(Output::on) {
     }
     else if (signal_type.compare("stop") == 0) {
         reg_cb.signal = "stop";
-        reg_cb.signal_cb = handle_generic_signal;
+        reg_cb.signal_cb = handle_stop_signal;
     }
     else if (signal_type.compare("reconnect") == 0) {
         reg_cb.signal = "reconnect";
