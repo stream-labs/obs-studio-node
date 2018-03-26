@@ -24,17 +24,23 @@
 #include <ipc-function.hpp>
 #include <ipc-class.hpp>
 #include <ipc-server.hpp>
+#include "osn-source.hpp"
+#include "osn-input.hpp"
+#include "osn-filter.hpp"
+#include "osn-transition.hpp"
+#include "osn-scene.hpp"
+#include "error.hpp"
 
 // Eddy said only the following are used in osn:
 // `ISource` `Input` `Filter` `AudioControls` `Global` `IProperties` `Scene` `SceneItem` `transition` `Video`
 // Prioritize these first.
 // 
 // Inheritance Graph
-//	ISource
-//	- Input
-//	- Filter
+//	ISource (DONE)
+//	- Input (DONE)
+//	- Filter (DONE)
 //	- Scene
-//	- Transition
+//	- Transition (DONE)
 //	AudioControls
 //	Global
 //	IProperties
@@ -42,10 +48,11 @@
 //	Video
 
 namespace System {
-	IPC::Value Shutdown(int64_t id, void* data, std::vector<IPC::Value>) {
+	static void Shutdown(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
 		bool* shutdown = (bool*)data;
 		*shutdown = true;
-		return IPC::Value(1);
+		rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+		return;
 	}
 }
 
@@ -63,15 +70,24 @@ int main(int argc, char* argv[]) {
 	IPC::Server myServer;
 	bool doShutdown = false;
 
+	// Initialize Singleton Source Storage
+	osn::Source::Initialize();
+
 	// Classes
-	//OBS::Main::Register(myServer);
 	/// System
 	{
-		IPC::Class system("System");
-		system.RegisterFunction(std::make_shared<IPC::Function>("Shutdown", System::Shutdown, &doShutdown));
-		myServer.RegisterClass(system);
+		std::shared_ptr<IPC::Class> cls = std::make_shared<IPC::Class>("System");
+		cls->RegisterFunction(std::make_shared<IPC::Function>("Shutdown", std::vector<IPC::Type>{}, System::Shutdown, &doShutdown));
+		myServer.RegisterClass(cls);
 	};
 
+	/// OBS Studio Node
+	osn::Source::Register(myServer);
+	osn::Input::Register(myServer);
+	osn::Filter::Register(myServer);
+	osn::Transition::Register(myServer);
+	osn::Scene::Register(myServer);
+	
 	try {
 		myServer.Initialize(argv[1]);
 	} catch (...) {
@@ -83,6 +99,11 @@ int main(int argc, char* argv[]) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 
+	// Finalize Singleton Source Storage
+	osn::Source::Finalize();
+
+	// Finalize Server
 	myServer.Finalize();
+
 	return 0;
 }
