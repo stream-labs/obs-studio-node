@@ -507,15 +507,15 @@ void osn::Input::FindFilter(void* data, const int64_t id, const std::vector<IPC:
 	}
 	obs_source_release(filter);
 
-	uint64_t id = osn::Source::GetInstance()->Get(filter);
-	if (id == UINT64_MAX) {
+	uint64_t uid = osn::Source::GetInstance()->Get(filter);
+	if (uid == UINT64_MAX) {
 		rval.push_back(IPC::Value((uint64_t)ErrorCode::CriticalError));
 		rval.push_back(IPC::Value("Filter found but not indexed."));
 		return;
 	}
 	
 	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(id));
+	rval.push_back(IPC::Value(uid));
 	return;
 }
 
