@@ -1,8 +1,6 @@
 environment:
   NodeVersion: 8
   SLBuildDirectory: streamlabs-build
-  SLRuntime: electron
-  SLRuntimeVersion: 1.7.11
   SLGenerator: Visual Studio 14 2015 Win64
   SLDistributeDirectory: distribute
   SLFullDistributePath: $(SLBuildDirectory)\$(SLDistributeDirectory)
