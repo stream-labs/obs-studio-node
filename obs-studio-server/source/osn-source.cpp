@@ -26,6 +26,29 @@
 #include <memory>
 #include <obs.h>
 
+static osn::Source::SingletonObjectManager *somInstance;
+
+bool osn::Source::Initialize() {
+	if (somInstance)
+		return false;
+	somInstance = new SingletonObjectManager();
+	return true;
+}
+
+bool osn::Source::Finalize() {
+	if (!somInstance)
+		return false;
+	delete somInstance;
+	somInstance = nullptr;
+	return true;
+
+}
+
+osn::Source::SingletonObjectManager* osn::Source::GetInstance() {
+	return somInstance;
+
+}
+
 void osn::Source::Register(IPC::Server& srv) {
 	std::shared_ptr<IPC::Class> cls = std::make_shared<IPC::Class>("Source");
 	cls->RegisterFunction(std::make_shared<IPC::Function>("Remove", std::vector<IPC::Type>{IPC::Type::UInt64}, Remove));
@@ -355,4 +378,12 @@ void osn::Source::Enabled(void* data, const int64_t id, const std::vector<IPC::V
 	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
 	rval.push_back(IPC::Value(obs_source_enabled(src)));
 	return;	
+}
+
+osn::Source::SingletonObjectManager::SingletonObjectManager() {
+
+}
+
+osn::Source::SingletonObjectManager::~SingletonObjectManager() {
+
 }

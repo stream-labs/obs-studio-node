@@ -25,12 +25,15 @@ namespace osn {
 	#pragma region Singleton
 		public:
 		class SingletonObjectManager {
+			friend class osn::Source;
+			friend class std::shared_ptr<SingletonObjectManager>;
+
 			utility::unique_id idGenerator;
 			std::map<uint64_t, obs_source_t*> objectMap;
 
 			protected:
-			SingletonObjectManager() {};
-			~SingletonObjectManager() {};
+			SingletonObjectManager();
+			~SingletonObjectManager();
 
 			public:
 			SingletonObjectManager(SingletonObjectManager const&) = delete;
@@ -66,29 +69,12 @@ namespace osn {
 				}
 				return UINT64_MAX;
 			}
-
-			friend class Source;
 		};
 
-		private:
-		static std::shared_ptr<SingletonObjectManager> _inst;
-
 		public:
-		static bool Initialize() {
-			if (_inst)
-				return false;
-			_inst = std::make_shared<SingletonObjectManager>();
-			return true;
-		}
-		static std::shared_ptr<SingletonObjectManager> GetInstance() {
-			return _inst;
-		}
-		static bool Finalize() {
-			if (!_inst)
-				return false;
-			_inst = nullptr;
-			return true;
-		}
+		static bool Initialize();
+		static bool Finalize();
+		static SingletonObjectManager* GetInstance();
 	#pragma endregion Singleton
 
 		public:
@@ -105,7 +91,6 @@ namespace osn {
 		static void Update(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
 		static void Load(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
 		static void Save(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
-
 
 		static void GetType(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
 		static void GetName(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
