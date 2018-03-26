@@ -17,27 +17,8 @@
 
 #pragma once
 #include "osn-IEncoder.hpp"
-#include "obspp/obspp-audio.hpp"
-#include <unordered_map>
-#include <string>
 
 namespace osn {
 	class Audio {
-	#pragma region Global Store
-		static std::unordered_map<std::string, std::shared_ptr<Audio>> _objects;
-	#pragma endregion Global Store
-
-		public:
-		Audio(audio_t *audio);
-		Audio(obs::audio audio);
-
-#pragma region IPC Methods
-
-#pragma endregion IPC Methods
-
-		private:
-		obs::audio handle;
-
-
 	};
 }
