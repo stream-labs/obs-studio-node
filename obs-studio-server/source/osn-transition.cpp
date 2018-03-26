@@ -34,7 +34,7 @@ void osn::Transition::Register(IPC::Server& srv) {
 	cls->RegisterFunction(std::make_shared<IPC::Function>("GetActiveSource", std::vector<IPC::Type>{IPC::Type::UInt64}, GetActiveSource));
 	cls->RegisterFunction(std::make_shared<IPC::Function>("Clear", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::UInt64}, Clear));
 	cls->RegisterFunction(std::make_shared<IPC::Function>("Set", std::vector<IPC::Type>{IPC::Type::UInt64}, Set));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("Start", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::UInt64, IPC::Type::UInt64}, Start));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("Start", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::UInt32, IPC::Type::UInt64}, Start));
 	srv.RegisterClass(cls);
 }
 
@@ -217,7 +217,7 @@ void osn::Transition::Start(void* data, const int64_t id, const std::vector<IPC:
 		return;
 	}
 
-	uint64_t ms = args[1].value.ui64;
+	uint32_t ms = args[1].value.ui32;
 
 	bool result = obs_transition_start(transition, OBS_TRANSITION_MODE_AUTO, ms, source);
 
