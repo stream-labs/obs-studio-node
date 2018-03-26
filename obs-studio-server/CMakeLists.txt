@@ -36,6 +36,7 @@ INCLUDE("${libobs_SOURCE_DIR}/cmake/LibObs/LibObsConfig.cmake")
 # Source, Libraries & Directories
 #############################
 SET(PROJECT_SOURCE
+	###### OBS-STUDIO-NODE ######
 	"${CMAKE_SOURCE_DIR}/source/error.hpp"
 	"${PROJECT_SOURCE_DIR}/source/main.cpp"
 	"${PROJECT_SOURCE_DIR}/source/shared.cpp" "${PROJECT_SOURCE_DIR}/source/shared.hpp"
@@ -59,6 +60,18 @@ SET(PROJECT_SOURCE
 	"${PROJECT_SOURCE_DIR}/source/osn-source.cpp" "${PROJECT_SOURCE_DIR}/source/osn-source.hpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-transition.cpp" "${PROJECT_SOURCE_DIR}/source/osn-transition.hpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-video.cpp" "${PROJECT_SOURCE_DIR}/source/osn-video.hpp"
+
+	###### NODE-OBS ######
+	###### "${PROJECT_SOURCE_DIR}/source/nodeobs_api.cpp" "${PROJECT_SOURCE_DIR}/source/nodeobs_api.h"
+	###### "${PROJECT_SOURCE_DIR}/source/nodeobs_audio_encoders.cpp" "${PROJECT_SOURCE_DIR}/source/nodeobs_audio_encoders.h"
+	###### "${PROJECT_SOURCE_DIR}/source/nodeobs_autoconfig.cpp" "${PROJECT_SOURCE_DIR}/source/nodeobs_autoconfig.h"
+	###### "${PROJECT_SOURCE_DIR}/source/nodeobs_common.cpp"
+	###### "${PROJECT_SOURCE_DIR}/source/nodeobs_content.h" "${PROJECT_SOURCE_DIR}/source/nodeobs_async.h"
+	###### "${PROJECT_SOURCE_DIR}/source/nodeobs_display.cpp" "${PROJECT_SOURCE_DIR}/source/nodeobs_display.h"
+	###### "${PROJECT_SOURCE_DIR}/source/nodeobs_module.cpp" "${PROJECT_SOURCE_DIR}/source/nodeobs_module.h"
+	###### "${PROJECT_SOURCE_DIR}/source/nodeobs_service.cpp" "${PROJECT_SOURCE_DIR}/source/nodeobs_service.h"
+	###### "${PROJECT_SOURCE_DIR}/source/nodeobs_settings.cpp" "${PROJECT_SOURCE_DIR}/source/nodeobs_settings.h"
+	###### "${PROJECT_SOURCE_DIR}/source/util-memory.cpp" "${PROJECT_SOURCE_DIR}/source/util-memory.h"
 )
 SET(PROJECT_LIBRARIES
 	lib-streamlabs-ipc
