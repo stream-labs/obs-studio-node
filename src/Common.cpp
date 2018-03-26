@@ -162,6 +162,16 @@ v8::Local<v8::Value> ToValue(std::string value)
 { return Nan::New<v8::String>(value.c_str()).ToLocalChecked(); }
 
 template <>
+v8::Local<v8::Value> ToValue<char *>(char *value)
+{
+    if (!value) {
+        value = "";
+    }
+
+    return Nan::New<v8::String>(value).ToLocalChecked(); 
+}
+
+template <>
 v8::Local<v8::Value> ToValue<char const*>(char const *value)
 { 
     if (!value) {

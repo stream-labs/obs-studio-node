@@ -31,7 +31,7 @@ public:
 
     struct SignalData {
         void *param;
-        obs_output_t *output;
+        char *output_name;
         int code;
     };
 

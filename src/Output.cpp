@@ -179,15 +179,14 @@ static void SignalCallback(Output *output, Output::SignalData *item) {
     }
 
     v8::Local<v8::Value> args[] = {
-        common::ToValue(obs_output_get_name(item->output)),
+        common::ToValue(item->output_name),
         common::ToValue(item->code)
     };
 
-    delete item;
-
     cb_binding->cb.Call(2, args);
 
-    obs_output_release(item->output);
+    bfree(item->output_name);
+    delete item;
 }
 
 void handle_generic_signal(void* param, calldata_t* cd)
@@ -196,13 +195,11 @@ void handle_generic_signal(void* param, calldata_t* cd)
         static_cast<OutputSignalCallback*>(param);
 
     Output::SignalData *data = new Output::SignalData;
-    data->output = (obs_output_t*)calldata_ptr(cd, "output");
+    obs_output_t *output = (obs_output_t*)calldata_ptr(cd, "output");
+    
+    data->output_name = bstrdup(obs_output_get_name(output));
     data->param  = param;
     data->code   = 0;
-
-    /* We need to make sure the output is valid until
-     * the javascript callback is made */
-    obs_output_addref(data->output);
 
     cb_binding->queue.send(data);
 }
@@ -213,11 +210,11 @@ void handle_stop_signal(void *param, calldata_t* cd)
         static_cast<OutputSignalCallback*>(param);
 
     Output::SignalData *data = new Output::SignalData;
-    data->output = (obs_output_t*)calldata_ptr(cd, "output");
+    obs_output_t *output = (obs_output_t*)calldata_ptr(cd, "output");
+
+    data->output_name = bstrdup(obs_output_get_name(output));
     data->code = calldata_int(cd, "code");
     data->param = param;
-
-    obs_output_addref(data->output);
 
     cb_binding->queue.send(data);
 }
