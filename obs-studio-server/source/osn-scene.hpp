@@ -16,3 +16,11 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
 
 #pragma once
+#include "osn-source.hpp"
+
+namespace osn {
+	class Scene : Source {
+		public:
+		static void Register(IPC::Server&);
+	};
+}
