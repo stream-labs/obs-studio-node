@@ -1,5 +1,4 @@
 #include "nodeobs_api.h"
-#include "util/platform.h"
 #include "util/lexer.h"
 
 #ifdef _WIN32
@@ -7,11 +6,7 @@
 
 #include "nodeobs_content.h"
 #include <mutex>
-#include <fstream>
-#include <locale>
-#include <codecvt>
 #include <string>
-// #include <windows.h>
 #include <ShlObj.h>
 #endif
 
@@ -20,15 +15,8 @@
 #define getcwd _getcwd
 #endif
 
-#include <util/windows/win-version.h>
-#include <util/platform.h>
-
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <shellapi.h>
-#include <shlobj.h>
-#include <Dwmapi.h>
-#include <psapi.h>
+
 #include <mmdeviceapi.h>
 #include <audiopolicy.h>
 
@@ -49,6 +37,22 @@ bool useOBS_configFiles = false;
 bool isOBS_installedValue;
 
 std::string g_moduleDirectory = "";
+
+// TODO : Rename RegisterClass function
+#undef RegisterClass;
+
+void OBS_API::Register(IPC::Server& srv) {
+	std::shared_ptr<IPC::Class> cls = std::make_shared<IPC::Class>("API");
+
+	cls->RegisterFunction(std::make_shared<IPC::Function>("OBS_API_initAPI", std::vector<IPC::Type>{IPC::Type::String}, OBS_API_initAPI));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("OBS_API_destroyOBS_API", std::vector<IPC::Type>{}, OBS_API_destroyOBS_API));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("OBS_API_getPerformanceStatistics", std::vector<IPC::Type>{}, OBS_API_getPerformanceStatistics));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("OBS_API_getOBS_existingProfiles", std::vector<IPC::Type>{}, OBS_API_getOBS_existingProfiles));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("OBS_API_getOBS_existingSceneCollections", std::vector<IPC::Type>{}, OBS_API_getOBS_existingSceneCollections));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("OBS_API_isOBS_installed", std::vector<IPC::Type>{}, OBS_API_isOBS_installed));
+
+	srv.RegisterClass(cls);
+}
 
 void replaceAll(std::string &str, const std::string &from,
 	const std::string &to)

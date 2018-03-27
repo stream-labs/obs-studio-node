@@ -1,6 +1,4 @@
 #pragma once
-#include <node.h>
-#include <node.h>
 #include <obs.h>
 #include <string>
 #include <iostream>
@@ -13,7 +11,6 @@
 #include "nodeobs_audio_encoders.h"
 
 using namespace std;
-using namespace v8;
 
 class OBS_settings
 {
