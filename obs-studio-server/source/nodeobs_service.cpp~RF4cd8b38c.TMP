@@ -21,7 +21,7 @@ bool recordingConfigured = false;
 bool ffmpegOutput = false;
 bool lowCPUx264 = false;
 
-// Nan::Callback *JS_OutputSignalCallback;
+Nan::Callback *JS_OutputSignalCallback;
 
 OBS_service::OBS_service()
 {
@@ -42,97 +42,108 @@ void OBS_service::OBS_service_resetVideoContext(void* data, const int64_t id, co
 	resetVideoContext(NULL);
 }
 
-void OBS_service::OBS_service_createAudioEncoder(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_createAudioEncoder(const FunctionCallbackInfo<Value>& args)
 {
 	createAudioEncoder(NULL);
 }
 
-void OBS_service::OBS_service_createVideoStreamingEncoder(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_createVideoStreamingEncoder(const FunctionCallbackInfo<Value>& args)
 {
 	createVideoStreamingEncoder();
 }
 
-void OBS_service::OBS_service_createVideoRecordingEncoder(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_createVideoRecordingEncoder(const FunctionCallbackInfo<Value>& args)
 {
 	createVideoRecordingEncoder();
 }
 
-void OBS_service::OBS_service_createService(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_createService(const FunctionCallbackInfo<Value>& args)
 {
 	createService();
 }	
 
-void OBS_service::OBS_service_createRecordingSettings(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_createRecordingSettings(const FunctionCallbackInfo<Value>& args)
 {
 	createRecordingSettings();
 }
 
-void OBS_service::OBS_service_createStreamingOutput(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_createStreamingOutput(const FunctionCallbackInfo<Value>& args)
 {
 	createStreamingOutput();
 }	
 
-void OBS_service::OBS_service_createRecordingOutput(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_createRecordingOutput(const FunctionCallbackInfo<Value>& args)
 {
 	createRecordingOutput();
 }	
 
-void OBS_service::OBS_service_startStreaming(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_startStreaming(const FunctionCallbackInfo<Value>& args)
 {
 	startStreaming();
 }
 
-void OBS_service::OBS_service_startRecording(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_startRecording(const FunctionCallbackInfo<Value>& args)
 {
 	startRecording();
 }
 
-void OBS_service::OBS_service_stopStreaming(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_stopStreaming(const FunctionCallbackInfo<Value>& args)
 {
-	/*if (args[0]->IsUndefined() && !args[0]->IsBoolean()) {
+	Isolate *isolate = args.GetIsolate();
+
+	if (args[0]->IsUndefined() && !args[0]->IsBoolean()) {
 		isolate->ThrowException(
 			v8::Exception::SyntaxError(
 				v8::String::NewFromUtf8(isolate, "{forceStop} is not a <boolean>!")
 			)
 		);
 		return;
-	}*/
-	stopStreaming((bool)args[0].value.ui32);
+	}
+	stopStreaming(args[0]->BooleanValue());
 }
 
-void OBS_service::OBS_service_stopRecording(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_stopRecording(const FunctionCallbackInfo<Value>& args)
 {
 	stopRecording();
 }
 
-void OBS_service::OBS_service_associateAudioAndVideoToTheCurrentStreamingContext(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_associateAudioAndVideoToTheCurrentStreamingContext(const FunctionCallbackInfo<Value>& args)
 {
     associateAudioAndVideoToTheCurrentStreamingContext();
 }
 
-void OBS_service::OBS_service_associateAudioAndVideoToTheCurrentRecordingContext(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_associateAudioAndVideoToTheCurrentRecordingContext(const FunctionCallbackInfo<Value>& args)
 {
     associateAudioAndVideoToTheCurrentRecordingContext();
 }
 
-void OBS_service::OBS_service_associateAudioAndVideoEncodersToTheCurrentStreamingOutput(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_associateAudioAndVideoEncodersToTheCurrentStreamingOutput(const FunctionCallbackInfo<Value>& args)
 {
     associateAudioAndVideoEncodersToTheCurrentStreamingOutput();
 }
 
-void OBS_service::OBS_service_associateAudioAndVideoEncodersToTheCurrentRecordingOutput(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_associateAudioAndVideoEncodersToTheCurrentRecordingOutput(const FunctionCallbackInfo<Value>& args)
 {
     associateAudioAndVideoEncodersToTheCurrentRecordingOutput();
 }
 
-void OBS_service::OBS_service_setServiceToTheStreamingOutput(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_setServiceToTheStreamingOutput(const FunctionCallbackInfo<Value>& args)
 {
     setServiceToTheStreamingOutput();
 }
 
-void OBS_service::OBS_service_setRecordingSettings(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_setRecordingSettings(const FunctionCallbackInfo<Value>& args)
 {
     setRecordingSettings();
+}
+
+void OBS_service::OBS_service_isStreamingOutputActive(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = args.GetIsolate();
+
+    int isActive = isStreamingOutputActive();
+
+    args.GetReturnValue().Set(String::NewFromUtf8(isolate, to_string(isActive).c_str()));
 }
 
 void LoadAudioDevice(const char *name, int channel, obs_data_t *parent)
@@ -1690,7 +1701,7 @@ void OBS_service::updateRecordSettings(void)
 std::vector<SignalInfo> streamingSignals;
 std::vector<SignalInfo> recordingSignals;
 
-/*void OBS_service::OBS_service_connectOutputSignals(const FunctionCallbackInfo<Value>& args)
+void OBS_service::OBS_service_connectOutputSignals(const FunctionCallbackInfo<Value>& args)
 {
 	v8::Local<v8::Object> function = args[0]->ToObject();
 	JS_OutputSignalCallback = new Nan::Callback(function.As<v8::Function>());
@@ -1739,7 +1750,7 @@ void OBS_service::JSCallbackOutputSignal(void *data, calldata_t *params)
 
 	Worker *worker = new Worker(JS_OutputSignalCallback, signal);
 	worker->Send();
-}*/
+}
 
 void OBS_service::connectOutputSignals(void)
 {

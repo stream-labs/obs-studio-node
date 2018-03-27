@@ -12,6 +12,7 @@
 #include "nodeobs_api.h"
 #include <map>
 #include <mutex>
+#include <ipc-server.hpp>
 
 #include "nodeobs_audio_encoders.h"
 
@@ -163,7 +164,6 @@ public:
 	static void OBS_service_associateAudioAndVideoEncodersToTheCurrentRecordingOutput(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
 	static void OBS_service_setServiceToTheStreamingOutput(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
 	static void OBS_service_setRecordingSettings(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
-	static void OBS_service_isStreamingOutputActive(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
 	static void OBS_service_connectOutputSignals(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
 
 private:
