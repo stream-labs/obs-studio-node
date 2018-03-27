@@ -26,6 +26,14 @@
 #include <memory>
 #include <obs.h>
 
+osn::Source::SingletonObjectManager::SingletonObjectManager() {
+
+}
+
+osn::Source::SingletonObjectManager::~SingletonObjectManager() {
+
+}
+
 static osn::Source::SingletonObjectManager *somInstance;
 
 bool osn::Source::Initialize() {
@@ -46,7 +54,6 @@ bool osn::Source::Finalize() {
 
 osn::Source::SingletonObjectManager* osn::Source::GetInstance() {
 	return somInstance;
-
 }
 
 void osn::Source::Register(IPC::Server& srv) {
@@ -67,8 +74,10 @@ void osn::Source::Register(IPC::Server& srv) {
 	cls->RegisterFunction(std::make_shared<IPC::Function>("SetFlags", std::vector<IPC::Type>{IPC::Type::UInt64}, SetFlags));
 	cls->RegisterFunction(std::make_shared<IPC::Function>("GetStatus", std::vector<IPC::Type>{IPC::Type::UInt64}, GetStatus));
 	cls->RegisterFunction(std::make_shared<IPC::Function>("GetId", std::vector<IPC::Type>{IPC::Type::UInt64}, GetId));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("Muted", std::vector<IPC::Type>{IPC::Type::UInt64}, Muted));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("Enabled", std::vector<IPC::Type>{IPC::Type::UInt64}, Enabled));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("GetMuted", std::vector<IPC::Type>{IPC::Type::UInt64}, GetMuted));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("SetMuted", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::Int32}, SetMuted));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("GetEnabled", std::vector<IPC::Type>{IPC::Type::UInt64}, GetEnabled));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("SetEnabled", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::Int32}, SetEnabled));
 	srv.RegisterClass(cls);
 }
 
@@ -352,7 +361,7 @@ void osn::Source::GetId(void* data, const int64_t id, const std::vector<IPC::Val
 	return;
 }
 
-void osn::Source::Muted(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void osn::Source::GetMuted(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value.ui64);
 	if (src == nullptr) {
@@ -366,7 +375,23 @@ void osn::Source::Muted(void* data, const int64_t id, const std::vector<IPC::Val
 	return;
 }
 
-void osn::Source::Enabled(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void osn::Source::SetMuted(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+	// Attempt to find the source asked to load.
+	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	if (src == nullptr) {
+		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(IPC::Value("Source reference is not valid."));
+		return;
+	}
+
+	obs_source_set_muted(src, !!args[1].value.i32);
+
+	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+	rval.push_back(IPC::Value(obs_source_muted(src)));
+	return;
+}
+
+void osn::Source::GetEnabled(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value.ui64);
 	if (src == nullptr) {
@@ -377,13 +402,21 @@ void osn::Source::Enabled(void* data, const int64_t id, const std::vector<IPC::V
 
 	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
 	rval.push_back(IPC::Value(obs_source_enabled(src)));
-	return;	
+	return;
 }
 
-osn::Source::SingletonObjectManager::SingletonObjectManager() {
+void osn::Source::SetEnabled(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+	// Attempt to find the source asked to load.
+	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	if (src == nullptr) {
+		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(IPC::Value("Source reference is not valid."));
+		return;
+	}
 
-}
+	obs_source_set_enabled(src, !!args[1].value.i32);
 
-osn::Source::SingletonObjectManager::~SingletonObjectManager() {
-
+	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+	rval.push_back(IPC::Value(obs_source_enabled(src)));
+	return;
 }
