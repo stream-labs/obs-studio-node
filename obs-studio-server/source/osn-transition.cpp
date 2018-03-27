@@ -32,7 +32,7 @@ void osn::Transition::Register(IPC::Server& srv) {
 	cls->RegisterFunction(std::make_shared<IPC::Function>("CreatePrivate", std::vector<IPC::Type>{IPC::Type::String, IPC::Type::String, IPC::Type::String}, CreatePrivate));
 	cls->RegisterFunction(std::make_shared<IPC::Function>("FromName", std::vector<IPC::Type>{IPC::Type::UInt64}, FromName));
 	cls->RegisterFunction(std::make_shared<IPC::Function>("GetActiveSource", std::vector<IPC::Type>{IPC::Type::UInt64}, GetActiveSource));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("Clear", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::UInt64}, Clear));
+	cls->RegisterFunction(std::make_shared<IPC::Function>("Clear", std::vector<IPC::Type>{IPC::Type::UInt64}, Clear));
 	cls->RegisterFunction(std::make_shared<IPC::Function>("Set", std::vector<IPC::Type>{IPC::Type::UInt64}, Set));
 	cls->RegisterFunction(std::make_shared<IPC::Function>("Start", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::UInt32, IPC::Type::UInt64}, Start));
 	srv.RegisterClass(cls);
