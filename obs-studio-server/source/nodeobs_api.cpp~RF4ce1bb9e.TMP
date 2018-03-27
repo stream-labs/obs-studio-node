@@ -1,4 +1,5 @@
 #include "nodeobs_api.h"
+#include "nodeobs_module.h"
 #include "util/platform.h"
 #include "util/lexer.h"
 
@@ -47,31 +48,6 @@ std::string OBS_currentProfile;
 std::string OBS_currentSceneCollection;
 bool useOBS_configFiles = false;
 bool isOBS_installedValue;
-
-std::string g_moduleDirectory = "";
-
-void replaceAll(std::string &str, const std::string &from,
-	const std::string &to)
-{
-	if (from.empty())
-		return;
-	size_t start_pos = 0;
-	while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
-		str.replace(start_pos, from.length(), to);
-		start_pos +=
-			to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
-	}
-};
-
-void OBS_API::SetWorkingDirectory(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
-{
-	g_moduleDirectory = args[0].value_str;
-	replaceAll(g_moduleDirectory, "\\", "/");
-}
-
-std::string	OBS_API::getModuleDirectory(void) {
-	return g_moduleDirectory;
-}
 
 /* FIXME Platform specific and uses ASCII functions */
 static bool dirExists(const std::string& path)
@@ -484,7 +460,7 @@ void OBS_API::OBS_API_getPerformanceStatistics(void* data, const int64_t id, con
 	rval.push_back(IPC::Value((double)getCurrentFrameRate()));
 }
 
-void OBS_API::OBS_API_getOBS_existingProfiles(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+static void OBS_API_getOBS_existingProfiles(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
 	std::string pathProfiles;
 	pathProfiles += OBS_pathConfigDirectory;
 	pathProfiles += "\\basic\\profiles\\";
@@ -496,7 +472,7 @@ void OBS_API::OBS_API_getOBS_existingProfiles(void* data, const int64_t id, cons
 	}
 }
 
-void OBS_API::OBS_API_getOBS_existingSceneCollections(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+static void OBS_API_getOBS_existingSceneCollections(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
 	std::string pathSceneCollections;
 	pathSceneCollections += OBS_pathConfigDirectory;
 	pathSceneCollections += "\\basic\\scenes\\";
@@ -879,7 +855,7 @@ void OBS_API::setPathConfigDirectory(std::string newPathConfigDirectory)
 	} 
 }
 
-std::vector<std::string> OBS_API::exploreDirectory(std::string directory, std::string typeToReturn) 
+std::vector<std::string> exploreDirectory(std::string directory, std::string typeToReturn) 
 {
 	std::vector<std::string> listElements;
 

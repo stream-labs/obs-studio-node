@@ -247,5 +247,5 @@ public:
 
 	// Output signals
 	static void connectOutputSignals(void);
-	static void JSCallbackOutputSignal(void *data, calldata_t *);
+	// static void JSCallbackOutputSignal(void *data, calldata_t *);
 };
