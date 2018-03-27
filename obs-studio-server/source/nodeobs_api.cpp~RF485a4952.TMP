@@ -452,6 +452,14 @@ void OBS_API::OBS_API_destroyOBS_API(void* data, const int64_t id, const std::ve
 	destroyOBS_API();
 }
 
+/*void OBS_API::OBS_API_getPerformanceStatistics(const FunctionCallbackInfo<Value>& args) {
+	Isolate* isolate = args.GetIsolate();
+
+	Local<Object> statistics = getPerformanceStatistics();
+
+	args.GetReturnValue().Set(statistics);	
+}*/
+
 void OBS_API::OBS_API_getPerformanceStatistics(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
 	rval.push_back(IPC::Value((double)getCPU_Percentage()));
 	rval.push_back(IPC::Value((int)getNumberOfDroppedFrames()));
@@ -484,13 +492,17 @@ static void OBS_API_getOBS_existingSceneCollections(void* data, const int64_t id
 	for (int i = 0; i<files.size(); i++) {
 		if (files.at(i).substr(files.at(i).find_last_of(".") + 1) == "json") {
 			files.at(i).erase(files.at(i).end() - 5, files.at(i).end());
-			rval.push_back(IPC::Value(files.at(i).c_str()));
+			listExistingSceneCollections->Set(indexArray++, String::NewFromUtf8(isolate, files.at(i).c_str()));
+			rval.push_back(IPC::Value(vectorExistingProfiles.at(i).c_str()));
 		}
 	}
 }
 
-void OBS_API::OBS_API_isOBS_installed(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	rval.push_back(IPC::Value((bool)isOBS_installed()));
+void OBS_API::OBS_API_isOBS_installed(const FunctionCallbackInfo<Value>& args)
+{
+	Isolate* isolate = args.GetIsolate();
+
+	args.GetReturnValue().Set(Integer::New(isolate, isOBS_installed()));
 }
 
 void OBS_API::SetProcessPriority(const char *priority)

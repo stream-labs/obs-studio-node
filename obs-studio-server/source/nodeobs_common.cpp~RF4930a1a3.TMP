@@ -782,13 +782,15 @@ void OBS_content::OBS_content_setResizeBoxInnerColor(void* data, const int64_t i
 
 void OBS_content::OBS_content_setShouldDrawUI(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
 {
+	Isolate *isolate = args.GetIsolate();
+
 	const char *usage_string = 
 		"Usage: OBS_content_setShouldDrawUI"
 		"(displayKey<string>, value<boolean>)";
 
 	// Validate Arguments
 	/// Amount
-	/*switch (args.Length()) {
+	switch (args.Length()) {
 	case 0:
 		isolate->ThrowException(
 		      v8::Exception::SyntaxError(
@@ -821,25 +823,30 @@ void OBS_content::OBS_content_setShouldDrawUI(void* data, const int64_t id, cons
 		      )
 		);
 		return;
-	}*/
+	}
 
 	// Find Display
-	std::string* key = new std::string(args[0].value_str);
+	v8::String::Utf8Value key(args[0]->ToString());
 	auto it = displays.find(*key);
 	if (it == displays.end()) {
-		/*isolate->ThrowException(
+		isolate->ThrowException(
 		      v8::Exception::SyntaxError(
 		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 		      )
-		);*/
+		);
 		return;
 	}
 
-	it->second->SetDrawUI((bool)args[1].value.i64);
+	it->second->SetDrawUI(args[1]->BooleanValue());
 }
 
-void OBS_content::OBS_content_getDisplayPreviewOffset(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	std::string* key = new std::string(args[0].value_str);
+void OBS_content::OBS_content_getDisplayPreviewOffset(const
+                                                      FunctionCallbackInfo<Value> &args)
+{
+	Isolate *isolate = args.GetIsolate();
+	v8::EscapableHandleScope handle(isolate);
+
+	v8::String::Utf8Value key(args[0]);
 
 	auto value = displays.find(*key);
 	if (value == displays.end()) {
@@ -851,12 +858,22 @@ void OBS_content::OBS_content_getDisplayPreviewOffset(void* data, const int64_t 
 
 	auto offset = display->GetPreviewOffset();
 
-	rval.push_back(IPC::Value((int32_t)offset.first));
-	rval.push_back(IPC::Value((int32_t)offset.second));
+	v8::Local<v8::Object> object = v8::Object::New(isolate);
+	object->Set(v8::String::NewFromUtf8(isolate, "x"), v8::Int32::New(isolate,
+	                                                                  offset.first));
+	object->Set(v8::String::NewFromUtf8(isolate, "y"), v8::Int32::New(isolate,
+	                                                                  offset.second));
+
+	args.GetReturnValue().Set(handle.Escape(object));
 }
 
-void OBS_content::OBS_content_getDisplayPreviewSize(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	std::string* key = new std::string(args[0].value_str);
+void OBS_content::OBS_content_getDisplayPreviewSize(const
+                                                    FunctionCallbackInfo<Value> &args)
+{
+	Isolate *isolate = args.GetIsolate();
+	v8::EscapableHandleScope handle(isolate);
+
+	v8::String::Utf8Value key(args[0]);
 
 	auto value = displays.find(*key);
 	if (value == displays.end()) {
@@ -868,12 +885,19 @@ void OBS_content::OBS_content_getDisplayPreviewSize(void* data, const int64_t id
 
 	auto size = display->GetPreviewSize();
 
-	rval.push_back(IPC::Value((int32_t)size.first));
-	rval.push_back(IPC::Value((int32_t)size.second));
+	v8::Local<v8::Object> object = v8::Object::New(isolate);
+	object->Set(v8::String::NewFromUtf8(isolate, "width"), v8::Int32::New(isolate,
+	                                                                      size.first));
+	object->Set(v8::String::NewFromUtf8(isolate, "height"), v8::Int32::New(isolate,
+	                                                                       size.second));
+
+	args.GetReturnValue().Set(handle.Escape(object));
 }
 
 /* Deprecated */
-void OBS_content::OBS_content_selectSource(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void OBS_content::OBS_content_selectSource(const FunctionCallbackInfo<Value>
+                                           &args)
+{
 	/* Here we assume that channel 0 holds the one and only transition.
 	 * We also assume that the active source within that transition is
 	 * the scene that we need */
@@ -883,8 +907,8 @@ void OBS_content::OBS_content_selectSource(void* data, const int64_t id, const s
 
 	obs_source_release(transition);
 
-	int x = args[0].value.i64;
-	int y = args[1].value.i64;
+	int x = args[0]->NumberValue();
+	int y = args[1]->NumberValue();
 
 	auto function = [] (obs_scene_t *, obs_sceneitem_t *item,
 	void *listSceneItems) {
@@ -947,20 +971,25 @@ bool selectItems(obs_scene_t *scene, obs_sceneitem_t *item, void *param)
 }
 
 /* Deprecated */
-void OBS_content::OBS_content_selectSources(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_content::OBS_content_selectSources(const FunctionCallbackInfo<Value> &args)
 {
+	v8::Local<v8::Array> sources = v8::Local<v8::Array>::Cast(args[0]);
+
 	obs_source_t *transition = obs_get_output_source(0);
 	obs_source_t *source = obs_transition_get_active_source(transition);
 	obs_scene_t *scene = obs_scene_from_source(source);
 
 	obs_source_release(transition);
-	
-	uint16_t size = args[0].value.ui32;
-	std::vector<std::string> tabSources;
-	
+
+	vector<std::string> tabSources;
+
 	{
-		for (int i = 0; i < size; i++) {
-			tabSources.push_back(args[i + 1].value_str);
+		for(int i = 0; i < sources->Length(); i++) {
+			v8::Local<v8::Object> object = v8::Local<v8::Object>::Cast(sources->Get(i));
+			v8::String::Utf8Value value(object->Get(Nan::New("name").ToLocalChecked()));
+			std::string sourceName = std::string(*value);
+
+			tabSources.push_back(sourceName);
 		}
 
 		if (scene)
@@ -970,10 +999,10 @@ void OBS_content::OBS_content_selectSources(void* data, const int64_t id, const 
 	obs_source_release(source);
 }
 
-void OBS_content::OBS_content_dragSelectedSource(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_content::OBS_content_dragSelectedSource(const FunctionCallbackInfo<Value> &args)
 {
-	int x = args[0].value.i32;
-	int y = args[1].value.i32;
+	int x = args[0]->NumberValue();
+	int y = args[1]->NumberValue();
 
 	if(sourceSelected.compare("") ==0)
 		return;
@@ -1001,15 +1030,17 @@ void OBS_content::OBS_content_dragSelectedSource(void* data, const int64_t id, c
 	obs_source_release(source);
 }
 
-void OBS_content::OBS_content_getDrawGuideLines(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_content::OBS_content_getDrawGuideLines(const
+                                                FunctionCallbackInfo<Value> &args)
 {
+	Isolate *isolate = args.GetIsolate();
 
 	const char *usage_string =
 		"Usage: OBS_content_getDrawGuideLines(displayKey<string>)";
 
 	// Validate Arguments
 	/// Amount
-	/*switch (args.Length()) {
+	switch (args.Length()) {
 	case 0:
 		isolate->ThrowException(
 		      v8::Exception::SyntaxError(
@@ -1027,32 +1058,35 @@ void OBS_content::OBS_content_getDrawGuideLines(void* data, const int64_t id, co
 		      )
 		);
 		return;
-	}*/
+	}
 
 	// Find Display
-	std::string* key = new std::string(args[0].value_str);
+	v8::String::Utf8Value key(args[0]->ToString());
 	auto it = displays.find(*key);
 	if (it == displays.end()) {
-		/*isolate->ThrowException(
+		isolate->ThrowException(
 		      v8::Exception::SyntaxError(
 		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 		      )
-		);*/
+		);
 		return;
 	}
 
-	rval.push_back((bool)it->second->GetDrawGuideLines());
+	args.GetReturnValue().Set(
+		Boolean::New(isolate, it->second->GetDrawGuideLines()));
 }
 
-void OBS_content::OBS_content_setDrawGuideLines(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_content::OBS_content_setDrawGuideLines(const FunctionCallbackInfo<Value> &args)
 {
+	Isolate *isolate = args.GetIsolate();
+
 	const char *usage_string =
 		"Usage: OBS_content_getDrawGuideLines"
 		"(displayKey<string>, drawGuideLines<boolean>)";
 
 	// Validate Arguments
 	/// Amount
-	/*switch (args.Length()) {
+	switch (args.Length()) {
 	case 0:
 	case 1:
 		isolate->ThrowException(
@@ -1080,20 +1114,20 @@ void OBS_content::OBS_content_setDrawGuideLines(void* data, const int64_t id, co
 		      )
 		);
 		return;
-	}*/
+	}
 
 	// Find Display
-	std::string* key = new std::string(args[0].value_str);
+	v8::String::Utf8Value key(args[0]->ToString());
 	auto it = displays.find(*key);
 	if (it == displays.end()) {
-		/*isolate->ThrowException(
+		isolate->ThrowException(
 		      v8::Exception::SyntaxError(
 		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 		      )
-		);*/
+		);
 
 		return;
 	}
 
-	it->second->SetDrawGuideLines((bool)args[1].value.i32);
+	it->second->SetDrawGuideLines(args[1]->BooleanValue());
 }

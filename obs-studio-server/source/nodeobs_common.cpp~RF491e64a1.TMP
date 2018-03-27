@@ -162,8 +162,8 @@ void OBS_content::OBS_content_resizeDisplay(void* data, const int64_t id, const 
 
 	OBS::Display *display = value->second;
 
-	int width = args[1].value.ui32;
-	int height = args[2].value.ui32;
+	int width = args[1].value.i64;
+	int height = args[2].value.i64;
 
 	display->SetSize(width, height);
 }
@@ -179,29 +179,33 @@ void OBS_content::OBS_content_moveDisplay(void* data, const int64_t id, const st
 
 	OBS::Display *display = value->second;
 
-	int x = args[1].value.ui32;
+	int x = args[2].value.i64;
 	int y = args[2].value.ui32;
 
 	display->SetPosition(x, y);
 }
 
-void OBS_content::OBS_content_setPaddingSize(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void OBS_content::OBS_content_setPaddingSize(const FunctionCallbackInfo<Value>
+                                             &args)
+{
+	Isolate *isolate = args.GetIsolate();
+
 	// Validate Arguments
 	/// Amount
-	/*switch (args.size()) {
+	switch (args.Length()) {
 	case 0:
 		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate,
-					"Usage: OBS_content_setPaddingSize(displayKey<string>, size<number>)")
-			)
+		      v8::Exception::SyntaxError(
+		            v8::String::NewFromUtf8(isolate,
+		                                    "Usage: OBS_content_setPaddingSize(displayKey<string>, size<number>)")
+		      )
 		);
 		return;
 	case 1:
 		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "Not enough Parameters")
-			)
+		      v8::Exception::SyntaxError(
+		            v8::String::NewFromUtf8(isolate, "Not enough Parameters")
+		      )
 		);
 		return;
 	}
@@ -209,60 +213,63 @@ void OBS_content::OBS_content_setPaddingSize(void* data, const int64_t id, const
 	/// Types
 	if (args[0]->IsUndefined() && !args[0]->IsString()) {
 		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{displayKey} is not a <string>!")
-			)
+		      v8::Exception::SyntaxError(
+		            v8::String::NewFromUtf8(isolate, "{displayKey} is not a <string>!")
+		      )
 		);
 		return;
 	}
 	if (args[1]->IsUndefined() && !args[1]->IsNumber()) {
 		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{size} is not a <number>!")
-			)
+		      v8::Exception::SyntaxError(
+		            v8::String::NewFromUtf8(isolate, "{size} is not a <number>!")
+		      )
 		);
-		return;
-	}*/
-
-	// Find Display
-	std::string* key = new std::string(args[0].value_str);
-	auto it = displays.find(*key);
-	if (it == displays.end()) {
-		/*isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
-			)
-		);*/
 		return;
 	}
 
-	it->second->SetPaddingSize(args[1].value.ui32);
+	// Find Display
+	v8::String::Utf8Value key(args[0]->ToString());
+	auto it = displays.find(*key);
+	if (it == displays.end()) {
+		isolate->ThrowException(
+		      v8::Exception::SyntaxError(
+		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
+		      )
+		);
+		return;
+	}
+
+	it->second->SetPaddingSize(args[1]->Int32Value());
 	return;
 }
 
-void OBS_content::OBS_content_setPaddingColor(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void OBS_content::OBS_content_setPaddingColor(const
+                                              FunctionCallbackInfo<Value> &args)
+{
 	union {
 		uint32_t rgba;
 		uint8_t c[4];
 	} color;
+	Isolate *isolate = args.GetIsolate();
 
 	// Validate Arguments
 	/// Amount
-	/*switch (args.Length()) {
+	switch (args.Length()) {
 	case 0:
 		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate,
-					"Usage: OBS_content_setPaddingColor(displayKey<string>, red<number>{0.0, 255.0}, green<number>{0.0, 255.0}, blue<number>{0.0, 255.0}[, alpha<number>{0.0, 1.0}])")
-			)
+		      v8::Exception::SyntaxError(
+		            v8::String::NewFromUtf8(isolate,
+		                                    "Usage: OBS_content_setPaddingColor(displayKey<string>, red<number>{0.0, 255.0}, green<number>{0.0, 255.0}, blue<number>{0.0, 255.0}[, alpha<number>{0.0, 1.0}])")
+		      )
 		);
 		return;
 	case 1:
 	case 2:
 		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "Not enough Parameters")
-			)
+		      v8::Exception::SyntaxError(
+		            v8::String::NewFromUtf8(isolate, "Not enough Parameters")
+		      )
 		);
 		return;
 	}
@@ -270,56 +277,56 @@ void OBS_content::OBS_content_setPaddingColor(void* data, const int64_t id, cons
 	/// Types
 	if (args[0]->IsUndefined() && !args[0]->IsString()) {
 		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{displayKey} is not a <string>!")
-			)
+		      v8::Exception::SyntaxError(
+		            v8::String::NewFromUtf8(isolate, "{displayKey} is not a <string>!")
+		      )
 		);
 		return;
 	}
 	if (args[1]->IsUndefined() && !args[1]->IsNumber()) {
 		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{red} is not a <number>!")
-			)
+		      v8::Exception::SyntaxError(
+		            v8::String::NewFromUtf8(isolate, "{red} is not a <number>!")
+		      )
 		);
 		return;
 	}
 	if (args[2]->IsUndefined() && !args[2]->IsNumber()) {
 		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{green} is not a <number>!")
-			)
+		      v8::Exception::SyntaxError(
+		            v8::String::NewFromUtf8(isolate, "{green} is not a <number>!")
+		      )
 		);
 		return;
 	}
 	if (args[3]->IsUndefined() && !args[3]->IsNumber()) {
 		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{blue} is not a <number>!")
-			)
+		      v8::Exception::SyntaxError(
+		            v8::String::NewFromUtf8(isolate, "{blue} is not a <number>!")
+		      )
 		);
 		return;
-	}*/
+	}
 
 	// Assign Color
-	color.c[0] = (uint8_t)(args[1].value.ui32);
-	color.c[1] = (uint8_t)(args[2].value.ui32);
-	color.c[2] = (uint8_t)(args[3].value.ui32);
-	if (args[4].value.ui32 != NULL)
-		color.c[3] = (uint8_t)(args[4].value.ui32 * 255.0);
+	color.c[0] = (uint8_t)(args[1]->NumberValue());
+	color.c[1] = (uint8_t)(args[2]->NumberValue());
+	color.c[2] = (uint8_t)(args[3]->NumberValue());
+	if (!args[4]->IsUndefined() && args[4]->IsNumber())
+		color.c[3] = (uint8_t)(args[4]->NumberValue() * 255.0);
 
 	else
 		color.c[3] = 255;
 
 	// Find Display
-	std::string* key = new std::string(args[0].value_str);
+	v8::String::Utf8Value key(args[0]->ToString());
 	auto it = displays.find(*key);
 	if (it == displays.end()) {
-		/*isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
-			)
-		);*/
+		isolate->ThrowException(
+		      v8::Exception::SyntaxError(
+		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
+		      )
+		);
 		return;
 	}
 
@@ -327,29 +334,32 @@ void OBS_content::OBS_content_setPaddingColor(void* data, const int64_t id, cons
 	return;
 }
 
-void OBS_content::OBS_content_setBackgroundColor(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void OBS_content::OBS_content_setBackgroundColor(const
+                                                 FunctionCallbackInfo<Value> &args)
+{
 	union {
 		uint32_t rgba;
 		uint8_t c[4];
 	} color;
+	Isolate *isolate = args.GetIsolate();
 
 	// Validate Arguments
 	/// Amount
-	/*switch (args.Length()) {
+	switch (args.Length()) {
 	case 0:
 		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate,
-					"Usage: OBS_content_setBackgroundColor(displayKey<string>, red<number>{0.0, 255.0}, green<number>{0.0, 255.0}, blue<number>{0.0, 255.0}[, alpha<number>{0.0, 1.0}])")
-			)
+		      v8::Exception::SyntaxError(
+		            v8::String::NewFromUtf8(isolate,
+		                                    "Usage: OBS_content_setBackgroundColor(displayKey<string>, red<number>{0.0, 255.0}, green<number>{0.0, 255.0}, blue<number>{0.0, 255.0}[, alpha<number>{0.0, 1.0}])")
+		      )
 		);
 		return;
 	case 1:
 	case 2:
 		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "Not enough Parameters")
-			)
+		      v8::Exception::SyntaxError(
+		            v8::String::NewFromUtf8(isolate, "Not enough Parameters")
+		      )
 		);
 		return;
 	}
@@ -357,56 +367,56 @@ void OBS_content::OBS_content_setBackgroundColor(void* data, const int64_t id, c
 	/// Types
 	if (args[0]->IsUndefined() && !args[0]->IsString()) {
 		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{displayKey} is not a <string>!")
-			)
+		      v8::Exception::SyntaxError(
+		            v8::String::NewFromUtf8(isolate, "{displayKey} is not a <string>!")
+		      )
 		);
 		return;
 	}
 	if (args[1]->IsUndefined() && !args[1]->IsNumber()) {
 		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{red} is not a <number>!")
-			)
+		      v8::Exception::SyntaxError(
+		            v8::String::NewFromUtf8(isolate, "{red} is not a <number>!")
+		      )
 		);
 		return;
 	}
 	if (args[2]->IsUndefined() && !args[2]->IsNumber()) {
 		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{green} is not a <number>!")
-			)
+		      v8::Exception::SyntaxError(
+		            v8::String::NewFromUtf8(isolate, "{green} is not a <number>!")
+		      )
 		);
 		return;
 	}
 	if (args[3]->IsUndefined() && !args[3]->IsNumber()) {
 		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{blue} is not a <number>!")
-			)
+		      v8::Exception::SyntaxError(
+		            v8::String::NewFromUtf8(isolate, "{blue} is not a <number>!")
+		      )
 		);
 		return;
-	}*/
+	}
 
 	// Assign Color
-	color.c[0] = (uint8_t)(args[1].value.ui32);
-	color.c[1] = (uint8_t)(args[2].value.ui32);
-	color.c[2] = (uint8_t)(args[3].value.ui32);
-	if (args[4].value.ui32 != NULL)
-		color.c[3] = (uint8_t)(args[4].value.ui32 * 255.0);
+	color.c[0] = (uint8_t)(args[1]->NumberValue());
+	color.c[1] = (uint8_t)(args[2]->NumberValue());
+	color.c[2] = (uint8_t)(args[3]->NumberValue());
+	if (!args[4]->IsUndefined() && args[4]->IsNumber())
+		color.c[3] = (uint8_t)(args[4]->NumberValue() * 255.0);
 
 	else
 		color.c[3] = 255;
 
 	// Find Display
-	std::string* key = new std::string(args[0].value_str);
+	v8::String::Utf8Value key(args[0]->ToString());
 	auto it = displays.find(*key);
 	if (it == displays.end()) {
-		/*isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
-			)
-		);*/
+		isolate->ThrowException(
+		      v8::Exception::SyntaxError(
+		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
+		      )
+		);
 		return;
 	}
 
@@ -414,16 +424,18 @@ void OBS_content::OBS_content_setBackgroundColor(void* data, const int64_t id, c
 	return;
 }
 
-void OBS_content::OBS_content_setOutlineColor(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_content::OBS_content_setOutlineColor(const
+                                              FunctionCallbackInfo<Value> &args)
 {
 	union {
 		uint32_t rgba;
 		uint8_t c[4];
 	} color;
+	Isolate *isolate = args.GetIsolate();
 
 	// Validate Arguments
 	/// Amount
-	/*switch (args.Length()) {
+	switch (args.Length()) {
 	case 0:
 		isolate->ThrowException(
 		      v8::Exception::SyntaxError(
@@ -474,27 +486,27 @@ void OBS_content::OBS_content_setOutlineColor(void* data, const int64_t id, cons
 		      )
 		);
 		return;
-	}*/
+	}
 
 	// Assign Color
-	color.c[0] = (uint8_t)(args[1].value.ui32);
-	color.c[1] = (uint8_t)(args[2].value.ui32);
-	color.c[2] = (uint8_t)(args[3].value.ui32);
-	if (args[4].value.ui32 != NULL)
-		color.c[3] = (uint8_t)(args[4].value.ui32 * 255.0);
+	color.c[0] = (uint8_t)(args[1]->NumberValue());
+	color.c[1] = (uint8_t)(args[2]->NumberValue());
+	color.c[2] = (uint8_t)(args[3]->NumberValue());
+	if (!args[4]->IsUndefined() && args[4]->IsNumber())
+		color.c[3] = (uint8_t)(args[4]->NumberValue() * 255.0);
 
 	else
 		color.c[3] = 255;
 
 	// Find Display
-	std::string* key = new std::string(args[0].value_str);
+	v8::String::Utf8Value key(args[0]->ToString());
 	auto it = displays.find(*key);
 	if (it == displays.end()) {
-		/*isolate->ThrowException(
+		isolate->ThrowException(
 		      v8::Exception::SyntaxError(
 		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 		      )
-		);*/
+		);
 		return;
 	}
 
@@ -502,16 +514,18 @@ void OBS_content::OBS_content_setOutlineColor(void* data, const int64_t id, cons
 	return;
 }
 
-void OBS_content::OBS_content_setGuidelineColor(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_content::OBS_content_setGuidelineColor(const
+                                                FunctionCallbackInfo<Value> &args)
 {
 	union {
 		uint32_t rgba;
 		uint8_t c[4];
 	} color;
+	Isolate *isolate = args.GetIsolate();
 
 	// Validate Arguments
 	/// Amount
-	/*switch (args.Length()) {
+	switch (args.Length()) {
 	case 0:
 		isolate->ThrowException(
 		      v8::Exception::SyntaxError(
@@ -562,27 +576,27 @@ void OBS_content::OBS_content_setGuidelineColor(void* data, const int64_t id, co
 		      )
 		);
 		return;
-	}*/
+	}
 
 	// Assign Color
-	color.c[0] = (uint8_t)(args[1].value.ui32);
-	color.c[1] = (uint8_t)(args[2].value.ui32);
-	color.c[2] = (uint8_t)(args[3].value.ui32);
-	if (args[4].value.ui32 != NULL)
-		color.c[3] = (uint8_t)(args[4].value.ui32 * 255.0);
+	color.c[0] = (uint8_t)(args[1]->NumberValue());
+	color.c[1] = (uint8_t)(args[2]->NumberValue());
+	color.c[2] = (uint8_t)(args[3]->NumberValue());
+	if (!args[4]->IsUndefined() && args[4]->IsNumber())
+		color.c[3] = (uint8_t)(args[4]->NumberValue() * 255.0);
 
 	else
 		color.c[3] = 255;
 
 	// Find Display
-	std::string* key = new std::string(args[0].value_str);
+	v8::String::Utf8Value key(args[0]->ToString());
 	auto it = displays.find(*key);
 	if (it == displays.end()) {
-		/*isolate->ThrowException(
+		isolate->ThrowException(
 		      v8::Exception::SyntaxError(
 		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 		      )
-		);*/
+		);
 		return;
 	}
 
@@ -590,12 +604,14 @@ void OBS_content::OBS_content_setGuidelineColor(void* data, const int64_t id, co
 	return;
 }
 
-void OBS_content::OBS_content_setResizeBoxOuterColor(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_content::OBS_content_setResizeBoxOuterColor(const
+                                                     FunctionCallbackInfo<Value> &args)
 {
 	union {
 		uint32_t rgba;
 		uint8_t c[4];
 	} color;
+	Isolate *isolate = args.GetIsolate();
 
 	const char *usage_string =
 		"Usage: OBS_content_setResizeBoxOuterColor"
@@ -606,7 +622,7 @@ void OBS_content::OBS_content_setResizeBoxOuterColor(void* data, const int64_t i
 
 	// Validate Arguments
 	/// Amount
-	/*switch (args.Length()) {
+	switch (args.Length()) {
 	case 0:
 		isolate->ThrowException(
 		      v8::Exception::SyntaxError(
@@ -656,27 +672,27 @@ void OBS_content::OBS_content_setResizeBoxOuterColor(void* data, const int64_t i
 		      )
 		);
 		return;
-	}*/
+	}
 
 	// Assign Color
-	color.c[0] = (uint8_t)(args[1].value.ui32);
-	color.c[1] = (uint8_t)(args[2].value.ui32);
-	color.c[2] = (uint8_t)(args[3].value.ui32);
-	if (args[4].value.ui32 != NULL)
-		color.c[3] = (uint8_t)(args[4].value.ui32 * 255.0);
+	color.c[0] = (uint8_t)(args[1]->NumberValue());
+	color.c[1] = (uint8_t)(args[2]->NumberValue());
+	color.c[2] = (uint8_t)(args[3]->NumberValue());
+	if (!args[4]->IsUndefined() && args[4]->IsNumber())
+		color.c[3] = (uint8_t)(args[4]->NumberValue() * 255.0);
 
 	else
 		color.c[3] = 255;
 
 	// Find Display
-	std::string* key = new std::string(args[0].value_str);
+	v8::String::Utf8Value key(args[0]->ToString());
 	auto it = displays.find(*key);
 	if (it == displays.end()) {
-		/*isolate->ThrowException(
+		isolate->ThrowException(
 		      v8::Exception::SyntaxError(
 		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 		      )
-		);*/
+		);
 		return;
 	}
 
@@ -685,12 +701,14 @@ void OBS_content::OBS_content_setResizeBoxOuterColor(void* data, const int64_t i
 	return;
 }
 
-void OBS_content::OBS_content_setResizeBoxInnerColor(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_content::OBS_content_setResizeBoxInnerColor(const
+                                                     FunctionCallbackInfo<Value> &args)
 {
 	union {
 		uint32_t rgba;
 		uint8_t c[4];
 	} color;
+	Isolate *isolate = args.GetIsolate();
 
 	const char *usage_string = 
 		"Usage: OBS_content_setResizeBoxInnerColor"
@@ -701,7 +719,7 @@ void OBS_content::OBS_content_setResizeBoxInnerColor(void* data, const int64_t i
 
 	// Validate Arguments
 	/// Amount
-	/*switch (args.Length()) {
+	switch (args.Length()) {
 	case 0:
 		isolate->ThrowException(
 		      v8::Exception::SyntaxError(
@@ -751,27 +769,27 @@ void OBS_content::OBS_content_setResizeBoxInnerColor(void* data, const int64_t i
 		      )
 		);
 		return;
-	}*/
+	}
 
 	// Assign Color
-	color.c[0] = (uint8_t)(args[1].value.ui32);
-	color.c[1] = (uint8_t)(args[2].value.ui32);
-	color.c[2] = (uint8_t)(args[3].value.ui32);
-	if (args[4].value.ui32 != NULL)
-		color.c[3] = (uint8_t)(args[4].value.ui32 * 255.0);
+	color.c[0] = (uint8_t)(args[1]->NumberValue());
+	color.c[1] = (uint8_t)(args[2]->NumberValue());
+	color.c[2] = (uint8_t)(args[3]->NumberValue());
+	if (!args[4]->IsUndefined() && args[4]->IsNumber())
+		color.c[3] = (uint8_t)(args[4]->NumberValue() * 255.0);
 
 	else
 		color.c[3] = 255;
 
 	// Find Display
-	std::string* key = new std::string(args[0].value_str);
+	v8::String::Utf8Value key(args[0]->ToString());
 	auto it = displays.find(*key);
 	if (it == displays.end()) {
-		/*isolate->ThrowException(
+		isolate->ThrowException(
 		      v8::Exception::SyntaxError(
 		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 		      )
-		);*/
+		);
 		return;
 	}
 
@@ -780,15 +798,18 @@ void OBS_content::OBS_content_setResizeBoxInnerColor(void* data, const int64_t i
 	return;
 }
 
-void OBS_content::OBS_content_setShouldDrawUI(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_content::OBS_content_setShouldDrawUI(const
+                                              FunctionCallbackInfo<Value> &args)
 {
+	Isolate *isolate = args.GetIsolate();
+
 	const char *usage_string = 
 		"Usage: OBS_content_setShouldDrawUI"
 		"(displayKey<string>, value<boolean>)";
 
 	// Validate Arguments
 	/// Amount
-	/*switch (args.Length()) {
+	switch (args.Length()) {
 	case 0:
 		isolate->ThrowException(
 		      v8::Exception::SyntaxError(
@@ -821,25 +842,30 @@ void OBS_content::OBS_content_setShouldDrawUI(void* data, const int64_t id, cons
 		      )
 		);
 		return;
-	}*/
+	}
 
 	// Find Display
-	std::string* key = new std::string(args[0].value_str);
+	v8::String::Utf8Value key(args[0]->ToString());
 	auto it = displays.find(*key);
 	if (it == displays.end()) {
-		/*isolate->ThrowException(
+		isolate->ThrowException(
 		      v8::Exception::SyntaxError(
 		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 		      )
-		);*/
+		);
 		return;
 	}
 
-	it->second->SetDrawUI((bool)args[1].value.i64);
+	it->second->SetDrawUI(args[1]->BooleanValue());
 }
 
-void OBS_content::OBS_content_getDisplayPreviewOffset(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	std::string* key = new std::string(args[0].value_str);
+void OBS_content::OBS_content_getDisplayPreviewOffset(const
+                                                      FunctionCallbackInfo<Value> &args)
+{
+	Isolate *isolate = args.GetIsolate();
+	v8::EscapableHandleScope handle(isolate);
+
+	v8::String::Utf8Value key(args[0]);
 
 	auto value = displays.find(*key);
 	if (value == displays.end()) {
@@ -851,12 +877,22 @@ void OBS_content::OBS_content_getDisplayPreviewOffset(void* data, const int64_t 
 
 	auto offset = display->GetPreviewOffset();
 
-	rval.push_back(IPC::Value((int32_t)offset.first));
-	rval.push_back(IPC::Value((int32_t)offset.second));
+	v8::Local<v8::Object> object = v8::Object::New(isolate);
+	object->Set(v8::String::NewFromUtf8(isolate, "x"), v8::Int32::New(isolate,
+	                                                                  offset.first));
+	object->Set(v8::String::NewFromUtf8(isolate, "y"), v8::Int32::New(isolate,
+	                                                                  offset.second));
+
+	args.GetReturnValue().Set(handle.Escape(object));
 }
 
-void OBS_content::OBS_content_getDisplayPreviewSize(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	std::string* key = new std::string(args[0].value_str);
+void OBS_content::OBS_content_getDisplayPreviewSize(const
+                                                    FunctionCallbackInfo<Value> &args)
+{
+	Isolate *isolate = args.GetIsolate();
+	v8::EscapableHandleScope handle(isolate);
+
+	v8::String::Utf8Value key(args[0]);
 
 	auto value = displays.find(*key);
 	if (value == displays.end()) {
@@ -868,12 +904,19 @@ void OBS_content::OBS_content_getDisplayPreviewSize(void* data, const int64_t id
 
 	auto size = display->GetPreviewSize();
 
-	rval.push_back(IPC::Value((int32_t)size.first));
-	rval.push_back(IPC::Value((int32_t)size.second));
+	v8::Local<v8::Object> object = v8::Object::New(isolate);
+	object->Set(v8::String::NewFromUtf8(isolate, "width"), v8::Int32::New(isolate,
+	                                                                      size.first));
+	object->Set(v8::String::NewFromUtf8(isolate, "height"), v8::Int32::New(isolate,
+	                                                                       size.second));
+
+	args.GetReturnValue().Set(handle.Escape(object));
 }
 
 /* Deprecated */
-void OBS_content::OBS_content_selectSource(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void OBS_content::OBS_content_selectSource(const FunctionCallbackInfo<Value>
+                                           &args)
+{
 	/* Here we assume that channel 0 holds the one and only transition.
 	 * We also assume that the active source within that transition is
 	 * the scene that we need */
@@ -883,8 +926,8 @@ void OBS_content::OBS_content_selectSource(void* data, const int64_t id, const s
 
 	obs_source_release(transition);
 
-	int x = args[0].value.i64;
-	int y = args[1].value.i64;
+	int x = args[0]->NumberValue();
+	int y = args[1]->NumberValue();
 
 	auto function = [] (obs_scene_t *, obs_sceneitem_t *item,
 	void *listSceneItems) {
@@ -947,20 +990,25 @@ bool selectItems(obs_scene_t *scene, obs_sceneitem_t *item, void *param)
 }
 
 /* Deprecated */
-void OBS_content::OBS_content_selectSources(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_content::OBS_content_selectSources(const FunctionCallbackInfo<Value> &args)
 {
+	v8::Local<v8::Array> sources = v8::Local<v8::Array>::Cast(args[0]);
+
 	obs_source_t *transition = obs_get_output_source(0);
 	obs_source_t *source = obs_transition_get_active_source(transition);
 	obs_scene_t *scene = obs_scene_from_source(source);
 
 	obs_source_release(transition);
-	
-	uint16_t size = args[0].value.ui32;
-	std::vector<std::string> tabSources;
-	
+
+	vector<std::string> tabSources;
+
 	{
-		for (int i = 0; i < size; i++) {
-			tabSources.push_back(args[i + 1].value_str);
+		for(int i = 0; i < sources->Length(); i++) {
+			v8::Local<v8::Object> object = v8::Local<v8::Object>::Cast(sources->Get(i));
+			v8::String::Utf8Value value(object->Get(Nan::New("name").ToLocalChecked()));
+			std::string sourceName = std::string(*value);
+
+			tabSources.push_back(sourceName);
 		}
 
 		if (scene)
@@ -970,10 +1018,10 @@ void OBS_content::OBS_content_selectSources(void* data, const int64_t id, const 
 	obs_source_release(source);
 }
 
-void OBS_content::OBS_content_dragSelectedSource(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_content::OBS_content_dragSelectedSource(const FunctionCallbackInfo<Value> &args)
 {
-	int x = args[0].value.i32;
-	int y = args[1].value.i32;
+	int x = args[0]->NumberValue();
+	int y = args[1]->NumberValue();
 
 	if(sourceSelected.compare("") ==0)
 		return;
@@ -1001,15 +1049,17 @@ void OBS_content::OBS_content_dragSelectedSource(void* data, const int64_t id, c
 	obs_source_release(source);
 }
 
-void OBS_content::OBS_content_getDrawGuideLines(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_content::OBS_content_getDrawGuideLines(const
+                                                FunctionCallbackInfo<Value> &args)
 {
+	Isolate *isolate = args.GetIsolate();
 
 	const char *usage_string =
 		"Usage: OBS_content_getDrawGuideLines(displayKey<string>)";
 
 	// Validate Arguments
 	/// Amount
-	/*switch (args.Length()) {
+	switch (args.Length()) {
 	case 0:
 		isolate->ThrowException(
 		      v8::Exception::SyntaxError(
@@ -1027,32 +1077,35 @@ void OBS_content::OBS_content_getDrawGuideLines(void* data, const int64_t id, co
 		      )
 		);
 		return;
-	}*/
+	}
 
 	// Find Display
-	std::string* key = new std::string(args[0].value_str);
+	v8::String::Utf8Value key(args[0]->ToString());
 	auto it = displays.find(*key);
 	if (it == displays.end()) {
-		/*isolate->ThrowException(
+		isolate->ThrowException(
 		      v8::Exception::SyntaxError(
 		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 		      )
-		);*/
+		);
 		return;
 	}
 
-	rval.push_back((bool)it->second->GetDrawGuideLines());
+	args.GetReturnValue().Set(
+		Boolean::New(isolate, it->second->GetDrawGuideLines()));
 }
 
-void OBS_content::OBS_content_setDrawGuideLines(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_content::OBS_content_setDrawGuideLines(const FunctionCallbackInfo<Value> &args)
 {
+	Isolate *isolate = args.GetIsolate();
+
 	const char *usage_string =
 		"Usage: OBS_content_getDrawGuideLines"
 		"(displayKey<string>, drawGuideLines<boolean>)";
 
 	// Validate Arguments
 	/// Amount
-	/*switch (args.Length()) {
+	switch (args.Length()) {
 	case 0:
 	case 1:
 		isolate->ThrowException(
@@ -1080,20 +1133,20 @@ void OBS_content::OBS_content_setDrawGuideLines(void* data, const int64_t id, co
 		      )
 		);
 		return;
-	}*/
+	}
 
 	// Find Display
-	std::string* key = new std::string(args[0].value_str);
+	v8::String::Utf8Value key(args[0]->ToString());
 	auto it = displays.find(*key);
 	if (it == displays.end()) {
-		/*isolate->ThrowException(
+		isolate->ThrowException(
 		      v8::Exception::SyntaxError(
 		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 		      )
-		);*/
+		);
 
 		return;
 	}
 
-	it->second->SetDrawGuideLines((bool)args[1].value.i32);
+	it->second->SetDrawGuideLines(args[1]->BooleanValue());
 }

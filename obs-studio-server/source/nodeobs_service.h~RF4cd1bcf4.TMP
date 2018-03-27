@@ -174,8 +174,8 @@ private:
 	static void stopRecording(void);
 	static void setRecordingSettings(void);
 
-	static void LoadRecordingPreset_h264(const char *encoder);
-	static void LoadRecordingPreset_Lossless(void);
+	static void OBS_service::LoadRecordingPreset_h264(const char *encoder);
+	static void OBS_service::LoadRecordingPreset_Lossless(void);
 	// static void LoadRecordingPreset(void);
 
 	static void UpdateRecordingSettings_x264_crf(int crf);

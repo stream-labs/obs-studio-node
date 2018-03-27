@@ -1,5 +1,4 @@
 #pragma once
-#include <node.h>
 #include <obs.h>
 #include <string>
 #include <vector>
@@ -9,11 +8,11 @@
 #include <string.h>
 #include <math.h>
 #include "nodeobs_service.h"
+#include <ipc-server.hpp>
 
 
 
 using namespace std;
-using namespace v8;
 
 struct Screen {
 	int width;
@@ -26,47 +25,23 @@ public:
 	OBS_API();
 	~OBS_API();
 
-	static void OBS_API_initAPI(const FunctionCallbackInfo<Value>& args);
-	/**
-	 * Initializes OBS
-	 *
-	 * @param  locale              The locale to use for modules
-	 * @param  module_config_path  Path to module config storage directory
-	 *                             (or NULL if none)
-	 * @param  store               The profiler name store for OBS to use or NULL
-	 */
-	static void OBS_API_initOBS_API(const FunctionCallbackInfo<Value>& args);
-    static void OBS_API_destroyOBS_API(const FunctionCallbackInfo<Value>& args);
+	// Example
+	// static void Types(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
 
-	/**
-	 * Opens all plugins module.
-	 */
-	static void OBS_API_openAllModules(const FunctionCallbackInfo<Value>& args);
+	static void OBS_API_initAPI(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
+	static void OBS_API_destroyOBS_API(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
+	static void OBS_API_getPerformanceStatistics(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
+	static void OBS_API_getOBS_existingProfiles(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
+	static void OBS_API_getOBS_existingSceneCollections(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
 
-	/**
-	 * Initialize all plugins module.
-	 */
-	static void OBS_API_initAllModules(const FunctionCallbackInfo<Value>& args);
 
-	static void OBS_API_getPerformanceStatistics(const FunctionCallbackInfo<Value>& args);
-
-	static void OBS_API_getPathConfigDirectory(const FunctionCallbackInfo<Value>& args);
-	static void OBS_API_setPathConfigDirectory(const FunctionCallbackInfo<Value>& args);
-
-	static void OBS_API_getOBS_existingProfiles(const FunctionCallbackInfo<Value>& args);
-	static void OBS_API_getOBS_existingSceneCollections(const FunctionCallbackInfo<Value>& args);
-	static void OBS_API_getOBS_currentProfile(const FunctionCallbackInfo<Value>& args);
-	static void OBS_API_setOBS_currentProfile(const FunctionCallbackInfo<Value>& args);
-	static void OBS_API_getOBS_currentSceneCollection(const FunctionCallbackInfo<Value>& args);
-	static void OBS_API_setOBS_currentSceneCollection(const FunctionCallbackInfo<Value>& args);
-	static void OBS_API_isOBS_installed(const FunctionCallbackInfo<Value>& args);
-	static void OBS_API_useOBS_config(const FunctionCallbackInfo<Value>& args);
+	// static void OBS_API_isOBS_installed(const FunctionCallbackInfo<Value>& args);
+	static void OBS_API_isOBS_installed(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
 
 private:
 	static void initAPI(void);
     static void destroyOBS_API(void);
 	static void openAllModules(void);
-	static Local<Object> getPerformanceStatistics(void);
 
 	static double 	getCPU_Percentage(void);
 	static int 	 	getNumberOfDroppedFrames(void);
@@ -78,8 +53,6 @@ private:
 public:
 	static std::string 			getPathConfigDirectory(void);
 	static void 				setPathConfigDirectory(std::string newPathConfigDirectory);
-	static Local<Array> 		getOBS_existingProfiles(void);
-	static Local<Array> 		getOBS_existingSceneCollections(void);
 	static std::string 			getOBS_currentProfile(void);
 	static void 				setOBS_currentProfile(std::string profileName);
 	static std::string 			getOBS_currentSceneCollection(void);

@@ -1,11 +1,11 @@
 #pragma once
 
-#include <node.h>
 #include "obs.h"
 #include <system_error>
 #include <algorithm>
 #include <vector>
 #include "gs-vertexbuffer.h"
+#include <memory>
 
 #if defined(_WIN32)
 #ifdef NOWINOFFSETS
