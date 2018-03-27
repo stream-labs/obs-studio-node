@@ -48,10 +48,10 @@
 //	Video
 
 namespace System {
-	static void Shutdown(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+	static void Shutdown(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 		bool* shutdown = (bool*)data;
 		*shutdown = true;
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		return;
 	}
 }
@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	// Instance
-	IPC::Server myServer;
+	ipc::server myServer;
 	bool doShutdown = false;
 
 	// Initialize Singleton Source Storage
@@ -76,9 +76,9 @@ int main(int argc, char* argv[]) {
 	// Classes
 	/// System
 	{
-		std::shared_ptr<IPC::Class> cls = std::make_shared<IPC::Class>("System");
-		cls->RegisterFunction(std::make_shared<IPC::Function>("Shutdown", std::vector<IPC::Type>{}, System::Shutdown, &doShutdown));
-		myServer.RegisterClass(cls);
+		std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("System");
+		cls->register_function(std::make_shared<ipc::function>("Shutdown", std::vector<ipc::type>{}, System::Shutdown, &doShutdown));
+		myServer.register_collection(cls);
 	};
 
 	/// OBS Studio Node
@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
 	osn::Scene::Register(myServer);
 	
 	try {
-		myServer.Initialize(argv[1]);
+		myServer.initialize(argv[1]);
 	} catch (...) {
 		std::cerr << "Failed to initialize server" << std::endl;
 		return -2;
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
 	osn::Source::Finalize();
 
 	// Finalize Server
-	myServer.Finalize();
+	myServer.finalize();
 
 	return 0;
 }

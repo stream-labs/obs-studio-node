@@ -22,55 +22,55 @@
 #include <obs.h>
 #include <memory>
 
-void osn::Input::Register(IPC::Server& srv) {
-	std::shared_ptr<IPC::Class> cls = std::make_shared<IPC::Class>("Filter");
-	cls->RegisterFunction(std::make_shared<IPC::Function>("Types", std::vector<IPC::Type>{}, Types));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("Create", std::vector<IPC::Type>{IPC::Type::String, IPC::Type::String}, Create));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("Create", std::vector<IPC::Type>{IPC::Type::String, IPC::Type::String, IPC::Type::String}, Create));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("Create", std::vector<IPC::Type>{IPC::Type::String, IPC::Type::String, IPC::Type::String, IPC::Type::String}, Create));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("CreatePrivate", std::vector<IPC::Type>{IPC::Type::String, IPC::Type::String}, CreatePrivate));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("CreatePrivate", std::vector<IPC::Type>{IPC::Type::String, IPC::Type::String, IPC::Type::String}, CreatePrivate));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("Duplicate", std::vector<IPC::Type>{IPC::Type::UInt64}, Duplicate));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("Duplicate", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::String}, Duplicate));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("Duplicate", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::String, IPC::Type::Int32}, Duplicate));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("FromName", std::vector<IPC::Type>{IPC::Type::String}, FromName));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("GetPublicSources", std::vector<IPC::Type>{}, GetPublicSources));
+void osn::Input::Register(ipc::server& srv) {
+	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Filter");
+	cls->register_function(std::make_shared<ipc::function>("Types", std::vector<ipc::type>{}, Types));
+	cls->register_function(std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, Create));
+	cls->register_function(std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String}, Create));
+	cls->register_function(std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String, ipc::type::String}, Create));
+	cls->register_function(std::make_shared<ipc::function>("CreatePrivate", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, CreatePrivate));
+	cls->register_function(std::make_shared<ipc::function>("CreatePrivate", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String}, CreatePrivate));
+	cls->register_function(std::make_shared<ipc::function>("Duplicate", std::vector<ipc::type>{ipc::type::UInt64}, Duplicate));
+	cls->register_function(std::make_shared<ipc::function>("Duplicate", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, Duplicate));
+	cls->register_function(std::make_shared<ipc::function>("Duplicate", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32}, Duplicate));
+	cls->register_function(std::make_shared<ipc::function>("FromName", std::vector<ipc::type>{ipc::type::String}, FromName));
+	cls->register_function(std::make_shared<ipc::function>("GetPublicSources", std::vector<ipc::type>{}, GetPublicSources));
 
-	cls->RegisterFunction(std::make_shared<IPC::Function>("GetActive", std::vector<IPC::Type>{IPC::Type::UInt64}, GetActive));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("GetShowing", std::vector<IPC::Type>{IPC::Type::UInt64}, GetShowing));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("GetVolume", std::vector<IPC::Type>{IPC::Type::UInt64}, GetVolume));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("SetVolume", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::Float}, SetVolume));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("GetSyncOffset", std::vector<IPC::Type>{IPC::Type::UInt64}, GetSyncOffset));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("SetSyncOffset", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::Int64}, SetSyncOffset));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("GetAudioMixers", std::vector<IPC::Type>{IPC::Type::UInt64}, GetAudioMixers));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("SetAudioMixers", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::UInt32}, SetAudioMixers));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("GetMonitoringType", std::vector<IPC::Type>{IPC::Type::UInt64}, GetMonitoringType));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("SetMonitoringType", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::UInt32}, SetMonitoringType));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("GetWidth", std::vector<IPC::Type>{IPC::Type::UInt64}, GetWidth));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("GetHeight", std::vector<IPC::Type>{IPC::Type::UInt64}, GetHeight));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("GetDeInterlaceFieldOrder", std::vector<IPC::Type>{IPC::Type::UInt64}, Duplicate));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("SetDeInterlaceFieldOrder", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::UInt32}, Duplicate));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("GetDeInterlaceMode", std::vector<IPC::Type>{IPC::Type::UInt64}, Duplicate));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("SetDeInterlaceMode", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::UInt32}, Duplicate));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("AddFilter", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::UInt64}, AddFilter));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("RemoveFilter", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::UInt64}, RemoveFilter));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("FindFilter", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::String}, FindFilter));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("GetFilters", std::vector<IPC::Type>{IPC::Type::UInt64}, GetFilters));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("CopyFiltersTo", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::UInt64}, CopyFiltersTo));
+	cls->register_function(std::make_shared<ipc::function>("GetActive", std::vector<ipc::type>{ipc::type::UInt64}, GetActive));
+	cls->register_function(std::make_shared<ipc::function>("GetShowing", std::vector<ipc::type>{ipc::type::UInt64}, GetShowing));
+	cls->register_function(std::make_shared<ipc::function>("GetVolume", std::vector<ipc::type>{ipc::type::UInt64}, GetVolume));
+	cls->register_function(std::make_shared<ipc::function>("SetVolume", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Float}, SetVolume));
+	cls->register_function(std::make_shared<ipc::function>("GetSyncOffset", std::vector<ipc::type>{ipc::type::UInt64}, GetSyncOffset));
+	cls->register_function(std::make_shared<ipc::function>("SetSyncOffset", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int64}, SetSyncOffset));
+	cls->register_function(std::make_shared<ipc::function>("GetAudioMixers", std::vector<ipc::type>{ipc::type::UInt64}, GetAudioMixers));
+	cls->register_function(std::make_shared<ipc::function>("SetAudioMixers", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetAudioMixers));
+	cls->register_function(std::make_shared<ipc::function>("GetMonitoringType", std::vector<ipc::type>{ipc::type::UInt64}, GetMonitoringType));
+	cls->register_function(std::make_shared<ipc::function>("SetMonitoringType", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetMonitoringType));
+	cls->register_function(std::make_shared<ipc::function>("GetWidth", std::vector<ipc::type>{ipc::type::UInt64}, GetWidth));
+	cls->register_function(std::make_shared<ipc::function>("GetHeight", std::vector<ipc::type>{ipc::type::UInt64}, GetHeight));
+	cls->register_function(std::make_shared<ipc::function>("GetDeInterlaceFieldOrder", std::vector<ipc::type>{ipc::type::UInt64}, Duplicate));
+	cls->register_function(std::make_shared<ipc::function>("SetDeInterlaceFieldOrder", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, Duplicate));
+	cls->register_function(std::make_shared<ipc::function>("GetDeInterlaceMode", std::vector<ipc::type>{ipc::type::UInt64}, Duplicate));
+	cls->register_function(std::make_shared<ipc::function>("SetDeInterlaceMode", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, Duplicate));
+	cls->register_function(std::make_shared<ipc::function>("AddFilter", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, AddFilter));
+	cls->register_function(std::make_shared<ipc::function>("RemoveFilter", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, RemoveFilter));
+	cls->register_function(std::make_shared<ipc::function>("FindFilter", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, FindFilter));
+	cls->register_function(std::make_shared<ipc::function>("GetFilters", std::vector<ipc::type>{ipc::type::UInt64}, GetFilters));
+	cls->register_function(std::make_shared<ipc::function>("CopyFiltersTo", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, CopyFiltersTo));
 
-	srv.RegisterClass(cls);
+	srv.register_collection(cls);
 }
 
-void osn::Input::Types(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+void osn::Input::Types(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	const char* typeId = nullptr;
 	for (size_t idx = 0; obs_enum_input_types(idx, &typeId); idx++) {
-		rval.push_back(IPC::Value(typeId ? typeId : ""));
+		rval.push_back(ipc::value(typeId ? typeId : ""));
 	}
 	return;
 }
 
-void osn::Input::Create(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void osn::Input::Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	std::string sourceId, name;
 	obs_data_t *settings = nullptr, *hotkeys = nullptr;
 
@@ -87,25 +87,25 @@ void osn::Input::Create(void* data, const int64_t id, const std::vector<IPC::Val
 
 	obs_source_t* source = obs_source_create(sourceId.c_str(), name.c_str(), settings, hotkeys);
 	if (!source) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::Error));
-		rval.push_back(IPC::Value("Failed to create input."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Failed to create input."));
 		return;
 	}
 
 	uint64_t uid = osn::Source::GetInstance()->Allocate(source);
 	if (uid == UINT64_MAX) {
 		// No further Ids left, leak somewhere.
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::OutOfIndexes));
-		rval.push_back(IPC::Value("Index list is full."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
+		rval.push_back(ipc::value("Index list is full."));
 		return;
 	}
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(uid));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(uid));
 	return;
 }
 
-void osn::Input::CreatePrivate(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void osn::Input::CreatePrivate(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	std::string sourceId, name;
 	obs_data_t *settings = nullptr;
 
@@ -120,29 +120,29 @@ void osn::Input::CreatePrivate(void* data, const int64_t id, const std::vector<I
 
 	obs_source_t* source = obs_source_create_private(sourceId.c_str(), name.c_str(), settings);
 	if (!source) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::Error));
-		rval.push_back(IPC::Value("Failed to create input."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Failed to create input."));
 		return;
 	}
 
 	uint64_t uid = osn::Source::GetInstance()->Allocate(source);
 	if (uid == UINT64_MAX) {
 		// No further Ids left, leak somewhere.
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::OutOfIndexes));
-		rval.push_back(IPC::Value("Index list is full."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
+		rval.push_back(ipc::value("Index list is full."));
 		return;
 	}
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(uid));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(uid));
 	return;
 }
 
-void osn::Input::Duplicate(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	obs_source_t* filter = osn::Source::GetInstance()->Get(args[0].value.ui64);
+void osn::Input::Duplicate(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_source_t* filter = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!filter) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Input reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Input reference is not valid."));
 		return;
 	}
 
@@ -157,8 +157,8 @@ void osn::Input::Duplicate(void* data, const int64_t id, const std::vector<IPC::
 	}
 
 	if (!source) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::Error));
-		rval.push_back(IPC::Value("Failed to duplicate input."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Failed to duplicate input."));
 		return;
 	}
 
@@ -166,26 +166,26 @@ void osn::Input::Duplicate(void* data, const int64_t id, const std::vector<IPC::
 		uint64_t uid = osn::Source::GetInstance()->Allocate(source);
 		if (uid == UINT64_MAX) {
 			// No further Ids left, leak somewhere.
-			rval.push_back(IPC::Value((uint64_t)ErrorCode::OutOfIndexes));
-			rval.push_back(IPC::Value("Index list is full."));
+			rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
+			rval.push_back(ipc::value("Index list is full."));
 			return;
 		}
 
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-		rval.push_back(IPC::Value(uid));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+		rval.push_back(ipc::value(uid));
 		return;
 	} else {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-		rval.push_back(IPC::Value(args[0].value.ui64));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+		rval.push_back(ipc::value(args[0].value_union.ui64));
 		return;
 	}
 }
 
-void osn::Input::FromName(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void osn::Input::FromName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	obs_source_t* source = obs_get_source_by_name(args[0].value_str.c_str());
 	if (!source) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::NotFound));
-		rval.push_back(IPC::Value("Named input could not be found."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::NotFound));
+		rval.push_back(ipc::value("Named input could not be found."));
 		return;
 	}
 
@@ -196,19 +196,19 @@ void osn::Input::FromName(void* data, const int64_t id, const std::vector<IPC::V
 	#ifdef DEBUG // Debug should throw an error for debuggers to catch.
 		throw std::runtime_error("Source found but not indexed.");
 	#endif
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::CriticalError));
-		rval.push_back(IPC::Value("Source found but not indexed."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
+		rval.push_back(ipc::value("Source found but not indexed."));
 		return;
 	}
 
 	obs_source_release(source);
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(uid));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(uid));
 	return;
 }
 
-void osn::Input::GetPublicSources(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void osn::Input::GetPublicSources(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	std::list<uint64_t> inputs;
 
 	// !FIXME! Optimize for zero-copy operation, can directly write to rval.
@@ -222,313 +222,313 @@ void osn::Input::GetPublicSources(void* data, const int64_t id, const std::vecto
 
 	obs_enum_sources(enum_cb, &inputs);
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	for (uint64_t uid : inputs) {
 		rval.push_back(uid);
 	}
 	return;
 }
 
-void osn::Input::GetActive(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+void osn::Input::GetActive(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!input) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Input reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Input reference is not valid."));
 		return;
 	}
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(obs_source_active(input)));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_source_active(input)));
 	return;
 }
 
-void osn::Input::GetShowing(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+void osn::Input::GetShowing(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!input) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Input reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Input reference is not valid."));
 		return;
 	}
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(obs_source_showing(input)));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_source_showing(input)));
 	return;
 }
 
-void osn::Input::GetVolume(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+void osn::Input::GetVolume(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!input) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Input reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Input reference is not valid."));
 		return;
 	}
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(obs_source_get_volume(input)));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_source_get_volume(input)));
 	return;
 }
 
-void osn::Input::SetVolume(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+void osn::Input::SetVolume(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!input) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Input reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Input reference is not valid."));
 		return;
 	}
 
-	obs_source_set_volume(input, (float_t)args[1].value.fp64);
+	obs_source_set_volume(input, (float_t)args[1].value_union.fp64);
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(obs_source_get_volume(input)));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_source_get_volume(input)));
 	return;
 }
 
-void osn::Input::GetSyncOffset(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+void osn::Input::GetSyncOffset(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!input) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Input reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Input reference is not valid."));
 		return;
 	}
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(obs_source_get_sync_offset(input)));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_source_get_sync_offset(input)));
 	return;
 }
 
-void osn::Input::SetSyncOffset(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+void osn::Input::SetSyncOffset(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!input) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Input reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Input reference is not valid."));
 		return;
 	}
 
-	obs_source_set_sync_offset(input, args[1].value.i64);
+	obs_source_set_sync_offset(input, args[1].value_union.i64);
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(obs_source_get_sync_offset(input)));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_source_get_sync_offset(input)));
 	return;
 }
 
-void osn::Input::GetAudioMixers(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+void osn::Input::GetAudioMixers(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!input) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Input reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Input reference is not valid."));
 		return;
 	}
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(obs_source_get_audio_mixers(input)));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_source_get_audio_mixers(input)));
 	return;
 }
 
-void osn::Input::SetAudioMixers(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+void osn::Input::SetAudioMixers(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!input) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Input reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Input reference is not valid."));
 		return;
 	}
 
-	obs_source_set_audio_mixers(input, (obs_monitoring_type)args[1].value.ui32);
+	obs_source_set_audio_mixers(input, (obs_monitoring_type)args[1].value_union.ui32);
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(obs_source_get_audio_mixers(input)));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_source_get_audio_mixers(input)));
 	return;
 }
 
-void osn::Input::GetMonitoringType(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+void osn::Input::GetMonitoringType(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!input) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Input reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Input reference is not valid."));
 		return;
 	}
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(obs_source_get_monitoring_type(input)));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_source_get_monitoring_type(input)));
 	return;
 }
 
-void osn::Input::SetMonitoringType(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+void osn::Input::SetMonitoringType(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!input) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Input reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Input reference is not valid."));
 		return;
 	}
 
-	obs_source_set_monitoring_type(input, (obs_monitoring_type)args[1].value.ui32);
+	obs_source_set_monitoring_type(input, (obs_monitoring_type)args[1].value_union.ui32);
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(obs_source_get_monitoring_type(input)));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_source_get_monitoring_type(input)));
 	return;
 }
 
-void osn::Input::GetWidth(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+void osn::Input::GetWidth(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!input) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Input reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Input reference is not valid."));
 		return;
 	}
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(obs_source_get_width(input)));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_source_get_width(input)));
 	return;
 }
 
-void osn::Input::GetHeight(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+void osn::Input::GetHeight(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!input) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Input reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Input reference is not valid."));
 		return;
 	}
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(obs_source_get_height(input)));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_source_get_height(input)));
 	return;
 }
 
-void osn::Input::GetDeInterlaceFieldOrder(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+void osn::Input::GetDeInterlaceFieldOrder(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!input) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Input reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Input reference is not valid."));
 		return;
 	}
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(obs_source_get_deinterlace_field_order(input)));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_source_get_deinterlace_field_order(input)));
 	return;
 }
 
-void osn::Input::SetDeInterlaceFieldOrder(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+void osn::Input::SetDeInterlaceFieldOrder(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!input) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Input reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Input reference is not valid."));
 		return;
 	}
 
-	obs_source_set_deinterlace_field_order(input, (obs_deinterlace_field_order)args[1].value.ui32);
+	obs_source_set_deinterlace_field_order(input, (obs_deinterlace_field_order)args[1].value_union.ui32);
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(obs_source_get_deinterlace_field_order(input)));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_source_get_deinterlace_field_order(input)));
 	return;
 }
 
-void osn::Input::GetDeInterlaceMode(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+void osn::Input::GetDeInterlaceMode(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!input) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Input reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Input reference is not valid."));
 		return;
 	}
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(obs_source_get_deinterlace_mode(input)));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_source_get_deinterlace_mode(input)));
 	return;
 }
 
-void osn::Input::SetDeInterlaceMode(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+void osn::Input::SetDeInterlaceMode(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!input) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Input reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Input reference is not valid."));
 		return;
 	}
 
-	obs_source_set_deinterlace_mode(input, (obs_deinterlace_mode)args[1].value.ui32);
+	obs_source_set_deinterlace_mode(input, (obs_deinterlace_mode)args[1].value_union.ui32);
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(obs_source_get_deinterlace_mode(input)));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_source_get_deinterlace_mode(input)));
 	return;
 }
 
-void osn::Input::AddFilter(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+void osn::Input::AddFilter(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!input) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Input reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Input reference is not valid."));
 		return;
 	}
 
-	obs_source_t* filter = osn::Source::GetInstance()->Get(args[1].value.ui64);
+	obs_source_t* filter = osn::Source::GetInstance()->Get(args[1].value_union.ui64);
 	if (!filter) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Filter reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Filter reference is not valid."));
 		return;
 	}
 
 	obs_source_filter_add(input, filter);
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	return;
 }
 
-void osn::Input::RemoveFilter(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+void osn::Input::RemoveFilter(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!input) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Input reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Input reference is not valid."));
 		return;
 	}
 
-	obs_source_t* filter = osn::Source::GetInstance()->Get(args[1].value.ui64);
+	obs_source_t* filter = osn::Source::GetInstance()->Get(args[1].value_union.ui64);
 	if (!filter) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Filter reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Filter reference is not valid."));
 		return;
 	}
 
 	obs_source_filter_remove(input, filter);
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	return;
 }
 
-void osn::Input::FindFilter(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+void osn::Input::FindFilter(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!input) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Input reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Input reference is not valid."));
 		return;
 	}
 
 	obs_source_t* filter = obs_source_get_filter_by_name(input, args[1].value_str.c_str());
 	if (!filter) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::NotFound));
-		rval.push_back(IPC::Value("Filter not found."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::NotFound));
+		rval.push_back(ipc::value("Filter not found."));
 		return;
 	}
 	obs_source_release(filter);
 
 	uint64_t uid = osn::Source::GetInstance()->Get(filter);
 	if (uid == UINT64_MAX) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::CriticalError));
-		rval.push_back(IPC::Value("Filter found but not indexed."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
+		rval.push_back(ipc::value("Filter found but not indexed."));
 		return;
 	}
 	
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(uid));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(uid));
 	return;
 }
 
-void osn::Input::GetFilters(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value.ui64);
+void osn::Input::GetFilters(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_source_t* input = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!input) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Input reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Input reference is not valid."));
 		return;
 	}
 
 	auto enum_cb = [](obs_source_t *parent, obs_source_t *filter, void *data) {
-		std::vector<IPC::Value> *rval = reinterpret_cast<std::vector<IPC::Value>*>(data);
+		std::vector<ipc::value> *rval = reinterpret_cast<std::vector<ipc::value>*>(data);
 
 		uint64_t id = osn::Source::GetInstance()->Get(filter);
 		if (id != UINT64_MAX) {
@@ -536,28 +536,28 @@ void osn::Input::GetFilters(void* data, const int64_t id, const std::vector<IPC:
 		}
 	};
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	obs_source_enum_filters(input, enum_cb, &rval);
 	return;
 }
 
-void osn::Input::CopyFiltersTo(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	obs_source_t* input_from = osn::Source::GetInstance()->Get(args[0].value.ui64);
+void osn::Input::CopyFiltersTo(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_source_t* input_from = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!input_from) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("1st Input reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("1st Input reference is not valid."));
 		return;
 	}
 
-	obs_source_t* input_to = osn::Source::GetInstance()->Get(args[1].value.ui64);
+	obs_source_t* input_to = osn::Source::GetInstance()->Get(args[1].value_union.ui64);
 	if (!input_to) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("2nd Input reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("2nd Input reference is not valid."));
 		return;
 	}
 
 	obs_source_copy_filters(input_to, input_from);
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	return;
 }

@@ -22,32 +22,32 @@
 #include <obs.h>
 #include <memory>
 
-void osn::Transition::Register(IPC::Server& srv) {
-	std::shared_ptr<IPC::Class> cls = std::make_shared<IPC::Class>("Transition");
-	cls->RegisterFunction(std::make_shared<IPC::Function>("Types", std::vector<IPC::Type>{}, Types));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("Create", std::vector<IPC::Type>{IPC::Type::String, IPC::Type::String}, Create));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("Create", std::vector<IPC::Type>{IPC::Type::String, IPC::Type::String, IPC::Type::String}, Create));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("Create", std::vector<IPC::Type>{IPC::Type::String, IPC::Type::String, IPC::Type::String, IPC::Type::String}, Create));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("CreatePrivate", std::vector<IPC::Type>{IPC::Type::String, IPC::Type::String}, CreatePrivate));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("CreatePrivate", std::vector<IPC::Type>{IPC::Type::String, IPC::Type::String, IPC::Type::String}, CreatePrivate));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("FromName", std::vector<IPC::Type>{IPC::Type::UInt64}, FromName));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("GetActiveSource", std::vector<IPC::Type>{IPC::Type::UInt64}, GetActiveSource));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("Clear", std::vector<IPC::Type>{IPC::Type::UInt64}, Clear));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("Set", std::vector<IPC::Type>{IPC::Type::UInt64}, Set));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("Start", std::vector<IPC::Type>{IPC::Type::UInt64, IPC::Type::UInt32, IPC::Type::UInt64}, Start));
-	srv.RegisterClass(cls);
+void osn::Transition::Register(ipc::server& srv) {
+	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Transition");
+	cls->register_function(std::make_shared<ipc::function>("Types", std::vector<ipc::type>{}, Types));
+	cls->register_function(std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, Create));
+	cls->register_function(std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String}, Create));
+	cls->register_function(std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String, ipc::type::String}, Create));
+	cls->register_function(std::make_shared<ipc::function>("CreatePrivate", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, CreatePrivate));
+	cls->register_function(std::make_shared<ipc::function>("CreatePrivate", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String}, CreatePrivate));
+	cls->register_function(std::make_shared<ipc::function>("FromName", std::vector<ipc::type>{ipc::type::UInt64}, FromName));
+	cls->register_function(std::make_shared<ipc::function>("GetActiveSource", std::vector<ipc::type>{ipc::type::UInt64}, GetActiveSource));
+	cls->register_function(std::make_shared<ipc::function>("Clear", std::vector<ipc::type>{ipc::type::UInt64}, Clear));
+	cls->register_function(std::make_shared<ipc::function>("Set", std::vector<ipc::type>{ipc::type::UInt64}, Set));
+	cls->register_function(std::make_shared<ipc::function>("Start", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32, ipc::type::UInt64}, Start));
+	srv.register_collection(cls);
 }
 
-void osn::Transition::Types(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+void osn::Transition::Types(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	const char* typeId = nullptr;
 	for (size_t idx = 0; obs_enum_transition_types(idx, &typeId); idx++) {
-		rval.push_back(IPC::Value(typeId ? typeId : ""));
+		rval.push_back(ipc::value(typeId ? typeId : ""));
 	}
 	return;
 }
 
-void osn::Transition::Create(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void osn::Transition::Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	std::string sourceId, name;
 	obs_data_t *settings = nullptr, *hotkeys = nullptr;
 
@@ -64,25 +64,25 @@ void osn::Transition::Create(void* data, const int64_t id, const std::vector<IPC
 
 	obs_source_t* source = obs_source_create(sourceId.c_str(), name.c_str(), settings, hotkeys);
 	if (!source) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::Error));
-		rval.push_back(IPC::Value("Failed to create transition."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Failed to create transition."));
 		return;
 	}
 
 	uint64_t uid = osn::Source::GetInstance()->Allocate(source);
 	if (uid == UINT64_MAX) {
 		// No further Ids left, leak somewhere.
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::OutOfIndexes));
-		rval.push_back(IPC::Value("Index list is full."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
+		rval.push_back(ipc::value("Index list is full."));
 		return;
 	}
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(uid));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(uid));
 	return;
 }
 
-void osn::Transition::CreatePrivate(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void osn::Transition::CreatePrivate(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	std::string sourceId, name;
 	obs_data_t *settings = nullptr;
 
@@ -97,29 +97,29 @@ void osn::Transition::CreatePrivate(void* data, const int64_t id, const std::vec
 
 	obs_source_t* source = obs_source_create_private(sourceId.c_str(), name.c_str(), settings);
 	if (!source) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::Error));
-		rval.push_back(IPC::Value("Failed to create transition."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Failed to create transition."));
 		return;
 	}
 
 	uint64_t uid = osn::Source::GetInstance()->Allocate(source);
 	if (uid == UINT64_MAX) {
 		// No further Ids left, leak somewhere.
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::OutOfIndexes));
-		rval.push_back(IPC::Value("Index list is full."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
+		rval.push_back(ipc::value("Index list is full."));
 		return;
 	}
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(uid));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(uid));
 	return;
 }
 
-void osn::Transition::FromName(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void osn::Transition::FromName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	obs_source_t* source = obs_get_source_by_name(args[0].value_str.c_str());
 	if (!source) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::NotFound));
-		rval.push_back(IPC::Value("Named transition could not be found."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::NotFound));
+		rval.push_back(ipc::value("Named transition could not be found."));
 		return;
 	}
 	
@@ -130,26 +130,26 @@ void osn::Transition::FromName(void* data, const int64_t id, const std::vector<I
 	#ifdef DEBUG // Debug should throw an error for debuggers to catch.
 		throw std::runtime_error("Source found but not indexed.");
 	#endif
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::CriticalError));
-		rval.push_back(IPC::Value("Source found but not indexed."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
+		rval.push_back(ipc::value("Source found but not indexed."));
 		return;
 	}
 
 	obs_source_release(source);
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(uid));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(uid));
 	return;
 }
 
-void osn::Transition::GetActiveSource(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void osn::Transition::GetActiveSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	uint64_t uid = -1;
 
 	// Attempt to find the source asked to load.
-	obs_source_t* transition = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	obs_source_t* transition = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!transition) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Transition reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Transition reference is not valid."));
 		return;
 	}
 	
@@ -159,69 +159,69 @@ void osn::Transition::GetActiveSource(void* data, const int64_t id, const std::v
 		obs_source_release(source);
 	}
 	
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(uid));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(uid));
 	return;
 }
 
-void osn::Transition::Clear(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void osn::Transition::Clear(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Attempt to find the source asked to load.
-	obs_source_t* transition = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	obs_source_t* transition = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!transition) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Transition reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Transition reference is not valid."));
 		return;
 	}
 
 	obs_transition_clear(transition);
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	return;
 }
 
-void osn::Transition::Set(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void osn::Transition::Set(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Attempt to find the source asked to load.
-	obs_source_t* transition = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	obs_source_t* transition = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!transition) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Transition reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Transition reference is not valid."));
 		return;
 	}
 
-	obs_source_t* source = osn::Source::GetInstance()->Get(args[1].value.ui64);
+	obs_source_t* source = osn::Source::GetInstance()->Get(args[1].value_union.ui64);
 	if (!source) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Source reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Source reference is not valid."));
 		return;
 	}
 
 	obs_transition_set(transition, source);
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	return;
 }
 
-void osn::Transition::Start(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void osn::Transition::Start(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Attempt to find the source asked to load.
-	obs_source_t* transition = osn::Source::GetInstance()->Get(args[0].value.ui64);
+	obs_source_t* transition = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!transition) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Transition reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Transition reference is not valid."));
 		return;
 	}
 
-	obs_source_t* source = osn::Source::GetInstance()->Get(args[2].value.ui64);
+	obs_source_t* source = osn::Source::GetInstance()->Get(args[2].value_union.ui64);
 	if (!source) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(IPC::Value("Source reference is not valid."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Source reference is not valid."));
 		return;
 	}
 
-	uint32_t ms = args[1].value.ui32;
+	uint32_t ms = args[1].value_union.ui32;
 
 	bool result = obs_transition_start(transition, OBS_TRANSITION_MODE_AUTO, ms, source);
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(result));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(result));
 	return;
 }

@@ -17,6 +17,6 @@
 
 #include "osn-Scene.hpp"
 
-void osn::Scene::Register(IPC::Server&) {
+void osn::Scene::Register(ipc::server&) {
 
 }

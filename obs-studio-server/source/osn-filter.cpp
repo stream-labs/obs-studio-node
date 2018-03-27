@@ -22,24 +22,24 @@
 #include <obs.h>
 #include <memory>
 
-void osn::Filter::Register(IPC::Server& srv) {
-	std::shared_ptr<IPC::Class> cls = std::make_shared<IPC::Class>("Filter");
-	cls->RegisterFunction(std::make_shared<IPC::Function>("Types", std::vector<IPC::Type>{}, Types));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("Create", std::vector<IPC::Type>{IPC::Type::String, IPC::Type::String}, Create));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("Create", std::vector<IPC::Type>{IPC::Type::String, IPC::Type::String, IPC::Type::String}, Create));
-	srv.RegisterClass(cls);
+void osn::Filter::Register(ipc::server& srv) {
+	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Filter");
+	cls->register_function(std::make_shared<ipc::function>("Types", std::vector<ipc::type>{}, Types));
+	cls->register_function(std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, Create));
+	cls->register_function(std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String}, Create));
+	srv.register_collection(cls);
 }
 
-void osn::Filter::Types(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
+void osn::Filter::Types(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	const char* typeId = nullptr;
 	for (size_t idx = 0; obs_enum_filter_types(idx, &typeId); idx++) {
-		rval.push_back(IPC::Value(typeId ? typeId : ""));
+		rval.push_back(ipc::value(typeId ? typeId : ""));
 	}
 	return;
 }
 
-void osn::Filter::Create(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void osn::Filter::Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	std::string sourceId, name;
 	obs_data_t *settings = nullptr;
 
@@ -54,20 +54,20 @@ void osn::Filter::Create(void* data, const int64_t id, const std::vector<IPC::Va
 
 	obs_source_t* source = obs_source_create_private(sourceId.c_str(), name.c_str(), settings);
 	if (!source) {
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::Error));
-		rval.push_back(IPC::Value("Failed to create filter."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Failed to create filter."));
 		return;
 	}
 
 	uint64_t uid = osn::Source::GetInstance()->Allocate(source);
 	if (uid == UINT64_MAX) {
 		// No further Ids left, leak somewhere.
-		rval.push_back(IPC::Value((uint64_t)ErrorCode::OutOfIndexes));
-		rval.push_back(IPC::Value("Index list is full."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
+		rval.push_back(ipc::value("Index list is full."));
 		return;
 	}
 
-	rval.push_back(IPC::Value((uint64_t)ErrorCode::Ok));
-	rval.push_back(IPC::Value(uid));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(uid));
 	return;
 }

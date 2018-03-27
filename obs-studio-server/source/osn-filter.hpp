@@ -21,11 +21,11 @@
 namespace osn {
 	class Filter : Source {
 		public:
-		static void Register(IPC::Server&);
+		static void Register(ipc::server&);
 
 		// Function
-		static void Types(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
-		static void Create(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
+		static void Types(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static void Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 
 	};
 }

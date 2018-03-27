@@ -31,62 +31,62 @@ OBS_service::~OBS_service()
 
 }
 
-void OBS_service::OBS_service_resetAudioContext(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_resetAudioContext(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	resetAudioContext();
 }
 
-void OBS_service::OBS_service_resetVideoContext(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_resetVideoContext(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	resetVideoContext(NULL);
 }
 
-void OBS_service::OBS_service_createAudioEncoder(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_createAudioEncoder(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	createAudioEncoder(NULL);
 }
 
-void OBS_service::OBS_service_createVideoStreamingEncoder(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_createVideoStreamingEncoder(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	createVideoStreamingEncoder();
 }
 
-void OBS_service::OBS_service_createVideoRecordingEncoder(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_createVideoRecordingEncoder(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	createVideoRecordingEncoder();
 }
 
-void OBS_service::OBS_service_createService(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_createService(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	createService();
 }	
 
-void OBS_service::OBS_service_createRecordingSettings(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_createRecordingSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	createRecordingSettings();
 }
 
-void OBS_service::OBS_service_createStreamingOutput(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_createStreamingOutput(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	createStreamingOutput();
 }	
 
-void OBS_service::OBS_service_createRecordingOutput(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_createRecordingOutput(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	createRecordingOutput();
 }	
 
-void OBS_service::OBS_service_startStreaming(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_startStreaming(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	startStreaming();
 }
 
-void OBS_service::OBS_service_startRecording(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_startRecording(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	startRecording();
 }
 
-void OBS_service::OBS_service_stopStreaming(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_stopStreaming(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	/*if (args[0]->IsUndefined() && !args[0]->IsBoolean()) {
 		isolate->ThrowException(
@@ -96,40 +96,40 @@ void OBS_service::OBS_service_stopStreaming(void* data, const int64_t id, const 
 		);
 		return;
 	}*/
-	stopStreaming((bool)args[0].value.ui32);
+	stopStreaming((bool)args[0].value_union.ui32);
 }
 
-void OBS_service::OBS_service_stopRecording(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_stopRecording(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	stopRecording();
 }
 
-void OBS_service::OBS_service_associateAudioAndVideoToTheCurrentStreamingContext(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_associateAudioAndVideoToTheCurrentStreamingContext(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
     associateAudioAndVideoToTheCurrentStreamingContext();
 }
 
-void OBS_service::OBS_service_associateAudioAndVideoToTheCurrentRecordingContext(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_associateAudioAndVideoToTheCurrentRecordingContext(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
     associateAudioAndVideoToTheCurrentRecordingContext();
 }
 
-void OBS_service::OBS_service_associateAudioAndVideoEncodersToTheCurrentStreamingOutput(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_associateAudioAndVideoEncodersToTheCurrentStreamingOutput(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
     associateAudioAndVideoEncodersToTheCurrentStreamingOutput();
 }
 
-void OBS_service::OBS_service_associateAudioAndVideoEncodersToTheCurrentRecordingOutput(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_associateAudioAndVideoEncodersToTheCurrentRecordingOutput(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
     associateAudioAndVideoEncodersToTheCurrentRecordingOutput();
 }
 
-void OBS_service::OBS_service_setServiceToTheStreamingOutput(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_setServiceToTheStreamingOutput(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
     setServiceToTheStreamingOutput();
 }
 
-void OBS_service::OBS_service_setRecordingSettings(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_service::OBS_service_setRecordingSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
     setRecordingSettings();
 }

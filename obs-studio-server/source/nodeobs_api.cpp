@@ -63,7 +63,7 @@ void replaceAll(std::string &str, const std::string &from,
 	}
 };
 
-void OBS_API::SetWorkingDirectory(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_API::SetWorkingDirectory(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	g_moduleDirectory = args[0].value_str;
 	replaceAll(g_moduleDirectory, "\\", "/");
@@ -322,7 +322,7 @@ static void node_obs_log
 #endif
 }
 
-void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	/* Map base DLLs as soon as possible into the current process space.
 	* In particular, we need to load obs.dll into memory before we call
 	* any functions from obs else if we delay-loaded the dll, it will
@@ -472,19 +472,19 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<IP
 	setAudioDeviceMonitoring();
 }
 
-void OBS_API::OBS_API_destroyOBS_API(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void OBS_API::OBS_API_destroyOBS_API(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	destroyOBS_API();
 }
 
-void OBS_API::OBS_API_getPerformanceStatistics(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	rval.push_back(IPC::Value((double)getCPU_Percentage()));
-	rval.push_back(IPC::Value((int)getNumberOfDroppedFrames()));
-	rval.push_back(IPC::Value((double)getDroppedFramesPercentage()));
-	rval.push_back(IPC::Value((double)getCurrentBandwidth()));
-	rval.push_back(IPC::Value((double)getCurrentFrameRate()));
+void OBS_API::OBS_API_getPerformanceStatistics(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	rval.push_back(ipc::value((double)getCPU_Percentage()));
+	rval.push_back(ipc::value((int)getNumberOfDroppedFrames()));
+	rval.push_back(ipc::value((double)getDroppedFramesPercentage()));
+	rval.push_back(ipc::value((double)getCurrentBandwidth()));
+	rval.push_back(ipc::value((double)getCurrentFrameRate()));
 }
 
-void OBS_API::OBS_API_getOBS_existingProfiles(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void OBS_API::OBS_API_getOBS_existingProfiles(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	std::string pathProfiles;
 	pathProfiles += OBS_pathConfigDirectory;
 	pathProfiles += "\\basic\\profiles\\";
@@ -492,11 +492,11 @@ void OBS_API::OBS_API_getOBS_existingProfiles(void* data, const int64_t id, cons
 	std::vector<std::string> vectorExistingProfiles = exploreDirectory(pathProfiles, "directories");
 
 	for (int i = 0; i<vectorExistingProfiles.size(); i++) {
-		rval.push_back(IPC::Value(vectorExistingProfiles.at(i).c_str()));
+		rval.push_back(ipc::value(vectorExistingProfiles.at(i).c_str()));
 	}
 }
 
-void OBS_API::OBS_API_getOBS_existingSceneCollections(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void OBS_API::OBS_API_getOBS_existingSceneCollections(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	std::string pathSceneCollections;
 	pathSceneCollections += OBS_pathConfigDirectory;
 	pathSceneCollections += "\\basic\\scenes\\";
@@ -508,13 +508,13 @@ void OBS_API::OBS_API_getOBS_existingSceneCollections(void* data, const int64_t 
 	for (int i = 0; i<files.size(); i++) {
 		if (files.at(i).substr(files.at(i).find_last_of(".") + 1) == "json") {
 			files.at(i).erase(files.at(i).end() - 5, files.at(i).end());
-			rval.push_back(IPC::Value(files.at(i).c_str()));
+			rval.push_back(ipc::value(files.at(i).c_str()));
 		}
 	}
 }
 
-void OBS_API::OBS_API_isOBS_installed(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
-	rval.push_back(IPC::Value((bool)isOBS_installed()));
+void OBS_API::OBS_API_isOBS_installed(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	rval.push_back(ipc::value((bool)isOBS_installed()));
 }
 
 void OBS_API::SetProcessPriority(const char *priority)

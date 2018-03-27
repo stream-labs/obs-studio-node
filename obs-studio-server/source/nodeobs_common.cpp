@@ -102,7 +102,7 @@ static bool MultiplySelectedItemScale(obs_scene_t *scene, obs_sceneitem_t *item,
 	return true;
 }
 
-void OBS_content::OBS_content_createDisplay(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void OBS_content::OBS_content_createDisplay(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	unsigned char *bufferData = (unsigned char *)args[0].value_str.c_str();
 	uint64_t windowHandle = *reinterpret_cast<uint64_t *>(bufferData);
 
@@ -120,7 +120,7 @@ void OBS_content::OBS_content_createDisplay(void* data, const int64_t id, const 
 	displays[*key] = new OBS::Display(windowHandle);
 }
 
-void OBS_content::OBS_content_destroyDisplay(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void OBS_content::OBS_content_destroyDisplay(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	std::string* key = new std::string(args[0].value_str);
 	auto found = displays.find(*key);
 
@@ -133,7 +133,7 @@ void OBS_content::OBS_content_destroyDisplay(void* data, const int64_t id, const
 	displays.erase(found);
 }
 
-void OBS_content::OBS_content_createSourcePreviewDisplay(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void OBS_content::OBS_content_createSourcePreviewDisplay(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	unsigned char *bufferData = (unsigned char *)args[0].value_str.c_str();
 	uint64_t windowHandle = *reinterpret_cast<uint64_t *>(bufferData);
 
@@ -151,7 +151,7 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(void* data, const int64
 	displays[*key] = new OBS::Display(windowHandle, *sourceName);
 }
 
-void OBS_content::OBS_content_resizeDisplay(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void OBS_content::OBS_content_resizeDisplay(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	std::string* key = new std::string(args[0].value_str);
 
 	auto value = displays.find(*key);
@@ -162,13 +162,13 @@ void OBS_content::OBS_content_resizeDisplay(void* data, const int64_t id, const 
 
 	OBS::Display *display = value->second;
 
-	int width = args[1].value.ui32;
-	int height = args[2].value.ui32;
+	int width = args[1].value_union.ui32;
+	int height = args[2].value_union.ui32;
 
 	display->SetSize(width, height);
 }
 
-void OBS_content::OBS_content_moveDisplay(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void OBS_content::OBS_content_moveDisplay(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	std::string* key = new std::string(args[0].value_str);
 
 	auto value = displays.find(*key);
@@ -179,13 +179,13 @@ void OBS_content::OBS_content_moveDisplay(void* data, const int64_t id, const st
 
 	OBS::Display *display = value->second;
 
-	int x = args[1].value.ui32;
-	int y = args[2].value.ui32;
+	int x = args[1].value_union.ui32;
+	int y = args[2].value_union.ui32;
 
 	display->SetPosition(x, y);
 }
 
-void OBS_content::OBS_content_setPaddingSize(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void OBS_content::OBS_content_setPaddingSize(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Validate Arguments
 	/// Amount
 	/*switch (args.size()) {
@@ -236,11 +236,11 @@ void OBS_content::OBS_content_setPaddingSize(void* data, const int64_t id, const
 		return;
 	}
 
-	it->second->SetPaddingSize(args[1].value.ui32);
+	it->second->SetPaddingSize(args[1].value_union.ui32);
 	return;
 }
 
-void OBS_content::OBS_content_setPaddingColor(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void OBS_content::OBS_content_setPaddingColor(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	union {
 		uint32_t rgba;
 		uint8_t c[4];
@@ -302,11 +302,11 @@ void OBS_content::OBS_content_setPaddingColor(void* data, const int64_t id, cons
 	}*/
 
 	// Assign Color
-	color.c[0] = (uint8_t)(args[1].value.ui32);
-	color.c[1] = (uint8_t)(args[2].value.ui32);
-	color.c[2] = (uint8_t)(args[3].value.ui32);
-	if (args[4].value.ui32 != NULL)
-		color.c[3] = (uint8_t)(args[4].value.ui32 * 255.0);
+	color.c[0] = (uint8_t)(args[1].value_union.ui32);
+	color.c[1] = (uint8_t)(args[2].value_union.ui32);
+	color.c[2] = (uint8_t)(args[3].value_union.ui32);
+	if (args[4].value_union.ui32 != NULL)
+		color.c[3] = (uint8_t)(args[4].value_union.ui32 * 255.0);
 
 	else
 		color.c[3] = 255;
@@ -327,7 +327,7 @@ void OBS_content::OBS_content_setPaddingColor(void* data, const int64_t id, cons
 	return;
 }
 
-void OBS_content::OBS_content_setBackgroundColor(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void OBS_content::OBS_content_setBackgroundColor(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	union {
 		uint32_t rgba;
 		uint8_t c[4];
@@ -389,11 +389,11 @@ void OBS_content::OBS_content_setBackgroundColor(void* data, const int64_t id, c
 	}*/
 
 	// Assign Color
-	color.c[0] = (uint8_t)(args[1].value.ui32);
-	color.c[1] = (uint8_t)(args[2].value.ui32);
-	color.c[2] = (uint8_t)(args[3].value.ui32);
-	if (args[4].value.ui32 != NULL)
-		color.c[3] = (uint8_t)(args[4].value.ui32 * 255.0);
+	color.c[0] = (uint8_t)(args[1].value_union.ui32);
+	color.c[1] = (uint8_t)(args[2].value_union.ui32);
+	color.c[2] = (uint8_t)(args[3].value_union.ui32);
+	if (args[4].value_union.ui32 != NULL)
+		color.c[3] = (uint8_t)(args[4].value_union.ui32 * 255.0);
 
 	else
 		color.c[3] = 255;
@@ -414,7 +414,7 @@ void OBS_content::OBS_content_setBackgroundColor(void* data, const int64_t id, c
 	return;
 }
 
-void OBS_content::OBS_content_setOutlineColor(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_content::OBS_content_setOutlineColor(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	union {
 		uint32_t rgba;
@@ -477,11 +477,11 @@ void OBS_content::OBS_content_setOutlineColor(void* data, const int64_t id, cons
 	}*/
 
 	// Assign Color
-	color.c[0] = (uint8_t)(args[1].value.ui32);
-	color.c[1] = (uint8_t)(args[2].value.ui32);
-	color.c[2] = (uint8_t)(args[3].value.ui32);
-	if (args[4].value.ui32 != NULL)
-		color.c[3] = (uint8_t)(args[4].value.ui32 * 255.0);
+	color.c[0] = (uint8_t)(args[1].value_union.ui32);
+	color.c[1] = (uint8_t)(args[2].value_union.ui32);
+	color.c[2] = (uint8_t)(args[3].value_union.ui32);
+	if (args[4].value_union.ui32 != NULL)
+		color.c[3] = (uint8_t)(args[4].value_union.ui32 * 255.0);
 
 	else
 		color.c[3] = 255;
@@ -502,7 +502,7 @@ void OBS_content::OBS_content_setOutlineColor(void* data, const int64_t id, cons
 	return;
 }
 
-void OBS_content::OBS_content_setGuidelineColor(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_content::OBS_content_setGuidelineColor(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	union {
 		uint32_t rgba;
@@ -565,11 +565,11 @@ void OBS_content::OBS_content_setGuidelineColor(void* data, const int64_t id, co
 	}*/
 
 	// Assign Color
-	color.c[0] = (uint8_t)(args[1].value.ui32);
-	color.c[1] = (uint8_t)(args[2].value.ui32);
-	color.c[2] = (uint8_t)(args[3].value.ui32);
-	if (args[4].value.ui32 != NULL)
-		color.c[3] = (uint8_t)(args[4].value.ui32 * 255.0);
+	color.c[0] = (uint8_t)(args[1].value_union.ui32);
+	color.c[1] = (uint8_t)(args[2].value_union.ui32);
+	color.c[2] = (uint8_t)(args[3].value_union.ui32);
+	if (args[4].value_union.ui32 != NULL)
+		color.c[3] = (uint8_t)(args[4].value_union.ui32 * 255.0);
 
 	else
 		color.c[3] = 255;
@@ -590,7 +590,7 @@ void OBS_content::OBS_content_setGuidelineColor(void* data, const int64_t id, co
 	return;
 }
 
-void OBS_content::OBS_content_setResizeBoxOuterColor(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_content::OBS_content_setResizeBoxOuterColor(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	union {
 		uint32_t rgba;
@@ -659,11 +659,11 @@ void OBS_content::OBS_content_setResizeBoxOuterColor(void* data, const int64_t i
 	}*/
 
 	// Assign Color
-	color.c[0] = (uint8_t)(args[1].value.ui32);
-	color.c[1] = (uint8_t)(args[2].value.ui32);
-	color.c[2] = (uint8_t)(args[3].value.ui32);
-	if (args[4].value.ui32 != NULL)
-		color.c[3] = (uint8_t)(args[4].value.ui32 * 255.0);
+	color.c[0] = (uint8_t)(args[1].value_union.ui32);
+	color.c[1] = (uint8_t)(args[2].value_union.ui32);
+	color.c[2] = (uint8_t)(args[3].value_union.ui32);
+	if (args[4].value_union.ui32 != NULL)
+		color.c[3] = (uint8_t)(args[4].value_union.ui32 * 255.0);
 
 	else
 		color.c[3] = 255;
@@ -685,7 +685,7 @@ void OBS_content::OBS_content_setResizeBoxOuterColor(void* data, const int64_t i
 	return;
 }
 
-void OBS_content::OBS_content_setResizeBoxInnerColor(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_content::OBS_content_setResizeBoxInnerColor(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	union {
 		uint32_t rgba;
@@ -754,11 +754,11 @@ void OBS_content::OBS_content_setResizeBoxInnerColor(void* data, const int64_t i
 	}*/
 
 	// Assign Color
-	color.c[0] = (uint8_t)(args[1].value.ui32);
-	color.c[1] = (uint8_t)(args[2].value.ui32);
-	color.c[2] = (uint8_t)(args[3].value.ui32);
-	if (args[4].value.ui32 != NULL)
-		color.c[3] = (uint8_t)(args[4].value.ui32 * 255.0);
+	color.c[0] = (uint8_t)(args[1].value_union.ui32);
+	color.c[1] = (uint8_t)(args[2].value_union.ui32);
+	color.c[2] = (uint8_t)(args[3].value_union.ui32);
+	if (args[4].value_union.ui32 != NULL)
+		color.c[3] = (uint8_t)(args[4].value_union.ui32 * 255.0);
 
 	else
 		color.c[3] = 255;
@@ -780,7 +780,7 @@ void OBS_content::OBS_content_setResizeBoxInnerColor(void* data, const int64_t i
 	return;
 }
 
-void OBS_content::OBS_content_setShouldDrawUI(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_content::OBS_content_setShouldDrawUI(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	const char *usage_string = 
 		"Usage: OBS_content_setShouldDrawUI"
@@ -835,10 +835,10 @@ void OBS_content::OBS_content_setShouldDrawUI(void* data, const int64_t id, cons
 		return;
 	}
 
-	it->second->SetDrawUI((bool)args[1].value.i64);
+	it->second->SetDrawUI((bool)args[1].value_union.i64);
 }
 
-void OBS_content::OBS_content_getDisplayPreviewOffset(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void OBS_content::OBS_content_getDisplayPreviewOffset(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	std::string* key = new std::string(args[0].value_str);
 
 	auto value = displays.find(*key);
@@ -851,11 +851,11 @@ void OBS_content::OBS_content_getDisplayPreviewOffset(void* data, const int64_t 
 
 	auto offset = display->GetPreviewOffset();
 
-	rval.push_back(IPC::Value((int32_t)offset.first));
-	rval.push_back(IPC::Value((int32_t)offset.second));
+	rval.push_back(ipc::value((int32_t)offset.first));
+	rval.push_back(ipc::value((int32_t)offset.second));
 }
 
-void OBS_content::OBS_content_getDisplayPreviewSize(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void OBS_content::OBS_content_getDisplayPreviewSize(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	std::string* key = new std::string(args[0].value_str);
 
 	auto value = displays.find(*key);
@@ -868,12 +868,12 @@ void OBS_content::OBS_content_getDisplayPreviewSize(void* data, const int64_t id
 
 	auto size = display->GetPreviewSize();
 
-	rval.push_back(IPC::Value((int32_t)size.first));
-	rval.push_back(IPC::Value((int32_t)size.second));
+	rval.push_back(ipc::value((int32_t)size.first));
+	rval.push_back(ipc::value((int32_t)size.second));
 }
 
 /* Deprecated */
-void OBS_content::OBS_content_selectSource(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval) {
+void OBS_content::OBS_content_selectSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	/* Here we assume that channel 0 holds the one and only transition.
 	 * We also assume that the active source within that transition is
 	 * the scene that we need */
@@ -883,8 +883,8 @@ void OBS_content::OBS_content_selectSource(void* data, const int64_t id, const s
 
 	obs_source_release(transition);
 
-	int x = args[0].value.i64;
-	int y = args[1].value.i64;
+	int x = args[0].value_union.i64;
+	int y = args[1].value_union.i64;
 
 	auto function = [] (obs_scene_t *, obs_sceneitem_t *item,
 	void *listSceneItems) {
@@ -947,7 +947,7 @@ bool selectItems(obs_scene_t *scene, obs_sceneitem_t *item, void *param)
 }
 
 /* Deprecated */
-void OBS_content::OBS_content_selectSources(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_content::OBS_content_selectSources(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	obs_source_t *transition = obs_get_output_source(0);
 	obs_source_t *source = obs_transition_get_active_source(transition);
@@ -955,7 +955,7 @@ void OBS_content::OBS_content_selectSources(void* data, const int64_t id, const 
 
 	obs_source_release(transition);
 	
-	uint16_t size = args[0].value.ui32;
+	uint16_t size = args[0].value_union.ui32;
 	std::vector<std::string> tabSources;
 	
 	{
@@ -970,10 +970,10 @@ void OBS_content::OBS_content_selectSources(void* data, const int64_t id, const 
 	obs_source_release(source);
 }
 
-void OBS_content::OBS_content_dragSelectedSource(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_content::OBS_content_dragSelectedSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-	int x = args[0].value.i32;
-	int y = args[1].value.i32;
+	int x = args[0].value_union.i32;
+	int y = args[1].value_union.i32;
 
 	if(sourceSelected.compare("") ==0)
 		return;
@@ -1001,7 +1001,7 @@ void OBS_content::OBS_content_dragSelectedSource(void* data, const int64_t id, c
 	obs_source_release(source);
 }
 
-void OBS_content::OBS_content_getDrawGuideLines(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_content::OBS_content_getDrawGuideLines(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 
 	const char *usage_string =
@@ -1044,7 +1044,7 @@ void OBS_content::OBS_content_getDrawGuideLines(void* data, const int64_t id, co
 	rval.push_back((bool)it->second->GetDrawGuideLines());
 }
 
-void OBS_content::OBS_content_setDrawGuideLines(void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval)
+void OBS_content::OBS_content_setDrawGuideLines(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	const char *usage_string =
 		"Usage: OBS_content_getDrawGuideLines"
@@ -1095,5 +1095,5 @@ void OBS_content::OBS_content_setDrawGuideLines(void* data, const int64_t id, co
 		return;
 	}
 
-	it->second->SetDrawGuideLines((bool)args[1].value.i32);
+	it->second->SetDrawGuideLines((bool)args[1].value_union.i32);
 }

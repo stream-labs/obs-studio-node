@@ -82,7 +82,7 @@ Controller::~Controller() {
 	Disconnect();
 }
 
-std::shared_ptr<IPC::Client> Controller::Host(std::string uri) {
+std::shared_ptr<ipc::client> Controller::Host(std::string uri) {
 	if (m_isServer)
 		return nullptr;
 
@@ -105,7 +105,7 @@ std::shared_ptr<IPC::Client> Controller::Host(std::string uri) {
 	m_isServer = true;
 	
 	// Try and connect.
-	std::shared_ptr<IPC::Client> cl;
+	std::shared_ptr<ipc::client> cl;
 	for (size_t n = 0; n < 5; n++) { // Attempt 5 times.
 		if (!cl) cl = Connect(uri);
 		if (cl) break;
@@ -120,12 +120,12 @@ std::shared_ptr<IPC::Client> Controller::Host(std::string uri) {
 	return m_connection;
 }
 
-std::shared_ptr<IPC::Client> Controller::Connect(std::string uri) {
+std::shared_ptr<ipc::client> Controller::Connect(std::string uri) {
 	if (m_isServer)
 		return nullptr;
 
 	// Try and connect.
-	std::shared_ptr<IPC::Client> cl;
+	std::shared_ptr<ipc::client> cl;
 	for (size_t n = 0; n < 5; n++) { // Attempt 5 times.
 		if (!cl) cl = Connect(uri);
 		if (cl) break;
@@ -144,6 +144,6 @@ void Controller::Disconnect() {
 	m_connection = nullptr;
 }
 
-std::shared_ptr<IPC::Client> Controller::GetConnection() {
+std::shared_ptr<ipc::client> Controller::GetConnection() {
 	return m_connection;
 }
