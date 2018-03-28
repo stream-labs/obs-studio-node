@@ -25,7 +25,7 @@ public:
 	OBS_API();
 	~OBS_API();
 
-	static void Register(IPC::Server&);
+	static void Register(ipc::server&);
 
 	static void OBS_API_initAPI(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 	static void OBS_API_destroyOBS_API(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);

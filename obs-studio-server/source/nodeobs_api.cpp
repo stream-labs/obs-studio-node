@@ -38,20 +38,17 @@ bool isOBS_installedValue;
 
 std::string g_moduleDirectory = "";
 
-// TODO : Rename RegisterClass function
-#undef RegisterClass;
+void OBS_API::Register(ipc::server& srv) {
+	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("API");
 
-void OBS_API::Register(IPC::Server& srv) {
-	std::shared_ptr<IPC::Class> cls = std::make_shared<IPC::Class>("API");
+	cls->register_function(std::make_shared<ipc::function>("OBS_API_initAPI", std::vector<ipc::type>{ipc::type::String}, OBS_API_initAPI));
+	cls->register_function(std::make_shared<ipc::function>("OBS_API_destroyOBS_API", std::vector<ipc::type>{}, OBS_API_destroyOBS_API));
+	cls->register_function(std::make_shared<ipc::function>("OBS_API_getPerformanceStatistics", std::vector<ipc::type>{}, OBS_API_getPerformanceStatistics));
+	cls->register_function(std::make_shared<ipc::function>("OBS_API_getOBS_existingProfiles", std::vector<ipc::type>{}, OBS_API_getOBS_existingProfiles));
+	cls->register_function(std::make_shared<ipc::function>("OBS_API_getOBS_existingSceneCollections", std::vector<ipc::type>{}, OBS_API_getOBS_existingSceneCollections));
+	cls->register_function(std::make_shared<ipc::function>("OBS_API_isOBS_installed", std::vector<ipc::type>{}, OBS_API_isOBS_installed));
 
-	cls->RegisterFunction(std::make_shared<IPC::Function>("OBS_API_initAPI", std::vector<IPC::Type>{IPC::Type::String}, OBS_API_initAPI));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("OBS_API_destroyOBS_API", std::vector<IPC::Type>{}, OBS_API_destroyOBS_API));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("OBS_API_getPerformanceStatistics", std::vector<IPC::Type>{}, OBS_API_getPerformanceStatistics));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("OBS_API_getOBS_existingProfiles", std::vector<IPC::Type>{}, OBS_API_getOBS_existingProfiles));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("OBS_API_getOBS_existingSceneCollections", std::vector<IPC::Type>{}, OBS_API_getOBS_existingSceneCollections));
-	cls->RegisterFunction(std::make_shared<IPC::Function>("OBS_API_isOBS_installed", std::vector<IPC::Type>{}, OBS_API_isOBS_installed));
-
-	srv.RegisterClass(cls);
+	srv.register_collection(cls);
 }
 
 void replaceAll(std::string &str, const std::string &from,
