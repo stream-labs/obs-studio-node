@@ -12,30 +12,35 @@ void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args) {
 
 void api::OBS_API_destroyOBS_API(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	std::vector<ipc::value> ipc_args;
+
 	Controller::GetInstance().GetConnection()->
 		call("API", "OBS_API_destroyOBS_API", ipc_args, NULL, NULL);
 } 
 
 void api::OBS_API_getPerformanceStatistics(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	std::vector<ipc::value> ipc_args;
+
 	Controller::GetInstance().GetConnection()->
 		call("API", "OBS_API_getPerformanceStatistics", ipc_args, NULL, NULL);
 }
 
 void api::OBS_API_getOBS_existingProfiles(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	std::vector<ipc::value> ipc_args;
+
 	Controller::GetInstance().GetConnection()->
 		call("API", "OBS_API_getOBS_existingProfiles", ipc_args, NULL, NULL);
 }
 
 void api::OBS_API_getOBS_existingSceneCollections(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	std::vector<ipc::value> ipc_args;
+
 	Controller::GetInstance().GetConnection()->
 		call("API", "OBS_API_getOBS_existingSceneCollections", ipc_args, NULL, NULL);
 }
 
 void api::OBS_API_isOBS_installed(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	std::vector<ipc::value> ipc_args;
+
 	Controller::GetInstance().GetConnection()->
 		call("API", "OBS_API_isOBS_installed", ipc_args, NULL, NULL);
 }
