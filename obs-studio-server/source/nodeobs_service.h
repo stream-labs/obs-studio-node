@@ -145,6 +145,8 @@ public:
 	OBS_service();
 	~OBS_service();
 
+	static void Register(ipc::server&);
+
 	static void OBS_service_resetAudioContext(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 	static void OBS_service_resetVideoContext(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 	static void OBS_service_createAudioEncoder(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);

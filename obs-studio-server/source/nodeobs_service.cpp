@@ -31,6 +31,34 @@ OBS_service::~OBS_service()
 
 }
 
+void OBS_service::Register(ipc::server& srv) {
+	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Service");
+
+	cls->register_function(std::make_shared<ipc::function>("OBS_service_resetAudioContext", std::vector<ipc::type>{}, OBS_service_resetAudioContext));
+	cls->register_function(std::make_shared<ipc::function>("OBS_service_resetVideoContext", std::vector<ipc::type>{}, OBS_service_resetVideoContext));
+	cls->register_function(std::make_shared<ipc::function>("OBS_service_createAudioEncoder", std::vector<ipc::type>{}, OBS_service_createAudioEncoder));
+	cls->register_function(std::make_shared<ipc::function>("OBS_service_createVideoStreamingEncoder", std::vector<ipc::type>{}, OBS_service_createVideoStreamingEncoder));
+	cls->register_function(std::make_shared<ipc::function>("OBS_service_createVideoRecordingEncoder", std::vector<ipc::type>{}, OBS_service_createVideoRecordingEncoder));
+	cls->register_function(std::make_shared<ipc::function>("OBS_service_createService", std::vector<ipc::type>{}, OBS_service_createService));
+	cls->register_function(std::make_shared<ipc::function>("OBS_service_createRecordingSettings", std::vector<ipc::type>{}, OBS_service_createRecordingSettings));
+	cls->register_function(std::make_shared<ipc::function>("OBS_service_createStreamingOutput", std::vector<ipc::type>{}, OBS_service_createStreamingOutput));
+	cls->register_function(std::make_shared<ipc::function>("OBS_service_createRecordingOutput", std::vector<ipc::type>{}, OBS_service_createRecordingOutput));
+	cls->register_function(std::make_shared<ipc::function>("OBS_service_startStreaming", std::vector<ipc::type>{}, OBS_service_startStreaming));
+	cls->register_function(std::make_shared<ipc::function>("OBS_service_startRecording", std::vector<ipc::type>{}, OBS_service_startRecording));
+	cls->register_function(std::make_shared<ipc::function>("OBS_service_stopStreaming", std::vector<ipc::type>{ipc::type::UInt32}, OBS_service_stopStreaming));
+	cls->register_function(std::make_shared<ipc::function>("OBS_service_stopRecording", std::vector<ipc::type>{}, OBS_service_stopRecording));
+	cls->register_function(std::make_shared<ipc::function>("OBS_service_associateAudioAndVideoToTheCurrentStreamingContext", std::vector<ipc::type>{}, OBS_service_associateAudioAndVideoToTheCurrentStreamingContext));
+	cls->register_function(std::make_shared<ipc::function>("OBS_service_associateAudioAndVideoToTheCurrentRecordingContext", std::vector<ipc::type>{}, OBS_service_associateAudioAndVideoToTheCurrentRecordingContext));
+	cls->register_function(std::make_shared<ipc::function>("OBS_service_associateAudioAndVideoEncodersToTheCurrentStreamingOutput", std::vector<ipc::type>{}, OBS_service_associateAudioAndVideoEncodersToTheCurrentStreamingOutput));
+	cls->register_function(std::make_shared<ipc::function>("OBS_service_associateAudioAndVideoEncodersToTheCurrentRecordingOutput", std::vector<ipc::type>{}, OBS_service_associateAudioAndVideoEncodersToTheCurrentRecordingOutput));
+	cls->register_function(std::make_shared<ipc::function>("OBS_service_setServiceToTheStreamingOutput", std::vector<ipc::type>{}, OBS_service_setServiceToTheStreamingOutput));
+	cls->register_function(std::make_shared<ipc::function>("OBS_service_setRecordingSettings", std::vector<ipc::type>{}, OBS_service_setRecordingSettings));
+	
+	// TODO : connect output signals
+
+	srv.register_collection(cls);
+}
+
 void OBS_service::OBS_service_resetAudioContext(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	resetAudioContext();
