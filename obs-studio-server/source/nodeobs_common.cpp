@@ -102,6 +102,75 @@ static bool MultiplySelectedItemScale(obs_scene_t *scene, obs_sceneitem_t *item,
 	return true;
 }
 
+void OBS_content::Register(ipc::server& srv) {
+	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Display");
+
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_createDisplay", 
+		std::vector<ipc::type>{ipc::type::String, ipc::type::String}, OBS_content_createDisplay));
+
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_destroyDisplay", 
+		std::vector<ipc::type>{ipc::type::String}, OBS_content_destroyDisplay));
+
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_getDisplayPreviewOffset",
+		std::vector<ipc::type>{ipc::type::String}, OBS_content_getDisplayPreviewOffset));
+
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_getDisplayPreviewSize",
+		std::vector<ipc::type>{ipc::type::String}, OBS_content_getDisplayPreviewSize));
+
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_createSourcePreviewDisplay",
+		std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String}, OBS_content_createSourcePreviewDisplay));
+
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_resizeDisplay",
+		std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_resizeDisplay));
+
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_moveDisplay",
+		std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_moveDisplay));
+
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setPaddingSize",
+		std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32}, OBS_content_setPaddingSize));
+
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setPaddingColor",
+		std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_setPaddingColor));
+
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setBackgroundColor",
+		std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_setBackgroundColor));
+
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setOutlineColor",
+		std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_setOutlineColor));
+
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setGuidelineColor",
+		std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_setGuidelineColor));
+
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setResizeBoxOuterColor",
+		std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_setResizeBoxOuterColor));
+
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setResizeBoxInnerColor",
+		std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_setResizeBoxInnerColor));
+
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setResizeBoxInnerColor",
+		std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_setResizeBoxInnerColor));
+
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setShouldDrawUI",
+		std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32}, OBS_content_setShouldDrawUI));
+
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_selectSource",
+		std::vector<ipc::type>{ipc::type::UInt32, ipc::type::UInt32}, OBS_content_selectSource));
+
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_selectSources",
+		std::vector<ipc::type>{ipc::type::UInt32, ipc::type::Binary}, OBS_content_selectSources));
+
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_dragSelectedSource",
+		std::vector<ipc::type>{ipc::type::Int32, ipc::type::Int32}, OBS_content_dragSelectedSource));
+
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_getDrawGuideLines",
+		std::vector<ipc::type>{ipc::type::String}, OBS_content_getDrawGuideLines));
+
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setDrawGuideLines",
+		std::vector<ipc::type>{ipc::type::String, ipc::type::Int32}, OBS_content_setDrawGuideLines));
+	
+	srv.register_collection(cls);
+}
+
 void OBS_content::OBS_content_createDisplay(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	unsigned char *bufferData = (unsigned char *)args[0].value_str.c_str();
 	uint64_t windowHandle = *reinterpret_cast<uint64_t *>(bufferData);
@@ -835,7 +904,7 @@ void OBS_content::OBS_content_setShouldDrawUI(void* data, const int64_t id, cons
 		return;
 	}
 
-	it->second->SetDrawUI((bool)args[1].value_union.i64);
+	it->second->SetDrawUI((bool)args[1].value_union.ui32);
 }
 
 void OBS_content::OBS_content_getDisplayPreviewOffset(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -883,8 +952,8 @@ void OBS_content::OBS_content_selectSource(void* data, const int64_t id, const s
 
 	obs_source_release(transition);
 
-	int x = args[0].value_union.i64;
-	int y = args[1].value_union.i64;
+	uint32_t x = args[0].value_union.ui32;
+	uint32_t y = args[1].value_union.ui32;
 
 	auto function = [] (obs_scene_t *, obs_sceneitem_t *item,
 	void *listSceneItems) {
@@ -972,8 +1041,8 @@ void OBS_content::OBS_content_selectSources(void* data, const int64_t id, const 
 
 void OBS_content::OBS_content_dragSelectedSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-	int x = args[0].value_union.i32;
-	int y = args[1].value_union.i32;
+	int32_t x = args[0].value_union.i32;
+	int32_t y = args[1].value_union.i32;
 
 	if(sourceSelected.compare("") ==0)
 		return;

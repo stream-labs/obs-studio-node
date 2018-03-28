@@ -35,7 +35,7 @@ public:
 	OBS_content();
 	~OBS_content();
 
-	// (void* data, const int64_t id, const std::vector<IPC::Value>& args, std::vector<IPC::Value>& rval);
+	static void Register(ipc::server&);
 
 	static void OBS_content_createDisplay(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 	static void OBS_content_destroyDisplay(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
@@ -55,16 +55,6 @@ public:
 	static void OBS_content_selectSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 	static void OBS_content_selectSources(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 	static void OBS_content_dragSelectedSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-	static void OBS_content_loadConfigFile(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-	static void OBS_content_saveIntoConfigFile(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-	static void OBS_content_getSourceFlags(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-	static void OBS_content_sourceSetMuted(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-	static void OBS_content_isSourceMuted(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-	static void OBS_content_getSourceVisibility(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-	static void OBS_content_setSourceVisibility(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-	static void OBS_content_fillTabScenes(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 	static void OBS_content_getDrawGuideLines(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 	static void OBS_content_setDrawGuideLines(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-
-    void DisplayCallback(OBS::Display* dp, uint32_t cx, uint32_t cy);
 };
