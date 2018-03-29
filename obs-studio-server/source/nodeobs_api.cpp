@@ -43,12 +43,12 @@ std::string g_moduleDirectory = "";
 void OBS_API::Register(ipc::server& srv) {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("API");
 
-	cls->register_function(std::make_shared<ipc::function>("OBS_API_initAPI", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, OBS_API_initAPI));
-	cls->register_function(std::make_shared<ipc::function>("OBS_API_destroyOBS_API", std::vector<ipc::type>{ipc::type::UInt64}, OBS_API_destroyOBS_API));
-	cls->register_function(std::make_shared<ipc::function>("OBS_API_getPerformanceStatistics", std::vector<ipc::type>{ipc::type::UInt64}, OBS_API_getPerformanceStatistics));
-	cls->register_function(std::make_shared<ipc::function>("OBS_API_getOBS_existingProfiles", std::vector<ipc::type>{ipc::type::UInt64}, OBS_API_getOBS_existingProfiles));
-	cls->register_function(std::make_shared<ipc::function>("OBS_API_getOBS_existingSceneCollections", std::vector<ipc::type>{ipc::type::UInt64}, OBS_API_getOBS_existingSceneCollections));
-	cls->register_function(std::make_shared<ipc::function>("OBS_API_isOBS_installed", std::vector<ipc::type>{ipc::type::UInt64}, OBS_API_isOBS_installed));
+	cls->register_function(std::make_shared<ipc::function>("OBS_API_initAPI", std::vector<ipc::type>{ipc::type::String}, OBS_API_initAPI));
+	cls->register_function(std::make_shared<ipc::function>("OBS_API_destroyOBS_API", std::vector<ipc::type>{}, OBS_API_destroyOBS_API));
+	cls->register_function(std::make_shared<ipc::function>("OBS_API_getPerformanceStatistics", std::vector<ipc::type>{}, OBS_API_getPerformanceStatistics));
+	cls->register_function(std::make_shared<ipc::function>("OBS_API_getOBS_existingProfiles", std::vector<ipc::type>{}, OBS_API_getOBS_existingProfiles));
+	cls->register_function(std::make_shared<ipc::function>("OBS_API_getOBS_existingSceneCollections", std::vector<ipc::type>{}, OBS_API_getOBS_existingSceneCollections));
+	cls->register_function(std::make_shared<ipc::function>("OBS_API_isOBS_installed", std::vector<ipc::type>{}, OBS_API_isOBS_installed));
 
 	srv.register_collection(cls);
 }
@@ -498,12 +498,13 @@ void OBS_API::OBS_API_getOBS_existingProfiles(void* data, const int64_t id, cons
 	pathProfiles += OBS_pathConfigDirectory;
 	pathProfiles += "\\basic\\profiles\\";
 
-	std::vector<std::string> vectorExistingProfiles = exploreDirectory(pathProfiles, "directories");
+	std::vector<std::string> existingProfiles = exploreDirectory(pathProfiles, "directories");
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint32_t)existingProfiles.size()));
 
-	for (int i = 0; i<vectorExistingProfiles.size(); i++) {
-		rval.push_back(ipc::value(vectorExistingProfiles.at(i).c_str()));
+	for (int i = 0; i<existingProfiles.size(); i++) {
+		rval.push_back(ipc::value(existingProfiles.at(i).c_str()));
 	}
 }
 
@@ -512,16 +513,22 @@ void OBS_API::OBS_API_getOBS_existingSceneCollections(void* data, const int64_t 
 	pathSceneCollections += OBS_pathConfigDirectory;
 	pathSceneCollections += "\\basic\\scenes\\";
 
-	std::vector<std::string> files = exploreDirectory(pathSceneCollections, "files");
+	std::vector<std::string> existingSceneCollections = 
+		exploreDirectory(pathSceneCollections, "files");
 
 	int indexArray = 0;
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint32_t)existingSceneCollections.size()));
 
-	for (int i = 0; i<files.size(); i++) {
-		if (files.at(i).substr(files.at(i).find_last_of(".") + 1) == "json") {
-			files.at(i).erase(files.at(i).end() - 5, files.at(i).end());
-			rval.push_back(ipc::value(files.at(i).c_str()));
+	for (int i = 0; i<existingSceneCollections.size(); i++) {
+		if (existingSceneCollections.at(i).
+			substr(existingSceneCollections.at(i).find_last_of(".") + 1) == "json") {
+
+			existingSceneCollections.at(i).erase(existingSceneCollections.at(i).end() - 5,
+				existingSceneCollections.at(i).end());
+
+			rval.push_back(ipc::value(existingSceneCollections.at(i).c_str()));
 		}
 	}
 }

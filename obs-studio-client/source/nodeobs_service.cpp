@@ -1,139 +1,1225 @@
 #include "nodeobs_service.hpp"
 #include "controller.hpp"
+#include "utility-v8.hpp"
+#include "error.hpp"
 
-void service::OBS_service_resetAudioContext(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::vector<ipc::value> ipc_args;
+Nan::NAN_METHOD_RETURN_TYPE service::OBS_service_resetAudioContext(Nan::NAN_METHOD_ARGS_TYPE info) {
+	struct ThreadData {
+		std::condition_variable cv;
+		std::mutex mtx;
+		bool called = false;
+		ErrorCode error_code = ErrorCode::Ok;
+		std::string error_string = "";
+		std::string result = "";
+	} rtd;
 
-	Controller::GetInstance().GetConnection()->
-		call("API", "OBS_service_resetAudioContext", ipc_args, NULL, NULL);
+	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
+		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+
+		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+			rtd->error_code = ErrorCode::Error;
+			rtd->error_string = rval[0].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
+		}
+
+		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
+		if (rtd->error_code != ErrorCode::Ok) {
+			rtd->error_string = rval[1].value_str;
+		}
+
+		rtd->result = rval[1].value_str;
+
+		rtd->called = true;
+		rtd->cv.notify_all();
+	};
+
+	bool suc = Controller::GetInstance().GetConnection()->call("Service", "OBS_service_resetAudioContext",
+		std::vector<ipc::value>{}, fnc, &rtd);
+	if (!suc) {
+		info.GetIsolate()->ThrowException(
+			v8::Exception::Error(
+				Nan::New<v8::String>(
+					"Failed to make IPC call, verify IPC status."
+					).ToLocalChecked()
+			));
+		return;
+	}
+
+	std::unique_lock<std::mutex> ulock(rtd.mtx);
+	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+
+	if (rtd.error_code != ErrorCode::Ok) {
+		if (rtd.error_code == ErrorCode::InvalidReference) {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::ReferenceError(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		else {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::Error(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		return;
+	}
+
+	return;
 }
 
-void service::OBS_service_resetVideoContext(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::vector<ipc::value> ipc_args;
+Nan::NAN_METHOD_RETURN_TYPE service::OBS_service_resetVideoContext(Nan::NAN_METHOD_ARGS_TYPE info) {
+	struct ThreadData {
+		std::condition_variable cv;
+		std::mutex mtx;
+		bool called = false;
+		ErrorCode error_code = ErrorCode::Ok;
+		std::string error_string = "";
+		std::string result = "";
+	} rtd;
 
-	Controller::GetInstance().GetConnection()->
-		call("API", "OBS_service_resetVideoContext", ipc_args, NULL, NULL);
+	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
+		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+
+		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+			rtd->error_code = ErrorCode::Error;
+			rtd->error_string = rval[0].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
+		}
+
+		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
+		if (rtd->error_code != ErrorCode::Ok) {
+			rtd->error_string = rval[1].value_str;
+		}
+
+		rtd->result = rval[1].value_str;
+
+		rtd->called = true;
+		rtd->cv.notify_all();
+	};
+
+	bool suc = Controller::GetInstance().GetConnection()->call("Service", "OBS_service_resetVideoContext",
+		std::vector<ipc::value>{}, fnc, &rtd);
+	if (!suc) {
+		info.GetIsolate()->ThrowException(
+			v8::Exception::Error(
+				Nan::New<v8::String>(
+					"Failed to make IPC call, verify IPC status."
+					).ToLocalChecked()
+			));
+		return;
+	}
+
+	std::unique_lock<std::mutex> ulock(rtd.mtx);
+	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+
+	if (rtd.error_code != ErrorCode::Ok) {
+		if (rtd.error_code == ErrorCode::InvalidReference) {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::ReferenceError(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		else {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::Error(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		return;
+	}
+
+	return;
 }
 
-void service::OBS_service_createAudioEncoder(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::vector<ipc::value> ipc_args;
+Nan::NAN_METHOD_RETURN_TYPE service::OBS_service_createAudioEncoder(Nan::NAN_METHOD_ARGS_TYPE info) {
+	struct ThreadData {
+		std::condition_variable cv;
+		std::mutex mtx;
+		bool called = false;
+		ErrorCode error_code = ErrorCode::Ok;
+		std::string error_string = "";
+		std::string result = "";
+	} rtd;
 
-	Controller::GetInstance().GetConnection()->
-		call("API", "OBS_service_createAudioEncoder", ipc_args, NULL, NULL);
+	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
+		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+
+		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+			rtd->error_code = ErrorCode::Error;
+			rtd->error_string = rval[0].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
+		}
+
+		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
+		if (rtd->error_code != ErrorCode::Ok) {
+			rtd->error_string = rval[1].value_str;
+		}
+
+		rtd->result = rval[1].value_str;
+
+		rtd->called = true;
+		rtd->cv.notify_all();
+	};
+
+	bool suc = Controller::GetInstance().GetConnection()->call("Service", "OBS_service_createAudioEncoder",
+		std::vector<ipc::value>{}, fnc, &rtd);
+	if (!suc) {
+		info.GetIsolate()->ThrowException(
+			v8::Exception::Error(
+				Nan::New<v8::String>(
+					"Failed to make IPC call, verify IPC status."
+					).ToLocalChecked()
+			));
+		return;
+	}
+
+	std::unique_lock<std::mutex> ulock(rtd.mtx);
+	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+
+	if (rtd.error_code != ErrorCode::Ok) {
+		if (rtd.error_code == ErrorCode::InvalidReference) {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::ReferenceError(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		else {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::Error(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		return;
+	}
+
+	return;
 }
 
-void service::OBS_service_createVideoStreamingEncoder(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::vector<ipc::value> ipc_args;
+Nan::NAN_METHOD_RETURN_TYPE service::OBS_service_createVideoStreamingEncoder(Nan::NAN_METHOD_ARGS_TYPE info) {
+	struct ThreadData {
+		std::condition_variable cv;
+		std::mutex mtx;
+		bool called = false;
+		ErrorCode error_code = ErrorCode::Ok;
+		std::string error_string = "";
+		std::string result = "";
+	} rtd;
 
-	Controller::GetInstance().GetConnection()->
-		call("API", "OBS_service_createVideoStreamingEncoder", ipc_args, NULL, NULL);
+	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
+		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+
+		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+			rtd->error_code = ErrorCode::Error;
+			rtd->error_string = rval[0].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
+		}
+
+		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
+		if (rtd->error_code != ErrorCode::Ok) {
+			rtd->error_string = rval[1].value_str;
+		}
+
+		rtd->result = rval[1].value_str;
+
+		rtd->called = true;
+		rtd->cv.notify_all();
+	};
+
+	bool suc = Controller::GetInstance().GetConnection()->call("Service", "OBS_service_createVideoStreamingEncoder",
+		std::vector<ipc::value>{}, fnc, &rtd);
+	if (!suc) {
+		info.GetIsolate()->ThrowException(
+			v8::Exception::Error(
+				Nan::New<v8::String>(
+					"Failed to make IPC call, verify IPC status."
+					).ToLocalChecked()
+			));
+		return;
+	}
+
+	std::unique_lock<std::mutex> ulock(rtd.mtx);
+	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+
+	if (rtd.error_code != ErrorCode::Ok) {
+		if (rtd.error_code == ErrorCode::InvalidReference) {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::ReferenceError(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		else {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::Error(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		return;
+	}
+
+	return;
 }
 
-void service::OBS_service_createVideoRecordingEncoder(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::vector<ipc::value> ipc_args;
+Nan::NAN_METHOD_RETURN_TYPE service::OBS_service_createVideoRecordingEncoder(Nan::NAN_METHOD_ARGS_TYPE info) {
+	struct ThreadData {
+		std::condition_variable cv;
+		std::mutex mtx;
+		bool called = false;
+		ErrorCode error_code = ErrorCode::Ok;
+		std::string error_string = "";
+		std::string result = "";
+	} rtd;
 
-	Controller::GetInstance().GetConnection()->
-		call("API", "OBS_service_createVideoRecordingEncoder", ipc_args, NULL, NULL);
+	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
+		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+
+		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+			rtd->error_code = ErrorCode::Error;
+			rtd->error_string = rval[0].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
+		}
+
+		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
+		if (rtd->error_code != ErrorCode::Ok) {
+			rtd->error_string = rval[1].value_str;
+		}
+
+		rtd->result = rval[1].value_str;
+
+		rtd->called = true;
+		rtd->cv.notify_all();
+	};
+
+	bool suc = Controller::GetInstance().GetConnection()->call("Service", "OBS_service_createVideoRecordingEncoder",
+		std::vector<ipc::value>{}, fnc, &rtd);
+	if (!suc) {
+		info.GetIsolate()->ThrowException(
+			v8::Exception::Error(
+				Nan::New<v8::String>(
+					"Failed to make IPC call, verify IPC status."
+					).ToLocalChecked()
+			));
+		return;
+	}
+
+	std::unique_lock<std::mutex> ulock(rtd.mtx);
+	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+
+	if (rtd.error_code != ErrorCode::Ok) {
+		if (rtd.error_code == ErrorCode::InvalidReference) {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::ReferenceError(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		else {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::Error(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		return;
+	}
+
+	return;
 }
 
-void service::OBS_service_createService(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::vector<ipc::value> ipc_args;
+Nan::NAN_METHOD_RETURN_TYPE service::OBS_service_createService(Nan::NAN_METHOD_ARGS_TYPE info) {
+	struct ThreadData {
+		std::condition_variable cv;
+		std::mutex mtx;
+		bool called = false;
+		ErrorCode error_code = ErrorCode::Ok;
+		std::string error_string = "";
+		std::string result = "";
+	} rtd;
 
-	Controller::GetInstance().GetConnection()->
-		call("API", "OBS_service_createService", ipc_args, NULL, NULL);
+	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
+		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+
+		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+			rtd->error_code = ErrorCode::Error;
+			rtd->error_string = rval[0].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
+		}
+
+		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
+		if (rtd->error_code != ErrorCode::Ok) {
+			rtd->error_string = rval[1].value_str;
+		}
+
+		rtd->result = rval[1].value_str;
+
+		rtd->called = true;
+		rtd->cv.notify_all();
+	};
+
+	bool suc = Controller::GetInstance().GetConnection()->call("Service", "OBS_service_createService",
+		std::vector<ipc::value>{}, fnc, &rtd);
+	if (!suc) {
+		info.GetIsolate()->ThrowException(
+			v8::Exception::Error(
+				Nan::New<v8::String>(
+					"Failed to make IPC call, verify IPC status."
+					).ToLocalChecked()
+			));
+		return;
+	}
+
+	std::unique_lock<std::mutex> ulock(rtd.mtx);
+	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+
+	if (rtd.error_code != ErrorCode::Ok) {
+		if (rtd.error_code == ErrorCode::InvalidReference) {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::ReferenceError(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		else {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::Error(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		return;
+	}
+
+	return;
 }
 
-void service::OBS_service_createRecordingSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::vector<ipc::value> ipc_args;
+Nan::NAN_METHOD_RETURN_TYPE service::OBS_service_createRecordingSettings(Nan::NAN_METHOD_ARGS_TYPE info) {
+	struct ThreadData {
+		std::condition_variable cv;
+		std::mutex mtx;
+		bool called = false;
+		ErrorCode error_code = ErrorCode::Ok;
+		std::string error_string = "";
+		std::string result = "";
+	} rtd;
 
-	Controller::GetInstance().GetConnection()->
-		call("API", "OBS_service_createRecordingSettings", ipc_args, NULL, NULL);
+	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
+		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+
+		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+			rtd->error_code = ErrorCode::Error;
+			rtd->error_string = rval[0].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
+		}
+
+		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
+		if (rtd->error_code != ErrorCode::Ok) {
+			rtd->error_string = rval[1].value_str;
+		}
+
+		rtd->result = rval[1].value_str;
+
+		rtd->called = true;
+		rtd->cv.notify_all();
+	};
+
+	bool suc = Controller::GetInstance().GetConnection()->call("Service", "OBS_service_createRecordingSettings",
+		std::vector<ipc::value>{}, fnc, &rtd);
+	if (!suc) {
+		info.GetIsolate()->ThrowException(
+			v8::Exception::Error(
+				Nan::New<v8::String>(
+					"Failed to make IPC call, verify IPC status."
+					).ToLocalChecked()
+			));
+		return;
+	}
+
+	std::unique_lock<std::mutex> ulock(rtd.mtx);
+	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+
+	if (rtd.error_code != ErrorCode::Ok) {
+		if (rtd.error_code == ErrorCode::InvalidReference) {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::ReferenceError(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		else {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::Error(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		return;
+	}
+
+	return;
 }
 
-void service::OBS_service_createStreamingOutput(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::vector<ipc::value> ipc_args;
+Nan::NAN_METHOD_RETURN_TYPE service::OBS_service_createStreamingOutput(Nan::NAN_METHOD_ARGS_TYPE info) {
+	struct ThreadData {
+		std::condition_variable cv;
+		std::mutex mtx;
+		bool called = false;
+		ErrorCode error_code = ErrorCode::Ok;
+		std::string error_string = "";
+		std::string result = "";
+	} rtd;
 
-	Controller::GetInstance().GetConnection()->
-		call("API", "OBS_service_createStreamingOutput", ipc_args, NULL, NULL);
+	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
+		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+
+		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+			rtd->error_code = ErrorCode::Error;
+			rtd->error_string = rval[0].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
+		}
+
+		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
+		if (rtd->error_code != ErrorCode::Ok) {
+			rtd->error_string = rval[1].value_str;
+		}
+
+		rtd->result = rval[1].value_str;
+
+		rtd->called = true;
+		rtd->cv.notify_all();
+	};
+
+	bool suc = Controller::GetInstance().GetConnection()->call("Service", "OBS_service_createStreamingOutput",
+		std::vector<ipc::value>{}, fnc, &rtd);
+	if (!suc) {
+		info.GetIsolate()->ThrowException(
+			v8::Exception::Error(
+				Nan::New<v8::String>(
+					"Failed to make IPC call, verify IPC status."
+					).ToLocalChecked()
+			));
+		return;
+	}
+
+	std::unique_lock<std::mutex> ulock(rtd.mtx);
+	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+
+	if (rtd.error_code != ErrorCode::Ok) {
+		if (rtd.error_code == ErrorCode::InvalidReference) {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::ReferenceError(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		else {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::Error(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		return;
+	}
+
+	return;
 }
 
-void service::OBS_service_createRecordingOutput(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::vector<ipc::value> ipc_args;
+Nan::NAN_METHOD_RETURN_TYPE service::OBS_service_createRecordingOutput(Nan::NAN_METHOD_ARGS_TYPE info) {
+	struct ThreadData {
+		std::condition_variable cv;
+		std::mutex mtx;
+		bool called = false;
+		ErrorCode error_code = ErrorCode::Ok;
+		std::string error_string = "";
+		std::string result = "";
+	} rtd;
 
-	Controller::GetInstance().GetConnection()->
-		call("API", "OBS_service_createRecordingOutput", ipc_args, NULL, NULL);
+	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
+		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+
+		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+			rtd->error_code = ErrorCode::Error;
+			rtd->error_string = rval[0].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
+		}
+
+		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
+		if (rtd->error_code != ErrorCode::Ok) {
+			rtd->error_string = rval[1].value_str;
+		}
+
+		rtd->result = rval[1].value_str;
+
+		rtd->called = true;
+		rtd->cv.notify_all();
+	};
+
+	bool suc = Controller::GetInstance().GetConnection()->call("Service", "OBS_service_createRecordingOutput",
+		std::vector<ipc::value>{}, fnc, &rtd);
+	if (!suc) {
+		info.GetIsolate()->ThrowException(
+			v8::Exception::Error(
+				Nan::New<v8::String>(
+					"Failed to make IPC call, verify IPC status."
+					).ToLocalChecked()
+			));
+		return;
+	}
+
+	std::unique_lock<std::mutex> ulock(rtd.mtx);
+	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+
+	if (rtd.error_code != ErrorCode::Ok) {
+		if (rtd.error_code == ErrorCode::InvalidReference) {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::ReferenceError(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		else {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::Error(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		return;
+	}
+
+	return;
 }
 
-void service::OBS_service_startStreaming(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::vector<ipc::value> ipc_args;
+Nan::NAN_METHOD_RETURN_TYPE service::OBS_service_startStreaming(Nan::NAN_METHOD_ARGS_TYPE info) {
+	struct ThreadData {
+		std::condition_variable cv;
+		std::mutex mtx;
+		bool called = false;
+		ErrorCode error_code = ErrorCode::Ok;
+		std::string error_string = "";
+		std::string result = "";
+	} rtd;
 
-	Controller::GetInstance().GetConnection()->
-		call("API", "OBS_service_startStreaming", ipc_args, NULL, NULL);
+	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
+		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+
+		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+			rtd->error_code = ErrorCode::Error;
+			rtd->error_string = rval[0].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
+		}
+
+		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
+		if (rtd->error_code != ErrorCode::Ok) {
+			rtd->error_string = rval[1].value_str;
+		}
+
+		rtd->result = rval[1].value_str;
+
+		rtd->called = true;
+		rtd->cv.notify_all();
+	};
+
+	bool suc = Controller::GetInstance().GetConnection()->call("Service", "OBS_service_startStreaming",
+		std::vector<ipc::value>{}, fnc, &rtd);
+	if (!suc) {
+		info.GetIsolate()->ThrowException(
+			v8::Exception::Error(
+				Nan::New<v8::String>(
+					"Failed to make IPC call, verify IPC status."
+					).ToLocalChecked()
+			));
+		return;
+	}
+
+	std::unique_lock<std::mutex> ulock(rtd.mtx);
+	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+
+	if (rtd.error_code != ErrorCode::Ok) {
+		if (rtd.error_code == ErrorCode::InvalidReference) {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::ReferenceError(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		else {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::Error(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		return;
+	}
+
+	return;
 }
 
-void service::OBS_service_startRecording(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::vector<ipc::value> ipc_args;
+Nan::NAN_METHOD_RETURN_TYPE service::OBS_service_startRecording(Nan::NAN_METHOD_ARGS_TYPE info) {
+	struct ThreadData {
+		std::condition_variable cv;
+		std::mutex mtx;
+		bool called = false;
+		ErrorCode error_code = ErrorCode::Ok;
+		std::string error_string = "";
+		std::string result = "";
+	} rtd;
 
-	Controller::GetInstance().GetConnection()->
-		call("API", "OBS_service_startRecording", ipc_args, NULL, NULL);
+	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
+		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+
+		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+			rtd->error_code = ErrorCode::Error;
+			rtd->error_string = rval[0].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
+		}
+
+		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
+		if (rtd->error_code != ErrorCode::Ok) {
+			rtd->error_string = rval[1].value_str;
+		}
+
+		rtd->result = rval[1].value_str;
+
+		rtd->called = true;
+		rtd->cv.notify_all();
+	};
+
+	bool suc = Controller::GetInstance().GetConnection()->call("Service", "OBS_service_startRecording",
+		std::vector<ipc::value>{}, fnc, &rtd);
+	if (!suc) {
+		info.GetIsolate()->ThrowException(
+			v8::Exception::Error(
+				Nan::New<v8::String>(
+					"Failed to make IPC call, verify IPC status."
+					).ToLocalChecked()
+			));
+		return;
+	}
+
+	std::unique_lock<std::mutex> ulock(rtd.mtx);
+	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+
+	if (rtd.error_code != ErrorCode::Ok) {
+		if (rtd.error_code == ErrorCode::InvalidReference) {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::ReferenceError(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		else {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::Error(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		return;
+	}
+
+	return;
 }
 
-void service::OBS_service_stopStreaming(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::vector<ipc::value> ipc_args;	
-	bool forceStop = args[0]->ToBoolean()->BooleanValue();
-	ipc_args.push_back(ipc::value(forceStop));
+Nan::NAN_METHOD_RETURN_TYPE service::OBS_service_stopStreaming(Nan::NAN_METHOD_ARGS_TYPE info) {
+	bool forceStop;
+	ASSERT_GET_VALUE(info[0], forceStop);
 
-	Controller::GetInstance().GetConnection()->
-		call("API", "OBS_service_stopStreaming", ipc_args, NULL, NULL);
+	struct ThreadData {
+		std::condition_variable cv;
+		std::mutex mtx;
+		bool called = false;
+		ErrorCode error_code = ErrorCode::Ok;
+		std::string error_string = "";
+		std::string result = "";
+	} rtd;
+
+	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
+		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+
+		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+			rtd->error_code = ErrorCode::Error;
+			rtd->error_string = rval[0].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
+		}
+
+		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
+		if (rtd->error_code != ErrorCode::Ok) {
+			rtd->error_string = rval[1].value_str;
+		}
+
+		rtd->result = rval[1].value_str;
+
+		rtd->called = true;
+		rtd->cv.notify_all();
+	};
+
+	bool suc = Controller::GetInstance().GetConnection()->call("Service", "OBS_service_stopStreaming",
+		std::vector<ipc::value>{ipc::value(forceStop)}, fnc, &rtd);
+	if (!suc) {
+		info.GetIsolate()->ThrowException(
+			v8::Exception::Error(
+				Nan::New<v8::String>(
+					"Failed to make IPC call, verify IPC status."
+					).ToLocalChecked()
+			));
+		return;
+	}
+
+	std::unique_lock<std::mutex> ulock(rtd.mtx);
+	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+
+	if (rtd.error_code != ErrorCode::Ok) {
+		if (rtd.error_code == ErrorCode::InvalidReference) {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::ReferenceError(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		else {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::Error(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		return;
+	}
+
+	return;
 }
 
-void service::OBS_service_stopRecording(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::vector<ipc::value> ipc_args;
+Nan::NAN_METHOD_RETURN_TYPE service::OBS_service_stopRecording(Nan::NAN_METHOD_ARGS_TYPE info) {
+	struct ThreadData {
+		std::condition_variable cv;
+		std::mutex mtx;
+		bool called = false;
+		ErrorCode error_code = ErrorCode::Ok;
+		std::string error_string = "";
+		std::string result = "";
+	} rtd;
 
-	Controller::GetInstance().GetConnection()->
-		call("API", "OBS_service_stopRecording", ipc_args, NULL, NULL);
+	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
+		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+
+		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+			rtd->error_code = ErrorCode::Error;
+			rtd->error_string = rval[0].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
+		}
+
+		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
+		if (rtd->error_code != ErrorCode::Ok) {
+			rtd->error_string = rval[1].value_str;
+		}
+
+		rtd->result = rval[1].value_str;
+
+		rtd->called = true;
+		rtd->cv.notify_all();
+	};
+
+	bool suc = Controller::GetInstance().GetConnection()->call("Service", "OBS_service_stopRecording",
+		std::vector<ipc::value>{}, fnc, &rtd);
+	if (!suc) {
+		info.GetIsolate()->ThrowException(
+			v8::Exception::Error(
+				Nan::New<v8::String>(
+					"Failed to make IPC call, verify IPC status."
+					).ToLocalChecked()
+			));
+		return;
+	}
+
+	std::unique_lock<std::mutex> ulock(rtd.mtx);
+	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+
+	if (rtd.error_code != ErrorCode::Ok) {
+		if (rtd.error_code == ErrorCode::InvalidReference) {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::ReferenceError(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		else {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::Error(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		return;
+	}
+
+	return;
 }
 
-void service::OBS_service_associateAudioAndVideoToTheCurrentStreamingContext(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::vector<ipc::value> ipc_args;
+Nan::NAN_METHOD_RETURN_TYPE service::OBS_service_associateAudioAndVideoToTheCurrentStreamingContext(Nan::NAN_METHOD_ARGS_TYPE info) {
+	struct ThreadData {
+		std::condition_variable cv;
+		std::mutex mtx;
+		bool called = false;
+		ErrorCode error_code = ErrorCode::Ok;
+		std::string error_string = "";
+		std::string result = "";
+	} rtd;
 
-	Controller::GetInstance().GetConnection()->
-		call("API", "OBS_service_associateAudioAndVideoToTheCurrentStreamingContext", ipc_args, NULL, NULL);
+	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
+		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+
+		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+			rtd->error_code = ErrorCode::Error;
+			rtd->error_string = rval[0].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
+		}
+
+		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
+		if (rtd->error_code != ErrorCode::Ok) {
+			rtd->error_string = rval[1].value_str;
+		}
+
+		rtd->result = rval[1].value_str;
+
+		rtd->called = true;
+		rtd->cv.notify_all();
+	};
+
+	bool suc = Controller::GetInstance().GetConnection()->call("Service", "OBS_service_associateAudioAndVideoToTheCurrentStreamingContext",
+		std::vector<ipc::value>{}, fnc, &rtd);
+	if (!suc) {
+		info.GetIsolate()->ThrowException(
+			v8::Exception::Error(
+				Nan::New<v8::String>(
+					"Failed to make IPC call, verify IPC status."
+					).ToLocalChecked()
+			));
+		return;
+	}
+
+	std::unique_lock<std::mutex> ulock(rtd.mtx);
+	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+
+	if (rtd.error_code != ErrorCode::Ok) {
+		if (rtd.error_code == ErrorCode::InvalidReference) {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::ReferenceError(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		else {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::Error(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		return;
+	}
+
+	return;
 }
 
-void service::OBS_service_associateAudioAndVideoToTheCurrentRecordingContext(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::vector<ipc::value> ipc_args;
+Nan::NAN_METHOD_RETURN_TYPE service::OBS_service_associateAudioAndVideoToTheCurrentRecordingContext(Nan::NAN_METHOD_ARGS_TYPE info) {
+	struct ThreadData {
+		std::condition_variable cv;
+		std::mutex mtx;
+		bool called = false;
+		ErrorCode error_code = ErrorCode::Ok;
+		std::string error_string = "";
+		std::string result = "";
+	} rtd;
 
-	Controller::GetInstance().GetConnection()->
-		call("API", "OBS_service_associateAudioAndVideoToTheCurrentRecordingContext", ipc_args, NULL, NULL);
+	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
+		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+
+		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+			rtd->error_code = ErrorCode::Error;
+			rtd->error_string = rval[0].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
+		}
+
+		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
+		if (rtd->error_code != ErrorCode::Ok) {
+			rtd->error_string = rval[1].value_str;
+		}
+
+		rtd->result = rval[1].value_str;
+
+		rtd->called = true;
+		rtd->cv.notify_all();
+	};
+
+	bool suc = Controller::GetInstance().GetConnection()->call("Service", "OBS_service_associateAudioAndVideoToTheCurrentRecordingContext",
+		std::vector<ipc::value>{}, fnc, &rtd);
+	if (!suc) {
+		info.GetIsolate()->ThrowException(
+			v8::Exception::Error(
+				Nan::New<v8::String>(
+					"Failed to make IPC call, verify IPC status."
+					).ToLocalChecked()
+			));
+		return;
+	}
+
+	std::unique_lock<std::mutex> ulock(rtd.mtx);
+	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+
+	if (rtd.error_code != ErrorCode::Ok) {
+		if (rtd.error_code == ErrorCode::InvalidReference) {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::ReferenceError(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		else {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::Error(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		return;
+	}
+
+	return;
 }
 
-void service::OBS_service_associateAudioAndVideoEncodersToTheCurrentStreamingOutput(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::vector<ipc::value> ipc_args;
+Nan::NAN_METHOD_RETURN_TYPE service::OBS_service_associateAudioAndVideoEncodersToTheCurrentStreamingOutput(Nan::NAN_METHOD_ARGS_TYPE info) {
+	struct ThreadData {
+		std::condition_variable cv;
+		std::mutex mtx;
+		bool called = false;
+		ErrorCode error_code = ErrorCode::Ok;
+		std::string error_string = "";
+		std::string result = "";
+	} rtd;
 
-	Controller::GetInstance().GetConnection()->
-		call("API", "OBS_service_associateAudioAndVideoEncodersToTheCurrentStreamingOutput", ipc_args, NULL, NULL);
+	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
+		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+
+		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+			rtd->error_code = ErrorCode::Error;
+			rtd->error_string = rval[0].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
+		}
+
+		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
+		if (rtd->error_code != ErrorCode::Ok) {
+			rtd->error_string = rval[1].value_str;
+		}
+
+		rtd->result = rval[1].value_str;
+
+		rtd->called = true;
+		rtd->cv.notify_all();
+	};
+
+	bool suc = Controller::GetInstance().GetConnection()->call("Service", "OBS_service_associateAudioAndVideoEncodersToTheCurrentStreamingOutput",
+		std::vector<ipc::value>{}, fnc, &rtd);
+	if (!suc) {
+		info.GetIsolate()->ThrowException(
+			v8::Exception::Error(
+				Nan::New<v8::String>(
+					"Failed to make IPC call, verify IPC status."
+					).ToLocalChecked()
+			));
+		return;
+	}
+
+	std::unique_lock<std::mutex> ulock(rtd.mtx);
+	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+
+	if (rtd.error_code != ErrorCode::Ok) {
+		if (rtd.error_code == ErrorCode::InvalidReference) {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::ReferenceError(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		else {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::Error(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		return;
+	}
+
+	return;
 }
 
-void service::OBS_service_associateAudioAndVideoEncodersToTheCurrentRecordingOutput(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::vector<ipc::value> ipc_args;
+Nan::NAN_METHOD_RETURN_TYPE service::OBS_service_associateAudioAndVideoEncodersToTheCurrentRecordingOutput(Nan::NAN_METHOD_ARGS_TYPE info) {
+	struct ThreadData {
+		std::condition_variable cv;
+		std::mutex mtx;
+		bool called = false;
+		ErrorCode error_code = ErrorCode::Ok;
+		std::string error_string = "";
+		std::string result = "";
+	} rtd;
 
-	Controller::GetInstance().GetConnection()->
-		call("API", "OBS_service_associateAudioAndVideoEncodersToTheCurrentRecordingOutput", ipc_args, NULL, NULL);
+	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
+		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+
+		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+			rtd->error_code = ErrorCode::Error;
+			rtd->error_string = rval[0].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
+		}
+
+		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
+		if (rtd->error_code != ErrorCode::Ok) {
+			rtd->error_string = rval[1].value_str;
+		}
+
+		rtd->result = rval[1].value_str;
+
+		rtd->called = true;
+		rtd->cv.notify_all();
+	};
+
+	bool suc = Controller::GetInstance().GetConnection()->call("Service", "OBS_service_associateAudioAndVideoEncodersToTheCurrentRecordingOutput",
+		std::vector<ipc::value>{}, fnc, &rtd);
+	if (!suc) {
+		info.GetIsolate()->ThrowException(
+			v8::Exception::Error(
+				Nan::New<v8::String>(
+					"Failed to make IPC call, verify IPC status."
+					).ToLocalChecked()
+			));
+		return;
+	}
+
+	std::unique_lock<std::mutex> ulock(rtd.mtx);
+	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+
+	if (rtd.error_code != ErrorCode::Ok) {
+		if (rtd.error_code == ErrorCode::InvalidReference) {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::ReferenceError(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		else {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::Error(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		return;
+	}
+
+	return;
 }
 
-void service::OBS_service_setServiceToTheStreamingOutput(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::vector<ipc::value> ipc_args;
+Nan::NAN_METHOD_RETURN_TYPE service::OBS_service_setServiceToTheStreamingOutput(Nan::NAN_METHOD_ARGS_TYPE info) {
+	struct ThreadData {
+		std::condition_variable cv;
+		std::mutex mtx;
+		bool called = false;
+		ErrorCode error_code = ErrorCode::Ok;
+		std::string error_string = "";
+		std::string result = "";
+	} rtd;
 
-	Controller::GetInstance().GetConnection()->
-		call("API", "OBS_service_setServiceToTheStreamingOutput", ipc_args, NULL, NULL);
+	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
+		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+
+		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+			rtd->error_code = ErrorCode::Error;
+			rtd->error_string = rval[0].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
+		}
+
+		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
+		if (rtd->error_code != ErrorCode::Ok) {
+			rtd->error_string = rval[1].value_str;
+		}
+
+		rtd->result = rval[1].value_str;
+
+		rtd->called = true;
+		rtd->cv.notify_all();
+	};
+
+	bool suc = Controller::GetInstance().GetConnection()->call("Service", "OBS_service_setServiceToTheStreamingOutput",
+		std::vector<ipc::value>{}, fnc, &rtd);
+	if (!suc) {
+		info.GetIsolate()->ThrowException(
+			v8::Exception::Error(
+				Nan::New<v8::String>(
+					"Failed to make IPC call, verify IPC status."
+					).ToLocalChecked()
+			));
+		return;
+	}
+
+	std::unique_lock<std::mutex> ulock(rtd.mtx);
+	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+
+	if (rtd.error_code != ErrorCode::Ok) {
+		if (rtd.error_code == ErrorCode::InvalidReference) {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::ReferenceError(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		else {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::Error(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		return;
+	}
+
+	return;
 }
 
-void service::OBS_service_setRecordingSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::vector<ipc::value> ipc_args;
+Nan::NAN_METHOD_RETURN_TYPE service::OBS_service_setRecordingSettings(Nan::NAN_METHOD_ARGS_TYPE info) {
+	struct ThreadData {
+		std::condition_variable cv;
+		std::mutex mtx;
+		bool called = false;
+		ErrorCode error_code = ErrorCode::Ok;
+		std::string error_string = "";
+		std::string result = "";
+	} rtd;
 
-	Controller::GetInstance().GetConnection()->
-		call("API", "OBS_service_setRecordingSettings", ipc_args, NULL, NULL);
+	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
+		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+
+		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+			rtd->error_code = ErrorCode::Error;
+			rtd->error_string = rval[0].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
+		}
+
+		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
+		if (rtd->error_code != ErrorCode::Ok) {
+			rtd->error_string = rval[1].value_str;
+		}
+
+		rtd->result = rval[1].value_str;
+
+		rtd->called = true;
+		rtd->cv.notify_all();
+	};
+
+	bool suc = Controller::GetInstance().GetConnection()->call("Service", "OBS_service_setRecordingSettings",
+		std::vector<ipc::value>{}, fnc, &rtd);
+	if (!suc) {
+		info.GetIsolate()->ThrowException(
+			v8::Exception::Error(
+				Nan::New<v8::String>(
+					"Failed to make IPC call, verify IPC status."
+					).ToLocalChecked()
+			));
+		return;
+	}
+
+	std::unique_lock<std::mutex> ulock(rtd.mtx);
+	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+
+	if (rtd.error_code != ErrorCode::Ok) {
+		if (rtd.error_code == ErrorCode::InvalidReference) {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::ReferenceError(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		else {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::Error(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		return;
+	}
+
+	return;
 }
 
 /*static void OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8::Value>& args) {
