@@ -30,17 +30,21 @@ ENDIF()
 # Source, Libraries & Directories
 #############################
 SET(PROJECT_SOURCE 
+	"${CMAKE_SOURCE_DIR}/source/error.hpp"
 	"${PROJECT_SOURCE_DIR}/source/main.cpp"
 	"${PROJECT_SOURCE_DIR}/source/shared.cpp" "${PROJECT_SOURCE_DIR}/source/shared.hpp"
 	"${PROJECT_SOURCE_DIR}/source/utility.cpp" "${PROJECT_SOURCE_DIR}/source/utility.hpp"
 	"${PROJECT_SOURCE_DIR}/source/utility-v8.cpp" "${PROJECT_SOURCE_DIR}/source/utility-v8.hpp"
 	"${PROJECT_SOURCE_DIR}/source/controller.cpp" "${PROJECT_SOURCE_DIR}/source/controller.hpp"
+	"${PROJECT_SOURCE_DIR}/source/isource.cpp" "${PROJECT_SOURCE_DIR}/source/isource.hpp"
 )
 SET(PROJECT_LIBRARIES
 	${NODEJS_LIBRARIES}
+	lib-streamlabs-ipc
 )
 SET(PROJECT_INCLUDE_PATHS
 	${NODEJS_INCLUDE_DIRS}
+	"${CMAKE_SOURCE_DIR}/source/"
 	"${CMAKE_SOURCE_DIR}/lib-streamlabs-ipc/include"
 )
 SET(PROJECT_DATA
