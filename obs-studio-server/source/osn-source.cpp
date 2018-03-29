@@ -151,17 +151,19 @@ void osn::Source::GetProperties(void* data, const int64_t id, const std::vector<
 		obs_property_type pt = obs_property_get_type(p);
 		rval.push_back(ipc::value(pt));
 		switch (pt) {
-			case OBS_PROPERTY_FLOAT:
-				rval.push_back(ipc::value(obs_property_float_min(p)));
-				rval.push_back(ipc::value(obs_property_float_max(p)));
-				rval.push_back(ipc::value(obs_property_float_step(p)));
-				rval.push_back(ipc::value(obs_property_float_type(p)));
+			case OBS_PROPERTY_BOOL:
 				break;
 			case OBS_PROPERTY_INT:
 				rval.push_back(ipc::value(obs_property_int_min(p)));
 				rval.push_back(ipc::value(obs_property_int_max(p)));
 				rval.push_back(ipc::value(obs_property_int_step(p)));
 				rval.push_back(ipc::value(obs_property_int_type(p)));
+				break;
+			case OBS_PROPERTY_FLOAT:
+				rval.push_back(ipc::value(obs_property_float_min(p)));
+				rval.push_back(ipc::value(obs_property_float_max(p)));
+				rval.push_back(ipc::value(obs_property_float_step(p)));
+				rval.push_back(ipc::value(obs_property_float_type(p)));
 				break;
 			case OBS_PROPERTY_TEXT:
 				rval.push_back(ipc::value(obs_proprety_text_type(p)));
@@ -171,10 +173,31 @@ void osn::Source::GetProperties(void* data, const int64_t id, const std::vector<
 				rval.push_back(ipc::value(obs_property_path_filter(p)));
 				rval.push_back(ipc::value(obs_property_path_default_path(p)));
 				break;
-			case OBS_PROPERTY_LIST:
 			case OBS_PROPERTY_EDITABLE_LIST:
+				rval.push_back(ipc::value(obs_property_editable_list_type(p)));
+				rval.push_back(ipc::value(obs_property_editable_list_filter(p)));
+				rval.push_back(ipc::value(obs_property_editable_list_default_path(p)));
+			case OBS_PROPERTY_LIST:
 				rval.push_back(ipc::value(obs_property_list_type(p)));
-				rval.push_back(ipc::value(obs_property_list_format(p)));
+				auto fmt = obs_property_list_format(p);
+				rval.push_back(ipc::value(fmt));
+				size_t cnt = obs_property_list_item_count(p);
+				rval.push_back(ipc::value(cnt));
+				for (size_t idx = 0; idx < cnt; ++idx) {
+					rval.push_back(ipc::value(obs_property_list_item_name(p, idx)));
+					rval.push_back(ipc::value(obs_property_list_item_disabled(p, idx)));
+					switch (fmt) {
+						case OBS_COMBO_FORMAT_STRING:
+							rval.push_back(ipc::value(obs_property_list_item_string(p, idx)));
+							break;
+						case OBS_COMBO_FORMAT_INT:
+							rval.push_back(ipc::value(obs_property_list_item_int(p, idx)));
+							break;
+						case OBS_COMBO_FORMAT_FLOAT:
+							rval.push_back(ipc::value(obs_property_list_item_float(p, idx)));
+							break;
+					}
+				}
 				break;
 		}
 	}
