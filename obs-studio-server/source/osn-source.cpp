@@ -199,6 +199,23 @@ void osn::Source::GetProperties(void* data, const int64_t id, const std::vector<
 					}
 				}
 				break;
+			case OBS_PROPERTY_FRAME_RATE:
+				size_t fpscnt = obs_property_frame_rate_fps_ranges_count(p);
+				rval.push_back(ipc::value(fpscnt));
+				for (size_t idx = 0; idx < fpscnt; ++idx) {
+					auto min = obs_property_frame_rate_fps_range_min(p, idx),
+						max = obs_property_frame_rate_fps_range_max(p, idx);
+					rval.push_back(ipc::value(min.numerator));
+					rval.push_back(ipc::value(min.denominator));
+					rval.push_back(ipc::value(max.numerator));
+					rval.push_back(ipc::value(max.denominator));
+				}
+				size_t optcnt = obs_property_frame_rate_options_count(p);
+				for (size_t idx = 0; idx < optcnt; ++idx) {
+					rval.push_back(ipc::value(obs_property_frame_rate_option_name(p, idx)));
+					rval.push_back(ipc::value(obs_property_frame_rate_option_description(p, idx)));
+				}
+				break;
 		}
 	}
 	return;
