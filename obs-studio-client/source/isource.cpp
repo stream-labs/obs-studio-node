@@ -243,7 +243,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::IsConfigurable(Nan::NAN_METHOD_ARGS_TY
 		rtd->cv.notify_all();
 	};
 
-	bool suc = Controller::GetInstance().GetConnection()->call("Source", "Remove",
+	bool suc = Controller::GetInstance().GetConnection()->call("Source", "IsConfigurable",
 		std::vector<ipc::value>{ipc::value(is->sourceId)}, fnc, &rtd);
 	if (!suc) {
 		info.GetIsolate()->ThrowException(
@@ -519,7 +519,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetType(Nan::NAN_METHOD_ARGS_TYPE info
 		rtd->cv.notify_all();
 	};
 
-	bool suc = Controller::GetInstance().GetConnection()->call("Source", "GetName",
+	bool suc = Controller::GetInstance().GetConnection()->call("Source", "GetType",
 		std::vector<ipc::value>{ipc::value(is->sourceId)}, fnc, &rtd);
 	if (!suc) {
 		info.GetIsolate()->ThrowException(
