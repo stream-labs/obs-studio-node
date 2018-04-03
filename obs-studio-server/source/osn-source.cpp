@@ -177,7 +177,9 @@ void osn::Source::GetProperties(void* data, const int64_t id, const std::vector<
 				rval.push_back(ipc::value(obs_property_editable_list_type(p)));
 				rval.push_back(ipc::value(obs_property_editable_list_filter(p)));
 				rval.push_back(ipc::value(obs_property_editable_list_default_path(p)));
+				break;
 			case OBS_PROPERTY_LIST:
+			{
 				rval.push_back(ipc::value(obs_property_list_type(p)));
 				auto fmt = obs_property_list_format(p);
 				rval.push_back(ipc::value(fmt));
@@ -187,21 +189,27 @@ void osn::Source::GetProperties(void* data, const int64_t id, const std::vector<
 					rval.push_back(ipc::value(obs_property_list_item_name(p, idx)));
 					rval.push_back(ipc::value(obs_property_list_item_disabled(p, idx)));
 					switch (fmt) {
-						case OBS_COMBO_FORMAT_STRING:
-							rval.push_back(ipc::value(obs_property_list_item_string(p, idx)));
-							break;
 						case OBS_COMBO_FORMAT_INT:
 							rval.push_back(ipc::value(obs_property_list_item_int(p, idx)));
 							break;
 						case OBS_COMBO_FORMAT_FLOAT:
 							rval.push_back(ipc::value(obs_property_list_item_float(p, idx)));
 							break;
+						case OBS_COMBO_FORMAT_STRING:
+							rval.push_back(ipc::value(obs_property_list_item_string(p, idx)));
+							break;
 					}
 				}
 				break;
+			}
 			case OBS_PROPERTY_FRAME_RATE:
+			{
 				size_t fpscnt = obs_property_frame_rate_fps_ranges_count(p);
+				size_t optcnt = obs_property_frame_rate_options_count(p);
+
 				rval.push_back(ipc::value(fpscnt));
+				rval.push_back(ipc::value(optcnt));
+
 				for (size_t idx = 0; idx < fpscnt; ++idx) {
 					auto min = obs_property_frame_rate_fps_range_min(p, idx),
 						max = obs_property_frame_rate_fps_range_max(p, idx);
@@ -210,12 +218,13 @@ void osn::Source::GetProperties(void* data, const int64_t id, const std::vector<
 					rval.push_back(ipc::value(max.numerator));
 					rval.push_back(ipc::value(max.denominator));
 				}
-				size_t optcnt = obs_property_frame_rate_options_count(p);
+
 				for (size_t idx = 0; idx < optcnt; ++idx) {
 					rval.push_back(ipc::value(obs_property_frame_rate_option_name(p, idx)));
 					rval.push_back(ipc::value(obs_property_frame_rate_option_description(p, idx)));
 				}
 				break;
+			}
 		}
 	}
 	return;

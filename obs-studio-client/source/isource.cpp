@@ -18,6 +18,7 @@
 #include "isource.hpp"
 #include "utility-v8.hpp"
 #include "controller.hpp"
+#include "properties.hpp"
 #include <error.hpp>
 
 static Nan::Persistent<v8::FunctionTemplate> prototype = Nan::Persistent<v8::FunctionTemplate>();
@@ -51,11 +52,8 @@ void osn::ISource::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Release(Nan::NAN_METHOD_ARGS_TYPE info) {
-	osn::ISource* is = Nan::ObjectWrap::Unwrap<osn::ISource>(info.Holder());
-	if (is == nullptr) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::TypeError(Nan::New<v8::String>(
-				"Called without object.").ToLocalChecked()));
+	osn::ISource* obj;
+	if (!utilv8::SafeUnwrap(info, obj)) {
 		return;
 	}
 
@@ -97,7 +95,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Release(Nan::NAN_METHOD_ARGS_TYPE info
 	};
 
 	bool suc = Controller::GetInstance().GetConnection()->call("Source", "Release",
-		std::vector<ipc::value>{ipc::value(is->sourceId)}, fnc, &rtd);
+		std::vector<ipc::value>{ipc::value(obj->sourceId)}, fnc, &rtd);
 	if (!suc) {
 		// The IPC call failed due to one or more reasons:
 		// - Not Connected or Host disconnected
@@ -130,18 +128,15 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Release(Nan::NAN_METHOD_ARGS_TYPE info
 		return;
 	}
 
-	is->sourceId = UINT64_MAX;
+	obj->sourceId = UINT64_MAX;
 	return;
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Remove(Nan::NAN_METHOD_ARGS_TYPE info) {
-	osn::ISource* is = Nan::ObjectWrap::Unwrap<osn::ISource>(info.Holder());
-	if (is == nullptr) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::TypeError(Nan::New<v8::String>(
-				"Called without object.").ToLocalChecked()));
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
 		return;
-	}	
+	}
 
 	struct ThreadData {
 		std::condition_variable cv;
@@ -204,11 +199,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Remove(Nan::NAN_METHOD_ARGS_TYPE info)
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::IsConfigurable(Nan::NAN_METHOD_ARGS_TYPE info) {
-	osn::ISource* is = Nan::ObjectWrap::Unwrap<osn::ISource>(info.Holder());
-	if (is == nullptr) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::TypeError(Nan::New<v8::String>(
-				"Called without object.").ToLocalChecked()));
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
 		return;
 	}
 
@@ -288,40 +280,182 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 
 		ErrorCode error_code = ErrorCode::Ok;
 		std::string error_string = "";
-
-		struct Property {			
-			std::string name, desc, long_desc;
-			bool enabled, visible;
-
-			int32_t prop_type, type;
-			union {
-				struct {
-					double_t min, max, step;
-				} floatData;
-				struct {
-					int64_t min, max, step;
-				} intData;			
-			};
-			struct {
-			} textData;
-		};
-
-		bool is_configurable = false;
+		
+		v8::Local<v8::Object> obj;
 	} rtd;
-	
-	/*obs::source handle = ISource::GetHandle(info.Holder());
 
-	obs::properties props = handle.properties();
+	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
+		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
 
-	if (props.status() != obs::properties::status_type::okay) {
-		info.GetReturnValue().Set(Nan::Null());
-		return;
-	}
+		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+			rtd->error_code = ErrorCode::Error;
+			rtd->error_string = rval[0].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
+		}
 
-	Properties *bindings = new Properties(std::move(props));
-	auto object = Properties::Object::GenerateObject(bindings);
+		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
+		if (rtd->error_code != ErrorCode::Ok) {
+			rtd->error_string = rval[1].value_str;
+		}
 
-	info.GetReturnValue().Set(object);*/
+		// Parse the massive structure of properties we were just sent.
+		osn::property_map_t pmap;
+		for (size_t idx = 1; idx < rval.size(); ++idx) {
+			size_t elementsize = 6;
+
+			std::shared_ptr<osn::Property> prop;
+			osn::Property::Type type = (osn::Property::Type)(rval[idx + 5].value_union.i32);
+			switch (type) {
+				default:
+				{
+					prop = std::make_shared<osn::Property>();
+					break;
+				}
+				case osn::Property::Type::INT:
+				{
+					elementsize = 6 + 4;
+					std::shared_ptr<osn::NumberProperty> nprop = std::make_shared<osn::NumberProperty>();
+
+					nprop->Int.min = rval[idx + 6].value_union.i32;
+					nprop->Int.max = rval[idx + 7].value_union.i32;
+					nprop->Int.step = rval[idx + 8].value_union.i32;
+					nprop->field_type = (osn::NumberProperty::Type)rval[idx + 9].value_union.i32;
+
+					prop = std::static_pointer_cast<osn::Property>(nprop);
+					break;
+				}
+				case osn::Property::Type::FLOAT:
+				{
+					elementsize = 6 + 4;
+					std::shared_ptr<osn::NumberProperty> nprop = std::make_shared<osn::NumberProperty>();
+
+					nprop->Float.min = rval[idx + 6].value_union.fp32;
+					nprop->Float.max = rval[idx + 7].value_union.fp32;
+					nprop->Float.step = rval[idx + 8].value_union.fp32;
+					nprop->field_type = (osn::NumberProperty::Type)rval[idx + 9].value_union.i32;
+
+					prop = std::static_pointer_cast<osn::Property>(nprop);
+					break;
+				}
+				case osn::Property::Type::TEXT:
+				{
+					elementsize = 6 + 1;
+					std::shared_ptr<osn::TextProperty> nprop = std::make_shared<osn::TextProperty>();
+
+					nprop->field_type = (osn::TextProperty::Type)rval[idx + 6].value_union.i32;
+
+					prop = std::static_pointer_cast<osn::Property>(nprop);
+					break;
+				}
+				case osn::Property::Type::PATH:
+				{
+					elementsize = 6 + 3;
+					std::shared_ptr<osn::PathProperty> nprop = std::make_shared<osn::PathProperty>();
+
+					nprop->field_type = (osn::PathProperty::Type)rval[idx + 6].value_union.i32;
+					nprop->filter = rval[idx + 7].value_str;
+					nprop->default_path = rval[idx + 8].value_str;
+
+					prop = std::static_pointer_cast<osn::Property>(nprop);
+					break;
+				}
+				case osn::Property::Type::EDITABLELIST:
+				{
+					elementsize = 6 + 3;
+					std::shared_ptr<osn::EditableListProperty> nprop = std::make_shared<osn::EditableListProperty>();
+
+					nprop->field_type = (osn::EditableListProperty::Type)rval[idx + 6].value_union.i32;
+					nprop->filter = rval[idx + 7].value_str;
+					nprop->default_path = rval[idx + 8].value_str;
+
+					prop = std::static_pointer_cast<osn::Property>(nprop);
+					break;
+				}
+				case osn::Property::Type::LIST:
+				{
+					elementsize = 6 + 3;
+					std::shared_ptr<osn::ListProperty> nprop = std::make_shared<osn::ListProperty>();
+
+					nprop->field_type = (osn::ListProperty::Type)rval[idx + 6].value_union.i32;
+					nprop->item_format = (osn::ListProperty::Format)rval[idx + 7].value_union.i32;
+					size_t item_cnt = rval[idx + 8].value_union.ui64;
+
+					for (size_t idx2 = 0; idx2 < item_cnt; idx2++) {
+						osn::ListProperty::Item itm;
+						itm.name = rval[idx + elementsize + idx2 * 3 + 0].value_str;
+						itm.disabled = !!rval[idx + elementsize + idx2 * 3 + 1].value_union.i32;
+						switch (nprop->item_format) {
+							case osn::ListProperty::Format::INT:
+								itm.value_int = rval[idx + elementsize + idx2 * 3 + 2].value_union.i64;
+								break;
+							case osn::ListProperty::Format::FLOAT:
+								itm.value_float = rval[idx + elementsize + idx2 * 3 + 2].value_union.fp64;
+								break;
+							case osn::ListProperty::Format::STRING:
+								itm.value_str = rval[idx + elementsize + idx2 * 3 + 2].value_str;
+								break;
+						}
+					}
+					elementsize += item_cnt * 3;
+
+					prop = std::static_pointer_cast<osn::Property>(nprop);
+					break;
+				}
+				case osn::Property::Type::FRAMERATE:
+				{
+					elementsize = 6 + 2;
+					std::shared_ptr<osn::FrameRateProperty> nprop = std::make_shared<osn::FrameRateProperty>();
+					
+					nprop->ranges; nprop->items;
+
+					size_t range_cnt, item_cnt;
+					range_cnt = rval[idx + 6].value_union.ui64;
+					item_cnt = rval[idx + 7].value_union.ui64;
+										
+					nprop->ranges.resize(range_cnt);
+					for (size_t idx2 = 0; idx2 < range_cnt; idx2++) {
+						osn::FrameRateProperty::FrameRate min;
+						osn::FrameRateProperty::FrameRate max;
+						
+						min.numerator = rval[idx + elementsize + idx2 * 4 + 0].value_union.ui32;
+						min.denominator = rval[idx + elementsize + idx2 * 4 + 1].value_union.ui32;
+						max.numerator = rval[idx + elementsize + idx2 * 4 + 2].value_union.ui32;
+						max.denominator = rval[idx + elementsize + idx2 * 4 + 3].value_union.ui32;
+						nprop->ranges[idx2] = std::pair<osn::FrameRateProperty::FrameRate, osn::FrameRateProperty::FrameRate>(min, max);
+					}
+					elementsize += range_cnt * 4;
+					
+					for (size_t idx2 = 0; idx2 < item_cnt; idx2++) {
+						osn::FrameRateProperty::Item itm;
+						itm.name = rval[idx + elementsize + idx2 * 2 + 0].value_str;
+						itm.description = rval[idx + elementsize + idx2 * 2 + 1].value_str;
+						nprop->items.insert_or_assign(itm.name, std::move(itm));
+					}
+					elementsize += item_cnt * 2;
+
+					prop = std::static_pointer_cast<osn::Property>(nprop);
+					break;
+				}
+			}
+
+			if (prop) {
+				prop->name = rval[idx + 0].value_str;
+				prop->description = rval[idx + 1].value_str;
+				prop->long_description = rval[idx + 2].value_str;
+				prop->enabled = !!rval[idx + 3].value_union.i32;
+				prop->visible = !!rval[idx + 4].value_union.i32;
+
+				pmap.insert_or_assign(prop->name, prop);
+			}
+						
+			idx += elementsize;
+		}
+
+		rtd->called = true;
+		rtd->cv.notify_all();
+	};
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetSettings(Nan::NAN_METHOD_ARGS_TYPE info) {
@@ -344,11 +478,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Update(Nan::NAN_METHOD_ARGS_TYPE info)
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Load(Nan::NAN_METHOD_ARGS_TYPE info) {
-	osn::ISource* is = Nan::ObjectWrap::Unwrap<osn::ISource>(info.Holder());
-	if (is == nullptr) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::TypeError(Nan::New<v8::String>(
-				"Called without object.").ToLocalChecked()));
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
 		return;
 	}
 
@@ -412,11 +543,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Load(Nan::NAN_METHOD_ARGS_TYPE info) {
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Save(Nan::NAN_METHOD_ARGS_TYPE info) {
-	osn::ISource* is = Nan::ObjectWrap::Unwrap<osn::ISource>(info.Holder());
-	if (is == nullptr) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::TypeError(Nan::New<v8::String>(
-				"Called without object.").ToLocalChecked()));
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
 		return;
 	}
 
@@ -480,11 +608,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Save(Nan::NAN_METHOD_ARGS_TYPE info) {
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetType(Nan::NAN_METHOD_ARGS_TYPE info) {
-	osn::ISource* is = Nan::ObjectWrap::Unwrap<osn::ISource>(info.Holder());
-	if (is == nullptr) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::TypeError(Nan::New<v8::String>(
-				"Called without object.").ToLocalChecked()));
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
 		return;
 	}
 
@@ -552,11 +677,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetType(Nan::NAN_METHOD_ARGS_TYPE info
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetName(Nan::NAN_METHOD_ARGS_TYPE info) {
-	osn::ISource* is = Nan::ObjectWrap::Unwrap<osn::ISource>(info.Holder());
-	if (is == nullptr) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::TypeError(Nan::New<v8::String>(
-				"Called without object.").ToLocalChecked()));
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
 		return;
 	}
 
@@ -627,11 +749,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetName(Nan::NAN_METHOD_ARGS_TYPE info
 	std::string name;
 	ASSERT_GET_VALUE(info[0], name);
 
-	osn::ISource* is = Nan::ObjectWrap::Unwrap<osn::ISource>(info.Holder());
-	if (is == nullptr) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::TypeError(Nan::New<v8::String>(
-				"Called without object.").ToLocalChecked()));
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
 		return;
 	}
 
@@ -699,11 +818,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetName(Nan::NAN_METHOD_ARGS_TYPE info
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetOutputFlags(Nan::NAN_METHOD_ARGS_TYPE info) {
-	osn::ISource* is = Nan::ObjectWrap::Unwrap<osn::ISource>(info.Holder());
-	if (is == nullptr) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::TypeError(Nan::New<v8::String>(
-				"Called without object.").ToLocalChecked()));
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
 		return;
 	}
 
@@ -771,11 +887,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetOutputFlags(Nan::NAN_METHOD_ARGS_TY
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetFlags(Nan::NAN_METHOD_ARGS_TYPE info) {
-	osn::ISource* is = Nan::ObjectWrap::Unwrap<osn::ISource>(info.Holder());
-	if (is == nullptr) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::TypeError(Nan::New<v8::String>(
-				"Called without object.").ToLocalChecked()));
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
 		return;
 	}
 
@@ -846,11 +959,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetFlags(Nan::NAN_METHOD_ARGS_TYPE inf
 	uint32_t flags;
 	ASSERT_GET_VALUE(info[0], flags);
 
-	osn::ISource* is = Nan::ObjectWrap::Unwrap<osn::ISource>(info.Holder());
-	if (is == nullptr) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::TypeError(Nan::New<v8::String>(
-				"Called without object.").ToLocalChecked()));
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
 		return;
 	}
 
@@ -918,11 +1028,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetFlags(Nan::NAN_METHOD_ARGS_TYPE inf
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetStatus(Nan::NAN_METHOD_ARGS_TYPE info) {
-	osn::ISource* is = Nan::ObjectWrap::Unwrap<osn::ISource>(info.Holder());
-	if (is == nullptr) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::TypeError(Nan::New<v8::String>(
-				"Called without object.").ToLocalChecked()));
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
 		return;
 	}
 
@@ -990,11 +1097,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetStatus(Nan::NAN_METHOD_ARGS_TYPE in
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetId(Nan::NAN_METHOD_ARGS_TYPE info) {
-	osn::ISource* is = Nan::ObjectWrap::Unwrap<osn::ISource>(info.Holder());
-	if (is == nullptr) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::TypeError(Nan::New<v8::String>(
-				"Called without object.").ToLocalChecked()));
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
 		return;
 	}
 
@@ -1062,11 +1166,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetId(Nan::NAN_METHOD_ARGS_TYPE info) 
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetMuted(Nan::NAN_METHOD_ARGS_TYPE info) {
-	osn::ISource* is = Nan::ObjectWrap::Unwrap<osn::ISource>(info.Holder());
-	if (is == nullptr) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::TypeError(Nan::New<v8::String>(
-				"Called without object.").ToLocalChecked()));
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
 		return;
 	}
 
@@ -1138,11 +1239,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetMuted(Nan::NAN_METHOD_ARGS_TYPE inf
 
 	ASSERT_GET_VALUE(info[0], muted);
 
-	osn::ISource* is = Nan::ObjectWrap::Unwrap<osn::ISource>(info.Holder());
-	if (is == nullptr) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::TypeError(Nan::New<v8::String>(
-				"Called without object.").ToLocalChecked()));
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
 		return;
 	}
 
@@ -1210,11 +1308,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetMuted(Nan::NAN_METHOD_ARGS_TYPE inf
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetEnabled(Nan::NAN_METHOD_ARGS_TYPE info) {
-	osn::ISource* is = Nan::ObjectWrap::Unwrap<osn::ISource>(info.Holder());
-	if (is == nullptr) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::TypeError(Nan::New<v8::String>(
-				"Called without object.").ToLocalChecked()));
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
 		return;
 	}
 
@@ -1286,11 +1381,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetEnabled(Nan::NAN_METHOD_ARGS_TYPE i
 
 	ASSERT_GET_VALUE(info[0], enabled);
 
-	osn::ISource* is = Nan::ObjectWrap::Unwrap<osn::ISource>(info.Holder());
-	if (is == nullptr) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::TypeError(Nan::New<v8::String>(
-				"Called without object.").ToLocalChecked()));
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
 		return;
 	}
 
