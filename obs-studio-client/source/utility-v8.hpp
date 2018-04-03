@@ -389,7 +389,7 @@ namespace utilv8 {
 
 	template<typename T>
 	inline bool SafeUnwrap(Nan::NAN_METHOD_ARGS_TYPE info, T*& valp) {
-		T* val = Nan::ObjectWrap::Unwrap<T>(info.Holder());
+		T* val = Nan::ObjectWrap::Unwrap<T>(info.This());
 		if (!val) {
 			info.GetIsolate()->ThrowException(
 				v8::Exception::TypeError(Nan::New<v8::String>(
@@ -399,5 +399,26 @@ namespace utilv8 {
 		valp = val;
 		return true;
 	}
+	
+	template<typename T>
+	class ManagedObject {
+		public:
+		static v8::Local<v8::Object> Store(T* object) {
+			auto obj = Nan::NewInstance(T::prototype.Get(v8::Isolate::GetCurrent())->InstanceTemplate()).ToLocalChecked();
+			object->Wrap(obj);
+			return obj;
+		}
 
+		static bool Retrieve(v8::Local<v8::Object> object, T*& valp) {
+			T* val = Nan::ObjectWrap::Unwrap<T>(object);
+			if (!val) {
+				info.GetIsolate()->ThrowException(
+					v8::Exception::TypeError(Nan::New<v8::String>(
+						"No wrapped object.").ToLocalChecked()));
+				return false;
+			}
+			valp = val;
+			return true;
+		}
+	};
 }
