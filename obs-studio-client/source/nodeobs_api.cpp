@@ -160,7 +160,7 @@ Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_getPerformanceStatistics(Nan::NAN_METHO
 			rtd->error_string = rval[1].value_str;
 		}
 
-		for (int i = 1; i < i < 6; i++) {
+		for (int i = 1; i < 6; i++) {
 			rtd->result.push_back(rval[i].value_union.fp32);
 		}
 
