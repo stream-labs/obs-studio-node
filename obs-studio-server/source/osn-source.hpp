@@ -80,6 +80,11 @@ namespace osn {
 		public:
 		static void Register(ipc::server&);
 
+		// Type Info
+		static void GetTypeProperties(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static void GetTypeDefaults(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static void GetTypeOutputFlags(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+
 		// References
 		static void Remove(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 		static void Release(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);

@@ -58,6 +58,10 @@ osn::Source::SingletonObjectManager* osn::Source::GetInstance() {
 
 void osn::Source::Register(ipc::server& srv) {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Source");
+	cls->register_function(std::make_shared<ipc::function>("GetDefaults", std::vector<ipc::type>{ipc::type::String}, GetSettings));
+	cls->register_function(std::make_shared<ipc::function>("GetProperties", std::vector<ipc::type>{ipc::type::String}, GetTypeProperties));
+	cls->register_function(std::make_shared<ipc::function>("GetOutputFlags", std::vector<ipc::type>{ipc::type::String}, GetTypeOutputFlags));
+
 	cls->register_function(std::make_shared<ipc::function>("Remove", std::vector<ipc::type>{ipc::type::UInt64}, Remove));
 	cls->register_function(std::make_shared<ipc::function>("Release", std::vector<ipc::type>{ipc::type::UInt64}, Release));
 	cls->register_function(std::make_shared<ipc::function>("IsConfigurable", std::vector<ipc::type>{ipc::type::UInt64}, IsConfigurable));
@@ -79,6 +83,21 @@ void osn::Source::Register(ipc::server& srv) {
 	cls->register_function(std::make_shared<ipc::function>("GetEnabled", std::vector<ipc::type>{ipc::type::UInt64}, GetEnabled));
 	cls->register_function(std::make_shared<ipc::function>("SetEnabled", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SetEnabled));
 	srv.register_collection(cls);
+}
+
+void osn::Source::GetTypeProperties(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	// Per Type Properties (doesn't have an object).
+	//obs_get_source_properties();
+}
+
+void osn::Source::GetTypeDefaults(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	// Per Type Defaults (doesn't have an object)
+	//obs_get_source_defaults();
+}
+
+void osn::Source::GetTypeOutputFlags(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	// Per Type Defaults (doesn't have an object)
+	//obs_get_source_output_flags();
 }
 
 void osn::Source::Remove(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
