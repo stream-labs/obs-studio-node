@@ -330,6 +330,13 @@ namespace utilv8 {
 		return false;
 	}
 
+	inline bool FromValue(v8::Local<v8::Value> l, v8::Local<v8::Object>& r) {
+		if (l->IsObject()) {
+			r = l->ToObject();
+			return true;
+		}
+		return false;
+	}
 #pragma endregion FromValue
 	
 #pragma region Objects
@@ -412,7 +419,7 @@ namespace utilv8 {
 		static bool Retrieve(v8::Local<v8::Object> object, T*& valp) {
 			T* val = Nan::ObjectWrap::Unwrap<T>(object);
 			if (!val) {
-				info.GetIsolate()->ThrowException(
+				v8::Isolate::GetCurrent()->ThrowException(
 					v8::Exception::TypeError(Nan::New<v8::String>(
 						"No wrapped object.").ToLocalChecked()));
 				return false;

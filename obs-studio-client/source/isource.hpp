@@ -18,9 +18,10 @@
 #pragma once
 #include <node.h>
 #include <nan.h>
+#include "utility-v8.hpp"
 
 namespace osn {
-	class ISource : public Nan::ObjectWrap {
+	class ISource : public Nan::ObjectWrap, public utilv8::ManagedObject<osn::ISource> {
 		private:
 		uint64_t sourceId;
 		
