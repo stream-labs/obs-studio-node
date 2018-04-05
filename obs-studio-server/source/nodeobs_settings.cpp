@@ -39,6 +39,17 @@ OBS_settings::~OBS_settings()
 
 }
 
+
+void OBS_settings::Register(ipc::server& srv) {
+	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Settings");
+
+	cls->register_function(std::make_shared<ipc::function>("OBS_settings_getSettings", std::vector<ipc::type>{ipc::type::String}, OBS_settings_getSettings));
+	cls->register_function(std::make_shared<ipc::function>("OBS_settings_saveSettings", std::vector<ipc::type>{ipc::type::String, ipc::type::Int32, ipc::type::Int32, ipc::type::Binary}, OBS_settings_saveSettings));
+	cls->register_function(std::make_shared<ipc::function>("OBS_settings_getListCategories", std::vector<ipc::type>{}, OBS_settings_getListCategories));
+	
+	srv.register_collection(cls);
+}
+
 void OBS_settings::OBS_settings_getListCategories(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	std::vector<std::string> listCategories = getListCategories();
