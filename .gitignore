@@ -15,6 +15,3 @@ distribute/
 *.vcxproj
 *.opendb
 
-# Javascript
-*.d.ts
-/*.js
