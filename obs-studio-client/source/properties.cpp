@@ -38,10 +38,10 @@ void osn::Properties::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	fnctemplate->SetClassName(Nan::New<v8::String>("Properties").ToLocalChecked());
 	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->PrototypeTemplate();
 
-	utilv8::SetObjectTemplateAccessorProperty(objtemplate, "count", Count);
-	utilv8::SetObjectTemplateAccessorProperty(objtemplate, "first", First);
-	utilv8::SetObjectTemplateAccessorProperty(objtemplate, "last", Last);
-	utilv8::SetObjectTemplateField(objtemplate, "get", Get);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "count", Count);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "first", First);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "last", Last);
+	utilv8::SetTemplateField(objtemplate, "get", Get);
 
 	utilv8::SetObjectField(target, "Properties", fnctemplate->GetFunction());
 	osn::Properties::prototype.Reset(fnctemplate);
@@ -125,20 +125,20 @@ void osn::PropertyObject::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target
 	fnctemplate->SetClassName(Nan::New<v8::String>("Property").ToLocalChecked());
 	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->PrototypeTemplate();
 
-	utilv8::SetObjectTemplateField(objtemplate, "previous", Previous);
-	utilv8::SetObjectTemplateField(objtemplate, "next", Next);
-	utilv8::SetObjectTemplateField(objtemplate, "is_first", IsFirst);
-	utilv8::SetObjectTemplateField(objtemplate, "is_last", IsLast);
+	utilv8::SetTemplateField(objtemplate, "previous", Previous);
+	utilv8::SetTemplateField(objtemplate, "next", Next);
+	utilv8::SetTemplateField(objtemplate, "is_first", IsFirst);
+	utilv8::SetTemplateField(objtemplate, "is_last", IsLast);
 
-	utilv8::SetObjectTemplateAccessorProperty(objtemplate, "name", GetName);
-	utilv8::SetObjectTemplateAccessorProperty(objtemplate, "description", GetDescription);
-	utilv8::SetObjectTemplateAccessorProperty(objtemplate, "longDescription", GetLongDescription);
-	utilv8::SetObjectTemplateAccessorProperty(objtemplate, "enabled", IsEnabled);
-	utilv8::SetObjectTemplateAccessorProperty(objtemplate, "visible", IsVisible);
-	utilv8::SetObjectTemplateAccessorProperty(objtemplate, "details", IsVisible);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "name", GetName);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "description", GetDescription);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "longDescription", GetLongDescription);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "enabled", IsEnabled);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "visible", IsVisible);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "details", IsVisible);
 
-	utilv8::SetObjectTemplateField(objtemplate, "modified", Modified);
-	utilv8::SetObjectTemplateField(objtemplate, "buttonClicked", ButtonClicked);
+	utilv8::SetTemplateField(objtemplate, "modified", Modified);
+	utilv8::SetTemplateField(objtemplate, "buttonClicked", ButtonClicked);
 
 	utilv8::SetObjectField(target, "Property", fnctemplate->GetFunction());
 	osn::PropertyObject::prototype.Reset(fnctemplate);
