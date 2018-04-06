@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const obs = require('./obs_studio_node.node');
+const obs = require('./obs-studio-client.node');
 const path = require("path");
 obs.SetWorkingDirectory(__dirname);
 exports.DefaultD3D11Path = path.resolve(__dirname, `libobs-d3d11.dll`);
