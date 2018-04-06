@@ -21,31 +21,31 @@
 #include "properties.hpp"
 #include <error.hpp>
 
-static Nan::Persistent<v8::FunctionTemplate> prototype = Nan::Persistent<v8::FunctionTemplate>();
+Nan::Persistent<v8::FunctionTemplate> osn::ISource::prototype = Nan::Persistent<v8::FunctionTemplate>();
 
 void osn::ISource::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->SetClassName(Nan::New<v8::String>("Source").ToLocalChecked());
 	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->PrototypeTemplate();
 
-	utilv8::SetObjectTemplateField(objtemplate, "release", Release);
-	utilv8::SetObjectTemplateField(objtemplate, "remove", Remove);
+	utilv8::SetTemplateField(objtemplate, "release", Release);
+	utilv8::SetTemplateField(objtemplate, "remove", Remove);
 
-	utilv8::SetObjectTemplateAccessorProperty(objtemplate, "configurable", IsConfigurable);
-	utilv8::SetObjectTemplateAccessorProperty(objtemplate, "properties", GetProperties);
-	utilv8::SetObjectTemplateAccessorProperty(objtemplate, "settings", GetSettings);
-	utilv8::SetObjectTemplateField(objtemplate, "update", Update);
-	utilv8::SetObjectTemplateField(objtemplate, "load", Load);
-	utilv8::SetObjectTemplateField(objtemplate, "save", Save);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "configurable", IsConfigurable);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "properties", GetProperties);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "settings", GetSettings);
+	utilv8::SetTemplateField(objtemplate, "update", Update);
+	utilv8::SetTemplateField(objtemplate, "load", Load);
+	utilv8::SetTemplateField(objtemplate, "save", Save);
 
-	utilv8::SetObjectTemplateAccessorProperty(objtemplate, "type", GetType);
-	utilv8::SetObjectTemplateAccessorProperty(objtemplate, "name", GetName, SetName);
-	utilv8::SetObjectTemplateAccessorProperty(objtemplate, "outputFlags", GetOutputFlags);
-	utilv8::SetObjectTemplateAccessorProperty(objtemplate, "flags", GetFlags, SetFlags);
-	utilv8::SetObjectTemplateAccessorProperty(objtemplate, "status", GetStatus);
-	utilv8::SetObjectTemplateAccessorProperty(objtemplate, "id", GetId);
-	utilv8::SetObjectTemplateAccessorProperty(objtemplate, "muted", GetMuted, SetMuted);
-	utilv8::SetObjectTemplateAccessorProperty(objtemplate, "enabled", GetEnabled, SetEnabled);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "type", GetType);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "name", GetName, SetName);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "outputFlags", GetOutputFlags);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "flags", GetFlags, SetFlags);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "status", GetStatus);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "id", GetId);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "muted", GetMuted, SetMuted);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "enabled", GetEnabled, SetEnabled);
 
 	utilv8::SetObjectField(target, "Source", fnctemplate->GetFunction());
 	prototype.Reset(fnctemplate);

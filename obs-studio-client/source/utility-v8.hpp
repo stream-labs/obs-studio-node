@@ -189,7 +189,7 @@ namespace utilv8 {
 	inline v8::Local<v8::Value> ToValue(v8::Local<v8::Array> v) {
 		return v;
 	}
-	
+
 	inline v8::Local<v8::Value> ToValue(v8::Local<v8::Function> v) {
 		return v;
 	}
@@ -205,7 +205,7 @@ namespace utilv8 {
 		}
 		return false;
 	}
-	
+
 	inline bool FromValue(v8::Local<v8::Value> l, int8_t& r) {
 		if (l->IsInt32()) {
 			r = l->Int32Value();
@@ -338,7 +338,7 @@ namespace utilv8 {
 		return false;
 	}
 #pragma endregion FromValue
-	
+
 #pragma region Objects
 	template<typename T> inline void SetObjectField(v8::Local<v8::Object> object, const char* field, T value) {
 		Nan::Set(object, ToValue(field), ToValue(value));
@@ -369,30 +369,27 @@ namespace utilv8 {
 	}
 #pragma endregion Objects
 
-#pragma region Object Fields
-	template<typename T> inline void SetObjectTemplateField(v8::Local<v8::ObjectTemplate> object, const char* field, T value) {
+#pragma region Templates
+	template<typename T> inline void SetTemplateField(v8::Local<v8::Template> object, const char* field, T value) {
 		Nan::SetMethod(object, ToValue(field), ToValue(value));
 	}
 
-	template<typename T> inline void SetObjectTemplateField(v8::Local<v8::ObjectTemplate> object, uint32_t field, T value) {
+	template<typename T> inline void SetTemplateField(v8::Local<v8::Template> object, uint32_t field, T value) {
 		Nan::SetMethod(object, field, ToValue(value));
 	}
 
-	template<> inline void SetObjectTemplateField<Nan::FunctionCallback>(v8::Local<v8::ObjectTemplate> object, const char *name, Nan::FunctionCallback value) {
+	template<> inline void SetTemplateField<Nan::FunctionCallback>(v8::Local<v8::Template> object, const char *name, Nan::FunctionCallback value) {
 		Nan::SetMethod(object, name, value);
 	}
 
-	inline void SetObjectTemplateAccessor(v8::Local<v8::ObjectTemplate> object, const char *name,
-		Nan::GetterCallback get, Nan::SetterCallback set = nullptr) {
-		Nan::SetAccessor(object, FIELD_NAME(name), get, set);
+	inline void SetTemplateAccessorProperty(v8::Local<v8::Template> object, const char *name, Nan::FunctionCallback get, Nan::FunctionCallback set = nullptr) {
+		object->SetAccessorProperty(FIELD_NAME(name), Nan::New<v8::FunctionTemplate>(get), Nan::New<v8::FunctionTemplate>(set));
 	}
 
-	inline void SetObjectTemplateAccessorProperty(v8::Local<v8::ObjectTemplate> object, const char *name,
-		Nan::FunctionCallback get, Nan::FunctionCallback set = nullptr) {
-		object->SetAccessorProperty(FIELD_NAME(name), Nan::New<v8::FunctionTemplate>(get),
-			Nan::New<v8::FunctionTemplate>(set));
+	inline void SetObjectTemplateAccessor(v8::Local<v8::ObjectTemplate> object, const char *name, Nan::GetterCallback get, Nan::SetterCallback set = nullptr) {
+		Nan::SetAccessor(object, FIELD_NAME(name), get, set);
 	}
-#pragma endregion Object Fields
+#pragma endregion Templates
 
 	template<typename T>
 	inline bool SafeUnwrap(Nan::NAN_METHOD_ARGS_TYPE info, T*& valp) {
@@ -406,7 +403,7 @@ namespace utilv8 {
 		valp = val;
 		return true;
 	}
-	
+
 	template<typename T>
 	class ManagedObject {
 		public:
