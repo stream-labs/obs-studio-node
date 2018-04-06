@@ -67,5 +67,11 @@ SET_TARGET_PROPERTIES(obs-studio-client PROPERTIES PREFIX "" SUFFIX ".node")
 #############################
 # Distribute
 #############################
-INSTALL(TARGETS obs-studio-client DESTINATION "${INSTALL_DIR}")
+INSTALL(TARGETS obs-studio-client 
+	RUNTIME DESTINATION "${INSTALL_DIR}" COMPONENT Runtime
+	LIBRARY DESTINATION "${INSTALL_DIR}" COMPONENT Runtime
+)
 INSTALL(FILES $<TARGET_PDB_FILE:obs-studio-client> DESTINATION "${INSTALL_DIR}" OPTIONAL)
+
+# JavaScript
+INSTALL(DIRECTORY "${PROJECT_SOURCE_DIR}/../js/" DESTINATION "${INSTALL_DIR}")
