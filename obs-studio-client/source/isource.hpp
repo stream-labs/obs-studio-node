@@ -22,7 +22,12 @@
 
 namespace osn {
 	class ISource : public Nan::ObjectWrap, public utilv8::ManagedObject<osn::ISource> {
-		private:
+		friend class utilv8::ManagedObject<osn::ISource>;
+
+		protected:
+		static Nan::Persistent<v8::FunctionTemplate> prototype;
+
+		protected:
 		uint64_t sourceId;
 		
 		public:
