@@ -2,6 +2,7 @@ const obs = require('./obs-studio-client.node');
 import * as path from 'path';
 
 // EDIT: Add function to specify actual load directory.
+obs.IPC.SetServerWorkingPath(path.resolve(__dirname));
 obs.IPC.SetServerPath(path.resolve(__dirname, `obs-studio-server.exe`));
 // END OF EDIT:
 

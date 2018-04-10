@@ -32,6 +32,7 @@
 #pragma region JavaScript
 
 std::string serverBinaryPath = "";
+std::string serverWorkingPath = "";
 
 void ConnectOrHost(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	auto isol = args.GetIsolate();
@@ -80,6 +81,23 @@ void SetServerPath(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	return;
 }
 
+void SetServerWorkingPath(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	auto isol = args.GetIsolate();
+	if (args.Length() == 0) {
+		isol->ThrowException(v8::Exception::SyntaxError(v8::String::NewFromUtf8(isol, "Too few arguments, usage: SetServerWorkingPath(uri).")));
+		return;
+	} else if (args.Length() > 1) {
+		isol->ThrowException(v8::Exception::SyntaxError(v8::String::NewFromUtf8(isol, "Too many arguments.")));
+		return;
+	} else if (!args[0]->IsString()) {
+		isol->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isol, "Argument 'uri' must be of type 'String'.")));
+		return;
+	}
+
+	serverWorkingPath = *v8::String::Utf8Value(args[0]);
+	return;
+}
+
 INITIALIZER(js_ipc) {
 	initializerFunctions.push([](v8::Local<v8::Object>& exports) {
 		// IPC related functions will be under the IPC object.
@@ -87,6 +105,7 @@ INITIALIZER(js_ipc) {
 		NODE_SET_METHOD(obj, "ConnectOrHost", ConnectOrHost);
 		NODE_SET_METHOD(obj, "Disconnect", Disconnect);
 		NODE_SET_METHOD(obj, "SetServerPath", SetServerPath);
+		NODE_SET_METHOD(obj, "SetServerWorkingPath", SetServerWorkingPath);
 		exports->Set(v8::String::NewFromUtf8(exports->GetIsolate(), "IPC"), obj);
 	});
 }
@@ -109,6 +128,7 @@ std::shared_ptr<ipc::client> Controller::Host(std::string uri) {
 	buf << '"' << serverBinaryPath << '"' << ' ' << uri;
 	std::string cmdLine = buf.str();
 	std::vector<char> cmdLineBuf(cmdLine.begin(), cmdLine.end());
+	std::vector<char> workdirBuf(serverWorkingPath.begin(), serverWorkingPath.end());
 
 	// Build information
 	memset(&m_win32_startupInfo, 0, sizeof(m_win32_startupInfo));
@@ -116,7 +136,7 @@ std::shared_ptr<ipc::client> Controller::Host(std::string uri) {
 
 	// Launch process
 	if (!CreateProcessA(NULL, cmdLineBuf.data(), NULL, NULL, false,
-		CREATE_NEW_CONSOLE, NULL, NULL, &m_win32_startupInfo,
+		CREATE_NEW_CONSOLE, NULL, workdirBuf.size() > 1 ? workdirBuf.data() : NULL, &m_win32_startupInfo,
 		&m_win32_processInformation)) {
 		DWORD errorCode = GetLastError();
 		cmdLineBuf.clear();
