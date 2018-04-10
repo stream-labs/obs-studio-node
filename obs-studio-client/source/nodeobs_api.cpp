@@ -3,9 +3,15 @@
 #include "utility-v8.hpp"
 #include "error.hpp"
 
-Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_initAPI(Nan::NAN_METHOD_ARGS_TYPE info) {
+#include "shared.hpp"
+#include "utility.hpp"
+#include <string>
+#include <sstream>
+#include <node.h>
+
+void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	std::string path;
-	ASSERT_GET_VALUE(info[0], path);
+	ASSERT_GET_VALUE(args[0], path);
 
 	struct ThreadData {
 		std::condition_variable cv;
@@ -41,7 +47,7 @@ Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_initAPI(Nan::NAN_METHOD_ARGS_TYPE info)
 	bool suc = Controller::GetInstance().GetConnection()->call("API", "OBS_API_initAPI",
 		std::vector<ipc::value>{ipc::value(path)}, fnc, &rtd);
 	if (!suc) {
-		info.GetIsolate()->ThrowException(
+		args.GetIsolate()->ThrowException(
 			v8::Exception::Error(
 				Nan::New<v8::String>(
 					"Failed to make IPC call, verify IPC status."
@@ -55,12 +61,12 @@ Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_initAPI(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	if (rtd.error_code != ErrorCode::Ok) {
 		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
+			args.GetIsolate()->ThrowException(
 				v8::Exception::ReferenceError(Nan::New<v8::String>(
 					rtd.error_string).ToLocalChecked()));
 		}
 		else {
-			info.GetIsolate()->ThrowException(
+			args.GetIsolate()->ThrowException(
 				v8::Exception::Error(Nan::New<v8::String>(
 					rtd.error_string).ToLocalChecked()));
 		}
@@ -70,7 +76,7 @@ Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_initAPI(Nan::NAN_METHOD_ARGS_TYPE info)
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_destroyOBS_API(Nan::NAN_METHOD_ARGS_TYPE info) {
+void api::OBS_API_destroyOBS_API(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	struct ThreadData {
 		std::condition_variable cv;
 		std::mutex mtx;
@@ -105,7 +111,7 @@ Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_destroyOBS_API(Nan::NAN_METHOD_ARGS_TYP
 	bool suc = Controller::GetInstance().GetConnection()->call("API", "OBS_API_destroyOBS_API",
 		std::vector<ipc::value>{}, fnc, &rtd);
 	if (!suc) {
-		info.GetIsolate()->ThrowException(
+		args.GetIsolate()->ThrowException(
 			v8::Exception::Error(
 				Nan::New<v8::String>(
 					"Failed to make IPC call, verify IPC status."
@@ -114,17 +120,17 @@ Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_destroyOBS_API(Nan::NAN_METHOD_ARGS_TYP
 		return;
 	}
 
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+	// std::unique_lock<std::mutex> ulock(rtd.mtx);
+	// rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
 
 	if (rtd.error_code != ErrorCode::Ok) {
 		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
+			args.GetIsolate()->ThrowException(
 				v8::Exception::ReferenceError(Nan::New<v8::String>(
 					rtd.error_string).ToLocalChecked()));
 		}
 		else {
-			info.GetIsolate()->ThrowException(
+			args.GetIsolate()->ThrowException(
 				v8::Exception::Error(Nan::New<v8::String>(
 					rtd.error_string).ToLocalChecked()));
 		}
@@ -134,7 +140,7 @@ Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_destroyOBS_API(Nan::NAN_METHOD_ARGS_TYP
 	return;
 } 
 
-Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_getPerformanceStatistics(Nan::NAN_METHOD_ARGS_TYPE info) {
+void api::OBS_API_getPerformanceStatistics(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	struct ThreadData {
 		std::condition_variable cv;
 		std::mutex mtx;
@@ -171,7 +177,7 @@ Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_getPerformanceStatistics(Nan::NAN_METHO
 	bool suc = Controller::GetInstance().GetConnection()->call("Source", "OBS_API_getPerformanceStatistics",
 		std::vector<ipc::value>{}, fnc, &rtd);
 	if (!suc) {
-		info.GetIsolate()->ThrowException(
+		args.GetIsolate()->ThrowException(
 			v8::Exception::Error(
 				Nan::New<v8::String>(
 					"Failed to make IPC call, verify IPC status."
@@ -180,24 +186,24 @@ Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_getPerformanceStatistics(Nan::NAN_METHO
 		return;
 	}
 
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+	// std::unique_lock<std::mutex> ulock(rtd.mtx);
+	// rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
 
 	if (rtd.error_code != ErrorCode::Ok) {
 		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
+			args.GetIsolate()->ThrowException(
 				v8::Exception::ReferenceError(Nan::New<v8::String>(
 					rtd.error_string).ToLocalChecked()));
 		}
 		else {
-			info.GetIsolate()->ThrowException(
+			args.GetIsolate()->ThrowException(
 				v8::Exception::Error(Nan::New<v8::String>(
 					rtd.error_string).ToLocalChecked()));
 		}
 		return;
 	}
 
-	v8::Local<v8::Object> statistics = v8::Object::New(info.GetIsolate());
+	v8::Local<v8::Object> statistics = v8::Object::New(args.GetIsolate());
 
 	utilv8::SetObjectField(statistics, "CPU", rtd.result[0]);
 	utilv8::SetObjectField(statistics, "numberDroppedFrames", rtd.result[1]);
@@ -205,11 +211,11 @@ Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_getPerformanceStatistics(Nan::NAN_METHO
 	utilv8::SetObjectField(statistics, "bandwidth", rtd.result[3]);
 	utilv8::SetObjectField(statistics, "frameRate", rtd.result[4]);
 
-	info.GetReturnValue().Set(statistics);
+	args.GetReturnValue().Set(statistics);
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_getOBS_existingProfiles(Nan::NAN_METHOD_ARGS_TYPE info) {
+void api::OBS_API_getOBS_existingProfiles(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	struct ThreadData {
 		std::condition_variable cv;
 		std::mutex mtx;
@@ -249,7 +255,7 @@ Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_getOBS_existingProfiles(Nan::NAN_METHOD
 	bool suc = Controller::GetInstance().GetConnection()->call("API", "OBS_API_getOBS_existingProfiles",
 		std::vector<ipc::value>{}, fnc, &rtd);
 	if (!suc) {
-		info.GetIsolate()->ThrowException(
+		args.GetIsolate()->ThrowException(
 			v8::Exception::Error(
 				Nan::New<v8::String>(
 					"Failed to make IPC call, verify IPC status."
@@ -258,34 +264,34 @@ Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_getOBS_existingProfiles(Nan::NAN_METHOD
 		return;
 	}
 
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+	// std::unique_lock<std::mutex> ulock(rtd.mtx);
+	// rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
 
 	if (rtd.error_code != ErrorCode::Ok) {
 		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
+			args.GetIsolate()->ThrowException(
 				v8::Exception::ReferenceError(Nan::New<v8::String>(
 					rtd.error_string).ToLocalChecked()));
 		}
 		else {
-			info.GetIsolate()->ThrowException(
+			args.GetIsolate()->ThrowException(
 				v8::Exception::Error(Nan::New<v8::String>(
 					rtd.error_string).ToLocalChecked()));
 		}
 		return;
 	}
 
-	v8::Local<v8::Array> existingProfiles = v8::Array::New(info.GetIsolate());
+	v8::Local<v8::Array> existingProfiles = v8::Array::New(args.GetIsolate());
 
 	for (int i = 0; i<rtd.result.size(); i++) {
-		existingProfiles->Set(i, v8::String::NewFromUtf8(info.GetIsolate(), rtd.result.at(i).c_str()));
+		existingProfiles->Set(i, v8::String::NewFromUtf8(args.GetIsolate(), rtd.result.at(i).c_str()));
 	}
 
-	info.GetReturnValue().Set(existingProfiles);
+	args.GetReturnValue().Set(existingProfiles);
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_getOBS_existingSceneCollections(Nan::NAN_METHOD_ARGS_TYPE info) {
+void api::OBS_API_getOBS_existingSceneCollections(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	struct ThreadData {
 		std::condition_variable cv;
 		std::mutex mtx;
@@ -325,7 +331,7 @@ Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_getOBS_existingSceneCollections(Nan::NA
 	bool suc = Controller::GetInstance().GetConnection()->call("API", "OBS_API_getOBS_existingSceneCollections",
 		std::vector<ipc::value>{}, fnc, &rtd);
 	if (!suc) {
-		info.GetIsolate()->ThrowException(
+		args.GetIsolate()->ThrowException(
 			v8::Exception::Error(
 				Nan::New<v8::String>(
 					"Failed to make IPC call, verify IPC status."
@@ -334,34 +340,34 @@ Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_getOBS_existingSceneCollections(Nan::NA
 		return;
 	}
 
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+	// std::unique_lock<std::mutex> ulock(rtd.mtx);
+	// rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
 
 	if (rtd.error_code != ErrorCode::Ok) {
 		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
+			args.GetIsolate()->ThrowException(
 				v8::Exception::ReferenceError(Nan::New<v8::String>(
 					rtd.error_string).ToLocalChecked()));
 		}
 		else {
-			info.GetIsolate()->ThrowException(
+			args.GetIsolate()->ThrowException(
 				v8::Exception::Error(Nan::New<v8::String>(
 					rtd.error_string).ToLocalChecked()));
 		}
 		return;
 	}
 
-	v8::Local<v8::Array> existingSceneCollections = v8::Array::New(info.GetIsolate());
+	v8::Local<v8::Array> existingSceneCollections = v8::Array::New(args.GetIsolate());
 
 	for (int i = 0; i<rtd.result.size(); i++) {
-		existingSceneCollections->Set(i, v8::String::NewFromUtf8(info.GetIsolate(), rtd.result.at(i).c_str()));
+		existingSceneCollections->Set(i, v8::String::NewFromUtf8(args.GetIsolate(), rtd.result.at(i).c_str()));
 	}
 
-	info.GetReturnValue().Set(existingSceneCollections);
+	args.GetReturnValue().Set(existingSceneCollections);
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_isOBS_installed(Nan::NAN_METHOD_ARGS_TYPE info) {
+void api::OBS_API_isOBS_installed(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	struct ThreadData {
 		std::condition_variable cv;
 		std::mutex mtx;
@@ -396,7 +402,7 @@ Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_isOBS_installed(Nan::NAN_METHOD_ARGS_TY
 	bool suc = Controller::GetInstance().GetConnection()->call("API", "OBS_API_isOBS_installed",
 		std::vector<ipc::value>{}, fnc, &rtd);
 	if (!suc) {
-		info.GetIsolate()->ThrowException(
+		args.GetIsolate()->ThrowException(
 			v8::Exception::Error(
 				Nan::New<v8::String>(
 					"Failed to make IPC call, verify IPC status."
@@ -405,30 +411,30 @@ Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_isOBS_installed(Nan::NAN_METHOD_ARGS_TY
 		return;
 	}
 
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+	//std::unique_lock<std::mutex> ulock(rtd.mtx);
+	//rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
 
 	if (rtd.error_code != ErrorCode::Ok) {
 		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
+			args.GetIsolate()->ThrowException(
 				v8::Exception::ReferenceError(Nan::New<v8::String>(
 					rtd.error_string).ToLocalChecked()));
 		}
 		else {
-			info.GetIsolate()->ThrowException(
+			args.GetIsolate()->ThrowException(
 				v8::Exception::Error(Nan::New<v8::String>(
 					rtd.error_string).ToLocalChecked()));
 		}
 		return;
 	}
 
-	info.GetReturnValue().Set(utilv8::ToValue(rtd.result));
+	args.GetReturnValue().Set(utilv8::ToValue(rtd.result));
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE api::SetWorkingDirectory(Nan::NAN_METHOD_ARGS_TYPE info) {
+void api::SetWorkingDirectory(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	std::string path;
-	ASSERT_GET_VALUE(info[0], path);
+	ASSERT_GET_VALUE(args[0], path);
 
 	struct ThreadData {
 		std::condition_variable cv;
@@ -441,6 +447,9 @@ Nan::NAN_METHOD_RETURN_TYPE api::SetWorkingDirectory(Nan::NAN_METHOD_ARGS_TYPE i
 
 	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
 		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+		std::unique_lock<std::mutex> lk(rtd->mtx);
+		rtd->called = true;
+		rtd->cv.notify_all();
 
 		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
 			rtd->error_code = ErrorCode::Error;
@@ -464,7 +473,7 @@ Nan::NAN_METHOD_RETURN_TYPE api::SetWorkingDirectory(Nan::NAN_METHOD_ARGS_TYPE i
 	bool suc = Controller::GetInstance().GetConnection()->call("API", "SetWorkingDirectory",
 		std::vector<ipc::value>{ipc::value(path)}, fnc, &rtd);
 	if (!suc) {
-		info.GetIsolate()->ThrowException(
+		args.GetIsolate()->ThrowException(
 			v8::Exception::Error(
 				Nan::New<v8::String>(
 					"Failed to make IPC call, verify IPC status."
@@ -478,12 +487,12 @@ Nan::NAN_METHOD_RETURN_TYPE api::SetWorkingDirectory(Nan::NAN_METHOD_ARGS_TYPE i
 
 	if (rtd.error_code != ErrorCode::Ok) {
 		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
+			args.GetIsolate()->ThrowException(
 				v8::Exception::ReferenceError(Nan::New<v8::String>(
 					rtd.error_string).ToLocalChecked()));
 		}
 		else {
-			info.GetIsolate()->ThrowException(
+			args.GetIsolate()->ThrowException(
 				v8::Exception::Error(Nan::New<v8::String>(
 					rtd.error_string).ToLocalChecked()));
 		}
@@ -491,4 +500,20 @@ Nan::NAN_METHOD_RETURN_TYPE api::SetWorkingDirectory(Nan::NAN_METHOD_ARGS_TYPE i
 	}
 
 	return;
+}
+
+INITIALIZER(nodeobs_api) {
+	initializerFunctions.push([](v8::Local<v8::Object>& exports) {
+		// IPC related functions will be under the IPC object.
+		auto obj = v8::Object::New(exports->GetIsolate());
+		exports->Set(v8::String::NewFromUtf8(exports->GetIsolate(), "API"), obj);
+
+		NODE_SET_METHOD(obj, "OBS_API_initAPI", api::OBS_API_initAPI);
+		NODE_SET_METHOD(obj, "OBS_API_destroyOBS_API", api::OBS_API_destroyOBS_API);
+		NODE_SET_METHOD(obj, "OBS_API_getPerformanceStatistics", api::OBS_API_getPerformanceStatistics);
+		NODE_SET_METHOD(obj, "OBS_API_getOBS_existingProfiles", api::OBS_API_getOBS_existingProfiles);
+		NODE_SET_METHOD(obj, "OBS_API_getOBS_existingSceneCollections", api::OBS_API_getOBS_existingSceneCollections);
+		NODE_SET_METHOD(obj, "OBS_API_isOBS_installed", api::OBS_API_isOBS_installed);
+		NODE_SET_METHOD(obj, "SetWorkingDirectory", api::SetWorkingDirectory);
+	});
 }

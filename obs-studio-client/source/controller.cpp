@@ -69,7 +69,6 @@ INITIALIZER(js_ipc) {
 
 		NODE_SET_METHOD(obj, "ConnectOrHost", ConnectOrHost);
 		NODE_SET_METHOD(obj, "Disconnect", Disconnect);
-
 	});
 }
 #pragma endregion JavaScript
@@ -127,7 +126,8 @@ std::shared_ptr<ipc::client> Controller::Connect(std::string uri) {
 	// Try and connect.
 	std::shared_ptr<ipc::client> cl;
 	for (size_t n = 0; n < 5; n++) { // Attempt 5 times.
-		if (!cl) cl = Connect(uri);
+		if (!cl) 
+			cl = std::make_shared<ipc::client>("slobs");
 		if (cl) break;
 	}
 	m_connection = cl;

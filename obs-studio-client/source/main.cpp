@@ -17,6 +17,7 @@
 
 #include <node.h>
 #include "shared.hpp"
+#include "nodeobs_api.hpp"
 
 // Definition based on addon_register_func, see 'node.h:L384'.
 void main(v8::Local<v8::Object> exports, v8::Local<v8::Value> module, void* priv) {
