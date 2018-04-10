@@ -20,6 +20,9 @@
 #include <nan.h>
 #include <inttypes.h>
 #include <math.h>
+#include <vector>
+#include <list>
+#include <map>
 
 #ifdef __GNUC__
 #define __deprecated__ __attribute_deprecated__
@@ -111,65 +114,42 @@ namespace utilv8 {
 		return Nan::New<v8::String>(v).ToLocalChecked();
 	}
 
-	// Arrays
-	inline v8::Local<v8::Value> ToValue(std::vector<int8_t> v) {
-		auto rv = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), v.size() * sizeof(int8_t));
-		memcpy(rv->GetContents().Data(), v.data(), v.size());
-		return v8::Int8Array::New(rv, 0, v.size());
+	// Arrays, Lists (both are v8::Arrays here for simplicity and efficiency)
+	template<typename T>
+	inline v8::Local<v8::Value> ToValue(std::vector<T> v) {
+		auto rv = v8::Array::New(v8::Isolate::GetCurrent());
+		for (size_t idx = 0; idx < v.size(); idx++) {
+			rv->Set((uint32_t)idx, ToValue(v[idx]));
+		}
+		return rv;
 	}
 
-	inline v8::Local<v8::Value> ToValue(std::vector<uint8_t> v) {
-		auto rv = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), v.size() * sizeof(uint8_t));
-		memcpy(rv->GetContents().Data(), v.data(), v.size());
-		return v8::Uint8Array::New(rv, 0, v.size());
+	template<typename T>
+	inline v8::Local<v8::Value> ToValue(std::list<T> v) {
+		auto rv = v8::Array::New(v8::Isolate::GetCurrent());
+		for (size_t idx = 0; idx < v.size(); idx++) {
+			rv->Set((uint32_t)idx, ToValue(v[idx]));
+		}
+		return rv;
 	}
 
-	inline v8::Local<v8::Value> ToValue(std::vector<int16_t> v) {
-		auto rv = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), v.size() * sizeof(int16_t));
-		memcpy(rv->GetContents().Data(), v.data(), v.size());
-		return v8::Int16Array::New(rv, 0, v.size());
+	// Maps
+	template<typename A, typename B>
+	inline v8::Local<v8::Value> ToValue(std::map<A, B> v) {
+		auto rv = v8::Object::New(v8::Isolate::GetCurrent());
+		for (auto kv : v) {
+			rv->Set(ToValue(kv.first), ToValue(kv.second));
+		}
+		return rv;
 	}
 
-	inline v8::Local<v8::Value> ToValue(std::vector<uint16_t> v) {
-		auto rv = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), v.size() * sizeof(uint16_t));
-		memcpy(rv->GetContents().Data(), v.data(), v.size());
-		return v8::Uint16Array::New(rv, 0, v.size());
-	}
-
-	inline v8::Local<v8::Value> ToValue(std::vector<int32_t> v) {
-		auto rv = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), v.size() * sizeof(int32_t));
-		memcpy(rv->GetContents().Data(), v.data(), v.size());
-		return v8::Uint32Array::New(rv, 0, v.size());
-	}
-
-	inline v8::Local<v8::Value> ToValue(std::vector<uint32_t> v) {
-		auto rv = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), v.size() * sizeof(uint32_t));
-		memcpy(rv->GetContents().Data(), v.data(), v.size());
-		return v8::Uint32Array::New(rv, 0, v.size());
-	}
-
-	[[deprecated("v8::Number does not map perfectly to 64-bit Integers")]] inline v8::Local<v8::Value> ToValue(std::vector<int64_t> v) {
-		auto rv = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), v.size() * sizeof(int64_t));
-		memcpy(rv->GetContents().Data(), v.data(), v.size());
-		return v8::Float64Array::New(rv, 0, v.size());
-	}
-
-	[[deprecated("v8::Number does not map perfectly to 64-bit Integers")]] inline v8::Local<v8::Value> ToValue(std::vector<uint64_t> v) {
-		auto rv = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), v.size() * sizeof(uint64_t));
-		memcpy(rv->GetContents().Data(), v.data(), v.size());
-		return v8::Float64Array::New(rv, 0, v.size());
-	}
-
-	inline v8::Local<v8::Value> ToValue(std::vector<float_t> v) {
-		auto rv = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), v.size() * sizeof(float_t));
-		memcpy(rv->GetContents().Data(), v.data(), v.size());
-		return v8::Float32Array::New(rv, 0, v.size());
-	}
-
-	inline v8::Local<v8::Value> ToValue(std::vector<double_t> v) {
-		auto rv = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), v.size() * sizeof(double_t));
-		memcpy(rv->GetContents().Data(), v.data(), v.size());
-		return v8::Float64Array::New(rv, 0, v.size());
+	template<typename T>
+	inline v8::Local<v8::Value> ToValue(std::map<uint32_t, T> v) {
+		auto rv = v8::Object::New(v8::Isolate::GetCurrent());
+		for (auto kv : v) {
+			rv->Set(kv.first, ToValue(kv.second));
+		}
+		return rv;
 	}
 
 	// Functions (Nan)
@@ -193,7 +173,6 @@ namespace utilv8 {
 	inline v8::Local<v8::Value> ToValue(v8::Local<v8::Function> v) {
 		return v;
 	}
-
 #pragma endregion ToValue
 
 #pragma region FromValue
@@ -338,6 +317,68 @@ namespace utilv8 {
 		return false;
 	}
 #pragma endregion FromValue
+
+#pragma region ToArrayBuffer
+	inline v8::Local<v8::Value> ToArrayBuffer(std::vector<int8_t> v) {
+		auto rv = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), v.size() * sizeof(int8_t));
+		memcpy(rv->GetContents().Data(), v.data(), v.size());
+		return v8::Int8Array::New(rv, 0, v.size());
+	}
+
+	inline v8::Local<v8::Value> ToArrayBuffer(std::vector<uint8_t> v) {
+		auto rv = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), v.size() * sizeof(uint8_t));
+		memcpy(rv->GetContents().Data(), v.data(), v.size());
+		return v8::Uint8Array::New(rv, 0, v.size());
+	}
+
+	inline v8::Local<v8::Value> ToArrayBuffer(std::vector<int16_t> v) {
+		auto rv = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), v.size() * sizeof(int16_t));
+		memcpy(rv->GetContents().Data(), v.data(), v.size());
+		return v8::Int16Array::New(rv, 0, v.size());
+	}
+
+	inline v8::Local<v8::Value> ToArrayBuffer(std::vector<uint16_t> v) {
+		auto rv = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), v.size() * sizeof(uint16_t));
+		memcpy(rv->GetContents().Data(), v.data(), v.size());
+		return v8::Uint16Array::New(rv, 0, v.size());
+	}
+
+	inline v8::Local<v8::Value> ToArrayBuffer(std::vector<int32_t> v) {
+		auto rv = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), v.size() * sizeof(int32_t));
+		memcpy(rv->GetContents().Data(), v.data(), v.size());
+		return v8::Uint32Array::New(rv, 0, v.size());
+	}
+
+	inline v8::Local<v8::Value> ToArrayBuffer(std::vector<uint32_t> v) {
+		auto rv = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), v.size() * sizeof(uint32_t));
+		memcpy(rv->GetContents().Data(), v.data(), v.size());
+		return v8::Uint32Array::New(rv, 0, v.size());
+	}
+
+	[[deprecated("v8::Number does not map perfectly to 64-bit Integers")]] inline v8::Local<v8::Value> ToArrayBuffer(std::vector<int64_t> v) {
+		auto rv = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), v.size() * sizeof(int64_t));
+		memcpy(rv->GetContents().Data(), v.data(), v.size());
+		return v8::Float64Array::New(rv, 0, v.size());
+	}
+
+	[[deprecated("v8::Number does not map perfectly to 64-bit Integers")]] inline v8::Local<v8::Value> ToArrayBuffer(std::vector<uint64_t> v) {
+		auto rv = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), v.size() * sizeof(uint64_t));
+		memcpy(rv->GetContents().Data(), v.data(), v.size());
+		return v8::Float64Array::New(rv, 0, v.size());
+	}
+
+	inline v8::Local<v8::Value> ToArrayBuffer(std::vector<float_t> v) {
+		auto rv = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), v.size() * sizeof(float_t));
+		memcpy(rv->GetContents().Data(), v.data(), v.size());
+		return v8::Float32Array::New(rv, 0, v.size());
+	}
+
+	inline v8::Local<v8::Value> ToArrayBuffer(std::vector<double_t> v) {
+		auto rv = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), v.size() * sizeof(double_t));
+		memcpy(rv->GetContents().Data(), v.data(), v.size());
+		return v8::Float64Array::New(rv, 0, v.size());
+	}
+#pragma endregion ToArrayBuffer
 
 #pragma region Objects
 	template<typename T> inline void SetObjectField(v8::Local<v8::Object> object, const char* field, T value) {
