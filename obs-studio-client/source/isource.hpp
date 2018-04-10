@@ -21,8 +21,8 @@
 #include "utility-v8.hpp"
 
 namespace osn {
-	class ISource : public Nan::ObjectWrap, public utilv8::ManagedObject<osn::ISource> {
-		friend class utilv8::ManagedObject<osn::ISource>;
+	class ISource : public Nan::ObjectWrap, public utilv8::InterfaceObject<osn::ISource> {
+		friend class utilv8::InterfaceObject<osn::ISource>;
 
 		protected:
 		static Nan::Persistent<v8::FunctionTemplate> prototype;
