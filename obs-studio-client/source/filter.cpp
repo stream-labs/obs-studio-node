@@ -48,6 +48,7 @@ void osn::Filter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 
 	// Object Template
 	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->PrototypeTemplate();
+	objtemplate->SetInternalFieldCount(1);
 
 	// Stuff
 

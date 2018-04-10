@@ -27,6 +27,7 @@ void osn::ISource::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->SetClassName(Nan::New<v8::String>("Source").ToLocalChecked());
 	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->PrototypeTemplate();
+	objtemplate->SetInternalFieldCount(1);
 
 	utilv8::SetTemplateField(objtemplate, "release", Release);
 	utilv8::SetTemplateField(objtemplate, "remove", Remove);
