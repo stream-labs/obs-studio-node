@@ -29,6 +29,10 @@
 #include "osn-filter.hpp"
 #include "osn-transition.hpp"
 #include "osn-scene.hpp"
+#include "nodeobs_api.h"
+#include "nodeobs_content.h"
+#include "nodeobs_service.h"
+#include "nodeobs_settings.h"
 #include "error.hpp"
 
 // Eddy said only the following are used in osn:
@@ -87,6 +91,10 @@ int main(int argc, char* argv[]) {
 	osn::Filter::Register(myServer);
 	osn::Transition::Register(myServer);
 	osn::Scene::Register(myServer);
+	OBS_API::Register(myServer);
+	OBS_content::Register(myServer);
+	OBS_service::Register(myServer);
+	OBS_settings::Register(myServer);
 	
 	try {
 		myServer.initialize(argv[1]);
