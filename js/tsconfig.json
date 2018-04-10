@@ -1,0 +1,23 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "declaration": true,
+    "target": "es6",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "isolatedModules": false,
+    "experimentalDecorators": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "removeComments": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "allowSyntheticDefaultImports": true,
+    "strictNullChecks": false,
+    "emitDecoratorMetadata": true
+  },
+  "files": [
+    "index.ts",
+    "module.ts",
+    "type_check.ts"
+  ]
+}

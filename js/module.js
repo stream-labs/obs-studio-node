@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const obs = require('./obs-studio-client.node');
 const path = require("path");
-obs.SetWorkingDirectory(__dirname);
+//obs.SetWorkingDirectory(__dirname);
 exports.DefaultD3D11Path = path.resolve(__dirname, `libobs-d3d11.dll`);
 exports.DefaultOpenGLPath = path.resolve(__dirname, `libobs-opengl.dll`);
 exports.DefaultDrawPluginPath = path.resolve(__dirname, `simple_draw.dll`);
