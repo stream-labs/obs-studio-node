@@ -87,18 +87,23 @@ std::shared_ptr<ipc::client> Controller::Host(std::string uri) {
 
 	// Concatenate command line.
 	std::stringstream buf;
-	buf << "obs-studio-server" << " " << uri;
+	buf << "obs-studio-server"
+	#ifdef WIN32
+		<< ".exe"
+	#endif
+		<< " " << uri;
 	std::string cmdLine = buf.str();
-	std::vector<char> cmdLineBuf(cmdLine.front(), cmdLine.back(), std::allocator<char>());
-
+	std::vector<char> cmdLineBuf(cmdLine.begin(), cmdLine.end());
+	
 	// Build information
 	memset(&m_win32_startupInfo, 0, sizeof(m_win32_startupInfo));
 	memset(&m_win32_processInformation, 0, sizeof(m_win32_processInformation));
 
 	// Launch process
-	if (!CreateProcessA(NULL, cmdLineBuf.data(), NULL, NULL, false, 
-		CREATE_NEW_CONSOLE, NULL, NULL, &m_win32_startupInfo, 
+	if (!CreateProcessA(NULL, cmdLineBuf.data(), NULL, NULL, false,
+		CREATE_NEW_CONSOLE, NULL, NULL, &m_win32_startupInfo,
 		&m_win32_processInformation)) {
+		DWORD errorCode = GetLastError();
 		return nullptr;
 	}
 	m_isServer = true;
@@ -106,8 +111,11 @@ std::shared_ptr<ipc::client> Controller::Host(std::string uri) {
 	// Try and connect.
 	std::shared_ptr<ipc::client> cl;
 	for (size_t n = 0; n < 5; n++) { // Attempt 5 times.
-		if (!cl) cl = Connect(uri);
-		if (cl) break;
+		try {
+			cl = std::make_shared<ipc::client>(uri);
+			break;
+		} catch (...) {
+		}
 	}
 	
 	if (!cl) { // Assume the server broke or was not allowed to run. 
@@ -126,9 +134,11 @@ std::shared_ptr<ipc::client> Controller::Connect(std::string uri) {
 	// Try and connect.
 	std::shared_ptr<ipc::client> cl;
 	for (size_t n = 0; n < 5; n++) { // Attempt 5 times.
-		if (!cl) 
+		try {
 			cl = std::make_shared<ipc::client>(uri);
-		if (cl) break;
+			break;
+		} catch (...) {
+		}
 	}
 	m_connection = cl;
 	return m_connection;
