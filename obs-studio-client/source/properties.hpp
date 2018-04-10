@@ -163,7 +163,7 @@ namespace osn {
 		Properties(property_map_t container);
 		~Properties();
 
-		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE& target);
 
 		static Nan::NAN_METHOD_RETURN_TYPE Count(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE First(Nan::NAN_METHOD_ARGS_TYPE info);
@@ -185,7 +185,7 @@ namespace osn {
 		PropertyObject(v8::Local<v8::Object> parent, property_map_t::iterator iter);
 		~PropertyObject();
 
-		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE& target);
 
 		static Nan::NAN_METHOD_RETURN_TYPE Previous(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE Next(Nan::NAN_METHOD_ARGS_TYPE info);

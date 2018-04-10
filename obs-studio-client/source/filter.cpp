@@ -33,25 +33,21 @@ Nan::Persistent<v8::FunctionTemplate> osn::Filter::prototype = Nan::Persistent<v
 
 INITIALIZER(js_Source_Filter) {
 	initializerFunctions.push([](v8::Local<v8::Object>& exports) {
-		osn::Filter::Register(exports);
+		//osn::Filter::Register(exports);
 	});
 }
 
-void osn::Filter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
+void osn::Filter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE& target) {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->Inherit(Nan::New<v8::FunctionTemplate>(prototype));
+	fnctemplate->PrototypeTemplate()->SetInternalFieldCount(1);
 	fnctemplate->SetClassName(Nan::New<v8::String>("Filter").ToLocalChecked());
 
 	// Class Template
 	utilv8::SetTemplateField(fnctemplate, "types", Types);
 	utilv8::SetTemplateField(fnctemplate, "create", Create);
-
-	// Object Template
-	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->PrototypeTemplate();
-	objtemplate->SetInternalFieldCount(1);
-
+	
 	// Stuff
-
 	utilv8::SetObjectField(target, "Filter", fnctemplate->GetFunction());
 	prototype.Reset(fnctemplate);
 }
