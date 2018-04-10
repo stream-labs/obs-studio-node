@@ -16,6 +16,8 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
 
 #include "isource.hpp"
+#include "shared.hpp"
+#include "utility.hpp"
 #include "utility-v8.hpp"
 #include "controller.hpp"
 #include "properties.hpp"
@@ -23,7 +25,13 @@
 
 Nan::Persistent<v8::FunctionTemplate> osn::ISource::prototype = Nan::Persistent<v8::FunctionTemplate>();
 
-void osn::ISource::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE& target) {
+INITIALIZER(js_Source) {
+	initializerFunctions.push([](v8::Local<v8::Object> exports) {
+		osn::ISource::Register(exports);
+	});
+}
+
+void osn::ISource::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->SetClassName(Nan::New<v8::String>("Source").ToLocalChecked());
 	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->PrototypeTemplate();

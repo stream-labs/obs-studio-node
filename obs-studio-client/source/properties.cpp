@@ -33,7 +33,7 @@ osn::Properties::~Properties() {
 	properties = nullptr; // Technically not needed, just here for testing.
 }
 
-void osn::Properties::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE& target) {
+void osn::Properties::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->SetClassName(Nan::New<v8::String>("Properties").ToLocalChecked());
 	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->PrototypeTemplate();
@@ -120,7 +120,7 @@ osn::PropertyObject::~PropertyObject() {
 
 }
 
-void osn::PropertyObject::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE& target) {
+void osn::PropertyObject::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->SetClassName(Nan::New<v8::String>("Property").ToLocalChecked());
 	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->PrototypeTemplate();

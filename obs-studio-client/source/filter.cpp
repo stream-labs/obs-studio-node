@@ -32,14 +32,14 @@ osn::Filter::Filter(uint64_t id) {
 Nan::Persistent<v8::FunctionTemplate> osn::Filter::prototype = Nan::Persistent<v8::FunctionTemplate>();
 
 INITIALIZER(js_Source_Filter) {
-	initializerFunctions.push([](v8::Local<v8::Object>& exports) {
-		//osn::Filter::Register(exports);
+	initializerFunctions.push([](v8::Local<v8::Object> exports) {
+		osn::Filter::Register(exports);
 	});
 }
 
-void osn::Filter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE& target) {
+void osn::Filter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
-	fnctemplate->Inherit(Nan::New<v8::FunctionTemplate>(prototype));
+	fnctemplate->Inherit(Nan::New<v8::FunctionTemplate>(osn::ISource::prototype));
 	fnctemplate->PrototypeTemplate()->SetInternalFieldCount(1);
 	fnctemplate->SetClassName(Nan::New<v8::String>("Filter").ToLocalChecked());
 
