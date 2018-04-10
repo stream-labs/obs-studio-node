@@ -127,7 +127,7 @@ std::shared_ptr<ipc::client> Controller::Connect(std::string uri) {
 	std::shared_ptr<ipc::client> cl;
 	for (size_t n = 0; n < 5; n++) { // Attempt 5 times.
 		if (!cl) 
-			cl = std::make_shared<ipc::client>("slobs");
+			cl = std::make_shared<ipc::client>(uri);
 		if (cl) break;
 	}
 	m_connection = cl;
