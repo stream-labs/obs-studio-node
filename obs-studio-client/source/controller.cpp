@@ -31,6 +31,8 @@
 
 #pragma region JavaScript
 
+std::string serverBinaryPath = "";
+
 void ConnectOrHost(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	auto isol = args.GetIsolate();
 	if (args.Length() == 0) {
@@ -61,14 +63,31 @@ void Disconnect(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	Controller::GetInstance().Disconnect();
 }
 
+void SetServerPath(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	auto isol = args.GetIsolate();
+	if (args.Length() == 0) {
+		isol->ThrowException(v8::Exception::SyntaxError(v8::String::NewFromUtf8(isol, "Too few arguments, usage: SetServerPath(uri).")));
+		return;
+	} else if (args.Length() > 1) {
+		isol->ThrowException(v8::Exception::SyntaxError(v8::String::NewFromUtf8(isol, "Too many arguments.")));
+		return;
+	} else if (!args[0]->IsString()) {
+		isol->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isol, "Argument 'uri' must be of type 'String'.")));
+		return;
+	}
+
+	serverBinaryPath = *v8::String::Utf8Value(args[0]);
+	return;
+}
+
 INITIALIZER(js_ipc) {
 	initializerFunctions.push([](v8::Local<v8::Object>& exports) {
 		// IPC related functions will be under the IPC object.
 		auto obj = v8::Object::New(exports->GetIsolate());
-		exports->Set(v8::String::NewFromUtf8(exports->GetIsolate(), "IPC"), obj);
-
 		NODE_SET_METHOD(obj, "ConnectOrHost", ConnectOrHost);
 		NODE_SET_METHOD(obj, "Disconnect", Disconnect);
+		NODE_SET_METHOD(obj, "SetServerPath", SetServerPath);
+		exports->Set(v8::String::NewFromUtf8(exports->GetIsolate(), "IPC"), obj);
 	});
 }
 #pragma endregion JavaScript
@@ -87,14 +106,10 @@ std::shared_ptr<ipc::client> Controller::Host(std::string uri) {
 
 	// Concatenate command line.
 	std::stringstream buf;
-	buf << "obs-studio-server"
-	#ifdef WIN32
-		<< ".exe"
-	#endif
-		<< " " << uri;
+	buf << '"' << serverBinaryPath << '"' << ' ' << uri;
 	std::string cmdLine = buf.str();
 	std::vector<char> cmdLineBuf(cmdLine.begin(), cmdLine.end());
-	
+
 	// Build information
 	memset(&m_win32_startupInfo, 0, sizeof(m_win32_startupInfo));
 	memset(&m_win32_processInformation, 0, sizeof(m_win32_processInformation));
@@ -104,10 +119,12 @@ std::shared_ptr<ipc::client> Controller::Host(std::string uri) {
 		CREATE_NEW_CONSOLE, NULL, NULL, &m_win32_startupInfo,
 		&m_win32_processInformation)) {
 		DWORD errorCode = GetLastError();
+		cmdLineBuf.clear();
+		cmdLineBuf.resize(1);
 		return nullptr;
 	}
 	m_isServer = true;
-	
+
 	// Try and connect.
 	std::shared_ptr<ipc::client> cl;
 	for (size_t n = 0; n < 5; n++) { // Attempt 5 times.
@@ -117,12 +134,14 @@ std::shared_ptr<ipc::client> Controller::Host(std::string uri) {
 		} catch (...) {
 		}
 	}
-	
+
 	if (!cl) { // Assume the server broke or was not allowed to run. 
 		Disconnect();
 		return nullptr;
 	}
-	
+
+	cl->authenticate();
+
 	m_connection = cl;
 	return m_connection;
 }
@@ -140,6 +159,12 @@ std::shared_ptr<ipc::client> Controller::Connect(std::string uri) {
 		} catch (...) {
 		}
 	}
+
+	if (!cl) {
+		return nullptr;
+	}
+
+	cl->authenticate();
 	m_connection = cl;
 	return m_connection;
 }
