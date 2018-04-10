@@ -446,14 +446,8 @@ namespace utilv8 {
 	}
 
 	template<typename T>
-	class ManagedObject {
+	class InterfaceObject {
 		public:
-		static v8::Local<v8::Object> Store(T* object) {
-			auto obj = Nan::NewInstance(T::prototype.Get(v8::Isolate::GetCurrent())->InstanceTemplate()).ToLocalChecked();
-			object->Wrap(obj);
-			return obj;
-		}
-
 		static bool Retrieve(v8::Local<v8::Object> object, T*& valp) {
 			T* val = Nan::ObjectWrap::Unwrap<T>(object);
 			if (!val) {
@@ -464,6 +458,16 @@ namespace utilv8 {
 			}
 			valp = val;
 			return true;
+		}
+	};
+
+	template<typename T>
+	class ManagedObject : public InterfaceObject<T> {
+		public:
+		static v8::Local<v8::Object> Store(T* object) {
+			auto obj = Nan::NewInstance(T::prototype.Get(v8::Isolate::GetCurrent())->InstanceTemplate()).ToLocalChecked();
+			object->Wrap(obj);
+			return obj;
 		}
 	};
 }
