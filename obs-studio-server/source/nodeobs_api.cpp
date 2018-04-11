@@ -336,7 +336,7 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 
 	/* FIXME These should be configurable */
 	/* FIXME g_moduleDirectory really needs to be a wstring */
-	std::string pathOBS = g_moduleDirectory + "/libobs/bin/64bit";
+	std::string pathOBS = g_moduleDirectory;
 
 	/* Also note that this method is possible on POSIX
 	* as well. You can call dlopen with RTLD_GLOBAL
@@ -400,7 +400,7 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 	* 3. getenv(OBS_DATA_PATH) + /libobs <- Can be set anywhere
 	*    on the cli, in the frontend, or the backend. */
 
-	SetEnvironmentVariable("OBS_DATA_PATH", std::string(g_moduleDirectory + "/libobs/data").c_str());
+	SetEnvironmentVariable("OBS_DATA_PATH", std::string(g_moduleDirectory + "/data").c_str());
 
 	std::vector<char> userData = std::vector<char>(1024);
 	os_get_config_path(userData.data(), userData.capacity() - 1, "slobs-client/plugin_config");
@@ -734,12 +734,12 @@ void OBS_API::openAllModules(void) {
 	OBS_service::resetVideoContext(NULL);
 
 	std::string plugins_paths[] = {
-		g_moduleDirectory + "/libobs/obs-plugins/64bit",
-		g_moduleDirectory + "/libobs/obs-plugins"
+		g_moduleDirectory + "/obs-plugins/64bit",
+		g_moduleDirectory + "/obs-plugins"
 	};
 	
 	std::string plugins_data_paths[] = {
-		g_moduleDirectory + "/libobs/data/obs-plugins",
+		g_moduleDirectory + "/data/obs-plugins",
 		plugins_data_paths[0]
 	};
 
