@@ -21,6 +21,8 @@
 #include <string>
 #include <sstream>
 #include <node.h>
+#include <iostream>
+#include <nan.h>
 
 #ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
@@ -37,13 +39,13 @@ std::string serverWorkingPath = "";
 void ConnectOrHost(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	auto isol = args.GetIsolate();
 	if (args.Length() == 0) {
-		isol->ThrowException(v8::Exception::SyntaxError(v8::String::NewFromUtf8(isol, "Too few arguments, usage: ConnectOrHost(uri).")));
+		isol->ThrowException(v8::Exception::SyntaxError(Nan::New<v8::String>("Too few arguments, usage: ConnectOrHost(uri).").ToLocalChecked()));
 		return;
 	} else if (args.Length() > 1) {
-		isol->ThrowException(v8::Exception::SyntaxError(v8::String::NewFromUtf8(isol, "Too many arguments.")));
+		isol->ThrowException(v8::Exception::SyntaxError(Nan::New<v8::String>("Too many arguments.").ToLocalChecked()));
 		return;
 	} else if (!args[0]->IsString()) {
-		isol->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isol, "Argument 'uri' must be of type 'String'.")));
+		isol->ThrowException(v8::Exception::TypeError(Nan::New<v8::String>("Argument 'uri' must be of type 'String'.").ToLocalChecked()));
 		return;
 	}
 
@@ -52,7 +54,7 @@ void ConnectOrHost(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	if (!cl) {
 		cl = Controller::GetInstance().Host(uri);
 		if (!cl) {
-			isol->ThrowException(v8::Exception::Error(v8::String::NewFromUtf8(isol, "IPC failed to connect or host.")));
+			isol->ThrowException(v8::Exception::Error(Nan::New<v8::String>("IPC failed to connect or host.").ToLocalChecked()));
 			return;
 		}
 	}
@@ -123,46 +125,97 @@ std::shared_ptr<ipc::client> Controller::Host(std::string uri) {
 	if (m_isServer)
 		return nullptr;
 
-	// Concatenate command line.
-	std::stringstream buf;
-	buf << '"' << serverBinaryPath << '"' << ' ' << uri;
-	std::string cmdLine = buf.str();
-	std::vector<char> cmdLineBuf(cmdLine.begin(), cmdLine.end());
-	std::vector<char> workdirBuf(serverWorkingPath.begin(), serverWorkingPath.end());
+#ifdef _WIN32
+	// Store info
+	std::string program = serverBinaryPath + '\0';
+	std::string commandLine = '"' + serverBinaryPath + '"' + " " + uri + '\0';
+	std::string workingDirectory = serverWorkingPath + '\0';
+
+	// Buffers
+	std::vector<wchar_t> programBuf;
+	std::vector<wchar_t> commandLineBuf;
+	std::vector<wchar_t> workingDirectoryBuf;
+
+	// Convert to WideChar
+	DWORD wr;
+	programBuf.resize(MultiByteToWideChar(CP_UTF8, 0,
+		program.data(), (int)program.size(),
+		nullptr, 0));
+	wr = MultiByteToWideChar(CP_UTF8, 0,
+		program.data(), (int)program.size(),
+		programBuf.data(), (int)programBuf.size());
+	if (wr == 0) {
+		// Conversion failed.
+		DWORD errorCode = GetLastError();
+		std::cerr << "Controller: Failed to convert server binary path, error code " << errorCode << "." << std::endl;
+		return nullptr;
+	}
+
+	commandLineBuf.resize(MultiByteToWideChar(CP_UTF8, 0,
+		commandLine.data(), (int)commandLine.size(),
+		nullptr, 0));
+	wr = MultiByteToWideChar(CP_UTF8, 0,
+		commandLine.data(), (int)commandLine.size(),
+		commandLineBuf.data(), (int)commandLineBuf.size());
+	if (wr == 0) {
+		// Conversion failed.
+		DWORD errorCode = GetLastError();
+		std::cerr << "Controller: Failed to convert server command line, error code " << errorCode << "." << std::endl;
+		return nullptr;
+	}
+
+	if (workingDirectory.length() > 1) {
+		workingDirectoryBuf.resize(MultiByteToWideChar(CP_UTF8, 0,
+			workingDirectory.data(), (int)workingDirectory.size(),
+			nullptr, 0));
+		if (workingDirectoryBuf.size() > 0) {
+			wr = MultiByteToWideChar(CP_UTF8, 0,
+				workingDirectory.data(), (int)workingDirectory.size(),
+				workingDirectoryBuf.data(), (int)workingDirectoryBuf.size());
+			if (wr == 0) {
+				// Conversion failed.
+				DWORD errorCode = GetLastError();
+				std::cerr << "Controller: Failed to convert server working directory, error code " << errorCode << "." << std::endl;
+				return nullptr;
+			}
+		}
+	}
 
 	// Build information
 	memset(&m_win32_startupInfo, 0, sizeof(m_win32_startupInfo));
 	memset(&m_win32_processInformation, 0, sizeof(m_win32_processInformation));
 
 	// Launch process
-	if (!CreateProcessA(NULL, cmdLineBuf.data(), NULL, NULL, false,
-		CREATE_NEW_CONSOLE, NULL, workdirBuf.size() > 1 ? workdirBuf.data() : NULL, &m_win32_startupInfo,
-		&m_win32_processInformation)) {
+	bool success = CreateProcessW(
+		programBuf.data(),
+		commandLineBuf.data(),
+		nullptr,
+		nullptr,
+		false,
+		CREATE_NEW_CONSOLE, //DEBUG_PROCESS | CREATE_NO_WINDOW | CREATE_NEW_CONSOLE,
+		nullptr,
+		workingDirectory.length() > 0 ? workingDirectoryBuf.data() : nullptr,
+		&m_win32_startupInfo,
+		&m_win32_processInformation);
+	if (!success) {
 		DWORD errorCode = GetLastError();
-		cmdLineBuf.clear();
-		cmdLineBuf.resize(1);
 		return nullptr;
 	}
-	m_isServer = true;
+#else
 
-	// Try and connect.
+#endif
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+	// Connect
 	std::shared_ptr<ipc::client> cl;
-	for (size_t n = 0; n < 5; n++) { // Attempt 5 times.
-		try {
-			cl = std::make_shared<ipc::client>(uri);
-			break;
-		} catch (...) {
-		}
-	}
-
+	cl = Connect(uri);
 	if (!cl) { // Assume the server broke or was not allowed to run. 
 		Disconnect();
 		return nullptr;
 	}
-
-	cl->authenticate();
-
-	m_connection = cl;
+	
+	m_isServer = true;
 	return m_connection;
 }
 
@@ -178,6 +231,7 @@ std::shared_ptr<ipc::client> Controller::Connect(std::string uri) {
 			break;
 		} catch (...) {
 		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 
 	if (!cl) {

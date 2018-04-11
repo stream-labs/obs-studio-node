@@ -57,6 +57,6 @@ class Controller {
 
 #ifdef _WIN32
 	PROCESS_INFORMATION m_win32_processInformation;
-	STARTUPINFO m_win32_startupInfo;
+	STARTUPINFOW m_win32_startupInfo;
 #endif
 };
