@@ -89,7 +89,6 @@ int main(int argc, char* argv[]) {
 
 	if (argc != 2) {
 		std::cerr << "There must be exactly one parameter." << std::endl;
-		std::cin.get();
 		return -1;
 	}
 
@@ -126,12 +125,11 @@ int main(int argc, char* argv[]) {
 	myServer.set_connect_handler(ServerConnectHandler, &sd);
 	myServer.set_disconnect_handler(ServerDisconnectHandler, &sd);
 
-	// Initialize Server	
+	// Initialize Server
 	try {
 		myServer.initialize(argv[1]);
 	} catch (...) {
 		std::cerr << "Failed to initialize server" << std::endl;
-		std::cin.get();
 		return -2;
 	}
 
@@ -152,6 +150,5 @@ int main(int argc, char* argv[]) {
 	// Finalize Server
 	myServer.finalize();
 
-	std::cin.get();
 	return 0;
 }
