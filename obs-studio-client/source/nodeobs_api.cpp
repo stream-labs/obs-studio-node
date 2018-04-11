@@ -503,10 +503,8 @@ void api::SetWorkingDirectory(const v8::FunctionCallbackInfo<v8::Value>& args) {
 }
 
 INITIALIZER(nodeobs_api) {
-	initializerFunctions.push([](v8::Local<v8::Object>& exports) {
-		// IPC related functions will be under the IPC object.
+	initializerFunctions.push([](v8::Local<v8::Object> exports) {
 		auto obj = v8::Object::New(exports->GetIsolate());
-		exports->Set(v8::String::NewFromUtf8(exports->GetIsolate(), "API"), obj);
 
 		NODE_SET_METHOD(obj, "OBS_API_initAPI", api::OBS_API_initAPI);
 		NODE_SET_METHOD(obj, "OBS_API_destroyOBS_API", api::OBS_API_destroyOBS_API);
@@ -515,5 +513,7 @@ INITIALIZER(nodeobs_api) {
 		NODE_SET_METHOD(obj, "OBS_API_getOBS_existingSceneCollections", api::OBS_API_getOBS_existingSceneCollections);
 		NODE_SET_METHOD(obj, "OBS_API_isOBS_installed", api::OBS_API_isOBS_installed);
 		NODE_SET_METHOD(obj, "SetWorkingDirectory", api::SetWorkingDirectory);
+
+		exports->Set(v8::String::NewFromUtf8(exports->GetIsolate(), "API"), obj);
 	});
 }
