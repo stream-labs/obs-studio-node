@@ -34,6 +34,7 @@
 #include "nodeobs_service.h"
 #include "nodeobs_settings.h"
 #include "error.hpp"
+#include <chrono>
 
 // Eddy said only the following are used in osn:
 // `ISource` `Input` `Filter` `AudioControls` `Global` `IProperties` `Scene` `SceneItem` `transition` `Video`
@@ -51,6 +52,27 @@
 //	SceneItem
 //	Video
 
+struct ServerData {
+	std::mutex mtx;
+	std::chrono::high_resolution_clock::time_point last_connect, last_disconnect;
+	size_t count_connected = 0;
+};
+
+bool ServerConnectHandler(void* data, os::ClientId_t) {
+	ServerData* sd = reinterpret_cast<ServerData*>(data);
+	std::unique_lock<std::mutex> ulock(sd->mtx);
+	sd->last_connect = std::chrono::high_resolution_clock::now();
+	sd->count_connected++;
+	return true;
+}
+
+void ServerDisconnectHandler(void* data, os::ClientId_t) {
+	ServerData* sd = reinterpret_cast<ServerData*>(data);
+	std::unique_lock<std::mutex> ulock(sd->mtx);
+	sd->last_disconnect = std::chrono::high_resolution_clock::now();
+	sd->count_connected--;
+}
+
 namespace System {
 	static void Shutdown(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 		bool* shutdown = (bool*)data;
@@ -67,12 +89,16 @@ int main(int argc, char* argv[]) {
 
 	if (argc != 2) {
 		std::cerr << "There must be exactly one parameter." << std::endl;
+		std::cin.get();
 		return -1;
 	}
 
 	// Instance
 	ipc::server myServer;
 	bool doShutdown = false;
+	ServerData sd;
+	sd.last_disconnect = sd.last_connect = std::chrono::high_resolution_clock::now();
+	sd.count_connected = 0;
 
 	// Initialize Singleton Source Storage
 	osn::Source::Initialize();
@@ -95,15 +121,28 @@ int main(int argc, char* argv[]) {
 	OBS_content::Register(myServer);
 	OBS_service::Register(myServer);
 	OBS_settings::Register(myServer);
-	
+
+	// Register Connect/Disconnect Handlers
+	myServer.set_connect_handler(ServerConnectHandler, &sd);
+	myServer.set_disconnect_handler(ServerDisconnectHandler, &sd);
+
+	// Initialize Server	
 	try {
 		myServer.initialize(argv[1]);
 	} catch (...) {
 		std::cerr << "Failed to initialize server" << std::endl;
+		std::cin.get();
 		return -2;
 	}
 
 	while (!doShutdown) {
+		if (sd.count_connected == 0) {
+			auto tp = std::chrono::high_resolution_clock::now();
+			auto delta = tp - sd.last_disconnect;
+			if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() > 1000) {
+				doShutdown = true;
+			}
+		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 
@@ -113,5 +152,6 @@ int main(int argc, char* argv[]) {
 	// Finalize Server
 	myServer.finalize();
 
+	std::cin.get();
 	return 0;
 }
