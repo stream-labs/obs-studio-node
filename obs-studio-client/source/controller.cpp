@@ -140,7 +140,7 @@ std::shared_ptr<ipc::client> Controller::Host(std::string uri) {
 	DWORD wr;
 	programBuf.resize(MultiByteToWideChar(CP_UTF8, 0,
 		program.data(), (int)program.size(),
-		nullptr, 0));
+		nullptr, 0) + 1);
 	wr = MultiByteToWideChar(CP_UTF8, 0,
 		program.data(), (int)program.size(),
 		programBuf.data(), (int)programBuf.size());
@@ -153,7 +153,7 @@ std::shared_ptr<ipc::client> Controller::Host(std::string uri) {
 
 	commandLineBuf.resize(MultiByteToWideChar(CP_UTF8, 0,
 		commandLine.data(), (int)commandLine.size(),
-		nullptr, 0));
+		nullptr, 0) + 1);
 	wr = MultiByteToWideChar(CP_UTF8, 0,
 		commandLine.data(), (int)commandLine.size(),
 		commandLineBuf.data(), (int)commandLineBuf.size());
@@ -167,7 +167,7 @@ std::shared_ptr<ipc::client> Controller::Host(std::string uri) {
 	if (workingDirectory.length() > 1) {
 		workingDirectoryBuf.resize(MultiByteToWideChar(CP_UTF8, 0,
 			workingDirectory.data(), (int)workingDirectory.size(),
-			nullptr, 0));
+			nullptr, 0) + 1);
 		if (workingDirectoryBuf.size() > 0) {
 			wr = MultiByteToWideChar(CP_UTF8, 0,
 				workingDirectory.data(), (int)workingDirectory.size(),
