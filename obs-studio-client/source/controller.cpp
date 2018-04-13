@@ -24,12 +24,129 @@
 #include <iostream>
 #include <nan.h>
 
+
+#pragma region Windows
 #ifdef _WIN32
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
 #include <windows.h>
+#include <direct.h>
+#include <wchar.h>
+
+size_t spawn(std::string program, std::string commandLine, std::string workingDirectory) {
+	PROCESS_INFORMATION m_win32_processInformation;
+	STARTUPINFOW m_win32_startupInfo;
+
+	// Buffers
+	std::vector<wchar_t> programBuf;
+	std::vector<wchar_t> commandLineBuf;
+	std::vector<wchar_t> workingDirectoryBuf;
+
+	// Convert to WideChar
+	DWORD wr;
+	programBuf.resize(MultiByteToWideChar(CP_UTF8, 0,
+		program.data(), (int)program.size(),
+		nullptr, 0) + 1);
+	wr = MultiByteToWideChar(CP_UTF8, 0,
+		program.data(), (int)program.size(),
+		programBuf.data(), (int)programBuf.size());
+	if (wr == 0) {
+		// Conversion failed.
+		DWORD errorCode = GetLastError();
+		return false;
+	}
+
+	commandLineBuf.resize(MultiByteToWideChar(CP_UTF8, 0,
+		commandLine.data(), (int)commandLine.size(),
+		nullptr, 0) + 1);
+	wr = MultiByteToWideChar(CP_UTF8, 0,
+		commandLine.data(), (int)commandLine.size(),
+		commandLineBuf.data(), (int)commandLineBuf.size());
+	if (wr == 0) {
+		// Conversion failed.
+		DWORD errorCode = GetLastError();
+		return false;
+	}
+
+	if (workingDirectory.length() > 1) {
+		workingDirectoryBuf.resize(MultiByteToWideChar(CP_UTF8, 0,
+			workingDirectory.data(), (int)workingDirectory.size(),
+			nullptr, 0) + 1);
+		if (workingDirectoryBuf.size() > 0) {
+			wr = MultiByteToWideChar(CP_UTF8, 0,
+				workingDirectory.data(), (int)workingDirectory.size(),
+				workingDirectoryBuf.data(), (int)workingDirectoryBuf.size());
+			if (wr == 0) {
+				// Conversion failed.
+				DWORD errorCode = GetLastError();
+				return false;
+			}
+		}
+	}
+
+	// Build information
+	memset(&m_win32_startupInfo, 0, sizeof(m_win32_startupInfo));
+	memset(&m_win32_processInformation, 0, sizeof(m_win32_processInformation));
+
+	// Launch process
+	size_t attempts = 0;
+	while (!CreateProcessW(
+		programBuf.data(),
+		commandLineBuf.data(),
+		nullptr,
+		nullptr,
+		false,
+		CREATE_NEW_CONSOLE,
+		nullptr,
+		workingDirectory.length() > 0 ? workingDirectoryBuf.data() : nullptr,
+		&m_win32_startupInfo,
+		&m_win32_processInformation)) {
+		if (attempts >= 5) {
+			break;
+		}
+		attempts++;
+		std::cerr << "Attempt " << attempts << ": Creating client failed." << std::endl;
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	}
+
+	if (attempts >= 5) {
+		DWORD errorCode = GetLastError();
+		return false;
+	}
+
+	return (size_t)m_win32_processInformation.hProcess;
+}
+
+bool kill(size_t hProcess, uint32_t code, uint32_t& exitcode) {
+	bool suc = TerminateProcess((HANDLE)hProcess, code);
+	return suc;
+}
+
+std::string get_working_directory() {
+	std::vector<wchar_t> bufUTF16 = std::vector<wchar_t>(65535);
+	std::vector<char> bufUTF8;
+
+	_wgetcwd(bufUTF16.data(), bufUTF16.size());
+
+	// Convert from Wide-char to UTF8
+	DWORD bufferSize = WideCharToMultiByte(CP_UTF8, 0,
+		bufUTF16.data(), bufUTF16.size(),
+		nullptr, 0,
+		NULL, NULL);
+	bufUTF8.resize(bufferSize + 1);
+	DWORD finalSize = WideCharToMultiByte(CP_UTF8, 0,
+		bufUTF16.data(), bufUTF16.size(),
+		bufUTF8.data(), bufUTF8.size(),
+		NULL, NULL);
+	if (finalSize == 0) {
+		// Conversion failed.
+		DWORD errorCode = GetLastError();
+		return false;
+	}
+
+	return bufUTF8.data();
+}
+
 #endif
+#pragma endregion Windows
 
 #pragma region JavaScript
 
@@ -125,88 +242,13 @@ std::shared_ptr<ipc::client> Controller::Host(std::string uri) {
 	if (m_isServer)
 		return nullptr;
 
-#ifdef _WIN32
 	// Store info
-	std::string program = serverBinaryPath + '\0';
-	std::string commandLine = '"' + serverBinaryPath + '"' + " " + uri + '\0';
-	std::string workingDirectory = serverWorkingPath + '\0';
+	std::string program = serverBinaryPath;
+	std::string commandLine = '"' + serverBinaryPath + '"' + " " + uri;
+	std::string workingDirectory = serverWorkingPath.length() > 0 ? serverWorkingPath : get_working_directory();
 
-	// Buffers
-	std::vector<wchar_t> programBuf;
-	std::vector<wchar_t> commandLineBuf;
-	std::vector<wchar_t> workingDirectoryBuf;
-
-	// Convert to WideChar
-	DWORD wr;
-	programBuf.resize(MultiByteToWideChar(CP_UTF8, 0,
-		program.data(), (int)program.size(),
-		nullptr, 0) + 1);
-	wr = MultiByteToWideChar(CP_UTF8, 0,
-		program.data(), (int)program.size(),
-		programBuf.data(), (int)programBuf.size());
-	if (wr == 0) {
-		// Conversion failed.
-		DWORD errorCode = GetLastError();
-		std::cerr << "Controller: Failed to convert server binary path, error code " << errorCode << "." << std::endl;
-		return nullptr;
-	}
-
-	commandLineBuf.resize(MultiByteToWideChar(CP_UTF8, 0,
-		commandLine.data(), (int)commandLine.size(),
-		nullptr, 0) + 1);
-	wr = MultiByteToWideChar(CP_UTF8, 0,
-		commandLine.data(), (int)commandLine.size(),
-		commandLineBuf.data(), (int)commandLineBuf.size());
-	if (wr == 0) {
-		// Conversion failed.
-		DWORD errorCode = GetLastError();
-		std::cerr << "Controller: Failed to convert server command line, error code " << errorCode << "." << std::endl;
-		return nullptr;
-	}
-
-	if (workingDirectory.length() > 1) {
-		workingDirectoryBuf.resize(MultiByteToWideChar(CP_UTF8, 0,
-			workingDirectory.data(), (int)workingDirectory.size(),
-			nullptr, 0) + 1);
-		if (workingDirectoryBuf.size() > 0) {
-			wr = MultiByteToWideChar(CP_UTF8, 0,
-				workingDirectory.data(), (int)workingDirectory.size(),
-				workingDirectoryBuf.data(), (int)workingDirectoryBuf.size());
-			if (wr == 0) {
-				// Conversion failed.
-				DWORD errorCode = GetLastError();
-				std::cerr << "Controller: Failed to convert server working directory, error code " << errorCode << "." << std::endl;
-				return nullptr;
-			}
-		}
-	}
-
-	// Build information
-	memset(&m_win32_startupInfo, 0, sizeof(m_win32_startupInfo));
-	memset(&m_win32_processInformation, 0, sizeof(m_win32_processInformation));
-
-	// Launch process
-	bool success = CreateProcessW(
-		programBuf.data(),
-		commandLineBuf.data(),
-		nullptr,
-		nullptr,
-		false,
-		CREATE_NEW_CONSOLE, //DEBUG_PROCESS | CREATE_NO_WINDOW | CREATE_NEW_CONSOLE,
-		nullptr,
-		workingDirectory.length() > 0 ? workingDirectoryBuf.data() : nullptr,
-		&m_win32_startupInfo,
-		&m_win32_processInformation);
-	if (!success) {
-		DWORD errorCode = GetLastError();
-		return nullptr;
-	}
-#else
-
-#endif
-
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
+	spawn(serverBinaryPath, commandLine, workingDirectory);
+	
 	// Connect
 	std::shared_ptr<ipc::client> cl;
 	cl = Connect(uri);
@@ -245,9 +287,8 @@ std::shared_ptr<ipc::client> Controller::Connect(std::string uri) {
 
 void Controller::Disconnect() {
 	if (m_isServer) {
-	#ifdef _WIN32
-		TerminateProcess(m_win32_processInformation.hProcess, -1);
-	#endif
+		uint32_t exitcode = 0;
+		kill(procId, 0, exitcode);
 		m_isServer = false;
 	}
 	m_connection = nullptr;
