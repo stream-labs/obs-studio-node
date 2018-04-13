@@ -83,6 +83,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Types(Nan::NAN_METHOD_ARGS_TYPE info) {
 		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
 		if (rtd->error_code != ErrorCode::Ok) {
 			rtd->error_string = rval[1].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
 		}
 
 		size_t count = rval.size() - 1; // Skip ErrorCode
@@ -175,6 +178,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Create(Nan::NAN_METHOD_ARGS_TYPE info) 
 		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
 		if (rtd->error_code != ErrorCode::Ok) {
 			rtd->error_string = rval[1].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
 		}
 
 		rtd->sourceId = !!rval[1].value_union.i32;
