@@ -38,6 +38,7 @@ SET(PROJECT_SOURCE
 	"${PROJECT_SOURCE_DIR}/source/isource.cpp" "${PROJECT_SOURCE_DIR}/source/isource.hpp"
 	"${PROJECT_SOURCE_DIR}/source/properties.cpp" "${PROJECT_SOURCE_DIR}/source/properties.hpp"
 	"${PROJECT_SOURCE_DIR}/source/filter.cpp" "${PROJECT_SOURCE_DIR}/source/filter.hpp"
+	"${PROJECT_SOURCE_DIR}/source/transition.cpp" "${PROJECT_SOURCE_DIR}/source/transition.hpp"
 	"${PROJECT_SOURCE_DIR}/source/nodeobs_api.cpp" "${PROJECT_SOURCE_DIR}/source/nodeobs_api.hpp"
 	"${PROJECT_SOURCE_DIR}/source/nodeobs_service.cpp" "${PROJECT_SOURCE_DIR}/source/nodeobs_service.hpp"
 	"${PROJECT_SOURCE_DIR}/source/nodeobs_display.cpp" "${PROJECT_SOURCE_DIR}/source/nodeobs_display.hpp"
