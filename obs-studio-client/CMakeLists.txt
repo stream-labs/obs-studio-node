@@ -35,6 +35,7 @@ SET(PROJECT_SOURCE
 	"${PROJECT_SOURCE_DIR}/source/utility.cpp" "${PROJECT_SOURCE_DIR}/source/utility.hpp"
 	"${PROJECT_SOURCE_DIR}/source/utility-v8.cpp" "${PROJECT_SOURCE_DIR}/source/utility-v8.hpp"
 	"${PROJECT_SOURCE_DIR}/source/controller.cpp" "${PROJECT_SOURCE_DIR}/source/controller.hpp"
+	"${PROJECT_SOURCE_DIR}/source/input.cpp" "${PROJECT_SOURCE_DIR}/source/input.hpp"
 	"${PROJECT_SOURCE_DIR}/source/isource.cpp" "${PROJECT_SOURCE_DIR}/source/isource.hpp"
 	"${PROJECT_SOURCE_DIR}/source/properties.cpp" "${PROJECT_SOURCE_DIR}/source/properties.hpp"
 	"${PROJECT_SOURCE_DIR}/source/filter.cpp" "${PROJECT_SOURCE_DIR}/source/filter.hpp"
