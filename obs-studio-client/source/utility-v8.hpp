@@ -462,7 +462,7 @@ namespace utilv8 {
 	};
 
 	template<typename T>
-	class ManagedObject : public InterfaceObject<T> {
+	class ManagedObject {
 		public:
 		static v8::Local<v8::Object> Store(T* object) {
 			auto obj = Nan::NewInstance(T::prototype.Get(v8::Isolate::GetCurrent())->InstanceTemplate()).ToLocalChecked();
