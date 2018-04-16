@@ -27,7 +27,7 @@ namespace osn {
 		protected:
 		static Nan::Persistent<v8::FunctionTemplate> prototype;
 
-		protected:
+		public:
 		uint64_t sourceId;
 		
 		public:
