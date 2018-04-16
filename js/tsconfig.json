@@ -19,5 +19,13 @@
     "index.ts",
     "module.ts",
     "type_check.ts"
+  ],
+  "exclude": [
+	"**/*.d.ts",
+	"**/*.js",
+	"../node_modules/@types/lodash/index.d.ts",
+	"**/node_modules",
+	"node_modules",
+	"node_modules/**/*"
   ]
 }

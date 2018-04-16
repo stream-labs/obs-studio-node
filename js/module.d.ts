@@ -290,6 +290,13 @@ export interface IDisplayInit {
     format: EColorFormat;
     zsformat: EZStencilFormat;
 }
+export interface IPC {
+    setServerPath(binaryPath: string, workingDirectoryPath?: string): void;
+    connect(uri: string): void;
+    host(uri: string): void;
+    connectOrHost(uri: string): void;
+    disconnect(): void;
+}
 export interface IGlobal {
     startup(locale: string, path?: string): void;
     shutdown(): void;

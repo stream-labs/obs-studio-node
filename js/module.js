@@ -2,8 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const obs = require('./obs-studio-client.node');
 const path = require("path");
-obs.IPC.SetServerWorkingPath(path.resolve(__dirname));
-obs.IPC.SetServerPath(path.resolve(__dirname, `obs-studio-server.exe`));
 exports.DefaultD3D11Path = path.resolve(__dirname, `libobs-d3d11.dll`);
 exports.DefaultOpenGLPath = path.resolve(__dirname, `libobs-opengl.dll`);
 exports.DefaultDrawPluginPath = path.resolve(__dirname, `simple_draw.dll`);
@@ -88,4 +86,5 @@ function getSourcesSize(sourcesNames) {
     return sourcesSize;
 }
 exports.getSourcesSize = getSourcesSize;
+obs.IPC.setServerPath(path.resolve(__dirname, `obs-studio-server.exe`), path.resolve(__dirname));
 exports.NodeObs = obs;
