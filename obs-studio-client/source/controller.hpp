@@ -45,9 +45,9 @@ class Controller {
 #pragma endregion Singleton
 	
 	public:
-	std::shared_ptr<ipc::client> Host(std::string uri);
-	std::shared_ptr<ipc::client> Connect(std::string uri);
-	void Disconnect();
+	std::shared_ptr<ipc::client> host(std::string uri);
+	std::shared_ptr<ipc::client> connect(std::string uri);
+	void disconnect();
 
 	std::shared_ptr<ipc::client> GetConnection();
 
