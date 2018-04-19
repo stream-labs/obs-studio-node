@@ -866,10 +866,10 @@ void OBS::Display::UpdatePreviewArea() {
 
 		if (sourceW == 0) sourceW = 1;
 		if (sourceH == 0) sourceH = 1;
-
-		offsetX = grayPaddingArea;
-		offsetY = grayPaddingArea;
 	}
+
+	offsetX = m_paddingSize;
+	offsetY = m_paddingSize;
 
 	RecalculateApectRatioConstrainedSize(
 		m_gsInitData.cx, m_gsInitData.cy,
