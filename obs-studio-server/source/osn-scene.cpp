@@ -1,32 +1,16 @@
-// Client module for the OBS Studio node module.
-// Copyright(C) 2017 Streamlabs (General Workings Inc)
-// 
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
-
 #include "osn-scene.hpp"
+#include "osn-sceneitem.hpp"
 #include "error.hpp"
 #include <list>
-
-// Scenes are a little weird, they need SceneItems which are virtual objects that don't exist for other Scenes.
-// May have to figure something out there...
 
 void osn::Scene::Register(ipc::server& srv) {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Scene");
 	cls->register_function(std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::String}, Create));
 	cls->register_function(std::make_shared<ipc::function>("CreatePrivate", std::vector<ipc::type>{ipc::type::String}, CreatePrivate));
 	cls->register_function(std::make_shared<ipc::function>("FromName", std::vector<ipc::type>{ipc::type::String}, FromName));
+
+	cls->register_function(std::make_shared<ipc::function>("Release", std::vector<ipc::type>{ipc::type::UInt64}, Release));
+	cls->register_function(std::make_shared<ipc::function>("Remove", std::vector<ipc::type>{ipc::type::UInt64}, Remove));
 
 	cls->register_function(std::make_shared<ipc::function>("AsSource", std::vector<ipc::type>{ipc::type::UInt64}, AsSource));
 	cls->register_function(std::make_shared<ipc::function>("Duplicate", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32}, Duplicate));
@@ -124,6 +108,84 @@ void osn::Scene::FromName(void* data, const int64_t id, const std::vector<ipc::v
 	return;
 }
 
+void osn::Scene::Release(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_source_t* source = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	if (!source) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Source reference is not valid."));
+		return;
+	}
+
+	obs_scene_t* scene = obs_scene_from_source(source);
+	if (!scene) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Source reference is not a scene."));
+		return;
+	}
+
+	std::list<obs_sceneitem_t*> items;
+	auto cb = [](obs_scene_t* scene, obs_sceneitem_t* item, void* data) {
+		std::list<obs_sceneitem_t*>* items = reinterpret_cast<std::list<obs_sceneitem_t*>*>(data);
+		obs_sceneitem_addref(item);
+		items->push_back(item);
+		return true;
+	};
+	obs_scene_enum_items(scene, cb, &items);
+
+	obs_source_release(source);
+	if (obs_source_removed(source)) {
+		osn::Source::GetInstance()->Free(args[0].value_union.ui64);
+		for (auto item : items) {
+			osn::SceneItem::Manager::GetInstance().free(item);
+			obs_sceneitem_release(item);
+		}
+	}
+
+	for (auto item : items) {
+		obs_sceneitem_release(item);
+	}
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	return;
+}
+
+void osn::Scene::Remove(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_source_t* source = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	if (!source) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Source reference is not valid."));
+		return;
+	}
+
+	obs_scene_t* scene = obs_scene_from_source(source);
+	if (!scene) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Source reference is not a scene."));
+		return;
+	}
+
+	std::list<obs_sceneitem_t*> items;
+	auto cb = [](obs_scene_t* scene, obs_sceneitem_t* item, void* data) {
+		std::list<obs_sceneitem_t*>* items = reinterpret_cast<std::list<obs_sceneitem_t*>*>(data);
+		obs_sceneitem_addref(item);
+		items->push_back(item);
+		return true;
+	};
+	obs_scene_enum_items(scene, cb, &items);
+
+	obs_source_remove(source);
+	osn::Source::GetInstance()->Free(args[0].value_union.ui64);
+
+	for (auto item : items) {
+		osn::SceneItem::Manager::GetInstance().free(item);
+		obs_sceneitem_release(item);
+		obs_sceneitem_release(item);
+	}
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	return;
+}
+
 void osn::Scene::AsSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Scenes are stored as such.
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -196,9 +258,16 @@ void osn::Scene::AddSource(void* data, const int64_t id, const std::vector<ipc::
 
 	obs_sceneitem_t* item = obs_scene_add(scene, added_source);
 
+	utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().allocate(item);
+	if (uid == UINT64_MAX) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
+		rval.push_back(ipc::value("Index list is full."));
+		return;
+	}
+	obs_sceneitem_addref(item);
+
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(args[0].value_union.ui64));
-	rval.push_back(ipc::value((uint64_t)reinterpret_cast<intptr_t>(item)));
+	rval.push_back(ipc::value((uint64_t)uid));
 	return;
 }
 
@@ -224,9 +293,19 @@ void osn::Scene::FindItem(void* data, const int64_t id, const std::vector<ipc::v
 		return;
 	}
 
+	utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
+	if (uid == UINT64_MAX) {
+		uid = osn::SceneItem::Manager::GetInstance().allocate(item);
+		if (uid == UINT64_MAX) {
+			rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
+			rval.push_back(ipc::value("Index list is full."));
+			return;
+		}
+		obs_sceneitem_addref(item);
+	}
+
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(args[0].value_union.ui64));
-	rval.push_back(ipc::value((uint64_t)reinterpret_cast<intptr_t>(item)));
+	rval.push_back(ipc::value((uint64_t)uid));
 	return;
 }
 
@@ -245,7 +324,7 @@ void osn::Scene::MoveItem(void* data, const int64_t id, const std::vector<ipc::v
 		return;
 	}
 
-	obs_sceneitem_t* item = reinterpret_cast<obs_sceneitem_t*>(args[1].value_union.ui64);
+	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[1].value_union.ui64);
 	obs_sceneitem_set_order_position(item, args[2].value_union.i32);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -291,9 +370,19 @@ void osn::Scene::GetItem(void* data, const int64_t id, const std::vector<ipc::va
 		return;
 	}
 
+	utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(ed.item);
+	if (uid == UINT64_MAX) {
+		uid = osn::SceneItem::Manager::GetInstance().allocate(ed.item);
+		if (uid == UINT64_MAX) {
+			rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
+			rval.push_back(ipc::value("Index list is full."));
+			return;
+		}
+		obs_sceneitem_addref(ed.item);
+	}
+
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(args[0].value_union.ui64));
-	rval.push_back(ipc::value((uint64_t)reinterpret_cast<intptr_t>(ed.item)));
+	rval.push_back(ipc::value((uint64_t)uid));
 }
 
 void osn::Scene::GetItems(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -321,7 +410,17 @@ void osn::Scene::GetItems(void* data, const int64_t id, const std::vector<ipc::v
 	
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	for (obs_sceneitem_t* item : items) {
-		rval.push_back(ipc::value((uint64_t)reinterpret_cast<intptr_t>(item)));
+		utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
+		if (uid == UINT64_MAX) {
+			uid = osn::SceneItem::Manager::GetInstance().allocate(item);
+			if (uid == UINT64_MAX) {
+				rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
+				rval.push_back(ipc::value("Index list is full."));
+				return;
+			}
+			obs_sceneitem_addref(item);
+		}
+		rval.push_back(ipc::value((uint64_t)uid));
 	}
 }
 
@@ -362,7 +461,17 @@ void osn::Scene::GetItemsInRange(void* data, const int64_t id, const std::vector
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	for (obs_sceneitem_t* item : ed.items) {
-		rval.push_back(ipc::value((uint64_t)reinterpret_cast<intptr_t>(item)));
+		utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
+		if (uid == UINT64_MAX) {
+			uid = osn::SceneItem::Manager::GetInstance().allocate(item);
+			if (uid == UINT64_MAX) {
+				rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
+				rval.push_back(ipc::value("Index list is full."));
+				return;
+			}
+			obs_sceneitem_addref(item);
+		}
+		rval.push_back(ipc::value((uint64_t)uid));
 	}
 }
 
