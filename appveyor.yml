@@ -5,13 +5,13 @@ environment:
   SLDistributeDirectory: distribute
   SLFullDistributePath: $(SLBuildDirectory)\$(SLDistributeDirectory)
   SLArch: x64
-  UnsignedArtifact: streamlabs-x86_64-unsigned
   SignedArtifact: streamlabs-x86_64-signed
   SignTool: C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe
   StreamlabsPfxSecret:
     secure: iZlMSWnmH5FQDpa+/0SgXIyvCobkElj2y5lu94Uo8VnTWHTeTC1/bpVkzsLreENocomvDB5ywsa3+QdathRp8A==
   StreamlabsSecret:
     secure: hr+VpykbGiCI5I0ltiqH667wh/YQx2Fi5SBLfkOWHSg=
+
   matrix:
     - RuntimeURL: https://nodejs.org/download/release
       RuntimeName: node
@@ -21,8 +21,10 @@ environment:
       RuntimeName: iojs
       RuntimeVersion: v1.8.4
 
-    
-  
+environment:
+  UnsignedArtifact: $(RuntimeName)-$(RuntimeVersion)-unsigned
+  SignedArtifact: $(RuntimeName)-$(RuntimeVersion)-signed
+
 install:
   - ps: Install-Product node $env:NodeVersion
   - yarn install
@@ -59,11 +61,12 @@ before_deploy:
 
 deploy:
   - provider: GitHub
-    artifact: $(RuntimeName)-$(RuntimeVersion).tar.gz
+    artifact: $(SignedArtifact).tar.gz
     auth_token:
       secure: nP2TonQxdUNyL65bmBKVPi0/jYX3h6mPCdFgJs1WeD+kNhgoUJ4mqxZ2FWkjpE0N
     draft: false
     prerelease: false
+    force_update: true
     on:
       appveyor_repo_tag: true
 
