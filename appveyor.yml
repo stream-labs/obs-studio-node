@@ -1,17 +1,4 @@
 environment:
-  NodeVersion: 9
-  SLBuildDirectory: streamlabs-build
-  SLGenerator: Visual Studio 14 2015 Win64
-  SLDistributeDirectory: distribute
-  SLFullDistributePath: $(SLBuildDirectory)\$(SLDistributeDirectory)
-  SLArch: x64
-  SignedArtifact: streamlabs-x86_64-signed
-  SignTool: C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe
-  StreamlabsPfxSecret:
-    secure: iZlMSWnmH5FQDpa+/0SgXIyvCobkElj2y5lu94Uo8VnTWHTeTC1/bpVkzsLreENocomvDB5ywsa3+QdathRp8A==
-  StreamlabsSecret:
-    secure: hr+VpykbGiCI5I0ltiqH667wh/YQx2Fi5SBLfkOWHSg=
-
   matrix:
     - RuntimeURL: https://nodejs.org/download/release
       RuntimeName: node
@@ -21,7 +8,17 @@ environment:
       RuntimeName: iojs
       RuntimeVersion: v1.8.4
 
-environment:
+  NodeVersion: 9
+  SLBuildDirectory: streamlabs-build
+  SLGenerator: Visual Studio 14 2015 Win64
+  SLDistributeDirectory: distribute
+  SLFullDistributePath: $(SLBuildDirectory)\$(SLDistributeDirectory)
+  SLArch: x64
+  SignTool: C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe
+  StreamlabsPfxSecret:
+    secure: iZlMSWnmH5FQDpa+/0SgXIyvCobkElj2y5lu94Uo8VnTWHTeTC1/bpVkzsLreENocomvDB5ywsa3+QdathRp8A==
+  StreamlabsSecret:
+    secure: hr+VpykbGiCI5I0ltiqH667wh/YQx2Fi5SBLfkOWHSg=
   UnsignedArtifact: $(RuntimeName)-$(RuntimeVersion)-unsigned
   SignedArtifact: $(RuntimeName)-$(RuntimeVersion)-signed
 
