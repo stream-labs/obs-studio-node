@@ -5,26 +5,16 @@ PROJECT(obs-studio-client VERSION 1.0.0)
 # CMake Settings
 #############################
 
-SET(NODEJS_CUSTOM_BUILD FALSE CACHE BOOL "Build with adjusted Node.JS runtime")
-SET(NODEJS_CUSTOM_URL "https://atom.io/download/atom-shell" CACHE STRING "Node.JS URL")
-SET(NODEJS_CUSTOM_NAME "iojs" CACHE STRING "Node.JS Name")
-SET(NODEJS_CUSTOM_VERSION "v1.7.12" CACHE STRING "Node.JS Version")
+SET(NODEJS_URL "https://atom.io/download/atom-shell" CACHE STRING "Node.JS URL")
+SET(NODEJS_NAME "iojs" CACHE STRING "Node.JS Name")
+SET(NODEJS_VERSION "v1.7.12" CACHE STRING "Node.JS Version")
 
 #############################
 # Node.JS Settings
 #############################
 include(NodeJS)
 
-IF (NODEJS_CUSTOM_BUILD)
-	nodejs_init(
-		URL "${NODEJS_CUSTOM_URL}"
-		NAME "${NODEJS_CUSTOM_NAME}"
-		VERSION "${NODEJS_CUSTOM_VERSION}"
-	)
-ELSE()
-	nodejs_init()
-ENDIF()
-
+nodejs_init()
 
 #############################
 # Source, Libraries & Directories
@@ -74,18 +64,18 @@ SET_TARGET_PROPERTIES(obs-studio-client PROPERTIES PREFIX "" SUFFIX ".node")
 # Distribute
 #############################
 INSTALL(TARGETS obs-studio-client 
-	RUNTIME DESTINATION "${INSTALL_DIR}" COMPONENT Runtime
-	LIBRARY DESTINATION "${INSTALL_DIR}" COMPONENT Runtime
+	RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}" COMPONENT Runtime
+	LIBRARY DESTINATION "${CMAKE_INSTALL_PREFIX}" COMPONENT Runtime
 )
-INSTALL(FILES $<TARGET_PDB_FILE:obs-studio-client> DESTINATION "${INSTALL_DIR}" OPTIONAL)
+INSTALL(FILES $<TARGET_PDB_FILE:obs-studio-client> DESTINATION "${CMAKE_INSTALL_PREFIX}" OPTIONAL)
 
 # JavaScript
 INSTALL(
 	DIRECTORY "${PROJECT_SOURCE_DIR}/../js/"
-	DESTINATION "${INSTALL_DIR}"
+	DESTINATION "${CMAKE_INSTALL_PREFIX}"
 	PATTERN "*.json" EXCLUDE
 )
 INSTALL(
 	FILES "${CMAKE_SOURCE_DIR}/package.json"
-	DESTINATION "${INSTALL_DIR}"
+	DESTINATION "${CMAKE_INSTALL_PREFIX}"
 )
