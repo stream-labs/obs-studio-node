@@ -395,7 +395,7 @@ namespace utilv8 {
 
 	template <typename Type>
 	bool GetFromObject(v8::Local<v8::Object> object, const char *field, Type &var) {
-		auto field_value = Nan::Get(object, FromValue(field)).ToLocalChecked();
+		auto field_value = Nan::Get(object, ToValue(field)).ToLocalChecked();
 		return FromValue(field_value, var);
 	}
 
