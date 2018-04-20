@@ -2,23 +2,23 @@
 #include <nan.h>
 
 namespace display {
-	static Nan::NAN_METHOD_RETURN_TYPE OBS_content_createDisplay(Nan::NAN_METHOD_ARGS_TYPE info);
-	static Nan::NAN_METHOD_RETURN_TYPE OBS_content_destroyDisplay(Nan::NAN_METHOD_ARGS_TYPE info);
-	static Nan::NAN_METHOD_RETURN_TYPE OBS_content_getDisplayPreviewOffset(Nan::NAN_METHOD_ARGS_TYPE info);
-	static Nan::NAN_METHOD_RETURN_TYPE OBS_content_getDisplayPreviewSize(Nan::NAN_METHOD_ARGS_TYPE info);
-	static Nan::NAN_METHOD_RETURN_TYPE OBS_content_createSourcePreviewDisplay(Nan::NAN_METHOD_ARGS_TYPE info);
-	static Nan::NAN_METHOD_RETURN_TYPE OBS_content_resizeDisplay(Nan::NAN_METHOD_ARGS_TYPE info);
-	static Nan::NAN_METHOD_RETURN_TYPE OBS_content_moveDisplay(Nan::NAN_METHOD_ARGS_TYPE info);
-	static Nan::NAN_METHOD_RETURN_TYPE OBS_content_setPaddingSize(Nan::NAN_METHOD_ARGS_TYPE info);
-	static Nan::NAN_METHOD_RETURN_TYPE OBS_content_setPaddingColor(Nan::NAN_METHOD_ARGS_TYPE info);
-	static Nan::NAN_METHOD_RETURN_TYPE OBS_content_setOutlineColor(Nan::NAN_METHOD_ARGS_TYPE info);
-	static Nan::NAN_METHOD_RETURN_TYPE OBS_content_setGuidelineColor(Nan::NAN_METHOD_ARGS_TYPE info);
-	static Nan::NAN_METHOD_RETURN_TYPE OBS_content_setResizeBoxInnerColor(Nan::NAN_METHOD_ARGS_TYPE info);
-	static Nan::NAN_METHOD_RETURN_TYPE OBS_content_setResizeBoxOuterColor(Nan::NAN_METHOD_ARGS_TYPE info);
-	static Nan::NAN_METHOD_RETURN_TYPE OBS_content_setShouldDrawUI(Nan::NAN_METHOD_ARGS_TYPE info);
-	static Nan::NAN_METHOD_RETURN_TYPE OBS_content_selectSource(Nan::NAN_METHOD_ARGS_TYPE info);
-	static Nan::NAN_METHOD_RETURN_TYPE OBS_content_selectSources(Nan::NAN_METHOD_ARGS_TYPE info);
-	static Nan::NAN_METHOD_RETURN_TYPE OBS_content_dragSelectedSource(Nan::NAN_METHOD_ARGS_TYPE info);
-	static Nan::NAN_METHOD_RETURN_TYPE OBS_content_getDrawGuideLines(Nan::NAN_METHOD_ARGS_TYPE info);
-	static Nan::NAN_METHOD_RETURN_TYPE OBS_content_setDrawGuideLines(Nan::NAN_METHOD_ARGS_TYPE info);
+	static void OBS_content_createDisplay(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_content_destroyDisplay(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_content_getDisplayPreviewOffset(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_content_getDisplayPreviewSize(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_content_createSourcePreviewDisplay(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_content_resizeDisplay(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_content_moveDisplay(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_content_setPaddingSize(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_content_setPaddingColor(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_content_setOutlineColor(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_content_setGuidelineColor(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_content_setResizeBoxInnerColor(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_content_setResizeBoxOuterColor(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_content_setShouldDrawUI(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_content_selectSource(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_content_selectSources(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_content_dragSelectedSource(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_content_getDrawGuideLines(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_content_setDrawGuideLines(const v8::FunctionCallbackInfo<v8::Value>& args);
 }

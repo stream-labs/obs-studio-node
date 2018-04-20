@@ -117,8 +117,8 @@ void api::OBS_API_destroyOBS_API(const v8::FunctionCallbackInfo<v8::Value>& args
 		return;
 	}
 
-	// std::unique_lock<std::mutex> ulock(rtd.mtx);
-	// rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+	std::unique_lock<std::mutex> ulock(rtd.mtx);
+	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
 
 	if (rtd.error_code != ErrorCode::Ok) {
 		if (rtd.error_code == ErrorCode::InvalidReference) {
@@ -164,14 +164,17 @@ void api::OBS_API_getPerformanceStatistics(const v8::FunctionCallbackInfo<v8::Va
 		}
 
 		for (int i = 1; i < 6; i++) {
-			rtd->result.push_back(rval[i].value_union.fp32);
+			if (i==2)
+				rtd->result.push_back(rval[i].value_union.i32);
+			else
+				rtd->result.push_back(rval[i].value_union.fp64);
 		}
 
 		rtd->called = true;
 		rtd->cv.notify_all();
 	};
 
-	bool suc = Controller::GetInstance().GetConnection()->call("Source", "OBS_API_getPerformanceStatistics",
+	bool suc = Controller::GetInstance().GetConnection()->call("API", "OBS_API_getPerformanceStatistics",
 		std::vector<ipc::value>{}, fnc, &rtd);
 	if (!suc) {
 		args.GetIsolate()->ThrowException(
@@ -183,8 +186,8 @@ void api::OBS_API_getPerformanceStatistics(const v8::FunctionCallbackInfo<v8::Va
 		return;
 	}
 
-	// std::unique_lock<std::mutex> ulock(rtd.mtx);
-	// rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+	std::unique_lock<std::mutex> ulock(rtd.mtx);
+	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
 
 	if (rtd.error_code != ErrorCode::Ok) {
 		if (rtd.error_code == ErrorCode::InvalidReference) {
@@ -202,12 +205,17 @@ void api::OBS_API_getPerformanceStatistics(const v8::FunctionCallbackInfo<v8::Va
 
 	v8::Local<v8::Object> statistics = v8::Object::New(args.GetIsolate());
 
-	utilv8::SetObjectField(statistics, "CPU", rtd.result[0]);
-	utilv8::SetObjectField(statistics, "numberDroppedFrames", rtd.result[1]);
-	utilv8::SetObjectField(statistics, "percentageDroppedFrames", rtd.result[2]);
-	utilv8::SetObjectField(statistics, "bandwidth", rtd.result[3]);
-	utilv8::SetObjectField(statistics, "frameRate", rtd.result[4]);
-
+	statistics->Set(v8::String::NewFromUtf8(args.GetIsolate(), "CPU"),
+		v8::Number::New(args.GetIsolate(), rtd.result[0]));
+	statistics->Set(v8::String::NewFromUtf8(args.GetIsolate(), "numberDroppedFrames"),
+		v8::Number::New(args.GetIsolate(), rtd.result[1]));
+	statistics->Set(v8::String::NewFromUtf8(args.GetIsolate(), "percentageDroppedFrames"),
+		v8::Number::New(args.GetIsolate(), rtd.result[2]));
+	statistics->Set(v8::String::NewFromUtf8(args.GetIsolate(), "bandwidth"),
+		v8::Number::New(args.GetIsolate(), rtd.result[3]));
+	statistics->Set(v8::String::NewFromUtf8(args.GetIsolate(), "frameRate"),
+		v8::Number::New(args.GetIsolate(), rtd.result[4]));
+	
 	args.GetReturnValue().Set(statistics);
 	return;
 }
@@ -261,8 +269,8 @@ void api::OBS_API_getOBS_existingProfiles(const v8::FunctionCallbackInfo<v8::Val
 		return;
 	}
 
-	// std::unique_lock<std::mutex> ulock(rtd.mtx);
-	// rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+	std::unique_lock<std::mutex> ulock(rtd.mtx);
+	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
 
 	if (rtd.error_code != ErrorCode::Ok) {
 		if (rtd.error_code == ErrorCode::InvalidReference) {
@@ -337,8 +345,8 @@ void api::OBS_API_getOBS_existingSceneCollections(const v8::FunctionCallbackInfo
 		return;
 	}
 
-	// std::unique_lock<std::mutex> ulock(rtd.mtx);
-	// rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+	std::unique_lock<std::mutex> ulock(rtd.mtx);
+	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
 
 	if (rtd.error_code != ErrorCode::Ok) {
 		if (rtd.error_code == ErrorCode::InvalidReference) {
@@ -408,8 +416,8 @@ void api::OBS_API_isOBS_installed(const v8::FunctionCallbackInfo<v8::Value>& arg
 		return;
 	}
 
-	//std::unique_lock<std::mutex> ulock(rtd.mtx);
-	//rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+	std::unique_lock<std::mutex> ulock(rtd.mtx);
+	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
 
 	if (rtd.error_code != ErrorCode::Ok) {
 		if (rtd.error_code == ErrorCode::InvalidReference) {

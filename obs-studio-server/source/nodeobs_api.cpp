@@ -391,6 +391,7 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 		* they should be available through
 		* out the application */
 	}
+	pathConfigDirectory = args[0].value_str.c_str();
 	appdata_path = args[0].value_str.c_str();
 	appdata_path += "/node-obs/";
 
@@ -488,11 +489,17 @@ void OBS_API::OBS_API_destroyOBS_API(void* data, const int64_t id, const std::ve
 void OBS_API::OBS_API_getPerformanceStatistics(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
-	rval.push_back(ipc::value((double)getCPU_Percentage()));
-	rval.push_back(ipc::value((int)getNumberOfDroppedFrames()));
-	rval.push_back(ipc::value((double)getDroppedFramesPercentage()));
-	rval.push_back(ipc::value((double)getCurrentBandwidth()));
-	rval.push_back(ipc::value((double)getCurrentFrameRate()));
+	double percentage = getCPU_Percentage();
+	int numberOfDroppedFrames = getNumberOfDroppedFrames();
+	double droppedFramesPercentage = getDroppedFramesPercentage();
+	double bandwidth = getCurrentBandwidth();
+	double frameRate = getCurrentFrameRate();
+
+	rval.push_back(ipc::value(percentage));
+	rval.push_back(ipc::value(numberOfDroppedFrames));
+	rval.push_back(ipc::value(droppedFramesPercentage));
+	rval.push_back(ipc::value(bandwidth));
+	rval.push_back(ipc::value(frameRate));
 }
 
 void OBS_API::OBS_API_getOBS_existingProfiles(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {

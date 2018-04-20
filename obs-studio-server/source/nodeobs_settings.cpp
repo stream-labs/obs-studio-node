@@ -44,7 +44,7 @@ void OBS_settings::Register(ipc::server& srv) {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Settings");
 
 	cls->register_function(std::make_shared<ipc::function>("OBS_settings_getSettings", std::vector<ipc::type>{ipc::type::String}, OBS_settings_getSettings));
-	cls->register_function(std::make_shared<ipc::function>("OBS_settings_saveSettings", std::vector<ipc::type>{ipc::type::String, ipc::type::Int32, ipc::type::Int32, ipc::type::Binary}, OBS_settings_saveSettings));
+	cls->register_function(std::make_shared<ipc::function>("OBS_settings_saveSettings", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::Binary}, OBS_settings_saveSettings));
 	cls->register_function(std::make_shared<ipc::function>("OBS_settings_getListCategories", std::vector<ipc::type>{}, OBS_settings_getListCategories));
 	
 	srv.register_collection(cls);
@@ -67,89 +67,70 @@ void OBS_settings::OBS_settings_getSettings(void* data, const int64_t id, const 
 {
 	std::string nameCategory = args[0].value_str;
 	std::vector<SubCategory> settings = getSettings(nameCategory);
-	char* binaryValue = reinterpret_cast<char*>(&settings);
+	std::vector<char> binaryValue;
 
-	uint32_t totalSize = 0;
-
-	// Calculate total data size 
 	for (int i = 0; i < settings.size(); i++) {
-		for (int j = 0; j < settings.at(i).params.size(); j++) {
-			totalSize += sizeof(Parameter);
-			totalSize += settings.at(i).params.at(j).sizeOfCurrentValue;
-			totalSize += settings.at(i).params.at(j).sizeOfValues;
-		}
-		totalSize += sizeof(SubCategory);
+		std::vector<char> serializedBuf = settings.at(i).serialize();
+
+		binaryValue.insert(binaryValue.end(), 
+			serializedBuf.begin(),
+			serializedBuf.end());
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(totalSize));
+	rval.push_back(ipc::value(settings.size()));
+	rval.push_back(ipc::value(binaryValue.size()));
 
 	rval.push_back(ipc::value(binaryValue));
 }
 
-void OBS_settings::OBS_settings_saveSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
-{
-	std::string nameCategory = args[0].value_str;
-	uint32_t subCategoriesCount = args[1].value_union.ui32;
-	uint32_t sizeStruct = args[2].value_union.ui32;
+std::vector<SubCategory> serializeCategory(
+	uint32_t subCategoriesCount, uint32_t sizeStruct, std::vector<char> buffer) {
+	std::vector<SubCategory> category;
 
-	std::vector<char> buffer(args[3].value_bin.data(), 
-		args[2].value_bin.data() + sizeStruct);
-
-	std::vector<SubCategory> settings;
-
+	uint32_t indexData = 0;
 	for (int i = 0; i < subCategoriesCount; i++) {
 		SubCategory sc;
-		uint32_t indexData = 0;
 
-		uint32_t *sizeName = 
-			reinterpret_cast<uint32_t*>(buffer.data());
-		indexData += sizeof(uint32_t);
+		size_t *sizeMessage = reinterpret_cast<size_t*>
+			(buffer.data() + indexData);
+		indexData += sizeof(size_t);
 
-		std::string *name = 
-			reinterpret_cast<std::string*>(buffer.data() + indexData);
-		indexData += *sizeName;
+		std::string name(buffer.data() + indexData, *sizeMessage);
+		indexData += *sizeMessage;
 
-		uint32_t *paramsCount =
-			reinterpret_cast<uint32_t*>(buffer.data() + indexData);
-		indexData += sizeof(uint32_t);
-
-		uint32_t *paramsSize =
-			reinterpret_cast<uint32_t*>(buffer.data() + indexData);
+		uint32_t *paramsCount = reinterpret_cast<uint32_t*>
+			(buffer.data() + indexData);
 		indexData += sizeof(uint32_t);
 
 		Parameter param;
 		for (uint32_t j = 0; j < *paramsCount; j++) {
-			uint32_t *sizeName =
-				reinterpret_cast<std::uint32_t*>(buffer.data() + indexData);
-			indexData += sizeof(uint32_t);
+			size_t *sizeName =
+				reinterpret_cast<std::size_t*>(buffer.data() + indexData);
+			indexData += sizeof(size_t);
 
-			std::string *name =
-				reinterpret_cast<std::string*>(buffer.data() + indexData);
+			std::string name(buffer.data() + indexData, *sizeName);
 			indexData += *sizeName;
 
-			uint32_t *sizeDescription =
-				reinterpret_cast<std::uint32_t*>(buffer.data() + indexData);
-			indexData += sizeof(uint32_t);
+			size_t *sizeDescription =
+				reinterpret_cast<std::size_t*>(buffer.data() + indexData);
+			indexData += sizeof(size_t);
 
-			std::string *description =
-				reinterpret_cast<std::string*>(buffer.data() + indexData);
+			std::string description(buffer.data() + indexData, *sizeDescription);
 			indexData += *sizeDescription;
 
-			uint32_t *sizeType = 
-				reinterpret_cast<std::uint32_t*>(buffer.data() + indexData);
-			indexData += sizeof(uint32_t);
+			size_t *sizeType =
+				reinterpret_cast<std::size_t*>(buffer.data() + indexData);
+			indexData += sizeof(size_t);
 
-			std::string *type =
-				reinterpret_cast<std::string*>(buffer.data() + indexData);
+			std::string type(buffer.data() + indexData, *sizeType);
 			indexData += *sizeType;
 
-			uint32_t *sizeSubType =
-				reinterpret_cast<std::uint32_t*>(buffer.data() + indexData);
-			indexData += sizeof(uint32_t);
+			size_t *sizeSubType =
+				reinterpret_cast<std::size_t*>(buffer.data() + indexData);
+			indexData += sizeof(size_t);
 
-			std::string *subType =
-				reinterpret_cast<std::string*>(buffer.data() + indexData);
+			std::string subType(buffer.data() + indexData, *sizeSubType);
 			indexData += *sizeSubType;
 
 			bool *enabled =
@@ -164,39 +145,64 @@ void OBS_settings::OBS_settings_saveSettings(void* data, const int64_t id, const
 				reinterpret_cast<bool*>(buffer.data() + indexData);
 			indexData += sizeof(bool);
 
-			uint32_t *sizeOfCurrentValue =
-				reinterpret_cast<std::uint32_t*>(buffer.data() + indexData);
-			indexData += sizeof(uint32_t);
+			size_t *sizeOfCurrentValue =
+				reinterpret_cast<std::size_t*>(buffer.data() + indexData);
+			indexData += sizeof(size_t);
 
-			void *currentValue = malloc(*sizeOfCurrentValue);
-			memcpy(currentValue, buffer.data() + indexData,
+			std::vector<char> currentValue;
+			currentValue.resize(*sizeOfCurrentValue);
+			memcpy(currentValue.data(), buffer.data() + indexData,
 				*sizeOfCurrentValue);
 			indexData += *sizeOfCurrentValue;
 
-			uint32_t *sizeOfValues =
-				reinterpret_cast<std::uint32_t*>(buffer.data() + indexData);
-			indexData += sizeof(uint32_t);
+			size_t *sizeOfValues =
+				reinterpret_cast<size_t*>(buffer.data() + indexData);
+			indexData += sizeof(size_t);
 
-			void *values = malloc(*sizeOfValues);
-			memcpy(values, buffer.data() + indexData,
+			size_t *countValues =
+				reinterpret_cast<size_t*>(buffer.data() + indexData);
+			indexData += sizeof(size_t);
+
+			std::vector<char> values;
+			values.resize(*sizeOfValues);
+			memcpy(values.data(), buffer.data() + indexData,
 				*sizeOfValues);
 			indexData += *sizeOfValues;
 
-			param.name = *name;
-			param.description = *description;
-			param.type = *type;
-			param.subType = *subType;
+			param.name = name;
+			param.description = description;
+			param.type = type;
+			param.subType = subType;
 			param.enabled = enabled;
 			param.masked = masked;
 			param.visible = visible;
 			param.currentValue = currentValue;
 			param.values = values;
-			
+			param.countValues = *countValues;
+
 			sc.params.push_back(param);
 		}
-		sc.name = *name;
-		settings.push_back(sc);
+		sc.name = name;
+		sc.paramsCount = *paramsCount;
+		category.push_back(sc);
 	}
+	return category;
+}
+
+
+void OBS_settings::OBS_settings_saveSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
+{
+	std::string nameCategory = args[0].value_str;
+	uint32_t subCategoriesCount = args[1].value_union.ui32;
+	uint32_t sizeStruct = args[2].value_union.ui32;
+
+	std::vector<char> buffer;
+	buffer.resize(sizeStruct);
+	memcpy(buffer.data(), args[3].value_bin.data(), sizeStruct);
+
+	std::vector<SubCategory> settings = 
+		serializeCategory(subCategoriesCount, sizeStruct, 
+			buffer);
 
 	saveSettings(nameCategory, settings);
 }
@@ -210,12 +216,9 @@ SubCategory OBS_settings::serializeSettingsData(std::string nameSubCategory,
 	for(int i=0;i<entries.size();i++) {
 		Parameter param;
 
-		param.name = entries.at(i).at(0).first;
-		param.sizeName = sizeof(param.name.data());
-		param.type = entries.at(i).at(1).first;
-		param.sizeType = sizeof(param.type.data());
-		param.description = entries.at(i).at(2).first;
-		param.sizeDescription = sizeof(param.description.data());
+		param.name = entries.at(i).at(0).second;
+		param.type = entries.at(i).at(1).second;
+		param.description = entries.at(i).at(2).second;
 
 		std::string currentValue;
 		if(entries.at(i).size() > 3) {
@@ -224,9 +227,10 @@ SubCategory OBS_settings::serializeSettingsData(std::string nameSubCategory,
 
 		// Current value
 	  	if(!currentValue.empty() && currentValue.compare("currentValue") == 0 ) {
-			const char* currentValue = entries.at(i).at(3).first.c_str();
-			std::memcpy(param.currentValue, currentValue, sizeof(currentValue));
-			param.sizeOfCurrentValue = sizeof(entries.at(i).at(3).first);
+			const char* currentValue = entries.at(i).at(3).second.c_str();
+			param.currentValue.resize(strlen(currentValue));
+			std::memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
+			param.sizeOfCurrentValue = strlen(currentValue);
 	  		entries.at(i).erase(entries.at(i).begin() + 3);
 	  	} else {
 			if(param.type.compare("OBS_PROPERTY_LIST") == 0 ||
@@ -236,59 +240,72 @@ SubCategory OBS_settings::serializeSettingsData(std::string nameSubCategory,
 				const char* currentValue = config_get_string(config, section.c_str(), param.name.c_str());
 
 				if(currentValue != NULL) {
-					std::memcpy(param.currentValue, currentValue, sizeof(currentValue));
-					param.sizeOfCurrentValue = sizeof(currentValue);
+					param.currentValue.resize(strlen(currentValue));
+					std::memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
+					param.sizeOfCurrentValue = strlen(currentValue);
 
 				} else {
 					param.sizeOfCurrentValue = 0;
 				}
 			} else if(param.type.compare("OBS_PROPERTY_INT") == 0) {
 				int64_t val = config_get_int(config, section.c_str(), param.name.c_str());
-				void* binaryValue = reinterpret_cast<void*>(&val);
 
-				param.currentValue = binaryValue;
-				param.sizeOfCurrentValue = sizeof(int64_t);
+				param.currentValue.resize(sizeof(val));
+				memcpy(param.currentValue.data(), &val, sizeof(val));
+				param.sizeOfCurrentValue = sizeof(val);
 			} else if(param.type.compare("OBS_PROPERTY_UINT") == 0) {
 				uint64_t val = config_get_uint(config, section.c_str(), param.name.c_str());
-				void* binaryValue = reinterpret_cast<void*>(&val);
 
-				param.currentValue = binaryValue;
-				param.sizeOfCurrentValue = sizeof(uint64_t);
+				param.currentValue.resize(sizeof(val));
+				memcpy(param.currentValue.data(), &val, sizeof(val));
+				param.sizeOfCurrentValue = sizeof(val);
 			} else if(param.type.compare("OBS_PROPERTY_BOOL") == 0) {
 				bool val = config_get_bool(config, section.c_str(), param.name.c_str());
-				void* binaryValue = reinterpret_cast<void*>(&val);
 
-				param.currentValue = binaryValue;
-				param.sizeOfCurrentValue = sizeof(bool);
+				param.currentValue.resize(sizeof(val));
+				memcpy(param.currentValue.data(), &val, sizeof(val));
+				param.sizeOfCurrentValue = sizeof(val);
 			} else if(param.type.compare("OBS_PROPERTY_DOUBLE") == 0) {
 				double val = config_get_double(config, section.c_str(), param.name.c_str());
-				void* binaryValue = reinterpret_cast<void*>(&val);
 
-				param.currentValue = binaryValue;
-				param.sizeOfCurrentValue = sizeof(double);
+				param.currentValue.resize(sizeof(val));
+				memcpy(param.currentValue.data(), &val, sizeof(val));
+				param.sizeOfCurrentValue = sizeof(val);
 			}
 		}
 
 		// Values
 		if(entries.at(i).size() > 3) {
-			std::vector<std::pair<std::string, std::string>> values;
-
 			for(int j=3;j<entries.at(i).size();j++) {
-				values.push_back(entries.at(i).at(j));
-			}
-			char* binaryValue = reinterpret_cast<char*>(&values);
+				std::string name = entries.at(i).at(j).first;
 
-			param.values = binaryValue;
-			param.sizeOfCurrentValue = values.size() * sizeof(std::pair<std::string, std::string>);
+				uint64_t sizeName = name.length();
+				std::vector<char> sizeNameBuffer;
+				sizeNameBuffer.resize(sizeof(sizeName));
+				memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+
+				param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+				param.values.insert(param.values.end(), name.begin(), name.end());
+
+				std::string value = entries.at(i).at(j).second; 
+
+				uint64_t sizeValue = value.length();
+				std::vector<char> sizeValueBuffer;
+				sizeValueBuffer.resize(sizeof(sizeValue));
+				memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+
+				param.values.insert(param.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+				param.values.insert(param.values.end(), value.begin(), value.end());
+			}
+
+			param.sizeOfValues = param.values.size();
+			param.countValues = entries.at(i).size() - 3;
 		}
 
 		param.visible = isVisible;
 		param.enabled = isEnabled;
 		param.masked = false;
 
-		sc.paramsSize == param.sizeName + param.sizeDescription +
-			param.sizeType + param.sizeSubType + param.sizeOfCurrentValue +
-			param.sizeOfValues + 6 * sizeof(uint32_t) + 3 * sizeof(bool);
 		sc.params.push_back(param);
 	}
 
@@ -321,8 +338,8 @@ std::vector<SubCategory> OBS_settings::getGeneralSettings()
 	std::vector<std::vector<std::pair<std::string, std::string>>> entries;
 
 	// General
-	generalSettings.push_back(serializeSettingsData("General", entries, config, "BasicWindow", true, true));
-	entries.clear();
+	// generalSettings.push_back(serializeSettingsData("General", entries, config, "BasicWindow", true, true));
+	// entries.clear();
 
 	// Output
 	std::vector<std::pair<std::string, std::string>> warnBeforeStartingStream;
@@ -473,19 +490,18 @@ void OBS_settings::saveGeneralSettings(std::vector<SubCategory> generalSettings,
 			type = param.type;
 
 			if(type.compare("OBS_PROPERTY_LIST") == 0) {
-				std::string* value = reinterpret_cast<std::string*>(param.currentValue);
-				config_set_string(config, "BasicWindow", name.c_str(), value->c_str());
+				config_set_string(config, "BasicWindow", name.c_str(), param.currentValue.data());
 			} else if(type.compare("OBS_PROPERTY_INT") == 0) {
-				int64_t* value = reinterpret_cast<int64_t*>(param.currentValue);
+				int64_t* value = reinterpret_cast<int64_t*>(param.currentValue.data());
 				config_set_int(config, "BasicWindow", name.c_str(), *value);
 			} else if(type.compare("OBS_PROPERTY_UINT") == 0) {
-				uint64_t* value = reinterpret_cast<uint64_t*>(param.currentValue);
+				uint64_t* value = reinterpret_cast<uint64_t*>(param.currentValue.data());
 				config_set_uint(config, "BasicWindow", name.c_str(), *value);
 			} else if(type.compare("OBS_PROPERTY_BOOL") == 0) {
-				bool* value = reinterpret_cast<bool*>(param.currentValue);
+				bool* value = reinterpret_cast<bool*>(param.currentValue.data());
 				config_set_bool(config, "BasicWindow", name.c_str(), *value);
 			} else if(type.compare("OBS_PROPERTY_DOUBLE") == 0) {
-				double* value = reinterpret_cast<double*>(param.currentValue);
+				double* value = reinterpret_cast<double*>(param.currentValue.data());
 				config_set_double(config, "BasicWindow", name.c_str(),*value);
 			}
 		}
@@ -504,32 +520,46 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 	SubCategory service;
 
 	service.name = "Untitled";
-	service.sizeName = sizeof(service.name.data());
 	
 	Parameter streamType;
 	streamType.name = "streamType";
-	streamType.sizeName = sizeof(streamType.name.data());
 	streamType.type = "OBS_PROPERTY_LIST";
-	streamType.sizeType = sizeof(streamType.type.data());
 
 	int index = 0;
 	const char* type;
-	std::vector<std::pair<std::string, std::string>> values;
 	
+	uint32_t indexData = 0;
 	while (obs_enum_service_types(index++, &type)) {
-		values.push_back(std::make_pair(obs_service_get_display_name(type), type));
+		std::string name = obs_service_get_display_name(type);
+
+		uint64_t sizeName = name.length();
+		std::vector<char> sizeNameBuffer;
+		sizeNameBuffer.resize(sizeof(sizeName));
+		memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+
+		streamType.values.insert(streamType.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+		streamType.values.insert(streamType.values.end(), name.begin(), name.end());
+
+		std::string value = type;
+
+		uint64_t sizeValue = value.length();
+		std::vector<char> sizeValueBuffer;
+		sizeValueBuffer.resize(sizeof(sizeValue));
+		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+
+		streamType.values.insert(streamType.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+		streamType.values.insert(streamType.values.end(), value.begin(), value.end());
 	}
 
+	streamType.sizeOfValues = streamType.values.size();
+	streamType.countValues = index - 1;
 
-	streamType.values = reinterpret_cast<void*>(&values);
 	streamType.description = "Stream Type";
-	streamType.sizeDescription = sizeof(streamType.description.data());
 
-	const char* servType = obs_service_get_type(currentService);
-	char* data;
-	std::memcpy(data, servType, sizeof(servType));
-	streamType.currentValue = data;
-	streamType.sizeOfCurrentValue = sizeof(servType);
+	const char *servType = obs_service_get_type(currentService);
+	streamType.currentValue.resize(strlen(servType));
+	memcpy(streamType.currentValue.data(), servType, strlen(servType));
+	streamType.sizeOfCurrentValue = strlen(servType);
 
 	streamType.visible = true;
 	streamType.enabled = isCategoryEnabled;
@@ -537,9 +567,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 
 	service.params.push_back(streamType);
 	service.paramsCount = service.params.size();
-	service.paramsSize = streamType.sizeName + streamType.sizeDescription +
-		streamType.sizeType + streamType.sizeSubType + streamType.sizeOfCurrentValue +
-		streamType.sizeOfValues + 6 * sizeof(uint32_t) + 3 * sizeof(bool);
+
 	streamSettings.push_back(service);
 	
 	SubCategory serviceConfiguration;
@@ -550,12 +578,12 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 	string formatString;
 
 	index = 0;
-
+	uint32_t indexDataServiceConfiguration = 0;
+	
 	while(property) {
 		Parameter param;
 
 		param.name = obs_property_name(property);
-		param.sizeName = sizeof(param.name.data());
 		
 		std::vector<std::pair<std::string, void*>> values;
 
@@ -567,41 +595,78 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 
 			if (format == OBS_COMBO_FORMAT_INT)
 			{
-				long long value = obs_property_list_item_int(property, i);
-				void *data = reinterpret_cast<void*>(&value);
+				std::string name = obs_property_list_item_name(property, i);
 
-				values.push_back(std::make_pair(
-					obs_property_list_item_name(property, i), data
-				));
+				uint64_t sizeName = name.length();
+				std::vector<char> sizeNameBuffer;
+				sizeNameBuffer.resize(sizeof(sizeName));
+				memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+
+				param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+				param.values.insert(param.values.end(), name.begin(), name.end());
+
+				int64_t value = obs_property_list_item_int(property, i);
+				
+				std::vector<char> valueBuffer;
+				valueBuffer.resize(sizeof(value));
+				memcpy(valueBuffer.data(), &value, sizeof(value));
+
+				param.values.insert(param.values.end(), valueBuffer.begin(), valueBuffer.end());
 
 				formatString = "OBS_PROPERTY_INT";
 			}
 			else if (format == OBS_COMBO_FORMAT_FLOAT)
 			{
-				double value = obs_property_list_item_float(property, i);
-				void *data = reinterpret_cast<void*>(&value);
+				std::string name = obs_property_list_item_name(property, i);
 
-				values.push_back(std::make_pair(
-					obs_property_list_item_name(property, i), data
-				));
+				uint64_t sizeName = name.length();
+				std::vector<char> sizeNameBuffer;
+				sizeNameBuffer.resize(sizeof(sizeName));
+				memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+
+				param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+				param.values.insert(param.values.end(), name.begin(), name.end());
+
+				double value = obs_property_list_item_float(property, i);
+
+				std::vector<char> valueBuffer;
+				valueBuffer.resize(sizeof(value));
+				memcpy(valueBuffer.data(), &value, sizeof(value));
+
+				param.values.insert(param.values.end(), valueBuffer.begin(), valueBuffer.end());
+
 				formatString = "OBS_PROPERTY_DOUBLE";
 			}
 			else if (format == OBS_COMBO_FORMAT_STRING)
 			{
-				const char* name = obs_property_list_item_name(property, i);
-				const char* value = obs_property_list_item_string(property, i);
+				std::string name = obs_property_list_item_name(property, i);
 
-				void *data = reinterpret_cast<void*>(&value);
+				uint64_t sizeName = name.length();
+				std::vector<char> sizeNameBuffer;
+				sizeNameBuffer.resize(sizeof(sizeName));
+				memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
 
-				values.push_back(std::make_pair(
-					name, data
-				));
+				param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+				param.values.insert(param.values.end(), name.begin(), name.end());
+
+				std::string value = obs_property_list_item_string(property, i);
+				
+				uint64_t sizeValue = value.length();
+				std::vector<char> sizeValueBuffer;
+				sizeValueBuffer.resize(sizeof(sizeValue));
+				memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+
+				param.values.insert(param.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+				param.values.insert(param.values.end(), value.begin(), value.end());
 
 				formatString = "OBS_PROPERTY_LIST";
 			} else {
 				cout << "INVALID FORMAT" << endl;
 			}
 		}
+
+		param.sizeOfValues = param.values.size();
+		param.countValues = count;
 
 		if(count == 0) {
 			if(strcmp(obs_property_name(property), "key") == 0) {
@@ -611,15 +676,16 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 				if(stream_key == NULL)
 					stream_key = "";
 
-				void* data;
-				std::memcpy(data, stream_key, sizeof(stream_key));
-				param.currentValue = data;
-				param.sizeOfCurrentValue = sizeof(stream_key);
+				param.currentValue.resize(strlen(stream_key));
+				memcpy(param.currentValue.data(), stream_key, strlen(stream_key));
+				param.sizeOfCurrentValue = strlen(stream_key);
 			}
 			if(strcmp(obs_property_name(property), "show_all") == 0) {
 				bool show_all = obs_data_get_bool(settings, "show_all");
-				param.currentValue = reinterpret_cast<void*>(&show_all);
-				param.sizeOfCurrentValue = sizeof(bool);
+
+				param.currentValue.resize(sizeof(show_all));
+				memcpy(param.currentValue.data(), &show_all, sizeof(show_all));
+				param.sizeOfCurrentValue = sizeof(show_all);
 			}
 			if(strcmp(obs_property_name(property), "server") == 0) {
 				const char* server = obs_service_get_url(currentService);
@@ -632,10 +698,9 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 				if(server == NULL)
 					server = "";
 				
-				void* data;
-				std::memcpy(data, server, sizeof(server));
-				param.currentValue = data;
-				param.sizeOfCurrentValue = sizeof(server);
+				param.currentValue.resize(strlen(server));
+				memcpy(param.currentValue.data(), server, strlen(server));
+				param.sizeOfCurrentValue = strlen(server);
 			}
 			if(strcmp(obs_property_name(property), "username") == 0) {
 				const char* username = obs_service_get_username(currentService);
@@ -644,10 +709,9 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 				if (username == NULL)
 					username = "";
 
-				void* data;
-				std::memcpy(data, username, sizeof(username));
-				param.currentValue = data;
-				param.sizeOfCurrentValue = sizeof(username);
+				param.currentValue.resize(strlen(username));
+				memcpy(param.currentValue.data(), username, strlen(username));
+				param.sizeOfCurrentValue = strlen(username);
 			}
 			if(strcmp(obs_property_name(property), "password") == 0) {
 				const char* password = obs_service_get_password(currentService);
@@ -656,50 +720,47 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 				if (password == NULL)
 					password = "";
 
-				void* data;
-				std::memcpy(data, password, sizeof(password));
-				param.currentValue = data;
-				param.sizeOfCurrentValue = sizeof(password);
+				param.currentValue.resize(strlen(password));
+				memcpy(param.currentValue.data(), password, strlen(password));
+				param.sizeOfCurrentValue = strlen(password);
 			}
 			if(strcmp(obs_property_name(property), "use_auth") == 0) {
 				bool use_auth = obs_data_get_bool(settings, "use_auth");
 				formatString = "OBS_PROPERTY_BOOL";
 
-				void *data = reinterpret_cast<void*>(&use_auth);
-				param.currentValue = data;
-				param.sizeOfCurrentValue = sizeof(bool);
+				param.currentValue.resize(sizeof(use_auth));
+				memcpy(param.currentValue.data(), &use_auth, sizeof(use_auth));
+				param.sizeOfCurrentValue = sizeof(use_auth);
 			}
 		} else {
 			if (format == OBS_COMBO_FORMAT_INT) 
 			{				
 				int64_t value = obs_data_get_int(settings, obs_property_name(property));
-				void *data = reinterpret_cast<void*>(&value);
-				param.currentValue = data;
-				param.sizeOfCurrentValue = sizeof(int64_t);
+
+				param.currentValue.resize(sizeof(value));
+				memcpy(param.currentValue.data(), &value, sizeof(value));
+				param.sizeOfCurrentValue = sizeof(value);
 			} 
 			else if (format == OBS_COMBO_FORMAT_FLOAT) 
 			{
 				double value = obs_data_get_double(settings, obs_property_name(property));
-				void *data = reinterpret_cast<void*>(&value);
-				param.currentValue = data;
-				param.sizeOfCurrentValue = sizeof(double);
+
+				param.currentValue.resize(sizeof(value));
+				memcpy(param.currentValue.data(), &value, sizeof(value));
+				param.sizeOfCurrentValue = sizeof(value);
 			} 
 			else if (format == OBS_COMBO_FORMAT_STRING) 
 			{
 				currentServiceName = obs_data_get_string(settings, obs_property_name(property));
 
-				void *data = reinterpret_cast<void*>(&currentServiceName);
-				param.currentValue = data;
-				param.sizeOfCurrentValue = sizeof(currentServiceName);
+				param.currentValue.resize(strlen(currentServiceName));
+				memcpy(param.currentValue.data(), &currentServiceName, strlen(currentServiceName));
+				param.sizeOfCurrentValue = strlen(currentServiceName);
 			}
-
-			param.values = reinterpret_cast<void*>(&values);
 		}
 
 		param.type = formatString;
-		param.sizeType = sizeof(param.type);
 		param.description = obs_property_description(property);
-		param.sizeDescription = sizeof(param.description);
 		param.visible = obs_property_visible(property);
 		param.enabled = isCategoryEnabled;
 
@@ -753,7 +814,7 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 			const char *servName;
 			if(type.compare("OBS_PROPERTY_LIST") == 0 ||
 				type.compare("OBS_PROPERTY_EDIT_TEXT") == 0) {
-				value = reinterpret_cast<const char*>(param.currentValue);
+				value = param.currentValue.data();
 
 				if(name.compare("streamType") == 0) {
 					newserviceTypeValue = value;
@@ -784,13 +845,13 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 				obs_data_set_string(settings, name.c_str(), value);
 			} else if(type.compare("OBS_PROPERTY_INT") == 0 ||
 					  type.compare("OBS_PROPERTY_UINT") == 0) {
-				int64_t* value = reinterpret_cast<int64_t*>(param.currentValue);
+				int64_t* value = reinterpret_cast<int64_t*>(param.currentValue.data());
 				obs_data_set_int(settings, name.c_str(), *value);
 			} else if(type.compare("OBS_PROPERTY_BOOL") == 0) {
-				bool* value = reinterpret_cast<bool*>(param.currentValue);
+				bool* value = reinterpret_cast<bool*>(param.currentValue.data());
 				obs_data_set_bool(settings, name.c_str(), *value);
 			} else if(type.compare("OBS_PROPERTY_DOUBLE") == 0) {
-				double* value = reinterpret_cast<double*>(param.currentValue);
+				double* value = reinterpret_cast<double*>(param.currentValue.data());
 				obs_data_set_double(settings, name.c_str(), *value);
 			} 
 		}
@@ -1066,7 +1127,10 @@ void OBS_settings::getEncoderSettings(const obs_encoder_t *encoder, obs_data_t *
 				param.description = obs_property_description(property);
 
 				bool value = obs_data_get_bool(settings, param.name.c_str());
-				param.currentValue = reinterpret_cast<void*>(&value);
+
+				param.currentValue.resize(sizeof(value));
+				memcpy(param.currentValue.data(), &value, sizeof(value));
+				param.sizeOfCurrentValue = sizeof(value);
 
 				break;
 			}
@@ -1076,7 +1140,10 @@ void OBS_settings::getEncoderSettings(const obs_encoder_t *encoder, obs_data_t *
 				param.description = obs_property_description(property);
 
 				int64_t value = obs_data_get_int(settings, param.name.c_str());
-				param.currentValue = reinterpret_cast<void*>(&value);
+
+				param.currentValue.resize(sizeof(value));
+				memcpy(param.currentValue.data(), &value, sizeof(value));
+				param.sizeOfCurrentValue = sizeof(value);
 
 				break;
 			}
@@ -1086,7 +1153,10 @@ void OBS_settings::getEncoderSettings(const obs_encoder_t *encoder, obs_data_t *
 				param.description = obs_property_description(property);
 
 				int64_t value = obs_data_get_double(settings, param.name.c_str());
-				param.currentValue = reinterpret_cast<void*>(&value);
+
+				param.currentValue.resize(sizeof(value));
+				memcpy(param.currentValue.data(), &value, sizeof(value));
+				param.sizeOfCurrentValue = sizeof(value);
 
 				break;
 			}
@@ -1102,9 +1172,9 @@ void OBS_settings::getEncoderSettings(const obs_encoder_t *encoder, obs_data_t *
 					currentValue = "";
 				}
 
-				void *data;
-				std::memcpy(data, currentValue, sizeof(currentValue));
-				param.currentValue = data;
+				param.currentValue.resize(strlen(currentValue));
+				memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
+				param.sizeOfCurrentValue = strlen(currentValue);
 
 				break;
 			}
@@ -1119,9 +1189,9 @@ void OBS_settings::getEncoderSettings(const obs_encoder_t *encoder, obs_data_t *
 					currentValue = "";
 				}
 
-				void *data;
-				std::memcpy(data, currentValue, sizeof(currentValue));
-				param.currentValue = data;
+				param.currentValue.resize(strlen(currentValue));
+				memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
+				param.sizeOfCurrentValue = strlen(currentValue);
 
 				break;
 			}
@@ -1134,10 +1204,14 @@ void OBS_settings::getEncoderSettings(const obs_encoder_t *encoder, obs_data_t *
 				
 				if (format == OBS_COMBO_FORMAT_INT) {
 					int64_t value = obs_data_get_int(settings, param.name.c_str());
-					param.currentValue = reinterpret_cast<void*>(&value);
+					param.currentValue.resize(sizeof(value));
+					memcpy(param.currentValue.data(), &value, sizeof(value));
+					param.sizeOfCurrentValue = sizeof(value);
 				} else if (format == OBS_COMBO_FORMAT_FLOAT) {
 					double value = obs_data_get_double(settings, param.name.c_str());
-					param.currentValue = reinterpret_cast<void*>(&value);
+					param.currentValue.resize(sizeof(value));
+					memcpy(param.currentValue.data(), &value, sizeof(value));
+					param.sizeOfCurrentValue = sizeof(value);
 				}
 				else if (format == OBS_COMBO_FORMAT_STRING) {
 					const char* currentValue = obs_data_get_string(settings, param.name.c_str());
@@ -1146,13 +1220,12 @@ void OBS_settings::getEncoderSettings(const obs_encoder_t *encoder, obs_data_t *
 						currentValue = "";
 					}
 
-					void *data;
-					std::memcpy(data, currentValue, sizeof(currentValue));
-					param.currentValue = data;
+					param.currentValue.resize(strlen(currentValue));
+					memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
+					param.sizeOfCurrentValue = strlen(currentValue);
 				}
 				
 				int count = (int)obs_property_list_item_count(property);
-				std::vector<std::pair<std::string, void*>> values;
 
 				for(int i=0;i<count;i++) {
 					// Name
@@ -1163,29 +1236,70 @@ void OBS_settings::getEncoderSettings(const obs_encoder_t *encoder, obs_data_t *
 					{
 						param.subType = "OBS_COMBO_FORMAT_INT";
 
-						long long value = obs_property_list_item_int(property, i);
-						values.push_back(std::make_pair(itemName, reinterpret_cast<void*>(&value)));
-					}
+						uint64_t sizeName = itemName.length();
+						std::vector<char> sizeNameBuffer;
+						sizeNameBuffer.resize(sizeof(sizeName));
+						memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+
+						param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+						param.values.insert(param.values.end(), itemName.begin(), itemName.end());
+
+						int64_t value = obs_property_list_item_int(property, i);
+
+						std::vector<char> valueBuffer;
+						valueBuffer.resize(sizeof(uint64_t));
+						memcpy(valueBuffer.data(), &value, sizeof(value));
+
+						param.values.insert(param.values.end(), valueBuffer.begin(), valueBuffer.end());
+ 					}
 					else if (format == OBS_COMBO_FORMAT_FLOAT)
 					{
 						param.subType = "OBS_COMBO_FORMAT_FLOAT";
 
+						uint64_t sizeName = itemName.length();
+						std::vector<char> sizeNameBuffer;
+						sizeNameBuffer.resize(sizeof(sizeName));
+						memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+
+						param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+						param.values.insert(param.values.end(), itemName.begin(), itemName.end());
+
 						double value = obs_property_list_item_float(property, i);
-						values.push_back(std::make_pair(itemName, reinterpret_cast<void*>(&value)));
+
+						std::vector<char> valueBuffer;
+						valueBuffer.resize(sizeof(value));
+						memcpy(valueBuffer.data(), &value, sizeof(value));
+
+						param.values.insert(param.values.end(), valueBuffer.begin(), valueBuffer.end());
 					}
 					else if (format == OBS_COMBO_FORMAT_STRING)
 					{
 						param.subType = "OBS_COMBO_FORMAT_STRING";
 
-						const char* value = obs_property_list_item_string(property, i);
+						uint64_t sizeName = itemName.length();
+						std::vector<char> sizeNameBuffer;
+						sizeNameBuffer.resize(sizeof(sizeName));
+						memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
 
-						void *data;
-						std::memcpy(data, value, sizeof(value));
-						values.push_back(std::make_pair(itemName, data));
+						param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+						param.values.insert(param.values.end(), itemName.begin(), itemName.end());
+
+						std::string value = obs_property_list_item_string(property, i);
+
+						uint64_t sizeValue = value.length();
+						std::vector<char> sizeValueBuffer;
+						sizeValueBuffer.resize(sizeof(sizeValue));
+						memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+
+						param.values.insert(param.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+						param.values.insert(param.values.end(), value.begin(), value.end());
 
 					}
 				}
-				param.values = reinterpret_cast<void *>(&values);
+
+				param.sizeOfValues = param.values.size();
+				param.countValues = count;
+
 				break;
 			}
 			case OBS_PROPERTY_EDITABLE_LIST:
@@ -1198,9 +1312,9 @@ void OBS_settings::getEncoderSettings(const obs_encoder_t *encoder, obs_data_t *
 				if(currentValue == NULL) 
 					currentValue = "";
 
-				void *data;
-				std::memcpy(data, currentValue, sizeof(currentValue));
-				param.currentValue = data;
+				param.currentValue.resize(strlen(currentValue));
+				memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
+				param.sizeOfCurrentValue = strlen(currentValue);
 
 				break;
 			}
@@ -1232,11 +1346,8 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	// Audio Track : list
 	Parameter trackIndex;
 	trackIndex.name = "TrackIndex";
-	trackIndex.sizeName = sizeof(trackIndex.name.data());
 	trackIndex.type = "OBS_PROPERTY_LIST";
-	trackIndex.sizeType = sizeof(trackIndex.type.data());
 	trackIndex.description = "Audio Track";
-	trackIndex.sizeDescription = sizeof(trackIndex.description.data());
 
 	std::vector<std::pair<std::string, std::string>> trackIndexValues;
 	trackIndexValues.push_back(std::make_pair("1", "1"));
@@ -1245,18 +1356,39 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	trackIndexValues.push_back(std::make_pair("4", "4"));
 	trackIndexValues.push_back(std::make_pair("5", "5"));
 	trackIndexValues.push_back(std::make_pair("6", "6"));
+	
+	for (int i = 0; i < trackIndexValues.size(); i++) {
+		std::string name = trackIndexValues.at(i).first;
 
-	trackIndex.values = reinterpret_cast<void*>(&trackIndexValues);
+		uint64_t sizeName = name.length();
+		std::vector<char> sizeNameBuffer;
+		sizeNameBuffer.resize(sizeof(sizeName));
+		memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
 
+		trackIndex.values.insert(trackIndex.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+		trackIndex.values.insert(trackIndex.values.end(), name.begin(), name.end());
 
+		std::string value = trackIndexValues.at(i).second;
+
+		uint64_t sizeValue = value.length();
+		std::vector<char> sizeValueBuffer;
+		sizeValueBuffer.resize(sizeof(sizeValue));
+		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+
+		trackIndex.values.insert(trackIndex.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+		trackIndex.values.insert(trackIndex.values.end(), value.begin(), value.end());
+	}
+
+	trackIndex.sizeOfValues = trackIndex.values.size();
+	trackIndex.countValues = trackIndexValues.size();
+	
 	const char* trackIndexCurrentValue = config_get_string(config, "AdvOut", "TrackIndex");
 	if(trackIndexCurrentValue == NULL) 
 		trackIndexCurrentValue = "";
 
-	void *dataTrackIndexCurrentValue;
-	std::memcpy(dataTrackIndexCurrentValue, trackIndexCurrentValue, sizeof(trackIndexCurrentValue));
-	trackIndex.currentValue = dataTrackIndexCurrentValue;
-	trackIndex.sizeOfCurrentValue = sizeof(trackIndexCurrentValue);
+	trackIndex.currentValue.resize(strlen(trackIndexCurrentValue));
+	memcpy(trackIndex.currentValue.data(), trackIndexCurrentValue, strlen(trackIndexCurrentValue));
+	trackIndex.sizeOfCurrentValue = strlen(trackIndexCurrentValue);
 
 	trackIndex.visible = true;
 	trackIndex.enabled = isCategoryEnabled;
@@ -1267,26 +1399,46 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	// Encoder : list
 	Parameter videoEncoders;
 	videoEncoders.name = "Encoder";
-	videoEncoders.sizeName = sizeof(videoEncoders.name.data());
 	videoEncoders.type = "OBS_PROPERTY_LIST";
-	videoEncoders.sizeType = sizeof(videoEncoders.type.data());
 	videoEncoders.description = "Encoder";
-	videoEncoders.sizeDescription = sizeof(videoEncoders.description.data());
 	
 	const char* encoderCurrentValue = config_get_string(config, "AdvOut", "Encoder");
 	if(encoderCurrentValue == NULL) {
 		encoderCurrentValue = "";
 	}
-	void *data;
-	std::memcpy(data, encoderCurrentValue, sizeof(encoderCurrentValue));
-	videoEncoders.currentValue = data;
-	trackIndex.sizeOfCurrentValue = sizeof(encoderCurrentValue);
+
+	videoEncoders.currentValue.resize(strlen(encoderCurrentValue));
+	memcpy(videoEncoders.currentValue.data(), encoderCurrentValue, strlen(encoderCurrentValue));
+	videoEncoders.sizeOfCurrentValue = strlen(encoderCurrentValue);
 
 	std::vector<std::pair<std::string, std::string>> encoderValues;
 	getAvailableEncoders(&encoderValues);
 	
-	videoEncoders.values = reinterpret_cast<void*>(&encoderValues);
+	for (int i = 0; i < encoderValues.size(); i++) {
+		std::string name = encoderValues.at(i).first;
 
+		uint64_t sizeName = name.length();
+		std::vector<char> sizeNameBuffer;
+		sizeNameBuffer.resize(sizeof(sizeName));
+		memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+
+		videoEncoders.values.insert(videoEncoders.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+		videoEncoders.values.insert(videoEncoders.values.end(), name.begin(), name.end());
+
+		std::string value = encoderValues.at(i).second;
+
+		uint64_t sizeValue = value.length();
+		std::vector<char> sizeValueBuffer;
+		sizeValueBuffer.resize(sizeof(sizeValue));
+		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+
+		videoEncoders.values.insert(videoEncoders.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+		videoEncoders.values.insert(videoEncoders.values.end(), value.begin(), value.end());
+	}
+
+	videoEncoders.sizeOfValues = videoEncoders.values.size();
+	videoEncoders.countValues = encoderValues.size();
+	
 	videoEncoders.visible = true;
 	videoEncoders.enabled = isCategoryEnabled;
 	videoEncoders.masked = false;
@@ -1296,15 +1448,14 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	// Enforce streaming service encoder settings : boolean
 	Parameter applyServiceSettings;
 	applyServiceSettings.name = "ApplyServiceSettings";
-	applyServiceSettings.sizeName = sizeof(applyServiceSettings.name.data());
 	applyServiceSettings.type = "OBS_PROPERTY_BOOL";
-	applyServiceSettings.sizeType = sizeof(applyServiceSettings.type.data());
 	applyServiceSettings.description = "Enforce streaming service encoder settings";
-	applyServiceSettings.sizeDescription = sizeof(applyServiceSettings.description.data());
 
 	bool applyServiceSettingsValue = config_get_bool(config, "AdvOut", "ApplyServiceSettings");
-	applyServiceSettings.currentValue = reinterpret_cast<void*>(&applyServiceSettingsValue);
-	applyServiceSettings.sizeOfCurrentValue = sizeof(bool);
+
+	applyServiceSettings.currentValue.resize(sizeof(applyServiceSettingsValue));
+	memcpy(applyServiceSettings.currentValue.data(), &applyServiceSettingsValue, sizeof(applyServiceSettingsValue));
+	applyServiceSettings.sizeOfCurrentValue = sizeof(applyServiceSettingsValue);
 
 	applyServiceSettings.visible = true;
 	applyServiceSettings.enabled = isCategoryEnabled;
@@ -1315,15 +1466,14 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	// Rescale Output : boolean
 	Parameter rescale;
 	rescale.name = "Rescale";
-	rescale.sizeName = sizeof(rescale.name.data());
 	rescale.type = "OBS_PROPERTY_BOOL";
-	rescale.sizeType = sizeof(rescale.type.data());
 	rescale.description = "Rescale Output";
-	rescale.sizeDescription = sizeof(rescale.description.data());
 
 	bool doRescale = config_get_bool(config, "AdvOut", "Rescale");
-	rescale.currentValue = reinterpret_cast<void*>(&doRescale);
-	applyServiceSettings.sizeOfCurrentValue = sizeof(bool);
+
+	rescale.currentValue.resize(sizeof(doRescale));
+	memcpy(rescale.currentValue.data(), &doRescale, sizeof(doRescale));
+	rescale.sizeOfCurrentValue = sizeof(doRescale);
 
 	rescale.visible = true;
 	rescale.enabled = isCategoryEnabled;
@@ -1335,11 +1485,8 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 		// Output Resolution : list
 		Parameter rescaleRes;
 		rescaleRes.name = "RescaleRes";
-		rescaleRes.sizeName = sizeof(rescaleRes.name.data());
 		rescaleRes.type = "OBS_PROPERTY_LIST";
-		rescaleRes.sizeType = sizeof(rescaleRes.type.data());
 		rescaleRes.description = "Output Resolution";
-		rescaleRes.sizeDescription = sizeof(rescaleRes.description.data());
 		
 		uint32_t base_cx = config_get_uint(config, "Video", "BaseCX");
 		uint32_t base_cy = config_get_uint(config, "Video", "BaseCY");
@@ -1352,21 +1499,31 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 			config_save_safe(config, "tmp", nullptr);
 		}
 
-		void *data;
-		std::memcpy(data, outputResString, sizeof(&outputResString));
-		rescaleRes.currentValue = data;
-		rescaleRes.sizeOfCurrentValue = sizeof(outputResString);
+		rescaleRes.currentValue.resize(strlen(outputResString));
+		memcpy(rescaleRes.currentValue.data(), outputResString, strlen(outputResString));
+		rescaleRes.sizeOfCurrentValue = strlen(outputResString);
 
 		std::vector<pair<uint32_t, uint32_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
-		std::vector<pair<std::string, std::string>> rescaleResValues;
+
+		uint32_t indexDataRescaleRes = 0;
 
 		for(int i = 0;i<outputResolutions.size();i++) {
-			string outRes = ResString(outputResolutions.at(i).first, outputResolutions.at(i).second);
-			rescaleResValues.push_back(std::make_pair(outRes, outRes));
+			std::string outRes = ResString(outputResolutions.at(i).first, outputResolutions.at(i).second);
+
+			for (int j = 0; j < 2; j++) {
+				uint64_t sizeRes = outRes.length();
+				std::vector<char> sizeNameBuffer;
+				sizeNameBuffer.resize(sizeof(sizeRes));
+				memcpy(sizeNameBuffer.data(), &sizeRes, sizeof(sizeRes));
+
+				rescaleRes.values.insert(rescaleRes.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+				rescaleRes.values.insert(rescaleRes.values.end(), outRes.begin(), outRes.end());
+			}
 		}
 
-		rescaleRes.values = reinterpret_cast<void*>(&rescaleRes);
-		
+		rescaleRes.sizeOfValues = rescaleRes.values.size();
+		rescaleRes.countValues = outputResolutions.size();
+				
 		rescaleRes.visible = true;
 		rescaleRes.enabled = isCategoryEnabled;
 		rescaleRes.masked = false;
@@ -1403,7 +1560,8 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	}
 
 	getEncoderSettings(streamingEncoder, settings, &(streamingSettings.params), index, isCategoryEnabled);
-
+	streamingSettings.paramsCount = 
+		streamingSettings.params.size();
 	return streamingSettings;
 }
 
@@ -1415,28 +1573,23 @@ void OBS_settings::getStandardRecordingSettings(
 	// Recording Path : file
 	Parameter recFilePath;
 	recFilePath.name = "RecFilePath";
-	recFilePath.sizeName = sizeof(recFilePath.name);
 	recFilePath.type = "OBS_PROPERTY_PATH";
-	recFilePath.sizeType = sizeof(recFilePath.type);
 	recFilePath.description = "Recording Path";
-	recFilePath.sizeDescription = sizeof(recFilePath.description);
 
 	const char* RecFilePathCurrentValue = config_get_string(config, "AdvOut", "RecFilePath");
-	std::string RecFilePathText;
-	void *data;
 
-	if(RecFilePathCurrentValue == NULL) { 
-		RecFilePathText = OBS_service::GetDefaultVideoSavePath().c_str();
-		std::memcpy(data, OBS_service::GetDefaultVideoSavePath().c_str(),
-			sizeof(OBS_service::GetDefaultVideoSavePath().c_str()));
+	if(RecFilePathCurrentValue == NULL) {
+		const char* RecFilePathText = OBS_service::GetDefaultVideoSavePath().c_str();
+		
+		recFilePath.currentValue.resize(strlen(RecFilePathText));
+		memcpy(recFilePath.currentValue.data(), RecFilePathText, strlen(RecFilePathText));
+		recFilePath.sizeOfCurrentValue = strlen(RecFilePathText);
 	} else {
-		std::memcpy(data, RecFilePathCurrentValue, 
-			sizeof(RecFilePathCurrentValue));
+		recFilePath.currentValue.resize(strlen(RecFilePathCurrentValue));
+		memcpy(recFilePath.currentValue.data(), RecFilePathCurrentValue, strlen(RecFilePathCurrentValue));
+		recFilePath.sizeOfCurrentValue = strlen(RecFilePathCurrentValue);
 	}
-
-	recFilePath.currentValue = data;
-	recFilePath.sizeOfCurrentValue = sizeof(RecFilePathCurrentValue);
-
+	
 	recFilePath.visible = true;
 	recFilePath.enabled = isCategoryEnabled;
 	recFilePath.masked = false;
@@ -1446,14 +1599,13 @@ void OBS_settings::getStandardRecordingSettings(
 	// Generate File Name without Space : boolean
 	Parameter recFileNameWithoutSpace;
 	recFileNameWithoutSpace.name = "RecFileNameWithoutSpace";
-	recFileNameWithoutSpace.sizeName = sizeof(recFileNameWithoutSpace.name);
 	recFileNameWithoutSpace.type = "OBS_PROPERTY_BOOL";
-	recFileNameWithoutSpace.sizeType = sizeof(recFileNameWithoutSpace.type);
 	recFileNameWithoutSpace.description = "Generate File Name without Space";
-	recFileNameWithoutSpace.sizeDescription = sizeof(recFileNameWithoutSpace.description);
 	
-	recFileNameWithoutSpace.currentValue = "RecFileNameWithoutSpace";
-	recFileNameWithoutSpace.sizeOfCurrentValue = sizeof(recFileNameWithoutSpace.currentValue);
+	const char* currentValue = "RecFileNameWithoutSpace";
+	recFileNameWithoutSpace.currentValue.resize(strlen(currentValue));
+	memcpy(recFileNameWithoutSpace.currentValue.data(), currentValue, strlen(currentValue));
+	recFileNameWithoutSpace.sizeOfCurrentValue = strlen(currentValue);
 
 	recFileNameWithoutSpace.visible = true;
 	recFileNameWithoutSpace.enabled = isCategoryEnabled;
@@ -1464,20 +1616,16 @@ void OBS_settings::getStandardRecordingSettings(
 	// Recording Format : list
 	Parameter recFormat;
 	recFormat.name = "RecFormat";
-	recFormat.sizeName = sizeof(recFormat.name);
 	recFormat.type = "OBS_PROPERTY_LIST";
-	recFormat.sizeType = sizeof(recFormat.type);
 	recFormat.description = "Recording Format";
-	recFormat.sizeDescription = sizeof(recFormat.description);
 
 	const char* recFormatCurrentValue = config_get_string(config, "AdvOut", "RecFormat");
 	if(recFormatCurrentValue == NULL)
 		recFormatCurrentValue = "";
-
-	void *datarecFormatCurrentValue;
-	std::memcpy(datarecFormatCurrentValue, recFormatCurrentValue, sizeof(recFormatCurrentValue));
-	recFormat.currentValue = datarecFormatCurrentValue;
-	recFormat.sizeOfCurrentValue = sizeof(recFormatCurrentValue);
+	
+	recFormat.currentValue.resize(strlen(recFormatCurrentValue));
+	memcpy(recFormat.currentValue.data(), recFormatCurrentValue, strlen(recFormatCurrentValue));
+	recFormat.sizeOfCurrentValue = strlen(recFormatCurrentValue);
 
 	std::vector<std::pair<std::string, std::string>> recFormatValues;
 	recFormatValues.push_back(std::make_pair("flv", "flv"));
@@ -1487,8 +1635,33 @@ void OBS_settings::getStandardRecordingSettings(
 	recFormatValues.push_back(std::make_pair("ts", "ts"));
 	recFormatValues.push_back(std::make_pair("m3u8", "m3u8"));
 
-	recFormat.values = reinterpret_cast<void*>(&recFormatValues);
+	uint32_t indexDataRecFormat = 0;
 
+	for (int i = 0; i < recFormatValues.size(); i++) {
+		std::string name = recFormatValues.at(i).first;
+
+		uint64_t sizeName = name.length();
+		std::vector<char> sizeNameBuffer;
+		sizeNameBuffer.resize(sizeof(sizeName));
+		memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+
+		recFormat.values.insert(recFormat.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+		recFormat.values.insert(recFormat.values.end(), name.begin(), name.end());
+
+		std::string value = recFormatValues.at(i).second;
+
+		uint64_t sizeValue = value.length();
+		std::vector<char> sizeValueBuffer;
+		sizeValueBuffer.resize(sizeof(sizeValue));
+		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+
+		recFormat.values.insert(recFormat.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+		recFormat.values.insert(recFormat.values.end(), value.begin(), value.end());
+	}
+
+	recFormat.sizeOfValues = recFormat.values.size();
+	recFormat.countValues = recFormatValues.size();
+	
 	recFormat.visible = true;
 	recFormat.enabled = isCategoryEnabled;
 	recFormat.masked = false;
@@ -1498,22 +1671,16 @@ void OBS_settings::getStandardRecordingSettings(
 	// Audio Track : list
 	Parameter recTracks;
 	recTracks.name = "RecTracks";
-	recTracks.sizeName = sizeof(recTracks.name);
 	recTracks.type = "OBS_PROPERTY_LIST";
-	recTracks.sizeType = sizeof(recTracks.type);
 	recTracks.description = "Audio Track";
-	recTracks.sizeDescription = sizeof(recTracks.description);
 
 	const char* recTracksCurrentValue = config_get_string(config, "AdvOut", "RecTracks");
 	if(recTracksCurrentValue == NULL)
 		recTracksCurrentValue = "";
 
-	void *dataRecTracksCurrentValue;
-	std::memcpy(dataRecTracksCurrentValue, recTracksCurrentValue,
-		sizeof(recTracksCurrentValue));
-
-	recTracks.currentValue = dataRecTracksCurrentValue;
-	recTracks.sizeOfCurrentValue = sizeof(recTracksCurrentValue);
+	recTracks.currentValue.resize(strlen(recTracksCurrentValue));
+	memcpy(recTracks.currentValue.data(), recTracksCurrentValue, strlen(recTracksCurrentValue));
+	recTracks.sizeOfCurrentValue = strlen(recTracksCurrentValue);
 
 	std::vector<std::pair<std::string, std::string>> recTracksValues;
 	recTracksValues.push_back(std::make_pair("1", "1"));
@@ -1523,7 +1690,32 @@ void OBS_settings::getStandardRecordingSettings(
 	recTracksValues.push_back(std::make_pair("5", "5"));
 	recTracksValues.push_back(std::make_pair("6", "6"));
 
-	recTracks.values = reinterpret_cast<void*>(&recTracksValues);
+	uint32_t indexRecTracksCurrentValue = 0;
+
+	for (int i = 0; i < recTracksValues.size(); i++) {
+		std::string name = recTracksValues.at(i).first;
+
+		uint64_t sizeName = name.length();
+		std::vector<char> sizeNameBuffer;
+		sizeNameBuffer.resize(sizeof(sizeName));
+		memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+
+		recTracks.values.insert(recTracks.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+		recTracks.values.insert(recTracks.values.end(), name.begin(), name.end());
+
+		std::string value = recTracksValues.at(i).second;
+
+		uint64_t sizeValue = value.length();
+		std::vector<char> sizeValueBuffer;
+		sizeValueBuffer.resize(sizeof(sizeValue));
+		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+
+		recTracks.values.insert(recTracks.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+		recTracks.values.insert(recTracks.values.end(), value.begin(), value.end());
+	}
+
+	recTracks.sizeOfValues = recTracks.values.size();
+	recTracks.countValues = recTracksValues.size();
 
 	recTracks.visible = true;
 	recTracks.enabled = isCategoryEnabled;
@@ -1534,26 +1726,46 @@ void OBS_settings::getStandardRecordingSettings(
 	// Encoder : list
 	Parameter recEncoder;
 	recEncoder.name = "RecEncoder";
-	recEncoder.sizeName = sizeof(recEncoder.name);
 	recEncoder.type = "OBS_PROPERTY_LIST";
-	recEncoder.sizeType = sizeof(recEncoder.type);
 	recEncoder.description = "Recording";
-	recEncoder.sizeDescription = sizeof(recEncoder.description);
 	
 	const char* recEncoderCurrentValue = config_get_string(config, "AdvOut", "RecEncoder");
 	if(recEncoderCurrentValue == NULL || strcmp(recEncoderCurrentValue, "none") == 0)
 		recEncoderCurrentValue = "obs_x264";
 
-	void *dataRecEncoderCurrentValue;
-	std::memcpy(dataRecEncoderCurrentValue, recEncoderCurrentValue,
-		sizeof(recEncoderCurrentValue));
-	recEncoder.currentValue = dataRecEncoderCurrentValue;
-	recEncoder.sizeOfCurrentValue = sizeof(recEncoderCurrentValue);
+	recEncoder.currentValue.resize(strlen(recEncoderCurrentValue));
+	memcpy(recEncoder.currentValue.data(), recEncoderCurrentValue, strlen(recEncoderCurrentValue));
+	recEncoder.sizeOfCurrentValue = strlen(recEncoderCurrentValue);
 
 	std::vector<std::pair<std::string, std::string>> Encoder;
 	getAvailableEncoders(&Encoder);
 
-	recEncoder.values = reinterpret_cast<void*>(&Encoder);
+	uint32_t indexDataRecEncoder = 0;
+
+	for (int i = 0; i < Encoder.size(); i++) {
+		std::string name = Encoder.at(i).first;
+
+		uint64_t sizeName = name.length();
+		std::vector<char> sizeNameBuffer;
+		sizeNameBuffer.resize(sizeof(sizeName));
+		memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+
+		recEncoder.values.insert(recEncoder.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+		recEncoder.values.insert(recEncoder.values.end(), name.begin(), name.end());
+
+		std::string value = Encoder.at(i).second;
+
+		uint64_t sizeValue = value.length();
+		std::vector<char> sizeValueBuffer;
+		sizeValueBuffer.resize(sizeof(sizeValue));
+		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+
+		recEncoder.values.insert(recEncoder.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+		recEncoder.values.insert(recEncoder.values.end(), value.begin(), value.end());
+	}
+
+	recEncoder.sizeOfValues = recEncoder.values.size();
+	recEncoder.countValues = Encoder.size();
 
 	recEncoder.visible = true;
 	recEncoder.enabled = isCategoryEnabled;
@@ -1564,16 +1776,14 @@ void OBS_settings::getStandardRecordingSettings(
 	// Rescale Output : boolean
 	Parameter recRescale;
 	recRescale.name = "RecRescale";
-	recRescale.sizeName = sizeof(recRescale.name);
 	recRescale.type = "OBS_PROPERTY_BOOL";
-	recRescale.sizeType = sizeof(recRescale.type);
 	recRescale.description = "Rescale Output";
-	recRescale.sizeDescription = sizeof(recRescale.description);
 
 	bool doRescale = config_get_bool(config, "AdvOut", "RecRescale");
 
-	recRescale.currentValue = reinterpret_cast<void*>(&doRescale);
-	recRescale.sizeOfCurrentValue = sizeof(bool);
+	recRescale.currentValue.resize(sizeof(doRescale));
+	memcpy(recRescale.currentValue.data(), &doRescale, sizeof(doRescale));
+	recRescale.sizeOfCurrentValue = sizeof(doRescale);
 
 	recRescale.visible = true;
 	recRescale.enabled = isCategoryEnabled;
@@ -1586,11 +1796,8 @@ void OBS_settings::getStandardRecordingSettings(
 		// Output Resolution : list
 		Parameter recRescaleRes;
 		recRescaleRes.name = "RecRescaleRes";
-		recRescaleRes.sizeName = sizeof(recRescaleRes.name);
 		recRescaleRes.type = "OBS_PROPERTY_LIST";
-		recRescaleRes.sizeType = sizeof(recRescaleRes.type);
 		recRescaleRes.description = "Output Resolution";
-		recRescaleRes.sizeDescription = sizeof(recRescaleRes.description);
 
 		uint32_t base_cx = config_get_uint(config, "Video", "BaseCX");
 		uint32_t base_cy = config_get_uint(config, "Video", "BaseCY");
@@ -1603,20 +1810,30 @@ void OBS_settings::getStandardRecordingSettings(
 			config_save_safe(config, "tmp", nullptr);
 		}
 
-		void *data;
-		std::memcpy(data, outputResString, 
-			sizeof(outputResString));
-		recRescaleRes.currentValue = data;
-		recRescaleRes.sizeOfCurrentValue = sizeof(outputResString);
+		recRescaleRes.currentValue.resize(strlen(outputResString));
+		memcpy(recRescaleRes.currentValue.data(), outputResString, strlen(outputResString));
+		recRescaleRes.sizeOfCurrentValue = strlen(outputResString);
 
 		std::vector<std::pair<uint32_t, uint32_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
-		std::vector<std::pair<std::string, std::string>> recRescaleResValues;
+
+		uint32_t indexDataRecRescaleRes = 0;
 
 		for(int i = 0;i<outputResolutions.size();i++) {
-			string outRes = ResString(outputResolutions.at(i).first, outputResolutions.at(i).second);
-			recRescaleResValues.push_back(std::make_pair(outRes, outRes));
+			std::string outRes = ResString(outputResolutions.at(i).first, outputResolutions.at(i).second);
+
+			for (int j = 0; j < 2; j++) {
+				uint64_t sizeRes = outRes.length();
+				std::vector<char> sizeNameBuffer;
+				sizeNameBuffer.resize(sizeof(sizeRes));
+				memcpy(sizeNameBuffer.data(), &sizeRes, sizeof(sizeRes));
+
+				recRescaleRes.values.insert(recRescaleRes.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+				recRescaleRes.values.insert(recRescaleRes.values.end(), outRes.begin(), outRes.end());
+			}
 		}
-		recRescaleRes.values = reinterpret_cast<void*>(&recRescaleResValues);
+
+		recRescaleRes.sizeOfValues = recRescaleRes.values.size();
+		recRescaleRes.countValues = outputResolutions.size();
 
 		recRescaleRes.visible = true;
 		recRescaleRes.enabled = isCategoryEnabled;
@@ -1628,22 +1845,16 @@ void OBS_settings::getStandardRecordingSettings(
 	// Custom Muxer Settings : edit_text
 	Parameter recMuxerCustom;
 	recMuxerCustom.name = "RecMuxerCustom";
-	recMuxerCustom.sizeName = sizeof(recMuxerCustom.name);
 	recMuxerCustom.type = "OBS_PROPERTY_EDIT_TEXT";
-	recMuxerCustom.sizeType = sizeof(recMuxerCustom.type);
 	recMuxerCustom.description = "Custom Muxer Settings";
-	recMuxerCustom.sizeDescription = sizeof(recMuxerCustom.description);
 
 	const char* RecMuxerCustomCurrentValue = config_get_string(config, "AdvOut", "RecMuxerCustom");
 	if(RecMuxerCustomCurrentValue == NULL) 
 		RecMuxerCustomCurrentValue = "";
 	
-	void *dataRecMuxerCustomCurrentValue;
-	std::memcpy(dataRecMuxerCustomCurrentValue, RecMuxerCustomCurrentValue,
-		sizeof(RecMuxerCustomCurrentValue));
-
-	recMuxerCustom.currentValue = dataRecMuxerCustomCurrentValue;
-	recMuxerCustom.sizeOfCurrentValue = sizeof(RecMuxerCustomCurrentValue);
+	recMuxerCustom.currentValue.resize(strlen(RecMuxerCustomCurrentValue));
+	memcpy(recMuxerCustom.currentValue.data(), RecMuxerCustomCurrentValue, strlen(RecMuxerCustomCurrentValue));
+	recMuxerCustom.sizeOfCurrentValue = strlen(RecMuxerCustomCurrentValue);
 
 	recMuxerCustom.visible = true;
 	recMuxerCustom.enabled = isCategoryEnabled;
@@ -1676,6 +1887,8 @@ void OBS_settings::getStandardRecordingSettings(
 	}
 
 	getEncoderSettings(recordingEncoder, settings, &(subCategoryParameters->params), index, isCategoryEnabled);
+	subCategoryParameters->paramsCount = 
+		subCategoryParameters->params.size();
 }
 
 // class OBSFFDeleter
@@ -2101,27 +2314,47 @@ SubCategory OBS_settings::getAdvancedOutputRecordingSettings(config_t* config, b
 	// Type : list
 	Parameter recType;
 	recType.name = "RecType";
-	recType.sizeName = sizeof(recType.name);
 	recType.type = "OBS_PROPERTY_LIST";
-	recType.sizeType = sizeof(recType.type);
 	recType.description = "Type";
-	recType.sizeDescription = sizeof(recType.description);
 
 	std::vector<std::pair<std::string, std::string>> recTypeValues;
 	recTypeValues.push_back(std::make_pair("Standard", "Standard"));
 	recTypeValues.push_back(std::make_pair("Custom Output (FFmpeg)", "Custom Output (FFmpeg)"));
 
-	recType.values = reinterpret_cast<void*>(&recTypeValues);
+	uint32_t indexDataRecType = 0;
+
+	for (int i = 0; i < recTypeValues.size(); i++) {
+		std::string name = recTypeValues.at(i).first;
+
+		uint64_t sizeName = name.length();
+		std::vector<char> sizeNameBuffer;
+		sizeNameBuffer.resize(sizeof(sizeName));
+		memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+
+		recType.values.insert(recType.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+		recType.values.insert(recType.values.end(), name.begin(), name.end());
+
+		std::string value = recTypeValues.at(i).second;
+
+		uint64_t sizeValue = value.length();
+		std::vector<char> sizeValueBuffer;
+		sizeValueBuffer.resize(sizeof(sizeValue));
+		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+
+		recType.values.insert(recType.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+		recType.values.insert(recType.values.end(), value.begin(), value.end());
+	}
+
+	recType.sizeOfValues = recType.values.size();
+	recType.countValues = recTypeValues.size();
 
 	const char* RecTypeCurrentValue = config_get_string(config, "AdvOut", "RecType");
 	if(RecTypeCurrentValue == NULL)
 		RecTypeCurrentValue = "";
 	
-	void *data;
-	std::memcpy(data, RecTypeCurrentValue,
-		sizeof(RecTypeCurrentValue));
-	recType.currentValue = data;
-	recType.sizeOfCurrentValue = sizeof(RecTypeCurrentValue);
+	recType.currentValue.resize(strlen(RecTypeCurrentValue));
+	memcpy(recType.currentValue.data(), RecTypeCurrentValue, strlen(RecTypeCurrentValue));
+	recType.sizeOfCurrentValue = strlen(RecTypeCurrentValue);
 
 	recType.visible = true;
 	recType.enabled = isCategoryEnabled;
@@ -3043,50 +3276,55 @@ void OBS_settings::saveVideoSettings(std::vector<SubCategory> videoSettings)
     //Base resolution
 	Parameter baseRes = sc.params.at(0);
 
-	std::string *baseResString = reinterpret_cast<std::string*>(&baseRes.currentValue);
+	std::string baseResString(baseRes.currentValue.data(),
+		baseRes.currentValue.size());
 	
 	uint32_t baseWidth, baseHeight;
 
-	ConvertResText(baseResString->c_str(), baseWidth, baseHeight);
+	ConvertResText(baseResString.c_str(), baseWidth, baseHeight);
 	config_set_uint(config, "Video", "BaseCX", baseWidth);
 	config_set_uint(config, "Video", "BaseCY", baseHeight);
 
 	//Output resolution
 	Parameter outputRes = sc.params.at(1);
 
-	std::string *outputResString = reinterpret_cast<std::string*>(&outputRes.currentValue);
-	
+	std::string outputResString(outputRes.currentValue.data(),
+		outputRes.currentValue.size());
+
 	uint32_t outputWidth, outputHeight;
 
-	ConvertResText(outputResString->c_str(), outputWidth, outputHeight);
+	ConvertResText(outputResString.c_str(), outputWidth, outputHeight);
 	config_set_uint(config, "Video", "OutputCX", outputWidth);
 	config_set_uint(config, "Video", "OutputCY", outputHeight);
 
 	Parameter scaleParameter = sc.params.at(2);
 
-	std::string *scaleString = reinterpret_cast<std::string*>(&scaleParameter.currentValue);
+	std::string scaleString(scaleParameter.currentValue.data(),
+		scaleParameter.currentValue.size());
 
-	config_set_string(config, "Video", "ScaleType", scaleString->c_str());
+	config_set_string(config, "Video", "ScaleType", scaleString.c_str());
 
 	Parameter fpsType = sc.params.at(3);
 
-	std::string *fpsTypeString = reinterpret_cast<std::string*>(&fpsType.currentValue);
+	std::string fpsTypeString(fpsType.currentValue.data(),
+		fpsType.currentValue.size());
 
-	if(fpsTypeString->compare("Common FPS Values") == 0) {
+	if(fpsTypeString.compare("Common FPS Values") == 0) {
 		config_set_uint(config, "Video", "FPSType", 0);
 
 		Parameter fpsCommon = sc.params.at(4);
-		std::string *fpsCommonString = reinterpret_cast<std::string*>(&fpsCommon.currentValue);
-		config_set_string(config, "Video", "FPSCommon", fpsCommonString->c_str());
+		std::string fpsCommonString(fpsCommon.currentValue.data(),
+			fpsCommon.currentValue.size());
+		config_set_string(config, "Video", "FPSCommon", fpsCommonString.c_str());
 
-	} else if (fpsTypeString->compare("Integer FPS Value") == 0) {
+	} else if (fpsTypeString.compare("Integer FPS Value") == 0) {
 		config_set_uint(config, "Video", "FPSType", 1);
 
 		Parameter fpsInt = sc.params.at(4);
 		uint32_t *fpsIntValue = reinterpret_cast<uint32_t*>(&fpsInt.currentValue);
 		config_set_uint(config, "Video", "FPSInt", *fpsIntValue);
 
-	} else if (fpsTypeString->compare("Fractional FPS Value") == 0) {
+	} else if (fpsTypeString.compare("Fractional FPS Value") == 0) {
 		config_set_uint(config, "Video", "FPSType", 2);
 
 		Parameter fpsNum = sc.params.at(4);

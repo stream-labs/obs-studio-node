@@ -108,7 +108,7 @@ void OBS_content::Register(ipc::server& srv) {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Display");
 
 	cls->register_function(std::make_shared<ipc::function>("OBS_content_createDisplay", 
-		std::vector<ipc::type>{ipc::type::String, ipc::type::String}, OBS_content_createDisplay));
+		std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, OBS_content_createDisplay));
 
 	cls->register_function(std::make_shared<ipc::function>("OBS_content_destroyDisplay", 
 		std::vector<ipc::type>{ipc::type::String}, OBS_content_destroyDisplay));
@@ -174,9 +174,7 @@ void OBS_content::Register(ipc::server& srv) {
 }
 
 void OBS_content::OBS_content_createDisplay(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
-	unsigned char *bufferData = (unsigned char *)args[0].value_str.c_str();
-	uint64_t windowHandle = *reinterpret_cast<uint64_t *>(bufferData);
-
+	uint64_t windowHandle = args[0].value_union.ui64;
 	std::string* key = new std::string(args[1].value_str);
 
 	auto found = displays.find(*key);

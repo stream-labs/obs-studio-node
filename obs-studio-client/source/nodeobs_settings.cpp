@@ -3,62 +3,59 @@
 #include "utility-v8.hpp"
 #include "error.hpp"
 
+#include "shared.hpp"
+#include "utility.hpp"
+#include <string>
+#include <sstream>
+#include <node.h>
+
 std::vector<settings::SubCategory> serializeCategory(
 	uint32_t subCategoriesCount, uint32_t sizeStruct, std::vector<char> buffer) {
 	std::vector<settings::SubCategory> category;
 
+	uint32_t indexData = 0;
 	for (int i = 0; i < subCategoriesCount; i++) {
 		settings::SubCategory sc;
-		uint32_t indexData = 0;
 
-		uint32_t *sizeName =
-			reinterpret_cast<uint32_t*>(buffer.data());
-		indexData += sizeof(uint32_t);
+		size_t *sizeMessage = reinterpret_cast<size_t*>
+			(buffer.data() + indexData);
+		indexData += sizeof(size_t);
 
-		std::string *name =
-			reinterpret_cast<std::string*>(buffer.data() + indexData);
-		indexData += *sizeName;
+		std::string name(buffer.data() + indexData, *sizeMessage);
+		indexData += *sizeMessage;
 
-		uint32_t *paramsCount =
-			reinterpret_cast<uint32_t*>(buffer.data() + indexData);
-		indexData += sizeof(uint32_t);
-
-		uint32_t *paramsSize =
-			reinterpret_cast<uint32_t*>(buffer.data() + indexData);
+		uint32_t *paramsCount = reinterpret_cast<uint32_t*>
+			(buffer.data() + indexData);
 		indexData += sizeof(uint32_t);
 
 		settings::Parameter param;
 		for (uint32_t j = 0; j < *paramsCount; j++) {
-			uint32_t *sizeName =
-				reinterpret_cast<std::uint32_t*>(buffer.data() + indexData);
-			indexData += sizeof(uint32_t);
+			size_t *sizeName =
+				reinterpret_cast<std::size_t*>(buffer.data() + indexData);
+			indexData += sizeof(size_t);
 
-			std::string *name =
-				reinterpret_cast<std::string*>(buffer.data() + indexData);
+			std::string name(buffer.data() + indexData, *sizeName);
 			indexData += *sizeName;
 
-			uint32_t *sizeDescription =
-				reinterpret_cast<std::uint32_t*>(buffer.data() + indexData);
-			indexData += sizeof(uint32_t);
+			size_t *sizeDescription =
+				reinterpret_cast<std::size_t*>(buffer.data() + indexData);
+			indexData += sizeof(size_t);
 
-			std::string *description =
-				reinterpret_cast<std::string*>(buffer.data() + indexData);
+			std::string description(buffer.data() + indexData, *sizeDescription);
 			indexData += *sizeDescription;
 
-			uint32_t *sizeType =
-				reinterpret_cast<std::uint32_t*>(buffer.data() + indexData);
-			indexData += sizeof(uint32_t);
+			size_t *sizeType =
+				reinterpret_cast<std::size_t*>(buffer.data() + indexData);
+			indexData += sizeof(size_t);
 
-			std::string *type =
-				reinterpret_cast<std::string*>(buffer.data() + indexData);
+			std::string type(buffer.data() + indexData, *sizeType);
 			indexData += *sizeType;
 
-			uint32_t *sizeSubType =
-				reinterpret_cast<std::uint32_t*>(buffer.data() + indexData);
-			indexData += sizeof(uint32_t);
+			size_t *sizeSubType =
+				reinterpret_cast<std::size_t*>(buffer.data() + indexData);
+			indexData += sizeof(size_t);
 
-			std::string *subType =
-				reinterpret_cast<std::string*>(buffer.data() + indexData);
+			std::string subType(buffer.data() + indexData, *sizeSubType);
 			indexData += *sizeSubType;
 
 			bool *enabled =
@@ -73,45 +70,53 @@ std::vector<settings::SubCategory> serializeCategory(
 				reinterpret_cast<bool*>(buffer.data() + indexData);
 			indexData += sizeof(bool);
 
-			uint32_t *sizeOfCurrentValue =
-				reinterpret_cast<std::uint32_t*>(buffer.data() + indexData);
-			indexData += sizeof(uint32_t);
+			size_t *sizeOfCurrentValue =
+				reinterpret_cast<std::size_t*>(buffer.data() + indexData);
+			indexData += sizeof(size_t);
 
-			void *currentValue = malloc(*sizeOfCurrentValue);
-			memcpy(currentValue, buffer.data() + indexData,
+			std::vector<char> currentValue;
+			currentValue.resize(*sizeOfCurrentValue);
+			memcpy(currentValue.data(), buffer.data() + indexData,
 				*sizeOfCurrentValue);
 			indexData += *sizeOfCurrentValue;
 
-			uint32_t *sizeOfValues =
-				reinterpret_cast<std::uint32_t*>(buffer.data() + indexData);
-			indexData += sizeof(uint32_t);
+			size_t *sizeOfValues =
+				reinterpret_cast<size_t*>(buffer.data() + indexData);
+			indexData += sizeof(size_t);
 
-			void *values = malloc(*sizeOfValues);
-			memcpy(values, buffer.data() + indexData,
+			size_t *countValues =
+				reinterpret_cast<size_t*>(buffer.data() + indexData);
+			indexData += sizeof(size_t);
+
+			std::vector<char> values;
+			values.resize(*sizeOfValues);
+			memcpy(values.data(), buffer.data() + indexData,
 				*sizeOfValues);
 			indexData += *sizeOfValues;
 
-			param.name = *name;
-			param.description = *description;
-			param.type = *type;
-			param.subType = *subType;
+			param.name = name;
+			param.description = description;
+			param.type = type;
+			param.subType = subType;
 			param.enabled = enabled;
 			param.masked = masked;
 			param.visible = visible;
 			param.currentValue = currentValue;
 			param.values = values;
+			param.countValues = *countValues;
 
 			sc.params.push_back(param);
 		}
-		sc.name = *name;
+		sc.name = name;
+		sc.paramsCount = *paramsCount;
 		category.push_back(sc);
 	}
 	return category;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE settings::OBS_settings_getSettings(Nan::NAN_METHOD_ARGS_TYPE info) {
+void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	std::string category;
-	ASSERT_GET_VALUE(info[0], category);
+	ASSERT_GET_VALUE(args[0], category);
 
 	struct ThreadData {
 		std::condition_variable cv;
@@ -121,7 +126,7 @@ Nan::NAN_METHOD_RETURN_TYPE settings::OBS_settings_getSettings(Nan::NAN_METHOD_A
 		std::string error_string = "";
 		uint64_t subCategoriesCount = 0;
 		uint64_t sizeStruct = 0;
-		std::vector<char> *result;
+		std::vector<char> result;
 	} rtd;
 
 	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
@@ -141,9 +146,9 @@ Nan::NAN_METHOD_RETURN_TYPE settings::OBS_settings_getSettings(Nan::NAN_METHOD_A
 		}
 
 		rtd->subCategoriesCount = rval[1].value_union.ui64;
-		rtd->sizeStruct = rval[2].value_union.ui64;
-		rtd->result = new std::vector<char>(rval[3].value_bin.data(),
-			rval[2].value_bin.data() + rtd->sizeStruct);
+		rtd->sizeStruct = rval[2].value_union.ui32;
+		rtd->result.resize(rtd->sizeStruct);
+		memcpy(rtd->result.data(), rval[3].value_bin.data(), rval[3].value_bin.size());
 		
 		rtd->called = true;
 		rtd->cv.notify_all();
@@ -152,7 +157,7 @@ Nan::NAN_METHOD_RETURN_TYPE settings::OBS_settings_getSettings(Nan::NAN_METHOD_A
 	bool suc = Controller::GetInstance().GetConnection()->call("Settings", "OBS_settings_getSettings",
 		std::vector<ipc::value>{ipc::value(category)}, fnc, &rtd);
 	if (!suc) {
-		info.GetIsolate()->ThrowException(
+		args.GetIsolate()->ThrowException(
 			v8::Exception::Error(
 				Nan::New<v8::String>(
 					"Failed to make IPC call, verify IPC status."
@@ -166,12 +171,12 @@ Nan::NAN_METHOD_RETURN_TYPE settings::OBS_settings_getSettings(Nan::NAN_METHOD_A
 
 	if (rtd.error_code != ErrorCode::Ok) {
 		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
+			args.GetIsolate()->ThrowException(
 				v8::Exception::ReferenceError(Nan::New<v8::String>(
 					rtd.error_string).ToLocalChecked()));
 		}
 		else {
-			info.GetIsolate()->ThrowException(
+			args.GetIsolate()->ThrowException(
 				v8::Exception::Error(Nan::New<v8::String>(
 					rtd.error_string).ToLocalChecked()));
 		}
@@ -182,7 +187,7 @@ Nan::NAN_METHOD_RETURN_TYPE settings::OBS_settings_getSettings(Nan::NAN_METHOD_A
 	v8::Local<v8::Array> rval = v8::Array::New(isolate);
 
 	std::vector<settings::SubCategory> categorySettings = 
-		serializeCategory(rtd.subCategoriesCount, rtd.sizeStruct, *rtd.result);
+		serializeCategory(rtd.subCategoriesCount, rtd.sizeStruct, rtd.result);
 
 	for (int i = 0; i < categorySettings.size(); i++) {
 		v8::Local<v8::Object> subCategory = v8::Object::New(isolate);
@@ -192,30 +197,128 @@ Nan::NAN_METHOD_RETURN_TYPE settings::OBS_settings_getSettings(Nan::NAN_METHOD_A
 			categorySettings.at(i).params;
 
 		for (int j = 0; j < params.size(); j++) {
-			subCategory->Set(v8::String::NewFromUtf8(isolate, "name"),
-				v8::String::NewFromUtf8(isolate, params.at(i).name.c_str()));
+			v8::Local<v8::Object> parameter = v8::Object::New(isolate);
 
-			subCategory->Set(v8::String::NewFromUtf8(isolate, "type"),
-				v8::String::NewFromUtf8(isolate, params.at(i).type.c_str()));
+			parameter->Set(v8::String::NewFromUtf8(isolate, "name"),
+				v8::String::NewFromUtf8(isolate, params.at(j).name.c_str()));
 
-			subCategory->Set(v8::String::NewFromUtf8(isolate, "description"),
-				v8::String::NewFromUtf8(isolate, params.at(i).description.c_str()));
+			parameter->Set(v8::String::NewFromUtf8(isolate, "type"),
+				v8::String::NewFromUtf8(isolate, params.at(j).type.c_str()));
 
-			subCategory->Set(v8::String::NewFromUtf8(isolate, "subType"),
-				v8::String::NewFromUtf8(isolate, params.at(i).subType.c_str()));
+			parameter->Set(v8::String::NewFromUtf8(isolate, "description"),
+				v8::String::NewFromUtf8(isolate, params.at(j).description.c_str()));
+
+			parameter->Set(v8::String::NewFromUtf8(isolate, "subType"),
+				v8::String::NewFromUtf8(isolate, params.at(j).subType.c_str()));
 
 			// Current value
+			if (params.at(j).currentValue.data() != NULL) {
+				if (params.at(j).type.compare("OBS_PROPERTY_LIST") == 0 ||
+					params.at(j).type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 ||
+					params.at(j).type.compare("OBS_PROPERTY_PATH") == 0 ||
+					params.at(j).type.compare("OBS_PROPERTY_TEXT") == 0 ||
+					params.at(j).type.compare("OBS_INPUT_RESOLUTION_LIST") == 0) {
+
+					std::string value(params.at(j).currentValue.begin(), 
+						params.at(j).currentValue.end());
+
+					parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
+						v8::String::NewFromUtf8(isolate, value.c_str()));
+				}
+				else if (params.at(j).type.compare("OBS_PROPERTY_INT") == 0) {
+					int64_t *value = reinterpret_cast<int64_t*>(params.at(j).currentValue.data());
+					parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
+						v8::Integer::New(isolate, *value));
+				}
+				else if (params.at(j).type.compare("OBS_PROPERTY_UINT") == 0) {
+					uint64_t *value = reinterpret_cast<uint64_t*>(params.at(j).currentValue.data());
+					parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
+						v8::Integer::New(isolate, *value));
+				}
+				else if (params.at(j).type.compare("OBS_PROPERTY_BOOL") == 0) {
+					bool *value = reinterpret_cast<bool*>(params.at(j).currentValue.data());
+					parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
+						v8::Boolean::New(isolate, (*value)));
+				}
+				else if (params.at(j).type.compare("OBS_PROPERTY_DOUBLE") == 0) {
+					double *value = reinterpret_cast<double*>(params.at(j).currentValue.data());
+					parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
+						v8::Number::New(isolate, *value));
+				}
+			}
+
 
 			// Values
+			v8::Local<v8::Array> values = v8::Array::New(isolate);
+			uint32_t indexData = 0;
 
-			subCategory->Set(v8::String::NewFromUtf8(isolate, "visible"), 
-				v8::Boolean::New(isolate, params.at(i).visible));
+			for (int k = 0; k < params.at(j).countValues; k++) {
+				v8::Local<v8::Object> valueObject = v8::Object::New(isolate);
 
-			subCategory->Set(v8::String::NewFromUtf8(isolate, "enabled"), 
-				v8::Boolean::New(isolate, params.at(i).enabled));
+				if (params.at(j).subType.compare("OBS_COMBO_FORMAT_INT") == 0) {
+					size_t *sizeName =
+						reinterpret_cast<std::size_t*>(params.at(j).values.data() + indexData);
+					indexData += sizeof(size_t);
+					std::string name(params.at(j).values.data() + indexData, *sizeName);
+					indexData += *sizeName;
 
-			subCategory->Set(v8::String::NewFromUtf8(isolate, "masked"), 
-				v8::Boolean::New(isolate, params.at(i).masked));
+					int64_t *value = reinterpret_cast<int64_t*>(
+						params.at(j).values.data() + indexData);
+					indexData += sizeof(int64_t);
+
+					valueObject->Set(v8::String::NewFromUtf8(isolate, name.c_str()),
+						v8::String::NewFromUtf8(isolate, std::to_string(*value).c_str()));
+				}
+				else if (params.at(j).subType.compare("OBS_COMBO_FORMAT_FLOAT") == 0) {
+					size_t *sizeName =
+						reinterpret_cast<std::size_t*>(params.at(j).values.data() + indexData);
+					indexData += sizeof(size_t);
+					std::string name(params.at(j).values.data() + indexData, *sizeName);
+					indexData += *sizeName;
+
+					double *value = reinterpret_cast<double*>(
+						params.at(j).values.data() + indexData);
+
+					indexData += sizeof(double);
+
+					valueObject->Set(v8::String::NewFromUtf8(isolate, name.c_str()),
+						v8::String::NewFromUtf8(isolate, std::to_string(*value).c_str()));
+				}
+				else {
+					size_t *sizeName =
+						reinterpret_cast<std::size_t*>(params.at(j).values.data() + indexData);
+					indexData += sizeof(size_t);
+					std::string name(params.at(j).values.data() + indexData, *sizeName);
+					indexData += *sizeName;
+
+					size_t *sizeValue =
+						reinterpret_cast<std::size_t*>(params.at(j).values.data() + indexData);
+					indexData += sizeof(size_t);
+					std::string value(params.at(j).values.data() + indexData, *sizeValue);
+					indexData += *sizeValue;
+
+					valueObject->Set(v8::String::NewFromUtf8(isolate, name.c_str()),
+						v8::String::NewFromUtf8(isolate, value.c_str()));
+				}
+				values->Set(k, valueObject);
+			}
+
+			parameter->Set(
+				v8::String::NewFromUtf8(isolate, "values"), 
+				values);
+
+
+
+			parameter->Set(v8::String::NewFromUtf8(isolate, "visible"),
+				v8::Boolean::New(isolate, params.at(j).visible));
+
+			parameter->Set(v8::String::NewFromUtf8(isolate, "enabled"),
+				v8::Boolean::New(isolate, params.at(j).enabled));
+
+			parameter->Set(v8::String::NewFromUtf8(isolate, "masked"),
+				v8::Boolean::New(isolate, params.at(j).masked));
+
+			subCategoryParameters->Set(j, parameter);
 		}
 
 		subCategory->Set(v8::String::NewFromUtf8(isolate, "nameSubCategory"), 
@@ -223,14 +326,115 @@ Nan::NAN_METHOD_RETURN_TYPE settings::OBS_settings_getSettings(Nan::NAN_METHOD_A
 
 		subCategory->Set(v8::String::NewFromUtf8(isolate, "parameters"), 
 			subCategoryParameters);
+
+		rval->Set(i, subCategory);
 	}
 
-	info.GetReturnValue().Set(rval);
-
+	args.GetReturnValue().Set(rval);
+	
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE settings::OBS_settings_saveSettings(Nan::NAN_METHOD_ARGS_TYPE info) {
+std::vector<char> deserializeCategory(uint32_t *subCategoriesCount, uint32_t *sizeStruct,
+	v8::Local<v8::Array> settings) {
+	v8::Isolate *isolate = v8::Isolate::GetCurrent();
+	std::vector<char> buffer;
+
+	std::vector<settings::SubCategory> sucCategories;
+
+	for (int i = 0; i < settings->Length(); i++) {
+		settings::SubCategory sc;
+
+		v8::Local<v8::Object> subCategoryObject = v8::Local<v8::Object>::Cast(settings->Get(i));
+
+		v8::String::Utf8Value param0(subCategoryObject->Get(v8::String::NewFromUtf8(isolate, "nameSubCategory")));
+		std::string test(*param0);
+		sc.name = std::string(*param0);
+
+		v8::Local<v8::Array> parameters = v8::Local<v8::Array>::Cast(subCategoryObject->Get(v8::String::NewFromUtf8(isolate, "parameters")));
+		
+		sc.paramsCount = parameters->Length();
+
+		for (int j = 0; j< parameters->Length(); j++) {
+			settings::Parameter param;
+
+			v8::Local<v8::Object> parameterObject = v8::Local<v8::Object>::Cast(parameters->Get(j));
+
+			v8::String::Utf8Value name(parameterObject->Get(v8::String::NewFromUtf8(isolate, "name")));
+			v8::String::Utf8Value type(parameterObject->Get(v8::String::NewFromUtf8(isolate, "type")));
+
+			param.name = std::string(*name);
+			param.type = std::string(*type);
+
+			if (param.type.compare("OBS_PROPERTY_LIST") == 0 ||
+				param.type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 ||
+				param.type.compare("OBS_PROPERTY_PATH") == 0 ||
+				param.type.compare("OBS_PROPERTY_TEXT") == 0 ||
+				param.type.compare("OBS_INPUT_RESOLUTION_LIST") == 0) {
+				v8::String::Utf8Value value(parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue")));
+				
+				param.sizeOfCurrentValue = strlen(*value);
+				param.currentValue.resize(strlen(*value));
+				memcpy(param.currentValue.data(), *value, strlen(*value));
+			}
+			else if (param.type.compare("OBS_PROPERTY_INT") == 0) {
+				int64_t value = parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue"))->NumberValue();
+
+				param.sizeOfCurrentValue = sizeof(value);
+				param.currentValue.resize(sizeof(value));
+				memcpy(param.currentValue.data(), &value, sizeof(value));
+			}
+			else if (param.type.compare("OBS_PROPERTY_UINT") == 0) {
+				uint64_t value = parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue"))->NumberValue();
+
+				param.sizeOfCurrentValue = sizeof(value);
+				param.currentValue.resize(sizeof(value));
+				memcpy(param.currentValue.data(), &value, sizeof(value));
+			}
+			else if (param.type.compare("OBS_PROPERTY_BOOL") == 0) {
+				uint64_t value = parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue"))->NumberValue();
+
+				param.sizeOfCurrentValue = sizeof(value);
+				param.currentValue.resize(sizeof(value));
+				memcpy(param.currentValue.data(), &value, sizeof(value));
+			}
+			else if (param.type.compare("OBS_PROPERTY_DOUBLE") == 0) {
+				double value = parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue"))->NumberValue();
+
+				param.sizeOfCurrentValue = sizeof(value);
+				param.currentValue.resize(sizeof(value));
+				memcpy(param.currentValue.data(), &value, sizeof(value));
+			}
+			sc.params.push_back(param);
+		}
+		sucCategories.push_back(sc);
+	}
+
+	for (int i = 0; i < sucCategories.size(); i++) {
+		std::vector<char> serializedBuf = sucCategories.at(i).serialize();
+
+		buffer.insert(buffer.end(),
+			serializedBuf.begin(),
+			serializedBuf.end());
+	}
+
+	*subCategoriesCount = sucCategories.size();
+	*sizeStruct = buffer.size();
+
+	return buffer;
+}
+
+void settings::OBS_settings_saveSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	std::string category;
+	ASSERT_GET_VALUE(args[0], category);
+
+	uint32_t subCategoriesCount, sizeStruct;
+	v8::Local<v8::Array> settings = v8::Local<v8::Array>::Cast(args[1]);
+
+	std::vector<char> buffer = 
+		deserializeCategory(&subCategoriesCount, &sizeStruct,
+			settings);
+		
 	struct ThreadData {
 		std::condition_variable cv;
 		std::mutex mtx;
@@ -261,9 +465,10 @@ Nan::NAN_METHOD_RETURN_TYPE settings::OBS_settings_saveSettings(Nan::NAN_METHOD_
 	};
 
 	bool suc = Controller::GetInstance().GetConnection()->call("Settings", "OBS_settings_saveSettings",
-		std::vector<ipc::value>{}, fnc, &rtd);
+		std::vector<ipc::value>{ipc::value(category), ipc::value(subCategoriesCount),
+		ipc::value(sizeStruct), ipc::value(buffer)}, fnc, &rtd);
 	if (!suc) {
-		info.GetIsolate()->ThrowException(
+		args.GetIsolate()->ThrowException(
 			v8::Exception::Error(
 				Nan::New<v8::String>(
 					"Failed to make IPC call, verify IPC status."
@@ -277,12 +482,12 @@ Nan::NAN_METHOD_RETURN_TYPE settings::OBS_settings_saveSettings(Nan::NAN_METHOD_
 
 	if (rtd.error_code != ErrorCode::Ok) {
 		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
+			args.GetIsolate()->ThrowException(
 				v8::Exception::ReferenceError(Nan::New<v8::String>(
 					rtd.error_string).ToLocalChecked()));
 		}
 		else {
-			info.GetIsolate()->ThrowException(
+			args.GetIsolate()->ThrowException(
 				v8::Exception::Error(Nan::New<v8::String>(
 					rtd.error_string).ToLocalChecked()));
 		}
@@ -292,7 +497,7 @@ Nan::NAN_METHOD_RETURN_TYPE settings::OBS_settings_saveSettings(Nan::NAN_METHOD_
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE settings::OBS_settings_getListCategories(Nan::NAN_METHOD_ARGS_TYPE info) {
+void settings::OBS_settings_getListCategories(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	struct ThreadData {
 		std::condition_variable cv;
 		std::mutex mtx;
@@ -332,7 +537,7 @@ Nan::NAN_METHOD_RETURN_TYPE settings::OBS_settings_getListCategories(Nan::NAN_ME
 	bool suc = Controller::GetInstance().GetConnection()->call("Settings", "OBS_settings_getListCategories",
 		std::vector<ipc::value>{}, fnc, &rtd);
 	if (!suc) {
-		info.GetIsolate()->ThrowException(
+		args.GetIsolate()->ThrowException(
 			v8::Exception::Error(
 				Nan::New<v8::String>(
 					"Failed to make IPC call, verify IPC status."
@@ -346,12 +551,12 @@ Nan::NAN_METHOD_RETURN_TYPE settings::OBS_settings_getListCategories(Nan::NAN_ME
 
 	if (rtd.error_code != ErrorCode::Ok) {
 		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
+			args.GetIsolate()->ThrowException(
 				v8::Exception::ReferenceError(Nan::New<v8::String>(
 					rtd.error_string).ToLocalChecked()));
 		}
 		else {
-			info.GetIsolate()->ThrowException(
+			args.GetIsolate()->ThrowException(
 				v8::Exception::Error(Nan::New<v8::String>(
 					rtd.error_string).ToLocalChecked()));
 		}
@@ -365,7 +570,15 @@ Nan::NAN_METHOD_RETURN_TYPE settings::OBS_settings_getListCategories(Nan::NAN_ME
 		categories->Set(i, v8::String::NewFromUtf8(isolate, rtd.listCategories.at(i).c_str()));
 	}	
 
-	info.GetReturnValue().Set(categories);
+	args.GetReturnValue().Set(categories);
 
 	return;
+}
+
+INITIALIZER(nodeobs_settings) {
+	initializerFunctions.push([](v8::Local<v8::Object> exports) {
+		NODE_SET_METHOD(exports, "OBS_settings_getSettings", settings::OBS_settings_getSettings);
+		NODE_SET_METHOD(exports, "OBS_settings_saveSettings", settings::OBS_settings_saveSettings);
+		NODE_SET_METHOD(exports, "OBS_settings_getListCategories", settings::OBS_settings_getListCategories);
+	});
 }

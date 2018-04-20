@@ -34,7 +34,7 @@ static void FixChromeD3DIssue(HWND chromeWindow) {
 	LONG_PTR style = GetWindowLongPtr(chromeWindow, GWL_STYLE);
 	if ((style & WS_CLIPCHILDREN) == 0) {
 		style |= WS_CLIPCHILDREN;
-		(void)SetWindowLongPtr(chromeWindow, GWL_STYLE, style);
+		// (void)SetWindowLongPtr(chromeWindow, GWL_STYLE, style);
 	}
 }
 
@@ -125,7 +125,7 @@ OBS::Display::Display() {
 	// Text
 	m_textVertices = new GS::VertexBuffer(65535);
 	m_textEffect = obs_get_base_effect(OBS_EFFECT_DEFAULT);
-	m_textTexture = gs_texture_create_from_file((OBS_API::getGlobalConfigPath() + "/resources/roboto.png").c_str());
+	m_textTexture = gs_texture_create_from_file((OBS_API::getPathConfigDirectory() + "/resources/roboto.png").c_str());
 	if (!m_textTexture) {
 		throw std::runtime_error("couldn't load roboto font");
 	}
