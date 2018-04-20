@@ -169,6 +169,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Remove(Nan::NAN_METHOD_ARGS_TYPE info)
 		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
 		if (rtd->error_code != ErrorCode::Ok) {
 			rtd->error_string = rval[1].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
 		}
 
 		rtd->called = true;
@@ -236,6 +239,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::IsConfigurable(Nan::NAN_METHOD_ARGS_TY
 		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
 		if (rtd->error_code != ErrorCode::Ok) {
 			rtd->error_string = rval[1].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
 		}
 
 		rtd->is_configurable = !!rval[1].value_union.i32;
@@ -307,6 +313,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
 		if (rtd->error_code != ErrorCode::Ok) {
 			rtd->error_string = rval[1].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
 		}
 
 		// Parse the massive structure of properties we were just sent.
@@ -531,6 +540,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetSettings(Nan::NAN_METHOD_ARGS_TYPE 
 		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
 		if (rtd->error_code != ErrorCode::Ok) {
 			rtd->error_string = rval[1].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
 		}
 
 		rtd->json = rval[1].value_str;
@@ -611,6 +623,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Update(Nan::NAN_METHOD_ARGS_TYPE info)
 		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
 		if (rtd->error_code != ErrorCode::Ok) {
 			rtd->error_string = rval[1].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
 		}
 		
 		rtd->called = true;
@@ -676,6 +691,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Load(Nan::NAN_METHOD_ARGS_TYPE info) {
 		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
 		if (rtd->error_code != ErrorCode::Ok) {
 			rtd->error_string = rval[1].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
 		}
 
 		rtd->called = true;
@@ -741,6 +759,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Save(Nan::NAN_METHOD_ARGS_TYPE info) {
 		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
 		if (rtd->error_code != ErrorCode::Ok) {
 			rtd->error_string = rval[1].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
 		}
 
 		rtd->called = true;
@@ -807,6 +828,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetType(Nan::NAN_METHOD_ARGS_TYPE info
 		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
 		if (rtd->error_code != ErrorCode::Ok) {
 			rtd->error_string = rval[1].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
 		}
 
 		rtd->result = rval[1].value_union.i32;
@@ -876,6 +900,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetName(Nan::NAN_METHOD_ARGS_TYPE info
 		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
 		if (rtd->error_code != ErrorCode::Ok) {
 			rtd->error_string = rval[1].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
 		}
 
 		rtd->result = rval[1].value_str;
@@ -948,6 +975,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetName(Nan::NAN_METHOD_ARGS_TYPE info
 		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
 		if (rtd->error_code != ErrorCode::Ok) {
 			rtd->error_string = rval[1].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
 		}
 
 		rtd->result = rval[1].value_str;
@@ -1017,6 +1047,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetOutputFlags(Nan::NAN_METHOD_ARGS_TY
 		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
 		if (rtd->error_code != ErrorCode::Ok) {
 			rtd->error_string = rval[1].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
 		}
 
 		rtd->result = rval[1].value_union.ui32;
@@ -1086,6 +1119,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetFlags(Nan::NAN_METHOD_ARGS_TYPE inf
 		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
 		if (rtd->error_code != ErrorCode::Ok) {
 			rtd->error_string = rval[1].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
 		}
 
 		rtd->result = rval[1].value_union.ui32;
@@ -1158,6 +1194,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetFlags(Nan::NAN_METHOD_ARGS_TYPE inf
 		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
 		if (rtd->error_code != ErrorCode::Ok) {
 			rtd->error_string = rval[1].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
 		}
 
 		rtd->result = rval[1].value_union.ui32;
@@ -1227,6 +1266,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetStatus(Nan::NAN_METHOD_ARGS_TYPE in
 		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
 		if (rtd->error_code != ErrorCode::Ok) {
 			rtd->error_string = rval[1].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
 		}
 
 		rtd->result = !!rval[1].value_union.i32;
@@ -1296,6 +1338,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetId(Nan::NAN_METHOD_ARGS_TYPE info) 
 		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
 		if (rtd->error_code != ErrorCode::Ok) {
 			rtd->error_string = rval[1].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
 		}
 
 		rtd->result = rval[1].value_str;
@@ -1365,6 +1410,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetMuted(Nan::NAN_METHOD_ARGS_TYPE inf
 		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
 		if (rtd->error_code != ErrorCode::Ok) {
 			rtd->error_string = rval[1].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
 		}
 
 		rtd->result = !!rval[1].value_union.i32;
@@ -1438,6 +1486,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetMuted(Nan::NAN_METHOD_ARGS_TYPE inf
 		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
 		if (rtd->error_code != ErrorCode::Ok) {
 			rtd->error_string = rval[1].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
 		}
 
 		rtd->result = !!rval[1].value_union.i32;
@@ -1507,6 +1558,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetEnabled(Nan::NAN_METHOD_ARGS_TYPE i
 		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
 		if (rtd->error_code != ErrorCode::Ok) {
 			rtd->error_string = rval[1].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
 		}
 
 		rtd->result = !!rval[1].value_union.i32;
@@ -1580,6 +1634,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetEnabled(Nan::NAN_METHOD_ARGS_TYPE i
 		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
 		if (rtd->error_code != ErrorCode::Ok) {
 			rtd->error_string = rval[1].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
 		}
 
 		rtd->result = !!rval[1].value_union.i32;

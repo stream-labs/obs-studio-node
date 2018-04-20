@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const obs = require("./module");
 function isNumberProperty(property) {
     return property.type === 2 ||
         property.type === 3;

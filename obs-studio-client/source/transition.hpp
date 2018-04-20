@@ -22,12 +22,12 @@
 #include "utility-v8.hpp"
 
 namespace osn {
-	class Filter : public osn::ISource, public utilv8::ManagedObject<osn::Filter> {
-		friend class utilv8::ManagedObject<osn::Filter>;
+	class Transition : public osn::ISource, public utilv8::ManagedObject<osn::Transition> {
+		friend class utilv8::ManagedObject<osn::Transition>;
 		
 		public:
-		Filter(uint64_t id);
-		virtual ~Filter() {};
+		Transition(uint64_t id);
+		virtual ~Transition() {};
 				
 		// JavaScript
 		public:
@@ -37,5 +37,12 @@ namespace osn {
 
 		static Nan::NAN_METHOD_RETURN_TYPE Types(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE Create(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE FromName(Nan::NAN_METHOD_ARGS_TYPE info);
+
+		static Nan::NAN_METHOD_RETURN_TYPE GetActiveSource(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE Clear(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE Set(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE Start(Nan::NAN_METHOD_ARGS_TYPE info);
 	};
 }

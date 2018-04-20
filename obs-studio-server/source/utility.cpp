@@ -21,15 +21,15 @@ utility::unique_id::unique_id() {}
 
 utility::unique_id::~unique_id() {}
 
-uint64_t utility::unique_id::allocate() {
+utility::unique_id::id_t utility::unique_id::allocate() {
 	if (allocated.size() > 0) {
 		for (auto& v : allocated) {
 			if (v.first > 0) {
-				uint64_t v2 = v.first - 1;
+				utility::unique_id::id_t v2 = v.first - 1;
 				mark_used(v2);
 				return v2;
-			} else if (v.second < UINT64_MAX) {
-				uint64_t v2 = v.second + 1;
+			} else if (v.second < std::numeric_limits<utility::unique_id::id_t>::max()) {
+				utility::unique_id::id_t v2 = v.second + 1;
 				mark_used(v2);
 				return v2;
 			}
@@ -38,16 +38,16 @@ uint64_t utility::unique_id::allocate() {
 		mark_used(0);
 		return 0;
 	}
-
+	
 	// No more free indexes. However that has happened.
-	return UINT64_MAX;
+	return std::numeric_limits<utility::unique_id::id_t>::max();
 }
 
-void utility::unique_id::free(uint64_t v) {
+void utility::unique_id::free(utility::unique_id::id_t v) {
 	mark_free(v);
 }
 
-bool utility::unique_id::is_allocated(uint64_t v) {
+bool utility::unique_id::is_allocated(utility::unique_id::id_t v) {
 	for (auto& v2 : allocated) {
 		if ((v >= v2.first) && (v <= v2.second))
 			return true;
@@ -55,15 +55,15 @@ bool utility::unique_id::is_allocated(uint64_t v) {
 	return false;
 }
 
-uint64_t utility::unique_id::count(bool count_free) {
-	uint64_t count = 0;
+utility::unique_id::id_t utility::unique_id::count(bool count_free) {
+	id_t count = 0;
 	for (auto& v : allocated) {
 		count += (v.second - v.first);
 	}
-	return count_free ? (UINT64_MAX - count) : count;
+	return count_free ? (std::numeric_limits<id_t>::max() - count) : count;
 }
 
-bool utility::unique_id::mark_used(uint64_t v) {
+bool utility::unique_id::mark_used(utility::unique_id::id_t v) {
 	// If no elements have been assigned, simply insert v as used.
 	if (allocated.size() == 0) {
 		range_t r;
@@ -90,7 +90,7 @@ bool utility::unique_id::mark_used(uint64_t v) {
 			}
 
 			return true;
-		} else if ((iter->second < UINT64_MAX) && (v == (iter->second + 1))) {
+		} else if ((iter->second < std::numeric_limits<utility::unique_id::id_t>::max()) && (v == (iter->second + 1))) {
 			// If the maximum of the selected element is < UINT_MAX and v is 
 			//  equal to (maximum + 1), increase the maximum.
 			iter->second++;
@@ -119,13 +119,13 @@ bool utility::unique_id::mark_used(uint64_t v) {
 	return false;
 }
 
-void utility::unique_id::mark_used_range(uint64_t min, uint64_t max) {
-	for (uint64_t v = min; v < max; v++) {
+void utility::unique_id::mark_used_range(utility::unique_id::id_t min, utility::unique_id::id_t max) {
+	for (utility::unique_id::id_t v = min; v < max; v++) {
 		mark_used(v);
 	}
 }
 
-bool utility::unique_id::mark_free(uint64_t v) {
+bool utility::unique_id::mark_free(utility::unique_id::id_t v) {
 	for (auto iter = allocated.begin(); iter != allocated.end(); iter++) {
 		// Is v inside this range?
 		if ((v >= iter->first) && (v <= iter->second)) {
@@ -162,8 +162,8 @@ bool utility::unique_id::mark_free(uint64_t v) {
 	return false;
 }
 
-void utility::unique_id::mark_free_range(uint64_t min, uint64_t max) {
-	for (uint64_t v = min; v < max; v++) {
+void utility::unique_id::mark_free_range(utility::unique_id::id_t min, utility::unique_id::id_t max) {
+	for (utility::unique_id::id_t v = min; v < max; v++) {
 		mark_free(v);
 	}
 }

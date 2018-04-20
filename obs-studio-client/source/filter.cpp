@@ -46,7 +46,7 @@ void osn::Filter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	// Class Template
 	utilv8::SetTemplateField(fnctemplate, "types", Types);
 	utilv8::SetTemplateField(fnctemplate, "create", Create);
-	
+
 	// Stuff
 	utilv8::SetObjectField(target, "Filter", fnctemplate->GetFunction());
 	prototype.Reset(fnctemplate);
@@ -83,13 +83,16 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Types(Nan::NAN_METHOD_ARGS_TYPE info) {
 		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
 		if (rtd->error_code != ErrorCode::Ok) {
 			rtd->error_string = rval[1].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
 		}
 
 		size_t count = rval.size() - 1; // Skip ErrorCode
 		rtd->types.resize(count);
 		for (size_t idx = 0; idx < count; idx++) {
 			rtd->types[idx] = rval[1 + idx].value_str;
-		}		
+		}
 
 		rtd->called = true;
 		rtd->cv.notify_all();
@@ -160,7 +163,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Create(Nan::NAN_METHOD_ARGS_TYPE info) 
 		// Results
 		uint64_t sourceId;
 	} rtd;
-	
+
 	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
 		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
 
@@ -175,6 +178,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Create(Nan::NAN_METHOD_ARGS_TYPE info) 
 		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
 		if (rtd->error_code != ErrorCode::Ok) {
 			rtd->error_string = rval[1].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
 		}
 
 		rtd->sourceId = !!rval[1].value_union.i32;
@@ -219,6 +225,6 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Create(Nan::NAN_METHOD_ARGS_TYPE info) 
 	}
 
 	// Create new Filter
-	osn::Filter* obj = new osn::Filter(rtd.sourceId);	
+	osn::Filter* obj = new osn::Filter(rtd.sourceId);
 	info.GetReturnValue().Set(osn::Filter::Store(obj));
 }

@@ -395,7 +395,7 @@ namespace utilv8 {
 
 	template <typename Type>
 	bool GetFromObject(v8::Local<v8::Object> object, const char *field, Type &var) {
-		auto field_value = Nan::Get(object, FromValue(field)).ToLocalChecked();
+		auto field_value = Nan::Get(object, ToValue(field)).ToLocalChecked();
 		return FromValue(field_value, var);
 	}
 
@@ -462,7 +462,7 @@ namespace utilv8 {
 	};
 
 	template<typename T>
-	class ManagedObject : public InterfaceObject<T> {
+	class ManagedObject {
 		public:
 		static v8::Local<v8::Object> Store(T* object) {
 			auto obj = Nan::NewInstance(T::prototype.Get(v8::Isolate::GetCurrent())->InstanceTemplate()).ToLocalChecked();
@@ -470,4 +470,19 @@ namespace utilv8 {
 			return obj;
 		}
 	};
+
+	template<typename T, typename C>
+	static bool RetrieveDynamicCast(v8::Local<v8::Object> object, C*& value_ptr) {
+		T* inner_ptr = nullptr;
+		if (!T::Retrieve(object, inner_ptr)) {
+			return false;
+		}
+		value_ptr = dynamic_cast<C*>(inner_ptr);
+		if (!value_ptr) {
+			v8::Isolate::GetCurrent()->ThrowException(
+				v8::Exception::TypeError(Nan::New<v8::String>(
+					"Wrapped object is of wrong type.").ToLocalChecked()));			
+		}
+		return !!value_ptr;
+	}
 }

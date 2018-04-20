@@ -45,18 +45,14 @@ class Controller {
 #pragma endregion Singleton
 	
 	public:
-	std::shared_ptr<ipc::client> Host(std::string uri);
-	std::shared_ptr<ipc::client> Connect(std::string uri);
-	void Disconnect();
+	std::shared_ptr<ipc::client> host(std::string uri);
+	std::shared_ptr<ipc::client> connect(std::string uri);
+	void disconnect();
 
 	std::shared_ptr<ipc::client> GetConnection();
 
 	private:
 	bool m_isServer = false;
 	std::shared_ptr<ipc::client> m_connection;
-
-#ifdef _WIN32
-	PROCESS_INFORMATION m_win32_processInformation;
-	STARTUPINFOW m_win32_startupInfo;
-#endif
+	size_t procId = 0;
 };

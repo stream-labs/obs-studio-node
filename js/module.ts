@@ -1,11 +1,6 @@
 const obs = require('./obs-studio-client.node');
 import * as path from 'path';
 
-// EDIT: Add function to specify actual load directory.
-obs.IPC.SetServerWorkingPath(path.resolve(__dirname));
-obs.IPC.SetServerPath(path.resolve(__dirname, `obs-studio-server.exe`));
-// END OF EDIT:
-
 /* Convenient paths to modules */
 export const DefaultD3D11Path: string = 
     path.resolve(__dirname, `libobs-d3d11.dll`);
@@ -27,6 +22,7 @@ export const DefaultPluginPath: string =
 
 export const DefaultPluginDataPath: string = 
     path.resolve(__dirname, `data/obs-plugins/%module%`);
+
 /**
  * To be passed to Input.flags
  */
@@ -394,6 +390,50 @@ export interface IDisplayInit {
 /** 
  * Namespace representing the global libobs functionality
  */
+
+export interface IPC {
+    /**
+     * Set the path and optionally working directory for the IPC server binary.
+     * @param binaryPath - Path to the binary file to be executed
+     * @param workingDirectoryPath - Path to the directory where it is executed in.
+	 * @throws SyntaxError if an invalid number of parameters is given.
+	 * @throws TypeError if a parameter is of invalid type.
+     */
+	setServerPath(binaryPath: string, workingDirectoryPath?: string): void;
+	
+    /**
+     * Connect to an existing server.
+     * @param uri - URI for the server.
+	 * @throws SyntaxError if an invalid number of parameters is given.
+	 * @throws TypeError if a parameter is of invalid type.
+	 * @throws Error if it failed to connect.
+     */
+	connect(uri: string): void;
+	
+    /**
+     * Hosts a new server and connects to it.
+     * @param uri - URI for the server.
+	 * @throws SyntaxError if an invalid number of parameters is given.
+	 * @throws TypeError if a parameter is of invalid type.
+	 * @throws Error if it failed to host and connect.
+     */
+	host(uri: string): void;
+	
+    /**
+     * Connects to an existing server or hosts a new server and connects to it.
+     * @param uri - URI for the server.
+	 * @throws SyntaxError if an invalid number of parameters is given.
+	 * @throws TypeError if a parameter is of invalid type.
+	 * @throws Error if it failed to connect or host and connect.
+     */
+	connectOrHost(uri: string): void;
+	
+    /**
+     * Disconnect from a server.
+     */
+	disconnect(): void;
+}
+ 
 export interface IGlobal {
     /**
      * Initializes libobs global context
@@ -1492,8 +1532,6 @@ export function getSourcesSize(sourcesNames: string[]): ISourceSize[] {
     return sourcesSize;
 }
 
-/**
- * This is a temporary change that exposes the entirety of node-obs as actual
- *  functions. Necessary for node-obs exported functions to be seen.
- */
+// Initialization and other stuff which needs local data.
+obs.IPC.setServerPath(path.resolve(__dirname, `obs-studio-server.exe`), path.resolve(__dirname));
 export const NodeObs = obs;

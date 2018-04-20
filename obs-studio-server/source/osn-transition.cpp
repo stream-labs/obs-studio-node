@@ -153,14 +153,26 @@ void osn::Transition::GetActiveSource(void* data, const int64_t id, const std::v
 		return;
 	}
 	
+	obs_source_type type = OBS_SOURCE_TYPE_INPUT;
 	obs_source_t *source = obs_transition_get_active_source(transition);
 	if (source) {
 		uid = osn::Source::GetInstance()->Get(source);
+		type = obs_source_get_type(source);
 		obs_source_release(source);
+	}
+
+	if (uid == UINT64_MAX) {
+	#ifdef DEBUG // Debug should throw an error for debuggers to catch.
+		throw std::runtime_error("Source found but not indexed.");
+	#endif
+		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
+		rval.push_back(ipc::value("Source found but not indexed."));
+		return;
 	}
 	
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
+	rval.push_back(ipc::value(type));
 	return;
 }
 

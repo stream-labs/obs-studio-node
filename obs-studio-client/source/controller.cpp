@@ -24,112 +24,15 @@
 #include <iostream>
 #include <nan.h>
 
+#pragma region Windows
 #ifdef _WIN32
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
 #include <windows.h>
-#endif
+#include <direct.h>
+#include <wchar.h>
 
-#pragma region JavaScript
-
-std::string serverBinaryPath = "";
-std::string serverWorkingPath = "";
-
-void ConnectOrHost(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	auto isol = args.GetIsolate();
-	if (args.Length() == 0) {
-		isol->ThrowException(v8::Exception::SyntaxError(Nan::New<v8::String>("Too few arguments, usage: ConnectOrHost(uri).").ToLocalChecked()));
-		return;
-	} else if (args.Length() > 1) {
-		isol->ThrowException(v8::Exception::SyntaxError(Nan::New<v8::String>("Too many arguments.").ToLocalChecked()));
-		return;
-	} else if (!args[0]->IsString()) {
-		isol->ThrowException(v8::Exception::TypeError(Nan::New<v8::String>("Argument 'uri' must be of type 'String'.").ToLocalChecked()));
-		return;
-	}
-
-	std::string uri = *v8::String::Utf8Value(args[0]);
-	auto cl = Controller::GetInstance().Connect(uri);
-	if (!cl) {
-		cl = Controller::GetInstance().Host(uri);
-		if (!cl) {
-			isol->ThrowException(v8::Exception::Error(Nan::New<v8::String>("IPC failed to connect or host.").ToLocalChecked()));
-			return;
-		}
-	}
-
-	return;
-}
-
-void Disconnect(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	Controller::GetInstance().Disconnect();
-}
-
-void SetServerPath(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	auto isol = args.GetIsolate();
-	if (args.Length() == 0) {
-		isol->ThrowException(v8::Exception::SyntaxError(v8::String::NewFromUtf8(isol, "Too few arguments, usage: SetServerPath(uri).")));
-		return;
-	} else if (args.Length() > 1) {
-		isol->ThrowException(v8::Exception::SyntaxError(v8::String::NewFromUtf8(isol, "Too many arguments.")));
-		return;
-	} else if (!args[0]->IsString()) {
-		isol->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isol, "Argument 'uri' must be of type 'String'.")));
-		return;
-	}
-
-	serverBinaryPath = *v8::String::Utf8Value(args[0]);
-	return;
-}
-
-void SetServerWorkingPath(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	auto isol = args.GetIsolate();
-	if (args.Length() == 0) {
-		isol->ThrowException(v8::Exception::SyntaxError(v8::String::NewFromUtf8(isol, "Too few arguments, usage: SetServerWorkingPath(uri).")));
-		return;
-	} else if (args.Length() > 1) {
-		isol->ThrowException(v8::Exception::SyntaxError(v8::String::NewFromUtf8(isol, "Too many arguments.")));
-		return;
-	} else if (!args[0]->IsString()) {
-		isol->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isol, "Argument 'uri' must be of type 'String'.")));
-		return;
-	}
-
-	serverWorkingPath = *v8::String::Utf8Value(args[0]);
-	return;
-}
-
-INITIALIZER(js_ipc) {
-	initializerFunctions.push([](v8::Local<v8::Object>& exports) {
-		// IPC related functions will be under the IPC object.
-		auto obj = v8::Object::New(exports->GetIsolate());
-		NODE_SET_METHOD(obj, "ConnectOrHost", ConnectOrHost);
-		NODE_SET_METHOD(obj, "Disconnect", Disconnect);
-		NODE_SET_METHOD(obj, "SetServerPath", SetServerPath);
-		NODE_SET_METHOD(obj, "SetServerWorkingPath", SetServerWorkingPath);
-		exports->Set(v8::String::NewFromUtf8(exports->GetIsolate(), "IPC"), obj);
-	});
-}
-#pragma endregion JavaScript
-
-Controller::Controller() {
-
-}
-
-Controller::~Controller() {
-	Disconnect();
-}
-
-std::shared_ptr<ipc::client> Controller::Host(std::string uri) {
-	if (m_isServer)
-		return nullptr;
-
-#ifdef _WIN32
-	// Store info
-	std::string program = serverBinaryPath + '\0';
-	std::string commandLine = '"' + serverBinaryPath + '"' + " " + uri + '\0';
-	std::string workingDirectory = serverWorkingPath + '\0';
+size_t spawn(std::string program, std::string commandLine, std::string workingDirectory) {
+	PROCESS_INFORMATION m_win32_processInformation;
+	STARTUPINFOW m_win32_startupInfo;
 
 	// Buffers
 	std::vector<wchar_t> programBuf;
@@ -140,34 +43,32 @@ std::shared_ptr<ipc::client> Controller::Host(std::string uri) {
 	DWORD wr;
 	programBuf.resize(MultiByteToWideChar(CP_UTF8, 0,
 		program.data(), (int)program.size(),
-		nullptr, 0));
+		nullptr, 0) + 1);
 	wr = MultiByteToWideChar(CP_UTF8, 0,
 		program.data(), (int)program.size(),
 		programBuf.data(), (int)programBuf.size());
 	if (wr == 0) {
 		// Conversion failed.
 		DWORD errorCode = GetLastError();
-		std::cerr << "Controller: Failed to convert server binary path, error code " << errorCode << "." << std::endl;
-		return nullptr;
+		return false;
 	}
 
 	commandLineBuf.resize(MultiByteToWideChar(CP_UTF8, 0,
 		commandLine.data(), (int)commandLine.size(),
-		nullptr, 0));
+		nullptr, 0) + 1);
 	wr = MultiByteToWideChar(CP_UTF8, 0,
 		commandLine.data(), (int)commandLine.size(),
 		commandLineBuf.data(), (int)commandLineBuf.size());
 	if (wr == 0) {
 		// Conversion failed.
 		DWORD errorCode = GetLastError();
-		std::cerr << "Controller: Failed to convert server command line, error code " << errorCode << "." << std::endl;
-		return nullptr;
+		return false;
 	}
 
 	if (workingDirectory.length() > 1) {
 		workingDirectoryBuf.resize(MultiByteToWideChar(CP_UTF8, 0,
 			workingDirectory.data(), (int)workingDirectory.size(),
-			nullptr, 0));
+			nullptr, 0) + 1);
 		if (workingDirectoryBuf.size() > 0) {
 			wr = MultiByteToWideChar(CP_UTF8, 0,
 				workingDirectory.data(), (int)workingDirectory.size(),
@@ -175,8 +76,7 @@ std::shared_ptr<ipc::client> Controller::Host(std::string uri) {
 			if (wr == 0) {
 				// Conversion failed.
 				DWORD errorCode = GetLastError();
-				std::cerr << "Controller: Failed to convert server working directory, error code " << errorCode << "." << std::endl;
-				return nullptr;
+				return false;
 			}
 		}
 	}
@@ -186,32 +86,94 @@ std::shared_ptr<ipc::client> Controller::Host(std::string uri) {
 	memset(&m_win32_processInformation, 0, sizeof(m_win32_processInformation));
 
 	// Launch process
-	bool success = CreateProcessW(
+	size_t attempts = 0;
+	while (!CreateProcessW(
 		programBuf.data(),
 		commandLineBuf.data(),
 		nullptr,
 		nullptr,
 		false,
-		CREATE_NEW_CONSOLE, //DEBUG_PROCESS | CREATE_NO_WINDOW | CREATE_NEW_CONSOLE,
+		CREATE_NEW_CONSOLE,
 		nullptr,
 		workingDirectory.length() > 0 ? workingDirectoryBuf.data() : nullptr,
 		&m_win32_startupInfo,
-		&m_win32_processInformation);
-	if (!success) {
-		DWORD errorCode = GetLastError();
-		return nullptr;
+		&m_win32_processInformation)) {
+		if (attempts >= 5) {
+			break;
+		}
+		attempts++;
+		std::cerr << "Attempt " << attempts << ": Creating client failed." << std::endl;
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	}
-#else
+
+	if (attempts >= 5) {
+		DWORD errorCode = GetLastError();
+		return false;
+	}
+
+	return (size_t)m_win32_processInformation.hProcess;
+}
+
+bool kill(size_t hProcess, uint32_t code, uint32_t& exitcode) {
+	bool suc = TerminateProcess((HANDLE)hProcess, code);
+	return suc;
+}
+
+std::string get_working_directory() {
+	std::vector<wchar_t> bufUTF16 = std::vector<wchar_t>(65535);
+	std::vector<char> bufUTF8;
+
+	_wgetcwd(bufUTF16.data(), bufUTF16.size());
+
+	// Convert from Wide-char to UTF8
+	DWORD bufferSize = WideCharToMultiByte(CP_UTF8, 0,
+		bufUTF16.data(), bufUTF16.size(),
+		nullptr, 0,
+		NULL, NULL);
+	bufUTF8.resize(bufferSize + 1);
+	DWORD finalSize = WideCharToMultiByte(CP_UTF8, 0,
+		bufUTF16.data(), bufUTF16.size(),
+		bufUTF8.data(), bufUTF8.size(),
+		NULL, NULL);
+	if (finalSize == 0) {
+		// Conversion failed.
+		DWORD errorCode = GetLastError();
+		return false;
+	}
+
+	return bufUTF8.data();
+}
 
 #endif
+#pragma endregion Windows
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+static std::string serverBinaryPath = "";
+static std::string serverWorkingPath = "";
 
+Controller::Controller() {
+
+}
+
+Controller::~Controller() {
+	disconnect();
+}
+
+std::shared_ptr<ipc::client> Controller::host(std::string uri) {
+	if (m_isServer)
+		return nullptr;
+
+	// Store info
+	std::string program = serverBinaryPath;
+	std::string commandLine = '"' + serverBinaryPath + '"' + " " + uri;
+	std::string workingDirectory = serverWorkingPath.length() > 0 ? serverWorkingPath : get_working_directory();
+
+	spawn(serverBinaryPath, commandLine, workingDirectory);
+	
 	// Connect
 	std::shared_ptr<ipc::client> cl;
-	cl = Connect(uri);
+	cl = connect(uri);
 	if (!cl) { // Assume the server broke or was not allowed to run. 
-		Disconnect();
+		disconnect();
 		return nullptr;
 	}
 	
@@ -219,7 +181,7 @@ std::shared_ptr<ipc::client> Controller::Host(std::string uri) {
 	return m_connection;
 }
 
-std::shared_ptr<ipc::client> Controller::Connect(std::string uri) {
+std::shared_ptr<ipc::client> Controller::connect(std::string uri) {
 	if (m_isServer)
 		return nullptr;
 
@@ -243,11 +205,10 @@ std::shared_ptr<ipc::client> Controller::Connect(std::string uri) {
 	return m_connection;
 }
 
-void Controller::Disconnect() {
+void Controller::disconnect() {
 	if (m_isServer) {
-	#ifdef _WIN32
-		TerminateProcess(m_win32_processInformation.hProcess, -1);
-	#endif
+		uint32_t exitcode = 0;
+		kill(procId, 0, exitcode);
 		m_isServer = false;
 	}
 	m_connection = nullptr;
@@ -256,3 +217,127 @@ void Controller::Disconnect() {
 std::shared_ptr<ipc::client> Controller::GetConnection() {
 	return m_connection;
 }
+
+#pragma region JavaScript
+void js_setServerPath(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	auto isol = args.GetIsolate();
+	if (args.Length() == 0) {
+		isol->ThrowException(v8::Exception::SyntaxError(v8::String::NewFromUtf8(isol, "Too few arguments, usage: setServerPath(<string> binaryPath[, <string> workingDirectoryPath = get_working_directory()]).")));
+		return;
+	} else if (args.Length() > 2) {
+		isol->ThrowException(v8::Exception::SyntaxError(v8::String::NewFromUtf8(isol, "Too many arguments.")));
+		return;
+	}
+
+	if (!args[0]->IsString()) {
+		isol->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isol, "Argument 'binaryPath' must be of type 'String'.")));
+		return;
+	}
+	serverBinaryPath = *v8::String::Utf8Value(args[0]);
+
+	if (args.Length() == 2) {
+		if (!args[1]->IsString()) {
+			isol->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isol, "Argument 'workingDirectoryPath' must be of type 'String'.")));
+			return;
+		}
+
+		serverWorkingPath = *v8::String::Utf8Value(args[1]);
+	} else {
+		serverWorkingPath = get_working_directory();
+	}
+
+	return;
+}
+
+void js_connect(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	auto isol = args.GetIsolate();
+	if (args.Length() == 0) {
+		isol->ThrowException(v8::Exception::SyntaxError(Nan::New<v8::String>("Too few arguments, usage: connect(<string> uri).").ToLocalChecked()));
+		return;
+	} else if (args.Length() > 1) {
+		isol->ThrowException(v8::Exception::SyntaxError(Nan::New<v8::String>("Too many arguments.").ToLocalChecked()));
+		return;
+	} else if (!args[0]->IsString()) {
+		isol->ThrowException(v8::Exception::TypeError(Nan::New<v8::String>("Argument 'uri' must be of type 'String'.").ToLocalChecked()));
+		return;
+	}
+
+	std::string uri = *v8::String::Utf8Value(args[0]);
+	auto cl = Controller::GetInstance().connect(uri);
+	if (!cl) {
+		isol->ThrowException(v8::Exception::Error(Nan::New<v8::String>("Failed to connect.").ToLocalChecked()));
+		return;
+	}
+
+	return;
+}
+
+void js_host(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	auto isol = args.GetIsolate();
+	if (args.Length() == 0) {
+		isol->ThrowException(v8::Exception::SyntaxError(Nan::New<v8::String>("Too few arguments, usage: host(uri).").ToLocalChecked()));
+		return;
+	} else if (args.Length() > 1) {
+		isol->ThrowException(v8::Exception::SyntaxError(Nan::New<v8::String>("Too many arguments.").ToLocalChecked()));
+		return;
+	} else if (!args[0]->IsString()) {
+		isol->ThrowException(v8::Exception::TypeError(Nan::New<v8::String>("Argument 'uri' must be of type 'String'.").ToLocalChecked()));
+		return;
+	}
+
+	std::string uri = *v8::String::Utf8Value(args[0]);
+	auto cl = Controller::GetInstance().host(uri);
+	if (!cl) {
+		isol->ThrowException(v8::Exception::Error(Nan::New<v8::String>("Failed to host and connect.").ToLocalChecked()));
+		return;
+	}
+
+	return;
+}
+
+void js_connectOrHost(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	auto isol = args.GetIsolate();
+	if (args.Length() == 0) {
+		isol->ThrowException(v8::Exception::SyntaxError(Nan::New<v8::String>("Too few arguments, usage: connectOrHost(uri).").ToLocalChecked()));
+		return;
+	} else if (args.Length() > 1) {
+		isol->ThrowException(v8::Exception::SyntaxError(Nan::New<v8::String>("Too many arguments.").ToLocalChecked()));
+		return;
+	} else if (!args[0]->IsString()) {
+		isol->ThrowException(v8::Exception::TypeError(Nan::New<v8::String>("Argument 'uri' must be of type 'String'.").ToLocalChecked()));
+		return;
+	}
+
+	std::string uri = *v8::String::Utf8Value(args[0]);
+	auto cl = Controller::GetInstance().connect(uri);
+	if (!cl) {
+		cl = Controller::GetInstance().host(uri);
+		if (!cl) {
+			isol->ThrowException(v8::Exception::Error(Nan::New<v8::String>("IPC failed to connect or host.").ToLocalChecked()));
+			return;
+		}
+	}
+
+	return;
+}
+
+void js_disconnect(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	Controller::GetInstance().disconnect();
+}
+
+INITIALIZER(js_ipc) {
+	initializerFunctions.push([](v8::Local<v8::Object>& exports) {
+		// IPC related functions will be under the IPC object.
+		auto obj = v8::Object::New(exports->GetIsolate());
+		NODE_SET_METHOD(obj, "setServerPath", js_setServerPath);
+		NODE_SET_METHOD(obj, "connect", js_connect);
+		NODE_SET_METHOD(obj, "host", js_host);
+		NODE_SET_METHOD(obj, "connectOrHost", js_connectOrHost);
+		NODE_SET_METHOD(obj, "disconnect", js_disconnect);
+		// Temporary
+		NODE_SET_METHOD(obj, "ConnectOrHost", js_connectOrHost);
+		NODE_SET_METHOD(obj, "Disconnect", js_disconnect);
+		exports->Set(v8::String::NewFromUtf8(exports->GetIsolate(), "IPC"), obj);
+	});
+}
+#pragma endregion JavaScript
