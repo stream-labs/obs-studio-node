@@ -29,6 +29,7 @@
 #include "osn-filter.hpp"
 #include "osn-transition.hpp"
 #include "osn-scene.hpp"
+#include "osn-sceneitem.hpp"
 #include "nodeobs_api.h"
 #include "nodeobs_content.h"
 #include "nodeobs_service.h"
@@ -116,6 +117,7 @@ int main(int argc, char* argv[]) {
 	osn::Filter::Register(myServer);
 	osn::Transition::Register(myServer);
 	osn::Scene::Register(myServer);
+	osn::SceneItem::Register(myServer);
 	OBS_API::Register(myServer);
 	OBS_content::Register(myServer);
 	OBS_service::Register(myServer);
