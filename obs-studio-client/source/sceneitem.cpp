@@ -929,7 +929,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetScale(Nan::NAN_METHOD_ARGS_TYPE i
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], vector);
 	ASSERT_GET_OBJECT_FIELD(vector, "x", x);
-	ASSERT_GET_OBJECT_FIELD(vector, "y", x);
+	ASSERT_GET_OBJECT_FIELD(vector, "y", y);
 
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
