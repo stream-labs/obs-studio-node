@@ -33,12 +33,6 @@ osn::SceneItem::SceneItem(uint64_t id) {
 
 Nan::Persistent<v8::FunctionTemplate> osn::SceneItem::prototype = Nan::Persistent<v8::FunctionTemplate>();
 
-INITIALIZER(js_SceneItem) {
-	initializerFunctions.push([](v8::Local<v8::Object> exports) {
-		osn::SceneItem::Register(exports);
-	});
-}
-
 void osn::SceneItem::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->PrototypeTemplate()->SetInternalFieldCount(1);

@@ -25,16 +25,10 @@
 
 Nan::Persistent<v8::FunctionTemplate> osn::ISource::prototype = Nan::Persistent<v8::FunctionTemplate>();
 
-INITIALIZER(js_Source) {
-	initializerFunctions.push([](v8::Local<v8::Object> exports) {
-		osn::ISource::Register(exports);
-	});
-}
-
 void osn::ISource::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->SetClassName(Nan::New<v8::String>("Source").ToLocalChecked());
-	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->PrototypeTemplate();
+	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->InstanceTemplate();
 	objtemplate->SetInternalFieldCount(1);
 
 	utilv8::SetTemplateField(objtemplate, "release", Release);

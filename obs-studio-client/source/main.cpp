@@ -18,9 +18,22 @@
 #include <node.h>
 #include "shared.hpp"
 #include "nodeobs_api.hpp"
+#include "isource.hpp"
+#include "input.hpp"
+#include "filter.hpp"
+#include "transition.hpp"
+#include "scene.hpp"
+#include "sceneitem.hpp"
 
 // Definition based on addon_register_func, see 'node.h:L384'.
 void main(v8::Local<v8::Object> exports, v8::Local<v8::Value> module, void* priv) {
+	osn::ISource::Register(exports);
+	osn::Input::Register(exports);
+	osn::Filter::Register(exports);
+	osn::Transition::Register(exports);
+	osn::Scene::Register(exports);
+	osn::SceneItem::Register(exports);
+
 	while (initializerFunctions.size() > 0) {
 		initializerFunctions.front()(exports);
 		initializerFunctions.pop();

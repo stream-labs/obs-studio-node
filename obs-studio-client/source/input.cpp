@@ -32,16 +32,10 @@ osn::Input::Input(uint64_t id) {
 
 Nan::Persistent<v8::FunctionTemplate> osn::Input::prototype = Nan::Persistent<v8::FunctionTemplate>();
 
-INITIALIZER(js_Source_Input) {
-	initializerFunctions.push([](v8::Local<v8::Object> exports) {
-		osn::Input::Register(exports);
-	});
-}
-
 void osn::Input::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->Inherit(Nan::New<v8::FunctionTemplate>(osn::ISource::prototype));
-	fnctemplate->PrototypeTemplate()->SetInternalFieldCount(1);
+	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
 	fnctemplate->SetClassName(Nan::New<v8::String>("Input").ToLocalChecked());
 
 	// Function Template

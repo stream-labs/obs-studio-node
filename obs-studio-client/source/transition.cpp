@@ -31,12 +31,6 @@ osn::Transition::Transition(uint64_t id) {
 
 Nan::Persistent<v8::FunctionTemplate> osn::Transition::prototype = Nan::Persistent<v8::FunctionTemplate>();
 
-INITIALIZER(js_Source_Transition) {
-	initializerFunctions.push([](v8::Local<v8::Object> exports) {
-		osn::Transition::Register(exports);
-	});
-}
-
 void osn::Transition::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->Inherit(Nan::New<v8::FunctionTemplate>(osn::ISource::prototype));

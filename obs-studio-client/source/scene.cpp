@@ -33,12 +33,6 @@ osn::Scene::Scene(uint64_t id) {
 
 Nan::Persistent<v8::FunctionTemplate> osn::Scene::prototype = Nan::Persistent<v8::FunctionTemplate>();
 
-INITIALIZER(js_Source_Scene) {
-	initializerFunctions.push([](v8::Local<v8::Object> exports) {
-		osn::Scene::Register(exports);
-	});
-}
-
 void osn::Scene::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->Inherit(Nan::New<v8::FunctionTemplate>(osn::ISource::prototype));
