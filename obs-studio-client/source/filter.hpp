@@ -27,6 +27,7 @@ namespace osn {
 		
 		public:
 		Filter(uint64_t id);
+		virtual ~Filter() {};
 				
 		// JavaScript
 		public:

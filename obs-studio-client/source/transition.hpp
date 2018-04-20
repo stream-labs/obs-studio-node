@@ -27,6 +27,7 @@ namespace osn {
 		
 		public:
 		Transition(uint64_t id);
+		virtual ~Transition() {};
 				
 		// JavaScript
 		public:

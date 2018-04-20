@@ -27,6 +27,7 @@ namespace osn {
 
 		public:
 		Input(uint64_t id);
+		virtual ~Input() {};
 
 		// JavaScript
 		public:

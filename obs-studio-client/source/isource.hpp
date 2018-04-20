@@ -29,6 +29,7 @@ namespace osn {
 
 		public:
 		uint64_t sourceId;
+		virtual ~ISource() {};
 		
 		public:
 		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
