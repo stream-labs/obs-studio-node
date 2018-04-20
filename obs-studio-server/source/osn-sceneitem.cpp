@@ -34,7 +34,7 @@ void osn::SceneItem::Register(ipc::server& srv) {
 	cls->register_function(std::make_shared<ipc::function>("MoveDown", std::vector<ipc::type>{ipc::type::UInt64}, MoveDown));
 	cls->register_function(std::make_shared<ipc::function>("MoveTop", std::vector<ipc::type>{ipc::type::UInt64}, MoveTop));
 	cls->register_function(std::make_shared<ipc::function>("MoveBottom", std::vector<ipc::type>{ipc::type::UInt64}, MoveBottom));
-	cls->register_function(std::make_shared<ipc::function>("Move", std::vector<ipc::type>{ipc::type::UInt64}, Move));
+	cls->register_function(std::make_shared<ipc::function>("Move", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, Move));
 	cls->register_function(std::make_shared<ipc::function>("DeferUpdateBegin", std::vector<ipc::type>{ipc::type::UInt64}, DeferUpdateBegin));
 	cls->register_function(std::make_shared<ipc::function>("DeferUpdateEnd", std::vector<ipc::type>{ipc::type::UInt64}, DeferUpdateEnd));
 	srv.register_collection(cls);
