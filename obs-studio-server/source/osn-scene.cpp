@@ -17,10 +17,10 @@ void osn::Scene::Register(ipc::server& srv) {
 
 	cls->register_function(std::make_shared<ipc::function>("AddSource", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, AddSource));
 	cls->register_function(std::make_shared<ipc::function>("FindItem", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, FindItem));
-	cls->register_function(std::make_shared<ipc::function>("MoveItem", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64, ipc::type::Int32}, MoveItem));
-	cls->register_function(std::make_shared<ipc::function>("GetItem", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, GetItem));
+	cls->register_function(std::make_shared<ipc::function>("MoveItem", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32, ipc::type::Int32}, MoveItem));
+	cls->register_function(std::make_shared<ipc::function>("GetItem", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, GetItem));
 	cls->register_function(std::make_shared<ipc::function>("GetItems", std::vector<ipc::type>{ipc::type::UInt64}, GetItems));
-	cls->register_function(std::make_shared<ipc::function>("GetItemsInRange", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64, ipc::type::UInt64}, GetItemsInRange));
+	cls->register_function(std::make_shared<ipc::function>("GetItemsInRange", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32, ipc::type::Int32}, GetItemsInRange));
 
 	cls->register_function(std::make_shared<ipc::function>("Connect", std::vector<ipc::type>{ipc::type::UInt64}, Connect));
 	cls->register_function(std::make_shared<ipc::function>("Disconnect", std::vector<ipc::type>{ipc::type::UInt64}, Disconnect));
@@ -324,8 +324,31 @@ void osn::Scene::MoveItem(void* data, const int64_t id, const std::vector<ipc::v
 		return;
 	}
 
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[1].value_union.ui64);
-	obs_sceneitem_set_order_position(item, args[2].value_union.i32);
+	struct EnumData {
+		obs_sceneitem_t* item = nullptr;
+		size_t findindex = 0;
+		size_t index = 0;
+	} ed;
+	ed.findindex = args[1].value_union.ui64;
+
+	auto cb = [](obs_scene_t* scene, obs_sceneitem_t* item, void* data) {
+		EnumData* items = reinterpret_cast<EnumData*>(data);
+		if (items->index == items->findindex) {
+			items->item = item;
+			return false;
+		}
+		items->index++;
+		return true;
+	};
+	obs_scene_enum_items(scene, cb, &ed);
+
+	if (!ed.item) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfBounds));
+		rval.push_back(ipc::value("Index not found in Scene."));
+		return;
+	}
+
+	obs_sceneitem_set_order_position(ed.item, args[2].value_union.i32);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	return;
