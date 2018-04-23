@@ -409,7 +409,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::FromName(Nan::NAN_METHOD_ARGS_TYPE info)
 	};
 
 	bool suc = Controller::GetInstance().GetConnection()->call("Input", "FromName",
-		{ ipc::value(name) }, fnc, &rtd);
+	{ ipc::value(name) }, fnc, &rtd);
 	if (!suc) {
 		info.GetIsolate()->ThrowException(
 			v8::Exception::Error(
@@ -487,7 +487,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetPublicSources(Nan::NAN_METHOD_ARGS_TY
 	};
 
 	bool suc = Controller::GetInstance().GetConnection()->call("Input", "GetPublicSources",
-		{}, fnc, &rtd);
+	{}, fnc, &rtd);
 	if (!suc) {
 		info.GetIsolate()->ThrowException(
 			v8::Exception::Error(
@@ -2002,7 +2002,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Filters(Nan::NAN_METHOD_ARGS_TYPE info) 
 	};
 
 	bool suc = Controller::GetInstance().GetConnection()->call("Input", "GetFilters",
-		{ obj->sourceId }, fnc, &rtd);
+	{ obj->sourceId }, fnc, &rtd);
 	if (!suc) {
 		info.GetIsolate()->ThrowException(
 			v8::Exception::Error(
@@ -2300,7 +2300,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::FindFilter(Nan::NAN_METHOD_ARGS_TYPE inf
 		}
 		return;
 	}
-	
+
 	// Create new Filter
 	osn::Input* nobj = new osn::Input(rtd.sourceId);
 	info.GetReturnValue().Set(osn::Input::Store(nobj));

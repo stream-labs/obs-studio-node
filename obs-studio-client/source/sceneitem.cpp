@@ -35,7 +35,7 @@ Nan::Persistent<v8::FunctionTemplate> osn::SceneItem::prototype = Nan::Persisten
 
 void osn::SceneItem::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
-	fnctemplate->PrototypeTemplate()->SetInternalFieldCount(1);
+	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
 	fnctemplate->SetClassName(Nan::New<v8::String>("SceneItem").ToLocalChecked());
 		
 	// Prototype/Class Template

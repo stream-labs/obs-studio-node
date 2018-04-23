@@ -34,7 +34,7 @@ Nan::Persistent<v8::FunctionTemplate> osn::Transition::prototype = Nan::Persiste
 void osn::Transition::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->Inherit(Nan::New<v8::FunctionTemplate>(osn::ISource::prototype));
-	fnctemplate->PrototypeTemplate()->SetInternalFieldCount(1);
+	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
 	fnctemplate->SetClassName(Nan::New<v8::String>("Transition").ToLocalChecked());
 
 	// Class Template
@@ -377,7 +377,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::FromName(Nan::NAN_METHOD_ARGS_TYPE 
 	};
 
 	bool suc = Controller::GetInstance().GetConnection()->call("Filter", "FromName",
-		{ ipc::value(name) }, fnc, &rtd);
+	{ ipc::value(name) }, fnc, &rtd);
 	if (!suc) {
 		info.GetIsolate()->ThrowException(
 			v8::Exception::Error(
@@ -419,7 +419,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::GetActiveSource(Nan::NAN_METHOD_ARG
 		// How did you even call this? o.o
 		return;
 	}
-	
+
 	struct ThreadData {
 		std::condition_variable cv;
 		std::mutex mtx;
@@ -485,7 +485,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::GetActiveSource(Nan::NAN_METHOD_ARG
 		}
 		return;
 	}
-	
+
 	if (rtd.type == 0) {
 		// Input
 		//osn::Input* obj = new osn::Input(rtd.sourceId);
@@ -497,7 +497,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::GetActiveSource(Nan::NAN_METHOD_ARG
 		//info.GetReturnValue().Set(osn::Scene::Store(obj));
 		// !FIXME! Uncomment once Scenes are done.
 	}
-	
+
 	return;
 }
 
@@ -511,7 +511,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Clear(Nan::NAN_METHOD_ARGS_TYPE inf
 		// How did you even call this? o.o
 		return;
 	}
-	
+
 	struct ThreadData {
 		std::condition_variable cv;
 		std::mutex mtx;
@@ -570,7 +570,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Clear(Nan::NAN_METHOD_ARGS_TYPE inf
 		}
 		return;
 	}
-		
+
 	return;
 }
 
@@ -596,7 +596,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Set(Nan::NAN_METHOD_ARGS_TYPE info)
 				"Invalid type for target source.").ToLocalChecked()));
 		return;
 	}
-	
+
 	struct ThreadData {
 		std::condition_variable cv;
 		std::mutex mtx;
