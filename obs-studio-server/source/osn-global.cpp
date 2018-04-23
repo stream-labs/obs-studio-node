@@ -57,7 +57,7 @@ void osn::Global::SetOutputSource(void* data, const int64_t id, const std::vecto
 	obs_source_t* source = nullptr;
 	
 	if (args[1].value_union.ui64 != UINT64_MAX) {
-		obs_source_t* source = osn::Source::GetInstance()->Get(args[1].value_union.ui64);
+		source = osn::Source::GetInstance()->Get(args[1].value_union.ui64);
 		if (!source) {
 			rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 			rval.push_back(ipc::value("Source reference is not valid."));
