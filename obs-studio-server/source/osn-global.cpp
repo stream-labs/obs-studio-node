@@ -32,8 +32,9 @@ void osn::Global::Register(ipc::server& srv) {
 void osn::Global::GetOutputSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	obs_source_t* source = obs_get_output_source(args[0].value_union.ui32);
 	if (!source) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-		rval.push_back(ipc::value("Channel has no output source."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+		rval.push_back(ipc::value(UINT64_MAX));
+		rval.push_back(ipc::value(-1));
 		return;
 	}
 
