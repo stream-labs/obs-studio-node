@@ -24,6 +24,7 @@
 #include <ipc-function.hpp>
 #include <ipc-class.hpp>
 #include <ipc-server.hpp>
+#include "osn-global.hpp"
 #include "osn-source.hpp"
 #include "osn-input.hpp"
 #include "osn-filter.hpp"
@@ -112,6 +113,7 @@ int main(int argc, char* argv[]) {
 	};
 
 	/// OBS Studio Node
+	osn::Global::Register(myServer);
 	osn::Source::Register(myServer);
 	osn::Input::Register(myServer);
 	osn::Filter::Register(myServer);
