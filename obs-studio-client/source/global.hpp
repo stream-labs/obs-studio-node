@@ -15,31 +15,19 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
 
+#pragma once
 #include <node.h>
-#include "shared.hpp"
-#include "nodeobs_api.hpp"
-#include "isource.hpp"
-#include "input.hpp"
-#include "filter.hpp"
-#include "transition.hpp"
-#include "scene.hpp"
-#include "sceneitem.hpp"
-#include "global.hpp"
+#include <nan.h>
 
-// Definition based on addon_register_func, see 'node.h:L384'.
-void main(v8::Local<v8::Object> exports, v8::Local<v8::Value> module, void* priv) {
-	osn::Global::Register(exports);
-	osn::ISource::Register(exports);
-	osn::Input::Register(exports);
-	osn::Filter::Register(exports);
-	osn::Transition::Register(exports);
-	osn::Scene::Register(exports);
-	osn::SceneItem::Register(exports);
+namespace osn {
+	class Global {
+		public:
+		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 
-	while (initializerFunctions.size() > 0) {
-		initializerFunctions.front()(exports);
-		initializerFunctions.pop();
-	}
-};
+		static Nan::NAN_METHOD_RETURN_TYPE getOutputSource(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE setOutputSource(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE laggedFrames(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE totalFrames(Nan::NAN_METHOD_ARGS_TYPE info);
 
-NODE_MODULE(obs_studio_node, main); // Upgrade to NAPI_MODULE once N-API hits stable/beta.
+	};
+}
