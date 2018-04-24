@@ -125,7 +125,7 @@ OBS::Display::Display() {
 	// Text
 	m_textVertices = new GS::VertexBuffer(65535);
 	m_textEffect = obs_get_base_effect(OBS_EFFECT_DEFAULT);
-	m_textTexture = gs_texture_create_from_file((OBS_API::getPathConfigDirectory() + "/resources/roboto.png").c_str());
+	m_textTexture = gs_texture_create_from_file((g_moduleDirectory + "/resources/roboto.png").c_str());
 	if (!m_textTexture) {
 		throw std::runtime_error("couldn't load roboto font");
 	}
