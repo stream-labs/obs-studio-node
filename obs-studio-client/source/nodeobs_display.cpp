@@ -434,11 +434,15 @@ void display::OBS_content_resizeDisplay(const v8::FunctionCallbackInfo<v8::Value
 
 void display::OBS_content_moveDisplay(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	std::string key;
+	double_t x_d, y_d;
 	uint32_t x, y;
 
 	ASSERT_GET_VALUE(args[0], key);
-	ASSERT_GET_VALUE(args[1], x);
-	ASSERT_GET_VALUE(args[2], y);
+	ASSERT_GET_VALUE(args[1], x_d);
+	ASSERT_GET_VALUE(args[2], y_d);
+
+	x = uint32_t(x_d);
+	y = uint32_t(y_d);
 
 	struct ThreadData {
 		std::condition_variable cv;
