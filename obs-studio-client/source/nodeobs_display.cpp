@@ -362,11 +362,15 @@ void display::OBS_content_createSourcePreviewDisplay(const v8::FunctionCallbackI
 
 void display::OBS_content_resizeDisplay(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	std::string key;
+	double_t width_d, height_d;
 	uint32_t width, height;
 
 	ASSERT_GET_VALUE(args[0], key);
-	ASSERT_GET_VALUE(args[1], width);
-	ASSERT_GET_VALUE(args[2], height);
+	ASSERT_GET_VALUE(args[1], width_d);
+	ASSERT_GET_VALUE(args[2], height_d);
+
+	width = uint32_t(width_d);
+	height = uint32_t(height_d);
 
 	struct ThreadData {
 		std::condition_variable cv;
