@@ -36,15 +36,16 @@ osn::Properties::~Properties() {
 void osn::Properties::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->SetClassName(Nan::New<v8::String>("Properties").ToLocalChecked());
-	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->PrototypeTemplate();
+	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
+	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->PrototypeTemplate();
 	utilv8::SetTemplateAccessorProperty(objtemplate, "count", Count);
 	utilv8::SetTemplateAccessorProperty(objtemplate, "first", First);
 	utilv8::SetTemplateAccessorProperty(objtemplate, "last", Last);
 	utilv8::SetTemplateField(objtemplate, "get", Get);
 
 	utilv8::SetObjectField(target, "Properties", fnctemplate->GetFunction());
-	osn::Properties::prototype.Reset(fnctemplate);
+	prototype.Reset(fnctemplate);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Properties::Count(Nan::NAN_METHOD_ARGS_TYPE info) {

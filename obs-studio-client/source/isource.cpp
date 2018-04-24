@@ -290,7 +290,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 		ErrorCode error_code = ErrorCode::Ok;
 		std::string error_string = "";
 		
-		v8::Local<v8::Object> obj;
+		osn::property_map_t obj;
 	} rtd;
 
 	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
@@ -465,12 +465,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 			idx += elementsize;
 		}
 
-		osn::Properties* props = new osn::Properties(std::move(pmap));
-		rtd->obj = osn::Properties::Store(props);
+		rtd->obj = std::move(pmap);
 		rtd->called = true;
 		rtd->cv.notify_all();
 	};
-
+	
 	bool suc = Controller::GetInstance().GetConnection()->call("Source", "GetProperties",
 		std::vector<ipc::value>{ipc::value(hndl->sourceId)}, fnc, &rtd);
 	if (!suc) {
@@ -499,7 +498,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 		return;
 	}
 
-	info.GetReturnValue().Set(rtd.obj);
+
+	osn::Properties* props = new osn::Properties(std::move(rtd.obj));
+	info.GetReturnValue().Set(osn::Properties::Store(props));
 	return;
 }
 
