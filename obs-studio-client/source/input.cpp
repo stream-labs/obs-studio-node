@@ -48,7 +48,7 @@ void osn::Input::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	// Prototype Template
 
 	// Instance Template
-	v8::Local<v8::Template> objtemplate = fnctemplate->InstanceTemplate();
+	v8::Local<v8::Template> objtemplate = fnctemplate->PrototypeTemplate();
 	utilv8::SetTemplateField(objtemplate, "duplicate", Duplicate);
 	utilv8::SetTemplateAccessorProperty(objtemplate, "active", Active);
 	utilv8::SetTemplateAccessorProperty(objtemplate, "showing", Showing);

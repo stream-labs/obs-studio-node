@@ -28,9 +28,9 @@ Nan::Persistent<v8::FunctionTemplate> osn::ISource::prototype = Nan::Persistent<
 void osn::ISource::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->SetClassName(Nan::New<v8::String>("Source").ToLocalChecked());
-	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->InstanceTemplate();
-	objtemplate->SetInternalFieldCount(1);
+	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
+	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->PrototypeTemplate();
 	utilv8::SetTemplateField(objtemplate, "release", Release);
 	utilv8::SetTemplateField(objtemplate, "remove", Remove);
 
