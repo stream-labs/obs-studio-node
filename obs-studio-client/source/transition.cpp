@@ -677,7 +677,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Start(Nan::NAN_METHOD_ARGS_TYPE inf
 	ASSERT_GET_VALUE(info[0], ms);
 
 	v8::Local<v8::Object> targetbaseobj;
-	ASSERT_GET_VALUE(info[0], targetbaseobj);
+	ASSERT_GET_VALUE(info[1], targetbaseobj);
 	osn::ISource* targetobj = nullptr;
 	if (!osn::ISource::Retrieve(targetbaseobj, targetobj)) {
 		info.GetIsolate()->ThrowException(
