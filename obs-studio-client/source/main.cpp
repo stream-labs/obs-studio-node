@@ -37,6 +37,7 @@ void main(v8::Local<v8::Object> exports, v8::Local<v8::Value> module, void* priv
 	osn::Scene::Register(exports);
 	osn::SceneItem::Register(exports);
 	osn::Properties::Register(exports);
+	osn::PropertyObject::Register(exports);
 
 	while (initializerFunctions.size() > 0) {
 		initializerFunctions.front()(exports);
