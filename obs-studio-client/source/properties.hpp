@@ -150,39 +150,38 @@ namespace osn {
 	typedef std::map<std::string, std::shared_ptr<Property>> property_map_t;
 
 	// The actual classes that work with JavaScript
-	class Properties : public Nan::ObjectWrap, public utilv8::ManagedObject<Properties> {
+	class Properties : public Nan::ObjectWrap, public utilv8::InterfaceObject<Properties>, public utilv8::ManagedObject<Properties> {
+		std::shared_ptr<property_map_t> properties;
 
 		protected:
 		static Nan::Persistent<v8::FunctionTemplate> prototype;
-
-		protected:		
-		std::shared_ptr<property_map_t> properties;
 
 		public:
 		Properties();
 		Properties(property_map_t container);
 		~Properties();
 
-		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+		std::shared_ptr<property_map_t> GetProperties();
 
+		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 		static Nan::NAN_METHOD_RETURN_TYPE Count(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE First(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE Last(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE Get(Nan::NAN_METHOD_ARGS_TYPE info);
 
-		friend class PropertyObject;
 		friend class utilv8::ManagedObject<Properties>;
+		friend class utilv8::InterfaceObject<Properties>;
 	};
 
-	class PropertyObject : public Nan::ObjectWrap, public utilv8::ManagedObject<PropertyObject> {
-		v8::Local<v8::Object> parent;
-		property_map_t::iterator iter;
+	class PropertyObject : public Nan::ObjectWrap, public utilv8::InterfaceObject<PropertyObject>, public utilv8::ManagedObject<PropertyObject> {
+		v8::Persistent<v8::Object> parent;
+		std::string name;
 
 		protected:
 		static Nan::Persistent<v8::FunctionTemplate> prototype;
 
 		public:
-		PropertyObject(v8::Local<v8::Object> parent, property_map_t::iterator iter);
+		PropertyObject(v8::Local<v8::Object> parent, std::string name);
 		~PropertyObject();
 
 		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
@@ -205,5 +204,6 @@ namespace osn {
 		static Nan::NAN_METHOD_RETURN_TYPE ButtonClicked(Nan::NAN_METHOD_ARGS_TYPE info);
 
 		friend class utilv8::ManagedObject<PropertyObject>;
+		friend class utilv8::InterfaceObject<PropertyObject>;
 	};
 }
