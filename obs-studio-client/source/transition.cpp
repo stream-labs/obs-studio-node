@@ -199,7 +199,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Create(Nan::NAN_METHOD_ARGS_TYPE in
 			params.push_back(ipc::value(value));
 		}
 	}
-	bool suc = Controller::GetInstance().GetConnection()->call("Filter", "Create",
+	bool suc = Controller::GetInstance().GetConnection()->call("Transition", "Create",
 		std::move(params), fnc, &rtd);
 	if (!suc) {
 		info.GetIsolate()->ThrowException(
@@ -298,7 +298,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::CreatePrivate(Nan::NAN_METHOD_ARGS_
 			params.push_back(ipc::value(value));
 		}
 	}
-	bool suc = Controller::GetInstance().GetConnection()->call("Filter", "CreatePrivate",
+	bool suc = Controller::GetInstance().GetConnection()->call("Transition", "CreatePrivate",
 		std::move(params), fnc, &rtd);
 	if (!suc) {
 		info.GetIsolate()->ThrowException(
@@ -376,7 +376,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::FromName(Nan::NAN_METHOD_ARGS_TYPE 
 		rtd->cv.notify_all();
 	};
 
-	bool suc = Controller::GetInstance().GetConnection()->call("Filter", "FromName",
+	bool suc = Controller::GetInstance().GetConnection()->call("Transition", "FromName",
 	{ ipc::value(name) }, fnc, &rtd);
 	if (!suc) {
 		info.GetIsolate()->ThrowException(
