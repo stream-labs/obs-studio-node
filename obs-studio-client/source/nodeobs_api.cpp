@@ -80,7 +80,6 @@ void api::OBS_API_destroyOBS_API(const v8::FunctionCallbackInfo<v8::Value>& args
 		bool called = false;
 		ErrorCode error_code = ErrorCode::Ok;
 		std::string error_string = "";
-		std::string result = "";
 	} rtd;
 
 	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
@@ -98,8 +97,6 @@ void api::OBS_API_destroyOBS_API(const v8::FunctionCallbackInfo<v8::Value>& args
 		if (rtd->error_code != ErrorCode::Ok) {
 			rtd->error_string = rval[1].value_str;
 		}
-
-		rtd->result = rval[1].value_str;
 
 		rtd->called = true;
 		rtd->cv.notify_all();
