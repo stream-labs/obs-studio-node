@@ -40,8 +40,8 @@ void osn::Properties::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 
 	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->PrototypeTemplate();
 	utilv8::SetTemplateAccessorProperty(objtemplate, "count", Count);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "first", First);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "last", Last);
+	utilv8::SetTemplateField(objtemplate, "first", First);
+	utilv8::SetTemplateField(objtemplate, "last", Last);
 	utilv8::SetTemplateField(objtemplate, "get", Get);
 
 	utilv8::SetObjectField(target, "Properties", fnctemplate->GetFunction());
@@ -125,6 +125,7 @@ void osn::PropertyObject::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->SetClassName(Nan::New<v8::String>("Property").ToLocalChecked());
 	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->PrototypeTemplate();
+	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
 	utilv8::SetTemplateField(objtemplate, "previous", Previous);
 	utilv8::SetTemplateField(objtemplate, "next", Next);
