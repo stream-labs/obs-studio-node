@@ -163,7 +163,12 @@ void osn::Source::GetProperties(void* data, const int64_t id, const std::vector<
 	for (obs_property_t* p = obs_properties_first(prp); (p != nullptr) && obs_property_next(&p);) {
 		rval.push_back(ipc::value(obs_property_name(p)));
 		rval.push_back(ipc::value(obs_property_description(p)));
-		rval.push_back(ipc::value(obs_property_long_description(p)));
+		const char* long_desc = obs_property_long_description(p);
+		if (long_desc) {
+			rval.push_back(ipc::value(long_desc));
+		} else {
+			rval.push_back(ipc::value(""));
+		}
 		rval.push_back(ipc::value(obs_property_enabled(p)));
 		rval.push_back(ipc::value(obs_property_visible(p)));
 
