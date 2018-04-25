@@ -39,7 +39,7 @@ void osn::Properties::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
 	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->PrototypeTemplate();
-	utilv8::SetTemplateAccessorProperty(objtemplate, "count", Count);
+	utilv8::SetTemplateField(objtemplate, "count", Count);
 	utilv8::SetTemplateField(objtemplate, "first", First);
 	utilv8::SetTemplateField(objtemplate, "last", Last);
 	utilv8::SetTemplateField(objtemplate, "get", Get);
