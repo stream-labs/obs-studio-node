@@ -177,7 +177,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Previous(Nan::NAN_METHOD_ARGS_T
 	/// Decrement iterator, which sounds really stupid but works fine. Until you invalidate it, that is.
 	iter--;
 	
-	osn::PropertyObject* propobj = new osn::PropertyObject(info.This(), iter->first);
+	osn::PropertyObject* propobj = new osn::PropertyObject(self->parent.Get(info.GetIsolate()), iter->first);
 	info.GetReturnValue().Set(osn::PropertyObject::Store(propobj));
 	return;
 }
@@ -207,7 +207,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Next(Nan::NAN_METHOD_ARGS_TYPE 
 		return;
 	}
 
-	osn::PropertyObject* propobj = new osn::PropertyObject(info.This(), iter->first);
+	osn::PropertyObject* propobj = new osn::PropertyObject(self->parent.Get(info.GetIsolate()), iter->first);
 	info.GetReturnValue().Set(osn::PropertyObject::Store(propobj));
 	return;
 }
