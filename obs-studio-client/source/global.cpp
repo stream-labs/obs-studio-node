@@ -132,10 +132,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Global::setOutputSource(Nan::NAN_METHOD_ARGS_TY
 	ASSERT_GET_VALUE(info[0], channel);
 	if (info[1]->IsObject()) {
 		ASSERT_GET_VALUE(info[1], source_object);
-	}
 
-	if (!osn::ISource::Retrieve(source_object, source)) {
-		return;
+		if (!osn::ISource::Retrieve(source_object, source)) {
+			return;
+		}
 	}
 
 	struct ThreadData {
