@@ -14,30 +14,6 @@ extern std::string currentScene; /* defined in OBS_content.cpp */
 
 static const uint32_t grayPaddingArea = 10ul;
 
-static BOOL CALLBACK EnumChromeWindowsProc(HWND hwnd, LPARAM lParam) {
-	char buf[256];
-	if (GetClassNameA(hwnd, buf, sizeof(buf) / sizeof(*buf))) {
-		if (strstr(buf, "Intermediate D3D Window")) {
-			LONG_PTR style = GetWindowLongPtr(hwnd, GWL_STYLE);
-			if ((style & WS_CLIPSIBLINGS) == 0) {
-				style |= WS_CLIPSIBLINGS;
-				(void)SetWindowLongPtr(hwnd, GWL_STYLE, style);
-			}
-		}
-	}
-	return TRUE;
-}
-
-static void FixChromeD3DIssue(HWND chromeWindow) {
-	(void)EnumChildWindows(chromeWindow, EnumChromeWindowsProc, (LPARAM)NULL);
-
-	LONG_PTR style = GetWindowLongPtr(chromeWindow, GWL_STYLE);
-	if ((style & WS_CLIPCHILDREN) == 0) {
-		style |= WS_CLIPCHILDREN;
-		// (void)SetWindowLongPtr(chromeWindow, GWL_STYLE, style);
-	}
-}
-
 static void RecalculateApectRatioConstrainedSize(
 	uint32_t origW, uint32_t origH, uint32_t sourceW, uint32_t sourceH,
 	int32_t& outX, int32_t& outY, uint32_t& outW, uint32_t& outH) {
@@ -142,8 +118,6 @@ OBS::Display::Display() {
 
 OBS::Display::Display(uint64_t windowHandle) : Display() {
 #if defined(_WIN32)
-	FixChromeD3DIssue((HWND)windowHandle);
-
 	m_ourWindow = CreateWindowEx(
 		0,//WS_EX_COMPOSITED | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST,
 		TEXT("Win32DisplayClass"), TEXT("SlobsChildWindowPreview"),

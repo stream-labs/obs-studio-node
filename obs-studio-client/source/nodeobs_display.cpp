@@ -9,10 +9,36 @@
 #include <sstream>
 #include <node.h>
 
+static BOOL CALLBACK EnumChromeWindowsProc(HWND hwnd, LPARAM lParam) {
+	char buf[256];
+	if (GetClassNameA(hwnd, buf, sizeof(buf) / sizeof(*buf))) {
+		if (strstr(buf, "Intermediate D3D Window")) {
+			LONG_PTR style = GetWindowLongPtr(hwnd, GWL_STYLE);
+			if ((style & WS_CLIPSIBLINGS) == 0) {
+				style |= WS_CLIPSIBLINGS;
+				SetWindowLongPtr(hwnd, GWL_STYLE, style);
+			}
+		}
+	}
+	return TRUE;
+}
+
+static void FixChromeD3DIssue(HWND chromeWindow) {
+	(void)EnumChildWindows(chromeWindow, EnumChromeWindowsProc, (LPARAM)NULL);
+
+	LONG_PTR style = GetWindowLongPtr(chromeWindow, GWL_STYLE);
+	if ((style & WS_CLIPCHILDREN) == 0) {
+		style |= WS_CLIPCHILDREN;
+		SetWindowLongPtr(chromeWindow, GWL_STYLE, style);
+	}
+}
+
 void display::OBS_content_createDisplay(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	v8::Local<v8::Object> bufferObj = args[0].As<v8::Object>();
 	unsigned char *bufferData = (unsigned char *)node::Buffer::Data(bufferObj);
 	uint64_t windowHandle = *reinterpret_cast<uint64_t *>(bufferData);
+
+	FixChromeD3DIssue((HWND)windowHandle);
 
 	std::string key;
 	ASSERT_GET_VALUE(args[1], key);
