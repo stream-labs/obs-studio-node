@@ -796,7 +796,7 @@ void OBS::Display::DisplayCallback(OBS::Display* dp, uint32_t cx, uint32_t cy) {
 	}
 	gs_load_vertexbuffer(nullptr);
 
-	if (!dp->m_source && dp->m_shouldDrawUI == true) {
+	if (dp->m_shouldDrawUI == true) {
 		// Display-Aligned Drawing
 		vec2 tlCorner = { (float)-dp->m_previewOffset.first, (float)-dp->m_previewOffset.second };
 		vec2 brCorner = { (float)(cx - dp->m_previewOffset.first), (float)(cy - dp->m_previewOffset.second) };
