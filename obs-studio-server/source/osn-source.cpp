@@ -25,6 +25,7 @@
 #include <map>
 #include <memory>
 #include <obs.h>
+#include "obs-property.hpp"
 
 osn::Source::SingletonObjectManager::SingletonObjectManager() {
 
@@ -158,97 +159,136 @@ void osn::Source::GetProperties(void* data, const int64_t id, const std::vector<
 	}
 
 	obs_properties_t* prp = obs_source_properties(src);
+	const char* buf;
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	for (obs_property_t* p = obs_properties_first(prp); (p != nullptr) && obs_property_next(&p);) {
-		rval.push_back(ipc::value(obs_property_name(p)));
-		rval.push_back(ipc::value(obs_property_description(p)));
-		const char* long_desc = obs_property_long_description(p);
-		if (long_desc) {
-			rval.push_back(ipc::value(long_desc));
-		} else {
-			rval.push_back(ipc::value(""));
-		}
-		rval.push_back(ipc::value(obs_property_enabled(p)));
-		rval.push_back(ipc::value(obs_property_visible(p)));
+		std::shared_ptr<obs::Property> prop;
 
-		obs_property_type pt = obs_property_get_type(p);
-		rval.push_back(ipc::value(pt));
-		switch (pt) {
+		switch (obs_property_get_type(p)) {
 			case OBS_PROPERTY_BOOL:
+				prop = std::make_shared<obs::BooleanProperty>();
 				break;
-			case OBS_PROPERTY_INT:
-				rval.push_back(ipc::value(obs_property_int_min(p)));
-				rval.push_back(ipc::value(obs_property_int_max(p)));
-				rval.push_back(ipc::value(obs_property_int_step(p)));
-				rval.push_back(ipc::value(obs_property_int_type(p)));
+			case OBS_PROPERTY_INT: {
+				auto prop2 = std::make_shared<obs::IntegerProperty>();
+				prop2->field_type = obs::NumberProperty::NumberType(obs_property_int_type(p));
+				prop2->minimum = obs_property_int_min(p);
+				prop2->maximum = obs_property_int_max(p);
+				prop2->step = obs_property_int_step(p);
+				prop = prop2;
 				break;
-			case OBS_PROPERTY_FLOAT:
-				rval.push_back(ipc::value(obs_property_float_min(p)));
-				rval.push_back(ipc::value(obs_property_float_max(p)));
-				rval.push_back(ipc::value(obs_property_float_step(p)));
-				rval.push_back(ipc::value(obs_property_float_type(p)));
+			}
+			case OBS_PROPERTY_FLOAT: {
+				auto prop2 = std::make_shared<obs::FloatProperty>();
+				prop2->field_type = obs::NumberProperty::NumberType(obs_property_int_type(p));
+				prop2->minimum = obs_property_float_min(p);
+				prop2->maximum = obs_property_float_max(p);
+				prop2->step = obs_property_float_step(p);
+				prop = prop2;
 				break;
-			case OBS_PROPERTY_TEXT:
-				rval.push_back(ipc::value(obs_proprety_text_type(p)));
+			}
+			case OBS_PROPERTY_TEXT: {
+				auto prop2 = std::make_shared<obs::TextProperty>();
+				prop2->field_type = obs::TextProperty::TextType(obs_proprety_text_type(p));
+				prop = prop2;
 				break;
-			case OBS_PROPERTY_PATH:
-				rval.push_back(ipc::value(obs_property_path_type(p)));
-				rval.push_back(ipc::value(obs_property_path_filter(p)));
-				rval.push_back(ipc::value(obs_property_path_default_path(p)));
+			}
+			case OBS_PROPERTY_PATH: {
+				auto prop2 = std::make_shared<obs::PathProperty>();
+				prop2->field_type = obs::PathProperty::PathType(obs_property_path_type(p));
+				prop2->filter = (buf = obs_property_path_filter(p)) != nullptr ? buf : "";
+				prop2->default_path = (buf = obs_property_path_default_path(p)) != nullptr ? buf : "";
+				prop = prop2;
 				break;
-			case OBS_PROPERTY_EDITABLE_LIST:
-				rval.push_back(ipc::value(obs_property_editable_list_type(p)));
-				rval.push_back(ipc::value(obs_property_editable_list_filter(p)));
-				rval.push_back(ipc::value(obs_property_editable_list_default_path(p)));
-				break;
-			case OBS_PROPERTY_LIST:
-			{
-				rval.push_back(ipc::value(obs_property_list_type(p)));
-				auto fmt = obs_property_list_format(p);
-				rval.push_back(ipc::value(fmt));
-				size_t cnt = obs_property_list_item_count(p);
-				rval.push_back(ipc::value(cnt));
-				for (size_t idx = 0; idx < cnt; ++idx) {
-					rval.push_back(ipc::value(obs_property_list_item_name(p, idx)));
-					rval.push_back(ipc::value(obs_property_list_item_disabled(p, idx)));
-					switch (fmt) {
-						case OBS_COMBO_FORMAT_INT:
-							rval.push_back(ipc::value(obs_property_list_item_int(p, idx)));
+			}
+			case OBS_PROPERTY_LIST: {
+				auto prop2 = std::make_shared<obs::ListProperty>();
+				prop2->field_type = obs::ListProperty::ListType(obs_property_list_type(p));
+				prop2->format = obs::ListProperty::Format(obs_property_list_format(p));
+				size_t items = obs_property_list_item_count(p);
+				for (size_t idx = 0; idx < items; ++idx) {
+					obs::ListProperty::Item entry;
+					entry.name = (buf = obs_property_list_item_name(p, idx)) != nullptr ? buf : "";
+					entry.enabled = !obs_property_list_item_disabled(p, idx);
+					switch (prop2->format) {
+						case obs::ListProperty::Format::Integer:
+							entry.value_int = obs_property_list_item_int(p, idx);
 							break;
-						case OBS_COMBO_FORMAT_FLOAT:
-							rval.push_back(ipc::value(obs_property_list_item_float(p, idx)));
+						case obs::ListProperty::Format::Float:
+							entry.value_float = obs_property_list_item_float(p, idx);
 							break;
-						case OBS_COMBO_FORMAT_STRING:
-							rval.push_back(ipc::value(obs_property_list_item_string(p, idx)));
+						case obs::ListProperty::Format::String:
+							entry.value_string = (buf = obs_property_list_item_string(p, idx)) != nullptr ? buf : "";
 							break;
 					}
+					prop2->items.push_back(std::move(entry));
 				}
+				prop = prop2;
 				break;
 			}
-			case OBS_PROPERTY_FRAME_RATE:
-			{
-				size_t fpscnt = obs_property_frame_rate_fps_ranges_count(p);
-				size_t optcnt = obs_property_frame_rate_options_count(p);
-
-				rval.push_back(ipc::value(fpscnt));
-				rval.push_back(ipc::value(optcnt));
-
-				for (size_t idx = 0; idx < fpscnt; ++idx) {
+			case OBS_PROPERTY_COLOR:
+				prop = std::make_shared<obs::ColorProperty>();
+				break;
+			case OBS_PROPERTY_BUTTON:
+				prop = std::make_shared<obs::ButtonProperty>();
+				break;
+			case OBS_PROPERTY_FONT:
+				prop = std::make_shared<obs::FontProperty>();
+				break;
+			case OBS_PROPERTY_EDITABLE_LIST: {
+				auto prop2 = std::make_shared<obs::EditableListProperty>();
+				prop2->field_type = obs::EditableListProperty::ListType(obs_property_editable_list_type(p));
+				prop2->filter = (buf = obs_property_editable_list_filter(p)) != nullptr ? buf : "";
+				prop2->default_path = (buf = obs_property_editable_list_default_path(p)) != nullptr ? buf : "";
+				prop = prop2;
+				break;
+			}
+			case OBS_PROPERTY_FRAME_RATE: {
+				auto prop2 = std::make_shared<obs::FrameRateProperty>();
+				size_t num_ranges = obs_property_frame_rate_fps_ranges_count(p);
+				for (size_t idx = 0; idx < num_ranges; idx++) {
 					auto min = obs_property_frame_rate_fps_range_min(p, idx),
 						max = obs_property_frame_rate_fps_range_max(p, idx);
-					rval.push_back(ipc::value(min.numerator));
-					rval.push_back(ipc::value(min.denominator));
-					rval.push_back(ipc::value(max.numerator));
-					rval.push_back(ipc::value(max.denominator));
+
+					obs::FrameRateProperty::Range range;
+					range.minimum.first = min.numerator;
+					range.minimum.second = min.denominator;
+					range.maximum.first = max.numerator;
+					range.maximum.second = max.denominator;
+
+					prop2->ranges.push_back(std::move(range));
 				}
 
-				for (size_t idx = 0; idx < optcnt; ++idx) {
-					rval.push_back(ipc::value(obs_property_frame_rate_option_name(p, idx)));
-					rval.push_back(ipc::value(obs_property_frame_rate_option_description(p, idx)));
+				size_t num_options = obs_property_frame_rate_options_count(p);
+				for (size_t idx = 0; idx < num_options; idx++) {
+					auto min = obs_property_frame_rate_fps_range_min(p, idx),
+						max = obs_property_frame_rate_fps_range_max(p, idx);
+
+					obs::FrameRateProperty::Option option;
+					option.name = (buf = obs_property_frame_rate_option_name(p, idx)) != nullptr ? buf : "";
+					option.description = (buf = obs_property_frame_rate_option_description(p, idx)) != nullptr ? buf : "";
+
+					prop2->options.push_back(std::move(option));
 				}
+
+				prop = prop2;
 				break;
 			}
+		}
+
+		if (!prop) {
+			continue;
+		}
+
+		prop->name = obs_property_name(p);
+		prop->description = obs_property_description(p) ? obs_property_description(p) : "";
+		prop->long_description = obs_property_long_description(p) ? obs_property_long_description(p) : "";
+		prop->enabled = obs_property_enabled(p);
+		prop->visible = obs_property_visible(p);
+
+		std::vector<char> buf(prop->size());
+		if (prop->serialize(buf)) {
+			rval.push_back(ipc::value(buf));
 		}
 	}
 	return;

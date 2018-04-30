@@ -59,10 +59,10 @@ namespace osn {
 		union {
 			struct {
 				int64_t min, max, step;
-			} Int;
+			} int_value;
 			struct {
 				double_t min, max, step;
-			} Float;
+			} float_value;
 		};
 
 		Type field_type;
@@ -137,13 +137,13 @@ namespace osn {
 			uint32_t numerator;
 			uint32_t denominator;
 		};
-		struct Item {
+		struct Option {
 			std::string name;
 			std::string description;
 		};
 
 		std::vector<std::pair<FrameRate, FrameRate>> ranges; // minmax range
-		std::map<std::string, Item> items; // Could also be a list, but this allows fast indexing by name.
+		std::map<std::string, Option> options; // Could also be a list, but this allows fast indexing by name.
 	};
 
 	// This is a class that basically implements the OBS behavior.

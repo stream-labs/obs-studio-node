@@ -26,8 +26,10 @@ INCLUDE("${libobs_SOURCE_DIR}/cmake/LibObs/LibObsConfig.cmake")
 # Source, Libraries & Directories
 #############################
 SET(PROJECT_SOURCE
-	###### OBS-STUDIO-NODE ######
 	"${CMAKE_SOURCE_DIR}/source/error.hpp"
+	"${CMAKE_SOURCE_DIR}/source/obs-property.hpp" "${CMAKE_SOURCE_DIR}/source/obs-property.cpp"
+	
+	###### OBS-STUDIO-NODE ######
 	"${PROJECT_SOURCE_DIR}/source/main.cpp"
 	"${PROJECT_SOURCE_DIR}/source/shared.cpp" "${PROJECT_SOURCE_DIR}/source/shared.hpp"
 	"${PROJECT_SOURCE_DIR}/source/utility.cpp" "${PROJECT_SOURCE_DIR}/source/utility.hpp"	

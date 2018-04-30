@@ -413,9 +413,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetDetails(Nan::NAN_METHOD_ARGS
 			std::shared_ptr<osn::NumberProperty> prop = std::static_pointer_cast<osn::NumberProperty>(iter->second);
 
 			utilv8::SetObjectField(object, "type", (uint32_t)prop->field_type);
-			utilv8::SetObjectField(object, "min", prop->Int.min);
-			utilv8::SetObjectField(object, "max", prop->Int.max);
-			utilv8::SetObjectField(object, "step", prop->Int.step);
+			utilv8::SetObjectField(object, "min", prop->int_value.min);
+			utilv8::SetObjectField(object, "max", prop->int_value.max);
+			utilv8::SetObjectField(object, "step", prop->int_value.step);
 			break;
 		}
 		case osn::Property::Type::FLOAT:
@@ -423,9 +423,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetDetails(Nan::NAN_METHOD_ARGS
 			std::shared_ptr<osn::NumberProperty> prop = std::static_pointer_cast<osn::NumberProperty>(iter->second);
 
 			utilv8::SetObjectField(object, "type", (uint32_t)prop->field_type);
-			utilv8::SetObjectField(object, "min", prop->Float.min);
-			utilv8::SetObjectField(object, "max", prop->Float.max);
-			utilv8::SetObjectField(object, "step", prop->Float.step);
+			utilv8::SetObjectField(object, "min", prop->float_value.min);
+			utilv8::SetObjectField(object, "max", prop->float_value.max);
+			utilv8::SetObjectField(object, "step", prop->float_value.step);
 			break;
 		}
 		case osn::Property::Type::TEXT:
@@ -509,7 +509,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetDetails(Nan::NAN_METHOD_ARGS
 
 			v8::Local<v8::Array> itemsobj = Nan::New<v8::Array>();
 			idx = 0;
-			for (auto itm : prop->items) {
+			for (auto itm : prop->options) {
 				v8::Local<v8::Object> iobj = Nan::New<v8::Object>();
 				utilv8::SetObjectField(iobj, "name", itm.second.name);
 				utilv8::SetObjectField(iobj, "description", itm.second.description);
