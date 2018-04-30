@@ -6,6 +6,7 @@
 #include <vector>
 #include "gs-vertexbuffer.h"
 #include <memory>
+#include <thread>
 
 #if defined(_WIN32)
 #ifdef NOWINOFFSETS
@@ -23,7 +24,11 @@ EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 
 namespace OBS {
 	class Display {
-		#pragma region Constructors & Finalizer
+		std::thread worker;
+
+		void SystemWorker();
+
+#pragma region Constructors & Finalizer
 		private:
 		Display();
 
@@ -31,7 +36,7 @@ namespace OBS {
 		Display(uint64_t windowHandle); // Create a Main Preview one
 		Display(uint64_t windowHandle, std::string sourceName); // Create a Source-Specific one
 		~Display();
-		#pragma endregion Constructors & Finalizer
+#pragma endregion Constructors & Finalizer
 
 		void SetPosition(uint32_t x, uint32_t y);
 		std::pair<uint32_t, uint32_t> GetPosition();
@@ -79,7 +84,7 @@ namespace OBS {
 		std::pair<uint32_t, uint32_t> m_previewSize;
 
 		// OBS Graphics API
-		gs_effect_t 
+		gs_effect_t
 			*m_gsSolidEffect,
 			*m_textEffect;
 		gs_texture_t *m_textTexture;
@@ -104,7 +109,7 @@ namespace OBS {
 		uint32_t m_resizeInnerColor = 0xFFFFFFFF;
 		bool m_shouldDrawUI = true;
 
-		#if defined(_WIN32)
+#if defined(_WIN32)
 		HWND m_ourWindow;
 		static bool DisplayWndClassRegistered;
 		static WNDCLASSEX DisplayWndClassObj;
@@ -116,9 +121,9 @@ namespace OBS {
 			_In_ WPARAM wParam,
 			_In_ LPARAM lParam
 		);
-		#elif defined(__APPLE__)
-		#elif defined(__linux__) || defined(__FreeBSD__)
-		#endif
+#elif defined(__APPLE__)
+#elif defined(__linux__) || defined(__FreeBSD__)
+#endif
 	};
 }
 

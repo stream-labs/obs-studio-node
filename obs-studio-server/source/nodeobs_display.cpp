@@ -7,6 +7,9 @@
 #include <graphics/vec4.h>
 #include <graphics/matrix4.h>
 #include <util/platform.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 std::vector<std::pair<std::string, std::pair<uint32_t, uint32_t>>> sourcesSize;
 
@@ -31,12 +34,136 @@ static void RecalculateApectRatioConstrainedSize(
 	outY = (int32_t(origH / 2) - int32_t(outH / 2));
 }
 
+#ifdef _WIN32
+enum class SystemWorkerMessage : uint32_t {
+	CreateWindow = WM_USER + 0,
+	DestroyWindow = WM_USER + 1,
+	StopThread = WM_USER + 2,
+};
+
+struct CreateWindowMessageQuestion {
+	HWND parentWindow;
+	uint32_t width, height;
+};
+
+struct CreateWindowMessageAnswer {
+	std::mutex mutex;
+	std::condition_variable cv;
+
+	bool called = false;
+	bool success;
+	HWND windowHandle;
+	DWORD errorCode;
+	std::string errorMessage;
+};
+
+struct DestroyWindowMessageQuestion {
+	HWND window;
+};
+
+struct DestroyWindowMessageAnswer {
+	std::mutex mutex;
+	std::condition_variable cv;
+
+	bool called = false;
+	bool success;
+	DWORD errorCode;
+	std::string errorMessage;
+};
+
+void OBS::Display::SystemWorker() {
+	MSG message;
+
+	bool keepRunning = true;
+	do {
+		bool haveMessage = WaitMessage();
+		if (!haveMessage) {
+			continue;
+		}
+
+		bool gotMessage = GetMessage(&message, NULL, 0, 0);
+		if (!gotMessage) {
+			continue;
+		}
+
+		if (message.hwnd != NULL) {
+			LONG_PTR wndproc = GetWindowLongPtr(message.hwnd, GWLP_WNDPROC);
+			CallWindowProc((WNDPROC)wndproc, message.hwnd, message.message, message.wParam, message.lParam);
+			continue;
+		}
+
+		switch ((SystemWorkerMessage)message.message) {
+			case SystemWorkerMessage::CreateWindow:
+			{
+				CreateWindowMessageQuestion* question = reinterpret_cast<CreateWindowMessageQuestion*>(message.wParam);
+				CreateWindowMessageAnswer* answer = reinterpret_cast<CreateWindowMessageAnswer*>(message.lParam);
+
+				HWND newWindow = CreateWindowEx(
+					0,//WS_EX_COMPOSITED | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST,
+					TEXT("Win32DisplayClass"), TEXT("SlobsChildWindowPreview"),
+					WS_VISIBLE | WS_POPUP,
+					0, 0, question->width, question->height,
+					NULL,
+					NULL, NULL, this);
+				if (!newWindow) {
+					answer->errorCode = GetLastError();
+					LPSTR errorStr = nullptr;
+					DWORD errorStrSize = 32;
+					DWORD errorStrLen = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+						NULL, answer->errorCode, LANG_USER_DEFAULT, errorStr, errorStrSize, NULL);
+					answer->errorMessage = std::string(errorStr, errorStrLen);
+					LocalFree(errorStr);
+					answer->success = false;
+				} else {
+					SetParent(newWindow, question->parentWindow);
+					answer->windowHandle = newWindow;
+					answer->success = true;
+				}
+
+				answer->called = true;
+				answer->cv.notify_all();
+				break;
+			}
+			case SystemWorkerMessage::DestroyWindow:
+			{
+				DestroyWindowMessageQuestion* question = reinterpret_cast<DestroyWindowMessageQuestion*>(message.wParam);
+				DestroyWindowMessageAnswer* answer = reinterpret_cast<DestroyWindowMessageAnswer*>(message.lParam);
+
+				if (!DestroyWindow(question->window)) {
+					answer->errorCode = GetLastError();
+					LPSTR errorStr = nullptr;
+					DWORD errorStrSize = 32;
+					DWORD errorStrLen = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+						NULL, answer->errorCode, LANG_USER_DEFAULT, errorStr, errorStrSize, NULL);
+					answer->errorMessage = std::string(errorStr, errorStrLen);
+					LocalFree(errorStr);
+					answer->success = false;
+				} else {
+					answer->success = true;
+				}
+
+				answer->called = true;
+				answer->cv.notify_all();
+				break;
+			}
+			case SystemWorkerMessage::StopThread:
+			{
+				keepRunning = false;
+				break;
+			}
+		}
+	} while (keepRunning);
+}
+#endif
+
 OBS::Display::Display() {
 #if defined(_WIN32)
 	DisplayWndClass();
 #elif defined(__APPLE__)
 #elif defined(__linux__) || defined(__FreeBSD__)
 #endif
+
+	worker = std::thread(std::bind(&OBS::Display::SystemWorker, this));
 
 	m_gsInitData.adapter = 0;
 	m_gsInitData.cx = 960;
@@ -117,32 +244,25 @@ OBS::Display::Display() {
 }
 
 OBS::Display::Display(uint64_t windowHandle) : Display() {
-#if defined(_WIN32)
-	m_ourWindow = CreateWindowEx(
-		0,//WS_EX_COMPOSITED | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST,
-		TEXT("Win32DisplayClass"), TEXT("SlobsChildWindowPreview"),
-		WS_VISIBLE | WS_POPUP,
-		0, 0, m_gsInitData.cx, m_gsInitData.cy,
-		NULL,
-		NULL, NULL, this);
-	if (m_ourWindow == NULL) {
-		DWORD errorCode = GetLastError();
-		LPSTR errorStr = nullptr;
-		DWORD errorStrSize = 16,
-			errorStrLen = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, LANG_USER_DEFAULT, errorStr, errorStrSize, NULL);
-		std::string exceptionMessage(errorStr, errorStrLen);
-		exceptionMessage = "Unexpected WinAPI error: " + exceptionMessage;
-		LocalFree(errorStr);
+#ifdef _WIN32
+	CreateWindowMessageQuestion question;
+	CreateWindowMessageAnswer answer;
 
-		throw std::system_error(errorCode, std::system_category(), exceptionMessage);
+	std::unique_lock<std::mutex> ulock(answer.mutex);
+	question.parentWindow = (HWND)windowHandle;
+	question.width = m_gsInitData.cx;
+	question.height = m_gsInitData.cy;
+	PostThreadMessage(GetThreadId(worker.native_handle()), (UINT)SystemWorkerMessage::CreateWindow,
+		reinterpret_cast<intptr_t>(&question), reinterpret_cast<intptr_t>(&answer));
+
+	answer.cv.wait(ulock, [&answer]() {return answer.called; });
+
+	if (!answer.success) {
+		throw std::system_error(answer.errorCode, std::system_category(), answer.errorMessage);
 	}
 
-	SetParent(m_ourWindow, (HWND)windowHandle);
+	m_ourWindow = answer.windowHandle;
 	m_gsInitData.window.hwnd = reinterpret_cast<void*>(m_ourWindow);
-#elif defined(__APPLE__)
-	// ToDo
-#elif defined(__linux__) || defined(__FreeBSD__)
-	// ToDo
 #endif
 
 	m_display = obs_display_create(&m_gsInitData);
@@ -173,15 +293,27 @@ OBS::Display::~Display() {
 	m_boxTris = nullptr;
 	obs_leave_graphics();
 
-#if defined(_WIN32)
-	if (m_ourWindow) {
-		DestroyWindow((HWND)(m_gsInitData.window.hwnd));
+#ifdef _WIN32
+	DestroyWindowMessageQuestion question;
+	DestroyWindowMessageAnswer answer;
+
+	std::unique_lock<std::mutex> ulock(answer.mutex);
+	question.window = m_ourWindow;
+	PostThreadMessage(GetThreadId(worker.native_handle()), (UINT)SystemWorkerMessage::DestroyWindow,
+		reinterpret_cast<intptr_t>(&question), reinterpret_cast<intptr_t>(&answer));
+
+	answer.cv.wait(ulock, [&answer]() {return answer.called; });
+
+	if (!answer.success) {
+		std::cerr << "OBS::Display::~Display: " << answer.errorMessage << std::endl;
 	}
-#elif defined(__APPLE__)
-	// ToDo
-#elif defined(__linux__) || defined(__FreeBSD__)
-	// ToDo
+
+	PostThreadMessage(GetThreadId(worker.native_handle()), (UINT)SystemWorkerMessage::StopThread,
+		NULL, NULL);
 #endif
+
+	if (worker.joinable())
+		worker.join();
 }
 
 void OBS::Display::SetPosition(uint32_t x, uint32_t y) {
@@ -400,11 +532,11 @@ inline void DrawBoxAt(OBS::Display* dp, float_t x, float_t y, matrix4& mtx) {
 
 	vec3 pos = { x, y, 0.0f };
 	vec3_transform(&pos, &pos, &mtx);
-	
+
 	vec3 offset = { -HANDLE_RADIUS, -HANDLE_RADIUS, 0.0f };
 	offset.x *= dp->m_previewToWorldScale.x;
 	offset.y *= dp->m_previewToWorldScale.y;
-	
+
 	gs_matrix_translate(&pos);
 	gs_matrix_translate(&offset);
 	gs_matrix_scale3f(
@@ -649,10 +781,9 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 							pt, 0, v, dp->m_guidelineColor);
 					}
 				}
-			}
-			else if (left < -0.5) { // RIGHT
+			} else if (left < -0.5) { // RIGHT
 				float_t dist = sceneWidth - edge[n].x;
-				if (dist >(pt * 4)) {
+				if (dist > (pt * 4)) {
 					size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
 					float_t offset = float((pt * len) / 2.0);
 
@@ -663,8 +794,7 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 							pt, 0, v, dp->m_guidelineColor);
 					}
 				}
-			}
-			else if (top > 0.5) { // UP
+			} else if (top > 0.5) { // UP
 				float_t dist = edge[n].y;
 				if (dist > pt) {
 					size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
@@ -677,10 +807,9 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 							pt, 0, v, dp->m_guidelineColor);
 					}
 				}
-			}
-			else if (top < -0.5) { // DOWN
+			} else if (top < -0.5) { // DOWN
 				float_t dist = sceneHeight - edge[n].y;
-				if (dist >(pt * 4)) {
+				if (dist > (pt * 4)) {
 					size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
 					float_t offset = float((pt * len) / 2.0);
 
@@ -919,4 +1048,3 @@ bool OBS::Display::GetDrawGuideLines(void) {
 void OBS::Display::SetDrawGuideLines(bool drawGuideLines) {
 	m_drawGuideLines = drawGuideLines;
 }
-
