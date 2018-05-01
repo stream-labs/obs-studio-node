@@ -804,7 +804,7 @@ void OBS::Display::DisplayCallback(OBS::Display* dp, uint32_t cx, uint32_t cy) {
 			obs_source_addref(source);
 		}
 	} else {
-		obs_render_main_view();
+		obs_render_main_texture();
 		/* Here we assume that channel 0 holds the primary transition.
 		 * We also assume that the active source within that transition is
 		 * the scene that we need */
