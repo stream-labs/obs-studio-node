@@ -488,14 +488,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::GetActiveSource(Nan::NAN_METHOD_ARG
 
 	if (rtd.type == 0) {
 		// Input
-		//osn::Input* obj = new osn::Input(rtd.sourceId);
-		//info.GetReturnValue().Set(osn::Input::Store(obj));
-		// !FIXME! Uncomment once Inputs are done.
+		osn::Input* obj = new osn::Input(rtd.sourceId);
+		info.GetReturnValue().Set(osn::Input::Store(obj));
 	} else if (rtd.type == 3) {
 		// Scene
-		//osn::Scene* obj = new osn::Scene(rtd.sourceId);
-		//info.GetReturnValue().Set(osn::Scene::Store(obj));
-		// !FIXME! Uncomment once Scenes are done.
+		osn::Scene* obj = new osn::Scene(rtd.sourceId);
+		info.GetReturnValue().Set(osn::Scene::Store(obj));
 	}
 
 	return;

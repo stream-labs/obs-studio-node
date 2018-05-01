@@ -19,6 +19,8 @@
 #include <node.h>
 #include <nan.h>
 #include "isource.hpp"
+#include "scene.hpp"
+#include "input.hpp"
 #include "utility-v8.hpp"
 
 namespace osn {
