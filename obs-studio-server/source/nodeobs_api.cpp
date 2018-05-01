@@ -324,9 +324,9 @@ static void node_obs_log(int log_level, const char *msg, va_list args, void *par
 	
 	// Split by \n (new-line)
 	size_t last_valid_idx = 0;
-	for (size_t idx = 0; idx < text.length(); idx++) {
+	for (size_t idx = 0; idx <= text.length(); idx++) {
 		char& ch = text[idx];
-		if ((ch == '\n') || (idx + 1) == text.length()) {
+		if ((ch == '\n') || idx == text.length()) {
 			std::string newmsg = time_and_level + " " + std::string(&text[last_valid_idx], idx - last_valid_idx);
 			last_valid_idx = idx + 1;
 
