@@ -21,6 +21,7 @@
 #include <inttypes.h>
 #include <math.h>
 #include <map>
+#include <unordered_map>
 #include "utility-v8.hpp"
 
 namespace osn {
@@ -116,7 +117,7 @@ namespace osn {
 
 		Type field_type;
 		Format item_format;
-		std::map<std::string, Item> items; // Could also be a list, but this allows fast indexing by name.
+		std::list<Item> items;
 	};
 
 	// Contrary to the name, not compatible with the ListProperty. Actually more comparable to PathProperty.
@@ -142,12 +143,12 @@ namespace osn {
 			std::string description;
 		};
 
-		std::vector<std::pair<FrameRate, FrameRate>> ranges; // minmax range
-		std::map<std::string, Option> options; // Could also be a list, but this allows fast indexing by name.
+		std::list<std::pair<FrameRate, FrameRate>> ranges; // minmax range
+		std::list<Option> options; // Could also be a list, but this allows fast indexing by name.
 	};
 
 	// This is a class that basically implements the OBS behavior.
-	typedef std::map<std::string, std::shared_ptr<Property>> property_map_t;
+	typedef std::map<size_t, std::shared_ptr<Property>> property_map_t;
 
 	// The actual classes that work with JavaScript
 	class Properties : public Nan::ObjectWrap, public utilv8::InterfaceObject<Properties>, public utilv8::ManagedObject<Properties> {
@@ -175,13 +176,13 @@ namespace osn {
 
 	class PropertyObject : public Nan::ObjectWrap, public utilv8::InterfaceObject<PropertyObject>, public utilv8::ManagedObject<PropertyObject> {
 		v8::Persistent<v8::Object> parent;
-		std::string name;
+		size_t index;
 
 		protected:
 		static Nan::Persistent<v8::FunctionTemplate> prototype;
 
 		public:
-		PropertyObject(v8::Local<v8::Object> parent, std::string name);
+		PropertyObject(v8::Local<v8::Object> parent, size_t index);
 		~PropertyObject();
 
 		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);

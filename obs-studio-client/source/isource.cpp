@@ -378,7 +378,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 								item2.value_str = item.value_string;
 								break;
 						}
-						pr2->items.insert_or_assign(item2.name, std::move(item2));
+						pr2->items.push_back(std::move(item2));
 					}
 					pr = std::static_pointer_cast<osn::Property>(pr2);
 					break;
@@ -407,7 +407,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 						osn::FrameRateProperty::Option option2;
 						option2.name = option.name;
 						option2.description = option.description;
-						pr2->options.insert_or_assign(option2.name, std::move(option2));
+						pr2->options.push_back(std::move(option2));
 					}
 
 					break;
@@ -426,7 +426,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 				pr->enabled = raw_property->enabled;
 				pr->visible = raw_property->visible;
 
-				pmap.insert_or_assign(pr->name, pr);
+				pmap.insert_or_assign(idx - 1, pr);
 			}
 		}
 
