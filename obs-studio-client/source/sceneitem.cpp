@@ -40,29 +40,29 @@ void osn::SceneItem::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 		
 	// Prototype/Class Template
 	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->PrototypeTemplate();
-	utilv8::SetTemplateAccessorProperty(fnctemplate, "source", GetSource);
-	utilv8::SetTemplateAccessorProperty(fnctemplate, "scene", GetScene);
-	utilv8::SetTemplateAccessorProperty(fnctemplate, "visible", IsVisible, SetVisible);
-	utilv8::SetTemplateAccessorProperty(fnctemplate, "selected", IsSelected, SetSelected);
-	utilv8::SetTemplateAccessorProperty(fnctemplate, "position", GetPosition, SetPosition);
-	utilv8::SetTemplateAccessorProperty(fnctemplate, "rotation", GetRotation, SetRotation);
-	utilv8::SetTemplateAccessorProperty(fnctemplate, "scale", GetScale, SetScale);
-	utilv8::SetTemplateAccessorProperty(fnctemplate, "alignment", GetAlignment, SetAlignment);
-	utilv8::SetTemplateAccessorProperty(fnctemplate, "boundsAlignment", GetBoundsAlignment, SetBoundsAlignment);
-	utilv8::SetTemplateAccessorProperty(fnctemplate, "bounds", GetBounds, SetBounds);
-	utilv8::SetTemplateAccessorProperty(fnctemplate, "transformInfo", GetTransformInfo, SetTransformInfo);
-	utilv8::SetTemplateAccessorProperty(fnctemplate, "boundsType", GetBoundsType, SetBoundsType);
-	utilv8::SetTemplateAccessorProperty(fnctemplate, "crop", GetCrop, SetCrop);
-	utilv8::SetTemplateAccessorProperty(fnctemplate, "scaleFilter", GetScaleFilter, SetScaleFilter);
-	utilv8::SetTemplateAccessorProperty(fnctemplate, "id", GetId);
-	utilv8::SetTemplateField(fnctemplate, "moveUp", MoveUp);
-	utilv8::SetTemplateField(fnctemplate, "moveDown", MoveDown);
-	utilv8::SetTemplateField(fnctemplate, "moveTop", MoveTop);
-	utilv8::SetTemplateField(fnctemplate, "moveBottom", MoveBottom);
-	utilv8::SetTemplateField(fnctemplate, "move", Move);
-	utilv8::SetTemplateField(fnctemplate, "remove", Remove);
-	utilv8::SetTemplateField(fnctemplate, "deferUpdateBegin", DeferUpdateBegin);
-	utilv8::SetTemplateField(fnctemplate, "deferUpdateEnd", DeferUpdateEnd);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "source", GetSource);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "scene", GetScene);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "visible", IsVisible, SetVisible);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "selected", IsSelected, SetSelected);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "position", GetPosition, SetPosition);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "rotation", GetRotation, SetRotation);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "scale", GetScale, SetScale);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "alignment", GetAlignment, SetAlignment);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "boundsAlignment", GetBoundsAlignment, SetBoundsAlignment);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "bounds", GetBounds, SetBounds);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "transformInfo", GetTransformInfo, SetTransformInfo);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "boundsType", GetBoundsType, SetBoundsType);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "crop", GetCrop, SetCrop);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "scaleFilter", GetScaleFilter, SetScaleFilter);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "id", GetId);
+	utilv8::SetTemplateField(objtemplate, "moveUp", MoveUp);
+	utilv8::SetTemplateField(objtemplate, "moveDown", MoveDown);
+	utilv8::SetTemplateField(objtemplate, "moveTop", MoveTop);
+	utilv8::SetTemplateField(objtemplate, "moveBottom", MoveBottom);
+	utilv8::SetTemplateField(objtemplate, "move", Move);
+	utilv8::SetTemplateField(objtemplate, "remove", Remove);
+	utilv8::SetTemplateField(objtemplate, "deferUpdateBegin", DeferUpdateBegin);
+	utilv8::SetTemplateField(objtemplate, "deferUpdateEnd", DeferUpdateEnd);
 
 	// Stuff
 	utilv8::SetObjectField(target, "SceneItem", fnctemplate->GetFunction());

@@ -521,13 +521,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info) {
-	osn::Input* input = nullptr;
-
 	osn::Scene* scene = nullptr;
 	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), scene)) {
 		return;
 	}
-
+	
+	osn::Input* input = nullptr;
 	ASSERT_INFO_LENGTH(info, 1);
 	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Input>(info[0]->ToObject(), input)) {
 		return;
