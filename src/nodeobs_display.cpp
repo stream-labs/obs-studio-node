@@ -184,10 +184,12 @@ OBS::Display::Display(uint64_t windowHandle) : Display() {
 OBS::Display::Display(uint64_t windowHandle, std::string sourceName) : Display(windowHandle) {
 	std::cout << "creating display" << std::endl;
 	m_source = obs_get_source_by_name(sourceName.c_str());
+	obs_source_inc_showing(m_source);
 }
 
 OBS::Display::~Display() {
 	if (m_source) {
+		obs_source_dec_showing(m_source);
 		obs_source_release(m_source);
 	}
 	if (m_display)
