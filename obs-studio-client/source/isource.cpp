@@ -423,6 +423,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 				pr->description = raw_property->description;
 				pr->long_description = raw_property->long_description;
 				pr->type = osn::Property::Type(raw_property->type());
+				pr->enabled = raw_property->enabled;
+				pr->visible = raw_property->visible;
 
 				pmap.insert_or_assign(pr->name, pr);
 			}
