@@ -329,6 +329,8 @@ void display::OBS_content_createSourcePreviewDisplay(const v8::FunctionCallbackI
 	unsigned char *bufferData = (unsigned char *)node::Buffer::Data(bufferObj);
 	uint64_t windowHandle = *reinterpret_cast<uint64_t *>(bufferData);
 
+	FixChromeD3DIssue((HWND)windowHandle);
+
 	std::string sourceName, key;
 	ASSERT_GET_VALUE(args[1], sourceName);
 	ASSERT_GET_VALUE(args[2], key);
