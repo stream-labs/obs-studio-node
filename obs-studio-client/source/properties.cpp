@@ -105,20 +105,19 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Properties::Get(Nan::NAN_METHOD_ARGS_TYPE info)
 	std::string name;
 	ASSERT_GET_VALUE(info[0], name);
 
-	auto iter = obj->properties->find(name);
-	if (iter == obj->properties->end()) {
-		info.GetReturnValue().Set(Nan::Null());
-		return;
+	for (auto iter = obj->properties->begin(); iter != obj->properties->end(); iter++) {
+		if (iter->second->name == name) {
+			osn::PropertyObject* propobj = new osn::PropertyObject(info.This(), iter->first);
+			info.GetReturnValue().Set(osn::PropertyObject::Store(propobj));
+		}
 	}
-
-	osn::PropertyObject* propobj = new osn::PropertyObject(info.This(), iter->first);
-	info.GetReturnValue().Set(osn::PropertyObject::Store(propobj));
+	info.GetReturnValue().Set(Nan::Null());
 	return;
 }
 
-osn::PropertyObject::PropertyObject(v8::Local<v8::Object> p_parent, std::string name)
+osn::PropertyObject::PropertyObject(v8::Local<v8::Object> p_parent, size_t index)
 	: parent(v8::Isolate::GetCurrent(), p_parent) {
-	this->name = name;
+	this->index = index;
 }
 
 osn::PropertyObject::~PropertyObject() {
@@ -165,7 +164,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Previous(Nan::NAN_METHOD_ARGS_T
 	}
 	
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
-	auto iter = parent->GetProperties()->find(self->name);
+	auto iter = parent->GetProperties()->find(self->index);
 	if (iter == parent->GetProperties()->end()) {
 		info.GetReturnValue().Set(Nan::Null());
 		return;
@@ -197,7 +196,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Next(Nan::NAN_METHOD_ARGS_TYPE 
 	}
 
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
-	auto iter = parent->GetProperties()->find(self->name);
+	auto iter = parent->GetProperties()->find(self->index);
 	if (iter == parent->GetProperties()->end()) {
 		info.GetReturnValue().Set(Nan::Null());
 		return;
@@ -227,7 +226,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::IsFirst(Nan::NAN_METHOD_ARGS_TY
 	}
 
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
-	auto iter = parent->GetProperties()->find(self->name);
+	auto iter = parent->GetProperties()->find(self->index);
 	info.GetReturnValue().Set(iter == parent->GetProperties()->begin());
 	return;
 }
@@ -245,7 +244,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::IsLast(Nan::NAN_METHOD_ARGS_TYP
 	}
 
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
-	auto iter = property_map_t::reverse_iterator(parent->GetProperties()->find(self->name));
+	auto iter = property_map_t::reverse_iterator(parent->GetProperties()->find(self->index));
 	info.GetReturnValue().Set(iter == parent->GetProperties()->rbegin());
 	return;
 }
@@ -263,7 +262,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetName(Nan::NAN_METHOD_ARGS_TY
 	}
 
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
-	auto iter = parent->GetProperties()->find(self->name);
+	auto iter = parent->GetProperties()->find(self->index);
 	if (iter == parent->GetProperties()->end()) {
 		info.GetReturnValue().Set(Nan::Null());
 		return;
@@ -286,7 +285,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetDescription(Nan::NAN_METHOD_
 	}
 
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
-	auto iter = parent->GetProperties()->find(self->name);
+	auto iter = parent->GetProperties()->find(self->index);
 	if (iter == parent->GetProperties()->end()) {
 		info.GetReturnValue().Set(Nan::Null());
 		return;
@@ -309,7 +308,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetLongDescription(Nan::NAN_MET
 	}
 
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
-	auto iter = parent->GetProperties()->find(self->name);
+	auto iter = parent->GetProperties()->find(self->index);
 	if (iter == parent->GetProperties()->end()) {
 		info.GetReturnValue().Set(Nan::Null());
 		return;
@@ -332,7 +331,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::IsEnabled(Nan::NAN_METHOD_ARGS_
 	}
 
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
-	auto iter = parent->GetProperties()->find(self->name);
+	auto iter = parent->GetProperties()->find(self->index);
 	if (iter == parent->GetProperties()->end()) {
 		info.GetReturnValue().Set(Nan::Null());
 		return;
@@ -355,7 +354,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::IsVisible(Nan::NAN_METHOD_ARGS_
 	}
 
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
-	auto iter = parent->GetProperties()->find(self->name);
+	auto iter = parent->GetProperties()->find(self->index);
 	if (iter == parent->GetProperties()->end()) {
 		info.GetReturnValue().Set(Nan::Null());
 		return;
@@ -378,7 +377,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetType(Nan::NAN_METHOD_ARGS_TY
 	}
 
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
-	auto iter = parent->GetProperties()->find(self->name);
+	auto iter = parent->GetProperties()->find(self->index);
 	if (iter == parent->GetProperties()->end()) {
 		info.GetReturnValue().Set(Nan::Null());
 		return;
@@ -401,7 +400,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetDetails(Nan::NAN_METHOD_ARGS
 	}
 
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
-	auto iter = parent->GetProperties()->find(self->name);
+	auto iter = parent->GetProperties()->find(self->index);
 	if (iter == parent->GetProperties()->end()) {
 		info.GetReturnValue().Set(Nan::Null());
 		return;
@@ -457,17 +456,17 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetDetails(Nan::NAN_METHOD_ARGS
 			size_t idx = 0;
 			for (auto itm : prop->items) {
 				v8::Local<v8::Object> iobj = Nan::New<v8::Object>();
-				utilv8::SetObjectField(iobj, "name", itm.second.name);
-				utilv8::SetObjectField(iobj, "enabled", !itm.second.disabled);
+				utilv8::SetObjectField(iobj, "name", itm.name);
+				utilv8::SetObjectField(iobj, "enabled", !itm.disabled);
 				switch (prop->item_format) {
 					case ListProperty::Format::INT:
-						utilv8::SetObjectField(iobj, "value", itm.second.value_int);
+						utilv8::SetObjectField(iobj, "value", itm.value_int);
 						break;
 					case ListProperty::Format::FLOAT:
-						utilv8::SetObjectField(iobj, "value", itm.second.value_float);
+						utilv8::SetObjectField(iobj, "value", itm.value_float);
 						break;
 					case ListProperty::Format::STRING:
-						utilv8::SetObjectField(iobj, "value", itm.second.value_str);
+						utilv8::SetObjectField(iobj, "value", itm.value_str);
 						break;
 				}
 
@@ -513,8 +512,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetDetails(Nan::NAN_METHOD_ARGS
 			idx = 0;
 			for (auto itm : prop->options) {
 				v8::Local<v8::Object> iobj = Nan::New<v8::Object>();
-				utilv8::SetObjectField(iobj, "name", itm.second.name);
-				utilv8::SetObjectField(iobj, "description", itm.second.description);
+				utilv8::SetObjectField(iobj, "name", itm.name);
+				utilv8::SetObjectField(iobj, "description", itm.description);
 				utilv8::SetObjectField(rangesobj, (uint32_t)idx++, iobj);
 			}
 			utilv8::SetObjectField(object, "items", itemsobj);
