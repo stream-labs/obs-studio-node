@@ -141,7 +141,9 @@ void osn::PropertyObject::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target
 	utilv8::SetTemplateAccessorProperty(objtemplate, "longDescription", GetLongDescription);
 	utilv8::SetTemplateAccessorProperty(objtemplate, "enabled", IsEnabled);
 	utilv8::SetTemplateAccessorProperty(objtemplate, "visible", IsVisible);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "details", IsVisible);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "details", GetDetails);
+
+	utilv8::SetTemplateAccessorProperty(objtemplate, "type", GetType);
 
 	utilv8::SetTemplateField(objtemplate, "modified", Modified);
 	utilv8::SetTemplateField(objtemplate, "buttonClicked", ButtonClicked);
