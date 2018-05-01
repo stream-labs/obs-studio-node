@@ -331,7 +331,7 @@ void display::OBS_content_createSourcePreviewDisplay(const v8::FunctionCallbackI
 
 	std::string sourceName, key;
 	ASSERT_GET_VALUE(args[1], sourceName);
-	ASSERT_GET_VALUE(args[2], sourceName);
+	ASSERT_GET_VALUE(args[2], key);
 	
 	struct ThreadData {
 		std::condition_variable cv;
