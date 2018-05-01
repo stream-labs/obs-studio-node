@@ -744,7 +744,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::MoveItem(Nan::NAN_METHOD_ARGS_TYPE info)
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItem(Nan::NAN_METHOD_ARGS_TYPE info) {
-	int64_t index;
+	int64_t sceneItemId;
 
 	osn::Scene* scene = nullptr;
 	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), scene)) {
@@ -752,7 +752,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItem(Nan::NAN_METHOD_ARGS_TYPE info) 
 	}
 
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], index);
+	ASSERT_GET_VALUE(info[0], sceneItemId);
 
 	struct ThreadData {
 		std::condition_variable cv;
@@ -786,7 +786,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItem(Nan::NAN_METHOD_ARGS_TYPE info) 
 	};
 
 	bool suc = Controller::GetInstance().GetConnection()->call("Scene", "GetItem",
-		std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(index)}, fnc, &rtd);
+		std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(sceneItemId)}, fnc, &rtd);
 	if (!suc) {
 		info.GetIsolate()->ThrowException(
 			v8::Exception::Error(
