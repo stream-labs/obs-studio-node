@@ -87,8 +87,8 @@ void OBS::Display::SystemWorker() {
 		}
 
 		if (message.hwnd != NULL) {
-			LONG_PTR wndproc = GetWindowLongPtr(message.hwnd, GWLP_WNDPROC);
-			CallWindowProc((WNDPROC)wndproc, message.hwnd, message.message, message.wParam, message.lParam);
+			TranslateMessage(&message);
+			DispatchMessage(&message);
 			continue;
 		}
 
@@ -99,7 +99,7 @@ void OBS::Display::SystemWorker() {
 				CreateWindowMessageAnswer* answer = reinterpret_cast<CreateWindowMessageAnswer*>(message.lParam);
 
 				HWND newWindow = CreateWindowEx(
-					0,//WS_EX_COMPOSITED | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST,
+					WS_EX_LAYERED | WS_EX_TRANSPARENT,// | WS_EX_COMPOSITED | WS_EX_TOPMOST,
 					TEXT("Win32DisplayClass"), TEXT("SlobsChildWindowPreview"),
 					WS_VISIBLE | WS_POPUP,
 					0, 0, question->width, question->height,
@@ -115,6 +115,7 @@ void OBS::Display::SystemWorker() {
 					LocalFree(errorStr);
 					answer->success = false;
 				} else {
+					SetLayeredWindowAttributes(newWindow, 0, 100, LWA_ALPHA);
 					SetParent(newWindow, question->parentWindow);
 					answer->windowHandle = newWindow;
 					answer->success = true;
