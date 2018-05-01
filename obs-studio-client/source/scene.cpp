@@ -893,6 +893,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItems(Nan::NAN_METHOD_ARGS_TYPE info)
 		Nan::Set(arr, idx, osn::SceneItem::Store(obj));
 		iter++;
 	}
+	info.GetReturnValue().Set(arr);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemsInRange(Nan::NAN_METHOD_ARGS_TYPE info) {
