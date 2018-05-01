@@ -1755,7 +1755,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetCrop(Nan::NAN_METHOD_ARGS_TYPE in
 		rtd->cv.notify_all();
 	};
 
-	bool suc = Controller::GetInstance().GetConnection()->call("SceneItem", "GetBounds",
+	bool suc = Controller::GetInstance().GetConnection()->call("SceneItem", "GetCrop",
 		std::vector<ipc::value>{ipc::value(item->itemId)}, fnc, &rtd);
 	if (!suc) {
 		info.GetIsolate()->ThrowException(
@@ -1793,10 +1793,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetCrop(Nan::NAN_METHOD_ARGS_TYPE in
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetCrop(Nan::NAN_METHOD_ARGS_TYPE info) {
 	v8::Local<v8::Object> vector;
-	float_t left;
-	float_t top;
-	float_t right;
-	float_t bottom;
+	int32_t left;
+	int32_t top;
+	int32_t right;
+	int32_t bottom;
 
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], vector);
@@ -1844,7 +1844,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetCrop(Nan::NAN_METHOD_ARGS_TYPE in
 		rtd->cv.notify_all();
 	};
 
-	bool suc = Controller::GetInstance().GetConnection()->call("SceneItem", "SetBounds",
+	bool suc = Controller::GetInstance().GetConnection()->call("SceneItem", "SetCrop",
 		std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(left), ipc::value(top), ipc::value(right), ipc::value(bottom)}, fnc, &rtd);
 	if (!suc) {
 		info.GetIsolate()->ThrowException(

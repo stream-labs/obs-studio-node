@@ -320,6 +320,7 @@ void osn::SceneItem::GetBounds(void* data, const int64_t id, const std::vector<i
 
 	vec2 bounds;
 	obs_sceneitem_get_bounds(item, &bounds);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(bounds.x));
 	rval.push_back(ipc::value(bounds.y));
 }
@@ -337,6 +338,7 @@ void osn::SceneItem::SetBounds(void* data, const int64_t id, const std::vector<i
 	bounds.y = args[2].value_union.fp32;
 
 	obs_sceneitem_get_bounds(item, &bounds);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(bounds.x));
 	rval.push_back(ipc::value(bounds.y));
 }
