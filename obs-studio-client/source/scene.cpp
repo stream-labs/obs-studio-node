@@ -54,7 +54,7 @@ void osn::Scene::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	utilv8::SetTemplateField(objtemplate, "add", AddSource);
 	utilv8::SetTemplateField(objtemplate, "findItem", FindItem);
 	utilv8::SetTemplateField(objtemplate, "moveItem", MoveItem);
-	utilv8::SetTemplateField(objtemplate, "getItemAtIdx", GetItem);
+	utilv8::SetTemplateField(objtemplate, "getItemAtIdx", GetItemAtIndex);
 	utilv8::SetTemplateField(objtemplate, "getItems", GetItems);
 	utilv8::SetTemplateField(objtemplate, "getItemsInRange", GetItemsInRange);
 	utilv8::SetTemplateField(objtemplate, "connect", Connect);
@@ -606,7 +606,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FindItem(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	ASSERT_INFO_LENGTH(info, 1);
 	if (info[0]->IsNumber()) {
-		GetItem(info);
+		GetItemAtIndex(info);
 		return;
 	}
 	ASSERT_GET_VALUE(info[0], name);
@@ -743,7 +743,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::MoveItem(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItem(Nan::NAN_METHOD_ARGS_TYPE info) {
+Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemAtIndex(Nan::NAN_METHOD_ARGS_TYPE info) {
 	int64_t index;
 
 	osn::Scene* scene = nullptr;
