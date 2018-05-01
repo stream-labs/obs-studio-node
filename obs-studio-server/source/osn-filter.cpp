@@ -21,6 +21,7 @@
 #include <ipc-server.hpp>
 #include <obs.h>
 #include <memory>
+#include "shared.hpp"
 
 void osn::Filter::Register(ipc::server& srv) {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Filter");
@@ -36,7 +37,7 @@ void osn::Filter::Types(void* data, const int64_t id, const std::vector<ipc::val
 	for (size_t idx = 0; obs_enum_filter_types(idx, &typeId); idx++) {
 		rval.push_back(ipc::value(typeId ? typeId : ""));
 	}
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Filter::Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -56,6 +57,7 @@ void osn::Filter::Create(void* data, const int64_t id, const std::vector<ipc::va
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to create filter."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -64,10 +66,11 @@ void osn::Filter::Create(void* data, const int64_t id, const std::vector<ipc::va
 		// No further Ids left, leak somewhere.
 		rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
 		rval.push_back(ipc::value("Index list is full."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
-	return;
+	AUTO_DEBUG;
 }

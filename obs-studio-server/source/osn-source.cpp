@@ -26,6 +26,7 @@
 #include <memory>
 #include <obs.h>
 #include "obs-property.hpp"
+#include "shared.hpp"
 
 osn::Source::SingletonObjectManager::SingletonObjectManager() {
 
@@ -87,16 +88,19 @@ void osn::Source::Register(ipc::server& srv) {
 }
 
 void osn::Source::GetTypeProperties(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	AUTO_DEBUG;
 	// Per Type Properties (doesn't have an object).
 	//obs_get_source_properties();
 }
 
 void osn::Source::GetTypeDefaults(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	AUTO_DEBUG;
 	// Per Type Defaults (doesn't have an object)
 	//obs_get_source_defaults();
 }
 
 void osn::Source::GetTypeOutputFlags(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	AUTO_DEBUG;
 	// Per Type Defaults (doesn't have an object)
 	//obs_get_source_output_flags();
 }
@@ -107,6 +111,7 @@ void osn::Source::Remove(void* data, const int64_t id, const std::vector<ipc::va
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -114,7 +119,7 @@ void osn::Source::Remove(void* data, const int64_t id, const std::vector<ipc::va
 	osn::Source::GetInstance()->Free(args[0].value_union.ui64);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Source::Release(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -123,6 +128,7 @@ void osn::Source::Release(void* data, const int64_t id, const std::vector<ipc::v
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -132,7 +138,7 @@ void osn::Source::Release(void* data, const int64_t id, const std::vector<ipc::v
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Source::IsConfigurable(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -141,12 +147,13 @@ void osn::Source::IsConfigurable(void* data, const int64_t id, const std::vector
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_configurable(src)));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Source::GetProperties(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -155,6 +162,7 @@ void osn::Source::GetProperties(void* data, const int64_t id, const std::vector<
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -291,7 +299,7 @@ void osn::Source::GetProperties(void* data, const int64_t id, const std::vector<
 			rval.push_back(ipc::value(buf));
 		}
 	}
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Source::GetSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -300,6 +308,7 @@ void osn::Source::GetSettings(void* data, const int64_t id, const std::vector<ip
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -307,7 +316,7 @@ void osn::Source::GetSettings(void* data, const int64_t id, const std::vector<ip
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_data_get_json(sets)));
 	obs_data_release(sets);
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Source::Update(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -316,6 +325,7 @@ void osn::Source::Update(void* data, const int64_t id, const std::vector<ipc::va
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -324,7 +334,7 @@ void osn::Source::Update(void* data, const int64_t id, const std::vector<ipc::va
 	obs_data_release(sets);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Source::Load(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -333,13 +343,14 @@ void osn::Source::Load(void* data, const int64_t id, const std::vector<ipc::valu
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	obs_source_load(src);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Source::Save(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -348,13 +359,14 @@ void osn::Source::Save(void* data, const int64_t id, const std::vector<ipc::valu
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	obs_source_save(src);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Source::GetType(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -363,12 +375,13 @@ void osn::Source::GetType(void* data, const int64_t id, const std::vector<ipc::v
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_get_type(src)));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Source::GetName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -377,12 +390,13 @@ void osn::Source::GetName(void* data, const int64_t id, const std::vector<ipc::v
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_get_name(src)));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Source::SetName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -391,6 +405,7 @@ void osn::Source::SetName(void* data, const int64_t id, const std::vector<ipc::v
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -398,7 +413,7 @@ void osn::Source::SetName(void* data, const int64_t id, const std::vector<ipc::v
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_get_name(src)));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Source::GetOutputFlags(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -407,12 +422,13 @@ void osn::Source::GetOutputFlags(void* data, const int64_t id, const std::vector
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_get_output_flags(src)));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Source::GetFlags(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -421,12 +437,13 @@ void osn::Source::GetFlags(void* data, const int64_t id, const std::vector<ipc::
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_get_flags(src)));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Source::SetFlags(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -435,6 +452,7 @@ void osn::Source::SetFlags(void* data, const int64_t id, const std::vector<ipc::
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -442,7 +460,7 @@ void osn::Source::SetFlags(void* data, const int64_t id, const std::vector<ipc::
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_get_flags(src)));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Source::GetStatus(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -451,12 +469,13 @@ void osn::Source::GetStatus(void* data, const int64_t id, const std::vector<ipc:
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint64_t)true));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Source::GetId(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -465,13 +484,14 @@ void osn::Source::GetId(void* data, const int64_t id, const std::vector<ipc::val
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	const char* sid = obs_source_get_id(src);
 	rval.push_back(ipc::value(sid ? sid : ""));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Source::GetMuted(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -480,12 +500,13 @@ void osn::Source::GetMuted(void* data, const int64_t id, const std::vector<ipc::
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_muted(src)));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Source::SetMuted(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -494,6 +515,7 @@ void osn::Source::SetMuted(void* data, const int64_t id, const std::vector<ipc::
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -501,7 +523,7 @@ void osn::Source::SetMuted(void* data, const int64_t id, const std::vector<ipc::
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_muted(src)));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Source::GetEnabled(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -510,12 +532,13 @@ void osn::Source::GetEnabled(void* data, const int64_t id, const std::vector<ipc
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_enabled(src)));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Source::SetEnabled(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -524,6 +547,7 @@ void osn::Source::SetEnabled(void* data, const int64_t id, const std::vector<ipc
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -531,5 +555,5 @@ void osn::Source::SetEnabled(void* data, const int64_t id, const std::vector<ipc
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_enabled(src)));
-	return;
+	AUTO_DEBUG;
 }

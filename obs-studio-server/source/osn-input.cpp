@@ -21,6 +21,7 @@
 #include <ipc-server.hpp>
 #include <obs.h>
 #include <memory>
+#include "shared.hpp"
 
 void osn::Input::Register(ipc::server& srv) {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Input");
@@ -68,7 +69,7 @@ void osn::Input::Types(void* data, const int64_t id, const std::vector<ipc::valu
 	for (size_t idx = 0; obs_enum_input_types(idx, &typeId); idx++) {
 		rval.push_back(ipc::value(typeId ? typeId : ""));
 	}
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Input::Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -90,6 +91,7 @@ void osn::Input::Create(void* data, const int64_t id, const std::vector<ipc::val
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to create input."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -98,12 +100,13 @@ void osn::Input::Create(void* data, const int64_t id, const std::vector<ipc::val
 		// No further Ids left, leak somewhere.
 		rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
 		rval.push_back(ipc::value("Index list is full."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Input::CreatePrivate(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -123,6 +126,7 @@ void osn::Input::CreatePrivate(void* data, const int64_t id, const std::vector<i
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to create input."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -131,12 +135,13 @@ void osn::Input::CreatePrivate(void* data, const int64_t id, const std::vector<i
 		// No further Ids left, leak somewhere.
 		rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
 		rval.push_back(ipc::value("Index list is full."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Input::Duplicate(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -144,6 +149,7 @@ void osn::Input::Duplicate(void* data, const int64_t id, const std::vector<ipc::
 	if (!filter) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -156,6 +162,7 @@ void osn::Input::Duplicate(void* data, const int64_t id, const std::vector<ipc::
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to duplicate input."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -165,17 +172,17 @@ void osn::Input::Duplicate(void* data, const int64_t id, const std::vector<ipc::
 			// No further Ids left, leak somewhere.
 			rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
 			rval.push_back(ipc::value("Index list is full."));
+			AUTO_DEBUG;
 			return;
 		}
 
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		rval.push_back(ipc::value(uid));
-		return;
 	} else {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		rval.push_back(ipc::value(args[0].value_union.ui64));
-		return;
 	}
+	AUTO_DEBUG;
 }
 
 void osn::Input::FromName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -183,6 +190,7 @@ void osn::Input::FromName(void* data, const int64_t id, const std::vector<ipc::v
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::NotFound));
 		rval.push_back(ipc::value("Named input could not be found."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -190,11 +198,12 @@ void osn::Input::FromName(void* data, const int64_t id, const std::vector<ipc::v
 	if (uid == UINT64_MAX) {
 		// This is an impossible case, but we handle it in case it happens.
 		obs_source_release(source);
-	#ifdef DEBUG // Debug should throw an error for debuggers to catch.
+#ifdef DEBUG // Debug should throw an error for debuggers to catch.
 		throw std::runtime_error("Source found but not indexed.");
-	#endif
+#endif
 		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
 		rval.push_back(ipc::value("Source found but not indexed."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -202,7 +211,7 @@ void osn::Input::FromName(void* data, const int64_t id, const std::vector<ipc::v
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Input::GetPublicSources(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -223,7 +232,7 @@ void osn::Input::GetPublicSources(void* data, const int64_t id, const std::vecto
 	for (uint64_t uid : inputs) {
 		rval.push_back(uid);
 	}
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Input::GetActive(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -231,12 +240,13 @@ void osn::Input::GetActive(void* data, const int64_t id, const std::vector<ipc::
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_active(input)));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Input::GetShowing(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -244,12 +254,13 @@ void osn::Input::GetShowing(void* data, const int64_t id, const std::vector<ipc:
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_showing(input)));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Input::GetVolume(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -257,12 +268,13 @@ void osn::Input::GetVolume(void* data, const int64_t id, const std::vector<ipc::
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_get_volume(input)));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Input::SetVolume(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -270,6 +282,7 @@ void osn::Input::SetVolume(void* data, const int64_t id, const std::vector<ipc::
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -277,7 +290,7 @@ void osn::Input::SetVolume(void* data, const int64_t id, const std::vector<ipc::
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_get_volume(input)));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Input::GetSyncOffset(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -285,12 +298,13 @@ void osn::Input::GetSyncOffset(void* data, const int64_t id, const std::vector<i
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_get_sync_offset(input)));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Input::SetSyncOffset(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -298,6 +312,7 @@ void osn::Input::SetSyncOffset(void* data, const int64_t id, const std::vector<i
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -305,7 +320,7 @@ void osn::Input::SetSyncOffset(void* data, const int64_t id, const std::vector<i
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_get_sync_offset(input)));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Input::GetAudioMixers(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -313,12 +328,13 @@ void osn::Input::GetAudioMixers(void* data, const int64_t id, const std::vector<
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_get_audio_mixers(input)));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Input::SetAudioMixers(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -326,6 +342,7 @@ void osn::Input::SetAudioMixers(void* data, const int64_t id, const std::vector<
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -333,7 +350,7 @@ void osn::Input::SetAudioMixers(void* data, const int64_t id, const std::vector<
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_get_audio_mixers(input)));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Input::GetMonitoringType(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -341,12 +358,13 @@ void osn::Input::GetMonitoringType(void* data, const int64_t id, const std::vect
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_get_monitoring_type(input)));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Input::SetMonitoringType(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -354,6 +372,7 @@ void osn::Input::SetMonitoringType(void* data, const int64_t id, const std::vect
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -361,7 +380,7 @@ void osn::Input::SetMonitoringType(void* data, const int64_t id, const std::vect
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_get_monitoring_type(input)));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Input::GetWidth(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -369,12 +388,13 @@ void osn::Input::GetWidth(void* data, const int64_t id, const std::vector<ipc::v
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_get_width(input)));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Input::GetHeight(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -382,12 +402,13 @@ void osn::Input::GetHeight(void* data, const int64_t id, const std::vector<ipc::
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_get_height(input)));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Input::GetDeInterlaceFieldOrder(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -395,12 +416,13 @@ void osn::Input::GetDeInterlaceFieldOrder(void* data, const int64_t id, const st
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_get_deinterlace_field_order(input)));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Input::SetDeInterlaceFieldOrder(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -408,6 +430,7 @@ void osn::Input::SetDeInterlaceFieldOrder(void* data, const int64_t id, const st
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -415,7 +438,7 @@ void osn::Input::SetDeInterlaceFieldOrder(void* data, const int64_t id, const st
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_get_deinterlace_field_order(input)));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Input::GetDeInterlaceMode(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -423,12 +446,13 @@ void osn::Input::GetDeInterlaceMode(void* data, const int64_t id, const std::vec
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_get_deinterlace_mode(input)));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Input::SetDeInterlaceMode(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -436,6 +460,7 @@ void osn::Input::SetDeInterlaceMode(void* data, const int64_t id, const std::vec
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -443,7 +468,7 @@ void osn::Input::SetDeInterlaceMode(void* data, const int64_t id, const std::vec
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_get_deinterlace_mode(input)));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Input::AddFilter(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -451,6 +476,7 @@ void osn::Input::AddFilter(void* data, const int64_t id, const std::vector<ipc::
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -458,13 +484,14 @@ void osn::Input::AddFilter(void* data, const int64_t id, const std::vector<ipc::
 	if (!filter) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Filter reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	obs_source_filter_add(input, filter);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Input::RemoveFilter(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -472,6 +499,7 @@ void osn::Input::RemoveFilter(void* data, const int64_t id, const std::vector<ip
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -479,13 +507,14 @@ void osn::Input::RemoveFilter(void* data, const int64_t id, const std::vector<ip
 	if (!filter) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Filter reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	obs_source_filter_remove(input, filter);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Input::FindFilter(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -493,6 +522,7 @@ void osn::Input::FindFilter(void* data, const int64_t id, const std::vector<ipc:
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -500,6 +530,7 @@ void osn::Input::FindFilter(void* data, const int64_t id, const std::vector<ipc:
 	if (!filter) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::NotFound));
 		rval.push_back(ipc::value("Filter not found."));
+		AUTO_DEBUG;
 		return;
 	}
 	obs_source_release(filter);
@@ -508,12 +539,13 @@ void osn::Input::FindFilter(void* data, const int64_t id, const std::vector<ipc:
 	if (uid == UINT64_MAX) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
 		rval.push_back(ipc::value("Filter found but not indexed."));
+		AUTO_DEBUG;
 		return;
 	}
-	
+
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Input::GetFilters(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -521,6 +553,7 @@ void osn::Input::GetFilters(void* data, const int64_t id, const std::vector<ipc:
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -535,7 +568,7 @@ void osn::Input::GetFilters(void* data, const int64_t id, const std::vector<ipc:
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	obs_source_enum_filters(input, enum_cb, &rval);
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Input::CopyFiltersTo(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -543,6 +576,7 @@ void osn::Input::CopyFiltersTo(void* data, const int64_t id, const std::vector<i
 	if (!input_from) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("1st Input reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -550,11 +584,12 @@ void osn::Input::CopyFiltersTo(void* data, const int64_t id, const std::vector<i
 	if (!input_to) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("2nd Input reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	obs_source_copy_filters(input_to, input_from);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	return;
+	AUTO_DEBUG;
 }
