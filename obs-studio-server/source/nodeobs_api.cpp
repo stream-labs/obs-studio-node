@@ -246,6 +246,13 @@ static void DeleteOldestFile(const char *location, unsigned maxLogs)
 #include <cstdarg>
 #include <varargs.h>
 
+#ifdef _WIN32
+#include <io.h>
+#include <stdio.h>
+#else
+#include <unistd.h>
+#endif
+
 inline std::string nodeobs_log_formatted_message(const char* format, va_list& args) {
 	size_t length = _vscprintf(format, args);
 	std::vector<char> buf = std::vector<char>(length + 1, '\0');
@@ -322,24 +329,30 @@ static void node_obs_log(int log_level, const char *msg, va_list args, void *par
 	// Format incoming text
 	std::string text = nodeobs_log_formatted_message(msg, args);
 	
+
+	std::fstream *logStream = reinterpret_cast<std::fstream*>(param);
+
 	// Split by \n (new-line)
 	size_t last_valid_idx = 0;
 	for (size_t idx = 0; idx <= text.length(); idx++) {
 		char& ch = text[idx];
-		if ((ch == '\n') || idx == text.length()) {
-			std::string newmsg = time_and_level + " " + std::string(&text[last_valid_idx], idx - last_valid_idx);
+		if ((ch == '\n') || (idx == text.length())) {
+			std::string newmsg = time_and_level + " " + std::string(&text[last_valid_idx], idx - last_valid_idx) + '\n';
 			last_valid_idx = idx + 1;
 
 			// File Log
-			std::fstream *logStream = reinterpret_cast<std::fstream*>(param);
-			*logStream << newmsg << std::flush;
+			*logStream << newmsg;
 
 			// Std Out / Std Err
+			/// Why fwrite and not std::cout and std::cerr?
+			/// Well, it seems that std::cout and std::cerr break if you click in the console window and paste.
+			/// Which is really bad, as nothing gets logged into the console anymore.
 			if (log_level <= LOG_WARNING) {
-				std::cerr << newmsg << '\n';
+				fwrite(newmsg.data(), sizeof(char), newmsg.length(), stderr);
 			}
-			std::cout << newmsg << '\n';
+			fwrite(newmsg.data(), sizeof(char), newmsg.length(), stdout);
 
+			
 			// Debugger
 #ifdef _WIN32
 			if (IsDebuggerPresent()) {
@@ -361,6 +374,9 @@ static void node_obs_log(int log_level, const char *msg, va_list args, void *par
 #endif
 		}
 	}
+	*logStream << std::flush;
+	std::cerr << std::flush;
+	std::cout << std::flush;
 
 #if defined(_WIN32) && defined(OBS_DEBUGBREAK_ON_ERROR)
 	if (log_level <= LOG_ERROR && IsDebuggerPresent())
