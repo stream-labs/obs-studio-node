@@ -162,7 +162,7 @@ void osn::Source::GetProperties(void* data, const int64_t id, const std::vector<
 	const char* buf;
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	for (obs_property_t* p = obs_properties_first(prp); (p != nullptr) && obs_property_next(&p);) {
+	for (obs_property_t* p = obs_properties_first(prp); (p != nullptr); obs_property_next(&p)) {
 		std::shared_ptr<obs::Property> prop;
 
 		switch (obs_property_get_type(p)) {
