@@ -321,10 +321,17 @@ void display::OBS_content_getDisplayPreviewSize(const v8::FunctionCallbackInfo<v
 }
 
 void display::OBS_content_createSourcePreviewDisplay(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::string windowHandle, key;
 
-	ASSERT_GET_VALUE(args[0], windowHandle);
-	ASSERT_GET_VALUE(args[1], key);
+	v8::Isolate *isolate = args.GetIsolate();
+	v8::EscapableHandleScope scope(isolate);
+
+	v8::Local<v8::Object> bufferObj = args[0].As<v8::Object>();
+	unsigned char *bufferData = (unsigned char *)node::Buffer::Data(bufferObj);
+	uint64_t windowHandle = *reinterpret_cast<uint64_t *>(bufferData);
+
+	std::string sourceName, key;
+	ASSERT_GET_VALUE(args[1], sourceName);
+	ASSERT_GET_VALUE(args[2], sourceName);
 	
 	struct ThreadData {
 		std::condition_variable cv;
@@ -355,7 +362,7 @@ void display::OBS_content_createSourcePreviewDisplay(const v8::FunctionCallbackI
 	};
 
 	bool suc = Controller::GetInstance().GetConnection()->call("Display", "OBS_content_createSourcePreviewDisplay",
-		std::vector<ipc::value>{ipc::value(windowHandle), ipc::value(key)}, fnc, &rtd);
+		std::vector<ipc::value>{ipc::value(windowHandle), ipc::value(sourceName), ipc::value(key)}, fnc, &rtd);
 	if (!suc) {
 		args.GetIsolate()->ThrowException(
 			v8::Exception::Error(

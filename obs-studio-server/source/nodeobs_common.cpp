@@ -120,7 +120,7 @@ void OBS_content::Register(ipc::server& srv) {
 		std::vector<ipc::type>{ipc::type::String}, OBS_content_getDisplayPreviewSize));
 
 	cls->register_function(std::make_shared<ipc::function>("OBS_content_createSourcePreviewDisplay",
-		std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String}, OBS_content_createSourcePreviewDisplay));
+		std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::String}, OBS_content_createSourcePreviewDisplay));
 
 	cls->register_function(std::make_shared<ipc::function>("OBS_content_resizeDisplay",
 		std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_resizeDisplay));
@@ -175,27 +175,24 @@ void OBS_content::Register(ipc::server& srv) {
 
 void OBS_content::OBS_content_createDisplay(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	uint64_t windowHandle = args[0].value_union.ui64;
-	std::string* key = new std::string(args[1].value_str);
-
-	auto found = displays.find(*key);
+	auto found = displays.find(args[1].value_str);
 
 	/* If found, do nothing since it would
 	be a memory leak otherwise. */
 	if (found != displays.end()) {
-		std::cerr << "Duplicate key provided to createDisplay: " << *key << std::endl;
+		std::cerr << "Duplicate key provided to createDisplay: " << args[1].value_str << std::endl;
 		return;
 	}
 
-	displays[*key] = new OBS::Display(windowHandle);
+	displays[args[1].value_str] = new OBS::Display(windowHandle);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
 void OBS_content::OBS_content_destroyDisplay(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
-	std::string* key = new std::string(args[0].value_str);
-	auto found = displays.find(*key);
+	auto found = displays.find(args[0].value_str);
 
 	if (found == displays.end()) {
-		std::cerr << "Failed to find key for destruction: " << *key << std::endl;
+		std::cerr << "Failed to find key for destruction: " << args[0].value_str << std::endl;
 		return;
 	}
 
@@ -205,13 +202,9 @@ void OBS_content::OBS_content_destroyDisplay(void* data, const int64_t id, const
 }
 
 void OBS_content::OBS_content_createSourcePreviewDisplay(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
-	unsigned char *bufferData = (unsigned char *)args[0].value_str.c_str();
-	uint64_t windowHandle = *reinterpret_cast<uint64_t *>(bufferData);
+	uint64_t windowHandle = args[0].value_union.ui64;
 
-	std::string* sourceName = new std::string(args[1].value_str);
-	std::string* key = new std::string(args[2].value_str);
-
-	auto found = displays.find(*key);
+	auto found = displays.find(args[2].value_str);
 
 	/* If found, do nothing since it would
 	be a memory leak otherwise. */
@@ -219,16 +212,14 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(void* data, const int64
 		std::cout << "Duplicate key provided to createDisplay!" << std::endl;
 		return;
 	}
-	displays[*key] = new OBS::Display(windowHandle, *sourceName);
+	displays[args[2].value_str] = new OBS::Display(windowHandle, args[1].value_str);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
 void OBS_content::OBS_content_resizeDisplay(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
-	std::string* key = new std::string(args[0].value_str);
-
-	auto value = displays.find(*key);
+	auto value = displays.find(args[0].value_str);
 	if (value == displays.end()) {
-		std::cout << "Invalid key provided to resizeDisplay: " << *key << std::endl;
+		std::cout << "Invalid key provided to resizeDisplay: " << args[0].value_str << std::endl;
 		return;
 	}
 
@@ -242,11 +233,9 @@ void OBS_content::OBS_content_resizeDisplay(void* data, const int64_t id, const 
 }
 
 void OBS_content::OBS_content_moveDisplay(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
-	std::string* key = new std::string(args[0].value_str);
-
-	auto value = displays.find(*key);
+	auto value = displays.find(args[0].value_str);
 	if (value == displays.end()) {
-		std::cout << "Invalid key provided to moveDisplay: " << *key << std::endl;
+		std::cout << "Invalid key provided to moveDisplay: " << args[0].value_str << std::endl;
 		return;
 	}
 
@@ -299,8 +288,7 @@ void OBS_content::OBS_content_setPaddingSize(void* data, const int64_t id, const
 	}*/
 
 	// Find Display
-	std::string* key = new std::string(args[0].value_str);
-	auto it = displays.find(*key);
+	auto it = displays.find(args[0].value_str);
 	if (it == displays.end()) {
 		/*isolate->ThrowException(
 			v8::Exception::SyntaxError(
@@ -387,8 +375,7 @@ void OBS_content::OBS_content_setPaddingColor(void* data, const int64_t id, cons
 		color.c[3] = 255;
 
 	// Find Display
-	std::string* key = new std::string(args[0].value_str);
-	auto it = displays.find(*key);
+	auto it = displays.find(args[0].value_str);
 	if (it == displays.end()) {
 		/*isolate->ThrowException(
 			v8::Exception::SyntaxError(
@@ -475,8 +462,7 @@ void OBS_content::OBS_content_setBackgroundColor(void* data, const int64_t id, c
 		color.c[3] = 255;
 
 	// Find Display
-	std::string* key = new std::string(args[0].value_str);
-	auto it = displays.find(*key);
+	auto it = displays.find(args[0].value_str);
 	if (it == displays.end()) {
 		/*isolate->ThrowException(
 			v8::Exception::SyntaxError(
@@ -564,8 +550,7 @@ void OBS_content::OBS_content_setOutlineColor(void* data, const int64_t id, cons
 		color.c[3] = 255;
 
 	// Find Display
-	std::string* key = new std::string(args[0].value_str);
-	auto it = displays.find(*key);
+	auto it = displays.find(args[0].value_str);
 	if (it == displays.end()) {
 		/*isolate->ThrowException(
 		      v8::Exception::SyntaxError(
@@ -653,8 +638,7 @@ void OBS_content::OBS_content_setGuidelineColor(void* data, const int64_t id, co
 		color.c[3] = 255;
 
 	// Find Display
-	std::string* key = new std::string(args[0].value_str);
-	auto it = displays.find(*key);
+	auto it = displays.find(args[0].value_str);
 	if (it == displays.end()) {
 		/*isolate->ThrowException(
 		      v8::Exception::SyntaxError(
@@ -748,8 +732,7 @@ void OBS_content::OBS_content_setResizeBoxOuterColor(void* data, const int64_t i
 		color.c[3] = 255;
 
 	// Find Display
-	std::string* key = new std::string(args[0].value_str);
-	auto it = displays.find(*key);
+	auto it = displays.find(args[0].value_str);
 	if (it == displays.end()) {
 		/*isolate->ThrowException(
 		      v8::Exception::SyntaxError(
@@ -844,8 +827,7 @@ void OBS_content::OBS_content_setResizeBoxInnerColor(void* data, const int64_t i
 		color.c[3] = 255;
 
 	// Find Display
-	std::string* key = new std::string(args[0].value_str);
-	auto it = displays.find(*key);
+	auto it = displays.find(args[0].value_str);
 	if (it == displays.end()) {
 		/*isolate->ThrowException(
 		      v8::Exception::SyntaxError(
@@ -905,8 +887,7 @@ void OBS_content::OBS_content_setShouldDrawUI(void* data, const int64_t id, cons
 	}*/
 
 	// Find Display
-	std::string* key = new std::string(args[0].value_str);
-	auto it = displays.find(*key);
+	auto it = displays.find(args[0].value_str);
 	if (it == displays.end()) {
 		/*isolate->ThrowException(
 		      v8::Exception::SyntaxError(
@@ -921,11 +902,9 @@ void OBS_content::OBS_content_setShouldDrawUI(void* data, const int64_t id, cons
 }
 
 void OBS_content::OBS_content_getDisplayPreviewOffset(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
-	std::string* key = new std::string(args[0].value_str);
-
-	auto value = displays.find(*key);
+	auto value = displays.find(args[0].value_str);
 	if (value == displays.end()) {
-		std::cout << "Invalid key provided to moveDisplay: " << *key << std::endl;
+		std::cout << "Invalid key provided to moveDisplay: " << args[0].value_str << std::endl;
 		return;
 	}
 
@@ -939,11 +918,9 @@ void OBS_content::OBS_content_getDisplayPreviewOffset(void* data, const int64_t 
 }
 
 void OBS_content::OBS_content_getDisplayPreviewSize(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
-	std::string* key = new std::string(args[0].value_str);
-
-	auto value = displays.find(*key);
+	auto value = displays.find(args[0].value_str);
 	if (value == displays.end()) {
-		std::cout << "Invalid key provided to moveDisplay: " << *key << std::endl;
+		std::cout << "Invalid key provided to moveDisplay: " << args[0].value_str << std::endl;
 		return;
 	}
 
@@ -1115,8 +1092,7 @@ void OBS_content::OBS_content_getDrawGuideLines(void* data, const int64_t id, co
 	}*/
 
 	// Find Display
-	std::string* key = new std::string(args[0].value_str);
-	auto it = displays.find(*key);
+	auto it = displays.find(args[0].value_str);
 	if (it == displays.end()) {
 		/*isolate->ThrowException(
 		      v8::Exception::SyntaxError(
@@ -1168,8 +1144,7 @@ void OBS_content::OBS_content_setDrawGuideLines(void* data, const int64_t id, co
 	}*/
 
 	// Find Display
-	std::string* key = new std::string(args[0].value_str);
-	auto it = displays.find(*key);
+	auto it = displays.find(args[0].value_str);
 	if (it == displays.end()) {
 		/*isolate->ThrowException(
 		      v8::Exception::SyntaxError(
