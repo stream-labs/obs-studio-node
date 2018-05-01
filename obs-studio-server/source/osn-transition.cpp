@@ -33,7 +33,7 @@ void osn::Transition::Register(ipc::server& srv) {
 	cls->register_function(std::make_shared<ipc::function>("FromName", std::vector<ipc::type>{ipc::type::UInt64}, FromName));
 	cls->register_function(std::make_shared<ipc::function>("GetActiveSource", std::vector<ipc::type>{ipc::type::UInt64}, GetActiveSource));
 	cls->register_function(std::make_shared<ipc::function>("Clear", std::vector<ipc::type>{ipc::type::UInt64}, Clear));
-	cls->register_function(std::make_shared<ipc::function>("Set", std::vector<ipc::type>{ipc::type::UInt64}, Set));
+	cls->register_function(std::make_shared<ipc::function>("Set", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, Set));
 	cls->register_function(std::make_shared<ipc::function>("Start", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32, ipc::type::UInt64}, Start));
 	srv.register_collection(cls);
 }
