@@ -18,7 +18,7 @@ void osn::Scene::Register(ipc::server& srv) {
 	cls->register_function(std::make_shared<ipc::function>("AddSource", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, AddSource));
 	cls->register_function(std::make_shared<ipc::function>("FindItem", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, FindItem));
 	cls->register_function(std::make_shared<ipc::function>("MoveItem", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32, ipc::type::Int32}, MoveItem));
-	cls->register_function(std::make_shared<ipc::function>("GetItem", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int64}, GetItem));
+	cls->register_function(std::make_shared<ipc::function>("GetItem", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, GetItem));
 	cls->register_function(std::make_shared<ipc::function>("GetItems", std::vector<ipc::type>{ipc::type::UInt64}, GetItems));
 	cls->register_function(std::make_shared<ipc::function>("GetItemsInRange", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32, ipc::type::Int32}, GetItemsInRange));
 
@@ -371,15 +371,14 @@ void osn::Scene::GetItem(void* data, const int64_t id, const std::vector<ipc::va
 
 	struct EnumData {
 		obs_sceneitem_t* item = nullptr;
-		size_t findId = 0;
+		size_t findindex = 0;
 		size_t index = 0;
 	} ed;
-	ed.findId = args[1].value_union.i64;
+	ed.findindex = args[1].value_union.ui64;
 
 	auto cb = [](obs_scene_t* scene, obs_sceneitem_t* item, void* data) {
 		EnumData* items = reinterpret_cast<EnumData*>(data);
-		int64_t id = obs_sceneitem_get_id(item);
-		if (id == items->findId) {
+		if (items->index == items->findindex) {
 			items->item = item;
 			return false;
 		}
