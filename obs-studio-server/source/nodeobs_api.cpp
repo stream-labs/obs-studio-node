@@ -26,6 +26,8 @@
 
 #include "error.hpp"
 
+
+
 std::string appdata_path;
 vector<pair<obs_module_t *, int>> listModules;
 os_cpu_usage_info_t *cpuUsageInfo = nullptr;
@@ -239,94 +241,133 @@ static void DeleteOldestFile(const char *location, unsigned maxLogs)
 	}
 }
 
-static void stdout_log_handler(int log_level, const char *format,
-		va_list args, void *param)
-{
-	char out[4096];
-	vsnprintf(out, sizeof(out), format, args);
+#pragma region Logging
+#include <chrono>
+#include <cstdarg>
+#include <varargs.h>
 
-	switch (log_level) {
-	case LOG_DEBUG:
-		fprintf(stdout, "debug: %s\n", out);
-		fflush(stdout);
-		break;
-
-	case LOG_INFO:
-		fprintf(stdout, "info: %s\n", out);
-		fflush(stdout);
-		break;
-
-	case LOG_WARNING:
-		fprintf(stdout, "warning: %s\n", out);
-		fflush(stdout);
-		break;
-
-	case LOG_ERROR:
-		fprintf(stderr, "error: %s\n", out);
-		fflush(stderr);
-	}
-
-	UNUSED_PARAMETER(param);
+inline std::string nodeobs_log_formatted_message(const char* format, va_list& args) {
+	size_t length = _vscprintf(format, args);
+	std::vector<char> buf = std::vector<char>(length + 1, '\0');
+	size_t written = vsprintf_s(buf.data(), buf.size(), format, args);
+	return std::string(buf.begin(), buf.begin() + length);
 }
 
-static void node_obs_log
-		(int log_level, const char *msg,
-		 va_list args, void *param)
-{
-	fstream &logFile = *static_cast<fstream*>(param);
-	char str[4096];
+std::chrono::high_resolution_clock hrc;
+std::chrono::high_resolution_clock::time_point tp = std::chrono::high_resolution_clock::now();
+static void node_obs_log(int log_level, const char *msg, va_list args, void *param) {
+	// Calculate log time.
+	auto timeSinceStart = (std::chrono::high_resolution_clock::now() - tp);
+	auto days = std::chrono::duration_cast<std::chrono::duration<int, ratio<86400>>>(timeSinceStart);
+	timeSinceStart -= days;
+	auto hours = std::chrono::duration_cast<std::chrono::hours>(timeSinceStart);
+	timeSinceStart -= hours;
+	auto minutes = std::chrono::duration_cast<std::chrono::minutes>(timeSinceStart);
+	timeSinceStart -= minutes;
+	auto seconds = std::chrono::duration_cast<std::chrono::seconds>(timeSinceStart);
+	timeSinceStart -= seconds;
+	auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(timeSinceStart);
+	timeSinceStart -= milliseconds;
+	auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(timeSinceStart);
+	timeSinceStart -= microseconds;
+	auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(timeSinceStart);
 
-	va_list args2;
-	va_copy(args2, args);
-
-	stdout_log_handler(log_level, msg, args, nullptr);
-	vsnprintf(str, 4095, msg, args2);
-
-#ifdef _WIN32
-	if (IsDebuggerPresent()) {
-		int wNum = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0);
-		if (wNum > 1) {
-			static wstring wide_buf;
-			static mutex wide_mutex;
-
-			lock_guard<mutex> lock(wide_mutex);
-			wide_buf.reserve(wNum + 1);
-			wide_buf.resize(wNum - 1);
-			MultiByteToWideChar(CP_UTF8, 0, str, -1, &wide_buf[0],
-				wNum);
-			wide_buf.push_back('\n');
-
-			OutputDebugStringW(wide_buf.c_str());
-		}
-	}
-#endif
-
-	char *tmp_str = str;
-	char *nextLine = tmp_str;
-
-	while (*nextLine) {
-		char *nextLine = strchr(tmp_str, '\n');
-		if (!nextLine)
+	// Generate timestamp and log_level part.
+	/// Convert level int to human readable name
+	std::string levelname = "";
+	switch (log_level) {
+		case LOG_INFO:
+			levelname = "Info";
 			break;
-
-		if (nextLine != tmp_str && nextLine[-1] == '\r') {
-			nextLine[-1] = 0;
-		} else {
-			nextLine[0] = 0;
-		}
-
-		logFile << tmp_str << endl;
-		nextLine++;
-		tmp_str = nextLine;
+		case LOG_WARNING:
+			levelname = "Warning";
+			break;
+		case LOG_ERROR:
+			levelname = "Error";
+			break;
+		case LOG_DEBUG:
+			levelname = "Debug";
+			break;
+		default:
+			if (log_level <= 50) {
+				levelname = "Critical";
+			} else if (log_level > 50 && log_level < LOG_ERROR) {
+				levelname = "Error";
+			} else if (log_level > LOG_ERROR && log_level < LOG_WARNING) {
+				levelname = "Alert";
+			} else if (log_level > LOG_WARNING && log_level < LOG_INFO) {
+				levelname = "Hint";
+			} else if (log_level > LOG_INFO) {
+				levelname = "Notice";
+			}
+			break;
 	}
 
-	logFile << tmp_str << endl;
+	std::vector<char> timebuf(65535, '\0');
+	std::string timeformat = "[%.3d:%.2d:%.2d:%.2d.%.3d.%.3d.%.3d][%*s]";// "%*s";
+	int length = sprintf_s(
+		timebuf.data(),
+		timebuf.size(),
+		timeformat.c_str(),
+		days.count(),
+		hours.count(),
+		minutes.count(),
+		seconds.count(),
+		milliseconds.count(),
+		microseconds.count(),
+		nanoseconds.count(),
+		levelname.length(), levelname.c_str());
+	std::string time_and_level = std::string(timebuf.data(), length);
+	
+	// Format incoming text
+	std::string text = nodeobs_log_formatted_message(msg, args);
+	
+	// Split by \n (new-line)
+	size_t last_valid_idx = 0;
+	for (size_t idx = 0; idx < text.length(); idx++) {
+		char& ch = text[idx];
+		if ((ch == '\n') || (idx + 1) == text.length()) {
+			std::string newmsg = time_and_level + " " + std::string(&text[last_valid_idx], idx - last_valid_idx);
+			last_valid_idx = idx + 1;
+
+			// File Log
+			std::fstream *logStream = reinterpret_cast<std::fstream*>(param);
+			*logStream << newmsg << std::flush;
+
+			// Std Out / Std Err
+			if (log_level <= LOG_WARNING) {
+				std::cerr << newmsg << '\n';
+			}
+			std::cout << newmsg << '\n';
+
+			// Debugger
+#ifdef _WIN32
+			if (IsDebuggerPresent()) {
+				int wNum = MultiByteToWideChar(CP_UTF8, 0, newmsg.c_str(), -1, NULL, 0);
+				if (wNum > 1) {
+					std::wstring wide_buf;
+					std::mutex wide_mutex;
+
+					lock_guard<mutex> lock(wide_mutex);
+					wide_buf.reserve(wNum + 1);
+					wide_buf.resize(wNum - 1);
+					MultiByteToWideChar(CP_UTF8, 0, newmsg.c_str(), -1, &wide_buf[0],
+						wNum);
+					wide_buf.push_back('\n');
+
+					OutputDebugStringW(wide_buf.c_str());
+				}
+			}
+#endif
+		}
+	}
 
 #if defined(_WIN32) && defined(OBS_DEBUGBREAK_ON_ERROR)
 	if (log_level <= LOG_ERROR && IsDebuggerPresent())
 		__debugbreak();
 #endif
 }
+#pragma endregion Logging
 
 void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	/* Map base DLLs as soon as possible into the current process space.
@@ -395,6 +436,33 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 	appdata_path = args[0].value_str.c_str();
 	appdata_path += "/node-obs/";
 
+#pragma region Logging
+	/* Logging */
+	string filename = GenerateTimeDateFilename("txt");
+	string log_path = appdata_path;
+	log_path.append("/logs/");
+
+	/* Make sure the path is created
+	before attempting to make a file there. */
+	if (os_mkdirs(log_path.c_str()) == MKDIR_ERROR) {
+		cerr << "Failed to open log file" << endl;
+	}
+
+	DeleteOldestFile(log_path.c_str(), 3);
+	log_path.append(filename);
+
+	/* Leak although not that big of a deal since it should always be open. */
+	fstream *logfile = new fstream(log_path, ios_base::out | ios_base::trunc);
+
+	if (!logfile) {
+		cerr << "Failed to open log file" << endl;
+	}
+
+	/* Delete oldest file in the folder to imitate rotating */
+	base_set_log_handler(node_obs_log, logfile);
+#pragma endregion Logging
+
+
 	/* libobs will use three methods of finding data files:
 	* 1. ${CWD}/data/libobs <- This doesn't work for us
 	* 2. ${OBS_DATA_PATH}/libobs <- This works but is inflexible
@@ -423,29 +491,6 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 		containsDirectory(profiles) &&
 		os_file_exists(scenes.c_str());
 
-	/* Logging */
-	string filename = GenerateTimeDateFilename("txt");
-	string log_path = appdata_path;
-	log_path.append("/logs/");
-
-	/* Make sure the path is created
-	before attempting to make a file there. */
-	if (os_mkdirs(log_path.c_str()) == MKDIR_ERROR) {
-		cerr << "Failed to open log file" << endl;
-	}
-
-	DeleteOldestFile(log_path.c_str(), 3);
-	log_path.append(filename);
-
-	/* Leak although not that big of a deal since it should always be open. */
-	fstream *logfile = new fstream(log_path, ios_base::out | ios_base::trunc);
-
-	if (!logfile) {
-		cerr << "Failed to open log file" << endl;
-	}
-
-	/* Delete oldest file in the folder to imitate rotating */
-	base_set_log_handler(node_obs_log, logfile);
 
 	/* Profiling */
 	//profiler_start();
