@@ -21,6 +21,7 @@
 #include <ipc-server.hpp>
 #include <obs.h>
 #include <memory>
+#include "shared.hpp"
 
 void osn::Transition::Register(ipc::server& srv) {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Transition");
@@ -44,7 +45,7 @@ void osn::Transition::Types(void* data, const int64_t id, const std::vector<ipc:
 	for (size_t idx = 0; obs_enum_transition_types(idx, &typeId); idx++) {
 		rval.push_back(ipc::value(typeId ? typeId : ""));
 	}
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Transition::Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -66,6 +67,7 @@ void osn::Transition::Create(void* data, const int64_t id, const std::vector<ipc
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to create transition."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -74,12 +76,13 @@ void osn::Transition::Create(void* data, const int64_t id, const std::vector<ipc
 		// No further Ids left, leak somewhere.
 		rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
 		rval.push_back(ipc::value("Index list is full."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Transition::CreatePrivate(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -99,6 +102,7 @@ void osn::Transition::CreatePrivate(void* data, const int64_t id, const std::vec
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to create transition."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -107,12 +111,13 @@ void osn::Transition::CreatePrivate(void* data, const int64_t id, const std::vec
 		// No further Ids left, leak somewhere.
 		rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
 		rval.push_back(ipc::value("Index list is full."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Transition::FromName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -120,6 +125,7 @@ void osn::Transition::FromName(void* data, const int64_t id, const std::vector<i
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::NotFound));
 		rval.push_back(ipc::value("Named transition could not be found."));
+		AUTO_DEBUG;
 		return;
 	}
 	
@@ -132,6 +138,7 @@ void osn::Transition::FromName(void* data, const int64_t id, const std::vector<i
 	#endif
 		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
 		rval.push_back(ipc::value("Source found but not indexed."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -139,7 +146,7 @@ void osn::Transition::FromName(void* data, const int64_t id, const std::vector<i
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Transition::GetActiveSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -150,6 +157,7 @@ void osn::Transition::GetActiveSource(void* data, const int64_t id, const std::v
 	if (!transition) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Transition reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 	
@@ -167,13 +175,14 @@ void osn::Transition::GetActiveSource(void* data, const int64_t id, const std::v
 	#endif
 		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
 		rval.push_back(ipc::value("Source found but not indexed."));
+		AUTO_DEBUG;
 		return;
 	}
 	
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
 	rval.push_back(ipc::value(type));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Transition::Clear(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -182,13 +191,14 @@ void osn::Transition::Clear(void* data, const int64_t id, const std::vector<ipc:
 	if (!transition) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Transition reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	obs_transition_clear(transition);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Transition::Set(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -197,6 +207,7 @@ void osn::Transition::Set(void* data, const int64_t id, const std::vector<ipc::v
 	if (!transition) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Transition reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -204,13 +215,14 @@ void osn::Transition::Set(void* data, const int64_t id, const std::vector<ipc::v
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	obs_transition_set(transition, source);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Transition::Start(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -219,6 +231,7 @@ void osn::Transition::Start(void* data, const int64_t id, const std::vector<ipc:
 	if (!transition) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Transition reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -226,6 +239,7 @@ void osn::Transition::Start(void* data, const int64_t id, const std::vector<ipc:
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -235,5 +249,5 @@ void osn::Transition::Start(void* data, const int64_t id, const std::vector<ipc:
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(result));
-	return;
+	AUTO_DEBUG;
 }

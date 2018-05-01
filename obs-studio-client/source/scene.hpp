@@ -48,7 +48,7 @@ namespace osn {
 		static Nan::NAN_METHOD_RETURN_TYPE AddSource(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE FindItem(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE MoveItem(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetItem(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE GetItemAtIndex(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE GetItems(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE GetItemsInRange(Nan::NAN_METHOD_ARGS_TYPE info);
 

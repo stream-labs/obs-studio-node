@@ -2,6 +2,7 @@
 #include "osn-sceneitem.hpp"
 #include "error.hpp"
 #include <list>
+#include "shared.hpp"
 
 void osn::Scene::Register(ipc::server& srv) {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Scene");
@@ -16,9 +17,10 @@ void osn::Scene::Register(ipc::server& srv) {
 	cls->register_function(std::make_shared<ipc::function>("Duplicate", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32}, Duplicate));
 
 	cls->register_function(std::make_shared<ipc::function>("AddSource", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, AddSource));
-	cls->register_function(std::make_shared<ipc::function>("FindItem", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, FindItem));
+	cls->register_function(std::make_shared<ipc::function>("FindItem", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, FindItemByName));
+	cls->register_function(std::make_shared<ipc::function>("FindItem", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int64}, FindItemByItemId));
 	cls->register_function(std::make_shared<ipc::function>("MoveItem", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32, ipc::type::Int32}, MoveItem));
-	cls->register_function(std::make_shared<ipc::function>("GetItem", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int64}, GetItem));
+	cls->register_function(std::make_shared<ipc::function>("GetItem", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, GetItem));
 	cls->register_function(std::make_shared<ipc::function>("GetItems", std::vector<ipc::type>{ipc::type::UInt64}, GetItems));
 	cls->register_function(std::make_shared<ipc::function>("GetItemsInRange", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32, ipc::type::Int32}, GetItemsInRange));
 
@@ -32,6 +34,7 @@ void osn::Scene::Create(void* data, const int64_t id, const std::vector<ipc::val
 	if (!scene) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to create scene."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -39,6 +42,7 @@ void osn::Scene::Create(void* data, const int64_t id, const std::vector<ipc::val
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to get source from scene."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -46,12 +50,13 @@ void osn::Scene::Create(void* data, const int64_t id, const std::vector<ipc::val
 	if (uid == UINT64_MAX) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
 		rval.push_back(ipc::value("Index list is full."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Scene::CreatePrivate(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -59,6 +64,7 @@ void osn::Scene::CreatePrivate(void* data, const int64_t id, const std::vector<i
 	if (!scene) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to create scene."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -66,6 +72,7 @@ void osn::Scene::CreatePrivate(void* data, const int64_t id, const std::vector<i
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to get source from scene."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -73,12 +80,13 @@ void osn::Scene::CreatePrivate(void* data, const int64_t id, const std::vector<i
 	if (uid == UINT64_MAX) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
 		rval.push_back(ipc::value("Index list is full."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Scene::FromName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -86,6 +94,7 @@ void osn::Scene::FromName(void* data, const int64_t id, const std::vector<ipc::v
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to get source from scene."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -98,6 +107,7 @@ void osn::Scene::FromName(void* data, const int64_t id, const std::vector<ipc::v
 	#endif
 		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
 		rval.push_back(ipc::value("Source found but not indexed."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -105,7 +115,7 @@ void osn::Scene::FromName(void* data, const int64_t id, const std::vector<ipc::v
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Scene::Release(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -113,6 +123,7 @@ void osn::Scene::Release(void* data, const int64_t id, const std::vector<ipc::va
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -120,6 +131,7 @@ void osn::Scene::Release(void* data, const int64_t id, const std::vector<ipc::va
 	if (!scene) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not a scene."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -146,7 +158,7 @@ void osn::Scene::Release(void* data, const int64_t id, const std::vector<ipc::va
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Scene::Remove(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -154,6 +166,7 @@ void osn::Scene::Remove(void* data, const int64_t id, const std::vector<ipc::val
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -161,6 +174,7 @@ void osn::Scene::Remove(void* data, const int64_t id, const std::vector<ipc::val
 	if (!scene) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not a scene."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -183,14 +197,14 @@ void osn::Scene::Remove(void* data, const int64_t id, const std::vector<ipc::val
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Scene::AsSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Scenes are stored as such.
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(args[0].value_union.ui64));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Scene::Duplicate(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -198,6 +212,7 @@ void osn::Scene::Duplicate(void* data, const int64_t id, const std::vector<ipc::
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -205,6 +220,7 @@ void osn::Scene::Duplicate(void* data, const int64_t id, const std::vector<ipc::
 	if (!scene) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not a scene."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -212,6 +228,7 @@ void osn::Scene::Duplicate(void* data, const int64_t id, const std::vector<ipc::
 	if (!scene2) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to duplicate scene."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -219,6 +236,7 @@ void osn::Scene::Duplicate(void* data, const int64_t id, const std::vector<ipc::
 	if (!source2) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to get source from duplicate scene."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -226,12 +244,13 @@ void osn::Scene::Duplicate(void* data, const int64_t id, const std::vector<ipc::
 	if (uid == UINT64_MAX) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
 		rval.push_back(ipc::value("Index list is full."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Scene::AddSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -239,6 +258,7 @@ void osn::Scene::AddSource(void* data, const int64_t id, const std::vector<ipc::
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -246,6 +266,7 @@ void osn::Scene::AddSource(void* data, const int64_t id, const std::vector<ipc::
 	if (!scene) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not a scene."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -253,6 +274,7 @@ void osn::Scene::AddSource(void* data, const int64_t id, const std::vector<ipc::
 	if (!added_source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference to add is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -262,20 +284,22 @@ void osn::Scene::AddSource(void* data, const int64_t id, const std::vector<ipc::
 	if (uid == UINT64_MAX) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
 		rval.push_back(ipc::value("Index list is full."));
+		AUTO_DEBUG;
 		return;
 	}
 	obs_sceneitem_addref(item);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint64_t)uid));
-	return;
+	AUTO_DEBUG;
 }
 
-void osn::Scene::FindItem(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+void osn::Scene::FindItemByName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	obs_source_t* source = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -283,6 +307,7 @@ void osn::Scene::FindItem(void* data, const int64_t id, const std::vector<ipc::v
 	if (!scene) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not a scene."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -290,6 +315,7 @@ void osn::Scene::FindItem(void* data, const int64_t id, const std::vector<ipc::v
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Source not found."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -299,6 +325,7 @@ void osn::Scene::FindItem(void* data, const int64_t id, const std::vector<ipc::v
 		if (uid == UINT64_MAX) {
 			rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
 			rval.push_back(ipc::value("Index list is full."));
+			AUTO_DEBUG;
 			return;
 		}
 		obs_sceneitem_addref(item);
@@ -306,14 +333,15 @@ void osn::Scene::FindItem(void* data, const int64_t id, const std::vector<ipc::v
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint64_t)uid));
-	return;
+	AUTO_DEBUG;
 }
 
-void osn::Scene::MoveItem(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+void osn::Scene::FindItemByItemId(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	obs_source_t* source = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -321,6 +349,49 @@ void osn::Scene::MoveItem(void* data, const int64_t id, const std::vector<ipc::v
 	if (!scene) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not a scene."));
+		AUTO_DEBUG;
+		return;
+	}
+
+	obs_sceneitem_t* item = obs_scene_find_sceneitem_by_id(scene, args[1].value_union.i64);
+	if (!item) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Source not found."));
+		AUTO_DEBUG;
+		return;
+	}
+
+	utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
+	if (uid == UINT64_MAX) {
+		uid = osn::SceneItem::Manager::GetInstance().allocate(item);
+		if (uid == UINT64_MAX) {
+			rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
+			rval.push_back(ipc::value("Index list is full."));
+			AUTO_DEBUG;
+			return;
+		}
+		obs_sceneitem_addref(item);
+	}
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint64_t)uid));
+	AUTO_DEBUG;
+}
+
+void osn::Scene::MoveItem(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_source_t* source = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	if (!source) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
+		return;
+	}
+
+	obs_scene_t* scene = obs_scene_from_source(source);
+	if (!scene) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Source reference is not a scene."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -345,13 +416,14 @@ void osn::Scene::MoveItem(void* data, const int64_t id, const std::vector<ipc::v
 	if (!ed.item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfBounds));
 		rval.push_back(ipc::value("Index not found in Scene."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	obs_sceneitem_set_order_position(ed.item, args[2].value_union.i32);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	return;
+	AUTO_DEBUG;
 }
 
 void osn::Scene::GetItem(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -359,6 +431,7 @@ void osn::Scene::GetItem(void* data, const int64_t id, const std::vector<ipc::va
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -366,20 +439,20 @@ void osn::Scene::GetItem(void* data, const int64_t id, const std::vector<ipc::va
 	if (!scene) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not a scene."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	struct EnumData {
 		obs_sceneitem_t* item = nullptr;
-		size_t findId = 0;
+		size_t findindex = 0;
 		size_t index = 0;
 	} ed;
-	ed.findId = args[1].value_union.i64;
+	ed.findindex = args[1].value_union.ui64;
 
 	auto cb = [](obs_scene_t* scene, obs_sceneitem_t* item, void* data) {
 		EnumData* items = reinterpret_cast<EnumData*>(data);
-		int64_t id = obs_sceneitem_get_id(item);
-		if (id == items->findId) {
+		if (items->index == items->findindex) {
 			items->item = item;
 			return false;
 		}
@@ -391,6 +464,7 @@ void osn::Scene::GetItem(void* data, const int64_t id, const std::vector<ipc::va
 	if (!ed.item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfBounds));
 		rval.push_back(ipc::value("Index not found in Scene."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -400,6 +474,7 @@ void osn::Scene::GetItem(void* data, const int64_t id, const std::vector<ipc::va
 		if (uid == UINT64_MAX) {
 			rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
 			rval.push_back(ipc::value("Index list is full."));
+			AUTO_DEBUG;
 			return;
 		}
 		obs_sceneitem_addref(ed.item);
@@ -407,6 +482,7 @@ void osn::Scene::GetItem(void* data, const int64_t id, const std::vector<ipc::va
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint64_t)uid));
+	AUTO_DEBUG;
 }
 
 void osn::Scene::GetItems(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -414,6 +490,7 @@ void osn::Scene::GetItems(void* data, const int64_t id, const std::vector<ipc::v
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -421,6 +498,7 @@ void osn::Scene::GetItems(void* data, const int64_t id, const std::vector<ipc::v
 	if (!scene) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not a scene."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -440,12 +518,14 @@ void osn::Scene::GetItems(void* data, const int64_t id, const std::vector<ipc::v
 			if (uid == UINT64_MAX) {
 				rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
 				rval.push_back(ipc::value("Index list is full."));
+				AUTO_DEBUG;
 				return;
 			}
 			obs_sceneitem_addref(item);
 		}
 		rval.push_back(ipc::value((uint64_t)uid));
 	}
+	AUTO_DEBUG;
 }
 
 void osn::Scene::GetItemsInRange(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -453,6 +533,7 @@ void osn::Scene::GetItemsInRange(void* data, const int64_t id, const std::vector
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -460,6 +541,7 @@ void osn::Scene::GetItemsInRange(void* data, const int64_t id, const std::vector
 	if (!scene) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not a scene."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -491,18 +573,22 @@ void osn::Scene::GetItemsInRange(void* data, const int64_t id, const std::vector
 			if (uid == UINT64_MAX) {
 				rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
 				rval.push_back(ipc::value("Index list is full."));
+				AUTO_DEBUG;
 				return;
 			}
 			obs_sceneitem_addref(item);
 		}
 		rval.push_back(ipc::value((uint64_t)uid));
 	}
+	AUTO_DEBUG;
 }
 
 void osn::Scene::Connect(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	AUTO_DEBUG;
 	// !FIXME! Signals
 }
 
 void osn::Scene::Disconnect(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	AUTO_DEBUG;
 	// !FIXME! Signals
 }

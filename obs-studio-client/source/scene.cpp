@@ -54,7 +54,7 @@ void osn::Scene::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	utilv8::SetTemplateField(objtemplate, "add", AddSource);
 	utilv8::SetTemplateField(objtemplate, "findItem", FindItem);
 	utilv8::SetTemplateField(objtemplate, "moveItem", MoveItem);
-	utilv8::SetTemplateField(objtemplate, "getItemAtIdx", GetItem);
+	utilv8::SetTemplateField(objtemplate, "getItemAtIdx", GetItemAtIndex);
 	utilv8::SetTemplateField(objtemplate, "getItems", GetItems);
 	utilv8::SetTemplateField(objtemplate, "getItemsInRange", GetItemsInRange);
 	utilv8::SetTemplateField(objtemplate, "connect", Connect);
@@ -267,7 +267,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FromName(Nan::NAN_METHOD_ARGS_TYPE info)
 	};
 
 	bool suc = Controller::GetInstance().GetConnection()->call("Scene", "FromName",
-		{ ipc::value(name) }, fnc, &rtd);
+	{ ipc::value(name) }, fnc, &rtd);
 	if (!suc) {
 		info.GetIsolate()->ThrowException(
 			v8::Exception::Error(
@@ -525,7 +525,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), scene)) {
 		return;
 	}
-	
+
 	osn::Input* input = nullptr;
 	ASSERT_INFO_LENGTH(info, 1);
 	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Input>(info[0]->ToObject(), input)) {
@@ -597,7 +597,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FindItem(Nan::NAN_METHOD_ARGS_TYPE info) {
+	bool haveName = false;
 	std::string name;
+	int64_t position;
 
 	osn::Scene* scene = nullptr;
 	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), scene)) {
@@ -606,10 +608,15 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FindItem(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	ASSERT_INFO_LENGTH(info, 1);
 	if (info[0]->IsNumber()) {
-		GetItem(info);
+		haveName = false;
+		ASSERT_GET_VALUE(info[0], position);
+	} else if (info[0]->IsNumber()) {
+		haveName = true;
+		ASSERT_GET_VALUE(info[0], name);
+	} else {
+		Nan::TypeError("Expected string or number");
 		return;
 	}
-	ASSERT_GET_VALUE(info[0], name);
 
 	struct ThreadData {
 		std::condition_variable cv;
@@ -643,7 +650,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FindItem(Nan::NAN_METHOD_ARGS_TYPE info)
 	};
 
 	bool suc = Controller::GetInstance().GetConnection()->call("Scene", "FindItem",
-		std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(name)}, fnc, &rtd);
+		std::vector<ipc::value>{ipc::value(scene->sourceId), 
+		(haveName ? ipc::value(name) : ipc::value(position))}, fnc, &rtd);
 	if (!suc) {
 		info.GetIsolate()->ThrowException(
 			v8::Exception::Error(
@@ -743,8 +751,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::MoveItem(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItem(Nan::NAN_METHOD_ARGS_TYPE info) {
-	int64_t sceneItemId;
+Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemAtIndex(Nan::NAN_METHOD_ARGS_TYPE info) {
+	int64_t index;
 
 	osn::Scene* scene = nullptr;
 	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), scene)) {
@@ -752,7 +760,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItem(Nan::NAN_METHOD_ARGS_TYPE info) 
 	}
 
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], sceneItemId);
+	ASSERT_GET_VALUE(info[0], index);
 
 	struct ThreadData {
 		std::condition_variable cv;
@@ -786,7 +794,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItem(Nan::NAN_METHOD_ARGS_TYPE info) 
 	};
 
 	bool suc = Controller::GetInstance().GetConnection()->call("Scene", "GetItem",
-		std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(sceneItemId)}, fnc, &rtd);
+		std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(index)}, fnc, &rtd);
 	if (!suc) {
 		info.GetIsolate()->ThrowException(
 			v8::Exception::Error(
@@ -823,7 +831,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItems(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), scene)) {
 		return;
 	}
-	
+
 	struct ThreadData {
 		std::condition_variable cv;
 		std::mutex mtx;

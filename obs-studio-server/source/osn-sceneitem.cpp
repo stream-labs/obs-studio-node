@@ -1,6 +1,7 @@
 #include "osn-sceneitem.hpp"
 #include "osn-source.hpp"
 #include <error.hpp>
+#include "shared.hpp"
 
 void osn::SceneItem::Register(ipc::server& srv) {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("SceneItem");
@@ -45,6 +46,7 @@ void osn::SceneItem::GetSource(void* data, const int64_t id, const std::vector<i
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -52,12 +54,14 @@ void osn::SceneItem::GetSource(void* data, const int64_t id, const std::vector<i
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
 		rval.push_back(ipc::value("Item does not contain a source."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	uint64_t uid = osn::Source::GetInstance()->Get(source);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint64_t)uid));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::GetScene(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -65,6 +69,7 @@ void osn::SceneItem::GetScene(void* data, const int64_t id, const std::vector<ip
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -72,6 +77,7 @@ void osn::SceneItem::GetScene(void* data, const int64_t id, const std::vector<ip
 	if (!scene) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
 		rval.push_back(ipc::value("Item does not belong to a scene."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -79,12 +85,14 @@ void osn::SceneItem::GetScene(void* data, const int64_t id, const std::vector<ip
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
 		rval.push_back(ipc::value("Scene is invalid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	uint64_t uid = osn::Source::GetInstance()->Get(source);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint64_t)uid));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::Remove(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -92,6 +100,7 @@ void osn::SceneItem::Remove(void* data, const int64_t id, const std::vector<ipc:
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -100,6 +109,7 @@ void osn::SceneItem::Remove(void* data, const int64_t id, const std::vector<ipc:
 	obs_sceneitem_remove(item);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::IsVisible(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -107,11 +117,13 @@ void osn::SceneItem::IsVisible(void* data, const int64_t id, const std::vector<i
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_sceneitem_visible(item)));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::SetVisible(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -119,6 +131,7 @@ void osn::SceneItem::SetVisible(void* data, const int64_t id, const std::vector<
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -126,6 +139,7 @@ void osn::SceneItem::SetVisible(void* data, const int64_t id, const std::vector<
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_sceneitem_visible(item)));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::IsSelected(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -133,11 +147,13 @@ void osn::SceneItem::IsSelected(void* data, const int64_t id, const std::vector<
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_sceneitem_selected(item)));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::SetSelected(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -145,6 +161,7 @@ void osn::SceneItem::SetSelected(void* data, const int64_t id, const std::vector
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -152,6 +169,7 @@ void osn::SceneItem::SetSelected(void* data, const int64_t id, const std::vector
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_sceneitem_selected(item)));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::GetPosition(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -159,6 +177,7 @@ void osn::SceneItem::GetPosition(void* data, const int64_t id, const std::vector
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -168,6 +187,7 @@ void osn::SceneItem::GetPosition(void* data, const int64_t id, const std::vector
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(pos.x));
 	rval.push_back(ipc::value(pos.y));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::SetPosition(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -175,6 +195,7 @@ void osn::SceneItem::SetPosition(void* data, const int64_t id, const std::vector
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -188,6 +209,7 @@ void osn::SceneItem::SetPosition(void* data, const int64_t id, const std::vector
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(pos.x));
 	rval.push_back(ipc::value(pos.y));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::GetRotation(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -195,11 +217,13 @@ void osn::SceneItem::GetRotation(void* data, const int64_t id, const std::vector
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_sceneitem_get_rot(item)));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::SetRotation(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -207,6 +231,7 @@ void osn::SceneItem::SetRotation(void* data, const int64_t id, const std::vector
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -214,6 +239,7 @@ void osn::SceneItem::SetRotation(void* data, const int64_t id, const std::vector
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_sceneitem_get_rot(item)));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::GetScale(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -221,6 +247,7 @@ void osn::SceneItem::GetScale(void* data, const int64_t id, const std::vector<ip
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -230,6 +257,7 @@ void osn::SceneItem::GetScale(void* data, const int64_t id, const std::vector<ip
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(scale.x));
 	rval.push_back(ipc::value(scale.y));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::SetScale(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -237,6 +265,7 @@ void osn::SceneItem::SetScale(void* data, const int64_t id, const std::vector<ip
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -250,6 +279,7 @@ void osn::SceneItem::SetScale(void* data, const int64_t id, const std::vector<ip
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(scale.x));
 	rval.push_back(ipc::value(scale.y));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::GetScaleFilter(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -257,6 +287,7 @@ void osn::SceneItem::GetScaleFilter(void* data, const int64_t id, const std::vec
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -264,6 +295,7 @@ void osn::SceneItem::GetScaleFilter(void* data, const int64_t id, const std::vec
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(type));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::SetScaleFilter(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -271,6 +303,7 @@ void osn::SceneItem::SetScaleFilter(void* data, const int64_t id, const std::vec
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -279,6 +312,7 @@ void osn::SceneItem::SetScaleFilter(void* data, const int64_t id, const std::vec
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(type));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::GetAlignment(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -286,6 +320,7 @@ void osn::SceneItem::GetAlignment(void* data, const int64_t id, const std::vecto
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -293,6 +328,7 @@ void osn::SceneItem::GetAlignment(void* data, const int64_t id, const std::vecto
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(align));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::SetAlignment(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -300,6 +336,7 @@ void osn::SceneItem::SetAlignment(void* data, const int64_t id, const std::vecto
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -308,6 +345,7 @@ void osn::SceneItem::SetAlignment(void* data, const int64_t id, const std::vecto
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(align));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::GetBounds(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -315,6 +353,7 @@ void osn::SceneItem::GetBounds(void* data, const int64_t id, const std::vector<i
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -323,6 +362,7 @@ void osn::SceneItem::GetBounds(void* data, const int64_t id, const std::vector<i
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(bounds.x));
 	rval.push_back(ipc::value(bounds.y));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::SetBounds(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -330,6 +370,7 @@ void osn::SceneItem::SetBounds(void* data, const int64_t id, const std::vector<i
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -341,6 +382,7 @@ void osn::SceneItem::SetBounds(void* data, const int64_t id, const std::vector<i
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(bounds.x));
 	rval.push_back(ipc::value(bounds.y));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::GetBoundsAlignment(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -348,6 +390,7 @@ void osn::SceneItem::GetBoundsAlignment(void* data, const int64_t id, const std:
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -355,6 +398,7 @@ void osn::SceneItem::GetBoundsAlignment(void* data, const int64_t id, const std:
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(align));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::SetBoundsAlignment(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -362,6 +406,7 @@ void osn::SceneItem::SetBoundsAlignment(void* data, const int64_t id, const std:
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -370,6 +415,7 @@ void osn::SceneItem::SetBoundsAlignment(void* data, const int64_t id, const std:
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(align));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::GetBoundsType(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -377,6 +423,7 @@ void osn::SceneItem::GetBoundsType(void* data, const int64_t id, const std::vect
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -384,6 +431,7 @@ void osn::SceneItem::GetBoundsType(void* data, const int64_t id, const std::vect
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(bounds));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::SetBoundsType(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -391,6 +439,7 @@ void osn::SceneItem::SetBoundsType(void* data, const int64_t id, const std::vect
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -399,6 +448,7 @@ void osn::SceneItem::SetBoundsType(void* data, const int64_t id, const std::vect
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(bounds));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::GetCrop(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -406,6 +456,7 @@ void osn::SceneItem::GetCrop(void* data, const int64_t id, const std::vector<ipc
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -417,6 +468,7 @@ void osn::SceneItem::GetCrop(void* data, const int64_t id, const std::vector<ipc
 	rval.push_back(ipc::value(crop.top));
 	rval.push_back(ipc::value(crop.right));
 	rval.push_back(ipc::value(crop.bottom));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::SetCrop(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -424,6 +476,7 @@ void osn::SceneItem::SetCrop(void* data, const int64_t id, const std::vector<ipc
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -441,6 +494,7 @@ void osn::SceneItem::SetCrop(void* data, const int64_t id, const std::vector<ipc
 	rval.push_back(ipc::value(crop.top));
 	rval.push_back(ipc::value(crop.right));
 	rval.push_back(ipc::value(crop.bottom));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::GetId(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -448,11 +502,13 @@ void osn::SceneItem::GetId(void* data, const int64_t id, const std::vector<ipc::
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_sceneitem_get_id(item)));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::MoveUp(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -473,12 +529,14 @@ void osn::SceneItem::MoveDown(void* data, const int64_t id, const std::vector<ip
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	obs_sceneitem_set_order(item, OBS_ORDER_MOVE_DOWN);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::MoveTop(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -486,12 +544,14 @@ void osn::SceneItem::MoveTop(void* data, const int64_t id, const std::vector<ipc
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	obs_sceneitem_set_order(item, OBS_ORDER_MOVE_TOP);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::MoveBottom(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -499,12 +559,14 @@ void osn::SceneItem::MoveBottom(void* data, const int64_t id, const std::vector<
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	obs_sceneitem_set_order(item, OBS_ORDER_MOVE_BOTTOM);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::Move(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -512,12 +574,14 @@ void osn::SceneItem::Move(void* data, const int64_t id, const std::vector<ipc::v
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	obs_sceneitem_set_order_position(item, args[1].value_union.i32);
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));	
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::DeferUpdateBegin(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -525,12 +589,14 @@ void osn::SceneItem::DeferUpdateBegin(void* data, const int64_t id, const std::v
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	obs_sceneitem_defer_update_begin(item);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::DeferUpdateEnd(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -538,12 +604,14 @@ void osn::SceneItem::DeferUpdateEnd(void* data, const int64_t id, const std::vec
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	obs_sceneitem_defer_update_end(item);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 osn::SceneItem::Manager& osn::SceneItem::Manager::GetInstance() {
