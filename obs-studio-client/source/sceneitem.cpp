@@ -721,7 +721,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetRotation(Nan::NAN_METHOD_ARGS_TYP
 		ErrorCode error_code = ErrorCode::Ok;
 		std::string error_string = "";
 
-		float_t x, y;
+		float_t value;
 	} rtd;
 
 	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
@@ -740,7 +740,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetRotation(Nan::NAN_METHOD_ARGS_TYP
 			rtd->error_string = rval[1].value_str;
 		}
 
-		rtd->x = rval[1].value_union.fp32;
+		rtd->value = rval[1].value_union.fp32;
 		rtd->called = true;
 		rtd->cv.notify_all();
 	};
@@ -773,7 +773,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetRotation(Nan::NAN_METHOD_ARGS_TYP
 		return;
 	}
 
-	info.GetReturnValue().Set(rtd.x);
+	info.GetReturnValue().Set(rtd.value);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetRotation(Nan::NAN_METHOD_ARGS_TYPE info) {
@@ -794,7 +794,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetRotation(Nan::NAN_METHOD_ARGS_TYP
 		ErrorCode error_code = ErrorCode::Ok;
 		std::string error_string = "";
 
-		float_t x, y;
+		float_t value;
 	} rtd;
 
 	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
@@ -813,7 +813,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetRotation(Nan::NAN_METHOD_ARGS_TYP
 			rtd->error_string = rval[1].value_str;
 		}
 
-		rtd->x = rval[1].value_union.fp32;
+		rtd->value = rval[1].value_union.fp32;
 		rtd->called = true;
 		rtd->cv.notify_all();
 	};
@@ -846,7 +846,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetRotation(Nan::NAN_METHOD_ARGS_TYP
 		return;
 	}
 
-	info.GetReturnValue().Set(rtd.x);
+	info.GetReturnValue().Set(rtd.value);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetScale(Nan::NAN_METHOD_ARGS_TYPE info) {
@@ -1728,7 +1728,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetCrop(Nan::NAN_METHOD_ARGS_TYPE in
 		ErrorCode error_code = ErrorCode::Ok;
 		std::string error_string = "";
 
-		float_t left, top, right, bottom;
+		int32_t left, top, right, bottom;
 	} rtd;
 
 	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
@@ -1747,10 +1747,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetCrop(Nan::NAN_METHOD_ARGS_TYPE in
 			rtd->error_string = rval[1].value_str;
 		}
 
-		rtd->left = rval[1].value_union.fp32;
-		rtd->top = rval[2].value_union.fp32;
-		rtd->right = rval[3].value_union.fp32;
-		rtd->bottom = rval[4].value_union.fp32;
+		rtd->left = rval[1].value_union.i32;
+		rtd->top = rval[2].value_union.i32;
+		rtd->right = rval[3].value_union.i32;
+		rtd->bottom = rval[4].value_union.i32;
 		rtd->called = true;
 		rtd->cv.notify_all();
 	};
@@ -1817,7 +1817,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetCrop(Nan::NAN_METHOD_ARGS_TYPE in
 		ErrorCode error_code = ErrorCode::Ok;
 		std::string error_string = "";
 
-		float_t left, top, right, bottom;
+		int32_t left, top, right, bottom;
 	} rtd;
 
 	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
@@ -1836,10 +1836,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetCrop(Nan::NAN_METHOD_ARGS_TYPE in
 			rtd->error_string = rval[1].value_str;
 		}
 
-		rtd->left = rval[1].value_union.fp32;
-		rtd->top = rval[2].value_union.fp32;
-		rtd->right = rval[3].value_union.fp32;
-		rtd->bottom = rval[4].value_union.fp32;
+		rtd->left = rval[1].value_union.i32;
+		rtd->top = rval[2].value_union.i32;
+		rtd->right = rval[3].value_union.i32;
+		rtd->bottom = rval[4].value_union.i32;
 		rtd->called = true;
 		rtd->cv.notify_all();
 	};
@@ -1881,21 +1881,124 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetCrop(Nan::NAN_METHOD_ARGS_TYPE in
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetTransformInfo(Nan::NAN_METHOD_ARGS_TYPE info) {
-	//obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
+	osn::SceneItem* item = nullptr;
+	if (!Retrieve(info.This(), item)) {
+		return;
+	}
 
-	//obs_transform_info tf_info = handle.transform_info();
+	struct ThreadData {
+		std::condition_variable cv;
+		std::mutex mtx;
+		bool called = false;
+		ErrorCode error_code = ErrorCode::Ok;
+		std::string error_string = "";
 
-	//auto object = Nan::New<v8::Object>();
+		std::pair<float_t, float_t> position;
+		std::pair<float_t, float_t> scale;
+		uint32_t scaleFilter;
+		float_t rotation;
+		uint32_t alignment;
+		std::pair<float_t, float_t> bounds;
+		uint32_t boundsType;
+		uint32_t boundsAlignment;
+		std::tuple<int32_t, int32_t, int32_t, int32_t> crop;
+		
+		float_t left, top, right, bottom;
+	} rtd;
 
-	//common::SetObjectField(object, "pos", tf_info.pos);
-	//common::SetObjectField(object, "rot", tf_info.rot);
-	//common::SetObjectField(object, "scale", tf_info.scale);
-	//common::SetObjectField(object, "alignment", tf_info.alignment);
-	//common::SetObjectField(object, "boundsType", tf_info.bounds_type);
-	//common::SetObjectField(object, "boundsAlignment", tf_info.bounds_alignment);
-	//common::SetObjectField(object, "bounds", tf_info.bounds);
+	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
+		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
 
-	//info.GetReturnValue().Set(object);
+		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+			rtd->error_code = ErrorCode::Error;
+			rtd->error_string = rval[0].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
+		}
+
+		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
+		if (rtd->error_code != ErrorCode::Ok) {
+			rtd->error_string = rval[1].value_str;
+		}
+
+		rtd->position.first = rval[1].value_union.fp32;
+		rtd->position.second = rval[2].value_union.fp32;
+		rtd->scale.first = rval[3].value_union.fp32;
+		rtd->scale.second = rval[4].value_union.fp32;
+		rtd->scaleFilter = rval[5].value_union.ui32;
+		rtd->rotation = rval[6].value_union.fp32;
+		rtd->alignment = rval[7].value_union.ui32;
+		rtd->bounds.first = rval[8].value_union.fp32;
+		rtd->bounds.second = rval[9].value_union.fp32;
+		rtd->boundsType = rval[10].value_union.ui32;
+		rtd->boundsAlignment = rval[11].value_union.ui32;
+		std::get<0>(rtd->crop) = rval[12].value_union.ui32;
+		std::get<1>(rtd->crop) = rval[13].value_union.ui32;
+		std::get<2>(rtd->crop) = rval[14].value_union.ui32;
+		std::get<3>(rtd->crop) = rval[15].value_union.ui32;
+		
+		rtd->called = true;
+		rtd->cv.notify_all();
+	};
+
+	bool suc = Controller::GetInstance().GetConnection()->call("SceneItem", "GetTransformInfo",
+		std::vector<ipc::value>{ipc::value(item->itemId)}, fnc, &rtd);
+	if (!suc) {
+		info.GetIsolate()->ThrowException(
+			v8::Exception::Error(
+				Nan::New<v8::String>(
+					"Failed to make IPC call, verify IPC status."
+					).ToLocalChecked()
+			));
+		return;
+	}
+
+	std::unique_lock<std::mutex> ulock(rtd.mtx);
+	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+
+	if (rtd.error_code != ErrorCode::Ok) {
+		if (rtd.error_code == ErrorCode::InvalidReference) {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::ReferenceError(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		} else {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::Error(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		return;
+	}
+
+	auto positionObj = Nan::New<v8::Object>();
+	utilv8::SetObjectField(positionObj, "x", rtd.position.first);
+	utilv8::SetObjectField(positionObj, "y", rtd.position.second);
+
+	auto scaleObj = Nan::New<v8::Object>();
+	utilv8::SetObjectField(scaleObj, "x", rtd.scale.first);
+	utilv8::SetObjectField(scaleObj, "y", rtd.scale.second);
+
+	auto boundsObj = Nan::New<v8::Object>();
+	utilv8::SetObjectField(boundsObj, "x", rtd.bounds.first);
+	utilv8::SetObjectField(boundsObj, "y", rtd.bounds.second);
+
+	auto cropObj = Nan::New<v8::Object>();
+	utilv8::SetObjectField(cropObj, "left", std::get<0>(rtd.crop));
+	utilv8::SetObjectField(cropObj, "top", std::get<1>(rtd.crop));
+	utilv8::SetObjectField(cropObj, "right", std::get<2>(rtd.crop));
+	utilv8::SetObjectField(cropObj, "bottom", std::get<3>(rtd.crop));
+
+	auto obj = Nan::New<v8::Object>();
+	utilv8::SetObjectField(obj, "pos", positionObj);
+	utilv8::SetObjectField(obj, "scale", scaleObj);
+	utilv8::SetObjectField(obj, "bounds", boundsObj);
+	utilv8::SetObjectField(obj, "crop", cropObj);
+	utilv8::SetObjectField(obj, "scaleFilter", rtd.scaleFilter);
+	utilv8::SetObjectField(obj, "rotation", rtd.rotation);
+	utilv8::SetObjectField(obj, "boundsType", rtd.boundsType);
+	utilv8::SetObjectField(obj, "boundsAlignment", rtd.boundsAlignment);
+
+	info.GetReturnValue().Set(obj);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetTransformInfo(Nan::NAN_METHOD_ARGS_TYPE info) {
