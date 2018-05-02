@@ -755,7 +755,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 				currentServiceName = obs_data_get_string(settings, obs_property_name(property));
 
 				param.currentValue.resize(strlen(currentServiceName));
-				memcpy(param.currentValue.data(), &currentServiceName, strlen(currentServiceName));
+				memcpy(param.currentValue.data(), currentServiceName, strlen(currentServiceName));
 				param.sizeOfCurrentValue = strlen(currentServiceName);
 			}
 		}
@@ -810,17 +810,16 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 			std::string name = param.name;
 			std::string type = param.type;
 
-			const char* value;
-
+			std::string *value;
 			const char *servName;
 			if(type.compare("OBS_PROPERTY_LIST") == 0 ||
 				type.compare("OBS_PROPERTY_EDIT_TEXT") == 0) {
-				value = param.currentValue.data();
+				value = new std::string(param.currentValue.data(), param.currentValue.size());
 
 				if(name.compare("streamType") == 0) {
-					newserviceTypeValue = value;
+					newserviceTypeValue = value->c_str();
 					settings = obs_service_defaults(newserviceTypeValue);
-				} else if (name.compare("service") == 0 && strcmp(value,currentServiceName.c_str()) != 0) {
+				} else if (name.compare("service") == 0 && value->compare(currentServiceName) != 0) {
 					serviceChanged = true;
 				}
 				
@@ -835,7 +834,7 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 						int count = (int)obs_property_list_item_count(property);
 						const char *nameProperty = obs_property_name(property);
 						if(strcmp(nameProperty, "server") == 0) {
-							value = obs_property_list_item_string(property, 0);
+							*value = obs_property_list_item_string(property, 0);
 							break;
 						}
 
@@ -843,7 +842,7 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 					}
 				}
 
-				obs_data_set_string(settings, name.c_str(), value);
+				obs_data_set_string(settings, name.c_str(), value->c_str());
 			} else if(type.compare("OBS_PROPERTY_INT") == 0 ||
 					  type.compare("OBS_PROPERTY_UINT") == 0) {
 				int64_t* value = reinterpret_cast<int64_t*>(param.currentValue.data());

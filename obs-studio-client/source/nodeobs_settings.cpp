@@ -341,7 +341,7 @@ std::vector<char> deserializeCategory(uint32_t *subCategoriesCount, uint32_t *si
 	std::vector<char> buffer;
 
 	std::vector<settings::SubCategory> sucCategories;
-
+	int sizeSettings = settings->Length();
 	for (int i = 0; i < settings->Length(); i++) {
 		settings::SubCategory sc;
 
@@ -351,10 +351,11 @@ std::vector<char> deserializeCategory(uint32_t *subCategoriesCount, uint32_t *si
 		std::string test(*param0);
 		sc.name = std::string(*param0);
 
-		v8::Local<v8::Array> parameters = v8::Local<v8::Array>::Cast(subCategoryObject->Get(v8::String::NewFromUtf8(isolate, "parameters")));
+		v8::Local<v8::Array> parameters = v8::Local<v8::Array>::Cast(
+			subCategoryObject->Get(v8::String::NewFromUtf8(isolate, "parameters")));
 		
 		sc.paramsCount = parameters->Length();
-
+		int sizeParams = parameters->Length();
 		for (int j = 0; j< parameters->Length(); j++) {
 			settings::Parameter param;
 
@@ -372,7 +373,7 @@ std::vector<char> deserializeCategory(uint32_t *subCategoriesCount, uint32_t *si
 				param.type.compare("OBS_PROPERTY_TEXT") == 0 ||
 				param.type.compare("OBS_INPUT_RESOLUTION_LIST") == 0) {
 				v8::String::Utf8Value value(parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue")));
-				
+				const char* test = *value;
 				param.sizeOfCurrentValue = strlen(*value);
 				param.currentValue.resize(strlen(*value));
 				memcpy(param.currentValue.data(), *value, strlen(*value));
