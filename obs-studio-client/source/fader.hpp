@@ -18,11 +18,30 @@
 #pragma once
 #include <node.h>
 #include <nan.h>
+#include "utility-v8.hpp"
 
 namespace osn {
-	class Fader {
+	class Fader : public Nan::ObjectWrap,
+		public utilv8::InterfaceObject<osn::Fader>,
+		public utilv8::ManagedObject<osn::Fader> {
+		friend utilv8::InterfaceObject<osn::Fader>;
+		friend utilv8::ManagedObject<osn::Fader>;
+
 		public:
+		static Nan::Persistent<v8::FunctionTemplate> prototype;
+
 		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 
+		static Nan::NAN_METHOD_RETURN_TYPE Create(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE GetDeziBel(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE SetDezibel(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE GetDeflection(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE SetDeflection(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE GetMul(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE SetMul(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE Attach(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE Detach(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE AddCallback(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info);
 	};
 }
