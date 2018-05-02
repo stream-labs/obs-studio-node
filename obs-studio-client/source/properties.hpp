@@ -192,6 +192,8 @@ namespace osn {
 		static Nan::NAN_METHOD_RETURN_TYPE IsFirst(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE IsLast(Nan::NAN_METHOD_ARGS_TYPE info);
 
+		static Nan::NAN_METHOD_RETURN_TYPE GetValue(Nan::NAN_METHOD_ARGS_TYPE info);
+
 		static Nan::NAN_METHOD_RETURN_TYPE GetName(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE GetDescription(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE GetLongDescription(Nan::NAN_METHOD_ARGS_TYPE info);

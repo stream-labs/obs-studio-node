@@ -135,6 +135,8 @@ void osn::PropertyObject::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target
 	utilv8::SetTemplateField(objtemplate, "is_first", IsFirst);
 	utilv8::SetTemplateField(objtemplate, "is_last", IsLast);
 
+	utilv8::SetTemplateAccessorProperty(objtemplate, "value", GetValue);
+
 	utilv8::SetTemplateAccessorProperty(objtemplate, "name", GetName);
 	utilv8::SetTemplateAccessorProperty(objtemplate, "description", GetDescription);
 	utilv8::SetTemplateAccessorProperty(objtemplate, "longDescription", GetLongDescription);
@@ -247,6 +249,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::IsLast(Nan::NAN_METHOD_ARGS_TYP
 	auto iter = property_map_t::reverse_iterator(parent->GetProperties()->find(self->index));
 	info.GetReturnValue().Set(iter == parent->GetProperties()->rbegin());
 	return;
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetValue(Nan::NAN_METHOD_ARGS_TYPE info) {
+	info.GetReturnValue().Set(info.Holder());
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetName(Nan::NAN_METHOD_ARGS_TYPE info) {
