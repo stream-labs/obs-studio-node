@@ -153,7 +153,7 @@ void OBS_content::Register(ipc::server& srv) {
 		std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_setResizeBoxInnerColor));
 
 	cls->register_function(std::make_shared<ipc::function>("OBS_content_setShouldDrawUI",
-		std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32}, OBS_content_setShouldDrawUI));
+		std::vector<ipc::type>{ipc::type::String, ipc::type::Int32}, OBS_content_setShouldDrawUI));
 
 	cls->register_function(std::make_shared<ipc::function>("OBS_content_selectSource",
 		std::vector<ipc::type>{ipc::type::UInt32, ipc::type::UInt32}, OBS_content_selectSource));
@@ -897,7 +897,7 @@ void OBS_content::OBS_content_setShouldDrawUI(void* data, const int64_t id, cons
 		return;
 	}
 
-	it->second->SetDrawUI((bool)args[1].value_union.ui32);
+	it->second->SetDrawUI((bool)args[1].value_union.i32);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
