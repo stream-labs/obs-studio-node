@@ -312,8 +312,8 @@ void display::OBS_content_getDisplayPreviewSize(const v8::FunctionCallbackInfo<v
 
 	v8::Local<v8::Object> previewOffset = v8::Object::New(args.GetIsolate());
 
-	utilv8::SetObjectField(previewOffset, "x", rtd.result.first);
-	utilv8::SetObjectField(previewOffset, "y", rtd.result.second);
+	utilv8::SetObjectField(previewOffset, "width", rtd.result.first);
+	utilv8::SetObjectField(previewOffset, "height", rtd.result.second);
 
 	args.GetReturnValue().Set(previewOffset);
 
