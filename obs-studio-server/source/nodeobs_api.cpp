@@ -375,8 +375,6 @@ static void node_obs_log(int log_level, const char *msg, va_list args, void *par
 		}
 	}
 	*logStream << std::flush;
-	std::cerr << std::flush;
-	std::cout << std::flush;
 
 #if defined(_WIN32) && defined(OBS_DEBUGBREAK_ON_ERROR)
 	if (log_level <= LOG_ERROR && IsDebuggerPresent())
