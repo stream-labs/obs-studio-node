@@ -18,11 +18,30 @@
 #pragma once
 #include <node.h>
 #include <nan.h>
+#include "utility-v8.hpp"
 
 namespace osn {
-	class VolMeter {
+	class VolMeter : public Nan::ObjectWrap,
+		public utilv8::InterfaceObject<osn::VolMeter>,
+		public utilv8::ManagedObject<osn::VolMeter> {
+		friend utilv8::InterfaceObject<osn::VolMeter>;
+		friend utilv8::ManagedObject<osn::VolMeter>;
+
 		public:
+		VolMeter();
+		~VolMeter();
+
+		public:
+		static Nan::Persistent<v8::FunctionTemplate> prototype;
+
 		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 
+		static Nan::NAN_METHOD_RETURN_TYPE Create(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE GetUpdateInterval(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE SetUpdateInterval(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE Attach(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE Detach(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE AddCallback(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info);
 	};
 }
