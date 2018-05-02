@@ -682,6 +682,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 			}
 			if(strcmp(obs_property_name(property), "show_all") == 0) {
 				bool show_all = obs_data_get_bool(settings, "show_all");
+				formatString = "OBS_PROPERTY_BOOL";
 
 				param.currentValue.resize(sizeof(show_all));
 				memcpy(param.currentValue.data(), &show_all, sizeof(show_all));
