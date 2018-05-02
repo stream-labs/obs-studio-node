@@ -26,6 +26,8 @@
 #include "sceneitem.hpp"
 #include "global.hpp"
 #include "properties.hpp"
+#include "fader.hpp"
+#include "volmeter.hpp"
 
 // Definition based on addon_register_func, see 'node.h:L384'.
 void main(v8::Local<v8::Object> exports, v8::Local<v8::Value> module, void* priv) {
@@ -38,6 +40,8 @@ void main(v8::Local<v8::Object> exports, v8::Local<v8::Value> module, void* priv
 	osn::SceneItem::Register(exports);
 	osn::Properties::Register(exports);
 	osn::PropertyObject::Register(exports);
+	osn::Fader::Register(exports);
+	osn::VolMeter::Register(exports);
 
 	while (initializerFunctions.size() > 0) {
 		initializerFunctions.front()(exports);
