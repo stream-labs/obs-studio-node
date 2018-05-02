@@ -27,6 +27,7 @@ SET(PROJECT_SOURCE
 	"${PROJECT_SOURCE_DIR}/source/utility.cpp" "${PROJECT_SOURCE_DIR}/source/utility.hpp"
 	"${PROJECT_SOURCE_DIR}/source/utility-v8.cpp" "${PROJECT_SOURCE_DIR}/source/utility-v8.hpp"
 	"${PROJECT_SOURCE_DIR}/source/controller.cpp" "${PROJECT_SOURCE_DIR}/source/controller.hpp"
+	"${PROJECT_SOURCE_DIR}/source/fader.cpp" "${PROJECT_SOURCE_DIR}/source/fader.hpp"
 	"${PROJECT_SOURCE_DIR}/source/global.cpp" "${PROJECT_SOURCE_DIR}/source/global.hpp"
 	"${PROJECT_SOURCE_DIR}/source/input.cpp" "${PROJECT_SOURCE_DIR}/source/input.hpp"
 	"${PROJECT_SOURCE_DIR}/source/isource.cpp" "${PROJECT_SOURCE_DIR}/source/isource.hpp"
@@ -40,6 +41,7 @@ SET(PROJECT_SOURCE
 	"${PROJECT_SOURCE_DIR}/source/nodeobs_display.cpp" "${PROJECT_SOURCE_DIR}/source/nodeobs_display.hpp"
 	"${PROJECT_SOURCE_DIR}/source/nodeobs_settings.cpp" "${PROJECT_SOURCE_DIR}/source/nodeobs_settings.hpp"
 	"${PROJECT_SOURCE_DIR}/source/main.cpp"
+	"${PROJECT_SOURCE_DIR}/source/volmeter.cpp" "${PROJECT_SOURCE_DIR}/source/volmeter.hpp"
 )
 SET(PROJECT_LIBRARIES
 	${NODEJS_LIBRARIES}
