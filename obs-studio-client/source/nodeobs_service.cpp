@@ -610,9 +610,7 @@ void service::OBS_service_startStreaming(const v8::FunctionCallbackInfo<v8::Valu
 		if (rtd->error_code != ErrorCode::Ok) {
 			rtd->error_string = rval[1].value_str;
 		}
-
-		rtd->result = rval[1].value_str;
-
+		
 		rtd->called = true;
 		rtd->cv.notify_all();
 	};
@@ -674,9 +672,7 @@ void service::OBS_service_startRecording(const v8::FunctionCallbackInfo<v8::Valu
 		if (rtd->error_code != ErrorCode::Ok) {
 			rtd->error_string = rval[1].value_str;
 		}
-
-		rtd->result = rval[1].value_str;
-
+		
 		rtd->called = true;
 		rtd->cv.notify_all();
 	};
