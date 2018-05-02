@@ -17,6 +17,8 @@
 
 #include "fader.hpp"
 
+Nan::Persistent<v8::FunctionTemplate> osn::Fader::prototype = Nan::Persistent<v8::FunctionTemplate>();
+
 void osn::Fader::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 
 }

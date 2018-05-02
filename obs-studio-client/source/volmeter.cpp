@@ -17,6 +17,8 @@
 
 #include "volmeter.hpp"
 
+Nan::Persistent<v8::FunctionTemplate> osn::VolMeter::prototype = Nan::Persistent<v8::FunctionTemplate>();
+
 void osn::VolMeter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
