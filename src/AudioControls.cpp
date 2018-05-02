@@ -302,6 +302,13 @@ static void volmeter_cb_wrapper(
 
 void Volmeter::Callback(Volmeter *volmeter, Volmeter::Data *item)
 {
+    /* 
+     * FIXME 
+     * Somehow item is occasionally null but I don't know why or how.
+     * Could be caused by a complicated out of memory scenario.
+     */
+    if (!item) return;
+
     /* We're in v8 context here */
     VolmeterCallback *cb_binding = 
         reinterpret_cast<VolmeterCallback*>(item->param);
@@ -319,7 +326,7 @@ void Volmeter::Callback(Volmeter *volmeter, Volmeter::Data *item)
     v8::Local<v8::Array> input_peak_array = Nan::New<v8::Array>();
 
     /* FIXME - It seems if we provide -inf, it somehow turns
-     * to 0 by the time it's found in Javascript. 
+     * to 0 by the time it's found in Javascript.
      * Here, we just set any infinite to -60.0
      * where we consider -60.0 pretty close to silence. */
     #define ANTI_INF(db) db = std::isfinite(db) ? db : -60
