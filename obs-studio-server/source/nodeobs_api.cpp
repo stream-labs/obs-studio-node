@@ -356,7 +356,7 @@ static void node_obs_log(int log_level, const char *msg, va_list args, void *par
 			// Debugger
 #ifdef _WIN32
 			if (IsDebuggerPresent()) {
-				int wNum = MultiByteToWideChar(CP_UTF8, 0, newmsg.c_str(), newmsg.size() - 1, NULL, 0);
+				int wNum = MultiByteToWideChar(CP_UTF8, 0, newmsg.c_str(), -1, NULL, 0);
 				if (wNum > 1) {
 					std::wstring wide_buf;
 					std::mutex wide_mutex;
@@ -364,9 +364,8 @@ static void node_obs_log(int log_level, const char *msg, va_list args, void *par
 					lock_guard<mutex> lock(wide_mutex);
 					wide_buf.reserve(wNum + 1);
 					wide_buf.resize(wNum - 1);
-					MultiByteToWideChar(CP_UTF8, 0, newmsg.c_str(), newmsg.size() - 1, &wide_buf[0],
+					MultiByteToWideChar(CP_UTF8, 0, newmsg.c_str(), -1, &wide_buf[0],
 						wNum);
-					wide_buf.push_back('\n');
 
 					OutputDebugStringW(wide_buf.c_str());
 				}
