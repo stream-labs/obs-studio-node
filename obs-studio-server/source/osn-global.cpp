@@ -24,6 +24,7 @@ void osn::Global::Register(ipc::server& srv) {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Global");
 	cls->register_function(std::make_shared<ipc::function>("GetOutputSource", std::vector<ipc::type>{ipc::type::UInt32}, GetOutputSource));
 	cls->register_function(std::make_shared<ipc::function>("SetOutputSource", std::vector<ipc::type>{ipc::type::UInt32, ipc::type::UInt64}, SetOutputSource));
+	cls->register_function(std::make_shared<ipc::function>("GetOutputFlagsFromId", std::vector<ipc::type>{ipc::type::String}, GetOutputFlagsFromId));
 	cls->register_function(std::make_shared<ipc::function>("LaggedFrames", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, LaggedFrames));
 	cls->register_function(std::make_shared<ipc::function>("TotalFrames", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, TotalFrames));
 	srv.register_collection(cls);
@@ -72,6 +73,13 @@ void osn::Global::SetOutputSource(void* data, const int64_t id, const std::vecto
 	} else {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	}
+}
+
+void osn::Global::GetOutputFlagsFromId(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	uint32_t flags = obs_get_source_output_flags(args[0].value_str.c_str());
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(flags));
 }
 
 void osn::Global::LaggedFrames(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
