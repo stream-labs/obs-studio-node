@@ -102,7 +102,11 @@ size_t spawn(std::string program, std::string commandLine, std::string workingDi
 			break;
 		}
 		attempts++;
-		std::cerr << "Attempt " << attempts << ": Creating client failed." << std::endl;
+
+		std::cerr << "Unable to spawn process '" << program << "'"
+			" with command line '" << commandLine << "'"
+			" and working directory '" << workingDirectory << "',"
+			" attempt " << attempts << "." << std::endl;
 		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	}
 
