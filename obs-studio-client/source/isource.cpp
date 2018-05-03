@@ -131,8 +131,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Release(Nan::NAN_METHOD_ARGS_TYPE info
 		}
 		return;
 	}
-
-	obj->sourceId = UINT64_MAX;
+	
 	return;
 }
 
