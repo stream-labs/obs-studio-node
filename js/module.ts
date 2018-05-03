@@ -1533,5 +1533,5 @@ export function getSourcesSize(sourcesNames: string[]): ISourceSize[] {
 }
 
 // Initialization and other stuff which needs local data.
-obs.IPC.setServerPath(path.resolve(__dirname, `obs-studio-server.exe`), path.resolve(__dirname));
+obs.IPC.setServerPath(path.resolve(__dirname, `obs-studio-server.exe`).replace('app.asar', 'app.asar.unpacked'), path.resolve(__dirname).replace('app.asar', 'app.asar.unpacked'));
 export const NodeObs = obs;

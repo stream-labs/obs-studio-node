@@ -86,5 +86,5 @@ function getSourcesSize(sourcesNames) {
     return sourcesSize;
 }
 exports.getSourcesSize = getSourcesSize;
-obs.IPC.setServerPath(path.resolve(__dirname, `obs-studio-server.exe`), path.resolve(__dirname));
+obs.IPC.setServerPath(path.resolve(__dirname, `obs-studio-server.exe`).replace('app.asar', 'app.asar.unpacked'), path.resolve(__dirname).replace('app.asar', 'app.asar.unpacked'));
 exports.NodeObs = obs;
