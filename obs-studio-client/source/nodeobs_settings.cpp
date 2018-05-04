@@ -212,7 +212,7 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 				v8::String::NewFromUtf8(isolate, params.at(j).subType.c_str()));
 
 			// Current value
-			if (params.at(j).currentValue.data() != NULL) {
+			if (params.at(j).currentValue.size() > 0) {
 				if (params.at(j).type.compare("OBS_PROPERTY_LIST") == 0 ||
 					params.at(j).type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 ||
 					params.at(j).type.compare("OBS_PROPERTY_PATH") == 0 ||
@@ -245,6 +245,9 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 					parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
 						v8::Number::New(isolate, *value));
 				}
+			} else {
+				parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
+					v8::String::NewFromUtf8(isolate, ""));
 			}
 
 
