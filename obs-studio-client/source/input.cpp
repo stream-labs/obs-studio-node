@@ -317,7 +317,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE 
 			return;
 		}
 
-		rtd->sourceId = !!rval[1].value_union.i32;
+		rtd->sourceId = rval[1].value_union.i32;
 
 		rtd->called = true;
 		rtd->cv.notify_all();

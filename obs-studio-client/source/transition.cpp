@@ -541,7 +541,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Clear(Nan::NAN_METHOD_ARGS_TYPE inf
 		rtd->cv.notify_all();
 	};
 
-	bool suc = Controller::GetInstance().GetConnection()->call("Transition", "GetActiveSource",
+	bool suc = Controller::GetInstance().GetConnection()->call("Transition", "Clear",
 		std::vector<ipc::value>{ipc::value(obj->sourceId)}, fnc, &rtd);
 	if (!suc) {
 		info.GetIsolate()->ThrowException(
