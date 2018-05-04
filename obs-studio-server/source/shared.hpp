@@ -74,8 +74,9 @@ static inline std::string StringFromIPCValueVector(std::vector<ipc::value> const
 	return mystream.str();
 }
 
-#ifndef _DEBUG
-#define AUTO_DEBUG
-#else
+//#define EXTENDED_DEBUG_LOG
+#if defined(EXTENDED_DEBUG_LOG)
 #define AUTO_DEBUG blog(LOG_DEBUG, __FUNCTION_NAME__ "(%s) = %s", StringFromIPCValueVector(args).c_str(), StringFromIPCValueVector(rval).c_str());
+#else
+#define AUTO_DEBUG
 #endif
