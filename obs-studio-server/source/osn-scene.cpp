@@ -397,10 +397,10 @@ void osn::Scene::MoveItem(void* data, const int64_t id, const std::vector<ipc::v
 
 	struct EnumData {
 		obs_sceneitem_t* item = nullptr;
-		size_t findindex = 0;
-		size_t index = 0;
+		int32_t findindex = 0;
+		int32_t index = 0;
 	} ed;
-	ed.findindex = args[1].value_union.ui64;
+	ed.findindex = args[1].value_union.i32;
 
 	auto cb = [](obs_scene_t* scene, obs_sceneitem_t* item, void* data) {
 		EnumData* items = reinterpret_cast<EnumData*>(data);
