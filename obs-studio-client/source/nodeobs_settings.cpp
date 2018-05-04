@@ -376,7 +376,6 @@ std::vector<char> deserializeCategory(uint32_t *subCategoriesCount, uint32_t *si
 				param.type.compare("OBS_PROPERTY_TEXT") == 0 ||
 				param.type.compare("OBS_INPUT_RESOLUTION_LIST") == 0) {
 				v8::String::Utf8Value value(parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue")));
-				const char* test = *value;
 				param.sizeOfCurrentValue = strlen(*value);
 				param.currentValue.resize(strlen(*value));
 				memcpy(param.currentValue.data(), *value, strlen(*value));

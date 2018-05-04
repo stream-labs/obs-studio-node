@@ -3717,7 +3717,9 @@ void OBS_settings::saveGenericSettings(std::vector<SubCategory> genericSettings,
 
 			if(type.compare("OBS_PROPERTY_LIST") == 0 ||
 				type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 ||
-				type.compare("OBS_PROPERTY_PATH") == 0) {
+				type.compare("OBS_PROPERTY_PATH") == 0 ||
+				type.compare("OBS_PROPERTY_TEXT") == 0 ||
+				type.compare("OBS_INPUT_RESOLUTION_LIST") == 0) {
 				std::string *value = reinterpret_cast<std::string*>(&param.currentValue);
 
 				if(name.compare("MonitoringDeviceName") == 0) {
@@ -3758,16 +3760,16 @@ void OBS_settings::saveGenericSettings(std::vector<SubCategory> genericSettings,
 					config_set_string(config, section.c_str(), name.c_str(), value->c_str());
 				}
 			} else if(type.compare("OBS_PROPERTY_INT") == 0) {
-				int64_t *value = reinterpret_cast<int64_t*>(&param.currentValue);
+				int64_t *value = reinterpret_cast<int64_t*>(param.currentValue.data());
 				config_set_int(config, section.c_str(), name.c_str(), *value);
 			} else if(type.compare("OBS_PROPERTY_UINT") == 0) {
-				uint64_t *value = reinterpret_cast<uint64_t*>(&param.currentValue);
+				uint64_t *value = reinterpret_cast<uint64_t*>(param.currentValue.data());
 				config_set_uint(config, section.c_str(), name.c_str(), *value);
 			} else if(type.compare("OBS_PROPERTY_BOOL") == 0) {
-				uint32_t *value = reinterpret_cast<uint32_t*>(&param.currentValue);
+				uint32_t *value = reinterpret_cast<uint32_t*>(param.currentValue.data());
 				config_set_bool(config, section.c_str(), name.c_str(), *value);
 			} else if(type.compare("OBS_PROPERTY_DOUBLE") == 0) {
-				double *value = reinterpret_cast<double*>(&param.currentValue);
+				double *value = reinterpret_cast<double*>(param.currentValue.data());
 				config_set_double(config, section.c_str(), name.c_str(), *value);
 			} else {
 				std::cout << "type not found ! " << type.c_str() << std::endl;
