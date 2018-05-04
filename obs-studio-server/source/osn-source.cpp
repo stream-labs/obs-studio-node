@@ -25,6 +25,7 @@
 #include <map>
 #include <memory>
 #include <obs.h>
+#include <obs-data.h>
 #include "obs-property.hpp"
 #include "shared.hpp"
 
@@ -60,7 +61,7 @@ osn::Source::SingletonObjectManager* osn::Source::GetInstance() {
 
 void osn::Source::Register(ipc::server& srv) {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Source");
-	cls->register_function(std::make_shared<ipc::function>("GetDefaults", std::vector<ipc::type>{ipc::type::String}, GetSettings));
+	cls->register_function(std::make_shared<ipc::function>("GetDefaults", std::vector<ipc::type>{ipc::type::String}, GetTypeDefaults));
 	cls->register_function(std::make_shared<ipc::function>("GetProperties", std::vector<ipc::type>{ipc::type::String}, GetTypeProperties));
 	cls->register_function(std::make_shared<ipc::function>("GetOutputFlags", std::vector<ipc::type>{ipc::type::String}, GetTypeOutputFlags));
 
@@ -314,7 +315,7 @@ void osn::Source::GetSettings(void* data, const int64_t id, const std::vector<ip
 
 	obs_data_t* sets = obs_source_get_settings(src);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(obs_data_get_json(sets)));
+	rval.push_back(ipc::value(obs_data_get_full_json(sets)));
 	obs_data_release(sets);
 	AUTO_DEBUG;
 }
