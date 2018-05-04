@@ -50,3 +50,18 @@
 
 #define dstr(s) #s
 #define vstr(s) dstr(s)
+
+/* Validate the response to make sure the entire
+ * request didn't fail. */
+#define ASSERT_RESPONSE_VALID(Response) \
+        if ((Response.size() == 1) && (Response[0].type == ipc::type::Null)) { \
+                Nan::ThrowError(Nan::New<v8::String>(Response[1].value_str).ToLocalChecked()); \
+                return; \
+        } \
+        { \
+                ErrorCode error = (ErrorCode)Response[0].value_union.ui64; \
+                if (error != ErrorCode::Ok) { \
+                        Nan::ThrowError(Nan::New<v8::String>(Response[0].value_str).ToLocalChecked()); \
+                        return; \
+                } \
+        }
