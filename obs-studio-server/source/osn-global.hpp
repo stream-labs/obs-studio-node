@@ -25,6 +25,7 @@ namespace osn {
 
 		static void GetOutputSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 		static void SetOutputSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static void GetOutputFlagsFromId(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 		static void LaggedFrames(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 		static void TotalFrames(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 

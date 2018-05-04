@@ -26,6 +26,7 @@ namespace osn {
 
 		static Nan::NAN_METHOD_RETURN_TYPE getOutputSource(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE setOutputSource(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE getOutputFlagsFromId(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE laggedFrames(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE totalFrames(Nan::NAN_METHOD_ARGS_TYPE info);
 

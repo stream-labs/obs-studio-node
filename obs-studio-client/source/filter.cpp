@@ -177,7 +177,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Create(Nan::NAN_METHOD_ARGS_TYPE info) 
 			return;
 		}
 
-		rtd->sourceId = !!rval[1].value_union.i32;
+		rtd->sourceId = rval[1].value_union.i32;
 
 		rtd->called = true;
 		rtd->cv.notify_all();

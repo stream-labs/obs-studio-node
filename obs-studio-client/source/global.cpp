@@ -31,6 +31,7 @@ void osn::Global::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 
 	utilv8::SetObjectField(ObsGlobal, "getOutputSource", getOutputSource);
 	utilv8::SetObjectField(ObsGlobal, "setOutputSource", setOutputSource);
+	utilv8::SetObjectField(ObsGlobal, "getOutputFlagsFromId", getOutputFlagsFromId);
 	utilv8::SetObjectAccessorProperty(ObsGlobal, "laggedFrames", laggedFrames);
 	utilv8::SetObjectAccessorProperty(ObsGlobal, "totalFrames", totalFrames);
 
@@ -197,6 +198,79 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Global::setOutputSource(Nan::NAN_METHOD_ARGS_TY
 		}
 		return;
 	}
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::Global::getOutputFlagsFromId(Nan::NAN_METHOD_ARGS_TYPE info) {
+	std::string id;
+
+	ASSERT_INFO_LENGTH(info, 1);
+	ASSERT_GET_VALUE(info[0], id);
+
+	struct ThreadData {
+		std::condition_variable cv;
+		std::mutex mtx;
+		bool called = false;
+		ErrorCode error_code = ErrorCode::Ok;
+		std::string error_string = "";
+		uint32_t flags;
+	} rtd;
+
+	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
+		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+
+		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+			// If there was an error, rval will only hold 1 element of type Null with a String value.
+			rtd->error_code = ErrorCode::Error;
+			rtd->error_string = rval[0].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
+		}
+
+		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
+		if (rtd->error_code != ErrorCode::Ok) {
+			rtd->error_string = rval[1].value_str;
+			rtd->called = true;
+			rtd->cv.notify_all();
+			return;
+		}
+
+		rtd->flags = rval[1].value_union.ui32;
+
+		rtd->called = true;
+		rtd->cv.notify_all();
+	};
+
+	bool suc = Controller::GetInstance().GetConnection()->call("Global", "GetOutputFlagsFromId",
+		std::vector<ipc::value>{ipc::value(id)}, fnc, &rtd);
+	if (!suc) {
+		info.GetIsolate()->ThrowException(
+			v8::Exception::Error(
+				Nan::New<v8::String>(
+					"Failed to make IPC call, verify IPC status."
+					).ToLocalChecked()
+			));
+		return;
+	}
+
+	std::unique_lock<std::mutex> ulock(rtd.mtx);
+	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+
+	if (rtd.error_code != ErrorCode::Ok) {
+		if (rtd.error_code == ErrorCode::InvalidReference) {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::ReferenceError(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		else {
+			info.GetIsolate()->ThrowException(
+				v8::Exception::Error(Nan::New<v8::String>(
+					rtd.error_string).ToLocalChecked()));
+		}
+		return;
+	}
+
+	info.GetReturnValue().Set(rtd.flags);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Global::laggedFrames(Nan::NAN_METHOD_ARGS_TYPE info) {
