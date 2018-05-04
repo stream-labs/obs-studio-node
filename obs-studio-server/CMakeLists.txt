@@ -17,7 +17,7 @@ include(DownloadProject)
 # OBS Studio (CPack Release)
 download_project(
 	PROJ libobs
-	URL https://ci.appveyor.com/api/buildjobs/qle1ab6v5tbfjtue/artifacts/windows-x86_64-dev.zip
+	URL https://ci.appveyor.com/api/buildjobs/gjewghurhpo9g25h/artifacts/windows-x86_64-dev.zip
 	UPDATE_DISCONNECTED 1
 )
 INCLUDE("${libobs_SOURCE_DIR}/cmake/LibObs/LibObsConfig.cmake")
