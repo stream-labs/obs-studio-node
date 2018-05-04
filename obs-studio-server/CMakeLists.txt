@@ -17,7 +17,7 @@ include(DownloadProject)
 # OBS Studio (CPack Release)
 download_project(
 	PROJ libobs
-	URL https://ci.appveyor.com/api/buildjobs/qle1ab6v5tbfjtue/artifacts/windows-x86_64-dev.zip
+	URL https://ci.appveyor.com/api/buildjobs/gjewghurhpo9g25h/artifacts/windows-x86_64-dev.zip
 	UPDATE_DISCONNECTED 1
 )
 INCLUDE("${libobs_SOURCE_DIR}/cmake/LibObs/LibObsConfig.cmake")
@@ -52,6 +52,7 @@ SET(PROJECT_SOURCE
 	"${PROJECT_SOURCE_DIR}/source/osn-source.cpp" "${PROJECT_SOURCE_DIR}/source/osn-source.hpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-transition.cpp" "${PROJECT_SOURCE_DIR}/source/osn-transition.hpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-video.cpp" "${PROJECT_SOURCE_DIR}/source/osn-video.hpp"
+	"${PROJECT_SOURCE_DIR}/source/osn-volmeter.cpp" "${PROJECT_SOURCE_DIR}/source/osn-volmeter.hpp"
 		
 	###### Graphics ######
 	"${PROJECT_SOURCE_DIR}/source/gs-limits.h"

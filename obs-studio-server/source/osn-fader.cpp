@@ -28,24 +28,25 @@ osn::Fader::Manager& osn::Fader::Manager::GetInstance() {
 }
 
 void osn::Fader::Register(ipc::server& srv) {
-	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Input");
-	cls->register_function(std::make_shared<ipc::function>( "Create", std::vector<ipc::type>{ipc::type::Int32}, Create ));
-	cls->register_function(std::make_shared<ipc::function>( "GetDeziBel", std::vector<ipc::type>{ipc::type::UInt64}, GetDeziBel ));
-	cls->register_function(std::make_shared<ipc::function>( "SetDeziBel", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Float}, SetDeziBel ));
-	cls->register_function(std::make_shared<ipc::function>( "GetDeflection", std::vector<ipc::type>{ipc::type::UInt64}, GetDeflection ));
-	cls->register_function(std::make_shared<ipc::function>( "SetDeflection", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Float}, SetDeflection ));
-	cls->register_function(std::make_shared<ipc::function>( "GetMultiplier", std::vector<ipc::type>{ipc::type::UInt64}, GetMultiplier ));
-	cls->register_function(std::make_shared<ipc::function>( "SetMultiplier", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Float}, SetMultiplier ));
-	cls->register_function(std::make_shared<ipc::function>( "Attach", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, Attach ));
-	cls->register_function(std::make_shared<ipc::function>( "Detach", std::vector<ipc::type>{ipc::type::UInt64}, Detach ));
-	cls->register_function(std::make_shared<ipc::function>( "AddCallback", std::vector<ipc::type>{ipc::type::UInt64}, AddCallback ));
-	cls->register_function(std::make_shared<ipc::function>( "RemoveCallback", std::vector<ipc::type>{ipc::type::UInt64}, RemoveCallback ));
+	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Fader");
+	cls->register_function(std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::Int32}, Create));
+	cls->register_function(std::make_shared<ipc::function>("Destroy", std::vector<ipc::type>{ipc::type::UInt64}, Destroy));
+	cls->register_function(std::make_shared<ipc::function>("GetDeziBel", std::vector<ipc::type>{ipc::type::UInt64}, GetDeziBel));
+	cls->register_function(std::make_shared<ipc::function>("SetDeziBel", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Float}, SetDeziBel));
+	cls->register_function(std::make_shared<ipc::function>("GetDeflection", std::vector<ipc::type>{ipc::type::UInt64}, GetDeflection));
+	cls->register_function(std::make_shared<ipc::function>("SetDeflection", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Float}, SetDeflection));
+	cls->register_function(std::make_shared<ipc::function>("GetMultiplier", std::vector<ipc::type>{ipc::type::UInt64}, GetMultiplier));
+	cls->register_function(std::make_shared<ipc::function>("SetMultiplier", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Float}, SetMultiplier));
+	cls->register_function(std::make_shared<ipc::function>("Attach", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, Attach));
+	cls->register_function(std::make_shared<ipc::function>("Detach", std::vector<ipc::type>{ipc::type::UInt64}, Detach));
+	cls->register_function(std::make_shared<ipc::function>("AddCallback", std::vector<ipc::type>{ipc::type::UInt64}, AddCallback));
+	cls->register_function(std::make_shared<ipc::function>("RemoveCallback", std::vector<ipc::type>{ipc::type::UInt64}, RemoveCallback));
 	srv.register_collection(cls);
 }
 
 void osn::Fader::Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	obs_fader_type type = (obs_fader_type)args[0].value_union.i32;
-	
+
 	obs_fader_t* fader = obs_fader_create(type);
 	if (!fader) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
