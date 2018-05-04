@@ -27,8 +27,11 @@ namespace osn {
 		friend utilv8::InterfaceObject<osn::VolMeter>;
 		friend utilv8::ManagedObject<osn::VolMeter>;
 
+		private:
+		uint64_t uid;
+
 		public:
-		VolMeter();
+		VolMeter(uint64_t uid);
 		~VolMeter();
 
 		public:

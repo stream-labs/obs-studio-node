@@ -16,6 +16,32 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
 
 #include "volmeter.hpp"
+#include "controller.hpp"
+#include <vector>
+#include <iterator>
+#include "shared.hpp"
+#include "error.hpp"
+#include "isource.hpp"
+
+osn::VolMeter::VolMeter(uint64_t uid) {
+	this->uid = uid;
+}
+
+osn::VolMeter::~VolMeter() {
+	// Validate Connection
+	auto conn = Controller::GetInstance().GetConnection();
+	if (!conn) {
+		return; // Well, we can't really do anything here then.
+	}
+
+	// Call
+	std::vector<ipc::value> rval = conn->call_synchronous_helper("VolMeter", "Destroy", {
+		ipc::value(uid),
+	});
+	if (!rval.size()) {
+		return; // Nothing we can do.
+	}
+}
 
 Nan::Persistent<v8::FunctionTemplate> osn::VolMeter::prototype = Nan::Persistent<v8::FunctionTemplate>();
 
@@ -29,7 +55,7 @@ void osn::VolMeter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 
 	// Instance Template
 	auto objtemplate = fnctemplate->PrototypeTemplate();
-	utilv8::SetTemplateField(objtemplate, "create", Create);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "updateInterval", GetUpdateInterval, SetUpdateInterval);
 	utilv8::SetTemplateField(objtemplate, "attach", Attach);
 	utilv8::SetTemplateField(objtemplate, "detach", Detach);
 	utilv8::SetTemplateField(objtemplate, "addCallback", AddCallback);
