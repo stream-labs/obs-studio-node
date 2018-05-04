@@ -16,94 +16,492 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
 
 #include "fader.hpp"
+#include "controller.hpp"
+#include <vector>
+#include <iterator>
+#include "shared.hpp"
+#include "error.hpp"
+#include "isource.hpp"
+
+osn::Fader::Fader(uint64_t uid) {
+	this->uid = uid;
+}
+
+osn::Fader::~Fader() {
+	// Validate Connection
+	auto conn = Controller::GetInstance().GetConnection();
+	if (!conn) {
+		return; // Well, we can't really do anything here then.
+	}
+
+	// Call
+	std::vector<ipc::value> rval = conn->call_synchronous_helper("Fader", "Destroy", {
+		ipc::value(uid),
+	});
+	if (!rval.size()) {
+		return; // Nothing we can do.
+	}
+}
 
 Nan::Persistent<v8::FunctionTemplate> osn::Fader::prototype = Nan::Persistent<v8::FunctionTemplate>();
 
 void osn::Fader::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
+	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
+	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
+	fnctemplate->SetClassName(Nan::New<v8::String>("Fader").ToLocalChecked());
 
+	// Class Template
+	utilv8::SetTemplateField(fnctemplate, "create", Create);
+
+	// Object Template
+	auto objtemplate = fnctemplate->PrototypeTemplate();
+	utilv8::SetTemplateField(objtemplate, "create", Create);
+	utilv8::SetTemplateField(objtemplate, "attach", Attach);
+	utilv8::SetTemplateField(objtemplate, "detach", Detach);
+	utilv8::SetTemplateField(objtemplate, "addCallback", AddCallback);
+	utilv8::SetTemplateField(objtemplate, "removeCallback", RemoveCallback);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "db", GetDeziBel, SetDezibel);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "deflection", GetDeflection, SetDeflection);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "mul", GetMultiplier, SetMultiplier);
+
+	// Stuff
+	utilv8::SetObjectField(target, "Fader", fnctemplate->GetFunction());
+	prototype.Reset(fnctemplate);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Fader::Create(Nan::NAN_METHOD_ARGS_TYPE info) {
-	//ASSERT_INFO_LENGTH_AT_LEAST(info, 1);
+void osn::Fader::Create(Nan::NAN_METHOD_ARGS_TYPE info) {
+	int32_t fader_type;
 
-	//int fader_type;
+	// Validate and retrieve parameters.
+	ASSERT_INFO_LENGTH(info, 1);
+	ASSERT_GET_VALUE(info[0], fader_type);
 
-	//ASSERT_GET_VALUE(info[0], fader_type);
+	// Validate Connection
+	auto conn = Controller::GetInstance().GetConnection();
+	if (!conn) {
+		Nan::ThrowError(__FUNCTION_NAME__ ": " "IPC is not connected.");
+		return;
+	}
 
-	//Fader *binding = new Fader(static_cast<obs_fader_type>(fader_type));
-	//auto object = Fader::Object::GenerateObject(binding);
-	//info.GetReturnValue().Set(object);
+	// Call
+	std::vector<ipc::value> rval = conn->call_synchronous_helper("Fader", "Create", {
+		ipc::value(fader_type),
+	});
+	if (!rval.size()) {
+		Nan::ThrowError(__FUNCTION_NAME__ ": " "Failed to make IPC call, verify IPC status.");
+		return;
+	}
+
+	// Handle Unexpected Errors
+	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[0].value_str).ToLocalChecked());
+		return;
+	}
+
+	// Handle Expected Errors
+	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
+	if (ec == ErrorCode::InvalidReference) {
+		Nan::ThrowReferenceError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		return;
+	} else {
+		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		return;
+	}
+
+	// Return created Object
+	osn::Fader* obj = new osn::Fader(rval[1].value_union.ui64);
+	info.GetReturnValue().Set(Store(obj));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Fader::GetDeziBel(Nan::NAN_METHOD_ARGS_TYPE info) {
-	//obs::fader &handle = Fader::Object::GetHandle(info.Holder());
+void osn::Fader::GetDeziBel(Nan::NAN_METHOD_ARGS_TYPE info) {
+	osn::Fader* fader;
 
-	//info.GetReturnValue().Set(handle.db());
+	// Validate and retrieve parameters.
+	ASSERT_INFO_LENGTH(info, 0);
+
+	if (!Retrieve(info.This(), fader)) {
+		return;
+	}
+
+	// Validate Connection
+	auto conn = Controller::GetInstance().GetConnection();
+	if (!conn) {
+		Nan::ThrowError(__FUNCTION_NAME__ ": " "IPC is not connected.");
+		return;
+	}
+
+	// Call
+	std::vector<ipc::value> rval = conn->call_synchronous_helper("Fader", "GetDeziBel", {
+		ipc::value(fader->uid),
+	});
+	if (!rval.size()) {
+		Nan::ThrowError(__FUNCTION_NAME__ ": " "Failed to make IPC call, verify IPC status.");
+		return;
+	}
+
+	// Handle Unexpected Errors
+	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[0].value_str).ToLocalChecked());
+		return;
+	}
+
+	// Handle Expected Errors
+	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
+	if (ec == ErrorCode::InvalidReference) {
+		Nan::ThrowReferenceError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		return;
+	} else {
+		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		return;
+	}
+
+	// Return DeziBel Value
+	info.GetReturnValue().Set(rval[1].value_union.fp32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Fader::SetDezibel(Nan::NAN_METHOD_ARGS_TYPE info) {
-	//obs::fader &handle = Fader::Object::GetHandle(info.Holder());
+void osn::Fader::SetDezibel(Nan::NAN_METHOD_ARGS_TYPE info) {
+	float_t dezibel;
+	osn::Fader* fader;
 
-	//float db;
+	// Validate and retrieve parameters.
+	ASSERT_INFO_LENGTH(info, 1);
+	ASSERT_GET_VALUE(info[0], dezibel);
 
-	//ASSERT_GET_VALUE(info[0], db);
+	if (!Retrieve(info.This(), fader)) {
+		return;
+	}
+	
+	// Validate Connection
+	auto conn = Controller::GetInstance().GetConnection();
+	if (!conn) {
+		Nan::ThrowError(__FUNCTION_NAME__ ": " "IPC is not connected.");
+		return;
+	}
 
-	//handle.db(db);
+	// Call
+	std::vector<ipc::value> rval = conn->call_synchronous_helper("Fader", "SetDeziBel", {
+		ipc::value(fader->uid), ipc::value(dezibel)
+	});	
+	if (!rval.size()) {
+		Nan::ThrowError(__FUNCTION_NAME__ ": " "Failed to make IPC call, verify IPC status.");
+		return;
+	}
+
+	// Handle Unexpected Errors
+	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[0].value_str).ToLocalChecked());
+		return;
+	}
+
+	// Handle Expected Errors
+	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
+	if (ec == ErrorCode::InvalidReference) {
+		Nan::ThrowReferenceError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		return;
+	} else {
+		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		return;
+	}
+
+	// Return DeziBel Value
+	info.GetReturnValue().Set(rval[1].value_union.fp32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Fader::GetDeflection(Nan::NAN_METHOD_ARGS_TYPE info) {
-	//obs::fader &handle = Fader::Object::GetHandle(info.Holder());
+void osn::Fader::GetDeflection(Nan::NAN_METHOD_ARGS_TYPE info) {
+	osn::Fader* fader;
 
-	//info.GetReturnValue().Set(handle.deflection());
+	// Validate and retrieve parameters.
+	ASSERT_INFO_LENGTH(info, 0);
+
+	if (!Retrieve(info.This(), fader)) {
+		return;
+	}
+
+	// Validate Connection
+	auto conn = Controller::GetInstance().GetConnection();
+	if (!conn) {
+		Nan::ThrowError(__FUNCTION_NAME__ ": " "IPC is not connected.");
+		return;
+	}
+
+	// Call
+	std::vector<ipc::value> rval = conn->call_synchronous_helper("Fader", "GetDeflection", {
+		ipc::value(fader->uid),
+	});
+	if (!rval.size()) {
+		Nan::ThrowError(__FUNCTION_NAME__ ": " "Failed to make IPC call, verify IPC status.");
+		return;
+	}
+
+	// Handle Unexpected Errors
+	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[0].value_str).ToLocalChecked());
+		return;
+	}
+
+	// Handle Expected Errors
+	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
+	if (ec == ErrorCode::InvalidReference) {
+		Nan::ThrowReferenceError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		return;
+	} else {
+		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		return;
+	}
+
+	// Return DeziBel Value
+	info.GetReturnValue().Set(rval[1].value_union.fp32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Fader::SetDeflection(Nan::NAN_METHOD_ARGS_TYPE info) {
-	//obs::fader &handle = Fader::Object::GetHandle(info.Holder());
+void osn::Fader::SetDeflection(Nan::NAN_METHOD_ARGS_TYPE info) {
+	float_t dezibel;
+	osn::Fader* fader;
 
-	//float def;
+	// Validate and retrieve parameters.
+	ASSERT_INFO_LENGTH(info, 1);
+	ASSERT_GET_VALUE(info[0], dezibel);
 
-	//ASSERT_GET_VALUE(info[0], def);
+	if (!Retrieve(info.This(), fader)) {
+		return;
+	}
 
-	//handle.deflection(def);
+	// Validate Connection
+	auto conn = Controller::GetInstance().GetConnection();
+	if (!conn) {
+		Nan::ThrowError(__FUNCTION_NAME__ ": " "IPC is not connected.");
+		return;
+	}
+
+	// Call
+	std::vector<ipc::value> rval = conn->call_synchronous_helper("Fader", "SetDeflection", {
+		ipc::value(fader->uid), ipc::value(dezibel)
+	});
+	if (!rval.size()) {
+		Nan::ThrowError(__FUNCTION_NAME__ ": " "Failed to make IPC call, verify IPC status.");
+		return;
+	}
+
+	// Handle Unexpected Errors
+	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[0].value_str).ToLocalChecked());
+		return;
+	}
+
+	// Handle Expected Errors
+	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
+	if (ec == ErrorCode::InvalidReference) {
+		Nan::ThrowReferenceError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		return;
+	} else {
+		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		return;
+	}
+
+	// Return DeziBel Value
+	info.GetReturnValue().Set(rval[1].value_union.fp32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Fader::GetMul(Nan::NAN_METHOD_ARGS_TYPE info) {
-	//obs::fader &handle = Fader::Object::GetHandle(info.Holder());
+void osn::Fader::GetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info) {
+	osn::Fader* fader;
 
-	//info.GetReturnValue().Set(handle.mul());
+	// Validate and retrieve parameters.
+	ASSERT_INFO_LENGTH(info, 0);
+
+	if (!Retrieve(info.This(), fader)) {
+		return;
+	}
+
+	// Validate Connection
+	auto conn = Controller::GetInstance().GetConnection();
+	if (!conn) {
+		Nan::ThrowError(__FUNCTION_NAME__ ": " "IPC is not connected.");
+		return;
+	}
+
+	// Call
+	std::vector<ipc::value> rval = conn->call_synchronous_helper("Fader", "GetMultiplier", {
+		ipc::value(fader->uid),
+	});
+	if (!rval.size()) {
+		Nan::ThrowError(__FUNCTION_NAME__ ": " "Failed to make IPC call, verify IPC status.");
+		return;
+	}
+
+	// Handle Unexpected Errors
+	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[0].value_str).ToLocalChecked());
+		return;
+	}
+
+	// Handle Expected Errors
+	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
+	if (ec == ErrorCode::InvalidReference) {
+		Nan::ThrowReferenceError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		return;
+	} else {
+		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		return;
+	}
+
+	// Return DeziBel Value
+	info.GetReturnValue().Set(rval[1].value_union.fp32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Fader::SetMul(Nan::NAN_METHOD_ARGS_TYPE info) {
-	//obs::fader &handle = Fader::Object::GetHandle(info.Holder());
+void osn::Fader::SetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info) {
+	float_t dezibel;
+	osn::Fader* fader;
 
-	//float mul;
+	// Validate and retrieve parameters.
+	ASSERT_INFO_LENGTH(info, 1);
+	ASSERT_GET_VALUE(info[0], dezibel);
 
-	//ASSERT_GET_VALUE(info[0], mul);
+	if (!Retrieve(info.This(), fader)) {
+		return;
+	}
 
-	//handle.mul(mul);
+	// Validate Connection
+	auto conn = Controller::GetInstance().GetConnection();
+	if (!conn) {
+		Nan::ThrowError(__FUNCTION_NAME__ ": " "IPC is not connected.");
+		return;
+	}
+
+	// Call
+	std::vector<ipc::value> rval = conn->call_synchronous_helper("Fader", "SetMultiplier", {
+		ipc::value(fader->uid), ipc::value(dezibel)
+	});
+	if (!rval.size()) {
+		Nan::ThrowError(__FUNCTION_NAME__ ": " "Failed to make IPC call, verify IPC status.");
+		return;
+	}
+
+	// Handle Unexpected Errors
+	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[0].value_str).ToLocalChecked());
+		return;
+	}
+
+	// Handle Expected Errors
+	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
+	if (ec == ErrorCode::InvalidReference) {
+		Nan::ThrowReferenceError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		return;
+	} else {
+		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		return;
+	}
+
+	// Return DeziBel Value
+	info.GetReturnValue().Set(rval[1].value_union.fp32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Fader::Attach(Nan::NAN_METHOD_ARGS_TYPE info) {
-	//obs::fader &handle = Fader::Object::GetHandle(info.Holder());
+void osn::Fader::Attach(Nan::NAN_METHOD_ARGS_TYPE info) {
+	osn::Fader* fader;
+	osn::ISource* source;
 
-	//ASSERT_INFO_LENGTH(info, 1);
+	// Validate and retrieve parameters.
+	ASSERT_INFO_LENGTH(info, 1);
 
-	//v8::Local<v8::Object> source_object;
+	if (!Retrieve(info.This(), fader)) {
+		return;
+	}
 
-	//ASSERT_GET_VALUE(info[0], source_object);
+	v8::Local<v8::Object> sourceObj;
+	ASSERT_GET_VALUE(info[0], sourceObj);
+	if (!osn::ISource::Retrieve(sourceObj, source)) {
+		return;
+	}
 
-	//obs::source source = ISource::GetHandle(source_object);
+	// Validate Connection
+	auto conn = Controller::GetInstance().GetConnection();
+	if (!conn) {
+		Nan::ThrowError(__FUNCTION_NAME__ ": " "IPC is not connected.");
+		return;
+	}
 
-	//handle.attach(source);
+	// Call
+	std::vector<ipc::value> rval = conn->call_synchronous_helper("Fader", "Attach", {
+		ipc::value(fader->uid), ipc::value(source->sourceId)
+	});
+	if (!rval.size()) {
+		Nan::ThrowError(__FUNCTION_NAME__ ": " "Failed to make IPC call, verify IPC status.");
+		return;
+	}
+
+	// Handle Unexpected Errors
+	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[0].value_str).ToLocalChecked());
+		return;
+	}
+
+	// Handle Expected Errors
+	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
+	if (ec == ErrorCode::InvalidReference) {
+		Nan::ThrowReferenceError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		return;
+	} else {
+		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		return;
+	}
+
+	// Return DeziBel Value
+	info.GetReturnValue().Set(!!rval[1].value_union.i32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Fader::Detach(Nan::NAN_METHOD_ARGS_TYPE info) {
-	//obs::fader &handle = Fader::Object::GetHandle(info.Holder());
+void osn::Fader::Detach(Nan::NAN_METHOD_ARGS_TYPE info) {
+	osn::Fader* fader;
+	osn::ISource* source;
 
-	//handle.detach();
+	// Validate and retrieve parameters.
+	ASSERT_INFO_LENGTH(info, 1);
+
+	if (!Retrieve(info.This(), fader)) {
+		return;
+	}
+
+	v8::Local<v8::Object> sourceObj;
+	ASSERT_GET_VALUE(info[0], sourceObj);
+	if (!osn::ISource::Retrieve(sourceObj, source)) {
+		return;
+	}
+
+	// Validate Connection
+	auto conn = Controller::GetInstance().GetConnection();
+	if (!conn) {
+		Nan::ThrowError(__FUNCTION_NAME__ ": " "IPC is not connected.");
+		return;
+	}
+
+	// Call
+	std::vector<ipc::value> rval = conn->call_synchronous_helper("Fader", "Detach", {
+		ipc::value(fader->uid), ipc::value(source->sourceId)
+	});
+	if (!rval.size()) {
+		Nan::ThrowError(__FUNCTION_NAME__ ": " "Failed to make IPC call, verify IPC status.");
+		return;
+	}
+
+	// Handle Unexpected Errors
+	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[0].value_str).ToLocalChecked());
+		return;
+	}
+
+	// Handle Expected Errors
+	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
+	if (ec == ErrorCode::InvalidReference) {
+		Nan::ThrowReferenceError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		return;
+	} else {
+		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		return;
+	}
+
+	// Return DeziBel Value
+	info.GetReturnValue().Set(!!rval[1].value_union.i32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Fader::AddCallback(Nan::NAN_METHOD_ARGS_TYPE info) {
+void osn::Fader::AddCallback(Nan::NAN_METHOD_ARGS_TYPE info) {
 	//obs::fader &handle = Fader::Object::GetHandle(info.Holder());
 	//Fader* binding = Nan::ObjectWrap::Unwrap<Fader>(info.Holder());
 
@@ -122,7 +520,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Fader::AddCallback(Nan::NAN_METHOD_ARGS_TYPE in
 	//info.GetReturnValue().Set(object);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Fader::RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info) {
+void osn::Fader::RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info) {
 	//obs::fader &handle = Fader::Object::GetHandle(info.Holder());
 
 	//v8::Local<v8::Object> cb_object;
