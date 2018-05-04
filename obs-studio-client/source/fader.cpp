@@ -55,14 +55,13 @@ void osn::Fader::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 
 	// Object Template
 	auto objtemplate = fnctemplate->PrototypeTemplate();
-	utilv8::SetTemplateField(objtemplate, "create", Create);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "db", GetDeziBel, SetDezibel);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "deflection", GetDeflection, SetDeflection);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "mul", GetMultiplier, SetMultiplier);
 	utilv8::SetTemplateField(objtemplate, "attach", Attach);
 	utilv8::SetTemplateField(objtemplate, "detach", Detach);
 	utilv8::SetTemplateField(objtemplate, "addCallback", AddCallback);
 	utilv8::SetTemplateField(objtemplate, "removeCallback", RemoveCallback);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "db", GetDeziBel, SetDezibel);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "deflection", GetDeflection, SetDeflection);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "mul", GetMultiplier, SetMultiplier);
 
 	// Stuff
 	utilv8::SetObjectField(target, "Fader", fnctemplate->GetFunction());
