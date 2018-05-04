@@ -20,6 +20,14 @@
 #include <functional>
 #include <node.h>
 
+#ifndef __FUNCTION_NAME__
+#if defined(_WIN32) || defined(_WIN64)   //WINDOWS
+#define __FUNCTION_NAME__   __FUNCTION__
+#else          //*NIX
+#define __FUNCTION_NAME__   __func__
+#endif
+#endif
+
 extern std::queue<std::function<void(v8::Local<v8::Object>)>> initializerFunctions;
 
 void replaceAll(std::string& str, const std::string& from, const std::string& to);
