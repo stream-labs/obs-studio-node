@@ -17,6 +17,13 @@
 
 #pragma once
 
+#include <vector>
+#include <memory>
+#include <nan.h>
+
+#include "error.hpp"
+#include "controller.hpp"
+
 #ifdef __cplusplus
 #define INITIALIZER(f) \
         static void f(void); \
@@ -48,20 +55,41 @@
 #endif
 #endif
 
+#if defined(_MSC_VER)
+#define FORCE_INLINE __forceinline
+#else
+#define FORCE_INLINE __attribute__((always_inline))
+#endif
+
 #define dstr(s) #s
 #define vstr(s) dstr(s)
 
-/* Validate the response to make sure the entire
- * request didn't fail. */
-#define ASSERT_RESPONSE_VALID(Response) \
-        if ((Response.size() == 1) && (Response[0].type == ipc::type::Null)) { \
-                Nan::ThrowError(Nan::New<v8::String>(Response[1].value_str).ToLocalChecked()); \
-                return; \
-        } \
-        { \
-                ErrorCode error = (ErrorCode)Response[0].value_union.ui64; \
-                if (error != ErrorCode::Ok) { \
-                        Nan::ThrowError(Nan::New<v8::String>(Response[0].value_str).ToLocalChecked()); \
-                        return; \
-                } \
+static FORCE_INLINE bool ValidateResponse(std::vector<ipc::value> &response)
+{
+        if ((response.size() == 1) && (response[0].type == ipc::type::Null)) {
+                Nan::ThrowError(Nan::New<v8::String>(response[1].value_str).ToLocalChecked());
+                return false;
         }
+
+        {
+                ErrorCode error = (ErrorCode)response[0].value_union.ui64;
+                if (error != ErrorCode::Ok) {
+                        Nan::ThrowError(Nan::New<v8::String>(response[0].value_str).ToLocalChecked());
+                        return false;
+                }
+        }
+
+        if (!response.size()) {
+                Nan::ThrowError(__FUNCTION_NAME__ ": Failed to make IPC call, verify IPC status.");
+                return false;
+        }
+
+        return true;
+}
+
+static FORCE_INLINE std::shared_ptr<ipc::client> GetConnection()
+{
+        auto conn = Controller::GetInstance().GetConnection();
+        if (!conn) Nan::ThrowError(__FUNCTION_NAME__ ": Failed to obtain IPC connection.");
+        return conn;
+}

@@ -71,14 +71,15 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Create(Nan::NAN_METHOD_ARGS_TYPE info) {
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], name);
 
-	auto conn = Controller::GetInstance().GetConnection();
+	auto conn = GetConnection();
+	if (!conn) return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper(
 		"Scene", "Create",
 		std::vector<ipc::value>{ ipc::value(name) }
 	);
 
-	ASSERT_RESPONSE_VALID(response);
+	if (!ValidateResponse(response)) return;
 
 	uint64_t sourceId = response[1].value_union.ui64;
 
@@ -93,12 +94,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE 
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], name);
 
-	auto conn = Controller::GetInstance().GetConnection();
+	auto conn = GetConnection();
+	if (!conn) return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "CreatePrivate",
 		std::vector<ipc::value>{ ipc::value(name) });
 
-	ASSERT_RESPONSE_VALID(response);
+	if (!ValidateResponse(response)) return;
 
 	uint64_t sourceId = response[1].value_union.ui64;
 
@@ -112,12 +114,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FromName(Nan::NAN_METHOD_ARGS_TYPE info)
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], name);
 
-	auto conn = Controller::GetInstance().GetConnection();
+	auto conn = GetConnection();
+	if (!conn) return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "FromName",
 		{ ipc::value(name) });
 
-	ASSERT_RESPONSE_VALID(response);
+	if (!ValidateResponse(response)) return;
 
 	uint64_t sourceId = response[1].value_union.ui64;
 
@@ -131,12 +134,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Release(Nan::NAN_METHOD_ARGS_TYPE info) 
 		return;
 	}
 
-	auto conn = Controller::GetInstance().GetConnection();
+	auto conn = GetConnection();
+	if (!conn) return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "Release",
 		std::vector<ipc::value>{ipc::value(source->sourceId)});
 
-	ASSERT_RESPONSE_VALID(response);
+	ValidateResponse(response);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Remove(Nan::NAN_METHOD_ARGS_TYPE info) {
@@ -145,12 +149,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Remove(Nan::NAN_METHOD_ARGS_TYPE info) {
 		return;
 	}
 
-	auto conn = Controller::GetInstance().GetConnection();
+	auto conn = GetConnection();
+	if (!conn) return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "Remove",
 		std::vector<ipc::value>{ipc::value(source->sourceId)});
 
-	ASSERT_RESPONSE_VALID(response);
+	if (!ValidateResponse(response)) return;
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AsSource(Nan::NAN_METHOD_ARGS_TYPE info) {
@@ -177,12 +182,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info
 	ASSERT_GET_VALUE(info[0], name);
 	ASSERT_GET_VALUE(info[1], duplicate_type);
 
-	auto conn = Controller::GetInstance().GetConnection();
+	auto conn = GetConnection();
+	if (!conn) return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "Duplicate",
 		std::vector<ipc::value>{ipc::value(source->sourceId), ipc::value(name), ipc::value(duplicate_type)});
 
-	ASSERT_RESPONSE_VALID(response);
+	if (!ValidateResponse(response)) return;
 
 	uint64_t sourceId = response[1].value_union.ui64;
 
@@ -202,12 +208,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 		return;
 	}
 
-	auto conn = Controller::GetInstance().GetConnection();
+	auto conn = GetConnection();
+	if (!conn) return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "AddSource",
 		std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(input->sourceId)});
 
-	ASSERT_RESPONSE_VALID(response);
+	if (!ValidateResponse(response)) return;
 
 	uint64_t id = response[1].value_union.ui64;
 
@@ -238,13 +245,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FindItem(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	auto conn = Controller::GetInstance().GetConnection();
+	auto conn = GetConnection();
+	if (!conn) return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "FindItem",
 		std::vector<ipc::value>{ipc::value(scene->sourceId),
 		(haveName ? ipc::value(name) : ipc::value(position))});
 
-	ASSERT_RESPONSE_VALID(response);
+	if (!ValidateResponse(response)) return;
 
 	uint64_t id = response[1].value_union.ui64;
 
@@ -263,12 +271,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::MoveItem(Nan::NAN_METHOD_ARGS_TYPE info)
 	ASSERT_GET_VALUE(info[0], from);
 	ASSERT_GET_VALUE(info[1], to);
 
-	auto conn = Controller::GetInstance().GetConnection();
+	auto conn = GetConnection();
+	if (!conn) return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "MoveItem",
 		std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(from), ipc::value(to)});
 	
-	ASSERT_RESPONSE_VALID(response);
+	ValidateResponse(response);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemAtIndex(Nan::NAN_METHOD_ARGS_TYPE info) {
@@ -282,12 +291,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemAtIndex(Nan::NAN_METHOD_ARGS_TYPE
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], index);
 
-	auto conn = Controller::GetInstance().GetConnection();
+	auto conn = GetConnection();
+	if (!conn) return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "GetItem",
 		std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(index)});
 
-	ASSERT_RESPONSE_VALID(response);
+	if (!ValidateResponse(response)) return;
 
 	uint64_t id = response[1].value_union.ui64;
 
@@ -301,12 +311,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItems(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	auto conn = Controller::GetInstance().GetConnection();
+	auto conn = GetConnection();
+	if (!conn) return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "GetItems",
 		std::vector<ipc::value>{ipc::value(scene->sourceId)});
 
-	ASSERT_RESPONSE_VALID(response);
+	if (!ValidateResponse(response)) return;
 
 	auto arr = Nan::New<v8::Array>(response.size() - 1);
 
@@ -329,12 +340,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemsInRange(Nan::NAN_METHOD_ARGS_TYP
 	ASSERT_GET_VALUE(info[0], from);
 	ASSERT_GET_VALUE(info[1], to);
 
-	auto conn = Controller::GetInstance().GetConnection();
+	auto conn = GetConnection();
+	if (!conn) return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "GetItemsInRange",
 		std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(from), ipc::value(to)});
 
-	ASSERT_RESPONSE_VALID(response);
+	if (!ValidateResponse(response)) return;
 	
 	auto arr = Nan::New<v8::Array>(response.size() - 1);
 
