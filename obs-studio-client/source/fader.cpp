@@ -78,7 +78,7 @@ void osn::Fader::Create(Nan::NAN_METHOD_ARGS_TYPE info) {
 	// Validate Connection
 	auto conn = Controller::GetInstance().GetConnection();
 	if (!conn) {
-		Nan::ThrowError(__FUNCTION_NAME__ ": " "IPC is not connected.");
+		Nan::ThrowError("IPC is not connected.");
 		return;
 	}
 
@@ -87,23 +87,23 @@ void osn::Fader::Create(Nan::NAN_METHOD_ARGS_TYPE info) {
 		ipc::value(fader_type),
 	});
 	if (!rval.size()) {
-		Nan::ThrowError(__FUNCTION_NAME__ ": " "Failed to make IPC call, verify IPC status.");
+		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
 		return;
 	}
 
 	// Handle Unexpected Errors
 	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[0].value_str).ToLocalChecked());
+		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
 		return;
 	}
 
 	// Handle Expected Errors
 	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
 	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
 		return;
-	} else {
-		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+	} else if (ec != ErrorCode::Ok) {
+		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
 		return;
 	}
 
@@ -125,7 +125,7 @@ void osn::Fader::GetDeziBel(Nan::NAN_METHOD_ARGS_TYPE info) {
 	// Validate Connection
 	auto conn = Controller::GetInstance().GetConnection();
 	if (!conn) {
-		Nan::ThrowError(__FUNCTION_NAME__ ": " "IPC is not connected.");
+		Nan::ThrowError("IPC is not connected.");
 		return;
 	}
 
@@ -134,23 +134,23 @@ void osn::Fader::GetDeziBel(Nan::NAN_METHOD_ARGS_TYPE info) {
 		ipc::value(fader->uid),
 	});
 	if (!rval.size()) {
-		Nan::ThrowError(__FUNCTION_NAME__ ": " "Failed to make IPC call, verify IPC status.");
+		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
 		return;
 	}
 
 	// Handle Unexpected Errors
 	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[0].value_str).ToLocalChecked());
+		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
 		return;
 	}
 
 	// Handle Expected Errors
 	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
 	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
 		return;
-	} else {
-		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+	} else if (ec != ErrorCode::Ok) {
+		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
 		return;
 	}
 
@@ -173,7 +173,7 @@ void osn::Fader::SetDezibel(Nan::NAN_METHOD_ARGS_TYPE info) {
 	// Validate Connection
 	auto conn = Controller::GetInstance().GetConnection();
 	if (!conn) {
-		Nan::ThrowError(__FUNCTION_NAME__ ": " "IPC is not connected.");
+		Nan::ThrowError("IPC is not connected.");
 		return;
 	}
 
@@ -182,23 +182,23 @@ void osn::Fader::SetDezibel(Nan::NAN_METHOD_ARGS_TYPE info) {
 		ipc::value(fader->uid), ipc::value(dezibel)
 	});	
 	if (!rval.size()) {
-		Nan::ThrowError(__FUNCTION_NAME__ ": " "Failed to make IPC call, verify IPC status.");
+		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
 		return;
 	}
 
 	// Handle Unexpected Errors
 	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[0].value_str).ToLocalChecked());
+		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
 		return;
 	}
 
 	// Handle Expected Errors
 	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
 	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
 		return;
-	} else {
-		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+	} else if (ec != ErrorCode::Ok) {
+		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
 		return;
 	}
 
@@ -219,7 +219,7 @@ void osn::Fader::GetDeflection(Nan::NAN_METHOD_ARGS_TYPE info) {
 	// Validate Connection
 	auto conn = Controller::GetInstance().GetConnection();
 	if (!conn) {
-		Nan::ThrowError(__FUNCTION_NAME__ ": " "IPC is not connected.");
+		Nan::ThrowError("IPC is not connected.");
 		return;
 	}
 
@@ -228,23 +228,23 @@ void osn::Fader::GetDeflection(Nan::NAN_METHOD_ARGS_TYPE info) {
 		ipc::value(fader->uid),
 	});
 	if (!rval.size()) {
-		Nan::ThrowError(__FUNCTION_NAME__ ": " "Failed to make IPC call, verify IPC status.");
+		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
 		return;
 	}
 
 	// Handle Unexpected Errors
 	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[0].value_str).ToLocalChecked());
+		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
 		return;
 	}
 
 	// Handle Expected Errors
 	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
 	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
 		return;
-	} else {
-		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+	} else if (ec != ErrorCode::Ok) {
+		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
 		return;
 	}
 
@@ -267,7 +267,7 @@ void osn::Fader::SetDeflection(Nan::NAN_METHOD_ARGS_TYPE info) {
 	// Validate Connection
 	auto conn = Controller::GetInstance().GetConnection();
 	if (!conn) {
-		Nan::ThrowError(__FUNCTION_NAME__ ": " "IPC is not connected.");
+		Nan::ThrowError("IPC is not connected.");
 		return;
 	}
 
@@ -276,23 +276,23 @@ void osn::Fader::SetDeflection(Nan::NAN_METHOD_ARGS_TYPE info) {
 		ipc::value(fader->uid), ipc::value(dezibel)
 	});
 	if (!rval.size()) {
-		Nan::ThrowError(__FUNCTION_NAME__ ": " "Failed to make IPC call, verify IPC status.");
+		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
 		return;
 	}
 
 	// Handle Unexpected Errors
 	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[0].value_str).ToLocalChecked());
+		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
 		return;
 	}
 
 	// Handle Expected Errors
 	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
 	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
 		return;
-	} else {
-		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+	} else if (ec != ErrorCode::Ok) {
+		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
 		return;
 	}
 
@@ -313,7 +313,7 @@ void osn::Fader::GetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info) {
 	// Validate Connection
 	auto conn = Controller::GetInstance().GetConnection();
 	if (!conn) {
-		Nan::ThrowError(__FUNCTION_NAME__ ": " "IPC is not connected.");
+		Nan::ThrowError("IPC is not connected.");
 		return;
 	}
 
@@ -322,23 +322,23 @@ void osn::Fader::GetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info) {
 		ipc::value(fader->uid),
 	});
 	if (!rval.size()) {
-		Nan::ThrowError(__FUNCTION_NAME__ ": " "Failed to make IPC call, verify IPC status.");
+		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
 		return;
 	}
 
 	// Handle Unexpected Errors
 	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[0].value_str).ToLocalChecked());
+		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
 		return;
 	}
 
 	// Handle Expected Errors
 	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
 	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
 		return;
-	} else {
-		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+	} else if (ec != ErrorCode::Ok) {
+		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
 		return;
 	}
 
@@ -361,7 +361,7 @@ void osn::Fader::SetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info) {
 	// Validate Connection
 	auto conn = Controller::GetInstance().GetConnection();
 	if (!conn) {
-		Nan::ThrowError(__FUNCTION_NAME__ ": " "IPC is not connected.");
+		Nan::ThrowError("IPC is not connected.");
 		return;
 	}
 
@@ -370,23 +370,23 @@ void osn::Fader::SetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info) {
 		ipc::value(fader->uid), ipc::value(dezibel)
 	});
 	if (!rval.size()) {
-		Nan::ThrowError(__FUNCTION_NAME__ ": " "Failed to make IPC call, verify IPC status.");
+		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
 		return;
 	}
 
 	// Handle Unexpected Errors
 	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[0].value_str).ToLocalChecked());
+		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
 		return;
 	}
 
 	// Handle Expected Errors
 	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
 	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
 		return;
-	} else {
-		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+	} else if (ec != ErrorCode::Ok) {
+		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
 		return;
 	}
 
@@ -414,7 +414,7 @@ void osn::Fader::Attach(Nan::NAN_METHOD_ARGS_TYPE info) {
 	// Validate Connection
 	auto conn = Controller::GetInstance().GetConnection();
 	if (!conn) {
-		Nan::ThrowError(__FUNCTION_NAME__ ": " "IPC is not connected.");
+		Nan::ThrowError("IPC is not connected.");
 		return;
 	}
 
@@ -423,81 +423,68 @@ void osn::Fader::Attach(Nan::NAN_METHOD_ARGS_TYPE info) {
 		ipc::value(fader->uid), ipc::value(source->sourceId)
 	});
 	if (!rval.size()) {
-		Nan::ThrowError(__FUNCTION_NAME__ ": " "Failed to make IPC call, verify IPC status.");
+		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
 		return;
 	}
 
 	// Handle Unexpected Errors
 	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[0].value_str).ToLocalChecked());
+		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
 		return;
 	}
 
 	// Handle Expected Errors
 	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
 	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
 		return;
-	} else {
-		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+	} else if (ec != ErrorCode::Ok) {
+		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
 		return;
 	}
-
-	// Return DeziBel Value
-	info.GetReturnValue().Set(!!rval[1].value_union.i32);
 }
 
 void osn::Fader::Detach(Nan::NAN_METHOD_ARGS_TYPE info) {
 	osn::Fader* fader;
-	osn::ISource* source;
 
 	// Validate and retrieve parameters.
-	ASSERT_INFO_LENGTH(info, 1);
+	ASSERT_INFO_LENGTH(info, 0);
 
 	if (!Retrieve(info.This(), fader)) {
-		return;
-	}
-
-	v8::Local<v8::Object> sourceObj;
-	ASSERT_GET_VALUE(info[0], sourceObj);
-	if (!osn::ISource::Retrieve(sourceObj, source)) {
 		return;
 	}
 
 	// Validate Connection
 	auto conn = Controller::GetInstance().GetConnection();
 	if (!conn) {
-		Nan::ThrowError(__FUNCTION_NAME__ ": " "IPC is not connected.");
+		Nan::ThrowError("IPC is not connected.");
 		return;
 	}
 
 	// Call
 	std::vector<ipc::value> rval = conn->call_synchronous_helper("Fader", "Detach", {
-		ipc::value(fader->uid), ipc::value(source->sourceId)
+		ipc::value(fader->uid)
 	});
 	if (!rval.size()) {
-		Nan::ThrowError(__FUNCTION_NAME__ ": " "Failed to make IPC call, verify IPC status.");
+		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
 		return;
 	}
 
 	// Handle Unexpected Errors
 	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[0].value_str).ToLocalChecked());
+		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
 		return;
 	}
 
 	// Handle Expected Errors
 	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
 	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
 		return;
-	} else {
-		Nan::ThrowError(Nan::New(__FUNCTION_NAME__ ": " + rval[1].value_str).ToLocalChecked());
+	} else if (ec != ErrorCode::Ok) {
+		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
 		return;
 	}
-
-	// Return DeziBel Value
-	info.GetReturnValue().Set(!!rval[1].value_union.i32);
 }
 
 void osn::Fader::AddCallback(Nan::NAN_METHOD_ARGS_TYPE info) {

@@ -22,23 +22,23 @@
 #include "shared.hpp"
 #include "osn-source.hpp"
 
-osn::VolumeMeter::Manager& osn::VolumeMeter::Manager::GetInstance() {
+osn::VolMeter::Manager& osn::VolMeter::Manager::GetInstance() {
 	static Manager _inst;
 	return _inst;
 }
 
-osn::VolumeMeter::VolumeMeter(obs_fader_type type) {
+osn::VolMeter::VolMeter(obs_fader_type type) {
 	self = obs_volmeter_create(type);
 	if (!self)
 		throw std::exception();
 }
 
-osn::VolumeMeter::~VolumeMeter() {
+osn::VolMeter::~VolMeter() {
 	obs_volmeter_destroy(self);
 }
 
-void osn::VolumeMeter::Register(ipc::server& srv) {
-	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("VolumeMeter");
+void osn::VolMeter::Register(ipc::server& srv) {
+	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("VolMeter");
 	cls->register_function(std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::Int32}, Create));
 	cls->register_function(std::make_shared<ipc::function>("Destroy", std::vector<ipc::type>{ipc::type::Int32}, Destroy));
 	cls->register_function(std::make_shared<ipc::function>("GetUpdateInterval", std::vector<ipc::type>{ipc::type::UInt64}, GetUpdateInterval));
@@ -50,12 +50,12 @@ void osn::VolumeMeter::Register(ipc::server& srv) {
 	srv.register_collection(cls);
 }
 
-void osn::VolumeMeter::Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+void osn::VolMeter::Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	obs_fader_type type = (obs_fader_type)args[0].value_union.i32;
-	VolumeMeter* meter = nullptr;
+	VolMeter* meter = nullptr;
 
 	try {
-		meter = new VolumeMeter(type);
+		meter = new VolMeter(type);
 	} catch (...) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to create Meter."));
@@ -77,7 +77,7 @@ void osn::VolumeMeter::Create(void* data, const int64_t id, const std::vector<ip
 	AUTO_DEBUG;
 }
 
-void osn::VolumeMeter::Destroy(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+void osn::VolMeter::Destroy(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	auto uid = args[0].value_union.ui64;
 
 	auto meter = Manager::GetInstance().find(uid);
@@ -95,7 +95,7 @@ void osn::VolumeMeter::Destroy(void* data, const int64_t id, const std::vector<i
 	AUTO_DEBUG;
 }
 
-void osn::VolumeMeter::GetUpdateInterval(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+void osn::VolMeter::GetUpdateInterval(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	auto uid = args[0].value_union.ui64;
 
 	auto meter = Manager::GetInstance().find(uid);
@@ -111,7 +111,7 @@ void osn::VolumeMeter::GetUpdateInterval(void* data, const int64_t id, const std
 	AUTO_DEBUG;
 }
 
-void osn::VolumeMeter::SetUpdateInterval(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+void osn::VolMeter::SetUpdateInterval(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	auto uid = args[0].value_union.ui64;
 
 	auto meter = Manager::GetInstance().find(uid);
@@ -129,7 +129,7 @@ void osn::VolumeMeter::SetUpdateInterval(void* data, const int64_t id, const std
 	AUTO_DEBUG;
 }
 
-void osn::VolumeMeter::Attach(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+void osn::VolMeter::Attach(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	auto uid_fader = args[0].value_union.ui64;
 	auto uid_source = args[1].value_union.ui64;
 
@@ -160,7 +160,7 @@ void osn::VolumeMeter::Attach(void* data, const int64_t id, const std::vector<ip
 	AUTO_DEBUG;
 }
 
-void osn::VolumeMeter::Detach(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+void osn::VolMeter::Detach(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	auto uid = args[0].value_union.ui64;
 
 	auto meter = Manager::GetInstance().find(uid);
@@ -177,10 +177,10 @@ void osn::VolumeMeter::Detach(void* data, const int64_t id, const std::vector<ip
 	AUTO_DEBUG;
 }
 
-void osn::VolumeMeter::AddCallback(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+void osn::VolMeter::AddCallback(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	//!FIXME!
 }
 
-void osn::VolumeMeter::RemoveCallback(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+void osn::VolMeter::RemoveCallback(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	//!FIXME!
 }

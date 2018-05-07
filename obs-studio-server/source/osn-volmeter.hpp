@@ -22,9 +22,9 @@
 #include <memory>
 
 namespace osn {
-	class VolumeMeter {
+	class VolMeter {
 		public:
-		class Manager : public utility::unique_object_manager<VolumeMeter> {
+		class Manager : public utility::unique_object_manager<VolMeter> {
 			friend class std::shared_ptr<Manager>;
 
 			protected:
@@ -43,8 +43,8 @@ namespace osn {
 		obs_volmeter_t* self;
 
 		public:
-		VolumeMeter(obs_fader_type type);
-		~VolumeMeter();
+		VolMeter(obs_fader_type type);
+		~VolMeter();
 
 		public:
 		static void Register(ipc::server&);

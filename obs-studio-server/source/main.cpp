@@ -37,6 +37,8 @@
 #include "nodeobs_settings.h"
 #include "error.hpp"
 #include <chrono>
+#include "osn-fader.hpp"
+#include "osn-volmeter.hpp"
 
 // Eddy said only the following are used in osn:
 // `ISource` `Input` `Filter` `AudioControls` `Global` `IProperties` `Scene` `SceneItem` `transition` `Video`
@@ -120,6 +122,8 @@ int main(int argc, char* argv[]) {
 	osn::Transition::Register(myServer);
 	osn::Scene::Register(myServer);
 	osn::SceneItem::Register(myServer);
+	osn::Fader::Register(myServer);
+	osn::VolMeter::Register(myServer);
 	OBS_API::Register(myServer);
 	OBS_content::Register(myServer);
 	OBS_service::Register(myServer);
