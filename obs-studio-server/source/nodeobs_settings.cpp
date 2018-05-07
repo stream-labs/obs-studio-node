@@ -3145,7 +3145,7 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 	        		return (value.second.compare(baseResolutionString) == 0);
 	        	});
 	        
-	    if(baseResolution.size() == 3 || it == baseResolution.end()) {
+	    if(baseResolution.size() == 4 || it == baseResolution.end()) {
 	    	baseResolution.push_back(newBaseResolution);  
 	    }	
 	}
@@ -3165,7 +3165,7 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 		baseResolution.push_back(std::make_pair(baseResolutionString.c_str(), baseResolutionString.c_str()));
 	}
 
-	int indexFirstValue = 3;
+	int indexFirstValue = 4;
 	baseResolution.insert(baseResolution.begin() + indexFirstValue, newBaseResolution);
 
 	entries.push_back(baseResolution);
