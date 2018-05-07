@@ -22,6 +22,7 @@
 #include "shared.hpp"
 #include "error.hpp"
 #include "isource.hpp"
+#include "utility-v8.hpp"
 
 osn::VolMeter::VolMeter(uint64_t uid) {
 	this->uid = uid;
@@ -67,51 +68,234 @@ void osn::VolMeter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Create(Nan::NAN_METHOD_ARGS_TYPE info) {
-	//ASSERT_INFO_LENGTH_AT_LEAST(info, 1);
+	int32_t fader_type;
 
-	//int fader_type;
+	// Validate and retrieve parameters.
+	ASSERT_INFO_LENGTH(info, 1);
+	ASSERT_GET_VALUE(info[0], fader_type);
 
-	//ASSERT_GET_VALUE(info[0], fader_type);
+	// Validate Connection
+	auto conn = Controller::GetInstance().GetConnection();
+	if (!conn) {
+		Nan::ThrowError("IPC is not connected.");
+		return;
+	}
 
-	//Volmeter *binding = new Volmeter(static_cast<obs_fader_type>(fader_type));
-	//auto object = Volmeter::Object::GenerateObject(binding);
-	//info.GetReturnValue().Set(object);
+	// Call
+	std::vector<ipc::value> rval = conn->call_synchronous_helper("VolMeter", "Create", {
+		ipc::value(fader_type),
+	});
+	if (!rval.size()) {
+		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
+		return;
+	}
+
+	// Handle Unexpected Errors
+	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
+		return;
+	}
+
+	// Handle Expected Errors
+	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64; 
+	if (ec == ErrorCode::InvalidReference) {
+		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
+		return;
+	} else if (ec != ErrorCode::Ok) {
+		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+		return;
+	}
+
+	// Return created Object
+	osn::VolMeter* obj = new osn::VolMeter(rval[1].value_union.ui64);
+	info.GetReturnValue().Set(Store(obj));
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::GetUpdateInterval(Nan::NAN_METHOD_ARGS_TYPE info) {
-	//obs::volmeter &handle = Volmeter::Object::GetHandle(info.Holder());
+	osn::VolMeter* self;
 
-	//info.GetReturnValue().Set(handle.interval());
+	// Validate and retrieve parameters.
+	ASSERT_INFO_LENGTH(info, 0);
+
+	if (!Retrieve(info.This(), self)) {
+		return;
+	}
+
+	// Validate Connection
+	auto conn = Controller::GetInstance().GetConnection();
+	if (!conn) {
+		Nan::ThrowError("IPC is not connected.");
+		return;
+	}
+
+	// Call
+	std::vector<ipc::value> rval = conn->call_synchronous_helper("VolMeter", "GetUpdateInterval", {
+		ipc::value(self->uid),
+	});
+	if (!rval.size()) {
+		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
+		return;
+	}
+
+	// Handle Unexpected Errors
+	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
+		return;
+	}
+
+	// Handle Expected Errors
+	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
+	if (ec == ErrorCode::InvalidReference) {
+		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
+		return;
+	} else if (ec != ErrorCode::Ok) {
+		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+		return;
+	}
+
+	// Return DeziBel Value
+	info.GetReturnValue().Set(rval[1].value_union.ui32);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::SetUpdateInterval(Nan::NAN_METHOD_ARGS_TYPE info) {
-	//obs::volmeter &handle = Volmeter::Object::GetHandle(info.Holder());
+	uint32_t interval;
+	osn::VolMeter* self;
 
-	//int ms;
+	// Validate and retrieve parameters.
+	ASSERT_INFO_LENGTH(info, 1);
+	ASSERT_GET_VALUE(info[0], interval);
 
-	//ASSERT_GET_VALUE(info[0], ms);
+	if (!Retrieve(info.This(), self)) {
+		return;
+	}
 
-	//handle.interval(ms);
+	// Validate Connection
+	auto conn = Controller::GetInstance().GetConnection();
+	if (!conn) {
+		Nan::ThrowError("IPC is not connected.");
+		return;
+	}
+
+	// Call
+	std::vector<ipc::value> rval = conn->call_synchronous_helper("VolMeter", "SetUpdateInterval", {
+		ipc::value(self->uid), ipc::value(interval)
+	});
+	if (!rval.size()) {
+		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
+		return;
+	}
+
+	// Handle Unexpected Errors
+	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
+		return;
+	}
+
+	// Handle Expected Errors
+	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
+	if (ec == ErrorCode::InvalidReference) {
+		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
+		return;
+	} else if (ec != ErrorCode::Ok) {
+		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+		return;
+	}
+
+	// Return DeziBel Value
+	info.GetReturnValue().Set(rval[1].value_union.ui32);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Attach(Nan::NAN_METHOD_ARGS_TYPE info) {
-	//obs::volmeter &handle = Volmeter::Object::GetHandle(info.Holder());
+	osn::VolMeter* fader;
+	osn::ISource* source;
 
-	//ASSERT_INFO_LENGTH(info, 1);
+	// Validate and retrieve parameters.
+	ASSERT_INFO_LENGTH(info, 1);
 
-	//v8::Local<v8::Object> source_object;
+	if (!Retrieve(info.This(), fader)) {
+		return;
+	}
 
-	//ASSERT_GET_VALUE(info[0], source_object);
+	v8::Local<v8::Object> sourceObj;
+	ASSERT_GET_VALUE(info[0], sourceObj);
+	if (!osn::ISource::Retrieve(sourceObj, source)) {
+		return;
+	}
 
-	//obs::source source = ISource::GetHandle(source_object);
+	// Validate Connection
+	auto conn = Controller::GetInstance().GetConnection();
+	if (!conn) {
+		Nan::ThrowError("IPC is not connected.");
+		return;
+	}
 
-	//handle.attach(source);
+	// Call
+	std::vector<ipc::value> rval = conn->call_synchronous_helper("VolMeter", "Attach", {
+		ipc::value(fader->uid), ipc::value(source->sourceId)
+	});
+	if (!rval.size()) {
+		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
+		return;
+	}
+
+	// Handle Unexpected Errors
+	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
+		return;
+	}
+
+	// Handle Expected Errors
+	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
+	if (ec == ErrorCode::InvalidReference) {
+		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
+		return;
+	} else if (ec != ErrorCode::Ok) {
+		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+		return;
+	}
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Detach(Nan::NAN_METHOD_ARGS_TYPE info) {
-	//obs::volmeter &handle = Volmeter::Object::GetHandle(info.Holder());
+	osn::VolMeter* fader;
 
-	//handle.detach();
+	// Validate and retrieve parameters.
+	ASSERT_INFO_LENGTH(info, 0);
+
+	if (!Retrieve(info.This(), fader)) {
+		return;
+	}
+
+	// Validate Connection
+	auto conn = Controller::GetInstance().GetConnection();
+	if (!conn) {
+		Nan::ThrowError("IPC is not connected.");
+		return;
+	}
+
+	// Call
+	std::vector<ipc::value> rval = conn->call_synchronous_helper("VolMeter", "Detach", {
+		ipc::value(fader->uid)
+	});
+	if (!rval.size()) {
+		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
+		return;
+	}
+
+	// Handle Unexpected Errors
+	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
+		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
+		return;
+	}
+
+	// Handle Expected Errors
+	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
+	if (ec == ErrorCode::InvalidReference) {
+		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
+		return;
+	} else if (ec != ErrorCode::Ok) {
+		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+		return;
+	}
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::AddCallback(Nan::NAN_METHOD_ARGS_TYPE info) {
