@@ -48,5 +48,12 @@
 #endif
 #endif
 
+#if defined(_MSC_VER)
+#define FORCE_INLINE __forceinline
+#else
+#define FORCE_INLINE __attribute__((always_inline))
+#endif
+#define force_inline FORCE_INLINE
+
 #define dstr(s) #s
 #define vstr(s) dstr(s)
