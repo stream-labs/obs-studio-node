@@ -1381,6 +1381,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	Parameter trackIndex;
 	trackIndex.name = "TrackIndex";
 	trackIndex.type = "OBS_PROPERTY_LIST";
+	trackIndex.subType = "OBS_COMBO_FORMAT_STRING";
 	trackIndex.description = "Audio Track";
 
 	std::vector<std::pair<std::string, std::string>> trackIndexValues;
@@ -1435,6 +1436,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	videoEncoders.name = "Encoder";
 	videoEncoders.type = "OBS_PROPERTY_LIST";
 	videoEncoders.description = "Encoder";
+	videoEncoders.subType = "OBS_COMBO_FORMAT_STRING";
 	
 	const char* encoderCurrentValue = config_get_string(config, "AdvOut", "Encoder");
 	if(encoderCurrentValue == NULL) {
@@ -1521,6 +1523,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 		rescaleRes.name = "RescaleRes";
 		rescaleRes.type = "OBS_PROPERTY_LIST";
 		rescaleRes.description = "Output Resolution";
+		rescaleRes.subType = "OBS_COMBO_FORMAT_STRING";
 		
 		uint32_t base_cx = config_get_uint(config, "Video", "BaseCX");
 		uint32_t base_cy = config_get_uint(config, "Video", "BaseCY");
@@ -1652,6 +1655,7 @@ void OBS_settings::getStandardRecordingSettings(
 	recFormat.name = "RecFormat";
 	recFormat.type = "OBS_PROPERTY_LIST";
 	recFormat.description = "Recording Format";
+	recFormat.subType = "OBS_COMBO_FORMAT_STRING";
 
 	const char* recFormatCurrentValue = config_get_string(config, "AdvOut", "RecFormat");
 	if(recFormatCurrentValue == NULL)
@@ -1707,6 +1711,7 @@ void OBS_settings::getStandardRecordingSettings(
 	recTracks.name = "RecTracks";
 	recTracks.type = "OBS_PROPERTY_LIST";
 	recTracks.description = "Audio Track";
+	recTracks.subType = "OBS_COMBO_FORMAT_STRING";
 
 	const char* recTracksCurrentValue = config_get_string(config, "AdvOut", "RecTracks");
 	if(recTracksCurrentValue == NULL)
@@ -1762,6 +1767,7 @@ void OBS_settings::getStandardRecordingSettings(
 	recEncoder.name = "RecEncoder";
 	recEncoder.type = "OBS_PROPERTY_LIST";
 	recEncoder.description = "Recording";
+	recEncoder.subType = "OBS_COMBO_FORMAT_STRING";
 	
 	const char* recEncoderCurrentValue = config_get_string(config, "AdvOut", "RecEncoder");
 	if(recEncoderCurrentValue == NULL || strcmp(recEncoderCurrentValue, "none") == 0)
@@ -1832,6 +1838,7 @@ void OBS_settings::getStandardRecordingSettings(
 		recRescaleRes.name = "RecRescaleRes";
 		recRescaleRes.type = "OBS_PROPERTY_LIST";
 		recRescaleRes.description = "Output Resolution";
+		recRescaleRes.subType = "OBS_COMBO_FORMAT_STRING";
 
 		uint32_t base_cx = config_get_uint(config, "Video", "BaseCX");
 		uint32_t base_cy = config_get_uint(config, "Video", "BaseCY");
@@ -2648,15 +2655,16 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 			type.compare("OBS_PROPERTY_PATH") == 0 ||
 			type.compare("OBS_PROPERTY_TEXT") == 0) {
 			if(i < indexEncoderSettings) {
-				std::string *value = reinterpret_cast<std::string*>(&param.currentValue);
+				std::string value(param.currentValue.data(),
+					param.currentValue.size());
 
 				if (name.compare("Encoder") == 0) {
 					const char *currentEncoder = config_get_string(config, section.c_str(), name.c_str());
 
-					if (currentEncoder != NULL) newEncoderType = value->compare(currentEncoder) != 0;
+					if (currentEncoder != NULL) newEncoderType = value.compare(currentEncoder) != 0;
 				}
 
-				config_set_string(config, section.c_str(), name.c_str(), value->c_str());
+				config_set_string(config, section.c_str(), name.c_str(), value.c_str());
 			} else {
 				std::string *subType = reinterpret_cast<std::string*>(&param.subType);
 
@@ -2667,8 +2675,9 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 					double *value = reinterpret_cast<double*>(&param.currentValue);
 					obs_data_set_double(encoderSettings, name.c_str(), *value);
 				} else {
-					std::string* value = reinterpret_cast<std::string*>(&param.currentValue);
-					obs_data_set_string(encoderSettings, name.c_str(), value->c_str());
+					std::string value(param.currentValue.data(),
+						param.currentValue.size());
+					obs_data_set_string(encoderSettings, name.c_str(), value.c_str());
 				}
 			}
 		} else if(type.compare("OBS_PROPERTY_INT") == 0) {
@@ -2758,15 +2767,16 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 			type.compare("OBS_PROPERTY_PATH") == 0 ||
 			type.compare("OBS_PROPERTY_TEXT") == 0) {
 			if(i < indexEncoderSettings) {
-				std::string* value = reinterpret_cast<std::string*>(&param.currentValue);
+				std::string value(param.currentValue.data(),
+					param.currentValue.size());
 
 				if (name.compare("RecEncoder") == 0) {
 					const char *currentEncoder = config_get_string(config, section.c_str(), name.c_str());
 
-					if (currentEncoder != NULL) newEncoderType = value->compare(currentEncoder) != 0;
+					if (currentEncoder != NULL) newEncoderType = value.compare(currentEncoder) != 0;
 				}
 
-				config_set_string(config, section.c_str(), name.c_str(), value->c_str());
+				config_set_string(config, section.c_str(), name.c_str(), value.c_str());
 			} else {
 
 				std::string* subType = reinterpret_cast<std::string*>(&param.subType);
@@ -2778,8 +2788,9 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 					double *value = reinterpret_cast<double*>(&param.currentValue);
 					obs_data_set_double(encoderSettings, name.c_str(), *value);
 				} else {
-					std::string* value = reinterpret_cast<std::string*>(&param.currentValue);
-					obs_data_set_string(encoderSettings, name.c_str(), value->c_str());
+					std::string value(param.currentValue.data(),
+						param.currentValue.size());
+					obs_data_set_string(encoderSettings, name.c_str(), value.c_str());
 				}
 			}
 		} else if(type.compare("OBS_PROPERTY_INT") == 0) {
@@ -2861,13 +2872,14 @@ void OBS_settings::saveOutputSettings(std::vector<SubCategory> settings)
 	config_t* config = OBS_API::openConfigFile(basicConfigFile);
 
 	// Get selected output mode
-	SubCategory outputMode = settings.at(0);
-	std::string *currentOutputMode = reinterpret_cast<std::string*> (&outputMode.params.at(0).currentValue);
+	Parameter outputMode = settings.at(0).params.at(0);
+	std::string currentOutputMode(outputMode.currentValue.data(),
+		outputMode.currentValue.size());
 
-	config_set_string(config, "Output", "Mode", currentOutputMode->c_str());
+	config_set_string(config, "Output", "Mode", currentOutputMode.c_str());
 	config_save_safe(config, "tmp", nullptr);
 
-	if (currentOutputMode->compare("Advanced") == 0) {
+	if (currentOutputMode.compare("Advanced") == 0) {
 		if(useAdvancedOutput) {
 			saveAdvancedOutputSettings(settings, basicConfigFile);
 		}
