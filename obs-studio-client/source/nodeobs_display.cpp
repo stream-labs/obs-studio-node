@@ -43,64 +43,14 @@ void display::OBS_content_createDisplay(const v8::FunctionCallbackInfo<v8::Value
 	std::string key;
 	ASSERT_GET_VALUE(args[1], key);
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-	} rtd;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Display", "OBS_content_createDisplay",
+		{ ipc::value(windowHandle), ipc::value(key) });
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-		
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Display", "OBS_content_createDisplay",
-		std::vector<ipc::value>{ipc::value(windowHandle), ipc::value(key)}, fnc, &rtd);
-	if (!suc) {
-		args.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		else {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	return;
+	ValidateResponse(response);
 }
 
 void display::OBS_content_destroyDisplay(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -108,64 +58,14 @@ void display::OBS_content_destroyDisplay(const v8::FunctionCallbackInfo<v8::Valu
 
 	ASSERT_GET_VALUE(args[0], key);
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-	} rtd;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Display", "OBS_content_destroyDisplay",
+		{ ipc::value(key) });
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-		
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Display", "OBS_content_destroyDisplay",
-		std::vector<ipc::value>{ipc::value(key)}, fnc, &rtd);
-	if (!suc) {
-		args.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		else {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	return;
+	ValidateResponse(response);
 }
 
 void display::OBS_content_getDisplayPreviewOffset(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -173,71 +73,19 @@ void display::OBS_content_getDisplayPreviewOffset(const v8::FunctionCallbackInfo
 
 	ASSERT_GET_VALUE(args[0], key);
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-		std::pair<int32_t, int32_t> result;
-	} rtd;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Display", "OBS_content_getDisplayPreviewOffset",
+		{ ipc::value(key) });
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-
-		rtd->result.first = rval[1].value_union.i32;
-		rtd->result.second = rval[2].value_union.i32;
-
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Display", "OBS_content_getDisplayPreviewOffset",
-		std::vector<ipc::value>{ipc::value(key)}, fnc, &rtd);
-	if (!suc) {
-		args.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		else {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
+	if (!ValidateResponse(response)) return;
 
 	v8::Local<v8::Object> previewOffset = v8::Object::New(args.GetIsolate());
 
-	utilv8::SetObjectField(previewOffset, "x", rtd.result.first);
-	utilv8::SetObjectField(previewOffset, "y", rtd.result.second);
+	utilv8::SetObjectField(previewOffset, "x", response[1].value_union.i32);
+	utilv8::SetObjectField(previewOffset, "y", response[2].value_union.i32);
 
 	args.GetReturnValue().Set(previewOffset);
 
@@ -249,71 +97,19 @@ void display::OBS_content_getDisplayPreviewSize(const v8::FunctionCallbackInfo<v
 
 	ASSERT_GET_VALUE(args[0], key);
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-		std::pair<int32_t, int32_t> result;
-	} rtd;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Display", 
+			"OBS_content_getDisplayPreviewSize", { ipc::value(key) });
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-
-		rtd->result.first = rval[1].value_union.i32;
-		rtd->result.second = rval[2].value_union.i32;
-
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Display", "OBS_content_getDisplayPreviewSize",
-		std::vector<ipc::value>{ipc::value(key)}, fnc, &rtd);
-	if (!suc) {
-		args.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		else {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
+	if (!ValidateResponse(response)) return;
 
 	v8::Local<v8::Object> previewOffset = v8::Object::New(args.GetIsolate());
 
-	utilv8::SetObjectField(previewOffset, "width", rtd.result.first);
-	utilv8::SetObjectField(previewOffset, "height", rtd.result.second);
+	utilv8::SetObjectField(previewOffset, "width", response[1].value_union.i32);
+	utilv8::SetObjectField(previewOffset, "height", response[2].value_union.i32);
 
 	args.GetReturnValue().Set(previewOffset);
 
@@ -321,7 +117,6 @@ void display::OBS_content_getDisplayPreviewSize(const v8::FunctionCallbackInfo<v
 }
 
 void display::OBS_content_createSourcePreviewDisplay(const v8::FunctionCallbackInfo<v8::Value>& args) {
-
 	v8::Isolate *isolate = args.GetIsolate();
 	v8::EscapableHandleScope scope(isolate);
 
@@ -335,64 +130,14 @@ void display::OBS_content_createSourcePreviewDisplay(const v8::FunctionCallbackI
 	ASSERT_GET_VALUE(args[1], sourceName);
 	ASSERT_GET_VALUE(args[2], key);
 	
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-	} rtd;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Display", "OBS_content_createSourcePreviewDisplay", 
+		{ ipc::value(windowHandle), ipc::value(sourceName), ipc::value(key) });
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-		
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Display", "OBS_content_createSourcePreviewDisplay",
-		std::vector<ipc::value>{ipc::value(windowHandle), ipc::value(sourceName), ipc::value(key)}, fnc, &rtd);
-	if (!suc) {
-		args.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		else {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	return;
+	ValidateResponse(response);
 }
 
 void display::OBS_content_resizeDisplay(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -407,64 +152,15 @@ void display::OBS_content_resizeDisplay(const v8::FunctionCallbackInfo<v8::Value
 	width = uint32_t(width_d);
 	height = uint32_t(height_d);
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-	} rtd;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Display", 
+			"OBS_content_resizeDisplay",
+			{ ipc::value(key), ipc::value(width), ipc::value(height) });
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-		
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Display", "OBS_content_resizeDisplay",
-		std::vector<ipc::value>{ipc::value(key), ipc::value(width), ipc::value(height)}, fnc, &rtd);
-	if (!suc) {
-		args.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		else {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	return;
+	ValidateResponse(response);
 }
 
 void display::OBS_content_moveDisplay(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -479,64 +175,14 @@ void display::OBS_content_moveDisplay(const v8::FunctionCallbackInfo<v8::Value>&
 	x = uint32_t(x_d);
 	y = uint32_t(y_d);
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-	} rtd;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Display", "OBS_content_moveDisplay",
+		{ ipc::value(key), ipc::value(x), ipc::value(y) });
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-		
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Display", "OBS_content_moveDisplay",
-		std::vector<ipc::value>{ipc::value(key), ipc::value(x), ipc::value(y)}, fnc, &rtd);
-	if (!suc) {
-		args.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		else {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	return;
+	ValidateResponse(response);
 }
 
 void display::OBS_content_setPaddingSize(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -546,64 +192,14 @@ void display::OBS_content_setPaddingSize(const v8::FunctionCallbackInfo<v8::Valu
 	ASSERT_GET_VALUE(args[0], key);
 	ASSERT_GET_VALUE(args[1], paddingSize);
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-	} rtd;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Display", "OBS_content_setPaddingSize",
+		{ ipc::value(key), ipc::value(paddingSize) });
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-		
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Display", "OBS_content_setPaddingSize",
-		std::vector<ipc::value>{ipc::value(key), ipc::value(paddingSize)}, fnc, &rtd);
-	if (!suc) {
-		args.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		else {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	return;
+	ValidateResponse(response);
 }
 
 void display::OBS_content_setPaddingColor(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -618,64 +214,14 @@ void display::OBS_content_setPaddingColor(const v8::FunctionCallbackInfo<v8::Val
 	if(args.Length() > 4)
 		ASSERT_GET_VALUE(args[4], a);
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-	} rtd;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Display", "OBS_content_setPaddingColor",
+		{ ipc::value(key), ipc::value(r), ipc::value(g), ipc::value(b), ipc::value(a) });
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-		
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Display", "OBS_content_setPaddingColor",
-		std::vector<ipc::value>{ipc::value(key), ipc::value(r), ipc::value(g), ipc::value(b), ipc::value(a)}, fnc, &rtd);
-	if (!suc) {
-		args.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		else {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	return;
+	ValidateResponse(response);
 }
 
 void display::OBS_content_setOutlineColor(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -690,64 +236,14 @@ void display::OBS_content_setOutlineColor(const v8::FunctionCallbackInfo<v8::Val
 	if (args.Length() > 4)
 		ASSERT_GET_VALUE(args[4], a);
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-	} rtd;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Display", "OBS_content_setOutlineColor",
+		{ ipc::value(key), ipc::value(r), ipc::value(g), ipc::value(b), ipc::value(a) });
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-		
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Display", "OBS_content_setOutlineColor",
-		std::vector<ipc::value>{ipc::value(key), ipc::value(r), ipc::value(g), ipc::value(b), ipc::value(a)}, fnc, &rtd);
-	if (!suc) {
-		args.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		else {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	return;
+	ValidateResponse(response);
 }
 
 void display::OBS_content_setGuidelineColor(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -762,64 +258,14 @@ void display::OBS_content_setGuidelineColor(const v8::FunctionCallbackInfo<v8::V
 	if (args.Length() > 4)
 		ASSERT_GET_VALUE(args[4], a);
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-	} rtd;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Display", "OBS_content_setGuidelineColor",
+		{ ipc::value(key), ipc::value(r), ipc::value(g), ipc::value(b), ipc::value(a) });
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-		
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Display", "OBS_content_setGuidelineColor",
-		std::vector<ipc::value>{ipc::value(key), ipc::value(r), ipc::value(g), ipc::value(b), ipc::value(a)}, fnc, &rtd);
-	if (!suc) {
-		args.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		else {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	return;
+	ValidateResponse(response);
 }
 
 void display::OBS_content_setResizeBoxInnerColor(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -834,64 +280,14 @@ void display::OBS_content_setResizeBoxInnerColor(const v8::FunctionCallbackInfo<
 	if (args.Length() > 4)
 		ASSERT_GET_VALUE(args[4], a);
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-	} rtd;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Display", "OBS_content_setResizeBoxInnerColor",
+		{ ipc::value(key), ipc::value(r), ipc::value(g), ipc::value(b), ipc::value(a) });
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-		
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Display", "OBS_content_setResizeBoxInnerColor",
-		std::vector<ipc::value>{ipc::value(key), ipc::value(r), ipc::value(g), ipc::value(b), ipc::value(a)}, fnc, &rtd);
-	if (!suc) {
-		args.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		else {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	return;
+	ValidateResponse(response);
 }
 
 void display::OBS_content_setResizeBoxOuterColor(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -906,64 +302,14 @@ void display::OBS_content_setResizeBoxOuterColor(const v8::FunctionCallbackInfo<
 	if (args.Length() > 4)
 		ASSERT_GET_VALUE(args[4], a);
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-	} rtd;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Display", "OBS_content_setResizeBoxOuterColor",
+		{ ipc::value(key), ipc::value(r), ipc::value(g), ipc::value(b), ipc::value(a) });
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-		
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Display", "OBS_content_setResizeBoxOuterColor",
-		std::vector<ipc::value>{ipc::value(key), ipc::value(r), ipc::value(g), ipc::value(b), ipc::value(a)}, fnc, &rtd);
-	if (!suc) {
-		args.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		else {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	return;
+	ValidateResponse(response);
 }
 
 void display::OBS_content_setShouldDrawUI(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -973,64 +319,14 @@ void display::OBS_content_setShouldDrawUI(const v8::FunctionCallbackInfo<v8::Val
 	ASSERT_GET_VALUE(args[0], key);
 	ASSERT_GET_VALUE(args[1], drawUI);
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-	} rtd;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Display", "OBS_content_setShouldDrawUI",
+		{ ipc::value(key), ipc::value(drawUI) });
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-		
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Display", "OBS_content_setShouldDrawUI",
-		std::vector<ipc::value>{ipc::value(key), ipc::value(drawUI)}, fnc, &rtd);
-	if (!suc) {
-		args.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		else {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	return;
+	ValidateResponse(response);
 }
 
 void display::OBS_content_selectSource(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -1039,64 +335,15 @@ void display::OBS_content_selectSource(const v8::FunctionCallbackInfo<v8::Value>
 	ASSERT_GET_VALUE(args[0], x);
 	ASSERT_GET_VALUE(args[1], y);
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-	} rtd;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Display", "OBS_content_selectSource",
+		{ ipc::value(x), ipc::value(y) });
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
+	ValidateResponse(response);
 
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-		
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Display", "OBS_content_selectSource",
-		std::vector<ipc::value>{ipc::value(x), ipc::value(y)}, fnc, &rtd);
-	if (!suc) {
-		args.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		else {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	return;
 }
 
 void display::OBS_content_selectSources(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -1179,64 +426,14 @@ void display::OBS_content_dragSelectedSource(const v8::FunctionCallbackInfo<v8::
 	ASSERT_GET_VALUE(args[0], x);
 	ASSERT_GET_VALUE(args[1], y);
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-	} rtd;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Display", "OBS_content_dragSelectedSource",
+		{ ipc::value(x), ipc::value(y) });
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-		
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Display", "OBS_content_dragSelectedSource",
-		std::vector<ipc::value>{ipc::value(x), ipc::value(y)}, fnc, &rtd);
-	if (!suc) {
-		args.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		else {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	return;
+	ValidateResponse(response);
 }
 
 void display::OBS_content_getDrawGuideLines(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -1244,68 +441,16 @@ void display::OBS_content_getDrawGuideLines(const v8::FunctionCallbackInfo<v8::V
 
 	ASSERT_GET_VALUE(args[0], key);
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-		bool result;
-	} rtd;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Display", "OBS_content_getDrawGuideLines",
+		{ ipc::value(key) });
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
+	if (!ValidateResponse(response)) return;
 
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-
-		rtd->result = rval[1].value_union.ui32;
-
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Display", "OBS_content_getDrawGuideLines",
-		std::vector<ipc::value>{ipc::value(key)}, fnc, &rtd);
-	if (!suc) {
-		args.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		else {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-	
-	args.GetReturnValue().Set(Nan::New<v8::Boolean>(rtd.result));
-	return;
+	args.GetReturnValue().Set(Nan::New<v8::Boolean>(response[1].value_union.ui32));
 }
 
 void display::OBS_content_setDrawGuideLines(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -1315,64 +460,14 @@ void display::OBS_content_setDrawGuideLines(const v8::FunctionCallbackInfo<v8::V
 	ASSERT_GET_VALUE(args[0], key);
 	ASSERT_GET_VALUE(args[1], drawGuideLines);
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-	} rtd;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Display", "OBS_content_setDrawGuideLines",
+		{ ipc::value(key), ipc::value(drawGuideLines) });
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-		
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Display", "OBS_content_setDrawGuideLines",
-		std::vector<ipc::value>{ipc::value(key), ipc::value(drawGuideLines)}, fnc, &rtd);
-	if (!suc) {
-		args.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		else {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	return;
+	ValidateResponse(response);
 }
 
 INITIALIZER(nodeobs_display) {
