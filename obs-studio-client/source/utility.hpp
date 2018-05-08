@@ -16,6 +16,10 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
 
 #pragma once
+#include <string>
+#include <inttypes.h>
+#include <vector>
+#include <node.h>
 
 #include <vector>
 #include <memory>
@@ -62,6 +66,12 @@
 #endif
 #define force_inline FORCE_INLINE
 
+#ifdef __GNUC__
+#define __deprecated__ __attribute_deprecated__
+#else
+#define __deprecated__ __declspec(deprecated)
+#endif
+
 #define dstr(s) #s
 #define vstr(s) dstr(s)
 
@@ -93,4 +103,37 @@ static FORCE_INLINE std::shared_ptr<ipc::client> GetConnection()
         auto conn = Controller::GetInstance().GetConnection();
         if (!conn) Nan::ThrowError(__FUNCTION_NAME__ ": Failed to obtain IPC connection.");
         return conn;
+}
+
+namespace utility {
+	template<typename T>
+	inline std::string TypeOf(T v) {
+		return "unknown";
+	}
+
+#define AUTO_TYPEOF(x) template<> \
+	inline std::string TypeOf<x>(x v) { \
+		return dstr(x); \
+	}
+
+#define AUTO_TYPEOF_NAME(x, y) template<> \
+	inline std::string TypeOf<x>(x v) { \
+		return y; \
+	}
+
+	AUTO_TYPEOF_NAME(bool, "boolean");
+	AUTO_TYPEOF(int8_t);
+	AUTO_TYPEOF(int16_t);
+	AUTO_TYPEOF(int32_t);
+	AUTO_TYPEOF(int64_t);
+	AUTO_TYPEOF(uint8_t);
+	AUTO_TYPEOF(uint16_t);
+	AUTO_TYPEOF(uint32_t);
+	AUTO_TYPEOF(uint64_t);
+	AUTO_TYPEOF_NAME(const char*, "string");
+	AUTO_TYPEOF_NAME(std::string, "string");
+	AUTO_TYPEOF(std::vector<char>);
+
+	AUTO_TYPEOF_NAME(v8::Local<v8::Value>, "value");
+	AUTO_TYPEOF_NAME(v8::Local<v8::Object>, "object");
 }
