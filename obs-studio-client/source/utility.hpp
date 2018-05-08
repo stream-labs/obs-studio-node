@@ -17,6 +17,13 @@
 
 #pragma once
 
+#include <vector>
+#include <memory>
+#include <nan.h>
+
+#include "error.hpp"
+#include "controller.hpp"
+
 #ifdef __cplusplus
 #define INITIALIZER(f) \
         static void f(void); \
@@ -57,3 +64,33 @@
 
 #define dstr(s) #s
 #define vstr(s) dstr(s)
+
+static FORCE_INLINE bool ValidateResponse(std::vector<ipc::value> &response)
+{
+        if ((response.size() == 1) && (response[0].type == ipc::type::Null)) {
+                Nan::ThrowError(Nan::New<v8::String>(response[1].value_str).ToLocalChecked());
+                return false;
+        }
+
+        {
+                ErrorCode error = (ErrorCode)response[0].value_union.ui64;
+                if (error != ErrorCode::Ok) {
+                        Nan::ThrowError(Nan::New<v8::String>(response[0].value_str).ToLocalChecked());
+                        return false;
+                }
+        }
+
+        if (!response.size()) {
+                Nan::ThrowError(__FUNCTION_NAME__ ": Failed to make IPC call, verify IPC status.");
+                return false;
+        }
+
+        return true;
+}
+
+static FORCE_INLINE std::shared_ptr<ipc::client> GetConnection()
+{
+        auto conn = Controller::GetInstance().GetConnection();
+        if (!conn) Nan::ThrowError(__FUNCTION_NAME__ ": Failed to obtain IPC connection.");
+        return conn;
+}

@@ -68,234 +68,63 @@ void osn::Scene::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Create(Nan::NAN_METHOD_ARGS_TYPE info) {
 	std::string name;
 
-	// Parameters: <string> Name
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], name);
 
-	// Perform the call
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
+	std::vector<ipc::value> response = conn->call_synchronous_helper(
+		"Scene", "Create",
+		std::vector<ipc::value>{ ipc::value(name) }
+	);
 
-		// Results
-		uint64_t sourceId;
-	} rtd;
+	if (!ValidateResponse(response)) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
-
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->sourceId = rval[1].value_union.ui64;
-
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Scene", "Create",
-		std::vector<ipc::value>{ ipc::value(name) }, fnc, &rtd);
-	if (!suc) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		} else {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
+	uint64_t sourceId = response[1].value_union.ui64;
 
 	// Create new Filter
-	osn::Scene* obj = new osn::Scene(rtd.sourceId);
+	osn::Scene* obj = new osn::Scene(sourceId);
 	info.GetReturnValue().Set(osn::Scene::Store(obj));
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE info) {
 	std::string name;
 
-	// Parameters: <string> Name
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], name);
 
-	// Perform the call
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "CreatePrivate",
+		std::vector<ipc::value>{ ipc::value(name) });
 
-		// Results
-		uint64_t sourceId;
-	} rtd;
+	if (!ValidateResponse(response)) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	uint64_t sourceId = response[1].value_union.ui64;
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->sourceId = rval[1].value_union.ui64;
-
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Scene", "CreatePrivate",
-		std::vector<ipc::value>{ ipc::value(name) }, fnc, &rtd);
-	if (!suc) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		} else {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	// Create new Filter
-	osn::Scene* obj = new osn::Scene(rtd.sourceId);
+	osn::Scene* obj = new osn::Scene(sourceId);
 	info.GetReturnValue().Set(osn::Scene::Store(obj));
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FromName(Nan::NAN_METHOD_ARGS_TYPE info) {
 	std::string name;
 
-	// Parameters: <string> Name
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], name);
 
-	// Perform the call
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "FromName",
+		{ ipc::value(name) });
 
-		// Results
-		uint64_t sourceId;
-	} rtd;
+	if (!ValidateResponse(response)) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	uint64_t sourceId = response[1].value_union.ui64;
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->sourceId = rval[1].value_union.ui64;
-
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Scene", "FromName",
-	{ ipc::value(name) }, fnc, &rtd);
-	if (!suc) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		} else {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	// Create new Filter
-	osn::Scene* obj = new osn::Scene(rtd.sourceId);
+	osn::Scene* obj = new osn::Scene(sourceId);
 	info.GetReturnValue().Set(osn::Scene::Store(obj));
 }
 
@@ -305,64 +134,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Release(Nan::NAN_METHOD_ARGS_TYPE info) 
 		return;
 	}
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-	} rtd;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "Release",
+		std::vector<ipc::value>{ipc::value(source->sourceId)});
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Scene", "Release",
-		std::vector<ipc::value>{ipc::value(source->sourceId)}, fnc, &rtd);
-	if (!suc) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		} else {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	source->sourceId = UINT64_MAX;
-	return;
+	ValidateResponse(response);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Remove(Nan::NAN_METHOD_ARGS_TYPE info) {
@@ -371,64 +149,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Remove(Nan::NAN_METHOD_ARGS_TYPE info) {
 		return;
 	}
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-	} rtd;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "Remove",
+		std::vector<ipc::value>{ipc::value(source->sourceId)});
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Scene", "Remove",
-		std::vector<ipc::value>{ipc::value(source->sourceId)}, fnc, &rtd);
-	if (!suc) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		} else {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	source->sourceId = UINT64_MAX;
-	return;
+	if (!ValidateResponse(response)) return;
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AsSource(Nan::NAN_METHOD_ARGS_TYPE info) {
@@ -438,7 +165,6 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AsSource(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	// Create new Input
 	osn::Input* obj = new osn::Input(source->sourceId);
 	info.GetReturnValue().Set(osn::Input::Store(obj));
 }
@@ -456,67 +182,17 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info
 	ASSERT_GET_VALUE(info[0], name);
 	ASSERT_GET_VALUE(info[1], duplicate_type);
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
+	auto conn = GetConnection();
+	if (!conn) return;
 
-		uint64_t source_id;
-	} rtd;
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "Duplicate",
+		std::vector<ipc::value>{ipc::value(source->sourceId), ipc::value(name), ipc::value(duplicate_type)});
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	if (!ValidateResponse(response)) return;
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
+	uint64_t sourceId = response[1].value_union.ui64;
 
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-
-		rtd->source_id = rval[1].value_union.ui64;
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Scene", "Duplicate",
-		std::vector<ipc::value>{ipc::value(source->sourceId), ipc::value(name), ipc::value(duplicate_type)}, fnc, &rtd);
-	if (!suc) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		} else {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	// Create new Scene
-	osn::Scene* obj = new osn::Scene(rtd.source_id);
+	osn::Scene* obj = new osn::Scene(sourceId);
 	info.GetReturnValue().Set(osn::Scene::Store(obj));
 }
 
@@ -532,67 +208,18 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 		return;
 	}
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
+	auto conn = GetConnection();
+	if (!conn) return;
 
-		uint64_t id;
-	} rtd;
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "AddSource",
+		std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(input->sourceId)});
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	if (!ValidateResponse(response)) return;
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-
-		rtd->id = rval[1].value_union.ui64;
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Scene", "AddSource",
-		std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(input->sourceId)}, fnc, &rtd);
-	if (!suc) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		} else {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
+	uint64_t id = response[1].value_union.ui64;
 
 	// Create new SceneItem
-	osn::SceneItem* obj = new osn::SceneItem(rtd.id);
+	osn::SceneItem* obj = new osn::SceneItem(id);
 	info.GetReturnValue().Set(osn::SceneItem::Store(obj));
 }
 
@@ -618,68 +245,18 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FindItem(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
+	auto conn = GetConnection();
+	if (!conn) return;
 
-		uint64_t id;
-	} rtd;
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "FindItem",
+		std::vector<ipc::value>{ipc::value(scene->sourceId),
+		(haveName ? ipc::value(name) : ipc::value(position))});
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	if (!ValidateResponse(response)) return;
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
+	uint64_t id = response[1].value_union.ui64;
 
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-
-		rtd->id = rval[1].value_union.ui64;
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Scene", "FindItem",
-		std::vector<ipc::value>{ipc::value(scene->sourceId), 
-		(haveName ? ipc::value(name) : ipc::value(position))}, fnc, &rtd);
-	if (!suc) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		} else {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	// Create new SceneItem
-	osn::SceneItem* obj = new osn::SceneItem(rtd.id);
+	osn::SceneItem* obj = new osn::SceneItem(id);
 	info.GetReturnValue().Set(osn::SceneItem::Store(obj));
 }
 
@@ -694,61 +271,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::MoveItem(Nan::NAN_METHOD_ARGS_TYPE info)
 	ASSERT_GET_VALUE(info[0], from);
 	ASSERT_GET_VALUE(info[1], to);
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-	} rtd;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
-
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Scene", "MoveItem",
-		std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(from), ipc::value(to)}, fnc, &rtd);
-	if (!suc) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		} else {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "MoveItem",
+		std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(from), ipc::value(to)});
+	
+	ValidateResponse(response);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemAtIndex(Nan::NAN_METHOD_ARGS_TYPE info) {
@@ -762,67 +291,17 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemAtIndex(Nan::NAN_METHOD_ARGS_TYPE
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], index);
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
+	auto conn = GetConnection();
+	if (!conn) return;
 
-		uint64_t id;
-	} rtd;
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "GetItem",
+		std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(index)});
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	if (!ValidateResponse(response)) return;
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
+	uint64_t id = response[1].value_union.ui64;
 
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-
-		rtd->id = rval[1].value_union.ui64;
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Scene", "GetItem",
-		std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(index)}, fnc, &rtd);
-	if (!suc) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		} else {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	// Create new SceneItem
-	osn::SceneItem* obj = new osn::SceneItem(rtd.id);
+	osn::SceneItem* obj = new osn::SceneItem(id);
 	info.GetReturnValue().Set(osn::SceneItem::Store(obj));
 }
 
@@ -832,75 +311,21 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItems(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
+	auto conn = GetConnection();
+	if (!conn) return;
 
-		std::list<uint64_t> ids;
-	} rtd;
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "GetItems",
+		std::vector<ipc::value>{ipc::value(scene->sourceId)});
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	if (!ValidateResponse(response)) return;
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
+	auto arr = Nan::New<v8::Array>(response.size() - 1);
 
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-
-		for (size_t idx = 1; idx < rval.size(); idx++) {
-			rtd->ids.push_back(rval[idx].value_union.ui64);
-		}
-
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Scene", "GetItems",
-		std::vector<ipc::value>{ipc::value(scene->sourceId)}, fnc, &rtd);
-	if (!suc) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
+	for (size_t i = 1; i < response.size(); i++) {
+		osn::SceneItem* obj = new osn::SceneItem(response[i].value_union.ui64);
+		Nan::Set(arr, i - 1, osn::SceneItem::Store(obj));
 	}
 
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		} else {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	auto arr = Nan::New<v8::Array>(rtd.ids.size());
-	auto iter = rtd.ids.begin();
-	for (int idx = 0; idx < rtd.ids.size(); idx++) {
-		osn::SceneItem* obj = new osn::SceneItem(*iter);
-		Nan::Set(arr, idx, osn::SceneItem::Store(obj));
-		iter++;
-	}
 	info.GetReturnValue().Set(arr);
 }
 
@@ -915,75 +340,22 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemsInRange(Nan::NAN_METHOD_ARGS_TYP
 	ASSERT_GET_VALUE(info[0], from);
 	ASSERT_GET_VALUE(info[1], to);
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
+	auto conn = GetConnection();
+	if (!conn) return;
 
-		std::list<uint64_t> ids;
-	} rtd;
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "GetItemsInRange",
+		std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(from), ipc::value(to)});
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	if (!ValidateResponse(response)) return;
+	
+	auto arr = Nan::New<v8::Array>(response.size() - 1);
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-
-		for (size_t idx = 1; idx < rval.size(); idx++) {
-			rtd->ids.push_back(rval[idx].value_union.ui64);
-		}
-
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Scene", "GetItemsInRange",
-		std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(from), ipc::value(to)}, fnc, &rtd);
-	if (!suc) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
+	for (size_t i = 1; i < response.size(); i++) {
+		osn::SceneItem* obj = new osn::SceneItem(response[i].value_union.ui64);
+		Nan::Set(arr, i - 1, osn::SceneItem::Store(obj));
 	}
 
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		} else {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	auto arr = Nan::New<v8::Array>(rtd.ids.size());
-	auto iter = rtd.ids.begin();
-	for (int idx = 0; idx < rtd.ids.size(); idx++) {
-		osn::SceneItem* obj = new osn::SceneItem(*iter);
-		Nan::Set(arr, idx, osn::SceneItem::Store(obj));
-		iter++;
-	}
+	info.GetReturnValue().Set(arr);
 }
 
 /**
