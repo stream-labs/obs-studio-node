@@ -1193,7 +1193,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE 
 		return;
 	}
 
-	info.GetReturnValue().Set(utilv8::ToValue(rtd.result));
+	v8::Local<v8::Object> tsobj = Nan::New<v8::Object>();
+	utilv8::SetObjectField(tsobj, "sec", rtd.result / 1000000000);
+	utilv8::SetObjectField(tsobj, "nsec", rtd.result % 1000000000);
+
+	info.GetReturnValue().Set(tsobj);
 	return;
 }
 
@@ -1208,9 +1212,16 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE 
 		return;
 	}
 
-	int64_t syncoffset = 0;
+	
+	v8::Local<v8::Object> tsobj;
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], syncoffset);
+	ASSERT_GET_VALUE(info[0], tsobj);
+
+	int64_t sec, nsec;
+	ASSERT_GET_OBJECT_FIELD(tsobj, "sec", sec);
+	ASSERT_GET_OBJECT_FIELD(tsobj, "nsec", nsec);
+	
+	int64_t syncoffset = sec * 1000000000 + nsec;
 
 	// Perform the call
 	struct ThreadData {
