@@ -265,12 +265,14 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 					std::string name(params.at(j).values.data() + indexData, *sizeName);
 					indexData += *sizeName;
 
-					int64_t *value = reinterpret_cast<int64_t*>(
-						params.at(j).values.data() + indexData);
-					indexData += sizeof(int64_t);
-
+					size_t *sizeValue =
+						reinterpret_cast<std::size_t*>(params.at(j).values.data() + indexData);
+					indexData += sizeof(size_t);
+					std::string value(params.at(j).values.data() + indexData, *sizeValue);
+					indexData += *sizeValue;
+					
 					valueObject->Set(v8::String::NewFromUtf8(isolate, name.c_str()),
-						v8::String::NewFromUtf8(isolate, std::to_string(*value).c_str()));
+						v8::String::NewFromUtf8(isolate, value.c_str()));
 				}
 				else if (params.at(j).subType.compare("OBS_COMBO_FORMAT_FLOAT") == 0) {
 					size_t *sizeName =
@@ -366,12 +368,13 @@ std::vector<char> deserializeCategory(uint32_t *subCategoriesCount, uint32_t *si
 
 			v8::String::Utf8Value name(parameterObject->Get(v8::String::NewFromUtf8(isolate, "name")));
 			v8::String::Utf8Value type(parameterObject->Get(v8::String::NewFromUtf8(isolate, "type")));
+			v8::String::Utf8Value subType(parameterObject->Get(v8::String::NewFromUtf8(isolate, "subType")));
 
 			param.name = std::string(*name);
 			param.type = std::string(*type);
+			param.subType = std::string(*subType);
 
-			if (param.type.compare("OBS_PROPERTY_LIST") == 0 ||
-				param.type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 ||
+			if (param.type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 ||
 				param.type.compare("OBS_PROPERTY_PATH") == 0 ||
 				param.type.compare("OBS_PROPERTY_TEXT") == 0 ||
 				param.type.compare("OBS_INPUT_RESOLUTION_LIST") == 0) {
@@ -407,6 +410,32 @@ std::vector<char> deserializeCategory(uint32_t *subCategoriesCount, uint32_t *si
 				param.sizeOfCurrentValue = sizeof(value);
 				param.currentValue.resize(sizeof(value));
 				memcpy(param.currentValue.data(), &value, sizeof(value));
+			}
+			else if (param.type.compare("OBS_PROPERTY_LIST") == 0) {
+				v8::String::Utf8Value paramSubType(parameterObject->Get(v8::String::NewFromUtf8(isolate, "subType")));
+				
+				std::string subType = *paramSubType;
+
+				if (subType.compare("OBS_COMBO_FORMAT_INT") == 0) {
+					int64_t value = parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue"))->NumberValue();
+
+					param.sizeOfCurrentValue = sizeof(value);
+					param.currentValue.resize(sizeof(value));
+					memcpy(param.currentValue.data(), &value, sizeof(value));
+				}
+				else if (subType.compare("OBS_COMBO_FORMAT_FLOAT") == 0) {
+					double value = parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue"))->NumberValue();
+
+					param.sizeOfCurrentValue = sizeof(value);
+					param.currentValue.resize(sizeof(value));
+					memcpy(param.currentValue.data(), &value, sizeof(value));
+				}
+				else if (subType.compare("OBS_COMBO_FORMAT_STRING") == 0) {
+					v8::String::Utf8Value value(parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue")));
+					param.sizeOfCurrentValue = strlen(*value);
+					param.currentValue.resize(strlen(*value));
+					memcpy(param.currentValue.data(), *value, strlen(*value));
+				}
 			}
 			sc.params.push_back(param);
 		}

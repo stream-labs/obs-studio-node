@@ -109,6 +109,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Properties::Get(Nan::NAN_METHOD_ARGS_TYPE info)
 		if (iter->second->name == name) {
 			osn::PropertyObject* propobj = new osn::PropertyObject(info.This(), iter->first);
 			info.GetReturnValue().Set(osn::PropertyObject::Store(propobj));
+			return;
 		}
 	}
 	info.GetReturnValue().Set(Nan::Null());
