@@ -23,37 +23,38 @@
 #include <vector>
 #include <list>
 #include <map>
-
-#ifdef __GNUC__
-#define __deprecated__ __attribute_deprecated__
-#else
-#define __deprecated__ __declspec(deprecated)
-#endif
+#include "utility.hpp"
 
 #define FIELD_NAME(name) \
     Nan::New(name).ToLocalChecked()
 
 #define ASSERT_INFO_LENGTH_AT_LEAST(info, length) \
     if ((info).Length() < length) { \
-        Nan::ThrowError("Unexpected number of arguments"); \
+        Nan::ThrowError(FIELD_NAME(__FUNCTION_NAME__ ": Unexpected number of arguments, got " \
+			+ std::to_string((info).Length()) + std::string(" but expected at least ") \
+			+ std::to_string(length) + std::string("."))); \
         return; \
     }
 
 #define ASSERT_INFO_LENGTH(info, length) \
     if ((info).Length() != (length)) { \
-        Nan::ThrowError("Unexpected number of arguments"); \
+        Nan::ThrowError(FIELD_NAME(__FUNCTION_NAME__ ": Unexpected number of arguments, got " \
+			+ std::to_string((info).Length()) + std::string(" but expected exactly ") \
+			+ std::to_string(length) + std::string("."))); \
         return; \
     }
 
 #define ASSERT_GET_OBJECT_FIELD(object, field, var) \
     if (!utilv8::GetFromObject((object), (field), (var))) { \
-        Nan::ThrowTypeError("Wrong Type"); \
+        Nan::ThrowTypeError(FIELD_NAME(std::string(__FUNCTION_NAME__ ": Unexpected type."))); \
         return; \
     }
 
 #define ASSERT_GET_VALUE(value, var) \
     if (!utilv8::FromValue((value), (var))) { \
-        Nan::ThrowTypeError("Wrong Type"); \
+        Nan::ThrowTypeError(FIELD_NAME(std::string(__FUNCTION_NAME__ ": Unexpected type, got '") \
+			+ utilv8::TypeOf(value) + std::string("', expected '") \
+			+ utility::TypeOf(var) + std::string("'."))); \
         return; \
     }
 
@@ -485,4 +486,10 @@ namespace utilv8 {
 		}
 		return !!value_ptr;
 	}
+	
+	inline std::string TypeOf(v8::Local<v8::Value> v) {
+		v8::Local<v8::String> type = v->TypeOf(v8::Isolate::GetCurrent());
+		return std::string(*v8::String::Utf8Value(type));
+	}
+
 }
