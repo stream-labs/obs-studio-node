@@ -19,6 +19,7 @@
 #include <obs.h>
 #include "osn-source.hpp"
 #include <error.hpp>
+#include "shared.hpp"
 
 void osn::Global::Register(ipc::server& srv) {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Global");
@@ -36,6 +37,7 @@ void osn::Global::GetOutputSource(void* data, const int64_t id, const std::vecto
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		rval.push_back(ipc::value(UINT64_MAX));
 		rval.push_back(ipc::value(-1));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -46,12 +48,15 @@ void osn::Global::GetOutputSource(void* data, const int64_t id, const std::vecto
 #endif
 		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
 		rval.push_back(ipc::value("Source found but not indexed."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
 	rval.push_back(ipc::value(obs_source_get_type(source)));
+	obs_source_release(source);
+	AUTO_DEBUG;
 }
 
 void osn::Global::SetOutputSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -62,17 +67,21 @@ void osn::Global::SetOutputSource(void* data, const int64_t id, const std::vecto
 		if (!source) {
 			rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 			rval.push_back(ipc::value("Source reference is not valid."));
+			AUTO_DEBUG;
 			return;
 		}
 	}
 
 	obs_set_output_source(args[0].value_union.ui32, source);
-	if (obs_get_output_source(args[0].value_union.ui32) != source) {
+	obs_source_t* newsource = obs_get_output_source(args[0].value_union.ui32);
+	if (newsource != source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to set output source."));
 	} else {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	}
+	obs_source_release(newsource);
+	AUTO_DEBUG;
 }
 
 void osn::Global::GetOutputFlagsFromId(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -80,12 +89,15 @@ void osn::Global::GetOutputFlagsFromId(void* data, const int64_t id, const std::
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(flags));
+	AUTO_DEBUG;
 }
 
 void osn::Global::LaggedFrames(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	rval = args; // !FIXME!
+	AUTO_DEBUG;
 }
 
 void osn::Global::TotalFrames(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	rval = args; // !FIXME!
+	AUTO_DEBUG;
 }
