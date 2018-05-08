@@ -1,5 +1,6 @@
 #include "nodeobs_settings.h"
 #include "error.hpp"
+#include "shared.hpp"
 
 #include <windows.h>
 vector<const char*> tabStreamTypes;
@@ -61,6 +62,7 @@ void OBS_settings::OBS_settings_getListCategories(void* data, const int64_t id, 
 	for (int i = 0; i<size; i++) {
 		rval.push_back(ipc::value(listCategories.at(i).c_str()));
 	}
+	AUTO_DEBUG;
 }
 
 void OBS_settings::OBS_settings_getSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
@@ -82,6 +84,7 @@ void OBS_settings::OBS_settings_getSettings(void* data, const int64_t id, const 
 	rval.push_back(ipc::value(binaryValue.size()));
 
 	rval.push_back(ipc::value(binaryValue));
+	AUTO_DEBUG;
 }
 
 std::vector<SubCategory> serializeCategory(
@@ -205,6 +208,7 @@ void OBS_settings::OBS_settings_saveSettings(void* data, const int64_t id, const
 			buffer);
 
 	saveSettings(nameCategory, settings);
+	AUTO_DEBUG;
 }
 
 SubCategory OBS_settings::serializeSettingsData(std::string nameSubCategory,

@@ -25,7 +25,7 @@
 #include <util/windows/ComPtr.hpp>
 
 #include "error.hpp"
-
+#include "shared.hpp"
 
 
 std::string appdata_path;
@@ -75,6 +75,7 @@ void OBS_API::SetWorkingDirectory(void* data, const int64_t id, const std::vecto
 	replaceAll(g_moduleDirectory, "\\", "/");
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(g_moduleDirectory));
+	AUTO_DEBUG;
 }
 
 std::string	OBS_API::getModuleDirectory(void) {
@@ -537,11 +538,13 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 	setAudioDeviceMonitoring();
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void OBS_API::OBS_API_destroyOBS_API(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	destroyOBS_API();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void OBS_API::OBS_API_getPerformanceStatistics(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -558,6 +561,7 @@ void OBS_API::OBS_API_getPerformanceStatistics(void* data, const int64_t id, con
 	rval.push_back(ipc::value(droppedFramesPercentage));
 	rval.push_back(ipc::value(bandwidth));
 	rval.push_back(ipc::value(frameRate));
+	AUTO_DEBUG;
 }
 
 void OBS_API::OBS_API_getOBS_existingProfiles(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -573,6 +577,7 @@ void OBS_API::OBS_API_getOBS_existingProfiles(void* data, const int64_t id, cons
 	for (int i = 0; i<existingProfiles.size(); i++) {
 		rval.push_back(ipc::value(existingProfiles.at(i).c_str()));
 	}
+	AUTO_DEBUG;
 }
 
 void OBS_API::OBS_API_getOBS_existingSceneCollections(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -598,11 +603,13 @@ void OBS_API::OBS_API_getOBS_existingSceneCollections(void* data, const int64_t 
 			rval.push_back(ipc::value(existingSceneCollections.at(i).c_str()));
 		}
 	}
+	AUTO_DEBUG;
 }
 
 void OBS_API::OBS_API_isOBS_installed(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((bool)isOBS_installed()));
+	AUTO_DEBUG;
 }
 
 void OBS_API::SetProcessPriority(const char *priority)

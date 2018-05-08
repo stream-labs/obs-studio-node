@@ -7,6 +7,7 @@
 #include <graphics/matrix4.h>
 
 #include "error.hpp"
+#include "shared.hpp"
 
 std::map<std::string, OBS::Display *> displays;
 std::string sourceSelected;
@@ -186,6 +187,7 @@ void OBS_content::OBS_content_createDisplay(void* data, const int64_t id, const 
 
 	displays[args[1].value_str] = new OBS::Display(windowHandle);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void OBS_content::OBS_content_destroyDisplay(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -199,6 +201,7 @@ void OBS_content::OBS_content_destroyDisplay(void* data, const int64_t id, const
 	delete found->second;
 	displays.erase(found);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void OBS_content::OBS_content_createSourcePreviewDisplay(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -214,6 +217,7 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(void* data, const int64
 	}
 	displays[args[2].value_str] = new OBS::Display(windowHandle, args[1].value_str);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void OBS_content::OBS_content_resizeDisplay(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -230,6 +234,7 @@ void OBS_content::OBS_content_resizeDisplay(void* data, const int64_t id, const 
 
 	display->SetSize(width, height);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void OBS_content::OBS_content_moveDisplay(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -246,6 +251,7 @@ void OBS_content::OBS_content_moveDisplay(void* data, const int64_t id, const st
 
 	display->SetPosition(x, y);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void OBS_content::OBS_content_setPaddingSize(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -300,6 +306,7 @@ void OBS_content::OBS_content_setPaddingSize(void* data, const int64_t id, const
 
 	it->second->SetPaddingSize(args[1].value_union.ui32);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 	return;
 }
 
@@ -387,6 +394,7 @@ void OBS_content::OBS_content_setPaddingColor(void* data, const int64_t id, cons
 
 	it->second->SetPaddingColor(color.c[0], color.c[1], color.c[2], color.c[3]);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 	return;
 }
 
@@ -474,6 +482,7 @@ void OBS_content::OBS_content_setBackgroundColor(void* data, const int64_t id, c
 
 	it->second->SetBackgroundColor(color.c[0], color.c[1], color.c[2], color.c[3]);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 	return;
 }
 
@@ -562,6 +571,7 @@ void OBS_content::OBS_content_setOutlineColor(void* data, const int64_t id, cons
 
 	it->second->SetOutlineColor(color.c[0], color.c[1], color.c[2], color.c[3]);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 	return;
 }
 
@@ -650,6 +660,7 @@ void OBS_content::OBS_content_setGuidelineColor(void* data, const int64_t id, co
 
 	it->second->SetGuidelineColor(color.c[0], color.c[1], color.c[2], color.c[3]);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 	return;
 }
 
@@ -745,6 +756,7 @@ void OBS_content::OBS_content_setResizeBoxOuterColor(void* data, const int64_t i
 	it->second->SetResizeBoxOuterColor(color.c[0], color.c[1], color.c[2],
 	                                   color.c[3]);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 	return;
 }
 
@@ -840,6 +852,7 @@ void OBS_content::OBS_content_setResizeBoxInnerColor(void* data, const int64_t i
 	it->second->SetResizeBoxInnerColor(color.c[0], color.c[1], color.c[2],
 	                                   color.c[3]);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 	return;
 }
 
@@ -899,6 +912,7 @@ void OBS_content::OBS_content_setShouldDrawUI(void* data, const int64_t id, cons
 
 	it->second->SetDrawUI((bool)args[1].value_union.i32);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void OBS_content::OBS_content_getDisplayPreviewOffset(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -915,6 +929,7 @@ void OBS_content::OBS_content_getDisplayPreviewOffset(void* data, const int64_t 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((int32_t)offset.first));
 	rval.push_back(ipc::value((int32_t)offset.second));
+	AUTO_DEBUG;
 }
 
 void OBS_content::OBS_content_getDisplayPreviewSize(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -931,6 +946,7 @@ void OBS_content::OBS_content_getDisplayPreviewSize(void* data, const int64_t id
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((int32_t)size.first));
 	rval.push_back(ipc::value((int32_t)size.second));
+	AUTO_DEBUG;
 }
 
 /* Deprecated */
@@ -990,6 +1006,7 @@ void OBS_content::OBS_content_selectSource(void* data, const int64_t id, const s
 
 	obs_source_release(source);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 /* Deprecated */
@@ -1030,6 +1047,7 @@ void OBS_content::OBS_content_selectSources(void* data, const int64_t id, const 
 	}
 
 	obs_source_release(source);
+	AUTO_DEBUG;
 }
 
 void OBS_content::OBS_content_dragSelectedSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
@@ -1061,6 +1079,7 @@ void OBS_content::OBS_content_dragSelectedSource(void* data, const int64_t id, c
 
 	obs_sceneitem_set_pos(sourceItem, &position);
 	obs_source_release(source);
+	AUTO_DEBUG;
 }
 
 void OBS_content::OBS_content_getDrawGuideLines(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
@@ -1103,6 +1122,7 @@ void OBS_content::OBS_content_getDrawGuideLines(void* data, const int64_t id, co
 	}
 
 	rval.push_back((bool)it->second->GetDrawGuideLines());
+	AUTO_DEBUG;
 }
 
 void OBS_content::OBS_content_setDrawGuideLines(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
@@ -1156,4 +1176,5 @@ void OBS_content::OBS_content_setDrawGuideLines(void* data, const int64_t id, co
 	}
 
 	it->second->SetDrawGuideLines((bool)args[1].value_union.i32);
+	AUTO_DEBUG;
 }
