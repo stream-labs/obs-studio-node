@@ -75,7 +75,8 @@ bool utility::unique_id::mark_used(utility::unique_id::id_t v) {
 	// Otherwise, attempt to find the best fitting element.
 	bool lastWasSmaller = false;
 	for (auto iter = allocated.begin(); iter != allocated.end(); iter++) {
-		auto iter2 = iter;		
+		auto fiter = std::list<range_t>::iterator(iter);
+		auto riter = std::list<range_t>::reverse_iterator(iter);
 		if ((iter->first > 0) && (v == (iter->first - 1))) {
 			// If the minimum of the selected element is > 0 and v is equal to
 			//  (minimum - 1), decrease the minimum.
@@ -83,9 +84,9 @@ bool utility::unique_id::mark_used(utility::unique_id::id_t v) {
 
 			// Then test if the previous elements maximum is equal to (v - 1),
 			//  if so merge the two since they are now continuous.
-			iter2--;
-			if ((iter2 != allocated.end()) && (iter2->second == (v - 1))) {
-				iter2->second = iter->second;
+			riter--;
+			if ((riter != allocated.rend()) && (riter->second == (v - 1))) {
+				riter->second = iter->second;
 				allocated.erase(iter);
 			}
 
@@ -97,10 +98,10 @@ bool utility::unique_id::mark_used(utility::unique_id::id_t v) {
 
 			// Then test if the next elements minimum is equal to (v + 1),
 			//  if so merge the two since they are now continuous.
-			iter2++;
-			if ((iter2 != allocated.end()) && (iter2->first == (v + 1))) {
-				iter->second = iter2->second;
-				allocated.erase(iter2);
+			fiter++;
+			if ((fiter != allocated.end()) && (fiter->first == (v + 1))) {
+				iter->second = fiter->second;
+				allocated.erase(fiter);
 			}
 
 			return true;
@@ -109,9 +110,9 @@ bool utility::unique_id::mark_used(utility::unique_id::id_t v) {
 			//  insert a new element before the larger range containing only v.
 			allocated.insert(iter, { v, v });
 			return true;
-		} else if ((iter2++) == allocated.end()) {
+		} else if ((fiter++) == allocated.end()) {
 			// Otherwise if we reached the end of the list, append v.
-			allocated.insert(iter2, { v, v });
+			allocated.insert(fiter, { v, v });
 			return true;
 		}
 		lastWasSmaller = (v > iter->second);
