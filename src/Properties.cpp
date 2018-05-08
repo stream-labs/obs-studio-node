@@ -72,6 +72,7 @@ NAN_METHOD(Properties::count)
 
     while (it.status() == obs::property::status_type::okay) {
         ++result;
+        it = it.next();
     }
 
     info.GetReturnValue().Set(result);
