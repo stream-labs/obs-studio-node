@@ -546,6 +546,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 	Parameter streamType;
 	streamType.name = "streamType";
 	streamType.type = "OBS_PROPERTY_LIST";
+	streamType.subType = "OBS_COMBO_FORMAT_STRING";
 
 	int index = 0;
 	const char* type;
@@ -636,6 +637,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 				param.values.insert(param.values.end(), valueBuffer.begin(), valueBuffer.end());
 
 				formatString = "OBS_PROPERTY_INT";
+				param.subType = "OBS_COMBO_FORMAT_INT";
 			}
 			else if (format == OBS_COMBO_FORMAT_FLOAT)
 			{
@@ -658,6 +660,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 				param.values.insert(param.values.end(), valueBuffer.begin(), valueBuffer.end());
 
 				formatString = "OBS_PROPERTY_DOUBLE";
+				param.subType = "OBS_COMBO_FORMAT_FLOAT";
 			}
 			else if (format == OBS_COMBO_FORMAT_STRING)
 			{
@@ -682,6 +685,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 				param.values.insert(param.values.end(), value.begin(), value.end());
 
 				formatString = "OBS_PROPERTY_LIST";
+				param.subType = "OBS_COMBO_FORMAT_STRING";
 			} else {
 				cout << "INVALID FORMAT" << endl;
 			}
