@@ -308,6 +308,7 @@ void OBS_API::OBS_API_initAPI(const FunctionCallbackInfo<Value>& args)
 	/* FIXME These should be configurable */
 	/* FIXME g_moduleDirectory really needs to be a wstring */
 	std::string pathOBS = g_moduleDirectory + "/libobs/bin/64bit";
+	std::string locale;
 
 	/* Also note that this method is possible on POSIX
 	 * as well. You can call dlopen with RTLD_GLOBAL
@@ -364,8 +365,15 @@ void OBS_API::OBS_API_initAPI(const FunctionCallbackInfo<Value>& args)
 	}
 	
 	/* We may now use obs functions */
-	if (args[0]->IsString()) {
-		String::Utf8Value path(args[0]);
+	if (args.Length() > 0 && args[0]->IsString()) {
+		String::Utf8Value _locale(args[0]);
+		locale = *_locale;
+	} else {
+		locale = "en-US";
+	}
+
+	if (args.Length() > 1 && args[1]->IsString()) {
+		String::Utf8Value path(args[1]);
 		appdata_path = *path;
 		appdata_path += "/node-obs/";
 		pathConfigDirectory = *path;
@@ -386,7 +394,7 @@ void OBS_API::OBS_API_initAPI(const FunctionCallbackInfo<Value>& args)
 
 	std::vector<char> userData = std::vector<char>(1024);
 	os_get_config_path(userData.data(), userData.capacity() - 1, "slobs-client/plugin_config");
-	obs_startup("en-US", userData.data(), NULL);
+	obs_startup(locale.c_str(), userData.data(), NULL);
     cpuUsageInfo = os_cpu_usage_info_start();
 
 	//Setting obs-studio config directory
