@@ -452,7 +452,7 @@ export interface IGlobal {
     /**
      * Current locale of current libobs context
      */
-    readonly locale: string;
+    locale: string;
 
     /**
      * Version of current libobs context.

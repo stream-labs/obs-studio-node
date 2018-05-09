@@ -299,7 +299,7 @@ export interface IGlobal {
     readonly totalFrames: number;
     readonly laggedFrames: number;
     readonly initialized: boolean;
-    readonly locale: string;
+    locale: string;
     readonly version: number;
 }
 export interface IBooleanProperty extends IProperty {
