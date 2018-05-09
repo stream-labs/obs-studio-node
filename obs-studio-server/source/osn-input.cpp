@@ -528,8 +528,7 @@ void osn::Input::FindFilter(void* data, const int64_t id, const std::vector<ipc:
 
 	obs_source_t* filter = obs_source_get_filter_by_name(input, args[1].value_str.c_str());
 	if (!filter) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::NotFound));
-		rval.push_back(ipc::value("Filter not found."));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		AUTO_DEBUG;
 		return;
 	}
