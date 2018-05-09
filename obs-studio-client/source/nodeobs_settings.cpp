@@ -118,76 +118,22 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 	std::string category;
 	ASSERT_GET_VALUE(args[0], category);
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-		uint64_t subCategoriesCount = 0;
-		uint64_t sizeStruct = 0;
-		std::vector<char> result;
-	} rtd;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Settings", 
+			"OBS_settings_getSettings", { ipc::value(category) });
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-
-		rtd->subCategoriesCount = rval[1].value_union.ui64;
-		rtd->sizeStruct = rval[2].value_union.ui32;
-		rtd->result.resize(rtd->sizeStruct);
-		memcpy(rtd->result.data(), rval[3].value_bin.data(), rval[3].value_bin.size());
-		
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Settings", "OBS_settings_getSettings",
-		std::vector<ipc::value>{ipc::value(category)}, fnc, &rtd);
-	if (!suc) {
-		args.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		else {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
+	if (!ValidateResponse(response)) return;
 
 	v8::Isolate *isolate = v8::Isolate::GetCurrent();
 	v8::Local<v8::Array> rval = v8::Array::New(isolate);
 
 	std::vector<settings::SubCategory> categorySettings = 
-		serializeCategory(rtd.subCategoriesCount, rtd.sizeStruct, rtd.result);
+		serializeCategory(response[1].value_union.ui64, 
+						response[2].value_union.ui64, 
+						response[3].value_bin);
 
 	for (int i = 0; i < categorySettings.size(); i++) {
 		v8::Local<v8::Object> subCategory = v8::Object::New(isolate);
@@ -466,140 +412,33 @@ void settings::OBS_settings_saveSettings(const v8::FunctionCallbackInfo<v8::Valu
 	std::vector<char> buffer = 
 		deserializeCategory(&subCategoriesCount, &sizeStruct,
 			settings);
-		
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-	} rtd;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	auto conn = GetConnection();
+	if (!conn) return;
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Settings", "OBS_settings_saveSettings",
+		{ ipc::value(category), ipc::value(subCategoriesCount),
+			ipc::value(sizeStruct), ipc::value(buffer) });
 
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-
-
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Settings", "OBS_settings_saveSettings",
-		std::vector<ipc::value>{ipc::value(category), ipc::value(subCategoriesCount),
-		ipc::value(sizeStruct), ipc::value(buffer)}, fnc, &rtd);
-	if (!suc) {
-		args.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		else {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-	
-	return;
+	ValidateResponse(response);
 }
 
 void settings::OBS_settings_getListCategories(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-		uint32_t size = 0;
-		std::vector<std::string> listCategories;
-	} rtd;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Settings", "OBS_settings_getListCategories", {});
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-
-		rtd->size = rval[1].value_union.ui32;
-
-		for (int i = 0; i < rtd->size; i++) {
-			rtd->listCategories.push_back(rval[i+2].value_str);
-		}
-
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Settings", "OBS_settings_getListCategories",
-		std::vector<ipc::value>{}, fnc, &rtd);
-	if (!suc) {
-		args.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		else {
-			args.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
+	if (!ValidateResponse(response)) return;
 
 	v8::Isolate *isolate = v8::Isolate::GetCurrent();
 	v8::Local<v8::Array> categories = v8::Array::New(isolate);
 
-	for (int i = 0; i < rtd.listCategories.size(); i++) {
-		categories->Set(i, v8::String::NewFromUtf8(isolate, rtd.listCategories.at(i).c_str()));
+	for (int i = 1; i < response.size(); i++) {
+		categories->Set(i-1, 
+			v8::String::NewFromUtf8(isolate, response.at(i).value_str.c_str()));
 	}	
 
 	args.GetReturnValue().Set(categories);
