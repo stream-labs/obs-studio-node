@@ -50,77 +50,22 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Types(Nan::NAN_METHOD_ARGS_TYPE info) {
 	// Function takes no parameters.
 	ASSERT_INFO_LENGTH(info, 0);
 
-	// Perform the call
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
+	std::vector<ipc::value> response = 
+		conn->call_synchronous_helper("Filter", "Types", {});
 
-		// Results
-		std::vector<std::string> types;
-	} rtd;
+	if (!ValidateResponse(response)) return;
+	
+	std::vector<std::string> types;
+	size_t count = response.size() - 1;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
-
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		size_t count = rval.size() - 1; // Skip ErrorCode
-		rtd->types.resize(count);
-		for (size_t idx = 0; idx < count; idx++) {
-			rtd->types[idx] = rval[1 + idx].value_str;
-		}
-
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Filter", "Types",
-		std::vector<ipc::value>{}, fnc, &rtd);
-	if (!suc) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
+	for (size_t idx = 0; idx < count; idx++) {
+		types.push_back(response[1 + idx].value_str);
 	}
 
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		} else {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	info.GetReturnValue().Set(utilv8::ToValue<std::string>(rtd.types));
+	info.GetReturnValue().Set(utilv8::ToValue<std::string>(types));
 	return;
 }
 
@@ -145,43 +90,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Create(Nan::NAN_METHOD_ARGS_TYPE info) 
 		settings = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), setobj).ToLocalChecked();
 	}
 
-	// Perform the call
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-
-		// Results
-		uint64_t sourceId;
-	} rtd;
-
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
-
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->sourceId = rval[1].value_union.ui64;
-
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
+	auto conn = GetConnection();
+	if (!conn) return;
 
 	auto params = std::vector<ipc::value>{ ipc::value(type), ipc::value(name) };
 	if (settings->Length() != 0) {
@@ -190,35 +100,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Create(Nan::NAN_METHOD_ARGS_TYPE info) 
 			params.push_back(ipc::value(value));
 		}
 	}
-	bool suc = Controller::GetInstance().GetConnection()->call("Filter", "Create",
-		std::move(params), fnc, &rtd);
-	if (!suc) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
 
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Filter", "Create",
+	{ std::move(params) });
 
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		} else {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
+	if (!ValidateResponse(response)) return;
 
 	// Create new Filter
-	osn::Filter* obj = new osn::Filter(rtd.sourceId);
+	osn::Filter* obj = new osn::Filter(response[1].value_union.ui64);
 	info.GetReturnValue().Set(osn::Filter::Store(obj));
 }
