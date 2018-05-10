@@ -93,7 +93,7 @@ size_t spawn(std::string program, std::string commandLine, std::string workingDi
 		nullptr,
 		nullptr,
 		false,
-		CREATE_NEW_CONSOLE,
+		CREATE_NO_WINDOW,
 		nullptr,
 		workingDirectory.length() > 0 ? workingDirectoryBuf.data() : nullptr,
 		&m_win32_startupInfo,
