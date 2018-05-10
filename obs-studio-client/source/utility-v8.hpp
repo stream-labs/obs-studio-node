@@ -18,6 +18,7 @@
 #pragma once
 #include <node.h>
 #include <nan.h>
+#include <uv.h>
 #include <inttypes.h>
 #include <math.h>
 #include <vector>
@@ -317,6 +318,14 @@ namespace utilv8 {
 		}
 		return false;
 	}
+
+	inline bool FromValue(v8::Local<v8::Value> l, v8::Local<v8::Function>& r) {
+		if (l->IsFunction()) {
+			r = l.As<v8::Function>();
+			return true;
+		}
+		return false;
+	}
 #pragma endregion FromValue
 
 #pragma region ToArrayBuffer
@@ -491,5 +500,121 @@ namespace utilv8 {
 		v8::Local<v8::String> type = v->TypeOf(v8::Isolate::GetCurrent());
 		return std::string(*v8::String::Utf8Value(type));
 	}
+
+#pragma region Callback
+	/* This structure is an adaptation of one used in SQLite Node bindings.
+	* You can find the original here:
+	* https://github.com/mapbox/node-sqlite3/blob/master/src/async.h */
+
+	template <class Item, class Parent> class Async {
+		public:
+		typedef void(*Callback)(Parent* parent, Item* item);
+
+		protected:
+		uint32_t interval;
+		uint64_t last_event_ms;
+		uv_async_t watcher;
+		std::mutex mutex;
+		std::vector<Item*> data;
+		Callback callback;
+
+		public:
+		Parent* parent;
+
+		public:
+		Async(Parent* parent_, Callback cb_, uint32_t interval_ = 0)
+			: callback(cb_), parent(parent_), interval(interval_), last_event_ms(0) {
+			watcher.data = this;
+			uv_async_init(uv_default_loop(), &watcher, reinterpret_cast<uv_async_cb>(listener));
+		}
+
+		static void listener(uv_async_t* handle, int status) {
+			Async* async = static_cast<Async*>(handle->data);
+			std::vector<Item*> rows;
+
+			{
+				std::unique_lock<std::mutex> lock(async->mutex);
+				rows.swap(async->data);
+			}
+
+			for (decltype(rows)::size_type i = 0, size = rows.size(); i < size; i++) {
+				async->callback(async->parent, rows[i]);
+			}
+		}
+
+		static void close(uv_handle_t* handle) {
+			assert(handle != NULL);
+			assert(handle->data != NULL);
+			Async* async = static_cast<Async*>(handle->data);
+			delete async;
+		}
+
+		void close() {
+			listener(&watcher, 0);
+			uv_close((uv_handle_t*)&watcher, close);
+		}
+
+		void add(Item* item) {
+			std::unique_lock<std::mutex> lock(mutex);
+			data.push_back(item);
+		}
+
+		void send() {
+			uint64_t ts = uv_hrtime();
+
+			uint64_t ts_ms = ts / 1000000;
+
+			if (ts_ms - last_event_ms >= interval) {
+				last_event_ms = ts_ms;
+				uv_async_send(&watcher);
+			}
+		}
+
+		void send(Item* item) {
+			add(item);
+			send();
+		}
+	};
+
+	template <typename Item, typename Parent>
+	struct CallbackData : public Nan::ObjectWrap,
+		utilv8::InterfaceObject<utilv8::CallbackData<Item, Parent>>,
+		utilv8::ManagedObject<utilv8::CallbackData<Item, Parent>> {
+		friend class utilv8::InterfaceObject<utilv8::CallbackData<Item, Parent>>;
+		friend class utilv8::ManagedObject<utilv8::CallbackData<Item, Parent>>;
+
+		public:
+		static Nan::Persistent<v8::FunctionTemplate> prototype;
+
+		static NAN_MODULE_INIT(Init) {
+			auto locProto = Nan::New<v8::FunctionTemplate>();
+			locProto->InstanceTemplate()->SetInternalFieldCount(1);
+			prototype.Reset(locProto);
+		}
+
+		CallbackData(
+			Parent *parent,
+			typename Async<Item, Parent>::Callback callback,
+			v8::Local<v8::Function> func,
+			uint32_t interval = 0)
+			: handle(this), cb(func),
+			queue(parent, callback, interval),
+			stopped(false) {
+		}
+
+		Async<Item, Parent> queue;
+		CallbackData *handle;
+
+		Nan::Persistent<v8::Object> obj_ref;
+		Nan::Callback cb;
+		void *user_data; /* Extra user data */
+
+						 /* Since events are deferred, we need
+						 * some way to know if we should actually
+						 * fire off an event when it's finally
+						 * being executed. */
+		bool stopped;
+	};
+#pragma endregion Callback
 
 }
