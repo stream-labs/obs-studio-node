@@ -28,7 +28,7 @@
 osn::VolMeter::VolMeter(uint64_t uid) {
 	this->uid = uid;
 	std::unique_lock<std::mutex> ulock(this->query_lock);
-	this->query_worker = std::thread(std::bind(&osn::VolMeter::async_query, this));
+	//this->query_worker = std::thread(std::bind(&osn::VolMeter::async_query, this));
 }
 
 osn::VolMeter::~VolMeter() {
