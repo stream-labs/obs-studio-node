@@ -2673,13 +2673,14 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 
 				config_set_string(config, section.c_str(), name.c_str(), value.c_str());
 			} else {
-				std::string *subType = reinterpret_cast<std::string*>(&param.subType);
+				std::string subType(param.subType.data(),
+					param.subType.size());
 
-				if (subType->compare("OBS_COMBO_FORMAT_INT") == 0) {
-					int64_t *value = reinterpret_cast<int64_t*>(&param.currentValue);
+				if (subType.compare("OBS_COMBO_FORMAT_INT") == 0) {
+					int64_t *value = reinterpret_cast<int64_t*>(param.currentValue.data());
 					obs_data_set_int(encoderSettings, name.c_str(), *value);
-				} else if (subType->compare("OBS_COMBO_FORMAT_FLOAT") == 0) {
-					double *value = reinterpret_cast<double*>(&param.currentValue);
+				} else if (subType.compare("OBS_COMBO_FORMAT_FLOAT") == 0) {
+					double *value = reinterpret_cast<double*>(param.currentValue.data());
 					obs_data_set_double(encoderSettings, name.c_str(), *value);
 				} else {
 					std::string value(param.currentValue.data(),
@@ -2688,32 +2689,32 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 				}
 			}
 		} else if(type.compare("OBS_PROPERTY_INT") == 0) {
-			int64_t *value = reinterpret_cast<int64_t*>(&param.currentValue);
+			int64_t *value = reinterpret_cast<int64_t*>(param.currentValue.data());
 			if(i < indexEncoderSettings) {
 				config_set_int(config, section.c_str(), name.c_str(), *value);
 			} else {
 				obs_data_set_int(encoderSettings, name.c_str(), *value);
 			}
 		} else if(type.compare("OBS_PROPERTY_UINT") == 0) {
-			uint64_t *value = reinterpret_cast<uint64_t*>(&param.currentValue);
+			uint64_t *value = reinterpret_cast<uint64_t*>(param.currentValue.data());
 			if(i < indexEncoderSettings) {
 				config_set_uint(config, section.c_str(), name.c_str(), *value);
 			} else {
 				obs_data_set_int(encoderSettings, name.c_str(), *value);
 			}
 		} else if(type.compare("OBS_PROPERTY_BOOL") == 0) {
-			uint32_t *value = reinterpret_cast<uint32_t*>(&param.currentValue);
+			uint32_t *value = reinterpret_cast<uint32_t*>(param.currentValue.data());
 			if(i < indexEncoderSettings) {
 				if(name.compare("Rescale") == 0 && *value) {
 					indexEncoderSettings ++;
 				}
 				config_set_bool(config, section.c_str(), name.c_str(), *value);
 			} else {
-				obs_data_set_bool(encoderSettings, name.c_str(), value);
+				obs_data_set_bool(encoderSettings, name.c_str(), *value);
 			}
 		} else if(type.compare("OBS_PROPERTY_DOUBLE") == 0 || 
 					type.compare("OBS_PROPERTY_FLOAT") == 0) {
-			double *value = reinterpret_cast<double*>(&param.currentValue);
+			double *value = reinterpret_cast<double*>(param.currentValue.data());
 			if(i < indexEncoderSettings) {
 				config_set_double(config, section.c_str(), name.c_str(), *value);
 			} else {
