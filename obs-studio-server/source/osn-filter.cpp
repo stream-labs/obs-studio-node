@@ -64,7 +64,7 @@ void osn::Filter::Create(void* data, const int64_t id, const std::vector<ipc::va
 	uint64_t uid = osn::Source::GetInstance()->Allocate(source);
 	if (uid == UINT64_MAX) {
 		// No further Ids left, leak somewhere.
-		rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
 		rval.push_back(ipc::value("Index list is full."));
 		AUTO_DEBUG;
 		return;

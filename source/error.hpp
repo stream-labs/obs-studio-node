@@ -33,9 +33,6 @@ enum class ErrorCode : long long {
 	// The reference specified in the arguments is not valid.
 	InvalidReference,
 
-	// There are no further Ids free to use.
-	OutOfIndexes,
-
 	// Something could not be found.
 	NotFound,
 

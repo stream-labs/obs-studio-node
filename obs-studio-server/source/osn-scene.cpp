@@ -48,7 +48,7 @@ void osn::Scene::Create(void* data, const int64_t id, const std::vector<ipc::val
 
 	uint64_t uid = osn::Source::GetInstance()->Allocate(source);
 	if (uid == UINT64_MAX) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
 		rval.push_back(ipc::value("Index list is full."));
 		AUTO_DEBUG;
 		return;
@@ -78,7 +78,7 @@ void osn::Scene::CreatePrivate(void* data, const int64_t id, const std::vector<i
 
 	uint64_t uid = osn::Source::GetInstance()->Allocate(source);
 	if (uid == UINT64_MAX) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
 		rval.push_back(ipc::value("Index list is full."));
 		AUTO_DEBUG;
 		return;
@@ -242,7 +242,7 @@ void osn::Scene::Duplicate(void* data, const int64_t id, const std::vector<ipc::
 
 	uint64_t uid = osn::Source::GetInstance()->Allocate(source2);
 	if (uid == UINT64_MAX) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
 		rval.push_back(ipc::value("Index list is full."));
 		AUTO_DEBUG;
 		return;
@@ -282,7 +282,7 @@ void osn::Scene::AddSource(void* data, const int64_t id, const std::vector<ipc::
 
 	utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().allocate(item);
 	if (uid == UINT64_MAX) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
+		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
 		rval.push_back(ipc::value("Index list is full."));
 		AUTO_DEBUG;
 		return;
@@ -323,7 +323,7 @@ void osn::Scene::FindItemByName(void* data, const int64_t id, const std::vector<
 	if (uid == UINT64_MAX) {
 		uid = osn::SceneItem::Manager::GetInstance().allocate(item);
 		if (uid == UINT64_MAX) {
-			rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
+			rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
 			rval.push_back(ipc::value("Index list is full."));
 			AUTO_DEBUG;
 			return;
@@ -365,7 +365,7 @@ void osn::Scene::FindItemByItemId(void* data, const int64_t id, const std::vecto
 	if (uid == UINT64_MAX) {
 		uid = osn::SceneItem::Manager::GetInstance().allocate(item);
 		if (uid == UINT64_MAX) {
-			rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
+			rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
 			rval.push_back(ipc::value("Index list is full."));
 			AUTO_DEBUG;
 			return;
@@ -472,7 +472,7 @@ void osn::Scene::GetItem(void* data, const int64_t id, const std::vector<ipc::va
 	if (uid == UINT64_MAX) {
 		uid = osn::SceneItem::Manager::GetInstance().allocate(ed.item);
 		if (uid == UINT64_MAX) {
-			rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
+			rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
 			rval.push_back(ipc::value("Index list is full."));
 			AUTO_DEBUG;
 			return;
@@ -516,7 +516,7 @@ void osn::Scene::GetItems(void* data, const int64_t id, const std::vector<ipc::v
 		if (uid == UINT64_MAX) {
 			uid = osn::SceneItem::Manager::GetInstance().allocate(item);
 			if (uid == UINT64_MAX) {
-				rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
+				rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
 				rval.push_back(ipc::value("Index list is full."));
 				AUTO_DEBUG;
 				return;
@@ -571,7 +571,7 @@ void osn::Scene::GetItemsInRange(void* data, const int64_t id, const std::vector
 		if (uid == UINT64_MAX) {
 			uid = osn::SceneItem::Manager::GetInstance().allocate(item);
 			if (uid == UINT64_MAX) {
-				rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfIndexes));
+				rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
 				rval.push_back(ipc::value("Index list is full."));
 				AUTO_DEBUG;
 				return;
