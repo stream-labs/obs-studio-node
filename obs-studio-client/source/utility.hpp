@@ -136,4 +136,5 @@ namespace utility {
 
 	AUTO_TYPEOF_NAME(v8::Local<v8::Value>, "value");
 	AUTO_TYPEOF_NAME(v8::Local<v8::Object>, "object");
+	AUTO_TYPEOF_NAME(v8::Local<v8::Function>, "function");
 }
