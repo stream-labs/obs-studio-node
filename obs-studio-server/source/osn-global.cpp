@@ -93,11 +93,13 @@ void osn::Global::GetOutputFlagsFromId(void* data, const int64_t id, const std::
 }
 
 void osn::Global::LaggedFrames(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
-	rval = args; // !FIXME!
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_get_lagged_frames()));
 	AUTO_DEBUG;
 }
 
 void osn::Global::TotalFrames(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
-	rval = args; // !FIXME!
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_get_total_frames()));
 	AUTO_DEBUG;
 }

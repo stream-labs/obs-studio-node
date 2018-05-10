@@ -109,15 +109,25 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Global::getOutputFlagsFromId(Nan::NAN_METHOD_AR
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Global::laggedFrames(Nan::NAN_METHOD_ARGS_TYPE info) {
-	//OBS_VALID
+	auto conn = GetConnection();
+	if (!conn) return;
 
-	//	info.GetReturnValue().Set(common::ToValue(obs::lagged_frames()));
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Global", "LaggedFrames", {});
 
+	if (!ValidateResponse(response)) return;
+
+	info.GetReturnValue().Set(response[1].value_union.ui32);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Global::totalFrames(Nan::NAN_METHOD_ARGS_TYPE info) {
-	//OBS_VALID
+	auto conn = GetConnection();
+	if (!conn) return;
 
-	//	info.GetReturnValue().Set(common::ToValue(obs::total_frames()));
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Global", "TotalFrames", {});
 
+	if (!ValidateResponse(response)) return;
+
+	info.GetReturnValue().Set(response[1].value_union.ui32);
 }
