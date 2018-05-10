@@ -40,7 +40,7 @@ osn::VolMeter::~VolMeter() {
 void osn::VolMeter::Register(ipc::server& srv) {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("VolMeter");
 	cls->register_function(std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::Int32}, Create));
-	cls->register_function(std::make_shared<ipc::function>("Destroy", std::vector<ipc::type>{ipc::type::Int32}, Destroy));
+	cls->register_function(std::make_shared<ipc::function>("Destroy", std::vector<ipc::type>{ipc::type::UInt64}, Destroy));
 	cls->register_function(std::make_shared<ipc::function>("GetUpdateInterval", std::vector<ipc::type>{ipc::type::UInt64}, GetUpdateInterval));
 	cls->register_function(std::make_shared<ipc::function>("SetUpdateInterval", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetUpdateInterval));
 	cls->register_function(std::make_shared<ipc::function>("Attach", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, Attach));
