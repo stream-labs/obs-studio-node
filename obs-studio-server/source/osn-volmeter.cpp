@@ -47,6 +47,7 @@ void osn::VolMeter::Register(ipc::server& srv) {
 	cls->register_function(std::make_shared<ipc::function>("Detach", std::vector<ipc::type>{ipc::type::UInt64}, Detach));
 	cls->register_function(std::make_shared<ipc::function>("AddCallback", std::vector<ipc::type>{ipc::type::UInt64}, AddCallback));
 	cls->register_function(std::make_shared<ipc::function>("RemoveCallback", std::vector<ipc::type>{ipc::type::UInt64}, RemoveCallback));
+	cls->register_function(std::make_shared<ipc::function>("Query", std::vector<ipc::type>{ipc::type::UInt64}, Query));
 	srv.register_collection(cls);
 }
 
@@ -178,9 +179,79 @@ void osn::VolMeter::Detach(void* data, const int64_t id, const std::vector<ipc::
 }
 
 void osn::VolMeter::AddCallback(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
-	//!FIXME!
+	auto uid = args[0].value_union.ui64;
+	auto* meter = Manager::GetInstance().find(uid);
+	if (!meter) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Invalid Fader Reference."));
+		AUTO_DEBUG;
+		return;
+	}
+
+	meter->callback_count++;
+	if (meter->callback_count == 1) {
+		obs_volmeter_add_callback(meter->self, OBSCallback, meter);
+	}
+
+	rval.push_back(ipc::value(uint64_t(ErrorCode::Ok)));
+	rval.push_back(ipc::value(meter->callback_count));
+	AUTO_DEBUG;
 }
 
 void osn::VolMeter::RemoveCallback(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
-	//!FIXME!
+	auto uid = args[0].value_union.ui64;
+	auto* meter = Manager::GetInstance().find(uid);
+	if (!meter) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Invalid Fader Reference."));
+		AUTO_DEBUG;
+		return;
+	}
+
+	meter->callback_count--;
+	if (meter->callback_count == 0) {
+		obs_volmeter_remove_callback(meter->self, OBSCallback, meter);
+	}
+
+	rval.push_back(ipc::value(uint64_t(ErrorCode::Ok)));
+	rval.push_back(ipc::value(meter->callback_count));
+	AUTO_DEBUG;
+}
+
+void osn::VolMeter::Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	auto uid = args[0].value_union.ui64;
+	auto* meter = Manager::GetInstance().find(uid);
+	if (!meter) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Invalid Fader Reference."));
+		AUTO_DEBUG;
+		return;
+	}
+	
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_volmeter_get_nr_channels(meter->self)));
+
+	std::unique_lock<std::mutex> ulock(meter->Data.lock);
+	for (size_t ch = 0; ch < obs_volmeter_get_nr_channels(meter->self); ch++) {
+		rval.push_back(ipc::value(meter->Data.magnitude[ch]));
+		rval.push_back(ipc::value(meter->Data.peak[ch]));
+		rval.push_back(ipc::value(meter->Data.input_peak[ch]));
+	}
+	AUTO_DEBUG;
+}
+
+void osn::VolMeter::OBSCallback(void *param, const float magnitude[MAX_AUDIO_CHANNELS], const float peak[MAX_AUDIO_CHANNELS], const float input_peak[MAX_AUDIO_CHANNELS]) {
+	osn::VolMeter* meter = (osn::VolMeter*)(param);
+
+#define MAKE_FLOAT_SANE(db) (std::isfinite(db) ? db : (db > 0 ? 0.0f : -128.0f))
+
+	// !FIXME! This type of synchronization is slower than signalling.
+	std::unique_lock<std::mutex> ulock(meter->Data.lock);
+	for (size_t ch = 0; ch < MAX_AUDIO_CHANNELS; ch++) {
+		meter->Data.magnitude[ch] = MAKE_FLOAT_SANE(magnitude[ch]);
+		meter->Data.peak[ch] = MAKE_FLOAT_SANE(peak[ch]);
+		meter->Data.input_peak[ch] = MAKE_FLOAT_SANE(input_peak[ch]);
+	}
+
+#undef MAKE_FLOAT_SANE
 }

@@ -41,6 +41,14 @@ namespace osn {
 		
 		private:
 		obs_volmeter_t* self;
+		size_t callback_count = 0;
+
+		struct {
+			float magnitude[MAX_AUDIO_CHANNELS];
+			float peak[MAX_AUDIO_CHANNELS];
+			float input_peak[MAX_AUDIO_CHANNELS];
+			std::mutex lock;
+		} Data;
 
 		public:
 		VolMeter(obs_fader_type type);
@@ -59,5 +67,8 @@ namespace osn {
 		static void AddCallback(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 		static void RemoveCallback(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 
+		static void Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static void OBSCallback(void *param, const float magnitude[MAX_AUDIO_CHANNELS],
+			const float peak[MAX_AUDIO_CHANNELS], const float input_peak[MAX_AUDIO_CHANNELS]);
 	};
 }
