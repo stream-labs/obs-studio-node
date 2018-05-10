@@ -23,12 +23,24 @@
 #include "error.hpp"
 #include "isource.hpp"
 #include "utility-v8.hpp"
+#include <iostream>
 
 osn::VolMeter::VolMeter(uint64_t uid) {
 	this->uid = uid;
+	std::unique_lock<std::mutex> ulock(this->query_lock);
+	this->query_worker = std::thread(std::bind(&osn::VolMeter::async_query, this));
 }
 
 osn::VolMeter::~VolMeter() {
+	// Stop query thread
+	{
+		std::unique_lock<std::mutex> ulock(this->query_lock);
+		this->query_worker_close = true;
+	}
+	if (this->query_worker.joinable()) {
+		this->query_worker.join();
+	}
+
 	// Validate Connection
 	auto conn = Controller::GetInstance().GetConnection();
 	if (!conn) {
@@ -41,6 +53,54 @@ osn::VolMeter::~VolMeter() {
 	});
 	if (!rval.size()) {
 		return; // Nothing we can do.
+	}
+}
+
+void osn::VolMeter::async_query() {
+	while (!query_worker_close) {
+		{
+			std::unique_lock<std::mutex> ulock(this->query_lock);
+		}
+
+		// Validate Connection
+		auto conn = Controller::GetInstance().GetConnection();
+		if (!conn) {
+			return; // Well, we can't really do anything here then.
+		}
+
+		// Call
+		std::vector<ipc::value> response = conn->call_synchronous_helper("VolMeter", "Query", {
+			ipc::value(uid),
+		});
+		if (!response.size()) {
+			return; // Nothing we can do.
+		}
+		if ((response.size() == 1) && (response[0].type == ipc::type::Null)) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(sleepIntervalMS));
+			continue;
+		}
+
+		ErrorCode error = (ErrorCode)response[0].value_union.ui64;
+		if (error == ErrorCode::Ok) {
+			size_t channels = response[1].value_union.i32;
+			for (auto cb : callbacks) {
+				osn::VolMeterData* data = new osn::VolMeterData();
+				data->magnitude.resize(channels);
+				data->peak.resize(channels);
+				data->input_peak.resize(channels);
+				data->param = cb;
+				for (size_t ch = 0; ch < channels; ch++) {
+					data->magnitude[ch] = response[1 + ch * 3 + 0].value_union.fp32;
+					data->peak[ch] = response[1 + ch * 3 + 0].value_union.fp32;
+					data->input_peak[ch] = response[1 + ch * 3 + 0].value_union.fp32;
+				}
+				cb->queue.send(data);
+			}
+		} else {
+			std::cerr << "Failed VolMeter" << std::endl;
+		}
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(sleepIntervalMS));
 	}
 }
 
@@ -65,6 +125,8 @@ void osn::VolMeter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	// Stuff
 	utilv8::SetObjectField(target, "Volmeter", fnctemplate->GetFunction());
 	prototype.Reset(fnctemplate);
+
+	osn::VolMeterCallback::Init(target);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Create(Nan::NAN_METHOD_ARGS_TYPE info) {
@@ -153,6 +215,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::GetUpdateInterval(Nan::NAN_METHOD_ARG
 		return;
 	}
 
+	self->sleepIntervalMS = rval[1].value_union.ui32;
+
 	// Return DeziBel Value
 	info.GetReturnValue().Set(rval[1].value_union.ui32);
 }
@@ -200,6 +264,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::SetUpdateInterval(Nan::NAN_METHOD_ARG
 		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
 		return;
 	}
+
+	self->sleepIntervalMS = interval;
 
 	// Return DeziBel Value
 	info.GetReturnValue().Set(rval[1].value_union.ui32);
@@ -299,45 +365,119 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Detach(Nan::NAN_METHOD_ARGS_TYPE info
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::AddCallback(Nan::NAN_METHOD_ARGS_TYPE info) {
-	//obs::volmeter &handle = Volmeter::Object::GetHandle(info.Holder());
-	//Volmeter* binding = Nan::ObjectWrap::Unwrap<Volmeter>(info.Holder());
+	osn::VolMeter* fader;
 
-	//ASSERT_INFO_LENGTH(info, 1);
+	// Arguments
+	ASSERT_INFO_LENGTH(info, 1);
+	if (!Retrieve(info.This(), fader)) {
+		return;
+	}
 
-	//v8::Local<v8::Function> callback;
-	//ASSERT_GET_VALUE(info[0], callback);
+	v8::Local<v8::Function> callback;
+	ASSERT_GET_VALUE(info[0], callback);
 
-	//VolmeterCallback *cb_binding =
-	//	new VolmeterCallback(binding, Volmeter::Callback, callback, 50);
+	// Grab IPC Connection
+	std::shared_ptr<ipc::client> conn = nullptr;
+	if (!(conn = GetConnection())) {
+		return;
+	}
 
-	//cb_binding->user_data = new int;
-	//*((int*)cb_binding->user_data) = binding->handle.nr_channels();
+	// Send request
+	std::vector<ipc::value> rval = conn->call_synchronous_helper("VolMeter", "AddCallback", {
+		ipc::value(fader->uid)
+	});
+	if (!ValidateResponse(rval)) {
+		return;
+	}
 
-	//handle.add_callback(volmeter_cb_wrapper, cb_binding);
+	if (rval[0].value_union.ui64 != (uint64_t)ErrorCode::Ok) {
+		info.GetReturnValue().Set(Nan::Null());
+		return;
+	}
 
-	//auto object = VolmeterCallback::Object::GenerateObject(cb_binding);
-	//cb_binding->obj_ref.Reset(object);
-	//info.GetReturnValue().Set(object);
+	// Callback
+	osn::VolMeterCallback *cb_binding = new osn::VolMeterCallback(fader, Callback, callback, 20);
+	fader->callbacks.push_back(cb_binding);
+
+	auto object = osn::VolMeterCallback::Store(cb_binding);
+	cb_binding->obj_ref.Reset(object);
+	info.GetReturnValue().Set(object);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info) {
-	//obs::volmeter &handle = Volmeter::Object::GetHandle(info.Holder());
+	ASSERT_INFO_LENGTH(info, 1);
 
-	//v8::Local<v8::Object> cb_object;
-	//ASSERT_GET_VALUE(info[0], cb_object);
+	osn::VolMeter* fader;
+	if (!Retrieve(info.This(), fader)) {
+		return;
+	}
 
-	//VolmeterCallback *cb_binding =
-	//	VolmeterCallback::Object::GetHandle(cb_object);
+	v8::Local<v8::Object> cb_object;
+	ASSERT_GET_VALUE(info[0], cb_object);
+	
+	osn::VolMeterCallback *cb_binding = nullptr;
+	if (!osn::VolMeterCallback::Retrieve(cb_object, cb_binding)) {
+		return;
+	}
 
-	//cb_binding->stopped = true;
-	//cb_binding->obj_ref.Reset();
+	// Grab IPC Connection
+	std::shared_ptr<ipc::client> conn = nullptr;
+	if (!(conn = GetConnection())) {
+		return;
+	}
 
-	//handle.remove_callback(volmeter_cb_wrapper, cb_binding);
+	// Send request
+	std::vector<ipc::value> rval = conn->call_synchronous_helper("VolMeter", "RemoveCallback", {
+		ipc::value(fader->uid)
+	});
+	if (!ValidateResponse(rval)) {
+		return;
+	}
 
-	//delete cb_binding->user_data;
-	//cb_binding->user_data = 0;
+	if (rval[0].value_union.ui64 != (uint64_t)ErrorCode::Ok) {
+		info.GetReturnValue().Set(Nan::Null());
+		return;
+	}
+
+	cb_binding->stopped = true;
+	cb_binding->obj_ref.Reset();
+
+	fader->callbacks.remove(cb_binding);
 
 	// /* What's this? A memory leak? Nope! The GC will automagically
 	//  * destroy the CallbackData structure when it becomes weak. We
 	//  * just need to make sure its in an unusable state. */
 }
+
+void osn::VolMeter::Callback(VolMeter* volmeter, VolMeterData* item) {
+	if (!item) {
+		return;
+	}
+	if (!volmeter) {
+		delete item;
+		return;
+	}
+
+	/* We're in v8 context here */
+	VolMeterCallback *cb_binding = reinterpret_cast<VolMeterCallback*>(item->param);
+	if (!cb_binding) {
+		delete item;
+		return;
+	}
+
+	if (cb_binding->stopped) {
+		delete item;
+		return;
+	}
+
+	// utilv8::ToValue on a std::vector<> creates a v8::Local<v8::Array> automatically.
+	v8::Local<v8::Value> args[] = {
+		utilv8::ToValue(item->magnitude),
+		utilv8::ToValue(item->peak),
+		utilv8::ToValue(item->input_peak)
+	};
+	delete item;
+	Nan::Call(cb_binding->cb, 3, args);
+}
+
+Nan::Persistent<v8::FunctionTemplate> osn::VolMeterCallback::prototype = Nan::Persistent<v8::FunctionTemplate>();

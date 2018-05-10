@@ -18,21 +18,41 @@
 #pragma once
 #include <node.h>
 #include <nan.h>
+#include <thread>
 #include "utility-v8.hpp"
 
 namespace osn {
+	struct VolMeterData {
+		std::vector<float> magnitude;
+		std::vector<float> peak;
+		std::vector<float> input_peak;
+		void* param;
+	};
+
+	class VolMeter;
+	typedef utilv8::CallbackData<osn::VolMeterData, osn::VolMeter> VolMeterCallback;
+
 	class VolMeter : public Nan::ObjectWrap,
 		public utilv8::InterfaceObject<osn::VolMeter>,
 		public utilv8::ManagedObject<osn::VolMeter> {
 		friend utilv8::InterfaceObject<osn::VolMeter>;
 		friend utilv8::ManagedObject<osn::VolMeter>;
+		friend utilv8::CallbackData<osn::VolMeterData, osn::VolMeter>;
 
 		private:
 		uint64_t uid;
 
+		std::thread query_worker;
+		bool query_worker_close = false;
+		std::mutex query_lock;
+		uint32_t sleepIntervalMS = 100;
+		std::list<osn::VolMeterCallback*> callbacks;
+
 		public:
 		VolMeter(uint64_t uid);
 		~VolMeter();
+
+		void async_query();
 
 		public:
 		static Nan::Persistent<v8::FunctionTemplate> prototype;
@@ -46,5 +66,7 @@ namespace osn {
 		static Nan::NAN_METHOD_RETURN_TYPE Detach(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE AddCallback(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info);
+
+		static void Callback(VolMeter* volmeter, VolMeterData* item);
 	};
 }
