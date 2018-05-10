@@ -57,7 +57,6 @@ void OBS_settings::OBS_settings_getListCategories(void* data, const int64_t id, 
 	uint32_t size = listCategories.size();
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(size));
 
 	for (int i = 0; i<size; i++) {
 		rval.push_back(ipc::value(listCategories.at(i).c_str()));
