@@ -54,5 +54,5 @@ class Controller {
 	private:
 	bool m_isServer = false;
 	std::shared_ptr<ipc::client> m_connection;
-	size_t procId = 0;
+	uint64_t procId = 0;
 };

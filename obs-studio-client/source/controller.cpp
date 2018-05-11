@@ -30,7 +30,7 @@
 #include <direct.h>
 #include <wchar.h>
 
-size_t spawn(std::string program, std::string commandLine, std::string workingDirectory) {
+uint64_t spawn(std::string program, std::string commandLine, std::string workingDirectory) {
 	PROCESS_INFORMATION m_win32_processInformation;
 	STARTUPINFOW m_win32_startupInfo;
 
@@ -115,12 +115,24 @@ size_t spawn(std::string program, std::string commandLine, std::string workingDi
 		return false;
 	}
 
-	return (size_t)m_win32_processInformation.hProcess;
+	return reinterpret_cast<uint64_t>(m_win32_processInformation.hProcess);
 }
 
-bool kill(size_t hProcess, uint32_t code, uint32_t& exitcode) {
-	bool suc = TerminateProcess((HANDLE)hProcess, code);
-	return suc;
+bool is_process_alive(size_t hProcess) {
+	SetLastError(ERROR_SUCCESS);
+	DWORD id = GetProcessId(reinterpret_cast<HANDLE>(hProcess));
+	DWORD errorCode = GetLastError();
+	if (errorCode != ERROR_SUCCESS) {
+		return false;
+	}
+	return id != 0;
+}
+
+bool kill(uint64_t hProcess, uint32_t code, uint32_t& exitcode) {
+	SetLastError(ERROR_SUCCESS);
+	bool suc = TerminateProcess(reinterpret_cast<HANDLE>(hProcess), code);
+	DWORD errorCode = GetLastError();
+	return (errorCode == ERROR_SUCCESS);
 }
 
 std::string get_working_directory() {
@@ -171,8 +183,8 @@ std::shared_ptr<ipc::client> Controller::host(std::string uri) {
 	std::string commandLine = '"' + serverBinaryPath + '"' + " " + uri;
 	std::string workingDirectory = serverWorkingPath.length() > 0 ? serverWorkingPath : get_working_directory();
 
-	spawn(serverBinaryPath, commandLine, workingDirectory);
-	
+	procId = spawn(serverBinaryPath, commandLine, workingDirectory);
+
 	// Connect
 	std::shared_ptr<ipc::client> cl;
 	cl = connect(uri);
@@ -180,7 +192,7 @@ std::shared_ptr<ipc::client> Controller::host(std::string uri) {
 		disconnect();
 		return nullptr;
 	}
-	
+
 	m_isServer = true;
 	return m_connection;
 }
@@ -211,8 +223,30 @@ std::shared_ptr<ipc::client> Controller::connect(std::string uri) {
 
 void Controller::disconnect() {
 	if (m_isServer) {
-		uint32_t exitcode = 0;
-		kill(procId, 0, exitcode);
+		// Attempt soft shut down.
+		m_connection->call_synchronous_helper("System", "Shutdown", {});
+
+		// Wait for process exit.
+		auto wait_begin = std::chrono::high_resolution_clock::now();
+		while (is_process_alive(procId)) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - wait_begin);
+			if (dur.count() >= 500) {
+				break; // Failed.
+			}
+		}
+
+		wait_begin = std::chrono::high_resolution_clock::now();
+		while (is_process_alive(procId)) {
+			uint32_t exitcode = 0;
+			kill(procId, 0, exitcode);
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - wait_begin);
+			if (dur.count() >= 500) {
+				break; // Failed.
+			}
+		}
 		m_isServer = false;
 	}
 	m_connection = nullptr;
