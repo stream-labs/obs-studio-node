@@ -91,8 +91,8 @@ void osn::VolMeter::async_query() {
 					data->param = cb;
 					for (size_t ch = 0; ch < channels; ch++) {
 						data->magnitude[ch] = response[1 + ch * 3 + 0].value_union.fp32;
-						data->peak[ch] = response[1 + ch * 3 + 0].value_union.fp32;
-						data->input_peak[ch] = response[1 + ch * 3 + 0].value_union.fp32;
+						data->peak[ch] = response[1 + ch * 3 + 1].value_union.fp32;
+						data->input_peak[ch] = response[1 + ch * 3 + 2].value_union.fp32;
 					}
 					cb->queue.send(data);
 				}
@@ -177,6 +177,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Create(Nan::NAN_METHOD_ARGS_TYPE info
 
 	// Return created Object
 	osn::VolMeter* obj = new osn::VolMeter(rval[1].value_union.ui64);
+	obj->sleepIntervalMS = rval[2].value_union.ui32;
 	info.GetReturnValue().Set(Store(obj));
 }
 

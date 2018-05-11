@@ -45,7 +45,7 @@ namespace osn {
 		std::thread query_worker;
 		bool query_worker_close = false;
 		std::mutex query_lock;
-		uint32_t sleepIntervalMS = 100;
+		uint32_t sleepIntervalMS = 33;
 		std::list<osn::VolMeterCallback*> callbacks;
 
 		public:
