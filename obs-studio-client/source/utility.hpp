@@ -78,7 +78,7 @@
 static FORCE_INLINE bool ValidateResponse(std::vector<ipc::value> &response)
 {
         if ((response.size() == 1) && (response[0].type == ipc::type::Null)) {
-                Nan::ThrowError(Nan::New<v8::String>(response[1].value_str).ToLocalChecked());
+                Nan::ThrowError(Nan::New<v8::String>(response[0].value_str).ToLocalChecked());
                 return false;
         }
 
