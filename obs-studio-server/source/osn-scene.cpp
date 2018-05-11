@@ -395,12 +395,25 @@ void osn::Scene::MoveItem(void* data, const int64_t id, const std::vector<ipc::v
 		return;
 	}
 
+	// Listen up! This function does not work as you might expect it to (lowest index is furthest
+	//  back), instead it works on the inverted order, so the lowest index is the furthest in front.
+	// While this may be weird at first, this does have some advantages as you do not have to guess 
+	//  on what the best index for moving something in front is. Downside is that it is kinda weird
+	//  to deal with when you're used to things being the other way around.
+	
+	size_t num_items = 0;
+	auto cb_count = [](obs_scene_t* scene, obs_sceneitem_t* item, void* data) {
+		(*(reinterpret_cast<size_t*>(data)))++;
+		return true;
+	};
+	obs_scene_enum_items(scene, cb_count, &num_items);
+	
 	struct EnumData {
 		obs_sceneitem_t* item = nullptr;
 		int32_t findindex = 0;
 		int32_t index = 0;
 	} ed;
-	ed.findindex = args[1].value_union.i32;
+	ed.findindex = (num_items - 1) - args[1].value_union.i32;
 
 	auto cb = [](obs_scene_t* scene, obs_sceneitem_t* item, void* data) {
 		EnumData* items = reinterpret_cast<EnumData*>(data);
@@ -420,7 +433,7 @@ void osn::Scene::MoveItem(void* data, const int64_t id, const std::vector<ipc::v
 		return;
 	}
 
-	obs_sceneitem_set_order_position(ed.item, args[2].value_union.i32);
+	obs_sceneitem_set_order_position(ed.item, (num_items - 1) - args[2].value_union.i32);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
