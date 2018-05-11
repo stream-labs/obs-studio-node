@@ -137,4 +137,14 @@ namespace utility {
 	AUTO_TYPEOF_NAME(v8::Local<v8::Value>, "value");
 	AUTO_TYPEOF_NAME(v8::Local<v8::Object>, "object");
 	AUTO_TYPEOF_NAME(v8::Local<v8::Function>, "function");
+	
+	// This is from enc-amf
+#if (defined _WIN32) || (defined _WIN64)
+	void SetThreadName(uint32_t dwThreadID, const char* threadName);
+	void SetThreadName(const char* threadName);
+	//void SetThreadName(std::thread* pthread, const char* threadName);
+#else
+	void SetThreadName(std::thread* pthread, const char* threadName);
+	void SetThreadName(const char* threadName);
+#endif
 }

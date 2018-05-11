@@ -23,22 +23,20 @@
 #include "error.hpp"
 #include "isource.hpp"
 #include "utility-v8.hpp"
+#include "utility.hpp"
 #include <iostream>
 
-osn::VolMeter::VolMeter(uint64_t uid) {
-	this->uid = uid;
-	std::unique_lock<std::mutex> ulock(this->query_lock);
-	//this->query_worker = std::thread(std::bind(&osn::VolMeter::async_query, this));
+osn::VolMeter::VolMeter(uint64_t p_uid) {
+	uid = p_uid;
+	query_worker_close = false;
+	query_worker = std::thread(std::bind(&osn::VolMeter::async_query, this));
 }
 
 osn::VolMeter::~VolMeter() {
 	// Stop query thread
-	{
-		std::unique_lock<std::mutex> ulock(this->query_lock);
-		this->query_worker_close = true;
-	}
-	if (this->query_worker.joinable()) {
-		this->query_worker.join();
+	query_worker_close = true;
+	if (query_worker.joinable()) {
+		query_worker.join();
 	}
 
 	// Validate Connection
@@ -54,54 +52,63 @@ osn::VolMeter::~VolMeter() {
 	if (!rval.size()) {
 		return; // Nothing we can do.
 	}
+
+	uid = -1;
 }
 
 void osn::VolMeter::async_query() {
+	size_t totalSleepMS = 0;
+
 	while (!query_worker_close) {
-		{
-			std::unique_lock<std::mutex> ulock(this->query_lock);
-		}
+		auto tp_start = std::chrono::high_resolution_clock::now();
 
 		// Validate Connection
 		auto conn = Controller::GetInstance().GetConnection();
 		if (!conn) {
-			return; // Well, we can't really do anything here then.
+			goto do_sleep;
 		}
 
 		// Call
-		std::vector<ipc::value> response = conn->call_synchronous_helper("VolMeter", "Query", {
-			ipc::value(uid),
-		});
-		if (!response.size()) {
-			return; // Nothing we can do.
-		}
-		if ((response.size() == 1) && (response[0].type == ipc::type::Null)) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(sleepIntervalMS));
-			continue;
-		}
-
-		ErrorCode error = (ErrorCode)response[0].value_union.ui64;
-		if (error == ErrorCode::Ok) {
-			size_t channels = response[1].value_union.i32;
-			for (auto cb : callbacks) {
-				osn::VolMeterData* data = new osn::VolMeterData();
-				data->magnitude.resize(channels);
-				data->peak.resize(channels);
-				data->input_peak.resize(channels);
-				data->param = cb;
-				for (size_t ch = 0; ch < channels; ch++) {
-					data->magnitude[ch] = response[1 + ch * 3 + 0].value_union.fp32;
-					data->peak[ch] = response[1 + ch * 3 + 0].value_union.fp32;
-					data->input_peak[ch] = response[1 + ch * 3 + 0].value_union.fp32;
-				}
-				cb->queue.send(data);
+		{
+			std::vector<ipc::value> response = conn->call_synchronous_helper("VolMeter", "Query", {
+						ipc::value(uid),
+			});
+			if (!response.size()) {
+				goto do_sleep;
 			}
-		} else {
-			std::cerr << "Failed VolMeter" << std::endl;
-		}
+			if ((response.size() == 1) && (response[0].type == ipc::type::Null)) {
+				goto do_sleep;
+			}
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(sleepIntervalMS));
+			ErrorCode error = (ErrorCode)response[0].value_union.ui64;
+			if (error == ErrorCode::Ok) {
+				size_t channels = response[1].value_union.i32;
+				for (auto cb : callbacks) {
+					osn::VolMeterData* data = new osn::VolMeterData();
+					data->magnitude.resize(channels);
+					data->peak.resize(channels);
+					data->input_peak.resize(channels);
+					data->param = cb;
+					for (size_t ch = 0; ch < channels; ch++) {
+						data->magnitude[ch] = response[1 + ch * 3 + 0].value_union.fp32;
+						data->peak[ch] = response[1 + ch * 3 + 0].value_union.fp32;
+						data->input_peak[ch] = response[1 + ch * 3 + 0].value_union.fp32;
+					}
+					cb->queue.send(data);
+				}
+			} else {
+				std::cerr << "Failed VolMeter" << std::endl;
+				break;
+			}
+		}
+		
+	do_sleep:
+		auto tp_end = std::chrono::high_resolution_clock::now();
+		auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(tp_end - tp_start);
+		totalSleepMS = sleepIntervalMS - dur.count();
+		std::this_thread::sleep_for(std::chrono::milliseconds(totalSleepMS));
 	}
+	return;
 }
 
 Nan::Persistent<v8::FunctionTemplate> osn::VolMeter::prototype = Nan::Persistent<v8::FunctionTemplate>();

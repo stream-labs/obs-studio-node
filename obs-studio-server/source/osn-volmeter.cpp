@@ -137,7 +137,7 @@ void osn::VolMeter::Attach(void* data, const int64_t id, const std::vector<ipc::
 	auto meter = Manager::GetInstance().find(uid_fader);
 	if (!meter) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Invalid Fader Reference."));
+		rval.push_back(ipc::value("Invalid Meter Reference."));
 		AUTO_DEBUG;
 		return;
 	}
@@ -167,7 +167,7 @@ void osn::VolMeter::Detach(void* data, const int64_t id, const std::vector<ipc::
 	auto meter = Manager::GetInstance().find(uid);
 	if (!meter) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Invalid Fader Reference."));
+		rval.push_back(ipc::value("Invalid Meter Reference."));
 		AUTO_DEBUG;
 		return;
 	}
@@ -183,7 +183,7 @@ void osn::VolMeter::AddCallback(void* data, const int64_t id, const std::vector<
 	auto* meter = Manager::GetInstance().find(uid);
 	if (!meter) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Invalid Fader Reference."));
+		rval.push_back(ipc::value("Invalid Meter Reference."));
 		AUTO_DEBUG;
 		return;
 	}
@@ -203,7 +203,7 @@ void osn::VolMeter::RemoveCallback(void* data, const int64_t id, const std::vect
 	auto* meter = Manager::GetInstance().find(uid);
 	if (!meter) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Invalid Fader Reference."));
+		rval.push_back(ipc::value("Invalid Meter Reference."));
 		AUTO_DEBUG;
 		return;
 	}
@@ -223,7 +223,7 @@ void osn::VolMeter::Query(void* data, const int64_t id, const std::vector<ipc::v
 	auto* meter = Manager::GetInstance().find(uid);
 	if (!meter) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Invalid Fader Reference."));
+		rval.push_back(ipc::value("Invalid Meter Reference."));
 		AUTO_DEBUG;
 		return;
 	}
