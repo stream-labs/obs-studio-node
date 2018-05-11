@@ -26,8 +26,8 @@ void osn::Global::Register(ipc::server& srv) {
 	cls->register_function(std::make_shared<ipc::function>("GetOutputSource", std::vector<ipc::type>{ipc::type::UInt32}, GetOutputSource));
 	cls->register_function(std::make_shared<ipc::function>("SetOutputSource", std::vector<ipc::type>{ipc::type::UInt32, ipc::type::UInt64}, SetOutputSource));
 	cls->register_function(std::make_shared<ipc::function>("GetOutputFlagsFromId", std::vector<ipc::type>{ipc::type::String}, GetOutputFlagsFromId));
-	cls->register_function(std::make_shared<ipc::function>("LaggedFrames", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, LaggedFrames));
-	cls->register_function(std::make_shared<ipc::function>("TotalFrames", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, TotalFrames));
+	cls->register_function(std::make_shared<ipc::function>("LaggedFrames", std::vector<ipc::type>{}, LaggedFrames));
+	cls->register_function(std::make_shared<ipc::function>("TotalFrames", std::vector<ipc::type>{}, TotalFrames));
 	srv.register_collection(cls);
 }
 
