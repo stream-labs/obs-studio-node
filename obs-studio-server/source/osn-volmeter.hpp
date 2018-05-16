@@ -43,6 +43,7 @@ namespace osn {
 		obs_volmeter_t* self;
 		uint64_t id;
 		size_t callback_count = 0;
+		uint64_t* id2 = nullptr;
 
 		struct AudioData {
 			float magnitude[MAX_AUDIO_CHANNELS];

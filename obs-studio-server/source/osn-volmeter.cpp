@@ -90,7 +90,11 @@ void osn::VolMeter::Destroy(void* data, const int64_t id, const std::vector<ipc:
 		return;
 	}
 
-	Manager::GetInstance().free(uid);
+	Manager::GetInstance().free(uid);	
+	if (meter->id2) { // Ensure there are no more callbacks
+		obs_volmeter_remove_callback(meter->self, OBSCallback, meter->id2);
+		delete meter->id2;
+	}
 	meter.reset();
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -191,7 +195,9 @@ void osn::VolMeter::AddCallback(void* data, const int64_t id, const std::vector<
 
 	meter->callback_count++;
 	if (meter->callback_count == 1) {
-		obs_volmeter_add_callback(meter->self, OBSCallback, &meter->id);
+		meter->id2 = new uint64_t;
+		*meter->id2 = id;
+		obs_volmeter_add_callback(meter->self, OBSCallback, meter->id2);
 	}
 
 	rval.push_back(ipc::value(uint64_t(ErrorCode::Ok)));
@@ -211,7 +217,8 @@ void osn::VolMeter::RemoveCallback(void* data, const int64_t id, const std::vect
 
 	meter->callback_count--;
 	if (meter->callback_count == 0) {
-		obs_volmeter_remove_callback(meter->self, OBSCallback, &meter->id);
+		obs_volmeter_remove_callback(meter->self, OBSCallback, meter->id2);
+		delete meter->id2;
 	}
 
 	rval.push_back(ipc::value(uint64_t(ErrorCode::Ok)));
