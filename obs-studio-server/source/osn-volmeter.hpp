@@ -24,7 +24,7 @@
 namespace osn {
 	class VolMeter {
 		public:
-		class Manager : public utility::unique_object_manager<VolMeter> {
+		class Manager : public utility::generic_object_manager<std::shared_ptr<VolMeter>> {
 			friend class std::shared_ptr<Manager>;
 
 			protected:
@@ -41,14 +41,14 @@ namespace osn {
 		
 		private:
 		obs_volmeter_t* self;
+		uint64_t id;
 		size_t callback_count = 0;
 
-		struct {
+		struct AudioData {
 			float magnitude[MAX_AUDIO_CHANNELS];
 			float peak[MAX_AUDIO_CHANNELS];
 			float input_peak[MAX_AUDIO_CHANNELS];
-			std::mutex lock;
-		} Data;
+		} audio;
 
 		public:
 		VolMeter(obs_fader_type type);
