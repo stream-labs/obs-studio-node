@@ -75,34 +75,37 @@
 #define dstr(s) #s
 #define vstr(s) dstr(s)
 
-static FORCE_INLINE bool ValidateResponse(std::vector<ipc::value> &response)
-{
-        if ((response.size() == 1) && (response[0].type == ipc::type::Null)) {
-                Nan::ThrowError(Nan::New<v8::String>(response[0].value_str).ToLocalChecked());
-                return false;
-        }
+static FORCE_INLINE bool ValidateResponse(std::vector<ipc::value> &response) {
+	if (response.size() == 0) {
+		Nan::Error("Failed to make IPC call, verify IPC status.");
+		return false;
+	}
 
-        {
-                ErrorCode error = (ErrorCode)response[0].value_union.ui64;
-                if (error != ErrorCode::Ok) {
-                        Nan::ThrowError(Nan::New<v8::String>(response[1].value_str).ToLocalChecked());
-                        return false;
-                }
-        }
+	if ((response.size() == 1) && (response[0].type == ipc::type::Null)) {
+		Nan::ThrowError(Nan::New<v8::String>(response[0].value_str).ToLocalChecked());
+		return false;
+	}
 
-        if (!response.size()) {
-                Nan::ThrowError("Failed to make IPC call, verify IPC status.");
-                return false;
-        }
+	{
+		ErrorCode error = (ErrorCode)response[0].value_union.ui64;
+		if (error != ErrorCode::Ok) {
+			Nan::ThrowError(Nan::New<v8::String>(response[1].value_str).ToLocalChecked());
+			return false;
+		}
+	}
 
-        return true;
+	if (!response.size()) {
+		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
+		return false;
+	}
+
+	return true;
 }
 
-static FORCE_INLINE std::shared_ptr<ipc::client> GetConnection()
-{
-        auto conn = Controller::GetInstance().GetConnection();
-        if (!conn) Nan::ThrowError("Failed to obtain IPC connection.");
-        return conn;
+static FORCE_INLINE std::shared_ptr<ipc::client> GetConnection() {
+	auto conn = Controller::GetInstance().GetConnection();
+	if (!conn) Nan::ThrowError("Failed to obtain IPC connection.");
+	return conn;
 }
 
 namespace utility {
@@ -137,7 +140,7 @@ namespace utility {
 	AUTO_TYPEOF_NAME(v8::Local<v8::Value>, "value");
 	AUTO_TYPEOF_NAME(v8::Local<v8::Object>, "object");
 	AUTO_TYPEOF_NAME(v8::Local<v8::Function>, "function");
-	
+
 	// This is from enc-amf
 #if (defined _WIN32) || (defined _WIN64)
 	void SetThreadName(uint32_t dwThreadID, const char* threadName);
