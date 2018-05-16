@@ -153,6 +153,7 @@ namespace osn {
 	// The actual classes that work with JavaScript
 	class Properties : public Nan::ObjectWrap, public utilv8::InterfaceObject<Properties>, public utilv8::ManagedObject<Properties> {
 		std::shared_ptr<property_map_t> properties;
+		v8::Persistent<v8::Object> owner;
 
 		protected:
 		static Nan::Persistent<v8::FunctionTemplate> prototype;
@@ -160,9 +161,11 @@ namespace osn {
 		public:
 		Properties();
 		Properties(property_map_t container);
+		Properties(property_map_t container, v8::Local<v8::Object> owner);
 		~Properties();
 
 		std::shared_ptr<property_map_t> GetProperties();
+		v8::Local<v8::Object> GetOwner();
 
 		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 		static Nan::NAN_METHOD_RETURN_TYPE Count(Nan::NAN_METHOD_ARGS_TYPE info);

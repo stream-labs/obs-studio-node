@@ -17,6 +17,7 @@
 
 #include "properties.hpp"
 #include "utility-v8.hpp"
+#include "isource.hpp"
 
 Nan::Persistent<v8::FunctionTemplate> osn::Properties::prototype = Nan::Persistent<v8::FunctionTemplate>();
 Nan::Persistent<v8::FunctionTemplate> osn::PropertyObject::prototype = Nan::Persistent<v8::FunctionTemplate>();
@@ -29,12 +30,21 @@ osn::Properties::Properties(property_map_t container) {
 	properties = std::make_shared<property_map_t>(std::move(container));
 }
 
+osn::Properties::Properties(property_map_t container, v8::Local<v8::Object> owner) : owner(v8::Isolate::GetCurrent(), owner) {
+	properties = std::make_shared<property_map_t>(std::move(container));
+}
+
 osn::Properties::~Properties() {
 	properties = nullptr; // Technically not needed, just here for testing.
+	this->owner.Reset();
 }
 
 std::shared_ptr<osn::property_map_t> osn::Properties::GetProperties() {
 	return properties;
+}
+
+v8::Local<v8::Object> osn::Properties::GetOwner() {
+	return this->owner.Get(v8::Isolate::GetCurrent());
 }
 
 void osn::Properties::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
@@ -534,10 +544,126 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetDetails(Nan::NAN_METHOD_ARGS
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Modified(Nan::NAN_METHOD_ARGS_TYPE info) {
-	// Call on Server
-	// Requires current settings as json.
+	v8::Local<v8::Object> settings;
+	
+	// Value Stuff
+	/// Arguments
+	ASSERT_INFO_LENGTH(info, 1);
+	ASSERT_GET_VALUE(info[0], settings);
+	/// Self
+	osn::PropertyObject* self;
+	if (!Retrieve(info.This(), self)) {
+		return;
+	}
+	/// Parent
+	osn::Properties* parent;
+	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
+		return;
+	}
+	/// Parent Source (if one exists).
+	osn::ISource* parent_source;
+	if (!osn::ISource::Retrieve(parent->GetOwner(), parent_source)) {
+		return;
+	}
+	
+	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
+	auto iter = parent->GetProperties()->find(self->index);
+	if (iter == parent->GetProperties()->end()) {
+		info.GetReturnValue().Set(Nan::Null());
+		return;
+	}
+	
+	// Stringify settings
+	v8::MaybeLocal<v8::String> settings_str = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), settings);
+	std::string value;
+	if (!utilv8::FromValue(settings_str.ToLocalChecked(), value)) {
+		Nan::Error("Unable to convert Settings Object to String");
+	}
+
+	// Call
+	auto conn = GetConnection();
+	if (!conn) {
+		return;
+	}
+	auto rval = conn->call_synchronous_helper("Properties", "Modified", {
+		ipc::value(parent_source->sourceId),
+		ipc::value(iter->second->name),
+		ipc::value(value)
+		});
+	if (rval.size() == 0) {
+		Nan::Error("Call failed, verify IPC status.");
+		return;
+	} else if (!ValidateResponse(rval)) {
+		return;
+	}
+
+	// Process Results
+	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
+	if (ec == ErrorCode::Ok) {
+		info.GetReturnValue().Set(!!rval[1].value_union.i32);
+	} else {
+		info.GetReturnValue().Set(false);
+	}
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::ButtonClicked(Nan::NAN_METHOD_ARGS_TYPE info) {
-	// Call on Server
+	v8::Local<v8::Object> source_obj;
+
+	// Value Stuff
+	/// Arguments
+	ASSERT_INFO_LENGTH(info, 1);
+	ASSERT_GET_VALUE(info[0], source_obj); // This object is not necessary, we keep track of the parent source here.
+	/// Self
+	osn::PropertyObject* self;
+	if (!Retrieve(info.This(), self)) {
+		return;
+	}
+	/// Parent
+	osn::Properties* parent;
+	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
+		return;
+	}
+	/// Parent Source (if one exists).
+	osn::ISource* parent_source;
+	if (!osn::ISource::Retrieve(parent->GetOwner(), parent_source)) {
+		return;
+	}
+	/// Target Source
+	osn::ISource* source;
+	if (!osn::ISource::Retrieve(source_obj, source)) {
+		return;
+	}
+
+	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
+	auto iter = parent->GetProperties()->find(self->index);
+	if (iter == parent->GetProperties()->end()) {
+		info.GetReturnValue().Set(Nan::Null());
+		return;
+	}
+	
+	// Call
+	auto conn = GetConnection();
+	if (!conn) {
+		return;
+	}
+	auto rval = conn->call_synchronous_helper("Properties", "Clicked", {
+		ipc::value(parent_source->sourceId),
+		ipc::value(iter->second->name)
+		});
+	if (rval.size() == 0) {
+		Nan::Error("Call failed, verify IPC status.");
+		return;
+	} else if (!ValidateResponse(rval)) {
+		return;
+	}
+
+	// Process Results
+	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
+	if (ec == ErrorCode::Ok) {
+		info.GetReturnValue().Set(true);
+	} else {
+		info.GetReturnValue().Set(false);
+	}
 }

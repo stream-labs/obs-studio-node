@@ -297,8 +297,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 		return;
 	}
 
-
-	osn::Properties* props = new osn::Properties(std::move(rtd.obj));
+	osn::Properties* props = new osn::Properties(std::move(rtd.obj), info.This());
 	info.GetReturnValue().Set(osn::Properties::Store(props));
 	return;
 }
