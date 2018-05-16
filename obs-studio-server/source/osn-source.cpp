@@ -300,6 +300,7 @@ void osn::Source::GetProperties(void* data, const int64_t id, const std::vector<
 			rval.push_back(ipc::value(buf));
 		}
 	}
+	obs_properties_destroy(prp);
 	AUTO_DEBUG;
 }
 
