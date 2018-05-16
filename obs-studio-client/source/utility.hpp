@@ -85,13 +85,13 @@ static FORCE_INLINE bool ValidateResponse(std::vector<ipc::value> &response)
         {
                 ErrorCode error = (ErrorCode)response[0].value_union.ui64;
                 if (error != ErrorCode::Ok) {
-                        Nan::ThrowError(Nan::New<v8::String>(response[0].value_str).ToLocalChecked());
+                        Nan::ThrowError(Nan::New<v8::String>(response[1].value_str).ToLocalChecked());
                         return false;
                 }
         }
 
         if (!response.size()) {
-                Nan::ThrowError(__FUNCTION_NAME__ ": Failed to make IPC call, verify IPC status.");
+                Nan::ThrowError("Failed to make IPC call, verify IPC status.");
                 return false;
         }
 
@@ -101,7 +101,7 @@ static FORCE_INLINE bool ValidateResponse(std::vector<ipc::value> &response)
 static FORCE_INLINE std::shared_ptr<ipc::client> GetConnection()
 {
         auto conn = Controller::GetInstance().GetConnection();
-        if (!conn) Nan::ThrowError(__FUNCTION_NAME__ ": Failed to obtain IPC connection.");
+        if (!conn) Nan::ThrowError("Failed to obtain IPC connection.");
         return conn;
 }
 
