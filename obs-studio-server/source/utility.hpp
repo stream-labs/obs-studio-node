@@ -111,4 +111,61 @@ namespace utility {
 			return obj;
 		}
 	};
+
+	template<typename T>
+	class generic_object_manager {
+		protected:
+		utility::unique_id id_generator;
+		std::map<utility::unique_id::id_t, T> object_map;
+
+		public:
+		generic_object_manager() {}
+		~generic_object_manager() {}
+
+		utility::unique_id::id_t allocate(T obj) {
+			utility::unique_id::id_t uid = id_generator.allocate();
+			if (uid == std::numeric_limits<utility::unique_id::id_t>::max()) {
+				return uid;
+			}
+			object_map.insert_or_assign(uid, obj);
+			return uid;
+		}
+
+		utility::unique_id::id_t find(T obj) {
+			for (auto kv : object_map) {
+				if (kv.second == obj) {
+					return kv.first;
+				}
+			}
+			return std::numeric_limits<utility::unique_id::id_t>::max();
+		}
+		T find(utility::unique_id::id_t id) {
+			auto iter = object_map.find(id);
+			if (iter != object_map.end()) {
+				return iter->second;
+			}
+			return nullptr;
+		}
+
+		utility::unique_id::id_t free(T obj) {
+			utility::unique_id::id_t uid = std::numeric_limits<utility::unique_id::id_t>::max();
+			for (auto kv : object_map) {
+				if (kv.second == obj) {
+					uid = kv.first;
+					object_map.erase(kv.first);
+					break;
+				}
+			}
+			return uid;
+		}
+		T free(utility::unique_id::id_t id) {
+			auto iter = object_map.find(id);
+			if (iter == object_map.end()) {
+				return nullptr;
+			}
+			T obj = iter->second;
+			object_map.erase(iter);
+			return obj;
+		}
+	};
 }
