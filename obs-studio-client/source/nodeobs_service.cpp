@@ -210,7 +210,8 @@ void service::OBS_service_setRecordingSettings(const v8::FunctionCallbackInfo<v8
 	ValidateResponse(response);
 	}
 
-Nan::Persistent<v8::FunctionTemplate> Service::prototype = Nan::Persistent<v8::FunctionTemplate>();
+Nan::Persistent<v8::FunctionTemplate> ServiceCallback::prototype = Nan::Persistent<v8::FunctionTemplate>();
+static v8::Persistent<v8::Object> serviceCallbackObject;
 
 void service::OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	v8::Local<v8::Function> callback;
@@ -236,11 +237,12 @@ void service::OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8
 	
 	// Callback
 	ServiceCallback *cb_binding = new ServiceCallback(serviceObject, Service::Callback, callback, 20);
+	serviceObject->callbacks.clear();
 	serviceObject->callbacks.push_back(cb_binding);
-
-	/*auto object = ServiceCallback::Store(cb_binding);
-	cb_binding->obj_ref.Reset(object);
-	args.GetReturnValue().Set(object);*/
+	
+	v8::Local<v8::Object> obj = ServiceCallback::Store(cb_binding);
+	cb_binding->obj_ref.Reset(obj);
+	serviceCallbackObject.Reset(args.GetIsolate(), obj);
 }
 
 void Service::Callback(Service* service, SignalInfo* item) {
@@ -377,5 +379,7 @@ INITIALIZER(nodeobs_service) {
 			service::OBS_service_connectOutputSignals);
 
 		serviceObject = new Service();
+
+		ServiceCallback::Init(exports);
 	});
 }
