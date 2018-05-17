@@ -1780,11 +1780,11 @@ void OBS_service::OBS_service_connectOutputSignals(void* data, const int64_t id,
 }
 
 std::mutex signalMutex;
-SignalInfo *outputSignal;
+std::queue<SignalInfo> *outputSignal;
 
 void OBS_service::Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	std::unique_lock<std::mutex> ulock(signalMutex);
-	if (!outputSignal) {
+	if (outputSignal->empty()) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		AUTO_DEBUG;
 		return;
@@ -1792,12 +1792,12 @@ void OBS_service::Query(void* data, const int64_t id, const std::vector<ipc::val
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
-	rval.push_back(ipc::value(outputSignal->getOutputType()));
-	rval.push_back(ipc::value(outputSignal->getSignal()));
-	rval.push_back(ipc::value(outputSignal->getCode()));
-	rval.push_back(ipc::value(outputSignal->getErrorMessage()));
+	rval.push_back(ipc::value(outputSignal->front().getOutputType()));
+	rval.push_back(ipc::value(outputSignal->front().getSignal()));
+	rval.push_back(ipc::value(outputSignal->front().getCode()));
+	rval.push_back(ipc::value(outputSignal->front().getErrorMessage()));
 	
-	delete outputSignal;
+	outputSignal->pop();
 
 	AUTO_DEBUG;
 }
@@ -1829,7 +1829,7 @@ void OBS_service::JSCallbackOutputSignal(void *data, calldata_t *params)
 	}
 
 	std::unique_lock<std::mutex> ulock(signalMutex);
-	outputSignal = &signal;
+	outputSignal->push(signal);
 }
 
 void OBS_service::connectOutputSignals(void)

@@ -13,6 +13,7 @@
 #include <map>
 #include <mutex>
 #include <ipc-server.hpp>
+#include <queue>
 
 #include "nodeobs_audio_encoders.h"
 
