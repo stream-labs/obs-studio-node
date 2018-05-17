@@ -243,11 +243,11 @@ void service::OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8
 	args.GetReturnValue().Set(object);*/
 }
 
-void Service::Callback(Service* volmeter, SignalInfo* item) {
+void Service::Callback(Service* service, SignalInfo* item) {
 	if (!item) {
 		return;
 	}
-	if (!volmeter) {
+	if (!service) {
 		delete item;
 		return;
 	}
@@ -297,7 +297,7 @@ void Service::async_query() {
 				
 			ErrorCode error = (ErrorCode)response[0].value_union.ui64;
 			if (error == ErrorCode::Ok) {
-				for (auto cb : serviceObject->callbacks) {
+				for (auto cb : callbacks) {
 					SignalInfo* data = new SignalInfo();
 					data->outputType = response[1].value_str;
 					data->signal = response[2].value_str;

@@ -31,11 +31,12 @@ class Service : public Nan::ObjectWrap,
 public:
 	Service() {
 		query_worker_close = false;
-		// query_worker = std::thread(std::bind(&Service::async_query, this));
+		query_worker = std::thread(std::bind(&Service::async_query, this));
 	} ;
 	~Service() {} ;
-	static void async_query();
+	void async_query();
 	std::list<ServiceCallback*> callbacks;
+	
 	
 	static void Callback(Service* volmeter, SignalInfo* item);
 	static Nan::Persistent<v8::FunctionTemplate> prototype;
