@@ -47,7 +47,7 @@ void OBS_service::Register(ipc::server& srv) {
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_createRecordingOutput", std::vector<ipc::type>{}, OBS_service_createRecordingOutput));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_startStreaming", std::vector<ipc::type>{}, OBS_service_startStreaming));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_startRecording", std::vector<ipc::type>{}, OBS_service_startRecording));
-	cls->register_function(std::make_shared<ipc::function>("OBS_service_stopStreaming", std::vector<ipc::type>{ipc::type::UInt32}, OBS_service_stopStreaming));
+	cls->register_function(std::make_shared<ipc::function>("OBS_service_stopStreaming", std::vector<ipc::type>{ipc::type::Int32}, OBS_service_stopStreaming));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_stopRecording", std::vector<ipc::type>{}, OBS_service_stopRecording));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_associateAudioAndVideoToTheCurrentStreamingContext", std::vector<ipc::type>{}, OBS_service_associateAudioAndVideoToTheCurrentStreamingContext));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_associateAudioAndVideoToTheCurrentRecordingContext", std::vector<ipc::type>{}, OBS_service_associateAudioAndVideoToTheCurrentRecordingContext));
@@ -142,16 +142,9 @@ void OBS_service::OBS_service_startRecording(void* data, const int64_t id, const
 
 void OBS_service::OBS_service_stopStreaming(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-	/*if (args[0]->IsUndefined() && !args[0]->IsBoolean()) {
-		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{forceStop} is not a <boolean>!")
-			)
-		);
-		return;
-	}*/
-	stopStreaming((bool)args[0].value_union.ui32);
+	stopStreaming((bool)args[0].value_union.i32);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	std::cout << "STOPPED STREAMING" << std::endl;
 	AUTO_DEBUG;
 }
 
@@ -1780,11 +1773,11 @@ void OBS_service::OBS_service_connectOutputSignals(void* data, const int64_t id,
 }
 
 std::mutex signalMutex;
-std::queue<SignalInfo> *outputSignal;
+std::queue<SignalInfo> outputSignal;
 
 void OBS_service::Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	std::unique_lock<std::mutex> ulock(signalMutex);
-	if (outputSignal->empty()) {
+	if (outputSignal.empty()) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		AUTO_DEBUG;
 		return;
@@ -1792,12 +1785,12 @@ void OBS_service::Query(void* data, const int64_t id, const std::vector<ipc::val
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
-	rval.push_back(ipc::value(outputSignal->front().getOutputType()));
-	rval.push_back(ipc::value(outputSignal->front().getSignal()));
-	rval.push_back(ipc::value(outputSignal->front().getCode()));
-	rval.push_back(ipc::value(outputSignal->front().getErrorMessage()));
-	
-	outputSignal->pop();
+	rval.push_back(ipc::value(outputSignal.front().getOutputType()));
+	rval.push_back(ipc::value(outputSignal.front().getSignal()));
+	rval.push_back(ipc::value(outputSignal.front().getCode()));
+	rval.push_back(ipc::value(outputSignal.front().getErrorMessage()));
+		
+	outputSignal.pop();
 
 	AUTO_DEBUG;
 }
@@ -1827,9 +1820,9 @@ void OBS_service::JSCallbackOutputSignal(void *data, calldata_t *params)
 			signal.setErrorMessage(error);
 		}
 	}
-
+	
 	std::unique_lock<std::mutex> ulock(signalMutex);
-	outputSignal->push(signal);
+	outputSignal.push(signal);
 }
 
 void OBS_service::connectOutputSignals(void)

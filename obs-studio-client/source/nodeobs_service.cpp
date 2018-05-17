@@ -266,15 +266,30 @@ void Service::Callback(Service* service, SignalInfo* item) {
 		return;
 	}
 
-	// utilv8::ToValue on a std::vector<> creates a v8::Local<v8::Array> automatically.
-	v8::Local<v8::Value> args[] = {
-		utilv8::ToValue(item->outputType),
-		utilv8::ToValue(item->signal),
-		utilv8::ToValue(item->code),
-		utilv8::ToValue(item->errorMessage)
+	v8::Isolate *isolate = v8::Isolate::GetCurrent();
+	v8::Local<v8::Value> args[1];
+
+	v8::Local<v8::Value> argv = v8::Object::New(isolate);
+	argv->ToObject()->Set(v8::String::NewFromUtf8(isolate, "type"), 
+		v8::String::NewFromUtf8(isolate, item->outputType.c_str()));
+	argv->ToObject()->Set(v8::String::NewFromUtf8(isolate, 
+		"signal"), v8::String::NewFromUtf8(isolate, item->signal.c_str()));
+	argv->ToObject()->Set(v8::String::NewFromUtf8(isolate, 
+		"code"), v8::Number::New(isolate, item->code));
+	argv->ToObject()->Set(v8::String::NewFromUtf8(isolate, 
+		"error"), v8::String::NewFromUtf8(isolate, item->errorMessage.c_str()));
+	args[0] = argv;
+
+	/*v8::Local<v8::Value> args[] = {
+		utilv8::ToValue(0),
+		utilv8::ToValue(1),
+		utilv8::ToValue(2)
 	};
 	delete item;
-	Nan::Call(cb_binding->cb, 4, args);
+	Nan::Call(cb_binding->cb, 3, args);*/
+
+	delete item;
+	Nan::Call(cb_binding->cb, 1, args);
 }
 
 void Service::async_query() {
@@ -305,6 +320,7 @@ void Service::async_query() {
 					data->signal = response[2].value_str;
 					data->code = response[3].value_union.i32;
 					data->errorMessage = response[4].value_str;
+					data->param = cb;
 					cb->queue.send(data);
 				}
 			}
@@ -354,8 +370,11 @@ INITIALIZER(nodeobs_service) {
 		NODE_SET_METHOD(exports, "OBS_service_startRecording", 
 			service::OBS_service_startRecording);
 
-		NODE_SET_METHOD(exports, "OBS_service_stopRecording", 
+		NODE_SET_METHOD(exports, "OBS_service_stopRecording",
 			service::OBS_service_stopRecording);
+
+		NODE_SET_METHOD(exports, "OBS_service_stopStreaming",
+			service::OBS_service_stopStreaming);
 
 		NODE_SET_METHOD(exports, "OBS_service_associateAudioAndVideoToTheCurrentStreamingContext", 
 			service::OBS_service_associateAudioAndVideoToTheCurrentStreamingContext);
