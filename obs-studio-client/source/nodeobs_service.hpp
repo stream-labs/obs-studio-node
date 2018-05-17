@@ -9,6 +9,8 @@ bool query_worker_close = false;
 std::mutex query_lock;
 uint32_t sleepIntervalMS = 33;
 
+
+
 struct SignalInfo {
 	std::string outputType;
 	std::string signal;
@@ -33,7 +35,7 @@ public:
 		query_worker_close = false;
 		query_worker = std::thread(std::bind(&Service::async_query, this));
 	} ;
-	~Service() {} ;
+	~Service() {};
 	void async_query();
 	std::list<ServiceCallback*> callbacks;
 	
@@ -63,4 +65,5 @@ namespace service {
 	static void OBS_service_setServiceToTheStreamingOutput(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_service_setRecordingSettings(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_service_removeCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
 }

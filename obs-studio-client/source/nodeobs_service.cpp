@@ -280,14 +280,6 @@ void Service::Callback(Service* service, SignalInfo* item) {
 		"error"), v8::String::NewFromUtf8(isolate, item->errorMessage.c_str()));
 	args[0] = argv;
 
-	/*v8::Local<v8::Value> args[] = {
-		utilv8::ToValue(0),
-		utilv8::ToValue(1),
-		utilv8::ToValue(2)
-	};
-	delete item;
-	Nan::Call(cb_binding->cb, 3, args);*/
-
 	delete item;
 	Nan::Call(cb_binding->cb, 1, args);
 }
@@ -333,6 +325,14 @@ void Service::async_query() {
 		std::this_thread::sleep_for(std::chrono::milliseconds(totalSleepMS));
 	}
 	return;
+}
+
+void service::OBS_service_removeCallback(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	// Stop query thread
+	query_worker_close = true;
+	if (query_worker.joinable()) {
+		query_worker.join();
+	}
 }
 
 INITIALIZER(nodeobs_service) {
@@ -396,6 +396,9 @@ INITIALIZER(nodeobs_service) {
 
 		NODE_SET_METHOD(exports, "OBS_service_connectOutputSignals",
 			service::OBS_service_connectOutputSignals);
+
+		NODE_SET_METHOD(exports, "OBS_service_removeCallback",
+			service::OBS_service_removeCallback);
 
 		serviceObject = new Service();
 
