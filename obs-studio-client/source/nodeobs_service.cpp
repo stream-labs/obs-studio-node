@@ -9,6 +9,7 @@
 #include <sstream>
 #include <node.h>
 
+
 void service::OBS_service_resetAudioContext(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	auto conn = GetConnection();
 	if (!conn) return;
@@ -209,8 +210,111 @@ void service::OBS_service_setRecordingSettings(const v8::FunctionCallbackInfo<v8
 	ValidateResponse(response);
 	}
 
-void service::OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8::Value>& args) {
+Nan::Persistent<v8::FunctionTemplate> Service::prototype = Nan::Persistent<v8::FunctionTemplate>();
 
+void service::OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	v8::Local<v8::Function> callback;
+	ASSERT_GET_VALUE(args[0], callback);
+
+	// Grab IPC Connection
+	std::shared_ptr<ipc::client> conn = nullptr;
+	if (!(conn = GetConnection())) {
+		return;
+	}
+
+	// Send request
+	std::vector<ipc::value> rval = 
+		conn->call_synchronous_helper("Service", "OBS_service_connectOutputSignals", {});
+	if (!ValidateResponse(rval)) {
+		return;
+	}
+
+	if (rval[0].value_union.ui64 != (uint64_t)ErrorCode::Ok) {
+		args.GetReturnValue().Set(Nan::Null());
+		return;
+	}
+	
+	// Callback
+	ServiceCallback *cb_binding = new ServiceCallback(serviceObject, Service::Callback, callback, 20);
+	serviceObject->callbacks.push_back(cb_binding);
+
+	/*auto object = ServiceCallback::Store(cb_binding);
+	cb_binding->obj_ref.Reset(object);
+	args.GetReturnValue().Set(object);*/
+}
+
+void Service::Callback(Service* volmeter, SignalInfo* item) {
+	if (!item) {
+		return;
+	}
+	if (!volmeter) {
+		delete item;
+		return;
+	}
+
+	/* We're in v8 context here */
+	ServiceCallback *cb_binding = reinterpret_cast<ServiceCallback*>(item->param);
+	if (!cb_binding) {
+		delete item;
+		return;
+	}
+
+	if (cb_binding->stopped) {
+		delete item;
+		return;
+	}
+
+	// utilv8::ToValue on a std::vector<> creates a v8::Local<v8::Array> automatically.
+	v8::Local<v8::Value> args[] = {
+		utilv8::ToValue(item->outputType),
+		utilv8::ToValue(item->signal),
+		utilv8::ToValue(item->code),
+		utilv8::ToValue(item->errorMessage)
+	};
+	delete item;
+	Nan::Call(cb_binding->cb, 4, args);
+}
+
+void Service::async_query() {
+	size_t totalSleepMS = 0;
+
+	while (!query_worker_close) {
+		auto tp_start = std::chrono::high_resolution_clock::now();
+
+		// Validate Connection
+		auto conn = Controller::GetInstance().GetConnection();
+		if (!conn) {
+			goto do_sleep;
+		}
+
+		// Call
+		{
+			std::vector<ipc::value> response = 
+				conn->call_synchronous_helper("Service", "Query", {});
+			if (!response.size() || (response.size() == 1)) {
+				goto do_sleep;
+			}
+				
+			ErrorCode error = (ErrorCode)response[0].value_union.ui64;
+			if (error == ErrorCode::Ok) {
+				for (auto cb : serviceObject->callbacks) {
+					SignalInfo* data = new SignalInfo();
+					data->outputType = response[1].value_str;
+					data->signal = response[2].value_str;
+					data->code = response[3].value_union.i32;
+					data->errorMessage = response[4].value_str;
+					cb->queue.send(data);
+				}
+			}
+		}
+
+	do_sleep:
+		auto tp_end = std::chrono::high_resolution_clock::now();
+		auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(tp_end - tp_start);
+		totalSleepMS = sleepIntervalMS - dur.count();
+		std::this_thread::sleep_for(std::chrono::milliseconds(totalSleepMS));
+	}
+	return;
 }
 
 INITIALIZER(nodeobs_service) {
@@ -271,5 +375,7 @@ INITIALIZER(nodeobs_service) {
 
 		NODE_SET_METHOD(exports, "OBS_service_connectOutputSignals",
 			service::OBS_service_connectOutputSignals);
+
+		serviceObject = new Service();
 	});
 }
