@@ -47,7 +47,7 @@ void OBS_service::Register(ipc::server& srv) {
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_createRecordingOutput", std::vector<ipc::type>{}, OBS_service_createRecordingOutput));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_startStreaming", std::vector<ipc::type>{}, OBS_service_startStreaming));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_startRecording", std::vector<ipc::type>{}, OBS_service_startRecording));
-	cls->register_function(std::make_shared<ipc::function>("OBS_service_stopStreaming", std::vector<ipc::type>{ipc::type::UInt32}, OBS_service_stopStreaming));
+	cls->register_function(std::make_shared<ipc::function>("OBS_service_stopStreaming", std::vector<ipc::type>{ipc::type::Int32}, OBS_service_stopStreaming));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_stopRecording", std::vector<ipc::type>{}, OBS_service_stopRecording));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_associateAudioAndVideoToTheCurrentStreamingContext", std::vector<ipc::type>{}, OBS_service_associateAudioAndVideoToTheCurrentStreamingContext));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_associateAudioAndVideoToTheCurrentRecordingContext", std::vector<ipc::type>{}, OBS_service_associateAudioAndVideoToTheCurrentRecordingContext));
@@ -55,6 +55,8 @@ void OBS_service::Register(ipc::server& srv) {
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_associateAudioAndVideoEncodersToTheCurrentRecordingOutput", std::vector<ipc::type>{}, OBS_service_associateAudioAndVideoEncodersToTheCurrentRecordingOutput));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_setServiceToTheStreamingOutput", std::vector<ipc::type>{}, OBS_service_setServiceToTheStreamingOutput));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_setRecordingSettings", std::vector<ipc::type>{}, OBS_service_setRecordingSettings));
+	cls->register_function(std::make_shared<ipc::function>("OBS_service_connectOutputSignals", std::vector<ipc::type>{}, OBS_service_connectOutputSignals));
+	cls->register_function(std::make_shared<ipc::function>("Query", std::vector<ipc::type>{}, Query));
 	
 	// TODO : connect output signals
 
@@ -140,16 +142,9 @@ void OBS_service::OBS_service_startRecording(void* data, const int64_t id, const
 
 void OBS_service::OBS_service_stopStreaming(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-	/*if (args[0]->IsUndefined() && !args[0]->IsBoolean()) {
-		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{forceStop} is not a <boolean>!")
-			)
-		);
-		return;
-	}*/
-	stopStreaming((bool)args[0].value_union.ui32);
+	stopStreaming((bool)args[0].value_union.i32);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	std::cout << "STOPPED STREAMING" << std::endl;
 	AUTO_DEBUG;
 }
 
@@ -1757,11 +1752,8 @@ void OBS_service::updateRecordSettings(void)
 std::vector<SignalInfo> streamingSignals;
 std::vector<SignalInfo> recordingSignals;
 
-/*void OBS_service::OBS_service_connectOutputSignals(const FunctionCallbackInfo<Value>& args)
+void OBS_service::OBS_service_connectOutputSignals(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-	v8::Local<v8::Object> function = args[0]->ToObject();
-	JS_OutputSignalCallback = new Nan::Callback(function.As<v8::Function>());
-
 	streamingSignals.push_back(SignalInfo("streaming", "start"));
 	streamingSignals.push_back(SignalInfo("streaming", "stop"));
 	streamingSignals.push_back(SignalInfo("streaming", "starting"));
@@ -1776,11 +1768,36 @@ std::vector<SignalInfo> recordingSignals;
 	recordingSignals.push_back(SignalInfo("recording", "stopping"));
 
 	connectOutputSignals();
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
-void OBS_service::JSCallbackOutputSignal(void *data, calldata_t *params) 
+std::mutex signalMutex;
+std::queue<SignalInfo> outputSignal;
+
+void OBS_service::Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	std::unique_lock<std::mutex> ulock(signalMutex);
+	if (outputSignal.empty()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+		AUTO_DEBUG;
+		return;
+	}
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+	rval.push_back(ipc::value(outputSignal.front().getOutputType()));
+	rval.push_back(ipc::value(outputSignal.front().getSignal()));
+	rval.push_back(ipc::value(outputSignal.front().getCode()));
+	rval.push_back(ipc::value(outputSignal.front().getErrorMessage()));
+		
+	outputSignal.pop();
+
+	AUTO_DEBUG;
+}
+
+void OBS_service::JSCallbackOutputSignal(void *data, calldata_t *params)
 {
-	SignalInfo &signal = 
+	SignalInfo &signal =
 		*reinterpret_cast<SignalInfo*>(data);
 
 	std::string signalReceived = signal.getSignal();
@@ -1803,10 +1820,10 @@ void OBS_service::JSCallbackOutputSignal(void *data, calldata_t *params)
 			signal.setErrorMessage(error);
 		}
 	}
-
-	Worker *worker = new Worker(JS_OutputSignalCallback, signal);
-	worker->Send();
-}*/
+	
+	std::unique_lock<std::mutex> ulock(signalMutex);
+	outputSignal.push(signal);
+}
 
 void OBS_service::connectOutputSignals(void)
 {
@@ -1814,17 +1831,17 @@ void OBS_service::connectOutputSignals(void)
 		obs_output_get_signal_handler(streamingOutput);
 			
 	// Connect streaming output
-	/*for (int i = 0; i<streamingSignals.size(); i++) {
+	for (int i = 0; i<streamingSignals.size(); i++) {
 		signal_handler_connect(streamingOutputSignalHandler, 
  			streamingSignals.at(i).getSignal().c_str(), JSCallbackOutputSignal, &(streamingSignals.at(i)));
-	}*/
+	}
 
 	signal_handler *recordingOutputSignalHandler =
 		obs_output_get_signal_handler(recordingOutput);
 
 	// Connect recording output
-	/*for (int i = 0; i<recordingSignals.size(); i++) {
+	for (int i = 0; i<recordingSignals.size(); i++) {
 		signal_handler_connect(recordingOutputSignalHandler, 
 			recordingSignals.at(i).getSignal().c_str(), JSCallbackOutputSignal, &(recordingSignals.at(i)));
-	}*/
+	}
 }

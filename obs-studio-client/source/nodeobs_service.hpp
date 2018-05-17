@@ -1,5 +1,48 @@
 #include <node.h>
 #include <nan.h>
+#include <thread>
+#include <mutex>
+#include "utility-v8.hpp"
+
+std::thread query_worker;
+bool query_worker_close = false;
+std::mutex query_lock;
+uint32_t sleepIntervalMS = 33;
+
+
+
+struct SignalInfo {
+	std::string outputType;
+	std::string signal;
+	int code;
+	std::string errorMessage;
+	void* param;
+};
+
+class Service;
+typedef utilv8::CallbackData<SignalInfo, Service> ServiceCallback;
+Service *serviceObject;
+
+class Service : public Nan::ObjectWrap,
+	public utilv8::InterfaceObject<Service>,
+	public utilv8::ManagedObject<Service> {
+	friend utilv8::InterfaceObject<Service>;
+	friend utilv8::ManagedObject<Service>;
+	friend utilv8::CallbackData<SignalInfo, Service>;
+
+public:
+	Service() {
+		query_worker_close = false;
+		query_worker = std::thread(std::bind(&Service::async_query, this));
+	} ;
+	~Service() {};
+	void async_query();
+	std::list<ServiceCallback*> callbacks;
+	
+	
+	static void Callback(Service* volmeter, SignalInfo* item);
+	static Nan::Persistent<v8::FunctionTemplate> prototype;
+};
 
 namespace service {
 	static void OBS_service_resetAudioContext(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -22,4 +65,5 @@ namespace service {
 	static void OBS_service_setServiceToTheStreamingOutput(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_service_setRecordingSettings(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_service_removeCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
 }
