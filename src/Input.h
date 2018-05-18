@@ -48,6 +48,11 @@ public:
     static NAN_METHOD(findFilter);
     static NAN_METHOD(addFilter);
     static NAN_METHOD(removeFilter);
+    static NAN_METHOD(sendMouseClick);
+    static NAN_METHOD(sendMouseMove);
+    static NAN_METHOD(sendMouseWheel);
+    static NAN_METHOD(sendFocus);
+    static NAN_METHOD(sendKeyClick);
     static NAN_METHOD(setFilterOrder);
     static NAN_METHOD(get_monitoringType);
     static NAN_METHOD(set_monitoringType);

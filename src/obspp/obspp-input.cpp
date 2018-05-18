@@ -134,6 +134,32 @@ obs::filter input::find_filter(std::string name)
     return obs_source_get_filter_by_name(m_handle, name.c_str());
 }
 
+void input::send_mouse_click(const obs_mouse_event *event, uint32_t type, bool mouse_up, uint32_t click_count)
+{
+    obs_source_send_mouse_click(m_handle, event, type, mouse_up, click_count);
+}
+
+void input::send_mouse_move(const obs_mouse_event *event, bool mouse_leave)
+{
+    obs_source_send_mouse_move(m_handle, event, mouse_leave);
+}
+
+void input::send_mouse_wheel(const obs_mouse_event *event, int x_delta, int y_delta)
+{
+    obs_source_send_mouse_wheel(m_handle, event, x_delta, y_delta);
+}
+
+void input::send_focus(bool focus)
+{
+    obs_source_send_focus(m_handle, focus);
+}
+
+void input::send_key_click(const obs_key_event *event, bool key_up)
+{
+    obs_source_send_key_click(m_handle, event, key_up);
+}
+
+
 std::vector<obs::filter> input::filters()
 {
     std::vector<obs::filter> filters;

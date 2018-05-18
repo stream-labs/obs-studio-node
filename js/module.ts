@@ -849,6 +849,43 @@ export interface IInputFactory extends IFactoryTypes {
     getPublicSources(): IInput[];
 }
 
+
+export const enum EInteractionFlags {
+	None         = 0,
+	CapsKey      = 1,
+	ShiftKey     = 1 << 1,
+	ControlKey   = 1 << 2,
+	AltKey       = 1 << 3,
+	MouseLeft    = 1 << 4,
+	MouseMiddle  = 1 << 5,
+	MouseRight   = 1 << 6,
+	CommandKey   = 1 << 7,
+	Numlock_Key  = 1 << 8,
+	IsKeyPad     = 1 << 9,
+	IsLeft       = 1 << 10,
+	IsRight      = 1 << 11
+};
+
+export const enum EMouseButtonType {
+	Left,
+	Middle,
+	Right
+};
+
+export interface IMouseEvent {
+	modifiers: EInteractionFlags;
+	x: number;
+	y: number;
+};
+
+export interface IKeyEvent {
+	modifiers: EInteractionFlags;
+	text: string;
+	nativeModifiers: number;
+	nativeScancode: number;
+	nativeVkey: number;
+};
+
 /**
  * Class representing a source
  * 
@@ -892,6 +929,12 @@ export interface IInput extends ISource {
      * @param filter - The filter instance to remove from this input source.
      */
     removeFilter(filter: IFilter): void;
+
+    sendMouseClick(eventData: IMouseEvent, type: EMouseButtonType, mouseUp: boolean, clickCount: number): void
+    sendMouseMove(eventData: IMouseEvent, mouseLeave: boolean): void;
+    sendMouseWheel(eventData: IMouseEvent, x_delta: number, y_delta: number): void;
+    sendFocus(focus: boolean): void;
+    sendKeyClick(eventData: IKeyEvent, keyUp: boolean): void;
 
     /**
      * Move a filter up, down, top, or bottom in the filter list.

@@ -469,6 +469,38 @@ export interface IInputFactory extends IFactoryTypes {
     fromName(name: string): IInput;
     getPublicSources(): IInput[];
 }
+export declare const enum EInteractionFlags {
+    None = 0,
+    CapsKey = 1,
+    ShiftKey = 2,
+    ControlKey = 4,
+    AltKey = 8,
+    MouseLeft = 16,
+    MouseMiddle = 32,
+    MouseRight = 64,
+    CommandKey = 128,
+    Numlock_Key = 256,
+    IsKeyPad = 512,
+    IsLeft = 1024,
+    IsRight = 2048,
+}
+export declare const enum EMouseButtonType {
+    Left = 0,
+    Middle = 1,
+    Right = 2,
+}
+export interface IMouseEvent {
+    modifiers: EInteractionFlags;
+    x: number;
+    y: number;
+}
+export interface IKeyEvent {
+    modifiers: EInteractionFlags;
+    text: string;
+    nativeModifiers: number;
+    nativeScancode: number;
+    nativeVkey: number;
+}
 export interface IInput extends ISource {
     volume: number;
     syncOffset: ITimeSpec;
@@ -481,6 +513,11 @@ export interface IInput extends ISource {
     findFilter(name: string): IFilter;
     addFilter(filter: IFilter): void;
     removeFilter(filter: IFilter): void;
+    sendMouseClick(eventData: IMouseEvent, type: EMouseButtonType, mouseUp: boolean, clickCount: number): void;
+    sendMouseMove(eventData: IMouseEvent, mouseLeave: boolean): void;
+    sendMouseWheel(eventData: IMouseEvent, x_delta: number, y_delta: number): void;
+    sendFocus(focus: boolean): void;
+    sendKeyClick(eventData: IKeyEvent, keyUp: boolean): void;
     setFilterOrder(filter: IFilter, movement: EOrderMovement): void;
     readonly filters: IFilter[];
     readonly width: number;
