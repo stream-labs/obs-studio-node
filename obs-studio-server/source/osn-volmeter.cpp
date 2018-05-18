@@ -196,7 +196,7 @@ void osn::VolMeter::AddCallback(void* data, const int64_t id, const std::vector<
 	meter->callback_count++;
 	if (meter->callback_count == 1) {
 		meter->id2 = new uint64_t;
-		*meter->id2 = id;
+		*meter->id2 = meter->id;
 		obs_volmeter_add_callback(meter->self, OBSCallback, meter->id2);
 	}
 
@@ -236,6 +236,7 @@ void osn::VolMeter::Query(void* data, const int64_t id, const std::vector<ipc::v
 		return;
 	}
 	
+	std::unique_lock<std::mutex> ulock(meter->audio.data_lock);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_volmeter_get_nr_channels(meter->self)));
 	for (size_t ch = 0; ch < obs_volmeter_get_nr_channels(meter->self); ch++) {
@@ -253,8 +254,8 @@ void osn::VolMeter::OBSCallback(void *param, const float magnitude[MAX_AUDIO_CHA
 	}
 
 #define MAKE_FLOAT_SANE(db) (std::isfinite(db) ? db : (db > 0 ? 0.0f : -128.0f))
-
 	// !FIXME! This type of synchronization is slower than signalling.
+	std::unique_lock<std::mutex> ulock(meter->audio.data_lock);
 	for (size_t ch = 0; ch < MAX_AUDIO_CHANNELS; ch++) {
 		meter->audio.magnitude[ch] = MAKE_FLOAT_SANE(magnitude[ch]);
 		meter->audio.peak[ch] = MAKE_FLOAT_SANE(peak[ch]);

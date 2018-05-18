@@ -49,6 +49,7 @@ namespace osn {
 			float magnitude[MAX_AUDIO_CHANNELS];
 			float peak[MAX_AUDIO_CHANNELS];
 			float input_peak[MAX_AUDIO_CHANNELS];
+			std::mutex data_lock;
 		} audio;
 
 		public:
