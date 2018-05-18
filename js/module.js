@@ -30,6 +30,10 @@ var EDelayFlags;
 (function (EDelayFlags) {
     EDelayFlags[EDelayFlags["PreserveDelay"] = 1] = "PreserveDelay";
 })(EDelayFlags = exports.EDelayFlags || (exports.EDelayFlags = {}));
+;
+;
+;
+;
 function addItems(scene, sceneItems) {
     const items = [];
     if (Array.isArray(sceneItems)) {

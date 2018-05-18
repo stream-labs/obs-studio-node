@@ -46,6 +46,11 @@ public:
     obs::filter find_filter(std::string name);
     std::vector<filter> filters();
 
+    void send_mouse_click(const obs_mouse_event *event, uint32_t type, bool mouse_up, uint32_t click_count);
+    void send_mouse_move(const obs_mouse_event *event, bool mouse_leave);
+    void send_focus(bool focus);
+    void send_key_click(const obs_key_event *event, bool key_up);
+
     static std::vector<std::string> types();
     static std::vector<obs::input> public_sources();
 };

@@ -44,6 +44,10 @@ NAN_MODULE_INIT(Input::Init)
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "findFilter", findFilter);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "addFilter", addFilter);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "removeFilter", removeFilter);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "sendMouseClick", sendMouseClick);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "sendMouseMove", sendMouseMove);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "sendFocus", sendFocus);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "sendKeyClick", sendKeyClick);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "width", get_width);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "height", get_height);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "filters", get_filters);
@@ -386,6 +390,83 @@ NAN_METHOD(Input::removeFilter)
     obs::weak<obs::filter> &filter = Filter::Object::GetHandle(filter_obj);
 
     handle.get()->remove_filter(filter.get().get());
+}
+
+NAN_METHOD(Input::sendMouseClick)
+{
+    obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
+
+    v8::Local<v8::Object> mouse_event_obj;
+    uint32_t type;
+    bool mouse_up;
+    uint32_t click_count;
+
+    ASSERT_GET_VALUE(info[0], mouse_event_obj);
+    ASSERT_GET_VALUE(info[1], type);
+    ASSERT_GET_VALUE(info[2], mouse_up);
+    ASSERT_GET_VALUE(info[3], click_count);
+
+    struct obs_mouse_event mouse_event;
+
+    ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "modifiers", mouse_event.modifiers);
+    ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "x", mouse_event.x);
+    ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "y", mouse_event.y);
+
+    handle.get()->send_mouse_click(&mouse_event, type, mouse_up, click_count);
+}
+
+NAN_METHOD(Input::sendMouseMove)
+{
+    obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
+
+    v8::Local<v8::Object> mouse_event_obj;
+    bool mouse_leave;
+
+    ASSERT_GET_VALUE(info[0], mouse_event_obj);
+    ASSERT_GET_VALUE(info[1], mouse_leave);
+
+    struct obs_mouse_event mouse_event;
+
+    ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "modifiers", mouse_event.modifiers);
+    ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "x", mouse_event.x);
+    ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "y", mouse_event.y);
+
+    handle.get()->send_mouse_move(&mouse_event, mouse_leave);
+}
+
+NAN_METHOD(Input::sendFocus)
+{
+    obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
+
+    bool focus;
+
+    ASSERT_GET_VALUE(info[0], focus);
+
+    handle.get()->send_focus(focus);
+}
+
+NAN_METHOD(Input::sendKeyClick)
+{
+    obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
+
+    v8::Local<v8::Object> key_event_obj;
+    bool key_up;
+
+    ASSERT_GET_VALUE(info[0], key_event_obj);
+    ASSERT_GET_VALUE(info[1], key_up);
+
+    struct obs_key_event key_event;
+    std::string text;
+
+    ASSERT_GET_OBJECT_FIELD(key_event_obj, "modifiers", key_event.modifiers);
+    ASSERT_GET_OBJECT_FIELD(key_event_obj, "text", text);
+    ASSERT_GET_OBJECT_FIELD(key_event_obj, "nativeModifiers", key_event.native_modifiers);
+    ASSERT_GET_OBJECT_FIELD(key_event_obj, "nativeScancode", key_event.native_scancode);
+    ASSERT_GET_OBJECT_FIELD(key_event_obj, "nativeVkey", key_event.native_vkey);
+
+    key_event.text = &text[0];
+
+    handle.get()->send_key_click(&key_event, key_up);
 }
 
 NAN_METHOD(Input::get_filters)

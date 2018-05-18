@@ -463,6 +463,23 @@ export interface IInputFactory extends IFactoryTypes {
     fromName(name: string): IInput;
     getPublicSources(): IInput[];
 }
+export declare const enum IMouseButtonType {
+    Left = 0,
+    Middle = 1,
+    Right = 2,
+}
+export interface IMouseEvent {
+    modifiers: number;
+    x: number;
+    y: number;
+}
+export interface IKeyEvent {
+    modifiers: number;
+    text: string;
+    nativeModifiers: number;
+    nativeScancode: number;
+    nativeVkey: number;
+}
 export interface IInput extends ISource {
     volume: number;
     syncOffset: ITimeSpec;
@@ -475,6 +492,10 @@ export interface IInput extends ISource {
     findFilter(name: string): IFilter;
     addFilter(filter: IFilter): void;
     removeFilter(filter: IFilter): void;
+    sendMouseClick(eventData: IMouseEvent, type: number, mouseUp: boolean, clickCount: number): void;
+    sendMouseMove(eventData: IMouseEvent, mouseLeave: boolean): void;
+    sendFocus(focus: boolean): void;
+    sendKeyClick(eventData: IKeyEvent, keyUp: boolean): void;
     readonly filters: IFilter[];
     readonly width: number;
     readonly height: number;
