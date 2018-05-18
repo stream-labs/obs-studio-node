@@ -389,8 +389,7 @@ void OBS_API::OBS_API_initAPI(const FunctionCallbackInfo<Value>& args)
 	 * 2. ${OBS_DATA_PATH}/libobs <- This works but is inflexible
 	 * 3. getenv(OBS_DATA_PATH) + /libobs <- Can be set anywhere
 	 *    on the cli, in the frontend, or the backend. */
-
-	SetEnvironmentVariable("OBS_DATA_PATH", std::string(g_moduleDirectory + "/libobs/data").c_str());
+	obs_add_data_path((g_moduleDirectory + "/libobs/data/libobs/").c_str());
 
 	std::vector<char> userData = std::vector<char>(1024);
 	os_get_config_path(userData.data(), userData.capacity() - 1, "slobs-client/plugin_config");
