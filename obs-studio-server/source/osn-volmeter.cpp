@@ -90,13 +90,12 @@ void osn::VolMeter::Destroy(void* data, const int64_t id, const std::vector<ipc:
 		return;
 	}
 
-	Manager::GetInstance().free(uid);	
+	Manager::GetInstance().free(uid);
 	if (meter->id2) { // Ensure there are no more callbacks
 		obs_volmeter_remove_callback(meter->self, OBSCallback, meter->id2);
 		delete meter->id2;
 		meter->id2 = nullptr;
 	}
-	meter.reset();
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -237,7 +236,7 @@ void osn::VolMeter::Query(void* data, const int64_t id, const std::vector<ipc::v
 		AUTO_DEBUG;
 		return;
 	}
-	
+
 	std::unique_lock<std::mutex> ulock(meter->audio.data_lock);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_volmeter_get_nr_channels(meter->self)));
