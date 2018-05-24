@@ -94,6 +94,7 @@ void osn::VolMeter::Destroy(void* data, const int64_t id, const std::vector<ipc:
 	if (meter->id2) { // Ensure there are no more callbacks
 		obs_volmeter_remove_callback(meter->self, OBSCallback, meter->id2);
 		delete meter->id2;
+		meter->id2 = nullptr;
 	}
 	meter.reset();
 
@@ -219,6 +220,7 @@ void osn::VolMeter::RemoveCallback(void* data, const int64_t id, const std::vect
 	if (meter->callback_count == 0) {
 		obs_volmeter_remove_callback(meter->self, OBSCallback, meter->id2);
 		delete meter->id2;
+		meter->id2 = nullptr;
 	}
 
 	rval.push_back(ipc::value(uint64_t(ErrorCode::Ok)));
