@@ -108,19 +108,19 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Create(Nan::NAN_METHOD_ARGS_TYPE info) {
 	// Check if caller provided settings to send across.
 	if (info.Length() >= 4) {
 		ASSERT_INFO_LENGTH(info, 4);
-
-		v8::Local<v8::Object> hksobj;
-		ASSERT_GET_VALUE(info[2], hksobj);
-
-		hotkeys = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), hksobj).ToLocalChecked();
+		if (!info[2]->IsUndefined()) {
+			v8::Local<v8::Object> hksobj;
+			ASSERT_GET_VALUE(info[2], hksobj);
+			hotkeys = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), hksobj).ToLocalChecked();
+		}
 	}
 	if (info.Length() >= 3) {
 		ASSERT_INFO_LENGTH_AT_LEAST(info, 3);
-
-		v8::Local<v8::Object> setobj;
-		ASSERT_GET_VALUE(info[2], setobj);
-
-		settings = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), setobj).ToLocalChecked();
+		if (!info[2]->IsUndefined()) {
+			v8::Local<v8::Object> setobj;
+			ASSERT_GET_VALUE(info[2], setobj);
+			settings = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), setobj).ToLocalChecked();
+		}
 	}
 
 	auto conn = GetConnection();
