@@ -287,11 +287,11 @@ static void volmeter_cb_wrapper(
 
     /* Careful not to use v8 reliant stuff here */
     Volmeter::Data *data = new Volmeter::Data;
-    int nr_channels = cb_binding->user_data ? *((int*)cb_binding->user_data) : 0;
 
     data->param = param;
+    data->nr_channels = cb_binding->queue.parent->handle.nr_channels();
 
-    for (int i = 0; i < nr_channels; ++i) {
+    for (int i = 0; i < data->nr_channels; ++i) {
         data->magnitude[i] = magnitude[i];
         data->peak[i] = peak[i];
         data->input_peak[i] = input_peak[i];
@@ -314,12 +314,13 @@ void Volmeter::Callback(Volmeter *volmeter, Volmeter::Data *item)
         reinterpret_cast<VolmeterCallback*>(item->param);
 
     v8::Local<v8::Object> object = Nan::New<v8::Object>();
-    int nr_channels = cb_binding->user_data ? *((int*)cb_binding->user_data) : 0;
 
     if (cb_binding->stopped) {
-        delete item; 
+        delete item;
         return;
     }
+
+    int nr_channels = item->nr_channels;
 
     v8::Local<v8::Array> magnitude_array  = Nan::New<v8::Array>();
     v8::Local<v8::Array> peak_array       = Nan::New<v8::Array>();
@@ -367,9 +368,6 @@ NAN_METHOD(Volmeter::addCallback)
     VolmeterCallback *cb_binding = 
         new VolmeterCallback(binding, Volmeter::Callback, callback, 50);
 
-    cb_binding->user_data = new int;
-    *((int*)cb_binding->user_data) = binding->handle.nr_channels();
-
     handle.add_callback(volmeter_cb_wrapper, cb_binding);
 
     auto object = VolmeterCallback::Object::GenerateObject(cb_binding);
@@ -391,9 +389,6 @@ NAN_METHOD(Volmeter::removeCallback)
     cb_binding->obj_ref.Reset();
 
     handle.remove_callback(volmeter_cb_wrapper, cb_binding);
-
-    delete cb_binding->user_data;
-    cb_binding->user_data = 0;
 
     /* What's this? A memory leak? Nope! The GC will automagically
      * destroy the CallbackData structure when it becomes weak. We
