@@ -52,6 +52,7 @@ public:
 
     struct Data {
         void *param;
+        int nr_channels;
         float magnitude[MAX_AUDIO_CHANNELS];
         float peak[MAX_AUDIO_CHANNELS];
         float input_peak[MAX_AUDIO_CHANNELS];
