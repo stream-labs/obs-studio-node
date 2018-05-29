@@ -73,6 +73,7 @@ void osn::Input::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::Types(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	// Function takes no parameters.
 	ASSERT_INFO_LENGTH(info, 0);
 
@@ -94,6 +95,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Types(Nan::NAN_METHOD_ARGS_TYPE info) {
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::Create(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string type;
 	std::string name;
 	v8::Local<v8::String> settings = Nan::New<v8::String>("").ToLocalChecked();
@@ -152,6 +154,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Create(Nan::NAN_METHOD_ARGS_TYPE info) {
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string type;
 	std::string name;
 	v8::Local<v8::String> settings = Nan::New<v8::String>("").ToLocalChecked();
@@ -194,6 +197,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE 
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::FromName(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string name;
 
 	// Parameters: <string> Name
@@ -214,6 +218,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::FromName(Nan::NAN_METHOD_ARGS_TYPE info)
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetPublicSources(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -233,6 +238,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetPublicSources(Nan::NAN_METHOD_ARGS_TY
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::ISource* baseobj = nullptr;
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
@@ -277,6 +283,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::Active(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::ISource* baseobj = nullptr;
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
@@ -300,6 +307,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Active(Nan::NAN_METHOD_ARGS_TYPE info) {
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::Showing(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::ISource* baseobj = nullptr;
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
@@ -324,6 +332,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Showing(Nan::NAN_METHOD_ARGS_TYPE info) 
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::Width(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::ISource* baseobj = nullptr;
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
@@ -346,6 +355,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Width(Nan::NAN_METHOD_ARGS_TYPE info) {
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::Height(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::ISource* baseobj = nullptr;
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
@@ -368,6 +378,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Height(Nan::NAN_METHOD_ARGS_TYPE info) {
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetVolume(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::ISource* baseobj = nullptr;
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
@@ -390,6 +401,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetVolume(Nan::NAN_METHOD_ARGS_TYPE info
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetVolume(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::ISource* baseobj = nullptr;
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
@@ -417,6 +429,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetVolume(Nan::NAN_METHOD_ARGS_TYPE info
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::ISource* baseobj = nullptr;
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
@@ -449,6 +462,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE 
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::ISource* baseobj = nullptr;
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
@@ -483,6 +497,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE 
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::ISource* baseobj = nullptr;
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
@@ -505,6 +520,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::ISource* baseobj = nullptr;
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
@@ -532,6 +548,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetMonitoringType(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::ISource* baseobj = nullptr;
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
@@ -555,6 +572,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetMonitoringType(Nan::NAN_METHOD_ARGS_T
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetMonitoringType(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::ISource* baseobj = nullptr;
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
@@ -582,6 +600,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetMonitoringType(Nan::NAN_METHOD_ARGS_T
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetDeinterlaceFieldOrder(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::ISource* baseobj = nullptr;
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
@@ -605,6 +624,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetDeinterlaceFieldOrder(Nan::NAN_METHOD
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetDeinterlaceFieldOrder(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::ISource* baseobj = nullptr;
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
@@ -633,6 +653,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetDeinterlaceFieldOrder(Nan::NAN_METHOD
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetDeinterlaceMode(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::ISource* baseobj = nullptr;
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
@@ -657,6 +678,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetDeinterlaceMode(Nan::NAN_METHOD_ARGS_
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetDeinterlaceMode(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::ISource* baseobj = nullptr;
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
@@ -685,6 +707,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetDeinterlaceMode(Nan::NAN_METHOD_ARGS_
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::Filters(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::ISource* baseobj = nullptr;
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
@@ -715,6 +738,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Filters(Nan::NAN_METHOD_ARGS_TYPE info) 
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::AddFilter(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::ISource* baseobj = nullptr;
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
@@ -755,6 +779,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::AddFilter(Nan::NAN_METHOD_ARGS_TYPE info
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::RemoveFilter(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::ISource* baseobj = nullptr;
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
@@ -794,6 +819,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::RemoveFilter(Nan::NAN_METHOD_ARGS_TYPE i
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::FindFilter(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::ISource* baseobj = nullptr;
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
@@ -825,6 +851,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::FindFilter(Nan::NAN_METHOD_ARGS_TYPE inf
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::CopyFilters(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::ISource* baseobj = nullptr;
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;

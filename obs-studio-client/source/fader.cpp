@@ -69,6 +69,7 @@ void osn::Fader::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 }
 
 void osn::Fader::Create(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	int32_t fader_type;
 
 	// Validate and retrieve parameters.
@@ -113,6 +114,7 @@ void osn::Fader::Create(Nan::NAN_METHOD_ARGS_TYPE info) {
 }
 
 void osn::Fader::GetDeziBel(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::Fader* fader;
 
 	// Validate and retrieve parameters.
@@ -159,6 +161,7 @@ void osn::Fader::GetDeziBel(Nan::NAN_METHOD_ARGS_TYPE info) {
 }
 
 void osn::Fader::SetDezibel(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	float_t dezibel;
 	osn::Fader* fader;
 
@@ -207,6 +210,7 @@ void osn::Fader::SetDezibel(Nan::NAN_METHOD_ARGS_TYPE info) {
 }
 
 void osn::Fader::GetDeflection(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::Fader* fader;
 
 	// Validate and retrieve parameters.
@@ -253,6 +257,7 @@ void osn::Fader::GetDeflection(Nan::NAN_METHOD_ARGS_TYPE info) {
 }
 
 void osn::Fader::SetDeflection(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	float_t dezibel;
 	osn::Fader* fader;
 
@@ -301,6 +306,7 @@ void osn::Fader::SetDeflection(Nan::NAN_METHOD_ARGS_TYPE info) {
 }
 
 void osn::Fader::GetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::Fader* fader;
 
 	// Validate and retrieve parameters.
@@ -347,6 +353,7 @@ void osn::Fader::GetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info) {
 }
 
 void osn::Fader::SetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	float_t dezibel;
 	osn::Fader* fader;
 
@@ -395,6 +402,7 @@ void osn::Fader::SetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info) {
 }
 
 void osn::Fader::Attach(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::Fader* fader;
 	osn::ISource* source;
 
@@ -445,6 +453,7 @@ void osn::Fader::Attach(Nan::NAN_METHOD_ARGS_TYPE info) {
 }
 
 void osn::Fader::Detach(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::Fader* fader;
 
 	// Validate and retrieve parameters.
@@ -488,6 +497,7 @@ void osn::Fader::Detach(Nan::NAN_METHOD_ARGS_TYPE info) {
 }
 
 void osn::Fader::AddCallback(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	//obs::fader &handle = Fader::Object::GetHandle(info.Holder());
 	//Fader* binding = Nan::ObjectWrap::Unwrap<Fader>(info.Holder());
 
@@ -507,6 +517,7 @@ void osn::Fader::AddCallback(Nan::NAN_METHOD_ARGS_TYPE info) {
 }
 
 void osn::Fader::RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	//obs::fader &handle = Fader::Object::GetHandle(info.Holder());
 
 	//v8::Local<v8::Object> cb_object;

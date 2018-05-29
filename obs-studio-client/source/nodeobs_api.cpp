@@ -10,6 +10,7 @@
 #include <node.h>
 
 void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string path;
 	std::string language;
 
@@ -27,6 +28,7 @@ void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args) {
 }
 
 void api::OBS_API_destroyOBS_API(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -37,6 +39,7 @@ void api::OBS_API_destroyOBS_API(const v8::FunctionCallbackInfo<v8::Value>& args
 } 
 
 void api::OBS_API_getPerformanceStatistics(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -63,6 +66,7 @@ void api::OBS_API_getPerformanceStatistics(const v8::FunctionCallbackInfo<v8::Va
 }
 
 void api::OBS_API_getOBS_existingProfiles(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -82,6 +86,7 @@ void api::OBS_API_getOBS_existingProfiles(const v8::FunctionCallbackInfo<v8::Val
 }
 
 void api::OBS_API_getOBS_existingSceneCollections(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -102,6 +107,7 @@ void api::OBS_API_getOBS_existingSceneCollections(const v8::FunctionCallbackInfo
 }
 
 void api::OBS_API_isOBS_installed(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -114,6 +120,7 @@ void api::OBS_API_isOBS_installed(const v8::FunctionCallbackInfo<v8::Value>& arg
 }
 
 void api::SetWorkingDirectory(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string path;
 	ASSERT_GET_VALUE(args[0], path);
 

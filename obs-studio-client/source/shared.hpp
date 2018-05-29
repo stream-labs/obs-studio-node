@@ -19,6 +19,8 @@
 #include <queue>
 #include <functional>
 #include <node.h>
+#include <chrono>
+#include <string>
 
 #ifndef __FUNCTION_NAME__
 #if defined(_WIN32) || defined(_WIN64)   //WINDOWS
@@ -31,3 +33,23 @@
 extern std::queue<std::function<void(v8::Local<v8::Object>)>> initializerFunctions;
 
 void replaceAll(std::string& str, const std::string& from, const std::string& to);
+
+namespace shared {
+	void log_stdout_enable(bool enabled);
+	void log_stderr_enable(bool enabled);
+	void log_debug_enable(bool enabled);
+	void log_file_enable(bool enabled);
+	void log_file_path(std::string path);	
+	void log(std::string format, ...);
+
+	struct LogWarnTimer {
+		std::string name;
+		std::chrono::high_resolution_clock::time_point begin;
+		std::chrono::nanoseconds warn_limit;
+
+		LogWarnTimer(std::string name, std::chrono::nanoseconds const warn_limit = std::chrono::nanoseconds(2000000ull));
+		~LogWarnTimer();
+	};
+
+
+}

@@ -283,6 +283,16 @@ void js_setServerPath(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	return;
 }
 
+void log_start() {
+	// Temporary client log because electron eats it otherwise.
+	shared::log_debug_enable(true);
+	shared::log_stdout_enable(false);
+	shared::log_stderr_enable(true);
+	shared::log_file_path("D:\\temp.log");
+	shared::log_file_enable(true);
+	shared::log("%s", "Log enabled.");
+}
+
 void js_connect(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	auto isol = args.GetIsolate();
 	if (args.Length() == 0) {
@@ -302,6 +312,8 @@ void js_connect(const v8::FunctionCallbackInfo<v8::Value>& args) {
 		isol->ThrowException(v8::Exception::Error(Nan::New<v8::String>("Failed to connect.").ToLocalChecked()));
 		return;
 	}
+
+	log_start();
 
 	return;
 }
@@ -325,6 +337,8 @@ void js_host(const v8::FunctionCallbackInfo<v8::Value>& args) {
 		isol->ThrowException(v8::Exception::Error(Nan::New<v8::String>("Failed to host and connect.").ToLocalChecked()));
 		return;
 	}
+
+	log_start();
 
 	return;
 }
@@ -351,6 +365,8 @@ void js_connectOrHost(const v8::FunctionCallbackInfo<v8::Value>& args) {
 			return;
 		}
 	}
+
+	log_start();
 
 	return;
 }

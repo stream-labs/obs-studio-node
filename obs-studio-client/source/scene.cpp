@@ -66,6 +66,7 @@ void osn::Scene::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Create(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string name;
 
 	ASSERT_INFO_LENGTH(info, 1);
@@ -89,6 +90,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Create(Nan::NAN_METHOD_ARGS_TYPE info) {
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string name;
 
 	ASSERT_INFO_LENGTH(info, 1);
@@ -109,6 +111,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE 
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FromName(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string name;
 
 	ASSERT_INFO_LENGTH(info, 1);
@@ -129,6 +132,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FromName(Nan::NAN_METHOD_ARGS_TYPE info)
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Release(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::Scene* source = nullptr;
 	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), source)) {
 		return;
@@ -144,6 +148,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Release(Nan::NAN_METHOD_ARGS_TYPE info) 
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Remove(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::Scene* source = nullptr;
 	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), source)) {
 		return;
@@ -159,6 +164,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Remove(Nan::NAN_METHOD_ARGS_TYPE info) {
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AsSource(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	// Scenes are simply stored as a normal source object on the server, no additional calls necessary.
 	osn::Scene* source = nullptr;
 	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), source)) {
@@ -170,6 +176,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AsSource(Nan::NAN_METHOD_ARGS_TYPE info)
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string name;
 	int duplicate_type;
 	osn::Scene* source = nullptr;
@@ -197,6 +204,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::Scene* scene = nullptr;
 	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), scene)) {
 		return;
@@ -224,6 +232,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FindItem(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	bool haveName = false;
 	std::string name;
 	int64_t position;
@@ -261,6 +270,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FindItem(Nan::NAN_METHOD_ARGS_TYPE info)
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::MoveItem(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::Scene* scene = nullptr;
 	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), scene)) {
 		return;
@@ -281,6 +291,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::MoveItem(Nan::NAN_METHOD_ARGS_TYPE info)
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemAtIndex(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	int64_t index;
 
 	osn::Scene* scene = nullptr;
@@ -306,6 +317,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemAtIndex(Nan::NAN_METHOD_ARGS_TYPE
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItems(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::Scene* scene = nullptr;
 	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), scene)) {
 		return;
@@ -330,6 +342,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItems(Nan::NAN_METHOD_ARGS_TYPE info)
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemsInRange(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::Scene* scene = nullptr;
 	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), scene)) {
 		return;
@@ -421,6 +434,7 @@ simple.
 //};
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Connect(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	//obs::weak<obs::scene> &scene = Scene::Object::GetHandle(info.Holder());
 	//Scene* this_binding = Nan::ObjectWrap::Unwrap<Scene>(info.Holder());
 
@@ -455,6 +469,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Connect(Nan::NAN_METHOD_ARGS_TYPE info) 
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Disconnect(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	//obs::weak<obs::scene> &scene = Scene::Object::GetHandle(info.Holder());
 
 	//uint32_t signal_type;

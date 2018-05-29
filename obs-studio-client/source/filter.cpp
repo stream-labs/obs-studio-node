@@ -47,6 +47,7 @@ void osn::Filter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Types(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	// Function takes no parameters.
 	ASSERT_INFO_LENGTH(info, 0);
 
@@ -70,6 +71,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Types(Nan::NAN_METHOD_ARGS_TYPE info) {
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Create(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string type;
 	std::string name;
 	v8::Local<v8::String> settings = Nan::New<v8::String>("").ToLocalChecked();

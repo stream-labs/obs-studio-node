@@ -71,6 +71,7 @@ void osn::SceneItem::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetSource(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::SceneItem* item = nullptr;
 
 	if (!Retrieve(info.This(), item)) {
@@ -91,6 +92,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetSource(Nan::NAN_METHOD_ARGS_TYPE 
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetScene(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
 		return;
@@ -110,6 +112,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetScene(Nan::NAN_METHOD_ARGS_TYPE i
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::Remove(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
 		return;
@@ -126,6 +129,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::Remove(Nan::NAN_METHOD_ARGS_TYPE inf
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsVisible(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
 		return;
@@ -144,6 +148,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsVisible(Nan::NAN_METHOD_ARGS_TYPE 
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetVisible(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	bool visible;
 
 	ASSERT_GET_VALUE(info[0], visible);
@@ -163,6 +168,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetVisible(Nan::NAN_METHOD_ARGS_TYPE
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsSelected(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
 		return;
@@ -181,6 +187,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsSelected(Nan::NAN_METHOD_ARGS_TYPE
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetSelected(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	bool visible;
 
 	ASSERT_GET_VALUE(info[0], visible);
@@ -200,6 +207,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetSelected(Nan::NAN_METHOD_ARGS_TYP
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetPosition(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
 		return;
@@ -222,6 +230,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetPosition(Nan::NAN_METHOD_ARGS_TYP
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetPosition(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	v8::Local<v8::Object> vector;
 	float_t x;
 	float_t y;
@@ -246,6 +255,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetPosition(Nan::NAN_METHOD_ARGS_TYP
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetRotation(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
 		return;
@@ -264,6 +274,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetRotation(Nan::NAN_METHOD_ARGS_TYP
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetRotation(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	float_t vector;
 
 	ASSERT_INFO_LENGTH(info, 1);
@@ -284,6 +295,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetRotation(Nan::NAN_METHOD_ARGS_TYP
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetScale(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
 		return;
@@ -306,6 +318,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetScale(Nan::NAN_METHOD_ARGS_TYPE i
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetScale(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	v8::Local<v8::Object> vector;
 	float_t x;
 	float_t y;
@@ -330,6 +343,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetScale(Nan::NAN_METHOD_ARGS_TYPE i
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetScaleFilter(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
 		return;
@@ -348,6 +362,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetScaleFilter(Nan::NAN_METHOD_ARGS_
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetScaleFilter(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	int32_t visible;
 
 	ASSERT_GET_VALUE(info[0], visible);
@@ -367,6 +382,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetScaleFilter(Nan::NAN_METHOD_ARGS_
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetAlignment(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
 		return;
@@ -386,6 +402,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetAlignment(Nan::NAN_METHOD_ARGS_TY
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetAlignment(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	uint32_t visible;
 
 	ASSERT_GET_VALUE(info[0], visible);
@@ -405,6 +422,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetAlignment(Nan::NAN_METHOD_ARGS_TY
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetBounds(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
 		return;
@@ -427,6 +445,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetBounds(Nan::NAN_METHOD_ARGS_TYPE 
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetBounds(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	v8::Local<v8::Object> vector;
 	float_t x;
 	float_t y;
@@ -452,6 +471,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetBounds(Nan::NAN_METHOD_ARGS_TYPE 
 
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetBoundsAlignment(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
 		return;
@@ -470,6 +490,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetBoundsAlignment(Nan::NAN_METHOD_A
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetBoundsAlignment(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	uint32_t visible;
 
 	ASSERT_GET_VALUE(info[0], visible);
@@ -489,6 +510,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetBoundsAlignment(Nan::NAN_METHOD_A
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetBoundsType(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
 		return;
@@ -507,6 +529,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetBoundsType(Nan::NAN_METHOD_ARGS_T
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetBoundsType(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	int32_t visible;
 
 	ASSERT_GET_VALUE(info[0], visible);
@@ -526,6 +549,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetBoundsType(Nan::NAN_METHOD_ARGS_T
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetCrop(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
 		return;
@@ -553,6 +577,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetCrop(Nan::NAN_METHOD_ARGS_TYPE in
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetCrop(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	v8::Local<v8::Object> vector;
 	int32_t left;
 	int32_t top;
@@ -581,6 +606,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetCrop(Nan::NAN_METHOD_ARGS_TYPE in
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetTransformInfo(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
 		return;
@@ -629,6 +655,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetTransformInfo(Nan::NAN_METHOD_ARG
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetTransformInfo(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	//obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
 	//v8::Local<v8::Object> tf_info_object;
@@ -649,6 +676,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetTransformInfo(Nan::NAN_METHOD_ARG
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetId(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
 		return;
@@ -668,6 +696,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetId(Nan::NAN_METHOD_ARGS_TYPE info
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveUp(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
 		return;
@@ -683,6 +712,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveUp(Nan::NAN_METHOD_ARGS_TYPE inf
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveDown(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
 		return;
@@ -698,6 +728,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveDown(Nan::NAN_METHOD_ARGS_TYPE i
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveTop(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 		osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
 		return;
@@ -713,6 +744,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveTop(Nan::NAN_METHOD_ARGS_TYPE in
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveBottom(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 		osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
 		return;
@@ -728,6 +760,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveBottom(Nan::NAN_METHOD_ARGS_TYPE
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::Move(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	ASSERT_INFO_LENGTH(info, 1);
 	int32_t position;
 	ASSERT_GET_VALUE(info[0], position);
@@ -747,6 +780,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::Move(Nan::NAN_METHOD_ARGS_TYPE info)
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::DeferUpdateBegin(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
 		return;
@@ -762,6 +796,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::DeferUpdateBegin(Nan::NAN_METHOD_ARG
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::DeferUpdateEnd(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
 		return;

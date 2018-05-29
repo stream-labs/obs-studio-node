@@ -115,6 +115,7 @@ std::vector<settings::SubCategory> serializeCategory(
 }
 
 void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string category;
 	ASSERT_GET_VALUE(args[0], category);
 
@@ -403,6 +404,7 @@ std::vector<char> deserializeCategory(uint32_t *subCategoriesCount, uint32_t *si
 }
 
 void settings::OBS_settings_saveSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string category;
 	ASSERT_GET_VALUE(args[0], category);
 
@@ -425,6 +427,7 @@ void settings::OBS_settings_saveSettings(const v8::FunctionCallbackInfo<v8::Valu
 }
 
 void settings::OBS_settings_getListCategories(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 

@@ -34,6 +34,7 @@ static void FixChromeD3DIssue(HWND chromeWindow) {
 }
 
 void display::OBS_content_createDisplay(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	v8::Local<v8::Object> bufferObj = args[0].As<v8::Object>();
 	unsigned char *bufferData = (unsigned char *)node::Buffer::Data(bufferObj);
 	uint64_t windowHandle = *reinterpret_cast<uint64_t *>(bufferData);
@@ -54,6 +55,7 @@ void display::OBS_content_createDisplay(const v8::FunctionCallbackInfo<v8::Value
 }
 
 void display::OBS_content_destroyDisplay(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string key;
 
 	ASSERT_GET_VALUE(args[0], key);
@@ -69,6 +71,7 @@ void display::OBS_content_destroyDisplay(const v8::FunctionCallbackInfo<v8::Valu
 }
 
 void display::OBS_content_getDisplayPreviewOffset(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string key;
 
 	ASSERT_GET_VALUE(args[0], key);
@@ -93,6 +96,7 @@ void display::OBS_content_getDisplayPreviewOffset(const v8::FunctionCallbackInfo
 }
 
 void display::OBS_content_getDisplayPreviewSize(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string key;
 
 	ASSERT_GET_VALUE(args[0], key);
@@ -117,6 +121,7 @@ void display::OBS_content_getDisplayPreviewSize(const v8::FunctionCallbackInfo<v
 }
 
 void display::OBS_content_createSourcePreviewDisplay(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	v8::Isolate *isolate = args.GetIsolate();
 	v8::EscapableHandleScope scope(isolate);
 
@@ -141,6 +146,7 @@ void display::OBS_content_createSourcePreviewDisplay(const v8::FunctionCallbackI
 }
 
 void display::OBS_content_resizeDisplay(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string key;
 	double_t width_d, height_d;
 	uint32_t width, height;
@@ -164,6 +170,7 @@ void display::OBS_content_resizeDisplay(const v8::FunctionCallbackInfo<v8::Value
 }
 
 void display::OBS_content_moveDisplay(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string key;
 	double_t x_d, y_d;
 	uint32_t x, y;
@@ -186,6 +193,7 @@ void display::OBS_content_moveDisplay(const v8::FunctionCallbackInfo<v8::Value>&
 }
 
 void display::OBS_content_setPaddingSize(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string key;
 	uint32_t paddingSize;
 
@@ -203,6 +211,7 @@ void display::OBS_content_setPaddingSize(const v8::FunctionCallbackInfo<v8::Valu
 }
 
 void display::OBS_content_setPaddingColor(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string key;
 	uint32_t r,g,b,a = 255;
 
@@ -225,6 +234,7 @@ void display::OBS_content_setPaddingColor(const v8::FunctionCallbackInfo<v8::Val
 }
 
 void display::OBS_content_setOutlineColor(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string key;
 	uint32_t r, g, b, a = 255;
 
@@ -247,6 +257,7 @@ void display::OBS_content_setOutlineColor(const v8::FunctionCallbackInfo<v8::Val
 }
 
 void display::OBS_content_setGuidelineColor(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string key;
 	uint32_t r, g, b, a = 255;
 
@@ -269,6 +280,7 @@ void display::OBS_content_setGuidelineColor(const v8::FunctionCallbackInfo<v8::V
 }
 
 void display::OBS_content_setResizeBoxInnerColor(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string key;
 	uint32_t r, g, b, a = 255;
 
@@ -291,6 +303,7 @@ void display::OBS_content_setResizeBoxInnerColor(const v8::FunctionCallbackInfo<
 }
 
 void display::OBS_content_setResizeBoxOuterColor(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string key;
 	uint32_t r, g, b, a = 255;
 
@@ -313,6 +326,7 @@ void display::OBS_content_setResizeBoxOuterColor(const v8::FunctionCallbackInfo<
 }
 
 void display::OBS_content_setShouldDrawUI(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string key;
 	bool drawUI;
 
@@ -330,6 +344,7 @@ void display::OBS_content_setShouldDrawUI(const v8::FunctionCallbackInfo<v8::Val
 }
 
 void display::OBS_content_selectSource(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	uint32_t x, y;
 
 	ASSERT_GET_VALUE(args[0], x);
@@ -347,6 +362,7 @@ void display::OBS_content_selectSource(const v8::FunctionCallbackInfo<v8::Value>
 }
 
 void display::OBS_content_selectSources(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	/*uint32_t size = 0;
 	std::vector<std::string> sources;
 
@@ -421,6 +437,7 @@ void display::OBS_content_selectSources(const v8::FunctionCallbackInfo<v8::Value
 }
 
 void display::OBS_content_dragSelectedSource(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	uint32_t x, y;
 
 	ASSERT_GET_VALUE(args[0], x);
@@ -437,6 +454,7 @@ void display::OBS_content_dragSelectedSource(const v8::FunctionCallbackInfo<v8::
 }
 
 void display::OBS_content_getDrawGuideLines(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string key;
 
 	ASSERT_GET_VALUE(args[0], key);
@@ -454,6 +472,7 @@ void display::OBS_content_getDrawGuideLines(const v8::FunctionCallbackInfo<v8::V
 }
 
 void display::OBS_content_setDrawGuideLines(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string key;
 	bool drawGuideLines;
 

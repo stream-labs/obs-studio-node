@@ -25,6 +25,7 @@
 #include "input.hpp"
 #include "scene.hpp"
 #include "transition.hpp"
+#include "shared.hpp"
 
 void osn::Global::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	auto ObsGlobal = Nan::New<v8::Object>();
@@ -39,6 +40,7 @@ void osn::Global::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Global::getOutputSource(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	ASSERT_INFO_LENGTH(info, 1);
 	uint32_t channel;
 	ASSERT_GET_VALUE(info[0], channel);
@@ -67,6 +69,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Global::getOutputSource(Nan::NAN_METHOD_ARGS_TY
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Global::setOutputSource(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	uint32_t channel;
 	v8::Local<v8::Object> source_object;
 	osn::ISource* source = nullptr;
@@ -91,6 +94,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Global::setOutputSource(Nan::NAN_METHOD_ARGS_TY
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Global::getOutputFlagsFromId(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	std::string id;
 
 	ASSERT_INFO_LENGTH(info, 1);
@@ -109,6 +113,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Global::getOutputFlagsFromId(Nan::NAN_METHOD_AR
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Global::laggedFrames(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -121,6 +126,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Global::laggedFrames(Nan::NAN_METHOD_ARGS_TYPE 
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Global::totalFrames(Nan::NAN_METHOD_ARGS_TYPE info) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 

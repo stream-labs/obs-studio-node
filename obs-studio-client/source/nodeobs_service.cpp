@@ -11,6 +11,7 @@
 
 
 void service::OBS_service_resetAudioContext(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -21,6 +22,7 @@ void service::OBS_service_resetAudioContext(const v8::FunctionCallbackInfo<v8::V
 }
 
 void service::OBS_service_resetVideoContext(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -31,6 +33,7 @@ void service::OBS_service_resetVideoContext(const v8::FunctionCallbackInfo<v8::V
 }
 
 void service::OBS_service_createAudioEncoder(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -41,6 +44,7 @@ void service::OBS_service_createAudioEncoder(const v8::FunctionCallbackInfo<v8::
 }
 
 void service::OBS_service_createVideoStreamingEncoder(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -51,6 +55,7 @@ void service::OBS_service_createVideoStreamingEncoder(const v8::FunctionCallback
 }
 
 void service::OBS_service_createVideoRecordingEncoder(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -61,6 +66,7 @@ void service::OBS_service_createVideoRecordingEncoder(const v8::FunctionCallback
 }
 
 void service::OBS_service_createService(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -71,6 +77,7 @@ void service::OBS_service_createService(const v8::FunctionCallbackInfo<v8::Value
 }
 
 void service::OBS_service_createRecordingSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -81,6 +88,7 @@ void service::OBS_service_createRecordingSettings(const v8::FunctionCallbackInfo
 }
 
 void service::OBS_service_createStreamingOutput(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -91,6 +99,7 @@ void service::OBS_service_createStreamingOutput(const v8::FunctionCallbackInfo<v
 }
 
 void service::OBS_service_createRecordingOutput(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -101,6 +110,7 @@ void service::OBS_service_createRecordingOutput(const v8::FunctionCallbackInfo<v
 }
 
 void service::OBS_service_startStreaming(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -111,6 +121,7 @@ void service::OBS_service_startStreaming(const v8::FunctionCallbackInfo<v8::Valu
 }
 
 void service::OBS_service_startRecording(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -121,6 +132,7 @@ void service::OBS_service_startRecording(const v8::FunctionCallbackInfo<v8::Valu
 }
 
 void service::OBS_service_stopStreaming(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	bool forceStop;
 	ASSERT_GET_VALUE(args[0], forceStop);
 
@@ -135,6 +147,7 @@ void service::OBS_service_stopStreaming(const v8::FunctionCallbackInfo<v8::Value
 }
 
 void service::OBS_service_stopRecording(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -145,6 +158,7 @@ void service::OBS_service_stopRecording(const v8::FunctionCallbackInfo<v8::Value
 }
 
 void service::OBS_service_associateAudioAndVideoToTheCurrentStreamingContext(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -156,6 +170,7 @@ void service::OBS_service_associateAudioAndVideoToTheCurrentStreamingContext(con
 }
 
 void service::OBS_service_associateAudioAndVideoToTheCurrentRecordingContext(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -167,6 +182,7 @@ void service::OBS_service_associateAudioAndVideoToTheCurrentRecordingContext(con
 }
 
 void service::OBS_service_associateAudioAndVideoEncodersToTheCurrentStreamingOutput(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -178,6 +194,7 @@ void service::OBS_service_associateAudioAndVideoEncodersToTheCurrentStreamingOut
 }
 
 void service::OBS_service_associateAudioAndVideoEncodersToTheCurrentRecordingOutput(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -189,6 +206,7 @@ void service::OBS_service_associateAudioAndVideoEncodersToTheCurrentRecordingOut
 }
 
 void service::OBS_service_setServiceToTheStreamingOutput(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -200,6 +218,7 @@ void service::OBS_service_setServiceToTheStreamingOutput(const v8::FunctionCallb
 }
 
 void service::OBS_service_setRecordingSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -214,6 +233,7 @@ Nan::Persistent<v8::FunctionTemplate> ServiceCallback::prototype = Nan::Persiste
 static v8::Persistent<v8::Object> serviceCallbackObject;
 
 void service::OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	v8::Local<v8::Function> callback;
 	ASSERT_GET_VALUE(args[0], callback);
 
@@ -328,6 +348,7 @@ void Service::async_query() {
 }
 
 void service::OBS_service_removeCallback(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	shared::LogWarnTimer logwarntimer(__FUNCTION_NAME__);
 	// Stop query thread
 	serviceObject->query_worker_close = true;
 	if (serviceObject->query_worker.joinable()) {
