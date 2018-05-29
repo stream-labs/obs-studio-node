@@ -71,7 +71,7 @@ void osn::Transition::Create(void* data, const int64_t id, const std::vector<ipc
 		return;
 	}
 
-	uint64_t uid = osn::Source::GetInstance()->Allocate(source);
+	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
 	if (uid == UINT64_MAX) {
 		// No further Ids left, leak somewhere.
 		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
@@ -106,7 +106,7 @@ void osn::Transition::CreatePrivate(void* data, const int64_t id, const std::vec
 		return;
 	}
 
-	uint64_t uid = osn::Source::GetInstance()->Allocate(source);
+	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
 	if (uid == UINT64_MAX) {
 		// No further Ids left, leak somewhere.
 		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
@@ -129,7 +129,7 @@ void osn::Transition::FromName(void* data, const int64_t id, const std::vector<i
 		return;
 	}
 	
-	uint64_t uid = osn::Source::GetInstance()->Get(source);
+	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
 		// This is an impossible case, but we handle it in case it happens.
 		obs_source_release(source);
@@ -153,7 +153,7 @@ void osn::Transition::GetActiveSource(void* data, const int64_t id, const std::v
 	uint64_t uid = -1;
 
 	// Attempt to find the source asked to load.
-	obs_source_t* transition = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	obs_source_t* transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!transition) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Transition reference is not valid."));
@@ -164,7 +164,7 @@ void osn::Transition::GetActiveSource(void* data, const int64_t id, const std::v
 	obs_source_type type = OBS_SOURCE_TYPE_INPUT;
 	obs_source_t *source = obs_transition_get_active_source(transition);
 	if (source) {
-		uid = osn::Source::GetInstance()->Get(source);
+		uid = osn::Source::Manager::GetInstance().find(source);
 		type = obs_source_get_type(source);
 		obs_source_release(source);
 	}
@@ -187,7 +187,7 @@ void osn::Transition::GetActiveSource(void* data, const int64_t id, const std::v
 
 void osn::Transition::Clear(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Attempt to find the source asked to load.
-	obs_source_t* transition = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	obs_source_t* transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!transition) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Transition reference is not valid."));
@@ -203,7 +203,7 @@ void osn::Transition::Clear(void* data, const int64_t id, const std::vector<ipc:
 
 void osn::Transition::Set(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Attempt to find the source asked to load.
-	obs_source_t* transition = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	obs_source_t* transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!transition) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Transition reference is not valid."));
@@ -211,7 +211,7 @@ void osn::Transition::Set(void* data, const int64_t id, const std::vector<ipc::v
 		return;
 	}
 
-	obs_source_t* source = osn::Source::GetInstance()->Get(args[1].value_union.ui64);
+	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -227,7 +227,7 @@ void osn::Transition::Set(void* data, const int64_t id, const std::vector<ipc::v
 
 void osn::Transition::Start(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Attempt to find the source asked to load.
-	obs_source_t* transition = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	obs_source_t* transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!transition) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Transition reference is not valid."));
@@ -235,7 +235,7 @@ void osn::Transition::Start(void* data, const int64_t id, const std::vector<ipc:
 		return;
 	}
 
-	obs_source_t* source = osn::Source::GetInstance()->Get(args[2].value_union.ui64);
+	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[2].value_union.ui64);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));

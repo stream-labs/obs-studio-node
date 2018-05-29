@@ -22,60 +22,21 @@
 
 namespace osn {
 	class Source {
-	#pragma region Singleton
 		public:
-		class SingletonObjectManager {
-			friend class osn::Source;
-			friend class std::shared_ptr<SingletonObjectManager>;
-
-			utility::unique_id idGenerator;
-			std::map<uint64_t, obs_source_t*> objectMap;
+		class Manager : public utility::unique_object_manager<obs_source_t> {
+			friend class std::shared_ptr<Manager>;
 
 			protected:
-			SingletonObjectManager();
-			~SingletonObjectManager();
+			Manager() {}
+			~Manager() {}
 
 			public:
-			SingletonObjectManager(SingletonObjectManager const&) = delete;
-			SingletonObjectManager operator=(SingletonObjectManager const&) = delete;
+			Manager(Manager const&) = delete;
+			Manager operator=(Manager const&) = delete;
 
-			uint64_t Allocate(obs_source_t* obj) {
-				uint64_t id = idGenerator.allocate();
-				objectMap.insert_or_assign(id, obj);
-				return id;
-			}
-			obs_source_t* Free(uint64_t id) {
-				obs_source_t* obj = nullptr;
-				auto iter = objectMap.find(id);
-				if (iter != objectMap.end()) {
-					obj = iter->second;
-				}
-				objectMap.erase(iter);
-				idGenerator.free(id);
-				return obj;
-			}
-			obs_source_t* Get(uint64_t id) {
-				obs_source_t* obj = nullptr;
-				auto iter = objectMap.find(id);
-				if (iter != objectMap.end()) {
-					obj = iter->second;
-				}
-				return obj;
-			}
-			uint64_t Get(obs_source_t* obj) {
-				for (auto kv : objectMap) {
-					if (kv.second == obj)
-						return kv.first;
-				}
-				return UINT64_MAX;
-			}
+			public:
+			static Manager& GetInstance();
 		};
-
-		public:
-		static bool Initialize();
-		static bool Finalize();
-		static SingletonObjectManager* GetInstance();
-	#pragma endregion Singleton
 
 		public:
 		static void Register(ipc::server&);

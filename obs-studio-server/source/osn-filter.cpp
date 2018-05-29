@@ -61,7 +61,7 @@ void osn::Filter::Create(void* data, const int64_t id, const std::vector<ipc::va
 		return;
 	}
 
-	uint64_t uid = osn::Source::GetInstance()->Allocate(source);
+	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
 	if (uid == UINT64_MAX) {
 		// No further Ids left, leak somewhere.
 		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));

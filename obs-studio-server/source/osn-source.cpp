@@ -29,36 +29,6 @@
 #include "obs-property.hpp"
 #include "shared.hpp"
 
-osn::Source::SingletonObjectManager::SingletonObjectManager() {
-
-}
-
-osn::Source::SingletonObjectManager::~SingletonObjectManager() {
-
-}
-
-static osn::Source::SingletonObjectManager *somInstance;
-
-bool osn::Source::Initialize() {
-	if (somInstance)
-		return false;
-	somInstance = new SingletonObjectManager();
-	return true;
-}
-
-bool osn::Source::Finalize() {
-	if (!somInstance)
-		return false;
-	delete somInstance;
-	somInstance = nullptr;
-	return true;
-
-}
-
-osn::Source::SingletonObjectManager* osn::Source::GetInstance() {
-	return somInstance;
-}
-
 void osn::Source::Register(ipc::server& srv) {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Source");
 	cls->register_function(std::make_shared<ipc::function>("GetDefaults", std::vector<ipc::type>{ipc::type::String}, GetTypeDefaults));
@@ -108,7 +78,7 @@ void osn::Source::GetTypeOutputFlags(void* data, const int64_t id, const std::ve
 
 void osn::Source::Remove(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -117,7 +87,7 @@ void osn::Source::Remove(void* data, const int64_t id, const std::vector<ipc::va
 	}
 
 	obs_source_remove(src);
-	osn::Source::GetInstance()->Free(args[0].value_union.ui64);
+	osn::Source::Manager::GetInstance().free(args[0].value_union.ui64);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -125,7 +95,7 @@ void osn::Source::Remove(void* data, const int64_t id, const std::vector<ipc::va
 
 void osn::Source::Release(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -135,7 +105,7 @@ void osn::Source::Release(void* data, const int64_t id, const std::vector<ipc::v
 
 	obs_source_release(src);
 	if (obs_source_removed(src)) {
-		osn::Source::GetInstance()->Free(args[0].value_union.ui64);
+		osn::Source::Manager::GetInstance().free(args[0].value_union.ui64);
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -144,7 +114,7 @@ void osn::Source::Release(void* data, const int64_t id, const std::vector<ipc::v
 
 void osn::Source::IsConfigurable(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -159,7 +129,7 @@ void osn::Source::IsConfigurable(void* data, const int64_t id, const std::vector
 
 void osn::Source::GetProperties(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -306,7 +276,7 @@ void osn::Source::GetProperties(void* data, const int64_t id, const std::vector<
 
 void osn::Source::GetSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -323,7 +293,7 @@ void osn::Source::GetSettings(void* data, const int64_t id, const std::vector<ip
 
 void osn::Source::Update(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -341,7 +311,7 @@ void osn::Source::Update(void* data, const int64_t id, const std::vector<ipc::va
 
 void osn::Source::Load(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -357,7 +327,7 @@ void osn::Source::Load(void* data, const int64_t id, const std::vector<ipc::valu
 
 void osn::Source::Save(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -373,7 +343,7 @@ void osn::Source::Save(void* data, const int64_t id, const std::vector<ipc::valu
 
 void osn::Source::GetType(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -388,7 +358,7 @@ void osn::Source::GetType(void* data, const int64_t id, const std::vector<ipc::v
 
 void osn::Source::GetName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -403,7 +373,7 @@ void osn::Source::GetName(void* data, const int64_t id, const std::vector<ipc::v
 
 void osn::Source::SetName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -420,7 +390,7 @@ void osn::Source::SetName(void* data, const int64_t id, const std::vector<ipc::v
 
 void osn::Source::GetOutputFlags(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -435,7 +405,7 @@ void osn::Source::GetOutputFlags(void* data, const int64_t id, const std::vector
 
 void osn::Source::GetFlags(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -450,7 +420,7 @@ void osn::Source::GetFlags(void* data, const int64_t id, const std::vector<ipc::
 
 void osn::Source::SetFlags(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -467,7 +437,7 @@ void osn::Source::SetFlags(void* data, const int64_t id, const std::vector<ipc::
 
 void osn::Source::GetStatus(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -482,7 +452,7 @@ void osn::Source::GetStatus(void* data, const int64_t id, const std::vector<ipc:
 
 void osn::Source::GetId(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -498,7 +468,7 @@ void osn::Source::GetId(void* data, const int64_t id, const std::vector<ipc::val
 
 void osn::Source::GetMuted(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -513,7 +483,7 @@ void osn::Source::GetMuted(void* data, const int64_t id, const std::vector<ipc::
 
 void osn::Source::SetMuted(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -530,7 +500,7 @@ void osn::Source::SetMuted(void* data, const int64_t id, const std::vector<ipc::
 
 void osn::Source::GetEnabled(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -545,7 +515,7 @@ void osn::Source::GetEnabled(void* data, const int64_t id, const std::vector<ipc
 
 void osn::Source::SetEnabled(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::GetInstance()->Get(args[0].value_union.ui64);
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -558,4 +528,9 @@ void osn::Source::SetEnabled(void* data, const int64_t id, const std::vector<ipc
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_enabled(src)));
 	AUTO_DEBUG;
+}
+
+osn::Source::Manager& osn::Source::Manager::GetInstance() {
+	static osn::Source::Manager _inst;
+	return _inst;
 }

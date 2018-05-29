@@ -41,7 +41,7 @@ void osn::Global::GetOutputSource(void* data, const int64_t id, const std::vecto
 		return;
 	}
 
-	uint64_t uid = osn::Source::GetInstance()->Get(source);
+	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
 #ifdef DEBUG // Debug should throw an error for debuggers to catch.
 		throw std::runtime_error("Source found but not indexed.");
@@ -63,7 +63,7 @@ void osn::Global::SetOutputSource(void* data, const int64_t id, const std::vecto
 	obs_source_t* source = nullptr;
 	
 	if (args[1].value_union.ui64 != UINT64_MAX) {
-		source = osn::Source::GetInstance()->Get(args[1].value_union.ui64);
+		source = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
 		if (!source) {
 			rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 			rval.push_back(ipc::value("Source reference is not valid."));

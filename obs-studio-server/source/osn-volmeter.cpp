@@ -147,7 +147,7 @@ void osn::VolMeter::Attach(void* data, const int64_t id, const std::vector<ipc::
 		return;
 	}
 
-	auto source = osn::Source::GetInstance()->Get(uid_source);
+	auto source = osn::Source::Manager::GetInstance().find(uid_source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Invalid Source Reference."));

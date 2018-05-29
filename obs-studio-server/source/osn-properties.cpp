@@ -32,7 +32,7 @@ void osn::Properties::Modified(void* data, const int64_t id, const std::vector<i
 	uint64_t sourceId = args[0].value_union.ui64;
 	std::string name = args[1].value_str;
 
-	obs_source_t* source = osn::Source::GetInstance()->Get(sourceId);
+	obs_source_t* source = osn::Source::Manager::GetInstance().find(sourceId);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Invalid Reference."));
@@ -60,7 +60,7 @@ void osn::Properties::Clicked(void* data, const int64_t id, const std::vector<ip
 	uint64_t sourceId = args[0].value_union.ui64;
 	std::string name = args[1].value_str;
 
-	obs_source_t* source = osn::Source::GetInstance()->Get(sourceId);
+	obs_source_t* source = osn::Source::Manager::GetInstance().find(sourceId);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Invalid Reference."));

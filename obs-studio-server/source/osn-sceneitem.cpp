@@ -58,7 +58,7 @@ void osn::SceneItem::GetSource(void* data, const int64_t id, const std::vector<i
 		return;
 	}
 
-	uint64_t uid = osn::Source::GetInstance()->Get(source);
+	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint64_t)uid));
 	AUTO_DEBUG;
@@ -89,7 +89,7 @@ void osn::SceneItem::GetScene(void* data, const int64_t id, const std::vector<ip
 		return;
 	}
 
-	uint64_t uid = osn::Source::GetInstance()->Get(source);
+	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint64_t)uid));
 	AUTO_DEBUG;

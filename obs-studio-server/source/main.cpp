@@ -88,9 +88,6 @@ int main(int argc, char* argv[]) {
 	sd.last_disconnect = sd.last_connect = std::chrono::high_resolution_clock::now();
 	sd.count_connected = 0;
 
-	// Initialize Singleton Source Storage
-	osn::Source::Initialize();
-
 	// Classes
 	/// System
 	{
@@ -137,9 +134,6 @@ int main(int argc, char* argv[]) {
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
-
-	// Finalize Singleton Source Storage
-	osn::Source::Finalize();
 
 	// Finalize Server
 	myServer.finalize();
