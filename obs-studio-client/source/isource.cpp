@@ -319,7 +319,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetSettings(Nan::NAN_METHOD_ARGS_TYPE 
 
 	v8::Local<v8::String> jsondata = 
 		Nan::New<v8::String>(response[1].value_str).ToLocalChecked();
-	v8::Local<v8::Value> json = v8::JSON::Parse(jsondata);
+	v8::Local<v8::Value> json = v8::JSON::Parse(info.GetIsolate()->GetCurrentContext(), jsondata).ToLocalChecked();
 	info.GetReturnValue().Set(json);
 	return;
 }
