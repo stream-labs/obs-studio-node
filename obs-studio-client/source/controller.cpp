@@ -24,13 +24,14 @@
 #include <iostream>
 #include <nan.h>
 
+
 #pragma region Windows
 #ifdef _WIN32
 #include <windows.h>
 #include <direct.h>
 #include <wchar.h>
 
-uint64_t spawn(std::string program, std::string commandLine, std::string workingDirectory) {
+ProcessInfo spawn(std::string program, std::string commandLine, std::string workingDirectory) {
 	PROCESS_INFORMATION m_win32_processInformation;
 	STARTUPINFOW m_win32_startupInfo;
 
@@ -50,7 +51,7 @@ uint64_t spawn(std::string program, std::string commandLine, std::string working
 	if (wr == 0) {
 		// Conversion failed.
 		DWORD errorCode = GetLastError();
-		return false;
+		return {};
 	}
 
 	commandLineBuf.resize(MultiByteToWideChar(CP_UTF8, 0,
@@ -62,7 +63,7 @@ uint64_t spawn(std::string program, std::string commandLine, std::string working
 	if (wr == 0) {
 		// Conversion failed.
 		DWORD errorCode = GetLastError();
-		return false;
+		return {};
 	}
 
 	if (workingDirectory.length() > 1) {
@@ -76,7 +77,7 @@ uint64_t spawn(std::string program, std::string commandLine, std::string working
 			if (wr == 0) {
 				// Conversion failed.
 				DWORD errorCode = GetLastError();
-				return false;
+				return {};
 			}
 		}
 	}
@@ -86,51 +87,41 @@ uint64_t spawn(std::string program, std::string commandLine, std::string working
 	memset(&m_win32_processInformation, 0, sizeof(m_win32_processInformation));
 
 	// Launch process
-	size_t attempts = 0;
-	while (!CreateProcessW(
-		programBuf.data(),
-		commandLineBuf.data(),
-		nullptr,
-		nullptr,
-		false,
-		CREATE_NO_WINDOW,
+	SetLastError(ERROR_SUCCESS);
+	DWORD success = CreateProcessW(programBuf.data(), commandLineBuf.data(),
+		nullptr, nullptr, false,
+		CREATE_NO_WINDOW | DETACHED_PROCESS,
 		nullptr,
 		workingDirectory.length() > 0 ? workingDirectoryBuf.data() : nullptr,
 		&m_win32_startupInfo,
-		&m_win32_processInformation)) {
-		if (attempts >= 5) {
-			break;
-		}
-		attempts++;
-
-		std::cerr << "Unable to spawn process '" << program << "'"
-			" with command line '" << commandLine << "'"
-			" and working directory '" << workingDirectory << "',"
-			" attempt " << attempts << "." << std::endl;
-		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+		&m_win32_processInformation);
+	if (!success) {
+		DWORD error = GetLastError();
+		return {};
 	}
 
-	if (attempts >= 5) {
-		DWORD errorCode = GetLastError();
-		return false;
-	}
-
-	return reinterpret_cast<uint64_t>(m_win32_processInformation.hProcess);
+	return { 
+		reinterpret_cast<uint64_t>(m_win32_processInformation.hProcess), 
+		static_cast<uint64_t>(m_win32_processInformation.dwProcessId)
+	};
 }
 
-bool is_process_alive(size_t hProcess) {
+bool is_process_alive(ProcessInfo pinfo) {
 	SetLastError(ERROR_SUCCESS);
-	DWORD id = GetProcessId(reinterpret_cast<HANDLE>(hProcess));
+	DWORD id = GetProcessId(reinterpret_cast<HANDLE>(pinfo.handle));
+	if (id != static_cast<DWORD>(pinfo.id)) {
+		return false;
+	}
 	DWORD errorCode = GetLastError();
 	if (errorCode != ERROR_SUCCESS) {
 		return false;
 	}
-	return id != 0;
+	return true;
 }
 
-bool kill(uint64_t hProcess, uint32_t code, uint32_t& exitcode) {
+bool kill(ProcessInfo pinfo, uint32_t code, uint32_t& exitcode) {
 	SetLastError(ERROR_SUCCESS);
-	bool suc = TerminateProcess(reinterpret_cast<HANDLE>(hProcess), code);
+	bool suc = TerminateProcess(reinterpret_cast<HANDLE>(pinfo.handle), code);
 	DWORD errorCode = GetLastError();
 	return (errorCode == ERROR_SUCCESS);
 }
@@ -184,12 +175,17 @@ std::shared_ptr<ipc::client> Controller::host(std::string uri) {
 	std::string workingDirectory = serverWorkingPath.length() > 0 ? serverWorkingPath : get_working_directory();
 
 	procId = spawn(serverBinaryPath, commandLine, workingDirectory);
+	if (procId.id == 0) {
+		return nullptr;
+	}
 
 	// Connect
 	std::shared_ptr<ipc::client> cl;
 	cl = connect(uri);
 	if (!cl) { // Assume the server broke or was not allowed to run. 
 		disconnect();
+		uint32_t exitcode;
+		kill(procId, 0, exitcode);
 		return nullptr;
 	}
 

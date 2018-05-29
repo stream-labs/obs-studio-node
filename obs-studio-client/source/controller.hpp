@@ -27,6 +27,11 @@
 #include <windows.h>
 #endif
 
+struct ProcessInfo {
+	uint64_t handle;
+	uint64_t id;
+};
+
 class Controller {
 #pragma region Singleton
 	public:
@@ -54,5 +59,5 @@ class Controller {
 	private:
 	bool m_isServer = false;
 	std::shared_ptr<ipc::client> m_connection;
-	uint64_t procId = 0;
+	ProcessInfo procId;
 };
