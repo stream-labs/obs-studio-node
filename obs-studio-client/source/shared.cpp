@@ -188,9 +188,20 @@ shared::LogWarnTimer::~LogWarnTimer() {
 	auto end = std::chrono::high_resolution_clock::now();
 	std::chrono::nanoseconds dur =
 		std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
+	size_t ns = dur.count();
+	size_t mus = ns / 1000;
+	size_t ms = mus / 1000;
+	size_t s = ms / 1000;
 
 	if (dur >= warn_limit) {
-		shared::log("%s: Took over %llu nanoseconds (limit was %llu nanoseconds).",
-			name.c_str(), dur.count(), warn_limit.count());
+		shared::log("Spent %2llu.%03llu,%03llu,%03llu ns in %*s NOT OKAY (limit was %llu ns).",
+			s, ms % 1000, mus % 1000, ns % 1000,
+			name.length(), name.c_str(),
+			warn_limit.count());
+	} else {
+		shared::log("Spent %2llu.%03llu,%03llu,%03llu ns in %*s OKAY (limit was %llu ns).",
+			s, ms % 1000, mus % 1000, ns % 1000,
+			name.length(), name.c_str(),
+			warn_limit.count());
 	}
 }
