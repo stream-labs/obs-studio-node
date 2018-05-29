@@ -59,24 +59,28 @@ void osn::Source::Register(ipc::server& srv) {
 }
 
 void osn::Source::GetTypeProperties(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	AUTO_DEBUG;
 	// Per Type Properties (doesn't have an object).
 	//obs_get_source_properties();
 }
 
 void osn::Source::GetTypeDefaults(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	AUTO_DEBUG;
 	// Per Type Defaults (doesn't have an object)
 	//obs_get_source_defaults();
 }
 
 void osn::Source::GetTypeOutputFlags(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	AUTO_DEBUG;
 	// Per Type Defaults (doesn't have an object)
 	//obs_get_source_output_flags();
 }
 
 void osn::Source::Remove(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
@@ -94,6 +98,7 @@ void osn::Source::Remove(void* data, const int64_t id, const std::vector<ipc::va
 }
 
 void osn::Source::Release(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
@@ -113,6 +118,7 @@ void osn::Source::Release(void* data, const int64_t id, const std::vector<ipc::v
 }
 
 void osn::Source::IsConfigurable(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
@@ -128,6 +134,7 @@ void osn::Source::IsConfigurable(void* data, const int64_t id, const std::vector
 }
 
 void osn::Source::GetProperties(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
@@ -275,6 +282,7 @@ void osn::Source::GetProperties(void* data, const int64_t id, const std::vector<
 }
 
 void osn::Source::GetSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
@@ -292,6 +300,7 @@ void osn::Source::GetSettings(void* data, const int64_t id, const std::vector<ip
 }
 
 void osn::Source::Update(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
@@ -310,6 +319,7 @@ void osn::Source::Update(void* data, const int64_t id, const std::vector<ipc::va
 }
 
 void osn::Source::Load(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
@@ -326,6 +336,7 @@ void osn::Source::Load(void* data, const int64_t id, const std::vector<ipc::valu
 }
 
 void osn::Source::Save(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
@@ -342,6 +353,7 @@ void osn::Source::Save(void* data, const int64_t id, const std::vector<ipc::valu
 }
 
 void osn::Source::GetType(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
@@ -357,6 +369,7 @@ void osn::Source::GetType(void* data, const int64_t id, const std::vector<ipc::v
 }
 
 void osn::Source::GetName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
@@ -372,6 +385,7 @@ void osn::Source::GetName(void* data, const int64_t id, const std::vector<ipc::v
 }
 
 void osn::Source::SetName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
@@ -389,6 +403,7 @@ void osn::Source::SetName(void* data, const int64_t id, const std::vector<ipc::v
 }
 
 void osn::Source::GetOutputFlags(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
@@ -404,6 +419,7 @@ void osn::Source::GetOutputFlags(void* data, const int64_t id, const std::vector
 }
 
 void osn::Source::GetFlags(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
@@ -419,6 +435,7 @@ void osn::Source::GetFlags(void* data, const int64_t id, const std::vector<ipc::
 }
 
 void osn::Source::SetFlags(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
@@ -436,6 +453,7 @@ void osn::Source::SetFlags(void* data, const int64_t id, const std::vector<ipc::
 }
 
 void osn::Source::GetStatus(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
@@ -451,6 +469,7 @@ void osn::Source::GetStatus(void* data, const int64_t id, const std::vector<ipc:
 }
 
 void osn::Source::GetId(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
@@ -467,6 +486,7 @@ void osn::Source::GetId(void* data, const int64_t id, const std::vector<ipc::val
 }
 
 void osn::Source::GetMuted(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
@@ -482,6 +502,7 @@ void osn::Source::GetMuted(void* data, const int64_t id, const std::vector<ipc::
 }
 
 void osn::Source::SetMuted(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
@@ -499,6 +520,7 @@ void osn::Source::SetMuted(void* data, const int64_t id, const std::vector<ipc::
 }
 
 void osn::Source::GetEnabled(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
@@ -514,6 +536,7 @@ void osn::Source::GetEnabled(void* data, const int64_t id, const std::vector<ipc
 }
 
 void osn::Source::SetEnabled(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {

@@ -32,6 +32,7 @@ void osn::Global::Register(ipc::server& srv) {
 }
 
 void osn::Global::GetOutputSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* source = obs_get_output_source(args[0].value_union.ui32);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -60,6 +61,7 @@ void osn::Global::GetOutputSource(void* data, const int64_t id, const std::vecto
 }
 
 void osn::Global::SetOutputSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* source = nullptr;
 	
 	if (args[1].value_union.ui64 != UINT64_MAX) {
@@ -85,6 +87,7 @@ void osn::Global::SetOutputSource(void* data, const int64_t id, const std::vecto
 }
 
 void osn::Global::GetOutputFlagsFromId(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	uint32_t flags = obs_get_source_output_flags(args[0].value_str.c_str());
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -93,12 +96,14 @@ void osn::Global::GetOutputFlagsFromId(void* data, const int64_t id, const std::
 }
 
 void osn::Global::LaggedFrames(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_get_lagged_frames()));
 	AUTO_DEBUG;
 }
 
 void osn::Global::TotalFrames(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_get_total_frames()));
 	AUTO_DEBUG;

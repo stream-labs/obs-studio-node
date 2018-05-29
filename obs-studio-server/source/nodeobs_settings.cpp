@@ -53,6 +53,7 @@ void OBS_settings::Register(ipc::server& srv) {
 
 void OBS_settings::OBS_settings_getListCategories(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	std::vector<std::string> listCategories = getListCategories();
 	uint32_t size = listCategories.size();
 
@@ -66,6 +67,7 @@ void OBS_settings::OBS_settings_getListCategories(void* data, const int64_t id, 
 
 void OBS_settings::OBS_settings_getSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	std::string nameCategory = args[0].value_str;
 	std::vector<SubCategory> settings = getSettings(nameCategory);
 	std::vector<char> binaryValue;
@@ -194,6 +196,7 @@ std::vector<SubCategory> serializeCategory(
 
 void OBS_settings::OBS_settings_saveSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	std::string nameCategory = args[0].value_str;
 	uint32_t subCategoriesCount = args[1].value_union.ui32;
 	uint32_t sizeStruct = args[2].value_union.ui32;

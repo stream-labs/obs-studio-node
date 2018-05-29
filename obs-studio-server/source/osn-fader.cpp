@@ -45,6 +45,7 @@ void osn::Fader::Register(ipc::server& srv) {
 }
 
 void osn::Fader::Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_fader_type type = (obs_fader_type)args[0].value_union.i32;
 
 	obs_fader_t* fader = obs_fader_create(type);
@@ -70,6 +71,7 @@ void osn::Fader::Create(void* data, const int64_t id, const std::vector<ipc::val
 }
 
 void osn::Fader::Destroy(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto uid = args[0].value_union.ui64;
 
 	auto fader = Manager::GetInstance().find(uid);
@@ -88,6 +90,7 @@ void osn::Fader::Destroy(void* data, const int64_t id, const std::vector<ipc::va
 }
 
 void osn::Fader::GetDeziBel(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto uid = args[0].value_union.ui64;
 
 	auto fader = Manager::GetInstance().find(uid);
@@ -104,6 +107,7 @@ void osn::Fader::GetDeziBel(void* data, const int64_t id, const std::vector<ipc:
 }
 
 void osn::Fader::SetDeziBel(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto uid = args[0].value_union.ui64;
 
 	auto fader = Manager::GetInstance().find(uid);
@@ -122,6 +126,7 @@ void osn::Fader::SetDeziBel(void* data, const int64_t id, const std::vector<ipc:
 }
 
 void osn::Fader::GetDeflection(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto uid = args[0].value_union.ui64;
 
 	auto fader = Manager::GetInstance().find(uid);
@@ -138,6 +143,7 @@ void osn::Fader::GetDeflection(void* data, const int64_t id, const std::vector<i
 }
 
 void osn::Fader::SetDeflection(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto uid = args[0].value_union.ui64;
 
 	auto fader = Manager::GetInstance().find(uid);
@@ -156,6 +162,7 @@ void osn::Fader::SetDeflection(void* data, const int64_t id, const std::vector<i
 }
 
 void osn::Fader::GetMultiplier(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto uid = args[0].value_union.ui64;
 
 	auto fader = Manager::GetInstance().find(uid);
@@ -172,6 +179,7 @@ void osn::Fader::GetMultiplier(void* data, const int64_t id, const std::vector<i
 }
 
 void osn::Fader::SetMultiplier(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto uid = args[0].value_union.ui64;
 
 	auto fader = Manager::GetInstance().find(uid);
@@ -190,6 +198,7 @@ void osn::Fader::SetMultiplier(void* data, const int64_t id, const std::vector<i
 }
 
 void osn::Fader::Attach(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto uid_fader = args[0].value_union.ui64;
 	auto uid_source = args[1].value_union.ui64;
 
@@ -221,6 +230,7 @@ void osn::Fader::Attach(void* data, const int64_t id, const std::vector<ipc::val
 }
 
 void osn::Fader::Detach(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto uid = args[0].value_union.ui64;
 
 	auto fader = Manager::GetInstance().find(uid);
@@ -238,9 +248,11 @@ void osn::Fader::Detach(void* data, const int64_t id, const std::vector<ipc::val
 }
 
 void osn::Fader::AddCallback(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	//!FIXME!
 }
 
 void osn::Fader::RemoveCallback(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	//!FIXME!
 }

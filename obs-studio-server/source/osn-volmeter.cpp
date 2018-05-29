@@ -52,6 +52,7 @@ void osn::VolMeter::Register(ipc::server& srv) {
 }
 
 void osn::VolMeter::Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_fader_type type = (obs_fader_type)args[0].value_union.i32;
 	std::shared_ptr<VolMeter> meter;
 
@@ -80,6 +81,7 @@ void osn::VolMeter::Create(void* data, const int64_t id, const std::vector<ipc::
 }
 
 void osn::VolMeter::Destroy(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto uid = args[0].value_union.ui64;
 
 	auto meter = Manager::GetInstance().find(uid);
@@ -102,6 +104,7 @@ void osn::VolMeter::Destroy(void* data, const int64_t id, const std::vector<ipc:
 }
 
 void osn::VolMeter::GetUpdateInterval(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto uid = args[0].value_union.ui64;
 
 	auto meter = Manager::GetInstance().find(uid);
@@ -118,6 +121,7 @@ void osn::VolMeter::GetUpdateInterval(void* data, const int64_t id, const std::v
 }
 
 void osn::VolMeter::SetUpdateInterval(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto uid = args[0].value_union.ui64;
 
 	auto meter = Manager::GetInstance().find(uid);
@@ -136,6 +140,7 @@ void osn::VolMeter::SetUpdateInterval(void* data, const int64_t id, const std::v
 }
 
 void osn::VolMeter::Attach(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto uid_fader = args[0].value_union.ui64;
 	auto uid_source = args[1].value_union.ui64;
 
@@ -167,6 +172,7 @@ void osn::VolMeter::Attach(void* data, const int64_t id, const std::vector<ipc::
 }
 
 void osn::VolMeter::Detach(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto uid = args[0].value_union.ui64;
 
 	auto meter = Manager::GetInstance().find(uid);
@@ -184,6 +190,7 @@ void osn::VolMeter::Detach(void* data, const int64_t id, const std::vector<ipc::
 }
 
 void osn::VolMeter::AddCallback(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto uid = args[0].value_union.ui64;
 	auto meter = Manager::GetInstance().find(uid);
 	if (!meter) {
@@ -206,6 +213,7 @@ void osn::VolMeter::AddCallback(void* data, const int64_t id, const std::vector<
 }
 
 void osn::VolMeter::RemoveCallback(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto uid = args[0].value_union.ui64;
 	auto meter = Manager::GetInstance().find(uid);
 	if (!meter) {
@@ -228,6 +236,7 @@ void osn::VolMeter::RemoveCallback(void* data, const int64_t id, const std::vect
 }
 
 void osn::VolMeter::Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto uid = args[0].value_union.ui64;
 	auto meter = Manager::GetInstance().find(uid);
 	if (!meter) {

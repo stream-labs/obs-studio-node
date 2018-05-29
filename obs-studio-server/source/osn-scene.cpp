@@ -30,6 +30,7 @@ void osn::Scene::Register(ipc::server& srv) {
 }
 
 void osn::Scene::Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_scene_t* scene = obs_scene_create(args[0].value_str.c_str());
 	if (!scene) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
@@ -60,6 +61,7 @@ void osn::Scene::Create(void* data, const int64_t id, const std::vector<ipc::val
 }
 
 void osn::Scene::CreatePrivate(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_scene_t* scene = obs_scene_create_private(args[0].value_str.c_str());
 	if (!scene) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
@@ -90,6 +92,7 @@ void osn::Scene::CreatePrivate(void* data, const int64_t id, const std::vector<i
 }
 
 void osn::Scene::FromName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* source = obs_get_source_by_name(args[0].value_str.c_str());
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
@@ -119,6 +122,7 @@ void osn::Scene::FromName(void* data, const int64_t id, const std::vector<ipc::v
 }
 
 void osn::Scene::Release(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -162,6 +166,7 @@ void osn::Scene::Release(void* data, const int64_t id, const std::vector<ipc::va
 }
 
 void osn::Scene::Remove(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -201,6 +206,7 @@ void osn::Scene::Remove(void* data, const int64_t id, const std::vector<ipc::val
 }
 
 void osn::Scene::AsSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	// Scenes are stored as such.
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(args[0].value_union.ui64));
@@ -208,6 +214,7 @@ void osn::Scene::AsSource(void* data, const int64_t id, const std::vector<ipc::v
 }
 
 void osn::Scene::Duplicate(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -254,6 +261,7 @@ void osn::Scene::Duplicate(void* data, const int64_t id, const std::vector<ipc::
 }
 
 void osn::Scene::AddSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -295,6 +303,7 @@ void osn::Scene::AddSource(void* data, const int64_t id, const std::vector<ipc::
 }
 
 void osn::Scene::FindItemByName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -337,6 +346,7 @@ void osn::Scene::FindItemByName(void* data, const int64_t id, const std::vector<
 }
 
 void osn::Scene::FindItemByItemId(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -379,6 +389,7 @@ void osn::Scene::FindItemByItemId(void* data, const int64_t id, const std::vecto
 }
 
 void osn::Scene::MoveItem(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -440,6 +451,7 @@ void osn::Scene::MoveItem(void* data, const int64_t id, const std::vector<ipc::v
 }
 
 void osn::Scene::GetItem(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -499,6 +511,7 @@ void osn::Scene::GetItem(void* data, const int64_t id, const std::vector<ipc::va
 }
 
 void osn::Scene::GetItems(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -542,6 +555,7 @@ void osn::Scene::GetItems(void* data, const int64_t id, const std::vector<ipc::v
 }
 
 void osn::Scene::GetItemsInRange(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -597,11 +611,13 @@ void osn::Scene::GetItemsInRange(void* data, const int64_t id, const std::vector
 }
 
 void osn::Scene::Connect(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	AUTO_DEBUG;
 	// !FIXME! Signals
 }
 
 void osn::Scene::Disconnect(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	AUTO_DEBUG;
 	// !FIXME! Signals
 }

@@ -40,6 +40,7 @@ void osn::Transition::Register(ipc::server& srv) {
 }
 
 void osn::Transition::Types(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	const char* typeId = nullptr;
 	for (size_t idx = 0; obs_enum_transition_types(idx, &typeId); idx++) {
@@ -49,6 +50,7 @@ void osn::Transition::Types(void* data, const int64_t id, const std::vector<ipc:
 }
 
 void osn::Transition::Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	std::string sourceId, name;
 	obs_data_t *settings = nullptr, *hotkeys = nullptr;
 
@@ -86,6 +88,7 @@ void osn::Transition::Create(void* data, const int64_t id, const std::vector<ipc
 }
 
 void osn::Transition::CreatePrivate(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	std::string sourceId, name;
 	obs_data_t *settings = nullptr;
 
@@ -121,6 +124,7 @@ void osn::Transition::CreatePrivate(void* data, const int64_t id, const std::vec
 }
 
 void osn::Transition::FromName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* source = obs_get_source_by_name(args[0].value_str.c_str());
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::NotFound));
@@ -150,6 +154,7 @@ void osn::Transition::FromName(void* data, const int64_t id, const std::vector<i
 }
 
 void osn::Transition::GetActiveSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	uint64_t uid = -1;
 
 	// Attempt to find the source asked to load.
@@ -186,6 +191,7 @@ void osn::Transition::GetActiveSource(void* data, const int64_t id, const std::v
 }
 
 void osn::Transition::Clear(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	// Attempt to find the source asked to load.
 	obs_source_t* transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!transition) {
@@ -202,6 +208,7 @@ void osn::Transition::Clear(void* data, const int64_t id, const std::vector<ipc:
 }
 
 void osn::Transition::Set(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	// Attempt to find the source asked to load.
 	obs_source_t* transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!transition) {
@@ -226,6 +233,7 @@ void osn::Transition::Set(void* data, const int64_t id, const std::vector<ipc::v
 }
 
 void osn::Transition::Start(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	// Attempt to find the source asked to load.
 	obs_source_t* transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!transition) {

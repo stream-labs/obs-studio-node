@@ -175,6 +175,7 @@ void OBS_content::Register(ipc::server& srv) {
 }
 
 void OBS_content::OBS_content_createDisplay(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	uint64_t windowHandle = args[0].value_union.ui64;
 	auto found = displays.find(args[1].value_str);
 
@@ -191,6 +192,7 @@ void OBS_content::OBS_content_createDisplay(void* data, const int64_t id, const 
 }
 
 void OBS_content::OBS_content_destroyDisplay(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto found = displays.find(args[0].value_str);
 
 	if (found == displays.end()) {
@@ -205,6 +207,7 @@ void OBS_content::OBS_content_destroyDisplay(void* data, const int64_t id, const
 }
 
 void OBS_content::OBS_content_createSourcePreviewDisplay(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	uint64_t windowHandle = args[0].value_union.ui64;
 
 	auto found = displays.find(args[2].value_str);
@@ -221,6 +224,7 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(void* data, const int64
 }
 
 void OBS_content::OBS_content_resizeDisplay(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto value = displays.find(args[0].value_str);
 	if (value == displays.end()) {
 		std::cout << "Invalid key provided to resizeDisplay: " << args[0].value_str << std::endl;
@@ -238,6 +242,7 @@ void OBS_content::OBS_content_resizeDisplay(void* data, const int64_t id, const 
 }
 
 void OBS_content::OBS_content_moveDisplay(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto value = displays.find(args[0].value_str);
 	if (value == displays.end()) {
 		std::cout << "Invalid key provided to moveDisplay: " << args[0].value_str << std::endl;
@@ -255,6 +260,7 @@ void OBS_content::OBS_content_moveDisplay(void* data, const int64_t id, const st
 }
 
 void OBS_content::OBS_content_setPaddingSize(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	// Validate Arguments
 	/// Amount
 	/*switch (args.size()) {
@@ -311,6 +317,7 @@ void OBS_content::OBS_content_setPaddingSize(void* data, const int64_t id, const
 }
 
 void OBS_content::OBS_content_setPaddingColor(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	union {
 		uint32_t rgba;
 		uint8_t c[4];
@@ -399,6 +406,7 @@ void OBS_content::OBS_content_setPaddingColor(void* data, const int64_t id, cons
 }
 
 void OBS_content::OBS_content_setBackgroundColor(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	union {
 		uint32_t rgba;
 		uint8_t c[4];
@@ -488,6 +496,7 @@ void OBS_content::OBS_content_setBackgroundColor(void* data, const int64_t id, c
 
 void OBS_content::OBS_content_setOutlineColor(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	union {
 		uint32_t rgba;
 		uint8_t c[4];
@@ -577,6 +586,7 @@ void OBS_content::OBS_content_setOutlineColor(void* data, const int64_t id, cons
 
 void OBS_content::OBS_content_setGuidelineColor(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	union {
 		uint32_t rgba;
 		uint8_t c[4];
@@ -666,6 +676,7 @@ void OBS_content::OBS_content_setGuidelineColor(void* data, const int64_t id, co
 
 void OBS_content::OBS_content_setResizeBoxOuterColor(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	union {
 		uint32_t rgba;
 		uint8_t c[4];
@@ -762,6 +773,7 @@ void OBS_content::OBS_content_setResizeBoxOuterColor(void* data, const int64_t i
 
 void OBS_content::OBS_content_setResizeBoxInnerColor(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	union {
 		uint32_t rgba;
 		uint8_t c[4];
@@ -858,7 +870,8 @@ void OBS_content::OBS_content_setResizeBoxInnerColor(void* data, const int64_t i
 
 void OBS_content::OBS_content_setShouldDrawUI(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-	const char *usage_string = 
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
+	const char *usage_string =
 		"Usage: OBS_content_setShouldDrawUI"
 		"(displayKey<string>, value<boolean>)";
 
@@ -916,6 +929,7 @@ void OBS_content::OBS_content_setShouldDrawUI(void* data, const int64_t id, cons
 }
 
 void OBS_content::OBS_content_getDisplayPreviewOffset(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto value = displays.find(args[0].value_str);
 	if (value == displays.end()) {
 		std::cout << "Invalid key provided to moveDisplay: " << args[0].value_str << std::endl;
@@ -933,6 +947,7 @@ void OBS_content::OBS_content_getDisplayPreviewOffset(void* data, const int64_t 
 }
 
 void OBS_content::OBS_content_getDisplayPreviewSize(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto value = displays.find(args[0].value_str);
 	if (value == displays.end()) {
 		std::cout << "Invalid key provided to moveDisplay: " << args[0].value_str << std::endl;
@@ -951,6 +966,7 @@ void OBS_content::OBS_content_getDisplayPreviewSize(void* data, const int64_t id
 
 /* Deprecated */
 void OBS_content::OBS_content_selectSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	/* Here we assume that channel 0 holds the one and only transition.
 	 * We also assume that the active source within that transition is
 	 * the scene that we need */
@@ -1028,6 +1044,7 @@ bool selectItems(obs_scene_t *scene, obs_sceneitem_t *item, void *param)
 /* Deprecated */
 void OBS_content::OBS_content_selectSources(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t *transition = obs_get_output_source(0);
 	obs_source_t *source = obs_transition_get_active_source(transition);
 	obs_scene_t *scene = obs_scene_from_source(source);
@@ -1052,6 +1069,7 @@ void OBS_content::OBS_content_selectSources(void* data, const int64_t id, const 
 
 void OBS_content::OBS_content_dragSelectedSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	int32_t x = args[0].value_union.i32;
 	int32_t y = args[1].value_union.i32;
 
@@ -1085,6 +1103,7 @@ void OBS_content::OBS_content_dragSelectedSource(void* data, const int64_t id, c
 void OBS_content::OBS_content_getDrawGuideLines(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	const char *usage_string =
 		"Usage: OBS_content_getDrawGuideLines(displayKey<string>)";
 
@@ -1127,6 +1146,7 @@ void OBS_content::OBS_content_getDrawGuideLines(void* data, const int64_t id, co
 
 void OBS_content::OBS_content_setDrawGuideLines(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	const char *usage_string =
 		"Usage: OBS_content_getDrawGuideLines"
 		"(displayKey<string>, drawGuideLines<boolean>)";

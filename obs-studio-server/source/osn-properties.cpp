@@ -29,6 +29,7 @@ void osn::Properties::Register(ipc::server& srv) {
 }
 
 void osn::Properties::Modified(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	uint64_t sourceId = args[0].value_union.ui64;
 	std::string name = args[1].value_str;
 
@@ -57,6 +58,7 @@ void osn::Properties::Modified(void* data, const int64_t id, const std::vector<i
 }
 
 void osn::Properties::Clicked(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	uint64_t sourceId = args[0].value_union.ui64;
 	std::string name = args[1].value_str;
 

@@ -64,6 +64,7 @@ void osn::Input::Register(ipc::server& srv) {
 }
 
 void osn::Input::Types(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	const char* typeId = nullptr;
 	for (size_t idx = 0; obs_enum_input_types(idx, &typeId); idx++) {
@@ -73,6 +74,7 @@ void osn::Input::Types(void* data, const int64_t id, const std::vector<ipc::valu
 }
 
 void osn::Input::Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	std::string sourceId, name;
 	obs_data_t *settings = nullptr, *hotkeys = nullptr;
 
@@ -110,6 +112,7 @@ void osn::Input::Create(void* data, const int64_t id, const std::vector<ipc::val
 }
 
 void osn::Input::CreatePrivate(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	std::string sourceId, name;
 	obs_data_t *settings = nullptr;
 
@@ -145,6 +148,7 @@ void osn::Input::CreatePrivate(void* data, const int64_t id, const std::vector<i
 }
 
 void osn::Input::Duplicate(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* filter = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!filter) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -186,6 +190,7 @@ void osn::Input::Duplicate(void* data, const int64_t id, const std::vector<ipc::
 }
 
 void osn::Input::FromName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* source = obs_get_source_by_name(args[0].value_str.c_str());
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::NotFound));
@@ -215,6 +220,7 @@ void osn::Input::FromName(void* data, const int64_t id, const std::vector<ipc::v
 }
 
 void osn::Input::GetPublicSources(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	std::list<uint64_t> inputs;
 
 	// !FIXME! Optimize for zero-copy operation, can directly write to rval.
@@ -236,6 +242,7 @@ void osn::Input::GetPublicSources(void* data, const int64_t id, const std::vecto
 }
 
 void osn::Input::GetActive(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -250,6 +257,7 @@ void osn::Input::GetActive(void* data, const int64_t id, const std::vector<ipc::
 }
 
 void osn::Input::GetShowing(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -264,6 +272,7 @@ void osn::Input::GetShowing(void* data, const int64_t id, const std::vector<ipc:
 }
 
 void osn::Input::GetVolume(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -278,6 +287,7 @@ void osn::Input::GetVolume(void* data, const int64_t id, const std::vector<ipc::
 }
 
 void osn::Input::SetVolume(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -294,6 +304,7 @@ void osn::Input::SetVolume(void* data, const int64_t id, const std::vector<ipc::
 }
 
 void osn::Input::GetSyncOffset(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -308,6 +319,7 @@ void osn::Input::GetSyncOffset(void* data, const int64_t id, const std::vector<i
 }
 
 void osn::Input::SetSyncOffset(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -324,6 +336,7 @@ void osn::Input::SetSyncOffset(void* data, const int64_t id, const std::vector<i
 }
 
 void osn::Input::GetAudioMixers(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -338,6 +351,7 @@ void osn::Input::GetAudioMixers(void* data, const int64_t id, const std::vector<
 }
 
 void osn::Input::SetAudioMixers(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -354,6 +368,7 @@ void osn::Input::SetAudioMixers(void* data, const int64_t id, const std::vector<
 }
 
 void osn::Input::GetMonitoringType(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -368,6 +383,7 @@ void osn::Input::GetMonitoringType(void* data, const int64_t id, const std::vect
 }
 
 void osn::Input::SetMonitoringType(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -384,6 +400,7 @@ void osn::Input::SetMonitoringType(void* data, const int64_t id, const std::vect
 }
 
 void osn::Input::GetWidth(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -398,6 +415,7 @@ void osn::Input::GetWidth(void* data, const int64_t id, const std::vector<ipc::v
 }
 
 void osn::Input::GetHeight(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -412,6 +430,7 @@ void osn::Input::GetHeight(void* data, const int64_t id, const std::vector<ipc::
 }
 
 void osn::Input::GetDeInterlaceFieldOrder(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -426,6 +445,7 @@ void osn::Input::GetDeInterlaceFieldOrder(void* data, const int64_t id, const st
 }
 
 void osn::Input::SetDeInterlaceFieldOrder(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -442,6 +462,7 @@ void osn::Input::SetDeInterlaceFieldOrder(void* data, const int64_t id, const st
 }
 
 void osn::Input::GetDeInterlaceMode(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -456,6 +477,7 @@ void osn::Input::GetDeInterlaceMode(void* data, const int64_t id, const std::vec
 }
 
 void osn::Input::SetDeInterlaceMode(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -472,6 +494,7 @@ void osn::Input::SetDeInterlaceMode(void* data, const int64_t id, const std::vec
 }
 
 void osn::Input::AddFilter(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -495,6 +518,7 @@ void osn::Input::AddFilter(void* data, const int64_t id, const std::vector<ipc::
 }
 
 void osn::Input::RemoveFilter(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -518,6 +542,7 @@ void osn::Input::RemoveFilter(void* data, const int64_t id, const std::vector<ip
 }
 
 void osn::Input::FindFilter(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -548,6 +573,7 @@ void osn::Input::FindFilter(void* data, const int64_t id, const std::vector<ipc:
 }
 
 void osn::Input::GetFilters(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -571,6 +597,7 @@ void osn::Input::GetFilters(void* data, const int64_t id, const std::vector<ipc:
 }
 
 void osn::Input::CopyFiltersTo(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_source_t* input_from = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input_from) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));

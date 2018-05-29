@@ -22,6 +22,8 @@
 #include "ipc-value.hpp"
 #include <vector>
 #include <sstream>
+#include <chrono>
+#include <string>
 
 #ifndef __FUNCTION_NAME__
 #if defined(_WIN32) || defined(_WIN64)   //WINDOWS
@@ -72,6 +74,17 @@ static inline std::string StringFromIPCValueVector(std::vector<ipc::value> const
 	}
 
 	return mystream.str();
+}
+
+namespace shared {
+	struct LogWarnTimer {
+		std::string name;
+		std::chrono::high_resolution_clock::time_point begin;
+		std::chrono::nanoseconds warn_limit;
+
+		LogWarnTimer(std::string name, std::chrono::nanoseconds const warn_limit = std::chrono::nanoseconds(2000000ull));
+		~LogWarnTimer();
+	};
 }
 
 //#define EXTENDED_DEBUG_LOG

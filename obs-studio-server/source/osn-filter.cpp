@@ -32,6 +32,7 @@ void osn::Filter::Register(ipc::server& srv) {
 }
 
 void osn::Filter::Types(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	const char* typeId = nullptr;
 	for (size_t idx = 0; obs_enum_filter_types(idx, &typeId); idx++) {
@@ -41,6 +42,7 @@ void osn::Filter::Types(void* data, const int64_t id, const std::vector<ipc::val
 }
 
 void osn::Filter::Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	std::string sourceId, name;
 	obs_data_t *settings = nullptr;
 

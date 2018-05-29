@@ -42,6 +42,7 @@ void osn::SceneItem::Register(ipc::server& srv) {
 }
 
 void osn::SceneItem::GetSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -65,6 +66,7 @@ void osn::SceneItem::GetSource(void* data, const int64_t id, const std::vector<i
 }
 
 void osn::SceneItem::GetScene(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -96,6 +98,7 @@ void osn::SceneItem::GetScene(void* data, const int64_t id, const std::vector<ip
 }
 
 void osn::SceneItem::Remove(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -113,6 +116,7 @@ void osn::SceneItem::Remove(void* data, const int64_t id, const std::vector<ipc:
 }
 
 void osn::SceneItem::IsVisible(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -127,6 +131,7 @@ void osn::SceneItem::IsVisible(void* data, const int64_t id, const std::vector<i
 }
 
 void osn::SceneItem::SetVisible(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -143,6 +148,7 @@ void osn::SceneItem::SetVisible(void* data, const int64_t id, const std::vector<
 }
 
 void osn::SceneItem::IsSelected(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -157,6 +163,7 @@ void osn::SceneItem::IsSelected(void* data, const int64_t id, const std::vector<
 }
 
 void osn::SceneItem::SetSelected(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -173,6 +180,7 @@ void osn::SceneItem::SetSelected(void* data, const int64_t id, const std::vector
 }
 
 void osn::SceneItem::GetPosition(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -191,6 +199,7 @@ void osn::SceneItem::GetPosition(void* data, const int64_t id, const std::vector
 }
 
 void osn::SceneItem::SetPosition(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -213,6 +222,7 @@ void osn::SceneItem::SetPosition(void* data, const int64_t id, const std::vector
 }
 
 void osn::SceneItem::GetRotation(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -227,6 +237,7 @@ void osn::SceneItem::GetRotation(void* data, const int64_t id, const std::vector
 }
 
 void osn::SceneItem::SetRotation(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -243,6 +254,7 @@ void osn::SceneItem::SetRotation(void* data, const int64_t id, const std::vector
 }
 
 void osn::SceneItem::GetScale(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -261,6 +273,7 @@ void osn::SceneItem::GetScale(void* data, const int64_t id, const std::vector<ip
 }
 
 void osn::SceneItem::SetScale(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -283,6 +296,7 @@ void osn::SceneItem::SetScale(void* data, const int64_t id, const std::vector<ip
 }
 
 void osn::SceneItem::GetScaleFilter(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -299,6 +313,7 @@ void osn::SceneItem::GetScaleFilter(void* data, const int64_t id, const std::vec
 }
 
 void osn::SceneItem::SetScaleFilter(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -316,6 +331,7 @@ void osn::SceneItem::SetScaleFilter(void* data, const int64_t id, const std::vec
 }
 
 void osn::SceneItem::GetAlignment(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -332,6 +348,7 @@ void osn::SceneItem::GetAlignment(void* data, const int64_t id, const std::vecto
 }
 
 void osn::SceneItem::SetAlignment(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -349,6 +366,7 @@ void osn::SceneItem::SetAlignment(void* data, const int64_t id, const std::vecto
 }
 
 void osn::SceneItem::GetBounds(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -366,6 +384,7 @@ void osn::SceneItem::GetBounds(void* data, const int64_t id, const std::vector<i
 }
 
 void osn::SceneItem::SetBounds(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -386,6 +405,7 @@ void osn::SceneItem::SetBounds(void* data, const int64_t id, const std::vector<i
 }
 
 void osn::SceneItem::GetBoundsAlignment(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -402,6 +422,7 @@ void osn::SceneItem::GetBoundsAlignment(void* data, const int64_t id, const std:
 }
 
 void osn::SceneItem::SetBoundsAlignment(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -419,6 +440,7 @@ void osn::SceneItem::SetBoundsAlignment(void* data, const int64_t id, const std:
 }
 
 void osn::SceneItem::GetBoundsType(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -435,6 +457,7 @@ void osn::SceneItem::GetBoundsType(void* data, const int64_t id, const std::vect
 }
 
 void osn::SceneItem::SetBoundsType(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -452,6 +475,7 @@ void osn::SceneItem::SetBoundsType(void* data, const int64_t id, const std::vect
 }
 
 void osn::SceneItem::GetCrop(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -472,6 +496,7 @@ void osn::SceneItem::GetCrop(void* data, const int64_t id, const std::vector<ipc
 }
 
 void osn::SceneItem::SetCrop(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -498,6 +523,7 @@ void osn::SceneItem::SetCrop(void* data, const int64_t id, const std::vector<ipc
 }
 
 void osn::SceneItem::GetId(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -512,6 +538,7 @@ void osn::SceneItem::GetId(void* data, const int64_t id, const std::vector<ipc::
 }
 
 void osn::SceneItem::MoveUp(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -525,6 +552,7 @@ void osn::SceneItem::MoveUp(void* data, const int64_t id, const std::vector<ipc:
 }
 
 void osn::SceneItem::MoveDown(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -540,6 +568,7 @@ void osn::SceneItem::MoveDown(void* data, const int64_t id, const std::vector<ip
 }
 
 void osn::SceneItem::MoveTop(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -555,6 +584,7 @@ void osn::SceneItem::MoveTop(void* data, const int64_t id, const std::vector<ipc
 }
 
 void osn::SceneItem::MoveBottom(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -570,6 +600,7 @@ void osn::SceneItem::MoveBottom(void* data, const int64_t id, const std::vector<
 }
 
 void osn::SceneItem::Move(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -585,6 +616,7 @@ void osn::SceneItem::Move(void* data, const int64_t id, const std::vector<ipc::v
 }
 
 void osn::SceneItem::DeferUpdateBegin(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -600,6 +632,7 @@ void osn::SceneItem::DeferUpdateBegin(void* data, const int64_t id, const std::v
 }
 
 void osn::SceneItem::DeferUpdateEnd(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));

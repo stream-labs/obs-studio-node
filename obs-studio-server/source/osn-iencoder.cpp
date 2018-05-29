@@ -17,6 +17,7 @@
 
 #include "osn-IEncoder.hpp"
 #include <obs.h>
+#include "shared.hpp"
 
 void osn::IEncoder::Register(ipc::server& srv) {
 	auto cls = std::make_shared<ipc::collection>("IEncoder");
@@ -34,6 +35,7 @@ void osn::IEncoder::Register(ipc::server& srv) {
 }
 
 void osn::IEncoder::GetId(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto p = obs_get_encoder_by_name(args[0].value_str.c_str());
 	if (p == nullptr) {
 		rval[0].type = ipc::type::Null;
@@ -48,6 +50,7 @@ void osn::IEncoder::GetId(void* data, const int64_t id, const std::vector<ipc::v
 }
 
 void osn::IEncoder::GetName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto p = obs_get_encoder_by_name(args[0].value_str.c_str());
 	if (p == nullptr) {
 		rval[0].type = ipc::type::Null;
@@ -61,6 +64,7 @@ void osn::IEncoder::GetName(void* data, const int64_t id, const std::vector<ipc:
 }
 
 void osn::IEncoder::SetName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto p = obs_get_encoder_by_name(args[0].value_str.c_str());
 	if (p == nullptr) {
 		rval[0].type = ipc::type::Null;
@@ -73,11 +77,13 @@ void osn::IEncoder::SetName(void* data, const int64_t id, const std::vector<ipc:
 }
 
 void osn::IEncoder::GetCaps(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	rval[0].type = ipc::type::UInt32;
 	rval[0].value_union.ui32 = obs_get_encoder_caps(args[0].value_str.c_str());
 }
 
 void osn::IEncoder::GetType(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto p = obs_get_encoder_by_name(args[0].value_str.c_str());
 	if (p == nullptr) {
 		rval[0].type = ipc::type::Null;
@@ -91,6 +97,7 @@ void osn::IEncoder::GetType(void* data, const int64_t id, const std::vector<ipc:
 }
 
 void osn::IEncoder::GetCodec(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto p = obs_get_encoder_by_name(args[0].value_str.c_str());
 	if (p == nullptr) {
 		rval[0].type = ipc::type::Null;
@@ -104,18 +111,22 @@ void osn::IEncoder::GetCodec(void* data, const int64_t id, const std::vector<ipc
 }
 
 void osn::IEncoder::Update(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 
 }
 
 void osn::IEncoder::GetProperties(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 
 }
 
 void osn::IEncoder::GetSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 
 }
 
 void osn::IEncoder::Release(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	auto p = obs_get_encoder_by_name(args[0].value_str.c_str());
 	if (p == nullptr) {
 		rval[0].type = ipc::type::Null;

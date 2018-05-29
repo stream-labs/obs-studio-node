@@ -384,6 +384,7 @@ static void node_obs_log(int log_level, const char *msg, va_list args, void *par
 #pragma endregion Logging
 
 void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	/* Map base DLLs as soon as possible into the current process space.
 	* In particular, we need to load obs.dll into memory before we call
 	* any functions from obs else if we delay-loaded the dll, it will
@@ -542,12 +543,14 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 }
 
 void OBS_API::OBS_API_destroyOBS_API(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	destroyOBS_API();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
 
 void OBS_API::OBS_API_getPerformanceStatistics(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
 	double percentage = getCPU_Percentage();
@@ -565,6 +568,7 @@ void OBS_API::OBS_API_getPerformanceStatistics(void* data, const int64_t id, con
 }
 
 void OBS_API::OBS_API_getOBS_existingProfiles(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	std::string pathProfiles;
 	pathProfiles += OBS_pathConfigDirectory;
 	pathProfiles += "\\basic\\profiles\\";
@@ -581,6 +585,7 @@ void OBS_API::OBS_API_getOBS_existingProfiles(void* data, const int64_t id, cons
 }
 
 void OBS_API::OBS_API_getOBS_existingSceneCollections(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	std::string pathSceneCollections;
 	pathSceneCollections += OBS_pathConfigDirectory;
 	pathSceneCollections += "\\basic\\scenes\\";
@@ -607,6 +612,7 @@ void OBS_API::OBS_API_getOBS_existingSceneCollections(void* data, const int64_t 
 }
 
 void OBS_API::OBS_API_isOBS_installed(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((bool)isOBS_installed()));
 	AUTO_DEBUG;

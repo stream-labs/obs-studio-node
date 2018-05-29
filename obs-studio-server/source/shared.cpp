@@ -16,3 +16,32 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
 
 #include "shared.hpp"
+#include "obs.h"
+
+shared::LogWarnTimer::~LogWarnTimer() {
+	auto end = std::chrono::high_resolution_clock::now();
+	std::chrono::nanoseconds dur =
+		std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
+	size_t ns = dur.count();
+	size_t mus = ns / 1000;
+	size_t ms = mus / 1000;
+	size_t s = ms / 1000;
+
+	if (dur >= warn_limit) {
+		blog(LOG_INFO, "Spent %2llu.%03llu,%03llu,%03llu ns in %*s NOT OKAY (limit was %llu ns).",
+			s, ms % 1000, mus % 1000, ns % 1000,
+			name.length(), name.c_str(),
+			warn_limit.count());
+	} else {
+		blog(LOG_INFO, "Spent %2llu.%03llu,%03llu,%03llu ns in %*s OKAY (limit was %llu ns).",
+			s, ms % 1000, mus % 1000, ns % 1000,
+			name.length(), name.c_str(),
+			warn_limit.count());
+	}
+}
+
+shared::LogWarnTimer::LogWarnTimer(std::string name, std::chrono::nanoseconds const warn_limit /*= std::chrono::nanoseconds(2000000ull)*/) {
+	this->name = name;
+	this->warn_limit = warn_limit;
+	this->begin = std::chrono::high_resolution_clock::now();
+}

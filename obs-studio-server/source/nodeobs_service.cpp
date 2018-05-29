@@ -65,6 +65,7 @@ void OBS_service::Register(ipc::server& srv) {
 
 void OBS_service::OBS_service_resetAudioContext(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	resetAudioContext();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -72,6 +73,7 @@ void OBS_service::OBS_service_resetAudioContext(void* data, const int64_t id, co
 
 void OBS_service::OBS_service_resetVideoContext(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	resetVideoContext(NULL);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -86,6 +88,7 @@ void OBS_service::OBS_service_createAudioEncoder(void* data, const int64_t id, c
 
 void OBS_service::OBS_service_createVideoStreamingEncoder(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	createVideoStreamingEncoder();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -93,6 +96,7 @@ void OBS_service::OBS_service_createVideoStreamingEncoder(void* data, const int6
 
 void OBS_service::OBS_service_createVideoRecordingEncoder(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	createVideoRecordingEncoder();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -100,6 +104,7 @@ void OBS_service::OBS_service_createVideoRecordingEncoder(void* data, const int6
 
 void OBS_service::OBS_service_createService(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	createService();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -107,6 +112,7 @@ void OBS_service::OBS_service_createService(void* data, const int64_t id, const 
 
 void OBS_service::OBS_service_createRecordingSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	createRecordingSettings();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -114,6 +120,7 @@ void OBS_service::OBS_service_createRecordingSettings(void* data, const int64_t 
 
 void OBS_service::OBS_service_createStreamingOutput(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	createStreamingOutput();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -121,6 +128,7 @@ void OBS_service::OBS_service_createStreamingOutput(void* data, const int64_t id
 
 void OBS_service::OBS_service_createRecordingOutput(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	createRecordingOutput();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -128,6 +136,7 @@ void OBS_service::OBS_service_createRecordingOutput(void* data, const int64_t id
 
 void OBS_service::OBS_service_startStreaming(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	startStreaming();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -135,6 +144,7 @@ void OBS_service::OBS_service_startStreaming(void* data, const int64_t id, const
 
 void OBS_service::OBS_service_startRecording(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	startRecording();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -142,6 +152,7 @@ void OBS_service::OBS_service_startRecording(void* data, const int64_t id, const
 
 void OBS_service::OBS_service_stopStreaming(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	stopStreaming((bool)args[0].value_union.i32);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	std::cout << "STOPPED STREAMING" << std::endl;
@@ -150,6 +161,7 @@ void OBS_service::OBS_service_stopStreaming(void* data, const int64_t id, const 
 
 void OBS_service::OBS_service_stopRecording(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
 	stopRecording();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -157,42 +169,48 @@ void OBS_service::OBS_service_stopRecording(void* data, const int64_t id, const 
 
 void OBS_service::OBS_service_associateAudioAndVideoToTheCurrentStreamingContext(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-    associateAudioAndVideoToTheCurrentStreamingContext();
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
+	associateAudioAndVideoToTheCurrentStreamingContext();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
 
 void OBS_service::OBS_service_associateAudioAndVideoToTheCurrentRecordingContext(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-    associateAudioAndVideoToTheCurrentRecordingContext();
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
+	associateAudioAndVideoToTheCurrentRecordingContext();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
 
 void OBS_service::OBS_service_associateAudioAndVideoEncodersToTheCurrentStreamingOutput(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-    associateAudioAndVideoEncodersToTheCurrentStreamingOutput();
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
+	associateAudioAndVideoEncodersToTheCurrentStreamingOutput();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
 
 void OBS_service::OBS_service_associateAudioAndVideoEncodersToTheCurrentRecordingOutput(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-    associateAudioAndVideoEncodersToTheCurrentRecordingOutput();
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
+	associateAudioAndVideoEncodersToTheCurrentRecordingOutput();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
 
 void OBS_service::OBS_service_setServiceToTheStreamingOutput(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-    setServiceToTheStreamingOutput();
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
+	setServiceToTheStreamingOutput();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
 
 void OBS_service::OBS_service_setRecordingSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-    setRecordingSettings();
+	shared::LogWarnTimer warntimer(__FUNCTION_NAME__);
+	setRecordingSettings();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
