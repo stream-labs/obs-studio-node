@@ -4,13 +4,6 @@
 #include <mutex>
 #include "utility-v8.hpp"
 
-std::thread query_worker;
-bool query_worker_close = false;
-std::mutex query_lock;
-uint32_t sleepIntervalMS = 33;
-
-
-
 struct SignalInfo {
 	std::string outputType;
 	std::string signal;
@@ -30,12 +23,22 @@ class Service : public Nan::ObjectWrap,
 	friend utilv8::ManagedObject<Service>;
 	friend utilv8::CallbackData<SignalInfo, Service>;
 
-public:
+
+	public:
+	std::thread query_worker;
+	bool query_worker_close = false;
+	std::mutex query_lock;
+	uint32_t sleepIntervalMS = 33;
+
 	Service() {
 		query_worker_close = false;
 		query_worker = std::thread(std::bind(&Service::async_query, this));
 	} ;
-	~Service() {};
+	~Service() {
+		query_worker_close = true;
+		if (query_worker.joinable())
+			query_worker.join();
+	};
 	void async_query();
 	std::list<ServiceCallback*> callbacks;
 	

@@ -329,9 +329,9 @@ void Service::async_query() {
 
 void service::OBS_service_removeCallback(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	// Stop query thread
-	query_worker_close = true;
-	if (query_worker.joinable()) {
-		query_worker.join();
+	serviceObject->query_worker_close = true;
+	if (serviceObject->query_worker.joinable()) {
+		serviceObject->query_worker.join();
 	}
 }
 
