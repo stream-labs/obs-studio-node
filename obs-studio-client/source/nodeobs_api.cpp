@@ -11,15 +11,17 @@
 
 void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	std::string path;
+	std::string language;
 
-	ASSERT_GET_VALUE(args[0], path);
+	ASSERT_GET_VALUE(args[0], language);
+	ASSERT_GET_VALUE(args[1], path);
 
 	auto conn = GetConnection();
 	if (!conn) return;
 
 	std::vector<ipc::value> response = 
 		conn->call_synchronous_helper("API", "OBS_API_initAPI",
-	{ ipc::value(path) });
+	{ ipc::value(path), ipc::value(language) });
 
 	ValidateResponse(response);
 }
