@@ -62,9 +62,6 @@ before_deploy:
         }
       }
 
-  - if not exist "OBS-Studio-21.0.1-Small.zip" appveyor DownloadFile "https://github.com/jp9000/obs-studio/releases/download/21.0.1/OBS-Studio-21.0.1-Small.zip"
-  - 7z x "OBS-Studio-21.0.1-Small.zip" -oobs-studio-jp9000
-  - robocopy "obs-studio-jp9000\data\obs-plugins\win-capture" "%SLFullDistributePath%\obs-studio-node\libobs\data\obs-plugins\win-capture" & exit 0
   - tar cvaf "%SignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
   - ps: Push-AppveyorArtifact "$env:SignedArtifact.tar.gz"
 
