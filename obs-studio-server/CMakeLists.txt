@@ -17,10 +17,17 @@ include(DownloadProject)
 # OBS Studio (CPack Release)
 download_project(
 	PROJ libobs
-	URL https://ci.appveyor.com/api/buildjobs/gjewghurhpo9g25h/artifacts/windows-x86_64-dev.zip
+	URL https://ci.appveyor.com/api/buildjobs/y0f6pq0kirclc19j/artifacts/windows-x86_64-dev.zip
 	UPDATE_DISCONNECTED 1
 )
 INCLUDE("${libobs_SOURCE_DIR}/cmake/LibObs/LibObsConfig.cmake")
+
+# OBS Studio (Signed Binaries)
+download_project(
+	PROJ libobs_signed
+	URL https://github.com/obsproject/obs-studio/releases/download/21.1.2/OBS-Studio-21.1.2-Small.zip
+	UPDATE_DISCONNECTED 1
+)
 
 #############################
 # Source, Libraries & Directories
@@ -104,3 +111,4 @@ INSTALL(DIRECTORY ${PROJECT_DATA} DESTINATION "./" OPTIONAL)
 INSTALL(DIRECTORY "${libobs_SOURCE_DIR}/bin/64bit/" DESTINATION "./" PATTERN "*.lib" EXCLUDE)
 INSTALL(DIRECTORY "${libobs_SOURCE_DIR}/data/" DESTINATION "./data")
 INSTALL(DIRECTORY "${libobs_SOURCE_DIR}/obs-plugins/" DESTINATION "./obs-plugins")
+INSTALL(DIRECTORY "${libobs_signed_SOURCE_DIR}/data/obs-plugins/win-capture/" DESTINATION "./data/obs-plugins/win-capture")
