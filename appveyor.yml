@@ -55,7 +55,7 @@ before_deploy:
   - ps: |
       Get-ChildItem -Recurse  "$env:SLFullDistributePath" -Include "*.dll","*.node","*.exe" |
       Foreach-Object {
-        & "$env:SignTool" sign /p "$env:StreamlabsSecret" /f CI\streamlabsp12.pfx $_.FullName
+        & "$env:SignTool" sign /as /p "$env:StreamlabsSecret" /f CI\streamlabsp12.pfx $_.FullName
 
         if ($LASTEXITCODE -ne 0) {
           exit 1
