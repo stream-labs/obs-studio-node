@@ -892,10 +892,27 @@ void OBS::Display::DisplayCallback(OBS::Display* dp, uint32_t cx, uint32_t cy) {
 	}
 
 	// Source Rendering
+	obs_source_t *source = NULL;
 	if (dp->m_source) {
 		obs_source_video_render(dp->m_source);
+		/* If we want to draw guidelines, we need a scene,
+		 * not a transition. This may not be a scene which
+		 * we'll check later. */
+		if (obs_source_get_type(dp->m_source) == OBS_SOURCE_TYPE_TRANSITION) {
+			source = obs_transition_get_active_source(dp->m_source);
+		}
+		else {
+			source = dp->m_source;
+			obs_source_addref(source);
+		}
 	} else {
 		obs_render_main_view();
+		/* Here we assume that channel 0 holds the primary transition.
+		* We also assume that the active source within that transition is
+		* the scene that we need */
+		obs_source_t *transition = obs_get_output_source(0);
+		source = obs_transition_get_active_source(transition);
+		obs_source_release(transition);
 	}
 	gs_load_vertexbuffer(nullptr);
 
@@ -912,13 +929,10 @@ void OBS::Display::DisplayCallback(OBS::Display* dp, uint32_t cx, uint32_t cy) {
 			-100.0f, 100.0f);
 		gs_reset_viewport();
 
-		/* Here we assume that channel 0 holds the one and only transition.
-		 * We also assume that the active source within that transition is
-		 * the scene that we need */
-		obs_source_t *transition = obs_get_output_source(0);
-		obs_source_t *source = obs_transition_get_active_source(transition);
-		obs_source_release(transition);
 		obs_scene_t *scene = obs_scene_from_source(source);
+
+		/* This should work for both individual sources
+		* that are actually scenes and our main transition scene */
 
 		if (scene) {
 			dp->m_textVertices->Resize(0);
@@ -949,6 +963,7 @@ void OBS::Display::DisplayCallback(OBS::Display* dp, uint32_t cx, uint32_t cy) {
 		obs_source_release(source);
 	}
 
+	obs_source_release(source);
 	gs_projection_pop();
 	gs_viewport_pop();
 }
