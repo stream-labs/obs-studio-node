@@ -278,10 +278,12 @@ OBS::Display::Display(uint64_t windowHandle) : Display() {
 OBS::Display::Display(uint64_t windowHandle, std::string sourceName) : Display(windowHandle) {
 	std::cout << "creating display" << std::endl;
 	m_source = obs_get_source_by_name(sourceName.c_str());
+	obs_source_inc_showing(m_source);
 }
 
 OBS::Display::~Display() {
 	if (m_source) {
+		obs_source_dec_showing(m_source);
 		obs_source_release(m_source);
 	}
 	if (m_display)
@@ -906,7 +908,7 @@ void OBS::Display::DisplayCallback(OBS::Display* dp, uint32_t cx, uint32_t cy) {
 			obs_source_addref(source);
 		}
 	} else {
-		obs_render_main_view();
+		obs_render_main_texture();
 		/* Here we assume that channel 0 holds the primary transition.
 		* We also assume that the active source within that transition is
 		* the scene that we need */
@@ -916,7 +918,7 @@ void OBS::Display::DisplayCallback(OBS::Display* dp, uint32_t cx, uint32_t cy) {
 	}
 	gs_load_vertexbuffer(nullptr);
 
-	if (!dp->m_source && dp->m_shouldDrawUI == true) {
+	if (dp->m_shouldDrawUI == true) {
 		// Display-Aligned Drawing
 		vec2 tlCorner = { (float)-dp->m_previewOffset.first, (float)-dp->m_previewOffset.second };
 		vec2 brCorner = { (float)(cx - dp->m_previewOffset.first), (float)(cy - dp->m_previewOffset.second) };
@@ -928,7 +930,7 @@ void OBS::Display::DisplayCallback(OBS::Display* dp, uint32_t cx, uint32_t cy) {
 			tlCorner.y, brCorner.y,
 			-100.0f, 100.0f);
 		gs_reset_viewport();
-
+		
 		obs_scene_t *scene = obs_scene_from_source(source);
 
 		/* This should work for both individual sources
@@ -959,8 +961,6 @@ void OBS::Display::DisplayCallback(OBS::Display* dp, uint32_t cx, uint32_t cy) {
 				}
 			}
 		}
-
-		obs_source_release(source);
 	}
 
 	obs_source_release(source);
