@@ -1268,6 +1268,8 @@ void OBS_settings::getEncoderSettings(const obs_encoder_t *encoder, obs_data_t *
 				
 				int count = (int)obs_property_list_item_count(property);
 
+				param.values.clear();
+
 				for(int i=0;i<count;i++) {
 					// Name
 					std::string itemName = obs_property_list_item_name(property, i);
