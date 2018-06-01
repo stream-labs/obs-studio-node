@@ -2768,7 +2768,7 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 	obs_encoder_t* encoder = OBS_service::getRecordingEncoder();
 	obs_data_t* encoderSettings = obs_encoder_get_settings(encoder);
 
-	int indexEncoderSettings = 8;
+	int indexEncoderSettings = 7;
 
 	bool newEncoderType = false;
 
@@ -2778,18 +2778,17 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 		param = settings.at(indexRecordingCategory).params.at(i);
 
 		std::string name = param.name;
-
+		std::string type = param.type;
+		
 		if(name.compare("RecType") == 0) {
-			std::string* value = reinterpret_cast<std::string*>(&param.currentValue);
-			if(value->compare("Custom Output (FFmpeg)") == 0) {
+			std::string value(param.currentValue.data(),
+				param.currentValue.size());
+			if(value.compare("Custom Output (FFmpeg)") == 0) {
 				indexEncoderSettings = settings.at(indexRecordingCategory).params.size();
 			}
 		}
 
-		std::string type = param.type;
-
-		if (type.compare("OBS_PROPERTY_LIST") == 0 ||
-			type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 ||
+		if (type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 ||
 			type.compare("OBS_PROPERTY_PATH") == 0 ||
 			type.compare("OBS_PROPERTY_TEXT") == 0) {
 			if(i < indexEncoderSettings) {
@@ -2804,39 +2803,28 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 
 				config_set_string(config, section.c_str(), name.c_str(), value.c_str());
 			} else {
-
-				std::string* subType = reinterpret_cast<std::string*>(&param.subType);
-				
-				if (subType->compare("OBS_COMBO_FORMAT_INT") == 0) {
-					int64_t *value = reinterpret_cast<int64_t*>(&param.currentValue);
-					obs_data_set_int(encoderSettings, name.c_str(), *value);
-				} else if (subType->compare("OBS_COMBO_FORMAT_FLOAT") == 0) {
-					double *value = reinterpret_cast<double*>(&param.currentValue);
-					obs_data_set_double(encoderSettings, name.c_str(), *value);
-				} else {
-					std::string value(param.currentValue.data(),
+				std::string value(param.currentValue.data(),
 						param.currentValue.size());
-					obs_data_set_string(encoderSettings, name.c_str(), value.c_str());
-				}
+				obs_data_set_string(encoderSettings, name.c_str(), value.c_str());
 			}
 		} else if(type.compare("OBS_PROPERTY_INT") == 0) {
-			int64_t *value = reinterpret_cast<int64_t*>(&param.currentValue);
+			int64_t *value = reinterpret_cast<int64_t*>(param.currentValue.data());
 			if(i < indexEncoderSettings) {
 				config_set_int(config, section.c_str(), name.c_str(), *value);
 			} else {
 				obs_data_set_int(encoderSettings, name.c_str(), *value);
 			}
 		} else if(type.compare("OBS_PROPERTY_UINT") == 0) {
-			uint64_t *value = reinterpret_cast<uint64_t*>(&param.currentValue);
+			uint64_t *value = reinterpret_cast<uint64_t*>(param.currentValue.data());
 			if(i < indexEncoderSettings) {
 				config_set_uint(config, section.c_str(), name.c_str(), *value);
 			} else {
 				obs_data_set_int(encoderSettings, name.c_str(), *value);
 			}
 		} else if(type.compare("OBS_PROPERTY_BOOL") == 0) {
-			uint32_t *value = reinterpret_cast<uint32_t*>(&param.currentValue);
+			uint32_t *value = reinterpret_cast<uint32_t*>(param.currentValue.data());
 			if(i < indexEncoderSettings) {
-				if(name.compare("RecRescale") == 0 && value) {
+				if(name.compare("RecRescale") == 0 && *value) {
 					indexEncoderSettings ++;
 				}
 				config_set_bool(config, section.c_str(), name.c_str(), *value);
@@ -2845,13 +2833,32 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 			}
 		} else if(type.compare("OBS_PROPERTY_DOUBLE") == 0 ||
 					type.compare("OBS_PROPERTY_FLOAT") == 0) {
-			double *value = reinterpret_cast<double*>(&param.currentValue);
+			double *value = reinterpret_cast<double*>(param.currentValue.data());
 			if(i < indexEncoderSettings) {
 				config_set_double(config, section.c_str(), name.c_str(), *value);
 			} else {
 				obs_data_set_double(encoderSettings, name.c_str(), *value);
 			}
-		} else {
+		}
+		else if (type.compare("OBS_PROPERTY_LIST") == 0) {
+			std::string subType(param.subType.data(),
+				param.subType.size());
+
+			if (subType.compare("OBS_COMBO_FORMAT_INT") == 0) {
+				int64_t *value = reinterpret_cast<int64_t*>(param.currentValue.data());
+				obs_data_set_int(encoderSettings, name.c_str(), *value);
+			}
+			else if (subType.compare("OBS_COMBO_FORMAT_FLOAT") == 0) {
+				double *value = reinterpret_cast<double*>(param.currentValue.data());
+				obs_data_set_double(encoderSettings, name.c_str(), *value);
+			}
+			else {
+				std::string value(param.currentValue.data(),
+					param.currentValue.size());
+				obs_data_set_string(encoderSettings, name.c_str(), value.c_str());
+			}
+		}
+		else {
 			std::cout << "type not found ! " << type.c_str() << std::endl;
 		}
 	}
