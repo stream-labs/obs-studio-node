@@ -52,8 +52,10 @@ namespace osn {
 			float input_peak[MAX_AUDIO_CHANNELS] = { 0 };
 			int32_t ch = 0;
 		};
-		std::queue<std::shared_ptr<AudioData>> current_data;
-		std::queue<std::shared_ptr<AudioData>> free_data;
+		std::shared_ptr<AudioData> current_data;
+		std::mutex current_data_mtx;
+		std::shared_ptr<AudioData> free_data;
+		std::mutex free_data_mtx;
 
 		public:
 		VolMeter(obs_fader_type type);
