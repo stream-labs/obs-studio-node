@@ -20,6 +20,7 @@
 #include "utility.hpp"
 #include "obs.h"
 #include <memory>
+#include <queue>
 
 namespace osn {
 	class VolMeter {
@@ -46,11 +47,13 @@ namespace osn {
 		uint64_t* id2 = nullptr;
 
 		struct AudioData {
-			float magnitude[MAX_AUDIO_CHANNELS];
-			float peak[MAX_AUDIO_CHANNELS];
-			float input_peak[MAX_AUDIO_CHANNELS];
-			std::mutex data_lock;
-		} audio;
+			float magnitude[MAX_AUDIO_CHANNELS] = { 0 };
+			float peak[MAX_AUDIO_CHANNELS] = { 0 };
+			float input_peak[MAX_AUDIO_CHANNELS] = { 0 };
+			int32_t ch = 0;
+		};
+		std::queue<std::shared_ptr<AudioData>> current_data;
+		std::queue<std::shared_ptr<AudioData>> free_data;
 
 		public:
 		VolMeter(obs_fader_type type);

@@ -237,14 +237,28 @@ void osn::VolMeter::Query(void* data, const int64_t id, const std::vector<ipc::v
 		return;
 	}
 
-	std::unique_lock<std::mutex> ulock(meter->audio.data_lock);
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(obs_volmeter_get_nr_channels(meter->self)));
-	for (size_t ch = 0; ch < obs_volmeter_get_nr_channels(meter->self); ch++) {
-		rval.push_back(ipc::value(meter->audio.magnitude[ch]));
-		rval.push_back(ipc::value(meter->audio.peak[ch]));
-		rval.push_back(ipc::value(meter->audio.input_peak[ch]));
+	std::shared_ptr<AudioData> ad;
+	if (meter->current_data.size() > 0) {
+		ad = meter->current_data.front();
+		meter->current_data.pop();
 	}
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	if (ad) {
+		rval.push_back(ipc::value(ad->ch));
+		for (size_t ch = 0; ch < ad->ch; ch++) {
+			rval.push_back(ipc::value(ad->magnitude[ch]));
+			rval.push_back(ipc::value(ad->peak[ch]));
+			rval.push_back(ipc::value(ad->input_peak[ch]));
+		}
+	} else {
+		rval.push_back(ipc::value(0));
+	}
+
+	if (ad) {
+		meter->free_data.push(ad);
+	}
+
 	AUTO_DEBUG;
 }
 
@@ -255,13 +269,30 @@ void osn::VolMeter::OBSCallback(void *param, const float magnitude[MAX_AUDIO_CHA
 	}
 
 #define MAKE_FLOAT_SANE(db) (std::isfinite(db) ? db : (db > 0 ? 0.0f : -128.0f))
-	// !FIXME! This type of synchronization is slower than signalling.
-	std::unique_lock<std::mutex> ulock(meter->audio.data_lock);
-	for (size_t ch = 0; ch < MAX_AUDIO_CHANNELS; ch++) {
-		meter->audio.magnitude[ch] = MAKE_FLOAT_SANE(magnitude[ch]);
-		meter->audio.peak[ch] = MAKE_FLOAT_SANE(peak[ch]);
-		meter->audio.input_peak[ch] = MAKE_FLOAT_SANE(input_peak[ch]);
+	if (meter->current_data.size() > 4) {
+		// Data is not being used, so force re-use.
+		while (meter->current_data.size() > 1) {
+			meter->free_data.push(meter->current_data.front());
+			meter->current_data.pop();
+		}
 	}
+
+	std::shared_ptr<AudioData> ad;
+	if (meter->free_data.size() > 0) {
+		ad = meter->free_data.front();
+		meter->free_data.pop();
+	} else {
+		ad = std::make_shared<AudioData>();
+	}
+
+	ad->ch = obs_volmeter_get_nr_channels(meter->self);
+	for (size_t ch = 0; ch < MAX_AUDIO_CHANNELS; ch++) {
+		ad->magnitude[ch] = MAKE_FLOAT_SANE(magnitude[ch]);
+		ad->peak[ch] = MAKE_FLOAT_SANE(peak[ch]);
+		ad->input_peak[ch] = MAKE_FLOAT_SANE(input_peak[ch]);
+	}
+
+	meter->current_data.push(ad);
 
 #undef MAKE_FLOAT_SANE
 }
