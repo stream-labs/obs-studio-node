@@ -2369,7 +2369,6 @@ SubCategory OBS_settings::getAdvancedOutputRecordingSettings(config_t* config, b
 
 	std::vector<std::pair<std::string, std::string>> recTypeValues;
 	recTypeValues.push_back(std::make_pair("Standard", "Standard"));
-	recTypeValues.push_back(std::make_pair("Custom Output (FFmpeg)", "Custom Output (FFmpeg)"));
 
 	uint32_t indexDataRecType = 0;
 
@@ -2418,16 +2417,11 @@ SubCategory OBS_settings::getAdvancedOutputRecordingSettings(config_t* config, b
 		currentRecType = "Standard";
 		config_set_string(config, "AdvOut", "RecType", currentRecType);
 	}
-
-	if(strcmp(currentRecType, "Standard") == 0) {
-		getStandardRecordingSettings(&recordingSettings, config, isCategoryEnabled);
-	} else if (strcmp(currentRecType, "Custom Output (FFmpeg)") == 0) {
-		getFFmpegOutputRecordingSettings(&recordingSettings, config, isCategoryEnabled);
-	} else {
-		getStandardRecordingSettings(&recordingSettings, config, isCategoryEnabled);
-	}
+	
+	getStandardRecordingSettings(&recordingSettings, config, isCategoryEnabled);
 
 	recordingSettings.name = "Recording";
+	recordingSettings.paramsCount = recordingSettings.params.size();
 
 	return recordingSettings;
 }
