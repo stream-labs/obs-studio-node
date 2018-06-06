@@ -8,28 +8,29 @@
 #include <graphics/math-extra.h>
 #include "nodeobs_api.h"
 #include "nodeobs_service.h"
-#include <v8.h>
 
-
-void GetListServer(const v8::FunctionCallbackInfo<v8::Value>& args);
-void InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args);
-void StartBandwidthTest(const v8::FunctionCallbackInfo<v8::Value>& args);
-void StartStreamEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args);
-void StartRecordingEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args);
-void StartCheckSettings(const v8::FunctionCallbackInfo<v8::Value>& args);
-void StartSetDefaultSettings(const v8::FunctionCallbackInfo<v8::Value>& args);
-void StartSaveStreamSettings(const v8::FunctionCallbackInfo<v8::Value>& args);
-void StartSaveSettings(const v8::FunctionCallbackInfo<v8::Value>& args);
-void TerminateAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args);
-void StopThread(); 
-void FindIdealHardwareResolution();
-bool TestSoftwareEncoding();
-void TestBandwidthThread();
-void TestStreamEncoderThread();
-void TestRecordingEncoderThread();
-void SaveStreamSettings();
-void SaveSettings();
-void CheckSettings();
-void SetDefaultSettings();
-void TestHardwareEncoding();
-bool CanTestServer(const char *server);
+namespace autoConfig {
+	void Register(ipc::server& srv);
+	void GetListServer(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+	void InitializeAutoConfig(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+	void StartBandwidthTest(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+	void StartStreamEncoderTest(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+	void StartRecordingEncoderTest(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+	void StartCheckSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+	void StartSetDefaultSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+	void StartSaveStreamSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+	void StartSaveSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+	void TerminateAutoConfig(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+	void StopThread();
+	void FindIdealHardwareResolution();
+	bool TestSoftwareEncoding();
+	void TestBandwidthThread();
+	void TestStreamEncoderThread();
+	void TestRecordingEncoderThread();
+	void SaveStreamSettings();
+	void SaveSettings();
+	void CheckSettings();
+	void SetDefaultSettings();
+	void TestHardwareEncoding();
+	bool CanTestServer(const char *server);
+}

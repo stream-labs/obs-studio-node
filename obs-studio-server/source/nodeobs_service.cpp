@@ -144,7 +144,6 @@ void OBS_service::OBS_service_stopStreaming(void* data, const int64_t id, const 
 {
 	stopStreaming((bool)args[0].value_union.i32);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	std::cout << "STOPPED STREAMING" << std::endl;
 	AUTO_DEBUG;
 }
 

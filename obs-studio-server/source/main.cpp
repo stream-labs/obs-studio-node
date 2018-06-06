@@ -36,6 +36,7 @@
 #include "nodeobs_content.h"
 #include "nodeobs_service.h"
 #include "nodeobs_settings.h"
+#include "nodeobs_autoconfig.h"
 #include "error.hpp"
 #include <chrono>
 #include "osn-fader.hpp"
@@ -111,6 +112,8 @@ int main(int argc, char* argv[]) {
 	OBS_content::Register(myServer);
 	OBS_service::Register(myServer);
 	OBS_settings::Register(myServer);
+	OBS_settings::Register(myServer);
+	autoConfig::Register(myServer);
 
 	// Register Connect/Disconnect Handlers
 	myServer.set_connect_handler(ServerConnectHandler, &sd);

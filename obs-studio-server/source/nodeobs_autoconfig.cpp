@@ -1,5 +1,6 @@
 #include "nodeobs_autoconfig.h"
-#include "nodeobs_async.h"
+#include "error.hpp"
+#include "shared.hpp"
 
 enum class Type {
 	Invalid,
@@ -36,7 +37,7 @@ enum class FPSType : int {
 };
 
 struct Event {
-    obs::CallbackInfo *cb_info;
+    // obs::CallbackInfo *cb_info;
 
 	std::string event;
 	std::string description;
@@ -165,7 +166,25 @@ public:
 	}
 };
 
-void TestHardwareEncoding(void)
+void autoConfig::Register(ipc::server& srv) {
+	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("AutoConfig");
+
+	cls->register_function(std::make_shared<ipc::function>("GetListServer", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, autoConfig::GetListServer));
+	cls->register_function(std::make_shared<ipc::function>("InitializeAutoConfig", 
+		std::vector<ipc::type>{ipc::type::String, ipc::type::String}, autoConfig::InitializeAutoConfig));
+	cls->register_function(std::make_shared<ipc::function>("StartBandwidthTest", std::vector<ipc::type>{}, autoConfig::StartBandwidthTest));
+	cls->register_function(std::make_shared<ipc::function>("StartStreamEncoderTest", std::vector<ipc::type>{}, autoConfig::StartStreamEncoderTest));
+	cls->register_function(std::make_shared<ipc::function>("StartRecordingEncoderTest", std::vector<ipc::type>{}, autoConfig::StartRecordingEncoderTest));
+	cls->register_function(std::make_shared<ipc::function>("StartCheckSettings", std::vector<ipc::type>{}, autoConfig::StartCheckSettings));
+	cls->register_function(std::make_shared<ipc::function>("StartSetDefaultSettings", std::vector<ipc::type>{}, autoConfig::StartSetDefaultSettings));
+	cls->register_function(std::make_shared<ipc::function>("StartSaveStreamSettings", std::vector<ipc::type>{}, autoConfig::StartSaveStreamSettings));
+	cls->register_function(std::make_shared<ipc::function>("StartSaveSettings", std::vector<ipc::type>{}, autoConfig::StartSaveSettings));
+	cls->register_function(std::make_shared<ipc::function>("TerminateAutoConfig", std::vector<ipc::type>{}, autoConfig::TerminateAutoConfig));
+
+	srv.register_collection(cls);
+}
+
+void autoConfig::TestHardwareEncoding(void)
 {
 	size_t idx = 0;
 	const char *id;
@@ -190,7 +209,7 @@ static inline void string_depad_key(std::string &key)
 	}
 }
 
-bool CanTestServer(const char *server)
+bool autoConfig::CanTestServer(const char *server)
 {
 	if (!testRegions || (regionNA && regionSA && regionEU && regionAS && regionOC))
 		return true;
@@ -276,7 +295,7 @@ void GetServers(std::vector<ServerInfo> &servers)
 		const char *name = obs_property_list_item_name(p, i);
 		const char *server = obs_property_list_item_string(p, i);
 
-		if (CanTestServer(name)) {
+		if (autoConfig::CanTestServer(name)) {
 			ServerInfo info(name, server);
 			servers.push_back(info);
 		}
@@ -285,100 +304,39 @@ void GetServers(std::vector<ServerInfo> &servers)
 	obs_properties_destroy(ppts);
 }
 
-void event_main_loop_cb(uv_async_t* handle);
-
-obs::CallbackQueue<Event> eventCallbackQueue(event_main_loop_cb);
-
-void event_main_loop_cb(uv_async_t* handle) {
-	v8::Isolate *isolate = v8::Isolate::GetCurrent();
-
-	std::unique_lock<std::mutex> lock(eventCallbackQueue.mutex);
-
-   	while (!eventCallbackQueue.work_queue.empty()) {
-        auto &data = eventCallbackQueue.work_queue.front();
-
-        if (data.cb_info->stopped)
-            goto next_element;
-
-        auto result = Nan::New<v8::Object>();
-
-        Nan::Set(result,
-            Nan::New("event").ToLocalChecked(),
-            Nan::New(data.event.c_str()).ToLocalChecked());
-
-	    Nan::Set(result,
-	        Nan::New("description").ToLocalChecked(),
-	        Nan::New(data.description.c_str()).ToLocalChecked());
-
-	    if(data.event.compare("error") != 0) {
-		    Nan::Set(result,
-		        Nan::New("percentage").ToLocalChecked(),
-		        Nan::New(data.percentage));	
-	    }
-	    	       
-        v8::Local<v8::Value> params[] = {
-            result
-        };
-
-        data.cb_info->callback.Call(1, params);
-
-next_element:
-        eventCallbackQueue.work_queue.pop_front();
-    }
-}
-
-obs::CallbackInfo *cb;
-
 void start_next_step(void (*task)(), std::string event, std::string description, int percentage)
 {
-	eventCallbackQueue.work_queue.push_back({cb, event, description, percentage});
+	/*eventCallbackQueue.work_queue.push_back({cb, event, description, percentage});
     eventCallbackQueue.Signal();
 
     if(task)
-    	std::thread(*task).detach();
+    	std::thread(*task).detach();*/
 }
 
-void TerminateAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args)
+void autoConfig::TerminateAutoConfig(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	StopThread();
 }
 
-void StopThread(void) 
+void autoConfig::StopThread(void)
 {
 	unique_lock<mutex> ul(m);
 	cancel = true;
 	cv.notify_one();
 }
 
-
-void InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args)
+void autoConfig::InitializeAutoConfig(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-	v8::Local<v8::Function> function = args[0].As<v8::Function>();
-	cb = new obs::CallbackInfo(function);
-
-	Isolate *isolate = v8::Isolate::GetCurrent();
-
-	Local<Object> serverInfo = args[1].As<v8::Object>();
-
-	v8::String::Utf8Value param0(serverInfo->Get(String::NewFromUtf8(isolate, "continent")));
-	std::string continent = std::string(*param0);
-
-	v8::String::Utf8Value param1(serverInfo->Get(String::NewFromUtf8(isolate, "service_name")));
-	serviceName = std::string(*param1);
+	std::string continent = args[0].value_str;;
+	serviceName = args[1].value_str;
 
 	if(continent.compare("undefined") == 0) {
 
 		if (serviceName.compare("undefined") == 0)
 			serviceName = "";
 
-		v8::String::Utf8Value param2(serverInfo->Get(String::NewFromUtf8(isolate, "server_name")));
-		serverName = std::string(*param2);
-
 		if (serverName.compare("undefined") == 0)
 			serverName = "";
-
-		v8::String::Utf8Value param3(serverInfo->Get(String::NewFromUtf8(isolate, "server")));
-		server = std::string(*param3);
 
 		if (server.compare("undefined") == 0)
 			server = "";
@@ -407,55 +365,65 @@ void InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args)
 	}
 
 	cancel = false;
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
-void StartBandwidthTest(const v8::FunctionCallbackInfo<v8::Value>& args)
+void autoConfig::StartBandwidthTest(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-	start_next_step(TestBandwidthThread, "starting_step", "bandwidth_test", 0);
+	TestBandwidthThread();
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
-void StartStreamEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args)
+void autoConfig::StartStreamEncoderTest(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-	start_next_step(TestStreamEncoderThread, "starting_step", "streamingEncoder_test", 0);
+	TestStreamEncoderThread();
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
-void StartRecordingEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args)
+void autoConfig::StartRecordingEncoderTest(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-	start_next_step(TestRecordingEncoderThread, "starting_step", "recordingEncoder_test", 0);
+	TestRecordingEncoderThread();
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
-void StartSaveStreamSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
+void autoConfig::StartSaveStreamSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-	start_next_step(SaveStreamSettings, "starting_step", "saving_service", 0);
+	SaveStreamSettings();
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
-void StartSaveSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
+void autoConfig::StartSaveSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-	start_next_step(SaveSettings, "starting_step", "saving_settings", 0);
+	SaveSettings();
 
 	cancel = false;
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
-void StartCheckSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
+void autoConfig::StartCheckSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-	start_next_step(CheckSettings, "starting_step", "checking_settings", 0);
+	CheckSettings();
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
-void StartSetDefaultSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
+void autoConfig::StartSetDefaultSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-	start_next_step(SetDefaultSettings, "starting_step", "setting_default_settings", 0);
+	SetDefaultSettings();
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
-void GetListServer(const v8::FunctionCallbackInfo<v8::Value>& args)
+void autoConfig::GetListServer(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-	Isolate *isolate = v8::Isolate::GetCurrent();
-
-
-	v8::String::Utf8Value param0(args[0]->ToString());
-	serviceName = std::string(*param0);
-
-	v8::String::Utf8Value param1(args[1]->ToString());
-	std::string continent = std::string(*param1);
+	serviceName = args[0].value_str;
+	std::string continent = args[1].value_str;;
 
 	regionNA = false;
 	regionSA = false;
@@ -494,18 +462,12 @@ void GetListServer(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 	GetServers(servers);
 
-	Local<Array> listServer = Array::New(isolate);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
-	for(int i=0;i<servers.size();i++) {
-		Local<Object> object = Object::New(isolate);
-
-		object->Set(String::NewFromUtf8(isolate, "server_name"), String::NewFromUtf8(isolate, servers[i].name.c_str()));
-		object->Set(String::NewFromUtf8(isolate, "server"), String::NewFromUtf8(isolate, servers[i].address.c_str()));
-
-		listServer->Set(i, object);
+	for (int i = 0; i < servers.size(); i++) {
+		rval.push_back(ipc::value(servers[i].name));
+		rval.push_back(ipc::value(servers[i].address));
 	}
-
-	args.GetReturnValue().Set(listServer);
 }
 
 int EvaluateBandwidth(ServerInfo &server, bool &connected, bool &stopped, bool &success,
@@ -580,7 +542,7 @@ int EvaluateBandwidth(ServerInfo &server, bool &connected, bool &stopped, bool &
 			return 0;
 }
 
-void TestBandwidthThread(void)
+void autoConfig::TestBandwidthThread(void)
 {
 	bool connected = false;
 	bool stopped = false;
@@ -867,7 +829,7 @@ struct Result {
 	}
 };
 
-void FindIdealHardwareResolution()
+void autoConfig::FindIdealHardwareResolution()
 {
 	int baseCX = baseResolutionCX;
 	int baseCY = baseResolutionCY;
@@ -955,7 +917,7 @@ void FindIdealHardwareResolution()
 	idealFPSDen = result.fps_den;
 }
 
-bool TestSoftwareEncoding()
+bool autoConfig::TestSoftwareEncoding()
 {
 	OBSEncoder vencoder = obs_video_encoder_create("obs_x264",
 			"test_x264", nullptr, nullptr);
@@ -1190,7 +1152,7 @@ bool TestSoftwareEncoding()
 	return true;
 }
 
-void TestStreamEncoderThread()
+void autoConfig::TestStreamEncoderThread()
 {	
 	std::string basicConfigFile = OBS_API::getBasicConfigPath();
 	config_t* config = OBS_API::openConfigFile(basicConfigFile);
@@ -1225,7 +1187,7 @@ void TestStreamEncoderThread()
 	start_next_step(NULL, "stopping_step", "streamingEncoder_test", 100);
 }
 
-void TestRecordingEncoderThread()
+void autoConfig::TestRecordingEncoderThread()
 {
 	TestHardwareEncoding();
 
@@ -1264,7 +1226,7 @@ void TestRecordingEncoderThread()
 	start_next_step(NULL, "stopping_step", "recordingEncoder_test", 100);
 }
 
-inline const char *GetEncoderId(Encoder enc)
+inline const char* GetEncoderId(Encoder enc)
 {
 	switch (enc) {
 	case Encoder::NVENC:
@@ -1278,7 +1240,7 @@ inline const char *GetEncoderId(Encoder enc)
 	}
 };
 
-inline const char *GetEncoderDisplayName(Encoder enc)
+inline const char* GetEncoderDisplayName(Encoder enc)
 {
 	switch (enc) {
 	case Encoder::NVENC:
@@ -1292,7 +1254,7 @@ inline const char *GetEncoderDisplayName(Encoder enc)
 	}
 };
 
-void CheckSettings(void)
+void autoConfig::CheckSettings(void)
 {
 	OBSData settings = obs_data_create();
 
@@ -1396,7 +1358,7 @@ void CheckSettings(void)
 	start_next_step(NULL, "stopping_step", "checking_settings", 100);
 }
 
-void SetDefaultSettings(void)
+void autoConfig::SetDefaultSettings(void)
 {
     idealResolutionCX = 1280;
     idealResolutionCY = 720;
@@ -1408,7 +1370,7 @@ void SetDefaultSettings(void)
     start_next_step(NULL, "stopping_step", "setting_default_settings", 100);
 }
 
-void SaveStreamSettings()
+void autoConfig::SaveStreamSettings()
 {
 	/* ---------------------------------- */
 	/* save service                       */
@@ -1452,7 +1414,7 @@ void SaveStreamSettings()
 	start_next_step(NULL, "stopping_step", "saving_service", 100);
 }
 
-void SaveSettings()
+void autoConfig::SaveSettings()
 {
 	std::string basicConfigFile = OBS_API::getBasicConfigPath();
 	config_t* config = OBS_API::openConfigFile(basicConfigFile);
