@@ -44,6 +44,7 @@ NAN_MODULE_INIT(Input::Init)
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "findFilter", findFilter);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "addFilter", addFilter);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "removeFilter", removeFilter);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "setFilterOrder", setFilterOrder);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "width", get_width);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "height", get_height);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "filters", get_filters);
@@ -171,6 +172,21 @@ NAN_METHOD(Input::get_height)
     obs::source handle = ISource::GetHandle(info.Holder());
 
     info.GetReturnValue().Set(handle.height());
+}
+
+NAN_METHOD(Input::setFilterOrder)
+{
+    v8::Local<v8::Object> filter_obj;
+    int movement;
+
+    obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
+
+    ASSERT_GET_VALUE(info[0], filter_obj);
+    ASSERT_GET_VALUE(info[1], movement);
+
+    obs::weak<obs::filter> &filter = Filter::Object::GetHandle(filter_obj);
+
+    handle.get()->move_filter(filter.get().get(), (enum obs_order_movement)movement);
 }
 
 NAN_METHOD(Input::fromName)

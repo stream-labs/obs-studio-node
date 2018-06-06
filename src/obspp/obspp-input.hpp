@@ -32,6 +32,7 @@ public:
 
     void add_filter(obs::filter filter);
     void remove_filter(obs::filter filter);
+    void move_filter(obs::filter filter, enum obs_order_movement movement);
 
     void deinterlace_mode(obs_deinterlace_mode mode);
     obs_deinterlace_mode deinterlace_mode();
