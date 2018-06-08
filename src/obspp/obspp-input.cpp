@@ -89,6 +89,11 @@ void input::remove_filter(obs::filter filter)
     obs_source_filter_remove(m_handle, filter.dangerous());
 }
 
+void input::move_filter(obs::filter filter, enum obs_order_movement movement)
+{
+    obs_source_filter_set_order(m_handle, filter.dangerous(), movement);
+}
+
 void input::deinterlace_mode(obs_deinterlace_mode mode)
 {
     obs_source_set_deinterlace_mode(m_handle, mode);
