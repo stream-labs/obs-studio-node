@@ -408,9 +408,10 @@ void autoConfig::StartSaveSettings(void* data, const int64_t id, const std::vect
 
 void autoConfig::StartCheckSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-	CheckSettings();
+	bool sucess = CheckSettings();
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint32_t)sucess));
 }
 
 void autoConfig::StartSetDefaultSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
@@ -1254,7 +1255,7 @@ inline const char* GetEncoderDisplayName(Encoder enc)
 	}
 };
 
-void autoConfig::CheckSettings(void)
+bool autoConfig::CheckSettings(void)
 {
 	OBSData settings = obs_data_create();
 
@@ -1274,7 +1275,7 @@ void autoConfig::CheckSettings(void)
 
 	if (!service) {
 		start_next_step(NULL, "error", "invalid_service", 0);
-		return;
+		return false;
 	}
 	
 	obs_video_info ovi;
@@ -1348,14 +1349,9 @@ void autoConfig::CheckSettings(void)
 		}
     }
 
-    if(success) {
-		obs_output_stop(output);
-    } else {
-		start_next_step(NULL, "error", "invalid_settings", 0);
-		return;
-    }
-	
-	start_next_step(NULL, "stopping_step", "checking_settings", 100);
+	if (success) obs_output_stop(output);
+
+	return success;
 }
 
 void autoConfig::SetDefaultSettings(void)
