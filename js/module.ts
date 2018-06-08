@@ -843,7 +843,7 @@ export interface IInputFactory extends IFactoryTypes {
 }
 
 
-const enum IInteractionFlags {
+export const enum EInteractionFlags {
 	None         = 0,
 	CapsKey      = 1,
 	ShiftKey     = 1 << 1,
@@ -859,20 +859,20 @@ const enum IInteractionFlags {
 	IsRight      = 1 << 11
 };
 
-export const enum IMouseButtonType {
+export const enum EMouseButtonType {
 	Left,
 	Middle,
 	Right
 };
 
 export interface IMouseEvent {
-	modifiers: number;
+	modifiers: EInteractionFlags;
 	x: number;
 	y: number;
 };
 
 export interface IKeyEvent {
-	modifiers: number;
+	modifiers: EInteractionFlags;
 	text: string;
 	nativeModifiers: number;
 	nativeScancode: number;
@@ -923,7 +923,7 @@ export interface IInput extends ISource {
      */
     removeFilter(filter: IFilter): void;
 
-    sendMouseClick(eventData: IMouseEvent, type: number, mouseUp: boolean, clickCount: number): void
+    sendMouseClick(eventData: IMouseEvent, type: EMouseButtonType, mouseUp: boolean, clickCount: number): void
     sendMouseMove(eventData: IMouseEvent, mouseLeave: boolean): void;
     sendMouseWheel(eventData: IMouseEvent, x_delta: number, y_delta: number): void;
     sendFocus(focus: boolean): void;
