@@ -139,6 +139,11 @@ void input::send_mouse_move(const obs_mouse_event *event, bool mouse_leave)
     obs_source_send_mouse_move(m_handle, event, mouse_leave);
 }
 
+void input::send_mouse_wheel(const obs_mouse_event *event, int x_delta, int y_delta)
+{
+    obs_source_send_mouse_wheel(m_handle, event, x_delta, y_delta);
+}
+
 void input::send_focus(bool focus)
 {
     obs_source_send_focus(m_handle, focus);

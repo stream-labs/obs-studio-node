@@ -46,6 +46,7 @@ NAN_MODULE_INIT(Input::Init)
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "removeFilter", removeFilter);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "sendMouseClick", sendMouseClick);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "sendMouseMove", sendMouseMove);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "sendMouseWheel", sendMouseWheel);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "sendFocus", sendFocus);
     common::SetObjectTemplateField(locProto->InstanceTemplate(), "sendKeyClick", sendKeyClick);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "width", get_width);
@@ -432,6 +433,26 @@ NAN_METHOD(Input::sendMouseMove)
     ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "y", mouse_event.y);
 
     handle.get()->send_mouse_move(&mouse_event, mouse_leave);
+}
+
+NAN_METHOD(Input::sendMouseWheel)
+{
+    obs::weak<obs::input> &handle = Input::Object::GetHandle(info.Holder());
+
+    v8::Local<v8::Object> mouse_event_obj;
+    int x_delta, y_delta;
+
+    ASSERT_GET_VALUE(info[0], mouse_event_obj);
+    ASSERT_GET_VALUE(info[1], x_delta);
+    ASSERT_GET_VALUE(info[2], y_delta);
+
+    struct obs_mouse_event mouse_event;
+
+    ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "modifiers", mouse_event.modifiers);
+    ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "x", mouse_event.x);
+    ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "y", mouse_event.y);
+
+    handle.get()->send_mouse_wheel(&mouse_event, x_delta, y_delta);
 }
 
 NAN_METHOD(Input::sendFocus)

@@ -48,6 +48,7 @@ public:
 
     void send_mouse_click(const obs_mouse_event *event, uint32_t type, bool mouse_up, uint32_t click_count);
     void send_mouse_move(const obs_mouse_event *event, bool mouse_leave);
+    void send_mouse_wheel(const obs_mouse_event *event, int x_delta, int y_delta);
     void send_focus(bool focus);
     void send_key_click(const obs_key_event *event, bool key_up);
 

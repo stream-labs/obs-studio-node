@@ -494,6 +494,7 @@ export interface IInput extends ISource {
     removeFilter(filter: IFilter): void;
     sendMouseClick(eventData: IMouseEvent, type: number, mouseUp: boolean, clickCount: number): void;
     sendMouseMove(eventData: IMouseEvent, mouseLeave: boolean): void;
+    sendMouseWheel(eventData: IMouseEvent, x_delta: number, y_delta: number): void;
     sendFocus(focus: boolean): void;
     sendKeyClick(eventData: IKeyEvent, keyUp: boolean): void;
     readonly filters: IFilter[];
