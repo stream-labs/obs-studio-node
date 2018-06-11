@@ -29,7 +29,7 @@ namespace autoConfig {
 	void TestRecordingEncoderThread();
 	void SaveStreamSettings();
 	void SaveSettings();
-	void CheckSettings();
+	bool CheckSettings();
 	void SetDefaultSettings();
 	void TestHardwareEncoding();
 	bool CanTestServer(const char *server);
