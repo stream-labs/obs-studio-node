@@ -89,7 +89,7 @@ void autoConfig::InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>&
 	ValidateResponse(response);
 
 	// Callback
-	autoConfigObject->callback = new AutoConfigCallback(autoConfigObject, AutoConfig::Callback, callback, 20);
+	autoConfigObject->callback = new AutoConfigCallback(autoConfigObject, AutoConfig::Callback, callback, 0);
 
 	v8::Local<v8::Object> obj = AutoConfigCallback::Store(autoConfigObject->callback);
 	autoConfigObject->callback->obj_ref.Reset(obj);
@@ -403,7 +403,7 @@ void autoConfig::StartSaveSettings(const v8::FunctionCallbackInfo<v8::Value>& ar
 			dataDone->event = "done";
 			dataDone->description = "";
 			dataDone->percentage = 0;
-			dataDone->param = cb;
+			dataDone->param = autoConfigObject->callback;
 			autoConfigObject->callback->queue.send(dataDone);
 		}
 	};
