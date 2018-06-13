@@ -23,7 +23,7 @@
 #include <node.h>
 #include <iostream>
 #include <nan.h>
-
+#include <fstream>
 
 #pragma region Windows
 #ifdef _WIN32
@@ -106,6 +106,25 @@ ProcessInfo spawn(std::string program, std::string commandLine, std::string work
 	};
 }
 
+ProcessInfo open_process(uint64_t handle) {
+	ProcessInfo pi;
+	pi.handle = (uint64_t)OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_TERMINATE, false, (DWORD)handle);
+	return pi;
+}
+
+bool close_process(ProcessInfo pi) {
+	return !!CloseHandle((HANDLE)pi.handle);
+}
+
+std::string get_process_name(ProcessInfo pi) {
+	std::vector<char> name_buf(MAX_PATH + 2);
+	DWORD name_len = MAX_PATH + 1;
+	if (QueryFullProcessImageName((HANDLE)pi.handle, 0, name_buf.data(), &name_len)) {
+		return std::string(name_buf.data(), name_buf.data() + name_len);
+	}
+	return "";
+}
+
 bool is_process_alive(ProcessInfo pinfo) {
 	SetLastError(ERROR_SUCCESS);
 	DWORD id = GetProcessId(reinterpret_cast<HANDLE>(pinfo.handle));
@@ -174,9 +193,51 @@ std::shared_ptr<ipc::client> Controller::host(std::string uri) {
 	std::string commandLine = '"' + serverBinaryPath + '"' + " " + uri;
 	std::string workingDirectory = serverWorkingPath.length() > 0 ? serverWorkingPath : get_working_directory();
 
+	// Test for existing process.
+	std::string pid_path = "server.pid";
+#ifdef _WIN32
+	std::vector<char> tmp(MAX_PATH + 2);
+	TCHAR tmp_len = GetTempPath(MAX_PATH + 1, tmp.data());
+	pid_path = std::string(tmp.data(), tmp.data() + tmp_len) + "\\" + pid_path;
+#endif
+	std::ifstream pid_file;
+	pid_file.open(pid_path);
+	if (pid_file.is_open()) {
+		// There is one 64-bit integer stored here.
+		union {
+			uint64_t pid;
+			char pid_char[sizeof(uint64_t)];
+		};
+		pid_file.read(&pid_char[0], 8);
+		
+		ProcessInfo pi = open_process(pid);
+		if (pi.handle != 0) {
+			std::string name = get_process_name(pi);
+			if (name == serverBinaryPath) {
+				uint32_t dontcare = 0;
+				kill(pi, -1, dontcare);
+			}
+			close_process(pi);
+		}
+		pid_file.close();
+	}
+	
 	procId = spawn(serverBinaryPath, commandLine, workingDirectory);
 	if (procId.id == 0) {
 		return nullptr;
+	}
+
+	std::ofstream pid_file_w;
+	pid_file_w.open(pid_path, std::ios::trunc);
+	if (pid_file_w.is_open()) {
+		// There is one 64-bit integer stored here.
+		union {
+			uint64_t pid;
+			char pid_char[sizeof(uint64_t)];
+		};
+		pid = procId.id;
+		pid_file_w.write(&pid_char[0], sizeof(uint64_t));
+		pid_file_w.close();
 	}
 
 	// Connect
