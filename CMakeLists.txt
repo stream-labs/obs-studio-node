@@ -41,7 +41,7 @@ endif()
 
 download_project(
 	PROJ libobs
-	URL https://ci.appveyor.com/api/buildjobs/mqo0a442b6vk35d2/artifacts/windows-x86_64-dev.zip
+	URL https://ci.appveyor.com/api/buildjobs/6ry4sse5yrn3w4vn/artifacts/windows-x86_64-dev.zip
 )
 
 include("${libobs_SOURCE_DIR}/cmake/LibObs/LibObsTarget.cmake")
