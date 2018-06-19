@@ -548,7 +548,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetMuted(Nan::NAN_METHOD_ARGS_TYPE inf
 
 	if (!ValidateResponse(response)) return;
 
-	info.GetReturnValue().Set(response[1].value_union.i32);
+	info.GetReturnValue().Set((bool)response[1].value_union.i32);
 	return;
 }
 
@@ -571,7 +571,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetMuted(Nan::NAN_METHOD_ARGS_TYPE inf
 
 	if (!ValidateResponse(response)) return;
 
-	info.GetReturnValue().Set(response[1].value_union.i32 == muted);
+	info.GetReturnValue().Set((bool)response[1].value_union.i32 == muted);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetEnabled(Nan::NAN_METHOD_ARGS_TYPE info) {
