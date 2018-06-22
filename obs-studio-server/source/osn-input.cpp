@@ -22,6 +22,7 @@
 #include <obs.h>
 #include <memory>
 #include "shared.hpp"
+#include <iostream>
 
 void osn::Input::Register(ipc::server& srv) {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Input");
@@ -57,6 +58,7 @@ void osn::Input::Register(ipc::server& srv) {
 	cls->register_function(std::make_shared<ipc::function>("GetFilters", std::vector<ipc::type>{ipc::type::UInt64}, GetFilters));
 	cls->register_function(std::make_shared<ipc::function>("AddFilter", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, AddFilter));
 	cls->register_function(std::make_shared<ipc::function>("RemoveFilter", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, RemoveFilter));
+	cls->register_function(std::make_shared<ipc::function>("MoveFilter", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64, ipc::type::UInt32}, MoveFilter));
 	cls->register_function(std::make_shared<ipc::function>("FindFilter", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, FindFilter));
 	cls->register_function(std::make_shared<ipc::function>("CopyFiltersTo", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, CopyFiltersTo));
 
@@ -513,6 +515,31 @@ void osn::Input::RemoveFilter(void* data, const int64_t id, const std::vector<ip
 
 	obs_source_filter_remove(input, filter);
 
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void osn::Input::MoveFilter(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!input) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Input reference is not valid."));
+		AUTO_DEBUG;
+		return;
+	}
+	
+	obs_source_t* filter = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
+	if (!filter) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Filter reference is not valid."));
+		AUTO_DEBUG;
+		return;
+	}
+	
+	obs_order_movement movement = (obs_order_movement)args[2].value_union.ui32;
+	
+	obs_source_filter_set_order(input, filter, movement);
+	
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }

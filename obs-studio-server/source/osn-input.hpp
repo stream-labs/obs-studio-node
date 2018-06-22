@@ -54,6 +54,7 @@ namespace osn {
 		/// Filters
 		static void AddFilter(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 		static void RemoveFilter(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static void MoveFilter(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 		static void FindFilter(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 		static void GetFilters(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 		static void CopyFiltersTo(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);

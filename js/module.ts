@@ -37,6 +37,13 @@ export const enum EMonitoringType {
     MonitoringAndOutput
 }
 
+export const enum EOrderMovement {
+    Up,
+    Down,
+    Top,
+    Bottom
+}
+
 export const enum EDeinterlaceFieldOrder {
     Top,
     Bottom
@@ -926,6 +933,14 @@ export interface IInput extends ISource {
      * @param filter - The filter instance to remove from this input source.
      */
     removeFilter(filter: IFilter): void;
+
+    /**
+     * Move a filter up, down, top, or bottom in the filter list.
+     * @param filter - The filter to move within the input source.
+     * @param movement - The movement to make within the list.
+     */
+    setFilterOrder(filter: IFilter, movement: EOrderMovement): void;
+
 
     /**
      * Obtain a list of all filters associated with the input source

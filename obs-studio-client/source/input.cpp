@@ -64,6 +64,7 @@ void osn::Input::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	utilv8::SetTemplateAccessorProperty(objtemplate, "filters", Filters);
 	utilv8::SetTemplateField(objtemplate, "addFilter", AddFilter);
 	utilv8::SetTemplateField(objtemplate, "removeFilter", RemoveFilter);
+	utilv8::SetTemplateField(objtemplate, "setFilterOrder", SetFilterOrder);
 	utilv8::SetTemplateField(objtemplate, "findFilter", FindFilter);
 	utilv8::SetTemplateField(objtemplate, "copyFilters", CopyFilters);
 
@@ -776,19 +777,46 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::RemoveFilter(Nan::NAN_METHOD_ARGS_TYPE i
 			v8::Exception::ReferenceError(Nan::New<v8::String>(
 				"Source is invalid.").ToLocalChecked()));
 	}
-	osn::Filter* filter = dynamic_cast<osn::Filter*>(basefilter);
-	if (!filter) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::TypeError(Nan::New<v8::String>(
-				"Source is not a filter.").ToLocalChecked()));
-		return;
-	}
 
 	auto conn = GetConnection();
 	if (!conn) return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("Input", "RemoveFilter",
-	{ ipc::value(obj->sourceId), ipc::value(filter->sourceId) });
+	{ ipc::value(obj->sourceId), ipc::value(basefilter->sourceId) });
+
+	ValidateResponse(response);
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetFilterOrder(Nan::NAN_METHOD_ARGS_TYPE info) {
+	osn::ISource* baseobj = nullptr;
+	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+		return;
+	}
+	osn::Input* obj = dynamic_cast<osn::Input*>(baseobj);
+	if (!obj) {
+		// How did you even call this? o.o
+		return;
+	}
+
+	ASSERT_INFO_LENGTH(info, 2);
+
+	v8::Local<v8::Object> objfilter;
+	uint32_t movement;
+	ASSERT_GET_VALUE(info[0], objfilter);
+	ASSERT_GET_VALUE(info[1], movement);
+
+	osn::ISource* basefilter = nullptr;
+	if (!osn::ISource::Retrieve(objfilter, basefilter)) {
+		info.GetIsolate()->ThrowException(
+			v8::Exception::ReferenceError(Nan::New<v8::String>(
+				"Source is invalid.").ToLocalChecked()));
+	}
+
+	auto conn = GetConnection();
+	if (!conn) return;
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Input", "MoveFilter",
+	{ ipc::value(obj->sourceId), ipc::value(basefilter->sourceId), ipc::value(movement) });
 
 	ValidateResponse(response);
 }

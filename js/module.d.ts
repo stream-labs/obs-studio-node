@@ -14,6 +14,12 @@ export declare const enum EMonitoringType {
     MonitoringOnly = 1,
     MonitoringAndOutput = 2,
 }
+export declare const enum EOrderMovement {
+    Up = 0,
+    Down = 1,
+    Top = 2,
+    Bottom = 3,
+}
 export declare const enum EDeinterlaceFieldOrder {
     Top = 0,
     Bottom = 1,
@@ -482,6 +488,7 @@ export interface IInput extends ISource {
     findFilter(name: string): IFilter;
     addFilter(filter: IFilter): void;
     removeFilter(filter: IFilter): void;
+    setFilterOrder(filter: IFilter, movement: EOrderMovement): void;
     readonly filters: IFilter[];
     readonly width: number;
     readonly height: number;

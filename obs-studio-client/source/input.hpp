@@ -65,6 +65,7 @@ namespace osn {
 		static Nan::NAN_METHOD_RETURN_TYPE Filters(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE AddFilter(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE RemoveFilter(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE SetFilterOrder(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE FindFilter(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE CopyFilters(Nan::NAN_METHOD_ARGS_TYPE info);
 	};
