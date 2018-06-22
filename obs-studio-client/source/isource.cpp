@@ -589,7 +589,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetEnabled(Nan::NAN_METHOD_ARGS_TYPE i
 
 	if (!ValidateResponse(response)) return;
 
-	info.GetReturnValue().Set(response[1].value_union.i32);
+	info.GetReturnValue().Set((bool)response[1].value_union.i32);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetEnabled(Nan::NAN_METHOD_ARGS_TYPE info) {
@@ -611,5 +611,5 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetEnabled(Nan::NAN_METHOD_ARGS_TYPE i
 
 	if (!ValidateResponse(response)) return;
 
-	info.GetReturnValue().Set(response[1].value_union.i32 == enabled);
+	info.GetReturnValue().Set((bool)response[1].value_union.i32 == enabled);
 }
