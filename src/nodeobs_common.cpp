@@ -183,8 +183,8 @@ void OBS_content::OBS_content_resizeDisplay(const FunctionCallbackInfo<Value>
 
 	OBS::Display *display = value->second;
 
-	int width = args[1]->ToUint32()->Value();
-	int height = args[2]->ToUint32()->Value();
+	int width = Nan::To<int>(args[1]).FromJust();
+	int height = Nan::To<int>(args[2]).FromJust();
 
 	display->SetSize(width, height);
 }
@@ -204,8 +204,8 @@ void OBS_content::OBS_content_moveDisplay(const FunctionCallbackInfo<Value>
 
 	OBS::Display *display = value->second;
 
-	int x = args[1]->ToUint32()->Value();
-	int y = args[2]->ToUint32()->Value();
+	int x = Nan::To<int>(args[1]).FromJust();
+	int y = Nan::To<int>(args[2]).FromJust();
 
 	display->SetPosition(x, y);
 }
