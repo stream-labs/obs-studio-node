@@ -15,3 +15,5 @@ yarn-error.log
 *.sln
 *.vcxproj
 *.opendb
+docs/ 
+.vscode 
