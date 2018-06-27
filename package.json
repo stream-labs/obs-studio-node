@@ -21,11 +21,11 @@
     "build:docs": "typedoc --out docs"
   },
   "devDependencies": {
-    "nan": "^2.8.0",
+    "nan": "2.10.0",
     "typedoc": "^0.9.0",
     "typedoc-default-themes": "^0.5.0",
     "typedoc-plugin-markdown": "^1.0.12",
-    "typescript": "^2.6.2"
+    "typescript": "2.9.2"
   },
   "keywords": [
     "capture",
