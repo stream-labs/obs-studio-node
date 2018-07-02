@@ -28,6 +28,8 @@ void osn::Global::Register(ipc::server& srv) {
 	cls->register_function(std::make_shared<ipc::function>("GetOutputFlagsFromId", std::vector<ipc::type>{ipc::type::String}, GetOutputFlagsFromId));
 	cls->register_function(std::make_shared<ipc::function>("LaggedFrames", std::vector<ipc::type>{}, LaggedFrames));
 	cls->register_function(std::make_shared<ipc::function>("TotalFrames", std::vector<ipc::type>{}, TotalFrames));
+	cls->register_function(std::make_shared<ipc::function>("GetLocale", std::vector<ipc::type>{}, GetLocale));
+	cls->register_function(std::make_shared<ipc::function>("SetLocale", std::vector<ipc::type>{ipc::type::String}, SetLocale));
 	srv.register_collection(cls);
 }
 
@@ -101,5 +103,17 @@ void osn::Global::LaggedFrames(void* data, const int64_t id, const std::vector<i
 void osn::Global::TotalFrames(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_get_total_frames()));
+	AUTO_DEBUG;
+}
+
+void osn::Global::GetLocale(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_get_locale()));
+	AUTO_DEBUG;
+}
+
+void osn::Global::SetLocale(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	obs_set_locale(args[0].value_str.c_str());
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }

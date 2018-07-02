@@ -35,6 +35,8 @@ void osn::Global::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	utilv8::SetObjectAccessorProperty(ObsGlobal, "laggedFrames", laggedFrames);
 	utilv8::SetObjectAccessorProperty(ObsGlobal, "totalFrames", totalFrames);
 
+	utilv8::SetObjectAccessorProperty(ObsGlobal, "locale", getLocale, setLocale);
+
 	Nan::Set(target, FIELD_NAME("Global"), ObsGlobal);
 }
 
@@ -130,4 +132,33 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Global::totalFrames(Nan::NAN_METHOD_ARGS_TYPE i
 	if (!ValidateResponse(response)) return;
 
 	info.GetReturnValue().Set(response[1].value_union.ui32);
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::Global::getLocale(Nan::NAN_METHOD_ARGS_TYPE info) {
+	auto conn = GetConnection();
+	if (!conn) return;
+
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Global", "GetLocale",
+		{});
+
+	if (!ValidateResponse(response)) return;
+
+	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::Global::setLocale(Nan::NAN_METHOD_ARGS_TYPE info) {
+	std::string locale;
+
+	ASSERT_INFO_LENGTH(info, 1);
+	ASSERT_GET_VALUE(info[0], locale);
+
+	auto conn = GetConnection();
+	if (!conn) return;
+
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Global", "SetLocale",
+		{ipc::value(locale)});
+
+	if (!ValidateResponse(response)) return;
 }
