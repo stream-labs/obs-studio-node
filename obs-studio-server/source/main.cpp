@@ -42,9 +42,11 @@
 #include "osn-fader.hpp"
 #include "osn-volmeter.hpp"
 
+#ifndef _DEBUG
 #include "client/crashpad_client.h"
 #include "client/crash_report_database.h"
 #include "client/settings.h"
+#endif
 
 #if defined(_WIN32)
 #include "Shlobj.h"
@@ -81,6 +83,7 @@ namespace System {
 }
 
 int main(int argc, char* argv[]) {
+#ifndef _DEBUG
 	std::wstring appdata_path;
 	crashpad::CrashpadClient client;
 	bool rc;
@@ -127,6 +130,7 @@ int main(int argc, char* argv[]) {
 
 	rc = client.WaitForHandlerStart(INFINITE);
 	/* TODO Check rc value for errors */
+#endif
 
 	// Usage:
 	// argv[0] = Path to this application. (Usually given by default if run via path-based command!)

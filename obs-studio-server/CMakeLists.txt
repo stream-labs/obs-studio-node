@@ -13,8 +13,15 @@ include(DownloadProject)
 ############################
 # Setup crashpad binaries
 ############################
-ExternalProject_Add(crashpad_ep
+download_project(
+	PROJ crashpad
 	URL https://ci.appveyor.com/api/buildjobs/r1068pgmh2gv2x25/artifacts/win-x64.tar.gz
+	UPDATE_DISCONNECTED 1
+)
+
+ExternalProject_Add(crashpad_ep	
+	DOWNLOAD_COMMAND ""
+	SOURCE_DIR "${crashpad_SOURCE_DIR}"
 	INSTALL_COMMAND ""
 	BUILD_COMMAND ""
 	CONFIGURE_COMMAND ""
@@ -174,18 +181,28 @@ SET(PROJECT_DATA
 #############################
 # Building
 #############################
-ADD_EXECUTABLE(obs-studio-server ${PROJECT_SOURCE})
-TARGET_LINK_LIBRARIES(obs-studio-server ${PROJECT_LIBRARIES} crashpad)
-TARGET_INCLUDE_DIRECTORIES(obs-studio-server PUBLIC ${PROJECT_INCLUDE_PATHS})
+ADD_EXECUTABLE(obs-studio-server 
+	${PROJECT_SOURCE}
+)
+TARGET_LINK_LIBRARIES(obs-studio-server
+	${PROJECT_LIBRARIES}
+	optimized crashpad
+)
+TARGET_INCLUDE_DIRECTORIES(obs-studio-server 
+	PUBLIC ${PROJECT_INCLUDE_PATHS}
+)
 
 #############################
 # Distribute
 #############################
 INSTALL(TARGETS obs-studio-server
-	RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}" COMPONENT Runtime
+	RUNTIME DESTINATION "./" COMPONENT Runtime
 )
 INSTALL(FILES $<TARGET_PDB_FILE:obs-studio-server> DESTINATION "./" OPTIONAL)
 INSTALL(DIRECTORY ${PROJECT_DATA} DESTINATION "./" OPTIONAL)
+
+# Crashpad
+INSTALL(DIRECTORY ${crashpad_SOURCE_DIR}/bin/ DESTINATION "./")
 
 # libobs
 INSTALL(DIRECTORY "${libobs_SOURCE_DIR}/bin/64bit/" DESTINATION "./" PATTERN "*.lib" EXCLUDE)
