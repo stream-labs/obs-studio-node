@@ -10,6 +10,93 @@ SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 include(ExternalProject)
 include(DownloadProject)
 
+############################
+# Setup crashpad binaries
+############################
+download_project(
+	PROJ crashpad
+	URL https://ci.appveyor.com/api/buildjobs/r1068pgmh2gv2x25/artifacts/win-x64.tar.gz
+	UPDATE_DISCONNECTED 1
+)
+
+ExternalProject_Add(crashpad_ep	
+	DOWNLOAD_COMMAND ""
+	SOURCE_DIR "${crashpad_SOURCE_DIR}"
+	INSTALL_COMMAND ""
+	BUILD_COMMAND ""
+	CONFIGURE_COMMAND ""
+	BUILD_BYPRODUCTS 
+		"<SOURCE_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}base${CMAKE_STATIC_LIBRARY_SUFFIX}"
+		"<SOURCE_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}util${CMAKE_STATIC_LIBRARY_SUFFIX}"
+		"<SOURCE_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}client${CMAKE_STATIC_LIBRARY_SUFFIX}"
+		"<SOURCE_DIR>/bin/crashpad_database_util${CMAKE_EXECUTABLE_SUFFIX}"
+		"<SOURCE_DIR>/bin/crashpad_handler${CMAKE_EXECUTABLE_SUFFIX}"
+		"<SOURCE_DIR>/bin/crashpad_http_upload${CMAKE_EXECUTABLE_SUFFIX}"
+)
+
+# Our crashpad artifacts assume a particular format
+# <dir>\bin contains external processes
+# <dir>\lib contains static libraries we need to link against
+# <dir>\include contains the primary include path
+# <dir>\include\third_party\mini_chromium contains chromium include files
+
+add_library(crashpad_util STATIC IMPORTED)
+add_library(crashpad_base STATIC IMPORTED)
+add_library(crashpad_client STATIC IMPORTED)
+add_executable(crashpad_handler IMPORTED)
+add_executable(crashpad_database_util IMPORTED)
+add_executable(crashpad_http_upload IMPORTED)
+# From this, we get three total targets:
+#   crashpad_base
+#   crashpad_util
+#   crashpad_client
+# It's recommended to use util but not required as far as I know.
+
+ExternalProject_Get_Property(crashpad_ep source_dir)
+
+set_property(TARGET crashpad_base PROPERTY IMPORTED_LOCATION
+	"${source_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}base${CMAKE_STATIC_LIBRARY_SUFFIX}")
+
+set_property(TARGET crashpad_util PROPERTY IMPORTED_LOCATION
+	"${source_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}util${CMAKE_STATIC_LIBRARY_SUFFIX}")
+
+set_property(TARGET crashpad_client PROPERTY IMPORTED_LOCATION
+	"${source_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}client${CMAKE_STATIC_LIBRARY_SUFFIX}")
+
+set_property(TARGET crashpad_handler PROPERTY IMPORTED_LOCATION
+	"${source_dir}/bin/crashpad_handler${CMAKE_EXECUTABLE_SUFFIX}")
+
+set_property(TARGET crashpad_database_util PROPERTY IMPORTED_LOCATION
+	"${source_dir}/bin/crashpad_database_util${CMAKE_EXECUTABLE_SUFFIX}")
+
+set_property(TARGET crashpad_http_upload PROPERTY IMPORTED_LOCATION
+	"${source_dir}/bin/crashpad_http_upload${CMAKE_EXECUTABLE_SUFFIX}")
+
+target_include_directories(
+	crashpad_base
+	INTERFACE "${source_dir}/include/third_party/mini_chromium/mini_chromium"
+)
+
+target_include_directories(
+	crashpad_client
+	INTERFACE "${source_dir}/include"
+)
+
+add_library(crashpad INTERFACE)
+target_link_libraries(
+	crashpad
+	INTERFACE
+		crashpad_base
+		crashpad_client
+		crashpad_util
+)
+
+target_link_libraries(crashpad_util INTERFACE crashpad_client)
+
+add_dependencies(crashpad_base crashpad_ep)
+add_dependencies(crashpad_client crashpad_base)
+add_dependencies(crashpad_util crashpad_client)
+
 #############################
 # Prerequisites
 #############################
@@ -94,18 +181,28 @@ SET(PROJECT_DATA
 #############################
 # Building
 #############################
-ADD_EXECUTABLE(obs-studio-server ${PROJECT_SOURCE})
-TARGET_LINK_LIBRARIES(obs-studio-server ${PROJECT_LIBRARIES})
-TARGET_INCLUDE_DIRECTORIES(obs-studio-server PUBLIC ${PROJECT_INCLUDE_PATHS})
+ADD_EXECUTABLE(obs-studio-server 
+	${PROJECT_SOURCE}
+)
+TARGET_LINK_LIBRARIES(obs-studio-server
+	${PROJECT_LIBRARIES}
+	optimized crashpad
+)
+TARGET_INCLUDE_DIRECTORIES(obs-studio-server 
+	PUBLIC ${PROJECT_INCLUDE_PATHS}
+)
 
 #############################
 # Distribute
 #############################
 INSTALL(TARGETS obs-studio-server
-	RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}" COMPONENT Runtime
+	RUNTIME DESTINATION "./" COMPONENT Runtime
 )
 INSTALL(FILES $<TARGET_PDB_FILE:obs-studio-server> DESTINATION "./" OPTIONAL)
 INSTALL(DIRECTORY ${PROJECT_DATA} DESTINATION "./" OPTIONAL)
+
+# Crashpad
+INSTALL(DIRECTORY ${crashpad_SOURCE_DIR}/bin/ DESTINATION "./")
 
 # libobs
 INSTALL(DIRECTORY "${libobs_SOURCE_DIR}/bin/64bit/" DESTINATION "./" PATTERN "*.lib" EXCLUDE)
