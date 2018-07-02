@@ -342,26 +342,9 @@ void autoConfig::InitializeAutoConfig(void* data, const int64_t id, const std::v
 			server = "";
 	} else {
 		if (serviceName.compare("Twitch") == 0) {
-			if(continent.compare("North America") == 0) {
-				serverName = "US West: San Francisco, CA";
-				server = "rtmp://live-sfo.twitch.tv/app";
-			} else if (continent.compare("South America") == 0) {
-				serverName = "South America: Rio de Janeiro, Brazil";
-				server = "rtmp://live-rio.twitch.tv/app";
-			} else if (continent.compare("Europe") == 0) {
-				serverName = "EU: Frankfurt, DE";
-				server = "rtmp://live-fra.twitch.tv/app";
-			} else if (continent.compare("Asia") == 0) {
-				serverName = "Asia: Hong Kong";
-				server = "rtmp://live-hkg.twitch.tv/app";
-			} else if (continent.compare("Oceania") == 0) {
-				serverName = "Australia: Sydney";
-				server = "rtmp://live-syd.twitch.tv/app";
-			} else {
-				serverName = "US West: San Francisco, CA";
-				server = "rtmp://live-sfo.twitch.tv/app";
-			}
-		} 
+			serverName = "Auto (Recommended)";
+			server = "rtmp://live.twitch.tv/app";
+		}
 	}
 
 	cancel = false;
