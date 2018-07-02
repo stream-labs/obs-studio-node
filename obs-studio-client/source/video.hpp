@@ -16,16 +16,24 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
 
 #pragma once
-#include "utility.hpp"
-#include <ipc-server.hpp>
-#include <obs.h>
+#include <node.h>
+#include <nan.h>
+#include "utility-v8.hpp"
 
 namespace osn {
-	class Video {
-	public:
-		static void Register(ipc::server&);
+	class Video : public Nan::ObjectWrap, public utilv8::ManagedObject<osn::Video> {
+		friend class utilv8::ManagedObject<osn::Video>;
 
-		static void GetGlobal(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void GetSkippedFrames(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		public:
+		static Nan::Persistent<v8::FunctionTemplate> prototype;
+				
+		public:
+		Video();
+
+		public:
+		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+
+		static Nan::NAN_METHOD_RETURN_TYPE GetGlobal(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE GetSkippedFrames(Nan::NAN_METHOD_ARGS_TYPE info);
 	};
 }

@@ -41,6 +41,7 @@
 #include <chrono>
 #include "osn-fader.hpp"
 #include "osn-volmeter.hpp"
+#include "osn-video.hpp"
 
 #ifndef _DEBUG
 #include "client/crashpad_client.h"
@@ -167,6 +168,7 @@ int main(int argc, char* argv[]) {
 	osn::Fader::Register(myServer);
 	osn::VolMeter::Register(myServer);
 	osn::Properties::Register(myServer);
+	osn::Video::Register(myServer);
 	OBS_API::Register(myServer);
 	OBS_content::Register(myServer);
 	OBS_service::Register(myServer);

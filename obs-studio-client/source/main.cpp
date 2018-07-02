@@ -28,6 +28,7 @@
 #include "properties.hpp"
 #include "fader.hpp"
 #include "volmeter.hpp"
+#include "video.hpp"
 
 // Definition based on addon_register_func, see 'node.h:L384'.
 void main(v8::Local<v8::Object> exports, v8::Local<v8::Value> module, void* priv) {
@@ -42,6 +43,7 @@ void main(v8::Local<v8::Object> exports, v8::Local<v8::Value> module, void* priv
 	osn::PropertyObject::Register(exports);
 	osn::Fader::Register(exports);
 	osn::VolMeter::Register(exports);
+	osn::Video::Register(exports);
 
 	while (initializerFunctions.size() > 0) {
 		initializerFunctions.front()(exports);
