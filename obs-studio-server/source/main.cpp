@@ -42,6 +42,14 @@
 #include "osn-fader.hpp"
 #include "osn-volmeter.hpp"
 
+#include "client/crashpad_client.h"
+#include "client/crash_report_database.h"
+#include "client/settings.h"
+
+#if defined(_WIN32)
+#include "Shlobj.h"
+#endif
+
 struct ServerData {
 	std::mutex mtx;
 	std::chrono::high_resolution_clock::time_point last_connect, last_disconnect;
@@ -73,6 +81,53 @@ namespace System {
 }
 
 int main(int argc, char* argv[]) {
+	std::wstring appdata_path;
+	crashpad::CrashpadClient client;
+	bool rc;
+
+#if defined(_WIN32)
+	HRESULT hResult;
+	PWSTR ppszPath;
+	
+	hResult = SHGetKnownFolderPath(
+		FOLDERID_RoamingAppData,
+		0, NULL, &ppszPath
+	);
+
+	appdata_path.assign(ppszPath);
+	appdata_path.append(L"\\obs-studio-node-server");
+
+	CoTaskMemFree(ppszPath);
+#endif
+
+	std::map<std::string, std::string> annotations;
+	std::vector<std::string> arguments;
+
+	std::wstring handler_path(L"crashpad_handler.exe");
+	std::string url("https://streamlabs.sp.backtrace.io:6098");
+	annotations["token"] = "513fa5577d6a193ed34965e18b93d7b00813e9eb2f4b0b7059b30e66afebe4fe";
+	annotations["format"] = "minidump";
+
+	base::FilePath db(appdata_path);
+	base::FilePath handler(handler_path);
+
+	std::unique_ptr<crashpad::CrashReportDatabase> database =
+		crashpad::CrashReportDatabase::Initialize(db);
+	if (database == nullptr || database->GetSettings() == NULL)
+		return false;
+
+	database->GetSettings()->SetUploadsEnabled(true);
+
+	rc = client.StartHandler(
+		handler, db, db, url,
+		annotations, arguments,
+		true, true
+	);
+	/* TODO Check rc value for errors */
+
+	rc = client.WaitForHandlerStart(INFINITE);
+	/* TODO Check rc value for errors */
+
 	// Usage:
 	// argv[0] = Path to this application. (Usually given by default if run via path-based command!)
 	// argv[1] = Path to a named socket.
