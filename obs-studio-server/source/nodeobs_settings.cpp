@@ -3415,20 +3415,27 @@ void OBS_settings::saveVideoSettings(std::vector<SubCategory> videoSettings)
 		config_set_uint(config, "Video", "FPSType", 1);
 
 		Parameter fpsInt = sc.params.at(4);
-		uint32_t *fpsIntValue = reinterpret_cast<uint32_t*>(&fpsInt.currentValue);
-		config_set_uint(config, "Video", "FPSInt", *fpsIntValue);
+
+		uint64_t *fpsIntValue = reinterpret_cast<uint64_t*>(fpsInt.currentValue.data());
+
+		if (*fpsIntValue < 500) {
+			config_set_uint(config, "Video", "FPSInt", *fpsIntValue);
+		}
 
 	} else if (fpsTypeString.compare("Fractional FPS Value") == 0) {
 		config_set_uint(config, "Video", "FPSType", 2);
 
 		Parameter fpsNum = sc.params.at(4);
-		uint32_t *fpsNumValue = reinterpret_cast<uint32_t*>(&fpsNum.currentValue);
-		config_set_uint(config, "Video", "FPSNum", *fpsNumValue);
+		uint32_t *fpsNumValue = reinterpret_cast<uint32_t*>(fpsNum.currentValue.data());
+
+		if (*fpsNumValue < 500) {
+			config_set_uint(config, "Video", "FPSNum", *fpsNumValue);
+		}
 	
 		if(sc.params.size() > 5)
 		{
 			Parameter fpsDen = sc.params.at(5);
-			uint32_t *fpsDenValue = reinterpret_cast<uint32_t*>(&fpsDen.currentValue);
+			uint32_t *fpsDenValue = reinterpret_cast<uint32_t*>(fpsDen.currentValue.data());
 			config_set_uint(config, "Video", "FPSDen", *fpsDenValue);
 		}
 	}
