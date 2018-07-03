@@ -85,50 +85,50 @@ std::string	OBS_API::getModuleDirectory(void) {
 /* FIXME Platform specific and uses ASCII functions */
 static bool dirExists(const std::string& path)
 {
-  DWORD ftyp = GetFileAttributesA(path.c_str());
-  if (ftyp == INVALID_FILE_ATTRIBUTES)
-    return false;  
+	DWORD ftyp = GetFileAttributesA(path.c_str());
+	if (ftyp == INVALID_FILE_ATTRIBUTES)
+		return false;
 
-  if (ftyp & FILE_ATTRIBUTE_DIRECTORY)
-    return true;   
+	if (ftyp & FILE_ATTRIBUTE_DIRECTORY)
+		return true;
 
-  return false;
+	return false;
 }
 
 /* FIXME Platform-specific */
 static bool containsDirectory(const std::string& path)
 {
 	const char* pszDir = path.c_str();
-    char szBuffer[MAX_PATH];
+	char szBuffer[MAX_PATH];
 
-    DWORD dwRet = GetCurrentDirectory(MAX_PATH, szBuffer);
-    SetCurrentDirectory(pszDir);
+	DWORD dwRet = GetCurrentDirectory(MAX_PATH, szBuffer);
+	SetCurrentDirectory(pszDir);
 
-    WIN32_FIND_DATA fd;
+	WIN32_FIND_DATA fd;
 
-    HANDLE hFind = ::FindFirstFile("*.", &fd);
+	HANDLE hFind = ::FindFirstFile("*.", &fd);
 
-    // Get all sub-folders:
+	// Get all sub-folders:
 
-    if (hFind != INVALID_HANDLE_VALUE)
-    {
-        do
-        {
-            char* pszName = fd.cFileName;
-            if (_stricmp(pszName, ".") != 0 && _stricmp(pszName, "..") != 0)
-            {
+	if (hFind != INVALID_HANDLE_VALUE)
+	{
+		do
+		{
+			char* pszName = fd.cFileName;
+			if (_stricmp(pszName, ".") != 0 && _stricmp(pszName, "..") != 0)
+			{
 				//Only look for at least one directory
 				::FindClose(hFind);
 				SetCurrentDirectory(szBuffer);
 				return true;
-            }
+			}
 
-        } while (::FindNextFile(hFind, &fd));
-        ::FindClose(hFind);
-    }
-    // Set the current folder back to what it was:
-    SetCurrentDirectory(szBuffer);
-    return false;
+		} while (::FindNextFile(hFind, &fd));
+		::FindClose(hFind);
+	}
+	// Set the current folder back to what it was:
+	SetCurrentDirectory(szBuffer);
+	return false;
 }
 
 static string GenerateTimeDateFilename(const char *extension)
@@ -173,10 +173,10 @@ static bool ExpectToken(lexer *lex, const char *str, base_token_type type)
 	return strref_cmp(&token.text, str) == 0;
 }
 
-/* os_dirent mimics POSIX dirent structure. 
- * Perhaps a better cross-platform solution can take 
- * place but this is as cross-platform as it gets
- * for right now.  */
+/* os_dirent mimics POSIX dirent structure.
+* Perhaps a better cross-platform solution can take
+* place but this is as cross-platform as it gets
+* for right now.  */
 static uint64_t ConvertLogName(const char *name)
 {
 	lexer  lex;
@@ -185,12 +185,12 @@ static uint64_t ConvertLogName(const char *name)
 	lexer_init(&lex);
 	lexer_start(&lex, name);
 
-	if (!GetToken(&lex, year,   BASETOKEN_DIGIT)) return 0;
+	if (!GetToken(&lex, year, BASETOKEN_DIGIT)) return 0;
 	if (!ExpectToken(&lex, "-", BASETOKEN_OTHER)) return 0;
-	if (!GetToken(&lex, month,  BASETOKEN_DIGIT)) return 0;
+	if (!GetToken(&lex, month, BASETOKEN_DIGIT)) return 0;
 	if (!ExpectToken(&lex, "-", BASETOKEN_OTHER)) return 0;
-	if (!GetToken(&lex, day,    BASETOKEN_DIGIT)) return 0;
-	if (!GetToken(&lex, hour,   BASETOKEN_DIGIT)) return 0;
+	if (!GetToken(&lex, day, BASETOKEN_DIGIT)) return 0;
+	if (!GetToken(&lex, hour, BASETOKEN_DIGIT)) return 0;
 	if (!ExpectToken(&lex, "-", BASETOKEN_OTHER)) return 0;
 	if (!GetToken(&lex, minute, BASETOKEN_DIGIT)) return 0;
 	if (!ExpectToken(&lex, "-", BASETOKEN_OTHER)) return 0;
@@ -284,31 +284,35 @@ static void node_obs_log(int log_level, const char *msg, va_list args, void *par
 	/// Convert level int to human readable name
 	std::string levelname = "";
 	switch (log_level) {
-		case LOG_INFO:
-			levelname = "Info";
-			break;
-		case LOG_WARNING:
-			levelname = "Warning";
-			break;
-		case LOG_ERROR:
+	case LOG_INFO:
+		levelname = "Info";
+		break;
+	case LOG_WARNING:
+		levelname = "Warning";
+		break;
+	case LOG_ERROR:
+		levelname = "Error";
+		break;
+	case LOG_DEBUG:
+		levelname = "Debug";
+		break;
+	default:
+		if (log_level <= 50) {
+			levelname = "Critical";
+		}
+		else if (log_level > 50 && log_level < LOG_ERROR) {
 			levelname = "Error";
-			break;
-		case LOG_DEBUG:
-			levelname = "Debug";
-			break;
-		default:
-			if (log_level <= 50) {
-				levelname = "Critical";
-			} else if (log_level > 50 && log_level < LOG_ERROR) {
-				levelname = "Error";
-			} else if (log_level > LOG_ERROR && log_level < LOG_WARNING) {
-				levelname = "Alert";
-			} else if (log_level > LOG_WARNING && log_level < LOG_INFO) {
-				levelname = "Hint";
-			} else if (log_level > LOG_INFO) {
-				levelname = "Notice";
-			}
-			break;
+		}
+		else if (log_level > LOG_ERROR && log_level < LOG_WARNING) {
+			levelname = "Alert";
+		}
+		else if (log_level > LOG_WARNING && log_level < LOG_INFO) {
+			levelname = "Hint";
+		}
+		else if (log_level > LOG_INFO) {
+			levelname = "Notice";
+		}
+		break;
 	}
 
 	std::vector<char> timebuf(65535, '\0');
@@ -326,10 +330,10 @@ static void node_obs_log(int log_level, const char *msg, va_list args, void *par
 		nanoseconds.count(),
 		levelname.length(), levelname.c_str());
 	std::string time_and_level = std::string(timebuf.data(), length);
-	
+
 	// Format incoming text
 	std::string text = nodeobs_log_formatted_message(msg, args);
-	
+
 
 	std::fstream *logStream = reinterpret_cast<std::fstream*>(param);
 
@@ -353,7 +357,7 @@ static void node_obs_log(int log_level, const char *msg, va_list args, void *par
 			}
 			fwrite(newmsg.data(), sizeof(char), newmsg.length(), stdout);
 
-			
+
 			// Debugger
 #ifdef _WIN32
 			if (IsDebuggerPresent()) {
@@ -586,7 +590,7 @@ void OBS_API::OBS_API_getOBS_existingSceneCollections(void* data, const int64_t 
 	pathSceneCollections += OBS_pathConfigDirectory;
 	pathSceneCollections += "\\basic\\scenes\\";
 
-	std::vector<std::string> existingSceneCollections = 
+	std::vector<std::string> existingSceneCollections =
 		exploreDirectory(pathSceneCollections, "files");
 
 	int indexArray = 0;
@@ -650,9 +654,9 @@ bool DisableAudioDucking(bool disable)
 	ComPtr<IAudioSessionControl2> sessionControl2;
 
 	HRESULT result = CoCreateInstance(__uuidof(MMDeviceEnumerator),
-			nullptr, CLSCTX_INPROC_SERVER,
-			__uuidof(IMMDeviceEnumerator),
-			(void **)&devEmum);
+		nullptr, CLSCTX_INPROC_SERVER,
+		__uuidof(IMMDeviceEnumerator),
+		(void **)&devEmum);
 	if (FAILED(result))
 		return false;
 
@@ -661,13 +665,13 @@ bool DisableAudioDucking(bool disable)
 		return false;
 
 	result = device->Activate(__uuidof(IAudioSessionManager2),
-			CLSCTX_INPROC_SERVER, nullptr,
-			(void **)&sessionManager2);
+		CLSCTX_INPROC_SERVER, nullptr,
+		(void **)&sessionManager2);
 	if (FAILED(result))
 		return false;
 
 	result = sessionManager2->GetAudioSessionControl(nullptr, 0,
-			&sessionControl);
+		&sessionControl);
 	if (FAILED(result))
 		return false;
 
@@ -681,23 +685,23 @@ bool DisableAudioDucking(bool disable)
 
 void OBS_API::setAudioDeviceMonitoring(void)
 {
-    /* load audio monitoring */
+	/* load audio monitoring */
 #if defined(_WIN32) || defined(__APPLE__)
-    std::string basicConfigFile = OBS_API::getBasicConfigPath();
-    config_t* config = OBS_API::openConfigFile(basicConfigFile);
+	std::string basicConfigFile = OBS_API::getBasicConfigPath();
+	config_t* config = OBS_API::openConfigFile(basicConfigFile);
 
-    const char *device_name = config_get_string(config, "Audio",
-            "MonitoringDeviceName");
-    const char *device_id = config_get_string(config, "Audio",
-            "MonitoringDeviceId");
+	const char *device_name = config_get_string(config, "Audio",
+		"MonitoringDeviceName");
+	const char *device_id = config_get_string(config, "Audio",
+		"MonitoringDeviceId");
 
-    obs_set_audio_monitoring_device(device_name, device_id);
+	obs_set_audio_monitoring_device(device_name, device_id);
 
-    blog(LOG_INFO, "Audio monitoring device:\n\tname: %s\n\tid: %s",
-			device_name, device_id);
+	blog(LOG_INFO, "Audio monitoring device:\n\tname: %s\n\tid: %s",
+		device_name, device_id);
 
 	bool disableAudioDucking = config_get_bool(config, "Audio",
-			"DisableAudioDucking");
+		"DisableAudioDucking");
 	if (disableAudioDucking)
 		DisableAudioDucking(true);
 #endif
@@ -716,28 +720,28 @@ static void SaveProfilerData(const profiler_snapshot_t *snap)
 
 	if (!profiler_snapshot_dump_csv_gz(snap, dst.c_str()))
 		blog(LOG_WARNING, "Could not save profiler data to '%s'",
-				dst.c_str());
+			dst.c_str());
 }
 
 void OBS_API::destroyOBS_API(void) {
-    os_cpu_usage_info_destroy(cpuUsageInfo);
+	os_cpu_usage_info_destroy(cpuUsageInfo);
 
 #ifdef _WIN32
 	std::string basicConfigFile = OBS_API::getBasicConfigPath();
 	config_t* config = OBS_API::openConfigFile(basicConfigFile);
 
 	bool disableAudioDucking = config_get_bool(config, "Audio",
-			"DisableAudioDucking");
+		"DisableAudioDucking");
 	if (disableAudioDucking)
 		DisableAudioDucking(false);
 #endif
 
 	obs_encoder_t* streamingEncoder = OBS_service::getStreamingEncoder();
-	if(streamingEncoder != NULL)
+	if (streamingEncoder != NULL)
 		obs_encoder_release(streamingEncoder);
 
 	obs_encoder_t* recordingEncoder = OBS_service::getRecordingEncoder();
-	if(recordingEncoder != NULL)
+	if (recordingEncoder != NULL)
 		obs_encoder_release(recordingEncoder);
 
 	obs_encoder_t* audioStreamingEncoder = OBS_service::getAudioStreamingEncoder();
@@ -749,20 +753,20 @@ void OBS_API::destroyOBS_API(void) {
 		obs_encoder_release(audioRecordingEncoder);
 
 	obs_output_t* streamingOutput = OBS_service::getStreamingOutput();
-	if(streamingOutput != NULL)
+	if (streamingOutput != NULL)
 		obs_output_release(streamingOutput);
 
 	obs_output_t* recordingOutput = OBS_service::getRecordingOutput();
-	if(recordingOutput != NULL)
+	if (recordingOutput != NULL)
 		obs_output_release(recordingOutput);
 
 	obs_service_t* service = OBS_service::getService();
-	if(service != NULL)
+	if (service != NULL)
 		obs_service_release(service);
 
-    obs_shutdown();
+	obs_shutdown();
 
-    /*profiler_stop();
+	/*profiler_stop();
 	auto snapshot = profile_snapshot_create();
 	profiler_print(snapshot);
 	profiler_print_time_between_calls(snapshot);
@@ -801,8 +805,8 @@ struct ci_char_traits : public char_traits<char> {
 typedef std::basic_string<char, ci_char_traits> istring;
 #pragma endregion Case-Insensitive String
 
-/* This should be reusable outside of node-obs, especially 
- * if we go a server/client route. */
+/* This should be reusable outside of node-obs, especially
+* if we go a server/client route. */
 void OBS_API::openAllModules(void) {
 	OBS_service::resetVideoContext(NULL);
 
@@ -810,7 +814,7 @@ void OBS_API::openAllModules(void) {
 		g_moduleDirectory + "/obs-plugins/64bit",
 		g_moduleDirectory + "/obs-plugins"
 	};
-	
+
 	std::string plugins_data_paths[] = {
 		g_moduleDirectory + "/data/obs-plugins",
 		plugins_data_paths[0]
@@ -846,32 +850,32 @@ void OBS_API::openAllModules(void) {
 				continue;
 			}
 
-			#ifdef _WIN32
+#ifdef _WIN32
 			if (fullname.substr(fullname.find_last_of(".") + 1) != "dll") {
 				continue;
 			}
-			#endif
+#endif
 
 			obs_module_t *module;
 			int result = obs_open_module(&module, plugin_path.c_str(), plugin_data_path.c_str());
 
 			switch (result) {
-				case MODULE_SUCCESS:
-					break;
-				case MODULE_FILE_NOT_FOUND:
-					std::cerr << "Unable to load '" << plugin_path << "', could not find file." << std::endl;
-					continue;
-				case MODULE_MISSING_EXPORTS:
-					std::cerr << "Unable to load '" << plugin_path << "', missing exports." << std::endl;
-					continue;
-				case MODULE_INCOMPATIBLE_VER:
-					std::cerr << "Unable to load '" << plugin_path << "', incompatible version." << std::endl;
-					continue;
-				case MODULE_ERROR:
-					std::cerr << "Unable to load '" << plugin_path << "', generic error." << std::endl;
-					continue;
-				default:
-					continue;
+			case MODULE_SUCCESS:
+				break;
+			case MODULE_FILE_NOT_FOUND:
+				std::cerr << "Unable to load '" << plugin_path << "', could not find file." << std::endl;
+				continue;
+			case MODULE_MISSING_EXPORTS:
+				std::cerr << "Unable to load '" << plugin_path << "', missing exports." << std::endl;
+				continue;
+			case MODULE_INCOMPATIBLE_VER:
+				std::cerr << "Unable to load '" << plugin_path << "', incompatible version." << std::endl;
+				continue;
+			case MODULE_ERROR:
+				std::cerr << "Unable to load '" << plugin_path << "', generic error." << std::endl;
+				continue;
+			default:
+				continue;
 			}
 
 			bool success = obs_init_module(module);
@@ -900,10 +904,10 @@ double OBS_API::getCPU_Percentage(void)
 int OBS_API::getNumberOfDroppedFrames(void)
 {
 	obs_output_t* streamOutput = OBS_service::getStreamingOutput();
-	
+
 	int totalDropped = 0;
 
-	if(obs_output_active(streamOutput))
+	if (obs_output_active(streamOutput))
 	{
 		totalDropped = obs_output_get_frames_dropped(streamOutput);
 	}
@@ -914,14 +918,14 @@ int OBS_API::getNumberOfDroppedFrames(void)
 double OBS_API::getDroppedFramesPercentage(void)
 {
 	obs_output_t* streamOutput = OBS_service::getStreamingOutput();
-	
+
 	double percent = 0;
 
-	if(obs_output_active(streamOutput))
+	if (obs_output_active(streamOutput))
 	{
 		int totalDropped = obs_output_get_frames_dropped(streamOutput);
-		int totalFrames  = obs_output_get_total_frames(streamOutput);
-		percent   = (double)totalDropped / (double)totalFrames * 100.0;
+		int totalFrames = obs_output_get_total_frames(streamOutput);
+		percent = (double)totalDropped / (double)totalFrames * 100.0;
 	}
 
 	return percent;
@@ -933,9 +937,9 @@ double OBS_API::getCurrentBandwidth(void)
 
 	double kbitsPerSec = 0;
 
-	if(obs_output_active(streamOutput))
+	if (obs_output_active(streamOutput))
 	{
-		uint64_t bytesSent     = obs_output_get_total_bytes(streamOutput);
+		uint64_t bytesSent = obs_output_get_total_bytes(streamOutput);
 		uint64_t bytesSentTime = os_gettime_ns();
 
 		if (bytesSent < lastBytesSent)
@@ -943,15 +947,15 @@ double OBS_API::getCurrentBandwidth(void)
 		if (bytesSent == 0)
 			lastBytesSent = 0;
 
-		uint64_t bitsBetween   = (bytesSent - lastBytesSent) * 8;
+		uint64_t bitsBetween = (bytesSent - lastBytesSent) * 8;
 
 		double timePassed = double(bytesSentTime - lastBytesSentTime) /
 			1000000000.0;
 
 		kbitsPerSec = double(bitsBetween) / timePassed / 1000.0;
 
-		lastBytesSent        = bytesSent;
-		lastBytesSentTime    = bytesSentTime;
+		lastBytesSent = bytesSent;
+		lastBytesSentTime = bytesSentTime;
 	}
 
 	return kbitsPerSec;
@@ -969,48 +973,49 @@ std::string OBS_API::getPathConfigDirectory(void)
 
 void OBS_API::setPathConfigDirectory(std::string newPathConfigDirectory)
 {
-	if(!newPathConfigDirectory.empty() && !useOBS_configFiles)
+	if (!newPathConfigDirectory.empty() && !useOBS_configFiles)
 	{
 		pathConfigDirectory = newPathConfigDirectory;
-	} 
+	}
 }
 
-std::vector<std::string> OBS_API::exploreDirectory(std::string directory, std::string typeToReturn) 
+std::vector<std::string> OBS_API::exploreDirectory(std::string directory, std::string typeToReturn)
 {
 	std::vector<std::string> listElements;
 
-    char originalDirectory[_MAX_PATH];
+	char originalDirectory[_MAX_PATH];
 
-    // Get the current directory so we can return to it
-    _getcwd(originalDirectory, _MAX_PATH);
+	// Get the current directory so we can return to it
+	_getcwd(originalDirectory, _MAX_PATH);
 
-    _chdir(directory.c_str());  // Change to the working directory
-    _finddata_t fileinfo;
+	_chdir(directory.c_str());  // Change to the working directory
+	_finddata_t fileinfo;
 
-    // This will grab the first file in the directory
-    // "*" can be changed if you only want to look for specific files
-    intptr_t handle = _findfirst("*", &fileinfo);
+	// This will grab the first file in the directory
+	// "*" can be changed if you only want to look for specific files
+	intptr_t handle = _findfirst("*", &fileinfo);
 
-    if(handle == -1)  // No files or directories found
-    {
-        perror("Error searching for file");
-        exit(1);
-    }
+	if (handle == -1)  // No files or directories found
+	{
+		perror("Error searching for file");
+		exit(1);
+	}
 
-    do
-    {
-        if(strcmp(fileinfo.name, ".") == 0 || strcmp(fileinfo.name, "..") == 0)
-            continue;
-        if(fileinfo.attrib & _A_SUBDIR && typeToReturn.compare("directories") == 0) {
-        	listElements.push_back(fileinfo.name);
-        } else if (typeToReturn.compare("files") == 0) {
-        	listElements.push_back(fileinfo.name);
-        }
-    } while(_findnext(handle, &fileinfo) == 0);
+	do
+	{
+		if (strcmp(fileinfo.name, ".") == 0 || strcmp(fileinfo.name, "..") == 0)
+			continue;
+		if (fileinfo.attrib & _A_SUBDIR && typeToReturn.compare("directories") == 0) {
+			listElements.push_back(fileinfo.name);
+		}
+		else if (typeToReturn.compare("files") == 0) {
+			listElements.push_back(fileinfo.name);
+		}
+	} while (_findnext(handle, &fileinfo) == 0);
 
-    _findclose(handle); // Close the stream
+	_findclose(handle); // Close the stream
 
-    _chdir(originalDirectory);
+	_chdir(originalDirectory);
 
 	return listElements;
 }
@@ -1035,37 +1040,37 @@ void OBS_API::setOBS_currentSceneCollection(std::string sceneCollectionName)
 	OBS_currentSceneCollection = sceneCollectionName;
 }
 
-bool OBS_API::isOBS_configFilesUsed(void) 
+bool OBS_API::isOBS_configFilesUsed(void)
 {
 	return useOBS_configFiles;
 }
 
 static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor,
-                              HDC      hdcMonitor,
-                              LPRECT   lprcMonitor,
-                              LPARAM   dwData)
+	HDC      hdcMonitor,
+	LPRECT   lprcMonitor,
+	LPARAM   dwData)
 {
-    MONITORINFO info;
-    info.cbSize = sizeof(info);
-    if (GetMonitorInfo(hMonitor, &info))
-    {
-        std::vector<Screen>* resolutions = reinterpret_cast<std::vector<Screen>*>(dwData); 
+	MONITORINFO info;
+	info.cbSize = sizeof(info);
+	if (GetMonitorInfo(hMonitor, &info))
+	{
+		std::vector<Screen>* resolutions = reinterpret_cast<std::vector<Screen>*>(dwData);
 
-        Screen screen;
+		Screen screen;
 
-        screen.width = std::abs(info.rcMonitor.left - info.rcMonitor.right);
-        screen.height = std::abs(info.rcMonitor.top  - info.rcMonitor.bottom);
+		screen.width = std::abs(info.rcMonitor.left - info.rcMonitor.right);
+		screen.height = std::abs(info.rcMonitor.top - info.rcMonitor.bottom);
 
-        resolutions->push_back(screen);
-    }
-    return true;  
+		resolutions->push_back(screen);
+	}
+	return true;
 }
 
 std::vector<Screen> OBS_API::availableResolutions(void)
 {
 	std::vector<Screen> resolutions;
-    EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, reinterpret_cast<LPARAM>(&resolutions));
-	
+	EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, reinterpret_cast<LPARAM>(&resolutions));
+
 	return resolutions;
 }
 
@@ -1085,11 +1090,11 @@ std::string OBS_API::getBasicConfigPath(void)
 
 	basicConfigPath += pathConfigDirectory;
 
-	if(useOBS_configFiles && !OBS_currentProfile.empty()) {
+	if (useOBS_configFiles && !OBS_currentProfile.empty()) {
 		basicConfigPath += "\\basic\\profiles\\";
 		basicConfigPath += OBS_currentProfile;
 	}
-	
+
 	basicConfigPath += "\\basic.ini";
 
 	return basicConfigPath;
@@ -1101,11 +1106,11 @@ std::string OBS_API::getServiceConfigPath(void)
 
 	serviceConfigPath += pathConfigDirectory;
 
-	if(useOBS_configFiles && !OBS_currentProfile.empty()) {
+	if (useOBS_configFiles && !OBS_currentProfile.empty()) {
 		serviceConfigPath += "\\basic\\profiles\\";
 		serviceConfigPath += OBS_currentProfile;
 	}
-	
+
 	serviceConfigPath += "\\service.json";
 
 	return serviceConfigPath;
@@ -1117,11 +1122,12 @@ std::string OBS_API::getContentConfigPath(void)
 
 	contentConfigPath += pathConfigDirectory;
 
-	if(useOBS_configFiles && !OBS_currentSceneCollection.empty()) {
+	if (useOBS_configFiles && !OBS_currentSceneCollection.empty()) {
 		contentConfigPath += "\\basic\\scenes\\";
 		contentConfigPath += OBS_currentSceneCollection;;
 		contentConfigPath += ".json";
-	} else {
+	}
+	else {
 		contentConfigPath += "\\config.json";
 	}
 
@@ -1160,9 +1166,9 @@ static const double scaled_vals[] =
 {
 	1.0,
 	1.25,
-	(1.0/0.75),
+	(1.0 / 0.75),
 	1.5,
-	(1.0/0.6),
+	(1.0 / 0.6),
 	1.75,
 	2.0,
 	2.25,
@@ -1179,183 +1185,183 @@ config_t* OBS_API::openConfigFile(std::string configFile)
 
 	std::vector<std::pair<std::string, config_t*>>::iterator it =
 		std::find_if(configFiles.begin(), configFiles.end(),
-			[&configFile] (const pair<std::string, config_t*> value)
-			{
-				return (value.first.compare(configFile) == 0);
-			});
+			[&configFile](const pair<std::string, config_t*> value)
+	{
+		return (value.first.compare(configFile) == 0);
+	});
 
 	// if(it == configFiles.end()) {
-		config_t* config;
+	config_t* config;
 
-		int result = config_open(&config, configFile.c_str(), CONFIG_OPEN_EXISTING);
+	int result = config_open(&config, configFile.c_str(), CONFIG_OPEN_EXISTING);
 
-		if(result != CONFIG_SUCCESS) {
-			config = config_create(configFile.c_str());
-			config_open(&config, configFile.c_str(), CONFIG_OPEN_EXISTING);
-		}
+	if (result != CONFIG_SUCCESS) {
+		config = config_create(configFile.c_str());
+		config_open(&config, configFile.c_str(), CONFIG_OPEN_EXISTING);
+	}
 
-		std::string basic = "basic.ini";
-		std::string subString = configFile.substr(configFile.size() - basic.size(), basic.size()).c_str();
+	std::string basic = "basic.ini";
+	std::string subString = configFile.substr(configFile.size() - basic.size(), basic.size()).c_str();
 
-		if (subString.compare(basic) == 0) {
-			// Base resolution
-			uint32_t cx = 0;
-			uint32_t cy = 0;
+	if (subString.compare(basic) == 0) {
+		// Base resolution
+		uint32_t cx = 0;
+		uint32_t cy = 0;
 
-			/* ----------------------------------------------------- */
-			/* move over mixer values in advanced if older config */
-			if (config_has_user_value(config, "AdvOut", "RecTrackIndex") &&
-				!config_has_user_value(config, "AdvOut", "RecTracks")) {
+		/* ----------------------------------------------------- */
+		/* move over mixer values in advanced if older config */
+		if (config_has_user_value(config, "AdvOut", "RecTrackIndex") &&
+			!config_has_user_value(config, "AdvOut", "RecTracks")) {
 
-				uint64_t track = config_get_uint(config, "AdvOut",
-						"RecTrackIndex");
-				track = 1ULL << (track - 1);
-				config_set_uint(config, "AdvOut", "RecTracks", track);
-				config_remove_value(config, "AdvOut", "RecTrackIndex");
-				config_save_safe(config, "tmp", nullptr);
-			}
-
-			config_set_default_string(config, "Output", "Mode", "Simple");
-			std::string filePath = GetDefaultVideoSavePath();
-			config_set_default_string(config, "SimpleOutput", "FilePath",
-				filePath.c_str());
-			config_set_default_string(config, "SimpleOutput", "RecFormat",
-					"flv");
-			config_set_default_uint  (config, "SimpleOutput", "VBitrate",
-					2500);
-			config_set_default_string(config, "SimpleOutput", "StreamEncoder",
-					SIMPLE_ENCODER_X264);
-			config_set_default_uint  (config, "SimpleOutput", "ABitrate", 160);
-			config_set_default_bool  (config, "SimpleOutput", "UseAdvanced",
-					false);
-			config_set_default_bool  (config, "SimpleOutput", "EnforceBitrate",
-					true);
-			config_set_default_string(config, "SimpleOutput", "Preset",
-					"veryfast");
-			config_set_default_string(config, "SimpleOutput", "RecQuality",
-					"Stream");
-			config_set_default_string(config, "SimpleOutput", "RecEncoder",
-					SIMPLE_ENCODER_X264);
-			config_set_default_bool(config, "SimpleOutput", "RecRB", false);
-			config_set_default_int(config, "SimpleOutput", "RecRBTime", 20);
-			config_set_default_int(config, "SimpleOutput", "RecRBSize", 512);
-			config_set_default_string(config, "SimpleOutput", "RecRBPrefix",
-					"Replay");
-
-			config_set_default_bool  (config, "AdvOut", "ApplyServiceSettings",
-					true);
-			config_set_default_bool  (config, "AdvOut", "UseRescale", false);
-			config_set_default_uint  (config, "AdvOut", "TrackIndex", 1);
-			config_set_default_string(config, "AdvOut", "Encoder", "obs_x264");
-
-			config_set_default_string(config, "AdvOut", "RecType", "Standard");
-
-			config_set_default_string(config, "AdvOut", "RecFilePath",
-					GetDefaultVideoSavePath().c_str());
-			config_set_default_string(config, "AdvOut", "RecFormat", "flv");
-			config_set_default_bool  (config, "AdvOut", "RecUseRescale",
-					false);
-			config_set_default_uint  (config, "AdvOut", "RecTracks", (1<<0));
-			config_set_default_string(config, "AdvOut", "RecEncoder",
-					"none");
-
-			config_set_default_bool  (config, "AdvOut", "FFOutputToFile",
-					true);
-			config_set_default_string(config, "AdvOut", "FFFilePath",
-					GetDefaultVideoSavePath().c_str());
-			config_set_default_string(config, "AdvOut", "FFExtension", "mp4");
-			config_set_default_uint  (config, "AdvOut", "FFVBitrate", 2500);
-			config_set_default_uint  (config, "AdvOut", "FFVGOPSize", 250);
-			config_set_default_bool  (config, "AdvOut", "FFUseRescale",
-					false);
-			config_set_default_bool  (config, "AdvOut", "FFIgnoreCompat",
-					false);
-			config_set_default_uint  (config, "AdvOut", "FFABitrate", 160);
-			config_set_default_uint  (config, "AdvOut", "FFAudioTrack", 1);
-
-			config_set_default_uint  (config, "AdvOut", "Track1Bitrate", 160);
-			config_set_default_uint  (config, "AdvOut", "Track2Bitrate", 160);
-			config_set_default_uint  (config, "AdvOut", "Track3Bitrate", 160);
-			config_set_default_uint  (config, "AdvOut", "Track4Bitrate", 160);
-			config_set_default_uint  (config, "AdvOut", "Track5Bitrate", 160);
-			config_set_default_uint  (config, "AdvOut", "Track6Bitrate", 160);
-
-			config_set_default_uint  (config, "Video", "BaseCX",   cx);
-			config_set_default_uint  (config, "Video", "BaseCY",   cy);
-
-			/* don't allow BaseCX/BaseCY to be susceptible to defaults changing */
-			if (!config_has_user_value(config, "Video", "BaseCX") ||
-				!config_has_user_value(config, "Video", "BaseCY")) {
-				config_set_uint(config, "Video", "BaseCX", cx);
-				config_set_uint(config, "Video", "BaseCY", cy);
-				config_save_safe(config, "tmp", nullptr);
-			}
-
-			config_set_default_string(config, "Output", "FilenameFormatting",
-					"%CCYY-%MM-%DD %hh-%mm-%ss");
-
-			config_set_default_bool  (config, "Output", "DelayEnable", false);
-			config_set_default_uint  (config, "Output", "DelaySec", 20);
-			config_set_default_bool  (config, "Output", "DelayPreserve", true);
-
-			config_set_default_bool  (config, "Output", "Reconnect", true);
-			config_set_default_uint  (config, "Output", "RetryDelay", 10);
-			config_set_default_uint  (config, "Output", "MaxRetries", 20);
-
-			config_set_default_string(config, "Output", "BindIP", "default");
-			config_set_default_bool  (config, "Output", "NewSocketLoopEnable",
-					false);
-			config_set_default_bool  (config, "Output", "LowLatencyEnable",
-					false);
-
-			int i = 0;
-			uint32_t scale_cx = 0;
-			uint32_t scale_cy = 0;
-
-			/* use a default scaled resolution that has a pixel count no higher
-				* than 1280x720 */
-			while (((scale_cx * scale_cy) > (1280 * 720)) && scaled_vals[i] > 0.0) {
-				double scale = scaled_vals[i++];
-				scale_cx = uint32_t(double(cx) / scale);
-				scale_cy = uint32_t(double(cy) / scale);
-			}
-
-			config_set_default_uint  (config, "Video", "OutputCX", scale_cx);
-			config_set_default_uint  (config, "Video", "OutputCY", scale_cy);
-
-			/* don't allow OutputCX/OutputCY to be susceptible to defaults
-				* changing */
-			if (!config_has_user_value(config, "Video", "OutputCX") ||
-				!config_has_user_value(config, "Video", "OutputCY")) {
-				config_set_uint(config, "Video", "OutputCX", scale_cx);
-				config_set_uint(config, "Video", "OutputCY", scale_cy);
-				config_save_safe(config, "tmp", nullptr);
-			}
-
-			config_set_default_uint  (config, "Video", "FPSType", 0);
-			config_set_default_string(config, "Video", "FPSCommon", "30");
-			config_set_default_uint  (config, "Video", "FPSInt", 30);
-			config_set_default_uint  (config, "Video", "FPSNum", 30);
-			config_set_default_uint  (config, "Video", "FPSDen", 1);
-			config_set_default_string(config, "Video", "ScaleType", "bicubic");
-			config_set_default_string(config, "Video", "ColorFormat", "NV12");
-			config_set_default_string(config, "Video", "ColorSpace", "601");
-			config_set_default_string(config, "Video", "ColorRange",
-					"Partial");
-
-			config_set_default_string(config, "Audio", "MonitoringDeviceId",
-					"default");
-			config_set_default_string(config, "Audio", "MonitoringDeviceName",
-					"Default");
-			config_set_default_uint  (config, "Audio", "SampleRate", 44100);
-			config_set_default_string(config, "Audio", "ChannelSetup",
-					"Stereo");
-
+			uint64_t track = config_get_uint(config, "AdvOut",
+				"RecTrackIndex");
+			track = 1ULL << (track - 1);
+			config_set_uint(config, "AdvOut", "RecTracks", track);
+			config_remove_value(config, "AdvOut", "RecTrackIndex");
 			config_save_safe(config, "tmp", nullptr);
 		}
-		
-		configFiles.push_back(std::make_pair(configFile, config));
-		return config;
+
+		config_set_default_string(config, "Output", "Mode", "Simple");
+		std::string filePath = GetDefaultVideoSavePath();
+		config_set_default_string(config, "SimpleOutput", "FilePath",
+			filePath.c_str());
+		config_set_default_string(config, "SimpleOutput", "RecFormat",
+			"flv");
+		config_set_default_uint(config, "SimpleOutput", "VBitrate",
+			2500);
+		config_set_default_string(config, "SimpleOutput", "StreamEncoder",
+			SIMPLE_ENCODER_X264);
+		config_set_default_uint(config, "SimpleOutput", "ABitrate", 160);
+		config_set_default_bool(config, "SimpleOutput", "UseAdvanced",
+			false);
+		config_set_default_bool(config, "SimpleOutput", "EnforceBitrate",
+			true);
+		config_set_default_string(config, "SimpleOutput", "Preset",
+			"veryfast");
+		config_set_default_string(config, "SimpleOutput", "RecQuality",
+			"Stream");
+		config_set_default_string(config, "SimpleOutput", "RecEncoder",
+			SIMPLE_ENCODER_X264);
+		config_set_default_bool(config, "SimpleOutput", "RecRB", false);
+		config_set_default_int(config, "SimpleOutput", "RecRBTime", 20);
+		config_set_default_int(config, "SimpleOutput", "RecRBSize", 512);
+		config_set_default_string(config, "SimpleOutput", "RecRBPrefix",
+			"Replay");
+
+		config_set_default_bool(config, "AdvOut", "ApplyServiceSettings",
+			true);
+		config_set_default_bool(config, "AdvOut", "UseRescale", false);
+		config_set_default_uint(config, "AdvOut", "TrackIndex", 1);
+		config_set_default_string(config, "AdvOut", "Encoder", "obs_x264");
+
+		config_set_default_string(config, "AdvOut", "RecType", "Standard");
+
+		config_set_default_string(config, "AdvOut", "RecFilePath",
+			GetDefaultVideoSavePath().c_str());
+		config_set_default_string(config, "AdvOut", "RecFormat", "flv");
+		config_set_default_bool(config, "AdvOut", "RecUseRescale",
+			false);
+		config_set_default_uint(config, "AdvOut", "RecTracks", (1 << 0));
+		config_set_default_string(config, "AdvOut", "RecEncoder",
+			"none");
+
+		config_set_default_bool(config, "AdvOut", "FFOutputToFile",
+			true);
+		config_set_default_string(config, "AdvOut", "FFFilePath",
+			GetDefaultVideoSavePath().c_str());
+		config_set_default_string(config, "AdvOut", "FFExtension", "mp4");
+		config_set_default_uint(config, "AdvOut", "FFVBitrate", 2500);
+		config_set_default_uint(config, "AdvOut", "FFVGOPSize", 250);
+		config_set_default_bool(config, "AdvOut", "FFUseRescale",
+			false);
+		config_set_default_bool(config, "AdvOut", "FFIgnoreCompat",
+			false);
+		config_set_default_uint(config, "AdvOut", "FFABitrate", 160);
+		config_set_default_uint(config, "AdvOut", "FFAudioTrack", 1);
+
+		config_set_default_uint(config, "AdvOut", "Track1Bitrate", 160);
+		config_set_default_uint(config, "AdvOut", "Track2Bitrate", 160);
+		config_set_default_uint(config, "AdvOut", "Track3Bitrate", 160);
+		config_set_default_uint(config, "AdvOut", "Track4Bitrate", 160);
+		config_set_default_uint(config, "AdvOut", "Track5Bitrate", 160);
+		config_set_default_uint(config, "AdvOut", "Track6Bitrate", 160);
+
+		config_set_default_uint(config, "Video", "BaseCX", cx);
+		config_set_default_uint(config, "Video", "BaseCY", cy);
+
+		/* don't allow BaseCX/BaseCY to be susceptible to defaults changing */
+		if (!config_has_user_value(config, "Video", "BaseCX") ||
+			!config_has_user_value(config, "Video", "BaseCY")) {
+			config_set_uint(config, "Video", "BaseCX", cx);
+			config_set_uint(config, "Video", "BaseCY", cy);
+			config_save_safe(config, "tmp", nullptr);
+		}
+
+		config_set_default_string(config, "Output", "FilenameFormatting",
+			"%CCYY-%MM-%DD %hh-%mm-%ss");
+
+		config_set_default_bool(config, "Output", "DelayEnable", false);
+		config_set_default_uint(config, "Output", "DelaySec", 20);
+		config_set_default_bool(config, "Output", "DelayPreserve", true);
+
+		config_set_default_bool(config, "Output", "Reconnect", true);
+		config_set_default_uint(config, "Output", "RetryDelay", 10);
+		config_set_default_uint(config, "Output", "MaxRetries", 20);
+
+		config_set_default_string(config, "Output", "BindIP", "default");
+		config_set_default_bool(config, "Output", "NewSocketLoopEnable",
+			false);
+		config_set_default_bool(config, "Output", "LowLatencyEnable",
+			false);
+
+		int i = 0;
+		uint32_t scale_cx = 0;
+		uint32_t scale_cy = 0;
+
+		/* use a default scaled resolution that has a pixel count no higher
+		* than 1280x720 */
+		while (((scale_cx * scale_cy) > (1280 * 720)) && scaled_vals[i] > 0.0) {
+			double scale = scaled_vals[i++];
+			scale_cx = uint32_t(double(cx) / scale);
+			scale_cy = uint32_t(double(cy) / scale);
+		}
+
+		config_set_default_uint(config, "Video", "OutputCX", scale_cx);
+		config_set_default_uint(config, "Video", "OutputCY", scale_cy);
+
+		/* don't allow OutputCX/OutputCY to be susceptible to defaults
+		* changing */
+		if (!config_has_user_value(config, "Video", "OutputCX") ||
+			!config_has_user_value(config, "Video", "OutputCY")) {
+			config_set_uint(config, "Video", "OutputCX", scale_cx);
+			config_set_uint(config, "Video", "OutputCY", scale_cy);
+			config_save_safe(config, "tmp", nullptr);
+		}
+
+		config_set_default_uint(config, "Video", "FPSType", 0);
+		config_set_default_string(config, "Video", "FPSCommon", "30");
+		config_set_default_uint(config, "Video", "FPSInt", 30);
+		config_set_default_uint(config, "Video", "FPSNum", 30);
+		config_set_default_uint(config, "Video", "FPSDen", 1);
+		config_set_default_string(config, "Video", "ScaleType", "bicubic");
+		config_set_default_string(config, "Video", "ColorFormat", "NV12");
+		config_set_default_string(config, "Video", "ColorSpace", "601");
+		config_set_default_string(config, "Video", "ColorRange",
+			"Partial");
+
+		config_set_default_string(config, "Audio", "MonitoringDeviceId",
+			"default");
+		config_set_default_string(config, "Audio", "MonitoringDeviceName",
+			"Default");
+		config_set_default_uint(config, "Audio", "SampleRate", 44100);
+		config_set_default_string(config, "Audio", "ChannelSetup",
+			"Stereo");
+
+		config_save_safe(config, "tmp", nullptr);
+	}
+
+	configFiles.push_back(std::make_pair(configFile, config));
+	return config;
 	// } else {
 	// 	return (*it).second;
 	// }

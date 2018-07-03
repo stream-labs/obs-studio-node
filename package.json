@@ -26,5 +26,26 @@
     "typedoc-default-themes": "^0.5.0",
     "typedoc-plugin-markdown": "^1.0.12",
     "typescript": "^2.6.2"
-  }
+  },
+  "keywords": [
+    "capture",
+    "stream",
+    "record",
+    "twitch",
+    "youtube",
+    "obs",
+    "open",
+    "broadcaster",
+    "software",
+    "obs",
+    "studio",
+    "c++",
+    "c",
+    "native",
+    "desktop",
+    "video",
+    "audio",
+    "mixer",
+    "beam"
+  ]
 }

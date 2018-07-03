@@ -11,9 +11,9 @@ static const double vals[] =
 {
 	1.0,
 	1.25,
-	(1.0/0.75),
+	(1.0 / 0.75),
 	1.5,
-	(1.0/0.6),
+	(1.0 / 0.6),
 	1.75,
 	2.0,
 	2.25,
@@ -22,7 +22,7 @@ static const double vals[] =
 	3.0
 };
 
-static const size_t numVals = sizeof(vals)/sizeof(double);
+static const size_t numVals = sizeof(vals) / sizeof(double);
 
 static string ResString(uint32_t cx, uint32_t cy)
 {
@@ -47,7 +47,7 @@ void OBS_settings::Register(ipc::server& srv) {
 	cls->register_function(std::make_shared<ipc::function>("OBS_settings_getSettings", std::vector<ipc::type>{ipc::type::String}, OBS_settings_getSettings));
 	cls->register_function(std::make_shared<ipc::function>("OBS_settings_saveSettings", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::Binary}, OBS_settings_saveSettings));
 	cls->register_function(std::make_shared<ipc::function>("OBS_settings_getListCategories", std::vector<ipc::type>{}, OBS_settings_getListCategories));
-	
+
 	srv.register_collection(cls);
 }
 
@@ -73,7 +73,7 @@ void OBS_settings::OBS_settings_getSettings(void* data, const int64_t id, const 
 	for (int i = 0; i < settings.size(); i++) {
 		std::vector<char> serializedBuf = settings.at(i).serialize();
 
-		binaryValue.insert(binaryValue.end(), 
+		binaryValue.insert(binaryValue.end(),
 			serializedBuf.begin(),
 			serializedBuf.end());
 	}
@@ -202,8 +202,8 @@ void OBS_settings::OBS_settings_saveSettings(void* data, const int64_t id, const
 	buffer.resize(sizeStruct);
 	memcpy(buffer.data(), args[3].value_bin.data(), sizeStruct);
 
-	std::vector<SubCategory> settings = 
-		serializeCategory(subCategoriesCount, sizeStruct, 
+	std::vector<SubCategory> settings =
+		serializeCategory(subCategoriesCount, sizeStruct,
 			buffer);
 
 	saveSettings(nameCategory, settings);
@@ -211,12 +211,12 @@ void OBS_settings::OBS_settings_saveSettings(void* data, const int64_t id, const
 }
 
 SubCategory OBS_settings::serializeSettingsData(std::string nameSubCategory,
-												  std::vector<std::vector<std::pair<std::string, std::string>>> entries, 
-												  config_t* config, std::string section, bool isVisible, bool isEnabled)
+	std::vector<std::vector<std::pair<std::string, std::string>>> entries,
+	config_t* config, std::string section, bool isVisible, bool isEnabled)
 {
 	SubCategory sc;
 
-	for(int i=0;i<entries.size();i++) {
+	for (int i = 0; i<entries.size(); i++) {
 		Parameter param;
 
 		param.name = entries.at(i).at(0).second;
@@ -225,51 +225,57 @@ SubCategory OBS_settings::serializeSettingsData(std::string nameSubCategory,
 		param.subType = entries.at(i).at(3).second;
 
 		std::string currentValue;
-		if(entries.at(i).size() > 4) {
+		if (entries.at(i).size() > 4) {
 			currentValue = entries.at(i).at(4).first.c_str();
 		}
 
 		// Current value
-	  	if(!currentValue.empty() && currentValue.compare("currentValue") == 0 ) {
+		if (!currentValue.empty() && currentValue.compare("currentValue") == 0) {
 			const char* currentValue = entries.at(i).at(4).second.c_str();
 			param.currentValue.resize(strlen(currentValue));
 			std::memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
 			param.sizeOfCurrentValue = strlen(currentValue);
-	  		entries.at(i).erase(entries.at(i).begin() + 4);
-	  	} else {
-			if(param.type.compare("OBS_PROPERTY_LIST") == 0 ||
+			entries.at(i).erase(entries.at(i).begin() + 4);
+		}
+		else {
+			if (param.type.compare("OBS_PROPERTY_LIST") == 0 ||
 				param.type.compare("OBS_PROPERTY_PATH") == 0 ||
 				param.type.compare("OBS_PROPERTY_EDIT_PATH") == 0 ||
 				param.type.compare("OBS_PROPERTY_EDIT_TEXT") == 0) {
 				const char* currentValue = config_get_string(config, section.c_str(), param.name.c_str());
 
-				if(currentValue != NULL) {
+				if (currentValue != NULL) {
 					param.currentValue.resize(strlen(currentValue));
 					std::memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
 					param.sizeOfCurrentValue = strlen(currentValue);
 
-				} else {
+				}
+				else {
 					param.sizeOfCurrentValue = 0;
 				}
-			} else if(param.type.compare("OBS_PROPERTY_INT") == 0) {
+			}
+			else if (param.type.compare("OBS_PROPERTY_INT") == 0) {
 				int64_t val = config_get_int(config, section.c_str(), param.name.c_str());
 
 				param.currentValue.resize(sizeof(val));
 				memcpy(param.currentValue.data(), &val, sizeof(val));
 				param.sizeOfCurrentValue = sizeof(val);
-			} else if(param.type.compare("OBS_PROPERTY_UINT") == 0) {
+			}
+			else if (param.type.compare("OBS_PROPERTY_UINT") == 0) {
 				uint64_t val = config_get_uint(config, section.c_str(), param.name.c_str());
 
 				param.currentValue.resize(sizeof(val));
 				memcpy(param.currentValue.data(), &val, sizeof(val));
 				param.sizeOfCurrentValue = sizeof(val);
-			} else if(param.type.compare("OBS_PROPERTY_BOOL") == 0) {
+			}
+			else if (param.type.compare("OBS_PROPERTY_BOOL") == 0) {
 				bool val = config_get_bool(config, section.c_str(), param.name.c_str());
 
 				param.currentValue.resize(sizeof(val));
 				memcpy(param.currentValue.data(), &val, sizeof(val));
 				param.sizeOfCurrentValue = sizeof(val);
-			} else if(param.type.compare("OBS_PROPERTY_DOUBLE") == 0) {
+			}
+			else if (param.type.compare("OBS_PROPERTY_DOUBLE") == 0) {
 				double val = config_get_double(config, section.c_str(), param.name.c_str());
 
 				param.currentValue.resize(sizeof(val));
@@ -279,8 +285,8 @@ SubCategory OBS_settings::serializeSettingsData(std::string nameSubCategory,
 		}
 
 		// Values
-		if(entries.at(i).size() > 4) {
-			for(int j=4;j<entries.at(i).size();j++) {
+		if (entries.at(i).size() > 4) {
+			for (int j = 4; j<entries.at(i).size(); j++) {
 				std::string name = entries.at(i).at(j).first;
 
 				uint64_t sizeName = name.length();
@@ -291,7 +297,7 @@ SubCategory OBS_settings::serializeSettingsData(std::string nameSubCategory,
 				param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
 				param.values.insert(param.values.end(), name.begin(), name.end());
 
-				std::string value = entries.at(i).at(j).second; 
+				std::string value = entries.at(i).at(j).second;
 
 				uint64_t sizeValue = value.length();
 				std::vector<char> sizeValueBuffer;
@@ -325,19 +331,19 @@ std::vector<SubCategory> OBS_settings::getGeneralSettings()
 	std::string globalConfigFile = OBS_API::getGlobalConfigPath();
 
 	config_t* config;
-    int result = config_open(&config, globalConfigFile.c_str(), CONFIG_OPEN_EXISTING);
+	int result = config_open(&config, globalConfigFile.c_str(), CONFIG_OPEN_EXISTING);
 
-    if(result != CONFIG_SUCCESS) {
-        config = config_create(globalConfigFile.c_str());
+	if (result != CONFIG_SUCCESS) {
+		config = config_create(globalConfigFile.c_str());
 
-        config_set_bool(config, "BasicWindow", "SnappingEnabled", true);
-        config_set_double(config, "BasicWindow", "SnapDistance", 10);
-        config_set_bool(config, "BasicWindow", "ScreenSnapping", true);
-        config_set_bool(config, "BasicWindow", "SourceSnapping", true);
-        config_set_bool(config, "BasicWindow", "CenterSnapping", false);
+		config_set_bool(config, "BasicWindow", "SnappingEnabled", true);
+		config_set_double(config, "BasicWindow", "SnapDistance", 10);
+		config_set_bool(config, "BasicWindow", "ScreenSnapping", true);
+		config_set_bool(config, "BasicWindow", "SourceSnapping", true);
+		config_set_bool(config, "BasicWindow", "CenterSnapping", false);
 
-        config_save_safe(config, "tmp", nullptr);
-    }
+		config_save_safe(config, "tmp", nullptr);
+	}
 
 	std::vector<std::vector<std::pair<std::string, std::string>>> entries;
 
@@ -490,19 +496,19 @@ void OBS_settings::saveGeneralSettings(std::vector<SubCategory> generalSettings,
 
 	int result = config_open(&config, pathConfigDirectory.c_str(), CONFIG_OPEN_EXISTING);
 
-    if(result != CONFIG_SUCCESS) {
-        config = config_create(pathConfigDirectory.c_str());
-    }
+	if (result != CONFIG_SUCCESS) {
+		config = config_create(pathConfigDirectory.c_str());
+	}
 
 	SubCategory sc;
 
-	for(int i=0;i<generalSettings.size();i++) {
+	for (int i = 0; i<generalSettings.size(); i++) {
 		sc = generalSettings.at(i);
-		
+
 		std::string nameSubcategory = sc.name;
 
 		Parameter param;
-		for(int j=0;j<sc.params.size();j++){
+		for (int j = 0; j<sc.params.size(); j++) {
 			param = sc.params.at(i);
 
 			std::string name, type;
@@ -510,20 +516,24 @@ void OBS_settings::saveGeneralSettings(std::vector<SubCategory> generalSettings,
 			name = param.name;
 			type = param.type;
 
-			if(type.compare("OBS_PROPERTY_LIST") == 0) {
+			if (type.compare("OBS_PROPERTY_LIST") == 0) {
 				config_set_string(config, "BasicWindow", name.c_str(), param.currentValue.data());
-			} else if(type.compare("OBS_PROPERTY_INT") == 0) {
+			}
+			else if (type.compare("OBS_PROPERTY_INT") == 0) {
 				int64_t* value = reinterpret_cast<int64_t*>(param.currentValue.data());
 				config_set_int(config, "BasicWindow", name.c_str(), *value);
-			} else if(type.compare("OBS_PROPERTY_UINT") == 0) {
+			}
+			else if (type.compare("OBS_PROPERTY_UINT") == 0) {
 				uint64_t* value = reinterpret_cast<uint64_t*>(param.currentValue.data());
 				config_set_uint(config, "BasicWindow", name.c_str(), *value);
-			} else if(type.compare("OBS_PROPERTY_BOOL") == 0) {
+			}
+			else if (type.compare("OBS_PROPERTY_BOOL") == 0) {
 				bool* value = reinterpret_cast<bool*>(param.currentValue.data());
 				config_set_bool(config, "BasicWindow", name.c_str(), *value);
-			} else if(type.compare("OBS_PROPERTY_DOUBLE") == 0) {
+			}
+			else if (type.compare("OBS_PROPERTY_DOUBLE") == 0) {
 				double* value = reinterpret_cast<double*>(param.currentValue.data());
-				config_set_double(config, "BasicWindow", name.c_str(),*value);
+				config_set_double(config, "BasicWindow", name.c_str(), *value);
 			}
 		}
 	}
@@ -541,7 +551,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 	SubCategory service;
 
 	service.name = "Untitled";
-	
+
 	Parameter streamType;
 	streamType.name = "streamType";
 	streamType.type = "OBS_PROPERTY_LIST";
@@ -549,7 +559,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 
 	int index = 0;
 	const char* type;
-	
+
 	uint32_t indexData = 0;
 	while (obs_enum_service_types(index++, &type)) {
 		std::string name = obs_service_get_display_name(type);
@@ -591,7 +601,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 	service.paramsCount = service.params.size();
 
 	streamSettings.push_back(service);
-	
+
 	SubCategory serviceConfiguration;
 
 	obs_properties_t* properties = obs_service_properties(currentService);
@@ -601,17 +611,17 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 
 	index = 0;
 	uint32_t indexDataServiceConfiguration = 0;
-	
-	while(property) {
+
+	while (property) {
 		Parameter param;
 
 		param.name = obs_property_name(property);
-		
+
 		std::vector<std::pair<std::string, void*>> values;
 
 		int count = (int)obs_property_list_item_count(property);
 
-		for(int i=0;i<count;i++) {
+		for (int i = 0; i<count; i++) {
 			//Value
 			format = obs_property_list_format(property);
 
@@ -628,7 +638,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 				param.values.insert(param.values.end(), name.begin(), name.end());
 
 				int64_t value = obs_property_list_item_int(property, i);
-				
+
 				std::vector<char> valueBuffer;
 				valueBuffer.resize(sizeof(value));
 				memcpy(valueBuffer.data(), &value, sizeof(value));
@@ -674,7 +684,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 				param.values.insert(param.values.end(), name.begin(), name.end());
 
 				std::string value = obs_property_list_item_string(property, i);
-				
+
 				uint64_t sizeValue = value.length();
 				std::vector<char> sizeValueBuffer;
 				sizeValueBuffer.resize(sizeof(sizeValue));
@@ -685,7 +695,8 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 
 				formatString = "OBS_PROPERTY_LIST";
 				param.subType = "OBS_COMBO_FORMAT_STRING";
-			} else {
+			}
+			else {
 				cout << "INVALID FORMAT" << endl;
 			}
 		}
@@ -693,19 +704,19 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 		param.sizeOfValues = param.values.size();
 		param.countValues = count;
 
-		if(count == 0) {
-			if(strcmp(obs_property_name(property), "key") == 0) {
+		if (count == 0) {
+			if (strcmp(obs_property_name(property), "key") == 0) {
 				const char* stream_key = obs_service_get_key(currentService);
 				formatString = "OBS_PROPERTY_EDIT_TEXT";
 
-				if(stream_key == NULL)
+				if (stream_key == NULL)
 					stream_key = "";
 
 				param.currentValue.resize(strlen(stream_key));
 				memcpy(param.currentValue.data(), stream_key, strlen(stream_key));
 				param.sizeOfCurrentValue = strlen(stream_key);
 			}
-			if(strcmp(obs_property_name(property), "show_all") == 0) {
+			if (strcmp(obs_property_name(property), "show_all") == 0) {
 				bool show_all = obs_data_get_bool(settings, "show_all");
 				formatString = "OBS_PROPERTY_BOOL";
 
@@ -713,22 +724,23 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 				memcpy(param.currentValue.data(), &show_all, sizeof(show_all));
 				param.sizeOfCurrentValue = sizeof(show_all);
 			}
-			if(strcmp(obs_property_name(property), "server") == 0) {
+			if (strcmp(obs_property_name(property), "server") == 0) {
 				const char* server = obs_service_get_url(currentService);
-				if(strcmp(obs_service_get_type(currentService), "rtmp_common") == 0) {
+				if (strcmp(obs_service_get_type(currentService), "rtmp_common") == 0) {
 					formatString = "OBS_PROPERTY_LIST";
-				} else {
+				}
+				else {
 					formatString = "OBS_PROPERTY_EDIT_TEXT";
 				}
 
-				if(server == NULL)
+				if (server == NULL)
 					server = "";
-				
+
 				param.currentValue.resize(strlen(server));
 				memcpy(param.currentValue.data(), server, strlen(server));
 				param.sizeOfCurrentValue = strlen(server);
 			}
-			if(strcmp(obs_property_name(property), "username") == 0) {
+			if (strcmp(obs_property_name(property), "username") == 0) {
 				const char* username = obs_service_get_username(currentService);
 				formatString = "OBS_PROPERTY_EDIT_TEXT";
 
@@ -739,7 +751,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 				memcpy(param.currentValue.data(), username, strlen(username));
 				param.sizeOfCurrentValue = strlen(username);
 			}
-			if(strcmp(obs_property_name(property), "password") == 0) {
+			if (strcmp(obs_property_name(property), "password") == 0) {
 				const char* password = obs_service_get_password(currentService);
 				formatString = "OBS_PROPERTY_EDIT_TEXT";
 
@@ -750,7 +762,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 				memcpy(param.currentValue.data(), password, strlen(password));
 				param.sizeOfCurrentValue = strlen(password);
 			}
-			if(strcmp(obs_property_name(property), "use_auth") == 0) {
+			if (strcmp(obs_property_name(property), "use_auth") == 0) {
 				bool use_auth = obs_data_get_bool(settings, "use_auth");
 				formatString = "OBS_PROPERTY_BOOL";
 
@@ -758,24 +770,25 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 				memcpy(param.currentValue.data(), &use_auth, sizeof(use_auth));
 				param.sizeOfCurrentValue = sizeof(use_auth);
 			}
-		} else {
-			if (format == OBS_COMBO_FORMAT_INT) 
-			{				
+		}
+		else {
+			if (format == OBS_COMBO_FORMAT_INT)
+			{
 				int64_t value = obs_data_get_int(settings, obs_property_name(property));
 
 				param.currentValue.resize(sizeof(value));
 				memcpy(param.currentValue.data(), &value, sizeof(value));
 				param.sizeOfCurrentValue = sizeof(value);
-			} 
-			else if (format == OBS_COMBO_FORMAT_FLOAT) 
+			}
+			else if (format == OBS_COMBO_FORMAT_FLOAT)
 			{
 				double value = obs_data_get_double(settings, obs_property_name(property));
 
 				param.currentValue.resize(sizeof(value));
 				memcpy(param.currentValue.data(), &value, sizeof(value));
 				param.sizeOfCurrentValue = sizeof(value);
-			} 
-			else if (format == OBS_COMBO_FORMAT_STRING) 
+			}
+			else if (format == OBS_COMBO_FORMAT_STRING)
 			{
 				currentServiceName = obs_data_get_string(settings, obs_property_name(property));
 
@@ -793,13 +806,13 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 		param.masked = formatString.compare("OBS_PROPERTY_EDIT_TEXT") == 0 && obs_proprety_text_type(property) == OBS_TEXT_PASSWORD;
 
 		serviceConfiguration.params.push_back(param);
-		
+
 		index++;
 		obs_property_next(&property);
 	}
 
 	serviceConfiguration.name = "Untitled";
-	serviceConfiguration.paramsCount = 
+	serviceConfiguration.paramsCount =
 		serviceConfiguration.params.size();
 	streamSettings.push_back(serviceConfiguration);
 
@@ -819,16 +832,16 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 
 	SubCategory sc;
 
-	for(int i=0;i<streamSettings.size();i++) {
+	for (int i = 0; i<streamSettings.size(); i++) {
 		sc = streamSettings.at(i);
 
 		std::string nameSubcategory = sc.name;
-		
+
 		bool serviceChanged = false;
 
 		Parameter param;
 
-		for(int j=0;j<sc.params.size();j++)
+		for (int j = 0; j<sc.params.size(); j++)
 		{
 			param = sc.params.at(j);
 
@@ -837,28 +850,29 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 
 			std::string *value;
 			const char *servName;
-			if(type.compare("OBS_PROPERTY_LIST") == 0 ||
+			if (type.compare("OBS_PROPERTY_LIST") == 0 ||
 				type.compare("OBS_PROPERTY_EDIT_TEXT") == 0) {
 				value = new std::string(param.currentValue.data(), param.currentValue.size());
 
-				if(name.compare("streamType") == 0) {
+				if (name.compare("streamType") == 0) {
 					newserviceTypeValue = value->c_str();
 					settings = obs_service_defaults(newserviceTypeValue);
-				} else if (name.compare("service") == 0 && value->compare(currentServiceName) != 0) {
+				}
+				else if (name.compare("service") == 0 && value->compare(currentServiceName) != 0) {
 					serviceChanged = true;
 				}
-				
+
 				if (name.compare("server") == 0 && serviceChanged) {
 					obs_service_t *newService = obs_service_create(newserviceTypeValue,
-									"service", settings, NULL);
+						"service", settings, NULL);
 
 					obs_properties_t* properties = obs_service_properties(newService);
 					obs_property_t* property = obs_properties_first(properties);
 
-					while(property) {
+					while (property) {
 						int count = (int)obs_property_list_item_count(property);
 						const char *nameProperty = obs_property_name(property);
-						if(strcmp(nameProperty, "server") == 0) {
+						if (strcmp(nameProperty, "server") == 0) {
 							*value = obs_property_list_item_string(property, 0);
 							break;
 						}
@@ -868,20 +882,23 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 				}
 
 				obs_data_set_string(settings, name.c_str(), value->c_str());
-			} else if(type.compare("OBS_PROPERTY_INT") == 0 ||
-					  type.compare("OBS_PROPERTY_UINT") == 0) {
+			}
+			else if (type.compare("OBS_PROPERTY_INT") == 0 ||
+				type.compare("OBS_PROPERTY_UINT") == 0) {
 				int64_t* value = reinterpret_cast<int64_t*>(param.currentValue.data());
 				obs_data_set_int(settings, name.c_str(), *value);
-			} else if(type.compare("OBS_PROPERTY_BOOL") == 0) {
+			}
+			else if (type.compare("OBS_PROPERTY_BOOL") == 0) {
 				bool* value = reinterpret_cast<bool*>(param.currentValue.data());
 				obs_data_set_bool(settings, name.c_str(), *value);
-			} else if(type.compare("OBS_PROPERTY_DOUBLE") == 0) {
+			}
+			else if (type.compare("OBS_PROPERTY_DOUBLE") == 0) {
 				double* value = reinterpret_cast<double*>(param.currentValue.data());
 				obs_data_set_double(settings, name.c_str(), *value);
-			} 
+			}
 		}
 	}
-	if(currentStreamType.compare(newserviceTypeValue) != 0) {
+	if (currentStreamType.compare(newserviceTypeValue) != 0) {
 		//Stream type value has changed
 		settings = obs_service_defaults(newserviceTypeValue);
 	}
@@ -891,7 +908,7 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 	obs_data_t *hotkeyData = obs_hotkeys_save_service(currentService);
 
 	obs_service_t *newService = obs_service_create(newserviceTypeValue,
-			"default_service", settings, hotkeyData);
+		"default_service", settings, hotkeyData);
 
 	obs_data_release(hotkeyData);
 
@@ -910,7 +927,7 @@ static bool EncoderAvailable(const char *encoder)
 	const char *val;
 	int i = 0;
 
-	while (obs_enum_encoder_types(i++, &val)){
+	while (obs_enum_encoder_types(i++, &val)) {
 		if (strcmp(val, encoder) == 0)
 			return true;
 	}
@@ -920,11 +937,11 @@ static bool EncoderAvailable(const char *encoder)
 
 void OBS_settings::getAvailableEncoders(std::vector<std::pair<std::string, std::string>> *streamEncoder)
 {
-	streamEncoder->push_back(std::make_pair("Software (x264)", "obs_x264"));	
+	streamEncoder->push_back(std::make_pair("Software (x264)", "obs_x264"));
 
 	if (EncoderAvailable("obs_qsv11"))
 		streamEncoder->push_back(std::make_pair("QSV", "obs_qsv11"));
-	
+
 	if (EncoderAvailable("ffmpeg_nvenc"))
 		streamEncoder->push_back(std::make_pair("NVENC", "ffmpeg_nvenc"));
 
@@ -1157,215 +1174,216 @@ void OBS_settings::getEncoderSettings(const obs_encoder_t *encoder, obs_data_t *
 	obs_property_t* property = obs_properties_first(encoderProperties);
 
 	Parameter param;
-	while(property) {		
+	while (property) {
 		param.name = obs_property_name(property);
 		obs_property_type typeProperty = obs_property_get_type(property);
 
-		switch(typeProperty) {
-			case OBS_PROPERTY_BOOL:
-			{
-				param.type = "OBS_PROPERTY_BOOL";
-				param.description = obs_property_description(property);
+		switch (typeProperty) {
+		case OBS_PROPERTY_BOOL:
+		{
+			param.type = "OBS_PROPERTY_BOOL";
+			param.description = obs_property_description(property);
 
-				bool value = obs_data_get_bool(settings, param.name.c_str());
+			bool value = obs_data_get_bool(settings, param.name.c_str());
 
-				param.currentValue.resize(sizeof(value));
-				memcpy(param.currentValue.data(), &value, sizeof(value));
-				param.sizeOfCurrentValue = sizeof(value);
+			param.currentValue.resize(sizeof(value));
+			memcpy(param.currentValue.data(), &value, sizeof(value));
+			param.sizeOfCurrentValue = sizeof(value);
 
-				break;
+			break;
+		}
+		case OBS_PROPERTY_INT:
+		{
+			param.type = "OBS_PROPERTY_INT";
+			param.description = obs_property_description(property);
+
+			int64_t value = obs_data_get_int(settings, param.name.c_str());
+
+			param.currentValue.resize(sizeof(value));
+			memcpy(param.currentValue.data(), &value, sizeof(value));
+			param.sizeOfCurrentValue = sizeof(value);
+
+			break;
+		}
+		case OBS_PROPERTY_FLOAT:
+		{
+			param.type = "OBS_PROPERTY_FLOAT";
+			param.description = obs_property_description(property);
+
+			int64_t value = obs_data_get_double(settings, param.name.c_str());
+
+			param.currentValue.resize(sizeof(value));
+			memcpy(param.currentValue.data(), &value, sizeof(value));
+			param.sizeOfCurrentValue = sizeof(value);
+
+			break;
+		}
+		case OBS_PROPERTY_TEXT:
+		{
+			param.type = "OBS_PROPERTY_TEXT";
+			param.description = obs_property_description(property);
+
+
+			const char* currentValue = obs_data_get_string(settings, param.name.c_str());
+
+			if (currentValue == NULL) {
+				currentValue = "";
 			}
-			case OBS_PROPERTY_INT:
-			{
-				param.type = "OBS_PROPERTY_INT";
-				param.description = obs_property_description(property);
 
+			param.currentValue.resize(strlen(currentValue));
+			memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
+			param.sizeOfCurrentValue = strlen(currentValue);
+
+			break;
+		}
+		case OBS_PROPERTY_PATH:
+		{
+			param.type = "OBS_PROPERTY_PATH";
+			param.description = obs_property_description(property);
+
+			const char* currentValue = obs_data_get_string(settings, param.name.c_str());
+
+			if (currentValue == NULL) {
+				currentValue = "";
+			}
+
+			param.currentValue.resize(strlen(currentValue));
+			memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
+			param.sizeOfCurrentValue = strlen(currentValue);
+
+			break;
+		}
+		case OBS_PROPERTY_LIST:
+		{
+			param.type = "OBS_PROPERTY_LIST";
+			param.description = obs_property_description(property);
+
+			obs_combo_format format = obs_property_list_format(property);
+
+			if (format == OBS_COMBO_FORMAT_INT) {
 				int64_t value = obs_data_get_int(settings, param.name.c_str());
-
 				param.currentValue.resize(sizeof(value));
 				memcpy(param.currentValue.data(), &value, sizeof(value));
 				param.sizeOfCurrentValue = sizeof(value);
-
-				break;
 			}
-			case OBS_PROPERTY_FLOAT:
-			{
-				param.type = "OBS_PROPERTY_FLOAT";
-				param.description = obs_property_description(property);
-
-				int64_t value = obs_data_get_double(settings, param.name.c_str());
-
+			else if (format == OBS_COMBO_FORMAT_FLOAT) {
+				double value = obs_data_get_double(settings, param.name.c_str());
 				param.currentValue.resize(sizeof(value));
 				memcpy(param.currentValue.data(), &value, sizeof(value));
 				param.sizeOfCurrentValue = sizeof(value);
-
-				break;
 			}
-			case OBS_PROPERTY_TEXT:
-			{
-				param.type = "OBS_PROPERTY_TEXT";
-				param.description = obs_property_description(property);
-
-
+			else if (format == OBS_COMBO_FORMAT_STRING) {
 				const char* currentValue = obs_data_get_string(settings, param.name.c_str());
 
-				if(currentValue == NULL) {
+				if (currentValue == NULL) {
 					currentValue = "";
 				}
 
 				param.currentValue.resize(strlen(currentValue));
 				memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
 				param.sizeOfCurrentValue = strlen(currentValue);
-
-				break;
 			}
-			case OBS_PROPERTY_PATH:
-			{
-				param.type = "OBS_PROPERTY_PATH";
-				param.description = obs_property_description(property);
 
-				const char* currentValue = obs_data_get_string(settings, param.name.c_str());
+			int count = (int)obs_property_list_item_count(property);
 
-				if(currentValue == NULL) {
-					currentValue = "";
+			param.values.clear();
+
+			for (int i = 0; i<count; i++) {
+				// Name
+				std::string itemName = obs_property_list_item_name(property, i);
+
+
+				if (format == OBS_COMBO_FORMAT_INT)
+				{
+					param.subType = "OBS_COMBO_FORMAT_INT";
+
+					uint64_t sizeName = itemName.length();
+					std::vector<char> sizeNameBuffer;
+					sizeNameBuffer.resize(sizeof(sizeName));
+					memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+
+					param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+					param.values.insert(param.values.end(), itemName.begin(), itemName.end());
+
+					int64_t value = obs_property_list_item_int(property, i);
+
+					std::vector<char> valueBuffer;
+					valueBuffer.resize(sizeof(uint64_t));
+					memcpy(valueBuffer.data(), &value, sizeof(value));
+
+					param.values.insert(param.values.end(), valueBuffer.begin(), valueBuffer.end());
 				}
+				else if (format == OBS_COMBO_FORMAT_FLOAT)
+				{
+					param.subType = "OBS_COMBO_FORMAT_FLOAT";
 
-				param.currentValue.resize(strlen(currentValue));
-				memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
-				param.sizeOfCurrentValue = strlen(currentValue);
+					uint64_t sizeName = itemName.length();
+					std::vector<char> sizeNameBuffer;
+					sizeNameBuffer.resize(sizeof(sizeName));
+					memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
 
-				break;
+					param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+					param.values.insert(param.values.end(), itemName.begin(), itemName.end());
+
+					double value = obs_property_list_item_float(property, i);
+
+					std::vector<char> valueBuffer;
+					valueBuffer.resize(sizeof(value));
+					memcpy(valueBuffer.data(), &value, sizeof(value));
+
+					param.values.insert(param.values.end(), valueBuffer.begin(), valueBuffer.end());
+				}
+				else if (format == OBS_COMBO_FORMAT_STRING)
+				{
+					param.subType = "OBS_COMBO_FORMAT_STRING";
+
+					uint64_t sizeName = itemName.length();
+					std::vector<char> sizeNameBuffer;
+					sizeNameBuffer.resize(sizeof(sizeName));
+					memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+
+					param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+					param.values.insert(param.values.end(), itemName.begin(), itemName.end());
+
+					std::string value = obs_property_list_item_string(property, i);
+
+					uint64_t sizeValue = value.length();
+					std::vector<char> sizeValueBuffer;
+					sizeValueBuffer.resize(sizeof(sizeValue));
+					memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+
+					param.values.insert(param.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+					param.values.insert(param.values.end(), value.begin(), value.end());
+
+				}
 			}
-			case OBS_PROPERTY_LIST:
-			{
-				param.type = "OBS_PROPERTY_LIST";
-				param.description = obs_property_description(property);
 
-				obs_combo_format format = obs_property_list_format(property);
-				
-				if (format == OBS_COMBO_FORMAT_INT) {
-					int64_t value = obs_data_get_int(settings, param.name.c_str());
-					param.currentValue.resize(sizeof(value));
-					memcpy(param.currentValue.data(), &value, sizeof(value));
-					param.sizeOfCurrentValue = sizeof(value);
-				} else if (format == OBS_COMBO_FORMAT_FLOAT) {
-					double value = obs_data_get_double(settings, param.name.c_str());
-					param.currentValue.resize(sizeof(value));
-					memcpy(param.currentValue.data(), &value, sizeof(value));
-					param.sizeOfCurrentValue = sizeof(value);
-				}
-				else if (format == OBS_COMBO_FORMAT_STRING) {
-					const char* currentValue = obs_data_get_string(settings, param.name.c_str());
+			param.sizeOfValues = param.values.size();
+			param.countValues = count;
 
-					if (currentValue == NULL) {
-						currentValue = "";
-					}
+			break;
+		}
+		case OBS_PROPERTY_EDITABLE_LIST:
+		{
+			param.type = "OBS_PROPERTY_EDITABLE_LIST";
+			param.description = obs_property_description(property);
 
-					param.currentValue.resize(strlen(currentValue));
-					memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
-					param.sizeOfCurrentValue = strlen(currentValue);
-				}
-				
-				int count = (int)obs_property_list_item_count(property);
+			const char* currentValue = obs_data_get_string(settings, param.name.c_str());
 
-				param.values.clear();
+			if (currentValue == NULL)
+				currentValue = "";
 
-				for(int i=0;i<count;i++) {
-					// Name
-					std::string itemName = obs_property_list_item_name(property, i);
+			param.currentValue.resize(strlen(currentValue));
+			memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
+			param.sizeOfCurrentValue = strlen(currentValue);
 
-
-					if (format == OBS_COMBO_FORMAT_INT)
-					{
-						param.subType = "OBS_COMBO_FORMAT_INT";
-
-						uint64_t sizeName = itemName.length();
-						std::vector<char> sizeNameBuffer;
-						sizeNameBuffer.resize(sizeof(sizeName));
-						memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
-
-						param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-						param.values.insert(param.values.end(), itemName.begin(), itemName.end());
-
-						int64_t value = obs_property_list_item_int(property, i);
-
-						std::vector<char> valueBuffer;
-						valueBuffer.resize(sizeof(uint64_t));
-						memcpy(valueBuffer.data(), &value, sizeof(value));
-
-						param.values.insert(param.values.end(), valueBuffer.begin(), valueBuffer.end());
- 					}
-					else if (format == OBS_COMBO_FORMAT_FLOAT)
-					{
-						param.subType = "OBS_COMBO_FORMAT_FLOAT";
-
-						uint64_t sizeName = itemName.length();
-						std::vector<char> sizeNameBuffer;
-						sizeNameBuffer.resize(sizeof(sizeName));
-						memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
-
-						param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-						param.values.insert(param.values.end(), itemName.begin(), itemName.end());
-
-						double value = obs_property_list_item_float(property, i);
-
-						std::vector<char> valueBuffer;
-						valueBuffer.resize(sizeof(value));
-						memcpy(valueBuffer.data(), &value, sizeof(value));
-
-						param.values.insert(param.values.end(), valueBuffer.begin(), valueBuffer.end());
-					}
-					else if (format == OBS_COMBO_FORMAT_STRING)
-					{
-						param.subType = "OBS_COMBO_FORMAT_STRING";
-
-						uint64_t sizeName = itemName.length();
-						std::vector<char> sizeNameBuffer;
-						sizeNameBuffer.resize(sizeof(sizeName));
-						memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
-
-						param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-						param.values.insert(param.values.end(), itemName.begin(), itemName.end());
-
-						std::string value = obs_property_list_item_string(property, i);
-
-						uint64_t sizeValue = value.length();
-						std::vector<char> sizeValueBuffer;
-						sizeValueBuffer.resize(sizeof(sizeValue));
-						memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
-
-						param.values.insert(param.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
-						param.values.insert(param.values.end(), value.begin(), value.end());
-
-					}
-				}
-
-				param.sizeOfValues = param.values.size();
-				param.countValues = count;
-
-				break;
-			}
-			case OBS_PROPERTY_EDITABLE_LIST:
-			{
-				param.type = "OBS_PROPERTY_EDITABLE_LIST";
-				param.description = obs_property_description(property);
-
-				const char* currentValue = obs_data_get_string(settings, param.name.c_str());
-
-				if(currentValue == NULL) 
-					currentValue = "";
-
-				param.currentValue.resize(strlen(currentValue));
-				memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
-				param.sizeOfCurrentValue = strlen(currentValue);
-
-				break;
-			}
+			break;
+		}
 		}
 		param.visible = obs_property_visible(property);
 
 		bool isEnabled = obs_property_enabled(property);
-		if(!isCategoryEnabled)
+		if (!isCategoryEnabled)
 			isEnabled = isCategoryEnabled;
 
 		param.enabled = isEnabled;
@@ -1400,7 +1418,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	trackIndexValues.push_back(std::make_pair("4", "4"));
 	trackIndexValues.push_back(std::make_pair("5", "5"));
 	trackIndexValues.push_back(std::make_pair("6", "6"));
-	
+
 	for (int i = 0; i < trackIndexValues.size(); i++) {
 		std::string name = trackIndexValues.at(i).first;
 
@@ -1425,9 +1443,9 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 
 	trackIndex.sizeOfValues = trackIndex.values.size();
 	trackIndex.countValues = trackIndexValues.size();
-	
+
 	const char* trackIndexCurrentValue = config_get_string(config, "AdvOut", "TrackIndex");
-	if(trackIndexCurrentValue == NULL) 
+	if (trackIndexCurrentValue == NULL)
 		trackIndexCurrentValue = "";
 
 	trackIndex.currentValue.resize(strlen(trackIndexCurrentValue));
@@ -1439,16 +1457,16 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	trackIndex.masked = false;
 
 	streamingSettings.params.push_back(trackIndex);
-	
+
 	// Encoder : list
 	Parameter videoEncoders;
 	videoEncoders.name = "Encoder";
 	videoEncoders.type = "OBS_PROPERTY_LIST";
 	videoEncoders.description = "Encoder";
 	videoEncoders.subType = "OBS_COMBO_FORMAT_STRING";
-	
+
 	const char* encoderCurrentValue = config_get_string(config, "AdvOut", "Encoder");
-	if(encoderCurrentValue == NULL) {
+	if (encoderCurrentValue == NULL) {
 		encoderCurrentValue = "";
 	}
 
@@ -1458,7 +1476,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 
 	std::vector<std::pair<std::string, std::string>> encoderValues;
 	getAvailableEncoders(&encoderValues);
-	
+
 	for (int i = 0; i < encoderValues.size(); i++) {
 		std::string name = encoderValues.at(i).first;
 
@@ -1483,13 +1501,13 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 
 	videoEncoders.sizeOfValues = videoEncoders.values.size();
 	videoEncoders.countValues = encoderValues.size();
-	
+
 	videoEncoders.visible = true;
 	videoEncoders.enabled = isCategoryEnabled;
 	videoEncoders.masked = false;
 
 	streamingSettings.params.push_back(videoEncoders);
-	
+
 	// Enforce streaming service encoder settings : boolean
 	Parameter applyServiceSettings;
 	applyServiceSettings.name = "ApplyServiceSettings";
@@ -1507,7 +1525,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	applyServiceSettings.masked = false;
 
 	streamingSettings.params.push_back(applyServiceSettings);
-	
+
 	// Rescale Output : boolean
 	Parameter rescale;
 	rescale.name = "Rescale";
@@ -1526,14 +1544,14 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 
 	streamingSettings.params.push_back(rescale);
 
-	if(doRescale) {
+	if (doRescale) {
 		// Output Resolution : list
 		Parameter rescaleRes;
 		rescaleRes.name = "RescaleRes";
 		rescaleRes.type = "OBS_PROPERTY_LIST";
 		rescaleRes.description = "Output Resolution";
 		rescaleRes.subType = "OBS_COMBO_FORMAT_STRING";
-		
+
 		uint32_t base_cx = config_get_uint(config, "Video", "BaseCX");
 		uint32_t base_cy = config_get_uint(config, "Video", "BaseCY");
 
@@ -1553,7 +1571,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 
 		uint32_t indexDataRescaleRes = 0;
 
-		for(int i = 0;i<outputResolutions.size();i++) {
+		for (int i = 0; i<outputResolutions.size(); i++) {
 			std::string outRes = ResString(outputResolutions.at(i).first, outputResolutions.at(i).second);
 
 			for (int j = 0; j < 2; j++) {
@@ -1569,7 +1587,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 
 		rescaleRes.sizeOfValues = rescaleRes.values.size();
 		rescaleRes.countValues = outputResolutions.size();
-				
+
 		rescaleRes.visible = true;
 		rescaleRes.enabled = isCategoryEnabled;
 		rescaleRes.masked = false;
@@ -1579,7 +1597,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 
 	// Encoder settings
 	const char *encoderID = config_get_string(config, "AdvOut", "Encoder");
-	if(encoderID == NULL) {
+	if (encoderID == NULL) {
 		encoderID = "obs_x264";
 		config_set_string(config, "AdvOut", "Encoder", encoderID);
 	}
@@ -1591,14 +1609,15 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 
 	obs_data_t *settings = obs_encoder_defaults(encoderID);
 	obs_encoder_t* streamingEncoder;
-	if(!fileExist) {
+	if (!fileExist) {
 		streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
 		OBS_service::setStreamingEncoder(streamingEncoder);
 
 		if (!obs_data_save_json_safe(settings, path.c_str(), "tmp", "bak")) {
 			blog(LOG_WARNING, "Failed to save encoder %s", path.c_str());
 		}
-	} else {
+	}
+	else {
 		obs_data_t *data = obs_data_create_from_json_file_safe(path.c_str(), "bak");
 		obs_data_apply(settings, data);
 		streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", settings, nullptr);
@@ -1606,7 +1625,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	}
 
 	getEncoderSettings(streamingEncoder, settings, &(streamingSettings.params), index, isCategoryEnabled);
-	streamingSettings.paramsCount = 
+	streamingSettings.paramsCount =
 		streamingSettings.params.size();
 	return streamingSettings;
 }
@@ -1615,7 +1634,7 @@ void OBS_settings::getStandardRecordingSettings(
 	SubCategory* subCategoryParameters, config_t* config, bool isCategoryEnabled)
 {
 	int index = 1;
-	
+
 	// Recording Path : file
 	Parameter recFilePath;
 	recFilePath.name = "RecFilePath";
@@ -1624,30 +1643,31 @@ void OBS_settings::getStandardRecordingSettings(
 
 	const char* RecFilePathCurrentValue = config_get_string(config, "AdvOut", "RecFilePath");
 
-	if(RecFilePathCurrentValue == NULL) {
+	if (RecFilePathCurrentValue == NULL) {
 		const char* RecFilePathText = OBS_service::GetDefaultVideoSavePath().c_str();
-		
+
 		recFilePath.currentValue.resize(strlen(RecFilePathText));
 		memcpy(recFilePath.currentValue.data(), RecFilePathText, strlen(RecFilePathText));
 		recFilePath.sizeOfCurrentValue = strlen(RecFilePathText);
-	} else {
+	}
+	else {
 		recFilePath.currentValue.resize(strlen(RecFilePathCurrentValue));
 		memcpy(recFilePath.currentValue.data(), RecFilePathCurrentValue, strlen(RecFilePathCurrentValue));
 		recFilePath.sizeOfCurrentValue = strlen(RecFilePathCurrentValue);
 	}
-	
+
 	recFilePath.visible = true;
 	recFilePath.enabled = isCategoryEnabled;
 	recFilePath.masked = false;
 
 	subCategoryParameters->params.push_back(recFilePath);
-	
+
 	// Generate File Name without Space : boolean
 	Parameter recFileNameWithoutSpace;
 	recFileNameWithoutSpace.name = "RecFileNameWithoutSpace";
 	recFileNameWithoutSpace.type = "OBS_PROPERTY_BOOL";
 	recFileNameWithoutSpace.description = "Generate File Name without Space";
-	
+
 	const char* currentValue = "RecFileNameWithoutSpace";
 	recFileNameWithoutSpace.currentValue.resize(strlen(currentValue));
 	memcpy(recFileNameWithoutSpace.currentValue.data(), currentValue, strlen(currentValue));
@@ -1667,9 +1687,9 @@ void OBS_settings::getStandardRecordingSettings(
 	recFormat.subType = "OBS_COMBO_FORMAT_STRING";
 
 	const char* recFormatCurrentValue = config_get_string(config, "AdvOut", "RecFormat");
-	if(recFormatCurrentValue == NULL)
+	if (recFormatCurrentValue == NULL)
 		recFormatCurrentValue = "";
-	
+
 	recFormat.currentValue.resize(strlen(recFormatCurrentValue));
 	memcpy(recFormat.currentValue.data(), recFormatCurrentValue, strlen(recFormatCurrentValue));
 	recFormat.sizeOfCurrentValue = strlen(recFormatCurrentValue);
@@ -1708,7 +1728,7 @@ void OBS_settings::getStandardRecordingSettings(
 
 	recFormat.sizeOfValues = recFormat.values.size();
 	recFormat.countValues = recFormatValues.size();
-	
+
 	recFormat.visible = true;
 	recFormat.enabled = isCategoryEnabled;
 	recFormat.masked = false;
@@ -1723,7 +1743,7 @@ void OBS_settings::getStandardRecordingSettings(
 	recTracks.subType = "OBS_COMBO_FORMAT_STRING";
 
 	const char* recTracksCurrentValue = config_get_string(config, "AdvOut", "RecTracks");
-	if(recTracksCurrentValue == NULL)
+	if (recTracksCurrentValue == NULL)
 		recTracksCurrentValue = "";
 
 	recTracks.currentValue.resize(strlen(recTracksCurrentValue));
@@ -1777,9 +1797,9 @@ void OBS_settings::getStandardRecordingSettings(
 	recEncoder.type = "OBS_PROPERTY_LIST";
 	recEncoder.description = "Recording";
 	recEncoder.subType = "OBS_COMBO_FORMAT_STRING";
-	
+
 	const char* recEncoderCurrentValue = config_get_string(config, "AdvOut", "RecEncoder");
-	if(recEncoderCurrentValue == NULL || strcmp(recEncoderCurrentValue, "none") == 0)
+	if (recEncoderCurrentValue == NULL || strcmp(recEncoderCurrentValue, "none") == 0)
 		recEncoderCurrentValue = "obs_x264";
 
 	recEncoder.currentValue.resize(strlen(recEncoderCurrentValue));
@@ -1839,9 +1859,9 @@ void OBS_settings::getStandardRecordingSettings(
 	recRescale.masked = false;
 
 	subCategoryParameters->params.push_back(recRescale);
-	
+
 	// Output Resolution : list
-	if(doRescale) {
+	if (doRescale) {
 		// Output Resolution : list
 		Parameter recRescaleRes;
 		recRescaleRes.name = "RecRescaleRes";
@@ -1868,7 +1888,7 @@ void OBS_settings::getStandardRecordingSettings(
 
 		uint32_t indexDataRecRescaleRes = 0;
 
-		for(int i = 0;i<outputResolutions.size();i++) {
+		for (int i = 0; i<outputResolutions.size(); i++) {
 			std::string outRes = ResString(outputResolutions.at(i).first, outputResolutions.at(i).second);
 
 			for (int j = 0; j < 2; j++) {
@@ -1899,9 +1919,9 @@ void OBS_settings::getStandardRecordingSettings(
 	recMuxerCustom.description = "Custom Muxer Settings";
 
 	const char* RecMuxerCustomCurrentValue = config_get_string(config, "AdvOut", "RecMuxerCustom");
-	if(RecMuxerCustomCurrentValue == NULL) 
+	if (RecMuxerCustomCurrentValue == NULL)
 		RecMuxerCustomCurrentValue = "";
-	
+
 	recMuxerCustom.currentValue.resize(strlen(RecMuxerCustomCurrentValue));
 	memcpy(recMuxerCustom.currentValue.data(), RecMuxerCustomCurrentValue, strlen(RecMuxerCustomCurrentValue));
 	recMuxerCustom.sizeOfCurrentValue = strlen(RecMuxerCustomCurrentValue);
@@ -1920,7 +1940,7 @@ void OBS_settings::getStandardRecordingSettings(
 
 	obs_data_t *settings = obs_encoder_defaults(recEncoderCurrentValue);
 	obs_encoder_t* recordingEncoder;
-	if(!fileExist) {
+	if (!fileExist) {
 		recordingEncoder =
 			obs_video_encoder_create(recEncoderCurrentValue, "streaming_h264", nullptr, nullptr);
 		OBS_service::setRecordingEncoder(recordingEncoder);
@@ -1928,7 +1948,8 @@ void OBS_settings::getStandardRecordingSettings(
 		if (!obs_data_save_json_safe(settings, path.c_str(), "tmp", "bak")) {
 			blog(LOG_WARNING, "Failed to save encoder %s", path.c_str());
 		}
-	} else {
+	}
+	else {
 		obs_data_t *data = obs_data_create_from_json_file_safe(path.c_str(), "bak");
 		obs_data_apply(settings, data);
 		recordingEncoder =
@@ -1937,7 +1958,7 @@ void OBS_settings::getStandardRecordingSettings(
 	}
 
 	getEncoderSettings(recordingEncoder, settings, &(subCategoryParameters->params), index, isCategoryEnabled);
-	subCategoryParameters->paramsCount = 
+	subCategoryParameters->paramsCount =
 		subCategoryParameters->params.size();
 }
 
@@ -1963,99 +1984,87 @@ void OBS_settings::getFFmpegOutputRecordingSettings(SubCategory* subCategoryPara
 {
 	/*Isolate *isolate = v8::Isolate::GetCurrent();
 	int index = 1;
-
 	// FFmpeg Output Type : list											FFOutputToFile
 	Local<Object> FFOutputToFile = Object::New(isolate);
 	FFOutputToFile->Set(String::NewFromUtf8(isolate, "name"), String::NewFromUtf8(isolate, "FFOutputToFile"));
 	FFOutputToFile->Set(String::NewFromUtf8(isolate, "type"), String::NewFromUtf8(isolate, "OBS_PROPERTY_LIST"));
 	FFOutputToFile->Set(String::NewFromUtf8(isolate, "description"),
-									String::NewFromUtf8(isolate, "FFmpeg Output Type"));
+	String::NewFromUtf8(isolate, "FFmpeg Output Type"));
 	bool FFOutputToFileCurrentValue = config_get_bool(config, "AdvOut", "FFOutputToFile");
 	FFOutputToFile->Set(String::NewFromUtf8(isolate, "currentValue"),
-						Integer::New(isolate, FFOutputToFileCurrentValue));
-
+	Integer::New(isolate, FFOutputToFileCurrentValue));
 	Local<Array> FFOutputToFileValues = Array::New(isolate);
-
 	Local<Object> file = Object::New(isolate);
 	file->Set(String::NewFromUtf8(isolate, "Output to File"), Integer::New(isolate, true));
 	FFOutputToFileValues->Set(0, file);
-
 	Local<Object> url = Object::New(isolate);
 	url->Set(String::NewFromUtf8(isolate, "Output to URL"), Integer::New(isolate, false));
 	FFOutputToFileValues->Set(1, url);
-
 	FFOutputToFile->Set(String::NewFromUtf8(isolate, "values"), FFOutputToFileValues);
-
 	FFOutputToFile->Set(String::NewFromUtf8(isolate, "visible"), Boolean::New(isolate, true));
 	FFOutputToFile->Set(String::NewFromUtf8(isolate, "enabled"), Boolean::New(isolate, isCategoryEnabled));
 	FFOutputToFile->Set(String::NewFromUtf8(isolate, "masked"), Boolean::New(isolate, false));
 	(*subCategoryParameters)->Set(index++, FFOutputToFile);
-
 	// File path or URL : path												FFURL
 	if(FFOutputToFileCurrentValue) {
-		Local<Object> FFfile = Object::New(isolate);
-		FFfile->Set(String::NewFromUtf8(isolate, "name"), String::NewFromUtf8(isolate, "FFFilePath"));
-		FFfile->Set(String::NewFromUtf8(isolate, "type"), String::NewFromUtf8(isolate, "OBS_PROPERTY_PATH"));
-		FFfile->Set(String::NewFromUtf8(isolate, "description"),
-										String::NewFromUtf8(isolate, "File path"));
-		const char* FFfileCurrentValue = config_get_string(config, "AdvOut", "FFFilePath");
-		if(FFfileCurrentValue == NULL) {
-			FFfileCurrentValue = "";
-		}
-		FFfile->Set(String::NewFromUtf8(isolate, "currentValue"),
-						String::NewFromUtf8(isolate, FFfileCurrentValue));
-		FFfile->Set(String::NewFromUtf8(isolate, "visible"), Boolean::New(isolate, true));
-		FFfile->Set(String::NewFromUtf8(isolate, "enabled"), Boolean::New(isolate, isCategoryEnabled));
-		FFfile->Set(String::NewFromUtf8(isolate, "masked"), Boolean::New(isolate, false));
-		(*subCategoryParameters)->Set(index++, FFfile);
-	} else {
-		Local<Object> FFURL = Object::New(isolate);
-		FFURL->Set(String::NewFromUtf8(isolate, "name"), String::NewFromUtf8(isolate, "FFURL"));
-		FFURL->Set(String::NewFromUtf8(isolate, "type"), String::NewFromUtf8(isolate, "OBS_PROPERTY_EDIT_TEXT"));
-		FFURL->Set(String::NewFromUtf8(isolate, "description"),
-										String::NewFromUtf8(isolate, "URL"));
-		const char* FFURLCurrentValue = config_get_string(config, "AdvOut", "FFURL");
-		if(FFURLCurrentValue == NULL) {
-			FFURLCurrentValue = "";
-		}
-		FFURL->Set(String::NewFromUtf8(isolate, "currentValue"),
-						String::NewFromUtf8(isolate, FFURLCurrentValue));
-		FFURL->Set(String::NewFromUtf8(isolate, "visible"), Boolean::New(isolate, true));
-		FFURL->Set(String::NewFromUtf8(isolate, "enabled"), Boolean::New(isolate, isCategoryEnabled));
-		FFURL->Set(String::NewFromUtf8(isolate, "masked"), Boolean::New(isolate, false));
-		(*subCategoryParameters)->Set(index++, FFURL);
+	Local<Object> FFfile = Object::New(isolate);
+	FFfile->Set(String::NewFromUtf8(isolate, "name"), String::NewFromUtf8(isolate, "FFFilePath"));
+	FFfile->Set(String::NewFromUtf8(isolate, "type"), String::NewFromUtf8(isolate, "OBS_PROPERTY_PATH"));
+	FFfile->Set(String::NewFromUtf8(isolate, "description"),
+	String::NewFromUtf8(isolate, "File path"));
+	const char* FFfileCurrentValue = config_get_string(config, "AdvOut", "FFFilePath");
+	if(FFfileCurrentValue == NULL) {
+	FFfileCurrentValue = "";
 	}
-
+	FFfile->Set(String::NewFromUtf8(isolate, "currentValue"),
+	String::NewFromUtf8(isolate, FFfileCurrentValue));
+	FFfile->Set(String::NewFromUtf8(isolate, "visible"), Boolean::New(isolate, true));
+	FFfile->Set(String::NewFromUtf8(isolate, "enabled"), Boolean::New(isolate, isCategoryEnabled));
+	FFfile->Set(String::NewFromUtf8(isolate, "masked"), Boolean::New(isolate, false));
+	(*subCategoryParameters)->Set(index++, FFfile);
+	} else {
+	Local<Object> FFURL = Object::New(isolate);
+	FFURL->Set(String::NewFromUtf8(isolate, "name"), String::NewFromUtf8(isolate, "FFURL"));
+	FFURL->Set(String::NewFromUtf8(isolate, "type"), String::NewFromUtf8(isolate, "OBS_PROPERTY_EDIT_TEXT"));
+	FFURL->Set(String::NewFromUtf8(isolate, "description"),
+	String::NewFromUtf8(isolate, "URL"));
+	const char* FFURLCurrentValue = config_get_string(config, "AdvOut", "FFURL");
+	if(FFURLCurrentValue == NULL) {
+	FFURLCurrentValue = "";
+	}
+	FFURL->Set(String::NewFromUtf8(isolate, "currentValue"),
+	String::NewFromUtf8(isolate, FFURLCurrentValue));
+	FFURL->Set(String::NewFromUtf8(isolate, "visible"), Boolean::New(isolate, true));
+	FFURL->Set(String::NewFromUtf8(isolate, "enabled"), Boolean::New(isolate, isCategoryEnabled));
+	FFURL->Set(String::NewFromUtf8(isolate, "masked"), Boolean::New(isolate, false));
+	(*subCategoryParameters)->Set(index++, FFURL);
+	}
 	// Generate File Name without Space : boolean 							FFFileNameWithoutSpace
 	Local<Object> FFFileNameWithoutSpace = Object::New(isolate);
 	FFFileNameWithoutSpace->Set(String::NewFromUtf8(isolate, "name"), String::NewFromUtf8(isolate, "FFFileNameWithoutSpace"));
 	FFFileNameWithoutSpace->Set(String::NewFromUtf8(isolate, "type"), String::NewFromUtf8(isolate, "OBS_PROPERTY_BOOL"));
 	FFFileNameWithoutSpace->Set(String::NewFromUtf8(isolate, "description"),
-									String::NewFromUtf8(isolate, "Generate File Name without Space"));
+	String::NewFromUtf8(isolate, "Generate File Name without Space"));
 	FFFileNameWithoutSpace->Set(String::NewFromUtf8(isolate, "currentValue"),
-									Integer::New(isolate, config_get_bool(config, "AdvOut", "FFFileNameWithoutSpace")));
+	Integer::New(isolate, config_get_bool(config, "AdvOut", "FFFileNameWithoutSpace")));
 	FFFileNameWithoutSpace->Set(String::NewFromUtf8(isolate, "visible"), Boolean::New(isolate, true));
 	FFFileNameWithoutSpace->Set(String::NewFromUtf8(isolate, "enabled"), Boolean::New(isolate, isCategoryEnabled));
 	FFFileNameWithoutSpace->Set(String::NewFromUtf8(isolate, "masked"), Boolean::New(isolate, false));
 	(*subCategoryParameters)->Set(index++, FFFileNameWithoutSpace);
-
 	// Container Format : list 												FFFormat
 	Local<Object> FFFormat = Object::New(isolate);
 	FFFormat->Set(String::NewFromUtf8(isolate, "name"), String::NewFromUtf8(isolate, "FFFormat"));
 	FFFormat->Set(String::NewFromUtf8(isolate, "type"), String::NewFromUtf8(isolate, "OBS_PROPERTY_LIST"));
 	FFFormat->Set(String::NewFromUtf8(isolate, "description"),
-									String::NewFromUtf8(isolate, "Container Format"));
-
+	String::NewFromUtf8(isolate, "Container Format"));
 	const char* FFFormatCurrentValue = config_get_string(config, "AdvOut", "FFFormat");
 	if(FFFormatCurrentValue == NULL) {
-		FFFormatCurrentValue = "";
+	FFFormatCurrentValue = "";
 	}
 	FFFormat->Set(String::NewFromUtf8(isolate, "currentValue"),
-					String::NewFromUtf8(isolate, FFFormatCurrentValue));
-
+	String::NewFromUtf8(isolate, FFFormatCurrentValue));
 	// formats.reset(ff_format_supported());
 	// const ff_format_desc *format = formats.get();
-
 	// Local<Array> FFFormattValues = Array::New(isolate);
 	// int indexFormat = 0;
 	// const ff_format_desc *formatDesc = NULL;
@@ -2063,7 +2072,6 @@ void OBS_settings::getFFmpegOutputRecordingSettings(SubCategory* subCategoryPara
 	// 	bool audio = ff_format_desc_has_audio(format);
 	// 	bool video = ff_format_desc_has_video(format);
 	// 	const char* formatName = ff_format_desc_name(format);
-
 	// 	std::string encoderDisplayName;
 	// 	if (audio || video) {
 	// 		if(strcmp(formatName, FFFormatCurrentValue) == 0) {
@@ -2077,133 +2085,118 @@ void OBS_settings::getFFmpegOutputRecordingSettings(SubCategory* subCategoryPara
 	// 						String::NewFromUtf8(isolate, formatName));
 	// 		FFFormattValues->Set(indexFormat++, object);
 	// 	}
-
 	// 	format = ff_format_desc_next(format);
 	// }
-
 	// FFFormat->Set(String::NewFromUtf8(isolate, "values"), FFFormattValues);
-
 	FFFormat->Set(String::NewFromUtf8(isolate, "visible"), Boolean::New(isolate, true));
 	FFFormat->Set(String::NewFromUtf8(isolate, "enabled"), Boolean::New(isolate, isCategoryEnabled));
 	FFFormat->Set(String::NewFromUtf8(isolate, "masked"), Boolean::New(isolate, false));
 	(*subCategoryParameters)->Set(index++, FFFormat);
-
 	// Container Format Description : text									nothing to save
-
 	// Muxer Settings (if any) : edit text 									FFMCustom
 	Local<Object> FFMCustom = Object::New(isolate);
 	FFMCustom->Set(String::NewFromUtf8(isolate, "name"), String::NewFromUtf8(isolate, "FFMCustom"));
 	FFMCustom->Set(String::NewFromUtf8(isolate, "type"), String::NewFromUtf8(isolate, "OBS_PROPERTY_EDIT_TEXT"));
 	FFMCustom->Set(String::NewFromUtf8(isolate, "description"),
-									String::NewFromUtf8(isolate, "Muxer Settings (if any)"));
+	String::NewFromUtf8(isolate, "Muxer Settings (if any)"));
 	const char* FFMCustomCurrentValue = config_get_string(config, "AdvOut", "FFMCustom");
 	if(FFMCustomCurrentValue == NULL) {
-		FFMCustomCurrentValue = "";
+	FFMCustomCurrentValue = "";
 	}
 	FFMCustom->Set(String::NewFromUtf8(isolate, "currentValue"),
-					String::NewFromUtf8(isolate, FFMCustomCurrentValue));
+	String::NewFromUtf8(isolate, FFMCustomCurrentValue));
 	FFMCustom->Set(String::NewFromUtf8(isolate, "visible"), Boolean::New(isolate, true));
 	FFMCustom->Set(String::NewFromUtf8(isolate, "enabled"), Boolean::New(isolate, isCategoryEnabled));
 	FFMCustom->Set(String::NewFromUtf8(isolate, "masked"), Boolean::New(isolate, false));
 	(*subCategoryParameters)->Set(index++, FFMCustom);
-
 	// Video Bitrate : int 													FFVBitrate
 	Local<Object> FFVBitrate = Object::New(isolate);
 	FFVBitrate->Set(String::NewFromUtf8(isolate, "name"), String::NewFromUtf8(isolate, "FFVBitrate"));
 	FFVBitrate->Set(String::NewFromUtf8(isolate, "type"), String::NewFromUtf8(isolate, "OBS_PROPERTY_INT"));
 	FFVBitrate->Set(String::NewFromUtf8(isolate, "description"),
-									String::NewFromUtf8(isolate, "Video Bitrate"));
+	String::NewFromUtf8(isolate, "Video Bitrate"));
 	FFVBitrate->Set(String::NewFromUtf8(isolate, "currentValue"),
-									Integer::New(isolate, config_get_int(config, "AdvOut", "FFVBitrate")));
+	Integer::New(isolate, config_get_int(config, "AdvOut", "FFVBitrate")));
 	FFVBitrate->Set(String::NewFromUtf8(isolate, "visible"), Boolean::New(isolate, true));
 	FFVBitrate->Set(String::NewFromUtf8(isolate, "enabled"), Boolean::New(isolate, isCategoryEnabled));
 	FFVBitrate->Set(String::NewFromUtf8(isolate, "masked"), Boolean::New(isolate, false));
 	(*subCategoryParameters)->Set(index++, FFVBitrate);
-
 	// Keyframe interval (frames) : int 									FFVGOPSize
 	Local<Object> FFVGOPSize = Object::New(isolate);
 	FFVGOPSize->Set(String::NewFromUtf8(isolate, "name"), String::NewFromUtf8(isolate, "FFVGOPSize"));
 	FFVGOPSize->Set(String::NewFromUtf8(isolate, "type"), String::NewFromUtf8(isolate, "OBS_PROPERTY_INT"));
 	FFVGOPSize->Set(String::NewFromUtf8(isolate, "description"),
-									String::NewFromUtf8(isolate, "Keyframe interval (frames)"));
+	String::NewFromUtf8(isolate, "Keyframe interval (frames)"));
 	FFVGOPSize->Set(String::NewFromUtf8(isolate, "currentValue"),
-									Integer::New(isolate, config_get_int(config, "AdvOut", "FFVGOPSize")));
+	Integer::New(isolate, config_get_int(config, "AdvOut", "FFVGOPSize")));
 	FFVGOPSize->Set(String::NewFromUtf8(isolate, "visible"), Boolean::New(isolate, true));
 	FFVGOPSize->Set(String::NewFromUtf8(isolate, "enabled"), Boolean::New(isolate, isCategoryEnabled));
 	FFVGOPSize->Set(String::NewFromUtf8(isolate, "masked"), Boolean::New(isolate, false));
 	(*subCategoryParameters)->Set(index++, FFVGOPSize);
-
 	// Rescale Output : boolean												FFRescale
 	Local<Object> FFRescale = Object::New(isolate);
 	FFRescale->Set(String::NewFromUtf8(isolate, "name"), String::NewFromUtf8(isolate, "FFRescale"));
 	FFRescale->Set(String::NewFromUtf8(isolate, "type"), String::NewFromUtf8(isolate, "OBS_PROPERTY_BOOL"));
 	FFRescale->Set(String::NewFromUtf8(isolate, "description"),
-									String::NewFromUtf8(isolate, "Rescale Output"));
+	String::NewFromUtf8(isolate, "Rescale Output"));
 	bool FFRescaleCurrentValue = config_get_bool(config, "AdvOut", "FFRescale");
 	FFRescale->Set(String::NewFromUtf8(isolate, "currentValue"),
-									Integer::New(isolate, FFRescaleCurrentValue));
+	Integer::New(isolate, FFRescaleCurrentValue));
 	FFRescale->Set(String::NewFromUtf8(isolate, "visible"), Boolean::New(isolate, true));
 	FFRescale->Set(String::NewFromUtf8(isolate, "enabled"), Boolean::New(isolate, isCategoryEnabled));
 	FFRescale->Set(String::NewFromUtf8(isolate, "masked"), Boolean::New(isolate, false));
 	(*subCategoryParameters)->Set(index++, FFRescale);
-
 	if(FFRescaleCurrentValue) {
-		// Output resolutions : list											FFRescaleRes
-		Local<Object> FFRescaleRes = Object::New(isolate);
-		FFRescaleRes->Set(String::NewFromUtf8(isolate, "name"), String::NewFromUtf8(isolate, "FFRescaleRes"));
-		FFRescaleRes->Set(String::NewFromUtf8(isolate, "type"), String::NewFromUtf8(isolate, "OBS_PROPERTY_LIST"));
-		FFRescaleRes->Set(String::NewFromUtf8(isolate, "description"),
-										String::NewFromUtf8(isolate, "Output resolutions"));
-		FFRescaleRes->Set(String::NewFromUtf8(isolate, "visible"), Boolean::New(isolate, true));
-		FFRescaleRes->Set(String::NewFromUtf8(isolate, "enabled"), Boolean::New(isolate, isCategoryEnabled));
-		FFRescaleRes->Set(String::NewFromUtf8(isolate, "masked"), Boolean::New(isolate, false));
-		(*subCategoryParameters)->Set(index++, FFRescaleRes);
+	// Output resolutions : list											FFRescaleRes
+	Local<Object> FFRescaleRes = Object::New(isolate);
+	FFRescaleRes->Set(String::NewFromUtf8(isolate, "name"), String::NewFromUtf8(isolate, "FFRescaleRes"));
+	FFRescaleRes->Set(String::NewFromUtf8(isolate, "type"), String::NewFromUtf8(isolate, "OBS_PROPERTY_LIST"));
+	FFRescaleRes->Set(String::NewFromUtf8(isolate, "description"),
+	String::NewFromUtf8(isolate, "Output resolutions"));
+	FFRescaleRes->Set(String::NewFromUtf8(isolate, "visible"), Boolean::New(isolate, true));
+	FFRescaleRes->Set(String::NewFromUtf8(isolate, "enabled"), Boolean::New(isolate, isCategoryEnabled));
+	FFRescaleRes->Set(String::NewFromUtf8(isolate, "masked"), Boolean::New(isolate, false));
+	(*subCategoryParameters)->Set(index++, FFRescaleRes);
 	}
-
 	// Show all codes (even if potentially incompatible) : boolean			FFIgnoreCompat
 	Local<Object> FFIgnoreCompat = Object::New(isolate);
 	FFIgnoreCompat->Set(String::NewFromUtf8(isolate, "name"), String::NewFromUtf8(isolate, "FFIgnoreCompat"));
 	FFIgnoreCompat->Set(String::NewFromUtf8(isolate, "type"), String::NewFromUtf8(isolate, "OBS_PROPERTY_BOOL"));
 	FFIgnoreCompat->Set(String::NewFromUtf8(isolate, "description"),
-							String::NewFromUtf8(isolate, "Show all codes (even if potentially incompatible)"));
+	String::NewFromUtf8(isolate, "Show all codes (even if potentially incompatible)"));
 	bool ignore_compatability = config_get_bool(config, "AdvOut", "FFIgnoreCompat");
 	FFIgnoreCompat->Set(String::NewFromUtf8(isolate, "currentValue"),
-							Integer::New(isolate, ignore_compatability));
+	Integer::New(isolate, ignore_compatability));
 	FFIgnoreCompat->Set(String::NewFromUtf8(isolate, "visible"), Boolean::New(isolate, true));
 	FFIgnoreCompat->Set(String::NewFromUtf8(isolate, "enabled"), Boolean::New(isolate, isCategoryEnabled));
 	FFIgnoreCompat->Set(String::NewFromUtf8(isolate, "masked"), Boolean::New(isolate, false));
 	(*subCategoryParameters)->Set(index++, FFIgnoreCompat);
-
 	// Video Encoder : list 												FFVEncoder / FFVEncoderId
 	Local<Object> FFVEncoder = Object::New(isolate);
 	FFVEncoder->Set(String::NewFromUtf8(isolate, "name"), String::NewFromUtf8(isolate, "FFVEncoder"));
 	FFVEncoder->Set(String::NewFromUtf8(isolate, "type"), String::NewFromUtf8(isolate, "OBS_PROPERTY_LIST"));
 	FFVEncoder->Set(String::NewFromUtf8(isolate, "description"),
-									String::NewFromUtf8(isolate, "Video Encoder"));
-
+	String::NewFromUtf8(isolate, "Video Encoder"));
 	const char* FFVEncoderCurrentValue = config_get_string(config, "AdvOut", "FFVEncoder");
 	if(FFVEncoderCurrentValue == NULL) {
-		FFVEncoderCurrentValue = "";
+	FFVEncoderCurrentValue = "";
 	}
 	FFVEncoder->Set(String::NewFromUtf8(isolate, "currentValue"),
-					String::NewFromUtf8(isolate, FFVEncoderCurrentValue));
+	String::NewFromUtf8(isolate, FFVEncoderCurrentValue));
 	Local<Array> FFVEncoderValues = Array::New(isolate);
-
 	// Audio Encoder : list 												FFAEncoder /FFAEncoderId
 	Local<Object> FFAEncoder = Object::New(isolate);
 	FFAEncoder->Set(String::NewFromUtf8(isolate, "name"), String::NewFromUtf8(isolate, "FFAEncoder"));
 	FFAEncoder->Set(String::NewFromUtf8(isolate, "type"), String::NewFromUtf8(isolate, "OBS_PROPERTY_LIST"));
 	FFAEncoder->Set(String::NewFromUtf8(isolate, "description"),
-									String::NewFromUtf8(isolate, "Audio Encoder"));
-
+	String::NewFromUtf8(isolate, "Audio Encoder"));
 	const char* FFAEncoderCurrentValue = config_get_string(config, "AdvOut", "FFAEncoder");
 	if(FFAEncoderCurrentValue == NULL) {
-		FFAEncoderCurrentValue = "";
+	FFAEncoderCurrentValue = "";
 	}
 	FFAEncoder->Set(String::NewFromUtf8(isolate, "currentValue"),
-					String::NewFromUtf8(isolate, FFAEncoderCurrentValue));
+	String::NewFromUtf8(isolate, FFAEncoderCurrentValue));
 	Local<Array> FFAEncoderValues = Array::New(isolate);
-
 	// int indexAudioLoop = 0;
 	// int indexVideoLoop = 0;
 	// bool codec_has_audio = false;
@@ -2211,9 +2204,7 @@ void OBS_settings::getFFmpegOutputRecordingSettings(SubCategory* subCategoryPara
 	// if(formatDesc != NULL) {
 	// 	OBSFFCodecDesc codecDescs(ff_codec_supported(formatDesc,
 	// 		ignore_compatability));
-
 	// 	const ff_codec_desc *codec = codecDescs.get();
-
 	// 	while(codec != nullptr) {
 	// 		switch (ff_codec_desc_type(codec)) {
 	// 			case FF_CODEC_AUDIO:
@@ -2246,105 +2237,89 @@ void OBS_settings::getFFmpegOutputRecordingSettings(SubCategory* subCategoryPara
 	// 		codec = ff_codec_desc_next(codec);
 	// 	}
 	// }
-
 	// FFVEncoder->Set(String::NewFromUtf8(isolate, "values"), FFVEncoderValues);
 	// FFAEncoder->Set(String::NewFromUtf8(isolate, "values"), FFAEncoderValues);
-
 	FFVEncoder->Set(String::NewFromUtf8(isolate, "visible"), Boolean::New(isolate, true));
 	FFVEncoder->Set(String::NewFromUtf8(isolate, "enabled"), Boolean::New(isolate, isCategoryEnabled));
 	FFVEncoder->Set(String::NewFromUtf8(isolate, "masked"), Boolean::New(isolate, false));
-	
+
 	FFAEncoder->Set(String::NewFromUtf8(isolate, "visible"), Boolean::New(isolate, true));
 	// FFAEncoder->Set(String::NewFromUtf8(isolate, "enabled"), Integer::New(isolate, codec_has_audio));
 	FFAEncoder->Set(String::NewFromUtf8(isolate, "enabled"), Boolean::New(isolate, isCategoryEnabled));
 	FFAEncoder->Set(String::NewFromUtf8(isolate, "masked"), Boolean::New(isolate, false));
-
 	// Video Encoder Settings (if any) : edit text 							FFVCustom
 	Local<Object> FFVCustom = Object::New(isolate);
 	FFVCustom->Set(String::NewFromUtf8(isolate, "name"), String::NewFromUtf8(isolate, "FFVCustom"));
 	FFVCustom->Set(String::NewFromUtf8(isolate, "type"), String::NewFromUtf8(isolate, "OBS_PROPERTY_EDIT_TEXT"));
 	FFVCustom->Set(String::NewFromUtf8(isolate, "description"),
-									String::NewFromUtf8(isolate, "Video Encoder Settings (if any)"));
+	String::NewFromUtf8(isolate, "Video Encoder Settings (if any)"));
 	const char* FFVCustomCurrentValue = config_get_string(config, "AdvOut", "FFVCustom");
 	if(FFVCustomCurrentValue == NULL) {
-		FFVCustomCurrentValue = "";
+	FFVCustomCurrentValue = "";
 	}
 	FFVCustom->Set(String::NewFromUtf8(isolate, "currentValue"),
-							String::NewFromUtf8(isolate, FFVCustomCurrentValue));
+	String::NewFromUtf8(isolate, FFVCustomCurrentValue));
 	FFVCustom->Set(String::NewFromUtf8(isolate, "visible"), Boolean::New(isolate, true));
 	FFVCustom->Set(String::NewFromUtf8(isolate, "enabled"), Boolean::New(isolate, isCategoryEnabled));
 	FFVCustom->Set(String::NewFromUtf8(isolate, "masked"), Boolean::New(isolate, false));
-
 	// Audio Bitrate : list 												FFABitrate
 	Local<Object> FFABitrate = Object::New(isolate);
 	FFABitrate->Set(String::NewFromUtf8(isolate, "name"), String::NewFromUtf8(isolate, "FFABitrate"));
 	FFABitrate->Set(String::NewFromUtf8(isolate, "type"), String::NewFromUtf8(isolate, "OBS_PROPERTY_LIST"));
 	FFABitrate->Set(String::NewFromUtf8(isolate, "description"),
-								String::NewFromUtf8(isolate, "Audio Bitrate"));
+	String::NewFromUtf8(isolate, "Audio Bitrate"));
 	FFABitrate->Set(String::NewFromUtf8(isolate, "currentValue"),
-								Integer::New(isolate, config_get_int(config, "AdvOut", "FFABitrate")));
+	Integer::New(isolate, config_get_int(config, "AdvOut", "FFABitrate")));
 	FFABitrate->Set(String::NewFromUtf8(isolate, "visible"), Boolean::New(isolate, true));
 	// FFABitrate->Set(String::NewFromUtf8(isolate, "enabled"), Integer::New(isolate, codec_has_audio));
 	FFABitrate->Set(String::NewFromUtf8(isolate, "enabled"), Boolean::New(isolate, isCategoryEnabled));
 	FFABitrate->Set(String::NewFromUtf8(isolate, "masked"), Boolean::New(isolate, false));
-
 	// Audio track : list 													FFAudioTrack
 	Local<Object> FFAudioTrack = Object::New(isolate);
 	FFAudioTrack->Set(String::NewFromUtf8(isolate, "name"), String::NewFromUtf8(isolate, "FFAudioTrack"));
 	FFAudioTrack->Set(String::NewFromUtf8(isolate, "type"), String::NewFromUtf8(isolate, "OBS_PROPERTY_LIST"));
 	FFAudioTrack->Set(String::NewFromUtf8(isolate, "description"),
-									String::NewFromUtf8(isolate, "Audio track"));
+	String::NewFromUtf8(isolate, "Audio track"));
 	Local<Array> TrackIndexValues = Array::New(isolate);
-
 	Local<Object> track1 = Object::New(isolate);
 	track1->Set(String::NewFromUtf8(isolate, "1"), String::NewFromUtf8(isolate, "1"));
 	TrackIndexValues->Set(0, track1);
-
 	Local<Object> track2 = Object::New(isolate);
 	track2->Set(String::NewFromUtf8(isolate, "2"), String::NewFromUtf8(isolate, "2"));
 	TrackIndexValues->Set(1, track2);
-
 	Local<Object> track3 = Object::New(isolate);
 	track3->Set(String::NewFromUtf8(isolate, "3"), String::NewFromUtf8(isolate, "3"));
 	TrackIndexValues->Set(2, track3);
-
 	Local<Object> track4 = Object::New(isolate);
 	track4->Set(String::NewFromUtf8(isolate, "4"), String::NewFromUtf8(isolate, "4"));
 	TrackIndexValues->Set(3, track4);
-
 	Local<Object> track5 = Object::New(isolate);
 	track5->Set(String::NewFromUtf8(isolate, "5"), String::NewFromUtf8(isolate, "5"));
 	TrackIndexValues->Set(4, track5);
-
 	Local<Object> track6 = Object::New(isolate);
 	track6->Set(String::NewFromUtf8(isolate, "6"), String::NewFromUtf8(isolate, "6"));
 	TrackIndexValues->Set(5, track6);
-
 	FFAudioTrack->Set(String::NewFromUtf8(isolate, "values"), TrackIndexValues);
 	FFAudioTrack->Set(String::NewFromUtf8(isolate, "visible"), Boolean::New(isolate, true));
 	// FFAudioTrack->Set(String::NewFromUtf8(isolate, "enabled"), Integer::New(isolate, codec_has_audio));
 	FFAudioTrack->Set(String::NewFromUtf8(isolate, "enabled"), Boolean::New(isolate, isCategoryEnabled));
 	FFAudioTrack->Set(String::NewFromUtf8(isolate, "masked"), Boolean::New(isolate, false));
-
 	// Audio Encoder Settings (if any) : edit text 							FFACustom
 	Local<Object> FFACustom = Object::New(isolate);
 	FFACustom->Set(String::NewFromUtf8(isolate, "name"), String::NewFromUtf8(isolate, "FFACustom"));
 	FFACustom->Set(String::NewFromUtf8(isolate, "type"), String::NewFromUtf8(isolate, "OBS_PROPERTY_EDIT_TEXT"));
 	FFACustom->Set(String::NewFromUtf8(isolate, "description"),
-									String::NewFromUtf8(isolate, "Audio Encoder Settings (if any)"));
-
+	String::NewFromUtf8(isolate, "Audio Encoder Settings (if any)"));
 	const char* FFACustomCurrentValue = config_get_string(config, "AdvOut", "FFACustom");
 	if(FFACustomCurrentValue == NULL) {
-		FFACustomCurrentValue = "";
+	FFACustomCurrentValue = "";
 	}
 	FFACustom->Set(String::NewFromUtf8(isolate, "currentValue"),
-					String::NewFromUtf8(isolate, FFACustomCurrentValue));
+	String::NewFromUtf8(isolate, FFACustomCurrentValue));
 	FFACustom->Set(String::NewFromUtf8(isolate, "visible"), Boolean::New(isolate, true));
 	// FFACustom->Set(String::NewFromUtf8(isolate, "enabled"), Integer::New(isolate, codec_has_audio));
 	FFACustom->Set(String::NewFromUtf8(isolate, "enabled"), Boolean::New(isolate, isCategoryEnabled));
 	FFACustom->Set(String::NewFromUtf8(isolate, "masked"), Boolean::New(isolate, false));
-
-
 	(*subCategoryParameters)->Set(index++, FFVEncoder);
 	(*subCategoryParameters)->Set(index++, FFVCustom);
 	(*subCategoryParameters)->Set(index++, FFABitrate);
@@ -2398,9 +2373,9 @@ SubCategory OBS_settings::getAdvancedOutputRecordingSettings(config_t* config, b
 	recType.countValues = recTypeValues.size();
 
 	const char* RecTypeCurrentValue = config_get_string(config, "AdvOut", "RecType");
-	if(RecTypeCurrentValue == NULL)
+	if (RecTypeCurrentValue == NULL)
 		RecTypeCurrentValue = "";
-	
+
 	recType.currentValue.resize(strlen(RecTypeCurrentValue));
 	memcpy(recType.currentValue.data(), RecTypeCurrentValue, strlen(RecTypeCurrentValue));
 	recType.sizeOfCurrentValue = strlen(RecTypeCurrentValue);
@@ -2413,11 +2388,11 @@ SubCategory OBS_settings::getAdvancedOutputRecordingSettings(config_t* config, b
 
 	const char* currentRecType = config_get_string(config, "AdvOut", "RecType");
 
-	if(currentRecType == NULL) {
+	if (currentRecType == NULL) {
 		currentRecType = "Standard";
 		config_set_string(config, "AdvOut", "RecType", currentRecType);
 	}
-	
+
 	getStandardRecordingSettings(&recordingSettings, config, isCategoryEnabled);
 
 	recordingSettings.name = "Recording";
@@ -2437,7 +2412,7 @@ void OBS_settings::getAdvancedOutputAudioSettings(std::vector<SubCategory>* outp
 	Track1Bitrate.push_back(std::make_pair("name", "Track1Bitrate"));
 	Track1Bitrate.push_back(std::make_pair("type", "OBS_PROPERTY_LIST"));
 	Track1Bitrate.push_back(std::make_pair("description", "Audio Bitrate"));
-	Track1Bitrate.push_back(std::make_pair("subType", "OBS_COMBO_FORMAT_INT")); 
+	Track1Bitrate.push_back(std::make_pair("subType", "OBS_COMBO_FORMAT_INT"));
 
 	for (auto &entry : bitrateMap)
 		Track1Bitrate.push_back(std::make_pair(std::to_string(entry.first), std::to_string(entry.first)));
@@ -2494,7 +2469,7 @@ void OBS_settings::getAdvancedOutputAudioSettings(std::vector<SubCategory>* outp
 	Track3Name.push_back(std::make_pair("description", "Name"));
 	Track3Name.push_back(std::make_pair("subType", ""));
 	entries.push_back(Track3Name);
-	
+
 	outputSettings->push_back(serializeSettingsData("Audio - Track 3", entries, config, "AdvOut", true, isCategoryEnabled));
 	entries.clear();
 
@@ -2611,11 +2586,13 @@ std::vector<SubCategory> OBS_settings::getOutputSettings()
 		currentOutputMode = "Simple";
 	}
 
-	if(strcmp(currentOutputMode, "Simple") == 0) {
+	if (strcmp(currentOutputMode, "Simple") == 0) {
 		getSimpleOutputSettings(&outputSettings, config, isCategoryEnabled);
-	} else if (strcmp(currentOutputMode, "Advanced") == 0) {
+	}
+	else if (strcmp(currentOutputMode, "Advanced") == 0) {
 		getAdvancedOutputSettings(&outputSettings, config, isCategoryEnabled);
-	} else {
+	}
+	else {
 		// We dont't have a great way right now to tell the frontend that an error occured
 		// The default output mode is the simple one
 		getSimpleOutputSettings(&outputSettings, config, isCategoryEnabled);
@@ -2633,9 +2610,9 @@ void OBS_settings::saveSimpleOutputSettings(std::vector<SubCategory> settings, s
 void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> settings, std::string basicConfigFile)
 {
 	config_t* config = OBS_API::openConfigFile(basicConfigFile);
-	
+
 	int indexStreamingCategory = 1;
-	
+
 	std::string section = "AdvOut";
 
 	obs_encoder_t* encoder = OBS_service::getStreamingEncoder();
@@ -2646,61 +2623,71 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 	bool newEncoderType = false;
 
 	Parameter param;
-	
-	for(int i=0;i<settings.at(indexStreamingCategory).params.size();i++) {
+
+	for (int i = 0; i<settings.at(indexStreamingCategory).params.size(); i++) {
 		param = settings.at(indexStreamingCategory).params.at(i);
 
 		std::string name = param.name;
 		std::string type = param.type;
 
-		if(type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 ||
+		if (type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 ||
 			type.compare("OBS_PROPERTY_PATH") == 0 ||
 			type.compare("OBS_PROPERTY_TEXT") == 0) {
 			std::string value(param.currentValue.data(),
 				param.currentValue.size());
-			
-			if(i < indexEncoderSettings) {
+
+			if (i < indexEncoderSettings) {
 				if (name.compare("Encoder") == 0) {
 					const char *currentEncoder = config_get_string(config, section.c_str(), name.c_str());
 					if (currentEncoder != NULL) newEncoderType = value.compare(currentEncoder) != 0;
 				}
 				config_set_string(config, section.c_str(), name.c_str(), value.c_str());
-			} else {
+			}
+			else {
 				obs_data_set_string(encoderSettings, name.c_str(), value.c_str());
 			}
-		} else if(type.compare("OBS_PROPERTY_INT") == 0) {
+		}
+		else if (type.compare("OBS_PROPERTY_INT") == 0) {
 			int64_t *value = reinterpret_cast<int64_t*>(param.currentValue.data());
-			if(i < indexEncoderSettings) {
+			if (i < indexEncoderSettings) {
 				config_set_int(config, section.c_str(), name.c_str(), *value);
-			} else {
+			}
+			else {
 				obs_data_set_int(encoderSettings, name.c_str(), *value);
 			}
-		} else if(type.compare("OBS_PROPERTY_UINT") == 0) {
+		}
+		else if (type.compare("OBS_PROPERTY_UINT") == 0) {
 			uint64_t *value = reinterpret_cast<uint64_t*>(param.currentValue.data());
-			if(i < indexEncoderSettings) {
+			if (i < indexEncoderSettings) {
 				config_set_uint(config, section.c_str(), name.c_str(), *value);
-			} else {
+			}
+			else {
 				obs_data_set_int(encoderSettings, name.c_str(), *value);
 			}
-		} else if(type.compare("OBS_PROPERTY_BOOL") == 0) {
+		}
+		else if (type.compare("OBS_PROPERTY_BOOL") == 0) {
 			uint32_t *value = reinterpret_cast<uint32_t*>(param.currentValue.data());
-			if(i < indexEncoderSettings) {
-				if(name.compare("Rescale") == 0 && *value) {
-					indexEncoderSettings ++;
+			if (i < indexEncoderSettings) {
+				if (name.compare("Rescale") == 0 && *value) {
+					indexEncoderSettings++;
 				}
 				config_set_bool(config, section.c_str(), name.c_str(), *value);
-			} else {
+			}
+			else {
 				obs_data_set_bool(encoderSettings, name.c_str(), *value);
 			}
-		} else if(type.compare("OBS_PROPERTY_DOUBLE") == 0 || 
-					type.compare("OBS_PROPERTY_FLOAT") == 0) {
+		}
+		else if (type.compare("OBS_PROPERTY_DOUBLE") == 0 ||
+			type.compare("OBS_PROPERTY_FLOAT") == 0) {
 			double *value = reinterpret_cast<double*>(param.currentValue.data());
-			if(i < indexEncoderSettings) {
+			if (i < indexEncoderSettings) {
 				config_set_double(config, section.c_str(), name.c_str(), *value);
-			} else {
+			}
+			else {
 				obs_data_set_double(encoderSettings, name.c_str(), *value);
 			}
-		} else if (type.compare("OBS_PROPERTY_LIST") == 0) {
+		}
+		else if (type.compare("OBS_PROPERTY_LIST") == 0) {
 			std::string subType(param.subType.data(),
 				param.subType.size());
 
@@ -2732,7 +2719,8 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 					obs_data_set_string(encoderSettings, name.c_str(), value.c_str());
 				}
 			}
-		} else {
+		}
+		else {
 			std::cout << "type not found ! " << type.c_str() << std::endl;
 		}
 	}
@@ -2758,7 +2746,7 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 
 	int indexRecordingCategory = 2;
 	std::string section = "AdvOut";
-	
+
 	obs_encoder_t* encoder = OBS_service::getRecordingEncoder();
 	obs_data_t* encoderSettings = obs_encoder_get_settings(encoder);
 
@@ -2767,17 +2755,17 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 	bool newEncoderType = false;
 
 	Parameter param;
-	
-	for(int i=0;i<settings.at(indexRecordingCategory).params.size();i++) {
+
+	for (int i = 0; i<settings.at(indexRecordingCategory).params.size(); i++) {
 		param = settings.at(indexRecordingCategory).params.at(i);
 
 		std::string name = param.name;
 		std::string type = param.type;
-		
-		if(name.compare("RecType") == 0) {
+
+		if (name.compare("RecType") == 0) {
 			std::string value(param.currentValue.data(),
 				param.currentValue.size());
-			if(value.compare("Custom Output (FFmpeg)") == 0) {
+			if (value.compare("Custom Output (FFmpeg)") == 0) {
 				indexEncoderSettings = settings.at(indexRecordingCategory).params.size();
 			}
 		}
@@ -2785,7 +2773,7 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 		if (type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 ||
 			type.compare("OBS_PROPERTY_PATH") == 0 ||
 			type.compare("OBS_PROPERTY_TEXT") == 0) {
-			if(i < indexEncoderSettings) {
+			if (i < indexEncoderSettings) {
 				std::string value(param.currentValue.data(),
 					param.currentValue.size());
 
@@ -2796,41 +2784,50 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 				}
 
 				config_set_string(config, section.c_str(), name.c_str(), value.c_str());
-			} else {
+			}
+			else {
 				std::string value(param.currentValue.data(),
-						param.currentValue.size());
+					param.currentValue.size());
 				obs_data_set_string(encoderSettings, name.c_str(), value.c_str());
 			}
-		} else if(type.compare("OBS_PROPERTY_INT") == 0) {
+		}
+		else if (type.compare("OBS_PROPERTY_INT") == 0) {
 			int64_t *value = reinterpret_cast<int64_t*>(param.currentValue.data());
-			if(i < indexEncoderSettings) {
+			if (i < indexEncoderSettings) {
 				config_set_int(config, section.c_str(), name.c_str(), *value);
-			} else {
+			}
+			else {
 				obs_data_set_int(encoderSettings, name.c_str(), *value);
 			}
-		} else if(type.compare("OBS_PROPERTY_UINT") == 0) {
+		}
+		else if (type.compare("OBS_PROPERTY_UINT") == 0) {
 			uint64_t *value = reinterpret_cast<uint64_t*>(param.currentValue.data());
-			if(i < indexEncoderSettings) {
+			if (i < indexEncoderSettings) {
 				config_set_uint(config, section.c_str(), name.c_str(), *value);
-			} else {
+			}
+			else {
 				obs_data_set_int(encoderSettings, name.c_str(), *value);
 			}
-		} else if(type.compare("OBS_PROPERTY_BOOL") == 0) {
+		}
+		else if (type.compare("OBS_PROPERTY_BOOL") == 0) {
 			uint32_t *value = reinterpret_cast<uint32_t*>(param.currentValue.data());
-			if(i < indexEncoderSettings) {
-				if(name.compare("RecRescale") == 0 && *value) {
-					indexEncoderSettings ++;
+			if (i < indexEncoderSettings) {
+				if (name.compare("RecRescale") == 0 && *value) {
+					indexEncoderSettings++;
 				}
 				config_set_bool(config, section.c_str(), name.c_str(), *value);
-			} else {
+			}
+			else {
 				obs_data_set_bool(encoderSettings, name.c_str(), *value);
 			}
-		} else if(type.compare("OBS_PROPERTY_DOUBLE") == 0 ||
-					type.compare("OBS_PROPERTY_FLOAT") == 0) {
+		}
+		else if (type.compare("OBS_PROPERTY_DOUBLE") == 0 ||
+			type.compare("OBS_PROPERTY_FLOAT") == 0) {
 			double *value = reinterpret_cast<double*>(param.currentValue.data());
-			if(i < indexEncoderSettings) {
+			if (i < indexEncoderSettings) {
 				config_set_double(config, section.c_str(), name.c_str(), *value);
-			} else {
+			}
+			else {
 				obs_data_set_double(encoderSettings, name.c_str(), *value);
 			}
 		}
@@ -2885,7 +2882,7 @@ void OBS_settings::saveAdvancedOutputSettings(std::vector<SubCategory> settings,
 	int indexTrack = 3;
 	audioSettings.push_back(settings.at(indexTrack));
 
-	for(int i=0; i < 6;i++) {
+	for (int i = 0; i < 6; i++) {
 		audioSettings.push_back(settings.at(i));
 	}
 	saveGenericSettings(audioSettings, "AdvOut", basicConfigFile);
@@ -2907,12 +2904,13 @@ void OBS_settings::saveOutputSettings(std::vector<SubCategory> settings)
 	config_save_safe(config, "tmp", nullptr);
 
 	if (currentOutputMode.compare("Advanced") == 0) {
-		if(useAdvancedOutput) {
+		if (useAdvancedOutput) {
 			saveAdvancedOutputSettings(settings, basicConfigFile);
 		}
 		useAdvancedOutput = true;
-	} else {
-		if(!useAdvancedOutput) {
+	}
+	else {
+		if (!useAdvancedOutput) {
 			saveSimpleOutputSettings(settings, basicConfigFile);
 		}
 		useAdvancedOutput = false;
@@ -2921,58 +2919,50 @@ void OBS_settings::saveOutputSettings(std::vector<SubCategory> settings)
 /*
 static void LoadListValues(obs_property_t *prop, int index, std::vector<std::pair<std::string, std::string>>* listValues)
 {
-	size_t count = obs_property_list_item_count(prop);
-
-	obs_source_t *source = obs_get_output_source(index);
-	const char *deviceId = nullptr;
-	obs_data_t *settings = nullptr;
-
-	if (source) {
-		settings = obs_source_get_settings(source);
-		if (settings)
-			deviceId = obs_data_get_string(settings, "device_id");
-	}
-
-	for (size_t i = 0; i < count; i++) {
-		std::string name = obs_property_list_item_name(prop, i);
-		std::string val  = obs_property_list_item_string(prop, i);
-		listValues->push_back(std::make_pair(name, val));
-	}	
-
-	if (settings)
-		obs_data_release(settings);
-	if (source)
-		obs_source_release(source);	
+size_t count = obs_property_list_item_count(prop);
+obs_source_t *source = obs_get_output_source(index);
+const char *deviceId = nullptr;
+obs_data_t *settings = nullptr;
+if (source) {
+settings = obs_source_get_settings(source);
+if (settings)
+deviceId = obs_data_get_string(settings, "device_id");
 }
-
-static void LoadAudioDevices(std::vector<std::pair<std::string, std::string>>* desktopAudioDevice, 
-					 		 std::vector<std::pair<std::string, std::string>>* desktopAudioDevice2,
-					 		 std::vector<std::pair<std::string, std::string>>* auxAudioDevice,
-					 		 std::vector<std::pair<std::string, std::string>>* auxAudioDevice2,
-					 		 std::vector<std::pair<std::string, std::string>>* auxAudioDevice3) 
+for (size_t i = 0; i < count; i++) {
+std::string name = obs_property_list_item_name(prop, i);
+std::string val  = obs_property_list_item_string(prop, i);
+listValues->push_back(std::make_pair(name, val));
+}
+if (settings)
+obs_data_release(settings);
+if (source)
+obs_source_release(source);
+}
+static void LoadAudioDevices(std::vector<std::pair<std::string, std::string>>* desktopAudioDevice,
+std::vector<std::pair<std::string, std::string>>* desktopAudioDevice2,
+std::vector<std::pair<std::string, std::string>>* auxAudioDevice,
+std::vector<std::pair<std::string, std::string>>* auxAudioDevice2,
+std::vector<std::pair<std::string, std::string>>* auxAudioDevice3)
 {
-	const char *input_id  = "wasapi_input_capture";
-	const char *output_id = "wasapi_output_capture";
-
-	obs_properties_t *input_props = obs_get_source_properties(input_id);
-	obs_properties_t *output_props = obs_get_source_properties(output_id);
-
-	if (output_props) {
-		obs_property_t *outputs = obs_properties_get(output_props,
-				"device_id");
-		LoadListValues(outputs, 1, desktopAudioDevice);
-		LoadListValues(outputs, 2, desktopAudioDevice2);
-		obs_properties_destroy(output_props);
-	}
-
-	if (input_props) {
-		obs_property_t *inputs  = obs_properties_get(input_props,
-				"device_id");
-		LoadListValues(inputs, 3, auxAudioDevice);
-		LoadListValues(inputs, 4, auxAudioDevice2);
-		LoadListValues(inputs, 5, auxAudioDevice3);
-		obs_properties_destroy(input_props);
-	}
+const char *input_id  = "wasapi_input_capture";
+const char *output_id = "wasapi_output_capture";
+obs_properties_t *input_props = obs_get_source_properties(input_id);
+obs_properties_t *output_props = obs_get_source_properties(output_id);
+if (output_props) {
+obs_property_t *outputs = obs_properties_get(output_props,
+"device_id");
+LoadListValues(outputs, 1, desktopAudioDevice);
+LoadListValues(outputs, 2, desktopAudioDevice2);
+obs_properties_destroy(output_props);
+}
+if (input_props) {
+obs_property_t *inputs  = obs_properties_get(input_props,
+"device_id");
+LoadListValues(inputs, 3, auxAudioDevice);
+LoadListValues(inputs, 4, auxAudioDevice2);
+LoadListValues(inputs, 5, auxAudioDevice3);
+obs_properties_destroy(input_props);
+}
 }
 */
 std::vector<SubCategory> OBS_settings::getAudioSettings()
@@ -2980,21 +2970,16 @@ std::vector<SubCategory> OBS_settings::getAudioSettings()
 	std::vector<SubCategory> audioSettings;
 	/*Isolate *isolate = v8::Isolate::GetCurrent();
 	Local<Array> audioSettings = Array::New(isolate);
-
 	std::string basicConfigFile = OBS_API::getBasicConfigPath();
 	config_t* config = OBS_API::openConfigFile(basicConfigFile);
-
 	std::vector<std::vector<std::pair<std::string, std::string>>> entries;
-
 	//Untitled
-
 	//Sample Rate
 	std::vector<std::pair<std::string, std::string>> sampleRate;
 	sampleRate.push_back(std::make_pair("name", "SampleRate"));
 	sampleRate.push_back(std::make_pair("type", "OBS_PROPERTY_UINT"));
 	sampleRate.push_back(std::make_pair("description", "Sample Rate"));
 	entries.push_back(sampleRate);
-
 	//Channels
 	std::vector<std::pair<std::string, std::string>> channelSetup;
 	channelSetup.push_back(std::make_pair("name", "ChannelSetup"));
@@ -3003,46 +2988,38 @@ std::vector<SubCategory> OBS_settings::getAudioSettings()
 	channelSetup.push_back(std::make_pair("Mono", "Mono"));
 	channelSetup.push_back(std::make_pair("Stereo", "Stereo"));
 	entries.push_back(channelSetup);
-
 	//Desktop Audio Device
 	std::vector<std::pair<std::string, std::string>> desktopAudioDevice;
 	desktopAudioDevice.push_back(std::make_pair("name", "Desktop Audio"));
 	desktopAudioDevice.push_back(std::make_pair("type", "OBS_PROPERTY_LIST"));
 	desktopAudioDevice.push_back(std::make_pair("description", "Desktop Audio Device"));
-
 	//Desktop Audio Device 2
 	std::vector<std::pair<std::string, std::string>> desktopAudioDevice2;
 	desktopAudioDevice2.push_back(std::make_pair("name", "Desktop Audio 2"));
 	desktopAudioDevice2.push_back(std::make_pair("type", "OBS_PROPERTY_LIST"));
 	desktopAudioDevice2.push_back(std::make_pair("description", "Desktop Audio Device 2"));
-
 	//Mic/Auxiliary Audio Device
 	std::vector<std::pair<std::string, std::string>> auxAudioDevice;
 	auxAudioDevice.push_back(std::make_pair("name", "Mic/Aux"));
 	auxAudioDevice.push_back(std::make_pair("type", "OBS_PROPERTY_LIST"));
 	auxAudioDevice.push_back(std::make_pair("description", "Mic/Auxiliary Audio Device"));
-
 	//Mic/Auxiliary Audio Device 2
 	std::vector<std::pair<std::string, std::string>> auxAudioDevice2;
 	auxAudioDevice2.push_back(std::make_pair("name", "Mic/Aux 2"));
 	auxAudioDevice2.push_back(std::make_pair("type", "OBS_PROPERTY_LIST"));
 	auxAudioDevice2.push_back(std::make_pair("description", "Mic/Auxiliary Audio Device 2"));
-
 	//Mic/Auxiliary Audio Device 3
 	std::vector<std::pair<std::string, std::string>> auxAudioDevice3;
 	auxAudioDevice3.push_back(std::make_pair("name", "Mic/Aux 3"));
 	auxAudioDevice3.push_back(std::make_pair("type", "OBS_PROPERTY_LIST"));
 	auxAudioDevice3.push_back(std::make_pair("description", "Mic/Auxiliary Audio Device 3"));
-
 	LoadAudioDevices(&desktopAudioDevice, &desktopAudioDevice2,
-					 &auxAudioDevice, &auxAudioDevice2, &auxAudioDevice3);
-
+	&auxAudioDevice, &auxAudioDevice2, &auxAudioDevice3);
 	entries.push_back(desktopAudioDevice);
 	entries.push_back(desktopAudioDevice2);
 	entries.push_back(auxAudioDevice);
 	entries.push_back(auxAudioDevice2);
 	entries.push_back(auxAudioDevice3);
-
 	audioSettings->Set(0, serializeSettingsData("Untitled", entries, config, "Audio", true, true));
 	entries.clear();*/
 
@@ -3050,79 +3027,64 @@ std::vector<SubCategory> OBS_settings::getAudioSettings()
 }
 /*
 void resetAudioDevice(const char *sourceId, const char *deviceId,
-		const char *deviceDesc, int channel)
+const char *deviceDesc, int channel)
 {
-	obs_source_t *source;
-	obs_data_t *settings;
-	bool same = false;
-
-	source = obs_get_output_source(channel);
-	if (source) {
-		settings = obs_source_get_settings(source);
-		const char *curId = obs_data_get_string(settings, "device_id");
-
-		same = (strcmp(curId, deviceId) == 0);
-
-		obs_data_release(settings);
-		obs_source_release(source);
-	}
-
-	if (!same)
-		obs_set_output_source(channel, nullptr);
-
-	if (!same && strcmp(deviceId, "disabled") != 0) {
-		obs_data_t *settings = obs_data_create();
-		obs_data_set_string(settings, "device_id", deviceId);
-		source = obs_source_create(sourceId, deviceDesc, settings,
-				nullptr);
-		obs_data_release(settings);
-
-		obs_set_output_source(channel, source);
-		obs_source_release(source);
-	}
+obs_source_t *source;
+obs_data_t *settings;
+bool same = false;
+source = obs_get_output_source(channel);
+if (source) {
+settings = obs_source_get_settings(source);
+const char *curId = obs_data_get_string(settings, "device_id");
+same = (strcmp(curId, deviceId) == 0);
+obs_data_release(settings);
+obs_source_release(source);
+}
+if (!same)
+obs_set_output_source(channel, nullptr);
+if (!same && strcmp(deviceId, "disabled") != 0) {
+obs_data_t *settings = obs_data_create();
+obs_data_set_string(settings, "device_id", deviceId);
+source = obs_source_create(sourceId, deviceDesc, settings,
+nullptr);
+obs_data_release(settings);
+obs_set_output_source(channel, source);
+obs_source_release(source);
+}
 }
 */
 void OBS_settings::saveAudioSettings(std::vector<SubCategory> audioSettings)
 {
 	/*Isolate *isolate = v8::Isolate::GetCurrent();
-
 	Local<Object> audioSettingsObject = v8::Local<v8::Object>::Cast(audioSettings->Get(0));
-    Local<Array> parameters = v8::Local<v8::Array>::Cast(audioSettingsObject->Get(String::NewFromUtf8(isolate, "parameters")));
-
+	Local<Array> parameters = v8::Local<v8::Array>::Cast(audioSettingsObject->Get(String::NewFromUtf8(isolate, "parameters")));
 	std::string audioType;
-
 	for(int i=2;i<parameters->Length();i++) {
-		Local<Object> audioDevice = v8::Local<v8::Object>::Cast(parameters->Get(i));
-
-		v8::String::Utf8Value param0(audioDevice->Get(String::NewFromUtf8(isolate, "name")));
-		v8::String::Utf8Value param1(audioDevice->Get(String::NewFromUtf8(isolate, "currentValue")));
-
-		std::string name = std::string(*param0);
-		std::string currentValue = std::string(*param1);
-
-		if(i < 4) 
-			audioType = "wasapi_output_capture";
-		else 
-			audioType = "wasapi_input_capture";
-
-		resetAudioDevice(audioType.c_str(), currentValue.c_str(), name.c_str(), i);
+	Local<Object> audioDevice = v8::Local<v8::Object>::Cast(parameters->Get(i));
+	v8::String::Utf8Value param0(audioDevice->Get(String::NewFromUtf8(isolate, "name")));
+	v8::String::Utf8Value param1(audioDevice->Get(String::NewFromUtf8(isolate, "currentValue")));
+	std::string name = std::string(*param0);
+	std::string currentValue = std::string(*param1);
+	if(i < 4)
+	audioType = "wasapi_output_capture";
+	else
+	audioType = "wasapi_input_capture";
+	resetAudioDevice(audioType.c_str(), currentValue.c_str(), name.c_str(), i);
 	}*/
 }
 /*
 static inline void LoadFPSCommon(config_t* config)
 {
-	const char *val = config_get_string(config, "Video", "FPSCommon");
+const char *val = config_get_string(config, "Video", "FPSCommon");
 }
-
 static inline void LoadFPSInteger(config_t* config)
 {
-	uint32_t val = config_get_uint(config, "Video", "FPSInt");
+uint32_t val = config_get_uint(config, "Video", "FPSInt");
 }
-
 static inline void LoadFPSFraction(config_t* config)
 {
-	uint32_t num = config_get_uint(config, "Video", "FPSNum");
-	uint32_t den = config_get_uint(config, "Video", "FPSDen");
+uint32_t num = config_get_uint(config, "Video", "FPSNum");
+uint32_t den = config_get_uint(config, "Video", "FPSDen");
 }
 */
 std::vector<pair<uint32_t, uint32_t>> OBS_settings::getOutputResolutions(int base_cx, int base_cy)
@@ -3131,7 +3093,7 @@ std::vector<pair<uint32_t, uint32_t>> OBS_settings::getOutputResolutions(int bas
 	for (size_t idx = 0; idx < numVals; idx++) {
 		uint32_t outDownscaleCX = uint32_t(double(base_cx) / vals[idx]);
 		uint32_t outDownscaleCY = uint32_t(double(base_cy) / vals[idx]);
-		
+
 		outDownscaleCX &= 0xFFFFFFFE;
 		outDownscaleCY &= 0xFFFFFFFE;
 
@@ -3163,42 +3125,42 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 
 	std::string baseResolutionString = ResString(base_cx, base_cy);
 
-	baseResolution.push_back(std::make_pair("1920x1080", "1920x1080")); 
-	baseResolution.push_back(std::make_pair("1280x720", "1280x720")); 
+	baseResolution.push_back(std::make_pair("1920x1080", "1920x1080"));
+	baseResolution.push_back(std::make_pair("1280x720", "1280x720"));
 
 	std::vector<Screen> resolutions = OBS_API::availableResolutions();
 
 	// Fill available display resolutions
-	for(int i=0;i<resolutions.size();i++) {
+	for (int i = 0; i<resolutions.size(); i++) {
 		std::string baseResolutionString;
-	    baseResolutionString = to_string(resolutions.at(i).width);
-	    baseResolutionString += "x";
-	    baseResolutionString += to_string(resolutions.at(i).height);
+		baseResolutionString = to_string(resolutions.at(i).width);
+		baseResolutionString += "x";
+		baseResolutionString += to_string(resolutions.at(i).height);
 
-	    pair<std::string, std::string> newBaseResolution = std::make_pair(baseResolutionString.c_str(), baseResolutionString.c_str()); 
+		pair<std::string, std::string> newBaseResolution = std::make_pair(baseResolutionString.c_str(), baseResolutionString.c_str());
 
-	    std::vector<pair<std::string, std::string>>::iterator it = 
-	    	std::find_if(baseResolution.begin(), baseResolution.end(), 
-	        	[&baseResolutionString] (const pair<std::string, std::string> value)
-	        	{
-	        		return (value.second.compare(baseResolutionString) == 0);
-	        	});
-	        
-	    if(baseResolution.size() == 4 || it == baseResolution.end()) {
-	    	baseResolution.push_back(newBaseResolution);  
-	    }	
+		std::vector<pair<std::string, std::string>>::iterator it =
+			std::find_if(baseResolution.begin(), baseResolution.end(),
+				[&baseResolutionString](const pair<std::string, std::string> value)
+		{
+			return (value.second.compare(baseResolutionString) == 0);
+		});
+
+		if (baseResolution.size() == 4 || it == baseResolution.end()) {
+			baseResolution.push_back(newBaseResolution);
+		}
 	}
-    
-	// Set the current base resolution selected by the user
-    pair<std::string, std::string> newBaseResolution = std::make_pair("currentValue", baseResolutionString);
 
-    //Check if the current resolution is in the available ones
-    std::vector<pair<std::string, std::string>>::iterator it = 
-        std::find_if(baseResolution.begin(), baseResolution.end(), 
-        	[&baseResolutionString] (const pair<std::string, std::string> value)
-        	{
-        		return (value.second.compare(baseResolutionString) == 0);
-        	});
+	// Set the current base resolution selected by the user
+	pair<std::string, std::string> newBaseResolution = std::make_pair("currentValue", baseResolutionString);
+
+	//Check if the current resolution is in the available ones
+	std::vector<pair<std::string, std::string>>::iterator it =
+		std::find_if(baseResolution.begin(), baseResolution.end(),
+			[&baseResolutionString](const pair<std::string, std::string> value)
+	{
+		return (value.second.compare(baseResolutionString) == 0);
+	});
 
 	if (it == baseResolution.end()) {
 		baseResolution.push_back(std::make_pair(baseResolutionString.c_str(), baseResolutionString.c_str()));
@@ -3224,7 +3186,7 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 
 	std::vector<pair<uint32_t, uint32_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
 
-	for(int i = 0;i<outputResolutions.size();i++) {
+	for (int i = 0; i<outputResolutions.size(); i++) {
 		string outRes = ResString(outputResolutions.at(i).first, outputResolutions.at(i).second);
 		outputResolution.push_back(std::make_pair(outRes, outRes));
 	}
@@ -3251,7 +3213,7 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 
 	uint32_t fpsTypeValue = config_get_uint(config, "Video", "FPSType");
 
-	if(fpsTypeValue == 0) {
+	if (fpsTypeValue == 0) {
 		fpsType.push_back(std::make_pair("currentValue", "Common FPS Values"));
 		fpsType.push_back(std::make_pair("Common FPS Values", "Common FPS Values"));
 		fpsType.push_back(std::make_pair("Integer FPS Value", "Integer FPS Value"));
@@ -3273,7 +3235,8 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 		fpsCommon.push_back(std::make_pair("59.94", "59.94"));
 		fpsCommon.push_back(std::make_pair("60", "60"));
 		entries.push_back(fpsCommon);
-	} else if (fpsTypeValue == 1) {
+	}
+	else if (fpsTypeValue == 1) {
 		fpsType.push_back(std::make_pair("currentValue", "Integer FPS Value"));
 		fpsType.push_back(std::make_pair("Common FPS Values", "Common FPS Values"));
 		fpsType.push_back(std::make_pair("Integer FPS Value", "Integer FPS Value"));
@@ -3286,7 +3249,8 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 		fpsInt.push_back(std::make_pair("description", "Integer FPS Value"));
 		fpsInt.push_back(std::make_pair("subType", ""));
 		entries.push_back(fpsInt);
-	} else if (fpsTypeValue == 2) {
+	}
+	else if (fpsTypeValue == 2) {
 		fpsType.push_back(std::make_pair("currentValue", "Fractional FPS Value"));
 		fpsType.push_back(std::make_pair("Common FPS Values", "Common FPS Values"));
 		fpsType.push_back(std::make_pair("Integer FPS Value", "Integer FPS Value"));
@@ -3317,9 +3281,9 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 struct BaseLexer {
 	lexer lex;
 public:
-	inline BaseLexer() {lexer_init(&lex);}
-	inline ~BaseLexer() {lexer_free(&lex);}
-	operator lexer*() {return &lex;}
+	inline BaseLexer() { lexer_init(&lex); }
+	inline ~BaseLexer() { lexer_free(&lex); }
+	operator lexer*() { return &lex; }
 };
 
 // parses "[width]x[height]", string, i.e. 1024x768 
@@ -3366,13 +3330,13 @@ void OBS_settings::saveVideoSettings(std::vector<SubCategory> videoSettings)
 	config_t* config = OBS_API::openConfigFile(basicConfigFile);
 
 	SubCategory sc = videoSettings.at(0);
-    
-    //Base resolution
+
+	//Base resolution
 	Parameter baseRes = sc.params.at(0);
 
 	std::string baseResString(baseRes.currentValue.data(),
 		baseRes.currentValue.size());
-	
+
 	uint32_t baseWidth, baseHeight;
 
 	ConvertResText(baseResString.c_str(), baseWidth, baseHeight);
@@ -3403,7 +3367,7 @@ void OBS_settings::saveVideoSettings(std::vector<SubCategory> videoSettings)
 	std::string fpsTypeString(fpsType.currentValue.data(),
 		fpsType.currentValue.size());
 
-	if(fpsTypeString.compare("Common FPS Values") == 0) {
+	if (fpsTypeString.compare("Common FPS Values") == 0) {
 		config_set_uint(config, "Video", "FPSType", 0);
 
 		Parameter fpsCommon = sc.params.at(4);
@@ -3411,7 +3375,8 @@ void OBS_settings::saveVideoSettings(std::vector<SubCategory> videoSettings)
 			fpsCommon.currentValue.size());
 		config_set_string(config, "Video", "FPSCommon", fpsCommonString.c_str());
 
-	} else if (fpsTypeString.compare("Integer FPS Value") == 0) {
+	}
+	else if (fpsTypeString.compare("Integer FPS Value") == 0) {
 		config_set_uint(config, "Video", "FPSType", 1);
 
 		Parameter fpsInt = sc.params.at(4);
@@ -3422,7 +3387,8 @@ void OBS_settings::saveVideoSettings(std::vector<SubCategory> videoSettings)
 			config_set_uint(config, "Video", "FPSInt", *fpsIntValue);
 		}
 
-	} else if (fpsTypeString.compare("Fractional FPS Value") == 0) {
+	}
+	else if (fpsTypeString.compare("Fractional FPS Value") == 0) {
 		config_set_uint(config, "Video", "FPSType", 2);
 
 		Parameter fpsNum = sc.params.at(4);
@@ -3431,8 +3397,8 @@ void OBS_settings::saveVideoSettings(std::vector<SubCategory> videoSettings)
 		if (*fpsNumValue < 500) {
 			config_set_uint(config, "Video", "FPSNum", *fpsNumValue);
 		}
-	
-		if(sc.params.size() > 5)
+
+		if (sc.params.size() > 5)
 		{
 			Parameter fpsDen = sc.params.at(5);
 			uint32_t *fpsDenValue = reinterpret_cast<uint32_t*>(fpsDen.currentValue.data());
@@ -3440,7 +3406,7 @@ void OBS_settings::saveVideoSettings(std::vector<SubCategory> videoSettings)
 		}
 	}
 
-	config_save_safe(config, "tmp", nullptr);	
+	config_save_safe(config, "tmp", nullptr);
 }
 
 std::vector<SubCategory> OBS_settings::getAdvancedSettings()
@@ -3451,7 +3417,7 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	config_t* config = OBS_API::openConfigFile(basicConfigFile);
 
 	std::string globalConfigFile = OBS_API::getGlobalConfigPath();
-    config_t* globalConfig = OBS_API::openConfigFile(globalConfigFile);
+	config_t* globalConfig = OBS_API::openConfigFile(globalConfigFile);
 
 	std::vector<std::vector<std::pair<std::string, std::string>>> entries;
 
@@ -3541,10 +3507,10 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	monitoringDevice->push_back(std::make_pair("currentValue", monDevName));
 	monitoringDevice->push_back(std::make_pair("Default", "Default"));
 
-	auto enum_devices = [] (void *param, const char *name, const char *id)
+	auto enum_devices = [](void *param, const char *name, const char *id)
 	{
-		std::vector<std::pair<std::string, std::string>> *monitoringDevice = 
-								(std::vector<std::pair<std::string, std::string>>*)param;
+		std::vector<std::pair<std::string, std::string>> *monitoringDevice =
+			(std::vector<std::pair<std::string, std::string>>*)param;
 		monitoringDevice->push_back(std::make_pair(name, name));
 		return true;
 	};
@@ -3719,7 +3685,7 @@ void OBS_settings::saveAdvancedSettings(std::vector<SubCategory> advancedSetting
 
 	generalAdvancedSettings.push_back(advancedSettings.at(0));
 	saveGenericSettings(generalAdvancedSettings, "General", globalConfigFile);
-	
+
 	//Video
 	std::vector<SubCategory> videoAdvancedSettings;
 
@@ -3776,17 +3742,22 @@ std::vector<SubCategory> OBS_settings::getSettings(std::string nameCategory)
 {
 	std::vector<SubCategory> settings;
 
-	if(nameCategory.compare("General") == 0) {
+	if (nameCategory.compare("General") == 0) {
 		settings = getGeneralSettings();
-	} else if (nameCategory.compare("Stream") == 0) {
+	}
+	else if (nameCategory.compare("Stream") == 0) {
 		settings = getStreamSettings();
-	} else if (nameCategory.compare("Output") == 0) {
+	}
+	else if (nameCategory.compare("Output") == 0) {
 		settings = getOutputSettings();
-	} else if (nameCategory.compare("Audio") == 0) {
+	}
+	else if (nameCategory.compare("Audio") == 0) {
 		settings = getAudioSettings();
-	} else if (nameCategory.compare("Video") == 0) {
+	}
+	else if (nameCategory.compare("Video") == 0) {
 		settings = getVideoSettings();
-	} else if (nameCategory.compare("Advanced") == 0) {
+	}
+	else if (nameCategory.compare("Advanced") == 0) {
 		settings = getAdvancedSettings();
 	}
 
@@ -3798,19 +3769,24 @@ void OBS_settings::saveSettings(std::string nameCategory, std::vector<SubCategor
 	std::string globalConfigFile = OBS_API::getGlobalConfigPath();
 	std::string basicConfigFile = OBS_API::getBasicConfigPath();
 
-	if(nameCategory.compare("General") == 0) {
+	if (nameCategory.compare("General") == 0) {
 		saveGenericSettings(settings, "BasicWindow", globalConfigFile);
-	} else if (nameCategory.compare("Stream") == 0) {
+	}
+	else if (nameCategory.compare("Stream") == 0) {
 		saveStreamSettings(settings);
 		OBS_service::updateService();
-	} else if (nameCategory.compare("Output") == 0) {
+	}
+	else if (nameCategory.compare("Output") == 0) {
 		saveOutputSettings(settings);
-	} else if (nameCategory.compare("Audio") == 0) {
+	}
+	else if (nameCategory.compare("Audio") == 0) {
 		saveAudioSettings(settings);
-	} else if (nameCategory.compare("Video") == 0) {
+	}
+	else if (nameCategory.compare("Video") == 0) {
 		saveVideoSettings(settings);
 		OBS_service::resetVideoContext(NULL);
-	} else if (nameCategory.compare("Advanced") == 0) {
+	}
+	else if (nameCategory.compare("Advanced") == 0) {
 		saveAdvancedSettings(settings);
 		OBS_API::setAudioDeviceMonitoring();
 	}
@@ -3822,76 +3798,83 @@ void OBS_settings::saveGenericSettings(std::vector<SubCategory> genericSettings,
 
 	SubCategory sc;
 
-	for(int i=0;i<genericSettings.size();i++) {
+	for (int i = 0; i<genericSettings.size(); i++) {
 		sc = genericSettings.at(i);
 
 		std::string nameSubcategory = sc.name;
 
 		Parameter param;
 
-		for(int j=0;j<sc.params.size();j++){
+		for (int j = 0; j<sc.params.size(); j++) {
 			param = sc.params.at(j);
 
 			std::string name = param.name;
 			std::string type = param.type;
 			std::string subType = param.subType;
 
-			if(type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 ||
+			if (type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 ||
 				type.compare("OBS_PROPERTY_PATH") == 0 ||
 				type.compare("OBS_PROPERTY_TEXT") == 0 ||
 				type.compare("OBS_INPUT_RESOLUTION_LIST") == 0) {
 				std::string value(param.currentValue.data(), param.currentValue.size());
 
-				if(name.compare("MonitoringDeviceName") == 0) {
+				if (name.compare("MonitoringDeviceName") == 0) {
 					std::string monDevName;
 					std::string monDevId;
 
-					if(value.compare("Default") != 0) {
+					if (value.compare("Default") != 0) {
 						std::vector<std::pair<std::string, std::string>> monitoringDevice;
 
-						auto enum_devices = [] (void *param, const char *name, const char *id)
+						auto enum_devices = [](void *param, const char *name, const char *id)
 						{
 							std::vector<std::pair<std::string, std::string>> *monitoringDevice =
-													(std::vector<std::pair<std::string, std::string>>*)param;
+								(std::vector<std::pair<std::string, std::string>>*)param;
 							monitoringDevice->push_back(std::make_pair(name, id));
 							return true;
 						};
 						obs_enum_audio_monitoring_devices(enum_devices, &monitoringDevice);
 
 						std::vector<pair<std::string, std::string>>::iterator it =
-						std::find_if(monitoringDevice.begin(), monitoringDevice.end(),
-							[&value] (const pair<std::string, std::string> device)
-							{
-								return (device.first.compare(value) == 0);
-							});
+							std::find_if(monitoringDevice.begin(), monitoringDevice.end(),
+								[&value](const pair<std::string, std::string> device)
+						{
+							return (device.first.compare(value) == 0);
+						});
 
 						if (it != monitoringDevice.end()) {
 							monDevName = it->first;
 							monDevId = it->second;
 						}
-					} else {
+					}
+					else {
 						monDevName = value;
 						monDevId = "default";
 					}
 
 					config_set_string(config, section.c_str(), "MonitoringDeviceName", monDevName.c_str());
 					config_set_string(config, section.c_str(), "MonitoringDeviceId", monDevId.c_str());
-				} else {
+				}
+				else {
 					config_set_string(config, section.c_str(), name.c_str(), value.c_str());
 				}
-			} else if(type.compare("OBS_PROPERTY_INT") == 0) {
+			}
+			else if (type.compare("OBS_PROPERTY_INT") == 0) {
 				int64_t *value = reinterpret_cast<int64_t*>(param.currentValue.data());
 				config_set_int(config, section.c_str(), name.c_str(), *value);
-			} else if(type.compare("OBS_PROPERTY_UINT") == 0) {
+			}
+			else if (type.compare("OBS_PROPERTY_UINT") == 0) {
 				uint64_t *value = reinterpret_cast<uint64_t*>(param.currentValue.data());
 				config_set_uint(config, section.c_str(), name.c_str(), *value);
-			} else if(type.compare("OBS_PROPERTY_BOOL") == 0) {
+			}
+			else if (type.compare("OBS_PROPERTY_BOOL") == 0) {
 				uint32_t *value = reinterpret_cast<uint32_t*>(param.currentValue.data());
 				config_set_bool(config, section.c_str(), name.c_str(), *value);
-			} else if(type.compare("OBS_PROPERTY_DOUBLE") == 0) {
+			}
+			else if (type.compare("OBS_PROPERTY_DOUBLE") == 0) {
 				double *value = reinterpret_cast<double*>(param.currentValue.data());
 				config_set_double(config, section.c_str(), name.c_str(), *value);
-			} else if (type.compare("OBS_PROPERTY_LIST") == 0) {
+			}
+			else if (type.compare("OBS_PROPERTY_LIST") == 0) {
 				if (subType.compare("OBS_COMBO_FORMAT_INT") == 0) {
 					int64_t *value = reinterpret_cast<int64_t*>(param.currentValue.data());
 					config_set_int(config, section.c_str(), name.c_str(), *value);
@@ -3904,11 +3887,11 @@ void OBS_settings::saveGenericSettings(std::vector<SubCategory> genericSettings,
 					std::string value(param.currentValue.data(), param.currentValue.size());
 					config_set_string(config, section.c_str(), name.c_str(), value.c_str());
 				}
-			} else {
+			}
+			else {
 				std::cout << "type not found ! " << type.c_str() << std::endl;
 			}
 		}
 	}
-	config_save_safe(config, "tmp", nullptr);	
+	config_save_safe(config, "tmp", nullptr);
 }
-

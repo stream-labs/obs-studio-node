@@ -3,6 +3,7 @@ build/
 logs/
 node_modules/
 distribute/
+yarn-error.log 
 
 # Binaries
 *.dll
@@ -14,4 +15,3 @@ distribute/
 *.sln
 *.vcxproj
 *.opendb
-
