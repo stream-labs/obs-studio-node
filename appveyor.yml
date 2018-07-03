@@ -14,15 +14,7 @@ environment:
 
     - RuntimeURL: https://atom.io/download/atom-shell
       RuntimeName: iojs
-<<<<<<< HEAD
       RuntimeVersion: v1.8.4
-=======
-      RuntimeVersion: v3.0.0-beta.1
-
-    - RuntimeURL: https://atom.io/download/atom-shell
-      RuntimeName: iojs
-      RuntimeVersion: v2.0.1
->>>>>>> 795609bcf39b6497244dddae0d01e1190a705e4a
 
   NodeVersion: 9
   SLBuildDirectory: streamlabs-build
@@ -37,10 +29,6 @@ environment:
     secure: hr+VpykbGiCI5I0ltiqH667wh/YQx2Fi5SBLfkOWHSg=
   UnsignedArtifact: $(RuntimeName)-$(RuntimeVersion)-unsigned
   SignedArtifact: $(RuntimeName)-$(RuntimeVersion)-signed
-<<<<<<< HEAD
-=======
-  OBSVersion: 21.1.2
->>>>>>> 795609bcf39b6497244dddae0d01e1190a705e4a
 
 install:
   - ps: Install-Product node $env:NodeVersion
@@ -51,11 +39,7 @@ install:
   - ps: 7z x -o"lib-streamlabs-ipc/third-party/" protobuf.7z
 
 build_script:
-<<<<<<< HEAD
   - cmake -H. -B"%SLBuildDirectory%" -G"%SLGenerator%" -T"host=%SLArch%" -DNODEJS_BUILD=TRUE -DNODEJS_URL="%RuntimeURL%" -DNODEJS_NAME="%RuntimeName%" -DNODEJS_VERSION="%RuntimeVersion%" -DCMAKE_INSTALL_PREFIX="%SLFullDistributePath%\obs-studio-node" -DCMAKE_SYSTEM_VERSION=10.0.16299.91
-=======
-  - cmake -H. -B"%SLBuildDirectory%" -G"%SLGenerator%"  -DCMAKE_INSTALL_PREFIX="%SLFullDistributePath%\obs-studio-node" -DNODEJS_NAME=%RuntimeName% -DNODEJS_URL=%RuntimeURL% -DNODEJS_VERSION=%RuntimeVersion%
->>>>>>> 795609bcf39b6497244dddae0d01e1190a705e4a
   - cmake --build %SLBuildDirectory% --target install --config RelWithDebInfo
   - tar cvaf "%UnsignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
 
@@ -67,23 +51,14 @@ before_deploy:
       if ($LASTEXITCODE -ne 0) {
         exit 1
       }
-
   - ps: |
       Get-ChildItem -Recurse  "$env:SLFullDistributePath" -Include "*.dll","*.node","*.exe" |
       Foreach-Object {
         & "$env:SignTool" sign /as /p "$env:StreamlabsSecret" /f CI\streamlabsp12.pfx $_.FullName
-
         if ($LASTEXITCODE -ne 0) {
           exit 1
         }
       }
-
-<<<<<<< HEAD
-=======
-  - if not exist "OBS-Studio-%OBSVersion%-Small.zip" appveyor DownloadFile "https://github.com/obsproject/obs-studio/releases/download/%OBSVersion%/OBS-Studio-%OBSVersion%-Small.zip"
-  - 7z x "OBS-Studio-%OBSVersion%-Small.zip" -oobs-studio-jp9000
-  - robocopy "obs-studio-jp9000\data\obs-plugins\win-capture" "%SLFullDistributePath%\obs-studio-node\libobs\data\obs-plugins\win-capture" & exit 0
->>>>>>> 795609bcf39b6497244dddae0d01e1190a705e4a
   - tar cvaf "%SignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
   - ps: Push-AppveyorArtifact "$env:SignedArtifact.tar.gz"
 
