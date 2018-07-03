@@ -12,11 +12,11 @@
     "url": "https://github.com/stream-labs/obs-studio-node/issues"
   },
   "homepage": "https://github.com/stream-labs/obs-studio-node#readme",
-  "main": "./distribute/index.js",
-  "types": "./distribute/index.d.ts",
+  "main": "./index.js",
+  "types": "./index.d.ts",
   "scripts": {
     "clean": "git clean -fxd",
-	"build:bindings": "cmake -H. -Bbuild -GNinja -DCMAKE_INSTALL_PREFIX=\"build/distribute/obs-studio-node\" -DCMAKE_BUILD_TYPE=RelWithDebInfo && cmake --build build --target install",
+    "build:bindings": "cmake-js configure -a x64 --CDCMAKE_PREFIX_INSTALL=distribute && cmake --build build --target install --config Release",
     "build:javascript": "tsc -p js",
     "build:docs": "typedoc --out docs"
   },

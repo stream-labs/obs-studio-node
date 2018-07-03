@@ -1,10 +1,7 @@
-[Reasons](#reasons) |
-[Getting Started](#quick-start) |
-[Environment Variables](#environment-variables) |
-[Issues](#issues)
+OBS Studio Node.JS module
+==================================
 
-__Reasons__
-===========
+This module allows direct interaction from one or more Node.JS processes with one or more libobs/OBS Studio processes through the use of named pipes and kernel facing IPC.
 
 __Why cmake?__
 --------------
