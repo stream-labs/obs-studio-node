@@ -43,6 +43,7 @@ SET(PROJECT_SOURCE
 	"${PROJECT_SOURCE_DIR}/source/nodeobs_autoconfig.cpp" "${PROJECT_SOURCE_DIR}/source/nodeobs_autoconfig.hpp"
 	"${PROJECT_SOURCE_DIR}/source/main.cpp"
 	"${PROJECT_SOURCE_DIR}/source/volmeter.cpp" "${PROJECT_SOURCE_DIR}/source/volmeter.hpp"
+	"${PROJECT_SOURCE_DIR}/source/video.cpp" "${PROJECT_SOURCE_DIR}/source/video.hpp"
 )
 SET(PROJECT_LIBRARIES
 	${NODEJS_LIBRARIES}
