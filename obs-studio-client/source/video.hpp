@@ -23,9 +23,14 @@
 namespace osn {
 	class Video : public Nan::ObjectWrap, public utilv8::ManagedObject<osn::Video> {
 		friend class utilv8::ManagedObject<osn::Video>;
+		public:
+			Video(uint64_t id) {
+				this->handler = id;
+			};
 
 		public:
 		static Nan::Persistent<v8::FunctionTemplate> prototype;
+		uint64_t handler;
 				
 		public:
 		Video();
@@ -35,5 +40,6 @@ namespace osn {
 
 		static Nan::NAN_METHOD_RETURN_TYPE GetGlobal(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE GetSkippedFrames(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE GetTotalFrames(Nan::NAN_METHOD_ARGS_TYPE info);
 	};
 }
