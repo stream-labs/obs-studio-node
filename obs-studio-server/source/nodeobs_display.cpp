@@ -902,8 +902,7 @@ void OBS::Display::DisplayCallback(OBS::Display* dp, uint32_t cx, uint32_t cy) {
 		 * we'll check later. */
 		if (obs_source_get_type(dp->m_source) == OBS_SOURCE_TYPE_TRANSITION) {
 			source = obs_transition_get_active_source(dp->m_source);
-		}
-		else {
+		} else {
 			source = dp->m_source;
 			obs_source_addref(source);
 		}
@@ -930,11 +929,11 @@ void OBS::Display::DisplayCallback(OBS::Display* dp, uint32_t cx, uint32_t cy) {
 			tlCorner.y, brCorner.y,
 			-100.0f, 100.0f);
 		gs_reset_viewport();
-		
+
 		obs_scene_t *scene = obs_scene_from_source(source);
 
-		/* This should work for both individual sources
-		* that are actually scenes and our main transition scene */
+		/* This should work for both individual sources 
+		 * that are actually scenes and our main transition scene */
 
 		if (scene) {
 			dp->m_textVertices->Resize(0);
