@@ -7,7 +7,7 @@ PROJECT(obs-studio-client VERSION 1.0.0)
 
 SET(NODEJS_URL "https://atom.io/download/atom-shell" CACHE STRING "Node.JS URL")
 SET(NODEJS_NAME "iojs" CACHE STRING "Node.JS Name")
-SET(NODEJS_VERSION "v1.8.3" CACHE STRING "Node.JS Version")
+SET(NODEJS_VERSION "v2.0.4" CACHE STRING "Node.JS Version")
 
 #############################
 # Node.JS Settings
