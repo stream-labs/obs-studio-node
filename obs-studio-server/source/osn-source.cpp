@@ -48,7 +48,7 @@ void osn::Source::Register(ipc::server& srv) {
 	cls->register_function(std::make_shared<ipc::function>("SetName", std::vector<ipc::type>{ipc::type::UInt64}, SetName));
 	cls->register_function(std::make_shared<ipc::function>("GetOutputFlags", std::vector<ipc::type>{ipc::type::UInt64}, GetOutputFlags));
 	cls->register_function(std::make_shared<ipc::function>("GetFlags", std::vector<ipc::type>{ipc::type::UInt64}, GetFlags));
-	cls->register_function(std::make_shared<ipc::function>("SetFlags", std::vector<ipc::type>{ipc::type::UInt64}, SetFlags));
+	cls->register_function(std::make_shared<ipc::function>("SetFlags", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetFlags));
 	cls->register_function(std::make_shared<ipc::function>("GetStatus", std::vector<ipc::type>{ipc::type::UInt64}, GetStatus));
 	cls->register_function(std::make_shared<ipc::function>("GetId", std::vector<ipc::type>{ipc::type::UInt64}, GetId));
 	cls->register_function(std::make_shared<ipc::function>("GetMuted", std::vector<ipc::type>{ipc::type::UInt64}, GetMuted));
