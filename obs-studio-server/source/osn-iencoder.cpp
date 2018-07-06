@@ -17,6 +17,7 @@
 
 #include "osn-IEncoder.hpp"
 #include <obs.h>
+#include "shared.hpp"
 
 void osn::IEncoder::Register(ipc::server& srv) {
 	auto cls = std::make_shared<ipc::collection>("IEncoder");
@@ -38,6 +39,7 @@ void osn::IEncoder::GetId(void* data, const int64_t id, const std::vector<ipc::v
 	if (p == nullptr) {
 		rval[0].type = ipc::type::Null;
 		rval[0].value_str = "Unable to find encoder.";
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -45,6 +47,7 @@ void osn::IEncoder::GetId(void* data, const int64_t id, const std::vector<ipc::v
 	rval[0].type = ipc::type::String;
 	rval[0].value_str = obs_encoder_get_id(p);
 	obs_encoder_release(p);
+	AUTO_DEBUG;
 }
 
 void osn::IEncoder::GetName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -52,12 +55,14 @@ void osn::IEncoder::GetName(void* data, const int64_t id, const std::vector<ipc:
 	if (p == nullptr) {
 		rval[0].type = ipc::type::Null;
 		rval[0].value_str = "Unable to find encoder.";
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval[0].type = ipc::type::String;
 	rval[0].value_str = obs_encoder_get_name(p);
 	obs_encoder_release(p);
+	AUTO_DEBUG;
 }
 
 void osn::IEncoder::SetName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -65,16 +70,19 @@ void osn::IEncoder::SetName(void* data, const int64_t id, const std::vector<ipc:
 	if (p == nullptr) {
 		rval[0].type = ipc::type::Null;
 		rval[0].value_str = "Unable to find encoder.";
+		AUTO_DEBUG;
 		return;
 	}
 
 	obs_encoder_set_name(p, args[0].value_str.c_str());
 	obs_encoder_release(p);
+	AUTO_DEBUG;
 }
 
 void osn::IEncoder::GetCaps(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	rval[0].type = ipc::type::UInt32;
 	rval[0].value_union.ui32 = obs_get_encoder_caps(args[0].value_str.c_str());
+	AUTO_DEBUG;
 }
 
 void osn::IEncoder::GetType(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -82,12 +90,14 @@ void osn::IEncoder::GetType(void* data, const int64_t id, const std::vector<ipc:
 	if (p == nullptr) {
 		rval[0].type = ipc::type::Null;
 		rval[0].value_str = "Unable to find encoder.";
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval[0].type = ipc::type::Int32;
 	rval[0].value_union.i32 = obs_encoder_get_type(p);
 	obs_encoder_release(p);
+	AUTO_DEBUG;
 }
 
 void osn::IEncoder::GetCodec(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -95,24 +105,29 @@ void osn::IEncoder::GetCodec(void* data, const int64_t id, const std::vector<ipc
 	if (p == nullptr) {
 		rval[0].type = ipc::type::Null;
 		rval[0].value_str = "Unable to find encoder.";
+		AUTO_DEBUG;
 		return;
 	}
 
 	rval[0].type = ipc::type::String;
 	rval[0].value_str = obs_encoder_get_codec(p);
 	obs_encoder_release(p);
+	AUTO_DEBUG;
 }
 
 void osn::IEncoder::Update(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 
+	AUTO_DEBUG;
 }
 
 void osn::IEncoder::GetProperties(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 
+	AUTO_DEBUG;
 }
 
 void osn::IEncoder::GetSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 
+	AUTO_DEBUG;
 }
 
 void osn::IEncoder::Release(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
@@ -120,9 +135,11 @@ void osn::IEncoder::Release(void* data, const int64_t id, const std::vector<ipc:
 	if (p == nullptr) {
 		rval[0].type = ipc::type::Null;
 		rval[0].value_str = "Unable to find encoder.";
+		AUTO_DEBUG;
 		return;
 	}
 
 	obs_encoder_release(p);
 	obs_encoder_release(p);
+	AUTO_DEBUG;
 }

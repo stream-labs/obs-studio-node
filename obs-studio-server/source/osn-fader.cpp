@@ -239,8 +239,10 @@ void osn::Fader::Detach(void* data, const int64_t id, const std::vector<ipc::val
 
 void osn::Fader::AddCallback(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	//!FIXME!
+	AUTO_DEBUG;
 }
 
 void osn::Fader::RemoveCallback(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	//!FIXME!
+	AUTO_DEBUG;
 }

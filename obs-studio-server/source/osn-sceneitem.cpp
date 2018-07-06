@@ -516,12 +516,14 @@ void osn::SceneItem::MoveUp(void* data, const int64_t id, const std::vector<ipc:
 	if (!item) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Item reference is not valid."));
+		AUTO_DEBUG;
 		return;
 	}
 
 	obs_sceneitem_set_order(item, OBS_ORDER_MOVE_UP);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void osn::SceneItem::MoveDown(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {

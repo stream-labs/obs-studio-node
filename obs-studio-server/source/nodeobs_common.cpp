@@ -197,6 +197,7 @@ void OBS_content::OBS_content_destroyDisplay(void* data, const int64_t id, const
 		std::cerr << "Failed to find key for destruction: " << args[0].value_str << std::endl;
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Key does not exist."));
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -215,6 +216,7 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(void* data, const int64
 	be a memory leak otherwise. */
 	if (found != displays.end()) {
 		std::cout << "Duplicate key provided to createDisplay!" << std::endl;
+		AUTO_DEBUG;
 		return;
 	}
 	displays.insert_or_assign(args[2].value_str, new OBS::Display(windowHandle, args[1].value_str));
@@ -226,6 +228,7 @@ void OBS_content::OBS_content_resizeDisplay(void* data, const int64_t id, const 
 	auto value = displays.find(args[0].value_str);
 	if (value == displays.end()) {
 		std::cout << "Invalid key provided to resizeDisplay: " << args[0].value_str << std::endl;
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -243,6 +246,7 @@ void OBS_content::OBS_content_moveDisplay(void* data, const int64_t id, const st
 	auto value = displays.find(args[0].value_str);
 	if (value == displays.end()) {
 		std::cout << "Invalid key provided to moveDisplay: " << args[0].value_str << std::endl;
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -303,6 +307,7 @@ void OBS_content::OBS_content_setPaddingSize(void* data, const int64_t id, const
 				v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 			)
 		);*/
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -391,6 +396,7 @@ void OBS_content::OBS_content_setPaddingColor(void* data, const int64_t id, cons
 				v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 			)
 		);*/
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -479,6 +485,7 @@ void OBS_content::OBS_content_setBackgroundColor(void* data, const int64_t id, c
 				v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 			)
 		);*/
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -568,6 +575,7 @@ void OBS_content::OBS_content_setOutlineColor(void* data, const int64_t id, cons
 		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 		      )
 		);*/
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -657,6 +665,7 @@ void OBS_content::OBS_content_setGuidelineColor(void* data, const int64_t id, co
 		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 		      )
 		);*/
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -752,6 +761,7 @@ void OBS_content::OBS_content_setResizeBoxOuterColor(void* data, const int64_t i
 		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 		      )
 		);*/
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -848,6 +858,7 @@ void OBS_content::OBS_content_setResizeBoxInnerColor(void* data, const int64_t i
 		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 		      )
 		);*/
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -909,6 +920,7 @@ void OBS_content::OBS_content_setShouldDrawUI(void* data, const int64_t id, cons
 		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 		      )
 		);*/
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -921,6 +933,7 @@ void OBS_content::OBS_content_getDisplayPreviewOffset(void* data, const int64_t 
 	auto value = displays.find(args[0].value_str);
 	if (value == displays.end()) {
 		std::cout << "Invalid key provided to moveDisplay: " << args[0].value_str << std::endl;
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -938,6 +951,7 @@ void OBS_content::OBS_content_getDisplayPreviewSize(void* data, const int64_t id
 	auto value = displays.find(args[0].value_str);
 	if (value == displays.end()) {
 		std::cout << "Invalid key provided to moveDisplay: " << args[0].value_str << std::endl;
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -1120,6 +1134,7 @@ void OBS_content::OBS_content_getDrawGuideLines(void* data, const int64_t id, co
 		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 		      )
 		);*/
+		AUTO_DEBUG;
 		return;
 	}
 
@@ -1173,6 +1188,7 @@ void OBS_content::OBS_content_setDrawGuideLines(void* data, const int64_t id, co
 		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 		      )
 		);*/
+		AUTO_DEBUG;
 
 		return;
 	}

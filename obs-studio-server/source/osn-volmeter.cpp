@@ -256,7 +256,7 @@ void osn::VolMeter::Query(void* data, const int64_t id, const std::vector<ipc::v
 		meter->current_data = nullptr;
 	}
 
-	AUTO_DEBUG;
+	//AUTO_DEBUG;
 }
 
 void osn::VolMeter::OBSCallback(void *param, const float magnitude[MAX_AUDIO_CHANNELS], const float peak[MAX_AUDIO_CHANNELS], const float input_peak[MAX_AUDIO_CHANNELS]) {

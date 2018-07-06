@@ -42,6 +42,7 @@
 #include "osn-fader.hpp"
 #include "osn-volmeter.hpp"
 #include "osn-video.hpp"
+#include "shared.hpp"
 
 #ifndef _DEBUG
 #include "client/crashpad_client.h"
@@ -98,7 +99,7 @@ namespace System {
 		bool* shutdown = (bool*)data;
 		*shutdown = true;
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-		return;
+		AUTO_DEBUG;
 	}
 }
 

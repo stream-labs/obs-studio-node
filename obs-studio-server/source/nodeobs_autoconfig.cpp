@@ -316,6 +316,7 @@ void start_next_step(void (*task)(), std::string event, std::string description,
 void autoConfig::TerminateAutoConfig(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	StopThread();
+	AUTO_DEBUG;
 }
 
 void autoConfig::StopThread(void)
@@ -350,6 +351,7 @@ void autoConfig::InitializeAutoConfig(void* data, const int64_t id, const std::v
 	cancel = false;
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartBandwidthTest(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
@@ -357,6 +359,7 @@ void autoConfig::StartBandwidthTest(void* data, const int64_t id, const std::vec
 	TestBandwidthThread();
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartStreamEncoderTest(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
@@ -364,6 +367,7 @@ void autoConfig::StartStreamEncoderTest(void* data, const int64_t id, const std:
 	TestStreamEncoderThread();
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartRecordingEncoderTest(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
@@ -371,6 +375,7 @@ void autoConfig::StartRecordingEncoderTest(void* data, const int64_t id, const s
 	TestRecordingEncoderThread();
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartSaveStreamSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
@@ -378,6 +383,7 @@ void autoConfig::StartSaveStreamSettings(void* data, const int64_t id, const std
 	SaveStreamSettings();
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartSaveSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
@@ -387,6 +393,7 @@ void autoConfig::StartSaveSettings(void* data, const int64_t id, const std::vect
 	cancel = false;
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartCheckSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
@@ -395,6 +402,7 @@ void autoConfig::StartCheckSettings(void* data, const int64_t id, const std::vec
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint32_t)sucess));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartSetDefaultSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
@@ -402,6 +410,7 @@ void autoConfig::StartSetDefaultSettings(void* data, const int64_t id, const std
 	SetDefaultSettings();
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::GetListServer(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
@@ -452,6 +461,7 @@ void autoConfig::GetListServer(void* data, const int64_t id, const std::vector<i
 		rval.push_back(ipc::value(servers[i].name));
 		rval.push_back(ipc::value(servers[i].address));
 	}
+	AUTO_DEBUG;
 }
 
 int EvaluateBandwidth(ServerInfo &server, bool &connected, bool &stopped, bool &success,
