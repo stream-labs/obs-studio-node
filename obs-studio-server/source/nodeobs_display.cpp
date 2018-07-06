@@ -76,14 +76,12 @@ void OBS::Display::SystemWorker() {
 
 	bool keepRunning = true;
 	do {
-		bool haveMessage = WaitMessage();
-		if (!haveMessage) {
+		BOOL gotMessage = GetMessage(&message, NULL, 0, 0);
+		if (gotMessage == 0) {
 			continue;
 		}
-
-		bool gotMessage = GetMessage(&message, NULL, 0, 0);
-		if (!gotMessage) {
-			continue;
+		if (gotMessage == -1) {
+			break; // Some sort of error.
 		}
 
 		if (message.hwnd != NULL) {
