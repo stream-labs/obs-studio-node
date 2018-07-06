@@ -41,34 +41,43 @@ enum class SystemWorkerMessage : uint32_t {
 	StopThread = WM_USER + 2,
 };
 
+struct message_answer {
+	HANDLE event;
+	bool called = false;
+	bool success = false;
+	DWORD errorCode;
+	std::string errorMessage;
+
+	message_answer() {
+		event = CreateEvent(NULL, FALSE, FALSE, NULL);
+	}
+	~message_answer() {
+		CloseHandle(event);
+	}
+
+	void wait() {
+		WaitForSingleObject(event, INFINITE);
+	}
+
+	void signal() {
+		SetEvent(event);
+	}
+};
+
 struct CreateWindowMessageQuestion {
 	HWND parentWindow;
 	uint32_t width, height;
 };
 
-struct CreateWindowMessageAnswer {
-	std::mutex mutex;
-	std::condition_variable cv;
-
-	bool called = false;
-	bool success;
+struct CreateWindowMessageAnswer : message_answer {
 	HWND windowHandle;
-	DWORD errorCode;
-	std::string errorMessage;
 };
 
 struct DestroyWindowMessageQuestion {
 	HWND window;
 };
 
-struct DestroyWindowMessageAnswer {
-	std::mutex mutex;
-	std::condition_variable cv;
-
-	bool called = false;
-	bool success;
-	DWORD errorCode;
-	std::string errorMessage;
+struct DestroyWindowMessageAnswer : message_answer {
 };
 
 void OBS::Display::SystemWorker() {
@@ -120,7 +129,7 @@ void OBS::Display::SystemWorker() {
 				}
 
 				answer->called = true;
-				answer->cv.notify_all();
+				answer->signal();
 				break;
 			}
 			case SystemWorkerMessage::DestroyWindow:
@@ -142,7 +151,7 @@ void OBS::Display::SystemWorker() {
 				}
 
 				answer->called = true;
-				answer->cv.notify_all();
+				answer->signal();
 				break;
 			}
 			case SystemWorkerMessage::StopThread:
@@ -247,14 +256,13 @@ OBS::Display::Display(uint64_t windowHandle) : Display() {
 	CreateWindowMessageQuestion question;
 	CreateWindowMessageAnswer answer;
 
-	std::unique_lock<std::mutex> ulock(answer.mutex);
 	question.parentWindow = (HWND)windowHandle;
 	question.width = m_gsInitData.cx;
 	question.height = m_gsInitData.cy;
 	PostThreadMessage(GetThreadId(worker.native_handle()), (UINT)SystemWorkerMessage::CreateWindow,
 		reinterpret_cast<intptr_t>(&question), reinterpret_cast<intptr_t>(&answer));
 
-	answer.cv.wait(ulock, [&answer]() {return answer.called; });
+	answer.wait();
 
 	if (!answer.success) {
 		throw std::system_error(answer.errorCode, std::system_category(), answer.errorMessage);
@@ -298,12 +306,11 @@ OBS::Display::~Display() {
 	DestroyWindowMessageQuestion question;
 	DestroyWindowMessageAnswer answer;
 
-	std::unique_lock<std::mutex> ulock(answer.mutex);
 	question.window = m_ourWindow;
 	PostThreadMessage(GetThreadId(worker.native_handle()), (UINT)SystemWorkerMessage::DestroyWindow,
 		reinterpret_cast<intptr_t>(&question), reinterpret_cast<intptr_t>(&answer));
 
-	answer.cv.wait(ulock, [&answer]() {return answer.called; });
+	answer.wait();
 
 	if (!answer.success) {
 		std::cerr << "OBS::Display::~Display: " << answer.errorMessage << std::endl;
