@@ -49,7 +49,7 @@ struct message_answer {
 	std::string errorMessage;
 
 	message_answer() {
-		event = CreateEvent(NULL, FALSE, FALSE, NULL);
+		event = CreateSemaphore(NULL, 0, INFINITE, NULL);
 	}
 	~message_answer() {
 		CloseHandle(event);
@@ -60,7 +60,7 @@ struct message_answer {
 	}
 
 	void signal() {
-		SetEvent(event);
+		ReleaseSemaphore(event, 1, NULL);
 	}
 };
 
