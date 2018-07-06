@@ -2,7 +2,7 @@ matrix:
   fast_finish: true
 
 image:
-  - Visual Studio 2015
+  - Visual Studio 2017
 
 platform: x64
 
