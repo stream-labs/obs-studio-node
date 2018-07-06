@@ -1778,7 +1778,7 @@ void OBS_service::Query(void* data, const int64_t id, const std::vector<ipc::val
 	std::unique_lock<std::mutex> ulock(signalMutex);
 	if (outputSignal.empty()) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-		AUTO_DEBUG;
+		//AUTO_DEBUG;
 		return;
 	}
 
@@ -1791,7 +1791,7 @@ void OBS_service::Query(void* data, const int64_t id, const std::vector<ipc::val
 		
 	outputSignal.pop();
 
-	AUTO_DEBUG;
+	//AUTO_DEBUG;
 }
 
 void OBS_service::JSCallbackOutputSignal(void *data, calldata_t *params)

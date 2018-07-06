@@ -197,6 +197,7 @@ void OBS_content::OBS_content_destroyDisplay(void* data, const int64_t id, const
 		std::cerr << "Failed to find key for destruction: " << args[0].value_str << std::endl;
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Key does not exist."));
+		AUTO_DEBUG;
 		return;
 	}
 

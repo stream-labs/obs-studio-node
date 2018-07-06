@@ -90,7 +90,7 @@ ProcessInfo spawn(std::string program, std::string commandLine, std::string work
 	SetLastError(ERROR_SUCCESS);
 	DWORD success = CreateProcessW(programBuf.data(), commandLineBuf.data(),
 		nullptr, nullptr, false,
-		CREATE_NO_WINDOW | DETACHED_PROCESS,
+		CREATE_NEW_CONSOLE,
 		nullptr,
 		workingDirectory.length() > 0 ? workingDirectoryBuf.data() : nullptr,
 		&m_win32_startupInfo,
