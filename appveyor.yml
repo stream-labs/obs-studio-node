@@ -8,14 +8,12 @@ platform: x64
 
 environment:
   matrix:
-    - RuntimeURL: https://nodejs.org/download/release
-      RuntimeName: node
-      RuntimeVersion: v9.4.0
-
     - RuntimeURL: https://atom.io/download/atom-shell
       RuntimeName: iojs
       RuntimeVersion: v2.0.4
-
+    - RuntimeURL: https://nodejs.org/download/release
+      RuntimeName: node
+      RuntimeVersion: v9.4.0
   NodeVersion: 9
   SLBuildDirectory: streamlabs-build
   SLGenerator: Visual Studio 14 2015 Win64
