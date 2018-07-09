@@ -241,8 +241,7 @@ std::shared_ptr<ipc::client> Controller::host(std::string uri) {
 	}
 
 	// Connect
-	std::shared_ptr<ipc::client> cl;
-	cl = connect(uri);
+	std::shared_ptr<ipc::client> cl = connect(uri);
 	if (!cl) { // Assume the server broke or was not allowed to run. 
 		disconnect();
 		uint32_t exitcode;
@@ -258,17 +257,16 @@ std::shared_ptr<ipc::client> Controller::connect(std::string uri) {
 	if (m_isServer)
 		return nullptr;
 
-	// Try and connect.
+	// Try and connect for 2 seconds.
 	std::shared_ptr<ipc::client> cl;
-	for (size_t n = 0; n < 5; n++) { // Attempt 5 times.
-		try {
-			cl = std::make_shared<ipc::client>(uri);
+	std::chrono::high_resolution_clock::time_point l_begin = std::chrono::high_resolution_clock::now();
+	while (is_process_alive(procId) && (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - l_begin).count() <= 2)) {
+		cl = std::make_shared<ipc::client>(uri);
+		if (cl)
 			break;
-		} catch (...) {
-		}
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		std::this_thread::sleep_for(std::chrono::milliseconds(50));
 	}
-
+	
 	if (!cl) {
 		return nullptr;
 	}
