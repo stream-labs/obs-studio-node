@@ -261,12 +261,15 @@ std::shared_ptr<ipc::client> Controller::connect(std::string uri) {
 	std::shared_ptr<ipc::client> cl;
 	std::chrono::high_resolution_clock::time_point l_begin = std::chrono::high_resolution_clock::now();
 	while (is_process_alive(procId) && (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - l_begin).count() <= 2)) {
-		cl = std::make_shared<ipc::client>(uri);
+		try {
+			cl = std::make_shared<ipc::client>(uri);
+		} catch (...) {
+			cl = nullptr;
+		}
 		if (cl)
 			break;
 		std::this_thread::sleep_for(std::chrono::milliseconds(50));
-	}
-	
+	}	
 	if (!cl) {
 		return nullptr;
 	}
