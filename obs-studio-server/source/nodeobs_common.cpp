@@ -185,7 +185,7 @@ void OBS_content::OBS_content_createDisplay(void* data, const int64_t id, const 
 		return;
 	}
 
-	displays[args[1].value_str] = new OBS::Display(windowHandle);
+	displays.insert_or_assign(args[1].value_str, new OBS::Display(windowHandle));
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -195,6 +195,8 @@ void OBS_content::OBS_content_destroyDisplay(void* data, const int64_t id, const
 
 	if (found == displays.end()) {
 		std::cerr << "Failed to find key for destruction: " << args[0].value_str << std::endl;
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Key does not exist."));
 		return;
 	}
 
@@ -215,7 +217,7 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(void* data, const int64
 		std::cout << "Duplicate key provided to createDisplay!" << std::endl;
 		return;
 	}
-	displays[args[2].value_str] = new OBS::Display(windowHandle, args[1].value_str);
+	displays.insert_or_assign(args[2].value_str, new OBS::Display(windowHandle, args[1].value_str));
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
