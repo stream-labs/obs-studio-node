@@ -188,15 +188,18 @@ int main(int argc, char* argv[]) {
 		return -2;
 	}
 
+	// Reset Connect/Disconnect time.
+	sd.last_disconnect = sd.last_connect = std::chrono::high_resolution_clock::now();
+
 	while (!doShutdown) {
 		if (sd.count_connected == 0) {
 			auto tp = std::chrono::high_resolution_clock::now();
 			auto delta = tp - sd.last_disconnect;
-			if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() > 1000) {
+			if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() > 5000) {
 				doShutdown = true;
 			}
 		}
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		std::this_thread::sleep_for(std::chrono::milliseconds(50));
 	}
 
 	// Finalize Server
