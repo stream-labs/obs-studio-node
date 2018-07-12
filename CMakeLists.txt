@@ -29,14 +29,14 @@ endif()
 # Add libobs as an imported project
 
 # Since building libobs takes a bit of time
-# and the build should be reproducible anyways, 
-# we build obs separately and download 
-# prebuilt binaries of libobs. 
+# and the build should be reproducible anyways,
+# we build obs separately and download
+# prebuilt binaries of libobs.
 
 # The format of the downloaded blob follows
 # what libobs installs into or what cpack
 # provides in a zip file (which should be
-# the same). 
+# the same).
 ###########################################
 
 download_project(

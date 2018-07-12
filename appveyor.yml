@@ -11,7 +11,6 @@ environment:
     - RuntimeURL: https://atom.io/download/atom-shell
       RuntimeName: iojs
       RuntimeVersion: v2.0.1
-      
 
   NodeVersion: 9
   SLBuildDirectory: streamlabs-build
@@ -39,7 +38,7 @@ build_script:
 
 before_deploy:
   - nuget install secure-file -ExcludeVersion
-  
+
   - ps: |
       & secure-file\tools\secure-file -decrypt CI\streamlabsp12.pfx.enc -secret "$env:StreamlabsPfxSecret" -out CI\streamlabsp12.pfx
       if ($LASTEXITCODE -ne 0) {
