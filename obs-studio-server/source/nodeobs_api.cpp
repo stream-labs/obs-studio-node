@@ -346,7 +346,7 @@ static void node_obs_log(int log_level, const char *msg, va_list args, void *par
 			last_valid_idx = idx + 1;
 
 			// File Log
-			*logStream << newmsg;
+			*logStream << newmsg << std::flush;
 
 			// Std Out / Std Err
 			/// Why fwrite and not std::cout and std::cerr?
