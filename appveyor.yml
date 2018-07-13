@@ -35,12 +35,10 @@ install:
   - ps: Install-Product node $env:NodeVersion
   - yarn install
   - git submodule init
-  - git submodule update --init --force
-  - ps: Invoke-WebRequest "https://github.com/stream-labs/lib-streamlabs-ipc/releases/download/v0.2.0/protobuf-x64.7z" -OutFile "protobuf.7z"
-  - ps: 7z x -o"lib-streamlabs-ipc/third-party/" protobuf.7z
+  - git submodule update --init --force --recursive
 
 build_script:
-  - cmake -H. -B"%SLBuildDirectory%" -G"%SLGenerator%" -T"host=%SLArch%" -DNODEJS_BUILD=TRUE -DNODEJS_URL="%RuntimeURL%" -DNODEJS_NAME="%RuntimeName%" -DNODEJS_VERSION="%RuntimeVersion%" -DCMAKE_INSTALL_PREFIX="%SLFullDistributePath%\obs-studio-node" -DCMAKE_SYSTEM_VERSION=10.0.16299.91
+  - cmake -H. -B"%SLBuildDirectory%" -G"%SLGenerator%" -T"host=%SLArch%" -DNODEJS_BUILD=TRUE -DNODEJS_URL="%RuntimeURL%" -DNODEJS_NAME="%RuntimeName%" -DNODEJS_VERSION="%RuntimeVersion%" -DCMAKE_INSTALL_PREFIX="%SLFullDistributePath%\obs-studio-node" -DCMAKE_SYSTEM_VERSION=10.0.17134.0
   - cmake --build %SLBuildDirectory% --target install --config RelWithDebInfo
   - tar cvaf "%UnsignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
 

@@ -53,6 +53,7 @@ SET(PROJECT_INCLUDE_PATHS
 	${NODEJS_INCLUDE_DIRS}
 	"${CMAKE_SOURCE_DIR}/source/"
 	"${CMAKE_SOURCE_DIR}/lib-streamlabs-ipc/include"
+	"${PROJECT_SOURCE_DIR}/../lib-streamlabs-ipc/third-party/lib-datalane/"
 )
 SET(PROJECT_DATA
 	"resources/"
