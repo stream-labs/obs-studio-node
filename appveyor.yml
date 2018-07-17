@@ -10,7 +10,7 @@ environment:
 
     - RuntimeURL: https://atom.io/download/atom-shell
       RuntimeName: iojs
-      RuntimeVersion: v2.0.1
+      RuntimeVersion: v2.0.4
 
   NodeVersion: 9
   SLBuildDirectory: streamlabs-build
