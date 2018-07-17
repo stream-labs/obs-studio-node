@@ -56,7 +56,7 @@ namespace OBS {
 		void SetDrawGuideLines(bool drawGuideLines);
 
 		private:
-		static void DisplayCallback(OBS::Display* displayPtr, uint32_t cx, uint32_t cy);
+		static void DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy);
 		static bool DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item, void* param);
 		void UpdatePreviewArea();
 
