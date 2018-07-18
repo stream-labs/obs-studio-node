@@ -54,9 +54,13 @@ struct message_answer {
 	~message_answer() {
 		CloseHandle(event);
 	}
+	
+	bool wait() {
+		return WaitForSingleObject(event, 1) == WAIT_OBJECT_0;
+	}
 
-	void wait() {
-		WaitForSingleObject(event, INFINITE);
+	bool try_wait() {
+		return WaitForSingleObject(event, 0) == WAIT_OBJECT_0;
 	}
 
 	void signal() {
@@ -82,6 +86,7 @@ struct DestroyWindowMessageAnswer : message_answer {
 
 void OBS::Display::SystemWorker() {
 	MSG message;
+	PeekMessage(&message, NULL, WM_USER, WM_USER, PM_NOREMOVE);
 
 	bool keepRunning = true;
 	do {
@@ -259,10 +264,18 @@ OBS::Display::Display(uint64_t windowHandle) : Display() {
 	question.parentWindow = (HWND)windowHandle;
 	question.width = m_gsInitData.cx;
 	question.height = m_gsInitData.cy;
-	PostThreadMessage(GetThreadId(worker.native_handle()), (UINT)SystemWorkerMessage::CreateWindow,
-		reinterpret_cast<intptr_t>(&question), reinterpret_cast<intptr_t>(&answer));
+	while (!PostThreadMessage(GetThreadId(worker.native_handle()), (UINT)SystemWorkerMessage::CreateWindow,
+		reinterpret_cast<intptr_t>(&question), reinterpret_cast<intptr_t>(&answer))) {
+		Sleep(0);
+	}
 
-	answer.wait();
+	if (!answer.try_wait()) {
+		while (!answer.wait()) {
+			if (answer.called)
+				break;
+			Sleep(0);
+		}
+	}
 
 	if (!answer.success) {
 		throw std::system_error(answer.errorCode, std::system_category(), answer.errorMessage);
@@ -310,7 +323,13 @@ OBS::Display::~Display() {
 	PostThreadMessage(GetThreadId(worker.native_handle()), (UINT)SystemWorkerMessage::DestroyWindow,
 		reinterpret_cast<intptr_t>(&question), reinterpret_cast<intptr_t>(&answer));
 
-	answer.wait();
+	if (!answer.try_wait()) {
+		while (!answer.wait()) {
+			if (answer.called)
+				break;
+			Sleep(0);
+		}
+	}
 
 	if (!answer.success) {
 		std::cerr << "OBS::Display::~Display: " << answer.errorMessage << std::endl;
