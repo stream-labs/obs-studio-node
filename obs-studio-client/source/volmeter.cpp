@@ -69,7 +69,7 @@ void osn::VolMeter::async_query() {
 		}
 
 		// Call
-		{
+		try {
 			std::vector<ipc::value> response = conn->call_synchronous_helper("VolMeter", "Query", {
 						ipc::value(uid),
 			});
@@ -100,6 +100,8 @@ void osn::VolMeter::async_query() {
 				std::cerr << "Failed VolMeter" << std::endl;
 				break;
 			}
+		} catch (std::exception e) {
+			goto do_sleep;
 		}
 		
 	do_sleep:
