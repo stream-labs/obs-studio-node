@@ -74,6 +74,25 @@ void ServerDisconnectHandler(void* data, int64_t) {
 	sd->count_connected--;
 }
 
+static std::ofstream out_file;
+
+void start_log(std::string file) {
+	out_file.open(file, std::ios_base::trunc);
+	if (!out_file.is_open()) {
+		throw std::exception("you fucked up");
+	}
+}
+
+void ipc_log_handler(void* data, const char* fmt, va_list args) {
+	std::vector<char> buf;
+	buf.resize(_vscprintf(fmt, args) + 1);
+	buf.resize(vsprintf(buf.data(), fmt, args));
+	//blog(LOG_INFO, "%.*s", buf.size(), buf.data());
+	out_file.write(buf.data(), buf.size());
+	out_file.write("\n", 1);
+	out_file.flush();
+}
+
 namespace System {
 	static void Shutdown(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 		bool* shutdown = (bool*)data;
@@ -133,6 +152,12 @@ int main(int argc, char* argv[]) {
 	/* TODO Check rc value for errors */
 #endif
 
+	// Set Log Handler
+	ipc::set_log_callback(ipc_log_handler, nullptr);
+	start_log("D:\\log-server.txt");
+	std::string v = "Log begin\n";
+	out_file.write(v.c_str(), v.size());
+	
 	// Usage:
 	// argv[0] = Path to this application. (Usually given by default if run via path-based command!)
 	// argv[1] = Path to a named socket.
@@ -179,6 +204,7 @@ int main(int argc, char* argv[]) {
 	// Register Connect/Disconnect Handlers
 	myServer.set_connect_handler(ServerConnectHandler, &sd);
 	myServer.set_disconnect_handler(ServerDisconnectHandler, &sd);
+
 
 	// Initialize Server
 	try {

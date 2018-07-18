@@ -100,8 +100,8 @@ ProcessInfo spawn(std::string program, std::string commandLine, std::string work
 		return {};
 	}
 
-	return { 
-		reinterpret_cast<uint64_t>(m_win32_processInformation.hProcess), 
+	return {
+		reinterpret_cast<uint64_t>(m_win32_processInformation.hProcess),
 		static_cast<uint64_t>(m_win32_processInformation.dwProcessId)
 	};
 }
@@ -170,6 +170,23 @@ std::string get_working_directory() {
 	return bufUTF8.data();
 }
 
+static std::ofstream out_file;
+
+void start_log(std::string file) {
+	out_file.open(file, std::ios_base::trunc);
+	if (!out_file.is_open()) {
+		throw std::exception("you fucked up");
+	}
+}
+
+void ipc_log_handler(void* data, const char* fmt, va_list args) {
+	std::vector<char> buf;
+	buf.resize(_vscprintf(fmt, args) + 1);
+	buf.resize(vsprintf(buf.data(), fmt, args));
+	out_file.write(buf.data(), buf.size());
+	out_file.write("\n", 1);
+	out_file.flush();
+}
 #endif
 #pragma endregion Windows
 
@@ -177,7 +194,10 @@ static std::string serverBinaryPath = "";
 static std::string serverWorkingPath = "";
 
 Controller::Controller() {
-
+	start_log("D:\\log.txt");
+	std::string v = "Log begin\n";
+	out_file.write(v.c_str(), v.size());
+	ipc::set_log_callback(ipc_log_handler, nullptr);
 }
 
 Controller::~Controller() {
@@ -209,7 +229,7 @@ std::shared_ptr<ipc::client> Controller::host(std::string uri) {
 			char pid_char[sizeof(uint64_t)];
 		};
 		pid_file.read(&pid_char[0], 8);
-		
+
 		ProcessInfo pi = open_process(pid);
 		if (pi.handle != 0) {
 			std::string name = get_process_name(pi);
@@ -221,7 +241,7 @@ std::shared_ptr<ipc::client> Controller::host(std::string uri) {
 		}
 		pid_file.close();
 	}
-	
+
 	procId = spawn(serverBinaryPath, commandLine, workingDirectory);
 	if (procId.id == 0) {
 		return nullptr;
@@ -269,7 +289,7 @@ std::shared_ptr<ipc::client> Controller::connect(std::string uri) {
 		if (cl)
 			break;
 		std::this_thread::sleep_for(std::chrono::milliseconds(50));
-	}	
+	}
 	if (!cl) {
 		return nullptr;
 	}
@@ -434,6 +454,6 @@ INITIALIZER(js_ipc) {
 		NODE_SET_METHOD(obj, "ConnectOrHost", js_connectOrHost);
 		NODE_SET_METHOD(obj, "Disconnect", js_disconnect);
 		exports->Set(v8::String::NewFromUtf8(exports->GetIsolate(), "IPC"), obj);
-	});
+		});
 }
 #pragma endregion JavaScript
