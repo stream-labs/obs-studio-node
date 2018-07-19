@@ -289,8 +289,7 @@ OBS::Display::Display(uint64_t windowHandle) : Display() {
 	if (!m_display)
 		throw std::runtime_error("unable to create display");
 
-	obs_display_add_draw_callback(m_display,
-		(void(*)(void *, uint32_t, uint32_t))DisplayCallback, this);
+	obs_display_add_draw_callback(m_display, DisplayCallback, this);
 	obs_display_set_background_color(m_display, 0x0);
 }
 
@@ -301,6 +300,9 @@ OBS::Display::Display(uint64_t windowHandle, std::string sourceName) : Display(w
 }
 
 OBS::Display::~Display() {
+	/* Make sure display loop isn't be executed before cleaning resources */
+	obs_display_remove_draw_callback(m_display, DisplayCallback, this);
+
 	if (m_source) {
 		obs_source_dec_showing(m_source);
 		obs_source_release(m_source);
@@ -854,7 +856,8 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 	return true;
 }
 
-void OBS::Display::DisplayCallback(OBS::Display* dp, uint32_t cx, uint32_t cy) {
+void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy) {
+	Display* dp = static_cast<Display*>(displayPtr);
 	gs_effect_t* solid = obs_get_base_effect(OBS_EFFECT_SOLID);
 	gs_eparam_t* solid_color = gs_effect_get_param_by_name(solid, "color");
 	gs_technique_t* solid_tech = gs_effect_get_technique(solid, "Solid");
