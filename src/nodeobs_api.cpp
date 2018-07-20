@@ -54,48 +54,12 @@ static bool dirExists(const std::string& path)
 {
   DWORD ftyp = GetFileAttributesA(path.c_str());
   if (ftyp == INVALID_FILE_ATTRIBUTES)
-    return false;  
+    return false;
 
   if (ftyp & FILE_ATTRIBUTE_DIRECTORY)
-    return true;   
+    return true;
 
   return false;
-}
-
-/* FIXME Platform-specific */
-static bool containsDirectory(const std::string& path)
-{
-	const char* pszDir = path.c_str();
-    char szBuffer[MAX_PATH];
-
-    DWORD dwRet = GetCurrentDirectory(MAX_PATH, szBuffer);
-    SetCurrentDirectory(pszDir);
-
-    WIN32_FIND_DATA fd;
-
-    HANDLE hFind = ::FindFirstFile("*.", &fd);
-
-    // Get all sub-folders:
-
-    if (hFind != INVALID_HANDLE_VALUE)
-    {
-        do
-        {
-            char* pszName = fd.cFileName;
-            if (_stricmp(pszName, ".") != 0 && _stricmp(pszName, "..") != 0)
-            {
-				//Only look for at least one directory
-				::FindClose(hFind);
-				SetCurrentDirectory(szBuffer);
-				return true;
-            }
-
-        } while (::FindNextFile(hFind, &fd));
-        ::FindClose(hFind);
-    }
-    // Set the current folder back to what it was:
-    SetCurrentDirectory(szBuffer);
-    return false;
 }
 
 static string GenerateTimeDateFilename(const char *extension)
@@ -411,18 +375,6 @@ void OBS_API::OBS_API_initAPI(const FunctionCallbackInfo<Value>& args)
 	std::string profiles = OBS_pathConfigDirectory + "\\basic\\profiles";
 	std::string scenes = OBS_pathConfigDirectory + "\\basic\\scenes";
 
-	isOBS_installedValue = dirExists(OBS_pathConfigDirectory) &&
-		containsDirectory(profiles) &&
-		os_file_exists(scenes.c_str());
-
-	if(isOBS_installedValue) {
-	    v8::String::Utf8Value firstProfile(getOBS_existingProfiles()->Get(0)->ToString());
-	    OBS_currentProfile = std::string(*firstProfile);
-
-	    v8::String::Utf8Value firstSceneCollection(getOBS_existingSceneCollections()->Get(0)->ToString());
-	    OBS_currentSceneCollection = std::string(*firstSceneCollection);
-	}
-
 	/* Logging */
 	string filename = GenerateTimeDateFilename("txt");
 	string log_path = appdata_path;
@@ -488,7 +440,7 @@ void OBS_API::OBS_API_getPerformanceStatistics(const FunctionCallbackInfo<Value>
 
 	Local<Object> statistics = getPerformanceStatistics();
 
-	args.GetReturnValue().Set(statistics);	
+	args.GetReturnValue().Set(statistics);
 }
 
 void OBS_API::OBS_API_getPathConfigDirectory(const FunctionCallbackInfo<Value>& args)
@@ -503,7 +455,7 @@ void OBS_API::OBS_API_setPathConfigDirectory(const FunctionCallbackInfo<Value>& 
 	Isolate* isolate = args.GetIsolate();
 
 	v8::String::Utf8Value param1(args[0]->ToString());
-	std::string pathConfigDirectory = std::string(*param1);	
+	std::string pathConfigDirectory = std::string(*param1);
 
 	setPathConfigDirectory(pathConfigDirectory);
 }
@@ -530,9 +482,9 @@ void OBS_API::OBS_API_setOBS_currentProfile(const FunctionCallbackInfo<Value>& a
 	Isolate* isolate = args.GetIsolate();
 
 	v8::String::Utf8Value param1(args[0]->ToString());
-	std::string currentProfile = std::string(*param1);	
+	std::string currentProfile = std::string(*param1);
 
-	setOBS_currentProfile(currentProfile);	
+	setOBS_currentProfile(currentProfile);
 }
 
 void OBS_API::OBS_API_getOBS_currentSceneCollection(const FunctionCallbackInfo<Value>& args)
@@ -547,9 +499,9 @@ void OBS_API::OBS_API_setOBS_currentSceneCollection(const FunctionCallbackInfo<V
 	Isolate* isolate = args.GetIsolate();
 
 	v8::String::Utf8Value param1(args[0]->ToString());
-	std::string currentSceneCollection = std::string(*param1);	
+	std::string currentSceneCollection = std::string(*param1);
 
-	setOBS_currentSceneCollection(currentSceneCollection);	
+	setOBS_currentSceneCollection(currentSceneCollection);
 }
 
 void OBS_API::OBS_API_isOBS_installed(const FunctionCallbackInfo<Value>& args)

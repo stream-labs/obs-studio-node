@@ -56,6 +56,23 @@ static void RecalculateApectRatioConstrainedSize(
 	outY = (int32_t(origH / 2) - int32_t(outH / 2));
 }
 
+static void HandleWin32ErrorMessage() {
+	DWORD dwErrorCode = GetLastError();
+	LPSTR lpErrorStr = nullptr;
+	DWORD dwErrorStrSize = 16;
+
+	DWORD dwErrorStrLen = FormatMessageA(
+			FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+			NULL, dwErrorCode, LANG_USER_DEFAULT, lpErrorStr, dwErrorStrSize, NULL);
+
+	std::string exceptionMessage(
+		"Unexpected WinAPI error: " + std::string(lpErrorStr, dwErrorStrLen));
+
+	LocalFree(lpErrorStr);
+
+	throw std::system_error(dwErrorCode, std::system_category(), exceptionMessage);
+}
+
 OBS::Display::Display() {
 #if defined(_WIN32)
 	DisplayWndClass();
@@ -146,22 +163,15 @@ OBS::Display::Display(uint64_t windowHandle) : Display() {
 	FixChromeD3DIssue((HWND)windowHandle);
 
 	m_ourWindow = CreateWindowEx(
-		0,//WS_EX_COMPOSITED | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST,
+		0,
 		TEXT("Win32DisplayClass"), TEXT("SlobsChildWindowPreview"),
 		WS_VISIBLE | WS_POPUP,
 		0, 0, m_gsInitData.cx, m_gsInitData.cy,
 		NULL,
 		NULL, NULL, this);
-	if (m_ourWindow == NULL) {
-		DWORD errorCode = GetLastError();
-		LPSTR errorStr = nullptr;
-		DWORD errorStrSize = 16,
-			errorStrLen = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, LANG_USER_DEFAULT, errorStr, errorStrSize, NULL);
-		std::string exceptionMessage(errorStr, errorStrLen);
-		exceptionMessage = "Unexpected WinAPI error: " + exceptionMessage;
-		LocalFree(errorStr);
 
-		throw std::system_error(errorCode, std::system_category(), exceptionMessage);
+	if (m_ourWindow == NULL) {
+		HandleWin32ErrorMessage();
 	}
 
 	SetParent(m_ourWindow, (HWND)windowHandle);
@@ -431,11 +441,11 @@ inline void DrawBoxAt(OBS::Display* dp, float_t x, float_t y, matrix4& mtx) {
 
 	vec3 pos = { x, y, 0.0f };
 	vec3_transform(&pos, &pos, &mtx);
-	
+
 	vec3 offset = { -HANDLE_RADIUS, -HANDLE_RADIUS, 0.0f };
 	offset.x *= dp->m_previewToWorldScale.x;
 	offset.y *= dp->m_previewToWorldScale.y;
-	
+
 	gs_matrix_translate(&pos);
 	gs_matrix_translate(&offset);
 	gs_matrix_scale3f(
@@ -933,16 +943,7 @@ void OBS::Display::DisplayWndClass() {
 
 	DisplayWndClassAtom = RegisterClassEx(&DisplayWndClassObj);
 	if (DisplayWndClassAtom == NULL) {
-		DWORD errorCode = GetLastError();
-		LPSTR errorStr = nullptr;
-		DWORD errorStrSize = 16;
-		DWORD errorStrLen = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, LANG_USER_DEFAULT, errorStr, errorStrSize, NULL);
-		//    MessageBox((HWND)windowHandle, errorStr, "Unexpected Runtime Error", MB_OK | MB_ICONERROR);
-		std::string exceptionMessage(errorStr, errorStrLen);
-		exceptionMessage = "Unexpected WinAPI error: " + exceptionMessage;
-		LocalFree(errorStr);
-
-		throw std::system_error(errorCode, std::system_category(), exceptionMessage);
+		HandleWin32ErrorMessage();
 	}
 
 	DisplayWndClassRegistered = true;

@@ -49,7 +49,7 @@ include("${libobs_SOURCE_DIR}/cmake/LibObs/LibObsTarget.cmake")
 #############################
 # Source, Libraries & Directories
 #############################
-set(PROJECT_SOURCE 
+set(PROJECT_SOURCE
 	"src/obs-node.cpp"
 	"src/Service.cpp" "src/Service.h"
 	"src/AudioControls.cpp" "src/AudioControls.h"
@@ -61,7 +61,6 @@ set(PROJECT_SOURCE
 	"src/SceneItem.cpp" "src/SceneItem.h"
 	"src/Scene.cpp" "src/Scene.h"
 	"src/IEncoder.cpp" "src/IEncoder.h"
-	"src/Display.cpp" "src/Display.h"
 	"src/Global.cpp" "src/Global.h"
 	"src/Input.cpp" "src/Input.h"
 	"src/Output.cpp" "src/Output.h"
@@ -121,11 +120,14 @@ add_nodejs_module(${PROJECT_NAME} ${PROJECT_SOURCE})
 if(WIN32)
 	set_target_properties(${PROJECT_NAME} PROPERTIES
 		LINK_FLAGS "/DELAYLOAD:obs.dll")
-		
+
+	target_compile_definitions(${PROJECT_NAME}
+		PRIVATE "-D_UNICODE" "-DUNICODE")
+
 	list(APPEND PROJECT_LIBRARIES "Delayimp.lib")
 endif()
 
-target_link_libraries(${PROJECT_NAME} libobs 
+target_link_libraries(${PROJECT_NAME} libobs
 	${PROJECT_LIBRARIES}
 	${CMAKE_JS_LIB})
 
