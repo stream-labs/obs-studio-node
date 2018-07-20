@@ -343,27 +343,31 @@ void OBS_API::OBS_API_initAPI(const FunctionCallbackInfo<Value>& args)
 	for (int i = 0; i < g_modules_size; ++i) {
 		std::string module_path;
 		void *handle = NULL;
-		
+
 		module_path.reserve(pathOBS.size() + strlen(g_modules[i]) + 1);
 		module_path.append(pathOBS);
 		module_path.append("/");
 		module_path.append(g_modules[i]);
 
 		#ifdef _WIN32
-			handle = LoadLibrary(module_path.c_str());
+			/* We assume that WCHAR is equivalent to wchar_t. Usually it is
+			 * but really, we should perhaps use native Windows functionality
+			 * to make sure it's happy. */
+			std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+			handle = LoadLibraryW(converter.from_bytes(module_path).c_str());
 		#endif
 
 		if (!handle) {
 			std::cerr << "Failed to open dependency " << module_path << std::endl;
 		}
 
-		/* This is an intentional leak. 
-		 * We leave these open and let the 
+		/* This is an intentional leak.
+		 * We leave these open and let the
 		 * OS clean these up for us as
 		 * they should be available through
 		 * out the application */
 	}
-	
+
 	/* We may now use obs functions */
 	if (args.Length() > 0 && args[0]->IsString()) {
 		String::Utf8Value _locale(args[0]);

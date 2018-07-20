@@ -1,5 +1,5 @@
 #include "nodeobs_module.h"
-#include <node.h>
+#include <nan.h>
 #include "nodeobs_api.h"
 #include "nodeobs_service.h"
 #include "nodeobs_content.h"
@@ -25,8 +25,8 @@ void replaceAll(std::string &str, const std::string &from,
 
 void SetWorkingDirectory(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
-	v8::String::Utf8Value param0(args[0]->ToString());
-	g_moduleDirectory = std::string(*param0);
+	Nan::Utf8String param0(args[0]);
+	g_moduleDirectory = *param0;
 	replaceAll(g_moduleDirectory, "\\", "/");
 }
 
