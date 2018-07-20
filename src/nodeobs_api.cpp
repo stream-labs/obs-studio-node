@@ -646,32 +646,46 @@ void OBS_API::destroyOBS_API(void) {
 #endif
 
 	obs_encoder_t* streamingEncoder = OBS_service::getStreamingEncoder();
-	if(streamingEncoder != NULL)
+	if(streamingEncoder != NULL) {
 		obs_encoder_release(streamingEncoder);
+		streamingEncoder = NULL;
+	}
 
 	obs_encoder_t* recordingEncoder = OBS_service::getRecordingEncoder();
-	if(recordingEncoder != NULL)
+	if(recordingEncoder != NULL) {
 		obs_encoder_release(recordingEncoder);
+		recordingEncoder = NULL;
+	}
 
 	obs_encoder_t* audioStreamingEncoder = OBS_service::getAudioStreamingEncoder();
-	if (audioStreamingEncoder != NULL)
+	if (audioStreamingEncoder != NULL) {
 		obs_encoder_release(audioStreamingEncoder);
+		audioStreamingEncoder = NULL;
+	}
 
 	obs_encoder_t* audioRecordingEncoder = OBS_service::getAudioRecordingEncoder();
-	if (audioRecordingEncoder != NULL)
+	if (audioRecordingEncoder != NULL) {
 		obs_encoder_release(audioRecordingEncoder);
+		audioRecordingEncoder = NULL;
+	}
 
 	obs_output_t* streamingOutput = OBS_service::getStreamingOutput();
-	if(streamingOutput != NULL)
+	if(streamingOutput != NULL) {
 		obs_output_release(streamingOutput);
+		streamingOutput = NULL;
+	}
 
 	obs_output_t* recordingOutput = OBS_service::getRecordingOutput();
-	if(recordingOutput != NULL)
+	if(recordingOutput != NULL) {
 		obs_output_release(recordingOutput);
+		recordingOutput = NULL;
+	}
 
 	obs_service_t* service = OBS_service::getService();
-	if(service != NULL)
+	if(service != NULL) {
 		obs_service_release(service);
+		service = NULL;
+	}
 
     obs_shutdown();
 
@@ -799,7 +813,7 @@ void OBS_API::openAllModules(void) {
 	}
 }
 
-Local<Object> OBS_API::getPerformanceStatistics(void) 
+Local<Object> OBS_API::getPerformanceStatistics(void)
 {
 	Isolate *isolate = v8::Isolate::GetCurrent();
 	Local<Object> statistics = Object::New(isolate);
@@ -827,7 +841,7 @@ double OBS_API::getCPU_Percentage(void)
 int OBS_API::getNumberOfDroppedFrames(void)
 {
 	obs_output_t* streamOutput = OBS_service::getStreamingOutput();
-	
+
 	int totalDropped = 0;
 
 	if(obs_output_active(streamOutput))
@@ -841,7 +855,7 @@ int OBS_API::getNumberOfDroppedFrames(void)
 double OBS_API::getDroppedFramesPercentage(void)
 {
 	obs_output_t* streamOutput = OBS_service::getStreamingOutput();
-	
+
 	double percent = 0;
 
 	if(obs_output_active(streamOutput))
