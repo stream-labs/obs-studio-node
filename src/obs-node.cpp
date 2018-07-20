@@ -5,7 +5,6 @@
 #include "Module.h"
 #include "Input.h"
 #include "Global.h"
-#include "Display.h"
 #include "Audio.h"
 #include "Video.h"
 #include "Scene.h"
@@ -31,7 +30,6 @@ NAN_MODULE_INIT(node_initialize)
     osn::AudioEncoder::Init(target);
     osn::Video::Init(target);
     osn::VideoEncoder::Init(target);
-    osn::Display::Init(target);
     osn::Module::Init(target);
     osn::Output::Init(target);
     osn::Service::Init(target);
