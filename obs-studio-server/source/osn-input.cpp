@@ -78,18 +78,18 @@ void osn::Input::Create(void* data, const int64_t id, const std::vector<ipc::val
 	std::string sourceId, name;
 	obs_data_t *settings = nullptr, *hotkeys = nullptr;
 
-	/*switch (args.size()) {
+	switch (args.size()) {
 		case 4:
-			hotkeys = obs_data_create_from_json(args[3].value_str.c_str());
+			// hotkeys = obs_data_create_from_json(args[3].value_str.c_str());
 		case 3:
-			settings = obs_data_create_from_json(args[2].value_str.c_str());
+			// settings = obs_data_create_from_json(args[2].value_str.c_str());/**/
 		case 2:
 			name = args[1].value_str;
 			sourceId = args[0].value_str;
 			break;
-	}*/
+	}
 
-	obs_source_t* source = obs_source_create(sourceId.c_str(), name.c_str(), settings, hotkeys);
+	obs_source_t* source = obs_source_create(sourceId.c_str(), name.c_str(), nullptr, nullptr);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to create input."));
