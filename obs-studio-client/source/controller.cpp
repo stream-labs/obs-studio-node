@@ -260,7 +260,7 @@ std::shared_ptr<ipc::client> Controller::connect(std::string uri) {
 	// Try and connect for 2 seconds.
 	std::shared_ptr<ipc::client> cl;
 	std::chrono::high_resolution_clock::time_point l_begin = std::chrono::high_resolution_clock::now();
-	while (is_process_alive(procId) && (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - l_begin).count() <= 2)) {
+	while (is_process_alive(procId) && (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - l_begin).count() <= 20)) {
 		try {
 			cl = std::make_shared<ipc::client>(uri);
 		} catch (...) {
