@@ -38,6 +38,10 @@ namespace osn {
 			static Manager& GetInstance();
 		};
 
+		static void source_create_cb(void* ptr, calldata_t* cd);
+		static void source_remove_cb(void* ptr, calldata_t* cd);
+		static void source_destroy_cb(void* ptr, calldata_t* cd);
+
 		public:
 		static void Register(ipc::server&);
 

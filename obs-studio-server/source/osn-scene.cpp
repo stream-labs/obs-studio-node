@@ -46,7 +46,7 @@ void osn::Scene::Create(void* data, const int64_t id, const std::vector<ipc::val
 		return;
 	}
 
-	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
+	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
 		rval.push_back(ipc::value("Index list is full."));

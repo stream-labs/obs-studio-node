@@ -97,7 +97,7 @@ void osn::Input::Create(void* data, const int64_t id, const std::vector<ipc::val
 		return;
 	}
 
-	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
+	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
 		// No further Ids left, leak somewhere.
 		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
@@ -132,7 +132,7 @@ void osn::Input::CreatePrivate(void* data, const int64_t id, const std::vector<i
 		return;
 	}
 
-	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
+	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
 		// No further Ids left, leak somewhere.
 		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
@@ -196,6 +196,8 @@ void osn::Input::FromName(void* data, const int64_t id, const std::vector<ipc::v
 		return;
 	}
 
+	blog(LOG_DEBUG, "FromName Called with %llx", source);
+
 	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
 		// This is an impossible case, but we handle it in case it happens.
@@ -208,6 +210,8 @@ void osn::Input::FromName(void* data, const int64_t id, const std::vector<ipc::v
 		AUTO_DEBUG;
 		return;
 	}
+
+	blog(LOG_DEBUG, "FromName Called with %llx, resulting id %llu", source, uid);
 
 	obs_source_release(source);
 

@@ -29,6 +29,33 @@
 #include "obs-property.hpp"
 #include "shared.hpp"
 
+void osn::Source::source_create_cb(void* ptr, calldata_t* cd) {
+	obs_source_t* source = nullptr;
+	if (!calldata_get_ptr(cd, "source", &source)) {
+		throw std::exception("calldata did not contain source pointer");
+	}
+
+	osn::Source::Manager::GetInstance().allocate(source);
+}
+
+void osn::Source::source_remove_cb(void* ptr, calldata_t* cd) {
+	//obs_source_t* source = nullptr;
+	//if (!calldata_get_ptr(cd, "source", &source)) {
+	//	throw std::exception("calldata did not contain source pointer");
+	//}
+
+	//osn::Source::Manager::GetInstance().free(source);
+}
+
+void osn::Source::source_destroy_cb(void* ptr, calldata_t* cd) {
+	obs_source_t* source = nullptr;
+	if (!calldata_get_ptr(cd, "source", &source)) {
+		throw std::exception("calldata did not contain source pointer");
+	}
+
+	osn::Source::Manager::GetInstance().free(source);
+}
+
 void osn::Source::Register(ipc::server& srv) {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Source");
 	cls->register_function(std::make_shared<ipc::function>("GetDefaults", std::vector<ipc::type>{ipc::type::String}, GetTypeDefaults));
@@ -87,7 +114,6 @@ void osn::Source::Remove(void* data, const int64_t id, const std::vector<ipc::va
 	}
 
 	obs_source_remove(src);
-	osn::Source::Manager::GetInstance().free(args[0].value_union.ui64);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -104,9 +130,6 @@ void osn::Source::Release(void* data, const int64_t id, const std::vector<ipc::v
 	}
 
 	obs_source_release(src);
-	if (obs_source_removed(src)) {
-		osn::Source::Manager::GetInstance().free(args[0].value_union.ui64);
-	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;

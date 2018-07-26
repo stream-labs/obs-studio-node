@@ -71,7 +71,7 @@ void osn::Transition::Create(void* data, const int64_t id, const std::vector<ipc
 		return;
 	}
 
-	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
+	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
 		// No further Ids left, leak somewhere.
 		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
@@ -106,7 +106,7 @@ void osn::Transition::CreatePrivate(void* data, const int64_t id, const std::vec
 		return;
 	}
 
-	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
+	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
 		// No further Ids left, leak somewhere.
 		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
