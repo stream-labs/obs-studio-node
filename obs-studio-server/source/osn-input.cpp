@@ -132,7 +132,7 @@ void osn::Input::CreatePrivate(void* data, const int64_t id, const std::vector<i
 		return;
 	}
 
-	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
+	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
 	if (uid == UINT64_MAX) {
 		// No further Ids left, leak somewhere.
 		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
@@ -140,6 +140,7 @@ void osn::Input::CreatePrivate(void* data, const int64_t id, const std::vector<i
 		AUTO_DEBUG;
 		return;
 	}
+	osn::Source::attach_source_signals(source);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));

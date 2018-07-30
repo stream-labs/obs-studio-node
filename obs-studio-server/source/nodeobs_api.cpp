@@ -500,12 +500,7 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 	// Well, simply because the hooks need to run as soon as possible. We don't
 	//  want to miss a single create or destroy signal OBS gives us for the
 	//  osn::Source::Manager.
-	{
-		signal_handler_t* sh = obs_get_signal_handler();
-		signal_handler_connect(sh, "source_create", osn::Source::source_create_cb, nullptr);
-		signal_handler_connect(sh, "source_remove", osn::Source::source_remove_cb, nullptr);
-		signal_handler_connect(sh, "source_destroy", osn::Source::source_destroy_cb, nullptr);
-	}
+	osn::Source::initialize_global_signals();
 	/* END INJECT osn::Source::Manager */
 
 	cpuUsageInfo = os_cpu_usage_info_start();
@@ -567,12 +562,7 @@ void OBS_API::OBS_API_destroyOBS_API(void* data, const int64_t id, const std::ve
 	// Well, simply because the hooks need to run as soon as possible. We don't
 	//  want to miss a single create or destroy signal OBS gives us for the
 	//  osn::Source::Manager.
-	{
-		signal_handler_t* sh = obs_get_signal_handler();
-		signal_handler_disconnect(sh, "source_create", osn::Source::source_create_cb, nullptr);
-		signal_handler_disconnect(sh, "source_remove", osn::Source::source_remove_cb, nullptr);
-		signal_handler_disconnect(sh, "source_destroy", osn::Source::source_destroy_cb, nullptr);
-	}
+	osn::Source::finalize_global_signals();
 	/* END INJECT osn::Source::Manager */
 	destroyOBS_API();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));

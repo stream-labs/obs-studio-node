@@ -29,22 +29,31 @@
 #include "obs-property.hpp"
 #include "shared.hpp"
 
-void osn::Source::source_create_cb(void* ptr, calldata_t* cd) {
+void osn::Source::initialize_global_signals() {
+	signal_handler_t* sh = obs_get_signal_handler();
+	signal_handler_connect(sh, "source_create", osn::Source::global_source_create_cb, nullptr);
+}
+
+void osn::Source::finalize_global_signals() {
+	signal_handler_t* sh = obs_get_signal_handler();
+	signal_handler_disconnect(sh, "source_create", osn::Source::global_source_create_cb, nullptr);
+}
+
+void osn::Source::global_source_create_cb(void* ptr, calldata_t* cd) {
 	obs_source_t* source = nullptr;
 	if (!calldata_get_ptr(cd, "source", &source)) {
 		throw std::exception("calldata did not contain source pointer");
 	}
 
 	osn::Source::Manager::GetInstance().allocate(source);
+	osn::Source::attach_source_signals(source);
 }
 
-void osn::Source::source_remove_cb(void* ptr, calldata_t* cd) {
-	//obs_source_t* source = nullptr;
-	//if (!calldata_get_ptr(cd, "source", &source)) {
-	//	throw std::exception("calldata did not contain source pointer");
-	//}
-
-	//osn::Source::Manager::GetInstance().free(source);
+void osn::Source::attach_source_signals(obs_source_t* src) {
+	signal_handler_t* sh = obs_source_get_signal_handler(src);
+	if (!sh)
+		return;
+	signal_handler_connect(sh, "destroy", osn::Source::source_destroy_cb, nullptr);
 }
 
 void osn::Source::source_destroy_cb(void* ptr, calldata_t* cd) {
