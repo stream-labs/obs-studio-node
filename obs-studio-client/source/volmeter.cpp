@@ -436,77 +436,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Detach(Nan::NAN_METHOD_ARGS_TYPE info
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::AddCallback(Nan::NAN_METHOD_ARGS_TYPE info) {
-	osn::VolMeter* self;
-	v8::Local<v8::Function> callback;
-
-	{
-		// Arguments
-		ASSERT_INFO_LENGTH(info, 1);
-		if (!Retrieve(info.This(), self)) {
-			return;
-		}
-
-		ASSERT_GET_VALUE(info[0], callback);
-	}
-	
-	{
-		// Grab IPC Connection
-		std::shared_ptr<ipc::client> conn = nullptr;
-		if (!(conn = GetConnection())) {
-			return;
-		}
-
-		// Send request
-		std::vector<ipc::value> rval = conn->call_synchronous_helper("VolMeter", "AddCallback", {
-			ipc::value(self->m_uid)
-			});
-		if (!ValidateResponse(rval)) {
-			return;
-		}
-
-		if (rval[0].value_union.ui64 != (uint64_t)ErrorCode::Ok) {
-			info.GetReturnValue().Set(Nan::Null());
-			return;
-		}
-	}
-
-	self->m_callback_function.Reset(callback);
-	self->start_async_runner();
-	self->set_keepalive(info.This());
-	self->start_worker();
-
 	info.GetReturnValue().Set(true);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info) {
-	osn::VolMeter* self;
-
-	{
-		ASSERT_INFO_LENGTH(info, 1);
-		if (!Retrieve(info.This(), self)) {
-			return;
-		}
-	}
-
-	self->stop_worker();
-	self->stop_async_runner();
-	self->m_callback_function.Reset();
-
-	// Grab IPC Connection
-	{
-		std::shared_ptr<ipc::client> conn = nullptr;
-		if (!(conn = GetConnection())) {
-			return;
-		}
-
-		// Send request
-		std::vector<ipc::value> rval = conn->call_synchronous_helper("VolMeter", "RemoveCallback", {
-			ipc::value(self->m_uid)
-			});
-		if (!ValidateResponse(rval)) {
-			return;
-		}
-	}	
-
 	info.GetReturnValue().Set(true);
 }
