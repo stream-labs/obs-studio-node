@@ -214,7 +214,7 @@ Nan::Persistent<v8::FunctionTemplate> ServiceCallback::prototype = Nan::Persiste
 static v8::Persistent<v8::Object> serviceCallbackObject;
 
 void service::OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	v8::Local<v8::Function> callback;
+	/*v8::Local<v8::Function> callback;
 	ASSERT_GET_VALUE(args[0], callback);
 
 	// Grab IPC Connection
@@ -242,7 +242,7 @@ void service::OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8
 	
 	v8::Local<v8::Object> obj = ServiceCallback::Store(cb_binding);
 	cb_binding->obj_ref.Reset(obj);
-	serviceCallbackObject.Reset(args.GetIsolate(), obj);
+	serviceCallbackObject.Reset(args.GetIsolate(), obj);*/
 }
 
 void Service::Callback(Service* service, SignalInfo* item) {
@@ -329,10 +329,10 @@ void Service::async_query() {
 
 void service::OBS_service_removeCallback(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	// Stop query thread
-	serviceObject->query_worker_close = true;
+	/*serviceObject->query_worker_close = true;
 	if (serviceObject->query_worker.joinable()) {
 		serviceObject->query_worker.join();
-	}
+	}*/
 }
 
 INITIALIZER(nodeobs_service) {
