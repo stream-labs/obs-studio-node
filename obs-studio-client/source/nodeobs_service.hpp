@@ -32,7 +32,7 @@ class Service : public Nan::ObjectWrap,
 
 	Service() {
 		query_worker_close = false;
-		// query_worker = std::thread(std::bind(&Service::async_query, this));
+		query_worker = std::thread(std::bind(&Service::async_query, this));
 	} ;
 	~Service() {
 		query_worker_close = true;
