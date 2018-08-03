@@ -13,7 +13,7 @@ struct SignalInfo {
 };
 
 class Service;
-typedef utilv8::CallbackData<SignalInfo, Service> ServiceCallback;
+typedef utilv8::managed_callback<std::shared_ptr<SignalInfo>> ServiceCallback;
 Service *serviceObject;
 
 class Service : public Nan::ObjectWrap,
@@ -23,28 +23,28 @@ class Service : public Nan::ObjectWrap,
 	friend utilv8::ManagedObject<Service>;
 	friend utilv8::CallbackData<SignalInfo, Service>;
 
-
-	public:
-	std::thread query_worker;
-	bool query_worker_close = false;
-	std::mutex query_lock;
 	uint32_t sleepIntervalMS = 33;
 
-	Service() {
-		query_worker_close = false;
-		query_worker = std::thread(std::bind(&Service::async_query, this));
-	} ;
-	~Service() {
-		query_worker_close = true;
-		if (query_worker.joinable())
-			query_worker.join();
-	};
-	void async_query();
+	public:
+	std::thread m_worker;
+	bool m_worker_stop = true;
+	std::mutex m_worker_lock;
+
+	ServiceCallback* m_async_callback = nullptr;
+	Nan::Callback m_callback_function;
+
+	Service();
+	~Service();
+
+	void start_async_runner();
+	void stop_async_runner();
+	void callback_handler(void* data, std::shared_ptr<SignalInfo> item);
+	void start_worker();
+	void stop_worker();
+	void worker();
+	void set_keepalive(v8::Local<v8::Object>);
+
 	std::list<ServiceCallback*> callbacks;
-	
-	
-	static void Callback(Service* volmeter, SignalInfo* item);
-	static Nan::Persistent<v8::FunctionTemplate> prototype;
 };
 
 namespace service {

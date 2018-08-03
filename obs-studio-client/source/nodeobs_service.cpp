@@ -9,6 +9,65 @@
 #include <sstream>
 #include <node.h>
 
+using namespace std::placeholders;
+
+Service::Service() {
+};
+
+Service::~Service() {
+};
+
+void Service::start_async_runner() {
+	if (m_async_callback)
+		return;
+	std::unique_lock<std::mutex> ul(m_worker_lock);
+	// Start v8/uv asynchronous runner.
+	m_async_callback = new ServiceCallback();
+	m_async_callback->set_handler(std::bind(&Service::callback_handler, this, _1, _2), nullptr);
+}
+void Service::stop_async_runner() {
+	if (!m_async_callback)
+		return;
+	std::unique_lock<std::mutex> ul(m_worker_lock);
+	// Stop v8/uv asynchronous runner.
+	m_async_callback->clear();
+	m_async_callback->finalize();
+	m_async_callback = nullptr;
+}
+
+void Service::callback_handler(void* data, std::shared_ptr<SignalInfo> item) {
+	v8::Isolate *isolate = v8::Isolate::GetCurrent();
+	v8::Local<v8::Value> args[1];
+
+	v8::Local<v8::Value> argv = v8::Object::New(isolate);
+	argv->ToObject()->Set(v8::String::NewFromUtf8(isolate, "type"),
+		v8::String::NewFromUtf8(isolate, item->outputType.c_str()));
+	argv->ToObject()->Set(v8::String::NewFromUtf8(isolate,
+		"signal"), v8::String::NewFromUtf8(isolate, item->signal.c_str()));
+	argv->ToObject()->Set(v8::String::NewFromUtf8(isolate,
+		"code"), v8::Number::New(isolate, item->code));
+	argv->ToObject()->Set(v8::String::NewFromUtf8(isolate,
+		"error"), v8::String::NewFromUtf8(isolate, item->errorMessage.c_str()));
+	args[0] = argv;
+
+	Nan::Call(m_callback_function, 1, args);
+}
+void Service::start_worker() {
+	if (!m_worker_stop)
+		return;
+	// Launch worker thread.
+	m_worker_stop = false;
+	m_worker = std::thread(std::bind(&Service::worker, this));
+}
+void Service::stop_worker() {
+	if (m_worker_stop != false)
+		return;
+	// Stop worker thread.
+	m_worker_stop = true;
+	if (m_worker.joinable()) {
+		m_worker.join();
+	}
+}
 
 void service::OBS_service_resetAudioContext(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	auto conn = GetConnection();
@@ -210,7 +269,6 @@ void service::OBS_service_setRecordingSettings(const v8::FunctionCallbackInfo<v8
 	ValidateResponse(response);
 	}
 
-Nan::Persistent<v8::FunctionTemplate> ServiceCallback::prototype = Nan::Persistent<v8::FunctionTemplate>();
 static v8::Persistent<v8::Object> serviceCallbackObject;
 
 void service::OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -236,16 +294,16 @@ void service::OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8
 	}
 	
 	// Callback
-	ServiceCallback *cb_binding = new ServiceCallback(serviceObject, Service::Callback, callback, 20);
-	serviceObject->callbacks.clear();
-	serviceObject->callbacks.push_back(cb_binding);
-	
-	v8::Local<v8::Object> obj = ServiceCallback::Store(cb_binding);
-	cb_binding->obj_ref.Reset(obj);
-	serviceCallbackObject.Reset(args.GetIsolate(), obj);
+
+	serviceObject = new Service();
+	serviceObject->m_callback_function.Reset(callback);
+	serviceObject->start_async_runner();
+	serviceObject->set_keepalive(args.This());
+	serviceObject->start_worker();
+	args.GetReturnValue().Set(true);
 }
 
-void Service::Callback(Service* service, SignalInfo* item) {
+/*void Service::Callback(Service* service, SignalInfo* item) {
 	if (!item) {
 		return;
 	}
@@ -254,7 +312,6 @@ void Service::Callback(Service* service, SignalInfo* item) {
 		return;
 	}
 
-	/* We're in v8 context here */
 	ServiceCallback *cb_binding = reinterpret_cast<ServiceCallback*>(item->param);
 	if (!cb_binding) {
 		delete item;
@@ -282,12 +339,12 @@ void Service::Callback(Service* service, SignalInfo* item) {
 
 	delete item;
 	Nan::Call(cb_binding->cb, 1, args);
-}
+}*/
 
-void Service::async_query() {
+void Service::worker() {
 	size_t totalSleepMS = 0;
 
-	while (!query_worker_close) {
+	while (!m_worker_stop) {
 		auto tp_start = std::chrono::high_resolution_clock::now();
 
 		// Validate Connection
@@ -306,15 +363,15 @@ void Service::async_query() {
 				
 			ErrorCode error = (ErrorCode)response[0].value_union.ui64;
 			if (error == ErrorCode::Ok) {
-				for (auto cb : callbacks) {
-					SignalInfo* data = new SignalInfo();
-					data->outputType = response[1].value_str;
-					data->signal = response[2].value_str;
-					data->code = response[3].value_union.i32;
-					data->errorMessage = response[4].value_str;
-					data->param = cb;
-					cb->queue.send(data);
-				}
+				std::shared_ptr<SignalInfo> data = std::make_shared<SignalInfo>();
+				
+				data->outputType = response[1].value_str;
+				data->signal = response[2].value_str;
+				data->code = response[3].value_union.i32;
+				data->errorMessage = response[4].value_str;
+				data->param = this;
+				
+				m_async_callback->queue(std::move(data));
 			}
 		}
 
@@ -327,12 +384,15 @@ void Service::async_query() {
 	return;
 }
 
+void Service::set_keepalive(v8::Local<v8::Object> obj) {
+	if (!m_async_callback)
+		return;
+	m_async_callback->set_keepalive(obj);
+}
+
 void service::OBS_service_removeCallback(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	// Stop query thread
-	serviceObject->query_worker_close = true;
-	if (serviceObject->query_worker.joinable()) {
-		serviceObject->query_worker.join();
-	}
+	serviceObject->stop_async_runner();
+	serviceObject->stop_worker();
 }
 
 INITIALIZER(nodeobs_service) {
@@ -399,9 +459,5 @@ INITIALIZER(nodeobs_service) {
 
 		NODE_SET_METHOD(exports, "OBS_service_removeCallback",
 			service::OBS_service_removeCallback);
-
-		serviceObject = new Service();
-
-		ServiceCallback::Init(exports);
 	});
 }
