@@ -10,13 +10,15 @@ environment:
   matrix:
     - RuntimeURL: https://atom.io/download/atom-shell
       RuntimeName: iojs
-      RuntimeVersion: v2.0.4
+      RuntimeVersion: v2.0.6
+      ElectronVersion: "2.0.6"
     - RuntimeURL: https://nodejs.org/download/release
       RuntimeName: node
       RuntimeVersion: v9.4.0
     - RuntimeURL: https://atom.io/download/atom-shell
       RuntimeName: iojs
-      RuntimeVersion: v3.0.0-beta.1
+      RuntimeVersion: v3.0.0-beta.4
+      ElectronVersion: "3.0.0-beta.4"
   NodeVersion: 9
   SLBuildDirectory: streamlabs-build
   SLGenerator: Visual Studio 14 2015 Win64
@@ -32,15 +34,28 @@ environment:
   SignedArtifact: $(RuntimeName)-$(RuntimeVersion)-signed
 
 install:
-  - ps: Install-Product node $env:NodeVersion
+  - ps: Install-Product node $env:NodeVersion x64
   - yarn install
   - git submodule init
   - git submodule update --init --force --recursive
 
+before_build:
+  - cmake -H. -B"%SLBuildDirectory%" -G"%SLGenerator%" -T"host=%SLArch%" -DNODEJS_BUILD=TRUE -DNODEJS_URL="%RuntimeURL%" -DNODEJS_NAME="%RuntimeName%" -DNODEJS_VERSION="%RuntimeVersion%" -DCMAKE_INSTALL_PREFIX="%SLFullDistributePath%\obs-studio-node" -DCMAKE_SYSTEM_VERSION=10.0.17134.0 -Dlib-datalane_BUILD_TESTS=FALSE -Dlib-datalane_BUILD_SAMPLES=false -Dlib-datalane_BUILD_STATIC=true -Dlib-streamlabs-ipc_BUILD_TESTS=false
+
 build_script:
-  - cmake -H. -B"%SLBuildDirectory%" -G"%SLGenerator%" -T"host=%SLArch%" -DNODEJS_BUILD=TRUE -DNODEJS_URL="%RuntimeURL%" -DNODEJS_NAME="%RuntimeName%" -DNODEJS_VERSION="%RuntimeVersion%" -DCMAKE_INSTALL_PREFIX="%SLFullDistributePath%\obs-studio-node" -DCMAKE_SYSTEM_VERSION=10.0.17134.0
   - cmake --build %SLBuildDirectory% --target install --config RelWithDebInfo
+
+after_build:  
   - tar cvaf "%UnsignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
+
+test: off
+
+test_script:
+  - ps: |
+      if ($Env:RuntimeName -eq "iojs") {
+        npm install -g electron@$Env:ElectronVersion
+        .\ci\appveyor-test-runner.ps1
+      }
 
 before_deploy:
   - nuget install secure-file -ExcludeVersion
@@ -75,5 +90,3 @@ deploy:
 artifacts:
   - path: $(UnsignedArtifact).tar.gz
     name: Unsigned Aritfact
-
-test: off
