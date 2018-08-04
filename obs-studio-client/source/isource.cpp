@@ -117,187 +117,133 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 		return;
 	}
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
+	auto conn = GetConnection();
+	if (!conn) return;
 
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Source", "GetProperties", {ipc::value(hndl->sourceId)});
 
-		osn::property_map_t obj;
-	} rtd;
+	if (!ValidateResponse(response)) return;
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
+	// Parse the massive structure of properties we were just sent.
+	osn::property_map_t pmap;
+	for (size_t idx = 1; idx < response.size(); ++idx) {
+		// !FIXME! Use the already existing obs::Property object instead of copying data.
+		auto raw_property = obs::Property::deserialize(response[idx].value_bin);
 
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
+		std::shared_ptr<osn::Property> pr;
+
+		switch (raw_property->type()) {
+		case obs::Property::Type::Integer: {
+			std::shared_ptr<obs::IntegerProperty> cast_property = std::dynamic_pointer_cast<obs::IntegerProperty>(raw_property);
+			std::shared_ptr<osn::NumberProperty> pr2 = std::make_shared<osn::NumberProperty>();
+			pr2->field_type = osn::NumberProperty::Type(cast_property->field_type);
+			pr2->int_value.min = cast_property->minimum;
+			pr2->int_value.max = cast_property->maximum;
+			pr2->int_value.step = cast_property->step;
+			pr = std::static_pointer_cast<osn::Property>(pr2);
+			break;
 		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
+		case obs::Property::Type::Float: {
+			std::shared_ptr<obs::FloatProperty> cast_property = std::dynamic_pointer_cast<obs::FloatProperty>(raw_property);
+			std::shared_ptr<osn::NumberProperty> pr2 = std::make_shared<osn::NumberProperty>();
+			pr2->field_type = osn::NumberProperty::Type(cast_property->field_type);
+			pr2->float_value.min = cast_property->minimum;
+			pr2->float_value.max = cast_property->maximum;
+			pr2->float_value.step = cast_property->step;
+			pr = std::static_pointer_cast<osn::Property>(pr2);
+			break;
 		}
-
-		// Parse the massive structure of properties we were just sent.
-		osn::property_map_t pmap;
-		for (size_t idx = 1; idx < rval.size(); ++idx) {
-			// !FIXME! Use the already existing obs::Property object instead of copying data.
-			auto raw_property = obs::Property::deserialize(rval[idx].value_bin);
-
-			std::shared_ptr<osn::Property> pr;
-
-			switch (raw_property->type()) {
-				case obs::Property::Type::Integer: {
-					std::shared_ptr<obs::IntegerProperty> cast_property = std::dynamic_pointer_cast<obs::IntegerProperty>(raw_property);
-					std::shared_ptr<osn::NumberProperty> pr2 = std::make_shared<osn::NumberProperty>();
-					pr2->field_type = osn::NumberProperty::Type(cast_property->field_type);
-					pr2->int_value.min = cast_property->minimum;
-					pr2->int_value.max = cast_property->maximum;
-					pr2->int_value.step = cast_property->step;
-					pr = std::static_pointer_cast<osn::Property>(pr2);
+		case obs::Property::Type::Text: {
+			std::shared_ptr<obs::TextProperty> cast_property = std::dynamic_pointer_cast<obs::TextProperty>(raw_property);
+			std::shared_ptr<osn::TextProperty> pr2 = std::make_shared<osn::TextProperty>();
+			pr2->field_type = osn::TextProperty::Type(cast_property->field_type);
+			pr = std::static_pointer_cast<osn::Property>(pr2);
+			break;
+		}
+		case obs::Property::Type::Path: {
+			std::shared_ptr<obs::PathProperty> cast_property = std::dynamic_pointer_cast<obs::PathProperty>(raw_property);
+			std::shared_ptr<osn::PathProperty> pr2 = std::make_shared<osn::PathProperty>();
+			pr2->field_type = osn::PathProperty::Type(cast_property->field_type);
+			pr2->filter = cast_property->filter;
+			pr2->default_path = cast_property->default_path;
+			pr = std::static_pointer_cast<osn::Property>(pr2);
+			break;
+		}
+		case obs::Property::Type::List: {
+			std::shared_ptr<obs::ListProperty> cast_property = std::dynamic_pointer_cast<obs::ListProperty>(raw_property);
+			std::shared_ptr<osn::ListProperty> pr2 = std::make_shared<osn::ListProperty>();
+			pr2->field_type = osn::ListProperty::Type(cast_property->field_type);
+			pr2->item_format = osn::ListProperty::Format(cast_property->format);
+			for (auto& item : cast_property->items) {
+				osn::ListProperty::Item item2;
+				item2.name = item.name;
+				item2.disabled = !item.enabled;
+				switch (cast_property->format) {
+				case obs::ListProperty::Format::Integer:
+					item2.value_int = item.value_int;
+					break;
+				case obs::ListProperty::Format::Float:
+					item2.value_float = item.value_float;
+					break;
+				case obs::ListProperty::Format::String:
+					item2.value_str = item.value_string;
 					break;
 				}
-				case obs::Property::Type::Float: {
-					std::shared_ptr<obs::FloatProperty> cast_property = std::dynamic_pointer_cast<obs::FloatProperty>(raw_property);
-					std::shared_ptr<osn::NumberProperty> pr2 = std::make_shared<osn::NumberProperty>();
-					pr2->field_type = osn::NumberProperty::Type(cast_property->field_type);
-					pr2->float_value.min = cast_property->minimum;
-					pr2->float_value.max = cast_property->maximum;
-					pr2->float_value.step = cast_property->step;
-					pr = std::static_pointer_cast<osn::Property>(pr2);
-					break;
-				}
-				case obs::Property::Type::Text: {
-					std::shared_ptr<obs::TextProperty> cast_property = std::dynamic_pointer_cast<obs::TextProperty>(raw_property);
-					std::shared_ptr<osn::TextProperty> pr2 = std::make_shared<osn::TextProperty>();
-					pr2->field_type = osn::TextProperty::Type(cast_property->field_type);
-					pr = std::static_pointer_cast<osn::Property>(pr2);
-					break;
-				}
-				case obs::Property::Type::Path: {
-					std::shared_ptr<obs::PathProperty> cast_property = std::dynamic_pointer_cast<obs::PathProperty>(raw_property);
-					std::shared_ptr<osn::PathProperty> pr2 = std::make_shared<osn::PathProperty>();
-					pr2->field_type = osn::PathProperty::Type(cast_property->field_type);
-					pr2->filter = cast_property->filter;
-					pr2->default_path = cast_property->default_path;
-					pr = std::static_pointer_cast<osn::Property>(pr2);
-					break;
-				}
-				case obs::Property::Type::List: {
-					std::shared_ptr<obs::ListProperty> cast_property = std::dynamic_pointer_cast<obs::ListProperty>(raw_property);
-					std::shared_ptr<osn::ListProperty> pr2 = std::make_shared<osn::ListProperty>();
-					pr2->field_type = osn::ListProperty::Type(cast_property->field_type);
-					pr2->item_format = osn::ListProperty::Format(cast_property->format);
-					for (auto& item : cast_property->items) {
-						osn::ListProperty::Item item2;
-						item2.name = item.name;
-						item2.disabled = !item.enabled;
-						switch (cast_property->format) {
-							case obs::ListProperty::Format::Integer:
-								item2.value_int = item.value_int;
-								break;
-							case obs::ListProperty::Format::Float:
-								item2.value_float = item.value_float;
-								break;
-							case obs::ListProperty::Format::String:
-								item2.value_str = item.value_string;
-								break;
-						}
-						pr2->items.push_back(std::move(item2));
-					}
-					pr = std::static_pointer_cast<osn::Property>(pr2);
-					break;
-				}
-				case obs::Property::Type::EditableList: {
-					std::shared_ptr<obs::EditableListProperty> cast_property = std::dynamic_pointer_cast<obs::EditableListProperty>(raw_property);
-					std::shared_ptr<osn::EditableListProperty> pr2 = std::make_shared<osn::EditableListProperty>();
-					pr2->field_type = osn::EditableListProperty::Type(cast_property->field_type);
-					pr2->filter = cast_property->filter;
-					pr2->default_path = cast_property->default_path;
-					pr = std::static_pointer_cast<osn::Property>(pr2);
-					break;
-				}
-				case obs::Property::Type::FrameRate: {
-					std::shared_ptr<obs::FrameRateProperty> cast_property = std::dynamic_pointer_cast<obs::FrameRateProperty>(raw_property);
-					std::shared_ptr<osn::FrameRateProperty> pr2 = std::make_shared<osn::FrameRateProperty>();
-					for (auto& option : cast_property->ranges) {
-						std::pair<osn::FrameRateProperty::FrameRate, osn::FrameRateProperty::FrameRate> range2;
-						range2.first.numerator = option.minimum.first;
-						range2.first.denominator = option.minimum.second;
-						range2.second.numerator = option.maximum.first;
-						range2.second.denominator = option.maximum.second;
-						pr2->ranges.push_back(std::move(range2));
-					}
-					for (auto& option : cast_property->options) {
-						osn::FrameRateProperty::Option option2;
-						option2.name = option.name;
-						option2.description = option.description;
-						pr2->options.push_back(std::move(option2));
-					}
-
-					break;
-				}
-				default: {
-					pr = std::make_shared<osn::Property>();
-					break;
-				}
+				pr2->items.push_back(std::move(item2));
+			}
+			pr = std::static_pointer_cast<osn::Property>(pr2);
+			break;
+		}
+		case obs::Property::Type::EditableList: {
+			std::shared_ptr<obs::EditableListProperty> cast_property = std::dynamic_pointer_cast<obs::EditableListProperty>(raw_property);
+			std::shared_ptr<osn::EditableListProperty> pr2 = std::make_shared<osn::EditableListProperty>();
+			pr2->field_type = osn::EditableListProperty::Type(cast_property->field_type);
+			pr2->filter = cast_property->filter;
+			pr2->default_path = cast_property->default_path;
+			pr = std::static_pointer_cast<osn::Property>(pr2);
+			break;
+		}
+		case obs::Property::Type::FrameRate: {
+			std::shared_ptr<obs::FrameRateProperty> cast_property = std::dynamic_pointer_cast<obs::FrameRateProperty>(raw_property);
+			std::shared_ptr<osn::FrameRateProperty> pr2 = std::make_shared<osn::FrameRateProperty>();
+			for (auto& option : cast_property->ranges) {
+				std::pair<osn::FrameRateProperty::FrameRate, osn::FrameRateProperty::FrameRate> range2;
+				range2.first.numerator = option.minimum.first;
+				range2.first.denominator = option.minimum.second;
+				range2.second.numerator = option.maximum.first;
+				range2.second.denominator = option.maximum.second;
+				pr2->ranges.push_back(std::move(range2));
+			}
+			for (auto& option : cast_property->options) {
+				osn::FrameRateProperty::Option option2;
+				option2.name = option.name;
+				option2.description = option.description;
+				pr2->options.push_back(std::move(option2));
 			}
 
-			if (pr) {
-				pr->name = raw_property->name;
-				pr->description = raw_property->description;
-				pr->long_description = raw_property->long_description;
-				pr->type = osn::Property::Type(raw_property->type());
-				pr->enabled = raw_property->enabled;
-				pr->visible = raw_property->visible;
-
-				pmap.insert_or_assign(idx - 1, pr);
-			}
+			break;
+		}
+		default: {
+			pr = std::make_shared<osn::Property>();
+			break;
+		}
 		}
 
-		rtd->obj = std::move(pmap);
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
+		if (pr) {
+			pr->name = raw_property->name;
+			pr->description = raw_property->description;
+			pr->long_description = raw_property->long_description;
+			pr->type = osn::Property::Type(raw_property->type());
+			pr->enabled = raw_property->enabled;
+			pr->visible = raw_property->visible;
 
-	bool suc = Controller::GetInstance().GetConnection()->call("Source", "GetProperties",
-		std::vector<ipc::value>{ipc::value(hndl->sourceId)}, fnc, &rtd);
-	if (!suc) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		} else {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
+			pmap.emplace(idx - 1, pr);
 		}
-		return;
 	}
 
-	osn::Properties* props = new osn::Properties(std::move(rtd.obj), info.This());
+	// obj = std::move(pmap);
+	osn::Properties* props = new osn::Properties(std::move(pmap), info.This());
 	info.GetReturnValue().Set(osn::Properties::Store(props));
 	return;
 }
