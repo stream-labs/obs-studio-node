@@ -7,22 +7,22 @@ export declare const DefaultPluginPath: string;
 export declare const DefaultPluginDataPath: string;
 export declare const enum ESourceFlags {
     Unbuffered = 1,
-    ForceMono = 2,
+    ForceMono = 2
 }
 export declare const enum EMonitoringType {
     None = 0,
     MonitoringOnly = 1,
-    MonitoringAndOutput = 2,
+    MonitoringAndOutput = 2
 }
 export declare const enum EOrderMovement {
     Up = 0,
     Down = 1,
     Top = 2,
-    Bottom = 3,
+    Bottom = 3
 }
 export declare const enum EDeinterlaceFieldOrder {
     Top = 0,
-    Bottom = 1,
+    Bottom = 1
 }
 export declare const enum EDeinterlaceMode {
     Disable = 0,
@@ -33,13 +33,13 @@ export declare const enum EDeinterlaceMode {
     Linear = 5,
     Linear2X = 6,
     Yadif = 7,
-    Yadif2X = 8,
+    Yadif2X = 8
 }
 export declare const enum EFontStyle {
     Bold = 1,
     Italic = 2,
     Underline = 4,
-    Strikeout = 8,
+    Strikeout = 8
 }
 export declare const enum EPropertyType {
     Invalid = 0,
@@ -53,32 +53,32 @@ export declare const enum EPropertyType {
     Button = 8,
     Font = 9,
     EditableList = 10,
-    FrameRate = 11,
+    FrameRate = 11
 }
 export declare const enum EListFormat {
     Invalid = 0,
     Int = 1,
     Float = 2,
-    String = 3,
+    String = 3
 }
 export declare const enum EEditableListType {
     Strings = 0,
     Files = 1,
-    FilesAndUrls = 2,
+    FilesAndUrls = 2
 }
 export declare const enum EPathType {
     File = 0,
     FileSave = 1,
-    Directory = 2,
+    Directory = 2
 }
 export declare const enum ETextType {
     Default = 0,
     Password = 1,
-    Multiline = 2,
+    Multiline = 2
 }
 export declare const enum ENumberType {
     Scroller = 0,
-    Slider = 1,
+    Slider = 1
 }
 export declare const enum EAlignment {
     Center = 0,
@@ -89,7 +89,7 @@ export declare const enum EAlignment {
     TopLeft = 5,
     TopRight = 6,
     BottomLeft = 9,
-    BottomRight = 10,
+    BottomRight = 10
 }
 export declare const enum EOutputFlags {
     Video = 1,
@@ -97,7 +97,7 @@ export declare const enum EOutputFlags {
     AV = 3,
     Encoded = 4,
     Service = 8,
-    MultiTrack = 16,
+    MultiTrack = 16
 }
 export declare const enum ESourceOutputFlags {
     Video = 1,
@@ -109,28 +109,28 @@ export declare const enum ESourceOutputFlags {
     Composite = 64,
     DoNotDuplicate = 128,
     Deprecated = 256,
-    DoNotSelfMonitor = 512,
+    DoNotSelfMonitor = 512
 }
 export declare const enum ESceneDupType {
     Refs = 0,
     Copy = 1,
     PrivateRefs = 2,
-    PrivateCopy = 3,
+    PrivateCopy = 3
 }
 export declare const enum ESourceType {
     Input = 0,
     Filter = 1,
     Transition = 2,
-    Scene = 3,
+    Scene = 3
 }
 export declare const enum EEncoderType {
     Audio = 0,
-    Video = 1,
+    Video = 1
 }
 export declare const enum EFaderType {
     Cubic = 0,
     IEC = 1,
-    Log = 2,
+    Log = 2
 }
 export declare const enum EColorFormat {
     Unknown = 0,
@@ -150,26 +150,26 @@ export declare const enum EColorFormat {
     R32F = 14,
     DXT1 = 15,
     DXT3 = 16,
-    DXT5 = 17,
+    DXT5 = 17
 }
 export declare const enum EZStencilFormat {
     None = 0,
     Z16 = 1,
     Z24_S8 = 2,
     Z32F = 3,
-    Z32F_S8X24 = 4,
+    Z32F_S8X24 = 4
 }
 export declare const enum EScaleType {
     Default = 0,
     Point = 1,
     FastBilinear = 2,
     Bilinear = 3,
-    Bicubic = 4,
+    Bicubic = 4
 }
 export declare const enum ERangeType {
     Default = 0,
     Partial = 1,
-    Full = 2,
+    Full = 2
 }
 export declare const enum EVideoFormat {
     None = 0,
@@ -182,7 +182,7 @@ export declare const enum EVideoFormat {
     BGRA = 7,
     BGRX = 8,
     Y800 = 9,
-    I444 = 10,
+    I444 = 10
 }
 export declare const enum EBoundsType {
     None = 0,
@@ -191,12 +191,12 @@ export declare const enum EBoundsType {
     ScaleOuter = 3,
     ScaleToWidth = 4,
     ScaleToHeight = 5,
-    MaxOnly = 6,
+    MaxOnly = 6
 }
 export declare const enum EColorSpace {
     Default = 0,
     CS601 = 1,
-    CS709 = 2,
+    CS709 = 2
 }
 export declare const enum ESpeakerLayout {
     Unknown = 0,
@@ -209,7 +209,7 @@ export declare const enum ESpeakerLayout {
     FiveOneSurround = 7,
     SevenOne = 8,
     SevenOneSurround = 9,
-    Surround = 10,
+    Surround = 10
 }
 export declare const enum ESceneSignalType {
     ItemAdd = 0,
@@ -218,7 +218,7 @@ export declare const enum ESceneSignalType {
     ItemVisible = 3,
     ItemSelect = 4,
     ItemDeselect = 5,
-    ItemTransform = 6,
+    ItemTransform = 6
 }
 export declare const enum EOutputCode {
     Success = 0,
@@ -228,7 +228,7 @@ export declare const enum EOutputCode {
     Error = -4,
     Disconnected = -5,
     Unsupported = -6,
-    NoSpace = -7,
+    NoSpace = -7
 }
 export declare const Global: IGlobal;
 export declare const OutputFactory: IOutputFactory;
@@ -245,6 +245,7 @@ export declare const FaderFactory: IFaderFactory;
 export declare const AudioFactory: IAudioFactory;
 export declare const VideoFactory: IVideoFactory;
 export declare const ModuleFactory: IModuleFactory;
+export declare const IPC: IIPC;
 export interface ISettings {
     [key: string]: any;
 }
@@ -296,7 +297,7 @@ export interface IDisplayInit {
     format: EColorFormat;
     zsformat: EZStencilFormat;
 }
-export interface IPC {
+export interface IIPC {
     setServerPath(binaryPath: string, workingDirectoryPath?: string): void;
     connect(uri: string): void;
     host(uri: string): void;
@@ -450,7 +451,7 @@ export interface IOutputFactory extends IFactoryTypes {
     fromName(name: string): IOutput;
 }
 export declare enum EDelayFlags {
-    PreserveDelay = 1,
+    PreserveDelay = 1
 }
 export interface IServiceFactory extends IFactoryTypes {
     create(id: string, name: string, settings?: ISettings, hotkeys?: ISettings): IService;
@@ -489,12 +490,12 @@ export declare const enum EInteractionFlags {
     Numlock_Key = 256,
     IsKeyPad = 512,
     IsLeft = 1024,
-    IsRight = 2048,
+    IsRight = 2048
 }
 export declare const enum EMouseButtonType {
     Left = 0,
     Middle = 1,
-    Right = 2,
+    Right = 2
 }
 export interface IMouseEvent {
     modifiers: EInteractionFlags;
@@ -525,6 +526,7 @@ export interface IInput extends ISource {
     sendMouseWheel(eventData: IMouseEvent, x_delta: number, y_delta: number): void;
     sendFocus(focus: boolean): void;
     sendKeyClick(eventData: IKeyEvent, keyUp: boolean): void;
+    setFilterOrder(filter: IFilter, movement: EOrderMovement): void;
     setFilterOrder(filter: IFilter, movement: EOrderMovement): void;
     readonly filters: IFilter[];
     readonly width: number;

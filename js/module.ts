@@ -317,6 +317,7 @@ export const FaderFactory: IFaderFactory = obs.Fader;
 export const AudioFactory: IAudioFactory = obs.Audio;
 export const VideoFactory: IVideoFactory = obs.Video;
 export const ModuleFactory: IModuleFactory = obs.Module;
+export const IPC: IIPC = obs.IPC;
 
 /**
  * Meta object in order to better describe settings
@@ -398,7 +399,7 @@ export interface IDisplayInit {
  * Namespace representing the global libobs functionality
  */
 
-export interface IPC {
+export interface IIPC {
     /**
      * Set the path and optionally working directory for the IPC server binary.
      * @param binaryPath - Path to the binary file to be executed

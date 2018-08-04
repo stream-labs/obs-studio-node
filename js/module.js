@@ -25,6 +25,7 @@ exports.FaderFactory = obs.Fader;
 exports.AudioFactory = obs.Audio;
 exports.VideoFactory = obs.Video;
 exports.ModuleFactory = obs.Module;
+exports.IPC = obs.IPC;
 var EDelayFlags;
 (function (EDelayFlags) {
     EDelayFlags[EDelayFlags["PreserveDelay"] = 1] = "PreserveDelay";
