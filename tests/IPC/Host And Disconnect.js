@@ -26,10 +26,17 @@ self.test = function(resolve, reject) {
 			obs.IPC.connect("osn-test");
 		} catch (e) {
 			resolve(true);
+			return;
 		}
 		
 		console.error("Successfully reconnected to server, which should have been closed.")
-		obs.IPC.disconnect();
+		try {
+			console.log("Disconnecting...");
+			obs.IPC.disconnect();
+		} catch (e) {
+			console.error("Failed to disconnect, exception: ", e);
+			resolve(false);
+		}
 		resolve(false);
 	}, 1000);
 }
