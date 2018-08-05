@@ -1591,7 +1591,9 @@ export function getSourcesSize(sourcesNames: string[]): ISourceSize[] {
     if (Array.isArray(sourcesNames)) {
         sourcesNames.forEach(function (sourceName) {
             const ObsInput = obs.Input.fromName(sourceName);
-            sourcesSize.push({ name: sourceName, height: ObsInput.height, width: ObsInput.width, outputFlags: ObsInput.outputFlags });
+            if(ObsInput) {
+                sourcesSize.push({ name: sourceName, height: ObsInput.height, width: ObsInput.width, outputFlags: ObsInput.outputFlags });
+            }
         });
     }
     return sourcesSize;
