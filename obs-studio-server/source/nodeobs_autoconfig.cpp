@@ -327,25 +327,8 @@ void autoConfig::StopThread(void)
 
 void autoConfig::InitializeAutoConfig(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-	std::string continent = args[0].value_str;;
-	serviceName = args[1].value_str;
-
-	if(continent.compare("undefined") == 0) {
-
-		if (serviceName.compare("undefined") == 0)
-			serviceName = "";
-
-		if (serverName.compare("undefined") == 0)
-			serverName = "";
-
-		if (server.compare("undefined") == 0)
-			server = "";
-	} else {
-		if (serviceName.compare("Twitch") == 0) {
-			serverName = "Auto (Recommended)";
-			server = "rtmp://live.twitch.tv/app";
-		}
-	}
+	serverName = "Auto (Recommended)";
+	server = "rtmp://live.twitch.tv/app";
 
 	cancel = false;
 
