@@ -105,12 +105,13 @@ class Test
 		$safe_error = ""
 		$rcode = $true
 		$timeout = $false
-		$timeouted = $null
+		$timeouted = $null		
+		$fit = $it + 1
 		
-		Write-Host -NoNewline ("    Try {0}... " -f ($it + 1))
+		Write-Host -NoNewline ("    Try {0}... " -f $fit)
 		
-		$this.AppendStdOut(("-- Iteration {0} running --`n" -f $it))
-		$this.AppendStdErr(("-- Iteration {0} running --`n" -f $it))
+		$this.AppendStdOut(("> Output log for #{0}:`n" -f $fit))
+		$this.AppendStdErr(("> Error log for #{0}:`n" -f $fit))
 		
 		$bin = ""
 		if ($Env:RuntimeName -eq "iojs") {
@@ -150,6 +151,9 @@ class Test
 		}
 		$this.AppendStdOut($safe_output)
 		$this.AppendStdErr($safe_error)
+		
+		$this.AppendStdOut(("> Output log for #{0} complete.`n`n" -f $fit))
+		$this.AppendStdErr(("> Error log for #{0} complete.`n`n" -f $fit))
 
 		if ($timeout -eq $true) {
 			Write-Host "Timed Out"
