@@ -24,6 +24,7 @@
 #include <vector>
 #include <list>
 #include <map>
+#include <functional>
 #include "utility.hpp"
 
 #define FIELD_NAME(name) \
@@ -616,4 +617,103 @@ namespace utilv8 {
 	};
 #pragma endregion Callback
 
+	// Template class for asynchronous v8 Callbacks
+	// 
+	// A relatively simple to use wrapper around the libuv asynchronous call-
+	//  back system. It is self-cleaning in order to not crash in the event that
+	//  there are still events queued in the v8 engine. This means that calling
+	//  'delete' or using smart pointers will lead to undefined behavior.
+	//  
+	// To use, simply create a new instance of this, set the handler, set the 
+	//  object to keep alive for callbacks and then just call queue(). Ideally
+	//  use smart pointers for T instead of manually tracked pointers.
+	template<typename T>
+	class managed_callback {
+		public:
+		typedef std::function<void(void* data, T obj)> callback_t;
+
+		private:
+		uv_async_t m_async_runner;
+		bool finalizing = false;
+		bool finalized = false;
+
+		std::list<T> m_objects;
+		std::mutex m_objects_mutex;
+		Nan::Persistent<v8::Object> m_keepalive;
+
+		callback_t m_callback;
+		void* m_callback_data;
+
+		static void worker(uv_async_t* handle) {
+			managed_callback<T>* self = reinterpret_cast<managed_callback<T>*>(handle->data);
+			std::unique_lock<std::mutex> ul(self->m_objects_mutex);
+			if (self->m_callback) {
+				for (T v : self->m_objects) {
+					self->m_callback(self->m_callback_data, v);
+				}
+			}
+			self->m_objects.clear();
+		}
+
+		static void close_handler(uv_handle_t* handle) {
+			managed_callback<T>* self = reinterpret_cast<managed_callback<T>*>(handle->data);
+			{
+				std::unique_lock<std::mutex> ul(self->m_objects_mutex);
+				self->m_objects.clear();
+				self->finalized = true;
+				self->m_keepalive.Reset();
+			}
+			delete self;
+		}
+
+		~managed_callback() {
+			if (finalizing == false)
+				throw std::runtime_error("Destructor called before cleaning up. Unable to continue.");
+			if (finalized == false)
+				throw std::runtime_error("Destructor called before clean up finished. Race condition that must be fixed.");
+		}
+
+		public:
+		managed_callback() {
+			m_async_runner.data = this;
+			uv_async_init(uv_default_loop(), &m_async_runner, worker);
+		}
+
+		// Finalize the asynchronous callback runner.
+		// 
+		// This needs to be called in order to properly clean things up. It is
+		//  a replacement for the destructor.
+		void finalize() {
+			{
+				std::unique_lock<std::mutex> ul(m_objects_mutex);
+				m_objects.clear();
+				finalizing = true;
+			}
+			uv_close((uv_handle_t*)&m_async_runner, close_handler);
+		}
+
+		// Set the object that needs to be kept alive until finalized.
+		void set_keepalive(v8::Local<v8::Object> obj) {
+			m_keepalive.Reset(obj);
+		}
+
+		// Set the callback handler and data.
+		void set_handler(callback_t handler, void* data) {
+			m_callback_data = data;
+			m_callback = handler;
+		}
+
+		// Clear the queue.
+		void clear() {
+			std::unique_lock<std::mutex> ul(m_objects_mutex);
+			m_objects.clear();
+		}
+
+		// Enqueue another object for the next call.
+		void queue(T object) {
+			std::unique_lock<std::mutex> ul(m_objects_mutex);
+			m_objects.push_back(object);
+			uv_async_send(&m_async_runner);
+		}
+	};
 }

@@ -29,8 +29,7 @@ namespace osn {
 		void* param;
 	};
 
-	class VolMeter;
-	typedef utilv8::CallbackData<osn::VolMeterData, osn::VolMeter> VolMeterCallback;
+	typedef utilv8::managed_callback<std::shared_ptr<osn::VolMeterData>> VolMeterCallback;
 
 	class VolMeter : public Nan::ObjectWrap,
 		public utilv8::InterfaceObject<osn::VolMeter>,
@@ -39,20 +38,29 @@ namespace osn {
 		friend utilv8::ManagedObject<osn::VolMeter>;
 		friend utilv8::CallbackData<osn::VolMeterData, osn::VolMeter>;
 
-		private:
-		uint64_t uid;
+		uint64_t m_uid;
+		uint32_t m_sleep_interval = 33;
 
-		std::thread query_worker;
-		bool query_worker_close = false;
-		std::mutex query_lock;
-		uint32_t sleepIntervalMS = 33;
-		std::list<osn::VolMeterCallback*> callbacks;
+		std::thread m_worker;
+		bool m_worker_stop = true;
+		std::mutex m_worker_lock;
+
+		osn::VolMeterCallback* m_async_callback = nullptr;
+		Nan::Callback m_callback_function;
 
 		public:
 		VolMeter(uint64_t uid);
 		~VolMeter();
 
-		void async_query();
+		void start_async_runner();
+		void stop_async_runner();
+		void callback_handler(void* data, std::shared_ptr<osn::VolMeterData> item);
+
+		void start_worker();
+		void stop_worker();
+		void worker();
+
+		void set_keepalive(v8::Local<v8::Object>);
 
 		public:
 		static Nan::Persistent<v8::FunctionTemplate> prototype;
@@ -66,7 +74,5 @@ namespace osn {
 		static Nan::NAN_METHOD_RETURN_TYPE Detach(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE AddCallback(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info);
-
-		static void Callback(VolMeter* volmeter, VolMeterData* item);
 	};
 }

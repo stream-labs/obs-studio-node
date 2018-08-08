@@ -69,6 +69,7 @@ void osn::Filter::Create(void* data, const int64_t id, const std::vector<ipc::va
 		AUTO_DEBUG;
 		return;
 	}
+	osn::Source::attach_source_signals(source);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));

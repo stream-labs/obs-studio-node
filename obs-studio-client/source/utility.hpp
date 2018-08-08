@@ -104,7 +104,8 @@ static FORCE_INLINE bool ValidateResponse(std::vector<ipc::value> &response) {
 
 static FORCE_INLINE std::shared_ptr<ipc::client> GetConnection() {
 	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) Nan::ThrowError("Failed to obtain IPC connection.");
+	if (!conn)
+		Nan::ThrowError("Failed to obtain IPC connection.");
 	return conn;
 }
 

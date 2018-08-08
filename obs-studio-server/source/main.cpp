@@ -59,7 +59,7 @@ struct ServerData {
 	size_t count_connected = 0;
 };
 
-bool ServerConnectHandler(void* data, os::ClientId_t) {
+bool ServerConnectHandler(void* data, int64_t) {
 	ServerData* sd = reinterpret_cast<ServerData*>(data);
 	std::unique_lock<std::mutex> ulock(sd->mtx);
 	sd->last_connect = std::chrono::high_resolution_clock::now();
@@ -67,7 +67,7 @@ bool ServerConnectHandler(void* data, os::ClientId_t) {
 	return true;
 }
 
-void ServerDisconnectHandler(void* data, os::ClientId_t) {
+void ServerDisconnectHandler(void* data, int64_t) {
 	ServerData* sd = reinterpret_cast<ServerData*>(data);
 	std::unique_lock<std::mutex> ulock(sd->mtx);
 	sd->last_disconnect = std::chrono::high_resolution_clock::now();

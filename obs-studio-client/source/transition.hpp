@@ -26,7 +26,7 @@
 namespace osn {
 	class Transition : public osn::ISource, public utilv8::ManagedObject<osn::Transition> {
 		friend class utilv8::ManagedObject<osn::Transition>;
-		
+
 		public:
 		Transition(uint64_t id);
 		virtual ~Transition() {};
