@@ -15,7 +15,7 @@ include(DownloadProject)
 ############################
 download_project(
 	PROJ crashpad
-	URL https://ci.appveyor.com/api/buildjobs/r1068pgmh2gv2x25/artifacts/win-x64.tar.gz
+	URL https://ci.appveyor.com/api/buildjobs/j5u7hta3brku6x9h/artifacts/windows-x86_64-dev.zip
 	UPDATE_DISCONNECTED 1
 )
 
