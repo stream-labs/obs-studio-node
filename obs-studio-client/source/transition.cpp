@@ -205,13 +205,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::GetActiveSource(Nan::NAN_METHOD_ARG
 
 	if (!ValidateResponse(response)) return;
 
-	if (response[1].value_union.ui32 == 0) {
+	if (response[2].value_union.ui32 == 0) {
 		// Input
-		osn::Input* obj = new osn::Input(response[2].value_union.ui64);
+		osn::Input* obj = new osn::Input(response[1].value_union.ui64);
 		info.GetReturnValue().Set(osn::Input::Store(obj));
-	} else if (response[1].value_union.ui32 == 3) {
+	} else if (response[2].value_union.ui32 == 3) {
 		// Scene
-		osn::Scene* obj = new osn::Scene(response[2].value_union.ui64);
+		osn::Scene* obj = new osn::Scene(response[1].value_union.ui64);
 		info.GetReturnValue().Set(osn::Scene::Store(obj));
 	}
 
@@ -257,6 +257,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Set(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	v8::Local<v8::Object> targetbaseobj;
 	ASSERT_GET_VALUE(info[0], targetbaseobj);
+
 	osn::ISource* targetobj = nullptr;
 	if (!osn::ISource::Retrieve(targetbaseobj, targetobj)) {
 		info.GetIsolate()->ThrowException(
