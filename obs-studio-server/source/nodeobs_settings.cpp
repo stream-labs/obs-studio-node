@@ -2878,14 +2878,16 @@ void OBS_settings::saveAdvancedOutputSettings(std::vector<SubCategory> settings,
 	saveAdvancedOutputRecordingSettings(settings, basicConfigFile);
 
 	// Audio
-	std::vector<SubCategory> audioSettings;
-	int indexTrack = 3;
-	audioSettings.push_back(settings.at(indexTrack));
+	if (settings.size() > 3) {
+		std::vector<SubCategory> audioSettings;
+		int indexTrack = 3;
+		audioSettings.push_back(settings.at(indexTrack));
 
-	for (int i = 0; i < 6; i++) {
-		audioSettings.push_back(settings.at(i));
+		for (int i = 0; i < 6; i++) {
+			audioSettings.push_back(settings.at(i + 2));
+		}
+		saveGenericSettings(audioSettings, "AdvOut", basicConfigFile);
 	}
-	saveGenericSettings(audioSettings, "AdvOut", basicConfigFile);
 }
 
 bool useAdvancedOutput;
