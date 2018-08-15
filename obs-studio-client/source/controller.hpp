@@ -28,8 +28,8 @@
 #endif
 
 struct ProcessInfo {
-	uint64_t handle;
-	uint64_t id;
+	uint64_t handle = 0;
+	uint64_t id = 0;
 };
 
 class Controller {
@@ -51,7 +51,9 @@ class Controller {
 	
 	public:
 	std::shared_ptr<ipc::client> host(std::string uri);
-	std::shared_ptr<ipc::client> connect(std::string uri);
+
+	std::shared_ptr<ipc::client> connect(std::string uri, std::chrono::nanoseconds timeout = std::chrono::seconds(5));
+
 	void disconnect();
 
 	std::shared_ptr<ipc::client> GetConnection();
