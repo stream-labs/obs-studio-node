@@ -100,10 +100,10 @@ ProcessInfo spawn(std::string program, std::string commandLine, std::string work
 		return {};
 	}
 
-	return { 
-		reinterpret_cast<uint64_t>(m_win32_processInformation.hProcess), 
+	return ProcessInfo(
+		reinterpret_cast<uint64_t>(m_win32_processInformation.hProcess),
 		static_cast<uint64_t>(m_win32_processInformation.dwProcessId)
-	};
+	);
 }
 
 ProcessInfo open_process(uint64_t handle) {
