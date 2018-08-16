@@ -104,7 +104,7 @@ add_dependencies(crashpad_util crashpad_client)
 # OBS Studio (CPack Release)
 download_project(
 	PROJ libobs
-	URL https://ci.appveyor.com/api/buildjobs/wbcsnjbuj8upd0nw/artifacts/windows-x86_64-dev.zip
+	URL https://ci.appveyor.com/api/buildjobs/p13xbtvymdfx0ndf/artifacts/windows-x86_64-dev.zip
 	UPDATE_DISCONNECTED 1
 )
 INCLUDE("${libobs_SOURCE_DIR}/cmake/LibObs/LibObsConfig.cmake")
