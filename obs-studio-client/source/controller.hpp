@@ -30,6 +30,15 @@
 struct ProcessInfo {
 	uint64_t handle;
 	uint64_t id;
+
+	ProcessInfo() {
+		this->handle = 0;
+		this->id = 0;
+	};
+	ProcessInfo(uint64_t h, uint64_t i) {
+		this->handle = h;
+		this->id = i;
+	}
 };
 
 class Controller {
@@ -51,7 +60,9 @@ class Controller {
 	
 	public:
 	std::shared_ptr<ipc::client> host(std::string uri);
-	std::shared_ptr<ipc::client> connect(std::string uri);
+
+	std::shared_ptr<ipc::client> connect(std::string uri, std::chrono::nanoseconds timeout = std::chrono::seconds(5));
+
 	void disconnect();
 
 	std::shared_ptr<ipc::client> GetConnection();

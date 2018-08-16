@@ -100,10 +100,10 @@ ProcessInfo spawn(std::string program, std::string commandLine, std::string work
 		return {};
 	}
 
-	return { 
-		reinterpret_cast<uint64_t>(m_win32_processInformation.hProcess), 
+	return ProcessInfo(
+		reinterpret_cast<uint64_t>(m_win32_processInformation.hProcess),
 		static_cast<uint64_t>(m_win32_processInformation.dwProcessId)
-	};
+	);
 }
 
 ProcessInfo open_process(uint64_t handle) {
@@ -253,14 +253,17 @@ std::shared_ptr<ipc::client> Controller::host(std::string uri) {
 	return m_connection;
 }
 
-std::shared_ptr<ipc::client> Controller::connect(std::string uri) {
+std::shared_ptr<ipc::client> Controller::connect(std::string uri, std::chrono::nanoseconds timeout /*= std::chrono::seconds(5)*/) {
 	if (m_isServer)
 		return nullptr;
 
-	// Try and connect for 2 seconds.
+	if (m_connection)
+		return nullptr;
+
 	std::shared_ptr<ipc::client> cl;
-	std::chrono::high_resolution_clock::time_point l_begin = std::chrono::high_resolution_clock::now();
-	while (is_process_alive(procId) && (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - l_begin).count() <= 20)) {
+	using std::chrono::high_resolution_clock;
+	high_resolution_clock::time_point begin_time = high_resolution_clock::now();
+	while ((high_resolution_clock::now() - begin_time) <= timeout) {
 		try {
 			cl = std::make_shared<ipc::client>(uri);
 		} catch (...) {
@@ -268,8 +271,16 @@ std::shared_ptr<ipc::client> Controller::connect(std::string uri) {
 		}
 		if (cl)
 			break;
-		std::this_thread::sleep_for(std::chrono::milliseconds(50));
-	}	
+		
+		if (procId.handle != 0) {
+			// We are the owner of the server, but m_isServer is false for now.
+			if (!is_process_alive(procId)) {
+				break;
+			}
+		}
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}
 	if (!cl) {
 		return nullptr;
 	}
