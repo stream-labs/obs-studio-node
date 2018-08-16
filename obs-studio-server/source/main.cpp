@@ -43,6 +43,8 @@
 #include "osn-volmeter.hpp"
 #include "osn-video.hpp"
 
+extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = 1;
+
 #ifndef _DEBUG
 #include "client/crashpad_client.h"
 #include "client/crash_report_database.h"
