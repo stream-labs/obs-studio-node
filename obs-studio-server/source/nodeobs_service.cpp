@@ -21,8 +21,8 @@ bool usingRecordingPreset = false;
 bool recordingConfigured = false;
 bool ffmpegOutput = false;
 bool lowCPUx264 = false;
-
-// Nan::Callback *JS_OutputSignalCallback;
+bool isStreaming = false;
+bool isRecording = false;
 
 OBS_service::OBS_service()
 {
@@ -843,21 +843,21 @@ bool OBS_service::startStreaming(void)
     updateService();
     updateStreamSettings();
 
+	isStreaming = true;
     return obs_output_start(streamingOutput);
 }
 
 bool OBS_service::startRecording(void)
 {
+	isRecording = true;
 	createAudioEncoder(&audioRecordingEncoder);
     updateRecordSettings();
 	
 	if (!obs_output_start(recordingOutput)) {
 		SignalInfo signal = SignalInfo("recording", "stop");
-// 		JSCallbackOutputSignal(&signal, NULL);
-		return false;
+		isRecording = false;
 	}
-
-	return true;
+	return isRecording;
 }
 
 void OBS_service::stopStreaming(bool forceStop)
@@ -866,11 +866,13 @@ void OBS_service::stopStreaming(bool forceStop)
 		obs_output_force_stop(streamingOutput);
 	else
 		obs_output_stop(streamingOutput);
+	isStreaming = false;
 }
 
 void OBS_service::stopRecording(void)
 {
 	obs_output_stop(recordingOutput);
+	isRecording = false;
 }
 
 void OBS_service::associateAudioAndVideoToTheCurrentStreamingContext(void)
@@ -1434,7 +1436,9 @@ void OBS_service::updateVideoRecordingEncoder()
     ffmpegOutput = false;
 
 	if (strcmp(quality, "Stream") == 0) {
-		updateVideoStreamingEncoder();
+		if (!isStreaming) {
+			updateVideoStreamingEncoder();
+		}
 		if (videoRecordingEncoder != videoStreamingEncoder) {
 			obs_encoder_release(videoRecordingEncoder);
 			videoRecordingEncoder = videoStreamingEncoder;
@@ -1702,7 +1706,11 @@ void OBS_service::updateStreamSettings(void)
     const char* currentOutputMode = config_get_string(config, "Output", "Mode");
 
 	if(strcmp(currentOutputMode, "Simple") == 0) {
-        updateVideoStreamingEncoder();
+		const char *quality = config_get_string(config, "SimpleOutput",
+			"RecQuality");
+		if (strcmp(quality, "Stream") == 0 && !isRecording) {
+			updateVideoStreamingEncoder();
+		}
 	} else if (strcmp(currentOutputMode, "Advanced") == 0) {
 		bool applyServiceSettings = config_get_bool(config, "AdvOut", "ApplyServiceSettings");
 
