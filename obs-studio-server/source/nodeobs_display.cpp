@@ -291,6 +291,9 @@ OBS::Display::Display(uint64_t windowHandle) : Display() {
 
 	obs_display_add_draw_callback(m_display, DisplayCallback, this);
 	obs_display_set_background_color(m_display, 0x0);
+
+	SetSize(0, 0);
+	SetPosition(0, 0);
 }
 
 OBS::Display::Display(uint64_t windowHandle, std::string sourceName) : Display(windowHandle) {
