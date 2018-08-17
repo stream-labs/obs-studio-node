@@ -11,6 +11,29 @@ PROJECT(
 include(ExternalProject)
 include(DownloadProject)
 
+################################################################################
+# Compiler
+################################################################################
+
+# MSVC Specific
+IF(WIN32)
+	# Resource VersionInfo
+	SET(
+		PROJECT_PRODUCT_NAME
+		"OBS Studio for Node.JS (Server)"
+	)
+	SET(
+		PROJECT_COPYRIGHT
+		"Streamlabs © 2017 - 2018"
+	)
+	
+	configure_file(
+		${obs-studio-node_SOURCE_DIR}/cmake/version.rc.in
+		${PROJECT_BINARY_DIR}/version.rc
+		@ONLY
+	)
+ENDIF()
+
 ############################
 # Setup crashpad binaries
 ############################
@@ -180,6 +203,12 @@ SET(PROJECT_DATA
 	"${PROJECT_SOURCE_DIR}/resources"
 )
 
+IF(WIN32)
+	LIST(APPEND PROJECT_SOURCE
+		${PROJECT_BINARY_DIR}/version.rc
+	)
+ENDIF()
+
 #############################
 # Building
 #############################
@@ -197,6 +226,22 @@ TARGET_INCLUDE_DIRECTORIES(
 	${PROJECT_NAME}
 	PUBLIC ${PROJECT_INCLUDE_PATHS}
 )
+
+IF(WIN32)
+	SET_TARGET_PROPERTIES(
+		${PROJECT_NAME}
+		PROPERTIES
+		VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}.${PROJECT_VERSION_TWEAK}
+		SOVERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}.${PROJECT_VERSION_TWEAK}
+	)
+ELSE()
+	SET_TARGET_PROPERTIES(
+		${PROJECT_NAME}
+		PROPERTIES
+		VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}.${PROJECT_VERSION_TWEAK}
+		SOVERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}.${PROJECT_VERSION_TWEAK}
+	)
+ENDIF()
 
 IF(WIN32)
 	# windows.h

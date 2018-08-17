@@ -11,6 +11,29 @@ SET(NODEJS_URL "https://atom.io/download/atom-shell" CACHE STRING "Node.JS URL")
 SET(NODEJS_NAME "iojs" CACHE STRING "Node.JS Name")
 SET(NODEJS_VERSION "v2.0.4" CACHE STRING "Node.JS Version")
 
+################################################################################
+# Compiler
+################################################################################
+
+# MSVC Specific
+IF(WIN32)
+	# Resource VersionInfo
+	SET(
+		PROJECT_PRODUCT_NAME
+		"OBS Studio for Node.JS (Server)"
+	)
+	SET(
+		PROJECT_COPYRIGHT
+		"Streamlabs © 2017 - 2018"
+	)
+	
+	configure_file(
+		${obs-studio-node_SOURCE_DIR}/cmake/version.rc.in
+		${PROJECT_BINARY_DIR}/version.rc
+		@ONLY
+	)
+ENDIF()
+
 #############################
 # Node.JS Settings
 #############################
@@ -61,12 +84,19 @@ SET(PROJECT_DATA
 	"resources/"
 )
 
+IF(WIN32)
+	LIST(APPEND PROJECT_SOURCE
+		${PROJECT_BINARY_DIR}/version.rc
+	)
+ENDIF()
+
 #############################
 # Building
 #############################
 ADD_LIBRARY(
 	${PROJECT_NAME}
-	MODULE ${PROJECT_SOURCE}
+	MODULE
+	${PROJECT_SOURCE}
 )
 
 TARGET_LINK_LIBRARIES(
@@ -85,6 +115,21 @@ SET_TARGET_PROPERTIES(
 	PREFIX ""
 	SUFFIX ".node"
 )
+IF(WIN32)
+	SET_TARGET_PROPERTIES(
+		${PROJECT_NAME}
+		PROPERTIES
+		VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}.${PROJECT_VERSION_TWEAK}
+		SOVERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}.${PROJECT_VERSION_TWEAK}
+	)
+ELSE()
+	SET_TARGET_PROPERTIES(
+		${PROJECT_NAME}
+		PROPERTIES
+		VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}.${PROJECT_VERSION_TWEAK}
+		SOVERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}.${PROJECT_VERSION_TWEAK}
+	)
+ENDIF()
 
 target_compile_definitions(
 	${PROJECT_NAME}

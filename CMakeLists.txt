@@ -33,6 +33,41 @@ MESSAGE(STATUS "OBS Studio for Node.JS Version ${PROJECT_VERSION_MAJOR}.${PROJEC
 # Set Module Path
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
+################################################################################
+# Compiler
+################################################################################
+
+# MSVC Specific
+IF(WIN32)
+	# Resource VersionInfo
+	SET(
+		PROJECT_PRODUCT_NAME
+		"OBS Studio for Node.JS"
+	)
+	SET(
+		PROJECT_COMPANY_NAME
+		"Streamlabs"
+	)
+	SET(
+		PROJECT_COPYRIGHT
+		"Streamlabs © 2017 - 2018"
+	)
+	SET(
+		PROJECT_LEGAL_TRADEMARKS_1
+		""
+	)
+	SET(
+		PROJECT_LEGAL_TRADEMARKS_2
+		""
+	)
+	
+	configure_file(
+		${PROJECT_SOURCE_DIR}/cmake/version.rc.in
+		${PROJECT_BINARY_DIR}/version.rc
+		@ONLY
+	)
+ENDIF()
+
 #############################
 # Configuration
 #############################
