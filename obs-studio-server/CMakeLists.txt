@@ -1,12 +1,13 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
-PROJECT(obs-studio-server VERSION 0.0.1)
+PROJECT(
+	obs-studio-server
+	VERSION ${obs-studio-node_VERSION_MAJOR}.${obs-studio-node_VERSION_MINOR}.${obs-studio-node_VERSION_PATCH}.${obs-studio-node_VERSION_TWEAK}
+)
 
 #############################
 # CMake Settings
 #############################
 
 # Modules
-SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 include(ExternalProject)
 include(DownloadProject)
 

@@ -1,5 +1,7 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
-PROJECT(obs-studio-client VERSION 1.0.0)
+PROJECT(
+	obs-studio-client
+	VERSION ${obs-studio-node_VERSION_MAJOR}.${obs-studio-node_VERSION_MINOR}.${obs-studio-node_VERSION_PATCH}.${obs-studio-node_VERSION_TWEAK}
+)
 
 #############################
 # CMake Settings
