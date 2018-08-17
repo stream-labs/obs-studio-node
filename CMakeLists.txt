@@ -1,7 +1,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
 
 # Automatic Versioning
-SET(VERSION_FULL 0.3.0)
+SET(VERSION_FULL 0.3.1)
 SET(VERSION_BUILD 0)
 IF(EXISTS "${CMAKE_SOURCE_DIR}/.git")
 	SET(GIT_RESULT "")
@@ -21,8 +21,6 @@ ENDIF()
 PROJECT(
 	obs-studio-node
 	VERSION ${VERSION_FULL}.${VERSION_BUILD}
-	DESCRIPTION "An obs-studio C/C++ wrapper for Node.JS"
-	HOMEPAGE_URL "https://streamlabs.com/streamlabs-obs"
 )
 
 ################################################################################
