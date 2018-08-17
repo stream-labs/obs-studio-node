@@ -105,7 +105,7 @@ add_dependencies(crashpad_util crashpad_client)
 # OBS Studio (CPack Release)
 download_project(
 	PROJ libobs
-	URL https://github.com/stream-labs/obs-studio/releases/download/22.0.0-rc1-sl-3/obs-msvc2017-x64-22.0.0-rc1-sl-3.tar.gz
+	URL https://github.com/stream-labs/obs-studio/releases/download/22.0.0-rc1-sl-5/obs-msvc2017-x64-22.0.0-rc1-sl-5.7z
 	UPDATE_DISCONNECTED 1
 )
 INCLUDE("${libobs_SOURCE_DIR}/cmake/LibObs/LibObsConfig.cmake")
