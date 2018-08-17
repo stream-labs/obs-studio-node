@@ -180,64 +180,70 @@ SET(PROJECT_DATA
 	"${PROJECT_SOURCE_DIR}/resources"
 )
 
-IF(WIN32)
-	# windows.h
-	add_definitions(-DWIN32_LEAN_AND_MEAN)
-	add_definitions(-DNOGPICAPMASKS)
-	add_definitions(-DNOVIRTUALKEYCODES)
-	#add_definitions(-DNOWINMESSAGES)
-	#add_definitions(-DNOWINSTYLES)
-	add_definitions(-DNOSYSMETRICS)
-	add_definitions(-DNOMENUS)
-	add_definitions(-DNOICONS)
-	add_definitions(-DNOKEYSTATES)
-	add_definitions(-DNOSYSCOMMANDS)
-	add_definitions(-DNORASTEROPS)
-	add_definitions(-DNOSHOWWINDOW)
-	add_definitions(-DNOATOM)
-	add_definitions(-DNOCLIPBOARD)
-	add_definitions(-DNOCOLOR)
-	#add_definitions(-DNOCTLMGR)
-	add_definitions(-DNODRAWTEXT)
-	#add_definitions(-DNOGDI)
-	add_definitions(-DNOKERNEL)
-	#add_definitions(-DNOUSER)
-	#add_definitions(-DNONLS)
-	add_definitions(-DNOMB)
-	add_definitions(-DNOMEMMGR)
-	add_definitions(-DNOMETAFILE)
-	add_definitions(-DNOMINMAX)
-	#add_definitions(-DNOMSG)
-	add_definitions(-DNOOPENFILE)
-	#add_definitions(-DNOSCROLL)
-	add_definitions(-DNOSERVICE)
-	add_definitions(-DNOSOUND)
-	add_definitions(-DNOTEXTMETRIC)
-	add_definitions(-DNOWH)
-	add_definitions(-DNOWINOFFSETS)
-	add_definitions(-DNOCOMM)
-	add_definitions(-DNOKANJI)
-	add_definitions(-DNOHELP)
-	add_definitions(-DNOPROFILER)
-	add_definitions(-DNODEFERWINDOWPOS)
-	add_definitions(-DNOMCX)
-	add_definitions(-DNOIME)
-	add_definitions(-DNOMDI)
-ENDIF()
-
 #############################
 # Building
 #############################
-ADD_EXECUTABLE(obs-studio-server 
+ADD_EXECUTABLE(
+	${PROJECT_NAME}
 	${PROJECT_SOURCE}
 )
-TARGET_LINK_LIBRARIES(obs-studio-server
+TARGET_LINK_LIBRARIES(
+	${PROJECT_NAME}
 	${PROJECT_LIBRARIES}
 	optimized crashpad
 )
-TARGET_INCLUDE_DIRECTORIES(obs-studio-server 
+
+TARGET_INCLUDE_DIRECTORIES(
+	${PROJECT_NAME}
 	PUBLIC ${PROJECT_INCLUDE_PATHS}
 )
+
+IF(WIN32)
+	# windows.h
+	target_compile_definitions(${PROJECT_NAME}
+		PRIVATE WIN32_LEAN_AND_MEAN
+		PRIVATE NOGPICAPMASKS
+		PRIVATE NOVIRTUALKEYCODES
+	#	PRIVATE NOWINMESSAGES
+	#	PRIVATE NOWINSTYLES
+		PRIVATE NOSYSMETRICS
+		PRIVATE NOMENUS
+		PRIVATE NOICONS
+		PRIVATE NOKEYSTATES
+		PRIVATE NOSYSCOMMANDS
+		PRIVATE NORASTEROPS
+		PRIVATE NOSHOWWINDOW
+		PRIVATE NOATOM
+		PRIVATE NOCLIPBOARD
+		PRIVATE NOCOLOR
+	#	PRIVATE NOCTLMGR
+		PRIVATE NODRAWTEXT
+	#	PRIVATE NOGDI
+		PRIVATE NOKERNEL
+	#	PRIVATE NOUSER
+	#	PRIVATE NONLS
+		PRIVATE NOMB
+		PRIVATE NOMEMMGR
+		PRIVATE NOMETAFILE
+		PRIVATE NOMINMAX
+	#	PRIVATE NOMSG
+		PRIVATE NOOPENFILE
+	#	PRIVATE NOSCROLL
+		PRIVATE NOSERVICE
+		PRIVATE NOSOUND
+		PRIVATE NOTEXTMETRIC
+		PRIVATE NOWH
+		PRIVATE NOWINOFFSETS
+		PRIVATE NOCOMM
+		PRIVATE NOKANJI
+		PRIVATE NOHELP
+		PRIVATE NOPROFILER
+		PRIVATE NODEFERWINDOWPOS
+		PRIVATE NOMCX
+		PRIVATE NOIME
+		PRIVATE NOMDI
+	)
+ENDIF()
 
 #############################
 # Distribute
