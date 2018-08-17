@@ -256,7 +256,8 @@ OBS::Display::Display() {
 	m_drawGuideLines = true;
 }
 
-OBS::Display::Display(uint64_t windowHandle) : Display() {
+OBS::Display::Display(uint64_t windowHandle, 
+	uint32_t width, uint32_t height, uint32_t positionX, uint32_t positionY) : Display() {
 #ifdef _WIN32
 	CreateWindowMessageQuestion question;
 	CreateWindowMessageAnswer answer;
@@ -291,9 +292,13 @@ OBS::Display::Display(uint64_t windowHandle) : Display() {
 
 	obs_display_add_draw_callback(m_display, DisplayCallback, this);
 	obs_display_set_background_color(m_display, 0x0);
+
+	SetSize(width, height);
+	SetPosition(positionX, positionY);
 }
 
-OBS::Display::Display(uint64_t windowHandle, std::string sourceName) : Display(windowHandle) {
+OBS::Display::Display(uint64_t windowHandle, uint32_t width, uint32_t height, uint32_t positionX, uint32_t positionY, 
+	std::string sourceName) : Display(windowHandle, width, height, positionX, positionY) {
 	std::cout << "creating display" << std::endl;
 	m_source = obs_get_source_by_name(sourceName.c_str());
 	obs_source_inc_showing(m_source);
