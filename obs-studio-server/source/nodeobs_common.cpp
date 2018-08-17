@@ -109,8 +109,7 @@ void OBS_content::Register(ipc::server& srv) {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Display");
 
 	cls->register_function(std::make_shared<ipc::function>("OBS_content_createDisplay", 
-		std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::UInt32, ipc::type::UInt32,
-		ipc::type::UInt32, ipc::type::UInt32}, OBS_content_createDisplay));
+		std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, OBS_content_createDisplay));
 
 	cls->register_function(std::make_shared<ipc::function>("OBS_content_destroyDisplay", 
 		std::vector<ipc::type>{ipc::type::String}, OBS_content_destroyDisplay));
@@ -122,9 +121,7 @@ void OBS_content::Register(ipc::server& srv) {
 		std::vector<ipc::type>{ipc::type::String}, OBS_content_getDisplayPreviewSize));
 
 	cls->register_function(std::make_shared<ipc::function>("OBS_content_createSourcePreviewDisplay",
-		std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::String,
-		ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32}, 
-		OBS_content_createSourcePreviewDisplay));
+		std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::String}, OBS_content_createSourcePreviewDisplay));
 
 	cls->register_function(std::make_shared<ipc::function>("OBS_content_resizeDisplay",
 		std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_resizeDisplay));
@@ -188,9 +185,7 @@ void OBS_content::OBS_content_createDisplay(void* data, const int64_t id, const 
 		return;
 	}
 
-	displays.insert_or_assign(args[1].value_str, new OBS::Display(windowHandle, 
-		args[2].value_union.ui32, args[3].value_union.ui32,
-		args[4].value_union.ui32, args[5].value_union.ui32));
+	displays.insert_or_assign(args[1].value_str, new OBS::Display(windowHandle));
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -222,9 +217,7 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(void* data, const int64
 		std::cout << "Duplicate key provided to createDisplay!" << std::endl;
 		return;
 	}
-	displays.insert_or_assign(args[2].value_str, new OBS::Display(windowHandle, args[3].value_union.ui32,
-		args[4].value_union.ui32, args[5].value_union.ui32,
-		args[6].value_union.ui32, args[1].value_str));
+	displays.insert_or_assign(args[2].value_str, new OBS::Display(windowHandle, args[1].value_str));
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
