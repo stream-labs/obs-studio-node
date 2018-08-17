@@ -41,14 +41,20 @@ void display::OBS_content_createDisplay(const v8::FunctionCallbackInfo<v8::Value
 	FixChromeD3DIssue((HWND)windowHandle);
 
 	std::string key;
+	uint32_t width, height, positionX, positionY;
 	ASSERT_GET_VALUE(args[1], key);
+	ASSERT_GET_VALUE(args[2], width);
+	ASSERT_GET_VALUE(args[3], height);
+	ASSERT_GET_VALUE(args[4], positionX);
+	ASSERT_GET_VALUE(args[5], positionY);
 
 	auto conn = GetConnection();
 	if (!conn) return;
 
 	std::vector<ipc::value> response =
 		conn->call_synchronous_helper("Display", "OBS_content_createDisplay",
-		{ ipc::value(windowHandle), ipc::value(key) });
+		{ ipc::value(windowHandle), ipc::value(key),
+			ipc::value(width), ipc::value(height), ipc::value(positionX), ipc::value(positionY) });
 
 	ValidateResponse(response);
 }
@@ -127,15 +133,21 @@ void display::OBS_content_createSourcePreviewDisplay(const v8::FunctionCallbackI
 	FixChromeD3DIssue((HWND)windowHandle);
 
 	std::string sourceName, key;
+	uint32_t width, height, positionX, positionY;
 	ASSERT_GET_VALUE(args[1], sourceName);
 	ASSERT_GET_VALUE(args[2], key);
+	ASSERT_GET_VALUE(args[3], width);
+	ASSERT_GET_VALUE(args[4], height);
+	ASSERT_GET_VALUE(args[5], positionX);
+	ASSERT_GET_VALUE(args[6], positionY);
 	
 	auto conn = GetConnection();
 	if (!conn) return;
 
 	std::vector<ipc::value> response =
 		conn->call_synchronous_helper("Display", "OBS_content_createSourcePreviewDisplay", 
-		{ ipc::value(windowHandle), ipc::value(sourceName), ipc::value(key) });
+		{ ipc::value(windowHandle), ipc::value(sourceName), ipc::value(key),
+			ipc::value(width), ipc::value(height), ipc::value(positionX), ipc::value(positionY) });
 
 	ValidateResponse(response);
 }

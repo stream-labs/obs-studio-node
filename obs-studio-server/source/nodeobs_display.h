@@ -33,8 +33,10 @@ namespace OBS {
 		Display();
 
 		public:
-		Display(uint64_t windowHandle); // Create a Main Preview one
-		Display(uint64_t windowHandle, std::string sourceName); // Create a Source-Specific one
+		Display(uint64_t windowHandle, uint32_t width, uint32_t height,
+			uint32_t positionX, uint32_t positionY); // Create a Main Preview one
+		Display(uint64_t windowHandle, uint32_t width, uint32_t height,
+			uint32_t positionX, uint32_t positionY, std::string sourceName); // Create a Source-Specific one
 		~Display();
 #pragma endregion Constructors & Finalizer
 
