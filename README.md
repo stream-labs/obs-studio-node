@@ -23,9 +23,12 @@ Building on windows requires additional software:
 * [Windows SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk) (latest version, included in Visual Studio 2017)
 
 ## First Steps
-1. Clone the project and check out master.
-2. Recursively initialize all submodules to the commit you checked out.
-3. Run `yarn install` in a node.js enabled shell inside the project directory.
+1. Open a git enabled shell.
+2. Clone the project: `git clone https://github.com/stream-labs/obs-studio-node.git`
+3. Enter the cloned project directory: `cd obs-studio-node`
+4. Initialize all submodules recursively: `git submodule update --init --recursive --force`
+5. Open a node.js enabled shell (if not already in one) inside the project directory.
+6. Initialize any node dependencies of the project: `yarn install`
 
 ## Configuration
 1. Open CMake-GUI.
