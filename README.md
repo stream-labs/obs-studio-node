@@ -58,4 +58,4 @@ First make sure that you've configured and built obs-studio-node. Once you have 
 3. Documentation will be inside the `/docs/` directory as a static HTML file.
 
 # Contributing To The Project
-See the [Guidelines for contributing](Contributing.md).
+See the [Guidelines for contributing](https://github.com/stream-labs/obs-studio-node/blob/staging/CONTRIBUTING.md).
