@@ -47,7 +47,7 @@ Building on windows requires additional software:
 
 ## Installing and Distribution
 1. Open CMake-GUI
-2. Change the "Where to build the binaries:" directory to the configured directory. CMake should automatically update.
+2. Change the "Where to build the binaries:" directory to the configured build directory. CMake should automatically update.
 3. Modify the CMAKE_INSTALL_PREFIX variable to the directory of your liking. Visual Studio will need to have _write & execute_ access to that location.
 4. Click Configure.
 5. Click Generate.
@@ -60,5 +60,18 @@ First make sure that you've configured and built obs-studio-node. Once you have 
 2. Run `yarn build:docs` and wait for the command to be done.
 3. Documentation will be inside the `/docs/` directory as a static HTML file.
 
+# Using a custom OBS Studio
+A lot of the build system is automated, which makes integrating custom dependencies difficult. However there are some steps that can be taken to at least debug using custom built versions of OBS Studio.
+
+## Configuration Requirements
+The following setting must be changed before clicking Generate for the first time:
+
+* ENABLE_SCRIPTING must be Off (false)
+* ENABLE_UI must be Off (false)
+* QTDIR must be empty
+
+## Install/Distribution requirements
+To go from just a compiling obs-studio to using the actual custom obs-studio inside obs-studio-node, you must reconfigure obs-studio to install things into `<obs-studio-node build dir>/libobs-src`. You can do this by changing CMAKE_INSTALL_PREFIX in the obs-studio project. Any changes done to obs-studio must now be installed by building the INSTALL project in obs-studio, and will then be sent along to whatever is using obs-studio-node once you build the INSTALL project in obs-studio-node.
+
 # Contributing To The Project
-See the [https://github.com/stream-labs/obs-studio-node/blob/staging/CONTRIBUTING.md](Guidelines for contributing).
+See the [Guidelines for contributing](https://github.com/stream-labs/obs-studio-node/blob/staging/CONTRIBUTING.md).
