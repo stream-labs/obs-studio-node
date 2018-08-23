@@ -33,7 +33,7 @@ Building on windows requires additional software:
 ## Configuration
 1. Open CMake-GUI.
 2. Set "Where is the source code:" to the cloned project directory.
-3. Set "where to build the binaries:" to the build directory inside the project directory (you might have to create it first).
+3. Set "Where to build the binaries:" to the build directory inside the project directory (you might have to create it first).
 4. Click "Configure".
 5. Specify the generator that you want to use. "... Win64" are 64-bit capable generators.
 6. Optional: If you have a 64-bit system, type in `host=x64` into the "Optional toolset to use" box.
@@ -64,7 +64,7 @@ First make sure that you've configured and built obs-studio-node. Once you have 
 A lot of the build system is automated, which makes integrating custom dependencies difficult. However there are some steps that can be taken to at least debug using custom built versions of OBS Studio.
 
 ## Configuration Requirements
-The following setting must be changed before clicking Generate for the first time:
+The following setting must be changed before clicking Generate for the first time in obs-studio:
 
 * ENABLE_SCRIPTING must be Off (false)
 * ENABLE_UI must be Off (false)
