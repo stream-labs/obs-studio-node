@@ -1,5 +1,5 @@
 # OBS Studio for Node.Js
-`obs-studio-node` is a Node.Js compatible wrapper around [https://github.com/stream-labs/obs-studio](OBS Studio). It works by wrapping libOBS inside a secondary process that is talked to using [https://github.com/stream-labs/lib-streamlabs-ipc](lib-streamlabs-ipc), which results in better stability and performance.
+`obs-studio-node` is a Node.Js compatible wrapper around [OBS Studio](https://github.com/stream-labs/obs-studio). It works by wrapping libOBS inside a secondary process that is talked to using [lib-streamlabs-ipc](https://github.com/stream-labs/lib-streamlabs-ipc), which results in better stability and performance.
 
 The goal of the project is to provide a fully featured working Node.Js and electron wrapper around libOBS (OBS Studio). 
 
@@ -12,15 +12,15 @@ The project is for the most part automated, so there is very little to actually 
 ## Prerequisites
 You will need to have the following installed:
 
-* Node.JS (LTS or latest)
+* [Node.JS](https://nodejs.org/en/) (LTS or latest, LTS recommended for now)
 * Yarn (Run `npm install -g yarn` inside a shell with node.js access)
 * [CMake](https://cmake.org/), Version 3.1 or higher
 
 ### Windows
 Building on windows requires additional software:
 
-* Visual Studio 2015 or 2017 with the latest update installed.
-* Windows SDK (latest version)
+* [Visual Studio 2017 or 2015](https://visualstudio.microsoft.com/) with the latest update installed.
+* [Windows SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk) (latest version, included in Visual Studio 2017)
 
 ## First Steps
 1. Clone the project and check out master.
@@ -58,4 +58,4 @@ First make sure that you've configured and built obs-studio-node. Once you have 
 3. Documentation will be inside the `/docs/` directory as a static HTML file.
 
 # Contributing To The Project
-See the [Guidelines for contributing](https://github.com/stream-labs/obs-studio-node/blob/staging/CONTRIBUTING.md).
+See the [https://github.com/stream-labs/obs-studio-node/blob/staging/CONTRIBUTING.md](Guidelines for contributing).
