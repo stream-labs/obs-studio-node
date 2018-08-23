@@ -328,7 +328,7 @@ void autoConfig::StopThread(void)
 void autoConfig::InitializeAutoConfig(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	serverName = "Auto (Recommended)";
-	server = "rtmp://live.twitch.tv/app";
+	server = "auto";
 
 	cancel = false;
 
