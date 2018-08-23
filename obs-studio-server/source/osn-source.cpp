@@ -191,7 +191,7 @@ void osn::Source::GetProperties(void* data, const int64_t id, const std::vector<
 			}
 			case OBS_PROPERTY_FLOAT: {
 				auto prop2 = std::make_shared<obs::FloatProperty>();
-				prop2->field_type = obs::NumberProperty::NumberType(obs_property_int_type(p));
+				prop2->field_type = obs::NumberProperty::NumberType(obs_property_float_type(p));
 				prop2->minimum = obs_property_float_min(p);
 				prop2->maximum = obs_property_float_max(p);
 				prop2->step = obs_property_float_step(p);
