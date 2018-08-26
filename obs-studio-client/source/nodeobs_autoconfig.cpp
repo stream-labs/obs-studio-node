@@ -113,7 +113,7 @@ void AutoConfig::worker() {
 		// Call
 		{
 			std::vector<ipc::value> response =
-				conn->call_synchronous_helper("Service", "Query", {});
+				conn->call_synchronous_helper("AutoConfig", "Query", {});
 			if (!response.size() || (response.size() == 1)) {
 				goto do_sleep;
 			}
@@ -124,7 +124,7 @@ void AutoConfig::worker() {
 
 				data->event = response[1].value_str;
 				data->description = response[2].value_str;
-				data->percentage = response[3].value_union.ui32;
+				data->percentage = response[3].value_union.fp64;
 				data->param = this;
 
 				m_async_callback->queue(std::move(data));
@@ -173,15 +173,6 @@ void autoConfig::InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>&
 }
 
 void autoConfig::StartBandwidthTest(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::shared_ptr<AutoConfigInfo> startData = std::make_shared<AutoConfigInfo>();
-	startData->event = "starting_step";
-	startData->description = "bandwidth_test";
-	startData->percentage = 0;
-	startData->param = autoConfigObject;
-	autoConfigObject->m_async_callback->queue(std::move(startData));
-
-	std::shared_ptr<AutoConfigInfo> data = std::make_shared<AutoConfigInfo>();
-
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -189,23 +180,9 @@ void autoConfig::StartBandwidthTest(const v8::FunctionCallbackInfo<v8::Value>& a
 		conn->call_synchronous_helper("AutoConfig", "StartBandwidthTest", {});
 
 	ValidateResponse(response);
-
-	std::shared_ptr<AutoConfigInfo> stopData = std::make_shared<AutoConfigInfo>();
-	stopData->event = "stopping_step";
-	stopData->description = "bandwidth_test";
-	stopData->percentage = 100;
-	stopData->param = autoConfigObject;
-	autoConfigObject->m_async_callback->queue(std::move(stopData));
 }
 
 void autoConfig::StartStreamEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::shared_ptr<AutoConfigInfo> startData = std::make_shared<AutoConfigInfo>();
-	startData->event = "starting_step";
-	startData->description = "streamingEncoder_test";
-	startData->percentage = 0;
-	startData->param = autoConfigObject;
-	autoConfigObject->m_async_callback->queue(std::move(startData));
-
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -213,22 +190,9 @@ void autoConfig::StartStreamEncoderTest(const v8::FunctionCallbackInfo<v8::Value
 		conn->call_synchronous_helper("AutoConfig", "StartStreamEncoderTest", {});
 
 	ValidateResponse(response);
-
-	std::shared_ptr<AutoConfigInfo> stopData = std::make_shared<AutoConfigInfo>();
-	stopData->event = "stopping_step";
-	stopData->description = "streamingEncoder_test";
-	stopData->percentage = 100;
-	stopData->param = autoConfigObject;
-	autoConfigObject->m_async_callback->queue(std::move(stopData));
 }
 
 void autoConfig::StartRecordingEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::shared_ptr<AutoConfigInfo> startData = std::make_shared<AutoConfigInfo>();
-	startData->event = "starting_step";
-	startData->description = "recordingEncoder_test";
-	startData->percentage = 0;
-	startData->param = autoConfigObject;
-	autoConfigObject->m_async_callback->queue(std::move(startData));
 
 	auto conn = GetConnection();
 	if (!conn) return;
@@ -237,13 +201,6 @@ void autoConfig::StartRecordingEncoderTest(const v8::FunctionCallbackInfo<v8::Va
 		conn->call_synchronous_helper("AutoConfig", "StartRecordingEncoderTest", {});
 
 	ValidateResponse(response);
-
-	std::shared_ptr<AutoConfigInfo> stopData = std::make_shared<AutoConfigInfo>();
-	stopData->event = "stopping_step";
-	stopData->description = "recordingEncoder_test";
-	stopData->percentage = 100;
-	stopData->param = autoConfigObject;
-	autoConfigObject->m_async_callback->queue(std::move(stopData));
 }
 
 void autoConfig::StartCheckSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -279,13 +236,6 @@ void autoConfig::StartCheckSettings(const v8::FunctionCallbackInfo<v8::Value>& a
 }
 
 void autoConfig::StartSetDefaultSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::shared_ptr<AutoConfigInfo> startData = std::make_shared<AutoConfigInfo>();
-	startData->event = "starting_step";
-	startData->description = "setting_default_settings";
-	startData->percentage = 0;
-	startData->param = autoConfigObject;
-	autoConfigObject->m_async_callback->queue(std::move(startData));
-
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -293,24 +243,9 @@ void autoConfig::StartSetDefaultSettings(const v8::FunctionCallbackInfo<v8::Valu
 		conn->call_synchronous_helper("AutoConfig", "StartSetDefaultSettings", {});
 
 	ValidateResponse(response);
-
-	std::shared_ptr<AutoConfigInfo> stopData = std::make_shared<AutoConfigInfo>();
-	stopData->event = "stopping_step";
-	stopData->description = "setting_default_settings";
-	stopData->percentage = 100;
-	stopData->param = autoConfigObject;
-	autoConfigObject->m_async_callback->queue(std::move(stopData));
-
 }
 
 void autoConfig::StartSaveStreamSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::shared_ptr<AutoConfigInfo> startData = std::make_shared<AutoConfigInfo>();
-	startData->event = "starting_step";
-	startData->description = "saving_service";
-	startData->percentage = 0;
-	startData->param = autoConfigObject;
-	autoConfigObject->m_async_callback->queue(std::move(startData));
-
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -318,23 +253,9 @@ void autoConfig::StartSaveStreamSettings(const v8::FunctionCallbackInfo<v8::Valu
 		conn->call_synchronous_helper("AutoConfig", "StartSaveStreamSettings", {});
 
 	ValidateResponse(response);
-
-	std::shared_ptr<AutoConfigInfo> stopData = std::make_shared<AutoConfigInfo>();
-	stopData->event = "stopping_step";
-	stopData->description = "saving_service";
-	stopData->percentage = 100;
-	stopData->param = autoConfigObject;
-	autoConfigObject->m_async_callback->queue(std::move(stopData));
 }
 
 void autoConfig::StartSaveSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::shared_ptr<AutoConfigInfo> startData = std::make_shared<AutoConfigInfo>();
-	startData->event = "starting_step";
-	startData->description = "saving_settings";
-	startData->percentage = 0;
-	startData->param = autoConfigObject;
-	autoConfigObject->m_async_callback->queue(std::move(startData));
-
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -342,20 +263,6 @@ void autoConfig::StartSaveSettings(const v8::FunctionCallbackInfo<v8::Value>& ar
 		conn->call_synchronous_helper("AutoConfig", "StartSaveSettings", {});
 
 	ValidateResponse(response);
-
-	std::shared_ptr<AutoConfigInfo> stopData = std::make_shared<AutoConfigInfo>();
-	stopData->event = "stopping_step";
-	stopData->description = "saving_settings";
-	stopData->percentage = 100;
-	stopData->param = autoConfigObject;
-	autoConfigObject->m_async_callback->queue(std::move(stopData));
-
-	std::shared_ptr<AutoConfigInfo> dataDone = std::make_shared<AutoConfigInfo>();
-	dataDone->event = "done";
-	dataDone->description = "";
-	dataDone->percentage = 0;
-	dataDone->param = autoConfigObject;
-	autoConfigObject->m_async_callback->queue(std::move(dataDone));
 }
 
 void autoConfig::TerminateAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args) {

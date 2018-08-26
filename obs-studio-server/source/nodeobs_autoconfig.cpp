@@ -44,6 +44,24 @@ struct Event {
 	int percentage;
 };
 
+class AutoConfigInfo {
+public:
+	AutoConfigInfo(std::string a_event, std::string a_description,
+		double a_percentage) {
+		event = a_event;
+		description = a_description;
+		percentage = a_percentage;
+	};
+	~AutoConfigInfo() {};
+
+	std::string event;
+	std::string description;
+	double percentage;
+};
+
+std::mutex eventsMutex;
+std::queue<AutoConfigInfo> events;
+
 Service serviceSelected = Service::Other;
 Quality recordingQuality = Quality::Stream;
 Encoder recordingEncoder = Encoder::Stream;
@@ -180,6 +198,7 @@ void autoConfig::Register(ipc::server& srv) {
 	cls->register_function(std::make_shared<ipc::function>("StartSaveStreamSettings", std::vector<ipc::type>{}, autoConfig::StartSaveStreamSettings));
 	cls->register_function(std::make_shared<ipc::function>("StartSaveSettings", std::vector<ipc::type>{}, autoConfig::StartSaveSettings));
 	cls->register_function(std::make_shared<ipc::function>("TerminateAutoConfig", std::vector<ipc::type>{}, autoConfig::TerminateAutoConfig));
+	cls->register_function(std::make_shared<ipc::function>("Query", std::vector<ipc::type>{}, autoConfig::Query));
 
 	srv.register_collection(cls);
 }
@@ -318,6 +337,25 @@ void autoConfig::TerminateAutoConfig(void* data, const int64_t id, const std::ve
 	StopThread();
 }
 
+void autoConfig::Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	std::unique_lock<std::mutex> ulock(eventsMutex);
+	if (events.empty()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+		AUTO_DEBUG;
+		return;
+	}
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+	rval.push_back(ipc::value(events.front().event));
+	rval.push_back(ipc::value(events.front().description));
+	rval.push_back(ipc::value(events.front().percentage));
+
+	events.pop();
+
+	AUTO_DEBUG;
+}
+
 void autoConfig::StopThread(void)
 {
 	unique_lock<mutex> ul(m);
@@ -337,35 +375,35 @@ void autoConfig::InitializeAutoConfig(void* data, const int64_t id, const std::v
 
 void autoConfig::StartBandwidthTest(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-	TestBandwidthThread();
+	std::thread(TestBandwidthThread).detach();
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
 void autoConfig::StartStreamEncoderTest(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-	TestStreamEncoderThread();
+	std::thread(TestStreamEncoderThread).detach();
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
 void autoConfig::StartRecordingEncoderTest(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-	TestRecordingEncoderThread();
+	std::thread(TestRecordingEncoderThread).detach();
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
 void autoConfig::StartSaveStreamSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-	SaveStreamSettings();
+	std::thread(SaveStreamSettings).detach();
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
 void autoConfig::StartSaveSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-	SaveSettings();
+	std::thread(SaveSettings).detach();
 
 	cancel = false;
 
@@ -382,7 +420,7 @@ void autoConfig::StartCheckSettings(void* data, const int64_t id, const std::vec
 
 void autoConfig::StartSetDefaultSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
-	SetDefaultSettings();
+	std::thread(SetDefaultSettings).detach();
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
@@ -511,6 +549,10 @@ int EvaluateBandwidth(ServerInfo &server, bool &connected, bool &stopped, bool &
 
 void autoConfig::TestBandwidthThread(void)
 {
+	eventsMutex.lock();
+	events.push(AutoConfigInfo("starting_step", "bandwidth_test", 0));
+	eventsMutex.unlock();
+
 	bool connected = false;
 	bool stopped = false;
 	
@@ -719,7 +761,9 @@ void autoConfig::TestBandwidthThread(void)
 
 		if (EvaluateBandwidth(info, connected, stopped, success,
 			service_settings, service, output, vencoder_settings) < 0) {
-			start_next_step(NULL, "error", "invalid_stream_settings", 0);
+			eventsMutex.lock();
+			events.push(AutoConfigInfo("error", "invalid_stream_settings", 0));
+			eventsMutex.unlock();
 			return;
 		}
 
@@ -727,19 +771,25 @@ void autoConfig::TestBandwidthThread(void)
 		bestServerName = info.name;
 		bestBitrate = info.bitrate;
 
-		start_next_step(NULL, "progress", "bandwidth_test", 100);
+		eventsMutex.lock();
+		events.push(AutoConfigInfo("progress", "bandwidth_test", 100));
+		eventsMutex.unlock();
 
 	} else {
 		for (size_t i = 0; i < servers.size(); i++) {
 			EvaluateBandwidth(servers[i], connected, stopped, success,
 								service_settings, service, output,
 								vencoder_settings);
-			start_next_step(NULL, "progress", "bandwidth_test", (i+1)*100/servers.size());
+			eventsMutex.lock();
+			events.push(AutoConfigInfo("progress", "bandwidth_test", (i + 1) * 100 / servers.size()));
+			eventsMutex.unlock();
 		}	
 	}
 
 	if (!success) {
-		start_next_step(NULL, "error", "invalid_stream_settings", 0);
+		eventsMutex.lock();
+		events.push(AutoConfigInfo("error", "invalid_stream_settings", 0));
+		eventsMutex.unlock();
 		return;
 	}
 
@@ -759,7 +809,9 @@ void autoConfig::TestBandwidthThread(void)
 	serverName = bestServerName;
 	idealBitrate = bestBitrate;
 
-	start_next_step(NULL, "stopping_step", "bandwidth_test", 100);
+	eventsMutex.lock();
+	events.push(AutoConfigInfo("stopping_step", "bandwidth_test", 100));
+	eventsMutex.unlock();
 }
 
 /* this is used to estimate the lower bitrate limit for a given
@@ -1120,7 +1172,11 @@ bool autoConfig::TestSoftwareEncoding()
 }
 
 void autoConfig::TestStreamEncoderThread()
-{	
+{
+	eventsMutex.lock();
+	events.push(AutoConfigInfo("starting_step", "streamingEncoder_test", 0));
+	eventsMutex.unlock();
+
 	std::string basicConfigFile = OBS_API::getBasicConfigPath();
 	config_t* config = OBS_API::openConfigFile(basicConfigFile);
 
@@ -1151,11 +1207,17 @@ void autoConfig::TestStreamEncoderThread()
 		streamingEncoder = Encoder::x264;
 	}
 
-	start_next_step(NULL, "stopping_step", "streamingEncoder_test", 100);
+	eventsMutex.lock();
+	events.push(AutoConfigInfo("stopping_step", "streamingEncoder_test", 100));
+	eventsMutex.unlock();
 }
 
 void autoConfig::TestRecordingEncoderThread()
 {
+	eventsMutex.lock();
+	events.push(AutoConfigInfo("starting_step", "recordingEncoder_test", 0));
+	eventsMutex.unlock();
+
 	TestHardwareEncoding();
 
 	if (!hardwareEncodingAvailable && !softwareTested) {
@@ -1190,7 +1252,9 @@ void autoConfig::TestRecordingEncoderThread()
 		}
 	}
 
-	start_next_step(NULL, "stopping_step", "recordingEncoder_test", 100);
+	eventsMutex.lock();
+	events.push(AutoConfigInfo("stopping_step", "recordingEncoder_test", 100));
+	eventsMutex.unlock();
 }
 
 inline const char* GetEncoderId(Encoder enc)
@@ -1240,7 +1304,9 @@ bool autoConfig::CheckSettings(void)
 			"serviceTest", settings, NULL);
 
 	if (!service) {
-		start_next_step(NULL, "error", "invalid_service", 0);
+		eventsMutex.lock();
+		events.push(AutoConfigInfo("error", "invalid_service", 100));
+		eventsMutex.unlock();
 		return false;
 	}
 	
@@ -1322,6 +1388,10 @@ bool autoConfig::CheckSettings(void)
 
 void autoConfig::SetDefaultSettings(void)
 {
+	eventsMutex.lock();
+	events.push(AutoConfigInfo("starting_step", "setting_default_settings", 0));
+	eventsMutex.unlock();
+
     idealResolutionCX = 1280;
     idealResolutionCY = 720;
     idealFPSNum = 30;
@@ -1329,13 +1399,20 @@ void autoConfig::SetDefaultSettings(void)
     idealBitrate = 2500;
     streamingEncoder = Encoder::x264;
     recordingEncoder = Encoder::Stream;
-    start_next_step(NULL, "stopping_step", "setting_default_settings", 100);
+
+	eventsMutex.lock();
+	events.push(AutoConfigInfo("stopping_step", "setting_default_settings", 100));
+	eventsMutex.unlock();
 }
 
 void autoConfig::SaveStreamSettings()
 {
 	/* ---------------------------------- */
 	/* save service                       */
+
+	eventsMutex.lock();
+	events.push(AutoConfigInfo("starting_step", "saving_service", 0));
+	eventsMutex.unlock();
 
 	const char *service_id = "rtmp_common";
 
@@ -1372,12 +1449,18 @@ void autoConfig::SaveStreamSettings()
 	config_remove_value(config, "SimpleOutput", "UseAdvanced");
 
 	config_save_safe(config, "tmp", nullptr);
-
-	start_next_step(NULL, "stopping_step", "saving_service", 100);
+	
+	eventsMutex.lock();
+	events.push(AutoConfigInfo("stopping_step", "saving_service", 100));
+	eventsMutex.unlock();
 }
 
 void autoConfig::SaveSettings()
 {
+	eventsMutex.lock();
+	events.push(AutoConfigInfo("starting_step", "saving_settings", 0));
+	eventsMutex.unlock();
+
 	std::string basicConfigFile = OBS_API::getBasicConfigPath();
 	config_t* config = OBS_API::openConfigFile(basicConfigFile);
 
@@ -1403,6 +1486,8 @@ void autoConfig::SaveSettings()
 
 	config_save_safe(config, "tmp", nullptr);
 
-	start_next_step(NULL, "stopping_step", "saving_settings", 100);
-	start_next_step(NULL, "done", "", 0);
+	eventsMutex.lock();
+	events.push(AutoConfigInfo("stopping_step", "saving_settings", 100));
+	events.push(AutoConfigInfo("done", "", 0));
+	eventsMutex.unlock();
 }

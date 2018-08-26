@@ -4,6 +4,7 @@
 #pragma once
 #include <thread>
 #include <mutex>
+#include <queue>
 #include <obs.hpp>
 #include <graphics/math-extra.h>
 #include "nodeobs_api.h"
@@ -21,6 +22,8 @@ namespace autoConfig {
 	void StartSaveStreamSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 	void StartSaveSettings(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 	void TerminateAutoConfig(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+	void Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+
 	void StopThread();
 	void FindIdealHardwareResolution();
 	bool TestSoftwareEncoding();
