@@ -137,279 +137,187 @@ void AutoConfig::Callback(AutoConfig* service, AutoConfigInfo* item) {
 }
 
 void autoConfig::StartBandwidthTest(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	AutoConfigInfo* startData = new AutoConfigInfo();
+	startData->event = "starting_step";
+	startData->description = "bandwidth_test";
+	startData->percentage = 0;
+	startData->param = autoConfigObject->callback;
+	autoConfigObject->callback->queue.send(startData);
+
 	auto conn = GetConnection();
 	if (!conn) return;
 
-	AutoConfigInfo* data = new AutoConfigInfo();
-	data->event = "starting_step";
-	data->description = "bandwidth_test";
-	data->percentage = 0;
-	data->param = autoConfigObject->callback;
-	autoConfigObject->callback->queue.send(data);
-	
-	
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-		
-	} rtd;
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("AutoConfig", "StartBandwidthTest", {});
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
+	ValidateResponse(response);
 
-		ErrorCode error = (ErrorCode)rval[0].value_union.ui64;
-		if (error == ErrorCode::Ok) {
-			AutoConfigInfo* data = new AutoConfigInfo();
-			data->event = "stopping_step";
-			data->description = "bandwidth_test";
-			data->percentage = 100;
-			data->param = autoConfigObject->callback;
-			autoConfigObject->callback->queue.send(data);
-		}
-	};	
-	
-	bool success = conn->call("AutoConfig",
-		"StartBandwidthTest", std::vector<ipc::value>{}, fnc, &rtd);
+	AutoConfigInfo* stopData = new AutoConfigInfo();
+	stopData->event = "stopping_step";
+	stopData->description = "bandwidth_test";
+	stopData->percentage = 100;
+	stopData->param = autoConfigObject->callback;
+	autoConfigObject->callback->queue.send(stopData);
 }
 
 void autoConfig::StartStreamEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	AutoConfigInfo* startData = new AutoConfigInfo();
+	startData->event = "starting_step";
+	startData->description = "streamingEncoder_test";
+	startData->percentage = 0;
+	startData->param = autoConfigObject->callback;
+	autoConfigObject->callback->queue.send(startData);
+
 	auto conn = GetConnection();
 	if (!conn) return;
-	
-	AutoConfigInfo* data = new AutoConfigInfo();
-	data->event = "starting_step";
-	data->description = "streamingEncoder_test";
-	data->percentage = 0;
-	data->param = autoConfigObject->callback;
-	autoConfigObject->callback->queue.send(data);
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("AutoConfig", "StartStreamEncoderTest", {});
 
-	} rtd;
+	ValidateResponse(response);
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-
-	ErrorCode error = (ErrorCode)rval[0].value_union.ui64;
-		if (error == ErrorCode::Ok) {
-			AutoConfigInfo* data = new AutoConfigInfo();
-			data->event = "stopping_step";
-			data->description = "streamingEncoder_test";
-			data->percentage = 100;
-			data->param = autoConfigObject->callback;
-			autoConfigObject->callback->queue.send(data);
-		}
-	};
-
-	bool success = conn->call("AutoConfig",
-		"StartStreamEncoderTest", std::vector<ipc::value>{}, fnc, &rtd);
+	AutoConfigInfo* stopData = new AutoConfigInfo();
+	stopData->event = "stopping_step";
+	stopData->description = "streamingEncoder_test";
+	stopData->percentage = 100;
+	stopData->param = autoConfigObject->callback;
+	autoConfigObject->callback->queue.send(stopData);
 }
 
 void autoConfig::StartRecordingEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	AutoConfigInfo* startData = new AutoConfigInfo();
+	startData->event = "starting_step";
+	startData->description = "recordingEncoder_test";
+	startData->percentage = 0;
+	startData->param = autoConfigObject->callback;
+	autoConfigObject->callback->queue.send(startData);
+
 	auto conn = GetConnection();
 	if (!conn) return;
 
-	AutoConfigInfo* data = new AutoConfigInfo();
-	data->event = "starting_step";
-	data->description = "recordingEncoder_test";
-	data->percentage = 0;
-	data->param = autoConfigObject->callback;
-	autoConfigObject->callback->queue.send(data);
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("AutoConfig", "StartRecordingEncoderTest", {});
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
+	ValidateResponse(response);
 
-	} rtd;
-
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-
-		ErrorCode error = (ErrorCode)rval[0].value_union.ui64;
-		if (error == ErrorCode::Ok) {
-			AutoConfigInfo* data = new AutoConfigInfo();
-			data->event = "stopping_step";
-			data->description = "recordingEncoder_test";
-			data->percentage = 100;
-			data->param = autoConfigObject->callback;
-			autoConfigObject->callback->queue.send(data);
-		}
-	};
-
-	bool success = conn->call("AutoConfig",
-		"StartRecordingEncoderTest", std::vector<ipc::value>{}, fnc, &rtd);
+	AutoConfigInfo* stopData = new AutoConfigInfo();
+	stopData->event = "stopping_step";
+	stopData->description = "recordingEncoder_test";
+	stopData->percentage = 100;
+	stopData->param = autoConfigObject->callback;
+	autoConfigObject->callback->queue.send(stopData);
 }
 
 void autoConfig::StartCheckSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	AutoConfigInfo* startData = new AutoConfigInfo();
+	startData->event = "starting_step";
+	startData->description = "checking_settings";
+	startData->percentage = 0;
+	startData->param = autoConfigObject->callback;
+	autoConfigObject->callback->queue.send(startData);
+	
 	auto conn = GetConnection();
 	if (!conn) return;
 
-	AutoConfigInfo* data = new AutoConfigInfo();
-	data->event = "starting_step";
-	data->description = "checking_settings";
-	data->percentage = 0;
-	data->param = autoConfigObject->callback;
-	autoConfigObject->callback->queue.send(data);
-	
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("AutoConfig", "StartCheckSettings", {});
 
-	} rtd;
+	ValidateResponse(response);
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ErrorCode error = (ErrorCode)rval[0].value_union.ui64;
-		if (error == ErrorCode::Ok) {
-			bool success = (bool)rval[1].value_union.ui32;
-			if (!success) {
-				AutoConfigInfo* error = new AutoConfigInfo();
-				error->event = "stopping_step";
-				error->description = "checking_settings";
-				error->percentage = 100;
-				error->param = autoConfigObject->callback;
-				autoConfigObject->callback->queue.send(error);
-			}
+	bool success = (bool)response[1].value_union.ui32;
+	AutoConfigInfo* stopData = new AutoConfigInfo();
+	if (!success) {
+		stopData->event = "error";
+		stopData->description = "invalid_settings";
+	}
+	else {
+		stopData->event = "stopping_step";
+		stopData->description = "checking_settings";
+	}
 
-			AutoConfigInfo* data = new AutoConfigInfo();
-			data->event = "stopping_step";
-			data->description = "checking_settings";
-			data->percentage = 100;
-			data->param = autoConfigObject->callback;
-			autoConfigObject->callback->queue.send(data);
-		}
-	};
-
-	bool success = conn->call("AutoConfig",
-		"StartCheckSettings", std::vector<ipc::value>{}, fnc, &rtd);
+	stopData->percentage = 100;
+	stopData->param = autoConfigObject->callback;
+	autoConfigObject->callback->queue.send(stopData);
 }
 
 void autoConfig::StartSetDefaultSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	AutoConfigInfo* startData = new AutoConfigInfo();
+	startData->event = "starting_step";
+	startData->description = "setting_default_settings";
+	startData->percentage = 0;
+	startData->param = autoConfigObject->callback;
+	autoConfigObject->callback->queue.send(startData);
+
 	auto conn = GetConnection();
 	if (!conn) return;
-	
 
-	AutoConfigInfo* data = new AutoConfigInfo();
-	data->event = "starting_step";
-	data->description = "setting_default_settings";
-	data->percentage = 0;
-	data->param = autoConfigObject->callback;
-	autoConfigObject->callback->queue.send(data);
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("AutoConfig", "StartSetDefaultSettings", {});
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
+	ValidateResponse(response);
 
-	} rtd;
+	AutoConfigInfo* stopData = new AutoConfigInfo();
+	stopData->event = "stopping_step";
+	stopData->description = "setting_default_settings";
+	stopData->percentage = 100;
+	stopData->param = autoConfigObject->callback;
+	autoConfigObject->callback->queue.send(stopData);
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ErrorCode error = (ErrorCode)rval[0].value_union.ui64;
-		if (error == ErrorCode::Ok) {
-			AutoConfigInfo* data = new AutoConfigInfo();
-			data->event = "stopping_step";
-			data->description = "setting_default_settings";
-			data->percentage = 100;
-			data->param = autoConfigObject->callback;
-			autoConfigObject->callback->queue.send(data);
-		}
-	};
-
-	bool success = conn->call("AutoConfig",
-		"StartSetDefaultSettings", std::vector<ipc::value>{}, fnc, &rtd);
 }
 
 void autoConfig::StartSaveStreamSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	AutoConfigInfo* startData = new AutoConfigInfo();
+	startData->event = "starting_step";
+	startData->description = "saving_service";
+	startData->percentage = 0;
+	startData->param = autoConfigObject->callback;
+	autoConfigObject->callback->queue.send(startData);
+
 	auto conn = GetConnection();
 	if (!conn) return;
 
-	AutoConfigInfo* data = new AutoConfigInfo();
-	data->event = "starting_step";
-	data->description = "saving_service";
-	data->percentage = 0;
-	data->param = autoConfigObject->callback;
-	autoConfigObject->callback->queue.send(data);
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("AutoConfig", "StartSaveStreamSettings", {});
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
+	ValidateResponse(response);
 
-	} rtd;
-
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-
-		ErrorCode error = (ErrorCode)rval[0].value_union.ui64;
-		if (error == ErrorCode::Ok) {
-			AutoConfigInfo* data = new AutoConfigInfo();
-			data->event = "stopping_step";
-			data->description = "saving_service";
-			data->percentage = 100;
-			data->param = autoConfigObject->callback;
-			autoConfigObject->callback->queue.send(data);
-		}
-	};
-
-	bool success = conn->call("AutoConfig",
-		"StartSaveStreamSettings", std::vector<ipc::value>{}, fnc, &rtd);
+	AutoConfigInfo* stopData = new AutoConfigInfo();
+	stopData->event = "stopping_step";
+	stopData->description = "saving_service";
+	stopData->percentage = 100;
+	stopData->param = autoConfigObject->callback;
+	autoConfigObject->callback->queue.send(stopData);
 }
 
 void autoConfig::StartSaveSettings(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	AutoConfigInfo* startData = new AutoConfigInfo();
+	startData->event = "starting_step";
+	startData->description = "saving_settings";
+	startData->percentage = 0;
+	startData->param = autoConfigObject->callback;
+	autoConfigObject->callback->queue.send(startData);
+
 	auto conn = GetConnection();
 	if (!conn) return;
 
-	AutoConfigInfo* data = new AutoConfigInfo();
-	data->event = "starting_step";
-	data->description = "saving_settings";
-	data->percentage = 0;
-	data->param = autoConfigObject->callback;
-	autoConfigObject->callback->queue.send(data);
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("AutoConfig", "StartSaveSettings", {});
 
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
+	ValidateResponse(response);
 
-	} rtd;
+	AutoConfigInfo* stopData = new AutoConfigInfo();
+	stopData->event = "stopping_step";
+	stopData->description = "saving_settings";
+	stopData->percentage = 100;
+	stopData->param = autoConfigObject->callback;
+	autoConfigObject->callback->queue.send(stopData);
 
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-
-		ErrorCode error = (ErrorCode)rval[0].value_union.ui64;
-		if (error == ErrorCode::Ok) {
-			AutoConfigInfo* data = new AutoConfigInfo();
-			data->event = "stopping_step";
-			data->description = "saving_settings";
-			data->percentage = 100;
-			data->param = autoConfigObject->callback;
-			autoConfigObject->callback->queue.send(data);
-
-			AutoConfigInfo* dataDone = new AutoConfigInfo();
-			dataDone->event = "done";
-			dataDone->description = "";
-			dataDone->percentage = 0;
-			dataDone->param = autoConfigObject->callback;
-			autoConfigObject->callback->queue.send(dataDone);
-		}
-	};
-
-	bool success = conn->call("AutoConfig",
-		"StartSaveSettings", std::vector<ipc::value>{}, fnc, &rtd);
+	AutoConfigInfo* dataDone = new AutoConfigInfo();
+	dataDone->event = "done";
+	dataDone->description = "";
+	dataDone->percentage = 0;
+	dataDone->param = autoConfigObject->callback;
+	autoConfigObject->callback->queue.send(dataDone);
 }
 
 void autoConfig::TerminateAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args) {
