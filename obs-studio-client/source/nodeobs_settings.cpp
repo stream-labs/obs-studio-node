@@ -98,9 +98,9 @@ std::vector<settings::SubCategory> serializeCategory(
 			param.description = description;
 			param.type = type;
 			param.subType = subType;
-			param.enabled = enabled;
-			param.masked = masked;
-			param.visible = visible;
+			param.enabled = *enabled;
+			param.masked = *masked;
+			param.visible = *visible;
 			param.currentValue = currentValue;
 			param.values = values;
 			param.countValues = *countValues;
