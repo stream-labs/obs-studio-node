@@ -1,5 +1,6 @@
 const obs = require('./obs-studio-client.node');
 import * as path from 'path';
+import * as fs from 'fs';
 
 /* Convenient paths to modules */
 export const DefaultD3D11Path: string = 
@@ -1602,5 +1603,9 @@ export function getSourcesSize(sourcesNames: string[]): ISourceSize[] {
 }
 
 // Initialization and other stuff which needs local data.
-obs.IPC.setServerPath(path.resolve(__dirname, `obs-studio-server.exe`).replace('app.asar', 'app.asar.unpacked'), path.resolve(__dirname).replace('app.asar', 'app.asar.unpacked'));
+if (fs.existsSync(path.resolve(__dirname, `obs64.exe`).replace('app.asar', 'app.asar.unpacked'))) {
+	obs.IPC.setServerPath(path.resolve(__dirname, `obs64.exe`).replace('app.asar', 'app.asar.unpacked'), path.resolve(__dirname).replace('app.asar', 'app.asar.unpacked'));
+} else {
+	obs.IPC.setServerPath(path.resolve(__dirname, `obs32.exe`).replace('app.asar', 'app.asar.unpacked'), path.resolve(__dirname).replace('app.asar', 'app.asar.unpacked'));
+}
 export const NodeObs = obs;
