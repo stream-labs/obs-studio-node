@@ -122,7 +122,7 @@ void OBS::Display::SystemWorker() {
 					LPSTR errorStr = nullptr;
 					DWORD errorStrSize = 32;
 					DWORD errorStrLen = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-						NULL, answer->errorCode, LANG_USER_DEFAULT, errorStr, errorStrSize, NULL);
+						NULL, answer->errorCode, LANG_USER_DEFAULT, (LPWSTR)errorStr, errorStrSize, NULL);
 					answer->errorMessage = std::string(errorStr, errorStrLen);
 					LocalFree(errorStr);
 					answer->success = false;
@@ -147,7 +147,7 @@ void OBS::Display::SystemWorker() {
 					LPSTR errorStr = nullptr;
 					DWORD errorStrSize = 32;
 					DWORD errorStrLen = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-						NULL, answer->errorCode, LANG_USER_DEFAULT, errorStr, errorStrSize, NULL);
+						NULL, answer->errorCode, LANG_USER_DEFAULT, (LPWSTR)errorStr, errorStrSize, NULL);
 					answer->errorMessage = std::string(errorStr, errorStrLen);
 					LocalFree(errorStr);
 					answer->success = false;
@@ -168,6 +168,19 @@ void OBS::Display::SystemWorker() {
 	} while (keepRunning);
 }
 #endif
+
+static void HandleWin32ErrorMessage() {
+	DWORD dwErrorCode = GetLastError();
+	LPSTR lpErrorStr = nullptr;
+	DWORD dwErrorStrSize = 16;
+	DWORD dwErrorStrLen = FormatMessageA(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+		NULL, dwErrorCode, LANG_USER_DEFAULT, lpErrorStr, dwErrorStrSize, NULL);
+	std::string exceptionMessage(
+		"Unexpected WinAPI error: " + std::string(lpErrorStr, dwErrorStrLen));
+	LocalFree(lpErrorStr);
+	throw std::system_error(dwErrorCode, std::system_category(), exceptionMessage);
+}
 
 OBS::Display::Display() {
 #if defined(_WIN32)
@@ -1061,16 +1074,7 @@ void OBS::Display::DisplayWndClass() {
 
 	DisplayWndClassAtom = RegisterClassEx(&DisplayWndClassObj);
 	if (DisplayWndClassAtom == NULL) {
-		DWORD errorCode = GetLastError();
-		LPSTR errorStr = nullptr;
-		DWORD errorStrSize = 16;
-		DWORD errorStrLen = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, LANG_USER_DEFAULT, errorStr, errorStrSize, NULL);
-		//    MessageBox((HWND)windowHandle, errorStr, "Unexpected Runtime Error", MB_OK | MB_ICONERROR);
-		std::string exceptionMessage(errorStr, errorStrLen);
-		exceptionMessage = "Unexpected WinAPI error: " + exceptionMessage;
-		LocalFree(errorStr);
-
-		throw std::system_error(errorCode, std::system_category(), exceptionMessage);
+		HandleWin32ErrorMessage();
 	}
 
 	DisplayWndClassRegistered = true;
