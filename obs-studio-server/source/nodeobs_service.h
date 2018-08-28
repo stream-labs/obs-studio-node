@@ -27,11 +27,16 @@
 #include <unistd.h>
 #endif
 
-#define SIMPLE_ENCODER_X264                    "obs_x264"
+#define SIMPLE_ENCODER_X264                    "x264"
 #define SIMPLE_ENCODER_X264_LOWCPU             "obs_x264"
-#define SIMPLE_ENCODER_QSV                     "obs_qsv11"
-#define SIMPLE_ENCODER_NVENC                   "ffmpeg_nvenc"
-#define SIMPLE_ENCODER_AMD                     "amd_amf_h264"
+#define SIMPLE_ENCODER_QSV                     "qsv"
+#define SIMPLE_ENCODER_NVENC                   "nvenc"
+#define SIMPLE_ENCODER_AMD                     "amd"
+
+#define ADVANCED_ENCODER_X264                    "obs_x264"
+#define ADVANCED_ENCODER_QSV                     "obs_qsv11"
+#define ADVANCED_ENCODER_NVENC                   "ffmpeg_nvenc"
+#define ADVANCED_ENCODER_AMD                     "amd_amf_h264"
 
 using namespace std;
 

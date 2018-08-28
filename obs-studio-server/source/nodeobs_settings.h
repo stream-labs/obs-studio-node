@@ -197,7 +197,8 @@ private:
 
 
 	//Utility functions
-	static void getAvailableEncoders (std::vector<std::pair<std::string, std::string>> *streamEncode);
+	static void getSimpleAvailableEncoders(std::vector<std::pair<std::string, std::string>> *streamEncode);
+	static void getAdvancedAvailableEncoders(std::vector<std::pair<std::string, std::string>> *streamEncode);
 	static std::vector<pair<uint32_t, uint32_t>> 	getOutputResolutions (int base_cx, int base_cy);
 	static void 									getEncoderSettings(const obs_encoder_t *encoder,
 																		obs_data_t *settings,
