@@ -11,6 +11,9 @@ PROJECT(
 include(ExternalProject)
 include(DownloadProject)
 
+# Detect Architecture (Bitness)
+math(EXPR BITS "8*${CMAKE_SIZEOF_VOID_P}")
+
 ################################################################################
 # Compiler
 ################################################################################
@@ -226,7 +229,11 @@ TARGET_INCLUDE_DIRECTORIES(
 	${PROJECT_NAME}
 	PUBLIC ${PROJECT_INCLUDE_PATHS}
 )
-
+SET_TARGET_PROPERTIES(
+	${PROJECT_NAME}
+	PROPERTIES
+	OUTPUT_NAME "obs${BITS}"
+)
 IF(WIN32)
 	SET_TARGET_PROPERTIES(
 		${PROJECT_NAME}

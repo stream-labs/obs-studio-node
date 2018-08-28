@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const obs = require('./obs-studio-client.node');
 const path = require("path");
+const fs = require("fs");
 exports.DefaultD3D11Path = path.resolve(__dirname, `libobs-d3d11.dll`);
 exports.DefaultOpenGLPath = path.resolve(__dirname, `libobs-opengl.dll`);
 exports.DefaultDrawPluginPath = path.resolve(__dirname, `simple_draw.dll`);
@@ -86,7 +87,7 @@ function getSourcesSize(sourcesNames) {
     if (Array.isArray(sourcesNames)) {
         sourcesNames.forEach(function (sourceName) {
             const ObsInput = obs.Input.fromName(sourceName);
-            if(ObsInput) {
+            if (ObsInput) {
                 sourcesSize.push({ name: sourceName, height: ObsInput.height, width: ObsInput.width, outputFlags: ObsInput.outputFlags });
             }
         });
@@ -94,5 +95,10 @@ function getSourcesSize(sourcesNames) {
     return sourcesSize;
 }
 exports.getSourcesSize = getSourcesSize;
-obs.IPC.setServerPath(path.resolve(__dirname, `obs-studio-server.exe`).replace('app.asar', 'app.asar.unpacked'), path.resolve(__dirname).replace('app.asar', 'app.asar.unpacked'));
+if (fs.existsSync(path.resolve(__dirname, `obs64.exe`).replace('app.asar', 'app.asar.unpacked'))) {
+    obs.IPC.setServerPath(path.resolve(__dirname, `obs64.exe`).replace('app.asar', 'app.asar.unpacked'), path.resolve(__dirname).replace('app.asar', 'app.asar.unpacked'));
+}
+else {
+    obs.IPC.setServerPath(path.resolve(__dirname, `obs32.exe`).replace('app.asar', 'app.asar.unpacked'), path.resolve(__dirname).replace('app.asar', 'app.asar.unpacked'));
+}
 exports.NodeObs = obs;
