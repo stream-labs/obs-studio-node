@@ -114,8 +114,8 @@ void api::OBS_API_isOBS_installed(const v8::FunctionCallbackInfo<v8::Value>& arg
 }
 
 void api::SetWorkingDirectory(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::string path;
-	ASSERT_GET_VALUE(args[0], path);
+	Nan::Utf8String param0(args[0]);
+	std::string path = *param0;
 
 	auto conn = GetConnection();
 	if (!conn) return;
