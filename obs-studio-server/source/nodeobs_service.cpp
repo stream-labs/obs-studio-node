@@ -1715,7 +1715,8 @@ void OBS_service::updateStreamSettings(void)
 	if(strcmp(currentOutputMode, "Simple") == 0) {
 		const char *quality = config_get_string(config, "SimpleOutput",
 			"RecQuality");
-		if (strcmp(quality, "Stream") == 0 && !isRecording) {
+		if ((strcmp(quality, "Stream") != 0) ||
+				(strcmp(quality, "Stream") == 0 && !isRecording)) {
 			updateVideoStreamingEncoder();
 		}
 	} else if (strcmp(currentOutputMode, "Advanced") == 0) {
