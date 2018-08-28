@@ -84,6 +84,19 @@ struct DestroyWindowMessageQuestion {
 struct DestroyWindowMessageAnswer : message_answer {
 };
 
+static void HandleWin32ErrorMessage() {
+	DWORD dwErrorCode = GetLastError();
+	LPSTR lpErrorStr = nullptr;
+	DWORD dwErrorStrSize = 16;
+	DWORD dwErrorStrLen = FormatMessageA(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+		NULL, dwErrorCode, LANG_USER_DEFAULT, lpErrorStr, dwErrorStrSize, NULL);
+	std::string exceptionMessage(
+		"Unexpected WinAPI error: " + std::string(lpErrorStr, dwErrorStrLen));
+	LocalFree(lpErrorStr);
+	throw std::system_error(dwErrorCode, std::system_category(), exceptionMessage);
+}
+
 void OBS::Display::SystemWorker() {
 	MSG message;
 	PeekMessage(&message, NULL, WM_USER, WM_USER, PM_NOREMOVE);
@@ -118,13 +131,7 @@ void OBS::Display::SystemWorker() {
 					NULL,
 					NULL, NULL, this);
 				if (!newWindow) {
-					answer->errorCode = GetLastError();
-					LPSTR errorStr = nullptr;
-					DWORD errorStrSize = 32;
-					DWORD errorStrLen = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-						NULL, answer->errorCode, LANG_USER_DEFAULT, errorStr, errorStrSize, NULL);
-					answer->errorMessage = std::string(errorStr, errorStrLen);
-					LocalFree(errorStr);
+					HandleWin32ErrorMessage();
 					answer->success = false;
 				} else {
 					SetLayeredWindowAttributes(newWindow, 0, 100, LWA_ALPHA);
@@ -143,13 +150,7 @@ void OBS::Display::SystemWorker() {
 				DestroyWindowMessageAnswer* answer = reinterpret_cast<DestroyWindowMessageAnswer*>(message.lParam);
 
 				if (!DestroyWindow(question->window)) {
-					answer->errorCode = GetLastError();
-					LPSTR errorStr = nullptr;
-					DWORD errorStrSize = 32;
-					DWORD errorStrLen = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-						NULL, answer->errorCode, LANG_USER_DEFAULT, errorStr, errorStrSize, NULL);
-					answer->errorMessage = std::string(errorStr, errorStrLen);
-					LocalFree(errorStr);
+					HandleWin32ErrorMessage();
 					answer->success = false;
 				} else {
 					answer->success = true;
@@ -1061,16 +1062,7 @@ void OBS::Display::DisplayWndClass() {
 
 	DisplayWndClassAtom = RegisterClassEx(&DisplayWndClassObj);
 	if (DisplayWndClassAtom == NULL) {
-		DWORD errorCode = GetLastError();
-		LPSTR errorStr = nullptr;
-		DWORD errorStrSize = 16;
-		DWORD errorStrLen = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, LANG_USER_DEFAULT, errorStr, errorStrSize, NULL);
-		//    MessageBox((HWND)windowHandle, errorStr, "Unexpected Runtime Error", MB_OK | MB_ICONERROR);
-		std::string exceptionMessage(errorStr, errorStrLen);
-		exceptionMessage = "Unexpected WinAPI error: " + exceptionMessage;
-		LocalFree(errorStr);
-
-		throw std::system_error(errorCode, std::system_category(), exceptionMessage);
+		HandleWin32ErrorMessage();
 	}
 
 	DisplayWndClassRegistered = true;
