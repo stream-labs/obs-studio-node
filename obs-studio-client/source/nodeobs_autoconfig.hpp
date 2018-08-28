@@ -10,7 +10,7 @@ struct AutoConfigInfo {
 };
 
 class AutoConfig;
-typedef utilv8::CallbackData<AutoConfigInfo, AutoConfig> AutoConfigCallback;
+typedef utilv8::managed_callback<std::shared_ptr<AutoConfigInfo>> AutoConfigCallback;
 AutoConfig *autoConfigObject;
 
 class AutoConfig : public Nan::ObjectWrap,
@@ -20,13 +20,28 @@ class AutoConfig : public Nan::ObjectWrap,
 	friend utilv8::ManagedObject<AutoConfig>;
 	friend utilv8::CallbackData<AutoConfigInfo, AutoConfig>;
 
+	uint32_t sleepIntervalMS = 33;
+
 public:
+	std::thread m_worker;
+	bool m_worker_stop = true;
+	std::mutex m_worker_lock;
+
+	AutoConfigCallback* m_async_callback = nullptr;
+	Nan::Callback m_callback_function;
+
 	AutoConfig() {};
 	~AutoConfig() {};
 
-	AutoConfigCallback* callback;
-	static void Callback(AutoConfig* volmeter, AutoConfigInfo* item);
-	static Nan::Persistent<v8::FunctionTemplate> prototype;
+	void start_async_runner();
+	void stop_async_runner();
+	void callback_handler(void* data, std::shared_ptr<AutoConfigInfo> item);
+	void start_worker();
+	void stop_worker();
+	void worker();
+	void set_keepalive(v8::Local<v8::Object>);
+
+	std::list<AutoConfigCallback*>  callbacks;
 };
 
 namespace autoConfig {
