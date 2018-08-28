@@ -935,18 +935,32 @@ static bool EncoderAvailable(const char *encoder)
 	return false;
 }
 
-void OBS_settings::getAvailableEncoders(std::vector<std::pair<std::string, std::string>> *streamEncoder)
+void OBS_settings::getSimpleAvailableEncoders(std::vector<std::pair<std::string, std::string>> *streamEncoder)
 {
-	streamEncoder->push_back(std::make_pair("Software (x264)", "obs_x264"));
+	streamEncoder->push_back(std::make_pair("Software (x264)", SIMPLE_ENCODER_X264));
 
 	if (EncoderAvailable("obs_qsv11"))
-		streamEncoder->push_back(std::make_pair("QSV", "obs_qsv11"));
+		streamEncoder->push_back(std::make_pair("QSV", SIMPLE_ENCODER_QSV));
 
 	if (EncoderAvailable("ffmpeg_nvenc"))
-		streamEncoder->push_back(std::make_pair("NVENC", "ffmpeg_nvenc"));
+		streamEncoder->push_back(std::make_pair("NVENC", SIMPLE_ENCODER_NVENC));
 
 	if (EncoderAvailable("amd_amf_h264"))
-		streamEncoder->push_back(std::make_pair("AMD", "amd_amf_h264"));
+		streamEncoder->push_back(std::make_pair("AMD", SIMPLE_ENCODER_AMD));
+}
+
+void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::string, std::string>> *streamEncoder)
+{
+	streamEncoder->push_back(std::make_pair("Software (x264)", ADVANCED_ENCODER_X264));
+
+	if (EncoderAvailable("obs_qsv11"))
+		streamEncoder->push_back(std::make_pair("QSV", ADVANCED_ENCODER_QSV));
+
+	if (EncoderAvailable("ffmpeg_nvenc"))
+		streamEncoder->push_back(std::make_pair("NVENC", ADVANCED_ENCODER_NVENC));
+
+	if (EncoderAvailable("amd_amf_h264"))
+		streamEncoder->push_back(std::make_pair("AMD", ADVANCED_ENCODER_AMD));
 }
 
 void OBS_settings::getSimpleOutputSettings(std::vector<SubCategory> *outputSettings,
@@ -971,7 +985,7 @@ void OBS_settings::getSimpleOutputSettings(std::vector<SubCategory> *outputSetti
 	streamEncoder.push_back(std::make_pair("description", "Encoder"));
 	streamEncoder.push_back(std::make_pair("subType", "OBS_COMBO_FORMAT_STRING"));
 
-	getAvailableEncoders(&streamEncoder);
+	getSimpleAvailableEncoders(&streamEncoder);
 
 	entries.push_back(streamEncoder);
 
@@ -1012,7 +1026,8 @@ void OBS_settings::getSimpleOutputSettings(std::vector<SubCategory> *outputSetti
 
 		std::vector<std::pair<std::string, std::string>> preset;
 
-		if (strcmp(encoder, SIMPLE_ENCODER_QSV) == 0) {
+		if (strcmp(encoder, SIMPLE_ENCODER_QSV) == 0 ||
+				strcmp(encoder, ADVANCED_ENCODER_QSV) == 0) {
 			preset.push_back(std::make_pair("name", "QSVPreset"));
 			preset.push_back(std::make_pair("type", "OBS_PROPERTY_LIST"));
 			preset.push_back(std::make_pair("description", "Encoder Preset (higher = less CPU)"));
@@ -1026,7 +1041,8 @@ void OBS_settings::getSimpleOutputSettings(std::vector<SubCategory> *outputSetti
 			// preset = curQSVPreset;
 
 		}
-		else if (strcmp(encoder, SIMPLE_ENCODER_NVENC) == 0) {
+		else if (strcmp(encoder, SIMPLE_ENCODER_NVENC) == 0 ||
+					strcmp(encoder, ADVANCED_ENCODER_NVENC) == 0) {
 			preset.push_back(std::make_pair("name", "NVENCPreset"));
 			preset.push_back(std::make_pair("type", "OBS_PROPERTY_LIST"));
 			preset.push_back(std::make_pair("description", "Encoder Preset (higher = less CPU)"));
@@ -1058,7 +1074,8 @@ void OBS_settings::getSimpleOutputSettings(std::vector<SubCategory> *outputSetti
 			// preset = curNVENCPreset;
 
 		}
-		else if (strcmp(encoder, SIMPLE_ENCODER_AMD) == 0) {
+		else if (strcmp(encoder, SIMPLE_ENCODER_AMD) == 0 ||
+					strcmp(encoder, ADVANCED_ENCODER_AMD) == 0) {
 			preset.push_back(std::make_pair("name", "AMDPreset"));
 			preset.push_back(std::make_pair("type", "OBS_PROPERTY_LIST"));
 			preset.push_back(std::make_pair("description", "Encoder Preset (higher = less CPU)"));
@@ -1475,7 +1492,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	videoEncoders.sizeOfCurrentValue = strlen(encoderCurrentValue);
 
 	std::vector<std::pair<std::string, std::string>> encoderValues;
-	getAvailableEncoders(&encoderValues);
+	getAdvancedAvailableEncoders(&encoderValues);
 
 	for (int i = 0; i < encoderValues.size(); i++) {
 		std::string name = encoderValues.at(i).first;
@@ -1807,7 +1824,7 @@ void OBS_settings::getStandardRecordingSettings(
 	recEncoder.sizeOfCurrentValue = strlen(recEncoderCurrentValue);
 
 	std::vector<std::pair<std::string, std::string>> Encoder;
-	getAvailableEncoders(&Encoder);
+	getAdvancedAvailableEncoders(&Encoder);
 
 	uint32_t indexDataRecEncoder = 0;
 

@@ -743,7 +743,7 @@ void OBS_service::createService()
         obs_data_set_string(settings, "streamType", "rtmp_common");
         obs_data_set_string(settings, "service", "Twitch");
         obs_data_set_bool(settings, "show_all", 0);
-        obs_data_set_string(settings, "server", "rtmp://live.twitch.tv/app");
+        obs_data_set_string(settings, "server", "auto");
         obs_data_set_string(settings, "key", "");
 
         obs_data_set_string(data, "type", obs_service_get_type(service));
@@ -1029,14 +1029,17 @@ void OBS_service::updateVideoStreamingEncoder()
 
     if(encoder != NULL)
     {
-        if (strcmp(encoder, SIMPLE_ENCODER_QSV) == 0) {
+        if (strcmp(encoder, SIMPLE_ENCODER_QSV) == 0 ||
+				strcmp(encoder, ADVANCED_ENCODER_QSV) == 0) {
             presetType = "QSVPreset";
 			encoderID = "obs_qsv11";
-        } else if (strcmp(encoder, SIMPLE_ENCODER_AMD) == 0) {
+        } else if (strcmp(encoder, SIMPLE_ENCODER_AMD) == 0 ||
+						strcmp(encoder, ADVANCED_ENCODER_AMD) == 0) {
             presetType = "AMDPreset";
             UpdateStreamingSettings_amd(h264Settings, videoBitrate);
 			encoderID = "amd_amf_h264";
-        } else if (strcmp(encoder, SIMPLE_ENCODER_NVENC) == 0) {
+        } else if (strcmp(encoder, SIMPLE_ENCODER_NVENC) == 0 ||
+						strcmp(encoder, ADVANCED_ENCODER_NVENC) == 0) {
             presetType = "NVENCPreset";
 			encoderID = "ffmpeg_nvenc";
         } else {
@@ -1455,16 +1458,20 @@ void OBS_service::updateVideoRecordingEncoder()
 
 	} else {
 		lowCPUx264 = false;
-		if (strcmp(encoder, SIMPLE_ENCODER_X264) == 0) {
+		if (strcmp(encoder, SIMPLE_ENCODER_X264) == 0 ||
+				strcmp(encoder, ADVANCED_ENCODER_X264) == 0) {
 			LoadRecordingPreset_h264("obs_x264");
 		} else if (strcmp(encoder, SIMPLE_ENCODER_X264_LOWCPU) == 0) {
 			LoadRecordingPreset_h264("obs_x264");
 			lowCPUx264 = true;
-		} else if (strcmp(encoder, SIMPLE_ENCODER_QSV) == 0) {
+		} else if (strcmp(encoder, SIMPLE_ENCODER_QSV) == 0 ||
+						strcmp(encoder, ADVANCED_ENCODER_QSV) == 0) {
 			LoadRecordingPreset_h264("obs_qsv11");
-		} else if (strcmp(encoder, SIMPLE_ENCODER_AMD) == 0) {
+		} else if (strcmp(encoder, SIMPLE_ENCODER_AMD) == 0 ||
+						strcmp(encoder, ADVANCED_ENCODER_AMD) == 0) {
 			LoadRecordingPreset_h264("amd_amf_h264");
-		} else if (strcmp(encoder, SIMPLE_ENCODER_NVENC) == 0) {
+		} else if (strcmp(encoder, SIMPLE_ENCODER_NVENC) == 0 ||
+						strcmp(encoder, ADVANCED_ENCODER_NVENC) == 0) {
 			LoadRecordingPreset_h264("ffmpeg_nvenc");
 		}
 		usingRecordingPreset = true;
