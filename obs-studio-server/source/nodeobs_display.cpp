@@ -111,7 +111,7 @@ void OBS::Display::SystemWorker() {
 				CreateWindowMessageAnswer* answer = reinterpret_cast<CreateWindowMessageAnswer*>(message.lParam);
 
 				HWND newWindow = CreateWindowEx(
-					WS_EX_LAYERED | WS_EX_TRANSPARENT,// | WS_EX_COMPOSITED | WS_EX_TOPMOST,
+					0,// | WS_EX_COMPOSITED | WS_EX_TOPMOST,
 					TEXT("Win32DisplayClass"), TEXT("SlobsChildWindowPreview"),
 					WS_VISIBLE | WS_POPUP,
 					0, 0, question->width, question->height,
