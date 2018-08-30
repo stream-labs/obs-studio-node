@@ -437,7 +437,6 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 
 	DeleteOldestFile(log_path.c_str(), 3);
 	log_path.append(filename);
-	
 	/* Leak although not that big of a deal since it should always be open. */
 	fstream *logfile = new fstream(log_path, ios_base::out | ios_base::trunc);
 
@@ -455,10 +454,7 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 	* 2. ${OBS_DATA_PATH}/libobs <- This works but is inflexible
 	* 3. getenv(OBS_DATA_PATH) + /libobs <- Can be set anywhere
 	*    on the cli, in the frontend, or the backend. */
-
-	
-
-	obs_add_data_path((char*)(converter.from_bytes(g_moduleDirectory + +"/libobs/data/libobs/")).c_str());
+	obs_add_data_path((g_moduleDirectory + "/libobs/data/libobs/").c_str());
 
 	std::vector<char> userData = std::vector<char>(1024);
 	os_get_config_path(userData.data(), userData.capacity() - 1, "slobs-client/plugin_config");
@@ -489,7 +485,6 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 	//profiler_start();
 
 	openAllModules();
-
 	OBS_service::createStreamingOutput();
 	OBS_service::createRecordingOutput();
 
@@ -516,8 +511,6 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 	OBS_service::setServiceToTheStreamingOutput();
 
 	setAudioDeviceMonitoring();
-
-	std::cout << "END OF INIT" << std::endl;
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -830,7 +823,6 @@ void OBS_API::openAllModules(void) {
 
 			std::string plugin_path = plugins_path + "/" + fullname;
 			std::string plugin_data_path = plugins_data_path + "/" + basename;
-			
 			if (ent->directory) {
 				continue;
 			}
