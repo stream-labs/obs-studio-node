@@ -142,7 +142,7 @@ void OBS::Display::SystemWorker() {
 					answer->success = false;
 				} else {
 					if (IsWindows8OrGreater()) {
-						SetLayeredWindowAttributes(newWindow, 0, 0, LWA_ALPHA);
+						SetLayeredWindowAttributes(newWindow, 0, 255, LWA_ALPHA);
 					}
 
 					SetParent(newWindow, question->parentWindow);
