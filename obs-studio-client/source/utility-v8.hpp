@@ -637,28 +637,45 @@ namespace utilv8 {
 		bool finalizing = false;
 		bool finalized = false;
 
+		std::mutex m_data_mutex;
 		std::list<T> m_objects;
-		std::mutex m_objects_mutex;
 		Nan::Persistent<v8::Object> m_keepalive;
-
 		callback_t m_callback;
 		void* m_callback_data;
 
 		static void worker(uv_async_t* handle) {
+			std::list<T> l_objects;
+			Nan::Persistent<v8::Object> l_keepalive;
+			callback_t l_callback;
+			void* l_callback_data;
 			managed_callback<T>* self = reinterpret_cast<managed_callback<T>*>(handle->data);
-			std::unique_lock<std::mutex> ul(self->m_objects_mutex);
-			if (self->m_callback) {
-				for (T v : self->m_objects) {
-					self->m_callback(self->m_callback_data, v);
-				}
+
+			if (!self->m_callback) {
+				// If there is no callback, simply clear the queue and return.
+				std::unique_lock<std::mutex> ul(self->m_data_mutex);
+				self->m_objects.clear();
+				return;
 			}
-			self->m_objects.clear();
+
+			{
+				// Keep a thread-local copy for thread-safety.
+				std::unique_lock<std::mutex> ul(self->m_data_mutex);
+				self->m_objects.swap(l_objects);
+				l_callback = self->m_callback;
+				l_callback_data = self->m_callback_data;
+				l_keepalive.Reset(self->m_keepalive);
+			}
+
+			// Execute the callback for all queued elements.
+			for (T v : l_objects) {
+				l_callback(l_callback_data, v);
+			}			
 		}
 
 		static void close_handler(uv_handle_t* handle) {
 			managed_callback<T>* self = reinterpret_cast<managed_callback<T>*>(handle->data);
 			{
-				std::unique_lock<std::mutex> ul(self->m_objects_mutex);
+				std::unique_lock<std::mutex> ul(self->m_data_mutex);
 				self->m_objects.clear();
 				self->finalized = true;
 				self->m_keepalive.Reset();
@@ -682,10 +699,11 @@ namespace utilv8 {
 		// Finalize the asynchronous callback runner.
 		// 
 		// This needs to be called in order to properly clean things up. It is
-		//  a replacement for the destructor.
+		//  a replacement for the destructor. You do not call delete on this
+		//  object once you've called finalize(), it will do it by itself.
 		void finalize() {
 			{
-				std::unique_lock<std::mutex> ul(m_objects_mutex);
+				std::unique_lock<std::mutex> ul(m_data_mutex);
 				m_objects.clear();
 				finalizing = true;
 			}
@@ -694,24 +712,26 @@ namespace utilv8 {
 
 		// Set the object that needs to be kept alive until finalized.
 		void set_keepalive(v8::Local<v8::Object> obj) {
+			std::unique_lock<std::mutex> ul(m_data_mutex);
 			m_keepalive.Reset(obj);
 		}
 
 		// Set the callback handler and data.
 		void set_handler(callback_t handler, void* data) {
+			std::unique_lock<std::mutex> ul(m_data_mutex);
 			m_callback_data = data;
 			m_callback = handler;
 		}
 
 		// Clear the queue.
 		void clear() {
-			std::unique_lock<std::mutex> ul(m_objects_mutex);
+			std::unique_lock<std::mutex> ul(m_data_mutex);
 			m_objects.clear();
 		}
 
 		// Enqueue another object for the next call.
 		void queue(T object) {
-			std::unique_lock<std::mutex> ul(m_objects_mutex);
+			std::unique_lock<std::mutex> ul(m_data_mutex);
 			m_objects.push_back(object);
 			uv_async_send(&m_async_runner);
 		}
