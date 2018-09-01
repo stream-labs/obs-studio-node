@@ -15,6 +15,8 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
 
+#include <codecvt>
+#include <locale>
 #include "utility.hpp"
 
 // This is from enc-amf
@@ -67,3 +69,33 @@ void Utility::SetThreadName(const char* threadName) {
 	prctl(PR_SET_NAME, threadName, 0, 0, 0);
 }
 #endif
+
+static thread_local std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+
+std::string from_utf16_wide_to_utf8(const wchar_t *from, size_t length)
+{
+	const wchar_t *from_end;
+
+	if (length == 0)
+		return {};
+	else if (length != -1)
+		from_end = from + length;
+	else
+		return converter.to_bytes(from);
+
+	return converter.to_bytes(from, from_end);
+}
+
+std::wstring from_utf8_to_utf16_wide(const char *from, size_t length)
+{
+	const char *from_end;
+
+	if (length == 0)
+		return {};
+	else if (length != -1)
+		from_end = from + length;
+	else
+		return converter.from_bytes(from);
+
+	return converter.from_bytes(from, from_end);
+}

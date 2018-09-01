@@ -152,3 +152,6 @@ namespace utility {
 	void SetThreadName(const char* threadName);
 #endif
 }
+
+std::string from_utf16_wide_to_utf8(const wchar_t *from, size_t length = -1);
+std::wstring from_utf8_to_utf16_wide(const char *from, size_t length = -1);
