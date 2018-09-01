@@ -24,12 +24,47 @@
 #include <iostream>
 #include <nan.h>
 #include <fstream>
+#include <locale>
+#include <codecvt>
 
 #pragma region Windows
 #ifdef _WIN32
 #include <windows.h>
 #include <direct.h>
 #include <wchar.h>
+
+/* Length is the number of characters, not bytes */
+namespace {
+
+std::string from_utf16_wide_to_utf8(const wchar_t *from, size_t length = -1)
+{
+	const wchar_t *from_end;
+
+	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+
+	if (length != -1)
+		from_end = from + length;
+	else
+		return converter.to_bytes(from);
+
+	return converter.to_bytes(from, from_end);
+}
+
+std::wstring from_utf8_to_utf16_wide(const char *from, size_t length = -1)
+{
+	const char *from_end;
+
+	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+
+	if (length != -1)
+		from_end = from + length;
+	else
+		return converter.from_bytes(from);
+
+	return converter.from_bytes(from, from_end);
+}
+
+}
 
 ProcessInfo spawn(std::string program, std::string commandLine, std::string workingDirectory) {
 	PROCESS_INFORMATION m_win32_processInformation;
@@ -117,12 +152,28 @@ bool close_process(ProcessInfo pi) {
 }
 
 std::string get_process_name(ProcessInfo pi) {
-	std::vector<char> name_buf(MAX_PATH + 2);
-	DWORD name_len = MAX_PATH + 1;
-	if (QueryFullProcessImageName((HANDLE)pi.handle, 0, name_buf.data(), &name_len)) {
-		return std::string(name_buf.data(), name_buf.data() + name_len);
+	/* 255 is a coincidental value actually given by GetVolumeInformation.
+	 * This value can be something other than 255 but 255 is the common
+	 * value. We're targetting desktops and the likelihood this turns into
+	 * an issue is almost none but should be noted at least. */
+	std::basic_string<TCHAR> buffer;
+	buffer.resize(255 + 1);
+	DWORD buffer_size = buffer.size();
+
+	BOOL success = QueryFullProcessImageName(
+		(HANDLE)pi.handle, 0,
+		&buffer[0], &buffer_size
+	);
+
+	if (!success) {
+		return {};
 	}
-	return "";
+
+#ifdef UNICODE
+	return from_utf16_wide_to_utf8(buffer.data(), -1);
+#elif
+	return buffer;
+#endif
 }
 
 bool is_process_alive(ProcessInfo pinfo) {
@@ -194,11 +245,20 @@ std::shared_ptr<ipc::client> Controller::host(std::string uri) {
 	std::string workingDirectory = serverWorkingPath.length() > 0 ? serverWorkingPath : get_working_directory();
 
 	// Test for existing process.
-	std::string pid_path = "server.pid";
+	std::string pid_path;
+
 #ifdef _WIN32
-	std::vector<char> tmp(MAX_PATH + 2);
-	TCHAR tmp_len = GetTempPath(MAX_PATH + 1, tmp.data());
-	pid_path = std::string(tmp.data(), tmp.data() + tmp_len) + "\\" + pid_path;
+	std::basic_string<TCHAR> tmp;
+	tmp.resize(MAX_PATH + 1);
+	DWORD tmp_len = GetTempPath(MAX_PATH + 1, &tmp[0]);
+
+#ifdef UNICODE
+	pid_path.assign(
+		std::move(from_utf16_wide_to_utf8(tmp.data(), tmp_len)));
+#endif
+
+	pid_path.append("\\");
+	pid_path.append(pid_path);
 #endif
 	std::ifstream pid_file;
 	pid_file.open(pid_path);
@@ -209,7 +269,7 @@ std::shared_ptr<ipc::client> Controller::host(std::string uri) {
 			char pid_char[sizeof(uint64_t)];
 		};
 		pid_file.read(&pid_char[0], 8);
-		
+
 		ProcessInfo pi = open_process(pid);
 		if (pi.handle != 0) {
 			std::string name = get_process_name(pi);
