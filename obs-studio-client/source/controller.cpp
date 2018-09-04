@@ -246,13 +246,27 @@ std::shared_ptr<ipc::client> Controller::host(std::string uri) {
 	std::string pid_path;
 
 #ifdef _WIN32
+
 	std::basic_string<TCHAR> tmp;
 	tmp.resize(MAX_PATH + 1);
+
 	DWORD tmp_len = GetTempPath(MAX_PATH + 1, &tmp[0]);
 
 #ifdef UNICODE
-	pid_path.assign(
-		std::move(from_utf16_wide_to_utf8(tmp.data(), tmp_len)));
+	{
+
+	DWORD long_path_len = GetLongPathName(&tmp[0], NULL, 0);
+	std::basic_string<TCHAR> long_tmp;
+	long_tmp.resize(long_path_len);
+	GetLongPathName(&tmp[0], &long_tmp[0], long_path_len);
+
+	pid_path.assign(from_utf16_wide_to_utf8(long_tmp.data(),long_path_len));
+
+	}
+#else
+	/* Non-unicode path won't give us above MAX_PATH ever.
+	 * Just bite the bullet */
+	pid_path = std::move(tmp);
 #endif
 
 	pid_path.append("\\");
