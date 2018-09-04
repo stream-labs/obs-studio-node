@@ -456,6 +456,18 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 	appdata_path = args[0].value_str.c_str();
 	appdata_path += "/node-obs/";
 
+	/* libobs will use three methods of finding data files:
+	* 1. ${CWD}/data/libobs <- This doesn't work for us
+	* 2. ${OBS_DATA_PATH}/libobs <- This works but is inflexible
+	* 3. getenv(OBS_DATA_PATH) + /libobs <- Can be set anywhere
+	*    on the cli, in the frontend, or the backend. */
+
+	obs_add_data_path((g_moduleDirectory + "/libobs/data/libobs/").c_str());
+
+	std::vector<char> userData = std::vector<char>(1024);
+	os_get_config_path(userData.data(), userData.capacity() - 1, "slobs-client/plugin_config");
+	obs_startup(args[1].value_str.c_str(), userData.data(), NULL);
+
 #pragma region Logging
 	/* Logging */
 	string filename = GenerateTimeDateFilename("txt");
@@ -481,19 +493,6 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 	/* Delete oldest file in the folder to imitate rotating */
 	base_set_log_handler(node_obs_log, logfile);
 #pragma endregion Logging
-
-
-	/* libobs will use three methods of finding data files:
-	* 1. ${CWD}/data/libobs <- This doesn't work for us
-	* 2. ${OBS_DATA_PATH}/libobs <- This works but is inflexible
-	* 3. getenv(OBS_DATA_PATH) + /libobs <- Can be set anywhere
-	*    on the cli, in the frontend, or the backend. */
-
-	obs_add_data_path((g_moduleDirectory + "/libobs/data/libobs/").c_str());
-
-	std::vector<char> userData = std::vector<char>(1024);
-	os_get_config_path(userData.data(), userData.capacity() - 1, "slobs-client/plugin_config");
-	obs_startup(args[1].value_str.c_str(), userData.data(), NULL);
 
 	/* INJECT osn::Source::Manager */
 	// Alright, you're probably wondering: Why is osn code here?
