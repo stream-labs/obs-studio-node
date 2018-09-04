@@ -200,28 +200,23 @@ bool kill(ProcessInfo pinfo, uint32_t code, uint32_t& exitcode) {
 }
 
 std::string get_working_directory() {
-	std::vector<wchar_t> bufUTF16 = std::vector<wchar_t>(65535);
-	std::vector<char> bufUTF8;
+	DWORD dwRequiredSize = 0;
+	LPTSTR lpBuffer;
 
-	_wgetcwd(bufUTF16.data(), bufUTF16.size());
+	dwRequiredSize = GetCurrentDirectory(0, NULL);
 
-	// Convert from Wide-char to UTF8
-	DWORD bufferSize = WideCharToMultiByte(CP_UTF8, 0,
-		bufUTF16.data(), bufUTF16.size(),
-		nullptr, 0,
-		NULL, NULL);
-	bufUTF8.resize(bufferSize + 1);
-	DWORD finalSize = WideCharToMultiByte(CP_UTF8, 0,
-		bufUTF16.data(), bufUTF16.size(),
-		bufUTF8.data(), bufUTF8.size(),
-		NULL, NULL);
-	if (finalSize == 0) {
-		// Conversion failed.
-		DWORD errorCode = GetLastError();
-		return false;
-	}
+	lpBuffer = new TCHAR[dwRequiredSize];
 
-	return bufUTF8.data();
+	GetCurrentDirectory(dwRequiredSize, lpBuffer);
+
+#ifdef UNICODE
+	std::string result(from_utf16_wide_to_utf8(lpBuffer, dwRequiredSize));
+
+	delete lpBuffer;
+	return result;
+#else
+	return lpBuffer;
+#endif
 }
 
 #endif
