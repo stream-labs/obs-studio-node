@@ -437,8 +437,19 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 
 	DeleteOldestFile(log_path.c_str(), 3);
 	log_path.append(filename);
-	/* Leak although not that big of a deal since it should always be open. */
-	fstream *logfile = new fstream(log_path, ios_base::out | ios_base::trunc);
+
+#if defined(_WIN32) && defined(UNICODE)
+	fstream *logfile = new fstream(
+		converter.from_bytes(log_path.c_str()).c_str(),
+		ios_base::out |
+		ios_base::trunc
+	);
+#else
+	fstream *logfile = new fstream(
+		log_path,
+		ios_base::out | ios_base::trunc
+	);
+#endif
 
 	if (!logfile) {
 		cerr << "Failed to open log file" << endl;
