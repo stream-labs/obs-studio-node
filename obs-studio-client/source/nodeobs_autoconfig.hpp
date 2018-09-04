@@ -31,7 +31,7 @@ public:
 	Nan::Callback m_callback_function;
 
 	AutoConfig() {};
-	~AutoConfig() {};
+	~AutoConfig();
 
 	void start_async_runner();
 	void stop_async_runner();

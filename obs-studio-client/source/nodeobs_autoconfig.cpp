@@ -3,6 +3,11 @@
 
 using namespace std::placeholders;
 
+AutoConfig::~AutoConfig() {
+	stop_worker();
+	stop_async_runner();
+}
+
 void AutoConfig::start_async_runner() {
 	if (m_async_callback)
 		return;
@@ -11,6 +16,7 @@ void AutoConfig::start_async_runner() {
 	m_async_callback = new AutoConfigCallback();
 	m_async_callback->set_handler(std::bind(&AutoConfig::callback_handler, this, _1, _2), nullptr);
 }
+
 void AutoConfig::stop_async_runner() {
 	if (!m_async_callback)
 		return;
@@ -20,6 +26,7 @@ void AutoConfig::stop_async_runner() {
 	m_async_callback->finalize();
 	m_async_callback = nullptr;
 }
+
 void AutoConfig::callback_handler(void* data, std::shared_ptr<AutoConfigInfo> item) {
 	v8::Isolate *isolate = v8::Isolate::GetCurrent();
 	v8::Local<v8::Value> args[1];
@@ -29,7 +36,7 @@ void AutoConfig::callback_handler(void* data, std::shared_ptr<AutoConfigInfo> it
 		v8::String::NewFromUtf8(isolate, item->event.c_str()));
 	argv->ToObject()->Set(v8::String::NewFromUtf8(isolate,
 		"description"), v8::String::NewFromUtf8(isolate, item->description.c_str()));
-	
+
 	if (item->event.compare("error") != 0) {
 		argv->ToObject()->Set(v8::String::NewFromUtf8(isolate,
 			"percentage"), v8::Number::New(isolate, item->percentage));
@@ -47,6 +54,7 @@ void AutoConfig::start_worker() {
 	m_worker_stop = false;
 	m_worker = std::thread(std::bind(&AutoConfig::worker, this));
 }
+
 void AutoConfig::stop_worker() {
 	if (m_worker_stop != false)
 		return;
@@ -62,41 +70,6 @@ void AutoConfig::set_keepalive(v8::Local<v8::Object> obj) {
 		return;
 	m_async_callback->set_keepalive(obj);
 }
-
-void autoConfig::GetListServer(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::string service, continent;
-
-	ASSERT_GET_VALUE(args[0], service);
-	ASSERT_GET_VALUE(args[1], continent);
-
-	auto conn = GetConnection();
-	if (!conn) return;
-
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("AutoConfig",
-			"GetListServer", {service, continent});
-
-	ValidateResponse(response);
-
-	v8::Isolate *isolate = v8::Isolate::GetCurrent();
-	v8::Local<v8::Array> listServer = v8::Array::New(isolate);
-
-	for (int i = 1; i<response.size(); i++) {
-		v8::Local<v8::Object> object = v8::Object::New(isolate);
-
-		object->Set(v8::String::NewFromUtf8(isolate, "server_name"), 
-			v8::String::NewFromUtf8(isolate, response[i].value_str.c_str()));
-
-		object->Set(v8::String::NewFromUtf8(isolate, "server"), 
-			v8::String::NewFromUtf8(isolate, response[i].value_str.c_str()));
-
-		listServer->Set(i, object);
-	}
-
-	args.GetReturnValue().Set(listServer);
-}
-
-static v8::Persistent<v8::Object> autoConfigCallbackObject;
 
 void AutoConfig::worker() {
 	size_t totalSleepMS = 0;
@@ -140,6 +113,41 @@ void AutoConfig::worker() {
 	return;
 }
 
+void autoConfig::GetListServer(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	std::string service, continent;
+
+	ASSERT_GET_VALUE(args[0], service);
+	ASSERT_GET_VALUE(args[1], continent);
+
+	auto conn = GetConnection();
+	if (!conn) return;
+
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("AutoConfig",
+			"GetListServer", { service, continent });
+
+	ValidateResponse(response);
+
+	v8::Isolate *isolate = v8::Isolate::GetCurrent();
+	v8::Local<v8::Array> listServer = v8::Array::New(isolate);
+
+	for (int i = 1; i < response.size(); i++) {
+		v8::Local<v8::Object> object = v8::Object::New(isolate);
+
+		object->Set(v8::String::NewFromUtf8(isolate, "server_name"),
+			v8::String::NewFromUtf8(isolate, response[i].value_str.c_str()));
+
+		object->Set(v8::String::NewFromUtf8(isolate, "server"),
+			v8::String::NewFromUtf8(isolate, response[i].value_str.c_str()));
+
+		listServer->Set(i, object);
+	}
+
+	args.GetReturnValue().Set(listServer);
+}
+
+static v8::Persistent<v8::Object> autoConfigCallbackObject;
+
 void autoConfig::InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	v8::Local<v8::Function> callback;
 	ASSERT_GET_VALUE(args[0], callback);
@@ -159,7 +167,7 @@ void autoConfig::InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>&
 
 	std::vector<ipc::value> response =
 		conn->call_synchronous_helper("AutoConfig",
-			"InitializeAutoConfig", {continent, service});
+			"InitializeAutoConfig", { continent, service });
 
 	ValidateResponse(response);
 
@@ -210,7 +218,7 @@ void autoConfig::StartCheckSettings(const v8::FunctionCallbackInfo<v8::Value>& a
 	startData->percentage = 0;
 	startData->param = autoConfigObject;
 	autoConfigObject->m_async_callback->queue(std::move(startData));
-	
+
 	auto conn = GetConnection();
 	if (!conn) return;
 
@@ -224,8 +232,7 @@ void autoConfig::StartCheckSettings(const v8::FunctionCallbackInfo<v8::Value>& a
 	if (!success) {
 		stopData->event = "error";
 		stopData->description = "invalid_settings";
-	}
-	else {
+	} else {
 		stopData->event = "stopping_step";
 		stopData->description = "checking_settings";
 	}
@@ -277,6 +284,7 @@ void autoConfig::TerminateAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& 
 
 	autoConfigObject->stop_async_runner();
 	autoConfigObject->stop_worker();
+	delete autoConfigObject;
 }
 
 INITIALIZER(nodeobs_autoconfig) {
