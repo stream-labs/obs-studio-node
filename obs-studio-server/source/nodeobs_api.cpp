@@ -9,6 +9,8 @@
 #include <mutex>
 #include <string>
 #include <ShlObj.h>
+#include <locale>
+#include <codecvt>
 #endif
 
 #ifdef _MSC_VER
@@ -40,6 +42,7 @@ std::string OBS_currentProfile;
 std::string OBS_currentSceneCollection;
 bool useOBS_configFiles = false;
 bool isOBS_installedValue;
+std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 
 std::string g_moduleDirectory = "";
 
@@ -93,42 +96,6 @@ static bool dirExists(const std::string& path)
 	if (ftyp & FILE_ATTRIBUTE_DIRECTORY)
 		return true;
 
-	return false;
-}
-
-/* FIXME Platform-specific */
-static bool containsDirectory(const std::string& path)
-{
-	const char* pszDir = path.c_str();
-	char szBuffer[MAX_PATH];
-
-	DWORD dwRet = GetCurrentDirectory(MAX_PATH, szBuffer);
-	SetCurrentDirectory(pszDir);
-
-	WIN32_FIND_DATA fd;
-
-	HANDLE hFind = ::FindFirstFile("*.", &fd);
-
-	// Get all sub-folders:
-
-	if (hFind != INVALID_HANDLE_VALUE)
-	{
-		do
-		{
-			char* pszName = fd.cFileName;
-			if (_stricmp(pszName, ".") != 0 && _stricmp(pszName, "..") != 0)
-			{
-				//Only look for at least one directory
-				::FindClose(hFind);
-				SetCurrentDirectory(szBuffer);
-				return true;
-			}
-
-		} while (::FindNextFile(hFind, &fd));
-		::FindClose(hFind);
-	}
-	// Set the current folder back to what it was:
-	SetCurrentDirectory(szBuffer);
 	return false;
 }
 
@@ -439,7 +406,7 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 		module_path.append(g_modules[i]);
 
 #ifdef _WIN32
-		handle = LoadLibrary(module_path.c_str());
+		handle = LoadLibraryW(converter.from_bytes(module_path).c_str());
 #endif
 
 		if (!handle) {
@@ -471,8 +438,18 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 	DeleteOldestFile(log_path.c_str(), 3);
 	log_path.append(filename);
 
-	/* Leak although not that big of a deal since it should always be open. */
-	fstream *logfile = new fstream(log_path, ios_base::out | ios_base::trunc);
+#if defined(_WIN32) && defined(UNICODE)
+	fstream *logfile = new fstream(
+		converter.from_bytes(log_path.c_str()).c_str(),
+		ios_base::out |
+		ios_base::trunc
+	);
+#else
+	fstream *logfile = new fstream(
+		log_path,
+		ios_base::out | ios_base::trunc
+	);
+#endif
 
 	if (!logfile) {
 		cerr << "Failed to open log file" << endl;
@@ -488,7 +465,6 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 	* 2. ${OBS_DATA_PATH}/libobs <- This works but is inflexible
 	* 3. getenv(OBS_DATA_PATH) + /libobs <- Can be set anywhere
 	*    on the cli, in the frontend, or the backend. */
-
 	obs_add_data_path((g_moduleDirectory + "/libobs/data/libobs/").c_str());
 
 	std::vector<char> userData = std::vector<char>(1024);
@@ -515,12 +491,7 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 
 	std::string profiles = OBS_pathConfigDirectory + "\\basic\\profiles";
 	std::string scenes = OBS_pathConfigDirectory + "\\basic\\scenes";
-
-	isOBS_installedValue = dirExists(OBS_pathConfigDirectory) &&
-		containsDirectory(profiles) &&
-		os_file_exists(scenes.c_str());
-
-
+	
 	/* Profiling */
 	//profiler_start();
 
@@ -860,9 +831,9 @@ void OBS_API::openAllModules(void) {
 		for (os_dirent* ent = os_readdir(plugin_dir); ent != nullptr; ent = os_readdir(plugin_dir)) {
 			std::string fullname = ent->d_name;
 			std::string basename = fullname.substr(0, fullname.find_last_of('.'));
+
 			std::string plugin_path = plugins_path + "/" + fullname;
 			std::string plugin_data_path = plugins_data_path + "/" + basename;
-
 			if (ent->directory) {
 				continue;
 			}

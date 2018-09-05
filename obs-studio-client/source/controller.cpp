@@ -24,10 +24,13 @@
 #include <iostream>
 #include <nan.h>
 #include <fstream>
+#include <locale>
+#include <codecvt>
 
 #pragma region Windows
 #ifdef _WIN32
 #include <windows.h>
+#include <psapi.h>
 #include <direct.h>
 #include <wchar.h>
 
@@ -116,13 +119,64 @@ bool close_process(ProcessInfo pi) {
 	return !!CloseHandle((HANDLE)pi.handle);
 }
 
+/* Credit to this dude: https://stackoverflow.com/a/28056007/2255625 */
+/* Basically Win32 doesn't provide a way to fetch the length of the
+ * name of a module because it's a C-string */
 std::string get_process_name(ProcessInfo pi) {
-	std::vector<char> name_buf(MAX_PATH + 2);
-	DWORD name_len = MAX_PATH + 1;
-	if (QueryFullProcessImageName((HANDLE)pi.handle, 0, name_buf.data(), &name_len)) {
-		return std::string(name_buf.data(), name_buf.data() + name_len);
+	LPTSTR lpBuffer = NULL;
+	DWORD  dwBufferLength = 256;
+	DWORD  dwReturnLength = 0;
+	HANDLE hProcess = (HANDLE)pi.handle;
+	HMODULE hModule;
+	DWORD unused1;
+	BOOL bSuccess;
+
+	/* We rely on undocumented behavior here where
+	 * enumerating a process' modules will provide
+	 * the process HMODULE first every time. */
+	bSuccess = EnumProcessModules(
+		hProcess,
+		&hModule, sizeof(hModule),
+		&unused1
+	);
+
+	if (!bSuccess)
+		return {};
+
+	while (32768 >= dwBufferLength) {
+		lpBuffer = new TCHAR[dwBufferLength];
+
+		dwReturnLength =
+			GetModuleFileName(hModule, lpBuffer, dwBufferLength);
+
+		if (!dwReturnLength) {
+			delete lpBuffer;
+			return {};
+		}
+
+		if (dwBufferLength > dwReturnLength) {
+			/* Notice that these are expensive
+			 * but they do shrink the buffer to
+			 * match the string */
+#ifdef UNICODE
+			std::string result(from_utf16_wide_to_utf8(lpBuffer));
+			delete lpBuffer;
+			return result;
+#elif
+			return lpBuffer;
+#endif
+		}
+
+		delete lpBuffer;
+		/* Increased buffer exponentially.
+		 * Notice this will eventually match
+		 * a perfect 32768 which is the max
+		 * length of an NTFS file path. */
+		dwBufferLength <<= 1;
 	}
-	return "";
+
+	/* Path too long */
+	return {};
 }
 
 bool is_process_alive(ProcessInfo pinfo) {
@@ -146,28 +200,23 @@ bool kill(ProcessInfo pinfo, uint32_t code, uint32_t& exitcode) {
 }
 
 std::string get_working_directory() {
-	std::vector<wchar_t> bufUTF16 = std::vector<wchar_t>(65535);
-	std::vector<char> bufUTF8;
+	DWORD dwRequiredSize = 0;
+	LPTSTR lpBuffer;
 
-	_wgetcwd(bufUTF16.data(), bufUTF16.size());
+	dwRequiredSize = GetCurrentDirectory(0, NULL);
 
-	// Convert from Wide-char to UTF8
-	DWORD bufferSize = WideCharToMultiByte(CP_UTF8, 0,
-		bufUTF16.data(), bufUTF16.size(),
-		nullptr, 0,
-		NULL, NULL);
-	bufUTF8.resize(bufferSize + 1);
-	DWORD finalSize = WideCharToMultiByte(CP_UTF8, 0,
-		bufUTF16.data(), bufUTF16.size(),
-		bufUTF8.data(), bufUTF8.size(),
-		NULL, NULL);
-	if (finalSize == 0) {
-		// Conversion failed.
-		DWORD errorCode = GetLastError();
-		return false;
-	}
+	lpBuffer = new TCHAR[dwRequiredSize];
 
-	return bufUTF8.data();
+	GetCurrentDirectory(dwRequiredSize, lpBuffer);
+
+#ifdef UNICODE
+	std::string result(from_utf16_wide_to_utf8(lpBuffer, dwRequiredSize));
+
+	delete lpBuffer;
+	return result;
+#else
+	return lpBuffer;
+#endif
 }
 
 #endif
@@ -194,11 +243,34 @@ std::shared_ptr<ipc::client> Controller::host(std::string uri) {
 	std::string workingDirectory = serverWorkingPath.length() > 0 ? serverWorkingPath : get_working_directory();
 
 	// Test for existing process.
-	std::string pid_path = "server.pid";
+	std::string pid_path;
+
 #ifdef _WIN32
-	std::vector<char> tmp(MAX_PATH + 2);
-	TCHAR tmp_len = GetTempPath(MAX_PATH + 1, tmp.data());
-	pid_path = std::string(tmp.data(), tmp.data() + tmp_len) + "\\" + pid_path;
+
+	std::basic_string<TCHAR> tmp;
+	tmp.resize(MAX_PATH + 1);
+
+	DWORD tmp_len = GetTempPath(MAX_PATH + 1, &tmp[0]);
+
+#ifdef UNICODE
+	{
+
+	DWORD long_path_len = GetLongPathName(&tmp[0], NULL, 0);
+	std::basic_string<TCHAR> long_tmp;
+	long_tmp.resize(long_path_len);
+	GetLongPathName(&tmp[0], &long_tmp[0], long_path_len);
+
+	pid_path.assign(from_utf16_wide_to_utf8(long_tmp.data(),long_path_len));
+
+	}
+#else
+	/* Non-unicode path won't give us above MAX_PATH ever.
+	 * Just bite the bullet */
+	pid_path = std::move(tmp);
+#endif
+
+	pid_path.append("\\");
+	pid_path.append(pid_path);
 #endif
 	std::ifstream pid_file;
 	pid_file.open(pid_path);
@@ -209,7 +281,7 @@ std::shared_ptr<ipc::client> Controller::host(std::string uri) {
 			char pid_char[sizeof(uint64_t)];
 		};
 		pid_file.read(&pid_char[0], 8);
-		
+
 		ProcessInfo pi = open_process(pid);
 		if (pi.handle != 0) {
 			std::string name = get_process_name(pi);
