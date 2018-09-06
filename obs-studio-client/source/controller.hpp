@@ -57,11 +57,14 @@ class Controller {
 	Controller(Controller const&) = delete;
 	void operator=(Controller const&) = delete;
 #pragma endregion Singleton
-	
-	public:
-	std::shared_ptr<ipc::client> host(std::string uri);
 
-	std::shared_ptr<ipc::client> connect(std::string uri, std::chrono::nanoseconds timeout = std::chrono::seconds(5));
+	public:
+	std::shared_ptr<ipc::client> host(const std::string &uri);
+
+	std::shared_ptr<ipc::client> connect(
+	  const std::string &uri,
+	  std::chrono::nanoseconds timeout = std::chrono::seconds(5)
+	);
 
 	void disconnect();
 
