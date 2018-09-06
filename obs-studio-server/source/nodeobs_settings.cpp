@@ -24,7 +24,7 @@ static const double vals[] =
 
 static const size_t numVals = sizeof(vals) / sizeof(double);
 
-static string ResString(uint32_t cx, uint32_t cy)
+static string ResString(uint64_t cx, uint64_t cy)
 {
 	ostringstream res;
 	res << cx << "x" << cy;
@@ -54,7 +54,7 @@ void OBS_settings::Register(ipc::server& srv) {
 void OBS_settings::OBS_settings_getListCategories(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	std::vector<std::string> listCategories = getListCategories();
-	uint32_t size = listCategories.size();
+	size_t size = listCategories.size();
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
@@ -90,8 +90,8 @@ std::vector<SubCategory> serializeCategory(
 	uint32_t subCategoriesCount, uint32_t sizeStruct, std::vector<char> buffer) {
 	std::vector<SubCategory> category;
 
-	uint32_t indexData = 0;
-	for (int i = 0; i < subCategoriesCount; i++) {
+	size_t indexData = 0;
+	for (uint32_t i = 0; i < subCategoriesCount; i++) {
 		SubCategory sc;
 
 		size_t *sizeMessage = reinterpret_cast<size_t*>
@@ -849,7 +849,6 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 			std::string type = param.type;
 
 			std::string *value;
-			const char *servName;
 			if (type.compare("OBS_PROPERTY_LIST") == 0 ||
 				type.compare("OBS_PROPERTY_EDIT_TEXT") == 0) {
 				value = new std::string(param.currentValue.data(), param.currentValue.size());
@@ -1226,7 +1225,7 @@ void OBS_settings::getEncoderSettings(const obs_encoder_t *encoder, obs_data_t *
 			param.type = "OBS_PROPERTY_FLOAT";
 			param.description = obs_property_description(property);
 
-			int64_t value = obs_data_get_double(settings, param.name.c_str());
+			double value = obs_data_get_double(settings, param.name.c_str());
 
 			param.currentValue.resize(sizeof(value));
 			memcpy(param.currentValue.data(), &value, sizeof(value));
@@ -1568,8 +1567,8 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 		rescaleRes.description = "Output Resolution";
 		rescaleRes.subType = "OBS_COMBO_FORMAT_STRING";
 
-		uint32_t base_cx = config_get_uint(config, "Video", "BaseCX");
-		uint32_t base_cy = config_get_uint(config, "Video", "BaseCY");
+		uint64_t base_cx = config_get_uint(config, "Video", "BaseCX");
+		uint64_t base_cy = config_get_uint(config, "Video", "BaseCY");
 
 		const char* outputResString = config_get_string(config, "AdvOut", "RescaleRes");
 
@@ -1583,7 +1582,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 		memcpy(rescaleRes.currentValue.data(), outputResString, strlen(outputResString));
 		rescaleRes.sizeOfCurrentValue = strlen(outputResString);
 
-		std::vector<pair<uint32_t, uint32_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
+		std::vector<pair<uint64_t, uint64_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
 
 		uint32_t indexDataRescaleRes = 0;
 
@@ -1900,8 +1899,8 @@ void OBS_settings::getStandardRecordingSettings(
 		recRescaleRes.description = "Output Resolution";
 		recRescaleRes.subType = "OBS_COMBO_FORMAT_STRING";
 
-		uint32_t base_cx = config_get_uint(config, "Video", "BaseCX");
-		uint32_t base_cy = config_get_uint(config, "Video", "BaseCY");
+		uint64_t base_cx = config_get_uint(config, "Video", "BaseCX");
+		uint64_t base_cy = config_get_uint(config, "Video", "BaseCY");
 
 		const char* outputResString = config_get_string(config, "AdvOut", "RecRescaleRes");
 
@@ -1915,7 +1914,7 @@ void OBS_settings::getStandardRecordingSettings(
 		memcpy(recRescaleRes.currentValue.data(), outputResString, strlen(outputResString));
 		recRescaleRes.sizeOfCurrentValue = strlen(outputResString);
 
-		std::vector<std::pair<uint32_t, uint32_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
+		std::vector<std::pair<uint64_t, uint64_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
 
 		uint32_t indexDataRecRescaleRes = 0;
 
@@ -2783,7 +2782,7 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 	obs_encoder_t* encoder = OBS_service::getRecordingEncoder();
 	obs_data_t* encoderSettings = obs_encoder_get_settings(encoder);
 
-	int indexEncoderSettings = 7;
+	size_t indexEncoderSettings = 7;
 
 	bool newEncoderType = false;
 
@@ -3135,12 +3134,12 @@ uint32_t num = config_get_uint(config, "Video", "FPSNum");
 uint32_t den = config_get_uint(config, "Video", "FPSDen");
 }
 */
-std::vector<pair<uint32_t, uint32_t>> OBS_settings::getOutputResolutions(int base_cx, int base_cy)
+std::vector<pair<uint64_t, uint64_t>> OBS_settings::getOutputResolutions(uint64_t base_cx, uint64_t base_cy)
 {
-	std::vector<pair<uint32_t, uint32_t>> outputResolutions;
+	std::vector<pair<uint64_t, uint64_t>> outputResolutions;
 	for (size_t idx = 0; idx < numVals; idx++) {
-		uint32_t outDownscaleCX = uint32_t(double(base_cx) / vals[idx]);
-		uint32_t outDownscaleCY = uint32_t(double(base_cy) / vals[idx]);
+		uint64_t outDownscaleCX = uint64_t(double(base_cx) / vals[idx]);
+		uint64_t outDownscaleCY = uint64_t(double(base_cy) / vals[idx]);
 
 		outDownscaleCX &= 0xFFFFFFFE;
 		outDownscaleCY &= 0xFFFFFFFE;
@@ -3168,8 +3167,8 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 	baseResolution.push_back(std::make_pair("description", "Base (Canvas) Resolution"));
 	baseResolution.push_back(std::make_pair("subType", "OBS_COMBO_FORMAT_STRING"));
 
-	uint32_t base_cx = config_get_uint(config, "Video", "BaseCX");
-	uint32_t base_cy = config_get_uint(config, "Video", "BaseCY");
+	uint64_t base_cx = config_get_uint(config, "Video", "BaseCX");
+	uint64_t base_cy = config_get_uint(config, "Video", "BaseCY");
 
 	std::string baseResolutionString = ResString(base_cx, base_cy);
 
@@ -3225,14 +3224,14 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 	outputResolution.push_back(std::make_pair("description", "Output (Scaled) Resolution"));
 	outputResolution.push_back(std::make_pair("subType", "OBS_COMBO_FORMAT_STRING"));
 
-	uint32_t out_cx = config_get_uint(config, "Video", "OutputCX");
-	uint32_t out_cy = config_get_uint(config, "Video", "OutputCY");
+	uint64_t out_cx = config_get_uint(config, "Video", "OutputCX");
+	uint64_t out_cy = config_get_uint(config, "Video", "OutputCY");
 
 	std::string outputResString = ResString(out_cx, out_cy);
 
 	outputResolution.push_back(std::make_pair("currentValue", outputResString));
 
-	std::vector<pair<uint32_t, uint32_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
+	std::vector<pair<uint64_t, uint64_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
 
 	for (int i = 0; i<outputResolutions.size(); i++) {
 		string outRes = ResString(outputResolutions.at(i).first, outputResolutions.at(i).second);
@@ -3259,7 +3258,7 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 	fpsType.push_back(std::make_pair("description", "FPS Type"));
 	fpsType.push_back(std::make_pair("subType", "OBS_COMBO_FORMAT_STRING"));
 
-	uint32_t fpsTypeValue = config_get_uint(config, "Video", "FPSType");
+	uint64_t fpsTypeValue = config_get_uint(config, "Video", "FPSType");
 
 	if (fpsTypeValue == 0) {
 		fpsType.push_back(std::make_pair("currentValue", "Common FPS Values"));

@@ -24,12 +24,12 @@ std::vector<settings::SubCategory> serializeCategory(
 		std::string name(buffer.data() + indexData, *sizeMessage);
 		indexData += *sizeMessage;
 
-		uint32_t *paramsCount = reinterpret_cast<uint32_t*>
+		size_t *paramsCount = reinterpret_cast<size_t*>
 			(buffer.data() + indexData);
-		indexData += sizeof(uint32_t);
+		indexData += sizeof(size_t);
 
 		settings::Parameter param;
-		for (uint32_t j = 0; j < *paramsCount; j++) {
+		for (size_t j = 0; j < *paramsCount; j++) {
 			size_t *sizeName =
 				reinterpret_cast<std::size_t*>(buffer.data() + indexData);
 			indexData += sizeof(size_t);
@@ -196,7 +196,6 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 					v8::String::NewFromUtf8(isolate, ""));
 			}
 
-
 			// Values
 			v8::Local<v8::Array> values = v8::Array::New(isolate);
 			uint32_t indexData = 0;
@@ -258,8 +257,6 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 				v8::String::NewFromUtf8(isolate, "values"), 
 				values);
 
-
-
 			parameter->Set(v8::String::NewFromUtf8(isolate, "visible"),
 				v8::Boolean::New(isolate, params.at(j).visible));
 
@@ -282,7 +279,6 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 	}
 
 	args.GetReturnValue().Set(rval);
-	
 	return;
 }
 

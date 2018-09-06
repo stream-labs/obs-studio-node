@@ -68,11 +68,11 @@ Encoder recordingEncoder = Encoder::Stream;
 Encoder streamingEncoder = Encoder::x264;
 Type type = Type::Streaming;
 FPSType fpsType = FPSType::PreferHighFPS;
-int idealBitrate = 2500;
-int baseResolutionCX = 1920;
-int baseResolutionCY = 1080;
-int idealResolutionCX = 1280;
-int idealResolutionCY = 720;
+uint64_t idealBitrate = 2500;
+uint64_t baseResolutionCX = 1920;
+uint64_t baseResolutionCY = 1080;
+uint64_t idealResolutionCX = 1280;
+uint64_t idealResolutionCY = 720;
 int idealFPSNum = 60;
 int idealFPSDen = 1;
 std::string serviceName;
@@ -781,7 +781,7 @@ void autoConfig::TestBandwidthThread(void)
 								service_settings, service, output,
 								vencoder_settings);
 			eventsMutex.lock();
-			events.push(AutoConfigInfo("progress", "bandwidth_test", (i + 1) * 100 / servers.size()));
+			events.push(AutoConfigInfo("progress", "bandwidth_test", (double)(i + 1) * 100 / servers.size()));
 			eventsMutex.unlock();
 		}	
 	}
