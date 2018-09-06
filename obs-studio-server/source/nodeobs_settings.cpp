@@ -2442,7 +2442,7 @@ void OBS_settings::getAdvancedOutputAudioSettings(std::vector<SubCategory>* outp
 	Track1Bitrate.push_back(std::make_pair("name", "Track1Bitrate"));
 	Track1Bitrate.push_back(std::make_pair("type", "OBS_PROPERTY_LIST"));
 	Track1Bitrate.push_back(std::make_pair("description", "Audio Bitrate"));
-	Track1Bitrate.push_back(std::make_pair("subType", "OBS_COMBO_FORMAT_INT"));
+	Track1Bitrate.push_back(std::make_pair("subType", "OBS_COMBO_FORMAT_STRING"));
 
 	for (auto &entry : bitrateMap)
 		Track1Bitrate.push_back(std::make_pair(std::to_string(entry.first), std::to_string(entry.first)));
@@ -2464,7 +2464,7 @@ void OBS_settings::getAdvancedOutputAudioSettings(std::vector<SubCategory>* outp
 	Track2Bitrate.push_back(std::make_pair("name", "Track2Bitrate"));
 	Track2Bitrate.push_back(std::make_pair("type", "OBS_PROPERTY_LIST"));
 	Track2Bitrate.push_back(std::make_pair("description", "Audio Bitrate"));
-	Track2Bitrate.push_back(std::make_pair("subType", "OBS_COMBO_FORMAT_INT"));
+	Track2Bitrate.push_back(std::make_pair("subType", "OBS_COMBO_FORMAT_STRING"));
 
 	for (auto &entry : bitrateMap)
 		Track2Bitrate.push_back(std::make_pair(std::to_string(entry.first), std::to_string(entry.first)));
@@ -2486,7 +2486,7 @@ void OBS_settings::getAdvancedOutputAudioSettings(std::vector<SubCategory>* outp
 	Track3Bitrate.push_back(std::make_pair("name", "Track3Bitrate"));
 	Track3Bitrate.push_back(std::make_pair("type", "OBS_PROPERTY_LIST"));
 	Track3Bitrate.push_back(std::make_pair("description", "Audio Bitrate"));
-	Track3Bitrate.push_back(std::make_pair("subType", "OBS_COMBO_FORMAT_INT"));
+	Track3Bitrate.push_back(std::make_pair("subType", "OBS_COMBO_FORMAT_STRING"));
 
 	for (auto &entry : bitrateMap)
 		Track3Bitrate.push_back(std::make_pair(std::to_string(entry.first), std::to_string(entry.first)));
@@ -2509,7 +2509,7 @@ void OBS_settings::getAdvancedOutputAudioSettings(std::vector<SubCategory>* outp
 	Track4Bitrate.push_back(std::make_pair("name", "Track4Bitrate"));
 	Track4Bitrate.push_back(std::make_pair("type", "OBS_PROPERTY_LIST"));
 	Track4Bitrate.push_back(std::make_pair("description", "Audio Bitrate"));
-	Track4Bitrate.push_back(std::make_pair("subType", "OBS_COMBO_FORMAT_INT"));
+	Track4Bitrate.push_back(std::make_pair("subType", "OBS_COMBO_FORMAT_STRING"));
 
 	for (auto &entry : bitrateMap)
 		Track4Bitrate.push_back(std::make_pair(std::to_string(entry.first), std::to_string(entry.first)));
@@ -2531,7 +2531,7 @@ void OBS_settings::getAdvancedOutputAudioSettings(std::vector<SubCategory>* outp
 	Track5Bitrate.push_back(std::make_pair("name", "Track5Bitrate"));
 	Track5Bitrate.push_back(std::make_pair("type", "OBS_PROPERTY_LIST"));
 	Track5Bitrate.push_back(std::make_pair("description", "Audio Bitrate"));
-	Track4Bitrate.push_back(std::make_pair("subType", "OBS_COMBO_FORMAT_INT"));
+	Track4Bitrate.push_back(std::make_pair("subType", "OBS_COMBO_FORMAT_STRING"));
 
 	for (auto &entry : bitrateMap)
 		Track5Bitrate.push_back(std::make_pair(std::to_string(entry.first), std::to_string(entry.first)));
@@ -2553,7 +2553,7 @@ void OBS_settings::getAdvancedOutputAudioSettings(std::vector<SubCategory>* outp
 	Track6Bitrate.push_back(std::make_pair("name", "Track6Bitrate"));
 	Track6Bitrate.push_back(std::make_pair("type", "OBS_PROPERTY_LIST"));
 	Track6Bitrate.push_back(std::make_pair("description", "Audio Bitrate"));
-	Track6Bitrate.push_back(std::make_pair("subType", "OBS_COMBO_FORMAT_INT"));
+	Track6Bitrate.push_back(std::make_pair("subType", "OBS_COMBO_FORMAT_STRING"));
 
 	for (auto &entry : bitrateMap)
 		Track6Bitrate.push_back(std::make_pair(std::to_string(entry.first), std::to_string(entry.first)));

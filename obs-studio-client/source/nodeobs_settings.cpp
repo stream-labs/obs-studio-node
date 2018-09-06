@@ -210,14 +210,14 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 					std::string name(params.at(j).values.data() + indexData, *sizeName);
 					indexData += *sizeName;
 
-					size_t *sizeValue =
-						reinterpret_cast<std::size_t*>(params.at(j).values.data() + indexData);
-					indexData += sizeof(size_t);
-					std::string value(params.at(j).values.data() + indexData, *sizeValue);
-					indexData += *sizeValue;
+
+					int64_t *value = reinterpret_cast<int64_t*>(
+						params.at(j).values.data() + indexData);
+
+					indexData += sizeof(int64_t);
 					
 					valueObject->Set(v8::String::NewFromUtf8(isolate, name.c_str()),
-						v8::String::NewFromUtf8(isolate, value.c_str()));
+						v8::String::NewFromUtf8(isolate, std::to_string(*value).c_str()));
 				}
 				else if (params.at(j).subType.compare("OBS_COMBO_FORMAT_FLOAT") == 0) {
 					size_t *sizeName =
