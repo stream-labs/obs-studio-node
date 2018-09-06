@@ -994,13 +994,12 @@ void OBS_settings::getSimpleOutputSettings(std::vector<SubCategory> *outputSetti
 	aBitrate.push_back(std::make_pair("name", "ABitrate"));
 	aBitrate.push_back(std::make_pair("type", "OBS_PROPERTY_LIST"));
 	aBitrate.push_back(std::make_pair("description", "Audio Bitrate"));
-	aBitrate.push_back(std::make_pair("subType", "OBS_COMBO_FORMAT_INT"));
+	aBitrate.push_back(std::make_pair("subType", "OBS_COMBO_FORMAT_STRING"));
 
 
 	auto &bitrateMap = GetAACEncoderBitrateMap();
 	for (auto &entry : bitrateMap)
 		aBitrate.push_back(std::make_pair(std::to_string(entry.first), std::to_string(entry.first)));
-
 	entries.push_back(aBitrate);
 
 	//Enable Advanced Encoder Settings
