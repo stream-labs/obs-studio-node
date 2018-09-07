@@ -111,6 +111,7 @@ namespace OBS {
 
 #if defined(_WIN32)
 		HWND m_ourWindow;
+		HWND m_parentWindow;
 		static bool DisplayWndClassRegistered;
 		static WNDCLASSEX DisplayWndClassObj;
 		static ATOM DisplayWndClassAtom;
