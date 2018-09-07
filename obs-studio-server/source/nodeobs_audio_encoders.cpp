@@ -91,7 +91,7 @@ static void HandleSampleRate(obs_property_t* prop, const char *id)
     std::string basicConfigFile = OBS_API::getBasicConfigPath();
     config_t* config = OBS_API::openConfigFile(basicConfigFile);
 
-	uint32_t sampleRate = config_get_uint(config, "Audio",
+	uint64_t sampleRate = config_get_uint(config, "Audio",
 			"SampleRate");
 
 	obs_data_set_int(data.get(), "samplerate", sampleRate);

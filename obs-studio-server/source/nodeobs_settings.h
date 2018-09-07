@@ -27,7 +27,7 @@ struct Parameter {
 
 	std::vector<char> serialize() {
 		std::vector<char> buffer;
-		uint32_t indexBuffer = 0;
+		size_t indexBuffer = 0;
 
 		size_t sizeStruct = 
 			name.length() + description.length() +
@@ -84,16 +84,16 @@ struct Parameter {
 
 struct SubCategory {
 	std::string name;
-	uint32_t paramsCount = 0;
+	size_t paramsCount = 0;
 	std::vector<Parameter> params;
 
 	std::vector<char> serialize() {
 		std::vector<char> buffer;
-		uint32_t indexBuffer = 0;
+		size_t indexBuffer = 0;
 
 		size_t sizeStruct =
 			name.length() + sizeof(size_t) +
-			sizeof(uint32_t);
+			sizeof(size_t);
 		buffer.resize(sizeStruct);
 
 		*reinterpret_cast<size_t*>(buffer.data()) = name.length();
@@ -101,8 +101,8 @@ struct SubCategory {
 		memcpy(buffer.data() + indexBuffer, name.data(), name.length());
 		indexBuffer += name.length();
 
-		*reinterpret_cast<uint32_t*>(buffer.data() + indexBuffer) = paramsCount;
-		indexBuffer += sizeof(uint32_t);
+		*reinterpret_cast<size_t*>(buffer.data() + indexBuffer) = paramsCount;
+		indexBuffer += sizeof(size_t);
 
 
 		for (int i = 0; i < params.size(); i++) {
@@ -199,7 +199,7 @@ private:
 	//Utility functions
 	static void getSimpleAvailableEncoders(std::vector<std::pair<std::string, std::string>> *streamEncode);
 	static void getAdvancedAvailableEncoders(std::vector<std::pair<std::string, std::string>> *streamEncode);
-	static std::vector<pair<uint32_t, uint32_t>> 	getOutputResolutions (int base_cx, int base_cy);
+	static std::vector<pair<uint64_t, uint64_t>> 	getOutputResolutions (uint64_t base_cx, uint64_t base_cy);
 	static void 									getEncoderSettings(const obs_encoder_t *encoder,
 																		obs_data_t *settings,
 																		std::vector<Parameter>* subCategoryParameters,
