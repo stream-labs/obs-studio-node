@@ -38,7 +38,7 @@ install:
   - git submodule update --init --force --recursive
 
 build_script:
-  - cmake -H. -B"%SLBuildDirectory%" -G"%SLGenerator%" -T"host=%SLArch%" -DNODEJS_BUILD=TRUE -DNODEJS_URL="%RuntimeURL%" -DNODEJS_NAME="%RuntimeName%" -DNODEJS_VERSION="%RuntimeVersion%" -DCMAKE_INSTALL_PREFIX="%SLFullDistributePath%\obs-studio-node" -DCMAKE_SYSTEM_VERSION=10.0.17134.0
+  - cmake -H. -B"%SLBuildDirectory%" -G"%SLGenerator%" -T"host=%SLArch%" -DNODEJS_BUILD=TRUE -DNODEJS_URL="%RuntimeURL%" -DNODEJS_NAME="%RuntimeName%" -DNODEJS_VERSION="%RuntimeVersion%" -DCMAKE_INSTALL_PREFIX="%SLFullDistributePath%\obs-studio-node" -DCMAKE_SYSTEM_VERSION=10.0.17134.0 -Dlib-datalane_BUILD_TESTS=FALSE -Dlib-datalane_BUILD_SAMPLES=FALSE -Dlib-streamlabs-ipc_BUILD_TESTS=FALSE -Dlib-streamlabs-ipc_BUILD_SAMPLES=FALSE -DBUILD_TESTS=FALSE -DBUILD_SAMPLES=FALSE
   - cmake --build %SLBuildDirectory% --target install --config RelWithDebInfo
   - tar cvaf "%UnsignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
 
