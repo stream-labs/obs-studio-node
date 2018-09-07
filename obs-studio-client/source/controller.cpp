@@ -20,12 +20,13 @@
 #include "utility.hpp"
 #include <string>
 #include <sstream>
-#include <node.h>
-#include <iostream>
 #include <nan.h>
 #include <fstream>
 #include <locale>
 #include <codecvt>
+
+static std::string serverBinaryPath = "";
+static std::string serverWorkingPath = "";
 
 #pragma region Windows
 #ifdef _WIN32
@@ -34,74 +35,37 @@
 #include <direct.h>
 #include <wchar.h>
 
-ProcessInfo spawn(std::string program, std::string commandLine, std::string workingDirectory) {
-	PROCESS_INFORMATION m_win32_processInformation;
-	STARTUPINFOW m_win32_startupInfo;
+ProcessInfo spawn(
+  const std::string &program,
+  const std::string &commandLine,
+  const std::string &workingDirectory
+) {
+	PROCESS_INFORMATION m_win32_processInformation = { 0 };
+	STARTUPINFOW m_win32_startupInfo = { 0 };
 
-	// Buffers
-	std::vector<wchar_t> programBuf;
-	std::vector<wchar_t> commandLineBuf;
-	std::vector<wchar_t> workingDirectoryBuf;
+	const std::wstring utfProgram(
+		from_utf8_to_utf16_wide(program.c_str()));
 
-	// Convert to WideChar
-	DWORD wr;
-	programBuf.resize(MultiByteToWideChar(CP_UTF8, 0,
-		program.data(), (int)program.size(),
-		nullptr, 0) + 1);
-	wr = MultiByteToWideChar(CP_UTF8, 0,
-		program.data(), (int)program.size(),
-		programBuf.data(), (int)programBuf.size());
-	if (wr == 0) {
-		// Conversion failed.
-		DWORD errorCode = GetLastError();
-		return {};
-	}
+	std::wstring utfCommandLine(
+		from_utf8_to_utf16_wide(commandLine.c_str()));
 
-	commandLineBuf.resize(MultiByteToWideChar(CP_UTF8, 0,
-		commandLine.data(), (int)commandLine.size(),
-		nullptr, 0) + 1);
-	wr = MultiByteToWideChar(CP_UTF8, 0,
-		commandLine.data(), (int)commandLine.size(),
-		commandLineBuf.data(), (int)commandLineBuf.size());
-	if (wr == 0) {
-		// Conversion failed.
-		DWORD errorCode = GetLastError();
-		return {};
-	}
+	const std::wstring utfWorkingDir(
+		from_utf8_to_utf16_wide(workingDirectory.c_str()));
 
-	if (workingDirectory.length() > 1) {
-		workingDirectoryBuf.resize(MultiByteToWideChar(CP_UTF8, 0,
-			workingDirectory.data(), (int)workingDirectory.size(),
-			nullptr, 0) + 1);
-		if (workingDirectoryBuf.size() > 0) {
-			wr = MultiByteToWideChar(CP_UTF8, 0,
-				workingDirectory.data(), (int)workingDirectory.size(),
-				workingDirectoryBuf.data(), (int)workingDirectoryBuf.size());
-			if (wr == 0) {
-				// Conversion failed.
-				DWORD errorCode = GetLastError();
-				return {};
-			}
-		}
-	}
-
-	// Build information
-	memset(&m_win32_startupInfo, 0, sizeof(m_win32_startupInfo));
-	memset(&m_win32_processInformation, 0, sizeof(m_win32_processInformation));
-
-	// Launch process
-	SetLastError(ERROR_SUCCESS);
-	DWORD success = CreateProcessW(programBuf.data(), commandLineBuf.data(),
-		nullptr, nullptr, false,
+	BOOL success = CreateProcessW(
+		utfProgram.c_str(),
+		/* Note that C++11 says this is fine since an
+		 * std::string is guaranteed to be null-terminated. */
+		&utfCommandLine[0],
+		NULL, NULL, FALSE,
 		CREATE_NO_WINDOW | DETACHED_PROCESS,
-		nullptr,
-		workingDirectory.length() > 0 ? workingDirectoryBuf.data() : nullptr,
+		NULL,
+		utfWorkingDir.empty() ? NULL : utfWorkingDir.c_str(),
 		&m_win32_startupInfo,
-		&m_win32_processInformation);
-	if (!success) {
-		DWORD error = GetLastError();
-		return {};
-	}
+		&m_win32_processInformation
+	);
+
+	if (!success) return {};
 
 	return ProcessInfo(
 		reinterpret_cast<uint64_t>(m_win32_processInformation.hProcess),
@@ -111,7 +75,12 @@ ProcessInfo spawn(std::string program, std::string commandLine, std::string work
 
 ProcessInfo open_process(uint64_t handle) {
 	ProcessInfo pi;
-	pi.handle = (uint64_t)OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_TERMINATE, false, (DWORD)handle);
+	DWORD flags =
+		PROCESS_QUERY_INFORMATION |
+		PROCESS_TERMINATE |
+		PROCESS_VM_READ;
+
+	pi.handle = (uint64_t)OpenProcess(flags , false, (DWORD)handle);
 	return pi;
 }
 
@@ -123,9 +92,8 @@ bool close_process(ProcessInfo pi) {
 /* Basically Win32 doesn't provide a way to fetch the length of the
  * name of a module because it's a C-string */
 std::string get_process_name(ProcessInfo pi) {
-	LPTSTR lpBuffer = NULL;
-	DWORD  dwBufferLength = 256;
-	DWORD  dwReturnLength = 0;
+	LPWSTR lpBuffer = NULL;
+	DWORD dwBufferLength = 256;
 	HANDLE hProcess = (HANDLE)pi.handle;
 	HMODULE hModule;
 	DWORD unused1;
@@ -144,35 +112,30 @@ std::string get_process_name(ProcessInfo pi) {
 		return {};
 
 	while (32768 >= dwBufferLength) {
-		lpBuffer = new TCHAR[dwBufferLength];
+		std::wstring lpBuffer(dwBufferLength, wchar_t());
 
-		dwReturnLength =
-			GetModuleFileName(hModule, lpBuffer, dwBufferLength);
+		DWORD dwReturnLength = GetModuleFileNameExW(
+			hProcess,
+			hModule,
+			&lpBuffer[0],
+			dwBufferLength
+		);
 
-		if (!dwReturnLength) {
-			delete lpBuffer;
-			return {};
+		if (!dwReturnLength) return {};
+
+		if (dwBufferLength <= dwReturnLength) {
+			/* Increased buffer exponentially.
+			 * Notice this will eventually match
+			 * a perfect 32768 which is the max
+			 * length of an NTFS file path. */
+			dwBufferLength <<= 1;
+			continue;
 		}
 
-		if (dwBufferLength > dwReturnLength) {
-			/* Notice that these are expensive
-			 * but they do shrink the buffer to
-			 * match the string */
-#ifdef UNICODE
-			std::string result(from_utf16_wide_to_utf8(lpBuffer));
-			delete lpBuffer;
-			return result;
-#elif
-			return lpBuffer;
-#endif
-		}
-
-		delete lpBuffer;
-		/* Increased buffer exponentially.
-		 * Notice this will eventually match
-		 * a perfect 32768 which is the max
-		 * length of an NTFS file path. */
-		dwBufferLength <<= 1;
+		/* Notice that these are expensive
+		 * but they do shrink the buffer to
+		 * match the string */
+		return from_utf16_wide_to_utf8(lpBuffer.data());
 	}
 
 	/* Path too long */
@@ -180,50 +143,96 @@ std::string get_process_name(ProcessInfo pi) {
 }
 
 bool is_process_alive(ProcessInfo pinfo) {
-	SetLastError(ERROR_SUCCESS);
 	DWORD id = GetProcessId(reinterpret_cast<HANDLE>(pinfo.handle));
-	if (id != static_cast<DWORD>(pinfo.id)) {
+
+	if (id == 0 || id != static_cast<DWORD>(pinfo.id))
 		return false;
-	}
-	DWORD errorCode = GetLastError();
-	if (errorCode != ERROR_SUCCESS) {
-		return false;
-	}
+
 	return true;
 }
 
 bool kill(ProcessInfo pinfo, uint32_t code, uint32_t& exitcode) {
-	SetLastError(ERROR_SUCCESS);
-	bool suc = TerminateProcess(reinterpret_cast<HANDLE>(pinfo.handle), code);
-	DWORD errorCode = GetLastError();
-	return (errorCode == ERROR_SUCCESS);
+	return TerminateProcess(reinterpret_cast<HANDLE>(pinfo.handle), code);
 }
 
 std::string get_working_directory() {
-	DWORD dwRequiredSize = 0;
-	LPTSTR lpBuffer;
+	DWORD dwRequiredSize = GetCurrentDirectoryW(0, NULL);
+	std::wstring lpBuffer(dwRequiredSize, wchar_t());
 
-	dwRequiredSize = GetCurrentDirectory(0, NULL);
+	GetCurrentDirectoryW(dwRequiredSize, &lpBuffer[0]);
 
-	lpBuffer = new TCHAR[dwRequiredSize];
+	return from_utf16_wide_to_utf8(lpBuffer.data());
+}
 
-	GetCurrentDirectory(dwRequiredSize, lpBuffer);
+std::string get_temp_directory() {
+	constexpr DWORD tmp_size = MAX_PATH + 1;
+	std::wstring tmp(tmp_size, wchar_t());
+	GetTempPathW(tmp_size, &tmp[0]);
 
-#ifdef UNICODE
-	std::string result(from_utf16_wide_to_utf8(lpBuffer, dwRequiredSize));
+	/* Here we resize an in-use string and then re-use it.
+	 * Note this is only okay because the long path name
+	 * will always be equal to or larger than the short
+	 * path name */
+	DWORD tmp_len = GetLongPathNameW(&tmp[0], NULL, 0);
+	tmp.resize(tmp_len);
 
-	delete lpBuffer;
-	return result;
-#else
-	return lpBuffer;
-#endif
+	/* Note that this isn't a hack to use the same buffer,
+	 * it's explicitly meant to be used this way per MSDN. */
+	GetLongPathNameW(&tmp[0], &tmp[0], tmp_len);
+
+	return from_utf16_wide_to_utf8(tmp.data());
+}
+
+std::fstream open_file(std::string &file_path, std::fstream::openmode mode) {
+	return std::fstream(from_utf8_to_utf16_wide(file_path.c_str()), mode);
+}
+
+static void check_pid_file(std::string &pid_path) {
+	std::fstream::openmode mode =
+		std::fstream::in |
+		std::fstream::binary;
+
+	std::fstream pid_file(open_file(pid_path, mode));
+
+	union {
+		uint64_t pid;
+		char pid_char[sizeof(uint64_t)];
+	};
+
+	if (!pid_file) return;
+
+	pid_file.read(&pid_char[0], 8);
+
+	ProcessInfo pi = open_process(pid);
+
+	if (pi.handle == 0) return;
+
+	std::string name = get_process_name(pi);
+
+	/* FIXME TODO I don't like globals */
+	if (name == serverBinaryPath) {
+		uint32_t dontcare = 0;
+		kill(pi, -1, dontcare);
+	}
+
+	close_process(pi);
+}
+
+static void write_pid_file(std::string &pid_path, uint64_t pid) {
+	std::fstream::openmode mode =
+		std::fstream::out |
+		std::fstream::binary |
+		std::fstream::trunc;
+
+	std::fstream pid_file(open_file(pid_path, mode));
+
+	if (!pid_file) return;
+
+	pid_file.write(reinterpret_cast<char*>(&pid), sizeof(pid));
 }
 
 #endif
 #pragma endregion Windows
-
-static std::string serverBinaryPath = "";
-static std::string serverWorkingPath = "";
 
 Controller::Controller() {
 
@@ -233,88 +242,36 @@ Controller::~Controller() {
 	disconnect();
 }
 
-std::shared_ptr<ipc::client> Controller::host(std::string uri) {
+std::shared_ptr<ipc::client> Controller::host(const std::string &uri) {
 	if (m_isServer)
 		return nullptr;
 
-	// Store info
-	std::string program = serverBinaryPath;
-	std::string commandLine = '"' + serverBinaryPath + '"' + " " + uri;
-	std::string workingDirectory = serverWorkingPath.length() > 0 ? serverWorkingPath : get_working_directory();
+	std::stringstream commandLine;
+	commandLine << "\"" << serverBinaryPath << "\"" << " " << uri;
+
+	std::string workingDirectory;
+
+	if (serverWorkingPath.empty())
+		workingDirectory = get_working_directory();
+	else
+		workingDirectory = serverWorkingPath;
 
 	// Test for existing process.
-	std::string pid_path;
+	std::string pid_path(get_temp_directory());
+	pid_path.append("server.pid");
 
-#ifdef _WIN32
+	check_pid_file(pid_path);
 
-	std::basic_string<TCHAR> tmp;
-	tmp.resize(MAX_PATH + 1);
-
-	DWORD tmp_len = GetTempPath(MAX_PATH + 1, &tmp[0]);
-
-#ifdef UNICODE
-	{
-
-	DWORD long_path_len = GetLongPathName(&tmp[0], NULL, 0);
-	std::basic_string<TCHAR> long_tmp;
-	long_tmp.resize(long_path_len);
-	GetLongPathName(&tmp[0], &long_tmp[0], long_path_len);
-
-	pid_path.assign(from_utf16_wide_to_utf8(long_tmp.data(),long_path_len));
-
-	}
-#else
-	/* Non-unicode path won't give us above MAX_PATH ever.
-	 * Just bite the bullet */
-	pid_path = std::move(tmp);
-#endif
-
-	pid_path.append("\\");
-	pid_path.append(pid_path);
-#endif
-	std::ifstream pid_file;
-	pid_file.open(pid_path);
-	if (pid_file.is_open()) {
-		// There is one 64-bit integer stored here.
-		union {
-			uint64_t pid;
-			char pid_char[sizeof(uint64_t)];
-		};
-		pid_file.read(&pid_char[0], 8);
-
-		ProcessInfo pi = open_process(pid);
-		if (pi.handle != 0) {
-			std::string name = get_process_name(pi);
-			if (name == serverBinaryPath) {
-				uint32_t dontcare = 0;
-				kill(pi, -1, dontcare);
-			}
-			close_process(pi);
-		}
-		pid_file.close();
-	}
-	
-	procId = spawn(serverBinaryPath, commandLine, workingDirectory);
+	procId = spawn(serverBinaryPath, commandLine.str(), workingDirectory);
 	if (procId.id == 0) {
 		return nullptr;
 	}
 
-	std::ofstream pid_file_w;
-	pid_file_w.open(pid_path, std::ios::trunc);
-	if (pid_file_w.is_open()) {
-		// There is one 64-bit integer stored here.
-		union {
-			uint64_t pid;
-			char pid_char[sizeof(uint64_t)];
-		};
-		pid = procId.id;
-		pid_file_w.write(&pid_char[0], sizeof(uint64_t));
-		pid_file_w.close();
-	}
+	write_pid_file(pid_path, procId.id);
 
 	// Connect
 	std::shared_ptr<ipc::client> cl = connect(uri);
-	if (!cl) { // Assume the server broke or was not allowed to run. 
+	if (!cl) { // Assume the server broke or was not allowed to run.
 		disconnect();
 		uint32_t exitcode;
 		kill(procId, 0, exitcode);
@@ -325,7 +282,10 @@ std::shared_ptr<ipc::client> Controller::host(std::string uri) {
 	return m_connection;
 }
 
-std::shared_ptr<ipc::client> Controller::connect(std::string uri, std::chrono::nanoseconds timeout /*= std::chrono::seconds(5)*/) {
+std::shared_ptr<ipc::client> Controller::connect(
+  const std::string &uri,
+  std::chrono::nanoseconds timeout /*= std::chrono::seconds(5)*/
+) {
 	if (m_isServer)
 		return nullptr;
 
@@ -343,7 +303,7 @@ std::shared_ptr<ipc::client> Controller::connect(std::string uri, std::chrono::n
 		}
 		if (cl)
 			break;
-		
+
 		if (procId.handle != 0) {
 			// We are the owner of the server, but m_isServer is false for now.
 			if (!is_process_alive(procId)) {
