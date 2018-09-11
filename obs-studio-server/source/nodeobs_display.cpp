@@ -124,16 +124,13 @@ void OBS::Display::SystemWorker() {
 				CreateWindowMessageQuestion* question = reinterpret_cast<CreateWindowMessageQuestion*>(message.wParam);
 				CreateWindowMessageAnswer* answer = reinterpret_cast<CreateWindowMessageAnswer*>(message.lParam);
 
-				HWND newWindow;
-				if (IsWindows8OrGreater()) {
-					newWindow  = CreateWindowEx(
-						WS_EX_LAYERED | WS_EX_TRANSPARENT,
-						TEXT("Win32DisplayClass"), TEXT("SlobsChildWindowPreview"),
-						WS_VISIBLE | WS_POPUP,
-						0, 0, question->width, question->height,
-						NULL,
-						NULL, NULL, this);
-				}
+				HWND newWindow = CreateWindowEx(
+					WS_EX_LAYERED | WS_EX_TRANSPARENT,
+					TEXT("Win32DisplayClass"), TEXT("SlobsChildWindowPreview"),
+					WS_VISIBLE | WS_POPUP,
+					0, 0, question->width, question->height,
+					NULL,
+					NULL, NULL, this);
 				if (!newWindow) {
 					HandleWin32ErrorMessage();
 					answer->success = false;
