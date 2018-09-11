@@ -142,7 +142,7 @@ void OBS::Display::SystemWorker() {
 					HandleWin32ErrorMessage();
 					answer->success = false;
 				} else {
-					if (IsWindows8OrGreater() || enabled) {
+					if (IsWindows8OrGreater() || !enabled) {
 						SetLayeredWindowAttributes(newWindow, 0, 255, LWA_ALPHA);
 					}
 
