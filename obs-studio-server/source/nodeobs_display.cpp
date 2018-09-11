@@ -7,10 +7,6 @@
 #include <graphics/vec4.h>
 #include <graphics/matrix4.h>
 #include <util/platform.h>
-#ifdef _WIN32
-#include <windows.h>
-#include <versionhelpers.h>
-#endif
 
 std::vector<std::pair<std::string, std::pair<uint32_t, uint32_t>>> sourcesSize;
 
@@ -123,19 +119,30 @@ void OBS::Display::SystemWorker() {
 			{
 				CreateWindowMessageQuestion* question = reinterpret_cast<CreateWindowMessageQuestion*>(message.wParam);
 				CreateWindowMessageAnswer* answer = reinterpret_cast<CreateWindowMessageAnswer*>(message.lParam);
+			
+				BOOL enabled = FALSE;
+				DwmIsCompositionEnabled(&enabled);
+				DWORD windowStyle;
+
+				if (IsWindows8OrGreater || !enabled) {
+					windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT;
+				} else {
+					windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_COMPOSITED;
+				}
 
 				HWND newWindow = CreateWindowEx(
-					WS_EX_LAYERED | WS_EX_TRANSPARENT,
+					windowStyle,
 					TEXT("Win32DisplayClass"), TEXT("SlobsChildWindowPreview"),
 					WS_VISIBLE | WS_POPUP,
 					0, 0, question->width, question->height,
 					NULL,
 					NULL, NULL, this);
+
 				if (!newWindow) {
 					HandleWin32ErrorMessage();
 					answer->success = false;
 				} else {
-					if (IsWindows8OrGreater()) {
+					if (IsWindows8OrGreater() || enabled) {
 						SetLayeredWindowAttributes(newWindow, 0, 255, LWA_ALPHA);
 					}
 

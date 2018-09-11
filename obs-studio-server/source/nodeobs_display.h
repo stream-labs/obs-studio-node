@@ -13,6 +13,9 @@
 #undef NOWINOFFSETS
 #endif
 #include <windows.h>
+#include <versionhelpers.h>
+#include <Dwmapi.h>
+#pragma comment (lib, "dwmapi.lib")
 EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 #define HINST_THISCOMPONENT ((HINSTANCE)&__ImageBase)
 

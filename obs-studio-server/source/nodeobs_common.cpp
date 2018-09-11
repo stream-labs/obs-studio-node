@@ -9,13 +9,6 @@
 #include "error.hpp"
 #include "shared.hpp"
 
-#ifdef _WIN32
-#include <windows.h>
-#include <versionhelpers.h>
-#include <Dwmapi.h>
-#pragma comment (lib, "dwmapi.lib")
-#endif
-
 std::map<std::string, OBS::Display *> displays;
 std::string sourceSelected;
 bool firstDisplayCreation = true;
