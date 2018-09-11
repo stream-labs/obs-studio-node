@@ -127,28 +127,21 @@ void OBS::Display::SystemWorker() {
 				HWND newWindow;
 				if (IsWindows8OrGreater()) {
 					newWindow  = CreateWindowEx(
-						WS_EX_LAYERED | WS_EX_TRANSPARENT,// | WS_EX_COMPOSITED | WS_EX_TOPMOST,
+						WS_EX_LAYERED | WS_EX_TRANSPARENT,
 						TEXT("Win32DisplayClass"), TEXT("SlobsChildWindowPreview"),
 						WS_VISIBLE | WS_POPUP,
 						0, 0, question->width, question->height,
 						NULL,
 						NULL, NULL, this);
 				}
-				else {
-					newWindow = CreateWindowEx(
-						WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_COMPOSITED,// | WS_EX_COMPOSITED | WS_EX_TOPMOST,
-						TEXT("Win32DisplayClass"), TEXT("SlobsChildWindowPreview"),
-						WS_VISIBLE | WS_POPUP,
-						0, 0, question->width, question->height,
-						NULL,
-						NULL, NULL, this);
-				}
-
 				if (!newWindow) {
 					HandleWin32ErrorMessage();
 					answer->success = false;
 				} else {
-					SetLayeredWindowAttributes(newWindow, 0, 255, LWA_ALPHA);
+					if (IsWindows8OrGreater()) {
+						SetLayeredWindowAttributes(newWindow, 0, 255, LWA_ALPHA);
+					}
+
 					SetParent(newWindow, question->parentWindow);
 					answer->windowHandle = newWindow;
 					answer->success = true;
