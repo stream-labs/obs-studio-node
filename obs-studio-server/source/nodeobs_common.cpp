@@ -9,8 +9,15 @@
 #include "error.hpp"
 #include "shared.hpp"
 
+#ifdef _WIN32
+#include <windows.h>
+#include <versionhelpers.h>
+#include <Dwmapi.h>
+#endif
+
 std::map<std::string, OBS::Display *> displays;
 std::string sourceSelected;
+bool firstDisplayCreation = true;
 
 /* A lot of the sceneitem functionality is a lazy copy-pasta from the Qt UI. */
 // https://github.com/jp9000/obs-studio/blob/master/UI/window-basic-main.cpp#L4888
@@ -186,6 +193,24 @@ void OBS_content::OBS_content_createDisplay(void* data, const int64_t id, const 
 	}
 
 	displays.insert_or_assign(args[1].value_str, new OBS::Display(windowHandle));
+
+	if (!IsWindows8OrGreater) {
+		BOOL enabled = FALSE;
+		DwmIsCompositionEnabled(&enabled);
+		if (!enabled && firstDisplayCreation) {
+			int code = MessageBox(
+				NULL,
+				TEXT("Streamlabs OBS needs Aero enabled to run properly on Windows 7.  "
+					"If you've disabled Aero for performance reasons, "
+					"you may still use the app, but you will need to keep the window maximized.\n\n\n\n\n"
+					"This is a hack to keep Streamlabs OBS running and not the preferred route. "
+					"We recommend upgrading to Windows 10 or enabling Aero."),
+				TEXT("Aero is disabled"),
+				MB_OK
+			);
+		}
+	}
+	firstDisplayCreation = false;
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
