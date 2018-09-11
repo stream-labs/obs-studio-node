@@ -13,6 +13,7 @@
 #include <windows.h>
 #include <versionhelpers.h>
 #include <Dwmapi.h>
+#pragma comment (lib, "dwmapi.lib")
 #endif
 
 std::map<std::string, OBS::Display *> displays;
@@ -194,7 +195,7 @@ void OBS_content::OBS_content_createDisplay(void* data, const int64_t id, const 
 
 	displays.insert_or_assign(args[1].value_str, new OBS::Display(windowHandle));
 
-	if (!IsWindows8OrGreater) {
+	if (!IsWindows8OrGreater()) {
 		BOOL enabled = FALSE;
 		DwmIsCompositionEnabled(&enabled);
 		if (!enabled && firstDisplayCreation) {
