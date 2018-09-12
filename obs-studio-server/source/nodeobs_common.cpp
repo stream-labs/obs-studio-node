@@ -185,7 +185,7 @@ void popupAeroDisabledWindow(void) {
 		TEXT("Streamlabs OBS needs Aero enabled to run properly on Windows 7.  "
 			"If you've disabled Aero for performance reasons, "
 			"you may still use the app, but you will need to keep the window maximized.\n\n\n\n\n"
-			"This is a hack to keep Streamlabs OBS running and not the preferred route. "
+			"This is a workaround to keep Streamlabs OBS running and not the preferred route. "
 			"We recommend upgrading to Windows 10 or enabling Aero."),
 		TEXT("Aero is disabled"),
 		MB_OK
