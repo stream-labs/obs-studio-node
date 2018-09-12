@@ -7,10 +7,6 @@
 #include <graphics/vec4.h>
 #include <graphics/matrix4.h>
 #include <util/platform.h>
-#ifdef _WIN32
-#include <windows.h>
-#include <versionhelpers.h>
-#endif
 
 std::vector<std::pair<std::string, std::pair<uint32_t, uint32_t>>> sourcesSize;
 
@@ -123,32 +119,30 @@ void OBS::Display::SystemWorker() {
 			{
 				CreateWindowMessageQuestion* question = reinterpret_cast<CreateWindowMessageQuestion*>(message.wParam);
 				CreateWindowMessageAnswer* answer = reinterpret_cast<CreateWindowMessageAnswer*>(message.lParam);
+			
+				BOOL enabled = FALSE;
+				DwmIsCompositionEnabled(&enabled);
+				DWORD windowStyle;
 
-				HWND newWindow;
-				if (IsWindows8OrGreater()) {
-					newWindow  = CreateWindowEx(
-						WS_EX_LAYERED | WS_EX_TRANSPARENT,// | WS_EX_COMPOSITED | WS_EX_TOPMOST,
-						TEXT("Win32DisplayClass"), TEXT("SlobsChildWindowPreview"),
-						WS_VISIBLE | WS_POPUP,
-						0, 0, question->width, question->height,
-						NULL,
-						NULL, NULL, this);
+				if (IsWindows8OrGreater() || !enabled) {
+					windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT;
+				} else {
+					windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_COMPOSITED;
 				}
-				else {
-					newWindow = CreateWindowEx(
-						WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_COMPOSITED,// | WS_EX_COMPOSITED | WS_EX_TOPMOST,
-						TEXT("Win32DisplayClass"), TEXT("SlobsChildWindowPreview"),
-						WS_VISIBLE | WS_POPUP,
-						0, 0, question->width, question->height,
-						NULL,
-						NULL, NULL, this);
-				}
+
+				HWND newWindow = CreateWindowEx(
+					windowStyle,
+					TEXT("Win32DisplayClass"), TEXT("SlobsChildWindowPreview"),
+					WS_VISIBLE | WS_POPUP,
+					0, 0, question->width, question->height,
+					NULL,
+					NULL, NULL, this);
 
 				if (!newWindow) {
 					HandleWin32ErrorMessage();
 					answer->success = false;
 				} else {
-					if (IsWindows8OrGreater()) {
+					if (IsWindows8OrGreater() || !enabled) {
 						SetLayeredWindowAttributes(newWindow, 0, 255, LWA_ALPHA);
 					}
 
@@ -300,6 +294,7 @@ OBS::Display::Display(uint64_t windowHandle) : Display() {
 	}
 
 	m_ourWindow = answer.windowHandle;
+	m_parentWindow = reinterpret_cast<HWND>(windowHandle);
 	m_gsInitData.window.hwnd = reinterpret_cast<void*>(m_ourWindow);
 #endif
 
@@ -1086,9 +1081,81 @@ void OBS::Display::DisplayWndClass() {
 }
 
 LRESULT CALLBACK OBS::Display::DisplayWndProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam) {
-	switch (uMsg) {
+	OBS::Display* self = nullptr;
+	self = reinterpret_cast<OBS::Display*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+	if (IsWindows8OrGreater()) {
+		switch (uMsg) {
 		case WM_NCHITTEST:
 			return HTTRANSPARENT;
+		}
+	}
+	else {
+		switch (uMsg) {
+		case WM_SETCURSOR:
+			CallWindowProcW((WNDPROC)GetWindowLongPtr(self->m_parentWindow, GWLP_WNDPROC), self->m_parentWindow, uMsg, wParam, lParam);
+			return TRUE;
+			/// Focus Events
+		case WM_SETFOCUS:
+		case WM_KILLFOCUS:
+			if (self != nullptr) {
+				SetFocus(self->m_parentWindow);
+				SetForegroundWindow(self->m_parentWindow);
+				return 0;
+			}
+			else {
+				break;
+			}
+			/// Keyboard Events
+		case WM_GETHOTKEY:
+		case WM_KEYDOWN:
+		case WM_KEYUP:
+		case WM_CHAR:
+		case WM_DEADCHAR:
+		case WM_SYSKEYDOWN:
+		case WM_SYSKEYUP:
+		case WM_UNICHAR:
+		case WM_HOTKEY:
+		case WM_APPCOMMAND:
+			SetFocus(self->m_parentWindow);
+			SetForegroundWindow(self->m_parentWindow);
+			PostMessageW(self->m_parentWindow, uMsg, wParam, lParam);
+			return 0;
+			/// Mouse Events
+		case WM_MOUSEHWHEEL:
+		case WM_MOUSEWHEEL:
+		case WM_MOUSEMOVE:
+		case WM_LBUTTONUP:
+		case WM_LBUTTONDOWN:
+		case WM_LBUTTONDBLCLK:
+		case WM_RBUTTONUP:
+		case WM_RBUTTONDOWN:
+		case WM_RBUTTONDBLCLK:
+		case WM_MBUTTONUP:
+		case WM_MBUTTONDOWN:
+		case WM_MBUTTONDBLCLK:
+		case WM_XBUTTONUP:
+		case WM_XBUTTONDOWN:
+		case WM_XBUTTONDBLCLK:
+			// These are Mouse Events, so we need to go from one window space to the other.
+			POINT origin;
+			origin.x = lParam & 0xFFFF;
+			origin.y = (lParam >> 16) & 0xFFFF;
+			ClientToScreen(self->m_ourWindow, &origin);
+			ScreenToClient(self->m_parentWindow, &origin);
+			SetFocus(self->m_parentWindow);
+			SetForegroundWindow(self->m_parentWindow);
+			PostMessageW(self->m_parentWindow, uMsg, wParam, origin.x | (origin.y << 16));
+			return 0;
+			/// Hit Tests
+		case WM_MOUSEACTIVATE:
+			// Mouse clicked on the window and the DWM wants to activate our window.
+			// We don't want this, so instead we "activate" the parent instead.
+			SetFocus(self->m_parentWindow);
+			SetForegroundWindow(self->m_parentWindow);
+			return MA_NOACTIVATE;
+		case WM_NCHITTEST:
+			return HTTRANSPARENT;
+		}
 	}
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }

@@ -13,6 +13,8 @@
 #undef NOWINOFFSETS
 #endif
 #include <windows.h>
+#include <versionhelpers.h>
+#include <Dwmapi.h>
 EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 #define HINST_THISCOMPONENT ((HINSTANCE)&__ImageBase)
 
@@ -111,6 +113,7 @@ namespace OBS {
 
 #if defined(_WIN32)
 		HWND m_ourWindow;
+		HWND m_parentWindow;
 		static bool DisplayWndClassRegistered;
 		static WNDCLASSEX DisplayWndClassObj;
 		static ATOM DisplayWndClassAtom;

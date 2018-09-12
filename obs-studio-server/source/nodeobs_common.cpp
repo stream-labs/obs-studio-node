@@ -9,8 +9,13 @@
 #include "error.hpp"
 #include "shared.hpp"
 
+#include <thread>
+
 std::map<std::string, OBS::Display *> displays;
 std::string sourceSelected;
+bool firstDisplayCreation = true;
+
+std::thread *windowMessage = NULL;
 
 /* A lot of the sceneitem functionality is a lazy copy-pasta from the Qt UI. */
 // https://github.com/jp9000/obs-studio/blob/master/UI/window-basic-main.cpp#L4888
@@ -174,6 +179,19 @@ void OBS_content::Register(ipc::server& srv) {
 	srv.register_collection(cls);
 }
 
+void popupAeroDisabledWindow(void) {
+	MessageBox(
+		NULL,
+		TEXT("Streamlabs OBS needs Aero enabled to run properly on Windows 7.  "
+			"If you've disabled Aero for performance reasons, "
+			"you may still use the app, but you will need to keep the window maximized.\n\n\n\n\n"
+			"This is a workaround to keep Streamlabs OBS running and not the preferred route. "
+			"We recommend upgrading to Windows 10 or enabling Aero."),
+		TEXT("Aero is disabled"),
+		MB_OK
+	);
+}
+
 void OBS_content::OBS_content_createDisplay(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	uint64_t windowHandle = args[0].value_union.ui64;
 	auto found = displays.find(args[1].value_str);
@@ -186,6 +204,15 @@ void OBS_content::OBS_content_createDisplay(void* data, const int64_t id, const 
 	}
 
 	displays.insert_or_assign(args[1].value_str, new OBS::Display(windowHandle));
+
+	if (!IsWindows8OrGreater()) {
+		BOOL enabled = FALSE;
+		DwmIsCompositionEnabled(&enabled);
+		if (!enabled && firstDisplayCreation) {
+			windowMessage = new std::thread(popupAeroDisabledWindow);
+		}
+	}
+	firstDisplayCreation = false;
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -199,6 +226,9 @@ void OBS_content::OBS_content_destroyDisplay(void* data, const int64_t id, const
 		rval.push_back(ipc::value("Key does not exist."));
 		return;
 	}
+
+	if (windowMessage != NULL && windowMessage->joinable())
+		windowMessage->join();
 
 	delete found->second;
 	displays.erase(found);
