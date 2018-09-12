@@ -1639,19 +1639,28 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 
 	obs_data_t *settings = obs_encoder_defaults(encoderID);
 	obs_encoder_t* streamingEncoder;
-	if (!fileExist) {
-		streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
-		OBS_service::setStreamingEncoder(streamingEncoder);
+	obs_output_t *streamOutput = OBS_service::getStreamingOutput();
 
-		if (!obs_data_save_json_safe(settings, path.c_str(), "tmp", "bak")) {
-			blog(LOG_WARNING, "Failed to save encoder %s", path.c_str());
+	if (streamOutput == NULL)
+		return streamingSettings;
+
+	if (!obs_output_active(streamOutput)) {
+		if (!fileExist) {
+			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
+			OBS_service::setStreamingEncoder(streamingEncoder);
+
+			if (!obs_data_save_json_safe(settings, path.c_str(), "tmp", "bak")) {
+				blog(LOG_WARNING, "Failed to save encoder %s", path.c_str());
+			}
 		}
-	}
-	else {
-		obs_data_t *data = obs_data_create_from_json_file_safe(path.c_str(), "bak");
-		obs_data_apply(settings, data);
-		streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", settings, nullptr);
-		OBS_service::setStreamingEncoder(streamingEncoder);
+		else {
+			obs_data_t *data = obs_data_create_from_json_file_safe(path.c_str(), "bak");
+			obs_data_apply(settings, data);
+			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", settings, nullptr);
+			OBS_service::setStreamingEncoder(streamingEncoder);
+		}
+	} else {
+		streamingEncoder = OBS_service::getStreamingEncoder();
 	}
 
 	getEncoderSettings(streamingEncoder, settings, &(streamingSettings.params), index, isCategoryEnabled);
@@ -1970,22 +1979,32 @@ void OBS_settings::getStandardRecordingSettings(
 
 	obs_data_t *settings = obs_encoder_defaults(recEncoderCurrentValue);
 	obs_encoder_t* recordingEncoder;
-	if (!fileExist) {
-		recordingEncoder =
-			obs_video_encoder_create(recEncoderCurrentValue, "streaming_h264", nullptr, nullptr);
-		OBS_service::setRecordingEncoder(recordingEncoder);
 
-		if (!obs_data_save_json_safe(settings, path.c_str(), "tmp", "bak")) {
-			blog(LOG_WARNING, "Failed to save encoder %s", path.c_str());
-		}
+	obs_output_t *recordOutput = OBS_service::getRecordingOutput();
+
+	if (recordOutput == NULL)
+		return;
+
+	if (!obs_output_active(recordOutput)) {
+		if (!fileExist) {
+			recordingEncoder =
+				obs_video_encoder_create(recEncoderCurrentValue, "streaming_h264", nullptr, nullptr);
+			OBS_service::setRecordingEncoder(recordingEncoder);
+
+			if (!obs_data_save_json_safe(settings, path.c_str(), "tmp", "bak")) {
+				blog(LOG_WARNING, "Failed to save encoder %s", path.c_str());
+			}
+		} else {
+			obs_data_t *data = obs_data_create_from_json_file_safe(path.c_str(), "bak");
+			obs_data_apply(settings, data);
+			recordingEncoder =
+				obs_video_encoder_create(recEncoderCurrentValue, "streaming_h264", settings, nullptr);
+			OBS_service::setRecordingEncoder(recordingEncoder);
+		}	
+	}  else {
+		recordingEncoder = OBS_service::getRecordingEncoder();
 	}
-	else {
-		obs_data_t *data = obs_data_create_from_json_file_safe(path.c_str(), "bak");
-		obs_data_apply(settings, data);
-		recordingEncoder =
-			obs_video_encoder_create(recEncoderCurrentValue, "streaming_h264", settings, nullptr);
-		OBS_service::setRecordingEncoder(recordingEncoder);
-	}
+
 
 	getEncoderSettings(recordingEncoder, settings, &(subCategoryParameters->params), index, isCategoryEnabled);
 	subCategoryParameters->paramsCount =
