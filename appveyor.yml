@@ -57,7 +57,7 @@ test_script:
   - ps: |
       if ($Env:RuntimeName -eq "iojs") {
         npm install -g electron@$Env:ElectronVersion
-        .\ci\appveyor-test-runner.ps1
+        .\tools\test-runner.ps1
       }
 
 before_deploy:
