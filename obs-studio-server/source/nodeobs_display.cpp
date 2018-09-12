@@ -124,7 +124,7 @@ void OBS::Display::SystemWorker() {
 				DwmIsCompositionEnabled(&enabled);
 				DWORD windowStyle;
 
-				if (IsWindows8OrGreater || !enabled) {
+				if (IsWindows8OrGreater() || !enabled) {
 					windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT;
 				} else {
 					windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_COMPOSITED;
