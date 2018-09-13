@@ -454,9 +454,6 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 	/* END INJECT osn::Source::Manager */
 
 	cpuUsageInfo = os_cpu_usage_info_start();
-	
-	/* Profiling */
-	//profiler_start();
 
 	openAllModules();
 	OBS_service::createStreamingOutput();
@@ -610,22 +607,6 @@ void OBS_API::setAudioDeviceMonitoring(void)
 #endif
 }
 
-static void SaveProfilerData(const profiler_snapshot_t *snap)
-{
-	string dst(appdata_path);
-	dst.append("profiler_data/");
-
-	if (os_mkdirs(dst.c_str()) == MKDIR_ERROR) {
-		cerr << "Failed to open profiler snapshot for writing" << endl;
-	}
-
-	dst.append(GenerateTimeDateFilename("csv.gz"));
-
-	if (!profiler_snapshot_dump_csv_gz(snap, dst.c_str()))
-		blog(LOG_WARNING, "Could not save profiler data to '%s'",
-			dst.c_str());
-}
-
 void OBS_API::destroyOBS_API(void) {
 	os_cpu_usage_info_destroy(cpuUsageInfo);
 
@@ -668,14 +649,6 @@ void OBS_API::destroyOBS_API(void) {
 		obs_service_release(service);
 
 	obs_shutdown();
-
-	/*profiler_stop();
-	auto snapshot = profile_snapshot_create();
-	profiler_print(snapshot);
-	profiler_print_time_between_calls(snapshot);
-	SaveProfilerData(snapshot);
-	profile_snapshot_free(snapshot);
-	profiler_free();*/
 }
 
 #pragma region Case-Insensitive String
