@@ -52,8 +52,6 @@ void OBS_API::Register(ipc::server& srv) {
 	cls->register_function(std::make_shared<ipc::function>("OBS_API_initAPI", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, OBS_API_initAPI));
 	cls->register_function(std::make_shared<ipc::function>("OBS_API_destroyOBS_API", std::vector<ipc::type>{}, OBS_API_destroyOBS_API));
 	cls->register_function(std::make_shared<ipc::function>("OBS_API_getPerformanceStatistics", std::vector<ipc::type>{}, OBS_API_getPerformanceStatistics));
-	cls->register_function(std::make_shared<ipc::function>("OBS_API_getOBS_existingProfiles", std::vector<ipc::type>{}, OBS_API_getOBS_existingProfiles));
-	cls->register_function(std::make_shared<ipc::function>("OBS_API_getOBS_existingSceneCollections", std::vector<ipc::type>{}, OBS_API_getOBS_existingSceneCollections));
 	cls->register_function(std::make_shared<ipc::function>("OBS_API_isOBS_installed", std::vector<ipc::type>{}, OBS_API_isOBS_installed));
 	cls->register_function(std::make_shared<ipc::function>("SetWorkingDirectory", std::vector<ipc::type>{ipc::type::String}, SetWorkingDirectory));
 
@@ -80,23 +78,6 @@ void OBS_API::SetWorkingDirectory(void* data, const int64_t id, const std::vecto
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(g_moduleDirectory));
 	AUTO_DEBUG;
-}
-
-std::string	OBS_API::getModuleDirectory(void) {
-	return g_moduleDirectory;
-}
-
-/* FIXME Platform specific and uses ASCII functions */
-static bool dirExists(const std::string& path)
-{
-	DWORD ftyp = GetFileAttributesA(path.c_str());
-	if (ftyp == INVALID_FILE_ATTRIBUTES)
-		return false;
-
-	if (ftyp & FILE_ATTRIBUTE_DIRECTORY)
-		return true;
-
-	return false;
 }
 
 static string GenerateTimeDateFilename(const char *extension)
@@ -556,48 +537,6 @@ void OBS_API::OBS_API_getPerformanceStatistics(void* data, const int64_t id, con
 	AUTO_DEBUG;
 }
 
-void OBS_API::OBS_API_getOBS_existingProfiles(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
-	std::string pathProfiles;
-	pathProfiles += OBS_pathConfigDirectory;
-	pathProfiles += "\\basic\\profiles\\";
-
-	std::vector<std::string> existingProfiles = exploreDirectory(pathProfiles, "directories");
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value((uint32_t)existingProfiles.size()));
-
-	for (int i = 0; i<existingProfiles.size(); i++) {
-		rval.push_back(ipc::value(existingProfiles.at(i).c_str()));
-	}
-	AUTO_DEBUG;
-}
-
-void OBS_API::OBS_API_getOBS_existingSceneCollections(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
-	std::string pathSceneCollections;
-	pathSceneCollections += OBS_pathConfigDirectory;
-	pathSceneCollections += "\\basic\\scenes\\";
-
-	std::vector<std::string> existingSceneCollections =
-		exploreDirectory(pathSceneCollections, "files");
-
-	int indexArray = 0;
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value((uint32_t)existingSceneCollections.size()));
-
-	for (int i = 0; i<existingSceneCollections.size(); i++) {
-		if (existingSceneCollections.at(i).
-			substr(existingSceneCollections.at(i).find_last_of(".") + 1) == "json") {
-
-			existingSceneCollections.at(i).erase(existingSceneCollections.at(i).end() - 5,
-				existingSceneCollections.at(i).end());
-
-			rval.push_back(ipc::value(existingSceneCollections.at(i).c_str()));
-		}
-	}
-	AUTO_DEBUG;
-}
-
 void OBS_API::OBS_API_isOBS_installed(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((bool)isOBS_installed()));
@@ -951,60 +890,6 @@ double OBS_API::getCurrentBandwidth(void)
 double OBS_API::getCurrentFrameRate(void)
 {
 	return obs_get_active_fps();
-}
-
-std::string OBS_API::getPathConfigDirectory(void)
-{
-	return pathConfigDirectory;
-}
-
-void OBS_API::setPathConfigDirectory(std::string newPathConfigDirectory)
-{
-	if (!newPathConfigDirectory.empty() && !useOBS_configFiles)
-	{
-		pathConfigDirectory = newPathConfigDirectory;
-	}
-}
-
-std::vector<std::string> OBS_API::exploreDirectory(std::string directory, std::string typeToReturn)
-{
-	std::vector<std::string> listElements;
-
-	char originalDirectory[_MAX_PATH];
-
-	// Get the current directory so we can return to it
-	_getcwd(originalDirectory, _MAX_PATH);
-
-	_chdir(directory.c_str());  // Change to the working directory
-	_finddata_t fileinfo;
-
-	// This will grab the first file in the directory
-	// "*" can be changed if you only want to look for specific files
-	intptr_t handle = _findfirst("*", &fileinfo);
-
-	if (handle == -1)  // No files or directories found
-	{
-		perror("Error searching for file");
-		exit(1);
-	}
-
-	do
-	{
-		if (strcmp(fileinfo.name, ".") == 0 || strcmp(fileinfo.name, "..") == 0)
-			continue;
-		if (fileinfo.attrib & _A_SUBDIR && typeToReturn.compare("directories") == 0) {
-			listElements.push_back(fileinfo.name);
-		}
-		else if (typeToReturn.compare("files") == 0) {
-			listElements.push_back(fileinfo.name);
-		}
-	} while (_findnext(handle, &fileinfo) == 0);
-
-	_findclose(handle); // Close the stream
-
-	_chdir(originalDirectory);
-
-	return listElements;
 }
 
 std::string OBS_API::getOBS_currentProfile(void)

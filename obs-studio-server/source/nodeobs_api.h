@@ -30,8 +30,6 @@ public:
 	static void OBS_API_initAPI(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 	static void OBS_API_destroyOBS_API(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 	static void OBS_API_getPerformanceStatistics(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-	static void OBS_API_getOBS_existingProfiles(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-	static void OBS_API_getOBS_existingSceneCollections(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 	static void OBS_API_isOBS_installed(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 	static void SetWorkingDirectory(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 
@@ -50,15 +48,12 @@ private:
 	static std::vector<std::string> exploreDirectory(std::string directory, std::string typeToReturn);
 
 public:
-	static std::string 			getPathConfigDirectory(void);
-	static void 				setPathConfigDirectory(std::string newPathConfigDirectory);
 	static std::string 			getOBS_currentProfile(void);
 	static void 				setOBS_currentProfile(std::string profileName);
 	static std::string 			getOBS_currentSceneCollection(void);
 	static void 				setOBS_currentSceneCollection(std::string sceneCollectionName);
 	static bool 				isOBS_configFilesUsed(void);
 	static std::vector<Screen> 	availableResolutions(void); 
-	static std::string			getModuleDirectory(void);
 
 
 	static std::string getGlobalConfigPath(void);
