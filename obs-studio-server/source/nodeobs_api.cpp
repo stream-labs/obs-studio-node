@@ -31,8 +31,6 @@
 #include "shared.hpp"
 
 
-std::string appdata_path;
-vector<pair<obs_module_t *, int>> listModules;
 os_cpu_usage_info_t *cpuUsageInfo = nullptr;
 uint64_t lastBytesSent = 0;
 uint64_t lastBytesSentTime = 0;
@@ -339,7 +337,7 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 	/* FIXME These should be configurable */
 	/* FIXME g_moduleDirectory really needs to be a wstring */
 	std::string pathOBS = g_moduleDirectory;
-	std::string locale;
+	std::string locale, appdata_path;
 
 	/* Also note that this method is possible on POSIX
 	* as well. You can call dlopen with RTLD_GLOBAL
