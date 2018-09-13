@@ -336,8 +336,8 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 
 	/* FIXME These should be configurable */
 	/* FIXME g_moduleDirectory really needs to be a wstring */
-	std::string pathOBS = g_moduleDirectory;
-	std::string locale, appdata_path;
+	pathConfigDirectory = args[0].value_str;
+	std::string locale = args[1].value_str;
 
 	/* Also note that this method is possible on POSIX
 	* as well. You can call dlopen with RTLD_GLOBAL
@@ -373,8 +373,8 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 		std::string module_path;
 		void *handle = NULL;
 
-		module_path.reserve(pathOBS.size() + strlen(g_modules[i]) + 1);
-		module_path.append(pathOBS);
+		module_path.reserve(g_moduleDirectory.size() + strlen(g_modules[i]) + 1);
+		module_path.append(g_moduleDirectory);
 		module_path.append("/");
 		module_path.append(g_modules[i]);
 
@@ -392,10 +392,7 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 		* they should be available through
 		* out the application */
 	}
-	pathConfigDirectory = args[0].value_str.c_str();
-	appdata_path = args[0].value_str.c_str();
-	appdata_path += "/node-obs/";
-
+	
 	/* libobs will use three methods of finding data files:
 	* 1. ${CWD}/data/libobs <- This doesn't work for us
 	* 2. ${OBS_DATA_PATH}/libobs <- This works but is inflexible
@@ -405,12 +402,12 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 
 	std::vector<char> userData = std::vector<char>(1024);
 	os_get_config_path(userData.data(), userData.capacity() - 1, "slobs-client/plugin_config");
-	obs_startup(args[1].value_str.c_str(), userData.data(), NULL);
+	obs_startup(locale.c_str(), userData.data(), NULL);
 
 #pragma region Logging
 	/* Logging */
 	string filename = GenerateTimeDateFilename("txt");
-	string log_path = appdata_path;
+	string log_path = pathConfigDirectory + "/node-obs/";
 	log_path.append("/logs/");
 
 	/* Make sure the path is created
@@ -501,17 +498,11 @@ void OBS_API::OBS_API_destroyOBS_API(void* data, const int64_t id, const std::ve
 void OBS_API::OBS_API_getPerformanceStatistics(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
-	double percentage = getCPU_Percentage();
-	int numberOfDroppedFrames = getNumberOfDroppedFrames();
-	double droppedFramesPercentage = getDroppedFramesPercentage();
-	double bandwidth = getCurrentBandwidth();
-	double frameRate = getCurrentFrameRate();
-
-	rval.push_back(ipc::value(percentage));
-	rval.push_back(ipc::value(numberOfDroppedFrames));
-	rval.push_back(ipc::value(droppedFramesPercentage));
-	rval.push_back(ipc::value(bandwidth));
-	rval.push_back(ipc::value(frameRate));
+	rval.push_back(ipc::value(getCPU_Percentage()));
+	rval.push_back(ipc::value(getNumberOfDroppedFrames()));
+	rval.push_back(ipc::value(getDroppedFramesPercentage()));
+	rval.push_back(ipc::value(getCurrentBandwidth()));
+	rval.push_back(ipc::value(getCurrentFrameRate()));
 	AUTO_DEBUG;
 }
 
