@@ -37,11 +37,6 @@ os_cpu_usage_info_t *cpuUsageInfo = nullptr;
 uint64_t lastBytesSent = 0;
 uint64_t lastBytesSentTime = 0;
 std::string pathConfigDirectory;
-std::string OBS_pathConfigDirectory;
-std::string OBS_currentProfile;
-std::string OBS_currentSceneCollection;
-bool useOBS_configFiles = false;
-bool isOBS_installedValue;
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 
 std::string g_moduleDirectory = "";
@@ -460,17 +455,6 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 	/* END INJECT osn::Source::Manager */
 
 	cpuUsageInfo = os_cpu_usage_info_start();
-
-	//Setting obs-studio config directory
-	char path[512];
-	int ret = os_get_config_path(path, 512, "obs-studio");
-
-	if (ret > 0) {
-		OBS_pathConfigDirectory = path;
-	}
-
-	std::string profiles = OBS_pathConfigDirectory + "\\basic\\profiles";
-	std::string scenes = OBS_pathConfigDirectory + "\\basic\\scenes";
 	
 	/* Profiling */
 	//profiler_start();
@@ -892,31 +876,6 @@ double OBS_API::getCurrentFrameRate(void)
 	return obs_get_active_fps();
 }
 
-std::string OBS_API::getOBS_currentProfile(void)
-{
-	return OBS_currentProfile;
-}
-
-void OBS_API::setOBS_currentProfile(std::string profileName)
-{
-	OBS_currentProfile = profileName;
-}
-
-std::string OBS_API::getOBS_currentSceneCollection(void)
-{
-	return OBS_currentSceneCollection;
-}
-
-void OBS_API::setOBS_currentSceneCollection(std::string sceneCollectionName)
-{
-	OBS_currentSceneCollection = sceneCollectionName;
-}
-
-bool OBS_API::isOBS_configFilesUsed(void)
-{
-	return useOBS_configFiles;
-}
-
 static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor,
 	HDC      hdcMonitor,
 	LPRECT   lprcMonitor,
@@ -961,12 +920,6 @@ std::string OBS_API::getBasicConfigPath(void)
 	std::string basicConfigPath;
 
 	basicConfigPath += pathConfigDirectory;
-
-	if (useOBS_configFiles && !OBS_currentProfile.empty()) {
-		basicConfigPath += "\\basic\\profiles\\";
-		basicConfigPath += OBS_currentProfile;
-	}
-
 	basicConfigPath += "\\basic.ini";
 
 	return basicConfigPath;
@@ -977,12 +930,6 @@ std::string OBS_API::getServiceConfigPath(void)
 	std::string serviceConfigPath;
 
 	serviceConfigPath += pathConfigDirectory;
-
-	if (useOBS_configFiles && !OBS_currentProfile.empty()) {
-		serviceConfigPath += "\\basic\\profiles\\";
-		serviceConfigPath += OBS_currentProfile;
-	}
-
 	serviceConfigPath += "\\service.json";
 
 	return serviceConfigPath;
@@ -993,15 +940,7 @@ std::string OBS_API::getContentConfigPath(void)
 	std::string contentConfigPath;
 
 	contentConfigPath += pathConfigDirectory;
-
-	if (useOBS_configFiles && !OBS_currentSceneCollection.empty()) {
-		contentConfigPath += "\\basic\\scenes\\";
-		contentConfigPath += OBS_currentSceneCollection;;
-		contentConfigPath += ".json";
-	}
-	else {
-		contentConfigPath += "\\config.json";
-	}
+	contentConfigPath += "\\config.json";
 
 	return contentConfigPath;
 }
@@ -1050,19 +989,8 @@ static const double scaled_vals[] =
 	0.0
 };
 
-std::vector<std::pair<std::string, config_t*>> configFiles;
-
 config_t* OBS_API::openConfigFile(std::string configFile)
 {
-
-	std::vector<std::pair<std::string, config_t*>>::iterator it =
-		std::find_if(configFiles.begin(), configFiles.end(),
-			[&configFile](const pair<std::string, config_t*> value)
-	{
-		return (value.first.compare(configFile) == 0);
-	});
-
-	// if(it == configFiles.end()) {
 	config_t* config;
 
 	int result = config_open(&config, configFile.c_str(), CONFIG_OPEN_EXISTING);
@@ -1232,16 +1160,5 @@ config_t* OBS_API::openConfigFile(std::string configFile)
 		config_save_safe(config, "tmp", nullptr);
 	}
 
-	configFiles.push_back(std::make_pair(configFile, config));
 	return config;
-	// } else {
-	// 	return (*it).second;
-	// }
-
-
-}
-
-bool OBS_API::isOBS_installed(void)
-{
-	return isOBS_installedValue;
 }

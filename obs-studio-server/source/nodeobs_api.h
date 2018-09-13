@@ -44,15 +44,8 @@ private:
 	static double	getCurrentBandwidth(void);
 	static double	getCurrentFrameRate(void);
 	static bool		isOBS_installed(void);
-
-	static std::vector<std::string> exploreDirectory(std::string directory, std::string typeToReturn);
-
+	
 public:
-	static std::string 			getOBS_currentProfile(void);
-	static void 				setOBS_currentProfile(std::string profileName);
-	static std::string 			getOBS_currentSceneCollection(void);
-	static void 				setOBS_currentSceneCollection(std::string sceneCollectionName);
-	static bool 				isOBS_configFilesUsed(void);
 	static std::vector<Screen> 	availableResolutions(void); 
 
 
