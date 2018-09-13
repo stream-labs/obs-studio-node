@@ -58,13 +58,30 @@ IF(WIN32)
 		PROJECT_LEGAL_TRADEMARKS_2
 		""
 	)
-	
+
 	configure_file(
 		${PROJECT_SOURCE_DIR}/cmake/version.rc.in
 		${PROJECT_BINARY_DIR}/version.rc
 		@ONLY
 	)
 ENDIF()
+
+INCLUDE_DIRECTORIES(flatbuffers/include)
+
+FIND_PROGRAM(FLATC_BINARY "flatc")
+
+IF(FLATC_BINARY-NOTFOUND)
+	MESSAGE(FATAL "Failed to find the FlatBuffers compiler")
+ENDIF()
+
+ADD_CUSTOM_TARGET(proto-categories-gen
+	COMMAND
+		"${FLATC_BINARY}" -c
+		-o "${CMAKE_CURRENT_BINARY_DIR}/proto"
+		"${PROJECT_SOURCE_DIR}/source/categories.fbs"
+)
+
+INCLUDE_DIRECTORIES("${CMAKE_CURRENT_BINARY_DIR}/proto")
 
 #############################
 # Configuration
@@ -76,7 +93,6 @@ SET(CMAKE_INSTALL_PREFIX  "${CMAKE_SOURCE_DIR}/distribute" CACHE PATH "Path to i
 #############################
 # Projects
 #############################
-
 ADD_SUBDIRECTORY(lib-streamlabs-ipc)
 ADD_SUBDIRECTORY(obs-studio-client)
 ADD_SUBDIRECTORY(obs-studio-server)
