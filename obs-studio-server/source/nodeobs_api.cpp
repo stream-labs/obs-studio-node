@@ -47,7 +47,6 @@ void OBS_API::Register(ipc::server& srv) {
 	cls->register_function(std::make_shared<ipc::function>("OBS_API_initAPI", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, OBS_API_initAPI));
 	cls->register_function(std::make_shared<ipc::function>("OBS_API_destroyOBS_API", std::vector<ipc::type>{}, OBS_API_destroyOBS_API));
 	cls->register_function(std::make_shared<ipc::function>("OBS_API_getPerformanceStatistics", std::vector<ipc::type>{}, OBS_API_getPerformanceStatistics));
-	cls->register_function(std::make_shared<ipc::function>("OBS_API_isOBS_installed", std::vector<ipc::type>{}, OBS_API_isOBS_installed));
 	cls->register_function(std::make_shared<ipc::function>("SetWorkingDirectory", std::vector<ipc::type>{ipc::type::String}, SetWorkingDirectory));
 
 	srv.register_collection(cls);
@@ -518,12 +517,6 @@ void OBS_API::OBS_API_getPerformanceStatistics(void* data, const int64_t id, con
 	rval.push_back(ipc::value(droppedFramesPercentage));
 	rval.push_back(ipc::value(bandwidth));
 	rval.push_back(ipc::value(frameRate));
-	AUTO_DEBUG;
-}
-
-void OBS_API::OBS_API_isOBS_installed(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value((bool)isOBS_installed()));
 	AUTO_DEBUG;
 }
 

@@ -34,7 +34,6 @@ public:
 	static void SetWorkingDirectory(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 
 private:
-	static void initAPI(void);
     static void destroyOBS_API(void);
 	static void openAllModules(void);
 
@@ -43,7 +42,6 @@ private:
 	static double 	getDroppedFramesPercentage(void);
 	static double	getCurrentBandwidth(void);
 	static double	getCurrentFrameRate(void);
-	static bool		isOBS_installed(void);
 	
 public:
 	static std::vector<Screen> 	availableResolutions(void); 
