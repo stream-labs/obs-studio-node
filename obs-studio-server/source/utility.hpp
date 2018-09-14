@@ -16,11 +16,9 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
 
 #pragma once
-#include <inttypes.h>
 #include <list>
 #include <limits>
 #include <map>
-#include <memory>
 
 #if defined(_MSC_VER)
 #define FORCE_INLINE __forceinline

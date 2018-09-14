@@ -18,7 +18,6 @@
 */
 
 #include "util-memory.h"
-#include <cstdlib>
 
 void* util::malloc_aligned(size_t align, size_t size) {
 #if defined(_MSC_VER)

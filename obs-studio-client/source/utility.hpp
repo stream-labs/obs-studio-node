@@ -17,12 +17,9 @@
 
 #pragma once
 #include <string>
-#include <inttypes.h>
-#include <vector>
-#include <node.h>
-
 #include <vector>
 #include <memory>
+
 #include <nan.h>
 
 #include "error.hpp"
