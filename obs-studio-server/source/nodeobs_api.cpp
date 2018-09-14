@@ -356,6 +356,16 @@ static const double scaled_vals[] =
 	0.0
 };
 
+void initGlobalDefault(config_t* config) {
+	config_set_bool(config, "BasicWindow", "SnappingEnabled", true);
+	config_set_double(config, "BasicWindow", "SnapDistance", 10);
+	config_set_bool(config, "BasicWindow", "ScreenSnapping", true);
+	config_set_bool(config, "BasicWindow", "SourceSnapping", true);
+	config_set_bool(config, "BasicWindow", "CenterSnapping", false);
+
+	config_save_safe(config, "tmp", nullptr);
+}
+
 void initBasicDefault(config_t* config) {
 	// Base resolution
 	uint32_t cx = 0;
@@ -636,6 +646,7 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 	cpuUsageInfo = os_cpu_usage_info_start();
 
 	openAllModules();
+	initGlobalDefault(configManager->getGlobal());
 	initBasicDefault(configManager->getBasic());
 
 	OBS_service::createStreamingOutput();
