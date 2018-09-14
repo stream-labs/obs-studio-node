@@ -81,17 +81,7 @@ static void HandleSampleRate(obs_property_t* prop, const char *id)
 		return;
 	}
 
-	// auto main = reinterpret_cast<OBSMainWindow*>(App()->GetMainWindow());
-	// if (!main) {
-	// 	blog(LOG_ERROR, "Failed to get main window while populating "
-	// 			"bitrate map");
-	// 	return;
-	// }
-    
-    std::string basicConfigFile = OBS_API::getBasicConfigPath();
-    config_t* config = OBS_API::openConfigFile(basicConfigFile);
-
-	uint64_t sampleRate = config_get_uint(config, "Audio",
+	uint64_t sampleRate = config_get_uint(configManager->getBasic(), "Audio",
 			"SampleRate");
 
 	obs_data_set_int(data.get(), "samplerate", sampleRate);

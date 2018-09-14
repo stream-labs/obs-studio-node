@@ -154,7 +154,7 @@ private:
 
 
 
-	static void saveGenericSettings(std::vector<SubCategory> genericSettings, std::string section, std::string pathFile);
+	static void saveGenericSettings(std::vector<SubCategory> genericSettings, std::string section, config_t *config);
 
 	static SubCategory serializeSettingsData(std::string nameSubCategory,
 												std::vector<std::vector<std::pair<std::string, std::string>>> entries, 
@@ -186,14 +186,14 @@ private:
 	/****** Save Output Settings ******/
 
 	// Simple Output mode
-	static void saveSimpleOutputSettings(std::vector<SubCategory> settings, std::string basicConfigFile);
+	static void saveSimpleOutputSettings(std::vector<SubCategory> settings);
 
 	// Advanced Output mode
-	static void saveAdvancedOutputStreamingSettings(std::vector<SubCategory> settings, std::string basicConfigFile);
+	static void saveAdvancedOutputStreamingSettings(std::vector<SubCategory> settings);
 
-	static void saveAdvancedOutputRecordingSettings(std::vector<SubCategory> settings, std::string basicConfigFile);
+	static void saveAdvancedOutputRecordingSettings(std::vector<SubCategory> settings);
 
-	static void saveAdvancedOutputSettings(std::vector<SubCategory> settings, std::string basicConfigFile);
+	static void saveAdvancedOutputSettings(std::vector<SubCategory> settings);
 
 
 	//Utility functions

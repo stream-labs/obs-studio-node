@@ -665,10 +665,7 @@ void autoConfig::TestBandwidthThread(void)
 
 	obs_data_set_int(aencoder_settings, "bitrate", 32);
 
-	std::string basicConfigFile = OBS_API::getBasicConfigPath();
-	config_t* config = OBS_API::openConfigFile(basicConfigFile);
-
-	const char *bind_ip = config_get_string(config, "Output",
+	const char *bind_ip = config_get_string(configManager->getBasic(), "Output",
 			"BindIP");
 	obs_data_set_string(output_settings, "bind_ip", bind_ip);
 
@@ -1177,11 +1174,8 @@ void autoConfig::TestStreamEncoderThread()
 	events.push(AutoConfigInfo("starting_step", "streamingEncoder_test", 0));
 	eventsMutex.unlock();
 
-	std::string basicConfigFile = OBS_API::getBasicConfigPath();
-	config_t* config = OBS_API::openConfigFile(basicConfigFile);
-
-	baseResolutionCX = config_get_int(config, "Video", "BaseCX");
-	baseResolutionCY = config_get_int(config, "Video", "BaseCY");
+	baseResolutionCX = config_get_int(configManager->getBasic(), "Video", "BaseCX");
+	baseResolutionCY = config_get_int(configManager->getBasic(), "Video", "BaseCY");
 
 	TestHardwareEncoding();
 
@@ -1438,17 +1432,13 @@ void autoConfig::SaveStreamSettings()
 
 	/* ---------------------------------- */
 	/* save stream settings               */
-
-	std::string basicConfigFile = OBS_API::getBasicConfigPath();
-	config_t* config = OBS_API::openConfigFile(basicConfigFile);
-
-	config_set_int(config, "SimpleOutput", "VBitrate",
+	config_set_int(configManager->getBasic(), "SimpleOutput", "VBitrate",
 			idealBitrate);
-	config_set_string(config, "SimpleOutput", "StreamEncoder",
+	config_set_string(configManager->getBasic(), "SimpleOutput", "StreamEncoder",
 			GetEncoderDisplayName(streamingEncoder));
-	config_remove_value(config, "SimpleOutput", "UseAdvanced");
+	config_remove_value(configManager->getBasic(), "SimpleOutput", "UseAdvanced");
 
-	config_save_safe(config, "tmp", nullptr);
+	config_save_safe(configManager->getBasic(), "tmp", nullptr);
 	
 	eventsMutex.lock();
 	events.push(AutoConfigInfo("stopping_step", "saving_service", 100));
@@ -1460,31 +1450,29 @@ void autoConfig::SaveSettings()
 	eventsMutex.lock();
 	events.push(AutoConfigInfo("starting_step", "saving_settings", 0));
 	eventsMutex.unlock();
-
-	std::string basicConfigFile = OBS_API::getBasicConfigPath();
-	config_t* config = OBS_API::openConfigFile(basicConfigFile);
-
+	
 	if (recordingEncoder != Encoder::Stream)
-		config_set_string(config, "SimpleOutput", "RecEncoder",
+		config_set_string(configManager->getBasic(), "SimpleOutput", "RecEncoder",
 				GetEncoderDisplayName(recordingEncoder));
 
 	const char *quality = recordingQuality == Quality::High
 		? "Small"
 		: "Stream";
 
-	config_set_string(config, "Output", "Mode", "Simple");
-	config_set_string(config, "SimpleOutput", "RecQuality", quality);
-	config_set_int(config, "Video", "OutputCX", idealResolutionCX);
-	config_set_int(config, "Video", "OutputCY", idealResolutionCY);
+	config_set_string(configManager->getBasic(), "Output", "Mode", "Simple");
+	config_set_string(configManager->getBasic(), "SimpleOutput", "RecQuality", quality);
+	config_set_int(configManager->getBasic(), "Video", "OutputCX", idealResolutionCX);
+	config_set_int(configManager->getBasic(), "Video", "OutputCY", idealResolutionCY);
 
 	if (fpsType != FPSType::UseCurrent) {
-		config_set_uint(config, "Video", "FPSType", 0);
-		config_set_string(config, "Video", "FPSCommon",
+		config_set_uint(configManager->getBasic(), "Video", "FPSType", 0);
+		config_set_string(configManager->getBasic(), "Video", "FPSCommon",
 				std::to_string(idealFPSNum).c_str());
-		std::string fpsvalue = config_get_string(config, "Video", "FPSCommon");
+		std::string fpsvalue = 
+			config_get_string(configManager->getBasic(), "Video", "FPSCommon");
 	}
 
-	config_save_safe(config, "tmp", nullptr);
+	config_save_safe(configManager->getBasic(), "tmp", nullptr);
 
 	eventsMutex.lock();
 	events.push(AutoConfigInfo("stopping_step", "saving_settings", 100));
