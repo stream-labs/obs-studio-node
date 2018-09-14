@@ -28,7 +28,7 @@ IncludeCategories:
 SortIncludes: true
 
 # Alignment
-AlignAfterOpenBracket: Align
+AlignAfterOpenBracket: AlwaysBreak
 AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: true
 AlignEscapedNewlines: Left
