@@ -61,7 +61,6 @@
     }
 
 namespace utilv8 {
-#pragma region ToValue
 	// Integers
 	inline v8::Local<v8::Value> ToValue(bool v) {
 		return Nan::New<v8::Boolean>(v);
@@ -176,9 +175,7 @@ namespace utilv8 {
 	inline v8::Local<v8::Value> ToValue(v8::Local<v8::Function> v) {
 		return v;
 	}
-#pragma endregion ToValue
 
-#pragma region FromValue
 	// Integers
 	inline bool FromValue(v8::Local<v8::Value> l, bool& r) {
 		if (l->IsBoolean()) {
@@ -327,9 +324,7 @@ namespace utilv8 {
 		}
 		return false;
 	}
-#pragma endregion FromValue
 
-#pragma region ToArrayBuffer
 	inline v8::Local<v8::Value> ToArrayBuffer(std::vector<int8_t> v) {
 		auto rv = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), v.size() * sizeof(int8_t));
 		memcpy(rv->GetContents().Data(), v.data(), v.size());
@@ -389,9 +384,7 @@ namespace utilv8 {
 		memcpy(rv->GetContents().Data(), v.data(), v.size());
 		return v8::Float64Array::New(rv, 0, v.size());
 	}
-#pragma endregion ToArrayBuffer
 
-#pragma region Objects
 	template<typename T> inline void SetObjectField(v8::Local<v8::Object> object, const char* field, T value) {
 		Nan::Set(object, ToValue(field), ToValue(value));
 	}
@@ -419,9 +412,7 @@ namespace utilv8 {
 		Nan::FunctionCallback get, Nan::FunctionCallback set = nullptr) {
 		object->SetAccessorProperty(FIELD_NAME(name), ToValue(get), ToValue(set));
 	}
-#pragma endregion Objects
 
-#pragma region Templates
 	template<typename T> inline void SetTemplateField(v8::Local<v8::Template> object, const char* field, T value) {
 		Nan::SetMethod(object, ToValue(field), ToValue(value));
 	}
@@ -441,7 +432,6 @@ namespace utilv8 {
 	inline void SetObjectTemplateAccessor(v8::Local<v8::ObjectTemplate> object, const char *name, Nan::GetterCallback get, Nan::SetterCallback set = nullptr) {
 		Nan::SetAccessor(object, FIELD_NAME(name), get, set);
 	}
-#pragma endregion Templates
 
 	template<typename T>
 	inline bool SafeUnwrap(Nan::NAN_METHOD_ARGS_TYPE info, T*& valp) {
@@ -502,7 +492,6 @@ namespace utilv8 {
 		return std::string(*v8::String::Utf8Value(type));
 	}
 
-#pragma region Callback
 	/* This structure is an adaptation of one used in SQLite Node bindings.
 	* You can find the original here:
 	* https://github.com/mapbox/node-sqlite3/blob/master/src/async.h */
@@ -615,7 +604,6 @@ namespace utilv8 {
 						 * being executed. */
 		bool stopped;
 	};
-#pragma endregion Callback
 
 	// Template class for asynchronous v8 Callbacks
 	// 

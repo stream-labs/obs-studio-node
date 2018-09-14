@@ -210,7 +210,6 @@ static void DeleteOldestFile(const char *location, unsigned maxLogs)
 	}
 }
 
-#pragma region Logging
 #include <chrono>
 #include <cstdarg>
 #include <varargs.h>
@@ -353,7 +352,6 @@ static void node_obs_log(int log_level, const char *msg, va_list args, void *par
 		__debugbreak();
 #endif
 }
-#pragma endregion Logging
 
 void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
 	/* Map base DLLs as soon as possible into the current process space.
@@ -434,7 +432,6 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 	os_get_config_path(userData.data(), userData.capacity() - 1, "slobs-client/plugin_config");
 	obs_startup(args[1].value_str.c_str(), userData.data(), NULL);
 
-#pragma region Logging
 	/* Logging */
 	string filename = GenerateTimeDateFilename("txt");
 	string log_path = appdata_path;
@@ -468,7 +465,6 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 
 	/* Delete oldest file in the folder to imitate rotating */
 	base_set_log_handler(node_obs_log, logfile);
-#pragma endregion Logging
 
 	/* INJECT osn::Source::Manager */
 	// Alright, you're probably wondering: Why is osn code here?
@@ -762,7 +758,6 @@ void OBS_API::destroyOBS_API(void) {
 	profiler_free();*/
 }
 
-#pragma region Case-Insensitive String
 struct ci_char_traits : public char_traits<char> {
 	static bool eq(char c1, char c2) {
 		return toupper(c1) == toupper(c2);
@@ -790,7 +785,6 @@ struct ci_char_traits : public char_traits<char> {
 };
 
 typedef std::basic_string<char, ci_char_traits> istring;
-#pragma endregion Case-Insensitive String
 
 /* This should be reusable outside of node-obs, especially
 * if we go a server/client route. */
