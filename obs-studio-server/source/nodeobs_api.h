@@ -9,6 +9,7 @@
 #include <math.h>
 #include "nodeobs_service.h"
 #include <ipc-server.hpp>
+#include "nodeobs_configManager.hpp"
 
 using namespace std;
 
@@ -18,62 +19,6 @@ extern std::string appdata;
 struct Screen {
 	int width;
 	int height;
-};
-
-class ConfigManager {
-public:
-	static ConfigManager& getInstance()
-	{
-		static ConfigManager instance;
-		return instance;
-	}
-private:
-	ConfigManager() {};
-public:
-	ConfigManager(ConfigManager const&) = delete;
-	void operator=(ConfigManager const&) = delete;
-private:
-	config_t* global = NULL;
-	config_t* basic = NULL;
-	std::string service = "";
-	std::string stream = "";
-	std::string record = "";
-
-	config_t * getConfig(std::string name) {
-		config_t* config;
-		std::string file = appdata + name;
-
-		int result = config_open(&config, file.c_str(), CONFIG_OPEN_EXISTING);
-
-		if (result != CONFIG_SUCCESS) {
-			config = config_create(file.c_str());
-			config_open(&config, file.c_str(), CONFIG_OPEN_EXISTING);
-		}
-
-		return config;
-	};
-public:
-	config_t* getGlobal() {
-		if (!global)
-			global = getConfig("\\global.ini");
-		
-		return global;
-	};
-	config_t* getBasic() {
-		if (!basic)
-			basic = getConfig("\\basic.ini");			
-
-		return basic;
-	};
-	std::string getService() {
-		return appdata + "\\service.json";
-	};
-	std::string getStream() {
-		return appdata + "\\streamEncoder.json";
-	};
-	std::string getRecord() {
-		return appdata + "\\recordEncoder.json";
-	};
 };
 
 class OBS_API
