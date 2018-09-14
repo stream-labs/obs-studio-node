@@ -66,6 +66,19 @@ IF(WIN32)
 	)
 ENDIF()
 
+INCLUDE_DIRECTORIES(flatbuffers/include)
+ FIND_PROGRAM(FLATC_BINARY "flatc")
+ IF(FLATC_BINARY-NOTFOUND)
+	MESSAGE(FATAL "Failed to find the FlatBuffers compiler")
+ENDIF()
+ ADD_CUSTOM_TARGET(proto-categories-gen
+	COMMAND
+		"${FLATC_BINARY}" -c
+		-o "${CMAKE_CURRENT_BINARY_DIR}/proto"
+		"${PROJECT_SOURCE_DIR}/source/categories.fbs"
+)
+ INCLUDE_DIRECTORIES("${CMAKE_CURRENT_BINARY_DIR}/proto")
+
 #############################
 # Configuration
 #############################

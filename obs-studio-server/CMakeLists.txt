@@ -254,6 +254,8 @@ ELSE()
 	)
 ENDIF()
 
+add_dependencies(obs-studio-server proto-categories-gen)
+
 IF(WIN32)
 	# windows.h
 	target_compile_definitions(${PROJECT_NAME}

@@ -1,0 +1,25 @@
+// Generated from categories.proto
+
+namespace no;
+
+table Parameter {
+  name:string;
+  description:string;
+  type:string;
+  sub_type:string;
+  enabled:bool;
+  masked:bool;
+  visible:bool;
+}
+
+table SubCategory {
+  name:string;
+  params:[Parameter];
+}
+
+table Category {
+  name:string;
+  sub_categories:[SubCategory];
+}
+
+root_type Category; 
