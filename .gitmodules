@@ -4,4 +4,4 @@
 	branch = master
 [submodule "flatbuffers"]
 	path = flatbuffers
-	url = https://github.com/google/flatbuffers.git
+	url = git@github.com:google/flatbuffers.git
