@@ -665,7 +665,7 @@ void autoConfig::TestBandwidthThread(void)
 
 	obs_data_set_int(aencoder_settings, "bitrate", 32);
 
-	const char *bind_ip = config_get_string(configManager->getBasic(), "Output",
+	const char *bind_ip = config_get_string(ConfigManager::getInstance().getBasic(), "Output",
 			"BindIP");
 	obs_data_set_string(output_settings, "bind_ip", bind_ip);
 
@@ -1174,8 +1174,8 @@ void autoConfig::TestStreamEncoderThread()
 	events.push(AutoConfigInfo("starting_step", "streamingEncoder_test", 0));
 	eventsMutex.unlock();
 
-	baseResolutionCX = config_get_int(configManager->getBasic(), "Video", "BaseCX");
-	baseResolutionCY = config_get_int(configManager->getBasic(), "Video", "BaseCY");
+	baseResolutionCX = config_get_int(ConfigManager::getInstance().getBasic(), "Video", "BaseCX");
+	baseResolutionCY = config_get_int(ConfigManager::getInstance().getBasic(), "Video", "BaseCY");
 
 	TestHardwareEncoding();
 
@@ -1432,13 +1432,13 @@ void autoConfig::SaveStreamSettings()
 
 	/* ---------------------------------- */
 	/* save stream settings               */
-	config_set_int(configManager->getBasic(), "SimpleOutput", "VBitrate",
+	config_set_int(ConfigManager::getInstance().getBasic(), "SimpleOutput", "VBitrate",
 			idealBitrate);
-	config_set_string(configManager->getBasic(), "SimpleOutput", "StreamEncoder",
+	config_set_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "StreamEncoder",
 			GetEncoderDisplayName(streamingEncoder));
-	config_remove_value(configManager->getBasic(), "SimpleOutput", "UseAdvanced");
+	config_remove_value(ConfigManager::getInstance().getBasic(), "SimpleOutput", "UseAdvanced");
 
-	config_save_safe(configManager->getBasic(), "tmp", nullptr);
+	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 	
 	eventsMutex.lock();
 	events.push(AutoConfigInfo("stopping_step", "saving_service", 100));
@@ -1452,27 +1452,27 @@ void autoConfig::SaveSettings()
 	eventsMutex.unlock();
 	
 	if (recordingEncoder != Encoder::Stream)
-		config_set_string(configManager->getBasic(), "SimpleOutput", "RecEncoder",
+		config_set_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecEncoder",
 				GetEncoderDisplayName(recordingEncoder));
 
 	const char *quality = recordingQuality == Quality::High
 		? "Small"
 		: "Stream";
 
-	config_set_string(configManager->getBasic(), "Output", "Mode", "Simple");
-	config_set_string(configManager->getBasic(), "SimpleOutput", "RecQuality", quality);
-	config_set_int(configManager->getBasic(), "Video", "OutputCX", idealResolutionCX);
-	config_set_int(configManager->getBasic(), "Video", "OutputCY", idealResolutionCY);
+	config_set_string(ConfigManager::getInstance().getBasic(), "Output", "Mode", "Simple");
+	config_set_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality", quality);
+	config_set_int(ConfigManager::getInstance().getBasic(), "Video", "OutputCX", idealResolutionCX);
+	config_set_int(ConfigManager::getInstance().getBasic(), "Video", "OutputCY", idealResolutionCY);
 
 	if (fpsType != FPSType::UseCurrent) {
-		config_set_uint(configManager->getBasic(), "Video", "FPSType", 0);
-		config_set_string(configManager->getBasic(), "Video", "FPSCommon",
+		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType", 0);
+		config_set_string(ConfigManager::getInstance().getBasic(), "Video", "FPSCommon",
 				std::to_string(idealFPSNum).c_str());
 		std::string fpsvalue = 
-			config_get_string(configManager->getBasic(), "Video", "FPSCommon");
+			config_get_string(ConfigManager::getInstance().getBasic(), "Video", "FPSCommon");
 	}
 
-	config_save_safe(configManager->getBasic(), "tmp", nullptr);
+	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 
 	eventsMutex.lock();
 	events.push(AutoConfigInfo("stopping_step", "saving_settings", 100));

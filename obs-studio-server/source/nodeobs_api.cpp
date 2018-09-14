@@ -37,7 +37,6 @@ os_cpu_usage_info_t *cpuUsageInfo = nullptr;
 uint64_t lastBytesSent = 0;
 uint64_t lastBytesSentTime = 0;
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-ConfigManager* configManager = new ConfigManager();
 
 void OBS_API::Register(ipc::server& srv) {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("API");
@@ -646,8 +645,8 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 	cpuUsageInfo = os_cpu_usage_info_start();
 
 	openAllModules();
-	initGlobalDefault(configManager->getGlobal());
-	initBasicDefault(configManager->getBasic());
+	initGlobalDefault(ConfigManager::getInstance().getGlobal());
+	initBasicDefault(ConfigManager::getInstance().getBasic());
 
 	OBS_service::createStreamingOutput();
 	OBS_service::createRecordingOutput();
@@ -723,7 +722,7 @@ void OBS_API::SetProcessPriority(const char *priority)
 
 void OBS_API::UpdateProcessPriority()
 {
-	const char *priority = config_get_string(configManager->getGlobal(),
+	const char *priority = config_get_string(ConfigManager::getInstance().getGlobal(),
 		"General", "ProcessPriority");
 	if (priority && strcmp(priority, "Normal") != 0)
 		SetProcessPriority(priority);
@@ -771,9 +770,9 @@ void OBS_API::setAudioDeviceMonitoring(void)
 {
 	/* load audio monitoring */
 #if defined(_WIN32) || defined(__APPLE__)
-	const char *device_name = config_get_string(configManager->getBasic(), "Audio",
+	const char *device_name = config_get_string(ConfigManager::getInstance().getBasic(), "Audio",
 		"MonitoringDeviceName");
-	const char *device_id = config_get_string(configManager->getBasic(), "Audio",
+	const char *device_id = config_get_string(ConfigManager::getInstance().getBasic(), "Audio",
 		"MonitoringDeviceId");
 
 	obs_set_audio_monitoring_device(device_name, device_id);
@@ -781,7 +780,7 @@ void OBS_API::setAudioDeviceMonitoring(void)
 	blog(LOG_INFO, "Audio monitoring device:\n\tname: %s\n\tid: %s",
 		device_name, device_id);
 
-	bool disableAudioDucking = config_get_bool(configManager->getBasic(), "Audio",
+	bool disableAudioDucking = config_get_bool(ConfigManager::getInstance().getBasic(), "Audio",
 		"DisableAudioDucking");
 	if (disableAudioDucking)
 		DisableAudioDucking(true);
@@ -792,7 +791,7 @@ void OBS_API::destroyOBS_API(void) {
 	os_cpu_usage_info_destroy(cpuUsageInfo);
 
 #ifdef _WIN32
-	bool disableAudioDucking = config_get_bool(configManager->getBasic(), "Audio",
+	bool disableAudioDucking = config_get_bool(ConfigManager::getInstance().getBasic(), "Audio",
 		"DisableAudioDucking");
 	if (disableAudioDucking)
 		DisableAudioDucking(false);

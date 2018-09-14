@@ -22,8 +22,16 @@ struct Screen {
 
 class ConfigManager {
 public:
+	static ConfigManager& getInstance()
+	{
+		static ConfigManager instance;
+		return instance;
+	}
+private:
 	ConfigManager() {};
-	~ConfigManager() {};
+public:
+	ConfigManager(ConfigManager const&) = delete;
+	void operator=(ConfigManager const&) = delete;
 private:
 	config_t* global = NULL;
 	config_t* basic = NULL;
@@ -67,8 +75,6 @@ public:
 		return appdata + "\\recordEncoder.json";
 	};
 };
-
-extern ConfigManager* configManager;
 
 class OBS_API
 {
