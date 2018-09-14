@@ -187,6 +187,9 @@ IF(WIN32)
 	)
 ENDIF()
 
+# CppCheck
+cppcheck_add_project(${PROJECT_NAME})
+
 #############################
 # Distribute
 #############################
