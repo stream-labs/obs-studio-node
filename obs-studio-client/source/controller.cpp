@@ -28,7 +28,6 @@
 static std::string serverBinaryPath = "";
 static std::string serverWorkingPath = "";
 
-#pragma region Windows
 #ifdef _WIN32
 #include <windows.h>
 #include <psapi.h>
@@ -232,7 +231,6 @@ static void write_pid_file(std::string &pid_path, uint64_t pid) {
 }
 
 #endif
-#pragma endregion Windows
 
 Controller::Controller() {
 
@@ -357,7 +355,7 @@ std::shared_ptr<ipc::client> Controller::GetConnection() {
 	return m_connection;
 }
 
-#pragma region JavaScript
+
 void js_setServerPath(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	auto isol = args.GetIsolate();
 	if (args.Length() == 0) {
@@ -476,4 +474,3 @@ INITIALIZER(js_ipc) {
 		exports->Set(v8::String::NewFromUtf8(exports->GetIsolate(), "IPC"), obj);
 	});
 }
-#pragma endregion JavaScript

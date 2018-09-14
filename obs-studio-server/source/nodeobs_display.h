@@ -30,7 +30,6 @@ namespace OBS {
 
 		void SystemWorker();
 
-#pragma region Constructors & Finalizer
 		private:
 		Display();
 
@@ -38,7 +37,6 @@ namespace OBS {
 		Display(uint64_t windowHandle); // Create a Main Preview one
 		Display(uint64_t windowHandle, std::string sourceName); // Create a Source-Specific one
 		~Display();
-#pragma endregion Constructors & Finalizer
 
 		void SetPosition(uint32_t x, uint32_t y);
 		std::pair<uint32_t, uint32_t> GetPosition();

@@ -42,7 +42,6 @@ struct ProcessInfo {
 };
 
 class Controller {
-#pragma region Singleton
 	public:
 	static Controller& GetInstance() {
 		static Controller _inst;
@@ -56,7 +55,6 @@ class Controller {
 	public: // C++11
 	Controller(Controller const&) = delete;
 	void operator=(Controller const&) = delete;
-#pragma endregion Singleton
 
 	public:
 	std::shared_ptr<ipc::client> host(const std::string &uri);
