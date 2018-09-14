@@ -32,8 +32,7 @@ extern "C" {
 namespace GS {
 	class VertexBuffer {
 		public:
-	#pragma region Constructor & Destructor
-		virtual ~VertexBuffer();
+			virtual ~VertexBuffer();
 
 		/*!
 		* \brief Create a Vertex Buffer with a specific number of Vertices.
@@ -57,10 +56,8 @@ namespace GS {
 		*/
 		VertexBuffer(gs_vertbuffer_t* other);
 
-	#pragma endregion Constructor & Destructor
-
-	#pragma region Copy/Move Constructors
-		// Copy Constructor & Assignments
+	
+			// Copy Constructor & Assignments
 
 		/*!
 		* \brief Copy Constructor
@@ -95,8 +92,7 @@ namespace GS {
 		* \param other
 		*/
 		void operator=(VertexBuffer const&& other);
-	#pragma endregion Copy/Move Constructors
-		
+			
 
 
 		void Resize(uint32_t new_size);
@@ -153,12 +149,10 @@ namespace GS {
 		*/
 		vec4* GetUVLayer(size_t idx);
 
-	#pragma region Update / Grab GS object
-		gs_vertbuffer_t* Update();
+			gs_vertbuffer_t* Update();
 
 		gs_vertbuffer_t* Update(bool refreshGPU);
-	#pragma endregion Update / Grab GS object
-
+	
 		private:
 		uint32_t m_size;
 		uint32_t m_capacity;
