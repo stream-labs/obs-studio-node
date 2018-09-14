@@ -119,7 +119,7 @@ class Test
 		} elseif ($Env:RuntimeName -eq "node") {
 			$bin = "node"
 		} else {
-			echo ("Runtime '{0}' is not supported." -f $Env:RuntimeName)
+			Write-Host ("Runtime '{0}' is not supported." -f $Env:RuntimeName)
 			exit 0
 		}
 		
