@@ -28,11 +28,12 @@ function(cppcheck)
 	set(CPPCHECK_QUIET ON CACHE BOOL "Hide progress reports")
 	set(CPPCHECK_LIBRARIES "" CACHE STRING "List of Libraries to load separated by semicolon")
 	set(CPPCHECK_EXCLUDE_DIRECTORIES "" CACHE STRING "List of directories to exclude separated by semicolon")
+	set(CPPCHECK_PARALLEL_TASKS "4" CACHE STRING "Number of threads to use for cppcheck")
 	if(WIN32)
 		set(CPPCHECK_WIN32_UNICODE ON CACHE BOOL "Use Unicode character encoding for Win32")
 	endif()
 	
-	mark_as_advanced(CPPCHECK_BIN CPPCHECK_QUIET CPPCHECK_VERBOSE CPPCHECK_LIBRARIES CPPCHECK_ENABLE_INCONCLUSIVE)
+	mark_as_advanced(CPPCHECK_BIN CPPCHECK_QUIET CPPCHECK_VERBOSE CPPCHECK_LIBRARIES CPPCHECK_ENABLE_INCONCLUSIVE CPPCHECK_PARALLEL_TASKS)
 	
 	# Parse arguments
 	set(cppcheck_options )
@@ -97,6 +98,9 @@ function(cppcheck)
 	endif()
 	if(CPPCHECK_PLATFORM)
 		list(APPEND CPPCHECK_ARGUMENTS --platform=${CPPCHECK_PLATFORM})
+	endif()
+	if(CPPCHECK_PARALLEL_TASKS)
+		list(APPEND CPPCHECK_ARGUMENTS -j ${CPPCHECK_PARALLEL_TASKS})
 	endif()
 	
 	# Libraries
