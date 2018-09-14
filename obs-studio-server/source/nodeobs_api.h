@@ -14,7 +14,6 @@
 using namespace std;
 
 extern std::string g_moduleDirectory;
-extern std::string appdata;
 
 struct Screen {
 	int width;

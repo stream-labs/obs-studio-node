@@ -1,5 +1,9 @@
 #include "nodeobs_configManager.hpp"
 
+void ConfigManager::setAppdataPath(std::string path) {
+	appdata = path;
+}
+
 config_t *ConfigManager::getConfig(std::string name) {
 	config_t* config;
 	std::string file = appdata + name;

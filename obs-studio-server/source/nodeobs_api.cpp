@@ -32,7 +32,6 @@
 
 
 std::string g_moduleDirectory = "";
-std::string appdata = "";
 os_cpu_usage_info_t *cpuUsageInfo = nullptr;
 uint64_t lastBytesSent = 0;
 uint64_t lastBytesSentTime = 0;
@@ -530,7 +529,7 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 
 	/* FIXME These should be configurable */
 	/* FIXME g_moduleDirectory really needs to be a wstring */
-	appdata = args[0].value_str;
+	std::string appdata = args[0].value_str;
 	std::string locale = args[1].value_str;
 
 	/* Also note that this method is possible on POSIX
@@ -644,7 +643,10 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 
 	cpuUsageInfo = os_cpu_usage_info_start();
 
+	ConfigManager::getInstance().setAppdataPath(appdata);
+
 	openAllModules();
+
 	initGlobalDefault(ConfigManager::getInstance().getGlobal());
 	initBasicDefault(ConfigManager::getInstance().getBasic());
 

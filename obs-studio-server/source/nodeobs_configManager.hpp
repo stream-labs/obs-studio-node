@@ -2,7 +2,6 @@
 #include <obs.h>
 #include <string>
 #include <util/config-file.h>
-#include "nodeobs_api.h"
 
 class ConfigManager {
 public:
@@ -22,9 +21,11 @@ private:
 	std::string service = "";
 	std::string stream = "";
 	std::string record = "";
+	std::string appdata;
 
 	config_t * getConfig(std::string name);
 public:
+	void setAppdataPath(std::string path);
 	config_t* getGlobal();
 	config_t* getBasic();
 	std::string getService();
