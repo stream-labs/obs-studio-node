@@ -2,24 +2,24 @@
 
 namespace no;
 
-table Parameter {
-  name:string;
-  description:string;
-  type:string;
-  sub_type:string;
-  enabled:bool;
-  masked:bool;
-  visible:bool;
+table fc_Parameter {
+  fc_name:string;
+  fc_description:string;
+  fc_type:string;
+  fc_sub_type:string;
+  fc_enabled:bool;
+  fc_masked:bool;
+  fc_visible:bool;
 }
 
-table SubCategory {
-  name:string;
-  params:[Parameter];
+table fc_SubCategory {
+  fc_name:string;
+  fc_params:[fc_Parameter];
 }
 
-table Category {
-  name:string;
-  sub_categories:[SubCategory];
+table fc_Category {
+  fc_name:string;
+  fc_sub_categories:[fc_SubCategory];
 }
 
-root_type Category; 
+root_type fc_Category;

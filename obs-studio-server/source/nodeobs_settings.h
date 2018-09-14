@@ -8,6 +8,7 @@
 #include <util/lexer.h>
 
 #include "nodeobs_audio_encoders.h"
+#include <categories_generated.h>
 
 using namespace std;
 
