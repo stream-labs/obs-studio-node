@@ -31,6 +31,9 @@ MESSAGE(STATUS "OBS Studio for Node.JS Version ${PROJECT_VERSION_MAJOR}.${PROJEC
 # Set Module Path
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
+# CppCheck
+include(cppcheck)
+
 ################################################################################
 # Compiler
 ################################################################################
@@ -71,11 +74,13 @@ ENDIF()
 #############################
 
 # Installation
-SET(CMAKE_INSTALL_PREFIX  "${CMAKE_SOURCE_DIR}/distribute" CACHE PATH "Path to install files to")
+SET(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/distribute" CACHE PATH "Path to install files to")
 
 #############################
 # Projects
 #############################
+
+cppcheck(EXCLUDE "${PROJECT_SOURCE_DIR}/node_modules")
 
 ADD_SUBDIRECTORY(lib-streamlabs-ipc)
 ADD_SUBDIRECTORY(obs-studio-client)

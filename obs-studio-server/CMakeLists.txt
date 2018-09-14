@@ -1,4 +1,4 @@
-PROJECT(
+﻿PROJECT(
 	obs-studio-server
 	VERSION ${obs-studio-node_VERSION_MAJOR}.${obs-studio-node_VERSION_MINOR}.${obs-studio-node_VERSION_PATCH}.${obs-studio-node_VERSION_TWEAK}
 )
@@ -301,6 +301,9 @@ IF(WIN32)
 		PRIVATE _UNICODE
 	)
 ENDIF()
+
+# CPPCheck
+cppcheck_add_project(${PROJECT_NAME})
 
 #############################
 # Distribute
