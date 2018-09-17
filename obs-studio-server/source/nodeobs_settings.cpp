@@ -7,6 +7,8 @@
 vector<const char*> tabStreamTypes;
 const char* currentServiceName;
 
+flatbuffers::FlatBufferBuilder builder;
+
 /* some nice default output resolution vals */
 static const double vals[] =
 {
@@ -211,129 +213,104 @@ void OBS_settings::OBS_settings_saveSettings(void* data, const int64_t id, const
 	AUTO_DEBUG;
 }
 
-SubCategory OBS_settings::serializeSettingsData(std::string nameSubCategory,
+flatbuffers::Offset<nodeobs::fc_SubCategory> OBS_settings::serializeSettingsData(std::string nameSubCategory,
 	std::vector<std::vector<std::pair<std::string, std::string>>> entries,
 	config_t* config, std::string section, bool isVisible, bool isEnabled)
 {
-	SubCategory sc;
-
+	nodeobs::fc_SubCategoryBuilder subCategory(builder);
+	std::vector<flatbuffers::Offset<nodeobs::fc_Parameter>> params_vector;
+	
 	for (int i = 0; i<entries.size(); i++) {
-		Parameter param;
+		nodeobs::fc_ParameterBuilder param(builder);
 
-		param.name = entries.at(i).at(0).second;
-		param.type = entries.at(i).at(1).second;
-		param.description = entries.at(i).at(2).second;
-		param.subType = entries.at(i).at(3).second;
+		std::string name = entries.at(i).at(0).second;
+		std::string type = entries.at(i).at(1).second;
+		std::string description = entries.at(i).at(2).second;
+		std::string sub_type = entries.at(i).at(3).second;
+
+		param.add_fc_name(builder.CreateString(name));
+		param.add_fc_type(builder.CreateString(type));
+		param.add_fc_description(builder.CreateString(description));
+		param.add_fc_sub_type(builder.CreateString(sub_type));
 
 		std::string currentValue;
 		if (entries.at(i).size() > 4) {
 			currentValue = entries.at(i).at(4).first.c_str();
 		}
+		
+		nodeobs::valueBuilder value(builder);
 
 		// Current value
 		if (!currentValue.empty() && currentValue.compare("currentValue") == 0) {
-			const char* currentValue = entries.at(i).at(4).second.c_str();
-			param.currentValue.resize(strlen(currentValue));
-			std::memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
-			param.sizeOfCurrentValue = strlen(currentValue);
+			value.add_str(builder.CreateString(entries.at(i).at(4).second));
+
 			entries.at(i).erase(entries.at(i).begin() + 4);
-		}
-		else {
-			if (param.type.compare("OBS_PROPERTY_LIST") == 0 ||
-				param.type.compare("OBS_PROPERTY_PATH") == 0 ||
-				param.type.compare("OBS_PROPERTY_EDIT_PATH") == 0 ||
-				param.type.compare("OBS_PROPERTY_EDIT_TEXT") == 0) {
-				const char* currentValue = config_get_string(config, section.c_str(), param.name.c_str());
+		} else {
+			if (type.compare("OBS_PROPERTY_LIST") == 0 ||
+				type.compare("OBS_PROPERTY_PATH") == 0 ||
+				type.compare("OBS_PROPERTY_EDIT_PATH") == 0 ||
+				type.compare("OBS_PROPERTY_EDIT_TEXT") == 0) {
+				
+				value.add_str(builder.CreateString(config_get_string(config, section.c_str(), name.c_str())));
 
-				if (currentValue != NULL) {
-					param.currentValue.resize(strlen(currentValue));
-					std::memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
-					param.sizeOfCurrentValue = strlen(currentValue);
-
-				}
-				else {
-					param.sizeOfCurrentValue = 0;
-				}
 			}
-			else if (param.type.compare("OBS_PROPERTY_INT") == 0) {
-				int64_t val = config_get_int(config, section.c_str(), param.name.c_str());
-
-				param.currentValue.resize(sizeof(val));
-				memcpy(param.currentValue.data(), &val, sizeof(val));
-				param.sizeOfCurrentValue = sizeof(val);
+			else if (type.compare("OBS_PROPERTY_INT") == 0) {
+				value.add_i64(config_get_int(config, section.c_str(), name.c_str()));
 			}
-			else if (param.type.compare("OBS_PROPERTY_UINT") == 0) {
-				uint64_t val = config_get_uint(config, section.c_str(), param.name.c_str());
-
-				param.currentValue.resize(sizeof(val));
-				memcpy(param.currentValue.data(), &val, sizeof(val));
-				param.sizeOfCurrentValue = sizeof(val);
+			else if (type.compare("OBS_PROPERTY_UINT") == 0) {
+				value.add_ui64(config_get_uint(config, section.c_str(), name.c_str()));
 			}
-			else if (param.type.compare("OBS_PROPERTY_BOOL") == 0) {
-				bool val = config_get_bool(config, section.c_str(), param.name.c_str());
-
-				param.currentValue.resize(sizeof(val));
-				memcpy(param.currentValue.data(), &val, sizeof(val));
-				param.sizeOfCurrentValue = sizeof(val);
+			else if (type.compare("OBS_PROPERTY_BOOL") == 0) {
+				value.add_boolean(config_get_bool(config, section.c_str(), name.c_str()));
 			}
-			else if (param.type.compare("OBS_PROPERTY_DOUBLE") == 0) {
-				double val = config_get_double(config, section.c_str(), param.name.c_str());
-
-				param.currentValue.resize(sizeof(val));
-				memcpy(param.currentValue.data(), &val, sizeof(val));
-				param.sizeOfCurrentValue = sizeof(val);
+			else if (type.compare("OBS_PROPERTY_DOUBLE") == 0) {
+				value.add_fp64(config_get_double(config, section.c_str(), name.c_str()));
 			}
 		}
+		param.add_fc_currentValue(value.Finish());
+
 
 		// Values
 		if (entries.at(i).size() > 4) {
+			std::vector<flatbuffers::Offset<nodeobs::values>> values_vector;
+
 			for (int j = 4; j<entries.at(i).size(); j++) {
-				std::string name = entries.at(i).at(j).first;
+				nodeobs::valuesBuilder values(builder);
 
-				uint64_t sizeName = name.length();
-				std::vector<char> sizeNameBuffer;
-				sizeNameBuffer.resize(sizeof(sizeName));
-				memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+				values.add_fc_name(builder.CreateString(entries.at(i).at(j).first));
+	
+				nodeobs::valueBuilder value(builder);
+				value.add_str(builder.CreateString(entries.at(i).at(j).second));
+				values.add_fc_value(value.Finish());
 
-				param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-				param.values.insert(param.values.end(), name.begin(), name.end());
-
-				std::string value = entries.at(i).at(j).second;
-
-				uint64_t sizeValue = value.length();
-				std::vector<char> sizeValueBuffer;
-				sizeValueBuffer.resize(sizeof(sizeValue));
-				memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
-
-				param.values.insert(param.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
-				param.values.insert(param.values.end(), value.begin(), value.end());
+				values_vector.push_back(values.Finish());
 			}
-
-			param.sizeOfValues = param.values.size();
-			param.countValues = entries.at(i).size() - 4;
 		}
 
-		param.visible = isVisible;
-		param.enabled = isEnabled;
-		param.masked = false;
+		param.add_fc_visible(isVisible);
+		param.add_fc_enabled(isEnabled);
+		param.add_fc_masked(false);
 
-		sc.params.push_back(param);
+		params_vector.push_back(param.Finish());
 	}
+	
+	subCategory.add_fc_name(builder.CreateString(nameSubCategory));
 
-	sc.paramsCount = sc.params.size();
-	sc.name = nameSubCategory;
-	return sc;
+	auto params = builder.CreateVector(params_vector);
+	subCategory.add_fc_params(params);
+
+	return subCategory.Finish();
 }
 
-std::vector<SubCategory> OBS_settings::getGeneralSettings()
+nodeobs::fc_CategoryBuilder OBS_settings::getGeneralSettings()
 {
-	std::vector<SubCategory> generalSettings;
+	nodeobs::fc_CategoryBuilder category(builder);
 
+	category.add_fc_name(builder.CreateString("General"));
+
+	std::vector<flatbuffers::Offset<nodeobs::fc_SubCategory>> subCategories_vector;
+	
 	std::vector<std::vector<std::pair<std::string, std::string>>> entries;
-
-	// General
-	// generalSettings.push_back(serializeSettingsData("General", entries, config, "BasicWindow", true, true));
-	// entries.clear();
 
 	// Output
 	std::vector<std::pair<std::string, std::string>> warnBeforeStartingStream;
@@ -378,7 +355,7 @@ std::vector<SubCategory> OBS_settings::getGeneralSettings()
 	keepReplayBufferStreamStops.push_back(std::make_pair("subType", ""));
 	entries.push_back(keepReplayBufferStreamStops);
 
-	generalSettings.push_back(serializeSettingsData("Output", entries, 
+	subCategories_vector.push_back(serializeSettingsData("Output", entries,
 		ConfigManager::getInstance().getGlobal(), "BasicWindow", true, true));
 	entries.clear();
 
@@ -418,7 +395,7 @@ std::vector<SubCategory> OBS_settings::getGeneralSettings()
 	centerSnapping.push_back(std::make_pair("subType", ""));
 	entries.push_back(centerSnapping);
 
-	generalSettings.push_back(serializeSettingsData("Source Alignement Snapping", 
+	subCategories_vector.push_back(serializeSettingsData("Source Alignement Snapping",
 		entries, ConfigManager::getInstance().getGlobal(), "BasicWindow", true, true));
 	entries.clear();
 
@@ -444,7 +421,7 @@ std::vector<SubCategory> OBS_settings::getGeneralSettings()
 	saveProjectors.push_back(std::make_pair("subType", ""));
 	entries.push_back(saveProjectors);
 
-	generalSettings.push_back(serializeSettingsData("Projectors", entries, 
+	subCategories_vector.push_back(serializeSettingsData("Projectors", entries,
 		ConfigManager::getInstance().getGlobal(), "BasicWindow", true, true));
 	entries.clear();
 
@@ -470,11 +447,14 @@ std::vector<SubCategory> OBS_settings::getGeneralSettings()
 	sysTrayMinimizeToTray.push_back(std::make_pair("subType", ""));
 	entries.push_back(sysTrayMinimizeToTray);
 
-	generalSettings.push_back(serializeSettingsData("System Tray", entries, 
+	subCategories_vector.push_back(serializeSettingsData("System Tray", entries,
 		ConfigManager::getInstance().getGlobal(), "BasicWindow", true, true));
 	entries.clear();
 
-	return generalSettings;
+	auto subCategories = builder.CreateVector(subCategories_vector);
+	category.add_fc_sub_categories(subCategories);
+
+	return category;
 }
 
 void OBS_settings::saveGeneralSettings(std::vector<SubCategory> generalSettings, std::string pathConfigDirectory)
@@ -528,69 +508,62 @@ void OBS_settings::saveGeneralSettings(std::vector<SubCategory> generalSettings,
 	config_save_safe(config, "tmp", nullptr);
 }
 
-std::vector<SubCategory> OBS_settings::getStreamSettings()
+nodeobs::fc_CategoryBuilder OBS_settings::getStreamSettings()
 {
+	nodeobs::fc_CategoryBuilder category(builder);
+	category.add_fc_name(builder.CreateString("Stream"));
+	std::vector<flatbuffers::Offset<nodeobs::fc_SubCategory>> subCategories_vector;
+
 	bool isCategoryEnabled = !OBS_service::isStreamingOutputActive();
 
 	obs_service_t* currentService = OBS_service::getService();
 	obs_data_t* settings = obs_service_get_settings(currentService);
 
-	std::vector<SubCategory> streamSettings;
-	SubCategory service;
+	nodeobs::fc_SubCategoryBuilder service(builder);
 
-	service.name = "Untitled";
+	service.add_fc_name(builder.CreateString("Untitled"));
 
-	Parameter streamType;
-	streamType.name = "streamType";
-	streamType.type = "OBS_PROPERTY_LIST";
-	streamType.subType = "OBS_COMBO_FORMAT_STRING";
+	nodeobs::fc_ParameterBuilder streamType(builder);
+	streamType.add_fc_name(builder.CreateString("streamType"));
+	streamType.add_fc_type(builder.CreateString("OBS_PROPERTY_LIST"));
+	streamType.add_fc_sub_type(builder.CreateString("OBS_COMBO_FORMAT_STRING"));
 
 	int index = 0;
 	const char* type;
 
+	std::vector<flatbuffers::Offset<nodeobs::values>> values_vector;
+
 	uint32_t indexData = 0;
 	while (obs_enum_service_types(index++, &type)) {
-		std::string name = obs_service_get_display_name(type);
+		nodeobs::valuesBuilder values(builder);
+		values.add_fc_name(builder.CreateString(obs_service_get_display_name(type)));
+		
+		nodeobs::valueBuilder value(builder);
+		value.add_str(builder.CreateString(type));
+		values.add_fc_value(value.Finish());
 
-		uint64_t sizeName = name.length();
-		std::vector<char> sizeNameBuffer;
-		sizeNameBuffer.resize(sizeof(sizeName));
-		memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
-
-		streamType.values.insert(streamType.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-		streamType.values.insert(streamType.values.end(), name.begin(), name.end());
-
-		std::string value = type;
-
-		uint64_t sizeValue = value.length();
-		std::vector<char> sizeValueBuffer;
-		sizeValueBuffer.resize(sizeof(sizeValue));
-		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
-
-		streamType.values.insert(streamType.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
-		streamType.values.insert(streamType.values.end(), value.begin(), value.end());
+		values_vector.push_back(values.Finish());
 	}
 
-	streamType.sizeOfValues = streamType.values.size();
-	streamType.countValues = index - 1;
+	streamType.add_fc_description(builder.CreateString("Stream Type"));
 
-	streamType.description = "Stream Type";
+	nodeobs::valueBuilder value(builder);
+	value.add_str(builder.CreateString(obs_service_get_type(currentService)));
+	streamType.add_fc_currentValue(value.Finish());
 
-	const char *servType = obs_service_get_type(currentService);
-	streamType.currentValue.resize(strlen(servType));
-	memcpy(streamType.currentValue.data(), servType, strlen(servType));
-	streamType.sizeOfCurrentValue = strlen(servType);
+	streamType.add_fc_visible(true);
+	streamType.add_fc_enabled(isCategoryEnabled);
+	streamType.add_fc_masked(false);
 
-	streamType.visible = true;
-	streamType.enabled = isCategoryEnabled;
-	streamType.masked = false;
+	std::vector<flatbuffers::Offset<nodeobs::fc_Parameter>> params_vector;
+	params_vector.push_back(streamType.Finish());
+	
+	service.add_fc_params(builder.CreateVector(params_vector));
+	
+	subCategories_vector.push_back(service.Finish());
 
-	service.params.push_back(streamType);
-	service.paramsCount = service.params.size();
-
-	streamSettings.push_back(service);
-
-	SubCategory serviceConfiguration;
+	nodeobs::fc_SubCategoryBuilder serviceConfiguration(builder);
+	std::vector<flatbuffers::Offset<nodeobs::fc_Parameter>> params_vector_service;
 
 	obs_properties_t* properties = obs_service_properties(currentService);
 	obs_property_t* property = obs_properties_first(properties);
@@ -601,96 +574,50 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 	uint32_t indexDataServiceConfiguration = 0;
 
 	while (property) {
-		Parameter param;
+		nodeobs::fc_ParameterBuilder param(builder);
+		param.add_fc_name(builder.CreateString(obs_property_name(property)));
 
-		param.name = obs_property_name(property);
-
-		std::vector<std::pair<std::string, void*>> values;
-
+		std::vector<flatbuffers::Offset<nodeobs::values>> values_vector;
+		
 		int count = (int)obs_property_list_item_count(property);
 
 		for (int i = 0; i<count; i++) {
 			//Value
 			format = obs_property_list_format(property);
 
+			nodeobs::valuesBuilder values(builder);
+			values.add_fc_name(builder.CreateString(obs_property_list_item_name(property, i)));
+			nodeobs::valueBuilder value(builder);
+
 			if (format == OBS_COMBO_FORMAT_INT)
 			{
-				std::string name = obs_property_list_item_name(property, i);
-
-				uint64_t sizeName = name.length();
-				std::vector<char> sizeNameBuffer;
-				sizeNameBuffer.resize(sizeof(sizeName));
-				memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
-
-				param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-				param.values.insert(param.values.end(), name.begin(), name.end());
-
-				int64_t value = obs_property_list_item_int(property, i);
-
-				std::vector<char> valueBuffer;
-				valueBuffer.resize(sizeof(value));
-				memcpy(valueBuffer.data(), &value, sizeof(value));
-
-				param.values.insert(param.values.end(), valueBuffer.begin(), valueBuffer.end());
+				value.add_i64(obs_property_list_item_int(property, i));
 
 				formatString = "OBS_PROPERTY_INT";
-				param.subType = "OBS_COMBO_FORMAT_INT";
+				param.add_fc_sub_type(builder.CreateString("OBS_COMBO_FORMAT_INT"));
 			}
 			else if (format == OBS_COMBO_FORMAT_FLOAT)
 			{
-				std::string name = obs_property_list_item_name(property, i);
-
-				uint64_t sizeName = name.length();
-				std::vector<char> sizeNameBuffer;
-				sizeNameBuffer.resize(sizeof(sizeName));
-				memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
-
-				param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-				param.values.insert(param.values.end(), name.begin(), name.end());
-
-				double value = obs_property_list_item_float(property, i);
-
-				std::vector<char> valueBuffer;
-				valueBuffer.resize(sizeof(value));
-				memcpy(valueBuffer.data(), &value, sizeof(value));
-
-				param.values.insert(param.values.end(), valueBuffer.begin(), valueBuffer.end());
+				value.add_fp64(obs_property_list_item_float(property, i));
 
 				formatString = "OBS_PROPERTY_DOUBLE";
-				param.subType = "OBS_COMBO_FORMAT_FLOAT";
+				param.add_fc_sub_type(builder.CreateString("OBS_COMBO_FORMAT_FLOAT"));
 			}
 			else if (format == OBS_COMBO_FORMAT_STRING)
 			{
-				std::string name = obs_property_list_item_name(property, i);
-
-				uint64_t sizeName = name.length();
-				std::vector<char> sizeNameBuffer;
-				sizeNameBuffer.resize(sizeof(sizeName));
-				memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
-
-				param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-				param.values.insert(param.values.end(), name.begin(), name.end());
-
-				std::string value = obs_property_list_item_string(property, i);
-
-				uint64_t sizeValue = value.length();
-				std::vector<char> sizeValueBuffer;
-				sizeValueBuffer.resize(sizeof(sizeValue));
-				memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
-
-				param.values.insert(param.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
-				param.values.insert(param.values.end(), value.begin(), value.end());
+				value.add_str(builder.CreateString(obs_property_list_item_string(property, i)));
 
 				formatString = "OBS_PROPERTY_LIST";
-				param.subType = "OBS_COMBO_FORMAT_STRING";
+				param.add_fc_sub_type(builder.CreateString("OBS_COMBO_FORMAT_STRING"));
 			}
 			else {
 				cout << "INVALID FORMAT" << endl;
 			}
+			values.add_fc_value(value.Finish());
+			values_vector.push_back(values.Finish());
 		}
 
-		param.sizeOfValues = param.values.size();
-		param.countValues = count;
+		nodeobs::valueBuilder value(builder);
 
 		if (count == 0) {
 			if (strcmp(obs_property_name(property), "key") == 0) {
@@ -700,17 +627,11 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 				if (stream_key == NULL)
 					stream_key = "";
 
-				param.currentValue.resize(strlen(stream_key));
-				memcpy(param.currentValue.data(), stream_key, strlen(stream_key));
-				param.sizeOfCurrentValue = strlen(stream_key);
+				value.add_str(builder.CreateString(stream_key));
 			}
 			if (strcmp(obs_property_name(property), "show_all") == 0) {
-				bool show_all = obs_data_get_bool(settings, "show_all");
+				value.add_boolean(obs_data_get_bool(settings, "show_all"));
 				formatString = "OBS_PROPERTY_BOOL";
-
-				param.currentValue.resize(sizeof(show_all));
-				memcpy(param.currentValue.data(), &show_all, sizeof(show_all));
-				param.sizeOfCurrentValue = sizeof(show_all);
 			}
 			if (strcmp(obs_property_name(property), "server") == 0) {
 				const char* server = obs_service_get_url(currentService);
@@ -724,9 +645,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 				if (server == NULL)
 					server = "";
 
-				param.currentValue.resize(strlen(server));
-				memcpy(param.currentValue.data(), server, strlen(server));
-				param.sizeOfCurrentValue = strlen(server);
+				value.add_str(builder.CreateString(server));
 			}
 			if (strcmp(obs_property_name(property), "username") == 0) {
 				const char* username = obs_service_get_username(currentService);
@@ -735,9 +654,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 				if (username == NULL)
 					username = "";
 
-				param.currentValue.resize(strlen(username));
-				memcpy(param.currentValue.data(), username, strlen(username));
-				param.sizeOfCurrentValue = strlen(username);
+				value.add_str(builder.CreateString(username));
 			}
 			if (strcmp(obs_property_name(property), "password") == 0) {
 				const char* password = obs_service_get_password(currentService);
@@ -746,65 +663,53 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 				if (password == NULL)
 					password = "";
 
-				param.currentValue.resize(strlen(password));
-				memcpy(param.currentValue.data(), password, strlen(password));
-				param.sizeOfCurrentValue = strlen(password);
+				value.add_str(builder.CreateString(password));
 			}
 			if (strcmp(obs_property_name(property), "use_auth") == 0) {
-				bool use_auth = obs_data_get_bool(settings, "use_auth");
+				value.add_boolean(obs_data_get_bool(settings, "use_auth"));
 				formatString = "OBS_PROPERTY_BOOL";
-
-				param.currentValue.resize(sizeof(use_auth));
-				memcpy(param.currentValue.data(), &use_auth, sizeof(use_auth));
-				param.sizeOfCurrentValue = sizeof(use_auth);
 			}
 		}
 		else {
 			if (format == OBS_COMBO_FORMAT_INT)
 			{
-				int64_t value = obs_data_get_int(settings, obs_property_name(property));
-
-				param.currentValue.resize(sizeof(value));
-				memcpy(param.currentValue.data(), &value, sizeof(value));
-				param.sizeOfCurrentValue = sizeof(value);
+				value.add_i64(obs_data_get_int(settings, obs_property_name(property)));
 			}
 			else if (format == OBS_COMBO_FORMAT_FLOAT)
 			{
-				double value = obs_data_get_double(settings, obs_property_name(property));
-
-				param.currentValue.resize(sizeof(value));
-				memcpy(param.currentValue.data(), &value, sizeof(value));
-				param.sizeOfCurrentValue = sizeof(value);
+				value.add_fp64(obs_data_get_double(settings, obs_property_name(property)));
 			}
 			else if (format == OBS_COMBO_FORMAT_STRING)
 			{
-				currentServiceName = obs_data_get_string(settings, obs_property_name(property));
-
-				param.currentValue.resize(strlen(currentServiceName));
-				memcpy(param.currentValue.data(), currentServiceName, strlen(currentServiceName));
-				param.sizeOfCurrentValue = strlen(currentServiceName);
+				value.add_str(builder.CreateString(
+					obs_data_get_string(settings, obs_property_name(property))));
 			}
 		}
 
-		param.type = formatString;
-		param.description = obs_property_description(property);
-		param.visible = obs_property_visible(property);
-		param.enabled = isCategoryEnabled;
+		param.add_fc_type(builder.CreateString(formatString));
+		param.add_fc_description(builder.CreateString(obs_property_description(property)));
 
-		param.masked = formatString.compare("OBS_PROPERTY_EDIT_TEXT") == 0 && obs_proprety_text_type(property) == OBS_TEXT_PASSWORD;
+		param.add_fc_visible(obs_property_visible(property));
+		param.add_fc_enabled(isCategoryEnabled);
 
-		serviceConfiguration.params.push_back(param);
+		bool masked = formatString.compare("OBS_PROPERTY_EDIT_TEXT") == 0 && 
+			obs_proprety_text_type(property) == OBS_TEXT_PASSWORD;
+		param.add_fc_masked(masked);
+
+		params_vector_service.push_back(param.Finish());
 
 		index++;
 		obs_property_next(&property);
 	}
 
-	serviceConfiguration.name = "Untitled";
-	serviceConfiguration.paramsCount =
-		serviceConfiguration.params.size();
-	streamSettings.push_back(serviceConfiguration);
+	serviceConfiguration.add_fc_name(builder.CreateString("Untitled"));
+	serviceConfiguration.add_fc_params(builder.CreateVector(params_vector_service));
 
-	return streamSettings;
+	subCategories_vector.push_back(serviceConfiguration.Finish());
+
+	category.add_fc_sub_categories(builder.CreateVector(subCategories_vector));
+
+	return category;
 }
 
 void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
@@ -950,7 +855,8 @@ void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::strin
 		streamEncoder->push_back(std::make_pair("AMD", ADVANCED_ENCODER_AMD));
 }
 
-void OBS_settings::getSimpleOutputSettings(std::vector<SubCategory> *outputSettings,
+void OBS_settings::getSimpleOutputSettings(
+	std::vector<flatbuffers::Offset<nodeobs::fc_SubCategory>> *outputSettings,
 	config_t* config, bool isCategoryEnabled)
 {
 	std::vector<std::vector<std::pair<std::string, std::string>>> entries;
@@ -1171,248 +1077,141 @@ void OBS_settings::getSimpleOutputSettings(std::vector<SubCategory> *outputSetti
 }
 
 void OBS_settings::getEncoderSettings(const obs_encoder_t *encoder, obs_data_t *settings,
-	std::vector<Parameter>* subCategoryParameters, int index, bool isCategoryEnabled)
+	std::vector<flatbuffers::Offset<nodeobs::fc_Parameter>>* subCategoryParameters, 
+	int index, bool isCategoryEnabled)
 {
 	obs_properties_t* encoderProperties = obs_encoder_properties(encoder);
 	obs_property_t* property = obs_properties_first(encoderProperties);
 
-	Parameter param;
+	nodeobs::fc_ParameterBuilder param(builder);
 	while (property) {
-		param.name = obs_property_name(property);
+		std::string name = obs_property_name(property);
+		param.add_fc_name(builder.CreateString(name));
 		obs_property_type typeProperty = obs_property_get_type(property);
+		param.add_fc_description(builder.CreateString(obs_property_description(property)));
+		nodeobs::valueBuilder value(builder);
 
 		switch (typeProperty) {
 		case OBS_PROPERTY_BOOL:
 		{
-			param.type = "OBS_PROPERTY_BOOL";
-			param.description = obs_property_description(property);
-
-			bool value = obs_data_get_bool(settings, param.name.c_str());
-
-			param.currentValue.resize(sizeof(value));
-			memcpy(param.currentValue.data(), &value, sizeof(value));
-			param.sizeOfCurrentValue = sizeof(value);
-
+			param.add_fc_type(builder.CreateString("OBS_PROPERTY_BOOL"));
+			value.add_boolean(obs_data_get_bool(settings, name.c_str()));
 			break;
 		}
 		case OBS_PROPERTY_INT:
 		{
-			param.type = "OBS_PROPERTY_INT";
-			param.description = obs_property_description(property);
-
-			int64_t value = obs_data_get_int(settings, param.name.c_str());
-
-			param.currentValue.resize(sizeof(value));
-			memcpy(param.currentValue.data(), &value, sizeof(value));
-			param.sizeOfCurrentValue = sizeof(value);
-
+			param.add_fc_type(builder.CreateString("OBS_PROPERTY_INT"));
+			value.add_i64(obs_data_get_int(settings, name.c_str()));
 			break;
 		}
 		case OBS_PROPERTY_FLOAT:
 		{
-			param.type = "OBS_PROPERTY_FLOAT";
-			param.description = obs_property_description(property);
-
-			double value = obs_data_get_double(settings, param.name.c_str());
-
-			param.currentValue.resize(sizeof(value));
-			memcpy(param.currentValue.data(), &value, sizeof(value));
-			param.sizeOfCurrentValue = sizeof(value);
-
+			param.add_fc_type(builder.CreateString("OBS_PROPERTY_FLOAT"));
+			value.add_fp64(obs_data_get_double(settings, name.c_str()));
 			break;
 		}
 		case OBS_PROPERTY_TEXT:
 		{
-			param.type = "OBS_PROPERTY_TEXT";
-			param.description = obs_property_description(property);
-
-
-			const char* currentValue = obs_data_get_string(settings, param.name.c_str());
-
-			if (currentValue == NULL) {
+			param.add_fc_type(builder.CreateString("OBS_PROPERTY_TEXT"));
+			const char* currentValue = obs_data_get_string(settings, name.c_str());
+			if (currentValue == NULL)
 				currentValue = "";
-			}
-
-			param.currentValue.resize(strlen(currentValue));
-			memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
-			param.sizeOfCurrentValue = strlen(currentValue);
-
+			value.add_str(builder.CreateString(currentValue));
 			break;
 		}
 		case OBS_PROPERTY_PATH:
 		{
-			param.type = "OBS_PROPERTY_PATH";
-			param.description = obs_property_description(property);
-
-			const char* currentValue = obs_data_get_string(settings, param.name.c_str());
-
-			if (currentValue == NULL) {
+			param.add_fc_type(builder.CreateString("OBS_PROPERTY_PATH"));
+			const char* currentValue = obs_data_get_string(settings, name.c_str());
+			if (currentValue == NULL)
 				currentValue = "";
-			}
-
-			param.currentValue.resize(strlen(currentValue));
-			memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
-			param.sizeOfCurrentValue = strlen(currentValue);
-
+			value.add_str(builder.CreateString(currentValue));
 			break;
 		}
 		case OBS_PROPERTY_LIST:
 		{
-			param.type = "OBS_PROPERTY_LIST";
-			param.description = obs_property_description(property);
-
+			param.add_fc_type(builder.CreateString("OBS_PROPERTY_LIST"));
 			obs_combo_format format = obs_property_list_format(property);
 
 			if (format == OBS_COMBO_FORMAT_INT) {
-				int64_t value = obs_data_get_int(settings, param.name.c_str());
-				param.currentValue.resize(sizeof(value));
-				memcpy(param.currentValue.data(), &value, sizeof(value));
-				param.sizeOfCurrentValue = sizeof(value);
+				value.add_i64(obs_data_get_int(settings, name.c_str()));
 			}
 			else if (format == OBS_COMBO_FORMAT_FLOAT) {
-				double value = obs_data_get_double(settings, param.name.c_str());
-				param.currentValue.resize(sizeof(value));
-				memcpy(param.currentValue.data(), &value, sizeof(value));
-				param.sizeOfCurrentValue = sizeof(value);
+				value.add_fp64(obs_data_get_double(settings, name.c_str()));
 			}
 			else if (format == OBS_COMBO_FORMAT_STRING) {
-				const char* currentValue = obs_data_get_string(settings, param.name.c_str());
-
+				const char* currentValue = obs_data_get_string(settings, name.c_str());
 				if (currentValue == NULL) {
 					currentValue = "";
 				}
-
-				param.currentValue.resize(strlen(currentValue));
-				memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
-				param.sizeOfCurrentValue = strlen(currentValue);
+				value.add_str(builder.CreateString(currentValue));
 			}
-
 			int count = (int)obs_property_list_item_count(property);
-
-			param.values.clear();
+			std::vector<flatbuffers::Offset<nodeobs::values>> values_vector;
 
 			for (int i = 0; i<count; i++) {
-				// Name
-				std::string itemName = obs_property_list_item_name(property, i);
-
-
+				nodeobs::valuesBuilder values(builder);
+				values.add_fc_name(builder.
+					CreateString(obs_property_list_item_name(property, i)));
+				nodeobs::valueBuilder value(builder);
 				if (format == OBS_COMBO_FORMAT_INT)
 				{
-					param.subType = "OBS_COMBO_FORMAT_INT";
-
-					uint64_t sizeName = itemName.length();
-					std::vector<char> sizeNameBuffer;
-					sizeNameBuffer.resize(sizeof(sizeName));
-					memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
-
-					param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-					param.values.insert(param.values.end(), itemName.begin(), itemName.end());
-
-					int64_t value = obs_property_list_item_int(property, i);
-
-					std::vector<char> valueBuffer;
-					valueBuffer.resize(sizeof(uint64_t));
-					memcpy(valueBuffer.data(), &value, sizeof(value));
-
-					param.values.insert(param.values.end(), valueBuffer.begin(), valueBuffer.end());
+					param.add_fc_sub_type(builder.CreateString("OBS_COMBO_FORMAT_INT"));
+					value.add_i64(obs_property_list_item_int(property, i));
 				}
 				else if (format == OBS_COMBO_FORMAT_FLOAT)
 				{
-					param.subType = "OBS_COMBO_FORMAT_FLOAT";
-
-					uint64_t sizeName = itemName.length();
-					std::vector<char> sizeNameBuffer;
-					sizeNameBuffer.resize(sizeof(sizeName));
-					memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
-
-					param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-					param.values.insert(param.values.end(), itemName.begin(), itemName.end());
-
-					double value = obs_property_list_item_float(property, i);
-
-					std::vector<char> valueBuffer;
-					valueBuffer.resize(sizeof(value));
-					memcpy(valueBuffer.data(), &value, sizeof(value));
-
-					param.values.insert(param.values.end(), valueBuffer.begin(), valueBuffer.end());
+					param.add_fc_sub_type(builder.CreateString("OBS_COMBO_FORMAT_FLOAT"));
+					value.add_fp64(obs_property_list_item_float(property, i));
 				}
 				else if (format == OBS_COMBO_FORMAT_STRING)
 				{
-					param.subType = "OBS_COMBO_FORMAT_STRING";
-
-					uint64_t sizeName = itemName.length();
-					std::vector<char> sizeNameBuffer;
-					sizeNameBuffer.resize(sizeof(sizeName));
-					memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
-
-					param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-					param.values.insert(param.values.end(), itemName.begin(), itemName.end());
-
-					std::string value = obs_property_list_item_string(property, i);
-
-					uint64_t sizeValue = value.length();
-					std::vector<char> sizeValueBuffer;
-					sizeValueBuffer.resize(sizeof(sizeValue));
-					memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
-
-					param.values.insert(param.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
-					param.values.insert(param.values.end(), value.begin(), value.end());
-
+					param.add_fc_sub_type(builder.CreateString("OBS_COMBO_FORMAT_STRING"));
+					value.add_str(builder.CreateString(obs_property_list_item_string(property, i)));
 				}
 			}
-
-			param.sizeOfValues = param.values.size();
-			param.countValues = count;
-
 			break;
 		}
 		case OBS_PROPERTY_EDITABLE_LIST:
 		{
-			param.type = "OBS_PROPERTY_EDITABLE_LIST";
-			param.description = obs_property_description(property);
-
-			const char* currentValue = obs_data_get_string(settings, param.name.c_str());
-
+			param.add_fc_type(builder.CreateString("OBS_PROPERTY_EDITABLE_LIST"));
+			const char* currentValue = obs_data_get_string(settings, name.c_str());
 			if (currentValue == NULL)
 				currentValue = "";
-
-			param.currentValue.resize(strlen(currentValue));
-			memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
-			param.sizeOfCurrentValue = strlen(currentValue);
-
+			value.add_str(builder.CreateString(currentValue));
 			break;
 		}
 		}
-		param.visible = obs_property_visible(property);
-
+		param.add_fc_currentValue(value.Finish());
+		param.add_fc_visible(obs_property_visible(property));
 		bool isEnabled = obs_property_enabled(property);
 		if (!isCategoryEnabled)
 			isEnabled = isCategoryEnabled;
+		param.add_fc_enabled(isEnabled);
+		param.add_fc_masked(false);
 
-		param.enabled = isEnabled;
-		param.masked = false;
-
-		subCategoryParameters->push_back(param);
-
+		subCategoryParameters->push_back(param.Finish());
 		obs_property_next(&property);
 	}
 }
 
-SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, bool isCategoryEnabled)
+flatbuffers::Offset<nodeobs::fc_SubCategory> OBS_settings::getAdvancedOutputStreamingSettings(
+	config_t* config, bool isCategoryEnabled)
 {
 	int index = 0;
 
-	SubCategory streamingSettings;
+	nodeobs::fc_SubCategoryBuilder streamingSettings(builder);
 	std::vector<std::vector<std::pair<std::string, std::string>>> entries;
+	std::vector<flatbuffers::Offset<nodeobs::fc_Parameter>> params_vector;
 
-	streamingSettings.name = "Streaming";
+	streamingSettings.add_fc_name(builder.CreateString("Streaming"));
 
 	// Audio Track : list
-	Parameter trackIndex;
-	trackIndex.name = "TrackIndex";
-	trackIndex.type = "OBS_PROPERTY_LIST";
-	trackIndex.subType = "OBS_COMBO_FORMAT_STRING";
-	trackIndex.description = "Audio Track";
+	nodeobs::fc_ParameterBuilder trackIndex(builder);
+	trackIndex.add_fc_name(builder.CreateString("TrackIndex"));
+	trackIndex.add_fc_type(builder.CreateString("OBS_PROPERTY_LIST"));
+	trackIndex.add_fc_sub_type(builder.CreateString("OBS_COMBO_FORMAT_STRING"));
+	trackIndex.add_fc_description(builder.CreateString("Audio Track"));
 
 	std::vector<std::pair<std::string, std::string>> trackIndexValues;
 	trackIndexValues.push_back(std::make_pair("1", "1"));
@@ -1422,138 +1221,108 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	trackIndexValues.push_back(std::make_pair("5", "5"));
 	trackIndexValues.push_back(std::make_pair("6", "6"));
 
+	
+
 	for (int i = 0; i < trackIndexValues.size(); i++) {
-		std::string name = trackIndexValues.at(i).first;
-
-		uint64_t sizeName = name.length();
-		std::vector<char> sizeNameBuffer;
-		sizeNameBuffer.resize(sizeof(sizeName));
-		memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
-
-		trackIndex.values.insert(trackIndex.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-		trackIndex.values.insert(trackIndex.values.end(), name.begin(), name.end());
-
-		std::string value = trackIndexValues.at(i).second;
-
-		uint64_t sizeValue = value.length();
-		std::vector<char> sizeValueBuffer;
-		sizeValueBuffer.resize(sizeof(sizeValue));
-		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
-
-		trackIndex.values.insert(trackIndex.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
-		trackIndex.values.insert(trackIndex.values.end(), value.begin(), value.end());
+		nodeobs::valuesBuilder values(builder);
+		values.add_fc_name(builder.CreateString(trackIndexValues.at(i).first));
+		nodeobs::valueBuilder value(builder);
+		value.add_str(builder.CreateString(trackIndexValues.at(i).second));
+		values.add_fc_value(value.Finish());
 	}
-
-	trackIndex.sizeOfValues = trackIndex.values.size();
-	trackIndex.countValues = trackIndexValues.size();
 
 	const char* trackIndexCurrentValue = config_get_string(config, "AdvOut", "TrackIndex");
 	if (trackIndexCurrentValue == NULL)
 		trackIndexCurrentValue = "";
 
-	trackIndex.currentValue.resize(strlen(trackIndexCurrentValue));
-	memcpy(trackIndex.currentValue.data(), trackIndexCurrentValue, strlen(trackIndexCurrentValue));
-	trackIndex.sizeOfCurrentValue = strlen(trackIndexCurrentValue);
+	nodeobs::valueBuilder value(builder);
+	value.add_str(builder.CreateString(trackIndexCurrentValue));
+	trackIndex.add_fc_currentValue(value.Finish());
 
-	trackIndex.visible = true;
-	trackIndex.enabled = isCategoryEnabled;
-	trackIndex.masked = false;
+	trackIndex.add_fc_visible(true);
+	trackIndex.add_fc_enabled(isCategoryEnabled);
+	trackIndex.add_fc_masked(false);
 
-	streamingSettings.params.push_back(trackIndex);
+	params_vector.push_back(trackIndex.Finish());
 
 	// Encoder : list
-	Parameter videoEncoders;
-	videoEncoders.name = "Encoder";
-	videoEncoders.type = "OBS_PROPERTY_LIST";
-	videoEncoders.description = "Encoder";
-	videoEncoders.subType = "OBS_COMBO_FORMAT_STRING";
+	nodeobs::fc_ParameterBuilder videoEncoders(builder);
+	videoEncoders.add_fc_name(builder.CreateString("Encoder"));
+	videoEncoders.add_fc_type(builder.CreateString("OBS_PROPERTY_LIST"));
+	videoEncoders.add_fc_description(builder.CreateString("Encoder"));
+	videoEncoders.add_fc_sub_type(builder.CreateString("OBS_COMBO_FORMAT_STRING"));
 
 	const char* encoderCurrentValue = config_get_string(config, "AdvOut", "Encoder");
 	if (encoderCurrentValue == NULL) {
 		encoderCurrentValue = "";
 	}
 
-	videoEncoders.currentValue.resize(strlen(encoderCurrentValue));
-	memcpy(videoEncoders.currentValue.data(), encoderCurrentValue, strlen(encoderCurrentValue));
-	videoEncoders.sizeOfCurrentValue = strlen(encoderCurrentValue);
+	nodeobs::valueBuilder value(builder);
+	value.add_str(builder.CreateString(encoderCurrentValue));
+	videoEncoders.add_fc_currentValue(value.Finish());
 
 	std::vector<std::pair<std::string, std::string>> encoderValues;
 	getAdvancedAvailableEncoders(&encoderValues);
 
 	for (int i = 0; i < encoderValues.size(); i++) {
-		std::string name = encoderValues.at(i).first;
-
-		uint64_t sizeName = name.length();
-		std::vector<char> sizeNameBuffer;
-		sizeNameBuffer.resize(sizeof(sizeName));
-		memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
-
-		videoEncoders.values.insert(videoEncoders.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-		videoEncoders.values.insert(videoEncoders.values.end(), name.begin(), name.end());
-
-		std::string value = encoderValues.at(i).second;
-
-		uint64_t sizeValue = value.length();
-		std::vector<char> sizeValueBuffer;
-		sizeValueBuffer.resize(sizeof(sizeValue));
-		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
-
-		videoEncoders.values.insert(videoEncoders.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
-		videoEncoders.values.insert(videoEncoders.values.end(), value.begin(), value.end());
+		nodeobs::valuesBuilder values(builder);
+		values.add_fc_name(builder.CreateString(encoderValues.at(i).first));
+		nodeobs::valueBuilder value(builder);
+		value.add_str(builder.CreateString(encoderValues.at(i).second));
+		values.add_fc_value(value.Finish());
 	}
+	videoEncoders.add_fc_visible(true);
+	videoEncoders.add_fc_enabled(isCategoryEnabled);
+	videoEncoders.add_fc_masked(false);
 
-	videoEncoders.sizeOfValues = videoEncoders.values.size();
-	videoEncoders.countValues = encoderValues.size();
-
-	videoEncoders.visible = true;
-	videoEncoders.enabled = isCategoryEnabled;
-	videoEncoders.masked = false;
-
-	streamingSettings.params.push_back(videoEncoders);
-
+	params_vector.push_back(videoEncoders.Finish());
+	
 	// Enforce streaming service encoder settings : boolean
-	Parameter applyServiceSettings;
-	applyServiceSettings.name = "ApplyServiceSettings";
-	applyServiceSettings.type = "OBS_PROPERTY_BOOL";
-	applyServiceSettings.description = "Enforce streaming service encoder settings";
+	nodeobs::fc_ParameterBuilder applyServiceSettings(builder);
+	applyServiceSettings.add_fc_name(
+		builder.CreateString("ApplyServiceSettings"));
+	applyServiceSettings.add_fc_type(
+		builder.CreateString("OBS_PROPERTY_BOOL"));
+	applyServiceSettings.add_fc_description(
+		builder.CreateString("Enforce streaming service encoder settings"));
 
 	bool applyServiceSettingsValue = config_get_bool(config, "AdvOut", "ApplyServiceSettings");
 
-	applyServiceSettings.currentValue.resize(sizeof(applyServiceSettingsValue));
-	memcpy(applyServiceSettings.currentValue.data(), &applyServiceSettingsValue, sizeof(applyServiceSettingsValue));
-	applyServiceSettings.sizeOfCurrentValue = sizeof(applyServiceSettingsValue);
+	nodeobs::valueBuilder value(builder);
+	value.add_str(builder.CreateString(applyServiceSettingsValue));
+	applyServiceSettings.add_fc_currentValue(value.Finish());
 
-	applyServiceSettings.visible = true;
-	applyServiceSettings.enabled = isCategoryEnabled;
-	applyServiceSettings.masked = false;
+	applyServiceSettings.add_fc_visible(true);
+	applyServiceSettings.add_fc_enabled(isCategoryEnabled);
+	applyServiceSettings.add_fc_masked(false);
 
-	streamingSettings.params.push_back(applyServiceSettings);
+	params_vector.push_back(applyServiceSettings.Finish());
 
 	// Rescale Output : boolean
-	Parameter rescale;
-	rescale.name = "Rescale";
-	rescale.type = "OBS_PROPERTY_BOOL";
-	rescale.description = "Rescale Output";
+	nodeobs::fc_ParameterBuilder rescale(builder);
+	rescale.add_fc_name(builder.CreateString("Rescale"));
+	rescale.add_fc_type(builder.CreateString("OBS_PROPERTY_BOOL"));
+	rescale.add_fc_description(builder.CreateString("Rescale Output"));
 
 	bool doRescale = config_get_bool(config, "AdvOut", "Rescale");
 
-	rescale.currentValue.resize(sizeof(doRescale));
-	memcpy(rescale.currentValue.data(), &doRescale, sizeof(doRescale));
-	rescale.sizeOfCurrentValue = sizeof(doRescale);
+	nodeobs::valueBuilder value(builder);
+	value.add_boolean(doRescale);
+	rescale.add_fc_currentValue(value.Finish());
 
-	rescale.visible = true;
-	rescale.enabled = isCategoryEnabled;
-	rescale.masked = false;
+	rescale.add_fc_visible(true);
+	rescale.add_fc_enabled(isCategoryEnabled);
+	rescale.add_fc_masked(false);
 
-	streamingSettings.params.push_back(rescale);
+	params_vector.push_back(rescale.Finish());
 
 	if (doRescale) {
 		// Output Resolution : list
-		Parameter rescaleRes;
-		rescaleRes.name = "RescaleRes";
-		rescaleRes.type = "OBS_PROPERTY_LIST";
-		rescaleRes.description = "Output Resolution";
-		rescaleRes.subType = "OBS_COMBO_FORMAT_STRING";
+		nodeobs::fc_ParameterBuilder rescaleRes(builder);
+		rescaleRes.add_fc_name(builder.CreateString("RescaleRes"));
+		rescaleRes.add_fc_type(builder.CreateString("OBS_PROPERTY_LIST"));
+		rescaleRes.add_fc_description(builder.CreateString("Output Resolution"));
+		rescaleRes.add_fc_sub_type(builder.CreateString("OBS_COMBO_FORMAT_STRING"));
 
 		uint64_t base_cx = config_get_uint(config, "Video", "BaseCX");
 		uint64_t base_cy = config_get_uint(config, "Video", "BaseCY");
@@ -1565,37 +1334,30 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 			config_set_string(config, "AdvOut", "RescaleRes", outputResString);
 			config_save_safe(config, "tmp", nullptr);
 		}
+		nodeobs::valueBuilder value(builder);
+		value.add_str(builder.CreateString(outputResString));
+		rescaleRes.add_fc_currentValue(value.Finish());
 
-		rescaleRes.currentValue.resize(strlen(outputResString));
-		memcpy(rescaleRes.currentValue.data(), outputResString, strlen(outputResString));
-		rescaleRes.sizeOfCurrentValue = strlen(outputResString);
-
-		std::vector<pair<uint64_t, uint64_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
+		std::vector<pair<uint64_t, uint64_t>> outputResolutions = 
+			getOutputResolutions(base_cx, base_cy);
 
 		uint32_t indexDataRescaleRes = 0;
 
 		for (int i = 0; i<outputResolutions.size(); i++) {
-			std::string outRes = ResString(outputResolutions.at(i).first, outputResolutions.at(i).second);
+			std::string outRes = ResString(outputResolutions.at(i).first, 
+				outputResolutions.at(i).second);
 
-			for (int j = 0; j < 2; j++) {
-				uint64_t sizeRes = outRes.length();
-				std::vector<char> sizeNameBuffer;
-				sizeNameBuffer.resize(sizeof(sizeRes));
-				memcpy(sizeNameBuffer.data(), &sizeRes, sizeof(sizeRes));
-
-				rescaleRes.values.insert(rescaleRes.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-				rescaleRes.values.insert(rescaleRes.values.end(), outRes.begin(), outRes.end());
-			}
+			nodeobs::valuesBuilder values(builder);
+			values.add_fc_name(builder.CreateString(outRes));
+			nodeobs::valueBuilder value(builder);
+			value.add_str(builder.CreateString(outRes));
+			values.add_fc_value(value.Finish());
 		}
+		rescaleRes.add_fc_visible(true);
+		rescaleRes.add_fc_enabled(isCategoryEnabled);
+		rescaleRes.add_fc_masked(false);
 
-		rescaleRes.sizeOfValues = rescaleRes.values.size();
-		rescaleRes.countValues = outputResolutions.size();
-
-		rescaleRes.visible = true;
-		rescaleRes.enabled = isCategoryEnabled;
-		rescaleRes.masked = false;
-
-		streamingSettings.params.push_back(rescaleRes);
+		params_vector.push_back(rescaleRes.Finish());
 	}
 
 	// Encoder settings
@@ -1629,7 +1391,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	obs_output_t *streamOutput = OBS_service::getStreamingOutput();
 
 	if (streamOutput == NULL)
-		return streamingSettings;
+		return streamingSettings.Finish();
 
 	if (!obs_output_active(streamOutput)) {
 		if (!fileExist) {
@@ -1656,75 +1418,74 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	}
 
 	getEncoderSettings(streamingEncoder, settings, 
-		&(streamingSettings.params), index, isCategoryEnabled);
-	streamingSettings.paramsCount =
-		streamingSettings.params.size();
-	return streamingSettings;
+		&params_vector, index, isCategoryEnabled);
+
+	return streamingSettings.Finish();
 }
 
 void OBS_settings::getStandardRecordingSettings(
 	SubCategory* subCategoryParameters, config_t* config, bool isCategoryEnabled)
 {
+	nodeobs::fc_SubCategoryBuilder recordingSettings(builder);
+	std::vector<flatbuffers::Offset<nodeobs::fc_Parameter>> params_vector;
+
 	int index = 1;
 
 	// Recording Path : file
-	Parameter recFilePath;
-	recFilePath.name = "RecFilePath";
-	recFilePath.type = "OBS_PROPERTY_PATH";
-	recFilePath.description = "Recording Path";
+	nodeobs::fc_ParameterBuilder recFilePath(builder);
+	recFilePath.add_fc_name(builder.CreateString("RecFilePath"));
+	recFilePath.add_fc_type(builder.CreateString("OBS_PROPERTY_PATH"));
+	recFilePath.add_fc_description(builder.CreateString("Recording Path"));
 
 	const char* RecFilePathCurrentValue = config_get_string(config, "AdvOut", "RecFilePath");
+	nodeobs::valueBuilder value(builder);
+	
 
 	if (RecFilePathCurrentValue == NULL) {
 		const char* RecFilePathText = OBS_service::GetDefaultVideoSavePath().c_str();
-
-		recFilePath.currentValue.resize(strlen(RecFilePathText));
-		memcpy(recFilePath.currentValue.data(), RecFilePathText, strlen(RecFilePathText));
-		recFilePath.sizeOfCurrentValue = strlen(RecFilePathText);
+		value.add_str(builder.CreateString(RecFilePathText));
 	}
 	else {
-		recFilePath.currentValue.resize(strlen(RecFilePathCurrentValue));
-		memcpy(recFilePath.currentValue.data(), RecFilePathCurrentValue, strlen(RecFilePathCurrentValue));
-		recFilePath.sizeOfCurrentValue = strlen(RecFilePathCurrentValue);
+		value.add_str(builder.CreateString(RecFilePathCurrentValue));
 	}
+	recFilePath.add_fc_currentValue(value.Finish());
 
-	recFilePath.visible = true;
-	recFilePath.enabled = isCategoryEnabled;
-	recFilePath.masked = false;
+	recFilePath.add_fc_visible(true);
+	recFilePath.add_fc_enabled(isCategoryEnabled);
+	recFilePath.add_fc_masked(false);
 
-	subCategoryParameters->params.push_back(recFilePath);
+	params_vector.push_back(recFilePath.Finish());
 
 	// Generate File Name without Space : boolean
-	Parameter recFileNameWithoutSpace;
-	recFileNameWithoutSpace.name = "RecFileNameWithoutSpace";
-	recFileNameWithoutSpace.type = "OBS_PROPERTY_BOOL";
-	recFileNameWithoutSpace.description = "Generate File Name without Space";
+	nodeobs::fc_ParameterBuilder recFileNameWithoutSpace(builder);
+	recFileNameWithoutSpace.add_fc_name(builder.CreateString("RecFileNameWithoutSpace"));
+	recFileNameWithoutSpace.add_fc_type(builder.CreateString("OBS_PROPERTY_BOOL"));
+	recFileNameWithoutSpace.add_fc_description(builder.CreateString("Generate File Name without Space"));
 
 	const char* currentValue = "RecFileNameWithoutSpace";
-	recFileNameWithoutSpace.currentValue.resize(strlen(currentValue));
-	memcpy(recFileNameWithoutSpace.currentValue.data(), currentValue, strlen(currentValue));
-	recFileNameWithoutSpace.sizeOfCurrentValue = strlen(currentValue);
+	nodeobs::valueBuilder value(builder);
+	value.add_str(builder.CreateString(currentValue));
+	recFileNameWithoutSpace.add_fc_currentValue(value.Finish());
 
-	recFileNameWithoutSpace.visible = true;
-	recFileNameWithoutSpace.enabled = isCategoryEnabled;
-	recFileNameWithoutSpace.masked = false;
+	recFileNameWithoutSpace.add_fc_visible(true);
+	recFileNameWithoutSpace.add_fc_enabled(isCategoryEnabled);
+	recFileNameWithoutSpace.add_fc_masked(false);
 
-	subCategoryParameters->params.push_back(recFileNameWithoutSpace);
+	params_vector.push_back(recFileNameWithoutSpace.Finish());
 
 	// Recording Format : list
-	Parameter recFormat;
-	recFormat.name = "RecFormat";
-	recFormat.type = "OBS_PROPERTY_LIST";
-	recFormat.description = "Recording Format";
-	recFormat.subType = "OBS_COMBO_FORMAT_STRING";
+	nodeobs::fc_ParameterBuilder recFormat(builder);
+	recFormat.add_fc_name(builder.CreateString("RecFormat"));
+	recFormat.add_fc_type(builder.CreateString("OBS_PROPERTY_LIST"));
+	recFormat.add_fc_description(builder.CreateString("Recording Format"));
+	recFormat.add_fc_sub_type(builder.CreateString("OBS_COMBO_FORMAT_STRING"));
 
 	const char* recFormatCurrentValue = config_get_string(config, "AdvOut", "RecFormat");
 	if (recFormatCurrentValue == NULL)
 		recFormatCurrentValue = "";
-
-	recFormat.currentValue.resize(strlen(recFormatCurrentValue));
-	memcpy(recFormat.currentValue.data(), recFormatCurrentValue, strlen(recFormatCurrentValue));
-	recFormat.sizeOfCurrentValue = strlen(recFormatCurrentValue);
+	nodeobs::valueBuilder value(builder);
+	value.add_str(builder.CreateString(recFormatCurrentValue));
+	recFormat.add_fc_currentValue(value.Finish());
 
 	std::vector<std::pair<std::string, std::string>> recFormatValues;
 	recFormatValues.push_back(std::make_pair("flv", "flv"));
@@ -1735,52 +1496,36 @@ void OBS_settings::getStandardRecordingSettings(
 	recFormatValues.push_back(std::make_pair("m3u8", "m3u8"));
 
 	uint32_t indexDataRecFormat = 0;
-
+	std::vector<flatbuffers::Offset<nodeobs::values>> values_vector;
 	for (int i = 0; i < recFormatValues.size(); i++) {
-		std::string name = recFormatValues.at(i).first;
-
-		uint64_t sizeName = name.length();
-		std::vector<char> sizeNameBuffer;
-		sizeNameBuffer.resize(sizeof(sizeName));
-		memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
-
-		recFormat.values.insert(recFormat.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-		recFormat.values.insert(recFormat.values.end(), name.begin(), name.end());
-
-		std::string value = recFormatValues.at(i).second;
-
-		uint64_t sizeValue = value.length();
-		std::vector<char> sizeValueBuffer;
-		sizeValueBuffer.resize(sizeof(sizeValue));
-		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
-
-		recFormat.values.insert(recFormat.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
-		recFormat.values.insert(recFormat.values.end(), value.begin(), value.end());
+		nodeobs::valuesBuilder values(builder);
+		values.add_fc_name(builder.CreateString(recFormatValues.at(i).first));
+		nodeobs::valueBuilder value(builder);
+		value.add_str(builder.CreateString(recFormatValues.at(i).second));
+		values.add_fc_value(value.Finish());
+		values_vector.push_back(values.Finish());
 	}
+	recFormat.add_fc_values(builder.CreateVector(values_vector));
+	recFormat.add_fc_visible(true);
+	recFormat.add_fc_enabled(isCategoryEnabled);
+	recFormat.add_fc_masked(false);
 
-	recFormat.sizeOfValues = recFormat.values.size();
-	recFormat.countValues = recFormatValues.size();
-
-	recFormat.visible = true;
-	recFormat.enabled = isCategoryEnabled;
-	recFormat.masked = false;
-
-	subCategoryParameters->params.push_back(recFormat);
+	params_vector.push_back(recFormat.Finish());
 
 	// Audio Track : list
-	Parameter recTracks;
-	recTracks.name = "RecTracks";
-	recTracks.type = "OBS_PROPERTY_LIST";
-	recTracks.description = "Audio Track";
-	recTracks.subType = "OBS_COMBO_FORMAT_STRING";
+	nodeobs::fc_ParameterBuilder recTracks(builder);
+	recTracks.add_fc_name(builder.CreateString("RecTracks"));
+	recTracks.add_fc_type(builder.CreateString("OBS_PROPERTY_LIST"));
+	recTracks.add_fc_description(builder.CreateString("Audio Track"));
+	recTracks.add_fc_sub_type(builder.CreateString("OBS_COMBO_FORMAT_STRING"));
 
 	const char* recTracksCurrentValue = config_get_string(config, "AdvOut", "RecTracks");
 	if (recTracksCurrentValue == NULL)
 		recTracksCurrentValue = "";
 
-	recTracks.currentValue.resize(strlen(recTracksCurrentValue));
-	memcpy(recTracks.currentValue.data(), recTracksCurrentValue, strlen(recTracksCurrentValue));
-	recTracks.sizeOfCurrentValue = strlen(recTracksCurrentValue);
+	nodeobs::valueBuilder value(builder);
+	value.add_str(builder.CreateString(recTracksCurrentValue));
+	recTracks.add_fc_currentValue(value.Finish());
 
 	std::vector<std::pair<std::string, std::string>> recTracksValues;
 	recTracksValues.push_back(std::make_pair("1", "1"));
@@ -1793,50 +1538,32 @@ void OBS_settings::getStandardRecordingSettings(
 	uint32_t indexRecTracksCurrentValue = 0;
 
 	for (int i = 0; i < recTracksValues.size(); i++) {
-		std::string name = recTracksValues.at(i).first;
-
-		uint64_t sizeName = name.length();
-		std::vector<char> sizeNameBuffer;
-		sizeNameBuffer.resize(sizeof(sizeName));
-		memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
-
-		recTracks.values.insert(recTracks.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-		recTracks.values.insert(recTracks.values.end(), name.begin(), name.end());
-
-		std::string value = recTracksValues.at(i).second;
-
-		uint64_t sizeValue = value.length();
-		std::vector<char> sizeValueBuffer;
-		sizeValueBuffer.resize(sizeof(sizeValue));
-		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
-
-		recTracks.values.insert(recTracks.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
-		recTracks.values.insert(recTracks.values.end(), value.begin(), value.end());
+		nodeobs::valuesBuilder values(builder);
+		values.add_fc_name(builder.CreateString(recTracksValues.at(i).first));
+		nodeobs::valueBuilder value(builder);
+		value.add_str(builder.CreateString(recTracksValues.at(i).second));
+		values.add_fc_value(value.Finish());
 	}
+	recTracks.add_fc_visible(true);
+	recTracks.add_fc_enabled(isCategoryEnabled);
+	recTracks.add_fc_masked(false);
 
-	recTracks.sizeOfValues = recTracks.values.size();
-	recTracks.countValues = recTracksValues.size();
-
-	recTracks.visible = true;
-	recTracks.enabled = isCategoryEnabled;
-	recTracks.masked = false;
-
-	subCategoryParameters->params.push_back(recTracks);
+	params_vector.push_back(recTracks.Finish());
 
 	// Encoder : list
-	Parameter recEncoder;
-	recEncoder.name = "RecEncoder";
-	recEncoder.type = "OBS_PROPERTY_LIST";
-	recEncoder.description = "Recording";
-	recEncoder.subType = "OBS_COMBO_FORMAT_STRING";
+	nodeobs::fc_ParameterBuilder recEncoder(builder);
+	recEncoder.add_fc_name(builder.CreateString("RecEncoder"));
+	recEncoder.add_fc_type(builder.CreateString("OBS_PROPERTY_LIST"));
+	recEncoder.add_fc_description(builder.CreateString("Recording"));
+	recEncoder.add_fc_sub_type(builder.CreateString("OBS_COMBO_FORMAT_STRING"));
 
 	const char* recEncoderCurrentValue = config_get_string(config, "AdvOut", "RecEncoder");
 	if (recEncoderCurrentValue == NULL || strcmp(recEncoderCurrentValue, "none") == 0)
 		recEncoderCurrentValue = "obs_x264";
 
-	recEncoder.currentValue.resize(strlen(recEncoderCurrentValue));
-	memcpy(recEncoder.currentValue.data(), recEncoderCurrentValue, strlen(recEncoderCurrentValue));
-	recEncoder.sizeOfCurrentValue = strlen(recEncoderCurrentValue);
+	nodeobs::valueBuilder value(builder);
+	value.add_str(builder.CreateString(recEncoderCurrentValue));
+	recEncoder.add_fc_currentValue(value.Finish());
 
 	std::vector<std::pair<std::string, std::string>> Encoder;
 	getAdvancedAvailableEncoders(&Encoder);
@@ -1844,62 +1571,43 @@ void OBS_settings::getStandardRecordingSettings(
 	uint32_t indexDataRecEncoder = 0;
 
 	for (int i = 0; i < Encoder.size(); i++) {
-		std::string name = Encoder.at(i).first;
-
-		uint64_t sizeName = name.length();
-		std::vector<char> sizeNameBuffer;
-		sizeNameBuffer.resize(sizeof(sizeName));
-		memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
-
-		recEncoder.values.insert(recEncoder.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-		recEncoder.values.insert(recEncoder.values.end(), name.begin(), name.end());
-
-		std::string value = Encoder.at(i).second;
-
-		uint64_t sizeValue = value.length();
-		std::vector<char> sizeValueBuffer;
-		sizeValueBuffer.resize(sizeof(sizeValue));
-		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
-
-		recEncoder.values.insert(recEncoder.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
-		recEncoder.values.insert(recEncoder.values.end(), value.begin(), value.end());
+		nodeobs::valuesBuilder values(builder);
+		values.add_fc_name(builder.CreateString(Encoder.at(i).first));
+		nodeobs::valueBuilder value(builder);
+		value.add_str(builder.CreateString(Encoder.at(i).second));
+		values.add_fc_value(value.Finish());
 	}
+	recEncoder.add_fc_visible(true);
+	recEncoder.add_fc_enabled(isCategoryEnabled);
+	recEncoder.add_fc_masked(false);
 
-	recEncoder.sizeOfValues = recEncoder.values.size();
-	recEncoder.countValues = Encoder.size();
-
-	recEncoder.visible = true;
-	recEncoder.enabled = isCategoryEnabled;
-	recEncoder.masked = false;
-
-	subCategoryParameters->params.push_back(recEncoder);
+	params_vector.push_back(recEncoder.Finish());
 
 	// Rescale Output : boolean
-	Parameter recRescale;
-	recRescale.name = "RecRescale";
-	recRescale.type = "OBS_PROPERTY_BOOL";
-	recRescale.description = "Rescale Output";
+	nodeobs::fc_ParameterBuilder recRescale(builder);
+	recRescale.add_fc_name(builder.CreateString("RecRescale"));
+	recRescale.add_fc_type(builder.CreateString("OBS_PROPERTY_BOOL"));
+	recRescale.add_fc_description(builder.CreateString("Rescale Output"));
 
 	bool doRescale = config_get_bool(config, "AdvOut", "RecRescale");
+	nodeobs::valueBuilder value(builder);
+	value.add_str(doRescale);
+	recRescale.add_fc_currentValue(value.Finish());
 
-	recRescale.currentValue.resize(sizeof(doRescale));
-	memcpy(recRescale.currentValue.data(), &doRescale, sizeof(doRescale));
-	recRescale.sizeOfCurrentValue = sizeof(doRescale);
+	recRescale.add_fc_visible(true);
+	recRescale.add_fc_enabled(isCategoryEnabled);
+	recRescale.add_fc_masked(false);
 
-	recRescale.visible = true;
-	recRescale.enabled = isCategoryEnabled;
-	recRescale.masked = false;
-
-	subCategoryParameters->params.push_back(recRescale);
+	params_vector.push_back(recRescale.Finish());
 
 	// Output Resolution : list
 	if (doRescale) {
 		// Output Resolution : list
-		Parameter recRescaleRes;
-		recRescaleRes.name = "RecRescaleRes";
-		recRescaleRes.type = "OBS_PROPERTY_LIST";
-		recRescaleRes.description = "Output Resolution";
-		recRescaleRes.subType = "OBS_COMBO_FORMAT_STRING";
+		nodeobs::fc_ParameterBuilder recRescaleRes(builder);
+		recRescaleRes.add_fc_name(builder.CreateString("RecRescaleRes"));
+		recRescaleRes.add_fc_type(builder.CreateString("OBS_PROPERTY_LIST"));
+		recRescaleRes.add_fc_description(builder.CreateString("Output Resolution"));
+		recRescaleRes.add_fc_sub_type(builder.CreateString("OBS_COMBO_FORMAT_STRING"));
 
 		uint64_t base_cx = config_get_uint(config, "Video", "BaseCX");
 		uint64_t base_cy = config_get_uint(config, "Video", "BaseCY");
@@ -1912,9 +1620,9 @@ void OBS_settings::getStandardRecordingSettings(
 			config_save_safe(config, "tmp", nullptr);
 		}
 
-		recRescaleRes.currentValue.resize(strlen(outputResString));
-		memcpy(recRescaleRes.currentValue.data(), outputResString, strlen(outputResString));
-		recRescaleRes.sizeOfCurrentValue = strlen(outputResString);
+		nodeobs::valueBuilder value(builder);
+		value.add_str(builder.CreateString(outputResString));
+		recRescaleRes.add_fc_currentValue(value.Finish());
 
 		std::vector<std::pair<uint64_t, uint64_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
 
@@ -1923,46 +1631,38 @@ void OBS_settings::getStandardRecordingSettings(
 		for (int i = 0; i<outputResolutions.size(); i++) {
 			std::string outRes = ResString(outputResolutions.at(i).first, outputResolutions.at(i).second);
 
-			for (int j = 0; j < 2; j++) {
-				uint64_t sizeRes = outRes.length();
-				std::vector<char> sizeNameBuffer;
-				sizeNameBuffer.resize(sizeof(sizeRes));
-				memcpy(sizeNameBuffer.data(), &sizeRes, sizeof(sizeRes));
-
-				recRescaleRes.values.insert(recRescaleRes.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-				recRescaleRes.values.insert(recRescaleRes.values.end(), outRes.begin(), outRes.end());
-			}
+			nodeobs::valuesBuilder values(builder);
+			values.add_fc_name(builder.CreateString(outRes));
+			nodeobs::valueBuilder value(builder);
+			value.add_str(builder.CreateString(outRes));
+			values.add_fc_value(value.Finish());
 		}
+		recRescaleRes.add_fc_visible(true);
+		recRescaleRes.add_fc_enabled(isCategoryEnabled);
+		recRescaleRes.add_fc_masked(false);
 
-		recRescaleRes.sizeOfValues = recRescaleRes.values.size();
-		recRescaleRes.countValues = outputResolutions.size();
-
-		recRescaleRes.visible = true;
-		recRescaleRes.enabled = isCategoryEnabled;
-		recRescaleRes.masked = false;
-
-		subCategoryParameters->params.push_back(recRescaleRes);
+		params_vector.push_back(recRescaleRes.Finish());
 	}
 
 	// Custom Muxer Settings : edit_text
-	Parameter recMuxerCustom;
-	recMuxerCustom.name = "RecMuxerCustom";
-	recMuxerCustom.type = "OBS_PROPERTY_EDIT_TEXT";
-	recMuxerCustom.description = "Custom Muxer Settings";
+	nodeobs::fc_ParameterBuilder recMuxerCustom(builder);
+	recMuxerCustom.add_fc_name(builder.CreateString("RecMuxerCustom"));
+	recMuxerCustom.add_fc_type(builder.CreateString("OBS_PROPERTY_EDIT_TEXT"));
+	recMuxerCustom.add_fc_description(builder.CreateString("Custom Muxer Settings"));
 
 	const char* RecMuxerCustomCurrentValue = config_get_string(config, "AdvOut", "RecMuxerCustom");
 	if (RecMuxerCustomCurrentValue == NULL)
 		RecMuxerCustomCurrentValue = "";
 
-	recMuxerCustom.currentValue.resize(strlen(RecMuxerCustomCurrentValue));
-	memcpy(recMuxerCustom.currentValue.data(), RecMuxerCustomCurrentValue, strlen(RecMuxerCustomCurrentValue));
-	recMuxerCustom.sizeOfCurrentValue = strlen(RecMuxerCustomCurrentValue);
+	nodeobs::valueBuilder value(builder);
+	value.add_str(builder.CreateString(RecMuxerCustomCurrentValue));
+	recMuxerCustom.add_fc_currentValue(value.Finish());
 
-	recMuxerCustom.visible = true;
-	recMuxerCustom.enabled = isCategoryEnabled;
-	recMuxerCustom.masked = false;
+	recMuxerCustom.add_fc_visible(true);
+	recMuxerCustom.add_fc_enabled(isCategoryEnabled);
+	recMuxerCustom.add_fc_masked(false);
 
-	subCategoryParameters->params.push_back(recMuxerCustom);
+	params_vector.push_back(recMuxerCustom.Finish());
 
 	// Encoder settings
 	struct stat buffer;
@@ -2003,7 +1703,7 @@ void OBS_settings::getStandardRecordingSettings(
 
 
 	getEncoderSettings(recordingEncoder, settings, 
-		&(subCategoryParameters->params), index, isCategoryEnabled);
+		&params_vector, index, isCategoryEnabled);
 	subCategoryParameters->paramsCount =
 		subCategoryParameters->params.size();
 }
@@ -2013,7 +1713,8 @@ void OBS_settings::getFFmpegOutputRecordingSettings(SubCategory* subCategoryPara
 
 }
 
-SubCategory OBS_settings::getAdvancedOutputRecordingSettings(config_t* config, bool isCategoryEnabled)
+flatbuffers::Offset<nodeobs::fc_SubCategory> OBS_settings::getAdvancedOutputRecordingSettings(
+	config_t* config, bool isCategoryEnabled)
 {
 	SubCategory recordingSettings;
 
@@ -2086,7 +1787,9 @@ SubCategory OBS_settings::getAdvancedOutputRecordingSettings(config_t* config, b
 	return recordingSettings;
 }
 
-void OBS_settings::getAdvancedOutputAudioSettings(std::vector<SubCategory>* outputSettings, config_t* config, bool isCategoryEnabled)
+void OBS_settings::getAdvancedOutputAudioSettings(
+	std::vector<flatbuffers::Offset<nodeobs::fc_SubCategory>> *outputSettings, 
+	config_t* config, bool isCategoryEnabled)
 {
 	std::vector<std::vector<std::pair<std::string, std::string>>> entries;
 
@@ -2226,7 +1929,7 @@ void OBS_settings::getAdvancedOutputAudioSettings(std::vector<SubCategory>* outp
 	entries.clear();
 }
 
-void OBS_settings::getAdvancedOutputSettings(std::vector<SubCategory>* outputSettings, config_t* config, bool isCategoryEnabled)
+void OBS_settings::getAdvancedOutputSettings(std::vector<flatbuffers::Offset<nodeobs::fc_SubCategory>> *outputSettings, config_t* config, bool isCategoryEnabled)
 {
 	std::vector<std::vector<std::pair<std::string, std::string>>> entries;
 
@@ -2242,8 +1945,10 @@ void OBS_settings::getAdvancedOutputSettings(std::vector<SubCategory>* outputSet
 
 std::vector<SubCategory> OBS_settings::getOutputSettings()
 {
-	std::vector<SubCategory> outputSettings;
-	
+	nodeobs::fc_CategoryBuilder category(builder);
+	category.add_fc_name(builder.CreateString("Output"));
+	std::vector<flatbuffers::Offset<nodeobs::fc_SubCategory>> subCategories_vector;
+
 	bool isCategoryEnabled = !OBS_service::isStreamingOutputActive();
 
 	std::vector<std::vector<std::pair<std::string, std::string>>> entries;
@@ -2259,7 +1964,7 @@ std::vector<SubCategory> OBS_settings::getOutputSettings()
 	outputMode.push_back(std::make_pair("Advanced", "Advanced"));
 	entries.push_back(outputMode);
 
-	outputSettings.push_back(serializeSettingsData("Untitled", entries, 
+	subCategories_vector.push_back(serializeSettingsData("Untitled", entries,
 		ConfigManager::getInstance().getBasic(), "Output", true, isCategoryEnabled));
 	entries.clear();
 
@@ -2271,14 +1976,17 @@ std::vector<SubCategory> OBS_settings::getOutputSettings()
 	}
 
 	if (strcmp(currentOutputMode, "Advanced") == 0) {
-		getAdvancedOutputSettings(&outputSettings, 
+		getAdvancedOutputSettings(&subCategories_vector,
 			ConfigManager::getInstance().getBasic(), isCategoryEnabled);
 	} else {
-		getSimpleOutputSettings(&outputSettings,
+		getSimpleOutputSettings(&subCategories_vector,
 			ConfigManager::getInstance().getBasic(), isCategoryEnabled);
 	}
 
-	return outputSettings;
+	auto subCategories = builder.CreateVector(subCategories_vector);
+	category.add_fc_sub_categories(subCategories);
+
+	return category;
 }
 
 void OBS_settings::saveSimpleOutputSettings(std::vector<SubCategory> settings)

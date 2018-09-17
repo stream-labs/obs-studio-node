@@ -138,8 +138,8 @@ private:
 	static void saveSettings(std::string nameCategory, std::vector<SubCategory> settings);
 
 	// Get each category
-	static std::vector<SubCategory> getGeneralSettings();
-	static std::vector<SubCategory> getStreamSettings();
+	static nodeobs::fc_CategoryBuilder getGeneralSettings();
+	static nodeobs::fc_CategoryBuilder getStreamSettings();
 	static std::vector<SubCategory> getOutputSettings();
 	static std::vector<SubCategory> getAudioSettings();
 	static std::vector<SubCategory> getVideoSettings();
@@ -157,7 +157,7 @@ private:
 
 	static void saveGenericSettings(std::vector<SubCategory> genericSettings, std::string section, config_t *config);
 
-	static SubCategory serializeSettingsData(std::string nameSubCategory,
+	static flatbuffers::Offset<nodeobs::fc_SubCategory> serializeSettingsData(std::string nameSubCategory,
 												std::vector<std::vector<std::pair<std::string, std::string>>> entries, 
 												config_t* config, std::string section, bool isVisible, bool isEnabled);
 
@@ -165,23 +165,34 @@ private:
 	/****** Get Output Settings ******/
 
 	// Simple Output mode
-	static void getSimpleOutputSettings(std::vector<SubCategory> *outputSettings,
-											config_t* config, bool isCategoryEnabled);
+	static void getSimpleOutputSettings(
+		std::vector<flatbuffers::Offset<nodeobs::fc_SubCategory>> *outputSettings,
+		config_t* config, bool isCategoryEnabled);
 
 	// Advanced Output mode
-	static void 				getAdvancedOutputSettings(std::vector<SubCategory>* outputSettings,
-															config_t* config, bool isCategoryEnabled);
+	static void getAdvancedOutputSettings(
+		std::vector<flatbuffers::Offset<nodeobs::fc_SubCategory>> *outputSettings,
+		config_t* config, bool isCategoryEnabled);
 
-	static SubCategory	 		getAdvancedOutputStreamingSettings(config_t* config, bool isCategoryEnabled);
+	static flatbuffers::Offset<nodeobs::fc_SubCategory> 
+		getAdvancedOutputStreamingSettings(
+		config_t* config,
+		bool isCategoryEnabled);
 
-	static SubCategory 			getAdvancedOutputRecordingSettings(config_t* config, bool isCategoryEnabled);
-	static void 				getStandardRecordingSettings(SubCategory* subCategoryParameters,
-																config_t* config, bool isCategoryEnabled);
-	static void					getFFmpegOutputRecordingSettings(SubCategory* subCategoryParameters,
-																	config_t* config, bool isCategoryEnabled);
+	static flatbuffers::Offset<nodeobs::fc_SubCategory> 
+		getAdvancedOutputRecordingSettings(
+		config_t* config,
+		bool isCategoryEnabled);
+	static void getStandardRecordingSettings(
+		SubCategory* subCategoryParameters,
+		config_t* config, bool isCategoryEnabled);
+	static void	getFFmpegOutputRecordingSettings(
+		SubCategory* subCategoryParameters,
+		config_t* config, bool isCategoryEnabled);
 
-	static void 				getAdvancedOutputAudioSettings(std::vector<SubCategory>* outputSettings,
-																config_t* config, bool isCategoryEnabled);
+	static void getAdvancedOutputAudioSettings(
+		std::vector<flatbuffers::Offset<nodeobs::fc_SubCategory>> *outputSettings,
+		config_t* config, bool isCategoryEnabled);
 
 
 	/****** Save Output Settings ******/
@@ -198,11 +209,14 @@ private:
 
 
 	//Utility functions
-	static void getSimpleAvailableEncoders(std::vector<std::pair<std::string, std::string>> *streamEncode);
-	static void getAdvancedAvailableEncoders(std::vector<std::pair<std::string, std::string>> *streamEncode);
-	static std::vector<pair<uint64_t, uint64_t>> 	getOutputResolutions (uint64_t base_cx, uint64_t base_cy);
-	static void 									getEncoderSettings(const obs_encoder_t *encoder,
-																		obs_data_t *settings,
-																		std::vector<Parameter>* subCategoryParameters,
-																		int index, bool isCategoryEnabled);
+	static void getSimpleAvailableEncoders(
+		std::vector<std::pair<std::string, std::string>> *streamEncode);
+	static void getAdvancedAvailableEncoders(
+		std::vector<std::pair<std::string, std::string>> *streamEncode);
+	static std::vector<pair<uint64_t, uint64_t>> getOutputResolutions
+		(uint64_t base_cx, uint64_t base_cy);
+	static void getEncoderSettings(const obs_encoder_t *encoder, 
+		obs_data_t *settings, 
+		std::vector<flatbuffers::Offset<nodeobs::fc_Parameter>> 
+		*subCategoryParameters, int index, bool isCategoryEnabled);
 };
