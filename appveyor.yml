@@ -63,6 +63,7 @@ before_deploy:
       }
   - tar cvaf "%SignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
   - ps: Push-AppveyorArtifact "$env:SignedArtifact.tar.gz"
+ 
   - copy "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\VC\Redist\MSVC\14.14.26405\x64\Microsoft.VC141.CRT\\vcruntime140.dll" "%SLFullDistributePath%\\obs-studio-node"
 
 deploy:
