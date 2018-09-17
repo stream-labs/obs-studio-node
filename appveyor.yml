@@ -5,7 +5,7 @@ init:
   - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
 image:
-  - Visual Studio 2015
+  - Visual Studio 2017
 
 platform: x64
 
@@ -22,7 +22,7 @@ environment:
       RuntimeVersion: v3.0.0-beta.1
   NodeVersion: 9
   SLBuildDirectory: streamlabs-build
-  SLGenerator: Visual Studio 14 2015 Win64
+  SLGenerator: Visual Studio 15 2017 Win64
   SLDistributeDirectory: distribute
   SLFullDistributePath: $(SLBuildDirectory)\$(SLDistributeDirectory)
   SLArch: x64
