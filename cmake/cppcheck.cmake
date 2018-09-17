@@ -109,12 +109,22 @@ function(cppcheck)
 	endforeach()
 	
 	# Exclusion
-	foreach(_excluded ${CPPCHECK_EXCLUDE_DIRECTORIES})
-		list(APPEND CPPCHECK_ARGUMENTS -i "${_excluded}")
+	foreach(_path ${CPPCHECK_EXCLUDE_DIRECTORIES})
+		file(TO_NATIVE_PATH "${_path}" _npath)
+		if(MSVC)
+			list(APPEND CPPCHECK_ARGUMENTS --suppress=*:${_npath}\\*)
+		else()
+			list(APPEND CPPCHECK_ARGUMENTS -i${_npath})
+		endif()
 	endforeach()
 	if(CPPCHECKP_EXCLUDE)
-		foreach(_excluded ${CPPCHECKP_EXCLUDE})
-			list(APPEND CPPCHECK_ARGUMENTS -i "${_excluded}")
+		foreach(_path ${CPPCHECKP_EXCLUDE})
+			file(TO_NATIVE_PATH "${_path}" _npath)
+			if(MSVC)
+				list(APPEND CPPCHECK_ARGUMENTS --suppress=*:${_npath}\\*)
+			else()
+				list(APPEND CPPCHECK_ARGUMENTS -i${_npath})
+			endif()
 		endforeach()
 	endif()
 	
@@ -182,7 +192,14 @@ endfunction()
 function(cppcheck_add_project u_project)
 	list(APPEND CPPCHECK_PROJECTS ${u_project})
 	
-	if(WIN32)
+	# Include Directories
+	get_target_property(_INCLUDE_DIRECTORIES ${u_project} INCLUDE_DIRECTORIES)
+	foreach(_path ${_INCLUDE_DIRECTORIES})
+		file(TO_NATIVE_PATH "${_path}" _npath)
+		list(APPEND CPPCHECK_ARGUMENTS -I${_npath})
+	endforeach()
+	
+	if(MSVC)
 		add_custom_target(
 			CPPCHECK_${u_project}
 			COMMAND "${CPPCHECK_PATH}/${CPPCHECK_BIN}" ${CPPCHECK_ARGUMENTS} --project=${CMAKE_CURRENT_BINARY_DIR}/${u_project}.sln
@@ -190,8 +207,22 @@ function(cppcheck_add_project u_project)
 			VERBATIM
 		)
 	else()
-		# Unix (Linux, FreeBSD, APPLE) need to have -I, -i, -D and -U specified manually.
+		# Non-MSVC and Unix (Linux, FreeBSD, APPLE) need to have -I, -i, -D and -U specified manually.
 		# Each file can be added to --file-list= as a comma separated list.
+		
+		# Defines
+		get_target_property(_COMPILE_DEFINITIONS ${u_project} COMPILE_DEFINITIONS)
+		foreach(_def ${_COMPILE_DEFINITIONS})
+			list(APPEND CPPCHECK_ARGUMENTS -D${_def})
+		endforeach()
+		
+		# Source Files
+		get_target_property(_SOURCES ${u_project} SOURCES)
+		foreach(_path ${_SOURCES})
+			file(TO_NATIVE_PATH "${_path}" _npath)
+			list(APPEND CPPCHECK_ARGUMENTS ${_npath})
+		endforeach()
+		
 		add_custom_target(
 			CPPCHECK_${u_project}
 			COMMAND "${CPPCHECK_PATH}/${CPPCHECK_BIN}" ${CPPCHECK_ARGUMENTS}
