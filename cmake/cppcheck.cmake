@@ -202,7 +202,7 @@ function(cppcheck_add_project u_project)
 	if(MSVC)
 		add_custom_target(
 			CPPCHECK_${u_project}
-			COMMAND "${CPPCHECK_PATH}/${CPPCHECK_BIN}" ${CPPCHECK_ARGUMENTS} --project=${CMAKE_CURRENT_BINARY_DIR}/${u_project}.sln
+			COMMAND "${CPPCHECK_PATH}/${CPPCHECK_BIN}" ${CPPCHECK_ARGUMENTS} --project=${${u_project}_BINARY_DIR}/${u_project}.sln
 			COMMAND_EXPAND_LISTS
 			VERBATIM
 		)
