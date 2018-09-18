@@ -1,8 +1,11 @@
 matrix:
   fast_finish: true
+ 
+init:
+  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
 image:
-  - Visual Studio 2015
+  - Visual Studio 2017
 
 platform: x64
 
@@ -19,7 +22,7 @@ environment:
       RuntimeVersion: v3.0.0-beta.1
   NodeVersion: 9
   SLBuildDirectory: streamlabs-build
-  SLGenerator: Visual Studio 14 2015 Win64
+  SLGenerator: Visual Studio 15 2017 Win64
   SLDistributeDirectory: distribute
   SLFullDistributePath: $(SLBuildDirectory)\$(SLDistributeDirectory)
   SLArch: x64
@@ -40,6 +43,8 @@ install:
 build_script:
   - cmake -H. -B"%SLBuildDirectory%" -G"%SLGenerator%" -T"host=%SLArch%" -DNODEJS_BUILD=TRUE -DNODEJS_URL="%RuntimeURL%" -DNODEJS_NAME="%RuntimeName%" -DNODEJS_VERSION="%RuntimeVersion%" -DCMAKE_INSTALL_PREFIX="%SLFullDistributePath%\obs-studio-node" -DCMAKE_SYSTEM_VERSION=10.0.17134.0 -Dlib-datalane_BUILD_TESTS=FALSE -Dlib-datalane_BUILD_SAMPLES=FALSE -Dlib-streamlabs-ipc_BUILD_TESTS=FALSE -Dlib-streamlabs-ipc_BUILD_SAMPLES=FALSE -DBUILD_TESTS=FALSE -DBUILD_SAMPLES=FALSE
   - cmake --build %SLBuildDirectory% --target install --config RelWithDebInfo
+  - copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.15.26706\x64\Microsoft.VC141.CRT\vcruntime140.dll" "%SLFullDistributePath%\obs-studio-node\"
+  - copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.15.26706\x64\Microsoft.VC141.CRT\msvcp140.dll" "%SLFullDistributePath%\obs-studio-node\"
   - tar cvaf "%UnsignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
 
 before_deploy:
