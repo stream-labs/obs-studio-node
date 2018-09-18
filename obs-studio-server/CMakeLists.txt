@@ -127,19 +127,28 @@ add_dependencies(crashpad_util crashpad_client)
 #############################
 # Prerequisites
 #############################
+SET(ENABLE_FACEMASK TRUE CACHE BOOL "Enable Facemask Plugin")
 
 # OBS Studio (CPack Release)
-download_project(
-	PROJ libobs
-	URL https://github.com/stream-labs/obs-studio/releases/download/22.0.1-sl-1/obs-msvc2017-x64-22.0.1-sl-1.7z
-	UPDATE_DISCONNECTED 1
-)
+if(ENABLE_FACEMASK)
+	download_project(
+		PROJ libobs
+		URL https://github.com/stream-labs/obs-studio/releases/download/22.0.3-sl-3-fm/obs-msvc2017-x64-22.0.3-sl-3-fm.7z
+		UPDATE_DISCONNECTED 1
+	)
+else()
+	download_project(
+		PROJ libobs
+		URL https://github.com/stream-labs/obs-studio/releases/download/22.0.3-sl-3/obs-msvc2017-x64-22.0.3-sl-3.7z
+		UPDATE_DISCONNECTED 1
+	)
+endif()
 INCLUDE("${libobs_SOURCE_DIR}/cmake/LibObs/LibObsConfig.cmake")
 
 # OBS Studio (Signed Binaries)
 download_project(
 	PROJ libobs_signed
-	URL https://github.com/obsproject/obs-studio/releases/download/22.0.0/OBS-Studio-22.0.1-Full-x64.zip
+	URL https://github.com/obsproject/obs-studio/releases/download/22.0.2/OBS-Studio-22.0.2-Full-x64.zip
 	UPDATE_DISCONNECTED 1
 )
 
