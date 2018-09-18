@@ -1,6 +1,6 @@
 {
   "name": "@streamlabs/obs-studio-node",
-  "version": "0.3.4",
+  "version": "0.3.18",
   "description": "Experimental bindings to obs-studio using nan directly",
   "author": "Streamlabs <support@streamlabs.com>",
   "license": "GPL-2.0",
