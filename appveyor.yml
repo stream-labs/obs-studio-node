@@ -63,6 +63,7 @@ before_deploy:
           exit 1
         }
       }
+  - copy "%SLBuildDirectory%\libobs_signed-src\data\obs-plugins\win-capture" "%SLFullDistributePath%\obs-studio-node\data\obs-plugins\win-capture"
   - tar cvaf "%SignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
   - ps: Push-AppveyorArtifact "$env:SignedArtifact.tar.gz"
 
