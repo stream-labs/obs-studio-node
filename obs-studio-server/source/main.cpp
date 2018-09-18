@@ -108,11 +108,10 @@ int main(int argc, char* argv[]) {
 
 	std::map<std::string, std::string> annotations;
 	std::vector<std::string> arguments;
+	arguments.push_back("--no-rate-limit");
 
 	std::wstring handler_path(L"crashpad_handler.exe");
-	std::string url("https://streamlabs.sp.backtrace.io:6098");
-	annotations["token"] = "513fa5577d6a193ed34965e18b93d7b00813e9eb2f4b0b7059b30e66afebe4fe";
-	annotations["format"] = "minidump";
+	std::string url("https://sentry.io/api/1283431/minidump/?sentry_key=ec98eac4e3ce49c7be1d83c8fb2005ef");
 
 	base::FilePath db(appdata_path);
 	base::FilePath handler(handler_path);
