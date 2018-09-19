@@ -391,8 +391,8 @@ void Service::set_keepalive(v8::Local<v8::Object> obj) {
 }
 
 void service::OBS_service_removeCallback(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	serviceObject->stop_async_runner();
 	serviceObject->stop_worker();
+	serviceObject->stop_async_runner();
 }
 
 INITIALIZER(nodeobs_service) {
