@@ -1,6 +1,6 @@
 matrix:
   fast_finish: true
- 
+
 init:
   - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
@@ -13,13 +13,10 @@ environment:
   matrix:
     - RuntimeURL: https://atom.io/download/atom-shell
       RuntimeName: iojs
-      RuntimeVersion: v2.0.4
-    - RuntimeURL: https://nodejs.org/download/release
-      RuntimeName: node
-      RuntimeVersion: v9.4.0
+      RuntimeVersion: v2.0.8
     - RuntimeURL: https://atom.io/download/atom-shell
       RuntimeName: iojs
-      RuntimeVersion: v3.0.0-beta.1
+      RuntimeVersion: v3.0.0
   NodeVersion: 9
   SLBuildDirectory: streamlabs-build
   SLGenerator: Visual Studio 15 2017 Win64
