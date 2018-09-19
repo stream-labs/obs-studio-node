@@ -282,8 +282,8 @@ void autoConfig::TerminateAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& 
 
 	ValidateResponse(response);
 
-	autoConfigObject->stop_async_runner();
 	autoConfigObject->stop_worker();
+	autoConfigObject->stop_async_runner();
 	delete autoConfigObject;
 }
 
