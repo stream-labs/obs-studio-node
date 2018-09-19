@@ -45,6 +45,7 @@ build_script:
   - cmake --build %SLBuildDirectory% --target install --config RelWithDebInfo
   - copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.15.26706\x64\Microsoft.VC141.CRT\vcruntime140.dll" "%SLFullDistributePath%\obs-studio-node\"
   - copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.15.26706\x64\Microsoft.VC141.CRT\msvcp140.dll" "%SLFullDistributePath%\obs-studio-node\"
+  - copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\ucrtbase.dll" "%SLFullDistributePath%\obs-studio-node\"
   - tar cvaf "%UnsignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
 
 before_deploy:
