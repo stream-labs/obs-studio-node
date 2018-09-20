@@ -18,21 +18,23 @@
  */
 
 #pragma once
+#include <inttypes.h>
 #include "gs-limits.h"
 #include "gs-vertex.h"
 #include "util-memory.h"
-#include <inttypes.h>
 extern "C" {
-#pragma warning( push )
-#pragma warning( disable: 4201 )
+#pragma warning(push)
+#pragma warning(disable : 4201)
 #include <graphics/graphics.h>
-#pragma warning( pop )
+#pragma warning(pop)
 }
 
-namespace GS {
-	class VertexBuffer {
+namespace GS
+{
+	class VertexBuffer
+	{
 		public:
-			virtual ~VertexBuffer();
+		virtual ~VertexBuffer();
 
 		/*!
 		* \brief Create a Vertex Buffer with a specific number of Vertices.
@@ -46,7 +48,7 @@ namespace GS {
 		*
 		* \param maximumVertices Maximum amount of vertices to store.
 		*/
-		VertexBuffer() : VertexBuffer(MAXIMUM_VERTICES) {};
+		VertexBuffer() : VertexBuffer(MAXIMUM_VERTICES){};
 
 		/*!
 		* \brief Create a copy of a Vertex Buffer
@@ -56,8 +58,7 @@ namespace GS {
 		*/
 		VertexBuffer(gs_vertbuffer_t* other);
 
-	
-			// Copy Constructor & Assignments
+		// Copy Constructor & Assignments
 
 		/*!
 		* \brief Copy Constructor
@@ -92,8 +93,6 @@ namespace GS {
 		* \param other
 		*/
 		void operator=(VertexBuffer const&& other);
-			
-
 
 		void Resize(uint32_t new_size);
 
@@ -149,25 +148,25 @@ namespace GS {
 		*/
 		vec4* GetUVLayer(size_t idx);
 
-			gs_vertbuffer_t* Update();
+		gs_vertbuffer_t* Update();
 
 		gs_vertbuffer_t* Update(bool refreshGPU);
-	
+
 		private:
 		uint32_t m_size;
 		uint32_t m_capacity;
 		uint32_t m_layers;
 
 		// Memory Storage
-		vec3 *m_positions;
-		vec3 *m_normals;
-		vec3 *m_tangents;
-		uint32_t *m_colors;
-		vec4 *m_uvs[MAXIMUM_UVW_LAYERS];
+		vec3*     m_positions;
+		vec3*     m_normals;
+		vec3*     m_tangents;
+		uint32_t* m_colors;
+		vec4*     m_uvs[MAXIMUM_UVW_LAYERS];
 
 		// OBS GS Data
-		gs_vb_data* m_vertexbufferdata;
+		gs_vb_data*      m_vertexbufferdata;
 		gs_vertbuffer_t* m_vertexbuffer;
-		gs_tvertarray* m_layerdata;
+		gs_tvertarray*   m_layerdata;
 	};
-}
+} // namespace GS

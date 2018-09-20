@@ -5,12 +5,12 @@
 #ifdef _WIN32
 #define _WIN32_WINNT 0x0502
 
-#include "nodeobs_content.h"
+#include <ShlObj.h>
+#include <codecvt>
+#include <locale>
 #include <mutex>
 #include <string>
-#include <ShlObj.h>
-#include <locale>
-#include <codecvt>
+#include "nodeobs_content.h"
 #endif
 
 #ifdef _MSC_VER
@@ -20,60 +20,69 @@
 
 #define WIN32_LEAN_AND_MEAN
 
-#include <mmdeviceapi.h>
 #include <audiopolicy.h>
+#include <mmdeviceapi.h>
 
-#include <util/windows/WinHandle.hpp>
-#include <util/windows/HRError.hpp>
 #include <util/windows/ComPtr.hpp>
+#include <util/windows/HRError.hpp>
+#include <util/windows/WinHandle.hpp>
 
 #include "error.hpp"
 #include "shared.hpp"
 
-
-std::string appdata_path;
-vector<pair<obs_module_t *, int>> listModules;
-os_cpu_usage_info_t *cpuUsageInfo = nullptr;
-uint64_t lastBytesSent = 0;
-uint64_t lastBytesSentTime = 0;
-std::string pathConfigDirectory;
-std::string OBS_pathConfigDirectory;
-std::string OBS_currentProfile;
-std::string OBS_currentSceneCollection;
-bool useOBS_configFiles = false;
-bool isOBS_installedValue;
+std::string                                            appdata_path;
+vector<pair<obs_module_t*, int>>                       listModules;
+os_cpu_usage_info_t*                                   cpuUsageInfo      = nullptr;
+uint64_t                                               lastBytesSent     = 0;
+uint64_t                                               lastBytesSentTime = 0;
+std::string                                            pathConfigDirectory;
+std::string                                            OBS_pathConfigDirectory;
+std::string                                            OBS_currentProfile;
+std::string                                            OBS_currentSceneCollection;
+bool                                                   useOBS_configFiles = false;
+bool                                                   isOBS_installedValue;
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 
 std::string g_moduleDirectory = "";
 
-void OBS_API::Register(ipc::server& srv) {
+void OBS_API::Register(ipc::server& srv)
+{
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("API");
 
-	cls->register_function(std::make_shared<ipc::function>("OBS_API_initAPI", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, OBS_API_initAPI));
-	cls->register_function(std::make_shared<ipc::function>("OBS_API_destroyOBS_API", std::vector<ipc::type>{}, OBS_API_destroyOBS_API));
-	cls->register_function(std::make_shared<ipc::function>("OBS_API_getPerformanceStatistics", std::vector<ipc::type>{}, OBS_API_getPerformanceStatistics));
-	cls->register_function(std::make_shared<ipc::function>("OBS_API_getOBS_existingProfiles", std::vector<ipc::type>{}, OBS_API_getOBS_existingProfiles));
-	cls->register_function(std::make_shared<ipc::function>("OBS_API_getOBS_existingSceneCollections", std::vector<ipc::type>{}, OBS_API_getOBS_existingSceneCollections));
-	cls->register_function(std::make_shared<ipc::function>("OBS_API_isOBS_installed", std::vector<ipc::type>{}, OBS_API_isOBS_installed));
-	cls->register_function(std::make_shared<ipc::function>("SetWorkingDirectory", std::vector<ipc::type>{ipc::type::String}, SetWorkingDirectory));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_API_initAPI", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, OBS_API_initAPI));
+	cls->register_function(
+	    std::make_shared<ipc::function>("OBS_API_destroyOBS_API", std::vector<ipc::type>{}, OBS_API_destroyOBS_API));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_API_getPerformanceStatistics", std::vector<ipc::type>{}, OBS_API_getPerformanceStatistics));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_API_getOBS_existingProfiles", std::vector<ipc::type>{}, OBS_API_getOBS_existingProfiles));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_API_getOBS_existingSceneCollections", std::vector<ipc::type>{}, OBS_API_getOBS_existingSceneCollections));
+	cls->register_function(
+	    std::make_shared<ipc::function>("OBS_API_isOBS_installed", std::vector<ipc::type>{}, OBS_API_isOBS_installed));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetWorkingDirectory", std::vector<ipc::type>{ipc::type::String}, SetWorkingDirectory));
 
 	srv.register_collection(cls);
 }
 
-void replaceAll(std::string &str, const std::string &from,
-	const std::string &to)
+void replaceAll(std::string& str, const std::string& from, const std::string& to)
 {
 	if (from.empty())
 		return;
 	size_t start_pos = 0;
 	while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
 		str.replace(start_pos, from.length(), to);
-		start_pos +=
-			to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
+		start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
 	}
 };
 
-void OBS_API::SetWorkingDirectory(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
+void OBS_API::SetWorkingDirectory(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
 {
 	g_moduleDirectory = args[0].value_str;
 	replaceAll(g_moduleDirectory, "\\", "/");
@@ -82,7 +91,8 @@ void OBS_API::SetWorkingDirectory(void* data, const int64_t id, const std::vecto
 	AUTO_DEBUG;
 }
 
-std::string	OBS_API::getModuleDirectory(void) {
+std::string OBS_API::getModuleDirectory(void)
+{
 	return g_moduleDirectory;
 }
 
@@ -99,26 +109,29 @@ static bool dirExists(const std::string& path)
 	return false;
 }
 
-static string GenerateTimeDateFilename(const char *extension)
+static string GenerateTimeDateFilename(const char* extension)
 {
-	time_t    now = time(0);
-	char      file[256] = {};
-	struct tm *cur_time;
+	time_t     now       = time(0);
+	char       file[256] = {};
+	struct tm* cur_time;
 
 	cur_time = localtime(&now);
-	snprintf(file, sizeof(file), "%d-%02d-%02d %02d-%02d-%02d.%s",
-		cur_time->tm_year + 1900,
-		cur_time->tm_mon + 1,
-		cur_time->tm_mday,
-		cur_time->tm_hour,
-		cur_time->tm_min,
-		cur_time->tm_sec,
-		extension);
+	snprintf(
+	    file,
+	    sizeof(file),
+	    "%d-%02d-%02d %02d-%02d-%02d.%s",
+	    cur_time->tm_year + 1900,
+	    cur_time->tm_mon + 1,
+	    cur_time->tm_mday,
+	    cur_time->tm_hour,
+	    cur_time->tm_min,
+	    cur_time->tm_sec,
+	    extension);
 
 	return string(file);
 }
 
-static bool GetToken(lexer *lex, string &str, base_token_type type)
+static bool GetToken(lexer* lex, string& str, base_token_type type)
 {
 	base_token token;
 	if (!lexer_getbasetoken(lex, &token, IGNORE_WHITESPACE))
@@ -130,7 +143,7 @@ static bool GetToken(lexer *lex, string &str, base_token_type type)
 	return true;
 }
 
-static bool ExpectToken(lexer *lex, const char *str, base_token_type type)
+static bool ExpectToken(lexer* lex, const char* str, base_token_type type)
 {
 	base_token token;
 	if (!lexer_getbasetoken(lex, &token, IGNORE_WHITESPACE))
@@ -145,24 +158,34 @@ static bool ExpectToken(lexer *lex, const char *str, base_token_type type)
 * Perhaps a better cross-platform solution can take
 * place but this is as cross-platform as it gets
 * for right now.  */
-static uint64_t ConvertLogName(const char *name)
+static uint64_t ConvertLogName(const char* name)
 {
 	lexer  lex;
-	string     year, month, day, hour, minute, second;
+	string year, month, day, hour, minute, second;
 
 	lexer_init(&lex);
 	lexer_start(&lex, name);
 
-	if (!GetToken(&lex, year, BASETOKEN_DIGIT)) return 0;
-	if (!ExpectToken(&lex, "-", BASETOKEN_OTHER)) return 0;
-	if (!GetToken(&lex, month, BASETOKEN_DIGIT)) return 0;
-	if (!ExpectToken(&lex, "-", BASETOKEN_OTHER)) return 0;
-	if (!GetToken(&lex, day, BASETOKEN_DIGIT)) return 0;
-	if (!GetToken(&lex, hour, BASETOKEN_DIGIT)) return 0;
-	if (!ExpectToken(&lex, "-", BASETOKEN_OTHER)) return 0;
-	if (!GetToken(&lex, minute, BASETOKEN_DIGIT)) return 0;
-	if (!ExpectToken(&lex, "-", BASETOKEN_OTHER)) return 0;
-	if (!GetToken(&lex, second, BASETOKEN_DIGIT)) return 0;
+	if (!GetToken(&lex, year, BASETOKEN_DIGIT))
+		return 0;
+	if (!ExpectToken(&lex, "-", BASETOKEN_OTHER))
+		return 0;
+	if (!GetToken(&lex, month, BASETOKEN_DIGIT))
+		return 0;
+	if (!ExpectToken(&lex, "-", BASETOKEN_OTHER))
+		return 0;
+	if (!GetToken(&lex, day, BASETOKEN_DIGIT))
+		return 0;
+	if (!GetToken(&lex, hour, BASETOKEN_DIGIT))
+		return 0;
+	if (!ExpectToken(&lex, "-", BASETOKEN_OTHER))
+		return 0;
+	if (!GetToken(&lex, minute, BASETOKEN_DIGIT))
+		return 0;
+	if (!ExpectToken(&lex, "-", BASETOKEN_OTHER))
+		return 0;
+	if (!GetToken(&lex, second, BASETOKEN_DIGIT))
+		return 0;
 
 	std::string timestring(year);
 	timestring += month + day + hour + minute + second;
@@ -170,13 +193,13 @@ static uint64_t ConvertLogName(const char *name)
 	return std::stoull(timestring);
 }
 
-static void DeleteOldestFile(const char *location, unsigned maxLogs)
+static void DeleteOldestFile(const char* location, unsigned maxLogs)
 {
-	string           oldestLog;
-	uint64_t         oldest_ts = (uint64_t)-1;
-	struct os_dirent *entry;
+	string            oldestLog;
+	uint64_t          oldest_ts = (uint64_t)-1;
+	struct os_dirent* entry;
 
-	os_dir_t *dir = os_opendir(location);
+	os_dir_t* dir = os_opendir(location);
 
 	if (!dir) {
 		std::cout << "Failed to open log directory." << std::endl;
@@ -221,19 +244,21 @@ static void DeleteOldestFile(const char *location, unsigned maxLogs)
 #include <unistd.h>
 #endif
 
-inline std::string nodeobs_log_formatted_message(const char* format, va_list& args) {
-	size_t length = _vscprintf(format, args);
-	std::vector<char> buf = std::vector<char>(length + 1, '\0');
-	size_t written = vsprintf_s(buf.data(), buf.size(), format, args);
+inline std::string nodeobs_log_formatted_message(const char* format, va_list& args)
+{
+	size_t            length  = _vscprintf(format, args);
+	std::vector<char> buf     = std::vector<char>(length + 1, '\0');
+	size_t            written = vsprintf_s(buf.data(), buf.size(), format, args);
 	return std::string(buf.begin(), buf.begin() + length);
 }
 
-std::chrono::high_resolution_clock hrc;
+std::chrono::high_resolution_clock             hrc;
 std::chrono::high_resolution_clock::time_point tp = std::chrono::high_resolution_clock::now();
-static void node_obs_log(int log_level, const char *msg, va_list args, void *param) {
+static void                                    node_obs_log(int log_level, const char* msg, va_list args, void* param)
+{
 	// Calculate log time.
 	auto timeSinceStart = (std::chrono::high_resolution_clock::now() - tp);
-	auto days = std::chrono::duration_cast<std::chrono::duration<int, ratio<86400>>>(timeSinceStart);
+	auto days           = std::chrono::duration_cast<std::chrono::duration<int, ratio<86400>>>(timeSinceStart);
 	timeSinceStart -= days;
 	auto hours = std::chrono::duration_cast<std::chrono::hours>(timeSinceStart);
 	timeSinceStart -= hours;
@@ -266,43 +291,39 @@ static void node_obs_log(int log_level, const char *msg, va_list args, void *par
 	default:
 		if (log_level <= 50) {
 			levelname = "Critical";
-		}
-		else if (log_level > 50 && log_level < LOG_ERROR) {
+		} else if (log_level > 50 && log_level < LOG_ERROR) {
 			levelname = "Error";
-		}
-		else if (log_level > LOG_ERROR && log_level < LOG_WARNING) {
+		} else if (log_level > LOG_ERROR && log_level < LOG_WARNING) {
 			levelname = "Alert";
-		}
-		else if (log_level > LOG_WARNING && log_level < LOG_INFO) {
+		} else if (log_level > LOG_WARNING && log_level < LOG_INFO) {
 			levelname = "Hint";
-		}
-		else if (log_level > LOG_INFO) {
+		} else if (log_level > LOG_INFO) {
 			levelname = "Notice";
 		}
 		break;
 	}
 
 	std::vector<char> timebuf(65535, '\0');
-	std::string timeformat = "[%.3d:%.2d:%.2d:%.2d.%.3d.%.3d.%.3d][%*s]";// "%*s";
-	int length = sprintf_s(
-		timebuf.data(),
-		timebuf.size(),
-		timeformat.c_str(),
-		days.count(),
-		hours.count(),
-		minutes.count(),
-		seconds.count(),
-		milliseconds.count(),
-		microseconds.count(),
-		nanoseconds.count(),
-		levelname.length(), levelname.c_str());
+	std::string       timeformat = "[%.3d:%.2d:%.2d:%.2d.%.3d.%.3d.%.3d][%*s]"; // "%*s";
+	int               length     = sprintf_s(
+        timebuf.data(),
+        timebuf.size(),
+        timeformat.c_str(),
+        days.count(),
+        hours.count(),
+        minutes.count(),
+        seconds.count(),
+        milliseconds.count(),
+        microseconds.count(),
+        nanoseconds.count(),
+        levelname.length(),
+        levelname.c_str());
 	std::string time_and_level = std::string(timebuf.data(), length);
 
 	// Format incoming text
 	std::string text = nodeobs_log_formatted_message(msg, args);
 
-
-	std::fstream *logStream = reinterpret_cast<std::fstream*>(param);
+	std::fstream* logStream = reinterpret_cast<std::fstream*>(param);
 
 	// Split by \n (new-line)
 	size_t last_valid_idx = 0;
@@ -310,7 +331,7 @@ static void node_obs_log(int log_level, const char *msg, va_list args, void *par
 		char& ch = text[idx];
 		if ((ch == '\n') || (idx == text.length())) {
 			std::string newmsg = time_and_level + " " + std::string(&text[last_valid_idx], idx - last_valid_idx) + '\n';
-			last_valid_idx = idx + 1;
+			last_valid_idx     = idx + 1;
 
 			// File Log
 			*logStream << newmsg << std::flush;
@@ -324,20 +345,18 @@ static void node_obs_log(int log_level, const char *msg, va_list args, void *par
 			}
 			fwrite(newmsg.data(), sizeof(char), newmsg.length(), stdout);
 
-
 			// Debugger
 #ifdef _WIN32
 			if (IsDebuggerPresent()) {
 				int wNum = MultiByteToWideChar(CP_UTF8, 0, newmsg.c_str(), -1, NULL, 0);
 				if (wNum > 1) {
 					std::wstring wide_buf;
-					std::mutex wide_mutex;
+					std::mutex   wide_mutex;
 
 					lock_guard<mutex> lock(wide_mutex);
 					wide_buf.reserve(wNum + 1);
 					wide_buf.resize(wNum - 1);
-					MultiByteToWideChar(CP_UTF8, 0, newmsg.c_str(), -1, &wide_buf[0],
-						wNum);
+					MultiByteToWideChar(CP_UTF8, 0, newmsg.c_str(), -1, &wide_buf[0], wNum);
 
 					OutputDebugStringW(wide_buf.c_str());
 				}
@@ -353,7 +372,12 @@ static void node_obs_log(int log_level, const char *msg, va_list args, void *par
 #endif
 }
 
-void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+void OBS_API::OBS_API_initAPI(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
 	/* Map base DLLs as soon as possible into the current process space.
 	* In particular, we need to load obs.dll into memory before we call
 	* any functions from obs else if we delay-loaded the dll, it will
@@ -368,35 +392,19 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 	* as well. You can call dlopen with RTLD_GLOBAL
 	* Order matters here. Loading a library out of order
 	* will cause a failure to resolve dependencies. */
-	static const char *g_modules[] = {
-		"zlib.dll",
-		"libopus-0.dll",
-		"libogg-0.dll",
-		"libvorbis-0.dll",
-		"libvorbisenc-2.dll",
-		"libvpx-1.dll",
-		"libx264-152.dll",
-		"avutil-55.dll",
-		"swscale-4.dll",
-		"swresample-2.dll",
-		"avcodec-57.dll",
-		"avformat-57.dll",
-		"avfilter-6.dll",
-		"avdevice-57.dll",
-		"libcurl.dll",
-		"libvorbisfile-3.dll",
-		"w32-pthreads.dll",
-		"obsglad.dll",
-		"obs.dll",
-		"libobs-d3d11.dll",
-		"libobs-opengl.dll"
-	};
+	static const char* g_modules[] = {
+	    "zlib.dll",           "libopus-0.dll",    "libogg-0.dll",    "libvorbis-0.dll",
+	    "libvorbisenc-2.dll", "libvpx-1.dll",     "libx264-152.dll", "avutil-55.dll",
+	    "swscale-4.dll",      "swresample-2.dll", "avcodec-57.dll",  "avformat-57.dll",
+	    "avfilter-6.dll",     "avdevice-57.dll",  "libcurl.dll",     "libvorbisfile-3.dll",
+	    "w32-pthreads.dll",   "obsglad.dll",      "obs.dll",         "libobs-d3d11.dll",
+	    "libobs-opengl.dll"};
 
 	static const int g_modules_size = sizeof(g_modules) / sizeof(g_modules[0]);
 
 	for (int i = 0; i < g_modules_size; ++i) {
 		std::string module_path;
-		void *handle = NULL;
+		void*       handle = NULL;
 
 		module_path.reserve(pathOBS.size() + strlen(g_modules[i]) + 1);
 		module_path.append(pathOBS);
@@ -418,7 +426,7 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 		* out the application */
 	}
 	pathConfigDirectory = args[0].value_str.c_str();
-	appdata_path = args[0].value_str.c_str();
+	appdata_path        = args[0].value_str.c_str();
 	appdata_path += "/node-obs/";
 
 	/* libobs will use three methods of finding data files:
@@ -447,16 +455,9 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 	log_path.append(filename);
 
 #if defined(_WIN32) && defined(UNICODE)
-	fstream *logfile = new fstream(
-		converter.from_bytes(log_path.c_str()).c_str(),
-		ios_base::out |
-		ios_base::trunc
-	);
+	fstream* logfile = new fstream(converter.from_bytes(log_path.c_str()).c_str(), ios_base::out | ios_base::trunc);
 #else
-	fstream *logfile = new fstream(
-		log_path,
-		ios_base::out | ios_base::trunc
-	);
+	fstream* logfile = new fstream(log_path, ios_base::out | ios_base::trunc);
 #endif
 
 	if (!logfile) {
@@ -478,15 +479,15 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 
 	//Setting obs-studio config directory
 	char path[512];
-	int ret = os_get_config_path(path, 512, "obs-studio");
+	int  ret = os_get_config_path(path, 512, "obs-studio");
 
 	if (ret > 0) {
 		OBS_pathConfigDirectory = path;
 	}
 
 	std::string profiles = OBS_pathConfigDirectory + "\\basic\\profiles";
-	std::string scenes = OBS_pathConfigDirectory + "\\basic\\scenes";
-	
+	std::string scenes   = OBS_pathConfigDirectory + "\\basic\\scenes";
+
 	/* Profiling */
 	//profiler_start();
 
@@ -522,7 +523,12 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 	AUTO_DEBUG;
 }
 
-void OBS_API::OBS_API_destroyOBS_API(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+void OBS_API::OBS_API_destroyOBS_API(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
 	/* INJECT osn::Source::Manager */
 	// Alright, you're probably wondering: Why is osn code here?
 	// Well, simply because the hooks need to run as soon as possible. We don't
@@ -535,14 +541,19 @@ void OBS_API::OBS_API_destroyOBS_API(void* data, const int64_t id, const std::ve
 	AUTO_DEBUG;
 }
 
-void OBS_API::OBS_API_getPerformanceStatistics(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+void OBS_API::OBS_API_getPerformanceStatistics(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
-	double percentage = getCPU_Percentage();
-	int numberOfDroppedFrames = getNumberOfDroppedFrames();
+	double percentage              = getCPU_Percentage();
+	int    numberOfDroppedFrames   = getNumberOfDroppedFrames();
 	double droppedFramesPercentage = getDroppedFramesPercentage();
-	double bandwidth = getCurrentBandwidth();
-	double frameRate = getCurrentFrameRate();
+	double bandwidth               = getCurrentBandwidth();
+	double frameRate               = getCurrentFrameRate();
 
 	rval.push_back(ipc::value(percentage));
 	rval.push_back(ipc::value(numberOfDroppedFrames));
@@ -552,7 +563,12 @@ void OBS_API::OBS_API_getPerformanceStatistics(void* data, const int64_t id, con
 	AUTO_DEBUG;
 }
 
-void OBS_API::OBS_API_getOBS_existingProfiles(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+void OBS_API::OBS_API_getOBS_existingProfiles(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
 	std::string pathProfiles;
 	pathProfiles += OBS_pathConfigDirectory;
 	pathProfiles += "\\basic\\profiles\\";
@@ -562,31 +578,33 @@ void OBS_API::OBS_API_getOBS_existingProfiles(void* data, const int64_t id, cons
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint32_t)existingProfiles.size()));
 
-	for (int i = 0; i<existingProfiles.size(); i++) {
+	for (int i = 0; i < existingProfiles.size(); i++) {
 		rval.push_back(ipc::value(existingProfiles.at(i).c_str()));
 	}
 	AUTO_DEBUG;
 }
 
-void OBS_API::OBS_API_getOBS_existingSceneCollections(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+void OBS_API::OBS_API_getOBS_existingSceneCollections(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
 	std::string pathSceneCollections;
 	pathSceneCollections += OBS_pathConfigDirectory;
 	pathSceneCollections += "\\basic\\scenes\\";
 
-	std::vector<std::string> existingSceneCollections =
-		exploreDirectory(pathSceneCollections, "files");
+	std::vector<std::string> existingSceneCollections = exploreDirectory(pathSceneCollections, "files");
 
 	int indexArray = 0;
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint32_t)existingSceneCollections.size()));
 
-	for (int i = 0; i<existingSceneCollections.size(); i++) {
-		if (existingSceneCollections.at(i).
-			substr(existingSceneCollections.at(i).find_last_of(".") + 1) == "json") {
-
-			existingSceneCollections.at(i).erase(existingSceneCollections.at(i).end() - 5,
-				existingSceneCollections.at(i).end());
+	for (int i = 0; i < existingSceneCollections.size(); i++) {
+		if (existingSceneCollections.at(i).substr(existingSceneCollections.at(i).find_last_of(".") + 1) == "json") {
+			existingSceneCollections.at(i).erase(
+			    existingSceneCollections.at(i).end() - 5, existingSceneCollections.at(i).end());
 
 			rval.push_back(ipc::value(existingSceneCollections.at(i).c_str()));
 		}
@@ -594,13 +612,18 @@ void OBS_API::OBS_API_getOBS_existingSceneCollections(void* data, const int64_t 
 	AUTO_DEBUG;
 }
 
-void OBS_API::OBS_API_isOBS_installed(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+void OBS_API::OBS_API_isOBS_installed(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((bool)isOBS_installed()));
 	AUTO_DEBUG;
 }
 
-void OBS_API::SetProcessPriority(const char *priority)
+void OBS_API::SetProcessPriority(const char* priority)
 {
 	if (!priority)
 		return;
@@ -620,10 +643,9 @@ void OBS_API::SetProcessPriority(const char *priority)
 void OBS_API::UpdateProcessPriority()
 {
 	std::string globalConfigFile = OBS_API::getGlobalConfigPath();
-	config_t* globalConfig = OBS_API::openConfigFile(globalConfigFile);
+	config_t*   globalConfig     = OBS_API::openConfigFile(globalConfigFile);
 
-	const char *priority = config_get_string(globalConfig,
-		"General", "ProcessPriority");
+	const char* priority = config_get_string(globalConfig, "General", "ProcessPriority");
 	if (priority && strcmp(priority, "Normal") != 0)
 		SetProcessPriority(priority);
 }
@@ -636,10 +658,8 @@ bool DisableAudioDucking(bool disable)
 	ComPtr<IAudioSessionControl>  sessionControl;
 	ComPtr<IAudioSessionControl2> sessionControl2;
 
-	HRESULT result = CoCreateInstance(__uuidof(MMDeviceEnumerator),
-		nullptr, CLSCTX_INPROC_SERVER,
-		__uuidof(IMMDeviceEnumerator),
-		(void **)&devEmum);
+	HRESULT result = CoCreateInstance(
+	    __uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER, __uuidof(IMMDeviceEnumerator), (void**)&devEmum);
 	if (FAILED(result))
 		return false;
 
@@ -647,14 +667,11 @@ bool DisableAudioDucking(bool disable)
 	if (FAILED(result))
 		return false;
 
-	result = device->Activate(__uuidof(IAudioSessionManager2),
-		CLSCTX_INPROC_SERVER, nullptr,
-		(void **)&sessionManager2);
+	result = device->Activate(__uuidof(IAudioSessionManager2), CLSCTX_INPROC_SERVER, nullptr, (void**)&sessionManager2);
 	if (FAILED(result))
 		return false;
 
-	result = sessionManager2->GetAudioSessionControl(nullptr, 0,
-		&sessionControl);
+	result = sessionManager2->GetAudioSessionControl(nullptr, 0, &sessionControl);
 	if (FAILED(result))
 		return false;
 
@@ -671,26 +688,22 @@ void OBS_API::setAudioDeviceMonitoring(void)
 	/* load audio monitoring */
 #if defined(_WIN32) || defined(__APPLE__)
 	std::string basicConfigFile = OBS_API::getBasicConfigPath();
-	config_t* config = OBS_API::openConfigFile(basicConfigFile);
+	config_t*   config          = OBS_API::openConfigFile(basicConfigFile);
 
-	const char *device_name = config_get_string(config, "Audio",
-		"MonitoringDeviceName");
-	const char *device_id = config_get_string(config, "Audio",
-		"MonitoringDeviceId");
+	const char* device_name = config_get_string(config, "Audio", "MonitoringDeviceName");
+	const char* device_id   = config_get_string(config, "Audio", "MonitoringDeviceId");
 
 	obs_set_audio_monitoring_device(device_name, device_id);
 
-	blog(LOG_INFO, "Audio monitoring device:\n\tname: %s\n\tid: %s",
-		device_name, device_id);
+	blog(LOG_INFO, "Audio monitoring device:\n\tname: %s\n\tid: %s", device_name, device_id);
 
-	bool disableAudioDucking = config_get_bool(config, "Audio",
-		"DisableAudioDucking");
+	bool disableAudioDucking = config_get_bool(config, "Audio", "DisableAudioDucking");
 	if (disableAudioDucking)
 		DisableAudioDucking(true);
 #endif
 }
 
-static void SaveProfilerData(const profiler_snapshot_t *snap)
+static void SaveProfilerData(const profiler_snapshot_t* snap)
 {
 	string dst(appdata_path);
 	dst.append("profiler_data/");
@@ -702,19 +715,18 @@ static void SaveProfilerData(const profiler_snapshot_t *snap)
 	dst.append(GenerateTimeDateFilename("csv.gz"));
 
 	if (!profiler_snapshot_dump_csv_gz(snap, dst.c_str()))
-		blog(LOG_WARNING, "Could not save profiler data to '%s'",
-			dst.c_str());
+		blog(LOG_WARNING, "Could not save profiler data to '%s'", dst.c_str());
 }
 
-void OBS_API::destroyOBS_API(void) {
+void OBS_API::destroyOBS_API(void)
+{
 	os_cpu_usage_info_destroy(cpuUsageInfo);
 
 #ifdef _WIN32
 	std::string basicConfigFile = OBS_API::getBasicConfigPath();
-	config_t* config = OBS_API::openConfigFile(basicConfigFile);
+	config_t*   config          = OBS_API::openConfigFile(basicConfigFile);
 
-	bool disableAudioDucking = config_get_bool(config, "Audio",
-		"DisableAudioDucking");
+	bool disableAudioDucking = config_get_bool(config, "Audio", "DisableAudioDucking");
 	if (disableAudioDucking)
 		DisableAudioDucking(false);
 #endif
@@ -758,25 +770,34 @@ void OBS_API::destroyOBS_API(void) {
 	profiler_free();*/
 }
 
-struct ci_char_traits : public char_traits<char> {
-	static bool eq(char c1, char c2) {
+struct ci_char_traits : public char_traits<char>
+{
+	static bool eq(char c1, char c2)
+	{
 		return toupper(c1) == toupper(c2);
 	}
-	static bool ne(char c1, char c2) {
+	static bool ne(char c1, char c2)
+	{
 		return toupper(c1) != toupper(c2);
 	}
-	static bool lt(char c1, char c2) {
+	static bool lt(char c1, char c2)
+	{
 		return toupper(c1) < toupper(c2);
 	}
-	static int compare(const char* s1, const char* s2, size_t n) {
+	static int compare(const char* s1, const char* s2, size_t n)
+	{
 		while (n-- != 0) {
-			if (toupper(*s1) < toupper(*s2)) return -1;
-			if (toupper(*s1) > toupper(*s2)) return 1;
-			++s1; ++s2;
+			if (toupper(*s1) < toupper(*s2))
+				return -1;
+			if (toupper(*s1) > toupper(*s2))
+				return 1;
+			++s1;
+			++s2;
 		}
 		return 0;
 	}
-	static const char* find(const char* s, int n, char a) {
+	static const char* find(const char* s, int n, char a)
+	{
 		while (n-- > 0 && toupper(*s) != toupper(a)) {
 			++s;
 		}
@@ -788,24 +809,19 @@ typedef std::basic_string<char, ci_char_traits> istring;
 
 /* This should be reusable outside of node-obs, especially
 * if we go a server/client route. */
-void OBS_API::openAllModules(void) {
+void OBS_API::openAllModules(void)
+{
 	OBS_service::resetVideoContext(NULL);
 
-	std::string plugins_paths[] = {
-		g_moduleDirectory + "/obs-plugins/64bit",
-		g_moduleDirectory + "/obs-plugins"
-	};
+	std::string plugins_paths[] = {g_moduleDirectory + "/obs-plugins/64bit", g_moduleDirectory + "/obs-plugins"};
 
-	std::string plugins_data_paths[] = {
-		g_moduleDirectory + "/data/obs-plugins",
-		plugins_data_paths[0]
-	};
+	std::string plugins_data_paths[] = {g_moduleDirectory + "/data/obs-plugins", plugins_data_paths[0]};
 
 	size_t num_paths = sizeof(plugins_paths) / sizeof(plugins_paths[0]);
 
 	for (int i = 0; i < num_paths; ++i) {
-		std::string &plugins_path = plugins_paths[i];
-		std::string &plugins_data_path = plugins_data_paths[i];
+		std::string& plugins_path      = plugins_paths[i];
+		std::string& plugins_data_path = plugins_data_paths[i];
 
 		/* FIXME Plugins could be in individual folders, maybe
 		* with some metainfo so we don't attempt just any
@@ -825,7 +841,7 @@ void OBS_API::openAllModules(void) {
 			std::string fullname = ent->d_name;
 			std::string basename = fullname.substr(0, fullname.find_last_of('.'));
 
-			std::string plugin_path = plugins_path + "/" + fullname;
+			std::string plugin_path      = plugins_path + "/" + fullname;
 			std::string plugin_data_path = plugins_data_path + "/" + basename;
 			if (ent->directory) {
 				continue;
@@ -837,8 +853,8 @@ void OBS_API::openAllModules(void) {
 			}
 #endif
 
-			obs_module_t *module;
-			int result = obs_open_module(&module, plugin_path.c_str(), plugin_data_path.c_str());
+			obs_module_t* module;
+			int           result = obs_open_module(&module, plugin_path.c_str(), plugin_data_path.c_str());
 
 			switch (result) {
 			case MODULE_SUCCESS:
@@ -888,8 +904,7 @@ int OBS_API::getNumberOfDroppedFrames(void)
 
 	int totalDropped = 0;
 
-	if (obs_output_active(streamOutput))
-	{
+	if (obs_output_active(streamOutput)) {
 		totalDropped = obs_output_get_frames_dropped(streamOutput);
 	}
 
@@ -902,11 +917,10 @@ double OBS_API::getDroppedFramesPercentage(void)
 
 	double percent = 0;
 
-	if (obs_output_active(streamOutput))
-	{
+	if (obs_output_active(streamOutput)) {
 		int totalDropped = obs_output_get_frames_dropped(streamOutput);
-		int totalFrames = obs_output_get_total_frames(streamOutput);
-		percent = (double)totalDropped / (double)totalFrames * 100.0;
+		int totalFrames  = obs_output_get_total_frames(streamOutput);
+		percent          = (double)totalDropped / (double)totalFrames * 100.0;
 	}
 
 	return percent;
@@ -918,9 +932,8 @@ double OBS_API::getCurrentBandwidth(void)
 
 	double kbitsPerSec = 0;
 
-	if (obs_output_active(streamOutput))
-	{
-		uint64_t bytesSent = obs_output_get_total_bytes(streamOutput);
+	if (obs_output_active(streamOutput)) {
+		uint64_t bytesSent     = obs_output_get_total_bytes(streamOutput);
 		uint64_t bytesSentTime = os_gettime_ns();
 
 		if (bytesSent < lastBytesSent)
@@ -930,12 +943,11 @@ double OBS_API::getCurrentBandwidth(void)
 
 		uint64_t bitsBetween = (bytesSent - lastBytesSent) * 8;
 
-		double timePassed = double(bytesSentTime - lastBytesSentTime) /
-			1000000000.0;
+		double timePassed = double(bytesSentTime - lastBytesSentTime) / 1000000000.0;
 
 		kbitsPerSec = double(bitsBetween) / timePassed / 1000.0;
 
-		lastBytesSent = bytesSent;
+		lastBytesSent     = bytesSent;
 		lastBytesSentTime = bytesSentTime;
 	}
 
@@ -954,8 +966,7 @@ std::string OBS_API::getPathConfigDirectory(void)
 
 void OBS_API::setPathConfigDirectory(std::string newPathConfigDirectory)
 {
-	if (!newPathConfigDirectory.empty() && !useOBS_configFiles)
-	{
+	if (!newPathConfigDirectory.empty() && !useOBS_configFiles) {
 		pathConfigDirectory = newPathConfigDirectory;
 	}
 }
@@ -969,27 +980,25 @@ std::vector<std::string> OBS_API::exploreDirectory(std::string directory, std::s
 	// Get the current directory so we can return to it
 	_getcwd(originalDirectory, _MAX_PATH);
 
-	_chdir(directory.c_str());  // Change to the working directory
+	_chdir(directory.c_str()); // Change to the working directory
 	_finddata_t fileinfo;
 
 	// This will grab the first file in the directory
 	// "*" can be changed if you only want to look for specific files
 	intptr_t handle = _findfirst("*", &fileinfo);
 
-	if (handle == -1)  // No files or directories found
+	if (handle == -1) // No files or directories found
 	{
 		perror("Error searching for file");
 		exit(1);
 	}
 
-	do
-	{
+	do {
 		if (strcmp(fileinfo.name, ".") == 0 || strcmp(fileinfo.name, "..") == 0)
 			continue;
 		if (fileinfo.attrib & _A_SUBDIR && typeToReturn.compare("directories") == 0) {
 			listElements.push_back(fileinfo.name);
-		}
-		else if (typeToReturn.compare("files") == 0) {
+		} else if (typeToReturn.compare("files") == 0) {
 			listElements.push_back(fileinfo.name);
 		}
 	} while (_findnext(handle, &fileinfo) == 0);
@@ -1026,20 +1035,16 @@ bool OBS_API::isOBS_configFilesUsed(void)
 	return useOBS_configFiles;
 }
 
-static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor,
-	HDC      hdcMonitor,
-	LPRECT   lprcMonitor,
-	LPARAM   dwData)
+static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData)
 {
 	MONITORINFO info;
 	info.cbSize = sizeof(info);
-	if (GetMonitorInfo(hMonitor, &info))
-	{
+	if (GetMonitorInfo(hMonitor, &info)) {
 		std::vector<Screen>* resolutions = reinterpret_cast<std::vector<Screen>*>(dwData);
 
 		Screen screen;
 
-		screen.width = std::abs(info.rcMonitor.left - info.rcMonitor.right);
+		screen.width  = std::abs(info.rcMonitor.left - info.rcMonitor.right);
 		screen.height = std::abs(info.rcMonitor.top - info.rcMonitor.bottom);
 
 		resolutions->push_back(screen);
@@ -1105,10 +1110,10 @@ std::string OBS_API::getContentConfigPath(void)
 
 	if (useOBS_configFiles && !OBS_currentSceneCollection.empty()) {
 		contentConfigPath += "\\basic\\scenes\\";
-		contentConfigPath += OBS_currentSceneCollection;;
+		contentConfigPath += OBS_currentSceneCollection;
+		;
 		contentConfigPath += ".json";
-	}
-	else {
+	} else {
 		contentConfigPath += "\\config.json";
 	}
 
@@ -1136,40 +1141,22 @@ static inline string GetDefaultVideoSavePath()
 	wchar_t path_utf16[MAX_PATH];
 	char    path_utf8[MAX_PATH] = {};
 
-	SHGetFolderPathW(NULL, CSIDL_MYVIDEO, NULL, SHGFP_TYPE_CURRENT,
-		path_utf16);
+	SHGetFolderPathW(NULL, CSIDL_MYVIDEO, NULL, SHGFP_TYPE_CURRENT, path_utf16);
 
 	os_wcs_to_utf8(path_utf16, wcslen(path_utf16), path_utf8, MAX_PATH);
 	return string(path_utf8);
 }
 
-static const double scaled_vals[] =
-{
-	1.0,
-	1.25,
-	(1.0 / 0.75),
-	1.5,
-	(1.0 / 0.6),
-	1.75,
-	2.0,
-	2.25,
-	2.5,
-	2.75,
-	3.0,
-	0.0
-};
+static const double scaled_vals[] = {1.0, 1.25, (1.0 / 0.75), 1.5, (1.0 / 0.6), 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 0.0};
 
 std::vector<std::pair<std::string, config_t*>> configFiles;
 
 config_t* OBS_API::openConfigFile(std::string configFile)
 {
-
 	std::vector<std::pair<std::string, config_t*>>::iterator it =
-		std::find_if(configFiles.begin(), configFiles.end(),
-			[&configFile](const pair<std::string, config_t*> value)
-	{
-		return (value.first.compare(configFile) == 0);
-	});
+	    std::find_if(configFiles.begin(), configFiles.end(), [&configFile](const pair<std::string, config_t*> value) {
+		    return (value.first.compare(configFile) == 0);
+	    });
 
 	// if(it == configFiles.end()) {
 	config_t* config;
@@ -1181,7 +1168,7 @@ config_t* OBS_API::openConfigFile(std::string configFile)
 		config_open(&config, configFile.c_str(), CONFIG_OPEN_EXISTING);
 	}
 
-	std::string basic = "basic.ini";
+	std::string basic     = "basic.ini";
 	std::string subString = configFile.substr(configFile.size() - basic.size(), basic.size()).c_str();
 
 	if (subString.compare(basic) == 0) {
@@ -1191,12 +1178,10 @@ config_t* OBS_API::openConfigFile(std::string configFile)
 
 		/* ----------------------------------------------------- */
 		/* move over mixer values in advanced if older config */
-		if (config_has_user_value(config, "AdvOut", "RecTrackIndex") &&
-			!config_has_user_value(config, "AdvOut", "RecTracks")) {
-
-			uint64_t track = config_get_uint(config, "AdvOut",
-				"RecTrackIndex");
-			track = 1ULL << (track - 1);
+		if (config_has_user_value(config, "AdvOut", "RecTrackIndex")
+		    && !config_has_user_value(config, "AdvOut", "RecTracks")) {
+			uint64_t track = config_get_uint(config, "AdvOut", "RecTrackIndex");
+			track          = 1ULL << (track - 1);
 			config_set_uint(config, "AdvOut", "RecTracks", track);
 			config_remove_value(config, "AdvOut", "RecTrackIndex");
 			config_save_safe(config, "tmp", nullptr);
@@ -1204,59 +1189,41 @@ config_t* OBS_API::openConfigFile(std::string configFile)
 
 		config_set_default_string(config, "Output", "Mode", "Simple");
 		std::string filePath = GetDefaultVideoSavePath();
-		config_set_default_string(config, "SimpleOutput", "FilePath",
-			filePath.c_str());
-		config_set_default_string(config, "SimpleOutput", "RecFormat",
-			"flv");
-		config_set_default_uint(config, "SimpleOutput", "VBitrate",
-			2500);
-		config_set_default_string(config, "SimpleOutput", "StreamEncoder",
-			SIMPLE_ENCODER_X264);
+		config_set_default_string(config, "SimpleOutput", "FilePath", filePath.c_str());
+		config_set_default_string(config, "SimpleOutput", "RecFormat", "flv");
+		config_set_default_uint(config, "SimpleOutput", "VBitrate", 2500);
+		config_set_default_string(config, "SimpleOutput", "StreamEncoder", SIMPLE_ENCODER_X264);
 		config_set_default_uint(config, "SimpleOutput", "ABitrate", 160);
-		config_set_default_bool(config, "SimpleOutput", "UseAdvanced",
-			false);
-		config_set_default_bool(config, "SimpleOutput", "EnforceBitrate",
-			true);
-		config_set_default_string(config, "SimpleOutput", "Preset",
-			"veryfast");
-		config_set_default_string(config, "SimpleOutput", "RecQuality",
-			"Stream");
-		config_set_default_string(config, "SimpleOutput", "RecEncoder",
-			SIMPLE_ENCODER_X264);
+		config_set_default_bool(config, "SimpleOutput", "UseAdvanced", false);
+		config_set_default_bool(config, "SimpleOutput", "EnforceBitrate", true);
+		config_set_default_string(config, "SimpleOutput", "Preset", "veryfast");
+		config_set_default_string(config, "SimpleOutput", "RecQuality", "Stream");
+		config_set_default_string(config, "SimpleOutput", "RecEncoder", SIMPLE_ENCODER_X264);
 		config_set_default_bool(config, "SimpleOutput", "RecRB", false);
 		config_set_default_int(config, "SimpleOutput", "RecRBTime", 20);
 		config_set_default_int(config, "SimpleOutput", "RecRBSize", 512);
-		config_set_default_string(config, "SimpleOutput", "RecRBPrefix",
-			"Replay");
+		config_set_default_string(config, "SimpleOutput", "RecRBPrefix", "Replay");
 
-		config_set_default_bool(config, "AdvOut", "ApplyServiceSettings",
-			true);
+		config_set_default_bool(config, "AdvOut", "ApplyServiceSettings", true);
 		config_set_default_bool(config, "AdvOut", "UseRescale", false);
 		config_set_default_uint(config, "AdvOut", "TrackIndex", 1);
 		config_set_default_string(config, "AdvOut", "Encoder", "obs_x264");
 
 		config_set_default_string(config, "AdvOut", "RecType", "Standard");
 
-		config_set_default_string(config, "AdvOut", "RecFilePath",
-			GetDefaultVideoSavePath().c_str());
+		config_set_default_string(config, "AdvOut", "RecFilePath", GetDefaultVideoSavePath().c_str());
 		config_set_default_string(config, "AdvOut", "RecFormat", "flv");
-		config_set_default_bool(config, "AdvOut", "RecUseRescale",
-			false);
+		config_set_default_bool(config, "AdvOut", "RecUseRescale", false);
 		config_set_default_uint(config, "AdvOut", "RecTracks", (1 << 0));
-		config_set_default_string(config, "AdvOut", "RecEncoder",
-			"none");
+		config_set_default_string(config, "AdvOut", "RecEncoder", "none");
 
-		config_set_default_bool(config, "AdvOut", "FFOutputToFile",
-			true);
-		config_set_default_string(config, "AdvOut", "FFFilePath",
-			GetDefaultVideoSavePath().c_str());
+		config_set_default_bool(config, "AdvOut", "FFOutputToFile", true);
+		config_set_default_string(config, "AdvOut", "FFFilePath", GetDefaultVideoSavePath().c_str());
 		config_set_default_string(config, "AdvOut", "FFExtension", "mp4");
 		config_set_default_uint(config, "AdvOut", "FFVBitrate", 2500);
 		config_set_default_uint(config, "AdvOut", "FFVGOPSize", 250);
-		config_set_default_bool(config, "AdvOut", "FFUseRescale",
-			false);
-		config_set_default_bool(config, "AdvOut", "FFIgnoreCompat",
-			false);
+		config_set_default_bool(config, "AdvOut", "FFUseRescale", false);
+		config_set_default_bool(config, "AdvOut", "FFIgnoreCompat", false);
 		config_set_default_uint(config, "AdvOut", "FFABitrate", 160);
 		config_set_default_uint(config, "AdvOut", "FFAudioTrack", 1);
 
@@ -1271,15 +1238,13 @@ config_t* OBS_API::openConfigFile(std::string configFile)
 		config_set_default_uint(config, "Video", "BaseCY", cy);
 
 		/* don't allow BaseCX/BaseCY to be susceptible to defaults changing */
-		if (!config_has_user_value(config, "Video", "BaseCX") ||
-			!config_has_user_value(config, "Video", "BaseCY")) {
+		if (!config_has_user_value(config, "Video", "BaseCX") || !config_has_user_value(config, "Video", "BaseCY")) {
 			config_set_uint(config, "Video", "BaseCX", cx);
 			config_set_uint(config, "Video", "BaseCY", cy);
 			config_save_safe(config, "tmp", nullptr);
 		}
 
-		config_set_default_string(config, "Output", "FilenameFormatting",
-			"%CCYY-%MM-%DD %hh-%mm-%ss");
+		config_set_default_string(config, "Output", "FilenameFormatting", "%CCYY-%MM-%DD %hh-%mm-%ss");
 
 		config_set_default_bool(config, "Output", "DelayEnable", false);
 		config_set_default_uint(config, "Output", "DelaySec", 20);
@@ -1290,12 +1255,10 @@ config_t* OBS_API::openConfigFile(std::string configFile)
 		config_set_default_uint(config, "Output", "MaxRetries", 20);
 
 		config_set_default_string(config, "Output", "BindIP", "default");
-		config_set_default_bool(config, "Output", "NewSocketLoopEnable",
-			false);
-		config_set_default_bool(config, "Output", "LowLatencyEnable",
-			false);
+		config_set_default_bool(config, "Output", "NewSocketLoopEnable", false);
+		config_set_default_bool(config, "Output", "LowLatencyEnable", false);
 
-		int i = 0;
+		int      i        = 0;
 		uint32_t scale_cx = 0;
 		uint32_t scale_cy = 0;
 
@@ -1303,8 +1266,8 @@ config_t* OBS_API::openConfigFile(std::string configFile)
 		* than 1280x720 */
 		while (((scale_cx * scale_cy) > (1280 * 720)) && scaled_vals[i] > 0.0) {
 			double scale = scaled_vals[i++];
-			scale_cx = uint32_t(double(cx) / scale);
-			scale_cy = uint32_t(double(cy) / scale);
+			scale_cx     = uint32_t(double(cx) / scale);
+			scale_cy     = uint32_t(double(cy) / scale);
 		}
 
 		config_set_default_uint(config, "Video", "OutputCX", scale_cx);
@@ -1312,8 +1275,8 @@ config_t* OBS_API::openConfigFile(std::string configFile)
 
 		/* don't allow OutputCX/OutputCY to be susceptible to defaults
 		* changing */
-		if (!config_has_user_value(config, "Video", "OutputCX") ||
-			!config_has_user_value(config, "Video", "OutputCY")) {
+		if (!config_has_user_value(config, "Video", "OutputCX")
+		    || !config_has_user_value(config, "Video", "OutputCY")) {
 			config_set_uint(config, "Video", "OutputCX", scale_cx);
 			config_set_uint(config, "Video", "OutputCY", scale_cy);
 			config_save_safe(config, "tmp", nullptr);
@@ -1327,16 +1290,12 @@ config_t* OBS_API::openConfigFile(std::string configFile)
 		config_set_default_string(config, "Video", "ScaleType", "bicubic");
 		config_set_default_string(config, "Video", "ColorFormat", "NV12");
 		config_set_default_string(config, "Video", "ColorSpace", "601");
-		config_set_default_string(config, "Video", "ColorRange",
-			"Partial");
+		config_set_default_string(config, "Video", "ColorRange", "Partial");
 
-		config_set_default_string(config, "Audio", "MonitoringDeviceId",
-			"default");
-		config_set_default_string(config, "Audio", "MonitoringDeviceName",
-			"Default");
+		config_set_default_string(config, "Audio", "MonitoringDeviceId", "default");
+		config_set_default_string(config, "Audio", "MonitoringDeviceName", "Default");
 		config_set_default_uint(config, "Audio", "SampleRate", 44100);
-		config_set_default_string(config, "Audio", "ChannelSetup",
-			"Stereo");
+		config_set_default_string(config, "Audio", "ChannelSetup", "Stereo");
 
 		config_save_safe(config, "tmp", nullptr);
 	}
@@ -1346,8 +1305,6 @@ config_t* OBS_API::openConfigFile(std::string configFile)
 	// } else {
 	// 	return (*it).second;
 	// }
-
-
 }
 
 bool OBS_API::isOBS_installed(void)
