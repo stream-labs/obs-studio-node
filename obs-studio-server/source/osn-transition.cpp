@@ -160,7 +160,7 @@ void osn::Transition::FromName(
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::NotFound));
 		rval.push_back(ipc::value("Named transition could not be found."));
-		AUTO_DEBUG;
+		// AUTO_DEBUG;
 		return;
 	}
 
@@ -173,7 +173,7 @@ void osn::Transition::FromName(
 #endif
 		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
 		rval.push_back(ipc::value("Source found but not indexed."));
-		AUTO_DEBUG;
+		// AUTO_DEBUG;
 		return;
 	}
 
@@ -181,7 +181,7 @@ void osn::Transition::FromName(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
-	AUTO_DEBUG;
+	// AUTO_DEBUG;
 }
 
 void osn::Transition::GetActiveSource(

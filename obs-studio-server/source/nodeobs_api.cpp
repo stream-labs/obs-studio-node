@@ -372,12 +372,8 @@ static void                                    node_obs_log(int log_level, const
 #endif
 }
 
-void OBS_API::OBS_API_initAPI(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
+void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+	blog(LOG_INFO, "Init step - 0");
 	/* Map base DLLs as soon as possible into the current process space.
 	* In particular, we need to load obs.dll into memory before we call
 	* any functions from obs else if we delay-loaded the dll, it will
@@ -387,22 +383,42 @@ void OBS_API::OBS_API_initAPI(
 	/* FIXME g_moduleDirectory really needs to be a wstring */
 	std::string pathOBS = g_moduleDirectory;
 	std::string locale;
+	blog(LOG_INFO, "Init step - 1");
 
 	/* Also note that this method is possible on POSIX
 	* as well. You can call dlopen with RTLD_GLOBAL
 	* Order matters here. Loading a library out of order
 	* will cause a failure to resolve dependencies. */
-	static const char* g_modules[] = {
-	    "zlib.dll",           "libopus-0.dll",    "libogg-0.dll",    "libvorbis-0.dll",
-	    "libvorbisenc-2.dll", "libvpx-1.dll",     "libx264-152.dll", "avutil-55.dll",
-	    "swscale-4.dll",      "swresample-2.dll", "avcodec-57.dll",  "avformat-57.dll",
-	    "avfilter-6.dll",     "avdevice-57.dll",  "libcurl.dll",     "libvorbisfile-3.dll",
-	    "w32-pthreads.dll",   "obsglad.dll",      "obs.dll",         "libobs-d3d11.dll",
-	    "libobs-opengl.dll"};
+	static const char *g_modules[] = {
+		"zlib.dll",
+		"libopus-0.dll",
+		"libogg-0.dll",
+		"libvorbis-0.dll",
+		"libvorbisenc-2.dll",
+		"libvpx-1.dll",
+		"libx264-152.dll",
+		"avutil-55.dll",
+		"swscale-4.dll",
+		"swresample-2.dll",
+		"avcodec-57.dll",
+		"avformat-57.dll",
+		"avfilter-6.dll",
+		"avdevice-57.dll",
+		"libcurl.dll",
+		"libvorbisfile-3.dll",
+		"w32-pthreads.dll",
+		"obsglad.dll",
+		"obs.dll",
+		"libobs-d3d11.dll",
+		"libobs-opengl.dll"
+	};
+	blog(LOG_INFO, "Init step - 2");
 
 	static const int g_modules_size = sizeof(g_modules) / sizeof(g_modules[0]);
+	blog(LOG_INFO, "Init step - 3");
 
 	for (int i = 0; i < g_modules_size; ++i) {
+		blog(LOG_INFO, "Init step - 4");
 		std::string module_path;
 		void*       handle = NULL;
 
@@ -424,10 +440,13 @@ void OBS_API::OBS_API_initAPI(
 		* OS clean these up for us as
 		* they should be available through
 		* out the application */
+		blog(LOG_INFO, "Init step - 5");
 	}
+	blog(LOG_INFO, "Init step - 6");
 	pathConfigDirectory = args[0].value_str.c_str();
 	appdata_path        = args[0].value_str.c_str();
 	appdata_path += "/node-obs/";
+	blog(LOG_INFO, "Init step - 7");
 
 	/* libobs will use three methods of finding data files:
 	* 1. ${CWD}/data/libobs <- This doesn't work for us
@@ -435,15 +454,22 @@ void OBS_API::OBS_API_initAPI(
 	* 3. getenv(OBS_DATA_PATH) + /libobs <- Can be set anywhere
 	*    on the cli, in the frontend, or the backend. */
 	obs_add_data_path((g_moduleDirectory + "/libobs/data/libobs/").c_str());
+	blog(LOG_INFO, "Init step - 8");
 
 	std::vector<char> userData = std::vector<char>(1024);
+	blog(LOG_INFO, "Init step - 9");
 	os_get_config_path(userData.data(), userData.capacity() - 1, "slobs-client/plugin_config");
+	blog(LOG_INFO, "Init step - 10");
 	obs_startup(args[1].value_str.c_str(), userData.data(), NULL);
+	blog(LOG_INFO, "Init step - 11");
 
 	/* Logging */
 	string filename = GenerateTimeDateFilename("txt");
+	blog(LOG_INFO, "Init step - 12");
 	string log_path = appdata_path;
+	blog(LOG_INFO, "Init step - 13");
 	log_path.append("/logs/");
+	blog(LOG_INFO, "Init step - 14");
 
 	/* Make sure the path is created
 	before attempting to make a file there. */
@@ -451,75 +477,113 @@ void OBS_API::OBS_API_initAPI(
 		cerr << "Failed to open log file" << endl;
 	}
 
+	blog(LOG_INFO, "Init step - 15");
 	DeleteOldestFile(log_path.c_str(), 3);
+	blog(LOG_INFO, "Init step - 16");
 	log_path.append(filename);
+	blog(LOG_INFO, "Init step - 17");
 
 #if defined(_WIN32) && defined(UNICODE)
-	fstream* logfile = new fstream(converter.from_bytes(log_path.c_str()).c_str(), ios_base::out | ios_base::trunc);
+	blog(LOG_INFO, "Init step - 18");
+	fstream *logfile = new fstream(
+		converter.from_bytes(log_path.c_str()).c_str(),
+		ios_base::out |
+		ios_base::trunc
+	);
+	blog(LOG_INFO, "Init step - 19");
 #else
 	fstream* logfile = new fstream(log_path, ios_base::out | ios_base::trunc);
 #endif
 
+	blog(LOG_INFO, "Init step - 20");
 	if (!logfile) {
 		cerr << "Failed to open log file" << endl;
 	}
 
 	/* Delete oldest file in the folder to imitate rotating */
+	blog(LOG_INFO, "Init step - 21");
 	base_set_log_handler(node_obs_log, logfile);
+	blog(LOG_INFO, "Init step - 22");
+#pragma endregion Logging
 
 	/* INJECT osn::Source::Manager */
 	// Alright, you're probably wondering: Why is osn code here?
 	// Well, simply because the hooks need to run as soon as possible. We don't
 	//  want to miss a single create or destroy signal OBS gives us for the
 	//  osn::Source::Manager.
+	blog(LOG_INFO, "Init step - 23");
 	osn::Source::initialize_global_signals();
 	/* END INJECT osn::Source::Manager */
 
+	blog(LOG_INFO, "Init step - 24");
 	cpuUsageInfo = os_cpu_usage_info_start();
 
+	blog(LOG_INFO, "Init step - 25");
 	//Setting obs-studio config directory
 	char path[512];
 	int  ret = os_get_config_path(path, 512, "obs-studio");
 
+	blog(LOG_INFO, "Init step - 26");
 	if (ret > 0) {
 		OBS_pathConfigDirectory = path;
 	}
 
+	blog(LOG_INFO, "Init step - 27");
 	std::string profiles = OBS_pathConfigDirectory + "\\basic\\profiles";
-	std::string scenes   = OBS_pathConfigDirectory + "\\basic\\scenes";
+	std::string scenes = OBS_pathConfigDirectory + "\\basic\\scenes";
 
+	blog(LOG_INFO, "Init step - 28");
 	/* Profiling */
 	//profiler_start();
 
 	openAllModules();
+	blog(LOG_INFO, "Init step - 29");
 	OBS_service::createStreamingOutput();
+	blog(LOG_INFO, "Init step - 30");
 	OBS_service::createRecordingOutput();
+	blog(LOG_INFO, "Init step - 31");
 
 	OBS_service::createVideoStreamingEncoder();
+	blog(LOG_INFO, "Init step - 32");
 	OBS_service::createVideoRecordingEncoder();
+	blog(LOG_INFO, "Init step - 33");
 
 	obs_encoder_t* audioStreamingEncoder = OBS_service::getAudioStreamingEncoder();
+	blog(LOG_INFO, "Init step - 34");
 	obs_encoder_t* audioRecordingEncoder = OBS_service::getAudioRecordingEncoder();
+	blog(LOG_INFO, "Init step - 35");
 
 	OBS_service::createAudioEncoder(&audioStreamingEncoder);
+	blog(LOG_INFO, "Init step - 36");
 	OBS_service::createAudioEncoder(&audioRecordingEncoder);
+	blog(LOG_INFO, "Init step - 37");
 
 	OBS_service::resetAudioContext();
+	blog(LOG_INFO, "Init step - 38");
 	OBS_service::resetVideoContext(NULL);
+	blog(LOG_INFO, "Init step - 39");
 
 	OBS_service::associateAudioAndVideoToTheCurrentStreamingContext();
+	blog(LOG_INFO, "Init step - 40");
 	OBS_service::associateAudioAndVideoToTheCurrentRecordingContext();
+	blog(LOG_INFO, "Init step - 41");
 
 	OBS_service::createService();
+	blog(LOG_INFO, "Init step - 42");
 
 	OBS_service::associateAudioAndVideoEncodersToTheCurrentStreamingOutput();
+	blog(LOG_INFO, "Init step - 43");
 	OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput();
+	blog(LOG_INFO, "Init step - 44");
 
 	OBS_service::setServiceToTheStreamingOutput();
+	blog(LOG_INFO, "Init step - 45");
 
 	setAudioDeviceMonitoring();
+	blog(LOG_INFO, "Init step - 46");
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	blog(LOG_INFO, "Init step - 47");
 	AUTO_DEBUG;
 }
 
@@ -560,7 +624,7 @@ void OBS_API::OBS_API_getPerformanceStatistics(
 	rval.push_back(ipc::value(droppedFramesPercentage));
 	rval.push_back(ipc::value(bandwidth));
 	rval.push_back(ipc::value(frameRate));
-	AUTO_DEBUG;
+	// AUTO_DEBUG;
 }
 
 void OBS_API::OBS_API_getOBS_existingProfiles(
@@ -811,17 +875,25 @@ typedef std::basic_string<char, ci_char_traits> istring;
 * if we go a server/client route. */
 void OBS_API::openAllModules(void)
 {
+	blog(LOG_INFO, "Init step - 28.0");
 	OBS_service::resetVideoContext(NULL);
+	blog(LOG_INFO, "Init step - 28.1");
 
 	std::string plugins_paths[] = {g_moduleDirectory + "/obs-plugins/64bit", g_moduleDirectory + "/obs-plugins"};
+	blog(LOG_INFO, "Init step - 28.2");
 
 	std::string plugins_data_paths[] = {g_moduleDirectory + "/data/obs-plugins", plugins_data_paths[0]};
+	blog(LOG_INFO, "Init step - 28.3");
 
 	size_t num_paths = sizeof(plugins_paths) / sizeof(plugins_paths[0]);
+	blog(LOG_INFO, "Init step - 28.4");
 
 	for (int i = 0; i < num_paths; ++i) {
-		std::string& plugins_path      = plugins_paths[i];
+		blog(LOG_INFO, "Init step - 28.5");
+		std::string& plugins_path = plugins_paths[i];
+		blog(LOG_INFO, plugins_paths[i].c_str());
 		std::string& plugins_data_path = plugins_data_paths[i];
+		blog(LOG_INFO, plugins_data_paths[i].c_str());
 
 		/* FIXME Plugins could be in individual folders, maybe
 		* with some metainfo so we don't attempt just any
@@ -838,11 +910,16 @@ void OBS_API::openAllModules(void)
 		}
 
 		for (os_dirent* ent = os_readdir(plugin_dir); ent != nullptr; ent = os_readdir(plugin_dir)) {
+			blog(LOG_INFO, "Init step - 28.6");
 			std::string fullname = ent->d_name;
 			std::string basename = fullname.substr(0, fullname.find_last_of('.'));
 
 			std::string plugin_path      = plugins_path + "/" + fullname;
 			std::string plugin_data_path = plugins_data_path + "/" + basename;
+
+			blog(LOG_INFO, plugin_path.c_str());
+			blog(LOG_INFO, plugin_data_path.c_str());
+
 			if (ent->directory) {
 				continue;
 			}

@@ -289,7 +289,7 @@ void osn::VolMeter::Query(
 	if (!meter) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Invalid Meter Reference."));
-		AUTO_DEBUG;
+		// AUTO_DEBUG;
 		return;
 	}
 
@@ -312,7 +312,7 @@ void osn::VolMeter::Query(
 		meter->current_data = nullptr;
 	}
 
-	AUTO_DEBUG;
+	// AUTO_DEBUG;
 }
 
 void osn::VolMeter::OBSCallback(

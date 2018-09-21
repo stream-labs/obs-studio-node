@@ -49,18 +49,16 @@ ProcessInfo spawn(const std::string& program, const std::string& commandLine, co
 	    utfProgram.c_str(),
 	    /* Note that C++11 says this is fine since an
 		 * std::string is guaranteed to be null-terminated. */
-	    &utfCommandLine[0],
-	    NULL,
-	    NULL,
-	    FALSE,
-	    CREATE_NO_WINDOW | DETACHED_PROCESS,
-	    NULL,
-	    utfWorkingDir.empty() ? NULL : utfWorkingDir.c_str(),
-	    &m_win32_startupInfo,
-	    &m_win32_processInformation);
+		&utfCommandLine[0],
+		NULL, NULL, FALSE,
+		CREATE_NEW_CONSOLE,
+		NULL,
+		utfWorkingDir.empty() ? NULL : utfWorkingDir.c_str(),
+		&m_win32_startupInfo,
+		&m_win32_processInformation
+	);
 
-	if (!success)
-		return {};
+	if (!success) return {};
 
 	return ProcessInfo(
 	    reinterpret_cast<uint64_t>(m_win32_processInformation.hProcess),
