@@ -67,6 +67,13 @@ IF(WIN32)
 		${PROJECT_BINARY_DIR}/version.rc
 		@ONLY
 	)
+	
+	# ToDo: Figure out a better way to tell the test setup where to find our binaries.
+	configure_file(
+		${PROJECT_SOURCE_DIR}/cmake/obs.js.in
+		${PROJECT_SOURCE_DIR}/tests/helpers/obs.js
+		@ONLY
+	)
 ENDIF()
 
 #############################

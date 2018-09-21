@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 
-const obs = require("../../build/distribute/obs-studio-node")
+const {obs} = require('./obs.js')
 const {app} = require('electron')
 
 class CTest {	
