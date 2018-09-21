@@ -159,8 +159,7 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 
 			// Current value
 			if (params.at(j).currentValue.size() > 0) {
-				if (params.at(j).type.compare("OBS_PROPERTY_LIST") == 0 ||
-					params.at(j).type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 ||
+				if (params.at(j).type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 ||
 					params.at(j).type.compare("OBS_PROPERTY_PATH") == 0 ||
 					params.at(j).type.compare("OBS_PROPERTY_TEXT") == 0 ||
 					params.at(j).type.compare("OBS_INPUT_RESOLUTION_LIST") == 0) {
@@ -191,6 +190,25 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 					parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
 						v8::Number::New(isolate, *value));
 				}
+				else if (params.at(j).type.compare("OBS_PROPERTY_LIST") == 0) {
+					if (params.at(j).subType.compare("OBS_COMBO_FORMAT_INT") == 0) {
+						int64_t *value = reinterpret_cast<int64_t*>(params.at(j).currentValue.data());
+						parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
+							v8::Integer::New(isolate, *value));
+					}
+					else if (params.at(j).subType.compare("OBS_COMBO_FORMAT_FLOAT") == 0) {
+						double *value = reinterpret_cast<double*>(params.at(j).currentValue.data());
+						parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
+							v8::Number::New(isolate, *value));
+					}
+					else if (params.at(j).subType.compare("OBS_COMBO_FORMAT_STRING") == 0) {
+					std::string value(params.at(j).currentValue.begin(),
+						params.at(j).currentValue.end());
+
+					parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
+						v8::String::NewFromUtf8(isolate, value.c_str()));
+					}
+				}
 			} else {
 				parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
 					v8::String::NewFromUtf8(isolate, ""));
@@ -217,7 +235,7 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 					indexData += sizeof(int64_t);
 					
 					valueObject->Set(v8::String::NewFromUtf8(isolate, name.c_str()),
-						v8::String::NewFromUtf8(isolate, std::to_string(*value).c_str()));
+						v8::Integer::New(isolate, *value));
 				}
 				else if (params.at(j).subType.compare("OBS_COMBO_FORMAT_FLOAT") == 0) {
 					size_t *sizeName =
@@ -232,7 +250,7 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 					indexData += sizeof(double);
 
 					valueObject->Set(v8::String::NewFromUtf8(isolate, name.c_str()),
-						v8::String::NewFromUtf8(isolate, std::to_string(*value).c_str()));
+						v8::Number::New(isolate, *value));
 				}
 				else {
 					size_t *sizeName =
