@@ -1,6 +1,6 @@
 $Root = (Resolve-Path .\).Path
 [string[]]$CategoryBlacklist = "helpers", "tools"
-$TestRuns = 10
+$TestRuns = 5
 
 class Test
 {
