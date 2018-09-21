@@ -1171,8 +1171,9 @@ void OBS_settings::getEncoderSettings(
 
 			break;
 		}
-		case OBS_PROPERTY_FLOAT: {
-			param.type        = "OBS_PROPERTY_FLOAT";
+		case OBS_PROPERTY_FLOAT:
+		{
+			param.type = "OBS_PROPERTY_DOUBLE";
 			param.description = obs_property_description(property);
 
 			double value = obs_data_get_double(settings, param.name.c_str());
