@@ -1,7 +1,8 @@
 param (
 	[string]$runtime = "",
 	[long]$repeat = 5,
-	[switch]$quiet
+	[switch]$quiet,
+	[string]$filter = "."
 )
 
 # -runtime checks
@@ -229,21 +230,27 @@ ForEach($Category in $Categories) {
 		continue
 	}
 
-	echo "Category '$Category'..."
+	Write-Host "Category '$Category'..."
 	# Detect Tests
 	$Files = Get-ChildItem -Path $Root\tests\$Category\ -Filter *.js -Name -File
 	ForEach($File in $Files) {
 		# Convert File Name to proper name by stripping .js from it.
 		$Name = $File.Substring(0, $File.length - 3)
 		
-		# Store Test for later use.
-		$Test = [Test]::new($Category, $Name, "$Root\tests\$Category\$File", $bin, $quiet)
-		$Tests += $Test
+		# Match against $filter
+		$Match = ("{0}/{1}" -f $Category, $Name) -match ("{0}" -f $filter)
 		
-		# Register to AppVeyor
-		$Test.Register()
+		if ($Match) {
+			# Store Test for later use.
+			$Test = [Test]::new($Category, $Name, "$Root\tests\$Category\$File", $bin, $quiet)
+			$Tests += $Test
 		
-		echo "    Test '$Name' registered."		
+			# Register
+			$Test.Register()			
+			Write-Host "    Test '$Name' registered."
+		} else {
+			Write-Host ("    Test '{0}' not registered, doesn't match filter '{1}'." -f $Name, $filter)
+		}
 	}
 }
 
