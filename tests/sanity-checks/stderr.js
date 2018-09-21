@@ -1,4 +1,4 @@
-const {obs, Test} = require("../helpers/bootstrap.js")
+const {Test} = require("../helpers/bootstrap.js")
 
 let self = new Test();
 self.test = function(resolve, reject) {
