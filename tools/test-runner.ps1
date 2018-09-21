@@ -1,6 +1,23 @@
+param (
+	[string]$runtime = "",
+	[long]$repeat = 5,
+	[switch]$quiet
+)
+
+# -runtime checks
+$bin = ""
+if ($runtime -eq "iojs") {
+	$bin = "electron"
+} elseif ($runtime -eq "node") {
+	$bin = "node"
+} else {
+	Write-Host ("Runtime '{0}' is not supported." -f $runtime)
+	exit 0
+}
+Write-Host ("Using Runtime '{0}' as '{1}'..." -f $runtime, $bin)
+
 $Root = (Resolve-Path .\).Path
-[string[]]$CategoryBlacklist = "helpers", "tools"
-$TestRuns = 5
+[string[]]$blacklist = "helpers", "tools"
 
 class Test
 {
@@ -11,13 +28,15 @@ class Test
 	[string]$Framework
 	[string]$Outcome
 	[long]$Duration
-	[String]$ErrorMessage
-	[String]$ErrorStackTrace
-	[String]$StdOut
-	[String]$StdErr
+	[string]$ErrorMessage
+	[string]$ErrorStackTrace
+	[string]$StdOut
+	[string]$StdErr
+	# System Info
+	[string]$Runtime
+	[bool]$Quiet
 	
-	
-	Test([string]$c, [string]$n, [string]$f) {
+	Test([string]$c, [string]$n, [string]$f, [string]$rt, [bool]$q) {
 		$this.Category = $c
 		$this.Name = $n
 		$this.File = $f
@@ -27,6 +46,8 @@ class Test
 		$this.StdErr = ""
 		$this.ErrorMessage = ""
 		$this.ErrorStackTrace = ""
+		$this.Runtime = $rt
+		$this.Quiet = $q
 	}
 	
 	# AppVeyor Invoker
@@ -113,15 +134,7 @@ class Test
 		$this.AppendStdOut(("> Output log for #{0}:`n" -f $fit))
 		$this.AppendStdErr(("> Error log for #{0}:`n" -f $fit))
 		
-		$bin = ""
-		if ($Env:RuntimeName -eq "iojs") {
-			$bin = "electron"
-		} elseif ($Env:RuntimeName -eq "node") {
-			$bin = "node"
-		} else {
-			Write-Host ("Runtime '{0}' is not supported." -f $Env:RuntimeName)
-			exit 0
-		}
+		$bin = $this.Runtime
 		
 		Remove-Item stdout.log -ea 0
 		Remove-Item stderr.log -ea 0
@@ -166,7 +179,7 @@ class Test
 			$ecode = $false
 		}
 
-		if (!$Env:APPVEYOR -And !$Env:Silent) {
+		if (!$Env:APPVEYOR -And !$this.Quiet) {
 			Write-Host "StdOut: $safe_output"
 			Write-Host "StdErr: $safe_error"
 		}
@@ -207,7 +220,7 @@ class Test
 $Categories = Get-ChildItem -Path $Root/tests/ -Name -Directory
 ForEach($Category in $Categories) {
 	$skip = $false
-	ForEach($CatBl in $CategoryBlacklist) {
+	ForEach($CatBl in $blacklist) {
 		If ($CatBl -eq $Category) {
 			$skip = $true
 		}
@@ -224,7 +237,7 @@ ForEach($Category in $Categories) {
 		$Name = $File.Substring(0, $File.length - 3)
 		
 		# Store Test for later use.
-		$Test = [Test]::new($Category, $Name, "$Root\tests\$Category\$File")
+		$Test = [Test]::new($Category, $Name, "$Root\tests\$Category\$File", $bin, $quiet)
 		$Tests += $Test
 		
 		# Register to AppVeyor
@@ -237,7 +250,7 @@ ForEach($Category in $Categories) {
 # Run Tests
 $ErrorCode = 0
 ForEach($Test in $Tests) {
-	$result = $Test.Run($TestRuns)
+	$result = $Test.Run($repeat)
 	if ($result -eq $false) {
 		$ErrorCode = 1
 	}
