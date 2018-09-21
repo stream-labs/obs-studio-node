@@ -1,16 +1,16 @@
 // Server program for the OBS Studio node module.
 // Copyright(C) 2017 Streamlabs (General Workings Inc)
-// 
+//
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
@@ -21,7 +21,8 @@ utility::unique_id::unique_id() {}
 
 utility::unique_id::~unique_id() {}
 
-utility::unique_id::id_t utility::unique_id::allocate() {
+utility::unique_id::id_t utility::unique_id::allocate()
+{
 	if (allocated.size() > 0) {
 		for (auto& v : allocated) {
 			if (v.first > 0) {
@@ -38,16 +39,18 @@ utility::unique_id::id_t utility::unique_id::allocate() {
 		mark_used(0);
 		return 0;
 	}
-	
+
 	// No more free indexes. However that has happened.
 	return std::numeric_limits<utility::unique_id::id_t>::max();
 }
 
-void utility::unique_id::free(utility::unique_id::id_t v) {
+void utility::unique_id::free(utility::unique_id::id_t v)
+{
 	mark_free(v);
 }
 
-bool utility::unique_id::is_allocated(utility::unique_id::id_t v) {
+bool utility::unique_id::is_allocated(utility::unique_id::id_t v)
+{
 	for (auto& v2 : allocated) {
 		if ((v >= v2.first) && (v <= v2.second))
 			return true;
@@ -55,7 +58,8 @@ bool utility::unique_id::is_allocated(utility::unique_id::id_t v) {
 	return false;
 }
 
-utility::unique_id::id_t utility::unique_id::count(bool count_free) {
+utility::unique_id::id_t utility::unique_id::count(bool count_free)
+{
 	id_t count = 0;
 	for (auto& v : allocated) {
 		count += (v.second - v.first);
@@ -63,7 +67,8 @@ utility::unique_id::id_t utility::unique_id::count(bool count_free) {
 	return count_free ? (std::numeric_limits<id_t>::max() - count) : count;
 }
 
-bool utility::unique_id::mark_used(utility::unique_id::id_t v) {
+bool utility::unique_id::mark_used(utility::unique_id::id_t v)
+{
 	// If no elements have been assigned, simply insert v as used.
 	if (allocated.size() == 0) {
 		range_t r;
@@ -92,7 +97,7 @@ bool utility::unique_id::mark_used(utility::unique_id::id_t v) {
 
 			return true;
 		} else if ((iter->second < std::numeric_limits<utility::unique_id::id_t>::max()) && (v == (iter->second + 1))) {
-			// If the maximum of the selected element is < UINT_MAX and v is 
+			// If the maximum of the selected element is < UINT_MAX and v is
 			//  equal to (maximum + 1), increase the maximum.
 			iter->second++;
 
@@ -108,11 +113,11 @@ bool utility::unique_id::mark_used(utility::unique_id::id_t v) {
 		} else if (lastWasSmaller && (v < iter->first)) {
 			// If we are between two ranges that are smaller and larger than v
 			//  insert a new element before the larger range containing only v.
-			allocated.insert(iter, { v, v });
+			allocated.insert(iter, {v, v});
 			return true;
 		} else if ((fiter++) == allocated.end()) {
 			// Otherwise if we reached the end of the list, append v.
-			allocated.insert(fiter, { v, v });
+			allocated.insert(fiter, {v, v});
 			return true;
 		}
 		lastWasSmaller = (v > iter->second);
@@ -120,18 +125,20 @@ bool utility::unique_id::mark_used(utility::unique_id::id_t v) {
 	return false;
 }
 
-void utility::unique_id::mark_used_range(utility::unique_id::id_t min, utility::unique_id::id_t max) {
+void utility::unique_id::mark_used_range(utility::unique_id::id_t min, utility::unique_id::id_t max)
+{
 	for (utility::unique_id::id_t v = min; v < max; v++) {
 		mark_used(v);
 	}
 }
 
-bool utility::unique_id::mark_free(utility::unique_id::id_t v) {
+bool utility::unique_id::mark_free(utility::unique_id::id_t v)
+{
 	for (auto iter = allocated.begin(); iter != allocated.end(); iter++) {
 		// Is v inside this range?
 		if ((v >= iter->first) && (v <= iter->second)) {
 			if (v == iter->first) {
-				// If v is simply the beginning of the range, increase the 
+				// If v is simply the beginning of the range, increase the
 				//  minimum and test if the range is now no longer valid.
 				iter->first++;
 				if (iter->first > iter->second) {
@@ -152,8 +159,8 @@ bool utility::unique_id::mark_free(utility::unique_id::id_t v) {
 				// Otherwise, since v is inside the range, split the range at
 				// v and insert a new element.
 				range_t x;
-				x.first = iter->first;
-				x.second = v - 1;
+				x.first     = iter->first;
+				x.second    = v - 1;
 				iter->first = v + 1;
 				allocated.insert(iter, x);
 				return true;
@@ -163,7 +170,8 @@ bool utility::unique_id::mark_free(utility::unique_id::id_t v) {
 	return false;
 }
 
-void utility::unique_id::mark_free_range(utility::unique_id::id_t min, utility::unique_id::id_t max) {
+void utility::unique_id::mark_free_range(utility::unique_id::id_t min, utility::unique_id::id_t max)
+{
 	for (utility::unique_id::id_t v = min; v < max; v++) {
 		mark_free(v);
 	}

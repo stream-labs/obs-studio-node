@@ -1,37 +1,39 @@
 // Client module for the OBS Studio node module.
 // Copyright(C) 2017 Streamlabs (General Workings Inc)
-// 
+//
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
 
 #include "filter.hpp"
-#include "shared.hpp"
-#include "utility.hpp"
-#include <string>
 #include <condition_variable>
 #include <mutex>
-#include "error.hpp"
+#include <string>
 #include "controller.hpp"
+#include "error.hpp"
 #include "ipc-value.hpp"
+#include "shared.hpp"
+#include "utility.hpp"
 
-osn::Filter::Filter(uint64_t id) {
+osn::Filter::Filter(uint64_t id)
+{
 	this->sourceId = id;
 }
 
 Nan::Persistent<v8::FunctionTemplate> osn::Filter::prototype = Nan::Persistent<v8::FunctionTemplate>();
 
-void osn::Filter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
+void osn::Filter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
+{
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->Inherit(Nan::New<v8::FunctionTemplate>(osn::ISource::prototype));
 	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
@@ -46,20 +48,22 @@ void osn::Filter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	prototype.Reset(fnctemplate);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Types(Nan::NAN_METHOD_ARGS_TYPE info) {
+Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Types(Nan::NAN_METHOD_ARGS_TYPE info)
+{
 	// Function takes no parameters.
 	ASSERT_INFO_LENGTH(info, 0);
 
 	auto conn = GetConnection();
-	if (!conn) return;
+	if (!conn)
+		return;
 
-	std::vector<ipc::value> response = 
-		conn->call_synchronous_helper("Filter", "Types", {});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Filter", "Types", {});
 
-	if (!ValidateResponse(response)) return;
-	
+	if (!ValidateResponse(response))
+		return;
+
 	std::vector<std::string> types;
-	size_t count = response.size() - 1;
+	size_t                   count = response.size() - 1;
 
 	for (size_t idx = 0; idx < count; idx++) {
 		types.push_back(response[1 + idx].value_str);
@@ -69,9 +73,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Types(Nan::NAN_METHOD_ARGS_TYPE info) {
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Create(Nan::NAN_METHOD_ARGS_TYPE info) {
-	std::string type;
-	std::string name;
+Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Create(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	std::string           type;
+	std::string           name;
 	v8::Local<v8::String> settings = Nan::New<v8::String>("").ToLocalChecked();
 
 	// Parameters: <string> Type, <string> Name[,<object> settings]
@@ -91,9 +96,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Create(Nan::NAN_METHOD_ARGS_TYPE info) 
 	}
 
 	auto conn = GetConnection();
-	if (!conn) return;
+	if (!conn)
+		return;
 
-	auto params = std::vector<ipc::value>{ ipc::value(type), ipc::value(name) };
+	auto params = std::vector<ipc::value>{ipc::value(type), ipc::value(name)};
 	if (settings->Length() != 0) {
 		std::string value;
 		if (utilv8::FromValue(settings, value)) {
@@ -101,10 +107,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Create(Nan::NAN_METHOD_ARGS_TYPE info) 
 		}
 	}
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Filter", "Create",
-	{ std::move(params) });
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Filter", "Create", {std::move(params)});
 
-	if (!ValidateResponse(response)) return;
+	if (!ValidateResponse(response))
+		return;
 
 	// Create new Filter
 	osn::Filter* obj = new osn::Filter(response[1].value_union.ui64);
