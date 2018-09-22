@@ -468,8 +468,10 @@ static const size_t numVals = sizeof(vals) / sizeof(double);
 
 bool OBS_service::resetVideoContext(const char* outputType)
 {
+	blog(LOG_INFO, "Init step - 28.0.0");
 	config_t* basicConfig = OBS_API::openConfigFile(OBS_API::getBasicConfigPath());
 
+	blog(LOG_INFO, "Init step - 28.0.1");
 	obs_video_info ovi;
 	std::string    gslib = "";
 #ifdef _WIN32
@@ -478,21 +480,27 @@ bool OBS_service::resetVideoContext(const char* outputType)
 	gslib     = "libobs-opengl";
 #endif
 	ovi.graphics_module = gslib.c_str();
+	blog(LOG_INFO, "Init step - 28.0.2");
 
 	ovi.base_width  = (uint32_t)config_get_uint(basicConfig, "Video", "BaseCX");
 	ovi.base_height = (uint32_t)config_get_uint(basicConfig, "Video", "BaseCY");
+	blog(LOG_INFO, "Init step - 28.0.3");
 
 	const char* outputMode = config_get_string(basicConfig, "Output", "Mode");
 
+	blog(LOG_INFO, "Init step - 28.0.4");
 	if (outputMode == NULL) {
 		outputMode = "Simple";
 	}
 
+	blog(LOG_INFO, "Init step - 28.0.5");
 	ovi.output_width  = (uint32_t)config_get_uint(basicConfig, "Video", "OutputCX");
 	ovi.output_height = (uint32_t)config_get_uint(basicConfig, "Video", "OutputCY");
 
+	blog(LOG_INFO, "Init step - 28.0.6");
 	std::vector<Screen> resolutions = OBS_API::availableResolutions();
 
+	blog(LOG_INFO, "Init step - 28.0.7");
 	if (ovi.base_width == 0 || ovi.base_height == 0) {
 		for (int i = 0; i < resolutions.size(); i++) {
 			if (ovi.base_width * ovi.base_height < resolutions.at(i).width * resolutions.at(i).height) {
@@ -502,10 +510,13 @@ bool OBS_service::resetVideoContext(const char* outputType)
 		}
 	}
 
+	blog(LOG_INFO, "Init step - 28.0.8");
 	config_set_uint(basicConfig, "Video", "BaseCX", ovi.base_width);
 	config_set_uint(basicConfig, "Video", "BaseCY", ovi.base_height);
 
+	blog(LOG_INFO, "Init step - 28.0.9");
 	if (ovi.output_width == 0 || ovi.output_height == 0) {
+		blog(LOG_INFO, "Init step - 28.0.10");
 		if (ovi.base_width > 1280 && ovi.base_height > 720) {
 			int idx = 0;
 			do {
@@ -518,28 +529,51 @@ bool OBS_service::resetVideoContext(const char* outputType)
 			ovi.output_height = ovi.base_height;
 		}
 
+		blog(LOG_INFO, "Init step - 28.0.11");
 		config_set_uint(basicConfig, "Video", "OutputCX", ovi.output_width);
 		config_set_uint(basicConfig, "Video", "OutputCY", ovi.output_height);
 	}
 
+	blog(LOG_INFO, "Init step - 28.0.12");
 	GetConfigFPS(basicConfig, ovi.fps_num, ovi.fps_den);
 
+	blog(LOG_INFO, "Init step - 28.0.13");
 	const char* colorFormat = config_get_string(basicConfig, "Video", "ColorFormat");
 	const char* colorSpace  = config_get_string(basicConfig, "Video", "ColorSpace");
 	const char* colorRange  = config_get_string(basicConfig, "Video", "ColorRange");
 
+	blog(LOG_INFO, "Init step - 28.0.14");
 	ovi.output_format = GetVideoFormatFromName(colorFormat);
 
+	blog(LOG_INFO, "Init step - 28.0.15");
 	ovi.adapter        = 0;
 	ovi.gpu_conversion = true;
 
+	blog(LOG_INFO, "Init step - 28.0.16");
 	ovi.colorspace = astrcmpi(colorSpace, "601") == 0 ? VIDEO_CS_601 : VIDEO_CS_709;
 	ovi.range      = astrcmpi(colorRange, "Full") == 0 ? VIDEO_RANGE_FULL : VIDEO_RANGE_PARTIAL;
 
+	blog(LOG_INFO, "Init step - 28.0.17");
 	ovi.scale_type = GetScaleType(basicConfig);
 
+	blog(LOG_INFO, "Init step - 28.0.18");
 	config_save_safe(basicConfig, "tmp", nullptr);
 
+	blog(LOG_INFO, "Init step - 28.0.19");
+
+	blog(LOG_INFO, "ovi.adapter : %u", ovi.adapter);
+	blog(LOG_INFO, "ovi.adapter : %u", ovi.base_height);
+	blog(LOG_INFO, "ovi.adapter : %u", ovi.base_width);
+	blog(LOG_INFO, "ovi.adapter : %u", ovi.colorspace);
+	blog(LOG_INFO, "ovi.adapter : %u", ovi.fps_den);
+	blog(LOG_INFO, "ovi.adapter : %u", ovi.fps_num);
+	blog(LOG_INFO, "ovi.adapter : %u", ovi.gpu_conversion);
+	blog(LOG_INFO, "ovi.adapter : %s", ovi.graphics_module);
+	blog(LOG_INFO, "ovi.adapter : %u", ovi.output_format);
+	blog(LOG_INFO, "ovi.adapter : %u", ovi.output_height);
+	blog(LOG_INFO, "ovi.adapter : %u", ovi.output_width);
+	blog(LOG_INFO, "ovi.adapter : %u", ovi.range);
+	blog(LOG_INFO, "ovi.adapter : %u", ovi.scale_type);
 	return obs_reset_video(&ovi);
 }
 

@@ -1235,19 +1235,24 @@ config_t* OBS_API::openConfigFile(std::string configFile)
 		    return (value.first.compare(configFile) == 0);
 	    });
 
+	blog(LOG_INFO, "Init step - 28.0.0.1");
 	// if(it == configFiles.end()) {
 	config_t* config;
 
+	blog(LOG_INFO, "Init step - 28.0.0.2");
 	int result = config_open(&config, configFile.c_str(), CONFIG_OPEN_EXISTING);
 
+	blog(LOG_INFO, "Init step - 28.0.0.3");
 	if (result != CONFIG_SUCCESS) {
 		config = config_create(configFile.c_str());
 		config_open(&config, configFile.c_str(), CONFIG_OPEN_EXISTING);
 	}
 
+	blog(LOG_INFO, "Init step - 28.0.0.4");
 	std::string basic     = "basic.ini";
 	std::string subString = configFile.substr(configFile.size() - basic.size(), basic.size()).c_str();
 
+	blog(LOG_INFO, "Init step - 28.0.0.5");
 	if (subString.compare(basic) == 0) {
 		// Base resolution
 		uint32_t cx = 0;
@@ -1377,7 +1382,9 @@ config_t* OBS_API::openConfigFile(std::string configFile)
 		config_save_safe(config, "tmp", nullptr);
 	}
 
+	blog(LOG_INFO, "Init step - 28.0.0.6");
 	configFiles.push_back(std::make_pair(configFile, config));
+	blog(LOG_INFO, "Init step - 28.0.0.7");
 	return config;
 	// } else {
 	// 	return (*it).second;
