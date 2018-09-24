@@ -460,11 +460,14 @@ void js_connectOrHost(const v8::FunctionCallbackInfo<v8::Value>& args)
 	}
 
 	std::string uri = *v8::String::Utf8Value(args[0]);
-	auto        cl  = Controller::GetInstance().host(uri);
+	auto        cl  = Controller::GetInstance().connect(uri);
 	if (!cl) {
-		isol->ThrowException(
-		    v8::Exception::Error(Nan::New<v8::String>("IPC failed to connect or host.").ToLocalChecked()));
-		return;
+		cl = Controller::GetInstance().host(uri);
+		if (!cl) {
+			isol->ThrowException(
+			    v8::Exception::Error(Nan::New<v8::String>("IPC failed to connect or host.").ToLocalChecked()));
+			return;
+		}
 	}
 
 	return;
