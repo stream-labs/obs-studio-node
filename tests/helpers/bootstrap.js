@@ -31,19 +31,23 @@ class CTest {
 			let res = await this.runTest();
 			if (res == false) {
 				if (app) {
-					app.exit(1);
+					app.quit(1);
 				} else {
-					process.quit(1);
+					process.exit(1);
 				}
 			}
 			if (app) {
-				app.exit(0);
+				app.quit(0);
 			} else {
-				process.quit(0);
+				process.exit(0);
 			}
 		} catch(e) {
 			console.error(">> Uncaught exception: ", e);
-			app.exit(-1);
+			if (app) {
+				app.quit(-1);
+			} else {
+				process.exit(-1);
+			}
 		}
 	}
 }
