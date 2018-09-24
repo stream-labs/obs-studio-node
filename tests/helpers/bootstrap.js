@@ -2,7 +2,13 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 
 const {obs} = require('./obs.js')
-const {app} = require('electron')
+const process = require('process')
+const app = undefined;
+try {
+	const el = require('electron')
+	app = el.app;
+} catch (e) {
+}
 
 class CTest {	
 	constructor(func) {
@@ -24,11 +30,19 @@ class CTest {
 		try {
 			let res = await this.runTest();
 			if (res == false) {
-				app.exit(1);
+				if (app) {
+					app.exit(1);
+				} else {
+					process.quit(1);
+				}
 			}
-			app.exit(0);
+			if (app) {
+				app.exit(0);
+			} else {
+				process.quit(0);
+			}
 		} catch(e) {
-			console.error("Uncaught exception: ", e);
+			console.error(">> Uncaught exception: ", e);
 			app.exit(-1);
 		}
 	}
@@ -57,7 +71,7 @@ class CTestGroup {
 			this.fnInitializer();
 		}
 		for (var name in this.tests) {
-			console.log("Running test " + name + "...");
+			console.log(">> Running test '" + name + "'...");
 			if ((this.tests[name] !== undefined) && (typeof(this.tests[name]) === "function")) {
 				try {
 					var result = await new Promise(this.tests[name]);
@@ -67,7 +81,7 @@ class CTestGroup {
 					}
 				} catch(e) {
 					returnValue = -1;
-					console.error("Uncaught exception: ", e);
+					console.error(">> Uncaught exception: ", e);
 					break;
 				}
 			}
@@ -75,7 +89,11 @@ class CTestGroup {
 		if (this.fnFinalizer) {
 			this.fnFinalizer();
 		}
-		app.exit(returnValue);
+		if (app) {
+			app.quit(returnValue);
+		} else {
+			process.exit(returnValue);
+		}
 	}
 }
 
