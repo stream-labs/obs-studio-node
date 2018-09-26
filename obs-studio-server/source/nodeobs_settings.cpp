@@ -891,8 +891,8 @@ void OBS_settings::getSimpleAvailableEncoders(std::vector<std::pair<std::string,
 {
 	streamEncoder->push_back(std::make_pair("Software (x264)", SIMPLE_ENCODER_X264));
 
-	/*if (EncoderAvailable("obs_qsv11"))
-		streamEncoder->push_back(std::make_pair("QSV", SIMPLE_ENCODER_QSV));*/
+	if (EncoderAvailable("obs_qsv11"))
+		streamEncoder->push_back(std::make_pair("QSV", SIMPLE_ENCODER_QSV));
 
 	if (EncoderAvailable("ffmpeg_nvenc"))
 		streamEncoder->push_back(std::make_pair("NVENC", SIMPLE_ENCODER_NVENC));
@@ -905,8 +905,8 @@ void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::strin
 {
 	streamEncoder->push_back(std::make_pair("Software (x264)", ADVANCED_ENCODER_X264));
 
-	/*if (EncoderAvailable("obs_qsv11"))
-		streamEncoder->push_back(std::make_pair("QSV", ADVANCED_ENCODER_QSV));*/
+	if (EncoderAvailable("obs_qsv11"))
+		streamEncoder->push_back(std::make_pair("QSV", ADVANCED_ENCODER_QSV));
 
 	if (EncoderAvailable("ffmpeg_nvenc"))
 		streamEncoder->push_back(std::make_pair("NVENC", ADVANCED_ENCODER_NVENC));
@@ -1551,18 +1551,6 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	const char* encoderID = config_get_string(config, "AdvOut", "Encoder");
 	if (encoderID == NULL) {
 		encoderID = "obs_x264";
-		config_set_string(config, "AdvOut", "Encoder", encoderID);
-		config_save_safe(config, "tmp", nullptr);
-	}
-
-	if (std::strcmp(encoderID, ADVANCED_ENCODER_QSV) == 0) {
-		if (EncoderAvailable(ADVANCED_ENCODER_NVENC)) {
-			encoderID = ADVANCED_ENCODER_NVENC;
-		} else if (EncoderAvailable(SIMPLE_ENCODER_AMD)) {
-			encoderID = SIMPLE_ENCODER_AMD;
-		} else {
-			encoderID = ADVANCED_ENCODER_X264;
-		}
 		config_set_string(config, "AdvOut", "Encoder", encoderID);
 		config_save_safe(config, "tmp", nullptr);
 	}
@@ -2816,15 +2804,6 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 		encoderSettings = obs_encoder_defaults(config_get_string(config, section.c_str(), "RecEncoder"));
 
 	std::string currentEncoder = config_get_string(config, "AdvOut", "RecEncoder");
-	if (currentEncoder.compare(ADVANCED_ENCODER_QSV) == 0) {
-		if (EncoderAvailable(ADVANCED_ENCODER_NVENC)) {
-			encoderSettings = obs_encoder_defaults(ADVANCED_ENCODER_NVENC);
-		} else if (EncoderAvailable(SIMPLE_ENCODER_AMD)) {
-			encoderSettings = obs_encoder_defaults(SIMPLE_ENCODER_AMD);
-		} else {
-			encoderSettings = obs_encoder_defaults(ADVANCED_ENCODER_X264);
-		}
-	}
 
 	obs_encoder_update(encoder, encoderSettings);
 
