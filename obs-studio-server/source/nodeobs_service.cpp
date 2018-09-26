@@ -1083,20 +1083,8 @@ void OBS_service::updateVideoStreamingEncoder()
 
 	if (encoder != NULL) {
 		if (strcmp(encoder, SIMPLE_ENCODER_QSV) == 0 || strcmp(encoder, ADVANCED_ENCODER_QSV) == 0) {
-			/*presetType = "QSVPreset";
-			encoderID = "obs_qsv11";*/
-
-			if (EncoderAvailable(ADVANCED_ENCODER_NVENC)) {
-				presetType = "NVENCPreset";
-				encoderID  = "ffmpeg_nvenc";
-			} else if (EncoderAvailable(SIMPLE_ENCODER_AMD)) {
-				presetType = "AMDPreset";
-				UpdateStreamingSettings_amd(h264Settings, videoBitrate);
-				encoderID = "amd_amf_h264";
-			} else {
-				presetType = "Preset";
-				encoderID  = "obs_x264";
-			}
+			presetType = "QSVPreset";
+			encoderID = "obs_qsv11";
 		} else if (strcmp(encoder, SIMPLE_ENCODER_AMD) == 0 || strcmp(encoder, ADVANCED_ENCODER_AMD) == 0) {
 			presetType = "AMDPreset";
 			UpdateStreamingSettings_amd(h264Settings, videoBitrate);
