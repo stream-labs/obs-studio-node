@@ -518,6 +518,7 @@ INITIALIZER(nodeobs_display)
 		NODE_SET_METHOD(exports, "OBS_content_setPaddingSize", display::OBS_content_setPaddingSize);
 		NODE_SET_METHOD(exports, "OBS_content_setPaddingColor", display::OBS_content_setPaddingColor);
 		NODE_SET_METHOD(exports, "OBS_content_setGuidelineColor", display::OBS_content_setGuidelineColor);
+		NODE_SET_METHOD(exports, "OBS_content_setOutlineColor", display::OBS_content_setOutlineColor);
 		NODE_SET_METHOD(exports, "OBS_content_setResizeBoxInnerColor", display::OBS_content_setResizeBoxInnerColor);
 		NODE_SET_METHOD(exports, "OBS_content_setResizeBoxOuterColor", display::OBS_content_setResizeBoxOuterColor);
 		NODE_SET_METHOD(exports, "OBS_content_setShouldDrawUI", display::OBS_content_setShouldDrawUI);
