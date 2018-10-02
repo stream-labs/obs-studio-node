@@ -1558,7 +1558,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	std::string path = OBS_API::getStreamingEncoderConfigPath();
 	struct stat buffer;
 
-	bool fileExist = (stat(path.c_str(), &buffer) == 0);
+	bool fileExist = os_stat(path.c_str(), &buffer) == 0;
 
 	obs_data_t*    settings = obs_encoder_defaults(encoderID);
 	obs_encoder_t* streamingEncoder;
@@ -1897,7 +1897,7 @@ void OBS_settings::getStandardRecordingSettings(
 	std::string path = OBS_API::getRecordingEncoderConfigPath();
 	struct stat buffer;
 
-	bool fileExist = (stat(path.c_str(), &buffer) == 0);
+	bool fileExist = os_stat(path.c_str(), &buffer) == 0;
 
 	obs_data_t*    settings = obs_encoder_defaults(recEncoderCurrentValue);
 	obs_encoder_t* recordingEncoder;

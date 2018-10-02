@@ -782,7 +782,7 @@ void OBS_service::createService()
 
 	struct stat buffer;
 	std::string serviceConfigFile = OBS_API::getServiceConfigPath();
-	bool        fileExist         = (stat(serviceConfigFile.c_str(), &buffer) == 0);
+	bool        fileExist         = os_stat(serviceConfigFile.c_str(), &buffer) == 0;
 
 	obs_data_t* data;
 	obs_data_t* settings;
