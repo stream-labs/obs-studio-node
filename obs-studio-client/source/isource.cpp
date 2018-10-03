@@ -71,8 +71,6 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Release(Nan::NAN_METHOD_ARGS_TYPE info
 
 	if (!ValidateResponse(response))
 		return;
-
-	obj->sourceId = UINT64_MAX;
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Remove(Nan::NAN_METHOD_ARGS_TYPE info)
