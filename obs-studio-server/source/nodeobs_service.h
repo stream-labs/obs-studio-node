@@ -8,7 +8,6 @@
 #include <obs.h>
 #include <queue>
 #include <string>
-#include <sys/stat.h>
 #include <thread>
 #include <util/config-file.h>
 #include <util/dstr.h>
