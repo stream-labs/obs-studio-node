@@ -60,38 +60,53 @@ function addItems(scene, sceneItems) {
 exports.addItems = addItems;
 function createSources(sources) {
     const items = [];
-    if (Array.isArray(sources)) {
-        sources.forEach(function (source) {
-            const newSource = obs.Input.create(source.type, source.name, source.settings);
-            if (newSource.audioMixers) {
-                newSource.muted = (source.muted != null) ? source.muted : false;
-                newSource.volume = (source.volume != null) ? source.volume : 1;
+    if (!Array.isArray(sources))
+        return items;
+    sources.forEach(function (source) {
+        const obsSource = obs.Input.create(source.type, source.name, source.settings);
+        if (!obsSource) {
+            throw Error(`Failed to create input source ${obsSource.name} with type ${obsSource.type}\n` +
+                `Settings: ${JSON.stringify(obsSource.settings)}`);
+        }
+        if (obsSource.audioMixers) {
+            obsSource.muted = (source.muted != null) ? source.muted : false;
+            obsSource.volume = (source.volume != null) ? source.volume : 1;
+        }
+        items.push(obsSource);
+        const filters = source.filters;
+        if (!Array.isArray(filters))
+            return;
+        filters.forEach(function (filter) {
+            const obsFilter = obs.Filter.create(filter.type, filter.name, filter.settings);
+            if (!obsFilter) {
+                throw Error(`Failed to create input source ${obsSource.name} with type ${obsSource.type}\n` +
+                    `Settings: ${JSON.stringify(obsSource.settings)}`);
             }
-            items.push(newSource);
-            const filters = source.filters;
-            if (Array.isArray(filters)) {
-                filters.forEach(function (filter) {
-                    const ObsFilter = obs.Filter.create(filter.type, filter.name, filter.settings);
-                    ObsFilter.enabled = (filter.enabled != null) ? filter.enabled : true;
-                    newSource.addFilter(ObsFilter);
-                    ObsFilter.release();
-                });
-            }
+            obsFilter.enabled = (filter.enabled != null) ? filter.enabled : true;
+            obsSource.addFilter(obsFilter);
+            obsFilter.release();
         });
-    }
+    });
     return items;
 }
 exports.createSources = createSources;
 function getSourcesSize(sourcesNames) {
     const sourcesSize = [];
-    if (Array.isArray(sourcesNames)) {
-        sourcesNames.forEach(function (sourceName) {
-            const ObsInput = obs.Input.fromName(sourceName);
-            if (ObsInput) {
-                sourcesSize.push({ name: sourceName, height: ObsInput.height, width: ObsInput.width, outputFlags: ObsInput.outputFlags });
-            }
+    if (!Array.isArray(sourcesNames))
+        return sourcesSize;
+    sourcesNames.forEach(function (sourceName) {
+        const obsInput = obs.Input.fromName(sourceName);
+        if (!obsInput) {
+            throw Error(`Failed to fetch input source ${sourceName} by name`);
+            return;
+        }
+        sourcesSize.push({
+            name: sourceName,
+            height: obsInput.height,
+            width: obsInput.width,
+            outputFlags: obsInput.outputFlags
         });
-    }
+    });
     return sourcesSize;
 }
 exports.getSourcesSize = getSourcesSize;
