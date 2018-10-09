@@ -1583,6 +1583,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 		}
 	} else {
 		streamingEncoder = OBS_service::getStreamingEncoder();
+		settings         = obs_encoder_get_settings(streamingEncoder);
 	}
 
 	getEncoderSettings(streamingEncoder, settings, &(streamingSettings.params), index, isCategoryEnabled);
@@ -1923,6 +1924,7 @@ void OBS_settings::getStandardRecordingSettings(
 		}
 	} else {
 		recordingEncoder = OBS_service::getRecordingEncoder();
+		settings         = obs_encoder_get_settings(recordingEncoder);
 	}
 
 	getEncoderSettings(recordingEncoder, settings, &(subCategoryParameters->params), index, isCategoryEnabled);
