@@ -2818,10 +2818,12 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 void OBS_settings::saveAdvancedOutputSettings(std::vector<SubCategory> settings, std::string basicConfigFile)
 {
 	// Streaming
-	saveAdvancedOutputStreamingSettings(settings, basicConfigFile);
+	if (!obs_output_active(OBS_service::getStreamingOutput()))
+		saveAdvancedOutputStreamingSettings(settings, basicConfigFile);
 
 	// Recording
-	saveAdvancedOutputRecordingSettings(settings, basicConfigFile);
+	if (!obs_output_active(OBS_service::getRecordingOutput()))
+		saveAdvancedOutputRecordingSettings(settings, basicConfigFile);
 
 	// Audio
 	if (settings.size() > 3) {
