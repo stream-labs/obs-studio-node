@@ -131,6 +131,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 	if (!ValidateResponse(response))
 		return;
 
+	if (response.size() == 1) {
+		info.GetReturnValue().Set(Nan::Null());
+		return;
+	}
+
 	// Parse the massive structure of properties we were just sent.
 	osn::property_map_t pmap;
 	for (size_t idx = 1; idx < response.size(); ++idx) {
