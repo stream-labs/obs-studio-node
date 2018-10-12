@@ -28,6 +28,7 @@
 #include "obs-property.hpp"
 #include "osn-common.hpp"
 #include "shared.hpp"
+#include <obs.hpp>
 
 void osn::Source::initialize_global_signals()
 {
@@ -109,6 +110,8 @@ void osn::Source::Register(ipc::server& srv)
 	cls->register_function(
 	    std::make_shared<ipc::function>("GetStatus", std::vector<ipc::type>{ipc::type::UInt64}, GetStatus));
 	cls->register_function(std::make_shared<ipc::function>("GetId", std::vector<ipc::type>{ipc::type::UInt64}, GetId));
+	cls->register_function(
+	    std::make_shared<ipc::function>("QueryHotkeys", std::vector<ipc::type>{ipc::type::UInt64}, QueryHotkeys));
 	cls->register_function(
 	    std::make_shared<ipc::function>("GetMuted", std::vector<ipc::type>{ipc::type::UInt64}, GetMuted));
 	cls->register_function(std::make_shared<ipc::function>(
@@ -608,6 +611,53 @@ void osn::Source::GetId(
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	const char* sid = obs_source_get_id(src);
 	rval.push_back(ipc::value(sid ? sid : ""));
+	AUTO_DEBUG;
+}
+
+void osn::Source::QueryHotkeys(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	// Attempt to find the source asked to load.
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (src == nullptr) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
+		return;
+	}
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+	// For each registered hotkey
+	auto indata = std::make_pair(src, &rval);
+	using data_t = decltype(indata);
+	obs_enum_hotkeys(
+	    [](void* data, obs_hotkey_id id, obs_hotkey_t* key) 
+	{
+		    data_t& d			  = *static_cast<data_t*>(data);
+		    obs_source_t* source  = d.first;
+		    auto  registerer_type = obs_hotkey_get_registerer_type(key);
+		    void* registerer      = obs_hotkey_get_registerer(key);
+
+		    if (registerer_type == OBS_HOTKEY_REGISTERER_SOURCE) {
+
+				auto* weak_source = static_cast<obs_weak_source_t*>(registerer);
+			    auto  key_source  = OBSGetStrongRef(weak_source);
+
+			    if (source == key_source) {
+
+				    const char* key_name = obs_hotkey_get_name(key);
+				    d.second->push_back(ipc::value(key_name));
+			    }
+		    }
+
+		    return true;
+	    },
+	    &indata);
+
 	AUTO_DEBUG;
 }
 
