@@ -513,6 +513,30 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetId(Nan::NAN_METHOD_ARGS_TYPE info)
 	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
 }
 
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::QueryHotkeys(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
+		return;
+	}
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Source", "QueryHotkeys", {ipc::value(is->sourceId)});
+
+	if (!ValidateResponse(response))
+		return;
+
+	v8::Local<v8::Array> arr = Nan::New<v8::Array>(response.size() - 1);
+	for (size_t idx = 1; idx < response.size(); idx++) {
+		Nan::Set(arr, idx - 1, utilv8::ToValue(response[idx].value_str));
+	}
+
+	info.GetReturnValue().Set(arr);
+}
+
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetMuted(Nan::NAN_METHOD_ARGS_TYPE info)
 {
 	osn::ISource* is;
