@@ -491,6 +491,11 @@ void OBS_API::OBS_API_initAPI(
 	/* Profiling */
 	//profiler_start();
 
+	obs_data_t *private_settings = obs_data_create();
+	obs_data_set_bool(private_settings, "BrowserHWAccel", true);
+	obs_apply_private_data(private_settings);
+	obs_data_release(private_settings);
+
 	openAllModules();
 	OBS_service::createStreamingOutput();
 	OBS_service::createRecordingOutput();
