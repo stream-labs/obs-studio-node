@@ -24,13 +24,14 @@
 #include <memory>
 #include <obs-data.h>
 #include <obs.h>
+#include <obs.hpp>
 #include "error.hpp"
 #include "obs-property.hpp"
 #include "osn-common.hpp"
 #include "shared.hpp"
-#include <obs.hpp>
 
-std::map<uint64_t, std::vector<std::string>> allSourceHotkeys;
+std::map<uint64_t, std::vector<std::string>> pending_source_hotkeys;
+std::mutex                                   source_hotkey_mtx;
 
 std::vector<std::string> get_source_hotkeys(uint64_t sourceID)
 {
@@ -90,8 +91,11 @@ void osn::Source::global_source_create_cb(void* ptr, calldata_t* cd)
 	osn::Source::Manager::GetInstance().allocate(source);
 	osn::Source::attach_source_signals(source);
 
-	auto sourceHotkeys = get_source_hotkeys(osn::Source::Manager::GetInstance().find(source));
-	allSourceHotkeys.insert({sourceId, sourceHotkeys});
+	auto sourceId      = osn::Source::Manager::GetInstance().find(source);
+	auto sourceHotkeys = get_source_hotkeys(sourceId);
+
+	std::unique_lock<std::mutex> ulock(source_hotkey_mtx);
+	pending_source_hotkeys.insert({sourceId, sourceHotkeys});
 }
 
 void osn::Source::attach_source_signals(obs_source_t* src)
@@ -109,10 +113,14 @@ void osn::Source::source_destroy_cb(void* ptr, calldata_t* cd)
 		throw std::exception("calldata did not contain source pointer");
 	}
 
-	auto sourceId = osn::Source::Manager::GetInstance().find(source);
-	auto iter     = allSourceHotkeys.find(sourceId);
-	if (iter != allSourceHotkeys.end()) {
-		allSourceHotkeys.erase(iter);
+	{
+		std::unique_lock<std::mutex> ulock(source_hotkey_mtx);
+
+		auto iter = pending_source_hotkeys.find(
+			osn::Source::Manager::GetInstance().find(source));
+		if (iter != pending_source_hotkeys.end()) {
+			pending_source_hotkeys.erase(iter);
+		}
 	}
 
 	osn::Source::Manager::GetInstance().free(source);
@@ -157,8 +165,7 @@ void osn::Source::Register(ipc::server& srv)
 	cls->register_function(
 	    std::make_shared<ipc::function>("GetStatus", std::vector<ipc::type>{ipc::type::UInt64}, GetStatus));
 	cls->register_function(std::make_shared<ipc::function>("GetId", std::vector<ipc::type>{ipc::type::UInt64}, GetId));
-	cls->register_function(
-	    std::make_shared<ipc::function>("QueryHotkeys", std::vector<ipc::type>{ipc::type::UInt64}, QueryHotkeys));
+	cls->register_function(std::make_shared<ipc::function>("Query", std::vector<ipc::type>{ipc::type::UInt64}, Query));
 	cls->register_function(
 	    std::make_shared<ipc::function>("GetMuted", std::vector<ipc::type>{ipc::type::UInt64}, GetMuted));
 	cls->register_function(std::make_shared<ipc::function>(
@@ -661,26 +668,25 @@ void osn::Source::GetId(
 	AUTO_DEBUG;
 }
 
-void osn::Source::QueryHotkeys(
+void osn::Source::Query(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (src == nullptr) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Source reference is not valid."));
-		AUTO_DEBUG;
-		return;
+	std::unique_lock<std::mutex> ulock(source_hotkey_mtx);
+
+	// For each source entry
+	for (auto iter : pending_source_hotkeys) {
+		
+		// For each hotkey entry
+		for (auto& hotkey : iter.second) {
+			rval.push_back(ipc::value(iter.first));
+			rval.push_back(ipc::value(hotkey));
+		}	
 	}
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-
-	for (auto hotkey : allSourceHotkeys.find(args[0].value_union.ui64)->second) {
-		rval.push_back(ipc::value(hotkey));
-	}
+	pending_source_hotkeys.clear();
 
 	AUTO_DEBUG;
 }
