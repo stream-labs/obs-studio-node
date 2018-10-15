@@ -30,6 +30,44 @@
 #include "shared.hpp"
 #include <obs.hpp>
 
+std::map<uint64_t, std::vector<std::string>> allSourceHotkeys;
+
+std::vector<std::string> get_source_hotkeys(uint64_t sourceID)
+{
+	std::vector<std::string> hotkeys;
+
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(sourceID);
+	if (src == nullptr) {
+		return {};
+	}
+
+	// For each registered hotkey
+	auto indata  = std::make_pair(src, &hotkeys);
+	using data_t = decltype(indata);
+	obs_enum_hotkeys(
+	    [](void* data, obs_hotkey_id id, obs_hotkey_t* key) {
+		    data_t&       d               = *static_cast<data_t*>(data);
+		    obs_source_t* source          = d.first;
+		    auto          registerer_type = obs_hotkey_get_registerer_type(key);
+		    void*         registerer      = obs_hotkey_get_registerer(key);
+
+		    if (registerer_type == OBS_HOTKEY_REGISTERER_SOURCE) {
+			    auto* weak_source = static_cast<obs_weak_source_t*>(registerer);
+			    auto  key_source  = OBSGetStrongRef(weak_source);
+
+			    if (source == key_source) {
+				    const char* key_name = obs_hotkey_get_name(key);
+				    d.second->push_back(key_name);
+			    }
+		    }
+
+		    return true;
+	    },
+	    &indata);
+
+	return hotkeys;
+}
+
 void osn::Source::initialize_global_signals()
 {
 	signal_handler_t* sh = obs_get_signal_handler();
@@ -51,6 +89,10 @@ void osn::Source::global_source_create_cb(void* ptr, calldata_t* cd)
 
 	osn::Source::Manager::GetInstance().allocate(source);
 	osn::Source::attach_source_signals(source);
+
+	auto sourceId = osn::Source::Manager::GetInstance().find(source);
+	auto sourceHotkeys = get_source_hotkeys(osn::Source::Manager::GetInstance().find(source));
+	allSourceHotkeys.insert({sourceId, sourceHotkeys});
 }
 
 void osn::Source::attach_source_signals(obs_source_t* src)
@@ -66,6 +108,12 @@ void osn::Source::source_destroy_cb(void* ptr, calldata_t* cd)
 	obs_source_t* source = nullptr;
 	if (!calldata_get_ptr(cd, "source", &source)) {
 		throw std::exception("calldata did not contain source pointer");
+	}
+
+	auto sourceId = osn::Source::Manager::GetInstance().find(source);
+	auto iter     = allSourceHotkeys.find(sourceId);
+	if (iter != allSourceHotkeys.end()) {
+		allSourceHotkeys.erase(iter);
 	}
 
 	osn::Source::Manager::GetInstance().free(source);
@@ -631,32 +679,9 @@ void osn::Source::QueryHotkeys(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
-	// For each registered hotkey
-	auto indata = std::make_pair(src, &rval);
-	using data_t = decltype(indata);
-	obs_enum_hotkeys(
-	    [](void* data, obs_hotkey_id id, obs_hotkey_t* key) 
-	{
-		    data_t& d			  = *static_cast<data_t*>(data);
-		    obs_source_t* source  = d.first;
-		    auto  registerer_type = obs_hotkey_get_registerer_type(key);
-		    void* registerer      = obs_hotkey_get_registerer(key);
-
-		    if (registerer_type == OBS_HOTKEY_REGISTERER_SOURCE) {
-
-				auto* weak_source = static_cast<obs_weak_source_t*>(registerer);
-			    auto  key_source  = OBSGetStrongRef(weak_source);
-
-			    if (source == key_source) {
-
-				    const char* key_name = obs_hotkey_get_name(key);
-				    d.second->push_back(ipc::value(key_name));
-			    }
-		    }
-
-		    return true;
-	    },
-	    &indata);
+	for (auto hotkey : allSourceHotkeys.find(args[0].value_union.ui64)->second) {
+		rval.push_back(ipc::value(hotkey));
+	}
 
 	AUTO_DEBUG;
 }
