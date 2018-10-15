@@ -22,6 +22,14 @@
 
 namespace osn
 {
+	struct SourceHotkeyInfo
+	{
+		uint64_t sourceId;
+		std::string hotkeyName;
+	};
+
+	typedef utilv8::managed_callback<std::shared_ptr<std::vector<SourceHotkeyInfo>>>	SourceCallback;
+
 	class ISource : public Nan::ObjectWrap, public utilv8::InterfaceObject<osn::ISource>
 	{
 		friend class utilv8::InterfaceObject<osn::ISource>;
@@ -32,6 +40,27 @@ namespace osn
 		public:
 		uint64_t sourceId;
 		virtual ~ISource(){};
+
+		private:
+		uint64_t m_uid;
+		uint32_t m_sleep_interval = 33;
+
+		std::thread m_worker;
+		bool        m_worker_stop = true;
+		std::mutex  m_worker_lock;
+
+		osn::SourceCallback*	m_async_callback = nullptr;
+		Nan::Callback			m_callback_function;
+
+		private:
+		void start_async_runner();
+		void stop_async_runner();
+		void callback_handler(void* data, std::shared_ptr<std::vector<SourceHotkeyInfo>> item);
+
+		void start_worker();
+		void stop_worker();
+		void worker();
+		void set_keepalive(v8::Local<v8::Object>);
 
 		public:
 		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
@@ -54,10 +83,11 @@ namespace osn
 		static Nan::NAN_METHOD_RETURN_TYPE SetFlags(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE GetStatus(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE GetId(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE QueryHotkeys(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE GetMuted(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE SetMuted(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE GetEnabled(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE SetEnabled(Nan::NAN_METHOD_ARGS_TYPE info);
+
+		static void ConnectHotkeyCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
 	};
 } // namespace osn

@@ -17,6 +17,7 @@
 
 #include "isource.hpp"
 #include <error.hpp>
+#include <functional>
 #include "controller.hpp"
 #include "obs-property.hpp"
 #include "properties.hpp"
@@ -25,6 +26,72 @@
 #include "utility.hpp"
 
 Nan::Persistent<v8::FunctionTemplate> osn::ISource::prototype = Nan::Persistent<v8::FunctionTemplate>();
+osn::ISource*                         sourceObject;
+
+void osn::ISource::start_async_runner()
+{
+	if (m_async_callback)
+		return;
+
+	std::unique_lock<std::mutex> ul(m_worker_lock);
+	
+	// Start v8/uv asynchronous runner.
+	m_async_callback = new osn::SourceCallback();
+	m_async_callback->set_handler(
+	    std::bind(&ISource::callback_handler, this, std::placeholders::_1, std::placeholders::_2), nullptr);
+}
+
+void osn::ISource::stop_async_runner()
+{
+	if (!m_async_callback)
+		return;
+
+	std::unique_lock<std::mutex> ul(m_worker_lock);
+
+	// Stop v8/uv asynchronous runner.
+	m_async_callback->clear();
+	m_async_callback->finalize();
+	m_async_callback = nullptr;
+}
+
+void osn::ISource::callback_handler(void* data, std::shared_ptr<std::vector<SourceHotkeyInfo>> item)
+{
+	v8::Isolate*         isolate = v8::Isolate::GetCurrent();
+	v8::Local<v8::Value> args[1];
+
+	for (auto& hotkeyInfo : *item) {
+	
+		v8::Local<v8::Value> argv = v8::Object::New(isolate);
+
+		argv->ToObject()->Set(v8::String::NewFromUtf8(isolate, "source"), v8::Number::New(isolate, hotkeyInfo.sourceId));
+		argv->ToObject()->Set(
+		        v8::String::NewFromUtf8(isolate, "hotkey"), v8::String::NewFromUtf8(isolate, hotkeyInfo.hotkeyName.c_str()));
+
+		args[0] = argv;
+
+		Nan::Call(m_callback_function, 1, args);
+	}
+}
+
+void osn::ISource::start_worker()
+{
+	if (!m_worker_stop)
+		return;
+	// Launch worker thread.
+	m_worker_stop = false;
+	m_worker      = std::thread(std::bind(&osn::ISource::worker, this));
+}
+
+void osn::ISource::stop_worker()
+{
+	if (m_worker_stop != false)
+		return;
+	// Stop worker thread.
+	m_worker_stop = true;
+	if (m_worker.joinable()) {
+		m_worker.join();
+	}
+}
 
 void osn::ISource::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 {
@@ -289,6 +356,76 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetSettings(Nan::NAN_METHOD_ARGS_TYPE 
 	return;
 }
 
+void osn::ISource::ConnectHotkeyCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	v8::Local<v8::Function> callback;
+	ASSERT_GET_VALUE(args[0], callback);
+
+	// Grab IPC Connection
+	std::shared_ptr<ipc::client> conn = nullptr;
+	if (!(conn = GetConnection())) {
+		return;
+	}
+
+	// Callback
+	sourceObject = new ISource();
+	sourceObject->m_callback_function.Reset(callback);
+	sourceObject->start_async_runner();
+	sourceObject->set_keepalive(args.This());
+	sourceObject->start_worker();
+	args.GetReturnValue().Set(true);
+}
+
+void osn::ISource::worker()
+{
+	size_t totalSleepMS = 0;
+
+	while (!m_worker_stop) {
+		auto tp_start = std::chrono::high_resolution_clock::now();
+
+		// Validate Connection
+		auto conn = Controller::GetInstance().GetConnection();
+		if (!conn) {
+			goto do_sleep;
+		}
+
+		// Call
+		{
+			std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "Query", {});
+			if (!response.size() || (response.size() == 1)) {
+				goto do_sleep;
+			}
+
+			ErrorCode error = (ErrorCode)response[0].value_union.ui64;
+			if (error == ErrorCode::Ok && response.size() % 2 != 0) /* Pair of results */ {
+
+				std::shared_ptr<std::vector<SourceHotkeyInfo>> data = std::make_shared<std::vector<SourceHotkeyInfo>>();
+
+				// For each hotkey pair
+				for (int i = 1; i < response.size(); i += 2) {
+					data->push_back({response[i].value_union.ui64, response[i].value_str});
+				}
+
+				m_async_callback->queue(std::move(data));
+			}
+		}
+
+	do_sleep:
+		auto tp_end  = std::chrono::high_resolution_clock::now();
+		auto dur     = std::chrono::duration_cast<std::chrono::milliseconds>(tp_end - tp_start);
+		totalSleepMS = m_sleep_interval - dur.count();
+		std::this_thread::sleep_for(std::chrono::milliseconds(totalSleepMS));
+	}
+	return;
+}
+
+void osn::ISource::set_keepalive(v8::Local<v8::Object> obj)
+{
+	if (!m_async_callback)
+		return;
+	m_async_callback->set_keepalive(obj);
+}
+
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Update(Nan::NAN_METHOD_ARGS_TYPE info)
 {
 	v8::Local<v8::Object> json;
@@ -511,30 +648,6 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetId(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 
 	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
-}
-
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::QueryHotkeys(Nan::NAN_METHOD_ARGS_TYPE info)
-{
-	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
-		return;
-	}
-
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Source", "QueryHotkeys", {ipc::value(is->sourceId)});
-
-	if (!ValidateResponse(response))
-		return;
-
-	v8::Local<v8::Array> arr = Nan::New<v8::Array>(response.size() - 1);
-	for (size_t idx = 1; idx < response.size(); idx++) {
-		Nan::Set(arr, idx - 1, utilv8::ToValue(response[idx].value_str));
-	}
-
-	info.GetReturnValue().Set(arr);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetMuted(Nan::NAN_METHOD_ARGS_TYPE info)
