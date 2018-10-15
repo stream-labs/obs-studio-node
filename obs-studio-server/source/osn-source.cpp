@@ -90,7 +90,6 @@ void osn::Source::global_source_create_cb(void* ptr, calldata_t* cd)
 	osn::Source::Manager::GetInstance().allocate(source);
 	osn::Source::attach_source_signals(source);
 
-	auto sourceId = osn::Source::Manager::GetInstance().find(source);
 	auto sourceHotkeys = get_source_hotkeys(osn::Source::Manager::GetInstance().find(source));
 	allSourceHotkeys.insert({sourceId, sourceHotkeys});
 }
