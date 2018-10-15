@@ -129,20 +129,12 @@ add_dependencies(crashpad_util crashpad_client)
 #############################
 SET(ENABLE_FACEMASK TRUE CACHE BOOL "Enable Facemask Plugin")
 
-# OBS Studio (CPack Release)
-if(ENABLE_FACEMASK)
-	download_project(
-		PROJ libobs
-		URL https://github.com/stream-labs/obs-studio/releases/download/22.0.3-sl-3-fm/obs-msvc2017-x64-22.0.3-sl-3-fm.7z
-		UPDATE_DISCONNECTED 1
-	)
-else()
-	download_project(
-		PROJ libobs
-		URL https://github.com/stream-labs/obs-studio/releases/download/22.0.3-sl-3/obs-msvc2017-x64-22.0.3-sl-3.7z
-		UPDATE_DISCONNECTED 1
-	)
-endif()
+download_project(
+	PROJ libobs
+	URL https://github.com/stream-labs/obs-studio/releases/download/22.0.3-sl-4/obs-msvc2017-x64-22.0.3-sl-4.7z
+	UPDATE_DISCONNECTED 1
+)
+
 INCLUDE("${libobs_SOURCE_DIR}/cmake/LibObs/LibObsConfig.cmake")
 
 # OBS Studio (Signed Binaries)
@@ -158,11 +150,11 @@ download_project(
 SET(PROJECT_SOURCE
 	"${CMAKE_SOURCE_DIR}/source/error.hpp"
 	"${CMAKE_SOURCE_DIR}/source/obs-property.hpp" "${CMAKE_SOURCE_DIR}/source/obs-property.cpp"
-	
+
 	###### OBS-STUDIO-NODE ######
 	"${PROJECT_SOURCE_DIR}/source/main.cpp"
 	"${PROJECT_SOURCE_DIR}/source/shared.cpp" "${PROJECT_SOURCE_DIR}/source/shared.hpp"
-	"${PROJECT_SOURCE_DIR}/source/utility.cpp" "${PROJECT_SOURCE_DIR}/source/utility.hpp"	
+	"${PROJECT_SOURCE_DIR}/source/utility.cpp" "${PROJECT_SOURCE_DIR}/source/utility.hpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-nodeobs.cpp" "${PROJECT_SOURCE_DIR}/source/osn-nodeobs.hpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-audio.cpp" "${PROJECT_SOURCE_DIR}/source/osn-audio.hpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-calldata.cpp" "${PROJECT_SOURCE_DIR}/source/osn-calldata.hpp"
