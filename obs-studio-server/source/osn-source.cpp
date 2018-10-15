@@ -165,7 +165,7 @@ void osn::Source::Register(ipc::server& srv)
 	cls->register_function(
 	    std::make_shared<ipc::function>("GetStatus", std::vector<ipc::type>{ipc::type::UInt64}, GetStatus));
 	cls->register_function(std::make_shared<ipc::function>("GetId", std::vector<ipc::type>{ipc::type::UInt64}, GetId));
-	cls->register_function(std::make_shared<ipc::function>("Query", std::vector<ipc::type>{ipc::type::UInt64}, Query));
+	cls->register_function(std::make_shared<ipc::function>("Query", std::vector<ipc::type>{}, Query));
 	cls->register_function(
 	    std::make_shared<ipc::function>("GetMuted", std::vector<ipc::type>{ipc::type::UInt64}, GetMuted));
 	cls->register_function(std::make_shared<ipc::function>(
@@ -674,6 +674,8 @@ void osn::Source::Query(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
 	std::unique_lock<std::mutex> ulock(source_hotkey_mtx);
 
 	// For each source entry

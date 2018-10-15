@@ -356,7 +356,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetSettings(Nan::NAN_METHOD_ARGS_TYPE 
 	return;
 }
 
-void osn::ISource::ConnectHotkeyCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::ConnectHotkeyCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	v8::Local<v8::Function> callback;
 	ASSERT_GET_VALUE(args[0], callback);
@@ -383,15 +383,15 @@ void osn::ISource::worker()
 	while (!m_worker_stop) {
 		auto tp_start = std::chrono::high_resolution_clock::now();
 
-		// Validate Connection
-		auto conn = Controller::GetInstance().GetConnection();
-		if (!conn) {
+		// Grab IPC Connection
+		std::shared_ptr<ipc::client> conn = nullptr;
+		if (!(conn = GetConnection())) {
 			goto do_sleep;
 		}
 
 		// Call
 		{
-			std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "Query", {});
+			std::vector<ipc::value> response = conn->call_synchronous_helper("Source", "Query", {});
 			if (!response.size() || (response.size() == 1)) {
 				goto do_sleep;
 			}
@@ -403,7 +403,7 @@ void osn::ISource::worker()
 
 				// For each hotkey pair
 				for (int i = 1; i < response.size(); i += 2) {
-					data->push_back({response[i].value_union.ui64, response[i].value_str});
+					data->push_back({response[i].value_union.ui64, response[i+1].value_str});
 				}
 
 				m_async_callback->queue(std::move(data));
