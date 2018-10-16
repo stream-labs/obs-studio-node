@@ -372,12 +372,73 @@ static void                                    node_obs_log(int log_level, const
 #endif
 }
 
+uint32_t pid = GetCurrentProcessId();
+
+std::vector<char> registerProcess(void) {
+	std::vector<char> buffer;
+	buffer.resize(sizeof(uint8_t) + sizeof(bool) + sizeof(uint32_t));
+	uint8_t action = 0;
+	bool    isCritical = true;
+
+	uint32_t offset = 0;
+
+	memcpy(buffer.data(), &action, sizeof(action));
+	offset++;
+	memcpy(buffer.data() + offset, &isCritical, sizeof(isCritical));
+	offset++;
+	memcpy(buffer.data() + offset, &pid, sizeof(pid));
+
+	return buffer;
+}
+
+std::vector<char> unregisterProcess(void) {
+	std::vector<char> buffer;
+	buffer.resize(sizeof(uint8_t) + sizeof(uint32_t));
+	uint8_t  action     = 1;
+
+	uint32_t offset = 0;
+
+	memcpy(buffer.data(), &action, sizeof(action));
+	offset++;
+	memcpy(buffer.data() + offset, &pid, sizeof(pid));
+
+	return buffer;
+}
+
+void writeCrashHandler(std::vector<char> buffer) {
+	HANDLE hPipe = CreateFile(
+	    TEXT("\\\\.\\pipe\\slobs-crash-handler"),
+	    GENERIC_READ |
+	    GENERIC_WRITE,
+	    0,
+	    NULL,
+	    OPEN_EXISTING,
+	    0,
+	    NULL);
+
+	if (hPipe == INVALID_HANDLE_VALUE)
+		return;
+
+	if (GetLastError() == ERROR_PIPE_BUSY)
+		return;
+
+	WriteFile(
+	    hPipe,
+	    buffer.data(),
+	    buffer.size(),
+	    NULL,
+	    NULL);
+
+	CloseHandle(hPipe);
+}
+
 void OBS_API::OBS_API_initAPI(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	writeCrashHandler(registerProcess());
 	/* Map base DLLs as soon as possible into the current process space.
 	* In particular, we need to load obs.dll into memory before we call
 	* any functions from obs else if we delay-loaded the dll, it will
@@ -725,6 +786,8 @@ static void SaveProfilerData(const profiler_snapshot_t* snap)
 
 void OBS_API::destroyOBS_API(void)
 {
+	writeCrashHandler(unregisterProcess());
+
 	os_cpu_usage_info_destroy(cpuUsageInfo);
 
 #ifdef _WIN32
