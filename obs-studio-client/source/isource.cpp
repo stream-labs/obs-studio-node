@@ -28,6 +28,12 @@
 Nan::Persistent<v8::FunctionTemplate> osn::ISource::prototype = Nan::Persistent<v8::FunctionTemplate>();
 osn::ISource*                         sourceObject;
 
+osn::ISource::~ISource()
+{
+	stop_worker();
+	stop_async_runner();
+}
+
 void osn::ISource::start_async_runner()
 {
 	if (m_async_callback)
@@ -63,10 +69,21 @@ void osn::ISource::callback_handler(void* data, std::shared_ptr<std::vector<Sour
 	
 		v8::Local<v8::Value> argv = v8::Object::New(isolate);
 
-		argv->ToObject()->Set(v8::String::NewFromUtf8(isolate, "source"), v8::Number::New(isolate, hotkeyInfo.sourceId));
-		argv->ToObject()->Set(
-		        v8::String::NewFromUtf8(isolate, "hotkey"), v8::String::NewFromUtf8(isolate, hotkeyInfo.hotkeyName.c_str()));
+		auto hotkeyNameParsed = hotkeyInfo.hotkeyName.substr(hotkeyInfo.hotkeyName.find_first_of(".") + 1);
+		std::replace(hotkeyNameParsed.begin(), hotkeyNameParsed.end(), '-', '_');
+		std::transform(hotkeyNameParsed.begin(), hotkeyNameParsed.end(), hotkeyNameParsed.begin(), ::toupper);
+		hotkeyNameParsed = "PUSH_TO_TALK";
 
+		argv->ToObject()->Set(
+		    v8::String::NewFromUtf8(isolate, "sourceName"),
+		    v8::String::NewFromUtf8(isolate, hotkeyInfo.sourceName.c_str()));
+		argv->ToObject()->Set(
+		    v8::String::NewFromUtf8(isolate, "hotkeyName"), v8::String::NewFromUtf8(isolate, hotkeyNameParsed.c_str()));
+		argv->ToObject()->Set(
+		    v8::String::NewFromUtf8(isolate, "hotkeyDescription"),
+		    v8::String::NewFromUtf8(isolate, hotkeyInfo.hotkeyDesc.c_str()));
+		argv->ToObject()->Set(
+		    v8::String::NewFromUtf8(isolate, "hotkeyId"), v8::Number::New(isolate, hotkeyInfo.hotkeyId));
 		args[0] = argv;
 
 		Nan::Call(m_callback_function, 1, args);
@@ -397,13 +414,16 @@ void osn::ISource::worker()
 			}
 
 			ErrorCode error = (ErrorCode)response[0].value_union.ui64;
-			if (error == ErrorCode::Ok && response.size() % 2 != 0) /* Pair of results */ {
+			if (error == ErrorCode::Ok && (response.size() - 1) % 4 == 0) /* Each entry has 4 results */ {
 
 				std::shared_ptr<std::vector<SourceHotkeyInfo>> data = std::make_shared<std::vector<SourceHotkeyInfo>>();
 
 				// For each hotkey pair
-				for (int i = 1; i < response.size(); i += 2) {
-					data->push_back({response[i].value_union.ui64, response[i+1].value_str});
+				for (int i = 1; i < response.size(); i += 4) {
+					data->push_back({response[i].value_str,
+					                 response[i + 1].value_str,
+					                 response[i + 2].value_str,
+					                 response[i + 3].value_union.ui64});
 				}
 
 				m_async_callback->queue(std::move(data));
