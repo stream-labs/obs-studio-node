@@ -24,8 +24,10 @@ namespace osn
 {
 	struct SourceHotkeyInfo
 	{
-		uint64_t sourceId;
+		std::string sourceName;
 		std::string hotkeyName;
+		std::string hotkeyDesc;
+		size_t		hotkeyId;
 	};
 
 	typedef utilv8::managed_callback<std::shared_ptr<std::vector<SourceHotkeyInfo>>>	SourceCallback;
@@ -39,7 +41,7 @@ namespace osn
 
 		public:
 		uint64_t sourceId;
-		virtual ~ISource(){};
+		virtual ~ISource();
 
 		private:
 		uint64_t m_uid;

@@ -30,12 +30,12 @@
 #include "osn-common.hpp"
 #include "shared.hpp"
 
-std::map<uint64_t, std::vector<std::string>> pending_source_hotkeys;
-std::mutex                                   source_hotkey_mtx;
+std::map<uint64_t, std::vector<std::tuple<std::string, std::string, obs_hotkey_id>>> pending_source_hotkeys;
+std::mutex                                                           source_hotkey_mtx;
 
-std::vector<std::string> get_source_hotkeys(uint64_t sourceID)
+std::vector<std::tuple<std::string, std::string, obs_hotkey_id>> get_source_hotkeys(uint64_t sourceID)
 {
-	std::vector<std::string> hotkeys;
+	std::vector<std::tuple<std::string, std::string, obs_hotkey_id>> hotkeys;
 
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(sourceID);
 	if (src == nullptr) {
@@ -58,7 +58,11 @@ std::vector<std::string> get_source_hotkeys(uint64_t sourceID)
 
 			    if (source == key_source) {
 				    const char* key_name = obs_hotkey_get_name(key);
-				    d.second->push_back(key_name);
+				    const char* desc     = obs_hotkey_get_description(key);
+				    const auto  hotkeyId = obs_hotkey_get_id(key);
+					// obs_hotkey_trigger_routed_callback(hotkeyId, true);
+
+				    d.second->push_back({key_name, desc, hotkeyId});
 			    }
 		    }
 
@@ -116,8 +120,7 @@ void osn::Source::source_destroy_cb(void* ptr, calldata_t* cd)
 	{
 		std::unique_lock<std::mutex> ulock(source_hotkey_mtx);
 
-		auto iter = pending_source_hotkeys.find(
-			osn::Source::Manager::GetInstance().find(source));
+		auto iter = pending_source_hotkeys.find(osn::Source::Manager::GetInstance().find(source));
 		if (iter != pending_source_hotkeys.end()) {
 			pending_source_hotkeys.erase(iter);
 		}
@@ -680,12 +683,19 @@ void osn::Source::Query(
 
 	// For each source entry
 	for (auto iter : pending_source_hotkeys) {
-		
+		// Check for an invalid reference
+		obs_source_t* src = osn::Source::Manager::GetInstance().find(iter.first);
+		if (src == nullptr) {
+			continue;
+		}
+
 		// For each hotkey entry
-		for (auto& hotkey : iter.second) {
-			rval.push_back(ipc::value(iter.first));
-			rval.push_back(ipc::value(hotkey));
-		}	
+		for (auto& hotkeyTuple : iter.second) {
+			rval.push_back(ipc::value(obs_source_get_name(src)));
+			rval.push_back(ipc::value(std::get<0>(hotkeyTuple)));
+			rval.push_back(ipc::value(std::get<1>(hotkeyTuple)));
+			rval.push_back(ipc::value(std::get<2>(hotkeyTuple)));
+		}
 	}
 
 	pending_source_hotkeys.clear();
