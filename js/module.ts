@@ -1521,6 +1521,7 @@ export interface ISceneItemInfo {
     y: number,
     rotation: number
 }
+
 export function addItems(scene: IScene, sceneItems: ISceneItemInfo[]): ISceneItem[] {
     const items: ISceneItem[] = [];
     if (Array.isArray(sceneItems)) {
@@ -1546,12 +1547,14 @@ export function addItems(scene: IScene, sceneItems: ISceneItemInfo[]): ISceneIte
     }
     return items;
 }
+
 export interface FilterInfo {
     name: string,
     type: string,
     settings: ISettings,
     enabled: boolean
 }
+
 export interface SourceInfo {
     filters: FilterInfo[],
     muted: boolean,
@@ -1560,52 +1563,90 @@ export interface SourceInfo {
     type: string,
     volume: number
 }
+
 export function createSources(sources: SourceInfo[]): IInput[] {
     const items: IInput[] = [];
-    if (Array.isArray(sources)) {
-        sources.forEach(function (source) {
-            const newSource = obs.Input.create(source.type, source.name, source.settings);
-            if (newSource.audioMixers) {
-                newSource.muted = (source.muted != null) ? source.muted : false;
-                newSource.volume = (source.volume != null) ? source.volume : 1;
+
+    if (!Array.isArray(sources)) return items;
+
+    sources.forEach(function (source) {
+        const obsSource = obs.Input.create(source.type, source.name, source.settings);
+
+        if (!obsSource) {
+            throw Error(
+                    `Failed to create input source ${obsSource.name} with type ${obsSource.type}\n` +
+                    `Settings: ${JSON.stringify(obsSource.settings)}`);
+        }
+
+        if (obsSource.audioMixers) {
+            obsSource.muted = (source.muted != null) ? source.muted : false;
+            obsSource.volume = (source.volume != null) ? source.volume : 1;
+        }
+
+        items.push(obsSource);
+
+        const filters = source.filters;
+
+        if (!Array.isArray(filters)) return;
+
+        filters.forEach(function (filter) {
+            const obsFilter = obs.Filter.create(filter.type, filter.name, filter.settings);
+
+            if (!obsFilter) {
+                throw Error(
+                    `Failed to create input source ${obsSource.name} with type ${obsSource.type}\n` +
+                    `Settings: ${JSON.stringify(obsSource.settings)}`);
             }
-            items.push(newSource);
-            const filters = source.filters;
-            if (Array.isArray(filters)) {
-                    filters.forEach(function (filter) {
-                    const ObsFilter = obs.Filter.create(filter.type, filter.name, filter.settings);
-                    ObsFilter.enabled = (filter.enabled != null) ? filter.enabled : true;
-                    newSource.addFilter(ObsFilter);
-                    ObsFilter.release();
-                });
-            }
+
+            obsFilter.enabled = (filter.enabled != null) ? filter.enabled : true;
+            obsSource.addFilter(obsFilter);
+            obsFilter.release();
         });
-    }
+    });
+
     return items;
 }
+
 export interface ISourceSize {
     name: string,
     width: number,
     height: number,
     outputFlags: number,
 }
+
 export function getSourcesSize(sourcesNames: string[]): ISourceSize[] {
     const sourcesSize: ISourceSize[] = [];
-    if (Array.isArray(sourcesNames)) {
-        sourcesNames.forEach(function (sourceName) {
-            const ObsInput = obs.Input.fromName(sourceName);
-            if(ObsInput) {
-                sourcesSize.push({ name: sourceName, height: ObsInput.height, width: ObsInput.width, outputFlags: ObsInput.outputFlags });
-            }
+
+    if (!Array.isArray(sourcesNames)) return sourcesSize;
+
+    sourcesNames.forEach(function (sourceName) {
+        const obsInput = obs.Input.fromName(sourceName);
+
+        if(!obsInput) {
+            throw Error(`Failed to fetch input source ${sourceName} by name`);
+            return;
+        }
+
+        sourcesSize.push({
+            name: sourceName,
+            height: obsInput.height,
+            width: obsInput.width,
+            outputFlags: obsInput.outputFlags
         });
-    }
+    });
+
     return sourcesSize;
 }
 
 // Initialization and other stuff which needs local data.
 if (fs.existsSync(path.resolve(__dirname, `obs64.exe`).replace('app.asar', 'app.asar.unpacked'))) {
-	obs.IPC.setServerPath(path.resolve(__dirname, `obs64.exe`).replace('app.asar', 'app.asar.unpacked'), path.resolve(__dirname).replace('app.asar', 'app.asar.unpacked'));
+	obs.IPC.setServerPath(
+        path.resolve(__dirname, `obs64.exe`).replace('app.asar', 'app.asar.unpacked'),
+        path.resolve(__dirname).replace('app.asar', 'app.asar.unpacked'));
 } else {
-	obs.IPC.setServerPath(path.resolve(__dirname, `obs32.exe`).replace('app.asar', 'app.asar.unpacked'), path.resolve(__dirname).replace('app.asar', 'app.asar.unpacked'));
+	obs.IPC.setServerPath(
+        path.resolve(__dirname, `obs32.exe`).replace('app.asar', 'app.asar.unpacked'),
+        path.resolve(__dirname).replace('app.asar', 'app.asar.unpacked'));
 }
+
 export const NodeObs = obs;

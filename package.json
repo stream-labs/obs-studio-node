@@ -17,15 +17,12 @@
   "scripts": {
     "clean": "git clean -fxd",
     "build:bindings": "cmake-js configure -a x64 --CDCMAKE_PREFIX_INSTALL=distribute && cmake --build build --target install --config Release",
-    "build:javascript": "tsc -p js",
-    "build:docs": "typedoc --out docs"
+    "build:javascript": "tsc -p js"
   },
   "devDependencies": {
+    "@types/node": "10.11.4",
     "nan": "2.10.0",
-    "typedoc": "^0.11.1",
-    "typedoc-default-themes": "^0.5.0",
-    "typedoc-plugin-markdown": "^1.0.12",
-    "typescript": "^2.9.2"
+    "typescript": "3.1.1"
   },
   "keywords": [
     "capture",
