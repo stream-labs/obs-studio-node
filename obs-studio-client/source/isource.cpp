@@ -737,3 +737,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetEnabled(Nan::NAN_METHOD_ARGS_TYPE i
 
 	info.GetReturnValue().Set((bool)response[1].value_union.i32 == enabled);
 }
+
+
+INITIALIZER(nodeobs_source)
+{
+	initializerFunctions.push([](v8::Local<v8::Object> exports) {
+		NODE_SET_METHOD(exports, "ConnectHotkeyCallback", osn::ISource::ConnectHotkeyCallback);
+	});
+}
