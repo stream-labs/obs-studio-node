@@ -68,23 +68,12 @@ void osn::ISource::callback_handler(void* data, std::shared_ptr<std::vector<Sour
 	for (auto& hotkeyInfo : *item) {
 		v8::Local<v8::Value> argv = v8::Object::New(isolate);
 
-		auto hotkeyNameParsed = hotkeyInfo.hotkeyName.substr(hotkeyInfo.hotkeyName.find_first_of(".") + 1);
-		std::replace(hotkeyNameParsed.begin(), hotkeyNameParsed.end(), '-', '_');
-		std::transform(hotkeyNameParsed.begin(), hotkeyNameParsed.end(), hotkeyNameParsed.begin(), ::toupper);
-
-		// Right now just ignore the hotkeys that the frontend is handling by hand and use the BACKEND_SOURCE
-		// name for them
-		if (hotkeyNameParsed == "MUTE" || hotkeyNameParsed == "UNMUTE" || hotkeyNameParsed == "PUSH_TO_MUTE"
-		    || hotkeyNameParsed == "PUSH_TO_TALK") {
-			continue; // Ignore this hotkey
-		}
-		hotkeyNameParsed = "BACKEND_SOURCE";
-
 		argv->ToObject()->Set(
 		    v8::String::NewFromUtf8(isolate, "sourceName"),
 		    v8::String::NewFromUtf8(isolate, hotkeyInfo.sourceName.c_str()));
 		argv->ToObject()->Set(
-		    v8::String::NewFromUtf8(isolate, "hotkeyName"), v8::String::NewFromUtf8(isolate, hotkeyNameParsed.c_str()));
+		    v8::String::NewFromUtf8(isolate, "hotkeyName"),
+		    v8::String::NewFromUtf8(isolate, hotkeyInfo.hotkeyName.c_str()));
 		argv->ToObject()->Set(
 		    v8::String::NewFromUtf8(isolate, "hotkeyDescription"),
 		    v8::String::NewFromUtf8(isolate, hotkeyInfo.hotkeyDesc.c_str()));
@@ -397,6 +386,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::ConnectHotkeyCallback(const v8::Functi
 	sourceObject->set_keepalive(args.This());
 	sourceObject->start_worker();
 	args.GetReturnValue().Set(true);
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::DisconnectHotkeyCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	sourceObject->stop_worker();
+	sourceObject->stop_async_runner();
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::ProcessHotkeyStatus(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -788,6 +783,9 @@ INITIALIZER(nodeobs_source)
 {
 	initializerFunctions.push([](v8::Local<v8::Object> exports) {
 		NODE_SET_METHOD(exports, "ConnectHotkeyCallback", osn::ISource::ConnectHotkeyCallback);
+	});
+	initializerFunctions.push([](v8::Local<v8::Object> exports) {
+		NODE_SET_METHOD(exports, "DisconnectHotkeyCallback", osn::ISource::DisconnectHotkeyCallback);
 	});
 	initializerFunctions.push([](v8::Local<v8::Object> exports) {
 		NODE_SET_METHOD(exports, "ProcessHotkeyStatus", osn::ISource::ProcessHotkeyStatus);
