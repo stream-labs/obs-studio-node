@@ -40,7 +40,7 @@ void osn::ISource::start_async_runner()
 		return;
 
 	std::unique_lock<std::mutex> ul(m_worker_lock);
-	
+
 	// Start v8/uv asynchronous runner.
 	m_async_callback = new osn::SourceCallback();
 	m_async_callback->set_handler(
@@ -66,13 +66,19 @@ void osn::ISource::callback_handler(void* data, std::shared_ptr<std::vector<Sour
 	v8::Local<v8::Value> args[1];
 
 	for (auto& hotkeyInfo : *item) {
-	
 		v8::Local<v8::Value> argv = v8::Object::New(isolate);
 
 		auto hotkeyNameParsed = hotkeyInfo.hotkeyName.substr(hotkeyInfo.hotkeyName.find_first_of(".") + 1);
 		std::replace(hotkeyNameParsed.begin(), hotkeyNameParsed.end(), '-', '_');
 		std::transform(hotkeyNameParsed.begin(), hotkeyNameParsed.end(), hotkeyNameParsed.begin(), ::toupper);
-		hotkeyNameParsed = "PUSH_TO_TALK";
+
+		// Right now just ignore the hotkeys that the frontend is handling by hand and use the BACKEND_SOURCE
+		// name for them
+		if (hotkeyNameParsed == "MUTE" || hotkeyNameParsed == "UNMUTE" || hotkeyNameParsed == "PUSH_TO_MUTE"
+		    || hotkeyNameParsed == "PUSH_TO_TALK") {
+			continue; // Ignore this hotkey
+		}
+		hotkeyNameParsed = "BACKEND_SOURCE";
 
 		argv->ToObject()->Set(
 		    v8::String::NewFromUtf8(isolate, "sourceName"),
@@ -393,6 +399,27 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::ConnectHotkeyCallback(const v8::Functi
 	args.GetReturnValue().Set(true);
 }
 
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::ProcessHotkeyStatus(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	uint64_t    hotkeyId;
+	bool        press;
+	std::string sourceId;
+
+	ASSERT_GET_VALUE(args[0], hotkeyId);
+	ASSERT_GET_VALUE(args[1], press);
+	ASSERT_GET_VALUE(args[2], sourceId);
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper(
+	    "Source", "ProcessHotkeyStatus", {ipc::value(hotkeyId), ipc::value(press), ipc::value(sourceId)});
+
+	if (!ValidateResponse(response))
+		return;
+}
+
 void osn::ISource::worker()
 {
 	size_t totalSleepMS = 0;
@@ -415,7 +442,6 @@ void osn::ISource::worker()
 
 			ErrorCode error = (ErrorCode)response[0].value_union.ui64;
 			if (error == ErrorCode::Ok && (response.size() - 1) % 4 == 0) /* Each entry has 4 results */ {
-
 				std::shared_ptr<std::vector<SourceHotkeyInfo>> data = std::make_shared<std::vector<SourceHotkeyInfo>>();
 
 				// For each hotkey pair
@@ -758,10 +784,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetEnabled(Nan::NAN_METHOD_ARGS_TYPE i
 	info.GetReturnValue().Set((bool)response[1].value_union.i32 == enabled);
 }
 
-
 INITIALIZER(nodeobs_source)
 {
 	initializerFunctions.push([](v8::Local<v8::Object> exports) {
 		NODE_SET_METHOD(exports, "ConnectHotkeyCallback", osn::ISource::ConnectHotkeyCallback);
+	});
+	initializerFunctions.push([](v8::Local<v8::Object> exports) {
+		NODE_SET_METHOD(exports, "ProcessHotkeyStatus", osn::ISource::ProcessHotkeyStatus);
 	});
 }
