@@ -57,9 +57,27 @@ std::vector<std::tuple<std::string, std::string, obs_hotkey_id>> get_source_hotk
 			    auto  key_source  = OBSGetStrongRef(weak_source);
 
 			    if (source == key_source) {
-				    const char* key_name = obs_hotkey_get_name(key);
-				    const char* desc     = obs_hotkey_get_description(key);
+
+					auto ToTitle = [](std::string s) {
+						bool last = true;
+						for (char& c : s) {
+							c    = last ? ::toupper(c) : ::tolower(c);
+							last = ::isspace(c);
+						}
+						return s;
+				    };
+
+				    auto key_name = std::string(obs_hotkey_get_name(key));
+				    auto desc     = std::string(obs_hotkey_get_description(key));
 				    const auto  hotkeyId = obs_hotkey_get_id(key);
+
+					// Parse the key name and the description
+					key_name = key_name.substr(key_name.find_first_of(".") + 1);
+				    std::replace(key_name.begin(), key_name.end(), '-', '_');
+				    std::transform(key_name.begin(), key_name.end(), key_name.begin(), ::toupper);
+					// 
+				    std::replace(desc.begin(), desc.end(), '-', ' ');
+				    desc = ToTitle(desc);
 
 				    d.second->push_back({key_name, desc, hotkeyId});
 			    }
