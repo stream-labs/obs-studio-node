@@ -60,7 +60,6 @@ std::vector<std::tuple<std::string, std::string, obs_hotkey_id>> get_source_hotk
 				    const char* key_name = obs_hotkey_get_name(key);
 				    const char* desc     = obs_hotkey_get_description(key);
 				    const auto  hotkeyId = obs_hotkey_get_id(key);
-					// obs_hotkey_trigger_routed_callback(hotkeyId, true);
 
 				    d.second->push_back({key_name, desc, hotkeyId});
 			    }
@@ -169,6 +168,10 @@ void osn::Source::Register(ipc::server& srv)
 	    std::make_shared<ipc::function>("GetStatus", std::vector<ipc::type>{ipc::type::UInt64}, GetStatus));
 	cls->register_function(std::make_shared<ipc::function>("GetId", std::vector<ipc::type>{ipc::type::UInt64}, GetId));
 	cls->register_function(std::make_shared<ipc::function>("Query", std::vector<ipc::type>{}, Query));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "ProcessHotkeyStatus",
+	    std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32, ipc::type::String},
+	    ProcessHotkeyStatus));
 	cls->register_function(
 	    std::make_shared<ipc::function>("GetMuted", std::vector<ipc::type>{ipc::type::UInt64}, GetMuted));
 	cls->register_function(std::make_shared<ipc::function>(
@@ -699,6 +702,33 @@ void osn::Source::Query(
 	}
 
 	pending_source_hotkeys.clear();
+
+	AUTO_DEBUG;
+}
+
+void osn::Source::ProcessHotkeyStatus(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_hotkey_id hotkeyId	= args[0].value_union.ui64;
+	uint64_t press			= args[1].value_union.i32;
+
+	// Attempt to find the source asked to load.
+	obs_source_t* src = obs_get_source_by_name(args[2].value_str.c_str());
+	if (src == nullptr) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
+		return;
+	}
+
+	// TODO: Check if the hotkey ID is valid
+	obs_hotkey_enable_callback_rerouting(true);
+	obs_hotkey_trigger_routed_callback(hotkeyId, (bool)press);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
 	AUTO_DEBUG;
 }

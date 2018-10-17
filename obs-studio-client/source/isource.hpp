@@ -91,5 +91,6 @@ namespace osn
 		static Nan::NAN_METHOD_RETURN_TYPE SetEnabled(Nan::NAN_METHOD_ARGS_TYPE info);
 
 		static void ConnectHotkeyCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void ProcessHotkeyStatus(const v8::FunctionCallbackInfo<v8::Value>& args);
 	};
 } // namespace osn
