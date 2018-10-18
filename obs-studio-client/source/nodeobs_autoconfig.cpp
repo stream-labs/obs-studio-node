@@ -3,34 +3,18 @@
 
 using namespace std::placeholders;
 
+std::unique_ptr<AutoConfig> autoConfigObject;
+
 AutoConfig::~AutoConfig()
 {
-	stop_worker();
-	stop_async_runner();
 }
 
-void AutoConfig::start_async_runner()
+CallbackManager<AutoConfigInfo>& AutoConfig::get_callback_manager_ref() 
 {
-	if (m_async_callback)
-		return;
-	std::unique_lock<std::mutex> ul(m_worker_lock);
-	// Start v8/uv asynchronous runner.
-	m_async_callback = new AutoConfigCallback();
-	m_async_callback->set_handler(std::bind(&AutoConfig::callback_handler, this, _1, _2), nullptr);
+	return m_callback_manager;
 }
 
-void AutoConfig::stop_async_runner()
-{
-	if (!m_async_callback)
-		return;
-	std::unique_lock<std::mutex> ul(m_worker_lock);
-	// Stop v8/uv asynchronous runner.
-	m_async_callback->clear();
-	m_async_callback->finalize();
-	m_async_callback = nullptr;
-}
-
-void AutoConfig::callback_handler(void* data, std::shared_ptr<AutoConfigInfo> item)
+void AutoConfig::callback_handler(void* data, std::shared_ptr<AutoConfigInfo> item, Nan::Callback& callback)
 {
 	v8::Isolate*         isolate = v8::Isolate::GetCurrent();
 	v8::Local<v8::Value> args[1];
@@ -48,76 +32,36 @@ void AutoConfig::callback_handler(void* data, std::shared_ptr<AutoConfigInfo> it
 
 	args[0] = argv;
 
-	Nan::Call(m_callback_function, 1, args);
+	Nan::Call(callback, 1, args);
 }
 
-void AutoConfig::start_worker()
+void AutoConfig::callback_update(CallbackManager<AutoConfigInfo>::DataCallback* dataCallback)
 {
-	if (!m_worker_stop)
+	// Validate Connection
+	auto conn = Controller::GetInstance().GetConnection();
+	if (!conn) {
 		return;
-	// Launch worker thread.
-	m_worker_stop = false;
-	m_worker      = std::thread(std::bind(&AutoConfig::worker, this));
-}
-
-void AutoConfig::stop_worker()
-{
-	if (m_worker_stop != false)
-		return;
-	// Stop worker thread.
-	m_worker_stop = true;
-	if (m_worker.joinable()) {
-		m_worker.join();
 	}
-}
 
-void AutoConfig::set_keepalive(v8::Local<v8::Object> obj)
-{
-	if (!m_async_callback)
-		return;
-	m_async_callback->set_keepalive(obj);
-}
-
-void AutoConfig::worker()
-{
-	size_t totalSleepMS = 0;
-
-	while (!m_worker_stop) {
-		auto tp_start = std::chrono::high_resolution_clock::now();
-
-		// Validate Connection
-		auto conn = Controller::GetInstance().GetConnection();
-		if (!conn) {
-			goto do_sleep;
+	// Call
+	{
+		std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "Query", {});
+		if (!response.size() || (response.size() == 1)) {
+			return;
 		}
 
-		// Call
-		{
-			std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "Query", {});
-			if (!response.size() || (response.size() == 1)) {
-				goto do_sleep;
-			}
+		ErrorCode error = (ErrorCode)response[0].value_union.ui64;
+		if (error == ErrorCode::Ok) {
+			std::shared_ptr<AutoConfigInfo> data = std::make_shared<AutoConfigInfo>();
 
-			ErrorCode error = (ErrorCode)response[0].value_union.ui64;
-			if (error == ErrorCode::Ok) {
-				std::shared_ptr<AutoConfigInfo> data = std::make_shared<AutoConfigInfo>();
+			data->event       = response[1].value_str;
+			data->description = response[2].value_str;
+			data->percentage  = response[3].value_union.fp64;
+			data->param       = this;
 
-				data->event       = response[1].value_str;
-				data->description = response[2].value_str;
-				data->percentage  = response[3].value_union.fp64;
-				data->param       = this;
-
-				m_async_callback->queue(std::move(data));
-			}
+			dataCallback->queue(std::move(data));
 		}
-
-	do_sleep:
-		auto tp_end  = std::chrono::high_resolution_clock::now();
-		auto dur     = std::chrono::duration_cast<std::chrono::milliseconds>(tp_end - tp_start);
-		totalSleepMS = sleepIntervalMS - dur.count();
-		std::this_thread::sleep_for(std::chrono::milliseconds(totalSleepMS));
 	}
-	return;
 }
 
 void autoConfig::GetListServer(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -183,11 +127,13 @@ void autoConfig::InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>&
 	ValidateResponse(response);
 
 	// Callback
-	autoConfigObject = new AutoConfig();
-	autoConfigObject->m_callback_function.Reset(callback);
-	autoConfigObject->start_async_runner();
-	autoConfigObject->set_keepalive(args.This());
-	autoConfigObject->start_worker();
+	autoConfigObject = std::make_unique<AutoConfig>();
+	autoConfigObject->get_callback_manager_ref().Initialize(
+	    callback,
+	    args.This(),
+	    std::bind(&AutoConfig::callback_update, autoConfigObject.get(), _1),
+	    std::bind(&AutoConfig::callback_handler, autoConfigObject.get(), _1, _2, _3));
+
 	args.GetReturnValue().Set(true);
 }
 
@@ -230,8 +176,8 @@ void autoConfig::StartCheckSettings(const v8::FunctionCallbackInfo<v8::Value>& a
 	startData->event                          = "starting_step";
 	startData->description                    = "checking_settings";
 	startData->percentage                     = 0;
-	startData->param                          = autoConfigObject;
-	autoConfigObject->m_async_callback->queue(std::move(startData));
+	startData->param                          = autoConfigObject.get();
+	autoConfigObject->get_callback_manager_ref().QueueObject(std::move(startData));
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -252,8 +198,8 @@ void autoConfig::StartCheckSettings(const v8::FunctionCallbackInfo<v8::Value>& a
 	}
 
 	stopData->percentage = 100;
-	stopData->param      = autoConfigObject;
-	autoConfigObject->m_async_callback->queue(std::move(stopData));
+	stopData->param      = autoConfigObject.get();
+	autoConfigObject->get_callback_manager_ref().QueueObject(std::move(stopData));
 }
 
 void autoConfig::StartSetDefaultSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -299,9 +245,7 @@ void autoConfig::TerminateAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& 
 
 	ValidateResponse(response);
 
-	autoConfigObject->stop_worker();
-	autoConfigObject->stop_async_runner();
-	delete autoConfigObject;
+	autoConfigObject.release();
 }
 
 INITIALIZER(nodeobs_autoconfig)

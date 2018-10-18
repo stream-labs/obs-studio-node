@@ -20,6 +20,7 @@
 #include <node.h>
 #include <thread>
 #include "utility-v8.hpp"
+#include "callback_manager.hpp"
 
 namespace osn
 {
@@ -31,8 +32,6 @@ namespace osn
 		void*              param;
 	};
 
-	typedef utilv8::managed_callback<std::shared_ptr<osn::VolMeterData>> VolMeterCallback;
-
 	class VolMeter : public Nan::ObjectWrap,
 	                 public utilv8::InterfaceObject<osn::VolMeter>,
 	                 public utilv8::ManagedObject<osn::VolMeter>
@@ -42,28 +41,13 @@ namespace osn
 		friend utilv8::CallbackData<osn::VolMeterData, osn::VolMeter>;
 
 		uint64_t m_uid;
-		uint32_t m_sleep_interval = 33;
-
-		std::thread m_worker;
-		bool        m_worker_stop = true;
-		std::mutex  m_worker_lock;
-
-		osn::VolMeterCallback* m_async_callback = nullptr;
-		Nan::Callback          m_callback_function;
-
+		CallbackManager<osn::VolMeterData> m_callback_manager;
+		
 		public:
 		VolMeter(uint64_t uid);
 		~VolMeter();
 
-		void start_async_runner();
-		void stop_async_runner();
-		void callback_handler(void* data, std::shared_ptr<osn::VolMeterData> item);
-
-		void start_worker();
-		void stop_worker();
-		void worker();
-
-		void set_keepalive(v8::Local<v8::Object>);
+		void callback_update(CallbackManager<osn::VolMeterData>::DataCallback* dataCallback);
 
 		public:
 		static Nan::Persistent<v8::FunctionTemplate> prototype;

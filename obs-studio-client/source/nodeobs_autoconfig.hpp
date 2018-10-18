@@ -1,6 +1,7 @@
 #include <nan.h>
 #include <node.h>
 #include "utility-v8.hpp"
+#include "callback_manager.hpp"
 
 struct AutoConfigInfo
 {
@@ -10,10 +11,6 @@ struct AutoConfigInfo
 	void*       param;
 };
 
-class AutoConfig;
-typedef utilv8::managed_callback<std::shared_ptr<AutoConfigInfo>> AutoConfigCallback;
-AutoConfig*                                                       autoConfigObject;
-
 class AutoConfig : public Nan::ObjectWrap,
                    public utilv8::InterfaceObject<AutoConfig>,
                    public utilv8::ManagedObject<AutoConfig>
@@ -22,28 +19,16 @@ class AutoConfig : public Nan::ObjectWrap,
 	friend utilv8::ManagedObject<AutoConfig>;
 	friend utilv8::CallbackData<AutoConfigInfo, AutoConfig>;
 
-	uint32_t sleepIntervalMS = 33;
+	private:
+	CallbackManager<AutoConfigInfo> m_callback_manager;
 
 	public:
-	std::thread m_worker;
-	bool        m_worker_stop = true;
-	std::mutex  m_worker_lock;
-
-	AutoConfigCallback* m_async_callback = nullptr;
-	Nan::Callback       m_callback_function;
-
 	AutoConfig(){};
 	~AutoConfig();
 
-	void start_async_runner();
-	void stop_async_runner();
-	void callback_handler(void* data, std::shared_ptr<AutoConfigInfo> item);
-	void start_worker();
-	void stop_worker();
-	void worker();
-	void set_keepalive(v8::Local<v8::Object>);
-
-	std::list<AutoConfigCallback*> callbacks;
+	CallbackManager<AutoConfigInfo>& get_callback_manager_ref();
+	void callback_handler(void* data, std::shared_ptr<AutoConfigInfo> item, Nan::Callback& callback);
+	void callback_update(CallbackManager<AutoConfigInfo>::DataCallback* dataCallback);
 };
 
 namespace autoConfig

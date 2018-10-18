@@ -3,6 +3,7 @@
 #include <node.h>
 #include <thread>
 #include "utility-v8.hpp"
+#include "callback_manager.hpp"
 
 struct SignalInfo
 {
@@ -13,38 +14,23 @@ struct SignalInfo
 	void*       param;
 };
 
-class Service;
-typedef utilv8::managed_callback<std::shared_ptr<SignalInfo>> ServiceCallback;
-Service*                                                      serviceObject;
-
 class Service : public Nan::ObjectWrap, public utilv8::InterfaceObject<Service>, public utilv8::ManagedObject<Service>
 {
 	friend utilv8::InterfaceObject<Service>;
 	friend utilv8::ManagedObject<Service>;
 	friend utilv8::CallbackData<SignalInfo, Service>;
 
-	uint32_t sleepIntervalMS = 33;
+	private:
+	CallbackManager<SignalInfo> m_callback_manager;
 
 	public:
-	std::thread m_worker;
-	bool        m_worker_stop = true;
-	std::mutex  m_worker_lock;
-
-	ServiceCallback* m_async_callback = nullptr;
-	Nan::Callback    m_callback_function;
 
 	Service();
 	~Service();
 
-	void start_async_runner();
-	void stop_async_runner();
-	void callback_handler(void* data, std::shared_ptr<SignalInfo> item);
-	void start_worker();
-	void stop_worker();
-	void worker();
-	void set_keepalive(v8::Local<v8::Object>);
-
-	std::list<ServiceCallback*> callbacks;
+	CallbackManager<SignalInfo>& get_callback_manager_ref();
+	void callback_handler(void* data, std::shared_ptr<SignalInfo> item, Nan::Callback& callback);
+	void callback_update(CallbackManager<SignalInfo>::DataCallback* dataCallback);
 };
 
 namespace service
