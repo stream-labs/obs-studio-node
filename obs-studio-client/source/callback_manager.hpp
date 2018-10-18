@@ -43,6 +43,9 @@ class CallbackManager
 
 	CallbackManager()
 	{
+		m_SleepIntervalMS = 33;
+		m_WorkerStop = true;
+		m_AsyncCallback = nullptr;
 	}
 
 	~CallbackManager()
@@ -81,6 +84,12 @@ class CallbackManager
 	void SetUpdateInterval(uint32_t sleepInterval)
 	{
 		m_SleepIntervalMS = sleepInterval;
+	}
+
+	template<typename ObjectType>
+	void QueueObject(ObjectType&& object)
+	{
+		m_AsyncCallback->queue(std::move(object));
 	}
 
 	private:
@@ -146,7 +155,6 @@ class CallbackManager
 				m_UpdateMethod(m_AsyncCallback);
 			}
 			
-		do_sleep:
 			auto tp_end  = std::chrono::high_resolution_clock::now();
 			auto dur     = std::chrono::duration_cast<std::chrono::milliseconds>(tp_end - tp_start);
 			totalSleepMS = m_SleepIntervalMS - dur.count();
