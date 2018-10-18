@@ -9,7 +9,7 @@ PROJECT(
 
 SET(NODEJS_URL "https://atom.io/download/atom-shell" CACHE STRING "Node.JS URL")
 SET(NODEJS_NAME "iojs" CACHE STRING "Node.JS Name")
-SET(NODEJS_VERSION "v2.0.4" CACHE STRING "Node.JS Version")
+SET(NODEJS_VERSION "v3.0.4" CACHE STRING "Node.JS Version")
 
 ################################################################################
 # Compiler
