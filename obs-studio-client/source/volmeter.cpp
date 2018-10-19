@@ -178,7 +178,6 @@ void osn::VolMeter::worker()
 		totalSleepMS = m_sleep_interval - dur.count();
 		std::this_thread::sleep_for(std::chrono::milliseconds(totalSleepMS));
 	}
-	return;
 }
 
 void osn::VolMeter::set_keepalive(v8::Local<v8::Object> obj)
