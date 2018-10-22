@@ -293,24 +293,19 @@ void osn::VolMeter::Query(
 		return;
 	}
 
-	std::unique_lock<std::mutex> ulock(meter->current_data_mtx);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	if (meter->current_data) {
-		rval.push_back(ipc::value(meter->current_data->ch));
-		for (size_t ch = 0; ch < meter->current_data->ch; ch++) {
-			rval.push_back(ipc::value(meter->current_data->magnitude[ch]));
-			rval.push_back(ipc::value(meter->current_data->peak[ch]));
-			rval.push_back(ipc::value(meter->current_data->input_peak[ch]));
-		}
-	} else {
-		rval.push_back(ipc::value(0));
+
+	std::unique_lock<std::mutex> ulock(meter->current_data_mtx);
+
+	rval.push_back(ipc::value(meter->current_data.ch));
+
+	for (size_t ch = 0; ch < meter->current_data.ch; ch++) {
+		rval.push_back(ipc::value(meter->current_data.magnitude[ch]));
+		rval.push_back(ipc::value(meter->current_data.peak[ch]));
+		rval.push_back(ipc::value(meter->current_data.input_peak[ch]));
 	}
 
-	if (meter->current_data) {
-		std::unique_lock<std::mutex> flock(meter->free_data_mtx);
-		meter->free_data    = meter->current_data;
-		meter->current_data = nullptr;
-	}
+	ulock.unlock();
 
 	AUTO_DEBUG;
 }
@@ -329,22 +324,13 @@ void osn::VolMeter::OBSCallback(
 #define MAKE_FLOAT_SANE(db) (std::isfinite(db) ? db : (db > 0 ? 0.0f : -65535.0f))
 #define PREVIOUS_FRAME_WEIGHT
 
-	// This is a simple swap operation.
 	std::unique_lock<std::mutex> ulock(meter->current_data_mtx);
-	if (!meter->current_data) {
-		std::unique_lock<std::mutex> ulock(meter->free_data_mtx);
-		if (!meter->free_data) {
-			meter->free_data = std::make_shared<AudioData>();
-		}
-		meter->current_data = meter->free_data;
-		meter->free_data    = nullptr;
-	}
 
-	meter->current_data->ch = obs_volmeter_get_nr_channels(meter->self);
+	meter->current_data.ch = obs_volmeter_get_nr_channels(meter->self);
 	for (size_t ch = 0; ch < MAX_AUDIO_CHANNELS; ch++) {
-		meter->current_data->magnitude[ch]  = MAKE_FLOAT_SANE(magnitude[ch]);
-		meter->current_data->peak[ch]       = MAKE_FLOAT_SANE(peak[ch]);
-		meter->current_data->input_peak[ch] = MAKE_FLOAT_SANE(input_peak[ch]);
+		meter->current_data.magnitude[ch]  = MAKE_FLOAT_SANE(magnitude[ch]);
+		meter->current_data.peak[ch]       = MAKE_FLOAT_SANE(peak[ch]);
+		meter->current_data.input_peak[ch] = MAKE_FLOAT_SANE(input_peak[ch]);
 	}
 
 #undef MAKE_FLOAT_SANE
