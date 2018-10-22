@@ -786,7 +786,7 @@ static void SaveProfilerData(const profiler_snapshot_t* snap)
 
 void OBS_API::destroyOBS_API(void)
 {
-	writeCrashHandler(unregisterProcess());
+	// writeCrashHandler(unregisterProcess());
 
 	os_cpu_usage_info_destroy(cpuUsageInfo);
 
