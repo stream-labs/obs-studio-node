@@ -391,10 +391,26 @@ std::vector<char> registerProcess(void) {
 	return buffer;
 }
 
-std::vector<char> unregisterProcess(void) {
+std::vector<char> unregisterProcess(void)
+{
 	std::vector<char> buffer;
 	buffer.resize(sizeof(uint8_t) + sizeof(uint32_t));
-	uint8_t  action     = 1;
+	uint8_t action = 1;
+
+	uint32_t offset = 0;
+
+	memcpy(buffer.data(), &action, sizeof(action));
+	offset++;
+	memcpy(buffer.data() + offset, &pid, sizeof(pid));
+
+	return buffer;
+}
+
+std::vector<char> terminateCrashHandler(void)
+{
+	std::vector<char> buffer;
+	buffer.resize(sizeof(uint8_t) + sizeof(uint32_t));
+	uint8_t action = 2;
 
 	uint32_t offset = 0;
 
@@ -787,6 +803,7 @@ static void SaveProfilerData(const profiler_snapshot_t* snap)
 void OBS_API::destroyOBS_API(void)
 {
 	writeCrashHandler(unregisterProcess());
+	writeCrashHandler(terminateCrashHandler());
 
 	os_cpu_usage_info_destroy(cpuUsageInfo);
 
