@@ -63,6 +63,8 @@ void OBS_API::Register(ipc::server& srv)
 	    std::make_shared<ipc::function>("OBS_API_isOBS_installed", std::vector<ipc::type>{}, OBS_API_isOBS_installed));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SetWorkingDirectory", std::vector<ipc::type>{ipc::type::String}, SetWorkingDirectory));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "StopCrashHandler", std::vector<ipc::type>{}, StopCrashHandler));
 
 	srv.register_collection(cls);
 }
@@ -800,11 +802,21 @@ static void SaveProfilerData(const profiler_snapshot_t* snap)
 		blog(LOG_WARNING, "Could not save profiler data to '%s'", dst.c_str());
 }
 
-void OBS_API::destroyOBS_API(void)
+void OBS_API::StopCrashHandler(
+	void*                          data,
+	const int64_t                  id,
+	const std::vector<ipc::value>& args,
+	std::vector<ipc::value>&       rval)
 {
 	writeCrashHandler(unregisterProcess());
 	writeCrashHandler(terminateCrashHandler());
 
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void OBS_API::destroyOBS_API(void)
+{
 	os_cpu_usage_info_destroy(cpuUsageInfo);
 
 #ifdef _WIN32
