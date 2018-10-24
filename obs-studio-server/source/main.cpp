@@ -198,19 +198,22 @@ int main(int argc, char* argv[])
 	// Reset Connect/Disconnect time.
 	sd.last_disconnect = sd.last_connect = std::chrono::high_resolution_clock::now();
 
+	bool waitBeforeClosing = false;
+
 	while (!doShutdown) {
 		if (sd.count_connected == 0) {
 			auto tp    = std::chrono::high_resolution_clock::now();
 			auto delta = tp - sd.last_disconnect;
 			if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() > 5000) {
 				doShutdown = true;
+				waitBeforeClosing = true;
 			}
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(50));
 	}
 
 	// Wait on receive the exit message from the crash-handler
-	{
+	if (waitBeforeClosing) {
 		HANDLE hPipe;
 		TCHAR  chBuf[BUFFSIZE];
 		DWORD  cbRead;
