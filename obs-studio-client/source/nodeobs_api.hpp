@@ -11,4 +11,5 @@ namespace api
 	static void OBS_API_getOBS_existingSceneCollections(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_API_isOBS_installed(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void SetWorkingDirectory(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void StopCrashHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
 } // namespace api
