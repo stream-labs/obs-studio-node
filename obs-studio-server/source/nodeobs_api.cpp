@@ -582,11 +582,11 @@ void OBS_API::OBS_API_initAPI(
 	OBS_service::createVideoStreamingEncoder();
 	OBS_service::createVideoRecordingEncoder();
 
-	obs_encoder_t* audioStreamingEncoder = OBS_service::getAudioStreamingEncoder();
-	obs_encoder_t* audioRecordingEncoder = OBS_service::getAudioRecordingEncoder();
+	auto audioStreamingEncoder = OBS_service::getAudioStreamingEncoder();
+	auto audioRecordingEncoder = OBS_service::getAudioRecordingEncoder();
 
-	OBS_service::createAudioEncoder(&audioStreamingEncoder);
-	OBS_service::createAudioEncoder(&audioRecordingEncoder);
+	OBS_service::createAudioEncoder(&audioStreamingEncoder); // Why we aren't retaining a reference to it?
+	OBS_service::createAudioEncoder(&audioRecordingEncoder); // Why we aren't retaining a reference to it?
 
 	OBS_service::resetAudioContext();
 	OBS_service::resetVideoContext(NULL);
@@ -828,33 +828,13 @@ void OBS_API::destroyOBS_API(void)
 		DisableAudioDucking(false);
 #endif
 
-	obs_encoder_t* streamingEncoder = OBS_service::getStreamingEncoder();
-	if (streamingEncoder != NULL)
-		obs_encoder_release(streamingEncoder);
-
-	obs_encoder_t* recordingEncoder = OBS_service::getRecordingEncoder();
-	if (recordingEncoder != NULL)
-		obs_encoder_release(recordingEncoder);
-
-	obs_encoder_t* audioStreamingEncoder = OBS_service::getAudioStreamingEncoder();
-	if (audioStreamingEncoder != NULL)
-		obs_encoder_release(audioStreamingEncoder);
-
-	obs_encoder_t* audioRecordingEncoder = OBS_service::getAudioRecordingEncoder();
-	if (audioRecordingEncoder != NULL)
-		obs_encoder_release(audioRecordingEncoder);
-
-	obs_output_t* streamingOutput = OBS_service::getStreamingOutput();
-	if (streamingOutput != NULL)
-		obs_output_release(streamingOutput);
-
-	obs_output_t* recordingOutput = OBS_service::getRecordingOutput();
-	if (recordingOutput != NULL)
-		obs_output_release(recordingOutput);
-
-	obs_service_t* service = OBS_service::getService();
-	if (service != NULL)
-		obs_service_release(service);
+	OBS_service::setStreamingEncoder(nullptr);
+	OBS_service::setRecordingEncoder(nullptr);
+	OBS_service::setAudioStreamingEncoder(nullptr);
+	OBS_service::setAudioRecordingEncoder(nullptr);
+	OBS_service::setStreamingOutput(nullptr);
+	OBS_service::setRecordingOutput(nullptr);
+	OBS_service::setService(nullptr);
 
 	obs_shutdown();
 

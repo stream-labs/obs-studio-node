@@ -21,7 +21,7 @@
 #include "error.hpp"
 #include "shared.hpp"
 
-video_t* handler;
+video_t* s_handler;
 
 void osn::Video::Register(ipc::server& srv)
 {
@@ -43,11 +43,11 @@ void osn::Video::GetGlobal(
 {
 	uint64_t uid;
 
-	if (handler) {
-		uid = osn::Video::Manager::GetInstance().find(handler);
+	if (s_handler) {
+		uid = osn::Video::Manager::GetInstance().find(s_handler);
 	} else {
-		handler = obs_get_video();
-		uid     = osn::Video::Manager::GetInstance().allocate(handler);
+		s_handler = obs_get_video();
+		uid       = osn::Video::Manager::GetInstance().allocate(s_handler);
 	}
 
 	if (uid == UINT64_MAX) {

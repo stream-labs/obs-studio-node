@@ -1,15 +1,13 @@
 #include "nodeobs_settings.h"
 #include "error.hpp"
 #include "shared.hpp"
-
 #include <windows.h>
-vector<const char*> tabStreamTypes;
-const char*         currentServiceName;
 
-/* some nice default output resolution vals */
-static const double vals[] = {1.0, 1.25, (1.0 / 0.75), 1.5, (1.0 / 0.6), 1.75, 2.0, 2.25, 2.5, 2.75, 3.0};
+const char*         s_currentServiceName;
 
-static const size_t numVals = sizeof(vals) / sizeof(double);
+/* some nice default output resolution s_vals */
+static const double s_vals[] = {1.0, 1.25, (1.0 / 0.75), 1.5, (1.0 / 0.6), 1.75, 2.0, 2.25, 2.5, 2.75, 3.0};
+static const size_t s_numVals = sizeof(s_vals) / sizeof(double);
 
 static string ResString(uint64_t cx, uint64_t cy)
 {
@@ -752,11 +750,11 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 				memcpy(param.currentValue.data(), &value, sizeof(value));
 				param.sizeOfCurrentValue = sizeof(value);
 			} else if (format == OBS_COMBO_FORMAT_STRING) {
-				currentServiceName = obs_data_get_string(settings, obs_property_name(property));
+				s_currentServiceName = obs_data_get_string(settings, obs_property_name(property));
 
-				param.currentValue.resize(strlen(currentServiceName));
-				memcpy(param.currentValue.data(), currentServiceName, strlen(currentServiceName));
-				param.sizeOfCurrentValue = strlen(currentServiceName);
+				param.currentValue.resize(strlen(s_currentServiceName));
+				memcpy(param.currentValue.data(), s_currentServiceName, strlen(s_currentServiceName));
+				param.sizeOfCurrentValue = strlen(s_currentServiceName);
 			}
 		}
 
@@ -790,7 +788,7 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 	std::string currentStreamType = obs_service_get_type(currentService);
 	const char* newserviceTypeValue;
 
-	std::string currentServiceName = obs_data_get_string(obs_service_get_settings(currentService), "service");
+	std::string s_currentServiceName = obs_data_get_string(obs_service_get_settings(currentService), "service");
 
 	SubCategory sc;
 
@@ -816,7 +814,7 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 				if (name.compare("streamType") == 0) {
 					newserviceTypeValue = value->c_str();
 					settings            = obs_service_defaults(newserviceTypeValue);
-				} else if (name.compare("service") == 0 && value->compare(currentServiceName) != 0) {
+				} else if (name.compare("service") == 0 && value->compare(s_currentServiceName) != 0) {
 					serviceChanged = true;
 				}
 
@@ -3038,9 +3036,9 @@ uint32_t den = config_get_uint(config, "Video", "FPSDen");
 std::vector<pair<uint64_t, uint64_t>> OBS_settings::getOutputResolutions(uint64_t base_cx, uint64_t base_cy)
 {
 	std::vector<pair<uint64_t, uint64_t>> outputResolutions;
-	for (size_t idx = 0; idx < numVals; idx++) {
-		uint64_t outDownscaleCX = uint64_t(double(base_cx) / vals[idx]);
-		uint64_t outDownscaleCY = uint64_t(double(base_cy) / vals[idx]);
+	for (size_t idx = 0; idx < s_numVals; idx++) {
+		uint64_t outDownscaleCX = uint64_t(double(base_cx) / s_vals[idx]);
+		uint64_t outDownscaleCY = uint64_t(double(base_cy) / s_vals[idx]);
 
 		outDownscaleCX &= 0xFFFFFFFE;
 		outDownscaleCY &= 0xFFFFFFFE;
