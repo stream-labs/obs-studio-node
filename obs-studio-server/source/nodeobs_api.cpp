@@ -30,6 +30,16 @@
 #include "error.hpp"
 #include "shared.hpp"
 
+namespace std
+{
+	template<>
+	struct default_delete<obs_encoder_t> {
+		void operator()(obs_encoder_t* ptr) {
+			obs_encoder_release(ptr);
+		}
+	};
+} // namespace std
+
 std::string                                            appdata_path;
 vector<pair<obs_module_t*, int>>                       listModules;
 os_cpu_usage_info_t*                                   cpuUsageInfo      = nullptr;
@@ -582,11 +592,11 @@ void OBS_API::OBS_API_initAPI(
 	OBS_service::createVideoStreamingEncoder();
 	OBS_service::createVideoRecordingEncoder();
 
-	auto audioStreamingEncoder = OBS_service::getAudioStreamingEncoder();
-	auto audioRecordingEncoder = OBS_service::getAudioRecordingEncoder();
+	auto audioStreamingEncoder = std::unique_ptr<obs_encoder_t>(std::move(OBS_service::getAudioStreamingEncoder()));
+	auto audioRecordingEncoder = std::unique_ptr<obs_encoder_t>(std::move(OBS_service::getAudioRecordingEncoder()));
 
-	OBS_service::createAudioEncoder(&audioStreamingEncoder); // Why we aren't retaining a reference to it?
-	OBS_service::createAudioEncoder(&audioRecordingEncoder); // Why we aren't retaining a reference to it?
+	OBS_service::createAudioEncoder(audioStreamingEncoder); // Why we aren't retaining a reference to it?
+	OBS_service::createAudioEncoder(audioRecordingEncoder); // Why we aren't retaining a reference to it?
 
 	OBS_service::resetAudioContext();
 	OBS_service::resetVideoContext(NULL);

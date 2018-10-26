@@ -220,9 +220,10 @@ class OBS_service
 	static void           saveService(void);
 	static void           updateService(void);
 	static void           setServiceToTheStreamingOutput(void);
+	static void           shutdown();
 
 	// Encoders
-	static void           createAudioEncoder(obs_encoder_t** audioEncoder);
+	static void createAudioEncoder(std::unique_ptr<obs_encoder_t>& audioEncoder);
 	static void           createVideoStreamingEncoder();
 	static void           createVideoRecordingEncoder();
 	static obs_encoder_t* getStreamingEncoder(void);
