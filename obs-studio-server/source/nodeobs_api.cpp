@@ -30,18 +30,6 @@
 #include "error.hpp"
 #include "shared.hpp"
 
-namespace std
-{
-	template<>
-	struct default_delete<obs_encoder_t> {
-		void operator()(obs_encoder_t* ptr) {
-			if (!obs_initialized())
-				throw "Trying to delete an obs object but the service isn't active";
-			obs_encoder_release(ptr);
-		}
-	};
-} // namespace std
-
 std::string                                            appdata_path;
 vector<pair<obs_module_t*, int>>                       listModules;
 os_cpu_usage_info_t*                                   cpuUsageInfo      = nullptr;
