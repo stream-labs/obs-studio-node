@@ -34,13 +34,13 @@ namespace std
 	};
 } // namespace std
 
-std::unique_ptr <obs_output_t> s_streamingOutput;
-std::unique_ptr <obs_output_t> s_recordingOutput;
-std::unique_ptr <obs_encoder_t> s_audioStreamingEncoder;
-std::unique_ptr <obs_encoder_t> s_audioRecordingEncoder;
-std::shared_ptr <obs_encoder_t> s_videoStreamingEncoder;
-std::shared_ptr <obs_encoder_t> s_videoRecordingEncoder;
-std::unique_ptr <obs_service_t> s_service;
+std::shared_ptr<obs_output_t>   s_streamingOutput;
+std::shared_ptr<obs_output_t>   s_recordingOutput;
+std::shared_ptr<obs_encoder_t>  s_audioStreamingEncoder;
+std::shared_ptr<obs_encoder_t>  s_audioRecordingEncoder;
+std::shared_ptr<obs_encoder_t>	s_videoStreamingEncoder;
+std::shared_ptr<obs_encoder_t>	s_videoRecordingEncoder;
+std::shared_ptr<obs_service_t>  s_service;
 
 std::string s_aacRecEncID;
 std::string s_aacStreamEncID;
@@ -146,7 +146,7 @@ void OBS_service::OBS_service_createAudioEncoder(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	std::unique_ptr<obs_encoder_t> dummy;
+	std::shared_ptr<obs_encoder_t> dummy;
 	createAudioEncoder(dummy);
 //	createAudioEncoder(NULL);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -590,7 +590,7 @@ const char* FindAudioEncoderFromCodec(const char* type)
 	return nullptr;
 }
 
-void OBS_service::createAudioEncoder(std::unique_ptr<obs_encoder_t>& audioEncoder)
+void OBS_service::createAudioEncoder(std::shared_ptr<obs_encoder_t>& audioEncoder)
 {
 	config_t* basicConfig = OBS_API::openConfigFile(OBS_API::getBasicConfigPath());
 
@@ -605,7 +605,8 @@ void OBS_service::createAudioEncoder(std::unique_ptr<obs_encoder_t>& audioEncode
 	// if (s_usingRecordingPreset)
 		// obs_encoder_release(audioEncoder);
 
-	audioEncoder = std::unique_ptr<obs_encoder_t>(std::move(obs_audio_encoder_create(id, "simple_audio", nullptr, 0, nullptr)));
+	audioEncoder = std::shared_ptr<obs_encoder_t>(
+	    obs_audio_encoder_create(id, "simple_audio", nullptr, 0, nullptr), default_delete<obs_encoder_t>());
 }
 
 void OBS_service::createVideoStreamingEncoder()
@@ -816,8 +817,8 @@ void OBS_service::createService()
 	obs_data_t* hotkey_data;
 
 	if (!fileExist) {
-		s_service = std::unique_ptr<obs_service_t>(
-	    std::move(obs_service_create("rtmp_common", "default_service", nullptr, nullptr)));
+		s_service = std::shared_ptr<obs_service_t>(
+		    obs_service_create("rtmp_common", "default_service", nullptr, nullptr), default_delete<obs_service_t>());
 		data     = obs_data_create();
 		settings = obs_service_get_settings(s_service.get());
 
@@ -839,8 +840,8 @@ void OBS_service::createService()
 		settings    = obs_data_get_obj(data, "settings");
 		hotkey_data = obs_data_get_obj(data, "hotkeys");
 
-		s_service = std::unique_ptr<obs_service_t>(
-	    std::move(obs_service_create(type, "default_service", settings, hotkey_data)));
+		s_service = std::shared_ptr<obs_service_t>(
+		    obs_service_create(type, "default_service", settings, hotkey_data), default_delete<obs_service_t>());
 
 		obs_data_release(hotkey_data);
 	}
@@ -868,15 +869,15 @@ obs_data_t* OBS_service::createRecordingSettings(void)
 void OBS_service::createStreamingOutput(void)
 {
 	s_streamingOutput =
-	    std::unique_ptr<obs_output_t>(
-	    std::move(obs_output_create("rtmp_output", "simple_stream", nullptr, nullptr)));
+	    std::shared_ptr<obs_output_t>(
+	    obs_output_create("rtmp_output", "simple_stream", nullptr, nullptr), default_delete<obs_output_t>());
 	connectOutputSignals();
 }
 
 void OBS_service::createRecordingOutput(void)
 {
-	s_recordingOutput = std::unique_ptr<obs_output_t>(
-	    std::move(obs_output_create("ffmpeg_muxer", "simple_file_output", nullptr, nullptr)));
+	s_recordingOutput = std::shared_ptr<obs_output_t>(
+	    obs_output_create("ffmpeg_muxer", "simple_file_output", nullptr, nullptr), default_delete<obs_output_t>());
 	connectOutputSignals();
 }
 
@@ -886,10 +887,9 @@ bool OBS_service::startStreaming(void)
 	if (!type)
 		type = "rtmp_output";
 
-	s_streamingOutput.release();
 	s_streamingOutput =
-	    std::unique_ptr<obs_output_t>(
-	    std::move(obs_output_create(type, "simple_stream", nullptr, nullptr)));
+	    std::shared_ptr<obs_output_t>(
+	    obs_output_create(type, "simple_stream", nullptr, nullptr), default_delete<obs_output_t>());
 	connectOutputSignals();
 
 	std::string basicConfigFile = OBS_API::getBasicConfigPath();
@@ -910,8 +910,9 @@ bool OBS_service::startStreaming(void)
 		obs_data_t* settings     = obs_data_create();
 		obs_data_set_int(settings, "bitrate", audioBitrate);
 
-		s_audioStreamingEncoder = std::unique_ptr<obs_encoder_t>(
-	    std::move(obs_audio_encoder_create(id, "alt_audio_enc", nullptr, trackIndex - 1, nullptr)));
+		s_audioStreamingEncoder = std::shared_ptr<obs_encoder_t>(
+		    obs_audio_encoder_create(id, "alt_audio_enc", nullptr, trackIndex - 1, nullptr),
+		    default_delete<obs_encoder_t>());
 		if (!s_audioStreamingEncoder)
 			return false;
 
@@ -1034,16 +1035,17 @@ void OBS_service::setRecordingSettings(void)
     obs_data_release(settings); */
 }
 
-obs_service_t* OBS_service::getService(void)
+std::shared_ptr<obs_service_t> OBS_service::getService(void)
 {
+	if (!obs_initialized())
+		throw "Trying to get an obs object but it isn't active";
 	const char* serviceType = obs_service_get_type(s_service.get());
-	return s_service.get();
+	return s_service;
 }
 
 void OBS_service::setService(obs_service_t* newService)
 {
-	s_service = std::unique_ptr<obs_service_t>(
-	    std::move(newService));
+	s_service = std::shared_ptr<obs_service_t>(newService, default_delete<obs_service_t>());
 }
 
 void OBS_service::saveService(void)
@@ -1350,9 +1352,8 @@ void OBS_service::updateAdvancedRecordingOutput(void)
 
 void OBS_service::LoadRecordingPreset_Lossless()
 {
-	s_recordingOutput.release();
-	s_recordingOutput = std::unique_ptr<obs_output_t>(
-	    std::move(obs_output_create("ffmpeg_output", "simple_ffmpeg_output", nullptr, nullptr)));
+	s_recordingOutput = std::shared_ptr<obs_output_t>(
+	    obs_output_create("ffmpeg_output", "simple_ffmpeg_output", nullptr, nullptr), default_delete<obs_output_t>());
 	connectOutputSignals();
 	if (!s_recordingOutput)
 		throw "Failed to create recording FFmpeg output "
@@ -1424,9 +1425,8 @@ void OBS_service::UpdateFFmpegOutput(void)
 
 	update_ffmpeg_output(config);
 
-	s_recordingOutput.release();
-	s_recordingOutput = std::unique_ptr<obs_output_t>(
-	    std::move(obs_output_create("ffmpeg_output", "simple_ffmpeg_output", nullptr, nullptr)));
+	s_recordingOutput = std::shared_ptr<obs_output_t>(
+	    obs_output_create("ffmpeg_output", "simple_ffmpeg_output", nullptr, nullptr), default_delete<obs_output_t>());
 	connectOutputSignals();
 
 	const char* url        = config_get_string(config, "AdvOut", "FFURL");
@@ -1684,9 +1684,11 @@ void OBS_service::UpdateRecordingSettings()
 	}
 }
 
-obs_encoder_t* OBS_service::getStreamingEncoder(void)
+std::shared_ptr<obs_encoder_t> OBS_service::getStreamingEncoder(void)
 {
-	return s_videoStreamingEncoder.get();
+	if (!obs_initialized())
+		throw "Trying to get an obs object but it isn't active";
+	return s_videoStreamingEncoder;
 }
 
 void OBS_service::setStreamingEncoder(obs_encoder_t* encoder)
@@ -1694,9 +1696,11 @@ void OBS_service::setStreamingEncoder(obs_encoder_t* encoder)
 	s_videoStreamingEncoder = std::shared_ptr<obs_encoder_t>(encoder, default_delete<obs_encoder_t>());
 }
 
-obs_encoder_t* OBS_service::getRecordingEncoder(void)
+std::shared_ptr<obs_encoder_t> OBS_service::getRecordingEncoder(void)
 {
-	return s_videoRecordingEncoder.get();
+	if (!obs_initialized())
+		throw "Trying to get an obs object but it isn't active";
+	return s_videoRecordingEncoder;
 }
 
 void OBS_service::setRecordingEncoder(obs_encoder_t* encoder)
@@ -1704,44 +1708,52 @@ void OBS_service::setRecordingEncoder(obs_encoder_t* encoder)
 	s_videoRecordingEncoder = std::shared_ptr<obs_encoder_t>(encoder, default_delete<obs_encoder_t>());
 }
 
-obs_encoder_t* OBS_service::getAudioStreamingEncoder(void)
+std::shared_ptr<obs_encoder_t> OBS_service::getAudioStreamingEncoder(void)
 {
-	return s_audioStreamingEncoder.get();
+	if (!obs_initialized())
+		throw "Trying to get an obs object but it isn't active";
+	return s_audioStreamingEncoder;
 }
 
 void OBS_service::setAudioStreamingEncoder(obs_encoder_t* encoder)
 {
-	s_audioStreamingEncoder = std::unique_ptr<obs_encoder_t>(std::move(encoder));
+	s_audioStreamingEncoder = std::shared_ptr<obs_encoder_t>(encoder, default_delete<obs_encoder_t>());
 }
 
-obs_encoder_t* OBS_service::getAudioRecordingEncoder(void)
+std::shared_ptr<obs_encoder_t> OBS_service::getAudioRecordingEncoder(void)
 {
-	return s_audioRecordingEncoder.get();
+	if (!obs_initialized())
+		throw "Trying to get an obs object but it isn't active";
+	return s_audioRecordingEncoder;
 }
 
 void OBS_service::setAudioRecordingEncoder(obs_encoder_t* encoder)
 {
-	s_audioRecordingEncoder = std::unique_ptr<obs_encoder_t>(std::move(encoder));
+	s_audioRecordingEncoder = std::shared_ptr<obs_encoder_t>(encoder, default_delete<obs_encoder_t>());
 }
 
-obs_output_t* OBS_service::getStreamingOutput(void)
+std::shared_ptr<obs_output_t> OBS_service::getStreamingOutput(void)
 {
-	return s_streamingOutput.get();
+	if (!obs_initialized())
+		throw "Trying to get an obs object but it isn't active";
+	return s_streamingOutput;
 }
 
 void OBS_service::setStreamingOutput(obs_output_t* output)
 {
-	s_streamingOutput = std::unique_ptr<obs_output_t>(std::move(output));
+	s_streamingOutput = std::shared_ptr<obs_output_t>(output, default_delete<obs_output_t>());
 }
 
-obs_output_t* OBS_service::getRecordingOutput(void)
+std::shared_ptr<obs_output_t> OBS_service::getRecordingOutput(void)
 {
-	return s_recordingOutput.get();
+	if (!obs_initialized())
+		throw "Trying to get an obs object but it isn't active";
+	return s_recordingOutput;
 }
 
 void OBS_service::setRecordingOutput(obs_output_t* output)
 {
-	s_recordingOutput = std::unique_ptr<obs_output_t>(std::move(output));
+	s_recordingOutput = std::shared_ptr<obs_output_t>(output, default_delete<obs_output_t>());
 }
 
 void OBS_service::updateStreamSettings(void)
@@ -1761,7 +1773,7 @@ void OBS_service::updateStreamSettings(void)
 
 		if (applyServiceSettings) {
 			obs_data_t* encoderSettings = obs_encoder_get_settings(s_videoStreamingEncoder.get());
-			obs_service_apply_encoder_settings(OBS_service::getService(), encoderSettings, nullptr);
+			obs_service_apply_encoder_settings(OBS_service::getService().get(), encoderSettings, nullptr);
 		}
 	}
 

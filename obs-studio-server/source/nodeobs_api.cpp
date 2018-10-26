@@ -35,6 +35,8 @@ namespace std
 	template<>
 	struct default_delete<obs_encoder_t> {
 		void operator()(obs_encoder_t* ptr) {
+			if (!obs_initialized())
+				throw "Trying to delete an obs object but the service isn't active";
 			obs_encoder_release(ptr);
 		}
 	};
@@ -592,8 +594,8 @@ void OBS_API::OBS_API_initAPI(
 	OBS_service::createVideoStreamingEncoder();
 	OBS_service::createVideoRecordingEncoder();
 
-	auto audioStreamingEncoder = std::unique_ptr<obs_encoder_t>(std::move(OBS_service::getAudioStreamingEncoder()));
-	auto audioRecordingEncoder = std::unique_ptr<obs_encoder_t>(std::move(OBS_service::getAudioRecordingEncoder()));
+	auto audioStreamingEncoder = OBS_service::getAudioStreamingEncoder();
+	auto audioRecordingEncoder = OBS_service::getAudioRecordingEncoder();
 
 	OBS_service::createAudioEncoder(audioStreamingEncoder); // Why we aren't retaining a reference to it?
 	OBS_service::createAudioEncoder(audioRecordingEncoder); // Why we aren't retaining a reference to it?
@@ -846,6 +848,16 @@ void OBS_API::destroyOBS_API(void)
 	OBS_service::setRecordingOutput(nullptr);
 	OBS_service::setService(nullptr);
 
+	// Sanity checks (any race condition will be visible here)
+	if (OBS_service::getStreamingEncoder() 
+		|| OBS_service::getRecordingEncoder()
+	    || OBS_service::getAudioStreamingEncoder() 
+		|| OBS_service::getAudioRecordingEncoder()
+	    || OBS_service::getStreamingOutput() 
+		|| OBS_service::getRecordingOutput() 
+		|| OBS_service::getService()) {
+		throw "Some of the service objects are still on use when performing shutdown!";
+	}
 	obs_shutdown();
 
 	/*profiler_stop();
@@ -987,12 +999,12 @@ double OBS_API::getCPU_Percentage(void)
 
 int OBS_API::getNumberOfDroppedFrames(void)
 {
-	obs_output_t* streamOutput = OBS_service::getStreamingOutput();
+	auto streamOutput = OBS_service::getStreamingOutput();
 
 	int totalDropped = 0;
 
-	if (obs_output_active(streamOutput)) {
-		totalDropped = obs_output_get_frames_dropped(streamOutput);
+	if (obs_output_active(streamOutput.get())) {
+		totalDropped = obs_output_get_frames_dropped(streamOutput.get());
 	}
 
 	return totalDropped;
@@ -1000,13 +1012,13 @@ int OBS_API::getNumberOfDroppedFrames(void)
 
 double OBS_API::getDroppedFramesPercentage(void)
 {
-	obs_output_t* streamOutput = OBS_service::getStreamingOutput();
+	auto streamOutput = OBS_service::getStreamingOutput();
 
 	double percent = 0;
 
-	if (obs_output_active(streamOutput)) {
-		int totalDropped = obs_output_get_frames_dropped(streamOutput);
-		int totalFrames  = obs_output_get_total_frames(streamOutput);
+	if (obs_output_active(streamOutput.get())) {
+		int totalDropped = obs_output_get_frames_dropped(streamOutput.get());
+		int totalFrames  = obs_output_get_total_frames(streamOutput.get());
 		percent          = (double)totalDropped / (double)totalFrames * 100.0;
 	}
 
@@ -1015,12 +1027,12 @@ double OBS_API::getDroppedFramesPercentage(void)
 
 double OBS_API::getCurrentBandwidth(void)
 {
-	obs_output_t* streamOutput = OBS_service::getStreamingOutput();
+	auto streamOutput = OBS_service::getStreamingOutput();
 
 	double kbitsPerSec = 0;
 
-	if (obs_output_active(streamOutput)) {
-		uint64_t bytesSent     = obs_output_get_total_bytes(streamOutput);
+	if (obs_output_active(streamOutput.get())) {
+		uint64_t bytesSent     = obs_output_get_total_bytes(streamOutput.get());
 		uint64_t bytesSentTime = os_gettime_ns();
 
 		if (bytesSent < lastBytesSent)

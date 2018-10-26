@@ -650,14 +650,14 @@ void autoConfig::TestBandwidthThread(void)
 	obs_data_release(aencoder_settings);
 	obs_data_release(output_settings);
 
-	obs_service_t* currentService = OBS_service::getService();
+	auto currentService = OBS_service::getService();
 	if (currentService) {
-		obs_data_t* currentServiceSettings = obs_service_get_settings(currentService);
+		obs_data_t* currentServiceSettings = obs_service_get_settings(currentService.get());
 		if (currentServiceSettings) {
 			if (serviceName.compare("") == 0)
 				serviceName = obs_data_get_string(currentServiceSettings, "service");
 
-			key = obs_service_get_key(currentService);
+			key = obs_service_get_key(currentService.get());
 			if (key.empty())
 				return;
 		} else {
@@ -1451,8 +1451,8 @@ void autoConfig::SaveStreamSettings()
 
 	const char* service_id = "rtmp_common";
 
-	obs_service_t* oldService = OBS_service::getService();
-	OBSData        hotkeyData = obs_hotkeys_save_service(oldService);
+	auto oldService = OBS_service::getService();
+	OBSData        hotkeyData = obs_hotkeys_save_service(oldService.get());
 	obs_data_release(hotkeyData);
 
 	OBSData settings = obs_data_create();

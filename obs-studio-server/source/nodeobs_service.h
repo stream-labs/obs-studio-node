@@ -214,34 +214,33 @@ class OBS_service
 
 	public:
 	// Service
-	static void           createService();
-	static obs_service_t* getService(void);
-	static void           setService(obs_service_t* newService);
-	static void           saveService(void);
-	static void           updateService(void);
-	static void           setServiceToTheStreamingOutput(void);
-	static void           shutdown();
+	static void								createService();
+	static std::shared_ptr<obs_service_t>	getService(void);
+	static void								setService(obs_service_t* newService);
+	static void								saveService(void);
+	static void								updateService(void);
+	static void								setServiceToTheStreamingOutput(void);
 
 	// Encoders
-	static void createAudioEncoder(std::unique_ptr<obs_encoder_t>& audioEncoder);
-	static void           createVideoStreamingEncoder();
-	static void           createVideoRecordingEncoder();
-	static obs_encoder_t* getStreamingEncoder(void);
-	static void           setStreamingEncoder(obs_encoder_t* encoder);
-	static obs_encoder_t* getRecordingEncoder(void);
-	static void           setRecordingEncoder(obs_encoder_t* encoder);
-	static obs_encoder_t* getAudioStreamingEncoder(void);
-	static void           setAudioStreamingEncoder(obs_encoder_t* encoder);
-	static obs_encoder_t* getAudioRecordingEncoder(void);
-	static void           setAudioRecordingEncoder(obs_encoder_t* encoder);
+	static void                             createAudioEncoder(std::shared_ptr<obs_encoder_t>& audioEncoder);
+	static void								createVideoStreamingEncoder();
+	static void								createVideoRecordingEncoder();
+	static std::shared_ptr<obs_encoder_t>	getStreamingEncoder(void);
+	static void								setStreamingEncoder(obs_encoder_t* encoder);
+	static std::shared_ptr<obs_encoder_t>	getRecordingEncoder(void);
+	static void								setRecordingEncoder(obs_encoder_t* encoder);
+	static std::shared_ptr<obs_encoder_t>	getAudioStreamingEncoder(void);
+	static void								setAudioStreamingEncoder(obs_encoder_t* encoder);
+	static std::shared_ptr<obs_encoder_t>	getAudioRecordingEncoder(void);
+	static void								setAudioRecordingEncoder(obs_encoder_t* encoder);
 
 	// Outputs
-	static void          createStreamingOutput(void);
-	static void          createRecordingOutput(void);
-	static obs_output_t* getStreamingOutput(void);
-	static void          setStreamingOutput(obs_output_t* output);
-	static obs_output_t* getRecordingOutput(void);
-	static void          setRecordingOutput(obs_output_t* output);
+	static void								createStreamingOutput(void);
+	static void								createRecordingOutput(void);
+	static std::shared_ptr<obs_output_t>	getStreamingOutput(void);
+	static void								setStreamingOutput(obs_output_t* output);
+	static std::shared_ptr<obs_output_t>	getRecordingOutput(void);
+	static void								setRecordingOutput(obs_output_t* output);
 
 	// Update settings
 	static void updateStreamSettings(void);

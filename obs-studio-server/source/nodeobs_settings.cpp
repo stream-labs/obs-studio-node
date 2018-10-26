@@ -517,8 +517,8 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 {
 	bool isCategoryEnabled = !OBS_service::isStreamingOutputActive();
 
-	obs_service_t* currentService = OBS_service::getService();
-	obs_data_t*    settings       = obs_service_get_settings(currentService);
+	auto currentService			= OBS_service::getService();
+	obs_data_t*    settings     = obs_service_get_settings(currentService.get());
 
 	std::vector<SubCategory> streamSettings;
 	SubCategory              service;
@@ -561,7 +561,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 
 	streamType.description = "Stream Type";
 
-	const char* servType = obs_service_get_type(currentService);
+	const char* servType = obs_service_get_type(currentService.get());
 	streamType.currentValue.resize(strlen(servType));
 	memcpy(streamType.currentValue.data(), servType, strlen(servType));
 	streamType.sizeOfCurrentValue = strlen(servType);
@@ -577,7 +577,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 
 	SubCategory serviceConfiguration;
 
-	obs_properties_t* properties = obs_service_properties(currentService);
+	obs_properties_t* properties = obs_service_properties(currentService.get());
 	obs_property_t*   property   = obs_properties_first(properties);
 	obs_combo_format  format;
 	string            formatString;
@@ -673,7 +673,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 
 		if (count == 0) {
 			if (strcmp(obs_property_name(property), "key") == 0) {
-				const char* stream_key = obs_service_get_key(currentService);
+				const char* stream_key = obs_service_get_key(currentService.get());
 				formatString           = "OBS_PROPERTY_EDIT_TEXT";
 
 				if (stream_key == NULL)
@@ -692,8 +692,8 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 				param.sizeOfCurrentValue = sizeof(show_all);
 			}
 			if (strcmp(obs_property_name(property), "server") == 0) {
-				const char* server = obs_service_get_url(currentService);
-				if (strcmp(obs_service_get_type(currentService), "rtmp_common") == 0) {
+				const char* server = obs_service_get_url(currentService.get());
+				if (strcmp(obs_service_get_type(currentService.get()), "rtmp_common") == 0) {
 					formatString = "OBS_PROPERTY_LIST";
 				} else {
 					formatString = "OBS_PROPERTY_EDIT_TEXT";
@@ -707,7 +707,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 				param.sizeOfCurrentValue = strlen(server);
 			}
 			if (strcmp(obs_property_name(property), "username") == 0) {
-				const char* username = obs_service_get_username(currentService);
+				const char* username = obs_service_get_username(currentService.get());
 				formatString         = "OBS_PROPERTY_EDIT_TEXT";
 
 				if (username == NULL)
@@ -718,7 +718,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 				param.sizeOfCurrentValue = strlen(username);
 			}
 			if (strcmp(obs_property_name(property), "password") == 0) {
-				const char* password = obs_service_get_password(currentService);
+				const char* password = obs_service_get_password(currentService.get());
 				formatString         = "OBS_PROPERTY_EDIT_TEXT";
 
 				if (password == NULL)
@@ -781,14 +781,14 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 
 void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 {
-	obs_service_t* currentService = OBS_service::getService();
+	auto currentService = OBS_service::getService();
 
 	obs_data_t* settings;
 
-	std::string currentStreamType = obs_service_get_type(currentService);
+	std::string currentStreamType = obs_service_get_type(currentService.get());
 	const char* newserviceTypeValue;
 
-	std::string s_currentServiceName = obs_data_get_string(obs_service_get_settings(currentService), "service");
+	std::string s_currentServiceName = obs_data_get_string(obs_service_get_settings(currentService.get()), "service");
 
 	SubCategory sc;
 
@@ -856,7 +856,7 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 
 	obs_data_t* data = obs_data_create();
 
-	obs_data_t* hotkeyData = obs_hotkeys_save_service(currentService);
+	obs_data_t* hotkeyData = obs_hotkeys_save_service(currentService.get());
 
 	obs_service_t* newService = obs_service_create(newserviceTypeValue, "default_service", settings, hotkeyData);
 
@@ -1558,17 +1558,17 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 
 	bool fileExist = os_stat(path.c_str(), &buffer) == 0;
 
-	obs_data_t*    settings = obs_encoder_defaults(encoderID);
-	obs_encoder_t* streamingEncoder;
-	obs_output_t*  streamOutput = OBS_service::getStreamingOutput();
+	obs_data_t*						settings = obs_encoder_defaults(encoderID);
+	std::shared_ptr<obs_encoder_t>	streamingEncoder;
+	auto							streamOutput = OBS_service::getStreamingOutput();
 
 	if (streamOutput == NULL)
 		return streamingSettings;
 
-	if (!obs_output_active(streamOutput)) {
+	if (!obs_output_active(streamOutput.get())) {
 		if (!fileExist) {
-			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
-			OBS_service::setStreamingEncoder(streamingEncoder);
+			OBS_service::setStreamingEncoder(obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr));
+			streamingEncoder = OBS_service::getStreamingEncoder();
 
 			if (!obs_data_save_json_safe(settings, path.c_str(), "tmp", "bak")) {
 				blog(LOG_WARNING, "Failed to save encoder %s", path.c_str());
@@ -1576,15 +1576,16 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 		} else {
 			obs_data_t* data = obs_data_create_from_json_file_safe(path.c_str(), "bak");
 			obs_data_apply(settings, data);
-			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", settings, nullptr);
-			OBS_service::setStreamingEncoder(streamingEncoder);
+
+			OBS_service::setStreamingEncoder(obs_video_encoder_create(encoderID, "streaming_h264", settings, nullptr));
+			streamingEncoder = OBS_service::getStreamingEncoder();
 		}
 	} else {
 		streamingEncoder = OBS_service::getStreamingEncoder();
-		settings         = obs_encoder_get_settings(streamingEncoder);
+		settings         = obs_encoder_get_settings(streamingEncoder.get());
 	}
 
-	getEncoderSettings(streamingEncoder, settings, &(streamingSettings.params), index, isCategoryEnabled);
+	getEncoderSettings(streamingEncoder.get(), settings, &(streamingSettings.params), index, isCategoryEnabled);
 	streamingSettings.paramsCount = streamingSettings.params.size();
 	return streamingSettings;
 }
@@ -1898,18 +1899,19 @@ void OBS_settings::getStandardRecordingSettings(
 
 	bool fileExist = os_stat(path.c_str(), &buffer) == 0;
 
-	obs_data_t*    settings = obs_encoder_defaults(recEncoderCurrentValue);
-	obs_encoder_t* recordingEncoder;
+	obs_data_t*						settings = obs_encoder_defaults(recEncoderCurrentValue);
+	std::shared_ptr<obs_encoder_t>	recordingEncoder;
 
-	obs_output_t* recordOutput = OBS_service::getRecordingOutput();
+	auto recordOutput = OBS_service::getRecordingOutput();
 
 	if (recordOutput == NULL)
 		return;
 
-	if (!obs_output_active(recordOutput)) {
+	if (!obs_output_active(recordOutput.get())) {
 		if (!fileExist) {
-			recordingEncoder = obs_video_encoder_create(recEncoderCurrentValue, "streaming_h264", nullptr, nullptr);
-			OBS_service::setRecordingEncoder(recordingEncoder);
+			OBS_service::setRecordingEncoder(
+			    obs_video_encoder_create(recEncoderCurrentValue, "streaming_h264", nullptr, nullptr));
+			recordingEncoder = OBS_service::getRecordingEncoder();
 
 			if (!obs_data_save_json_safe(settings, path.c_str(), "tmp", "bak")) {
 				blog(LOG_WARNING, "Failed to save encoder %s", path.c_str());
@@ -1917,15 +1919,16 @@ void OBS_settings::getStandardRecordingSettings(
 		} else {
 			obs_data_t* data = obs_data_create_from_json_file_safe(path.c_str(), "bak");
 			obs_data_apply(settings, data);
-			recordingEncoder = obs_video_encoder_create(recEncoderCurrentValue, "streaming_h264", settings, nullptr);
-			OBS_service::setRecordingEncoder(recordingEncoder);
+			OBS_service::setRecordingEncoder(
+			    obs_video_encoder_create(recEncoderCurrentValue, "streaming_h264", settings, nullptr));
+			recordingEncoder = OBS_service::getRecordingEncoder();
 		}
 	} else {
 		recordingEncoder = OBS_service::getRecordingEncoder();
-		settings         = obs_encoder_get_settings(recordingEncoder);
+		settings         = obs_encoder_get_settings(recordingEncoder.get());
 	}
 
-	getEncoderSettings(recordingEncoder, settings, &(subCategoryParameters->params), index, isCategoryEnabled);
+	getEncoderSettings(recordingEncoder.get(), settings, &(subCategoryParameters->params), index, isCategoryEnabled);
 	subCategoryParameters->paramsCount = subCategoryParameters->params.size();
 }
 
@@ -2593,8 +2596,8 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 
 	std::string section = "AdvOut";
 
-	obs_encoder_t* encoder         = OBS_service::getStreamingEncoder();
-	obs_data_t*    encoderSettings = obs_encoder_get_settings(encoder);
+	auto encoder				= OBS_service::getStreamingEncoder();
+	obs_data_t* encoderSettings = obs_encoder_get_settings(encoder.get());
 
 	int indexEncoderSettings = 4;
 
@@ -2692,7 +2695,7 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 		encoderSettings = obs_encoder_defaults(config_get_string(config, section.c_str(), "Encoder"));
 	}
 
-	obs_encoder_update(encoder, encoderSettings);
+	obs_encoder_update(encoder.get(), encoderSettings);
 
 	std::string path = OBS_API::getStreamingEncoderConfigPath();
 	if (!obs_data_save_json_safe(encoderSettings, path.c_str(), "tmp", "bak")) {
@@ -2707,8 +2710,8 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 	int         indexRecordingCategory = 2;
 	std::string section                = "AdvOut";
 
-	obs_encoder_t* encoder         = OBS_service::getRecordingEncoder();
-	obs_data_t*    encoderSettings = obs_encoder_get_settings(encoder);
+	auto encoder				= OBS_service::getRecordingEncoder();
+	obs_data_t* encoderSettings = obs_encoder_get_settings(encoder.get());
 
 	size_t indexEncoderSettings = 7;
 
@@ -2805,7 +2808,7 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 
 	std::string currentEncoder = config_get_string(config, "AdvOut", "RecEncoder");
 
-	obs_encoder_update(encoder, encoderSettings);
+	obs_encoder_update(encoder.get(), encoderSettings);
 
 	std::string path = OBS_API::getRecordingEncoderConfigPath();
 	if (!obs_data_save_json_safe(encoderSettings, path.c_str(), "tmp", "bak")) {
@@ -2816,11 +2819,11 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 void OBS_settings::saveAdvancedOutputSettings(std::vector<SubCategory> settings, std::string basicConfigFile)
 {
 	// Streaming
-	if (!obs_output_active(OBS_service::getStreamingOutput()))
+	if (!obs_output_active(OBS_service::getStreamingOutput().get()))
 		saveAdvancedOutputStreamingSettings(settings, basicConfigFile);
 
 	// Recording
-	if (!obs_output_active(OBS_service::getRecordingOutput()))
+	if (!obs_output_active(OBS_service::getRecordingOutput().get()))
 		saveAdvancedOutputRecordingSettings(settings, basicConfigFile);
 
 	// Audio
