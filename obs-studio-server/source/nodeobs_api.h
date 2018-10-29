@@ -63,11 +63,6 @@ class OBS_API
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
-	static void StopCrashHandler(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
 
 	private:
 	static void initAPI(void);
