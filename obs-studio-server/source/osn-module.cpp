@@ -19,7 +19,7 @@
 #include "error.hpp"
 #include "shared.hpp"
 
-void osn::Module::Reigster(ipc::server&)
+void osn::Module::Reigster(ipc::server& srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Module");
 
@@ -41,6 +41,8 @@ void osn::Module::Reigster(ipc::server&)
 	    std::make_shared<ipc::function>("GetDataPath", std::vector<ipc::type>{ipc::type::UInt64}, GetDataPath));
 	cls->register_function(
 	    std::make_shared<ipc::function>("GetDataPath", std::vector<ipc::type>{ipc::type::UInt64}, GetDataPath));
+
+	srv.register_collection(cls);
 }
 
 void osn::Module::Open(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)

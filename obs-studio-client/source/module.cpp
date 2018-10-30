@@ -35,7 +35,6 @@ Nan::Persistent<v8::FunctionTemplate> osn::Module::prototype = Nan::Persistent<v
 void osn::Module::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
-	fnctemplate->Inherit(Nan::New<v8::FunctionTemplate>(osn::Module::prototype));
 	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
 	fnctemplate->SetClassName(Nan::New<v8::String>("Module").ToLocalChecked());
 
@@ -60,7 +59,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Module::Open(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	ASSERT_INFO_LENGTH(info, 2);
 	ASSERT_GET_VALUE(info[0], bin_path);
-	ASSERT_GET_VALUE(info[0], data_path);
+	ASSERT_GET_VALUE(info[1], data_path);
 
 	auto conn = GetConnection();
 	if (!conn)

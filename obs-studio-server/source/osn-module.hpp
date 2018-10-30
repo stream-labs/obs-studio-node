@@ -25,6 +25,9 @@ namespace osn
 	class Module
 	{
 		public:
+		static void Reigster(ipc::server&);
+
+		public:
 		class Manager : public utility::unique_object_manager<obs_module_t>
 		{
 			friend class std::shared_ptr<Manager>;
@@ -41,8 +44,6 @@ namespace osn
 			static Manager& GetInstance();
 		};
 
-		public:
-		static void Reigster(ipc::server&);
 
 		// Functions
 		static void

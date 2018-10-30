@@ -41,6 +41,7 @@
 #include "osn-transition.hpp"
 #include "osn-video.hpp"
 #include "osn-volmeter.hpp"
+#include "osn-module.hpp"
 
 extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = 1;
 
@@ -169,6 +170,7 @@ int main(int argc, char* argv[])
 	osn::VolMeter::Register(myServer);
 	osn::Properties::Register(myServer);
 	osn::Video::Register(myServer);
+	osn::Module::Reigster(myServer);
 	OBS_API::Register(myServer);
 	OBS_content::Register(myServer);
 	OBS_service::Register(myServer);
