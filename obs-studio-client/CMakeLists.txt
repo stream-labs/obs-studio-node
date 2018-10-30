@@ -69,6 +69,7 @@ SET(PROJECT_SOURCE
 	"${PROJECT_SOURCE_DIR}/source/main.cpp"
 	"${PROJECT_SOURCE_DIR}/source/volmeter.cpp" "${PROJECT_SOURCE_DIR}/source/volmeter.hpp"
 	"${PROJECT_SOURCE_DIR}/source/video.cpp" "${PROJECT_SOURCE_DIR}/source/video.hpp"
+	"${PROJECT_SOURCE_DIR}/source/module.cpp" "${PROJECT_SOURCE_DIR}/source/module.hpp"
 )
 SET(PROJECT_LIBRARIES
 	${NODEJS_LIBRARIES}

@@ -16,3 +16,77 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
 
 #pragma once
+#include <ipc-server.hpp>
+#include <obs.h>
+#include "utility.hpp"
+
+namespace osn
+{
+	class Module
+	{
+		public:
+		class Manager : public utility::unique_object_manager<obs_module_t>
+		{
+			friend class std::shared_ptr<Manager>;
+
+			protected:
+			Manager() {}
+			~Manager() {}
+
+			public:
+			Manager(Manager const&) = delete;
+			Manager operator=(Manager const&) = delete;
+
+			public:
+			static Manager& GetInstance();
+		};
+
+		public:
+		static void Reigster(ipc::server&);
+
+		// Functions
+		static void
+		            Open(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static void Initialize(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+
+		// Methods
+		static void
+		            GetName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static void GetFileName(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void
+		    GetAuthor(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static void GetDescription(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void GetBinaryPath(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void GetDataPath(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void GetFilePath(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void GetConfigFilePath(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+	};
+}
