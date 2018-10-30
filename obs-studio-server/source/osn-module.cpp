@@ -19,7 +19,7 @@
 #include "error.hpp"
 #include "shared.hpp"
 
-void osn::Module::Reigster(ipc::server& srv)
+void osn::Module::Register(ipc::server& srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Module");
 

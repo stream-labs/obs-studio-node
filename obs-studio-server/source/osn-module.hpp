@@ -25,7 +25,7 @@ namespace osn
 	class Module
 	{
 		public:
-		static void Reigster(ipc::server&);
+		static void Register(ipc::server&);
 
 		public:
 		class Manager : public utility::unique_object_manager<obs_module_t>
