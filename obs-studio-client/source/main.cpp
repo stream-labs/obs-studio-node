@@ -29,6 +29,7 @@
 #include "transition.hpp"
 #include "video.hpp"
 #include "volmeter.hpp"
+#include "module.hpp"
 
 extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = 1;
 
@@ -47,6 +48,7 @@ void main(v8::Local<v8::Object> exports, v8::Local<v8::Value> module, void* priv
 	osn::Fader::Register(exports);
 	osn::VolMeter::Register(exports);
 	osn::Video::Register(exports);
+	osn::Module::Register(exports);
 
 	while (initializerFunctions.size() > 0) {
 		initializerFunctions.front()(exports);

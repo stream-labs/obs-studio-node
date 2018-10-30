@@ -1493,8 +1493,8 @@ export interface IAudioFactory {
 }
 
 
-export interface IModuleFactory {
-    create(binPath: string, dataPath: string): IModule;
+export interface IModuleFactory extends IFactoryTypes {
+    open(binPath: string, dataPath: string): IModule;
     loadAll(): void;
     addPath(path: string, dataPath: string): void;
     logLoaded(): void;
