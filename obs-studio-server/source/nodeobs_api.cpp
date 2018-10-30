@@ -42,6 +42,7 @@ std::string                                            OBS_currentSceneCollectio
 bool                                                   useOBS_configFiles = false;
 bool                                                   isOBS_installedValue;
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+std::string                                            slobs_plugin;
 
 std::string g_moduleDirectory = "";
 
@@ -427,7 +428,6 @@ void OBS_API::OBS_API_initAPI(
 	}
 	pathConfigDirectory = args[0].value_str.c_str();
 	appdata_path        = args[0].value_str.c_str();
-	appdata_path += "/node-obs/";
 
 	/* libobs will use three methods of finding data files:
 	* 1. ${CWD}/data/libobs <- This doesn't work for us
@@ -435,6 +435,9 @@ void OBS_API::OBS_API_initAPI(
 	* 3. getenv(OBS_DATA_PATH) + /libobs <- Can be set anywhere
 	*    on the cli, in the frontend, or the backend. */
 	obs_add_data_path((g_moduleDirectory + "/libobs/data/libobs/").c_str());
+	slobs_plugin = appdata_path.substr(0, appdata_path.size() - 14);
+	slobs_plugin.append("/slobs-plugin");
+	obs_add_data_path((slobs_plugin + "/data/").c_str());
 
 	std::vector<char> userData = std::vector<char>(1024);
 	os_get_config_path(userData.data(), userData.capacity() - 1, "slobs-client/plugin_config");
@@ -443,7 +446,7 @@ void OBS_API::OBS_API_initAPI(
 	/* Logging */
 	string filename = GenerateTimeDateFilename("txt");
 	string log_path = appdata_path;
-	log_path.append("/logs/");
+	log_path.append("/node-obs/logs/");
 
 	/* Make sure the path is created
 	before attempting to make a file there. */
@@ -818,9 +821,10 @@ void OBS_API::openAllModules(void)
 {
 	OBS_service::resetVideoContext(NULL);
 
-	std::string plugins_paths[] = {g_moduleDirectory + "/obs-plugins/64bit", g_moduleDirectory + "/obs-plugins"};
+	std::string plugins_paths[] = {g_moduleDirectory + "/obs-plugins/64bit", g_moduleDirectory + "/obs-plugins", slobs_plugin + "/obs-plugins"};
 
-	std::string plugins_data_paths[] = {g_moduleDirectory + "/data/obs-plugins", plugins_data_paths[0]};
+	std::string plugins_data_paths[] = {
+	    g_moduleDirectory + "/data/obs-plugins", plugins_data_paths[0], slobs_plugin + "/data/obs-plugins"};
 
 	size_t num_paths = sizeof(plugins_paths) / sizeof(plugins_paths[0]);
 
