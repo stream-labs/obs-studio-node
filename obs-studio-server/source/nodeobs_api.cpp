@@ -496,7 +496,14 @@ void OBS_API::OBS_API_initAPI(
 	obs_apply_private_data(private_settings);
 	obs_data_release(private_settings);
 
-	openAllModules();
+	std::string error;
+	if (!openAllModules(error)) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value(error));
+		AUTO_DEBUG;
+		return;
+	}
+
 	OBS_service::createStreamingOutput();
 	OBS_service::createRecordingOutput();
 
@@ -814,9 +821,12 @@ typedef std::basic_string<char, ci_char_traits> istring;
 
 /* This should be reusable outside of node-obs, especially
 * if we go a server/client route. */
-void OBS_API::openAllModules(void)
+bool OBS_API::openAllModules(std::string& err)
 {
-	OBS_service::resetVideoContext(NULL);
+	if (!OBS_service::resetVideoContext(NULL)) {
+		err = "D3D11 context error.";
+		return false;
+	}
 
 	std::string plugins_paths[] = {g_moduleDirectory + "/obs-plugins/64bit", g_moduleDirectory + "/obs-plugins"};
 
@@ -832,14 +842,14 @@ void OBS_API::openAllModules(void)
 		* with some metainfo so we don't attempt just any
 		* shared library. */
 		if (!os_file_exists(plugins_path.c_str())) {
-			std::cerr << "Plugin Path provided is invalid: " << plugins_path << std::endl;
-			return;
+			err = "Plugin Path provided is invalid: " + plugins_path;
+			return false;
 		}
 
 		os_dir_t* plugin_dir = os_opendir(plugins_path.c_str());
 		if (!plugin_dir) {
-			std::cerr << "Failed to open plugin diretory: " << plugins_path << std::endl;
-			return;
+			err = "Failed to open plugin diretory: " + plugins_path;
+			return false;
 		}
 
 		for (os_dirent* ent = os_readdir(plugin_dir); ent != nullptr; ent = os_readdir(plugin_dir)) {
@@ -890,6 +900,8 @@ void OBS_API::openAllModules(void)
 
 		os_closedir(plugin_dir);
 	}
+
+	return true;
 }
 
 double OBS_API::getCPU_Percentage(void)

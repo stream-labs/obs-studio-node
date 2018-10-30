@@ -105,8 +105,13 @@ void OBS_service::OBS_service_resetVideoContext(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	resetVideoContext(NULL);
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	if (resetVideoContext(NULL)){
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	} else {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("D3D11 context error."));
+	}
+
 	AUTO_DEBUG;
 }
 
@@ -540,7 +545,7 @@ bool OBS_service::resetVideoContext(const char* outputType)
 
 	config_save_safe(basicConfig, "tmp", nullptr);
 
-	return obs_reset_video(&ovi);
+	return obs_reset_video(&ovi) == OBS_VIDEO_SUCCESS;
 }
 
 const char* FindAudioEncoderFromCodec(const char* type)
@@ -1762,7 +1767,9 @@ void OBS_service::updateRecordSettings(void)
 	} else if (strcmp(currentOutputMode, "Advanced") == 0) {
 		const char* recType = config_get_string(config, "AdvOut", "RecType");
 		if (recType != NULL && strcmp(recType, "Custom Output (FFmpeg)") == 0) {
-			resetVideoContext("Record");
+			if (!resetVideoContext("Record")) {
+				return;
+			}
 			associateAudioAndVideoToTheCurrentRecordingContext();
 			UpdateFFmpegOutput();
 			return;
