@@ -39,9 +39,10 @@ void osn::Module::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	fnctemplate->SetClassName(Nan::New<v8::String>("Module").ToLocalChecked());
 
 	utilv8::SetTemplateField(fnctemplate, "open", Open);
-	utilv8::SetTemplateField(fnctemplate, "initialize", Initialize);
 
 	v8::Local<v8::Template> objtemplate = fnctemplate->PrototypeTemplate();
+	utilv8::SetTemplateField(objtemplate, "initialize", Initialize);
+
 	utilv8::SetTemplateAccessorProperty(objtemplate, "name", Name);
 	utilv8::SetTemplateAccessorProperty(objtemplate, "fileName", FileName);
 	utilv8::SetTemplateAccessorProperty(objtemplate, "author", Author);
