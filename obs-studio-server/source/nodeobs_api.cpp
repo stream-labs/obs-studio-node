@@ -495,11 +495,11 @@ void OBS_API::OBS_API_initAPI(
 	obs_data_set_bool(private_settings, "BrowserHWAccel", true);
 	obs_apply_private_data(private_settings);
 	obs_data_release(private_settings);
-
-	std::string error;
-	if (!openAllModules(error)) {
+	
+	int videoError;
+	if (!openAllModules(videoError)) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-		rval.push_back(ipc::value(error));
+		rval.push_back(ipc::value(videoError));
 		AUTO_DEBUG;
 		return;
 	}
@@ -821,10 +821,10 @@ typedef std::basic_string<char, ci_char_traits> istring;
 
 /* This should be reusable outside of node-obs, especially
 * if we go a server/client route. */
-bool OBS_API::openAllModules(std::string& err)
+bool OBS_API::openAllModules(int& video_err)
 {
-	if (!OBS_service::resetVideoContext(NULL)) {
-		err = "D3D11 context error.";
+	video_err = OBS_service::resetVideoContext(NULL);
+	if (video_err != OBS_VIDEO_SUCCESS) {
 		return false;
 	}
 
@@ -842,13 +842,13 @@ bool OBS_API::openAllModules(std::string& err)
 		* with some metainfo so we don't attempt just any
 		* shared library. */
 		if (!os_file_exists(plugins_path.c_str())) {
-			err = "Plugin Path provided is invalid: " + plugins_path;
+			std::cerr << "Plugin Path provided is invalid: " << plugins_path << std::endl;
 			return false;
 		}
 
 		os_dir_t* plugin_dir = os_opendir(plugins_path.c_str());
 		if (!plugin_dir) {
-			err = "Failed to open plugin diretory: " + plugins_path;
+			std::cerr << "Failed to open plugin diretory: " << plugins_path << std::endl;
 			return false;
 		}
 

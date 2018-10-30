@@ -262,7 +262,7 @@ class OBS_service
 
 	// Reset contexts
 	static bool resetAudioContext(void);
-	static bool resetVideoContext(const char* outputType);
+	static int  resetVideoContext(const char* outputType);
 
 	static void associateAudioAndVideoToTheCurrentStreamingContext(void);
 	static void associateAudioAndVideoToTheCurrentRecordingContext(void);
