@@ -50,6 +50,15 @@ export const enum EDeinterlaceFieldOrder {
     Bottom
 }
 
+export const enum EVideoCodes {
+	Success = 0,
+	Fail = -1,
+	NotSupported = -2,
+	InvalidParam = -3,
+	CurrentlyActive = -4,
+	ModuleNotFound = -5	
+}
+
 export const enum EDeinterlaceMode {
     Disable,
     Discard,

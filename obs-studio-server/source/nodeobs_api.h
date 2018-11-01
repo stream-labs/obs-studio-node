@@ -67,7 +67,7 @@ class OBS_API
 	private:
 	static void initAPI(void);
 	static void destroyOBS_API(void);
-	static void openAllModules(void);
+	static bool openAllModules(int& video_err);
 
 	static double getCPU_Percentage(void);
 	static int    getNumberOfDroppedFrames(void);

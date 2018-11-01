@@ -105,8 +105,14 @@ void OBS_service::OBS_service_resetVideoContext(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	resetVideoContext(NULL);
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	int result = resetVideoContext(NULL);
+	if (result == OBS_VIDEO_SUCCESS) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	} else {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value(result));
+	}
+
 	AUTO_DEBUG;
 }
 
@@ -466,7 +472,7 @@ static const double vals[] = {1.0, 1.25, (1.0 / 0.75), 1.5, (1.0 / 0.6), 1.75, 2
 
 static const size_t numVals = sizeof(vals) / sizeof(double);
 
-bool OBS_service::resetVideoContext(const char* outputType)
+int OBS_service::resetVideoContext(const char* outputType)
 {
 	config_t* basicConfig = OBS_API::openConfigFile(OBS_API::getBasicConfigPath());
 
@@ -1762,7 +1768,9 @@ void OBS_service::updateRecordSettings(void)
 	} else if (strcmp(currentOutputMode, "Advanced") == 0) {
 		const char* recType = config_get_string(config, "AdvOut", "RecType");
 		if (recType != NULL && strcmp(recType, "Custom Output (FFmpeg)") == 0) {
-			resetVideoContext("Record");
+			if (!resetVideoContext("Record") != OBS_VIDEO_SUCCESS) {
+				return;
+			}
 			associateAudioAndVideoToTheCurrentRecordingContext();
 			UpdateFFmpegOutput();
 			return;
