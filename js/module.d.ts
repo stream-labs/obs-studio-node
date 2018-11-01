@@ -660,8 +660,8 @@ export interface IAudioFactory {
     reset(info: IAudioInfo): boolean;
     getGlobal(): IAudio;
 }
-export interface IModuleFactory {
-    create(binPath: string, dataPath: string): IModule;
+export interface IModuleFactory extends IFactoryTypes {
+    open(binPath: string, dataPath: string): IModule;
     loadAll(): void;
     addPath(path: string, dataPath: string): void;
     logLoaded(): void;
