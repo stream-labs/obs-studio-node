@@ -500,6 +500,9 @@ void OBS_API::OBS_API_initAPI(
 	obs_data_release(private_settings);
 
 	openAllModules();
+
+	OBS_service::createService();
+
 	OBS_service::createStreamingOutput();
 	OBS_service::createRecordingOutput();
 
@@ -517,8 +520,6 @@ void OBS_API::OBS_API_initAPI(
 
 	OBS_service::associateAudioAndVideoToTheCurrentStreamingContext();
 	OBS_service::associateAudioAndVideoToTheCurrentRecordingContext();
-
-	OBS_service::createService();
 
 	OBS_service::associateAudioAndVideoEncodersToTheCurrentStreamingOutput();
 	OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput();
