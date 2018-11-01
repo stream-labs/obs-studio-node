@@ -601,6 +601,12 @@ int EvaluateBandwidth(
 	return 0;
 }
 
+void sendErrorMessage(std::string message) {
+	eventsMutex.lock();
+	events.push(AutoConfigInfo("error", message.c_str(), 0));
+	eventsMutex.unlock();
+}
+
 void autoConfig::TestBandwidthThread(void)
 {
 	eventsMutex.lock();
@@ -658,12 +664,16 @@ void autoConfig::TestBandwidthThread(void)
 				serviceName = obs_data_get_string(currentServiceSettings, "service");
 
 			key = obs_service_get_key(currentService);
-			if (key.empty())
+			if (key.empty()) {
+				sendErrorMessage("invalid_stream_settings");
 				return;
+			}
 		} else {
+			sendErrorMessage("invalid_stream_settings");
 			return;
 		}
 	} else {
+		sendErrorMessage("invalid_stream_settings");
 		return;
 	}
 
