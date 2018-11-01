@@ -329,21 +329,6 @@ void OBS_service::OBS_service_setRecordingSettings(
 	AUTO_DEBUG;
 }
 
-void LoadAudioDevice(const char* name, int channel, obs_data_t* parent)
-{
-	obs_data_t* data = obs_data_get_obj(parent, name);
-	if (!data)
-		return;
-
-	obs_source_t* source = obs_load_source(data);
-	if (source) {
-		obs_set_output_source(channel, source);
-		obs_source_release(source);
-	}
-
-	obs_data_release(data);
-}
-
 bool OBS_service::resetAudioContext(void)
 {
 	struct obs_audio_info ai;
@@ -612,8 +597,7 @@ void OBS_service::createAudioEncoder(std::shared_ptr<obs_encoder_t>& audioEncode
 void OBS_service::createVideoStreamingEncoder()
 {
 	std::string basicConfigFile = OBS_API::getBasicConfigPath();
-	config_t*   config;
-	int         result = config_open(&config, basicConfigFile.c_str(), CONFIG_OPEN_EXISTING);
+	config_t*   config          = OBS_API::openConfigFile(basicConfigFile);
 
 	const char* encoder = config_get_string(config, "SimpleOutput", "StreamEncoder");
 
@@ -624,7 +608,7 @@ void OBS_service::createVideoStreamingEncoder()
 	s_videoStreamingEncoder = std::shared_ptr<obs_encoder_t>(
 	    obs_video_encoder_create(encoder, "streaming_h264", nullptr, nullptr), default_delete<obs_encoder_t>());
 
-	if (result != CONFIG_SUCCESS) {
+	if (config == nullptr) {
 		obs_data_t* h264Settings = obs_data_create();
 		config                   = config_create(basicConfigFile.c_str());
 		h264Settings             = obs_encoder_defaults("obs_x264");
@@ -913,8 +897,10 @@ bool OBS_service::startStreaming(void)
 		s_audioStreamingEncoder = std::shared_ptr<obs_encoder_t>(
 		    obs_audio_encoder_create(id, "alt_audio_enc", nullptr, trackIndex - 1, nullptr),
 		    default_delete<obs_encoder_t>());
-		if (!s_audioStreamingEncoder)
+		if (!s_audioStreamingEncoder) {
+			obs_data_release(settings);
 			return false;
+		}
 
 		obs_encoder_update(s_audioStreamingEncoder.get(), settings);
 		obs_encoder_set_audio(s_audioStreamingEncoder.get(), obs_get_audio());
@@ -1069,7 +1055,7 @@ void OBS_service::saveService(void)
 	serviceType = obs_service_get_type(s_service.get());
 
 	// obs_data_release(settings);
-	// obs_data_release(data);
+	obs_data_release(data);
 }
 
 bool OBS_service::isStreamingOutputActive(void)
@@ -1275,6 +1261,7 @@ void OBS_service::updateRecordingOutput(void)
 	}
 
 	obs_output_update(s_recordingOutput.get(), settings);
+	obs_data_release(settings);
 }
 
 void OBS_service::updateAdvancedRecordingOutput(void)
@@ -1347,7 +1334,7 @@ void OBS_service::updateAdvancedRecordingOutput(void)
 	obs_data_set_string(settings, "path", strPath.c_str());
 	obs_data_set_string(settings, "muxer_settings", mux);
 	obs_output_update(s_recordingOutput.get(), settings);
-	// obs_data_release(settings);
+	obs_data_release(settings);
 }
 
 void OBS_service::LoadRecordingPreset_Lossless()
@@ -1366,7 +1353,7 @@ void OBS_service::LoadRecordingPreset_Lossless()
 	obs_data_set_string(settings, "audio_encoder", "pcm_s16le");
 
 	obs_output_update(s_recordingOutput.get(), settings);
-	// obs_data_release(settings);
+	obs_data_release(settings);
 }
 
 void OBS_service::LoadRecordingPreset_h264(const char* encoderId)
@@ -1734,8 +1721,8 @@ void OBS_service::setAudioRecordingEncoder(obs_encoder_t* encoder)
 
 std::shared_ptr<obs_output_t> OBS_service::getStreamingOutput(void)
 {
-	if (!obs_initialized())
-		throw "Trying to get an obs object but it isn't active";
+	//if (!obs_initialized())
+	//	throw "Trying to get an obs object but it isn't active";
 	return s_streamingOutput;
 }
 
@@ -1746,8 +1733,8 @@ void OBS_service::setStreamingOutput(obs_output_t* output)
 
 std::shared_ptr<obs_output_t> OBS_service::getRecordingOutput(void)
 {
-	if (!obs_initialized())
-		throw "Trying to get an obs object but it isn't active";
+	// if (!obs_initialized())
+		// throw "Trying to get an obs object but it isn't active";
 	return s_recordingOutput;
 }
 

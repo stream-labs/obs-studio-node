@@ -303,11 +303,9 @@ std::vector<SubCategory> OBS_settings::getGeneralSettings()
 	std::vector<SubCategory> generalSettings;
 
 	std::string globalConfigFile = OBS_API::getGlobalConfigPath();
+	config_t*   config           = OBS_API::openConfigFile(globalConfigFile);
 
-	config_t* config;
-	int       result = config_open(&config, globalConfigFile.c_str(), CONFIG_OPEN_EXISTING);
-
-	if (result != CONFIG_SUCCESS) {
+	if (config == nullptr) {
 		config = config_create(globalConfigFile.c_str());
 
 		config_set_bool(config, "BasicWindow", "SnappingEnabled", true);
@@ -468,12 +466,11 @@ std::vector<SubCategory> OBS_settings::getGeneralSettings()
 
 void OBS_settings::saveGeneralSettings(std::vector<SubCategory> generalSettings, std::string pathConfigDirectory)
 {
-	config_t* config;
 	pathConfigDirectory += "global.ini";
 
-	int result = config_open(&config, pathConfigDirectory.c_str(), CONFIG_OPEN_EXISTING);
+	config_t* config = OBS_API::openConfigFile(pathConfigDirectory);
 
-	if (result != CONFIG_SUCCESS) {
+	if (config == nullptr) {
 		config = config_create(pathConfigDirectory.c_str());
 	}
 

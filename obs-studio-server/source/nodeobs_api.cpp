@@ -45,6 +45,10 @@ std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 
 std::string g_moduleDirectory = "";
 
+static const double scaled_vals[] = {1.0, 1.25, (1.0 / 0.75), 1.5, (1.0 / 0.6), 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 0.0};
+
+std::vector<std::pair<std::string, config_t*>> configFiles;
+
 void OBS_API::Register(ipc::server& srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("API");
@@ -63,8 +67,8 @@ void OBS_API::Register(ipc::server& srv)
 	    std::make_shared<ipc::function>("OBS_API_isOBS_installed", std::vector<ipc::type>{}, OBS_API_isOBS_installed));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SetWorkingDirectory", std::vector<ipc::type>{ipc::type::String}, SetWorkingDirectory));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "StopCrashHandler", std::vector<ipc::type>{}, StopCrashHandler));
+	cls->register_function(
+	    std::make_shared<ipc::function>("StopCrashHandler", std::vector<ipc::type>{}, StopCrashHandler));
 
 	srv.register_collection(cls);
 }
@@ -376,10 +380,11 @@ static void                                    node_obs_log(int log_level, const
 
 uint32_t pid = GetCurrentProcessId();
 
-std::vector<char> registerProcess(void) {
+std::vector<char> registerProcess(void)
+{
 	std::vector<char> buffer;
 	buffer.resize(sizeof(uint8_t) + sizeof(bool) + sizeof(uint32_t));
-	uint8_t action = 0;
+	uint8_t action     = 0;
 	bool    isCritical = true;
 
 	uint32_t offset = 0;
@@ -423,16 +428,10 @@ std::vector<char> terminateCrashHandler(void)
 	return buffer;
 }
 
-void writeCrashHandler(std::vector<char> buffer) {
+void writeCrashHandler(std::vector<char> buffer)
+{
 	HANDLE hPipe = CreateFile(
-	    TEXT("\\\\.\\pipe\\slobs-crash-handler"),
-	    GENERIC_READ |
-	    GENERIC_WRITE,
-	    0,
-	    NULL,
-	    OPEN_EXISTING,
-	    0,
-	    NULL);
+	    TEXT("\\\\.\\pipe\\slobs-crash-handler"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 
 	if (hPipe == INVALID_HANDLE_VALUE)
 		return;
@@ -440,12 +439,7 @@ void writeCrashHandler(std::vector<char> buffer) {
 	if (GetLastError() == ERROR_PIPE_BUSY)
 		return;
 
-	WriteFile(
-	    hPipe,
-	    buffer.data(),
-	    buffer.size(),
-	    NULL,
-	    NULL);
+	WriteFile(hPipe, buffer.data(), buffer.size(), NULL, NULL);
 
 	CloseHandle(hPipe);
 }
@@ -570,7 +564,7 @@ void OBS_API::OBS_API_initAPI(
 	/* Profiling */
 	//profiler_start();
 
-	obs_data_t *private_settings = obs_data_create();
+	obs_data_t* private_settings = obs_data_create();
 	obs_data_set_bool(private_settings, "BrowserHWAccel", true);
 	obs_apply_private_data(private_settings);
 	obs_data_release(private_settings);
@@ -803,10 +797,10 @@ static void SaveProfilerData(const profiler_snapshot_t* snap)
 }
 
 void OBS_API::StopCrashHandler(
-	void*                          data,
-	const int64_t                  id,
-	const std::vector<ipc::value>& args,
-	std::vector<ipc::value>&       rval)
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
 {
 	writeCrashHandler(unregisterProcess());
 	writeCrashHandler(terminateCrashHandler());
@@ -837,16 +831,21 @@ void OBS_API::destroyOBS_API(void)
 	OBS_service::setService(nullptr);
 
 	// Sanity checks (any race condition will be visible here)
-	if (OBS_service::getStreamingEncoder() 
-		|| OBS_service::getRecordingEncoder()
-	    || OBS_service::getAudioStreamingEncoder() 
-		|| OBS_service::getAudioRecordingEncoder()
-	    || OBS_service::getStreamingOutput() 
-		|| OBS_service::getRecordingOutput() 
-		|| OBS_service::getService()) {
+	if (OBS_service::getStreamingEncoder() || OBS_service::getRecordingEncoder()
+	    || OBS_service::getAudioStreamingEncoder() || OBS_service::getAudioRecordingEncoder()
+	    || OBS_service::getStreamingOutput() || OBS_service::getRecordingOutput() || OBS_service::getService()) {
 		throw "Some of the service objects are still on use when performing shutdown!";
 	}
+
+	for (auto& config : configFiles) {
+		config_close(config.second);
+	}
+	configFiles.clear();
+
 	obs_shutdown();
+
+	int stalledObjects = bnum_allocs();
+	assert(stalledObjects == 0);
 
 	/*profiler_stop();
 	auto snapshot = profile_snapshot_create();
@@ -1234,10 +1233,6 @@ static inline string GetDefaultVideoSavePath()
 	return string(path_utf8);
 }
 
-static const double scaled_vals[] = {1.0, 1.25, (1.0 / 0.75), 1.5, (1.0 / 0.6), 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 0.0};
-
-std::vector<std::pair<std::string, config_t*>> configFiles;
-
 config_t* OBS_API::openConfigFile(std::string configFile)
 {
 	std::vector<std::pair<std::string, config_t*>>::iterator it =
@@ -1245,14 +1240,16 @@ config_t* OBS_API::openConfigFile(std::string configFile)
 		    return (value.first.compare(configFile) == 0);
 	    });
 
-	// if(it == configFiles.end()) {
-	config_t* config;
-
-	int result = config_open(&config, configFile.c_str(), CONFIG_OPEN_EXISTING);
-
-	if (result != CONFIG_SUCCESS) {
-		config = config_create(configFile.c_str());
-		config_open(&config, configFile.c_str(), CONFIG_OPEN_EXISTING);
+	config_t* config = nullptr;
+	if (it != configFiles.end()) {
+		config = it->second;
+	} else {
+		int result = config_open(&config, configFile.c_str(), CONFIG_OPEN_EXISTING);
+		if (result != CONFIG_SUCCESS) {
+			config = config_create(configFile.c_str());
+			config_open(&config, configFile.c_str(), CONFIG_OPEN_EXISTING);
+		}
+		configFiles.push_back(std::make_pair(configFile, config));
 	}
 
 	std::string basic     = "basic.ini";
@@ -1387,7 +1384,6 @@ config_t* OBS_API::openConfigFile(std::string configFile)
 		config_save_safe(config, "tmp", nullptr);
 	}
 
-	configFiles.push_back(std::make_pair(configFile, config));
 	return config;
 	// } else {
 	// 	return (*it).second;
