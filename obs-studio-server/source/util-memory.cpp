@@ -18,9 +18,9 @@
 */
 
 #include "util-memory.h"
-#include <cstdlib>
 
-void* util::malloc_aligned(size_t align, size_t size) {
+void* util::malloc_aligned(size_t align, size_t size)
+{
 #if defined(_MSC_VER)
 #ifdef DEBUG
 	return _aligned_malloc_dbg(size, align);
@@ -32,7 +32,8 @@ void* util::malloc_aligned(size_t align, size_t size) {
 #endif
 }
 
-void util::free_aligned(void* mem) {
+void util::free_aligned(void* mem)
+{
 #if defined(_MSC_VER)
 #ifdef DEBUG
 	_aligned_free_dbg(mem);

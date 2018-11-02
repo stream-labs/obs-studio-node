@@ -5,12 +5,12 @@
 #ifdef _WIN32
 #define _WIN32_WINNT 0x0502
 
-#include "nodeobs_content.h"
+#include <ShlObj.h>
+#include <codecvt>
+#include <locale>
 #include <mutex>
 #include <string>
-#include <ShlObj.h>
-#include <locale>
-#include <codecvt>
+#include "nodeobs_content.h"
 #endif
 
 #ifdef _MSC_VER
@@ -20,12 +20,12 @@
 
 #define WIN32_LEAN_AND_MEAN
 
-#include <mmdeviceapi.h>
 #include <audiopolicy.h>
+#include <mmdeviceapi.h>
 
-#include <util/windows/WinHandle.hpp>
-#include <util/windows/HRError.hpp>
 #include <util/windows/ComPtr.hpp>
+#include <util/windows/HRError.hpp>
+#include <util/windows/WinHandle.hpp>
 
 #include "error.hpp"
 #include "shared.hpp"
@@ -36,32 +36,40 @@ os_cpu_usage_info_t *cpuUsageInfo = nullptr;
 uint64_t lastBytesSent = 0;
 uint64_t lastBytesSentTime = 0;
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+std::string                                            slobs_plugin;
 
-void OBS_API::Register(ipc::server& srv) {
+
+void OBS_API::Register(ipc::server& srv)
+{
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("API");
 
-	cls->register_function(std::make_shared<ipc::function>("OBS_API_initAPI", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, OBS_API_initAPI));
-	cls->register_function(std::make_shared<ipc::function>("OBS_API_destroyOBS_API", std::vector<ipc::type>{}, OBS_API_destroyOBS_API));
-	cls->register_function(std::make_shared<ipc::function>("OBS_API_getPerformanceStatistics", std::vector<ipc::type>{}, OBS_API_getPerformanceStatistics));
-	cls->register_function(std::make_shared<ipc::function>("SetWorkingDirectory", std::vector<ipc::type>{ipc::type::String}, SetWorkingDirectory));
-
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_API_initAPI", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, OBS_API_initAPI));
+	cls->register_function(
+	    std::make_shared<ipc::function>("OBS_API_destroyOBS_API", std::vector<ipc::type>{}, OBS_API_destroyOBS_API));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_API_getPerformanceStatistics", std::vector<ipc::type>{}, OBS_API_getPerformanceStatistics));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetWorkingDirectory", std::vector<ipc::type>{ipc::type::String}, SetWorkingDirectory));
 	srv.register_collection(cls);
 }
 
-void replaceAll(std::string &str, const std::string &from,
-	const std::string &to)
+void replaceAll(std::string& str, const std::string& from, const std::string& to)
 {
 	if (from.empty())
 		return;
 	size_t start_pos = 0;
 	while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
 		str.replace(start_pos, from.length(), to);
-		start_pos +=
-			to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
+		start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
 	}
 };
 
-void OBS_API::SetWorkingDirectory(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
+void OBS_API::SetWorkingDirectory(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
 {
 	g_moduleDirectory = args[0].value_str;
 	replaceAll(g_moduleDirectory, "\\", "/");
@@ -72,24 +80,27 @@ void OBS_API::SetWorkingDirectory(void* data, const int64_t id, const std::vecto
 
 static string GenerateTimeDateFilename(const char *extension)
 {
-	time_t    now = time(0);
-	char      file[256] = {};
-	struct tm *cur_time;
+	time_t     now       = time(0);
+	char       file[256] = {};
+	struct tm* cur_time;
 
 	cur_time = localtime(&now);
-	snprintf(file, sizeof(file), "%d-%02d-%02d %02d-%02d-%02d.%s",
-		cur_time->tm_year + 1900,
-		cur_time->tm_mon + 1,
-		cur_time->tm_mday,
-		cur_time->tm_hour,
-		cur_time->tm_min,
-		cur_time->tm_sec,
-		extension);
+	snprintf(
+	    file,
+	    sizeof(file),
+	    "%d-%02d-%02d %02d-%02d-%02d.%s",
+	    cur_time->tm_year + 1900,
+	    cur_time->tm_mon + 1,
+	    cur_time->tm_mday,
+	    cur_time->tm_hour,
+	    cur_time->tm_min,
+	    cur_time->tm_sec,
+	    extension);
 
 	return string(file);
 }
 
-static bool GetToken(lexer *lex, string &str, base_token_type type)
+static bool GetToken(lexer* lex, string& str, base_token_type type)
 {
 	base_token token;
 	if (!lexer_getbasetoken(lex, &token, IGNORE_WHITESPACE))
@@ -101,7 +112,7 @@ static bool GetToken(lexer *lex, string &str, base_token_type type)
 	return true;
 }
 
-static bool ExpectToken(lexer *lex, const char *str, base_token_type type)
+static bool ExpectToken(lexer* lex, const char* str, base_token_type type)
 {
 	base_token token;
 	if (!lexer_getbasetoken(lex, &token, IGNORE_WHITESPACE))
@@ -116,24 +127,34 @@ static bool ExpectToken(lexer *lex, const char *str, base_token_type type)
 * Perhaps a better cross-platform solution can take
 * place but this is as cross-platform as it gets
 * for right now.  */
-static uint64_t ConvertLogName(const char *name)
+static uint64_t ConvertLogName(const char* name)
 {
 	lexer  lex;
-	string     year, month, day, hour, minute, second;
+	string year, month, day, hour, minute, second;
 
 	lexer_init(&lex);
 	lexer_start(&lex, name);
 
-	if (!GetToken(&lex, year, BASETOKEN_DIGIT)) return 0;
-	if (!ExpectToken(&lex, "-", BASETOKEN_OTHER)) return 0;
-	if (!GetToken(&lex, month, BASETOKEN_DIGIT)) return 0;
-	if (!ExpectToken(&lex, "-", BASETOKEN_OTHER)) return 0;
-	if (!GetToken(&lex, day, BASETOKEN_DIGIT)) return 0;
-	if (!GetToken(&lex, hour, BASETOKEN_DIGIT)) return 0;
-	if (!ExpectToken(&lex, "-", BASETOKEN_OTHER)) return 0;
-	if (!GetToken(&lex, minute, BASETOKEN_DIGIT)) return 0;
-	if (!ExpectToken(&lex, "-", BASETOKEN_OTHER)) return 0;
-	if (!GetToken(&lex, second, BASETOKEN_DIGIT)) return 0;
+	if (!GetToken(&lex, year, BASETOKEN_DIGIT))
+		return 0;
+	if (!ExpectToken(&lex, "-", BASETOKEN_OTHER))
+		return 0;
+	if (!GetToken(&lex, month, BASETOKEN_DIGIT))
+		return 0;
+	if (!ExpectToken(&lex, "-", BASETOKEN_OTHER))
+		return 0;
+	if (!GetToken(&lex, day, BASETOKEN_DIGIT))
+		return 0;
+	if (!GetToken(&lex, hour, BASETOKEN_DIGIT))
+		return 0;
+	if (!ExpectToken(&lex, "-", BASETOKEN_OTHER))
+		return 0;
+	if (!GetToken(&lex, minute, BASETOKEN_DIGIT))
+		return 0;
+	if (!ExpectToken(&lex, "-", BASETOKEN_OTHER))
+		return 0;
+	if (!GetToken(&lex, second, BASETOKEN_DIGIT))
+		return 0;
 
 	std::string timestring(year);
 	timestring += month + day + hour + minute + second;
@@ -141,13 +162,13 @@ static uint64_t ConvertLogName(const char *name)
 	return std::stoull(timestring);
 }
 
-static void DeleteOldestFile(const char *location, unsigned maxLogs)
+static void DeleteOldestFile(const char* location, unsigned maxLogs)
 {
-	string           oldestLog;
-	uint64_t         oldest_ts = (uint64_t)-1;
-	struct os_dirent *entry;
+	string            oldestLog;
+	uint64_t          oldest_ts = (uint64_t)-1;
+	struct os_dirent* entry;
 
-	os_dir_t *dir = os_opendir(location);
+	os_dir_t* dir = os_opendir(location);
 
 	if (!dir) {
 		std::cout << "Failed to open log directory." << std::endl;
@@ -181,7 +202,6 @@ static void DeleteOldestFile(const char *location, unsigned maxLogs)
 	}
 }
 
-#pragma region Logging
 #include <chrono>
 #include <cstdarg>
 #include <varargs.h>
@@ -193,19 +213,21 @@ static void DeleteOldestFile(const char *location, unsigned maxLogs)
 #include <unistd.h>
 #endif
 
-inline std::string nodeobs_log_formatted_message(const char* format, va_list& args) {
-	size_t length = _vscprintf(format, args);
-	std::vector<char> buf = std::vector<char>(length + 1, '\0');
-	size_t written = vsprintf_s(buf.data(), buf.size(), format, args);
+inline std::string nodeobs_log_formatted_message(const char* format, va_list& args)
+{
+	size_t            length  = _vscprintf(format, args);
+	std::vector<char> buf     = std::vector<char>(length + 1, '\0');
+	size_t            written = vsprintf_s(buf.data(), buf.size(), format, args);
 	return std::string(buf.begin(), buf.begin() + length);
 }
 
-std::chrono::high_resolution_clock hrc;
+std::chrono::high_resolution_clock             hrc;
 std::chrono::high_resolution_clock::time_point tp = std::chrono::high_resolution_clock::now();
-static void node_obs_log(int log_level, const char *msg, va_list args, void *param) {
+static void                                    node_obs_log(int log_level, const char* msg, va_list args, void* param)
+{
 	// Calculate log time.
 	auto timeSinceStart = (std::chrono::high_resolution_clock::now() - tp);
-	auto days = std::chrono::duration_cast<std::chrono::duration<int, ratio<86400>>>(timeSinceStart);
+	auto days           = std::chrono::duration_cast<std::chrono::duration<int, ratio<86400>>>(timeSinceStart);
 	timeSinceStart -= days;
 	auto hours = std::chrono::duration_cast<std::chrono::hours>(timeSinceStart);
 	timeSinceStart -= hours;
@@ -238,43 +260,39 @@ static void node_obs_log(int log_level, const char *msg, va_list args, void *par
 	default:
 		if (log_level <= 50) {
 			levelname = "Critical";
-		}
-		else if (log_level > 50 && log_level < LOG_ERROR) {
+		} else if (log_level > 50 && log_level < LOG_ERROR) {
 			levelname = "Error";
-		}
-		else if (log_level > LOG_ERROR && log_level < LOG_WARNING) {
+		} else if (log_level > LOG_ERROR && log_level < LOG_WARNING) {
 			levelname = "Alert";
-		}
-		else if (log_level > LOG_WARNING && log_level < LOG_INFO) {
+		} else if (log_level > LOG_WARNING && log_level < LOG_INFO) {
 			levelname = "Hint";
-		}
-		else if (log_level > LOG_INFO) {
+		} else if (log_level > LOG_INFO) {
 			levelname = "Notice";
 		}
 		break;
 	}
 
 	std::vector<char> timebuf(65535, '\0');
-	std::string timeformat = "[%.3d:%.2d:%.2d:%.2d.%.3d.%.3d.%.3d][%*s]";// "%*s";
-	int length = sprintf_s(
-		timebuf.data(),
-		timebuf.size(),
-		timeformat.c_str(),
-		days.count(),
-		hours.count(),
-		minutes.count(),
-		seconds.count(),
-		milliseconds.count(),
-		microseconds.count(),
-		nanoseconds.count(),
-		levelname.length(), levelname.c_str());
+	std::string       timeformat = "[%.3d:%.2d:%.2d:%.2d.%.3d.%.3d.%.3d][%*s]"; // "%*s";
+	int               length     = sprintf_s(
+        timebuf.data(),
+        timebuf.size(),
+        timeformat.c_str(),
+        days.count(),
+        hours.count(),
+        minutes.count(),
+        seconds.count(),
+        milliseconds.count(),
+        microseconds.count(),
+        nanoseconds.count(),
+        levelname.length(),
+        levelname.c_str());
 	std::string time_and_level = std::string(timebuf.data(), length);
 
 	// Format incoming text
 	std::string text = nodeobs_log_formatted_message(msg, args);
 
-
-	std::fstream *logStream = reinterpret_cast<std::fstream*>(param);
+	std::fstream* logStream = reinterpret_cast<std::fstream*>(param);
 
 	// Split by \n (new-line)
 	size_t last_valid_idx = 0;
@@ -282,7 +300,7 @@ static void node_obs_log(int log_level, const char *msg, va_list args, void *par
 		char& ch = text[idx];
 		if ((ch == '\n') || (idx == text.length())) {
 			std::string newmsg = time_and_level + " " + std::string(&text[last_valid_idx], idx - last_valid_idx) + '\n';
-			last_valid_idx = idx + 1;
+			last_valid_idx     = idx + 1;
 
 			// File Log
 			*logStream << newmsg << std::flush;
@@ -296,20 +314,18 @@ static void node_obs_log(int log_level, const char *msg, va_list args, void *par
 			}
 			fwrite(newmsg.data(), sizeof(char), newmsg.length(), stdout);
 
-
 			// Debugger
 #ifdef _WIN32
 			if (IsDebuggerPresent()) {
 				int wNum = MultiByteToWideChar(CP_UTF8, 0, newmsg.c_str(), -1, NULL, 0);
 				if (wNum > 1) {
 					std::wstring wide_buf;
-					std::mutex wide_mutex;
+					std::mutex   wide_mutex;
 
 					lock_guard<mutex> lock(wide_mutex);
 					wide_buf.reserve(wNum + 1);
 					wide_buf.resize(wNum - 1);
-					MultiByteToWideChar(CP_UTF8, 0, newmsg.c_str(), -1, &wide_buf[0],
-						wNum);
+					MultiByteToWideChar(CP_UTF8, 0, newmsg.c_str(), -1, &wide_buf[0], wNum);
 
 					OutputDebugStringW(wide_buf.c_str());
 				}
@@ -324,7 +340,6 @@ static void node_obs_log(int log_level, const char *msg, va_list args, void *par
 		__debugbreak();
 #endif
 }
-#pragma endregion Logging
 
 static inline string GetDefaultVideoSavePath()
 {
@@ -521,7 +536,12 @@ void initBasicDefault(config_t* config) {
 	config_save_safe(config, "tmp", nullptr);
 }
 
-void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+void OBS_API::OBS_API_initAPI(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
 	/* Map base DLLs as soon as possible into the current process space.
 	* In particular, we need to load obs.dll into memory before we call
 	* any functions from obs else if we delay-loaded the dll, it will
@@ -536,35 +556,19 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 	* as well. You can call dlopen with RTLD_GLOBAL
 	* Order matters here. Loading a library out of order
 	* will cause a failure to resolve dependencies. */
-	static const char *g_modules[] = {
-		"zlib.dll",
-		"libopus-0.dll",
-		"libogg-0.dll",
-		"libvorbis-0.dll",
-		"libvorbisenc-2.dll",
-		"libvpx-1.dll",
-		"libx264-152.dll",
-		"avutil-55.dll",
-		"swscale-4.dll",
-		"swresample-2.dll",
-		"avcodec-57.dll",
-		"avformat-57.dll",
-		"avfilter-6.dll",
-		"avdevice-57.dll",
-		"libcurl.dll",
-		"libvorbisfile-3.dll",
-		"w32-pthreads.dll",
-		"obsglad.dll",
-		"obs.dll",
-		"libobs-d3d11.dll",
-		"libobs-opengl.dll"
-	};
+	static const char* g_modules[] = {
+	    "zlib.dll",           "libopus-0.dll",    "libogg-0.dll",    "libvorbis-0.dll",
+	    "libvorbisenc-2.dll", "libvpx-1.dll",     "libx264-152.dll", "avutil-55.dll",
+	    "swscale-4.dll",      "swresample-2.dll", "avcodec-57.dll",  "avformat-57.dll",
+	    "avfilter-6.dll",     "avdevice-57.dll",  "libcurl.dll",     "libvorbisfile-3.dll",
+	    "w32-pthreads.dll",   "obsglad.dll",      "obs.dll",         "libobs-d3d11.dll",
+	    "libobs-opengl.dll"};
 
 	static const int g_modules_size = sizeof(g_modules) / sizeof(g_modules[0]);
 
 	for (int i = 0; i < g_modules_size; ++i) {
 		std::string module_path;
-		void *handle = NULL;
+		void*       handle = NULL;
 
 		module_path.reserve(g_moduleDirectory.size() + strlen(g_modules[i]) + 1);
 		module_path.append(g_moduleDirectory);
@@ -592,16 +596,18 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 	* 3. getenv(OBS_DATA_PATH) + /libobs <- Can be set anywhere
 	*    on the cli, in the frontend, or the backend. */
 	obs_add_data_path((g_moduleDirectory + "/libobs/data/libobs/").c_str());
+	slobs_plugin = appdata.substr(0, appdata.size() - strlen("/slobs-client"));
+	slobs_plugin.append("/slobs-plugins");
+	obs_add_data_path((slobs_plugin + "/data/").c_str());
 
 	std::vector<char> userData = std::vector<char>(1024);
 	os_get_config_path(userData.data(), userData.capacity() - 1, "slobs-client/plugin_config");
 	obs_startup(locale.c_str(), userData.data(), NULL);
 
-#pragma region Logging
 	/* Logging */
 	string filename = GenerateTimeDateFilename("txt");
-	string log_path = appdata + "/node-obs/";
-	log_path.append("/logs/");
+	string log_path = appdata;
+	log_path.append("/node-obs/logs/");
 
 	/* Make sure the path is created
 	before attempting to make a file there. */
@@ -613,16 +619,9 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 	log_path.append(filename);
 
 #if defined(_WIN32) && defined(UNICODE)
-	fstream *logfile = new fstream(
-		converter.from_bytes(log_path.c_str()).c_str(),
-		ios_base::out |
-		ios_base::trunc
-	);
+	fstream* logfile = new fstream(converter.from_bytes(log_path.c_str()).c_str(), ios_base::out | ios_base::trunc);
 #else
-	fstream *logfile = new fstream(
-		log_path,
-		ios_base::out | ios_base::trunc
-	);
+	fstream* logfile = new fstream(log_path, ios_base::out | ios_base::trunc);
 #endif
 
 	if (!logfile) {
@@ -631,7 +630,6 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 
 	/* Delete oldest file in the folder to imitate rotating */
 	base_set_log_handler(node_obs_log, logfile);
-#pragma endregion Logging
 
 	/* INJECT osn::Source::Manager */
 	// Alright, you're probably wondering: Why is osn code here?
@@ -645,10 +643,18 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 
 	ConfigManager::getInstance().setAppdataPath(appdata);
 
-	openAllModules();
+	int videoError;
+	if (!openAllModules(videoError)) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value(videoError));
+		AUTO_DEBUG;
+		return;
+	}
 
 	initGlobalDefault(ConfigManager::getInstance().getGlobal());
 	initBasicDefault(ConfigManager::getInstance().getBasic());
+
+	OBS_service::createService();
 
 	OBS_service::createStreamingOutput();
 	OBS_service::createRecordingOutput();
@@ -668,8 +674,6 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 	OBS_service::associateAudioAndVideoToTheCurrentStreamingContext();
 	OBS_service::associateAudioAndVideoToTheCurrentRecordingContext();
 
-	OBS_service::createService();
-
 	OBS_service::associateAudioAndVideoEncodersToTheCurrentStreamingOutput();
 	OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput();
 
@@ -681,7 +685,12 @@ void OBS_API::OBS_API_initAPI(void* data, const int64_t id, const std::vector<ip
 	AUTO_DEBUG;
 }
 
-void OBS_API::OBS_API_destroyOBS_API(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+void OBS_API::OBS_API_destroyOBS_API(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
 	/* INJECT osn::Source::Manager */
 	// Alright, you're probably wondering: Why is osn code here?
 	// Well, simply because the hooks need to run as soon as possible. We don't
@@ -694,7 +703,12 @@ void OBS_API::OBS_API_destroyOBS_API(void* data, const int64_t id, const std::ve
 	AUTO_DEBUG;
 }
 
-void OBS_API::OBS_API_getPerformanceStatistics(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+void OBS_API::OBS_API_getPerformanceStatistics(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
 	rval.push_back(ipc::value(getCPU_Percentage()));
@@ -705,7 +719,7 @@ void OBS_API::OBS_API_getPerformanceStatistics(void* data, const int64_t id, con
 	AUTO_DEBUG;
 }
 
-void OBS_API::SetProcessPriority(const char *priority)
+void OBS_API::SetProcessPriority(const char* priority)
 {
 	if (!priority)
 		return;
@@ -738,10 +752,8 @@ bool DisableAudioDucking(bool disable)
 	ComPtr<IAudioSessionControl>  sessionControl;
 	ComPtr<IAudioSessionControl2> sessionControl2;
 
-	HRESULT result = CoCreateInstance(__uuidof(MMDeviceEnumerator),
-		nullptr, CLSCTX_INPROC_SERVER,
-		__uuidof(IMMDeviceEnumerator),
-		(void **)&devEmum);
+	HRESULT result = CoCreateInstance(
+	    __uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER, __uuidof(IMMDeviceEnumerator), (void**)&devEmum);
 	if (FAILED(result))
 		return false;
 
@@ -749,14 +761,11 @@ bool DisableAudioDucking(bool disable)
 	if (FAILED(result))
 		return false;
 
-	result = device->Activate(__uuidof(IAudioSessionManager2),
-		CLSCTX_INPROC_SERVER, nullptr,
-		(void **)&sessionManager2);
+	result = device->Activate(__uuidof(IAudioSessionManager2), CLSCTX_INPROC_SERVER, nullptr, (void**)&sessionManager2);
 	if (FAILED(result))
 		return false;
 
-	result = sessionManager2->GetAudioSessionControl(nullptr, 0,
-		&sessionControl);
+	result = sessionManager2->GetAudioSessionControl(nullptr, 0, &sessionControl);
 	if (FAILED(result))
 		return false;
 
@@ -779,8 +788,7 @@ void OBS_API::setAudioDeviceMonitoring(void)
 
 	obs_set_audio_monitoring_device(device_name, device_id);
 
-	blog(LOG_INFO, "Audio monitoring device:\n\tname: %s\n\tid: %s",
-		device_name, device_id);
+	blog(LOG_INFO, "Audio monitoring device:\n\tname: %s\n\tid: %s", device_name, device_id);
 
 	bool disableAudioDucking = config_get_bool(ConfigManager::getInstance().getBasic(), "Audio",
 		"DisableAudioDucking");
@@ -830,26 +838,34 @@ void OBS_API::destroyOBS_API(void) {
 	obs_shutdown();
 }
 
-#pragma region Case-Insensitive String
-struct ci_char_traits : public char_traits<char> {
-	static bool eq(char c1, char c2) {
+struct ci_char_traits : public char_traits<char>
+{
+	static bool eq(char c1, char c2)
+	{
 		return toupper(c1) == toupper(c2);
 	}
-	static bool ne(char c1, char c2) {
+	static bool ne(char c1, char c2)
+	{
 		return toupper(c1) != toupper(c2);
 	}
-	static bool lt(char c1, char c2) {
+	static bool lt(char c1, char c2)
+	{
 		return toupper(c1) < toupper(c2);
 	}
-	static int compare(const char* s1, const char* s2, size_t n) {
+	static int compare(const char* s1, const char* s2, size_t n)
+	{
 		while (n-- != 0) {
-			if (toupper(*s1) < toupper(*s2)) return -1;
-			if (toupper(*s1) > toupper(*s2)) return 1;
-			++s1; ++s2;
+			if (toupper(*s1) < toupper(*s2))
+				return -1;
+			if (toupper(*s1) > toupper(*s2))
+				return 1;
+			++s1;
+			++s2;
 		}
 		return 0;
 	}
-	static const char* find(const char* s, int n, char a) {
+	static const char* find(const char* s, int n, char a)
+	{
 		while (n-- > 0 && toupper(*s) != toupper(a)) {
 			++s;
 		}
@@ -858,48 +874,46 @@ struct ci_char_traits : public char_traits<char> {
 };
 
 typedef std::basic_string<char, ci_char_traits> istring;
-#pragma endregion Case-Insensitive String
 
 /* This should be reusable outside of node-obs, especially
 * if we go a server/client route. */
-void OBS_API::openAllModules(void) {
-	OBS_service::resetVideoContext(NULL);
+bool OBS_API::openAllModules(int& video_err)
+{
+	video_err = OBS_service::resetVideoContext(NULL);
+	if (video_err != OBS_VIDEO_SUCCESS) {
+		return false;
+	}
 
-	std::string plugins_paths[] = {
-		g_moduleDirectory + "/obs-plugins/64bit",
-		g_moduleDirectory + "/obs-plugins"
-	};
+	std::string plugins_paths[] = {g_moduleDirectory + "/obs-plugins/64bit", g_moduleDirectory + "/obs-plugins", slobs_plugin + "/obs-plugins/64bit"};
 
 	std::string plugins_data_paths[] = {
-		g_moduleDirectory + "/data/obs-plugins",
-		plugins_data_paths[0]
-	};
+	    g_moduleDirectory + "/data/obs-plugins", plugins_data_paths[0], slobs_plugin + "/data/obs-plugins"};
 
 	size_t num_paths = sizeof(plugins_paths) / sizeof(plugins_paths[0]);
 
 	for (int i = 0; i < num_paths; ++i) {
-		std::string &plugins_path = plugins_paths[i];
-		std::string &plugins_data_path = plugins_data_paths[i];
+		std::string& plugins_path      = plugins_paths[i];
+		std::string& plugins_data_path = plugins_data_paths[i];
 
 		/* FIXME Plugins could be in individual folders, maybe
 		* with some metainfo so we don't attempt just any
 		* shared library. */
 		if (!os_file_exists(plugins_path.c_str())) {
 			std::cerr << "Plugin Path provided is invalid: " << plugins_path << std::endl;
-			return;
+			return false;
 		}
 
 		os_dir_t* plugin_dir = os_opendir(plugins_path.c_str());
 		if (!plugin_dir) {
 			std::cerr << "Failed to open plugin diretory: " << plugins_path << std::endl;
-			return;
+			return false;
 		}
 
 		for (os_dirent* ent = os_readdir(plugin_dir); ent != nullptr; ent = os_readdir(plugin_dir)) {
 			std::string fullname = ent->d_name;
 			std::string basename = fullname.substr(0, fullname.find_last_of('.'));
 
-			std::string plugin_path = plugins_path + "/" + fullname;
+			std::string plugin_path      = plugins_path + "/" + fullname;
 			std::string plugin_data_path = plugins_data_path + "/" + basename;
 			if (ent->directory) {
 				continue;
@@ -911,8 +925,8 @@ void OBS_API::openAllModules(void) {
 			}
 #endif
 
-			obs_module_t *module;
-			int result = obs_open_module(&module, plugin_path.c_str(), plugin_data_path.c_str());
+			obs_module_t* module;
+			int           result = obs_open_module(&module, plugin_path.c_str(), plugin_data_path.c_str());
 
 			switch (result) {
 			case MODULE_SUCCESS:
@@ -943,6 +957,8 @@ void OBS_API::openAllModules(void) {
 
 		os_closedir(plugin_dir);
 	}
+
+	return true;
 }
 
 double OBS_API::getCPU_Percentage(void)
@@ -962,8 +978,7 @@ int OBS_API::getNumberOfDroppedFrames(void)
 
 	int totalDropped = 0;
 
-	if (obs_output_active(streamOutput))
-	{
+	if (obs_output_active(streamOutput)) {
 		totalDropped = obs_output_get_frames_dropped(streamOutput);
 	}
 
@@ -976,11 +991,10 @@ double OBS_API::getDroppedFramesPercentage(void)
 
 	double percent = 0;
 
-	if (obs_output_active(streamOutput))
-	{
+	if (obs_output_active(streamOutput)) {
 		int totalDropped = obs_output_get_frames_dropped(streamOutput);
-		int totalFrames = obs_output_get_total_frames(streamOutput);
-		percent = (double)totalDropped / (double)totalFrames * 100.0;
+		int totalFrames  = obs_output_get_total_frames(streamOutput);
+		percent          = (double)totalDropped / (double)totalFrames * 100.0;
 	}
 
 	return percent;
@@ -992,9 +1006,8 @@ double OBS_API::getCurrentBandwidth(void)
 
 	double kbitsPerSec = 0;
 
-	if (obs_output_active(streamOutput))
-	{
-		uint64_t bytesSent = obs_output_get_total_bytes(streamOutput);
+	if (obs_output_active(streamOutput)) {
+		uint64_t bytesSent     = obs_output_get_total_bytes(streamOutput);
 		uint64_t bytesSentTime = os_gettime_ns();
 
 		if (bytesSent < lastBytesSent)
@@ -1004,12 +1017,11 @@ double OBS_API::getCurrentBandwidth(void)
 
 		uint64_t bitsBetween = (bytesSent - lastBytesSent) * 8;
 
-		double timePassed = double(bytesSentTime - lastBytesSentTime) /
-			1000000000.0;
+		double timePassed = double(bytesSentTime - lastBytesSentTime) / 1000000000.0;
 
 		kbitsPerSec = double(bitsBetween) / timePassed / 1000.0;
 
-		lastBytesSent = bytesSent;
+		lastBytesSent     = bytesSent;
 		lastBytesSentTime = bytesSentTime;
 	}
 
@@ -1028,13 +1040,12 @@ static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor,
 {
 	MONITORINFO info;
 	info.cbSize = sizeof(info);
-	if (GetMonitorInfo(hMonitor, &info))
-	{
+	if (GetMonitorInfo(hMonitor, &info)) {
 		std::vector<Screen>* resolutions = reinterpret_cast<std::vector<Screen>*>(dwData);
 
 		Screen screen;
 
-		screen.width = std::abs(info.rcMonitor.left - info.rcMonitor.right);
+		screen.width  = std::abs(info.rcMonitor.left - info.rcMonitor.right);
 		screen.height = std::abs(info.rcMonitor.top - info.rcMonitor.bottom);
 
 		resolutions->push_back(screen);

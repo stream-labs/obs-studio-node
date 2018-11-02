@@ -1,7 +1,7 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
+﻿CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
 
 # Automatic Versioning
-SET(VERSION_FULL 0.3.4)
+SET(VERSION_FULL 0.3.21)
 SET(VERSION_BUILD 0)
 IF(EXISTS "${CMAKE_SOURCE_DIR}/.git")
 	SET(GIT_RESULT "")
@@ -30,6 +30,9 @@ MESSAGE(STATUS "OBS Studio for Node.JS Version ${PROJECT_VERSION_MAJOR}.${PROJEC
 
 # Set Module Path
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+
+# CppCheck
+include(cppcheck)
 
 ################################################################################
 # Compiler
@@ -64,6 +67,13 @@ IF(WIN32)
 		${PROJECT_BINARY_DIR}/version.rc
 		@ONLY
 	)
+	
+	# ToDo: Figure out a better way to tell the test setup where to find our binaries.
+	configure_file(
+		${PROJECT_SOURCE_DIR}/cmake/obs.js.in
+		${PROJECT_SOURCE_DIR}/tests/helpers/obs.js
+		@ONLY
+	)
 ENDIF()
 
 #############################
@@ -71,11 +81,13 @@ ENDIF()
 #############################
 
 # Installation
-SET(CMAKE_INSTALL_PREFIX  "${CMAKE_SOURCE_DIR}/distribute" CACHE PATH "Path to install files to")
+SET(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/distribute" CACHE PATH "Path to install files to")
 
 #############################
 # Projects
 #############################
+
+cppcheck(EXCLUDE "${PROJECT_SOURCE_DIR}/node_modules")
 
 ADD_SUBDIRECTORY(lib-streamlabs-ipc)
 ADD_SUBDIRECTORY(obs-studio-client)

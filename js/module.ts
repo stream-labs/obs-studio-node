@@ -50,6 +50,15 @@ export const enum EDeinterlaceFieldOrder {
     Bottom
 }
 
+export const enum EVideoCodes {
+	Success = 0,
+	Fail = -1,
+	NotSupported = -2,
+	InvalidParam = -3,
+	CurrentlyActive = -4,
+	ModuleNotFound = -5	
+}
+
 export const enum EDeinterlaceMode {
     Disable,
     Discard,
@@ -1493,8 +1502,8 @@ export interface IAudioFactory {
 }
 
 
-export interface IModuleFactory {
-    create(binPath: string, dataPath: string): IModule;
+export interface IModuleFactory extends IFactoryTypes {
+    open(binPath: string, dataPath: string): IModule;
     loadAll(): void;
     addPath(path: string, dataPath: string): void;
     logLoaded(): void;

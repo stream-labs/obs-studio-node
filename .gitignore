@@ -17,3 +17,5 @@ yarn-error.log
 *.opendb
 docs/ 
 .vscode 
+/*.log
+/streamlabs-build

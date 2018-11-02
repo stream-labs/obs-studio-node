@@ -1,7 +1,8 @@
-#include <node.h>
 #include <nan.h>
+#include <node.h>
 
-namespace display {
+namespace display
+{
 	static void OBS_content_createDisplay(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_content_destroyDisplay(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_content_getDisplayPreviewOffset(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -21,4 +22,4 @@ namespace display {
 	static void OBS_content_dragSelectedSource(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_content_getDrawGuideLines(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_content_setDrawGuideLines(const v8::FunctionCallbackInfo<v8::Value>& args);
-}
+} // namespace display

@@ -9,7 +9,7 @@ PROJECT(
 
 SET(NODEJS_URL "https://atom.io/download/atom-shell" CACHE STRING "Node.JS URL")
 SET(NODEJS_NAME "iojs" CACHE STRING "Node.JS Name")
-SET(NODEJS_VERSION "v2.0.4" CACHE STRING "Node.JS Version")
+SET(NODEJS_VERSION "v3.0.4" CACHE STRING "Node.JS Version")
 
 ################################################################################
 # Compiler
@@ -69,6 +69,7 @@ SET(PROJECT_SOURCE
 	"${PROJECT_SOURCE_DIR}/source/main.cpp"
 	"${PROJECT_SOURCE_DIR}/source/volmeter.cpp" "${PROJECT_SOURCE_DIR}/source/volmeter.hpp"
 	"${PROJECT_SOURCE_DIR}/source/video.cpp" "${PROJECT_SOURCE_DIR}/source/video.hpp"
+	"${PROJECT_SOURCE_DIR}/source/module.cpp" "${PROJECT_SOURCE_DIR}/source/module.hpp"
 )
 SET(PROJECT_LIBRARIES
 	${NODEJS_LIBRARIES}
@@ -186,6 +187,9 @@ IF(WIN32)
 		PRIVATE _UNICODE
 	)
 ENDIF()
+
+# CppCheck
+cppcheck_add_project(${PROJECT_NAME})
 
 #############################
 # Distribute
