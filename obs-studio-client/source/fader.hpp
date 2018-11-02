@@ -36,6 +36,8 @@ namespace osn
 		Fader(uint64_t uid);
 		~Fader();
 
+		uint64_t GetId();
+
 		public:
 		static Nan::Persistent<v8::FunctionTemplate> prototype;
 
@@ -52,5 +54,6 @@ namespace osn
 		static void Detach(Nan::NAN_METHOD_ARGS_TYPE info);
 		static void AddCallback(Nan::NAN_METHOD_ARGS_TYPE info);
 		static void RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void OBS_Fader_ReleaseFaders(const v8::FunctionCallbackInfo<v8::Value>& args);
 	};
 } // namespace osn
