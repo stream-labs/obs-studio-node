@@ -81,6 +81,8 @@ void OBS_service::Register(ipc::server& srv)
 	    "OBS_service_setRecordingSettings", std::vector<ipc::type>{}, OBS_service_setRecordingSettings));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_connectOutputSignals", std::vector<ipc::type>{}, OBS_service_connectOutputSignals));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_service_updateStreamingBitrate", std::vector<ipc::type>{ipc::type::UInt64}, OBS_service_updateStreamingBitrate));
 	cls->register_function(std::make_shared<ipc::function>("Query", std::vector<ipc::type>{}, Query));
 
 	// TODO : connect output signals
@@ -1888,4 +1890,22 @@ void OBS_service::connectOutputSignals(void)
 		    JSCallbackOutputSignal,
 		    &(recordingSignals.at(i)));
 	}
+}
+
+void OBS_service::OBS_service_updateStreamingBitrate(
+	void*                          data,
+	const int64_t                  id,
+	const std::vector<ipc::value>& args,
+	std::vector<ipc::value>&       rval)
+{
+	uint64_t bitrate = args[0].value_union.ui64;
+
+	obs_data* settings = obs_encoder_get_settings(videoStreamingEncoder);
+	obs_data_set_int(settings, "VBitrate", bitrate);
+
+	obs_encoder_update(videoStreamingEncoder, settings);
+	obs_data_release(settings);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }

@@ -74,4 +74,5 @@ namespace service
 	static void OBS_service_setRecordingSettings(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_service_removeCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_service_updateStreamingBitrate(const v8::FunctionCallbackInfo<v8::Value>& args);
 } // namespace service

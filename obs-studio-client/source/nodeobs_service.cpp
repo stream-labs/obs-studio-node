@@ -426,6 +426,20 @@ void service::OBS_service_removeCallback(const v8::FunctionCallbackInfo<v8::Valu
 	serviceObject->stop_async_runner();
 }
 
+void service::OBS_service_updateStreamingBitrate(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	uint64_t bitrate = 0;
+	ASSERT_GET_VALUE(args[0], bitrate);
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Service", "OBS_service_updateStreamingBitrate", {ipc::value(bitrate)});
+
+	ValidateResponse(response);
+}
+
 INITIALIZER(nodeobs_service)
 {
 	initializerFunctions.push([](v8::Local<v8::Object> exports) {
@@ -485,5 +499,7 @@ INITIALIZER(nodeobs_service)
 		NODE_SET_METHOD(exports, "OBS_service_connectOutputSignals", service::OBS_service_connectOutputSignals);
 
 		NODE_SET_METHOD(exports, "OBS_service_removeCallback", service::OBS_service_removeCallback);
+
+		NODE_SET_METHOD(exports, "OBS_service_updateStreamingBitrate", service::OBS_service_updateStreamingBitrate);
 	});
 }
