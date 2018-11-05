@@ -561,8 +561,6 @@ void osn::Fader::OBS_Fader_ReleaseFaders(const v8::FunctionCallbackInfo<v8::Valu
 		if (!ValidateResponse(rval))
 			return;
 	}
-
-	faders.clear();
 }
 
 INITIALIZER(nodeobs_fader)
