@@ -793,16 +793,13 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 	std::string currentServiceName = obs_data_get_string(obs_service_get_settings(currentService), "service");
 
 	SubCategory sc;
+	bool        serviceChanged = false;
 
 	for (int i = 0; i < streamSettings.size(); i++) {
 		sc = streamSettings.at(i);
 
 		std::string nameSubcategory = sc.name;
-
-		bool serviceChanged = false;
-
 		Parameter param;
-
 		for (int j = 0; j < sc.params.size(); j++) {
 			param = sc.params.at(j);
 
@@ -816,28 +813,10 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 				if (name.compare("streamType") == 0) {
 					newserviceTypeValue = value->c_str();
 					settings            = obs_service_defaults(newserviceTypeValue);
-				} else if (name.compare("service") == 0 && value->compare(currentServiceName) != 0) {
-					serviceChanged = true;
-				}
-
-				if (name.compare("server") == 0 && serviceChanged) {
-					obs_service_t* newService = obs_service_create(newserviceTypeValue, "service", settings, NULL);
-
-					obs_properties_t* properties = obs_service_properties(newService);
-					obs_property_t*   property   = obs_properties_first(properties);
-
-					while (property) {
-						int         count        = (int)obs_property_list_item_count(property);
-						const char* nameProperty = obs_property_name(property);
-						if (strcmp(nameProperty, "server") == 0) {
-							*value = obs_property_list_item_string(property, 0);
-							break;
-						}
-
-						obs_property_next(&property);
+					if (currentStreamType.compare(newserviceTypeValue) != 0) {
+						serviceChanged = true;
 					}
 				}
-
 				obs_data_set_string(settings, name.c_str(), value->c_str());
 			} else if (type.compare("OBS_PROPERTY_INT") == 0 || type.compare("OBS_PROPERTY_UINT") == 0) {
 				int64_t* value = reinterpret_cast<int64_t*>(param.currentValue.data());
@@ -851,12 +830,18 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 			}
 		}
 	}
-	if (currentStreamType.compare(newserviceTypeValue) != 0) {
-		//Stream type value has changed
-		settings = obs_service_defaults(newserviceTypeValue);
-	}
 
-	obs_data_t* data = obs_data_create();
+	if (serviceChanged) {
+		settings = obs_service_defaults(newserviceTypeValue);
+
+		if (strcmp(newserviceTypeValue, "rtmp_common") == 0) {
+			obs_data_set_string(settings, "streamType", "rtmp_common");
+			obs_data_set_string(settings, "service", "Twitch");
+			obs_data_set_bool(settings, "show_all", 0);
+			obs_data_set_string(settings, "server", "auto");
+			obs_data_set_string(settings, "key", "");
+		}
+	}
 
 	obs_data_t* hotkeyData = obs_hotkeys_save_service(currentService);
 
@@ -866,6 +851,7 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 
 	OBS_service::setService(newService);
 
+	obs_data_t* data = obs_data_create();
 	obs_data_set_string(data, "type", obs_service_get_type(newService));
 	obs_data_set_obj(data, "settings", settings);
 
