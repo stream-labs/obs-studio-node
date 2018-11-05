@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 #include "nodeobs_service.h"
+#include <ipc-server.hpp>
+#include "nodeobs_configManager.hpp"
 
 using namespace std;
 
@@ -95,12 +97,6 @@ class OBS_API
 	static std::string getContentConfigPath(void);
 
 	static void setAudioDeviceMonitoring(void);
-
-	// Encoders
-	static std::string getStreamingEncoderConfigPath(void);
-	static std::string getRecordingEncoderConfigPath(void);
-
-	static config_t* openConfigFile(std::string configFile);
 
 	static void UpdateProcessPriority(void);
 	static void SetProcessPriority(const char* priority);
