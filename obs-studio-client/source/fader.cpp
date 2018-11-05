@@ -23,8 +23,6 @@
 #include "isource.hpp"
 #include "shared.hpp"
 
-std::vector<std::unique_ptr<osn::Fader>> s_Faders;
-
 osn::Fader::Fader(uint64_t uid)
 {
 	this->uid = uid;
@@ -33,6 +31,8 @@ osn::Fader::Fader(uint64_t uid)
 osn::Fader::~Fader()
 {
 }
+
+std::vector<std::unique_ptr<osn::Fader>> faders;
 
 uint64_t osn::Fader::GetId()
 {
@@ -110,8 +110,8 @@ void osn::Fader::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	// Return created Object
 	auto newFader = std::make_unique<osn::Fader>(rval[1].value_union.ui64);
-	s_Faders.push_back(std::move(newFader));
-	info.GetReturnValue().Set(Store(s_Faders.back().get()));
+	faders.push_back(std::move(newFader));
+	info.GetReturnValue().Set(Store(faders.back().get()));
 }
 
 void osn::Fader::GetDeziBel(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -548,7 +548,7 @@ void osn::Fader::OBS_Fader_ReleaseFaders(const v8::FunctionCallbackInfo<v8::Valu
 	}
 
 	// For each fader
-	for (auto& fader : s_Faders) {
+	for (auto& fader : faders) {
 
 		// Call
 		std::vector<ipc::value> rval = conn->call_synchronous_helper(
@@ -562,7 +562,7 @@ void osn::Fader::OBS_Fader_ReleaseFaders(const v8::FunctionCallbackInfo<v8::Valu
 			return;
 	}
 
-	s_Faders.clear();
+	faders.clear();
 }
 
 INITIALIZER(nodeobs_fader)
