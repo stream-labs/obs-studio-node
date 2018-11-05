@@ -160,8 +160,7 @@ class OBS_settings
 	static void saveVideoSettings(std::vector<SubCategory> videoSettings);
 	static void saveAdvancedSettings(std::vector<SubCategory> advancedSettings);
 
-	static void
-	    saveGenericSettings(std::vector<SubCategory> genericSettings, std::string section, std::string pathFile);
+	static void saveGenericSettings(std::vector<SubCategory> genericSettings, std::string section, config_t* config);
 
 	static SubCategory serializeSettingsData(
 	    std::string                                                   nameSubCategory,
@@ -197,14 +196,14 @@ class OBS_settings
 	/****** Save Output Settings ******/
 
 	// Simple Output mode
-	static void saveSimpleOutputSettings(std::vector<SubCategory> settings, std::string basicConfigFile);
+	static void saveSimpleOutputSettings(std::vector<SubCategory> settings);
 
 	// Advanced Output mode
-	static void saveAdvancedOutputStreamingSettings(std::vector<SubCategory> settings, std::string basicConfigFile);
+	static void saveAdvancedOutputStreamingSettings(std::vector<SubCategory> settings);
 
-	static void saveAdvancedOutputRecordingSettings(std::vector<SubCategory> settings, std::string basicConfigFile);
+	static void saveAdvancedOutputRecordingSettings(std::vector<SubCategory> settings);
 
-	static void saveAdvancedOutputSettings(std::vector<SubCategory> settings, std::string basicConfigFile);
+	static void saveAdvancedOutputSettings(std::vector<SubCategory> settings);
 
 	//Utility functions
 	static void getSimpleAvailableEncoders(std::vector<std::pair<std::string, std::string>>* streamEncode);

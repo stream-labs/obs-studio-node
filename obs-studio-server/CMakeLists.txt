@@ -131,7 +131,7 @@ SET(ENABLE_FACEMASK TRUE CACHE BOOL "Enable Facemask Plugin")
 
 download_project(
 	PROJ libobs
-	URL https://github.com/stream-labs/obs-studio/releases/download/22.0.3-sl-5/obs-msvc2017-x64-22.0.3-sl-5.7z
+	URL https://github.com/stream-labs/obs-studio/releases/download/22.0.3-sl-3-fm/obs-msvc2017-x64-22.0.3-sl-3-fm.7z
 	UPDATE_DISCONNECTED 1
 )
 
@@ -185,6 +185,7 @@ SET(PROJECT_SOURCE
 	"${PROJECT_SOURCE_DIR}/source/nodeobs_api.cpp" "${PROJECT_SOURCE_DIR}/source/nodeobs_api.h"
 	"${PROJECT_SOURCE_DIR}/source/nodeobs_audio_encoders.cpp" "${PROJECT_SOURCE_DIR}/source/nodeobs_audio_encoders.h"
 	"${PROJECT_SOURCE_DIR}/source/nodeobs_autoconfig.cpp" "${PROJECT_SOURCE_DIR}/source/nodeobs_autoconfig.h"
+	"${PROJECT_SOURCE_DIR}/source/nodeobs_configManager.cpp" "${PROJECT_SOURCE_DIR}/source/nodeobs_configManager.hpp"
 	###### "${PROJECT_SOURCE_DIR}/source/nodeobs_async.h"
 	"${PROJECT_SOURCE_DIR}/source/nodeobs_display.cpp" "${PROJECT_SOURCE_DIR}/source/nodeobs_display.h"
 	"${PROJECT_SOURCE_DIR}/source/nodeobs_content.h" "${PROJECT_SOURCE_DIR}/source/nodeobs_common.cpp"	
