@@ -131,7 +131,7 @@ SET(ENABLE_FACEMASK TRUE CACHE BOOL "Enable Facemask Plugin")
 
 download_project(
 	PROJ libobs
-	URL https://github.com/stream-labs/obs-studio/releases/download/22.0.3-sl-3-fm/obs-msvc2017-x64-22.0.3-sl-3-fm.7z
+	URL https://ci.appveyor.com/api/buildjobs/pajq6jwk64g7v8xw/artifacts/windows-x86_64-RelWithDebInfo-22.0.3-sl.206.7z
 	UPDATE_DISCONNECTED 1
 )
 
