@@ -204,6 +204,8 @@ add_executable(
 	"${PROJECT_SOURCE_DIR}/source/nodeobs_audio_encoders.h"
 	"${PROJECT_SOURCE_DIR}/source/nodeobs_autoconfig.cpp"
 	"${PROJECT_SOURCE_DIR}/source/nodeobs_autoconfig.h"
+	"${PROJECT_SOURCE_DIR}/source/nodeobs_configManager.cpp"
+	"${PROJECT_SOURCE_DIR}/source/nodeobs_configManager.hpp"
 	"${PROJECT_SOURCE_DIR}/source/nodeobs_display.cpp"
 	"${PROJECT_SOURCE_DIR}/source/nodeobs_display.h"
 	"${PROJECT_SOURCE_DIR}/source/nodeobs_content.h"
