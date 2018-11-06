@@ -1134,13 +1134,13 @@ void OBS_content::OBS_content_selectSource(
 		struct vec2 position;
 		obs_sceneitem_get_pos(item, &position);
 
-		int positionX = position.x;
-		int positionY = position.y;
+		int positionX = int(position.x);
+		int positionY = int(position.y);
 
 		int width  = obs_source_get_width(source);
 		int height = obs_source_get_height(source);
 
-		if (x >= positionX && x <= width + positionX && y >= positionY && y < height + positionY) {
+		if (int(x) >= positionX && int(x) <= width + positionX && int(y) >= positionY && int(y) < height + positionY) {
 			sourceSelected = sourceName;
 			sourceFound    = true;
 			break;
@@ -1229,8 +1229,8 @@ void OBS_content::OBS_content_dragSelectedSource(
 	obs_sceneitem_t* sourceItem = obs_scene_find_source(scene, sourceSelected.c_str());
 
 	struct vec2 position;
-	position.x = x;
-	position.y = y;
+	position.x = float(x);
+	position.y = float(y);
 
 	obs_sceneitem_set_pos(sourceItem, &position);
 	obs_source_release(source);
