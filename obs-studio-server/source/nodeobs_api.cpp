@@ -37,7 +37,7 @@ uint64_t lastBytesSent = 0;
 uint64_t lastBytesSentTime = 0;
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 std::string                                            slobs_plugin;
-std::vector<obs_module_t*>                             obsModules;
+std::vector<std::pair<std::string, obs_module_t*>>     obsModules;
 
 #ifdef _WIN32
 std::vector<HMODULE> dynamicLibraries;
@@ -842,14 +842,18 @@ void OBS_API::destroyOBS_API(void) {
 	obs_shutdown();
 
 	// Release each obs module (dlls for windows)
-	for (auto& module : obsModules) {
-		os_dlclose(module);
+	// TODO: For now we are releasing only the obs-browser.dll because it could lead into a specific 
+	// crash that we are trying to extinguish, the ideia is start releasing all of these dlls someday
+	for (auto& moduleInfo : obsModules) {
+		if (moduleInfo.first.compare("obs-browser.dll") == 0)
+			os_dlclose(moduleInfo.second);
 	}
 
 #ifdef _WIN32
+
+	// TODO: In the future we should release these dlls here
 	for (auto& handle : dynamicLibraries) {
-		// We don't care about the return value
-		FreeLibrary(handle);
+		// FreeLibrary(handle);
 	}
 #endif
 }
@@ -946,7 +950,7 @@ bool OBS_API::openAllModules(int& video_err)
 
 			switch (result) {
 			case MODULE_SUCCESS:
-				obsModules.push_back(module);
+				obsModules.push_back(std::make_pair(fullname, module));
 				break;
 			case MODULE_FILE_NOT_FOUND:
 				std::cerr << "Unable to load '" << plugin_path << "', could not find file." << std::endl;
