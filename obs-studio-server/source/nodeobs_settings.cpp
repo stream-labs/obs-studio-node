@@ -2881,6 +2881,7 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	disableGPUAsRenderDevice.push_back(std::make_pair("type", "OBS_PROPERTY_BOOL"));
 	disableGPUAsRenderDevice.push_back(std::make_pair("description", "Disable GPU as render device"));
 	disableGPUAsRenderDevice.push_back(std::make_pair("subType", ""));
+	entries.push_back(disableGPUAsRenderDevice);
 
 	advancedSettings.push_back(
 	    serializeSettingsData("Video", entries, ConfigManager::getInstance().getBasic(), "Video", true, true));
