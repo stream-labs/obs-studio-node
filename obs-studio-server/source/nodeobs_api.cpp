@@ -643,6 +643,11 @@ void OBS_API::OBS_API_initAPI(
 
 	ConfigManager::getInstance().setAppdataPath(appdata);
 
+	obs_data_t *private_settings = obs_data_create();
+	obs_data_set_bool(private_settings, "BrowserHWAccel", true);
+	obs_apply_private_data(private_settings);
+	obs_data_release(private_settings);
+
 	int videoError;
 	if (!openAllModules(videoError)) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
