@@ -15,12 +15,18 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
 
+#if defined(_WIN32)
+#include "Shlobj.h"
+#endif
+
+#include <fstream>
 #include <node.h>
 #include "fader.hpp"
 #include "filter.hpp"
 #include "global.hpp"
 #include "input.hpp"
 #include "isource.hpp"
+#include "module.hpp"
 #include "nodeobs_api.hpp"
 #include "properties.hpp"
 #include "scene.hpp"
@@ -29,9 +35,51 @@
 #include "transition.hpp"
 #include "video.hpp"
 #include "volmeter.hpp"
-#include "module.hpp"
 
-extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = 1;
+#if defined(_WIN32)
+// Checks DisableGPUAsRenderDevice setting
+extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = [] {
+	LPWSTR       roamingPath;
+	std::wstring filePath;
+	std::string  line;
+	std::fstream file;
+	bool         settingValue = false;
+
+	if (FAILED(SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, nullptr, &roamingPath))) {
+		// Wasn't able to find roaming app data path
+		return 1;
+	} else {
+		filePath.assign(roamingPath);
+		filePath.append(L"\\slobs-client\\basic.ini");
+		CoTaskMemFree(roamingPath);
+	}
+
+	file.open(filePath);
+
+	if (file.is_open()) {
+		while (std::getline(file, line)) {
+			if (line.find("DisableGPUAsRenderDevice", 0) != std::string::npos) {
+				if (line.substr(line.find('=') + 1) == "true") {
+					settingValue = true;
+					file.close();
+					break;
+				}
+			}
+		}
+	} else {
+		// Wasn't able to open config file
+		return 1;
+	}
+
+	if (settingValue) {
+		// Disable high performance graphics rendering
+		return 0;
+	}
+
+	// Enable high performance graphics rendering
+	return 1;
+}();
+#endif
 
 // Definition based on addon_register_func, see 'node.h:L384'.
 void main(v8::Local<v8::Object> exports, v8::Local<v8::Value> module, void* priv)

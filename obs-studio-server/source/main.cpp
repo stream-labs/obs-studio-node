@@ -34,6 +34,7 @@
 #include "osn-filter.hpp"
 #include "osn-global.hpp"
 #include "osn-input.hpp"
+#include "osn-module.hpp"
 #include "osn-properties.hpp"
 #include "osn-scene.hpp"
 #include "osn-sceneitem.hpp"
@@ -41,9 +42,6 @@
 #include "osn-transition.hpp"
 #include "osn-video.hpp"
 #include "osn-volmeter.hpp"
-#include "osn-module.hpp"
-
-extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = 1;
 
 #ifndef _DEBUG
 #include "client/crash_report_database.h"
@@ -53,6 +51,49 @@ extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = 1;
 
 #if defined(_WIN32)
 #include "Shlobj.h"
+
+// Checks DisableGPUAsRenderDevice setting
+extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = [] {
+	LPWSTR       roamingPath;
+	std::wstring filePath;
+	std::string  line;
+	std::fstream file;
+	bool         settingValue = false;
+
+	if (FAILED(SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, nullptr, &roamingPath))) {
+		// Wasn't able to find roaming app data path
+		return 1;
+	} else {
+		filePath.assign(roamingPath);
+		filePath.append(L"\\slobs-client\\basic.ini");
+		CoTaskMemFree(roamingPath);
+	}
+
+	file.open(filePath);
+
+	if (file.is_open()) {
+		while (std::getline(file, line)) {
+			if (line.find("DisableGPUAsRenderDevice", 0) != std::string::npos) {
+				if (line.substr(line.find('=') + 1) == "true") {
+					settingValue = true;
+					file.close();
+					break;
+				}
+			}
+		}
+	} else {
+		// Wasn't able to open config file
+		return 1;
+	}
+
+	if (settingValue) {
+		// Disable high performance graphics rendering
+		return 0;
+	}
+
+	// Enable high performance graphics rendering
+	return 1;
+}();
 #endif
 
 #define BUFFSIZE 512
