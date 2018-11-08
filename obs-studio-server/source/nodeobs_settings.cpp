@@ -466,6 +466,10 @@ void OBS_settings::saveGeneralSettings(std::vector<SubCategory> generalSettings,
 		config = config_create(pathConfigDirectory.c_str());
 	}
 
+	if (config == NULL) {
+		throw "Invalid configuration file";
+	}
+
 	SubCategory sc;
 
 	for (int i = 0; i < generalSettings.size(); i++) {

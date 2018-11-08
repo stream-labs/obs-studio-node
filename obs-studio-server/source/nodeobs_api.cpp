@@ -278,7 +278,7 @@ static void                                    node_obs_log(int log_level, const
 		break;
 	}
 
-	std::vector<char> timebuf(65535, '\0');
+	std::vector<char> timebuf(128, '\0');
 	std::string       timeformat = "[%.3d:%.2d:%.2d:%.2d.%.3d.%.3d.%.3d][%*s]"; // "%*s";
 	int               length     = sprintf_s(
         timebuf.data(),
