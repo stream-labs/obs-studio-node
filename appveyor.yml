@@ -10,10 +10,12 @@ environment:
   matrix:
     - RuntimeURL: https://atom.io/download/atom-shell
       RuntimeName: iojs
-      RuntimeVersion: "2.0.8"
+      RuntimeVersion: v2.0.8
+
     - RuntimeURL: https://atom.io/download/atom-shell
       RuntimeName: iojs
-      RuntimeVersion: "3.0.4"
+      RuntimeVersion: v3.0.4
+
   NodeVersion: 9
   SLBuildDirectory: streamlabs-build
   SLGenerator: Visual Studio 15 2017 Win64
@@ -25,8 +27,8 @@ environment:
     secure: iZlMSWnmH5FQDpa+/0SgXIyvCobkElj2y5lu94Uo8VnTWHTeTC1/bpVkzsLreENocomvDB5ywsa3+QdathRp8A==
   StreamlabsSecret:
     secure: hr+VpykbGiCI5I0ltiqH667wh/YQx2Fi5SBLfkOWHSg=
-  UnsignedArtifact: $(RuntimeName)-v$(RuntimeVersion)-unsigned
-  SignedArtifact: $(RuntimeName)-v$(RuntimeVersion)-signed
+  UnsignedArtifact: $(RuntimeName)-$(RuntimeVersion)-unsigned
+  SignedArtifact: $(RuntimeName)-$(RuntimeVersion)-signed
 
 install:
   - ps: Install-Product node $env:NodeVersion x64
