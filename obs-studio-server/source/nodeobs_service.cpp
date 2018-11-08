@@ -94,7 +94,7 @@ void OBS_service::OBS_service_resetAudioContext(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	resetAudioContext();
+	resetAudioContext(true);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -105,7 +105,7 @@ void OBS_service::OBS_service_resetVideoContext(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	int result = resetVideoContext(NULL);
+	int result = resetVideoContext(true);
 	if (result == OBS_VIDEO_SUCCESS) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	} else {
@@ -318,9 +318,12 @@ void LoadAudioDevice(const char* name, int channel, obs_data_t* parent)
 	obs_data_release(data);
 }
 
-bool OBS_service::resetAudioContext(void)
+bool OBS_service::resetAudioContext(bool reload)
 {
     struct obs_audio_info ai;
+
+	if (reload)
+		ConfigManager::getInstance().reloadConfig();
     
 	ai.samples_per_sec = 
 		config_get_uint(ConfigManager::getInstance().getBasic(), "Audio", "SampleRate");
@@ -472,7 +475,7 @@ static const double vals[] = {1.0, 1.25, (1.0 / 0.75), 1.5, (1.0 / 0.6), 1.75, 2
 
 static const size_t numVals = sizeof(vals) / sizeof(double);
 
-int OBS_service::resetVideoContext(const char* outputType)
+int OBS_service::resetVideoContext(bool reload)
 {
 	obs_video_info ovi;
 	std::string    gslib = "";
@@ -482,6 +485,9 @@ int OBS_service::resetVideoContext(const char* outputType)
 	gslib     = "libobs-opengl";
 #endif
 	ovi.graphics_module = gslib.c_str();
+
+	if (reload)
+		ConfigManager::getInstance().reloadConfig();
 
     ovi.base_width = 
 		(uint32_t)config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCX");

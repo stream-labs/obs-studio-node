@@ -55,6 +55,8 @@ namespace osn
 		VolMeter(uint64_t uid);
 		~VolMeter();
 
+		uint64_t GetId();
+
 		void start_async_runner();
 		void stop_async_runner();
 		void callback_handler(void* data, std::shared_ptr<osn::VolMeterData> item);
@@ -77,5 +79,8 @@ namespace osn
 		static Nan::NAN_METHOD_RETURN_TYPE Detach(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE AddCallback(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE
+		    OBS_Volmeter_ReleaseVolmeters(const v8::FunctionCallbackInfo<v8::Value>& args);
+
 	};
 } // namespace osn

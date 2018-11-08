@@ -30,22 +30,13 @@ osn::Fader::Fader(uint64_t uid)
 
 osn::Fader::~Fader()
 {
-	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		return; // Well, we can't really do anything here then.
-	}
+}
 
-	// Call
-	std::vector<ipc::value> rval = conn->call_synchronous_helper(
-	    "Fader",
-	    "Destroy",
-	    {
-	        ipc::value(uid),
-	    });
-	if (!rval.size()) {
-		return; // Nothing we can do.
-	}
+std::vector<std::unique_ptr<osn::Fader>> faders;
+
+uint64_t osn::Fader::GetId()
+{
+	return this->uid;
 }
 
 Nan::Persistent<v8::FunctionTemplate> osn::Fader::prototype = Nan::Persistent<v8::FunctionTemplate>();
@@ -118,8 +109,9 @@ void osn::Fader::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 
 	// Return created Object
-	osn::Fader* obj = new osn::Fader(rval[1].value_union.ui64);
-	info.GetReturnValue().Set(Store(obj));
+	auto newFader = std::make_unique<osn::Fader>(rval[1].value_union.ui64);
+	faders.push_back(std::move(newFader));
+	info.GetReturnValue().Set(Store(faders.back().get()));
 }
 
 void osn::Fader::GetDeziBel(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -545,4 +537,35 @@ void osn::Fader::RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	///* What's this? A memory leak? Nope! The GC will decide when
 	//* and where to destroy the object. */
+}
+
+void osn::Fader::OBS_Fader_ReleaseFaders(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	// Validate Connection
+	auto conn = Controller::GetInstance().GetConnection();
+	if (!conn) {
+		return; // Well, we can't really do anything here then.
+	}
+
+	// For each fader
+	for (auto& fader : faders) {
+
+		// Call
+		std::vector<ipc::value> rval = conn->call_synchronous_helper(
+		    "Fader",
+		    "Destroy",
+		    {
+		        ipc::value(fader->GetId()),
+		    });
+
+		if (!ValidateResponse(rval))
+			return;
+	}
+}
+
+INITIALIZER(nodeobs_fader)
+{
+	initializerFunctions.push([](v8::Local<v8::Object> exports) {
+		NODE_SET_METHOD(exports, "OBS_Fader_ReleaseFaders", osn::Fader::OBS_Fader_ReleaseFaders);
+	});
 }
