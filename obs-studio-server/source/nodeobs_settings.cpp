@@ -1882,7 +1882,7 @@ void OBS_settings::getStandardRecordingSettings(
 
 	if (!obs_output_active(recordOutput)) {
 		if (!fileExist) {
-			recordingEncoder = obs_video_encoder_create(recEncoderCurrentValue, "streaming_h264", nullptr, nullptr);
+			recordingEncoder = obs_video_encoder_create(recEncoderCurrentValue, "recording_h264", nullptr, nullptr);
 			OBS_service::setRecordingEncoder(recordingEncoder);
 
 			if (!obs_data_save_json_safe(settings, ConfigManager::getInstance().getRecord().c_str(), "tmp", "bak")) {
@@ -1892,7 +1892,7 @@ void OBS_settings::getStandardRecordingSettings(
 			obs_data_t* data =
 			    obs_data_create_from_json_file_safe(ConfigManager::getInstance().getRecord().c_str(), "bak");
 			obs_data_apply(settings, data);
-			recordingEncoder = obs_video_encoder_create(recEncoderCurrentValue, "streaming_h264", settings, nullptr);
+			recordingEncoder = obs_video_encoder_create(recEncoderCurrentValue, "recording_h264", settings, nullptr);
 			OBS_service::setRecordingEncoder(recordingEncoder);
 		}
 	} else {
