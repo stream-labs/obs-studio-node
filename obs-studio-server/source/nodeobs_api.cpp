@@ -37,7 +37,7 @@ uint64_t lastBytesSent = 0;
 uint64_t lastBytesSentTime = 0;
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 std::string                                            slobs_plugin;
-
+std::string                                            logFilename;
 
 void OBS_API::Register(ipc::server& srv)
 {
@@ -536,6 +536,12 @@ void initBasicDefault(config_t* config) {
 	config_save_safe(config, "tmp", nullptr);
 }
 
+std::string OBS_API::SetupLogFilename() 
+{
+	logFilename = GenerateTimeDateFilename("txt");
+	return logFilename;
+}
+
 void OBS_API::OBS_API_initAPI(
     void*                          data,
     const int64_t                  id,
@@ -605,7 +611,7 @@ void OBS_API::OBS_API_initAPI(
 	obs_startup(locale.c_str(), userData.data(), NULL);
 
 	/* Logging */
-	string filename = GenerateTimeDateFilename("txt");
+	string filename = logFilename;
 	string log_path = appdata;
 	log_path.append("/node-obs/logs/");
 
@@ -834,6 +840,8 @@ void OBS_API::destroyOBS_API(void) {
 	obs_service_t* service = OBS_service::getService();
 	if (service != NULL)
 		obs_service_release(service);
+
+	throw "Bla";
 
 	obs_shutdown();
 }

@@ -29,6 +29,7 @@ class OBS_API
 	~OBS_API();
 
 	static void Register(ipc::server&);
+	static std::string SetupLogFilename();
 
 	static void OBS_API_initAPI(
 	    void*                          data,

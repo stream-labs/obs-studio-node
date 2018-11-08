@@ -24,6 +24,7 @@
 #include <memory>
 #include <thread>
 #include <vector>
+#include <regex>
 #include "error.hpp"
 #include "nodeobs_api.h"
 #include "nodeobs_autoconfig.h"
@@ -34,6 +35,7 @@
 #include "osn-filter.hpp"
 #include "osn-global.hpp"
 #include "osn-input.hpp"
+#include "osn-module.hpp"
 #include "osn-properties.hpp"
 #include "osn-scene.hpp"
 #include "osn-sceneitem.hpp"
@@ -41,7 +43,6 @@
 #include "osn-transition.hpp"
 #include "osn-video.hpp"
 #include "osn-volmeter.hpp"
-#include "osn-module.hpp"
 
 extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = 1;
 
@@ -95,8 +96,10 @@ int main(int argc, char* argv[])
 {
 #ifndef _DEBUG
 	std::wstring             appdata_path;
+	std::wstring             appdata_log_path;
 	crashpad::CrashpadClient client;
 	bool                     rc;
+	std::string              obsLogFilename = OBS_API::SetupLogFilename();
 
 #if defined(_WIN32)
 	HRESULT hResult;
@@ -105,14 +108,22 @@ int main(int argc, char* argv[])
 	hResult = SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, NULL, &ppszPath);
 
 	appdata_path.assign(ppszPath);
+	appdata_log_path.assign(ppszPath);
 	appdata_path.append(L"\\obs-studio-node-server");
-
+	appdata_log_path.append(L"\\slobs-client\\node-obs\\logs\\");
 	CoTaskMemFree(ppszPath);
+
 #endif
+
+	// Setup the obs file log argument
+	std::string obsFileLogArgument = std::string("--attachment=attachment_") + obsLogFilename + std::string("=")
+	                                 + std::string(appdata_log_path.begin(), appdata_log_path.end()) + obsLogFilename;
+	obsFileLogArgument = std::regex_replace(obsFileLogArgument, std::regex("\\\\"), "/");
 
 	std::map<std::string, std::string> annotations;
 	std::vector<std::string>           arguments;
 	arguments.push_back("--no-rate-limit");
+	arguments.push_back(obsFileLogArgument);
 
 	std::wstring handler_path(L"crashpad_handler.exe");
 	std::string  url("https://submit.backtrace.io/streamlabs/513fa5577d6a193ed34965e18b93d7b00813e9eb2f4b0b7059b30e66afebe4fe/minidump");
@@ -128,7 +139,7 @@ int main(int argc, char* argv[])
 
 	rc = client.StartHandler(handler, db, db, url, annotations, arguments, true, true);
 	/* TODO Check rc value for errors */
-
+	
 	rc = client.WaitForHandlerStart(INFINITE);
 	/* TODO Check rc value for errors */
 #endif
