@@ -1692,7 +1692,7 @@ void OBS_service::UpdateRecordingSettings()
 	bool ultra_hq = (videoQuality == "HQ");
 	int  crf      = CalcCRF(ultra_hq ? 16 : 23);
 
-	if (astrcmp_n(videoEncoder.c_str(), "obs_x264", 4) == 0) {
+	if (astrcmp_n(videoEncoder.c_str(), "x264", 4) == 0) {
 		UpdateRecordingSettings_x264_crf(crf);
 
 	} else if (videoEncoder == SIMPLE_ENCODER_QSV) {
