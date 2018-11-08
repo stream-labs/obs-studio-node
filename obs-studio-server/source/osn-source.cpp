@@ -102,6 +102,22 @@ void osn::Source::finalize_global_signals()
 	signal_handler_disconnect(sh, "source_create", osn::Source::global_source_create_cb, nullptr);
 }
 
+void osn::Source::attach_source_signals(obs_source_t* src)
+{
+	signal_handler_t* sh = obs_source_get_signal_handler(src);
+	if (!sh)
+		return;
+	signal_handler_connect(sh, "destroy", osn::Source::global_source_destroy_cb, nullptr);
+}
+
+void osn::Source::detach_source_signals(obs_source_t* src)
+{
+	signal_handler_t* sh = obs_source_get_signal_handler(src);
+	if (!sh)
+		return;
+	signal_handler_disconnect(sh, "destroy", osn::Source::global_source_destroy_cb, nullptr);
+}
+
 void osn::Source::global_source_create_cb(void* ptr, calldata_t* cd)
 {
 	obs_source_t* source = nullptr;
@@ -119,15 +135,7 @@ void osn::Source::global_source_create_cb(void* ptr, calldata_t* cd)
 	pending_source_hotkeys.insert({sourceId, sourceHotkeys});
 }
 
-void osn::Source::attach_source_signals(obs_source_t* src)
-{
-	signal_handler_t* sh = obs_source_get_signal_handler(src);
-	if (!sh)
-		return;
-	signal_handler_connect(sh, "destroy", osn::Source::source_destroy_cb, nullptr);
-}
-
-void osn::Source::source_destroy_cb(void* ptr, calldata_t* cd)
+void osn::Source::global_source_destroy_cb(void* ptr, calldata_t* cd)
 {
 	obs_source_t* source = nullptr;
 	if (!calldata_get_ptr(cd, "source", &source)) {
@@ -143,6 +151,7 @@ void osn::Source::source_destroy_cb(void* ptr, calldata_t* cd)
 		}
 	}
 
+	detach_source_signals(source);
 	osn::Source::Manager::GetInstance().free(source);
 }
 
