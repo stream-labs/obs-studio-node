@@ -659,6 +659,14 @@ void OBS_API::destroyOBS_API(void) {
 		// FreeLibrary(handle);
 	}
 #endif
+
+	// The goal is to reduce this number to zero and add a throw here, so if in the future
+	// a leak is detected, any developer will know for sure what is causing it
+	int totalLeaks = bnum_allocs();
+	std::cout << "Total leaks: " << totalLeaks << std::endl;
+	if (totalLeaks) {
+		// throw "OBS has memory leaks";
+	}
 }
 
 struct ci_char_traits : public char_traits<char>
