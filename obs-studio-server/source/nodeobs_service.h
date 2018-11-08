@@ -194,7 +194,6 @@ class OBS_service
 	static void Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 
 	private:
-	static obs_data_t* createRecordingSettings(void);
 	static bool        startStreaming(void);
 	static bool        startRecording(void);
 	static void        stopStreaming(bool forceStop);

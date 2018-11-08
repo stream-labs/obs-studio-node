@@ -489,7 +489,7 @@ void osn::Scene::MoveItem(
 		int32_t          findindex = 0;
 		int32_t          index     = 0;
 	} ed;
-	ed.findindex = (num_items - 1) - args[1].value_union.i32;
+	ed.findindex = (int32_t(num_items) - 1) - args[1].value_union.i32;
 
 	auto cb = [](obs_scene_t* scene, obs_sceneitem_t* item, void* data) {
 		EnumData* items = reinterpret_cast<EnumData*>(data);
@@ -509,7 +509,7 @@ void osn::Scene::MoveItem(
 		return;
 	}
 
-	obs_sceneitem_set_order_position(ed.item, (num_items - 1) - args[2].value_union.i32);
+	obs_sceneitem_set_order_position(ed.item, (int(num_items) - 1) - args[2].value_union.i32);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
