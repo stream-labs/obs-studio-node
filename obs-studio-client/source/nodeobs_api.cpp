@@ -1,6 +1,6 @@
-#include "nodeobs_api.hpp"
 #include "controller.hpp"
 #include "error.hpp"
+#include "nodeobs_api.hpp"
 #include "utility-v8.hpp"
 
 #include <node.h>
@@ -84,6 +84,17 @@ void api::SetWorkingDirectory(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	ValidateResponse(response);
 }
 
+void api::StopCrashHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("API", "StopCrashHandler", {});
+
+	ValidateResponse(response);
+}
+
 INITIALIZER(nodeobs_api)
 {
 	initializerFunctions.push([](v8::Local<v8::Object> exports) {
@@ -91,5 +102,6 @@ INITIALIZER(nodeobs_api)
 		NODE_SET_METHOD(exports, "OBS_API_destroyOBS_API", api::OBS_API_destroyOBS_API);
 		NODE_SET_METHOD(exports, "OBS_API_getPerformanceStatistics", api::OBS_API_getPerformanceStatistics);
 		NODE_SET_METHOD(exports, "SetWorkingDirectory", api::SetWorkingDirectory);
+		NODE_SET_METHOD(exports, "StopCrashHandler", api::StopCrashHandler);
 	});
 }

@@ -55,6 +55,8 @@ extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = 1;
 #include "Shlobj.h"
 #endif
 
+#define BUFFSIZE 512
+
 struct ServerData
 {
 	std::mutex                                     mtx;
@@ -115,7 +117,9 @@ int main(int argc, char* argv[])
 	arguments.push_back("--no-rate-limit");
 
 	std::wstring handler_path(L"crashpad_handler.exe");
-	std::string  url("https://submit.backtrace.io/streamlabs/513fa5577d6a193ed34965e18b93d7b00813e9eb2f4b0b7059b30e66afebe4fe/minidump");
+	std::string  url(
+        "https://submit.backtrace.io/streamlabs/513fa5577d6a193ed34965e18b93d7b00813e9eb2f4b0b7059b30e66afebe4fe/"
+        "minidump");
 
 	base::FilePath db(appdata_path);
 	base::FilePath handler(handler_path);
@@ -196,15 +200,44 @@ int main(int argc, char* argv[])
 	// Reset Connect/Disconnect time.
 	sd.last_disconnect = sd.last_connect = std::chrono::high_resolution_clock::now();
 
+	bool waitBeforeClosing = false;
+
 	while (!doShutdown) {
 		if (sd.count_connected == 0) {
 			auto tp    = std::chrono::high_resolution_clock::now();
 			auto delta = tp - sd.last_disconnect;
 			if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() > 5000) {
 				doShutdown = true;
+				waitBeforeClosing = true;
 			}
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	}
+
+	// Wait on receive the exit message from the crash-handler
+	if (waitBeforeClosing) {
+		HANDLE hPipe;
+		TCHAR  chBuf[BUFFSIZE];
+		DWORD  cbRead;
+		hPipe = CreateNamedPipe(
+		    TEXT("\\\\.\\pipe\\exit-slobs-crash-handler"),
+		    PIPE_ACCESS_DUPLEX,
+		    PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
+		    1,
+		    BUFFSIZE * sizeof(TCHAR),
+		    BUFFSIZE * sizeof(TCHAR),
+		    NULL,
+		    NULL);
+
+		if (hPipe != INVALID_HANDLE_VALUE) {
+			if (ConnectNamedPipe(hPipe, NULL) != FALSE) {
+				BOOL fSuccess = ReadFile(hPipe, chBuf, BUFFSIZE * sizeof(TCHAR), &cbRead, NULL);
+
+				if (!fSuccess)
+					return 0;
+				CloseHandle(hPipe);
+			}
+		}
 	}
 
 	// Finalize Server
