@@ -142,6 +142,7 @@ void osn::Input::Create(
 		return;
 	}
 
+	obs_data_release(hotkeys);
 	obs_data_release(settings);
 
 	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
