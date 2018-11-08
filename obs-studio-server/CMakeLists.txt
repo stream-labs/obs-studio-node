@@ -107,9 +107,21 @@ add_dependencies(crashpad_base crashpad_ep)
 add_dependencies(crashpad_client crashpad_base)
 add_dependencies(crashpad_util crashpad_client)
 
+string(
+	CONCAT OSN_DEFAULT_LIBOBS_URL
+	"https://github.com/stream-labs/obs-studio/releases/"
+	"download/22.0.3-sl-3-fm/obs-msvc2017-x64-22.0.3-sl-3-fm.7z"
+)
+
+set(
+	OSN_LIBOBS_URL
+	${OSN_DEFAULT_LIBOBS_URL}
+	CACHE STRING "Location of libobs archive to base on"
+)
+
 download_project(
 	PROJ libobs
-	URL https://github.com/stream-labs/obs-studio/releases/download/22.0.3-sl-3-fm/obs-msvc2017-x64-22.0.3-sl-3-fm.7z
+	URL ${OSN_LIBOBS_URL}
 	UPDATE_DISCONNECTED 1
 )
 
