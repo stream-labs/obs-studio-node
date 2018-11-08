@@ -37,7 +37,13 @@ uint64_t lastBytesSent = 0;
 uint64_t lastBytesSentTime = 0;
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 std::string                                            slobs_plugin;
+std::vector<std::pair<std::string, obs_module_t*>>     obsModules;
 
+#ifdef _WIN32
+std::vector<HMODULE> dynamicLibraries;
+#else
+std::vector<void*> dynamicLibraries;
+#endif
 
 void OBS_API::Register(ipc::server& srv)
 {
@@ -583,11 +589,9 @@ void OBS_API::OBS_API_initAPI(
 			std::cerr << "Failed to open dependency " << module_path << std::endl;
 		}
 
-		/* This is an intentional leak.
-		* We leave these open and let the
-		* OS clean these up for us as
-		* they should be available through
-		* out the application */
+#ifdef _WIN32
+		dynamicLibraries.push_back(HMODULE(handle));
+#endif
 	}
 	
 	/* libobs will use three methods of finding data files:
@@ -836,6 +840,22 @@ void OBS_API::destroyOBS_API(void) {
 		obs_service_release(service);
 
 	obs_shutdown();
+
+	// Release each obs module (dlls for windows)
+	// TODO: For now we are releasing only the obs-browser.dll because it could lead into a specific 
+	// crash that we are trying to extinguish, the ideia is start releasing all of these dlls someday
+	for (auto& moduleInfo : obsModules) {
+		if (moduleInfo.first.compare("obs-browser.dll") == 0)
+			os_dlclose(moduleInfo.second);
+	}
+
+#ifdef _WIN32
+
+	// TODO: In the future we should release these dlls here
+	for (auto& handle : dynamicLibraries) {
+		// FreeLibrary(handle);
+	}
+#endif
 }
 
 struct ci_char_traits : public char_traits<char>
@@ -930,6 +950,7 @@ bool OBS_API::openAllModules(int& video_err)
 
 			switch (result) {
 			case MODULE_SUCCESS:
+				obsModules.push_back(std::make_pair(fullname, module));
 				break;
 			case MODULE_FILE_NOT_FOUND:
 				std::cerr << "Unable to load '" << plugin_path << "', could not find file." << std::endl;
