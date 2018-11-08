@@ -482,7 +482,7 @@ void OBS_API::OBS_API_initAPI(
 	OBS_service::associateAudioAndVideoToTheCurrentRecordingContext();
 
 	OBS_service::associateAudioAndVideoEncodersToTheCurrentStreamingOutput();
-	OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput();
+	OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(false);
 
 	OBS_service::setServiceToTheStreamingOutput();
 
