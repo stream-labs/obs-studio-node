@@ -24,6 +24,7 @@ private:
 	std::string appdata;
 
 	config_t * getConfig(std::string name);
+
 public:
 	void setAppdataPath(std::string path);
 	config_t* getGlobal();
@@ -31,4 +32,5 @@ public:
 	std::string getService();
 	std::string getStream();
 	std::string getRecord();
+	void reloadConfig(void);
 };

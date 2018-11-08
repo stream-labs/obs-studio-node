@@ -3199,7 +3199,7 @@ void OBS_settings::saveSettings(std::string nameCategory, std::vector<SubCategor
 		saveAudioSettings(settings);
 	} else if (nameCategory.compare("Video") == 0) {
 		saveVideoSettings(settings);
-		OBS_service::resetVideoContext(NULL);
+		OBS_service::resetVideoContext();
 	} else if (nameCategory.compare("Advanced") == 0) {
 		saveAdvancedSettings(settings);
 		OBS_API::setAudioDeviceMonitoring();
