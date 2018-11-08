@@ -40,7 +40,7 @@ before_build:
 build_script:
   - cmake --build %SLBuildDirectory% --target install --config RelWithDebInfo
 
-after_build:  
+after_build:
   - copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.15.26706\x64\Microsoft.VC141.CRT\vcruntime140.dll" "%SLFullDistributePath%\obs-studio-node\"
   - copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.15.26706\x64\Microsoft.VC141.CRT\msvcp140.dll" "%SLFullDistributePath%\obs-studio-node\"
   - copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\ucrtbase.dll" "%SLFullDistributePath%\obs-studio-node\"
@@ -57,7 +57,7 @@ test_script:
 
 before_deploy:
   - nuget install secure-file -ExcludeVersion
-  
+
   - ps: |
       & secure-file\tools\secure-file -decrypt CI\streamlabsp12.pfx.enc -secret "$env:StreamlabsPfxSecret" -out CI\streamlabsp12.pfx
       if ($LASTEXITCODE -ne 0) {
