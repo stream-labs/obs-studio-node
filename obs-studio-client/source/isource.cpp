@@ -78,7 +78,7 @@ void osn::ISource::callback_handler(void* data, std::shared_ptr<std::vector<Sour
 		    v8::String::NewFromUtf8(isolate, "hotkeyDescription"),
 		    v8::String::NewFromUtf8(isolate, hotkeyInfo.hotkeyDesc.c_str()));
 		argv->ToObject()->Set(
-		    v8::String::NewFromUtf8(isolate, "hotkeyId"), v8::Number::New(isolate, hotkeyInfo.hotkeyId));
+		    v8::String::NewFromUtf8(isolate, "hotkeyId"), v8::Number::New(isolate, double(hotkeyInfo.hotkeyId)));
 		args[0] = argv;
 
 		Nan::Call(m_callback_function, 1, args);

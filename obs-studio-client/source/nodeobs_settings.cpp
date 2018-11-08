@@ -15,14 +15,14 @@ std::vector<settings::SubCategory>
 	std::vector<settings::SubCategory> category;
 
 	uint32_t indexData = 0;
-	for (int i = 0; i < subCategoriesCount; i++) {
+	for (int i = 0; i < int(subCategoriesCount); i++) {
 		settings::SubCategory sc;
 
 		size_t* sizeMessage = reinterpret_cast<size_t*>(buffer.data() + indexData);
 		indexData += sizeof(size_t);
 
 		std::string name(buffer.data() + indexData, *sizeMessage);
-		indexData += *sizeMessage;
+		indexData += uint32_t(*sizeMessage);
 
 		size_t* paramsCount = reinterpret_cast<size_t*>(buffer.data() + indexData);
 		indexData += sizeof(size_t);
@@ -33,25 +33,25 @@ std::vector<settings::SubCategory>
 			indexData += sizeof(size_t);
 
 			std::string name(buffer.data() + indexData, *sizeName);
-			indexData += *sizeName;
+			indexData += uint32_t(*sizeName);
 
 			size_t* sizeDescription = reinterpret_cast<std::size_t*>(buffer.data() + indexData);
 			indexData += sizeof(size_t);
 
 			std::string description(buffer.data() + indexData, *sizeDescription);
-			indexData += *sizeDescription;
+			indexData += uint32_t(*sizeDescription);
 
 			size_t* sizeType = reinterpret_cast<std::size_t*>(buffer.data() + indexData);
 			indexData += sizeof(size_t);
 
 			std::string type(buffer.data() + indexData, *sizeType);
-			indexData += *sizeType;
+			indexData += uint32_t(*sizeType);
 
 			size_t* sizeSubType = reinterpret_cast<std::size_t*>(buffer.data() + indexData);
 			indexData += sizeof(size_t);
 
 			std::string subType(buffer.data() + indexData, *sizeSubType);
-			indexData += *sizeSubType;
+			indexData += uint32_t(*sizeSubType);
 
 			bool* enabled = reinterpret_cast<bool*>(buffer.data() + indexData);
 			indexData += sizeof(bool);
@@ -68,7 +68,7 @@ std::vector<settings::SubCategory>
 			std::vector<char> currentValue;
 			currentValue.resize(*sizeOfCurrentValue);
 			memcpy(currentValue.data(), buffer.data() + indexData, *sizeOfCurrentValue);
-			indexData += *sizeOfCurrentValue;
+			indexData += uint32_t(*sizeOfCurrentValue);
 
 			size_t* sizeOfValues = reinterpret_cast<size_t*>(buffer.data() + indexData);
 			indexData += sizeof(size_t);
@@ -79,7 +79,7 @@ std::vector<settings::SubCategory>
 			std::vector<char> values;
 			values.resize(*sizeOfValues);
 			memcpy(values.data(), buffer.data() + indexData, *sizeOfValues);
-			indexData += *sizeOfValues;
+			indexData += uint32_t(*sizeOfValues);
 
 			param.name         = name;
 			param.description  = description;
@@ -95,7 +95,7 @@ std::vector<settings::SubCategory>
 			sc.params.push_back(param);
 		}
 		sc.name        = name;
-		sc.paramsCount = *paramsCount;
+		sc.paramsCount = uint32_t(*paramsCount);
 		category.push_back(sc);
 	}
 	return category;
@@ -119,8 +119,8 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 	v8::Isolate*         isolate = v8::Isolate::GetCurrent();
 	v8::Local<v8::Array> rval    = v8::Array::New(isolate);
 
-	std::vector<settings::SubCategory> categorySettings =
-	    serializeCategory(response[1].value_union.ui64, response[2].value_union.ui64, response[3].value_bin);
+	std::vector<settings::SubCategory> categorySettings = serializeCategory(
+	    uint32_t(response[1].value_union.ui64), uint32_t(response[2].value_union.ui64), response[3].value_bin);
 
 	for (int i = 0; i < categorySettings.size(); i++) {
 		v8::Local<v8::Object> subCategory           = v8::Object::New(isolate);
@@ -161,12 +161,12 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 				else if (params.at(j).type.compare("OBS_PROPERTY_INT") == 0) {
 					int64_t *value = reinterpret_cast<int64_t*>(params.at(j).currentValue.data());
 					parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
-						v8::Integer::New(isolate, *value));
+						v8::Integer::New(isolate, int32_t(*value)));
 				}
 				else if (params.at(j).type.compare("OBS_PROPERTY_UINT") == 0) {
 					uint64_t *value = reinterpret_cast<uint64_t*>(params.at(j).currentValue.data());
 					parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
-						v8::Integer::New(isolate, *value));
+						v8::Integer::New(isolate, int32_t(*value)));
 				}
 				else if (params.at(j).type.compare("OBS_PROPERTY_BOOL") == 0) {
 					bool *value = reinterpret_cast<bool*>(params.at(j).currentValue.data());
@@ -182,7 +182,7 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 					if (params.at(j).subType.compare("OBS_COMBO_FORMAT_INT") == 0) {
 						int64_t *value = reinterpret_cast<int64_t*>(params.at(j).currentValue.data());
 						parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
-							v8::Integer::New(isolate, *value));
+							v8::Integer::New(isolate, int32_t(*value)));
 					}
 					else if (params.at(j).subType.compare("OBS_COMBO_FORMAT_FLOAT") == 0) {
 						double *value = reinterpret_cast<double*>(params.at(j).currentValue.data());
@@ -212,21 +212,21 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 					size_t* sizeName = reinterpret_cast<std::size_t*>(params.at(j).values.data() + indexData);
 					indexData += sizeof(size_t);
 					std::string name(params.at(j).values.data() + indexData, *sizeName);
-					indexData += *sizeName;
+					indexData += uint32_t(*sizeName);
 
 					int64_t* value = reinterpret_cast<int64_t*>(params.at(j).values.data() + indexData);
 
 					indexData += sizeof(int64_t);
 
 					valueObject->Set(v8::String::NewFromUtf8(isolate, name.c_str()),
-						v8::Integer::New(isolate, *value));
+						v8::Integer::New(isolate, int32_t(*value)));
 				}
 				else if (params.at(j).subType.compare("OBS_COMBO_FORMAT_FLOAT") == 0) {
 					size_t *sizeName =
 						reinterpret_cast<std::size_t*>(params.at(j).values.data() + indexData);
 					indexData += sizeof(size_t);
 					std::string name(params.at(j).values.data() + indexData, *sizeName);
-					indexData += *sizeName;
+					indexData += uint32_t(*sizeName);
 
 					double* value = reinterpret_cast<double*>(params.at(j).values.data() + indexData);
 
@@ -240,12 +240,12 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 						reinterpret_cast<std::size_t*>(params.at(j).values.data() + indexData);
 					indexData += sizeof(size_t);
 					std::string name(params.at(j).values.data() + indexData, *sizeName);
-					indexData += *sizeName;
+					indexData += uint32_t(*sizeName);
 
 					size_t* sizeValue = reinterpret_cast<std::size_t*>(params.at(j).values.data() + indexData);
 					indexData += sizeof(size_t);
 					std::string value(params.at(j).values.data() + indexData, *sizeValue);
-					indexData += *sizeValue;
+					indexData += uint32_t(*sizeValue);
 
 					valueObject->Set(
 					    v8::String::NewFromUtf8(isolate, name.c_str()),
@@ -287,7 +287,7 @@ std::vector<char> deserializeCategory(uint32_t* subCategoriesCount, uint32_t* si
 
 	std::vector<settings::SubCategory> sucCategories;
 	int                                sizeSettings = settings->Length();
-	for (int i = 0; i < settings->Length(); i++) {
+	for (int i = 0; i < int(settings->Length()); i++) {
 		settings::SubCategory sc;
 
 		v8::Local<v8::Object> subCategoryObject = v8::Local<v8::Object>::Cast(settings->Get(i));
@@ -301,7 +301,7 @@ std::vector<char> deserializeCategory(uint32_t* subCategoriesCount, uint32_t* si
 
 		sc.paramsCount = parameters->Length();
 		int sizeParams = parameters->Length();
-		for (int j = 0; j < parameters->Length(); j++) {
+		for (int j = 0; j < int(parameters->Length()); j++) {
 			settings::Parameter param;
 
 			v8::Local<v8::Object> parameterObject = v8::Local<v8::Object>::Cast(parameters->Get(j));
@@ -322,19 +322,22 @@ std::vector<char> deserializeCategory(uint32_t* subCategoriesCount, uint32_t* si
 				param.currentValue.resize(strlen(*value));
 				memcpy(param.currentValue.data(), *value, strlen(*value));
 			} else if (param.type.compare("OBS_PROPERTY_INT") == 0) {
-				int64_t value = parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue"))->NumberValue();
+				int64_t value =
+				    int64_t(parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue"))->NumberValue());
 
 				param.sizeOfCurrentValue = sizeof(value);
 				param.currentValue.resize(sizeof(value));
 				memcpy(param.currentValue.data(), &value, sizeof(value));
 			} else if (param.type.compare("OBS_PROPERTY_UINT") == 0) {
-				uint64_t value = parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue"))->NumberValue();
+				uint64_t value =
+				    uint64_t(parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue"))->NumberValue());
 
 				param.sizeOfCurrentValue = sizeof(value);
 				param.currentValue.resize(sizeof(value));
 				memcpy(param.currentValue.data(), &value, sizeof(value));
 			} else if (param.type.compare("OBS_PROPERTY_BOOL") == 0) {
-				uint64_t value = parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue"))->NumberValue();
+				uint64_t value =
+				    uint64_t(parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue"))->NumberValue());
 
 				param.sizeOfCurrentValue = sizeof(value);
 				param.currentValue.resize(sizeof(value));
@@ -352,7 +355,7 @@ std::vector<char> deserializeCategory(uint32_t* subCategoriesCount, uint32_t* si
 
 				if (subType.compare("OBS_COMBO_FORMAT_INT") == 0) {
 					int64_t value =
-					    parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue"))->NumberValue();
+					    int64_t(parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue"))->NumberValue());
 
 					param.sizeOfCurrentValue = sizeof(value);
 					param.currentValue.resize(sizeof(value));
@@ -382,8 +385,8 @@ std::vector<char> deserializeCategory(uint32_t* subCategoriesCount, uint32_t* si
 		buffer.insert(buffer.end(), serializedBuf.begin(), serializedBuf.end());
 	}
 
-	*subCategoriesCount = sucCategories.size();
-	*sizeStruct         = buffer.size();
+	*subCategoriesCount = uint32_t(sucCategories.size());
+	*sizeStruct         = uint32_t(buffer.size());
 
 	return buffer;
 }

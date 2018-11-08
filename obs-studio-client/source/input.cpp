@@ -235,11 +235,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetPublicSources(Nan::NAN_METHOD_ARGS_TY
 	if (!ValidateResponse(response))
 		return;
 
-	v8::Local<v8::Array> arr = Nan::New<v8::Array>(response.size() - 1);
+	v8::Local<v8::Array> arr = Nan::New<v8::Array>(int(response.size() - 1));
 	for (size_t idx = 1; idx < response.size(); idx++) {
 		osn::Input* obj    = new osn::Input(response[idx - 1].value_union.ui64);
 		auto        object = osn::Input::Store(obj);
-		Nan::Set(arr, idx, object);
+		Nan::Set(arr, uint32_t(idx), object);
 	}
 
 	info.GetReturnValue().Set(arr);
@@ -750,11 +750,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Filters(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!ValidateResponse(response))
 		return;
 
-	v8::Local<v8::Array> arr = Nan::New<v8::Array>(response.size() - 1);
+	v8::Local<v8::Array> arr = Nan::New<v8::Array>(int(response.size()) - 1);
 	for (size_t idx = 1; idx < response.size(); idx++) {
 		osn::Filter* obj    = new osn::Filter(response[idx].value_union.ui64);
 		auto         object = osn::Filter::Store(obj);
-		Nan::Set(arr, idx - 1, object);
+		Nan::Set(arr, uint32_t(idx) - 1, object);
 	}
 
 	info.GetReturnValue().Set(arr);
