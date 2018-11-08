@@ -261,13 +261,13 @@ class OBS_service
 	static bool isStreamingOutputActive(void);
 
 	// Reset contexts
-	static bool resetAudioContext(void);
-	static int  resetVideoContext(const char* outputType);
+	static bool resetAudioContext(bool reload = false);
+	static int  resetVideoContext(bool reload = false);
 
 	static void associateAudioAndVideoToTheCurrentStreamingContext(void);
 	static void associateAudioAndVideoToTheCurrentRecordingContext(void);
 	static void associateAudioAndVideoEncodersToTheCurrentStreamingOutput(void);
-	static void associateAudioAndVideoEncodersToTheCurrentRecordingOutput(void);
+	static void associateAudioAndVideoEncodersToTheCurrentRecordingOutput(bool useStreamingEncoder);
 
 	static int GetAudioBitrate(void);
 

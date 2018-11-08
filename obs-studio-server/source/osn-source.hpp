@@ -44,9 +44,10 @@ namespace osn
 		static void initialize_global_signals();
 		static void finalize_global_signals();
 		static void global_source_create_cb(void* ptr, calldata_t* cd);
+		static void global_source_destroy_cb(void* ptr, calldata_t* cd);
 
 		static void attach_source_signals(obs_source_t* src);
-		static void source_destroy_cb(void* ptr, calldata_t* cd);
+		static void detach_source_signals(obs_source_t* src);
 
 		public:
 		static void Register(ipc::server&);
