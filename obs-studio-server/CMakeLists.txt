@@ -127,12 +127,6 @@ download_project(
 
 include("${libobs_SOURCE_DIR}/cmake/LibObs/LibObsConfig.cmake")
 
-download_project(
-	PROJ libobs_signed
-	URL https://github.com/obsproject/obs-studio/releases/download/22.0.2/OBS-Studio-22.0.2-Full-x64.zip
-	UPDATE_DISCONNECTED 1
-)
-
 set(PROJECT_LIBRARIES
 	lib-streamlabs-ipc
 	${LIBOBS_LIBRARIES}
@@ -283,9 +277,4 @@ install(
 install(
 	DIRECTORY "${libobs_SOURCE_DIR}/obs-plugins/"
 	DESTINATION "./obs-plugins"
-)
-
-install(
-	DIRECTORY "${libobs_signed_SOURCE_DIR}/data/obs-plugins/win-capture/"
-	DESTINATION "./data/obs-plugins/win-capture"
 )

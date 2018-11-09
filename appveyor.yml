@@ -1,5 +1,3 @@
-version: 0.3.47
-
 matrix:
   fast_finish: true
 
@@ -29,7 +27,7 @@ environment:
     secure: iZlMSWnmH5FQDpa+/0SgXIyvCobkElj2y5lu94Uo8VnTWHTeTC1/bpVkzsLreENocomvDB5ywsa3+QdathRp8A==
   StreamlabsSecret:
     secure: hr+VpykbGiCI5I0ltiqH667wh/YQx2Fi5SBLfkOWHSg=
-  UnsignedArtifact: obs-studio-node-us-${APPVEYOR_BUILD_VERSION}-${APPVEYOR_BUILD_NUMBER}-${RuntimeName}-${RuntimeVersion}
+  UnsignedArtifact: obs-studio-node-us-${APPVEYOR_BUILD_VERSION}-${RuntimeName}-${RuntimeVersion}
   SignedArtifact: obs-studio-node-${APPVEYOR_BUILD_VERSION}-${RuntimeName}-${RuntimeVersion}
 
 install:
@@ -54,6 +52,7 @@ test_script:
       }
 
 before_deploy:
+  - cmd: ci\copy-signed-binaries.cmd
   - nuget install secure-file -ExcludeVersion
   - ps: ci\win-signed-build.ps1
   - copy "%SLBuildDirectory%\libobs_signed-src\data\obs-plugins\win-capture" "%SLFullDistributePath%\obs-studio-node\data\obs-plugins\win-capture"
