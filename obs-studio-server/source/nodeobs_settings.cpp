@@ -2876,12 +2876,12 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	entries.push_back(colorRange);
 
     //GPU Render
-	std::vector<std::pair<std::string, std::string>> disableGPUAsRenderDevice;
-	disableGPUAsRenderDevice.push_back(std::make_pair("name", "DisableGPUAsRenderDevice"));
-	disableGPUAsRenderDevice.push_back(std::make_pair("type", "OBS_PROPERTY_BOOL"));
-	disableGPUAsRenderDevice.push_back(std::make_pair("description", "Disable GPU as render device"));
-	disableGPUAsRenderDevice.push_back(std::make_pair("subType", ""));
-	entries.push_back(disableGPUAsRenderDevice);
+	std::vector<std::pair<std::string, std::string>> enableGPUAsRenderDevice;
+	enableGPUAsRenderDevice.push_back(std::make_pair("name", "EnableGPUAsRenderDevice"));
+	enableGPUAsRenderDevice.push_back(std::make_pair("type", "OBS_PROPERTY_BOOL"));
+	enableGPUAsRenderDevice.push_back(std::make_pair("description", "Enable GPU as render device"));
+	enableGPUAsRenderDevice.push_back(std::make_pair("subType", ""));
+	entries.push_back(enableGPUAsRenderDevice);
 
 	advancedSettings.push_back(
 	    serializeSettingsData("Video", entries, ConfigManager::getInstance().getBasic(), "Video", true, true));

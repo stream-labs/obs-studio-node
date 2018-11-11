@@ -52,17 +52,17 @@
 #if defined(_WIN32)
 #include "Shlobj.h"
 
-// Checks DisableGPUAsRenderDevice setting
+// Checks EnableGPUAsRenderDevice setting
 extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = [] {
 	LPWSTR       roamingPath;
 	std::wstring filePath;
 	std::string  line;
 	std::fstream file;
-	bool         settingValue = false;
+	bool         settingValue = true; // Default value (NvOptimusEnablement = 1)
 
 	if (FAILED(SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, nullptr, &roamingPath))) {
-		// Wasn't able to find roaming app data path
-		return 1;
+		// Couldn't find roaming app data folder path, assume default value
+		return settingValue;
 	} else {
 		filePath.assign(roamingPath);
 		filePath.append(L"\\slobs-client\\basic.ini");
@@ -73,26 +73,21 @@ extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = [] {
 
 	if (file.is_open()) {
 		while (std::getline(file, line)) {
-			if (line.find("DisableGPUAsRenderDevice", 0) != std::string::npos) {
-				if (line.substr(line.find('=') + 1) == "true") {
-					settingValue = true;
+			if (line.find("EnableGPUAsRenderDevice", 0) != std::string::npos) {
+				if (line.substr(line.find('=') + 1) == "false") {
+					settingValue = false;
 					file.close();
 					break;
 				}
 			}
 		}
 	} else {
-		// Wasn't able to open config file
-		return 1;
+		//Couldn't open config file, assume default value
+		return settingValue;
 	}
 
-	if (settingValue) {
-		// Disable high performance graphics rendering
-		return 0;
-	}
-
-	// Enable high performance graphics rendering
-	return 1;
+	// Return setting value
+	return settingValue;
 }();
 #endif
 

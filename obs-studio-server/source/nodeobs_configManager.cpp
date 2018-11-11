@@ -172,6 +172,11 @@ void initBasicDefault(config_t* config)
 	config_set_default_string(config, "Video", "ColorSpace", "601");
 	config_set_default_string(config, "Video", "ColorRange", "Partial");
 
+	// Set default value for EnableGPUAsRenderDevice
+	if (!config_has_user_value(config, "Video", "EnableGPUAsRenderDevice")) {
+		config_set_bool(config, "Video", "EnableGPUAsRenderDevice", true);
+	}
+
 	config_set_default_string(config, "Audio", "MonitoringDeviceId", "default");
 	config_set_default_string(config, "Audio", "MonitoringDeviceName", "Default");
 	config_set_default_uint(config, "Audio", "SampleRate", 44100);
