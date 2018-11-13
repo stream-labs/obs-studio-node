@@ -1,9 +1,6 @@
 matrix:
   fast_finish: true
 
-init:
-  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
-
 image:
   - Visual Studio 2017
 
@@ -13,10 +10,12 @@ environment:
   matrix:
     - RuntimeURL: https://atom.io/download/atom-shell
       RuntimeName: iojs
-      RuntimeVersion: "2.0.8"
+      RuntimeVersion: v2.0.8
+
     - RuntimeURL: https://atom.io/download/atom-shell
       RuntimeName: iojs
-      RuntimeVersion: "3.0.4"
+      RuntimeVersion: v3.0.8
+
   NodeVersion: 9
   SLBuildDirectory: streamlabs-build
   SLGenerator: Visual Studio 15 2017 Win64
@@ -28,28 +27,22 @@ environment:
     secure: iZlMSWnmH5FQDpa+/0SgXIyvCobkElj2y5lu94Uo8VnTWHTeTC1/bpVkzsLreENocomvDB5ywsa3+QdathRp8A==
   StreamlabsSecret:
     secure: hr+VpykbGiCI5I0ltiqH667wh/YQx2Fi5SBLfkOWHSg=
-  UnsignedArtifact: $(RuntimeName)-v$(RuntimeVersion)-unsigned
-  SignedArtifact: $(RuntimeName)-v$(RuntimeVersion)-signed
 
 install:
   - ps: Install-Product node $env:NodeVersion x64
   - yarn install
-  - git submodule init
-  - git submodule update --init --force --recursive
-
-before_build:
-  - cmake -H. -B"%SLBuildDirectory%" -G"%SLGenerator%" -T"host=%SLArch%" -DNODEJS_BUILD=TRUE -DNODEJS_URL="%RuntimeURL%" -DNODEJS_NAME="%RuntimeName%" -DNODEJS_VERSION="v%RuntimeVersion%" -DCMAKE_INSTALL_PREFIX="%SLFullDistributePath%\obs-studio-node" -DCMAKE_SYSTEM_VERSION=10.0.17134.0 -Dlib-datalane_BUILD_TESTS=FALSE -Dlib-datalane_BUILD_SAMPLES=FALSE -Dlib-streamlabs-ipc_BUILD_TESTS=FALSE -Dlib-streamlabs-ipc_BUILD_SAMPLES=FALSE -DBUILD_TESTS=FALSE -DBUILD_SAMPLES=FALSE
+  - git submodule update --init --recursive
+  - ps: $env:SignedArtifact = "obs-studio-node-$(git describe --tags --abbrev=0)-$env:RuntimeName-$env:RuntimeVersion"
+  - ps: $env:UnsignedArtifact = "obs-studio-node-us-$env:APPVEYOR_BUILD_NUMBER-$env:RuntimeName-$env:RuntimeVersion"
 
 build_script:
-  - cmake --build %SLBuildDirectory% --target install --config RelWithDebInfo
+  - cmd: ci\cmake-build.cmd
 
-after_build:  
+after_build:
   - copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.15.26706\x64\Microsoft.VC141.CRT\vcruntime140.dll" "%SLFullDistributePath%\obs-studio-node\"
   - copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.15.26706\x64\Microsoft.VC141.CRT\msvcp140.dll" "%SLFullDistributePath%\obs-studio-node\"
   - copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\ucrtbase.dll" "%SLFullDistributePath%\obs-studio-node\"
   - tar cvaf "%UnsignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
-
-test: off
 
 test_script:
   - ps: |
@@ -60,35 +53,26 @@ test_script:
 
 before_deploy:
   - nuget install secure-file -ExcludeVersion
-  
-  - ps: |
-      & secure-file\tools\secure-file -decrypt CI\streamlabsp12.pfx.enc -secret "$env:StreamlabsPfxSecret" -out CI\streamlabsp12.pfx
-      if ($LASTEXITCODE -ne 0) {
-        exit 1
-      }
-  - ps: |
-      Get-ChildItem -Recurse  "$env:SLFullDistributePath" -Include "*.dll","*.node","*.exe" |
-      Foreach-Object {
-        & "$env:SignTool" sign /as /p "$env:StreamlabsSecret" /f CI\streamlabsp12.pfx $_.FullName
-        if ($LASTEXITCODE -ne 0) {
-          exit 1
-        }
-      }
-  - copy "%SLBuildDirectory%\libobs_signed-src\data\obs-plugins\win-capture" "%SLFullDistributePath%\obs-studio-node\data\obs-plugins\win-capture"
+  - cmd: ci\copy-signed-binaries.cmd
+  - ps: ci\win-signed-build.ps1
   - tar cvaf "%SignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
   - ps: Push-AppveyorArtifact "$env:SignedArtifact.tar.gz"
 
 deploy:
-  - provider: GitHub
+  - provider: S3
+    access_key_id:
+      secure: C1Qzrf1+tbRDGmnXR6OpXwWuJr33d2JCVwn0KC/V7jw=
+    secret_access_key:
+      secure: dRSFQBZKAAVvDmZ0DOaoF54189P0b0mFCMSyTwn4eHZVBFdaET8C4Nb6VCJ4kT+a
+    bucket: obsstudionodes3.streamlabs.com
+    region: us-west-2
+    set_public: true
     artifact: $(SignedArtifact).tar.gz
-    auth_token:
-      secure: nP2TonQxdUNyL65bmBKVPi0/jYX3h6mPCdFgJs1WeD+kNhgoUJ4mqxZ2FWkjpE0N
-    draft: false
-    prerelease: false
-    force_update: true
     on:
       appveyor_repo_tag: true
 
 artifacts:
   - path: $(UnsignedArtifact).tar.gz
     name: Unsigned Aritfact
+
+test: off
