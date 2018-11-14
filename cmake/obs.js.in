@@ -1,5 +1,2 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-
 const obs = require("@CMAKE_INSTALL_PREFIX@")
 exports.obs = obs;
