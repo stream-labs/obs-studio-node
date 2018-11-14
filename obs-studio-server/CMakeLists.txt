@@ -22,7 +22,7 @@ endif()
 ############################
 download_project(
 	PROJ crashpad
-	URL https://ci.appveyor.com/api/buildjobs/r1068pgmh2gv2x25/artifacts/win-x64.tar.gz
+	URL https://obsstudionodes3.streamlabs.com/crashpad/crashpad-release-1.0.21-win-x64.tar.gz
 	UPDATE_DISCONNECTED 1
 )
 
