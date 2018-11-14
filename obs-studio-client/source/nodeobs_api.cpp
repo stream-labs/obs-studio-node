@@ -92,7 +92,8 @@ void api::StopCrashHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("API", "StopCrashHandler", {});
 
-	ValidateResponse(response);
+	// This is a shutdown operation, no response validation needed
+	// ValidateResponse(response);
 }
 
 INITIALIZER(nodeobs_api)
