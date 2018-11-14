@@ -266,9 +266,7 @@ Nan::NAN_METHOD_RETURN_TYPE
 		        ipc::value(volmeter->GetId()),
 		    });
 
-		if (!rval.size()) {
-			return; // Nothing we can do.
-		}
+		// This is a shutdown operation, no response validation needed
 	}
 }
 
