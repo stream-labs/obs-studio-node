@@ -542,7 +542,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::RemoveCallback(Nan::NAN_METHOD_ARGS_T
 	info.GetReturnValue().Set(true);
 }
 
-INITIALIZER(nodeobs_fader)
+INITIALIZER(nodeobs_volmeter)
 {
 	initializerFunctions.push([](v8::Local<v8::Object> exports) {
 		NODE_SET_METHOD(exports, "OBS_Volmeter_ReleaseVolmeters", osn::VolMeter::OBS_Volmeter_ReleaseVolmeters);
