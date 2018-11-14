@@ -1092,16 +1092,10 @@ void OBS_settings::getSimpleOutputSettings(
 	muxerCustom.push_back(std::make_pair("subType", ""));
 	entries.push_back(muxerCustom);
 
-	//Enable Replay Buffer
-	std::vector<std::pair<std::string, std::string>> recRB;
-	recRB.push_back(std::make_pair("name", "RecRB"));
-	recRB.push_back(std::make_pair("type", "OBS_PROPERTY_BOOL"));
-	recRB.push_back(std::make_pair("description", "Enable Replay Buffer"));
-	recRB.push_back(std::make_pair("subType", ""));
-	entries.push_back(recRB);
-
 	outputSettings->push_back(
 	    serializeSettingsData("Recording", entries, config, "SimpleOutput", true, isCategoryEnabled));
+
+	getReplayBufferSettings(outputSettings, config);
 }
 
 void OBS_settings::getEncoderSettings(
@@ -2142,7 +2136,7 @@ void OBS_settings::getReplayBufferSettings(
 	RecRB.push_back(std::make_pair("subType", ""));
 	entries.push_back(RecRB);
 
-	bool currentRecRb = config_get_bool(config, "AdvOut", "RecRB");
+	bool currentRecRb = config_get_bool(config, advanced ? "AdvOut" : "SimpleOutput", "RecRB");
 
 	if (currentRecRb) {
 		std::vector<std::pair<std::string, std::string>> RecRBTime;
