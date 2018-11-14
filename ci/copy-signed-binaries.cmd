@@ -5,4 +5,4 @@ appveyor DownloadFile ^
 
 robocopy ^
 	"obs-studio-jp9000\data\obs-plugins\win-capture" ^
-	"%SLFullDistributePath%\obs-studio-node\libobs\data\obs-plugins\win-capture" & exit 0
+	"%SLFullDistributePath%\obs-studio-node\data\obs-plugins\win-capture" & exit 0
