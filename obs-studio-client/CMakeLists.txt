@@ -13,7 +13,18 @@ if(WIN32)
 endif()
 
 include(NodeJS)
-nodejs_init()
+
+set(STREAMLABS_BUILD ON CACHE BOOL "Whether to build for streamlabs-obs")
+
+if (STREAMLABS_BUILD)
+	nodejs_init(
+		URL https://atom.io/download/atom-shell
+		NAME iojs
+		VERSION v2.0.8
+	)
+else()
+	nodejs_init()
+endif()
 
 add_nodejs_module(
 	obs_studio_client
