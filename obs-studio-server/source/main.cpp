@@ -93,9 +93,33 @@ namespace System
 	}
 } // namespace System
 
+std::string FormatVAString(const char* const format, va_list args)
+{
+	auto         temp   = std::vector<char>{};
+	auto         length = std::size_t{63};
+	while (temp.size() <= length) {
+		temp.resize(length + 1);
+		const auto status = std::vsnprintf(temp.data(), temp.size(), format, args);
+		if (status < 0)
+			throw std::runtime_error{"string formatting error"};
+		length = static_cast<std::size_t>(status);
+	}
+	return std::string{temp.data(), length};
+}
+
 int main(int argc, char* argv[])
 {
 #ifndef _DEBUG
+
+	struct CrashpadInfo
+	{
+		base::FilePath&           handler;
+		base::FilePath&           db;
+		std::string&              url;
+		std::vector<std::string>& arguments;
+		crashpad::CrashpadClient& client;
+	};
+
 	std::wstring             appdata_path;
 	crashpad::CrashpadClient client;
 	bool                     rc;
@@ -135,6 +159,10 @@ int main(int argc, char* argv[])
 
 	rc = client.WaitForHandlerStart(INFINITE);
 	/* TODO Check rc value for errors */
+
+	// Setup the crashpad info that will be used in case the obs throws an error
+	CrashpadInfo crashpadInfo = {handler, db, url, arguments, client};
+
 #endif
 
 	// Usage:
@@ -185,6 +213,34 @@ int main(int argc, char* argv[])
 	// Register Connect/Disconnect Handlers
 	myServer.set_connect_handler(ServerConnectHandler, &sd);
 	myServer.set_disconnect_handler(ServerDisconnectHandler, &sd);
+
+#ifndef _DEBUG
+
+	// Handler for obs errors (mainly for bcrash() calls)
+	base_set_crash_handler([](const char* format, va_list args, void* param) { 
+
+		CrashpadInfo* crashpadInfo = (CrashpadInfo*)param;
+		std::map<std::string, std::string> annotations;
+
+		annotations.insert({"OBS bcrash", FormatVAString(format, args)});
+
+		bool rc = crashpadInfo->client.StartHandler(
+		    crashpadInfo->handler,
+		    crashpadInfo->db,
+		    crashpadInfo->db,
+		    crashpadInfo->url,
+		    annotations,
+		    crashpadInfo->arguments,
+		    true,
+		    true);
+
+		rc = crashpadInfo->client.WaitForHandlerStart(INFINITE);
+
+		throw "Induced obs crash";
+
+	}, &crashpadInfo);
+
+#endif
 
 	// Initialize Server
 	try {

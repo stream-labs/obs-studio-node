@@ -35,7 +35,10 @@ void api::OBS_API_destroyOBS_API(const v8::FunctionCallbackInfo<v8::Value>& args
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("API", "OBS_API_destroyOBS_API", {});
 
-	ValidateResponse(response);
+	// There is no need to validate the response here since we are closing the app. If for any reason
+	// the server crashes and we receive an error or an IPC timeout, this will throw an error. Throwing
+	// an error makes no sense (for now) since this is a shutdown operation.
+	// ValidateResponse(response);
 }
 
 void api::OBS_API_getPerformanceStatistics(const v8::FunctionCallbackInfo<v8::Value>& args)
