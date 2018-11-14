@@ -2128,6 +2128,36 @@ void OBS_settings::getAdvancedOutputAudioSettings(
 	entries.clear();
 }
 
+void OBS_settings::getReplayBufferSettings(
+    std::vector<SubCategory>* outputSettings,
+    config_t*                 config,
+	bool advanced)
+{
+	std::vector<std::vector<std::pair<std::string, std::string>>> entries;
+
+	std::vector<std::pair<std::string, std::string>> RecRB;
+	RecRB.push_back(std::make_pair("name", "RecRB"));
+	RecRB.push_back(std::make_pair("type", "OBS_PROPERTY_BOOL"));
+	RecRB.push_back(std::make_pair("description", "Enable Replay Buffer"));
+	RecRB.push_back(std::make_pair("subType", ""));
+	entries.push_back(RecRB);
+
+	bool currentRecRb = config_get_bool(config, "AdvOut", "RecRB");
+
+	if (currentRecRb) {
+		std::vector<std::pair<std::string, std::string>> RecRBTime;
+		RecRBTime.push_back(std::make_pair("name", "RecRBTime"));
+		RecRBTime.push_back(std::make_pair("type", "OBS_PROPERTY_INT"));
+		RecRBTime.push_back(std::make_pair("description", "Maximum Replay Time (Seconds)"));
+		RecRBTime.push_back(std::make_pair("subType", ""));
+		entries.push_back(RecRBTime);
+	}
+
+	outputSettings->push_back(
+	    serializeSettingsData("Replay Buffer", entries, config, advanced ? "AdvOut" : "SimpleOutput", true, true));
+	entries.clear();
+}
+
 void OBS_settings::getAdvancedOutputSettings(
     std::vector<SubCategory>* outputSettings,
     config_t*                 config,
@@ -2143,6 +2173,9 @@ void OBS_settings::getAdvancedOutputSettings(
 
 	// Audio
 	getAdvancedOutputAudioSettings(outputSettings, config, isCategoryEnabled);
+
+	// Replay buffer
+	getReplayBufferSettings(outputSettings, config, true);
 }
 
 std::vector<SubCategory> OBS_settings::getOutputSettings()
@@ -2436,13 +2469,17 @@ void OBS_settings::saveAdvancedOutputSettings(std::vector<SubCategory> settings)
 	if (settings.size() > 3) {
 		std::vector<SubCategory> audioSettings;
 		int                      indexTrack = 3;
-		audioSettings.push_back(settings.at(indexTrack));
 
 		for (int i = 0; i < 6; i++) {
-			audioSettings.push_back(settings.at(i + 2));
+			audioSettings.push_back(settings.at(i + indexTrack));
 		}
 		saveGenericSettings(audioSettings, "AdvOut", ConfigManager::getInstance().getBasic());
 	}
+
+	// Replay buffer
+	std::vector<SubCategory> replaySettings;
+	replaySettings.push_back(settings.at(9));
+	saveGenericSettings(replaySettings, "AdvOut", ConfigManager::getInstance().getBasic());
 }
 
 bool useAdvancedOutput;
