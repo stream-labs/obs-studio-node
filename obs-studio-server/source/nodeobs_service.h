@@ -195,8 +195,10 @@ class OBS_service
 
 	private:
 	static bool        startStreaming(void);
-	static bool        startRecording(void);
 	static void        stopStreaming(bool forceStop);
+	static bool        startRecording(void);
+	static bool        startReplayBuffer(void);
+	static void        stopReplayBuffer(bool forceStop);
 	static void        stopRecording(void);
 	static void        setRecordingSettings(void);
 
@@ -236,14 +238,18 @@ class OBS_service
 	// Outputs
 	static void          createStreamingOutput(void);
 	static void          createRecordingOutput(void);
+	static void          createReplayBufferOutput(void);
 	static obs_output_t* getStreamingOutput(void);
 	static void          setStreamingOutput(obs_output_t* output);
 	static obs_output_t* getRecordingOutput(void);
 	static void          setRecordingOutput(obs_output_t* output);
+	static obs_output_t* getReplayBufferOutput(void);
+	static void          setReplayBufferOutput(obs_output_t* output);
 
 	// Update settings
 	static void updateStreamSettings(void);
 	static void updateRecordSettings(void);
+	static bool updateAdvancedReplayBuffer(void);
 
 	// Update video encoders
 	static void updateVideoStreamingEncoder(void);

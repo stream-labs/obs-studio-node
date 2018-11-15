@@ -6,6 +6,7 @@
 
 obs_output_t*  streamingOutput;
 obs_output_t*  recordingOutput;
+obs_output_t*  replayBuffer;
 obs_encoder_t* audioStreamingEncoder;
 obs_encoder_t* audioRecordingEncoder;
 obs_encoder_t* videoStreamingEncoder;
@@ -845,6 +846,12 @@ void OBS_service::createRecordingOutput(void)
 	connectOutputSignals();
 }
 
+void OBS_service::createReplayBufferOutput(void)
+{
+	recordingOutput = obs_output_create("replay_buffer", "ReplayBuffer", nullptr, nullptr);
+	connectOutputSignals();
+}
+
 bool OBS_service::startStreaming(void)
 {
 	const char* type = obs_service_get_output_type(service);
@@ -940,6 +947,134 @@ void OBS_service::stopRecording(void)
 	obs_output_stop(recordingOutput);
 	isRecording = false;
 }
+
+bool OBS_service::updateAdvancedReplayBuffer(void)
+{
+	const char* path;
+	const char* recFormat;
+	const char* filenameFormat;
+	bool        noSpace           = false;
+	bool        overwriteIfExists = false;
+	const char* rbPrefix;
+	const char* rbSuffix;
+	int         rbTime;
+	int         rbSize;
+
+	bool useStreamEncoder = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecEncoder");
+	
+	obs_data_t* streamEncSettings = obs_data_create_from_json_file_safe(ConfigManager::getInstance().getStream().c_str(), "bak");
+	obs_data_t* recordEncSettings = obs_data_create_from_json_file_safe(ConfigManager::getInstance().getRecord().c_str(), "bak");
+	
+	const char* rate_control =
+	    obs_data_get_string(useStreamEncoder ? streamEncSettings : recordEncSettings, "rate_control");
+	if (!rate_control)
+		rate_control = "";
+	bool usesBitrate      = usesBitrate =
+	    astrcmpi(rate_control, "CBR") == 0 || astrcmpi(rate_control, "VBR") == 0 || astrcmpi(rate_control, "ABR") == 0;
+	if (!useStreamEncoder) {
+		if (!ffmpegOutput)
+			updateRecordSettings();
+	} else if (!obs_output_active(streamingOutput)) {
+		updateStreamSettings();
+	}
+
+	// UpdateAudioSettings();
+
+	// if (!Active())
+	//	SetupOutputs();
+
+	if (!ffmpegOutput) {
+		path = config_get_string(
+		    ConfigManager::getInstance().getBasic(), "AdvOut", "RecFilePath");
+		recFormat = config_get_string(
+		    ConfigManager::getInstance().getBasic(), "AdvOut", "RecFormat");
+		filenameFormat    = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "FilenameFormatting");
+		overwriteIfExists = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "OverwriteIfExists");
+		noSpace           = config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "AdvOut",
+            "RecFileNameWithoutSpace");
+		rbPrefix = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecRBPrefix");
+		rbSuffix = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecRBSuffix");
+		rbTime   = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecRBTime");
+		rbSize   = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecRBSize");
+
+		os_dir_t* dir = path && path[0] ? os_opendir(path) : nullptr;
+
+		if (!dir) {
+			return false;
+		}
+
+		os_closedir(dir);
+
+		string strPath;
+		strPath += path;
+
+		char lastChar = strPath.back();
+		if (lastChar != '/' && lastChar != '\\')
+			strPath += "/";
+
+		strPath += GenerateSpecifiedFilename(recFormat, noSpace, filenameFormat);
+		ensure_directory_exists(strPath);
+		if (!overwriteIfExists)
+			FindBestFilename(strPath, noSpace);
+
+		obs_data_t* settings = obs_data_create();
+		string      f;
+
+		if (rbPrefix && *rbPrefix) {
+			f += rbPrefix;
+			if (f.back() != ' ')
+				f += " ";
+		}
+
+		f += filenameFormat;
+
+		if (rbSuffix && *rbSuffix) {
+			if (*rbSuffix != ' ')
+				f += " ";
+			f += rbSuffix;
+		}
+
+		remove_reserved_file_characters(f);
+
+		obs_data_set_string(settings, "directory", path);
+		obs_data_set_string(settings, "format", f.c_str());
+		obs_data_set_string(settings, "extension", recFormat);
+		obs_data_set_bool(settings, "allow_spaces", !noSpace);
+		obs_data_set_int(settings, "max_time_sec", rbTime);
+		obs_data_set_int(settings, "max_size_mb", usesBitrate ? 0 : rbSize);
+
+		obs_output_update(replayBuffer, settings);
+
+		obs_data_release(settings);
+	}
+
+	return true;
+}
+
+bool OBS_service::startReplayBuffer(void)
+{
+	bool advanced = true;
+	
+	if (!advanced) {
+		return false;
+	} else {
+		if (!updateAdvancedReplayBuffer())
+			return false;
+	}
+
+	return obs_output_start(replayBuffer);
+}
+
+void OBS_service::stopReplayBuffer(bool forceStop)
+{
+	if (forceStop)
+		obs_output_force_stop(replayBuffer);
+	else
+		obs_output_stop(replayBuffer);
+}
+
 
 void OBS_service::associateAudioAndVideoToTheCurrentStreamingContext(void)
 {
@@ -1762,6 +1897,17 @@ void OBS_service::setRecordingOutput(obs_output_t* output)
 {
 	obs_output_release(recordingOutput);
 	recordingOutput = output;
+}
+
+obs_output_t* OBS_service::getReplayBufferOutput(void)
+{
+	return replayBuffer;
+}
+
+void OBS_service::setReplayBufferOutput(obs_output_t* output)
+{
+	obs_output_release(replayBuffer);
+	replayBuffer = output;
 }
 
 void OBS_service::updateStreamSettings(void)
