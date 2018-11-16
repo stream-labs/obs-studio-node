@@ -39,6 +39,7 @@ void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args)
 	videoResetError->Set(
 	    v8::String::NewFromUtf8(args.GetIsolate(), "VideoResetError"),
 	    v8::Number::New(args.GetIsolate(), response[1].value_union.i32));
+	args.GetReturnValue().Set(videoResetError);
 }
 
 void api::OBS_API_destroyOBS_API(const v8::FunctionCallbackInfo<v8::Value>& args)
