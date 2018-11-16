@@ -31,15 +31,9 @@ namespace util
 {
 	class CrashManager
 	{
-	public:
-		~CrashManager();
-
-		bool Initialize();
-
-	private:
+		public:
 
 #ifndef _DEBUG
-
 		struct CrashpadInfo
 		{
 			base::FilePath&           handler;
@@ -48,10 +42,14 @@ namespace util
 			std::vector<std::string>& arguments;
 			crashpad::CrashpadClient& client;
 		};
-
-		CrashpadInfo* s_CrashpadInfo = nullptr;
-		std::map<std::string, std::string> s_CustomAnnotations;
+#else	
+		struct CrashpadInfo {};
 #endif
+
+		~CrashManager();
+		bool Initialize();
+		void Configure();
+		void OpenConsole();
 	};
 
 }; // namespace util

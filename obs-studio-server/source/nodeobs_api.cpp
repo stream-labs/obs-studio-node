@@ -697,9 +697,6 @@ void OBS_API::StopCrashHandler(
 
 void OBS_API::destroyOBS_API(void)
 {
-	throw "test";
-	// bcrash("bla");
-
 	os_cpu_usage_info_destroy(cpuUsageInfo);
 
 #ifdef _WIN32
