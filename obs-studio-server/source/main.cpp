@@ -42,18 +42,9 @@
 #include "osn-video.hpp"
 #include "osn-volmeter.hpp"
 #include "osn-module.hpp"
+#include "util-crashmanager.h"
 
 extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = 1;
-
-#ifndef _DEBUG
-#include "client/crash_report_database.h"
-#include "client/crashpad_client.h"
-#include "client/settings.h"
-#endif
-
-#if defined(_WIN32)
-#include "Shlobj.h"
-#endif
 
 #define BUFFSIZE 512
 
@@ -93,84 +84,14 @@ namespace System
 	}
 } // namespace System
 
-std::string FormatVAString(const char* const format, va_list args)
-{
-	auto         temp   = std::vector<char>{};
-	auto         length = std::size_t{63};
-	while (temp.size() <= length) {
-		temp.resize(length + 1);
-		const auto status = std::vsnprintf(temp.data(), temp.size(), format, args);
-		if (status < 0)
-			throw std::runtime_error{"string formatting error"};
-		length = static_cast<std::size_t>(status);
-	}
-	return std::string{temp.data(), length};
-}
-
-#include <WinBase.h>
-#include "DbgHelp.h"
-#pragma comment(lib, "Dbghelp.lib")
-
-#ifndef _DEBUG
-
-struct CrashpadInfo
-{
-	base::FilePath&           handler;
-	base::FilePath&           db;
-	std::string&              url;
-	std::vector<std::string>& arguments;
-	crashpad::CrashpadClient& client;
-};
-
-CrashpadInfo* crashpadInfo = nullptr;
-
-#endif
-
-void myterminate()
-{
-	typedef USHORT(WINAPI * CaptureStackBackTraceType)(__in ULONG, __in ULONG, __out PVOID*, __out_opt PULONG);
-	CaptureStackBackTraceType func =
-	    (CaptureStackBackTraceType)(GetProcAddress(LoadLibrary(L"kernel32.dll"), "RtlCaptureStackBackTrace"));
-
-	if (func == NULL)
-		abort(); // WOE 29.SEP.2010
-
-	// Quote from Microsoft Documentation:
-	// ## Windows Server 2003 and Windows XP:
-	// ## The sum of the FramesToSkip and FramesToCapture parameters must be less than 63.
-	const int kMaxCallers = 62;
-
-	void*          callers_stack[kMaxCallers];
-	unsigned short frames;
-	SYMBOL_INFO*   symbol;
-	HANDLE         process;
-	process = GetCurrentProcess();
-	SymInitialize(process, NULL, TRUE);
-	frames               = (func)(0, kMaxCallers, callers_stack, NULL);
-	symbol               = (SYMBOL_INFO*)calloc(sizeof(SYMBOL_INFO) + 256 * sizeof(char), 1);
-	symbol->MaxNameLen   = 255;
-	symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-
-	// std::cout << "(" << (int)this << "): " << std::endl;
-	const unsigned short MAX_CALLERS_SHOWN = 30;
-	frames                                 = frames < MAX_CALLERS_SHOWN ? frames : MAX_CALLERS_SHOWN;
-	for (unsigned int i = 0; i < frames; i++) {
-		SymFromAddr(process, (DWORD64)(callers_stack[i]), 0, symbol);
-		std::cout << "*** " << i << ": " << callers_stack[i] << " " << symbol->Name << " - 0x" << symbol->Address
-		          << std::endl;
-	}
-
-	free(symbol);
-
-	Sleep(5000);
-
-	abort(); // forces abnormal termination
-}
-
 #include <fcntl.h>
 #include <io.h>
 #include <iostream>
 #include <windows.h>
+
+#include <WinBase.h>
+#include "DbgHelp.h"
+#pragma comment(lib, "Dbghelp.lib")
 
 void BindCrtHandlesToStdHandles(bool bindStdIn, bool bindStdOut, bool bindStdErr)
 {
@@ -271,52 +192,11 @@ int main(int argc, char* argv[])
 	// Update the C/C++ runtime standard input, output, and error targets to use the console window
 	BindCrtHandlesToStdHandles(true, true, true);
 
-#ifndef _DEBUG
-
-	std::wstring             appdata_path;
-	crashpad::CrashpadClient client;
-	bool                     rc;
-
-#if defined(_WIN32)
-	HRESULT hResult;
-	PWSTR   ppszPath;
-
-	hResult = SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, NULL, &ppszPath);
-
-	appdata_path.assign(ppszPath);
-	appdata_path.append(L"\\obs-studio-node-server");
-
-	CoTaskMemFree(ppszPath);
-#endif
-
-	std::map<std::string, std::string> annotations;
-	std::vector<std::string>           arguments;
-	arguments.push_back("--no-rate-limit");
-
-	std::wstring handler_path(L"crashpad_handler.exe");
-	std::string  url(
-        "https://submit.backtrace.io/streamlabs/513fa5577d6a193ed34965e18b93d7b00813e9eb2f4b0b7059b30e66afebe4fe/"
-        "minidump");
-
-	base::FilePath db(appdata_path);
-	base::FilePath handler(handler_path);
-
-	std::unique_ptr<crashpad::CrashReportDatabase> database = crashpad::CrashReportDatabase::Initialize(db);
-	if (database == nullptr || database->GetSettings() == NULL)
-		return false;
-
-	database->GetSettings()->SetUploadsEnabled(true);
-
-	rc = client.StartHandler(handler, db, db, url, annotations, arguments, true, true);
-	/* TODO Check rc value for errors */
-
-	rc = client.WaitForHandlerStart(INFINITE);
-	/* TODO Check rc value for errors */
-
-	// Setup the crashpad info that will be used in case the obs throws an error
-	crashpadInfo = new CrashpadInfo({handler, db, url, arguments, client});
-
-#endif
+	// Initialize the crash manager
+	util::CrashManager crashManager;
+	if (!crashManager.Initialize()) {
+		return 0;
+	}
 
 	// Usage:
 	// argv[0] = Path to this application. (Usually given by default if run via path-based command!)
@@ -366,36 +246,6 @@ int main(int argc, char* argv[])
 	// Register Connect/Disconnect Handlers
 	myServer.set_connect_handler(ServerConnectHandler, &sd);
 	myServer.set_disconnect_handler(ServerDisconnectHandler, &sd);
-
-#ifndef _DEBUG
-
-	// Handler for obs errors (mainly for bcrash() calls)
-	base_set_crash_handler([](const char* format, va_list args, void* param) { 
-
-		CrashpadInfo* crashpadInfo = (CrashpadInfo*)param;
-		std::map<std::string, std::string> annotations;
-
-		annotations.insert({"OBS bcrash", FormatVAString(format, args)});
-
-		bool rc = crashpadInfo->client.StartHandler(
-		    crashpadInfo->handler,
-		    crashpadInfo->db,
-		    crashpadInfo->db,
-		    crashpadInfo->url,
-		    annotations,
-		    crashpadInfo->arguments,
-		    true,
-		    true);
-
-		rc = crashpadInfo->client.WaitForHandlerStart(INFINITE);
-		myterminate();
-		throw "Induced obs crash";
-
-	}, crashpadInfo);
-
-#endif
-
-	std::set_terminate(myterminate);
 
 	// Initialize Server
 	try {
