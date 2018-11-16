@@ -13,6 +13,7 @@ void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	std::string path;
 	std::string language;
+	v8::Local<v8::Object> videoResetError = v8::Object::New(args.GetIsolate());
 
 	ASSERT_GET_VALUE(args[0], language);
 	ASSERT_GET_VALUE(args[1], path);
@@ -24,7 +25,21 @@ void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args)
 	std::vector<ipc::value> response =
 	    conn->call_synchronous_helper("API", "OBS_API_initAPI", {ipc::value(path), ipc::value(language)});
 
-	ValidateResponse(response);
+	// The API init method will return a response error + graphical error
+	// If there is a problem with the IPC the number of responses here will be zero so we must validate the
+	// response.
+	// If the method call was sucessfull we will have 2 arguments, also there is no need to validate the
+	// response
+	if (response.size() < 2) {
+		if (!ValidateResponse(response)) {
+			return;
+		}
+	}
+		
+	videoResetError->Set(
+	    v8::String::NewFromUtf8(args.GetIsolate(), "VideoResetError"),
+	    v8::Number::New(args.GetIsolate(), response[1].value_union.i32));
+	args.GetReturnValue().Set(videoResetError);
 }
 
 void api::OBS_API_destroyOBS_API(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -35,7 +50,10 @@ void api::OBS_API_destroyOBS_API(const v8::FunctionCallbackInfo<v8::Value>& args
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("API", "OBS_API_destroyOBS_API", {});
 
-	ValidateResponse(response);
+	// There is no need to validate the response here since we are closing the app. If for any reason
+	// the server crashes and we receive an error or an IPC timeout, this will throw an error. Throwing
+	// an error makes no sense (for now) since this is a shutdown operation.
+	// ValidateResponse(response);
 }
 
 void api::OBS_API_getPerformanceStatistics(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -71,7 +89,8 @@ void api::OBS_API_getPerformanceStatistics(const v8::FunctionCallbackInfo<v8::Va
 	return;
 }
 
-void api::SetWorkingDirectory(const v8::FunctionCallbackInfo<v8::Value>& args) {
+void api::SetWorkingDirectory(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
 	Nan::Utf8String param0(args[0]);
 	std::string     path = *param0;
 
@@ -92,7 +111,8 @@ void api::StopCrashHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("API", "StopCrashHandler", {});
 
-	ValidateResponse(response);
+	// This is a shutdown operation, no response validation needed
+	// ValidateResponse(response);
 }
 
 INITIALIZER(nodeobs_api)

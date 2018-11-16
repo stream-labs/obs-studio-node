@@ -580,7 +580,11 @@ void OBS_API::OBS_API_initAPI(
 
 	setAudioDeviceMonitoring();
 
+	// We are returning a video result here because the frontend needs to know if we sucessfully
+	// initialized the Dx11 API
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(OBS_VIDEO_SUCCESS));
+
 	AUTO_DEBUG;
 }
 

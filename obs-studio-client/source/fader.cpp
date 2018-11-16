@@ -558,8 +558,7 @@ void osn::Fader::OBS_Fader_ReleaseFaders(const v8::FunctionCallbackInfo<v8::Valu
 		        ipc::value(fader->GetId()),
 		    });
 
-		if (!ValidateResponse(rval))
-			return;
+		// This is a shutdown operation, no response validation needed
 	}
 }
 

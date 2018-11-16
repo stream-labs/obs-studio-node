@@ -22,7 +22,7 @@ endif()
 ############################
 download_project(
 	PROJ crashpad
-	URL https://ci.appveyor.com/api/buildjobs/r1068pgmh2gv2x25/artifacts/win-x64.tar.gz
+	URL https://obsstudionodes3.streamlabs.com/crashpad/crashpad-release-1.0.21-win-x64.tar.gz
 	UPDATE_DISCONNECTED 1
 )
 
@@ -110,7 +110,7 @@ add_dependencies(crashpad_util crashpad_client)
 string(
 	CONCAT OSN_DEFAULT_LIBOBS_URL
 	"https://obsstudios3.streamlabs.com/"
-	"libobs-release-22.0.3-sl.231-win32-x64.7z"
+	"libobs-release-22.0.3-sl.238-win32-x64.7z"
 )
 
 set(
