@@ -13,7 +13,6 @@ void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	std::string path;
 	std::string language;
-	v8::Local<v8::Object> videoResetError = v8::Object::New(args.GetIsolate());
 
 	ASSERT_GET_VALUE(args[0], language);
 	ASSERT_GET_VALUE(args[1], path);
@@ -35,11 +34,8 @@ void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args)
 			return;
 		}
 	}
-		
-	videoResetError->Set(
-	    v8::String::NewFromUtf8(args.GetIsolate(), "VideoResetError"),
-	    v8::Number::New(args.GetIsolate(), response[1].value_union.i32));
-	args.GetReturnValue().Set(videoResetError);
+
+	args.GetReturnValue().Set(v8::Number::New(args.GetIsolate(), response[1].value_union.i32));
 }
 
 void api::OBS_API_destroyOBS_API(const v8::FunctionCallbackInfo<v8::Value>& args)
