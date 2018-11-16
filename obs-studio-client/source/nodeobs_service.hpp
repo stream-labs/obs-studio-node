@@ -60,8 +60,10 @@ namespace service
 	static void OBS_service_createRecordingOutput(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_service_startStreaming(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_service_startRecording(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_service_startReplayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_service_stopStreaming(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_service_stopRecording(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_service_stopReplayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void
 	    OBS_service_associateAudioAndVideoToTheCurrentStreamingContext(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void

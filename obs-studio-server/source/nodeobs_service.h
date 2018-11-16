@@ -146,12 +146,22 @@ class OBS_service
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
+	static void OBS_service_startReplayBuffer(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
 	static void OBS_service_stopStreaming(
 	    void*                          data,
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
 	static void OBS_service_stopRecording(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_service_stopReplayBuffer(
 	    void*                          data,
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,

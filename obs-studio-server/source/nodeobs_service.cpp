@@ -55,9 +55,13 @@ void OBS_service::Register(ipc::server& srv)
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_startRecording", std::vector<ipc::type>{}, OBS_service_startRecording));
 	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_service_startReplayBuffer", std::vector<ipc::type>{}, OBS_service_startReplayBuffer));
+	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_stopStreaming", std::vector<ipc::type>{ipc::type::Int32}, OBS_service_stopStreaming));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_stopRecording", std::vector<ipc::type>{}, OBS_service_stopRecording));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_service_stopReplayBuffer", std::vector<ipc::type>{ipc::type::Int32}, OBS_service_stopReplayBuffer));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_associateAudioAndVideoToTheCurrentStreamingContext",
 	    std::vector<ipc::type>{},
@@ -217,6 +221,17 @@ void OBS_service::OBS_service_startRecording(
 	AUTO_DEBUG;
 }
 
+void OBS_service::OBS_service_startReplayBuffer(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	startReplayBuffer();
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
 void OBS_service::OBS_service_stopStreaming(
     void*                          data,
     const int64_t                  id,
@@ -235,6 +250,17 @@ void OBS_service::OBS_service_stopRecording(
     std::vector<ipc::value>&       rval)
 {
 	stopRecording();
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void OBS_service::OBS_service_stopReplayBuffer(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	stopReplayBuffer((bool)args[0].value_union.i32);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }

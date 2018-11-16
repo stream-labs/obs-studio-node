@@ -197,6 +197,17 @@ void service::OBS_service_startRecording(const v8::FunctionCallbackInfo<v8::Valu
 	ValidateResponse(response);
 }
 
+void service::OBS_service_startReplayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "OBS_service_startReplayBuffer", {});
+
+	ValidateResponse(response);
+}
+
 void service::OBS_service_stopStreaming(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	bool forceStop;
@@ -219,6 +230,21 @@ void service::OBS_service_stopRecording(const v8::FunctionCallbackInfo<v8::Value
 		return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "OBS_service_stopRecording", {});
+
+	ValidateResponse(response);
+}
+
+void service::OBS_service_stopReplayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	bool forceStop;
+	ASSERT_GET_VALUE(args[0], forceStop);
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Service", "OBS_service_stopReplayBuffer", {ipc::value(forceStop)});
 
 	ValidateResponse(response);
 }
@@ -453,9 +479,13 @@ INITIALIZER(nodeobs_service)
 
 		NODE_SET_METHOD(exports, "OBS_service_startRecording", service::OBS_service_startRecording);
 
+		NODE_SET_METHOD(exports, "OBS_service_startReplayBuffer", service::OBS_service_startReplayBuffer);
+
 		NODE_SET_METHOD(exports, "OBS_service_stopRecording", service::OBS_service_stopRecording);
 
 		NODE_SET_METHOD(exports, "OBS_service_stopStreaming", service::OBS_service_stopStreaming);
+
+		NODE_SET_METHOD(exports, "OBS_service_stopReplayBuffer", service::OBS_service_stopReplayBuffer);
 
 		NODE_SET_METHOD(
 		    exports,
