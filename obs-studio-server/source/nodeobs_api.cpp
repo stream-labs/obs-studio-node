@@ -557,6 +557,7 @@ void OBS_API::OBS_API_initAPI(
 
 	OBS_service::createStreamingOutput();
 	OBS_service::createRecordingOutput();
+	OBS_service::createReplayBufferOutput();
 
 	OBS_service::createVideoStreamingEncoder();
 	OBS_service::createVideoRecordingEncoder();
