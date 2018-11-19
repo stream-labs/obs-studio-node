@@ -423,11 +423,12 @@ void writeCrashHandler(std::vector<char> buffer) {
 	if (GetLastError() == ERROR_PIPE_BUSY)
 		return;
 
+	DWORD bytesWritten;
+
 	WriteFile(
 	    hPipe,
 	    buffer.data(),
-	    buffer.size(),
-	    NULL,
+	    buffer.size(), &bytesWritten,
 	    NULL);
 
 	CloseHandle(hPipe);
