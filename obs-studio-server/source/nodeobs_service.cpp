@@ -94,8 +94,12 @@ void OBS_service::OBS_service_resetAudioContext(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	resetAudioContext(true);
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	if (!resetAudioContext(true)) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+
+	} else {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	}
 	AUTO_DEBUG;
 }
 
@@ -122,8 +126,12 @@ void OBS_service::OBS_service_createAudioEncoder(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	createAudioEncoder(NULL);
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	if (!createAudioEncoder(NULL)) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Failed to create the audio encoder!"));
+	} else {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	}
 	AUTO_DEBUG;
 }
 
@@ -133,8 +141,13 @@ void OBS_service::OBS_service_createVideoStreamingEncoder(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	createVideoStreamingEncoder();
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	if (!createVideoStreamingEncoder()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Failed to create the video streaming encoder!"));
+	} else {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	}
+
 	AUTO_DEBUG;
 }
 
@@ -144,8 +157,13 @@ void OBS_service::OBS_service_createVideoRecordingEncoder(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	createVideoRecordingEncoder();
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	if (!createVideoRecordingEncoder()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Failed to create the video recording encoder!"));
+	} else {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	}
+
 	AUTO_DEBUG;
 }
 
@@ -155,6 +173,7 @@ void OBS_service::OBS_service_createService(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	// TODO: Add validation here
 	createService();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -178,8 +197,13 @@ void OBS_service::OBS_service_createStreamingOutput(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	createStreamingOutput();
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	if (!createStreamingOutput()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Failed to create the streaming output!"));
+	} else {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	}
+
 	AUTO_DEBUG;
 }
 
@@ -189,8 +213,13 @@ void OBS_service::OBS_service_createRecordingOutput(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	createRecordingOutput();
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	if (!createRecordingOutput()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Failed to create the recording output!"));
+	} else {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	}
+
 	AUTO_DEBUG;
 }
 
@@ -200,8 +229,13 @@ void OBS_service::OBS_service_startStreaming(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	startStreaming();
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	if (!startStreaming()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Failed to start streaming!"));
+	} else {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	}
+
 	AUTO_DEBUG;
 }
 
@@ -211,8 +245,12 @@ void OBS_service::OBS_service_startRecording(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	startRecording();
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	if (!startRecording()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Failed to start recording!"));
+	} else {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	}
 	AUTO_DEBUG;
 }
 
@@ -577,7 +615,7 @@ const char* FindAudioEncoderFromCodec(const char* type)
 	return nullptr;
 }
 
-void OBS_service::createAudioEncoder(obs_encoder_t** audioEncoder)
+bool OBS_service::createAudioEncoder(obs_encoder_t** audioEncoder)
 {
      int bitrate = FindClosestAvailableAACBitrate((int)
         config_get_uint(ConfigManager::getInstance().getBasic(), "SimpleOutput", "ABitrate"));
@@ -585,16 +623,18 @@ void OBS_service::createAudioEncoder(obs_encoder_t** audioEncoder)
 	const char* id = GetAACEncoderForBitrate(bitrate);
 	if (!id) {
 		audioEncoder = nullptr;
-		return;
+		return false;
 	}
 
 	if (usingRecordingPreset)
 		obs_encoder_release(*audioEncoder);
 
 	*audioEncoder = obs_audio_encoder_create(id, "simple_audio", nullptr, 0, nullptr);
+
+	return true;
 }
 
-void OBS_service::createVideoStreamingEncoder()
+bool OBS_service::createVideoStreamingEncoder()
 {
     const char *encoder = 
 		config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "StreamEncoder");
@@ -607,9 +647,14 @@ void OBS_service::createVideoStreamingEncoder()
         obs_encoder_release(videoStreamingEncoder);
     }
 
-    videoStreamingEncoder = obs_video_encoder_create(encoder, "streaming_h264", nullptr, nullptr);
+	videoStreamingEncoder = obs_video_encoder_create(encoder, "streaming_h264", nullptr, nullptr);
+	if (videoStreamingEncoder == nullptr) {
+		return false;
+	}
+
 
     updateVideoStreamingEncoder();
+	return true;
 }
 
 static inline bool valid_string(const char *str)
@@ -778,12 +823,17 @@ static void remove_reserved_file_characters(string& s)
 	replace(s.begin(), s.end(), '<', '_');
 }
 
-void OBS_service::createVideoRecordingEncoder()
+bool OBS_service::createVideoRecordingEncoder()
 {
 	if (videoRecordingEncoder != NULL) {
 		obs_encoder_release(videoRecordingEncoder);
 	}
 	videoRecordingEncoder = obs_video_encoder_create("obs_x264", "simple_h264_recording", nullptr, nullptr);
+	if (videoRecordingEncoder == nullptr) {
+		return false;
+	}
+
+	return true;
 }
 
 void OBS_service::createService()
@@ -825,24 +875,36 @@ void OBS_service::createService()
 		obs_data_release(hotkey_data);
 	}
 
-    if (!obs_data_save_json_safe(data, ConfigManager::getInstance().getService().c_str(), "tmp", "bak")) {
-        blog(LOG_WARNING, "Failed to save service %s", ConfigManager::getInstance().getService().c_str());
-    }
+	if (!obs_data_save_json_safe(data, ConfigManager::getInstance().getService().c_str(), "tmp", "bak")) {
+		blog(LOG_WARNING, "Failed to save service %s", ConfigManager::getInstance().getService().c_str());
+	}
 
 	obs_data_release(settings);
 	obs_data_release(data);
 }
 
-void OBS_service::createStreamingOutput(void)
+bool OBS_service::createStreamingOutput(void)
 {
 	streamingOutput = obs_output_create("rtmp_output", "simple_stream", nullptr, nullptr);
+	if (streamingOutput == nullptr) {
+		return false;
+	}
+
 	connectOutputSignals();
+
+	return true;
 }
 
-void OBS_service::createRecordingOutput(void)
+bool OBS_service::createRecordingOutput(void)
 {
 	recordingOutput = obs_output_create("ffmpeg_muxer", "simple_file_output", nullptr, nullptr);
+	if (recordingOutput == nullptr) {
+		return false;
+	}
+
 	connectOutputSignals();
+
+	return true;
 }
 
 bool OBS_service::startStreaming(void)
@@ -854,9 +916,8 @@ bool OBS_service::startStreaming(void)
 	obs_output_release(streamingOutput);
 	streamingOutput = obs_output_create(type, "simple_stream", nullptr, nullptr);
 	connectOutputSignals();
-	
-	uint64_t trackIndex = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut",
-		"TrackIndex");
+
+	uint64_t trackIndex = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex");
 
 	const char* codec = obs_output_get_supported_audio_codecs(streamingOutput);
 	if (!codec) {
@@ -1006,8 +1067,7 @@ void OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(bool
 	if (useStreamingEncoder) {
 		obs_output_set_video_encoder(recordingOutput, videoStreamingEncoder);
 		obs_output_set_audio_encoder(recordingOutput, audioStreamingEncoder, 0);
-	}
-	else {
+	} else {
 		obs_output_set_video_encoder(recordingOutput, videoRecordingEncoder);
 		obs_output_set_audio_encoder(recordingOutput, audioRecordingEncoder, 0);
 	}
