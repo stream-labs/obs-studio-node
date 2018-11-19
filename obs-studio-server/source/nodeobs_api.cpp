@@ -69,7 +69,7 @@ void OBS_API::Register(ipc::server& srv)
 	cls->register_function(std::make_shared<ipc::function>("OBS_API_QueryHotkeys", std::vector<ipc::type>{}, QueryHotkeys));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_API_ProcessHotkeyStatus",
-	    std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32, ipc::type::String},
+	    std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32},
 	    ProcessHotkeyStatus));
 
 	srv.register_collection(cls);
@@ -740,15 +740,6 @@ void OBS_API::ProcessHotkeyStatus(
 {
 	obs_hotkey_id hotkeyId = args[0].value_union.ui64;
 	uint64_t      press    = args[1].value_union.i32;
-
-	// Attempt to find the source asked to load.
-	obs_source_t* src = obs_get_source_by_name(args[2].value_str.c_str());
-	if (src == nullptr) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Source reference is not valid."));
-		AUTO_DEBUG;
-		return;
-	}
 
 	// TODO: Check if the hotkey ID is valid
 	obs_hotkey_enable_callback_rerouting(true);

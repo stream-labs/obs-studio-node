@@ -161,18 +161,16 @@ Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_ProcessHotkeyStatus(const v8::FunctionC
 {
 	uint64_t    hotkeyId;
 	bool        press;
-	std::string sourceId;
 
 	ASSERT_GET_VALUE(args[0], hotkeyId);
 	ASSERT_GET_VALUE(args[1], press);
-	ASSERT_GET_VALUE(args[2], sourceId);
 
 	auto conn = GetConnection();
 	if (!conn)
 		return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "API", "OBS_API_ProcessHotkeyStatus", {ipc::value(hotkeyId), ipc::value(press), ipc::value(sourceId)});
+	    "API", "OBS_API_ProcessHotkeyStatus", {ipc::value(hotkeyId), ipc::value(press)});
 
 	if (!ValidateResponse(response))
 		return;
