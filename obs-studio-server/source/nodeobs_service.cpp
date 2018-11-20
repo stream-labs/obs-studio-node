@@ -173,9 +173,13 @@ void OBS_service::OBS_service_createService(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	// TODO: Add validation here
-	createService();
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	if (!createService()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Failed to create the service!"));
+	} else {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	}
+
 	AUTO_DEBUG;
 }
 
@@ -630,6 +634,9 @@ bool OBS_service::createAudioEncoder(obs_encoder_t** audioEncoder)
 		obs_encoder_release(*audioEncoder);
 
 	*audioEncoder = obs_audio_encoder_create(id, "simple_audio", nullptr, 0, nullptr);
+	if (*audioEncoder == nullptr) {
+		return false;
+	}
 
 	return true;
 }
@@ -651,7 +658,6 @@ bool OBS_service::createVideoStreamingEncoder()
 	if (videoStreamingEncoder == nullptr) {
 		return false;
 	}
-
 
     updateVideoStreamingEncoder();
 	return true;
@@ -836,7 +842,7 @@ bool OBS_service::createVideoRecordingEncoder()
 	return true;
 }
 
-void OBS_service::createService()
+bool OBS_service::createService()
 {
 	const char* type;
 
@@ -849,6 +855,10 @@ void OBS_service::createService()
 
     if (!fileExist) {
 		service  = obs_service_create("rtmp_common", "default_service", nullptr, nullptr);
+		if (service == nullptr) {
+			return false;
+		}
+
 		data     = obs_data_create();
 		settings = obs_service_get_settings(service);
 
@@ -871,6 +881,12 @@ void OBS_service::createService()
 		hotkey_data = obs_data_get_obj(data, "hotkeys");
 
 		service = obs_service_create(type, "default_service", settings, hotkey_data);
+		if (service == nullptr) {
+			obs_data_release(data);
+			obs_data_release(hotkey_data);
+			obs_data_release(settings);
+			return false;
+		}
 
 		obs_data_release(hotkey_data);
 	}
@@ -881,6 +897,8 @@ void OBS_service::createService()
 
 	obs_data_release(settings);
 	obs_data_release(data);
+
+	return true;
 }
 
 bool OBS_service::createStreamingOutput(void)

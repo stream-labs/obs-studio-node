@@ -213,7 +213,7 @@ class OBS_service
 
 	public:
 	// Service
-	static void           createService();
+	static bool           createService();
 	static obs_service_t* getService(void);
 	static void           setService(obs_service_t* newService);
 	static void           saveService(void);
