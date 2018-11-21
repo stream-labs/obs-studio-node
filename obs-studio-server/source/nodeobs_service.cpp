@@ -4,13 +4,13 @@
 #include "error.hpp"
 #include "shared.hpp"
 
-obs_output_t*  streamingOutput			= nullptr;
-obs_output_t* recordingOutput			= nullptr;
-obs_encoder_t* audioStreamingEncoder	= nullptr;
-obs_encoder_t* audioRecordingEncoder	= nullptr;
-obs_encoder_t* videoStreamingEncoder	= nullptr;
-obs_encoder_t* videoRecordingEncoder	= nullptr;
-obs_service_t* service					= nullptr;
+obs_output_t* streamingOutput        = nullptr;
+obs_output_t* recordingOutput        = nullptr;
+obs_encoder_t* audioStreamingEncoder = nullptr;
+obs_encoder_t* audioRecordingEncoder = nullptr;
+obs_encoder_t* videoStreamingEncoder = nullptr;
+obs_encoder_t* videoRecordingEncoder = nullptr;
+obs_service_t* service               = nullptr;
 
 std::string aacRecEncID;
 std::string aacStreamEncID;
