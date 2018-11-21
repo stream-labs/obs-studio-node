@@ -41,7 +41,6 @@ namespace osn
 
 		public:
 		uint64_t sourceId;
-		virtual ~ISource();
 
 		private:
 		uint64_t m_uid;
@@ -65,6 +64,7 @@ namespace osn
 		void set_keepalive(v8::Local<v8::Object>);
 
 		public:
+		~ISource();
 		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 
 		static Nan::NAN_METHOD_RETURN_TYPE Release(Nan::NAN_METHOD_ARGS_TYPE info);
