@@ -3,6 +3,8 @@
 set(VERSION_FULL 0.3.21)
 set(VERSION_BUILD 0)
 
+include(CPack)
+
 find_package(Git)
 
 if(EXISTS "${CMAKE_SOURCE_DIR}/.git" AND Git_FOUND)
