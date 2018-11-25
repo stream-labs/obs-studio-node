@@ -1529,7 +1529,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 
 	struct stat buffer;
 
-	bool fileExist = (stat(ConfigManager::getInstance().getStream().c_str(), &buffer) == 0);
+	bool fileExist = (os_stat(ConfigManager::getInstance().getStream().c_str(), &buffer) == 0);
 
 	obs_data_t*    settings = obs_encoder_defaults(encoderID);
 	obs_encoder_t* streamingEncoder;
@@ -1870,7 +1870,7 @@ void OBS_settings::getStandardRecordingSettings(
 	// Encoder settings
 	struct stat buffer;
 
-	bool fileExist = (stat(ConfigManager::getInstance().getRecord().c_str(), &buffer) == 0);
+	bool fileExist = (os_stat(ConfigManager::getInstance().getRecord().c_str(), &buffer) == 0);
 
 	obs_data_t*    settings = obs_encoder_defaults(recEncoderCurrentValue);
 	obs_encoder_t* recordingEncoder;
