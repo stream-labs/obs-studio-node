@@ -791,7 +791,7 @@ void OBS_service::createService()
 	const char* type;
 
 	struct stat buffer;
-    bool fileExist = (stat (ConfigManager::getInstance().getService().c_str(), &buffer) == 0);
+	bool        fileExist = (os_stat(ConfigManager::getInstance().getService().c_str(), &buffer) == 0);
 
 	obs_data_t* data;
 	obs_data_t* settings;
