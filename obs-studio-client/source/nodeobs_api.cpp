@@ -128,28 +128,31 @@ Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_QueryHotkeys(const v8::FunctionCallback
 
 	// For each hotkey info that we need to fill
 	for (int i = 0; i < (response.size() - 1) / 5; i++) {
-		int                   responseIndex = i * 5;
+		int                   responseIndex = i * 5 + 1;
 		v8::Local<v8::Object> object        = v8::Object::New(args.GetIsolate());
+		std::string           objectName    = response[responseIndex + 0].value_str;
+		uint32_t              objectType    = response[responseIndex + 1].value_union.ui32;
+		std::string           hotkeyName    = response[responseIndex + 2].value_str;
+		std::string           hotkeyDesc    = response[responseIndex + 3].value_str;
+		uint64_t              hotkeyId      = response[responseIndex + 4].value_union.ui64;
 
 		object->Set(
 		    v8::String::NewFromUtf8(args.GetIsolate(), "ObjectName"),
-		    v8::String::NewFromUtf8(args.GetIsolate(), response[responseIndex + 0].value_str.c_str()));
+		    v8::String::NewFromUtf8(args.GetIsolate(), objectName.c_str()));
 
 		object->Set(
-		    v8::String::NewFromUtf8(args.GetIsolate(), "ObjectType"),
-		    v8::Number::New(args.GetIsolate(), response[responseIndex + 1].value_union.ui32));
+		    v8::String::NewFromUtf8(args.GetIsolate(), "ObjectType"), v8::Number::New(args.GetIsolate(), objectType));
 
 		object->Set(
 		    v8::String::NewFromUtf8(args.GetIsolate(), "HotkeyName"),
-		    v8::String::NewFromUtf8(args.GetIsolate(), response[responseIndex + 2].value_str.c_str()));
+		    v8::String::NewFromUtf8(args.GetIsolate(), hotkeyName.c_str()));
 
 		object->Set(
 		    v8::String::NewFromUtf8(args.GetIsolate(), "HotkeyDesc"),
-		    v8::String::NewFromUtf8(args.GetIsolate(), response[responseIndex + 3].value_str.c_str()));
+		    v8::String::NewFromUtf8(args.GetIsolate(), hotkeyDesc.c_str()));
 
 		object->Set(
-		    v8::String::NewFromUtf8(args.GetIsolate(), "HotkeyId"),
-		    v8::Number::New(args.GetIsolate(), response[responseIndex + 4].value_union.ui64));
+		    v8::String::NewFromUtf8(args.GetIsolate(), "HotkeyId"), v8::Number::New(args.GetIsolate(), hotkeyId));
 
 		hotkeyInfos->Set(i, object);
 	}
