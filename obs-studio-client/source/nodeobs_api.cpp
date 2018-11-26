@@ -38,6 +38,12 @@ void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args)
 	args.GetReturnValue().Set(v8::Number::New(args.GetIsolate(), response[1].value_union.i32));
 }
 
+void api::crash(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	const char* myBuff = NULL;
+	std::cout << myBuff << std::endl;
+}
+
 void api::OBS_API_destroyOBS_API(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	auto conn = GetConnection();
@@ -119,5 +125,6 @@ INITIALIZER(nodeobs_api)
 		NODE_SET_METHOD(exports, "OBS_API_getPerformanceStatistics", api::OBS_API_getPerformanceStatistics);
 		NODE_SET_METHOD(exports, "SetWorkingDirectory", api::SetWorkingDirectory);
 		NODE_SET_METHOD(exports, "StopCrashHandler", api::StopCrashHandler);
+		NODE_SET_METHOD(exports, "crash", api::crash);
 	});
 }
