@@ -756,18 +756,18 @@ void OBS_API::destroyOBS_API(void)
 	obs_shutdown();
 
 	// Release each obs module (dlls for windows)
-	// TODO: For now we are releasing only the obs-browser.dll because it could lead into a specific 
-	// crash that we are trying to extinguish, the ideia is start releasing all of these dlls someday
+	// TODO: We should release these modules (dlls) manually and not let the garbage
+	// collector do this for us on shutdown 
 	for (auto& moduleInfo : obsModules) {
-		if (moduleInfo.first.compare("obs-browser.dll") == 0)
-			os_dlclose(moduleInfo.second);
+
 	}
 
 #ifdef _WIN32
 
-	// TODO: In the future we should release these dlls here
+	// TODO: In the future we should release these dlls here instead letting the garbage
+	// collector do this job
 	for (auto& handle : dynamicLibraries) {
-		// FreeLibrary(handle);
+	
 	}
 #endif
 }
