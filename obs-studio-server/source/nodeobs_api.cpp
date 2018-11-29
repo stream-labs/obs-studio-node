@@ -37,8 +37,6 @@
 #include "error.hpp"
 #include "shared.hpp"
 
-#define BUFFSIZE 512
-
 
 std::string g_moduleDirectory = "";
 os_cpu_usage_info_t *cpuUsageInfo = nullptr;
@@ -703,31 +701,6 @@ void OBS_API::setAudioDeviceMonitoring(void)
 #endif
 }
 
-void acknowledgeTerminate(void) {
-	HANDLE hPipe;
-	TCHAR  chBuf[BUFFSIZE];
-	DWORD  cbRead;
-	hPipe = CreateNamedPipe(
-	    TEXT("\\\\.\\pipe\\exit-slobs-crash-handler"),
-	    PIPE_ACCESS_DUPLEX,
-	    PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
-	    1,
-	    BUFFSIZE * sizeof(TCHAR),
-	    BUFFSIZE * sizeof(TCHAR),
-	    NULL,
-	    NULL);
-
-	if (hPipe != INVALID_HANDLE_VALUE) {
-		if (ConnectNamedPipe(hPipe, NULL) != FALSE) {
-			BOOL fSuccess = ReadFile(hPipe, chBuf, BUFFSIZE * sizeof(TCHAR), &cbRead, NULL);
-
-			if (!fSuccess)
-				return;
-			CloseHandle(hPipe);
-		}
-	}
-}
-
 void OBS_API::StopCrashHandler(
 	void*                          data,
 	const int64_t                  id,
@@ -736,7 +709,6 @@ void OBS_API::StopCrashHandler(
 {
 	writeCrashHandler(unregisterProcess());
 	writeCrashHandler(terminateCrashHandler());
-	acknowledgeTerminate();
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
