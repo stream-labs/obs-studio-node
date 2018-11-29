@@ -735,7 +735,6 @@ void OBS_API::StopCrashHandler(
 	std::vector<ipc::value>&       rval)
 {
 	writeCrashHandler(unregisterProcess());
-	writeCrashHandler(terminateCrashHandler());
 	acknowledgeTerminate();
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
