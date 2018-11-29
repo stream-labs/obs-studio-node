@@ -1109,7 +1109,8 @@ void OBS_settings::getEncoderSettings(
     obs_data_t*             settings,
     std::vector<Parameter>* subCategoryParameters,
     int                     index,
-    bool                    isCategoryEnabled)
+    bool                    isCategoryEnabled,
+    bool                    recordEncoder)
 {
 	obs_properties_t* encoderProperties = obs_encoder_properties(encoder);
 	obs_property_t*   property          = obs_properties_first(encoderProperties);
@@ -1312,6 +1313,10 @@ void OBS_settings::getEncoderSettings(
 
 		param.enabled = isEnabled;
 		param.masked  = false;
+
+		if (recordEncoder) {
+			param.name.insert(0, "Rec");
+		}
 
 		subCategoryParameters->push_back(param);
 
@@ -1558,7 +1563,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 		settings         = obs_encoder_get_settings(streamingEncoder);
 	}
 
-	getEncoderSettings(streamingEncoder, settings, &(streamingSettings.params), index, isCategoryEnabled);
+	getEncoderSettings(streamingEncoder, settings, &(streamingSettings.params), index, isCategoryEnabled, false);
 	streamingSettings.paramsCount = streamingSettings.params.size();
 	return streamingSettings;
 }
@@ -1901,7 +1906,7 @@ void OBS_settings::getStandardRecordingSettings(
 	}
 
 	if (strcmp(recEncoderCurrentValue, "none")) {
-		getEncoderSettings(recordingEncoder, settings, &(subCategoryParameters->params), index, isCategoryEnabled);
+		getEncoderSettings(recordingEncoder, settings, &(subCategoryParameters->params), index, isCategoryEnabled, true);
 	}
 	
 	subCategoryParameters->paramsCount = subCategoryParameters->params.size();
@@ -2320,6 +2325,10 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 
 		std::string name = param.name;
 		std::string type = param.type;
+
+		if (i >= indexEncoderSettings) {
+			name.erase(0, strlen("Rec"));
+		}
 
 		if (name.compare("RecType") == 0) {
 			std::string value(param.currentValue.data(), param.currentValue.size());
