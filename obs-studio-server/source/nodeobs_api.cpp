@@ -929,7 +929,11 @@ double OBS_API::getDroppedFramesPercentage(void)
 	if (obs_output_active(streamOutput)) {
 		int totalDropped = obs_output_get_frames_dropped(streamOutput);
 		int totalFrames  = obs_output_get_total_frames(streamOutput);
-		percent          = (double)totalDropped / (double)totalFrames * 100.0;
+		if (totalFrames == 0) {
+			percent = 0.0;
+		} else {
+			percent = (double)totalDropped / (double)totalFrames * 100.0;
+		}
 	}
 
 	return percent;
@@ -953,8 +957,12 @@ double OBS_API::getCurrentBandwidth(void)
 		uint64_t bitsBetween = (bytesSent - lastBytesSent) * 8;
 
 		double timePassed = double(bytesSentTime - lastBytesSentTime) / 1000000000.0;
-
-		kbitsPerSec = double(bitsBetween) / timePassed / 1000.0;
+		if (timePassed < std::numeric_limits<double>::epsilon()
+		    && timePassed > -std::numeric_limits<double>::epsilon()) {
+			kbitsPerSec = 0.0;
+		} else {
+			kbitsPerSec = double(bitsBetween) / timePassed / 1000.0;
+		}
 
 		lastBytesSent     = bytesSent;
 		lastBytesSentTime = bytesSentTime;
