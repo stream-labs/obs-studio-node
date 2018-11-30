@@ -77,8 +77,8 @@
 
 #define dstr(s) #s
 #define vstr(s) dstr(s)
-// FORCE_INLINE
-static  bool ValidateResponse(std::vector<ipc::value>& response)
+
+static FORCE_INLINE bool ValidateResponse(std::vector<ipc::value>& response)
 {
 	if (response.size() == 0) {
 		Nan::Error("Failed to make IPC call, verify IPC status.");
