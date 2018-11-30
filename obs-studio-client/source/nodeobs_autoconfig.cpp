@@ -134,7 +134,9 @@ void autoConfig::GetListServer(const v8::FunctionCallbackInfo<v8::Value>& args)
 	std::vector<ipc::value> response =
 	    conn->call_synchronous_helper("AutoConfig", "GetListServer", {service, continent});
 
-	ValidateResponse(response);
+	if (!ValidateResponse(response)) {
+		return;
+	}
 
 	v8::Isolate*         isolate    = v8::Isolate::GetCurrent();
 	v8::Local<v8::Array> listServer = v8::Array::New(isolate);
@@ -180,7 +182,9 @@ void autoConfig::InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>&
 	std::vector<ipc::value> response =
 	    conn->call_synchronous_helper("AutoConfig", "InitializeAutoConfig", {continent, service});
 
-	ValidateResponse(response);
+	if (!ValidateResponse(response)) {
+		return;
+	}
 
 	// Callback
 	autoConfigObject = new AutoConfig();
@@ -239,7 +243,9 @@ void autoConfig::StartCheckSettings(const v8::FunctionCallbackInfo<v8::Value>& a
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "StartCheckSettings", {});
 
-	ValidateResponse(response);
+	if (!ValidateResponse(response)) {
+		return;
+	}
 
 	bool                            success  = (bool)response[1].value_union.ui32;
 	std::shared_ptr<AutoConfigInfo> stopData = std::make_shared<AutoConfigInfo>();
@@ -297,7 +303,9 @@ void autoConfig::TerminateAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& 
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "TerminateAutoConfig", {});
 
-	ValidateResponse(response);
+	if (!ValidateResponse(response)) {
+		return;
+	}
 
 	autoConfigObject->stop_worker();
 	autoConfigObject->stop_async_runner();
