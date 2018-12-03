@@ -207,8 +207,8 @@ void TerminationMethod()
 	symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
 	std::string callStackString;
 
-	// Currently 20 is the maximum that we can display on backtrace in one single attribute
-	const unsigned short MAX_CALLERS_SHOWN = 20;
+	// Currently 18 is the maximum that we can display on backtrace in one single attribute
+	const unsigned short MAX_CALLERS_SHOWN = 18;
 	frames                                 = frames < MAX_CALLERS_SHOWN ? frames : MAX_CALLERS_SHOWN;
 	for (unsigned int i = 0; i < frames; i++) {
 		SymFromAddr(process, (DWORD64)(callers_stack[i]), 0, symbol);
@@ -222,6 +222,12 @@ void TerminationMethod()
 
 	// Use a custom annotation entry for it
 	s_CustomAnnotations.insert({std::string("CallStack"), callStackString});
+
+	// Insert the obs init status to detect if the obs is currently initialized or if it was shutdown
+	s_CustomAnnotations.insert({"OBS Status", obs_initialized() ? "Initialized" : "Shutdown"});
+
+	// Add the total number of obs leaks
+	s_CustomAnnotations.insert({"OBS Total Leaks", std::to_string(bnum_allocs())});
 
 	 bool rc = s_CrashpadInfo->client.StartHandler(
 	    s_CrashpadInfo->handler,
