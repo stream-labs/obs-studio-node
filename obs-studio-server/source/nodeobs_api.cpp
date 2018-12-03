@@ -417,7 +417,13 @@ void writeCrashHandler(std::vector<char> buffer)
 	if (GetLastError() == ERROR_PIPE_BUSY)
 		return;
 
-	WriteFile(hPipe, buffer.data(), buffer.size(), NULL, NULL);
+	DWORD bytesWritten;
+
+	WriteFile(
+	    hPipe,
+	    buffer.data(),
+	    buffer.size(), &bytesWritten,
+	    NULL);
 
 	CloseHandle(hPipe);
 }
@@ -569,7 +575,11 @@ void OBS_API::OBS_API_initAPI(
 
 	setAudioDeviceMonitoring();
 
+	// We are returning a video result here because the frontend needs to know if we sucessfully
+	// initialized the Dx11 API
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(OBS_VIDEO_SUCCESS));
+
 	AUTO_DEBUG;
 }
 

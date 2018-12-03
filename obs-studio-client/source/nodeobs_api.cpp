@@ -24,7 +24,18 @@ void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args)
 	std::vector<ipc::value> response =
 	    conn->call_synchronous_helper("API", "OBS_API_initAPI", {ipc::value(path), ipc::value(language)});
 
-	ValidateResponse(response);
+	// The API init method will return a response error + graphical error
+	// If there is a problem with the IPC the number of responses here will be zero so we must validate the
+	// response.
+	// If the method call was sucessfull we will have 2 arguments, also there is no need to validate the
+	// response
+	if (response.size() < 2) {
+		if (!ValidateResponse(response)) {
+			return;
+		}
+	}
+
+	args.GetReturnValue().Set(v8::Number::New(args.GetIsolate(), response[1].value_union.i32));
 }
 
 void api::OBS_API_destroyOBS_API(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -74,7 +85,8 @@ void api::OBS_API_getPerformanceStatistics(const v8::FunctionCallbackInfo<v8::Va
 	return;
 }
 
-void api::SetWorkingDirectory(const v8::FunctionCallbackInfo<v8::Value>& args) {
+void api::SetWorkingDirectory(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
 	Nan::Utf8String param0(args[0]);
 	std::string     path = *param0;
 
