@@ -3,6 +3,11 @@
 #include "util/lexer.h"
 
 #ifdef _WIN32
+
+#ifdef _WIN32_WINNT
+#undef _WIN32_WINNT
+#endif
+
 #define _WIN32_WINNT 0x0502
 
 #include <ShlObj.h>
@@ -18,7 +23,9 @@
 #define getcwd _getcwd
 #endif
 
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif
 
 #include <audiopolicy.h>
 #include <mmdeviceapi.h>
@@ -37,7 +44,13 @@ uint64_t lastBytesSent = 0;
 uint64_t lastBytesSentTime = 0;
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 std::string                                            slobs_plugin;
-std::string                                            logFilename;
+std::vector<std::pair<std::string, obs_module_t*>>     obsModules;
+
+#ifdef _WIN32
+std::vector<HMODULE> dynamicLibraries;
+#else
+std::vector<void*> dynamicLibraries;
+#endif
 
 void OBS_API::Register(ipc::server& srv)
 {
@@ -51,6 +64,9 @@ void OBS_API::Register(ipc::server& srv)
 	    "OBS_API_getPerformanceStatistics", std::vector<ipc::type>{}, OBS_API_getPerformanceStatistics));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SetWorkingDirectory", std::vector<ipc::type>{ipc::type::String}, SetWorkingDirectory));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "StopCrashHandler", std::vector<ipc::type>{}, StopCrashHandler));
+
 	srv.register_collection(cls);
 }
 
@@ -341,205 +357,81 @@ static void                                    node_obs_log(int log_level, const
 #endif
 }
 
-static inline string GetDefaultVideoSavePath()
-{
-	wchar_t path_utf16[MAX_PATH];
-	char    path_utf8[MAX_PATH] = {};
+uint32_t pid = GetCurrentProcessId();
 
-	SHGetFolderPathW(NULL, CSIDL_MYVIDEO, NULL, SHGFP_TYPE_CURRENT,
-		path_utf16);
+std::vector<char> registerProcess(void) {
+	std::vector<char> buffer;
+	buffer.resize(sizeof(uint8_t) + sizeof(bool) + sizeof(uint32_t));
+	uint8_t action = 0;
+	bool    isCritical = true;
 
-	os_wcs_to_utf8(path_utf16, wcslen(path_utf16), path_utf8, MAX_PATH);
-	return string(path_utf8);
+	uint32_t offset = 0;
+
+	memcpy(buffer.data(), &action, sizeof(action));
+	offset++;
+	memcpy(buffer.data() + offset, &isCritical, sizeof(isCritical));
+	offset++;
+	memcpy(buffer.data() + offset, &pid, sizeof(pid));
+
+	return buffer;
 }
 
-static const double scaled_vals[] =
+std::vector<char> unregisterProcess(void)
 {
-	1.0,
-	1.25,
-	(1.0 / 0.75),
-	1.5,
-	(1.0 / 0.6),
-	1.75,
-	2.0,
-	2.25,
-	2.5,
-	2.75,
-	3.0,
-	0.0
-};
+	std::vector<char> buffer;
+	buffer.resize(sizeof(uint8_t) + sizeof(uint32_t));
+	uint8_t action = 1;
 
-void initGlobalDefault(config_t* config) {
-	config_set_bool(config, "BasicWindow", "SnappingEnabled", true);
-	config_set_double(config, "BasicWindow", "SnapDistance", 10);
-	config_set_bool(config, "BasicWindow", "ScreenSnapping", true);
-	config_set_bool(config, "BasicWindow", "SourceSnapping", true);
-	config_set_bool(config, "BasicWindow", "CenterSnapping", false);
+	uint32_t offset = 0;
 
-	config_save_safe(config, "tmp", nullptr);
+	memcpy(buffer.data(), &action, sizeof(action));
+	offset++;
+	memcpy(buffer.data() + offset, &pid, sizeof(pid));
+
+	return buffer;
 }
 
-void initBasicDefault(config_t* config) {
-	// Base resolution
-	uint32_t cx = 0;
-	uint32_t cy = 0;
+std::vector<char> terminateCrashHandler(void)
+{
+	std::vector<char> buffer;
+	buffer.resize(sizeof(uint8_t) + sizeof(uint32_t));
+	uint8_t action = 2;
 
-	/* ----------------------------------------------------- */
-	/* move over mixer values in advanced if older config */
-	if (config_has_user_value(config, "AdvOut", "RecTrackIndex") &&
-		!config_has_user_value(config, "AdvOut", "RecTracks")) {
+	uint32_t offset = 0;
 
-		uint64_t track = config_get_uint(config, "AdvOut",
-			"RecTrackIndex");
-		track = 1ULL << (track - 1);
-		config_set_uint(config, "AdvOut", "RecTracks", track);
-		config_remove_value(config, "AdvOut", "RecTrackIndex");
-		config_save_safe(config, "tmp", nullptr);
-	}
+	memcpy(buffer.data(), &action, sizeof(action));
+	offset++;
+	memcpy(buffer.data() + offset, &pid, sizeof(pid));
 
-	config_set_default_string(config, "Output", "Mode", "Simple");
-	std::string filePath = GetDefaultVideoSavePath();
-	config_set_default_string(config, "SimpleOutput", "FilePath",
-		filePath.c_str());
-	config_set_default_string(config, "SimpleOutput", "RecFormat",
-		"flv");
-	config_set_default_uint(config, "SimpleOutput", "VBitrate",
-		2500);
-	config_set_default_string(config, "SimpleOutput", "StreamEncoder",
-		SIMPLE_ENCODER_X264);
-	config_set_default_uint(config, "SimpleOutput", "ABitrate", 160);
-	config_set_default_bool(config, "SimpleOutput", "UseAdvanced",
-		false);
-	config_set_default_bool(config, "SimpleOutput", "EnforceBitrate",
-		true);
-	config_set_default_string(config, "SimpleOutput", "Preset",
-		"veryfast");
-	config_set_default_string(config, "SimpleOutput", "RecQuality",
-		"Stream");
-	config_set_default_string(config, "SimpleOutput", "RecEncoder",
-		SIMPLE_ENCODER_X264);
-	config_set_default_bool(config, "SimpleOutput", "RecRB", false);
-	config_set_default_int(config, "SimpleOutput", "RecRBTime", 20);
-	config_set_default_int(config, "SimpleOutput", "RecRBSize", 512);
-	config_set_default_string(config, "SimpleOutput", "RecRBPrefix",
-		"Replay");
-
-	config_set_default_bool(config, "AdvOut", "ApplyServiceSettings",
-		true);
-	config_set_default_bool(config, "AdvOut", "UseRescale", false);
-	config_set_default_uint(config, "AdvOut", "TrackIndex", 1);
-	config_set_default_string(config, "AdvOut", "Encoder", "obs_x264");
-
-	config_set_default_string(config, "AdvOut", "RecType", "Standard");
-
-	config_set_default_string(config, "AdvOut", "RecFilePath",
-		GetDefaultVideoSavePath().c_str());
-	config_set_default_string(config, "AdvOut", "RecFormat", "flv");
-	config_set_default_bool(config, "AdvOut", "RecUseRescale",
-		false);
-	config_set_default_uint(config, "AdvOut", "RecTracks", (1 << 0));
-	config_set_default_string(config, "AdvOut", "RecEncoder",
-		"none");
-
-	config_set_default_bool(config, "AdvOut", "FFOutputToFile",
-		true);
-	config_set_default_string(config, "AdvOut", "FFFilePath",
-		GetDefaultVideoSavePath().c_str());
-	config_set_default_string(config, "AdvOut", "FFExtension", "mp4");
-	config_set_default_uint(config, "AdvOut", "FFVBitrate", 2500);
-	config_set_default_uint(config, "AdvOut", "FFVGOPSize", 250);
-	config_set_default_bool(config, "AdvOut", "FFUseRescale",
-		false);
-	config_set_default_bool(config, "AdvOut", "FFIgnoreCompat",
-		false);
-	config_set_default_uint(config, "AdvOut", "FFABitrate", 160);
-	config_set_default_uint(config, "AdvOut", "FFAudioTrack", 1);
-
-	config_set_default_uint(config, "AdvOut", "Track1Bitrate", 160);
-	config_set_default_uint(config, "AdvOut", "Track2Bitrate", 160);
-	config_set_default_uint(config, "AdvOut", "Track3Bitrate", 160);
-	config_set_default_uint(config, "AdvOut", "Track4Bitrate", 160);
-	config_set_default_uint(config, "AdvOut", "Track5Bitrate", 160);
-	config_set_default_uint(config, "AdvOut", "Track6Bitrate", 160);
-
-	config_set_default_uint(config, "Video", "BaseCX", cx);
-	config_set_default_uint(config, "Video", "BaseCY", cy);
-
-	/* don't allow BaseCX/BaseCY to be susceptible to defaults changing */
-	if (!config_has_user_value(config, "Video", "BaseCX") ||
-		!config_has_user_value(config, "Video", "BaseCY")) {
-		config_set_uint(config, "Video", "BaseCX", cx);
-		config_set_uint(config, "Video", "BaseCY", cy);
-		config_save_safe(config, "tmp", nullptr);
-	}
-
-	config_set_default_string(config, "Output", "FilenameFormatting",
-		"%CCYY-%MM-%DD %hh-%mm-%ss");
-
-	config_set_default_bool(config, "Output", "DelayEnable", false);
-	config_set_default_uint(config, "Output", "DelaySec", 20);
-	config_set_default_bool(config, "Output", "DelayPreserve", true);
-
-	config_set_default_bool(config, "Output", "Reconnect", true);
-	config_set_default_uint(config, "Output", "RetryDelay", 10);
-	config_set_default_uint(config, "Output", "MaxRetries", 20);
-
-	config_set_default_string(config, "Output", "BindIP", "default");
-	config_set_default_bool(config, "Output", "NewSocketLoopEnable",
-		false);
-	config_set_default_bool(config, "Output", "LowLatencyEnable",
-		false);
-
-	int i = 0;
-	uint32_t scale_cx = 0;
-	uint32_t scale_cy = 0;
-
-	/* use a default scaled resolution that has a pixel count no higher
-	* than 1280x720 */
-	while (((scale_cx * scale_cy) > (1280 * 720)) && scaled_vals[i] > 0.0) {
-		double scale = scaled_vals[i++];
-		scale_cx = uint32_t(double(cx) / scale);
-		scale_cy = uint32_t(double(cy) / scale);
-	}
-
-	config_set_default_uint(config, "Video", "OutputCX", scale_cx);
-	config_set_default_uint(config, "Video", "OutputCY", scale_cy);
-
-	/* don't allow OutputCX/OutputCY to be susceptible to defaults
-	* changing */
-	if (!config_has_user_value(config, "Video", "OutputCX") ||
-		!config_has_user_value(config, "Video", "OutputCY")) {
-		config_set_uint(config, "Video", "OutputCX", scale_cx);
-		config_set_uint(config, "Video", "OutputCY", scale_cy);
-		config_save_safe(config, "tmp", nullptr);
-	}
-
-	config_set_default_uint(config, "Video", "FPSType", 0);
-	config_set_default_string(config, "Video", "FPSCommon", "30");
-	config_set_default_uint(config, "Video", "FPSInt", 30);
-	config_set_default_uint(config, "Video", "FPSNum", 30);
-	config_set_default_uint(config, "Video", "FPSDen", 1);
-	config_set_default_string(config, "Video", "ScaleType", "bicubic");
-	config_set_default_string(config, "Video", "ColorFormat", "NV12");
-	config_set_default_string(config, "Video", "ColorSpace", "601");
-	config_set_default_string(config, "Video", "ColorRange",
-		"Partial");
-
-	config_set_default_string(config, "Audio", "MonitoringDeviceId",
-		"default");
-	config_set_default_string(config, "Audio", "MonitoringDeviceName",
-		"Default");
-	config_set_default_uint(config, "Audio", "SampleRate", 44100);
-	config_set_default_string(config, "Audio", "ChannelSetup",
-		"Stereo");
-
-	config_save_safe(config, "tmp", nullptr);
+	return buffer;
 }
 
-std::string OBS_API::SetupLogFilename() 
-{
-	logFilename = GenerateTimeDateFilename("txt");
-	return logFilename;
+void writeCrashHandler(std::vector<char> buffer) {
+	HANDLE hPipe = CreateFile(
+	    TEXT("\\\\.\\pipe\\slobs-crash-handler"),
+	    GENERIC_READ |
+	    GENERIC_WRITE,
+	    0,
+	    NULL,
+	    OPEN_EXISTING,
+	    0,
+	    NULL);
+
+	if (hPipe == INVALID_HANDLE_VALUE)
+		return;
+
+	if (GetLastError() == ERROR_PIPE_BUSY)
+		return;
+
+	DWORD bytesWritten;
+
+	WriteFile(
+	    hPipe,
+	    buffer.data(),
+	    buffer.size(), &bytesWritten,
+	    NULL);
+
+	CloseHandle(hPipe);
 }
 
 void OBS_API::OBS_API_initAPI(
@@ -548,6 +440,7 @@ void OBS_API::OBS_API_initAPI(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	writeCrashHandler(registerProcess());
 	/* Map base DLLs as soon as possible into the current process space.
 	* In particular, we need to load obs.dll into memory before we call
 	* any functions from obs else if we delay-loaded the dll, it will
@@ -589,11 +482,9 @@ void OBS_API::OBS_API_initAPI(
 			std::cerr << "Failed to open dependency " << module_path << std::endl;
 		}
 
-		/* This is an intentional leak.
-		* We leave these open and let the
-		* OS clean these up for us as
-		* they should be available through
-		* out the application */
+#ifdef _WIN32
+		dynamicLibraries.push_back(HMODULE(handle));
+#endif
 	}
 	
 	/* libobs will use three methods of finding data files:
@@ -611,7 +502,7 @@ void OBS_API::OBS_API_initAPI(
 	obs_startup(locale.c_str(), userData.data(), NULL);
 
 	/* Logging */
-	string filename = logFilename;
+	string filename = GenerateTimeDateFilename("txt");
 	string log_path = appdata;
 	log_path.append("/node-obs/logs/");
 
@@ -649,6 +540,12 @@ void OBS_API::OBS_API_initAPI(
 
 	ConfigManager::getInstance().setAppdataPath(appdata);
 
+	/* Set global private settings for whomever it concerns */
+	obs_data_t *private_settings = obs_data_create();
+	obs_data_set_bool(private_settings, "BrowserHWAccel", true);
+	obs_apply_private_data(private_settings);
+	obs_data_release(private_settings);
+
 	int videoError;
 	if (!openAllModules(videoError)) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
@@ -656,9 +553,6 @@ void OBS_API::OBS_API_initAPI(
 		AUTO_DEBUG;
 		return;
 	}
-
-	initGlobalDefault(ConfigManager::getInstance().getGlobal());
-	initBasicDefault(ConfigManager::getInstance().getBasic());
 
 	OBS_service::createService();
 
@@ -675,19 +569,23 @@ void OBS_API::OBS_API_initAPI(
 	OBS_service::createAudioEncoder(&audioRecordingEncoder);
 
 	OBS_service::resetAudioContext();
-	OBS_service::resetVideoContext(NULL);
+	OBS_service::resetVideoContext();
 
 	OBS_service::associateAudioAndVideoToTheCurrentStreamingContext();
 	OBS_service::associateAudioAndVideoToTheCurrentRecordingContext();
 
 	OBS_service::associateAudioAndVideoEncodersToTheCurrentStreamingOutput();
-	OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput();
+	OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(false);
 
 	OBS_service::setServiceToTheStreamingOutput();
 
 	setAudioDeviceMonitoring();
 
+	// We are returning a video result here because the frontend needs to know if we sucessfully
+	// initialized the Dx11 API
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(OBS_VIDEO_SUCCESS));
+
 	AUTO_DEBUG;
 }
 
@@ -803,7 +701,21 @@ void OBS_API::setAudioDeviceMonitoring(void)
 #endif
 }
 
-void OBS_API::destroyOBS_API(void) {
+void OBS_API::StopCrashHandler(
+	void*                          data,
+	const int64_t                  id,
+	const std::vector<ipc::value>& args,
+	std::vector<ipc::value>&       rval)
+{
+	writeCrashHandler(unregisterProcess());
+	writeCrashHandler(terminateCrashHandler());
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void OBS_API::destroyOBS_API(void)
+{
 	os_cpu_usage_info_destroy(cpuUsageInfo);
 
 #ifdef _WIN32
@@ -841,9 +753,23 @@ void OBS_API::destroyOBS_API(void) {
 	if (service != NULL)
 		obs_service_release(service);
 
-	throw "Bla";
-
 	obs_shutdown();
+
+	// Release each obs module (dlls for windows)
+	// TODO: For now we are releasing only the obs-browser.dll because it could lead into a specific 
+	// crash that we are trying to extinguish, the ideia is start releasing all of these dlls someday
+	for (auto& moduleInfo : obsModules) {
+		if (moduleInfo.first.compare("obs-browser.dll") == 0)
+			os_dlclose(moduleInfo.second);
+	}
+
+#ifdef _WIN32
+
+	// TODO: In the future we should release these dlls here
+	for (auto& handle : dynamicLibraries) {
+		// FreeLibrary(handle);
+	}
+#endif
 }
 
 struct ci_char_traits : public char_traits<char>
@@ -887,7 +813,7 @@ typedef std::basic_string<char, ci_char_traits> istring;
 * if we go a server/client route. */
 bool OBS_API::openAllModules(int& video_err)
 {
-	video_err = OBS_service::resetVideoContext(NULL);
+	video_err = OBS_service::resetVideoContext();
 	if (video_err != OBS_VIDEO_SUCCESS) {
 		return false;
 	}
@@ -938,6 +864,7 @@ bool OBS_API::openAllModules(int& video_err)
 
 			switch (result) {
 			case MODULE_SUCCESS:
+				obsModules.push_back(std::make_pair(fullname, module));
 				break;
 			case MODULE_FILE_NOT_FOUND:
 				std::cerr << "Unable to load '" << plugin_path << "', could not find file." << std::endl;
