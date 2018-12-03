@@ -18,11 +18,14 @@
 */
 
 #include "util-crashmanager.h"
+#include "nodeobs_api.h"
 #include <iostream>
 #include <sstream>
 #include <obs.h>
 #include <map>
 #include <vector>
+#include <queue>
+#include <string>
 #include "Shlobj.h"
 #include <WinBase.h>
 
@@ -179,8 +182,8 @@ long UnhandledExecptionMethod(struct _EXCEPTION_POINTERS* ExceptionInfo)
 
 void TerminationMethod()
 {
-#ifndef _DEBUG
-#if defined(_WIN32)
+// #ifndef _DEBUG
+// #if defined(_WIN32)
 
 	// Get the function to rewing the callstack
 	typedef USHORT(WINAPI * CaptureStackBackTraceType)(__in ULONG, __in ULONG, __out PVOID*, __out_opt PULONG);
@@ -229,6 +232,18 @@ void TerminationMethod()
 	// Add the total number of obs leaks
 	s_CustomAnnotations.insert({"OBS Total Leaks", std::to_string(bnum_allocs())});
 
+	// Setup the obs log queue as an attribute
+	if (OBS_API::getOBSLogQueue().size() > 0) {
+		std::queue<std::string> obsLogQueue = OBS_API::getOBSLogQueue();
+		std::string obsLogMessage;
+		while (obsLogQueue.size() > 0) {
+			obsLogMessage.append(obsLogQueue.front().append(obsLogQueue.size() == 1 ? " " : " -> "));
+			obsLogQueue.pop();
+		}
+
+		s_CustomAnnotations.insert({"OBS Log Queue", obsLogMessage});
+	}
+
 	 bool rc = s_CrashpadInfo->client.StartHandler(
 	    s_CrashpadInfo->handler,
 	    s_CrashpadInfo->db,
@@ -243,9 +258,9 @@ void TerminationMethod()
 
 	free(symbol);
 
-#endif
-#endif
-
+// #endif
+// #endif
+	
 	// forces abnormal termination
 	abort(); 
 }

@@ -15,6 +15,7 @@
 #include <locale>
 #include <mutex>
 #include <string>
+#include <queue>
 #include "nodeobs_content.h"
 #endif
 
@@ -236,6 +237,22 @@ inline std::string nodeobs_log_formatted_message(const char* format, va_list& ar
 	return std::string(buf.begin(), buf.begin() + length);
 }
 
+static int              MaxQueueLogSize = 20;
+std::queue<std::string> logQueue;
+void                    LogMessage(std::string _message)
+{
+	// Check the size
+	if (logQueue.size() == MaxQueueLogSize)
+		logQueue.pop();
+
+	logQueue.push(_message);
+}
+
+std::queue<string> OBS_API::getOBSLogQueue()
+{
+	return logQueue;
+}
+
 std::chrono::high_resolution_clock             hrc;
 std::chrono::high_resolution_clock::time_point tp = std::chrono::high_resolution_clock::now();
 static void                                    node_obs_log(int log_level, const char* msg, va_list args, void* param)
@@ -306,6 +323,9 @@ static void                                    node_obs_log(int log_level, const
 
 	// Format incoming text
 	std::string text = nodeobs_log_formatted_message(msg, args);
+
+	// Add it to the log queue
+	LogMessage(text);
 
 	std::fstream* logStream = reinterpret_cast<std::fstream*>(param);
 

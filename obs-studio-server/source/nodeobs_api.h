@@ -70,6 +70,7 @@ class OBS_API
 	static std::vector<std::string> exploreDirectory(std::string directory, std::string typeToReturn);
 
 	public:
+	static std::queue<string>  getOBSLogQueue();
 	static std::string         getPathConfigDirectory(void);
 	static void                setPathConfigDirectory(std::string newPathConfigDirectory);
 	static std::string         getOBS_currentProfile(void);
