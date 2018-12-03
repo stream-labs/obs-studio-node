@@ -194,7 +194,6 @@ class OBS_service
 	static void Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 
 	private:
-	static obs_data_t* createRecordingSettings(void);
 	static bool        startStreaming(void);
 	static bool        startRecording(void);
 	static void        stopStreaming(bool forceStop);
@@ -261,13 +260,13 @@ class OBS_service
 	static bool isStreamingOutputActive(void);
 
 	// Reset contexts
-	static bool resetAudioContext(void);
-	static int  resetVideoContext(const char* outputType);
+	static bool resetAudioContext(bool reload = false);
+	static int  resetVideoContext(bool reload = false);
 
 	static void associateAudioAndVideoToTheCurrentStreamingContext(void);
 	static void associateAudioAndVideoToTheCurrentRecordingContext(void);
 	static void associateAudioAndVideoEncodersToTheCurrentStreamingOutput(void);
-	static void associateAudioAndVideoEncodersToTheCurrentRecordingOutput(void);
+	static void associateAudioAndVideoEncodersToTheCurrentRecordingOutput(bool useStreamingEncoder);
 
 	static int GetAudioBitrate(void);
 

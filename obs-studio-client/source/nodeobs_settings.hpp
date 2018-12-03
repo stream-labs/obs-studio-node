@@ -30,22 +30,22 @@ namespace settings
 			*reinterpret_cast<size_t*>(buffer.data() + indexBuffer) = name.length();
 			indexBuffer += sizeof(size_t);
 			memcpy(buffer.data() + indexBuffer, name.data(), name.length());
-			indexBuffer += name.length();
+			indexBuffer += uint32_t(name.length());
 
 			*reinterpret_cast<size_t*>(buffer.data() + indexBuffer) = description.length();
 			indexBuffer += sizeof(size_t);
 			memcpy(buffer.data() + indexBuffer, description.data(), description.length());
-			indexBuffer += description.length();
+			indexBuffer += uint32_t(description.length());
 
 			*reinterpret_cast<size_t*>(buffer.data() + indexBuffer) = type.length();
 			indexBuffer += sizeof(size_t);
 			memcpy(buffer.data() + indexBuffer, type.data(), type.length());
-			indexBuffer += type.length();
+			indexBuffer += uint32_t(type.length());
 
 			*reinterpret_cast<size_t*>(buffer.data() + indexBuffer) = subType.length();
 			indexBuffer += sizeof(size_t);
 			memcpy(buffer.data() + indexBuffer, subType.data(), subType.length());
-			indexBuffer += subType.length();
+			indexBuffer += uint32_t(subType.length());
 
 			*reinterpret_cast<bool*>(buffer.data() + indexBuffer) = enabled;
 			indexBuffer += sizeof(bool);
@@ -58,7 +58,7 @@ namespace settings
 			indexBuffer += sizeof(size_t);
 
 			memcpy(buffer.data() + indexBuffer, currentValue.data(), sizeOfCurrentValue);
-			indexBuffer += sizeOfCurrentValue;
+			indexBuffer += uint32_t(sizeOfCurrentValue);
 
 			*reinterpret_cast<size_t*>(buffer.data() + indexBuffer) = sizeOfValues;
 			indexBuffer += sizeof(size_t);
@@ -67,7 +67,7 @@ namespace settings
 			indexBuffer += sizeof(size_t);
 
 			memcpy(buffer.data() + indexBuffer, values.data(), sizeOfValues);
-			indexBuffer += sizeOfValues;
+			indexBuffer += uint32_t(sizeOfValues);
 
 			return buffer;
 		}
@@ -90,7 +90,7 @@ namespace settings
 			*reinterpret_cast<size_t*>(buffer.data()) = name.length();
 			indexBuffer += sizeof(size_t);
 			memcpy(buffer.data() + indexBuffer, name.data(), name.length());
-			indexBuffer += name.length();
+			indexBuffer += uint32_t(name.length());
 
 			*reinterpret_cast<uint32_t*>(buffer.data() + indexBuffer) = paramsCount;
 			indexBuffer += sizeof(uint32_t);

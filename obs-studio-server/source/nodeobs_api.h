@@ -46,22 +46,12 @@ class OBS_API
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
-	static void OBS_API_getOBS_existingProfiles(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_API_getOBS_existingSceneCollections(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_API_isOBS_installed(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
 	static void SetWorkingDirectory(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void StopCrashHandler(
 	    void*                          data,
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,
@@ -77,7 +67,6 @@ class OBS_API
 	static double getDroppedFramesPercentage(void);
 	static double getCurrentBandwidth(void);
 	static double getCurrentFrameRate(void);
-	static bool   isOBS_installed(void);
 
 	static std::vector<std::string> exploreDirectory(std::string directory, std::string typeToReturn);
 

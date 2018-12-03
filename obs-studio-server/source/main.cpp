@@ -56,6 +56,8 @@ extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = 1;
 #include "Shlobj.h"
 #endif
 
+#define BUFFSIZE 512
+
 struct ServerData
 {
 	std::mutex                                     mtx;
@@ -92,9 +94,33 @@ namespace System
 	}
 } // namespace System
 
+std::string FormatVAString(const char* const format, va_list args)
+{
+	auto         temp   = std::vector<char>{};
+	auto         length = std::size_t{63};
+	while (temp.size() <= length) {
+		temp.resize(length + 1);
+		const auto status = std::vsnprintf(temp.data(), temp.size(), format, args);
+		if (status < 0)
+			throw std::runtime_error{"string formatting error"};
+		length = static_cast<std::size_t>(status);
+	}
+	return std::string{temp.data(), length};
+}
+
 int main(int argc, char* argv[])
 {
 #ifndef _DEBUG
+
+	struct CrashpadInfo
+	{
+		base::FilePath&           handler;
+		base::FilePath&           db;
+		std::string&              url;
+		std::vector<std::string>& arguments;
+		crashpad::CrashpadClient& client;
+	};
+
 	std::wstring             appdata_path;
 	std::wstring             appdata_log_path;
 	crashpad::CrashpadClient client;
@@ -126,7 +152,9 @@ int main(int argc, char* argv[])
 	arguments.push_back(obsFileLogArgument);
 
 	std::wstring handler_path(L"crashpad_handler.exe");
-	std::string  url("https://submit.backtrace.io/streamlabs/513fa5577d6a193ed34965e18b93d7b00813e9eb2f4b0b7059b30e66afebe4fe/minidump");
+	std::string  url(
+        "https://submit.backtrace.io/streamlabs/513fa5577d6a193ed34965e18b93d7b00813e9eb2f4b0b7059b30e66afebe4fe/"
+        "minidump");
 
 	base::FilePath db(appdata_path);
 	base::FilePath handler(handler_path);
@@ -142,6 +170,10 @@ int main(int argc, char* argv[])
 	
 	rc = client.WaitForHandlerStart(INFINITE);
 	/* TODO Check rc value for errors */
+
+	// Setup the crashpad info that will be used in case the obs throws an error
+	CrashpadInfo crashpadInfo = {handler, db, url, arguments, client};
+
 #endif
 
 	// Usage:
@@ -193,6 +225,34 @@ int main(int argc, char* argv[])
 	myServer.set_connect_handler(ServerConnectHandler, &sd);
 	myServer.set_disconnect_handler(ServerDisconnectHandler, &sd);
 
+#ifndef _DEBUG
+
+	// Handler for obs errors (mainly for bcrash() calls)
+	base_set_crash_handler([](const char* format, va_list args, void* param) { 
+
+		CrashpadInfo* crashpadInfo = (CrashpadInfo*)param;
+		std::map<std::string, std::string> annotations;
+
+		annotations.insert({"OBS bcrash", FormatVAString(format, args)});
+
+		bool rc = crashpadInfo->client.StartHandler(
+		    crashpadInfo->handler,
+		    crashpadInfo->db,
+		    crashpadInfo->db,
+		    crashpadInfo->url,
+		    annotations,
+		    crashpadInfo->arguments,
+		    true,
+		    true);
+
+		rc = crashpadInfo->client.WaitForHandlerStart(INFINITE);
+
+		throw "Induced obs crash";
+
+	}, &crashpadInfo);
+
+#endif
+
 	// Initialize Server
 	try {
 		myServer.initialize(argv[1]);
@@ -207,15 +267,44 @@ int main(int argc, char* argv[])
 	// Reset Connect/Disconnect time.
 	sd.last_disconnect = sd.last_connect = std::chrono::high_resolution_clock::now();
 
+	bool waitBeforeClosing = false;
+
 	while (!doShutdown) {
 		if (sd.count_connected == 0) {
 			auto tp    = std::chrono::high_resolution_clock::now();
 			auto delta = tp - sd.last_disconnect;
 			if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() > 5000) {
 				doShutdown = true;
+				waitBeforeClosing = true;
 			}
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	}
+
+	// Wait on receive the exit message from the crash-handler
+	if (waitBeforeClosing) {
+		HANDLE hPipe;
+		TCHAR  chBuf[BUFFSIZE];
+		DWORD  cbRead;
+		hPipe = CreateNamedPipe(
+		    TEXT("\\\\.\\pipe\\exit-slobs-crash-handler"),
+		    PIPE_ACCESS_DUPLEX,
+		    PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
+		    1,
+		    BUFFSIZE * sizeof(TCHAR),
+		    BUFFSIZE * sizeof(TCHAR),
+		    NULL,
+		    NULL);
+
+		if (hPipe != INVALID_HANDLE_VALUE) {
+			if (ConnectNamedPipe(hPipe, NULL) != FALSE) {
+				BOOL fSuccess = ReadFile(hPipe, chBuf, BUFFSIZE * sizeof(TCHAR), &cbRead, NULL);
+
+				if (!fSuccess)
+					return 0;
+				CloseHandle(hPipe);
+			}
+		}
 	}
 
 	// Finalize Server
