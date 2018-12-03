@@ -45,6 +45,7 @@ uint64_t lastBytesSentTime = 0;
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 std::string                                            slobs_plugin;
 std::vector<std::pair<std::string, obs_module_t*>>     obsModules;
+std::string                                            logFilename;
 
 #ifdef _WIN32
 std::vector<HMODULE> dynamicLibraries;
@@ -104,7 +105,7 @@ static string GenerateTimeDateFilename(const char *extension)
 	snprintf(
 	    file,
 	    sizeof(file),
-	    "%d-%02d-%02d %02d-%02d-%02d.%s",
+	    "%d-%02d-%02d-%02d-%02d-%02d.%s",
 	    cur_time->tm_year + 1900,
 	    cur_time->tm_mon + 1,
 	    cur_time->tm_mday,
@@ -434,6 +435,12 @@ void writeCrashHandler(std::vector<char> buffer) {
 	CloseHandle(hPipe);
 }
 
+std::string OBS_API::SetupLogFilename()
+{
+	logFilename = GenerateTimeDateFilename("log");
+	return logFilename;
+}
+
 void OBS_API::OBS_API_initAPI(
     void*                          data,
     const int64_t                  id,
@@ -502,7 +509,7 @@ void OBS_API::OBS_API_initAPI(
 	obs_startup(locale.c_str(), userData.data(), NULL);
 
 	/* Logging */
-	string filename = GenerateTimeDateFilename("txt");
+	string filename = logFilename;
 	string log_path = appdata;
 	log_path.append("/node-obs/logs/");
 
@@ -716,6 +723,8 @@ void OBS_API::StopCrashHandler(
 
 void OBS_API::destroyOBS_API(void)
 {
+	throw "teste";
+
 	os_cpu_usage_info_destroy(cpuUsageInfo);
 
 #ifdef _WIN32
