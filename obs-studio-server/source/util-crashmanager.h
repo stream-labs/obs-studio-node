@@ -36,11 +36,11 @@ namespace util
 #ifndef _DEBUG
 		struct CrashpadInfo
 		{
-			base::FilePath&           handler;
-			base::FilePath&           db;
-			std::string&              url;
-			std::vector<std::string>& arguments;
-			crashpad::CrashpadClient& client;
+			base::FilePath            handler;
+			base::FilePath            db;
+			std::string               url;
+			std::vector<std::string>  arguments;
+			crashpad::CrashpadClient  client;
 		};
 #else	
 		struct CrashpadInfo {};

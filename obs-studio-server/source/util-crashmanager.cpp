@@ -21,35 +21,30 @@
 #include <iostream>
 #include <sstream>
 #include <obs.h>
-
-#ifndef _DEBUG
-
+#include <map>
+#include <vector>
+#include "Shlobj.h"
 #include <WinBase.h>
+
+#if defined(_WIN32)
+
 #include "DbgHelp.h"
 #pragma comment(lib, "Dbghelp.lib")
-
-	#if defined(_WIN32)
-
-	#include "Shlobj.h"
-	#include <WinBase.h>
-	#include "DbgHelp.h"
-	#pragma comment(lib, "Dbghelp.lib")
-	#include <fcntl.h>
-	#include <io.h>
-	#include <iostream>
-	#include <windows.h>
-
-	#endif
+#include <fcntl.h>
+#include <io.h>
+#include <iostream>
+#include <windows.h>
 
 #endif
 
+// Global/static variables
 util::CrashManager::CrashpadInfo*	s_CrashpadInfo = nullptr;
 std::map<std::string, std::string>	s_CustomAnnotations;
 
 // Forward
 std::string FormatVAString(const char* const format, va_list args);
-LONG        mywindowsterminate(struct _EXCEPTION_POINTERS* ExceptionInfo);
-void        myterminate();
+long        UnhandledExecptionMethod(struct _EXCEPTION_POINTERS* ExceptionInfo);
+void        TerminationMethod();
 void        BindCrtHandlesToStdHandles(bool bindStdIn, bool bindStdOut, bool bindStdErr);
 
 // Class specific
@@ -64,7 +59,6 @@ bool util::CrashManager::Initialize()
 #ifndef _DEBUG
 
 	std::wstring             appdata_path;
-	crashpad::CrashpadClient client;
 
 #if defined(_WIN32)
 	HRESULT hResult;
@@ -96,14 +90,18 @@ bool util::CrashManager::Initialize()
 
 	database->GetSettings()->SetUploadsEnabled(true);
 
-	if (!client.StartHandler(handler, db, db, url, annotations, arguments, true, true))
-		return false;
-
-	if (!client.WaitForHandlerStart(INFINITE))
-		return false;
-
 	// Setup the crashpad info that will be used in case the obs throws an error
-	s_CrashpadInfo = new CrashpadInfo({handler, db, url, arguments, client});
+	s_CrashpadInfo = new CrashpadInfo();
+	s_CrashpadInfo->handler = handler;
+	s_CrashpadInfo->db      = db;
+	s_CrashpadInfo->url     = url;
+	s_CrashpadInfo->arguments = arguments;
+
+	if (!s_CrashpadInfo->client.StartHandler(handler, db, db, url, annotations, arguments, true, true))
+		return false;
+
+	if (!s_CrashpadInfo->client.WaitForHandlerStart(INFINITE))
+		return false;
 
 #endif
 
@@ -123,10 +121,10 @@ void util::CrashManager::Configure()
 
 	    }, nullptr);
 
-	std::set_terminate(myterminate);
+	std::set_terminate(TerminationMethod);
 
 #if defined(_WIN32)
-	SetUnhandledExceptionFilter(mywindowsterminate);
+	SetUnhandledExceptionFilter(UnhandledExecptionMethod);
 #endif
 
 #endif
@@ -145,6 +143,7 @@ void util::CrashManager::OpenConsole()
 #endif
 }
 
+// Format a var arg string into a c++ std::string type
 std::string FormatVAString(const char* const format, va_list args)
 {
 	auto temp   = std::vector<char>{};
@@ -159,7 +158,7 @@ std::string FormatVAString(const char* const format, va_list args)
 	return std::string{temp.data(), length};
 }
 
-LONG mywindowsterminate(struct _EXCEPTION_POINTERS* ExceptionInfo)
+long UnhandledExecptionMethod(struct _EXCEPTION_POINTERS* ExceptionInfo)
 {
 	static bool inside_handler = false;
 
@@ -170,22 +169,23 @@ LONG mywindowsterminate(struct _EXCEPTION_POINTERS* ExceptionInfo)
 	if (inside_handler)
 		return EXCEPTION_CONTINUE_SEARCH;
 
-	inside_handler = true;
-
 	// Call our terminate method to unwing the callstack
-	myterminate();
-
+	inside_handler = true;
+	TerminationMethod();
 	inside_handler = false;
 
 	return EXCEPTION_CONTINUE_SEARCH;
 }
 
-void myterminate()
+void TerminationMethod()
 {
+#ifndef _DEBUG
+#if defined(_WIN32)
+
+	// Get the function to rewing the callstack
 	typedef USHORT(WINAPI * CaptureStackBackTraceType)(__in ULONG, __in ULONG, __out PVOID*, __out_opt PULONG);
 	CaptureStackBackTraceType func =
 	    (CaptureStackBackTraceType)(GetProcAddress(LoadLibrary(L"kernel32.dll"), "RtlCaptureStackBackTrace"));
-
 	if (func == NULL)
 		abort(); // WOE 29.SEP.2010
 
@@ -193,29 +193,35 @@ void myterminate()
 	// ## Windows Server 2003 and Windows XP:
 	// ## The sum of the FramesToSkip and FramesToCapture parameters must be less than 63.
 	const int kMaxCallers = 62;
-
 	void*          callers_stack[kMaxCallers];
 	unsigned short frames;
 	SYMBOL_INFO*   symbol;
 	HANDLE         process;
+
+	// Get the callstack information
 	process = GetCurrentProcess();
 	SymInitialize(process, NULL, TRUE);
 	frames               = (func)(0, kMaxCallers, callers_stack, NULL);
 	symbol               = (SYMBOL_INFO*)calloc(sizeof(SYMBOL_INFO) + 256 * sizeof(char), 1);
 	symbol->MaxNameLen   = 255;
 	symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+	std::string callStackString;
 
-	// std::cout << "(" << (int)this << "): " << std::endl;
-	const unsigned short MAX_CALLERS_SHOWN = 30;
+	// Currently 20 is the maximum that we can display on backtrace in one single attribute
+	const unsigned short MAX_CALLERS_SHOWN = 20;
 	frames                                 = frames < MAX_CALLERS_SHOWN ? frames : MAX_CALLERS_SHOWN;
 	for (unsigned int i = 0; i < frames; i++) {
 		SymFromAddr(process, (DWORD64)(callers_stack[i]), 0, symbol);
 
+		// Setup a readable callstack string
 		std::stringstream buffer;
 		buffer << callers_stack[i] << " " << symbol->Name << " - 0x" << symbol->Address
 		          << std::endl;
-		s_CustomAnnotations.insert({std::string("CallStack " + std::to_string(i)), buffer.str()});
+		callStackString.append(symbol->Name + (i == frames-1 ? "" : std::string(" -> ")));
 	}
+
+	// Use a custom annotation entry for it
+	s_CustomAnnotations.insert({std::string("CallStack"), callStackString});
 
 	 bool rc = s_CrashpadInfo->client.StartHandler(
 	    s_CrashpadInfo->handler,
@@ -231,7 +237,11 @@ void myterminate()
 
 	free(symbol);
 
-	abort(); // forces abnormal termination
+#endif
+#endif
+
+	// forces abnormal termination
+	abort(); 
 }
 
 void BindCrtHandlesToStdHandles(bool bindStdIn, bool bindStdOut, bool bindStdErr)
