@@ -43,12 +43,15 @@
 // Global/static variables
 util::CrashManager::CrashpadInfo*	s_CrashpadInfo = nullptr;
 std::map<std::string, std::string>	s_CustomAnnotations;
+bool                                s_IgnoreFutureCrashes = false;
 
 // Forward
 std::string FormatVAString(const char* const format, va_list args);
 long        UnhandledExecptionMethod(struct _EXCEPTION_POINTERS* ExceptionInfo);
 void        TerminationMethod();
 void        BindCrtHandlesToStdHandles(bool bindStdIn, bool bindStdOut, bool bindStdErr);
+void        AtExitMethod();
+bool        RewindCallStack() noexcept;
 
 // Class specific
 util::CrashManager::~CrashManager()
@@ -130,6 +133,10 @@ void util::CrashManager::Configure()
 	SetUnhandledExceptionFilter(UnhandledExecptionMethod);
 #endif
 
+	// The atexit will check if obs was safelly closed
+	std::atexit(AtExitMethod);
+	std::at_quick_exit(AtExitMethod);
+
 #endif
 }
 
@@ -161,6 +168,25 @@ std::string FormatVAString(const char* const format, va_list args)
 	return std::string{temp.data(), length};
 }
 
+void AtExitMethod()
+{
+	// If we are exiting normally and obs is active, we have a problem because some
+	// modules and threads could potentially be running and this will result in a 
+	// crash that is masked. The real issue here is why we are exiting without 
+	// finishing the obs first.
+	if (obs_initialized()) {
+		
+		// This will make sure a correct crash report will be made in case we have
+		// a crash on shutdown
+		RewindCallStack();
+
+		// Setting this will make sure that if the code breaks on a DLL or any other
+		// future location after this atexit callback, we won't generate another crash
+		// report. This will make sure that we will maintain the correct log on crashpad.
+		s_IgnoreFutureCrashes = true;
+	}
+}
+
 long UnhandledExecptionMethod(struct _EXCEPTION_POINTERS* ExceptionInfo)
 {
 	static bool inside_handler = false;
@@ -169,7 +195,7 @@ long UnhandledExecptionMethod(struct _EXCEPTION_POINTERS* ExceptionInfo)
 	if (IsDebuggerPresent())
 		return EXCEPTION_CONTINUE_SEARCH;
 
-	if (inside_handler)
+	if (inside_handler || s_IgnoreFutureCrashes)
 		return EXCEPTION_CONTINUE_SEARCH;
 
 	// Call our terminate method to unwing the callstack
@@ -180,7 +206,7 @@ long UnhandledExecptionMethod(struct _EXCEPTION_POINTERS* ExceptionInfo)
 	return EXCEPTION_CONTINUE_SEARCH;
 }
 
-void TerminationMethod()
+bool RewindCallStack() noexcept
 {
 #ifndef _DEBUG
 #if defined(_WIN32)
@@ -190,12 +216,12 @@ void TerminationMethod()
 	CaptureStackBackTraceType func =
 	    (CaptureStackBackTraceType)(GetProcAddress(LoadLibrary(L"kernel32.dll"), "RtlCaptureStackBackTrace"));
 	if (func == NULL)
-		abort(); // WOE 29.SEP.2010
+		return false; // WOE 29.SEP.2010
 
 	// Quote from Microsoft Documentation:
 	// ## Windows Server 2003 and Windows XP:
 	// ## The sum of the FramesToSkip and FramesToCapture parameters must be less than 63.
-	const int kMaxCallers = 62;
+	const int      kMaxCallers = 62;
 	void*          callers_stack[kMaxCallers];
 	unsigned short frames;
 	SYMBOL_INFO*   symbol;
@@ -218,9 +244,8 @@ void TerminationMethod()
 
 		// Setup a readable callstack string
 		std::stringstream buffer;
-		buffer << callers_stack[i] << " " << symbol->Name << " - 0x" << symbol->Address
-		          << std::endl;
-		callStackString.append(symbol->Name + (i == frames-1 ? "" : std::string(" -> ")));
+		buffer << callers_stack[i] << " " << symbol->Name << " - 0x" << symbol->Address << std::endl;
+		callStackString.append(symbol->Name + (i == frames - 1 ? "" : std::string(" -> ")));
 	}
 
 	// Use a custom annotation entry for it
@@ -235,7 +260,7 @@ void TerminationMethod()
 	// Setup the obs log queue as an attribute
 	if (OBS_API::getOBSLogQueue().size() > 0) {
 		std::queue<std::string> obsLogQueue = OBS_API::getOBSLogQueue();
-		std::string obsLogMessage;
+		std::string             obsLogMessage;
 		while (obsLogQueue.size() > 0) {
 			obsLogMessage.append(obsLogQueue.front().append(obsLogQueue.size() == 1 ? " " : " -> "));
 			obsLogQueue.pop();
@@ -244,7 +269,7 @@ void TerminationMethod()
 		s_CustomAnnotations.insert({"OBS Log Queue", obsLogMessage});
 	}
 
-	 bool rc = s_CrashpadInfo->client.StartHandler(
+	bool rc = s_CrashpadInfo->client.StartHandler(
 	    s_CrashpadInfo->handler,
 	    s_CrashpadInfo->db,
 	    s_CrashpadInfo->db,
@@ -258,11 +283,20 @@ void TerminationMethod()
 
 	free(symbol);
 
+	return true;
+
 #endif
 #endif
-	
-	// forces abnormal termination
-	abort(); 
+}
+
+void TerminationMethod()
+{
+	if (s_IgnoreFutureCrashes)
+		abort();
+
+	RewindCallStack();
+
+	abort();
 }
 
 void BindCrtHandlesToStdHandles(bool bindStdIn, bool bindStdOut, bool bindStdErr)
