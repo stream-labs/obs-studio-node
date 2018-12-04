@@ -13,6 +13,15 @@ environment:
       RuntimeVersion: v2.0.8
       NodeVersion: 8
 
+    - RuntimeURL: https://atom.io/download/atom-shell
+      RuntimeName: iojs
+      RuntimeVersion: v4.1.4
+
+    - RuntimeURL: https://atom.io/download/atom-shell
+      RuntimeName: iojs
+      RuntimeVersion: v5.0.0-beta.3
+
+  NodeVersion: 10
   SLBuildDirectory: streamlabs-build
   SLGenerator: Visual Studio 15 2017 Win64
   SLDistributeDirectory: distribute
