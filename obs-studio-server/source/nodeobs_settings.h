@@ -214,5 +214,6 @@ class OBS_settings
 	                                     obs_data_t*             settings,
 	                                     std::vector<Parameter>* subCategoryParameters,
 	                                     int                     index,
-	                                     bool                    isCategoryEnabled);
+	                                     bool                    isCategoryEnabled,
+	                                     bool                    recordEncoder);
 };
