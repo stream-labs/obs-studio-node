@@ -43,6 +43,7 @@
 // Global/static variables
 util::CrashManager::CrashpadInfo*	s_CrashpadInfo = nullptr;
 std::map<std::string, std::string>	s_CustomAnnotations;
+std::vector<std::string>            s_HandledOBSCrashes;
 bool                                s_IgnoreFutureCrashes = false;
 
 // Forward
@@ -116,11 +117,47 @@ bool util::CrashManager::Initialize()
 
 void util::CrashManager::Configure() 
 {
-#ifndef _DEBUG
+	// Add all obs crashes that arr supposed to be handled by our application
+	s_HandledOBSCrashes.push_back("Failed to recreate D3D11");
+
+// #ifndef _DEBUG
 
 	// Handler for obs errors (mainly for bcrash() calls)
 	base_set_crash_handler(
 	    [](const char* format, va_list args, void* param) {
+
+			for (auto& handledCrashes : s_HandledOBSCrashes) {
+			    if (std::string(format).find(handledCrashes) != std::string::npos) {
+			    
+					/*
+						Do something here that will show to the user the error and that
+						we cannot continue (the server will crash)
+					*/
+
+					// Disable crashpad
+				    if (s_CrashpadInfo != nullptr) {
+					    delete s_CrashpadInfo;
+					    s_CrashpadInfo = nullptr;
+				    }
+
+					/*
+					std::string errorMessage = std::string(
+				        "The Streamlabs OBS encontered an internal error and will now close, if you are receiving this "
+				        "type of error frequently please contact our support! Error message: "
+				        + FormatVAString(format, args));
+
+					MessageBox(
+				        nullptr,
+				        std::wstring(errorMessage.begin(), errorMessage.end()).c_str(),
+				        TEXT("Streamlabs OBS Crash"),
+				        MB_OK);
+					*/
+
+					s_IgnoreFutureCrashes = true;
+				    break;
+				}
+			}
+
 		    s_CustomAnnotations.insert({"OBS bcrash", FormatVAString(format, args)});
 
 		    throw "Induced obs crash";
@@ -137,7 +174,7 @@ void util::CrashManager::Configure()
 	std::atexit(AtExitMethod);
 	std::at_quick_exit(AtExitMethod);
 
-#endif
+// #endif
 }
 
 void util::CrashManager::OpenConsole()
