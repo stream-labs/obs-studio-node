@@ -173,8 +173,8 @@ void initBasicDefault(config_t* config)
 	config_set_default_string(config, "Video", "ColorRange", "Partial");
 
 	// Set default value for EnableGPUAsRenderDevice
-	if (!config_has_user_value(config, "Video", "EnableGPUAsRenderDevice")) {
-		config_set_bool(config, "Video", "EnableGPUAsRenderDevice", true);
+	if (!config_has_user_value(config, "Video", "ForceGPUAsRenderDevice")) {
+		config_set_bool(config, "Video", "ForceGPUAsRenderDevice", true);
 	}
 
 	config_set_default_string(config, "Audio", "MonitoringDeviceId", "default");

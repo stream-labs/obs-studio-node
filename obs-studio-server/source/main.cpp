@@ -52,7 +52,7 @@
 #if defined(_WIN32)
 #include "Shlobj.h"
 
-// Checks EnableGPUAsRenderDevice setting
+// Checks ForceGPUAsRenderDevice setting
 extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = [] {
 	LPWSTR       roamingPath;
 	std::wstring filePath;
@@ -73,7 +73,7 @@ extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = [] {
 
 	if (file.is_open()) {
 		while (std::getline(file, line)) {
-			if (line.find("EnableGPUAsRenderDevice", 0) != std::string::npos) {
+			if (line.find("ForceGPUAsRenderDevice", 0) != std::string::npos) {
 				if (line.substr(line.find('=') + 1) == "false") {
 					settingValue = false;
 					file.close();
