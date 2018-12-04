@@ -182,8 +182,8 @@ long UnhandledExecptionMethod(struct _EXCEPTION_POINTERS* ExceptionInfo)
 
 void TerminationMethod()
 {
-// #ifndef _DEBUG
-// #if defined(_WIN32)
+#ifndef _DEBUG
+#if defined(_WIN32)
 
 	// Get the function to rewing the callstack
 	typedef USHORT(WINAPI * CaptureStackBackTraceType)(__in ULONG, __in ULONG, __out PVOID*, __out_opt PULONG);
@@ -258,8 +258,8 @@ void TerminationMethod()
 
 	free(symbol);
 
-// #endif
-// #endif
+#endif
+#endif
 	
 	// forces abnormal termination
 	abort(); 
