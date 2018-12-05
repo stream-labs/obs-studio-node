@@ -17,7 +17,7 @@ std::string aacStreamEncID;
 
 std::string videoEncoder;
 std::string videoQuality;
-bool        usingRecordingPreset = false;
+bool        usingRecordingPreset = true;
 bool        recordingConfigured  = false;
 bool        ffmpegOutput         = false;
 bool        lowCPUx264           = false;
@@ -588,7 +588,7 @@ void OBS_service::createAudioEncoder(obs_encoder_t** audioEncoder)
 		return;
 	}
 
-	if (usingRecordingPreset)
+	if (audioEncoder != NULL && usingRecordingPreset)
 		obs_encoder_release(*audioEncoder);
 
 	*audioEncoder = obs_audio_encoder_create(id, "simple_audio", nullptr, 0, nullptr);
@@ -898,7 +898,7 @@ bool OBS_service::startRecording(void)
 	}
 
 	if (strcmp(codec, "aac") == 0) {
-		createAudioEncoder(&audioStreamingEncoder);
+		createAudioEncoder(&audioRecordingEncoder);
 	} else {
 		const char* id           = FindAudioEncoderFromCodec(codec);
 		int         audioBitrate = GetAudioBitrate();
@@ -916,7 +916,6 @@ bool OBS_service::startRecording(void)
 	}
 
 	isRecording = true;
-	createAudioEncoder(&audioRecordingEncoder);
 	updateRecordSettings();
 
 	if (!obs_output_start(recordingOutput)) {
@@ -1230,7 +1229,6 @@ void OBS_service::updateRecordingOutput(void)
         strPath += "/";
 
     bool ffmpegOutput = false;
-    bool usingRecordingPreset = true;
 
     if(filenameFormat != NULL && format != NULL) {
         strPath += GenerateSpecifiedFilename(ffmpegOutput ? "avi" : format, noSpace, filenameFormat);
