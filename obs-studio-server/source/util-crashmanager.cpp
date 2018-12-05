@@ -73,7 +73,7 @@ bool util::CrashManager::Initialize()
 		    // Check if this crash error is handled internally (if this is a known
 			// error that we can't do anything about it, just let the application
 			// crash normally
-		    if (!TryHandledCrash(std::string(format), errorMessage))
+		    if (!TryHandleCrash(std::string(format), errorMessage))
 			    HandleCrash(errorMessage);
 		},
 	    nullptr);
@@ -114,6 +114,8 @@ void util::CrashManager::Configure()
 	// Add all obs crash messages that are supposed to be handled by our application and
 	// shouldn't cause a crash report (because there is no point on reporting since we
 	// cannot control them)
+	// You don't need to set the entire message, we will just check for a substring match
+	// in the main error message
 	{
 		s_HandledOBSCrashes.push_back("Failed to recreate D3D11");
 		// ...
@@ -179,13 +181,15 @@ void util::CrashManager::HandleExit() noexcept
 	// finishing the obs first.
 	if (obs_initialized()) {
 		
-		// Proceed to add more info to our crash reporter and finish with a call to
-		// abort since we never should close obs without finishing it first.
-		HandleCrash("AtExit");
+		// Proceed to add more info to our crash reporter but don't call abort, we
+		// cannot ensure that when at exit a call to obs_initialized will be safe, it
+		// could be in an invalid state, we will let the application continue and if
+		// this results in a crash at least we will know what caused it
+		HandleCrash("AtExit", false);
 	}
 }
 
-void util::CrashManager::HandleCrash(std::string _crashInfo) noexcept 
+void util::CrashManager::HandleCrash(std::string _crashInfo, bool _callAbort) noexcept
 {
 	// If for any reason this is true, it means that we are crashing inside this same
 	// method, if that happens just call abort and ignore any remaining processing since
@@ -223,13 +227,13 @@ void util::CrashManager::HandleCrash(std::string _crashInfo) noexcept
 	rc = s_CrashpadInfo->client.WaitForHandlerStart(5000);
 
 	// Finish with a call to abort since there is no point on continuing
-	abort();
+	if(_callAbort) abort();
 
-	// Unreachable statement
+	// Unreachable statement if _callAbort is true
 	insideCrashMethod = false;
 }
 
-bool util::CrashManager::TryHandledCrash(std::string _format, std::string _crashMessage)
+bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashMessage)
 {
 	bool crashIsHandled = false;
 	for (auto& handledCrashes : s_HandledOBSCrashes) {
@@ -246,10 +250,6 @@ bool util::CrashManager::TryHandledCrash(std::string _format, std::string _crash
 	// (because we don't need to handle it or we cannot control it), the ideal would be just
 	// a call to stop the crashpad handler but since it doesn't have a method like this we
 	// can try to finish the application normally to avoid any crash report
-	if (s_CrashpadInfo != nullptr) {
-		delete s_CrashpadInfo;
-		s_CrashpadInfo = nullptr;
-	}
 
 	// Optionally send a message to the user
 	if (false) {
@@ -268,6 +268,10 @@ bool util::CrashManager::TryHandledCrash(std::string _format, std::string _crash
 	// If we cannot destroy the obs and exit normally without causing a crash report, 
 	// proceed with a crash
 	try {
+		// If for any reason a call to bcrash is made when inside the shutdown method below, the
+		// obs will internally detect this and call exit(2), that will call our method HandleExit
+		// that will handle this crash, because that there is no point on checking for recursive
+		// calls
 		OBS_API::destroyOBS_API();
 		exit(0);
 	} catch (...) {
