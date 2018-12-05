@@ -56,9 +56,9 @@ class OBS_API
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
 
+	static void destroyOBS_API(void);
 	private:
 	static void initAPI(void);
-	static void destroyOBS_API(void);
 	static bool openAllModules(int& video_err);
 
 	static double getCPU_Percentage(void);

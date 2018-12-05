@@ -91,18 +91,18 @@ bool util::CrashManager::Initialize()
 	base::FilePath db(appdata_path);
 	base::FilePath handler(handler_path);
 
-	std::unique_ptr<crashpad::CrashReportDatabase> database = crashpad::CrashReportDatabase::Initialize(db);
-	if (database == nullptr || database->GetSettings() == NULL)
-		return false;
-
-	database->GetSettings()->SetUploadsEnabled(true);
-
 	// Setup the crashpad info that will be used in case the obs throws an error
 	s_CrashpadInfo = new CrashpadInfo();
 	s_CrashpadInfo->handler = handler;
 	s_CrashpadInfo->db      = db;
 	s_CrashpadInfo->url     = url;
 	s_CrashpadInfo->arguments = arguments;
+
+	s_CrashpadInfo->database = crashpad::CrashReportDatabase::Initialize(db);
+	if (s_CrashpadInfo->database == nullptr || s_CrashpadInfo->database->GetSettings() == NULL)
+		return false;
+
+	s_CrashpadInfo->database->GetSettings()->SetUploadsEnabled(true);
 
 	if (!s_CrashpadInfo->client.StartHandler(handler, db, db, url, annotations, arguments, true, true))
 		return false;
@@ -115,51 +115,57 @@ bool util::CrashManager::Initialize()
 	return true;
 }
 
+void HandleKnownBCrashes(std::string _format, std::string _crashMessage)
+{
+	for (auto& handledCrashes : s_HandledOBSCrashes) {
+		if (std::string(_format).find(handledCrashes) != std::string::npos) {
+			static bool isCrashing = false;
+			if (isCrashing)
+				break;
+
+			// Disable crashpad
+			if (s_CrashpadInfo != nullptr) {
+				delete s_CrashpadInfo;
+				s_CrashpadInfo = nullptr;
+			}
+			
+			std::string errorMessage = std::string(
+			    "The Streamlabs OBS encontered an internal error and will now close, if you are receiving this "
+			    "type of error frequently please contact our support! Error message: "
+			    + _crashMessage);
+
+			MessageBox(
+			    nullptr,
+			    std::wstring(errorMessage.begin(), errorMessage.end()).c_str(),
+			    TEXT("Streamlabs OBS Crash"),
+			    MB_OK);
+			
+			s_IgnoreFutureCrashes = true;
+			isCrashing            = true;
+			OBS_API::destroyOBS_API();
+			isCrashing = false;
+			exit(0);
+
+			break;
+		}
+	}
+}
+
 void util::CrashManager::Configure() 
 {
 	// Add all obs crashes that arr supposed to be handled by our application
 	s_HandledOBSCrashes.push_back("Failed to recreate D3D11");
 
-// #ifndef _DEBUG
+#ifndef _DEBUG
 
 	// Handler for obs errors (mainly for bcrash() calls)
 	base_set_crash_handler(
 	    [](const char* format, va_list args, void* param) {
 
-			for (auto& handledCrashes : s_HandledOBSCrashes) {
-			    if (std::string(format).find(handledCrashes) != std::string::npos) {
-			    
-					/*
-						Do something here that will show to the user the error and that
-						we cannot continue (the server will crash)
-					*/
-
-					// Disable crashpad
-				    if (s_CrashpadInfo != nullptr) {
-					    delete s_CrashpadInfo;
-					    s_CrashpadInfo = nullptr;
-				    }
-
-					/*
-					std::string errorMessage = std::string(
-				        "The Streamlabs OBS encontered an internal error and will now close, if you are receiving this "
-				        "type of error frequently please contact our support! Error message: "
-				        + FormatVAString(format, args));
-
-					MessageBox(
-				        nullptr,
-				        std::wstring(errorMessage.begin(), errorMessage.end()).c_str(),
-				        TEXT("Streamlabs OBS Crash"),
-				        MB_OK);
-					*/
-
-					s_IgnoreFutureCrashes = true;
-				    break;
-				}
-			}
+			// Check if this crash error is known (if true, handle it and exit)
+		    HandleKnownBCrashes(std::string(format), FormatVAString(format, args));
 
 		    s_CustomAnnotations.insert({"OBS bcrash", FormatVAString(format, args)});
-
 		    throw "Induced obs crash";
 
 	    }, nullptr);
@@ -174,7 +180,7 @@ void util::CrashManager::Configure()
 	std::atexit(AtExitMethod);
 	std::at_quick_exit(AtExitMethod);
 
-// #endif
+#endif
 }
 
 void util::CrashManager::OpenConsole()

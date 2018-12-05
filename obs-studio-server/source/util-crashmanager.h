@@ -21,11 +21,11 @@
 #include <cstddef>
 #include <cstdlib>
 
-#ifndef _DEBUG
+// #ifndef _DEBUG
 #include "client/crash_report_database.h"
 #include "client/crashpad_client.h"
 #include "client/settings.h"
-#endif
+// #endif
 
 namespace util
 {
@@ -41,6 +41,7 @@ namespace util
 			std::string               url;
 			std::vector<std::string>  arguments;
 			crashpad::CrashpadClient  client;
+			std::unique_ptr<crashpad::CrashReportDatabase> database;
 		};
 #else	
 		struct CrashpadInfo {};
