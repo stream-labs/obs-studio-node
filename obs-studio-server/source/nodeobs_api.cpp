@@ -39,11 +39,10 @@
 
 #define BUFFSIZE 512
 
-
-std::string g_moduleDirectory = "";
-os_cpu_usage_info_t *cpuUsageInfo = nullptr;
-uint64_t lastBytesSent = 0;
-uint64_t lastBytesSentTime = 0;
+std::string                                            g_moduleDirectory = "";
+os_cpu_usage_info_t*                                   cpuUsageInfo      = nullptr;
+uint64_t                                               lastBytesSent     = 0;
+uint64_t                                               lastBytesSentTime = 0;
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 std::string                                            slobs_plugin;
 std::vector<std::pair<std::string, obs_module_t*>>     obsModules;
@@ -66,8 +65,8 @@ void OBS_API::Register(ipc::server& srv)
 	    "OBS_API_getPerformanceStatistics", std::vector<ipc::type>{}, OBS_API_getPerformanceStatistics));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SetWorkingDirectory", std::vector<ipc::type>{ipc::type::String}, SetWorkingDirectory));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "StopCrashHandler", std::vector<ipc::type>{}, StopCrashHandler));
+	cls->register_function(
+	    std::make_shared<ipc::function>("StopCrashHandler", std::vector<ipc::type>{}, StopCrashHandler));
 
 	srv.register_collection(cls);
 }
@@ -96,7 +95,7 @@ void OBS_API::SetWorkingDirectory(
 	AUTO_DEBUG;
 }
 
-static string GenerateTimeDateFilename(const char *extension)
+static string GenerateTimeDateFilename(const char* extension)
 {
 	time_t     now       = time(0);
 	char       file[256] = {};
@@ -361,10 +360,11 @@ static void                                    node_obs_log(int log_level, const
 
 uint32_t pid = GetCurrentProcessId();
 
-std::vector<char> registerProcess(void) {
+std::vector<char> registerProcess(void)
+{
 	std::vector<char> buffer;
 	buffer.resize(sizeof(uint8_t) + sizeof(bool) + sizeof(uint32_t));
-	uint8_t action = 0;
+	uint8_t action     = 0;
 	bool    isCritical = true;
 
 	uint32_t offset = 0;
@@ -408,16 +408,10 @@ std::vector<char> terminateCrashHandler(void)
 	return buffer;
 }
 
-void writeCrashHandler(std::vector<char> buffer) {
+void writeCrashHandler(std::vector<char> buffer)
+{
 	HANDLE hPipe = CreateFile(
-	    TEXT("\\\\.\\pipe\\slobs-crash-handler"),
-	    GENERIC_READ |
-	    GENERIC_WRITE,
-	    0,
-	    NULL,
-	    OPEN_EXISTING,
-	    0,
-	    NULL);
+	    TEXT("\\\\.\\pipe\\slobs-crash-handler"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 
 	if (hPipe == INVALID_HANDLE_VALUE)
 		return;
@@ -427,11 +421,7 @@ void writeCrashHandler(std::vector<char> buffer) {
 
 	DWORD bytesWritten;
 
-	WriteFile(
-	    hPipe,
-	    buffer.data(),
-	    buffer.size(), &bytesWritten,
-	    NULL);
+	WriteFile(hPipe, buffer.data(), buffer.size(), &bytesWritten, NULL);
 
 	CloseHandle(hPipe);
 }
@@ -451,7 +441,7 @@ void OBS_API::OBS_API_initAPI(
 	/* FIXME These should be configurable */
 	/* FIXME g_moduleDirectory really needs to be a wstring */
 	std::string appdata = args[0].value_str;
-	std::string locale = args[1].value_str;
+	std::string locale  = args[1].value_str;
 
 	/* Also note that this method is possible on POSIX
 	* as well. You can call dlopen with RTLD_GLOBAL
@@ -488,7 +478,7 @@ void OBS_API::OBS_API_initAPI(
 		dynamicLibraries.push_back(HMODULE(handle));
 #endif
 	}
-	
+
 	/* libobs will use three methods of finding data files:
 	* 1. ${CWD}/data/libobs <- This doesn't work for us
 	* 2. ${OBS_DATA_PATH}/libobs <- This works but is inflexible
@@ -543,7 +533,7 @@ void OBS_API::OBS_API_initAPI(
 	ConfigManager::getInstance().setAppdataPath(appdata);
 
 	/* Set global private settings for whomever it concerns */
-	obs_data_t *private_settings = obs_data_create();
+	obs_data_t* private_settings = obs_data_create();
 	obs_data_set_bool(private_settings, "BrowserHWAccel", true);
 	obs_apply_private_data(private_settings);
 	obs_data_release(private_settings);
@@ -644,8 +634,7 @@ void OBS_API::SetProcessPriority(const char* priority)
 
 void OBS_API::UpdateProcessPriority()
 {
-	const char *priority = config_get_string(ConfigManager::getInstance().getGlobal(),
-		"General", "ProcessPriority");
+	const char* priority = config_get_string(ConfigManager::getInstance().getGlobal(), "General", "ProcessPriority");
 	if (priority && strcmp(priority, "Normal") != 0)
 		SetProcessPriority(priority);
 }
@@ -685,19 +674,17 @@ bool DisableAudioDucking(bool disable)
 
 void OBS_API::setAudioDeviceMonitoring(void)
 {
-	/* load audio monitoring */
+/* load audio monitoring */
 #if defined(_WIN32) || defined(__APPLE__)
-	const char *device_name = config_get_string(ConfigManager::getInstance().getBasic(), "Audio",
-		"MonitoringDeviceName");
-	const char *device_id = config_get_string(ConfigManager::getInstance().getBasic(), "Audio",
-		"MonitoringDeviceId");
+	const char* device_name =
+	    config_get_string(ConfigManager::getInstance().getBasic(), "Audio", "MonitoringDeviceName");
+	const char* device_id = config_get_string(ConfigManager::getInstance().getBasic(), "Audio", "MonitoringDeviceId");
 
 	obs_set_audio_monitoring_device(device_name, device_id);
 
 	blog(LOG_INFO, "Audio monitoring device:\n\tname: %s\n\tid: %s", device_name, device_id);
 
-	bool disableAudioDucking = config_get_bool(ConfigManager::getInstance().getBasic(), "Audio",
-		"DisableAudioDucking");
+	bool disableAudioDucking = config_get_bool(ConfigManager::getInstance().getBasic(), "Audio", "DisableAudioDucking");
 	if (disableAudioDucking)
 		DisableAudioDucking(true);
 #endif
@@ -708,33 +695,77 @@ void acknowledgeTerminate(void)
 	HANDLE hPipe;
 	TCHAR  chBuf[BUFFSIZE];
 	DWORD  cbRead;
+
 	hPipe = CreateNamedPipe(
 	    TEXT("\\\\.\\pipe\\exit-slobs-crash-handler"),
 	    PIPE_ACCESS_DUPLEX,
-	    PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
+	    PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_NOWAIT,
 	    1,
 	    BUFFSIZE * sizeof(TCHAR),
 	    BUFFSIZE * sizeof(TCHAR),
-	    NULL,
+	    200,
 	    NULL);
-	if (hPipe != INVALID_HANDLE_VALUE) {
-		if (ConnectNamedPipe(hPipe, NULL) != FALSE) {
+
+	bool exit = false;
+
+	auto timeNow = std::chrono::high_resolution_clock::now();
+
+	while (!exit) {
+		auto tp    = std::chrono::high_resolution_clock::now();
+		auto delta = tp - timeNow;
+
+		if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() > 5000) {
+			// We timeout, crash handler failed to send the shutdown acknowledge,
+			// we move forward with the shutdown procedure
+			exit = true;
+			CloseHandle(hPipe);
+			break;
+		}
+
+		if (!ConnectNamedPipe(hPipe, NULL)) {
+			switch (GetLastError()) {
+			case ERROR_PIPE_CONNECTED: {
+				// Crash handler connected, we read and acknwoledge the shutdown
+				BOOL fSuccess = ReadFile(hPipe, chBuf, BUFFSIZE * sizeof(TCHAR), &cbRead, NULL);
+				if (!fSuccess)
+					return;
+				CloseHandle(hPipe);
+				exit = true;
+				break;
+			}
+			case ERROR_NO_DATA: {
+				DisconnectNamedPipe(hPipe);
+				break;
+			}
+			case ERROR_PIPE_LISTENING: {
+				break;
+			}
+			default:
+				break;
+			}
+		} else {
+			// Crash handler connected, we read and acknwoledge the shutdown
 			BOOL fSuccess = ReadFile(hPipe, chBuf, BUFFSIZE * sizeof(TCHAR), &cbRead, NULL);
 			if (!fSuccess)
 				return;
 			CloseHandle(hPipe);
+			exit = true;
 		}
 	}
 }
 
 void OBS_API::StopCrashHandler(
-	void*                          data,
-	const int64_t                  id,
-	const std::vector<ipc::value>& args,
-	std::vector<ipc::value>&       rval)
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
 {
+	std::thread worker(acknowledgeTerminate);
 	writeCrashHandler(unregisterProcess());
-	acknowledgeTerminate();
+
+	if (worker.joinable())
+		worker.join();
+
 	writeCrashHandler(terminateCrashHandler());
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -746,8 +777,7 @@ void OBS_API::destroyOBS_API(void)
 	os_cpu_usage_info_destroy(cpuUsageInfo);
 
 #ifdef _WIN32
-	bool disableAudioDucking = config_get_bool(ConfigManager::getInstance().getBasic(), "Audio",
-		"DisableAudioDucking");
+	bool disableAudioDucking = config_get_bool(ConfigManager::getInstance().getBasic(), "Audio", "DisableAudioDucking");
 	if (disableAudioDucking)
 		DisableAudioDucking(false);
 #endif
@@ -784,9 +814,8 @@ void OBS_API::destroyOBS_API(void)
 
 	// Release each obs module (dlls for windows)
 	// TODO: We should release these modules (dlls) manually and not let the garbage
-	// collector do this for us on shutdown 
+	// collector do this for us on shutdown
 	for (auto& moduleInfo : obsModules) {
-
 	}
 
 #ifdef _WIN32
@@ -794,7 +823,6 @@ void OBS_API::destroyOBS_API(void)
 	// TODO: In the future we should release these dlls here instead letting the garbage
 	// collector do this job
 	for (auto& handle : dynamicLibraries) {
-	
 	}
 #endif
 }
@@ -845,7 +873,9 @@ bool OBS_API::openAllModules(int& video_err)
 		return false;
 	}
 
-	std::string plugins_paths[] = {g_moduleDirectory + "/obs-plugins/64bit", g_moduleDirectory + "/obs-plugins", slobs_plugin + "/obs-plugins/64bit"};
+	std::string plugins_paths[] = {g_moduleDirectory + "/obs-plugins/64bit",
+	                               g_moduleDirectory + "/obs-plugins",
+	                               slobs_plugin + "/obs-plugins/64bit"};
 
 	std::string plugins_data_paths[] = {
 	    g_moduleDirectory + "/data/obs-plugins", plugins_data_paths[0], slobs_plugin + "/data/obs-plugins"};
@@ -1003,10 +1033,7 @@ double OBS_API::getCurrentFrameRate(void)
 	return obs_get_active_fps();
 }
 
-static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor,
-	HDC      hdcMonitor,
-	LPRECT   lprcMonitor,
-	LPARAM   dwData)
+static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData)
 {
 	MONITORINFO info;
 	info.cbSize = sizeof(info);
