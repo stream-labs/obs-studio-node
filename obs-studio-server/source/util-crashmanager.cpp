@@ -105,6 +105,8 @@ bool util::CrashManager::Initialize()
 	std::at_quick_exit(HandleExit);
 
 #endif
+
+	return true;
 }
 
 void util::CrashManager::Configure()
