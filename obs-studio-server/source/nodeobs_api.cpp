@@ -38,6 +38,8 @@
 #include "shared.hpp"
 
 #define BUFFSIZE 512
+#define CONNECTING_STATE 0
+#define READING_STATE 1
 
 std::string                                            g_moduleDirectory = "";
 os_cpu_usage_info_t*                                   cpuUsageInfo      = nullptr;
@@ -690,25 +692,90 @@ void OBS_API::setAudioDeviceMonitoring(void)
 #endif
 }
 
+typedef struct
+{
+	OVERLAPPED        oOverlap;
+	HANDLE            hPipeInst;
+	std::vector<char> chRequest;
+	DWORD             cbRead;
+	TCHAR             chReply[BUFFSIZE];
+	DWORD             cbToWrite;
+	DWORD             dwState;
+	BOOL              fPendingIO;
+} PIPEINST, *LPPIPEINST;
+
+PIPEINST Pipe;
+HANDLE   hEvents;
+
+BOOL ConnectToNewClient(HANDLE hPipe, LPOVERLAPPED lpo)
+{
+	BOOL fConnected, fPendingIO = FALSE;
+	fConnected = ConnectNamedPipe(hPipe, lpo);
+
+	if (fConnected) {
+		return 0;
+	}
+
+	switch (GetLastError()) {
+	case ERROR_IO_PENDING:
+		fPendingIO = TRUE;
+		break;
+	case ERROR_PIPE_CONNECTED:
+		if (SetEvent(lpo->hEvent))
+			break;
+	default: {
+		return 0;
+	}
+	}
+
+	return fPendingIO;
+}
+
+VOID DisconnectAndReconnect(void)
+{
+	if (!DisconnectNamedPipe(Pipe.hPipeInst)) {
+		return;
+	}
+
+	Pipe.fPendingIO = ConnectToNewClient(Pipe.hPipeInst, &(Pipe.oOverlap));
+
+	Pipe.dwState = Pipe.fPendingIO ? CONNECTING_STATE : READING_STATE;
+}
+
 void acknowledgeTerminate(void)
 {
-	HANDLE hPipe;
-	TCHAR  chBuf[BUFFSIZE];
-	DWORD  cbRead;
+	BOOL   fSuccess;
+	LPTSTR lpszPipename = TEXT("\\\\.\\pipe\\exit-slobs-crash-handler");
 
-	hPipe = CreateNamedPipe(
-	    TEXT("\\\\.\\pipe\\exit-slobs-crash-handler"),
-	    PIPE_ACCESS_DUPLEX,
-	    PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_NOWAIT,
+	hEvents = CreateEvent(NULL, TRUE, TRUE, NULL);
+
+	if (hEvents == NULL) {
+		return;
+	}
+
+	Pipe.oOverlap.hEvent = hEvents;
+
+	Pipe.hPipeInst = CreateNamedPipe(
+	    lpszPipename,
+	    PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED,
+	    PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
 	    1,
 	    BUFFSIZE * sizeof(TCHAR),
 	    BUFFSIZE * sizeof(TCHAR),
-	    200,
+	    5000,
 	    NULL);
 
-	bool exit = false;
+	if (Pipe.hPipeInst == INVALID_HANDLE_VALUE) {
+		return;
+	}
 
+	Pipe.fPendingIO = ConnectToNewClient(Pipe.hPipeInst, &(Pipe.oOverlap));
+
+	Pipe.dwState = Pipe.fPendingIO ? CONNECTING_STATE : READING_STATE;
+
+	bool exit = false;
 	auto timeNow = std::chrono::high_resolution_clock::now();
+	DWORD i, dwWait, cbRet, dwErr;
 
 	while (!exit) {
 		auto tp    = std::chrono::high_resolution_clock::now();
@@ -718,38 +785,66 @@ void acknowledgeTerminate(void)
 			// We timeout, crash handler failed to send the shutdown acknowledge,
 			// we move forward with the shutdown procedure
 			exit = true;
-			CloseHandle(hPipe);
+			CloseHandle(Pipe.hPipeInst);
 			break;
 		}
 
-		if (!ConnectNamedPipe(hPipe, NULL)) {
-			switch (GetLastError()) {
-			case ERROR_PIPE_CONNECTED: {
-				// Crash handler connected, we read and acknwoledge the shutdown
-				BOOL fSuccess = ReadFile(hPipe, chBuf, BUFFSIZE * sizeof(TCHAR), &cbRead, NULL);
-				if (!fSuccess)
-					return;
-				CloseHandle(hPipe);
+		dwWait = WaitForSingleObject(hEvents, 500);
+
+		if (dwWait == WAIT_OBJECT_0) {
+			if (Pipe.fPendingIO) {
+				fSuccess = GetOverlappedResult(Pipe.hPipeInst, &(Pipe.oOverlap), &cbRet, FALSE);
+
+				switch (Pipe.dwState) {
+				case CONNECTING_STATE: {
+					if (!fSuccess) {
+						break;
+					}
+					Pipe.dwState = READING_STATE;
+					break;
+				}
+				case READING_STATE: {
+					if (!fSuccess || cbRet == 0) {
+						exit = true;
+						DisconnectAndReconnect();
+						break;
+					}
+					Pipe.cbRead  = cbRet;
+					Pipe.dwState = READING_STATE;
+					break;
+				}
+				default: {
+					break;
+				}
+				}
+			}
+
+			switch (Pipe.dwState) {
+			case READING_STATE: {
+				Pipe.chRequest.resize(BUFFSIZE);
+				fSuccess = ReadFile(
+				    Pipe.hPipeInst,
+				    Pipe.chRequest.data(),
+				    BUFFSIZE * sizeof(TCHAR),
+				    &Pipe.cbRead,
+				    &Pipe.oOverlap);
+
+				GetOverlappedResult(Pipe.hPipeInst, &Pipe.oOverlap, &Pipe.cbRead, true);
+
+				// The read operation completed successfully.
+				if (Pipe.cbRead > 0) {
+					Pipe.fPendingIO = FALSE;
+				}
+				dwErr = GetLastError();
+				if (!fSuccess && (dwErr == ERROR_IO_PENDING)) {
+					Pipe.fPendingIO = TRUE;
+					break;
+				}
 				exit = true;
+				DisconnectAndReconnect();
 				break;
 			}
-			case ERROR_NO_DATA: {
-				DisconnectNamedPipe(hPipe);
-				break;
 			}
-			case ERROR_PIPE_LISTENING: {
-				break;
-			}
-			default:
-				break;
-			}
-		} else {
-			// Crash handler connected, we read and acknwoledge the shutdown
-			BOOL fSuccess = ReadFile(hPipe, chBuf, BUFFSIZE * sizeof(TCHAR), &cbRead, NULL);
-			if (!fSuccess)
-				return;
-			CloseHandle(hPipe);
-			exit = true;
 		}
 	}
 }
