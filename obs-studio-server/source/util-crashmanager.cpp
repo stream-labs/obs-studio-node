@@ -18,32 +18,39 @@
 */
 
 #include "util-crashmanager.h"
-#include "nodeobs_api.h"
 #include <iostream>
-#include <sstream>
-#include <obs.h>
 #include <map>
-#include <vector>
+#include <obs.h>
 #include <queue>
+#include <sstream>
 #include <string>
+#include <vector>
+#include "nodeobs_api.h"
 
 #if defined(_WIN32)
 
-#include "Shlobj.h"
 #include <WinBase.h>
 #include "DbgHelp.h"
+#include "Shlobj.h"
 #pragma comment(lib, "Dbghelp.lib")
+#pragma comment(lib, "pdh.lib")
 #include <fcntl.h>
 #include <io.h>
 #include <iostream>
 #include <windows.h>
+#include "psapi.h"
+#include "TCHAR.h"
+#include "pdh.h"
+
+static PDH_HQUERY   cpuQuery;
+static PDH_HCOUNTER cpuTotal;
 
 #endif
 
 // Global/static variables
-util::CrashManager::CrashpadInfo*	s_CrashpadInfo = nullptr;
-std::map<std::string, std::string>	s_CustomAnnotations;
-std::vector<std::string>            s_HandledOBSCrashes;
+util::CrashManager::CrashpadInfo*  s_CrashpadInfo = nullptr;
+std::map<std::string, std::string> s_CustomAnnotations;
+std::vector<std::string>           s_HandledOBSCrashes;
 
 // Forward
 std::string FormatVAString(const char* const format, va_list args);
@@ -57,7 +64,39 @@ util::CrashManager::~CrashManager()
 		delete s_CrashpadInfo;
 }
 
-bool util::CrashManager::Initialize() 
+void RequestComputerUsageParams(long long& totalPhysMem, long long& physMemUsed, size_t& physMemUsedByMe, double& totalCPUUsed) 
+{
+#if defined(_WIN32)
+
+	MEMORYSTATUSEX memInfo;
+	PROCESS_MEMORY_COUNTERS pmc;
+	PDH_FMT_COUNTERVALUE    counterVal;
+	DWORDLONG               totalVirtualMem = memInfo.ullTotalPageFile;
+
+	memInfo.dwLength = sizeof(MEMORYSTATUSEX);
+	GlobalMemoryStatusEx(&memInfo);
+	GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc));
+	PdhCollectQueryData(cpuQuery);
+	PdhGetFormattedCounterValue(cpuTotal, PDH_FMT_DOUBLE, NULL, &counterVal);
+
+	totalPhysMem    = memInfo.ullTotalPhys;
+	physMemUsed     = memInfo.ullTotalPhys - memInfo.ullAvailPhys;
+	physMemUsedByMe = pmc.WorkingSetSize;
+	totalCPUUsed    = counterVal.doubleValue;
+
+#else
+
+	// This link has info about the linux and Mac OS versions
+	// https://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process
+	totalPhysMem    = long long (-1);
+	physMemUsed     = long long(-1);
+	physMemUsedByMe = size_t(-1);
+	totalCPUUsed    = double(- 1.0);
+
+#endif
+}
+
+bool util::CrashManager::Initialize()
 {
 #ifndef _DEBUG
 
@@ -67,36 +106,38 @@ bool util::CrashManager::Initialize()
 	// Handler for obs errors (mainly for bcrash() calls)
 	base_set_crash_handler(
 	    [](const char* format, va_list args, void* param) {
-
-			std::string errorMessage = FormatVAString(format, args);
+		    std::string errorMessage = FormatVAString(format, args);
 
 		    // Check if this crash error is handled internally (if this is a known
-			// error that we can't do anything about it, just let the application
-			// crash normally
+		    // error that we can't do anything about it, just let the application
+		    // crash normally
 		    if (!TryHandleCrash(std::string(format), errorMessage))
 			    HandleCrash(errorMessage);
-		},
+	    },
 	    nullptr);
 
 	// Redirect all the calls from std::terminate
-	std::set_terminate([](){
-		HandleCrash("Direct call to std::terminate");
-	});
+	std::set_terminate([]() { HandleCrash("Direct call to std::terminate"); });
 
 #if defined(_WIN32)
 
-	// Setup the windows exeption filter to 
-	SetUnhandledExceptionFilter([](struct _EXCEPTION_POINTERS * ExceptionInfo) {
-
+	// Setup the windows exeption filter to
+	SetUnhandledExceptionFilter([](struct _EXCEPTION_POINTERS* ExceptionInfo) {
 		/* don't use if a debugger is present */
 		if (IsDebuggerPresent())
 			return LONG(EXCEPTION_CONTINUE_SEARCH);
-		
+
 		HandleCrash("UnhandledExceptionFilter");
 
 		// Unreachable statement
 		return LONG(EXCEPTION_CONTINUE_SEARCH);
 	});
+
+	// Setup the metrics query for the CPU usage
+	// Ref: https://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process
+	PdhOpenQuery(NULL, NULL, &cpuQuery);
+	PdhAddEnglishCounter(cpuQuery, L"\\Processor(_Total)\\% Processor Time", NULL, &cpuTotal);
+	PdhCollectQueryData(cpuQuery);
 
 #endif
 
@@ -180,7 +221,6 @@ void util::CrashManager::HandleExit() noexcept
 	// crash that is masked. The real issue here is why we are exiting without
 	// finishing the obs first.
 	if (obs_initialized()) {
-		
 		// Proceed to add more info to our crash reporter but don't call abort, we
 		// cannot ensure that when at exit a call to obs_initialized will be safe, it
 		// could be in an invalid state, we will let the application continue and if
@@ -201,10 +241,17 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool _callAbort) no
 	insideCrashMethod = true;
 
 	// This will manually rewind the callstack (using the input as the maximum number of
-	// entries to retrieve), we will use this info to populate an crashpad attribute, 
-	// avoiding some cases that the memory dump is corrupted and we don't have access to 
+	// entries to retrieve), we will use this info to populate an crashpad attribute,
+	// avoiding some cases that the memory dump is corrupted and we don't have access to
 	// the callstack.
 	std::string callStack = RewindCallStack(18);
+
+	// Get the information about the total of CPU and RAM used by this user
+	long long totalPhysMem;
+	long long physMemUsed;
+	double    totalCPUUsed;
+	size_t    physMemUsedByMe;
+	RequestComputerUsageParams(totalPhysMem, physMemUsed, physMemUsedByMe, totalCPUUsed);
 
 	// Setup all the custom annotations that are important too our crash report
 	s_CustomAnnotations.insert({"Crash Info", _crashInfo});
@@ -212,8 +259,12 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool _callAbort) no
 	s_CustomAnnotations.insert({"OBS Status", obs_initialized() ? "Initialized" : "Shutdown"});
 	s_CustomAnnotations.insert({"OBS Total Leaks", std::to_string(bnum_allocs())});
 	s_CustomAnnotations.insert({"OBS Log", RequestOBSLog()});
+	s_CustomAnnotations.insert({"Total Physical Memory", std::to_string(totalPhysMem)});
+	s_CustomAnnotations.insert({"Total Physical Memory In Use", std::to_string(physMemUsed)});
+	s_CustomAnnotations.insert({"Total Physical Memory In Use By SLOBS", std::to_string(physMemUsedByMe)});
+	s_CustomAnnotations.insert({"Total CPU", std::to_string(totalCPUUsed)});
 
-	// Since there is no other way (known at the moment) to add annotations on the go to 
+	// Since there is no other way (known at the moment) to add annotations on the go to
 	// the current handler, we will recreate it here adding our custom info
 	bool rc = s_CrashpadInfo->client.StartHandler(
 	    s_CrashpadInfo->handler,
@@ -227,7 +278,8 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool _callAbort) no
 	rc = s_CrashpadInfo->client.WaitForHandlerStart(5000);
 
 	// Finish with a call to abort since there is no point on continuing
-	if(_callAbort) abort();
+	if (_callAbort)
+		abort();
 
 	// Unreachable statement if _callAbort is true
 	insideCrashMethod = false;
@@ -237,7 +289,7 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 {
 	bool crashIsHandled = false;
 	for (auto& handledCrashes : s_HandledOBSCrashes) {
-		if (std::string(_format).find(handledCrashes) != std::string::npos) {		
+		if (std::string(_format).find(handledCrashes) != std::string::npos) {
 			crashIsHandled = true;
 			break;
 		}
@@ -246,7 +298,7 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 	if (!crashIsHandled)
 		return false;
 
-	// If we are here this is a known crash that we don't wanna propagate to the crashpad 
+	// If we are here this is a known crash that we don't wanna propagate to the crashpad
 	// (because we don't need to handle it or we cannot control it), the ideal would be just
 	// a call to stop the crashpad handler but since it doesn't have a method like this we
 	// can try to finish the application normally to avoid any crash report
@@ -265,7 +317,7 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 		    MB_OK);
 	}
 
-	// If we cannot destroy the obs and exit normally without causing a crash report, 
+	// If we cannot destroy the obs and exit normally without causing a crash report,
 	// proceed with a crash
 	try {
 		// If for any reason a call to bcrash is made when inside the shutdown method below, the
@@ -277,7 +329,7 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 	} catch (...) {
 		util::CrashManager::HandleCrash(_crashMessage);
 	}
-	
+
 	// Unreachable statement
 	return true;
 }
