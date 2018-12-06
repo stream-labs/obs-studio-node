@@ -778,9 +778,11 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 	const char* newserviceTypeValue;
 
 	std::string currentServiceName = obs_data_get_string(obs_service_get_settings(currentService), "service");
+	std::string newServiceValue;
 
 	SubCategory sc;
-	bool        serviceChanged = false;
+	bool        serviceChanged     = false;
+	bool        serviceTypeChanged = false;
 
 	for (int i = 0; i < streamSettings.size(); i++) {
 		sc = streamSettings.at(i);
@@ -801,6 +803,13 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 					newserviceTypeValue = value->c_str();
 					settings            = obs_service_defaults(newserviceTypeValue);
 					if (currentStreamType.compare(newserviceTypeValue) != 0) {
+						serviceTypeChanged = true;
+					}
+				}
+
+				if (name.compare("service") == 0) {
+					newServiceValue = value->c_str();
+					if (currentServiceName.compare(newServiceValue) != 0) {
 						serviceChanged = true;
 					}
 				}
@@ -818,7 +827,7 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 		}
 	}
 
-	if (serviceChanged) {
+	if (serviceTypeChanged) {
 		settings = obs_service_defaults(newserviceTypeValue);
 
 		if (strcmp(newserviceTypeValue, "rtmp_common") == 0) {
@@ -833,6 +842,44 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 	obs_data_t* hotkeyData = obs_hotkeys_save_service(currentService);
 
 	obs_service_t* newService = obs_service_create(newserviceTypeValue, "default_service", settings, hotkeyData);
+
+	if (serviceChanged) {
+		std::string server = obs_data_get_string(settings, "server");
+		bool        serverFound = false;
+		std::string defaultServer;
+
+		// Check if server is valid
+		obs_properties_t* properties = obs_service_properties(newService);
+		obs_property_t*   property   = obs_properties_first(properties);
+
+		while (property) {
+			std::string name = obs_property_name(property);
+
+			if (name.compare("server") == 0) {
+				int count = (int)obs_property_list_item_count(property);
+				int i     = 0;
+
+				while (i < count && !serverFound) {
+					std::string value = obs_property_list_item_string(property, i);
+
+					if (i == 0)
+						defaultServer = value;
+
+					if (value.compare(server) == 0)
+						serverFound = true;
+
+					i++;
+				}
+			}
+			obs_property_next(&property);
+		}
+
+		if (!serverFound && defaultServer.compare("") != 0) {
+			// Server not found, we set the default server
+			obs_data_set_string(settings, "server", defaultServer.c_str());
+			obs_service_update(newService, settings);
+		}
+	}
 
 	obs_data_release(hotkeyData);
 
