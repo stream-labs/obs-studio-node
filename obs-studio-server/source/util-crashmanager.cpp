@@ -54,7 +54,7 @@ std::vector<std::string>           s_HandledOBSCrashes;
 
 // Forward
 std::string FormatVAString(const char* const format, va_list args);
-std::string RewindCallStack(uint32_t maximumEntries);
+std::vector<std::string> RewindCallStack(uint32_t maximumEntries);
 std::string RequestOBSLog();
 
 // Class specific
@@ -99,7 +99,6 @@ void RequestComputerUsageParams(long long& totalPhysMem, long long& physMemUsed,
 bool util::CrashManager::Initialize()
 {
 #ifndef _DEBUG
-
 	if (!SetupCrashpad())
 		return false;
 
@@ -244,7 +243,7 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool _callAbort) no
 	// entries to retrieve), we will use this info to populate an crashpad attribute,
 	// avoiding some cases that the memory dump is corrupted and we don't have access to
 	// the callstack.
-	std::string callStack = RewindCallStack(18);
+	std::vector<std::string> callStack = RewindCallStack(420);
 
 	// Get the information about the total of CPU and RAM used by this user
 	long long totalPhysMem;
@@ -254,8 +253,10 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool _callAbort) no
 	RequestComputerUsageParams(totalPhysMem, physMemUsed, physMemUsedByMe, totalCPUUsed);
 
 	// Setup all the custom annotations that are important too our crash report
+	for (int i = 0; i < callStack.size(); i++) {
+		s_CustomAnnotations.insert({"CallStack" + (callStack.size() == 1 ? "" : " - " + std::to_string(i+1)), callStack[i]});
+	}
 	s_CustomAnnotations.insert({"Crash Info", _crashInfo});
-	s_CustomAnnotations.insert({"CallStack", callStack});
 	s_CustomAnnotations.insert({"OBS Status", obs_initialized() ? "Initialized" : "Shutdown"});
 	s_CustomAnnotations.insert({"OBS Total Leaks", std::to_string(bnum_allocs())});
 	s_CustomAnnotations.insert({"OBS Log", RequestOBSLog()});
@@ -349,7 +350,7 @@ std::string FormatVAString(const char* const format, va_list args)
 	return std::string{temp.data(), length};
 }
 
-std::string RewindCallStack(uint32_t maximumEntries)
+std::vector<std::string> RewindCallStack(uint32_t maximumEntries)
 {
 #ifndef _DEBUG
 #if defined(_WIN32)
@@ -359,7 +360,7 @@ std::string RewindCallStack(uint32_t maximumEntries)
 	CaptureStackBackTraceType func =
 	    (CaptureStackBackTraceType)(GetProcAddress(LoadLibrary(L"kernel32.dll"), "RtlCaptureStackBackTrace"));
 	if (func == NULL)
-		return ""; // WOE 29.SEP.2010
+		return {}; // WOE 29.SEP.2010
 
 	// Quote from Microsoft Documentation:
 	// ## Windows Server 2003 and Windows XP:
@@ -369,26 +370,41 @@ std::string RewindCallStack(uint32_t maximumEntries)
 	unsigned short frames;
 	SYMBOL_INFO*   symbol;
 	HANDLE         process;
+	DWORD          dwDisplacement = 0;
+	IMAGEHLP_LINE64 line;
 
 	// Get the callstack information
+	SymSetOptions(SYMOPT_LOAD_LINES);
 	process = GetCurrentProcess();
 	SymInitialize(process, NULL, TRUE);
 	frames               = (func)(0, kMaxCallers, callers_stack, NULL);
 	symbol               = (SYMBOL_INFO*)calloc(sizeof(SYMBOL_INFO) + 256 * sizeof(char), 1);
 	symbol->MaxNameLen   = 255;
 	symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-	std::string callStackString;
+	std::vector<std::string> callStackString;
+	int                      writingIndex = -1;
 
 	// Currently 18 is the maximum that we can display on backtrace in one single attribute
-	const unsigned short MAX_CALLERS_SHOWN = maximumEntries;
+	const unsigned short MAX_CALLERS_SHOWN = 50;
 	frames                                 = frames < MAX_CALLERS_SHOWN ? frames : MAX_CALLERS_SHOWN;
 	for (unsigned int i = 0; i < frames; i++) {
-		SymFromAddr(process, (DWORD64)(callers_stack[i]), 0, symbol);
+		if (!SymFromAddr(process, (DWORD64)(callers_stack[i]), 0, symbol))
+			continue;
+		if (!SymGetLineFromAddr64(process, (DWORD64)(callers_stack[i]), &dwDisplacement, &line))
+			continue;
 
+		// Check if we need to add a new element to the string vector
+		if (callStackString.size() == 0 || callStackString.back().length() >= maximumEntries) {
+			callStackString.push_back("");
+			writingIndex++;
+		}
+		
 		// Setup a readable callstack string
 		std::stringstream buffer;
 		buffer << callers_stack[i] << " " << symbol->Name << " - 0x" << symbol->Address << std::endl;
-		callStackString.append(symbol->Name + (i == frames - 1 ? "" : std::string(" -> ")));
+		callStackString[writingIndex].append(
+		    symbol->Name + std::string("(") + std::to_string(line.LineNumber) + std::string(")")
+		    + (i == frames - 1 ? "" : std::string(" -> ")));
 	}
 
 	free(symbol);
@@ -398,7 +414,7 @@ std::string RewindCallStack(uint32_t maximumEntries)
 #endif
 #endif
 
-	return "";
+	return {};
 }
 
 std::string RequestOBSLog()
