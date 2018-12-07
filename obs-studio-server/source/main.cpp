@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
 {
 	// Initialize the crash manager and configure it to our workspace
 	util::CrashManager crashManager;
-	if (!crashManager.Initialize()) {
+	if (!crashManager.Initialize(util::CrashManager::OperationType::Sentry)) {
 		return 0;
 	}
 	crashManager.Configure();

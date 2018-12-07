@@ -131,6 +131,10 @@ set(PROJECT_LIBRARIES
 	lib-streamlabs-ipc
 	${LIBOBS_LIBRARIES}
 	dwmapi.lib
+	"${PROJECT_SOURCE_DIR}/../crow/dependencies/zlib/lib/release/zlib.lib"
+	"${PROJECT_SOURCE_DIR}/../crow/dependencies/curl/lib/libcurl.lib"
+	"${PROJECT_SOURCE_DIR}/../crow/dependencies/curl/lib/libcurl_imp.lib"
+	"${PROJECT_SOURCE_DIR}/../crow/lib/crow.lib"
 )
 
 set(PROJECT_INCLUDE_PATHS
@@ -139,6 +143,7 @@ set(PROJECT_INCLUDE_PATHS
 	"${lib-streamlabs-ipc_SOURCE_DIR}/include"
 	${LIBOBS_INCLUDE_DIRS}
 	"${PROJECT_SOURCE_DIR}/../lib-streamlabs-ipc/third-party/lib-datalane/"
+	"${PROJECT_SOURCE_DIR}/../crow/include/crow/"
 )
 
 set(PROJECT_DATA "${PROJECT_SOURCE_DIR}/resources")

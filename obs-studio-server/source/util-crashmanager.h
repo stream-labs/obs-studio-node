@@ -20,11 +20,13 @@
 #pragma once
 #include <cstddef>
 #include <cstdlib>
+#include <string>
 
 #ifndef _DEBUG
 #include "client/crash_report_database.h"
 #include "client/crashpad_client.h"
 #include "client/settings.h"
+#include <crow.hpp>
 #endif
 
 namespace util
@@ -32,8 +34,17 @@ namespace util
 	class CrashManager
 	{
 		public:
+
+		enum class OperationType
+		{
+			Unknow,
+			Crashpad,
+			Sentry
+		};
+
 #ifndef _DEBUG
-		struct CrashpadInfo
+
+		struct CrashHandlerInfo
 		{
 			base::FilePath                                 handler;
 			base::FilePath                                 db;
@@ -41,22 +52,28 @@ namespace util
 			std::vector<std::string>                       arguments;
 			crashpad::CrashpadClient                       client;
 			std::unique_ptr<crashpad::CrashReportDatabase> database;
+			std::unique_ptr<nlohmann::crow>                sentry;
 		};
+
 #else
-		struct CrashpadInfo
+
+		struct CrashHandlerInfo
 		{};
+
 #endif
 
 		~CrashManager();
-		bool Initialize();
+		bool Initialize(OperationType _operationType);
 		void Configure();
 		void OpenConsole();
 
 		private:
-		bool SetupCrashpad();
+		bool        SetupCrashpad();
+		bool        SetupSentry();
 		static bool TryHandleCrash(std::string _format, std::string _crashMessage);
 		static void HandleExit() noexcept;
 		static void HandleCrash(std::string _crashInfo, bool _callAbort = true) noexcept;
+		static void InvokeReport(std::string _crashInfo, std::vector<std::string> _callStack);
 	};
 
 }; // namespace util

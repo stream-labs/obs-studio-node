@@ -25,6 +25,8 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <chrono>
+#include <thread>
 #include "nodeobs_api.h"
 
 #if defined(_WIN32)
@@ -48,11 +50,12 @@ static PDH_HCOUNTER cpuTotal;
 #endif
 
 // Global/static variables
-util::CrashManager::CrashpadInfo*  s_CrashpadInfo = nullptr;
-std::map<std::string, std::string> s_CustomAnnotations;
-std::vector<std::string>           s_HandledOBSCrashes;
+util::CrashManager::CrashHandlerInfo* s_CrashHandlerInfo = nullptr;
+std::map<std::string, std::string>    s_CustomAnnotations;
+std::vector<std::string>              s_HandledOBSCrashes;
+util::CrashManager::OperationType     s_OperationType = util::CrashManager::OperationType::Unknow;
 
-// Forward
+    // Forward
 std::string FormatVAString(const char* const format, va_list args);
 std::vector<std::string> RewindCallStack(uint32_t maximumEntries);
 std::string RequestOBSLog();
@@ -60,8 +63,8 @@ std::string RequestOBSLog();
 // Class specific
 util::CrashManager::~CrashManager()
 {
-	if (s_CrashpadInfo != nullptr)
-		delete s_CrashpadInfo;
+	if (s_CrashHandlerInfo != nullptr)
+		delete s_CrashHandlerInfo;
 }
 
 void RequestComputerUsageParams(long long& totalPhysMem, long long& physMemUsed, size_t& physMemUsedByMe, double& totalCPUUsed) 
@@ -96,11 +99,24 @@ void RequestComputerUsageParams(long long& totalPhysMem, long long& physMemUsed,
 #endif
 }
 
-bool util::CrashManager::Initialize()
+bool util::CrashManager::Initialize(OperationType _operationType)
 {
+	s_OperationType = _operationType;
+
 #ifndef _DEBUG
-	if (!SetupCrashpad())
+
+	s_CrashHandlerInfo = new CrashHandlerInfo();
+
+	// Depending on the operation type, initialize crashpad or sentry
+	if (_operationType == OperationType::Crashpad) {
+		if (!SetupCrashpad())
+			return false;
+	} else if (_operationType == OperationType::Sentry) {
+		if (!SetupSentry())
+			return false;
+	} else
 		return false;
+
 
 	// Handler for obs errors (mainly for bcrash() calls)
 	base_set_crash_handler(
@@ -191,23 +207,36 @@ bool util::CrashManager::SetupCrashpad()
 	base::FilePath handler(handler_path);
 
 	// Setup the crashpad info that will be used in case the obs throws an error
-	s_CrashpadInfo            = new CrashpadInfo();
-	s_CrashpadInfo->handler   = handler;
-	s_CrashpadInfo->db        = db;
-	s_CrashpadInfo->url       = url;
-	s_CrashpadInfo->arguments = arguments;
+	s_CrashHandlerInfo->handler   = handler;
+	s_CrashHandlerInfo->db        = db;
+	s_CrashHandlerInfo->url       = url;
+	s_CrashHandlerInfo->arguments = arguments;
 
-	s_CrashpadInfo->database = crashpad::CrashReportDatabase::Initialize(db);
-	if (s_CrashpadInfo->database == nullptr || s_CrashpadInfo->database->GetSettings() == NULL)
+	s_CrashHandlerInfo->database = crashpad::CrashReportDatabase::Initialize(db);
+	if (s_CrashHandlerInfo->database == nullptr || s_CrashHandlerInfo->database->GetSettings() == NULL)
 		return false;
 
-	s_CrashpadInfo->database->GetSettings()->SetUploadsEnabled(true);
+	s_CrashHandlerInfo->database->GetSettings()->SetUploadsEnabled(true);
 
-	if (!s_CrashpadInfo->client.StartHandler(handler, db, db, url, annotations, arguments, true, true))
+	if (!s_CrashHandlerInfo->client.StartHandler(handler, db, db, url, annotations, arguments, true, true))
 		return false;
 
-	if (!s_CrashpadInfo->client.WaitForHandlerStart(INFINITE))
+	if (!s_CrashHandlerInfo->client.WaitForHandlerStart(INFINITE))
 		return false;
+#endif
+
+	return true;
+}
+
+bool util::CrashManager::SetupSentry() 
+{
+#ifndef _DEBUG
+
+	// This is the release dsn (the deprecated-but-in-use one, necessary for this lib)
+	s_CrashHandlerInfo->sentry = std::make_unique<nlohmann::crow>(
+	    "https://6971fa187bb64f58ab29ac514aa0eb3d:ed5da88808ab470783fbdb85c57d8630@sentry.io/251674", nullptr, 2.0);
+	// s_CrashHandlerInfo->sentry->install_handler();
+
 #endif
 
 	return true;
@@ -251,10 +280,10 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool _callAbort) no
 	double    totalCPUUsed;
 	size_t    physMemUsedByMe;
 	RequestComputerUsageParams(totalPhysMem, physMemUsed, physMemUsedByMe, totalCPUUsed);
-
+	
 	// Setup all the custom annotations that are important too our crash report
 	for (int i = 0; i < callStack.size(); i++) {
-		s_CustomAnnotations.insert({"CallStack" + (callStack.size() == 1 ? "" : " - " + std::to_string(i+1)), callStack[i]});
+		s_CustomAnnotations.insert({"CallStack" + (callStack.size() == 1 ? "" : "-" + std::to_string(i+1)), callStack[i]});
 	}
 	s_CustomAnnotations.insert({"Crash Info", _crashInfo});
 	s_CustomAnnotations.insert({"OBS Status", obs_initialized() ? "Initialized" : "Shutdown"});
@@ -265,18 +294,8 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool _callAbort) no
 	s_CustomAnnotations.insert({"Total Physical Memory In Use By SLOBS", std::to_string(physMemUsedByMe)});
 	s_CustomAnnotations.insert({"Total CPU", std::to_string(totalCPUUsed)});
 
-	// Since there is no other way (known at the moment) to add annotations on the go to
-	// the current handler, we will recreate it here adding our custom info
-	bool rc = s_CrashpadInfo->client.StartHandler(
-	    s_CrashpadInfo->handler,
-	    s_CrashpadInfo->db,
-	    s_CrashpadInfo->db,
-	    s_CrashpadInfo->url,
-	    s_CustomAnnotations,
-	    s_CrashpadInfo->arguments,
-	    true,
-	    true);
-	rc = s_CrashpadInfo->client.WaitForHandlerStart(5000);
+	// Invoke the crash report
+	InvokeReport(_crashInfo, callStack);
 
 	// Finish with a call to abort since there is no point on continuing
 	if (_callAbort)
@@ -404,7 +423,7 @@ std::vector<std::string> RewindCallStack(uint32_t maximumEntries)
 		buffer << callers_stack[i] << " " << symbol->Name << " - 0x" << symbol->Address << std::endl;
 		callStackString[writingIndex].append(
 		    symbol->Name + std::string("(") + std::to_string(line.LineNumber) + std::string(")")
-		    + (i == frames - 1 ? "" : std::string(" -> ")));
+		    + (i == frames - 1 ? "" : std::string(" -> ")) + "\n");
 	}
 
 	free(symbol);
@@ -424,7 +443,7 @@ std::string RequestOBSLog()
 		std::queue<std::string> obsLogQueue = OBS_API::getOBSLogQueue();
 		std::string             obsLogMessage;
 		while (obsLogQueue.size() > 0) {
-			obsLogMessage.append(obsLogQueue.front().append(obsLogQueue.size() == 1 ? " " : " -> "));
+			obsLogMessage.append(obsLogQueue.front().append(obsLogQueue.size() == 1 ? " " : " -> \n"));
 			obsLogQueue.pop();
 		}
 
@@ -432,6 +451,48 @@ std::string RequestOBSLog()
 	}
 
 	return "";
+}
+
+void util::CrashManager::InvokeReport(std::string _crashInfo, std::vector<std::string> _callStack)
+{
+#ifndef _DEBUG
+	
+	if (s_OperationType == OperationType::Crashpad) {
+
+		// Since there is no other way (known at the moment) to add annotations on the go to
+		// the current handler, we will recreate it here adding our custom info
+		bool rc = s_CrashHandlerInfo->client.StartHandler(
+		    s_CrashHandlerInfo->handler,
+		    s_CrashHandlerInfo->db,
+		    s_CrashHandlerInfo->db,
+		    s_CrashHandlerInfo->url,
+		    s_CustomAnnotations,
+		    s_CrashHandlerInfo->arguments,
+		    true,
+		    true);
+		rc = s_CrashHandlerInfo->client.WaitForHandlerStart(5000);
+
+	} else if (s_OperationType == OperationType::Sentry) {
+
+		// Check if we can get the fifth value from the callstack, usually it is the name of the method
+		// that caused the crash
+		if (_callStack.size() > 4) {
+			_crashInfo = _callStack[4];
+		}
+
+		// Insert all annotation as breadcrumbs for sentry
+		for (auto annotation : s_CustomAnnotations) {
+			
+			s_CrashHandlerInfo->sentry->add_breadcrumb(annotation.first + " - " + annotation.second);
+		}
+
+		// Capture the message and wait, this wait is necessary since we don't have a way to force it to send
+		// the message and wait for it's completion at the same time
+		s_CrashHandlerInfo->sentry->capture_message(_crashInfo);
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+	}
+
+#endif
 }
 
 void BindCrtHandlesToStdHandles(bool bindStdIn, bool bindStdOut, bool bindStdErr)
