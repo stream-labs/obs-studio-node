@@ -6,9 +6,6 @@ distribute/
 yarn-error.log 
 
 # Binaries
-*.dll
-*.lib
-*.pdb
 *.node
 
 # IDE Files
