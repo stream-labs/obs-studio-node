@@ -4,21 +4,21 @@
 #include "error.hpp"
 #include "shared.hpp"
 
-obs_output_t*  streamingOutput;
-obs_output_t*  recordingOutput;
-obs_output_t*  replayBuffer;
-obs_encoder_t* audioStreamingEncoder;
-obs_encoder_t* audioRecordingEncoder;
-obs_encoder_t* videoStreamingEncoder;
-obs_encoder_t* videoRecordingEncoder;
-obs_service_t* service;
+obs_output_t* streamingOutput        = nullptr;
+obs_output_t* recordingOutput        = nullptr;
+obs_output_t* replayBuffer           = nullptr;;
+obs_encoder_t* audioStreamingEncoder = nullptr;
+obs_encoder_t* audioRecordingEncoder = nullptr;
+obs_encoder_t* videoStreamingEncoder = nullptr;
+obs_encoder_t* videoRecordingEncoder = nullptr;
+obs_service_t* service               = nullptr;
 
 std::string aacRecEncID;
 std::string aacStreamEncID;
 
 std::string videoEncoder;
 std::string videoQuality;
-bool        usingRecordingPreset = false;
+bool        usingRecordingPreset = true;
 bool        recordingConfigured  = false;
 bool        ffmpegOutput         = false;
 bool        lowCPUx264           = false;
@@ -615,7 +615,7 @@ void OBS_service::createAudioEncoder(obs_encoder_t** audioEncoder)
 		return;
 	}
 
-	if (usingRecordingPreset)
+	if (audioEncoder != NULL && usingRecordingPreset)
 		obs_encoder_release(*audioEncoder);
 
 	*audioEncoder = obs_audio_encoder_create(id, "simple_audio", nullptr, 0, nullptr);
@@ -818,7 +818,7 @@ void OBS_service::createService()
 	const char* type;
 
 	struct stat buffer;
-    bool fileExist = (stat (ConfigManager::getInstance().getService().c_str(), &buffer) == 0);
+	bool        fileExist = (os_stat(ConfigManager::getInstance().getService().c_str(), &buffer) == 0);
 
 	obs_data_t* data;
 	obs_data_t* settings;
@@ -931,7 +931,7 @@ bool OBS_service::startRecording(void)
 	}
 
 	if (strcmp(codec, "aac") == 0) {
-		createAudioEncoder(&audioStreamingEncoder);
+		createAudioEncoder(&audioRecordingEncoder);
 	} else {
 		const char* id           = FindAudioEncoderFromCodec(codec);
 		int         audioBitrate = GetAudioBitrate();
@@ -949,7 +949,6 @@ bool OBS_service::startRecording(void)
 	}
 
 	isRecording = true;
-	createAudioEncoder(&audioRecordingEncoder);
 	updateRecordSettings();
 
 	if (!obs_output_start(recordingOutput)) {
@@ -1432,7 +1431,6 @@ void OBS_service::updateRecordingOutput(void)
         strPath += "/";
 
     bool ffmpegOutput = false;
-    bool usingRecordingPreset = true;
 
     if(filenameFormat != NULL && format != NULL) {
         strPath += GenerateSpecifiedFilename(ffmpegOutput ? "avi" : format, noSpace, filenameFormat);

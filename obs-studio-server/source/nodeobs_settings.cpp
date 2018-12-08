@@ -778,9 +778,11 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 	const char* newserviceTypeValue;
 
 	std::string currentServiceName = obs_data_get_string(obs_service_get_settings(currentService), "service");
+	std::string newServiceValue;
 
 	SubCategory sc;
-	bool        serviceChanged = false;
+	bool        serviceChanged     = false;
+	bool        serviceTypeChanged = false;
 
 	for (int i = 0; i < streamSettings.size(); i++) {
 		sc = streamSettings.at(i);
@@ -801,6 +803,13 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 					newserviceTypeValue = value->c_str();
 					settings            = obs_service_defaults(newserviceTypeValue);
 					if (currentStreamType.compare(newserviceTypeValue) != 0) {
+						serviceTypeChanged = true;
+					}
+				}
+
+				if (name.compare("service") == 0) {
+					newServiceValue = value->c_str();
+					if (currentServiceName.compare(newServiceValue) != 0) {
 						serviceChanged = true;
 					}
 				}
@@ -818,7 +827,7 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 		}
 	}
 
-	if (serviceChanged) {
+	if (serviceTypeChanged) {
 		settings = obs_service_defaults(newserviceTypeValue);
 
 		if (strcmp(newserviceTypeValue, "rtmp_common") == 0) {
@@ -833,6 +842,44 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 	obs_data_t* hotkeyData = obs_hotkeys_save_service(currentService);
 
 	obs_service_t* newService = obs_service_create(newserviceTypeValue, "default_service", settings, hotkeyData);
+
+	if (serviceChanged) {
+		std::string server = obs_data_get_string(settings, "server");
+		bool        serverFound = false;
+		std::string defaultServer;
+
+		// Check if server is valid
+		obs_properties_t* properties = obs_service_properties(newService);
+		obs_property_t*   property   = obs_properties_first(properties);
+
+		while (property) {
+			std::string name = obs_property_name(property);
+
+			if (name.compare("server") == 0) {
+				int count = (int)obs_property_list_item_count(property);
+				int i     = 0;
+
+				while (i < count && !serverFound) {
+					std::string value = obs_property_list_item_string(property, i);
+
+					if (i == 0)
+						defaultServer = value;
+
+					if (value.compare(server) == 0)
+						serverFound = true;
+
+					i++;
+				}
+			}
+			obs_property_next(&property);
+		}
+
+		if (!serverFound && defaultServer.compare("") != 0) {
+			// Server not found, we set the default server
+			obs_data_set_string(settings, "server", defaultServer.c_str());
+			obs_service_update(newService, settings);
+		}
+	}
 
 	obs_data_release(hotkeyData);
 
@@ -1103,7 +1150,8 @@ void OBS_settings::getEncoderSettings(
     obs_data_t*             settings,
     std::vector<Parameter>* subCategoryParameters,
     int                     index,
-    bool                    isCategoryEnabled)
+    bool                    isCategoryEnabled,
+    bool                    recordEncoder)
 {
 	obs_properties_t* encoderProperties = obs_encoder_properties(encoder);
 	obs_property_t*   property          = obs_properties_first(encoderProperties);
@@ -1306,6 +1354,10 @@ void OBS_settings::getEncoderSettings(
 
 		param.enabled = isEnabled;
 		param.masked  = false;
+
+		if (recordEncoder) {
+			param.name.insert(0, "Rec");
+		}
 
 		subCategoryParameters->push_back(param);
 
@@ -1523,7 +1575,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 
 	struct stat buffer;
 
-	bool fileExist = (stat(ConfigManager::getInstance().getStream().c_str(), &buffer) == 0);
+	bool fileExist = (os_stat(ConfigManager::getInstance().getStream().c_str(), &buffer) == 0);
 
 	obs_data_t*    settings = obs_encoder_defaults(encoderID);
 	obs_encoder_t* streamingEncoder;
@@ -1552,7 +1604,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 		settings         = obs_encoder_get_settings(streamingEncoder);
 	}
 
-	getEncoderSettings(streamingEncoder, settings, &(streamingSettings.params), index, isCategoryEnabled);
+	getEncoderSettings(streamingEncoder, settings, &(streamingSettings.params), index, isCategoryEnabled, false);
 	streamingSettings.paramsCount = streamingSettings.params.size();
 	return streamingSettings;
 }
@@ -1864,7 +1916,7 @@ void OBS_settings::getStandardRecordingSettings(
 	// Encoder settings
 	struct stat buffer;
 
-	bool fileExist = (stat(ConfigManager::getInstance().getRecord().c_str(), &buffer) == 0);
+	bool fileExist = (os_stat(ConfigManager::getInstance().getRecord().c_str(), &buffer) == 0);
 
 	obs_data_t*    settings = obs_encoder_defaults(recEncoderCurrentValue);
 	obs_encoder_t* recordingEncoder;
@@ -1895,7 +1947,7 @@ void OBS_settings::getStandardRecordingSettings(
 	}
 
 	if (strcmp(recEncoderCurrentValue, "none")) {
-		getEncoderSettings(recordingEncoder, settings, &(subCategoryParameters->params), index, isCategoryEnabled);
+		getEncoderSettings(recordingEncoder, settings, &(subCategoryParameters->params), index, isCategoryEnabled, true);
 	}
 	
 	subCategoryParameters->paramsCount = subCategoryParameters->params.size();
@@ -2347,6 +2399,10 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 
 		std::string name = param.name;
 		std::string type = param.type;
+
+		if (i >= indexEncoderSettings) {
+			name.erase(0, strlen("Rec"));
+		}
 
 		if (name.compare("RecType") == 0) {
 			std::string value(param.currentValue.data(), param.currentValue.size());

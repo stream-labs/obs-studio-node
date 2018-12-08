@@ -187,9 +187,12 @@ void initBasicDefault(config_t* config)
 void ConfigManager::reloadConfig(void)
 {
 	if (basic) {
-		config_save_safe(basic, "tmp", nullptr);
 		config_close(basic);
 		basic = nullptr;
+	}
+	if (global) {
+		config_close(global);
+		global = nullptr;
 	}
 }
 
