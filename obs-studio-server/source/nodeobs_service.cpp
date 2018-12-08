@@ -1113,6 +1113,16 @@ bool OBS_service::startReplayBuffer(void)
 			return false;
 	}
 
+	obs_data_t*       hotkeys  = obs_hotkeys_save_output(replayBuffer);
+	obs_data_array_t* bindings = obs_data_get_array(hotkeys, "ReplayBuffer.Save");
+	size_t            count    = obs_data_array_count(bindings);
+	obs_data_array_release(bindings);
+	obs_data_release(hotkeys);
+
+	if (!count) {
+		return false;
+	}
+
 	bool result = obs_output_start(replayBuffer);
 	blog(LOG_INFO, "result : %d", result);
 	return result;
