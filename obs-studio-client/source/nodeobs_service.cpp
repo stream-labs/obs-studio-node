@@ -490,6 +490,6 @@ INITIALIZER(nodeobs_service)
 
 		NODE_SET_METHOD(exports, "OBS_service_removeCallback", service::OBS_service_removeCallback);
 
-		NODE_SET_METHOD(exports, "OBS_service_saveReplayBufferHotkey", service::OBS_service_processReplayBufferHotkey);
+		NODE_SET_METHOD(exports, "OBS_service_processReplayBufferHotkey", service::OBS_service_processReplayBufferHotkey);
 	});
 }
