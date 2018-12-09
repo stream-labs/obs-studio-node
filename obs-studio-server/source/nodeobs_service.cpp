@@ -87,8 +87,10 @@ void OBS_service::Register(ipc::server& srv)
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_connectOutputSignals", std::vector<ipc::type>{}, OBS_service_connectOutputSignals));
 	cls->register_function(std::make_shared<ipc::function>("Query", std::vector<ipc::type>{}, Query));
-
-	// TODO : connect output signals
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_service_processReplayBufferHotkey",
+	    std::vector<ipc::type>{},
+	    OBS_service_processReplayBufferHotkey));
 
 	srv.register_collection(cls);
 }
@@ -1111,16 +1113,6 @@ bool OBS_service::startReplayBuffer(void)
 	} else {
 		if (!updateAdvancedReplayBuffer())
 			return false;
-	}
-
-	obs_data_t*       hotkeys  = obs_hotkeys_save_output(replayBuffer);
-	obs_data_array_t* bindings = obs_data_get_array(hotkeys, "ReplayBuffer.Save");
-	size_t            count    = obs_data_array_count(bindings);
-	obs_data_array_release(bindings);
-	obs_data_release(hotkeys);
-
-	if (!count) {
-		return false;
 	}
 
 	bool result = obs_output_start(replayBuffer);
@@ -2152,4 +2144,33 @@ void OBS_service::connectOutputSignals(void)
 		    JSCallbackOutputSignal,
 		    &(recordingSignals.at(i)));
 	}
+}
+
+struct HotkeyInfo
+{
+	std::string                objectName;
+	obs_hotkey_registerer_type objectType;
+	std::string                hotkeyName;
+	std::string                hotkeyDesc;
+	obs_hotkey_id              hotkeyId;
+};
+
+void OBS_service::OBS_service_processReplayBufferHotkey(
+	void*                          data,
+	const int64_t                  id,
+	const std::vector<ipc::value>& args,
+	std::vector<ipc::value>&       rval)
+{
+	obs_enum_hotkeys(
+	    [](void* data, obs_hotkey_id id, obs_hotkey_t* key) {
+		    if (obs_hotkey_get_registerer_type(key) == OBS_HOTKEY_REGISTERER_OUTPUT) {
+			    std::string key_name = obs_hotkey_get_name(key);
+			    if (key_name.compare("ReplayBuffer.Save") == 0) {
+				    obs_hotkey_enable_callback_rerouting(true);
+				    obs_hotkey_trigger_routed_callback(id, true);
+				}
+
+			}
+ 		    return true;
+	    }, nullptr);
 }
