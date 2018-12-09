@@ -3023,6 +3023,10 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	overwriteIfExists.push_back(std::make_pair("subType", ""));
 	entries.push_back(overwriteIfExists);
 
+	advancedSettings.push_back(
+	serializeSettingsData("Recording", entries, ConfigManager::getInstance().getBasic(), "Output", true, true));
+	entries.clear();
+
 	//Replay Buffer Filename Prefix
 	std::vector<std::pair<std::string, std::string>> recRBPrefix;
 	recRBPrefix.push_back(std::make_pair("name", "RecRBPrefix"));
@@ -3040,7 +3044,7 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	entries.push_back(recRBSuffix);
 
 	advancedSettings.push_back(serializeSettingsData(
-	    "Recording", entries, ConfigManager::getInstance().getBasic(), "SimpleOutput", true, true));
+	    "Replay Buffer", entries, ConfigManager::getInstance().getBasic(), "SimpleOutput", true, true));
 	entries.clear();
 
 	//Stream Delay
