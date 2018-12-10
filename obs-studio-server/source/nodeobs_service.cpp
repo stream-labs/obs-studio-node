@@ -877,7 +877,7 @@ void OBS_service::createRecordingOutput(void)
 void OBS_service::createReplayBufferOutput(void)
 {
 	replayBuffer = obs_output_create("replay_buffer", "ReplayBuffer", nullptr, nullptr);
-	// connectOutputSignals();
+	connectOutputSignals();
 }
 
 bool OBS_service::startStreaming(void)
@@ -2107,6 +2107,7 @@ void OBS_service::updateRecordSettings(void)
 
 std::vector<SignalInfo> streamingSignals;
 std::vector<SignalInfo> recordingSignals;
+std::vector<SignalInfo> replayBufferSignals;
 
 void OBS_service::OBS_service_connectOutputSignals(
 	void* data, const int64_t id, const std::vector<ipc::value>& args, 
@@ -2124,6 +2125,10 @@ void OBS_service::OBS_service_connectOutputSignals(
 	recordingSignals.push_back(SignalInfo("recording", "start"));
 	recordingSignals.push_back(SignalInfo("recording", "stop"));
 	recordingSignals.push_back(SignalInfo("recording", "stopping"));
+
+	replayBufferSignals.push_back(SignalInfo("replay-buffer", "start"));
+	replayBufferSignals.push_back(SignalInfo("replay-buffer", "stop"));
+	replayBufferSignals.push_back(SignalInfo("replay-buffer", "stopping"));
 
 	connectOutputSignals();
 
@@ -2204,6 +2209,17 @@ void OBS_service::connectOutputSignals(void)
 		    recordingSignals.at(i).getSignal().c_str(),
 		    JSCallbackOutputSignal,
 		    &(recordingSignals.at(i)));
+	}
+
+	signal_handler* replayBufferOutputSignalHandler = obs_output_get_signal_handler(replayBuffer);
+
+	// Connect replay buffer output
+	for (int i = 0; i < replayBufferSignals.size(); i++) {
+		signal_handler_connect(
+		    replayBufferOutputSignalHandler,
+		    replayBufferSignals.at(i).getSignal().c_str(),
+		    JSCallbackOutputSignal,
+		    &(replayBufferSignals.at(i)));
 	}
 }
 
