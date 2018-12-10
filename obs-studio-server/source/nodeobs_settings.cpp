@@ -3089,7 +3089,7 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 		const char* name = obs_property_list_item_name(p, i);
 		const char* val  = obs_property_list_item_string(p, i);
 
-		bindIP.push_back(std::make_pair(name, name));
+		bindIP.push_back(std::make_pair(name, val));
 	}
 
 	entries.push_back(bindIP);
