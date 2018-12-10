@@ -239,6 +239,8 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool _callAbort) no
 
 	insideCrashMethod = true;
 
+#ifndef _DEBUG
+
 	// This will manually rewind the callstack (using the input as the maximum number of
 	// entries to retrieve), we will use this info to populate an crashpad attribute,
 	// avoiding some cases that the memory dump is corrupted and we don't have access to
@@ -277,6 +279,8 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool _callAbort) no
 	    true,
 	    true);
 	rc = s_CrashpadInfo->client.WaitForHandlerStart(5000);
+
+#endif
 
 	// Finish with a call to abort since there is no point on continuing
 	if (_callAbort)

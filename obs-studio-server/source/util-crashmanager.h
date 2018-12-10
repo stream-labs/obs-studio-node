@@ -20,6 +20,7 @@
 #pragma once
 #include <cstddef>
 #include <cstdlib>
+#include <string>
 
 #ifndef _DEBUG
 #include "client/crash_report_database.h"
