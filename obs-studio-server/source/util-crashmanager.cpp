@@ -235,7 +235,6 @@ bool util::CrashManager::SetupSentry()
 	// This is the release dsn (the deprecated-but-in-use one, necessary for this lib)
 	s_CrashHandlerInfo->sentry = std::make_unique<nlohmann::crow>(
 	    "https://6971fa187bb64f58ab29ac514aa0eb3d:ed5da88808ab470783fbdb85c57d8630@sentry.io/251674", nullptr, 2.0);
-	// s_CrashHandlerInfo->sentry->install_handler();
 
 #endif
 
