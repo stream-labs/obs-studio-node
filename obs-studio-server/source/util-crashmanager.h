@@ -21,6 +21,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <string>
+#include <vector>
 
 #ifndef _DEBUG
 #include "client/crash_report_database.h"
