@@ -33,7 +33,6 @@ namespace osn
 		public:
 		uint64_t itemId;
 		SceneItem(uint64_t id);
-		virtual ~SceneItem(){};
 
 		// JavaScript
 		public:

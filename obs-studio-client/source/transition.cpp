@@ -201,7 +201,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::GetActiveSource(Nan::NAN_METHOD_ARG
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Transition* obj = dynamic_cast<osn::Transition*>(baseobj);
+	osn::Transition* obj = static_cast<osn::Transition*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
 		return;
@@ -238,7 +238,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Clear(Nan::NAN_METHOD_ARGS_TYPE inf
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Transition* obj = dynamic_cast<osn::Transition*>(baseobj);
+	osn::Transition* obj = static_cast<osn::Transition*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
 		return;
@@ -264,7 +264,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Set(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Transition* obj = dynamic_cast<osn::Transition*>(baseobj);
+	osn::Transition* obj = static_cast<osn::Transition*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
 		return;
@@ -302,7 +302,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Start(Nan::NAN_METHOD_ARGS_TYPE inf
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Transition* obj = dynamic_cast<osn::Transition*>(baseobj);
+	osn::Transition* obj = static_cast<osn::Transition*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
 		return;
