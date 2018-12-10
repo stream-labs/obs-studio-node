@@ -49,12 +49,6 @@ std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 std::string                                            slobs_plugin;
 std::vector<std::pair<std::string, obs_module_t*>>     obsModules;
 
-#ifdef _WIN32
-std::vector<HMODULE> dynamicLibraries;
-#else
-std::vector<void*> dynamicLibraries;
-#endif
-
 void OBS_API::Register(ipc::server& srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("API");
@@ -444,42 +438,6 @@ void OBS_API::OBS_API_initAPI(
 	/* FIXME g_moduleDirectory really needs to be a wstring */
 	std::string appdata = args[0].value_str;
 	std::string locale  = args[1].value_str;
-
-	/* Also note that this method is possible on POSIX
-	* as well. You can call dlopen with RTLD_GLOBAL
-	* Order matters here. Loading a library out of order
-	* will cause a failure to resolve dependencies. */
-	static const char* g_modules[] = {
-	    "zlib.dll",           "libopus-0.dll",    "libogg-0.dll",    "libvorbis-0.dll",
-	    "libvorbisenc-2.dll", "libvpx-1.dll",     "libx264-152.dll", "avutil-55.dll",
-	    "swscale-4.dll",      "swresample-2.dll", "avcodec-57.dll",  "avformat-57.dll",
-	    "avfilter-6.dll",     "avdevice-57.dll",  "libcurl.dll",     "libvorbisfile-3.dll",
-	    "w32-pthreads.dll",   "obsglad.dll",      "obs.dll",         "libobs-d3d11.dll",
-	    "libobs-opengl.dll"};
-
-	static const int g_modules_size = sizeof(g_modules) / sizeof(g_modules[0]);
-
-	for (int i = 0; i < g_modules_size; ++i) {
-		std::string module_path;
-		void*       handle = NULL;
-
-		module_path.reserve(g_moduleDirectory.size() + strlen(g_modules[i]) + 1);
-		module_path.append(g_moduleDirectory);
-		module_path.append("/");
-		module_path.append(g_modules[i]);
-
-#ifdef _WIN32
-		handle = LoadLibraryW(converter.from_bytes(module_path).c_str());
-#endif
-
-		if (!handle) {
-			std::cerr << "Failed to open dependency " << module_path << std::endl;
-		}
-
-#ifdef _WIN32
-		dynamicLibraries.push_back(HMODULE(handle));
-#endif
-	}
 
 	/* libobs will use three methods of finding data files:
 	* 1. ${CWD}/data/libobs <- This doesn't work for us
@@ -912,14 +870,6 @@ void OBS_API::destroyOBS_API(void)
 	// collector do this for us on shutdown
 	for (auto& moduleInfo : obsModules) {
 	}
-
-#ifdef _WIN32
-
-	// TODO: In the future we should release these dlls here instead letting the garbage
-	// collector do this job
-	for (auto& handle : dynamicLibraries) {
-	}
-#endif
 }
 
 struct ci_char_traits : public char_traits<char>
