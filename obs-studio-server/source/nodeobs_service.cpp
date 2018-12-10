@@ -1791,6 +1791,9 @@ void OBS_service::updateStreamSettings(void)
 	bool useDelay = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "DelayEnable");
 	int64_t delaySec = config_get_int(ConfigManager::getInstance().getBasic(), "Output", "DelaySec");
 	bool preserveDelay = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "DelayPreserve");
+
+	if (!reconnect)
+		maxRetries = 0;
 	
 	obs_output_set_delay(streamingOutput, useDelay ? uint32_t(delaySec) : 0,
 			preserveDelay ? OBS_OUTPUT_DELAY_PRESERVE : 0);
