@@ -3176,24 +3176,30 @@ void OBS_settings::saveAdvancedSettings(std::vector<SubCategory> advancedSetting
 	std::vector<SubCategory> recordingAdvancedSettings;
 
 	recordingAdvancedSettings.push_back(advancedSettings.at(3));
-	saveGenericSettings(recordingAdvancedSettings, "SimpleOutput", ConfigManager::getInstance().getBasic());
+	saveGenericSettings(recordingAdvancedSettings, "Output", ConfigManager::getInstance().getBasic());
+
+	//Replay buffer
+	std::vector<SubCategory> replayBufferAdvancedSettings;
+
+	replayBufferAdvancedSettings.push_back(advancedSettings.at(4));
+	saveGenericSettings(replayBufferAdvancedSettings, "SimpleOutput", ConfigManager::getInstance().getBasic());
 
 	//Stream Delay
 	std::vector<SubCategory> stresmDelayAdvancedSettings;
 
-	stresmDelayAdvancedSettings.push_back(advancedSettings.at(4));
+	stresmDelayAdvancedSettings.push_back(advancedSettings.at(5));
 	saveGenericSettings(stresmDelayAdvancedSettings, "Output", ConfigManager::getInstance().getBasic());
 
 	//Automatically Reconnect
 	std::vector<SubCategory> automaticallyReconnectAdvancedSettings;
 
-	automaticallyReconnectAdvancedSettings.push_back(advancedSettings.at(5));
+	automaticallyReconnectAdvancedSettings.push_back(advancedSettings.at(6));
 	saveGenericSettings(automaticallyReconnectAdvancedSettings, "Output", ConfigManager::getInstance().getBasic());
 
 	//Network
 	std::vector<SubCategory> networkAdvancedSettings;
 
-	networkAdvancedSettings.push_back(advancedSettings.at(6));
+	networkAdvancedSettings.push_back(advancedSettings.at(7));
 	saveGenericSettings(networkAdvancedSettings, "Output", ConfigManager::getInstance().getBasic());
 }
 
