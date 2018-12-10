@@ -1785,12 +1785,17 @@ void OBS_service::updateStreamSettings(void)
 		}
 	}
 
+	bool    reconnect     = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "Reconnect");
+	int     retryDelay    = config_get_uint(ConfigManager::getInstance().getBasic(), "Output", "RetryDelay");
+	int     maxRetries    = config_get_uint(ConfigManager::getInstance().getBasic(), "Output", "MaxRetries");
 	bool useDelay = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "DelayEnable");
 	int64_t delaySec = config_get_int(ConfigManager::getInstance().getBasic(), "Output", "DelaySec");
 	bool preserveDelay = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "DelayPreserve");
 	
 	obs_output_set_delay(streamingOutput, useDelay ? uint32_t(delaySec) : 0,
 			preserveDelay ? OBS_OUTPUT_DELAY_PRESERVE : 0);
+
+	obs_output_set_reconnect_settings(streamingOutput, maxRetries, retryDelay);
 
 	associateAudioAndVideoToTheCurrentStreamingContext();
 	associateAudioAndVideoEncodersToTheCurrentStreamingOutput();
