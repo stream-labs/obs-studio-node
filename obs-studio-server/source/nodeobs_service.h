@@ -272,7 +272,7 @@ class OBS_service
 
 	// Update outputs
 	static void updateStreamingOutput(void);
-	static void updateRecordingOutput(void);
+	static void updateRecordingOutput(bool updateReplayBuffer);
 	static void updateAdvancedRecordingOutput(void);
 	static void UpdateFFmpegOutput(void);
 
