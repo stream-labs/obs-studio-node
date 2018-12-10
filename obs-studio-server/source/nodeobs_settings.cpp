@@ -1934,7 +1934,7 @@ void OBS_settings::getStandardRecordingSettings(
 			if (!obs_data_save_json_safe(settings, ConfigManager::getInstance().getRecord().c_str(), "tmp", "bak")) {
 				blog(LOG_WARNING, "Failed to save encoder %s", ConfigManager::getInstance().getRecord().c_str());
 			}
-		} else {
+		} else if (strcmp(recEncoderCurrentValue, "none") != 0) {
 			obs_data_t* data =
 			    obs_data_create_from_json_file_safe(ConfigManager::getInstance().getRecord().c_str(), "bak");
 			obs_data_apply(settings, data);
