@@ -902,6 +902,10 @@ void OBS_API::destroyOBS_API(void)
 	if (recordingOutput != NULL)
 		obs_output_release(recordingOutput);
 
+	obs_output_t* replayBufferOutput = OBS_service::getReplayBufferOutput();
+	if (replayBufferOutput != NULL)
+		obs_output_release(replayBufferOutput);
+
 	obs_service_t* service = OBS_service::getService();
 	if (service != NULL)
 		obs_service_release(service);
