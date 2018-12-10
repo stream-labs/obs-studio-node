@@ -6,6 +6,9 @@ distribute/
 yarn-error.log 
 
 # Binaries
+*.dll
+*.lib
+*.pdb
 *.node
 
 # IDE Files
@@ -16,3 +19,19 @@ docs/
 .vscode 
 /*.log
 /streamlabs-build
+
+# Remove this when we stop using Sentry on the backend
+!/crow/dependencies/curl/lib/libcurl.dll
+!/crow/dependencies/curl/lib/libcurl.lib
+!/crow/dependencies/curl/lib/libcurl.pdb
+!/crow/dependencies/curl/lib/libcurl_imp.lib
+!/crow/dependencies/zlib/lib/debug/zdll.lib
+!/crow/dependencies/zlib/lib/debug/zlib.lib
+!/crow/dependencies/zlib/lib/debug/zlib.pdb
+!/crow/dependencies/zlib/lib/release/zdll.lib
+!/crow/dependencies/zlib/lib/release/zlib.lib
+!/crow/dependencies/zlib/lib/release/zlib.pdb
+!/crow/lib/crow.lib
+!/crow/lib/crow.pdb
+!/crow/lib/cygcurl-4.dll
+!/crow/lib/libcurl-x64.dll
