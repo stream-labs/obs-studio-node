@@ -279,6 +279,8 @@ class OBS_service
 	static std::string GetDefaultVideoSavePath(void);
 
 	static bool isStreamingOutputActive(void);
+	static bool isRecordingOutputActive(void);
+	static bool isReplayBufferOutputActive(void);
 
 	// Reset contexts
 	static bool resetAudioContext(bool reload = false);

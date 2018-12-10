@@ -1142,7 +1142,7 @@ void OBS_settings::getSimpleOutputSettings(
 	outputSettings->push_back(
 	    serializeSettingsData("Recording", entries, config, "SimpleOutput", true, isCategoryEnabled));
 
-	getReplayBufferSettings(outputSettings, config);
+	getReplayBufferSettings(outputSettings, config, false, isCategoryEnabled);
 }
 
 void OBS_settings::getEncoderSettings(
@@ -2177,7 +2177,8 @@ void OBS_settings::getAdvancedOutputAudioSettings(
 void OBS_settings::getReplayBufferSettings(
     std::vector<SubCategory>* outputSettings,
     config_t*                 config,
-	bool advanced)
+	bool                      advanced,
+    bool                      isCategoryEnabled)
 {
 	std::vector<std::vector<std::pair<std::string, std::string>>> entries;
 
@@ -2199,8 +2200,8 @@ void OBS_settings::getReplayBufferSettings(
 		entries.push_back(RecRBTime);
 	}
 
-	outputSettings->push_back(
-	    serializeSettingsData("Replay Buffer", entries, config, advanced ? "AdvOut" : "SimpleOutput", true, true));
+	outputSettings->push_back(serializeSettingsData(
+	    "Replay Buffer", entries, config, advanced ? "AdvOut" : "SimpleOutput", true, isCategoryEnabled));
 	entries.clear();
 }
 
@@ -2221,14 +2222,15 @@ void OBS_settings::getAdvancedOutputSettings(
 	getAdvancedOutputAudioSettings(outputSettings, config, isCategoryEnabled);
 
 	// Replay buffer
-	getReplayBufferSettings(outputSettings, config, true);
+	getReplayBufferSettings(outputSettings, config, true, isCategoryEnabled);
 }
 
 std::vector<SubCategory> OBS_settings::getOutputSettings()
 {
 	std::vector<SubCategory> outputSettings;
 
-	bool isCategoryEnabled = !OBS_service::isStreamingOutputActive();
+	bool isCategoryEnabled = !OBS_service::isStreamingOutputActive() && !OBS_service::isRecordingOutputActive()
+	                         && !OBS_service::isReplayBufferOutputActive();
 
 	std::vector<std::vector<std::pair<std::string, std::string>>> entries;
 
@@ -2584,7 +2586,8 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 {
 	std::vector<SubCategory> videoSettings;
 
-	bool isCategoryEnabled = !OBS_service::isStreamingOutputActive();
+	bool isCategoryEnabled = !OBS_service::isStreamingOutputActive() && !OBS_service::isRecordingOutputActive()
+	                         && !OBS_service::isReplayBufferOutputActive();
 
 	std::vector<std::vector<std::pair<std::string, std::string>>> entries;
 

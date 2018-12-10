@@ -1322,6 +1322,16 @@ bool OBS_service::isStreamingOutputActive(void)
 	return obs_output_active(streamingOutput);
 }
 
+bool OBS_service::isRecordingOutputActive(void)
+{
+	return obs_output_active(recordingOutput);
+}
+
+bool OBS_service::isReplayBufferOutputActive(void)
+{
+	return obs_output_active(replayBuffer);
+}
+
 int OBS_service::GetAudioBitrate()
 {
     int bitrate = 
