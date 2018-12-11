@@ -585,10 +585,14 @@ int EvaluateBandwidth(
 	}
 	cv.wait(ul);
 
-	uint64_t total_time = os_gettime_ns() - t_start;
-
+	uint64_t total_time  = os_gettime_ns() - t_start;
 	int      total_bytes = (int)obs_output_get_total_bytes(output);
-	uint64_t bitrate     = (uint64_t)total_bytes * 8 * 1000000000 / total_time / 1000;
+	uint64_t bitrate     = 0;
+
+	if (total_time > 0) {
+		bitrate = (uint64_t)total_bytes * 8 * 1000000000 / total_time / 1000;
+	}
+
 	startingBitrate      = (int)obs_data_get_int(vencoder_settings, "bitrate");
 	if (obs_output_get_frames_dropped(output) || (int)bitrate < (startingBitrate * 75 / 100)) {
 		server.bitrate = (int)bitrate * 70 / 100;
@@ -866,20 +870,28 @@ void autoConfig::TestBandwidthThread(void)
  * the closest to the expected values */
 static long double EstimateBitrateVal(int cx, int cy, int fps_num, int fps_den)
 {
-	long        fps     = (long double)fps_num / (long double)fps_den;
+	long        fps     = long((long double)fps_num / (long double)fps_den);
 	long double areaVal = pow((long double)(cx * cy), 0.85l);
 	return areaVal * sqrt(pow(fps, 1.1l));
 }
 
 static long double EstimateMinBitrate(int cx, int cy, int fps_num, int fps_den)
 {
-	long double val = EstimateBitrateVal(baseResolutionCX, baseResolutionCY, 60, 1) / 5800.0l;
+	long double val = EstimateBitrateVal((int)baseResolutionCX, (int)baseResolutionCY, 60, 1) / 5800.0l;
+	if (val < std::numeric_limits<double>::epsilon() && val > -std::numeric_limits<double>::epsilon()) {
+		return 0.0;
+	}
+
 	return EstimateBitrateVal(cx, cy, fps_num, fps_den) / val;
 }
 
 static long double EstimateUpperBitrate(int cx, int cy, int fps_num, int fps_den)
 {
 	long double val = EstimateBitrateVal(1280, 720, 30, 1) / 3000.0l;
+	if (val < std::numeric_limits<double>::epsilon() && val > -std::numeric_limits<double>::epsilon()) {
+		return 0.0;
+	}
+
 	return EstimateBitrateVal(cx, cy, fps_num, fps_den) / val;
 }
 
@@ -896,15 +908,15 @@ struct Result
 
 void autoConfig::FindIdealHardwareResolution()
 {
-	int baseCX = baseResolutionCX;
-	int baseCY = baseResolutionCY;
+	int baseCX = (int)baseResolutionCX;
+	int baseCY = (int)baseResolutionCY;
 
 	vector<Result> results;
 
 	int pcores = os_get_physical_cores();
 	int maxDataRate;
 	if (pcores >= 4) {
-		maxDataRate = baseResolutionCX * baseResolutionCY * 60 + 1000;
+		maxDataRate = int(baseResolutionCX * baseResolutionCY * 60 + 1000);
 	} else {
 		maxDataRate = 1280 * 720 * 30 + 1000;
 	}
@@ -927,7 +939,7 @@ void autoConfig::FindIdealHardwareResolution()
 		if (!force && rate > maxDataRate)
 			return;
 
-		int minBitrate = EstimateMinBitrate(cx, cy, fps_num, fps_den) * 114 / 100;
+		int minBitrate = int(EstimateMinBitrate(cx, cy, fps_num, fps_den) * 114 / 100);
 		if (type == Type::Recording)
 			force = true;
 		if (force || idealBitrate >= minBitrate)
@@ -1043,8 +1055,8 @@ bool autoConfig::TestSoftwareEncoding()
 	/* -----------------------------------*/
 	/* calculate starting resolution      */
 
-	int baseCX = baseResolutionCX;
-	int baseCY = baseResolutionCY;
+	int baseCX = int(baseResolutionCX);
+	int baseCY = int(baseResolutionCY);
 
 	/* -----------------------------------*/
 	/* calculate starting test rates      */
@@ -1054,15 +1066,15 @@ bool autoConfig::TestSoftwareEncoding()
 	int maxDataRate;
 	if (lcores > 8 || pcores > 4) {
 		/* superb */
-		maxDataRate = baseResolutionCX * baseResolutionCY * 60 + 1000;
+		maxDataRate = int(baseResolutionCX * baseResolutionCY * 60 + 1000);
 
 	} else if (lcores > 4 && pcores == 4) {
 		/* great */
-		maxDataRate = baseResolutionCX * baseResolutionCY * 60 + 1000;
+		maxDataRate = int(baseResolutionCX * baseResolutionCY * 60 + 1000);
 
 	} else if (pcores == 4) {
 		/* okay */
-		maxDataRate = baseResolutionCX * baseResolutionCY * 30 + 1000;
+		maxDataRate = int(baseResolutionCX * baseResolutionCY * 30 + 1000);
 
 	} else {
 		/* toaster */
@@ -1094,7 +1106,7 @@ bool autoConfig::TestSoftwareEncoding()
 		int cy = int((long double)baseCY / div);
 
 		if (!force && type != Type::Recording) {
-			int est = EstimateMinBitrate(cx, cy, fps_num, fps_den);
+			int est = int(EstimateMinBitrate(cx, cy, fps_num, fps_den));
 			if (est > idealBitrate)
 				return true;
 		}
@@ -1435,7 +1447,7 @@ void autoConfig::SetDefaultSettings(void)
 	idealResolutionCX = 1280;
 	idealResolutionCY = 720;
 	idealFPSNum       = 30;
-	recordingQuality == Quality::High;
+	recordingQuality = Quality::High;
 	idealBitrate     = 2500;
 	streamingEncoder = Encoder::x264;
 	recordingEncoder = Encoder::Stream;

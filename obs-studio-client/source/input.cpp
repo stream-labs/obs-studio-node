@@ -235,11 +235,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetPublicSources(Nan::NAN_METHOD_ARGS_TY
 	if (!ValidateResponse(response))
 		return;
 
-	v8::Local<v8::Array> arr = Nan::New<v8::Array>(response.size() - 1);
+	v8::Local<v8::Array> arr = Nan::New<v8::Array>(int(response.size() - 1));
 	for (size_t idx = 1; idx < response.size(); idx++) {
 		osn::Input* obj    = new osn::Input(response[idx - 1].value_union.ui64);
 		auto        object = osn::Input::Store(obj);
-		Nan::Set(arr, idx, object);
+		Nan::Set(arr, uint32_t(idx), object);
 	}
 
 	info.GetReturnValue().Set(arr);
@@ -251,7 +251,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Input* obj = dynamic_cast<osn::Input*>(baseobj);
+	osn::Input* obj = static_cast<osn::Input*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
 		return;
@@ -296,7 +296,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Active(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Input* obj = dynamic_cast<osn::Input*>(baseobj);
+	osn::Input* obj = static_cast<osn::Input*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
 		return;
@@ -321,7 +321,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Showing(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Input* obj = dynamic_cast<osn::Input*>(baseobj);
+	osn::Input* obj = static_cast<osn::Input*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
 		return;
@@ -347,7 +347,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Width(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Input* obj = dynamic_cast<osn::Input*>(baseobj);
+	osn::Input* obj = static_cast<osn::Input*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
 		return;
@@ -371,7 +371,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Height(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Input* obj = dynamic_cast<osn::Input*>(baseobj);
+	osn::Input* obj = static_cast<osn::Input*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
 		return;
@@ -395,7 +395,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetVolume(Nan::NAN_METHOD_ARGS_TYPE info
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Input* obj = dynamic_cast<osn::Input*>(baseobj);
+	osn::Input* obj = static_cast<osn::Input*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
 		return;
@@ -419,7 +419,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetVolume(Nan::NAN_METHOD_ARGS_TYPE info
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Input* obj = dynamic_cast<osn::Input*>(baseobj);
+	osn::Input* obj = static_cast<osn::Input*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
 		return;
@@ -448,7 +448,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE 
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Input* obj = dynamic_cast<osn::Input*>(baseobj);
+	osn::Input* obj = static_cast<osn::Input*>(baseobj);
 	if (!obj) {
 		// Don't call methods on the prototype itself,
 		// but call them on the object
@@ -480,7 +480,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE 
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Input* obj = dynamic_cast<osn::Input*>(baseobj);
+	osn::Input* obj = static_cast<osn::Input*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
 		return;
@@ -515,7 +515,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Input* obj = dynamic_cast<osn::Input*>(baseobj);
+	osn::Input* obj = static_cast<osn::Input*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
 		return;
@@ -540,7 +540,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Input* obj = dynamic_cast<osn::Input*>(baseobj);
+	osn::Input* obj = static_cast<osn::Input*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
 		return;
@@ -569,7 +569,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetMonitoringType(Nan::NAN_METHOD_ARGS_T
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Input* obj = dynamic_cast<osn::Input*>(baseobj);
+	osn::Input* obj = static_cast<osn::Input*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
 		return;
@@ -594,7 +594,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetMonitoringType(Nan::NAN_METHOD_ARGS_T
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Input* obj = dynamic_cast<osn::Input*>(baseobj);
+	osn::Input* obj = static_cast<osn::Input*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
 		return;
@@ -623,7 +623,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetDeinterlaceFieldOrder(Nan::NAN_METHOD
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Input* obj = dynamic_cast<osn::Input*>(baseobj);
+	osn::Input* obj = static_cast<osn::Input*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
 		return;
@@ -648,7 +648,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetDeinterlaceFieldOrder(Nan::NAN_METHOD
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Input* obj = dynamic_cast<osn::Input*>(baseobj);
+	osn::Input* obj = static_cast<osn::Input*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
 		return;
@@ -678,7 +678,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetDeinterlaceMode(Nan::NAN_METHOD_ARGS_
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Input* obj = dynamic_cast<osn::Input*>(baseobj);
+	osn::Input* obj = static_cast<osn::Input*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
 		return;
@@ -704,7 +704,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetDeinterlaceMode(Nan::NAN_METHOD_ARGS_
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Input* obj = dynamic_cast<osn::Input*>(baseobj);
+	osn::Input* obj = static_cast<osn::Input*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
 		return;
@@ -734,7 +734,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Filters(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Input* obj = dynamic_cast<osn::Input*>(baseobj);
+	osn::Input* obj = static_cast<osn::Input*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
 		return;
@@ -750,11 +750,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Filters(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!ValidateResponse(response))
 		return;
 
-	v8::Local<v8::Array> arr = Nan::New<v8::Array>(response.size() - 1);
+	v8::Local<v8::Array> arr = Nan::New<v8::Array>(int(response.size()) - 1);
 	for (size_t idx = 1; idx < response.size(); idx++) {
 		osn::Filter* obj    = new osn::Filter(response[idx].value_union.ui64);
 		auto         object = osn::Filter::Store(obj);
-		Nan::Set(arr, idx - 1, object);
+		Nan::Set(arr, uint32_t(idx) - 1, object);
 	}
 
 	info.GetReturnValue().Set(arr);
@@ -766,7 +766,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::AddFilter(Nan::NAN_METHOD_ARGS_TYPE info
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Input* obj = dynamic_cast<osn::Input*>(baseobj);
+	osn::Input* obj = static_cast<osn::Input*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
 		return;
@@ -782,7 +782,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::AddFilter(Nan::NAN_METHOD_ARGS_TYPE info
 		info.GetIsolate()->ThrowException(
 		    v8::Exception::ReferenceError(Nan::New<v8::String>("Source is invalid.").ToLocalChecked()));
 	}
-	osn::Filter* filter = dynamic_cast<osn::Filter*>(basefilter);
+	osn::Filter* filter = static_cast<osn::Filter*>(basefilter);
 	if (!filter) {
 		info.GetIsolate()->ThrowException(
 		    v8::Exception::TypeError(Nan::New<v8::String>("Source is not a filter.").ToLocalChecked()));
@@ -805,7 +805,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::RemoveFilter(Nan::NAN_METHOD_ARGS_TYPE i
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Input* obj = dynamic_cast<osn::Input*>(baseobj);
+	osn::Input* obj = static_cast<osn::Input*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
 		return;
@@ -838,7 +838,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetFilterOrder(Nan::NAN_METHOD_ARGS_TYPE
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Input* obj = dynamic_cast<osn::Input*>(baseobj);
+	osn::Input* obj = static_cast<osn::Input*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
 		return;
@@ -873,7 +873,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::FindFilter(Nan::NAN_METHOD_ARGS_TYPE inf
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Input* obj = dynamic_cast<osn::Input*>(baseobj);
+	osn::Input* obj = static_cast<osn::Input*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
 		return;
@@ -907,7 +907,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::CopyFilters(Nan::NAN_METHOD_ARGS_TYPE in
 	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
 		return;
 	}
-	osn::Input* obj = dynamic_cast<osn::Input*>(baseobj);
+	osn::Input* obj = static_cast<osn::Input*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
 		return;
@@ -923,7 +923,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::CopyFilters(Nan::NAN_METHOD_ARGS_TYPE in
 		info.GetIsolate()->ThrowException(
 		    v8::Exception::ReferenceError(Nan::New<v8::String>("Source is invalid.").ToLocalChecked()));
 	}
-	osn::Input* input = dynamic_cast<osn::Input*>(baseinput);
+	osn::Input* input = static_cast<osn::Input*>(baseinput);
 	if (!input) {
 		info.GetIsolate()->ThrowException(
 		    v8::Exception::TypeError(Nan::New<v8::String>("Source is not a input.").ToLocalChecked()));

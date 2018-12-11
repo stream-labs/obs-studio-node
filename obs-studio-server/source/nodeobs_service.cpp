@@ -4,20 +4,20 @@
 #include "error.hpp"
 #include "shared.hpp"
 
-obs_output_t*  streamingOutput;
-obs_output_t*  recordingOutput;
-obs_encoder_t* audioStreamingEncoder;
-obs_encoder_t* audioRecordingEncoder;
-obs_encoder_t* videoStreamingEncoder;
-obs_encoder_t* videoRecordingEncoder;
-obs_service_t* service;
+obs_output_t* streamingOutput        = nullptr;
+obs_output_t* recordingOutput        = nullptr;
+obs_encoder_t* audioStreamingEncoder = nullptr;
+obs_encoder_t* audioRecordingEncoder = nullptr;
+obs_encoder_t* videoStreamingEncoder = nullptr;
+obs_encoder_t* videoRecordingEncoder = nullptr;
+obs_service_t* service               = nullptr;
 
 std::string aacRecEncID;
 std::string aacStreamEncID;
 
 std::string videoEncoder;
 std::string videoQuality;
-bool        usingRecordingPreset = false;
+bool        usingRecordingPreset = true;
 bool        recordingConfigured  = false;
 bool        ffmpegOutput         = false;
 bool        lowCPUx264           = false;
@@ -166,7 +166,8 @@ void OBS_service::OBS_service_createRecordingSettings(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	createRecordingSettings();
+	// Method not used anymore
+
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -276,7 +277,7 @@ void OBS_service::OBS_service_associateAudioAndVideoEncodersToTheCurrentRecordin
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	associateAudioAndVideoEncodersToTheCurrentRecordingOutput();
+	associateAudioAndVideoEncodersToTheCurrentRecordingOutput(false);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -459,7 +460,7 @@ void GetFPSCommon(config_t* basicConfig, uint32_t& num, uint32_t& den)
 
 void GetConfigFPS(config_t* basicConfig, uint32_t& num, uint32_t& den)
 {
-	uint32_t type = config_get_uint(basicConfig, "Video", "FPSType");
+	uint64_t type = config_get_uint(basicConfig, "Video", "FPSType");
 	if (type == 1) //"Integer"
 		GetFPSInteger(basicConfig, num, den);
 	else if (type == 2) //"Fraction"
@@ -509,7 +510,7 @@ int OBS_service::resetVideoContext(bool reload)
 
     if (ovi.base_width == 0 || ovi.base_height == 0) {
 		for (int i = 0; i<resolutions.size(); i++) {
-			if (ovi.base_width * ovi.base_height < 
+			if (int(ovi.base_width * ovi.base_height) < 
 				resolutions.at(i).width * resolutions.at(i).height) {
 				ovi.base_width = resolutions.at(i).width;
 				ovi.base_height = resolutions.at(i).height;
@@ -587,7 +588,7 @@ void OBS_service::createAudioEncoder(obs_encoder_t** audioEncoder)
 		return;
 	}
 
-	if (usingRecordingPreset)
+	if (audioEncoder != NULL && usingRecordingPreset)
 		obs_encoder_release(*audioEncoder);
 
 	*audioEncoder = obs_audio_encoder_create(id, "simple_audio", nullptr, 0, nullptr);
@@ -711,6 +712,9 @@ char* os_generate_formatted_filename(const char* extension, bool space, const ch
 std::string GenerateSpecifiedFilename(const char* extension, bool noSpace, const char* format)
 {
 	char* filename = os_generate_formatted_filename(extension, !noSpace, format);
+	if (filename == nullptr) {
+		throw "Invalid filename";
+	}
 
 	std::string result(filename);
 
@@ -787,7 +791,7 @@ void OBS_service::createService()
 	const char* type;
 
 	struct stat buffer;
-    bool fileExist = (stat (ConfigManager::getInstance().getService().c_str(), &buffer) == 0);
+	bool        fileExist = (os_stat(ConfigManager::getInstance().getService().c_str(), &buffer) == 0);
 
 	obs_data_t* data;
 	obs_data_t* settings;
@@ -829,18 +833,6 @@ void OBS_service::createService()
 	obs_data_release(data);
 }
 
-obs_data_t* OBS_service::createRecordingSettings(void)
-{
-	obs_data_t* settings = obs_data_create();
-	/*obs_data_set_string(settings, "format_name", "avi");
-    obs_data_set_string(settings, "video_encoder", "utvideo");
-    obs_data_set_string(settings, "audio_encoder", "pcm_s16le");
-    obs_data_set_string(settings, "path", "./recording_1.avi");*/
-	// obs_data_t *settings = obs_encoder_get_settings(videoRecordingEncoder);
-
-	return settings;
-}
-
 void OBS_service::createStreamingOutput(void)
 {
 	streamingOutput = obs_output_create("rtmp_output", "simple_stream", nullptr, nullptr);
@@ -863,7 +855,7 @@ bool OBS_service::startStreaming(void)
 	streamingOutput = obs_output_create(type, "simple_stream", nullptr, nullptr);
 	connectOutputSignals();
 	
-	int trackIndex = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut",
+	uint64_t trackIndex = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut",
 		"TrackIndex");
 
 	const char* codec = obs_output_get_supported_audio_codecs(streamingOutput);
@@ -879,7 +871,7 @@ bool OBS_service::startStreaming(void)
 		obs_data_t* settings     = obs_data_create();
 		obs_data_set_int(settings, "bitrate", audioBitrate);
 
-		audioStreamingEncoder = obs_audio_encoder_create(id, "alt_audio_enc", nullptr, trackIndex - 1, nullptr);
+		audioStreamingEncoder = obs_audio_encoder_create(id, "alt_audio_enc", nullptr, int(trackIndex) - 1, nullptr);
 		if (!audioStreamingEncoder)
 			return false;
 
@@ -898,8 +890,32 @@ bool OBS_service::startStreaming(void)
 
 bool OBS_service::startRecording(void)
 {
+	int trackIndex = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex");
+
+	const char* codec = obs_output_get_supported_audio_codecs(streamingOutput);
+	if (!codec) {
+		return false;
+	}
+
+	if (strcmp(codec, "aac") == 0) {
+		createAudioEncoder(&audioRecordingEncoder);
+	} else {
+		const char* id           = FindAudioEncoderFromCodec(codec);
+		int         audioBitrate = GetAudioBitrate();
+		obs_data_t* settings     = obs_data_create();
+		obs_data_set_int(settings, "bitrate", audioBitrate);
+
+		audioStreamingEncoder = obs_audio_encoder_create(id, "alt_audio_enc", nullptr, trackIndex - 1, nullptr);
+		if (!audioStreamingEncoder)
+			return false;
+
+		obs_encoder_update(audioStreamingEncoder, settings);
+		obs_encoder_set_audio(audioStreamingEncoder, obs_get_audio());
+
+		obs_data_release(settings);
+	}
+
 	isRecording = true;
-	createAudioEncoder(&audioRecordingEncoder);
 	updateRecordSettings();
 
 	if (!obs_output_start(recordingOutput)) {
@@ -984,10 +1000,16 @@ void OBS_service::associateAudioAndVideoEncodersToTheCurrentStreamingOutput(void
 	obs_output_set_audio_encoder(streamingOutput, audioStreamingEncoder, 0);
 }
 
-void OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(void)
+void OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(bool useStreamingEncoder)
 {
-	obs_output_set_video_encoder(recordingOutput, videoRecordingEncoder);
-	obs_output_set_audio_encoder(recordingOutput, audioRecordingEncoder, 0);
+	if (useStreamingEncoder) {
+		obs_output_set_video_encoder(recordingOutput, videoStreamingEncoder);
+		obs_output_set_audio_encoder(recordingOutput, audioStreamingEncoder, 0);
+	}
+	else {
+		obs_output_set_video_encoder(recordingOutput, videoRecordingEncoder);
+		obs_output_set_audio_encoder(recordingOutput, audioRecordingEncoder, 0);
+	}
 }
 
 void OBS_service::setServiceToTheStreamingOutput(void)
@@ -1070,7 +1092,7 @@ void OBS_service::updateVideoStreamingEncoder()
     obs_data_t *aacSettings  = obs_data_create();
 
     int videoBitrate = 
-		config_get_uint(ConfigManager::getInstance().getBasic(), "SimpleOutput","VBitrate");
+		int(config_get_uint(ConfigManager::getInstance().getBasic(), "SimpleOutput","VBitrate"));
     int audioBitrate = GetAudioBitrate();
     bool advanced = 
 		config_get_bool(ConfigManager::getInstance().getBasic(), "SimpleOutput","UseAdvanced");
@@ -1189,9 +1211,9 @@ void OBS_service::updateRecordingOutput(void)
     const char *rbSuffix = 
 		config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecRBSuffix");
     int rbTime = 
-		config_get_int(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecRBTime");
+		int(config_get_int(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecRBTime"));
     int rbSize = 
-		config_get_int(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecRBSize");
+		int(config_get_int(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecRBSize"));
 
 	os_dir_t *dir = path && path[0] ? os_opendir(path) : nullptr;
 
@@ -1207,7 +1229,6 @@ void OBS_service::updateRecordingOutput(void)
         strPath += "/";
 
     bool ffmpegOutput = false;
-    bool usingRecordingPreset = true;
 
     if(filenameFormat != NULL && format != NULL) {
         strPath += GenerateSpecifiedFilename(ffmpegOutput ? "avi" : format, noSpace, filenameFormat);
@@ -1263,7 +1284,7 @@ void OBS_service::updateAdvancedRecordingOutput(void)
 	const char *rescaleRes = 
 		config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecRescaleRes");
     int tracks =
-		config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecTracks");
+		int(config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecTracks"));
 	
 	const char *recFormat =
 		config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecFormat");
@@ -1410,9 +1431,9 @@ void OBS_service::UpdateFFmpegOutput(void)
 	const char *url = 
 		config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "FFURL");
 	int vBitrate =
-		config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "FFVBitrate");
+		int(config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "FFVBitrate"));
 	int gopSize = 
-		config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "FFVGOPSize");
+		int(config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "FFVGOPSize"));
 	bool rescale = 
 		config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut",	"FFRescale");
 	const char *rescaleRes = 
@@ -1426,17 +1447,17 @@ void OBS_service::UpdateFFmpegOutput(void)
 	const char *vEncoder = 
 		config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "FFVEncoder");
 	int vEncoderId =
-		config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "FFVEncoderId");
+		int(config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "FFVEncoderId"));
 	const char *vEncCustom = 
 		config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "FFVCustom");
 	int aBitrate = 
-		config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "FFABitrate");
+		int(config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "FFABitrate"));
 	int aTrack = 
-		config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "FFAudioTrack");
+		int(config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "FFAudioTrack"));
 	const char *aEncoder = 
 		config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "FFAEncoder");
 	int aEncoderId = 
-		config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "FFAEncoderId");
+		int(config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "FFAEncoderId"));
 	const char *aEncCustom = 
 		config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "FFACustom");
 
@@ -1642,8 +1663,8 @@ void OBS_service::UpdateRecordingSettings_x264_crf(int crf)
 
 int CalcCRF(int crf)
 {
-	int cx = config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCX");
-	int cy = config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCY");
+	uint64_t cx = config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCX");
+	uint64_t cy  = config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCY");
 	double fCX = double(cx);
 	double fCY = double(cy);
 
@@ -1662,7 +1683,7 @@ void OBS_service::UpdateRecordingSettings()
 	bool ultra_hq = (videoQuality == "HQ");
 	int  crf      = CalcCRF(ultra_hq ? 16 : 23);
 
-	if (astrcmp_n(videoEncoder.c_str(), "obs_x264", 4) == 0) {
+	if (astrcmp_n(videoEncoder.c_str(), "x264", 4) == 0) {
 		UpdateRecordingSettings_x264_crf(crf);
 
 	} else if (videoEncoder == SIMPLE_ENCODER_QSV) {
@@ -1766,10 +1787,10 @@ void OBS_service::updateStreamSettings(void)
 	}
 
 	bool useDelay = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "DelayEnable");
-	int delaySec = config_get_int(ConfigManager::getInstance().getBasic(), "Output", "DelaySec");
+	int64_t delaySec = config_get_int(ConfigManager::getInstance().getBasic(), "Output", "DelaySec");
 	bool preserveDelay = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "DelayPreserve");
 	
-	obs_output_set_delay(streamingOutput, useDelay ? delaySec : 0,
+	obs_output_set_delay(streamingOutput, useDelay ? uint32_t(delaySec) : 0,
 			preserveDelay ? OBS_OUTPUT_DELAY_PRESERVE : 0);
 
 	associateAudioAndVideoToTheCurrentStreamingContext();
@@ -1780,25 +1801,33 @@ void OBS_service::updateRecordSettings(void)
 {
     const char* currentOutputMode = 
 		config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
+	bool        useStreamingEncoder = false;
 
 	if (strcmp(currentOutputMode, "Simple") == 0) {
 		updateVideoRecordingEncoder();
 		updateRecordingOutput();
 	} else if (strcmp(currentOutputMode, "Advanced") == 0) {
-        const char* recType = 
-			config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecType");
+		const char* recEncoder = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecEncoder");
+		if (!recEncoder || strcmp(recEncoder, "none") == 0) {
+			useStreamingEncoder = true;
+		} else {
+			const char* recType = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecType");
 
-        if(recType != NULL && strcmp(recType, "Custom Output (FFmpeg)") == 0) {
-            resetVideoContext();
-            associateAudioAndVideoToTheCurrentRecordingContext();
-            UpdateFFmpegOutput();
-            return;
-        }
-        updateAdvancedRecordingOutput();
+			if (recType != NULL && strcmp(recType, "Custom Output (FFmpeg)") == 0) {
+				resetVideoContext("Record");
+				associateAudioAndVideoToTheCurrentRecordingContext();
+				UpdateFFmpegOutput();
+				return;
+			}
+		}
+		updateAdvancedRecordingOutput();
     }
+	if (useStreamingEncoder)
+		associateAudioAndVideoToTheCurrentStreamingContext();
+	else
+		associateAudioAndVideoToTheCurrentRecordingContext();
 
-	associateAudioAndVideoToTheCurrentRecordingContext();
-	associateAudioAndVideoEncodersToTheCurrentRecordingOutput();
+	associateAudioAndVideoEncodersToTheCurrentRecordingOutput(useStreamingEncoder);
 }
 
 std::vector<SignalInfo> streamingSignals;
