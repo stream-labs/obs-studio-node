@@ -74,6 +74,8 @@ void osn::Filter::Create(
 		return;
 	}
 
+	obs_data_release(settings);
+
 	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
 	if (uid == UINT64_MAX) {
 		// No further Ids left, leak somewhere.

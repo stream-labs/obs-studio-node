@@ -171,6 +171,7 @@ void initBasicDefault(config_t* config)
 	config_set_default_string(config, "Video", "ColorFormat", "NV12");
 	config_set_default_string(config, "Video", "ColorSpace", "601");
 	config_set_default_string(config, "Video", "ColorRange", "Partial");
+	config_set_default_bool(config, "Video", "ForceGPUAsRenderDevice", true);
 
 	config_set_default_string(config, "Audio", "MonitoringDeviceId", "default");
 	config_set_default_string(config, "Audio", "MonitoringDeviceName", "Default");

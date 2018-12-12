@@ -610,20 +610,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Modified(Nan::NAN_METHOD_ARGS_T
 	    "Properties",
 	    "Modified",
 	    {ipc::value(parent_source->sourceId), ipc::value(iter->second->name), ipc::value(value)});
-	if (rval.size() == 0) {
-		Nan::Error("Call failed, verify IPC status.");
-		return;
-	} else if (!ValidateResponse(rval)) {
+
+	if (!ValidateResponse(rval)) {
+		info.GetReturnValue().Set(false);
 		return;
 	}
 
-	// Process Results
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::Ok) {
-		info.GetReturnValue().Set(!!rval[1].value_union.i32);
-	} else {
-		info.GetReturnValue().Set(false);
-	}
+	info.GetReturnValue().Set(!!rval[1].value_union.i32);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::ButtonClicked(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -670,18 +663,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::ButtonClicked(Nan::NAN_METHOD_A
 	}
 	auto rval = conn->call_synchronous_helper(
 	    "Properties", "Clicked", {ipc::value(parent_source->sourceId), ipc::value(iter->second->name)});
-	if (rval.size() == 0) {
-		Nan::Error("Call failed, verify IPC status.");
-		return;
-	} else if (!ValidateResponse(rval)) {
+
+	if (!ValidateResponse(rval)) {
+		info.GetReturnValue().Set(false);
 		return;
 	}
 
-	// Process Results
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::Ok) {
-		info.GetReturnValue().Set(true);
-	} else {
-		info.GetReturnValue().Set(false);
-	}
+	info.GetReturnValue().Set(true);
 }
