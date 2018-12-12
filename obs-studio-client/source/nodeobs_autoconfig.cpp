@@ -245,6 +245,7 @@ void autoConfig::StartCheckSettings(const v8::FunctionCallbackInfo<v8::Value>& a
 		return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "StartCheckSettings", {});
+
 	if (!ValidateResponse(response)) {
 		return;
 	}
@@ -307,6 +308,7 @@ void autoConfig::TerminateAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& 
 		return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "TerminateAutoConfig", {});
+
 	if (!ValidateResponse(response)) {
 		return;
 	}
