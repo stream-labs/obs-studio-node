@@ -1867,13 +1867,26 @@ void OBS_service::updateStreamSettings(void)
 	bool    reconnect     = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "Reconnect");
 	int     retryDelay    = config_get_uint(ConfigManager::getInstance().getBasic(), "Output", "RetryDelay");
 	int     maxRetries    = config_get_uint(ConfigManager::getInstance().getBasic(), "Output", "MaxRetries");
+
 	bool useDelay = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "DelayEnable");
 	int64_t delaySec = config_get_int(ConfigManager::getInstance().getBasic(), "Output", "DelaySec");
 	bool preserveDelay = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "DelayPreserve");
 
+	const char* bindIP    = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "BindIP");
+	bool        enableNewSocketLoop =
+	    config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "NewSocketLoopEnable");
+	bool enableLowLatencyMode = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "LowLatencyEnable");
+
+	obs_data_t* settings = obs_data_create();
+	obs_data_set_string(settings, "bind_ip", bindIP);
+	obs_data_set_bool(settings, "new_socket_loop_enabled", enableNewSocketLoop);
+	obs_data_set_bool(settings, "low_latency_mode_enabled", enableLowLatencyMode);
+	obs_output_update(streamingOutput, settings);
+	obs_data_release(settings);
+
 	if (!reconnect)
 		maxRetries = 0;
-	
+
 	obs_output_set_delay(streamingOutput, useDelay ? uint32_t(delaySec) : 0,
 			preserveDelay ? OBS_OUTPUT_DELAY_PRESERVE : 0);
 
