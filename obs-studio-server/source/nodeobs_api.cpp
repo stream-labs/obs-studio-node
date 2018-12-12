@@ -585,6 +585,9 @@ void OBS_API::OBS_API_initAPI(
 
 	setAudioDeviceMonitoring();
 
+	// Enable the hotkey callback rerouting that will be used when manually handling hotkeys on the frontend
+	obs_hotkey_enable_callback_rerouting(true);
+
 	// We are returning a video result here because the frontend needs to know if we sucessfully
 	// initialized the Dx11 API
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -742,7 +745,6 @@ void OBS_API::ProcessHotkeyStatus(
 	uint64_t      press    = args[1].value_union.i32;
 
 	// TODO: Check if the hotkey ID is valid
-	obs_hotkey_enable_callback_rerouting(true);
 	obs_hotkey_trigger_routed_callback(hotkeyId, (bool)press);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
