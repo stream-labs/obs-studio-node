@@ -213,7 +213,7 @@ class OBS_service
 
 	public:
 	// Service
-	static void           createService();
+	static bool           createService();
 	static obs_service_t* getService(void);
 	static void           setService(obs_service_t* newService);
 	static void           saveService(void);
@@ -221,9 +221,9 @@ class OBS_service
 	static void           setServiceToTheStreamingOutput(void);
 
 	// Encoders
-	static void           createAudioEncoder(obs_encoder_t** audioEncoder);
-	static void           createVideoStreamingEncoder();
-	static void           createVideoRecordingEncoder();
+	static bool           createAudioEncoder(obs_encoder_t** audioEncoder);
+	static bool           createVideoStreamingEncoder();
+	static bool           createVideoRecordingEncoder();
 	static obs_encoder_t* getStreamingEncoder(void);
 	static void           setStreamingEncoder(obs_encoder_t* encoder);
 	static obs_encoder_t* getRecordingEncoder(void);
@@ -234,8 +234,8 @@ class OBS_service
 	static void           setAudioRecordingEncoder(obs_encoder_t* encoder);
 
 	// Outputs
-	static void          createStreamingOutput(void);
-	static void          createRecordingOutput(void);
+	static bool          createStreamingOutput(void);
+	static bool          createRecordingOutput(void);
 	static obs_output_t* getStreamingOutput(void);
 	static void          setStreamingOutput(obs_output_t* output);
 	static obs_output_t* getRecordingOutput(void);
