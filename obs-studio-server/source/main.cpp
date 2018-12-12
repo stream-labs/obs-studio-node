@@ -34,6 +34,7 @@
 #include "osn-filter.hpp"
 #include "osn-global.hpp"
 #include "osn-input.hpp"
+#include "osn-module.hpp"
 #include "osn-properties.hpp"
 #include "osn-scene.hpp"
 #include "osn-sceneitem.hpp"
@@ -41,9 +42,6 @@
 #include "osn-transition.hpp"
 #include "osn-video.hpp"
 #include "osn-volmeter.hpp"
-#include "osn-module.hpp"
-
-extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = 1;
 
 #ifndef _DEBUG
 #include "client/crash_report_database.h"
@@ -53,6 +51,44 @@ extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = 1;
 
 #if defined(_WIN32)
 #include "Shlobj.h"
+
+// Checks ForceGPUAsRenderDevice setting
+extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = [] {
+	LPWSTR       roamingPath;
+	std::wstring filePath;
+	std::string  line;
+	std::fstream file;
+	bool         settingValue = true; // Default value (NvOptimusEnablement = 1)
+
+	if (FAILED(SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, nullptr, &roamingPath))) {
+		// Couldn't find roaming app data folder path, assume default value
+		return settingValue;
+	} else {
+		filePath.assign(roamingPath);
+		filePath.append(L"\\slobs-client\\basic.ini");
+		CoTaskMemFree(roamingPath);
+	}
+
+	file.open(filePath);
+
+	if (file.is_open()) {
+		while (std::getline(file, line)) {
+			if (line.find("ForceGPUAsRenderDevice", 0) != std::string::npos) {
+				if (line.substr(line.find('=') + 1) == "false") {
+					settingValue = false;
+					file.close();
+					break;
+				}
+			}
+		}
+	} else {
+		//Couldn't open config file, assume default value
+		return settingValue;
+	}
+
+	// Return setting value
+	return settingValue;
+}();
 #endif
 
 #define BUFFSIZE 512
