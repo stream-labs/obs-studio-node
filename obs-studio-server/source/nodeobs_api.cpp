@@ -63,6 +63,11 @@ void OBS_API::Register(ipc::server& srv)
 	    "SetWorkingDirectory", std::vector<ipc::type>{ipc::type::String}, SetWorkingDirectory));
 	cls->register_function(
 	    std::make_shared<ipc::function>("StopCrashHandler", std::vector<ipc::type>{}, StopCrashHandler));
+	cls->register_function(std::make_shared<ipc::function>("OBS_API_QueryHotkeys", std::vector<ipc::type>{}, QueryHotkeys));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_API_ProcessHotkeyStatus",
+	    std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32},
+	    ProcessHotkeyStatus));
 
 	srv.register_collection(cls);
 }
@@ -533,6 +538,9 @@ void OBS_API::OBS_API_initAPI(
 
 	setAudioDeviceMonitoring();
 
+	// Enable the hotkey callback rerouting that will be used when manually handling hotkeys on the frontend
+	obs_hotkey_enable_callback_rerouting(true);
+
 	// We are returning a video result here because the frontend needs to know if we sucessfully
 	// initialized the Dx11 API
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -572,6 +580,128 @@ void OBS_API::OBS_API_getPerformanceStatistics(
 	rval.push_back(ipc::value(getDroppedFramesPercentage()));
 	rval.push_back(ipc::value(getCurrentBandwidth()));
 	rval.push_back(ipc::value(getCurrentFrameRate()));
+	AUTO_DEBUG;
+}
+
+void OBS_API::QueryHotkeys(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	struct HotkeyInfo
+	{
+		std::string                objectName;
+		obs_hotkey_registerer_type objectType;
+		std::string                hotkeyName;
+		std::string                hotkeyDesc;
+		obs_hotkey_id              hotkeyId;
+	};
+
+	// For each registered hotkey
+	std::vector<HotkeyInfo> hotkeyInfos;
+	obs_enum_hotkeys(
+	    [](void* data, obs_hotkey_id id, obs_hotkey_t* key) {
+		    // Make sure every word has an initial capital letter
+		    auto ToTitle = [](std::string s) {
+			    bool last = true;
+			    for (char& c : s) {
+				    c    = last ? ::toupper(c) : ::tolower(c);
+				    last = ::isspace(c);
+			    }
+			    return s;
+		    };
+		    std::vector<HotkeyInfo>& hotkeyInfos     = *static_cast<std::vector<HotkeyInfo>*>(data);
+		    auto                     registerer_type = obs_hotkey_get_registerer_type(key);
+		    void*                    registerer      = obs_hotkey_get_registerer(key);
+		    HotkeyInfo               currentHotkeyInfo;
+
+		    // Discover the type of object registered with this hotkey
+		    switch (registerer_type) {
+		    case OBS_HOTKEY_REGISTERER_FRONTEND: {
+			    // Ignore any frontend hotkey
+			    return true;
+			    break;
+		    }
+		    case OBS_HOTKEY_REGISTERER_SOURCE: {
+			    auto* weak_source            = static_cast<obs_weak_source_t*>(registerer);
+			    auto  key_source             = OBSGetStrongRef(weak_source);
+			    currentHotkeyInfo.objectName = obs_source_get_name(key_source);
+			    currentHotkeyInfo.objectType = OBS_HOTKEY_REGISTERER_SOURCE;
+			    break;
+		    }
+		    case OBS_HOTKEY_REGISTERER_OUTPUT: {
+			    auto* weak_output            = static_cast<obs_weak_output_t*>(registerer);
+			    auto  key_output             = OBSGetStrongRef(weak_output);
+			    currentHotkeyInfo.objectName = obs_output_get_name(key_output);
+			    currentHotkeyInfo.objectType = OBS_HOTKEY_REGISTERER_OUTPUT;
+			    break;
+		    }
+		    case OBS_HOTKEY_REGISTERER_ENCODER: {
+			    auto* weak_encoder           = static_cast<obs_weak_encoder_t*>(registerer);
+			    auto  key_encoder            = OBSGetStrongRef(weak_encoder);
+			    currentHotkeyInfo.objectName = obs_encoder_get_name(key_encoder);
+			    currentHotkeyInfo.objectType = OBS_HOTKEY_REGISTERER_ENCODER;
+			    break;
+		    }
+		    case OBS_HOTKEY_REGISTERER_SERVICE: {
+			    auto* weak_service           = static_cast<obs_weak_service_t*>(registerer);
+			    auto  key_service            = OBSGetStrongRef(weak_service);
+			    currentHotkeyInfo.objectName = obs_service_get_name(key_service);
+			    currentHotkeyInfo.objectType = OBS_HOTKEY_REGISTERER_SERVICE;
+			    break;
+		    }
+		    }
+
+		    // Key defs
+		    auto       key_name = std::string(obs_hotkey_get_name(key));
+		    auto       desc     = std::string(obs_hotkey_get_description(key));
+		    const auto hotkeyId = obs_hotkey_get_id(key);
+
+		    // Parse the key name and the description
+		    key_name = key_name.substr(key_name.find_first_of(".") + 1);
+		    std::replace(key_name.begin(), key_name.end(), '-', '_');
+		    std::transform(key_name.begin(), key_name.end(), key_name.begin(), ::toupper);
+		    std::replace(desc.begin(), desc.end(), '-', ' ');
+		    desc = ToTitle(desc);
+
+		    currentHotkeyInfo.hotkeyName = key_name;
+		    currentHotkeyInfo.hotkeyDesc = desc;
+		    currentHotkeyInfo.hotkeyId   = hotkeyId;
+		    hotkeyInfos.push_back(currentHotkeyInfo);
+
+		    return true;
+	    },
+	    &hotkeyInfos);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+	// For each hotkey that we've found
+	for (auto& hotkeyInfo : hotkeyInfos) {
+		rval.push_back(ipc::value(hotkeyInfo.objectName));
+		rval.push_back(ipc::value(uint32_t(hotkeyInfo.objectType)));
+		rval.push_back(ipc::value(hotkeyInfo.hotkeyName));
+		rval.push_back(ipc::value(hotkeyInfo.hotkeyDesc));
+		rval.push_back(ipc::value(uint64_t(hotkeyInfo.hotkeyId)));
+	}
+
+	AUTO_DEBUG;
+}
+
+void OBS_API::ProcessHotkeyStatus(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_hotkey_id hotkeyId = args[0].value_union.ui64;
+	uint64_t      press    = args[1].value_union.i32;
+
+	// TODO: Check if the hotkey ID is valid
+	obs_hotkey_trigger_routed_callback(hotkeyId, (bool)press);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
 	AUTO_DEBUG;
 }
 
