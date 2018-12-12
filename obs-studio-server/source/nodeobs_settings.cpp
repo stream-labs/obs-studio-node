@@ -466,6 +466,10 @@ void OBS_settings::saveGeneralSettings(std::vector<SubCategory> generalSettings,
 		config = config_create(pathConfigDirectory.c_str());
 	}
 
+	if (config == NULL) {
+		throw "Invalid configuration file";
+	}
+
 	SubCategory sc;
 
 	for (int i = 0; i < generalSettings.size(); i++) {
@@ -500,6 +504,7 @@ void OBS_settings::saveGeneralSettings(std::vector<SubCategory> generalSettings,
 		}
 	}
 	config_save_safe(config, "tmp", nullptr);
+	config_close(config);
 }
 
 std::vector<SubCategory> OBS_settings::getStreamSettings()
@@ -765,6 +770,8 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 	serviceConfiguration.paramsCount = serviceConfiguration.params.size();
 	streamSettings.push_back(serviceConfiguration);
 
+	obs_properties_destroy(properties);
+
 	return streamSettings;
 }
 
@@ -892,6 +899,9 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 	if (!obs_data_save_json_safe(data, ConfigManager::getInstance().getService().c_str(), "tmp", "bak")) {
 		blog(LOG_WARNING, "Failed to save service");
 	}
+
+	obs_data_release(hotkeyData);
+	obs_data_release(data);
 }
 
 static bool EncoderAvailable(const char* encoder)
@@ -1369,6 +1379,8 @@ void OBS_settings::getEncoderSettings(
 
 		obs_property_next(&property);
 	}
+
+	obs_properties_destroy(encoderProperties);
 }
 
 SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, bool isCategoryEnabled)
@@ -3113,6 +3125,8 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	advancedSettings.push_back(
 	    serializeSettingsData("Network", entries, ConfigManager::getInstance().getBasic(), "Output", true, true));
 	entries.clear();
+
+	obs_properties_destroy(ppts);
 
 	return advancedSettings;
 }

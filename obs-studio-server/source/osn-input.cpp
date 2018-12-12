@@ -142,6 +142,9 @@ void osn::Input::Create(
 		return;
 	}
 
+	obs_data_release(hotkeys);
+	obs_data_release(settings);
+
 	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
 		// No further Ids left, leak somewhere.
@@ -181,6 +184,8 @@ void osn::Input::CreatePrivate(
 		AUTO_DEBUG;
 		return;
 	}
+
+	obs_data_release(settings);
 
 	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
 	if (uid == UINT64_MAX) {

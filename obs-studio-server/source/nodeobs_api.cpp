@@ -290,7 +290,7 @@ static void                                    node_obs_log(int log_level, const
 		break;
 	}
 
-	std::vector<char> timebuf(65535, '\0');
+	std::vector<char> timebuf(128, '\0');
 	std::string       timeformat = "[%.3d:%.2d:%.2d:%.2d.%.3d.%.3d.%.3d][%*s]"; // "%*s";
 	int               length     = sprintf_s(
         timebuf.data(),
@@ -999,6 +999,14 @@ void OBS_API::destroyOBS_API(void)
 	// TODO: We should release these modules (dlls) manually and not let the garbage
 	// collector do this for us on shutdown
 	for (auto& moduleInfo : obsModules) {
+	}
+
+	// The goal is to reduce this number to zero and add a throw here, so if in the future
+	// a leak is detected, any developer will know for sure what is causing it
+	int totalLeaks = bnum_allocs();
+	std::cout << "Total leaks: " << totalLeaks << std::endl;
+	if (totalLeaks) {
+		// throw "OBS has memory leaks";
 	}
 }
 

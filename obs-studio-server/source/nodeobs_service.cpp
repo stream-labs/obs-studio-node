@@ -1056,8 +1056,8 @@ void OBS_service::saveService(void)
 
 	serviceType = obs_service_get_type(service);
 
-	// obs_data_release(settings);
-	// obs_data_release(data);
+	obs_data_release(settings);
+	obs_data_release(data);
 }
 
 bool OBS_service::isStreamingOutputActive(void)
@@ -1270,6 +1270,7 @@ void OBS_service::updateRecordingOutput(void)
     }
 
 	obs_output_update(recordingOutput, settings);
+	obs_data_release(settings);
 }
 
 void OBS_service::updateAdvancedRecordingOutput(void)
@@ -1343,7 +1344,7 @@ void OBS_service::updateAdvancedRecordingOutput(void)
 	obs_data_set_string(settings, "path", strPath.c_str());
 	obs_data_set_string(settings, "muxer_settings", mux);
 	obs_output_update(recordingOutput, settings);
-	// obs_data_release(settings);
+	obs_data_release(settings);
 }
 
 void OBS_service::LoadRecordingPreset_Lossless()
@@ -1364,7 +1365,7 @@ void OBS_service::LoadRecordingPreset_Lossless()
 	obs_data_set_string(settings, "audio_encoder", "pcm_s16le");
 
 	obs_output_update(recordingOutput, settings);
-	// obs_data_release(settings);
+	obs_data_release(settings);
 }
 
 void OBS_service::LoadRecordingPreset_h264(const char* encoderId)
