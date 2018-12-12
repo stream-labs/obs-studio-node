@@ -466,6 +466,10 @@ void OBS_settings::saveGeneralSettings(std::vector<SubCategory> generalSettings,
 		config = config_create(pathConfigDirectory.c_str());
 	}
 
+	if (config == NULL) {
+		throw "Invalid configuration file";
+	}
+
 	SubCategory sc;
 
 	for (int i = 0; i < generalSettings.size(); i++) {
@@ -500,6 +504,7 @@ void OBS_settings::saveGeneralSettings(std::vector<SubCategory> generalSettings,
 		}
 	}
 	config_save_safe(config, "tmp", nullptr);
+	config_close(config);
 }
 
 std::vector<SubCategory> OBS_settings::getStreamSettings()
@@ -765,6 +770,8 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 	serviceConfiguration.paramsCount = serviceConfiguration.params.size();
 	streamSettings.push_back(serviceConfiguration);
 
+	obs_properties_destroy(properties);
+
 	return streamSettings;
 }
 
@@ -778,9 +785,11 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 	const char* newserviceTypeValue;
 
 	std::string currentServiceName = obs_data_get_string(obs_service_get_settings(currentService), "service");
+	std::string newServiceValue;
 
 	SubCategory sc;
-	bool        serviceChanged = false;
+	bool        serviceChanged     = false;
+	bool        serviceTypeChanged = false;
 
 	for (int i = 0; i < streamSettings.size(); i++) {
 		sc = streamSettings.at(i);
@@ -801,6 +810,13 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 					newserviceTypeValue = value->c_str();
 					settings            = obs_service_defaults(newserviceTypeValue);
 					if (currentStreamType.compare(newserviceTypeValue) != 0) {
+						serviceTypeChanged = true;
+					}
+				}
+
+				if (name.compare("service") == 0) {
+					newServiceValue = value->c_str();
+					if (currentServiceName.compare(newServiceValue) != 0) {
 						serviceChanged = true;
 					}
 				}
@@ -818,7 +834,7 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 		}
 	}
 
-	if (serviceChanged) {
+	if (serviceTypeChanged) {
 		settings = obs_service_defaults(newserviceTypeValue);
 
 		if (strcmp(newserviceTypeValue, "rtmp_common") == 0) {
@@ -834,6 +850,44 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 
 	obs_service_t* newService = obs_service_create(newserviceTypeValue, "default_service", settings, hotkeyData);
 
+	if (serviceChanged) {
+		std::string server      = obs_data_get_string(settings, "server");
+		bool        serverFound = false;
+		std::string defaultServer;
+
+		// Check if server is valid
+		obs_properties_t* properties = obs_service_properties(newService);
+		obs_property_t*   property   = obs_properties_first(properties);
+
+		while (property) {
+			std::string name = obs_property_name(property);
+
+			if (name.compare("server") == 0) {
+				int count = (int)obs_property_list_item_count(property);
+				int i     = 0;
+
+				while (i < count && !serverFound) {
+					std::string value = obs_property_list_item_string(property, i);
+
+					if (i == 0)
+						defaultServer = value;
+
+					if (value.compare(server) == 0)
+						serverFound = true;
+
+					i++;
+				}
+			}
+			obs_property_next(&property);
+		}
+
+		if (!serverFound && defaultServer.compare("") != 0) {
+			// Server not found, we set the default server
+			obs_data_set_string(settings, "server", defaultServer.c_str());
+			obs_service_update(newService, settings);
+		}
+	}
+
 	obs_data_release(hotkeyData);
 
 	OBS_service::setService(newService);
@@ -845,6 +899,9 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 	if (!obs_data_save_json_safe(data, ConfigManager::getInstance().getService().c_str(), "tmp", "bak")) {
 		blog(LOG_WARNING, "Failed to save service");
 	}
+
+	obs_data_release(hotkeyData);
+	obs_data_release(data);
 }
 
 static bool EncoderAvailable(const char* encoder)
@@ -1109,7 +1166,8 @@ void OBS_settings::getEncoderSettings(
     obs_data_t*             settings,
     std::vector<Parameter>* subCategoryParameters,
     int                     index,
-    bool                    isCategoryEnabled)
+    bool                    isCategoryEnabled,
+    bool                    recordEncoder)
 {
 	obs_properties_t* encoderProperties = obs_encoder_properties(encoder);
 	obs_property_t*   property          = obs_properties_first(encoderProperties);
@@ -1313,10 +1371,16 @@ void OBS_settings::getEncoderSettings(
 		param.enabled = isEnabled;
 		param.masked  = false;
 
+		if (recordEncoder) {
+			param.name.insert(0, "Rec");
+		}
+
 		subCategoryParameters->push_back(param);
 
 		obs_property_next(&property);
 	}
+
+	obs_properties_destroy(encoderProperties);
 }
 
 SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, bool isCategoryEnabled)
@@ -1558,7 +1622,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 		settings         = obs_encoder_get_settings(streamingEncoder);
 	}
 
-	getEncoderSettings(streamingEncoder, settings, &(streamingSettings.params), index, isCategoryEnabled);
+	getEncoderSettings(streamingEncoder, settings, &(streamingSettings.params), index, isCategoryEnabled, false);
 	streamingSettings.paramsCount = streamingSettings.params.size();
 	return streamingSettings;
 }
@@ -1901,9 +1965,10 @@ void OBS_settings::getStandardRecordingSettings(
 	}
 
 	if (strcmp(recEncoderCurrentValue, "none")) {
-		getEncoderSettings(recordingEncoder, settings, &(subCategoryParameters->params), index, isCategoryEnabled);
+		getEncoderSettings(
+		    recordingEncoder, settings, &(subCategoryParameters->params), index, isCategoryEnabled, true);
 	}
-	
+
 	subCategoryParameters->paramsCount = subCategoryParameters->params.size();
 }
 
@@ -2321,6 +2386,10 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 		std::string name = param.name;
 		std::string type = param.type;
 
+		if (i >= indexEncoderSettings) {
+			name.erase(0, strlen("Rec"));
+		}
+
 		if (name.compare("RecType") == 0) {
 			std::string value(param.currentValue.data(), param.currentValue.size());
 			if (value.compare("Custom Output (FFmpeg)") == 0) {
@@ -2402,7 +2471,7 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 					    ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str(), value.c_str());
 				} else {
 					obs_data_set_string(encoderSettings, name.c_str(), value.c_str());
-				}				
+				}
 			}
 		} else {
 			std::cout << "type not found ! " << type.c_str() << std::endl;
@@ -3058,6 +3127,8 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	    serializeSettingsData("Network", entries, ConfigManager::getInstance().getBasic(), "Output", true, true));
 	entries.clear();
 
+	obs_properties_destroy(ppts);
+
 	return advancedSettings;
 }
 
@@ -3183,42 +3254,7 @@ void OBS_settings::saveGenericSettings(std::vector<SubCategory> genericSettings,
 			if (type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 || type.compare("OBS_PROPERTY_PATH") == 0
 			    || type.compare("OBS_PROPERTY_TEXT") == 0 || type.compare("OBS_INPUT_RESOLUTION_LIST") == 0) {
 				std::string value(param.currentValue.data(), param.currentValue.size());
-
-				if (name.compare("MonitoringDeviceName") == 0) {
-					std::string monDevName;
-					std::string monDevId;
-
-					if (value.compare("Default") != 0) {
-						std::vector<std::pair<std::string, std::string>> monitoringDevice;
-
-						auto enum_devices = [](void* param, const char* name, const char* id) {
-							std::vector<std::pair<std::string, std::string>>* monitoringDevice =
-							    (std::vector<std::pair<std::string, std::string>>*)param;
-							monitoringDevice->push_back(std::make_pair(name, id));
-							return true;
-						};
-						obs_enum_audio_monitoring_devices(enum_devices, &monitoringDevice);
-
-						std::vector<pair<std::string, std::string>>::iterator it = std::find_if(
-						    monitoringDevice.begin(),
-						    monitoringDevice.end(),
-						    [&value](const pair<std::string, std::string> device) {
-							    return (device.first.compare(value) == 0);
-						    });
-
-						if (it != monitoringDevice.end()) {
-							monDevName = it->first;
-							monDevId   = it->second;
-						}
-					} else {
-						monDevName = value;
-						monDevId   = "default";
-					}
-					config_set_string(config, section.c_str(), "MonitoringDeviceName", monDevName.c_str());
-					config_set_string(config, section.c_str(), "MonitoringDeviceId", monDevId.c_str());
-				} else {
-					config_set_string(config, section.c_str(), name.c_str(), value.c_str());
-				}
+				config_set_string(config, section.c_str(), name.c_str(), value.c_str());
 			} else if (type.compare("OBS_PROPERTY_INT") == 0) {
 				int64_t* value = reinterpret_cast<int64_t*>(param.currentValue.data());
 				config_set_int(config, section.c_str(), name.c_str(), *value);
@@ -3240,7 +3276,45 @@ void OBS_settings::saveGenericSettings(std::vector<SubCategory> genericSettings,
 					config_set_double(config, section.c_str(), name.c_str(), *value);
 				} else if (subType.compare("OBS_COMBO_FORMAT_STRING") == 0) {
 					std::string value(param.currentValue.data(), param.currentValue.size());
-					config_set_string(config, section.c_str(), name.c_str(), value.c_str());
+
+					if (name.compare("MonitoringDeviceName") == 0) {
+						std::string monDevName;
+						std::string monDevId;
+
+						if (value.compare("Default") != 0) {
+							std::vector<std::pair<std::string, std::string>> monitoringDevice;
+
+							auto enum_devices = [](void* param, const char* name, const char* id) {
+								std::vector<std::pair<std::string, std::string>>* monitoringDevice =
+								    (std::vector<std::pair<std::string, std::string>>*)param;
+								monitoringDevice->push_back(std::make_pair(name, id));
+								return true;
+							};
+							obs_enum_audio_monitoring_devices(enum_devices, &monitoringDevice);
+
+							std::vector<pair<std::string, std::string>>::iterator it = std::find_if(
+							    monitoringDevice.begin(),
+							    monitoringDevice.end(),
+							    [&value](const pair<std::string, std::string> device) {
+								    return (device.first.compare(value) == 0);
+							    });
+
+							if (it != monitoringDevice.end()) {
+								monDevName = it->first;
+								monDevId   = it->second;
+							} else {
+								monDevName = "Default";
+								monDevId   = "default";
+							}
+						} else {
+							monDevName = value;
+							monDevId   = "default";
+						}
+						config_set_string(config, section.c_str(), "MonitoringDeviceName", monDevName.c_str());
+						config_set_string(config, section.c_str(), "MonitoringDeviceId", monDevId.c_str());
+					} else {
+						config_set_string(config, section.c_str(), name.c_str(), value.c_str());
+					}
 				}
 			} else {
 				std::cout << "type not found ! " << type.c_str() << std::endl;

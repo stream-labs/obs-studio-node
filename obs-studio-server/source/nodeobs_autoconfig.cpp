@@ -585,10 +585,14 @@ int EvaluateBandwidth(
 	}
 	cv.wait(ul);
 
-	uint64_t total_time = os_gettime_ns() - t_start;
-
+	uint64_t total_time  = os_gettime_ns() - t_start;
 	int      total_bytes = (int)obs_output_get_total_bytes(output);
-	uint64_t bitrate     = (uint64_t)total_bytes * 8 * 1000000000 / total_time / 1000;
+	uint64_t bitrate     = 0;
+
+	if (total_time > 0) {
+		bitrate = (uint64_t)total_bytes * 8 * 1000000000 / total_time / 1000;
+	}
+
 	startingBitrate      = (int)obs_data_get_int(vencoder_settings, "bitrate");
 	if (obs_output_get_frames_dropped(output) || (int)bitrate < (startingBitrate * 75 / 100)) {
 		server.bitrate = (int)bitrate * 70 / 100;
@@ -874,12 +878,20 @@ static long double EstimateBitrateVal(int cx, int cy, int fps_num, int fps_den)
 static long double EstimateMinBitrate(int cx, int cy, int fps_num, int fps_den)
 {
 	long double val = EstimateBitrateVal((int)baseResolutionCX, (int)baseResolutionCY, 60, 1) / 5800.0l;
+	if (val < std::numeric_limits<double>::epsilon() && val > -std::numeric_limits<double>::epsilon()) {
+		return 0.0;
+	}
+
 	return EstimateBitrateVal(cx, cy, fps_num, fps_den) / val;
 }
 
 static long double EstimateUpperBitrate(int cx, int cy, int fps_num, int fps_den)
 {
 	long double val = EstimateBitrateVal(1280, 720, 30, 1) / 3000.0l;
+	if (val < std::numeric_limits<double>::epsilon() && val > -std::numeric_limits<double>::epsilon()) {
+		return 0.0;
+	}
+
 	return EstimateBitrateVal(cx, cy, fps_num, fps_den) / val;
 }
 
