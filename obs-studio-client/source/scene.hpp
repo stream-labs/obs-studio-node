@@ -29,7 +29,6 @@ namespace osn
 
 		public:
 		Scene(uint64_t id);
-		virtual ~Scene(){};
 
 		// JavaScript
 		public:

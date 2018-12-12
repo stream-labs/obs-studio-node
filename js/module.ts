@@ -59,6 +59,14 @@ export const enum EVideoCodes {
 	ModuleNotFound = -5	
 }
 
+export const enum EHotkeyObjectType {
+	Frontend = 0,
+	Source = 1,
+	Output = 2,
+	Encoder = 3,
+	Service = 4
+}
+
 export const enum EDeinterlaceMode {
     Disable,
     Discard,
