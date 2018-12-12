@@ -29,7 +29,6 @@ namespace osn
 		public:
 		uint64_t moduleId;
 		Module(uint64_t id);
-		virtual ~Module(){};
 
 		// JavaScript
 		public:
