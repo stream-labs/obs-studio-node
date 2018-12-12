@@ -202,8 +202,9 @@ void autoConfig::StartBandwidthTest(const v8::FunctionCallbackInfo<v8::Value>& a
 		return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "StartBandwidthTest", {});
-
-	ValidateResponse(response);
+	if (!ValidateResponse(response)) {
+		return;
+	}
 }
 
 void autoConfig::StartStreamEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -213,8 +214,9 @@ void autoConfig::StartStreamEncoderTest(const v8::FunctionCallbackInfo<v8::Value
 		return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "StartStreamEncoderTest", {});
-
-	ValidateResponse(response);
+	if (!ValidateResponse(response)) {
+		return;
+	}
 }
 
 void autoConfig::StartRecordingEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -224,8 +226,9 @@ void autoConfig::StartRecordingEncoderTest(const v8::FunctionCallbackInfo<v8::Va
 		return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "StartRecordingEncoderTest", {});
-
-	ValidateResponse(response);
+	if (!ValidateResponse(response)) {
+		return;
+	}
 }
 
 void autoConfig::StartCheckSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -269,8 +272,9 @@ void autoConfig::StartSetDefaultSettings(const v8::FunctionCallbackInfo<v8::Valu
 		return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "StartSetDefaultSettings", {});
-
-	ValidateResponse(response);
+	if (!ValidateResponse(response)) {
+		return;
+	}
 }
 
 void autoConfig::StartSaveStreamSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -280,8 +284,9 @@ void autoConfig::StartSaveStreamSettings(const v8::FunctionCallbackInfo<v8::Valu
 		return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "StartSaveStreamSettings", {});
-
-	ValidateResponse(response);
+	if (!ValidateResponse(response)) {
+		return;
+	}
 }
 
 void autoConfig::StartSaveSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -291,8 +296,9 @@ void autoConfig::StartSaveSettings(const v8::FunctionCallbackInfo<v8::Value>& ar
 		return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "StartSaveSettings", {});
-
-	ValidateResponse(response);
+	if (!ValidateResponse(response)) {
+		return;
+	}
 }
 
 void autoConfig::TerminateAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args)
