@@ -39,6 +39,7 @@ void osn::Module::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	fnctemplate->SetClassName(Nan::New<v8::String>("Module").ToLocalChecked());
 
 	utilv8::SetTemplateField(fnctemplate, "open", Open);
+	utilv8::SetTemplateField(fnctemplate, "modules", Modules);
 
 	v8::Local<v8::Template> objtemplate = fnctemplate->PrototypeTemplate();
 	utilv8::SetTemplateField(objtemplate, "initialize", Initialize);
@@ -73,6 +74,30 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Module::Open(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	osn::Module* obj = new osn::Module(response[1].value_union.ui64);
 	info.GetReturnValue().Set(osn::Module::Store(obj));
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::Module::Modules(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Module", "Modules", {});
+
+	if (!ValidateResponse(response))
+		return;
+
+	v8::Isolate*         isolate    = v8::Isolate::GetCurrent();
+	v8::Local<v8::Array> modules = v8::Array::New(isolate);
+
+	uint64_t size = response[1].value_union.ui64;
+
+	for (uint64_t i = 2; i < (size + 2); i++) {
+		modules->Set(i - 2, v8::String::NewFromUtf8(isolate, response.at(i).value_str.c_str()));
+	}
+
+	info.GetReturnValue().Set(modules);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Module::Initialize(Nan::NAN_METHOD_ARGS_TYPE info)

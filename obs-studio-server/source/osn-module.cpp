@@ -26,6 +26,8 @@ void osn::Module::Register(ipc::server& srv)
 	cls->register_function(
 	    std::make_shared<ipc::function>("Open", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, Open));
 	cls->register_function(
+	    std::make_shared<ipc::function>("Modules", std::vector<ipc::type>{}, Modules));
+	cls->register_function(
 	    std::make_shared<ipc::function>("Initialize", std::vector<ipc::type>{ipc::type::UInt64}, Initialize));
 	cls->register_function(
 	    std::make_shared<ipc::function>("GetName", std::vector<ipc::type>{ipc::type::UInt64}, GetName));
@@ -67,6 +69,26 @@ void osn::Module::Open(void* data, const int64_t id, const std::vector<ipc::valu
 	AUTO_DEBUG;
 }
 
+void osn::Module::Modules(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
+{
+	std::vector<std::string> modules;
+
+	obs_enum_modules([](void* param, obs_module_t* module) {
+		    std::vector<std::string>& modules = *static_cast<std::vector<std::string>*>(param);
+		    const char*               name    = obs_get_module_file_name(module);
+		    if (name)
+				modules.push_back(name);
+	},&modules);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint64_t)modules.size()));
+
+	for (size_t i = 0; i < modules.size(); i++) {
+		rval.push_back(ipc::value(modules.at(i).c_str()));
+	}
+
+	AUTO_DEBUG;
+}
 void osn::Module::Initialize(
 	void*                          data,
 	const int64_t                  id,
