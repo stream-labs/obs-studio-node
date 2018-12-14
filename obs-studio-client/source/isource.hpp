@@ -44,7 +44,7 @@ namespace osn
 
 		private:
 		uint64_t m_uid;
-	
+
 		public:
 		~ISource();
 		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
@@ -71,5 +71,10 @@ namespace osn
 		static Nan::NAN_METHOD_RETURN_TYPE SetMuted(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE GetEnabled(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE SetEnabled(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE SendMouseClick(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE SendMouseMove(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE SendMouseWheel(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE SendFocus(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE SendKeyClick(Nan::NAN_METHOD_ARGS_TYPE info);
 	};
 } // namespace osn

@@ -158,9 +158,164 @@ void osn::Source::Register(ipc::server& srv)
 	cls->register_function(
 	    std::make_shared<ipc::function>("GetEnabled", std::vector<ipc::type>{ipc::type::UInt64}, GetEnabled));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "SetEnabled", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SetEnabled));
+	    "SendMouseClick", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SendMouseClick));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SendMouseMove", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SendMouseMove));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SendMouseWheel", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SendMouseWheel));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SendFocus", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SendFocus));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SendKeyClick", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SendKeyClick));
 	srv.register_collection(cls);
 }
+
+void osn::Source::SendMouseClick(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+
+	if (src == nullptr) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
+		return;
+	}
+
+	obs_mouse_event event = {
+		args[1].value_union.ui32,
+		args[2].value_union.i32,
+		args[3].value_union.i32,
+	};
+
+	obs_source_send_mouse_click(
+		src,
+		&event,
+		args[4].value_union.i32,
+		args[5].value_union.i32,
+		args[6].value_union.ui32
+	);
+
+	AUTO_DEBUG;
+}
+
+void osn::Source::SendMouseMove(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+
+	if (src == nullptr) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
+		return;
+	}
+
+	obs_mouse_event event = {
+		args[1].value_union.ui32,
+		args[2].value_union.i32,
+		args[3].value_union.i32
+	};
+
+	obs_source_send_mouse_move(
+		src,
+		&event,
+		args[4].value_union.i32
+	);
+
+	AUTO_DEBUG;
+}
+
+void osn::Source::SendMouseWheel(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+
+	if (src == nullptr) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
+		return;
+	}
+
+	obs_mouse_event event = {
+		args[1].value_union.ui32,
+		args[2].value_union.i32,
+		args[3].value_union.i32,
+	};
+
+	obs_source_send_mouse_wheel(
+		src,
+		&event,
+		args[4].value_union.i32,
+		args[5].value_union.i32
+	);
+
+	AUTO_DEBUG;
+}
+
+void osn::Source::SendFocus(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+
+	if (src == nullptr) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
+		return;
+	}
+
+	obs_source_send_focus(src, args[1].value_union.i32);
+
+	AUTO_DEBUG;
+}
+
+void osn::Source::SendKeyClick(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+
+	if (src == nullptr) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Source reference is not valid."));
+		AUTO_DEBUG;
+		return;
+	}
+
+	char *text = new char[args[1].value_str.size()];
+	strcpy(text, args[1].value_str.c_str());
+
+	obs_key_event event = {
+		args[0].value_union.ui32,
+		text,
+		args[2].value_union.ui32,
+		args[3].value_union.ui32,
+		args[4].value_union.ui32
+	};
+
+	obs_source_send_key_click(src, &event, args[4].value_union.ui32);
+
+	delete[] text;
+
+	AUTO_DEBUG;
+}
+
 
 void osn::Source::GetTypeProperties(
     void*                          data,
@@ -224,6 +379,7 @@ void osn::Source::Release(
 {
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
