@@ -79,6 +79,7 @@ add_nodejs_module(
 
 if(WIN32)
 	target_sources(obs_studio_client PUBLIC ${PROJECT_BINARY_DIR}/version.rc)
+	target_compile_options(obs_studio_client PUBLIC /wd4251)
 endif()
 
 target_link_libraries(obs_studio_client lib-streamlabs-ipc)
