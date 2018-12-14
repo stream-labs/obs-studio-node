@@ -610,6 +610,8 @@ const char* FindAudioEncoderFromCodec(const char* type)
 	size_t      i          = 0;
 
 	while (obs_enum_encoder_types(i++, &alt_enc_id)) {
+		if (alt_enc_id == nullptr)
+			continue;
 		const char* codec = obs_get_encoder_codec(alt_enc_id);
 		if (strcmp(type, codec) == 0) {
 			return alt_enc_id;
@@ -1157,6 +1159,8 @@ static bool EncoderAvailable(const char* encoder)
 	int         i = 0;
 
 	while (obs_enum_encoder_types(i++, &val)) {
+		if (val == nullptr)
+			continue;
 		if (strcmp(val, encoder) == 0)
 			return true;
 	}

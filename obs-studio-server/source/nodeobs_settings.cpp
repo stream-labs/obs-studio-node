@@ -910,6 +910,8 @@ static bool EncoderAvailable(const char* encoder)
 	int         i = 0;
 
 	while (obs_enum_encoder_types(i++, &val)) {
+		if (val == nullptr)
+			continue;
 		if (strcmp(val, encoder) == 0)
 			return true;
 	}

@@ -151,7 +151,7 @@ static void         PopulateBitrateMap()
 			if (find_if(begin(encoders), end(encoders), Compare) != end(encoders))
 				continue;
 
-			if (aac_ != GetCodec(id))
+			if (aac_ != GetCodec(NullToEmpty(id)))
 				continue;
 
 			HandleEncoderProperties(id);

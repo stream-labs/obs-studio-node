@@ -223,6 +223,8 @@ void autoConfig::TestHardwareEncoding(void)
 	size_t      idx = 0;
 	const char* id;
 	while (obs_enum_encoder_types(idx++, &id)) {
+		if (id == nullptr)
+			continue;
 		if (strcmp(id, "ffmpeg_nvenc") == 0)
 			hardwareEncodingAvailable = nvencAvailable = true;
 		else if (strcmp(id, "obs_qsv11") == 0)
