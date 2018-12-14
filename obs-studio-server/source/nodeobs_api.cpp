@@ -433,6 +433,7 @@ void OBS_API::OBS_API_initAPI(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	blog(LOG_INFO, "OBS_API_initAPI");
 	writeCrashHandler(registerProcess());
 	/* Map base DLLs as soon as possible into the current process space.
 	* In particular, we need to load obs.dll into memory before we call
@@ -457,6 +458,7 @@ void OBS_API::OBS_API_initAPI(
 	std::vector<char> userData = std::vector<char>(1024);
 	os_get_config_path(userData.data(), userData.capacity() - 1, "slobs-client/plugin_config");
 	obs_startup(locale.c_str(), userData.data(), NULL);
+	blog(LOG_INFO, "Server: obs_startup");
 
 	/* Logging */
 	string filename = GenerateTimeDateFilename("txt");
@@ -484,20 +486,25 @@ void OBS_API::OBS_API_initAPI(
 
 	/* Delete oldest file in the folder to imitate rotating */
 	base_set_log_handler(node_obs_log, logfile);
+	blog(LOG_INFO, "Server: obs started up");
 
 	/* INJECT osn::Source::Manager */
 	// Alright, you're probably wondering: Why is osn code here?
 	// Well, simply because the hooks need to run as soon as possible. We don't
 	//  want to miss a single create or destroy signal OBS gives us for the
 	//  osn::Source::Manager.
+	blog(LOG_INFO, "Server: Initialize global signals");
 	osn::Source::initialize_global_signals();
 	/* END INJECT osn::Source::Manager */
 
+	blog(LOG_INFO, "Server: CPU usage info starts");
 	cpuUsageInfo = os_cpu_usage_info_start();
 
+	blog(LOG_INFO, "Server: Set appdata path");
 	ConfigManager::getInstance().setAppdataPath(appdata);
 
 	/* Set global private settings for whomever it concerns */
+	blog(LOG_INFO, "Server: ");
 	obs_data_t* private_settings = obs_data_create();
 	obs_data_set_bool(private_settings, "BrowserHWAccel", true);
 	obs_apply_private_data(private_settings);

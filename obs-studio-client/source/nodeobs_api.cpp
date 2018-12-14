@@ -11,18 +11,22 @@
 
 void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+	std::cout << "Internal : OBS_API_initAPI" << std::endl;
 	std::string path;
 	std::string language;
 
 	ASSERT_GET_VALUE(args[0], language);
 	ASSERT_GET_VALUE(args[1], path);
 
+	std::cout << "Internal : OBS_API_initAPI / Get connection" << std::endl;
 	auto conn = GetConnection();
 	if (!conn)
 		return;
 
+	std::cout << "Internal : OBS_API_initAPI / IPC call" << std::endl;
 	std::vector<ipc::value> response =
 	    conn->call_synchronous_helper("API", "OBS_API_initAPI", {ipc::value(path), ipc::value(language)});
+	std::cout << "Internal : OBS_API_initAPI / IPC response receive" << std::endl;
 
 	// The API init method will return a response error + graphical error
 	// If there is a problem with the IPC the number of responses here will be zero so we must validate the
@@ -34,6 +38,7 @@ void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args)
 			return;
 		}
 	}
+	std::cout << "Internal : OBS_API_initAPI / Return value" << std::endl;
 	args.GetReturnValue().Set(v8::Number::New(args.GetIsolate(), response[1].value_union.i32));
 }
 
@@ -86,16 +91,22 @@ void api::OBS_API_getPerformanceStatistics(const v8::FunctionCallbackInfo<v8::Va
 
 void api::SetWorkingDirectory(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+	std::cout << "Internal : SetWorkingDirectory" << std::endl;
 	Nan::Utf8String param0(args[0]);
 	std::string     path = *param0;
 
+	std::cout << "Internal : SetWorkingDirectory / Get connection" << std::endl;
 	auto conn = GetConnection();
 	if (!conn)
 		return;
 
+	std::cout << "Internal : SetWorkingDirectory / IPC call" << std::endl;
 	std::vector<ipc::value> response = conn->call_synchronous_helper("API", "SetWorkingDirectory", {ipc::value(path)});
+	std::cout << "Internal : SetWorkingDirectory / IPC response receive" << std::endl;
 
 	ValidateResponse(response);
+
+	std::cout << "Internal : SetWorkingDirectory / Return value" << std::endl;
 }
 
 void api::StopCrashHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
