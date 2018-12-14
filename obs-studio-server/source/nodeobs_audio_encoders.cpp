@@ -154,7 +154,17 @@ static void         PopulateBitrateMap()
 			if (aac_ != GetCodec(NullToEmpty(id)))
 				continue;
 
-			HandleEncoderProperties(id);
+			// A corrupted encoder dll will fail when requesting it's properties here by
+			// calling "obs_get_encoder_properties", this try-catch block will make sure
+			// that this encoder won't be used. A good solution would be checking this
+			// when starting obs (checking if every encoder/module is valid) and/or
+			// showing the user why the encoder why disabled (invalid version, need to
+			// update, etc)
+			try {
+				HandleEncoderProperties(id);
+			} catch (...) {
+				continue;
+			}
 		}
 
 		for (auto& encoder : encoders) {
