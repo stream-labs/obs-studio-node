@@ -347,6 +347,7 @@ void autoConfig::TerminateAutoConfig(
     std::vector<ipc::value>&       rval)
 {
 	StopThread();
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
 void autoConfig::Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
