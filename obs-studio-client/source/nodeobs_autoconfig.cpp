@@ -120,44 +120,6 @@ void AutoConfig::worker()
 	return;
 }
 
-void autoConfig::GetListServer(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	std::string service, continent;
-
-	ASSERT_GET_VALUE(args[0], service);
-	ASSERT_GET_VALUE(args[1], continent);
-
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("AutoConfig", "GetListServer", {service, continent});
-
-	if (!ValidateResponse(response)) {
-		return;
-	}
-
-	v8::Isolate*         isolate    = v8::Isolate::GetCurrent();
-	v8::Local<v8::Array> listServer = v8::Array::New(isolate);
-
-	for (int i = 1; i < response.size(); i++) {
-		v8::Local<v8::Object> object = v8::Object::New(isolate);
-
-		object->Set(
-		    v8::String::NewFromUtf8(isolate, "server_name"),
-		    v8::String::NewFromUtf8(isolate, response[i].value_str.c_str()));
-
-		object->Set(
-		    v8::String::NewFromUtf8(isolate, "server"),
-		    v8::String::NewFromUtf8(isolate, response[i].value_str.c_str()));
-
-		listServer->Set(i, object);
-	}
-
-	args.GetReturnValue().Set(listServer);
-}
-
 static v8::Persistent<v8::Object> autoConfigCallbackObject;
 
 void autoConfig::InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -321,7 +283,6 @@ void autoConfig::TerminateAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& 
 INITIALIZER(nodeobs_autoconfig)
 {
 	initializerFunctions.push([](v8::Local<v8::Object> exports) {
-		NODE_SET_METHOD(exports, "GetListServer", autoConfig::GetListServer);
 		NODE_SET_METHOD(exports, "InitializeAutoConfig", autoConfig::InitializeAutoConfig);
 		NODE_SET_METHOD(exports, "StartBandwidthTest", autoConfig::StartBandwidthTest);
 		NODE_SET_METHOD(exports, "StartStreamEncoderTest", autoConfig::StartStreamEncoderTest);

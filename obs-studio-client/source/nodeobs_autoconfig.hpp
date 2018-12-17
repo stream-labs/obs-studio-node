@@ -48,7 +48,6 @@ class AutoConfig : public Nan::ObjectWrap,
 
 namespace autoConfig
 {
-	static void GetListServer(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void StartBandwidthTest(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void StartStreamEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args);
