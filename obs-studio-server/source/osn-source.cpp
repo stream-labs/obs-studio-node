@@ -30,23 +30,6 @@
 #include "osn-common.hpp"
 #include "shared.hpp"
 
-std::map<uint64_t, std::vector<std::tuple<std::string, std::string, obs_hotkey_id>>> pending_source_hotkeys;
-std::mutex                                                           source_hotkey_mtx;
-
-std::vector<std::tuple<std::string, std::string, obs_hotkey_id>> get_source_hotkeys(uint64_t sourceID)
-{
-	std::vector<std::tuple<std::string, std::string, obs_hotkey_id>> hotkeys;
-
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(sourceID);
-	if (src == nullptr) {
-		return {};
-	}
-
-	
-
-	return hotkeys;
-}
-
 void osn::Source::initialize_global_signals()
 {
 	signal_handler_t* sh = obs_get_signal_handler();
@@ -84,12 +67,6 @@ void osn::Source::global_source_create_cb(void* ptr, calldata_t* cd)
 
 	osn::Source::Manager::GetInstance().allocate(source);
 	osn::Source::attach_source_signals(source);
-
-	auto sourceId      = osn::Source::Manager::GetInstance().find(source);
-	auto sourceHotkeys = get_source_hotkeys(sourceId);
-
-	std::unique_lock<std::mutex> ulock(source_hotkey_mtx);
-	pending_source_hotkeys.insert({sourceId, sourceHotkeys});
 }
 
 void osn::Source::global_source_destroy_cb(void* ptr, calldata_t* cd)
@@ -97,15 +74,6 @@ void osn::Source::global_source_destroy_cb(void* ptr, calldata_t* cd)
 	obs_source_t* source = nullptr;
 	if (!calldata_get_ptr(cd, "source", &source)) {
 		throw std::exception("calldata did not contain source pointer");
-	}
-
-	{
-		std::unique_lock<std::mutex> ulock(source_hotkey_mtx);
-
-		auto iter = pending_source_hotkeys.find(osn::Source::Manager::GetInstance().find(source));
-		if (iter != pending_source_hotkeys.end()) {
-			pending_source_hotkeys.erase(iter);
-		}
 	}
 
 	detach_source_signals(source);
