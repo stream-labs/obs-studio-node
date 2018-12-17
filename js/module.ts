@@ -1515,6 +1515,7 @@ export interface IModuleFactory extends IFactoryTypes {
     loadAll(): void;
     addPath(path: string, dataPath: string): void;
     logLoaded(): void;
+    modules(): String[];
 }
 
 export interface IModule {
