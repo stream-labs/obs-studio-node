@@ -256,7 +256,7 @@ void OBS_service::OBS_service_startRecording(
     std::vector<ipc::value>&       rval)
 {
 	// TODO : Use the utility function when merged
-	if (isRecording) {
+	if (obs_output_active(recordingOutput)) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		AUTO_DEBUG;
 		return;
