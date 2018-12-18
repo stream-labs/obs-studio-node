@@ -567,18 +567,19 @@ namespace utilv8
 		}
 	};
 
+	/* DynamicCast is incorrect now, since dynamic_cast never should have been used.
+	 * The name has been kept for legacy reasons. */
 	template<typename T, typename C>
 	static bool RetrieveDynamicCast(v8::Local<v8::Object> object, C*& value_ptr)
 	{
 		T* inner_ptr = nullptr;
+
 		if (!T::Retrieve(object, inner_ptr)) {
 			return false;
 		}
-		value_ptr = dynamic_cast<C*>(inner_ptr);
-		if (!value_ptr) {
-			v8::Isolate::GetCurrent()->ThrowException(
-			    v8::Exception::TypeError(Nan::New<v8::String>("Wrapped object is of wrong type.").ToLocalChecked()));
-		}
+
+		value_ptr = static_cast<C*>(inner_ptr);
+
 		return !!value_ptr;
 	}
 

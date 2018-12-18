@@ -59,6 +59,14 @@ export const enum EVideoCodes {
 	ModuleNotFound = -5	
 }
 
+export const enum EHotkeyObjectType {
+	Frontend = 0,
+	Source = 1,
+	Output = 2,
+	Encoder = 3,
+	Service = 4
+}
+
 export const enum EDeinterlaceMode {
     Disable,
     Discard,
@@ -1507,6 +1515,7 @@ export interface IModuleFactory extends IFactoryTypes {
     loadAll(): void;
     addPath(path: string, dataPath: string): void;
     logLoaded(): void;
+    modules(): String[];
 }
 
 export interface IModule {

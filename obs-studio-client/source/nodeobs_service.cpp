@@ -340,16 +340,11 @@ void service::OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8
 	// Send request
 	std::vector<ipc::value> rval = conn->call_synchronous_helper("Service", "OBS_service_connectOutputSignals", {});
 	if (!ValidateResponse(rval)) {
-		return;
-	}
-
-	if (rval[0].value_union.ui64 != (uint64_t)ErrorCode::Ok) {
 		args.GetReturnValue().Set(Nan::Null());
 		return;
 	}
 
 	// Callback
-
 	serviceObject = new Service();
 	serviceObject->m_callback_function.Reset(callback);
 	serviceObject->start_async_runner();

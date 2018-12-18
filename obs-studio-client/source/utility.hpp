@@ -78,7 +78,7 @@
 #define dstr(s) #s
 #define vstr(s) dstr(s)
 
-static FORCE_INLINE bool ValidateResponse(std::vector<ipc::value>& response)
+static bool ValidateResponse(std::vector<ipc::value>& response)
 {
 	if (response.size() == 0) {
 		Nan::Error("Failed to make IPC call, verify IPC status.");
@@ -90,8 +90,21 @@ static FORCE_INLINE bool ValidateResponse(std::vector<ipc::value>& response)
 		return false;
 	}
 
-	{
-		ErrorCode error = (ErrorCode)response[0].value_union.ui64;
+	// Check if we had an error
+	ErrorCode error = (ErrorCode)response[0].value_union.ui64;
+	if (error != ErrorCode::Ok) {
+
+		// Check if there is an error message to show
+		if (response.size() == 1) {
+			Nan::ThrowError("Error without description.");
+			return false;
+		}
+
+		if (error == ErrorCode::InvalidReference) {
+			Nan::ThrowReferenceError(Nan::New(response[1].value_str).ToLocalChecked());
+			return false;
+		}
+
 		if (error != ErrorCode::Ok) {
 			Nan::ThrowError(Nan::New<v8::String>(response[1].value_str).ToLocalChecked());
 			return false;

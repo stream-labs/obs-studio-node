@@ -87,24 +87,8 @@ void osn::Fader::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 	    {
 	        ipc::value(fader_type),
 	    });
-	if (!rval.size()) {
-		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
-		return;
-	}
 
-	// Handle Unexpected Errors
-	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
-		return;
-	}
-
-	// Handle Expected Errors
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
-		return;
-	} else if (ec != ErrorCode::Ok) {
-		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+	if (!ValidateResponse(rval)) {
 		return;
 	}
 
@@ -139,24 +123,8 @@ void osn::Fader::GetDeziBel(Nan::NAN_METHOD_ARGS_TYPE info)
 	    {
 	        ipc::value(fader->uid),
 	    });
-	if (!rval.size()) {
-		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
-		return;
-	}
 
-	// Handle Unexpected Errors
-	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
-		return;
-	}
-
-	// Handle Expected Errors
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
-		return;
-	} else if (ec != ErrorCode::Ok) {
-		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+	if (!ValidateResponse(rval)) {
 		return;
 	}
 
@@ -187,24 +155,8 @@ void osn::Fader::SetDezibel(Nan::NAN_METHOD_ARGS_TYPE info)
 	// Call
 	std::vector<ipc::value> rval =
 	    conn->call_synchronous_helper("Fader", "SetDeziBel", {ipc::value(fader->uid), ipc::value(dezibel)});
-	if (!rval.size()) {
-		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
-		return;
-	}
 
-	// Handle Unexpected Errors
-	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
-		return;
-	}
-
-	// Handle Expected Errors
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
-		return;
-	} else if (ec != ErrorCode::Ok) {
-		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+	if (!ValidateResponse(rval)) {
 		return;
 	}
 
@@ -237,24 +189,8 @@ void osn::Fader::GetDeflection(Nan::NAN_METHOD_ARGS_TYPE info)
 	    {
 	        ipc::value(fader->uid),
 	    });
-	if (!rval.size()) {
-		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
-		return;
-	}
 
-	// Handle Unexpected Errors
-	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
-		return;
-	}
-
-	// Handle Expected Errors
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
-		return;
-	} else if (ec != ErrorCode::Ok) {
-		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+	if (!ValidateResponse(rval)) {
 		return;
 	}
 
@@ -285,24 +221,8 @@ void osn::Fader::SetDeflection(Nan::NAN_METHOD_ARGS_TYPE info)
 	// Call
 	std::vector<ipc::value> rval =
 	    conn->call_synchronous_helper("Fader", "SetDeflection", {ipc::value(fader->uid), ipc::value(dezibel)});
-	if (!rval.size()) {
-		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
-		return;
-	}
 
-	// Handle Unexpected Errors
-	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
-		return;
-	}
-
-	// Handle Expected Errors
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
-		return;
-	} else if (ec != ErrorCode::Ok) {
-		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+	if (!ValidateResponse(rval)) {
 		return;
 	}
 
@@ -335,24 +255,8 @@ void osn::Fader::GetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info)
 	    {
 	        ipc::value(fader->uid),
 	    });
-	if (!rval.size()) {
-		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
-		return;
-	}
 
-	// Handle Unexpected Errors
-	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
-		return;
-	}
-
-	// Handle Expected Errors
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
-		return;
-	} else if (ec != ErrorCode::Ok) {
-		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+	if (!ValidateResponse(rval)) {
 		return;
 	}
 
@@ -383,24 +287,8 @@ void osn::Fader::SetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info)
 	// Call
 	std::vector<ipc::value> rval =
 	    conn->call_synchronous_helper("Fader", "SetMultiplier", {ipc::value(fader->uid), ipc::value(dezibel)});
-	if (!rval.size()) {
-		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
-		return;
-	}
 
-	// Handle Unexpected Errors
-	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
-		return;
-	}
-
-	// Handle Expected Errors
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
-		return;
-	} else if (ec != ErrorCode::Ok) {
-		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+	if (!ValidateResponse(rval)) {
 		return;
 	}
 
@@ -436,24 +324,8 @@ void osn::Fader::Attach(Nan::NAN_METHOD_ARGS_TYPE info)
 	// Call
 	std::vector<ipc::value> rval =
 	    conn->call_synchronous_helper("Fader", "Attach", {ipc::value(fader->uid), ipc::value(source->sourceId)});
-	if (!rval.size()) {
-		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
-		return;
-	}
 
-	// Handle Unexpected Errors
-	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
-		return;
-	}
-
-	// Handle Expected Errors
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
-		return;
-	} else if (ec != ErrorCode::Ok) {
-		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+	if (!ValidateResponse(rval)) {
 		return;
 	}
 }
@@ -478,24 +350,8 @@ void osn::Fader::Detach(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	// Call
 	std::vector<ipc::value> rval = conn->call_synchronous_helper("Fader", "Detach", {ipc::value(fader->uid)});
-	if (!rval.size()) {
-		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
-		return;
-	}
 
-	// Handle Unexpected Errors
-	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
-		return;
-	}
-
-	// Handle Expected Errors
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
-		return;
-	} else if (ec != ErrorCode::Ok) {
-		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+	if (!ValidateResponse(rval)) {
 		return;
 	}
 }
