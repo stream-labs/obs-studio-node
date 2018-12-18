@@ -2846,7 +2846,7 @@ void OBS_settings::saveVideoSettings(std::vector<SubCategory> videoSettings)
 
 		uint64_t* fpsIntValue = reinterpret_cast<uint64_t*>(fpsInt.currentValue.data());
 
-		if (*fpsIntValue < 500) {
+		if (*fpsIntValue > 0 && * fpsIntValue < 500) {
 			config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSInt", *fpsIntValue);
 		}
 
@@ -2856,14 +2856,15 @@ void OBS_settings::saveVideoSettings(std::vector<SubCategory> videoSettings)
 		Parameter fpsNum      = sc.params.at(4);
 		uint32_t* fpsNumValue = reinterpret_cast<uint32_t*>(fpsNum.currentValue.data());
 
-		if (*fpsNumValue < 500) {
+		if (*fpsNumValue > 0 && *fpsNumValue < 500) {
 			config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSNum", *fpsNumValue);
 		}
 
 		if (sc.params.size() > 5) {
 			Parameter fpsDen      = sc.params.at(5);
 			uint32_t* fpsDenValue = reinterpret_cast<uint32_t*>(fpsDen.currentValue.data());
-			config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSDen", *fpsDenValue);
+			if (*fpsDenValue > 0)
+				config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSDen", *fpsDenValue);
 		}
 	}
 
