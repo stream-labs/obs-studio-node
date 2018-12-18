@@ -40,6 +40,16 @@ class OBS_API
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
+	static void OBS_API_getEncoderList(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_API_checkEncoderSanity(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
 	static void OBS_API_getPerformanceStatistics(
 	    void*                          data,
 	    const int64_t                  id,

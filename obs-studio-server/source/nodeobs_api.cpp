@@ -57,6 +57,10 @@ void OBS_API::Register(ipc::server& srv)
 	    "OBS_API_initAPI", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, OBS_API_initAPI));
 	cls->register_function(
 	    std::make_shared<ipc::function>("OBS_API_destroyOBS_API", std::vector<ipc::type>{}, OBS_API_destroyOBS_API));
+	 cls->register_function(
+	     std::make_shared<ipc::function>("OBS_API_getEncoderList", std::vector<ipc::type>{}, OBS_API_getEncoderList));
+	cls->register_function(std::make_shared<ipc::function>(
+	     "OBS_API_checkEncoderSanity", std::vector<ipc::type>{ipc::type::String}, OBS_API_checkEncoderSanity));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_API_getPerformanceStatistics", std::vector<ipc::type>{}, OBS_API_getPerformanceStatistics));
 	cls->register_function(std::make_shared<ipc::function>(
@@ -565,6 +569,38 @@ void OBS_API::OBS_API_destroyOBS_API(
 	destroyOBS_API();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
+}
+
+void OBS_API::OBS_API_getEncoderList(
+	void*                          data,
+	const int64_t                  id,
+	const std::vector<ipc::value>& args,
+	std::vector<ipc::value>&       rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+	const char* encoderName = nullptr;
+	for (size_t i = 0; obs_enum_encoder_types(i, &encoderName); i++) {
+
+		rval.push_back(ipc::value(std::string(encoderName)));
+	}
+}
+
+void OBS_API::OBS_API_checkEncoderSanity(
+	void*                          data,
+	const int64_t                  id,
+	const std::vector<ipc::value>& args,
+	std::vector<ipc::value>&       rval)
+{
+	assert(args.size() > 0);
+
+	auto prop     = obs_get_encoder_properties(args[0].value_str.c_str());
+	auto defaults = obs_encoder_defaults(args[0].value_str.c_str());
+
+	obs_properties_destroy(prop);
+	obs_data_release(defaults);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
 void OBS_API::OBS_API_getPerformanceStatistics(

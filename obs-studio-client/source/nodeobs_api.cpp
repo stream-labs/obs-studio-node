@@ -35,6 +35,24 @@ void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args)
 		}
 	}
 	args.GetReturnValue().Set(v8::Number::New(args.GetIsolate(), response[1].value_union.i32));
+
+	{
+		std::vector<ipc::value> encoderNameList =
+		    conn->call_synchronous_helper("API", "OBS_API_getEncoderList", {});
+		if (!ValidateResponse(encoderNameList)) {
+			return;
+		}
+
+		for (int i = 1; i < encoderNameList.size(); i++) {
+			
+			std::vector<ipc::value> encoderStatus =
+			    conn->call_synchronous_helper("API", "OBS_API_checkEncoderSanity", {encoderNameList[i].value_str});
+
+			if (!ValidateResponse(encoderStatus)) {
+				return;
+			}
+		}
+	}
 }
 
 void api::OBS_API_destroyOBS_API(const v8::FunctionCallbackInfo<v8::Value>& args)
