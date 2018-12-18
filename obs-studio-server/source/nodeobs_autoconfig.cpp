@@ -192,8 +192,6 @@ void autoConfig::Register(ipc::server& srv)
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("AutoConfig");
 
 	cls->register_function(std::make_shared<ipc::function>(
-	    "GetListServer", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, autoConfig::GetListServer));
-	cls->register_function(std::make_shared<ipc::function>(
 	    "InitializeAutoConfig",
 	    std::vector<ipc::type>{ipc::type::String, ipc::type::String},
 	    autoConfig::InitializeAutoConfig));
@@ -351,6 +349,7 @@ void autoConfig::TerminateAutoConfig(
     std::vector<ipc::value>&       rval)
 {
 	StopThread();
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
 void autoConfig::Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
@@ -472,61 +471,6 @@ void autoConfig::StartSetDefaultSettings(
 	std::thread(SetDefaultSettings).detach();
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-}
-
-void autoConfig::GetListServer(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	serviceName           = args[0].value_str;
-	std::string continent = args[1].value_str;
-	;
-
-	regionNA = false;
-	regionSA = false;
-	regionEU = false;
-	regionAS = false;
-	regionOC = false;
-
-	if (continent.compare("North America") == 0) {
-		regionNA = true;
-	} else if (continent.compare("South America") == 0) {
-		regionSA = true;
-	} else if (continent.compare("Europe") == 0) {
-		regionEU = true;
-	} else if (continent.compare("Asia") == 0) {
-		regionAS = true;
-	} else if (continent.compare("Oceania") == 0) {
-		regionOC = true;
-	} else {
-		regionNA = true;
-		regionSA = true;
-		regionEU = true;
-		regionAS = true;
-		regionOC = true;
-	}
-
-	if (serviceName == "Twitch")
-		serviceSelected = Service::Twitch;
-	else if (serviceName == "hitbox.tv")
-		serviceSelected = Service::Hitbox;
-	else if (serviceName == "beam.pro")
-		serviceSelected = Service::Beam;
-	else
-		serviceSelected = Service::Other;
-
-	std::vector<ServerInfo> servers;
-
-	GetServers(servers);
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-
-	for (int i = 0; i < servers.size(); i++) {
-		rval.push_back(ipc::value(servers[i].name));
-		rval.push_back(ipc::value(servers[i].address));
-	}
 }
 
 int EvaluateBandwidth(
