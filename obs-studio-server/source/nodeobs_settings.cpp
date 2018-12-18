@@ -1540,7 +1540,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 		// Output Resolution : list
 		Parameter rescaleRes;
 		rescaleRes.name        = "RescaleRes";
-		rescaleRes.type        = "OBS_PROPERTY_LIST";
+		rescaleRes.type        = "OBS_INPUT_RESOLUTION_LIST";
 		rescaleRes.description = "Output Resolution";
 		rescaleRes.subType     = "OBS_COMBO_FORMAT_STRING";
 
@@ -1868,7 +1868,7 @@ void OBS_settings::getStandardRecordingSettings(
 		// Output Resolution : list
 		Parameter recRescaleRes;
 		recRescaleRes.name        = "RecRescaleRes";
-		recRescaleRes.type        = "OBS_PROPERTY_LIST";
+		recRescaleRes.type        = "OBS_INPUT_RESOLUTION_LIST";
 		recRescaleRes.description = "Output Resolution";
 		recRescaleRes.subType     = "OBS_COMBO_FORMAT_STRING";
 
@@ -2279,7 +2279,7 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 		std::string type = param.type;
 
 		if (type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 || type.compare("OBS_PROPERTY_PATH") == 0
-		    || type.compare("OBS_PROPERTY_TEXT") == 0) {
+		    || type.compare("OBS_PROPERTY_TEXT") == 0 || type.compare("OBS_INPUT_RESOLUTION_LIST") == 0) {
 			std::string value(param.currentValue.data(), param.currentValue.size());
 
 			if (i < indexEncoderSettings) {
@@ -2402,7 +2402,7 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 		}
 
 		if (type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 || type.compare("OBS_PROPERTY_PATH") == 0
-		    || type.compare("OBS_PROPERTY_TEXT") == 0) {
+		    || type.compare("OBS_PROPERTY_TEXT") == 0 || type.compare("OBS_INPUT_RESOLUTION_LIST") == 0) {
 			if (i < indexEncoderSettings) {
 				std::string value(param.currentValue.data(), param.currentValue.size());
 
