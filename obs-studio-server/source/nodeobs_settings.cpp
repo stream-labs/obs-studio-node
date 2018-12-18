@@ -187,6 +187,8 @@ void OBS_settings::OBS_settings_saveSettings(
 	std::vector<SubCategory> settings = serializeCategory(subCategoriesCount, sizeStruct, buffer);
 
 	saveSettings(nameCategory, settings);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
 
