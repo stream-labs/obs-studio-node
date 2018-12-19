@@ -411,13 +411,9 @@ std::vector<char> terminateCrashHandler(void)
 
 void writeCrashHandler(std::vector<char> buffer)
 {
-	HANDLE hPipe = CreateFile(
-	    TEXT("\\\\.\\pipe\\slobs-crash-handler"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+	HANDLE hPipe = CreateFile( TEXT("\\\\.\\pipe\\slobs-crash-handler"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 
 	if (hPipe == INVALID_HANDLE_VALUE)
-		return;
-
-	if (GetLastError() == ERROR_PIPE_BUSY)
 		return;
 
 	DWORD bytesWritten;
