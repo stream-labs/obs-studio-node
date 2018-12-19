@@ -34,7 +34,6 @@ void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args)
 			return;
 		}
 	}
-
 	args.GetReturnValue().Set(v8::Number::New(args.GetIsolate(), response[1].value_union.i32));
 }
 
@@ -111,6 +110,72 @@ void api::StopCrashHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
 	// ValidateResponse(response);
 }
 
+Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_QueryHotkeys(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("API", "OBS_API_QueryHotkeys", {});
+
+	if (!ValidateResponse(response))
+		return;
+
+	v8::Local<v8::Array> hotkeyInfos = v8::Array::New(args.GetIsolate());
+
+	// For each hotkey info that we need to fill
+	for (int i = 0; i < (response.size() - 1) / 5; i++) {
+		int                   responseIndex = i * 5 + 1;
+		v8::Local<v8::Object> object        = v8::Object::New(args.GetIsolate());
+		std::string           objectName    = response[responseIndex + 0].value_str;
+		uint32_t              objectType    = response[responseIndex + 1].value_union.ui32;
+		std::string           hotkeyName    = response[responseIndex + 2].value_str;
+		std::string           hotkeyDesc    = response[responseIndex + 3].value_str;
+		uint64_t              hotkeyId      = response[responseIndex + 4].value_union.ui64;
+
+		object->Set(
+		    v8::String::NewFromUtf8(args.GetIsolate(), "ObjectName"),
+		    v8::String::NewFromUtf8(args.GetIsolate(), objectName.c_str()));
+
+		object->Set(
+		    v8::String::NewFromUtf8(args.GetIsolate(), "ObjectType"), v8::Number::New(args.GetIsolate(), objectType));
+
+		object->Set(
+		    v8::String::NewFromUtf8(args.GetIsolate(), "HotkeyName"),
+		    v8::String::NewFromUtf8(args.GetIsolate(), hotkeyName.c_str()));
+
+		object->Set(
+		    v8::String::NewFromUtf8(args.GetIsolate(), "HotkeyDesc"),
+		    v8::String::NewFromUtf8(args.GetIsolate(), hotkeyDesc.c_str()));
+
+		object->Set(
+		    v8::String::NewFromUtf8(args.GetIsolate(), "HotkeyId"), v8::Number::New(args.GetIsolate(), hotkeyId));
+
+		hotkeyInfos->Set(i, object);
+	}
+
+	args.GetReturnValue().Set(hotkeyInfos);
+}
+
+Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_ProcessHotkeyStatus(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	uint64_t    hotkeyId;
+	bool        press;
+
+	ASSERT_GET_VALUE(args[0], hotkeyId);
+	ASSERT_GET_VALUE(args[1], press);
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper(
+	    "API", "OBS_API_ProcessHotkeyStatus", {ipc::value(hotkeyId), ipc::value(press)});
+
+	if (!ValidateResponse(response))
+		return;
+}
+
 INITIALIZER(nodeobs_api)
 {
 	initializerFunctions.push([](v8::Local<v8::Object> exports) {
@@ -119,5 +184,7 @@ INITIALIZER(nodeobs_api)
 		NODE_SET_METHOD(exports, "OBS_API_getPerformanceStatistics", api::OBS_API_getPerformanceStatistics);
 		NODE_SET_METHOD(exports, "SetWorkingDirectory", api::SetWorkingDirectory);
 		NODE_SET_METHOD(exports, "StopCrashHandler", api::StopCrashHandler);
+		NODE_SET_METHOD(exports, "OBS_API_QueryHotkeys", api::OBS_API_QueryHotkeys);
+		NODE_SET_METHOD(exports, "OBS_API_ProcessHotkeyStatus", api::OBS_API_ProcessHotkeyStatus);
 	});
 }

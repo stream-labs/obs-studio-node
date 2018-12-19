@@ -247,6 +247,8 @@ void OBS_content::OBS_content_createDisplay(
 	be a memory leak otherwise. */
 	if (found != displays.end()) {
 		std::cerr << "Duplicate key provided to createDisplay: " << args[1].value_str << std::endl;
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Duplicate key provided to createDisplay: " + args[1].value_str));
 		return;
 	}
 
@@ -275,7 +277,7 @@ void OBS_content::OBS_content_destroyDisplay(
 	if (found == displays.end()) {
 		std::cerr << "Failed to find key for destruction: " << args[0].value_str << std::endl;
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-		rval.push_back(ipc::value("Key does not exist."));
+		rval.push_back(ipc::value("Failed to find key for destruction: " + args[0].value_str));
 		return;
 	}
 
@@ -301,7 +303,8 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(
 	/* If found, do nothing since it would
 	be a memory leak otherwise. */
 	if (found != displays.end()) {
-		std::cout << "Duplicate key provided to createDisplay!" << std::endl;
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Duplicate key provided to createDisplay!"));
 		return;
 	}
 	displays.insert_or_assign(args[2].value_str, new OBS::Display(windowHandle, args[1].value_str));
@@ -317,7 +320,8 @@ void OBS_content::OBS_content_resizeDisplay(
 {
 	auto value = displays.find(args[0].value_str);
 	if (value == displays.end()) {
-		std::cout << "Invalid key provided to resizeDisplay: " << args[0].value_str << std::endl;
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Invalid key provided to resizeDisplay: " + args[0].value_str));
 		return;
 	}
 
@@ -339,7 +343,8 @@ void OBS_content::OBS_content_moveDisplay(
 {
 	auto value = displays.find(args[0].value_str);
 	if (value == displays.end()) {
-		std::cout << "Invalid key provided to moveDisplay: " << args[0].value_str << std::endl;
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Invalid key provided to moveDisplay: " + args[0].value_str));
 		return;
 	}
 
@@ -405,6 +410,8 @@ void OBS_content::OBS_content_setPaddingSize(
 				v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 			)
 		);*/
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Display key is not valid!"));
 		return;
 	}
 
@@ -499,6 +506,8 @@ void OBS_content::OBS_content_setPaddingColor(
 				v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 			)
 		);*/
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Display key is not valid!"));
 		return;
 	}
 
@@ -687,6 +696,8 @@ void OBS_content::OBS_content_setOutlineColor(
 		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 		      )
 		);*/
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Display key is not valid!"));
 		return;
 	}
 
@@ -781,6 +792,8 @@ void OBS_content::OBS_content_setGuidelineColor(
 		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 		      )
 		);*/
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Display key is not valid!"));
 		return;
 	}
 
@@ -880,6 +893,8 @@ void OBS_content::OBS_content_setResizeBoxOuterColor(
 		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 		      )
 		);*/
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Display key is not valid!"));
 		return;
 	}
 
@@ -979,6 +994,8 @@ void OBS_content::OBS_content_setResizeBoxInnerColor(
 		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 		      )
 		);*/
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Display key is not valid!"));
 		return;
 	}
 
@@ -1043,6 +1060,8 @@ void OBS_content::OBS_content_setShouldDrawUI(
 		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 		      )
 		);*/
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Display key is not valid!"));
 		return;
 	}
 
@@ -1059,7 +1078,8 @@ void OBS_content::OBS_content_getDisplayPreviewOffset(
 {
 	auto value = displays.find(args[0].value_str);
 	if (value == displays.end()) {
-		std::cout << "Invalid key provided to moveDisplay: " << args[0].value_str << std::endl;
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Invalid key provided to moveDisplay: " + args[0].value_str));
 		return;
 	}
 
@@ -1081,7 +1101,8 @@ void OBS_content::OBS_content_getDisplayPreviewSize(
 {
 	auto value = displays.find(args[0].value_str);
 	if (value == displays.end()) {
-		std::cout << "Invalid key provided to moveDisplay: " << args[0].value_str << std::endl;
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Invalid key provided to moveDisplay: " + args[0].value_str));
 		return;
 	}
 
@@ -1234,6 +1255,8 @@ void OBS_content::OBS_content_dragSelectedSource(
 
 	obs_sceneitem_set_pos(sourceItem, &position);
 	obs_source_release(source);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
 
@@ -1275,9 +1298,12 @@ void OBS_content::OBS_content_getDrawGuideLines(
 		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 		      )
 		);*/
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Display key is not valid!"));
 		return;
 	}
 
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back((bool)it->second->GetDrawGuideLines());
 	AUTO_DEBUG;
 }
@@ -1332,10 +1358,11 @@ void OBS_content::OBS_content_setDrawGuideLines(
 		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
 		      )
 		);*/
-
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Display key is not valid!"));
 		return;
 	}
-
 	it->second->SetDrawGuideLines((bool)args[1].value_union.i32);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }

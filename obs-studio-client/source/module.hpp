@@ -29,7 +29,6 @@ namespace osn
 		public:
 		uint64_t moduleId;
 		Module(uint64_t id);
-		virtual ~Module(){};
 
 		// JavaScript
 		public:
@@ -39,6 +38,7 @@ namespace osn
 
 		//Functions
 		static Nan::NAN_METHOD_RETURN_TYPE Open(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE Modules(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE Initialize(Nan::NAN_METHOD_ARGS_TYPE info);
 
 		//Methods

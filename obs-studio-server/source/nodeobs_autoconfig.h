@@ -13,8 +13,6 @@
 namespace autoConfig
 {
 	void Register(ipc::server& srv);
-	void
-	     GetListServer(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 	void InitializeAutoConfig(
 	    void*                          data,
 	    const int64_t                  id,
