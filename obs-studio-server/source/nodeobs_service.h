@@ -251,8 +251,8 @@ class OBS_service
 	static void           setAudioRecordingEncoder(obs_encoder_t* encoder);
 
 	// Outputs
-	static void          createStreamingOutput(void);
-	static void          createRecordingOutput(void);
+	static bool          createStreamingOutput(void);
+	static bool          createRecordingOutput(void);
 	static void          createReplayBufferOutput(void);
 	static obs_output_t* getStreamingOutput(void);
 	static void          setStreamingOutput(obs_output_t* output);
