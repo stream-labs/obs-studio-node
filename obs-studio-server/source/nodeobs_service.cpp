@@ -2247,6 +2247,10 @@ void OBS_service::OBS_service_connectOutputSignals(
 	replayBufferSignals.push_back(SignalInfo("replay-buffer", "stop"));
 	replayBufferSignals.push_back(SignalInfo("replay-buffer", "stopping"));
 
+	replayBufferSignals.push_back(SignalInfo("replay-buffer", "writing"));
+	replayBufferSignals.push_back(SignalInfo("replay-buffer", "wrote"));
+	replayBufferSignals.push_back(SignalInfo("replay-buffer", "writing_error"));
+
 	connectOutputSignals();
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
