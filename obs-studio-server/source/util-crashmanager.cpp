@@ -51,14 +51,12 @@ static PDH_HCOUNTER cpuTotal;
 
 // Global/static variables
 util::CrashManager::CrashHandlerInfo* s_CrashHandlerInfo = nullptr;
-std::map<std::string, std::string>    s_CustomAnnotations;
 std::vector<std::string>              s_HandledOBSCrashes;
-util::CrashManager::OperationType     s_OperationType = util::CrashManager::OperationType::Unknow;
 
     // Forward
 std::string FormatVAString(const char* const format, va_list args);
-std::vector<std::string> RewindCallStack(uint32_t maximumEntries);
-std::string RequestOBSLog();
+nlohmann::json RewindCallStack(uint32_t skip);
+nlohmann::json RequestOBSLog();
 
 // Class specific
 util::CrashManager::~CrashManager()
@@ -99,24 +97,15 @@ void RequestComputerUsageParams(long long& totalPhysMem, long long& physMemUsed,
 #endif
 }
 
-bool util::CrashManager::Initialize(OperationType _operationType)
+bool util::CrashManager::Initialize()
 {
-	s_OperationType = _operationType;
-
 #ifndef _DEBUG
 
 	s_CrashHandlerInfo = new CrashHandlerInfo();
 
-	// Depending on the operation type, initialize crashpad or sentry
-	if (_operationType == OperationType::Crashpad) {
-		if (!SetupCrashpad())
-			return false;
-	} else if (_operationType == OperationType::Sentry) {
-		if (!SetupSentry())
-			return false;
-	} else
+	// Initialize sentry
+	if (!SetupSentry())
 		return false;
-
 
 	// Handler for obs errors (mainly for bcrash() calls)
 	base_set_crash_handler(
@@ -178,56 +167,6 @@ void util::CrashManager::Configure()
 	}
 }
 
-bool util::CrashManager::SetupCrashpad()
-{
-#ifndef _DEBUG
-
-	std::wstring appdata_path;
-
-#if defined(_WIN32)
-	HRESULT hResult;
-	PWSTR   ppszPath;
-
-	hResult = SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, NULL, &ppszPath);
-	appdata_path.assign(ppszPath);
-	appdata_path.append(L"\\obs-studio-node-server");
-	CoTaskMemFree(ppszPath);
-
-#endif
-
-	std::map<std::string, std::string> annotations;
-	std::vector<std::string>           arguments;
-	arguments.push_back("--no-rate-limit");
-	std::wstring handler_path(L"crashpad_handler.exe");
-	std::string  url(
-        "https://submit.backtrace.io/streamlabs/513fa5577d6a193ed34965e18b93d7b00813e9eb2f4b0b7059b30e66afebe4fe/"
-        "minidump");
-
-	base::FilePath db(appdata_path);
-	base::FilePath handler(handler_path);
-
-	// Setup the crashpad info that will be used in case the obs throws an error
-	s_CrashHandlerInfo->handler   = handler;
-	s_CrashHandlerInfo->db        = db;
-	s_CrashHandlerInfo->url       = url;
-	s_CrashHandlerInfo->arguments = arguments;
-
-	s_CrashHandlerInfo->database = crashpad::CrashReportDatabase::Initialize(db);
-	if (s_CrashHandlerInfo->database == nullptr || s_CrashHandlerInfo->database->GetSettings() == NULL)
-		return false;
-
-	s_CrashHandlerInfo->database->GetSettings()->SetUploadsEnabled(true);
-
-	if (!s_CrashHandlerInfo->client.StartHandler(handler, db, db, url, annotations, arguments, true, true))
-		return false;
-
-	if (!s_CrashHandlerInfo->client.WaitForHandlerStart(INFINITE))
-		return false;
-#endif
-
-	return true;
-}
-
 bool util::CrashManager::SetupSentry() 
 {
 #ifndef _DEBUG
@@ -271,7 +210,7 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool _callAbort) no
 	// entries to retrieve), we will use this info to populate an crashpad attribute,
 	// avoiding some cases that the memory dump is corrupted and we don't have access to
 	// the callstack.
-	std::vector<std::string> callStack = RewindCallStack(420);
+	nlohmann::json callStack = RewindCallStack(2);
 
 	// Get the information about the total of CPU and RAM used by this user
 	long long totalPhysMem;
@@ -281,17 +220,16 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool _callAbort) no
 	RequestComputerUsageParams(totalPhysMem, physMemUsed, physMemUsedByMe, totalCPUUsed);
 	
 	// Setup all the custom annotations that are important too our crash report
-	for (int i = 0; i < callStack.size(); i++) {
-		s_CustomAnnotations.insert({"CallStack" + (callStack.size() == 1 ? "" : "-" + std::to_string(i+1)), callStack[i]});
-	}
-	s_CustomAnnotations.insert({"Crash Info", _crashInfo});
-	s_CustomAnnotations.insert({"OBS Status", obs_initialized() ? "Initialized" : "Shutdown"});
-	s_CustomAnnotations.insert({"OBS Total Leaks", std::to_string(bnum_allocs())});
-	s_CustomAnnotations.insert({"OBS Log", RequestOBSLog()});
-	s_CustomAnnotations.insert({"Total Physical Memory", std::to_string(totalPhysMem)});
-	s_CustomAnnotations.insert({"Total Physical Memory In Use", std::to_string(physMemUsed)});
-	s_CustomAnnotations.insert({"Total Physical Memory In Use By SLOBS", std::to_string(physMemUsedByMe)});
-	s_CustomAnnotations.insert({"Total CPU", std::to_string(totalCPUUsed)});
+	auto& sentry  = s_CrashHandlerInfo->sentry;
+	sentry->add_tags_context({{"status", obs_initialized() ? "initialized" : "shutdown"}});
+	sentry->add_tags_context({{"leaks", std::to_string(bnum_allocs())}});
+	sentry->add_tags_context({{"total memory", std::to_string(totalPhysMem)}});
+	sentry->add_tags_context({{"total used memory", std::to_string(physMemUsed)}});
+	sentry->add_tags_context({{"total SLOBS memory", std::to_string(physMemUsedByMe)}});
+	sentry->add_tags_context({{"cpu", std::to_string(totalCPUUsed)}});
+	
+	// s_CustomAnnotations.insert({"OBS Log", RequestOBSLog()});
+	sentry->add_extra_context({{"OBS Log", RequestOBSLog()}});
 
 	// Invoke the crash report
 	InvokeReport(_crashInfo, callStack);
@@ -368,8 +306,10 @@ std::string FormatVAString(const char* const format, va_list args)
 	return std::string{temp.data(), length};
 }
 
-std::vector<std::string> RewindCallStack(uint32_t maximumEntries)
+nlohmann::json RewindCallStack(uint32_t skip)
 {
+	nlohmann::json result = json::array();
+
 #ifndef _DEBUG
 #if defined(_WIN32)
 
@@ -378,7 +318,7 @@ std::vector<std::string> RewindCallStack(uint32_t maximumEntries)
 	CaptureStackBackTraceType func =
 	    (CaptureStackBackTraceType)(GetProcAddress(LoadLibrary(L"kernel32.dll"), "RtlCaptureStackBackTrace"));
 	if (func == NULL)
-		return {}; // WOE 29.SEP.2010
+		return result; // WOE 29.SEP.2010
 
 	// Quote from Microsoft Documentation:
 	// ## Windows Server 2003 and Windows XP:
@@ -399,97 +339,90 @@ std::vector<std::string> RewindCallStack(uint32_t maximumEntries)
 	symbol               = (SYMBOL_INFO*)calloc(sizeof(SYMBOL_INFO) + 256 * sizeof(char), 1);
 	symbol->MaxNameLen   = 255;
 	symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-	std::vector<std::string> callStackString;
+	std::vector<std::string> callstack;
 	int                      writingIndex = -1;
 
 	// Currently 18 is the maximum that we can display on backtrace in one single attribute
 	const unsigned short MAX_CALLERS_SHOWN = 50;
 	frames                                 = frames < MAX_CALLERS_SHOWN ? frames : MAX_CALLERS_SHOWN;
-	for (unsigned int i = 0; i < frames; i++) {
-		if (!SymFromAddr(process, (DWORD64)(callers_stack[i]), 0, symbol))
+	std::vector<int> missingFrames;
+	for (unsigned int i = skip; i < frames; i++) {
+		if (!SymFromAddr(process, (DWORD64)(callers_stack[i]), 0, symbol)
+			|| !SymGetLineFromAddr64(process, (DWORD64)(callers_stack[i]), &dwDisplacement, &line))
+		{
+			// Add the frame index to the missing frames vector
+			missingFrames.push_back(int(i));
 			continue;
-		if (!SymGetLineFromAddr64(process, (DWORD64)(callers_stack[i]), &dwDisplacement, &line))
-			continue;
+		}
 
-		// Check if we need to add a new element to the string vector
-		if (callStackString.size() == 0 || callStackString.back().length() >= maximumEntries) {
-			callStackString.push_back("");
-			writingIndex++;
+		std::stringstream buffer;
+		std::string       fullPath = line.FileName;
+		std::string       fileName;
+		std::string       functionName = symbol->Name;
+
+		// Get the filename from the fullpath
+		size_t pos = fullPath.rfind("\\", fullPath.length());
+		if (pos != string::npos) {
+			fileName = (fullPath.substr(pos + 1, fullPath.length() - pos));
+		}
+
+		// Store the callstack address into the buffer (void* to std::string)
+		buffer << callers_stack[i];
+
+		json entry;
+		entry["filename"]         = functionName; // The swap with the function name is intentional
+		entry["function"]         = fileName;
+		entry["lineno"]           = line.LineNumber;
+		entry["instruction_addr"] = "0x" + buffer.str();
+		entry["symbol_addr"]      = "0x" + std::to_string(symbol->Address);
+
+		if (functionName.substr(0, 5) == "std::" || functionName.substr(0, 2) == "__") {
+			entry["in_app"] = false;
+		}
+
+		// If we have some missing frames
+		if (missingFrames.size() > 0)
+		{
+			entry["frames_omitted"] = {std::to_string(missingFrames[0]), std::to_string(i)};
+			missingFrames.clear();
 		}
 		
-		// Setup a readable callstack string
-		std::stringstream buffer;
-		buffer << callers_stack[i] << " " << symbol->Name << " - 0x" << symbol->Address << std::endl;
-		callStackString[writingIndex].append(
-		    symbol->Name + std::string("(") + std::to_string(line.LineNumber) + std::string(")")
-		    + (i == frames - 1 ? "" : std::string(" -> ")) + "\n");
+		result.push_back(entry);
 	}
 
 	free(symbol);
 
-	return callStackString;
-
 #endif
 #endif
 
-	return {};
+	return result;
 }
 
-std::string RequestOBSLog()
+nlohmann::json RequestOBSLog()
 {
+	nlohmann::json result;
+
 	// Setup the obs log queue as an attribute
 	if (OBS_API::getOBSLogQueue().size() > 0) {
 		std::queue<std::string> obsLogQueue = OBS_API::getOBSLogQueue();
 		std::string             obsLogMessage;
 		while (obsLogQueue.size() > 0) {
-			obsLogMessage.append(obsLogQueue.front().append(obsLogQueue.size() == 1 ? " " : " -> \n"));
+			result.push_back(obsLogQueue.front());
 			obsLogQueue.pop();
 		}
-
-		return obsLogMessage;
 	}
 
-	return "";
+	return result;
 }
 
-void util::CrashManager::InvokeReport(std::string _crashInfo, std::vector<std::string> _callStack)
+void util::CrashManager::InvokeReport(std::string _crashInfo, nlohmann::json _callStack)
 {
 #ifndef _DEBUG
-	
-	if (s_OperationType == OperationType::Crashpad) {
 
-		// Since there is no other way (known at the moment) to add annotations on the go to
-		// the current handler, we will recreate it here adding our custom info
-		bool rc = s_CrashHandlerInfo->client.StartHandler(
-		    s_CrashHandlerInfo->handler,
-		    s_CrashHandlerInfo->db,
-		    s_CrashHandlerInfo->db,
-		    s_CrashHandlerInfo->url,
-		    s_CustomAnnotations,
-		    s_CrashHandlerInfo->arguments,
-		    true,
-		    true);
-		rc = s_CrashHandlerInfo->client.WaitForHandlerStart(5000);
-
-	} else if (s_OperationType == OperationType::Sentry) {
-
-		// Check if we can get the fifth value from the callstack, usually it is the name of the method
-		// that caused the crash
-		if (_callStack.size() > 4) {
-			_crashInfo = _callStack[4];
-		}
-
-		// Insert all annotation as breadcrumbs for sentry
-		for (auto annotation : s_CustomAnnotations) {
-			
-			s_CrashHandlerInfo->sentry->add_breadcrumb(annotation.first + " - " + annotation.second);
-		}
-
-		// Capture the message and wait, this wait is necessary since we don't have a way to force it to send
-		// the message and wait for it's completion at the same time
-		s_CrashHandlerInfo->sentry->capture_message(_crashInfo);
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-	}
+	// Capture the message and wait, this wait is necessary since we don't have a way to force it to send
+	// the message and wait for it's completion at the same time
+	s_CrashHandlerInfo->sentry->capture_exception_sync(
+	    _crashInfo, "Invoked Report", "Unknow", _callStack, nullptr, false);
 
 #endif
 }

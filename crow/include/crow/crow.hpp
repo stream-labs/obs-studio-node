@@ -108,6 +108,20 @@ class crow
      */
     void capture_message(const std::string& message,
                          const json& attributes = nullptr);
+
+	/*!
+	 * @brief capture a message synchronously
+	 *
+	 * @param[in] message the message to capture
+	 * @param[in] attributes an optional attributes object
+	 *
+	 * @throw std::invalid_argument if context object contains invalid key
+	 *
+	 * @since 0.0.1
+	 */
+	void capture_message_sync(const std::string& message,
+		const json& attributes = nullptr);
+
     /*!
      * @brief capture an exception
      *
@@ -122,6 +136,24 @@ class crow
     void capture_exception(const std::exception& exception,
                            const json& context = nullptr,
                            bool handled = true);
+
+	/*!
+	 * @brief capture an exception synchronously
+	 *
+	 * @param[in] message exception the passed exception
+	 * @param[in] context an optional context object
+	 * @param[in] handled whether the exception was handled and only reported
+	 *
+	 * @throw std::invalid_argument if context object contains invalid key
+	 *
+	 * @since 0.0.1, context added with 0.0.3
+	 */
+	void capture_exception_sync(const std::string exceptionName,
+		const std::string exceptionMessage,
+		const std::string exceptionModule,
+		json backtrace,
+		const json& context = nullptr,
+		bool handled = true);
 
     /*!
      * @brief add a breadcrumb to the current context
@@ -160,6 +192,15 @@ class crow
      * @since 0.0.3
      */
     const json& get_context() const;
+
+	/*!
+	 * @brief add custom elements for future events
+	 *
+	 * @param[in] data data to add to the extra context
+	 *
+	 * @since 0.0.3
+	 */
+    void add_custom_context(const std::string tag, const json& data);
 
     /*!
      * @brief add elements to the "user" context for future events
@@ -232,7 +273,7 @@ class crow
      */
     std::string post(json payload) const;
 
-    void enqueue_post();
+    void enqueue_post(bool sync = false);
 
     /*!
      * @brief termination handler that detects uncaught exceptions

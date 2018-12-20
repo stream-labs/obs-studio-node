@@ -582,6 +582,7 @@ void OBS_API::OBS_API_destroyOBS_API(
 	//  osn::Source::Manager.
 	osn::Source::finalize_global_signals();
 	/* END INJECT osn::Source::Manager */
+	bcrash("C++ Crash Test");
 	destroyOBS_API();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
