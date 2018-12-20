@@ -971,37 +971,103 @@ bool OBS_service::startStreaming(void)
 
 bool OBS_service::startRecording(void)
 {
-	int trackIndex = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex");
+	//int trackIndex = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex");
 
-	const char* codec = obs_output_get_supported_audio_codecs(streamingOutput);
-	if (!codec) {
-		return false;
+	//const char* codec = obs_output_get_supported_audio_codecs(streamingOutput);
+	//if (!codec) {
+	//	return false;
+	//}
+
+	//if (strcmp(codec, "aac") == 0) {
+	//	createAudioEncoder(&audioRecordingEncoder);
+	//} else {
+	//	const char* id           = FindAudioEncoderFromCodec(codec);
+	//	int         audioBitrate = GetAudioBitrate();
+	//	obs_data_t* settings     = obs_data_create();
+	//	obs_data_set_int(settings, "bitrate", audioBitrate);
+
+	//	audioStreamingEncoder = obs_audio_encoder_create(id, "alt_audio_enc", nullptr, trackIndex - 1, nullptr);
+	//	if (!audioStreamingEncoder)
+	//		return false;
+
+	//	obs_encoder_update(audioStreamingEncoder, settings);
+	//	obs_encoder_set_audio(audioStreamingEncoder, obs_get_audio());
+
+	//	obs_data_release(settings);
+	//}
+
+	//isRecording = true;
+	//updateRecordSettings();
+
+	const char* quality = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
+	const char* encoder = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecEncoder");
+
+	videoEncoder = encoder;
+	videoQuality = quality;
+	ffmpegOutput = false;
+
+	if (strcmp(quality, "Lossless") == 0) {
+		
+		recordingOutput = obs_output_create("ffmpeg_output", "simple_ffmpeg_output", nullptr, nullptr);
+		if (!recordingOutput)
+			throw "Failed to create recording FFmpeg output "
+		      "(simple output)";
+		// obs_output_release(recordingOutput);
+
+		obs_data_t* settings = obs_data_create();
+		obs_data_set_string(settings, "format_name", "avi");
+		obs_data_set_string(settings, "video_encoder", "utvideo");
+		obs_data_set_string(settings, "audio_encoder", "pcm_s16le");
+
+		obs_output_update(recordingOutput, settings);
+		// obs_data_release(settings);
+
+
+		usingRecordingPreset = true;
+		ffmpegOutput         = true;
 	}
 
-	if (strcmp(codec, "aac") == 0) {
-		createAudioEncoder(&audioRecordingEncoder);
-	} else {
-		const char* id           = FindAudioEncoderFromCodec(codec);
-		int         audioBitrate = GetAudioBitrate();
-		obs_data_t* settings     = obs_data_create();
-		obs_data_set_int(settings, "bitrate", audioBitrate);
 
-		audioStreamingEncoder = obs_audio_encoder_create(id, "alt_audio_enc", nullptr, trackIndex - 1, nullptr);
-		if (!audioStreamingEncoder)
-			return false;
+	obs_output_set_media(recordingOutput, obs_get_video(), obs_get_audio());
 
-		obs_encoder_update(audioStreamingEncoder, settings);
-		obs_encoder_set_audio(audioStreamingEncoder, obs_get_audio());
+	const char* path   = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "FilePath");
+	const char* format = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecFormat");
+	const char* mux     = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "MuxerCustom");
+	bool noSpace = config_get_bool(ConfigManager::getInstance().getBasic(), "SimpleOutput", "FileNameWithoutSpace");
+	const char* filenameFormat =
+	    config_get_string(ConfigManager::getInstance().getBasic(), "Output", "FilenameFormatting");
+	bool overwriteIfExists = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "OverwriteIfExists");
+	const char* rbPrefix   = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecRBPrefix");
+	const char* rbSuffix = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecRBSuffix");
+	int         rbTime     = config_get_int(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecRBTime");
+	int         rbSize     = config_get_int(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecRBSize");
 
-		obs_data_release(settings);
-	}
+	os_dir_t* dir = path && path[0] ? os_opendir(path) : nullptr;
 
-	isRecording = true;
-	updateRecordSettings();
+	os_closedir(dir);
+
+	string strPath;
+	strPath += path;
+
+	char lastChar = strPath.back();
+	if (lastChar != '/' && lastChar != '\\')
+		strPath += "/";
+
+	strPath += GenerateSpecifiedFilename(ffmpegOutput ? "avi" : format, noSpace, filenameFormat);
+	ensure_directory_exists(strPath);
+	if (!overwriteIfExists)
+		FindBestFilename(strPath, noSpace);
+
+	obs_data_t* settings = obs_data_create();
+	obs_data_set_string(settings, ffmpegOutput ? "url" : "path", strPath.c_str());
+	obs_data_set_string(settings, "muxer_settings", mux);
+	obs_output_update(recordingOutput, settings);
+
 
 	if (!obs_output_start(recordingOutput)) {
 		SignalInfo signal = SignalInfo("recording", "stop");
 		isRecording       = false;
+		const char* error = obs_output_get_last_error(recordingOutput);
 	}
 	return isRecording;
 }
