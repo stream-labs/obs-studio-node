@@ -240,7 +240,7 @@ inline std::string nodeobs_log_formatted_message(const char* format, va_list& ar
 	return std::string(buf.begin(), buf.begin() + length);
 }
 
-static int              MaxQueueLogSize = 20;
+static int              MaxQueueLogSize = 100;
 std::queue<std::string> logQueue;
 void                    LogMessage(std::string _message)
 {

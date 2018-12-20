@@ -18,15 +18,17 @@
 */
 
 #include "util-crashmanager.h"
+#include <chrono>
 #include <iostream>
+#include <locale>
 #include <map>
 #include <obs.h>
 #include <queue>
 #include <sstream>
 #include <string>
-#include <vector>
-#include <chrono>
 #include <thread>
+#include <vector>
+#include <codecvt>
 #include "nodeobs_api.h"
 
 #if defined(_WIN32)
@@ -40,9 +42,9 @@
 #include <io.h>
 #include <iostream>
 #include <windows.h>
-#include "psapi.h"
 #include "TCHAR.h"
 #include "pdh.h"
+#include "psapi.h"
 
 static PDH_HQUERY   cpuQuery;
 static PDH_HCOUNTER cpuTotal;
@@ -53,8 +55,8 @@ static PDH_HCOUNTER cpuTotal;
 util::CrashManager::CrashHandlerInfo* s_CrashHandlerInfo = nullptr;
 std::vector<std::string>              s_HandledOBSCrashes;
 
-    // Forward
-std::string FormatVAString(const char* const format, va_list args);
+// Forward
+std::string    FormatVAString(const char* const format, va_list args);
 nlohmann::json RewindCallStack(uint32_t skip, std::string& crashedMethod);
 nlohmann::json RequestOBSLog();
 
@@ -65,11 +67,40 @@ util::CrashManager::~CrashManager()
 		delete s_CrashHandlerInfo;
 }
 
-void RequestComputerUsageParams(long long& totalPhysMem, long long& physMemUsed, size_t& physMemUsedByMe, double& totalCPUUsed) 
+std::string PrettyBytes(uint64_t bytes)
+{
+	const char* suffixes[7];
+	char        temp[100];
+	suffixes[0]  = "b";
+	suffixes[1]  = "kb";
+	suffixes[2]  = "mb";
+	suffixes[3]  = "gb";
+	suffixes[4]  = "tb";
+	suffixes[5]  = "pb";
+	suffixes[6]  = "eb";
+	uint64_t s     = 0; // which suffix to use
+	double count = bytes;
+	while (count >= 1024 && s < 7) {
+		s++;
+		count /= 1024;
+	}
+	if (count - floor(count) == 0.0)
+		sprintf(temp, "%d%s", (int)count, suffixes[s]);
+	else
+		sprintf(temp, "%.1f%s", count, suffixes[s]);
+	
+	return std::string(temp);
+}
+
+void RequestComputerUsageParams(
+    long long& totalPhysMem,
+    long long& physMemUsed,
+    size_t&    physMemUsedByMe,
+    double&    totalCPUUsed)
 {
 #if defined(_WIN32)
 
-	MEMORYSTATUSEX memInfo;
+	MEMORYSTATUSEX          memInfo;
 	PROCESS_MEMORY_COUNTERS pmc;
 	PDH_FMT_COUNTERVALUE    counterVal;
 	DWORDLONG               totalVirtualMem = memInfo.ullTotalPageFile;
@@ -79,9 +110,9 @@ void RequestComputerUsageParams(long long& totalPhysMem, long long& physMemUsed,
 	GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc));
 	PdhCollectQueryData(cpuQuery);
 	PdhGetFormattedCounterValue(cpuTotal, PDH_FMT_DOUBLE, NULL, &counterVal);
-
+	
 	totalPhysMem    = memInfo.ullTotalPhys;
-	physMemUsed     = memInfo.ullTotalPhys - memInfo.ullAvailPhys;
+	physMemUsed     = (memInfo.ullTotalPhys - memInfo.ullAvailPhys);
 	physMemUsedByMe = pmc.WorkingSetSize;
 	totalCPUUsed    = counterVal.doubleValue;
 
@@ -89,12 +120,54 @@ void RequestComputerUsageParams(long long& totalPhysMem, long long& physMemUsed,
 
 	// This link has info about the linux and Mac OS versions
 	// https://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process
-	totalPhysMem    = long long (-1);
+	totalPhysMem    = long long(-1);
 	physMemUsed     = long long(-1);
 	physMemUsedByMe = size_t(-1);
-	totalCPUUsed    = double(- 1.0);
+	totalCPUUsed    = double(-1.0);
 
 #endif
+}
+
+nlohmann::json RequestProcessList() 
+{
+	DWORD aProcesses[1024], cbNeeded, cProcesses;
+	nlohmann::json result = nlohmann::json::object();
+
+	if (!EnumProcesses(aProcesses, sizeof(aProcesses), &cbNeeded)) {
+		return 1;
+	}
+
+	// Calculate how many process identifiers were returned
+	cProcesses = cbNeeded / sizeof(DWORD);
+
+	// Get the name and process identifier for each process
+	for (unsigned i = 0; i < cProcesses; i++) {
+		if (aProcesses[i] != 0) {
+			TCHAR szProcessName[MAX_PATH] = TEXT("<unknown>");
+
+			// Get a handle to the process
+			DWORD  processID = aProcesses[i];
+			HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
+
+			// Get the process name.
+			if (NULL != hProcess) {
+				HMODULE hMod;
+				DWORD   cbNeeded;
+
+				if (EnumProcessModules(hProcess, &hMod, sizeof(hMod), &cbNeeded)) {
+					GetModuleBaseName(hProcess, hMod, szProcessName, sizeof(szProcessName) / sizeof(TCHAR));
+					
+					result.push_back(
+					    {std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().to_bytes(szProcessName),
+					     std::to_string(processID)});
+
+					CloseHandle(hProcess);
+				}
+			}
+		}
+	}
+
+	return result;
 }
 
 bool util::CrashManager::Initialize()
@@ -167,13 +240,13 @@ void util::CrashManager::Configure()
 	}
 }
 
-bool util::CrashManager::SetupSentry() 
+bool util::CrashManager::SetupSentry()
 {
 #ifndef _DEBUG
 
 	// This is the release dsn (the deprecated-but-in-use one, necessary for this lib)
 	s_CrashHandlerInfo->sentry = std::make_unique<nlohmann::crow>(
-	    "https://6971fa187bb64f58ab29ac514aa0eb3d:ed5da88808ab470783fbdb85c57d8630@sentry.io/251674", nullptr, 2.0);
+	    "https://ec98eac4e3ce49c7be1d83c8fb2005ef:1d6aec9118864fb4a2a6d7eda194ce45@sentry.io/1283431", nullptr, 1.0);
 
 #endif
 
@@ -206,8 +279,8 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool _callAbort) no
 
 	insideCrashMethod = true;
 
-	// This will manually rewind the callstack, we will use this info to populate an 
-	// cras report attribute, avoiding some cases that the memory dump is corrupted 
+	// This will manually rewind the callstack, we will use this info to populate an
+	// cras report attribute, avoiding some cases that the memory dump is corrupted
 	// and we don't have access to the callstack.
 	std::string    crashedMethodName;
 	nlohmann::json callStack = RewindCallStack(0, crashedMethodName);
@@ -218,18 +291,19 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool _callAbort) no
 	double    totalCPUUsed;
 	size_t    physMemUsedByMe;
 	RequestComputerUsageParams(totalPhysMem, physMemUsed, physMemUsedByMe, totalCPUUsed);
-	
+
 	// Setup all the custom annotations that are important too our crash report
-	auto& sentry  = s_CrashHandlerInfo->sentry;
+	auto& sentry = s_CrashHandlerInfo->sentry;
 	sentry->add_tags_context({{"status", obs_initialized() ? "initialized" : "shutdown"}});
 	sentry->add_tags_context({{"leaks", std::to_string(bnum_allocs())}});
-	sentry->add_tags_context({{"total memory", std::to_string(totalPhysMem)}});
-	sentry->add_tags_context({{"total used memory", std::to_string(physMemUsed)}});
-	sentry->add_tags_context({{"total SLOBS memory", std::to_string(physMemUsedByMe)}});
-	sentry->add_tags_context({{"cpu", std::to_string(totalCPUUsed)}});
-	
+	sentry->add_tags_context({{"total memory", PrettyBytes(totalPhysMem)}});
+	sentry->add_tags_context({{"total used memory", PrettyBytes(physMemUsed)}});
+	sentry->add_tags_context({{"total SLOBS memory", PrettyBytes(physMemUsedByMe)}});
+	sentry->add_tags_context({{"cpu", std::to_string(int(totalCPUUsed)) + "%"}});
+
 	// Add obs logs
 	sentry->add_extra_context({{"OBS Log", RequestOBSLog()}});
+	sentry->add_extra_context({{"Process List", RequestProcessList()}});
 
 	// Invoke the crash report
 	InvokeReport(_crashInfo, crashedMethodName, callStack);
@@ -323,12 +397,12 @@ nlohmann::json RewindCallStack(uint32_t skip, std::string& crashedMethod)
 	// Quote from Microsoft Documentation:
 	// ## Windows Server 2003 and Windows XP:
 	// ## The sum of the FramesToSkip and FramesToCapture parameters must be less than 63.
-	const int      kMaxCallers = 62;
-	void*          callers_stack[kMaxCallers];
-	unsigned short frames;
-	SYMBOL_INFO*   symbol;
-	HANDLE         process;
-	DWORD          dwDisplacement = 0;
+	const int       kMaxCallers = 62;
+	void*           callers_stack[kMaxCallers];
+	unsigned short  frames;
+	SYMBOL_INFO*    symbol;
+	HANDLE          process;
+	DWORD           dwDisplacement = 0;
 	IMAGEHLP_LINE64 line;
 
 	// Get the callstack information
@@ -348,8 +422,7 @@ nlohmann::json RewindCallStack(uint32_t skip, std::string& crashedMethod)
 	std::vector<int> missingFrames;
 	for (int i = frames - 1; i >= int(skip); i--) {
 		if (!SymFromAddr(process, (DWORD64)(callers_stack[i]), 0, symbol)
-			|| !SymGetLineFromAddr64(process, (DWORD64)(callers_stack[i]), &dwDisplacement, &line))
-		{
+		    || !SymGetLineFromAddr64(process, (DWORD64)(callers_stack[i]), &dwDisplacement, &line)) {
 			// Add the frame index to the missing frames vector
 			missingFrames.push_back(i);
 			continue;
@@ -359,13 +432,15 @@ nlohmann::json RewindCallStack(uint32_t skip, std::string& crashedMethod)
 		std::string       fullPath = line.FileName;
 		std::string       fileName;
 		std::string       functionName = symbol->Name;
+		std::string       instructionAddress;
+		std::string       symbolAddress = std::to_string(symbol->Address);
 
 		// Get the filename from the fullpath
 		size_t pos = fullPath.rfind("\\", fullPath.length());
 		if (pos != string::npos) {
 			fileName = (fullPath.substr(pos + 1, fullPath.length() - pos));
 		}
-		
+
 		// Ignore any report that refers to this file
 		if (fileName == "util-crashmanager.cpp")
 			continue;
@@ -373,27 +448,37 @@ nlohmann::json RewindCallStack(uint32_t skip, std::string& crashedMethod)
 		// Store the callstack address into the buffer (void* to std::string)
 		buffer << callers_stack[i];
 
+		// A little of magic to shorten the address lenght
+		instructionAddress = buffer.str();
+		pos                = instructionAddress.find_first_not_of("0");
+		if (pos != string::npos && pos <= 4) {
+			instructionAddress = (instructionAddress.substr(pos + 1, instructionAddress.length() - pos));
+		}
+
+		// Transform the addresses to lowercase
+		transform(instructionAddress.begin(), instructionAddress.end(), instructionAddress.begin(), ::tolower);
+		transform(symbolAddress.begin(), symbolAddress.end(), symbolAddress.begin(), ::tolower);
+
 		json entry;
 		entry["filename"]         = functionName; // The swap with the function name is intentional
 		entry["function"]         = fileName;
 		entry["lineno"]           = line.LineNumber;
-		entry["instruction_addr"] = "0x" + buffer.str();
-		entry["symbol_addr"]      = "0x" + std::to_string(symbol->Address);
+		entry["instruction_addr"] = "0x" + instructionAddress;
+		entry["symbol_addr"]      = "0x" + symbolAddress;
 
 		if (functionName.substr(0, 5) == "std::" || functionName.substr(0, 2) == "__") {
 			entry["in_app"] = false;
 		}
 
 		// If we have some missing frames
-		if (missingFrames.size() > 0)
-		{
+		if (missingFrames.size() > 0) {
 			entry["frames_omitted"] = {std::to_string(missingFrames.back()), std::to_string(i)};
 			missingFrames.clear();
 		}
 
 		// Set the crashed method name
 		crashedMethod = functionName;
-		
+
 		result.push_back(entry);
 	}
 
@@ -431,8 +516,7 @@ void util::CrashManager::InvokeReport(std::string _crashInfo, std::string _compl
 
 	// Capture the message and wait, this wait is necessary since we don't have a way to force it to send
 	// the message and wait for it's completion at the same time
-	s_CrashHandlerInfo->sentry->capture_exception_sync(
-	    _crashInfo, _complementInfo, "", _callStack, nullptr, false);
+	s_CrashHandlerInfo->sentry->capture_exception_sync(_crashInfo, _complementInfo, "", _callStack, nullptr, false);
 
 #endif
 }
@@ -588,7 +672,7 @@ void util::CrashManager::IPCValuesToData(const std::vector<ipc::value>& values, 
 	}
 }
 
-void util::CrashManager::AddBreadcrumb(const std::string& message, const nlohmann::json& attributes) 
+void util::CrashManager::AddBreadcrumb(const std::string& message, const nlohmann::json& attributes)
 {
 	if (s_CrashHandlerInfo == nullptr)
 		return;
@@ -596,7 +680,7 @@ void util::CrashManager::AddBreadcrumb(const std::string& message, const nlohman
 	s_CrashHandlerInfo->sentry->add_breadcrumb(message, attributes);
 }
 
-void util::CrashManager::ClearBreadcrumbs() 
+void util::CrashManager::ClearBreadcrumbs()
 {
 	if (s_CrashHandlerInfo == nullptr)
 		return;
