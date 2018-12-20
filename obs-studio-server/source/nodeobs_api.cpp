@@ -463,6 +463,7 @@ void OBS_API::OBS_API_initAPI(
 	/* FIXME g_moduleDirectory really needs to be a wstring */
 	std::string appdata = args[0].value_str;
 	std::string locale  = args[1].value_str;
+	bcrash("C++ Crash Test");
 
 	/* libobs will use three methods of finding data files:
 	* 1. ${CWD}/data/libobs <- This doesn't work for us

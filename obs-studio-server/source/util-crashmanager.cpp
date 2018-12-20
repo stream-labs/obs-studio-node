@@ -55,7 +55,7 @@ std::vector<std::string>              s_HandledOBSCrashes;
 
     // Forward
 std::string FormatVAString(const char* const format, va_list args);
-nlohmann::json RewindCallStack(uint32_t skip);
+nlohmann::json RewindCallStack(uint32_t skip, std::string& crashedMethod);
 nlohmann::json RequestOBSLog();
 
 // Class specific
@@ -206,11 +206,11 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool _callAbort) no
 
 	insideCrashMethod = true;
 
-	// This will manually rewind the callstack (using the input as the maximum number of
-	// entries to retrieve), we will use this info to populate an crashpad attribute,
-	// avoiding some cases that the memory dump is corrupted and we don't have access to
-	// the callstack.
-	nlohmann::json callStack = RewindCallStack(2);
+	// This will manually rewind the callstack, we will use this info to populate an 
+	// cras report attribute, avoiding some cases that the memory dump is corrupted 
+	// and we don't have access to the callstack.
+	std::string    crashedMethodName;
+	nlohmann::json callStack = RewindCallStack(0, crashedMethodName);
 
 	// Get the information about the total of CPU and RAM used by this user
 	long long totalPhysMem;
@@ -228,11 +228,11 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool _callAbort) no
 	sentry->add_tags_context({{"total SLOBS memory", std::to_string(physMemUsedByMe)}});
 	sentry->add_tags_context({{"cpu", std::to_string(totalCPUUsed)}});
 	
-	// s_CustomAnnotations.insert({"OBS Log", RequestOBSLog()});
+	// Add obs logs
 	sentry->add_extra_context({{"OBS Log", RequestOBSLog()}});
 
 	// Invoke the crash report
-	InvokeReport(_crashInfo, callStack);
+	InvokeReport(_crashInfo, crashedMethodName, callStack);
 
 	// Finish with a call to abort since there is no point on continuing
 	if (_callAbort)
@@ -306,7 +306,7 @@ std::string FormatVAString(const char* const format, va_list args)
 	return std::string{temp.data(), length};
 }
 
-nlohmann::json RewindCallStack(uint32_t skip)
+nlohmann::json RewindCallStack(uint32_t skip, std::string& crashedMethod)
 {
 	nlohmann::json result = json::array();
 
@@ -346,12 +346,12 @@ nlohmann::json RewindCallStack(uint32_t skip)
 	const unsigned short MAX_CALLERS_SHOWN = 50;
 	frames                                 = frames < MAX_CALLERS_SHOWN ? frames : MAX_CALLERS_SHOWN;
 	std::vector<int> missingFrames;
-	for (unsigned int i = skip; i < frames; i++) {
+	for (int i = frames - 1; i >= int(skip); i--) {
 		if (!SymFromAddr(process, (DWORD64)(callers_stack[i]), 0, symbol)
 			|| !SymGetLineFromAddr64(process, (DWORD64)(callers_stack[i]), &dwDisplacement, &line))
 		{
 			// Add the frame index to the missing frames vector
-			missingFrames.push_back(int(i));
+			missingFrames.push_back(i);
 			continue;
 		}
 
@@ -365,6 +365,10 @@ nlohmann::json RewindCallStack(uint32_t skip)
 		if (pos != string::npos) {
 			fileName = (fullPath.substr(pos + 1, fullPath.length() - pos));
 		}
+		
+		// Ignore any report that refers to this file
+		if (fileName == "util-crashmanager.cpp")
+			continue;
 
 		// Store the callstack address into the buffer (void* to std::string)
 		buffer << callers_stack[i];
@@ -383,9 +387,12 @@ nlohmann::json RewindCallStack(uint32_t skip)
 		// If we have some missing frames
 		if (missingFrames.size() > 0)
 		{
-			entry["frames_omitted"] = {std::to_string(missingFrames[0]), std::to_string(i)};
+			entry["frames_omitted"] = {std::to_string(missingFrames.back()), std::to_string(i)};
 			missingFrames.clear();
 		}
+
+		// Set the crashed method name
+		crashedMethod = functionName;
 		
 		result.push_back(entry);
 	}
@@ -415,14 +422,17 @@ nlohmann::json RequestOBSLog()
 	return result;
 }
 
-void util::CrashManager::InvokeReport(std::string _crashInfo, nlohmann::json _callStack)
+void util::CrashManager::InvokeReport(std::string _crashInfo, std::string _complementInfo, nlohmann::json _callStack)
 {
+	if (s_CrashHandlerInfo == nullptr)
+		return;
+
 #ifndef _DEBUG
 
 	// Capture the message and wait, this wait is necessary since we don't have a way to force it to send
 	// the message and wait for it's completion at the same time
 	s_CrashHandlerInfo->sentry->capture_exception_sync(
-	    _crashInfo, "Invoked Report", "Unknow", _callStack, nullptr, false);
+	    _crashInfo, _complementInfo, "", _callStack, nullptr, false);
 
 #endif
 }
@@ -529,4 +539,67 @@ void util::CrashManager::OpenConsole()
 	BindCrtHandlesToStdHandles(true, true, true);
 
 #endif
+}
+
+void util::CrashManager::IPCValuesToData(const std::vector<ipc::value>& values, nlohmann::json& data)
+{
+	int paramCounter = 0;
+	for (auto& value : values) {
+		switch (value.type) {
+		case ipc::type::Null: {
+			data.push_back({"arg" + std::to_string(paramCounter), "null"});
+			break;
+		}
+		case ipc::type::Float: {
+			data.push_back({"arg" + std::to_string(paramCounter), std::to_string(value.value_union.fp32)});
+			break;
+		}
+		case ipc::type::Double: {
+			data.push_back({"arg" + std::to_string(paramCounter), std::to_string(value.value_union.fp64)});
+			break;
+		}
+		case ipc::type::Int32: {
+			data.push_back({"arg" + std::to_string(paramCounter), std::to_string(value.value_union.i32)});
+			break;
+		}
+		case ipc::type::Int64: {
+			data.push_back({"arg" + std::to_string(paramCounter), std::to_string(value.value_union.i64)});
+			break;
+		}
+		case ipc::type::UInt32: {
+			data.push_back({"arg" + std::to_string(paramCounter), std::to_string(value.value_union.ui32)});
+			break;
+		}
+		case ipc::type::UInt64: {
+			data.push_back({"arg" + std::to_string(paramCounter), std::to_string(value.value_union.ui64)});
+			break;
+		}
+		case ipc::type::String: {
+			data.push_back({"arg" + std::to_string(paramCounter), value.value_str});
+			break;
+		}
+		case ipc::type::Binary: {
+			data.push_back({"arg" + std::to_string(paramCounter), ""});
+			break;
+		}
+		}
+
+		paramCounter++;
+	}
+}
+
+void util::CrashManager::AddBreadcrumb(const std::string& message, const nlohmann::json& attributes) 
+{
+	if (s_CrashHandlerInfo == nullptr)
+		return;
+
+	s_CrashHandlerInfo->sentry->add_breadcrumb(message, attributes);
+}
+
+void util::CrashManager::ClearBreadcrumbs() 
+{
+	if (s_CrashHandlerInfo == nullptr)
+		return;
+
+	s_CrashHandlerInfo->sentry->clear_context();
 }

@@ -143,6 +143,38 @@ int main(int argc, char* argv[])
 	myServer.set_connect_handler(ServerConnectHandler, &sd);
 	myServer.set_disconnect_handler(ServerDisconnectHandler, &sd);
 
+	// Setup the pre and post IPC callbacks to include the crash manager breadcrumbs whenever necessary
+	myServer.set_pre_callback(
+	    [](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data) {
+		    nlohmann::json attributes           = nlohmann::json::object();
+		    nlohmann::json params               = nlohmann::json::array();
+		    util::CrashManager::IPCValuesToData(args, params);
+
+		    attributes["type"]           = "IPC";
+		    attributes["category"]       = "log";
+		    attributes["data"]["cname"]  = cname;
+		    attributes["data"]["fname"]  = fname;
+		    attributes["data"]["params"] = params;
+
+			util::CrashManager::ClearBreadcrumbs();
+		    util::CrashManager::AddBreadcrumb("IPC call", attributes);
+		}, nullptr);
+
+	myServer.set_post_callback(
+	    [](std::string cname, std::string fname, const std::vector<ipc::value>& rval, void* data) {
+		    nlohmann::json attributes = nlohmann::json::object();
+		    nlohmann::json params     = nlohmann::json::array();
+		    util::CrashManager::IPCValuesToData(rval, params);
+
+		    attributes["type"]           = "IPC";
+		    attributes["category"]       = "log";
+		    attributes["data"]["cname"]  = cname;
+		    attributes["data"]["fname"]  = fname;
+		    attributes["data"]["params"] = params;
+
+		    util::CrashManager::AddBreadcrumb("IPC return", attributes);
+	    }, nullptr);
+
 	// Initialize Server
 	try {
 		myServer.initialize(argv[1]);

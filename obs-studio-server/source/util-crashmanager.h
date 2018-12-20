@@ -22,6 +22,7 @@
 #include <cstdlib>
 #include <string>
 #include <vector>
+#include <ipc.hpp>
 
 #undef _DEBUG
 
@@ -55,12 +56,16 @@ namespace util
 		void Configure();
 		void OpenConsole();
 
+		static void IPCValuesToData(const std::vector<ipc::value>&, nlohmann::json&);
+		static void AddBreadcrumb(const std::string& message, const nlohmann::json& attributes = nullptr);
+		static void ClearBreadcrumbs();
+
 		private:
 		bool        SetupSentry();
 		static bool TryHandleCrash(std::string _format, std::string _crashMessage);
 		static void HandleExit() noexcept;
 		static void HandleCrash(std::string _crashInfo, bool _callAbort = true) noexcept;
-		static void InvokeReport(std::string _crashInfo, nlohmann::json _callStack);
+		static void InvokeReport(std::string _crashInfo, std::string _complementInfo, nlohmann::json _callStack);
 	};
 
 }; // namespace util
