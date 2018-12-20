@@ -365,6 +365,20 @@ void service::OBS_service_processReplayBufferHotkey(const v8::FunctionCallbackIn
 	ValidateResponse(response);
 }
 
+void service::OBS_service_getLastReplay(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Service", "OBS_service_getLastReplay", {});
+
+	ValidateResponse(response);
+
+	args.GetReturnValue().Set(v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), response.at(1).value_str.c_str()));
+}
+
 void Service::worker()
 {
 	size_t totalSleepMS = 0;
@@ -486,5 +500,7 @@ INITIALIZER(nodeobs_service)
 		NODE_SET_METHOD(exports, "OBS_service_removeCallback", service::OBS_service_removeCallback);
 
 		NODE_SET_METHOD(exports, "OBS_service_processReplayBufferHotkey", service::OBS_service_processReplayBufferHotkey);
+
+		NODE_SET_METHOD(exports, "OBS_service_getLastReplay", service::OBS_service_getLastReplay);
 	});
 }

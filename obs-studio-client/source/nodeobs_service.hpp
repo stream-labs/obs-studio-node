@@ -77,4 +77,5 @@ namespace service
 	static void OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_service_removeCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_service_processReplayBufferHotkey(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_service_getLastReplay(const v8::FunctionCallbackInfo<v8::Value>& args);
 } // namespace service
