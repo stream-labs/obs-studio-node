@@ -246,7 +246,12 @@ bool util::CrashManager::SetupSentry()
 
 	// This is the release dsn (the deprecated-but-in-use one, necessary for this lib)
 	s_CrashHandlerInfo->sentry = std::make_unique<nlohmann::crow>(
-	    "https://ec98eac4e3ce49c7be1d83c8fb2005ef:1d6aec9118864fb4a2a6d7eda194ce45@sentry.io/1283431", nullptr, 1.0);
+	    "https://ec98eac4e3ce49c7be1d83c8fb2005ef:1d6aec9118864fb4a2a6d7eda194ce45@sentry.io/1283431",
+		"https://sentry.io/api/251674/minidump", 
+		"251674",
+		nullptr, 1.0);
+	
+	s_CrashHandlerInfo->sentry->register_file_upload("some_file", "C:\\Users\\rodri\\OneDrive\\Documents\\crow\\CMakeLists.txt");
 
 #endif
 

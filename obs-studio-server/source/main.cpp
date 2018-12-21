@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
 	// Register Connect/Disconnect Handlers
 	myServer.set_connect_handler(ServerConnectHandler, &sd);
 	myServer.set_disconnect_handler(ServerDisconnectHandler, &sd);
-
+	/*
 	// Setup the pre and post IPC callbacks to include the crash manager breadcrumbs whenever necessary
 	myServer.set_pre_callback(
 	    [](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data) {
@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
 
 		    util::CrashManager::AddBreadcrumb("IPC return", attributes);
 	    }, nullptr);
-
+	*/
 	// Initialize Server
 	try {
 		myServer.initialize(argv[1]);

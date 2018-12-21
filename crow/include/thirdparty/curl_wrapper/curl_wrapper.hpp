@@ -2,6 +2,7 @@
 
 #include <cstring>
 #include <string>
+#include <vector>
 #include <curl/curl.h>
 #include <zlib.h>
 #include "thirdparty/json/json.hpp"
@@ -41,7 +42,53 @@ class curl_wrapper
         curl_easy_cleanup(m_curl);
     }
 
-    response post(const std::string& url, const nlohmann::json& payload, const bool compress = false)
+	response post(const std::string& url, const std::string& data, std::vector<std::pair<std::string, std::string>> uploadFiles)
+	{
+		struct curl_httppost *post = NULL;
+		struct curl_httppost *last = NULL;
+		set_header("Expect:");
+
+		// For each file entry
+		for (auto& fileEntry : uploadFiles)
+		{
+			auto fileName = fileEntry.first;
+			auto filePath = fileEntry.second;
+
+			curl_formadd(&post,
+				&last,
+				CURLFORM_COPYNAME, fileName.c_str(),
+				CURLFORM_FILE, filePath.c_str(),
+				CURLFORM_END);
+		}
+		
+		curl_formadd(&post,
+			&last,
+			CURLFORM_COPYNAME, "sentry",
+			CURLFORM_COPYCONTENTS, data.c_str(),
+			CURLFORM_END);
+
+		/* what URL that receives this POST */
+		set_option(CURLOPT_URL, url.c_str());
+		set_option(CURLOPT_HTTPPOST, post);
+		set_option(CURLOPT_WRITEFUNCTION, &write_callback);
+		set_option(CURLOPT_WRITEDATA, &string_buffer);
+
+		auto res = curl_easy_perform(m_curl);
+
+		if (res != CURLE_OK)
+		{
+			std::string error_msg = std::string("curl_easy_perform() failed: ") + curl_easy_strerror(res);
+			throw std::runtime_error(error_msg);
+		}
+
+		int status_code;
+		curl_easy_getinfo(m_curl, CURLINFO_RESPONSE_CODE, &status_code);
+		curl_formfree(post);
+
+		return { std::move(string_buffer), status_code };
+	}
+
+	response post(const std::string& url, const nlohmann::json& payload, const bool compress = false)
     {
         set_header("Content-Type: application/json");
         return post(url, payload.dump(), compress);
@@ -66,12 +113,12 @@ class curl_wrapper
             set_option(CURLOPT_POSTFIELDS, data.c_str());
             set_option(CURLOPT_POSTFIELDSIZE, data.size());
         }
-
+		
         set_option(CURLOPT_URL, url.c_str());
         set_option(CURLOPT_POST, 1);
         set_option(CURLOPT_WRITEFUNCTION, &write_callback);
         set_option(CURLOPT_WRITEDATA, &string_buffer);
-
+		
         auto res = curl_easy_perform(m_curl);
 
         if (res != CURLE_OK)
