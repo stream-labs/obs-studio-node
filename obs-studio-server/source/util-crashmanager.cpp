@@ -19,6 +19,7 @@
 
 #include "util-crashmanager.h"
 #include <chrono>
+#include <codecvt>
 #include <iostream>
 #include <locale>
 #include <map>
@@ -28,7 +29,6 @@
 #include <string>
 #include <thread>
 #include <vector>
-#include <codecvt>
 #include "nodeobs_api.h"
 
 #if defined(_WIN32)
@@ -71,15 +71,15 @@ std::string PrettyBytes(uint64_t bytes)
 {
 	const char* suffixes[7];
 	char        temp[100];
-	suffixes[0]  = "b";
-	suffixes[1]  = "kb";
-	suffixes[2]  = "mb";
-	suffixes[3]  = "gb";
-	suffixes[4]  = "tb";
-	suffixes[5]  = "pb";
-	suffixes[6]  = "eb";
+	suffixes[0]    = "b";
+	suffixes[1]    = "kb";
+	suffixes[2]    = "mb";
+	suffixes[3]    = "gb";
+	suffixes[4]    = "tb";
+	suffixes[5]    = "pb";
+	suffixes[6]    = "eb";
 	uint64_t s     = 0; // which suffix to use
-	double count = bytes;
+	double   count = bytes;
 	while (count >= 1024 && s < 7) {
 		s++;
 		count /= 1024;
@@ -88,7 +88,7 @@ std::string PrettyBytes(uint64_t bytes)
 		sprintf(temp, "%d%s", (int)count, suffixes[s]);
 	else
 		sprintf(temp, "%.1f%s", count, suffixes[s]);
-	
+
 	return std::string(temp);
 }
 
@@ -110,7 +110,7 @@ void RequestComputerUsageParams(
 	GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc));
 	PdhCollectQueryData(cpuQuery);
 	PdhGetFormattedCounterValue(cpuTotal, PDH_FMT_DOUBLE, NULL, &counterVal);
-	
+
 	totalPhysMem    = memInfo.ullTotalPhys;
 	physMemUsed     = (memInfo.ullTotalPhys - memInfo.ullAvailPhys);
 	physMemUsedByMe = pmc.WorkingSetSize;
@@ -128,9 +128,9 @@ void RequestComputerUsageParams(
 #endif
 }
 
-nlohmann::json RequestProcessList() 
+nlohmann::json RequestProcessList()
 {
-	DWORD aProcesses[1024], cbNeeded, cProcesses;
+	DWORD          aProcesses[1024], cbNeeded, cProcesses;
 	nlohmann::json result = nlohmann::json::object();
 
 	if (!EnumProcesses(aProcesses, sizeof(aProcesses), &cbNeeded)) {
@@ -147,7 +147,7 @@ nlohmann::json RequestProcessList()
 
 			// Get a handle to the process
 			DWORD  processID = aProcesses[i];
-			HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
+			HANDLE hProcess  = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
 
 			// Get the process name.
 			if (NULL != hProcess) {
@@ -156,7 +156,7 @@ nlohmann::json RequestProcessList()
 
 				if (EnumProcessModules(hProcess, &hMod, sizeof(hMod), &cbNeeded)) {
 					GetModuleBaseName(hProcess, hMod, szProcessName, sizeof(szProcessName) / sizeof(TCHAR));
-					
+
 					result.push_back(
 					    {std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().to_bytes(szProcessName),
 					     std::to_string(processID)});
@@ -245,13 +245,18 @@ bool util::CrashManager::SetupSentry()
 #ifndef _DEBUG
 
 	// This is the release dsn (the deprecated-but-in-use one, necessary for this lib)
+	// Target https://sentry.io/streamlabs-obs/obs-server/
 	s_CrashHandlerInfo->sentry = std::make_unique<nlohmann::crow>(
 	    "https://ec98eac4e3ce49c7be1d83c8fb2005ef:1d6aec9118864fb4a2a6d7eda194ce45@sentry.io/1283431",
-		"https://sentry.io/api/251674/minidump", 
-		"251674",
-		nullptr, 1.0);
-	
-	s_CrashHandlerInfo->sentry->register_file_upload("some_file", "C:\\Users\\rodri\\OneDrive\\Documents\\crow\\CMakeLists.txt");
+	    "https://sentry.io/api/1283431/minidump/?sentry_key=ec98eac4e3ce49c7be1d83c8fb2005ef",
+	    nullptr,
+	    1.0);
+
+	// TODO: In the future, register here the mini-dump location (you need to set real filename that will exist if a crash
+	// happens) and any other attachment file that should be sent with the crash report.
+	// The quota here is 20mb for the entire message, including the JSON info that is always sent.
+//  s_CrashHandlerInfo->sentry->register_minidump_upload("C:\\Users\\rodri\\12da1.dmp");
+//  s_CrashHandlerInfo->sentry->register_file_upload("C:\\Users\\rodri\\Test.txt");
 
 #endif
 

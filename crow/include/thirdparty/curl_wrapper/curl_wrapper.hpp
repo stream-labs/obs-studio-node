@@ -42,32 +42,35 @@ class curl_wrapper
         curl_easy_cleanup(m_curl);
     }
 
-	response post(const std::string& url, const std::string& data, std::vector<std::pair<std::string, std::string>> uploadFiles)
+	response post(const std::string& url, const std::string& data, std::string miniDumpFile, std::vector<std::string> uploadFiles)
 	{
 		struct curl_httppost *post = NULL;
 		struct curl_httppost *last = NULL;
-		set_header("Expect:");
+
+		// Setup the mini dump file
+		curl_formadd(&post,
+			&last,
+			CURLFORM_COPYNAME, "upload_file_minidump", 
+			CURLFORM_FILE, miniDumpFile.c_str(),
+			CURLFORM_END);
 
 		// For each file entry
 		for (auto& fileEntry : uploadFiles)
 		{
-			auto fileName = fileEntry.first;
-			auto filePath = fileEntry.second;
-
 			curl_formadd(&post,
 				&last,
-				CURLFORM_COPYNAME, fileName.c_str(),
-				CURLFORM_FILE, filePath.c_str(),
+				CURLFORM_COPYNAME, "some_file",
+				CURLFORM_FILE, fileEntry.c_str(),
 				CURLFORM_END);
 		}
 		
+		// Upload the json data
 		curl_formadd(&post,
 			&last,
 			CURLFORM_COPYNAME, "sentry",
 			CURLFORM_COPYCONTENTS, data.c_str(),
 			CURLFORM_END);
-
-		/* what URL that receives this POST */
+		
 		set_option(CURLOPT_URL, url.c_str());
 		set_option(CURLOPT_HTTPPOST, post);
 		set_option(CURLOPT_WRITEFUNCTION, &write_callback);

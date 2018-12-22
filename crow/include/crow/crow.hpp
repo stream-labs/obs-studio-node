@@ -80,7 +80,6 @@ class crow
      */
     explicit crow(const std::string& dsn,
 				  const std::string& minidumpUrl,
-				  const std::string& project_id,
                   const json& context = nullptr,
                   double sample_rate = 1.0,
                   bool install_handlers = false);
@@ -265,7 +264,8 @@ class crow
      * @}
      */
 
-	void register_file_upload(std::string fileName, std::string filePath);
+	void register_minidump_upload(std::string filepath);
+	void register_file_upload(std::string filepath);
 
   private:
     /*!
@@ -324,9 +324,9 @@ class crow
     /// the maximal number of running jobs
     static constexpr std::size_t m_maximal_jobs = 10;
 
-	std::vector<std::pair<std::string, std::string>> m_file_uploads;
+	std::string m_minidump_file;
+	std::vector<std::string> m_file_uploads;
 	std::string m_minidump_url;
-	std::string m_project_id;
 };
 
 }
