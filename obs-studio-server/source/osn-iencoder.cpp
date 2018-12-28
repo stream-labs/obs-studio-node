@@ -144,7 +144,7 @@ void osn::IEncoder::GetCodec(
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(int32_t(obs_encoder_get_codec(p))));
+	rval.push_back(ipc::value(int64_t(obs_encoder_get_codec(p))));
 
 	obs_encoder_release(p);
 }
