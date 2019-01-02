@@ -242,6 +242,12 @@ void OBS_service::OBS_service_startStreaming(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	if (isStreamingOutputActive()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+		AUTO_DEBUG;
+		return;
+	}
+
 	if (!startStreaming()) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to start streaming!"));
@@ -258,6 +264,13 @@ void OBS_service::OBS_service_startRecording(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	// TODO : Use the utility function when merged
+	if (obs_output_active(recordingOutput)) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+		AUTO_DEBUG;
+		return;
+	}
+
 	if (!startRecording()) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to start recording!"));
