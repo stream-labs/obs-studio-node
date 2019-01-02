@@ -115,6 +115,10 @@ void initBasicDefault(config_t* config)
 	config_set_default_uint(config, "AdvOut", "Track5Bitrate", 160);
 	config_set_default_uint(config, "AdvOut", "Track6Bitrate", 160);
 
+	config_set_default_bool(config, "AdvOut", "RecRB", false);
+	config_set_default_uint(config, "AdvOut", "RecRBTime", 20);
+	config_set_default_int(config, "AdvOut", "RecRBSize", 512);
+
 	config_set_default_uint(config, "Video", "BaseCX", cx);
 	config_set_default_uint(config, "Video", "BaseCY", cy);
 

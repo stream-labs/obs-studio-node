@@ -1153,16 +1153,10 @@ void OBS_settings::getSimpleOutputSettings(
 	muxerCustom.push_back(std::make_pair("subType", ""));
 	entries.push_back(muxerCustom);
 
-	//Enable Replay Buffer
-	std::vector<std::pair<std::string, std::string>> recRB;
-	recRB.push_back(std::make_pair("name", "RecRB"));
-	recRB.push_back(std::make_pair("type", "OBS_PROPERTY_BOOL"));
-	recRB.push_back(std::make_pair("description", "Enable Replay Buffer"));
-	recRB.push_back(std::make_pair("subType", ""));
-	entries.push_back(recRB);
-
 	outputSettings->push_back(
 	    serializeSettingsData("Recording", entries, config, "SimpleOutput", true, isCategoryEnabled));
+
+	getReplayBufferSettings(outputSettings, config, false, isCategoryEnabled);
 }
 
 void OBS_settings::getEncoderSettings(
@@ -1956,7 +1950,7 @@ void OBS_settings::getStandardRecordingSettings(
 			if (!obs_data_save_json_safe(settings, ConfigManager::getInstance().getRecord().c_str(), "tmp", "bak")) {
 				blog(LOG_WARNING, "Failed to save encoder %s", ConfigManager::getInstance().getRecord().c_str());
 			}
-		} else {
+		} else if (strcmp(recEncoderCurrentValue, "none") != 0) {
 			obs_data_t* data =
 			    obs_data_create_from_json_file_safe(ConfigManager::getInstance().getRecord().c_str(), "bak");
 			obs_data_apply(settings, data);
@@ -2197,6 +2191,37 @@ void OBS_settings::getAdvancedOutputAudioSettings(
 	entries.clear();
 }
 
+void OBS_settings::getReplayBufferSettings(
+    std::vector<SubCategory>* outputSettings,
+    config_t*                 config,
+	bool                      advanced,
+    bool                      isCategoryEnabled)
+{
+	std::vector<std::vector<std::pair<std::string, std::string>>> entries;
+
+	std::vector<std::pair<std::string, std::string>> RecRB;
+	RecRB.push_back(std::make_pair("name", "RecRB"));
+	RecRB.push_back(std::make_pair("type", "OBS_PROPERTY_BOOL"));
+	RecRB.push_back(std::make_pair("description", "Enable Replay Buffer"));
+	RecRB.push_back(std::make_pair("subType", ""));
+	entries.push_back(RecRB);
+
+	bool currentRecRb = config_get_bool(config, advanced ? "AdvOut" : "SimpleOutput", "RecRB");
+
+	if (currentRecRb) {
+		std::vector<std::pair<std::string, std::string>> RecRBTime;
+		RecRBTime.push_back(std::make_pair("name", "RecRBTime"));
+		RecRBTime.push_back(std::make_pair("type", "OBS_PROPERTY_INT"));
+		RecRBTime.push_back(std::make_pair("description", "Maximum Replay Time (Seconds)"));
+		RecRBTime.push_back(std::make_pair("subType", ""));
+		entries.push_back(RecRBTime);
+	}
+
+	outputSettings->push_back(serializeSettingsData(
+	    "Replay Buffer", entries, config, advanced ? "AdvOut" : "SimpleOutput", true, isCategoryEnabled));
+	entries.clear();
+}
+
 void OBS_settings::getAdvancedOutputSettings(
     std::vector<SubCategory>* outputSettings,
     config_t*                 config,
@@ -2212,13 +2237,17 @@ void OBS_settings::getAdvancedOutputSettings(
 
 	// Audio
 	getAdvancedOutputAudioSettings(outputSettings, config, isCategoryEnabled);
+
+	// Replay buffer
+	getReplayBufferSettings(outputSettings, config, true, isCategoryEnabled);
 }
 
 std::vector<SubCategory> OBS_settings::getOutputSettings()
 {
 	std::vector<SubCategory> outputSettings;
 
-	bool isCategoryEnabled = !OBS_service::isStreamingOutputActive();
+	bool isCategoryEnabled = !OBS_service::isStreamingOutputActive() && !OBS_service::isRecordingOutputActive()
+	                         && !OBS_service::isReplayBufferOutputActive();
 
 	std::vector<std::vector<std::pair<std::string, std::string>>> entries;
 
@@ -2509,13 +2538,17 @@ void OBS_settings::saveAdvancedOutputSettings(std::vector<SubCategory> settings)
 	if (settings.size() > 3) {
 		std::vector<SubCategory> audioSettings;
 		int                      indexTrack = 3;
-		audioSettings.push_back(settings.at(indexTrack));
 
 		for (int i = 0; i < 6; i++) {
-			audioSettings.push_back(settings.at(i + 2));
+			audioSettings.push_back(settings.at(i + indexTrack));
 		}
 		saveGenericSettings(audioSettings, "AdvOut", ConfigManager::getInstance().getBasic());
 	}
+
+	// Replay buffer
+	std::vector<SubCategory> replaySettings;
+	replaySettings.push_back(settings.at(9));
+	saveGenericSettings(replaySettings, "AdvOut", ConfigManager::getInstance().getBasic());
 }
 
 bool useAdvancedOutput;
@@ -2570,7 +2603,8 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 {
 	std::vector<SubCategory> videoSettings;
 
-	bool isCategoryEnabled = !OBS_service::isStreamingOutputActive();
+	bool isCategoryEnabled = !OBS_service::isStreamingOutputActive() && !OBS_service::isRecordingOutputActive()
+	                         && !OBS_service::isReplayBufferOutputActive();
 
 	std::vector<std::vector<std::pair<std::string, std::string>>> entries;
 
@@ -3017,6 +3051,10 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	overwriteIfExists.push_back(std::make_pair("subType", ""));
 	entries.push_back(overwriteIfExists);
 
+	advancedSettings.push_back(
+	serializeSettingsData("Recording", entries, ConfigManager::getInstance().getBasic(), "Output", true, true));
+	entries.clear();
+
 	//Replay Buffer Filename Prefix
 	std::vector<std::pair<std::string, std::string>> recRBPrefix;
 	recRBPrefix.push_back(std::make_pair("name", "RecRBPrefix"));
@@ -3034,7 +3072,7 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	entries.push_back(recRBSuffix);
 
 	advancedSettings.push_back(serializeSettingsData(
-	    "Recording", entries, ConfigManager::getInstance().getBasic(), "SimpleOutput", true, true));
+	    "Replay Buffer", entries, ConfigManager::getInstance().getBasic(), "SimpleOutput", true, true));
 	entries.clear();
 
 	//Stream Delay
@@ -3168,24 +3206,30 @@ void OBS_settings::saveAdvancedSettings(std::vector<SubCategory> advancedSetting
 	std::vector<SubCategory> recordingAdvancedSettings;
 
 	recordingAdvancedSettings.push_back(advancedSettings.at(3));
-	saveGenericSettings(recordingAdvancedSettings, "SimpleOutput", ConfigManager::getInstance().getBasic());
+	saveGenericSettings(recordingAdvancedSettings, "Output", ConfigManager::getInstance().getBasic());
+
+	//Replay buffer
+	std::vector<SubCategory> replayBufferAdvancedSettings;
+
+	replayBufferAdvancedSettings.push_back(advancedSettings.at(4));
+	saveGenericSettings(replayBufferAdvancedSettings, "SimpleOutput", ConfigManager::getInstance().getBasic());
 
 	//Stream Delay
 	std::vector<SubCategory> stresmDelayAdvancedSettings;
 
-	stresmDelayAdvancedSettings.push_back(advancedSettings.at(4));
+	stresmDelayAdvancedSettings.push_back(advancedSettings.at(5));
 	saveGenericSettings(stresmDelayAdvancedSettings, "Output", ConfigManager::getInstance().getBasic());
 
 	//Automatically Reconnect
 	std::vector<SubCategory> automaticallyReconnectAdvancedSettings;
 
-	automaticallyReconnectAdvancedSettings.push_back(advancedSettings.at(5));
+	automaticallyReconnectAdvancedSettings.push_back(advancedSettings.at(6));
 	saveGenericSettings(automaticallyReconnectAdvancedSettings, "Output", ConfigManager::getInstance().getBasic());
 
 	//Network
 	std::vector<SubCategory> networkAdvancedSettings;
 
-	networkAdvancedSettings.push_back(advancedSettings.at(6));
+	networkAdvancedSettings.push_back(advancedSettings.at(7));
 	saveGenericSettings(networkAdvancedSettings, "Output", ConfigManager::getInstance().getBasic());
 }
 

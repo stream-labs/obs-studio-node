@@ -146,12 +146,22 @@ class OBS_service
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
+	static void OBS_service_startReplayBuffer(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
 	static void OBS_service_stopStreaming(
 	    void*                          data,
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
 	static void OBS_service_stopRecording(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_service_stopReplayBuffer(
 	    void*                          data,
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,
@@ -191,12 +201,24 @@ class OBS_service
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
+	static void OBS_service_processReplayBufferHotkey(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_service_getLastReplay(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
 	static void Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 
 	private:
 	static bool        startStreaming(void);
-	static bool        startRecording(void);
 	static void        stopStreaming(bool forceStop);
+	static bool        startRecording(void);
+	static bool        startReplayBuffer(void);
+	static void        stopReplayBuffer(bool forceStop);
 	static void        stopRecording(void);
 	static void        setRecordingSettings(void);
 
@@ -236,14 +258,18 @@ class OBS_service
 	// Outputs
 	static bool          createStreamingOutput(void);
 	static bool          createRecordingOutput(void);
+	static void          createReplayBufferOutput(void);
 	static obs_output_t* getStreamingOutput(void);
 	static void          setStreamingOutput(obs_output_t* output);
 	static obs_output_t* getRecordingOutput(void);
 	static void          setRecordingOutput(obs_output_t* output);
+	static obs_output_t* getReplayBufferOutput(void);
+	static void          setReplayBufferOutput(obs_output_t* output);
 
 	// Update settings
 	static void updateStreamSettings(void);
 	static void updateRecordSettings(void);
+	static bool updateAdvancedReplayBuffer(void);
 
 	// Update video encoders
 	static void updateVideoStreamingEncoder(void);
@@ -251,13 +277,15 @@ class OBS_service
 
 	// Update outputs
 	static void updateStreamingOutput(void);
-	static void updateRecordingOutput(void);
+	static void updateRecordingOutput(bool updateReplayBuffer);
 	static void updateAdvancedRecordingOutput(void);
 	static void UpdateFFmpegOutput(void);
 
 	static std::string GetDefaultVideoSavePath(void);
 
 	static bool isStreamingOutputActive(void);
+	static bool isRecordingOutputActive(void);
+	static bool isReplayBufferOutputActive(void);
 
 	// Reset contexts
 	static bool resetAudioContext(bool reload = false);

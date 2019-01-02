@@ -197,6 +197,17 @@ void service::OBS_service_startRecording(const v8::FunctionCallbackInfo<v8::Valu
 	ValidateResponse(response);
 }
 
+void service::OBS_service_startReplayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "OBS_service_startReplayBuffer", {});
+
+	ValidateResponse(response);
+}
+
 void service::OBS_service_stopStreaming(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	bool forceStop;
@@ -219,6 +230,21 @@ void service::OBS_service_stopRecording(const v8::FunctionCallbackInfo<v8::Value
 		return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "OBS_service_stopRecording", {});
+
+	ValidateResponse(response);
+}
+
+void service::OBS_service_stopReplayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	bool forceStop;
+	ASSERT_GET_VALUE(args[0], forceStop);
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Service", "OBS_service_stopReplayBuffer", {ipc::value(forceStop)});
 
 	ValidateResponse(response);
 }
@@ -327,43 +353,31 @@ void service::OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8
 	args.GetReturnValue().Set(true);
 }
 
-/*void Service::Callback(Service* service, SignalInfo* item) {
-	if (!item) {
+void service::OBS_service_processReplayBufferHotkey(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	auto conn = GetConnection();
+	if (!conn)
 		return;
-	}
-	if (!service) {
-		delete item;
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Service", "OBS_service_processReplayBufferHotkey", {});
+
+	ValidateResponse(response);
+}
+
+void service::OBS_service_getLastReplay(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	auto conn = GetConnection();
+	if (!conn)
 		return;
-	}
 
-	ServiceCallback *cb_binding = reinterpret_cast<ServiceCallback*>(item->param);
-	if (!cb_binding) {
-		delete item;
-		return;
-	}
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Service", "OBS_service_getLastReplay", {});
 
-	if (cb_binding->stopped) {
-		delete item;
-		return;
-	}
+	ValidateResponse(response);
 
-	v8::Isolate *isolate = v8::Isolate::GetCurrent();
-	v8::Local<v8::Value> args[1];
-
-	v8::Local<v8::Value> argv = v8::Object::New(isolate);
-	argv->ToObject()->Set(v8::String::NewFromUtf8(isolate, "type"), 
-		v8::String::NewFromUtf8(isolate, item->outputType.c_str()));
-	argv->ToObject()->Set(v8::String::NewFromUtf8(isolate, 
-		"signal"), v8::String::NewFromUtf8(isolate, item->signal.c_str()));
-	argv->ToObject()->Set(v8::String::NewFromUtf8(isolate, 
-		"code"), v8::Number::New(isolate, item->code));
-	argv->ToObject()->Set(v8::String::NewFromUtf8(isolate, 
-		"error"), v8::String::NewFromUtf8(isolate, item->errorMessage.c_str()));
-	args[0] = argv;
-
-	delete item;
-	Nan::Call(cb_binding->cb, 1, args);
-}*/
+	args.GetReturnValue().Set(v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), response.at(1).value_str.c_str()));
+}
 
 void Service::worker()
 {
@@ -448,9 +462,13 @@ INITIALIZER(nodeobs_service)
 
 		NODE_SET_METHOD(exports, "OBS_service_startRecording", service::OBS_service_startRecording);
 
+		NODE_SET_METHOD(exports, "OBS_service_startReplayBuffer", service::OBS_service_startReplayBuffer);
+
 		NODE_SET_METHOD(exports, "OBS_service_stopRecording", service::OBS_service_stopRecording);
 
 		NODE_SET_METHOD(exports, "OBS_service_stopStreaming", service::OBS_service_stopStreaming);
+
+		NODE_SET_METHOD(exports, "OBS_service_stopReplayBuffer", service::OBS_service_stopReplayBuffer);
 
 		NODE_SET_METHOD(
 		    exports,
@@ -480,5 +498,9 @@ INITIALIZER(nodeobs_service)
 		NODE_SET_METHOD(exports, "OBS_service_connectOutputSignals", service::OBS_service_connectOutputSignals);
 
 		NODE_SET_METHOD(exports, "OBS_service_removeCallback", service::OBS_service_removeCallback);
+
+		NODE_SET_METHOD(exports, "OBS_service_processReplayBufferHotkey", service::OBS_service_processReplayBufferHotkey);
+
+		NODE_SET_METHOD(exports, "OBS_service_getLastReplay", service::OBS_service_getLastReplay);
 	});
 }

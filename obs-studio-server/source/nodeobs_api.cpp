@@ -511,6 +511,7 @@ void OBS_API::OBS_API_initAPI(
 
 	OBS_service::createStreamingOutput();
 	OBS_service::createRecordingOutput();
+	OBS_service::createReplayBufferOutput();
 
 	OBS_service::createVideoStreamingEncoder();
 	OBS_service::createVideoRecordingEncoder();
@@ -984,6 +985,10 @@ void OBS_API::destroyOBS_API(void)
 	obs_output_t* recordingOutput = OBS_service::getRecordingOutput();
 	if (recordingOutput != NULL)
 		obs_output_release(recordingOutput);
+
+	obs_output_t* replayBufferOutput = OBS_service::getReplayBufferOutput();
+	if (replayBufferOutput != NULL)
+		obs_output_release(replayBufferOutput);
 
 	obs_service_t* service = OBS_service::getService();
 	if (service != NULL)

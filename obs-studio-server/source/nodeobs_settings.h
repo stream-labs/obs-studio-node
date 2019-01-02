@@ -193,6 +193,12 @@ class OBS_settings
 	    config_t*                 config,
 	    bool                      isCategoryEnabled);
 
+	static void getReplayBufferSettings(
+	    std::vector<SubCategory>* outputSettings,
+	    config_t*                 config,
+	    bool                      advanced,
+	    bool                      isCategoryEnabled);
+
 	/****** Save Output Settings ******/
 
 	// Simple Output mode
