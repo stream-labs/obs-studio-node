@@ -2160,6 +2160,9 @@ void OBS_service::updateStreamSettings(void)
 	int64_t delaySec = config_get_int(ConfigManager::getInstance().getBasic(), "Output", "DelaySec");
 	bool preserveDelay = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "DelayPreserve");
 
+	if (useDelay && delaySec < 0)
+		delaySec = 0;
+
 	const char* bindIP    = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "BindIP");
 	bool        enableNewSocketLoop =
 	    config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "NewSocketLoopEnable");
