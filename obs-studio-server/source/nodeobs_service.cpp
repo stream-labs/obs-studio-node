@@ -488,13 +488,27 @@ static inline const char* GetRenderModule(config_t* config)
 void GetFPSInteger(config_t* basicConfig, uint32_t& num, uint32_t& den)
 {
 	num = (uint32_t)config_get_uint(basicConfig, "Video", "FPSInt");
+
+	if (num <= 0)
+		num = 1;
+
 	den = 1;
 }
 
 void GetFPSFraction(config_t* basicConfig, uint32_t& num, uint32_t& den)
 {
 	num = (uint32_t)config_get_uint(basicConfig, "Video", "FPSNum");
+	if (num <= 0)
+		num = 1;
+
 	den = (uint32_t)config_get_uint(basicConfig, "Video", "FPSDen");
+	if (den <= 0)
+		den = 1;
+
+	if ((num / den) <= 0) {
+		num = 1;
+		den = 1;
+	}
 }
 
 void GetFPSNanoseconds(config_t* basicConfig, uint32_t& num, uint32_t& den)
