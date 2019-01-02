@@ -281,7 +281,7 @@ int main(int argc, char* argv[])
 	// Initialize Server
 	try {
 		myServer.initialize(argv[1]);
-	} catch (std::exception e) {
+	} catch (std::exception& e) {
 		std::cerr << "Initialization failed with error " << e.what() << "." << std::endl;
 		return -2;
 	} catch (...) {

@@ -76,6 +76,7 @@ GS::VertexBuffer::VertexBuffer(uint32_t maximumVertices)
 		throw std::out_of_range("maximumVertices out of range");
 	}
 
+	m_size = 0;
 	// Assign limits.
 	m_capacity = maximumVertices;
 	m_layers   = MAXIMUM_UVW_LAYERS;
@@ -115,7 +116,7 @@ GS::VertexBuffer::VertexBuffer(uint32_t maximumVertices)
 GS::VertexBuffer::VertexBuffer(gs_vertbuffer_t* vb)
 {
 	gs_vb_data* vbd = gs_vertexbuffer_get_data(vb);
-	VertexBuffer((uint32_t)vbd->num);
+	this->VertexBuffer::VertexBuffer((uint32_t)vbd->num);
 	this->SetUVLayers((uint32_t)vbd->num_tex);
 
 	if (vbd->points != nullptr)
@@ -170,6 +171,7 @@ GS::VertexBuffer::VertexBuffer(VertexBuffer const&& other)
 	m_vertexbufferdata = other.m_vertexbufferdata;
 	m_vertexbuffer     = other.m_vertexbuffer;
 	m_layerdata        = other.m_layerdata;
+	m_colors           = other.m_colors;
 }
 
 void GS::VertexBuffer::operator=(VertexBuffer const&& other)
@@ -229,6 +231,7 @@ void GS::VertexBuffer::operator=(VertexBuffer const&& other)
 	m_vertexbufferdata = other.m_vertexbufferdata;
 	m_vertexbuffer     = other.m_vertexbuffer;
 	m_layerdata        = other.m_layerdata;
+	m_colors           = other.m_colors;
 }
 
 void GS::VertexBuffer::Resize(uint32_t new_size)
