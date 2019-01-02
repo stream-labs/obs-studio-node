@@ -1683,12 +1683,13 @@ void OBS_service::updateAdvancedRecordingOutput(void)
     bool noSpace = 
 		config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecFileNameWithoutSpace");
 
-	os_dir_t* dir = path && path[0] ? os_opendir(path) : nullptr;
-
-	os_closedir(dir);
+	string initialPath;
+	if (path != nullptr) {
+		initialPath = path;
+	}
 
 	string strPath;
-	strPath += path;
+	strPath += initialPath;
 
 	char lastChar = strPath.back();
 	if (lastChar != '/' && lastChar != '\\')
