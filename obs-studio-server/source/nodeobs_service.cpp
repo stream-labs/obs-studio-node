@@ -1006,6 +1006,8 @@ bool OBS_service::startRecording(void)
 	videoQuality = quality;
 	ffmpegOutput = false;
 
+	obs_output_set_media(recordingOutput, obs_get_video(), obs_get_audio());
+
 	if (strcmp(quality, "Lossless") == 0) {
 		
 		recordingOutput = obs_output_create("ffmpeg_output", "simple_ffmpeg_output", nullptr, nullptr);
@@ -1028,7 +1030,6 @@ bool OBS_service::startRecording(void)
 	}
 
 
-	obs_output_set_media(recordingOutput, obs_get_video(), obs_get_audio());
 
 	const char* path   = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "FilePath");
 	const char* format = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecFormat");
@@ -1062,6 +1063,8 @@ bool OBS_service::startRecording(void)
 	obs_data_set_string(settings, ffmpegOutput ? "url" : "path", strPath.c_str());
 	obs_data_set_string(settings, "muxer_settings", mux);
 	obs_output_update(recordingOutput, settings);
+
+	connectOutputSignals();
 
 
 	if (!obs_output_start(recordingOutput)) {
