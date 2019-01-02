@@ -243,6 +243,9 @@ std::chrono::high_resolution_clock             hrc;
 std::chrono::high_resolution_clock::time_point tp = std::chrono::high_resolution_clock::now();
 static void                                    node_obs_log(int log_level, const char* msg, va_list args, void* param)
 {
+	if (param == nullptr)
+		return;
+
 	// Calculate log time.
 	auto timeSinceStart = (std::chrono::high_resolution_clock::now() - tp);
 	auto days           = std::chrono::duration_cast<std::chrono::duration<int, ratio<86400>>>(timeSinceStart);
@@ -305,6 +308,9 @@ static void                                    node_obs_log(int log_level, const
         nanoseconds.count(),
         levelname.length(),
         levelname.c_str());
+	if (length < 0)
+		return;
+
 	std::string time_and_level = std::string(timebuf.data(), length);
 
 	// Format incoming text
@@ -315,8 +321,7 @@ static void                                    node_obs_log(int log_level, const
 	// Split by \n (new-line)
 	size_t last_valid_idx = 0;
 	for (size_t idx = 0; idx <= text.length(); idx++) {
-		char& ch = text[idx];
-		if ((ch == '\n') || (idx == text.length())) {
+		if ((idx == text.length()) || (text[idx] == '\n')) {
 			std::string newmsg = time_and_level + " " + std::string(&text[last_valid_idx], idx - last_valid_idx) + '\n';
 			last_valid_idx     = idx + 1;
 
@@ -465,6 +470,7 @@ void OBS_API::OBS_API_initAPI(
 		cerr << "Failed to open log file" << endl;
 	}
 
+	/* Delete oldest file in the folder to imitate rotating */
 	DeleteOldestFile(log_path.c_str(), 3);
 	log_path.append(filename);
 
@@ -474,11 +480,11 @@ void OBS_API::OBS_API_initAPI(
 	fstream* logfile = new fstream(log_path, ios_base::out | ios_base::trunc);
 #endif
 
-	if (!logfile) {
+	if (!logfile->is_open()) {
+		logfile = nullptr;
 		cerr << "Failed to open log file" << endl;
 	}
 
-	/* Delete oldest file in the folder to imitate rotating */
 	base_set_log_handler(node_obs_log, logfile);
 
 	/* INJECT osn::Source::Manager */
