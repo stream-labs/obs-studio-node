@@ -2991,7 +2991,12 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	entries.push_back(forceGPUAsRenderDevice);
 
 	advancedSettings.push_back(
-	    serializeSettingsData("Video", entries, ConfigManager::getInstance().getBasic(), "Video", true, true));
+	    serializeSettingsData("Video",
+	                          entries,
+	                          ConfigManager::getInstance().getBasic(),
+	                          "Video",
+	                          true,
+	                          !OBS_service::isStreamingOutputActive()));
 	entries.clear();
 
 #if defined(_WIN32) || defined(__APPLE__)
@@ -3285,6 +3290,10 @@ void OBS_settings::saveSettings(std::string nameCategory, std::vector<SubCategor
 		OBS_service::resetVideoContext();
 	} else if (nameCategory.compare("Advanced") == 0) {
 		saveAdvancedSettings(settings);
+
+		if (!OBS_service::isStreamingOutputActive())
+			OBS_service::resetVideoContext();
+
 		OBS_API::setAudioDeviceMonitoring();
 	}
 }
