@@ -1104,25 +1104,18 @@ void OBS::Display::UpdatePreviewArea()
 	if (m_source) {
 		sourceW = obs_source_get_width(m_source);
 		sourceH = obs_source_get_height(m_source);
-		if (sourceW == 0)
-			sourceW = 1;
-		if (sourceH == 0)
-			sourceH = 1;
 	} else {
 		obs_video_info ovi;
 		obs_get_video_info(&ovi);
 
 		sourceW = ovi.base_width;
 		sourceH = ovi.base_height;
-
-		if (sourceW == 0)
-			sourceW = 1;
-		if (sourceH == 0)
-			sourceH = 1;
 	}
 
-	offsetX = m_paddingSize;
-	offsetY = m_paddingSize;
+	if (sourceW == 0)
+		sourceW = 1;
+	if (sourceH == 0)
+		sourceH = 1;
 
 	RecalculateApectRatioConstrainedSize(
 	    m_gsInitData.cx,
@@ -1134,10 +1127,20 @@ void OBS::Display::UpdatePreviewArea()
 	    m_previewSize.first,
 	    m_previewSize.second);
 
+	offsetX = m_paddingSize;
+	offsetY = float_t(offsetX) * float_t(sourceH) / float_t(sourceW);
+
 	m_previewOffset.first += offsetX;
-	m_previewOffset.second += offsetY;
 	m_previewSize.first -= offsetX * 2;
-	m_previewSize.second -= offsetY * 2;
+	
+	if (m_previewSize.second <= offsetY * 2) {
+		m_previewOffset.second = (m_previewOffset.second - 1) / 2;
+		m_previewSize.second = 1;
+	} else {
+		m_previewOffset.second += offsetY;
+		m_previewSize.second -= offsetY * 2;
+	}
+	
 	m_worldToPreviewScale.x = float_t(m_previewSize.first) / float_t(sourceW);
 	m_worldToPreviewScale.y = float_t(m_previewSize.second) / float_t(sourceH);
 	m_previewToWorldScale.x = float_t(sourceW) / float_t(m_previewSize.first);
