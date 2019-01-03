@@ -166,8 +166,8 @@ void OBS::Display::SystemWorker()
 			    this);
 
 			if (!newWindow) {
-				HandleWin32ErrorMessage();
 				answer->success = false;
+				HandleWin32ErrorMessage();
 			} else {
 				if (IsWindows8OrGreater() || !enabled) {
 					SetLayeredWindowAttributes(newWindow, 0, 255, LWA_ALPHA);
@@ -187,8 +187,8 @@ void OBS::Display::SystemWorker()
 			DestroyWindowMessageAnswer*   answer   = reinterpret_cast<DestroyWindowMessageAnswer*>(message.lParam);
 
 			if (!DestroyWindow(question->window)) {
-				HandleWin32ErrorMessage();
 				answer->success = false;
+				HandleWin32ErrorMessage();
 			} else {
 				answer->success = true;
 			}
