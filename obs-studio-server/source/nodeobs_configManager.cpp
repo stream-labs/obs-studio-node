@@ -29,11 +29,11 @@ config_t* ConfigManager::getConfig(std::string name)
 
 void initGlobalDefault(config_t* config)
 {
-	config_set_bool(config, "BasicWindow", "SnappingEnabled", true);
-	config_set_double(config, "BasicWindow", "SnapDistance", 10);
-	config_set_bool(config, "BasicWindow", "ScreenSnapping", true);
-	config_set_bool(config, "BasicWindow", "SourceSnapping", true);
-	config_set_bool(config, "BasicWindow", "CenterSnapping", false);
+	config_set_default_bool(config, "BasicWindow", "SnappingEnabled", true);
+	config_set_default_double(config, "BasicWindow", "SnapDistance", 10);
+	config_set_default_bool(config, "BasicWindow", "ScreenSnapping", true);
+	config_set_default_bool(config, "BasicWindow", "SourceSnapping", true);
+	config_set_default_bool(config, "BasicWindow", "CenterSnapping", false);
 
 	config_save_safe(config, "tmp", nullptr);
 }
