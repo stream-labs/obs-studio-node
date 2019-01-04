@@ -1606,7 +1606,7 @@ void OBS_service::updateRecordingOutput(bool updateReplayBuffer)
         filenameFormat = "%CCYY-%MM-%DD %hh-%mm-%ss";
     } 
 
-    string strPath;
+	string strPath;
 	strPath += initialPath;
 
     char lastChar = strPath.back();
