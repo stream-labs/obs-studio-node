@@ -154,9 +154,9 @@ std::vector<SubCategory> serializeCategory(uint32_t subCategoriesCount, uint32_t
 			param.description  = description;
 			param.type         = type;
 			param.subType      = subType;
-			param.enabled      = enabled;
-			param.masked       = masked;
-			param.visible      = visible;
+			param.enabled      = *enabled;
+			param.masked       = *masked;
+			param.visible      = *visible;
 			param.currentValue = currentValue;
 			param.values       = values;
 			param.countValues  = *countValues;
@@ -781,7 +781,7 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 {
 	obs_service_t* currentService = OBS_service::getService();
 
-	obs_data_t* settings;
+	obs_data_t* settings = nullptr;
 
 	std::string currentStreamType = obs_service_get_type(currentService);
 	const char* newserviceTypeValue;
@@ -804,12 +804,11 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 			std::string name = param.name;
 			std::string type = param.type;
 
-			std::string* value;
 			if (type.compare("OBS_PROPERTY_LIST") == 0 || type.compare("OBS_PROPERTY_EDIT_TEXT") == 0) {
-				value = new std::string(param.currentValue.data(), param.currentValue.size());
+				std::string value(param.currentValue.data(), param.currentValue.size());
 
 				if (name.compare("streamType") == 0) {
-					newserviceTypeValue = value->c_str();
+					newserviceTypeValue = value.c_str();
 					settings            = obs_service_defaults(newserviceTypeValue);
 					if (currentStreamType.compare(newserviceTypeValue) != 0) {
 						serviceTypeChanged = true;
@@ -817,12 +816,12 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 				}
 
 				if (name.compare("service") == 0) {
-					newServiceValue = value->c_str();
+					newServiceValue = value;
 					if (currentServiceName.compare(newServiceValue) != 0) {
 						serviceChanged = true;
 					}
 				}
-				obs_data_set_string(settings, name.c_str(), value->c_str());
+				obs_data_set_string(settings, name.c_str(), value.c_str());
 			} else if (type.compare("OBS_PROPERTY_INT") == 0 || type.compare("OBS_PROPERTY_UINT") == 0) {
 				int64_t* value = reinterpret_cast<int64_t*>(param.currentValue.data());
 				obs_data_set_int(settings, name.c_str(), *value);
@@ -1591,7 +1590,8 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 
 	struct stat buffer;
 
-	bool fileExist = (os_stat(ConfigManager::getInstance().getStream().c_str(), &buffer) == 0);
+	std::string streamName = ConfigManager::getInstance().getStream();
+	bool fileExist = (os_stat(streamName.c_str(), &buffer) == 0);
 
 	obs_data_t*    settings = obs_encoder_defaults(encoderID);
 	obs_encoder_t* streamingEncoder;
@@ -1605,12 +1605,12 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
 			OBS_service::setStreamingEncoder(streamingEncoder);
 
-			if (!obs_data_save_json_safe(settings, ConfigManager::getInstance().getStream().c_str(), "tmp", "bak")) {
-				blog(LOG_WARNING, "Failed to save encoder %s", ConfigManager::getInstance().getStream().c_str());
+			if (!obs_data_save_json_safe(settings, streamName.c_str(), "tmp", "bak")) {
+				blog(LOG_WARNING, "Failed to save encoder %s", streamName.c_str());
 			}
 		} else {
 			obs_data_t* data =
-			    obs_data_create_from_json_file_safe(ConfigManager::getInstance().getStream().c_str(), "bak");
+			    obs_data_create_from_json_file_safe(streamName.c_str(), "bak");
 			obs_data_apply(settings, data);
 			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", settings, nullptr);
 			OBS_service::setStreamingEncoder(streamingEncoder);
@@ -1641,7 +1641,8 @@ void OBS_settings::getStandardRecordingSettings(
 	const char* RecFilePathCurrentValue = config_get_string(config, "AdvOut", "RecFilePath");
 
 	if (RecFilePathCurrentValue == NULL) {
-		const char* RecFilePathText = OBS_service::GetDefaultVideoSavePath().c_str();
+		std::string RecFilePathTextString = OBS_service::GetDefaultVideoSavePath();
+		const char* RecFilePathText = RecFilePathTextString.c_str();
 
 		recFilePath.currentValue.resize(strlen(RecFilePathText));
 		memcpy(recFilePath.currentValue.data(), RecFilePathText, strlen(RecFilePathText));
