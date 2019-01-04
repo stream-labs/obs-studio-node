@@ -1114,6 +1114,8 @@ bool OBS_service::updateAdvancedReplayBuffer(void)
 
 	std::string recEnc = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecEncoder");
 
+	ffmpegOutput = false;
+
 	bool useStreamEncoder = recEnc.compare("none") == 0;
 
 	obs_data_t* streamEncSettings = obs_data_create_from_json_file_safe(ConfigManager::getInstance().getStream().c_str(), "bak");
@@ -1606,8 +1608,6 @@ void OBS_service::updateRecordingOutput(bool updateReplayBuffer)
     char lastChar = strPath.back();
     if (lastChar != '/' && lastChar != '\\')
         strPath += "/";
-
-    bool ffmpegOutput = false;
 
     if(filenameFormat != NULL && format != NULL) {
         strPath += GenerateSpecifiedFilename(ffmpegOutput ? "avi" : format, noSpace, filenameFormat);
@@ -2228,6 +2228,9 @@ void OBS_service::updateRecordSettings(void)
 
 		updateVideoRecordingEncoder();
 		updateRecordingOutput(false);
+
+		if (quality.compare("Lossless") == 0)
+			return;
 	} else if (strcmp(currentOutputMode, "Advanced") == 0) {
 		const char* recEncoder = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecEncoder");
 		if (!recEncoder || strcmp(recEncoder, "none") == 0) {
