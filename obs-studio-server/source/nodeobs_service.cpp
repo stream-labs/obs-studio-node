@@ -1,17 +1,111 @@
 #include "nodeobs_service.h"
 #include <ShlObj.h>
 #include <windows.h>
+#include <functional>
 #include "error.hpp"
 #include "shared.hpp"
+
+template <typename ObjectType>
+class obs_wrapper
+{
+public:
+
+	obs_wrapper()
+	{
+		m_Object      = nullptr;
+		m_RefIncrease = nullptr;
+		m_RefDecrease = nullptr;
+	}
+
+	obs_wrapper(ObjectType* obj, std::function<void(ObjectType*)> refIncrease, std::function<void(ObjectType*)> refDecrease)
+	{
+		m_Object = obj;
+		m_RefIncrease = refIncrease;
+		m_RefDecrease = refDecrease;
+	}
+
+	// Copy constructor
+	obs_wrapper(const obs_wrapper& other)
+	{
+		m_Object = other.m_Object;
+		m_RefIncrease = other.m_RefIncrease;
+		m_RefDecrease = other.m_RefDecrease;
+		m_RefIncrease(m_Object);
+	}
+
+	// Move constructor
+	obs_wrapper<ObjectType> operator=(obs_wrapper<ObjectType>&& other)
+	{
+		m_Object      = std::move(other.m_Object);
+		m_RefIncrease = std::move(other.m_RefIncrease);
+		m_RefDecrease = std::move(other.m_RefDecrease);
+		other.m_Object = nullptr;
+		other.m_RefIncrease = nullptr;
+		other.m_RefDecrease = nullptr;
+
+		return *this;
+	}
+
+	// Assignment op
+	obs_wrapper<ObjectType>& operator=(const obs_wrapper<ObjectType>& other)
+	{
+		m_Object      = other.m_Object;
+		m_RefIncrease = other.m_RefIncrease;
+		m_RefDecrease = other.m_RefDecrease;
+		m_RefIncrease(m_Object);
+		return *this;
+	}
+
+	operator bool() const
+	{
+		return m_Object != nullptr;
+	}
+
+	~obs_wrapper()
+	{
+		m_RefDecrease(m_Object);
+		m_Object = nullptr;
+		m_RefIncrease = nullptr;
+		m_RefDecrease = nullptr;
+	}
+
+	void reset()
+	{
+		m_RefDecrease(m_Object);
+		m_Object      = nullptr;
+		m_RefIncrease = nullptr;
+		m_RefDecrease = nullptr;
+	}
+
+	ObjectType* get()
+	{
+		return m_Object;
+	}
+
+private:
+
+	ObjectType* m_Object;
+	std::function<void(ObjectType*)> m_RefIncrease;
+	std::function<void(ObjectType*)> m_RefDecrease;
+};
+
+template<typename ObjectType>
+static obs_wrapper<ObjectType> make_wrapper(
+	ObjectType*                      obj,
+	std::function<void(ObjectType*)> refIncrease,
+	std::function<void(ObjectType*)> refDecrease)
+{
+	return std::move(obs_wrapper(obj, refIncrease, refDecrease));
+}
 
 obs_output_t* streamingOutput        = nullptr;
 obs_output_t* recordingOutput        = nullptr;
 obs_output_t* replayBuffer           = nullptr;;
-obs_encoder_t* audioStreamingEncoder = nullptr;
-obs_encoder_t* audioRecordingEncoder = nullptr;
-obs_encoder_t* videoStreamingEncoder = nullptr;
-obs_encoder_t* videoRecordingEncoder = nullptr;
-obs_service_t* service               = nullptr;
+obs_wrapper<obs_encoder_t> audioStreamingEncoder;
+obs_wrapper<obs_encoder_t> audioRecordingEncoder;
+obs_wrapper<obs_encoder_t> videoStreamingEncoder;
+obs_wrapper<obs_encoder_t> videoRecordingEncoder;
+obs_service_t* service                = nullptr;
 
 std::string aacRecEncID;
 std::string aacStreamEncID;
@@ -1016,11 +1110,14 @@ bool OBS_service::startStreaming(void)
 		obs_data_t* settings     = obs_data_create();
 		obs_data_set_int(settings, "bitrate", audioBitrate);
 
-		audioStreamingEncoder = obs_audio_encoder_create(id, "alt_audio_enc", nullptr, int(trackIndex) - 1, nullptr);
+		audioStreamingEncoder = make_wrapper<obs_encoder_t>(
+		    obs_audio_encoder_create(id, "alt_audio_enc", nullptr, int(trackIndex) - 1, nullptr),
+		    obs_encoder_addref,
+		    obs_encoder_release);
 		if (!audioStreamingEncoder)
 			return false;
 
-		obs_encoder_update(audioStreamingEncoder, settings);
+		obs_encoder_update(audioStreamingEncoder.get(), settings);
 		obs_encoder_set_audio(audioStreamingEncoder, obs_get_audio());
 
 		obs_data_release(settings);
