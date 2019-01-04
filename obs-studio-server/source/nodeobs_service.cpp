@@ -1,6 +1,7 @@
 #include "nodeobs_service.h"
 #include <ShlObj.h>
 #include <windows.h>
+#include <filesystem>
 #include "error.hpp"
 #include "shared.hpp"
 
@@ -843,7 +844,9 @@ static void ensure_directory_exists(string& path)
 		return;
 
 	string directory = path.substr(0, last);
-	os_mkdirs(directory.c_str());
+
+	if (std::experimental::filesystem::is_directory(directory))
+		os_mkdirs(directory.c_str());
 }
 
 static void FindBestFilename(string& strPath, bool noSpace)
@@ -1596,14 +1599,17 @@ void OBS_service::updateRecordingOutput(bool updateReplayBuffer)
     int rbSize = 
 		int(config_get_int(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecRBSize"));
 
-	os_dir_t *dir = path && path[0] ? os_opendir(path) : nullptr;
+	string initialPath;
+	if (path != nullptr) {
+		initialPath = path;
+	}
 
     if(filenameFormat == NULL) {
         filenameFormat = "%CCYY-%MM-%DD %hh-%mm-%ss";
     } 
-    string strPath;
-    strPath += path;
 
+	string strPath;
+	strPath += initialPath;
 
     char lastChar = strPath.back();
     if (lastChar != '/' && lastChar != '\\')
@@ -1638,13 +1644,13 @@ void OBS_service::updateRecordingOutput(bool updateReplayBuffer)
 
         remove_reserved_file_characters(f);
 
-		obs_data_set_string(settings, "directory", path);
+		obs_data_set_string(settings, "directory", initialPath.c_str());
 		obs_data_set_string(settings, "format", f.c_str());
 		obs_data_set_string(settings, "extension", format);
 		obs_data_set_bool(settings, "allow_spaces", !noSpace);
         obs_data_set_int(settings, "max_time_sec", rbTime);
         obs_data_set_int(settings, "max_size_mb", usingRecordingPreset ? rbSize : 0);
-    } else {
+	} else if(strPath.size() > 0) {
         obs_data_set_string(settings, ffmpegOutput ? "url" : "path", strPath.c_str());
     }
 
@@ -1677,12 +1683,13 @@ void OBS_service::updateAdvancedRecordingOutput(void)
     bool noSpace = 
 		config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecFileNameWithoutSpace");
 
-	os_dir_t* dir = path && path[0] ? os_opendir(path) : nullptr;
-
-	os_closedir(dir);
+	string initialPath;
+	if (path != nullptr) {
+		initialPath = path;
+	}
 
 	string strPath;
-	strPath += path;
+	strPath += initialPath;
 
 	char lastChar = strPath.back();
 	if (lastChar != '/' && lastChar != '\\')
