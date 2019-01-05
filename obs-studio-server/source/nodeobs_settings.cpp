@@ -1594,7 +1594,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	bool fileExist = (os_stat(streamName.c_str(), &buffer) == 0);
 
 	obs_data_t*    settings = obs_encoder_defaults(encoderID);
-	obs_encoder_t* streamingEncoder;
+	obs_wrapper<obs_encoder_t> streamingEncoder;
 	obs_output_t*  streamOutput = OBS_service::getStreamingOutput();
 
 	if (streamOutput == NULL)
@@ -1602,7 +1602,10 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 
 	if (!obs_output_active(streamOutput)) {
 		if (!fileExist) {
-			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
+			streamingEncoder = make_wrapper<obs_encoder_t>(
+			    obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr),
+			    obs_encoder_addref,
+			    obs_encoder_release);
 			OBS_service::setStreamingEncoder(streamingEncoder);
 
 			if (!obs_data_save_json_safe(settings, streamName.c_str(), "tmp", "bak")) {
@@ -1612,15 +1615,18 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 			obs_data_t* data =
 			    obs_data_create_from_json_file_safe(streamName.c_str(), "bak");
 			obs_data_apply(settings, data);
-			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", settings, nullptr);
+			streamingEncoder = make_wrapper<obs_encoder_t>(
+			    obs_video_encoder_create(encoderID, "streaming_h264", settings, nullptr),
+			    obs_encoder_addref,
+			    obs_encoder_release);
 			OBS_service::setStreamingEncoder(streamingEncoder);
 		}
 	} else {
 		streamingEncoder = OBS_service::getStreamingEncoder();
-		settings         = obs_encoder_get_settings(streamingEncoder);
+		settings         = obs_encoder_get_settings(streamingEncoder.get());
 	}
 
-	getEncoderSettings(streamingEncoder, settings, &(streamingSettings.params), index, isCategoryEnabled, false);
+	getEncoderSettings(streamingEncoder.get(), settings, &(streamingSettings.params), index, isCategoryEnabled, false);
 	streamingSettings.paramsCount = streamingSettings.params.size();
 	return streamingSettings;
 }
@@ -1936,7 +1942,7 @@ void OBS_settings::getStandardRecordingSettings(
 	bool fileExist = (os_stat(ConfigManager::getInstance().getRecord().c_str(), &buffer) == 0);
 
 	obs_data_t*    settings = obs_encoder_defaults(recEncoderCurrentValue);
-	obs_encoder_t* recordingEncoder;
+	obs_wrapper<obs_encoder_t> recordingEncoder;
 
 	obs_output_t* recordOutput = OBS_service::getRecordingOutput();
 
@@ -1945,7 +1951,10 @@ void OBS_settings::getStandardRecordingSettings(
 
 	if (!obs_output_active(recordOutput)) {
 		if (!fileExist) {
-			recordingEncoder = obs_video_encoder_create(recEncoderCurrentValue, "recording_h264", nullptr, nullptr);
+			recordingEncoder = make_wrapper<obs_encoder_t>(
+			    obs_video_encoder_create(recEncoderCurrentValue, "recording_h264", nullptr, nullptr),
+			    obs_encoder_addref,
+			    obs_encoder_release);
 			OBS_service::setRecordingEncoder(recordingEncoder);
 
 			if (!obs_data_save_json_safe(settings, ConfigManager::getInstance().getRecord().c_str(), "tmp", "bak")) {
@@ -1955,17 +1964,20 @@ void OBS_settings::getStandardRecordingSettings(
 			obs_data_t* data =
 			    obs_data_create_from_json_file_safe(ConfigManager::getInstance().getRecord().c_str(), "bak");
 			obs_data_apply(settings, data);
-			recordingEncoder = obs_video_encoder_create(recEncoderCurrentValue, "recording_h264", settings, nullptr);
+			recordingEncoder = make_wrapper<obs_encoder_t>(
+			    obs_video_encoder_create(recEncoderCurrentValue, "recording_h264", settings, nullptr),
+			    obs_encoder_addref,
+			    obs_encoder_release);
 			OBS_service::setRecordingEncoder(recordingEncoder);
 		}
 	} else {
 		recordingEncoder = OBS_service::getRecordingEncoder();
-		settings         = obs_encoder_get_settings(recordingEncoder);
+		settings         = obs_encoder_get_settings(recordingEncoder.get());
 	}
 
 	if (strcmp(recEncoderCurrentValue, "none")) {
 		getEncoderSettings(
-		    recordingEncoder, settings, &(subCategoryParameters->params), index, isCategoryEnabled, true);
+		    recordingEncoder.get(), settings, &(subCategoryParameters->params), index, isCategoryEnabled, true);
 	}
 
 	subCategoryParameters->paramsCount = subCategoryParameters->params.size();
@@ -2293,8 +2305,8 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 
 	std::string section = "AdvOut";
 
-	obs_encoder_t* encoder         = OBS_service::getStreamingEncoder();
-	obs_data_t*    encoderSettings = obs_encoder_get_settings(encoder);
+	obs_wrapper<obs_encoder_t> encoder         = OBS_service::getStreamingEncoder();
+	obs_data_t*    encoderSettings = obs_encoder_get_settings(encoder.get());
 
 	int indexEncoderSettings = 4;
 
@@ -2393,7 +2405,7 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 		    config_get_string(ConfigManager::getInstance().getBasic(), section.c_str(), "Encoder"));
 	}
 
-	obs_encoder_update(encoder, encoderSettings);
+	obs_encoder_update(encoder.get(), encoderSettings);
 
 	if (!obs_data_save_json_safe(encoderSettings, ConfigManager::getInstance().getStream().c_str(), "tmp", "bak")) {
 		blog(LOG_WARNING, "Failed to save encoder %s", ConfigManager::getInstance().getStream().c_str());
@@ -2405,8 +2417,8 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 	int         indexRecordingCategory = 2;
 	std::string section                = "AdvOut";
 
-	obs_encoder_t* encoder         = OBS_service::getRecordingEncoder();
-	obs_data_t*    encoderSettings = obs_encoder_get_settings(encoder);
+	obs_wrapper<obs_encoder_t> encoder         = OBS_service::getRecordingEncoder();
+	obs_data_t*    encoderSettings = obs_encoder_get_settings(encoder.get());
 
 	size_t indexEncoderSettings = 8;
 
@@ -2518,7 +2530,7 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 		encoderSettings = obs_encoder_defaults(
 		    config_get_string(ConfigManager::getInstance().getBasic(), section.c_str(), "RecEncoder"));
 
-	obs_encoder_update(encoder, encoderSettings);
+	obs_encoder_update(encoder.get(), encoderSettings);
 
 	if (!obs_data_save_json_safe(encoderSettings, ConfigManager::getInstance().getRecord().c_str(), "tmp", "bak")) {
 		blog(LOG_WARNING, "Failed to save encoder %s", ConfigManager::getInstance().getRecord().c_str());

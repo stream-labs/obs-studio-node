@@ -37,6 +37,131 @@
 #define ADVANCED_ENCODER_NVENC "ffmpeg_nvenc"
 #define ADVANCED_ENCODER_AMD "amd_amf_h264"
 
+//
+//
+//
+
+template<typename ObjectType>
+class obs_wrapper
+{
+	public:
+	obs_wrapper()
+	{
+		m_Object      = nullptr;
+		m_RefIncrease = nullptr;
+		m_RefDecrease = nullptr;
+	}
+
+	obs_wrapper(
+	    ObjectType*                      obj,
+	    std::function<void(ObjectType*)> refIncrease,
+	    std::function<void(ObjectType*)> refDecrease)
+	{
+		m_Object      = obj;
+		m_RefIncrease = refIncrease;
+		m_RefDecrease = refDecrease;
+	}
+
+	// Copy constructor
+	obs_wrapper(const obs_wrapper& other)
+	{
+		m_Object      = other.m_Object;
+		m_RefIncrease = other.m_RefIncrease;
+		m_RefDecrease = other.m_RefDecrease;
+		if(m_RefIncrease)
+			m_RefIncrease(m_Object);
+	}
+	/*
+	// Move constructor
+	obs_wrapper<ObjectType> operator=(obs_wrapper<ObjectType>&& other)
+	{
+		m_Object            = std::move(other.m_Object);
+		m_RefIncrease       = std::move(other.m_RefIncrease);
+		m_RefDecrease       = std::move(other.m_RefDecrease);
+		other.m_Object      = nullptr;
+		other.m_RefIncrease = nullptr;
+		other.m_RefDecrease = nullptr;
+
+		return *this;
+	}
+	
+	// Copy assignment op
+	__declspec(noinline) obs_wrapper<ObjectType>& operator=(obs_wrapper<ObjectType> other)
+	{
+		m_Object      = other.m_Object;
+		m_RefIncrease = other.m_RefIncrease;
+		m_RefDecrease = other.m_RefDecrease;
+		m_RefIncrease(m_Object);
+		return *this;
+	}
+	*/
+	
+	// Assignment op
+	__declspec(noinline) obs_wrapper<ObjectType>& operator=(const obs_wrapper<ObjectType>& other)
+	{
+		m_Object      = other.m_Object;
+		m_RefIncrease = other.m_RefIncrease;
+		m_RefDecrease = other.m_RefDecrease;
+		if(m_RefIncrease)
+			m_RefIncrease(m_Object);
+		return *this;
+	}
+	
+
+	__declspec(noinline) friend bool operator==(const obs_wrapper<ObjectType>& c1, const obs_wrapper<ObjectType>& c2)
+	{
+		return (c1.m_Object == c2.m_Object);
+	}
+
+	__declspec(noinline) friend bool operator!=(const obs_wrapper<ObjectType>& c1, const obs_wrapper<ObjectType>& c2)
+	{
+		return !(c1 == c2);
+	}
+
+	operator bool() const
+	{
+		return m_Object != nullptr;
+	}
+
+	~obs_wrapper()
+	{
+		reset();
+	}
+
+	void reset()
+	{
+		if (m_RefDecrease)
+			m_RefDecrease(m_Object);
+		m_Object      = nullptr;
+		m_RefIncrease = nullptr;
+		m_RefDecrease = nullptr;
+	}
+
+	ObjectType* get()
+	{
+		assert(m_Object != nullptr);
+		return m_Object;
+	}
+
+	private:
+	ObjectType*                      m_Object;
+	std::function<void(ObjectType*)> m_RefIncrease;
+	std::function<void(ObjectType*)> m_RefDecrease;
+};
+
+template<typename ObjectType>
+static obs_wrapper<ObjectType> make_wrapper(
+    ObjectType*                      obj,
+    std::function<void(ObjectType*)> refIncrease,
+    std::function<void(ObjectType*)> refDecrease)
+{
+	return std::move(obs_wrapper<ObjectType>(obj, refIncrease, refDecrease));
+}
+
+//
+//
+//
+
 using namespace std;
 
 class SignalInfo
@@ -237,28 +362,31 @@ class OBS_service
 	// Service
 	static bool           createService();
 	static obs_service_t* getService(void);
+	static void           releaseService();
 	static void           setService(obs_service_t* newService);
 	static void           saveService(void);
 	static void           updateService(void);
 	static void           setServiceToTheStreamingOutput(void);
 
 	// Encoders
-	static bool           createAudioEncoder(obs_encoder_t** audioEncoder);
+	static bool           createAudioEncoder(obs_wrapper<obs_encoder_t>* audioEncoder);
 	static bool           createVideoStreamingEncoder();
 	static bool           createVideoRecordingEncoder();
-	static obs_encoder_t* getStreamingEncoder(void);
-	static void           setStreamingEncoder(obs_encoder_t* encoder);
-	static obs_encoder_t* getRecordingEncoder(void);
-	static void           setRecordingEncoder(obs_encoder_t* encoder);
-	static obs_encoder_t* getAudioStreamingEncoder(void);
-	static void           setAudioStreamingEncoder(obs_encoder_t* encoder);
-	static obs_encoder_t* getAudioRecordingEncoder(void);
-	static void           setAudioRecordingEncoder(obs_encoder_t* encoder);
+	static void                       releaseEncoders();
+	static obs_wrapper<obs_encoder_t> getStreamingEncoder(void);
+	static void                       setStreamingEncoder(obs_wrapper<obs_encoder_t>& encoder);
+	static obs_wrapper<obs_encoder_t> getRecordingEncoder(void);
+	static void                       setRecordingEncoder(obs_wrapper<obs_encoder_t>& encoder);
+	static obs_wrapper<obs_encoder_t> getAudioStreamingEncoder(void);
+	static void                       setAudioStreamingEncoder(obs_wrapper<obs_encoder_t>& encoder);
+	static obs_wrapper<obs_encoder_t> getAudioRecordingEncoder(void);
+	static void                       setAudioRecordingEncoder(obs_wrapper<obs_encoder_t>& encoder);
 
 	// Outputs
 	static bool          createStreamingOutput(void);
 	static bool          createRecordingOutput(void);
 	static void          createReplayBufferOutput(void);
+	static void          releaseOutputs();
 	static obs_output_t* getStreamingOutput(void);
 	static void          setStreamingOutput(obs_output_t* output);
 	static obs_output_t* getRecordingOutput(void);

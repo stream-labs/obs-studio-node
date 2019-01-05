@@ -5,102 +5,9 @@
 #include "error.hpp"
 #include "shared.hpp"
 
-template <typename ObjectType>
-class obs_wrapper
-{
-public:
-
-	obs_wrapper()
-	{
-		m_Object      = nullptr;
-		m_RefIncrease = nullptr;
-		m_RefDecrease = nullptr;
-	}
-
-	obs_wrapper(ObjectType* obj, std::function<void(ObjectType*)> refIncrease, std::function<void(ObjectType*)> refDecrease)
-	{
-		m_Object = obj;
-		m_RefIncrease = refIncrease;
-		m_RefDecrease = refDecrease;
-	}
-
-	// Copy constructor
-	obs_wrapper(const obs_wrapper& other)
-	{
-		m_Object = other.m_Object;
-		m_RefIncrease = other.m_RefIncrease;
-		m_RefDecrease = other.m_RefDecrease;
-		m_RefIncrease(m_Object);
-	}
-
-	// Move constructor
-	obs_wrapper<ObjectType> operator=(obs_wrapper<ObjectType>&& other)
-	{
-		m_Object      = std::move(other.m_Object);
-		m_RefIncrease = std::move(other.m_RefIncrease);
-		m_RefDecrease = std::move(other.m_RefDecrease);
-		other.m_Object = nullptr;
-		other.m_RefIncrease = nullptr;
-		other.m_RefDecrease = nullptr;
-
-		return *this;
-	}
-
-	// Assignment op
-	obs_wrapper<ObjectType>& operator=(const obs_wrapper<ObjectType>& other)
-	{
-		m_Object      = other.m_Object;
-		m_RefIncrease = other.m_RefIncrease;
-		m_RefDecrease = other.m_RefDecrease;
-		m_RefIncrease(m_Object);
-		return *this;
-	}
-
-	operator bool() const
-	{
-		return m_Object != nullptr;
-	}
-
-	~obs_wrapper()
-	{
-		m_RefDecrease(m_Object);
-		m_Object = nullptr;
-		m_RefIncrease = nullptr;
-		m_RefDecrease = nullptr;
-	}
-
-	void reset()
-	{
-		m_RefDecrease(m_Object);
-		m_Object      = nullptr;
-		m_RefIncrease = nullptr;
-		m_RefDecrease = nullptr;
-	}
-
-	ObjectType* get()
-	{
-		return m_Object;
-	}
-
-private:
-
-	ObjectType* m_Object;
-	std::function<void(ObjectType*)> m_RefIncrease;
-	std::function<void(ObjectType*)> m_RefDecrease;
-};
-
-template<typename ObjectType>
-static obs_wrapper<ObjectType> make_wrapper(
-	ObjectType*                      obj,
-	std::function<void(ObjectType*)> refIncrease,
-	std::function<void(ObjectType*)> refDecrease)
-{
-	return std::move(obs_wrapper(obj, refIncrease, refDecrease));
-}
-
 obs_output_t* streamingOutput        = nullptr;
 obs_output_t* recordingOutput        = nullptr;
-obs_output_t* replayBuffer           = nullptr;;
+obs_output_t* replayBuffer           = nullptr;
 obs_wrapper<obs_encoder_t> audioStreamingEncoder;
 obs_wrapper<obs_encoder_t> audioRecordingEncoder;
 obs_wrapper<obs_encoder_t> videoStreamingEncoder;
@@ -773,7 +680,7 @@ const char* FindAudioEncoderFromCodec(const char* type)
 	return nullptr;
 }
 
-bool OBS_service::createAudioEncoder(obs_encoder_t** audioEncoder)
+bool OBS_service::createAudioEncoder(obs_wrapper<obs_encoder_t>* audioEncoder)
 {
      int bitrate = FindClosestAvailableAACBitrate((int)
         config_get_uint(ConfigManager::getInstance().getBasic(), "SimpleOutput", "ABitrate"));
@@ -784,11 +691,11 @@ bool OBS_service::createAudioEncoder(obs_encoder_t** audioEncoder)
 		return false;
 	}
 
-	if (audioEncoder != NULL && usingRecordingPreset)
-		obs_encoder_release(*audioEncoder);
-
-	*audioEncoder = obs_audio_encoder_create(id, "simple_audio", nullptr, 0, nullptr);
-	if (*audioEncoder == nullptr) {
+	*audioEncoder = make_wrapper<obs_encoder_t>(
+	    obs_audio_encoder_create(id, "simple_audio", nullptr, 0, nullptr),
+	    obs_encoder_addref,
+	    obs_encoder_release);
+	if (*audioEncoder) {
 		return false;
 	}
 
@@ -804,12 +711,11 @@ bool OBS_service::createVideoStreamingEncoder()
         encoder = "obs_x264";
     }
 
-    if(videoStreamingEncoder != NULL) {
-        obs_encoder_release(videoStreamingEncoder);
-    }
-
-	videoStreamingEncoder = obs_video_encoder_create(encoder, "streaming_h264", nullptr, nullptr);
-	if (videoStreamingEncoder == nullptr) {
+	videoStreamingEncoder = make_wrapper<obs_encoder_t>(
+	    obs_video_encoder_create(encoder, "streaming_h264", nullptr, nullptr),
+	    obs_encoder_addref,
+	    obs_encoder_release);
+	if (videoStreamingEncoder) {
 		return false;
 	}
 
@@ -985,11 +891,11 @@ static void remove_reserved_file_characters(string& s)
 
 bool OBS_service::createVideoRecordingEncoder()
 {
-	if (videoRecordingEncoder != NULL) {
-		obs_encoder_release(videoRecordingEncoder);
-	}
-	videoRecordingEncoder = obs_video_encoder_create("obs_x264", "simple_h264_recording", nullptr, nullptr);
-	if (videoRecordingEncoder == nullptr) {
+	videoRecordingEncoder = make_wrapper<obs_encoder_t>(
+	    obs_video_encoder_create("obs_x264", "simple_h264_recording", nullptr, nullptr),
+	    obs_encoder_addref,
+	    obs_encoder_release);
+	if (videoRecordingEncoder) {
 		return false;
 	}
 
@@ -1118,7 +1024,7 @@ bool OBS_service::startStreaming(void)
 			return false;
 
 		obs_encoder_update(audioStreamingEncoder.get(), settings);
-		obs_encoder_set_audio(audioStreamingEncoder, obs_get_audio());
+		obs_encoder_set_audio(audioStreamingEncoder.get(), obs_get_audio());
 
 		obs_data_release(settings);
 	}
@@ -1160,12 +1066,15 @@ bool OBS_service::startRecording(void)
 		obs_data_t* settings     = obs_data_create();
 		obs_data_set_int(settings, "bitrate", audioBitrate);
 
-		audioStreamingEncoder = obs_audio_encoder_create(id, "alt_audio_enc", nullptr, trackIndex - 1, nullptr);
+		audioStreamingEncoder = make_wrapper<obs_encoder_t>(
+		    obs_audio_encoder_create(id, "alt_audio_enc", nullptr, trackIndex - 1, nullptr),
+		    obs_encoder_addref,
+		    obs_encoder_release);
 		if (!audioStreamingEncoder)
 			return false;
 
-		obs_encoder_update(audioStreamingEncoder, settings);
-		obs_encoder_set_audio(audioStreamingEncoder, obs_get_audio());
+		obs_encoder_update(audioStreamingEncoder.get(), settings);
+		obs_encoder_set_audio(audioStreamingEncoder.get(), obs_get_audio());
 
 		obs_data_release(settings);
 	}
@@ -1233,12 +1142,15 @@ bool OBS_service::updateAdvancedReplayBuffer(void)
 		obs_data_t* settings     = obs_data_create();
 		obs_data_set_int(settings, "bitrate", audioBitrate);
 
-		audioStreamingEncoder = obs_audio_encoder_create(id, "alt_audio_enc", nullptr, int(trackIndex) - 1, nullptr);
+		audioStreamingEncoder = make_wrapper<obs_encoder_t>(
+		    obs_audio_encoder_create(id, "alt_audio_enc", nullptr, int(trackIndex) - 1, nullptr),
+		    obs_encoder_addref,
+		    obs_encoder_release);
 		if (!audioStreamingEncoder)
 			return false;
 
-		obs_encoder_update(audioStreamingEncoder, settings);
-		obs_encoder_set_audio(audioStreamingEncoder, obs_get_audio());
+		obs_encoder_update(audioStreamingEncoder.get(), settings);
+		obs_encoder_set_audio(audioStreamingEncoder.get(), obs_get_audio());
 
 		obs_data_release(settings);
 	}
@@ -1352,13 +1264,15 @@ bool OBS_service::startReplayBuffer(void)
 			obs_data_t* settings     = obs_data_create();
 			obs_data_set_int(settings, "bitrate", audioBitrate);
 
-			audioStreamingEncoder =
-			    obs_audio_encoder_create(id, "alt_audio_enc", nullptr, int(trackIndex) - 1, nullptr);
+			audioStreamingEncoder = make_wrapper<obs_encoder_t>(
+			    obs_audio_encoder_create(id, "alt_audio_enc", nullptr, int(trackIndex) - 1, nullptr),
+			    obs_encoder_addref,
+			    obs_encoder_release);
 			if (!audioStreamingEncoder)
 				return false;
 
-			obs_encoder_update(audioStreamingEncoder, settings);
-			obs_encoder_set_audio(audioStreamingEncoder, obs_get_audio());
+			obs_encoder_update(audioStreamingEncoder.get(), settings);
+			obs_encoder_set_audio(audioStreamingEncoder.get(), obs_get_audio());
 
 			obs_data_release(settings);
 		}
@@ -1410,12 +1324,12 @@ void OBS_service::associateAudioAndVideoToTheCurrentStreamingContext(void)
 				cx = 0;
 				cy = 0;
 			}
-			obs_encoder_set_scaled_size(videoStreamingEncoder, cx, cy);
+			obs_encoder_set_scaled_size(videoStreamingEncoder.get(), cx, cy);
 		}
 	}
 
-	obs_encoder_set_video(videoStreamingEncoder, obs_get_video());
-	obs_encoder_set_audio(audioStreamingEncoder, obs_get_audio());
+	obs_encoder_set_video(videoStreamingEncoder.get(), obs_get_video());
+	obs_encoder_set_audio(audioStreamingEncoder.get(), obs_get_audio());
 }
 
 void OBS_service::associateAudioAndVideoToTheCurrentRecordingContext(void)
@@ -1437,43 +1351,43 @@ void OBS_service::associateAudioAndVideoToTheCurrentRecordingContext(void)
 				cx = 0;
 				cy = 0;
 			}
-			obs_encoder_set_scaled_size(videoRecordingEncoder, cx, cy);
+			obs_encoder_set_scaled_size(videoRecordingEncoder.get(), cx, cy);
 		}
 	}
 
-	obs_encoder_set_video(videoRecordingEncoder, obs_get_video());
-	obs_encoder_set_audio(audioRecordingEncoder, obs_get_audio());
+	obs_encoder_set_video(videoRecordingEncoder.get(), obs_get_video());
+	obs_encoder_set_audio(audioRecordingEncoder.get(), obs_get_audio());
 }
 
 void OBS_service::associateAudioAndVideoEncodersToTheCurrentStreamingOutput(void)
 {
-	obs_output_set_video_encoder(streamingOutput, videoStreamingEncoder);
-	obs_output_set_audio_encoder(streamingOutput, audioStreamingEncoder, 0);
+	obs_output_set_video_encoder(streamingOutput, videoStreamingEncoder.get());
+	obs_output_set_audio_encoder(streamingOutput, audioStreamingEncoder.get(), 0);
 	
 	if (replayBuffer) {
-		obs_output_set_video_encoder(replayBuffer, videoStreamingEncoder);
-		obs_output_set_audio_encoder(replayBuffer, audioStreamingEncoder, 0);
+		obs_output_set_video_encoder(replayBuffer, videoStreamingEncoder.get());
+		obs_output_set_audio_encoder(replayBuffer, audioStreamingEncoder.get(), 0);
 	}
 }
 
 void OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(bool useStreamingEncoder)
 {
 	if (useStreamingEncoder) {
-		obs_output_set_video_encoder(recordingOutput, videoStreamingEncoder);
-		obs_output_set_audio_encoder(recordingOutput, audioStreamingEncoder, 0);
+		obs_output_set_video_encoder(recordingOutput, videoStreamingEncoder.get());
+		obs_output_set_audio_encoder(recordingOutput, audioStreamingEncoder.get(), 0);
 
 		if (replayBuffer) {
-			obs_output_set_video_encoder(replayBuffer, videoStreamingEncoder);
-			obs_output_set_audio_encoder(replayBuffer, audioStreamingEncoder, 0);
+			obs_output_set_video_encoder(replayBuffer, videoStreamingEncoder.get());
+			obs_output_set_audio_encoder(replayBuffer, audioStreamingEncoder.get(), 0);
 		}
 	}
 	else {
-		obs_output_set_video_encoder(recordingOutput, videoRecordingEncoder);
-		obs_output_set_audio_encoder(recordingOutput, audioRecordingEncoder, 0);
+		obs_output_set_video_encoder(recordingOutput, videoRecordingEncoder.get());
+		obs_output_set_audio_encoder(recordingOutput, audioRecordingEncoder.get(), 0);
 
 		if (replayBuffer) {
-			obs_output_set_video_encoder(replayBuffer, videoRecordingEncoder);
-			obs_output_set_audio_encoder(replayBuffer, audioRecordingEncoder, 0);
+			obs_output_set_video_encoder(replayBuffer, videoRecordingEncoder.get());
+			obs_output_set_audio_encoder(replayBuffer, audioRecordingEncoder.get(), 0);
 		}
 	}
 }
@@ -1494,6 +1408,12 @@ obs_service_t* OBS_service::getService(void)
 {
 	const char* serviceType = obs_service_get_type(service);
 	return service;
+}
+
+void OBS_service::releaseService() 
+{
+	if (service != NULL)
+		obs_service_release(service);
 }
 
 void OBS_service::setService(obs_service_t* newService)
@@ -1601,10 +1521,10 @@ void OBS_service::updateVideoStreamingEncoder()
 		}
         preset = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", presetType);
 
-		if (videoStreamingEncoder != NULL && usingRecordingPreset) {
-			obs_encoder_release(videoStreamingEncoder);
-		}
-		videoStreamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
+		videoStreamingEncoder = make_wrapper<obs_encoder_t>(
+		    obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr),
+		    obs_encoder_addref,
+		    obs_encoder_release);
 	}
 
     if(videoBitrate == 0) {
@@ -1637,10 +1557,10 @@ void OBS_service::updateVideoStreamingEncoder()
 	enum video_format format = video_output_get_format(video);
 
 	if (format != VIDEO_FORMAT_NV12 && format != VIDEO_FORMAT_I420)
-		obs_encoder_set_preferred_video_format(videoStreamingEncoder, VIDEO_FORMAT_NV12);
+		obs_encoder_set_preferred_video_format(videoStreamingEncoder.get(), VIDEO_FORMAT_NV12);
 
-	obs_encoder_update(videoStreamingEncoder, h264Settings);
-	obs_encoder_update(audioStreamingEncoder, aacSettings);
+	obs_encoder_update(videoStreamingEncoder.get(), h264Settings);
+	obs_encoder_update(audioStreamingEncoder.get(), aacSettings);
 
 	obs_data_release(h264Settings);
 	obs_data_release(aacSettings);
@@ -1799,7 +1719,7 @@ void OBS_service::updateAdvancedRecordingOutput(void)
 	bool useStreamEncoder = false;
 
 	if (useStreamEncoder) {
-		obs_output_set_video_encoder(recordingOutput, videoStreamingEncoder);
+		obs_output_set_video_encoder(recordingOutput, videoStreamingEncoder.get());
 	} else {
 		if (rescale && rescaleRes && *rescaleRes) {
 			if (sscanf(rescaleRes, "%ux%u", &cx, &cy) != 2) {
@@ -1808,9 +1728,9 @@ void OBS_service::updateAdvancedRecordingOutput(void)
 			}
 		}
 
-		obs_encoder_set_scaled_size(videoRecordingEncoder, cx, cy);
-		obs_encoder_set_video(videoRecordingEncoder, obs_get_video());
-		obs_output_set_video_encoder(recordingOutput, videoRecordingEncoder);
+		obs_encoder_set_scaled_size(videoRecordingEncoder.get(), cx, cy);
+		obs_encoder_set_video(videoRecordingEncoder.get(), obs_get_video());
+		obs_output_set_video_encoder(recordingOutput, videoRecordingEncoder.get());
 	}
 
 	// for (int i = 0; i < MAX_AUDIO_MIXES; i++) {
@@ -1849,13 +1769,12 @@ void OBS_service::LoadRecordingPreset_Lossless()
 
 void OBS_service::LoadRecordingPreset_h264(const char* encoderId)
 {
-	if (videoRecordingEncoder != NULL) {
-		obs_encoder_release(videoRecordingEncoder);
-	}
-	videoRecordingEncoder = obs_video_encoder_create(encoderId, "simple_h264_recording", nullptr, nullptr);
+	videoRecordingEncoder = make_wrapper<obs_encoder_t>(
+	    obs_video_encoder_create(encoderId, "simple_h264_recording", nullptr, nullptr),
+	    obs_encoder_addref,
+	    obs_encoder_release);
 	if (!videoRecordingEncoder)
 		throw "Failed to create h264 recording encoder (simple output)";
-	// obs_encoder_release(videoRecordingEncoder);
 }
 
 static bool update_ffmpeg_output(config_t* config)
@@ -1990,7 +1909,6 @@ void OBS_service::updateVideoRecordingEncoder()
 			updateVideoStreamingEncoder();
 		}
 		if (videoRecordingEncoder != videoStreamingEncoder) {
-			obs_encoder_release(videoRecordingEncoder);
 			videoRecordingEncoder = videoStreamingEncoder;
 			usingRecordingPreset  = false;
 		}
@@ -2027,9 +1945,9 @@ void OBS_service::updateVideoRecordingEncoder()
 	UpdateRecordingSettings();
 }
 
-static bool icq_available(obs_encoder_t* encoder)
+static bool icq_available(obs_wrapper<obs_encoder_t>& encoder)
 {
-	obs_properties_t* props     = obs_encoder_properties(encoder);
+	obs_properties_t* props     = obs_encoder_properties(encoder.get());
 	obs_property_t*   p         = obs_properties_get(props, "rate_control");
 	bool              icq_found = false;
 
@@ -2063,7 +1981,7 @@ void OBS_service::UpdateRecordingSettings_qsv11(int crf)
 		obs_data_set_int(settings, "qpb", crf);
 	}
 
-	obs_encoder_update(videoRecordingEncoder, settings);
+	obs_encoder_update(videoRecordingEncoder.get(), settings);
 
 	obs_data_release(settings);
 }
@@ -2076,7 +1994,7 @@ void OBS_service::UpdateRecordingSettings_nvenc(int cqp)
 	obs_data_set_string(settings, "preset", "hq");
 	obs_data_set_int(settings, "cqp", cqp);
 
-	obs_encoder_update(videoRecordingEncoder, settings);
+	obs_encoder_update(videoRecordingEncoder.get(), settings);
 
 	obs_data_release(settings);
 }
@@ -2120,7 +2038,7 @@ void OBS_service::UpdateRecordingSettings_amd_cqp(int cqp)
 	obs_data_set_int(settings, "BFrame.Pattern", 0);
 
 	// Update and release
-	obs_encoder_update(videoRecordingEncoder, settings);
+	obs_encoder_update(videoRecordingEncoder.get(), settings);
 	obs_data_release(settings);
 }
 
@@ -2133,7 +2051,7 @@ void OBS_service::UpdateRecordingSettings_x264_crf(int crf)
 	obs_data_set_string(settings, "profile", "high");
 	obs_data_set_string(settings, "preset", lowCPUx264 ? "ultrafast" : "veryfast");
 
-	obs_encoder_update(videoRecordingEncoder, settings);
+	obs_encoder_update(videoRecordingEncoder.get(), settings);
 
 	obs_data_release(settings);
 }
@@ -2176,48 +2094,64 @@ void OBS_service::UpdateRecordingSettings()
 	}
 }
 
-obs_encoder_t* OBS_service::getStreamingEncoder(void)
+void OBS_service::releaseEncoders()
+{
+	audioStreamingEncoder.reset();
+	audioRecordingEncoder.reset();
+	videoStreamingEncoder.reset();
+	videoRecordingEncoder.reset();
+}
+
+obs_wrapper<obs_encoder_t> OBS_service::getStreamingEncoder(void)
 {
 	return videoStreamingEncoder;
 }
 
-void OBS_service::setStreamingEncoder(obs_encoder_t* encoder)
+void OBS_service::setStreamingEncoder(obs_wrapper<obs_encoder_t>& encoder)
 {
-	obs_encoder_release(videoStreamingEncoder);
 	videoStreamingEncoder = encoder;
 }
 
-obs_encoder_t* OBS_service::getRecordingEncoder(void)
+obs_wrapper<obs_encoder_t> OBS_service::getRecordingEncoder(void)
 {
 	return videoRecordingEncoder;
 }
 
-void OBS_service::setRecordingEncoder(obs_encoder_t* encoder)
+void OBS_service::setRecordingEncoder(obs_wrapper<obs_encoder_t>& encoder)
 {
-	obs_encoder_release(videoRecordingEncoder);
 	videoRecordingEncoder = encoder;
 }
 
-obs_encoder_t* OBS_service::getAudioStreamingEncoder(void)
+obs_wrapper<obs_encoder_t> OBS_service::getAudioStreamingEncoder(void)
 {
 	return audioStreamingEncoder;
 }
 
-void OBS_service::setAudioStreamingEncoder(obs_encoder_t* encoder)
+void OBS_service::setAudioStreamingEncoder(obs_wrapper<obs_encoder_t>& encoder)
 {
-	obs_encoder_release(audioStreamingEncoder);
 	audioStreamingEncoder = encoder;
 }
 
-obs_encoder_t* OBS_service::getAudioRecordingEncoder(void)
+obs_wrapper<obs_encoder_t> OBS_service::getAudioRecordingEncoder(void)
 {
 	return audioRecordingEncoder;
 }
 
-void OBS_service::setAudioRecordingEncoder(obs_encoder_t* encoder)
+void OBS_service::setAudioRecordingEncoder(obs_wrapper<obs_encoder_t>& encoder)
 {
-	obs_encoder_release(audioRecordingEncoder);
 	audioRecordingEncoder = encoder;
+}
+
+void OBS_service::releaseOutputs() 
+{
+	if (streamingOutput != NULL)
+		obs_output_release(streamingOutput);
+
+	if (recordingOutput != NULL)
+		obs_output_release(recordingOutput);
+
+	if (replayBuffer != NULL)
+		obs_output_release(replayBuffer);
 }
 
 obs_output_t* OBS_service::getStreamingOutput(void)
@@ -2271,7 +2205,7 @@ void OBS_service::updateStreamSettings(void)
 			config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "ApplyServiceSettings");
 
 		if (applyServiceSettings) {
-			obs_data_t* encoderSettings = obs_encoder_get_settings(videoStreamingEncoder);
+			obs_data_t* encoderSettings = obs_encoder_get_settings(videoStreamingEncoder.get());
 			obs_service_apply_encoder_settings(OBS_service::getService(), encoderSettings, nullptr);
 		}
 	}
