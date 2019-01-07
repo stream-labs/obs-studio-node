@@ -44,7 +44,7 @@
 
 class obs_global_ref_counter
 {
-	public:
+	protected:
 
 	void increment_ref_counter()
 	{
@@ -55,6 +55,8 @@ class obs_global_ref_counter
 	{
 		m_TotalDestructed++;
 	}
+
+	public:
 
 	__declspec(noinline) static int get_total_allocations()
 	{
@@ -97,7 +99,9 @@ class obs_wrapper : protected obs_global_ref_counter
 		m_Object      = obj;
 		m_RefIncrease = refIncrease;
 		m_RefDecrease = refDecrease;
-		increment_ref_counter();
+		if (is_valid()) {
+			increment_ref_counter();
+		}
 	}
 
 	// Copy constructor
@@ -109,12 +113,16 @@ class obs_wrapper : protected obs_global_ref_counter
 		if (m_RefIncrease) {
 			m_RefIncrease(m_Object);
 		}
-		increment_ref_counter();
+		if (is_valid()) {
+			increment_ref_counter();
+		}
 	}
-	/*
+	
 	// Move constructor
 	obs_wrapper<ObjectType> operator=(obs_wrapper<ObjectType>&& other)
 	{
+		reset();
+
 		m_Object            = std::move(other.m_Object);
 		m_RefIncrease       = std::move(other.m_RefIncrease);
 		m_RefDecrease       = std::move(other.m_RefDecrease);
@@ -124,28 +132,23 @@ class obs_wrapper : protected obs_global_ref_counter
 
 		return *this;
 	}
-	
-	// Copy assignment op
-	__declspec(noinline) obs_wrapper<ObjectType>& operator=(obs_wrapper<ObjectType> other)
-	{
-		m_Object      = other.m_Object;
-		m_RefIncrease = other.m_RefIncrease;
-		m_RefDecrease = other.m_RefDecrease;
-		m_RefIncrease(m_Object);
-		return *this;
-	}
-	*/
 
 	// Assignment op
 	__declspec(noinline) obs_wrapper<ObjectType>& operator=(const obs_wrapper<ObjectType>& other)
 	{
+		if (other.m_RefIncrease) {
+			other.m_RefIncrease(other.m_Object);
+		}
+		if (other.is_valid()) {
+			increment_ref_counter();
+		}
+
+		reset();
+
 		m_Object      = other.m_Object;
 		m_RefIncrease = other.m_RefIncrease;
 		m_RefDecrease = other.m_RefDecrease;
-		if (m_RefIncrease) {
-			m_RefIncrease(m_Object);
-		}
-		increment_ref_counter();
+
 		return *this;
 	}
 
@@ -175,12 +178,14 @@ class obs_wrapper : protected obs_global_ref_counter
 
 	void reset()
 	{
+		if (is_valid()) {
+			decrement_ref_counter();
+		}
 		if (m_RefDecrease)
 			m_RefDecrease(m_Object);
 		m_Object      = nullptr;
 		m_RefIncrease = nullptr;
 		m_RefDecrease = nullptr;
-		decrement_ref_counter();
 	}
 
 	ObjectType* get()
@@ -189,7 +194,7 @@ class obs_wrapper : protected obs_global_ref_counter
 		return m_Object;
 	}
 
-	bool is_valid()
+	bool is_valid() const
 	{
 		return m_Object != nullptr;
 	}
