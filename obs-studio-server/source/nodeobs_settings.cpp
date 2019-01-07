@@ -154,9 +154,9 @@ std::vector<SubCategory> serializeCategory(uint32_t subCategoriesCount, uint32_t
 			param.description  = description;
 			param.type         = type;
 			param.subType      = subType;
-			param.enabled      = *enabled;
-			param.masked       = *masked;
-			param.visible      = *visible;
+			param.enabled      = enabled;
+			param.masked       = masked;
+			param.visible      = visible;
 			param.currentValue = currentValue;
 			param.values       = values;
 			param.countValues  = *countValues;
