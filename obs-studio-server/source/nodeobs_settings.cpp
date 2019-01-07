@@ -1591,8 +1591,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 
 	struct stat buffer;
 
-	std::string streamName = ConfigManager::getInstance().getStream();
-	bool fileExist = (os_stat(streamName.c_str(), &buffer) == 0);
+	bool fileExist = (os_stat(ConfigManager::getInstance().getStream().c_str(), &buffer) == 0);
 
 	obs_data_t*    settings = obs_encoder_defaults(encoderID);
 	obs_encoder_t* streamingEncoder;
@@ -1606,12 +1605,12 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
 			OBS_service::setStreamingEncoder(streamingEncoder);
 
-			if (!obs_data_save_json_safe(settings, streamName.c_str(), "tmp", "bak")) {
-				blog(LOG_WARNING, "Failed to save encoder %s", streamName.c_str());
+			if (!obs_data_save_json_safe(settings, ConfigManager::getInstance().getStream().c_str(), "tmp", "bak")) {
+				blog(LOG_WARNING, "Failed to save encoder %s", ConfigManager::getInstance().getStream().c_str());
 			}
 		} else {
 			obs_data_t* data =
-			    obs_data_create_from_json_file_safe(streamName.c_str(), "bak");
+			    obs_data_create_from_json_file_safe(ConfigManager::getInstance().getStream().c_str(), "bak");
 			obs_data_apply(settings, data);
 			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", settings, nullptr);
 			OBS_service::setStreamingEncoder(streamingEncoder);
