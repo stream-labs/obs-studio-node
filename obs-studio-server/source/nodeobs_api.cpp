@@ -618,6 +618,8 @@ void OBS_API::QueryHotkeys(
 		    auto                     registerer_type = obs_hotkey_get_registerer_type(key);
 		    void*                    registerer      = obs_hotkey_get_registerer(key);
 		    HotkeyInfo               currentHotkeyInfo;
+		    if (registerer == nullptr)
+			    return true;
 
 		    // Discover the type of object registered with this hotkey
 		    switch (registerer_type) {
