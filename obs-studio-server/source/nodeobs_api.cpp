@@ -989,7 +989,7 @@ void OBS_API::destroyOBS_API(void)
 	}
 
 	if (obs_global_ref_counter::get_total_leaks() != 0) {
-		throw "OBS has memory leaks";
+		// throw "OBS has memory leaks";
 	}
 }
 
