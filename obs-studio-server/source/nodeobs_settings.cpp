@@ -781,7 +781,7 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 {
 	obs_service_t* currentService = OBS_service::getService();
 
-	obs_data_t* settings;
+	obs_data_t* settings = nullptr;
 
 	std::string currentStreamType = obs_service_get_type(currentService);
 	const char* newserviceTypeValue;
