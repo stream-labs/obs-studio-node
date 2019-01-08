@@ -804,11 +804,12 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 			std::string name = param.name;
 			std::string type = param.type;
 
+			std::string* value;
 			if (type.compare("OBS_PROPERTY_LIST") == 0 || type.compare("OBS_PROPERTY_EDIT_TEXT") == 0) {
-				std::string value(param.currentValue.data(), param.currentValue.size());
+				value = new std::string(param.currentValue.data(), param.currentValue.size());
 
 				if (name.compare("streamType") == 0) {
-					newserviceTypeValue = value.c_str();
+					newserviceTypeValue = value->c_str();
 					settings            = obs_service_defaults(newserviceTypeValue);
 					if (currentStreamType.compare(newserviceTypeValue) != 0) {
 						serviceTypeChanged = true;
@@ -816,12 +817,12 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 				}
 
 				if (name.compare("service") == 0) {
-					newServiceValue = value;
+					newServiceValue = value->c_str();
 					if (currentServiceName.compare(newServiceValue) != 0) {
 						serviceChanged = true;
 					}
 				}
-				obs_data_set_string(settings, name.c_str(), value.c_str());
+				obs_data_set_string(settings, name.c_str(), value->c_str());
 			} else if (type.compare("OBS_PROPERTY_INT") == 0 || type.compare("OBS_PROPERTY_UINT") == 0) {
 				int64_t* value = reinterpret_cast<int64_t*>(param.currentValue.data());
 				obs_data_set_int(settings, name.c_str(), *value);
