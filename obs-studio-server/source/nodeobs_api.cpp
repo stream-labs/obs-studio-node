@@ -990,10 +990,6 @@ void OBS_API::destroyOBS_API(void)
 	if (totalLeaks) {
 		// throw "OBS has memory leaks";
 	}
-
-	if (obs_global_ref_counter::get_total_leaks() != 0) {
-		// throw "OBS has memory leaks";
-	}
 }
 
 struct ci_char_traits : public char_traits<char>

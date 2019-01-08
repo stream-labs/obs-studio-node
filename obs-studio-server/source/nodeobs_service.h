@@ -14,7 +14,6 @@
 #include <util/dstr.h>
 #include <util/platform.h>
 #include "nodeobs_api.h"
-#include "wrapper-obs.h"
 
 #include "nodeobs_audio_encoders.h"
 
