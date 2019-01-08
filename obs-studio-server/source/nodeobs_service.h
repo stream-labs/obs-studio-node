@@ -246,18 +246,18 @@ class OBS_service
 	static void           setServiceToTheStreamingOutput(void);
 
 	// Encoders
-	static bool                       createAudioEncoder(obs_wrapper<obs_encoder_t>* audioEncoder);
+	static bool                       createAudioEncoder(obs_encoder_t** audioEncoder); // Releases and takes ownership
 	static bool                       createVideoStreamingEncoder();
 	static bool                       createVideoRecordingEncoder();
 	static void                       releaseEncoders();
-	static obs_wrapper<obs_encoder_t> getStreamingEncoder(void);
-	static void                       setStreamingEncoder(obs_wrapper<obs_encoder_t>& encoder);
-	static obs_wrapper<obs_encoder_t> getRecordingEncoder(void);
-	static void                       setRecordingEncoder(obs_wrapper<obs_encoder_t>& encoder);
-	static obs_wrapper<obs_encoder_t> getAudioStreamingEncoder(void);
-	static void                       setAudioStreamingEncoder(obs_wrapper<obs_encoder_t>& encoder);
-	static obs_wrapper<obs_encoder_t> getAudioRecordingEncoder(void);
-	static void                       setAudioRecordingEncoder(obs_wrapper<obs_encoder_t>& encoder);
+	static obs_encoder_t*             getStreamingEncoder(void);
+	static void                       setStreamingEncoder(obs_encoder_t* encoder); // Takes ownership
+	static obs_encoder_t*             getRecordingEncoder(void);
+	static void                       setRecordingEncoder(obs_encoder_t* encoder); // Takes ownership
+	static obs_encoder_t*             getAudioStreamingEncoder(void);
+	static void                       setAudioStreamingEncoder(obs_encoder_t* encoder); // Takes ownership
+	static obs_encoder_t*             getAudioRecordingEncoder(void);
+	static void                       setAudioRecordingEncoder(obs_encoder_t* encoder); // Takes ownership
 
 	// Outputs
 	static bool          createStreamingOutput(void);

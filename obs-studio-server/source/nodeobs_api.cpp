@@ -522,8 +522,8 @@ void OBS_API::OBS_API_initAPI(
 	OBS_service::createVideoStreamingEncoder();
 	OBS_service::createVideoRecordingEncoder();
 
-	auto audioStreamingEncoder = OBS_service::getAudioStreamingEncoder();
-	auto audioRecordingEncoder = OBS_service::getAudioRecordingEncoder();
+	auto* audioStreamingEncoder = OBS_service::getAudioStreamingEncoder();
+	auto* audioRecordingEncoder = OBS_service::getAudioRecordingEncoder();
 
 	OBS_service::createAudioEncoder(&audioStreamingEncoder);
 	OBS_service::createAudioEncoder(&audioRecordingEncoder);
@@ -549,6 +549,9 @@ void OBS_API::OBS_API_initAPI(
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(OBS_VIDEO_SUCCESS));
 
+	obs_encoder_release(audioStreamingEncoder);
+	obs_encoder_release(audioRecordingEncoder);
+	
 	AUTO_DEBUG;
 }
 

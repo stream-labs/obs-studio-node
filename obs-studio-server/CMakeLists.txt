@@ -222,9 +222,6 @@ add_executable(
 	"${PROJECT_SOURCE_DIR}/source/nodeobs_settings.h"
 	"${PROJECT_SOURCE_DIR}/source/util-memory.cpp"
 	"${PROJECT_SOURCE_DIR}/source/util-memory.h"
-
-	###### wrapper-obs ######
-	"${PROJECT_SOURCE_DIR}/source/wrapper-obs.h"
 )
 
 if(WIN32)
