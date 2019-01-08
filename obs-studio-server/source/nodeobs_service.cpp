@@ -1901,6 +1901,7 @@ void OBS_service::updateVideoRecordingEncoder()
 		}
 		if (videoRecordingEncoder != videoStreamingEncoder) {
 			obs_encoder_release(videoRecordingEncoder);
+			videoRecordingEncoder = nullptr;
 			videoRecordingEncoder = videoStreamingEncoder;
 			usingRecordingPreset  = false;
 		}
@@ -2093,7 +2094,8 @@ obs_encoder_t* OBS_service::getStreamingEncoder(void)
 
 void OBS_service::setStreamingEncoder(obs_encoder_t* encoder)
 {
-	obs_encoder_release(videoStreamingEncoder);
+	if (!videoStreamingEncoder)
+		obs_encoder_release(videoStreamingEncoder);
 	videoStreamingEncoder = encoder;
 }
 
@@ -2104,7 +2106,8 @@ obs_encoder_t* OBS_service::getRecordingEncoder(void)
 
 void OBS_service::setRecordingEncoder(obs_encoder_t* encoder)
 {
-	obs_encoder_release(videoRecordingEncoder);
+	if (!videoRecordingEncoder)
+		obs_encoder_release(videoRecordingEncoder);
 	videoRecordingEncoder = encoder;
 }
 
@@ -2431,4 +2434,9 @@ void OBS_service::OBS_service_getLastReplay(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(path));
+}
+
+bool OBS_service::useRecordingPreset()
+{
+	return usingRecordingPreset;
 }

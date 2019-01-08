@@ -973,7 +973,7 @@ void OBS_API::destroyOBS_API(void)
 		obs_encoder_release(streamingEncoder);
 
 	obs_encoder_t* recordingEncoder = OBS_service::getRecordingEncoder();
-	if (recordingEncoder != NULL)
+	if (recordingEncoder != NULL && OBS_service::useRecordingPreset())
 		obs_encoder_release(recordingEncoder);
 
 	obs_encoder_t* audioStreamingEncoder = OBS_service::getAudioStreamingEncoder();
