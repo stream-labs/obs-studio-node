@@ -301,4 +301,6 @@ class OBS_service
 	// Output signals
 	static void connectOutputSignals(void);
 	static void JSCallbackOutputSignal(void* data, calldata_t*);
+
+	static bool useRecordingPreset();
 };
