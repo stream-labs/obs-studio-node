@@ -1083,7 +1083,8 @@ bool OBS_service::startRecording(void)
 		SignalInfo signal = SignalInfo("recording", "stop");
 		isRecording       = false;
 		const char* error = obs_output_get_last_error(recordingOutput);
-		std::cout << "Last recording error: " << error << std::endl;
+		if (error)
+			std::cout << "Last recording error: " << error << std::endl;
 	}
 	return isRecording;
 }
