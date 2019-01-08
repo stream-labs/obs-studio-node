@@ -21,6 +21,7 @@
     "@types/node": "^9.6.5",
     "chai": "^4.2.0",
     "mocha": "^5.2.0",
+    "mocha-appveyor-reporter": "^0.4.2",
     "ts-node": "^7.0.1"
   }
 }

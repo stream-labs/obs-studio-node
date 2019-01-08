@@ -45,12 +45,13 @@ after_build:
   - copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\ucrtbase.dll" "%SLFullDistributePath%\obs-studio-node\"
   - tar cvaf "%UnsignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
 
+before_test:
+  - cmd: cd tests\osn-tests
+  - cmd: yarn install
+
 test_script:
-  - ps: |
-      if ($Env:RuntimeName -eq "iojs") {
-        npm install -g electron@$Env:RuntimeVersion
-        .\tools\test-runner.ps1 -runtime iojs
-      }
+  - cmd: cd tests\osn-tests
+  - cmd: npm run test
 
 before_deploy:
   - nuget install secure-file -ExcludeVersion
@@ -76,4 +77,4 @@ artifacts:
   - path: $(UnsignedArtifact).tar.gz
     name: Unsigned Aritfact
 
-test: off
+test: on
