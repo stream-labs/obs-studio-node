@@ -1483,7 +1483,7 @@ void OBS_service::updateVideoStreamingEncoder()
 		config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "StreamEncoder");
 	const char *encoderID;
     const char *presetType;
-    const char *preset;
+    const char *preset = nullptr;
 
 	if (encoder != NULL) {
 		if (strcmp(encoder, SIMPLE_ENCODER_QSV) == 0 || strcmp(encoder, ADVANCED_ENCODER_QSV) == 0) {
@@ -2166,7 +2166,7 @@ void OBS_service::updateStreamSettings(void)
 			config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput",
 			"RecQuality");
 		if ((strcmp(quality, "Stream") != 0) ||
-				(strcmp(quality, "Stream") == 0 && !isRecording)) {
+			(strcmp(quality, "Stream") == 0 && !isRecording)) {
 			updateVideoStreamingEncoder();
 		}
 	} else if (strcmp(currentOutputMode, "Advanced") == 0) {
