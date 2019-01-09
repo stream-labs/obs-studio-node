@@ -1,24 +1,19 @@
 {
-  "name": "obs-studio-node-test",
+  "name": "osn-tests",
   "version": "1.0.0",
   "description": "OBS Studio Node Unit Testing",
   "scripts": {
-    "build": "tsc",
-    "test": "mocha --timeout 10000 -r ts-node/register src/**/*.ts",
-    "test:service": "node src/service/stream.js"
+    "test": "mocha --timeout 10000 -r ts-node/register src/**/*.ts"
   },
   "author": "Streamlabs",
   "license": "GPL-3.0",
   "dependencies": {
-    "obs-studio-node": "https://obsstudionodes3.streamlabs.com/obs-studio-node-v0.3.79-iojs-v2.0.8.tar.gz",
-    "prompt": "^1.0.0",
-    "sleep": "^5.1.1",
+    "obs-studio-node": "/projects/obs-studio-node/streamlabs-build/distribute/obs-studio-node",
     "typescript": "^2.8.1"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.5",
-    "@types/node": "^9.6.5",
     "chai": "^4.2.0",
     "mocha": "^5.2.0",
     "mocha-appveyor-reporter": "^0.4.2",
