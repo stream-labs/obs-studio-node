@@ -11,12 +11,8 @@ environment:
     - RuntimeURL: https://atom.io/download/atom-shell
       RuntimeName: iojs
       RuntimeVersion: v2.0.8
+      NodeVersion: 8
 
-    - RuntimeURL: https://atom.io/download/atom-shell
-      RuntimeName: iojs
-      RuntimeVersion: v3.0.8
-
-  NodeVersion: 9
   SLBuildDirectory: streamlabs-build
   SLGenerator: Visual Studio 15 2017 Win64
   SLDistributeDirectory: distribute
@@ -50,7 +46,6 @@ before_test:
   - cmd: yarn install
 
 test_script:
-  - cmd: cd tests\osn-tests
   - cmd: npm run test
 
 before_deploy:
