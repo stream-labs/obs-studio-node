@@ -1251,23 +1251,26 @@ bool OBS_service::startReplayBuffer(void)
 			return false;
 		}
 
-		if (strcmp(codec, "aac") == 0) {
-			createAudioEncoder(useStreamingEncoder ? &audioStreamingEncoder : &audioRecordingEncoder);
-		} else {
-			const char* id           = FindAudioEncoderFromCodec(codec);
-			int         audioBitrate = GetAudioBitrate();
-			obs_data_t* settings     = obs_data_create();
-			obs_data_set_int(settings, "bitrate", audioBitrate);
+		if ((useStreamingEncoder && !audioStreamingEncoder) ||
+			(!useStreamingEncoder && !audioRecordingEncoder)) {
+			if (strcmp(codec, "aac") == 0) {
+				createAudioEncoder(useStreamingEncoder ? &audioStreamingEncoder : &audioRecordingEncoder);
+			} else {
+				const char* id           = FindAudioEncoderFromCodec(codec);
+				int         audioBitrate = GetAudioBitrate();
+				obs_data_t* settings     = obs_data_create();
+				obs_data_set_int(settings, "bitrate", audioBitrate);
 
-			audioStreamingEncoder =
-			    obs_audio_encoder_create(id, "alt_audio_enc", nullptr, int(trackIndex) - 1, nullptr);
-			if (!audioStreamingEncoder)
-				return false;
+				audioStreamingEncoder =
+				    obs_audio_encoder_create(id, "alt_audio_enc", nullptr, int(trackIndex) - 1, nullptr);
+				if (!audioStreamingEncoder)
+					return false;
 
-			obs_encoder_update(audioStreamingEncoder, settings);
-			obs_encoder_set_audio(audioStreamingEncoder, obs_get_audio());
+				obs_encoder_update(audioStreamingEncoder, settings);
+				obs_encoder_set_audio(audioStreamingEncoder, obs_get_audio());
 
-			obs_data_release(settings);
+				obs_data_release(settings);
+			}
 		}
 
 		updateVideoRecordingEncoder();
