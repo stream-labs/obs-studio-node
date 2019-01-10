@@ -1168,22 +1168,6 @@ void OBS_content::OBS_content_selectSource(
 	AUTO_DEBUG;
 }
 
-/* Deprecated */
-bool selectItems(obs_scene_t* scene, obs_sceneitem_t* item, void* param)
-{
-	vector<std::string>& sources = *reinterpret_cast<vector<std::string>*>(param);
-
-	obs_source_t* source = obs_sceneitem_get_source(item);
-	std::string   name   = obs_source_get_name(source);
-
-	if (std::find(sources.begin(), sources.end(), name) != sources.end())
-		obs_sceneitem_select(item, true);
-
-	else
-		obs_sceneitem_select(item, false);
-	return true;
-}
-
 void OBS_content::OBS_content_getDrawGuideLines(
     void*                          data,
     const int64_t                  id,
