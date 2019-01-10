@@ -375,81 +375,6 @@ void display::OBS_content_selectSource(const v8::FunctionCallbackInfo<v8::Value>
 	ValidateResponse(response);
 }
 
-void display::OBS_content_selectSources(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	/*uint32_t size = 0;
-	std::vector<std::string> sources;
-
-	ASSERT_GET_VALUE(info[0], size);
-
-	for (int i = 0; i < size; i++) {
-		sources.push_back(0);
-		ASSERT_GET_VALUE(info[i+1], sources.at(i));
-	}
-
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-		std::string result = "";
-	} rtd;
-
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
-
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-
-		rtd->result = rval[1].value_str;
-
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Display", "OBS_content_selectSources",
-		std::vector<ipc::value>{}, fnc, &rtd);
-	if (!suc) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		else {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	return;*/
-}
-
 void display::OBS_content_dragSelectedSource(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	uint32_t x, y;
@@ -522,7 +447,6 @@ INITIALIZER(nodeobs_display)
 		NODE_SET_METHOD(exports, "OBS_content_setResizeBoxOuterColor", display::OBS_content_setResizeBoxOuterColor);
 		NODE_SET_METHOD(exports, "OBS_content_setShouldDrawUI", display::OBS_content_setShouldDrawUI);
 		NODE_SET_METHOD(exports, "OBS_content_selectSource", display::OBS_content_selectSource);
-		NODE_SET_METHOD(exports, "OBS_content_selectSources", display::OBS_content_selectSources);
 		NODE_SET_METHOD(exports, "OBS_content_dragSelectedSource", display::OBS_content_dragSelectedSource);
 		NODE_SET_METHOD(exports, "OBS_content_getDrawGuideLines", display::OBS_content_getDrawGuideLines);
 		NODE_SET_METHOD(exports, "OBS_content_setDrawGuideLines", display::OBS_content_setDrawGuideLines);
