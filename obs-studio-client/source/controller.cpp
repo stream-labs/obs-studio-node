@@ -310,7 +310,6 @@ std::shared_ptr<ipc::client> Controller::connect(
 		return nullptr;
 	}
 
-	cl->authenticate();
 	m_connection = cl;
 	return m_connection;
 }
