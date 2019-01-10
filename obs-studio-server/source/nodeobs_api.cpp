@@ -500,8 +500,9 @@ void OBS_API::OBS_API_initAPI(
 	ConfigManager::getInstance().setAppdataPath(appdata);
 
 	/* Set global private settings for whomever it concerns */
+	bool        browserHWAccel   = config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "BrowserHWAccel");
 	obs_data_t* private_settings = obs_data_create();
-	obs_data_set_bool(private_settings, "BrowserHWAccel", true);
+	obs_data_set_bool(private_settings, "BrowserHWAccel", browserHWAccel);
 	obs_apply_private_data(private_settings);
 	obs_data_release(private_settings);
 
