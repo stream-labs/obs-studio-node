@@ -3209,6 +3209,18 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 
 	obs_properties_destroy(ppts);
 
+	//Sources
+	std::vector<std::pair<std::string, std::string>> browserHWAccel;
+	browserHWAccel.push_back(std::make_pair("name", "browserHWAccel"));
+	browserHWAccel.push_back(std::make_pair("type", "OBS_PROPERTY_BOOL"));
+	browserHWAccel.push_back(std::make_pair("description", "Enable Browser Source Hardware Acceleration (require a restart)"));
+	browserHWAccel.push_back(std::make_pair("subType", ""));
+	entries.push_back(browserHWAccel);
+
+	advancedSettings.push_back(
+	    serializeSettingsData("Sources", entries, ConfigManager::getInstance().getGlobal(), "General", true, true));
+	entries.clear();
+
 	return advancedSettings;
 }
 
@@ -3261,6 +3273,12 @@ void OBS_settings::saveAdvancedSettings(std::vector<SubCategory> advancedSetting
 
 	networkAdvancedSettings.push_back(advancedSettings.at(7));
 	saveGenericSettings(networkAdvancedSettings, "Output", ConfigManager::getInstance().getBasic());
+
+	//Sources
+	std::vector<SubCategory> sourcesSettings;
+
+	sourcesSettings.push_back(advancedSettings.at(8));
+	saveGenericSettings(sourcesSettings, "General", ConfigManager::getInstance().getGlobal());
 }
 
 std::vector<std::string> OBS_settings::getListCategories(void)

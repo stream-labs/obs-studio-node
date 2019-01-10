@@ -500,8 +500,9 @@ void OBS_API::OBS_API_initAPI(
 	ConfigManager::getInstance().setAppdataPath(appdata);
 
 	/* Set global private settings for whomever it concerns */
+	bool        browserHWAccel   = config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "BrowserHWAccel");
 	obs_data_t* private_settings = obs_data_create();
-	obs_data_set_bool(private_settings, "BrowserHWAccel", true);
+	obs_data_set_bool(private_settings, "BrowserHWAccel", browserHWAccel);
 	obs_apply_private_data(private_settings);
 	obs_data_release(private_settings);
 
@@ -621,6 +622,8 @@ void OBS_API::QueryHotkeys(
 		    auto                     registerer_type = obs_hotkey_get_registerer_type(key);
 		    void*                    registerer      = obs_hotkey_get_registerer(key);
 		    HotkeyInfo               currentHotkeyInfo;
+		    if (registerer == nullptr)
+			    return true;
 
 		    // Discover the type of object registered with this hotkey
 		    switch (registerer_type) {
@@ -632,6 +635,8 @@ void OBS_API::QueryHotkeys(
 		    case OBS_HOTKEY_REGISTERER_SOURCE: {
 			    auto* weak_source            = static_cast<obs_weak_source_t*>(registerer);
 			    auto  key_source             = OBSGetStrongRef(weak_source);
+			    if (key_source == nullptr)
+				    return true;
 			    currentHotkeyInfo.objectName = obs_source_get_name(key_source);
 			    currentHotkeyInfo.objectType = OBS_HOTKEY_REGISTERER_SOURCE;
 			    break;
@@ -639,6 +644,8 @@ void OBS_API::QueryHotkeys(
 		    case OBS_HOTKEY_REGISTERER_OUTPUT: {
 			    auto* weak_output            = static_cast<obs_weak_output_t*>(registerer);
 			    auto  key_output             = OBSGetStrongRef(weak_output);
+			    if (key_output == nullptr)
+				    return true;
 			    currentHotkeyInfo.objectName = obs_output_get_name(key_output);
 			    currentHotkeyInfo.objectType = OBS_HOTKEY_REGISTERER_OUTPUT;
 			    break;
@@ -646,6 +653,8 @@ void OBS_API::QueryHotkeys(
 		    case OBS_HOTKEY_REGISTERER_ENCODER: {
 			    auto* weak_encoder           = static_cast<obs_weak_encoder_t*>(registerer);
 			    auto  key_encoder            = OBSGetStrongRef(weak_encoder);
+			    if (key_encoder == nullptr)
+				    return true;
 			    currentHotkeyInfo.objectName = obs_encoder_get_name(key_encoder);
 			    currentHotkeyInfo.objectType = OBS_HOTKEY_REGISTERER_ENCODER;
 			    break;
@@ -653,6 +662,8 @@ void OBS_API::QueryHotkeys(
 		    case OBS_HOTKEY_REGISTERER_SERVICE: {
 			    auto* weak_service           = static_cast<obs_weak_service_t*>(registerer);
 			    auto  key_service            = OBSGetStrongRef(weak_service);
+			    if (key_service == nullptr)
+				    return true;
 			    currentHotkeyInfo.objectName = obs_service_get_name(key_service);
 			    currentHotkeyInfo.objectType = OBS_HOTKEY_REGISTERER_SERVICE;
 			    break;
