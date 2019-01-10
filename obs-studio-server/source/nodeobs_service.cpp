@@ -1054,8 +1054,8 @@ bool OBS_service::startRecording(void)
 		quality = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
 		useStreamingEncoder = quality.compare("Stream") == 0;
 	} else {
-		std::string recEnc = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecEncoder");
-		useStreamingEncoder = recEnc.compare("none") == 0;
+		quality             = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecEncoder");
+		useStreamingEncoder = quality.compare("none") == 0;
 	}
 
 	if ((useStreamingEncoder && !audioStreamingEncoder) || (!useStreamingEncoder && !audioRecordingEncoder)) {
