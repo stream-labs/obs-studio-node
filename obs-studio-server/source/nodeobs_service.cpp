@@ -1047,33 +1047,35 @@ bool OBS_service::startRecording(void)
 		return false;
 	}
 
-	if (strcmp(codec, "aac") == 0) {
-		if (!advanced) {
-			std::string quality =
-			    config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
+	std::string quality;
+	bool useStreamingEncoder = false;
 
-			bool useStreamingEncoder = quality.compare("Stream") == 0;
-			createAudioEncoder(useStreamingEncoder ? &audioStreamingEncoder : &audioRecordingEncoder);
-		} else {
-			std::string recEnc = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecEncoder");
-
-			bool useStreamingEncoder = recEnc.compare("none") == 0;
-			createAudioEncoder(useStreamingEncoder ? &audioStreamingEncoder : &audioRecordingEncoder);
-		}
+	if (!advanced) {
+		quality = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
+		useStreamingEncoder = quality.compare("Stream") == 0;
 	} else {
-		const char* id           = FindAudioEncoderFromCodec(codec);
-		int         audioBitrate = GetAudioBitrate();
-		obs_data_t* settings     = obs_data_create();
-		obs_data_set_int(settings, "bitrate", audioBitrate);
+		quality             = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecEncoder");
+		useStreamingEncoder = quality.compare("none") == 0;
+	}
 
-		audioStreamingEncoder = obs_audio_encoder_create(id, "alt_audio_enc", nullptr, trackIndex - 1, nullptr);
-		if (!audioStreamingEncoder)
-			return false;
+	if ((useStreamingEncoder && !audioStreamingEncoder) || (!useStreamingEncoder && !audioRecordingEncoder)) {
+		if (strcmp(codec, "aac") == 0) {
+				createAudioEncoder(useStreamingEncoder ? &audioStreamingEncoder : &audioRecordingEncoder);
+		} else {
+			const char* id           = FindAudioEncoderFromCodec(codec);
+			int         audioBitrate = GetAudioBitrate();
+			obs_data_t* settings     = obs_data_create();
+			obs_data_set_int(settings, "bitrate", audioBitrate);
 
-		obs_encoder_update(audioStreamingEncoder, settings);
-		obs_encoder_set_audio(audioStreamingEncoder, obs_get_audio());
+			audioStreamingEncoder = obs_audio_encoder_create(id, "alt_audio_enc", nullptr, trackIndex - 1, nullptr);
+			if (!audioStreamingEncoder)
+				return false;
 
-		obs_data_release(settings);
+			obs_encoder_update(audioStreamingEncoder, settings);
+			obs_encoder_set_audio(audioStreamingEncoder, obs_get_audio());
+
+			obs_data_release(settings);
+		}
 	}
 
 	isRecording = true;
