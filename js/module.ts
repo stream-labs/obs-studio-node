@@ -446,15 +446,6 @@ export interface IIPC {
 	host(uri: string): void;
 	
     /**
-     * Connects to an existing server or hosts a new server and connects to it.
-     * @param uri - URI for the server.
-	 * @throws SyntaxError if an invalid number of parameters is given.
-	 * @throws TypeError if a parameter is of invalid type.
-	 * @throws Error if it failed to connect or host and connect.
-     */
-	connectOrHost(uri: string): void;
-	
-    /**
      * Disconnect from a server.
      */
 	disconnect(): void;

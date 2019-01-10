@@ -443,36 +443,6 @@ void js_host(const v8::FunctionCallbackInfo<v8::Value>& args)
 	return;
 }
 
-void js_connectOrHost(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	auto isol = args.GetIsolate();
-	if (args.Length() == 0) {
-		isol->ThrowException(v8::Exception::SyntaxError(
-		    Nan::New<v8::String>("Too few arguments, usage: connectOrHost(uri).").ToLocalChecked()));
-		return;
-	} else if (args.Length() > 1) {
-		isol->ThrowException(v8::Exception::SyntaxError(Nan::New<v8::String>("Too many arguments.").ToLocalChecked()));
-		return;
-	} else if (!args[0]->IsString()) {
-		isol->ThrowException(v8::Exception::TypeError(
-		    Nan::New<v8::String>("Argument 'uri' must be of type 'String'.").ToLocalChecked()));
-		return;
-	}
-
-	std::string uri = *v8::String::Utf8Value(args[0]);
-	auto        cl  = Controller::GetInstance().connect(uri);
-	if (!cl) {
-		cl = Controller::GetInstance().host(uri);
-		if (!cl) {
-			isol->ThrowException(
-			    v8::Exception::Error(Nan::New<v8::String>("IPC failed to connect or host.").ToLocalChecked()));
-			return;
-		}
-	}
-
-	return;
-}
-
 void js_disconnect(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	Controller::GetInstance().disconnect();
@@ -486,10 +456,8 @@ INITIALIZER(js_ipc)
 		NODE_SET_METHOD(obj, "setServerPath", js_setServerPath);
 		NODE_SET_METHOD(obj, "connect", js_connect);
 		NODE_SET_METHOD(obj, "host", js_host);
-		NODE_SET_METHOD(obj, "connectOrHost", js_connectOrHost);
 		NODE_SET_METHOD(obj, "disconnect", js_disconnect);
 		// Temporary
-		NODE_SET_METHOD(obj, "ConnectOrHost", js_connectOrHost);
 		NODE_SET_METHOD(obj, "Disconnect", js_disconnect);
 		exports->Set(v8::String::NewFromUtf8(exports->GetIsolate(), "IPC"), obj);
 	});
