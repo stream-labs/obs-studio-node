@@ -457,8 +457,6 @@ INITIALIZER(js_ipc)
 		NODE_SET_METHOD(obj, "connect", js_connect);
 		NODE_SET_METHOD(obj, "host", js_host);
 		NODE_SET_METHOD(obj, "disconnect", js_disconnect);
-		// Temporary
-		NODE_SET_METHOD(obj, "Disconnect", js_disconnect);
 		exports->Set(v8::String::NewFromUtf8(exports->GetIsolate(), "IPC"), obj);
 	});
 }
