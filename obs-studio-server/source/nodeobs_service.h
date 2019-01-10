@@ -259,11 +259,11 @@ class OBS_service
 	static bool          createStreamingOutput(void);
 	static bool          createRecordingOutput(void);
 	static void          createReplayBufferOutput(void);
-	static obs_output_t* getStreamingOutput(void);
+	static obs_output_t* getStreamingOutput(void); // Increment ref
 	static void          setStreamingOutput(obs_output_t* output);
-	static obs_output_t* getRecordingOutput(void);
+	static obs_output_t* getRecordingOutput(void); // Increment ref
 	static void          setRecordingOutput(obs_output_t* output);
-	static obs_output_t* getReplayBufferOutput(void);
+	static obs_output_t* getReplayBufferOutput(void); // Increment ref
 	static void          setReplayBufferOutput(obs_output_t* output);
 
 	// Update settings

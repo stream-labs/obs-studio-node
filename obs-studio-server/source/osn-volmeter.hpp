@@ -44,7 +44,7 @@ namespace osn
 		};
 
 		private:
-		obs_volmeter_t* self;
+		obs_volmeter_t* self = nullptr;
 		uint64_t        id;
 		size_t          callback_count = 0;
 		uint64_t*       id2            = nullptr;
@@ -62,7 +62,8 @@ namespace osn
 
 		public:
 		VolMeter(obs_fader_type type);
-		~VolMeter();
+
+        void Release();
 
 		public:
 		static void Register(ipc::server&);

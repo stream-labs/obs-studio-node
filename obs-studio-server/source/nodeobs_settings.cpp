@@ -772,6 +772,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 	serviceConfiguration.paramsCount = serviceConfiguration.params.size();
 	streamSettings.push_back(serviceConfiguration);
 
+	obs_data_release(settings);
 	obs_properties_destroy(properties);
 
 	return streamSettings;
@@ -837,6 +838,7 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 	}
 
 	if (serviceTypeChanged) {
+		obs_data_release(settings);
 		settings = obs_service_defaults(newserviceTypeValue);
 
 		if (strcmp(newserviceTypeValue, "rtmp_common") == 0) {
@@ -860,6 +862,7 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 		// Check if server is valid
 		obs_properties_t* properties = obs_service_properties(newService);
 		obs_property_t*   property   = obs_properties_first(properties);
+		obs_properties_destroy(properties);
 
 		while (property) {
 			std::string name = obs_property_name(property);
@@ -890,8 +893,6 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 		}
 	}
 
-	obs_data_release(hotkeyData);
-
 	OBS_service::setService(newService);
 
 	obs_data_t* data = obs_data_create();
@@ -902,6 +903,7 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 		blog(LOG_WARNING, "Failed to save service");
 	}
 
+	obs_data_release(settings);
 	obs_data_release(hotkeyData);
 	obs_data_release(data);
 }
@@ -1598,8 +1600,10 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	obs_encoder_t* streamingEncoder;
 	obs_output_t*  streamOutput = OBS_service::getStreamingOutput();
 
-	if (streamOutput == NULL)
+	if (streamOutput == NULL) {
+		obs_data_release(settings);
 		return streamingSettings;
+	}
 
 	if (!obs_output_active(streamOutput)) {
 		if (!fileExist) {
@@ -1610,19 +1614,24 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 				blog(LOG_WARNING, "Failed to save encoder %s", streamName.c_str());
 			}
 		} else {
-			obs_data_t* data =
-			    obs_data_create_from_json_file_safe(streamName.c_str(), "bak");
+			obs_data_t* data = obs_data_create_from_json_file_safe(streamName.c_str(), "bak");
 			obs_data_apply(settings, data);
 			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", settings, nullptr);
 			OBS_service::setStreamingEncoder(streamingEncoder);
+			obs_data_release(data);
 		}
 	} else {
 		streamingEncoder = OBS_service::getStreamingEncoder();
-		settings         = obs_encoder_get_settings(streamingEncoder);
+		obs_data_release(settings);
+		settings = obs_encoder_get_settings(streamingEncoder);
 	}
 
 	getEncoderSettings(streamingEncoder, settings, &(streamingSettings.params), index, isCategoryEnabled, false);
 	streamingSettings.paramsCount = streamingSettings.params.size();
+
+	obs_output_release(streamOutput);
+	obs_data_release(settings);
+
 	return streamingSettings;
 }
 
@@ -1941,8 +1950,10 @@ void OBS_settings::getStandardRecordingSettings(
 
 	obs_output_t* recordOutput = OBS_service::getRecordingOutput();
 
-	if (recordOutput == NULL)
+	if (recordOutput == NULL) {
+		obs_data_release(settings);
 		return;
+	}
 
 	if (!obs_output_active(recordOutput)) {
 		if (!fileExist) {
@@ -1961,7 +1972,8 @@ void OBS_settings::getStandardRecordingSettings(
 		}
 	} else {
 		recordingEncoder = OBS_service::getRecordingEncoder();
-		settings         = obs_encoder_get_settings(recordingEncoder);
+		obs_data_release(settings);
+		settings = obs_encoder_get_settings(recordingEncoder);
 	}
 
 	if (strcmp(recEncoderCurrentValue, "none")) {
@@ -1970,6 +1982,9 @@ void OBS_settings::getStandardRecordingSettings(
 	}
 
 	subCategoryParameters->paramsCount = subCategoryParameters->params.size();
+
+	obs_output_release(recordOutput);
+	obs_data_release(settings);
 }
 
 SubCategory OBS_settings::getAdvancedOutputRecordingSettings(config_t* config, bool isCategoryEnabled)
@@ -2390,6 +2405,7 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 
 	if (newEncoderType) {
+		obs_data_release(encoderSettings);
 		encoderSettings = obs_encoder_defaults(
 		    config_get_string(ConfigManager::getInstance().getBasic(), section.c_str(), "Encoder"));
 	}
@@ -2399,6 +2415,8 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 	if (!obs_data_save_json_safe(encoderSettings, ConfigManager::getInstance().getStream().c_str(), "tmp", "bak")) {
 		blog(LOG_WARNING, "Failed to save encoder %s", ConfigManager::getInstance().getStream().c_str());
 	}
+
+	obs_data_release(encoderSettings);
 }
 
 void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> settings)
@@ -2515,26 +2533,36 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 
 	int ret = config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 
-	if (newEncoderType)
+	if (newEncoderType) {
+		obs_data_release(encoderSettings);
 		encoderSettings = obs_encoder_defaults(
 		    config_get_string(ConfigManager::getInstance().getBasic(), section.c_str(), "RecEncoder"));
+    }
 
 	obs_encoder_update(encoder, encoderSettings);
 
 	if (!obs_data_save_json_safe(encoderSettings, ConfigManager::getInstance().getRecord().c_str(), "tmp", "bak")) {
 		blog(LOG_WARNING, "Failed to save encoder %s", ConfigManager::getInstance().getRecord().c_str());
 	}
+
+    obs_data_release(encoderSettings);
 }
 
 void OBS_settings::saveAdvancedOutputSettings(std::vector<SubCategory> settings)
 {
+	auto* streamingOutput = OBS_service::getStreamingOutput();
+	auto* recordingOutput = OBS_service::getRecordingOutput();
+
 	// Streaming
-	if (!obs_output_active(OBS_service::getStreamingOutput()))
+	if (!obs_output_active(streamingOutput))
 		saveAdvancedOutputStreamingSettings(settings);
 
 	// Recording
-	if (!obs_output_active(OBS_service::getRecordingOutput()))
+	if (!obs_output_active(recordingOutput))
 		saveAdvancedOutputRecordingSettings(settings);
+
+	obs_output_release(streamingOutput);
+	obs_output_release(recordingOutput);
 
 	// Audio
 	if (settings.size() > 3) {

@@ -229,6 +229,10 @@ void osn::Input::Duplicate(
 		return;
 	}
 
+    if (isPrivate) {
+    	osn::Source::attach_source_signals(source);
+	}
+
 	if (source != filter) {
 		uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
 		if (uid == UINT64_MAX) {

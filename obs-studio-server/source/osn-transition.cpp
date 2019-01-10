@@ -96,6 +96,7 @@ void osn::Transition::Create(
 	}
 
 	obs_data_release(settings);
+	obs_data_release(hotkeys);
 
 	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {

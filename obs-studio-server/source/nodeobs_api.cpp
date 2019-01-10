@@ -1010,6 +1010,9 @@ void OBS_API::destroyOBS_API(void)
 	if (service != NULL)
 		obs_service_release(service);
 
+    // This will clear our config files
+	ConfigManager::getInstance().reloadConfig();
+
 	obs_shutdown();
 
 	// Release each obs module (dlls for windows)
@@ -1174,6 +1177,8 @@ int OBS_API::getNumberOfDroppedFrames(void)
 		totalDropped = obs_output_get_frames_dropped(streamOutput);
 	}
 
+    obs_output_release(streamOutput);
+
 	return totalDropped;
 }
 
@@ -1192,6 +1197,8 @@ double OBS_API::getDroppedFramesPercentage(void)
 			percent = (double)totalDropped / (double)totalFrames * 100.0;
 		}
 	}
+
+    obs_output_release(streamOutput);
 
 	return percent;
 }
@@ -1224,6 +1231,8 @@ double OBS_API::getCurrentBandwidth(void)
 		lastBytesSent     = bytesSent;
 		lastBytesSentTime = bytesSentTime;
 	}
+
+    obs_output_release(streamOutput);
 
 	return kbitsPerSec;
 }

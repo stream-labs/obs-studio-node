@@ -35,9 +35,10 @@ osn::VolMeter::VolMeter(obs_fader_type type)
 		throw std::exception();
 }
 
-osn::VolMeter::~VolMeter()
+void osn::VolMeter::Release()
 {
 	obs_volmeter_destroy(self);
+	self = nullptr;
 }
 
 void osn::VolMeter::Register(ipc::server& srv)
@@ -114,6 +115,7 @@ void osn::VolMeter::Destroy(
 	Manager::GetInstance().free(uid);
 	if (meter->id2) { // Ensure there are no more callbacks
 		obs_volmeter_remove_callback(meter->self, OBSCallback, meter->id2);
+		meter->Release();
 		delete meter->id2;
 		meter->id2 = nullptr;
 	}
@@ -269,6 +271,7 @@ void osn::VolMeter::RemoveCallback(
 	meter->callback_count--;
 	if (meter->callback_count == 0) {
 		obs_volmeter_remove_callback(meter->self, OBSCallback, meter->id2);
+		meter->Release();
 		delete meter->id2;
 		meter->id2 = nullptr;
 	}

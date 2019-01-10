@@ -113,6 +113,8 @@ void osn::Scene::CreatePrivate(
 		return;
 	}
 
+    osn::Source::attach_source_signals(source);
+
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
 	AUTO_DEBUG;

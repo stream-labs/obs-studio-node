@@ -361,6 +361,11 @@ OBS::Display::~Display()
 	obs_enter_graphics();
 	if (m_textVertices)
 		delete m_textVertices;
+
+	if (m_textTexture) {
+		gs_texture_destroy(m_textTexture);
+    }
+
 	m_boxLine = nullptr;
 	m_boxTris = nullptr;
 	obs_leave_graphics();

@@ -916,6 +916,11 @@ bool OBS_service::createService()
 	obs_data_t* settings;
 	obs_data_t* hotkey_data;
 
+    if (service) {
+	    obs_service_release(service);
+		service = nullptr;
+    }
+
     if (!fileExist) {
 		service  = obs_service_create("rtmp_common", "default_service", nullptr, nullptr);
 		if (service == nullptr) {
@@ -966,6 +971,10 @@ bool OBS_service::createService()
 
 bool OBS_service::createStreamingOutput(void)
 {
+	if (streamingOutput != nullptr) {
+		obs_output_release(streamingOutput);
+    }
+
 	streamingOutput = obs_output_create("rtmp_output", "simple_stream", nullptr, nullptr);
 	if (streamingOutput == nullptr) {
 		return false;
@@ -978,6 +987,10 @@ bool OBS_service::createStreamingOutput(void)
 
 bool OBS_service::createRecordingOutput(void)
 {
+	if (recordingOutput != nullptr) {
+		obs_output_release(streamingOutput);
+	}
+
 	recordingOutput = obs_output_create("ffmpeg_muxer", "simple_file_output", nullptr, nullptr);
 	if (recordingOutput == nullptr) {
 		return false;
@@ -990,7 +1003,12 @@ bool OBS_service::createRecordingOutput(void)
 
 void OBS_service::createReplayBufferOutput(void)
 {
+	if (replayBuffer != nullptr) {
+		obs_output_release(replayBuffer);
+	}
+
 	replayBuffer = obs_output_create("replay_buffer", "ReplayBuffer", nullptr, nullptr);
+
 	connectOutputSignals();
 }
 
@@ -1402,7 +1420,6 @@ void OBS_service::setRecordingSettings(void)
 
 obs_service_t* OBS_service::getService(void)
 {
-	const char* serviceType = obs_service_get_type(service);
 	return service;
 }
 
@@ -1750,7 +1767,6 @@ void OBS_service::LoadRecordingPreset_Lossless()
 	if (!recordingOutput)
 		throw "Failed to create recording FFmpeg output "
 		      "(simple output)";
-	// obs_output_release(recordingOutput);
 
 	obs_data_t* settings = obs_data_create();
 	obs_data_set_string(settings, "format_name", "avi");
@@ -2139,6 +2155,7 @@ void OBS_service::setAudioRecordingEncoder(obs_encoder_t* encoder)
 
 obs_output_t* OBS_service::getStreamingOutput(void)
 {
+	obs_output_addref(streamingOutput);
 	return streamingOutput;
 }
 
@@ -2146,10 +2163,12 @@ void OBS_service::setStreamingOutput(obs_output_t* output)
 {
 	obs_output_release(streamingOutput);
 	streamingOutput = output;
+	obs_output_addref(streamingOutput);
 }
 
 obs_output_t* OBS_service::getRecordingOutput(void)
 {
+	obs_output_addref(recordingOutput);
 	return recordingOutput;
 }
 
@@ -2157,10 +2176,12 @@ void OBS_service::setRecordingOutput(obs_output_t* output)
 {
 	obs_output_release(recordingOutput);
 	recordingOutput = output;
+	obs_output_addref(recordingOutput);
 }
 
 obs_output_t* OBS_service::getReplayBufferOutput(void)
 {
+	obs_output_addref(replayBuffer);
 	return replayBuffer;
 }
 
@@ -2168,6 +2189,7 @@ void OBS_service::setReplayBufferOutput(obs_output_t* output)
 {
 	obs_output_release(replayBuffer);
 	replayBuffer = output;
+	obs_output_addref(replayBuffer);
 }
 
 void OBS_service::updateStreamSettings(void)
