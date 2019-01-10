@@ -201,11 +201,6 @@ void OBS_content::Register(ipc::server& srv)
 	    OBS_content_selectSource));
 
 	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_content_dragSelectedSource",
-	    std::vector<ipc::type>{ipc::type::Int32, ipc::type::Int32},
-	    OBS_content_dragSelectedSource));
-
-	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_content_getDrawGuideLines", std::vector<ipc::type>{ipc::type::String}, OBS_content_getDrawGuideLines));
 
 	cls->register_function(std::make_shared<ipc::function>(
@@ -1187,43 +1182,6 @@ bool selectItems(obs_scene_t* scene, obs_sceneitem_t* item, void* param)
 	else
 		obs_sceneitem_select(item, false);
 	return true;
-}
-
-void OBS_content::OBS_content_dragSelectedSource(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	int32_t x = args[0].value_union.i32;
-	int32_t y = args[1].value_union.i32;
-
-	if (sourceSelected.compare("") == 0)
-		return;
-
-	if (x < 0)
-		x = 0;
-
-	if (y < 0)
-		y = 0;
-
-	obs_source_t* transition = obs_get_output_source(0);
-	obs_source_t* source     = obs_transition_get_active_source(transition);
-	obs_scene_t*  scene      = obs_scene_from_source(source);
-
-	obs_source_release(transition);
-
-	obs_sceneitem_t* sourceItem = obs_scene_find_source(scene, sourceSelected.c_str());
-
-	struct vec2 position;
-	position.x = float(x);
-	position.y = float(y);
-
-	obs_sceneitem_set_pos(sourceItem, &position);
-	obs_source_release(source);
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
 }
 
 void OBS_content::OBS_content_getDrawGuideLines(
