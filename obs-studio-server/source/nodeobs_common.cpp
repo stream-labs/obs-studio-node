@@ -167,12 +167,6 @@ void OBS_content::Register(ipc::server& srv)
 	    OBS_content_setOutlineColor));
 
 	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_content_setGuidelineColor",
-	    std::vector<ipc::type>{
-	        ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32},
-	    OBS_content_setGuidelineColor));
-
-	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_content_setShouldDrawUI",
 	    std::vector<ipc::type>{ipc::type::String, ipc::type::Int32},
 	    OBS_content_setShouldDrawUI));
@@ -666,102 +660,6 @@ void OBS_content::OBS_content_setOutlineColor(
 	}
 
 	it->second->SetOutlineColor(color.c[0], color.c[1], color.c[2], color.c[3]);
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
-	return;
-}
-
-void OBS_content::OBS_content_setGuidelineColor(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	union
-	{
-		uint32_t rgba;
-		uint8_t  c[4];
-	} color;
-
-	// Validate Arguments
-	/// Amount
-	/*switch (args.Length()) {
-	case 0:
-		isolate->ThrowException(
-		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate,
-		                                    "Usage: OBS_content_setGuidelineColor(displayKey<string>, red<number>{0.0, 255.0}, green<number>{0.0, 255.0}, blue<number>{0.0, 255.0}[, alpha<number>{0.0, 1.0}])")
-		      )
-		);
-		return;
-	case 1:
-	case 2:
-		isolate->ThrowException(
-		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate, "Not enough Parameters")
-		      )
-		);
-		return;
-	}
-
-	/// Types
-	if (args[0]->IsUndefined() && !args[0]->IsString()) {
-		isolate->ThrowException(
-		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate, "{displayKey} is not a <string>!")
-		      )
-		);
-		return;
-	}
-	if (args[1]->IsUndefined() && !args[1]->IsNumber()) {
-		isolate->ThrowException(
-		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate, "{red} is not a <number>!")
-		      )
-		);
-		return;
-	}
-	if (args[2]->IsUndefined() && !args[2]->IsNumber()) {
-		isolate->ThrowException(
-		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate, "{green} is not a <number>!")
-		      )
-		);
-		return;
-	}
-	if (args[3]->IsUndefined() && !args[3]->IsNumber()) {
-		isolate->ThrowException(
-		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate, "{blue} is not a <number>!")
-		      )
-		);
-		return;
-	}*/
-
-	// Assign Color
-	color.c[0] = (uint8_t)(args[1].value_union.ui32);
-	color.c[1] = (uint8_t)(args[2].value_union.ui32);
-	color.c[2] = (uint8_t)(args[3].value_union.ui32);
-	if (args[4].value_union.ui32 != NULL)
-		color.c[3] = (uint8_t)(args[4].value_union.ui32 * 255.0);
-
-	else
-		color.c[3] = 255;
-
-	// Find Display
-	auto it = displays.find(args[0].value_str);
-	if (it == displays.end()) {
-		/*isolate->ThrowException(
-		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
-		      )
-		);*/
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-		rval.push_back(ipc::value("Display key is not valid!"));
-		return;
-	}
-
-	it->second->SetGuidelineColor(color.c[0], color.c[1], color.c[2], color.c[3]);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 	return;

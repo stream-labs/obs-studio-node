@@ -265,31 +265,6 @@ void display::OBS_content_setOutlineColor(const v8::FunctionCallbackInfo<v8::Val
 	ValidateResponse(response);
 }
 
-void display::OBS_content_setGuidelineColor(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	std::string key;
-	uint32_t    r, g, b, a = 255;
-
-	ASSERT_GET_VALUE(args[0], key);
-	ASSERT_GET_VALUE(args[1], r);
-	ASSERT_GET_VALUE(args[2], g);
-	ASSERT_GET_VALUE(args[3], b);
-
-	if (args.Length() > 4)
-		ASSERT_GET_VALUE(args[4], a);
-
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Display",
-	    "OBS_content_setGuidelineColor",
-	    {ipc::value(key), ipc::value(r), ipc::value(g), ipc::value(b), ipc::value(a)});
-
-	ValidateResponse(response);
-}
-
 void display::OBS_content_setShouldDrawUI(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	std::string key;
@@ -339,7 +314,6 @@ INITIALIZER(nodeobs_display)
 		NODE_SET_METHOD(exports, "OBS_content_moveDisplay", display::OBS_content_moveDisplay);
 		NODE_SET_METHOD(exports, "OBS_content_setPaddingSize", display::OBS_content_setPaddingSize);
 		NODE_SET_METHOD(exports, "OBS_content_setPaddingColor", display::OBS_content_setPaddingColor);
-		NODE_SET_METHOD(exports, "OBS_content_setGuidelineColor", display::OBS_content_setGuidelineColor);
 		NODE_SET_METHOD(exports, "OBS_content_setShouldDrawUI", display::OBS_content_setShouldDrawUI);
 		NODE_SET_METHOD(exports, "OBS_content_setDrawGuideLines", display::OBS_content_setDrawGuideLines);
 	});
