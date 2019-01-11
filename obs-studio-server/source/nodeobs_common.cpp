@@ -322,52 +322,9 @@ void OBS_content::OBS_content_setPaddingSize(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	// Validate Arguments
-	/// Amount
-	/*switch (args.size()) {
-	case 0:
-		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate,
-					"Usage: OBS_content_setPaddingSize(displayKey<string>, size<number>)")
-			)
-		);
-		return;
-	case 1:
-		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "Not enough Parameters")
-			)
-		);
-		return;
-	}
-
-	/// Types
-	if (args[0]->IsUndefined() && !args[0]->IsString()) {
-		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{displayKey} is not a <string>!")
-			)
-		);
-		return;
-	}
-	if (args[1]->IsUndefined() && !args[1]->IsNumber()) {
-		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{size} is not a <number>!")
-			)
-		);
-		return;
-	}*/
-
 	// Find Display
 	auto it = displays.find(args[0].value_str);
 	if (it == displays.end()) {
-		/*isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
-			)
-		);*/
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Display key is not valid!"));
 		return;
@@ -391,61 +348,6 @@ void OBS_content::OBS_content_setPaddingColor(
 		uint8_t  c[4];
 	} color;
 
-	// Validate Arguments
-	/// Amount
-	/*switch (args.Length()) {
-	case 0:
-		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate,
-					"Usage: OBS_content_setPaddingColor(displayKey<string>, red<number>{0.0, 255.0}, green<number>{0.0, 255.0}, blue<number>{0.0, 255.0}[, alpha<number>{0.0, 1.0}])")
-			)
-		);
-		return;
-	case 1:
-	case 2:
-		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "Not enough Parameters")
-			)
-		);
-		return;
-	}
-
-	/// Types
-	if (args[0]->IsUndefined() && !args[0]->IsString()) {
-		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{displayKey} is not a <string>!")
-			)
-		);
-		return;
-	}
-	if (args[1]->IsUndefined() && !args[1]->IsNumber()) {
-		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{red} is not a <number>!")
-			)
-		);
-		return;
-	}
-	if (args[2]->IsUndefined() && !args[2]->IsNumber()) {
-		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{green} is not a <number>!")
-			)
-		);
-		return;
-	}
-	if (args[3]->IsUndefined() && !args[3]->IsNumber()) {
-		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{blue} is not a <number>!")
-			)
-		);
-		return;
-	}*/
-
 	// Assign Color
 	color.c[0] = (uint8_t)(args[1].value_union.ui32);
 	color.c[1] = (uint8_t)(args[2].value_union.ui32);
@@ -459,11 +361,6 @@ void OBS_content::OBS_content_setPaddingColor(
 	// Find Display
 	auto it = displays.find(args[0].value_str);
 	if (it == displays.end()) {
-		/*isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
-			)
-		);*/
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Display key is not valid!"));
 		return;
@@ -487,61 +384,6 @@ void OBS_content::OBS_content_setBackgroundColor(
 		uint8_t  c[4];
 	} color;
 
-	// Validate Arguments
-	/// Amount
-	/*switch (args.Length()) {
-	case 0:
-		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate,
-					"Usage: OBS_content_setBackgroundColor(displayKey<string>, red<number>{0.0, 255.0}, green<number>{0.0, 255.0}, blue<number>{0.0, 255.0}[, alpha<number>{0.0, 1.0}])")
-			)
-		);
-		return;
-	case 1:
-	case 2:
-		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "Not enough Parameters")
-			)
-		);
-		return;
-	}
-
-	/// Types
-	if (args[0]->IsUndefined() && !args[0]->IsString()) {
-		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{displayKey} is not a <string>!")
-			)
-		);
-		return;
-	}
-	if (args[1]->IsUndefined() && !args[1]->IsNumber()) {
-		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{red} is not a <number>!")
-			)
-		);
-		return;
-	}
-	if (args[2]->IsUndefined() && !args[2]->IsNumber()) {
-		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{green} is not a <number>!")
-			)
-		);
-		return;
-	}
-	if (args[3]->IsUndefined() && !args[3]->IsNumber()) {
-		isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{blue} is not a <number>!")
-			)
-		);
-		return;
-	}*/
-
 	// Assign Color
 	color.c[0] = (uint8_t)(args[1].value_union.ui32);
 	color.c[1] = (uint8_t)(args[2].value_union.ui32);
@@ -555,11 +397,8 @@ void OBS_content::OBS_content_setBackgroundColor(
 	// Find Display
 	auto it = displays.find(args[0].value_str);
 	if (it == displays.end()) {
-		/*isolate->ThrowException(
-			v8::Exception::SyntaxError(
-				v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
-			)
-		);*/
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Display key is not valid!"));
 		return;
 	}
 
@@ -580,61 +419,6 @@ void OBS_content::OBS_content_setOutlineColor(
 		uint32_t rgba;
 		uint8_t  c[4];
 	} color;
-
-	// Validate Arguments
-	/// Amount
-	/*switch (args.Length()) {
-	case 0:
-		isolate->ThrowException(
-		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate,
-		                                    "Usage: OBS_content_setOutlineColor(displayKey<string>, red<number>{0.0, 255.0}, green<number>{0.0, 255.0}, blue<number>{0.0, 255.0}[, alpha<number>{0.0, 1.0}])")
-		      )
-		);
-		return;
-	case 1:
-	case 2:
-		isolate->ThrowException(
-		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate, "Not enough Parameters")
-		      )
-		);
-		return;
-	}
-
-	/// Types
-	if (args[0]->IsUndefined() && !args[0]->IsString()) {
-		isolate->ThrowException(
-		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate, "{displayKey} is not a <string>!")
-		      )
-		);
-		return;
-	}
-	if (args[1]->IsUndefined() && !args[1]->IsNumber()) {
-		isolate->ThrowException(
-		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate, "{red} is not a <number>!")
-		      )
-		);
-		return;
-	}
-	if (args[2]->IsUndefined() && !args[2]->IsNumber()) {
-		isolate->ThrowException(
-		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate, "{green} is not a <number>!")
-		      )
-		);
-		return;
-	}
-	if (args[3]->IsUndefined() && !args[3]->IsNumber()) {
-		isolate->ThrowException(
-		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate, "{blue} is not a <number>!")
-		      )
-		);
-		return;
-	}*/
 
 	// Assign Color
 	color.c[0] = (uint8_t)(args[1].value_union.ui32);
@@ -675,51 +459,9 @@ void OBS_content::OBS_content_setShouldDrawUI(
 	    "Usage: OBS_content_setShouldDrawUI"
 	    "(displayKey<string>, value<boolean>)";
 
-	// Validate Arguments
-	/// Amount
-	/*switch (args.Length()) {
-	case 0:
-		isolate->ThrowException(
-		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate, usage_string)
-		      )
-		);
-		return;
-	case 1:
-		isolate->ThrowException(
-		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate, "Not enough Parameters")
-		      )
-		);
-		return;
-	}
-
-	/// Types
-	if (args[0]->IsUndefined() && !args[0]->IsString()) {
-		isolate->ThrowException(
-		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate, "{displayKey} is not a <string>!")
-		      )
-		);
-		return;
-	}
-	if (args[1]->IsUndefined() && !args[1]->IsBoolean()) {
-		isolate->ThrowException(
-		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate, "{value} is not a <boolean>!")
-		      )
-		);
-		return;
-	}*/
-
 	// Find Display
 	auto it = displays.find(args[0].value_str);
 	if (it == displays.end()) {
-		/*isolate->ThrowException(
-		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
-		      )
-		);*/
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Display key is not valid!"));
 		return;
@@ -786,46 +528,9 @@ void OBS_content::OBS_content_setDrawGuideLines(
 	    "Usage: OBS_content_setDrawGuideLines"
 	    "(displayKey<string>, drawGuideLines<boolean>)";
 
-	// Validate Arguments
-	/// Amount
-	/*switch (args.Length()) {
-	case 0:
-	case 1:
-		isolate->ThrowException(
-		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate, usage_string)
-		      )
-		);
-		return;
-	}
-
-	/// Types
-	if (args[0]->IsUndefined() && !args[0]->IsString()) {
-		isolate->ThrowException(
-		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate, "{displayKey} is not a <string>!")
-		      )
-		);
-		return;
-	}
-
-	if (args[1]->IsUndefined() && !args[1]->IsBoolean()) {
-		isolate->ThrowException(
-		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate, "{size} is not a <boolean>!")
-		      )
-		);
-		return;
-	}*/
-
 	// Find Display
 	auto it = displays.find(args[0].value_str);
 	if (it == displays.end()) {
-		/*isolate->ThrowException(
-		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
-		      )
-		);*/
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Display key is not valid!"));
 		return;
