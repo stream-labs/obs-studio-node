@@ -455,10 +455,6 @@ void OBS_content::OBS_content_setShouldDrawUI(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	const char* usage_string =
-	    "Usage: OBS_content_setShouldDrawUI"
-	    "(displayKey<string>, value<boolean>)";
-
 	// Find Display
 	auto it = displays.find(args[0].value_str);
 	if (it == displays.end()) {
@@ -524,10 +520,6 @@ void OBS_content::OBS_content_setDrawGuideLines(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	const char* usage_string =
-	    "Usage: OBS_content_setDrawGuideLines"
-	    "(displayKey<string>, drawGuideLines<boolean>)";
-
 	// Find Display
 	auto it = displays.find(args[0].value_str);
 	if (it == displays.end()) {
