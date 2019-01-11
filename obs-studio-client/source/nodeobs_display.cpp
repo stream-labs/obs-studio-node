@@ -375,25 +375,6 @@ void display::OBS_content_selectSource(const v8::FunctionCallbackInfo<v8::Value>
 	ValidateResponse(response);
 }
 
-void display::OBS_content_getDrawGuideLines(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	std::string key;
-
-	ASSERT_GET_VALUE(args[0], key);
-
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Display", "OBS_content_getDrawGuideLines", {ipc::value(key)});
-
-	if (!ValidateResponse(response))
-		return;
-
-	args.GetReturnValue().Set(Nan::New<v8::Boolean>(response[1].value_union.ui32));
-}
-
 void display::OBS_content_setDrawGuideLines(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	std::string key;
@@ -430,7 +411,6 @@ INITIALIZER(nodeobs_display)
 		NODE_SET_METHOD(exports, "OBS_content_setResizeBoxOuterColor", display::OBS_content_setResizeBoxOuterColor);
 		NODE_SET_METHOD(exports, "OBS_content_setShouldDrawUI", display::OBS_content_setShouldDrawUI);
 		NODE_SET_METHOD(exports, "OBS_content_selectSource", display::OBS_content_selectSource);
-		NODE_SET_METHOD(exports, "OBS_content_getDrawGuideLines", display::OBS_content_getDrawGuideLines);
 		NODE_SET_METHOD(exports, "OBS_content_setDrawGuideLines", display::OBS_content_setDrawGuideLines);
 	});
 }

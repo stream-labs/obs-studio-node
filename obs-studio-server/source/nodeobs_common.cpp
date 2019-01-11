@@ -201,9 +201,6 @@ void OBS_content::Register(ipc::server& srv)
 	    OBS_content_selectSource));
 
 	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_content_getDrawGuideLines", std::vector<ipc::type>{ipc::type::String}, OBS_content_getDrawGuideLines));
-
-	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_content_setDrawGuideLines",
 	    std::vector<ipc::type>{ipc::type::String, ipc::type::Int32},
 	    OBS_content_setDrawGuideLines));
@@ -1168,54 +1165,6 @@ void OBS_content::OBS_content_selectSource(
 	AUTO_DEBUG;
 }
 
-void OBS_content::OBS_content_getDrawGuideLines(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	const char* usage_string = "Usage: OBS_content_getDrawGuideLines(displayKey<string>)";
-
-	// Validate Arguments
-	/// Amount
-	/*switch (args.Length()) {
-	case 0:
-		isolate->ThrowException(
-		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate, usage_string)
-		      )
-		);
-		return;
-	}
-
-	/// Types
-	if (args[0]->IsUndefined() && !args[0]->IsString()) {
-		isolate->ThrowException(
-		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate, "{displayKey} is not a <string>!")
-		      )
-		);
-		return;
-	}*/
-
-	// Find Display
-	auto it = displays.find(args[0].value_str);
-	if (it == displays.end()) {
-		/*isolate->ThrowException(
-		      v8::Exception::SyntaxError(
-		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
-		      )
-		);*/
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-		rval.push_back(ipc::value("Display key is not valid!"));
-		return;
-	}
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back((bool)it->second->GetDrawGuideLines());
-	AUTO_DEBUG;
-}
-
 void OBS_content::OBS_content_setDrawGuideLines(
     void*                          data,
     const int64_t                  id,
@@ -1223,7 +1172,7 @@ void OBS_content::OBS_content_setDrawGuideLines(
     std::vector<ipc::value>&       rval)
 {
 	const char* usage_string =
-	    "Usage: OBS_content_getDrawGuideLines"
+	    "Usage: OBS_content_setDrawGuideLines"
 	    "(displayKey<string>, drawGuideLines<boolean>)";
 
 	// Validate Arguments

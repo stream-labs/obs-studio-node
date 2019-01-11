@@ -18,6 +18,5 @@ namespace display
 	static void OBS_content_setResizeBoxOuterColor(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_content_setShouldDrawUI(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_content_selectSource(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void OBS_content_getDrawGuideLines(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_content_setDrawGuideLines(const v8::FunctionCallbackInfo<v8::Value>& args);
 } // namespace display
