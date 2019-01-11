@@ -275,9 +275,7 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 }
 
 std::shared_ptr<ipc::client> Controller::connect(
-    const std::string&       uri,
-    std::chrono::nanoseconds timeout /*= std::chrono::seconds(5)*/
-)
+    const std::string& uri)
 {
 	if (m_isServer)
 		return nullptr;
@@ -288,7 +286,7 @@ std::shared_ptr<ipc::client> Controller::connect(
 	std::shared_ptr<ipc::client> cl;
 	using std::chrono::high_resolution_clock;
 	high_resolution_clock::time_point begin_time = high_resolution_clock::now();
-	while ((high_resolution_clock::now() - begin_time) <= timeout) {
+	while (!cl) {
 		try {
 			cl = std::make_shared<ipc::client>(uri);
 		} catch (...) {
