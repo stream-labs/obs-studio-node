@@ -130,12 +130,12 @@ std::string get_process_name(ProcessInfo pi)
 
 bool is_process_alive(ProcessInfo pinfo)
 {
-	DWORD id = GetProcessId(reinterpret_cast<HANDLE>(pinfo.handle));
+	DWORD status;
 
-	if (id == 0 || id != static_cast<DWORD>(pinfo.id))
-		return false;
+	if (GetExitCodeProcess(reinterpret_cast<HANDLE>(pinfo.handle), &status) && status ==  static_cast<uint64_t>(259))
+		return true;
 
-	return true;
+	return false;
 }
 
 bool kill(ProcessInfo pinfo, uint32_t code, uint32_t& exitcode)
@@ -315,32 +315,7 @@ std::shared_ptr<ipc::client> Controller::connect(
 void Controller::disconnect()
 {
 	if (m_isServer) {
-		// Attempt soft shut down.
 		m_connection->call_synchronous_helper("System", "Shutdown", {});
-
-		// Wait for process exit.
-		auto wait_begin = std::chrono::high_resolution_clock::now();
-		while (is_process_alive(procId)) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
-			auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(
-			    std::chrono::high_resolution_clock::now() - wait_begin);
-			if (dur.count() >= 500) {
-				break; // Failed.
-			}
-		}
-
-		wait_begin = std::chrono::high_resolution_clock::now();
-		while (is_process_alive(procId)) {
-			uint32_t exitcode = 0;
-			kill(procId, 0, exitcode);
-
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
-			auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(
-			    std::chrono::high_resolution_clock::now() - wait_begin);
-			if (dur.count() >= 500) {
-				break; // Failed.
-			}
-		}
 		m_isServer = false;
 	}
 	m_connection = nullptr;
