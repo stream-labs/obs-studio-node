@@ -196,11 +196,6 @@ void OBS_content::Register(ipc::server& srv)
 	    OBS_content_setShouldDrawUI));
 
 	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_content_selectSource",
-	    std::vector<ipc::type>{ipc::type::UInt32, ipc::type::UInt32},
-	    OBS_content_selectSource));
-
-	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_content_setDrawGuideLines",
 	    std::vector<ipc::type>{ipc::type::String, ipc::type::Int32},
 	    OBS_content_setDrawGuideLines));
@@ -1100,68 +1095,6 @@ void OBS_content::OBS_content_getDisplayPreviewSize(
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((int32_t)size.first));
 	rval.push_back(ipc::value((int32_t)size.second));
-	AUTO_DEBUG;
-}
-
-/* Deprecated */
-void OBS_content::OBS_content_selectSource(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	/* Here we assume that channel 0 holds the one and only transition.
-	 * We also assume that the active source within that transition is
-	 * the scene that we need */
-	obs_source_t* transition = obs_get_output_source(0);
-	obs_source_t* source     = obs_transition_get_active_source(transition);
-	obs_scene_t*  scene      = obs_scene_from_source(source);
-
-	obs_source_release(transition);
-
-	uint32_t x = args[0].value_union.ui32;
-	uint32_t y = args[1].value_union.ui32;
-
-	auto function = [](obs_scene_t*, obs_sceneitem_t* item, void* listSceneItems) {
-		vector<obs_sceneitem_t*>& items = *reinterpret_cast<vector<obs_sceneitem_t*>*>(listSceneItems);
-
-		items.push_back(item);
-		return true;
-	};
-
-	vector<obs_sceneitem_t*> listSceneItems;
-	obs_scene_enum_items(scene, function, &listSceneItems);
-
-	bool sourceFound = false;
-
-	for (int i = 0; i < listSceneItems.size(); ++i) {
-		obs_sceneitem_t* item       = listSceneItems[i];
-		obs_source_t*    source     = obs_sceneitem_get_source(item);
-		const char*      sourceName = obs_source_get_name(source);
-
-		struct vec2 position;
-		obs_sceneitem_get_pos(item, &position);
-
-		int positionX = int(position.x);
-		int positionY = int(position.y);
-
-		int width  = obs_source_get_width(source);
-		int height = obs_source_get_height(source);
-
-		if (int(x) >= positionX && int(x) <= width + positionX && int(y) >= positionY && int(y) < height + positionY) {
-			sourceSelected = sourceName;
-			sourceFound    = true;
-			break;
-		}
-	}
-
-	if (!sourceFound) {
-		sourceSelected = "";
-		cout << "source not found !!!!" << endl;
-	}
-
-	obs_source_release(source);
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
 
