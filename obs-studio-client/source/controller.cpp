@@ -422,7 +422,7 @@ void js_disconnect(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 INITIALIZER(js_ipc)
 {
-	initializerFunctions.push([](v8::Local<v8::Object>& exports) {
+	initializerFunctions.push([](v8::Local<v8::Object> exports) {
 		// IPC related functions will be under the IPC object.
 		auto obj = v8::Object::New(exports->GetIsolate());
 		NODE_SET_METHOD(obj, "setServerPath", js_setServerPath);

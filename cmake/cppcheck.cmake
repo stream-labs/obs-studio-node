@@ -8,7 +8,7 @@ include(CMakeParseArguments)
 function(cppcheck)
 	set(CPPCHECK_PATH "" CACHE PATH "Path to cppcheck binary")
 	set(CPPCHECK_BIN "cppcheck.exe" CACHE STRING "CPPCheck Binary File")
-	set(CPPCHECK_ENABLE_INCONCLUSIVE OFF CACHE BOOL "Enable inconclusive checks?")
+	set(CPPCHECK_ENABLE_INCONCLUSIVE ON CACHE BOOL "Enable inconclusive checks?")
 	set(CPPCHECK_ENABLE_MISSING_INCLUDE ON CACHE BOOL "Check for missing includes?")
 	set(CPPCHECK_ENABLE_UNUSED_FUNCTION OFF CACHE BOOL "Check for unused functions?")
 	set(CPPCHECK_ENABLE_INFORMATION ON CACHE BOOL "Enable information messages?")
@@ -26,14 +26,17 @@ function(cppcheck)
 	set(CPPCHECK_FORCE_CPP OFF CACHE BOOL "Force checking with C++ language (overrides CPPCHECK_FORCE_C)")
 	set(CPPCHECK_VERBOSE ON CACHE BOOL "Show more detailed error reports")
 	set(CPPCHECK_QUIET ON CACHE BOOL "Hide progress reports")
+	set(CPPCHECK_PROGRESS OFF CACHE BOOL "Report checking progress ")	
 	set(CPPCHECK_LIBRARIES "" CACHE STRING "List of Libraries to load separated by semicolon")
 	set(CPPCHECK_EXCLUDE_DIRECTORIES "" CACHE STRING "List of directories to exclude separated by semicolon")
 	set(CPPCHECK_PARALLEL_TASKS "4" CACHE STRING "Number of threads to use for cppcheck")
+	set(CPPCHECK_CHECK_CONFIG OFF CACHE BOOL "Run cppcheck to check only its config")
+	
 	if(WIN32)
 		set(CPPCHECK_WIN32_UNICODE ON CACHE BOOL "Use Unicode character encoding for Win32")
 	endif()
 	
-	mark_as_advanced(CPPCHECK_BIN CPPCHECK_QUIET CPPCHECK_VERBOSE CPPCHECK_LIBRARIES CPPCHECK_ENABLE_INCONCLUSIVE CPPCHECK_PARALLEL_TASKS)
+	mark_as_advanced(CPPCHECK_BIN CPPCHECK_QUIET CPPCHECK_VERBOSE CPPCHECK_LIBRARIES CPPCHECK_PROGRESS CPPCHECK_ENABLE_INCONCLUSIVE CPPCHECK_PARALLEL_TASKS CPPCHECK_CHECK_CONFIG)
 	
 	# Parse arguments
 	set(cppcheck_options )
@@ -83,7 +86,9 @@ function(cppcheck)
 	
 	# Compiler
 	if(MSVC)
-		#list(APPEND CPPCHECK_ARGUMENTS --template="{file}|{line}|{severity}|{id}|{message}")
+		#set(CPPCHECK_TEMPLATE_FORMAT "\{id\}:\{file\}:\{line\}")  #format for suppressions list file generation 
+		set(CPPCHECK_TEMPLATE_FORMAT "vs")  #visual studio output format usefull to run from IDE
+		list(APPEND CPPCHECK_ARGUMENTS --template=${CPPCHECK_TEMPLATE_FORMAT})
 	endif()
 	
 	# Flags
@@ -96,13 +101,21 @@ function(cppcheck)
 	if(CPPCHECK_QUIET)
 		list(APPEND CPPCHECK_ARGUMENTS -q)
 	endif()
+	if(CPPCHECK_PROGRESS)
+		list(APPEND CPPCHECK_ARGUMENTS --report-progress)
+	endif()
+	
 	if(CPPCHECK_PLATFORM)
 		list(APPEND CPPCHECK_ARGUMENTS --platform=${CPPCHECK_PLATFORM})
 	endif()
 	if(CPPCHECK_PARALLEL_TASKS)
 		list(APPEND CPPCHECK_ARGUMENTS -j ${CPPCHECK_PARALLEL_TASKS})
 	endif()
-	
+	if(CPPCHECK_CHECK_CONFIG)
+		list(APPEND CPPCHECK_ARGUMENTS --check-config ) 
+	endif()
+
+
 	# Libraries
 	foreach(_library ${CPPCHECK_LIBRARIES})
 		list(APPEND CPPCHECK_ARGUMENTS --library=${_library})
@@ -177,11 +190,14 @@ function(cppcheck)
 	elseif(CPPCHECK_FORCE_C)
 		list(APPEND CPPCHECK_ARGUMENTS --language=c)		
 	endif()
-		
-	add_custom_target(
-		CPPCHECK
-	)
 	
+	find_program(CPPCHECK_EXIST ${CPPCHECK_BIN})
+	IF(CPPCHECK_EXIST)
+		add_custom_target(
+			CPPCHECK
+		)
+	ENDIF()	
+
 	# Propagate to parent scope
 	set(CPPCHECK_PROJECTS "${CPPCHECK_PROJECTS}" PARENT_SCOPE)
 	set(CPPCHECK_ARGUMENTS "${CPPCHECK_ARGUMENTS}" PARENT_SCOPE)
@@ -198,14 +214,18 @@ function(cppcheck_add_project u_project)
 		file(TO_NATIVE_PATH "${_path}" _npath)
 		list(APPEND CPPCHECK_ARGUMENTS -I${_npath})
 	endforeach()
-	
+		
+	list(APPEND CPPCHECK_ARGUMENTS --suppressions-list=${PROJECT_SOURCE_DIR}/cppcheck_suppressions_list.txt ) 
+		
 	if(MSVC)
-		add_custom_target(
-			CPPCHECK_${u_project}
-			COMMAND "${CPPCHECK_PATH}/${CPPCHECK_BIN}" ${CPPCHECK_ARGUMENTS} --project=${${u_project}_BINARY_DIR}/${u_project}.sln
-			COMMAND_EXPAND_LISTS
-			VERBATIM
-		)
+		IF(CPPCHECK_EXIST)
+			add_custom_target(
+				CPPCHECK_${u_project}
+				COMMAND "${CPPCHECK_BIN}" ${CPPCHECK_ARGUMENTS} --project=${${u_project}_BINARY_DIR}/${u_project}.sln
+				COMMAND_EXPAND_LISTS
+				VERBATIM
+			)
+		ENDIF()	
 	else()
 		# Non-MSVC and Unix (Linux, FreeBSD, APPLE) need to have -I, -i, -D and -U specified manually.
 		# Each file can be added to --file-list= as a comma separated list.
@@ -223,12 +243,16 @@ function(cppcheck_add_project u_project)
 			list(APPEND CPPCHECK_ARGUMENTS ${_npath})
 		endforeach()
 		
-		add_custom_target(
-			CPPCHECK_${u_project}
-			COMMAND "${CPPCHECK_PATH}/${CPPCHECK_BIN}" ${CPPCHECK_ARGUMENTS}
-			COMMAND_EXPAND_LISTS
-			VERBATIM
-		)		
+		IF(CPPCHECK_EXIST)
+			add_custom_target(
+				CPPCHECK_${u_project}
+				COMMAND "${CPPCHECK_BIN}" ${CPPCHECK_ARGUMENTS}
+				COMMAND_EXPAND_LISTS
+				VERBATIM
+			)		
+		ENDIF()	
 	endif()
-	add_dependencies(CPPCHECK CPPCHECK_${u_project})
+	IF(CPPCHECK_EXIST)
+		add_dependencies(CPPCHECK CPPCHECK_${u_project})
+	ENDIF()	
 endfunction()
