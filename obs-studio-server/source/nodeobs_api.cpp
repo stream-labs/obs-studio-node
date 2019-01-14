@@ -222,7 +222,7 @@ static void DeleteOldestFile(const char* location, unsigned maxLogs)
 
 #include <chrono>
 #include <cstdarg>
-#include <varargs.h>
+#include <stdarg.h>
 
 #ifdef _WIN32
 #include <io.h>
