@@ -57,6 +57,16 @@ void osn::Fader::Register(ipc::server& srv)
 	srv.register_collection(cls);
 }
 
+void osn::Fader::ClearFaders()
+{
+	Manager::GetInstance().for_each([](obs_fader_t* fader)
+    { 
+        obs_fader_destroy(fader);
+	});
+
+	Manager::GetInstance().clear();
+}
+
 void osn::Fader::Create(
     void*                          data,
     const int64_t                  id,

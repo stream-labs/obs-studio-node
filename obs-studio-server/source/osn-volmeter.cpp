@@ -62,6 +62,20 @@ void osn::VolMeter::Register(ipc::server& srv)
 	srv.register_collection(cls);
 }
 
+void osn::VolMeter::ClearVolmeters()
+{
+	Manager::GetInstance().for_each([](const std::shared_ptr<osn::VolMeter>& volmeter)
+    {
+		if (volmeter->id2) {
+			obs_volmeter_remove_callback(volmeter->self, OBSCallback, volmeter->id2);
+			delete volmeter->id2;
+			volmeter->id2 = nullptr;
+		}
+    });
+
+    Manager::GetInstance().clear();
+}
+
 void osn::VolMeter::Create(
     void*                          data,
     const int64_t                  id,
