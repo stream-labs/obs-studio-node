@@ -72,10 +72,10 @@ void osn::VolMeter::stop_async_runner()
 void osn::VolMeter::callback_handler(void* data, std::shared_ptr<osn::VolMeterData> item)
 {
 	// utilv8::ToValue on a std::vector<> creates a v8::Local<v8::Array> automatically.
-	v8::Local<v8::Value> args[] = {
-	    utilv8::ToValue(item->magnitude), utilv8::ToValue(item->peak), utilv8::ToValue(item->input_peak)};
+	//v8::Local<v8::Value> args[] = {
+	//    utilv8::ToValue(item->magnitude), utilv8::ToValue(item->peak), utilv8::ToValue(item->input_peak)};
 
-	Nan::Call(m_callback_function, 3, args);
+	//Nan::Call(m_callback_function, 3, args);
 }
 
 void osn::VolMeter::start_worker()
