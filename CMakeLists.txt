@@ -1,4 +1,4 @@
-﻿cmake_minimum_required(VERSION 3.8.0 FATAL_ERROR)
+﻿cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
 
 IF(CLANG_ANALYZE_CONFIG)
 	set(CMAKE_C_COMPILER_WORKS 1)
@@ -9,7 +9,6 @@ ENDIF()
 
 set(VERSION_FULL 0.3.21)
 set(VERSION_BUILD 0)
-set(CMAKE_CXX_STANDARD 11)
 
 find_package(Git)
 
