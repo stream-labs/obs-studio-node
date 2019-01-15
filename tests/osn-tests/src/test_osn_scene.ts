@@ -8,6 +8,10 @@ import { OBSProcessHandler } from '../util/obs_process_handler'
 describe('osn_scene', () => {
     let obs: OBSProcessHandler;
     let scene: IScene;
+    let duplicatedScene: IScene;
+    let privateScene: IScene;
+    let sceneFromName: IScene;
+    let sceneItems: ISceneItem[];
     
     before(function() {
         obs = new OBSProcessHandler();
@@ -38,8 +42,6 @@ describe('osn_scene', () => {
     });
 
     context('# Duplicate', () => {
-        let duplicatedScene: IScene;
-
         it('should duplicate scene', () => {
             try {
                 duplicatedScene = scene.duplicate('test_osn_scene_duplicate', osn.ESceneDupType.Copy);
@@ -54,8 +56,6 @@ describe('osn_scene', () => {
     });
 
     context('# CreatePrivate', () => {
-        let privateScene: IScene;
-
         it('should create private scene', () => {
             try {
                 privateScene = osn.SceneFactory.createPrivate('test_osn_scene_private'); 
@@ -70,11 +70,9 @@ describe('osn_scene', () => {
     });
 
     context('# FromName', () => {
-        let sceneFromName: IScene;
-
         it('should get scene from name', () => {
             try {
-                sceneFromName = osn.SceneFactory.create('test_osn_scene');
+                sceneFromName = osn.SceneFactory.fromName('test_osn_scene');
             } catch (e) {
                 throw new Error("failed to get scene from name");
             }
@@ -82,6 +80,14 @@ describe('osn_scene', () => {
             expect(sceneFromName.id).to.equal('scene');
             expect(sceneFromName.name).to.equal('test_osn_scene');
             expect(sceneFromName.type).to.equal(osn.ESourceType.Scene);
+        });
+
+        it('should fail if scene name does not exist', () => {
+            let failSceneFromName: IScene;
+
+            expect(function() {
+                failSceneFromName = osn.SceneFactory.fromName('does_not_exist');
+            }).to.throw();
         });
     });
 
@@ -109,7 +115,7 @@ describe('osn_scene', () => {
     });
 
     context('# FindItem', () => {
-        it('should get scene item by id', () => {
+        it('should find scene item by id', () => {
             let sceneItem: ISceneItem;
 
             try {
@@ -131,6 +137,81 @@ describe('osn_scene', () => {
             }
 
             expect(sceneItem).to.equal(undefined);
-        })
+        });
+    });
+
+    context('# GetItems', () => {
+        it('should return all scene items in a scene', () => {
+            let source: IInput; 
+            let sceneItem: ISceneItem;
+
+            try {
+                source = osn.InputFactory.create('image_source', 'test_osn_scene_source2');
+            } catch(e) {
+                throw new Error("failed to create source");
+            }
+            
+            expect(source).to.not.equal(undefined);
+
+            try {
+                sceneItem = scene.add(source);
+            } catch(e) {
+                throw new Error("failed to add source to scene");
+            }
+
+            expect(sceneItem).to.not.equal(undefined);
+
+            try {
+                sceneItems = scene.getItems();
+            } catch(e)
+            {
+                throw new Error("failed to get all scene items");
+            }
+
+            expect(sceneItems.length).to.equal(2);
+        });
+    });
+
+    context('# MoveItem', () => {
+        it('should exchange scene item ids', () => {
+            try {
+                scene.moveItem(1, 0);
+            } catch(e) {
+                throw new Error("failed to move scene item");
+            }
+
+            sceneItems = [];
+
+            try {
+                sceneItems = scene.getItems();
+            } catch(e)
+            {
+                throw new Error("failed to get all scene items");
+            }
+            
+            expect(sceneItems[0].source.name).to.equal('test_osn_scene_source2');
+        });
+    });
+
+    context('# Release', () => {
+        it('should release all the scenes created in this test', () => {
+            try {
+                sceneFromName.release();
+            } catch(e) {
+                throw new Error("failed to release from name scene");
+            }
+            
+            try {
+                privateScene.release();
+            } catch(e) {
+                throw new Error("failed to release private scene");
+            }
+
+            try {
+                duplicatedScene.release();
+            } catch(e) {
+                throw new Error("failed to release duplicated scene");
+            }
+        });
     });
 });
