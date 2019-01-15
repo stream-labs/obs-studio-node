@@ -138,7 +138,6 @@ set(PROJECT_INCLUDE_PATHS
 	"${PROJECT_SOURCE_DIR}/source"
 	"${lib-streamlabs-ipc_SOURCE_DIR}/include"
 	${LIBOBS_INCLUDE_DIRS}
-	"${PROJECT_SOURCE_DIR}/../lib-streamlabs-ipc/third-party/lib-datalane/"
 )
 
 set(PROJECT_DATA "${PROJECT_SOURCE_DIR}/resources")
