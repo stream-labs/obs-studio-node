@@ -37,8 +37,6 @@ osn::VolMeter::~VolMeter()
 {
 }
 
-std::vector<std::unique_ptr<osn::VolMeter>> volmeters;
-
 uint64_t osn::VolMeter::GetId() 
 {
 	return m_uid;
@@ -222,10 +220,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Create(Nan::NAN_METHOD_ARGS_TYPE info
 	}
 
 	// Return created Object
-	auto newVolmeter              = std::make_unique<osn::VolMeter>(rval[1].value_union.ui64);
+	auto newVolmeter              = new osn::VolMeter(rval[1].value_union.ui64);
 	newVolmeter->m_sleep_interval = rval[2].value_union.ui32;
-	volmeters.push_back(std::move(newVolmeter));
-	info.GetReturnValue().Set(Store(volmeters.back().get()));
+	info.GetReturnValue().Set(Store(newVolmeter));
 }
 
 Nan::NAN_METHOD_RETURN_TYPE
@@ -237,21 +234,6 @@ Nan::NAN_METHOD_RETURN_TYPE
 		return; // Well, we can't really do anything here then.
 	}
 
-	// For each volmeter
-	for (auto& volmeter : volmeters) {
-		volmeter->stop_async_runner();
-		volmeter->stop_worker();
-
-		// Call
-		std::vector<ipc::value> rval = conn->call_synchronous_helper(
-		    "VolMeter",
-		    "Destroy",
-		    {
-		        ipc::value(volmeter->GetId()),
-		    });
-
-		// This is a shutdown operation, no response validation needed
-	}
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::GetUpdateInterval(Nan::NAN_METHOD_ARGS_TYPE info)
