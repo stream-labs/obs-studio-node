@@ -220,8 +220,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Create(Nan::NAN_METHOD_ARGS_TYPE info
 	}
 
 	// Return created Object
-	auto newVolmeter              = new osn::VolMeter(rval[1].value_union.ui64);
-	newVolmeter->m_sleep_interval = rval[2].value_union.ui32;
+	auto* newVolmeter              = new osn::VolMeter(rval[1].value_union.ui64);
+	newVolmeter->m_sleep_interval  = rval[2].value_union.ui32;
 	info.GetReturnValue().Set(Store(newVolmeter));
 }
 
