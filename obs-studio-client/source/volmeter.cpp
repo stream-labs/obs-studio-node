@@ -26,8 +26,6 @@
 #include "utility-v8.hpp"
 #include "utility.hpp"
 
-using namespace std::placeholders;
-
 osn::VolMeter::VolMeter(uint64_t p_uid)
 {
 	m_uid = p_uid;
@@ -53,7 +51,7 @@ void osn::VolMeter::start_async_runner()
 
 	// Start v8/uv asynchronous runner.
 	m_async_callback = new osn::VolMeterCallback();
-	m_async_callback->set_handler(std::bind(&VolMeter::callback_handler, this, _1, _2), nullptr);
+	m_async_callback->set_handler(std::bind(&VolMeter::callback_handler, this, std::placeholders::_1, std::placeholders::_2), nullptr);
 }
 
 void osn::VolMeter::stop_async_runner()

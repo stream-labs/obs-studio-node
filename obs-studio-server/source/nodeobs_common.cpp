@@ -1136,13 +1136,13 @@ void OBS_content::OBS_content_selectSource(
 	uint32_t y = args[1].value_union.ui32;
 
 	auto function = [](obs_scene_t*, obs_sceneitem_t* item, void* listSceneItems) {
-		vector<obs_sceneitem_t*>& items = *reinterpret_cast<vector<obs_sceneitem_t*>*>(listSceneItems);
+		std::vector<obs_sceneitem_t*>& items = *reinterpret_cast<std::vector<obs_sceneitem_t*>*>(listSceneItems);
 
 		items.push_back(item);
 		return true;
 	};
 
-	vector<obs_sceneitem_t*> listSceneItems;
+	std::vector<obs_sceneitem_t*> listSceneItems;
 	obs_scene_enum_items(scene, function, &listSceneItems);
 
 	bool sourceFound = false;
@@ -1170,7 +1170,7 @@ void OBS_content::OBS_content_selectSource(
 
 	if (!sourceFound) {
 		sourceSelected = "";
-		cout << "source not found !!!!" << endl;
+		std::cout << "source not found !!!!" << std::endl;
 	}
 
 	obs_source_release(source);
@@ -1181,7 +1181,7 @@ void OBS_content::OBS_content_selectSource(
 /* Deprecated */
 bool selectItems(obs_scene_t* scene, obs_sceneitem_t* item, void* param)
 {
-	vector<std::string>& sources = *reinterpret_cast<vector<std::string>*>(param);
+	std::vector<std::string>& sources = *reinterpret_cast<std::vector<std::string>*>(param);
 
 	obs_source_t* source = obs_sceneitem_get_source(item);
 	std::string   name   = obs_source_get_name(source);

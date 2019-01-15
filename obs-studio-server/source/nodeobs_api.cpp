@@ -96,7 +96,7 @@ void OBS_API::SetWorkingDirectory(
 	AUTO_DEBUG;
 }
 
-static string GenerateTimeDateFilename(const char* extension)
+static std::string GenerateTimeDateFilename(const char* extension)
 {
 	time_t     now       = time(0);
 	char       file[256] = {};
@@ -115,10 +115,10 @@ static string GenerateTimeDateFilename(const char* extension)
 	    cur_time->tm_sec,
 	    extension);
 
-	return string(file);
+	return std::string(file);
 }
 
-static bool GetToken(lexer* lex, string& str, base_token_type type)
+static bool GetToken(lexer* lex, std::string& str, base_token_type type)
 {
 	base_token token;
 	if (!lexer_getbasetoken(lex, &token, IGNORE_WHITESPACE))
@@ -148,7 +148,7 @@ static bool ExpectToken(lexer* lex, const char* str, base_token_type type)
 static uint64_t ConvertLogName(const char* name)
 {
 	lexer  lex;
-	string year, month, day, hour, minute, second;
+	std::string year, month, day, hour, minute, second;
 
 	lexer_init(&lex);
 	lexer_start(&lex, name);
@@ -182,7 +182,7 @@ static uint64_t ConvertLogName(const char* name)
 
 static void DeleteOldestFile(const char* location, unsigned maxLogs)
 {
-	string            oldestLog;
+	std::string            oldestLog;
 	uint64_t          oldest_ts = (uint64_t)-1;
 	struct os_dirent* entry;
 
@@ -213,7 +213,7 @@ static void DeleteOldestFile(const char* location, unsigned maxLogs)
 	os_closedir(dir);
 
 	if (count > maxLogs) {
-		string delPath;
+		std::string delPath;
 
 		delPath = delPath + location + "/" + oldestLog;
 		os_unlink(delPath.c_str());
@@ -248,7 +248,7 @@ static void                                    node_obs_log(int log_level, const
 
 	// Calculate log time.
 	auto timeSinceStart = (std::chrono::high_resolution_clock::now() - tp);
-	auto days           = std::chrono::duration_cast<std::chrono::duration<int, ratio<86400>>>(timeSinceStart);
+	auto days           = std::chrono::duration_cast<std::chrono::duration<int, std::ratio<86400>>>(timeSinceStart);
 	timeSinceStart -= days;
 	auto hours = std::chrono::duration_cast<std::chrono::hours>(timeSinceStart);
 	timeSinceStart -= hours;
@@ -345,7 +345,7 @@ static void                                    node_obs_log(int log_level, const
 					std::wstring wide_buf;
 					std::mutex   wide_mutex;
 
-					lock_guard<mutex> lock(wide_mutex);
+					std::lock_guard<std::mutex> lock(wide_mutex);
 					wide_buf.reserve(wNum + 1);
 					wide_buf.resize(wNum - 1);
 					MultiByteToWideChar(CP_UTF8, 0, newmsg.c_str(), -1, &wide_buf[0], wNum);
@@ -460,14 +460,14 @@ void OBS_API::OBS_API_initAPI(
 	obs_startup(locale.c_str(), userData.data(), NULL);
 
 	/* Logging */
-	string filename = GenerateTimeDateFilename("txt");
-	string log_path = appdata;
+	std::string filename = GenerateTimeDateFilename("txt");
+	std::string log_path = appdata;
 	log_path.append("/node-obs/logs/");
 
 	/* Make sure the path is created
 	before attempting to make a file there. */
 	if (os_mkdirs(log_path.c_str()) == MKDIR_ERROR) {
-		cerr << "Failed to open log file" << endl;
+		std::cerr << "Failed to open log file" << std::endl;
 	}
 
 	/* Delete oldest file in the folder to imitate rotating */
@@ -475,14 +475,15 @@ void OBS_API::OBS_API_initAPI(
 	log_path.append(filename);
 
 #if defined(_WIN32) && defined(UNICODE)
-	fstream* logfile = new fstream(converter.from_bytes(log_path.c_str()).c_str(), ios_base::out | ios_base::trunc);
+	std::fstream* logfile =
+	    new std::fstream(converter.from_bytes(log_path.c_str()).c_str(), std::ios_base::out | std::ios_base::trunc);
 #else
 	fstream* logfile = new fstream(log_path, ios_base::out | ios_base::trunc);
 #endif
 
 	if (!logfile->is_open()) {
 		logfile = nullptr;
-		cerr << "Failed to open log file" << endl;
+		std::cerr << "Failed to open log file" << std::endl;
 	}
 
 	base_set_log_handler(node_obs_log, logfile);
@@ -1028,7 +1029,7 @@ void OBS_API::destroyOBS_API(void)
 	}
 }
 
-struct ci_char_traits : public char_traits<char>
+struct ci_char_traits : public std::char_traits<char>
 {
 	static bool eq(char c1, char c2)
 	{

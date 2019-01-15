@@ -12,8 +12,6 @@
 #include <ipc-server.hpp>
 #include "nodeobs_configManager.hpp"
 
-using namespace std;
-
 extern std::string g_moduleDirectory;
 
 struct Screen

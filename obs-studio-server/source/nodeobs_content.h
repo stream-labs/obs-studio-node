@@ -16,7 +16,6 @@
 #include <map>
 #include "nodeobs_api.h"
 #include "nodeobs_display.h"
-using namespace std;
 
 struct SourceInfo
 {
@@ -24,10 +23,10 @@ struct SourceInfo
 	uint32_t volmeter;
 };
 
-extern map<std::string, SourceInfo*> sourceInfo;
-extern vector<std::string>           tabScenes;
-extern string                        currentTransition;
-extern map<string, obs_source_t*>    transitions;
+extern std::map<std::string, SourceInfo*> sourceInfo;
+extern std::vector<std::string>           tabScenes;
+extern std::string                        currentTransition;
+extern std::map<std::string, obs_source_t*>    transitions;
 
 class OBS_content
 {
