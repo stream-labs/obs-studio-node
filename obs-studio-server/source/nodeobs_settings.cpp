@@ -193,7 +193,7 @@ void OBS_settings::OBS_settings_saveSettings(
 }
 
 SubCategory OBS_settings::serializeSettingsData(
-    std::string                                                   nameSubCategory,
+    const std::string &                                           nameSubCategory,
     std::vector<std::vector<std::pair<std::string, std::string>>> entries,
     config_t*                                                     config,
     std::string                                                   section,
@@ -777,7 +777,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 	return streamSettings;
 }
 
-void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
+void OBS_settings::saveStreamSettings(const std::vector<SubCategory>& streamSettings)
 {
 	obs_service_t* currentService = OBS_service::getService();
 
@@ -2283,7 +2283,7 @@ std::vector<SubCategory> OBS_settings::getOutputSettings()
 	return outputSettings;
 }
 
-void OBS_settings::saveSimpleOutputSettings(std::vector<SubCategory> settings)
+void OBS_settings::saveSimpleOutputSettings(const std::vector<SubCategory>& settings)
 {
 	saveGenericSettings(settings, "SimpleOutput", ConfigManager::getInstance().getBasic());
 }
@@ -2584,7 +2584,7 @@ std::vector<SubCategory> OBS_settings::getAudioSettings()
 	return audioSettings;
 }
 
-void OBS_settings::saveAudioSettings(std::vector<SubCategory> audioSettings) {}
+void OBS_settings::saveAudioSettings(const std::vector<SubCategory>& audioSettings) {}
 
 std::vector<pair<uint64_t, uint64_t>> OBS_settings::getOutputResolutions(uint64_t base_cx, uint64_t base_cy)
 {
@@ -3295,7 +3295,7 @@ std::vector<SubCategory> OBS_settings::getSettings(std::string nameCategory)
 	return settings;
 }
 
-void OBS_settings::saveSettings(std::string nameCategory, std::vector<SubCategory> settings)
+void OBS_settings::saveSettings(std::string nameCategory, const std::vector<SubCategory>& settings)
 {
 	if (nameCategory.compare("General") == 0) {
 		saveGenericSettings(settings, "BasicWindow", ConfigManager::getInstance().getGlobal());
@@ -3319,7 +3319,7 @@ void OBS_settings::saveSettings(std::string nameCategory, std::vector<SubCategor
 	}
 }
 
-void OBS_settings::saveGenericSettings(std::vector<SubCategory> genericSettings, std::string section, config_t* config)
+void OBS_settings::saveGenericSettings(const std::vector<SubCategory>& genericSettings, std::string section, config_t* config)
 {
 	SubCategory sc;
 

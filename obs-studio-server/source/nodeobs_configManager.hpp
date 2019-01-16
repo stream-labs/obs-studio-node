@@ -23,10 +23,10 @@ private:
 	std::string record = "";
 	std::string appdata;
 
-	config_t * getConfig(std::string name);
+	config_t * getConfig(const std::string & name);
 
 public:
-	void setAppdataPath(std::string path);
+	void setAppdataPath(const std::string& path);
 	config_t* getGlobal();
 	config_t* getBasic();
 	std::string getService();

@@ -1,0 +1,2 @@
+memsetClassFloat:*\obs-studio-node\build\libobs-src\include\obs.h
+useInitializationList:*\obs-studio-node\build\libobs-src\include\obs.hpp

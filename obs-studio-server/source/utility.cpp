@@ -23,7 +23,7 @@ utility::unique_id::~unique_id() {}
 
 utility::unique_id::id_t utility::unique_id::allocate()
 {
-	if (allocated.size() > 0) {
+	if (!allocated.empty()) {
 		for (auto& v : allocated) {
 			if (v.first > 0) {
 				utility::unique_id::id_t v2 = v.first - 1;
@@ -70,7 +70,7 @@ utility::unique_id::id_t utility::unique_id::count(bool count_free)
 bool utility::unique_id::mark_used(utility::unique_id::id_t v)
 {
 	// If no elements have been assigned, simply insert v as used.
-	if (allocated.size() == 0) {
+	if (allocated.empty()) {
 		range_t r;
 		r.first = r.second = v;
 		allocated.push_back(r);

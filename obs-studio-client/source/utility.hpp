@@ -98,14 +98,10 @@ static bool ValidateResponse(std::vector<ipc::value>& response)
 		if (response.size() == 1) {
 			Nan::ThrowError("Error without description.");
 			return false;
-		}
-
-		if (error == ErrorCode::InvalidReference) {
+		} else if (error == ErrorCode::InvalidReference) {
 			Nan::ThrowReferenceError(Nan::New(response[1].value_str).ToLocalChecked());
 			return false;
-		}
-
-		if (error != ErrorCode::Ok) {
+		} else {
 			Nan::ThrowError(Nan::New<v8::String>(response[1].value_str).ToLocalChecked());
 			return false;
 		}
@@ -159,7 +155,7 @@ namespace utility
 	AUTO_TYPEOF(uint32_t);
 	AUTO_TYPEOF(uint64_t);
 	AUTO_TYPEOF_NAME(const char*, "string");
-	AUTO_TYPEOF_NAME(std::string, "string");
+	AUTO_TYPEOF_NAME(const std::string &, "string");
 	AUTO_TYPEOF(std::vector<char>);
 
 	AUTO_TYPEOF_NAME(v8::Local<v8::Value>, "value");

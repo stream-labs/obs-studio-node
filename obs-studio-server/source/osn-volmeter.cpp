@@ -28,7 +28,7 @@ osn::VolMeter::Manager& osn::VolMeter::Manager::GetInstance()
 	return _inst;
 }
 
-osn::VolMeter::VolMeter(obs_fader_type type)
+osn::VolMeter::VolMeter(obs_fader_type type):id(0)
 {
 	self = obs_volmeter_create(type);
 	if (!self)

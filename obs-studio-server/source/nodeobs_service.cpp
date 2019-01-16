@@ -691,14 +691,17 @@ bool OBS_service::createAudioEncoder(obs_encoder_t** audioEncoder)
 		return false;
 	}
 
-	if (audioEncoder != NULL && usingRecordingPreset)
-		obs_encoder_release(*audioEncoder);
+	if (audioEncoder != nullptr) { 
+		if(usingRecordingPreset)
+			obs_encoder_release(*audioEncoder);
 
-	*audioEncoder = obs_audio_encoder_create(id, "simple_audio", nullptr, 0, nullptr);
-	if (*audioEncoder == nullptr) {
+		*audioEncoder = obs_audio_encoder_create(id, "simple_audio", nullptr, 0, nullptr);
+		if (*audioEncoder == nullptr) {
+			return false;
+		}
+	} else {
 		return false;
 	}
-
 	return true;
 }
 

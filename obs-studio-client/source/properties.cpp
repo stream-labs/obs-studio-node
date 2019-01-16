@@ -22,9 +22,8 @@
 Nan::Persistent<v8::FunctionTemplate> osn::Properties::prototype     = Nan::Persistent<v8::FunctionTemplate>();
 Nan::Persistent<v8::FunctionTemplate> osn::PropertyObject::prototype = Nan::Persistent<v8::FunctionTemplate>();
 
-osn::Properties::Properties()
-{
-	properties = std::make_shared<property_map_t>();
+osn::Properties::Properties() :properties(std::make_shared<property_map_t>())
+{	
 }
 
 osn::Properties::Properties(property_map_t container)

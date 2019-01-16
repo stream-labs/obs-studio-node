@@ -53,11 +53,11 @@ struct Event
 class AutoConfigInfo
 {
 	public:
-	AutoConfigInfo(std::string a_event, std::string a_description, double a_percentage)
+	AutoConfigInfo(const std::string& a_event, const std::string & a_description, double a_percentage): 
+		event(a_event), 
+		description(a_description), 
+		percentage(a_percentage)
 	{
-		event       = a_event;
-		description = a_description;
-		percentage  = a_percentage;
 	};
 	~AutoConfigInfo(){};
 
@@ -333,7 +333,7 @@ void GetServers(std::vector<ServerInfo>& servers)
 	obs_properties_destroy(ppts);
 }
 
-void start_next_step(void (*task)(), std::string event, std::string description, int percentage)
+void start_next_step(void (*task)(), const std::string & event, const std::string & description, int percentage)
 {
 	/*eventCallbackQueue.work_queue.push_back({cb, event, description, percentage});
     eventCallbackQueue.Signal();

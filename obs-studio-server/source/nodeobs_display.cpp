@@ -53,7 +53,7 @@ struct message_answer
 	DWORD       errorCode;
 	std::string errorMessage;
 
-	message_answer()
+	message_answer() : errorCode(0)
 	{
 		event = CreateSemaphore(NULL, 0, INT32_MAX, NULL);
 	}
@@ -882,7 +882,7 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 			if (left > 0.5) { // LEFT
 				float_t dist = edge[n].x;
 				if (dist > (pt * 4)) {
-					size_t  len    = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
+					size_t  len    = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (long)dist);
 					float_t offset = float((pt * len) / 2.0);
 
 					for (size_t p = 0; p < len; p++) {
@@ -900,7 +900,7 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 			} else if (left < -0.5) { // RIGHT
 				float_t dist = sceneWidth - edge[n].x;
 				if (dist > (pt * 4)) {
-					size_t  len    = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
+					size_t  len    = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (long)dist);
 					float_t offset = float((pt * len) / 2.0);
 
 					for (size_t p = 0; p < len; p++) {
@@ -918,7 +918,7 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 			} else if (top > 0.5) { // UP
 				float_t dist = edge[n].y;
 				if (dist > pt) {
-					size_t  len    = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
+					size_t  len    = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (long)dist);
 					float_t offset = float((pt * len) / 2.0);
 
 					for (size_t p = 0; p < len; p++) {
@@ -936,7 +936,7 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 			} else if (top < -0.5) { // DOWN
 				float_t dist = sceneHeight - edge[n].y;
 				if (dist > (pt * 4)) {
-					size_t  len    = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
+					size_t  len    = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (long)dist);
 					float_t offset = float((pt * len) / 2.0);
 
 					for (size_t p = 0; p < len; p++) {

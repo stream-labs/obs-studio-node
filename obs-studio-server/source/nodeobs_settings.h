@@ -142,7 +142,7 @@ class OBS_settings
 
 	// Exposed methods to the frontend
 	static std::vector<SubCategory> getSettings(std::string nameCategory);
-	static void                     saveSettings(std::string nameCategory, std::vector<SubCategory> settings);
+	static void                     saveSettings(std::string nameCategory, const std::vector<SubCategory>& settings);
 
 	// Get each category
 	static std::vector<SubCategory> getGeneralSettings();
@@ -154,16 +154,16 @@ class OBS_settings
 
 	// Save each category
 	static void saveGeneralSettings(std::vector<SubCategory> generalSettings, std::string pathConfigDirectory);
-	static void saveStreamSettings(std::vector<SubCategory> streamSettings);
+	static void saveStreamSettings(const std::vector<SubCategory>& streamSettings);
 	static void saveOutputSettings(std::vector<SubCategory> streamSettings);
-	static void saveAudioSettings(std::vector<SubCategory> audioSettings);
+	static void saveAudioSettings(const std::vector<SubCategory>& audioSettings);
 	static void saveVideoSettings(std::vector<SubCategory> videoSettings);
 	static void saveAdvancedSettings(std::vector<SubCategory> advancedSettings);
 
-	static void saveGenericSettings(std::vector<SubCategory> genericSettings, std::string section, config_t* config);
+	static void saveGenericSettings(const std::vector<SubCategory>& genericSettings, std::string section, config_t* config);
 
 	static SubCategory serializeSettingsData(
-	    std::string                                                   nameSubCategory,
+	    const std::string &                                           nameSubCategory,
 	    std::vector<std::vector<std::pair<std::string, std::string>>> entries,
 	    config_t*                                                     config,
 	    std::string                                                   section,
@@ -202,7 +202,7 @@ class OBS_settings
 	/****** Save Output Settings ******/
 
 	// Simple Output mode
-	static void saveSimpleOutputSettings(std::vector<SubCategory> settings);
+	static void saveSimpleOutputSettings(const std::vector<SubCategory>& settings);
 
 	// Advanced Output mode
 	static void saveAdvancedOutputStreamingSettings(std::vector<SubCategory> settings);

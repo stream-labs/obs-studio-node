@@ -7,12 +7,12 @@
 
 #include <util/platform.h>
 
-void ConfigManager::setAppdataPath(std::string path)
+void ConfigManager::setAppdataPath(const std::string& path)
 {
 	appdata = path;
 }
 
-config_t* ConfigManager::getConfig(std::string name)
+config_t* ConfigManager::getConfig(const std::string & name)
 {
 	config_t*   config;
 	std::string file = appdata + name;

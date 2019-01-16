@@ -692,10 +692,10 @@ namespace utilv8
 
 		CallbackData(
 		    Parent*                                parent,
-		    typename Async<Item, Parent>::Callback callback,
+		    const typename Async<Item, Parent>::Callback & callback,
 		    v8::Local<v8::Function>                func,
 		    uint32_t                               interval = 0)
-		    : handle(this), cb(func), queue(parent, callback, interval), stopped(false)
+		    : handle(this), cb(func), queue(parent, callback, interval), user_data(nullptr), stopped(false)
 		{}
 
 		Async<Item, Parent> queue;
@@ -791,7 +791,7 @@ namespace utilv8
 		}
 
 		public:
-		managed_callback()
+		managed_callback() : m_callback(nullptr), m_callback_data(nullptr)
 		{
 			m_async_runner.data = this;
 			uv_async_init(uv_default_loop(), &m_async_runner, worker);

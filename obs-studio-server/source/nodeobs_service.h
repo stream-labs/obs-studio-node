@@ -49,12 +49,12 @@ class SignalInfo
 
 	public:
 	SignalInfo(){};
-	SignalInfo(std::string outputType, std::string signal)
+	SignalInfo(const std::string& outputType, const std::string& signal) :
+		m_outputType( outputType), 
+		m_signal( signal), 
+		m_code(0), 
+		m_errorMessage ("")
 	{
-		m_outputType   = outputType;
-		m_signal       = signal;
-		m_code         = 0;
-		m_errorMessage = "";
 	}
 	std::string getOutputType(void)
 	{
@@ -77,7 +77,7 @@ class SignalInfo
 	{
 		return m_errorMessage;
 	};
-	void setErrorMessage(std::string errorMessage)
+	void setErrorMessage(const std::string& errorMessage)
 	{
 		m_errorMessage = errorMessage;
 	};
