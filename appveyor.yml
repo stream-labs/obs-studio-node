@@ -6,9 +6,6 @@ image:
 
 platform: x64
 
-cache:
-  - 'target'
-
 environment:
   matrix:
     - RuntimeURL: https://atom.io/download/atom-shell
@@ -35,13 +32,14 @@ environment:
 install:
 
   # Download & extract breakpad tools
-  - appveyor DownloadFile "https://s3.amazonaws.com/getsentry-builds/getsentry/breakpad-tools/windows/breakpad-tools-windows.zip" -FileName ".\target\breakpadtools.zip"
-  - 7z x ".\target\breakpadtools.zip" > nul
-  - cd ..
+  - appveyor DownloadFile "https://s3.amazonaws.com/getsentry-builds/getsentry/breakpad-tools/windows/breakpad-tools-windows.zip" -FileName breakpadtools.zip
+  - 7z x breakpadtools.zip > nul
 
   # Download Sentry-cli
-  - appveyor DownloadFile "https://github.com/getsentry/sentry-cli/releases/download/1.37.3/sentry-cli-Windows-i686.exe" -FileName ".\target\sentry-cli.exe"
+  - appveyor DownloadFile "https://github.com/getsentry/sentry-cli/releases/download/1.37.3/sentry-cli-Windows-i686.exe" -FileName sentry-cli.exe
   
+  - cmd: for /r %%i in (*.exe) do echo %%~ti %%~zi %%i
+
   - ps: Install-Product node $env:NodeVersion x64
   - yarn install
   - git submodule update --init --recursive
@@ -58,12 +56,13 @@ after_build:
   - tar cvaf "%UnsignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
 
   # Create a .sym file for each generated .pdb
-  - cmd: for /r "\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\" %%i in (*.pdb) do ".\target\dump_syms.exe" "%%~si" > "%%~ni.sym"
+  - cmd: for /r %%i in (*.exe) do echo %%~ti %%~zi %%i
+  - cmd: for /r "\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\" %%i in (*.pdb) do "dump_syms.exe" "%%~si" > "%%~ni.sym"
   - cmd: for /r "\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\" %%i in (*.pdb) do echo %%~ti %%~zi %%i
   - cmd: for /r "\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\" %%i in (*.sym) do echo %%~ti %%~zi %%i
 
   # Upload each .sym file to sentry using sentry-cli
-  - cmd: ".\target\sentry-cli.exe" --auth-token e035c0e6c9b74444a1765da04cf85c35f019520a897249ffa1ba17e9ffb3cd5b upload-dif --org streamlabs-obs --project obs-server "\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\"
+  - cmd: "sentry-cli.exe" --auth-token e035c0e6c9b74444a1765da04cf85c35f019520a897249ffa1ba17e9ffb3cd5b upload-dif --org streamlabs-obs --project obs-server "\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\"
 
 test_script:
   - ps: |
