@@ -16,9 +16,11 @@ describe('osn-filter', () => {
         }
     });
 
-    after(function() {
+    after(function(done) {
+        this.timeout(5000);
         obs.shutdown();
         obs = null;
+        setTimeout(done, 3000);
     });
 
     context('# Create', () => {
