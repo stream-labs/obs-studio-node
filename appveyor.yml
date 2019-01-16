@@ -37,7 +37,6 @@ install:
   - cd breakpadtools
   - 7z x ..\breakpadtools.zip > nul
   - cd ..
-  - cmd: for /r "\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\" %%i in (*.pdb) do "breakpadtools\dump_syms.exe" "%%~si" > "%%~ni.sym"
 
   - ps: Install-Product node $env:NodeVersion x64
   - yarn install
@@ -55,6 +54,8 @@ after_build:
   - tar cvaf "%UnsignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
 
   - cmd: for /r "\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\" %%i in (*.pdb) do "breakpadtools\dump_syms.exe" "%%~si" > "%%~ni.sym"
+  - cmd: for /r "\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\" %%i in (*.pdb) do echo %%~ti %%~zi %%i
+  - cmd: for /r "\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\" %%i in (*.sym) do echo %%~ti %%~zi %%i
 
 test_script:
   - ps: |
