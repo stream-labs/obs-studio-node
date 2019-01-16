@@ -53,8 +53,8 @@ after_build:
   - copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\ucrtbase.dll" "%SLFullDistributePath%\obs-studio-node\"
   - tar cvaf "%UnsignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
 
-  - cmd: for /r /projects/obs-studio-node/streamlabs-build/distribute/obs-studio-node/ %i in (*.pdb) do "breakpadtools\dump_syms.exe" "%~si" > "%~ni.sym"
-  
+  - cmd: for /r "\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\" %i in (*.pdb) do "breakpadtools\dump_syms.exe" "%~si" > "%~ni.sym"
+
 test_script:
   - ps: |
       if ($Env:RuntimeName -eq "iojs") {
