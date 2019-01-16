@@ -30,11 +30,14 @@ environment:
   OBSVersion: 22.0.2
 
 install:
+
+  # Download & extract breakpad tools
   - appveyor DownloadFile "https://s3.amazonaws.com/getsentry-builds/getsentry/breakpad-tools/windows/breakpad-tools-windows.zip" -FileName breakpadtools.zip
   - md breakpadtools
   - cd breakpadtools
   - 7z x ..\breakpadtools.zip > nul
   - cd ..
+  
   - ps: Install-Product node $env:NodeVersion x64
   - yarn install
   - git submodule update --init --recursive
@@ -50,6 +53,8 @@ after_build:
   - copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\ucrtbase.dll" "%SLFullDistributePath%\obs-studio-node\"
   - tar cvaf "%UnsignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
 
+  - cmd: for /r %i in (/projects/obs-studio-node/streamlabs-build/distribute/obs-studio-node*.pdb) do "breakpadtools\dump_syms.exe" "%~si" > "%~ni.sym"
+  
 test_script:
   - ps: |
       if ($Env:RuntimeName -eq "iojs") {
