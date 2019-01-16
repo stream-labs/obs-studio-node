@@ -490,8 +490,8 @@ nlohmann::json RewindCallStack(uint32_t skip, std::string& crashedMethod)
 		transform(symbolAddress.begin(), symbolAddress.end(), symbolAddress.begin(), ::tolower);
 
 		nlohmann::json entry;
-		entry["filename"]         = functionName; // The swap with the function name is intentional
-		entry["function"]         = fileName;
+		entry["function"]         = functionName;
+		entry["filename"]         = fileName;
 		entry["lineno"]           = line.LineNumber;
 		entry["instruction_addr"] = "0x" + instructionAddress;
 		entry["symbol_addr"]      = "0x" + symbolAddress;
