@@ -48,6 +48,7 @@ uint64_t                                               lastBytesSentTime = 0;
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 std::string                                            slobs_plugin;
 std::vector<std::pair<std::string, obs_module_t*>>     obsModules;
+std::vector<std::string>                               logMessages;
 
 void OBS_API::Register(ipc::server& srv)
 {
@@ -327,6 +328,9 @@ static void                                    node_obs_log(int log_level, const
 
 			// File Log
 			*logStream << newmsg << std::flush;
+
+            // Internal Log
+			logMessages.push_back(newmsg);
 
 			// Std Out / Std Err
 			/// Why fwrite and not std::cout and std::cerr?
@@ -971,6 +975,8 @@ void OBS_API::StopCrashHandler(
 
 void OBS_API::destroyOBS_API(void)
 {
+	throw "Test";
+
 	os_cpu_usage_info_destroy(cpuUsageInfo);
 
 #ifdef _WIN32
@@ -1232,6 +1238,11 @@ double OBS_API::getCurrentBandwidth(void)
 double OBS_API::getCurrentFrameRate(void)
 {
 	return obs_get_active_fps();
+}
+
+const std::vector<std::string>& OBS_API::getOBSInternalLog()
+{
+	return logMessages;
 }
 
 static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData)

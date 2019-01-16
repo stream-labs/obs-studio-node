@@ -67,7 +67,6 @@ std::unique_ptr<crashpad::CrashReportDatabase> database;
 // Forward
 std::string    FormatVAString(const char* const format, va_list args);
 nlohmann::json RewindCallStack(uint32_t skip, std::string& crashedMethod);
-nlohmann::json RequestOBSLog();
 
 // Transform a byte value into a string + sufix
 std::string PrettyBytes(uint64_t bytes)
@@ -521,20 +520,18 @@ nlohmann::json RewindCallStack(uint32_t skip, std::string& crashedMethod)
 	return result;
 }
 
-nlohmann::json RequestOBSLog()
+nlohmann::json util::CrashManager::RequestOBSLog()
 {
 	nlohmann::json result;
-	/*
+	
 	// Setup the obs log queue as an attribute
-	if (OBS_API::getOBSLogQueue().size() > 0) {
-		std::queue<std::string> obsLogQueue = OBS_API::getOBSLogQueue();
-		std::string             obsLogMessage;
-		while (obsLogQueue.size() > 0) {
-			result.push_back(obsLogQueue.front());
-			obsLogQueue.pop();
-		}
+	if (OBS_API::getOBSInternalLog().size() > 0) {
+		const std::vector<std::string>& obsLog = OBS_API::getOBSInternalLog();
+        for (auto& message : obsLog) {
+			result.push_back(message);
+        }
 	}
-    */
+ 
 	return result;
 }
 

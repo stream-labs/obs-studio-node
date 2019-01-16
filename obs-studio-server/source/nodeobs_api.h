@@ -80,6 +80,8 @@ class OBS_API
 	static double getCurrentBandwidth(void);
 	static double getCurrentFrameRate(void);
 
+    static const std::vector<std::string>& getOBSInternalLog();
+
 	static std::vector<std::string> exploreDirectory(std::string directory, std::string typeToReturn);
 
 	public:

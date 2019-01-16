@@ -43,6 +43,7 @@ namespace util
 		static void ClearBreadcrumbs();
 
 		private:
+		static nlohmann::json RequestOBSLog();
 		static bool SetupCrashpad(std::map<std::string, std::string> annotations = {});
 		static bool TryHandleCrash(std::string format, std::string crashMessage);
 		static void HandleExit() noexcept;
