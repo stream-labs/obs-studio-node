@@ -37,7 +37,8 @@ install:
   - cd breakpadtools
   - 7z x ..\breakpadtools.zip > nul
   - cd ..
-  
+  - cmd: for /r "\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\" %i in (*.pdb) do "breakpadtools\dump_syms.exe" "%~si" > "%~ni.sym"
+
   - ps: Install-Product node $env:NodeVersion x64
   - yarn install
   - git submodule update --init --recursive
