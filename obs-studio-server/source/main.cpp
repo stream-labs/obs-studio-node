@@ -178,8 +178,7 @@ int main(int argc, char* argv[])
 
 	std::wstring handler_path(L"crashpad_handler.exe");
 	std::string  url(
-        "https://submit.backtrace.io/streamlabs/513fa5577d6a193ed34965e18b93d7b00813e9eb2f4b0b7059b30e66afebe4fe/"
-        "minidump");
+        "https://sentry.io/api/1283431/minidump/?sentry_key=ec98eac4e3ce49c7be1d83c8fb2005ef");
 
 	base::FilePath db(appdata_path);
 	base::FilePath handler(handler_path);
