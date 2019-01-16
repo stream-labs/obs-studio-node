@@ -64,7 +64,9 @@ after_build:
   - cmd: for /r '\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\' %%i in (*.pdb) do '\projects\obs-studio-node\dump_syms.exe' "%%~si" > "%%~ni.sym"
   - cmd: for /r '\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\' %%i in (*.pdb) do echo %%~ti %%~zi %%i
   - cmd: for /r '\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\' %%i in (*.sym) do echo %%~ti %%~zi %%i
-
+  - cmd: for /r %%i in (*.pdb) do echo %%~ti %%~zi %%i
+  - cmd: for /r %%i in (*.sym) do echo %%~ti %%~zi %%i
+  
   # Upload each .sym file to sentry using sentry-cli
   - cmd: ci\run-sentry-cli.cmd
   
