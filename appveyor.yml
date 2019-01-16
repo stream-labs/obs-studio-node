@@ -52,7 +52,7 @@ install:
 
 build_script:
   - cmd: ci\cmake-build.cmd
-
+  
 after_build:
   - copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.16.27012\x64\Microsoft.VC141.CRT\vcruntime140.dll" "%SLFullDistributePath%\obs-studio-node\"
   - copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.16.27012\x64\Microsoft.VC141.CRT\msvcp140.dll" "%SLFullDistributePath%\obs-studio-node\"
@@ -61,9 +61,9 @@ after_build:
 
   # Create a .sym file for each generated .pdb
   - cmd: for /r %%i in (*.exe) do echo %%~ti %%~zi %%i
-  - cmd: for /r '\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\' %%i in (*.pdb) do '\projects\obs-studio-node\dump_syms.exe' "%%~si" > "%%~ni.sym"
-  - cmd: for /r '\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\' %%i in (*.pdb) do echo %%~ti %%~zi %%i
-  - cmd: for /r '\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\' %%i in (*.sym) do echo %%~ti %%~zi %%i
+  - cmd: for "\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\" /r %%i in (*.pdb) do "dump_syms.exe" "%%~si" > "%%~ni.sym"
+  - cmd: for "\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\" /r %%i in (*.pdb) do echo %%~ti %%~zi %%i
+  - cmd: for "\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\" /r %%i in (*.sym) do echo %%~ti %%~zi %%i
   - cmd: for /r %%i in (*.pdb) do echo %%~ti %%~zi %%i
   - cmd: for /r %%i in (*.sym) do echo %%~ti %%~zi %%i
   
