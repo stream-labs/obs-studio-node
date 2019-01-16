@@ -41,6 +41,8 @@ install:
   - cmd: for /r %%i in (*.exe) do echo %%~ti %%~zi %%i
 
   - ps: Install-Product node $env:NodeVersion x64
+  - npm install
+  - npm install @sentry/cli
   - yarn install
   - git submodule update --init --recursive
   - ps: $env:SignedArtifact = "obs-studio-node-$(git describe --tags --abbrev=0)-$env:RuntimeName-$env:RuntimeVersion"
@@ -62,7 +64,8 @@ after_build:
   - cmd: for /r '\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\' %%i in (*.sym) do echo %%~ti %%~zi %%i
 
   # Upload each .sym file to sentry using sentry-cli
-  - cmd: start '\projects\obs-studio-node\sentry-cli.exe' --auth-token "e035c0e6c9b74444a1765da04cf85c35f019520a897249ffa1ba17e9ffb3cd5b" upload-dif --org streamlabs-obs --project obs-server '\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\'
+  - cmd: >-
+    '\projects\obs-studio-node\sentry-cli.exe' --auth-token "e035c0e6c9b74444a1765da04cf85c35f019520a897249ffa1ba17e9ffb3cd5b" upload-dif --org streamlabs-obs --project obs-server '\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\'
   
 test_script:
   - ps: |
