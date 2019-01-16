@@ -30,6 +30,11 @@ environment:
   OBSVersion: 22.0.2
 
 install:
+  - appveyor DownloadFile "https://docs.sentry.io/cli/dif/breakpad/" -FileName breakpadtools.zip
+  - md breakpadtools
+  - cd breakpadtools
+  - 7z x ..\breakpadtools.zip > nul
+  - cd ..
   - ps: Install-Product node $env:NodeVersion x64
   - yarn install
   - git submodule update --init --recursive
