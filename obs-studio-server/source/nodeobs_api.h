@@ -8,9 +8,8 @@
 #include <string.h>
 #include <string>
 #include <vector>
-#include "nodeobs_service.h"
-#include <ipc-server.hpp>
 #include "nodeobs_configManager.hpp"
+#include "nodeobs_service.h"
 
 using namespace std;
 
@@ -22,8 +21,15 @@ struct Screen
 	int height;
 };
 
+namespace util
+{
+	class CrashManager;
+}
+
 class OBS_API
 {
+	friend util::CrashManager;
+
 	public:
 	OBS_API();
 	~OBS_API();
@@ -63,7 +69,7 @@ class OBS_API
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
 
-	private:
+	protected:
 	static void initAPI(void);
 	static void destroyOBS_API(void);
 	static bool openAllModules(int& video_err);

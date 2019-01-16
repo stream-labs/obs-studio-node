@@ -386,7 +386,7 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 	// proceed with a crash
 	try {
 		// If for any reason `destroyOBS_API` crashes, the crash recursion is handled
-		// OBS_API::destroyOBS_API();
+		OBS_API::destroyOBS_API();
 		exit(0);
 	} catch (...) {
 		util::CrashManager::HandleCrash(_crashMessage);
