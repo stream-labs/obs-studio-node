@@ -40,9 +40,6 @@
 #pragma comment(lib, "pdh.lib")
 #include <fcntl.h>
 #include <io.h>
-#include <iostream>
-#include <map>
-#include <string>
 #include <windows.h>
 #include "TCHAR.h"
 #include "pdh.h"
@@ -55,12 +52,13 @@
 #include "client/settings.h"
 
 // Global/static variables
-std::vector<std::string> handledOBSCrashes;
-PDH_HQUERY               cpuQuery;
-PDH_HCOUNTER             cpuTotal;
-std::vector<std::string> breadcrumbs;
-std::vector<std::string> warnings;
-
+std::vector<std::string>              handledOBSCrashes;
+PDH_HQUERY                            cpuQuery;
+PDH_HCOUNTER                          cpuTotal;
+std::vector<std::string>              breadcrumbs;
+std::vector<std::string>              warnings;
+std::chrono::steady_clock::time_point initialTime;
+ 
 // Crashpad variables
 std::wstring                                   appdata_path;
 crashpad::CrashpadClient                       client;
@@ -180,6 +178,58 @@ nlohmann::json RequestProcessList()
 
 #endif
 
+/*
+
+	std::string processName =
+		std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().to_bytes(szProcessName);
+
+	auto iter = processInfos.find(processName);
+	if (iter == processInfos.end()) {
+		processInfos.insert({processName, {}});
+		iter = processInfos.find(processName);
+		if (iter == processInfos.end())
+			continue;
+	}
+
+	iter->second.push_back(std::to_string(processID));
+	CloseHandle(hProcess);
+		
+
+	auto JoinEntry = [&](const std::string& processName, const std::vector<std::string>& ids) {
+		std::string idString;
+
+		for (int i = 0; i < ids.size(); i++) {
+			idString.append(ids[i] + std::string((i == ids.size() - 1 ? "" : " - ")));
+		}
+
+        result.push_back({{processName, idString}});
+	};
+
+	// Find common process names used by SLOBS and put them in front
+	std::vector<std::string> commonNames = {"obs64.exe",
+	                                        "obs-browser-page.exe",
+	                                        "electron.exe",
+	                                        "crashpad_handler.exe",
+	                                        "latest-updater.exe",
+	                                        "Streamlabs OBS.exe",
+	                                        "crashpad_handler.exe"};
+
+	for (auto& commonName : commonNames) {
+		auto iter = processInfos.find(commonName);
+		if (iter != processInfos.end()) {
+			JoinEntry(iter->first, iter->second);
+			processInfos.erase(iter);
+        }
+	}
+
+    result.push_back({{"", ""}});
+
+    for (auto& remaningInfo : processInfos) {
+		JoinEntry(remaningInfo.first, remaningInfo.second);
+    }
+
+*/
+
 	return result;
 }
 
@@ -235,6 +285,8 @@ bool util::CrashManager::Initialize()
 
 #endif
 
+    initialTime = std::chrono::steady_clock::now();
+
 	return true;
 }
 
@@ -268,7 +320,6 @@ bool util::CrashManager::SetupCrashpad()
 
 #endif
 
-	
 	arguments.push_back("--no-rate-limit");
 
 	std::wstring handler_path(L"crashpad_handler.exe");
@@ -335,25 +386,30 @@ void util::CrashManager::HandleCrash(std::string _crashInfo) noexcept
 	size_t    physMemUsedByMe;
 	RequestComputerUsageParams(totalPhysMem, physMemUsed, physMemUsedByMe, totalCPUUsed);
 
+    auto timeElapsed =
+	    std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - initialTime);
+	
 	// Setup all the custom annotations that are important too our crash report
-	annotations.insert({{"status", obs_initialized() ? "initialized" : "shutdown"}});
-	annotations.insert({{"leaks", std::to_string(bnum_allocs())}});
-	annotations.insert({{"total memory", PrettyBytes(totalPhysMem)}});
-	annotations.insert({{"total used memory", PrettyBytes(physMemUsed)}});
-	annotations.insert({{"total SLOBS memory", PrettyBytes(physMemUsedByMe)}});
-	annotations.insert({{"cpu", std::to_string(int(totalCPUUsed)) + "%"}});
-
-	// Add obs logs
+	annotations.insert({{"Time elapsed (seconds): ", std::to_string(timeElapsed
+	    .count())}});
+	annotations.insert({{"Status", obs_initialized() ? "initialized" : "shutdown"}});
+	annotations.insert({{"Leaks", std::to_string(bnum_allocs())}});
+	annotations.insert({{"Total memory", PrettyBytes(totalPhysMem)}});
+	annotations.insert({{"Total used memory",
+	                     PrettyBytes(physMemUsed)
+	                         + " - percentage: " + std::to_string(double(physMemUsed) / double(totalPhysMem)) + "%"}});
+	annotations.insert({{"Total SLOBS memory",
+	                     PrettyBytes(physMemUsedByMe) + " - percentage: "
+	                         + std::to_string(double(physMemUsedByMe) / double(totalPhysMem)) + "%"}});
+	annotations.insert({{"CPU usage", std::to_string(int(totalCPUUsed)) + "%"}});
 	annotations.insert({{"OBS Log", RequestOBSLog().dump(4)}});
 	annotations.insert({{"Process List", RequestProcessList().dump(4)}});
+	annotations.insert({{"Manual callstack", callStack.dump(4)}});
 
-	// Join the callstack and the annotations
-	// annotations.insert({"Manual callstack", callStack.dump(4)});
-
-	annotations.insert({"Test", "Test5"});
-
+    // Recreate crashpad instance, this is a well defined/supported operation
 	SetupCrashpad();
 
+    // Finish the execution and let crashpad handle the crash
 	abort();
 
 	insideCrashMethod = false;
