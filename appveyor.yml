@@ -47,6 +47,7 @@ before_test:
 
 test_script:
   - cmd: npm run test
+  - cmd: cd ..\..
 
 before_deploy:
   - nuget install secure-file -ExcludeVersion
