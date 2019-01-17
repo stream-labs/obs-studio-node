@@ -41,6 +41,8 @@
 #include <fcntl.h>
 #include <io.h>
 #include <iostream>
+#include <map>
+#include <string>
 #include <windows.h>
 #include "TCHAR.h"
 #include "pdh.h"
@@ -63,6 +65,11 @@ std::vector<std::string> warnings;
 std::wstring                                   appdata_path;
 crashpad::CrashpadClient                       client;
 std::unique_ptr<crashpad::CrashReportDatabase> database;
+std::string                                    url;
+base::FilePath                                 db;
+base::FilePath                                 handler;
+std::vector<std::string>                       arguments;
+std::map<std::string, std::string>             annotations;
 
 // Forward
 std::string    FormatVAString(const char* const format, va_list args);
@@ -180,10 +187,6 @@ bool util::CrashManager::Initialize()
 {
 #ifndef _DEBUG
 
-	// Initialize crashpad
-	if (!SetupCrashpad())
-		return false;
-
     // Handler for obs errors (mainly for bcrash() calls)
 	base_set_crash_handler(
 	    [](const char* format, va_list args, void* param) {
@@ -205,8 +208,8 @@ bool util::CrashManager::Initialize()
 	// Setup the windows exeption filter to
 	SetUnhandledExceptionFilter([](struct _EXCEPTION_POINTERS* ExceptionInfo) {
 		/* don't use if a debugger is present */
-		if (IsDebuggerPresent())
-			return LONG(EXCEPTION_CONTINUE_SEARCH);
+		// if (IsDebuggerPresent())
+		// 	return LONG(EXCEPTION_CONTINUE_SEARCH);
 
 		HandleCrash("UnhandledExceptionFilter");
 
@@ -244,7 +247,7 @@ void util::CrashManager::Configure()
 	}
 }
 
-bool util::CrashManager::SetupCrashpad(std::map<std::string, std::string> annotations)
+bool util::CrashManager::SetupCrashpad()
 {
 #ifndef _DEBUG
 
@@ -261,20 +264,21 @@ bool util::CrashManager::SetupCrashpad(std::map<std::string, std::string> annota
 
 #endif
 
-	std::vector<std::string> arguments;
+	
 	arguments.push_back("--no-rate-limit");
 
 	std::wstring handler_path(L"crashpad_handler.exe");
-	std::string  url("https://sentry.io/api/1283431/minidump/?sentry_key=ec98eac4e3ce49c7be1d83c8fb2005ef");
 
-	base::FilePath db(appdata_path);
-	base::FilePath handler(handler_path);
+    url = std::string("https://sentry.io/api/1283431/minidump/?sentry_key=ec98eac4e3ce49c7be1d83c8fb2005ef");
+	db = base::FilePath(appdata_path);
+    handler = base::FilePath(handler_path);
 
 	database = crashpad::CrashReportDatabase::Initialize(db);
 	if (database == nullptr || database->GetSettings() == NULL)
 		return false;
 
 	database->GetSettings()->SetUploadsEnabled(true);
+    
 	annotations.insert({"Test", "Test"});
 	bool rc = client.StartHandler(handler, db, db, url, annotations, arguments, true, true);
 	if (!rc)
@@ -320,7 +324,6 @@ void util::CrashManager::HandleCrash(std::string _crashInfo) noexcept
 	// and we don't have access to the callstack.
 	std::string                        crashedMethodName;
 	nlohmann::json                     callStack = RewindCallStack(0, crashedMethodName);
-	std::map<std::string, std::string> annotations;
 
 	// Get the information about the total of CPU and RAM used by this user
 	long long totalPhysMem;
@@ -341,8 +344,14 @@ void util::CrashManager::HandleCrash(std::string _crashInfo) noexcept
 	annotations.insert({{"OBS Log", RequestOBSLog().dump(4)}});
 	annotations.insert({{"Process List", RequestProcessList().dump(4)}});
 
-	// Invoke the crash report
-	InvokeReport(_crashInfo, crashedMethodName, callStack, annotations);
+	// Join the callstack and the annotations
+	// annotations.insert({"Manual callstack", callStack.dump(4)});
+
+	annotations.insert({"Test", "Test4"});
+
+	SetupCrashpad();
+
+	abort();
 
 	insideCrashMethod = false;
 }
@@ -532,18 +541,12 @@ nlohmann::json util::CrashManager::RequestOBSLog()
 void util::CrashManager::InvokeReport(
     std::string                        crashInfo,
     std::string                        complementInfo,
-    nlohmann::json                     callStack,
-    std::map<std::string, std::string> annotations)
+    nlohmann::json                     callStack)
 {
 #ifndef _DEBUG
+	
 
-	// Join the callstack and the annotations
-	annotations.insert({"Manual callstack", callStack.dump(4)});
-
-	// Recreate the crashpad instance
-	// SetupCrashpad(annotations);
-
-	throw "";
+	
 
 #endif
 }

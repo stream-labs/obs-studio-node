@@ -44,15 +44,14 @@ namespace util
 
 		private:
 		static nlohmann::json RequestOBSLog();
-		static bool SetupCrashpad(std::map<std::string, std::string> annotations = {});
+		static bool SetupCrashpad();
 		static bool TryHandleCrash(std::string format, std::string crashMessage);
 		static void HandleExit() noexcept;
 		static void HandleCrash(std::string crashInfo) noexcept;
 		static void InvokeReport(
 		    std::string                        crashInfo,
 		    std::string                        complementInfo,
-		    nlohmann::json                     callStack,
-		    std::map<std::string, std::string> annotations);
+		    nlohmann::json                     callStack);
 	};
 
 }; // namespace util
