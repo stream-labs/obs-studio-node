@@ -7,7 +7,7 @@ export class OBSProcessHandler {
         const pipeName = 'osn-tests-pipe';  
 
         try {
-            osn.NodeObs.IPC.ConnectOrHost(pipeName);
+            osn.NodeObs.IPC.host(pipeName);
             osn.NodeObs.SetWorkingDirectory(wd);
             osn.NodeObs.OBS_API_initAPI('en-US', path.join(__dirname, '..', 'AppData'));
         } catch(e) {
