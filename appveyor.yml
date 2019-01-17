@@ -31,13 +31,6 @@ environment:
 
 install:
 
-  # Download & extract breakpad tools
-  - appveyor DownloadFile "https://s3.amazonaws.com/getsentry-builds/getsentry/breakpad-tools/windows/breakpad-tools-windows.zip" -FileName "breakpadtools.zip"
-  - 7z x "breakpadtools.zip" > nul
-
-  # Download Sentry-cli
-  - appveyor DownloadFile "https://github.com/getsentry/sentry-cli/releases/download/1.37.3/sentry-cli-Windows-i686.exe" -FileName "sentry-cli.exe"
-  
   - ps: Install-Product node $env:NodeVersion x64
   - yarn install
   - git submodule update --init --recursive
@@ -52,9 +45,6 @@ after_build:
   - copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.16.27012\x64\Microsoft.VC141.CRT\msvcp140.dll" "%SLFullDistributePath%\obs-studio-node\"
   - copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\ucrtbase.dll" "%SLFullDistributePath%\obs-studio-node\"
   - tar cvaf "%UnsignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
-
-  # Transform our .pdb files into .sym and upload each of them to sentry using sentry-cli
-  - cmd: ci\run-sentry-cli.cmd
   
 test_script:
   - ps: |
@@ -69,6 +59,13 @@ before_deploy:
   - cmd: ci\copy-signed-binaries.cmd
   - tar cvaf "%SignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
   - ps: Push-AppveyorArtifact "$env:SignedArtifact.tar.gz"
+  
+  - appveyor DownloadFile "https://s3.amazonaws.com/getsentry-builds/getsentry/breakpad-tools/windows/breakpad-tools-windows.zip" -FileName "breakpadtools.zip"
+  - 7z x "breakpadtools.zip" > nul
+  - appveyor DownloadFile "https://github.com/getsentry/sentry-cli/releases/download/1.37.3/sentry-cli-Windows-i686.exe" -FileName "sentry-cli.exe"  
+  
+  # Transform our .pdb files into .sym and upload each of them to sentry using sentry-cli
+  - cmd: ci\run-sentry-cli.cmd  
 
 deploy:
   - provider: S3
