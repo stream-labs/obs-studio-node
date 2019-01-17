@@ -187,6 +187,10 @@ bool util::CrashManager::Initialize()
 {
 #ifndef _DEBUG
 
+    if (!SetupCrashpad()) {
+		return false;
+    }
+
     // Handler for obs errors (mainly for bcrash() calls)
 	base_set_crash_handler(
 	    [](const char* format, va_list args, void* param) {
@@ -279,7 +283,6 @@ bool util::CrashManager::SetupCrashpad()
 
 	database->GetSettings()->SetUploadsEnabled(true);
     
-	annotations.insert({"Test", "Test"});
 	bool rc = client.StartHandler(handler, db, db, url, annotations, arguments, true, true);
 	if (!rc)
 		return false;
@@ -347,7 +350,7 @@ void util::CrashManager::HandleCrash(std::string _crashInfo) noexcept
 	// Join the callstack and the annotations
 	// annotations.insert({"Manual callstack", callStack.dump(4)});
 
-	annotations.insert({"Test", "Test4"});
+	annotations.insert({"Test", "Test5"});
 
 	SetupCrashpad();
 
@@ -530,25 +533,15 @@ nlohmann::json util::CrashManager::RequestOBSLog()
 	// Setup the obs log queue as an attribute
 	if (OBS_API::getOBSInternalLog().size() > 0) {
 		const std::vector<std::string>& obsLog = OBS_API::getOBSInternalLog();
-		for (auto& message : obsLog) {
-			result.push_back(message);
+
+        const int maxMessages = 150;
+		int       initialValue = std::max(0, int(obsLog.size()) - maxMessages);
+		for (int i = initialValue; i <= initialValue + maxMessages; i++) {
+			result.push_back(obsLog[i]);
 		}
 	}
 
 	return result;
-}
-
-void util::CrashManager::InvokeReport(
-    std::string                        crashInfo,
-    std::string                        complementInfo,
-    nlohmann::json                     callStack)
-{
-#ifndef _DEBUG
-	
-
-	
-
-#endif
 }
 
 void BindCrtHandlesToStdHandles(bool bindStdIn, bool bindStdOut, bool bindStdErr)

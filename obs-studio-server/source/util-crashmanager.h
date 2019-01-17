@@ -48,10 +48,6 @@ namespace util
 		static bool TryHandleCrash(std::string format, std::string crashMessage);
 		static void HandleExit() noexcept;
 		static void HandleCrash(std::string crashInfo) noexcept;
-		static void InvokeReport(
-		    std::string                        crashInfo,
-		    std::string                        complementInfo,
-		    nlohmann::json                     callStack);
 	};
 
 }; // namespace util
