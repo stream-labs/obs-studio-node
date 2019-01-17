@@ -44,10 +44,10 @@ after_build:
 before_test:
   - cmd: cd tests\osn-tests
   - cmd: yarn install
-  - cmd: cd ..\..
 
 test_script:
   - cmd: npm run test
+  - cmd: cd ..\..
 
 before_deploy:
   - nuget install secure-file -ExcludeVersion
