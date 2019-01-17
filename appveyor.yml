@@ -38,13 +38,7 @@ install:
   # Download Sentry-cli
   - appveyor DownloadFile "https://github.com/getsentry/sentry-cli/releases/download/1.37.3/sentry-cli-Windows-i686.exe" -FileName "sentry-cli.exe"
   
-  - cmd: for /r %%i in (*.exe) do echo %%~ti %%~zi %%i
-
   - ps: Install-Product node $env:NodeVersion x64
-  
-  - npm install
-  - npm install @sentry/cli
-  
   - yarn install
   - git submodule update --init --recursive
   - ps: $env:SignedArtifact = "obs-studio-node-$(git describe --tags --abbrev=0)-$env:RuntimeName-$env:RuntimeVersion"
@@ -59,7 +53,7 @@ after_build:
   - copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\ucrtbase.dll" "%SLFullDistributePath%\obs-studio-node\"
   - tar cvaf "%UnsignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
 
-  # Upload each .sym file to sentry using sentry-cli
+  # Transform our .pdb files into .sym and upload each of them to sentry using sentry-cli
   - cmd: ci\run-sentry-cli.cmd
   
 test_script:
