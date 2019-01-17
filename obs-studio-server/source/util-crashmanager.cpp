@@ -53,11 +53,11 @@
 #include "client/settings.h"
 
 // Global/static variables
-std::vector<std::string>              handledOBSCrashes;
-PDH_HQUERY                            cpuQuery;
-PDH_HCOUNTER                          cpuTotal;
-std::vector<std::string>              breadcrumbs;
-std::vector<std::string>              warnings;
+std::vector<std::string> handledOBSCrashes;
+PDH_HQUERY               cpuQuery;
+PDH_HCOUNTER             cpuTotal;
+std::vector<std::string> breadcrumbs;
+std::vector<std::string> warnings;
 
 // Crashpad variables
 std::wstring                                   appdata_path;
@@ -184,7 +184,7 @@ bool util::CrashManager::Initialize()
 	if (!SetupCrashpad())
 		return false;
 
-	// Handler for obs errors (mainly for bcrash() calls)
+    // Handler for obs errors (mainly for bcrash() calls)
 	base_set_crash_handler(
 	    [](const char* format, va_list args, void* param) {
 		    std::string errorMessage = FormatVAString(format, args);
@@ -261,12 +261,11 @@ bool util::CrashManager::SetupCrashpad(std::map<std::string, std::string> annota
 
 #endif
 
-	std::vector<std::string>           arguments;
+	std::vector<std::string> arguments;
 	arguments.push_back("--no-rate-limit");
 
 	std::wstring handler_path(L"crashpad_handler.exe");
-	std::string  url(
-        "https://sentry.io/api/1283431/minidump/?sentry_key=ec98eac4e3ce49c7be1d83c8fb2005ef");
+	std::string  url("https://sentry.io/api/1283431/minidump/?sentry_key=ec98eac4e3ce49c7be1d83c8fb2005ef");
 
 	base::FilePath db(appdata_path);
 	base::FilePath handler(handler_path);
@@ -276,7 +275,7 @@ bool util::CrashManager::SetupCrashpad(std::map<std::string, std::string> annota
 		return false;
 
 	database->GetSettings()->SetUploadsEnabled(true);
-
+	annotations.insert({"Test", "Test"});
 	bool rc = client.StartHandler(handler, db, db, url, annotations, arguments, true, true);
 	if (!rc)
 		return false;
@@ -301,11 +300,11 @@ void util::CrashManager::HandleExit() noexcept
 		// cannot ensure that when at exit a call to obs_initialized will be safe, it
 		// could be in an invalid state, we will let the application continue and if
 		// this results in a crash at least we will know what caused it
-		HandleCrash("AtExit", false);
+		HandleCrash("AtExit");
 	}
 }
 
-void util::CrashManager::HandleCrash(std::string _crashInfo, bool _callAbort) noexcept
+void util::CrashManager::HandleCrash(std::string _crashInfo) noexcept
 {
 	// If for any reason this is true, it means that we are crashing inside this same
 	// method, if that happens just call abort and ignore any remaining processing since
@@ -319,8 +318,8 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool _callAbort) no
 	// This will manually rewind the callstack, we will use this info to populate an
 	// cras report attribute, avoiding some cases that the memory dump is corrupted
 	// and we don't have access to the callstack.
-	std::string    crashedMethodName;
-	nlohmann::json callStack = RewindCallStack(0, crashedMethodName);
+	std::string                        crashedMethodName;
+	nlohmann::json                     callStack = RewindCallStack(0, crashedMethodName);
 	std::map<std::string, std::string> annotations;
 
 	// Get the information about the total of CPU and RAM used by this user
@@ -345,21 +344,16 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool _callAbort) no
 	// Invoke the crash report
 	InvokeReport(_crashInfo, crashedMethodName, callStack, annotations);
 
-	// Finish with a call to abort since there is no point on continuing
-	if (_callAbort)
-		abort();
-
-	// Unreachable statement if _callAbort is true
 	insideCrashMethod = false;
 }
 
 bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashMessage)
 {
-    // This method can only be called by the obs-studio crash handler method, this means that
-    // an internal error occured.
-    // handledOBSCrashes will contain all error messages that we should ignore from obs-studio, 
-    // like Dx11 errors for example, here we will check if this error is known, if true we will
-    // try to finalize SLOBS in an attempt to NOT generate a crash report for it
+	// This method can only be called by the obs-studio crash handler method, this means that
+	// an internal error occured.
+	// handledOBSCrashes will contain all error messages that we should ignore from obs-studio,
+	// like Dx11 errors for example, here we will check if this error is known, if true we will
+	// try to finalize SLOBS in an attempt to NOT generate a crash report for it
 	bool crashIsHandled = false;
 	for (auto& handledCrashes : handledOBSCrashes) {
 		if (std::string(_format).find(handledCrashes) != std::string::npos) {
@@ -377,9 +371,9 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 	// can try to finish the application normally to avoid any crash report
 
 	// Optionally send a message to the user here informing that SLOBS found an error and will
-    // now close, potentially we could retrieve CPU and RAM usage and show a rich message 
-    // telling the user that he is using too much cpu/ram or process any Dx11 message and output
-    // that to the user
+	// now close, potentially we could retrieve CPU and RAM usage and show a rich message
+	// telling the user that he is using too much cpu/ram or process any Dx11 message and output
+	// that to the user
 
 	// If we cannot destroy the obs and exit normally without causing a crash report,
 	// proceed with a crash
@@ -523,15 +517,15 @@ nlohmann::json RewindCallStack(uint32_t skip, std::string& crashedMethod)
 nlohmann::json util::CrashManager::RequestOBSLog()
 {
 	nlohmann::json result;
-	
+
 	// Setup the obs log queue as an attribute
 	if (OBS_API::getOBSInternalLog().size() > 0) {
 		const std::vector<std::string>& obsLog = OBS_API::getOBSInternalLog();
-        for (auto& message : obsLog) {
+		for (auto& message : obsLog) {
 			result.push_back(message);
-        }
+		}
 	}
- 
+
 	return result;
 }
 
@@ -543,11 +537,13 @@ void util::CrashManager::InvokeReport(
 {
 #ifndef _DEBUG
 
-    // Join the callstack and the annotations
+	// Join the callstack and the annotations
 	annotations.insert({"Manual callstack", callStack.dump(4)});
 
-    // Recreate the crashpad instance
-    SetupCrashpad(annotations);
+	// Recreate the crashpad instance
+	// SetupCrashpad(annotations);
+
+	throw "";
 
 #endif
 }
@@ -703,7 +699,7 @@ void util::CrashManager::IPCValuesToData(const std::vector<ipc::value>& values, 
 	}
 }
 
-void util::CrashManager::AddWarning(const std::string& warning) 
+void util::CrashManager::AddWarning(const std::string& warning)
 {
 	warnings.push_back(warning);
 }

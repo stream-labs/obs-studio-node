@@ -47,7 +47,7 @@ namespace util
 		static bool SetupCrashpad(std::map<std::string, std::string> annotations = {});
 		static bool TryHandleCrash(std::string format, std::string crashMessage);
 		static void HandleExit() noexcept;
-		static void HandleCrash(std::string crashInfo, bool callAbort = true) noexcept;
+		static void HandleCrash(std::string crashInfo) noexcept;
 		static void InvokeReport(
 		    std::string                        crashInfo,
 		    std::string                        complementInfo,
