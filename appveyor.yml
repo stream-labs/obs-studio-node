@@ -59,14 +59,6 @@ after_build:
   - copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\ucrtbase.dll" "%SLFullDistributePath%\obs-studio-node\"
   - tar cvaf "%UnsignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
 
-  # Create a .sym file for each generated .pdb
-  - cmd: for /r %%i in (*.exe) do echo %%~ti %%~zi %%i
-  - cmd: for /r %%i in ("\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\*.pdb") do "dump_syms.exe" "%%~si" > "%%~ni.sym"
-  - cmd: for /r %%i in ("\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\*.pdb") do echo %%~ti %%~zi %%i
-  - cmd: for /r %%i in ("\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\*.sym") do echo %%~ti %%~zi %%i
-  - cmd: for /r %%i in (*.pdb) do echo %%~ti %%~zi %%i
-  - cmd: for /r %%i in (*.sym) do echo %%~ti %%~zi %%i
-  
   # Upload each .sym file to sentry using sentry-cli
   - cmd: ci\run-sentry-cli.cmd
   
