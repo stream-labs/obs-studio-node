@@ -178,58 +178,6 @@ nlohmann::json RequestProcessList()
 
 #endif
 
-/*
-
-	std::string processName =
-		std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().to_bytes(szProcessName);
-
-	auto iter = processInfos.find(processName);
-	if (iter == processInfos.end()) {
-		processInfos.insert({processName, {}});
-		iter = processInfos.find(processName);
-		if (iter == processInfos.end())
-			continue;
-	}
-
-	iter->second.push_back(std::to_string(processID));
-	CloseHandle(hProcess);
-		
-
-	auto JoinEntry = [&](const std::string& processName, const std::vector<std::string>& ids) {
-		std::string idString;
-
-		for (int i = 0; i < ids.size(); i++) {
-			idString.append(ids[i] + std::string((i == ids.size() - 1 ? "" : " - ")));
-		}
-
-        result.push_back({{processName, idString}});
-	};
-
-	// Find common process names used by SLOBS and put them in front
-	std::vector<std::string> commonNames = {"obs64.exe",
-	                                        "obs-browser-page.exe",
-	                                        "electron.exe",
-	                                        "crashpad_handler.exe",
-	                                        "latest-updater.exe",
-	                                        "Streamlabs OBS.exe",
-	                                        "crashpad_handler.exe"};
-
-	for (auto& commonName : commonNames) {
-		auto iter = processInfos.find(commonName);
-		if (iter != processInfos.end()) {
-			JoinEntry(iter->first, iter->second);
-			processInfos.erase(iter);
-        }
-	}
-
-    result.push_back({{"", ""}});
-
-    for (auto& remaningInfo : processInfos) {
-		JoinEntry(remaningInfo.first, remaningInfo.second);
-    }
-
-*/
-
 	return result;
 }
 
@@ -262,8 +210,8 @@ bool util::CrashManager::Initialize()
 	// Setup the windows exeption filter to
 	SetUnhandledExceptionFilter([](struct _EXCEPTION_POINTERS* ExceptionInfo) {
 		/* don't use if a debugger is present */
-		// if (IsDebuggerPresent())
-		// 	return LONG(EXCEPTION_CONTINUE_SEARCH);
+	    if (IsDebuggerPresent()) 
+            return LONG(EXCEPTION_CONTINUE_SEARCH);
 
 		HandleCrash("UnhandledExceptionFilter");
 
@@ -358,11 +306,11 @@ void util::CrashManager::HandleExit() noexcept
 		// cannot ensure that when at exit a call to obs_initialized will be safe, it
 		// could be in an invalid state, we will let the application continue and if
 		// this results in a crash at least we will know what caused it
-		HandleCrash("AtExit");
+		HandleCrash("AtExit", false);
 	}
 }
 
-void util::CrashManager::HandleCrash(std::string _crashInfo) noexcept
+void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noexcept
 {
 	// If for any reason this is true, it means that we are crashing inside this same
 	// method, if that happens just call abort and ignore any remaining processing since
@@ -390,8 +338,8 @@ void util::CrashManager::HandleCrash(std::string _crashInfo) noexcept
 	    std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - initialTime);
 	
 	// Setup all the custom annotations that are important too our crash report
-	annotations.insert({{"Time elapsed (seconds): ", std::to_string(timeElapsed
-	    .count())}});
+	annotations.insert({{"Time elapsed: ", std::to_string(timeElapsed
+	    .count()) + "s"}});
 	annotations.insert({{"Status", obs_initialized() ? "initialized" : "shutdown"}});
 	annotations.insert({{"Leaks", std::to_string(bnum_allocs())}});
 	annotations.insert({{"Total memory", PrettyBytes(totalPhysMem)}});
@@ -410,7 +358,8 @@ void util::CrashManager::HandleCrash(std::string _crashInfo) noexcept
 	SetupCrashpad();
 
     // Finish the execution and let crashpad handle the crash
-	abort();
+	if(callAbort)
+        abort();
 
 	insideCrashMethod = false;
 }
@@ -508,7 +457,7 @@ nlohmann::json RewindCallStack(uint32_t skip, std::string& crashedMethod)
 	std::vector<std::string> callstack;
 	int                      writingIndex = -1;
 
-	// Currently 18 is the maximum that we can display on backtrace in one single attribute
+	// Currently 50 is the maximum that we can display on backtrace in one single attribute
 	const unsigned short MAX_CALLERS_SHOWN = 50;
 	frames                                 = frames < MAX_CALLERS_SHOWN ? frames : MAX_CALLERS_SHOWN;
 	std::vector<int> missingFrames;
@@ -590,7 +539,7 @@ nlohmann::json util::CrashManager::RequestOBSLog()
 	if (OBS_API::getOBSInternalLog().size() > 0) {
 		const std::vector<std::string>& obsLog = OBS_API::getOBSInternalLog();
 
-        const int maxMessages = 150;
+        const int maxMessages = 150; // Limit for decent visualization, also for the Sentry limit
 		int       initialValue = std::max(0, int(obsLog.size()) - maxMessages);
 		for (int i = initialValue; i <= initialValue + maxMessages; i++) {
 			result.push_back(obsLog[i]);

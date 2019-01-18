@@ -47,7 +47,7 @@ namespace util
 		static bool SetupCrashpad();
 		static bool TryHandleCrash(std::string format, std::string crashMessage);
 		static void HandleExit() noexcept;
-		static void HandleCrash(std::string crashInfo) noexcept;
+		static void HandleCrash(std::string crashInfo, bool callAbort = true) noexcept;
 	};
 
 }; // namespace util
