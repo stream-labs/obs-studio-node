@@ -47,9 +47,11 @@
 
 #endif
 
+#ifndef _DEBUG
 #include "client/crash_report_database.h"
 #include "client/crashpad_client.h"
 #include "client/settings.h"
+#endif
 
 // Global/static variables
 std::vector<std::string>              handledOBSCrashes;
@@ -60,6 +62,7 @@ std::vector<std::string>              warnings;
 std::chrono::steady_clock::time_point initialTime;
  
 // Crashpad variables
+#ifndef _DEBUG
 std::wstring                                   appdata_path;
 crashpad::CrashpadClient                       client;
 std::unique_ptr<crashpad::CrashReportDatabase> database;
@@ -68,6 +71,7 @@ base::FilePath                                 db;
 base::FilePath                                 handler;
 std::vector<std::string>                       arguments;
 std::map<std::string, std::string>             annotations;
+#endif
 
 // Forward
 std::string    FormatVAString(const char* const format, va_list args);
@@ -86,7 +90,7 @@ std::string PrettyBytes(uint64_t bytes)
 	suffixes[5]    = "pb";
 	suffixes[6]    = "eb";
 	uint64_t s     = 0; // which suffix to use
-	double   count = bytes;
+	double count = double(bytes);
 	while (count >= 1024 && s < 7) {
 		s++;
 		count /= 1024;
@@ -110,13 +114,14 @@ void RequestComputerUsageParams(
 	MEMORYSTATUSEX          memInfo;
 	PROCESS_MEMORY_COUNTERS pmc;
 	PDH_FMT_COUNTERVALUE    counterVal;
-	DWORDLONG               totalVirtualMem = memInfo.ullTotalPageFile;
 
 	memInfo.dwLength = sizeof(MEMORYSTATUSEX);
 	GlobalMemoryStatusEx(&memInfo);
 	GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc));
 	PdhCollectQueryData(cpuQuery);
 	PdhGetFormattedCounterValue(cpuTotal, PDH_FMT_DOUBLE, NULL, &counterVal);
+
+	DWORDLONG totalVirtualMem = memInfo.ullTotalPageFile;
 
 	totalPhysMem    = memInfo.ullTotalPhys;
 	physMemUsed     = (memInfo.ullTotalPhys - memInfo.ullAvailPhys);
@@ -312,6 +317,8 @@ void util::CrashManager::HandleExit() noexcept
 
 void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noexcept
 {
+#ifndef _DEBUG
+
 	// If for any reason this is true, it means that we are crashing inside this same
 	// method, if that happens just call abort and ignore any remaining processing since
 	// we cannot continue.
@@ -362,6 +369,8 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
         abort();
 
 	insideCrashMethod = false;
+
+#endif
 }
 
 bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashMessage)
