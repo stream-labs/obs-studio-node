@@ -41,7 +41,7 @@ after_build:
   - copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\ucrtbase.dll" "%SLFullDistributePath%\obs-studio-node\"
   - tar cvaf "%UnsignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
 
-   - appveyor DownloadFile "https://s3.amazonaws.com/getsentry-builds/getsentry/breakpad-tools/windows/breakpad-tools-windows.zip" -FileName "breakpadtools.zip"
+  - appveyor DownloadFile "https://s3.amazonaws.com/getsentry-builds/getsentry/breakpad-tools/windows/breakpad-tools-windows.zip" -FileName "breakpadtools.zip"
   - 7z x "breakpadtools.zip" > nul
   - appveyor DownloadFile "https://github.com/getsentry/sentry-cli/releases/download/1.37.3/sentry-cli-Windows-i686.exe" -FileName "sentry-cli.exe"  
   
