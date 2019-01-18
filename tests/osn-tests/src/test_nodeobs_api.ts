@@ -1,7 +1,8 @@
 import 'mocha'
 import { expect } from 'chai'
 import * as osn from 'obs-studio-node';
-import { OBSProcessHandler } from '../util/obs_process_handler'
+import { OBSProcessHandler } from '../util/obs_process_handler';
+import { getCppErrorMsg } from '../util/general';
 
 interface IPerformanceState {
     CPU: number;
@@ -46,7 +47,7 @@ describe('nodebs_api', () => {
             try {
                 stats = osn.NodeObs.OBS_API_getPerformanceStatistics();
             } catch(e) {
-                throw new Error("OBS_API_getPerformanceStatistics threw an expection");
+                throw new Error(getCppErrorMsg(e));
             }
             
             expect(stats.CPU).to.not.equal(undefined);
@@ -62,7 +63,7 @@ describe('nodebs_api', () => {
             try {
                 obsHotkeys = osn.NodeObs.OBS_API_QueryHotkeys();
             } catch(e) {
-                throw new Error("OBS_API_QueryHotkeys threw an expection");
+                throw new Error(getCppErrorMsg(e));
             }
         });
     });
@@ -76,7 +77,7 @@ describe('nodebs_api', () => {
                 try {
                     osn.NodeObs.OBS_API_ProcessHotkeyStatus(hotkeyId, isKeyDown);
                 } catch(e) {
-                    throw new Error("hotkeyId " + hotkeyId + "does not exist");
+                    throw new Error(getCppErrorMsg(e));
                 }
             }
         });

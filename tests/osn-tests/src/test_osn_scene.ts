@@ -2,10 +2,11 @@ import 'mocha'
 import { expect } from 'chai'
 import * as osn from 'obs-studio-node';
 import { IScene, ISceneItem, IInput } from 'obs-studio-node';
-import { OBSProcessHandler } from '../util/obs_process_handler'
+import { OBSProcessHandler } from '../util/obs_process_handler';
+import { getCppErrorMsg } from '../util/general';
 
 
-describe('osn_scene', () => {
+describe('osn-scene', () => {
     let obs: OBSProcessHandler;
     let scene: IScene;
     let duplicatedScene: IScene;
@@ -34,7 +35,7 @@ describe('osn_scene', () => {
             try {
                 scene = osn.SceneFactory.create('test_osn_scene'); 
             } catch(e) {
-                throw new Error("failed to create scene");
+                throw new Error(getCppErrorMsg(e));
             }
 
             expect(scene.id).to.equal('scene');
@@ -48,7 +49,7 @@ describe('osn_scene', () => {
             try {
                 duplicatedScene = scene.duplicate('test_osn_scene_duplicate', osn.ESceneDupType.Copy);
             } catch(e) {
-                throw new Error("failed to duplicate scene");
+                throw new Error(getCppErrorMsg(e));
             }
 
             expect(duplicatedScene.id).to.equal('scene');
@@ -62,7 +63,7 @@ describe('osn_scene', () => {
             try {
                 privateScene = osn.SceneFactory.createPrivate('test_osn_scene_private'); 
             } catch(e) {
-                throw new Error("failed to create private scene");
+                throw new Error(getCppErrorMsg(e));
             }
 
             expect(privateScene.id).to.equal('scene');
@@ -76,7 +77,7 @@ describe('osn_scene', () => {
             try {
                 sceneFromName = osn.SceneFactory.fromName('test_osn_scene');
             } catch (e) {
-                throw new Error("failed to get scene from name");
+                throw new Error(getCppErrorMsg(e));
             }
 
             expect(sceneFromName.id).to.equal('scene');
@@ -101,7 +102,7 @@ describe('osn_scene', () => {
             try {
                 source = osn.InputFactory.create('image_source', 'test_osn_scene_source1');
             } catch(e) {
-                throw new Error("failed to create source");
+                throw new Error(getCppErrorMsg(e));
             }
             
             expect(source).to.not.equal(undefined);
@@ -109,7 +110,7 @@ describe('osn_scene', () => {
             try{
                 sceneItem = scene.add(source);
             } catch(e) {
-                throw new Error("failed to add source to scene");
+                throw new Error(getCppErrorMsg(e));
             }
 
             expect(sceneItem).to.not.equal(undefined);
@@ -123,7 +124,7 @@ describe('osn_scene', () => {
             try {
                 sceneItem = scene.findItem(1);
             } catch(e) {
-                throw new Error("failed to get scene item by id");
+                throw new Error(getCppErrorMsg(e));
             }
 
             expect(sceneItem).to.not.equal(undefined);
@@ -135,7 +136,7 @@ describe('osn_scene', () => {
             try {
                 sceneItem = scene.findItem('this_scene_does_not_exist');
             } catch(e) {
-                throw new Error("failed to get scene item by id");
+                throw new Error(getCppErrorMsg(e));
             }
 
             expect(sceneItem).to.equal(undefined);
@@ -150,7 +151,7 @@ describe('osn_scene', () => {
             try {
                 source = osn.InputFactory.create('image_source', 'test_osn_scene_source2');
             } catch(e) {
-                throw new Error("failed to create source");
+                throw new Error(getCppErrorMsg(e));
             }
             
             expect(source).to.not.equal(undefined);
@@ -158,7 +159,7 @@ describe('osn_scene', () => {
             try {
                 sceneItem = scene.add(source);
             } catch(e) {
-                throw new Error("failed to add source to scene");
+                throw new Error(getCppErrorMsg(e));
             }
 
             expect(sceneItem).to.not.equal(undefined);
@@ -167,7 +168,7 @@ describe('osn_scene', () => {
                 sceneItems = scene.getItems();
             } catch(e)
             {
-                throw new Error("failed to get all scene items");
+                throw new Error(getCppErrorMsg(e));
             }
 
             expect(sceneItems.length).to.equal(2);
@@ -175,11 +176,11 @@ describe('osn_scene', () => {
     });
 
     context('# MoveItem', () => {
-        it('should exchange scene item ids', () => {
+        it('should reorder scene item in obs scene item container', () => {
             try {
                 scene.moveItem(1, 0);
             } catch(e) {
-                throw new Error("failed to move scene item");
+                throw new Error(getCppErrorMsg(e));
             }
 
             sceneItems = [];
@@ -188,11 +189,17 @@ describe('osn_scene', () => {
                 sceneItems = scene.getItems();
             } catch(e)
             {
-                throw new Error("failed to get all scene items");
+                throw new Error(getCppErrorMsg(e));
             }
             
             expect(sceneItems[0].source.name).to.equal('test_osn_scene_source2');
         });
+
+        it('should fail when tryin to access out of bounds', () => {
+            expect(function() {
+                scene.moveItem(3, 0);
+            }).to.throw();
+        })
     });
 
     context('# Release', () => {
@@ -200,19 +207,19 @@ describe('osn_scene', () => {
             try {
                 sceneFromName.release();
             } catch(e) {
-                throw new Error("failed to release from name scene");
+                throw new Error(getCppErrorMsg(e));
             }
             
             try {
                 privateScene.release();
             } catch(e) {
-                throw new Error("failed to release private scene");
+                throw new Error(getCppErrorMsg(e));
             }
 
             try {
                 duplicatedScene.release();
             } catch(e) {
-                throw new Error("failed to release duplicated scene");
+                throw new Error(getCppErrorMsg(e));
             }
         });
     });
