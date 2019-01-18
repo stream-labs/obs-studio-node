@@ -1,6 +1,6 @@
 md syms
 cd "\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\"
-for /f %%f in ('dir /b "\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\*.pdb"') do "\projects\obs-studio-node\dump_syms.exe" %%f > "\projects\obs-studio-node\syms\%%~nf.sym"
+for /r %%f in ('dir /b "\projects\obs-studio-node\streamlabs-build\distribute\obs-studio-node\*.pdb"') do "\projects\obs-studio-node\dump_syms.exe" %%f > "\projects\obs-studio-node\syms\%%~nf.sym"
 
 cd "\projects\obs-studio-node\syms"
 
