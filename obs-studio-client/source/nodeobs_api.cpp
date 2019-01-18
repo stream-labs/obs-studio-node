@@ -90,8 +90,9 @@ void api::OBS_API_getPerformanceStatistics(const v8::FunctionCallbackInfo<v8::Va
 
 void api::SetWorkingDirectory(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	Nan::Utf8String param0(args[0]);
-	std::string     path = *param0;
+	std::string     path;
+
+	ASSERT_GET_VALUE(args[0], path);
 
 	auto conn = GetConnection();
 	if (!conn)
