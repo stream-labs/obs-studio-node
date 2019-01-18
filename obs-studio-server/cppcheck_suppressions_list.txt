@@ -1,2 +1,5 @@
-memsetClassFloat:*\obs-studio-node\build\libobs-src\include\obs.h
-useInitializationList:*\obs-studio-node\build\libobs-src\include\obs.hpp
+useInitializationList:*\lib-streamlabs-ipc\source\ipc-client.cpp
+memsetClassFloat:*\build\libobs-src\include\obs.h
+useInitializationList:*\build\libobs-src\include\obs.hpp
+*:*\crashpad-src\include\third_party\mini_chromium\mini_chromium\*
+memsetClassFloat:*\obs-studio-server\source\gs-vertexbuffer.cpp

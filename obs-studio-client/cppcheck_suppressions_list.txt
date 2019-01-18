@@ -1,5 +1,9 @@
-exceptThrowInDestructor:*\obs-studio-node\obs-studio-client\source\utility-v8.hpp
-duplInheritedMember:*\obs-studio-node\obs-studio-client\source\input.hpp
-duplInheritedMember:*\obs-studio-node\obs-studio-client\source\scene.hpp
-duplInheritedMember:*\obs-studio-node\obs-studio-client\source\transition.hpp
-duplInheritedMember:*\obs-studio-node\obs-studio-client\source\filter.hpp
+useInitializationList:*\lib-streamlabs-ipc\source\ipc-client.cpp
+exceptThrowInDestructor:*\obs-studio-client\source\utility-v8.hpp
+duplInheritedMember:*\obs-studio-client\source\input.hpp
+duplInheritedMember:*\obs-studio-client\source\scene.hpp
+duplInheritedMember:*\obs-studio-client\source\transition.hpp
+duplInheritedMember:*\obs-studio-client\source\filter.hpp
+*:*\obs-studio-client\iojs\*
+assertWithSideEffect:*\node_modules\nan\nan_object_wrap.h
+memsetClassFloat:*\obs-studio-server\source\gs-vertexbuffer.cpp
