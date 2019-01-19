@@ -360,6 +360,7 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	annotations.insert({{"OBS Log", RequestOBSLog().dump(4)}});
 	annotations.insert({{"Process List", RequestProcessList().dump(4)}});
 	annotations.insert({{"Manual callstack", callStack.dump(4)}});
+	annotations.insert({{"Crash reason", _crashInfo}});
 
     // Recreate crashpad instance, this is a well defined/supported operation
 	SetupCrashpad();
