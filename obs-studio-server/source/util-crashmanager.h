@@ -25,7 +25,7 @@
 #include <ipc.hpp>
 
 #undef strtoll
-#include <json.hpp>
+#include <nlohmannjson.hpp>
 
 namespace util
 {
