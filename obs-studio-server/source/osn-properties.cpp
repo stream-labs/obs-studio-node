@@ -20,7 +20,7 @@
 #include "obs.h"
 #include "osn-source.hpp"
 #include "shared.hpp"
-
+#include <osn-common.hpp>
 void osn::Properties::Register(ipc::server& srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Properties");
@@ -41,6 +41,7 @@ void osn::Properties::Modified(
 	std::string name     = args[1].value_str;
 
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(sourceId);
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Invalid Reference."));
@@ -74,6 +75,7 @@ void osn::Properties::Clicked(
 	std::string name     = args[1].value_str;
 
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(sourceId);
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Invalid Reference."));

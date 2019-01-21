@@ -3,6 +3,7 @@
 #include "error.hpp"
 #include "osn-sceneitem.hpp"
 #include "shared.hpp"
+#include <osn-common.hpp>
 
 void osn::Scene::Register(ipc::server& srv)
 {
@@ -63,6 +64,7 @@ void osn::Scene::Create(
 	}
 
 	obs_source_t* source = obs_scene_get_source(scene);
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to get source from scene."));
@@ -98,6 +100,7 @@ void osn::Scene::CreatePrivate(
 	}
 
 	obs_source_t* source = obs_scene_get_source(scene);
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to get source from scene."));
@@ -125,6 +128,7 @@ void osn::Scene::FromName(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* source = obs_get_source_by_name(args[0].value_str.c_str());
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to get source from scene."));
@@ -159,6 +163,7 @@ void osn::Scene::Release(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -207,6 +212,7 @@ void osn::Scene::Remove(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -263,6 +269,7 @@ void osn::Scene::Duplicate(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -288,6 +295,7 @@ void osn::Scene::Duplicate(
 	}
 
 	obs_source_t* source2 = obs_scene_get_source(scene2);
+	ValidateSourceSanity(source2);
 	if (!source2) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to get source from duplicate scene."));
@@ -315,6 +323,8 @@ void osn::Scene::AddSource(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(source);
+
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -331,6 +341,8 @@ void osn::Scene::AddSource(
 	}
 
 	obs_source_t* added_source = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
+	ValidateSourceSanity(added_source);
+
 	if (!added_source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference to add is not valid."));
@@ -361,6 +373,7 @@ void osn::Scene::FindItemByName(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -408,6 +421,7 @@ void osn::Scene::FindItemByItemId(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -455,6 +469,7 @@ void osn::Scene::MoveItem(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -522,6 +537,7 @@ void osn::Scene::GetItem(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -587,6 +603,7 @@ void osn::Scene::GetItems(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -635,6 +652,7 @@ void osn::Scene::GetItemsInRange(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));

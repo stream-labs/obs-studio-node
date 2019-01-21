@@ -22,6 +22,7 @@
 #include "error.hpp"
 #include "osn-source.hpp"
 #include "shared.hpp"
+#include <osn-common.hpp>
 
 void osn::Transition::Register(ipc::server& srv)
 {
@@ -88,6 +89,7 @@ void osn::Transition::Create(
 	}
 
 	obs_source_t* source = obs_source_create(sourceId.c_str(), name.c_str(), settings, hotkeys);
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to create transition."));
@@ -130,6 +132,7 @@ void osn::Transition::CreatePrivate(
 	}
 
 	obs_source_t* source = obs_source_create_private(sourceId.c_str(), name.c_str(), settings);
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to create transition."));
@@ -161,6 +164,7 @@ void osn::Transition::FromName(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* source = obs_get_source_by_name(args[0].value_str.c_str());
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::NotFound));
 		rval.push_back(ipc::value("Named transition could not be found."));
@@ -198,6 +202,7 @@ void osn::Transition::GetActiveSource(
 
 	// Attempt to find the source asked to load.
 	obs_source_t* transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(transition);
 	if (!transition) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Transition reference is not valid."));
@@ -207,6 +212,7 @@ void osn::Transition::GetActiveSource(
 
 	obs_source_type type   = OBS_SOURCE_TYPE_INPUT;
 	obs_source_t*   source = obs_transition_get_active_source(transition);
+	ValidateSourceSanity(source);
 	if (source) {
 		uid  = osn::Source::Manager::GetInstance().find(source);
 		type = obs_source_get_type(source);
@@ -237,6 +243,7 @@ void osn::Transition::Clear(
 {
 	// Attempt to find the source asked to load.
 	obs_source_t* transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(transition);
 	if (!transition) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Transition reference is not valid."));
@@ -258,6 +265,7 @@ void osn::Transition::Set(
 {
 	// Attempt to find the source asked to load.
 	obs_source_t* transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(transition);
 	if (!transition) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Transition reference is not valid."));
@@ -266,6 +274,7 @@ void osn::Transition::Set(
 	}
 
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -287,6 +296,7 @@ void osn::Transition::Start(
 {
 	// Attempt to find the source asked to load.
 	obs_source_t* transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(transition);
 	if (!transition) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Transition reference is not valid."));
@@ -295,6 +305,7 @@ void osn::Transition::Start(
 	}
 
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[2].value_union.ui64);
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));

@@ -23,6 +23,7 @@
 #include "error.hpp"
 #include "osn-source.hpp"
 #include "shared.hpp"
+#include <osn-common.hpp>
 
 void osn::Input::Register(ipc::server& srv)
 {
@@ -135,6 +136,7 @@ void osn::Input::Create(
 	}
 
 	obs_source_t* source = obs_source_create(sourceId.c_str(), name.c_str(), settings, hotkeys);
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to create input."));
@@ -178,6 +180,7 @@ void osn::Input::CreatePrivate(
 	}
 
 	obs_source_t* source = obs_source_create_private(sourceId.c_str(), name.c_str(), settings);
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to create input."));
@@ -209,6 +212,7 @@ void osn::Input::Duplicate(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* filter = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(filter);
 	if (!filter) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
@@ -221,7 +225,7 @@ void osn::Input::Duplicate(
 
 	obs_source_t* source = nullptr;
 	source               = obs_source_duplicate(filter, nameOverride, isPrivate);
-
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to duplicate input."));
@@ -255,6 +259,7 @@ void osn::Input::FromName(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* source = obs_get_source_by_name(args[0].value_str.c_str());
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::NotFound));
 		rval.push_back(ipc::value("Named input could not be found."));
@@ -292,6 +297,7 @@ void osn::Input::GetPublicSources(
 
 	// !FIXME! Optimize for zero-copy operation, can directly write to rval.
 	auto enum_cb = [](void* data, obs_source_t* source) {
+		ValidateSourceSanity(source);
 		uint64_t uid = osn::Source::Manager::GetInstance().find(source);
 		if (uid != UINT64_MAX) {
 			static_cast<std::list<uint64_t>*>(data)->push_back(uid);
@@ -315,6 +321,7 @@ void osn::Input::GetActive(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(input);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
@@ -334,6 +341,7 @@ void osn::Input::GetShowing(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(input);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
@@ -353,6 +361,7 @@ void osn::Input::GetVolume(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(input);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
@@ -372,6 +381,7 @@ void osn::Input::SetVolume(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(input);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
@@ -393,6 +403,7 @@ void osn::Input::GetSyncOffset(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(input);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
@@ -412,6 +423,7 @@ void osn::Input::SetSyncOffset(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(input);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
@@ -433,6 +445,7 @@ void osn::Input::GetAudioMixers(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(input);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
@@ -452,6 +465,7 @@ void osn::Input::SetAudioMixers(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(input);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
@@ -473,6 +487,7 @@ void osn::Input::GetMonitoringType(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(input);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
@@ -492,6 +507,7 @@ void osn::Input::SetMonitoringType(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(input);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
@@ -513,6 +529,7 @@ void osn::Input::GetWidth(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(input);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
@@ -532,6 +549,7 @@ void osn::Input::GetHeight(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(input);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
@@ -551,6 +569,7 @@ void osn::Input::GetDeInterlaceFieldOrder(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(input);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
@@ -570,6 +589,7 @@ void osn::Input::SetDeInterlaceFieldOrder(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(input);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
@@ -591,6 +611,7 @@ void osn::Input::GetDeInterlaceMode(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(input);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
@@ -610,6 +631,7 @@ void osn::Input::SetDeInterlaceMode(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(input);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
@@ -631,6 +653,7 @@ void osn::Input::AddFilter(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(input);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
@@ -639,6 +662,7 @@ void osn::Input::AddFilter(
 	}
 
 	obs_source_t* filter = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
+	ValidateSourceSanity(filter);
 	if (!filter) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Filter reference is not valid."));
@@ -659,6 +683,7 @@ void osn::Input::RemoveFilter(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(input);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
@@ -667,6 +692,7 @@ void osn::Input::RemoveFilter(
 	}
 
 	obs_source_t* filter = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
+	ValidateSourceSanity(filter);
 	if (!filter) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Filter reference is not valid."));
@@ -687,6 +713,7 @@ void osn::Input::MoveFilter(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(input);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
@@ -695,6 +722,7 @@ void osn::Input::MoveFilter(
 	}
 
 	obs_source_t* filter = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
+	ValidateSourceSanity(filter);
 	if (!filter) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Filter reference is not valid."));
@@ -717,6 +745,7 @@ void osn::Input::FindFilter(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(input);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
@@ -725,6 +754,7 @@ void osn::Input::FindFilter(
 	}
 
 	obs_source_t* filter = obs_source_get_filter_by_name(input, args[1].value_str.c_str());
+	ValidateSourceSanity(filter);
 	if (!filter) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		AUTO_DEBUG;
@@ -752,6 +782,7 @@ void osn::Input::GetFilters(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(input);
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
@@ -761,7 +792,7 @@ void osn::Input::GetFilters(
 
 	auto enum_cb = [](obs_source_t* parent, obs_source_t* filter, void* data) {
 		std::vector<ipc::value>* rval = reinterpret_cast<std::vector<ipc::value>*>(data);
-
+		ValidateSourceSanity(parent);
 		uint64_t id = osn::Source::Manager::GetInstance().find(filter);
 		if (id != UINT64_MAX) {
 			rval->push_back(id);
@@ -780,6 +811,7 @@ void osn::Input::CopyFiltersTo(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* input_from = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(input_from);
 	if (!input_from) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("1st Input reference is not valid."));
@@ -788,6 +820,7 @@ void osn::Input::CopyFiltersTo(
 	}
 
 	obs_source_t* input_to = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
+	ValidateSourceSanity(input_to);
 	if (!input_to) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("2nd Input reference is not valid."));

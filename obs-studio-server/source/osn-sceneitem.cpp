@@ -2,6 +2,7 @@
 #include <error.hpp>
 #include "osn-source.hpp"
 #include "shared.hpp"
+#include <osn-common.hpp>
 
 void osn::SceneItem::Register(ipc::server& srv)
 {
@@ -92,6 +93,7 @@ void osn::SceneItem::GetSource(
 	}
 
 	obs_source_t* source = obs_sceneitem_get_source(item);
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
 		rval.push_back(ipc::value("Item does not contain a source."));
@@ -128,6 +130,7 @@ void osn::SceneItem::GetScene(
 	}
 
 	obs_source_t* source = obs_scene_get_source(scene);
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
 		rval.push_back(ipc::value("Scene is invalid."));

@@ -4,6 +4,7 @@
 #include <filesystem>
 #include "error.hpp"
 #include "shared.hpp"
+#include <osn-common.hpp>
 
 obs_output_t* streamingOutput        = nullptr;
 obs_output_t* recordingOutput        = nullptr;
@@ -398,6 +399,7 @@ void LoadAudioDevice(const char* name, int channel, obs_data_t* parent)
 		return;
 
 	obs_source_t* source = obs_load_source(data);
+	ValidateSourceSanity(source);
 	if (source) {
 		obs_set_output_source(channel, source);
 		obs_source_release(source);

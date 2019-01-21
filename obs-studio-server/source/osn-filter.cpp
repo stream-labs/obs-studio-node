@@ -22,6 +22,7 @@
 #include "error.hpp"
 #include "osn-source.hpp"
 #include "shared.hpp"
+#include <osn-common.hpp>
 
 void osn::Filter::Register(ipc::server& srv)
 {
@@ -67,6 +68,7 @@ void osn::Filter::Create(
 	}
 
 	obs_source_t* source = obs_source_create_private(sourceId.c_str(), name.c_str(), settings);
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to create filter."));

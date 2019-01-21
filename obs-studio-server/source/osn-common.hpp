@@ -16,12 +16,12 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
 
 #pragma once
-#include <ipc-value.hpp>
-#include <obs.h>
-#include <vector>
+#include "obs.h""
 
 namespace osn
 {
 	namespace common
 	{}
 } // namespace osn
+
+void ValidateSourceSanity(obs_source_t* source);

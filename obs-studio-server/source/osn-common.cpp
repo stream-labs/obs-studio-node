@@ -16,3 +16,22 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
 
 #include "osn-common.hpp"
+#include <obs-internal.h>
+
+void ValidateSourceSanity(obs_source_t* source)
+{
+	if (!source)
+		goto Crash;
+
+	if (!source->control)
+		goto Crash;
+
+	if (!source->control->ref.refs < 0)
+		goto Crash;
+
+	return;
+
+Crash:
+
+	abort();
+}

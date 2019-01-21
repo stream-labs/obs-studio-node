@@ -20,6 +20,7 @@
 #include <obs.h>
 #include "osn-source.hpp"
 #include "shared.hpp"
+#include <osn-common.hpp>
 
 void osn::Global::Register(ipc::server& srv)
 {
@@ -45,6 +46,7 @@ void osn::Global::GetOutputSource(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* source = obs_get_output_source(args[0].value_union.ui32);
+	ValidateSourceSanity(source);
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		rval.push_back(ipc::value(UINT64_MAX));
@@ -90,7 +92,9 @@ void osn::Global::SetOutputSource(
 	}
 
 	obs_set_output_source(args[0].value_union.ui32, source);
+	ValidateSourceSanity(source);
 	obs_source_t* newsource = obs_get_output_source(args[0].value_union.ui32);
+	ValidateSourceSanity(newsource);
 	if (newsource != source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to set output source."));

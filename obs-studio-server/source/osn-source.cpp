@@ -44,6 +44,7 @@ void osn::Source::finalize_global_signals()
 
 void osn::Source::attach_source_signals(obs_source_t* src)
 {
+	ValidateSourceSanity(src);
 	signal_handler_t* sh = obs_source_get_signal_handler(src);
 	if (!sh)
 		return;
@@ -52,6 +53,7 @@ void osn::Source::attach_source_signals(obs_source_t* src)
 
 void osn::Source::detach_source_signals(obs_source_t* src)
 {
+	ValidateSourceSanity(src);
 	signal_handler_t* sh = obs_source_get_signal_handler(src);
 	if (!sh)
 		return;
@@ -64,7 +66,7 @@ void osn::Source::global_source_create_cb(void* ptr, calldata_t* cd)
 	if (!calldata_get_ptr(cd, "source", &source)) {
 		throw std::exception("calldata did not contain source pointer");
 	}
-
+	ValidateSourceSanity(source);
 	osn::Source::Manager::GetInstance().allocate(source);
 	osn::Source::attach_source_signals(source);
 }
@@ -75,7 +77,7 @@ void osn::Source::global_source_destroy_cb(void* ptr, calldata_t* cd)
 	if (!calldata_get_ptr(cd, "source", &source)) {
 		throw std::exception("calldata did not contain source pointer");
 	}
-
+	ValidateSourceSanity(source);
 	detach_source_signals(source);
 	osn::Source::Manager::GetInstance().free(source);
 }
@@ -171,6 +173,7 @@ void osn::Source::Remove(
 {
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(src);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -192,6 +195,7 @@ void osn::Source::Release(
 {
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(src);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -213,6 +217,7 @@ void osn::Source::IsConfigurable(
 {
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(src);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -233,6 +238,7 @@ void osn::Source::GetProperties(
 {
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(src);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -385,6 +391,7 @@ void osn::Source::GetSettings(
 {
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(src);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -407,6 +414,7 @@ void osn::Source::Update(
 {
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(src);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -426,6 +434,7 @@ void osn::Source::Load(void* data, const int64_t id, const std::vector<ipc::valu
 {
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(src);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -443,6 +452,7 @@ void osn::Source::Save(void* data, const int64_t id, const std::vector<ipc::valu
 {
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(src);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -464,6 +474,7 @@ void osn::Source::GetType(
 {
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(src);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -484,6 +495,7 @@ void osn::Source::GetName(
 {
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(src);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -504,6 +516,7 @@ void osn::Source::SetName(
 {
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(src);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -526,6 +539,7 @@ void osn::Source::GetOutputFlags(
 {
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(src);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -546,6 +560,7 @@ void osn::Source::GetFlags(
 {
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(src);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -566,6 +581,7 @@ void osn::Source::SetFlags(
 {
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(src);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -588,6 +604,7 @@ void osn::Source::GetStatus(
 {
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(src);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -608,6 +625,7 @@ void osn::Source::GetId(
 {
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(src);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -633,6 +651,7 @@ void osn::Source::GetMuted(
 {
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(src);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -653,6 +672,7 @@ void osn::Source::SetMuted(
 {
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(src);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -675,6 +695,7 @@ void osn::Source::GetEnabled(
 {
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(src);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
@@ -695,6 +716,7 @@ void osn::Source::SetEnabled(
 {
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	ValidateSourceSanity(src);
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));

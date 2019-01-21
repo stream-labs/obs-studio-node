@@ -3,7 +3,7 @@
 #include <map>
 #include <string>
 #include "nodeobs_api.h"
-
+#include <osn-common.hpp>
 #include <graphics/matrix4.h>
 #include <graphics/vec4.h>
 #include <util/platform.h>
@@ -734,11 +734,12 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 		return true;
 
 	obs_source_t* itemSource  = obs_sceneitem_get_source(item);
+	ValidateSourceSanity(itemSource);
 	uint32_t      flags       = obs_source_get_output_flags(itemSource);
 	bool          isOnlyAudio = (flags & OBS_SOURCE_VIDEO) == 0;
 
 	obs_source_t* sceneSource = obs_scene_get_source(scene);
-
+	ValidateSourceSanity(sceneSource);
 	uint32_t sceneWidth  = obs_source_get_width(sceneSource); // Xaymar: this actually works \o/
 	uint32_t sceneHeight = obs_source_get_height(sceneSource);
 	uint32_t itemWidth   = obs_source_get_width(itemSource);
@@ -1035,10 +1036,13 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 		/* If we want to draw guidelines, we need a scene,
 		 * not a transition. This may not be a scene which
 		 * we'll check later. */
+		ValidateSourceSanity(dp->m_source);
 		if (obs_source_get_type(dp->m_source) == OBS_SOURCE_TYPE_TRANSITION) {
 			source = obs_transition_get_active_source(dp->m_source);
+			ValidateSourceSanity(source);
 		} else {
 			source = dp->m_source;
+			ValidateSourceSanity(source);
 			obs_source_addref(source);
 		}
 	} else {
@@ -1047,7 +1051,9 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 		* We also assume that the active source within that transition is
 		* the scene that we need */
 		obs_source_t* transition = obs_get_output_source(0);
+		ValidateSourceSanity(transition);
 		source                   = obs_transition_get_active_source(transition);
+		ValidateSourceSanity(source);
 		obs_source_release(transition);
 	}
 	gs_load_vertexbuffer(nullptr);
