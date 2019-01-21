@@ -140,6 +140,21 @@ void RequestComputerUsageParams(
 #endif
 }
 
+void GetUserInfo(std::string& computerName)
+{
+#define INFO_BUFFER_SIZE 32767
+	TCHAR infoBuf[INFO_BUFFER_SIZE];
+	DWORD bufCharCount = INFO_BUFFER_SIZE;
+
+	if (!GetComputerName(infoBuf, &bufCharCount))
+		return;
+
+    using convert_typeX = std::codecvt_utf8<wchar_t>;
+	std::wstring_convert<convert_typeX, wchar_t> converterX;
+
+	computerName = converterX.to_bytes(std::wstring(infoBuf));
+}
+
 nlohmann::json RequestProcessList()
 {
 	DWORD          aProcesses[1024], cbNeeded, cProcesses;
@@ -341,6 +356,9 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	size_t    physMemUsedByMe;
 	RequestComputerUsageParams(totalPhysMem, physMemUsed, physMemUsedByMe, totalCPUUsed);
 
+    std::string computerName;
+	GetUserInfo(computerName);
+
     auto timeElapsed =
 	    std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - initialTime);
 	
@@ -361,6 +379,7 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	annotations.insert({{"Process List", RequestProcessList().dump(4)}});
 	annotations.insert({{"Manual callstack", callStack.dump(4)}});
 	annotations.insert({{"Crash reason", _crashInfo}});
+	annotations.insert({{"Computer name", computerName}});
 
     // Recreate crashpad instance, this is a well defined/supported operation
 	SetupCrashpad();
