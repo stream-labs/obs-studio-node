@@ -291,7 +291,17 @@ SubCategory OBS_settings::serializeSettingsData(
 			param.countValues  = entries.at(i).size() - 4;
 		}
 
-		param.visible = isVisible;
+		if (param.name.compare("RecFormat") == 0 && section.compare("SimpleOutput") == 0) {
+			const char* quality = config_get_string(config, "SimpleOutput", "RecQuality");
+
+			if (quality && strcmp(quality, "Lossless") == 0)
+				param.visible = false;
+			else
+				param.visible = isVisible;
+		} else {
+			param.visible = isVisible;
+		}
+
 		param.enabled = isEnabled;
 		param.masked  = false;
 
