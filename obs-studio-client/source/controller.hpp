@@ -64,8 +64,7 @@ class Controller
 	public:
 	std::shared_ptr<ipc::client> host(const std::string& uri);
 
-	std::shared_ptr<ipc::client>
-	    connect(const std::string& uri, std::chrono::nanoseconds timeout = std::chrono::seconds(5));
+	std::shared_ptr<ipc::client> connect(const std::string& uri);
 
 	void disconnect();
 

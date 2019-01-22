@@ -11,12 +11,8 @@ environment:
     - RuntimeURL: https://atom.io/download/atom-shell
       RuntimeName: iojs
       RuntimeVersion: v2.0.8
+      NodeVersion: 8
 
-    - RuntimeURL: https://atom.io/download/atom-shell
-      RuntimeName: iojs
-      RuntimeVersion: v3.0.8
-
-  NodeVersion: 9
   SLBuildDirectory: streamlabs-build
   SLGenerator: Visual Studio 15 2017 Win64
   SLDistributeDirectory: distribute
@@ -45,12 +41,13 @@ after_build:
   - copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\ucrtbase.dll" "%SLFullDistributePath%\obs-studio-node\"
   - tar cvaf "%UnsignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
 
+before_test:
+  - cmd: cd tests\osn-tests
+  - cmd: yarn install
+
 test_script:
-  - ps: |
-      if ($Env:RuntimeName -eq "iojs") {
-        npm install -g electron@$Env:RuntimeVersion
-        .\tools\test-runner.ps1 -runtime iojs
-      }
+  - cmd: npm run test
+  - cmd: cd ..\..
 
 before_deploy:
   - nuget install secure-file -ExcludeVersion
@@ -58,6 +55,13 @@ before_deploy:
   - cmd: ci\copy-signed-binaries.cmd
   - tar cvaf "%SignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
   - ps: Push-AppveyorArtifact "$env:SignedArtifact.tar.gz"
+  
+  - appveyor DownloadFile "https://s3.amazonaws.com/getsentry-builds/getsentry/breakpad-tools/windows/breakpad-tools-windows.zip" -FileName "breakpadtools.zip"
+  - 7z x "breakpadtools.zip" > nul
+  - appveyor DownloadFile "https://github.com/getsentry/sentry-cli/releases/download/1.37.3/sentry-cli-Windows-i686.exe" -FileName "sentry-cli.exe"  
+  
+  # Transform our .pdb files into .sym and upload each of them to sentry using sentry-cli
+  - cmd: ci\run-sentry-cli.cmd       
 
 deploy:
   - provider: S3
@@ -76,4 +80,4 @@ artifacts:
   - path: $(UnsignedArtifact).tar.gz
     name: Unsigned Aritfact
 
-test: off
+test: on
