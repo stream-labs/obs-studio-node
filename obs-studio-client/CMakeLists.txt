@@ -88,7 +88,6 @@ target_include_directories(
 	PRIVATE
 		"${CMAKE_SOURCE_DIR}/source/"
 		"${CMAKE_SOURCE_DIR}/lib-streamlabs-ipc/include"
-		"${PROJECT_SOURCE_DIR}/../lib-streamlabs-ipc/third-party/lib-datalane/"
 )
 
 set_target_properties(
