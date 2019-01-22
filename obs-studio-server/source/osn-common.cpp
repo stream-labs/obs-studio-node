@@ -16,17 +16,66 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
 
 #include "osn-common.hpp"
-#include <obs-internal.h>
+
+typedef struct pthread_mutex_t_* my_pthread_mutex_t;
+
+struct my_obs_context_data
+{
+	char*             name;
+	void*             data;
+	obs_data_t*       settings;
+	signal_handler_t* signals;
+	proc_handler_t*   procs;
+	enum obs_obj_type type;
+
+	DARRAY(obs_hotkey_id) hotkeys;
+	DARRAY(obs_hotkey_pair_id) hotkey_pairs;
+	obs_data_t* hotkey_data;
+
+	DARRAY(char*) rename_cache;
+	my_pthread_mutex_t rename_cache_mutex;
+
+	my_pthread_mutex_t*       mutex;
+	struct obs_context_data*  next;
+	struct obs_context_data** prev_next;
+
+	bool pprivate;
+};
+
+struct my_obs_weak_ref
+{
+	volatile long refs;
+	volatile long weak_refs;
+};
+
+struct my_obs_weak_source
+{
+	struct my_obs_weak_ref ref;
+	struct obs_source*  source;
+};
+
+struct my_obs_source
+{
+	struct my_obs_context_data context;
+	struct obs_source_info  info;
+	struct my_obs_weak_source* control;
+
+	/* general exposed flags that can be set for the source */
+	uint32_t flags;
+	uint32_t default_flags;
+};
 
 void ValidateSourceSanity(obs_source_t* source)
 {
-	if (!source)
+	volatile my_obs_source* mySource = (my_obs_source*)source;
+
+	if (!mySource)
 		goto Crash;
 
-	if (!source->control)
+	if (!mySource->control)
 		goto Crash;
 
-	if (!source->control->ref.refs < 0)
+	if (!mySource->control->ref.refs < 0)
 		goto Crash;
 
 	return;
