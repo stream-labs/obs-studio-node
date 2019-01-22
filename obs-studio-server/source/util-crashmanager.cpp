@@ -374,7 +374,9 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	                     PrettyBytes(physMemUsedByMe) + " - percentage: "
 	                         + std::to_string(double(physMemUsedByMe) / double(totalPhysMem)) + "%"}});
 	annotations.insert({{"CPU usage", std::to_string(int(totalCPUUsed)) + "%"}});
-	annotations.insert({{"OBS Log", RequestOBSLog().dump(4)}});
+	annotations.insert({{"OBS errors", RequestOBSLog(OBSLogType::Errors).dump(4)}});
+	annotations.insert({{"OBS warnings", RequestOBSLog(OBSLogType::Warnings).dump(4)}});
+	annotations.insert({{"OBS log general", RequestOBSLog(OBSLogType::General).dump(4)}});
 	annotations.insert({{"Process List", RequestProcessList().dump(4)}});
 	annotations.insert({{"Manual callstack", callStack.dump(4)}});
 	annotations.insert({{"Crash reason", _crashInfo}});
@@ -559,21 +561,40 @@ nlohmann::json RewindCallStack(uint32_t skip, std::string& crashedMethod)
 	return result;
 }
 
-nlohmann::json util::CrashManager::RequestOBSLog()
+nlohmann::json util::CrashManager::RequestOBSLog(OBSLogType type)
 {
 	nlohmann::json result;
 
-	// Setup the obs log queue as an attribute
-	if (OBS_API::getOBSInternalLog().size() > 0) {
-		const std::vector<std::string>& obsLog = OBS_API::getOBSInternalLog();
+    switch (type)
+    {
+        case OBSLogType::Errors:
+        {
+		    auto& errors = OBS_API::getOBSLogErrors();
+			for (auto& msg : errors)
+				result.push_back(msg);
+            break;
+        }
 
-        const int maxMessages = 150; // Limit for decent visualization, also for the Sentry limit
-		int       initialValue = std::max(0, int(obsLog.size()) - maxMessages);
-		for (int i = initialValue; i <= initialValue + maxMessages; i++) {
-			result.push_back(obsLog[i]);
-		}
-	}
+        case OBSLogType::Warnings:
+        {
+		    auto& warnings = OBS_API::getOBSLogWarnings();
+			for (auto& msg : warnings)
+				result.push_back(msg);
+            break;
+        }
 
+        case OBSLogType::General:
+        {
+		    auto& general = OBS_API::getOBSLogGeneral();
+		    while (!general.empty()) {
+			    result.push_back(general.front());
+			    general.pop();
+            }
+		    
+            break;
+        }
+    }
+    
 	return result;
 }
 

@@ -31,6 +31,13 @@ namespace util
 {
 	class CrashManager
 	{
+        enum OBSLogType
+        {
+            General,
+            Errors,
+            Warnings
+        };
+
 		public:
 
 		bool Initialize();
@@ -43,7 +50,7 @@ namespace util
 		static void ClearBreadcrumbs();
 
 		private:
-		static nlohmann::json RequestOBSLog();
+		static nlohmann::json RequestOBSLog(OBSLogType type);
 		static bool SetupCrashpad();
 		static bool TryHandleCrash(std::string format, std::string crashMessage);
 		static void HandleExit() noexcept;
