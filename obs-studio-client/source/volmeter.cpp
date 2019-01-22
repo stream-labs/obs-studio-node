@@ -228,32 +228,6 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Create(Nan::NAN_METHOD_ARGS_TYPE info
 	info.GetReturnValue().Set(Store(volmeters.back().get()));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE
-    osn::VolMeter::OBS_Volmeter_ReleaseVolmeters(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		return; // Well, we can't really do anything here then.
-	}
-
-	// For each volmeter
-	for (auto& volmeter : volmeters) {
-		volmeter->stop_async_runner();
-		volmeter->stop_worker();
-
-		// Call
-		std::vector<ipc::value> rval = conn->call_synchronous_helper(
-		    "VolMeter",
-		    "Destroy",
-		    {
-		        ipc::value(volmeter->GetId()),
-		    });
-
-		// This is a shutdown operation, no response validation needed
-	}
-}
-
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::GetUpdateInterval(Nan::NAN_METHOD_ARGS_TYPE info)
 {
 	osn::VolMeter* self;
@@ -461,7 +435,4 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::RemoveCallback(Nan::NAN_METHOD_ARGS_T
 
 INITIALIZER(nodeobs_volmeter)
 {
-	initializerFunctions.push([](v8::Local<v8::Object> exports) {
-		NODE_SET_METHOD(exports, "OBS_Volmeter_ReleaseVolmeters", osn::VolMeter::OBS_Volmeter_ReleaseVolmeters);
-	});
 }
