@@ -92,9 +92,11 @@ void osn::Global::SetOutputSource(
 	}
 
 	obs_set_output_source(args[0].value_union.ui32, source);
-	ValidateSourceSanity(source);
+	if(source) 
+        ValidateSourceSanity(source);
 	obs_source_t* newsource = obs_get_output_source(args[0].value_union.ui32);
-	ValidateSourceSanity(newsource);
+	if (newsource)
+	    ValidateSourceSanity(newsource);
 	if (newsource != source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to set output source."));

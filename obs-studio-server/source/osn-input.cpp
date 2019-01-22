@@ -754,12 +754,12 @@ void osn::Input::FindFilter(
 	}
 
 	obs_source_t* filter = obs_source_get_filter_by_name(input, args[1].value_str.c_str());
-	ValidateSourceSanity(filter);
 	if (!filter) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		AUTO_DEBUG;
 		return;
 	}
+	ValidateSourceSanity(filter);
 	obs_source_release(filter);
 
 	uint64_t uid = osn::Source::Manager::GetInstance().find(filter);
