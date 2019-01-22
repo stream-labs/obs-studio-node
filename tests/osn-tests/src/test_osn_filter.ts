@@ -1,13 +1,15 @@
 import 'mocha'
 import { expect } from 'chai'
 import * as osn from 'obs-studio-node';
-import { IFilter } from 'obs-studio-node';
+import { IFilter, ISettings } from 'obs-studio-node';
 import { OBSProcessHandler } from '../util/obs_process_handler';
-import { getCppErrorMsg } from '../util/general';
+import { basicOBSFilterTypes } from '../util/general';
 
 describe('osn-filter', () => {
     let obs: OBSProcessHandler;
+    let filterTypes: string[];
 
+    // Initialize OBS process
     before(function() {
         obs = new OBSProcessHandler();
         
@@ -17,6 +19,7 @@ describe('osn-filter', () => {
         }
     });
 
+    // Shutdown OBS process
     after(function(done) {
         this.timeout(5000);
         obs.shutdown();
@@ -24,32 +27,52 @@ describe('osn-filter', () => {
         setTimeout(done, 3000);
     });
 
-    context('# Create', () => {
-        it('should create filter', () => {
-            let filter: IFilter
+    context('# Types', () => {
+        it('Get all filter types', () => {
+            // Gettin all filter types
+            filterTypes = osn.FilterFactory.types();
 
-            try {
-                filter = osn.FilterFactory.create('test_filter', 'filter1');
-            } catch(e) {
-                throw new Error(getCppErrorMsg(e));
-            }
-            
-            expect(filter.id).to.equal('test_filter');
-            expect(filter.name).to.equal('filter1');
+            // Checking if filterTypes array contains the basic obs filter types
+            expect(filterTypes.length).to.not.equal(0);
+            expect(filterTypes).to.include.members(basicOBSFilterTypes);
         });
     });
 
-    context('# Types', () => {
-        it('should get all filter types', () => {
-            let filterTypes: string[];
+    context('# Create', () => {
+        it('Create all filter types', () => {
+            let filterType: string;
+            let filter: IFilter;
 
-            try {
-                filterTypes = osn.FilterFactory.types();
-            } catch(e) {
-                throw new Error(getCppErrorMsg(e));
+            // Create each filter type available
+            for (filterType of filterTypes)
+            {
+                filter = osn.FilterFactory.create(filterType, 'filter');
+
+                // Checking if filter was created correctly
+                expect(filter).to.not.equal(undefined);
+                expect(filter.id).to.equal(filterType);
+                expect(filter.name).to.equal('filter');
+                filter.release();
             }
+        });
 
-            expect(filterTypes.length).to.not.equal(0);
+        it('Create all filter types with settings', () => {
+            let filterType: string;
+            let filter: IFilter;
+            let settings: ISettings = {};
+            settings['test'] = 1;
+            
+            // Create each filter type availabe passing settings parameter
+            for (filterType of filterTypes)
+            {
+                filter = osn.FilterFactory.create(filterType, 'filter', settings);
+
+                // Checking if filter was created correctly
+                expect(filter).to.not.equal(undefined);
+                expect(filter.id).to.equal(filterType);
+                expect(filter.name).to.equal('filter');
+                filter.release();
+            }
         });
     });
 });

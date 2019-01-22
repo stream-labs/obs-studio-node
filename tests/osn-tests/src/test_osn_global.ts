@@ -3,11 +3,12 @@ import { expect } from 'chai'
 import * as osn from 'obs-studio-node';
 import { IInput, ISource } from 'obs-studio-node';
 import { OBSProcessHandler } from '../util/obs_process_handler';
-import { getCppErrorMsg } from '../util/general';
+import { basicOBSInputTypes } from '../util/general';
 
 describe('osn-global', () => {
     let obs: OBSProcessHandler;
     
+    // Initialize OBS process
     before(function() {
         obs = new OBSProcessHandler();
         
@@ -17,131 +18,114 @@ describe('osn-global', () => {
         }
     });
 
+    // Shutdown OBS process
     after(function(done) {
-        this.timeout(3000);
+        this.timeout(5000);
         obs.shutdown();
         obs = null;
-        setTimeout(done, 2000);
+        setTimeout(done, 3000);
     });
 
-    context('# SetOutputSource', () => {
-        let source: IInput;
+    context('# SetOutputSource and GetOutputSource', () => {
+        let input: IInput;
+        let returnSource: ISource;
 
-        it('should set source to output channel', () => {
-            try {
-                source = osn.InputFactory.create('image_source', 'test_osn_global_source');
-            } catch(e) {
-                throw new Error(getCppErrorMsg(e));
-            }
+        it('Set source to output channel and get it', () => {
+            // Creating input source
+            input = osn.InputFactory.create('image_source', 'test_osn_global_source');
 
-            expect(source.id).to.not.equal(undefined);
+            // Checking if input source was created correctly
+            expect(input).to.not.equal(undefined);
+            expect(input.id).to.equal('image_source');
+            expect(input.name).to.equal('test_osn_global_source');
 
-            try {
-                osn.Global.setOutputSource(1, source);
-            } catch(e) {
-                throw new Error(getCppErrorMsg(e));
-            }
+            // Setting input source to output channel
+            osn.Global.setOutputSource(1, input);
+
+            // Getting input source from output channel
+            returnSource = osn.Global.getOutputSource(1);
+
+            // Checking if input source returned previously is correct
+            expect(returnSource).to.not.equal(undefined);
+            expect(returnSource.id).to.equal('image_source');
+            expect(returnSource.name).to.equal('test_osn_global_source');
         });
 
-        it('should fail if trying to set source to output channel that does not exist', () => {
+        it('FAIL TEST: Set source to output channel that does not exist', () => {
             expect(function() {
-                osn.Global.setOutputSource(99, source);
+                osn.Global.setOutputSource(99, input);
             }).to.throw();
         });
-    });
 
-    context('# GetOutputSource', () => {
-        it('should get source from output channel', () => {
+        it('FAIL TEST: Get source from empty output channel', () => {
             let source: ISource;
 
-            try {
-                source = osn.Global.getOutputSource(1);
-            } catch(e) {
-                throw new Error(getCppErrorMsg(e));
-            }
-            
-            expect(source.name).to.equal('test_osn_global_source');
-        });
+            // Trying to get source from empty channel
+            source = osn.Global.getOutputSource(5);
 
-        it('should fail if trying to get from empty output channel', () => {
-            let source: ISource;
-
-            try {
-                source = osn.Global.getOutputSource(5);
-            } catch(e) {
-                throw new Error(getCppErrorMsg(e));
-            }
-
+            // Checking if source is undefined
             expect(source).to.equal(undefined);
         });
     });
 
     context('# GetOutputFlagsFromId', () => {
-        it('should get flags (capabilities) of a source type', () => {
-            let sourceType: string;
-            let sourceTypes: string[];
-            let flags: number = 0;
+        it('Get flags (capabilities) of a source type', () => {
+            let inputType: string;
+            let inputTypes: string[];
+            let flags: number = undefined;
 
-            try {
-                sourceTypes = osn.InputFactory.types();
-            } catch(e) {
-                throw new Error(getCppErrorMsg(e));
-            }
+            // Getting all input source types
+            inputTypes = osn.InputFactory.types();
 
-            expect(sourceTypes.length).to.not.equal(0);
+            // Checking if sourceTypes array contains the basic obs input types
+            expect(inputTypes.length).to.not.equal(0);
+            expect(inputTypes).to.include.members(basicOBSInputTypes);
 
-            for (sourceType of sourceTypes)
+            // For each input type available get their flags and check if they are not undefined
+            for (inputType of inputTypes)
             {
-                try {
-                    flags = osn.Global.getOutputFlagsFromId(sourceType);
-                } catch(e) {
-                    throw new Error(getCppErrorMsg(e));
-                }
-
+                flags = osn.Global.getOutputFlagsFromId(inputType);
                 expect(flags).to.not.equal(0);
-                flags = 0;
+                flags = undefined;
             }
         });
     });
 
     context('# LaggedFrames', () => {
-        it('should get lagged frames value', () => {
-            let laggedFrames: number;
+        it('Get lagged frames value', () => {
+            let laggedFrames: number = undefined;
 
-            expect(function() {
-                laggedFrames = osn.Global.laggedFrames;
-            }).to.not.throw();
+            // Getting lagged frames value
+            laggedFrames = osn.Global.laggedFrames;
+
+            // Checking if lagged frames was returned correctly
+            expect(laggedFrames).to.not.equal(undefined);
         });
     });
 
     context('# TotalFrames', () => {
-        it('should get total frames value', () => {
+        it('Get total frames value', () => {
             let totalFrames: number = undefined;
 
-            expect(function() {
-                totalFrames = osn.Global.totalFrames;
-            }).to.not.throw();
+            // Getting total frames value
+            totalFrames = osn.Global.totalFrames;
 
+            // Checking if total frames was returned correctly
             expect(totalFrames).to.not.equal(undefined);
         });
     });
 
-    context('# SetLocale', () => {
-        it('shoud set locale', () => {
-            expect(function() {
-                osn.Global.locale = 'pt-BR';
-            }).to.not.throw();
-        });
-    });
-
-    context('# GetLocale', () => {
-        it('shoud get locale', () => {
+    context('# SetLocale and GetLocale', () => {
+        it('Set locale and get it', () => {
             let locale: string;
 
-            expect(function() {
-                locale = osn.Global.locale;
-            }).to.not.throw();
+            // Setting locale
+            osn.Global.locale = 'pt-BR';
 
+            // Getting locale
+            locale = osn.Global.locale;
+
+            // Checking if locale was returned correctly
             expect(locale).to.equal('pt-BR');
         });
     });
