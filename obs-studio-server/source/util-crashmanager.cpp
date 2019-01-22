@@ -142,9 +142,8 @@ void RequestComputerUsageParams(
 
 void GetUserInfo(std::string& computerName)
 {
-#define INFO_BUFFER_SIZE 32767
-	TCHAR infoBuf[INFO_BUFFER_SIZE];
-	DWORD bufCharCount = INFO_BUFFER_SIZE;
+	TCHAR infoBuf[MAX_COMPUTERNAME_LENGTH + 1];
+	DWORD bufCharCount = MAX_COMPUTERNAME_LENGTH + 1;
 
 	if (!GetComputerName(infoBuf, &bufCharCount))
 		return;
