@@ -48,5 +48,5 @@ cd ..
 xcopy /y syms syms\client
 xcopy /y syms syms\server
 
-"sentry-cli.exe" --auth-token "e035c0e6c9b74444a1765da04cf85c35f019520a897249ffa1ba17e9ffb3cd5b" upload-dif --org streamlabs-obs --project obs-server "syms\server"
-"sentry-cli.exe" --auth-token "e035c0e6c9b74444a1765da04cf85c35f019520a897249ffa1ba17e9ffb3cd5b" upload-dif --org streamlabs-obs --project obs-client "syms\client"
+"sentry-cli.exe" --auth-token "d6526d57bb84421eaaeff7983639897de9a0c51ab5274cf4b89d3ad3944d3cbd" upload-dif --org streamlabs-obs --project obs-server "syms\server"
+"sentry-cli.exe" --auth-token "d6526d57bb84421eaaeff7983639897de9a0c51ab5274cf4b89d3ad3944d3cbd" upload-dif --org streamlabs-obs --project obs-client "syms\client"
