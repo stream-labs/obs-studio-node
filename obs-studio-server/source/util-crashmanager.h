@@ -51,6 +51,8 @@ namespace util
 
 		private:
 		static nlohmann::json RequestOBSLog(OBSLogType type);
+		static nlohmann::json ComputeBreadcrumbs();
+		static nlohmann::json ComputeWarnings();
 		static bool SetupCrashpad();
 		static bool TryHandleCrash(std::string format, std::string crashMessage);
 		static void HandleExit() noexcept;

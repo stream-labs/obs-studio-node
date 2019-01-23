@@ -60,7 +60,8 @@ PDH_HCOUNTER                          cpuTotal;
 std::vector<std::string>              breadcrumbs;
 std::vector<std::string>              warnings;
 std::chrono::steady_clock::time_point initialTime;
- 
+std::mutex                            messageMutex;
+
 // Crashpad variables
 #ifndef _DEBUG
 std::wstring                                   appdata_path;
@@ -381,6 +382,8 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	annotations.insert({{"Manual callstack", callStack.dump(4)}});
 	annotations.insert({{"Crash reason", _crashInfo}});
 	annotations.insert({{"Computer name", computerName}});
+	annotations.insert({{"Breadcrumbs", ComputeBreadcrumbs()}});
+	annotations.insert({{"Warnings", ComputeWarnings()}});
 
     // Recreate crashpad instance, this is a well defined/supported operation
 	SetupCrashpad();
@@ -476,7 +479,7 @@ nlohmann::json RewindCallStack(uint32_t skip, std::string& crashedMethod)
 	DWORD           dwDisplacement = 0;
 	IMAGEHLP_LINE64 line;
 
-	// Get the callstack information
+	// Get the callstack information (values/constants here retrieve from microsoft page)
 	SymSetOptions(SYMOPT_LOAD_LINES);
 	process = GetCurrentProcess();
 	SymInitialize(process, NULL, TRUE);
@@ -534,16 +537,16 @@ nlohmann::json RewindCallStack(uint32_t skip, std::string& crashedMethod)
 		entry["function"]         = functionName;
 		entry["filename"]         = fileName;
 		entry["lineno"]           = line.LineNumber;
-		entry["instruction_addr"] = "0x" + instructionAddress;
-		entry["symbol_addr"]      = "0x" + symbolAddress;
+		entry["instruction addr"] = "0x" + instructionAddress;
+		entry["symbol addr"]      = "0x" + symbolAddress;
 
 		if (functionName.substr(0, 5) == "std::" || functionName.substr(0, 2) == "__") {
-			entry["in_app"] = false;
+			entry["in app"] = false;
 		}
 
 		// If we have some missing frames
 		if (missingFrames.size() > 0) {
-			entry["frames_omitted"] = {std::to_string(missingFrames.back()), std::to_string(i)};
+			entry["frames omitted"] = {std::to_string(missingFrames.back()), std::to_string(i)};
 			missingFrames.clear();
 		}
 
@@ -595,6 +598,26 @@ nlohmann::json util::CrashManager::RequestOBSLog(OBSLogType type)
         }
     }
     
+	return result;
+}
+
+nlohmann::json util::CrashManager::ComputeBreadcrumbs()
+{
+	nlohmann::json result;
+
+    for (auto& msg : breadcrumbs)
+		result.push_back(msg);
+
+    return result;
+}
+
+nlohmann::json util::CrashManager::ComputeWarnings()
+{
+	nlohmann::json result;
+
+	for (auto& msg : warnings)
+		result.push_back(msg);
+
 	return result;
 }
 
@@ -751,15 +774,18 @@ void util::CrashManager::IPCValuesToData(const std::vector<ipc::value>& values, 
 
 void util::CrashManager::AddWarning(const std::string& warning)
 {
+	std::lock_guard<std::mutex> lock(messageMutex);
 	warnings.push_back(warning);
 }
 
 void util::CrashManager::AddBreadcrumb(const std::string& message)
 {
+	std::lock_guard<std::mutex> lock(messageMutex);
 	breadcrumbs.push_back(message);
 }
 
 void util::CrashManager::ClearBreadcrumbs()
 {
+	std::lock_guard<std::mutex> lock(messageMutex);
 	breadcrumbs.clear();
 }
