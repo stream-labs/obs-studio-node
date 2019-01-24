@@ -1014,7 +1014,7 @@ void OBS_API::destroyOBS_API(void)
 		obs_service_release(service);
 
     osn::VolMeter::ClearVolmeters();
-	osn::Fader::ClearFaders();
+    osn::Fader::ClearFaders();
 
 	obs_shutdown();
 
