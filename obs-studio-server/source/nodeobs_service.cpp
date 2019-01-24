@@ -2363,37 +2363,43 @@ void OBS_service::JSCallbackOutputSignal(void* data, calldata_t* params)
 
 void OBS_service::connectOutputSignals(void)
 {
-	signal_handler* streamingOutputSignalHandler = obs_output_get_signal_handler(streamingOutput);
+	if (streamingOutput) {
+		signal_handler* streamingOutputSignalHandler = obs_output_get_signal_handler(streamingOutput);
 
-	// Connect streaming output
-	for (int i = 0; i < streamingSignals.size(); i++) {
-		signal_handler_connect(
-		    streamingOutputSignalHandler,
-		    streamingSignals.at(i).getSignal().c_str(),
-		    JSCallbackOutputSignal,
-		    &(streamingSignals.at(i)));
+		// Connect streaming output
+		for (int i = 0; i < streamingSignals.size(); i++) {
+			signal_handler_connect(
+			    streamingOutputSignalHandler,
+			    streamingSignals.at(i).getSignal().c_str(),
+			    JSCallbackOutputSignal,
+			    &(streamingSignals.at(i)));
+		}
 	}
 
-	signal_handler* recordingOutputSignalHandler = obs_output_get_signal_handler(recordingOutput);
+	if (recordingOutput) {
+		signal_handler* recordingOutputSignalHandler = obs_output_get_signal_handler(recordingOutput);
 
-	// Connect recording output
-	for (int i = 0; i < recordingSignals.size(); i++) {
-		signal_handler_connect(
-		    recordingOutputSignalHandler,
-		    recordingSignals.at(i).getSignal().c_str(),
-		    JSCallbackOutputSignal,
-		    &(recordingSignals.at(i)));
+		// Connect recording output
+		for (int i = 0; i < recordingSignals.size(); i++) {
+			signal_handler_connect(
+			    recordingOutputSignalHandler,
+			    recordingSignals.at(i).getSignal().c_str(),
+			    JSCallbackOutputSignal,
+			    &(recordingSignals.at(i)));
+		}
 	}
 
-	signal_handler* replayBufferOutputSignalHandler = obs_output_get_signal_handler(replayBuffer);
+	if (replayBuffer) {
+		signal_handler* replayBufferOutputSignalHandler = obs_output_get_signal_handler(replayBuffer);
 
-	// Connect replay buffer output
-	for (int i = 0; i < replayBufferSignals.size(); i++) {
-		signal_handler_connect(
-		    replayBufferOutputSignalHandler,
-		    replayBufferSignals.at(i).getSignal().c_str(),
-		    JSCallbackOutputSignal,
-		    &(replayBufferSignals.at(i)));
+		// Connect replay buffer output
+		for (int i = 0; i < replayBufferSignals.size(); i++) {
+			signal_handler_connect(
+			    replayBufferOutputSignalHandler,
+			    replayBufferSignals.at(i).getSignal().c_str(),
+			    JSCallbackOutputSignal,
+			    &(replayBufferSignals.at(i)));
+		}
 	}
 }
 
