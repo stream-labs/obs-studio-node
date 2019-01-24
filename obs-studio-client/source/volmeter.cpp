@@ -147,7 +147,11 @@ void osn::VolMeter::worker()
 					data->input_peak[ch] = response[1 + ch * 3 + 2].value_union.fp32;
 				}
 				m_async_callback->queue(std::move(data));
-			} else {
+			} else if(error == ErrorCode::InvalidReference) {
+				goto do_sleep;
+			}
+			else
+			{
 				std::cerr << "Failed VolMeter" << std::endl;
 				break;
 			}

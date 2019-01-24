@@ -118,16 +118,16 @@ namespace utility
 			return obj;
 		}
 
-		void for_each(std::function<void(T*)> for_each_method)
-		{
-			for (auto it = object_map.begin(); it != object_map.end(); ++it) {
-				for_each_method(it->second);
-			}
-		}
+        void for_each(std::function<void(T*)> for_each_method)
+        {
+            for (auto it = object_map.begin(); it != object_map.end(); ++it) {
+                for_each_method(it->second);
+            }
+        }
 
         void clear()
         {
-			object_map.clear();
+            object_map.clear();
         }
 	};
 
@@ -193,16 +193,16 @@ namespace utility
 			return obj;
 		}
 
-		void for_each(std::function<void(T&)> for_each_method)
-		{
-			for (auto it = object_map.begin(); it != object_map.end(); ++it) {
-				for_each_method(it->second);
-			}
-		}
+        void for_each(std::function<void(T&)> for_each_method)
+        {
+            for (auto it = object_map.begin(); it != object_map.end(); ++it) {
+                for_each_method(it->second);
+            }
+        }
 
-		void clear()
-		{
-			object_map.clear();
-		}
+        void clear()
+        {
+            object_map.clear();
+        }
 	};
 } // namespace utility
