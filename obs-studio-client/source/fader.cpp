@@ -395,32 +395,6 @@ void osn::Fader::RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info)
 	//* and where to destroy the object. */
 }
 
-void osn::Fader::OBS_Fader_ReleaseFaders(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		return; // Well, we can't really do anything here then.
-	}
-
-	// For each fader
-	for (auto& fader : faders) {
-
-		// Call
-		std::vector<ipc::value> rval = conn->call_synchronous_helper(
-		    "Fader",
-		    "Destroy",
-		    {
-		        ipc::value(fader->GetId()),
-		    });
-
-		// This is a shutdown operation, no response validation needed
-	}
-}
-
 INITIALIZER(nodeobs_fader)
 {
-	initializerFunctions.push([](v8::Local<v8::Object> exports) {
-		NODE_SET_METHOD(exports, "OBS_Fader_ReleaseFaders", osn::Fader::OBS_Fader_ReleaseFaders);
-	});
 }

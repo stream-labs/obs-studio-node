@@ -44,6 +44,7 @@ namespace osn
 
 		public:
 		static void Register(ipc::server&);
+		static void ClearFaders();
 
 		static void
 		    Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);

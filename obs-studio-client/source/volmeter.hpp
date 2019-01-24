@@ -79,8 +79,5 @@ namespace osn
 		static Nan::NAN_METHOD_RETURN_TYPE Detach(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE AddCallback(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE
-		    OBS_Volmeter_ReleaseVolmeters(const v8::FunctionCallbackInfo<v8::Value>& args);
-
 	};
 } // namespace osn

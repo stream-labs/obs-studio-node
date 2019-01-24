@@ -4,7 +4,10 @@ include(ExternalProject)
 include(DownloadProject)
 
 # Detect Architecture (Bitness)
-math(EXPR BITS "8*${CMAKE_SIZEOF_VOID_P}")
+IF( NOT CLANG_ANALYZE_CONFIG)
+	math(EXPR BITS "8*${CMAKE_SIZEOF_VOID_P}")
+ENDIF()
+
 
 if(WIN32)
 	set(PROJECT_PRODUCT_NAME "OBS Studio for Node.JS (Server)")
@@ -138,7 +141,6 @@ set(PROJECT_INCLUDE_PATHS
 	"${PROJECT_SOURCE_DIR}/source"
 	"${lib-streamlabs-ipc_SOURCE_DIR}/include"
 	${LIBOBS_INCLUDE_DIRS}
-	"${PROJECT_SOURCE_DIR}/../lib-streamlabs-ipc/third-party/lib-datalane/"
 )
 
 set(PROJECT_DATA "${PROJECT_SOURCE_DIR}/resources")
@@ -222,6 +224,11 @@ add_executable(
 	"${PROJECT_SOURCE_DIR}/source/nodeobs_settings.h"
 	"${PROJECT_SOURCE_DIR}/source/util-memory.cpp"
 	"${PROJECT_SOURCE_DIR}/source/util-memory.h"
+
+	###### crash-manager ######
+
+	"${PROJECT_SOURCE_DIR}/source/util-crashmanager.cpp"
+	"${PROJECT_SOURCE_DIR}/source/util-crashmanager.h"
 )
 
 if(WIN32)
@@ -261,10 +268,14 @@ IF(WIN32)
 	)
 ENDIF()
 
-cppcheck_add_project(${PROJECT_NAME})
+IF( NOT CLANG_ANALYZE_CONFIG)
+	cppcheck_add_project(${PROJECT_NAME})
+ENDIF()
 
 install(TARGETS obs-studio-server RUNTIME DESTINATION "./" COMPONENT Runtime)
-install(FILES $<TARGET_PDB_FILE:obs-studio-server> DESTINATION "./" OPTIONAL)
+IF( NOT CLANG_ANALYZE_CONFIG)
+	install(FILES $<TARGET_PDB_FILE:obs-studio-server> DESTINATION "./" OPTIONAL)
+ENDIF()
 install(DIRECTORY ${PROJECT_DATA} DESTINATION "./" OPTIONAL)
 install(DIRECTORY ${crashpad_SOURCE_DIR}/bin/ DESTINATION "./")
 install(DIRECTORY "${libobs_SOURCE_DIR}/data/" DESTINATION "./data")

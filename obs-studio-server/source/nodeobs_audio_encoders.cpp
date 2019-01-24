@@ -9,16 +9,14 @@
 
 #include "nodeobs_audio_encoders.h"
 
-using namespace std;
-
-static const string encoders[] = {
+static const std::string encoders[] = {
     "ffmpeg_aac",
     "mf_aac",
     "libfdk_aac",
     "CoreAudio_AAC",
 };
 
-static const string& fallbackEncoder = encoders[0];
+static const std::string& fallbackEncoder = encoders[0];
 
 static const char* NullToEmpty(const char* str)
 {
@@ -30,8 +28,8 @@ static const char* EncoderName(const char* id)
 	return NullToEmpty(obs_encoder_get_display_name(id));
 }
 
-static map<int, const char*> bitrateMap;
-static once_flag             populateBitrateMap;
+static std::map<int, const char*> bitrateMap;
+static std::once_flag             populateBitrateMap;
 
 static void HandleIntProperty(obs_property_t* prop, const char* id)
 {
@@ -138,7 +136,7 @@ static const char* GetCodec(const char* id)
 	return NullToEmpty(obs_get_encoder_codec(id));
 }
 
-static const string aac_ = "AAC";
+static const std::string aac_ = "AAC";
 static void         PopulateBitrateMap()
 {
 	call_once(populateBitrateMap, []() {
@@ -146,7 +144,7 @@ static void         PopulateBitrateMap()
 
 		const char* id = nullptr;
 		for (size_t i = 0; obs_enum_encoder_types(i, &id); i++) {
-			auto Compare = [=](const string& val) { return val == NullToEmpty(id); };
+			auto Compare = [=](const std::string& val) { return val == NullToEmpty(id); };
 
 			if (find_if(begin(encoders), end(encoders), Compare) != end(encoders))
 				continue;
@@ -185,16 +183,16 @@ static void         PopulateBitrateMap()
 			return;
 		}
 
-		ostringstream ss;
+		std::ostringstream ss;
 		for (auto& entry : bitrateMap)
-			ss << "\n	" << setw(3) << entry.first << " kbit/s: '" << EncoderName(entry.second) << "' ("
+			ss << "\n	" << std::setw(3) << entry.first << " kbit/s: '" << EncoderName(entry.second) << "' ("
 			   << entry.second << ')';
 
 		blog(LOG_DEBUG, "AAC encoder bitrate mapping:%s", ss.str().c_str());
 	});
 }
 
-const map<int, const char*>& GetAACEncoderBitrateMap()
+const std::map<int, const char*>& GetAACEncoderBitrateMap()
 {
 	PopulateBitrateMap();
 	return bitrateMap;
