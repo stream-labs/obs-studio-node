@@ -835,21 +835,21 @@ std::string GenerateSpecifiedFilename(const char* extension, bool noSpace, const
 	return result;
 }
 
-static void ensure_directory_exists(string& path)
+static void ensure_directory_exists(std::string& path)
 {
 	replace(path.begin(), path.end(), '\\', '/');
 
 	size_t last = path.rfind('/');
-	if (last == string::npos)
+	if (last == std::string::npos)
 		return;
 
-	string directory = path.substr(0, last);
+	std::string directory = path.substr(0, last);
 
 	if (std::experimental::filesystem::is_directory(directory))
 		os_mkdirs(directory.c_str());
 }
 
-static void FindBestFilename(string& strPath, bool noSpace)
+static void FindBestFilename(std::string& strPath, bool noSpace)
 {
 	int num = 2;
 
@@ -862,11 +862,11 @@ static void FindBestFilename(string& strPath, bool noSpace)
 
 	int extStart = int(ext - strPath.c_str());
 	for (;;) {
-		string testPath = strPath;
-		string numStr;
+		std::string testPath = strPath;
+		std::string numStr;
 
 		numStr = noSpace ? "_" : " (";
-		numStr += to_string(num++);
+		numStr += std::to_string(num++);
 		if (!noSpace)
 			numStr += ")";
 
@@ -879,7 +879,7 @@ static void FindBestFilename(string& strPath, bool noSpace)
 	}
 }
 
-static void remove_reserved_file_characters(string& s)
+static void remove_reserved_file_characters(std::string& s)
 {
 	replace(s.begin(), s.end(), '/', '_');
 	replace(s.begin(), s.end(), '\\', '_');
@@ -1193,7 +1193,7 @@ bool OBS_service::updateAdvancedReplayBuffer(void)
 
 		os_closedir(dir);
 
-		string strPath;
+		std::string strPath;
 		strPath += path;
 
 		char lastChar = strPath.back();
@@ -1206,7 +1206,7 @@ bool OBS_service::updateAdvancedReplayBuffer(void)
 			FindBestFilename(strPath, noSpace);
 
 		obs_data_t* settings = obs_data_create();
-		string      f;
+		std::string      f;
 
 		if (rbPrefix && *rbPrefix) {
 			f += rbPrefix;
@@ -1609,7 +1609,7 @@ void OBS_service::updateRecordingOutput(bool updateReplayBuffer)
     int rbSize = 
 		int(config_get_int(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecRBSize"));
 
-	string initialPath;
+	std::string initialPath;
 	if (path != nullptr) {
 		initialPath = path;
 	}
@@ -1618,7 +1618,7 @@ void OBS_service::updateRecordingOutput(bool updateReplayBuffer)
         filenameFormat = "%CCYY-%MM-%DD %hh-%mm-%ss";
     } 
 
-	string strPath;
+	std::string strPath;
 	strPath += initialPath;
 
     char lastChar = strPath.back();
@@ -1636,7 +1636,7 @@ void OBS_service::updateRecordingOutput(bool updateReplayBuffer)
 	obs_data_t *settings = obs_data_create();
 
     if (updateReplayBuffer) {
-        string f;
+        std::string f;
 
         if (rbPrefix && *rbPrefix) {
             f += rbPrefix;
@@ -1693,12 +1693,12 @@ void OBS_service::updateAdvancedRecordingOutput(void)
     bool noSpace = 
 		config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecFileNameWithoutSpace");
 
-	string initialPath;
+	std::string initialPath;
 	if (path != nullptr) {
 		initialPath = path;
 	}
 
-	string strPath;
+	std::string strPath;
 	strPath += initialPath;
 
 	char lastChar = strPath.back();
@@ -1791,8 +1791,8 @@ static bool update_ffmpeg_output(config_t* config)
 	if (isActualURL)
 		return false;
 
-	string urlStr = url;
-	string extension;
+	std::string urlStr = url;
+	std::string extension;
 
 	for (size_t i = urlStr.length(); i > 0; i--) {
 		size_t idx = i - 1;

@@ -37,8 +37,6 @@
 #define ADVANCED_ENCODER_NVENC "ffmpeg_nvenc"
 #define ADVANCED_ENCODER_AMD "amd_amf_h264"
 
-using namespace std;
-
 class SignalInfo
 {
 	private:
