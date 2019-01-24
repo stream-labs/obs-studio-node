@@ -54,6 +54,5 @@ namespace osn
 		static void Detach(Nan::NAN_METHOD_ARGS_TYPE info);
 		static void AddCallback(Nan::NAN_METHOD_ARGS_TYPE info);
 		static void RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info);
-		static void OBS_Fader_ReleaseFaders(const v8::FunctionCallbackInfo<v8::Value>& args);
 	};
 } // namespace osn

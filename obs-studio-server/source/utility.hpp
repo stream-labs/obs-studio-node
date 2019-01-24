@@ -16,6 +16,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
 
 #pragma once
+#include <functional>
 #include <limits>
 #include <list>
 #include <map>
@@ -116,6 +117,18 @@ namespace utility
 			object_map.erase(iter);
 			return obj;
 		}
+
+        void for_each(std::function<void(T*)> for_each_method)
+        {
+            for (auto it = object_map.begin(); it != object_map.end(); ++it) {
+                for_each_method(it->second);
+            }
+        }
+
+        void clear()
+        {
+            object_map.clear();
+        }
 	};
 
 	template<typename T>
@@ -179,5 +192,17 @@ namespace utility
 			object_map.erase(iter);
 			return obj;
 		}
+
+        void for_each(std::function<void(T&)> for_each_method)
+        {
+            for (auto it = object_map.begin(); it != object_map.end(); ++it) {
+                for_each_method(it->second);
+            }
+        }
+
+        void clear()
+        {
+            object_map.clear();
+        }
 	};
 } // namespace utility

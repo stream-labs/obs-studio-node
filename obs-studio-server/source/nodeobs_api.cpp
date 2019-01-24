@@ -1,5 +1,7 @@
 #include "nodeobs_api.h"
 #include "osn-source.hpp"
+#include "osn-volmeter.hpp"
+#include "osn-fader.hpp"
 #include "util/lexer.h"
 
 #ifdef _WIN32
@@ -1015,6 +1017,9 @@ void OBS_API::destroyOBS_API(void)
 	obs_service_t* service = OBS_service::getService();
 	if (service != NULL)
 		obs_service_release(service);
+
+    osn::VolMeter::ClearVolmeters();
+    osn::Fader::ClearFaders();
 
 	obs_shutdown();
 

@@ -145,7 +145,11 @@ void osn::VolMeter::worker()
 					data->input_peak[ch] = response[1 + ch * 3 + 2].value_union.fp32;
 				}
 				m_async_callback->queue(std::move(data));
-			} else {
+			} else if(error == ErrorCode::InvalidReference) {
+				goto do_sleep;
+			}
+			else
+			{
 				std::cerr << "Failed VolMeter" << std::endl;
 				break;
 			}
@@ -224,32 +228,6 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Create(Nan::NAN_METHOD_ARGS_TYPE info
 	newVolmeter->m_sleep_interval = rval[2].value_union.ui32;
 	volmeters.push_back(std::move(newVolmeter));
 	info.GetReturnValue().Set(Store(volmeters.back().get()));
-}
-
-Nan::NAN_METHOD_RETURN_TYPE
-    osn::VolMeter::OBS_Volmeter_ReleaseVolmeters(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		return; // Well, we can't really do anything here then.
-	}
-
-	// For each volmeter
-	for (auto& volmeter : volmeters) {
-		volmeter->stop_async_runner();
-		volmeter->stop_worker();
-
-		// Call
-		std::vector<ipc::value> rval = conn->call_synchronous_helper(
-		    "VolMeter",
-		    "Destroy",
-		    {
-		        ipc::value(volmeter->GetId()),
-		    });
-
-		// This is a shutdown operation, no response validation needed
-	}
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::GetUpdateInterval(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -459,7 +437,4 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::RemoveCallback(Nan::NAN_METHOD_ARGS_T
 
 INITIALIZER(nodeobs_volmeter)
 {
-	initializerFunctions.push([](v8::Local<v8::Object> exports) {
-		NODE_SET_METHOD(exports, "OBS_Volmeter_ReleaseVolmeters", osn::VolMeter::OBS_Volmeter_ReleaseVolmeters);
-	});
 }
