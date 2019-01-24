@@ -78,8 +78,10 @@ extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = [] {
 }();
 #endif
 
+int main(int, char ** , char **){}
+
 // Definition based on addon_register_func, see 'node.h:L384'.
-void main(v8::Local<v8::Object> exports, v8::Local<v8::Value> module, void* priv)
+void main_node(v8::Local<v8::Object> exports, v8::Local<v8::Value> module, void* priv)
 {
 	osn::Global::Register(exports);
 	osn::ISource::Register(exports);
@@ -101,4 +103,4 @@ void main(v8::Local<v8::Object> exports, v8::Local<v8::Value> module, void* priv
 	}
 };
 
-NODE_MODULE(obs_studio_node, main); // Upgrade to NAPI_MODULE once N-API hits stable/beta.
+NODE_MODULE(obs_studio_node, main_node); // Upgrade to NAPI_MODULE once N-API hits stable/beta.
