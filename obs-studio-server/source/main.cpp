@@ -43,11 +43,7 @@
 #include "osn-video.hpp"
 #include "osn-volmeter.hpp"
 
-#ifndef _DEBUG
-#include "client/crash_report_database.h"
-#include "client/crashpad_client.h"
-#include "client/settings.h"
-#endif
+#include "util-crashmanager.h"
 
 #if defined(_WIN32)
 #include "Shlobj.h"
@@ -129,74 +125,16 @@ namespace System
 	}
 } // namespace System
 
-std::string FormatVAString(const char* const format, va_list args)
-{
-	auto         temp   = std::vector<char>{};
-	auto         length = std::size_t{63};
-	while (temp.size() <= length) {
-		temp.resize(length + 1);
-		const auto status = std::vsnprintf(temp.data(), temp.size(), format, args);
-		if (status < 0)
-			throw std::runtime_error{"string formatting error"};
-		length = static_cast<std::size_t>(status);
-	}
-	return std::string{temp.data(), length};
-}
-
 int main(int argc, char* argv[])
 {
 #ifndef _DEBUG
 
-	struct CrashpadInfo
-	{
-		base::FilePath&           handler;
-		base::FilePath&           db;
-		std::string&              url;
-		std::vector<std::string>& arguments;
-		crashpad::CrashpadClient& client;
-	};
+    util::CrashManager crashManager;
+	if (!crashManager.Initialize()) {
+		return -1;
+    }
 
-	std::wstring             appdata_path;
-	crashpad::CrashpadClient client;
-	bool                     rc;
-
-#if defined(_WIN32)
-	HRESULT hResult;
-	PWSTR   ppszPath;
-
-	hResult = SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, NULL, &ppszPath);
-
-	appdata_path.assign(ppszPath);
-	appdata_path.append(L"\\obs-studio-node-server");
-
-	CoTaskMemFree(ppszPath);
-#endif
-
-	std::map<std::string, std::string> annotations;
-	std::vector<std::string>           arguments;
-	arguments.push_back("--no-rate-limit");
-
-	std::wstring handler_path(L"crashpad_handler.exe");
-	std::string  url(
-        "https://sentry.io/api/1283431/minidump/?sentry_key=ec98eac4e3ce49c7be1d83c8fb2005ef");
-
-	base::FilePath db(appdata_path);
-	base::FilePath handler(handler_path);
-
-	std::unique_ptr<crashpad::CrashReportDatabase> database = crashpad::CrashReportDatabase::Initialize(db);
-	if (database == nullptr || database->GetSettings() == NULL)
-		return false;
-
-	database->GetSettings()->SetUploadsEnabled(true);
-
-	rc = client.StartHandler(handler, db, db, url, annotations, arguments, true, true);
-	/* TODO Check rc value for errors */
-
-	rc = client.WaitForHandlerStart(INFINITE);
-	/* TODO Check rc value for errors */
-
-	// Setup the crashpad info that will be used in case the obs throws an error
-	CrashpadInfo crashpadInfo = {handler, db, url, arguments, client};
+    crashManager.Configure();
 
 #endif
 
@@ -248,34 +186,6 @@ int main(int argc, char* argv[])
 	// Register Connect/Disconnect Handlers
 	myServer.set_connect_handler(ServerConnectHandler, &sd);
 	myServer.set_disconnect_handler(ServerDisconnectHandler, &sd);
-
-#ifndef _DEBUG
-
-	// Handler for obs errors (mainly for bcrash() calls)
-	base_set_crash_handler([](const char* format, va_list args, void* param) { 
-
-		CrashpadInfo* crashpadInfo = (CrashpadInfo*)param;
-		std::map<std::string, std::string> annotations;
-
-		annotations.insert({"OBS bcrash", FormatVAString(format, args)});
-
-		bool rc = crashpadInfo->client.StartHandler(
-		    crashpadInfo->handler,
-		    crashpadInfo->db,
-		    crashpadInfo->db,
-		    crashpadInfo->url,
-		    annotations,
-		    crashpadInfo->arguments,
-		    true,
-		    true);
-
-		rc = crashpadInfo->client.WaitForHandlerStart(INFINITE);
-
-		throw "Induced obs crash";
-
-	}, &crashpadInfo);
-
-#endif
 
 	// Initialize Server
 	try {
