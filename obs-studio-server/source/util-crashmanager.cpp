@@ -511,7 +511,7 @@ nlohmann::json RewindCallStack(uint32_t skip, std::string& crashedMethod)
 
 		// Get the filename from the fullpath
 		size_t pos = fullPath.rfind("\\", fullPath.length());
-		if (pos != string::npos) {
+		if (pos != std::string::npos) {
 			fileName = (fullPath.substr(pos + 1, fullPath.length() - pos));
 		}
 
@@ -525,7 +525,7 @@ nlohmann::json RewindCallStack(uint32_t skip, std::string& crashedMethod)
 		// A little of magic to shorten the address lenght
 		instructionAddress = buffer.str();
 		pos                = instructionAddress.find_first_not_of("0");
-		if (pos != string::npos && pos <= 4) {
+		if (pos != std::string::npos && pos <= 4) {
 			instructionAddress = (instructionAddress.substr(pos + 1, instructionAddress.length() - pos));
 		}
 
