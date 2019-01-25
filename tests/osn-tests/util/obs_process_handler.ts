@@ -3,13 +3,13 @@ import * as osn from 'obs-studio-node';
 export class OBSProcessHandler {
     startup(): boolean {
         const path = require('path');
-        const wd = path.join(__dirname, '..', 'node_modules', 'obs-studio-node');
+        const wd = path.join(path.normalize(__dirname), '..', 'node_modules', 'obs-studio-node');
         const pipeName = 'osn-tests-pipe';  
 
         try {
             osn.NodeObs.IPC.host(pipeName);
             osn.NodeObs.SetWorkingDirectory(wd);
-            osn.NodeObs.OBS_API_initAPI('en-US', path.join(__dirname, '..', 'AppData'));
+            osn.NodeObs.OBS_API_initAPI('en-US', path.join(path.normalize(__dirname), '..', 'osnData/slobs-client'));
         } catch(e) {
             return false;
         }
