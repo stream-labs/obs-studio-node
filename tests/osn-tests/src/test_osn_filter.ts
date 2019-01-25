@@ -20,11 +20,9 @@ describe('osn-filter', () => {
     });
 
     // Shutdown OBS process
-    after(function(done) {
-        this.timeout(5000);
+    after(function() {
         obs.shutdown();
         obs = null;
-        setTimeout(done, 3000);
     });
 
     context('# Types', () => {

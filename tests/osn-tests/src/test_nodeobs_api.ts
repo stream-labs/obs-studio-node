@@ -33,15 +33,13 @@ describe('nodebs_api', () => {
         }
     });
 
-    after(function(done) {
-        this.timeout(5000);
+    after(function() {
         obs.shutdown();
         obs = null;
-        setTimeout(done, 3000);
     });
 
     context('# OBS_API_getPerformanceStatistics', () => {
-        it('should fill stats object', () => {
+        it('Fill stats object', () => {
             let stats: IPerformanceState;
 
             try {
@@ -59,7 +57,7 @@ describe('nodebs_api', () => {
     });
 
     context('# OBS_API_QueryHotkeys', () => {
-        it('should get all hotkeys', () => {
+        it('Get all hotkeys', () => {
             try {
                 obsHotkeys = osn.NodeObs.OBS_API_QueryHotkeys();
             } catch(e) {
@@ -69,7 +67,7 @@ describe('nodebs_api', () => {
     });
 
     context('# OBS_API_ProcessHotkeyStatus', () => {
-        it('should process all hot keys gotten previously', () => {
+        it('Process all hot keys gotten previously', () => {
             let hotkeyId: any;
             let isKeyDown: boolean;
 
@@ -82,7 +80,7 @@ describe('nodebs_api', () => {
             }
         });
 
-        it('should throw error if hot key id does not exist', () => {
+        it('FAIL TEST: Try to process hot key id that does not exist', () => {
             let isKeyDown: boolean;
 
             expect(function() {
