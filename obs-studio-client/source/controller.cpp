@@ -315,7 +315,15 @@ std::shared_ptr<ipc::client> Controller::connect(
 void Controller::disconnect()
 {
 	if (m_isServer) {
-		m_connection->call_synchronous_helper("System", "Shutdown", {});
+		std::vector<ipc::value> rval = m_connection->call_synchronous_helper("System", "Shutdown", {});
+
+		ProcessInfo pi = open_process(rval[1].value_union.ui64);
+
+		// Waiting for server to close
+		while (is_process_alive(pi)) {
+			std::this_thread::yield();
+		}
+
 		m_isServer = false;
 	}
 	m_connection = nullptr;
