@@ -33,7 +33,6 @@ namespace osn
 		};
 
 		public:
-		static Nan::Persistent<v8::FunctionTemplate> prototype;
 		uint64_t                                     handler;
 
 		public:

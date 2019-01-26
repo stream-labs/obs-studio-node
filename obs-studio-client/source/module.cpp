@@ -30,8 +30,6 @@ osn::Module::Module(uint64_t id)
 	this->moduleId = id;
 }
 
-Nan::Persistent<v8::FunctionTemplate> osn::Module::prototype = Nan::Persistent<v8::FunctionTemplate>();
-
 void osn::Module::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
@@ -52,7 +50,7 @@ void osn::Module::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	utilv8::SetTemplateAccessorProperty(objtemplate, "dataPath", DataPath);
 
 	utilv8::SetObjectField(target, "Module", fnctemplate->GetFunction());
-	prototype.Reset(fnctemplate);
+//    prototype.Reset(fnctemplate);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Module::Open(Nan::NAN_METHOD_ARGS_TYPE info)

@@ -36,9 +36,6 @@ namespace osn
 	{
 		friend class utilv8::InterfaceObject<osn::ISource>;
 
-		protected:
-		static Nan::Persistent<v8::FunctionTemplate> prototype;
-
 		public:
 		uint64_t sourceId;
 

@@ -30,12 +30,10 @@ osn::Transition::Transition(uint64_t id)
 	this->sourceId = id;
 }
 
-Nan::Persistent<v8::FunctionTemplate> osn::Transition::prototype = Nan::Persistent<v8::FunctionTemplate>();
-
 void osn::Transition::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
-	fnctemplate->Inherit(Nan::New<v8::FunctionTemplate>(osn::ISource::prototype));
+//    fnctemplate->Inherit(Nan::New<v8::FunctionTemplate>(osn::ISource::prototype));
 	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
 	fnctemplate->SetClassName(Nan::New<v8::String>("Transition").ToLocalChecked());
 
@@ -54,7 +52,7 @@ void osn::Transition::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 
 	// Stuff
 	utilv8::SetObjectField(target, "Transition", fnctemplate->GetFunction());
-	prototype.Reset(fnctemplate);
+//    prototype.Reset(fnctemplate);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Types(Nan::NAN_METHOD_ARGS_TYPE info)

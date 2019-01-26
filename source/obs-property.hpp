@@ -3,6 +3,9 @@
 #include <list>
 #include <memory>
 #include <vector>
+#include <string>
+
+typedef double double_t;
 
 namespace obs
 {

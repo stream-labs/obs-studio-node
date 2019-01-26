@@ -32,21 +32,19 @@ osn::Fader::~Fader()
 {
 }
 
-std::vector<std::unique_ptr<osn::Fader>> faders;
+std::vector<osn::Fader*> faders;
 
 uint64_t osn::Fader::GetId()
 {
 	return this->uid;
 }
 
-Nan::Persistent<v8::FunctionTemplate> osn::Fader::prototype = Nan::Persistent<v8::FunctionTemplate>();
-
 void osn::Fader::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 {
-	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
+    v8::Local<v8::FunctionTemplate> fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
 	fnctemplate->SetClassName(Nan::New<v8::String>("Fader").ToLocalChecked());
-
+    
 	// Class Template
 	utilv8::SetTemplateField(fnctemplate, "create", Create);
 
@@ -62,7 +60,7 @@ void osn::Fader::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 
 	// Stuff
 	utilv8::SetObjectField(target, "Fader", fnctemplate->GetFunction());
-	prototype.Reset(fnctemplate);
+	// prototype.Reset(fnctemplate);
 }
 
 void osn::Fader::Create(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -93,9 +91,9 @@ void osn::Fader::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 
 	// Return created Object
-	auto newFader = std::make_unique<osn::Fader>(rval[1].value_union.ui64);
+	auto newFader = new osn::Fader(rval[1].value_union.ui64);
 	faders.push_back(std::move(newFader));
-	info.GetReturnValue().Set(Store(faders.back().get()));
+	info.GetReturnValue().Set(Store(faders.back()));
 }
 
 void osn::Fader::GetDeziBel(Nan::NAN_METHOD_ARGS_TYPE info)

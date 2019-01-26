@@ -119,7 +119,7 @@ void AutoConfig::worker()
 	return;
 }
 
-static v8::Persistent<v8::Object> autoConfigCallbackObject;
+//static v8::Persistent<v8::Object> autoConfigCallbackObject;
 
 void autoConfig::InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args)
 {

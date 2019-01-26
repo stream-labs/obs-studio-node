@@ -68,7 +68,7 @@ namespace osn
 		void set_keepalive(v8::Local<v8::Object>);
 
 		public:
-		static Nan::Persistent<v8::FunctionTemplate> prototype;
+//        static Nan::Persistent<v8::FunctionTemplate> prototype;
 
 		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 

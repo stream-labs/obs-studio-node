@@ -19,8 +19,8 @@
 #include "isource.hpp"
 #include "utility-v8.hpp"
 
-Nan::Persistent<v8::FunctionTemplate> osn::Properties::prototype     = Nan::Persistent<v8::FunctionTemplate>();
-Nan::Persistent<v8::FunctionTemplate> osn::PropertyObject::prototype = Nan::Persistent<v8::FunctionTemplate>();
+//Nan::Persistent<v8::FunctionTemplate> osn::Properties::prototype;
+//Nan::Persistent<v8::FunctionTemplate> osn::PropertyObject::prototype;
 
 osn::Properties::Properties()
 {
@@ -33,7 +33,7 @@ osn::Properties::Properties(property_map_t container)
 }
 
 osn::Properties::Properties(property_map_t container, v8::Local<v8::Object> owner)
-    : owner(v8::Isolate::GetCurrent(), owner)
+//    : owner(v8::Isolate::GetCurrent(), owner)
 {
 	properties = std::make_shared<property_map_t>(std::move(container));
 }
@@ -41,7 +41,7 @@ osn::Properties::Properties(property_map_t container, v8::Local<v8::Object> owne
 osn::Properties::~Properties()
 {
 	properties = nullptr; // Technically not needed, just here for testing.
-	this->owner.Reset();
+//    this->owner.Reset();
 }
 
 std::shared_ptr<osn::property_map_t> osn::Properties::GetProperties()
@@ -51,7 +51,7 @@ std::shared_ptr<osn::property_map_t> osn::Properties::GetProperties()
 
 v8::Local<v8::Object> osn::Properties::GetOwner()
 {
-	return this->owner.Get(v8::Isolate::GetCurrent());
+//    return this->owner.Get(v8::Isolate::GetCurrent());
 }
 
 void osn::Properties::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
@@ -67,7 +67,7 @@ void osn::Properties::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	utilv8::SetTemplateField(objtemplate, "get", Get);
 
 	utilv8::SetObjectField(target, "Properties", fnctemplate->GetFunction());
-	prototype.Reset(fnctemplate);
+//    prototype.Reset(fnctemplate);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Properties::Count(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -139,7 +139,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Properties::Get(Nan::NAN_METHOD_ARGS_TYPE info)
 }
 
 osn::PropertyObject::PropertyObject(v8::Local<v8::Object> p_parent, size_t index)
-    : parent(v8::Isolate::GetCurrent(), p_parent)
+//    : parent(v8::Isolate::GetCurrent(), p_parent)
 {
 	this->index = index;
 }
@@ -174,7 +174,7 @@ void osn::PropertyObject::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target
 	utilv8::SetTemplateField(objtemplate, "buttonClicked", ButtonClicked);
 
 	utilv8::SetObjectField(target, "Property", fnctemplate->GetFunction());
-	osn::PropertyObject::prototype.Reset(fnctemplate);
+//    osn::PropertyObject::prototype.Reset(fnctemplate);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Previous(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -185,10 +185,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Previous(Nan::NAN_METHOD_ARGS_T
 	if (!Retrieve(info.This(), self)) {
 		return;
 	}
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
-		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
-		return;
-	}
+//    if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+//        Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
+//        return;
+//    }
 
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
 	auto iter = parent->GetProperties()->find(self->index);
@@ -205,8 +205,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Previous(Nan::NAN_METHOD_ARGS_T
 	/// Decrement iterator, which sounds really stupid but works fine. Until you invalidate it, that is.
 	iter--;
 
-	osn::PropertyObject* propobj = new osn::PropertyObject(self->parent.Get(info.GetIsolate()), iter->first);
-	info.GetReturnValue().Set(osn::PropertyObject::Store(propobj));
+//    osn::PropertyObject* propobj = new osn::PropertyObject(self->parent.Get(info.GetIsolate()), iter->first);
+//    info.GetReturnValue().Set(osn::PropertyObject::Store(propobj));
 	return;
 }
 
@@ -218,10 +218,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Next(Nan::NAN_METHOD_ARGS_TYPE 
 	if (!Retrieve(info.This(), self)) {
 		return;
 	}
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
-		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
-		return;
-	}
+//    if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+//        Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
+//        return;
+//    }
 
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
 	auto iter = parent->GetProperties()->find(self->index);
@@ -236,8 +236,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Next(Nan::NAN_METHOD_ARGS_TYPE 
 		return;
 	}
 
-	osn::PropertyObject* propobj = new osn::PropertyObject(self->parent.Get(info.GetIsolate()), iter->first);
-	info.GetReturnValue().Set(osn::PropertyObject::Store(propobj));
+//    osn::PropertyObject* propobj = new osn::PropertyObject(self->parent.Get(info.GetIsolate()), iter->first);
+//    info.GetReturnValue().Set(osn::PropertyObject::Store(propobj));
 	return;
 }
 
@@ -249,10 +249,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::IsFirst(Nan::NAN_METHOD_ARGS_TY
 	if (!Retrieve(info.This(), self)) {
 		return;
 	}
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
-		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
-		return;
-	}
+//    if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+//        Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
+//        return;
+//    }
 
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
 	auto iter = parent->GetProperties()->find(self->index);
@@ -268,10 +268,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::IsLast(Nan::NAN_METHOD_ARGS_TYP
 	if (!Retrieve(info.This(), self)) {
 		return;
 	}
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
-		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
-		return;
-	}
+//    if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+//        Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
+//        return;
+//    }
 
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
 	auto iter = property_map_t::reverse_iterator(parent->GetProperties()->find(self->index));
@@ -292,10 +292,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetName(Nan::NAN_METHOD_ARGS_TY
 	if (!Retrieve(info.This(), self)) {
 		return;
 	}
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
-		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
-		return;
-	}
+//    if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+//        Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
+//        return;
+//    }
 
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
 	auto iter = parent->GetProperties()->find(self->index);
@@ -316,10 +316,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetDescription(Nan::NAN_METHOD_
 	if (!Retrieve(info.This(), self)) {
 		return;
 	}
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
-		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
-		return;
-	}
+//    if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+//        Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
+//        return;
+//    }
 
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
 	auto iter = parent->GetProperties()->find(self->index);
@@ -340,10 +340,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetLongDescription(Nan::NAN_MET
 	if (!Retrieve(info.This(), self)) {
 		return;
 	}
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
-		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
-		return;
-	}
+//    if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+//        Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
+//        return;
+//    }
 
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
 	auto iter = parent->GetProperties()->find(self->index);
@@ -364,10 +364,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::IsEnabled(Nan::NAN_METHOD_ARGS_
 	if (!Retrieve(info.This(), self)) {
 		return;
 	}
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
-		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
-		return;
-	}
+//    if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+//        Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
+//        return;
+//    }
 
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
 	auto iter = parent->GetProperties()->find(self->index);
@@ -388,10 +388,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::IsVisible(Nan::NAN_METHOD_ARGS_
 	if (!Retrieve(info.This(), self)) {
 		return;
 	}
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
-		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
-		return;
-	}
+//    if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+//        Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
+//        return;
+//    }
 
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
 	auto iter = parent->GetProperties()->find(self->index);
@@ -412,10 +412,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetType(Nan::NAN_METHOD_ARGS_TY
 	if (!Retrieve(info.This(), self)) {
 		return;
 	}
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
-		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
-		return;
-	}
+//    if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+//        Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
+//        return;
+//    }
 
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
 	auto iter = parent->GetProperties()->find(self->index);
@@ -436,10 +436,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetDetails(Nan::NAN_METHOD_ARGS
 	if (!Retrieve(info.This(), self)) {
 		return;
 	}
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
-		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
-		return;
-	}
+//    if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+//        Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
+//        return;
+//    }
 
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
 	auto iter = parent->GetProperties()->find(self->index);
@@ -577,10 +577,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Modified(Nan::NAN_METHOD_ARGS_T
 	}
 	/// Parent
 	osn::Properties* parent;
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
-		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
-		return;
-	}
+//    if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+//        Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
+//        return;
+//    }
 	/// Parent Source (if one exists).
 	osn::ISource* parent_source;
 	if (!osn::ISource::Retrieve(parent->GetOwner(), parent_source)) {
@@ -634,10 +634,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::ButtonClicked(Nan::NAN_METHOD_A
 	}
 	/// Parent
 	osn::Properties* parent;
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
-		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
-		return;
-	}
+//    if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+//        Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
+//        return;
+//    }
 	/// Parent Source (if one exists).
 	osn::ISource* parent_source;
 	if (!osn::ISource::Retrieve(parent->GetOwner(), parent_source)) {

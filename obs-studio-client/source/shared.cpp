@@ -21,6 +21,7 @@ std::queue<std::function<void(v8::Local<v8::Object>)>> initializerFunctions;
 
 void replaceAll(std::string& str, const std::string& from, const std::string& to)
 {
+#ifdef WIN32
 	if (from.empty())
 		return;
 	size_t start_pos = 0;
@@ -28,4 +29,5 @@ void replaceAll(std::string& str, const std::string& from, const std::string& to
 		str.replace(start_pos, from.length(), to);
 		start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
 	}
+#endif
 };

@@ -35,7 +35,7 @@ osn::VolMeter::~VolMeter()
 {
 }
 
-std::vector<std::unique_ptr<osn::VolMeter>> volmeters;
+std::vector<osn::VolMeter*> volmeters;
 
 uint64_t osn::VolMeter::GetId() 
 {
@@ -172,7 +172,7 @@ void osn::VolMeter::set_keepalive(v8::Local<v8::Object> obj)
 	m_async_callback->set_keepalive(obj);
 }
 
-Nan::Persistent<v8::FunctionTemplate> osn::VolMeter::prototype = Nan::Persistent<v8::FunctionTemplate>();
+//Nan::Persistent<v8::FunctionTemplate> osn::VolMeter::prototype = Nan::Persistent<v8::FunctionTemplate>();
 
 void osn::VolMeter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 {
@@ -193,7 +193,7 @@ void osn::VolMeter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 
 	// Stuff
 	utilv8::SetObjectField(target, "Volmeter", fnctemplate->GetFunction());
-	prototype.Reset(fnctemplate);
+//    prototype.Reset(fnctemplate);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Create(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -224,10 +224,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Create(Nan::NAN_METHOD_ARGS_TYPE info
 	}
 
 	// Return created Object
-	auto newVolmeter              = std::make_unique<osn::VolMeter>(rval[1].value_union.ui64);
+	auto newVolmeter              = new osn::VolMeter(rval[1].value_union.ui64);
 	newVolmeter->m_sleep_interval = rval[2].value_union.ui32;
-	volmeters.push_back(std::move(newVolmeter));
-	info.GetReturnValue().Set(Store(volmeters.back().get()));
+	volmeters.push_back(newVolmeter);
+	info.GetReturnValue().Set(Store(volmeters.back()));
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::GetUpdateInterval(Nan::NAN_METHOD_ARGS_TYPE info)

@@ -32,7 +32,7 @@
 #define ASSERT_INFO_LENGTH_AT_LEAST(info, length)                                                        \
 	if ((info).Length() < length) {                                                                      \
 		Nan::ThrowError(FIELD_NAME(                                                                      \
-		    __FUNCTION_NAME__ ": Unexpected number of arguments, got " + std::to_string((info).Length()) \
+		    std::string(__FUNCTION_NAME__) + ": Unexpected number of arguments, got " + std::to_string((info).Length()) \
 		    + std::string(" but expected at least ") + std::to_string(length) + std::string(".")));      \
 		return;                                                                                          \
 	}
@@ -40,21 +40,21 @@
 #define ASSERT_INFO_LENGTH(info, length)                                                                 \
 	if ((info).Length() != (length)) {                                                                   \
 		Nan::ThrowError(FIELD_NAME(                                                                      \
-		    __FUNCTION_NAME__ ": Unexpected number of arguments, got " + std::to_string((info).Length()) \
+		    std::string(__FUNCTION_NAME__) + ": Unexpected number of arguments, got " + std::to_string((info).Length()) \
 		    + std::string(" but expected exactly ") + std::to_string(length) + std::string(".")));       \
 		return;                                                                                          \
 	}
 
 #define ASSERT_GET_OBJECT_FIELD(object, field, var)                                           \
 	if (!utilv8::GetFromObject((object), (field), (var))) {                                   \
-		Nan::ThrowTypeError(FIELD_NAME(std::string(__FUNCTION_NAME__ ": Unexpected type."))); \
+		Nan::ThrowTypeError(FIELD_NAME(std::string(std::string(__FUNCTION_NAME__) + ": Unexpected type."))); \
 		return;                                                                               \
 	}
 
 #define ASSERT_GET_VALUE(value, var)                                                          \
 	if (!utilv8::FromValue((value), (var))) {                                                 \
 		Nan::ThrowTypeError(FIELD_NAME(                                                       \
-		    std::string(__FUNCTION_NAME__ ": Unexpected type, got '") + utilv8::TypeOf(value) \
+		    std::string(std::string(__FUNCTION_NAME__) + ": Unexpected type, got '") + utilv8::TypeOf(value) \
 		    + std::string("', expected '") + utility::TypeOf(var) + std::string("'.")));      \
 		return;                                                                               \
 	}
@@ -560,10 +560,10 @@ namespace utilv8
 		public:
 		static v8::Local<v8::Object> Store(T* object)
 		{
-			auto obj =
-			    Nan::NewInstance(T::prototype.Get(v8::Isolate::GetCurrent())->InstanceTemplate()).ToLocalChecked();
-			object->Wrap(obj);
-			return obj;
+//            auto obj =
+//                Nan::NewInstance(T::prototype.Get(v8::Isolate::GetCurrent())->InstanceTemplate()).ToLocalChecked();
+//            object->Wrap(obj);
+//            return obj;
 		}
 	};
 
@@ -628,7 +628,7 @@ namespace utilv8
 				rows.swap(async->data);
 			}
 
-			for (decltype(rows)::size_type i = 0, size = rows.size(); i < size; i++) {
+			for (size_t i = 0, size = rows.size(); i < size; i++) {
 				async->callback(async->parent, rows[i]);
 			}
 		}
@@ -681,13 +681,13 @@ namespace utilv8
 		friend class utilv8::ManagedObject<utilv8::CallbackData<Item, Parent>>;
 
 		public:
-		static Nan::Persistent<v8::FunctionTemplate> prototype;
+//        static Nan::Persistent<v8::FunctionTemplate> prototype;
 
 		static NAN_MODULE_INIT(Init)
 		{
 			auto locProto = Nan::New<v8::FunctionTemplate>();
 			locProto->InstanceTemplate()->SetInternalFieldCount(1);
-			prototype.Reset(locProto);
+//            prototype.Reset(locProto);
 		}
 
 		CallbackData(
@@ -701,7 +701,7 @@ namespace utilv8
 		Async<Item, Parent> queue;
 		CallbackData*       handle;
 
-		Nan::Persistent<v8::Object> obj_ref;
+//        Nan::Persistent<v8::Object> obj_ref;
 		Nan::Callback               cb;
 		void*                       user_data; /* Extra user data */
 
@@ -735,14 +735,14 @@ namespace utilv8
 
 		std::mutex                  m_data_mutex;
 		std::list<T>                m_objects;
-		Nan::Persistent<v8::Object> m_keepalive;
+//        Nan::Persistent<v8::Object> m_keepalive;
 		callback_t                  m_callback;
 		void*                       m_callback_data;
 
 		static void worker(uv_async_t* handle)
 		{
 			std::list<T>                l_objects;
-			Nan::Persistent<v8::Object> l_keepalive;
+//            Nan::Persistent<v8::Object> l_keepalive;
 			callback_t                  l_callback;
 			void*                       l_callback_data;
 			managed_callback<T>*        self = reinterpret_cast<managed_callback<T>*>(handle->data);
@@ -760,7 +760,7 @@ namespace utilv8
 				self->m_objects.swap(l_objects);
 				l_callback      = self->m_callback;
 				l_callback_data = self->m_callback_data;
-				l_keepalive.Reset(self->m_keepalive);
+//                l_keepalive.Reset(self->m_keepalive);
 			}
 
 			// Execute the callback for all queued elements.
@@ -776,7 +776,7 @@ namespace utilv8
 				std::unique_lock<std::mutex> ul(self->m_data_mutex);
 				self->m_objects.clear();
 				self->finalized = true;
-				self->m_keepalive.Reset();
+//                self->m_keepalive.Reset();
 			}
 			delete self;
 		}
@@ -816,7 +816,7 @@ namespace utilv8
 		void set_keepalive(v8::Local<v8::Object> obj)
 		{
 			std::unique_lock<std::mutex> ul(m_data_mutex);
-			m_keepalive.Reset(obj);
+//            m_keepalive.Reset(obj);
 		}
 
 		// Set the callback handler and data.

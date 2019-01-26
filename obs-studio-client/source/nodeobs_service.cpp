@@ -321,7 +321,7 @@ void service::OBS_service_setRecordingSettings(const v8::FunctionCallbackInfo<v8
 	ValidateResponse(response);
 }
 
-static v8::Persistent<v8::Object> serviceCallbackObject;
+//static v8::Persistent<v8::Object> serviceCallbackObject;
 
 void service::OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8::Value>& args)
 {

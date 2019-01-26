@@ -22,8 +22,6 @@
 #include "utility-v8.hpp"
 #include "utility.hpp"
 
-Nan::Persistent<v8::FunctionTemplate> osn::Video::prototype = Nan::Persistent<v8::FunctionTemplate>();
-
 void osn::Video::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
@@ -35,7 +33,7 @@ void osn::Video::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	utilv8::SetTemplateAccessorProperty(fnctemplate->InstanceTemplate(), "totalFrames", GetTotalFrames);
 
 	utilv8::SetObjectField(target, "Video", fnctemplate->GetFunction());
-	prototype.Reset(fnctemplate);
+//    prototype.Reset(fnctemplate);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Video::GetGlobal(Nan::NAN_METHOD_ARGS_TYPE info)
