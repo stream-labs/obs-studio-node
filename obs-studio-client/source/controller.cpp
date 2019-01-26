@@ -240,7 +240,7 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 	            << " " << uri;
 
 	std::string workingDirectory;
-
+#ifdef WIN32
 	if (serverWorkingPath.empty())
 		workingDirectory = get_working_directory();
 	else
@@ -267,7 +267,7 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 		kill(procId, 0, exitcode);
 		return nullptr;
 	}
-
+#endif
 	m_isServer = true;
 	return m_connection;
 }
@@ -294,10 +294,12 @@ std::shared_ptr<ipc::client> Controller::connect(
 			break;
 
 		if (procId.handle != 0) {
+#ifdef WIN32
 			// We are the owner of the server, but m_isServer is false for now.
 			if (!is_process_alive(procId)) {
 				break;
 			}
+#endif
 		}
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -354,8 +356,10 @@ void js_setServerPath(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 		serverWorkingPath = *v8::String::Utf8Value(args[1]);
 	} else {
+#ifdef WIN32
 		serverWorkingPath = get_working_directory();
-	}
+#endif
+    }
 
 	return;
 }

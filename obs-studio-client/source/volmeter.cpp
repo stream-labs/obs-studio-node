@@ -171,7 +171,7 @@ void osn::VolMeter::set_keepalive(v8::Local<v8::Object> obj)
 	m_async_callback->set_keepalive(obj);
 }
 
-Nan::Persistent<v8::FunctionTemplate> osn::VolMeter::prototype = Nan::Persistent<v8::FunctionTemplate>();
+//Nan::Persistent<v8::FunctionTemplate> osn::VolMeter::prototype = Nan::Persistent<v8::FunctionTemplate>();
 
 void osn::VolMeter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 {
@@ -192,7 +192,7 @@ void osn::VolMeter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 
 	// Stuff
 	utilv8::SetObjectField(target, "Volmeter", fnctemplate->GetFunction());
-	prototype.Reset(fnctemplate);
+//    prototype.Reset(fnctemplate);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Create(Nan::NAN_METHOD_ARGS_TYPE info)

@@ -40,7 +40,7 @@ namespace osn
 		uint64_t GetId();
 
 		public:
-		static Nan::Persistent<v8::FunctionTemplate> prototype;
+		// static Nan::Persistent<v8::FunctionTemplate> prototype;
 
 		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 

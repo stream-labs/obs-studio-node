@@ -194,7 +194,7 @@ void service::OBS_service_stopReplayBuffer(const v8::FunctionCallbackInfo<v8::Va
 	conn->call("Service", "OBS_service_stopReplayBuffer", {ipc::value(forceStop)});
 }
 
-static v8::Persistent<v8::Object> serviceCallbackObject;
+//static v8::Persistent<v8::Object> serviceCallbackObject;
 
 void service::OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
