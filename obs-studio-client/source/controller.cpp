@@ -25,6 +25,7 @@
 #include <string>
 #include "shared.hpp"
 #include "utility.hpp"
+#include <iostream>
 
 static std::string serverBinaryPath  = "";
 static std::string serverWorkingPath = "";
@@ -424,7 +425,8 @@ void js_disconnect(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 INITIALIZER(js_ipc)
 {
-	initializerFunctions.push([](v8::Local<v8::Object> exports) {
+    initializerFunctions = new std::queue<std::function<void(v8::Local<v8::Object>)>>;
+	initializerFunctions->push([](v8::Local<v8::Object> exports) {
 		// IPC related functions will be under the IPC object.
 		auto obj = v8::Object::New(exports->GetIsolate());
 		NODE_SET_METHOD(obj, "setServerPath", js_setServerPath);

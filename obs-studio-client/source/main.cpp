@@ -98,9 +98,9 @@ void main_node(v8::Local<v8::Object> exports, v8::Local<v8::Value> module, void*
 	osn::Video::Register(exports);
 	osn::Module::Register(exports);
 
-	while (initializerFunctions.size() > 0) {
-		initializerFunctions.front()(exports);
-		initializerFunctions.pop();
+	while (initializerFunctions->size() > 0) {
+		initializerFunctions->front()(exports);
+		initializerFunctions->pop();
 	}
 };
 

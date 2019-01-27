@@ -298,7 +298,7 @@ void service::OBS_service_removeCallback(const v8::FunctionCallbackInfo<v8::Valu
 
 INITIALIZER(nodeobs_service)
 {
-	initializerFunctions.push([](v8::Local<v8::Object> exports) {
+	initializerFunctions->push([](v8::Local<v8::Object> exports) {
 		NODE_SET_METHOD(exports, "OBS_service_resetAudioContext", service::OBS_service_resetAudioContext);
 
 		NODE_SET_METHOD(exports, "OBS_service_resetVideoContext", service::OBS_service_resetVideoContext);

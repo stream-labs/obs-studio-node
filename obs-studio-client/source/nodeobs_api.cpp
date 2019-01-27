@@ -187,7 +187,7 @@ Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_ProcessHotkeyStatus(const v8::FunctionC
 
 INITIALIZER(nodeobs_api)
 {
-	initializerFunctions.push([](v8::Local<v8::Object> exports) {
+	initializerFunctions->push([](v8::Local<v8::Object> exports) {
 		NODE_SET_METHOD(exports, "OBS_API_initAPI", api::OBS_API_initAPI);
 		NODE_SET_METHOD(exports, "OBS_API_destroyOBS_API", api::OBS_API_destroyOBS_API);
 		NODE_SET_METHOD(exports, "OBS_API_getPerformanceStatistics", api::OBS_API_getPerformanceStatistics);

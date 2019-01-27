@@ -290,7 +290,7 @@ void display::OBS_content_setDrawGuideLines(const v8::FunctionCallbackInfo<v8::V
 
 INITIALIZER(nodeobs_display)
 {
-	initializerFunctions.push([](v8::Local<v8::Object> exports) {
+	initializerFunctions->push([](v8::Local<v8::Object> exports) {
 		NODE_SET_METHOD(exports, "OBS_content_createDisplay", display::OBS_content_createDisplay);
 		NODE_SET_METHOD(exports, "OBS_content_destroyDisplay", display::OBS_content_destroyDisplay);
 		NODE_SET_METHOD(exports, "OBS_content_getDisplayPreviewOffset", display::OBS_content_getDisplayPreviewOffset);

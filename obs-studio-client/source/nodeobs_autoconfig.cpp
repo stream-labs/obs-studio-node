@@ -300,7 +300,7 @@ void autoConfig::TerminateAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& 
 
 INITIALIZER(nodeobs_autoconfig)
 {
-	initializerFunctions.push([](v8::Local<v8::Object> exports) {
+	initializerFunctions->push([](v8::Local<v8::Object> exports) {
 		NODE_SET_METHOD(exports, "InitializeAutoConfig", autoConfig::InitializeAutoConfig);
 		NODE_SET_METHOD(exports, "StartBandwidthTest", autoConfig::StartBandwidthTest);
 		NODE_SET_METHOD(exports, "StartStreamEncoderTest", autoConfig::StartStreamEncoderTest);
