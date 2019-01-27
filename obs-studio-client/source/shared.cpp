@@ -16,8 +16,8 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
 
 #include "shared.hpp"
-
-std::queue<std::function<void(v8::Local<v8::Object>)>> initializerFunctions;
+#include <iostream>
+std::queue<std::function<void(v8::Local<v8::Object>)>>* initializerFunctions;
 
 void replaceAll(std::string& str, const std::string& from, const std::string& to)
 {

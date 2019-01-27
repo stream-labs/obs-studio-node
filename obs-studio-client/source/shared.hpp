@@ -28,6 +28,6 @@
 #endif
 #endif
 
-extern std::queue<std::function<void(v8::Local<v8::Object>)>> initializerFunctions;
+extern std::queue<std::function<void(v8::Local<v8::Object>)>>* initializerFunctions;
 
 void replaceAll(std::string& str, const std::string& from, const std::string& to);

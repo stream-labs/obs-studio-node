@@ -438,7 +438,7 @@ void settings::OBS_settings_getListCategories(const v8::FunctionCallbackInfo<v8:
 
 INITIALIZER(nodeobs_settings)
 {
-	initializerFunctions.push([](v8::Local<v8::Object> exports) {
+	initializerFunctions->push([](v8::Local<v8::Object> exports) {
 		NODE_SET_METHOD(exports, "OBS_settings_getSettings", settings::OBS_settings_getSettings);
 		NODE_SET_METHOD(exports, "OBS_settings_saveSettings", settings::OBS_settings_saveSettings);
 		NODE_SET_METHOD(exports, "OBS_settings_getListCategories", settings::OBS_settings_getListCategories);
