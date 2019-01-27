@@ -1610,9 +1610,9 @@ export function getSourcesSize(sourcesNames: string[]): ISourceSize[] {
 }
 
 // Initialization and other stuff which needs local data.
-if (fs.existsSync(path.resolve(__dirname, `obs64.exe`).replace('app.asar', 'app.asar.unpacked'))) {
-	obs.IPC.setServerPath(path.resolve(__dirname, `obs64.exe`).replace('app.asar', 'app.asar.unpacked'), path.resolve(__dirname).replace('app.asar', 'app.asar.unpacked'));
+if (fs.existsSync(path.resolve(__dirname, `obs64`).replace('app.asar', 'app.asar.unpacked'))) {
+	obs.IPC.setServerPath(path.resolve(__dirname, `obs64`).replace('app.asar', 'app.asar.unpacked'), path.resolve(__dirname).replace('app.asar', 'app.asar.unpacked'));
 } else {
-	obs.IPC.setServerPath(path.resolve(__dirname, `obs32.exe`).replace('app.asar', 'app.asar.unpacked'), path.resolve(__dirname).replace('app.asar', 'app.asar.unpacked'));
+	obs.IPC.setServerPath(path.resolve(__dirname, `obs32`).replace('app.asar', 'app.asar.unpacked'), path.resolve(__dirname).replace('app.asar', 'app.asar.unpacked'));
 }
 export const NodeObs = obs;
