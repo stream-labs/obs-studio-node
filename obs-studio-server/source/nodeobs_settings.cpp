@@ -2,8 +2,9 @@
 #include "nodeobs_api.h"
 #include "nodeobs_settings.h"
 #include "shared.hpp"
-
+#ifdef WIN32
 #include <windows.h>
+#endif
 
 std::vector<const char*> tabStreamTypes;
 const char*         currentServiceName;
@@ -73,8 +74,8 @@ void OBS_settings::OBS_settings_getSettings(
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(settings.size()));
-	rval.push_back(ipc::value(binaryValue.size()));
+	rval.push_back(ipc::value((uint64_t)settings.size()));
+	rval.push_back(ipc::value((uint64_t)binaryValue.size()));
 
 	rval.push_back(ipc::value(binaryValue));
 	AUTO_DEBUG;
@@ -1599,11 +1600,16 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 		config_set_string(config, "AdvOut", "Encoder", encoderID);
 		config_save_safe(config, "tmp", nullptr);
 	}
-
+#ifdef WIN32
 	struct stat buffer;
 
 	std::string streamName = ConfigManager::getInstance().getStream();
 	bool fileExist = (os_stat(streamName.c_str(), &buffer) == 0);
+#else
+    std::string streamName = ConfigManager::getInstance().getStream();
+    bool fileExist = true;
+#endif
+
 
 	obs_data_t*    settings = obs_encoder_defaults(encoderID);
 	obs_encoder_t* streamingEncoder;
@@ -1943,9 +1949,12 @@ void OBS_settings::getStandardRecordingSettings(
 	subCategoryParameters->params.push_back(recMuxerCustom);
 
 	// Encoder settings
+#ifdef WIN32
 	struct stat buffer;
-
 	bool fileExist = (os_stat(ConfigManager::getInstance().getRecord().c_str(), &buffer) == 0);
+#else
+    bool fileExist = true;
+#endif
 
 	obs_data_t*    settings = obs_encoder_defaults(recEncoderCurrentValue);
 	obs_encoder_t* recordingEncoder;

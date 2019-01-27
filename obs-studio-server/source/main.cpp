@@ -127,6 +127,7 @@ namespace System
 
 int main(int argc, char* argv[])
 {
+#ifdef WIN32
 #ifndef _DEBUG
 
     util::CrashManager crashManager;
@@ -136,6 +137,7 @@ int main(int argc, char* argv[])
 
     crashManager.Configure();
 
+#endif
 #endif
 
 	// Usage:
@@ -217,6 +219,7 @@ int main(int argc, char* argv[])
 
 	// Wait on receive the exit message from the crash-handler
 	if (waitBeforeClosing) {
+#ifdef WIN32
 		HANDLE hPipe;
 		TCHAR  chBuf[BUFFSIZE];
 		DWORD  cbRead;
@@ -239,6 +242,7 @@ int main(int argc, char* argv[])
 				CloseHandle(hPipe);
 			}
 		}
+#endif
 	}
 
 	// Finalize Server

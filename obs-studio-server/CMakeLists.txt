@@ -1,4 +1,8 @@
-﻿PROJECT(obs-studio-server VERSION ${obs-studio-node_VERSION})
+﻿cmake_minimum_required(VERSION 3.1.3)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+PROJECT(obs-studio-server VERSION ${obs-studio-node_VERSION})
 
 include(ExternalProject)
 include(DownloadProject)
@@ -20,6 +24,7 @@ if(WIN32)
 	)
 endif()
 
+IF (WIN32)
 ############################
 # Setup crashpad binaries
 ############################
@@ -109,31 +114,38 @@ target_link_libraries(crashpad_util INTERFACE crashpad_client)
 add_dependencies(crashpad_base crashpad_ep)
 add_dependencies(crashpad_client crashpad_base)
 add_dependencies(crashpad_util crashpad_client)
+ENDIF ()
 
-string(
-	CONCAT OSN_DEFAULT_LIBOBS_URL
-	"https://obsstudios3.streamlabs.com/"
-	"libobs-release-22.0.3-sl.281-win32-x64.7z"
-)
+IF (WIN32)
+	string(
+		CONCAT OSN_DEFAULT_LIBOBS_URL
+		"https://obsstudios3.streamlabs.com/"
+		"libobs-release-22.0.3-sl.281-win32-x64.7z"
+	)
 
-set(
-	OSN_LIBOBS_URL
-	${OSN_DEFAULT_LIBOBS_URL}
-	CACHE STRING "Location of libobs archive to base on"
-)
+	set(
+		OSN_LIBOBS_URL
+		${OSN_DEFAULT_LIBOBS_URL}
+		CACHE STRING "Location of libobs archive to base on"
+	)
 
-download_project(
-	PROJ libobs
-	URL ${OSN_LIBOBS_URL}
-	UPDATE_DISCONNECTED 1
-)
+	download_project(
+		PROJ libobs
+		URL ${OSN_LIBOBS_URL}
+		UPDATE_DISCONNECTED 1
+	)
 
-include("${libobs_SOURCE_DIR}/cmake/LibObs/LibObsConfig.cmake")
+	include("${libobs_SOURCE_DIR}/cmake/LibObs/LibObsConfig.cmake")
+ELSE ()
+	SET(LIBOBS_INCLUDE_DIRS "/Users/eddygharbi/streamlabs/obs-studio/libobs/")
+	SET(libobs_SOURCE_DIR "/Users/eddygharbi/streamlabs/obs-studio/build/rundir/Debug")
+	SET(LIBOBS_LIBRARIES "/Users/eddygharbi/streamlabs/obs-studio/build/rundir/Debug/bin/libobs.0.dylib")
+ENDIF ()
 
 set(PROJECT_LIBRARIES
 	lib-streamlabs-ipc
 	${LIBOBS_LIBRARIES}
-	dwmapi.lib
+	#dwmapi.lib
 )
 
 set(PROJECT_INCLUDE_PATHS

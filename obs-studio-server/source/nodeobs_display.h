@@ -29,9 +29,9 @@ namespace OBS
 	class Display
 	{
 		std::thread worker;
-
+#ifdef WIN32
 		void SystemWorker();
-
+#endif
 		private:
 		Display();
 
@@ -89,8 +89,8 @@ namespace OBS
 		gs_texture_t* m_textTexture;
 
 		GS::VertexBuffer* m_textVertices;
-
-		std::unique_ptr<GS::VertexBuffer> m_boxLine, m_boxTris;
+        GS::VertexBuffer* m_boxLine;
+        GS::VertexBuffer* m_boxTris;
 
 		// Theme/Style
 		/// Padding

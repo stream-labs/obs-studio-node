@@ -1,5 +1,7 @@
 #pragma once
+#ifdef WIN32
 #include <io.h>
+#endif
 #include <iostream>
 #include <ipc-server.hpp>
 #include <math.h>
