@@ -292,11 +292,17 @@ install(DIRECTORY ${PROJECT_DATA} DESTINATION "./" OPTIONAL)
 install(DIRECTORY ${crashpad_SOURCE_DIR}/bin/ DESTINATION "./")
 install(DIRECTORY "${libobs_SOURCE_DIR}/data/" DESTINATION "./data")
 
+if(win32)
 install(
 	DIRECTORY "${libobs_SOURCE_DIR}/bin/64bit/"
 	DESTINATION "./" PATTERN "*.lib" EXCLUDE
 )
-
+else()
+install(
+	DIRECTORY "${libobs_SOURCE_DIR}/bin/"
+	DESTINATION "./" PATTERN "*.lib" EXCLUDE
+)
+endif()
 install(
 	DIRECTORY "${libobs_SOURCE_DIR}/obs-plugins/"
 	DESTINATION "./obs-plugins"
