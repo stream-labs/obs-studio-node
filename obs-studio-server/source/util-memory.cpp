@@ -20,14 +20,12 @@
 
 void* util::malloc_aligned(size_t align, size_t size)
 {
-#if defined(_MSC_VER)
+#ifdef WIN32
 #ifdef DEBUG
 	return _aligned_malloc_dbg(size, align);
 #else
 	return _aligned_malloc(size, align);
 #endif
-#else
-	return aligned_malloc(align, size);
 #endif
 }
 

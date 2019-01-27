@@ -238,11 +238,11 @@ OBS::Display::Display()
 {
 #if defined(_WIN32)
 	DisplayWndClass();
+    worker = std::thread(std::bind(&OBS::Display::SystemWorker, this));
 #elif defined(__APPLE__)
 #elif defined(__linux__) || defined(__FreeBSD__)
 #endif
 
-	worker = std::thread(std::bind(&OBS::Display::SystemWorker, this));
 
 	m_gsInitData.adapter         = 0;
 	m_gsInitData.cx              = 960;
@@ -260,7 +260,7 @@ OBS::Display::Display()
 
 	GS::Vertex v(nullptr, nullptr, nullptr, nullptr, nullptr);
 
-	m_boxLine = std::make_unique<GS::VertexBuffer>(6);
+	m_boxLine = new GS::VertexBuffer(6);
 	m_boxLine->Resize(6);
 	v = m_boxLine->At(0);
 	vec3_set(v.position, 0, 0, 0);
@@ -284,7 +284,7 @@ OBS::Display::Display()
 	*v.color = 0xFFFFFFFF;
 	m_boxLine->Update();
 
-	m_boxTris = std::make_unique<GS::VertexBuffer>(4);
+	m_boxTris = new GS::VertexBuffer(4);
 	m_boxTris->Resize(4);
 	v = m_boxTris->At(0);
 	vec3_set(v.position, 0, 0, 0);
@@ -432,7 +432,7 @@ void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 	if (m_source != NULL) {
 		blog(
 		    LOG_DEBUG,
-		    "<" __FUNCTION__ "> Adjusting display position for source %s to %ldx%ld.",
+             std::string("<" + std::string(__FUNCTION__) + "> Adjusting display position for source %s to %ldx%ld.").c_str(),
 		    obs_source_get_name(m_source),
 		    x,
 		    y);
@@ -461,7 +461,7 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 	if (m_source != NULL) {
 		blog(
 		    LOG_DEBUG,
-		    "<" __FUNCTION__ "> Adjusting display size for source %s to %ldx%ld.",
+             std::string("<" + std::string(__FUNCTION__) + "> Adjusting display size for source %s to %ldx%ld.").c_str(),
 		    obs_source_get_name(m_source),
 		    width,
 		    height);
@@ -658,7 +658,7 @@ static void
 
 inline bool CloseFloat(float a, float b, float epsilon = 0.01)
 {
-	return std::abs(a - b) <= epsilon;
+	return abs(a - b) <= epsilon;
 }
 
 inline void DrawOutline(OBS::Display* dp, matrix4& mtx, obs_transform_info& info)

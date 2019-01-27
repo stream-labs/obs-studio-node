@@ -17,6 +17,7 @@
 ******************************************************************************/
 
 #include "nodeobs_service.h"
+#ifdef WIN32
 #include <ShlObj.h>
 #include <filesystem>
 #include <windows.h>
@@ -679,9 +680,10 @@ static void ensure_directory_exists(std::string& path)
 		return;
 
 	std::string directory = path.substr(0, last);
-
+#ifdef WIN32
 	if (std::experimental::filesystem::is_directory(directory))
 		os_mkdirs(directory.c_str());
+#endif
 }
 
 static void FindBestFilename(std::string& strPath, bool noSpace)
@@ -742,11 +744,16 @@ bool OBS_service::createVideoRecordingEncoder()
 
 bool OBS_service::createService()
 {
-	const char* type        = nullptr;
-	obs_data_t* data        = nullptr;
-	obs_data_t* settings    = nullptr;
-	obs_data_t* hotkey_data = nullptr;
+	const char* type;
+#ifdef WIN32
 	struct stat buffer;
+	bool        fileExist = (os_stat(ConfigManager::getInstance().getService().c_str(), &buffer) == 0);
+#else
+    bool        fileExist = false;
+#endif
+	obs_data_t* data;
+	obs_data_t* settings;
+	obs_data_t* hotkey_data;
 
 	auto CreateNewService = [&]() {
 		service = obs_service_create("rtmp_common", "default_service", nullptr, nullptr);
@@ -1420,9 +1427,9 @@ std::string OBS_service::GetDefaultVideoSavePath(void)
 {
 	wchar_t path_utf16[MAX_PATH];
 	char    path_utf8[MAX_PATH] = {};
-
+#ifdef WIN32
 	SHGetFolderPathW(NULL, CSIDL_MYVIDEO, NULL, SHGFP_TYPE_CURRENT, path_utf16);
-
+#endif
 	os_wcs_to_utf8(path_utf16, wcslen(path_utf16), path_utf8, MAX_PATH);
 	return std::string(path_utf8);
 }

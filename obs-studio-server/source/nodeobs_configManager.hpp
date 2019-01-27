@@ -21,6 +21,10 @@
 #include <string>
 #include <util/config-file.h>
 
+#ifndef MAX_PATH
+#define MAX_PATH 260
+#endif
+
 class ConfigManager {
 public:
 	static ConfigManager& getInstance()

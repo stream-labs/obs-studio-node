@@ -51,9 +51,11 @@
 #endif
 
 #ifndef _DEBUG
+#ifdef WIN32
 #include "client/crash_report_database.h"
 #include "client/crashpad_client.h"
 #include "client/settings.h"
+#endif
 #endif
 
 //////////////////////
@@ -61,34 +63,32 @@
 //////////////////////
 
 // Global/static variables
-std::vector<std::string>                   handledOBSCrashes;
-PDH_HQUERY                                 cpuQuery;
-PDH_HCOUNTER                               cpuTotal;
-std::vector<nlohmann::json>                breadcrumbs;
-std::queue<std::pair<int, nlohmann::json>> lastActions;
-std::vector<std::string>                   warnings;
-std::chrono::steady_clock::time_point      initialTime;
-std::mutex                                 messageMutex;
-util::MetricsProvider                      metricsClient;
-bool                                       reportsEnabled = true;
+std::vector<std::string>              handledOBSCrashes;
+#ifdef WIN32
+PDH_HQUERY                            cpuQuery;
+PDH_HCOUNTER                          cpuTotal;
+#endif
+std::vector<std::string>              breadcrumbs;
+std::vector<std::string>              warnings;
+std::chrono::steady_clock::time_point initialTime;
+std::mutex                            messageMutex;
 
 // Crashpad variables
 #ifndef _DEBUG
 std::wstring                                   appdata_path;
+#ifdef WIN32
 crashpad::CrashpadClient                       client;
 std::unique_ptr<crashpad::CrashReportDatabase> database;
-std::string                                    url;
 base::FilePath                                 db;
 base::FilePath                                 handler;
+#endif
+std::string                                    url;
 std::vector<std::string>                       arguments;
 std::map<std::string, std::string>             annotations;
 LPTOP_LEVEL_EXCEPTION_FILTER                   crashpadInternalExceptionFilterMethod = nullptr;
 #endif
-
-/////////////
-// FORWARD //
-/////////////
-
+#ifdef WIN32
+// Forward
 std::string    FormatVAString(const char* const format, va_list args);
 nlohmann::json RewindCallStack(std::string& crashedMethod);
 

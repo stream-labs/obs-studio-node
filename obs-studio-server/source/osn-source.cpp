@@ -67,7 +67,7 @@ void osn::Source::global_source_create_cb(void* ptr, calldata_t* cd)
 {
 	obs_source_t* source = nullptr;
 	if (!calldata_get_ptr(cd, "source", &source)) {
-		throw std::exception("calldata did not contain source pointer");
+		throw std::exception((const std::exception&)"calldata did not contain source pointer");
 	}
 
 	osn::Source::Manager::GetInstance().allocate(source);
@@ -98,7 +98,7 @@ void osn::Source::global_source_destroy_cb(void* ptr, calldata_t* cd)
 {
 	obs_source_t* source = nullptr;
 	if (!calldata_get_ptr(cd, "source", &source)) {
-		throw std::exception("calldata did not contain source pointer");
+		throw std::exception((const std::exception&)"calldata did not contain source pointer");
 	}
 
 	CallbackManager::removeSource(source);
@@ -463,7 +463,7 @@ void osn::Source::GetSettings(
 
 	obs_data_t* sets = obs_source_get_settings(src);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(obs_data_get_full_json(sets)));
+	rval.push_back(ipc::value(obs_data_get_json(sets)));
 	obs_data_release(sets);
 	AUTO_DEBUG;
 }
