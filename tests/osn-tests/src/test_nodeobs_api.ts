@@ -20,14 +20,14 @@ type OBSHotkey = {
     HotkeyId: number;
 };
 
-describe('nodebs_api', () => {
+describe('nodeobs_api', () => {
     let obs: OBSProcessHandler;
     let obsHotkeys: OBSHotkey[];
     
     before(function() {
         obs = new OBSProcessHandler();
         
-        if (obs.startup() != true)
+        if (obs.startup() !== osn.EVideoCodes.Success)
         {
             throw new Error("Could not start OBS process. Aborting!")
         }
@@ -68,12 +68,12 @@ describe('nodebs_api', () => {
 
     context('# OBS_API_ProcessHotkeyStatus', () => {
         it('Process all hot keys gotten previously', () => {
-            let hotkeyId: any;
-            let isKeyDown: boolean;
+            let hotkeyId: string;
+            let isKeyDown: boolean = true;
 
             for (hotkeyId in obsHotkeys) {
                 try {
-                    osn.NodeObs.OBS_API_ProcessHotkeyStatus(hotkeyId, isKeyDown);
+                    osn.NodeObs.OBS_API_ProcessHotkeyStatus(+hotkeyId, isKeyDown);
                 } catch(e) {
                     throw new Error(getCppErrorMsg(e));
                 }
