@@ -3202,7 +3202,7 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	std::vector<std::pair<std::string, std::string>> browserHWAccel;
 	browserHWAccel.push_back(std::make_pair("name", "browserHWAccel"));
 	browserHWAccel.push_back(std::make_pair("type", "OBS_PROPERTY_BOOL"));
-	browserHWAccel.push_back(std::make_pair("description", "Enable Browser Source Hardware Acceleration (require a restart)"));
+	browserHWAccel.push_back(std::make_pair("description", "Enable Browser Source Hardware Acceleration (requires a restart)"));
 	browserHWAccel.push_back(std::make_pair("subType", ""));
 	entries.push_back(browserHWAccel);
 
