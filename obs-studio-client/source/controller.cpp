@@ -25,9 +25,12 @@
 #include "shared.hpp"
 #include "utility.hpp"
 #include <iostream>
+#include <spawn.h>
 
 static std::string serverBinaryPath  = "";
 static std::string serverWorkingPath = "";
+
+extern char **environ;
 
 #ifdef _WIN32
 #include <direct.h>
@@ -247,8 +250,9 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 	if (serverWorkingPath.empty())
 		workingDirectory = get_working_directory();
 	else
+#endif
 		workingDirectory = serverWorkingPath;
-
+#ifdef WIN32
 	// Test for existing process.
 	std::string pid_path(get_temp_directory());
 	pid_path.append("server.pid");
@@ -261,16 +265,30 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 	}
 
 	write_pid_file(pid_path, procId.id);
-
-	// Connect
-	std::shared_ptr<ipc::client> cl = connect(uri);
-	if (!cl) { // Assume the server broke or was not allowed to run.
-		disconnect();
-		uint32_t exitcode;
-		kill(procId, 0, exitcode);
-		return nullptr;
-	}
+    
+    // Connect
+    std::shared_ptr<ipc::client> cl = connect(uri);
+    if (!cl) { // Assume the server broke or was not allowed to run.
+        disconnect();
+        uint32_t exitcode;
+        kill(procId, 0, exitcode);
+        return nullptr;
+    }
+    
+#else
+    pid_t pid;
+    std::vector<char> uri_str(uri.c_str(), uri.c_str() + uri.size() + 1);
+    char *argv[] = {"obs64", uri_str.data(), NULL};
+    int status = posix_spawnp(&pid, serverBinaryPath.c_str(), NULL, NULL, argv, environ);
+    
+    if (status != 0) {
+        return nullptr;
+    }
+    
+    // Connect
+    std::shared_ptr<ipc::client> cl = connect(uri);
 #endif
+    
 	m_isServer = true;
 	return m_connection;
 }
