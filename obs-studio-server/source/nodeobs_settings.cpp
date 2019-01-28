@@ -1747,52 +1747,15 @@ void OBS_settings::getStandardRecordingSettings(
 	// Audio Track : list
 	Parameter recTracks;
 	recTracks.name        = "RecTracks";
-	recTracks.type        = "OBS_PROPERTY_LIST";
+	recTracks.type        = "OBS_PROPERTY_BITMASK";
 	recTracks.description = "Audio Track";
-	recTracks.subType     = "OBS_COMBO_FORMAT_STRING";
+	recTracks.subType     = "";
 
-	const char* recTracksCurrentValue = config_get_string(config, "AdvOut", "RecTracks");
-	if (recTracksCurrentValue == NULL)
-		recTracksCurrentValue = "";
+	uint64_t recTracksCurrentValue = config_get_uint(config, "AdvOut", "RecTracks");
 
-	recTracks.currentValue.resize(strlen(recTracksCurrentValue));
-	memcpy(recTracks.currentValue.data(), recTracksCurrentValue, strlen(recTracksCurrentValue));
-	recTracks.sizeOfCurrentValue = strlen(recTracksCurrentValue);
-
-	std::vector<std::pair<std::string, std::string>> recTracksValues;
-	recTracksValues.push_back(std::make_pair("1", "1"));
-	recTracksValues.push_back(std::make_pair("2", "2"));
-	recTracksValues.push_back(std::make_pair("3", "3"));
-	recTracksValues.push_back(std::make_pair("4", "4"));
-	recTracksValues.push_back(std::make_pair("5", "5"));
-	recTracksValues.push_back(std::make_pair("6", "6"));
-
-	uint32_t indexRecTracksCurrentValue = 0;
-
-	for (int i = 0; i < recTracksValues.size(); i++) {
-		std::string name = recTracksValues.at(i).first;
-
-		uint64_t          sizeName = name.length();
-		std::vector<char> sizeNameBuffer;
-		sizeNameBuffer.resize(sizeof(sizeName));
-		memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
-
-		recTracks.values.insert(recTracks.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-		recTracks.values.insert(recTracks.values.end(), name.begin(), name.end());
-
-		std::string value = recTracksValues.at(i).second;
-
-		uint64_t          sizeValue = value.length();
-		std::vector<char> sizeValueBuffer;
-		sizeValueBuffer.resize(sizeof(sizeValue));
-		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
-
-		recTracks.values.insert(recTracks.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
-		recTracks.values.insert(recTracks.values.end(), value.begin(), value.end());
-	}
-
-	recTracks.sizeOfValues = recTracks.values.size();
-	recTracks.countValues  = recTracksValues.size();
+	recTracks.currentValue.resize(sizeof(recTracksCurrentValue));
+	memcpy(recTracks.currentValue.data(), &recTracksCurrentValue, sizeof(recTracksCurrentValue));
+	recTracks.sizeOfCurrentValue = sizeof(recTracksCurrentValue);
 
 	recTracks.visible = true;
 	recTracks.enabled = isCategoryEnabled;
@@ -2469,7 +2432,7 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 			} else {
 				obs_data_set_int(encoderSettings, name.c_str(), *value);
 			}
-		} else if (type.compare("OBS_PROPERTY_UINT") == 0) {
+		} else if (type.compare("OBS_PROPERTY_UINT") == 0 || type.compare("OBS_PROPERTY_BITMASK") == 0) {
 			uint64_t* value = reinterpret_cast<uint64_t*>(param.currentValue.data());
 			if (i < indexEncoderSettings) {
 				config_set_uint(ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str(), *value);
