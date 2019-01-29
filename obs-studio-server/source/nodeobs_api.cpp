@@ -530,12 +530,6 @@ void OBS_API::OBS_API_initAPI(
 	OBS_service::createVideoStreamingEncoder();
 	OBS_service::createVideoRecordingEncoder();
 
-	obs_encoder_t* audioStreamingEncoder = OBS_service::getAudioStreamingEncoder();
-	obs_encoder_t* audioRecordingEncoder = OBS_service::getAudioRecordingEncoder();
-
-	OBS_service::createAudioEncoder(&audioStreamingEncoder);
-	OBS_service::createAudioEncoder(&audioRecordingEncoder);
-
 	OBS_service::resetAudioContext();
 	OBS_service::resetVideoContext();
 
@@ -994,11 +988,11 @@ void OBS_API::destroyOBS_API(void)
 	if (recordingEncoder != NULL && OBS_service::useRecordingPreset())
 		obs_encoder_release(recordingEncoder);
 
-	obs_encoder_t* audioStreamingEncoder = OBS_service::getAudioStreamingEncoder();
+	obs_encoder_t* audioStreamingEncoder = OBS_service::getAudioSimpleStreamingEncoder();
 	if (audioStreamingEncoder != NULL)
 		obs_encoder_release(audioStreamingEncoder);
 
-	obs_encoder_t* audioRecordingEncoder = OBS_service::getAudioRecordingEncoder();
+	obs_encoder_t* audioRecordingEncoder = OBS_service::getAudioSimpleRecordingEncoder();
 	if (audioRecordingEncoder != NULL)
 		obs_encoder_release(audioRecordingEncoder);
 

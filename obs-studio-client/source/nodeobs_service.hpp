@@ -51,7 +51,6 @@ namespace service
 {
 	static void OBS_service_resetAudioContext(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_service_resetVideoContext(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void OBS_service_createAudioEncoder(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_service_createVideoStreamingEncoder(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_service_createVideoRecordingEncoder(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_service_createService(const v8::FunctionCallbackInfo<v8::Value>& args);

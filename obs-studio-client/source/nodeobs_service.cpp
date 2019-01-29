@@ -90,17 +90,6 @@ void service::OBS_service_resetVideoContext(const v8::FunctionCallbackInfo<v8::V
 	ValidateResponse(response);
 }
 
-void service::OBS_service_createAudioEncoder(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "OBS_service_createAudioEncoder", {});
-
-	ValidateResponse(response);
-}
-
 void service::OBS_service_createVideoStreamingEncoder(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	auto conn = GetConnection();
@@ -438,8 +427,6 @@ INITIALIZER(nodeobs_service)
 		NODE_SET_METHOD(exports, "OBS_service_resetAudioContext", service::OBS_service_resetAudioContext);
 
 		NODE_SET_METHOD(exports, "OBS_service_resetVideoContext", service::OBS_service_resetVideoContext);
-
-		NODE_SET_METHOD(exports, "OBS_service_createAudioEncoder", service::OBS_service_createAudioEncoder);
 
 		NODE_SET_METHOD(
 		    exports, "OBS_service_createVideoStreamingEncoder", service::OBS_service_createVideoStreamingEncoder);
