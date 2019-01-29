@@ -1,8 +1,6 @@
 #include "nodeobs_autoconfig.hpp"
 #include "shared.hpp"
 
-using namespace std::placeholders;
-
 AutoConfig::~AutoConfig()
 {
 	stop_worker();
@@ -16,7 +14,8 @@ void AutoConfig::start_async_runner()
 	std::unique_lock<std::mutex> ul(m_worker_lock);
 	// Start v8/uv asynchronous runner.
 	m_async_callback = new AutoConfigCallback();
-	m_async_callback->set_handler(std::bind(&AutoConfig::callback_handler, this, _1, _2), nullptr);
+	m_async_callback->set_handler(
+	    std::bind(&AutoConfig::callback_handler, this, std::placeholders::_1, std::placeholders::_2), nullptr);
 }
 
 void AutoConfig::stop_async_runner()

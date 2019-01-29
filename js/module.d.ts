@@ -309,7 +309,6 @@ export interface IIPC {
     setServerPath(binaryPath: string, workingDirectoryPath?: string): void;
     connect(uri: string): void;
     host(uri: string): void;
-    connectOrHost(uri: string): void;
     disconnect(): void;
 }
 export interface IGlobal {

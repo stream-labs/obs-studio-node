@@ -16,7 +16,6 @@
 #include <map>
 #include "nodeobs_api.h"
 #include "nodeobs_display.h"
-using namespace std;
 
 struct SourceInfo
 {
@@ -24,10 +23,10 @@ struct SourceInfo
 	uint32_t volmeter;
 };
 
-extern map<std::string, SourceInfo*> sourceInfo;
-extern vector<std::string>           tabScenes;
-extern string                        currentTransition;
-extern map<string, obs_source_t*>    transitions;
+extern std::map<std::string, SourceInfo*> sourceInfo;
+extern std::vector<std::string>           tabScenes;
+extern std::string                        currentTransition;
+extern std::map<std::string, obs_source_t*>    transitions;
 
 class OBS_content
 {
@@ -92,42 +91,7 @@ class OBS_content
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
-	static void OBS_content_setGuidelineColor(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_content_setResizeBoxOuterColor(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_content_setResizeBoxInnerColor(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
 	static void OBS_content_setShouldDrawUI(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_content_selectSource(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_content_selectSources(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_content_dragSelectedSource(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_content_getDrawGuideLines(
 	    void*                          data,
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,

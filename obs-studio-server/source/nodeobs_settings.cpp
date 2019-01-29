@@ -4,7 +4,8 @@
 #include "shared.hpp"
 
 #include <windows.h>
-vector<const char*> tabStreamTypes;
+
+std::vector<const char*> tabStreamTypes;
 const char*         currentServiceName;
 
 /* some nice default output resolution vals */
@@ -12,9 +13,9 @@ static const double vals[] = {1.0, 1.25, (1.0 / 0.75), 1.5, (1.0 / 0.6), 1.75, 2
 
 static const size_t numVals = sizeof(vals) / sizeof(double);
 
-static string ResString(uint64_t cx, uint64_t cy)
+static std::string ResString(uint64_t cx, uint64_t cy)
 {
-	ostringstream res;
+	std::ostringstream res;
 	res << cx << "x" << cy;
 	return res.str();
 }
@@ -291,7 +292,17 @@ SubCategory OBS_settings::serializeSettingsData(
 			param.countValues  = entries.at(i).size() - 4;
 		}
 
-		param.visible = isVisible;
+		if (param.name.compare("RecFormat") == 0 && section.compare("SimpleOutput") == 0) {
+			const char* quality = config_get_string(config, "SimpleOutput", "RecQuality");
+
+			if (quality && strcmp(quality, "Lossless") == 0)
+				param.visible = false;
+			else
+				param.visible = isVisible;
+		} else {
+			param.visible = isVisible;
+		}
+
 		param.enabled = isEnabled;
 		param.masked  = false;
 
@@ -576,7 +587,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 	obs_properties_t* properties = obs_service_properties(currentService);
 	obs_property_t*   property   = obs_properties_first(properties);
 	obs_combo_format  format;
-	string            formatString;
+	std::string       formatString;
 
 	index                                  = 0;
 	uint32_t indexDataServiceConfiguration = 0;
@@ -660,7 +671,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 				formatString  = "OBS_PROPERTY_LIST";
 				param.subType = "OBS_COMBO_FORMAT_STRING";
 			} else {
-				cout << "INVALID FORMAT" << endl;
+				std::cout << "INVALID FORMAT" << std::endl;
 			}
 		}
 
@@ -1553,7 +1564,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 		memcpy(rescaleRes.currentValue.data(), outputResString, strlen(outputResString));
 		rescaleRes.sizeOfCurrentValue = strlen(outputResString);
 
-		std::vector<pair<uint64_t, uint64_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
+		std::vector<std::pair<uint64_t, uint64_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
 
 		uint32_t indexDataRescaleRes = 0;
 
@@ -2608,9 +2619,9 @@ std::vector<SubCategory> OBS_settings::getAudioSettings()
 
 void OBS_settings::saveAudioSettings(std::vector<SubCategory> audioSettings) {}
 
-std::vector<pair<uint64_t, uint64_t>> OBS_settings::getOutputResolutions(uint64_t base_cx, uint64_t base_cy)
+std::vector<std::pair<uint64_t, uint64_t>> OBS_settings::getOutputResolutions(uint64_t base_cx, uint64_t base_cy)
 {
-	std::vector<pair<uint64_t, uint64_t>> outputResolutions;
+	std::vector<std::pair<uint64_t, uint64_t>> outputResolutions;
 	for (size_t idx = 0; idx < numVals; idx++) {
 		uint64_t outDownscaleCX = uint64_t(double(base_cx) / vals[idx]);
 		uint64_t outDownscaleCY = uint64_t(double(base_cy) / vals[idx]);
@@ -2652,17 +2663,17 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 	// Fill available display resolutions
 	for (int i = 0; i < resolutions.size(); i++) {
 		std::string baseResolutionString;
-		baseResolutionString = to_string(resolutions.at(i).width);
+		baseResolutionString = std::to_string(resolutions.at(i).width);
 		baseResolutionString += "x";
-		baseResolutionString += to_string(resolutions.at(i).height);
+		baseResolutionString += std::to_string(resolutions.at(i).height);
 
-		pair<std::string, std::string> newBaseResolution =
+		std::pair<std::string, std::string> newBaseResolution =
 		    std::make_pair(baseResolutionString.c_str(), baseResolutionString.c_str());
 
-		std::vector<pair<std::string, std::string>>::iterator it = std::find_if(
+		std::vector<std::pair<std::string, std::string>>::iterator it = std::find_if(
 		    baseResolution.begin(),
 		    baseResolution.end(),
-		    [&baseResolutionString](const pair<std::string, std::string> value) {
+		    [&baseResolutionString](const std::pair<std::string, std::string> value) {
 			    return (value.second.compare(baseResolutionString) == 0);
 		    });
 
@@ -2672,13 +2683,13 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 	}
 
 	// Set the current base resolution selected by the user
-	pair<std::string, std::string> newBaseResolution = std::make_pair("currentValue", baseResolutionString);
+	std::pair<std::string, std::string> newBaseResolution = std::make_pair("currentValue", baseResolutionString);
 
 	//Check if the current resolution is in the available ones
-	std::vector<pair<std::string, std::string>>::iterator it = std::find_if(
+	std::vector<std::pair<std::string, std::string>>::iterator it = std::find_if(
 	    baseResolution.begin(),
 	    baseResolution.end(),
-	    [&baseResolutionString](const pair<std::string, std::string> value) {
+	    [&baseResolutionString](const std::pair<std::string, std::string> value) {
 		    return (value.second.compare(baseResolutionString) == 0);
 	    });
 
@@ -2704,10 +2715,10 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 
 	outputResolution.push_back(std::make_pair("currentValue", outputResString));
 
-	std::vector<pair<uint64_t, uint64_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
+	std::vector<std::pair<uint64_t, uint64_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
 
 	for (int i = 0; i < outputResolutions.size(); i++) {
-		string outRes = ResString(outputResolutions.at(i).first, outputResolutions.at(i).second);
+		std::string outRes = ResString(outputResolutions.at(i).first, outputResolutions.at(i).second);
 		outputResolution.push_back(std::make_pair(outRes, outRes));
 	}
 
@@ -3213,7 +3224,7 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	std::vector<std::pair<std::string, std::string>> browserHWAccel;
 	browserHWAccel.push_back(std::make_pair("name", "browserHWAccel"));
 	browserHWAccel.push_back(std::make_pair("type", "OBS_PROPERTY_BOOL"));
-	browserHWAccel.push_back(std::make_pair("description", "Enable Browser Source Hardware Acceleration (require a restart)"));
+	browserHWAccel.push_back(std::make_pair("description", "Enable Browser Source Hardware Acceleration (requires a restart)"));
 	browserHWAccel.push_back(std::make_pair("subType", ""));
 	entries.push_back(browserHWAccel);
 
@@ -3400,10 +3411,10 @@ void OBS_settings::saveGenericSettings(std::vector<SubCategory> genericSettings,
 							};
 							obs_enum_audio_monitoring_devices(enum_devices, &monitoringDevice);
 
-							std::vector<pair<std::string, std::string>>::iterator it = std::find_if(
+							std::vector<std::pair<std::string, std::string>>::iterator it = std::find_if(
 							    monitoringDevice.begin(),
 							    monitoringDevice.end(),
-							    [&value](const pair<std::string, std::string> device) {
+							    [&value](const std::pair<std::string, std::string> device) {
 								    return (device.first.compare(value) == 0);
 							    });
 

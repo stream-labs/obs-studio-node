@@ -1,4 +1,4 @@
-PROJECT(obs-studio-client VERSION ${obs-studio-node_VERSION})
+PROJECT(obs_studio_client VERSION ${obs-studio-node_VERSION})
 
 if(WIN32)
 	# Resource VersionInfo
@@ -85,12 +85,11 @@ target_link_libraries(obs_studio_client lib-streamlabs-ipc)
 
 target_include_directories(
 	obs_studio_client
-	PRIVATE
+	PUBLIC
 		"${CMAKE_SOURCE_DIR}/source/"
 		"${CMAKE_SOURCE_DIR}/lib-streamlabs-ipc/include"
-		"${PROJECT_SOURCE_DIR}/../lib-streamlabs-ipc/third-party/lib-datalane/"
 )
-
+ 
 set_target_properties(
 	obs_studio_client
 	PROPERTIES
@@ -111,9 +110,13 @@ if(WIN32)
 	)
 endif()
 
-cppcheck_add_project(obs_studio_client)
+IF( NOT CLANG_ANALYZE_CONFIG)
+	cppcheck_add_project(${PROJECT_NAME})
+ENDIF()
 
-install(FILES $<TARGET_PDB_FILE:obs_studio_client> DESTINATION ./ OPTIONAL)
+IF( NOT CLANG_ANALYZE_CONFIG)
+	install(FILES $<TARGET_PDB_FILE:obs_studio_client> DESTINATION ./ OPTIONAL)
+ENDIF()
 install(FILES "${CMAKE_SOURCE_DIR}/package.json" DESTINATION "./")
 
 install(
@@ -126,4 +129,5 @@ install(
 	TARGETS obs_studio_client
 	RUNTIME DESTINATION "./" COMPONENT Runtime
 	LIBRARY DESTINATION "./" COMPONENT Runtime
+	ARCHIVE DESTINATION "./" COMPONENT Runtime	
 )

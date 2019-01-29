@@ -9,8 +9,6 @@
 
 #include "nodeobs_audio_encoders.h"
 
-using namespace std;
-
 struct Parameter
 {
 	std::string       name;
@@ -214,7 +212,7 @@ class OBS_settings
 	//Utility functions
 	static void getSimpleAvailableEncoders(std::vector<std::pair<std::string, std::string>>* streamEncode);
 	static void getAdvancedAvailableEncoders(std::vector<std::pair<std::string, std::string>>* streamEncode);
-	static std::vector<pair<uint64_t, uint64_t>> getOutputResolutions(uint64_t base_cx, uint64_t base_cy);
+	static std::vector<std::pair<uint64_t, uint64_t>> getOutputResolutions(uint64_t base_cx, uint64_t base_cy);
 	static void                                  getEncoderSettings(
 	                                     const obs_encoder_t*    encoder,
 	                                     obs_data_t*             settings,
