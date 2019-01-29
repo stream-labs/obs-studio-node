@@ -9,6 +9,9 @@ let basicOBSFilterTypes: string[] = ['face_mask_filter', 'mask_filter', 'crop_fi
                                      'noise_gate_filter', 'compressor_filter', 'vst_filter'];
 export {basicOBSFilterTypes};
 
+let basicOBSTransitionTypes: string[] = [ 'cut_transition', 'fade_transition', 'swipe_transition', 'slide_transition', 'fade_to_color_transition', 'wipe_transition', 'obs_stinger_transition'];
+export {basicOBSTransitionTypes};
+
 export function getTimeSpec(ms: number): ITimeSpec {
     return {
         sec: Math.floor(ms / 1000),
