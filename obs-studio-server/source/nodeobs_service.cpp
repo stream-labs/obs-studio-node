@@ -626,8 +626,15 @@ int OBS_service::resetVideoContext(bool reload)
 		if (ovi.base_width > 1280 && ovi.base_height > 720) {
 			int idx = 0;
 			do {
-				ovi.output_width  = uint32_t(double(ovi.base_width) / vals[idx]);
-				ovi.output_height = uint32_t(double(ovi.base_height) / vals[idx]);
+				double use_val = 1.0;
+				if(idx < numVals)
+				{
+					use_val = vals[idx];
+				} else {
+					use_val = 3.0 + double(numVals - idx + 1)/2.0;
+				}
+				ovi.output_width  = uint32_t(double(ovi.base_width) / use_val);
+				ovi.output_height = uint32_t(double(ovi.base_height) / use_val);
 				idx++;
 			} while (ovi.output_width > 1280 && ovi.output_height > 720);
 		} else {
