@@ -364,6 +364,7 @@ OBS::Display::~Display()
 
     if (m_textTexture) {
 		gs_texture_destroy(m_textTexture);
+    }
 
 	m_boxLine = nullptr;
 	m_boxTris = nullptr;
