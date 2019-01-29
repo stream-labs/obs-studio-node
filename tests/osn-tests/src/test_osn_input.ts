@@ -376,4 +376,55 @@ describe('osn-input', () => {
             });
         });
     });
+
+    context('# SetFilterOrder', () => {
+        it('Change the order of filters in the list', () => {
+            // Creating source
+            const input = osn.InputFactory.create('game_capture', 'test_source');
+            
+            // Checking if source was created correctly
+            expect(input).to.not.equal(undefined);
+            expect(input.id).to.equal('game_capture');
+            expect(input.name).to.equal('test_source');
+
+            // Creating filters
+            const filter1 = osn.FilterFactory.create('color_filter', 'filter1');
+            const filter2 = osn.FilterFactory.create('crop_filter', 'filter2');
+            const filter3 = osn.FilterFactory.create('gpu_delay', 'filter3');
+
+            // Checking if filters were created correctly
+            expect(filter1).to.not.equal(undefined);
+            expect(filter2).to.not.equal(undefined);
+            expect(filter3).to.not.equal(undefined);
+                        
+            // Adding filters to source
+            input.addFilter(filter1);
+            input.addFilter(filter2);
+            input.addFilter(filter3);
+
+            // Changing filter order down
+            input.setFilterOrder(filter1, osn.EOrderMovement.Down);
+
+            // Checking if filter is in the right position
+            expect(input.filters[1].name).to.equal('filter1');
+
+            // Changing filter order up
+            input.setFilterOrder(filter3, osn.EOrderMovement.Up);
+
+            // Checking if filter is in the right position
+            expect(input.filters[1].name).to.equal('filter3');
+
+            // Changing filter order to bottom
+            input.setFilterOrder(filter2, osn.EOrderMovement.Bottom);
+
+            // Checking if filter is in the right position
+            expect(input.filters[2].name).to.equal('filter2');
+
+            // Changing filter order to top
+            input.setFilterOrder(filter2, osn.EOrderMovement.Top);
+
+            // Checking if filter is in the right position
+            expect(input.filters[0].name).to.equal('filter2');
+        });
+    });
 });
