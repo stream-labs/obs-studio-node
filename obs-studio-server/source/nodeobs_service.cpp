@@ -696,10 +696,7 @@ bool OBS_service::createAudioEncoder(obs_encoder_t** audioEncoder)
 		return false;
 	}
 
-	if (*audioEncoder) {
-		obs_encoder_release(*audioEncoder);
-	}
-
+	obs_encoder_release(*audioEncoder);
 	*audioEncoder = obs_audio_encoder_create(id, "simple_audio", nullptr, 0, nullptr);
 	if (*audioEncoder) {
 		return false;
@@ -717,11 +714,7 @@ bool OBS_service::createVideoStreamingEncoder()
         encoder = "obs_x264";
     }
 
-	if (videoStreamingEncoder != nullptr) {
-		obs_encoder_release(videoStreamingEncoder);
-		videoStreamingEncoder = nullptr;
-	}
-
+	obs_encoder_release(videoStreamingEncoder);
 	videoStreamingEncoder = obs_video_encoder_create(encoder, "streaming_h264", nullptr, nullptr);
 	if (videoStreamingEncoder) {
 		return false;
@@ -901,11 +894,7 @@ static void remove_reserved_file_characters(std::string& s)
 
 bool OBS_service::createVideoRecordingEncoder()
 {
-	if (videoRecordingEncoder != nullptr) {
-		obs_encoder_release(videoRecordingEncoder);
-		videoRecordingEncoder = nullptr;
-	}
-
+	obs_encoder_release(videoRecordingEncoder);
 	videoRecordingEncoder = obs_video_encoder_create("obs_x264", "simple_h264_recording", nullptr, nullptr);
 	if (videoRecordingEncoder) {
 		return false;
@@ -1028,11 +1017,7 @@ bool OBS_service::startStreaming(void)
 		obs_data_t* settings     = obs_data_create();
 		obs_data_set_int(settings, "bitrate", audioBitrate);
 
-		if (audioStreamingEncoder != nullptr) {
-			obs_encoder_release(audioStreamingEncoder);
-			audioStreamingEncoder = nullptr;
-		}
-
+		obs_encoder_release(audioStreamingEncoder);
 		audioStreamingEncoder = obs_audio_encoder_create(id, "alt_audio_enc", nullptr, int(trackIndex) - 1, nullptr);
 		if (!audioStreamingEncoder)
 			return false;
@@ -1085,10 +1070,7 @@ bool OBS_service::startRecording(void)
 			obs_data_t* settings     = obs_data_create();
 			obs_data_set_int(settings, "bitrate", audioBitrate);
 
-		    if (audioStreamingEncoder != nullptr) {
-		        obs_encoder_release(audioStreamingEncoder);
-			}
-
+		    obs_encoder_release(audioStreamingEncoder);
 			audioStreamingEncoder = obs_audio_encoder_create(id, "alt_audio_enc", nullptr, trackIndex - 1, nullptr);
 			if (!audioStreamingEncoder)
 				return false;
@@ -1164,10 +1146,7 @@ bool OBS_service::updateAdvancedReplayBuffer(void)
 		obs_data_t* settings     = obs_data_create();
 		obs_data_set_int(settings, "bitrate", audioBitrate);
 
-		if (audioStreamingEncoder != nullptr) {
-			obs_encoder_release(audioStreamingEncoder);
-		}
-
+		obs_encoder_release(audioStreamingEncoder);
 		audioStreamingEncoder = obs_audio_encoder_create(id, "alt_audio_enc", nullptr, int(trackIndex) - 1, nullptr);
 		if (!audioStreamingEncoder)
 			return false;
@@ -1289,10 +1268,7 @@ bool OBS_service::startReplayBuffer(void)
 				obs_data_t* settings     = obs_data_create();
 				obs_data_set_int(settings, "bitrate", audioBitrate);
 
-			    if (audioStreamingEncoder != nullptr) {
-					obs_encoder_release(audioStreamingEncoder);
-				}
-
+				obs_encoder_release(audioStreamingEncoder);
 				audioStreamingEncoder =
 				    obs_audio_encoder_create(id, "alt_audio_enc", nullptr, int(trackIndex) - 1, nullptr);
 				if (!audioStreamingEncoder)
@@ -1440,8 +1416,10 @@ obs_service_t* OBS_service::getService(void)
 
 void OBS_service::releaseService() 
 {
-	if (service != NULL)
+	if (service != nullptr) {
 		obs_service_release(service);
+		service = nullptr;
+    }
 }
 
 void OBS_service::setService(obs_service_t* newService)
@@ -1549,11 +1527,7 @@ void OBS_service::updateVideoStreamingEncoder()
 		}
         preset = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", presetType);
 
-		if (videoStreamingEncoder != nullptr) {
-			obs_encoder_release(videoStreamingEncoder);
-			videoStreamingEncoder = nullptr;
-		}
-
+		obs_encoder_release(videoStreamingEncoder);
 		videoStreamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
 	}
 
@@ -1803,11 +1777,7 @@ void OBS_service::LoadRecordingPreset_Lossless()
 
 void OBS_service::LoadRecordingPreset_h264(const char* encoderId)
 {
-	if (videoRecordingEncoder != nullptr) {
-		obs_encoder_release(videoRecordingEncoder);
-		videoRecordingEncoder = nullptr;
-	}
-
+	obs_encoder_release(videoRecordingEncoder);
 	videoRecordingEncoder = obs_video_encoder_create(encoderId, "simple_h264_recording", nullptr, nullptr);
 	if (!videoRecordingEncoder)
 		throw "Failed to create h264 recording encoder (simple output)";
@@ -1947,7 +1917,6 @@ void OBS_service::updateVideoRecordingEncoder()
 		if (videoRecordingEncoder != videoStreamingEncoder) {
 			obs_encoder_addref(videoStreamingEncoder);
 			obs_encoder_release(videoRecordingEncoder);
-			videoRecordingEncoder = nullptr;
 			videoRecordingEncoder = videoStreamingEncoder;
 			usingRecordingPreset  = false;
 		}
@@ -2151,8 +2120,7 @@ obs_encoder_t* OBS_service::getStreamingEncoder(void)
 
 void OBS_service::setStreamingEncoder(obs_encoder_t* encoder)
 {
-	if (!videoStreamingEncoder)
-		obs_encoder_release(videoStreamingEncoder);
+	obs_encoder_release(videoStreamingEncoder);
 	videoStreamingEncoder = encoder;
 	obs_encoder_addref(videoStreamingEncoder); // Takes ownership
 }
@@ -2165,8 +2133,7 @@ obs_encoder_t* OBS_service::getRecordingEncoder(void)
 
 void OBS_service::setRecordingEncoder(obs_encoder_t* encoder)
 {
-	if (!videoRecordingEncoder)
-		obs_encoder_release(videoRecordingEncoder);
+	obs_encoder_release(videoRecordingEncoder);
 	videoRecordingEncoder = encoder;
 	obs_encoder_addref(videoRecordingEncoder); // Takes ownership
 }
