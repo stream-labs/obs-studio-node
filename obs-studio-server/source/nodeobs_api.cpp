@@ -72,6 +72,8 @@ void OBS_API::Register(ipc::server& srv)
 	    std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32},
 	    ProcessHotkeyStatus));
 
+	cls->register_function(std::make_shared<ipc::function>("crashNow", std::vector<ipc::type>{}, crashNow));
+
 	srv.register_collection(cls);
 }
 
@@ -591,6 +593,19 @@ void OBS_API::OBS_API_getPerformanceStatistics(
 	rval.push_back(ipc::value(getDroppedFramesPercentage()));
 	rval.push_back(ipc::value(getCurrentBandwidth()));
 	rval.push_back(ipc::value(getCurrentFrameRate()));
+	AUTO_DEBUG;
+}
+
+void OBS_API::crashNow(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	const char* test = NULL;
+	std::cout << test << std::endl;
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
 	AUTO_DEBUG;
 }
 

@@ -51,6 +51,20 @@ void api::OBS_API_destroyOBS_API(const v8::FunctionCallbackInfo<v8::Value>& args
 	// ValidateResponse(response);
 }
 
+void api::crashNow(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	Nan::Utf8String param0(args[0]);
+	std::string     path = *param0;
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("API", "crashNow", {});
+
+	ValidateResponse(response);
+}
+
 void api::OBS_API_getPerformanceStatistics(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	auto conn = GetConnection();
@@ -186,5 +200,6 @@ INITIALIZER(nodeobs_api)
 		NODE_SET_METHOD(exports, "StopCrashHandler", api::StopCrashHandler);
 		NODE_SET_METHOD(exports, "OBS_API_QueryHotkeys", api::OBS_API_QueryHotkeys);
 		NODE_SET_METHOD(exports, "OBS_API_ProcessHotkeyStatus", api::OBS_API_ProcessHotkeyStatus);
+		NODE_SET_METHOD(exports, "crashNow", api::crashNow);
 	});
 }

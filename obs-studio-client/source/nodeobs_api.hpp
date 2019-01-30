@@ -11,4 +11,6 @@ namespace api
 	static void StopCrashHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_API_QueryHotkeys(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_API_ProcessHotkeyStatus(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+	static void crashNow(const v8::FunctionCallbackInfo<v8::Value>& args);
 } // namespace api
