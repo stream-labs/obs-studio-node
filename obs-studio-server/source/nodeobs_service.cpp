@@ -698,7 +698,7 @@ bool OBS_service::createAudioEncoder(obs_encoder_t** audioEncoder)
 
 	obs_encoder_release(*audioEncoder);
 	*audioEncoder = obs_audio_encoder_create(id, "simple_audio", nullptr, 0, nullptr);
-	if (*audioEncoder) {
+	if (!(*audioEncoder)) {
 		return false;
 	}
 
@@ -716,7 +716,7 @@ bool OBS_service::createVideoStreamingEncoder()
 
 	obs_encoder_release(videoStreamingEncoder);
 	videoStreamingEncoder = obs_video_encoder_create(encoder, "streaming_h264", nullptr, nullptr);
-	if (videoStreamingEncoder) {
+	if (!videoStreamingEncoder) {
 		return false;
 	}
 
@@ -896,7 +896,7 @@ bool OBS_service::createVideoRecordingEncoder()
 {
 	obs_encoder_release(videoRecordingEncoder);
 	videoRecordingEncoder = obs_video_encoder_create("obs_x264", "simple_h264_recording", nullptr, nullptr);
-	if (videoRecordingEncoder) {
+	if (!videoRecordingEncoder) {
 		return false;
 	}
 
@@ -1019,8 +1019,10 @@ bool OBS_service::startStreaming(void)
 
 		obs_encoder_release(audioStreamingEncoder);
 		audioStreamingEncoder = obs_audio_encoder_create(id, "alt_audio_enc", nullptr, int(trackIndex) - 1, nullptr);
-		if (!audioStreamingEncoder)
+		if (!audioStreamingEncoder) {
+			obs_data_release(settings);
 			return false;
+        }
 
 		obs_encoder_update(audioStreamingEncoder, settings);
 		obs_encoder_set_audio(audioStreamingEncoder, obs_get_audio());
@@ -2120,6 +2122,8 @@ obs_encoder_t* OBS_service::getStreamingEncoder(void)
 
 void OBS_service::setStreamingEncoder(obs_encoder_t* encoder)
 {
+	if (encoder == videoStreamingEncoder)
+		return;
 	obs_encoder_release(videoStreamingEncoder);
 	videoStreamingEncoder = encoder;
 	obs_encoder_addref(videoStreamingEncoder); // Takes ownership
@@ -2133,6 +2137,8 @@ obs_encoder_t* OBS_service::getRecordingEncoder(void)
 
 void OBS_service::setRecordingEncoder(obs_encoder_t* encoder)
 {
+	if (encoder == videoRecordingEncoder)
+		return;
 	obs_encoder_release(videoRecordingEncoder);
 	videoRecordingEncoder = encoder;
 	obs_encoder_addref(videoRecordingEncoder); // Takes ownership
@@ -2146,6 +2152,8 @@ obs_encoder_t* OBS_service::getAudioStreamingEncoder(void)
 
 void OBS_service::setAudioStreamingEncoder(obs_encoder_t* encoder)
 {
+	if (encoder == audioStreamingEncoder)
+		return;
 	obs_encoder_release(audioStreamingEncoder);
 	audioStreamingEncoder = encoder;
 	obs_encoder_addref(audioStreamingEncoder); // Takes ownership
@@ -2159,6 +2167,8 @@ obs_encoder_t* OBS_service::getAudioRecordingEncoder(void)
 
 void OBS_service::setAudioRecordingEncoder(obs_encoder_t* encoder)
 {
+	if (encoder == audioRecordingEncoder)
+		return;
 	obs_encoder_release(audioRecordingEncoder);
 	audioRecordingEncoder = encoder;
 	obs_encoder_addref(audioRecordingEncoder); // Takes ownership
