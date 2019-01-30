@@ -70,47 +70,22 @@ describe('osn-transition', () => {
                 expect(transition).to.not.equal(undefined);
                 expect(transition.id).to.equal(transitionType);
                 expect(transition.name).to.equal(transitionName);
+                expect(transition.settings).to.include(settings);
                 transition.release();
             }
         });
 
     });
 
-    context('# createPrivate', () => {
-        it('Create all transition types', () => {
-            let transitionType: string;
-            let transition: ITransition;
-            const transitionName: string = 'test_osn_transition_create_private';
-
-            // Create each transition type available
-            for (transitionType of transitionTypes)
-            {
-                transition = osn.TransitionFactory.createPrivate(transitionType, transitionName);
-
-                // Checking if transition was created correctly
-                expect(transition).to.not.equal(undefined);
-                expect(transition.id).to.equal(transitionType);
-                expect(transition.name).to.equal(transitionName);
-                transition.release();
-            }
-        });
-
-       
-    });
-
-    context('# set', () => {
+    context('# getActiveSource, set, clear', () => {
         it('Set source, get it and clear it', () => {
             let transition: ITransition;
             let scene: IScene;
             let source: ISource;
             
-            transition = osn.TransitionFactory.create(basicOBSTransitionTypes[0], 'transition');
-
-            expect(function() {
-                source = transition.getActiveSource();
-            }).to.throw();            
-            
+            transition = osn.TransitionFactory.create(basicOBSTransitionTypes[0], 'transition');            
             scene = osn.SceneFactory.create('test_osn_scene'); 
+
             transition.set(scene);
 
             source = transition.getActiveSource();
@@ -126,6 +101,16 @@ describe('osn-transition', () => {
             transition.release();
             scene.release();         
         });
+
+        it('FAIL TEST: Try to get source from transition without setting in to transition', () => {
+            let source: ISource;
+            let transition: ITransition;
+            transition = osn.TransitionFactory.create(basicOBSTransitionTypes[0], 'transition');  
+               
+            expect(function () {
+                source = transition.getActiveSource();
+            }).to.throw;
+        });        
     });
 
     context('# start', () => {
