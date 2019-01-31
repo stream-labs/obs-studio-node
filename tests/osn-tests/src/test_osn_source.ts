@@ -190,7 +190,7 @@ describe('osn-source', () => {
         });
     });
 
-    context('# Update', () => {
+    context('# Update and Save', () => {
         let settings: ISettings = {};
         settings['test'] = 1;
 
@@ -206,6 +206,11 @@ describe('osn-source', () => {
     
                 // Updating settings of source
                 input.update(settings);
+
+                // Sending save signal to source
+                expect(function() {
+                    input.save();
+                }).to.not.throw;
 
                 // Checking if setting was added to source
                 expect(input.settings).to.include(settings);
@@ -224,10 +229,15 @@ describe('osn-source', () => {
                 expect(filter.id).to.equal(filterType);
                 expect(filter.name).to.equal('filter');
     
-                // Updating settings of source
+                // Updating settings of filter
                 filter.update(settings);
 
-                // Checking if setting was added to source
+                // Sending save signal to filter
+                expect(function() {
+                    filter.save();
+                }).to.not.throw;
+
+                // Checking if setting was added to filter
                 expect(filter.settings).to.include(settings);
     
                 filter.release();
@@ -243,10 +253,10 @@ describe('osn-source', () => {
             expect(scene.id).to.equal('scene');
             expect(scene.name).to.equal('test_osn_scene');
 
-            // Updating settings of source
+            // Updating settings of scene
             scene.update(settings);
 
-            // Checking if setting was added to source
+            // Checking if setting was added to scene
             expect(scene.settings).to.include(settings);
 
             scene.release();
