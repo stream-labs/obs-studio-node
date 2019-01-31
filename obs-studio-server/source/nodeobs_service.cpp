@@ -1398,6 +1398,20 @@ void OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(bool
 
 void OBS_service::setServiceToTheStreamingOutput(void)
 {
+	obs_data_t* settings = obs_service_get_settings(service);
+	const char* platform = obs_data_get_string(settings, "service");
+
+	const char* server = obs_service_get_url(service);
+
+	if (platform && strcmp(platform, "Twitch") == 0) {
+		if (!server || strcmp(server, "") == 0) {
+			server = "auto";
+			obs_data_set_string(settings, "server", server);
+			obs_service_update(service, settings);
+		}
+	}
+
+	obs_data_release(settings);
 	obs_output_set_service(streamingOutput, service);
 }
 
