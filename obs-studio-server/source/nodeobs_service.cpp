@@ -631,7 +631,7 @@ int OBS_service::resetVideoContext(bool reload)
 				{
 					use_val = vals[idx];
 				} else {
-					use_val = vals[numVals-1] + double(numVals - idx + 1)  2.0;
+					use_val = vals[numVals-1] + double(numVals - idx + 1)  / 2.0;
 				}
 				ovi.output_width  = uint32_t(double(ovi.base_width) / use_val);
 				ovi.output_height = uint32_t(double(ovi.base_height) / use_val);
