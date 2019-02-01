@@ -91,7 +91,7 @@ describe('osn_fader', () => {
 
                 faderTypes.forEach(function(faderType) {
                     // Creating fader
-                    const fader = osn.FaderFactory.create(osn.EFaderType.Cubic);
+                    const fader = osn.FaderFactory.create(faderType);
 
                     // Checking if fader was created correctly
                     expect(fader).to.not.equal(undefined);
