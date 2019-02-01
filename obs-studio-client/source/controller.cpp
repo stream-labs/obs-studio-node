@@ -316,6 +316,31 @@ void Controller::disconnect()
 {
 	if (m_isServer) {
 		m_connection->call_synchronous_helper("System", "Shutdown", {});
+
+		// Wait for process exit.
+		auto wait_begin = std::chrono::high_resolution_clock::now();
+		while (is_process_alive(procId)) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(
+			    std::chrono::high_resolution_clock::now() - wait_begin);
+			if (dur.count() >= 500) {
+				break; // Failed.
+			}
+		}
+
+		wait_begin = std::chrono::high_resolution_clock::now();
+		while (is_process_alive(procId)) {
+			uint32_t exitcode = 0;
+			kill(procId, 0, exitcode);
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(
+			    std::chrono::high_resolution_clock::now() - wait_begin);
+			if (dur.count() >= 500) {
+				break; // Failed.
+			}
+		}
+
 		m_isServer = false;
 	}
 	m_connection = nullptr;
