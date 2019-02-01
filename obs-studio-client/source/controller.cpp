@@ -315,12 +315,10 @@ std::shared_ptr<ipc::client> Controller::connect(
 void Controller::disconnect()
 {
 	if (m_isServer) {
-		std::vector<ipc::value> rval = m_connection->call_synchronous_helper("System", "Shutdown", {});
-
-		ProcessInfo pi = open_process(rval[1].value_union.ui64);
+		m_connection->call_synchronous_helper("System", "Shutdown", {});
 
 		// Waiting for server to close
-		while (is_process_alive(pi)) {
+		while (is_process_alive(procId)) {
 			std::this_thread::yield();
 		}
 

@@ -121,7 +121,6 @@ namespace System
 		bool* shutdown = (bool*)data;
 		*shutdown      = true;
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-		rval.push_back(ipc::value((uint64_t)GetCurrentProcessId()));
 		return;
 	}
 } // namespace System
