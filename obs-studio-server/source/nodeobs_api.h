@@ -8,9 +8,9 @@
 #include <string.h>
 #include <string>
 #include <vector>
-#include <queue>
-#include "nodeobs_configManager.hpp"
 #include "nodeobs_service.h"
+#include <ipc-server.hpp>
+#include "nodeobs_configManager.hpp"
 
 extern std::string g_moduleDirectory;
 
@@ -20,41 +20,8 @@ struct Screen
 	int height;
 };
 
-namespace util
-{
-	class CrashManager;
-}
-
 class OBS_API
 {
-	friend util::CrashManager;
-
-    public:
-    struct LogReport
-	{
-		static const int MaximumGeneralMessages = 150;
-
-		void push(std::string message, int logLevel)
-		{
-			general.push(message);
-			if (general.size() >= MaximumGeneralMessages) {
-				general.pop();
-			}
-
-			if (logLevel == LOG_ERROR) {
-				errors.push_back(message);
-			}
-
-			if (logLevel == LOG_WARNING) {
-				warnings.push_back(message);
-			}
-		}
-
-		std::vector<std::string> errors;
-		std::vector<std::string> warnings;
-		std::queue<std::string>  general;
-	};
-
 	public:
 	OBS_API();
 	~OBS_API();
@@ -94,7 +61,7 @@ class OBS_API
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
 
-	protected:
+	private:
 	static void initAPI(void);
 	static void destroyOBS_API(void);
 	static bool openAllModules(int& video_err);
@@ -104,10 +71,6 @@ class OBS_API
 	static double getDroppedFramesPercentage(void);
 	static double getCurrentBandwidth(void);
 	static double getCurrentFrameRate(void);
-
-    static const std::vector<std::string>& getOBSLogErrors();
-	static const std::vector<std::string>& getOBSLogWarnings();
-	static std::queue<std::string>&        getOBSLogGeneral();
 
 	static std::vector<std::string> exploreDirectory(std::string directory, std::string typeToReturn);
 
