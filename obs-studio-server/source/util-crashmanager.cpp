@@ -382,8 +382,8 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	annotations.insert({{"Manual callstack", callStack.dump(4)}});
 	annotations.insert({{"Crash reason", _crashInfo}});
 	annotations.insert({{"Computer name", computerName}});
-	annotations.insert({{"Breadcrumbs", ComputeBreadcrumbs().dump(4)}});
-	annotations.insert({{"Warnings", ComputeWarnings().dump(4)}});
+	annotations.insert({{"Breadcrumbs", ComputeBreadcrumbs()}});
+	annotations.insert({{"Warnings", ComputeWarnings()}});
 
     // Recreate crashpad instance, this is a well defined/supported operation
 	SetupCrashpad();
