@@ -4,6 +4,7 @@
 #include <filesystem>
 #include "error.hpp"
 #include "shared.hpp"
+#include "util-crashmanager.h"
 
 obs_output_t* streamingOutput        = nullptr;
 obs_output_t* recordingOutput        = nullptr;
@@ -916,8 +917,8 @@ bool OBS_service::createService()
 	obs_data_t* settings;
 	obs_data_t* hotkey_data;
 
-    if (!fileExist) {
-		service  = obs_service_create("rtmp_common", "default_service", nullptr, nullptr);
+ 	auto CreateDefaultService = [&]() {
+		service = obs_service_create("rtmp_common", "default_service", nullptr, nullptr);
 		if (service == nullptr) {
 			return false;
 		}
@@ -933,28 +934,38 @@ bool OBS_service::createService()
 
 		obs_data_set_string(data, "type", obs_service_get_type(service));
 		obs_data_set_obj(data, "settings", settings);
+	};
 
+	if (!fileExist) {
+		CreateDefaultService();
 	} else {
-		data = obs_data_create_from_json_file_safe(ConfigManager::getInstance().getService().c_str(), "bak");
+		
+        data = obs_data_create_from_json_file_safe(ConfigManager::getInstance().getService().c_str(), "bak");
+        if (data == nullptr) {
+			util::CrashManager::AddWarning("User have invalid data on its service.json file, creating default service!");
+			CreateDefaultService();
+		} else {
 
-		obs_data_set_default_string(data, "type", "rtmp_common");
-		type = obs_data_get_string(data, "type");
+			obs_data_set_default_string(data, "type", "rtmp_common");
+			type = obs_data_get_string(data, "type");
 
-		settings    = obs_data_get_obj(data, "settings");
-		hotkey_data = obs_data_get_obj(data, "hotkeys");
+			settings    = obs_data_get_obj(data, "settings");
+			hotkey_data = obs_data_get_obj(data, "hotkeys");
 
-		service = obs_service_create(type, "default_service", settings, hotkey_data);
-		if (service == nullptr) {
-			obs_data_release(data);
+			service = obs_service_create(type, "default_service", settings, hotkey_data);
+			if (service == nullptr) {
+				obs_data_release(data);
+				obs_data_release(hotkey_data);
+				obs_data_release(settings);
+				return false;
+			}
+
 			obs_data_release(hotkey_data);
-			obs_data_release(settings);
-			return false;
-		}
-
-		obs_data_release(hotkey_data);
+        }
 	}
 
 	if (!obs_data_save_json_safe(data, ConfigManager::getInstance().getService().c_str(), "tmp", "bak")) {
+		util::CrashManager::AddWarning("Failed to save service.json!");
 		blog(LOG_WARNING, "Failed to save service %s", ConfigManager::getInstance().getService().c_str());
 	}
 
