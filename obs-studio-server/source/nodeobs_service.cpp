@@ -660,7 +660,12 @@ int OBS_service::resetVideoContext(bool reload)
 
     config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 
-	return obs_reset_video(&ovi);
+	try {
+		return obs_reset_video(&ovi);
+	} catch (const char* error) {
+		blog(LOG_ERROR, error);
+		return OBS_VIDEO_FAIL;
+	}
 }
 
 const char* FindAudioEncoderFromCodec(const char* type)
