@@ -34,7 +34,7 @@ void initGlobalDefault(config_t* config)
 	config_set_default_bool(config, "BasicWindow", "ScreenSnapping", true);
 	config_set_default_bool(config, "BasicWindow", "SourceSnapping", true);
 	config_set_default_bool(config, "BasicWindow", "CenterSnapping", false);
-	config_set_default_bool(config, "General", "BrowserHWAccel", true);
+	config_set_default_bool(config, "General", "BrowserHWAccel", false);
 
 	config_save_safe(config, "tmp", nullptr);
 }
