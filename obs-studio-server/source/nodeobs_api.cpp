@@ -852,6 +852,7 @@ void acknowledgeTerminate(void)
 	BOOL   fSuccess;
 	LPTSTR lpszPipename = TEXT("\\\\.\\pipe\\exit-slobs-crash-handler");
 
+	std::cout << "Create event" << std::endl;
 	hEvents = CreateEvent(NULL, TRUE, TRUE, NULL);
 
 	if (hEvents == NULL) {
@@ -860,6 +861,7 @@ void acknowledgeTerminate(void)
 
 	Pipe.oOverlap.hEvent = hEvents;
 
+	std::cout << "Create pipe" << std::endl;
 	Pipe.hPipeInst = CreateNamedPipe(
 	    lpszPipename,
 	    PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED,
@@ -874,6 +876,7 @@ void acknowledgeTerminate(void)
 		return;
 	}
 
+	std::cout << "Connect to client" << std::endl;
 	Pipe.fPendingIO = ConnectToNewClient(Pipe.hPipeInst, &(Pipe.oOverlap));
 
 	Pipe.dwState = Pipe.fPendingIO ? CONNECTING_STATE : READING_STATE;
@@ -889,19 +892,23 @@ void acknowledgeTerminate(void)
 		if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() > 5000) {
 			// We timeout, crash handler failed to send the shutdown acknowledge,
 			// we move forward with the shutdown procedure
+			std::cout << "Timeout, exit" << std::endl;
 			exit = true;
 			CloseHandle(Pipe.hPipeInst);
 			break;
 		}
 
+		std::cout << "Wait for single object" << std::endl;
 		dwWait = WaitForSingleObject(hEvents, 500);
 
 		if (dwWait == WAIT_OBJECT_0) {
 			if (Pipe.fPendingIO) {
+				std::cout << "get overlapped result" << std::endl;
 				fSuccess = GetOverlappedResult(Pipe.hPipeInst, &(Pipe.oOverlap), &cbRet, FALSE);
 
 				switch (Pipe.dwState) {
 				case CONNECTING_STATE: {
+					std::cout << "Connecting state" << std::endl;
 					if (!fSuccess) {
 						break;
 					}
@@ -909,7 +916,9 @@ void acknowledgeTerminate(void)
 					break;
 				}
 				case READING_STATE: {
+					std::cout << "Reading state" << std::endl;
 					if (!fSuccess || cbRet == 0) {
+						std::cout << "Fail read, disconnecting" << std::endl;
 						exit = true;
 						DisconnectAndReconnect();
 						break;
@@ -926,6 +935,7 @@ void acknowledgeTerminate(void)
 
 			switch (Pipe.dwState) {
 			case READING_STATE: {
+				std::cout << "Read pipe" << std::endl;
 				Pipe.chRequest.resize(BUFFSIZE);
 				fSuccess = ReadFile(
 				    Pipe.hPipeInst,
@@ -934,17 +944,21 @@ void acknowledgeTerminate(void)
 				    &Pipe.cbRead,
 				    &Pipe.oOverlap);
 
+				std::cout << "Get result" << std::endl;
 				GetOverlappedResult(Pipe.hPipeInst, &Pipe.oOverlap, &Pipe.cbRead, true);
 
 				// The read operation completed successfully.
 				if (Pipe.cbRead > 0) {
 					Pipe.fPendingIO = FALSE;
 				}
+				std::cout << "Get last error" << std::endl;
 				dwErr = GetLastError();
 				if (!fSuccess && (dwErr == ERROR_IO_PENDING)) {
+					std::cout << "Read message" << std::endl;
 					Pipe.fPendingIO = TRUE;
 					break;
 				}
+				std::cout << "Completed, exit" << std::endl;
 				exit = true;
 				DisconnectAndReconnect();
 				break;
