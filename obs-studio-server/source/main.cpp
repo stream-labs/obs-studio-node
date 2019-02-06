@@ -122,9 +122,11 @@ namespace System
 	static void
 	    Shutdown(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 	{
+		std::cout << "Shutting down" << std::endl;
 		bool* shutdown = (bool*)data;
 		*shutdown      = true;
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+		std::cout << "Shutdown" << std::endl;
 		return;
 	}
 } // namespace System

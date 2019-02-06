@@ -960,6 +960,7 @@ void OBS_API::StopCrashHandler(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	std::cout << "Stopping crash handler" << std::endl;
 	std::thread worker(acknowledgeTerminate);
 	writeCrashHandler(unregisterProcess());
 
@@ -969,11 +970,13 @@ void OBS_API::StopCrashHandler(
 	writeCrashHandler(terminateCrashHandler());
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	std::cout << "Stopped crash handler" << std::endl;
 	AUTO_DEBUG;
 }
 
 void OBS_API::destroyOBS_API(void)
 {
+	std::cout << "Destroying OBS API" << std::endl;
 	os_cpu_usage_info_destroy(cpuUsageInfo);
 
 #ifdef _WIN32
@@ -1032,6 +1035,8 @@ void OBS_API::destroyOBS_API(void)
 	if (totalLeaks) {
 		// throw "OBS has memory leaks";
 	}
+
+	std::cout << "Destroyed OBS API" << std::endl;
 }
 
 struct ci_char_traits : public std::char_traits<char>
