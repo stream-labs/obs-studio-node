@@ -42,22 +42,8 @@ void osn::Video::GetGlobal(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	uint64_t uid;
-
-	if (handler) {
-		uid = osn::Video::Manager::GetInstance().find(handler);
-	} else {
-		handler = obs_get_video();
-		uid     = osn::Video::Manager::GetInstance().allocate(handler);
-	}
-
-	if (uid == UINT64_MAX) {
-		// No further Ids left, leak somewhere.
-		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
-		rval.push_back(ipc::value("Index list is full."));
-		AUTO_DEBUG;
-		return;
-	}
+    // TODO: Remove me and refers to the video context as a global instance, we don't need uids for this
+	uint64_t uid = 0;
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
@@ -71,16 +57,8 @@ void osn::Video::GetSkippedFrames(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	video_t* video = osn::Video::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!video) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Video context is not valid."));
-		AUTO_DEBUG;
-		return;
-	}
-
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(video_output_get_skipped_frames(video)));
+	rval.push_back(ipc::value(video_output_get_skipped_frames(obs_get_video())));
 	AUTO_DEBUG;
 }
 
@@ -90,21 +68,7 @@ void osn::Video::GetTotalFrames(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	video_t* video = osn::Video::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!video) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Video context is not valid."));
-		AUTO_DEBUG;
-		return;
-	}
-
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(video_output_get_total_frames(video)));
+	rval.push_back(ipc::value(video_output_get_total_frames(obs_get_video())));
 	AUTO_DEBUG;
-}
-
-osn::Video::Manager& osn::Video::Manager::GetInstance()
-{
-	static osn::Video::Manager _inst;
-	return _inst;
 }

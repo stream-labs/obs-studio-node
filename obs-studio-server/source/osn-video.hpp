@@ -38,8 +38,6 @@ namespace osn
 			Manager(Manager const&) = delete;
 			Manager operator=(Manager const&) = delete;
 
-			public:
-			static Manager& GetInstance();
 		};
 
 		public:
