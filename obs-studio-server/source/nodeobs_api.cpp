@@ -503,7 +503,18 @@ void OBS_API::OBS_API_initAPI(
 	ConfigManager::getInstance().setAppdataPath(appdata);
 
 	/* Set global private settings for whomever it concerns */
-	bool        browserHWAccel   = config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "BrowserHWAccel");
+	bool browserHWAccel = config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "BrowserHWAccel");
+	std::wstring buffer;
+	uint32_t     bufferSize = 4;
+	buffer.resize(bufferSize);
+	DWORD result = GetEnvironmentVariable(L"BROWSER_SOURCE_HARDWARE_ACCELERATION", &buffer[0], bufferSize);
+	if (result != 0) {
+		if (wcscmp(buffer.data(), L"OFF") == 0) {
+			browserHWAccel = false;
+		}
+	}
+	buffer.clear();
+
 	obs_data_t* private_settings = obs_data_create();
 	obs_data_set_bool(private_settings, "BrowserHWAccel", browserHWAccel);
 	obs_apply_private_data(private_settings);
