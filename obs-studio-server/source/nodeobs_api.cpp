@@ -961,12 +961,15 @@ void OBS_API::StopCrashHandler(
     std::vector<ipc::value>&       rval)
 {
 	std::cout << "Stopping crash handler" << std::endl;
+	std::cout << "Acknowledge crash handler" << std::endl;
 	std::thread worker(acknowledgeTerminate);
+	std::cout << "Write unregister process" << std::endl;
 	writeCrashHandler(unregisterProcess());
 
 	if (worker.joinable())
 		worker.join();
 
+	std::cout << "Write terminate process" << std::endl;
 	writeCrashHandler(terminateCrashHandler());
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
