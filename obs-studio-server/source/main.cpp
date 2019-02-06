@@ -307,8 +307,11 @@ int main(int argc, char* argv[])
 		std::this_thread::sleep_for(std::chrono::milliseconds(50));
 	}
 
+	std::cout << "End server loop" << std::endl;
+
 	// Wait on receive the exit message from the crash-handler
 	if (waitBeforeClosing) {
+		std::cout << "Waiting for crash-handler" << std::endl;
 		HANDLE hPipe;
 		TCHAR  chBuf[BUFFSIZE];
 		DWORD  cbRead;
@@ -333,11 +336,14 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	std::cout << "Call shutdown functions" << std::endl;
 	osn::Source::finalize_global_signals();
 	OBS_API::destroyOBS_API();
 
+	std::cout << "Finalizing server" << std::endl;
 	// Finalize Server
 	myServer.finalize();
 
+	std::cout << "End" << std::endl;
 	return 0;
 }
