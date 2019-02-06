@@ -63,7 +63,6 @@ class OBS_API
 
 	private:
 	static void initAPI(void);
-	static void destroyOBS_API(void);
 	static bool openAllModules(int& video_err);
 
 	static double getCPU_Percentage(void);
@@ -94,4 +93,5 @@ class OBS_API
 
 	static void UpdateProcessPriority(void);
 	static void SetProcessPriority(const char* priority);
+	static void destroyOBS_API(void);
 };
