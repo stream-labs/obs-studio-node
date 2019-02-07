@@ -144,6 +144,338 @@ std::string FormatVAString(const char* const format, va_list args)
 	return std::string{temp.data(), length};
 }
 
+std::map<void*, std::pair<size_t, std::vector<std::string>>> s_Allocations;
+std::mutex              s_AllocationMutex;
+
+#include <WinBase.h>
+#include "DbgHelp.h"
+#include "Shlobj.h"
+#pragma comment(lib, "Dbghelp.lib")
+#pragma comment(lib, "pdh.lib")
+#include <fcntl.h>
+#include <io.h>
+#include <windows.h>
+#include "TCHAR.h"
+#include "pdh.h"
+#include "psapi.h"
+#include <Windows.h>
+
+std::vector<std::string> RewindCallStack()
+{
+	std::vector<std::string> result;
+
+#ifndef _DEBUG
+#if defined(_WIN32)
+
+	// Get the function to rewing the callstack
+	typedef USHORT(WINAPI * CaptureStackBackTraceType)(__in ULONG, __in ULONG, __out PVOID*, __out_opt PULONG);
+	CaptureStackBackTraceType func =
+	    (CaptureStackBackTraceType)(GetProcAddress(LoadLibrary(L"kernel32.dll"), "RtlCaptureStackBackTrace"));
+	if (func == NULL)
+		return result; // WOE 29.SEP.2010
+
+	// Quote from Microsoft Documentation:
+	// ## Windows Server 2003 and Windows XP:
+	// ## The sum of the FramesToSkip and FramesToCapture parameters must be less than 63.
+	const int       kMaxCallers = 62;
+	void*           callers_stack[kMaxCallers];
+	unsigned short  frames;
+	SYMBOL_INFO*    symbol;
+	HANDLE          process;
+	DWORD           dwDisplacement = 0;
+	IMAGEHLP_LINE64 line;
+
+	// Get the callstack information (values/constants here retrieve from microsoft page)
+	SymSetOptions(SYMOPT_LOAD_LINES);
+	process = GetCurrentProcess();
+	SymInitialize(process, NULL, TRUE);
+	frames               = (func)(0, kMaxCallers, callers_stack, NULL);
+	symbol               = (SYMBOL_INFO*)calloc(sizeof(SYMBOL_INFO) + 256 * sizeof(char), 1);
+	symbol->MaxNameLen   = 255;
+	symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+	std::vector<std::string> callstack;
+	int                      writingIndex = -1;
+
+	// Currently 50 is the maximum that we can display on backtrace in one single attribute
+	const unsigned short MAX_CALLERS_SHOWN = 50;
+	frames                                 = frames < MAX_CALLERS_SHOWN ? frames : MAX_CALLERS_SHOWN;
+	std::vector<int> missingFrames;
+	for (int i = frames - 1; i >= 0; i--) {
+		if (!SymFromAddr(process, (DWORD64)(callers_stack[i]), 0, symbol)
+		    || !SymGetLineFromAddr64(process, (DWORD64)(callers_stack[i]), &dwDisplacement, &line)) {
+			// Add the frame index to the missing frames vector
+			missingFrames.push_back(i);
+			continue;
+		}
+
+		std::stringstream buffer;
+		std::string       fullPath = line.FileName;
+		std::string       fileName;
+		std::string       functionName = symbol->Name;
+		std::string       instructionAddress;
+		std::string       symbolAddress = std::to_string(symbol->Address);
+
+		// Get the filename from the fullpath
+		size_t pos = fullPath.rfind("\\", fullPath.length());
+		if (pos != std::string::npos) {
+			fileName = (fullPath.substr(pos + 1, fullPath.length() - pos));
+		}
+
+		// Ignore any report that refers to this file
+		if (fileName == "util-crashmanager.cpp")
+			continue;
+
+		// Store the callstack address into the buffer (void* to std::string)
+		buffer << callers_stack[i];
+
+		// A little of magic to shorten the address lenght
+		instructionAddress = buffer.str();
+		pos                = instructionAddress.find_first_not_of("0");
+		if (pos != std::string::npos && pos <= 4) {
+			instructionAddress = (instructionAddress.substr(pos + 1, instructionAddress.length() - pos));
+		}
+
+		// Transform the addresses to lowercase
+		transform(instructionAddress.begin(), instructionAddress.end(), instructionAddress.begin(), ::tolower);
+		transform(symbolAddress.begin(), symbolAddress.end(), symbolAddress.begin(), ::tolower);
+
+        std::string entry = functionName + " - " + fileName + std::to_string(line.LineNumber);
+		result.push_back(entry);
+
+        // entry["function"]         = functionName;
+		// entry["filename"]         = fileName;
+		// entry["lineno"]           = line.LineNumber;
+		// entry["instruction addr"] = "0x" + instructionAddress;
+		// entry["symbol addr"]      = "0x" + symbolAddress;
+	}
+
+	free(symbol);
+
+#endif
+#endif
+
+	return result;
+}
+
+void BindCrtHandlesToStdHandles(bool bindStdIn, bool bindStdOut, bool bindStdErr)
+{
+	// Re-initialize the C runtime "FILE" handles with clean handles bound to "nul". We do this because it has been
+	// observed that the file number of our standard handle file objects can be assigned internally to a value of -2
+	// when not bound to a valid target, which represents some kind of unknown internal invalid state. In this state our
+	// call to "_dup2" fails, as it specifically tests to ensure that the target file number isn't equal to this value
+	// before allowing the operation to continue. We can resolve this issue by first "re-opening" the target files to
+	// use the "nul" device, which will place them into a valid state, after which we can redirect them to our target
+	// using the "_dup2" function.
+	if (bindStdIn) {
+		FILE* dummyFile;
+		freopen_s(&dummyFile, "nul", "r", stdin);
+	}
+	if (bindStdOut) {
+		FILE* dummyFile;
+		freopen_s(&dummyFile, "nul", "w", stdout);
+	}
+	if (bindStdErr) {
+		FILE* dummyFile;
+		freopen_s(&dummyFile, "nul", "w", stderr);
+	}
+
+	// Redirect unbuffered stdin from the current standard input handle
+	if (bindStdIn) {
+		HANDLE stdHandle = GetStdHandle(STD_INPUT_HANDLE);
+		if (stdHandle != INVALID_HANDLE_VALUE) {
+			int fileDescriptor = _open_osfhandle((intptr_t)stdHandle, _O_TEXT);
+			if (fileDescriptor != -1) {
+				FILE* file = _fdopen(fileDescriptor, "r");
+				if (file != NULL) {
+					int dup2Result = _dup2(_fileno(file), _fileno(stdin));
+					if (dup2Result == 0) {
+						setvbuf(stdin, NULL, _IONBF, 0);
+					}
+				}
+			}
+		}
+	}
+
+	// Redirect unbuffered stdout to the current standard output handle
+	if (bindStdOut) {
+		HANDLE stdHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+		if (stdHandle != INVALID_HANDLE_VALUE) {
+			int fileDescriptor = _open_osfhandle((intptr_t)stdHandle, _O_TEXT);
+			if (fileDescriptor != -1) {
+				FILE* file = _fdopen(fileDescriptor, "w");
+				if (file != NULL) {
+					int dup2Result = _dup2(_fileno(file), _fileno(stdout));
+					if (dup2Result == 0) {
+						setvbuf(stdout, NULL, _IONBF, 0);
+					}
+				}
+			}
+		}
+	}
+
+	// Redirect unbuffered stderr to the current standard error handle
+	if (bindStdErr) {
+		HANDLE stdHandle = GetStdHandle(STD_ERROR_HANDLE);
+		if (stdHandle != INVALID_HANDLE_VALUE) {
+			int fileDescriptor = _open_osfhandle((intptr_t)stdHandle, _O_TEXT);
+			if (fileDescriptor != -1) {
+				FILE* file = _fdopen(fileDescriptor, "w");
+				if (file != NULL) {
+					int dup2Result = _dup2(_fileno(file), _fileno(stderr));
+					if (dup2Result == 0) {
+						setvbuf(stderr, NULL, _IONBF, 0);
+					}
+				}
+			}
+		}
+	}
+
+	// Clear the error state for each of the C++ standard stream objects. We need to do this, as attempts to access the
+	// standard streams before they refer to a valid target will cause the iostream objects to enter an error state. In
+	// versions of Visual Studio after 2005, this seems to always occur during startup regardless of whether anything
+	// has been read from or written to the targets or not.
+	if (bindStdIn) {
+		std::wcin.clear();
+		std::cin.clear();
+	}
+	if (bindStdOut) {
+		std::wcout.clear();
+		std::cout.clear();
+	}
+	if (bindStdErr) {
+		std::wcerr.clear();
+		std::cerr.clear();
+	}
+}
+
+static void* a_malloc(size_t size)
+{
+#ifdef ALIGNED_MALLOC
+	return _aligned_malloc(size, ALIGNMENT);
+#elif ALIGNMENT_HACK
+	void* ptr = NULL;
+	long  diff;
+
+	ptr = malloc(size + ALIGNMENT);
+	if (ptr) {
+		diff             = ((~(long)ptr) & (ALIGNMENT - 1)) + 1;
+		ptr              = (char*)ptr + diff;
+		((char*)ptr)[-1] = (char)diff;
+	}
+
+	return ptr;
+#else
+	return malloc(size);
+#endif
+}
+
+static void* Alloc(size_t size)
+{
+	void* ptr = a_malloc(size);
+
+    std::lock_guard<std::mutex> lock(s_AllocationMutex);
+	s_Allocations.insert({ptr, {size, RewindCallStack()}});
+
+    return ptr;
+}
+
+static void* a_realloc(void* ptr, size_t size)
+{
+#ifdef ALIGNED_MALLOC
+	return _aligned_realloc(ptr, size, ALIGNMENT);
+#elif ALIGNMENT_HACK
+	long diff;
+
+	if (!ptr)
+		return a_malloc(size);
+	diff = ((char*)ptr)[-1];
+	ptr  = realloc((char*)ptr - diff, size + diff);
+	if (ptr)
+		ptr = (char*)ptr + diff;
+	return ptr;
+#else
+	return realloc(ptr, size);
+#endif
+}
+
+static void* Realloc(void* ptr, size_t size)
+{
+	s_AllocationMutex.lock();
+	s_Allocations.erase(ptr);
+	s_AllocationMutex.unlock();
+
+	ptr = a_realloc(ptr, size);
+
+    s_AllocationMutex.lock();
+	s_Allocations.insert({ptr, {size, RewindCallStack()}});
+	s_AllocationMutex.unlock();
+
+    return ptr;
+}
+
+static void a_free(void* ptr)
+{
+	s_AllocationMutex.lock();
+	auto size = s_Allocations[ptr].first;
+	s_AllocationMutex.unlock();
+
+	memset(ptr, 0, size);
+	
+    s_AllocationMutex.lock();
+    s_Allocations.erase(ptr);
+	s_AllocationMutex.unlock();
+
+#ifdef ALIGNED_MALLOC
+	_aligned_free(ptr);
+#elif ALIGNMENT_HACK
+	if (ptr)
+		free((char*)ptr - ((char*)ptr)[-1]);
+#else
+	free(ptr);
+#endif
+}
+
+static struct base_allocator alloc = {Alloc, Realloc, a_free};
+
+#include <set>
+
+void PrintLog()
+{
+	std::set<std::pair<size_t, uint32_t>> processedStuff;
+	std::ofstream                         myfile;
+	myfile.open("Leaks.txt");
+
+	for (auto& log : s_Allocations)
+    {
+        auto iter = processedStuff.find({log.second.first, uint32_t(log.second.second.size())});
+		if (iter != processedStuff.end()) {
+            // Repeated stuff, ignore
+			continue;
+        }
+
+        myfile << "-------------------------" << "\n";
+		std::cout << "-------------------------" << std::endl;
+
+        processedStuff.insert({log.second.first, uint32_t(log.second.second.size())});
+
+		auto valuePair = log.second;
+		for (auto& entry : valuePair.second)
+        {
+			myfile << entry << "\n";
+
+			std::cout << entry << std::endl;
+        }
+
+         myfile << "-------------------------" << "\n";
+		std::cout << "-------------------------" << std::endl;
+    }
+
+    while (true)
+    {
+
+    }
+}
+
 int main(int argc, char* argv[])
 {
 #ifndef _DEBUG
@@ -199,6 +531,12 @@ int main(int argc, char* argv[])
 	// Setup the crashpad info that will be used in case the obs throws an error
 	CrashpadInfo crashpadInfo = {handler, db, url, arguments, client};
 
+    // Allocate a console window for this process
+	AllocConsole();
+
+	// Update the C/C++ runtime standard input, output, and error targets to use the console window
+	BindCrtHandlesToStdHandles(true, true, true);
+
 #endif
 
 	// Usage:
@@ -245,6 +583,8 @@ int main(int argc, char* argv[])
 	OBS_settings::Register(myServer);
 	OBS_settings::Register(myServer);
 	autoConfig::Register(myServer);
+
+    base_set_allocator(&alloc);
 
 	// Register Connect/Disconnect Handlers
 	myServer.set_connect_handler(ServerConnectHandler, &sd);
@@ -325,13 +665,15 @@ int main(int argc, char* argv[])
 			if (ConnectNamedPipe(hPipe, NULL) != FALSE) {
 				BOOL fSuccess = ReadFile(hPipe, chBuf, BUFFSIZE * sizeof(TCHAR), &cbRead, NULL);
 
-				if (!fSuccess)
+				if (!fSuccess) {
+					PrintLog();
 					return 0;
+                }
 				CloseHandle(hPipe);
 			}
 		}
 	}
-
+	PrintLog();
 	// Finalize Server
 	myServer.finalize();
 
