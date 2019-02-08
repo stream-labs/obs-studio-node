@@ -1,7 +1,8 @@
 import 'mocha'
 import { expect } from 'chai'
 import * as osn from 'obs-studio-node';
-import { OBSProcessHandler } from '../util/obs_process_handler'
+import { OBSProcessHandler } from '../util/obs_process_handler';
+import { getCppErrorMsg } from '../util/general';
 
 interface IPerformanceState {
     CPU: number;
@@ -32,21 +33,19 @@ describe('nodebs_api', () => {
         }
     });
 
-    after(function(done) {
-        this.timeout(5000);
+    after(function() {
         obs.shutdown();
         obs = null;
-        setTimeout(done, 3000);
     });
 
     context('# OBS_API_getPerformanceStatistics', () => {
-        it('should fill stats object', () => {
+        it('Fill stats object', () => {
             let stats: IPerformanceState;
 
             try {
                 stats = osn.NodeObs.OBS_API_getPerformanceStatistics();
             } catch(e) {
-                throw new Error("OBS_API_getPerformanceStatistics threw an expection");
+                throw new Error(getCppErrorMsg(e));
             }
             
             expect(stats.CPU).to.not.equal(undefined);
@@ -58,17 +57,17 @@ describe('nodebs_api', () => {
     });
 
     context('# OBS_API_QueryHotkeys', () => {
-        it('should get all hotkeys', () => {
+        it('Get all hotkeys', () => {
             try {
                 obsHotkeys = osn.NodeObs.OBS_API_QueryHotkeys();
             } catch(e) {
-                throw new Error("OBS_API_QueryHotkeys threw an expection");
+                throw new Error(getCppErrorMsg(e));
             }
         });
     });
 
     context('# OBS_API_ProcessHotkeyStatus', () => {
-        it('should process all hot keys gotten previously', () => {
+        it('Process all hot keys gotten previously', () => {
             let hotkeyId: any;
             let isKeyDown: boolean;
 
@@ -76,12 +75,12 @@ describe('nodebs_api', () => {
                 try {
                     osn.NodeObs.OBS_API_ProcessHotkeyStatus(hotkeyId, isKeyDown);
                 } catch(e) {
-                    throw new Error("hotkeyId " + hotkeyId + "does not exist");
+                    throw new Error(getCppErrorMsg(e));
                 }
             }
         });
 
-        it('should throw error if hot key id does not exist', () => {
+        it('FAIL TEST: Try to process hot key id that does not exist', () => {
             let isKeyDown: boolean;
 
             expect(function() {

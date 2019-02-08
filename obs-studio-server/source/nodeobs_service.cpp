@@ -1,3 +1,21 @@
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
+
 #include "nodeobs_service.h"
 #include <ShlObj.h>
 #include <windows.h>
@@ -660,7 +678,12 @@ int OBS_service::resetVideoContext(bool reload)
 
     config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 
-	return obs_reset_video(&ovi);
+	try {
+		return obs_reset_video(&ovi);
+	} catch (const char* error) {
+		blog(LOG_ERROR, error);
+		return OBS_VIDEO_FAIL;
+	}
 }
 
 const char* FindAudioEncoderFromCodec(const char* type)
@@ -1398,6 +1421,20 @@ void OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(bool
 
 void OBS_service::setServiceToTheStreamingOutput(void)
 {
+	obs_data_t* settings = obs_service_get_settings(service);
+	const char* platform = obs_data_get_string(settings, "service");
+
+	const char* server = obs_service_get_url(service);
+
+	if (platform && strcmp(platform, "Twitch") == 0) {
+		if (!server || strcmp(server, "") == 0) {
+			server = "auto";
+			obs_data_set_string(settings, "server", server);
+			obs_service_update(service, settings);
+		}
+	}
+
+	obs_data_release(settings);
 	obs_output_set_service(streamingOutput, service);
 }
 
