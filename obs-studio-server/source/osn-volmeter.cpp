@@ -23,6 +23,8 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
+std::mutex s_DeletionMutex;
+
 osn::VolMeter::Manager& osn::VolMeter::Manager::GetInstance()
 {
 	static Manager _inst;
@@ -65,6 +67,8 @@ void osn::VolMeter::Register(ipc::server& srv)
 
 void osn::VolMeter::ClearVolmeters()
 {
+	std::lock_guard<std::mutex> lock(s_DeletionMutex);
+
     Manager::GetInstance().for_each([](const std::shared_ptr<osn::VolMeter>& volmeter)
     {
         if (volmeter->id2) {
@@ -299,6 +303,8 @@ void osn::VolMeter::Query(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	std::lock_guard<std::mutex> lock(s_DeletionMutex);
+
 	auto uid   = args[0].value_union.ui64;
 	auto meter = Manager::GetInstance().find(uid);
 	if (!meter) {
