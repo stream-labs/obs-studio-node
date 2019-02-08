@@ -69,23 +69,15 @@ describe('nodebs_api', () => {
     context('# OBS_API_ProcessHotkeyStatus', () => {
         it('Process all hot keys gotten previously', () => {
             let hotkeyId: any;
-            let isKeyDown: boolean;
+            let isKeyDown: boolean = true;
 
             for (hotkeyId in obsHotkeys) {
                 try {
-                    osn.NodeObs.OBS_API_ProcessHotkeyStatus(hotkeyId, isKeyDown);
+                    osn.NodeObs.OBS_API_ProcessHotkeyStatus(+hotkeyId, isKeyDown);
                 } catch(e) {
                     throw new Error(getCppErrorMsg(e));
                 }
             }
-        });
-
-        it('FAIL TEST: Try to process hot key id that does not exist', () => {
-            let isKeyDown: boolean;
-
-            expect(function() {
-                osn.NodeObs.OBS_API_ProcessHotkeyStatus(99999, isKeyDown);
-            }).to.throw();
         });
     });
 });

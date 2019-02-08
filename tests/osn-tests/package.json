@@ -9,7 +9,8 @@
   "license": "GPL-3.0",
   "dependencies": {
     "obs-studio-node": "/projects/obs-studio-node/streamlabs-build/distribute/obs-studio-node",
-    "typescript": "^2.8.1"
+    "typescript": "^2.8.1",
+    "uuid": "^3.0.1"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
