@@ -1,19 +1,20 @@
-// Client module for the OBS Studio node module.
-// Copyright(C) 2017 Streamlabs (General Workings Inc)
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
 
 #include "volmeter.hpp"
 #include <iostream>
@@ -25,8 +26,6 @@
 #include "shared.hpp"
 #include "utility-v8.hpp"
 #include "utility.hpp"
-
-using namespace std::placeholders;
 
 osn::VolMeter::VolMeter(uint64_t p_uid)
 {
@@ -51,7 +50,7 @@ void osn::VolMeter::start_async_runner()
 
 	// Start v8/uv asynchronous runner.
 	m_async_callback = new osn::VolMeterCallback();
-	m_async_callback->set_handler(std::bind(&VolMeter::callback_handler, this, _1, _2), nullptr);
+	m_async_callback->set_handler(std::bind(&VolMeter::callback_handler, this, std::placeholders::_1, std::placeholders::_2), nullptr);
 }
 
 void osn::VolMeter::stop_async_runner()
@@ -145,7 +144,11 @@ void osn::VolMeter::worker()
 					data->input_peak[ch] = response[1 + ch * 3 + 2].value_union.fp32;
 				}
 				m_async_callback->queue(std::move(data));
-			} else {
+			} else if(error == ErrorCode::InvalidReference) {
+				goto do_sleep;
+			}
+			else
+			{
 				std::cerr << "Failed VolMeter" << std::endl;
 				break;
 			}
@@ -223,17 +226,6 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Create(Nan::NAN_METHOD_ARGS_TYPE info
 	auto* newVolmeter              = new osn::VolMeter(rval[1].value_union.ui64);
 	newVolmeter->m_sleep_interval  = rval[2].value_union.ui32;
 	info.GetReturnValue().Set(Store(newVolmeter));
-}
-
-Nan::NAN_METHOD_RETURN_TYPE
-    osn::VolMeter::OBS_Volmeter_ReleaseVolmeters(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		return; // Well, we can't really do anything here then.
-	}
-
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::GetUpdateInterval(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -443,7 +435,4 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::RemoveCallback(Nan::NAN_METHOD_ARGS_T
 
 INITIALIZER(nodeobs_volmeter)
 {
-	initializerFunctions.push([](v8::Local<v8::Object> exports) {
-		NODE_SET_METHOD(exports, "OBS_Volmeter_ReleaseVolmeters", osn::VolMeter::OBS_Volmeter_ReleaseVolmeters);
-	});
 }

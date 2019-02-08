@@ -1,3 +1,21 @@
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
+
 #include "nodeobs_service.hpp"
 #include "controller.hpp"
 #include "error.hpp"
@@ -9,10 +27,7 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
-using namespace std::placeholders;
-
 Service::Service(){};
-
 Service::~Service(){};
 
 void Service::start_async_runner()
@@ -22,7 +37,7 @@ void Service::start_async_runner()
 	std::unique_lock<std::mutex> ul(m_worker_lock);
 	// Start v8/uv asynchronous runner.
 	m_async_callback = new ServiceCallback();
-	m_async_callback->set_handler(std::bind(&Service::callback_handler, this, _1, _2), nullptr);
+	m_async_callback->set_handler(std::bind(&Service::callback_handler, this, std::placeholders::_1, std::placeholders::_2), nullptr);
 }
 void Service::stop_async_runner()
 {
