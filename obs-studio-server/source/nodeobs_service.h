@@ -193,7 +193,6 @@ class OBS_service
 	static void           setService(obs_service_t* newService);
 	static void           saveService(void);
 	static void           updateService(void);
-	static void           setServiceToTheStreamingOutput(void);
 
 	// Encoders
 	static bool           createAudioEncoder(obs_encoder_t** audioEncoder, std::string& id, int bitrate, const char* name, size_t idx);
@@ -209,9 +208,6 @@ class OBS_service
 	static void           setAudioSimpleRecordingEncoder(obs_encoder_t* encoder);
 
 	// Outputs
-	static bool          createStreamingOutput(void);
-	static bool          createRecordingOutput(void);
-	static void          createReplayBufferOutput(void);
 	static obs_output_t* getStreamingOutput(void);
 	static void          setStreamingOutput(obs_output_t* output);
 	static obs_output_t* getRecordingOutput(void);
@@ -221,6 +217,7 @@ class OBS_service
 
 	// Update settings
 	static void updateStreamSettings(void);
+	static void updateStreamingOutput(void);
 	static void updateRecordSettings(void);
 	static bool updateAdvancedReplayBuffer(void);
 
@@ -229,7 +226,6 @@ class OBS_service
 	static void updateVideoRecordingEncoder(void);
 
 	// Update outputs
-	static void updateStreamingOutput(void);
 	static void updateRecordingOutput(bool updateReplayBuffer);
 	static void updateAdvancedRecordingOutput(void);
 	static void UpdateFFmpegOutput(void);

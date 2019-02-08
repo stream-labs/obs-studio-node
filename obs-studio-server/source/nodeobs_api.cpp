@@ -536,9 +536,6 @@ void OBS_API::OBS_API_initAPI(
 	}
 
 	OBS_service::createService();
-	OBS_service::createStreamingOutput();
-	OBS_service::createRecordingOutput();
-	OBS_service::createReplayBufferOutput();
 
 	OBS_service::createVideoStreamingEncoder();
 	OBS_service::createVideoRecordingEncoder();
@@ -551,9 +548,7 @@ void OBS_API::OBS_API_initAPI(
 
 	OBS_service::associateAudioAndVideoEncodersToTheCurrentStreamingOutput();
 	OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(false);
-
-	OBS_service::setServiceToTheStreamingOutput();
-
+	
 	setAudioDeviceMonitoring();
 
 	// Enable the hotkey callback rerouting that will be used when manually handling hotkeys on the frontend

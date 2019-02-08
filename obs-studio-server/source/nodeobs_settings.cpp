@@ -3292,7 +3292,6 @@ void OBS_settings::saveSettings(std::string nameCategory, std::vector<SubCategor
 		saveGenericSettings(settings, "BasicWindow", ConfigManager::getInstance().getGlobal());
 	} else if (nameCategory.compare("Stream") == 0) {
 		saveStreamSettings(settings);
-		OBS_service::updateService();
 	} else if (nameCategory.compare("Output") == 0) {
 		saveOutputSettings(settings);
 	} else if (nameCategory.compare("Audio") == 0) {
