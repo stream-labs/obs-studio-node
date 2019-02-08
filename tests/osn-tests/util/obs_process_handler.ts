@@ -3,8 +3,10 @@ import * as osn from 'obs-studio-node';
 export class OBSProcessHandler {
     startup(): boolean {
         const path = require('path');
+        const uuid = require('uuid/v4');
+
         const wd = path.join(path.normalize(__dirname), '..', 'node_modules', 'obs-studio-node');
-        const pipeName = 'osn-tests-pipe';  
+        const pipeName = 'osn-tests-pipe'.concat(uuid());  
 
         try {
             osn.NodeObs.IPC.host(pipeName);
