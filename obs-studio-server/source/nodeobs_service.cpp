@@ -34,7 +34,7 @@ obs_encoder_t* videoStreamingEncoder = nullptr;
 obs_encoder_t* videoRecordingEncoder = nullptr;
 obs_service_t* service               = nullptr;
 
-obs_encoder_t* accTracks[MAX_AUDIO_MIXES];
+obs_encoder_t* aacTracks[MAX_AUDIO_MIXES];
 std::string    aacEncodersID[MAX_AUDIO_MIXES];
 
 std::string aacSimpleRecEncID;
@@ -855,14 +855,14 @@ bool OBS_service::startStreaming(void)
 			char name[9];
 			sprintf(name, "adv_aac%d", i);
 
-			if (!createAudioEncoder(&(accTracks[i]), aacEncodersID[i], GetAdvancedAudioBitrate(i), name, i))
+			if (!createAudioEncoder(&(aacTracks[i]), aacEncodersID[i], GetAdvancedAudioBitrate(i), name, i))
 				throw "Failed to create audio encoder "
 			      "(advanced output)";
-			obs_encoder_set_audio(accTracks[i], obs_get_audio());
+			obs_encoder_set_audio(aacTracks[i], obs_get_audio());
 		}
 
 		if (strcmp(codec, "aac") == 0) {
-			audioAdvancedStreamingEncoder = accTracks[trackIndex - 1];
+			audioAdvancedStreamingEncoder = aacTracks[trackIndex - 1];
 		} else {
 			const char* id           = FindAudioEncoderFromCodec(codec);
 			int         audioBitrate = GetAdvancedAudioBitrate(trackIndex - 1);
@@ -917,7 +917,7 @@ bool OBS_service::startRecording(void)
 			char name[9];
 			sprintf(name, "adv_aac%d", i);
 
-			if (!createAudioEncoder(&(accTracks[i]), aacEncodersID[i], GetAdvancedAudioBitrate(i), name, i))
+			if (!createAudioEncoder(&(aacTracks[i]), aacEncodersID[i], GetAdvancedAudioBitrate(i), name, i))
 				throw "Failed to create audio encoder "
 			      "(advanced output)";
 		}
@@ -1131,7 +1131,7 @@ void OBS_service::associateAudioAndVideoToTheCurrentRecordingContext(void)
 			obs_encoder_set_scaled_size(videoRecordingEncoder, cx, cy);
 		}
 		for (size_t i = 0; i < MAX_AUDIO_MIXES; i++)
-			obs_encoder_set_audio(accTracks[i], obs_get_audio());
+			obs_encoder_set_audio(aacTracks[i], obs_get_audio());
 	} else {
 		obs_encoder_set_audio(audioSimpleRecordingEncoder, obs_get_audio());
 	}
@@ -1525,10 +1525,10 @@ void OBS_service::updateAdvancedRecordingOutput(void)
 
 	for (int i = 0; i < MAX_AUDIO_MIXES; i++) {
 		if ((tracks & (1 << i)) != 0) {
-			obs_output_set_audio_encoder(recordingOutput, accTracks[i], idx);
+			obs_output_set_audio_encoder(recordingOutput, aacTracks[i], idx);
 
 			if (replayBuffer)
-				obs_output_set_audio_encoder(replayBuffer, accTracks[i], idx);
+				obs_output_set_audio_encoder(replayBuffer, aacTracks[i], idx);
 			idx++;
 		}
 	}
