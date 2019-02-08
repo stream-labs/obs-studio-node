@@ -23,28 +23,12 @@
 
 namespace osn
 {
-	class Video : public Nan::ObjectWrap, public utilv8::ManagedObject<osn::Video>
+	class Video
 	{
-		friend class utilv8::ManagedObject<osn::Video>;
-
-		public:
-		Video(uint64_t id)
-		{
-			this->handler = id;
-		};
-
-		public:
-		static Nan::Persistent<v8::FunctionTemplate> prototype;
-		uint64_t                                     handler;
-
-		public:
-		Video();
-
 		public:
 		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 
-		static Nan::NAN_METHOD_RETURN_TYPE GetGlobal(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetSkippedFrames(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetTotalFrames(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE skippedFrames(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE encodedFrames(Nan::NAN_METHOD_ARGS_TYPE info);
 	};
 } // namespace osn
