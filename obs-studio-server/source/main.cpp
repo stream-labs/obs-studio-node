@@ -332,6 +332,9 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	osn::Source::finalize_global_signals();
+	OBS_API::destroyOBS_API();
+
 	// Finalize Server
 	myServer.finalize();
 

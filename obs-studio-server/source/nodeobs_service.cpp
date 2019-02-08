@@ -644,8 +644,15 @@ int OBS_service::resetVideoContext(bool reload)
 		if (ovi.base_width > 1280 && ovi.base_height > 720) {
 			int idx = 0;
 			do {
-				ovi.output_width  = uint32_t(double(ovi.base_width) / vals[idx]);
-				ovi.output_height = uint32_t(double(ovi.base_height) / vals[idx]);
+				double use_val = 1.0;
+				if(idx < numVals)
+				{
+					use_val = vals[idx];
+				} else {
+					use_val = vals[numVals-1] + double(numVals - idx + 1)  / 2.0;
+				}
+				ovi.output_width  = uint32_t(double(ovi.base_width) / use_val);
+				ovi.output_height = uint32_t(double(ovi.base_height) / use_val);
 				idx++;
 			} while (ovi.output_width > 1280 && ovi.output_height > 720);
 		} else {
@@ -678,7 +685,12 @@ int OBS_service::resetVideoContext(bool reload)
 
     config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 
-	return obs_reset_video(&ovi);
+	try {
+		return obs_reset_video(&ovi);
+	} catch (const char* error) {
+		blog(LOG_ERROR, error);
+		return OBS_VIDEO_FAIL;
+	}
 }
 
 const char* FindAudioEncoderFromCodec(const char* type)
@@ -1532,7 +1544,7 @@ void OBS_service::updateVideoStreamingEncoder()
 		config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "StreamEncoder");
 	const char *encoderID;
     const char *presetType;
-    const char *preset;
+    const char *preset = nullptr;
 
 	if (encoder != NULL) {
 		if (strcmp(encoder, SIMPLE_ENCODER_QSV) == 0 || strcmp(encoder, ADVANCED_ENCODER_QSV) == 0) {
@@ -2220,7 +2232,7 @@ void OBS_service::updateStreamSettings(void)
 			config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput",
 			"RecQuality");
 		if ((strcmp(quality, "Stream") != 0) ||
-				(strcmp(quality, "Stream") == 0 && !isRecording)) {
+			(strcmp(quality, "Stream") == 0 && !isRecording)) {
 			updateVideoStreamingEncoder();
 		}
 	} else if (strcmp(currentOutputMode, "Advanced") == 0) {
