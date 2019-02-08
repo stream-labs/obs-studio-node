@@ -1,3 +1,21 @@
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
+
 #include "error.hpp"
 #include "nodeobs_api.h"
 #include "nodeobs_settings.h"
@@ -795,7 +813,7 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 	obs_data_t* settings = nullptr;
 
 	std::string currentStreamType = obs_service_get_type(currentService);
-	const char* newserviceTypeValue;
+	std::string newserviceTypeValue;
 
 	std::string currentServiceName = obs_data_get_string(obs_service_get_settings(currentService), "service");
 	std::string newServiceValue;
@@ -815,25 +833,24 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 			std::string name = param.name;
 			std::string type = param.type;
 
-			std::string* value;
 			if (type.compare("OBS_PROPERTY_LIST") == 0 || type.compare("OBS_PROPERTY_EDIT_TEXT") == 0) {
-				value = new std::string(param.currentValue.data(), param.currentValue.size());
+				std::string value(param.currentValue.data(), param.currentValue.size());
 
 				if (name.compare("streamType") == 0) {
-					newserviceTypeValue = value->c_str();
-					settings            = obs_service_defaults(newserviceTypeValue);
+					newserviceTypeValue = value;
+					settings            = obs_service_defaults(newserviceTypeValue.c_str());
 					if (currentStreamType.compare(newserviceTypeValue) != 0) {
 						serviceTypeChanged = true;
 					}
 				}
 
 				if (name.compare("service") == 0) {
-					newServiceValue = value->c_str();
+					newServiceValue = value;
 					if (currentServiceName.compare(newServiceValue) != 0) {
 						serviceChanged = true;
 					}
 				}
-				obs_data_set_string(settings, name.c_str(), value->c_str());
+				obs_data_set_string(settings, name.c_str(), value.c_str());
 			} else if (type.compare("OBS_PROPERTY_INT") == 0 || type.compare("OBS_PROPERTY_UINT") == 0) {
 				int64_t* value = reinterpret_cast<int64_t*>(param.currentValue.data());
 				obs_data_set_int(settings, name.c_str(), *value);
@@ -848,9 +865,9 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 	}
 
 	if (serviceTypeChanged) {
-		settings = obs_service_defaults(newserviceTypeValue);
+		settings = obs_service_defaults(newserviceTypeValue.c_str());
 
-		if (strcmp(newserviceTypeValue, "rtmp_common") == 0) {
+		if (newserviceTypeValue.compare("rtmp_common") == 0) {
 			obs_data_set_string(settings, "streamType", "rtmp_common");
 			obs_data_set_string(settings, "service", "Twitch");
 			obs_data_set_bool(settings, "show_all", 0);
@@ -861,7 +878,7 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 
 	obs_data_t* hotkeyData = obs_hotkeys_save_service(currentService);
 
-	obs_service_t* newService = obs_service_create(newserviceTypeValue, "default_service", settings, hotkeyData);
+	obs_service_t* newService = obs_service_create(newserviceTypeValue.c_str(), "default_service", settings, hotkeyData);
 
 	if (serviceChanged) {
 		std::string server      = obs_data_get_string(settings, "server");

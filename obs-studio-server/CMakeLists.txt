@@ -113,7 +113,7 @@ add_dependencies(crashpad_util crashpad_client)
 string(
 	CONCAT OSN_DEFAULT_LIBOBS_URL
 	"https://obsstudios3.streamlabs.com/"
-	"libobs-release-22.0.3-sl.281-win32-x64.7z"
+	"libobs-release-22.0.3-sl.309-win32-x64.7z"
 )
 
 set(
@@ -224,11 +224,6 @@ add_executable(
 	"${PROJECT_SOURCE_DIR}/source/nodeobs_settings.h"
 	"${PROJECT_SOURCE_DIR}/source/util-memory.cpp"
 	"${PROJECT_SOURCE_DIR}/source/util-memory.h"
-
-	###### crash-manager ######
-
-	"${PROJECT_SOURCE_DIR}/source/util-crashmanager.cpp"
-	"${PROJECT_SOURCE_DIR}/source/util-crashmanager.h"
 )
 
 if(WIN32)

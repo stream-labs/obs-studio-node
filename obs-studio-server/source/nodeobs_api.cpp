@@ -1,3 +1,21 @@
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
+
 #include "nodeobs_api.h"
 #include "osn-source.hpp"
 #include "osn-volmeter.hpp"
@@ -50,7 +68,6 @@ uint64_t                                               lastBytesSentTime = 0;
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 std::string                                            slobs_plugin;
 std::vector<std::pair<std::string, obs_module_t*>>     obsModules;
-OBS_API::LogReport                                     logReport;
 
 void OBS_API::Register(ipc::server& srv)
 {
@@ -331,9 +348,6 @@ static void                                    node_obs_log(int log_level, const
 			// File Log
 			*logStream << newmsg << std::flush;
 
-            // Internal Log
-			logReport.push(newmsg, log_level);
-
 			// Std Out / Std Err
 			/// Why fwrite and not std::cout and std::cerr?
 			/// Well, it seems that std::cout and std::cerr break if you click in the console window and paste.
@@ -522,7 +536,6 @@ void OBS_API::OBS_API_initAPI(
 	}
 
 	OBS_service::createService();
-
 	OBS_service::createStreamingOutput();
 	OBS_service::createRecordingOutput();
 	OBS_service::createReplayBufferOutput();
@@ -932,7 +945,7 @@ void acknowledgeTerminate(void)
 				    &Pipe.cbRead,
 				    &Pipe.oOverlap);
 
-				GetOverlappedResult(Pipe.hPipeInst, &Pipe.oOverlap, &Pipe.cbRead, true);
+				GetOverlappedResult(Pipe.hPipeInst, &Pipe.oOverlap, &Pipe.cbRead, false);
 
 				// The read operation completed successfully.
 				if (Pipe.cbRead > 0) {
@@ -1095,12 +1108,14 @@ bool OBS_API::openAllModules(int& video_err)
 		* with some metainfo so we don't attempt just any
 		* shared library. */
 		if (!os_file_exists(plugins_path.c_str())) {
+			blog(LOG_ERROR, "Plugin Path provided is invalid: %s", plugins_path);
 			std::cerr << "Plugin Path provided is invalid: " << plugins_path << std::endl;
 			return false;
 		}
 
 		os_dir_t* plugin_dir = os_opendir(plugins_path.c_str());
 		if (!plugin_dir) {
+			blog(LOG_ERROR, "Failed to open plugin diretory: %s", plugins_path);
 			std::cerr << "Failed to open plugin diretory: " << plugins_path << std::endl;
 			return false;
 		}
@@ -1236,21 +1251,6 @@ double OBS_API::getCurrentBandwidth(void)
 double OBS_API::getCurrentFrameRate(void)
 {
 	return obs_get_active_fps();
-}
-
-const std::vector<std::string>& OBS_API::getOBSLogErrors()
-{
-	return logReport.errors;
-}
-
-const std::vector<std::string>& OBS_API::getOBSLogWarnings()
-{
-	return logReport.warnings;
-}
-
-std::queue<std::string>& OBS_API::getOBSLogGeneral()
-{
-	return logReport.general;
 }
 
 static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData)

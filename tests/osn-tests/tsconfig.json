@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+      "outDir": "../out",
+      "target": "es5",
+      "module": "commonjs",
+      "moduleResolution": "node",
+      "sourceMap": true,
+      "experimentalDecorators": true,
+      "lib": [ "es6", "es5" ],
+    },
+    "exclude": [
+      "./src/**/*.ts",
+      "node_modules"
+    ],
+    "compileOnSave": false
+  }
