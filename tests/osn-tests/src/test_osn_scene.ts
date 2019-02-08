@@ -22,9 +22,11 @@ describe('osn-scene', () => {
     });
 
     // Shutdown OBS process
-    after(function() {
+    after(function(done) {
+        this.timeout(3000);
         obs.shutdown();
         obs = null;
+        setTimeout(done, 3000);
     });
 
     context('# Create', () => {

@@ -33,9 +33,11 @@ describe('nodebs_api', () => {
         }
     });
 
-    after(function() {
+    after(function(done) {
+        this.timeout(3000);
         obs.shutdown();
         obs = null;
+        setTimeout(done, 3000);
     });
 
     context('# OBS_API_getPerformanceStatistics', () => {
@@ -69,11 +71,11 @@ describe('nodebs_api', () => {
     context('# OBS_API_ProcessHotkeyStatus', () => {
         it('Process all hot keys gotten previously', () => {
             let hotkeyId: any;
-            let isKeyDown: boolean;
+            let isKeyDown: boolean = true;
 
             for (hotkeyId in obsHotkeys) {
                 try {
-                    osn.NodeObs.OBS_API_ProcessHotkeyStatus(hotkeyId, isKeyDown);
+                    osn.NodeObs.OBS_API_ProcessHotkeyStatus(+hotkeyId, isKeyDown);
                 } catch(e) {
                     throw new Error(getCppErrorMsg(e));
                 }
