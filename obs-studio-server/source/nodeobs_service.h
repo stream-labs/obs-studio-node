@@ -256,7 +256,7 @@ class OBS_service
 	static void           setServiceToTheStreamingOutput(void);
 
 	// Encoders
-	static bool           createAudioEncoder(obs_encoder_t* audioEncoder, std::string& id, int bitrate, const char* name, size_t idx);
+	static bool           createAudioEncoder(obs_encoder_t** audioEncoder, std::string& id, int bitrate, const char* name, size_t idx);
 	static bool           createVideoStreamingEncoder();
 	static bool           createVideoRecordingEncoder();
 	static obs_encoder_t* getStreamingEncoder(void);
