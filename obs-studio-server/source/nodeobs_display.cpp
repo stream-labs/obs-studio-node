@@ -363,7 +363,7 @@ OBS::Display::~Display()
 		delete m_textVertices;
 
     if (m_textTexture) {
-		gs_texture_destroy(m_textTexture);
+        gs_texture_destroy(m_textTexture);
     }
 
 	m_boxLine = nullptr;
