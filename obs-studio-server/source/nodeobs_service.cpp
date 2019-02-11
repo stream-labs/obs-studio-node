@@ -23,16 +23,16 @@
 #include "error.hpp"
 #include "shared.hpp"
 
-obs_output_t* streamingOutput       = nullptr;
-obs_output_t* recordingOutput       = nullptr;
-obs_output_t* replayBufferOutput    = nullptr;
+obs_output_t* streamingOutput    = nullptr;
+obs_output_t* recordingOutput    = nullptr;
+obs_output_t* replayBufferOutput = nullptr;
 ;
-obs_encoder_t* audioSimpleStreamingEncoder = nullptr;
-obs_encoder_t* audioSimpleRecordingEncoder = nullptr;
+obs_encoder_t* audioSimpleStreamingEncoder   = nullptr;
+obs_encoder_t* audioSimpleRecordingEncoder   = nullptr;
 obs_encoder_t* audioAdvancedStreamingEncoder = nullptr;
-obs_encoder_t* videoStreamingEncoder = nullptr;
-obs_encoder_t* videoRecordingEncoder = nullptr;
-obs_service_t* service               = nullptr;
+obs_encoder_t* videoStreamingEncoder         = nullptr;
+obs_encoder_t* videoRecordingEncoder         = nullptr;
+obs_service_t* service                       = nullptr;
 
 obs_encoder_t* aacTracks[MAX_AUDIO_MIXES];
 std::string    aacEncodersID[MAX_AUDIO_MIXES];
@@ -432,11 +432,10 @@ int OBS_service::resetVideoContext(bool reload)
 			int idx = 0;
 			do {
 				double use_val = 1.0;
-				if(idx < numVals)
-				{
+				if (idx < numVals) {
 					use_val = vals[idx];
 				} else {
-					use_val = vals[numVals-1] + double(numVals - idx + 1)  / 2.0;
+					use_val = vals[numVals - 1] + double(numVals - idx + 1) / 2.0;
 				}
 				ovi.output_width  = uint32_t(double(ovi.base_width) / use_val);
 				ovi.output_height = uint32_t(double(ovi.base_height) / use_val);
@@ -495,11 +494,11 @@ const char* FindAudioEncoderFromCodec(const char* type)
 }
 
 bool OBS_service::createAudioEncoder(
-    obs_encoder_t**audioEncoder,
-    std::string&   id,
-    int            bitrate,
-    const char*    name,
-    size_t         idx)
+    obs_encoder_t** audioEncoder,
+    std::string&    id,
+    int             bitrate,
+    const char*     name,
+    size_t          idx)
 {
 	const char* id_ = GetAACEncoderForBitrate(bitrate);
 	if (!id_) {
@@ -811,10 +810,29 @@ void OBS_service::createReplayBufferOutput(void)
 	connectOutputSignals();
 }
 
+void OBS_service::setupAudioEncoder(void) {
+	for (int i = 0; i < MAX_AUDIO_MIXES; i++) {
+		char name[9];
+		sprintf(name, "adv_aac%d", i);
+
+		if (!createAudioEncoder(&(aacTracks[i]), aacEncodersID[i], GetAdvancedAudioBitrate(i), name, i))
+			throw "Failed to create audio encoder "
+			      "(advanced output)";
+		obs_encoder_set_audio(aacTracks[i], obs_get_audio());
+	}
+}
+
+void OBS_service::clearAudioEncoder(void) {
+	for (int i = 0; i < MAX_AUDIO_MIXES; i++) {
+		if (aacTracks[i])
+			obs_encoder_release(aacTracks[i]);
+	}
+}
+
 bool OBS_service::startStreaming(void)
 {
 	std::string currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
-	bool        advanced = currentOutputMode.compare("Advanced") == 0;
+	bool        advanced          = currentOutputMode.compare("Advanced") == 0;
 	std::string id;
 	const char* type = obs_service_get_output_type(service);
 	if (!type)
@@ -851,16 +869,6 @@ bool OBS_service::startStreaming(void)
 	} else {
 		uint64_t trackIndex = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex");
 
-		for (int i = 0; i < MAX_AUDIO_MIXES; i++) {
-			char name[9];
-			sprintf(name, "adv_aac%d", i);
-
-			if (!createAudioEncoder(&(aacTracks[i]), aacEncodersID[i], GetAdvancedAudioBitrate(i), name, i))
-				throw "Failed to create audio encoder "
-			      "(advanced output)";
-			obs_encoder_set_audio(aacTracks[i], obs_get_audio());
-		}
-
 		if (strcmp(codec, "aac") == 0) {
 			audioAdvancedStreamingEncoder = aacTracks[trackIndex - 1];
 		} else {
@@ -870,7 +878,7 @@ bool OBS_service::startStreaming(void)
 			obs_data_set_int(settings, "bitrate", audioBitrate);
 
 			audioAdvancedStreamingEncoder =
-				obs_audio_encoder_create(id, "alt_audio_enc", nullptr, trackIndex - 1, nullptr);
+			    obs_audio_encoder_create(id, "alt_audio_enc", nullptr, trackIndex - 1, nullptr);
 			if (!audioAdvancedStreamingEncoder)
 				return false;
 
@@ -1257,7 +1265,8 @@ bool OBS_service::isReplayBufferOutputActive(void)
 	return obs_output_active(replayBufferOutput);
 }
 
-int OBS_service::GetSimpleAudioBitrate(void) {
+int OBS_service::GetSimpleAudioBitrate(void)
+{
 	int bitrate = (int)config_get_uint(ConfigManager::getInstance().getBasic(), "SimpleOutput", "ABitrate");
 
 	return FindClosestAvailableAACBitrate(bitrate);
@@ -1877,7 +1886,7 @@ obs_encoder_t* OBS_service::getStreamingEncoder(void)
 
 void OBS_service::setStreamingEncoder(obs_encoder_t* encoder)
 {
-	if (!videoStreamingEncoder)
+	if (videoStreamingEncoder)
 		obs_encoder_release(videoStreamingEncoder);
 	videoStreamingEncoder = encoder;
 }
@@ -1889,7 +1898,7 @@ obs_encoder_t* OBS_service::getRecordingEncoder(void)
 
 void OBS_service::setRecordingEncoder(obs_encoder_t* encoder)
 {
-	if (!videoRecordingEncoder)
+	if (videoRecordingEncoder)
 		obs_encoder_release(videoRecordingEncoder);
 	videoRecordingEncoder = encoder;
 }
@@ -1953,12 +1962,9 @@ void OBS_service::updateStreamSettings(void)
 {
 	const char* currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
 
-	if(strcmp(currentOutputMode, "Simple") == 0) {
-		const char *quality = 
-			config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput",
-			"RecQuality");
-		if ((strcmp(quality, "Stream") != 0) ||
-			(strcmp(quality, "Stream") == 0 && !isRecording)) {
+	if (strcmp(currentOutputMode, "Simple") == 0) {
+		const char* quality = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
+		if ((strcmp(quality, "Stream") != 0) || (strcmp(quality, "Stream") == 0 && !isRecording)) {
 			updateVideoStreamingEncoder();
 		}
 	} else if (strcmp(currentOutputMode, "Advanced") == 0) {

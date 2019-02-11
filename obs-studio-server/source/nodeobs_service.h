@@ -207,6 +207,8 @@ class OBS_service
 	static void           setAudioSimpleStreamingEncoder(obs_encoder_t* encoder);
 	static obs_encoder_t* getAudioSimpleRecordingEncoder(void);
 	static void           setAudioSimpleRecordingEncoder(obs_encoder_t* encoder);
+	static void           setupAudioEncoder(void);
+	static void           clearAudioEncoder(void);
 
 	// Outputs
 	static bool          createStreamingOutput(void);

@@ -543,6 +543,8 @@ void OBS_API::OBS_API_initAPI(
 	OBS_service::createVideoStreamingEncoder();
 	OBS_service::createVideoRecordingEncoder();
 
+	OBS_service::setupAudioEncoder();
+
 	OBS_service::resetAudioContext();
 	OBS_service::resetVideoContext();
 
@@ -1025,6 +1027,7 @@ void OBS_API::destroyOBS_API(void)
 	if (service != NULL)
 		obs_service_release(service);
 
+	OBS_service::clearAudioEncoder();
     osn::VolMeter::ClearVolmeters();
     osn::Fader::ClearFaders();
 
