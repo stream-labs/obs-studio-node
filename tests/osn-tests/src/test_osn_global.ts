@@ -12,7 +12,7 @@ describe('osn-global', () => {
     before(function() {
         obs = new OBSProcessHandler();
         
-        if (obs.startup() != true)
+        if (obs.startup() !== osn.EVideoCodes.Success)
         {
             throw new Error("Could not start OBS process. Aborting!")
         }
@@ -83,7 +83,7 @@ describe('osn-global', () => {
             for (inputType of inputTypes)
             {
                 flags = osn.Global.getOutputFlagsFromId(inputType);
-                expect(flags).to.not.equal(0);
+                expect(flags).to.not.equal(undefined);
                 flags = undefined;
             }
         });
