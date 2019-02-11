@@ -22,47 +22,14 @@
 #include "error.hpp"
 #include "shared.hpp"
 
-video_t* handler;
-
 void osn::Video::Register(ipc::server& srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Video");
-	cls->register_function(std::make_shared<ipc::function>("GetGlobal", std::vector<ipc::type>{}, GetGlobal));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "GetSkippedFrames", std::vector<ipc::type>{ipc::type::UInt64}, GetSkippedFrames));
+	    "GetSkippedFrames", std::vector<ipc::type>{}, GetSkippedFrames));
 	cls->register_function(
-	    std::make_shared<ipc::function>("GetTotalFrames", std::vector<ipc::type>{ipc::type::UInt64}, GetTotalFrames));
-
+	    std::make_shared<ipc::function>("GetTotalFrames", std::vector<ipc::type>{}, GetTotalFrames));
 	srv.register_collection(cls);
-}
-
-void osn::Video::GetGlobal(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	uint64_t uid;
-
-	if (handler) {
-		uid = osn::Video::Manager::GetInstance().find(handler);
-	} else {
-		handler = obs_get_video();
-		uid     = osn::Video::Manager::GetInstance().allocate(handler);
-	}
-
-	if (uid == UINT64_MAX) {
-		// No further Ids left, leak somewhere.
-		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
-		rval.push_back(ipc::value("Index list is full."));
-		AUTO_DEBUG;
-		return;
-	}
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(uid));
-
-	AUTO_DEBUG;
 }
 
 void osn::Video::GetSkippedFrames(
@@ -71,16 +38,8 @@ void osn::Video::GetSkippedFrames(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	video_t* video = osn::Video::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!video) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Video context is not valid."));
-		AUTO_DEBUG;
-		return;
-	}
-
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(video_output_get_skipped_frames(video)));
+	rval.push_back(ipc::value(video_output_get_skipped_frames(obs_get_video())));
 	AUTO_DEBUG;
 }
 
@@ -90,21 +49,7 @@ void osn::Video::GetTotalFrames(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	video_t* video = osn::Video::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!video) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Video context is not valid."));
-		AUTO_DEBUG;
-		return;
-	}
-
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(video_output_get_total_frames(video)));
+	rval.push_back(ipc::value(video_output_get_total_frames(obs_get_video())));
 	AUTO_DEBUG;
-}
-
-osn::Video::Manager& osn::Video::Manager::GetInstance()
-{
-	static osn::Video::Manager _inst;
-	return _inst;
 }

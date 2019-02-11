@@ -239,6 +239,7 @@ export declare const enum EOutputCode {
     NoSpace = -7
 }
 export declare const Global: IGlobal;
+export declare const Video: IVideo;
 export declare const OutputFactory: IOutputFactory;
 export declare const AudioEncoderFactory: IAudioEncoderFactory;
 export declare const VideoEncoderFactory: IVideoEncoderFactory;
@@ -251,7 +252,6 @@ export declare const DisplayFactory: IDisplayFactory;
 export declare const VolmeterFactory: IVolmeterFactory;
 export declare const FaderFactory: IFaderFactory;
 export declare const AudioFactory: IAudioFactory;
-export declare const VideoFactory: IVideoFactory;
 export declare const ModuleFactory: IModuleFactory;
 export declare const IPC: IIPC;
 export interface ISettings {
@@ -654,13 +654,10 @@ export interface IDisplay {
     setResizeBoxInnerColor(r: number, g: number, b: number, a: number): void;
 }
 export interface IVideo {
-    readonly totalFrames: number;
     readonly skippedFrames: number;
+    readonly encodedFrames: number;	
 }
-export interface IVideoFactory {
-    reset(info: IVideoInfo): number;
-    getGlobal(): IVideo;
-}
+
 export interface IAudio {
 }
 export interface IAudioFactory {
