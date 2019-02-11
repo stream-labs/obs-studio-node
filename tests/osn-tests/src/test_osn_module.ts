@@ -30,19 +30,26 @@ describe('osn-module', () => {
         it('Open all module types and initialize them', () => {
             fs.readdirSync(path.join(path.normalize(osn.DefaultPluginPath), '64bit')).forEach(function(file) {
                 if (file.endsWith('.dll')) {
-                    // Opening module
-                    const module = osn.ModuleFactory.open(path.join(path.normalize(osn.DefaultPluginPath), '64bit/' + file), path.normalize(osn.DefaultDataPath));
+                    let module;
 
-                    // Checking if module was opened properly
-                    expect(module).to.not.equal(undefined);
+                    if (file != 'chrome_elf.dll' && 
+                        file != 'libcef.dll' &&
+                        file != 'libEGL.dll' &&
+                        file != 'libGLESv2.dll') {
+                        // Opening module
+                        module = osn.ModuleFactory.open(path.join(path.normalize(osn.DefaultPluginPath), '64bit/' + file), path.normalize(osn.DefaultDataPath));
 
-                    // Initializing module
-                    expect(function () {
-                        module.initialize();
-                    }).to.not.throw;
+                        // Checking if module was opened properly
+                        expect(module).to.not.equal(undefined);
 
-                    // Adding to moduleArrays to use in check later
-                    moduleTypes.push(file);
+                        // Initializing module
+                        expect(function () {
+                            module.initialize();
+                        }).to.not.throw;
+
+                        // Adding to moduleArrays to use in check later
+                        moduleTypes.push(file);
+                    }   
                 }
             });
         });
