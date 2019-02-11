@@ -1,14 +1,12 @@
 import 'mocha';
 import { expect } from 'chai';
 import * as osn from 'obs-studio-node';
-import { IProperties, ISettings } from 'obs-studio-node';
+import { ISettings } from 'obs-studio-node';
 import { OBSProcessHandler } from '../util/obs_process_handler';
-import { basicOBSInputTypes, basicOBSFilterTypes } from '../util/general';
+import { basicOBSInputTypes, basicOBSFilterTypes, basicOBSTransitionTypes } from '../util/general';
 
 describe('osn-source', () => {
     let obs: OBSProcessHandler;
-    let inputTypes: string[];
-    let filterTypes: string[];
 
     // Initialize OBS process
     before(function() {
@@ -26,10 +24,10 @@ describe('osn-source', () => {
         obs = null;
     });
 
-    context('# IsConfigurable, GetProperties, GetSettings, GetName, GetOutputFlags, GetId', () => {
+    context('# IsConfigurable, GetProperties, GetSettings, GetName, GetOutputFlags and GetId', () => {
         it('Get all osn-source info from all input types', () => {
             // Getting all input source types
-            inputTypes = osn.InputFactory.types();
+            const inputTypes = osn.InputFactory.types();
 
             // Checking if inputTypes array contains the basic obs input types
             expect(inputTypes.length).to.not.equal(0);
@@ -86,7 +84,7 @@ describe('osn-source', () => {
 
         it('Get all osn-source info from all filter types', () => {
             // Getting all filter types
-            filterTypes = osn.FilterFactory.types();
+            const filterTypes = osn.FilterFactory.types();
 
             // Checking if filterTypes array contains the basic obs filter types
             expect(filterTypes.length).to.not.equal(0);
@@ -138,6 +136,63 @@ describe('osn-source', () => {
                 expect(outputFlags).to.not.equal(undefined);
     
                 filter.release();
+            });
+        });
+
+        it('Get all osn-source info from all transition types', () => {
+            // Getting all transition types
+            const transitionTypes = osn.TransitionFactory.types();
+
+            // Checking if transition array contains the basic obs filter types
+            expect(transitionTypes.length).to.not.equal(0);
+            expect(transitionTypes).to.include.members(basicOBSTransitionTypes);
+
+            transitionTypes.forEach(function(transitionType) {
+                // Creating transition
+                const transition = osn.FilterFactory.create(transitionType, 'transition');
+    
+                // Checking if transition was created correctly
+                expect(transition).to.not.equal(undefined);
+
+                // Getting transition id
+                const id = transition.id;
+
+                // Checking if id was returned correctly
+                expect(id).to.not.equal(undefined);
+                expect(id).to.equal(transitionType);
+
+                // Getting transition name
+                const transitionName = transition.name;
+
+                // Checking if name was returned correctly
+                expect(transitionName).to.not.equal(undefined);
+                expect(transitionName).to.equal('transition');
+    
+                // Getting transition configurable value
+                const configurableValue = transition.configurable;
+    
+                // Checking if configurable value was returned properly
+                expect(configurableValue).to.not.equal(undefined);
+
+                // Getting transition property
+                const properties = transition.properties;
+
+                // Checking if properties were returned properly
+                expect(properties).to.not.equal(undefined);
+
+                // Getting transition settings
+                const settings = transition.settings;
+
+                // Checking if settings were returned properly
+                expect(settings).to.not.equal(undefined);
+
+                // Getting output flags
+                const outputFlags = transition.outputFlags;
+
+                // Checking if output flags were returned properly
+                expect(outputFlags).to.not.equal(undefined);
+    
+                transition.release();
             });
         });
 
@@ -195,6 +250,13 @@ describe('osn-source', () => {
         settings['test'] = 1;
 
         it('Update settings of all inputs', () => {
+            // Getting all input source types
+            const inputTypes = osn.InputFactory.types();
+
+            // Checking if inputTypes array contains the basic obs input types
+            expect(inputTypes.length).to.not.equal(0);
+            expect(inputTypes).to.include.members(basicOBSInputTypes);
+
             inputTypes.forEach(function(inputType) {
                 // Creating input source
                 const input = osn.InputFactory.create(inputType, 'input');
@@ -220,7 +282,46 @@ describe('osn-source', () => {
         });
 
         it('Update settings of all filters', () => {
+            // Getting all filter types
+            const filterTypes = osn.FilterFactory.types();
+
+            // Checking if filterTypes array contains the basic obs filter types
+            expect(filterTypes.length).to.not.equal(0);
+            expect(filterTypes).to.include.members(basicOBSFilterTypes);
+
             filterTypes.forEach(function(filterType) {
+                // Creating filter
+                const filter = osn.FilterFactory.create(filterType, 'filter', settings);
+    
+                // Checking if filter source was created correctly
+                expect(filter).to.not.equal(undefined);
+                expect(filter.id).to.equal(filterType);
+                expect(filter.name).to.equal('filter');
+    
+                // Updating settings of filter
+                filter.update(settings);
+
+                // Sending save signal to filter
+                expect(function() {
+                    filter.save();
+                }).to.not.throw;
+
+                // Checking if setting was added to filter
+                expect(filter.settings).to.include(settings);
+    
+                filter.release();
+            });
+        });
+
+        it('Update settings of all transitions', () => {
+            // Getting all transition types
+            const transitionTypes = osn.TransitionFactory.types();
+
+            // Checking if transition array contains the basic obs filter types
+            expect(transitionTypes.length).to.not.equal(0);
+            expect(transitionTypes).to.include.members(basicOBSTransitionTypes);
+
+            transitionTypes.forEach(function(filterType) {
                 // Creating filter
                 const filter = osn.FilterFactory.create(filterType, 'filter', settings);
     
@@ -265,6 +366,13 @@ describe('osn-source', () => {
 
     context('# SetFlag and GetFlag', () => {
         it('Set flags and get them for all input source types', () => {
+            // Getting all input source types
+            const inputTypes = osn.InputFactory.types();
+
+            // Checking if inputTypes array contains the basic obs input types
+            expect(inputTypes.length).to.not.equal(0);
+            expect(inputTypes).to.include.members(basicOBSInputTypes);
+
             inputTypes.forEach(function(inputType) {
                 // Creating input source
                 const input = osn.InputFactory.create(inputType, 'input');
@@ -291,6 +399,13 @@ describe('osn-source', () => {
 
     context('# SetMuted and GetMuted', () => {
         it('Set muted and get it for all input source types', () => {
+            // Getting all input source types
+            const inputTypes = osn.InputFactory.types();
+
+            // Checking if inputTypes array contains the basic obs input types
+            expect(inputTypes.length).to.not.equal(0);
+            expect(inputTypes).to.include.members(basicOBSInputTypes);
+
             inputTypes.forEach(function(inputType) {
                 // Creating input source
                 const input = osn.InputFactory.create(inputType, 'input');
@@ -317,6 +432,13 @@ describe('osn-source', () => {
 
     context('# SetEnabled and GetEnabled', () => {
         it('Set enabled and get it for all filter types', () => {
+            // Getting all filter types
+            const filterTypes = osn.FilterFactory.types();
+
+            // Checking if filterTypes array contains the basic obs filter types
+            expect(filterTypes.length).to.not.equal(0);
+            expect(filterTypes).to.include.members(basicOBSFilterTypes);
+
             filterTypes.forEach(function(filterType) {
                 // Creating filter
                 const filter = osn.FilterFactory.create(filterType, 'filter');
