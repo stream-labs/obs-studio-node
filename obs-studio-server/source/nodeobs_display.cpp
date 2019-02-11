@@ -206,16 +206,16 @@ void OBS::Display::SystemWorker()
 			if (!DestroyWindow(question->window)) {
 				auto error = GetLastError();
 
-                // We check for error 1400 because if this display is a projector, it is attached to a HTML DOM, so
-                // we cannot directly control its destruction since the HTML will probably do this concurrently, 
-                // the DestroyWindow is allows to fail on this case, a better solution here woul be checking if this
-                // display is really a projector and do not attempt to destroy it (let the HTML do it for us).
+				// We check for error 1400 because if this display is a projector, it is attached to a HTML DOM, so
+				// we cannot directly control its destruction since the HTML will probably do this concurrently, 
+				// the DestroyWindow is allows to fail on this case, a better solution here woul be checking if this
+				// display is really a projector and do not attempt to destroy it (let the HTML do it for us).
 				if (error != 1400) {
 					answer->success = false;
 					HandleWin32ErrorMessage(error);
-                } else {
+				} else {
 					answer->success = true;
-                }
+				}
 
 			} else {
 				answer->success = true;
