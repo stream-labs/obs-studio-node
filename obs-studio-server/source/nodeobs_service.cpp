@@ -56,20 +56,6 @@ void OBS_service::Register(ipc::server& srv)
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_resetVideoContext", std::vector<ipc::type>{}, OBS_service_resetVideoContext));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_createAudioEncoder", std::vector<ipc::type>{}, OBS_service_createAudioEncoder));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_createVideoStreamingEncoder", std::vector<ipc::type>{}, OBS_service_createVideoStreamingEncoder));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_createVideoRecordingEncoder", std::vector<ipc::type>{}, OBS_service_createVideoRecordingEncoder));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_createService", std::vector<ipc::type>{}, OBS_service_createService));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_createRecordingSettings", std::vector<ipc::type>{}, OBS_service_createRecordingSettings));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_createStreamingOutput", std::vector<ipc::type>{}, OBS_service_createStreamingOutput));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_createRecordingOutput", std::vector<ipc::type>{}, OBS_service_createRecordingOutput));
-	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_startStreaming", std::vector<ipc::type>{}, OBS_service_startStreaming));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_startRecording", std::vector<ipc::type>{}, OBS_service_startRecording));
@@ -81,28 +67,6 @@ void OBS_service::Register(ipc::server& srv)
 	    "OBS_service_stopRecording", std::vector<ipc::type>{}, OBS_service_stopRecording));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_stopReplayBuffer", std::vector<ipc::type>{ipc::type::Int32}, OBS_service_stopReplayBuffer));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_associateAudioAndVideoToTheCurrentStreamingContext",
-	    std::vector<ipc::type>{},
-	    OBS_service_associateAudioAndVideoToTheCurrentStreamingContext));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_associateAudioAndVideoToTheCurrentRecordingContext",
-	    std::vector<ipc::type>{},
-	    OBS_service_associateAudioAndVideoToTheCurrentRecordingContext));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_associateAudioAndVideoEncodersToTheCurrentStreamingOutput",
-	    std::vector<ipc::type>{},
-	    OBS_service_associateAudioAndVideoEncodersToTheCurrentStreamingOutput));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_associateAudioAndVideoEncodersToTheCurrentRecordingOutput",
-	    std::vector<ipc::type>{},
-	    OBS_service_associateAudioAndVideoEncodersToTheCurrentRecordingOutput));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_setServiceToTheStreamingOutput",
-	    std::vector<ipc::type>{},
-	    OBS_service_setServiceToTheStreamingOutput));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_setRecordingSettings", std::vector<ipc::type>{}, OBS_service_setRecordingSettings));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_connectOutputSignals", std::vector<ipc::type>{}, OBS_service_connectOutputSignals));
 	cls->register_function(std::make_shared<ipc::function>("Query", std::vector<ipc::type>{}, Query));
@@ -143,113 +107,6 @@ void OBS_service::OBS_service_resetVideoContext(
 	} else {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value(result));
-	}
-
-	AUTO_DEBUG;
-}
-
-void OBS_service::OBS_service_createAudioEncoder(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	if (!createAudioEncoder(NULL)) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-		rval.push_back(ipc::value("Failed to create the audio encoder!"));
-	} else {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	}
-	AUTO_DEBUG;
-}
-
-void OBS_service::OBS_service_createVideoStreamingEncoder(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	if (!createVideoStreamingEncoder()) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-		rval.push_back(ipc::value("Failed to create the video streaming encoder!"));
-	} else {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	}
-
-	AUTO_DEBUG;
-}
-
-void OBS_service::OBS_service_createVideoRecordingEncoder(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	if (!createVideoRecordingEncoder()) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-		rval.push_back(ipc::value("Failed to create the video recording encoder!"));
-	} else {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	}
-
-	AUTO_DEBUG;
-}
-
-void OBS_service::OBS_service_createService(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	if (!createService()) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-		rval.push_back(ipc::value("Failed to create the service!"));
-	} else {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	}
-
-	AUTO_DEBUG;
-}
-
-void OBS_service::OBS_service_createRecordingSettings(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	// Method not used anymore
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
-}
-
-void OBS_service::OBS_service_createStreamingOutput(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	if (!createStreamingOutput()) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-		rval.push_back(ipc::value("Failed to create the streaming output!"));
-	} else {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	}
-
-	AUTO_DEBUG;
-}
-
-void OBS_service::OBS_service_createRecordingOutput(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	if (!createRecordingOutput()) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-		rval.push_back(ipc::value("Failed to create the recording output!"));
-	} else {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	}
 
 	AUTO_DEBUG;
@@ -339,72 +196,6 @@ void OBS_service::OBS_service_stopReplayBuffer(
     std::vector<ipc::value>&       rval)
 {
 	stopReplayBuffer((bool)args[0].value_union.i32);
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
-}
-
-void OBS_service::OBS_service_associateAudioAndVideoToTheCurrentStreamingContext(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	associateAudioAndVideoToTheCurrentStreamingContext();
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
-}
-
-void OBS_service::OBS_service_associateAudioAndVideoToTheCurrentRecordingContext(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	associateAudioAndVideoToTheCurrentRecordingContext();
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
-}
-
-void OBS_service::OBS_service_associateAudioAndVideoEncodersToTheCurrentStreamingOutput(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	associateAudioAndVideoEncodersToTheCurrentStreamingOutput();
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
-}
-
-void OBS_service::OBS_service_associateAudioAndVideoEncodersToTheCurrentRecordingOutput(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	associateAudioAndVideoEncodersToTheCurrentRecordingOutput(false);
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
-}
-
-void OBS_service::OBS_service_setServiceToTheStreamingOutput(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	setServiceToTheStreamingOutput();
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
-}
-
-void OBS_service::OBS_service_setRecordingSettings(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	setRecordingSettings();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -644,8 +435,15 @@ int OBS_service::resetVideoContext(bool reload)
 		if (ovi.base_width > 1280 && ovi.base_height > 720) {
 			int idx = 0;
 			do {
-				ovi.output_width  = uint32_t(double(ovi.base_width) / vals[idx]);
-				ovi.output_height = uint32_t(double(ovi.base_height) / vals[idx]);
+				double use_val = 1.0;
+				if(idx < numVals)
+				{
+					use_val = vals[idx];
+				} else {
+					use_val = vals[numVals-1] + double(numVals - idx + 1)  / 2.0;
+				}
+				ovi.output_width  = uint32_t(double(ovi.base_width) / use_val);
+				ovi.output_height = uint32_t(double(ovi.base_height) / use_val);
 				idx++;
 			} while (ovi.output_width > 1280 && ovi.output_height > 720);
 		} else {
@@ -1537,7 +1335,7 @@ void OBS_service::updateVideoStreamingEncoder()
 		config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "StreamEncoder");
 	const char *encoderID;
     const char *presetType;
-    const char *preset;
+    const char *preset = nullptr;
 
 	if (encoder != NULL) {
 		if (strcmp(encoder, SIMPLE_ENCODER_QSV) == 0 || strcmp(encoder, ADVANCED_ENCODER_QSV) == 0) {
@@ -2225,7 +2023,7 @@ void OBS_service::updateStreamSettings(void)
 			config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput",
 			"RecQuality");
 		if ((strcmp(quality, "Stream") != 0) ||
-				(strcmp(quality, "Stream") == 0 && !isRecording)) {
+			(strcmp(quality, "Stream") == 0 && !isRecording)) {
 			updateVideoStreamingEncoder();
 		}
 	} else if (strcmp(currentOutputMode, "Advanced") == 0) {

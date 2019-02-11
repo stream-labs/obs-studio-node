@@ -321,6 +321,7 @@ export const enum EOutputCode {
 }
 
 export const Global: IGlobal = obs.Global;
+export const Video: IVideo = obs.Video;
 export const OutputFactory: IOutputFactory = obs.Output;
 export const AudioEncoderFactory: IAudioEncoderFactory = obs.AudioEncoder;
 export const VideoEncoderFactory: IVideoEncoderFactory = obs.VideoEncoder;
@@ -333,7 +334,6 @@ export const DisplayFactory: IDisplayFactory = obs.Display;
 export const VolmeterFactory: IVolmeterFactory = obs.Volmeter;
 export const FaderFactory: IFaderFactory = obs.Fader;
 export const AudioFactory: IAudioFactory = obs.Audio;
-export const VideoFactory: IVideoFactory = obs.Video;
 export const ModuleFactory: IModuleFactory = obs.Module;
 export const IPC: IIPC = obs.IPC;
 
@@ -1478,13 +1478,16 @@ export interface IDisplay {
  * For now, only the global context functions are implemented
  */
 export interface IVideo {
-    readonly totalFrames: number;
+	
+	/**
+     * Number of total skipped frames
+     */
     readonly skippedFrames: number;
-}
-
-export interface IVideoFactory {
-    reset(info: IVideoInfo): number;
-    getGlobal(): IVideo;
+	
+    /**
+     * Number of total encoded frames
+     */
+    readonly encodedFrames: number;
 }
 
 /**

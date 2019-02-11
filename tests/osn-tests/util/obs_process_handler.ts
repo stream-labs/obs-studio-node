@@ -1,20 +1,21 @@
 import * as osn from 'obs-studio-node';
 
 export class OBSProcessHandler {
-    startup(): boolean {
+    startup(): osn.EVideoCodes {
         const path = require('path');
+        const uuid = require('uuid/v4');
+
         const wd = path.join(path.normalize(__dirname), '..', 'node_modules', 'obs-studio-node');
-        const pipeName = 'osn-tests-pipe';  
+        const pipeName = 'osn-tests-pipe'.concat(uuid());  
 
         try {
             osn.NodeObs.IPC.host(pipeName);
             osn.NodeObs.SetWorkingDirectory(wd);
-            osn.NodeObs.OBS_API_initAPI('en-US', path.join(path.normalize(__dirname), '..', 'osnData/slobs-client'));
+            const initResult = osn.NodeObs.OBS_API_initAPI('en-US', path.join(path.normalize(__dirname), '..', 'osnData/slobs-client'));
+            return initResult;
         } catch(e) {
-            return false;
+            return osn.EVideoCodes.Fail;
         }
-
-        return true;
     }
 
     shutdown(): boolean {

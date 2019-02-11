@@ -15,7 +15,7 @@ describe('osn-scene', () => {
     before(function() {
         obs = new OBSProcessHandler();
         
-        if (obs.startup() != true)
+        if (obs.startup() !== osn.EVideoCodes.Success)
         {
             throw new Error("Could not start OBS process. Aborting!")
         }
@@ -108,16 +108,6 @@ describe('osn-scene', () => {
             expect(sceneItem).to.not.equal(undefined);
             expect(sceneItem.source.id).to.equal('image_source');
             expect(sceneItem.source.name).to.equal('test_osn_scene_source1');
-        });
-
-        it('FAIL TEST: Try to find scene that don\'t exist', () => {
-            let sceneItem: ISceneItem;
-
-            // Getting scene item by non existant id
-            sceneItem = scene.findItem('this_scene_does_not_exist');
-
-            // Checking if scene item is undefined
-            expect(sceneItem).to.equal(undefined);
         });
     });
 

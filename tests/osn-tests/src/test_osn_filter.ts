@@ -13,7 +13,7 @@ describe('osn-filter', () => {
     before(function() {
         obs = new OBSProcessHandler();
         
-        if (obs.startup() != true)
+        if (obs.startup() !== osn.EVideoCodes.Success)
         {
             throw new Error("Could not start OBS process. Aborting!")
         }
@@ -27,7 +27,7 @@ describe('osn-filter', () => {
 
     context('# Types', () => {
         it('Get all filter types', () => {
-            // Gettin all filter types
+            // Getting all filter types
             filterTypes = osn.FilterFactory.types();
 
             // Checking if filterTypes array contains the basic obs filter types
@@ -38,39 +38,33 @@ describe('osn-filter', () => {
 
     context('# Create', () => {
         it('Create all filter types', () => {
-            let filterType: string;
-            let filter: IFilter;
-
             // Create each filter type available
-            for (filterType of filterTypes)
-            {
-                filter = osn.FilterFactory.create(filterType, 'filter');
+            filterTypes.forEach(function(filterType) {
+                const filter = osn.FilterFactory.create(filterType, 'filter');
 
                 // Checking if filter was created correctly
                 expect(filter).to.not.equal(undefined);
                 expect(filter.id).to.equal(filterType);
                 expect(filter.name).to.equal('filter');
                 filter.release();
-            }
+            });
         });
 
         it('Create all filter types with settings', () => {
-            let filterType: string;
-            let filter: IFilter;
             let settings: ISettings = {};
             settings['test'] = 1;
             
             // Create each filter type availabe passing settings parameter
-            for (filterType of filterTypes)
-            {
-                filter = osn.FilterFactory.create(filterType, 'filter', settings);
+            filterTypes.forEach(function(filterType) {
+                const filter = osn.FilterFactory.create(filterType, 'filter', settings);
 
                 // Checking if filter was created correctly
                 expect(filter).to.not.equal(undefined);
                 expect(filter.id).to.equal(filterType);
                 expect(filter.name).to.equal('filter');
+                expect(filter.settings).to.include(settings);
                 filter.release();
-            }
+            });
         });
     });
 });

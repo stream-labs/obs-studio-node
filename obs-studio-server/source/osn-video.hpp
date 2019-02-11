@@ -26,27 +26,8 @@ namespace osn
 	class Video
 	{
 		public:
-		class Manager : public utility::unique_object_manager<video_t>
-		{
-			friend class std::shared_ptr<Manager>;
-
-			protected:
-			Manager() {}
-			~Manager() {}
-
-			public:
-			Manager(Manager const&) = delete;
-			Manager operator=(Manager const&) = delete;
-
-			public:
-			static Manager& GetInstance();
-		};
-
-		public:
 		static void Register(ipc::server&);
 
-		static void
-		            GetGlobal(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 		static void GetSkippedFrames(
 		    void*                          data,
 		    const int64_t                  id,
