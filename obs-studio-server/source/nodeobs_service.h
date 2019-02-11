@@ -1,3 +1,21 @@
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
+
 #pragma once
 
 #include <algorithm>
@@ -100,41 +118,6 @@ class OBS_service
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
-	static void OBS_service_createAudioEncoder(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_createVideoStreamingEncoder(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_createVideoRecordingEncoder(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_createService(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_createRecordingSettings(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_createStreamingOutput(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_createRecordingOutput(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
 	static void OBS_service_startStreaming(
 	    void*                          data,
 	    const int64_t                  id,
@@ -161,36 +144,6 @@ class OBS_service
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
 	static void OBS_service_stopReplayBuffer(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_associateAudioAndVideoToTheCurrentStreamingContext(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_associateAudioAndVideoToTheCurrentRecordingContext(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_associateAudioAndVideoEncodersToTheCurrentStreamingOutput(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_associateAudioAndVideoEncodersToTheCurrentRecordingOutput(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_setServiceToTheStreamingOutput(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_setRecordingSettings(
 	    void*                          data,
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,
