@@ -1969,7 +1969,6 @@ void OBS_settings::getStandardRecordingSettings(
 
 	obs_data_t*    settings = obs_encoder_defaults(recEncoderCurrentValue);
 	obs_encoder_t* recordingEncoder = nullptr;
-	bool           encoderNeedsRelease = false;
 	obs_output_t* recordOutput = OBS_service::getRecordingOutput();
 
 	if (recordOutput == NULL)
@@ -1991,9 +1990,8 @@ void OBS_settings::getStandardRecordingSettings(
 			OBS_service::setRecordingEncoder(recordingEncoder);
 		}
 	} else {
-		recordingEncoder    = OBS_service::getRecordingEncoder();
-		encoderNeedsRelease = true;
-		settings            = obs_encoder_get_settings(recordingEncoder);
+		recordingEncoder = OBS_service::getRecordingEncoder();
+		settings         = obs_encoder_get_settings(recordingEncoder);
 	}
 
 	if (strcmp(recEncoderCurrentValue, "none")) {
