@@ -171,6 +171,15 @@ describe('osn-scene', () => {
             sceneItemById.remove();
             scene.release();
         });
+
+        it('FAIL TEST: Try to find scene that don\'t exist', () => {
+            const scene = createScene('findItem_fail_test');
+
+            // Getting scene item with id that does not exist
+            expect(function () {
+                const sceneItem = scene.findItem('does_not_exist');
+            }).to.throw;
+        });
     });
 
     context('# GetItems and MoveItem', () => {
