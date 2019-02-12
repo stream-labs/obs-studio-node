@@ -866,6 +866,9 @@ bool OBS_service::updateAudioStreamingEncoder() {
 				obs_data_t* settings     = obs_data_create();
 				obs_data_set_int(settings, "bitrate", audioBitrate);
 
+				if (audioSimpleStreamingEncoder)
+					obs_encoder_release(audioSimpleStreamingEncoder);
+
 				audioSimpleStreamingEncoder = obs_audio_encoder_create(id, "alt_audio_enc", nullptr, 0, nullptr);
 				if (!audioSimpleStreamingEncoder)
 					return false;
@@ -875,6 +878,9 @@ bool OBS_service::updateAudioStreamingEncoder() {
 
 				obs_data_release(settings);
 			} else {
+				if (audioSimpleStreamingEncoder)
+					obs_encoder_release(audioSimpleStreamingEncoder);
+
 				createAudioEncoder(&audioSimpleStreamingEncoder, id, GetSimpleAudioBitrate(), "acc", 0);
 				obs_encoder_set_audio(audioSimpleStreamingEncoder, obs_get_audio());
 			}
