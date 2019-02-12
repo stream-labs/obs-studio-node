@@ -1142,9 +1142,13 @@ void OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(bool
 
 	if (useStreamingEncoder) {
 		obs_output_set_video_encoder(recordingOutput, videoStreamingEncoder);
+		obs_output_set_audio_encoder(
+		    recordingOutput, simple ? audioSimpleStreamingEncoder : audioAdvancedStreamingEncoder, 0);
 
 		if (replayBufferOutput) {
 			obs_output_set_video_encoder(replayBufferOutput, videoStreamingEncoder);
+			obs_output_set_audio_encoder(
+			    replayBufferOutput, simple ? audioSimpleStreamingEncoder : audioAdvancedStreamingEncoder, 0);
 		}
 	} else {
 		obs_output_set_video_encoder(recordingOutput, videoRecordingEncoder);
@@ -1642,9 +1646,8 @@ void OBS_service::updateVideoRecordingEncoder()
 		if (videoRecordingEncoder != videoStreamingEncoder) {
 			obs_encoder_release(videoRecordingEncoder);
 			videoRecordingEncoder = nullptr;
-			videoRecordingEncoder = videoStreamingEncoder;
+			obs_encoder_release(audioSimpleRecordingEncoder);
 			audioSimpleRecordingEncoder = nullptr;
-			audioSimpleRecordingEncoder = audioSimpleStreamingEncoder;
 			usingRecordingPreset  = false;
 		}
 		return;
@@ -1813,7 +1816,8 @@ void OBS_service::UpdateRecordingSettings()
 	bool ultra_hq = (videoQuality == "HQ");
 	int  crf      = CalcCRF(ultra_hq ? 16 : 23);
 
-	if (videoEncoder.compare(SIMPLE_ENCODER_X264) == 0 || videoEncoder.compare(ADVANCED_ENCODER_X264) == 0) {
+	if (videoEncoder.compare(SIMPLE_ENCODER_X264) == 0 || videoEncoder.compare(ADVANCED_ENCODER_X264) == 0
+	    || videoEncoder.compare(SIMPLE_ENCODER_X264_LOWCPU) == 0) {
 		UpdateRecordingSettings_x264_crf(crf);
 
 	} else if (videoEncoder.compare(SIMPLE_ENCODER_QSV) == 0 || videoEncoder.compare(ADVANCED_ENCODER_QSV) == 0) {

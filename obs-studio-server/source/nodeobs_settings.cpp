@@ -16,15 +16,15 @@
 
 ******************************************************************************/
 
+#include "nodeobs_settings.h"
 #include "error.hpp"
 #include "nodeobs_api.h"
-#include "nodeobs_settings.h"
 #include "shared.hpp"
 
 #include <windows.h>
 
 std::vector<const char*> tabStreamTypes;
-const char*         currentServiceName;
+const char*              currentServiceName;
 
 /* some nice default output resolution vals */
 static const double vals[] = {1.0, 1.25, (1.0 / 0.75), 1.5, (1.0 / 0.6), 1.75, 2.0, 2.25, 2.5, 2.75, 3.0};
@@ -878,7 +878,8 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 
 	obs_data_t* hotkeyData = obs_hotkeys_save_service(currentService);
 
-	obs_service_t* newService = obs_service_create(newserviceTypeValue.c_str(), "default_service", settings, hotkeyData);
+	obs_service_t* newService =
+	    obs_service_create(newserviceTypeValue.c_str(), "default_service", settings, hotkeyData);
 
 	if (serviceChanged) {
 		std::string server      = obs_data_get_string(settings, "server");
@@ -949,18 +950,23 @@ static bool EncoderAvailable(const char* encoder)
 	return false;
 }
 
-void OBS_settings::getSimpleAvailableEncoders(std::vector<std::pair<std::string, std::string>>* streamEncoder)
+void OBS_settings::getSimpleAvailableEncoders(
+    std::vector<std::pair<std::string, std::string>>* encoders,
+    bool                                              recording)
 {
-	streamEncoder->push_back(std::make_pair("Software (x264)", SIMPLE_ENCODER_X264));
+	encoders->push_back(std::make_pair("Software (x264)", SIMPLE_ENCODER_X264));
+
+	if (recording)
+		encoders->push_back(std::make_pair("Software (x264 low CPU usage preset, increases file size)", SIMPLE_ENCODER_X264_LOWCPU));
 
 	if (EncoderAvailable("obs_qsv11"))
-		streamEncoder->push_back(std::make_pair("QSV", SIMPLE_ENCODER_QSV));
+			encoders->push_back(std::make_pair("QSV", SIMPLE_ENCODER_QSV));
 
 	if (EncoderAvailable("ffmpeg_nvenc"))
-		streamEncoder->push_back(std::make_pair("NVENC", SIMPLE_ENCODER_NVENC));
+		encoders->push_back(std::make_pair("NVENC", SIMPLE_ENCODER_NVENC));
 
 	if (EncoderAvailable("amd_amf_h264"))
-		streamEncoder->push_back(std::make_pair("AMD", SIMPLE_ENCODER_AMD));
+		encoders->push_back(std::make_pair("AMD", SIMPLE_ENCODER_AMD));
 }
 
 void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::string, std::string>>* streamEncoder)
@@ -1001,7 +1007,7 @@ void OBS_settings::getSimpleOutputSettings(
 	streamEncoder.push_back(std::make_pair("description", "Encoder"));
 	streamEncoder.push_back(std::make_pair("subType", "OBS_COMBO_FORMAT_STRING"));
 
-	getSimpleAvailableEncoders(&streamEncoder);
+	getSimpleAvailableEncoders(&streamEncoder, false);
 
 	entries.push_back(streamEncoder);
 
@@ -1172,6 +1178,17 @@ void OBS_settings::getSimpleOutputSettings(
 	recFormat.push_back(std::make_pair("ts", "ts"));
 	recFormat.push_back(std::make_pair("m3u8", "m3u8"));
 	entries.push_back(recFormat);
+
+	//Rec Encoder
+	std::vector<std::pair<std::string, std::string>> recEncoder;
+	recEncoder.push_back(std::make_pair("name", "RecEncoder"));
+	recEncoder.push_back(std::make_pair("type", "OBS_PROPERTY_LIST"));
+	recEncoder.push_back(std::make_pair("description", "Encoder"));
+	recEncoder.push_back(std::make_pair("subType", "OBS_COMBO_FORMAT_STRING"));
+
+	getSimpleAvailableEncoders(&recEncoder, true);
+
+	entries.push_back(recEncoder);
 
 	//Custom Muxer Settings
 	std::vector<std::pair<std::string, std::string>> muxerCustom;
@@ -1620,7 +1637,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	struct stat buffer;
 
 	std::string streamName = ConfigManager::getInstance().getStream();
-	bool fileExist = (os_stat(streamName.c_str(), &buffer) == 0);
+	bool        fileExist  = (os_stat(streamName.c_str(), &buffer) == 0);
 
 	obs_data_t*    settings = obs_encoder_defaults(encoderID);
 	obs_encoder_t* streamingEncoder;
@@ -1638,8 +1655,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 				blog(LOG_WARNING, "Failed to save encoder %s", streamName.c_str());
 			}
 		} else {
-			obs_data_t* data =
-			    obs_data_create_from_json_file_safe(streamName.c_str(), "bak");
+			obs_data_t* data = obs_data_create_from_json_file_safe(streamName.c_str(), "bak");
 			obs_data_apply(settings, data);
 			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", settings, nullptr);
 			OBS_service::setStreamingEncoder(streamingEncoder);
@@ -1671,7 +1687,7 @@ void OBS_settings::getStandardRecordingSettings(
 
 	if (RecFilePathCurrentValue == NULL) {
 		std::string RecFilePathTextString = OBS_service::GetDefaultVideoSavePath();
-		const char* RecFilePathText = RecFilePathTextString.c_str();
+		const char* RecFilePathText       = RecFilePathTextString.c_str();
 
 		recFilePath.currentValue.resize(strlen(RecFilePathText));
 		memcpy(recFilePath.currentValue.data(), RecFilePathText, strlen(RecFilePathText));
@@ -2187,7 +2203,7 @@ void OBS_settings::getAdvancedOutputAudioSettings(
 void OBS_settings::getReplayBufferSettings(
     std::vector<SubCategory>* outputSettings,
     config_t*                 config,
-	bool                      advanced,
+    bool                      advanced,
     bool                      isCategoryEnabled)
 {
 	std::vector<std::vector<std::pair<std::string, std::string>>> entries;
@@ -2873,7 +2889,7 @@ void OBS_settings::saveVideoSettings(std::vector<SubCategory> videoSettings)
 
 		uint64_t* fpsIntValue = reinterpret_cast<uint64_t*>(fpsInt.currentValue.data());
 
-		if (*fpsIntValue > 0 && * fpsIntValue < 500) {
+		if (*fpsIntValue > 0 && *fpsIntValue < 500) {
 			config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSInt", *fpsIntValue);
 		}
 
@@ -2976,7 +2992,7 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	colorRange.push_back(std::make_pair("Full", "Full"));
 	entries.push_back(colorRange);
 
-    //GPU Render
+	//GPU Render
 	std::vector<std::pair<std::string, std::string>> forceGPUAsRenderDevice;
 	forceGPUAsRenderDevice.push_back(std::make_pair("name", "ForceGPUAsRenderDevice"));
 	forceGPUAsRenderDevice.push_back(std::make_pair("type", "OBS_PROPERTY_BOOL"));
@@ -2984,13 +3000,13 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	forceGPUAsRenderDevice.push_back(std::make_pair("subType", ""));
 	entries.push_back(forceGPUAsRenderDevice);
 
-	advancedSettings.push_back(
-	    serializeSettingsData("Video",
-	                          entries,
-	                          ConfigManager::getInstance().getBasic(),
-	                          "Video",
-	                          true,
-	                          !OBS_service::isStreamingOutputActive()));
+	advancedSettings.push_back(serializeSettingsData(
+	    "Video",
+	    entries,
+	    ConfigManager::getInstance().getBasic(),
+	    "Video",
+	    true,
+	    !OBS_service::isStreamingOutputActive()));
 	entries.clear();
 
 #if defined(_WIN32) || defined(__APPLE__)
@@ -3051,7 +3067,7 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	entries.push_back(overwriteIfExists);
 
 	advancedSettings.push_back(
-	serializeSettingsData("Recording", entries, ConfigManager::getInstance().getBasic(), "Output", true, true));
+	    serializeSettingsData("Recording", entries, ConfigManager::getInstance().getBasic(), "Output", true, true));
 	entries.clear();
 
 	//Replay Buffer Filename Prefix
@@ -3182,7 +3198,8 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	std::vector<std::pair<std::string, std::string>> browserHWAccel;
 	browserHWAccel.push_back(std::make_pair("name", "browserHWAccel"));
 	browserHWAccel.push_back(std::make_pair("type", "OBS_PROPERTY_BOOL"));
-	browserHWAccel.push_back(std::make_pair("description", "Enable Browser Source Hardware Acceleration (requires a restart)"));
+	browserHWAccel.push_back(
+	    std::make_pair("description", "Enable Browser Source Hardware Acceleration (requires a restart)"));
 	browserHWAccel.push_back(std::make_pair("subType", ""));
 	entries.push_back(browserHWAccel);
 

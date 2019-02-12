@@ -228,7 +228,7 @@ class OBS_settings
 	static void saveAdvancedOutputSettings(std::vector<SubCategory> settings);
 
 	//Utility functions
-	static void getSimpleAvailableEncoders(std::vector<std::pair<std::string, std::string>>* streamEncode);
+	static void getSimpleAvailableEncoders(std::vector<std::pair<std::string, std::string>>* streamEncode, bool recording);
 	static void getAdvancedAvailableEncoders(std::vector<std::pair<std::string, std::string>>* streamEncode);
 	static std::vector<std::pair<uint64_t, uint64_t>> getOutputResolutions(uint64_t base_cx, uint64_t base_cy);
 	static void                                  getEncoderSettings(
