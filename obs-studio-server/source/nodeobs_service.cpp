@@ -952,9 +952,9 @@ bool OBS_service::updateAdvancedReplayBuffer(void)
 	bool useStreamEncoder = recEnc.compare("none") == 0;
 
 	obs_data_t* streamEncSettings =
-	    obs_data_create_from_json_file_safe(ConfigManager::getInstance().getStream().c_str(), "bak");
+        obs_data_create_from_json_file_safe(ConfigManager::getInstance().getStream().c_str(), "bak");
 	obs_data_t* recordEncSettings =
-	    obs_data_create_from_json_file_safe(ConfigManager::getInstance().getRecord().c_str(), "bak");
+        obs_data_create_from_json_file_safe(ConfigManager::getInstance().getRecord().c_str(), "bak");
 
 	const char* rate_control =
 	    obs_data_get_string(useStreamEncoder ? streamEncSettings : recordEncSettings, "rate_control");
