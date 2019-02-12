@@ -1180,15 +1180,20 @@ void OBS_settings::getSimpleOutputSettings(
 	entries.push_back(recFormat);
 
 	//Rec Encoder
-	std::vector<std::pair<std::string, std::string>> recEncoder;
-	recEncoder.push_back(std::make_pair("name", "RecEncoder"));
-	recEncoder.push_back(std::make_pair("type", "OBS_PROPERTY_LIST"));
-	recEncoder.push_back(std::make_pair("description", "Encoder"));
-	recEncoder.push_back(std::make_pair("subType", "OBS_COMBO_FORMAT_STRING"));
+	std::string currentRecQuality =
+	    config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
 
-	getSimpleAvailableEncoders(&recEncoder, true);
+	if (currentRecQuality.compare("Small") == 0 || currentRecQuality.compare("HQ") == 0) {
+		std::vector<std::pair<std::string, std::string>> recEncoder;
+		recEncoder.push_back(std::make_pair("name", "RecEncoder"));
+		recEncoder.push_back(std::make_pair("type", "OBS_PROPERTY_LIST"));
+		recEncoder.push_back(std::make_pair("description", "Encoder"));
+		recEncoder.push_back(std::make_pair("subType", "OBS_COMBO_FORMAT_STRING"));
 
-	entries.push_back(recEncoder);
+		getSimpleAvailableEncoders(&recEncoder, true);
+
+		entries.push_back(recEncoder);
+	}
 
 	//Custom Muxer Settings
 	std::vector<std::pair<std::string, std::string>> muxerCustom;
