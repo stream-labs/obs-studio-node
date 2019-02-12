@@ -831,9 +831,6 @@ void OBS_service::clearAudioEncoder(void) {
 
 bool OBS_service::startStreaming(void)
 {
-	std::string currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
-	bool        advanced          = currentOutputMode.compare("Advanced") == 0;
-	std::string id;
 	const char* type = obs_service_get_output_type(service);
 	if (!type)
 		type = "rtmp_output";
@@ -841,6 +838,19 @@ bool OBS_service::startStreaming(void)
 	obs_output_release(streamingOutput);
 	streamingOutput = obs_output_create(type, "simple_stream", nullptr, nullptr);
 	connectOutputSignals();
+
+	updateAudioStreamingEncoder();
+	updateService();
+	updateStreamSettings();
+
+	isStreaming = true;
+	return obs_output_start(streamingOutput);
+}
+
+bool OBS_service::updateAudioStreamingEncoder() {
+	std::string currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
+	bool        advanced          = currentOutputMode.compare("Advanced") == 0;
+	std::string id;
 
 	const char* codec = obs_output_get_supported_audio_codecs(streamingOutput);
 	if (!codec) {
@@ -883,17 +893,10 @@ bool OBS_service::startStreaming(void)
 				return false;
 
 			obs_encoder_update(audioAdvancedStreamingEncoder, settings);
-			obs_encoder_set_audio(audioAdvancedStreamingEncoder, obs_get_audio());
-
 			obs_data_release(settings);
 		}
+		obs_encoder_set_audio(audioAdvancedStreamingEncoder, obs_get_audio());
 	}
-
-	updateService();
-	updateStreamSettings();
-
-	isStreaming = true;
-	return obs_output_start(streamingOutput);
 }
 
 bool OBS_service::startRecording(void)
@@ -901,35 +904,6 @@ bool OBS_service::startRecording(void)
 	obs_output_release(recordingOutput);
 	recordingOutput = obs_output_create("ffmpeg_muxer", "simple_file_output", nullptr, nullptr);
 	connectOutputSignals();
-
-	std::string currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
-	bool        advanced          = currentOutputMode.compare("Advanced") == 0;
-	int         trackIndex        = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex");
-
-	const char* codec = obs_output_get_supported_audio_codecs(streamingOutput);
-	if (!codec) {
-		return false;
-	}
-
-	std::string quality;
-	bool        useStreamingEncoder = false;
-
-	if (!advanced) {
-		quality             = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
-		useStreamingEncoder = quality.compare("Stream") == 0;
-	} else {
-		quality             = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecEncoder");
-		useStreamingEncoder = quality.compare("none") == 0;
-
-		for (int i = 0; i < MAX_AUDIO_MIXES; i++) {
-			char name[9];
-			sprintf(name, "adv_aac%d", i);
-
-			if (!createAudioEncoder(&(aacTracks[i]), aacEncodersID[i], GetAdvancedAudioBitrate(i), name, i))
-				throw "Failed to create audio encoder "
-			      "(advanced output)";
-		}
-	}
 
 	isRecording = true;
 	updateRecordSettings();
@@ -1168,13 +1142,9 @@ void OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(bool
 
 	if (useStreamingEncoder) {
 		obs_output_set_video_encoder(recordingOutput, videoStreamingEncoder);
-		obs_output_set_audio_encoder(
-		    recordingOutput, simple ? audioSimpleStreamingEncoder : audioAdvancedStreamingEncoder, 0);
 
 		if (replayBufferOutput) {
 			obs_output_set_video_encoder(replayBufferOutput, videoStreamingEncoder);
-			obs_output_set_audio_encoder(
-			    replayBufferOutput, simple ? audioSimpleStreamingEncoder : audioAdvancedStreamingEncoder, 0);
 		}
 	} else {
 		obs_output_set_video_encoder(recordingOutput, videoRecordingEncoder);
@@ -1186,25 +1156,6 @@ void OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(bool
 			obs_output_set_audio_encoder(replayBufferOutput, audioSimpleRecordingEncoder, 0);
 		}
 	}
-}
-
-void OBS_service::setServiceToTheStreamingOutput(void)
-{
-	obs_data_t* settings = obs_service_get_settings(service);
-	const char* platform = obs_data_get_string(settings, "service");
-
-	const char* server = obs_service_get_url(service);
-
-	if (platform && strcmp(platform, "Twitch") == 0) {
-		if (!server || strcmp(server, "") == 0) {
-			server = "auto";
-			obs_data_set_string(settings, "server", server);
-			obs_service_update(service, settings);
-		}
-	}
-
-	obs_data_release(settings);
-	obs_output_set_service(streamingOutput, service);
 }
 
 void OBS_service::setRecordingSettings(void)
@@ -1391,7 +1342,21 @@ std::string OBS_service::GetDefaultVideoSavePath(void)
 
 void OBS_service::updateService(void)
 {
-	setServiceToTheStreamingOutput();
+	obs_data_t* settings = obs_service_get_settings(service);
+	const char* platform = obs_data_get_string(settings, "service");
+
+	const char* server = obs_service_get_url(service);
+
+	if (platform && strcmp(platform, "Twitch") == 0) {
+		if (!server || strcmp(server, "") == 0) {
+			server = "auto";
+			obs_data_set_string(settings, "server", server);
+			obs_service_update(service, settings);
+		}
+	}
+
+	obs_data_release(settings);
+	obs_output_set_service(streamingOutput, service);
 }
 
 void OBS_service::updateStreamingOutput(void)
@@ -1510,27 +1475,7 @@ void OBS_service::updateAdvancedRecordingOutput(void)
 		FindBestFilename(strPath, noSpace);
 
 	obs_data_t*  settings = obs_data_create();
-	unsigned int cx       = 0;
-	unsigned int cy       = 0;
 	int          idx      = 0;
-
-	// To be changed to the actual value
-	bool useStreamEncoder = false;
-
-	if (useStreamEncoder) {
-		obs_output_set_video_encoder(recordingOutput, videoStreamingEncoder);
-	} else {
-		if (rescale && rescaleRes && *rescaleRes) {
-			if (sscanf(rescaleRes, "%ux%u", &cx, &cy) != 2) {
-				cx = 0;
-				cy = 0;
-			}
-		}
-
-		obs_encoder_set_scaled_size(videoRecordingEncoder, cx, cy);
-		obs_encoder_set_video(videoRecordingEncoder, obs_get_video());
-		obs_output_set_video_encoder(recordingOutput, videoRecordingEncoder);
-	}
 
 	for (int i = 0; i < MAX_AUDIO_MIXES; i++) {
 		if ((tracks & (1 << i)) != 0) {
@@ -1691,12 +1636,15 @@ void OBS_service::updateVideoRecordingEncoder()
 
 	if (strcmp(quality, "Stream") == 0) {
 		if (!isStreaming) {
+			updateAudioStreamingEncoder();
 			updateVideoStreamingEncoder();
 		}
 		if (videoRecordingEncoder != videoStreamingEncoder) {
 			obs_encoder_release(videoRecordingEncoder);
 			videoRecordingEncoder = nullptr;
 			videoRecordingEncoder = videoStreamingEncoder;
+			audioSimpleRecordingEncoder = nullptr;
+			audioSimpleRecordingEncoder = audioSimpleStreamingEncoder;
 			usingRecordingPreset  = false;
 		}
 		return;

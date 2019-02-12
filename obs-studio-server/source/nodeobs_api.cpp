@@ -543,18 +543,16 @@ void OBS_API::OBS_API_initAPI(
 	OBS_service::createVideoStreamingEncoder();
 	OBS_service::createVideoRecordingEncoder();
 
-	OBS_service::setupAudioEncoder();
-
 	OBS_service::resetAudioContext();
 	OBS_service::resetVideoContext();
+
+	OBS_service::setupAudioEncoder();
 
 	OBS_service::associateAudioAndVideoToTheCurrentStreamingContext();
 	OBS_service::associateAudioAndVideoToTheCurrentRecordingContext();
 
 	OBS_service::associateAudioAndVideoEncodersToTheCurrentStreamingOutput();
 	OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(false);
-
-	OBS_service::setServiceToTheStreamingOutput();
 
 	setAudioDeviceMonitoring();
 
