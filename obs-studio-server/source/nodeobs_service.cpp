@@ -960,7 +960,7 @@ bool OBS_service::updateAdvancedReplayBuffer(void)
 	    obs_data_get_string(useStreamEncoder ? streamEncSettings : recordEncSettings, "rate_control");
 	if (!rate_control)
 		rate_control = "";
-	bool usesBitrate = usesBitrate =
+	bool usesBitrate =
 	    astrcmpi(rate_control, "CBR") == 0 || astrcmpi(rate_control, "VBR") == 0 || astrcmpi(rate_control, "ABR") == 0;
 	if (!useStreamEncoder) {
 		if (!ffmpegOutput)
