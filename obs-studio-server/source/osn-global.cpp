@@ -79,6 +79,12 @@ void osn::Global::SetOutputSource(
     std::vector<ipc::value>&       rval)
 {
 	obs_source_t* source = nullptr;
+	uint32_t      channel = args[0].value_union.ui32;
+
+	if (channel >= MAX_CHANNELS) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfBounds));
+		rval.push_back(ipc::value("Invalid output channel."));
+	}
 
 	if (args[1].value_union.ui64 != UINT64_MAX) {
 		source = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
@@ -90,8 +96,8 @@ void osn::Global::SetOutputSource(
 		}
 	}
 
-	obs_set_output_source(args[0].value_union.ui32, source);
-	obs_source_t* newsource = obs_get_output_source(args[0].value_union.ui32);
+	obs_set_output_source(channel, source);
+	obs_source_t* newsource = obs_get_output_source(channel);
 	if (newsource != source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Failed to set output source."));
