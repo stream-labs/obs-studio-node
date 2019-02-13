@@ -33,8 +33,6 @@ osn::Fader::~Fader()
 {
 }
 
-std::vector<std::unique_ptr<osn::Fader>> faders;
-
 uint64_t osn::Fader::GetId()
 {
 	return this->uid;
@@ -94,9 +92,8 @@ void osn::Fader::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 
 	// Return created Object
-	auto newFader = std::make_unique<osn::Fader>(rval[1].value_union.ui64);
-	faders.push_back(std::move(newFader));
-	info.GetReturnValue().Set(Store(faders.back().get()));
+	auto* newFader = new osn::Fader(rval[1].value_union.ui64);
+	info.GetReturnValue().Set(Store(newFader));
 }
 
 void osn::Fader::GetDeziBel(Nan::NAN_METHOD_ARGS_TYPE info)

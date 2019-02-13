@@ -36,8 +36,6 @@ osn::VolMeter::~VolMeter()
 {
 }
 
-std::vector<std::unique_ptr<osn::VolMeter>> volmeters;
-
 uint64_t osn::VolMeter::GetId() 
 {
 	return m_uid;
@@ -225,10 +223,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Create(Nan::NAN_METHOD_ARGS_TYPE info
 	}
 
 	// Return created Object
-	auto newVolmeter              = std::make_unique<osn::VolMeter>(rval[1].value_union.ui64);
-	newVolmeter->m_sleep_interval = rval[2].value_union.ui32;
-	volmeters.push_back(std::move(newVolmeter));
-	info.GetReturnValue().Set(Store(volmeters.back().get()));
+	auto* newVolmeter              = new osn::VolMeter(rval[1].value_union.ui64);
+	newVolmeter->m_sleep_interval  = rval[2].value_union.ui32;
+	info.GetReturnValue().Set(Store(newVolmeter));
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::GetUpdateInterval(Nan::NAN_METHOD_ARGS_TYPE info)
