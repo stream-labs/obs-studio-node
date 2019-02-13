@@ -2,7 +2,6 @@ import 'mocha';
 import { expect } from 'chai';
 import * as osn from 'obs-studio-node';
 import { OBSProcessHandler } from '../util/obs_process_handler';
-import * as rxjs from'rxjs';
 
 interface Dictionary<TItemType> {
     [key: string]: TItemType;
