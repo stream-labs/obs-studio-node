@@ -68,6 +68,7 @@ uint64_t                                               lastBytesSentTime = 0;
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 std::string                                            slobs_plugin;
 std::vector<std::pair<std::string, obs_module_t*>>     obsModules;
+std::mutex                                             logMutex;
 
 void OBS_API::Register(ipc::server& srv)
 {
@@ -263,6 +264,8 @@ std::chrono::high_resolution_clock             hrc;
 std::chrono::high_resolution_clock::time_point tp = std::chrono::high_resolution_clock::now();
 static void                                    node_obs_log(int log_level, const char* msg, va_list args, void* param)
 {
+	std::lock_guard<std::mutex> lock(logMutex);
+
 	if (param == nullptr)
 		return;
 
