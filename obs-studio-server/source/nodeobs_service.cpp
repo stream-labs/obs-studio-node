@@ -1303,6 +1303,9 @@ void OBS_service::updateVideoStreamingEncoder()
 		} else if (strcmp(encoder, SIMPLE_ENCODER_NVENC) == 0 || strcmp(encoder, ADVANCED_ENCODER_NVENC) == 0) {
 			presetType = "NVENCPreset";
 			encoderID  = "ffmpeg_nvenc";
+		} else if (strcmp(encoder, ENCODER_NEW_NVENC) == 0) {
+			presetType = "NVENCPreset";
+			encoderID  = "jim_nvenc";
 		} else {
 			presetType = "Preset";
 			encoderID  = "obs_x264";
