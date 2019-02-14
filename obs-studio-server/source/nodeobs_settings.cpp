@@ -81,7 +81,8 @@ void OBS_settings::OBS_settings_getSettings(
     std::vector<ipc::value>&       rval)
 {
 	std::string              nameCategory = args[0].value_str;
-	std::vector<SubCategory> settings     = getSettings(nameCategory);
+	CategoryTypes            type         = NODEOBS_CATEGORY_LIST;
+	std::vector<SubCategory> settings     = getSettings(nameCategory, type);
 	std::vector<char>        binaryValue;
 
 	for (int i = 0; i < settings.size(); i++) {
@@ -93,8 +94,8 @@ void OBS_settings::OBS_settings_getSettings(
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(settings.size()));
 	rval.push_back(ipc::value(binaryValue.size()));
-
 	rval.push_back(ipc::value(binaryValue));
+	rval.push_back(ipc::value(type));
 	AUTO_DEBUG;
 }
 
@@ -2256,7 +2257,7 @@ void OBS_settings::getAdvancedOutputSettings(
 	getReplayBufferSettings(outputSettings, config, true, isCategoryEnabled);
 }
 
-std::vector<SubCategory> OBS_settings::getOutputSettings()
+std::vector<SubCategory> OBS_settings::getOutputSettings(CategoryTypes &type)
 {
 	std::vector<SubCategory> outputSettings;
 
@@ -2288,6 +2289,7 @@ std::vector<SubCategory> OBS_settings::getOutputSettings()
 
 	if (strcmp(currentOutputMode, "Advanced") == 0) {
 		getAdvancedOutputSettings(&outputSettings, ConfigManager::getInstance().getBasic(), isCategoryEnabled);
+		type = NODEOBS_CATEGORY_TAB;
 	} else {
 		getSimpleOutputSettings(&outputSettings, ConfigManager::getInstance().getBasic(), isCategoryEnabled);
 	}
@@ -3390,7 +3392,7 @@ std::vector<std::string> OBS_settings::getListCategories(void)
 	return categories;
 }
 
-std::vector<SubCategory> OBS_settings::getSettings(std::string nameCategory)
+std::vector<SubCategory> OBS_settings::getSettings(std::string nameCategory, CategoryTypes &type)
 {
 	std::vector<SubCategory> settings;
 
@@ -3399,7 +3401,7 @@ std::vector<SubCategory> OBS_settings::getSettings(std::string nameCategory)
 	} else if (nameCategory.compare("Stream") == 0) {
 		settings = getStreamSettings();
 	} else if (nameCategory.compare("Output") == 0) {
-		settings = getOutputSettings();
+		settings = getOutputSettings(type);
 	} else if (nameCategory.compare("Audio") == 0) {
 		settings = getAudioSettings();
 	} else if (nameCategory.compare("Video") == 0) {

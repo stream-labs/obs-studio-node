@@ -27,6 +27,12 @@
 
 #include "nodeobs_audio_encoders.h"
 
+enum CategoryTypes
+{
+	NODEOBS_CATEGORY_LIST,
+	NODEOBS_CATEGORY_TAB
+};
+
 struct Parameter
 {
 	std::string       name;
@@ -157,13 +163,13 @@ class OBS_settings
 	static std::vector<std::string> getListCategories(void);
 
 	// Exposed methods to the frontend
-	static std::vector<SubCategory> getSettings(std::string nameCategory);
+	static std::vector<SubCategory> getSettings(std::string nameCategory, CategoryTypes&);
 	static void                     saveSettings(std::string nameCategory, std::vector<SubCategory> settings);
 
 	// Get each category
 	static std::vector<SubCategory> getGeneralSettings();
 	static std::vector<SubCategory> getStreamSettings();
-	static std::vector<SubCategory> getOutputSettings();
+	static std::vector<SubCategory> getOutputSettings(CategoryTypes&);
 	static std::vector<SubCategory> getAudioSettings();
 	static std::vector<SubCategory> getVideoSettings();
 	static std::vector<SubCategory> getAdvancedSettings();
