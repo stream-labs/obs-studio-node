@@ -320,6 +320,11 @@ export const enum EOutputCode {
     NoSpace = -7
 }
 
+export declare const enum ECategoryTypes {
+    NODEOBS_CATEGORY_LIST = 0,
+	NODEOBS_CATEGORY_TAB = 1
+}
+
 export const Global: IGlobal = obs.Global;
 export const Video: IVideo = obs.Video;
 export const OutputFactory: IOutputFactory = obs.Output;

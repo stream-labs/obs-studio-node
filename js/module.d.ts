@@ -238,6 +238,10 @@ export declare const enum EOutputCode {
     Unsupported = -6,
     NoSpace = -7
 }
+export declare const enum ECategoryTypes {
+    NODEOBS_CATEGORY_LIST = 0,
+	NODEOBS_CATEGORY_TAB = 1
+}
 export declare const Global: IGlobal;
 export declare const Video: IVideo;
 export declare const OutputFactory: IOutputFactory;

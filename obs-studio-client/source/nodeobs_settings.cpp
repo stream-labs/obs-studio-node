@@ -293,8 +293,8 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 		subCategory->Set(v8::String::NewFromUtf8(isolate, "parameters"), subCategoryParameters);
 
 		rval->Set(i, subCategory);
+		rval->Set(v8::String::NewFromUtf8(isolate, "type"), v8::Integer::New(isolate, response[4].value_union.ui32));
 	}
-
 	args.GetReturnValue().Set(rval);
 	return;
 }
