@@ -27,10 +27,10 @@
 
 #include "nodeobs_audio_encoders.h"
 
-enum CategoryTypes
+enum CategoryTypes : uint32_t
 {
-	NODEOBS_CATEGORY_LIST,
-	NODEOBS_CATEGORY_TAB
+	NODEOBS_CATEGORY_LIST = 0,
+	NODEOBS_CATEGORY_TAB = 1
 };
 
 struct Parameter
