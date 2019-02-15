@@ -346,12 +346,11 @@ OBS::Display::Display(uint64_t windowHandle) : Display()
 	m_gsInitData.window.hwnd = reinterpret_cast<void*>(m_ourWindow);
 #endif
 
-	m_display = obs_display_create(&m_gsInitData);
+	m_display = obs_display_create(&m_gsInitData, 0x0);
 	if (!m_display)
 		throw std::runtime_error("unable to create display");
 
 	obs_display_add_draw_callback(m_display, DisplayCallback, this);
-	obs_display_set_background_color(m_display, 0x0);
 
 	SetSize(0, 0);
 	SetPosition(0, 0);

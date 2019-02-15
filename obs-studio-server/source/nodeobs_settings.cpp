@@ -961,13 +961,16 @@ void OBS_settings::getSimpleAvailableEncoders(
 		encoders->push_back(std::make_pair("Software (x264 low CPU usage preset, increases file size)", SIMPLE_ENCODER_X264_LOWCPU));
 
 	if (EncoderAvailable("obs_qsv11"))
-			encoders->push_back(std::make_pair("QSV", SIMPLE_ENCODER_QSV));
+			encoders->push_back(std::make_pair("Hardware (QSV)", SIMPLE_ENCODER_QSV));
 
 	if (EncoderAvailable("ffmpeg_nvenc"))
-		encoders->push_back(std::make_pair("NVENC", SIMPLE_ENCODER_NVENC));
+		encoders->push_back(std::make_pair("Hardware (NVENC)", SIMPLE_ENCODER_NVENC));
 
 	if (EncoderAvailable("amd_amf_h264"))
-		encoders->push_back(std::make_pair("AMD", SIMPLE_ENCODER_AMD));
+		encoders->push_back(std::make_pair("Hardware (AMD)", SIMPLE_ENCODER_AMD));
+
+	if (EncoderAvailable("jim_nvenc"))
+		encoders->push_back(std::make_pair("Hardware (NVENC) (new)", ENCODER_NEW_NVENC));
 }
 
 void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::string, std::string>>* streamEncoder)
@@ -975,13 +978,16 @@ void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::strin
 	streamEncoder->push_back(std::make_pair("Software (x264)", ADVANCED_ENCODER_X264));
 
 	if (EncoderAvailable("obs_qsv11"))
-		streamEncoder->push_back(std::make_pair("QSV", ADVANCED_ENCODER_QSV));
+		streamEncoder->push_back(std::make_pair("Hardware (QSV)", ADVANCED_ENCODER_QSV));
 
 	if (EncoderAvailable("ffmpeg_nvenc"))
-		streamEncoder->push_back(std::make_pair("NVENC", ADVANCED_ENCODER_NVENC));
+		streamEncoder->push_back(std::make_pair("NVIDIA NVENC H.264", ADVANCED_ENCODER_NVENC));
 
 	if (EncoderAvailable("amd_amf_h264"))
 		streamEncoder->push_back(std::make_pair("AMD", ADVANCED_ENCODER_AMD));
+
+	if (EncoderAvailable("jim_nvenc"))
+		streamEncoder->push_back(std::make_pair("NVIDIA NVENC H.264 (new)", ENCODER_NEW_NVENC));
 }
 
 void OBS_settings::getSimpleOutputSettings(
