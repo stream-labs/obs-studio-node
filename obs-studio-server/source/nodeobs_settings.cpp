@@ -1646,13 +1646,13 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	bool        fileExist  = (os_stat(streamName.c_str(), &buffer) == 0);
 
 	obs_data_t*    settings = obs_encoder_defaults(encoderID);
-	obs_encoder_t* streamingEncoder;
+	obs_encoder_t* streamingEncoder = OBS_service::getStreamingEncoder();
 	obs_output_t*  streamOutput = OBS_service::getStreamingOutput();
 
 	if (streamOutput == NULL)
 		return streamingSettings;
 
-	if (!obs_output_active(streamOutput)) {
+	if (streamingEncoder == nullptr) {
 		if (!fileExist) {
 			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
 			OBS_service::setStreamingEncoder(streamingEncoder);
@@ -1667,8 +1667,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 			OBS_service::setStreamingEncoder(streamingEncoder);
 		}
 	} else {
-		streamingEncoder = OBS_service::getStreamingEncoder();
-		settings         = obs_encoder_get_settings(streamingEncoder);
+		settings = obs_encoder_get_settings(streamingEncoder);
 	}
 
 	getEncoderSettings(streamingEncoder, settings, &(streamingSettings.params), index, isCategoryEnabled, false);
@@ -1950,14 +1949,13 @@ void OBS_settings::getStandardRecordingSettings(
 	bool fileExist = (os_stat(ConfigManager::getInstance().getRecord().c_str(), &buffer) == 0);
 
 	obs_data_t*    settings = obs_encoder_defaults(recEncoderCurrentValue);
-	obs_encoder_t* recordingEncoder;
-
+	obs_encoder_t* recordingEncoder = OBS_service::getRecordingEncoder();
 	obs_output_t* recordOutput = OBS_service::getRecordingOutput();
 
 	if (recordOutput == NULL)
 		return;
 
-	if (!obs_output_active(recordOutput)) {
+	if (recordingEncoder == nullptr) {
 		if (!fileExist) {
 			recordingEncoder = obs_video_encoder_create(recEncoderCurrentValue, "recording_h264", nullptr, nullptr);
 			OBS_service::setRecordingEncoder(recordingEncoder);
@@ -1973,8 +1971,7 @@ void OBS_settings::getStandardRecordingSettings(
 			OBS_service::setRecordingEncoder(recordingEncoder);
 		}
 	} else {
-		recordingEncoder = OBS_service::getRecordingEncoder();
-		settings         = obs_encoder_get_settings(recordingEncoder);
+		settings = obs_encoder_get_settings(recordingEncoder);
 	}
 
 	if (strcmp(recEncoderCurrentValue, "none")) {
