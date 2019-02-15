@@ -2932,7 +2932,11 @@ static bool ConvertResText(const char* res, uint32_t& cx, uint32_t& cy)
 	if (token.type != BASETOKEN_DIGIT)
 		return false;
 
-	cx = std::stoul(token.text.array);
+	try {
+		cx = std::stoul(token.text.array);
+	} catch (const std::exception&) {
+		return false;
+	}
 
 	// parse 'x'
 	if (!lexer_getbasetoken(lex, &token, IGNORE_WHITESPACE))
@@ -2946,7 +2950,11 @@ static bool ConvertResText(const char* res, uint32_t& cx, uint32_t& cy)
 	if (token.type != BASETOKEN_DIGIT)
 		return false;
 
-	cy = std::stoul(token.text.array);
+	try {
+		cy = std::stoul(token.text.array);
+	} catch (const std::exception&) {
+		return false;
+	}
 
 	// shouldn't be any more tokens after this
 	if (lexer_getbasetoken(lex, &token, IGNORE_WHITESPACE))
@@ -2964,22 +2972,24 @@ void OBS_settings::saveVideoSettings(std::vector<SubCategory> videoSettings)
 
 	std::string baseResString(baseRes.currentValue.data(), baseRes.currentValue.size());
 
-	uint32_t baseWidth, baseHeight;
+	uint32_t baseWidth = 0, baseHeight = 0;
 
-	ConvertResText(baseResString.c_str(), baseWidth, baseHeight);
-	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCX", baseWidth);
-	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCY", baseHeight);
+	if (ConvertResText(baseResString.c_str(), baseWidth, baseHeight)) {
+		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCX", baseWidth);
+		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCY", baseHeight);
+	}
 
 	//Output resolution
 	Parameter outputRes = sc.params.at(1);
 
 	std::string outputResString(outputRes.currentValue.data(), outputRes.currentValue.size());
 
-	uint32_t outputWidth, outputHeight;
+	uint32_t outputWidth = 0, outputHeight = 0;
 
-	ConvertResText(outputResString.c_str(), outputWidth, outputHeight);
-	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCX", outputWidth);
-	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCY", outputHeight);
+	if (ConvertResText(outputResString.c_str(), outputWidth, outputHeight)) {
+		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCX", outputWidth);
+		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCY", outputHeight);
+	}
 
 	Parameter scaleParameter = sc.params.at(2);
 
