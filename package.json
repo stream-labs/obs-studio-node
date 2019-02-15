@@ -1,6 +1,6 @@
 {
   "name": "@streamlabs/obs-studio-node",
-  "version": "0.3.21",
+  "version": "0.3.98",
   "description": "Experimental bindings to obs-studio using nan directly",
   "author": "Streamlabs <support@streamlabs.com>",
   "license": "GPL-2.0",
@@ -21,7 +21,7 @@
     "build:docs": "typedoc --out docs"
   },
   "devDependencies": {
-    "nan": "2.10.0",
+    "nan": "2.12.1",
     "typedoc": "^0.11.1",
     "typedoc-default-themes": "^0.5.0",
     "typedoc-plugin-markdown": "^1.0.12",
