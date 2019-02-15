@@ -233,17 +233,45 @@ describe('nodeobs_settings', () => {
         it('Get and set simple output settings', () => {
             // Setting output mode to simple
             let setToSimple = osn.NodeObs.OBS_settings_getSettings('Output');
-            setToSimple[0].parameters[0].currentValue = 'Simple';
+
+            setToSimple.find(category => {
+                return category.nameSubCategory === 'Untitled';
+            }).parameters.find(parameter => {
+                return parameter.name === 'Mode';
+            }).currentValue = 'Simple';
+
             osn.NodeObs.OBS_settings_saveSettings('Output', setToSimple);
 
-            // Getting simple output settings container
-            let newOutputSettings = osn.NodeObs.OBS_settings_getSettings('Output');
+            // Setting recording quality to same as stream and activating replay buffer
+            let setRecQualityAndReplayBuffer = osn.NodeObs.OBS_settings_getSettings('Output');
 
-            newOutputSettings.forEach(subCategory => {
+            setRecQualityAndReplayBuffer.find(category => {
+                return category.nameSubCategory === 'Recording';
+            }).parameters.find(parameter => {
+                return parameter.name === 'RecQuality';
+            }).currentValue = 'Stream';
+
+            setRecQualityAndReplayBuffer.find(category => {
+                return category.nameSubCategory === 'Replay Buffer';
+            }).parameters.find(parameter => {
+                return parameter.name === 'RecRB';
+            }).currentValue = true;
+
+            osn.NodeObs.OBS_settings_saveSettings('Output', setRecQualityAndReplayBuffer);
+
+            // Getting simple output settings container with same as stream and replay buffer settings
+            let sameAsStreamRBuffOutputSettings = osn.NodeObs.OBS_settings_getSettings('Output');
+
+            sameAsStreamRBuffOutputSettings.forEach(subCategory => {
                 subCategory.parameters.forEach(parameter => {
                     switch(parameter.name) {
                         case 'Mode': {
                             expect(parameter.currentValue).to.equal('Simple');
+                            break;
+                        }
+                        // Streaming
+                        case 'VBitrate': {
+                            parameter.currentValue = 2000;
                             break;
                         }
                         case 'StreamEncoder': {
@@ -258,20 +286,222 @@ describe('nodeobs_settings', () => {
                             parameter.currentValue = true;
                             break;
                         }
+                        // Recording
                         case 'RecQuality': {
-                            parameter.currentValue = 'Small';
+                            expect(parameter.currentValue).to.equal('Stream');
+                            break;
+                        }
+                        case 'RecFormat': {
+                            parameter.currentValue = 'mp4';
+                            break;
+                        }
+                        case 'MuxerCustom': {
+                            parameter.currentValue = 'test';
+                            break;
+                        }
+                        case 'RecRB': {
+                            expect(parameter.currentValue).to.equal(true);
+                            break;
+                        }
+                        case 'RecRBTime': {
+                            parameter.currentValue = 50;
                             break;
                         }
                     }
                 });
             });
-            
+
             // Setting the updated simple output settings
-            osn.NodeObs.OBS_settings_saveSettings('Output', newOutputSettings);
+            osn.NodeObs.OBS_settings_saveSettings('Output', sameAsStreamRBuffOutputSettings);
 
             // Checking if output settings were updated correctly
-            const updatedOutputSettings = osn.NodeObs.OBS_settings_getSettings('Output');
-            expect(newOutputSettings).to.eql(updatedOutputSettings);
+            const updatedSameAsStreamRBuffOutputSettings = osn.NodeObs.OBS_settings_getSettings('Output');
+            expect(sameAsStreamRBuffOutputSettings).to.eql(updatedSameAsStreamRBuffOutputSettings);
+
+            // Setting recording quality to high
+            let setHighQuality = osn.NodeObs.OBS_settings_getSettings('Output');
+
+            setHighQuality.find(category => {
+                return category.nameSubCategory === 'Recording';
+            }).parameters.find(parameter => {
+                return parameter.name === 'RecQuality';
+            }).currentValue = 'Small';
+
+            osn.NodeObs.OBS_settings_saveSettings('Output', setHighQuality);
+
+            // Getting simple output settings container with high quality settings
+            let highQualityOutputSettings = osn.NodeObs.OBS_settings_getSettings('Output');
+
+            highQualityOutputSettings.forEach(subCategory => {
+                subCategory.parameters.forEach(parameter => {
+
+                    switch(parameter.name) {
+                        case 'Mode': {
+                            expect(parameter.currentValue).to.equal('Simple');
+                            break;
+                        }
+                        // Streaming
+                        case 'VBitrate': {
+                            parameter.currentValue = 3000;
+                            break;
+                        }
+                        case 'StreamEncoder': {
+                            parameter.currentValue = 'jim_nvenc';
+                            break;
+                        }
+                        case 'ABitrate': {
+                            parameter.currentValue = '64';
+                            break;
+                        }
+                        case 'FileNameWithoutSpace': {
+                            parameter.currentValue = false;
+                            break;
+                        }
+                        // Recording
+                        case 'RecQuality': {
+                            expect(parameter.currentValue).to.equal('Small');
+                            break;
+                        }
+                        case 'RecFormat': {
+                            parameter.currentValue = 'mkv';
+                            break;
+                        }
+                        case 'RecEncoder': {
+                            parameter.currentValue = 'x264_lowcpu';
+                            break;
+                        }
+                    }
+                });
+            });
+
+            // Setting simple output settings container with high quality settings
+            osn.NodeObs.OBS_settings_saveSettings('Output', highQualityOutputSettings);
+
+            // Checking if output settings were updated correctly
+            const updatedHighQualityOutputSettings = osn.NodeObs.OBS_settings_getSettings('Output');
+            expect(highQualityOutputSettings).to.eql(updatedHighQualityOutputSettings);
+
+            // Setting recording quality to indistinguishable
+            let setIndistinguishableQuality = osn.NodeObs.OBS_settings_getSettings('Output');
+
+            setIndistinguishableQuality.find(category => {
+                return category.nameSubCategory === 'Recording';
+            }).parameters.find(parameter => {
+                return parameter.name === 'RecQuality';
+            }).currentValue = 'HQ';
+
+            osn.NodeObs.OBS_settings_saveSettings('Output', setIndistinguishableQuality);
+
+            // Getting simple output settings container with indistinguishable recording quality settings
+            let indistinguishableQualityOutputSettings = osn.NodeObs.OBS_settings_getSettings('Output');
+
+            indistinguishableQualityOutputSettings.forEach(subCategory => {
+                subCategory.parameters.forEach(parameter => {
+
+                    switch(parameter.name) {
+                        case 'Mode': {
+                            expect(parameter.currentValue).to.equal('Simple');
+                            break;
+                        }
+                        // Streaming
+                        case 'VBitrate': {
+                            parameter.currentValue = 4000;
+                            break;
+                        }
+                        case 'StreamEncoder': {
+                            parameter.currentValue = 'qsv';
+                            break;
+                        }
+                        case 'ABitrate': {
+                            parameter.currentValue = '352';
+                            break;
+                        }
+                        case 'FileNameWithoutSpace': {
+                            parameter.currentValue = true;
+                            break;
+                        }
+                        // Recording
+                        case 'RecQuality': {
+                            expect(parameter.currentValue).to.equal('HQ');
+                            break;
+                        }
+                        case 'RecFormat': {
+                            parameter.currentValue = 'mov';
+                            break;
+                        }
+                        case 'RecEncoder': {
+                            parameter.currentValue = 'nvenc';
+                            break;
+                        }
+                    }
+                });
+            });
+
+            // Getting simple output settings container with indistinguishable recording quality settings
+            osn.NodeObs.OBS_settings_saveSettings('Output', indistinguishableQualityOutputSettings);
+
+            // Checking if output settings were updated correctly
+            const updatedIndistinguishableOutputSettings = osn.NodeObs.OBS_settings_getSettings('Output');
+            expect(indistinguishableQualityOutputSettings).to.eql(updatedIndistinguishableOutputSettings);
+
+             // Setting recording quality to lossless
+            let setLosslessQuality = osn.NodeObs.OBS_settings_getSettings('Output');
+
+            setLosslessQuality.find(category => {
+                return category.nameSubCategory === 'Recording';
+            }).parameters.find(parameter => {
+                return parameter.name === 'RecQuality';
+            }).currentValue = 'Lossless';
+ 
+            osn.NodeObs.OBS_settings_saveSettings('Output', setLosslessQuality);
+
+            // Getting simple output settings container with lossless recording quality settings
+            let losslessQualityOutputSettings = osn.NodeObs.OBS_settings_getSettings('Output');
+
+            losslessQualityOutputSettings.forEach(subCategory => {
+                subCategory.parameters.forEach(parameter => {
+
+                    switch(parameter.name) {
+                        case 'Mode': {
+                            expect(parameter.currentValue).to.equal('Simple');
+                            break;
+                        }
+                        // Streaming
+                        case 'VBitrate': {
+                            parameter.currentValue = 5000;
+                            break;
+                        }
+                        case 'StreamEncoder': {
+                            parameter.currentValue = 'x264';
+                            break;
+                        }
+                        case 'ABitrate': {
+                            parameter.currentValue = '160';
+                            break;
+                        }
+                        case 'FileNameWithoutSpace': {
+                            parameter.currentValue = false;
+                            break;
+                        }
+                        // Recording
+                        case 'RecQuality': {
+                            expect(parameter.currentValue).to.equal('Lossless');
+                            break;
+                        }
+                        case 'RecFormat': {
+                            parameter.currentValue = 'ts';
+                            break;
+                        }
+                    }
+                });
+            });
+
+            // Getting simple output settings container with indistinguishable recording quality settings
+            osn.NodeObs.OBS_settings_saveSettings('Output', losslessQualityOutputSettings);
+
+            // Checking if output settings were updated correctly
+            const updatedLosslessOutputSettings = osn.NodeObs.OBS_settings_getSettings('Output');
+            expect(losslessQualityOutputSettings).to.eql(updatedLosslessOutputSettings);
         });
 
         it('Get and set QSV encoder streaming and recording advanced output settings', () => {
@@ -377,7 +607,7 @@ describe('nodeobs_settings', () => {
                             break;
                         }
                         case 'RecTracks': {
-                            parameter.currentValue = '2';
+                            parameter.currentValue = 2;
                             break;
                         }
                         case 'RecEncoder': {
@@ -1072,7 +1302,7 @@ describe('nodeobs_settings', () => {
                             break;
                         }
                         case 'RecTracks': {
-                            parameter.currentValue = '4';
+                            parameter.currentValue = 4;
                             break;
                         }
                         case 'RecEncoder': {
@@ -1466,7 +1696,7 @@ describe('nodeobs_settings', () => {
                             break;
                         }
                         case 'RecTracks': {
-                            parameter.currentValue = '6';
+                            parameter.currentValue = 6;
                             break;
                         }
                         case 'RecEncoder': {
