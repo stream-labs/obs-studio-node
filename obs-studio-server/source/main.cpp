@@ -1,19 +1,20 @@
-// Server program for the OBS Studio node module.
-// Copyright(C) 2017 Streamlabs (General Workings Inc)
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
 
 #include <chrono>
 #include <inttypes.h>
@@ -34,6 +35,7 @@
 #include "osn-filter.hpp"
 #include "osn-global.hpp"
 #include "osn-input.hpp"
+#include "osn-module.hpp"
 #include "osn-properties.hpp"
 #include "osn-scene.hpp"
 #include "osn-sceneitem.hpp"
@@ -41,9 +43,6 @@
 #include "osn-transition.hpp"
 #include "osn-video.hpp"
 #include "osn-volmeter.hpp"
-#include "osn-module.hpp"
-
-extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = 1;
 
 #ifndef _DEBUG
 #include "client/crash_report_database.h"
@@ -53,6 +52,44 @@ extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = 1;
 
 #if defined(_WIN32)
 #include "Shlobj.h"
+
+// Checks ForceGPUAsRenderDevice setting
+extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = [] {
+	LPWSTR       roamingPath;
+	std::wstring filePath;
+	std::string  line;
+	std::fstream file;
+	bool         settingValue = true; // Default value (NvOptimusEnablement = 1)
+
+	if (FAILED(SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, nullptr, &roamingPath))) {
+		// Couldn't find roaming app data folder path, assume default value
+		return settingValue;
+	} else {
+		filePath.assign(roamingPath);
+		filePath.append(L"\\slobs-client\\basic.ini");
+		CoTaskMemFree(roamingPath);
+	}
+
+	file.open(filePath);
+
+	if (file.is_open()) {
+		while (std::getline(file, line)) {
+			if (line.find("ForceGPUAsRenderDevice", 0) != std::string::npos) {
+				if (line.substr(line.find('=') + 1) == "false") {
+					settingValue = false;
+					file.close();
+					break;
+				}
+			}
+		}
+	} else {
+		//Couldn't open config file, assume default value
+		return settingValue;
+	}
+
+	// Return setting value
+	return settingValue;
+}();
 #endif
 
 #define BUFFSIZE 512
@@ -142,8 +179,7 @@ int main(int argc, char* argv[])
 
 	std::wstring handler_path(L"crashpad_handler.exe");
 	std::string  url(
-        "https://submit.backtrace.io/streamlabs/513fa5577d6a193ed34965e18b93d7b00813e9eb2f4b0b7059b30e66afebe4fe/"
-        "minidump");
+        "https://sentry.io/api/1283431/minidump/?sentry_key=ec98eac4e3ce49c7be1d83c8fb2005ef");
 
 	base::FilePath db(appdata_path);
 	base::FilePath handler(handler_path);
@@ -245,7 +281,7 @@ int main(int argc, char* argv[])
 	// Initialize Server
 	try {
 		myServer.initialize(argv[1]);
-	} catch (std::exception e) {
+	} catch (std::exception& e) {
 		std::cerr << "Initialization failed with error " << e.what() << "." << std::endl;
 		return -2;
 	} catch (...) {
@@ -295,6 +331,9 @@ int main(int argc, char* argv[])
 			}
 		}
 	}
+
+	osn::Source::finalize_global_signals();
+	OBS_API::destroyOBS_API();
 
 	// Finalize Server
 	myServer.finalize();

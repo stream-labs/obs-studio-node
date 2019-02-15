@@ -1,3 +1,21 @@
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
+
 #include "nodeobs_configManager.hpp"
 
 #ifdef _WIN32
@@ -29,11 +47,12 @@ config_t* ConfigManager::getConfig(std::string name)
 
 void initGlobalDefault(config_t* config)
 {
-	config_set_bool(config, "BasicWindow", "SnappingEnabled", true);
-	config_set_double(config, "BasicWindow", "SnapDistance", 10);
-	config_set_bool(config, "BasicWindow", "ScreenSnapping", true);
-	config_set_bool(config, "BasicWindow", "SourceSnapping", true);
-	config_set_bool(config, "BasicWindow", "CenterSnapping", false);
+	config_set_default_bool(config, "BasicWindow", "SnappingEnabled", true);
+	config_set_default_double(config, "BasicWindow", "SnapDistance", 10);
+	config_set_default_bool(config, "BasicWindow", "ScreenSnapping", true);
+	config_set_default_bool(config, "BasicWindow", "SourceSnapping", true);
+	config_set_default_bool(config, "BasicWindow", "CenterSnapping", false);
+	config_set_default_bool(config, "General", "BrowserHWAccel", true);
 
 	config_save_safe(config, "tmp", nullptr);
 }
@@ -115,6 +134,10 @@ void initBasicDefault(config_t* config)
 	config_set_default_uint(config, "AdvOut", "Track5Bitrate", 160);
 	config_set_default_uint(config, "AdvOut", "Track6Bitrate", 160);
 
+	config_set_default_bool(config, "AdvOut", "RecRB", false);
+	config_set_default_uint(config, "AdvOut", "RecRBTime", 20);
+	config_set_default_int(config, "AdvOut", "RecRBSize", 512);
+
 	config_set_default_uint(config, "Video", "BaseCX", cx);
 	config_set_default_uint(config, "Video", "BaseCY", cy);
 
@@ -171,6 +194,7 @@ void initBasicDefault(config_t* config)
 	config_set_default_string(config, "Video", "ColorFormat", "NV12");
 	config_set_default_string(config, "Video", "ColorSpace", "601");
 	config_set_default_string(config, "Video", "ColorRange", "Partial");
+	config_set_default_bool(config, "Video", "ForceGPUAsRenderDevice", true);
 
 	config_set_default_string(config, "Audio", "MonitoringDeviceId", "default");
 	config_set_default_string(config, "Audio", "MonitoringDeviceName", "Default");
@@ -183,9 +207,12 @@ void initBasicDefault(config_t* config)
 void ConfigManager::reloadConfig(void)
 {
 	if (basic) {
-		config_save_safe(basic, "tmp", nullptr);
 		config_close(basic);
 		basic = nullptr;
+	}
+	if (global) {
+		config_close(global);
+		global = nullptr;
 	}
 }
 

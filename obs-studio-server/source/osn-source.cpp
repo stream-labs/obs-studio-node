@@ -1,19 +1,20 @@
-// Client module for the OBS Studio node module.
-// Copyright(C) 2017 Streamlabs (General Workings Inc)
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
 
 #include "osn-source.hpp"
 #include <ipc-class.hpp>
@@ -29,66 +30,6 @@
 #include "obs-property.hpp"
 #include "osn-common.hpp"
 #include "shared.hpp"
-
-std::map<uint64_t, std::vector<std::tuple<std::string, std::string, obs_hotkey_id>>> pending_source_hotkeys;
-std::mutex                                                           source_hotkey_mtx;
-
-std::vector<std::tuple<std::string, std::string, obs_hotkey_id>> get_source_hotkeys(uint64_t sourceID)
-{
-	std::vector<std::tuple<std::string, std::string, obs_hotkey_id>> hotkeys;
-
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(sourceID);
-	if (src == nullptr) {
-		return {};
-	}
-
-	// For each registered hotkey
-	auto indata  = std::make_pair(src, &hotkeys);
-	using data_t = decltype(indata);
-	obs_enum_hotkeys(
-	    [](void* data, obs_hotkey_id id, obs_hotkey_t* key) {
-		    data_t&       d               = *static_cast<data_t*>(data);
-		    obs_source_t* source          = d.first;
-		    auto          registerer_type = obs_hotkey_get_registerer_type(key);
-		    void*         registerer      = obs_hotkey_get_registerer(key);
-
-		    if (registerer_type == OBS_HOTKEY_REGISTERER_SOURCE) {
-			    auto* weak_source = static_cast<obs_weak_source_t*>(registerer);
-			    auto  key_source  = OBSGetStrongRef(weak_source);
-
-			    if (source == key_source) {
-
-					auto ToTitle = [](std::string s) {
-						bool last = true;
-						for (char& c : s) {
-							c    = last ? ::toupper(c) : ::tolower(c);
-							last = ::isspace(c);
-						}
-						return s;
-				    };
-
-				    auto key_name = std::string(obs_hotkey_get_name(key));
-				    auto desc     = std::string(obs_hotkey_get_description(key));
-				    const auto  hotkeyId = obs_hotkey_get_id(key);
-
-					// Parse the key name and the description
-					key_name = key_name.substr(key_name.find_first_of(".") + 1);
-				    std::replace(key_name.begin(), key_name.end(), '-', '_');
-				    std::transform(key_name.begin(), key_name.end(), key_name.begin(), ::toupper);
-					// 
-				    std::replace(desc.begin(), desc.end(), '-', ' ');
-				    desc = ToTitle(desc);
-
-				    d.second->push_back({key_name, desc, hotkeyId});
-			    }
-		    }
-
-		    return true;
-	    },
-	    &indata);
-
-	return hotkeys;
-}
 
 void osn::Source::initialize_global_signals()
 {
@@ -127,12 +68,6 @@ void osn::Source::global_source_create_cb(void* ptr, calldata_t* cd)
 
 	osn::Source::Manager::GetInstance().allocate(source);
 	osn::Source::attach_source_signals(source);
-
-	auto sourceId      = osn::Source::Manager::GetInstance().find(source);
-	auto sourceHotkeys = get_source_hotkeys(sourceId);
-
-	std::unique_lock<std::mutex> ulock(source_hotkey_mtx);
-	pending_source_hotkeys.insert({sourceId, sourceHotkeys});
 }
 
 void osn::Source::global_source_destroy_cb(void* ptr, calldata_t* cd)
@@ -140,15 +75,6 @@ void osn::Source::global_source_destroy_cb(void* ptr, calldata_t* cd)
 	obs_source_t* source = nullptr;
 	if (!calldata_get_ptr(cd, "source", &source)) {
 		throw std::exception("calldata did not contain source pointer");
-	}
-
-	{
-		std::unique_lock<std::mutex> ulock(source_hotkey_mtx);
-
-		auto iter = pending_source_hotkeys.find(osn::Source::Manager::GetInstance().find(source));
-		if (iter != pending_source_hotkeys.end()) {
-			pending_source_hotkeys.erase(iter);
-		}
 	}
 
 	detach_source_signals(source);
@@ -194,11 +120,6 @@ void osn::Source::Register(ipc::server& srv)
 	cls->register_function(
 	    std::make_shared<ipc::function>("GetStatus", std::vector<ipc::type>{ipc::type::UInt64}, GetStatus));
 	cls->register_function(std::make_shared<ipc::function>("GetId", std::vector<ipc::type>{ipc::type::UInt64}, GetId));
-	cls->register_function(std::make_shared<ipc::function>("Query", std::vector<ipc::type>{}, Query));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "ProcessHotkeyStatus",
-	    std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32, ipc::type::String},
-	    ProcessHotkeyStatus));
 	cls->register_function(
 	    std::make_shared<ipc::function>("GetMuted", std::vector<ipc::type>{ipc::type::UInt64}, GetMuted));
 	cls->register_function(std::make_shared<ipc::function>(
@@ -701,64 +622,9 @@ void osn::Source::GetId(
 	AUTO_DEBUG;
 }
 
-void osn::Source::Query(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
-	std::unique_lock<std::mutex> ulock(source_hotkey_mtx);
 
-	// For each source entry
-	for (auto iter : pending_source_hotkeys) {
-		// Check for an invalid reference
-		obs_source_t* src = osn::Source::Manager::GetInstance().find(iter.first);
-		if (src == nullptr) {
-			continue;
-		}
 
-		// For each hotkey entry
-		for (auto& hotkeyTuple : iter.second) {
-			rval.push_back(ipc::value(obs_source_get_name(src)));
-			rval.push_back(ipc::value(std::get<0>(hotkeyTuple)));
-			rval.push_back(ipc::value(std::get<1>(hotkeyTuple)));
-			rval.push_back(ipc::value(std::get<2>(hotkeyTuple)));
-		}
-	}
-
-	pending_source_hotkeys.clear();
-
-	AUTO_DEBUG;
-}
-
-void osn::Source::ProcessHotkeyStatus(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	obs_hotkey_id hotkeyId	= args[0].value_union.ui64;
-	uint64_t press			= args[1].value_union.i32;
-
-	// Attempt to find the source asked to load.
-	obs_source_t* src = obs_get_source_by_name(args[2].value_str.c_str());
-	if (src == nullptr) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Source reference is not valid."));
-		AUTO_DEBUG;
-		return;
-	}
-
-	// TODO: Check if the hotkey ID is valid
-	obs_hotkey_enable_callback_rerouting(true);
-	obs_hotkey_trigger_routed_callback(hotkeyId, (bool)press);
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-
-	AUTO_DEBUG;
-}
 
 void osn::Source::GetMuted(
     void*                          data,

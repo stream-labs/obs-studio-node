@@ -1,19 +1,20 @@
-// Client module for the OBS Studio node module.
-// Copyright(C) 2017 Streamlabs (General Workings Inc)
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
 
 #include "fader.hpp"
 #include <iterator>
@@ -31,8 +32,6 @@ osn::Fader::Fader(uint64_t uid)
 osn::Fader::~Fader()
 {
 }
-
-std::vector<std::unique_ptr<osn::Fader>> faders;
 
 uint64_t osn::Fader::GetId()
 {
@@ -87,31 +86,14 @@ void osn::Fader::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 	    {
 	        ipc::value(fader_type),
 	    });
-	if (!rval.size()) {
-		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
-		return;
-	}
 
-	// Handle Unexpected Errors
-	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
-		return;
-	}
-
-	// Handle Expected Errors
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
-		return;
-	} else if (ec != ErrorCode::Ok) {
-		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+	if (!ValidateResponse(rval)) {
 		return;
 	}
 
 	// Return created Object
-	auto newFader = std::make_unique<osn::Fader>(rval[1].value_union.ui64);
-	faders.push_back(std::move(newFader));
-	info.GetReturnValue().Set(Store(faders.back().get()));
+	auto* newFader = new osn::Fader(rval[1].value_union.ui64);
+	info.GetReturnValue().Set(Store(newFader));
 }
 
 void osn::Fader::GetDeziBel(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -139,24 +121,8 @@ void osn::Fader::GetDeziBel(Nan::NAN_METHOD_ARGS_TYPE info)
 	    {
 	        ipc::value(fader->uid),
 	    });
-	if (!rval.size()) {
-		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
-		return;
-	}
 
-	// Handle Unexpected Errors
-	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
-		return;
-	}
-
-	// Handle Expected Errors
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
-		return;
-	} else if (ec != ErrorCode::Ok) {
-		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+	if (!ValidateResponse(rval)) {
 		return;
 	}
 
@@ -187,24 +153,8 @@ void osn::Fader::SetDezibel(Nan::NAN_METHOD_ARGS_TYPE info)
 	// Call
 	std::vector<ipc::value> rval =
 	    conn->call_synchronous_helper("Fader", "SetDeziBel", {ipc::value(fader->uid), ipc::value(dezibel)});
-	if (!rval.size()) {
-		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
-		return;
-	}
 
-	// Handle Unexpected Errors
-	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
-		return;
-	}
-
-	// Handle Expected Errors
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
-		return;
-	} else if (ec != ErrorCode::Ok) {
-		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+	if (!ValidateResponse(rval)) {
 		return;
 	}
 
@@ -237,24 +187,8 @@ void osn::Fader::GetDeflection(Nan::NAN_METHOD_ARGS_TYPE info)
 	    {
 	        ipc::value(fader->uid),
 	    });
-	if (!rval.size()) {
-		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
-		return;
-	}
 
-	// Handle Unexpected Errors
-	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
-		return;
-	}
-
-	// Handle Expected Errors
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
-		return;
-	} else if (ec != ErrorCode::Ok) {
-		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+	if (!ValidateResponse(rval)) {
 		return;
 	}
 
@@ -285,24 +219,8 @@ void osn::Fader::SetDeflection(Nan::NAN_METHOD_ARGS_TYPE info)
 	// Call
 	std::vector<ipc::value> rval =
 	    conn->call_synchronous_helper("Fader", "SetDeflection", {ipc::value(fader->uid), ipc::value(dezibel)});
-	if (!rval.size()) {
-		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
-		return;
-	}
 
-	// Handle Unexpected Errors
-	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
-		return;
-	}
-
-	// Handle Expected Errors
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
-		return;
-	} else if (ec != ErrorCode::Ok) {
-		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+	if (!ValidateResponse(rval)) {
 		return;
 	}
 
@@ -335,24 +253,8 @@ void osn::Fader::GetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info)
 	    {
 	        ipc::value(fader->uid),
 	    });
-	if (!rval.size()) {
-		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
-		return;
-	}
 
-	// Handle Unexpected Errors
-	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
-		return;
-	}
-
-	// Handle Expected Errors
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
-		return;
-	} else if (ec != ErrorCode::Ok) {
-		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+	if (!ValidateResponse(rval)) {
 		return;
 	}
 
@@ -383,24 +285,8 @@ void osn::Fader::SetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info)
 	// Call
 	std::vector<ipc::value> rval =
 	    conn->call_synchronous_helper("Fader", "SetMultiplier", {ipc::value(fader->uid), ipc::value(dezibel)});
-	if (!rval.size()) {
-		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
-		return;
-	}
 
-	// Handle Unexpected Errors
-	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
-		return;
-	}
-
-	// Handle Expected Errors
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
-		return;
-	} else if (ec != ErrorCode::Ok) {
-		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+	if (!ValidateResponse(rval)) {
 		return;
 	}
 
@@ -436,24 +322,8 @@ void osn::Fader::Attach(Nan::NAN_METHOD_ARGS_TYPE info)
 	// Call
 	std::vector<ipc::value> rval =
 	    conn->call_synchronous_helper("Fader", "Attach", {ipc::value(fader->uid), ipc::value(source->sourceId)});
-	if (!rval.size()) {
-		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
-		return;
-	}
 
-	// Handle Unexpected Errors
-	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
-		return;
-	}
-
-	// Handle Expected Errors
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
-		return;
-	} else if (ec != ErrorCode::Ok) {
-		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+	if (!ValidateResponse(rval)) {
 		return;
 	}
 }
@@ -478,24 +348,8 @@ void osn::Fader::Detach(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	// Call
 	std::vector<ipc::value> rval = conn->call_synchronous_helper("Fader", "Detach", {ipc::value(fader->uid)});
-	if (!rval.size()) {
-		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
-		return;
-	}
 
-	// Handle Unexpected Errors
-	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
-		return;
-	}
-
-	// Handle Expected Errors
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
-		return;
-	} else if (ec != ErrorCode::Ok) {
-		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+	if (!ValidateResponse(rval)) {
 		return;
 	}
 }
@@ -539,32 +393,6 @@ void osn::Fader::RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info)
 	//* and where to destroy the object. */
 }
 
-void osn::Fader::OBS_Fader_ReleaseFaders(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		return; // Well, we can't really do anything here then.
-	}
-
-	// For each fader
-	for (auto& fader : faders) {
-
-		// Call
-		std::vector<ipc::value> rval = conn->call_synchronous_helper(
-		    "Fader",
-		    "Destroy",
-		    {
-		        ipc::value(fader->GetId()),
-		    });
-
-		// This is a shutdown operation, no response validation needed
-	}
-}
-
 INITIALIZER(nodeobs_fader)
 {
-	initializerFunctions.push([](v8::Local<v8::Object> exports) {
-		NODE_SET_METHOD(exports, "OBS_Fader_ReleaseFaders", osn::Fader::OBS_Fader_ReleaseFaders);
-	});
 }

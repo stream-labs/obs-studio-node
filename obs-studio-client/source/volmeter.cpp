@@ -1,19 +1,20 @@
-// Client module for the OBS Studio node module.
-// Copyright(C) 2017 Streamlabs (General Workings Inc)
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
 
 #include "volmeter.hpp"
 #include <iostream>
@@ -26,8 +27,6 @@
 #include "utility-v8.hpp"
 #include "utility.hpp"
 
-using namespace std::placeholders;
-
 osn::VolMeter::VolMeter(uint64_t p_uid)
 {
 	m_uid = p_uid;
@@ -36,8 +35,6 @@ osn::VolMeter::VolMeter(uint64_t p_uid)
 osn::VolMeter::~VolMeter()
 {
 }
-
-std::vector<std::unique_ptr<osn::VolMeter>> volmeters;
 
 uint64_t osn::VolMeter::GetId() 
 {
@@ -53,7 +50,7 @@ void osn::VolMeter::start_async_runner()
 
 	// Start v8/uv asynchronous runner.
 	m_async_callback = new osn::VolMeterCallback();
-	m_async_callback->set_handler(std::bind(&VolMeter::callback_handler, this, _1, _2), nullptr);
+	m_async_callback->set_handler(std::bind(&VolMeter::callback_handler, this, std::placeholders::_1, std::placeholders::_2), nullptr);
 }
 
 void osn::VolMeter::stop_async_runner()
@@ -147,7 +144,11 @@ void osn::VolMeter::worker()
 					data->input_peak[ch] = response[1 + ch * 3 + 2].value_union.fp32;
 				}
 				m_async_callback->queue(std::move(data));
-			} else {
+			} else if(error == ErrorCode::InvalidReference) {
+				goto do_sleep;
+			}
+			else
+			{
 				std::cerr << "Failed VolMeter" << std::endl;
 				break;
 			}
@@ -216,58 +217,15 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Create(Nan::NAN_METHOD_ARGS_TYPE info
 	    {
 	        ipc::value(fader_type),
 	    });
-	if (!rval.size()) {
-		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
-		return;
-	}
 
-	// Handle Unexpected Errors
-	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
-		return;
-	}
-
-	// Handle Expected Errors
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
-		return;
-	} else if (ec != ErrorCode::Ok) {
-		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+	if (!ValidateResponse(rval)) {
 		return;
 	}
 
 	// Return created Object
-	auto newVolmeter              = std::make_unique<osn::VolMeter>(rval[1].value_union.ui64);
-	newVolmeter->m_sleep_interval = rval[2].value_union.ui32;
-	volmeters.push_back(std::move(newVolmeter));
-	info.GetReturnValue().Set(Store(volmeters.back().get()));
-}
-
-Nan::NAN_METHOD_RETURN_TYPE
-    osn::VolMeter::OBS_Volmeter_ReleaseVolmeters(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		return; // Well, we can't really do anything here then.
-	}
-
-	// For each volmeter
-	for (auto& volmeter : volmeters) {
-		volmeter->stop_async_runner();
-		volmeter->stop_worker();
-
-		// Call
-		std::vector<ipc::value> rval = conn->call_synchronous_helper(
-		    "VolMeter",
-		    "Destroy",
-		    {
-		        ipc::value(volmeter->GetId()),
-		    });
-
-		// This is a shutdown operation, no response validation needed
-	}
+	auto* newVolmeter              = new osn::VolMeter(rval[1].value_union.ui64);
+	newVolmeter->m_sleep_interval  = rval[2].value_union.ui32;
+	info.GetReturnValue().Set(Store(newVolmeter));
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::GetUpdateInterval(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -295,24 +253,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::GetUpdateInterval(Nan::NAN_METHOD_ARG
 	    {
 	        ipc::value(self->m_uid),
 	    });
-	if (!rval.size()) {
-		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
-		return;
-	}
 
-	// Handle Unexpected Errors
-	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
-		return;
-	}
-
-	// Handle Expected Errors
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
-		return;
-	} else if (ec != ErrorCode::Ok) {
-		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+	if (!ValidateResponse(rval)) {
 		return;
 	}
 
@@ -345,24 +287,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::SetUpdateInterval(Nan::NAN_METHOD_ARG
 	// Call
 	std::vector<ipc::value> rval =
 	    conn->call_synchronous_helper("VolMeter", "SetUpdateInterval", {ipc::value(self->m_uid), ipc::value(interval)});
-	if (!rval.size()) {
-		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
-		return;
-	}
 
-	// Handle Unexpected Errors
-	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
-		return;
-	}
-
-	// Handle Expected Errors
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
-		return;
-	} else if (ec != ErrorCode::Ok) {
-		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+	if (!ValidateResponse(rval)) {
 		return;
 	}
 
@@ -400,24 +326,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Attach(Nan::NAN_METHOD_ARGS_TYPE info
 	// Call
 	std::vector<ipc::value> rval =
 	    conn->call_synchronous_helper("VolMeter", "Attach", {ipc::value(fader->m_uid), ipc::value(source->sourceId)});
-	if (!rval.size()) {
-		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
-		return;
-	}
 
-	// Handle Unexpected Errors
-	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
-		return;
-	}
-
-	// Handle Expected Errors
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
-		return;
-	} else if (ec != ErrorCode::Ok) {
-		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+	if (!ValidateResponse(rval)) {
 		return;
 	}
 }
@@ -442,24 +352,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Detach(Nan::NAN_METHOD_ARGS_TYPE info
 
 	// Call
 	std::vector<ipc::value> rval = conn->call_synchronous_helper("VolMeter", "Detach", {ipc::value(fader->m_uid)});
-	if (!rval.size()) {
-		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
-		return;
-	}
 
-	// Handle Unexpected Errors
-	if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New(rval[0].value_str).ToLocalChecked());
-		return;
-	}
-
-	// Handle Expected Errors
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::InvalidReference) {
-		Nan::ThrowReferenceError(Nan::New(rval[1].value_str).ToLocalChecked());
-		return;
-	} else if (ec != ErrorCode::Ok) {
-		Nan::ThrowError(Nan::New(rval[1].value_str).ToLocalChecked());
+	if (!ValidateResponse(rval)) {
 		return;
 	}
 }
@@ -489,11 +383,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::AddCallback(Nan::NAN_METHOD_ARGS_TYPE
 		// Send request
 		std::vector<ipc::value> rval =
 		    conn->call_synchronous_helper("VolMeter", "AddCallback", {ipc::value(self->m_uid)});
-		if (!ValidateResponse(rval)) {
-			return;
-		}
 
-		if (rval[0].value_union.ui64 != (uint64_t)ErrorCode::Ok) {
+		if (!ValidateResponse(rval)) {
 			info.GetReturnValue().Set(Nan::Null());
 			return;
 		}
@@ -532,7 +423,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::RemoveCallback(Nan::NAN_METHOD_ARGS_T
 		// Send request
 		std::vector<ipc::value> rval =
 		    conn->call_synchronous_helper("VolMeter", "RemoveCallback", {ipc::value(self->m_uid)});
+
 		if (!ValidateResponse(rval)) {
+			info.GetReturnValue().Set(Nan::Null());
 			return;
 		}
 	}
@@ -542,7 +435,4 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::RemoveCallback(Nan::NAN_METHOD_ARGS_T
 
 INITIALIZER(nodeobs_volmeter)
 {
-	initializerFunctions.push([](v8::Local<v8::Object> exports) {
-		NODE_SET_METHOD(exports, "OBS_Volmeter_ReleaseVolmeters", osn::VolMeter::OBS_Volmeter_ReleaseVolmeters);
-	});
 }

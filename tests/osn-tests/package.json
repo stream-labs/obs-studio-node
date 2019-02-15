@@ -1,0 +1,23 @@
+{
+  "name": "osn-tests",
+  "version": "1.0.0",
+  "description": "OBS Studio Node Unit Testing",
+  "scripts": {
+    "test": "mocha --no-timeouts -r ts-node/register src/**/*.ts"
+  },
+  "author": "Streamlabs",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "obs-studio-node": "/projects/obs-studio-node/streamlabs-build/distribute/obs-studio-node",
+    "typescript": "^2.8.1",
+    "uuid": "^3.0.1"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.1.7",
+    "@types/mocha": "^5.2.5",
+    "chai": "^4.2.0",
+    "mocha": "^5.2.0",
+    "mocha-appveyor-reporter": "^0.4.2",
+    "ts-node": "^7.0.1"
+  }
+}

@@ -1,3 +1,21 @@
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
+
 #include "nodeobs_settings.hpp"
 #include "controller.hpp"
 #include "error.hpp"
@@ -162,8 +180,9 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 					int64_t *value = reinterpret_cast<int64_t*>(params.at(j).currentValue.data());
 					parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
 						v8::Integer::New(isolate, int32_t(*value)));
-				}
-				else if (params.at(j).type.compare("OBS_PROPERTY_UINT") == 0) {
+				} else if (
+				    params.at(j).type.compare("OBS_PROPERTY_UINT") == 0
+				    || params.at(j).type.compare("OBS_PROPERTY_BITMASK") == 0) {
 					uint64_t *value = reinterpret_cast<uint64_t*>(params.at(j).currentValue.data());
 					parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
 						v8::Integer::New(isolate, int32_t(*value)));
@@ -274,8 +293,8 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 		subCategory->Set(v8::String::NewFromUtf8(isolate, "parameters"), subCategoryParameters);
 
 		rval->Set(i, subCategory);
+		rval->Set(v8::String::NewFromUtf8(isolate, "type"), v8::Integer::New(isolate, response[4].value_union.ui32));
 	}
-
 	args.GetReturnValue().Set(rval);
 	return;
 }
@@ -328,7 +347,7 @@ std::vector<char> deserializeCategory(uint32_t* subCategoriesCount, uint32_t* si
 				param.sizeOfCurrentValue = sizeof(value);
 				param.currentValue.resize(sizeof(value));
 				memcpy(param.currentValue.data(), &value, sizeof(value));
-			} else if (param.type.compare("OBS_PROPERTY_UINT") == 0) {
+			} else if (param.type.compare("OBS_PROPERTY_UINT") == 0 || param.type.compare("OBS_PROPERTY_BITMASK") == 0) {
 				uint64_t value =
 				    uint64_t(parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue"))->NumberValue());
 

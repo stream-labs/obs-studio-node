@@ -1,3 +1,21 @@
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
+
 #include "nodeobs_display.hpp"
 #include "controller.hpp"
 #include "error.hpp"
@@ -265,81 +283,6 @@ void display::OBS_content_setOutlineColor(const v8::FunctionCallbackInfo<v8::Val
 	ValidateResponse(response);
 }
 
-void display::OBS_content_setGuidelineColor(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	std::string key;
-	uint32_t    r, g, b, a = 255;
-
-	ASSERT_GET_VALUE(args[0], key);
-	ASSERT_GET_VALUE(args[1], r);
-	ASSERT_GET_VALUE(args[2], g);
-	ASSERT_GET_VALUE(args[3], b);
-
-	if (args.Length() > 4)
-		ASSERT_GET_VALUE(args[4], a);
-
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Display",
-	    "OBS_content_setGuidelineColor",
-	    {ipc::value(key), ipc::value(r), ipc::value(g), ipc::value(b), ipc::value(a)});
-
-	ValidateResponse(response);
-}
-
-void display::OBS_content_setResizeBoxInnerColor(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	std::string key;
-	uint32_t    r, g, b, a = 255;
-
-	ASSERT_GET_VALUE(args[0], key);
-	ASSERT_GET_VALUE(args[1], r);
-	ASSERT_GET_VALUE(args[2], g);
-	ASSERT_GET_VALUE(args[3], b);
-
-	if (args.Length() > 4)
-		ASSERT_GET_VALUE(args[4], a);
-
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Display",
-	    "OBS_content_setResizeBoxInnerColor",
-	    {ipc::value(key), ipc::value(r), ipc::value(g), ipc::value(b), ipc::value(a)});
-
-	ValidateResponse(response);
-}
-
-void display::OBS_content_setResizeBoxOuterColor(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	std::string key;
-	uint32_t    r, g, b, a = 255;
-
-	ASSERT_GET_VALUE(args[0], key);
-	ASSERT_GET_VALUE(args[1], r);
-	ASSERT_GET_VALUE(args[2], g);
-	ASSERT_GET_VALUE(args[3], b);
-
-	if (args.Length() > 4)
-		ASSERT_GET_VALUE(args[4], a);
-
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Display",
-	    "OBS_content_setResizeBoxOuterColor",
-	    {ipc::value(key), ipc::value(r), ipc::value(g), ipc::value(b), ipc::value(a)});
-
-	ValidateResponse(response);
-}
-
 void display::OBS_content_setShouldDrawUI(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	std::string key;
@@ -356,134 +299,6 @@ void display::OBS_content_setShouldDrawUI(const v8::FunctionCallbackInfo<v8::Val
 	    conn->call_synchronous_helper("Display", "OBS_content_setShouldDrawUI", {ipc::value(key), ipc::value(drawUI)});
 
 	ValidateResponse(response);
-}
-
-void display::OBS_content_selectSource(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	uint32_t x, y;
-
-	ASSERT_GET_VALUE(args[0], x);
-	ASSERT_GET_VALUE(args[1], y);
-
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Display", "OBS_content_selectSource", {ipc::value(x), ipc::value(y)});
-
-	ValidateResponse(response);
-}
-
-void display::OBS_content_selectSources(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	/*uint32_t size = 0;
-	std::vector<std::string> sources;
-
-	ASSERT_GET_VALUE(info[0], size);
-
-	for (int i = 0; i < size; i++) {
-		sources.push_back(0);
-		ASSERT_GET_VALUE(info[i+1], sources.at(i));
-	}
-
-	struct ThreadData {
-		std::condition_variable cv;
-		std::mutex mtx;
-		bool called = false;
-		ErrorCode error_code = ErrorCode::Ok;
-		std::string error_string = "";
-		std::string result = "";
-	} rtd;
-
-	auto fnc = [](const void* data, const std::vector<ipc::value>& rval) {
-		ThreadData* rtd = const_cast<ThreadData*>(static_cast<const ThreadData*>(data));
-
-		if ((rval.size() == 1) && (rval[0].type == ipc::type::Null)) {
-			rtd->error_code = ErrorCode::Error;
-			rtd->error_string = rval[0].value_str;
-			rtd->called = true;
-			rtd->cv.notify_all();
-			return;
-		}
-
-		rtd->error_code = (ErrorCode)rval[0].value_union.ui64;
-		if (rtd->error_code != ErrorCode::Ok) {
-			rtd->error_string = rval[1].value_str;
-		}
-
-		rtd->result = rval[1].value_str;
-
-		rtd->called = true;
-		rtd->cv.notify_all();
-	};
-
-	bool suc = Controller::GetInstance().GetConnection()->call("Display", "OBS_content_selectSources",
-		std::vector<ipc::value>{}, fnc, &rtd);
-	if (!suc) {
-		info.GetIsolate()->ThrowException(
-			v8::Exception::Error(
-				Nan::New<v8::String>(
-					"Failed to make IPC call, verify IPC status."
-					).ToLocalChecked()
-			));
-		return;
-	}
-
-	std::unique_lock<std::mutex> ulock(rtd.mtx);
-	rtd.cv.wait(ulock, [&rtd]() { return rtd.called; });
-
-	if (rtd.error_code != ErrorCode::Ok) {
-		if (rtd.error_code == ErrorCode::InvalidReference) {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::ReferenceError(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		else {
-			info.GetIsolate()->ThrowException(
-				v8::Exception::Error(Nan::New<v8::String>(
-					rtd.error_string).ToLocalChecked()));
-		}
-		return;
-	}
-
-	return;*/
-}
-
-void display::OBS_content_dragSelectedSource(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	uint32_t x, y;
-
-	ASSERT_GET_VALUE(args[0], x);
-	ASSERT_GET_VALUE(args[1], y);
-
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Display", "OBS_content_dragSelectedSource", {ipc::value(x), ipc::value(y)});
-
-	ValidateResponse(response);
-}
-
-void display::OBS_content_getDrawGuideLines(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	std::string key;
-
-	ASSERT_GET_VALUE(args[0], key);
-
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Display", "OBS_content_getDrawGuideLines", {ipc::value(key)});
-
-	if (!ValidateResponse(response))
-		return;
-
-	args.GetReturnValue().Set(Nan::New<v8::Boolean>(response[1].value_union.ui32));
 }
 
 void display::OBS_content_setDrawGuideLines(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -517,14 +332,7 @@ INITIALIZER(nodeobs_display)
 		NODE_SET_METHOD(exports, "OBS_content_moveDisplay", display::OBS_content_moveDisplay);
 		NODE_SET_METHOD(exports, "OBS_content_setPaddingSize", display::OBS_content_setPaddingSize);
 		NODE_SET_METHOD(exports, "OBS_content_setPaddingColor", display::OBS_content_setPaddingColor);
-		NODE_SET_METHOD(exports, "OBS_content_setGuidelineColor", display::OBS_content_setGuidelineColor);
-		NODE_SET_METHOD(exports, "OBS_content_setResizeBoxInnerColor", display::OBS_content_setResizeBoxInnerColor);
-		NODE_SET_METHOD(exports, "OBS_content_setResizeBoxOuterColor", display::OBS_content_setResizeBoxOuterColor);
 		NODE_SET_METHOD(exports, "OBS_content_setShouldDrawUI", display::OBS_content_setShouldDrawUI);
-		NODE_SET_METHOD(exports, "OBS_content_selectSource", display::OBS_content_selectSource);
-		NODE_SET_METHOD(exports, "OBS_content_selectSources", display::OBS_content_selectSources);
-		NODE_SET_METHOD(exports, "OBS_content_dragSelectedSource", display::OBS_content_dragSelectedSource);
-		NODE_SET_METHOD(exports, "OBS_content_getDrawGuideLines", display::OBS_content_getDrawGuideLines);
 		NODE_SET_METHOD(exports, "OBS_content_setDrawGuideLines", display::OBS_content_setDrawGuideLines);
 	});
 }

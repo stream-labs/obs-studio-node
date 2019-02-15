@@ -1,3 +1,21 @@
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
+
 #include "nodeobs_autoconfig.h"
 #include "error.hpp"
 #include "shared.hpp"
@@ -192,8 +210,6 @@ void autoConfig::Register(ipc::server& srv)
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("AutoConfig");
 
 	cls->register_function(std::make_shared<ipc::function>(
-	    "GetListServer", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, autoConfig::GetListServer));
-	cls->register_function(std::make_shared<ipc::function>(
 	    "InitializeAutoConfig",
 	    std::vector<ipc::type>{ipc::type::String, ipc::type::String},
 	    autoConfig::InitializeAutoConfig));
@@ -223,6 +239,8 @@ void autoConfig::TestHardwareEncoding(void)
 	size_t      idx = 0;
 	const char* id;
 	while (obs_enum_encoder_types(idx++, &id)) {
+		if (id == nullptr)
+			continue;
 		if (strcmp(id, "ffmpeg_nvenc") == 0)
 			hardwareEncodingAvailable = nvencAvailable = true;
 		else if (strcmp(id, "obs_qsv11") == 0)
@@ -349,6 +367,7 @@ void autoConfig::TerminateAutoConfig(
     std::vector<ipc::value>&       rval)
 {
 	StopThread();
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
 void autoConfig::Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
@@ -373,7 +392,7 @@ void autoConfig::Query(void* data, const int64_t id, const std::vector<ipc::valu
 
 void autoConfig::StopThread(void)
 {
-	unique_lock<mutex> ul(m);
+	std::unique_lock<std::mutex> ul(m);
 	cancel = true;
 	cv.notify_one();
 }
@@ -472,61 +491,6 @@ void autoConfig::StartSetDefaultSettings(
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
-void autoConfig::GetListServer(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	serviceName           = args[0].value_str;
-	std::string continent = args[1].value_str;
-	;
-
-	regionNA = false;
-	regionSA = false;
-	regionEU = false;
-	regionAS = false;
-	regionOC = false;
-
-	if (continent.compare("North America") == 0) {
-		regionNA = true;
-	} else if (continent.compare("South America") == 0) {
-		regionSA = true;
-	} else if (continent.compare("Europe") == 0) {
-		regionEU = true;
-	} else if (continent.compare("Asia") == 0) {
-		regionAS = true;
-	} else if (continent.compare("Oceania") == 0) {
-		regionOC = true;
-	} else {
-		regionNA = true;
-		regionSA = true;
-		regionEU = true;
-		regionAS = true;
-		regionOC = true;
-	}
-
-	if (serviceName == "Twitch")
-		serviceSelected = Service::Twitch;
-	else if (serviceName == "hitbox.tv")
-		serviceSelected = Service::Hitbox;
-	else if (serviceName == "beam.pro")
-		serviceSelected = Service::Beam;
-	else
-		serviceSelected = Service::Other;
-
-	std::vector<ServerInfo> servers;
-
-	GetServers(servers);
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-
-	for (int i = 0; i < servers.size(); i++) {
-		rval.push_back(ipc::value(servers[i].name));
-		rval.push_back(ipc::value(servers[i].address));
-	}
-}
-
 int EvaluateBandwidth(
     ServerInfo& server,
     bool&       connected,
@@ -550,7 +514,7 @@ int EvaluateBandwidth(
 	if (!obs_output_start(output))
 		return -1;
 
-	unique_lock<mutex> ul(m);
+	std::unique_lock<std::mutex> ul(m);
 	if (cancel) {
 		ul.unlock();
 		obs_output_force_stop(output);
@@ -569,7 +533,7 @@ int EvaluateBandwidth(
 
 	uint64_t t_start = os_gettime_ns();
 
-	cv.wait_for(ul, chrono::seconds(10));
+	cv.wait_for(ul, std::chrono::seconds(10));
 	if (stopped)
 		return -1;
 	if (cancel) {
@@ -585,10 +549,14 @@ int EvaluateBandwidth(
 	}
 	cv.wait(ul);
 
-	uint64_t total_time = os_gettime_ns() - t_start;
-
+	uint64_t total_time  = os_gettime_ns() - t_start;
 	int      total_bytes = (int)obs_output_get_total_bytes(output);
-	uint64_t bitrate     = (uint64_t)total_bytes * 8 * 1000000000 / total_time / 1000;
+	uint64_t bitrate     = 0;
+
+	if (total_time > 0) {
+		bitrate = (uint64_t)total_bytes * 8 * 1000000000 / total_time / 1000;
+	}
+
 	startingBitrate      = (int)obs_data_get_int(vencoder_settings, "bitrate");
 	if (obs_output_get_frames_dropped(output) || (int)bitrate < (startingBitrate * 75 / 100)) {
 		server.bitrate = (int)bitrate * 70 / 100;
@@ -766,14 +734,14 @@ void autoConfig::TestBandwidthThread(void)
 	/* connect signals                    */
 
 	auto on_started = [&]() {
-		unique_lock<mutex> lock(m);
+		std::unique_lock<std::mutex> lock(m);
 		connected = true;
 		stopped   = false;
 		cv.notify_one();
 	};
 
 	auto on_stopped = [&]() {
-		unique_lock<mutex> lock(m);
+		std::unique_lock<std::mutex> lock(m);
 		connected = false;
 		stopped   = true;
 		cv.notify_one();
@@ -799,11 +767,11 @@ void autoConfig::TestBandwidthThread(void)
 	/* -----------------------------------*/
 	/* test servers                       */
 
-	int    bestBitrate = 0;
-	int    bestMS      = 0x7FFFFFFF;
-	string bestServer;
-	string bestServerName;
-	bool   success = false;
+	int         bestBitrate = 0;
+	int         bestMS      = 0x7FFFFFFF;
+	std::string bestServer;
+	std::string bestServerName;
+	bool        success = false;
 
 	if (serverName.compare("") != 0) {
 		ServerInfo info(serverName.c_str(), server.c_str());
@@ -874,12 +842,20 @@ static long double EstimateBitrateVal(int cx, int cy, int fps_num, int fps_den)
 static long double EstimateMinBitrate(int cx, int cy, int fps_num, int fps_den)
 {
 	long double val = EstimateBitrateVal((int)baseResolutionCX, (int)baseResolutionCY, 60, 1) / 5800.0l;
+	if (val < std::numeric_limits<double>::epsilon() && val > -std::numeric_limits<double>::epsilon()) {
+		return 0.0;
+	}
+
 	return EstimateBitrateVal(cx, cy, fps_num, fps_den) / val;
 }
 
 static long double EstimateUpperBitrate(int cx, int cy, int fps_num, int fps_den)
 {
 	long double val = EstimateBitrateVal(1280, 720, 30, 1) / 3000.0l;
+	if (val < std::numeric_limits<double>::epsilon() && val > -std::numeric_limits<double>::epsilon()) {
+		return 0.0;
+	}
+
 	return EstimateBitrateVal(cx, cy, fps_num, fps_den) / val;
 }
 
@@ -899,7 +875,7 @@ void autoConfig::FindIdealHardwareResolution()
 	int baseCX = (int)baseResolutionCX;
 	int baseCY = (int)baseResolutionCY;
 
-	vector<Result> results;
+	std::vector<Result> results;
 
 	int pcores = os_get_physical_cores();
 	int maxDataRate;
@@ -1026,7 +1002,7 @@ bool autoConfig::TestSoftwareEncoding()
 	/* connect signals                    */
 
 	auto on_stopped = [&]() {
-		unique_lock<mutex> lock(m);
+		std::unique_lock<std::mutex> lock(m);
 		cv.notify_one();
 	};
 
@@ -1072,7 +1048,7 @@ bool autoConfig::TestSoftwareEncoding()
 	/* -----------------------------------*/
 	/* perform tests                      */
 
-	vector<Result> results;
+	std::vector<Result> results;
 	int            i     = 0;
 	int            count = 1;
 
@@ -1119,7 +1095,7 @@ bool autoConfig::TestSoftwareEncoding()
 
 		obs_output_set_media(output, obs_get_video(), obs_get_audio());
 
-		unique_lock<mutex> ul(m);
+		std::unique_lock<std::mutex> ul(m);
 		if (cancel)
 			return false;
 
@@ -1127,7 +1103,7 @@ bool autoConfig::TestSoftwareEncoding()
 			return false;
 		}
 
-		cv.wait_for(ul, chrono::seconds(5));
+		cv.wait_for(ul, std::chrono::seconds(5));
 
 		obs_output_stop(output);
 		cv.wait(ul);

@@ -83,3 +83,50 @@ I don't specify every possible combination of variables. Here's a list of active
 * `OSN_LIBOBS_URL` - Controls where to fetch the libobs archive. May be a directory, any compressed archive that cpack supports, or a URI of various types including FTP or HTTP/S.
 
 If you find yourself unable to configure something about our build script or have any questions, please file a github issue!
+
+### Static code analyzis 
+
+#### cppcheck 
+
+Install cppcheck from http://cppcheck.sourceforge.net/ and add cppcheck folder to PATH 
+To run check from console:  
+```
+cd build 
+cmake --build . --target CPPCHECK
+```
+
+Also target can be built from Visula Studio. 
+Report output format set as compatible and navigation to file:line posiible from build results panel.  
+
+Some warnings suppressed in files `obs-studio-client/cppcheck_suppressions_list.txt` and `obs-studio-server/cppcheck_suppressions_list.txt`.
+
+#### Clang Analyzer 
+
+`Ninja` and `LLVM` have to be installed in system. Warning: depot_tool have broken ninja.  
+To make build open `cmd.exe`. 
+
+
+```
+mkdir build_clang
+cd build_clang
+
+"c:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\amd64\vcvars64.bat"
+ 
+set CCC_CC=clang-cl
+set CCC_CXX=clang-cl
+set CC=ccc-analyzer.bat
+set CXX=c++-analyzer.bat
+#set CCC_ANALYZER_VERBOSE=1
+
+#make ninja project 
+cmake  -G "Ninja" -DCLANG_ANALYZE_CONFIG=1 -DCMAKE_INSTALL_PREFIX:PATH=""  -DCMAKE_LINKER=lld-link -DCMAKE_BUILD_TYPE="Debug"   -DCMAKE_SYSTEM_NAME="Generic" -DCMAKE_MAKE_PROGRAM=ninja.exe ..
+
+#try to build and "fix" errors 
+ninja.exe 
+
+#clean build to scan 
+ninja.exe clean 
+
+scan-build --keep-empty -internal-stats -stats -v -v -v -o check ninja.exe
+```
+Step with `"fixing"` errors is important as code base and especially third-party code are not ready to be build with clang. And files which failed to compile will not be scanned for errors. 

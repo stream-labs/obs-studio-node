@@ -1,3 +1,21 @@
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
+
 #pragma once
 #include <iostream>
 #include <obs.h>
@@ -9,7 +27,11 @@
 
 #include "nodeobs_audio_encoders.h"
 
-using namespace std;
+enum CategoryTypes : uint32_t
+{
+	NODEOBS_CATEGORY_LIST = 0,
+	NODEOBS_CATEGORY_TAB = 1
+};
 
 struct Parameter
 {
@@ -141,13 +163,13 @@ class OBS_settings
 	static std::vector<std::string> getListCategories(void);
 
 	// Exposed methods to the frontend
-	static std::vector<SubCategory> getSettings(std::string nameCategory);
+	static std::vector<SubCategory> getSettings(std::string nameCategory, CategoryTypes&);
 	static void                     saveSettings(std::string nameCategory, std::vector<SubCategory> settings);
 
 	// Get each category
 	static std::vector<SubCategory> getGeneralSettings();
 	static std::vector<SubCategory> getStreamSettings();
-	static std::vector<SubCategory> getOutputSettings();
+	static std::vector<SubCategory> getOutputSettings(CategoryTypes&);
 	static std::vector<SubCategory> getAudioSettings();
 	static std::vector<SubCategory> getVideoSettings();
 	static std::vector<SubCategory> getAdvancedSettings();
@@ -193,6 +215,12 @@ class OBS_settings
 	    config_t*                 config,
 	    bool                      isCategoryEnabled);
 
+	static void getReplayBufferSettings(
+	    std::vector<SubCategory>* outputSettings,
+	    config_t*                 config,
+	    bool                      advanced,
+	    bool                      isCategoryEnabled);
+
 	/****** Save Output Settings ******/
 
 	// Simple Output mode
@@ -206,13 +234,14 @@ class OBS_settings
 	static void saveAdvancedOutputSettings(std::vector<SubCategory> settings);
 
 	//Utility functions
-	static void getSimpleAvailableEncoders(std::vector<std::pair<std::string, std::string>>* streamEncode);
+	static void getSimpleAvailableEncoders(std::vector<std::pair<std::string, std::string>>* streamEncode, bool recording);
 	static void getAdvancedAvailableEncoders(std::vector<std::pair<std::string, std::string>>* streamEncode);
-	static std::vector<pair<uint64_t, uint64_t>> getOutputResolutions(uint64_t base_cx, uint64_t base_cy);
+	static std::vector<std::pair<uint64_t, uint64_t>> getOutputResolutions(uint64_t base_cx, uint64_t base_cy);
 	static void                                  getEncoderSettings(
 	                                     const obs_encoder_t*    encoder,
 	                                     obs_data_t*             settings,
 	                                     std::vector<Parameter>* subCategoryParameters,
 	                                     int                     index,
-	                                     bool                    isCategoryEnabled);
+	                                     bool                    isCategoryEnabled,
+	                                     bool                    recordEncoder);
 };

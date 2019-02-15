@@ -59,6 +59,14 @@ export const enum EVideoCodes {
 	ModuleNotFound = -5	
 }
 
+export const enum EHotkeyObjectType {
+	Frontend = 0,
+	Source = 1,
+	Output = 2,
+	Encoder = 3,
+	Service = 4
+}
+
 export const enum EDeinterlaceMode {
     Disable,
     Discard,
@@ -312,7 +320,13 @@ export const enum EOutputCode {
     NoSpace = -7
 }
 
+export declare const enum ECategoryTypes {
+    NODEOBS_CATEGORY_LIST = 0,
+	NODEOBS_CATEGORY_TAB = 1
+}
+
 export const Global: IGlobal = obs.Global;
+export const Video: IVideo = obs.Video;
 export const OutputFactory: IOutputFactory = obs.Output;
 export const AudioEncoderFactory: IAudioEncoderFactory = obs.AudioEncoder;
 export const VideoEncoderFactory: IVideoEncoderFactory = obs.VideoEncoder;
@@ -325,7 +339,6 @@ export const DisplayFactory: IDisplayFactory = obs.Display;
 export const VolmeterFactory: IVolmeterFactory = obs.Volmeter;
 export const FaderFactory: IFaderFactory = obs.Fader;
 export const AudioFactory: IAudioFactory = obs.Audio;
-export const VideoFactory: IVideoFactory = obs.Video;
 export const ModuleFactory: IModuleFactory = obs.Module;
 export const IPC: IIPC = obs.IPC;
 
@@ -436,15 +449,6 @@ export interface IIPC {
 	 * @throws Error if it failed to host and connect.
      */
 	host(uri: string): void;
-	
-    /**
-     * Connects to an existing server or hosts a new server and connects to it.
-     * @param uri - URI for the server.
-	 * @throws SyntaxError if an invalid number of parameters is given.
-	 * @throws TypeError if a parameter is of invalid type.
-	 * @throws Error if it failed to connect or host and connect.
-     */
-	connectOrHost(uri: string): void;
 	
     /**
      * Disconnect from a server.
@@ -1479,13 +1483,16 @@ export interface IDisplay {
  * For now, only the global context functions are implemented
  */
 export interface IVideo {
-    readonly totalFrames: number;
+	
+	/**
+     * Number of total skipped frames
+     */
     readonly skippedFrames: number;
-}
-
-export interface IVideoFactory {
-    reset(info: IVideoInfo): number;
-    getGlobal(): IVideo;
+	
+    /**
+     * Number of total encoded frames
+     */
+    readonly encodedFrames: number;
 }
 
 /**
@@ -1507,6 +1514,7 @@ export interface IModuleFactory extends IFactoryTypes {
     loadAll(): void;
     addPath(path: string, dataPath: string): void;
     logLoaded(): void;
+    modules(): String[];
 }
 
 export interface IModule {

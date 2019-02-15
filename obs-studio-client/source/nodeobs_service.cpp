@@ -1,3 +1,21 @@
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
+
 #include "nodeobs_service.hpp"
 #include "controller.hpp"
 #include "error.hpp"
@@ -9,10 +27,7 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
-using namespace std::placeholders;
-
 Service::Service(){};
-
 Service::~Service(){};
 
 void Service::start_async_runner()
@@ -22,7 +37,7 @@ void Service::start_async_runner()
 	std::unique_lock<std::mutex> ul(m_worker_lock);
 	// Start v8/uv asynchronous runner.
 	m_async_callback = new ServiceCallback();
-	m_async_callback->set_handler(std::bind(&Service::callback_handler, this, _1, _2), nullptr);
+	m_async_callback->set_handler(std::bind(&Service::callback_handler, this, std::placeholders::_1, std::placeholders::_2), nullptr);
 }
 void Service::stop_async_runner()
 {
@@ -93,88 +108,6 @@ void service::OBS_service_resetVideoContext(const v8::FunctionCallbackInfo<v8::V
 	ValidateResponse(response);
 }
 
-void service::OBS_service_createAudioEncoder(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "OBS_service_createAudioEncoder", {});
-
-	ValidateResponse(response);
-}
-
-void service::OBS_service_createVideoStreamingEncoder(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Service", "OBS_service_createVideoStreamingEncoder", {});
-
-	ValidateResponse(response);
-}
-
-void service::OBS_service_createVideoRecordingEncoder(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Service", "OBS_service_createVideoRecordingEncoder", {});
-
-	ValidateResponse(response);
-}
-
-void service::OBS_service_createService(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "OBS_service_createService", {});
-
-	ValidateResponse(response);
-}
-
-void service::OBS_service_createRecordingSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Service", "OBS_service_createRecordingSettings", {});
-
-	ValidateResponse(response);
-}
-
-void service::OBS_service_createStreamingOutput(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Service", "OBS_service_createStreamingOutput", {});
-
-	ValidateResponse(response);
-}
-
-void service::OBS_service_createRecordingOutput(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Service", "OBS_service_createRecordingOutput", {});
-
-	ValidateResponse(response);
-}
-
 void service::OBS_service_startStreaming(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	auto conn = GetConnection();
@@ -193,6 +126,17 @@ void service::OBS_service_startRecording(const v8::FunctionCallbackInfo<v8::Valu
 		return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "OBS_service_startRecording", {});
+
+	ValidateResponse(response);
+}
+
+void service::OBS_service_startReplayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "OBS_service_startReplayBuffer", {});
 
 	ValidateResponse(response);
 }
@@ -223,77 +167,17 @@ void service::OBS_service_stopRecording(const v8::FunctionCallbackInfo<v8::Value
 	ValidateResponse(response);
 }
 
-void service::OBS_service_associateAudioAndVideoToTheCurrentStreamingContext(
-    const v8::FunctionCallbackInfo<v8::Value>& args)
+void service::OBS_service_stopReplayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+	bool forceStop;
+	ASSERT_GET_VALUE(args[0], forceStop);
+
 	auto conn = GetConnection();
 	if (!conn)
 		return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Service", "OBS_service_associateAudioAndVideoToTheCurrentStreamingContext", {});
-
-	ValidateResponse(response);
-}
-
-void service::OBS_service_associateAudioAndVideoToTheCurrentRecordingContext(
-    const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Service", "OBS_service_associateAudioAndVideoToTheCurrentRecordingContext", {});
-
-	ValidateResponse(response);
-}
-
-void service::OBS_service_associateAudioAndVideoEncodersToTheCurrentStreamingOutput(
-    const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Service", "OBS_service_associateAudioAndVideoEncodersToTheCurrentStreamingOutput", {});
-
-	ValidateResponse(response);
-}
-
-void service::OBS_service_associateAudioAndVideoEncodersToTheCurrentRecordingOutput(
-    const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Service", "OBS_service_associateAudioAndVideoEncodersToTheCurrentRecordingOutput", {});
-
-	ValidateResponse(response);
-}
-
-void service::OBS_service_setServiceToTheStreamingOutput(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Service", "OBS_service_setServiceToTheStreamingOutput", {});
-
-	ValidateResponse(response);
-}
-
-void service::OBS_service_setRecordingSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "OBS_service_setRecordingSettings", {});
+	    conn->call_synchronous_helper("Service", "OBS_service_stopReplayBuffer", {ipc::value(forceStop)});
 
 	ValidateResponse(response);
 }
@@ -314,16 +198,11 @@ void service::OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8
 	// Send request
 	std::vector<ipc::value> rval = conn->call_synchronous_helper("Service", "OBS_service_connectOutputSignals", {});
 	if (!ValidateResponse(rval)) {
-		return;
-	}
-
-	if (rval[0].value_union.ui64 != (uint64_t)ErrorCode::Ok) {
 		args.GetReturnValue().Set(Nan::Null());
 		return;
 	}
 
 	// Callback
-
 	serviceObject = new Service();
 	serviceObject->m_callback_function.Reset(callback);
 	serviceObject->start_async_runner();
@@ -332,43 +211,31 @@ void service::OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8
 	args.GetReturnValue().Set(true);
 }
 
-/*void Service::Callback(Service* service, SignalInfo* item) {
-	if (!item) {
+void service::OBS_service_processReplayBufferHotkey(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	auto conn = GetConnection();
+	if (!conn)
 		return;
-	}
-	if (!service) {
-		delete item;
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Service", "OBS_service_processReplayBufferHotkey", {});
+
+	ValidateResponse(response);
+}
+
+void service::OBS_service_getLastReplay(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	auto conn = GetConnection();
+	if (!conn)
 		return;
-	}
 
-	ServiceCallback *cb_binding = reinterpret_cast<ServiceCallback*>(item->param);
-	if (!cb_binding) {
-		delete item;
-		return;
-	}
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Service", "OBS_service_getLastReplay", {});
 
-	if (cb_binding->stopped) {
-		delete item;
-		return;
-	}
+	ValidateResponse(response);
 
-	v8::Isolate *isolate = v8::Isolate::GetCurrent();
-	v8::Local<v8::Value> args[1];
-
-	v8::Local<v8::Value> argv = v8::Object::New(isolate);
-	argv->ToObject()->Set(v8::String::NewFromUtf8(isolate, "type"), 
-		v8::String::NewFromUtf8(isolate, item->outputType.c_str()));
-	argv->ToObject()->Set(v8::String::NewFromUtf8(isolate, 
-		"signal"), v8::String::NewFromUtf8(isolate, item->signal.c_str()));
-	argv->ToObject()->Set(v8::String::NewFromUtf8(isolate, 
-		"code"), v8::Number::New(isolate, item->code));
-	argv->ToObject()->Set(v8::String::NewFromUtf8(isolate, 
-		"error"), v8::String::NewFromUtf8(isolate, item->errorMessage.c_str()));
-	args[0] = argv;
-
-	delete item;
-	Nan::Call(cb_binding->cb, 1, args);
-}*/
+	args.GetReturnValue().Set(v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), response.at(1).value_str.c_str()));
+}
 
 void Service::worker()
 {
@@ -433,57 +300,24 @@ INITIALIZER(nodeobs_service)
 
 		NODE_SET_METHOD(exports, "OBS_service_resetVideoContext", service::OBS_service_resetVideoContext);
 
-		NODE_SET_METHOD(exports, "OBS_service_createAudioEncoder", service::OBS_service_createAudioEncoder);
-
-		NODE_SET_METHOD(
-		    exports, "OBS_service_createVideoStreamingEncoder", service::OBS_service_createVideoStreamingEncoder);
-
-		NODE_SET_METHOD(
-		    exports, "OBS_service_createVideoRecordingEncoder", service::OBS_service_createVideoRecordingEncoder);
-
-		NODE_SET_METHOD(exports, "OBS_service_createService", service::OBS_service_createService);
-
-		NODE_SET_METHOD(exports, "OBS_service_createRecordingSettings", service::OBS_service_createRecordingSettings);
-
-		NODE_SET_METHOD(exports, "OBS_service_createStreamingOutput", service::OBS_service_createStreamingOutput);
-
-		NODE_SET_METHOD(exports, "OBS_service_createRecordingOutput", service::OBS_service_createRecordingOutput);
-
 		NODE_SET_METHOD(exports, "OBS_service_startStreaming", service::OBS_service_startStreaming);
 
 		NODE_SET_METHOD(exports, "OBS_service_startRecording", service::OBS_service_startRecording);
+
+		NODE_SET_METHOD(exports, "OBS_service_startReplayBuffer", service::OBS_service_startReplayBuffer);
 
 		NODE_SET_METHOD(exports, "OBS_service_stopRecording", service::OBS_service_stopRecording);
 
 		NODE_SET_METHOD(exports, "OBS_service_stopStreaming", service::OBS_service_stopStreaming);
 
-		NODE_SET_METHOD(
-		    exports,
-		    "OBS_service_associateAudioAndVideoToTheCurrentStreamingContext",
-		    service::OBS_service_associateAudioAndVideoToTheCurrentStreamingContext);
-
-		NODE_SET_METHOD(
-		    exports,
-		    "OBS_service_associateAudioAndVideoToTheCurrentRecordingContext",
-		    service::OBS_service_associateAudioAndVideoToTheCurrentRecordingContext);
-
-		NODE_SET_METHOD(
-		    exports,
-		    "OBS_service_associateAudioAndVideoEncodersToTheCurrentStreamingOutput",
-		    service::OBS_service_associateAudioAndVideoEncodersToTheCurrentStreamingOutput);
-
-		NODE_SET_METHOD(
-		    exports,
-		    "OBS_service_associateAudioAndVideoEncodersToTheCurrentRecordingOutput",
-		    service::OBS_service_associateAudioAndVideoEncodersToTheCurrentRecordingOutput);
-
-		NODE_SET_METHOD(
-		    exports, "OBS_service_setServiceToTheStreamingOutput", service::OBS_service_setServiceToTheStreamingOutput);
-
-		NODE_SET_METHOD(exports, "OBS_service_setRecordingSettings", service::OBS_service_setRecordingSettings);
+		NODE_SET_METHOD(exports, "OBS_service_stopReplayBuffer", service::OBS_service_stopReplayBuffer);
 
 		NODE_SET_METHOD(exports, "OBS_service_connectOutputSignals", service::OBS_service_connectOutputSignals);
 
 		NODE_SET_METHOD(exports, "OBS_service_removeCallback", service::OBS_service_removeCallback);
+
+		NODE_SET_METHOD(exports, "OBS_service_processReplayBufferHotkey", service::OBS_service_processReplayBufferHotkey);
+
+		NODE_SET_METHOD(exports, "OBS_service_getLastReplay", service::OBS_service_getLastReplay);
 	});
 }

@@ -1,19 +1,20 @@
-// Client module for the OBS Studio node module.
-// Copyright(C) 2017 Streamlabs (General Workings Inc)
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
 
 #pragma once
 #include <functional>
@@ -567,18 +568,19 @@ namespace utilv8
 		}
 	};
 
+	/* DynamicCast is incorrect now, since dynamic_cast never should have been used.
+	 * The name has been kept for legacy reasons. */
 	template<typename T, typename C>
 	static bool RetrieveDynamicCast(v8::Local<v8::Object> object, C*& value_ptr)
 	{
 		T* inner_ptr = nullptr;
+
 		if (!T::Retrieve(object, inner_ptr)) {
 			return false;
 		}
-		value_ptr = dynamic_cast<C*>(inner_ptr);
-		if (!value_ptr) {
-			v8::Isolate::GetCurrent()->ThrowException(
-			    v8::Exception::TypeError(Nan::New<v8::String>("Wrapped object is of wrong type.").ToLocalChecked()));
-		}
+
+		value_ptr = static_cast<C*>(inner_ptr);
+
 		return !!value_ptr;
 	}
 

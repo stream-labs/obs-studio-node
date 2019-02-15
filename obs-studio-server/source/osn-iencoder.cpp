@@ -1,21 +1,23 @@
-// Client module for the OBS Studio node module.
-// Copyright(C) 2017 Streamlabs (General Workings Inc)
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
 
 #include "osn-IEncoder.hpp"
+#include "error.hpp"
 #include <obs.h>
 
 void osn::IEncoder::Register(ipc::server& srv)
@@ -51,14 +53,14 @@ void osn::IEncoder::GetId(
 {
 	auto p = obs_get_encoder_by_name(args[0].value_str.c_str());
 	if (p == nullptr) {
-		rval[0].type      = ipc::type::Null;
-		rval[0].value_str = "Unable to find encoder.";
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Unable to find encoder."));
 		return;
 	}
 
-	rval.resize(1);
-	rval[0].type      = ipc::type::String;
-	rval[0].value_str = obs_encoder_get_id(p);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_encoder_get_id(p)));
+
 	obs_encoder_release(p);
 }
 
@@ -70,13 +72,14 @@ void osn::IEncoder::GetName(
 {
 	auto p = obs_get_encoder_by_name(args[0].value_str.c_str());
 	if (p == nullptr) {
-		rval[0].type      = ipc::type::Null;
-		rval[0].value_str = "Unable to find encoder.";
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Unable to find encoder."));
 		return;
 	}
 
-	rval[0].type      = ipc::type::String;
-	rval[0].value_str = obs_encoder_get_name(p);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_encoder_get_name(p)));
+
 	obs_encoder_release(p);
 }
 
@@ -88,12 +91,14 @@ void osn::IEncoder::SetName(
 {
 	auto p = obs_get_encoder_by_name(args[0].value_str.c_str());
 	if (p == nullptr) {
-		rval[0].type      = ipc::type::Null;
-		rval[0].value_str = "Unable to find encoder.";
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Unable to find encoder."));
 		return;
 	}
 
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	obs_encoder_set_name(p, args[0].value_str.c_str());
+
 	obs_encoder_release(p);
 }
 
@@ -103,8 +108,8 @@ void osn::IEncoder::GetCaps(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	rval[0].type             = ipc::type::UInt32;
-	rval[0].value_union.ui32 = obs_get_encoder_caps(args[0].value_str.c_str());
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(uint32_t(obs_get_encoder_caps(args[0].value_str.c_str()))));
 }
 
 void osn::IEncoder::GetType(
@@ -115,13 +120,14 @@ void osn::IEncoder::GetType(
 {
 	auto p = obs_get_encoder_by_name(args[0].value_str.c_str());
 	if (p == nullptr) {
-		rval[0].type      = ipc::type::Null;
-		rval[0].value_str = "Unable to find encoder.";
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Unable to find encoder."));
 		return;
 	}
 
-	rval[0].type            = ipc::type::Int32;
-	rval[0].value_union.i32 = obs_encoder_get_type(p);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(int32_t(obs_encoder_get_type(p))));
+
 	obs_encoder_release(p);
 }
 
@@ -133,13 +139,14 @@ void osn::IEncoder::GetCodec(
 {
 	auto p = obs_get_encoder_by_name(args[0].value_str.c_str());
 	if (p == nullptr) {
-		rval[0].type      = ipc::type::Null;
-		rval[0].value_str = "Unable to find encoder.";
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Unable to find encoder."));
 		return;
 	}
 
-	rval[0].type      = ipc::type::String;
-	rval[0].value_str = obs_encoder_get_codec(p);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(int64_t(obs_encoder_get_codec(p))));
+
 	obs_encoder_release(p);
 }
 
@@ -172,11 +179,12 @@ void osn::IEncoder::Release(
 {
 	auto p = obs_get_encoder_by_name(args[0].value_str.c_str());
 	if (p == nullptr) {
-		rval[0].type      = ipc::type::Null;
-		rval[0].value_str = "Unable to find encoder.";
+		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
+		rval.push_back(ipc::value("Unable to find encoder."));
 		return;
 	}
 
-	obs_encoder_release(p);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
 	obs_encoder_release(p);
 }

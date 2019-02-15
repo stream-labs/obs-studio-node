@@ -1,3 +1,21 @@
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
+
 #include <algorithm>
 #include <iomanip>
 #include <map>
@@ -9,16 +27,14 @@
 
 #include "nodeobs_audio_encoders.h"
 
-using namespace std;
-
-static const string encoders[] = {
+static const std::string encoders[] = {
     "ffmpeg_aac",
     "mf_aac",
     "libfdk_aac",
     "CoreAudio_AAC",
 };
 
-static const string& fallbackEncoder = encoders[0];
+static const std::string& fallbackEncoder = encoders[0];
 
 static const char* NullToEmpty(const char* str)
 {
@@ -30,8 +46,8 @@ static const char* EncoderName(const char* id)
 	return NullToEmpty(obs_encoder_get_display_name(id));
 }
 
-static map<int, const char*> bitrateMap;
-static once_flag             populateBitrateMap;
+static std::map<int, const char*> bitrateMap;
+static std::once_flag             populateBitrateMap;
 
 static void HandleIntProperty(obs_property_t* prop, const char* id)
 {
@@ -138,7 +154,7 @@ static const char* GetCodec(const char* id)
 	return NullToEmpty(obs_get_encoder_codec(id));
 }
 
-static const string aac_ = "AAC";
+static const std::string aac_ = "AAC";
 static void         PopulateBitrateMap()
 {
 	call_once(populateBitrateMap, []() {
@@ -146,15 +162,25 @@ static void         PopulateBitrateMap()
 
 		const char* id = nullptr;
 		for (size_t i = 0; obs_enum_encoder_types(i, &id); i++) {
-			auto Compare = [=](const string& val) { return val == NullToEmpty(id); };
+			auto Compare = [=](const std::string& val) { return val == NullToEmpty(id); };
 
 			if (find_if(begin(encoders), end(encoders), Compare) != end(encoders))
 				continue;
 
-			if (aac_ != GetCodec(id))
+			if (aac_ != GetCodec(NullToEmpty(id)))
 				continue;
 
-			HandleEncoderProperties(id);
+			// A corrupted encoder dll will fail when requesting it's properties here by
+			// calling "obs_get_encoder_properties", this try-catch block will make sure
+			// that this encoder won't be used. A good solution would be checking this
+			// when starting obs (checking if every encoder/module is valid) and/or
+			// showing the user why the encoder why disabled (invalid version, need to
+			// update, etc)
+			try {
+				HandleEncoderProperties(id);
+			} catch (...) {
+				continue;
+			}
 		}
 
 		for (auto& encoder : encoders) {
@@ -175,16 +201,16 @@ static void         PopulateBitrateMap()
 			return;
 		}
 
-		ostringstream ss;
+		std::ostringstream ss;
 		for (auto& entry : bitrateMap)
-			ss << "\n	" << setw(3) << entry.first << " kbit/s: '" << EncoderName(entry.second) << "' ("
+			ss << "\n	" << std::setw(3) << entry.first << " kbit/s: '" << EncoderName(entry.second) << "' ("
 			   << entry.second << ')';
 
 		blog(LOG_DEBUG, "AAC encoder bitrate mapping:%s", ss.str().c_str());
 	});
 }
 
-const map<int, const char*>& GetAACEncoderBitrateMap()
+const std::map<int, const char*>& GetAACEncoderBitrateMap()
 {
 	PopulateBitrateMap();
 	return bitrateMap;

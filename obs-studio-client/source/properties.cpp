@@ -1,19 +1,20 @@
-// Client module for the OBS Studio node module.
-// Copyright(C) 2017 Streamlabs (General Workings Inc)
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
 
 #include "properties.hpp"
 #include "isource.hpp"
@@ -610,20 +611,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Modified(Nan::NAN_METHOD_ARGS_T
 	    "Properties",
 	    "Modified",
 	    {ipc::value(parent_source->sourceId), ipc::value(iter->second->name), ipc::value(value)});
-	if (rval.size() == 0) {
-		Nan::Error("Call failed, verify IPC status.");
-		return;
-	} else if (!ValidateResponse(rval)) {
+
+	if (!ValidateResponse(rval)) {
+		info.GetReturnValue().Set(false);
 		return;
 	}
 
-	// Process Results
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::Ok) {
-		info.GetReturnValue().Set(!!rval[1].value_union.i32);
-	} else {
-		info.GetReturnValue().Set(false);
-	}
+	info.GetReturnValue().Set(!!rval[1].value_union.i32);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::ButtonClicked(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -670,18 +664,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::ButtonClicked(Nan::NAN_METHOD_A
 	}
 	auto rval = conn->call_synchronous_helper(
 	    "Properties", "Clicked", {ipc::value(parent_source->sourceId), ipc::value(iter->second->name)});
-	if (rval.size() == 0) {
-		Nan::Error("Call failed, verify IPC status.");
-		return;
-	} else if (!ValidateResponse(rval)) {
+
+	if (!ValidateResponse(rval)) {
+		info.GetReturnValue().Set(false);
 		return;
 	}
 
-	// Process Results
-	ErrorCode ec = (ErrorCode)rval[0].value_union.ui64;
-	if (ec == ErrorCode::Ok) {
-		info.GetReturnValue().Set(true);
-	} else {
-		info.GetReturnValue().Set(false);
-	}
+	info.GetReturnValue().Set(true);
 }
