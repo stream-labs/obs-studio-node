@@ -961,13 +961,16 @@ void OBS_settings::getSimpleAvailableEncoders(
 		encoders->push_back(std::make_pair("Software (x264 low CPU usage preset, increases file size)", SIMPLE_ENCODER_X264_LOWCPU));
 
 	if (EncoderAvailable("obs_qsv11"))
-			encoders->push_back(std::make_pair("QSV", SIMPLE_ENCODER_QSV));
+			encoders->push_back(std::make_pair("Hardware (QSV)", SIMPLE_ENCODER_QSV));
 
 	if (EncoderAvailable("ffmpeg_nvenc"))
-		encoders->push_back(std::make_pair("NVENC", SIMPLE_ENCODER_NVENC));
+		encoders->push_back(std::make_pair("Hardware (NVENC)", SIMPLE_ENCODER_NVENC));
 
 	if (EncoderAvailable("amd_amf_h264"))
-		encoders->push_back(std::make_pair("AMD", SIMPLE_ENCODER_AMD));
+		encoders->push_back(std::make_pair("Hardware (AMD)", SIMPLE_ENCODER_AMD));
+
+	if (EncoderAvailable("jim_nvenc"))
+		encoders->push_back(std::make_pair("Hardware (NVENC) (new)", ENCODER_NEW_NVENC));
 }
 
 void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::string, std::string>>* streamEncoder)
@@ -975,13 +978,16 @@ void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::strin
 	streamEncoder->push_back(std::make_pair("Software (x264)", ADVANCED_ENCODER_X264));
 
 	if (EncoderAvailable("obs_qsv11"))
-		streamEncoder->push_back(std::make_pair("QSV", ADVANCED_ENCODER_QSV));
+		streamEncoder->push_back(std::make_pair("Hardware (QSV)", ADVANCED_ENCODER_QSV));
 
 	if (EncoderAvailable("ffmpeg_nvenc"))
-		streamEncoder->push_back(std::make_pair("NVENC", ADVANCED_ENCODER_NVENC));
+		streamEncoder->push_back(std::make_pair("NVIDIA NVENC H.264", ADVANCED_ENCODER_NVENC));
 
 	if (EncoderAvailable("amd_amf_h264"))
 		streamEncoder->push_back(std::make_pair("AMD", ADVANCED_ENCODER_AMD));
+
+	if (EncoderAvailable("jim_nvenc"))
+		streamEncoder->push_back(std::make_pair("NVIDIA NVENC H.264 (new)", ENCODER_NEW_NVENC));
 }
 
 void OBS_settings::getSimpleOutputSettings(
@@ -2931,7 +2937,11 @@ static bool ConvertResText(const char* res, uint32_t& cx, uint32_t& cy)
 	if (token.type != BASETOKEN_DIGIT)
 		return false;
 
-	cx = std::stoul(token.text.array);
+	try {
+		cx = std::stoul(token.text.array);
+	} catch (const std::exception&) {
+		return false;
+	}
 
 	// parse 'x'
 	if (!lexer_getbasetoken(lex, &token, IGNORE_WHITESPACE))
@@ -2945,7 +2955,11 @@ static bool ConvertResText(const char* res, uint32_t& cx, uint32_t& cy)
 	if (token.type != BASETOKEN_DIGIT)
 		return false;
 
-	cy = std::stoul(token.text.array);
+	try {
+		cy = std::stoul(token.text.array);
+	} catch (const std::exception&) {
+		return false;
+	}
 
 	// shouldn't be any more tokens after this
 	if (lexer_getbasetoken(lex, &token, IGNORE_WHITESPACE))
@@ -2963,22 +2977,24 @@ void OBS_settings::saveVideoSettings(std::vector<SubCategory> videoSettings)
 
 	std::string baseResString(baseRes.currentValue.data(), baseRes.currentValue.size());
 
-	uint32_t baseWidth, baseHeight;
+	uint32_t baseWidth = 0, baseHeight = 0;
 
-	ConvertResText(baseResString.c_str(), baseWidth, baseHeight);
-	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCX", baseWidth);
-	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCY", baseHeight);
+	if (ConvertResText(baseResString.c_str(), baseWidth, baseHeight)) {
+		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCX", baseWidth);
+		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCY", baseHeight);
+	}
 
 	//Output resolution
 	Parameter outputRes = sc.params.at(1);
 
 	std::string outputResString(outputRes.currentValue.data(), outputRes.currentValue.size());
 
-	uint32_t outputWidth, outputHeight;
+	uint32_t outputWidth = 0, outputHeight = 0;
 
-	ConvertResText(outputResString.c_str(), outputWidth, outputHeight);
-	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCX", outputWidth);
-	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCY", outputHeight);
+	if (ConvertResText(outputResString.c_str(), outputWidth, outputHeight)) {
+		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCX", outputWidth);
+		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCY", outputHeight);
+	}
 
 	Parameter scaleParameter = sc.params.at(2);
 

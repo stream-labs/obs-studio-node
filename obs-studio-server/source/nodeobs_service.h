@@ -55,6 +55,8 @@
 #define ADVANCED_ENCODER_NVENC "ffmpeg_nvenc"
 #define ADVANCED_ENCODER_AMD "amd_amf_h264"
 
+#define ENCODER_NEW_NVENC "jim_nvenc"
+
 #define MAX_AUDIO_MIXES 6
 
 class SignalInfo
