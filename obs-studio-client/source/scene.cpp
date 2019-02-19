@@ -261,7 +261,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FindItem(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (info[0]->IsNumber()) {
 		haveName = false;
 		ASSERT_GET_VALUE(info[0], position);
-	} else if (info[0]->IsNumber()) {
+	} else if (info[0]->IsString()) {
 		haveName = true;
 		ASSERT_GET_VALUE(info[0], name);
 	} else {

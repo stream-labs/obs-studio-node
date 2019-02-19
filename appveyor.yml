@@ -47,7 +47,7 @@ before_test:
   - cmd: yarn install
 
 test_script:
-  - cmd: npm run test
+  - cmd: yarn run test
   - cmd: cd ..\..
 
 before_deploy:
@@ -67,9 +67,9 @@ before_deploy:
 deploy:
   - provider: S3
     access_key_id:
-      secure: C1Qzrf1+tbRDGmnXR6OpXwWuJr33d2JCVwn0KC/V7jw=
+      secure: 80Jl7kcnucSWpDReQ3K6JK/R9vVwnAQYADH2MVSNYts=
     secret_access_key:
-      secure: dRSFQBZKAAVvDmZ0DOaoF54189P0b0mFCMSyTwn4eHZVBFdaET8C4Nb6VCJ4kT+a
+      secure: tGpzwrP05lsjPbKNChsVCZUW9d+CCKac08aL1e5nOHhkaOYVgCZxqJDy0J1cV9cd
     bucket: obsstudionodes3.streamlabs.com
     region: us-west-2
     set_public: true

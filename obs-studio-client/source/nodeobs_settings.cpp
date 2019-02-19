@@ -180,8 +180,9 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 					int64_t *value = reinterpret_cast<int64_t*>(params.at(j).currentValue.data());
 					parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
 						v8::Integer::New(isolate, int32_t(*value)));
-				}
-				else if (params.at(j).type.compare("OBS_PROPERTY_UINT") == 0) {
+				} else if (
+				    params.at(j).type.compare("OBS_PROPERTY_UINT") == 0
+				    || params.at(j).type.compare("OBS_PROPERTY_BITMASK") == 0) {
 					uint64_t *value = reinterpret_cast<uint64_t*>(params.at(j).currentValue.data());
 					parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
 						v8::Integer::New(isolate, int32_t(*value)));
@@ -292,8 +293,8 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 		subCategory->Set(v8::String::NewFromUtf8(isolate, "parameters"), subCategoryParameters);
 
 		rval->Set(i, subCategory);
+		rval->Set(v8::String::NewFromUtf8(isolate, "type"), v8::Integer::New(isolate, response[4].value_union.ui32));
 	}
-
 	args.GetReturnValue().Set(rval);
 	return;
 }
@@ -346,7 +347,7 @@ std::vector<char> deserializeCategory(uint32_t* subCategoriesCount, uint32_t* si
 				param.sizeOfCurrentValue = sizeof(value);
 				param.currentValue.resize(sizeof(value));
 				memcpy(param.currentValue.data(), &value, sizeof(value));
-			} else if (param.type.compare("OBS_PROPERTY_UINT") == 0) {
+			} else if (param.type.compare("OBS_PROPERTY_UINT") == 0 || param.type.compare("OBS_PROPERTY_BITMASK") == 0) {
 				uint64_t value =
 				    uint64_t(parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue"))->NumberValue());
 

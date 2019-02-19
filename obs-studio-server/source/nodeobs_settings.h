@@ -27,6 +27,12 @@
 
 #include "nodeobs_audio_encoders.h"
 
+enum CategoryTypes : uint32_t
+{
+	NODEOBS_CATEGORY_LIST = 0,
+	NODEOBS_CATEGORY_TAB = 1
+};
+
 struct Parameter
 {
 	std::string       name;
@@ -157,13 +163,13 @@ class OBS_settings
 	static std::vector<std::string> getListCategories(void);
 
 	// Exposed methods to the frontend
-	static std::vector<SubCategory> getSettings(std::string nameCategory);
+	static std::vector<SubCategory> getSettings(std::string nameCategory, CategoryTypes&);
 	static void                     saveSettings(std::string nameCategory, std::vector<SubCategory> settings);
 
 	// Get each category
 	static std::vector<SubCategory> getGeneralSettings();
 	static std::vector<SubCategory> getStreamSettings();
-	static std::vector<SubCategory> getOutputSettings();
+	static std::vector<SubCategory> getOutputSettings(CategoryTypes&);
 	static std::vector<SubCategory> getAudioSettings();
 	static std::vector<SubCategory> getVideoSettings();
 	static std::vector<SubCategory> getAdvancedSettings();
@@ -228,7 +234,7 @@ class OBS_settings
 	static void saveAdvancedOutputSettings(std::vector<SubCategory> settings);
 
 	//Utility functions
-	static void getSimpleAvailableEncoders(std::vector<std::pair<std::string, std::string>>* streamEncode);
+	static void getSimpleAvailableEncoders(std::vector<std::pair<std::string, std::string>>* streamEncode, bool recording);
 	static void getAdvancedAvailableEncoders(std::vector<std::pair<std::string, std::string>>* streamEncode);
 	static std::vector<std::pair<uint64_t, uint64_t>> getOutputResolutions(uint64_t base_cx, uint64_t base_cy);
 	static void                                  getEncoderSettings(

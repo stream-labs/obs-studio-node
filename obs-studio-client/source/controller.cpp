@@ -228,10 +228,7 @@ static void write_pid_file(std::string& pid_path, uint64_t pid)
 
 Controller::Controller() {}
 
-Controller::~Controller()
-{
-	disconnect();
-}
+Controller::~Controller() {}
 
 std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 {

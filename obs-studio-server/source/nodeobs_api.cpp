@@ -68,6 +68,7 @@ uint64_t                                               lastBytesSentTime = 0;
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 std::string                                            slobs_plugin;
 std::vector<std::pair<std::string, obs_module_t*>>     obsModules;
+std::mutex                                             logMutex;
 
 void OBS_API::Register(ipc::server& srv)
 {
@@ -263,6 +264,8 @@ std::chrono::high_resolution_clock             hrc;
 std::chrono::high_resolution_clock::time_point tp = std::chrono::high_resolution_clock::now();
 static void                                    node_obs_log(int log_level, const char* msg, va_list args, void* param)
 {
+	std::lock_guard<std::mutex> lock(logMutex);
+
 	if (param == nullptr)
 		return;
 
@@ -536,7 +539,6 @@ void OBS_API::OBS_API_initAPI(
 	}
 
 	OBS_service::createService();
-
 	OBS_service::createStreamingOutput();
 	OBS_service::createRecordingOutput();
 	OBS_service::createReplayBufferOutput();
@@ -544,22 +546,16 @@ void OBS_API::OBS_API_initAPI(
 	OBS_service::createVideoStreamingEncoder();
 	OBS_service::createVideoRecordingEncoder();
 
-	obs_encoder_t* audioStreamingEncoder = OBS_service::getAudioStreamingEncoder();
-	obs_encoder_t* audioRecordingEncoder = OBS_service::getAudioRecordingEncoder();
-
-	OBS_service::createAudioEncoder(&audioStreamingEncoder);
-	OBS_service::createAudioEncoder(&audioRecordingEncoder);
-
 	OBS_service::resetAudioContext();
 	OBS_service::resetVideoContext();
+
+	OBS_service::setupAudioEncoder();
 
 	OBS_service::associateAudioAndVideoToTheCurrentStreamingContext();
 	OBS_service::associateAudioAndVideoToTheCurrentRecordingContext();
 
 	OBS_service::associateAudioAndVideoEncodersToTheCurrentStreamingOutput();
 	OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(false);
-
-	OBS_service::setServiceToTheStreamingOutput();
 
 	setAudioDeviceMonitoring();
 
@@ -952,7 +948,7 @@ void acknowledgeTerminate(void)
 				    &Pipe.cbRead,
 				    &Pipe.oOverlap);
 
-				GetOverlappedResult(Pipe.hPipeInst, &Pipe.oOverlap, &Pipe.cbRead, true);
+				GetOverlappedResult(Pipe.hPipeInst, &Pipe.oOverlap, &Pipe.cbRead, false);
 
 				// The read operation completed successfully.
 				if (Pipe.cbRead > 0) {
@@ -1008,11 +1004,11 @@ void OBS_API::destroyOBS_API(void)
 	if (recordingEncoder != NULL && OBS_service::useRecordingPreset())
 		obs_encoder_release(recordingEncoder);
 
-	obs_encoder_t* audioStreamingEncoder = OBS_service::getAudioStreamingEncoder();
+	obs_encoder_t* audioStreamingEncoder = OBS_service::getAudioSimpleStreamingEncoder();
 	if (audioStreamingEncoder != NULL)
 		obs_encoder_release(audioStreamingEncoder);
 
-	obs_encoder_t* audioRecordingEncoder = OBS_service::getAudioRecordingEncoder();
+	obs_encoder_t* audioRecordingEncoder = OBS_service::getAudioSimpleRecordingEncoder();
 	if (audioRecordingEncoder != NULL)
 		obs_encoder_release(audioRecordingEncoder);
 
@@ -1032,6 +1028,7 @@ void OBS_API::destroyOBS_API(void)
 	if (service != NULL)
 		obs_service_release(service);
 
+    OBS_service::clearAudioEncoder();
     osn::VolMeter::ClearVolmeters();
     osn::Fader::ClearFaders();
 
@@ -1115,12 +1112,14 @@ bool OBS_API::openAllModules(int& video_err)
 		* with some metainfo so we don't attempt just any
 		* shared library. */
 		if (!os_file_exists(plugins_path.c_str())) {
+			blog(LOG_ERROR, "Plugin Path provided is invalid: %s", plugins_path);
 			std::cerr << "Plugin Path provided is invalid: " << plugins_path << std::endl;
 			return false;
 		}
 
 		os_dir_t* plugin_dir = os_opendir(plugins_path.c_str());
 		if (!plugin_dir) {
+			blog(LOG_ERROR, "Failed to open plugin diretory: %s", plugins_path);
 			std::cerr << "Failed to open plugin diretory: " << plugins_path << std::endl;
 			return false;
 		}
