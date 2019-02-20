@@ -223,7 +223,7 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 					parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
 						v8::Number::New(isolate, *value));
 
-                    parameter->Set(
+					parameter->Set(
 					    v8::String::NewFromUtf8(isolate, "minVal"), v8::Number::New(isolate, params.at(j).minVal));
 					parameter->Set(
 					    v8::String::NewFromUtf8(isolate, "maxVal"), v8::Number::New(isolate, params.at(j).maxVal));
@@ -238,9 +238,9 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 
 						parameter->Set(
 								v8::String::NewFromUtf8(isolate, "minVal"), v8::Number::New(isolate, params.at(j).minVal));
-							parameter->Set(
+						parameter->Set(
 								v8::String::NewFromUtf8(isolate, "maxVal"), v8::Number::New(isolate, params.at(j).maxVal));
-							parameter->Set(
+						parameter->Set(
 								v8::String::NewFromUtf8(isolate, "stepVal"),
 								v8::Number::New(isolate, params.at(j).stepVal));
 					}
