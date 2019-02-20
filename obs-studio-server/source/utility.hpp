@@ -21,6 +21,7 @@
 #include <limits>
 #include <list>
 #include <map>
+#include <mutex>
 
 #if defined(_MSC_VER)
 #define FORCE_INLINE __forceinline
@@ -71,7 +72,7 @@ namespace utility
 
 		utility::unique_id::id_t allocate(T* obj)
 		{
-			std::lock_guard<std::mutex> lock(internal_mutex);
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
 
 			utility::unique_id::id_t uid = id_generator.allocate();
 			if (uid == std::numeric_limits<utility::unique_id::id_t>::max()) {
@@ -83,7 +84,7 @@ namespace utility
 
 		utility::unique_id::id_t find(T* obj)
 		{
-			std::lock_guard<std::mutex> lock(internal_mutex);
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
 
 			for (auto kv : object_map) {
 				if (kv.second == obj) {
@@ -94,7 +95,7 @@ namespace utility
 		}
 		T* find(utility::unique_id::id_t id)
 		{
-			std::lock_guard<std::mutex> lock(internal_mutex);
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
 
 			auto iter = object_map.find(id);
 			if (iter != object_map.end()) {
@@ -105,7 +106,7 @@ namespace utility
 
 		utility::unique_id::id_t free(T* obj)
 		{
-			std::lock_guard<std::mutex> lock(internal_mutex);
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
 
 			utility::unique_id::id_t uid = std::numeric_limits<utility::unique_id::id_t>::max();
 			for (auto kv : object_map) {
@@ -119,7 +120,7 @@ namespace utility
 		}
 		T* free(utility::unique_id::id_t id)
 		{
-			std::lock_guard<std::mutex> lock(internal_mutex);
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
 
 			auto iter = object_map.find(id);
 			if (iter == object_map.end()) {
@@ -132,7 +133,7 @@ namespace utility
 
         void for_each(std::function<void(T*)> for_each_method)
         {
-			std::lock_guard<std::mutex> lock(internal_mutex);
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
 
             for (auto it = object_map.begin(); it != object_map.end(); ++it) {
                 for_each_method(it->second);
@@ -141,7 +142,7 @@ namespace utility
 
         void clear()
         {
-			std::lock_guard<std::mutex> lock(internal_mutex);
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
 
             object_map.clear();
         }
@@ -161,7 +162,7 @@ namespace utility
 
 		utility::unique_id::id_t allocate(T obj)
 		{
-			std::lock_guard<std::mutex> lock(internal_mutex);
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
 
 			utility::unique_id::id_t uid = id_generator.allocate();
 			if (uid == std::numeric_limits<utility::unique_id::id_t>::max()) {
@@ -173,7 +174,7 @@ namespace utility
 
 		utility::unique_id::id_t find(T obj)
 		{
-			std::lock_guard<std::mutex> lock(internal_mutex);
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
 
 			for (auto kv : object_map) {
 				if (kv.second == obj) {
@@ -184,7 +185,7 @@ namespace utility
 		}
 		T find(utility::unique_id::id_t id)
 		{
-			std::lock_guard<std::mutex> lock(internal_mutex);
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
 
 			auto iter = object_map.find(id);
 			if (iter != object_map.end()) {
@@ -195,7 +196,7 @@ namespace utility
 
 		utility::unique_id::id_t free(T obj)
 		{
-			std::lock_guard<std::mutex> lock(internal_mutex);
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
 
 			utility::unique_id::id_t uid = std::numeric_limits<utility::unique_id::id_t>::max();
 			for (auto kv : object_map) {
@@ -209,7 +210,7 @@ namespace utility
 		}
 		T free(utility::unique_id::id_t id)
 		{
-			std::lock_guard<std::mutex> lock(internal_mutex);
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
 
 			auto iter = object_map.find(id);
 			if (iter == object_map.end()) {
@@ -222,7 +223,7 @@ namespace utility
 
         void for_each(std::function<void(T&)> for_each_method)
         {
-			std::lock_guard<std::mutex> lock(internal_mutex);
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
 
             for (auto it = object_map.begin(); it != object_map.end(); ++it) {
                 for_each_method(it->second);
@@ -231,7 +232,7 @@ namespace utility
 
         void clear()
         {
-			std::lock_guard<std::mutex> lock(internal_mutex);
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
 
             object_map.clear();
         }
