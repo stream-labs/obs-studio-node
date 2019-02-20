@@ -30,6 +30,9 @@ namespace settings
 		bool              enabled;
 		bool              masked;
 		bool              visible;
+		double            minVal;
+		double            maxVal;
+		double            stepVal;
 		size_t            sizeOfCurrentValue = 0;
 		std::vector<char> currentValue;
 		size_t            sizeOfValues = 0;
@@ -42,7 +45,8 @@ namespace settings
 			uint32_t          indexBuffer = 0;
 
 			size_t sizeStruct = name.length() + description.length() + type.length() + subType.length()
-			                    + sizeof(size_t) * 7 + sizeof(bool) * 3 + sizeOfCurrentValue + sizeOfValues;
+			                    + sizeof(size_t) * 7 + sizeof(bool) * 3 + sizeof(double) * 3 + sizeOfCurrentValue
+			                    + sizeOfValues;
 			buffer.resize(sizeStruct);
 
 			*reinterpret_cast<size_t*>(buffer.data() + indexBuffer) = name.length();
@@ -71,6 +75,13 @@ namespace settings
 			indexBuffer += sizeof(bool);
 			*reinterpret_cast<bool*>(buffer.data() + indexBuffer) = visible;
 			indexBuffer += sizeof(bool);
+
+			*reinterpret_cast<double*>(buffer.data() + indexBuffer) = minVal;
+			indexBuffer += sizeof(double);
+			*reinterpret_cast<double*>(buffer.data() + indexBuffer) = maxVal;
+			indexBuffer += sizeof(double);
+			*reinterpret_cast<double*>(buffer.data() + indexBuffer) = stepVal;
+			indexBuffer += sizeof(double);
 
 			*reinterpret_cast<size_t*>(buffer.data() + indexBuffer) = sizeOfCurrentValue;
 			indexBuffer += sizeof(size_t);

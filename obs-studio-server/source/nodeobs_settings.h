@@ -42,6 +42,9 @@ struct Parameter
 	bool              enabled;
 	bool              masked;
 	bool              visible;
+	double            minVal = -200;
+	double            maxVal = 200;
+	double            stepVal = 1;
 	size_t            sizeOfCurrentValue = 0;
 	std::vector<char> currentValue;
 	size_t            sizeOfValues = 0;
@@ -54,7 +57,7 @@ struct Parameter
 		size_t            indexBuffer = 0;
 
 		size_t sizeStruct = name.length() + description.length() + type.length() + subType.length() + sizeof(size_t) * 7
-		                    + sizeof(bool) * 3 + sizeOfCurrentValue + sizeOfValues;
+		                    + sizeof(bool) * 3 + sizeof(double) * 3 + sizeOfCurrentValue + sizeOfValues;
 		buffer.resize(sizeStruct);
 
 		*reinterpret_cast<size_t*>(buffer.data() + indexBuffer) = name.length();
@@ -83,6 +86,13 @@ struct Parameter
 		indexBuffer += sizeof(bool);
 		*reinterpret_cast<bool*>(buffer.data() + indexBuffer) = visible;
 		indexBuffer += sizeof(bool);
+
+		*reinterpret_cast<double*>(buffer.data() + indexBuffer) = minVal;
+		indexBuffer += sizeof(double);
+		*reinterpret_cast<double*>(buffer.data() + indexBuffer) = maxVal;
+		indexBuffer += sizeof(double);
+		*reinterpret_cast<bool*>(buffer.data() + indexBuffer) = stepVal;
+		indexBuffer += sizeof(double);
 
 		*reinterpret_cast<size_t*>(buffer.data() + indexBuffer) = sizeOfCurrentValue;
 		indexBuffer += sizeof(size_t);
@@ -186,7 +196,7 @@ class OBS_settings
 
 	static SubCategory serializeSettingsData(
 	    std::string                                                   nameSubCategory,
-	    std::vector<std::vector<std::pair<std::string, std::string>>> entries,
+	    std::vector<std::vector<std::pair<std::string, ipc::value>>> entries,
 	    config_t*                                                     config,
 	    std::string                                                   section,
 	    bool                                                          isVisible,
@@ -234,8 +244,8 @@ class OBS_settings
 	static void saveAdvancedOutputSettings(std::vector<SubCategory> settings);
 
 	//Utility functions
-	static void getSimpleAvailableEncoders(std::vector<std::pair<std::string, std::string>>* streamEncode, bool recording);
-	static void getAdvancedAvailableEncoders(std::vector<std::pair<std::string, std::string>>* streamEncode);
+	static void getSimpleAvailableEncoders(std::vector<std::pair<std::string, ipc::value>>* streamEncode, bool recording);
+	static void getAdvancedAvailableEncoders(std::vector<std::pair<std::string, ipc::value>>* streamEncode);
 	static std::vector<std::pair<uint64_t, uint64_t>> getOutputResolutions(uint64_t base_cx, uint64_t base_cy);
 	static void                                  getEncoderSettings(
 	                                     const obs_encoder_t*    encoder,
