@@ -1362,6 +1362,9 @@ void OBS_settings::getEncoderSettings(
 			memcpy(param.currentValue.data(), &value, sizeof(value));
 			param.sizeOfCurrentValue = sizeof(value);
 
+			param.minVal  = obs_property_int_min(property);
+			param.maxVal  = obs_property_int_max(property);
+			param.stepVal = obs_property_int_step(property);
 			break;
 		}
 		case OBS_PROPERTY_FLOAT: {
@@ -1374,6 +1377,9 @@ void OBS_settings::getEncoderSettings(
 			memcpy(param.currentValue.data(), &value, sizeof(value));
 			param.sizeOfCurrentValue = sizeof(value);
 
+			param.minVal  = obs_property_float_min(property);
+			param.maxVal  = obs_property_float_max(property);
+			param.stepVal = obs_property_float_step(property);
 			break;
 		}
 		case OBS_PROPERTY_TEXT: {
@@ -1389,7 +1395,6 @@ void OBS_settings::getEncoderSettings(
 			param.currentValue.resize(strlen(currentValue));
 			memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
 			param.sizeOfCurrentValue = strlen(currentValue);
-
 			break;
 		}
 		case OBS_PROPERTY_PATH: {
@@ -1419,11 +1424,19 @@ void OBS_settings::getEncoderSettings(
 				param.currentValue.resize(sizeof(value));
 				memcpy(param.currentValue.data(), &value, sizeof(value));
 				param.sizeOfCurrentValue = sizeof(value);
+
+				param.minVal  = obs_property_int_min(property);
+				param.maxVal  = obs_property_int_max(property);
+				param.stepVal = obs_property_int_step(property);
 			} else if (format == OBS_COMBO_FORMAT_FLOAT) {
 				double value = obs_data_get_double(settings, param.name.c_str());
 				param.currentValue.resize(sizeof(value));
 				memcpy(param.currentValue.data(), &value, sizeof(value));
 				param.sizeOfCurrentValue = sizeof(value);
+
+				param.minVal  = obs_property_float_min(property);
+				param.maxVal  = obs_property_float_max(property);
+				param.stepVal = obs_property_float_step(property);
 			} else if (format == OBS_COMBO_FORMAT_STRING) {
 				const char* currentValue = obs_data_get_string(settings, param.name.c_str());
 
