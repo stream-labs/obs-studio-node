@@ -21,6 +21,7 @@
 #include <limits>
 #include <list>
 #include <map>
+#include <mutex>
 
 #if defined(_MSC_VER)
 #define FORCE_INLINE __forceinline
@@ -63,13 +64,19 @@ namespace utility
 		protected:
 		utility::unique_id                     id_generator;
 		std::map<utility::unique_id::id_t, T*> object_map;
+		std::recursive_mutex                   internal_mutex;
 
 		public:
 		unique_object_manager() {}
-		~unique_object_manager() {}
+		~unique_object_manager()
+		{
+			clear();
+		}
 
 		utility::unique_id::id_t allocate(T* obj)
 		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			utility::unique_id::id_t uid = id_generator.allocate();
 			if (uid == std::numeric_limits<utility::unique_id::id_t>::max()) {
 				return uid;
@@ -80,6 +87,8 @@ namespace utility
 
 		utility::unique_id::id_t find(T* obj)
 		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			for (auto kv : object_map) {
 				if (kv.second == obj) {
 					return kv.first;
@@ -89,6 +98,8 @@ namespace utility
 		}
 		T* find(utility::unique_id::id_t id)
 		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			auto iter = object_map.find(id);
 			if (iter != object_map.end()) {
 				return iter->second;
@@ -98,6 +109,8 @@ namespace utility
 
 		utility::unique_id::id_t free(T* obj)
 		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			utility::unique_id::id_t uid = std::numeric_limits<utility::unique_id::id_t>::max();
 			for (auto kv : object_map) {
 				if (kv.second == obj) {
@@ -110,6 +123,8 @@ namespace utility
 		}
 		T* free(utility::unique_id::id_t id)
 		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			auto iter = object_map.find(id);
 			if (iter == object_map.end()) {
 				return nullptr;
@@ -138,13 +153,19 @@ namespace utility
 		protected:
 		utility::unique_id                    id_generator;
 		std::map<utility::unique_id::id_t, T> object_map;
+		std::recursive_mutex                  internal_mutex;
 
 		public:
 		generic_object_manager() {}
-		~generic_object_manager() {}
+		~generic_object_manager()
+		{
+			clear();
+		}
 
 		utility::unique_id::id_t allocate(T obj)
 		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			utility::unique_id::id_t uid = id_generator.allocate();
 			if (uid == std::numeric_limits<utility::unique_id::id_t>::max()) {
 				return uid;
@@ -155,6 +176,8 @@ namespace utility
 
 		utility::unique_id::id_t find(T obj)
 		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			for (auto kv : object_map) {
 				if (kv.second == obj) {
 					return kv.first;
@@ -164,6 +187,8 @@ namespace utility
 		}
 		T find(utility::unique_id::id_t id)
 		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			auto iter = object_map.find(id);
 			if (iter != object_map.end()) {
 				return iter->second;
@@ -173,6 +198,8 @@ namespace utility
 
 		utility::unique_id::id_t free(T obj)
 		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			utility::unique_id::id_t uid = std::numeric_limits<utility::unique_id::id_t>::max();
 			for (auto kv : object_map) {
 				if (kv.second == obj) {
@@ -185,6 +212,8 @@ namespace utility
 		}
 		T free(utility::unique_id::id_t id)
 		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			auto iter = object_map.find(id);
 			if (iter == object_map.end()) {
 				return nullptr;
