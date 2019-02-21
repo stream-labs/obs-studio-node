@@ -40,7 +40,10 @@ describe('osn_fader', () => {
                 expect(cubicFader).to.not.equal(undefined);
 
                 // Attach fader to input source
-                cubicFader.attach(input);
+                expect(function() {
+                    cubicFader.attach(input);
+                }).to.not.throw();
+                
                 input.release();
             });
     
@@ -60,7 +63,10 @@ describe('osn_fader', () => {
                 expect(iecFader).to.not.equal(undefined);
 
                 // Attach fader to input source
-                iecFader.attach(input);
+                expect(function() {
+                    iecFader.attach(input);
+                }).to.not.throw();
+                
                 input.release();
             });
     
@@ -80,7 +86,10 @@ describe('osn_fader', () => {
                 expect(logFader).to.not.equal(undefined);
 
                 // Attach fader to input source
-                logFader.attach(input);
+                expect(function() {
+                    logFader.attach(input);
+                }).to.not.throw();
+                
                 input.release();
             });
         });
