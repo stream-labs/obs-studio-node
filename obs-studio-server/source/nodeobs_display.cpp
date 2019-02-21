@@ -115,22 +115,21 @@ struct DestroyWindowMessageQuestion
 struct DestroyWindowMessageAnswer : message_answer
 {};
 
-static void HandleWin32ErrorMessage()
+static void HandleWin32ErrorMessage(DWORD errorCode)
 {
-	DWORD dwErrorCode    = GetLastError();
 	LPSTR lpErrorStr     = nullptr;
 	DWORD dwErrorStrSize = 16;
 	DWORD dwErrorStrLen  = FormatMessageA(
         FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
         NULL,
-        dwErrorCode,
+        errorCode,
         LANG_USER_DEFAULT,
         lpErrorStr,
         dwErrorStrSize,
         NULL);
 	std::string exceptionMessage("Unexpected WinAPI error: " + std::string(lpErrorStr, dwErrorStrLen));
 	LocalFree(lpErrorStr);
-	throw std::system_error(dwErrorCode, std::system_category(), exceptionMessage);
+	throw std::system_error(errorCode, std::system_category(), exceptionMessage);
 }
 
 void OBS::Display::SystemWorker()
@@ -185,7 +184,7 @@ void OBS::Display::SystemWorker()
 
 			if (!newWindow) {
 				answer->success = false;
-				HandleWin32ErrorMessage();
+				HandleWin32ErrorMessage(GetLastError());
 			} else {
 				if (IsWindows8OrGreater() || !enabled) {
 					SetLayeredWindowAttributes(newWindow, 0, 255, LWA_ALPHA);
@@ -205,8 +204,19 @@ void OBS::Display::SystemWorker()
 			DestroyWindowMessageAnswer*   answer   = reinterpret_cast<DestroyWindowMessageAnswer*>(message.lParam);
 
 			if (!DestroyWindow(question->window)) {
-				answer->success = false;
-				HandleWin32ErrorMessage();
+				auto error = GetLastError();
+
+				// We check for error 1400 because if this display is a projector, it is attached to a HTML DOM, so
+				// we cannot directly control its destruction since the HTML will probably do this concurrently, 
+				// the DestroyWindow is allows to fail on this case, a better solution here woul be checking if this
+				// display is really a projector and do not attempt to destroy it (let the HTML do it for us).
+				if (error != 1400) {
+					answer->success = false;
+					HandleWin32ErrorMessage(error);
+				} else {
+					answer->success = true;
+				}
+
 			} else {
 				answer->success = true;
 			}
@@ -1198,7 +1208,7 @@ void OBS::Display::DisplayWndClass()
 
 	DisplayWndClassAtom = RegisterClassEx(&DisplayWndClassObj);
 	if (DisplayWndClassAtom == NULL) {
-		HandleWin32ErrorMessage();
+		HandleWin32ErrorMessage(GetLastError());
 	}
 
 	DisplayWndClassRegistered = true;
