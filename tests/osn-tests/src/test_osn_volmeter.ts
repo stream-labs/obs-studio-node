@@ -56,7 +56,10 @@ describe('osn-volmeter', () => {
             expect(volmeter).to.not.equal(undefined);
 
             // Attach volmeter to input source
-            volmeter.attach(input);
+            expect(function() {
+                volmeter.attach(input);
+            }).to.not.throw();
+
             input.release();
         });
     });
@@ -87,7 +90,10 @@ describe('osn-volmeter', () => {
             expect(cb).to.not.equal(undefined);
 
             // Removing callback from volmeter
-            volmeter.removeCallback(cb);
+            const rmResult = volmeter.removeCallback(cb);
+
+            // Checking if callback was removed correctly
+            expect(rmResult).to.equal(true)
         });
     });
 });
