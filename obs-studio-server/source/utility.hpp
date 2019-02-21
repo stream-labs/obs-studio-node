@@ -136,8 +136,6 @@ namespace utility
 
         void for_each(std::function<void(T*)> for_each_method)
         {
-            std::lock_guard<std::recursive_mutex> lock(internal_mutex);
-
             for (auto it = object_map.begin(); it != object_map.end(); ++it) {
                 for_each_method(it->second);
             }
@@ -145,8 +143,6 @@ namespace utility
 
         void clear()
         {
-            std::lock_guard<std::recursive_mutex> lock(internal_mutex);
-
             object_map.clear();
         }
 	};
@@ -229,8 +225,6 @@ namespace utility
 
         void for_each(std::function<void(T&)> for_each_method)
         {
-            std::lock_guard<std::recursive_mutex> lock(internal_mutex);
-
             for (auto it = object_map.begin(); it != object_map.end(); ++it) {
                 for_each_method(it->second);
             }
@@ -238,8 +232,6 @@ namespace utility
 
         void clear()
         {
-            std::lock_guard<std::recursive_mutex> lock(internal_mutex);
-
             object_map.clear();
         }
 	};
