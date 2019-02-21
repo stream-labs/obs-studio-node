@@ -1670,7 +1670,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	bool recStreamUsesSameEncoder   = streamingEncoder == recordEncoder;
 	bool recOutputBlockStreamOutput = !(!recStreamUsesSameEncoder || (recStreamUsesSameEncoder && !recOutputIsActive));
 
-	if (!streamOutputIsActive && !recOutputBlockStreamOutput && !fileExist) {
+	if ((!streamOutputIsActive && !recOutputBlockStreamOutput && !fileExist) || streamingEncoder == nullptr) {
 		streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
 		OBS_service::setStreamingEncoder(streamingEncoder);
 
@@ -1678,8 +1678,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 			blog(LOG_WARNING, "Failed to save encoder %s", streamName.c_str());
 		}
 	} else {
-		streamingEncoder = OBS_service::getStreamingEncoder();
-		settings         = obs_encoder_get_settings(streamingEncoder);
+		settings = obs_encoder_get_settings(streamingEncoder);
 	}
 
 	getEncoderSettings(streamingEncoder, settings, &(streamingSettings.params), index, isCategoryEnabled, false);
