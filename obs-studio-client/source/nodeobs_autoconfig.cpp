@@ -51,6 +51,7 @@ void AutoConfig::callback_handler(void* data, std::shared_ptr<AutoConfigInfo> it
 {
 	v8::Isolate*         isolate = v8::Isolate::GetCurrent();
 	v8::Local<v8::Value> args[1];
+	Nan::HandleScope     scope;
 
 	v8::Local<v8::Value> argv = v8::Object::New(isolate);
 	argv->ToObject()->Set(
