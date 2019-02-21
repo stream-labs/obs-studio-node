@@ -68,7 +68,10 @@ namespace utility
 
 		public:
 		unique_object_manager() {}
-		~unique_object_manager() {}
+		~unique_object_manager()
+		{
+			clear();
+		}
 
 		utility::unique_id::id_t allocate(T* obj)
 		{
@@ -158,7 +161,10 @@ namespace utility
 
 		public:
 		generic_object_manager() {}
-		~generic_object_manager() {}
+		~generic_object_manager()
+		{
+			clear();
+		}
 
 		utility::unique_id::id_t allocate(T obj)
 		{
