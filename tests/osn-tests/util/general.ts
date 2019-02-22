@@ -1,4 +1,5 @@
 import { ITimeSpec } from 'obs-studio-node';
+import { setOptions } from 'marked';
 
 const basicOBSInputTypes: string[] = ['image_source', 'color_source', 'slideshow', 'browser_source', 'ffmpeg_source', 'text_gdiplus', 'text_ft2_source', 
                                       'monitor_capture', 'window_capture', 'game_capture', 'dshow_input', 'wasapi_input_capture', 'wasapi_output_capture'];
@@ -12,8 +13,26 @@ export {basicOBSFilterTypes};
 let basicOBSTransitionTypes: string[] = ['cut_transition', 'fade_transition', 'swipe_transition', 'slide_transition', 'fade_to_color_transition', 'wipe_transition', 'obs_stinger_transition'];
 export {basicOBSTransitionTypes};
 
-let basicOBSSettingsCategories: string[] = ['General', 'Stream', 'Output', 'Audio', 'Video', 'Hotkeys', 'Advanced'];
-export {basicOBSSettingsCategories};
+let showHideInputHotkeys: string[] = ['SHOW_SCENE_ITEM.WASAPI_OUTPUT_CAPTURE', 'HIDE_SCENE_ITEM.WASAPI_OUTPUT_CAPTURE', 'SHOW_SCENE_ITEM.WASAPI_INPUT_CAPTURE', 
+'HIDE_SCENE_ITEM.WASAPI_INPUT_CAPTURE', 'SHOW_SCENE_ITEM.DSHOW_INPUT', 'HIDE_SCENE_ITEM.DSHOW_INPUT', 'SHOW_SCENE_ITEM.GAME_CAPTURE', 'HIDE_SCENE_ITEM.GAME_CAPTURE', 
+'SHOW_SCENE_ITEM.WINDOW_CAPTURE', 'HIDE_SCENE_ITEM.WINDOW_CAPTURE', 'SHOW_SCENE_ITEM.MONITOR_CAPTURE', 'HIDE_SCENE_ITEM.MONITOR_CAPTURE', 'SHOW_SCENE_ITEM.TEXT_FT2_SOURCE', 
+'HIDE_SCENE_ITEM.TEXT_FT2_SOURCE', 'SHOW_SCENE_ITEM.TEXT_GDIPLUS', 'HIDE_SCENE_ITEM.TEXT_GDIPLUS', 'SHOW_SCENE_ITEM.BROWSER_SOURCE', 'HIDE_SCENE_ITEM.BROWSER_SOURCE', 
+'SHOW_SCENE_ITEM.COLOR_SOURCE', 'HIDE_SCENE_ITEM.COLOR_SOURCE', 'SHOW_SCENE_ITEM.IMAGE_SOURCE', 'HIDE_SCENE_ITEM.IMAGE_SOURCE', 'SHOW_SCENE_ITEM.SLIDESHOW', 
+'HIDE_SCENE_ITEM.SLIDESHOW', 'SHOW_SCENE_ITEM.FFMPEG_SOURCE', 'HIDE_SCENE_ITEM.FFMPEG_SOURCE'];
+export {showHideInputHotkeys};
+
+let slideshowHotkeys: string[] = ['PLAYPAUSE', 'RESTART', 'STOP', 'NEXTSLIDE', 'PREVIOUSSLIDE'];
+export {slideshowHotkeys};
+
+let ffmpeg_sourceHotkeys: string[] = ['MUTE', 'UNMUTE', 'PUSH_TO_MUTE', 'PUSH_TO_TALK', 'RESTART'];
+export {ffmpeg_sourceHotkeys};
+
+let game_captureHotkeys: string[] = ['HOTKEY_START', 'HOTKEY_STOP'];
+export {game_captureHotkeys};
+
+let dshow_wasapitHotkeys: string[] = ['MUTE', 'UNMUTE', 'PUSH_TO_MUTE', 'PUSH_TO_TALK'];
+export {dshow_wasapitHotkeys};
+
 
 export function getTimeSpec(ms: number): ITimeSpec {
     return {
