@@ -1772,29 +1772,33 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	bool        fileExist  = (os_stat(streamName.c_str(), &buffer) == 0);
 
 	obs_data_t*    settings = obs_encoder_defaults(encoderID);
-	obs_encoder_t* streamingEncoder;
-	obs_output_t*  streamOutput = OBS_service::getStreamingOutput();
+	obs_encoder_t* streamingEncoder = OBS_service::getStreamingEncoder();
+	obs_encoder_t* recordEncoder    = obs_output_get_video_encoder(OBS_service::getRecordingOutput());
+	obs_output_t*  streamOutput     = OBS_service::getStreamingOutput();
+	obs_output_t*  recordOutput     = OBS_service::getRecordingOutput();
 
 	if (streamOutput == NULL)
 		return streamingSettings;
 
-	if (!obs_output_active(streamOutput)) {
-		if (!fileExist) {
-			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
-			OBS_service::setStreamingEncoder(streamingEncoder);
+	/*
+		If the stream and recording outputs uses the same encoders, we need to check if both aren't active 
+		before recreating the stream encoder to prevent releasing it when it's still being used.
+		If they use differente encoders, just check for the stream output.
+	*/
+	bool streamOutputIsActive       = obs_output_active(streamOutput);
+	bool recOutputIsActive          = obs_output_active(recordOutput);
+	bool recStreamUsesSameEncoder   = streamingEncoder == recordEncoder;
+	bool recOutputBlockStreamOutput = !(!recStreamUsesSameEncoder || (recStreamUsesSameEncoder && !recOutputIsActive));
 
-			if (!obs_data_save_json_safe(settings, streamName.c_str(), "tmp", "bak")) {
-				blog(LOG_WARNING, "Failed to save encoder %s", streamName.c_str());
-			}
-		} else {
-			obs_data_t* data = obs_data_create_from_json_file_safe(streamName.c_str(), "bak");
-			obs_data_apply(settings, data);
-			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", settings, nullptr);
-			OBS_service::setStreamingEncoder(streamingEncoder);
+	if ((!streamOutputIsActive && !recOutputBlockStreamOutput && !fileExist) || streamingEncoder == nullptr) {
+		streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
+		OBS_service::setStreamingEncoder(streamingEncoder);
+
+		if (!obs_data_save_json_safe(settings, streamName.c_str(), "tmp", "bak")) {
+			blog(LOG_WARNING, "Failed to save encoder %s", streamName.c_str());
 		}
 	} else {
-		streamingEncoder = OBS_service::getStreamingEncoder();
-		settings         = obs_encoder_get_settings(streamingEncoder);
+		settings = obs_encoder_get_settings(streamingEncoder);
 	}
 
 	getEncoderSettings(streamingEncoder, settings, &(streamingSettings.params), index, isCategoryEnabled, false);
