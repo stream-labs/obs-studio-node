@@ -282,7 +282,64 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::IsLast(Nan::NAN_METHOD_ARGS_TYP
 
 Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetValue(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	info.GetReturnValue().Set(info.Holder());
+	osn::PropertyObject* self;
+	osn::Properties*     parent;
+
+	if (!Retrieve(info.This(), self)) {
+		return;
+	}
+	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
+		return;
+	}
+
+	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
+	auto iter = parent->GetProperties()->find(self->index);
+	if (iter == parent->GetProperties()->end()) {
+		info.GetReturnValue().Set(Nan::Null());
+		return;
+	}
+
+	switch (iter->second->type) {
+	case osn::Property::Type::INVALID:
+		return;
+	case osn::Property::Type::BOOL:
+		info.GetReturnValue().Set(utilv8::ToValue(reinterpret_cast<bool*>(iter->second->value)));
+		break;
+	case osn::Property::Type::INT:
+	case osn::Property::Type::COLOR:
+		info.GetReturnValue().Set(utilv8::ToValue(reinterpret_cast<int*>(iter->second->value)));
+		break;
+	case osn::Property::Type::FLOAT:
+		info.GetReturnValue().Set(utilv8::ToValue(reinterpret_cast<double*>(iter->second->value)));
+		break;
+	case osn::Property::Type::TEXT:
+	case osn::Property::Type::PATH:
+		info.GetReturnValue().Set(utilv8::ToValue(reinterpret_cast<const char*>(iter->second->value)));
+		break;
+	case osn::Property::Type::LIST:
+	case osn::Property::Type::EDITABLELIST: {
+		std::shared_ptr<osn::ListProperty> prop = std::static_pointer_cast<osn::ListProperty>(iter->second);
+		switch (prop->item_format) {
+		case ListProperty::Format::FLOAT:
+			info.GetReturnValue().Set(utilv8::ToValue(reinterpret_cast<double*>(iter->second->value)));
+			break;
+		case ListProperty::Format::INT:
+			info.GetReturnValue().Set(utilv8::ToValue(reinterpret_cast<int*>(iter->second->value)));
+			break;
+		case ListProperty::Format::STRING:
+			info.GetReturnValue().Set(utilv8::ToValue(reinterpret_cast<const char*>(iter->second->value)));
+			break;
+		}
+		break;
+	}
+	case osn::Property::Type::BUTTON:
+		break;
+	case osn::Property::Type::FONT:
+		break;
+	case osn::Property::Type::FRAMERATE:
+		break;
+	}
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetName(Nan::NAN_METHOD_ARGS_TYPE info)

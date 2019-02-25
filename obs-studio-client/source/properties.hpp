@@ -52,6 +52,8 @@ namespace osn
 		bool enabled;
 		bool visible;
 
+		void* value;
+
 		Type type;
 	};
 

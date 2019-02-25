@@ -62,6 +62,7 @@ namespace obs
 
 	struct BooleanProperty : Property
 	{
+		bool    value;
 		virtual ~BooleanProperty(){};
 
 		virtual obs::Property::Type type() override;
@@ -94,6 +95,7 @@ namespace obs
 		int64_t minimum;
 		int64_t maximum;
 		int64_t step;
+		int64_t value;
 
 		virtual ~IntegerProperty(){};
 
@@ -110,6 +112,7 @@ namespace obs
 		double_t minimum;
 		double_t maximum;
 		double_t step;
+		double_t value;
 
 		virtual ~FloatProperty(){};
 
@@ -129,7 +132,8 @@ namespace obs
 			Password,
 			MultiLine,
 		};
-		TextType field_type;
+		TextType    field_type;
+		std::string value;
 
 		virtual ~TextProperty(){};
 
@@ -152,6 +156,7 @@ namespace obs
 		PathType    field_type;
 		std::string filter;
 		std::string default_path;
+		std::string value;
 
 		virtual ~PathProperty(){};
 
@@ -192,6 +197,7 @@ namespace obs
 			std::string value_string;
 		};
 		std::list<Item> items;
+		void*           value;
 
 		virtual ~ListProperty(){};
 
