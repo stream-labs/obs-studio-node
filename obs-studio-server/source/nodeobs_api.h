@@ -126,6 +126,8 @@ class OBS_API
 	static const std::vector<std::string>& getOBSLogWarnings();
 	static std::queue<std::string>&        getOBSLogGeneral();
 
+	static std::string getCurrentVersion();
+
 	static std::vector<std::string> exploreDirectory(std::string directory, std::string typeToReturn);
 
 	public:

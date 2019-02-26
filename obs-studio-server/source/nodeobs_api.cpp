@@ -70,6 +70,7 @@ std::string                                            slobs_plugin;
 std::vector<std::pair<std::string, obs_module_t*>>     obsModules;
 OBS_API::LogReport                                     logReport;
 std::mutex                                             logMutex;
+std::string                                            currentVersion;
 
 void OBS_API::Register(ipc::server& srv)
 {
@@ -473,7 +474,7 @@ void OBS_API::OBS_API_initAPI(
 	/* FIXME g_moduleDirectory really needs to be a wstring */
 	std::string appdata = args[0].value_str;
 	std::string locale  = args[1].value_str;
-	std::string version  = args[2].value_str;
+	currentVersion      = args[2].value_str;
 
 	/* libobs will use three methods of finding data files:
 	* 1. ${CWD}/data/libobs <- This doesn't work for us
@@ -1277,6 +1278,11 @@ const std::vector<std::string>& OBS_API::getOBSLogWarnings()
 std::queue<std::string>& OBS_API::getOBSLogGeneral()
 {
 	return logReport.general;
+}
+
+std::string OBS_API::getCurrentVersion()
+{
+	return currentVersion;
 }
 
 static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData)
