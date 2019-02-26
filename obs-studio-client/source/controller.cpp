@@ -1,19 +1,20 @@
-// Client module for the OBS Studio node module.
-// Copyright(C) 2017 Streamlabs (General Workings Inc)
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
 
 #include "controller.hpp"
 #include <codecvt>
@@ -227,10 +228,7 @@ static void write_pid_file(std::string& pid_path, uint64_t pid)
 
 Controller::Controller() {}
 
-Controller::~Controller()
-{
-	disconnect();
-}
+Controller::~Controller() {}
 
 std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 {
@@ -422,7 +420,7 @@ void js_disconnect(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 INITIALIZER(js_ipc)
 {
-	initializerFunctions.push([](v8::Local<v8::Object>& exports) {
+	initializerFunctions.push([](v8::Local<v8::Object> exports) {
 		// IPC related functions will be under the IPC object.
 		auto obj = v8::Object::New(exports->GetIsolate());
 		NODE_SET_METHOD(obj, "setServerPath", js_setServerPath);

@@ -1,5 +1,25 @@
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
+
 #include "nodeobs_api.h"
 #include "osn-source.hpp"
+#include "osn-volmeter.hpp"
+#include "osn-fader.hpp"
 #include "util/lexer.h"
 
 #ifdef _WIN32
@@ -49,6 +69,7 @@ std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 std::string                                            slobs_plugin;
 std::vector<std::pair<std::string, obs_module_t*>>     obsModules;
 OBS_API::LogReport                                     logReport;
+std::mutex                                             logMutex;
 
 void OBS_API::Register(ipc::server& srv)
 {
@@ -97,7 +118,7 @@ void OBS_API::SetWorkingDirectory(
 	AUTO_DEBUG;
 }
 
-static string GenerateTimeDateFilename(const char* extension)
+static std::string GenerateTimeDateFilename(const char* extension)
 {
 	time_t     now       = time(0);
 	char       file[256] = {};
@@ -116,10 +137,10 @@ static string GenerateTimeDateFilename(const char* extension)
 	    cur_time->tm_sec,
 	    extension);
 
-	return string(file);
+	return std::string(file);
 }
 
-static bool GetToken(lexer* lex, string& str, base_token_type type)
+static bool GetToken(lexer* lex, std::string& str, base_token_type type)
 {
 	base_token token;
 	if (!lexer_getbasetoken(lex, &token, IGNORE_WHITESPACE))
@@ -149,7 +170,7 @@ static bool ExpectToken(lexer* lex, const char* str, base_token_type type)
 static uint64_t ConvertLogName(const char* name)
 {
 	lexer  lex;
-	string year, month, day, hour, minute, second;
+	std::string year, month, day, hour, minute, second;
 
 	lexer_init(&lex);
 	lexer_start(&lex, name);
@@ -183,7 +204,7 @@ static uint64_t ConvertLogName(const char* name)
 
 static void DeleteOldestFile(const char* location, unsigned maxLogs)
 {
-	string            oldestLog;
+	std::string            oldestLog;
 	uint64_t          oldest_ts = (uint64_t)-1;
 	struct os_dirent* entry;
 
@@ -214,7 +235,7 @@ static void DeleteOldestFile(const char* location, unsigned maxLogs)
 	os_closedir(dir);
 
 	if (count > maxLogs) {
-		string delPath;
+		std::string delPath;
 
 		delPath = delPath + location + "/" + oldestLog;
 		os_unlink(delPath.c_str());
@@ -223,7 +244,7 @@ static void DeleteOldestFile(const char* location, unsigned maxLogs)
 
 #include <chrono>
 #include <cstdarg>
-#include <varargs.h>
+#include <stdarg.h>
 
 #ifdef _WIN32
 #include <io.h>
@@ -244,12 +265,14 @@ std::chrono::high_resolution_clock             hrc;
 std::chrono::high_resolution_clock::time_point tp = std::chrono::high_resolution_clock::now();
 static void                                    node_obs_log(int log_level, const char* msg, va_list args, void* param)
 {
+	std::lock_guard<std::mutex> lock(logMutex);
+
 	if (param == nullptr)
 		return;
 
 	// Calculate log time.
 	auto timeSinceStart = (std::chrono::high_resolution_clock::now() - tp);
-	auto days           = std::chrono::duration_cast<std::chrono::duration<int, ratio<86400>>>(timeSinceStart);
+	auto days           = std::chrono::duration_cast<std::chrono::duration<int, std::ratio<86400>>>(timeSinceStart);
 	timeSinceStart -= days;
 	auto hours = std::chrono::duration_cast<std::chrono::hours>(timeSinceStart);
 	timeSinceStart -= hours;
@@ -349,7 +372,7 @@ static void                                    node_obs_log(int log_level, const
 					std::wstring wide_buf;
 					std::mutex   wide_mutex;
 
-					lock_guard<mutex> lock(wide_mutex);
+					std::lock_guard<std::mutex> lock(wide_mutex);
 					wide_buf.reserve(wNum + 1);
 					wide_buf.resize(wNum - 1);
 					MultiByteToWideChar(CP_UTF8, 0, newmsg.c_str(), -1, &wide_buf[0], wNum);
@@ -464,14 +487,14 @@ void OBS_API::OBS_API_initAPI(
 	obs_startup(locale.c_str(), userData.data(), NULL);
 
 	/* Logging */
-	string filename = GenerateTimeDateFilename("txt");
-	string log_path = appdata;
+	std::string filename = GenerateTimeDateFilename("txt");
+	std::string log_path = appdata;
 	log_path.append("/node-obs/logs/");
 
 	/* Make sure the path is created
 	before attempting to make a file there. */
 	if (os_mkdirs(log_path.c_str()) == MKDIR_ERROR) {
-		cerr << "Failed to open log file" << endl;
+		std::cerr << "Failed to open log file" << std::endl;
 	}
 
 	/* Delete oldest file in the folder to imitate rotating */
@@ -479,14 +502,15 @@ void OBS_API::OBS_API_initAPI(
 	log_path.append(filename);
 
 #if defined(_WIN32) && defined(UNICODE)
-	fstream* logfile = new fstream(converter.from_bytes(log_path.c_str()).c_str(), ios_base::out | ios_base::trunc);
+	std::fstream* logfile =
+	    new std::fstream(converter.from_bytes(log_path.c_str()).c_str(), std::ios_base::out | std::ios_base::trunc);
 #else
 	fstream* logfile = new fstream(log_path, ios_base::out | ios_base::trunc);
 #endif
 
 	if (!logfile->is_open()) {
 		logfile = nullptr;
-		cerr << "Failed to open log file" << endl;
+		std::cerr << "Failed to open log file" << std::endl;
 	}
 
 	base_set_log_handler(node_obs_log, logfile);
@@ -519,7 +543,6 @@ void OBS_API::OBS_API_initAPI(
 	}
 
 	OBS_service::createService();
-
 	OBS_service::createStreamingOutput();
 	OBS_service::createRecordingOutput();
 	OBS_service::createReplayBufferOutput();
@@ -527,22 +550,16 @@ void OBS_API::OBS_API_initAPI(
 	OBS_service::createVideoStreamingEncoder();
 	OBS_service::createVideoRecordingEncoder();
 
-	obs_encoder_t* audioStreamingEncoder = OBS_service::getAudioStreamingEncoder();
-	obs_encoder_t* audioRecordingEncoder = OBS_service::getAudioRecordingEncoder();
-
-	OBS_service::createAudioEncoder(&audioStreamingEncoder);
-	OBS_service::createAudioEncoder(&audioRecordingEncoder);
-
 	OBS_service::resetAudioContext();
 	OBS_service::resetVideoContext();
+
+	OBS_service::setupAudioEncoder();
 
 	OBS_service::associateAudioAndVideoToTheCurrentStreamingContext();
 	OBS_service::associateAudioAndVideoToTheCurrentRecordingContext();
 
 	OBS_service::associateAudioAndVideoEncodersToTheCurrentStreamingOutput();
 	OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(false);
-
-	OBS_service::setServiceToTheStreamingOutput();
 
 	setAudioDeviceMonitoring();
 
@@ -935,7 +952,7 @@ void acknowledgeTerminate(void)
 				    &Pipe.cbRead,
 				    &Pipe.oOverlap);
 
-				GetOverlappedResult(Pipe.hPipeInst, &Pipe.oOverlap, &Pipe.cbRead, true);
+				GetOverlappedResult(Pipe.hPipeInst, &Pipe.oOverlap, &Pipe.cbRead, false);
 
 				// The read operation completed successfully.
 				if (Pipe.cbRead > 0) {
@@ -991,11 +1008,11 @@ void OBS_API::destroyOBS_API(void)
 	if (recordingEncoder != NULL && OBS_service::useRecordingPreset())
 		obs_encoder_release(recordingEncoder);
 
-	obs_encoder_t* audioStreamingEncoder = OBS_service::getAudioStreamingEncoder();
+	obs_encoder_t* audioStreamingEncoder = OBS_service::getAudioSimpleStreamingEncoder();
 	if (audioStreamingEncoder != NULL)
 		obs_encoder_release(audioStreamingEncoder);
 
-	obs_encoder_t* audioRecordingEncoder = OBS_service::getAudioRecordingEncoder();
+	obs_encoder_t* audioRecordingEncoder = OBS_service::getAudioSimpleRecordingEncoder();
 	if (audioRecordingEncoder != NULL)
 		obs_encoder_release(audioRecordingEncoder);
 
@@ -1015,6 +1032,10 @@ void OBS_API::destroyOBS_API(void)
 	if (service != NULL)
 		obs_service_release(service);
 
+    OBS_service::clearAudioEncoder();
+    osn::VolMeter::ClearVolmeters();
+    osn::Fader::ClearFaders();
+
 	obs_shutdown();
 
 	// Release each obs module (dlls for windows)
@@ -1032,7 +1053,7 @@ void OBS_API::destroyOBS_API(void)
 	}
 }
 
-struct ci_char_traits : public char_traits<char>
+struct ci_char_traits : public std::char_traits<char>
 {
 	static bool eq(char c1, char c2)
 	{
@@ -1095,12 +1116,14 @@ bool OBS_API::openAllModules(int& video_err)
 		* with some metainfo so we don't attempt just any
 		* shared library. */
 		if (!os_file_exists(plugins_path.c_str())) {
+			blog(LOG_ERROR, "Plugin Path provided is invalid: %s", plugins_path);
 			std::cerr << "Plugin Path provided is invalid: " << plugins_path << std::endl;
 			return false;
 		}
 
 		os_dir_t* plugin_dir = os_opendir(plugins_path.c_str());
 		if (!plugin_dir) {
+			blog(LOG_ERROR, "Failed to open plugin diretory: %s", plugins_path);
 			std::cerr << "Failed to open plugin diretory: " << plugins_path << std::endl;
 			return false;
 		}

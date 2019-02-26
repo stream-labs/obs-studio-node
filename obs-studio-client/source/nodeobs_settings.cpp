@@ -1,3 +1,21 @@
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
+
 #include "nodeobs_settings.hpp"
 #include "controller.hpp"
 #include "error.hpp"
@@ -62,6 +80,15 @@ std::vector<settings::SubCategory>
 			bool* visible = reinterpret_cast<bool*>(buffer.data() + indexData);
 			indexData += sizeof(bool);
 
+			double* minVal = reinterpret_cast<double*>(buffer.data() + indexData);
+			indexData += sizeof(double);
+
+			double* maxVal = reinterpret_cast<double*>(buffer.data() + indexData);
+			indexData += sizeof(double);
+
+			double* stepVal = reinterpret_cast<double*>(buffer.data() + indexData);
+			indexData += sizeof(double);
+
 			size_t* sizeOfCurrentValue = reinterpret_cast<std::size_t*>(buffer.data() + indexData);
 			indexData += sizeof(size_t);
 
@@ -88,6 +115,9 @@ std::vector<settings::SubCategory>
 			param.enabled      = *enabled;
 			param.masked       = *masked;
 			param.visible      = *visible;
+			param.minVal       = *minVal;
+			param.maxVal       = *maxVal;
+			param.stepVal      = *stepVal;
 			param.currentValue = currentValue;
 			param.values       = values;
 			param.countValues  = *countValues;
@@ -162,11 +192,26 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 					int64_t *value = reinterpret_cast<int64_t*>(params.at(j).currentValue.data());
 					parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
 						v8::Integer::New(isolate, int32_t(*value)));
-				}
-				else if (params.at(j).type.compare("OBS_PROPERTY_UINT") == 0) {
+
+					parameter->Set(
+					    v8::String::NewFromUtf8(isolate, "minVal"), v8::Number::New(isolate, params.at(j).minVal));
+					parameter->Set(
+					    v8::String::NewFromUtf8(isolate, "maxVal"), v8::Number::New(isolate, params.at(j).maxVal));
+					parameter->Set(
+					    v8::String::NewFromUtf8(isolate, "stepVal"), v8::Number::New(isolate, params.at(j).stepVal));
+				} else if (
+				    params.at(j).type.compare("OBS_PROPERTY_UINT") == 0
+				    || params.at(j).type.compare("OBS_PROPERTY_BITMASK") == 0) {
 					uint64_t *value = reinterpret_cast<uint64_t*>(params.at(j).currentValue.data());
 					parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
 						v8::Integer::New(isolate, int32_t(*value)));
+
+					parameter->Set(
+					    v8::String::NewFromUtf8(isolate, "minVal"), v8::Number::New(isolate, params.at(j).minVal));
+					parameter->Set(
+					    v8::String::NewFromUtf8(isolate, "maxVal"), v8::Number::New(isolate, params.at(j).maxVal));
+					parameter->Set(
+					    v8::String::NewFromUtf8(isolate, "stepVal"), v8::Number::New(isolate, params.at(j).stepVal));
 				}
 				else if (params.at(j).type.compare("OBS_PROPERTY_BOOL") == 0) {
 					bool *value = reinterpret_cast<bool*>(params.at(j).currentValue.data());
@@ -177,24 +222,47 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 					double *value = reinterpret_cast<double*>(params.at(j).currentValue.data());
 					parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
 						v8::Number::New(isolate, *value));
+
+					parameter->Set(
+					    v8::String::NewFromUtf8(isolate, "minVal"), v8::Number::New(isolate, params.at(j).minVal));
+					parameter->Set(
+					    v8::String::NewFromUtf8(isolate, "maxVal"), v8::Number::New(isolate, params.at(j).maxVal));
+					parameter->Set(
+					    v8::String::NewFromUtf8(isolate, "stepVal"), v8::Number::New(isolate, params.at(j).stepVal));
 				}
 				else if (params.at(j).type.compare("OBS_PROPERTY_LIST") == 0) {
 					if (params.at(j).subType.compare("OBS_COMBO_FORMAT_INT") == 0) {
 						int64_t *value = reinterpret_cast<int64_t*>(params.at(j).currentValue.data());
 						parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
 							v8::Integer::New(isolate, int32_t(*value)));
+
+						parameter->Set(
+								v8::String::NewFromUtf8(isolate, "minVal"), v8::Number::New(isolate, params.at(j).minVal));
+						parameter->Set(
+								v8::String::NewFromUtf8(isolate, "maxVal"), v8::Number::New(isolate, params.at(j).maxVal));
+						parameter->Set(
+								v8::String::NewFromUtf8(isolate, "stepVal"),
+								v8::Number::New(isolate, params.at(j).stepVal));
 					}
 					else if (params.at(j).subType.compare("OBS_COMBO_FORMAT_FLOAT") == 0) {
 						double *value = reinterpret_cast<double*>(params.at(j).currentValue.data());
 						parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
 							v8::Number::New(isolate, *value));
+
+						parameter->Set(
+						    v8::String::NewFromUtf8(isolate, "minVal"), v8::Number::New(isolate, params.at(j).minVal));
+						parameter->Set(
+						    v8::String::NewFromUtf8(isolate, "maxVal"), v8::Number::New(isolate, params.at(j).maxVal));
+						parameter->Set(
+						    v8::String::NewFromUtf8(isolate, "stepVal"),
+						    v8::Number::New(isolate, params.at(j).stepVal));
 					}
 					else if (params.at(j).subType.compare("OBS_COMBO_FORMAT_STRING") == 0) {
-					std::string value(params.at(j).currentValue.begin(),
-						params.at(j).currentValue.end());
+						std::string value(params.at(j).currentValue.begin(),
+							params.at(j).currentValue.end());
 
-					parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
-						v8::String::NewFromUtf8(isolate, value.c_str()));
+						parameter->Set(v8::String::NewFromUtf8(isolate, "currentValue"),
+							v8::String::NewFromUtf8(isolate, value.c_str()));
 					}
 				}
 			} else {
@@ -274,8 +342,8 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 		subCategory->Set(v8::String::NewFromUtf8(isolate, "parameters"), subCategoryParameters);
 
 		rval->Set(i, subCategory);
+		rval->Set(v8::String::NewFromUtf8(isolate, "type"), v8::Integer::New(isolate, response[4].value_union.ui32));
 	}
-
 	args.GetReturnValue().Set(rval);
 	return;
 }
@@ -328,7 +396,7 @@ std::vector<char> deserializeCategory(uint32_t* subCategoriesCount, uint32_t* si
 				param.sizeOfCurrentValue = sizeof(value);
 				param.currentValue.resize(sizeof(value));
 				memcpy(param.currentValue.data(), &value, sizeof(value));
-			} else if (param.type.compare("OBS_PROPERTY_UINT") == 0) {
+			} else if (param.type.compare("OBS_PROPERTY_UINT") == 0 || param.type.compare("OBS_PROPERTY_BITMASK") == 0) {
 				uint64_t value =
 				    uint64_t(parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue"))->NumberValue());
 

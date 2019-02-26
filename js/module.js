@@ -24,7 +24,7 @@ exports.DisplayFactory = obs.Display;
 exports.VolmeterFactory = obs.Volmeter;
 exports.FaderFactory = obs.Fader;
 exports.AudioFactory = obs.Audio;
-exports.VideoFactory = obs.Video;
+exports.Video = obs.Video;
 exports.ModuleFactory = obs.Module;
 exports.IPC = obs.IPC;
 var EDelayFlags;

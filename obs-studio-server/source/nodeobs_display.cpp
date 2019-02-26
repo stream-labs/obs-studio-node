@@ -1,3 +1,21 @@
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
+
 #include "nodeobs_display.h"
 #include <iostream>
 #include <map>
@@ -97,22 +115,21 @@ struct DestroyWindowMessageQuestion
 struct DestroyWindowMessageAnswer : message_answer
 {};
 
-static void HandleWin32ErrorMessage()
+static void HandleWin32ErrorMessage(DWORD errorCode)
 {
-	DWORD dwErrorCode    = GetLastError();
 	LPSTR lpErrorStr     = nullptr;
 	DWORD dwErrorStrSize = 16;
 	DWORD dwErrorStrLen  = FormatMessageA(
         FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
         NULL,
-        dwErrorCode,
+        errorCode,
         LANG_USER_DEFAULT,
         lpErrorStr,
         dwErrorStrSize,
         NULL);
 	std::string exceptionMessage("Unexpected WinAPI error: " + std::string(lpErrorStr, dwErrorStrLen));
 	LocalFree(lpErrorStr);
-	throw std::system_error(dwErrorCode, std::system_category(), exceptionMessage);
+	throw std::system_error(errorCode, std::system_category(), exceptionMessage);
 }
 
 void OBS::Display::SystemWorker()
@@ -167,7 +184,7 @@ void OBS::Display::SystemWorker()
 
 			if (!newWindow) {
 				answer->success = false;
-				HandleWin32ErrorMessage();
+				HandleWin32ErrorMessage(GetLastError());
 			} else {
 				if (IsWindows8OrGreater() || !enabled) {
 					SetLayeredWindowAttributes(newWindow, 0, 255, LWA_ALPHA);
@@ -187,8 +204,19 @@ void OBS::Display::SystemWorker()
 			DestroyWindowMessageAnswer*   answer   = reinterpret_cast<DestroyWindowMessageAnswer*>(message.lParam);
 
 			if (!DestroyWindow(question->window)) {
-				answer->success = false;
-				HandleWin32ErrorMessage();
+				auto error = GetLastError();
+
+				// We check for error 1400 because if this display is a projector, it is attached to a HTML DOM, so
+				// we cannot directly control its destruction since the HTML will probably do this concurrently, 
+				// the DestroyWindow is allows to fail on this case, a better solution here woul be checking if this
+				// display is really a projector and do not attempt to destroy it (let the HTML do it for us).
+				if (error != 1400) {
+					answer->success = false;
+					HandleWin32ErrorMessage(error);
+				} else {
+					answer->success = true;
+				}
+
 			} else {
 				answer->success = true;
 			}
@@ -328,12 +356,11 @@ OBS::Display::Display(uint64_t windowHandle) : Display()
 	m_gsInitData.window.hwnd = reinterpret_cast<void*>(m_ourWindow);
 #endif
 
-	m_display = obs_display_create(&m_gsInitData);
+	m_display = obs_display_create(&m_gsInitData, 0x0);
 	if (!m_display)
 		throw std::runtime_error("unable to create display");
 
 	obs_display_add_draw_callback(m_display, DisplayCallback, this);
-	obs_display_set_background_color(m_display, 0x0);
 
 	SetSize(0, 0);
 	SetPosition(0, 0);
@@ -361,6 +388,11 @@ OBS::Display::~Display()
 	obs_enter_graphics();
 	if (m_textVertices)
 		delete m_textVertices;
+
+	if (m_textTexture) {
+		gs_texture_destroy(m_textTexture);
+	}
+
 	m_boxLine = nullptr;
 	m_boxTris = nullptr;
 	obs_leave_graphics();
@@ -1176,7 +1208,7 @@ void OBS::Display::DisplayWndClass()
 
 	DisplayWndClassAtom = RegisterClassEx(&DisplayWndClassObj);
 	if (DisplayWndClassAtom == NULL) {
-		HandleWin32ErrorMessage();
+		HandleWin32ErrorMessage(GetLastError());
 	}
 
 	DisplayWndClassRegistered = true;

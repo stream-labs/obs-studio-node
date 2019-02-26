@@ -1,7 +1,23 @@
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
+
 #include "nodeobs_autoconfig.hpp"
 #include "shared.hpp"
-
-using namespace std::placeholders;
 
 AutoConfig::~AutoConfig()
 {
@@ -16,7 +32,8 @@ void AutoConfig::start_async_runner()
 	std::unique_lock<std::mutex> ul(m_worker_lock);
 	// Start v8/uv asynchronous runner.
 	m_async_callback = new AutoConfigCallback();
-	m_async_callback->set_handler(std::bind(&AutoConfig::callback_handler, this, _1, _2), nullptr);
+	m_async_callback->set_handler(
+	    std::bind(&AutoConfig::callback_handler, this, std::placeholders::_1, std::placeholders::_2), nullptr);
 }
 
 void AutoConfig::stop_async_runner()
@@ -34,6 +51,7 @@ void AutoConfig::callback_handler(void* data, std::shared_ptr<AutoConfigInfo> it
 {
 	v8::Isolate*         isolate = v8::Isolate::GetCurrent();
 	v8::Local<v8::Value> args[1];
+	Nan::HandleScope     scope;
 
 	v8::Local<v8::Value> argv = v8::Object::New(isolate);
 	argv->ToObject()->Set(

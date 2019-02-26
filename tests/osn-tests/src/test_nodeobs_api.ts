@@ -1,7 +1,8 @@
 import 'mocha'
 import { expect } from 'chai'
 import * as osn from 'obs-studio-node';
-import { OBSProcessHandler } from '../util/obs_process_handler'
+import { OBSProcessHandler } from '../util/obs_process_handler';
+import { getCppErrorMsg } from '../util/general';
 
 interface IPerformanceState {
     CPU: number;
@@ -19,34 +20,32 @@ type OBSHotkey = {
     HotkeyId: number;
 };
 
-describe('nodebs_api', () => {
+describe('nodeobs_api', () => {
     let obs: OBSProcessHandler;
     let obsHotkeys: OBSHotkey[];
     
     before(function() {
         obs = new OBSProcessHandler();
         
-        if (obs.startup() != true)
+        if (obs.startup() !== osn.EVideoCodes.Success)
         {
             throw new Error("Could not start OBS process. Aborting!")
         }
     });
 
-    after(function(done) {
-        this.timeout(5000);
+    after(function() {
         obs.shutdown();
         obs = null;
-        setTimeout(done, 3000);
     });
 
     context('# OBS_API_getPerformanceStatistics', () => {
-        it('should fill stats object', () => {
+        it('Fill stats object', () => {
             let stats: IPerformanceState;
 
             try {
                 stats = osn.NodeObs.OBS_API_getPerformanceStatistics();
             } catch(e) {
-                throw new Error("OBS_API_getPerformanceStatistics threw an expection");
+                throw new Error(getCppErrorMsg(e));
             }
             
             expect(stats.CPU).to.not.equal(undefined);
@@ -58,35 +57,27 @@ describe('nodebs_api', () => {
     });
 
     context('# OBS_API_QueryHotkeys', () => {
-        it('should get all hotkeys', () => {
+        it('Get all hotkeys', () => {
             try {
                 obsHotkeys = osn.NodeObs.OBS_API_QueryHotkeys();
             } catch(e) {
-                throw new Error("OBS_API_QueryHotkeys threw an expection");
+                throw new Error(getCppErrorMsg(e));
             }
         });
     });
 
     context('# OBS_API_ProcessHotkeyStatus', () => {
-        it('should process all hot keys gotten previously', () => {
-            let hotkeyId: any;
-            let isKeyDown: boolean;
+        it('Process all hot keys gotten previously', () => {
+            let hotkeyId: string;
+            let isKeyDown: boolean = true;
 
             for (hotkeyId in obsHotkeys) {
                 try {
-                    osn.NodeObs.OBS_API_ProcessHotkeyStatus(hotkeyId, isKeyDown);
+                    osn.NodeObs.OBS_API_ProcessHotkeyStatus(+hotkeyId, isKeyDown);
                 } catch(e) {
-                    throw new Error("hotkeyId " + hotkeyId + "does not exist");
+                    throw new Error(getCppErrorMsg(e));
                 }
             }
-        });
-
-        it('should throw error if hot key id does not exist', () => {
-            let isKeyDown: boolean;
-
-            expect(function() {
-                osn.NodeObs.OBS_API_ProcessHotkeyStatus(99999, isKeyDown);
-            }).to.throw();
         });
     });
 });

@@ -1,3 +1,21 @@
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
+
 #include "nodeobs_autoconfig.h"
 #include "error.hpp"
 #include "shared.hpp"
@@ -374,7 +392,7 @@ void autoConfig::Query(void* data, const int64_t id, const std::vector<ipc::valu
 
 void autoConfig::StopThread(void)
 {
-	unique_lock<mutex> ul(m);
+	std::unique_lock<std::mutex> ul(m);
 	cancel = true;
 	cv.notify_one();
 }
@@ -496,7 +514,7 @@ int EvaluateBandwidth(
 	if (!obs_output_start(output))
 		return -1;
 
-	unique_lock<mutex> ul(m);
+	std::unique_lock<std::mutex> ul(m);
 	if (cancel) {
 		ul.unlock();
 		obs_output_force_stop(output);
@@ -515,7 +533,7 @@ int EvaluateBandwidth(
 
 	uint64_t t_start = os_gettime_ns();
 
-	cv.wait_for(ul, chrono::seconds(10));
+	cv.wait_for(ul, std::chrono::seconds(10));
 	if (stopped)
 		return -1;
 	if (cancel) {
@@ -716,14 +734,14 @@ void autoConfig::TestBandwidthThread(void)
 	/* connect signals                    */
 
 	auto on_started = [&]() {
-		unique_lock<mutex> lock(m);
+		std::unique_lock<std::mutex> lock(m);
 		connected = true;
 		stopped   = false;
 		cv.notify_one();
 	};
 
 	auto on_stopped = [&]() {
-		unique_lock<mutex> lock(m);
+		std::unique_lock<std::mutex> lock(m);
 		connected = false;
 		stopped   = true;
 		cv.notify_one();
@@ -749,11 +767,11 @@ void autoConfig::TestBandwidthThread(void)
 	/* -----------------------------------*/
 	/* test servers                       */
 
-	int    bestBitrate = 0;
-	int    bestMS      = 0x7FFFFFFF;
-	string bestServer;
-	string bestServerName;
-	bool   success = false;
+	int         bestBitrate = 0;
+	int         bestMS      = 0x7FFFFFFF;
+	std::string bestServer;
+	std::string bestServerName;
+	bool        success = false;
 
 	if (serverName.compare("") != 0) {
 		ServerInfo info(serverName.c_str(), server.c_str());
@@ -857,7 +875,7 @@ void autoConfig::FindIdealHardwareResolution()
 	int baseCX = (int)baseResolutionCX;
 	int baseCY = (int)baseResolutionCY;
 
-	vector<Result> results;
+	std::vector<Result> results;
 
 	int pcores = os_get_physical_cores();
 	int maxDataRate;
@@ -984,7 +1002,7 @@ bool autoConfig::TestSoftwareEncoding()
 	/* connect signals                    */
 
 	auto on_stopped = [&]() {
-		unique_lock<mutex> lock(m);
+		std::unique_lock<std::mutex> lock(m);
 		cv.notify_one();
 	};
 
@@ -1030,7 +1048,7 @@ bool autoConfig::TestSoftwareEncoding()
 	/* -----------------------------------*/
 	/* perform tests                      */
 
-	vector<Result> results;
+	std::vector<Result> results;
 	int            i     = 0;
 	int            count = 1;
 
@@ -1077,7 +1095,7 @@ bool autoConfig::TestSoftwareEncoding()
 
 		obs_output_set_media(output, obs_get_video(), obs_get_audio());
 
-		unique_lock<mutex> ul(m);
+		std::unique_lock<std::mutex> ul(m);
 		if (cancel)
 			return false;
 
@@ -1085,7 +1103,7 @@ bool autoConfig::TestSoftwareEncoding()
 			return false;
 		}
 
-		cv.wait_for(ul, chrono::seconds(5));
+		cv.wait_for(ul, std::chrono::seconds(5));
 
 		obs_output_stop(output);
 		cv.wait(ul);

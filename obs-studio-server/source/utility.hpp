@@ -1,24 +1,27 @@
-// Server program for the OBS Studio node module.
-// Copyright(C) 2017 Streamlabs (General Workings Inc)
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
 
 #pragma once
+#include <functional>
 #include <limits>
 #include <list>
 #include <map>
+#include <mutex>
 
 #if defined(_MSC_VER)
 #define FORCE_INLINE __forceinline
@@ -61,13 +64,19 @@ namespace utility
 		protected:
 		utility::unique_id                     id_generator;
 		std::map<utility::unique_id::id_t, T*> object_map;
+		std::recursive_mutex                   internal_mutex;
 
 		public:
 		unique_object_manager() {}
-		~unique_object_manager() {}
+		~unique_object_manager()
+		{
+			clear();
+		}
 
 		utility::unique_id::id_t allocate(T* obj)
 		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			utility::unique_id::id_t uid = id_generator.allocate();
 			if (uid == std::numeric_limits<utility::unique_id::id_t>::max()) {
 				return uid;
@@ -78,6 +87,8 @@ namespace utility
 
 		utility::unique_id::id_t find(T* obj)
 		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			for (auto kv : object_map) {
 				if (kv.second == obj) {
 					return kv.first;
@@ -87,6 +98,8 @@ namespace utility
 		}
 		T* find(utility::unique_id::id_t id)
 		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			auto iter = object_map.find(id);
 			if (iter != object_map.end()) {
 				return iter->second;
@@ -96,6 +109,8 @@ namespace utility
 
 		utility::unique_id::id_t free(T* obj)
 		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			utility::unique_id::id_t uid = std::numeric_limits<utility::unique_id::id_t>::max();
 			for (auto kv : object_map) {
 				if (kv.second == obj) {
@@ -108,6 +123,8 @@ namespace utility
 		}
 		T* free(utility::unique_id::id_t id)
 		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			auto iter = object_map.find(id);
 			if (iter == object_map.end()) {
 				return nullptr;
@@ -116,6 +133,18 @@ namespace utility
 			object_map.erase(iter);
 			return obj;
 		}
+
+        void for_each(std::function<void(T*)> for_each_method)
+        {
+            for (auto it = object_map.begin(); it != object_map.end(); ++it) {
+                for_each_method(it->second);
+            }
+        }
+
+        void clear()
+        {
+            object_map.clear();
+        }
 	};
 
 	template<typename T>
@@ -124,13 +153,19 @@ namespace utility
 		protected:
 		utility::unique_id                    id_generator;
 		std::map<utility::unique_id::id_t, T> object_map;
+		std::recursive_mutex                  internal_mutex;
 
 		public:
 		generic_object_manager() {}
-		~generic_object_manager() {}
+		~generic_object_manager()
+		{
+			clear();
+		}
 
 		utility::unique_id::id_t allocate(T obj)
 		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			utility::unique_id::id_t uid = id_generator.allocate();
 			if (uid == std::numeric_limits<utility::unique_id::id_t>::max()) {
 				return uid;
@@ -141,6 +176,8 @@ namespace utility
 
 		utility::unique_id::id_t find(T obj)
 		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			for (auto kv : object_map) {
 				if (kv.second == obj) {
 					return kv.first;
@@ -150,6 +187,8 @@ namespace utility
 		}
 		T find(utility::unique_id::id_t id)
 		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			auto iter = object_map.find(id);
 			if (iter != object_map.end()) {
 				return iter->second;
@@ -159,6 +198,8 @@ namespace utility
 
 		utility::unique_id::id_t free(T obj)
 		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			utility::unique_id::id_t uid = std::numeric_limits<utility::unique_id::id_t>::max();
 			for (auto kv : object_map) {
 				if (kv.second == obj) {
@@ -171,6 +212,8 @@ namespace utility
 		}
 		T free(utility::unique_id::id_t id)
 		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			auto iter = object_map.find(id);
 			if (iter == object_map.end()) {
 				return nullptr;
@@ -179,5 +222,17 @@ namespace utility
 			object_map.erase(iter);
 			return obj;
 		}
+
+        void for_each(std::function<void(T&)> for_each_method)
+        {
+            for (auto it = object_map.begin(); it != object_map.end(); ++it) {
+                for_each_method(it->second);
+            }
+        }
+
+        void clear()
+        {
+            object_map.clear();
+        }
 	};
 } // namespace utility
