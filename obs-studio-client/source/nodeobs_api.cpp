@@ -31,16 +31,18 @@ void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	std::string path;
 	std::string language;
+	std::string version;
 
 	ASSERT_GET_VALUE(args[0], language);
 	ASSERT_GET_VALUE(args[1], path);
+	ASSERT_GET_VALUE(args[2], version);
 
 	auto conn = GetConnection();
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("API", "OBS_API_initAPI", {ipc::value(path), ipc::value(language)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper(
+	    "API", "OBS_API_initAPI", {ipc::value(path), ipc::value(language), ipc::value(version)});
 
 	// The API init method will return a response error + graphical error
 	// If there is a problem with the IPC the number of responses here will be zero so we must validate the

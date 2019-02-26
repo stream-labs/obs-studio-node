@@ -11,7 +11,7 @@ export class OBSProcessHandler {
         try {
             osn.NodeObs.IPC.host(pipeName);
             osn.NodeObs.SetWorkingDirectory(wd);
-            const initResult = osn.NodeObs.OBS_API_initAPI('en-US', path.join(path.normalize(__dirname), '..', 'osnData/slobs-client'));
+            const initResult = osn.NodeObs.OBS_API_initAPI('en-US', path.join(path.normalize(__dirname), '..', 'osnData/slobs-client'), '0.00.00-preview.0');
             return initResult;
         } catch(e) {
             return osn.EVideoCodes.Fail;
