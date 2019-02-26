@@ -216,6 +216,7 @@ namespace obs
 		virtual obs::Property::Type type() override;
 		virtual size_t              size() override;
 		virtual bool                serialize(std::vector<char>& buf) override;
+		int64_t                     value;
 
 		protected:
 		virtual bool read(std::vector<char> const& buf) override;
@@ -256,6 +257,7 @@ namespace obs
 		ListType    field_type;
 		std::string filter;
 		std::string default_path;
+		void*       value;
 
 		virtual ~EditableListProperty(){};
 
