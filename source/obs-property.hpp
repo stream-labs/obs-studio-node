@@ -197,7 +197,6 @@ namespace obs
 			std::string value_string;
 		};
 		std::list<Item> items;
-		void*           value;
 
 		virtual ~ListProperty(){};
 
@@ -257,7 +256,7 @@ namespace obs
 		ListType    field_type;
 		std::string filter;
 		std::string default_path;
-		void*       value;
+		std::string value;
 
 		virtual ~EditableListProperty(){};
 
