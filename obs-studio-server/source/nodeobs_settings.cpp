@@ -1145,7 +1145,9 @@ void OBS_settings::getSimpleOutputSettings(
 			defaultPreset = "balanced";
 			// preset = curQSVPreset;
 
-		} else if (strcmp(encoder, SIMPLE_ENCODER_NVENC) == 0 || strcmp(encoder, ADVANCED_ENCODER_NVENC) == 0) {
+		} else if (
+		    strcmp(encoder, SIMPLE_ENCODER_NVENC) == 0 || strcmp(encoder, ADVANCED_ENCODER_NVENC) == 0
+		    || strcmp(encoder, ENCODER_NEW_NVENC) == 0) {
 			preset.push_back(std::make_pair("name", ipc::value("NVENCPreset")));
 			preset.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
 			preset.push_back(std::make_pair("description", ipc::value("Encoder Preset (higher = less CPU)")));
