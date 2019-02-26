@@ -439,16 +439,18 @@ std::vector<char> terminateCrashHandler(void)
 
 void writeCrashHandler(std::vector<char> buffer)
 {
+	std::cout << "*****writeCrashHandler*****" << std::endl;
 	HANDLE hPipe = CreateFile( TEXT("\\\\.\\pipe\\slobs-crash-handler"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 
 	if (hPipe == INVALID_HANDLE_VALUE)
 		return;
-
+	std::cout << "File created" << std::endl;
 	DWORD bytesWritten;
-
+	std::cout << "Writing file" << std::endl;
 	WriteFile(hPipe, buffer.data(), buffer.size(), &bytesWritten, NULL);
-
+	std::cout << "Closing handle to pipe" << std::endl;
 	CloseHandle(hPipe);
+	std::cout << "Return *****writeCrashHandler*****" << std::endl;
 }
 
 void OBS_API::OBS_API_initAPI(
@@ -863,6 +865,7 @@ VOID DisconnectAndReconnect(void)
 
 void acknowledgeTerminate(void)
 {
+	std::cout << "****acknowledgeTerminate*****" << std::endl;
 	BOOL   fSuccess;
 	LPTSTR lpszPipename = TEXT("\\\\.\\pipe\\exit-slobs-crash-handler");
 
@@ -888,6 +891,8 @@ void acknowledgeTerminate(void)
 		return;
 	}
 
+	std::cout << "Named pipe create successfully" << std::endl;
+
 	Pipe.fPendingIO = ConnectToNewClient(Pipe.hPipeInst, &(Pipe.oOverlap));
 
 	Pipe.dwState = Pipe.fPendingIO ? CONNECTING_STATE : READING_STATE;
@@ -912,6 +917,7 @@ void acknowledgeTerminate(void)
 
 		if (dwWait == WAIT_OBJECT_0) {
 			if (Pipe.fPendingIO) {
+				std::cout << "get overlapped result 0" << std::endl;
 				fSuccess = GetOverlappedResult(Pipe.hPipeInst, &(Pipe.oOverlap), &cbRet, FALSE);
 
 				switch (Pipe.dwState) {
@@ -940,6 +946,7 @@ void acknowledgeTerminate(void)
 
 			switch (Pipe.dwState) {
 			case READING_STATE: {
+				std::cout << "Read message" << std::endl;
 				Pipe.chRequest.resize(BUFFSIZE);
 				fSuccess = ReadFile(
 				    Pipe.hPipeInst,
@@ -948,6 +955,7 @@ void acknowledgeTerminate(void)
 				    &Pipe.cbRead,
 				    &Pipe.oOverlap);
 
+				std::cout << "get overlapped result1 " << std::endl;
 				GetOverlappedResult(Pipe.hPipeInst, &Pipe.oOverlap, &Pipe.cbRead, false);
 
 				// The read operation completed successfully.
@@ -959,6 +967,7 @@ void acknowledgeTerminate(void)
 					Pipe.fPendingIO = TRUE;
 					break;
 				}
+				std::cout << "Done reading" << std::endl;
 				exit = true;
 				DisconnectAndReconnect();
 				break;
@@ -966,6 +975,7 @@ void acknowledgeTerminate(void)
 			}
 		}
 	}
+	std::cout << "****acknowledgeTerminate*****" << std::endl;
 }
 
 void OBS_API::StopCrashHandler(
@@ -974,20 +984,28 @@ void OBS_API::StopCrashHandler(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	std::cout << "*****Stopping crash handler*****" << std::endl;
+
+	std::cout << "Start acknowledge terminate thread" << std::endl;
 	std::thread worker(acknowledgeTerminate);
+	std::cout << "Send unregister process message to crash handler" << std::endl;
 	writeCrashHandler(unregisterProcess());
 
+	std::cout << "Join thread" << std::endl;
 	if (worker.joinable())
 		worker.join();
 
+	std::cout << "Send terminate crash handlerp message" << std::endl;
 	writeCrashHandler(terminateCrashHandler());
 
+	std::cout << "Return *****Stopping crash handler*****" << std::endl;
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
 
 void OBS_API::destroyOBS_API(void)
 {
+	std::cout << "****destroyOBS_API****" << std::endl;
 	os_cpu_usage_info_destroy(cpuUsageInfo);
 
 #ifdef _WIN32
@@ -1047,6 +1065,7 @@ void OBS_API::destroyOBS_API(void)
 	if (totalLeaks) {
 		// throw "OBS has memory leaks";
 	}
+	std::cout << "Return ****destroyOBS_API****" << std::endl;
 }
 
 struct ci_char_traits : public std::char_traits<char>

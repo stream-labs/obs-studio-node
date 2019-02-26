@@ -299,6 +299,7 @@ int main(int argc, char* argv[])
 			auto tp    = std::chrono::high_resolution_clock::now();
 			auto delta = tp - sd.last_disconnect;
 			if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() > 5000) {
+				std::cout << "Shutting down because no client anymore" << std::endl;
 				doShutdown = true;
 				waitBeforeClosing = true;
 			}
@@ -308,6 +309,7 @@ int main(int argc, char* argv[])
 
 	// Wait on receive the exit message from the crash-handler
 	if (waitBeforeClosing) {
+		std::cout << "Wait crash handler before closing" << std::endl;
 		HANDLE hPipe;
 		TCHAR  chBuf[BUFFSIZE];
 		DWORD  cbRead;
@@ -323,20 +325,24 @@ int main(int argc, char* argv[])
 
 		if (hPipe != INVALID_HANDLE_VALUE) {
 			if (ConnectNamedPipe(hPipe, NULL) != FALSE) {
+				std::cout << "Connected to crash handler" << std::endl;
 				BOOL fSuccess = ReadFile(hPipe, chBuf, BUFFSIZE * sizeof(TCHAR), &cbRead, NULL);
-
+				std::cout << "Read file" << std::endl;
 				if (!fSuccess)
 					return 0;
+				std::cout << "Closing handle" << std::endl;
 				CloseHandle(hPipe);
 			}
 		}
 	}
 
+	std::cout << "Finalize source signal" << std::endl;
 	osn::Source::finalize_global_signals();
+	std::cout << "Destroy OBS API" << std::endl;
 	OBS_API::destroyOBS_API();
-
+	std::cout << "Finalize server" << std::endl;
 	// Finalize Server
 	myServer.finalize();
-
+	std::cout << "End of server" << std::endl;
 	return 0;
 }
