@@ -1145,7 +1145,9 @@ void OBS_settings::getSimpleOutputSettings(
 			defaultPreset = "balanced";
 			// preset = curQSVPreset;
 
-		} else if (strcmp(encoder, SIMPLE_ENCODER_NVENC) == 0 || strcmp(encoder, ADVANCED_ENCODER_NVENC) == 0) {
+		} else if (
+		    strcmp(encoder, SIMPLE_ENCODER_NVENC) == 0 || strcmp(encoder, ADVANCED_ENCODER_NVENC) == 0
+		    || strcmp(encoder, ENCODER_NEW_NVENC) == 0) {
 			preset.push_back(std::make_pair("name", ipc::value("NVENCPreset")));
 			preset.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
 			preset.push_back(std::make_pair("description", ipc::value("Encoder Preset (higher = less CPU)")));
@@ -1790,13 +1792,21 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	bool recStreamUsesSameEncoder   = streamingEncoder == recordEncoder;
 	bool recOutputBlockStreamOutput = !(!recStreamUsesSameEncoder || (recStreamUsesSameEncoder && !recOutputIsActive));
 
-	if ((!streamOutputIsActive && !recOutputBlockStreamOutput && !fileExist) || streamingEncoder == nullptr) {
-		streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
-		OBS_service::setStreamingEncoder(streamingEncoder);
+	if ((!streamOutputIsActive && !recOutputBlockStreamOutput) || streamingEncoder == nullptr) {
+		if (!fileExist) {
+			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
+			OBS_service::setStreamingEncoder(streamingEncoder);
 
-		if (!obs_data_save_json_safe(settings, streamName.c_str(), "tmp", "bak")) {
-			blog(LOG_WARNING, "Failed to save encoder %s", streamName.c_str());
+			if (!obs_data_save_json_safe(settings, streamName.c_str(), "tmp", "bak")) {
+				blog(LOG_WARNING, "Failed to save encoder %s", streamName.c_str());
+			}
+		} else {
+			obs_data_t* data = obs_data_create_from_json_file_safe(streamName.c_str(), "bak");
+			obs_data_apply(settings, data);
+			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", settings, nullptr);
+			OBS_service::setStreamingEncoder(streamingEncoder);
 		}
+
 	} else {
 		settings = obs_encoder_get_settings(streamingEncoder);
 	}
