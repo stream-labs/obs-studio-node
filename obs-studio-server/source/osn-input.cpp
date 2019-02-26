@@ -112,7 +112,7 @@ void osn::Input::Types(void* data, const int64_t id, const std::vector<ipc::valu
 	for (size_t idx = 0; obs_enum_input_types(idx, &typeId); idx++) {
 		rval.push_back(ipc::value(typeId ? typeId : ""));
 	}
-	AUTO_DEBUG;
+	//AUTO_DEBUG;
 }
 
 void osn::Input::Create(
@@ -259,7 +259,7 @@ void osn::Input::FromName(
 	if (!source) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::NotFound));
 		rval.push_back(ipc::value("Named input could not be found."));
-		AUTO_DEBUG;
+		//AUTO_DEBUG;
 		return;
 	}
 
@@ -272,7 +272,7 @@ void osn::Input::FromName(
 #endif
 		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
 		rval.push_back(ipc::value("Source found but not indexed."));
-		AUTO_DEBUG;
+		//AUTO_DEBUG;
 		return;
 	}
 
@@ -280,7 +280,7 @@ void osn::Input::FromName(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
-	AUTO_DEBUG;
+	//AUTO_DEBUG;
 }
 
 void osn::Input::GetPublicSources(
@@ -517,13 +517,13 @@ void osn::Input::GetWidth(
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
-		AUTO_DEBUG;
+		//AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_get_width(input)));
-	AUTO_DEBUG;
+	//AUTO_DEBUG;
 }
 
 void osn::Input::GetHeight(
@@ -536,13 +536,13 @@ void osn::Input::GetHeight(
 	if (!input) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Input reference is not valid."));
-		AUTO_DEBUG;
+		//AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_get_height(input)));
-	AUTO_DEBUG;
+	//AUTO_DEBUG;
 }
 
 void osn::Input::GetDeInterlaceFieldOrder(
