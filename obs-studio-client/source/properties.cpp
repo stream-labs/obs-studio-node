@@ -321,6 +321,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetValue(Nan::NAN_METHOD_ARGS_T
 		    std::static_pointer_cast<osn::NumberProperty>(iter->second);
 
 		info.GetReturnValue().Set(utilv8::ToValue(cast_property->int_value.value));
+		break;
 	}
 	case osn::Property::Type::FLOAT: {
 		std::shared_ptr<osn::NumberProperty> cast_property =

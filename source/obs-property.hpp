@@ -211,7 +211,7 @@ namespace obs
 		virtual bool read(std::vector<char> const& buf) override;
 	};
 
-	struct ColorProperty : Property
+	struct ColorProperty : NumberProperty
 	{
 		virtual ~ColorProperty(){};
 

@@ -676,12 +676,12 @@ bool obs::ListProperty::read(std::vector<char> const& buf)
 
 obs::Property::Type obs::ColorProperty::type()
 {
-	return obs::Property::Type::Color;
+	return Type::Color;
 }
 
 size_t obs::ColorProperty::size()
 {
-	size_t total = Property::size();
+	size_t total = NumberProperty::size();
 	total += sizeof(int64_t);
 	return total;
 }
@@ -692,11 +692,11 @@ bool obs::ColorProperty::serialize(std::vector<char>& buf)
 		return false;
 	}
 
-	if (!Property::serialize(buf)) {
+	if (!NumberProperty::serialize(buf)) {
 		return false;
 	}
 
-	size_t offset                             = Property::size();
+	size_t offset                             = NumberProperty::size();
 	*reinterpret_cast<int64_t*>(&buf[offset]) = value;
 	offset += sizeof(int64_t);
 
@@ -709,11 +709,11 @@ bool obs::ColorProperty::read(std::vector<char> const& buf)
 		return false;
 	}
 
-    if (!Property::read(buf)) {
+    if (!NumberProperty::read(buf)) {
 		return false;
 	}
 
-    size_t offset = Property::size();
+    size_t offset = NumberProperty::size();
 	value         = *reinterpret_cast<const int64_t*>(&buf[offset]);
 	offset += sizeof(int64_t);
 

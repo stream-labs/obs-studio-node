@@ -175,6 +175,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 			std::shared_ptr<obs::ColorProperty> cast_property =
 			    std::dynamic_pointer_cast<obs::ColorProperty>(raw_property);
 			std::shared_ptr<osn::NumberProperty> pr2 = std::make_shared<osn::NumberProperty>();
+			pr2->field_type                          = osn::NumberProperty::Type(cast_property->field_type);
 			pr2->int_value.value                     = cast_property->value;
 			pr                                       = std::static_pointer_cast<osn::Property>(pr2);
 			break;
