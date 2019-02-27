@@ -157,6 +157,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 			    std::dynamic_pointer_cast<obs::BooleanProperty>(raw_property);
 			std::shared_ptr<osn::NumberProperty> pr2 = std::make_shared<osn::NumberProperty>();
 			pr2->bool_value.value                    = cast_property->value;
+			pr                                       = std::static_pointer_cast<osn::Property>(pr2);
 		    break;
 		}
 		case obs::Property::Type::Integer: {

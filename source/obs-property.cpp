@@ -164,17 +164,43 @@ obs::Property::Type obs::BooleanProperty::type()
 
 size_t obs::BooleanProperty::size()
 {
-	return Property::size();
-}
-
-bool obs::BooleanProperty::read(std::vector<char> const& buf)
-{
-	return Property::read(buf);
+	size_t total = Property::size();
+	total += sizeof(bool);
+	return total;
 }
 
 bool obs::BooleanProperty::serialize(std::vector<char>& buf)
 {
-	return Property::serialize(buf);
+	if (buf.size() < size()) {
+		return false;
+	}
+
+	if (!Property::serialize(buf)) {
+		return false;
+	}
+
+	size_t offset = Property::size();
+	*reinterpret_cast<bool*>(&buf[offset]) = value;
+	offset += sizeof(bool);
+
+	return true;
+}
+
+bool obs::BooleanProperty::read(std::vector<char> const& buf)
+{
+	if (buf.size() < size()) {
+		return false;
+	}
+
+	if (!Property::read(buf)) {
+		return false;
+	}
+
+	size_t offset = Property::size();
+	value         = *reinterpret_cast<const bool*>(&buf[offset]);
+	offset += sizeof(bool);
+
+	return true;
 }
 
 size_t obs::NumberProperty::size()
