@@ -242,6 +242,18 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 			pr = std::static_pointer_cast<osn::Property>(pr2);
 			break;
 		}
+		case obs::Property::Type::Font: {
+			std::shared_ptr<obs::FontProperty> cast_property =
+			    std::dynamic_pointer_cast<obs::FontProperty>(raw_property);
+			std::shared_ptr<osn::FontProperty> pr2 = std::make_shared<osn::FontProperty>();
+			pr2->face                              = cast_property->face;
+			pr2->style                             = cast_property->style;
+			pr2->path                              = cast_property->path;
+			pr2->sizeF                             = cast_property->sizeF;
+			pr2->flags                             = cast_property->flags;
+            pr = std::static_pointer_cast<osn::Property>(pr2);
+			break;
+		}
 		case obs::Property::Type::EditableList: {
 			std::shared_ptr<obs::EditableListProperty> cast_property =
 			    std::dynamic_pointer_cast<obs::EditableListProperty>(raw_property);

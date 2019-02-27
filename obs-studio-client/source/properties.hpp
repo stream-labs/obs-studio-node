@@ -151,6 +151,15 @@ namespace osn
 		std::list<Item> items;
 	};
 
+	struct FontProperty : Property
+	{
+		std::string face;
+		std::string style;
+		std::string path;
+		int64_t     sizeF;
+		uint32_t    flags;
+	};
+
 	// Contrary to the name, not compatible with the ListProperty. Actually more comparable to PathProperty.
 	struct EditableListProperty : Property
 	{

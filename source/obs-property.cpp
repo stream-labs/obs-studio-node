@@ -747,17 +747,96 @@ obs::Property::Type obs::FontProperty::type()
 
 size_t obs::FontProperty::size()
 {
-	return Property::size();
+	size_t total = Property::size();
+	total += sizeof(size_t) + face.size();
+	total += sizeof(size_t) + style.size();
+	total += sizeof(size_t) + path.size();
+	total += sizeof(int64_t);
+	total += sizeof(uint32_t);
+	return total;
 }
 
 bool obs::FontProperty::serialize(std::vector<char>& buf)
 {
-	return Property::serialize(buf);
+	if (buf.size() < size()) {
+		return false;
+	}
+
+	if (!Property::serialize(buf)) {
+		return false;
+	}
+
+    size_t offset = Property::size();
+
+    reinterpret_cast<size_t&>(buf[offset]) = face.size();
+	offset += sizeof(size_t);
+	if (face.size() > 0) {
+		memcpy(&buf[offset], face.data(), face.size());
+		offset += face.size();
+	}
+
+	reinterpret_cast<size_t&>(buf[offset]) = style.size();
+	offset += sizeof(size_t);
+	if (style.size() > 0) {
+		memcpy(&buf[offset], style.data(), style.size());
+		offset += style.size();
+	}
+
+	reinterpret_cast<size_t&>(buf[offset]) = path.size();
+	offset += sizeof(size_t);
+	if (path.size() > 0) {
+		memcpy(&buf[offset], path.data(), path.size());
+		offset += path.size();
+	}
+
+    buf[offset] = int64_t(sizeF);
+	offset += sizeof(int64_t);
+	buf[offset] = uint32_t(flags);
+	offset += sizeof(uint32_t);
+	return true;
 }
 
 bool obs::FontProperty::read(std::vector<char> const& buf)
 {
-	return Property::read(buf);
+	if (buf.size() < size()) {
+		return false;
+	}
+
+	if (!Property::read(buf)) {
+		return false;
+	}
+
+	size_t length = 0;
+
+	size_t offset = Property::size();
+
+	length = reinterpret_cast<const size_t&>(buf[offset]);
+	offset += sizeof(size_t);
+	if (length > 0) {
+		face = std::string(&buf[offset], length);
+		offset += length;
+	}
+
+	length = reinterpret_cast<const size_t&>(buf[offset]);
+	offset += sizeof(size_t);
+	if (length > 0) {
+		style = std::string(&buf[offset], length);
+		offset += length;
+	}
+
+	length = reinterpret_cast<const size_t&>(buf[offset]);
+	offset += sizeof(size_t);
+	if (length > 0) {
+		path = std::string(&buf[offset], length);
+		offset += length;
+	}
+
+	sizeF = *reinterpret_cast<const int64_t*>(&buf[offset]);
+	offset += sizeof(int64_t);
+	flags = *reinterpret_cast<const uint32_t*>(&buf[offset]);
+	offset += sizeof(uint32_t);
+
+	return true;
 }
 
 obs::Property::Type obs::EditableListProperty::type()

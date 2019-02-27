@@ -238,6 +238,12 @@ namespace obs
 
 	struct FontProperty : Property
 	{
+		std::string face;
+		std::string style;
+		std::string path;
+		int64_t     sizeF;
+		uint32_t    flags;
+
 		virtual ~FontProperty(){};
 
 		virtual obs::Property::Type type() override;

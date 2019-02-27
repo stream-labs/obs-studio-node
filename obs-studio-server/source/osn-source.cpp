@@ -329,9 +329,17 @@ void osn::Source::GetProperties(
 		case OBS_PROPERTY_BUTTON:
 			prop = std::make_shared<obs::ButtonProperty>();
 			break;
-		case OBS_PROPERTY_FONT:
-			prop = std::make_shared<obs::FontProperty>();
+		case OBS_PROPERTY_FONT: {
+			auto prop2           = std::make_shared<obs::FontProperty>();
+			obs_data_t* font_obj = obs_data_get_obj(settings, name);
+			prop2->face          = (buf = obs_data_get_string(font_obj, "face")) != nullptr ? buf : "";
+			prop2->style         = (buf = obs_data_get_string(font_obj, "style")) != nullptr ? buf : "";
+			prop2->path          = (buf = obs_data_get_string(font_obj, "path")) != nullptr ? buf : "";
+			prop2->sizeF         = (int)obs_data_get_int(font_obj, "size");
+			prop2->flags         = (uint32_t)obs_data_get_int(font_obj, "flags");
+			prop                 = prop2;
 			break;
+		}
 		case OBS_PROPERTY_EDITABLE_LIST: {
 			auto prop2          = std::make_shared<obs::EditableListProperty>();
 			prop2->field_type   = obs::EditableListProperty::ListType(obs_property_editable_list_type(p));
