@@ -197,6 +197,9 @@ namespace obs
 			std::string value_string;
 		};
 		std::list<Item> items;
+		int64_t         current_value_int;
+		double_t        current_value_float;
+		std::string     current_value_str;
 
 		virtual ~ListProperty(){};
 

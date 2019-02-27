@@ -209,6 +209,19 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 			std::shared_ptr<osn::ListProperty> pr2 = std::make_shared<osn::ListProperty>();
 			pr2->field_type                        = osn::ListProperty::Type(cast_property->field_type);
 			pr2->item_format                       = osn::ListProperty::Format(cast_property->format);
+
+			switch (cast_property->format) {
+			case obs::ListProperty::Format::Integer:
+				pr2->current_value_int = cast_property->current_value_int;
+				break;
+			case obs::ListProperty::Format::Float:
+				pr2->current_value_float = cast_property->current_value_float;
+				break;
+			case obs::ListProperty::Format::String:
+				pr2->current_value_str = cast_property->current_value_str;
+				break;
+			}
+
 			for (auto& item : cast_property->items) {
 				osn::ListProperty::Item item2;
 				item2.name     = item.name;

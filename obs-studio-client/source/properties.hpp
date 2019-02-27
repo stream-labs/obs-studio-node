@@ -139,6 +139,13 @@ namespace osn
 			std::string value_str;
 		};
 
+		union
+		{
+			int64_t  current_value_int;
+			double_t current_value_float;
+		};
+		std::string     current_value_str;
+
 		Type            field_type;
 		Format          item_format;
 		std::list<Item> items;

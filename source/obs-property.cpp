@@ -497,6 +497,7 @@ size_t obs::ListProperty::size()
 	total += sizeof(uint8_t);
 	total += sizeof(uint8_t);
 	total += sizeof(size_t);
+
 	for (auto& entry : items) {
 		total += sizeof(size_t);
 		total += entry.name.size();
@@ -514,6 +515,19 @@ size_t obs::ListProperty::size()
 			break;
 		}
 	}
+
+	switch (format) {
+	case Format::Integer:
+		total += sizeof(int64_t);
+		break;
+	case Format::Float:
+		total += sizeof(double_t);
+		break;
+	case Format::String:
+		total += sizeof(size_t) + current_value_str.size();
+		break;
+	}
+
 	return total;
 }
 
@@ -562,6 +576,25 @@ bool obs::ListProperty::serialize(std::vector<char>& buf)
 			}
 			break;
 		}
+	}
+
+	switch (format) {
+	case Format::Integer:
+		reinterpret_cast<int64_t&>(buf[offset]) = current_value_int;
+		offset += sizeof(int64_t);
+		break;
+	case Format::Float:
+		reinterpret_cast<double_t&>(buf[offset]) = current_value_float;
+		offset += sizeof(double_t);
+		break;
+	case Format::String:
+		reinterpret_cast<size_t&>(buf[offset]) = current_value_str.size();
+		offset += sizeof(size_t);
+		if (current_value_str.size() > 0) {
+			memcpy(&buf[offset], current_value_str.data(), current_value_str.size());
+			offset += current_value_str.size();
+		}
+		break;
 	}
 
 	return true;
@@ -616,6 +649,26 @@ bool obs::ListProperty::read(std::vector<char> const& buf)
 			break;
 		}
 		items.push_back(std::move(entry));
+	}
+
+	size_t length = 0;
+	switch (format) {
+	case Format::Integer:
+		current_value_int = reinterpret_cast<const int64_t&>(buf[offset]);
+		offset += sizeof(int64_t);
+		break;
+	case Format::Float:
+		current_value_float = reinterpret_cast<const double_t&>(buf[offset]);
+		offset += sizeof(double_t);
+		break;
+	case Format::String:
+		length = reinterpret_cast<const size_t&>(buf[offset]);
+		offset += sizeof(size_t);
+		if (length > 0) {
+			current_value_str = std::string(&buf[offset], length);
+			offset += length;
+		}
+		break;
 	}
 
 	return true;
