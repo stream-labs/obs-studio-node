@@ -76,7 +76,7 @@ std::map<std::string, std::string>             annotations;
 
 // Forward
 std::string    FormatVAString(const char* const format, va_list args);
-nlohmann::json RewindCallStack(uint32_t skip, std::string& crashedMethod);
+nlohmann::json RewindCallStack(uint32_t skip, std::string& crashedMethod, std::string& resultError);
 
 // Transform a byte value into a string + sufix
 std::string PrettyBytes(uint64_t bytes)
@@ -346,8 +346,9 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	// This will manually rewind the callstack, we will use this info to populate an
 	// cras report attribute, avoiding some cases that the memory dump is corrupted
 	// and we don't have access to the callstack.
-	std::string                        crashedMethodName;
-	nlohmann::json                     callStack = RewindCallStack(0, crashedMethodName);
+	std::string    crashedMethodName;
+	std::string    callstackRewindErrorMessage;
+	nlohmann::json callStack = RewindCallStack(0, crashedMethodName, callstackRewindErrorMessage);
 
 	// Get the information about the total of CPU and RAM used by this user
 	long long totalPhysMem;
@@ -379,12 +380,16 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	annotations.insert({{"OBS warnings", RequestOBSLog(OBSLogType::Warnings).dump(4)}});
 	annotations.insert({{"OBS log general", RequestOBSLog(OBSLogType::General).dump(4)}});
 	annotations.insert({{"Process List", RequestProcessList().dump(4)}});
-	annotations.insert({{"Manual callstack", callStack.dump(4)}});
 	annotations.insert({{"Crash reason", _crashInfo}});
 	annotations.insert({{"Computer name", computerName}});
 	annotations.insert({{"Breadcrumbs", ComputeBreadcrumbs().dump(4)}});
 	annotations.insert({{"Warnings", ComputeWarnings().dump(4)}});
 	annotations.insert({{"Version", OBS_API::getCurrentVersion()}});
+
+	// If the callstack rewind operation returned an error, use it instead its result
+	annotations.insert(
+	    {{"Manual callstack",
+	      (callstackRewindErrorMessage.length() > 0 ? callstackRewindErrorMessage : callStack.dump(4))}});
 	
     // Recreate crashpad instance, this is a well defined/supported operation
 	SetupCrashpad();
@@ -455,7 +460,7 @@ std::string FormatVAString(const char* const format, va_list args)
 	return std::string{temp.data(), length};
 }
 
-nlohmann::json RewindCallStack(uint32_t skip, std::string& crashedMethod)
+nlohmann::json RewindCallStack(uint32_t skip, std::string& crashedMethod, std::string& resultError)
 {
 	nlohmann::json result = nlohmann::json::array();
 
@@ -467,7 +472,19 @@ nlohmann::json RewindCallStack(uint32_t skip, std::string& crashedMethod)
 	CaptureStackBackTraceType func =
 	    (CaptureStackBackTraceType)(GetProcAddress(LoadLibrary(L"kernel32.dll"), "RtlCaptureStackBackTrace"));
 	if (func == NULL)
-		return result; // WOE 29.SEP.2010
+	{
+		// Attempt to get the function from the ntdll dll
+		const HMODULE hNtDll = ::GetModuleHandle(L"ntdll.dll");
+
+		if (hNtDll != NULL)
+			reinterpret_cast<void*&>(func) = ::GetProcAddress(hNtDll, "RtlCaptureStackBackTrace");
+
+		if (func == NULL)
+		{
+			resultError = "Failed to get RtlCaptureStackBackTrace address!";
+			return result; // WOE 29.SEP.2010
+		}
+	}
 
 	// Quote from Microsoft Documentation:
 	// ## Windows Server 2003 and Windows XP:
