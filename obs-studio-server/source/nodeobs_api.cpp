@@ -988,12 +988,17 @@ void OBS_API::StopCrashHandler(
 
 void OBS_API::destroyOBS_API(void)
 {
+	blog(LOG_DEBUG, "OBS_API::destroyOBS_API started");
+
 	os_cpu_usage_info_destroy(cpuUsageInfo);
 
 #ifdef _WIN32
-	bool disableAudioDucking = config_get_bool(ConfigManager::getInstance().getBasic(), "Audio", "DisableAudioDucking");
-	if (disableAudioDucking)
-		DisableAudioDucking(false);
+	config_t* basicConfig         = ConfigManager::getInstance().getBasic();
+	if (basicConfig) {
+		bool disableAudioDucking = config_get_bool(basicConfig, "Audio", "DisableAudioDucking");
+		if (disableAudioDucking)
+			DisableAudioDucking(false);
+	}
 #endif
 
 	obs_encoder_t* streamingEncoder = OBS_service::getStreamingEncoder();
