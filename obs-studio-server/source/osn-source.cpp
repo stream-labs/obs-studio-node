@@ -246,8 +246,7 @@ void osn::Source::GetProperties(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
-	obs_data* settings;
-	obs_properties_apply_settings(prp, settings);
+	obs_data* settings = obs_source_get_settings(src);
 
 	for (obs_property_t* p = obs_properties_first(prp); (p != nullptr); obs_property_next(&p)) {
 		std::shared_ptr<obs::Property> prop;

@@ -303,34 +303,57 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetValue(Nan::NAN_METHOD_ARGS_T
 	switch (iter->second->type) {
 	case osn::Property::Type::INVALID:
 		return;
-	case osn::Property::Type::BOOL:
-		info.GetReturnValue().Set(utilv8::ToValue(reinterpret_cast<bool*>(iter->second->value)));
+	case osn::Property::Type::BOOL: {
+		std::shared_ptr<osn::NumberProperty> cast_property =
+		    std::static_pointer_cast<osn::NumberProperty>(iter->second);
+		info.GetReturnValue().Set(utilv8::ToValue(reinterpret_cast<bool*>(cast_property->bool_value.value)));
 		break;
+	}
 	case osn::Property::Type::INT:
-	case osn::Property::Type::COLOR:
-		info.GetReturnValue().Set(utilv8::ToValue(reinterpret_cast<int*>(iter->second->value)));
+	case osn::Property::Type::COLOR: {
+		std::shared_ptr<osn::NumberProperty> cast_property =
+		    std::static_pointer_cast<osn::NumberProperty>(iter->second);
+
+		info.GetReturnValue().Set(utilv8::ToValue(cast_property->int_value.value));
 		break;
-	case osn::Property::Type::FLOAT:
-		info.GetReturnValue().Set(utilv8::ToValue(reinterpret_cast<double*>(iter->second->value)));
+	}
+	case osn::Property::Type::FLOAT: {
+		std::shared_ptr<osn::NumberProperty> cast_property =
+		    std::static_pointer_cast<osn::NumberProperty>(iter->second);
+
+		info.GetReturnValue().Set(utilv8::ToValue(cast_property->float_value.value));
 		break;
-	case osn::Property::Type::TEXT:
-	case osn::Property::Type::PATH:
-		info.GetReturnValue().Set(utilv8::ToValue(reinterpret_cast<const char*>(iter->second->value)));
+	}
+	case osn::Property::Type::TEXT: {
+		std::shared_ptr<osn::TextProperty> cast_property = std::static_pointer_cast<osn::TextProperty>(iter->second);
+		info.GetReturnValue().Set(utilv8::ToValue(cast_property->value));
 		break;
-	case osn::Property::Type::LIST:
-	case osn::Property::Type::EDITABLELIST: {
+	}
+	case osn::Property::Type::PATH: {
+		std::shared_ptr<osn::PathProperty> cast_property = std::static_pointer_cast<osn::PathProperty>(iter->second);
+		info.GetReturnValue().Set(utilv8::ToValue(cast_property->value));
+		break;
+	}
+
+	case osn::Property::Type::LIST: {
 		std::shared_ptr<osn::ListProperty> prop = std::static_pointer_cast<osn::ListProperty>(iter->second);
-		switch (prop->item_format) {
-		case ListProperty::Format::FLOAT:
-			info.GetReturnValue().Set(utilv8::ToValue(reinterpret_cast<double*>(iter->second->value)));
-			break;
-		case ListProperty::Format::INT:
-			info.GetReturnValue().Set(utilv8::ToValue(reinterpret_cast<int*>(iter->second->value)));
-			break;
-		case ListProperty::Format::STRING:
-			info.GetReturnValue().Set(utilv8::ToValue(reinterpret_cast<const char*>(iter->second->value)));
-			break;
-		}
+		//switch (prop->item_format) {
+		//case ListProperty::Format::FLOAT:
+		//	info.GetReturnValue().Set(utilv8::ToValue(reinterpret_cast<double*>(iter->second->value)));
+		//	break;
+		//case ListProperty::Format::INT:
+		//	info.GetReturnValue().Set(utilv8::ToValue(reinterpret_cast<int*>(iter->second->value)));
+		//	break;
+		//case ListProperty::Format::STRING:
+		//	info.GetReturnValue().Set(utilv8::ToValue(reinterpret_cast<const char*>(iter->second->value)));
+		//	break;
+		//}
+		//break;
+	}
+	case osn::Property::Type::EDITABLELIST: {
+		std::shared_ptr<osn::EditableListProperty> cast_property =
+		    std::static_pointer_cast<osn::EditableListProperty>(iter->second);
+		info.GetReturnValue().Set(utilv8::ToValue(cast_property->value));
 		break;
 	}
 	case osn::Property::Type::BUTTON:

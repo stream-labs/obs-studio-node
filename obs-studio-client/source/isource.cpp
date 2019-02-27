@@ -152,6 +152,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 		std::shared_ptr<osn::Property> pr;
 
 		switch (raw_property->type()) {
+		case obs::Property::Type::Boolean: {
+			std::shared_ptr<obs::BooleanProperty> cast_property =
+			    std::dynamic_pointer_cast<obs::BooleanProperty>(raw_property);
+			std::shared_ptr<osn::NumberProperty> pr2 = std::make_shared<osn::NumberProperty>();
+			pr2->bool_value.value                    = cast_property->value;
+		    break;
+		}
 		case obs::Property::Type::Integer: {
 			std::shared_ptr<obs::IntegerProperty> cast_property =
 			    std::dynamic_pointer_cast<obs::IntegerProperty>(raw_property);
@@ -160,6 +167,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 			pr2->int_value.min                       = cast_property->minimum;
 			pr2->int_value.max                       = cast_property->maximum;
 			pr2->int_value.step                      = cast_property->step;
+			pr2->int_value.value                     = cast_property->value;
 			pr                                       = std::static_pointer_cast<osn::Property>(pr2);
 			break;
 		}
@@ -171,6 +179,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 			pr2->float_value.min                     = cast_property->minimum;
 			pr2->float_value.max                     = cast_property->maximum;
 			pr2->float_value.step                    = cast_property->step;
+			pr2->float_value.value                     = cast_property->value;
 			pr                                       = std::static_pointer_cast<osn::Property>(pr2);
 			break;
 		}
@@ -179,6 +188,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 			    std::dynamic_pointer_cast<obs::TextProperty>(raw_property);
 			std::shared_ptr<osn::TextProperty> pr2 = std::make_shared<osn::TextProperty>();
 			pr2->field_type                        = osn::TextProperty::Type(cast_property->field_type);
+			pr2->value                             = cast_property->value;
 			pr                                     = std::static_pointer_cast<osn::Property>(pr2);
 			break;
 		}
@@ -189,6 +199,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 			pr2->field_type                        = osn::PathProperty::Type(cast_property->field_type);
 			pr2->filter                            = cast_property->filter;
 			pr2->default_path                      = cast_property->default_path;
+			pr2->value                             = cast_property->value;
 			pr                                     = std::static_pointer_cast<osn::Property>(pr2);
 			break;
 		}
@@ -225,6 +236,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 			pr2->field_type                                = osn::EditableListProperty::Type(cast_property->field_type);
 			pr2->filter                                    = cast_property->filter;
 			pr2->default_path                              = cast_property->default_path;
+			pr2->value                                     = cast_property->value;
 			pr                                             = std::static_pointer_cast<osn::Property>(pr2);
 			break;
 		}

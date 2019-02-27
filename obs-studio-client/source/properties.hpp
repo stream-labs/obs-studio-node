@@ -52,8 +52,6 @@ namespace osn
 		bool enabled;
 		bool visible;
 
-		void* value;
-
 		Type type;
 	};
 
@@ -69,12 +67,16 @@ namespace osn
 		{
 			struct
 			{
-				int64_t min, max, step;
+				int64_t min, max, step, value;
 			} int_value;
 			struct
 			{
-				double_t min, max, step;
+				double_t min, max, step, value;
 			} float_value;
+			struct
+			{
+				bool value;
+			} bool_value;
 		};
 
 		Type field_type;
@@ -89,7 +91,8 @@ namespace osn
 			MULTILINE,
 		};
 
-		Type field_type;
+		Type        field_type;
+		std::string value;
 	};
 
 	struct PathProperty : Property
@@ -104,6 +107,7 @@ namespace osn
 		Type        field_type;
 		std::string filter;
 		std::string default_path;
+		std::string value;
 	};
 
 	struct ListProperty : Property
@@ -153,6 +157,7 @@ namespace osn
 		Type        field_type;
 		std::string filter;
 		std::string default_path;
+		std::string value;
 	};
 
 	struct FrameRateProperty : Property
