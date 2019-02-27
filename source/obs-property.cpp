@@ -700,7 +700,7 @@ bool obs::ColorProperty::serialize(std::vector<char>& buf)
 	*reinterpret_cast<int64_t*>(&buf[offset]) = value;
 	offset += sizeof(int64_t);
 
-	return value;
+	return true;
 }
 
 bool obs::ColorProperty::read(std::vector<char> const& buf)
@@ -717,7 +717,7 @@ bool obs::ColorProperty::read(std::vector<char> const& buf)
 	value         = *reinterpret_cast<const int64_t*>(&buf[offset]);
 	offset += sizeof(int64_t);
 
-	return Property::read(buf);
+	return true;
 }
 
 obs::Property::Type obs::ButtonProperty::type()

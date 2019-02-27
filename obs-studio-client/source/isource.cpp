@@ -171,6 +171,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 			pr                                       = std::static_pointer_cast<osn::Property>(pr2);
 			break;
 		}
+		case obs::Property::Type::Color: {
+			std::shared_ptr<obs::ColorProperty> cast_property =
+			    std::dynamic_pointer_cast<obs::ColorProperty>(raw_property);
+			std::shared_ptr<osn::NumberProperty> pr2 = std::make_shared<osn::NumberProperty>();
+			pr2->int_value.value                     = cast_property->value;
+			pr                                       = std::static_pointer_cast<osn::Property>(pr2);
+			break;
+		}
 		case obs::Property::Type::Float: {
 			std::shared_ptr<obs::FloatProperty> cast_property =
 			    std::dynamic_pointer_cast<obs::FloatProperty>(raw_property);
@@ -179,7 +187,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 			pr2->float_value.min                     = cast_property->minimum;
 			pr2->float_value.max                     = cast_property->maximum;
 			pr2->float_value.step                    = cast_property->step;
-			pr2->float_value.value                     = cast_property->value;
+			pr2->float_value.value                   = cast_property->value;
 			pr                                       = std::static_pointer_cast<osn::Property>(pr2);
 			break;
 		}
