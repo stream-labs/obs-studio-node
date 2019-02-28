@@ -81,7 +81,7 @@ class OBS_API
 
 	private:
 	static void initAPI(void);
-	static bool openAllModules(int& video_err);
+	static uint32_t openAllModules(std::vector<std::string>& warningMessagesOutput);
 
 	static double getCPU_Percentage(void);
 	static int    getNumberOfDroppedFrames(void);

@@ -814,10 +814,16 @@ bool OBS_service::createRecordingOutput(void)
 	return true;
 }
 
-void OBS_service::createReplayBufferOutput(void)
+bool OBS_service::createReplayBufferOutput(void)
 {
 	replayBufferOutput = obs_output_create("replay_buffer", "ReplayBuffer", nullptr, nullptr);
+	if (replayBufferOutput == nullptr) {
+		return false;
+	}
+
 	connectOutputSignals();
+
+	return true;
 }
 
 void OBS_service::setupAudioEncoder(void) {

@@ -17,9 +17,9 @@
 ******************************************************************************/
 
 #include "nodeobs_api.h"
+#include "osn-fader.hpp"
 #include "osn-source.hpp"
 #include "osn-volmeter.hpp"
-#include "osn-fader.hpp"
 #include "util/lexer.h"
 
 #ifdef _WIN32
@@ -32,6 +32,7 @@
 
 #include <ShlObj.h>
 #include <codecvt>
+#include <experimental/filesystem>
 #include <locale>
 #include <mutex>
 #include <string>
@@ -84,7 +85,8 @@ void OBS_API::Register(ipc::server& srv)
 	    "SetWorkingDirectory", std::vector<ipc::type>{ipc::type::String}, SetWorkingDirectory));
 	cls->register_function(
 	    std::make_shared<ipc::function>("StopCrashHandler", std::vector<ipc::type>{}, StopCrashHandler));
-	cls->register_function(std::make_shared<ipc::function>("OBS_API_QueryHotkeys", std::vector<ipc::type>{}, QueryHotkeys));
+	cls->register_function(
+	    std::make_shared<ipc::function>("OBS_API_QueryHotkeys", std::vector<ipc::type>{}, QueryHotkeys));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_API_ProcessHotkeyStatus",
 	    std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32},
@@ -168,7 +170,7 @@ static bool ExpectToken(lexer* lex, const char* str, base_token_type type)
 * for right now.  */
 static uint64_t ConvertLogName(const char* name)
 {
-	lexer  lex;
+	lexer       lex;
 	std::string year, month, day, hour, minute, second;
 
 	lexer_init(&lex);
@@ -203,7 +205,7 @@ static uint64_t ConvertLogName(const char* name)
 
 static void DeleteOldestFile(const char* location, unsigned maxLogs)
 {
-	std::string            oldestLog;
+	std::string       oldestLog;
 	uint64_t          oldest_ts = (uint64_t)-1;
 	struct os_dirent* entry;
 
@@ -437,18 +439,84 @@ std::vector<char> terminateCrashHandler(void)
 	return buffer;
 }
 
-void writeCrashHandler(std::vector<char> buffer)
+bool writeCrashHandler(std::vector<char> buffer)
 {
-	HANDLE hPipe = CreateFile( TEXT("\\\\.\\pipe\\slobs-crash-handler"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+	HANDLE hPipe = CreateFile(
+	    TEXT("\\\\.\\pipe\\slobs-crash-handler"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 
 	if (hPipe == INVALID_HANDLE_VALUE)
-		return;
+		return false;
 
 	DWORD bytesWritten;
 
-	WriteFile(hPipe, buffer.data(), buffer.size(), &bytesWritten, NULL);
+	bool writeResult = WriteFile(hPipe, buffer.data(), buffer.size(), &bytesWritten, NULL);
+	if (!writeResult || bytesWritten <= 0)
+		return false;
 
 	CloseHandle(hPipe);
+
+	return true;
+}
+
+enum EInitializationCodes : uint32_t
+{
+	Success = 0,
+	VideoNotSupported,
+	VideoModuleNotFound,
+	OBSStartupFailed,
+	FailedToCreateService,
+	FailedToCreateOutputs,
+	FailedToCreateVideoEncoder,
+	FailToResetAudioContext,
+	FailToResetVideoContext,
+	InvalidPluginsDirectoy,
+	FailedToOpenPluginsDirectoy,
+	UnknowError
+};
+
+uint32_t Initialize_OBS_Service()
+{
+	if (!OBS_service::createService()) {
+		return EInitializationCodes::FailedToCreateService;
+	}
+
+	if (!OBS_service::createStreamingOutput()) {
+		return EInitializationCodes::FailedToCreateOutputs;
+	}
+
+	if (!OBS_service::createRecordingOutput()) {
+		return EInitializationCodes::FailedToCreateOutputs;
+	}
+
+	if (!OBS_service::createReplayBufferOutput()) {
+		return EInitializationCodes::FailedToCreateOutputs;
+	}
+
+	if (!OBS_service::createVideoStreamingEncoder()) {
+		return EInitializationCodes::FailedToCreateVideoEncoder;
+	}
+
+	if (!OBS_service::createVideoRecordingEncoder()) {
+		return EInitializationCodes::FailedToCreateVideoEncoder;
+	}
+
+	if (!OBS_service::resetAudioContext()) {
+		return EInitializationCodes::FailToResetAudioContext;
+	}
+
+	if (!OBS_service::resetVideoContext()) {
+		return EInitializationCodes::FailToResetVideoContext;
+	}
+
+	OBS_service::setupAudioEncoder();
+
+	OBS_service::associateAudioAndVideoToTheCurrentStreamingContext();
+	OBS_service::associateAudioAndVideoToTheCurrentRecordingContext();
+
+	OBS_service::associateAudioAndVideoEncodersToTheCurrentStreamingOutput();
+	OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(false);
+
+	return EInitializationCodes::Success;
 }
 
 void OBS_API::OBS_API_initAPI(
@@ -457,7 +525,17 @@ void OBS_API::OBS_API_initAPI(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	writeCrashHandler(registerProcess());
+	std::vector<std::string> warningMesages;
+	auto                     FailWithError = [&](uint32_t errorCode) {
+        rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+        rval.push_back(ipc::value(errorCode));
+        AUTO_DEBUG;
+	};
+
+	if (!writeCrashHandler(registerProcess())) {
+		warningMesages.push_back("Failed to write crash handler");
+	}
+
 	/* Map base DLLs as soon as possible into the current process space.
 	* In particular, we need to load obs.dll into memory before we call
 	* any functions from obs else if we delay-loaded the dll, it will
@@ -480,7 +558,10 @@ void OBS_API::OBS_API_initAPI(
 
 	std::vector<char> userData = std::vector<char>(1024);
 	os_get_config_path(userData.data(), userData.capacity() - 1, "slobs-client/plugin_config");
-	obs_startup(locale.c_str(), userData.data(), NULL);
+	if (!obs_startup(locale.c_str(), userData.data(), NULL)) {
+		FailWithError(EInitializationCodes::OBSStartupFailed);
+		return;
+	}
 
 	/* Logging */
 	std::string filename = GenerateTimeDateFilename("txt");
@@ -496,7 +577,7 @@ void OBS_API::OBS_API_initAPI(
 	/* Delete oldest file in the folder to imitate rotating */
 	DeleteOldestFile(log_path.c_str(), 3);
 	log_path.append(filename);
-
+	 
 #if defined(_WIN32) && defined(UNICODE)
 	std::fstream* logfile =
 	    new std::fstream(converter.from_bytes(log_path.c_str()).c_str(), std::ios_base::out | std::ios_base::trunc);
@@ -507,6 +588,7 @@ void OBS_API::OBS_API_initAPI(
 	if (!logfile->is_open()) {
 		logfile = nullptr;
 		std::cerr << "Failed to open log file" << std::endl;
+		warningMesages.push_back("Failed to open the log file");
 	}
 
 	base_set_log_handler(node_obs_log, logfile);
@@ -521,41 +603,31 @@ void OBS_API::OBS_API_initAPI(
 
 	cpuUsageInfo = os_cpu_usage_info_start();
 
+	// Check if the appdata is a valid path
+	if (!std::experimental::filesystem::is_directory(appdata)) {
+		warningMesages.push_back("Invalid appdata path");
+	}
+
 	ConfigManager::getInstance().setAppdataPath(appdata);
 
 	/* Set global private settings for whomever it concerns */
-	bool        browserHWAccel   = config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "BrowserHWAccel");
+	bool        browserHWAccel = config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "BrowserHWAccel");
 	obs_data_t* private_settings = obs_data_create();
 	obs_data_set_bool(private_settings, "BrowserHWAccel", browserHWAccel);
 	obs_apply_private_data(private_settings);
 	obs_data_release(private_settings);
 
-	int videoError;
-	if (!openAllModules(videoError)) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-		rval.push_back(ipc::value(videoError));
-		AUTO_DEBUG;
+	uint32_t openAllModulesResult = openAllModules(warningMesages);
+	if (openAllModulesResult != EInitializationCodes::Success) {
+		FailWithError(openAllModulesResult);
 		return;
 	}
 
-	OBS_service::createService();
-	OBS_service::createStreamingOutput();
-	OBS_service::createRecordingOutput();
-	OBS_service::createReplayBufferOutput();
-
-	OBS_service::createVideoStreamingEncoder();
-	OBS_service::createVideoRecordingEncoder();
-
-	OBS_service::resetAudioContext();
-	OBS_service::resetVideoContext();
-
-	OBS_service::setupAudioEncoder();
-
-	OBS_service::associateAudioAndVideoToTheCurrentStreamingContext();
-	OBS_service::associateAudioAndVideoToTheCurrentRecordingContext();
-
-	OBS_service::associateAudioAndVideoEncodersToTheCurrentStreamingOutput();
-	OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(false);
+	uint32_t serviceInitializationResult = Initialize_OBS_Service();
+	if (serviceInitializationResult != EInitializationCodes::Success) {
+		FailWithError(serviceInitializationResult);
+		return;
+	}
 
 	setAudioDeviceMonitoring();
 
@@ -565,7 +637,12 @@ void OBS_API::OBS_API_initAPI(
 	// We are returning a video result here because the frontend needs to know if we sucessfully
 	// initialized the Dx11 API
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(OBS_VIDEO_SUCCESS));
+
+	// Insert all warning messages
+	for (auto& warningMessage : warningMesages)
+	{
+		rval.push_back(ipc::value(warningMessage));
+	}
 
 	AUTO_DEBUG;
 }
@@ -647,8 +724,8 @@ void OBS_API::QueryHotkeys(
 			    break;
 		    }
 		    case OBS_HOTKEY_REGISTERER_SOURCE: {
-			    auto* weak_source            = static_cast<obs_weak_source_t*>(registerer);
-			    auto  key_source             = OBSGetStrongRef(weak_source);
+			    auto* weak_source = static_cast<obs_weak_source_t*>(registerer);
+			    auto  key_source  = OBSGetStrongRef(weak_source);
 			    if (key_source == nullptr)
 				    return true;
 			    currentHotkeyInfo.objectName = obs_source_get_name(key_source);
@@ -656,8 +733,8 @@ void OBS_API::QueryHotkeys(
 			    break;
 		    }
 		    case OBS_HOTKEY_REGISTERER_OUTPUT: {
-			    auto* weak_output            = static_cast<obs_weak_output_t*>(registerer);
-			    auto  key_output             = OBSGetStrongRef(weak_output);
+			    auto* weak_output = static_cast<obs_weak_output_t*>(registerer);
+			    auto  key_output  = OBSGetStrongRef(weak_output);
 			    if (key_output == nullptr)
 				    return true;
 			    currentHotkeyInfo.objectName = obs_output_get_name(key_output);
@@ -665,8 +742,8 @@ void OBS_API::QueryHotkeys(
 			    break;
 		    }
 		    case OBS_HOTKEY_REGISTERER_ENCODER: {
-			    auto* weak_encoder           = static_cast<obs_weak_encoder_t*>(registerer);
-			    auto  key_encoder            = OBSGetStrongRef(weak_encoder);
+			    auto* weak_encoder = static_cast<obs_weak_encoder_t*>(registerer);
+			    auto  key_encoder  = OBSGetStrongRef(weak_encoder);
 			    if (key_encoder == nullptr)
 				    return true;
 			    currentHotkeyInfo.objectName = obs_encoder_get_name(key_encoder);
@@ -674,8 +751,8 @@ void OBS_API::QueryHotkeys(
 			    break;
 		    }
 		    case OBS_HOTKEY_REGISTERER_SERVICE: {
-			    auto* weak_service           = static_cast<obs_weak_service_t*>(registerer);
-			    auto  key_service            = OBSGetStrongRef(weak_service);
+			    auto* weak_service = static_cast<obs_weak_service_t*>(registerer);
+			    auto  key_service  = OBSGetStrongRef(weak_service);
 			    if (key_service == nullptr)
 				    return true;
 			    currentHotkeyInfo.objectName = obs_service_get_name(key_service);
@@ -892,8 +969,8 @@ void acknowledgeTerminate(void)
 
 	Pipe.dwState = Pipe.fPendingIO ? CONNECTING_STATE : READING_STATE;
 
-	bool exit = false;
-	auto timeNow = std::chrono::high_resolution_clock::now();
+	bool  exit    = false;
+	auto  timeNow = std::chrono::high_resolution_clock::now();
 	DWORD i, dwWait, cbRet, dwErr;
 
 	while (!exit) {
@@ -942,11 +1019,7 @@ void acknowledgeTerminate(void)
 			case READING_STATE: {
 				Pipe.chRequest.resize(BUFFSIZE);
 				fSuccess = ReadFile(
-				    Pipe.hPipeInst,
-				    Pipe.chRequest.data(),
-				    BUFFSIZE * sizeof(TCHAR),
-				    &Pipe.cbRead,
-				    &Pipe.oOverlap);
+				    Pipe.hPipeInst, Pipe.chRequest.data(), BUFFSIZE * sizeof(TCHAR), &Pipe.cbRead, &Pipe.oOverlap);
 
 				GetOverlappedResult(Pipe.hPipeInst, &Pipe.oOverlap, &Pipe.cbRead, false);
 
@@ -1028,9 +1101,9 @@ void OBS_API::destroyOBS_API(void)
 	if (service != NULL)
 		obs_service_release(service);
 
-    OBS_service::clearAudioEncoder();
-    osn::VolMeter::ClearVolmeters();
-    osn::Fader::ClearFaders();
+	OBS_service::clearAudioEncoder();
+	osn::VolMeter::ClearVolmeters();
+	osn::Fader::ClearFaders();
 
 	obs_shutdown();
 
@@ -1088,11 +1161,18 @@ typedef std::basic_string<char, ci_char_traits> istring;
 
 /* This should be reusable outside of node-obs, especially
 * if we go a server/client route. */
-bool OBS_API::openAllModules(int& video_err)
+uint32_t OBS_API::openAllModules(std::vector<std::string>& warningMessagesOutput)
 {
-	video_err = OBS_service::resetVideoContext();
+	// Verify any error by reseting the video context
+	int video_err = OBS_service::resetVideoContext();
 	if (video_err != OBS_VIDEO_SUCCESS) {
-		return false;
+		if (video_err == OBS_VIDEO_MODULE_NOT_FOUND) {
+			return EInitializationCodes::VideoModuleNotFound;
+		} else if (video_err == OBS_VIDEO_NOT_SUPPORTED) {
+			return EInitializationCodes::VideoNotSupported;
+		} else {
+			return EInitializationCodes::UnknowError;
+		}
 	}
 
 	std::string plugins_paths[] = {g_moduleDirectory + "/obs-plugins/64bit",
@@ -1114,14 +1194,14 @@ bool OBS_API::openAllModules(int& video_err)
 		if (!os_file_exists(plugins_path.c_str())) {
 			blog(LOG_ERROR, "Plugin Path provided is invalid: %s", plugins_path);
 			std::cerr << "Plugin Path provided is invalid: " << plugins_path << std::endl;
-			return false;
+			return EInitializationCodes::InvalidPluginsDirectoy;
 		}
 
 		os_dir_t* plugin_dir = os_opendir(plugins_path.c_str());
 		if (!plugin_dir) {
 			blog(LOG_ERROR, "Failed to open plugin diretory: %s", plugins_path);
 			std::cerr << "Failed to open plugin diretory: " << plugins_path << std::endl;
-			return false;
+			return EInitializationCodes::FailedToOpenPluginsDirectoy;
 		}
 
 		for (os_dirent* ent = os_readdir(plugin_dir); ent != nullptr; ent = os_readdir(plugin_dir)) {
@@ -1141,7 +1221,17 @@ bool OBS_API::openAllModules(int& video_err)
 #endif
 
 			obs_module_t* module;
-			int           result = obs_open_module(&module, plugin_path.c_str(), plugin_data_path.c_str());
+			int           result;
+
+			try {
+				result = obs_open_module(&module, plugin_path.c_str(), plugin_data_path.c_str());
+			} catch (std::string errorMsg) {
+				warningMessagesOutput.push_back("Failed to load module: " + basename + " - " + errorMsg);
+				continue;
+			} catch (...) {
+				warningMessagesOutput.push_back("Failed to load module: " + basename + " - Unknow error");
+				continue;
+			}
 
 			switch (result) {
 			case MODULE_SUCCESS:
@@ -1163,18 +1253,26 @@ bool OBS_API::openAllModules(int& video_err)
 				continue;
 			}
 
-			bool success = obs_init_module(module);
-
-			if (!success) {
-				std::cerr << "Failed to initialize module " << plugin_path << std::endl;
-				/* Just continue to next one */
+			try {
+				bool success = obs_init_module(module);
+				if (!success) {
+					std::cerr << "Failed to initialize module " << plugin_path << std::endl;
+					/* Just continue to next one */
+				}			
+			} catch (std::string errorMsg) {
+				warningMessagesOutput.push_back("Failed to initialize module: " + basename + " - " + errorMsg);
+				continue;
+			} catch (...) {
+				warningMessagesOutput.push_back("Failed to initialize module: " + basename + " - Unknow error");
+				continue;
 			}
+
 		}
 
 		os_closedir(plugin_dir);
 	}
 
-	return true;
+	return EInitializationCodes::Success;
 }
 
 double OBS_API::getCPU_Percentage(void)
