@@ -1322,7 +1322,9 @@ void OBS_settings::getSimpleOutputSettings(
 	outputSettings->push_back(
 	    serializeSettingsData("Recording", entries, config, "SimpleOutput", true, isCategoryEnabled));
 
-	getReplayBufferSettings(outputSettings, config, false, isCategoryEnabled);
+	// We do not expose the replay buffer output anymore throught the settings
+	// *****Deprecated code*****
+	// getReplayBufferSettings(outputSettings, config, false, isCategoryEnabled);
 }
 
 void OBS_settings::getEncoderSettings(
@@ -2437,7 +2439,9 @@ void OBS_settings::getAdvancedOutputSettings(
 	getAdvancedOutputAudioSettings(outputSettings, config, isCategoryEnabled);
 
 	// Replay buffer
-	getReplayBufferSettings(outputSettings, config, true, isCategoryEnabled);
+	// We do not expose the replay buffer output anymore throught the settings
+	// *****Deprecated code*****
+	// getReplayBufferSettings(outputSettings, config, true, isCategoryEnabled);
 }
 
 std::vector<SubCategory> OBS_settings::getOutputSettings(CategoryTypes &type)
@@ -2748,9 +2752,11 @@ void OBS_settings::saveAdvancedOutputSettings(std::vector<SubCategory> settings)
 	}
 
 	// Replay buffer
-	std::vector<SubCategory> replaySettings;
-	replaySettings.push_back(settings.at(9));
-	saveGenericSettings(replaySettings, "AdvOut", ConfigManager::getInstance().getBasic());
+	// We do not expose the replay buffer output anymore throught the settings
+	// *****Deprecated code*****
+	// std::vector<SubCategory> replaySettings;
+	// replaySettings.push_back(settings.at(9));
+	// saveGenericSettings(replaySettings, "AdvOut", ConfigManager::getInstance().getBasic());
 }
 
 bool useAdvancedOutput;
