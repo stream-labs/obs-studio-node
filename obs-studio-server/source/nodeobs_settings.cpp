@@ -2753,28 +2753,23 @@ void OBS_settings::saveAdvancedOutputSettings(std::vector<SubCategory> settings)
 	saveGenericSettings(replaySettings, "AdvOut", ConfigManager::getInstance().getBasic());
 }
 
-bool useAdvancedOutput;
-
 void OBS_settings::saveOutputSettings(std::vector<SubCategory> settings)
 {
 	// Get selected output mode
 	Parameter   outputMode = settings.at(0).params.at(0);
-	std::string currentOutputMode(outputMode.currentValue.data(), outputMode.currentValue.size());
+	std::string value_outputMode(outputMode.currentValue.data(), outputMode.currentValue.size());
+	std::string current_outputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
 
-	config_set_string(ConfigManager::getInstance().getBasic(), "Output", "Mode", currentOutputMode.c_str());
-	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
-
-	if (currentOutputMode.compare("Advanced") == 0) {
-		if (useAdvancedOutput) {
-			saveAdvancedOutputSettings(settings);
-		}
-		useAdvancedOutput = true;
-	} else {
-		if (!useAdvancedOutput) {
-			saveSimpleOutputSettings(settings);
-		}
-		useAdvancedOutput = false;
+	if (value_outputMode.compare(current_outputMode) != 0) {
+		config_set_string(ConfigManager::getInstance().getBasic(), "Output", "Mode", value_outputMode.c_str());
+		config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
+		return;
 	}
+
+	if (value_outputMode.compare("Advanced") == 0)
+		saveAdvancedOutputSettings(settings);
+	else
+		saveSimpleOutputSettings(settings);
 }
 
 std::vector<SubCategory> OBS_settings::getAudioSettings()
