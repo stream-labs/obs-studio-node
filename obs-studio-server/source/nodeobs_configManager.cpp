@@ -99,7 +99,7 @@ void initBasicDefault(config_t* config)
 	config_set_default_string(config, "SimpleOutput", "Preset", "veryfast");
 	config_set_default_string(config, "SimpleOutput", "RecQuality", "Stream");
 	config_set_default_string(config, "SimpleOutput", "RecEncoder", "x264");
-	config_set_default_bool(config, "SimpleOutput", "RecRB", false);
+	config_set_default_bool(config, "SimpleOutput", "RecRB", true);
 	config_set_default_int(config, "SimpleOutput", "RecRBTime", 20);
 	config_set_default_int(config, "SimpleOutput", "RecRBSize", 512);
 	config_set_default_string(config, "SimpleOutput", "RecRBPrefix", "Replay");
@@ -134,7 +134,7 @@ void initBasicDefault(config_t* config)
 	config_set_default_uint(config, "AdvOut", "Track5Bitrate", 160);
 	config_set_default_uint(config, "AdvOut", "Track6Bitrate", 160);
 
-	config_set_default_bool(config, "AdvOut", "RecRB", false);
+	config_set_default_bool(config, "AdvOut", "RecRB", true);
 	config_set_default_uint(config, "AdvOut", "RecRBTime", 20);
 	config_set_default_int(config, "AdvOut", "RecRBSize", 512);
 
