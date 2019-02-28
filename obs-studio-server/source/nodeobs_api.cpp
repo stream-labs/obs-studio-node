@@ -1140,8 +1140,8 @@ bool OBS_API::openAllModules(int& video_err)
 			}
 #endif
 
-			obs_module_t* module;
-			int           result;
+			obs_module_t* module = nullptr;
+			int           result = MODULE_ERROR;
 
 			try {
 				result = obs_open_module(&module, plugin_path.c_str(), plugin_data_path.c_str());
