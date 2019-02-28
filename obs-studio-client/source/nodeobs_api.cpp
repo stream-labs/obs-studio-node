@@ -42,17 +42,33 @@ void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args)
 	std::vector<ipc::value> response =
 	    conn->call_synchronous_helper("API", "OBS_API_initAPI", {ipc::value(path), ipc::value(language)});
 
-	// The API init method will return a response error + graphical error
+	// The API init method will return a response index + warning messages (if any)
 	// If there is a problem with the IPC the number of responses here will be zero so we must validate the
 	// response.
-	// If the method call was sucessfull we will have 2 arguments, also there is no need to validate the
+	// If the method call was sucessfull we will have at least 2 arguments, also there is no need to validate the
 	// response
 	if (response.size() < 2) {
 		if (!ValidateResponse(response)) {
 			return;
 		}
 	}
-	args.GetReturnValue().Set(v8::Number::New(args.GetIsolate(), response[1].value_union.i32));
+
+	v8::Local<v8::Object> initResult = v8::Object::New(args.GetIsolate());
+	v8::Local<v8::Array>  warningMessages = v8::Array::New(args.GetIsolate());
+
+	for (int i = 2; i < response.size(); i++)
+	{
+		v8::Local<v8::String> warningMessage =
+		    v8::String::NewFromUtf8(args.GetIsolate(), response[i].value_str.c_str());
+
+		warningMessages->Set(i - 2, warningMessage);
+	}
+
+
+	utilv8::SetObjectField(initResult, "resultCode", response[1].value_union.i32);
+	utilv8::SetObjectField(initResult, "warningMessages", warningMessages);
+
+	args.GetReturnValue().Set(initResult);
 }
 
 void api::OBS_API_destroyOBS_API(const v8::FunctionCallbackInfo<v8::Value>& args)
