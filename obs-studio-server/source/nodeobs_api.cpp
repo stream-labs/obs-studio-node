@@ -1183,7 +1183,7 @@ bool OBS_API::openAllModules(int& video_err)
 				blog(LOG_ERROR, "Failed to initialize module: %s - %s", basename, errorMsg);
 				continue;
 			} catch (...) {
-				blog(LOG_ERROR, "Failed to initialize module: %s - %s", basename);
+				blog(LOG_ERROR, "Failed to initialize module: %s", basename);
 				continue;
 			}
 		}
