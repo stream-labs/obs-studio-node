@@ -504,7 +504,7 @@ uint32_t Initialize_OBS_Service()
 		return EInitializationCodes::FailToResetAudioContext;
 	}
 
-	if (!OBS_service::resetVideoContext()) {
+	if (OBS_service::resetVideoContext() != OBS_VIDEO_SUCCESS) {
 		return EInitializationCodes::FailToResetVideoContext;
 	}
 
@@ -637,6 +637,7 @@ void OBS_API::OBS_API_initAPI(
 	// We are returning a video result here because the frontend needs to know if we sucessfully
 	// initialized the Dx11 API
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(EInitializationCodes::Success));
 
 	// Insert all warning messages
 	for (auto& warningMessage : warningMesages)

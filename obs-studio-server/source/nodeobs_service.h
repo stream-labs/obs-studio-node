@@ -214,7 +214,7 @@ class OBS_service
 	// Outputs
 	static bool          createStreamingOutput(void);
 	static bool          createRecordingOutput(void);
-	static void          createReplayBufferOutput(void);
+	static bool          createReplayBufferOutput(void);
 	static obs_output_t* getStreamingOutput(void);
 	static void          setStreamingOutput(obs_output_t* output);
 	static obs_output_t* getRecordingOutput(void);
