@@ -4,7 +4,7 @@ import * as osn from 'obs-studio-node';
 import { OBSProcessHandler } from '../util/obs_process_handler';
 import { deleteConfigFiles, basicOBSSettingsCategories } from '../util/general';
 
-describe('nodeobs_settings', () => {
+describe('nodeobs_settings', function() {
     let obs: OBSProcessHandler;
 
     // Initialize OBS process
@@ -24,8 +24,8 @@ describe('nodeobs_settings', () => {
         deleteConfigFiles();
     });
 
-    context('# OBS_settings_saveSettings and OBS_settings_getSettings', () => {
-        it('Get and set general settings', () => {
+    context('# OBS_settings_saveSettings and OBS_settings_getSettings', function() {
+        it('Get and set general settings', function() {
             // Getting general settings
             let generalSettings = osn.NodeObs.OBS_settings_getSettings('General');
 
@@ -54,7 +54,7 @@ describe('nodeobs_settings', () => {
             expect(generalSettings).to.eql(updatedGeneralSettings);
         });
 
-        it('Get and set Twitch stream settings', () => {
+        it('Get and set Twitch stream settings', function() {
             let originalStreamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
 
             // Setting stream service to Twitch
@@ -99,7 +99,7 @@ describe('nodeobs_settings', () => {
             expect(newStreamSettings).to.eql(updatedStreamSettings);
         });
 
-        it('Get and set Youtube stream settings', () => {
+        it('Get and set Youtube stream settings', function() {
             let originalStreamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
 
             // Setting stream service to Twitch
@@ -144,7 +144,7 @@ describe('nodeobs_settings', () => {
             expect(newStreamSettings).to.eql(updatedStreamSettings);
         });
         
-        it('Get and Set Mixer stream settings', () => {
+        it('Get and Set Mixer stream settings', function() {
             let originalStreamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
 
             // Setting stream service to Mixer
@@ -189,7 +189,7 @@ describe('nodeobs_settings', () => {
             expect(newStreamSettings).to.eql(updatedStreamSettings);
         });
 
-        it('Get and set Facebook stream settings', () => {
+        it('Get and set Facebook stream settings', function() {
             let originalStreamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
 
             // Setting stream service to Facebook
@@ -230,7 +230,7 @@ describe('nodeobs_settings', () => {
             expect(newStreamSettings).to.eql(updatedStreamSettings);
         });
 
-        it('Get and set simple output settings', () => {
+        it('Get and set simple output settings', function() {
             // Setting output mode to simple
             let setToSimple = osn.NodeObs.OBS_settings_getSettings('Output');
 
@@ -504,7 +504,7 @@ describe('nodeobs_settings', () => {
             expect(losslessQualityOutputSettings).to.eql(updatedLosslessOutputSettings);
         });
 
-        it('Get and set QSV encoder streaming and recording advanced output settings', () => {
+        it('Get and set QSV encoder streaming and recording advanced output settings', function() {
             // Setting output mode to advanced
             let setToAdvanced = osn.NodeObs.OBS_settings_getSettings('Output');
 
@@ -1195,7 +1195,7 @@ describe('nodeobs_settings', () => {
             expect(laOutputSettings).to.eql(updatedLAOutputSettings);
         });
 
-        it('Get and set x264 encoder streaming and recording advanced output settings', () => {
+        it('Get and set x264 encoder streaming and recording advanced output settings', function() {
             // Setting output mode to advanced
             let setToAdvanced = osn.NodeObs.OBS_settings_getSettings('Output');
 
@@ -1581,7 +1581,7 @@ describe('nodeobs_settings', () => {
             expect(crfOutputSettings).to.eql(updatedCRFOutputSettings);
         });
 
-        it('Get and set NVENC encoder streaming and recording advanced output settings', () => {
+        it('Get and set NVENC encoder streaming and recording advanced output settings', function() {
             // Setting output mode to advanced
             let setToAdvanced = osn.NodeObs.OBS_settings_getSettings('Output');
 
@@ -1931,7 +1931,7 @@ describe('nodeobs_settings', () => {
             expect(losslessOutputSettings).to.eql(updatedLosslessOutputSettings);
         });
 
-        it('Get and set audio tracks and replay buffer advanced output settings', () => {
+        it('Get and set audio tracks and replay buffer advanced output settings', function() {
             // Setting output mode to advanced
             let setToAdvanced = osn.NodeObs.OBS_settings_getSettings('Output');
 
@@ -2027,7 +2027,7 @@ describe('nodeobs_settings', () => {
             expect(audioTrackReplayBufferSettings).to.eql(updatedSettings);
         });
 
-        it('Get and set video settings', () => {
+        it('Get and set video settings', function() {
             // Setting base resolution to 1920x1080 and FPS type to common
             let set1080pAndCommonFPS = osn.NodeObs.OBS_settings_getSettings('Video');
 
@@ -2169,7 +2169,7 @@ describe('nodeobs_settings', () => {
             expect(fractionalFPSVideoSettings).to.eql(updatedFractionalFPSVideoSettings);
         });
 
-        it('Get and set advanced settings', () => {
+        it('Get and set advanced settings', function() {
             // Getting advanced settings container
             let advancedSettings = osn.NodeObs.OBS_settings_getSettings('Advanced');
 
@@ -2262,8 +2262,8 @@ describe('nodeobs_settings', () => {
         });
     });
 
-    context('# OBS_settings_getListCategories', () => {
-        it('Get all settings categories', () => {
+    context('# OBS_settings_getListCategories', function() {
+        it('Get all settings categories', function() {
             // Getting categories list
             const categories = osn.NodeObs.OBS_settings_getListCategories();
 
