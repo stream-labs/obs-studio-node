@@ -317,6 +317,20 @@ void osn::Source::GetProperties(
 				}
 				prop2->items.push_back(std::move(entry));
 			}
+			switch (prop2->format) {
+			case obs::ListProperty::Format::Integer: {
+				prop2->current_value_int = (int)obs_data_get_int(settings, name);
+				break;
+			}
+			case obs::ListProperty::Format::Float: {
+				prop2->current_value_float = obs_data_get_double(settings, name);
+				break;
+			}
+			case obs::ListProperty::Format::String: {
+				prop2->current_value_str = (buf = obs_data_get_string(settings, name)) != nullptr ? buf : "";
+				break;
+			}
+			}
 			prop = prop2;
 			break;
 		}
