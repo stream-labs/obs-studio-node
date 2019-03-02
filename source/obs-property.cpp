@@ -383,6 +383,7 @@ bool obs::TextProperty::serialize(std::vector<char>& buf)
 
 	size_t offset = Property::size();
 	buf[offset]   = uint8_t(field_type);
+	offset += sizeof(uint8_t);
 
 	reinterpret_cast<size_t&>(buf[offset]) = value.size();
 	offset += sizeof(size_t);
@@ -408,6 +409,7 @@ bool obs::TextProperty::read(std::vector<char> const& buf)
 
 	size_t offset = Property::size();
 	field_type    = TextType(buf[offset]);
+	offset += sizeof(uint8_t);
 
 	length = reinterpret_cast<const size_t&>(buf[offset]);
 	offset += sizeof(size_t);
