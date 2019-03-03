@@ -868,6 +868,9 @@ bool OBS_service::updateAudioStreamingEncoder() {
 	}
 
 	if (!advanced) {
+		if (audioSimpleStreamingEncoder && obs_encoder_active(audioSimpleStreamingEncoder))
+			return;
+
 		const char* quality = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
 		if ((strcmp(quality, "Stream") != 0) || (strcmp(quality, "Stream") == 0 && !isRecording)) {
 			if (strcmp(codec, "aac") != 0) {
@@ -1279,6 +1282,9 @@ static bool EncoderAvailable(const char* encoder)
 
 void OBS_service::updateVideoStreamingEncoder()
 {
+	if (videoStreamingEncoder && obs_encoder_active(videoStreamingEncoder))
+		return;
+
 	obs_data_t* h264Settings = obs_data_create();
 	obs_data_t* aacSettings  = obs_data_create();
 
@@ -1655,6 +1661,9 @@ void OBS_service::UpdateFFmpegOutput(void)
 
 void OBS_service::updateVideoRecordingEncoder()
 {
+	if (videoRecordingEncoder && obs_encoder_active(videoRecordingEncoder))
+		return;
+
 	const char* quality = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
 	const char* encoder = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecEncoder");
 
