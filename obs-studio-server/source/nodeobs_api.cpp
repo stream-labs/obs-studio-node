@@ -601,7 +601,7 @@ void OBS_API::OBS_API_getPerformanceStatistics(
 	rval.push_back(ipc::value(getDroppedFramesPercentage()));
 	rval.push_back(ipc::value(getCurrentBandwidth()));
 	rval.push_back(ipc::value(getCurrentFrameRate()));
-	AUTO_DEBUG;
+	//AUTO_DEBUG;
 }
 
 void OBS_API::QueryHotkeys(

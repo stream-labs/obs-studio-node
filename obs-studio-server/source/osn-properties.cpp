@@ -89,7 +89,7 @@ void osn::Properties::Clicked(
 		rval.push_back(ipc::value("Failed to find property in source."));
 	} else {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-		rval.push_back(ipc::value((int32_t)obs_property_button_clicked(prop, source)));
+		//rval.push_back(ipc::value((int32_t)obs_property_button_clicked(prop, source)));
 	}
 	obs_properties_destroy(props);
 
