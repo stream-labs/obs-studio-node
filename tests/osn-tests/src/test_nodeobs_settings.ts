@@ -4,6 +4,11 @@ import * as osn from 'obs-studio-node';
 import { OBSProcessHandler } from '../util/obs_process_handler';
 import { deleteConfigFiles, basicOBSSettingsCategories } from '../util/general';
 
+function getRandomValue(list: any) {
+    const value = list[Math.floor(Math.random() * list.length)];
+    return value[Object.keys(value)[0]];
+}
+
 describe('nodeobs_settings', function() {
     let obs: OBSProcessHandler;
 
@@ -32,7 +37,7 @@ describe('nodeobs_settings', function() {
             // Changing values of general settings
             generalSettings.forEach(subCategory => {
                 subCategory.parameters.forEach(parameter => {
-                    if (parameter.type == 'OBS_PROPERTY_BOOL') {
+                    if (parameter.type === 'OBS_PROPERTY_BOOL') {
                         if (parameter.currentValue === true) {
                             parameter.currentValue = false;
                         } else {
@@ -40,7 +45,7 @@ describe('nodeobs_settings', function() {
                         }
                     }
 
-                    if (parameter.type == 'OBS_PROPERTY_DOUBLE') {
+                    if (parameter.type === 'OBS_PROPERTY_DOUBLE') {
                         parameter.currentValue = parameter.currentValue + 1;
                     }
                 });
@@ -54,180 +59,66 @@ describe('nodeobs_settings', function() {
             expect(generalSettings).to.eql(updatedGeneralSettings);
         });
 
-        it('Get and set Twitch stream settings', function() {
-            let originalStreamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
+        it('Get and set stream settings', function() {
+            let availableServices: string[] = [];
+            let settings = osn.NodeObs.OBS_settings_getSettings('Stream');
 
-            // Setting stream service to Twitch
-            originalStreamSettings.forEach(subCategory => {
-                subCategory.parameters.forEach(parameter => {
-                    if (parameter.name == 'service') {
-                        parameter.currentValue = 'Twitch';
-                    }
-                });
+            // Getting available services
+            settings[1].parameters.forEach(parameter => {
+                if (parameter.name === 'service') {
+                    parameter.values.forEach(serviceObject => {
+                        const service = serviceObject[Object.keys(serviceObject)[0]];
+                        availableServices.push(service);
+                    });
+                }
             });
 
-            osn.NodeObs.OBS_settings_saveSettings('Stream', originalStreamSettings);
+            // Changing stream settings of all services available
+            availableServices.forEach(service => {
+                let setService = osn.NodeObs.OBS_settings_getSettings('Stream');
 
-            // Getting Twitch stream settings container
-            let newStreamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
-
-            // Changing some Twitch stream settings values
-            newStreamSettings.forEach(subCategory => {
-                subCategory.parameters.forEach(parameter => {
-                    switch(parameter.name) {
-                        case 'service': {
-                            expect(parameter.currentValue).to.equal('Twitch');
-                            break;
+                // Setting stream service
+                setService.forEach(subCategory => {
+                    subCategory.parameters.forEach(parameter => {
+                        if (parameter.name === 'service') {
+                            parameter.currentValue = service;
                         }
-                        case 'server': {
-                            parameter.currentValue = 'rtmp://test.twitch.server';
-                            break;
-                        }
-                        case 'key': {
-                            parameter.currentValue = '123twitch';
-                            break;
-                        }
-                    }
+                    });
                 });
-            });
 
-            // Setting the updated Twitch stream settings
-            osn.NodeObs.OBS_settings_saveSettings('Stream', newStreamSettings);
+                osn.NodeObs.OBS_settings_saveSettings('Stream', setService);
 
-            // Checking if stream settings were updated correctly
-            const updatedStreamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
-            expect(newStreamSettings).to.eql(updatedStreamSettings);
-        });
+                // Getting stream settings container
+                let streamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
 
-        it('Get and set Youtube stream settings', function() {
-            let originalStreamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
-
-            // Setting stream service to Twitch
-            originalStreamSettings.forEach(subCategory => {
-                subCategory.parameters.forEach(parameter => {
-                    if (parameter.name == 'service') {
-                        parameter.currentValue = 'YouTube / YouTube Gaming';
-                    }
+                // Changing stream settings values
+                streamSettings.forEach(subCategory => {
+                    subCategory.parameters.forEach(parameter => {
+                        switch(parameter.name) {
+                            case 'service': {
+                                expect(parameter.currentValue).to.equal(service);
+                                break;
+                            }
+                            case 'server': {
+                                // Selecting one random server
+                                parameter.currentValue = getRandomValue(parameter.values);
+                                break;
+                            }
+                            case 'key': {
+                                parameter.currentValue = '123test';
+                                break;
+                            }
+                        }
+                    });
                 });
+
+                // Setting the updated Twitch stream settings
+                osn.NodeObs.OBS_settings_saveSettings('Stream', streamSettings);
+
+                // Checking if stream settings were updated correctly
+                const updatedStreamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
+                expect(streamSettings).to.eql(updatedStreamSettings);
             });
-
-            osn.NodeObs.OBS_settings_saveSettings('Stream', originalStreamSettings);
-
-            // Getting Youtube stream settings container
-            let newStreamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
-
-            // Changing some Youtube stream settings values
-            newStreamSettings.forEach(subCategory => {
-                subCategory.parameters.forEach(parameter => {
-                    switch(parameter.name) {
-                        case 'service': {
-                            expect(parameter.currentValue).to.equal('YouTube / YouTube Gaming');
-                            break;
-                        }
-                        case 'server': {
-                            parameter.currentValue = 'rtmp://test.youtube.server';
-                            break;
-                        }
-                        case 'key': {
-                            parameter.currentValue = '123youtube';
-                            break;
-                        }
-                    }
-                });
-            });
-
-            // Setting the updated Youtube stream settings
-            osn.NodeObs.OBS_settings_saveSettings('Stream', newStreamSettings);
-
-            // Checking if stream settings were updated correctly
-            const updatedStreamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
-            expect(newStreamSettings).to.eql(updatedStreamSettings);
-        });
-        
-        it('Get and Set Mixer stream settings', function() {
-            let originalStreamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
-
-            // Setting stream service to Mixer
-            originalStreamSettings.forEach(subCategory => {
-                subCategory.parameters.forEach(parameter => {
-                    if (parameter.name == 'service') {
-                        parameter.currentValue = 'Mixer.com - RTMP';
-                    }
-                });
-            });
-
-            osn.NodeObs.OBS_settings_saveSettings('Stream', originalStreamSettings);
-
-            // Getting Mixer stream settings container
-            let newStreamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
-
-            // Changing some Mixer stream settings values
-            newStreamSettings.forEach(subCategory => {
-                subCategory.parameters.forEach(parameter => {
-                    switch(parameter.name) {
-                        case 'service': {
-                            expect(parameter.currentValue).to.equal('Mixer.com - RTMP');
-                            break;
-                        }
-                        case 'server': {
-                            parameter.currentValue = 'rtmp://test.mixer.server';
-                            break;
-                        }
-                        case 'key': {
-                            parameter.currentValue = '123mixer';
-                            break;
-                        }
-                    }
-                });
-            });
-
-            // Setting the updated Mixer stream settings
-            osn.NodeObs.OBS_settings_saveSettings('Stream', newStreamSettings);
-
-            // Checking if stream settings were updated correctly
-            const updatedStreamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
-            expect(newStreamSettings).to.eql(updatedStreamSettings);
-        });
-
-        it('Get and set Facebook stream settings', function() {
-            let originalStreamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
-
-            // Setting stream service to Facebook
-            originalStreamSettings.forEach(subCategory => {
-                subCategory.parameters.forEach(parameter => {
-                    if (parameter.name == 'service') {
-                        parameter.currentValue = 'Facebook Live';
-                    }
-                });
-            });
-
-            osn.NodeObs.OBS_settings_saveSettings('Stream', originalStreamSettings);
-
-            // Getting Facebook stream settings container
-            let newStreamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
-
-            // Changing some Facebook stream settings values
-            newStreamSettings.forEach(subCategory => {
-                subCategory.parameters.forEach(parameter => {
-                    switch(parameter.name) {
-                        case 'service': {
-                            expect(parameter.currentValue).to.equal('Facebook Live');
-                            break;
-                        }
-                        case 'key': {
-                            parameter.currentValue = '123facebook';
-                            break;
-                        }
-                    }
-                });
-            });
-
-            // Setting the updated Facebook stream settings
-            osn.NodeObs.OBS_settings_saveSettings('Stream', newStreamSettings);
-
-            // Checking if stream settings were updated correctly
-            const updatedStreamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
-            expect(newStreamSettings).to.eql(updatedStreamSettings);
         });
 
         it('Get and set simple output settings', function() {
@@ -291,7 +182,7 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'ABitrate': {
-                            parameter.currentValue = '800';
+                            parameter.currentValue = getRandomValue(parameter.values);
                             break;
                         }
                         case 'FileNameWithoutSpace': {
@@ -304,7 +195,7 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'RecFormat': {
-                            parameter.currentValue = 'mp4';
+                            parameter.currentValue = getRandomValue(parameter.values);
                             break;
                         }
                         case 'MuxerCustom': {
@@ -362,7 +253,7 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'ABitrate': {
-                            parameter.currentValue = '64';
+                            parameter.currentValue = getRandomValue(parameter.values);
                             break;
                         }
                         case 'FileNameWithoutSpace': {
@@ -375,7 +266,7 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'RecFormat': {
-                            parameter.currentValue = 'mkv';
+                            parameter.currentValue = getRandomValue(parameter.values);
                             break;
                         }
                         case 'RecEncoder': {
@@ -425,7 +316,7 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'ABitrate': {
-                            parameter.currentValue = '352';
+                            parameter.currentValue = getRandomValue(parameter.values);
                             break;
                         }
                         case 'FileNameWithoutSpace': {
@@ -438,7 +329,7 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'RecFormat': {
-                            parameter.currentValue = 'mov';
+                            parameter.currentValue = getRandomValue(parameter.values);
                             break;
                         }
                         case 'RecEncoder': {
@@ -488,7 +379,7 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'ABitrate': {
-                            parameter.currentValue = '160';
+                            parameter.currentValue = getRandomValue(parameter.values);
                             break;
                         }
                         case 'FileNameWithoutSpace': {
@@ -501,7 +392,7 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'RecFormat': {
-                            parameter.currentValue = 'ts';
+                            parameter.currentValue = getRandomValue(parameter.values);
                             break;
                         }
                     }
@@ -589,7 +480,7 @@ describe('nodeobs_settings', function() {
                             }
                             // Streaming
                             case 'TrackIndex': {
-                                parameter.currentValue = '2';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'Encoder': {
@@ -601,11 +492,11 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'target_usage': {
-                                parameter.currentValue = 'balanced';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'profile': {
-                                parameter.currentValue = 'main';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'keyint_sec': {
@@ -630,7 +521,7 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'RecFormat': {
-                                parameter.currentValue = 'mp4';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'RecTracks': {
@@ -646,11 +537,11 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'Rectarget_usage': {
-                                parameter.currentValue = 'quality';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'Recprofile': {
-                                parameter.currentValue = 'high';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'Reckeyint_sec': {
@@ -1170,7 +1061,7 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'RescaleRes': {
-                                parameter.currentValue = '1920x1080';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'rate_control': {
@@ -1195,7 +1086,7 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'RecRescaleRes': {
-                                parameter.currentValue = '1600x900';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'Recrate_control': {
@@ -1221,7 +1112,7 @@ describe('nodeobs_settings', function() {
                 const updatedLAOutputSettings = osn.NodeObs.OBS_settings_getSettings('Output');
                 expect(laOutputSettings).to.eql(updatedLAOutputSettings);
             } else {
-                console.log('       * QSV encoder is not available, skipping test case.');
+                console.log('      * QSV encoder is not available, skipping test case.');
                 this.skip();
             }
         });
@@ -1299,7 +1190,7 @@ describe('nodeobs_settings', function() {
                             }
                             // Streaming
                             case 'TrackIndex': {
-                                parameter.currentValue = '3';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'Encoder': {
@@ -1323,15 +1214,15 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'preset': {
-                                parameter.currentValue = 'fast';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'profile': {
-                                parameter.currentValue = 'high';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'tune': {
-                                parameter.currentValue = 'animation';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'x264opts': {
@@ -1344,7 +1235,7 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'RecFormat': {
-                                parameter.currentValue = 'flv';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'RecTracks': {
@@ -1372,15 +1263,15 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'Recpreset': {
-                                parameter.currentValue = 'ultrafast';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'Recprofile': {
-                                parameter.currentValue = 'baseline';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'Rectune': {
-                                parameter.currentValue = 'grain';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'Recx264opts': {
@@ -1704,7 +1595,7 @@ describe('nodeobs_settings', function() {
                             }
                             // Streaming 
                             case 'TrackIndex': {
-                                parameter.currentValue = '5';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'Encoder': {
@@ -1728,11 +1619,11 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'preset': {
-                                parameter.currentValue = 'hq';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'profile': {
-                                parameter.currentValue = 'baseline';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'gpu': {
@@ -1749,7 +1640,7 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'RecFormat': {
-                                parameter.currentValue = 'mkv';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'RecTracks': {
@@ -1777,11 +1668,11 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'Recpreset': {
-                                parameter.currentValue = 'llhq';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'Recprofile': {
-                                parameter.currentValue = 'main';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'Recgpu': {
@@ -2057,7 +1948,7 @@ describe('nodeobs_settings', function() {
                             }
                             // Streaming 
                             case 'TrackIndex': {
-                                parameter.currentValue = '3';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'Encoder': {
@@ -2081,11 +1972,11 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'preset': {
-                                parameter.currentValue = 'llhq';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'profile': {
-                                parameter.currentValue = 'high';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'lookahead': {
@@ -2110,7 +2001,7 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'RecFormat': {
-                                parameter.currentValue = 'mkv';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'RecTracks': {
@@ -2138,11 +2029,11 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'Recpreset': {
-                                parameter.currentValue = 'llhp';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'Recprofile': {
-                                parameter.currentValue = 'high';
+                                parameter.currentValue = getRandomValue(parameter.values);
                                 break;
                             }
                             case 'Reclookahead': {
@@ -2382,7 +2273,7 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'Track1Bitrate': {
-                            parameter.currentValue = '64';
+                            parameter.currentValue = getRandomValue(parameter.values);
                             break;
                         }
                         case 'Track1Name': {
@@ -2390,43 +2281,43 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'Track2Bitrate': {
-                            parameter.currentValue = '64';
+                            parameter.currentValue = getRandomValue(parameter.values);
                             break;
                         }
                         case 'Track2Name': {
-                            parameter.currentValue = 'Test1';
+                            parameter.currentValue = 'Test2';
                             break;
                         }
                         case 'Track3Bitrate': {
-                            parameter.currentValue = '64';
+                            parameter.currentValue = getRandomValue(parameter.values);
                             break;
                         }
                         case 'Track3Name': {
-                            parameter.currentValue = 'Test1';
+                            parameter.currentValue = 'Test3';
                             break;
                         }
                         case 'Track4Bitrate': {
-                            parameter.currentValue = '64';
+                            parameter.currentValue = getRandomValue(parameter.values);
                             break;
                         }
                         case 'Track4Name': {
-                            parameter.currentValue = 'Test1';
+                            parameter.currentValue = 'Test4';
                             break;
                         }
                         case 'Track5Bitrate': {
-                            parameter.currentValue = '64';
+                            parameter.currentValue = getRandomValue(parameter.values);
                             break;
                         }
                         case 'Track5Name': {
-                            parameter.currentValue = 'Test1';
+                            parameter.currentValue = 'Test5';
                             break;
                         }
                         case 'Track6Bitrate': {
-                            parameter.currentValue = '64';
+                            parameter.currentValue = getRandomValue(parameter.values);
                             break;
                         }
                         case 'Track6Name': {
-                            parameter.currentValue = 'Test1';
+                            parameter.currentValue = 'Test6';
                             break;
                         }
                         case 'RecRB': {
@@ -2478,11 +2369,11 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'Output': {
-                            parameter.currentValue = '640x360';
+                            parameter.currentValue = getRandomValue(parameter.values);
                             break;
                         }
                         case 'ScaleType': {
-                            parameter.currentValue = 'bilinear';
+                            parameter.currentValue = getRandomValue(parameter.values);
                             break;
                         }
                         case 'FPSType': {
@@ -2490,7 +2381,7 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'FPSCommon': {
-                            parameter.currentValue = '24 NTSC';
+                            parameter.currentValue = getRandomValue(parameter.values);
                             break;
                         }
                     }
@@ -2604,11 +2495,11 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'ColorFormat': {
-                            parameter.currentValue = 'I444';
+                            parameter.currentValue = getRandomValue(parameter.values);
                             break;
                         }
                         case 'ColorSpace': {
-                            parameter.currentValue = '709';
+                            parameter.currentValue = getRandomValue(parameter.values);
                             break;
                         }
                         case 'ForceGPUAsRenderDevice': {
@@ -2693,16 +2584,5 @@ describe('nodeobs_settings', function() {
             expect(categories.length).to.not.equal(0);
             expect(categories).to.include.members(basicOBSSettingsCategories);
         });
-
-        /*it('Test', function() {
-            let setToSimple = osn.NodeObs.OBS_settings_getSettings('Output');
-
-            setToSimple.forEach(subCategory => {
-                console.log(subCategory.nameSubCategory);
-                subCategory.parameters.forEach(parameter => {
-                    console.log(parameter);
-                });
-            });
-        });*/
     });
 });
