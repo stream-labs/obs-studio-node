@@ -3198,38 +3198,40 @@ void OBS_settings::saveVideoSettings(std::vector<SubCategory> videoSettings)
 	std::string fpsTypeString(fpsType.currentValue.data(), fpsType.currentValue.size());
 
 	if (fpsTypeString.compare("Common FPS Values") == 0) {
-		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType", 0);
-
-		Parameter   fpsCommon = sc.params.at(4);
-		std::string fpsCommonString(fpsCommon.currentValue.data(), fpsCommon.currentValue.size());
-		config_set_string(ConfigManager::getInstance().getBasic(), "Video", "FPSCommon", fpsCommonString.c_str());
-
+		if (config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType") != 0) {
+			config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType", 0);
+		} else {
+			Parameter   fpsCommon = sc.params.at(4);
+			std::string fpsCommonString(fpsCommon.currentValue.data(), fpsCommon.currentValue.size());
+			config_set_string(ConfigManager::getInstance().getBasic(), "Video", "FPSCommon", fpsCommonString.c_str());
+		}
 	} else if (fpsTypeString.compare("Integer FPS Value") == 0) {
-		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType", 1);
-
-		Parameter fpsInt = sc.params.at(4);
-
-		uint64_t* fpsIntValue = reinterpret_cast<uint64_t*>(fpsInt.currentValue.data());
-
-		if (*fpsIntValue > 0 && *fpsIntValue < 500) {
-			config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSInt", *fpsIntValue);
+		if (config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType") != 1) {
+			config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType", 1);
+		} else {
+			Parameter fpsInt = sc.params.at(4);
+			uint64_t* fpsIntValue = reinterpret_cast<uint64_t*>(fpsInt.currentValue.data());
+			if (*fpsIntValue > 0 && *fpsIntValue < 500) {
+				config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSInt", *fpsIntValue);
+			}
 		}
-
 	} else if (fpsTypeString.compare("Fractional FPS Value") == 0) {
-		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType", 2);
+		if (config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType") != 2) {
+			config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType", 2);
+		} else {
+			Parameter fpsNum      = sc.params.at(4);
+			uint32_t* fpsNumValue = reinterpret_cast<uint32_t*>(fpsNum.currentValue.data());
 
-		Parameter fpsNum      = sc.params.at(4);
-		uint32_t* fpsNumValue = reinterpret_cast<uint32_t*>(fpsNum.currentValue.data());
+			if (*fpsNumValue > 0 && *fpsNumValue < 500) {
+				config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSNum", *fpsNumValue);
+			}
 
-		if (*fpsNumValue > 0 && *fpsNumValue < 500) {
-			config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSNum", *fpsNumValue);
-		}
-
-		if (sc.params.size() > 5) {
-			Parameter fpsDen      = sc.params.at(5);
-			uint32_t* fpsDenValue = reinterpret_cast<uint32_t*>(fpsDen.currentValue.data());
-			if (*fpsDenValue > 0)
-				config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSDen", *fpsDenValue);
+			if (sc.params.size() > 5) {
+				Parameter fpsDen      = sc.params.at(5);
+				uint32_t* fpsDenValue = reinterpret_cast<uint32_t*>(fpsDen.currentValue.data());
+				if (*fpsDenValue > 0)
+					config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSDen", *fpsDenValue);
+			}
 		}
 	}
 
