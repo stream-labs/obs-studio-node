@@ -13,6 +13,9 @@ export {basicOBSFilterTypes};
 let basicOBSTransitionTypes: string[] = ['cut_transition', 'fade_transition', 'swipe_transition', 'slide_transition', 'fade_to_color_transition', 'wipe_transition', 'obs_stinger_transition'];
 export {basicOBSTransitionTypes};
 
+let basicOBSSettingsCategories: string[] = ['General', 'Stream', 'Output', 'Audio', 'Video', 'Hotkeys', 'Advanced'];
+export {basicOBSSettingsCategories}
+
 let showHideInputHotkeys: string[] = ['SHOW_SCENE_ITEM.WASAPI_OUTPUT_CAPTURE', 'HIDE_SCENE_ITEM.WASAPI_OUTPUT_CAPTURE', 'SHOW_SCENE_ITEM.WASAPI_INPUT_CAPTURE', 
 'HIDE_SCENE_ITEM.WASAPI_INPUT_CAPTURE', 'SHOW_SCENE_ITEM.DSHOW_INPUT', 'HIDE_SCENE_ITEM.DSHOW_INPUT', 'SHOW_SCENE_ITEM.GAME_CAPTURE', 'HIDE_SCENE_ITEM.GAME_CAPTURE', 
 'SHOW_SCENE_ITEM.WINDOW_CAPTURE', 'HIDE_SCENE_ITEM.WINDOW_CAPTURE', 'SHOW_SCENE_ITEM.MONITOR_CAPTURE', 'HIDE_SCENE_ITEM.MONITOR_CAPTURE', 'SHOW_SCENE_ITEM.TEXT_FT2_SOURCE', 
@@ -32,7 +35,6 @@ export {game_captureHotkeys};
 
 let dshow_wasapitHotkeys: string[] = ['MUTE', 'UNMUTE', 'PUSH_TO_MUTE', 'PUSH_TO_TALK'];
 export {dshow_wasapitHotkeys};
-
 
 export function getTimeSpec(ms: number): ITimeSpec {
     return {
