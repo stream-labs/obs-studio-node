@@ -869,7 +869,7 @@ bool OBS_service::updateAudioStreamingEncoder() {
 
 	if (!advanced) {
 		if (audioSimpleStreamingEncoder && obs_encoder_active(audioSimpleStreamingEncoder))
-			return;
+			return false;
 
 		const char* quality = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
 		if ((strcmp(quality, "Stream") != 0) || (strcmp(quality, "Stream") == 0 && !isRecording)) {
