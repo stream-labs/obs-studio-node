@@ -1114,14 +1114,14 @@ bool OBS_API::openAllModules(int& video_err)
 		if (!os_file_exists(plugins_path.c_str())) {
 			blog(LOG_ERROR, "Plugin Path provided is invalid: %s", plugins_path);
 			std::cerr << "Plugin Path provided is invalid: " << plugins_path << std::endl;
-			return false;
+			continue;
 		}
 
 		os_dir_t* plugin_dir = os_opendir(plugins_path.c_str());
 		if (!plugin_dir) {
 			blog(LOG_ERROR, "Failed to open plugin diretory: %s", plugins_path);
 			std::cerr << "Failed to open plugin diretory: " << plugins_path << std::endl;
-			return false;
+			continue;
 		}
 
 		for (os_dirent* ent = os_readdir(plugin_dir); ent != nullptr; ent = os_readdir(plugin_dir)) {
