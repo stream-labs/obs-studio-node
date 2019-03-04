@@ -2281,7 +2281,7 @@ void OBS_settings::getAdvancedOutputAudioSettings(
 	entries.push_back(Track3Bitrate);
 
 	std::vector<std::pair<std::string, ipc::value>> Track3Name;
-	Track3Name.push_back(std::make_pair("name", ipc::value("nameTrack3")));
+	Track3Name.push_back(std::make_pair("name", ipc::value("Track3Name")));
 	Track3Name.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
 	Track3Name.push_back(std::make_pair("description", ipc::value("Name")));
 	Track3Name.push_back(std::make_pair("subType", ipc::value("")));
@@ -2310,7 +2310,7 @@ void OBS_settings::getAdvancedOutputAudioSettings(
 	entries.push_back(Track4Bitrate);
 
 	std::vector<std::pair<std::string, ipc::value>> Track4Name;
-	Track4Name.push_back(std::make_pair("name", ipc::value("nameTrack4")));
+	Track4Name.push_back(std::make_pair("name", ipc::value("Track4Name")));
 	Track4Name.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
 	Track4Name.push_back(std::make_pair("description", ipc::value("Name")));
 	Track4Name.push_back(std::make_pair("subType", ipc::value("")));
@@ -2328,10 +2328,10 @@ void OBS_settings::getAdvancedOutputAudioSettings(
 	Track5Bitrate.push_back(std::make_pair("name", ipc::value("Track5Bitrate")));
 	Track5Bitrate.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
 	Track5Bitrate.push_back(std::make_pair("description", ipc::value("Audio Bitrate")));
-	Track4Bitrate.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	Track4Bitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	Track4Bitrate.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	Track4Bitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	Track5Bitrate.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+	Track5Bitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	Track5Bitrate.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	Track5Bitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 
 	for (auto& entry : bitrateMap)
 		Track5Bitrate.push_back(std::make_pair(std::to_string(entry.first), std::to_string(entry.first)));
@@ -2339,7 +2339,7 @@ void OBS_settings::getAdvancedOutputAudioSettings(
 	entries.push_back(Track5Bitrate);
 
 	std::vector<std::pair<std::string, ipc::value>> Track5Name;
-	Track5Name.push_back(std::make_pair("name", ipc::value("nameTrack5")));
+	Track5Name.push_back(std::make_pair("name", ipc::value("Track5Name")));
 	Track5Name.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
 	Track5Name.push_back(std::make_pair("description", ipc::value("Name")));
 	Track5Name.push_back(std::make_pair("subType", ipc::value("")));
