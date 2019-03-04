@@ -2512,14 +2512,7 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 		if (type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 || type.compare("OBS_PROPERTY_PATH") == 0
 		    || type.compare("OBS_PROPERTY_TEXT") == 0 || type.compare("OBS_INPUT_RESOLUTION_LIST") == 0) {
 			std::string value(param.currentValue.data(), param.currentValue.size());
-
 			if (i < indexEncoderSettings) {
-				if (name.compare("Encoder") == 0) {
-					const char* currentEncoder =
-					    config_get_string(ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str());
-					if (currentEncoder != NULL)
-						newEncoderType = value.compare(currentEncoder) != 0;
-				}
 				config_set_string(
 				    ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str(), value.c_str());
 			} else {
@@ -2576,6 +2569,12 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 			} else {
 				std::string value(param.currentValue.data(), param.currentValue.size());
 				if (i < indexEncoderSettings) {
+					if (name.compare("Encoder") == 0) {
+						const char* currentEncoder =
+						    config_get_string(ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str());
+						if (currentEncoder != NULL)
+							newEncoderType = value.compare(currentEncoder) != 0;
+					}
 					config_set_string(
 					    ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str(), value.c_str());
 				} else {
@@ -2636,15 +2635,6 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 		    || type.compare("OBS_PROPERTY_TEXT") == 0 || type.compare("OBS_INPUT_RESOLUTION_LIST") == 0) {
 			if (i < indexEncoderSettings) {
 				std::string value(param.currentValue.data(), param.currentValue.size());
-
-				if (name.compare("RecEncoder") == 0) {
-					const char* currentEncoder =
-					    config_get_string(ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str());
-
-					if (currentEncoder != NULL)
-						newEncoderType = value.compare(currentEncoder) != 0;
-				}
-
 				config_set_string(
 				    ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str(), value.c_str());
 			} else {
@@ -2702,6 +2692,13 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 			} else {
 				std::string value(param.currentValue.data(), param.currentValue.size());
 				if (i < indexEncoderSettings) {
+					if (name.compare("RecEncoder") == 0) {
+						const char* currentEncoder =
+						    config_get_string(ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str());
+
+						if (currentEncoder != NULL)
+							newEncoderType = value.compare(currentEncoder) != 0;
+					}
 					config_set_string(
 					    ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str(), value.c_str());
 				} else {
