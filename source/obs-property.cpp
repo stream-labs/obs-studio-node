@@ -164,17 +164,43 @@ obs::Property::Type obs::BooleanProperty::type()
 
 size_t obs::BooleanProperty::size()
 {
-	return Property::size();
-}
-
-bool obs::BooleanProperty::read(std::vector<char> const& buf)
-{
-	return Property::read(buf);
+	size_t total = Property::size();
+	total += sizeof(bool);
+	return total;
 }
 
 bool obs::BooleanProperty::serialize(std::vector<char>& buf)
 {
-	return Property::serialize(buf);
+	if (buf.size() < size()) {
+		return false;
+	}
+
+	if (!Property::serialize(buf)) {
+		return false;
+	}
+
+	size_t offset = Property::size();
+	*reinterpret_cast<bool*>(&buf[offset]) = value;
+	offset += sizeof(bool);
+
+	return true;
+}
+
+bool obs::BooleanProperty::read(std::vector<char> const& buf)
+{
+	if (buf.size() < size()) {
+		return false;
+	}
+
+	if (!Property::read(buf)) {
+		return false;
+	}
+
+	size_t offset = Property::size();
+	value         = *reinterpret_cast<const bool*>(&buf[offset]);
+	offset += sizeof(bool);
+
+	return true;
 }
 
 size_t obs::NumberProperty::size()
@@ -224,7 +250,7 @@ obs::Property::Type obs::IntegerProperty::type()
 size_t obs::IntegerProperty::size()
 {
 	size_t total = NumberProperty::size();
-	total += sizeof(int64_t) * 3;
+	total += sizeof(int64_t) * 4;
 	return total;
 }
 
@@ -244,6 +270,8 @@ bool obs::IntegerProperty::serialize(std::vector<char>& buf)
 	*reinterpret_cast<int64_t*>(&buf[offset]) = maximum;
 	offset += sizeof(int64_t);
 	*reinterpret_cast<int64_t*>(&buf[offset]) = step;
+	offset += sizeof(int64_t);
+	*reinterpret_cast<int64_t*>(&buf[offset]) = value;
 	offset += sizeof(int64_t);
 
 	return true;
@@ -266,6 +294,8 @@ bool obs::IntegerProperty::read(std::vector<char> const& buf)
 	offset += sizeof(int64_t);
 	step = *reinterpret_cast<const int64_t*>(&buf[offset]);
 	offset += sizeof(int64_t);
+	value = *reinterpret_cast<const int64_t*>(&buf[offset]);
+	offset += sizeof(int64_t);
 
 	return true;
 }
@@ -278,7 +308,7 @@ obs::Property::Type obs::FloatProperty::type()
 size_t obs::FloatProperty::size()
 {
 	size_t total = NumberProperty::size();
-	total += sizeof(double_t) * 3;
+	total += sizeof(double_t) * 4;
 	return total;
 }
 
@@ -298,6 +328,8 @@ bool obs::FloatProperty::serialize(std::vector<char>& buf)
 	*reinterpret_cast<double_t*>(&buf[offset]) = maximum;
 	offset += sizeof(double_t);
 	*reinterpret_cast<double_t*>(&buf[offset]) = step;
+	offset += sizeof(double_t);
+	*reinterpret_cast<double_t*>(&buf[offset]) = value;
 	offset += sizeof(double_t);
 
 	return true;
@@ -320,6 +352,8 @@ bool obs::FloatProperty::read(std::vector<char> const& buf)
 	offset += sizeof(double_t);
 	step = *reinterpret_cast<const double_t*>(&buf[offset]);
 	offset += sizeof(double_t);
+	value = *reinterpret_cast<const double_t*>(&buf[offset]);
+	offset += sizeof(double_t);
 
 	return true;
 }
@@ -333,6 +367,7 @@ size_t obs::TextProperty::size()
 {
 	size_t total = Property::size();
 	total += sizeof(uint8_t);
+	total += sizeof(size_t) + value.size();
 	return total;
 }
 
@@ -348,6 +383,14 @@ bool obs::TextProperty::serialize(std::vector<char>& buf)
 
 	size_t offset = Property::size();
 	buf[offset]   = uint8_t(field_type);
+	offset += sizeof(uint8_t);
+
+	reinterpret_cast<size_t&>(buf[offset]) = value.size();
+	offset += sizeof(size_t);
+	if (value.size() > 0) {
+		memcpy(&buf[offset], value.data(), value.size());
+		offset += value.size();
+	}
 
 	return true;
 }
@@ -362,8 +405,18 @@ bool obs::TextProperty::read(std::vector<char> const& buf)
 		return false;
 	}
 
+	size_t length = 0;
+
 	size_t offset = Property::size();
 	field_type    = TextType(buf[offset]);
+	offset += sizeof(uint8_t);
+
+	length = reinterpret_cast<const size_t&>(buf[offset]);
+	offset += sizeof(size_t);
+	if (length > 0) {
+		value = std::string(&buf[offset], length);
+		offset += length;
+	}
 
 	return true;
 }
@@ -379,6 +432,7 @@ size_t obs::PathProperty::size()
 	total += sizeof(uint8_t);
 	total += sizeof(size_t) + filter.size();
 	total += sizeof(size_t) + default_path.size();
+	total += sizeof(size_t) + value.size();
 	return total;
 }
 
@@ -408,6 +462,13 @@ bool obs::PathProperty::serialize(std::vector<char>& buf)
 	if (default_path.size() > 0) {
 		memcpy(&buf[offset], default_path.data(), default_path.size());
 		offset += default_path.size();
+	}
+
+	reinterpret_cast<size_t&>(buf[offset]) = value.size();
+	offset += sizeof(size_t);
+	if (value.size() > 0) {
+		memcpy(&buf[offset], value.data(), value.size());
+		offset += value.size();
 	}
 
 	return true;
@@ -443,6 +504,13 @@ bool obs::PathProperty::read(std::vector<char> const& buf)
 		offset += length;
 	}
 
+	length = reinterpret_cast<const size_t&>(buf[offset]);
+	offset += sizeof(size_t);
+	if (length > 0) {
+		value = std::string(&buf[offset], length);
+		offset += length;
+	}
+
 	return true;
 }
 
@@ -457,6 +525,7 @@ size_t obs::ListProperty::size()
 	total += sizeof(uint8_t);
 	total += sizeof(uint8_t);
 	total += sizeof(size_t);
+
 	for (auto& entry : items) {
 		total += sizeof(size_t);
 		total += entry.name.size();
@@ -474,6 +543,19 @@ size_t obs::ListProperty::size()
 			break;
 		}
 	}
+
+	switch (format) {
+	case Format::Integer:
+		total += sizeof(int64_t);
+		break;
+	case Format::Float:
+		total += sizeof(double_t);
+		break;
+	case Format::String:
+		total += sizeof(size_t) + current_value_str.size();
+		break;
+	}
+
 	return total;
 }
 
@@ -522,6 +604,25 @@ bool obs::ListProperty::serialize(std::vector<char>& buf)
 			}
 			break;
 		}
+	}
+
+	switch (format) {
+	case Format::Integer:
+		reinterpret_cast<int64_t&>(buf[offset]) = current_value_int;
+		offset += sizeof(int64_t);
+		break;
+	case Format::Float:
+		reinterpret_cast<double_t&>(buf[offset]) = current_value_float;
+		offset += sizeof(double_t);
+		break;
+	case Format::String:
+		reinterpret_cast<size_t&>(buf[offset]) = current_value_str.size();
+		offset += sizeof(size_t);
+		if (current_value_str.size() > 0) {
+			memcpy(&buf[offset], current_value_str.data(), current_value_str.size());
+			offset += current_value_str.size();
+		}
+		break;
 	}
 
 	return true;
@@ -578,27 +679,73 @@ bool obs::ListProperty::read(std::vector<char> const& buf)
 		items.push_back(std::move(entry));
 	}
 
+	size_t length = 0;
+	switch (format) {
+	case Format::Integer:
+		current_value_int = reinterpret_cast<const int64_t&>(buf[offset]);
+		offset += sizeof(int64_t);
+		break;
+	case Format::Float:
+		current_value_float = reinterpret_cast<const double_t&>(buf[offset]);
+		offset += sizeof(double_t);
+		break;
+	case Format::String:
+		length = reinterpret_cast<const size_t&>(buf[offset]);
+		offset += sizeof(size_t);
+		if (length > 0) {
+			current_value_str = std::string(&buf[offset], length);
+			offset += length;
+		}
+		break;
+	}
+
 	return true;
 }
 
 obs::Property::Type obs::ColorProperty::type()
 {
-	return obs::Property::Type::Color;
+	return Type::Color;
 }
 
 size_t obs::ColorProperty::size()
 {
-	return Property::size();
+	size_t total = NumberProperty::size();
+	total += sizeof(int64_t);
+	return total;
 }
 
 bool obs::ColorProperty::serialize(std::vector<char>& buf)
 {
-	return Property::serialize(buf);
+	if (buf.size() < size()) {
+		return false;
+	}
+
+	if (!NumberProperty::serialize(buf)) {
+		return false;
+	}
+
+	size_t offset                             = NumberProperty::size();
+	*reinterpret_cast<int64_t*>(&buf[offset]) = value;
+	offset += sizeof(int64_t);
+
+	return true;
 }
 
 bool obs::ColorProperty::read(std::vector<char> const& buf)
 {
-	return Property::read(buf);
+	if (buf.size() < size()) {
+		return false;
+	}
+
+    if (!NumberProperty::read(buf)) {
+		return false;
+	}
+
+    size_t offset = NumberProperty::size();
+	value         = *reinterpret_cast<const int64_t*>(&buf[offset]);
+	offset += sizeof(int64_t);
+
+	return true;
 }
 
 obs::Property::Type obs::ButtonProperty::type()
@@ -628,17 +775,96 @@ obs::Property::Type obs::FontProperty::type()
 
 size_t obs::FontProperty::size()
 {
-	return Property::size();
+	size_t total = Property::size();
+	total += sizeof(size_t) + face.size();
+	total += sizeof(size_t) + style.size();
+	total += sizeof(size_t) + path.size();
+	total += sizeof(int64_t);
+	total += sizeof(uint32_t);
+	return total;
 }
 
 bool obs::FontProperty::serialize(std::vector<char>& buf)
 {
-	return Property::serialize(buf);
+	if (buf.size() < size()) {
+		return false;
+	}
+
+	if (!Property::serialize(buf)) {
+		return false;
+	}
+
+    size_t offset = Property::size();
+
+    reinterpret_cast<size_t&>(buf[offset]) = face.size();
+	offset += sizeof(size_t);
+	if (face.size() > 0) {
+		memcpy(&buf[offset], face.data(), face.size());
+		offset += face.size();
+	}
+
+	reinterpret_cast<size_t&>(buf[offset]) = style.size();
+	offset += sizeof(size_t);
+	if (style.size() > 0) {
+		memcpy(&buf[offset], style.data(), style.size());
+		offset += style.size();
+	}
+
+	reinterpret_cast<size_t&>(buf[offset]) = path.size();
+	offset += sizeof(size_t);
+	if (path.size() > 0) {
+		memcpy(&buf[offset], path.data(), path.size());
+		offset += path.size();
+	}
+
+    buf[offset] = int64_t(sizeF);
+	offset += sizeof(int64_t);
+	buf[offset] = uint32_t(flags);
+	offset += sizeof(uint32_t);
+	return true;
 }
 
 bool obs::FontProperty::read(std::vector<char> const& buf)
 {
-	return Property::read(buf);
+	if (buf.size() < size()) {
+		return false;
+	}
+
+	if (!Property::read(buf)) {
+		return false;
+	}
+
+	size_t length = 0;
+
+	size_t offset = Property::size();
+
+	length = reinterpret_cast<const size_t&>(buf[offset]);
+	offset += sizeof(size_t);
+	if (length > 0) {
+		face = std::string(&buf[offset], length);
+		offset += length;
+	}
+
+	length = reinterpret_cast<const size_t&>(buf[offset]);
+	offset += sizeof(size_t);
+	if (length > 0) {
+		style = std::string(&buf[offset], length);
+		offset += length;
+	}
+
+	length = reinterpret_cast<const size_t&>(buf[offset]);
+	offset += sizeof(size_t);
+	if (length > 0) {
+		path = std::string(&buf[offset], length);
+		offset += length;
+	}
+
+	sizeF = *reinterpret_cast<const int64_t*>(&buf[offset]);
+	offset += sizeof(int64_t);
+	flags = *reinterpret_cast<const uint32_t*>(&buf[offset]);
+	offset += sizeof(uint32_t);
+
+	return true;
 }
 
 obs::Property::Type obs::EditableListProperty::type()
@@ -652,6 +878,7 @@ size_t obs::EditableListProperty::size()
 	total += sizeof(uint8_t);
 	total += sizeof(size_t) + filter.size();
 	total += sizeof(size_t) + default_path.size();
+	total += sizeof(size_t) + value.size();
 	return total;
 }
 
@@ -681,6 +908,13 @@ bool obs::EditableListProperty::serialize(std::vector<char>& buf)
 	if (default_path.size() > 0) {
 		memcpy(&buf[offset], default_path.data(), default_path.size());
 		offset += default_path.size();
+	}
+
+    reinterpret_cast<size_t&>(buf[offset]) = value.size();
+	offset += sizeof(size_t);
+	if (value.size() > 0) {
+		memcpy(&buf[offset], value.data(), value.size());
+		offset += value.size();
 	}
 
 	return true;
@@ -713,6 +947,13 @@ bool obs::EditableListProperty::read(std::vector<char> const& buf)
 	offset += sizeof(size_t);
 	if (length > 0) {
 		default_path = std::string(&buf[offset], length);
+		offset += length;
+	}
+
+    length = reinterpret_cast<const size_t&>(buf[offset]);
+	offset += sizeof(size_t);
+	if (length > 0) {
+		value = std::string(&buf[offset], length);
 		offset += length;
 	}
 

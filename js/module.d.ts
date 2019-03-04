@@ -385,6 +385,7 @@ export interface IProperty {
     readonly enabled: boolean;
     readonly visible: boolean;
     readonly type: EPropertyType;
+    readonly value: any;
     next(): IProperty;
     modified(): boolean;
 }

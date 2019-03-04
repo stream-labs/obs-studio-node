@@ -245,19 +245,27 @@ void osn::Source::GetProperties(
 	const char*       buf;
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+	obs_data* settings = obs_source_get_settings(src);
+
 	for (obs_property_t* p = obs_properties_first(prp); (p != nullptr); obs_property_next(&p)) {
 		std::shared_ptr<obs::Property> prop;
+		const char*                    name = obs_property_name(p);
 
 		switch (obs_property_get_type(p)) {
-		case OBS_PROPERTY_BOOL:
-			prop = std::make_shared<obs::BooleanProperty>();
+		case OBS_PROPERTY_BOOL: {
+			auto prop2   = std::make_shared<obs::BooleanProperty>();
+			prop2->value = obs_data_get_bool(settings, name);
+			prop         = prop2;
 			break;
+		}
 		case OBS_PROPERTY_INT: {
 			auto prop2        = std::make_shared<obs::IntegerProperty>();
 			prop2->field_type = obs::NumberProperty::NumberType(obs_property_int_type(p));
 			prop2->minimum    = obs_property_int_min(p);
 			prop2->maximum    = obs_property_int_max(p);
 			prop2->step       = obs_property_int_step(p);
+			prop2->value      = (int)obs_data_get_int(settings, name);
 			prop              = prop2;
 			break;
 		}
@@ -267,12 +275,14 @@ void osn::Source::GetProperties(
 			prop2->minimum    = obs_property_float_min(p);
 			prop2->maximum    = obs_property_float_max(p);
 			prop2->step       = obs_property_float_step(p);
+			prop2->value      = obs_data_get_double(settings, name);
 			prop              = prop2;
 			break;
 		}
 		case OBS_PROPERTY_TEXT: {
 			auto prop2        = std::make_shared<obs::TextProperty>();
 			prop2->field_type = obs::TextProperty::TextType(obs_proprety_text_type(p));
+			prop2->value      = (buf = obs_data_get_string(settings, name)) != nullptr ? buf : "";
 			prop              = prop2;
 			break;
 		}
@@ -281,6 +291,7 @@ void osn::Source::GetProperties(
 			prop2->field_type   = obs::PathProperty::PathType(obs_property_path_type(p));
 			prop2->filter       = (buf = obs_property_path_filter(p)) != nullptr ? buf : "";
 			prop2->default_path = (buf = obs_property_path_default_path(p)) != nullptr ? buf : "";
+			prop2->value        = (buf = obs_data_get_string(settings, name)) != nullptr ? buf : "";
 			prop                = prop2;
 			break;
 		}
@@ -306,23 +317,50 @@ void osn::Source::GetProperties(
 				}
 				prop2->items.push_back(std::move(entry));
 			}
+			switch (prop2->format) {
+			case obs::ListProperty::Format::Integer: {
+				prop2->current_value_int = (int)obs_data_get_int(settings, name);
+				break;
+			}
+			case obs::ListProperty::Format::Float: {
+				prop2->current_value_float = obs_data_get_double(settings, name);
+				break;
+			}
+			case obs::ListProperty::Format::String: {
+				prop2->current_value_str = (buf = obs_data_get_string(settings, name)) != nullptr ? buf : "";
+				break;
+			}
+			}
 			prop = prop2;
 			break;
 		}
-		case OBS_PROPERTY_COLOR:
-			prop = std::make_shared<obs::ColorProperty>();
+		case OBS_PROPERTY_COLOR: {
+			auto prop2        = std::make_shared<obs::ColorProperty>();
+			prop2->field_type = obs::NumberProperty::NumberType(obs_property_int_type(p));
+			prop2->value      = (int)obs_data_get_int(settings, name);
+			prop              = prop2;
 			break;
+		}
 		case OBS_PROPERTY_BUTTON:
 			prop = std::make_shared<obs::ButtonProperty>();
 			break;
-		case OBS_PROPERTY_FONT:
-			prop = std::make_shared<obs::FontProperty>();
+		case OBS_PROPERTY_FONT: {
+			auto prop2           = std::make_shared<obs::FontProperty>();
+			obs_data_t* font_obj = obs_data_get_obj(settings, name);
+			prop2->face          = (buf = obs_data_get_string(font_obj, "face")) != nullptr ? buf : "";
+			prop2->style         = (buf = obs_data_get_string(font_obj, "style")) != nullptr ? buf : "";
+			prop2->path          = (buf = obs_data_get_string(font_obj, "path")) != nullptr ? buf : "";
+			prop2->sizeF         = (int)obs_data_get_int(font_obj, "size");
+			prop2->flags         = (uint32_t)obs_data_get_int(font_obj, "flags");
+			prop                 = prop2;
 			break;
+		}
 		case OBS_PROPERTY_EDITABLE_LIST: {
 			auto prop2          = std::make_shared<obs::EditableListProperty>();
 			prop2->field_type   = obs::EditableListProperty::ListType(obs_property_editable_list_type(p));
 			prop2->filter       = (buf = obs_property_editable_list_filter(p)) != nullptr ? buf : "";
 			prop2->default_path = (buf = obs_property_editable_list_default_path(p)) != nullptr ? buf : "";
+			prop2->value        = (buf = obs_data_get_string(settings, name)) != nullptr ? buf : "";
 			prop                = prop2;
 			break;
 		}

@@ -282,7 +282,104 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::IsLast(Nan::NAN_METHOD_ARGS_TYP
 
 Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetValue(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	info.GetReturnValue().Set(info.Holder());
+	osn::PropertyObject* self;
+	osn::Properties*     parent;
+
+	if (!Retrieve(info.This(), self)) {
+		return;
+	}
+	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
+		return;
+	}
+
+	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
+	auto iter = parent->GetProperties()->find(self->index);
+	if (iter == parent->GetProperties()->end()) {
+		info.GetReturnValue().Set(Nan::Null());
+		return;
+	}
+
+	switch (iter->second->type) {
+	case osn::Property::Type::INVALID:
+		return;
+	case osn::Property::Type::BOOL: {
+		std::shared_ptr<osn::NumberProperty> cast_property =
+		    std::static_pointer_cast<osn::NumberProperty>(iter->second);
+		info.GetReturnValue().Set(utilv8::ToValue(reinterpret_cast<bool*>(cast_property->bool_value.value)));
+		break;
+	}
+	case osn::Property::Type::INT: {
+		std::shared_ptr<osn::NumberProperty> cast_property =
+		    std::static_pointer_cast<osn::NumberProperty>(iter->second);
+
+		info.GetReturnValue().Set(utilv8::ToValue(cast_property->int_value.value));
+		break;
+	}
+	case osn::Property::Type::COLOR: {
+		std::shared_ptr<osn::NumberProperty> cast_property =
+		    std::static_pointer_cast<osn::NumberProperty>(iter->second);
+
+		info.GetReturnValue().Set(utilv8::ToValue(cast_property->int_value.value));
+		break;
+	}
+	case osn::Property::Type::FLOAT: {
+		std::shared_ptr<osn::NumberProperty> cast_property =
+		    std::static_pointer_cast<osn::NumberProperty>(iter->second);
+
+		info.GetReturnValue().Set(utilv8::ToValue(cast_property->float_value.value));
+		break;
+	}
+	case osn::Property::Type::TEXT: {
+		std::shared_ptr<osn::TextProperty> cast_property = std::static_pointer_cast<osn::TextProperty>(iter->second);
+		info.GetReturnValue().Set(utilv8::ToValue(cast_property->value));
+		break;
+	}
+	case osn::Property::Type::PATH: {
+		std::shared_ptr<osn::PathProperty> cast_property = std::static_pointer_cast<osn::PathProperty>(iter->second);
+		info.GetReturnValue().Set(utilv8::ToValue(cast_property->value));
+		break;
+	}
+
+	case osn::Property::Type::LIST: {
+		std::shared_ptr<osn::ListProperty> cast_property = std::static_pointer_cast<osn::ListProperty>(iter->second);
+		switch (cast_property->item_format) {
+		case ListProperty::Format::FLOAT:
+			info.GetReturnValue().Set(utilv8::ToValue(cast_property->current_value_float));
+			break;
+		case ListProperty::Format::INT:
+			info.GetReturnValue().Set(utilv8::ToValue(cast_property->current_value_int));
+			break;
+		case ListProperty::Format::STRING:
+			info.GetReturnValue().Set(utilv8::ToValue(cast_property->current_value_str));
+			break;
+		}
+		break;
+	}
+	case osn::Property::Type::EDITABLELIST: {
+		std::shared_ptr<osn::EditableListProperty> cast_property =
+		    std::static_pointer_cast<osn::EditableListProperty>(iter->second);
+		info.GetReturnValue().Set(utilv8::ToValue(cast_property->value));
+		break;
+	}
+	case osn::Property::Type::BUTTON:
+		break;
+	case osn::Property::Type::FONT: {
+		std::shared_ptr<osn::FontProperty> cast_property = std::static_pointer_cast<osn::FontProperty>(iter->second);
+		v8::Local<v8::Object>              font          = v8::Object::New(info.GetIsolate());
+
+		font->Set(utilv8::ToValue("face"), utilv8::ToValue(cast_property->face));
+		font->Set(utilv8::ToValue("style"), utilv8::ToValue(cast_property->style));
+		font->Set(utilv8::ToValue("path"), utilv8::ToValue(cast_property->path));
+		font->Set(utilv8::ToValue("size"), utilv8::ToValue(cast_property->sizeF));
+		font->Set(utilv8::ToValue("flags"), utilv8::ToValue(cast_property->flags));
+
+		info.GetReturnValue().Set(font);
+		break;
+	}
+	case osn::Property::Type::FRAMERATE:
+		break;
+	}
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetName(Nan::NAN_METHOD_ARGS_TYPE info)
