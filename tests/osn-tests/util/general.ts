@@ -9,8 +9,11 @@ let basicOBSFilterTypes: string[] = ['mask_filter', 'crop_filter', 'gain_filter'
                                      'invert_polarity_filter', 'noise_gate_filter', 'compressor_filter', "limiter_filter", 'expander_filter', 'vst_filter'];
 export {basicOBSFilterTypes};
 
-let basicOBSTransitionTypes: string[] = [ 'cut_transition', 'fade_transition', 'swipe_transition', 'slide_transition', 'fade_to_color_transition', 'wipe_transition', 'obs_stinger_transition'];
+let basicOBSTransitionTypes: string[] = ['cut_transition', 'fade_transition', 'swipe_transition', 'slide_transition', 'fade_to_color_transition', 'wipe_transition', 'obs_stinger_transition'];
 export {basicOBSTransitionTypes};
+
+let basicOBSSettingsCategories: string[] = ['General', 'Stream', 'Output', 'Audio', 'Video', 'Hotkeys', 'Advanced'];
+export {basicOBSSettingsCategories};
 
 export function getTimeSpec(ms: number): ITimeSpec {
     return {
@@ -21,4 +24,20 @@ export function getTimeSpec(ms: number): ITimeSpec {
 
 export function getCppErrorMsg(errorStack: any): string {
     return errorStack.stack.split("\n", 1).join("").substring(7);
+}
+
+export function deleteConfigFiles(): void {
+    const fs = require('fs');
+    const path = require('path');
+    const configFolderPath = path.join(path.normalize(__dirname), '..', 'osnData/slobs-client');
+
+    fs.readdir(configFolderPath, (error, files) => {
+        if (error) throw error;
+      
+        for (const file of files) {
+              fs.unlink(path.join(configFolderPath, file), err => {
+              if (error) throw error;
+          });
+        }
+    });
 }
