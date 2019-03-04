@@ -1140,8 +1140,18 @@ bool OBS_API::openAllModules(int& video_err)
 			}
 #endif
 
-			obs_module_t* module;
-			int           result = obs_open_module(&module, plugin_path.c_str(), plugin_data_path.c_str());
+			obs_module_t* module = nullptr;
+			int           result = MODULE_ERROR;
+
+			try {
+				result = obs_open_module(&module, plugin_path.c_str(), plugin_data_path.c_str());
+			} catch (std::string errorMsg) {
+				blog(LOG_ERROR, "Failed to load module: %s - %s", basename, errorMsg);
+				continue;
+			} catch (...) {
+				blog(LOG_ERROR, "Failed to load module: %s", basename);
+				continue;
+			}
 
 			switch (result) {
 			case MODULE_SUCCESS:
@@ -1163,11 +1173,18 @@ bool OBS_API::openAllModules(int& video_err)
 				continue;
 			}
 
-			bool success = obs_init_module(module);
-
-			if (!success) {
-				std::cerr << "Failed to initialize module " << plugin_path << std::endl;
-				/* Just continue to next one */
+			try {
+				bool success = obs_init_module(module);
+				if (!success) {
+					std::cerr << "Failed to initialize module " << plugin_path << std::endl;
+					/* Just continue to next one */
+				}
+			} catch (std::string errorMsg) {
+				blog(LOG_ERROR, "Failed to initialize module: %s - %s", basename, errorMsg);
+				continue;
+			} catch (...) {
+				blog(LOG_ERROR, "Failed to initialize module: %s", basename);
+				continue;
 			}
 		}
 
