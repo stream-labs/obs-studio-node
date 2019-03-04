@@ -39,7 +39,7 @@ private:
 	std::string service = "";
 	std::string stream = "";
 	std::string record = "";
-	std::string appdata;
+	std::string appdata = "";
 
 	config_t * getConfig(std::string name);
 

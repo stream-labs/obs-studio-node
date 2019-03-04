@@ -32,14 +32,22 @@ void ConfigManager::setAppdataPath(std::string path)
 
 config_t* ConfigManager::getConfig(std::string name)
 {
-	config_t*   config;
+	config_t*   config = nullptr;
 	std::string file = appdata + name;
 
 	int result = config_open(&config, file.c_str(), CONFIG_OPEN_EXISTING);
 
 	if (result != CONFIG_SUCCESS) {
 		config = config_create(file.c_str());
-		config_open(&config, file.c_str(), CONFIG_OPEN_EXISTING);
+		if (config) {
+			config_close(config);
+			config = nullptr;
+
+			result = config_open(&config, file.c_str(), CONFIG_OPEN_EXISTING);
+			if (result != CONFIG_SUCCESS) {
+				config = nullptr;
+			}
+		}
 	}
 
 	return config;
@@ -220,7 +228,9 @@ config_t* ConfigManager::getGlobal()
 {
 	if (!global) {
 		global = getConfig("\\global.ini");
-		initGlobalDefault(global);
+		if(global) {
+			initGlobalDefault(global);
+		}
 	}
 
 	return global;
@@ -229,7 +239,9 @@ config_t* ConfigManager::getBasic()
 {
 	if (!basic) {
 		basic = getConfig("\\basic.ini");
-		initBasicDefault(basic);
+		if (basic) {
+			initBasicDefault(basic);
+		}
 	}
 
 	return basic;
