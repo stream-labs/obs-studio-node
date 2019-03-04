@@ -224,6 +224,11 @@ add_executable(
 	"${PROJECT_SOURCE_DIR}/source/nodeobs_settings.h"
 	"${PROJECT_SOURCE_DIR}/source/util-memory.cpp"
 	"${PROJECT_SOURCE_DIR}/source/util-memory.h"
+
+	###### crash-manager ######
+
+	"${PROJECT_SOURCE_DIR}/source/util-crashmanager.cpp"
+	"${PROJECT_SOURCE_DIR}/source/util-crashmanager.h"
 )
 
 if(WIN32)

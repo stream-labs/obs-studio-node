@@ -68,14 +68,18 @@ uint64_t                                               lastBytesSentTime = 0;
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 std::string                                            slobs_plugin;
 std::vector<std::pair<std::string, obs_module_t*>>     obsModules;
+OBS_API::LogReport                                     logReport;
 std::mutex                                             logMutex;
+std::string                                            currentVersion;
 
 void OBS_API::Register(ipc::server& srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("API");
 
 	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_API_initAPI", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, OBS_API_initAPI));
+	    "OBS_API_initAPI",
+	    std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String},
+	    OBS_API_initAPI));
 	cls->register_function(
 	    std::make_shared<ipc::function>("OBS_API_destroyOBS_API", std::vector<ipc::type>{}, OBS_API_destroyOBS_API));
 	cls->register_function(std::make_shared<ipc::function>(
@@ -351,6 +355,9 @@ static void                                    node_obs_log(int log_level, const
 			// File Log
 			*logStream << newmsg << std::flush;
 
+            // Internal Log
+			logReport.push(newmsg, log_level);
+
 			// Std Out / Std Err
 			/// Why fwrite and not std::cout and std::cerr?
 			/// Well, it seems that std::cout and std::cerr break if you click in the console window and paste.
@@ -467,6 +474,7 @@ void OBS_API::OBS_API_initAPI(
 	/* FIXME g_moduleDirectory really needs to be a wstring */
 	std::string appdata = args[0].value_str;
 	std::string locale  = args[1].value_str;
+	currentVersion      = args[2].value_str;
 
 	/* libobs will use three methods of finding data files:
 	* 1. ${CWD}/data/libobs <- This doesn't work for us
@@ -1277,6 +1285,26 @@ double OBS_API::getCurrentBandwidth(void)
 double OBS_API::getCurrentFrameRate(void)
 {
 	return obs_get_active_fps();
+}
+
+const std::vector<std::string>& OBS_API::getOBSLogErrors()
+{
+	return logReport.errors;
+}
+
+const std::vector<std::string>& OBS_API::getOBSLogWarnings()
+{
+	return logReport.warnings;
+}
+
+std::queue<std::string>& OBS_API::getOBSLogGeneral()
+{
+	return logReport.general;
+}
+
+std::string OBS_API::getCurrentVersion()
+{
+	return currentVersion;
 }
 
 static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData)
