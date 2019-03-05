@@ -1,7 +1,7 @@
 import 'mocha';
-import { expect } from 'chai';
 import * as osn from 'obs-studio-node';
 import { OBSProcessHandler } from '../util/obs_process_handler';
+import { deleteConfigFiles } from '../util/general';
 
 type TConfigEvent = 'starting_step' | 'progress' | 'stopping_step' | 'error' | 'done';
 
@@ -37,7 +37,6 @@ function handleProgress(progress: IConfigProgress) {
     }
 
     if (progress.event === 'error') {
-        console.log('A set has failed. Setting default settings...')
         osn.NodeObs.StartSetDefaultSettings();
     }
 
@@ -58,7 +57,7 @@ function start(cb: TConfigProgressCallback) {
     },
     {
         service_name: 'Twitch',
-    },);
+    });
 
     osn.NodeObs.StartBandwidthTest();
 }
@@ -86,17 +85,54 @@ describe('nodeobs_autoconfig', () => {
     after(function() {
         obs.shutdown();
         obs = null;
+        deleteConfigFiles();
     });
 
     context('# Full auto config run (all functions)', () => {
-        it('Run all auto config steps', function(done) {
+        let hasStepFailed: boolean = false;
+
+        it('Run all auto config steps (error)', function(done) {
+            let stepInfo: IConfigStepPresentation[] = [];
+
+            // Starting auto configuration processes
+            start(progress => {
+                if ( progress.event === 'starting_step' ||
+                    progress.event === 'progress' ||
+                    progress.event === 'stopping_step' ) {
+                        const step = stepInfo.find(step => {
+                        return step.description === progress.description;
+                    });
+        
+                    if (step) {
+                        step.percentage = progress.percentage;
+                    } else {
+                        stepInfo.push({ description: progress.description,
+                                        summary: '',
+                                        percentage: progress.percentage, });
+                    }
+                } else if (progress.event === 'done') {
+                    if (!hasStepFailed)
+                    {
+                        done(new Error('Autoconfig completed successfully. An error was expected.'));
+                    } else {
+                        done();
+                    }
+                } else if (progress.event === 'error') {
+                    hasStepFailed = true;
+                }
+            });
+        });
+
+        it('Run all auto config steps (success)', function(done) {
+            hasStepFailed = false;
+
             // Getting stream settings container
             const streamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
 
             // Setting stream service and stream key
             streamSettings.forEach(subCategory => {
                 subCategory.parameters.forEach(parameter => {
-                    if (parameter.name == 'service') {
+                    if (parameter.name === 'service') {
                         parameter.currentValue = 'Twitch';
                     }
 
@@ -112,16 +148,13 @@ describe('nodeobs_autoconfig', () => {
 
             // Starting auto configuration processes
             start(progress => {
-                // Checking if any auto config step has failed
-                expect(progress.event).to.not.equal('error');
-
                 if ( progress.event === 'starting_step' ||
-                     progress.event === 'progress' ||
-                     progress.event === 'stopping_step' ) {
+                    progress.event === 'progress' ||
+                    progress.event === 'stopping_step' ) {
                         const step = stepInfo.find(step => {
                         return step.description === progress.description;
                     });
-          
+        
                     if (step) {
                         step.percentage = progress.percentage;
                     } else {
@@ -131,7 +164,15 @@ describe('nodeobs_autoconfig', () => {
                         });
                     }
                 } else if (progress.event === 'done') {
-                    done();
+                    if (hasStepFailed)
+                    {
+                        done(new Error('An autoconfig step has failed.'));
+                    } else {
+                        done();
+                    }
+                    
+                } else if (progress.event === 'error') {
+                    hasStepFailed = true;
                 }
             });
         });
