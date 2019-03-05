@@ -1287,7 +1287,7 @@ inline const char* GetEncoderId(Encoder enc)
 	case Encoder::AMD:
 		return "amd_amf_h264";
 	default:
-		return "ffmpeg_nvenc";
+		return "obs_x264";
 	}
 };
 
