@@ -941,8 +941,7 @@ bool OBS_service::startRecording(void)
 			signal.setErrorMessage(error);
 			std::cout << "Last recording error: " << error << std::endl;
 		}
-		// -4 is for: Error = -4, which is a generic error sent to the frontend
-		signal.setCode(-4);
+		signal.setCode(OBS_OUTPUT_ERROR);
 		std::unique_lock<std::mutex> ulock(signalMutex);
 		outputSignal.push(signal);
 	}
