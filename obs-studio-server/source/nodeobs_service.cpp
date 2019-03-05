@@ -49,6 +49,9 @@ bool        lowCPUx264           = false;
 bool        isStreaming          = false;
 bool        isRecording          = false;
 
+std::mutex             signalMutex;
+std::queue<SignalInfo> outputSignal;
+
 OBS_service::OBS_service() {}
 OBS_service::~OBS_service() {}
 
@@ -934,8 +937,13 @@ bool OBS_service::startRecording(void)
 		SignalInfo signal = SignalInfo("recording", "stop");
 		isRecording       = false;
 		const char* error = obs_output_get_last_error(recordingOutput);
-		if (error)
+		if (error) {
+			signal.setErrorMessage(error);
 			std::cout << "Last recording error: " << error << std::endl;
+		}
+		signal.setCode(OBS_OUTPUT_ERROR);
+		std::unique_lock<std::mutex> ulock(signalMutex);
+		outputSignal.push(signal);
 	}
 	return isRecording;
 }
@@ -2073,9 +2081,6 @@ void OBS_service::OBS_service_connectOutputSignals(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
-
-std::mutex             signalMutex;
-std::queue<SignalInfo> outputSignal;
 
 void OBS_service::Query(
     void*                          data,
