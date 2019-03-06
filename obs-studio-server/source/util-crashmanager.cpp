@@ -237,7 +237,7 @@ bool util::CrashManager::Initialize()
 		HandleCrash("UnhandledExceptionFilter", false);
 		 
 		// Unreachable statement
-		return LONG(EXCEPTION_EXECUTE_HANDLER);
+		return LONG(EXCEPTION_CONTINUE_SEARCH);
 	});
 
 	// Setup the metrics query for the CPU usage
