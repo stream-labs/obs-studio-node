@@ -230,7 +230,7 @@ bool util::CrashManager::Initialize()
 	// Setup the windows exeption filter to
 	auto ExceptionHandlerMethod = [](struct _EXCEPTION_POINTERS* ExceptionInfo) {
 
-		HandleCrash("UnhandledExceptionFilter", false);
+		HandleCrash("UnhandledExceptionFilter");
 
 		return LONG(EXCEPTION_EXECUTE_HANDLER);
 	};
