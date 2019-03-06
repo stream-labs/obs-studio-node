@@ -229,13 +229,10 @@ bool util::CrashManager::Initialize()
 
 	// Setup the windows exeption filter to
 	auto ExceptionHandlerMethod = [](struct _EXCEPTION_POINTERS* ExceptionInfo) {
-		/* don't use if a debugger is present */
-		if (IsDebuggerPresent())
-			return LONG(EXCEPTION_CONTINUE_SEARCH);
 
-		HandleCrash("UnhandledExceptionFilter");
+		HandleCrash("UnhandledExceptionFilter", false);
 
-		return LONG(EXCEPTION_CONTINUE_SEARCH);
+		return LONG(EXCEPTION_EXECUTE_HANDLER);
 	};
 
 	AddVectoredExceptionHandler(1, ExceptionHandlerMethod);
@@ -319,11 +316,6 @@ bool util::CrashManager::SetupCrashpad()
 		return false;
 
 #endif
-
-	crashpad::NativeCPUContext* cpu_context;
-	crashpad::CaptureContext(cpu_context);
-	CONTEXT* winContext = (CONTEXT*)cpu_context;
-	client.DumpWithoutCrash(*winContext);
 
 	return true;
 }
