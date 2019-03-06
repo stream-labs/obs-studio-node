@@ -228,15 +228,18 @@ bool util::CrashManager::Initialize()
 #if defined(_WIN32)
 
 	// Setup the windows exeption filter to
-	SetUnhandledExceptionFilter([](struct _EXCEPTION_POINTERS* ExceptionInfo) {
+	auto ExceptionHandlerMethod = [](struct _EXCEPTION_POINTERS* ExceptionInfo) {
 		/* don't use if a debugger is present */
-	    if (IsDebuggerPresent()) 
-            return LONG(EXCEPTION_CONTINUE_SEARCH);
+		if (IsDebuggerPresent())
+			return LONG(EXCEPTION_CONTINUE_SEARCH);
 
 		HandleCrash("UnhandledExceptionFilter");
 
 		return LONG(EXCEPTION_CONTINUE_SEARCH);
-	});
+	};
+
+	AddVectoredExceptionHandler(1, ExceptionHandlerMethod);
+	SetUnhandledExceptionFilter(ExceptionHandlerMethod);
 
 	// Setup the metrics query for the CPU usage
 	// Ref: https://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process
@@ -316,6 +319,11 @@ bool util::CrashManager::SetupCrashpad()
 		return false;
 
 #endif
+
+	crashpad::NativeCPUContext* cpu_context;
+	crashpad::CaptureContext(cpu_context);
+	CONTEXT* winContext = (CONTEXT*)cpu_context;
+	client.DumpWithoutCrash(*winContext);
 
 	return true;
 }
