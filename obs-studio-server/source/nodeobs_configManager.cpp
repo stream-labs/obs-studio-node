@@ -32,14 +32,22 @@ void ConfigManager::setAppdataPath(std::string path)
 
 config_t* ConfigManager::getConfig(std::string name)
 {
-	config_t*   config;
+	config_t*   config = nullptr;
 	std::string file = appdata + name;
 
 	int result = config_open(&config, file.c_str(), CONFIG_OPEN_EXISTING);
 
 	if (result != CONFIG_SUCCESS) {
 		config = config_create(file.c_str());
-		config_open(&config, file.c_str(), CONFIG_OPEN_EXISTING);
+		if (config) {
+			config_close(config);
+			config = nullptr;
+
+			result = config_open(&config, file.c_str(), CONFIG_OPEN_EXISTING);
+			if (result != CONFIG_SUCCESS) {
+				config = nullptr;
+			}
+		}
 	}
 
 	return config;
@@ -86,6 +94,24 @@ void initBasicDefault(config_t* config)
 		config_remove_value(config, "AdvOut", "RecTrackIndex");
 		config_save_safe(config, "tmp", nullptr);
 	}
+	if (config_has_user_value(config, "AdvOut", "nameTrack3")) {
+		std::string trackName = config_get_string(config, "AdvOut", "nameTrack3");
+		config_set_string(config, "AdvOut", "Track3Name", trackName.c_str());
+		config_remove_value(config, "AdvOut", "nameTrack3");
+		config_save_safe(config, "tmp", nullptr);
+	}
+	if (config_has_user_value(config, "AdvOut", "nameTrack4")) {
+		std::string trackName = config_get_string(config, "AdvOut", "nameTrack4");
+		config_set_string(config, "AdvOut", "Track4Name", trackName.c_str());
+		config_remove_value(config, "AdvOut", "nameTrack4");
+		config_save_safe(config, "tmp", nullptr);
+	}
+	if (config_has_user_value(config, "AdvOut", "nameTrack5")) {
+		std::string trackName = config_get_string(config, "AdvOut", "nameTrack5");
+		config_set_string(config, "AdvOut", "Track5Name", trackName.c_str());
+		config_remove_value(config, "AdvOut", "nameTrack5");
+		config_save_safe(config, "tmp", nullptr);
+	}
 
 	config_set_default_string(config, "Output", "Mode", "Simple");
 	std::string filePath = GetDefaultVideoSavePath();
@@ -99,7 +125,7 @@ void initBasicDefault(config_t* config)
 	config_set_default_string(config, "SimpleOutput", "Preset", "veryfast");
 	config_set_default_string(config, "SimpleOutput", "RecQuality", "Stream");
 	config_set_default_string(config, "SimpleOutput", "RecEncoder", "x264");
-	config_set_default_bool(config, "SimpleOutput", "RecRB", false);
+	config_set_default_bool(config, "SimpleOutput", "RecRB", true);
 	config_set_default_int(config, "SimpleOutput", "RecRBTime", 20);
 	config_set_default_int(config, "SimpleOutput", "RecRBSize", 512);
 	config_set_default_string(config, "SimpleOutput", "RecRBPrefix", "Replay");
@@ -134,7 +160,7 @@ void initBasicDefault(config_t* config)
 	config_set_default_uint(config, "AdvOut", "Track5Bitrate", 160);
 	config_set_default_uint(config, "AdvOut", "Track6Bitrate", 160);
 
-	config_set_default_bool(config, "AdvOut", "RecRB", false);
+	config_set_default_bool(config, "AdvOut", "RecRB", true);
 	config_set_default_uint(config, "AdvOut", "RecRBTime", 20);
 	config_set_default_int(config, "AdvOut", "RecRBSize", 512);
 
@@ -220,7 +246,9 @@ config_t* ConfigManager::getGlobal()
 {
 	if (!global) {
 		global = getConfig("\\global.ini");
-		initGlobalDefault(global);
+		if(global) {
+			initGlobalDefault(global);
+		}
 	}
 
 	return global;
@@ -229,7 +257,9 @@ config_t* ConfigManager::getBasic()
 {
 	if (!basic) {
 		basic = getConfig("\\basic.ini");
-		initBasicDefault(basic);
+		if (basic) {
+			initBasicDefault(basic);
+		}
 	}
 
 	return basic;

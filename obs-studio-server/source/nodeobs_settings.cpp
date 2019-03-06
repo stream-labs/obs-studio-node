@@ -2281,7 +2281,7 @@ void OBS_settings::getAdvancedOutputAudioSettings(
 	entries.push_back(Track3Bitrate);
 
 	std::vector<std::pair<std::string, ipc::value>> Track3Name;
-	Track3Name.push_back(std::make_pair("name", ipc::value("nameTrack3")));
+	Track3Name.push_back(std::make_pair("name", ipc::value("Track3Name")));
 	Track3Name.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
 	Track3Name.push_back(std::make_pair("description", ipc::value("Name")));
 	Track3Name.push_back(std::make_pair("subType", ipc::value("")));
@@ -2310,7 +2310,7 @@ void OBS_settings::getAdvancedOutputAudioSettings(
 	entries.push_back(Track4Bitrate);
 
 	std::vector<std::pair<std::string, ipc::value>> Track4Name;
-	Track4Name.push_back(std::make_pair("name", ipc::value("nameTrack4")));
+	Track4Name.push_back(std::make_pair("name", ipc::value("Track4Name")));
 	Track4Name.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
 	Track4Name.push_back(std::make_pair("description", ipc::value("Name")));
 	Track4Name.push_back(std::make_pair("subType", ipc::value("")));
@@ -2328,10 +2328,10 @@ void OBS_settings::getAdvancedOutputAudioSettings(
 	Track5Bitrate.push_back(std::make_pair("name", ipc::value("Track5Bitrate")));
 	Track5Bitrate.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
 	Track5Bitrate.push_back(std::make_pair("description", ipc::value("Audio Bitrate")));
-	Track4Bitrate.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	Track4Bitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	Track4Bitrate.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	Track4Bitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	Track5Bitrate.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+	Track5Bitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	Track5Bitrate.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	Track5Bitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 
 	for (auto& entry : bitrateMap)
 		Track5Bitrate.push_back(std::make_pair(std::to_string(entry.first), std::to_string(entry.first)));
@@ -2339,7 +2339,7 @@ void OBS_settings::getAdvancedOutputAudioSettings(
 	entries.push_back(Track5Bitrate);
 
 	std::vector<std::pair<std::string, ipc::value>> Track5Name;
-	Track5Name.push_back(std::make_pair("name", ipc::value("nameTrack5")));
+	Track5Name.push_back(std::make_pair("name", ipc::value("Track5Name")));
 	Track5Name.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
 	Track5Name.push_back(std::make_pair("description", ipc::value("Name")));
 	Track5Name.push_back(std::make_pair("subType", ipc::value("")));
@@ -2512,14 +2512,7 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 		if (type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 || type.compare("OBS_PROPERTY_PATH") == 0
 		    || type.compare("OBS_PROPERTY_TEXT") == 0 || type.compare("OBS_INPUT_RESOLUTION_LIST") == 0) {
 			std::string value(param.currentValue.data(), param.currentValue.size());
-
 			if (i < indexEncoderSettings) {
-				if (name.compare("Encoder") == 0) {
-					const char* currentEncoder =
-					    config_get_string(ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str());
-					if (currentEncoder != NULL)
-						newEncoderType = value.compare(currentEncoder) != 0;
-				}
 				config_set_string(
 				    ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str(), value.c_str());
 			} else {
@@ -2576,6 +2569,12 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 			} else {
 				std::string value(param.currentValue.data(), param.currentValue.size());
 				if (i < indexEncoderSettings) {
+					if (name.compare("Encoder") == 0) {
+						const char* currentEncoder =
+						    config_get_string(ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str());
+						if (currentEncoder != NULL)
+							newEncoderType = value.compare(currentEncoder) != 0;
+					}
 					config_set_string(
 					    ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str(), value.c_str());
 				} else {
@@ -2636,15 +2635,6 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 		    || type.compare("OBS_PROPERTY_TEXT") == 0 || type.compare("OBS_INPUT_RESOLUTION_LIST") == 0) {
 			if (i < indexEncoderSettings) {
 				std::string value(param.currentValue.data(), param.currentValue.size());
-
-				if (name.compare("RecEncoder") == 0) {
-					const char* currentEncoder =
-					    config_get_string(ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str());
-
-					if (currentEncoder != NULL)
-						newEncoderType = value.compare(currentEncoder) != 0;
-				}
-
 				config_set_string(
 				    ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str(), value.c_str());
 			} else {
@@ -2702,6 +2692,13 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 			} else {
 				std::string value(param.currentValue.data(), param.currentValue.size());
 				if (i < indexEncoderSettings) {
+					if (name.compare("RecEncoder") == 0) {
+						const char* currentEncoder =
+						    config_get_string(ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str());
+
+						if (currentEncoder != NULL)
+							newEncoderType = value.compare(currentEncoder) != 0;
+					}
 					config_set_string(
 					    ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str(), value.c_str());
 				} else {
@@ -3201,38 +3198,40 @@ void OBS_settings::saveVideoSettings(std::vector<SubCategory> videoSettings)
 	std::string fpsTypeString(fpsType.currentValue.data(), fpsType.currentValue.size());
 
 	if (fpsTypeString.compare("Common FPS Values") == 0) {
-		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType", 0);
-
-		Parameter   fpsCommon = sc.params.at(4);
-		std::string fpsCommonString(fpsCommon.currentValue.data(), fpsCommon.currentValue.size());
-		config_set_string(ConfigManager::getInstance().getBasic(), "Video", "FPSCommon", fpsCommonString.c_str());
-
+		if (config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType") != 0) {
+			config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType", 0);
+		} else {
+			Parameter   fpsCommon = sc.params.at(4);
+			std::string fpsCommonString(fpsCommon.currentValue.data(), fpsCommon.currentValue.size());
+			config_set_string(ConfigManager::getInstance().getBasic(), "Video", "FPSCommon", fpsCommonString.c_str());
+		}
 	} else if (fpsTypeString.compare("Integer FPS Value") == 0) {
-		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType", 1);
-
-		Parameter fpsInt = sc.params.at(4);
-
-		uint64_t* fpsIntValue = reinterpret_cast<uint64_t*>(fpsInt.currentValue.data());
-
-		if (*fpsIntValue > 0 && *fpsIntValue < 500) {
-			config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSInt", *fpsIntValue);
+		if (config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType") != 1) {
+			config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType", 1);
+		} else {
+			Parameter fpsInt = sc.params.at(4);
+			uint64_t* fpsIntValue = reinterpret_cast<uint64_t*>(fpsInt.currentValue.data());
+			if (*fpsIntValue > 0 && *fpsIntValue < 500) {
+				config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSInt", *fpsIntValue);
+			}
 		}
-
 	} else if (fpsTypeString.compare("Fractional FPS Value") == 0) {
-		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType", 2);
+		if (config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType") != 2) {
+			config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType", 2);
+		} else {
+			Parameter fpsNum      = sc.params.at(4);
+			uint32_t* fpsNumValue = reinterpret_cast<uint32_t*>(fpsNum.currentValue.data());
 
-		Parameter fpsNum      = sc.params.at(4);
-		uint32_t* fpsNumValue = reinterpret_cast<uint32_t*>(fpsNum.currentValue.data());
+			if (*fpsNumValue > 0 && *fpsNumValue < 500) {
+				config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSNum", *fpsNumValue);
+			}
 
-		if (*fpsNumValue > 0 && *fpsNumValue < 500) {
-			config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSNum", *fpsNumValue);
-		}
-
-		if (sc.params.size() > 5) {
-			Parameter fpsDen      = sc.params.at(5);
-			uint32_t* fpsDenValue = reinterpret_cast<uint32_t*>(fpsDen.currentValue.data());
-			if (*fpsDenValue > 0)
-				config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSDen", *fpsDenValue);
+			if (sc.params.size() > 5) {
+				Parameter fpsDen      = sc.params.at(5);
+				uint32_t* fpsDenValue = reinterpret_cast<uint32_t*>(fpsDen.currentValue.data());
+				if (*fpsDenValue > 0)
+					config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSDen", *fpsDenValue);
+			}
 		}
 	}
 

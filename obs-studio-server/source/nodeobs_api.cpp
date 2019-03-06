@@ -68,14 +68,18 @@ uint64_t                                               lastBytesSentTime = 0;
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 std::string                                            slobs_plugin;
 std::vector<std::pair<std::string, obs_module_t*>>     obsModules;
+OBS_API::LogReport                                     logReport;
 std::mutex                                             logMutex;
+std::string                                            currentVersion;
 
 void OBS_API::Register(ipc::server& srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("API");
 
 	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_API_initAPI", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, OBS_API_initAPI));
+	    "OBS_API_initAPI",
+	    std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String},
+	    OBS_API_initAPI));
 	cls->register_function(
 	    std::make_shared<ipc::function>("OBS_API_destroyOBS_API", std::vector<ipc::type>{}, OBS_API_destroyOBS_API));
 	cls->register_function(std::make_shared<ipc::function>(
@@ -351,6 +355,9 @@ static void                                    node_obs_log(int log_level, const
 			// File Log
 			*logStream << newmsg << std::flush;
 
+            // Internal Log
+			logReport.push(newmsg, log_level);
+
 			// Std Out / Std Err
 			/// Why fwrite and not std::cout and std::cerr?
 			/// Well, it seems that std::cout and std::cerr break if you click in the console window and paste.
@@ -467,6 +474,7 @@ void OBS_API::OBS_API_initAPI(
 	/* FIXME g_moduleDirectory really needs to be a wstring */
 	std::string appdata = args[0].value_str;
 	std::string locale  = args[1].value_str;
+	currentVersion      = args[2].value_str;
 
 	/* libobs will use three methods of finding data files:
 	* 1. ${CWD}/data/libobs <- This doesn't work for us
@@ -988,12 +996,17 @@ void OBS_API::StopCrashHandler(
 
 void OBS_API::destroyOBS_API(void)
 {
+	blog(LOG_DEBUG, "OBS_API::destroyOBS_API started");
+
 	os_cpu_usage_info_destroy(cpuUsageInfo);
 
 #ifdef _WIN32
-	bool disableAudioDucking = config_get_bool(ConfigManager::getInstance().getBasic(), "Audio", "DisableAudioDucking");
-	if (disableAudioDucking)
-		DisableAudioDucking(false);
+	config_t* basicConfig         = ConfigManager::getInstance().getBasic();
+	if (basicConfig) {
+		bool disableAudioDucking = config_get_bool(basicConfig, "Audio", "DisableAudioDucking");
+		if (disableAudioDucking)
+			DisableAudioDucking(false);
+	}
 #endif
 
 	obs_encoder_t* streamingEncoder = OBS_service::getStreamingEncoder();
@@ -1114,14 +1127,14 @@ bool OBS_API::openAllModules(int& video_err)
 		if (!os_file_exists(plugins_path.c_str())) {
 			blog(LOG_ERROR, "Plugin Path provided is invalid: %s", plugins_path);
 			std::cerr << "Plugin Path provided is invalid: " << plugins_path << std::endl;
-			return false;
+			continue;
 		}
 
 		os_dir_t* plugin_dir = os_opendir(plugins_path.c_str());
 		if (!plugin_dir) {
 			blog(LOG_ERROR, "Failed to open plugin diretory: %s", plugins_path);
 			std::cerr << "Failed to open plugin diretory: " << plugins_path << std::endl;
-			return false;
+			continue;
 		}
 
 		for (os_dirent* ent = os_readdir(plugin_dir); ent != nullptr; ent = os_readdir(plugin_dir)) {
@@ -1140,8 +1153,18 @@ bool OBS_API::openAllModules(int& video_err)
 			}
 #endif
 
-			obs_module_t* module;
-			int           result = obs_open_module(&module, plugin_path.c_str(), plugin_data_path.c_str());
+			obs_module_t* module = nullptr;
+			int           result = MODULE_ERROR;
+
+			try {
+				result = obs_open_module(&module, plugin_path.c_str(), plugin_data_path.c_str());
+			} catch (std::string errorMsg) {
+				blog(LOG_ERROR, "Failed to load module: %s - %s", basename, errorMsg);
+				continue;
+			} catch (...) {
+				blog(LOG_ERROR, "Failed to load module: %s", basename);
+				continue;
+			}
 
 			switch (result) {
 			case MODULE_SUCCESS:
@@ -1163,11 +1186,18 @@ bool OBS_API::openAllModules(int& video_err)
 				continue;
 			}
 
-			bool success = obs_init_module(module);
-
-			if (!success) {
-				std::cerr << "Failed to initialize module " << plugin_path << std::endl;
-				/* Just continue to next one */
+			try {
+				bool success = obs_init_module(module);
+				if (!success) {
+					std::cerr << "Failed to initialize module " << plugin_path << std::endl;
+					/* Just continue to next one */
+				}
+			} catch (std::string errorMsg) {
+				blog(LOG_ERROR, "Failed to initialize module: %s - %s", basename, errorMsg);
+				continue;
+			} catch (...) {
+				blog(LOG_ERROR, "Failed to initialize module: %s", basename);
+				continue;
 			}
 		}
 
@@ -1255,6 +1285,26 @@ double OBS_API::getCurrentBandwidth(void)
 double OBS_API::getCurrentFrameRate(void)
 {
 	return obs_get_active_fps();
+}
+
+const std::vector<std::string>& OBS_API::getOBSLogErrors()
+{
+	return logReport.errors;
+}
+
+const std::vector<std::string>& OBS_API::getOBSLogWarnings()
+{
+	return logReport.warnings;
+}
+
+std::queue<std::string>& OBS_API::getOBSLogGeneral()
+{
+	return logReport.general;
+}
+
+std::string OBS_API::getCurrentVersion()
+{
+	return currentVersion;
 }
 
 static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData)

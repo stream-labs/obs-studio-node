@@ -49,6 +49,9 @@ bool        lowCPUx264           = false;
 bool        isStreaming          = false;
 bool        isRecording          = false;
 
+std::mutex             signalMutex;
+std::queue<SignalInfo> outputSignal;
+
 OBS_service::OBS_service() {}
 OBS_service::~OBS_service() {}
 
@@ -868,6 +871,9 @@ bool OBS_service::updateAudioStreamingEncoder() {
 	}
 
 	if (!advanced) {
+		if (audioSimpleStreamingEncoder && obs_encoder_active(audioSimpleStreamingEncoder))
+			return false;
+
 		const char* quality = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
 		if ((strcmp(quality, "Stream") != 0) || (strcmp(quality, "Stream") == 0 && !isRecording)) {
 			if (strcmp(codec, "aac") != 0) {
@@ -931,8 +937,13 @@ bool OBS_service::startRecording(void)
 		SignalInfo signal = SignalInfo("recording", "stop");
 		isRecording       = false;
 		const char* error = obs_output_get_last_error(recordingOutput);
-		if (error)
+		if (error) {
+			signal.setErrorMessage(error);
 			std::cout << "Last recording error: " << error << std::endl;
+		}
+		signal.setCode(OBS_OUTPUT_ERROR);
+		std::unique_lock<std::mutex> ulock(signalMutex);
+		outputSignal.push(signal);
 	}
 	return isRecording;
 }
@@ -1279,6 +1290,9 @@ static bool EncoderAvailable(const char* encoder)
 
 void OBS_service::updateVideoStreamingEncoder()
 {
+	if (videoStreamingEncoder && obs_encoder_active(videoStreamingEncoder))
+		return;
+
 	obs_data_t* h264Settings = obs_data_create();
 	obs_data_t* aacSettings  = obs_data_create();
 
@@ -1655,6 +1669,9 @@ void OBS_service::UpdateFFmpegOutput(void)
 
 void OBS_service::updateVideoRecordingEncoder()
 {
+	if (videoRecordingEncoder && obs_encoder_active(videoRecordingEncoder))
+		return;
+
 	const char* quality = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
 	const char* encoder = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecEncoder");
 
@@ -2064,9 +2081,6 @@ void OBS_service::OBS_service_connectOutputSignals(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
-
-std::mutex             signalMutex;
-std::queue<SignalInfo> outputSignal;
 
 void OBS_service::Query(
     void*                          data,

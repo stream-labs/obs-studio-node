@@ -67,12 +67,16 @@ namespace osn
 		{
 			struct
 			{
-				int64_t min, max, step;
+				int64_t min, max, step, value;
 			} int_value;
 			struct
 			{
-				double_t min, max, step;
+				double_t min, max, step, value;
 			} float_value;
+			struct
+			{
+				bool value;
+			} bool_value;
 		};
 
 		Type field_type;
@@ -87,7 +91,8 @@ namespace osn
 			MULTILINE,
 		};
 
-		Type field_type;
+		Type        field_type;
+		std::string value;
 	};
 
 	struct PathProperty : Property
@@ -102,6 +107,7 @@ namespace osn
 		Type        field_type;
 		std::string filter;
 		std::string default_path;
+		std::string value;
 	};
 
 	struct ListProperty : Property
@@ -133,9 +139,25 @@ namespace osn
 			std::string value_str;
 		};
 
+		union
+		{
+			int64_t  current_value_int;
+			double_t current_value_float;
+		};
+		std::string     current_value_str;
+
 		Type            field_type;
 		Format          item_format;
 		std::list<Item> items;
+	};
+
+	struct FontProperty : Property
+	{
+		std::string face;
+		std::string style;
+		std::string path;
+		int64_t     sizeF;
+		uint32_t    flags;
 	};
 
 	// Contrary to the name, not compatible with the ListProperty. Actually more comparable to PathProperty.
@@ -151,6 +173,7 @@ namespace osn
 		Type        field_type;
 		std::string filter;
 		std::string default_path;
+		std::string value;
 	};
 
 	struct FrameRateProperty : Property

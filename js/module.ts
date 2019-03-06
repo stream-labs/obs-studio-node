@@ -638,6 +638,9 @@ export interface IProperty {
     /** Type of the property */
     readonly type: EPropertyType;
 
+    /** Current value of the property */
+    readonly value: any;
+
     /**
      * Uses the current object to obtain the next
      * property in the properties list.
