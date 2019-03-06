@@ -219,7 +219,7 @@ bool util::CrashManager::Initialize()
 		    // error that we can't do anything about it, just let the application
 		    // crash normally
 		    if (!TryHandleCrash(std::string(format), errorMessage))
-			    HandleCrash(errorMessage);
+			    HandleCrash(errorMessage, false);
 	    },
 	    nullptr);
 
@@ -398,10 +398,6 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
     // Recreate crashpad instance, this is a well defined/supported operation
 	SetupCrashpad();
 
-    // Finish the execution and let crashpad handle the crash
-	if(callAbort)
-        abort();
-
 	insideCrashMethod = false;
 
 #endif
@@ -442,7 +438,7 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 		OBS_API::destroyOBS_API();
 		exit(0);
 	} catch (...) {
-		util::CrashManager::HandleCrash(_crashMessage);
+		util::CrashManager::HandleCrash(_crashMessage, false);
 	}
 
 	// Unreachable statement
