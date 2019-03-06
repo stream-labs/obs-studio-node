@@ -233,7 +233,7 @@ bool util::CrashManager::Initialize()
 	    if (IsDebuggerPresent()) 
             return LONG(EXCEPTION_CONTINUE_SEARCH);
 
-		HandleCrash("UnhandledExceptionFilter", false);
+		HandleCrash("UnhandledExceptionFilter");
 
 		return LONG(EXCEPTION_CONTINUE_SEARCH);
 	});
