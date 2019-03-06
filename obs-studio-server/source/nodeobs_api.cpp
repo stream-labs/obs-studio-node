@@ -1018,6 +1018,7 @@ void OBS_API::destroyOBS_API(void)
 
 	std::cout << count << std::endl;
 
+
 	// Crash
 
 	os_cpu_usage_info_destroy(cpuUsageInfo);
