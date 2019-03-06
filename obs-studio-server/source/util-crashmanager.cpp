@@ -18,6 +18,7 @@
 */
 
 #include "util-crashmanager.h"
+#include "stackwalker/StackWalker.h"
 #include <chrono>
 #include <codecvt>
 #include <iostream>
@@ -73,6 +74,35 @@ base::FilePath                                 handler;
 std::vector<std::string>                       arguments;
 std::map<std::string, std::string>             annotations;
 #endif
+
+class MyStackWalker : public StackWalker
+{
+	public:
+	MyStackWalker(nlohmann::json& _outJson) : 
+		StackWalker(), m_OutJson(_outJson) {}
+
+	protected:
+	virtual void OnCallstackEntry(CallstackEntryType eType, CallstackEntry& entry)
+	{
+		// If this entry is valid
+		if (entry.offset == 0)
+			return;
+
+		nlohmann::json jsonEntry;
+		jsonEntry["function"]     = std::string(entry.name);
+		jsonEntry["filename"]     = entry.lineFileName;
+		jsonEntry["lineno"]       = entry.lineNumber;
+		jsonEntry["module"]       = std::string(entry.moduleName);
+		jsonEntry["und-name"]     = std::string(entry.undName);
+		jsonEntry["und-full-name"] = std::string(entry.undFullName);
+
+		m_OutJson.push_back(jsonEntry);
+	}
+
+	private:
+
+	nlohmann::json& m_OutJson;
+};
 
 // Forward
 std::string    FormatVAString(const char* const format, va_list args);
@@ -469,6 +499,14 @@ std::string FormatVAString(const char* const format, va_list args)
 nlohmann::json RewindCallStack(uint32_t skip, std::string& crashedMethod, std::string& resultError)
 {
 	nlohmann::json result = nlohmann::json::array();
+
+	MyStackWalker sw(result);
+	sw.ShowCallstack();
+
+	std::string outString = result.dump(4);
+	std::cout << outString << std::endl;
+
+	return result;
 
 #ifndef _DEBUG
 #if defined(_WIN32)

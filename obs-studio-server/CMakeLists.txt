@@ -226,9 +226,10 @@ add_executable(
 	"${PROJECT_SOURCE_DIR}/source/util-memory.h"
 
 	###### crash-manager ######
-
 	"${PROJECT_SOURCE_DIR}/source/util-crashmanager.cpp"
 	"${PROJECT_SOURCE_DIR}/source/util-crashmanager.h"
+	"${PROJECT_SOURCE_DIR}/source/stackwalker/StackWalker.cpp"
+	"${PROJECT_SOURCE_DIR}/source/stackwalker/StackWalker.h"
 )
 
 if(WIN32)
