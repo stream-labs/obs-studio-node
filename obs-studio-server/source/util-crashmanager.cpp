@@ -230,14 +230,11 @@ bool util::CrashManager::Initialize()
 
 	// Setup the windows exeption filter to
 	SetUnhandledExceptionFilter([](struct _EXCEPTION_POINTERS* ExceptionInfo) {
-		/* don't use if a debugger is present */
-	    if (IsDebuggerPresent()) 
-            return LONG(EXCEPTION_CONTINUE_SEARCH);
-
+	
 		HandleCrash("UnhandledExceptionFilter", false);
-		 
+		  
 		// Unreachable statement
-		return LONG(EXCEPTION_CONTINUE_SEARCH);
+		return LONG(EXCEPTION_EXECUTE_HANDLER);
 	});
 
 	// Setup the metrics query for the CPU usage
