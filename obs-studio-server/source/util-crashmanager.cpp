@@ -230,11 +230,14 @@ bool util::CrashManager::Initialize()
 
 	// Setup the windows exeption filter to
 	SetUnhandledExceptionFilter([](struct _EXCEPTION_POINTERS* ExceptionInfo) {
-	
-		HandleCrash("UnhandledExceptionFilter", false);
-		  
+		/* don't use if a debugger is present */
+	    if (IsDebuggerPresent()) 
+            return LONG(EXCEPTION_CONTINUE_SEARCH);
+
+		HandleCrash("UnhandledExceptionFilter");
+
 		// Unreachable statement
-		return LONG(EXCEPTION_EXECUTE_HANDLER);
+		return LONG(EXCEPTION_CONTINUE_SEARCH);
 	});
 
 	// Setup the metrics query for the CPU usage
@@ -396,8 +399,8 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	SetupCrashpad();
 
     // Finish the execution and let crashpad handle the crash
-	if(callAbort)
-        abort();
+	if (callAbort)
+		ExitProcess(0);
 
 	insideCrashMethod = false;
 
