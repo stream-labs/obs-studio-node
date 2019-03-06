@@ -239,6 +239,8 @@ target_link_libraries(${PROJECT_NAME} ${PROJECT_LIBRARIES} optimized crashpad)
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE_PATHS})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "obs${BITS}")
 
+SET(CMAKE_CXX_FLAGS "/Oy-")
+
 if(WIN32)
 	set_target_properties(
 		${PROJECT_NAME}
