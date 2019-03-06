@@ -94,6 +94,24 @@ void initBasicDefault(config_t* config)
 		config_remove_value(config, "AdvOut", "RecTrackIndex");
 		config_save_safe(config, "tmp", nullptr);
 	}
+	if (config_has_user_value(config, "AdvOut", "nameTrack3")) {
+		std::string trackName = config_get_string(config, "AdvOut", "nameTrack3");
+		config_set_string(config, "AdvOut", "Track3Name", trackName.c_str());
+		config_remove_value(config, "AdvOut", "nameTrack3");
+		config_save_safe(config, "tmp", nullptr);
+	}
+	if (config_has_user_value(config, "AdvOut", "nameTrack4")) {
+		std::string trackName = config_get_string(config, "AdvOut", "nameTrack4");
+		config_set_string(config, "AdvOut", "Track4Name", trackName.c_str());
+		config_remove_value(config, "AdvOut", "nameTrack4");
+		config_save_safe(config, "tmp", nullptr);
+	}
+	if (config_has_user_value(config, "AdvOut", "nameTrack5")) {
+		std::string trackName = config_get_string(config, "AdvOut", "nameTrack5");
+		config_set_string(config, "AdvOut", "Track5Name", trackName.c_str());
+		config_remove_value(config, "AdvOut", "nameTrack5");
+		config_save_safe(config, "tmp", nullptr);
+	}
 
 	config_set_default_string(config, "Output", "Mode", "Simple");
 	std::string filePath = GetDefaultVideoSavePath();

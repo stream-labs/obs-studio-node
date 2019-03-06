@@ -18,6 +18,7 @@
 */
 
 #include "util-crashmanager.h"
+#include "stackwalker/StackWalker.h"
 #include <chrono>
 #include <codecvt>
 #include <iostream>
@@ -76,7 +77,7 @@ std::map<std::string, std::string>             annotations;
 
 // Forward
 std::string    FormatVAString(const char* const format, va_list args);
-nlohmann::json RewindCallStack(uint32_t skip, std::string& crashedMethod, std::string& resultError);
+nlohmann::json RewindCallStack(std::string& crashedMethod);
 
 // Transform a byte value into a string + sufix
 std::string PrettyBytes(uint64_t bytes)
@@ -353,8 +354,7 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	// cras report attribute, avoiding some cases that the memory dump is corrupted
 	// and we don't have access to the callstack.
 	std::string    crashedMethodName;
-	std::string    callstackRewindErrorMessage;
-	nlohmann::json callStack = RewindCallStack(0, crashedMethodName, callstackRewindErrorMessage);
+	nlohmann::json callStack = RewindCallStack(crashedMethodName);
 
 	// Get the information about the total of CPU and RAM used by this user
 	long long totalPhysMem;
@@ -393,9 +393,7 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	annotations.insert({{"Version", OBS_API::getCurrentVersion()}});
 
 	// If the callstack rewind operation returned an error, use it instead its result
-	annotations.insert(
-	    {{"Manual callstack",
-	      (callstackRewindErrorMessage.length() > 0 ? callstackRewindErrorMessage : callStack.dump(4))}});
+	annotations.insert({{"Manual callstack", callStack.dump(4)}});
 	
     // Recreate crashpad instance, this is a well defined/supported operation
 	SetupCrashpad();
@@ -466,124 +464,52 @@ std::string FormatVAString(const char* const format, va_list args)
 	return std::string{temp.data(), length};
 }
 
-nlohmann::json RewindCallStack(uint32_t skip, std::string& crashedMethod, std::string& resultError)
+nlohmann::json RewindCallStack(std::string& crashedMethod)
 {
-	nlohmann::json result = nlohmann::json::array();
-
-#ifndef _DEBUG
-#if defined(_WIN32)
-
-	// Get the function to rewing the callstack
-	typedef USHORT(WINAPI * CaptureStackBackTraceType)(__in ULONG, __in ULONG, __out PVOID*, __out_opt PULONG);
-	CaptureStackBackTraceType func =
-	    (CaptureStackBackTraceType)(GetProcAddress(LoadLibrary(L"kernel32.dll"), "RtlCaptureStackBackTrace"));
-	if (func == NULL)
+	class MyStackWalker : public StackWalker
 	{
-		// Attempt to get the function from the ntdll dll
-		const HMODULE hNtDll = ::GetModuleHandle(L"ntdll.dll");
+		public:
+		MyStackWalker(nlohmann::json& _outJson, std::string& _crashMethod) : 
+			StackWalker(), 
+			m_OutJson(_outJson), 
+			m_OutCrashMethodName(_crashMethod) {}
 
-		if (hNtDll != NULL)
-			reinterpret_cast<void*&>(func) = ::GetProcAddress(hNtDll, "RtlCaptureStackBackTrace");
-
-		if (func == NULL)
+		protected:
+		virtual void OnCallstackEntry(CallstackEntryType eType, CallstackEntry& entry)
 		{
-			resultError = "Failed to get RtlCaptureStackBackTrace address!";
-			return result; // WOE 29.SEP.2010
-		}
-	}
+			// If this entry is valid
+			if (entry.offset == 0)
+				return;
 
-	// Quote from Microsoft Documentation:
-	// ## Windows Server 2003 and Windows XP:
-	// ## The sum of the FramesToSkip and FramesToCapture parameters must be less than 63.
-	const int       kMaxCallers = 62;
-	void*           callers_stack[kMaxCallers];
-	unsigned short  frames;
-	SYMBOL_INFO*    symbol;
-	HANDLE          process;
-	DWORD           dwDisplacement = 0;
-	IMAGEHLP_LINE64 line;
+			// If the entry is inside this file
+			std::string fileName = std::string(entry.lineFileName);
+			if (fileName.find("util-crashmanager.cpp") != std::string::npos
+			    || fileName.find("stackwalker.cpp") != std::string::npos)
+				return;
 
-	// Get the callstack information (values/constants here retrieve from microsoft page)
-	SymSetOptions(SYMOPT_LOAD_LINES);
-	process = GetCurrentProcess();
-	SymInitialize(process, NULL, TRUE);
-	frames               = (func)(0, kMaxCallers, callers_stack, NULL);
-	symbol               = (SYMBOL_INFO*)calloc(sizeof(SYMBOL_INFO) + 256 * sizeof(char), 1);
-	symbol->MaxNameLen   = 255;
-	symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-	std::vector<std::string> callstack;
-	int                      writingIndex = -1;
+			nlohmann::json jsonEntry;
+			jsonEntry["function"]      = std::string(entry.name);
+			jsonEntry["filename"]      = entry.lineFileName;
+			jsonEntry["lineno"]        = entry.lineNumber;
+			jsonEntry["module"]        = std::string(entry.moduleName);
+			jsonEntry["und-name"]      = std::string(entry.undName);
+			jsonEntry["und-full-name"] = std::string(entry.undFullName);
 
-	// Currently 50 is the maximum that we can display on backtrace in one single attribute
-	const unsigned short MAX_CALLERS_SHOWN = 50;
-	frames                                 = frames < MAX_CALLERS_SHOWN ? frames : MAX_CALLERS_SHOWN;
-	std::vector<int> missingFrames;
-	for (int i = frames - 1; i >= int(skip); i--) {
-		if (!SymFromAddr(process, (DWORD64)(callers_stack[i]), 0, symbol)
-		    || !SymGetLineFromAddr64(process, (DWORD64)(callers_stack[i]), &dwDisplacement, &line)) {
-			// Add the frame index to the missing frames vector
-			missingFrames.push_back(i);
-			continue;
+			// Check if we should update the crash method variable
+			if (m_OutCrashMethodName.length() == 0)
+				m_OutCrashMethodName = std::string(entry.name);
+
+			m_OutJson.push_back(jsonEntry);
 		}
 
-		std::stringstream buffer;
-		std::string       fullPath = line.FileName;
-		std::string       fileName;
-		std::string       functionName = symbol->Name;
-		std::string       instructionAddress;
-		std::string       symbolAddress = std::to_string(symbol->Address);
+		private:
+		nlohmann::json& m_OutJson;
+		std::string&    m_OutCrashMethodName;
+	};
 
-		// Get the filename from the fullpath
-		size_t pos = fullPath.rfind("\\", fullPath.length());
-		if (pos != std::string::npos) {
-			fileName = (fullPath.substr(pos + 1, fullPath.length() - pos));
-		}
-
-		// Ignore any report that refers to this file
-		if (fileName == "util-crashmanager.cpp")
-			continue;
-
-		// Store the callstack address into the buffer (void* to std::string)
-		buffer << callers_stack[i];
-
-		// A little of magic to shorten the address lenght
-		instructionAddress = buffer.str();
-		pos                = instructionAddress.find_first_not_of("0");
-		if (pos != std::string::npos && pos <= 4) {
-			instructionAddress = (instructionAddress.substr(pos + 1, instructionAddress.length() - pos));
-		}
-
-		// Transform the addresses to lowercase
-		transform(instructionAddress.begin(), instructionAddress.end(), instructionAddress.begin(), ::tolower);
-		transform(symbolAddress.begin(), symbolAddress.end(), symbolAddress.begin(), ::tolower);
-
-		nlohmann::json entry;
-		entry["function"]         = functionName;
-		entry["filename"]         = fileName;
-		entry["lineno"]           = line.LineNumber;
-		entry["instruction addr"] = "0x" + instructionAddress;
-		entry["symbol addr"]      = "0x" + symbolAddress;
-
-		if (functionName.substr(0, 5) == "std::" || functionName.substr(0, 2) == "__") {
-			entry["in app"] = false;
-		}
-
-		// If we have some missing frames
-		if (missingFrames.size() > 0) {
-			entry["frames omitted"] = {std::to_string(missingFrames.back()), std::to_string(i)};
-			missingFrames.clear();
-		}
-
-		// Set the crashed method name
-		crashedMethod = functionName;
-
-		result.push_back(entry);
-	}
-
-	free(symbol);
-
-#endif
-#endif
+	nlohmann::json result = nlohmann::json::array();
+	MyStackWalker  sw(result, crashedMethod);
+	sw.ShowCallstack();
 
 	return result;
 }
