@@ -402,6 +402,7 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	if (callAbort)
 		ExitProcess(0);
 
+
 	insideCrashMethod = false;
 
 #endif
