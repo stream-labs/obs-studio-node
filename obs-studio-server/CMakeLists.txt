@@ -229,6 +229,10 @@ add_executable(
 
 	"${PROJECT_SOURCE_DIR}/source/util-crashmanager.cpp"
 	"${PROJECT_SOURCE_DIR}/source/util-crashmanager.h"
+
+	###### callback-manager ######
+	"${PROJECT_SOURCE_DIR}/source/callback-manager.cpp"
+	"${PROJECT_SOURCE_DIR}/source/callback-manager.h"
 )
 
 if(WIN32)
