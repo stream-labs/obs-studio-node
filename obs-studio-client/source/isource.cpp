@@ -123,6 +123,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::IsConfigurable(Nan::NAN_METHOD_ARGS_TY
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYPE info)
 {
+	//std::cout << "GetProperties begins" << std::endl;
 	osn::ISource* hndl = nullptr;
 	if (!utilv8::SafeUnwrap<osn::ISource>(info, hndl)) {
 		return;
@@ -317,6 +318,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 	// obj = std::move(pmap);
 	osn::Properties* props = new osn::Properties(std::move(pmap), info.This());
 	info.GetReturnValue().Set(osn::Properties::Store(props));
+	//std::cout << "GetProperties ends" << std::endl;
 	return;
 }
 

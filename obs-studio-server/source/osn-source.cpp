@@ -232,6 +232,7 @@ void osn::Source::GetProperties(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	std::cout << "GetProperties begins" << std::endl;
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
@@ -413,6 +414,7 @@ void osn::Source::GetProperties(
 		}
 	}
 	obs_properties_destroy(prp);
+	std::cout << "GetProperties ends" << std::endl;
 	AUTO_DEBUG;
 }
 
@@ -568,13 +570,13 @@ void osn::Source::GetOutputFlags(
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
 		rval.push_back(ipc::value("Source reference is not valid."));
-		AUTO_DEBUG;
+		//AUTO_DEBUG;
 		return;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_get_output_flags(src)));
-	AUTO_DEBUG;
+	//AUTO_DEBUG;
 }
 
 void osn::Source::GetFlags(
