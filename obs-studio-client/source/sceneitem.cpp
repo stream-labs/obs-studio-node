@@ -186,6 +186,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsSelected(Nan::NAN_METHOD_ARGS_TYPE
 		return;
 	}
 
+	if (!item->selectedChanged) {
+		info.GetReturnValue().Set(item->IsSelected);
+		return;
+	}		
+
 	auto conn = GetConnection();
 	if (!conn)
 		return;
@@ -196,6 +201,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsSelected(Nan::NAN_METHOD_ARGS_TYPE
 	if (!ValidateResponse(response))
 		return;
 	bool flag = !!response[1].value_union.ui32;
+
+	item->selectedChanged = false;
 
 	info.GetReturnValue().Set(flag);
 }
@@ -211,12 +218,19 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetSelected(Nan::NAN_METHOD_ARGS_TYP
 		return;
 	}
 
+	if (visible == item->isSelected) {
+		item->selectedChanged = false;
+		return;
+	}
+
 	auto conn = GetConnection();
 	if (!conn)
 		return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper(
 	    "SceneItem", "SetSelected", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(visible)});
+
+	item->selectedChanged = true;
 
 	ValidateResponse(response);
 }
