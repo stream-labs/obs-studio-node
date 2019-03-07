@@ -51,8 +51,6 @@ test_script:
   - cmd: cd ..\..
 
 before_deploy:
-  - nuget install secure-file -ExcludeVersion
-  - ps: ci\win-signed-build.ps1
   - cmd: ci\copy-signed-binaries.cmd
   - tar cvaf "%SignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
   - ps: Push-AppveyorArtifact "$env:SignedArtifact.tar.gz"
