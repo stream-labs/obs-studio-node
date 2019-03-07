@@ -555,7 +555,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetId(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	if (is->obs_sourceId) {
+	if (is->obs_sourceId.size() > 0) {
 		info.GetReturnValue().Set(utilv8::ToValue(is->obs_sourceId));
 		return;
 	}
