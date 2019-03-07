@@ -229,16 +229,19 @@ bool util::CrashManager::Initialize()
 #if defined(_WIN32)
 
 	// Setup the windows exeption filter to
-	SetUnhandledExceptionFilter([](struct _EXCEPTION_POINTERS* ExceptionInfo) {
-		/* don't use if a debugger is present */
-	    if (IsDebuggerPresent()) 
-            return LONG(EXCEPTION_CONTINUE_SEARCH);
+	auto ExceptionHandlerMethod = [](struct _EXCEPTION_POINTERS* ExceptionInfo) {
 
 		HandleCrash("UnhandledExceptionFilter", false);
 
-		// Unreachable statement
-		return LONG(EXCEPTION_CONTINUE_SEARCH);
-	});
+		auto crashpadExceptionHandlerMethod =
+		    SetUnhandledExceptionFilter([](struct _EXCEPTION_POINTERS* ExceptionInfo) { return LONG(0); });
+
+		auto result = crashpadExceptionHandlerMethod(ExceptionInfo);
+		return (result);
+
+	};
+
+	SetUnhandledExceptionFilter(ExceptionHandlerMethod);
 
 	// Setup the metrics query for the CPU usage
 	// Ref: https://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process
