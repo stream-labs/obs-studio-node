@@ -728,6 +728,20 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetId(Nan::NAN_METHOD_ARGS_TYPE info
 		return;
 	}
 
+	if (item->obs_itemId < 0) {
+		auto conn = GetConnection();
+		if (!conn)
+			return;
+
+		std::vector<ipc::value> response =
+		    conn->call_synchronous_helper("SceneItem", "GetId", std::vector<ipc::value>{ipc::value(item->itemId)});
+
+		if (!ValidateResponse(response))
+			return;
+
+		item->obs_itemId = response[1].value_union.ui64;
+	}
+
 	info.GetReturnValue().Set(utilv8::ToValue(item->obs_itemId));
 }
 
