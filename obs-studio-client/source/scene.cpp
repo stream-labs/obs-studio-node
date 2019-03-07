@@ -243,6 +243,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 
 	// Create new SceneItem
 	osn::SceneItem* obj = new osn::SceneItem(id);
+	obj->obs_itemId     = response[2].value_union.i64;
 	info.GetReturnValue().Set(osn::SceneItem::Store(obj));
 }
 

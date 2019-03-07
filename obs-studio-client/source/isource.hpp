@@ -42,6 +42,7 @@ namespace osn
 
 		public:
 		uint64_t sourceId;
+		const char* obs_sourceId = nullptr;
 
 		private:
 		uint64_t m_uid;

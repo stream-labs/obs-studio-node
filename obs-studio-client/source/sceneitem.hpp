@@ -33,6 +33,7 @@ namespace osn
 
 		public:
 		uint64_t itemId;
+		int64_t  obs_itemId;
 		SceneItem(uint64_t id);
 
 		// JavaScript

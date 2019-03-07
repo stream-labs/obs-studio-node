@@ -369,6 +369,7 @@ void osn::Scene::AddSource(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint64_t)uid));
+	rval.push_back(ipc::value(obs_sceneitem_get_id(item)));
 	AUTO_DEBUG;
 }
 

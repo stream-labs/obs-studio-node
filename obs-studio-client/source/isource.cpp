@@ -555,6 +555,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetId(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
+	if (is->obs_sourceId) {
+		info.GetReturnValue().Set(utilv8::ToValue(is->obs_sourceId));
+		return;
+	}
+
 	auto conn = GetConnection();
 	if (!conn)
 		return;
@@ -564,7 +569,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetId(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!ValidateResponse(response))
 		return;
 
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
+	is->obs_sourceId = response[1].value_str.c_str();
+
+	info.GetReturnValue().Set(utilv8::ToValue(is->obs_sourceId));
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetMuted(Nan::NAN_METHOD_ARGS_TYPE info)
