@@ -187,7 +187,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsSelected(Nan::NAN_METHOD_ARGS_TYPE
 	}
 
 	if (!item->selectedChanged) {
-		info.GetReturnValue().Set(item->IsSelected);
+		info.GetReturnValue().Set(utilv8::ToValue(item->IsSelected));
 		return;
 	}		
 

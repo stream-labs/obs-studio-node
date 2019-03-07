@@ -33,10 +33,12 @@ namespace osn
 
 		public:
 		uint64_t itemId;
-		int64_t  obs_itemId = -1;
-		bool     isSelected = false;
-		bool     selectedChanged = true;
 		SceneItem(uint64_t id);
+
+		public:
+		int64_t obs_itemId      = -1;
+		bool    isSelected      = false;
+		bool    selectedChanged = true;
 
 		// JavaScript
 		public:
