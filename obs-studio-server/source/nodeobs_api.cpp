@@ -994,31 +994,10 @@ void OBS_API::StopCrashHandler(
 	AUTO_DEBUG;
 }
 
-struct CrashObject
-{
-	std::string string;
-	int         value;
-};
-
 void OBS_API::destroyOBS_API(void)
 {
 	blog(LOG_DEBUG, "OBS_API::destroyOBS_API started");
-
-    // Crash
-	CrashObject* objects;
-	int          count = 0;
-	for (int i = 0; i < 10000; i++) {
-		std::cout << objects[i * 100].string << std::endl;
-		objects[i * 100].string.append("crash");
-		std::cout << objects[i * 100].string << std::endl;
-
-		count += objects[i * 1000].value;
-	}
-
-	std::cout << count << std::endl;
-
-	// Crash
-
+	throw "TestCrash";
 	os_cpu_usage_info_destroy(cpuUsageInfo);
 
 #ifdef _WIN32
