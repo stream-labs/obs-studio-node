@@ -42,7 +42,7 @@ namespace osn
 
 		public:
 		uint64_t sourceId;
-		const char* obs_sourceId = nullptr;
+		std::string obs_sourceId = "";
 
 		private:
 		uint64_t m_uid;
