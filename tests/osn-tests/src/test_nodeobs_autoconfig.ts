@@ -1,14 +1,10 @@
 import 'mocha';
 import * as osn from 'obs-studio-node';
 import { OBSProcessHandler } from '../util/obs_process_handler';
+import { Services } from '../util/services';
 import { deleteConfigFiles } from '../util/general';
 
 type TConfigEvent = 'starting_step' | 'progress' | 'stopping_step' | 'error' | 'done';
-
-interface IConfigStep {
-    startMethod: string;
-    identifier: string;
-}
 
 interface IConfigProgress {
     event: TConfigEvent;
@@ -62,18 +58,35 @@ function start(cb: TConfigProgressCallback) {
     osn.NodeObs.StartBandwidthTest();
 }
 
+function saveStreamKey(key: string) {
+    // Getting stream settings container
+    const streamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
+
+    // Setting stream service and stream key
+    streamSettings.forEach(subCategory => {
+        subCategory.parameters.forEach(parameter => {
+            if (parameter.name === 'service') {
+                parameter.currentValue = 'Twitch';
+            }
+
+            if (parameter.name === 'key') {
+                parameter.currentValue = key;
+            }
+        });
+    });
+
+    osn.NodeObs.OBS_settings_saveSettings('Stream', streamSettings);
+}
+
 describe('nodeobs_autoconfig', () => {
     let obs: OBSProcessHandler;
-
-    interface IConfigStepPresentation {
-        description: string;
-        summary: string;
-        percentage?: number;
-    }
+    let services: Services;
+    let hasUserFromPool: boolean;
 
     // Initialize OBS process
     before(function() {
         obs = new OBSProcessHandler();
+        services = new Services();
         
         if (obs.startup() !== osn.EVideoCodes.Success)
         {
@@ -82,7 +95,11 @@ describe('nodeobs_autoconfig', () => {
     });
 
     // Shutdown OBS process
-    after(function() {
+    after(async function() {
+        if (hasUserFromPool) {
+            await services.releaseUser();
+        }
+        
         obs.shutdown();
         obs = null;
         deleteConfigFiles();
@@ -92,27 +109,10 @@ describe('nodeobs_autoconfig', () => {
         let hasStepFailed: boolean = false;
 
         it('Run all auto config steps (error)', function(done) {
-            let stepInfo: IConfigStepPresentation[] = [];
-
             // Starting auto configuration processes
             start(progress => {
-                if ( progress.event === 'starting_step' ||
-                    progress.event === 'progress' ||
-                    progress.event === 'stopping_step' ) {
-                        const step = stepInfo.find(step => {
-                        return step.description === progress.description;
-                    });
-        
-                    if (step) {
-                        step.percentage = progress.percentage;
-                    } else {
-                        stepInfo.push({ description: progress.description,
-                                        summary: '',
-                                        percentage: progress.percentage, });
-                    }
-                } else if (progress.event === 'done') {
-                    if (!hasStepFailed)
-                    {
+                if (progress.event === 'done') {
+                    if (!hasStepFailed) {
                         done(new Error('Autoconfig completed successfully. An error was expected.'));
                     } else {
                         done();
@@ -126,55 +126,44 @@ describe('nodeobs_autoconfig', () => {
         it('Run all auto config steps (success)', function(done) {
             hasStepFailed = false;
 
-            // Getting stream settings container
-            const streamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
+            // Getting stream key from user pool
+            services.getStreamKey('twitch').then(key => {
+                // Saving stream key
+                saveStreamKey(key);
+                hasUserFromPool = true;
 
-            // Setting stream service and stream key
-            streamSettings.forEach(subCategory => {
-                subCategory.parameters.forEach(parameter => {
-                    if (parameter.name === 'service') {
-                        parameter.currentValue = 'Twitch';
+                // Starting auto configuration processes
+                start(progress => {
+                    if (progress.event === 'done') {
+                        if (hasStepFailed) {
+                            done(new Error('An autoconfig step has failed.'));
+                        } else {
+                            done();
+                        }
+                        
+                    } else if (progress.event === 'error') {
+                        hasStepFailed = true;
                     }
-
-                    if (parameter.name === 'key') {
-                        parameter.currentValue = process.env.SLOBS_BE_STREAMKEY;
-                      }
                 });
-            });
+            // If unable to get stream key use environment variable
+            }).catch(function() {
+                // Saving stream key
+                saveStreamKey(process.env.SLOBS_BE_STREAMKEY);
+                hasUserFromPool = false;
 
-            osn.NodeObs.OBS_settings_saveSettings('Stream', streamSettings);
-
-            let stepInfo: IConfigStepPresentation[] = [];
-
-            // Starting auto configuration processes
-            start(progress => {
-                if ( progress.event === 'starting_step' ||
-                    progress.event === 'progress' ||
-                    progress.event === 'stopping_step' ) {
-                        const step = stepInfo.find(step => {
-                        return step.description === progress.description;
-                    });
-        
-                    if (step) {
-                        step.percentage = progress.percentage;
-                    } else {
-                        stepInfo.push({ description: progress.description,
-                                        summary: '',
-                                        percentage: progress.percentage,
-                        });
+                // Starting auto configuration processes
+                start(progress => {
+                    if (progress.event === 'done') {
+                        if (hasStepFailed) {
+                            done(new Error('An autoconfig step has failed.'));
+                        } else {
+                            done();
+                        }  
+                    } else if (progress.event === 'error') {
+                        hasStepFailed = true;
                     }
-                } else if (progress.event === 'done') {
-                    if (hasStepFailed)
-                    {
-                        done(new Error('An autoconfig step has failed.'));
-                    } else {
-                        done();
-                    }
-                    
-                } else if (progress.event === 'error') {
-                    hasStepFailed = true;
-                }
-            });
+                });
+            });            
         });
     });
 });
