@@ -29,9 +29,22 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
-osn::SceneItem::SceneItem(uint64_t id)
+struct SceneItemData
+{
+	int64_t obs_itemId      = -1;
+	bool    cached          = false;
+	bool    isSelected      = false;
+	bool    selectedChanged = false;
+};
+
+std::map<uint64_t, SceneItemData*> itemsData;
+
+osn::SceneItem::SceneItem(uint64_t id, int64_t obs_id)
 {
 	this->itemId = id;
+	SceneItemData* sid = new SceneItemData; 
+	sid->obs_itemId    = obs_id;
+	itemsData.emplace(id, sid);
 }
 
 Nan::Persistent<v8::FunctionTemplate> osn::SceneItem::prototype = Nan::Persistent<v8::FunctionTemplate>();
@@ -186,7 +199,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsSelected(Nan::NAN_METHOD_ARGS_TYPE
 		return;
 	}
 
-	if (!item->selectedChanged) {
+	SceneItemData* sid = itemsData.find(item->itemId)->second;
+
+	if (sid && sid->cached && !sid->selectedChanged) {
 		info.GetReturnValue().Set(utilv8::ToValue(item->IsSelected));
 		return;
 	}		
@@ -202,8 +217,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsSelected(Nan::NAN_METHOD_ARGS_TYPE
 		return;
 	bool flag = !!response[1].value_union.ui32;
 
-	item->selectedChanged = false;
-
+	sid->selectedChanged = false;
+	sid->cached          = true;
+	sid->isSelected      = flag;
 	info.GetReturnValue().Set(flag);
 }
 
@@ -218,8 +234,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetSelected(Nan::NAN_METHOD_ARGS_TYP
 		return;
 	}
 
-	if (visible == item->isSelected) {
-		item->selectedChanged = false;
+	SceneItemData* sid = itemsData.find(item->itemId)->second;
+
+	if (sid && visible == sid->isSelected) {
+		sid->selectedChanged = false;
 		return;
 	}
 
@@ -230,8 +248,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetSelected(Nan::NAN_METHOD_ARGS_TYP
 	std::vector<ipc::value> response = conn->call_synchronous_helper(
 	    "SceneItem", "SetSelected", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(visible)});
 
-	item->selectedChanged = true;
-
+	sid->selectedChanged = true;
+	sid->cached          = true;
+	sid->isSelected      = visible;
 	ValidateResponse(response);
 }
 
@@ -742,7 +761,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetId(Nan::NAN_METHOD_ARGS_TYPE info
 		return;
 	}
 
-	if (item->obs_itemId < 0) {
+	SceneItemData* sid = itemsData.find(item->itemId)->second;
+
+	if (sid->obs_itemId < 0) {
 		auto conn = GetConnection();
 		if (!conn)
 			return;
@@ -753,10 +774,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetId(Nan::NAN_METHOD_ARGS_TYPE info
 		if (!ValidateResponse(response))
 			return;
 
-		item->obs_itemId = response[1].value_union.ui64;
+		sid->obs_itemId = response[1].value_union.ui64;
 	}
 
-	info.GetReturnValue().Set(utilv8::ToValue(item->obs_itemId));
+	info.GetReturnValue().Set(utilv8::ToValue(sid->obs_itemId));
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveUp(Nan::NAN_METHOD_ARGS_TYPE info)

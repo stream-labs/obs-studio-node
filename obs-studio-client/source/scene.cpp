@@ -242,8 +242,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 	uint64_t id = response[1].value_union.ui64;
 
 	// Create new SceneItem
-	osn::SceneItem* obj = new osn::SceneItem(id);
-	obj->obs_itemId     = response[2].value_union.i64;
+	osn::SceneItem* obj = new osn::SceneItem(id, response[2].value_union.i64);
 	info.GetReturnValue().Set(osn::SceneItem::Store(obj));
 }
 
@@ -284,7 +283,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FindItem(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	uint64_t id = response[1].value_union.ui64;
 
-	osn::SceneItem* obj = new osn::SceneItem(id);
+	osn::SceneItem* obj = new osn::SceneItem(id, -1);
 	info.GetReturnValue().Set(osn::SceneItem::Store(obj));
 }
 
@@ -334,7 +333,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemAtIndex(Nan::NAN_METHOD_ARGS_TYPE
 
 	uint64_t id = response[1].value_union.ui64;
 
-	osn::SceneItem* obj = new osn::SceneItem(id);
+	osn::SceneItem* obj = new osn::SceneItem(id, -1);
 	info.GetReturnValue().Set(osn::SceneItem::Store(obj));
 }
 
@@ -358,7 +357,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItems(Nan::NAN_METHOD_ARGS_TYPE info)
 	auto arr = Nan::New<v8::Array>(int(response.size()) - 1);
 
 	for (size_t i = 1; i < response.size(); i++) {
-		osn::SceneItem* obj = new osn::SceneItem(response[i].value_union.ui64);
+		osn::SceneItem* obj = new osn::SceneItem(response[i].value_union.ui64, -1);
 		Nan::Set(arr, uint32_t(i - 1), osn::SceneItem::Store(obj));
 	}
 
@@ -392,7 +391,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemsInRange(Nan::NAN_METHOD_ARGS_TYP
 	auto arr = Nan::New<v8::Array>(int(response.size() - 1));
 
 	for (size_t i = 1; i < response.size(); i++) {
-		osn::SceneItem* obj = new osn::SceneItem(response[i].value_union.ui64);
+		osn::SceneItem* obj = new osn::SceneItem(response[i].value_union.ui64, -1);
 		Nan::Set(arr, uint32_t(i - 1), osn::SceneItem::Store(obj));
 	}
 
