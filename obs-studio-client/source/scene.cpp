@@ -28,6 +28,8 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
+std::map<std::string, uint64_t> scenes;
+
 osn::Scene::Scene(uint64_t id)
 {
 	this->sourceId = id;
@@ -89,6 +91,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	// Create new Filter
 	osn::Scene* obj = new osn::Scene(sourceId);
+	obj->obs_sourceId = response[2].value_str;
+	scenes.emplace(name, sourceId);
 	info.GetReturnValue().Set(osn::Scene::Store(obj));
 }
 
@@ -111,7 +115,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE 
 
 	uint64_t sourceId = response[1].value_union.ui64;
 
-	osn::Scene* obj = new osn::Scene(sourceId);
+	osn::Scene* obj   = new osn::Scene(sourceId);
+	obj->obs_sourceId = response[2].value_str;
+	scenes.emplace(name, sourceId);
 	info.GetReturnValue().Set(osn::Scene::Store(obj));
 }
 
@@ -121,6 +127,18 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FromName(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], name);
+
+	std::map<std::string, uint64_t>::iterator it;
+	it = scenes.find(name);
+
+	if (it != scenes.end() && name.size() > 0) {
+		osn::Scene* obj = new osn::Scene(it->second);
+		obj->obs_sourceId = "scene";
+		if (obj->obs_sourceId.size() > 0) {
+			info.GetReturnValue().Set(osn::Scene::Store(obj));
+			return;
+		}
+	}
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -213,6 +231,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info
 	uint64_t sourceId = response[1].value_union.ui64;
 
 	osn::Scene* obj = new osn::Scene(sourceId);
+	scenes.emplace(name, sourceId);
 	info.GetReturnValue().Set(osn::Scene::Store(obj));
 }
 

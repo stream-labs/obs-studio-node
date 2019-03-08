@@ -98,6 +98,8 @@ void osn::Scene::Create(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
+	const char* sid = obs_source_get_id(source);
+	rval.push_back(ipc::value(sid ? sid : ""));
 	AUTO_DEBUG;
 }
 
@@ -133,6 +135,8 @@ void osn::Scene::CreatePrivate(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
+	const char* sid = obs_source_get_id(source);
+	rval.push_back(ipc::value(sid ? sid : ""));
 	AUTO_DEBUG;
 }
 
