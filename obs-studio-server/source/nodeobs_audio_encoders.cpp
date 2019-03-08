@@ -154,7 +154,7 @@ static const char* GetCodec(const char* id)
 	return NullToEmpty(obs_get_encoder_codec(id));
 }
 
-static inline bool IsSurround(const char* channelSetup)
+bool IsSurround(const char* channelSetup)
 {
 	static const char* surroundLayouts[] = {"2.1", "4.0", "4.1", "5.1", "7.1", nullptr};
 

@@ -99,23 +99,6 @@ void OBS_settings::OBS_settings_getSettings(
 	AUTO_DEBUG;
 }
 
-static inline bool IsSurround(const char* channelSetup)
-{
-	static const char* surroundLayouts[] = {"2.1", "4.0", "4.1", "5.1", "7.1", nullptr};
-
-	if (!channelSetup || !*channelSetup)
-		return false;
-
-	const char** curLayout = surroundLayouts;
-	for (; *curLayout; ++curLayout) {
-		if (strcmp(*curLayout, channelSetup) == 0) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
 void UpdateAudioSettings(bool saveSettings, bool saveOnlyIfLimitApplied = false)
 {
 	// Do nothing if there is no info
@@ -124,7 +107,7 @@ void UpdateAudioSettings(bool saveSettings, bool saveOnlyIfLimitApplied = false)
 
 	auto currentChannelSetup =
 	    std::string(std::string(config_get_string(ConfigManager::getInstance().getBasic(), "Audio", "ChannelSetup")));
-	bool IsSurround = IsSurround(currentChannelSetup.c_str());
+	bool isSurround = IsSurround(currentChannelSetup.c_str());
 
 	bool limitApplied = false;
 	for (auto& settings : currentAudioSettings) {
@@ -142,7 +125,7 @@ void UpdateAudioSettings(bool saveSettings, bool saveOnlyIfLimitApplied = false)
 			int value = std::atoi(valueStr.c_str());
 
 			// Limit the value if not surround
-			if (!IsSurround && value > 320) {
+			if (!isSurround && value > 320) {
 				auto maxValue = std::to_string(320);
 				std::vector<char> data(maxValue.begin(), maxValue.end());
 				settings.params[0].currentValue = data;
