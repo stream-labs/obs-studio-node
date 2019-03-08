@@ -64,6 +64,7 @@ void CallbackManager::callback_handler(void* data, std::shared_ptr<SourceSizeInf
 		argv->ToObject()->Set(utilv8::ToValue("name"), utilv8::ToValue(item->name));
 		argv->ToObject()->Set(utilv8::ToValue("width"), utilv8::ToValue(item->width));
 		argv->ToObject()->Set(utilv8::ToValue("height"), utilv8::ToValue(item->height));
+		argv->ToObject()->Set(utilv8::ToValue("flags"), utilv8::ToValue(item->flags));
 		rslt->Set(i++, argv);
 	}	
 
@@ -139,7 +140,8 @@ void CallbackManager::worker()
 
 					item->name   = response[i++].value_str;
 					item->width  = response[i++].value_union.ui32;
-					item->height = response[i].value_union.ui32;
+					item->height = response[i++].value_union.ui32;
+					item->flags  = response[i].value_union.ui32;
 					data->items.push_back(item);
 				}
 				data->param = this;

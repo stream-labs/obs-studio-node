@@ -21,7 +21,7 @@
 #include "error.hpp"
 #include "shared.hpp"
 
-std::mutex                           mtx;
+std::mutex                             mtx;
 std::map<std::string, SourceSizeInfo*> sources;
 
 void CallbackManager::Register(ipc::server& srv)
@@ -53,19 +53,19 @@ void CallbackManager::QuerySourceSize(
 		// See if width or height changed here
 		uint32_t newWidth  = obs_source_get_width(si->source);
 		uint32_t newHeight = obs_source_get_height(si->source);
+		uint32_t newFlags  = obs_source_get_output_flags(si->source);
 
-		if (si->width != newWidth || si->height != newHeight) {				
+		if (si->width != newWidth || si->height != newHeight || si->flags != newFlags) {
 			si->width = newWidth;
 			si->height = newHeight;
+			si->flags  = newFlags;
 
 			rval.push_back(ipc::value(obs_source_get_name(si->source)));
 			rval.push_back(ipc::value(si->width));
 			rval.push_back(ipc::value(si->height));
+			rval.push_back(ipc::value(si->flags));
 
 			size++;
-			blog(LOG_INFO, "Size changes for %s %d:%d", obs_source_get_name(si->source), si->width, si->height);
-		} else {
-			blog(LOG_INFO, "No size change for %s", obs_source_get_name(si->source));
 		}
 	}
 

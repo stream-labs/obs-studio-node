@@ -27,6 +27,7 @@ struct SourceSizeInfo
 	std::string name;
 	uint32_t    width;
 	uint32_t    height;
+	uint32_t    flags;
 };
 
 struct SourceSizeInfoData
