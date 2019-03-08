@@ -135,11 +135,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FromName(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	if (it != scenes.end() && name.size() > 0) {
 		osn::Scene* obj = new osn::Scene(it->second);
-		obj->obs_sourceId = "scene";
-		if (obj->obs_sourceId.size() > 0) {
-			info.GetReturnValue().Set(osn::Scene::Store(obj));
-			return;
-		}
+		info.GetReturnValue().Set(osn::Scene::Store(obj));
+		return;
 	}
 
 	auto conn = GetConnection();
