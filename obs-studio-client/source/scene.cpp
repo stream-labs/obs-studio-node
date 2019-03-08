@@ -28,9 +28,15 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
-std::map<std::string, uint64_t> scenes;
+struct SceneInfo
+{
+	std::vector<std::pair<uint64_t, int64_t>> items;
+};
 
-osn::Scene::Scene(uint64_t id)
+std::map<std::string, uint64_t> scenesByName;
+std::map<uint64_t, SceneInfo*>  scenesById;
+
+    osn::Scene::Scene(uint64_t id)
 {
 	this->sourceId = id;
 }
@@ -90,10 +96,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 	uint64_t sourceId = response[1].value_union.ui64;
 
 	// Create new Filter
-	osn::Scene* obj = new osn::Scene(sourceId);
+	osn::Scene* obj   = new osn::Scene(sourceId);
 	obj->obs_sourceId = response[2].value_str;
-	scenes.erase(name);
-	scenes.emplace(name, sourceId);
+	scenesByName.erase(name);
+	scenesByName.emplace(name, sourceId);
+	scenesById.emplace(sourceId, new SceneInfo);
 	info.GetReturnValue().Set(osn::Scene::Store(obj));
 }
 
@@ -118,8 +125,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE 
 
 	osn::Scene* obj   = new osn::Scene(sourceId);
 	obj->obs_sourceId = response[2].value_str;
-	scenes.erase(name);
-	scenes.emplace(name, sourceId);
+	scenesByName.erase(name);
+	scenesByName.emplace(name, sourceId);
+	scenesById.emplace(sourceId, new SceneInfo);
 	info.GetReturnValue().Set(osn::Scene::Store(obj));
 }
 
@@ -131,9 +139,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FromName(Nan::NAN_METHOD_ARGS_TYPE info)
 	ASSERT_GET_VALUE(info[0], name);
 
 	std::map<std::string, uint64_t>::iterator it;
-	it = scenes.find(name);
+	it = scenesByName.find(name);
 
-	if (it != scenes.end() && name.size() > 0) {
+	if (it != scenesByName.end() && name.size() > 0) {
 		osn::Scene* obj = new osn::Scene(it->second);
 		info.GetReturnValue().Set(osn::Scene::Store(obj));
 		return;
@@ -230,7 +238,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info
 	uint64_t sourceId = response[1].value_union.ui64;
 
 	osn::Scene* obj = new osn::Scene(sourceId);
-	scenes.emplace(name, sourceId);
+	scenesByName.erase(name);
+	scenesByName.emplace(name, sourceId);
+	scenesById.emplace(sourceId, new SceneInfo);
 	info.GetReturnValue().Set(osn::Scene::Store(obj));
 }
 
@@ -258,9 +268,15 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 		return;
 
 	uint64_t id = response[1].value_union.ui64;
-
+	int64_t  obs_id = response[2].value_union.i64;
 	// Create new SceneItem
-	osn::SceneItem* obj = new osn::SceneItem(id, response[2].value_union.i64);
+	osn::SceneItem*                          obj = new osn::SceneItem(id, obs_id);
+	std::map<uint64_t, SceneInfo*>::iterator it;
+	it = scenesById.find(scene->sourceId);
+
+	if (it != scenesById.end()) {
+		it->second->items.push_back(std::make_pair<>(id, obs_id));
+	}
 	info.GetReturnValue().Set(osn::SceneItem::Store(obj));
 }
 
@@ -362,6 +378,20 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItems(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
+	std::map<uint64_t, SceneInfo*>::iterator it;
+	it       = scenesById.find(scene->sourceId);
+
+	if (it != scenesById.end()) {
+		auto arr = Nan::New<v8::Array>(int(it->second->items.size()) - 1);
+
+		for (size_t i = 1; i < it->second->items.size(); i++) {
+			osn::SceneItem* obj = new osn::SceneItem(it->second->items.at(i).first, it->second->items.at(i).second);
+			Nan::Set(arr, uint32_t(i - 1), osn::SceneItem::Store(obj));
+		}
+		info.GetReturnValue().Set(arr);
+		return;
+	}
+
 	auto conn = GetConnection();
 	if (!conn)
 		return;
@@ -372,8 +402,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItems(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!ValidateResponse(response))
 		return;
 
-	auto arr = Nan::New<v8::Array>(int(response.size()) - 1);
-
+	auto arr = Nan::New<v8::Array>(int(it->second->items.size()) - 1);
 	for (size_t i = 1; i < response.size(); i++) {
 		osn::SceneItem* obj = new osn::SceneItem(response[i].value_union.ui64, -1);
 		Nan::Set(arr, uint32_t(i - 1), osn::SceneItem::Store(obj));
