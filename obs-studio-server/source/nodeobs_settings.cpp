@@ -25,6 +25,7 @@
 
 std::vector<const char*> tabStreamTypes;
 const char*              currentServiceName;
+std::vector<SubCategory> currentAudioSettings;
 
 /* some nice default output resolution vals */
 static const double vals[] = {1.0, 1.25, (1.0 / 0.75), 1.5, (1.0 / 0.6), 1.75, 2.0, 2.25, 2.5, 2.75, 3.0};
@@ -96,6 +97,63 @@ void OBS_settings::OBS_settings_getSettings(
 	rval.push_back(ipc::value(binaryValue));
 	rval.push_back(ipc::value(type));
 	AUTO_DEBUG;
+}
+
+static inline bool IsSurround(const char* channelSetup)
+{
+	static const char* surroundLayouts[] = {"2.1", "4.0", "4.1", "5.1", "7.1", nullptr};
+
+	if (!channelSetup || !*channelSetup)
+		return false;
+
+	const char** curLayout = surroundLayouts;
+	for (; *curLayout; ++curLayout) {
+		if (strcmp(*curLayout, channelSetup) == 0) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void UpdateAudioSettings(bool saveSettings, bool saveOnlyIfLimitApplied = false)
+{
+	// Do nothing if there is no info
+	if (currentAudioSettings.size() == 0)
+		return;
+
+	auto currentChannelSetup =
+	    std::string(std::string(config_get_string(ConfigManager::getInstance().getBasic(), "Audio", "ChannelSetup")));
+	bool IsSurround = IsSurround(currentChannelSetup.c_str());
+
+	bool limitApplied = false;
+	for (auto& settings : currentAudioSettings) {
+		if (settings.paramsCount != 2)
+			continue;
+
+		if (settings.params[0].name.compare("Track1Bitrate") == 0
+		    || settings.params[0].name.compare("Track2Bitrate") == 0
+		    || settings.params[0].name.compare("Track3Bitrate") == 0
+		    || settings.params[0].name.compare("Track4Bitrate") == 0
+		    || settings.params[0].name.compare("Track5Bitrate") == 0
+		    || settings.params[0].name.compare("Track6Bitrate") == 0) {
+			std::string valueStr(settings.params[0].currentValue.begin(), settings.params[0].currentValue.end());
+
+			int value = std::atoi(valueStr.c_str());
+
+			// Limit the value if not surround
+			if (!IsSurround && value > 320) {
+				auto maxValue = std::to_string(320);
+				std::vector<char> data(maxValue.begin(), maxValue.end());
+				settings.params[0].currentValue = data;
+				limitApplied = true;
+			}
+		}
+	}
+
+	if (saveSettings && (!saveOnlyIfLimitApplied || (saveOnlyIfLimitApplied && limitApplied))) {
+		OBS_settings::saveGenericSettings(currentAudioSettings, "AdvOut", ConfigManager::getInstance().getBasic());
+	}
 }
 
 std::vector<SubCategory> serializeCategory(uint32_t subCategoriesCount, uint32_t sizeStruct, std::vector<char> buffer)
@@ -224,12 +282,12 @@ void OBS_settings::OBS_settings_saveSettings(
 }
 
 SubCategory OBS_settings::serializeSettingsData(
-    std::string                                                   nameSubCategory,
+    std::string                                                  nameSubCategory,
     std::vector<std::vector<std::pair<std::string, ipc::value>>> entries,
-    config_t*                                                     config,
-    std::string                                                   section,
-    bool                                                          isVisible,
-    bool                                                          isEnabled)
+    config_t*                                                    config,
+    std::string                                                  section,
+    bool                                                         isVisible,
+    bool                                                         isEnabled)
 {
 	SubCategory sc;
 
@@ -357,7 +415,8 @@ std::vector<SubCategory> OBS_settings::getGeneralSettings()
 	std::vector<std::pair<std::string, ipc::value>> warnBeforeStartingStream;
 	warnBeforeStartingStream.push_back(std::make_pair("name", ipc::value("WarnBeforeStartingStream")));
 	warnBeforeStartingStream.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	warnBeforeStartingStream.push_back(std::make_pair("description", ipc::value("Show confirmation dialog when starting streams")));
+	warnBeforeStartingStream.push_back(
+	    std::make_pair("description", ipc::value("Show confirmation dialog when starting streams")));
 	warnBeforeStartingStream.push_back(std::make_pair("subType", ipc::value("")));
 	warnBeforeStartingStream.push_back(std::make_pair("minVal", ipc::value((double)0)));
 	warnBeforeStartingStream.push_back(std::make_pair("maxVal", ipc::value((double)0)));
@@ -367,7 +426,8 @@ std::vector<SubCategory> OBS_settings::getGeneralSettings()
 	std::vector<std::pair<std::string, ipc::value>> warnBeforeStoppingStream;
 	warnBeforeStoppingStream.push_back(std::make_pair("name", ipc::value("WarnBeforeStoppingStream")));
 	warnBeforeStoppingStream.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	warnBeforeStoppingStream.push_back(std::make_pair("description", ipc::value("Show confirmation dialog when stopping streams")));
+	warnBeforeStoppingStream.push_back(
+	    std::make_pair("description", ipc::value("Show confirmation dialog when stopping streams")));
 	warnBeforeStoppingStream.push_back(std::make_pair("subType", ipc::value("")));
 	warnBeforeStoppingStream.push_back(std::make_pair("minVal", ipc::value((double)0)));
 	warnBeforeStoppingStream.push_back(std::make_pair("maxVal", ipc::value((double)0)));
@@ -387,7 +447,8 @@ std::vector<SubCategory> OBS_settings::getGeneralSettings()
 	std::vector<std::pair<std::string, ipc::value>> keepRecordingWhenStreamStops;
 	keepRecordingWhenStreamStops.push_back(std::make_pair("name", ipc::value("KeepRecordingWhenStreamStops")));
 	keepRecordingWhenStreamStops.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	keepRecordingWhenStreamStops.push_back(std::make_pair("description", ipc::value("Keep recording when stream stops")));
+	keepRecordingWhenStreamStops.push_back(
+	    std::make_pair("description", ipc::value("Keep recording when stream stops")));
 	keepRecordingWhenStreamStops.push_back(std::make_pair("subType", ipc::value("")));
 	keepRecordingWhenStreamStops.push_back(std::make_pair("minVal", ipc::value((double)0)));
 	keepRecordingWhenStreamStops.push_back(std::make_pair("maxVal", ipc::value((double)0)));
@@ -408,7 +469,8 @@ std::vector<SubCategory> OBS_settings::getGeneralSettings()
 	std::vector<std::pair<std::string, ipc::value>> keepReplayBufferStreamStops;
 	keepReplayBufferStreamStops.push_back(std::make_pair("name", ipc::value("KeepReplayBufferStreamStops")));
 	keepReplayBufferStreamStops.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	keepReplayBufferStreamStops.push_back(std::make_pair("description", ipc::value("Keep replay buffer active when stream stops")));
+	keepReplayBufferStreamStops.push_back(
+	    std::make_pair("description", ipc::value("Keep replay buffer active when stream stops")));
 	keepReplayBufferStreamStops.push_back(std::make_pair("subType", ipc::value("")));
 	keepReplayBufferStreamStops.push_back(std::make_pair("minVal", ipc::value((double)0)));
 	keepReplayBufferStreamStops.push_back(std::make_pair("maxVal", ipc::value((double)0)));
@@ -1013,17 +1075,16 @@ static bool EncoderAvailable(const char* encoder)
 	return false;
 }
 
-void OBS_settings::getSimpleAvailableEncoders(
-    std::vector<std::pair<std::string, ipc::value>>* encoders,
-    bool                                              recording)
+void OBS_settings::getSimpleAvailableEncoders(std::vector<std::pair<std::string, ipc::value>>* encoders, bool recording)
 {
 	encoders->push_back(std::make_pair("Software (x264)", ipc::value(SIMPLE_ENCODER_X264)));
 
 	if (recording)
-		encoders->push_back(std::make_pair("Software (x264 low CPU usage preset, increases file size)", ipc::value(SIMPLE_ENCODER_X264_LOWCPU)));
+		encoders->push_back(std::make_pair(
+		    "Software (x264 low CPU usage preset, increases file size)", ipc::value(SIMPLE_ENCODER_X264_LOWCPU)));
 
 	if (EncoderAvailable("obs_qsv11"))
-			encoders->push_back(std::make_pair("Hardware (QSV)", ipc::value(SIMPLE_ENCODER_QSV)));
+		encoders->push_back(std::make_pair("Hardware (QSV)", ipc::value(SIMPLE_ENCODER_QSV)));
 
 	if (EncoderAvailable("ffmpeg_nvenc"))
 		encoders->push_back(std::make_pair("Hardware (NVENC)", ipc::value(SIMPLE_ENCODER_NVENC)));
@@ -1773,7 +1834,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	std::string streamName = ConfigManager::getInstance().getStream();
 	bool        fileExist  = (os_stat(streamName.c_str(), &buffer) == 0);
 
-	obs_data_t*    settings = obs_encoder_defaults(encoderID);
+	obs_data_t*    settings         = obs_encoder_defaults(encoderID);
 	obs_encoder_t* streamingEncoder = OBS_service::getStreamingEncoder();
 	obs_encoder_t* recordEncoder    = obs_output_get_video_encoder(OBS_service::getRecordingOutput());
 	obs_output_t*  streamOutput     = OBS_service::getStreamingOutput();
@@ -2204,8 +2265,10 @@ void OBS_settings::getAdvancedOutputAudioSettings(
     bool                      isCategoryEnabled)
 {
 	std::vector<std::vector<std::pair<std::string, ipc::value>>> entries;
+	uint32_t initialSettingsIndex = outputSettings->size();
 
 	auto& bitrateMap = GetAACEncoderBitrateMap();
+	UpdateAudioSettings(true, true);
 
 	// Track 1
 	std::vector<std::pair<std::string, ipc::value>> Track1Bitrate;
@@ -2381,6 +2444,10 @@ void OBS_settings::getAdvancedOutputAudioSettings(
 	outputSettings->push_back(
 	    serializeSettingsData("Audio - Track 6", entries, config, "AdvOut", true, isCategoryEnabled));
 	entries.clear();
+
+	// Save the audio config
+	currentAudioSettings =
+	    std::vector<SubCategory>(outputSettings->begin() + initialSettingsIndex, outputSettings->end());
 }
 
 void OBS_settings::getReplayBufferSettings(
@@ -2440,7 +2507,7 @@ void OBS_settings::getAdvancedOutputSettings(
 	getReplayBufferSettings(outputSettings, config, true, isCategoryEnabled);
 }
 
-std::vector<SubCategory> OBS_settings::getOutputSettings(CategoryTypes &type)
+std::vector<SubCategory> OBS_settings::getOutputSettings(CategoryTypes& type)
 {
 	std::vector<SubCategory> outputSettings;
 
@@ -2741,7 +2808,10 @@ void OBS_settings::saveAdvancedOutputSettings(std::vector<SubCategory> settings)
 		for (int i = 0; i < 6; i++) {
 			audioSettings.push_back(settings.at(i + indexTrack));
 		}
-		saveGenericSettings(audioSettings, "AdvOut", ConfigManager::getInstance().getBasic());
+
+		// Update the current audio settings, limiting them if necessary
+		currentAudioSettings = audioSettings;
+		UpdateAudioSettings(true);
 	}
 
 	// Replay buffer
@@ -2813,18 +2883,18 @@ std::vector<SubCategory> OBS_settings::getAudioSettings()
 	}
 
 	sampleRate.sizeOfValues = sampleRate.values.size();
-	sampleRate.countValues = values.size();
+	sampleRate.countValues  = values.size();
 	sc.params.push_back(sampleRate);
 
 	// Channels
 	Parameter channels;
-	channels.name          = "ChannelSetup";
-	channels.type          = "OBS_PROPERTY_LIST";
-	channels.description   = "Channels";
-	channels.subType       = "OBS_COMBO_FORMAT_STRING";
-	channels.enabled       = true;
-	channels.masked        = false;
-	channels.visible       = true;
+	channels.name        = "ChannelSetup";
+	channels.type        = "OBS_PROPERTY_LIST";
+	channels.description = "Channels";
+	channels.subType     = "OBS_COMBO_FORMAT_STRING";
+	channels.enabled     = true;
+	channels.masked      = false;
+	channels.visible     = true;
 
 	const char* c = config_get_string(ConfigManager::getInstance().getBasic(), "Audio", "ChannelSetup");
 
@@ -2867,14 +2937,15 @@ std::vector<SubCategory> OBS_settings::getAudioSettings()
 	return audioSettings;
 }
 
-void OBS_settings::saveAudioSettings(std::vector<SubCategory> audioSettings) {
+void OBS_settings::saveAudioSettings(std::vector<SubCategory> audioSettings)
+{
 	SubCategory sc = audioSettings.at(0);
 
 	Parameter sampleRate = sc.params.at(0);
 	uint64_t* sr_value   = reinterpret_cast<uint64_t*>(sampleRate.currentValue.data());
 	config_set_uint(ConfigManager::getInstance().getBasic(), "Audio", "SampleRate", *sr_value);
 
-	Parameter channels = sc.params.at(1);
+	Parameter   channels = sc.params.at(1);
 	std::string cv(channels.currentValue.data(), channels.currentValue.size());
 	config_set_string(ConfigManager::getInstance().getBasic(), "Audio", "ChannelSetup", cv.c_str());
 
@@ -3209,7 +3280,7 @@ void OBS_settings::saveVideoSettings(std::vector<SubCategory> videoSettings)
 		if (config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType") != 1) {
 			config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType", 1);
 		} else {
-			Parameter fpsInt = sc.params.at(4);
+			Parameter fpsInt      = sc.params.at(4);
 			uint64_t* fpsIntValue = reinterpret_cast<uint64_t*>(fpsInt.currentValue.data());
 			if (*fpsIntValue > 0 && *fpsIntValue < 500) {
 				config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSInt", *fpsIntValue);
@@ -3668,7 +3739,7 @@ std::vector<std::string> OBS_settings::getListCategories(void)
 	return categories;
 }
 
-std::vector<SubCategory> OBS_settings::getSettings(std::string nameCategory, CategoryTypes &type)
+std::vector<SubCategory> OBS_settings::getSettings(std::string nameCategory, CategoryTypes& type)
 {
 	std::vector<SubCategory> settings;
 
