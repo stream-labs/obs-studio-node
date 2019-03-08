@@ -1925,8 +1925,8 @@ void OBS_settings::getStandardRecordingSettings(
 
 	// Audio Track : list
 
-	// Don't show if flv
-	if (recFormatCurrentValue != nullptr && strcmp(recFormatCurrentValue, "flv") != 0)
+	// Don't show if multitrack isn't supported
+	if (IsMultitrackAudioSupported(recFormatCurrentValue))
 	{
 		Parameter recTracks;
 		recTracks.name        = "RecTracks";
@@ -2657,11 +2657,11 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 		} else if (type.compare("OBS_PROPERTY_UINT") == 0 || type.compare("OBS_PROPERTY_BITMASK") == 0) {
 			uint64_t value = *reinterpret_cast<uint64_t*>(param.currentValue.data());
 
-			// Use the first audio track if format is flv
-			if (name.compare("RecTracks") == 0 && currentFormat.compare("flv") == 0) {
+			// Use the first audio track if multitrack isnt supported
+			if (name.compare("RecTracks") == 0 && !IsMultitrackAudioSupported(currentFormat.c_str())) {
 				value = 1;
 			}
-
+			
 			if (i < indexEncoderSettings) {
 				config_set_uint(ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str(), value);
 			} else {
