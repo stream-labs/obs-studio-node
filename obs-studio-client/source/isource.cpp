@@ -330,6 +330,15 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetSettings(Nan::NAN_METHOD_ARGS_TYPE 
 	if (!utilv8::SafeUnwrap<osn::ISource>(info, hndl)) {
 		return;
 	}
+	
+	SourceDataInfo* sid = sources.find(hndl->sourceId)->second;
+	if (sid && !sid->settingsChanged && sid->setting.size() > 0)
+	{
+		v8::Local<v8::String> jsondata = Nan::New<v8::String>(sid->setting).ToLocalChecked();
+		v8::Local<v8::Value>  json = v8::JSON::Parse(info.GetIsolate()->GetCurrentContext(), jsondata).ToLocalChecked();
+		info.GetReturnValue().Set(json);
+		return;
+	}
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -343,6 +352,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetSettings(Nan::NAN_METHOD_ARGS_TYPE 
 
 	v8::Local<v8::String> jsondata = Nan::New<v8::String>(response[1].value_str).ToLocalChecked();
 	v8::Local<v8::Value>  json     = v8::JSON::Parse(info.GetIsolate()->GetCurrentContext(), jsondata).ToLocalChecked();
+	
+	sid->setting         = response[1].value_str;
+	sid->settingsChanged = false;
+	
 	info.GetReturnValue().Set(json);
 	return;
 }
@@ -357,6 +370,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Update(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!Retrieve(info.This(), hndl)) {
 		return;
 	}
+
+	SourceDataInfo* sid = sources.find(hndl->sourceId)->second;
 
 	// Turn json into string
 	v8::Local<v8::String> jsondata = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), json).ToLocalChecked();
@@ -374,6 +389,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Update(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!ValidateResponse(response))
 		return;
 
+	sid->settingsChanged = true;
 	info.GetReturnValue().Set(true);
 	return;
 }
