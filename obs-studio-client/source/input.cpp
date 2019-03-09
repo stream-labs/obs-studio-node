@@ -156,7 +156,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	// Create new Filter
 	osn::Input* obj = new osn::Input(response[1].value_union.ui64);
-	sources.emplace(response[1].value_union.ui64, new SourceDataInfo);
+	SourceDataInfo* sdi = new SourceDataInfo;
+	sdi->name           = name;
+	sdi->obs_sourceId   = type;
+	sources.emplace(response[1].value_union.ui64, sdi);
 	info.GetReturnValue().Set(osn::Input::Store(obj));
 }
 
