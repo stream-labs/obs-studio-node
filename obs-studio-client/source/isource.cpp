@@ -412,6 +412,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Load(Nan::NAN_METHOD_ARGS_TYPE info)
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Save(Nan::NAN_METHOD_ARGS_TYPE info)
 {
+	return;
 	osn::ISource* is;
 	if (!utilv8::SafeUnwrap(info, is)) {
 		return;
