@@ -407,6 +407,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetVolume(Nan::NAN_METHOD_ARGS_TYPE info
 		return;
 	}
 
+	SourceDataInfo* sid = sources.find(baseobj->sourceId)->second;
+	if (sid && !sid->volumeChanged) {
+		info.GetReturnValue().Set(sid->volume);
+		return;
+	}
+
 	auto conn = GetConnection();
 	if (!conn)
 		return;
@@ -415,6 +421,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetVolume(Nan::NAN_METHOD_ARGS_TYPE info
 
 	if (!ValidateResponse(response))
 		return;
+
+	sid->volume        = response[1].value_union.fp32;
+	sid->volumeChanged = false;
 
 	info.GetReturnValue().Set(response[1].value_union.fp32);
 }
@@ -435,6 +444,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetVolume(Nan::NAN_METHOD_ARGS_TYPE info
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], volume);
 
+	SourceDataInfo* sid = sources.find(baseobj->sourceId)->second;
+
 	auto conn = GetConnection();
 	if (!conn)
 		return;
@@ -444,6 +455,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetVolume(Nan::NAN_METHOD_ARGS_TYPE info
 
 	if (!ValidateResponse(response))
 		return;
+
+	sid->volumeChanged = true;
 
 	info.GetReturnValue().Set(response[1].value_union.fp32);
 }

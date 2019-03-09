@@ -29,8 +29,11 @@ struct SourceDataInfo
 	bool isMuted      = false;
 	bool mutedChanged = false;
 
-	std::string setting = "";
+	std::string setting         = "";
 	bool        settingsChanged = false;
+
+	float volume        = 1;
+	bool  volumeChanged = false;
 };
 
 extern std::map<uint64_t, SourceDataInfo*> sources;
