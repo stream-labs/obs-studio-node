@@ -606,6 +606,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetMuted(Nan::NAN_METHOD_ARGS_TYPE inf
 		return;
 	}
 
+	SourceDataInfo* sid = sources.find(is->sourceId)->second;
+	if (sid && !sid->mutedChanged) {
+		info.GetReturnValue().Set(sid->isMuted);
+		return;
+	}
+
 	auto conn = GetConnection();
 	if (!conn)
 		return;
@@ -614,6 +620,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetMuted(Nan::NAN_METHOD_ARGS_TYPE inf
 
 	if (!ValidateResponse(response))
 		return;
+
+	sid->isMuted        = (bool)response[1].value_union.i32;
+	sid->mutedChanged   = false;
 
 	info.GetReturnValue().Set((bool)response[1].value_union.i32);
 	return;
@@ -630,6 +639,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetMuted(Nan::NAN_METHOD_ARGS_TYPE inf
 		return;
 	}
 
+	SourceDataInfo* sid = sources.find(is->sourceId)->second;
+
 	auto conn = GetConnection();
 	if (!conn)
 		return;
@@ -639,6 +650,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetMuted(Nan::NAN_METHOD_ARGS_TYPE inf
 
 	if (!ValidateResponse(response))
 		return;
+
+	sid->mutedChanged = true;
 
 	info.GetReturnValue().Set((bool)response[1].value_union.i32 == muted);
 }

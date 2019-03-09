@@ -25,6 +25,9 @@ struct SourceDataInfo
 {
 	std::string obs_sourceId = "";
 	std::string name         = "";
+
+	bool isMuted      = false;
+	bool mutedChanged = false;
 };
 
 extern std::map<uint64_t, SourceDataInfo*> sources;
