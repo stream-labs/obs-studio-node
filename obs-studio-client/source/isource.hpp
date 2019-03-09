@@ -21,6 +21,14 @@
 #include <node.h>
 #include "utility-v8.hpp"
 
+struct SourceDataInfo
+{
+	std::string obs_sourceId = "";
+	std::string name         = "";
+};
+
+extern std::map<uint64_t, SourceDataInfo*> sources;
+
 namespace osn
 {
 	struct SourceHotkeyInfo
@@ -42,7 +50,6 @@ namespace osn
 
 		public:
 		uint64_t sourceId;
-		std::string obs_sourceId = "";
 
 		private:
 		uint64_t m_uid;

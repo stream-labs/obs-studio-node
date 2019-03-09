@@ -29,6 +29,8 @@
 Nan::Persistent<v8::FunctionTemplate> osn::ISource::prototype = Nan::Persistent<v8::FunctionTemplate>();
 osn::ISource*                         sourceObject;
 
+std::map<uint64_t, SourceDataInfo*> sources;
+
 osn::ISource::~ISource()
 {
 }
@@ -434,6 +436,18 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetName(Nan::NAN_METHOD_ARGS_TYPE info
 		return;
 	}
 
+	std::map<uint64_t, SourceDataInfo*>::iterator it;
+	it = sources.find(is->sourceId);
+
+	if (it != sources.end()) {
+		if (it->second->name.size() > 0) {
+			info.GetReturnValue().Set(utilv8::ToValue(it->second->name));
+			return;
+		}
+	} else {
+		it = sources.emplace(is->sourceId, new SourceDataInfo).first;
+	}
+
 	auto conn = GetConnection();
 	if (!conn)
 		return;
@@ -442,6 +456,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetName(Nan::NAN_METHOD_ARGS_TYPE info
 
 	if (!ValidateResponse(response))
 		return;
+
+	it->second->name = response[1].value_str.c_str();
 
 	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
 }
@@ -557,9 +573,16 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetId(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	if (is->obs_sourceId.size() > 0) {
-		info.GetReturnValue().Set(utilv8::ToValue(is->obs_sourceId));
-		return;
+	std::map<uint64_t, SourceDataInfo*>::iterator it;
+	it = sources.find(is->sourceId);
+
+	if (it != sources.end()) {
+		if (it->second->obs_sourceId.size() > 0) {
+			info.GetReturnValue().Set(utilv8::ToValue(it->second->obs_sourceId));
+			return;
+		}
+	} else {
+		it = sources.emplace(is->sourceId, new SourceDataInfo).first;
 	}
 
 	auto conn = GetConnection();
@@ -571,9 +594,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetId(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!ValidateResponse(response))
 		return;
 
-	is->obs_sourceId = response[1].value_str.c_str();
+	it->second->obs_sourceId = response[1].value_str.c_str();
 
-	info.GetReturnValue().Set(utilv8::ToValue(is->obs_sourceId));
+	info.GetReturnValue().Set(utilv8::ToValue(it->second->obs_sourceId));
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetMuted(Nan::NAN_METHOD_ARGS_TYPE info)

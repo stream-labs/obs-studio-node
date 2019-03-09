@@ -156,6 +156,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	// Create new Filter
 	osn::Input* obj = new osn::Input(response[1].value_union.ui64);
+	sources.emplace(response[1].value_union.ui64, new SourceDataInfo);
 	info.GetReturnValue().Set(osn::Input::Store(obj));
 }
 
@@ -200,6 +201,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE 
 
 	// Create new Filter
 	osn::Input* obj = new osn::Input(response[1].value_union.ui64);
+	sources.emplace(response[1].value_union.ui64, new SourceDataInfo);
 	info.GetReturnValue().Set(osn::Input::Store(obj));
 }
 
