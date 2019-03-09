@@ -213,6 +213,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetVisible(Nan::NAN_METHOD_ARGS_TYPE
 
 	SceneItemData* sid = itemsData.find(item->itemId)->second;
 
+	if (sid && visible == sid->isVisible)
+		return;
+
 	auto conn = GetConnection();
 	if (!conn)
 		return;
@@ -345,6 +348,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetPosition(Nan::NAN_METHOD_ARGS_TYP
 
 	SceneItemData* sid = itemsData.find(item->itemId)->second;
 
+	if (sid && x == sid->posX && y == sid->posY)
+		return;
+
 	auto conn = GetConnection();
 	if (!conn)
 		return;
@@ -400,6 +406,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetRotation(Nan::NAN_METHOD_ARGS_TYP
 	}
 
 	SceneItemData* sid = itemsData.find(item->itemId)->second;
+
+	if (sid && vector == sid->rotation)
+		return;
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -469,6 +478,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetScale(Nan::NAN_METHOD_ARGS_TYPE i
 	}
 
 	SceneItemData* sid = itemsData.find(item->itemId)->second;
+
+	if (sid && x == sid->scaleX && y == sid->scaleY)
+		return;
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -771,6 +783,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetCrop(Nan::NAN_METHOD_ARGS_TYPE in
 	}
 
 	SceneItemData* sid = itemsData.find(item->itemId)->second;
+
+    if (sid && left == sid->cropLeft && top == sid->cropTop &&
+		right == sid->cropRight && bottom == sid->cropBottom)
+		return;
 
 	auto conn = GetConnection();
 	if (!conn)
