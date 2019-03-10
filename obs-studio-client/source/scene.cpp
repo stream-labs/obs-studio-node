@@ -30,7 +30,7 @@
 
 struct SceneInfo
 {
-	std::vector<std::pair<uint64_t, int64_t>> items;
+	std::map<int64_t, uint64_t> items;
 };
 
 std::map<std::string, uint64_t> scenesByName;
@@ -273,7 +273,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 	it = scenesById.find(scene->sourceId);
 
 	if (it != scenesById.end()) {
-		it->second->items.push_back(std::make_pair<>(id, obs_id));
+		it->second->items.emplace(obs_id, id);
 	}
 	info.GetReturnValue().Set(osn::SceneItem::Store(obj));
 }
@@ -298,6 +298,17 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FindItem(Nan::NAN_METHOD_ARGS_TYPE info)
 		ASSERT_GET_VALUE(info[0], name);
 	} else {
 		Nan::TypeError("Expected string or number");
+		return;
+	}
+
+	std::map<uint64_t, SceneInfo*>::iterator it;
+	it = scenesById.find(scene->sourceId);
+
+	if (!haveName) {
+		it->second->items.find(position)->second;
+		osn::SceneItem* obj =
+		    new osn::SceneItem(it->second->items.find(position)->second, it->second->items.find(position)->first);
+		info.GetReturnValue().Set(osn::SceneItem::Store(obj));
 		return;
 	}
 
@@ -381,11 +392,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItems(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	if (it != scenesById.end()) {
 		auto arr = Nan::New<v8::Array>(int(it->second->items.size()) - 1);
-
-		for (size_t i = 1; i < it->second->items.size(); i++) {
-			osn::SceneItem* obj = new osn::SceneItem(it->second->items.at(i).first, it->second->items.at(i).second);
-			Nan::Set(arr, uint32_t(i - 1), osn::SceneItem::Store(obj));
+		size_t index = 0;
+		for (std::map<int64_t, uint64_t>::const_iterator ite = it->second->items.begin(); ite != it->second->items.end();
+		     ++ite) {
+			osn::SceneItem* obj   = new osn::SceneItem(ite->second, ite->first);
+			Nan::Set(arr, uint32_t(index++), osn::SceneItem::Store(obj));
 		}
+
 		info.GetReturnValue().Set(arr);
 		return;
 	}
@@ -402,7 +415,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItems(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	auto arr = Nan::New<v8::Array>(int(it->second->items.size()) - 1);
 	for (size_t i = 1; i < response.size(); i++) {
-		osn::SceneItem* obj = new osn::SceneItem(response[i].value_union.ui64, -1);
+		osn::SceneItem* obj = new osn::SceneItem(response[i].value_union.ui64, - 1);
 		Nan::Set(arr, uint32_t(i - 1), osn::SceneItem::Store(obj));
 	}
 
