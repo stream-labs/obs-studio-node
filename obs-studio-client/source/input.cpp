@@ -759,6 +759,20 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Filters(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
+	std::map<uint64_t, SourceDataInfo*>::iterator it = sources.find(baseobj->sourceId);
+
+	if (it != sources.end()) {
+		std::vector<uint64_t>* filters = sources.find(baseobj->sourceId)->second->filters;
+		v8::Local<v8::Array>   arr     = Nan::New<v8::Array>(int(filters->size()));
+		for (uint32_t i = 0; i < filters->size(); i++) {
+			osn::Filter* obj    = new osn::Filter(filters->at(i));
+			auto         object = osn::Filter::Store(obj);
+			Nan::Set(arr, i, object);
+		}
+		info.GetReturnValue().Set(arr);
+		return;
+	}
+
 	auto conn = GetConnection();
 	if (!conn)
 		return;
@@ -815,6 +829,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::AddFilter(Nan::NAN_METHOD_ARGS_TYPE info
 	std::vector<ipc::value> response =
 	    conn->call_synchronous_helper("Input", "AddFilter", {ipc::value(obj->sourceId), ipc::value(filter->sourceId)});
 
+	sources.find(baseobj->sourceId)->second->filters->push_back(filter->sourceId);
+
 	ValidateResponse(response);
 }
 
@@ -848,7 +864,15 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::RemoveFilter(Nan::NAN_METHOD_ARGS_TYPE i
 	std::vector<ipc::value> response = conn->call_synchronous_helper(
 	    "Input", "RemoveFilter", {ipc::value(obj->sourceId), ipc::value(basefilter->sourceId)});
 
+
+	std::vector<uint64_t>* filters = sources.find(baseobj->sourceId)->second->filters;
+	std::vector<uint64_t>::iterator it = std::find(filters->begin(), filters->end(), basefilter->sourceId);
+
 	ValidateResponse(response);
+
+	if (it != filters->end()) {
+		filters->erase(it);
+	}
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetFilterOrder(Nan::NAN_METHOD_ARGS_TYPE info)

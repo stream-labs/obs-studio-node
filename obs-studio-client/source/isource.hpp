@@ -34,6 +34,8 @@ struct SourceDataInfo
 
 	float volume        = 1;
 	bool  volumeChanged = false;
+
+	std::vector<uint64_t>* filters = new std::vector<uint64_t>();
 };
 
 extern std::map<uint64_t, SourceDataInfo*> sources;
