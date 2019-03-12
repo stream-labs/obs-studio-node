@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "OBS Studio Node Unit Testing",
   "scripts": {
-    "test": "mocha --no-timeouts -r ts-node/register src/**/*.ts"
+    "test": "mocha --no-timeouts --reporter mocha-appveyor-reporter -r ts-node/register src/**/*.ts"
   },
   "author": "Streamlabs",
   "license": "GPL-3.0",
