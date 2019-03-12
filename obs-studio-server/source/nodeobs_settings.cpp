@@ -2780,7 +2780,7 @@ std::vector<SubCategory> OBS_settings::getAudioSettings()
 	Parameter sampleRate;
 	sampleRate.name        = "SampleRate";
 	sampleRate.type        = "OBS_PROPERTY_LIST";
-	sampleRate.description = "Sample Rate";
+	sampleRate.description = "Sample Rate (requires a restart)";
 	sampleRate.subType     = "OBS_COMBO_FORMAT_INT";
 	sampleRate.enabled     = true;
 	sampleRate.masked      = false;
@@ -2820,7 +2820,7 @@ std::vector<SubCategory> OBS_settings::getAudioSettings()
 	Parameter channels;
 	channels.name          = "ChannelSetup";
 	channels.type          = "OBS_PROPERTY_LIST";
-	channels.description   = "Channels";
+	channels.description   = "Channels (requires a restart)";
 	channels.subType       = "OBS_COMBO_FORMAT_STRING";
 	channels.enabled       = true;
 	channels.masked        = false;
