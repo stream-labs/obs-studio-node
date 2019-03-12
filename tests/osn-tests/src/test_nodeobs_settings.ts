@@ -1188,6 +1188,13 @@ describe('nodeobs_settings', function() {
                 let cbrOutputSettings = osn.NodeObs.OBS_settings_getSettings('Output');
 
                 cbrOutputSettings.forEach(subCategory => {
+                    console.log(subCategory.nameSubCategory);
+                    subCategory.parameters.forEach(parameter => {
+                        console.log(parameter);
+                    });
+                });
+
+                cbrOutputSettings.forEach(subCategory => {
                     subCategory.parameters.forEach(parameter => {
                         switch(parameter.name) {
                             case 'Mode': {
