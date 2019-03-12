@@ -1176,6 +1176,12 @@ describe('nodeobs_settings', function() {
                     return parameter.name === 'Recrate_control';
                 }).currentValue = 'CBR';
 
+                setCBR.find(category => {
+                    return category.nameSubCategory === 'Recording';
+                }).parameters.find(parameter => {
+                    return parameter.name === 'RecFormat';
+                }).currentValue = 'flv';
+
                 osn.NodeObs.OBS_settings_saveSettings('Output', setCBR);
 
                 // Getting advanced output settings container with CBR parameters
