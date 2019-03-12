@@ -1925,27 +1925,29 @@ void OBS_settings::getStandardRecordingSettings(
 
 	// Audio Track : list
 
-	// Don't show if multitrack isn't supported
-	if (IsMultitrackAudioSupported(recFormatCurrentValue))
-	{
-		Parameter recTracks;
-		recTracks.name        = "RecTracks";
-		recTracks.type        = "OBS_PROPERTY_BITMASK";
-		recTracks.description = "Audio Track";
-		recTracks.subType     = "";
+	std::string recTracksDesc = std::string("Audio Track")
+	    + (IsMultitrackAudioSupported(recFormatCurrentValue) ? 
+		   "" : 
+		   " (Format FLV does not support multiple audio tracks per recording)");
+	
+	Parameter recTracks;
+	recTracks.name        = "RecTracks";
+	recTracks.type        = "OBS_PROPERTY_BITMASK";
+	recTracks.description = recTracksDesc;
+	recTracks.subType     = "";
 
-		uint64_t recTracksCurrentValue = config_get_uint(config, "AdvOut", "RecTracks");
+	uint64_t recTracksCurrentValue = config_get_uint(config, "AdvOut", "RecTracks");
 
-		recTracks.currentValue.resize(sizeof(recTracksCurrentValue));
-		memcpy(recTracks.currentValue.data(), &recTracksCurrentValue, sizeof(recTracksCurrentValue));
-		recTracks.sizeOfCurrentValue = sizeof(recTracksCurrentValue);
+	recTracks.currentValue.resize(sizeof(recTracksCurrentValue));
+	memcpy(recTracks.currentValue.data(), &recTracksCurrentValue, sizeof(recTracksCurrentValue));
+	recTracks.sizeOfCurrentValue = sizeof(recTracksCurrentValue);
 
-		recTracks.visible = true;
-		recTracks.enabled = isCategoryEnabled;
-		recTracks.masked  = false;
+	recTracks.visible = true;
+	recTracks.enabled = !IsMultitrackAudioSupported(recFormatCurrentValue);
+	recTracks.masked  = false;
 
-		subCategoryParameters->params.push_back(recTracks);
-	}
+	subCategoryParameters->params.push_back(recTracks);
+	
 
 	// Encoder : list
 	Parameter recEncoder;
