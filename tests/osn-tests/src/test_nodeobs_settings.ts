@@ -1176,24 +1176,25 @@ describe('nodeobs_settings', function() {
                     return parameter.name === 'Recrate_control';
                 }).currentValue = 'CBR';
 
+                let selectedFormat;
+
+                selectedFormat = getRandomValue(setCBR.find(category => {
+                    return category.nameSubCategory === 'Recording';
+                }).parameters.find(parameter => {
+                    return parameter.name === 'RecFormat';
+                }).values);
+
                 setCBR.find(category => {
                     return category.nameSubCategory === 'Recording';
                 }).parameters.find(parameter => {
                     return parameter.name === 'RecFormat';
-                }).currentValue = 'flv';
+                }).currentValue = selectedFormat;
 
                 osn.NodeObs.OBS_settings_saveSettings('Output', setCBR);
 
                 // Getting advanced output settings container with CBR parameters
                 let cbrOutputSettings = osn.NodeObs.OBS_settings_getSettings('Output');
-
-                cbrOutputSettings.forEach(subCategory => {
-                    console.log(subCategory.nameSubCategory);
-                    subCategory.parameters.forEach(parameter => {
-                        console.log(parameter);
-                    });
-                });
-
+                
                 cbrOutputSettings.forEach(subCategory => {
                     subCategory.parameters.forEach(parameter => {
                         switch(parameter.name) {
@@ -1248,7 +1249,7 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'RecFormat': {
-                                parameter.currentValue = getRandomValue(parameter.values);
+                                expect(parameter.currentValue).to.equal(selectedFormat);
                                 break;
                             }
                             case 'RecTracks': {
@@ -1300,14 +1301,7 @@ describe('nodeobs_settings', function() {
 
                 // Checking settings were updated correctly
                 const updatedCBROutputSettings = osn.NodeObs.OBS_settings_getSettings('Output');
-
-                updatedCBROutputSettings.forEach(subCategory => {
-                    console.log(subCategory.nameSubCategory);
-                    subCategory.parameters.forEach(parameter => {
-                        console.log(parameter);
-                    });
-                });
-
+                
                 expect(cbrOutputSettings).to.eql(updatedCBROutputSettings);
 
                 // Setting rate control to ABR
