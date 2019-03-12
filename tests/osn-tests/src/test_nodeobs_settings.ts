@@ -1300,6 +1300,14 @@ describe('nodeobs_settings', function() {
 
                 // Checking settings were updated correctly
                 const updatedCBROutputSettings = osn.NodeObs.OBS_settings_getSettings('Output');
+
+                updatedCBROutputSettings.forEach(subCategory => {
+                    console.log(subCategory.nameSubCategory);
+                    subCategory.parameters.forEach(parameter => {
+                        console.log(parameter);
+                    });
+                });
+
                 expect(cbrOutputSettings).to.eql(updatedCBROutputSettings);
 
                 // Setting rate control to ABR

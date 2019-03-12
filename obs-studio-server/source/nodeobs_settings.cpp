@@ -1943,7 +1943,7 @@ void OBS_settings::getStandardRecordingSettings(
 	recTracks.sizeOfCurrentValue = sizeof(recTracksCurrentValue);
 
 	recTracks.visible = true;
-	recTracks.enabled = !IsMultitrackAudioSupported(recFormatCurrentValue);
+	recTracks.enabled = IsMultitrackAudioSupported(recFormatCurrentValue);
 	recTracks.masked  = false;
 
 	subCategoryParameters->params.push_back(recTracks);
