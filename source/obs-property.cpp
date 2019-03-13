@@ -817,10 +817,11 @@ bool obs::FontProperty::serialize(std::vector<char>& buf)
 		offset += path.size();
 	}
 
-    buf[offset] = int64_t(sizeF);
+	*reinterpret_cast<int64_t*>(&buf[offset]) = sizeF;
 	offset += sizeof(int64_t);
-	buf[offset] = uint32_t(flags);
+	*reinterpret_cast<uint32_t*>(&buf[offset]) = flags;
 	offset += sizeof(uint32_t);
+
 	return true;
 }
 

@@ -47,7 +47,7 @@ static const char* EncoderName(const char* id)
 }
 
 static std::map<int, const char*> bitrateMap;
-static std::once_flag             populateBitrateMap;
+static std::string                channelSetup;
 
 static void HandleIntProperty(obs_property_t* prop, const char* id)
 {
@@ -154,10 +154,42 @@ static const char* GetCodec(const char* id)
 	return NullToEmpty(obs_get_encoder_codec(id));
 }
 
-static const std::string aac_ = "AAC";
-static void         PopulateBitrateMap()
+bool IsSurround(const char* channelSetup)
 {
-	call_once(populateBitrateMap, []() {
+	static const char* surroundLayouts[] = {"2.1", "4.0", "4.1", "5.1", "7.1", nullptr};
+
+	if (!channelSetup || !*channelSetup)
+		return false;
+
+	const char** curLayout = surroundLayouts;
+	for (; *curLayout; ++curLayout) {
+		if (strcmp(*curLayout, channelSetup) == 0) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void LimitBitrate(std::map<int, const char*>& values, int maximumBitrate)
+{
+	auto condition = [=](const std::pair<int, const char*>& p) { return p.first > maximumBitrate; };
+
+	for (auto i = values.begin(); (i = std::find_if(i, values.end(), condition)) != values.end(); values.erase(i++))
+		;
+}
+
+static const std::string aac_ = "AAC";
+static void              PopulateBitrateMap()
+{
+	// Get the current channel setup and check if it changed, if that is the case the bitrate map could need an update
+	auto currentChannelSetup =
+	    std::string(std::string(config_get_string(ConfigManager::getInstance().getBasic(), "Audio", "ChannelSetup")));
+
+	if (currentChannelSetup != channelSetup) {
+		channelSetup = currentChannelSetup;
+		bitrateMap.clear();
+
 		HandleEncoderProperties(fallbackEncoder.c_str());
 
 		const char* id = nullptr;
@@ -201,13 +233,18 @@ static void         PopulateBitrateMap()
 			return;
 		}
 
+		// Limit the bitrate to 320 if not surround
+		if (!IsSurround(channelSetup.c_str())) {
+			LimitBitrate(bitrateMap, 320);
+		}
+
 		std::ostringstream ss;
 		for (auto& entry : bitrateMap)
 			ss << "\n	" << std::setw(3) << entry.first << " kbit/s: '" << EncoderName(entry.second) << "' ("
 			   << entry.second << ')';
 
 		blog(LOG_DEBUG, "AAC encoder bitrate mapping:%s", ss.str().c_str());
-	});
+	}
 }
 
 const std::map<int, const char*>& GetAACEncoderBitrateMap()
