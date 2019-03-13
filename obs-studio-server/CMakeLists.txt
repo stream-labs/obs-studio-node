@@ -31,7 +31,7 @@ set(StackWalker_DISABLE_TESTS true CACHE BOOL "" FORCE)
 # StackWalker (Callstack rewind
 FetchContent_Declare(
   stackwalker
-  GIT_REPOSITORY https://github.com/JochenKalmbach/StackWalker
+  GIT_REPOSITORY https://github.com/stream-labs/StackWalker
 )
 
 # Nlohmann JSON (modern JSON for C++)
@@ -172,6 +172,8 @@ set(PROJECT_INCLUDE_PATHS
 	"${PROJECT_SOURCE_DIR}/source"
 	"${lib-streamlabs-ipc_SOURCE_DIR}/include"
 	${LIBOBS_INCLUDE_DIRS}
+	"${stackwalker_SOURCE_DIR}/Main/StackWalker"
+	"${json_SOURCE_DIR}/single_include"
 )
 
 set(PROJECT_DATA "${PROJECT_SOURCE_DIR}/resources")
@@ -262,8 +264,6 @@ add_executable(
 )
 
 # Include/link crash manager dependencies
-target_include_directories(${PROJECT_NAME} PUBLIC ${stackwalker_SOURCE_DIR}/Main/StackWalker)
-target_include_directories(${PROJECT_NAME} PUBLIC ${json_SOURCE_DIR}/single_include)
 target_link_libraries(${PROJECT_NAME} StackWalker)
 
 if(WIN32)
