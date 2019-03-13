@@ -264,6 +264,15 @@ const char* GetAACEncoderForBitrate(int bitrate)
 
 #define INVALID_BITRATE 10000
 
+bool IsMultitrackAudioSupported(const char* format)
+{
+	if (format == nullptr || strcmp(format, "flv") == 0) {
+		return false;
+	}
+
+	return true;
+}
+
 int FindClosestAvailableAACBitrate(int bitrate)
 {
 	auto& map_ = GetAACEncoderBitrateMap();

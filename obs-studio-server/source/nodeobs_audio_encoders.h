@@ -25,4 +25,5 @@
 const std::map<int, const char*>& GetAACEncoderBitrateMap();
 const char*                       GetAACEncoderForBitrate(int bitrate);
 int                               FindClosestAvailableAACBitrate(int bitrate);
+bool                              IsMultitrackAudioSupported(const char* format);
 bool                              IsSurround(const char* channelSetup);

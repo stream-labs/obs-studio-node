@@ -1968,10 +1968,16 @@ void OBS_settings::getStandardRecordingSettings(
 	subCategoryParameters->params.push_back(recFormat);
 
 	// Audio Track : list
+
+	std::string recTracksDesc = std::string("Audio Track")
+	    + (IsMultitrackAudioSupported(recFormatCurrentValue) ? 
+		   "" : 
+		   " (Format FLV does not support multiple audio tracks per recording)");
+	
 	Parameter recTracks;
 	recTracks.name        = "RecTracks";
 	recTracks.type        = "OBS_PROPERTY_BITMASK";
-	recTracks.description = "Audio Track";
+	recTracks.description = recTracksDesc;
 	recTracks.subType     = "";
 
 	uint64_t recTracksCurrentValue = config_get_uint(config, "AdvOut", "RecTracks");
@@ -1981,10 +1987,11 @@ void OBS_settings::getStandardRecordingSettings(
 	recTracks.sizeOfCurrentValue = sizeof(recTracksCurrentValue);
 
 	recTracks.visible = true;
-	recTracks.enabled = isCategoryEnabled;
+	recTracks.enabled = IsMultitrackAudioSupported(recFormatCurrentValue);
 	recTracks.masked  = false;
 
 	subCategoryParameters->params.push_back(recTracks);
+	
 
 	// Encoder : list
 	Parameter recEncoder;
@@ -2661,6 +2668,7 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 	size_t indexEncoderSettings = 8;
 
 	bool newEncoderType = false;
+	std::string currentFormat;
 
 	Parameter param;
 
@@ -2699,11 +2707,17 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 				obs_data_set_int(encoderSettings, name.c_str(), *value);
 			}
 		} else if (type.compare("OBS_PROPERTY_UINT") == 0 || type.compare("OBS_PROPERTY_BITMASK") == 0) {
-			uint64_t* value = reinterpret_cast<uint64_t*>(param.currentValue.data());
+			uint64_t value = *reinterpret_cast<uint64_t*>(param.currentValue.data());
+
+			// Use the first audio track if multitrack isnt supported
+			if (name.compare("RecTracks") == 0 && !IsMultitrackAudioSupported(currentFormat.c_str())) {
+				value = 1;
+			}
+			
 			if (i < indexEncoderSettings) {
-				config_set_uint(ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str(), *value);
+				config_set_uint(ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str(), value);
 			} else {
-				obs_data_set_int(encoderSettings, name.c_str(), *value);
+				obs_data_set_int(encoderSettings, name.c_str(), value);
 			}
 		} else if (type.compare("OBS_PROPERTY_BOOL") == 0) {
 			uint32_t* value = reinterpret_cast<uint32_t*>(param.currentValue.data());
@@ -2748,6 +2762,9 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 
 						if (currentEncoder != NULL)
 							newEncoderType = value.compare(currentEncoder) != 0;
+					}
+					if (name.compare("RecFormat") == 0) {
+						currentFormat = value;
 					}
 					config_set_string(
 					    ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str(), value.c_str());
