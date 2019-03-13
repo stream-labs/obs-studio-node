@@ -165,9 +165,16 @@ void CallbackManager::set_keepalive(v8::Local<v8::Object> obj)
 	m_async_callback->set_keepalive(obj);
 }
 
+void RemoveSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	cm->stop_worker();
+	cm->stop_async_runner();
+}
+
 INITIALIZER(callback_manager)
 {
 	initializerFunctions.push([](v8::Local<v8::Object> exports) {
 		NODE_SET_METHOD(exports, "RegisterSourceCallback", RegisterSourceCallback);
+		NODE_SET_METHOD(exports, "RemoveSourceCallback", RemoveSourceCallback);
 	});
 }

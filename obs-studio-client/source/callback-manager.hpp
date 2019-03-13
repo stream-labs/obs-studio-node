@@ -72,3 +72,4 @@ class CallbackManager : public Nan::ObjectWrap,
 };
 
 static void RegisterSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
+static void RemoveSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
