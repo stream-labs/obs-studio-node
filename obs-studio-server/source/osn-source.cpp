@@ -247,6 +247,7 @@ void osn::Source::GetProperties(
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
 	obs_data* settings = obs_source_get_settings(src);
+	bool      updateSource = false;
 
 	for (obs_property_t* p = obs_properties_first(prp); (p != nullptr); obs_property_next(&p)) {
 		std::shared_ptr<obs::Property> prop;
@@ -328,6 +329,11 @@ void osn::Source::GetProperties(
 			}
 			case obs::ListProperty::Format::String: {
 				prop2->current_value_str = (buf = obs_data_get_string(settings, name)) != nullptr ? buf : "";
+				if (prop2->current_value_str.compare("") == 0 && prop2->items.size() > 0 && obs_property_enabled(p)) {
+					prop2->current_value_str = prop2->items.front().value_string;
+					obs_data_set_string(settings, name, prop2->current_value_str.c_str());
+					updateSource = true;
+				}
 				break;
 			}
 			}
@@ -413,6 +419,9 @@ void osn::Source::GetProperties(
 		}
 	}
 	obs_properties_destroy(prp);
+
+	if (updateSource)
+		obs_source_update(src, settings);
 	AUTO_DEBUG;
 }
 
