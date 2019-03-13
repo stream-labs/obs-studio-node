@@ -135,7 +135,7 @@ void CallbackManager::worker()
 			ErrorCode error = (ErrorCode)response[0].value_union.ui64;
 			if (error == ErrorCode::Ok) {
 				std::shared_ptr<SourceSizeInfoData> data = std::make_shared<SourceSizeInfoData>();
-				for (int i = 2; i < response[1].value_union.ui32 + 2; i++) {
+				for (int i = 2; i < (response[1].value_union.ui32*4) + 2; i++) {
 					SourceSizeInfo* item = new SourceSizeInfo;
 
 					item->name   = response[i++].value_str;
