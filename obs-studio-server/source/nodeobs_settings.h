@@ -169,6 +169,8 @@ class OBS_settings
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
 
+	static void saveGenericSettings(std::vector<SubCategory> genericSettings, std::string section, config_t* config);
+
 	private:
 	static std::vector<std::string> getListCategories(void);
 
@@ -191,8 +193,6 @@ class OBS_settings
 	static void saveAudioSettings(std::vector<SubCategory> audioSettings);
 	static void saveVideoSettings(std::vector<SubCategory> videoSettings);
 	static void saveAdvancedSettings(std::vector<SubCategory> advancedSettings);
-
-	static void saveGenericSettings(std::vector<SubCategory> genericSettings, std::string section, config_t* config);
 
 	static SubCategory serializeSettingsData(
 	    std::string                                                   nameSubCategory,

@@ -1772,6 +1772,7 @@ void OBS_service::UpdateRecordingSettings_nvenc(int cqp)
 	obs_data_set_string(settings, "profile", "high");
 	obs_data_set_string(settings, "preset", "hq");
 	obs_data_set_int(settings, "cqp", cqp);
+	obs_data_set_int(settings, "bitrate", 0);
 
 	obs_encoder_update(videoRecordingEncoder, settings);
 
@@ -1870,6 +1871,8 @@ void OBS_service::UpdateRecordingSettings()
 		UpdateRecordingSettings_amd_cqp(crf);
 
 	} else if (videoEncoder.compare(SIMPLE_ENCODER_NVENC) == 0 || videoEncoder.compare(ADVANCED_ENCODER_NVENC) == 0) {
+		UpdateRecordingSettings_nvenc(crf);
+	} else if (videoEncoder.compare(ENCODER_NEW_NVENC) == 0) {
 		UpdateRecordingSettings_nvenc(crf);
 	}
 }
