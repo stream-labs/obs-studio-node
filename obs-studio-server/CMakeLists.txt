@@ -36,7 +36,7 @@ FetchContent_Declare(
 
 # Nlohmann JSON (modern JSON for C++)
 FetchContent_Declare(
-  json
+  nlohmannjson
   GIT_REPOSITORY https://github.com/nlohmann/json
 )
 
@@ -46,9 +46,9 @@ if(NOT stackwalker_POPULATED)
   add_subdirectory(${stackwalker_SOURCE_DIR} ${stackwalker_BINARY_DIR})
 endif()
 
-FetchContent_GetProperties(json)
+FetchContent_GetProperties(nlohmannjson)
 if(NOT json_POPULATED)
-  FetchContent_Populate(json)
+  FetchContent_Populate(nlohmannjson)
 endif()
 
 ############################
@@ -173,7 +173,7 @@ set(PROJECT_INCLUDE_PATHS
 	"${lib-streamlabs-ipc_SOURCE_DIR}/include"
 	${LIBOBS_INCLUDE_DIRS}
 	"${stackwalker_SOURCE_DIR}/Main/StackWalker"
-	"${json_SOURCE_DIR}/single_include"
+	"${nlohmannjson_SOURCE_DIR}/single_include"
 )
 
 set(PROJECT_DATA "${PROJECT_SOURCE_DIR}/resources")
