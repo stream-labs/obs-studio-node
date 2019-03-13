@@ -72,6 +72,7 @@ base::FilePath                                 db;
 base::FilePath                                 handler;
 std::vector<std::string>                       arguments;
 std::map<std::string, std::string>             annotations;
+LPTOP_LEVEL_EXCEPTION_FILTER                   crashpadInternalExceptionFilterMethod = nullptr;
 #endif
 
 // Forward
@@ -227,17 +228,18 @@ bool util::CrashManager::Initialize()
 
 #if defined(_WIN32)
 
-	// Setup the windows exeption filter to
-	SetUnhandledExceptionFilter([](struct _EXCEPTION_POINTERS* ExceptionInfo) {
-		/* don't use if a debugger is present */
-	    if (IsDebuggerPresent()) 
-            return LONG(EXCEPTION_CONTINUE_SEARCH);
+	// Setup the windows exeption filter
+	auto ExceptionHandlerMethod = [](struct _EXCEPTION_POINTERS* ExceptionInfo) {
+		HandleCrash("UnhandledExceptionFilter", false);
 
-		HandleCrash("UnhandledExceptionFilter");
+		// Call the crashpad internal exception filter method since we overrided it here and
+		// it must be called to proper generate a report
+		return crashpadInternalExceptionFilterMethod(ExceptionInfo);
+	};
 
-		// Unreachable statement
-		return LONG(EXCEPTION_CONTINUE_SEARCH);
-	});
+	// This method will substitute the crashpad unhandled exception filter method by our one, returning
+	// the old method used by it, we will store this method pointer to be able to call it directly
+	crashpadInternalExceptionFilterMethod = SetUnhandledExceptionFilter(ExceptionHandlerMethod);
 
 	// Setup the metrics query for the CPU usage
 	// Ref: https://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process
