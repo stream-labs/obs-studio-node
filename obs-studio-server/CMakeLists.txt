@@ -47,7 +47,7 @@ if(NOT stackwalker_POPULATED)
 endif()
 
 FetchContent_GetProperties(nlohmannjson)
-if(NOT json_POPULATED)
+if(NOT nlohmannjson_POPULATED)
   FetchContent_Populate(nlohmannjson)
 endif()
 
