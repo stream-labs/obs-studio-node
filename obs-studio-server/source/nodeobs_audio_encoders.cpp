@@ -229,7 +229,7 @@ const char* GetAACEncoderForBitrate(int bitrate)
 
 bool IsMultitrackAudioSupported(const char* format)
 {
-	if (format != nullptr && strcmp(format, "flv") == 0) {
+	if (format == nullptr || strcmp(format, "flv") == 0) {
 		return false;
 	}
 

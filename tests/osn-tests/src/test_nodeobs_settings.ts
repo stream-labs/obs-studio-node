@@ -1194,7 +1194,7 @@ describe('nodeobs_settings', function() {
 
                 // Getting advanced output settings container with CBR parameters
                 let cbrOutputSettings = osn.NodeObs.OBS_settings_getSettings('Output');
-                
+
                 cbrOutputSettings.forEach(subCategory => {
                     subCategory.parameters.forEach(parameter => {
                         switch(parameter.name) {
