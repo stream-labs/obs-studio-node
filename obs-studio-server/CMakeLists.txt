@@ -314,6 +314,7 @@ ENDIF()
 install(DIRECTORY ${PROJECT_DATA} DESTINATION "./" OPTIONAL)
 install(DIRECTORY ${crashpad_SOURCE_DIR}/bin/ DESTINATION "./")
 install(DIRECTORY "${libobs_SOURCE_DIR}/data/" DESTINATION "./data")
+install(DIRECTORY "${stackwalker_BINARY_DIR}/" DESTINATION "./data")
 
 install(
 	DIRECTORY "${libobs_SOURCE_DIR}/bin/64bit/"
