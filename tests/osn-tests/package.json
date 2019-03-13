@@ -9,15 +9,16 @@
   "license": "GPL-3.0",
   "dependencies": {
     "obs-studio-node": "/projects/obs-studio-node/streamlabs-build/distribute/obs-studio-node",
+    "request": "^2.88.0",
     "typescript": "^2.8.1",
     "uuid": "^3.0.1"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.5",
+    "@types/node": "^11.9.5",
     "chai": "^4.2.0",
     "mocha": "^5.2.0",
-    "mocha-appveyor-reporter": "^0.4.2",
     "ts-node": "^7.0.1"
   }
 }
