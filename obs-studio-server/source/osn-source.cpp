@@ -30,6 +30,7 @@
 #include "obs-property.hpp"
 #include "osn-common.hpp"
 #include "shared.hpp"
+#include "callback-manager.h"
 
 void osn::Source::initialize_global_signals()
 {
@@ -68,6 +69,7 @@ void osn::Source::global_source_create_cb(void* ptr, calldata_t* cd)
 
 	osn::Source::Manager::GetInstance().allocate(source);
 	osn::Source::attach_source_signals(source);
+	CallbackManager::addSource(source);
 }
 
 void osn::Source::global_source_destroy_cb(void* ptr, calldata_t* cd)
@@ -77,6 +79,7 @@ void osn::Source::global_source_destroy_cb(void* ptr, calldata_t* cd)
 		throw std::exception("calldata did not contain source pointer");
 	}
 
+	CallbackManager::removeSource(source);
 	detach_source_signals(source);
 	osn::Source::Manager::GetInstance().free(source);
 }
