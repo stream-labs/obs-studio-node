@@ -18,7 +18,7 @@
 */
 
 #include "util-crashmanager.h"
-#include "stackwalker/StackWalker.h"
+#include "StackWalker.h"
 #include <chrono>
 #include <codecvt>
 #include <iostream>
