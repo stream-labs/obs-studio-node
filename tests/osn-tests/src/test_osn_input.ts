@@ -268,7 +268,7 @@ describe('osn-input', () => {
                     });
 
                     // Finding each filter and removing all of them
-                    input.filters.forEach(async function(filter) {
+                    input.filters.forEach(function(filter) {
                         const foundFilter = input.findFilter(filter.name);
 
                         // Checking if source has all video filters
