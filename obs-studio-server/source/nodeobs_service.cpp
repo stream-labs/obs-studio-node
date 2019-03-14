@@ -996,6 +996,7 @@ bool OBS_service::updateAdvancedReplayBuffer(void)
 		if (!ffmpegOutput)
 			updateRecordSettings();
 	} else if (!obs_output_active(streamingOutput)) {
+		updateAudioStreamingEncoder();
 		updateStreamSettings();
 	}
 
@@ -1089,7 +1090,6 @@ bool OBS_service::startReplayBuffer(void)
 	}
 
 	bool result = obs_output_start(replayBufferOutput);
-	blog(LOG_INFO, "result : %d", result);
 	return result;
 }
 
