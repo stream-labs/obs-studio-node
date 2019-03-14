@@ -549,6 +549,8 @@ nlohmann::json util::CrashManager::RequestOBSLog(OBSLogType type)
             break;
         }
     }
+
+	std::reverse(result.begin(), result.end());
     
 	return result;
 }
