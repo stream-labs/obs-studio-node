@@ -20,7 +20,6 @@ export class OBSProcessHandler {
 
     shutdown(): boolean {
         try {
-            osn.NodeObs.OBS_API_destroyOBS_API();
             osn.NodeObs.IPC.disconnect();
         } catch(e) {
             return false;
