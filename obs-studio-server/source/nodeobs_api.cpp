@@ -469,13 +469,13 @@ void OBS_API::OBS_API_initAPI(
 	* In particular, we need to load obs.dll into memory before we call
 	* any functions from obs else if we delay-loaded the dll, it will
 	* fail miserably. */
-
+	
 	/* FIXME These should be configurable */
 	/* FIXME g_moduleDirectory really needs to be a wstring */
 	std::string appdata = args[0].value_str;
 	std::string locale  = args[1].value_str;
 	currentVersion      = args[2].value_str;
-
+	
 	/* libobs will use three methods of finding data files:
 	* 1. ${CWD}/data/libobs <- This doesn't work for us
 	* 2. ${OBS_DATA_PATH}/libobs <- This works but is inflexible
@@ -997,7 +997,7 @@ void OBS_API::StopCrashHandler(
 void OBS_API::destroyOBS_API(void)
 {
 	blog(LOG_DEBUG, "OBS_API::destroyOBS_API started");
-
+	bcrash( "test");
 	os_cpu_usage_info_destroy(cpuUsageInfo);
 
 #ifdef _WIN32
