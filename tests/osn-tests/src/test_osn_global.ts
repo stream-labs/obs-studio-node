@@ -47,6 +47,7 @@ describe('osn-global', () => {
             expect(returnSource).to.not.equal(undefined);
             expect(returnSource.id).to.equal('image_source');
             expect(returnSource.name).to.equal('test_osn_global_source');
+            input.release();
         });
 
         it('FAIL TEST: Set source to output channel that does not exist', () => {
