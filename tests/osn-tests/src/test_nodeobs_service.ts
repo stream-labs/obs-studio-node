@@ -3,33 +3,7 @@ import { expect } from 'chai';
 import * as osn from 'obs-studio-node';
 import { OBSProcessHandler } from '../util/obs_process_handler';
 import { Subject } from 'rxjs';
-import { first } from 'rxjs/operators';
-
-enum EStreamingState {
-    Offline = 'offline',
-    Starting = 'starting',
-    Live = 'live',
-    Ending = 'ending',
-    Deactivating = 'deactivating',
-    Reconnecting = 'reconnecting',
-    Timeout = 'timeout',
-}
-
-enum ERecordingState {
-    Offline = 'offline',
-    Starting = 'starting',
-    Recording = 'recording',
-    Stopping = 'stopping',
-    Timeout = 'timeout',
-}
-  
-enum EReplayBufferState {
-    Running = 'running',
-    Stopping = 'stopping',
-    Offline = 'offline',
-    Saving = 'saving',
-    Timeout = 'timeout',
-}
+import { Services } from '../util/services';
 
 enum EOBSOutputType {
     Streaming = 'streaming',
@@ -58,8 +32,64 @@ interface IOBSOutputSignalInfo {
     error: string;
 }
 
+function saveStreamKey(key: string) {
+    // Getting stream settings container
+    const streamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
+
+    // Setting stream service and stream key
+    streamSettings.forEach(subCategory => {
+        subCategory.parameters.forEach(parameter => {
+            if (parameter.name === 'service') {
+                parameter.currentValue = 'Twitch';
+            }
+
+            if (parameter.name === 'key') {
+                parameter.currentValue = key;
+            }
+        });
+    });
+
+    osn.NodeObs.OBS_settings_saveSettings('Stream', streamSettings);
+}
+
+function setEnconderAndRecordingPath() {
+    const path = require('path');
+
+    // Getting stream settings container
+    const streamSettings = osn.NodeObs.OBS_settings_getSettings('Output');
+
+    // Changing mode to simple
+    streamSettings.find(category => {
+        return category.nameSubCategory === 'Untitled';
+    }).parameters.find(parameter => {
+        return parameter.name === 'Mode';
+    }).currentValue = 'Simple';
+
+    osn.NodeObs.OBS_settings_saveSettings('Output', streamSettings);
+
+    let setEncoderAndRecordingFilePath = osn.NodeObs.OBS_settings_getSettings('Output');
+
+    // Setting encoder to x264, AppVeyor does not have any hardware encoders
+    setEncoderAndRecordingFilePath.find(category => {
+        return category.nameSubCategory === 'Streaming';
+    }).parameters.find(parameter => {
+        return parameter.name === 'StreamEncoder';
+    }).currentValue = 'x264';
+
+    // Setting recording file path
+    setEncoderAndRecordingFilePath.find(category => {
+        return category.nameSubCategory === 'Recording';
+    }).parameters.find(parameter => {
+        return parameter.name === 'FilePath';
+    }).currentValue = path.join(path.normalize(__dirname), '..', 'osnData');
+
+    osn.NodeObs.OBS_settings_saveSettings('Output', setEncoderAndRecordingFilePath);
+}
+
 describe('nodeobs_service', function() {
     let obs: OBSProcessHandler;
+    let services: Services;
+    let hasUserFromPool: boolean;
 
     let streamingSignals = new Subject<IOBSOutputSignalInfo>();
     let isStreaming: boolean = false;
@@ -76,12 +106,14 @@ describe('nodeobs_service', function() {
     // Initialize OBS process
     before(function() {
         obs = new OBSProcessHandler();
+        services = new Services();
         
         if (obs.startup() !== osn.EVideoCodes.Success)
         {
             throw new Error("Could not start OBS process. Aborting!")
         }
 
+        // Connecting output signals
         osn.NodeObs.OBS_service_connectOutputSignals((signalInfo: IOBSOutputSignalInfo) => {
             if (isStreaming == true) {
                 if (signalInfo.type === EOBSOutputType.Streaming) {
@@ -107,10 +139,17 @@ describe('nodeobs_service', function() {
                 allSignals.next(signalInfo);
             }
         });
+
+        // Setting encoder and recording path
+        setEnconderAndRecordingPath();
     });
 
     // Shutdown OBS process
-    after(function() {
+    after(async function() {
+        if (hasUserFromPool) {
+            await services.releaseUser();
+        }
+
         osn.NodeObs.OBS_service_removeCallback();
         obs.shutdown();
         obs = null;
@@ -118,23 +157,18 @@ describe('nodeobs_service', function() {
 
     context('# OBS_service_startStreaming, OBS_service_stopStreaming and recording functions', function() {
         it('Start and stop streaming (Twitch)', function(done) {
-            // Getting stream settings container
-            const streamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
+            // Getting stream key from user pool
+            services.getStreamKey('twitch').then(key => {
+                // Saving stream key
+                saveStreamKey(key);
+                hasUserFromPool = true;
 
-            // Setting stream service and stream key
-            streamSettings.forEach(subCategory => {
-                subCategory.parameters.forEach(parameter => {
-                    if (parameter.name == 'service') {
-                        parameter.currentValue = 'Twitch';
-                    }
-
-                    if (parameter.name === 'key') {
-                        parameter.currentValue = process.env.SLOBS_BE_STREAMKEY;
-                      }
-                });
+            // If unable to get stream key use environment variable
+            }).catch(function() {
+                // Saving stream key
+                saveStreamKey(process.env.SLOBS_BE_STREAMKEY);
+                hasUserFromPool = false;
             });
-
-            osn.NodeObs.OBS_settings_saveSettings('Stream', streamSettings);
 
             isStreaming = true;
 
@@ -164,31 +198,6 @@ describe('nodeobs_service', function() {
         });
 
         it('Record while streaming', function(done) {
-            const path = require('path');
-
-            // Getting stream settings container
-            const streamSettings = osn.NodeObs.OBS_settings_getSettings('Output');
-
-            // Changing mode to simple
-            streamSettings.find(category => {
-                return category.nameSubCategory === 'Untitled';
-            }).parameters.find(parameter => {
-                return parameter.name === 'Mode';
-            }).currentValue = 'Simple';
-
-            osn.NodeObs.OBS_settings_saveSettings('Output', streamSettings);
-
-            let setRecordingFilePath = osn.NodeObs.OBS_settings_getSettings('Output');
-
-            // Setting recording file path
-            setRecordingFilePath.find(category => {
-                return category.nameSubCategory === 'Recording';
-            }).parameters.find(parameter => {
-                return parameter.name === 'FilePath';
-            }).currentValue = path.join(path.normalize(__dirname), '..', 'osnData');
-
-            osn.NodeObs.OBS_settings_saveSettings('Output', setRecordingFilePath);
-
             isRecordingWhileStreaming = true;
 
             recordWhileStreamingSignals.subscribe(
@@ -207,7 +216,6 @@ describe('nodeobs_service', function() {
                         } else if (signalInfo.signal === EOBSOutputSignal.Stopping) {
                             osn.NodeObs.OBS_service_stopStreaming(true);
                         } else if (signalInfo.signal === EOBSOutputSignal.Deactivate) {
-                            // TODO: Check if record file was created
                             isRecordingWhileStreaming = false;
                             done();
                         }
