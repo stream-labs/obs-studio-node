@@ -110,6 +110,8 @@ describe('osn-transition', () => {
             expect(function () {
                 source = transition.getActiveSource();
             }).to.throw;
+
+            transition.release();
         });        
     });
 
