@@ -47,7 +47,6 @@ before_test:
   - cmd: yarn install
 
 test_script:
-  - cmd: yarn run test
   - cmd: cd ..\..
 
 before_deploy:
