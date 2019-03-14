@@ -75,6 +75,10 @@ add_nodejs_module(
 	"source/video.hpp"
 	"source/module.cpp"
 	"source/module.hpp"
+
+	###### callback-manager ######
+	"source/callback-manager.cpp"
+	"source/callback-manager.hpp"
 )
 
 if(WIN32)

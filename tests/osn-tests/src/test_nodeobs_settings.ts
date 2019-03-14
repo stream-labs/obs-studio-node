@@ -1253,7 +1253,12 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'RecTracks': {
-                                parameter.currentValue = 4;
+                                if(selectedFormat === 'flv') {
+                                    parameter.currentValue = 1;
+                                }
+                                else {
+                                    parameter.currentValue = 4;
+                                }
                                 break;
                             }
                             case 'RecEncoder': {
