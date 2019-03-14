@@ -20,8 +20,6 @@
 #include <error.hpp>
 #include <functional>
 #include "controller.hpp"
-#include "obs-property.hpp"
-#include "properties.hpp"
 #include "shared.hpp"
 #include "utility-v8.hpp"
 #include "utility.hpp"
@@ -125,9 +123,15 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::IsConfigurable(Nan::NAN_METHOD_ARGS_TY
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	//std::cout << "GetProperties begins" << std::endl;
 	osn::ISource* hndl = nullptr;
 	if (!utilv8::SafeUnwrap<osn::ISource>(info, hndl)) {
+		return;
+	}
+
+	SourceDataInfo* sid = sources.find(hndl->sourceId)->second;
+	if (sid && !sid->propertiesChanged && sid->properties.size() > 0) {
+		osn::Properties* props = new osn::Properties(sid->properties, info.This());
+		info.GetReturnValue().Set(osn::Properties::Store(props));
 		return;
 	}
 
@@ -317,10 +321,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 		}
 	}
 
+	sid->properties = pmap;
+	sid->propertiesChanged = false;
+
 	// obj = std::move(pmap);
 	osn::Properties* props = new osn::Properties(std::move(pmap), info.This());
 	info.GetReturnValue().Set(osn::Properties::Store(props));
-	//std::cout << "GetProperties ends" << std::endl;
 	return;
 }
 
@@ -389,7 +395,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Update(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!ValidateResponse(response))
 		return;
 
-	sid->settingsChanged = true;
+	sid->settingsChanged   = true;
+	sid->propertiesChanged = true;
+
 	info.GetReturnValue().Set(true);
 	return;
 }

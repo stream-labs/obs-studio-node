@@ -20,6 +20,8 @@
 #include <nan.h>
 #include <node.h>
 #include "utility-v8.hpp"
+#include "properties.hpp"
+#include "obs-property.hpp"
 
 struct SourceDataInfo
 {
@@ -29,8 +31,10 @@ struct SourceDataInfo
 	bool isMuted      = false;
 	bool mutedChanged = false;
 
-	std::string setting         = "";
-	bool        settingsChanged = false;
+	std::string         setting         = "";
+	osn::property_map_t properties;
+	bool                settingsChanged = true;
+	bool                propertiesChanged = false;
 
 	float volume        = 1;
 	bool  volumeChanged = false;

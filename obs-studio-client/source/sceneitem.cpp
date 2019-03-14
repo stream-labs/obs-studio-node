@@ -167,6 +167,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::Remove(Nan::NAN_METHOD_ARGS_TYPE inf
 
 	if (!ValidateResponse(response))
 		return;
+	itemsData.erase(itemsData.find(item->itemId));
 	item->itemId = UINT64_MAX;
 }
 
