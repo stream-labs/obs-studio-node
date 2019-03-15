@@ -378,11 +378,11 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	annotations.insert({{"Leaks", std::to_string(bnum_allocs())}});
 	annotations.insert({{"Total memory", PrettyBytes(totalPhysMem)}});
 	annotations.insert({{"Total used memory",
-	                     PrettyBytes(physMemUsed)
-	                         + " - percentage: " + std::to_string(double(physMemUsed) / double(totalPhysMem)) + "%"}});
+	                     PrettyBytes(physMemUsed) + " - percentage: "
+	                         + std::to_string(double(physMemUsed * 100) / double(totalPhysMem)) + "%"}});
 	annotations.insert({{"Total SLOBS memory",
 	                     PrettyBytes(physMemUsedByMe) + " - percentage: "
-	                         + std::to_string(double(physMemUsedByMe) / double(totalPhysMem)) + "%"}});
+	                         + std::to_string(double(physMemUsedByMe * 100) / double(totalPhysMem)) + "%"}});
 	annotations.insert({{"CPU usage", std::to_string(int(totalCPUUsed)) + "%"}});
 	annotations.insert({{"OBS errors", RequestOBSLog(OBSLogType::Errors).dump(4)}});
 	annotations.insert({{"OBS warnings", RequestOBSLog(OBSLogType::Warnings).dump(4)}});
