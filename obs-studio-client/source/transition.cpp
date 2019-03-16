@@ -128,7 +128,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Create(Nan::NAN_METHOD_ARGS_TYPE in
 	SourceDataInfo* sdi = new SourceDataInfo;
 	sdi->name           = name;
 	sdi->obs_sourceId   = type;
-	sources.emplace(response[1].value_union.ui64, sdi);
+	sdi->id             = response[1].value_union.ui64;
+
+	sourcesById.emplace(response[1].value_union.ui64, sdi);
+	sourcesByName.emplace(name, sdi);
 
 	info.GetReturnValue().Set(osn::Transition::Store(obj));
 }
@@ -179,7 +182,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::CreatePrivate(Nan::NAN_METHOD_ARGS_
 	SourceDataInfo* sdi = new SourceDataInfo;
 	sdi->name           = name;
 	sdi->obs_sourceId   = type;
-	sources.emplace(response[1].value_union.ui64, sdi);
+	sdi->id             = response[1].value_union.ui64;
+
+	sourcesById.emplace(response[1].value_union.ui64, sdi);
+	sourcesByName.emplace(name, sdi);
 
 	info.GetReturnValue().Set(osn::Transition::Store(obj));
 }

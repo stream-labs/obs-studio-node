@@ -27,7 +27,8 @@
 Nan::Persistent<v8::FunctionTemplate> osn::ISource::prototype = Nan::Persistent<v8::FunctionTemplate>();
 osn::ISource*                         sourceObject;
 
-std::map<uint64_t, SourceDataInfo*> sources;
+std::map<uint64_t, SourceDataInfo*>    sourcesById;
+std::map<std::string, SourceDataInfo*> sourcesByName;
 
 osn::ISource::~ISource()
 {
@@ -128,7 +129,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 		return;
 	}
 
-	SourceDataInfo* sid = sources.find(hndl->sourceId)->second;
+	SourceDataInfo* sid = sourcesById.find(hndl->sourceId)->second;
 	if (sid && !sid->propertiesChanged && sid->properties.size() > 0) {
 		osn::Properties* props = new osn::Properties(sid->properties, info.This());
 		info.GetReturnValue().Set(osn::Properties::Store(props));
@@ -337,7 +338,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetSettings(Nan::NAN_METHOD_ARGS_TYPE 
 		return;
 	}
 	
-	SourceDataInfo* sid = sources.find(hndl->sourceId)->second;
+	SourceDataInfo* sid = sourcesById.find(hndl->sourceId)->second;
 	if (sid && !sid->settingsChanged && sid->setting.size() > 0)
 	{
 		v8::Local<v8::String> jsondata = Nan::New<v8::String>(sid->setting).ToLocalChecked();
@@ -382,7 +383,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Update(Nan::NAN_METHOD_ARGS_TYPE info)
 	v8::Local<v8::String> jsondata = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), json).ToLocalChecked();
 	v8::String::Utf8Value jsondatautf8(jsondata);
 
-	SourceDataInfo* sid = sources.find(hndl->sourceId)->second;
+	SourceDataInfo* sid = sourcesById.find(hndl->sourceId)->second;
 
 	if (sid->setting.size() > 0) {
 		auto newSettings = nlohmann::json::parse(std::string(*jsondatautf8, (size_t)jsondatautf8.length()));
@@ -498,9 +499,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetName(Nan::NAN_METHOD_ARGS_TYPE info
 	}
 
 	std::map<uint64_t, SourceDataInfo*>::iterator it;
-	it = sources.find(is->sourceId);
+	it = sourcesById.find(is->sourceId);
 
-	if (it != sources.end()) {
+	if (it != sourcesById.end()) {
 		if (it->second->name.size() > 0) {
 			info.GetReturnValue().Set(utilv8::ToValue(it->second->name));
 			return;
@@ -633,9 +634,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetId(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 
 	std::map<uint64_t, SourceDataInfo*>::iterator it;
-	it = sources.find(is->sourceId);
+	it = sourcesById.find(is->sourceId);
 
-	if (it != sources.end()) {
+	if (it != sourcesById.end()) {
 		if (it->second->obs_sourceId.size() > 0) {
 			info.GetReturnValue().Set(utilv8::ToValue(it->second->obs_sourceId));
 			return;
@@ -663,7 +664,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetMuted(Nan::NAN_METHOD_ARGS_TYPE inf
 		return;
 	}
 
-	SourceDataInfo* sid = sources.find(is->sourceId)->second;
+	SourceDataInfo* sid = sourcesById.find(is->sourceId)->second;
 	if (sid && !sid->mutedChanged) {
 		info.GetReturnValue().Set(sid->isMuted);
 		return;
@@ -696,7 +697,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetMuted(Nan::NAN_METHOD_ARGS_TYPE inf
 		return;
 	}
 
-	SourceDataInfo* sid = sources.find(is->sourceId)->second;
+	SourceDataInfo* sid = sourcesById.find(is->sourceId)->second;
 
 	auto conn = GetConnection();
 	if (!conn)

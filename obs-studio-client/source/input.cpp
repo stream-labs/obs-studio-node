@@ -156,10 +156,15 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	// Create new Filter
 	osn::Input* obj = new osn::Input(response[1].value_union.ui64);
+
 	SourceDataInfo* sdi = new SourceDataInfo;
 	sdi->name           = name;
 	sdi->obs_sourceId   = type;
-	sources.emplace(response[1].value_union.ui64, sdi);
+	sdi->id             = response[1].value_union.ui64;
+
+	sourcesById.emplace(response[1].value_union.ui64, sdi);
+	sourcesByName.emplace(name, sdi);
+
 	info.GetReturnValue().Set(osn::Input::Store(obj));
 }
 
@@ -204,7 +209,15 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE 
 
 	// Create new Filter
 	osn::Input* obj = new osn::Input(response[1].value_union.ui64);
-	sources.emplace(response[1].value_union.ui64, new SourceDataInfo);
+
+	SourceDataInfo* sdi = new SourceDataInfo;
+	sdi->name           = name;
+	sdi->obs_sourceId   = type;
+	sdi->id             = response[1].value_union.ui64;
+
+	sourcesById.emplace(response[1].value_union.ui64, sdi);
+	sourcesByName.emplace(name, sdi);
+
 	info.GetReturnValue().Set(osn::Input::Store(obj));
 }
 
@@ -407,7 +420,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetVolume(Nan::NAN_METHOD_ARGS_TYPE info
 		return;
 	}
 
-	SourceDataInfo* sid = sources.find(baseobj->sourceId)->second;
+	SourceDataInfo* sid = sourcesById.find(baseobj->sourceId)->second;
 	if (sid && !sid->volumeChanged) {
 		info.GetReturnValue().Set(sid->volume);
 		return;
@@ -444,7 +457,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetVolume(Nan::NAN_METHOD_ARGS_TYPE info
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], volume);
 
-	SourceDataInfo* sid = sources.find(baseobj->sourceId)->second;
+	SourceDataInfo* sid = sourcesById.find(baseobj->sourceId)->second;
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -759,10 +772,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Filters(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	std::map<uint64_t, SourceDataInfo*>::iterator it = sources.find(baseobj->sourceId);
+	std::map<uint64_t, SourceDataInfo*>::iterator it = sourcesById.find(baseobj->sourceId);
 
-	if (it != sources.end()) {
-		std::vector<uint64_t>* filters = sources.find(baseobj->sourceId)->second->filters;
+	if (it != sourcesById.end()) {
+		std::vector<uint64_t>* filters = sourcesById.find(baseobj->sourceId)->second->filters;
 		v8::Local<v8::Array>   arr     = Nan::New<v8::Array>(int(filters->size()));
 		for (uint32_t i = 0; i < filters->size(); i++) {
 			osn::Filter* obj    = new osn::Filter(filters->at(i));
@@ -829,7 +842,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::AddFilter(Nan::NAN_METHOD_ARGS_TYPE info
 	std::vector<ipc::value> response =
 	    conn->call_synchronous_helper("Input", "AddFilter", {ipc::value(obj->sourceId), ipc::value(filter->sourceId)});
 
-	sources.find(baseobj->sourceId)->second->filters->push_back(filter->sourceId);
+	sourcesById.find(baseobj->sourceId)->second->filters->push_back(filter->sourceId);
 
 	ValidateResponse(response);
 }
@@ -865,7 +878,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::RemoveFilter(Nan::NAN_METHOD_ARGS_TYPE i
 	    "Input", "RemoveFilter", {ipc::value(obj->sourceId), ipc::value(basefilter->sourceId)});
 
 
-	std::vector<uint64_t>* filters = sources.find(baseobj->sourceId)->second->filters;
+	std::vector<uint64_t>*          filters = sourcesById.find(baseobj->sourceId)->second->filters;
 	std::vector<uint64_t>::iterator it = std::find(filters->begin(), filters->end(), basefilter->sourceId);
 
 	ValidateResponse(response);

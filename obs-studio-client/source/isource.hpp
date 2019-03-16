@@ -30,6 +30,7 @@ struct SourceDataInfo
 {
 	std::string obs_sourceId = "";
 	std::string name         = "";
+	uint64_t    id           = UINT64_MAX;
 
 	bool isMuted      = false;
 	bool mutedChanged = false;
@@ -45,7 +46,8 @@ struct SourceDataInfo
 	std::vector<uint64_t>* filters = new std::vector<uint64_t>();
 };
 
-extern std::map<uint64_t, SourceDataInfo*> sources;
+extern std::map<uint64_t, SourceDataInfo*> sourcesById;
+extern std::map<std::string, SourceDataInfo*> sourcesByName;
 
 namespace osn
 {
