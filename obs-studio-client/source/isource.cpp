@@ -321,7 +321,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 		}
 	}
 
-	sid->properties = pmap;
+	sid->properties        = pmap;
 	sid->propertiesChanged = false;
 
 	// obj = std::move(pmap);
@@ -370,6 +370,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Update(Nan::NAN_METHOD_ARGS_TYPE info)
 {
 	v8::Local<v8::Object> json;
 	ASSERT_GET_VALUE(info[0], json);
+	bool shouldUpdate = false;
 
 	// Retrieve Object
 	osn::ISource* hndl = nullptr;
@@ -377,27 +378,62 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Update(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	SourceDataInfo* sid = sources.find(hndl->sourceId)->second;
-
 	// Turn json into string
 	v8::Local<v8::String> jsondata = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), json).ToLocalChecked();
 	v8::String::Utf8Value jsondatautf8(jsondata);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	SourceDataInfo* sid = sources.find(hndl->sourceId)->second;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Source",
-	    "Update",
-	    {ipc::value(hndl->sourceId), ipc::value(std::string(*jsondatautf8, (size_t)jsondatautf8.length()))});
+	if (sid->setting.size() > 0) {
+		auto newSettings = nlohmann::json::parse(std::string(*jsondatautf8, (size_t)jsondatautf8.length()));
+		auto settings    = nlohmann::json::parse(sid->setting);
 
-	if (!ValidateResponse(response))
-		return;
+		nlohmann::json::iterator it = newSettings.begin();
 
-	sid->settingsChanged   = true;
-	sid->propertiesChanged = true;
+		while (!shouldUpdate && it != newSettings.end()) {
+			shouldUpdate                    = true;
+			auto                     newKey = it.key();
+			auto                     newVal = it.value();
+			nlohmann::json::iterator item   = settings.find(it.key());
+			if (item != settings.end()) {
+				auto currentKey   = item.key();
+				auto currentValue = item.value();
+				if (it.value().is_string()) {
+					std::string newValue = it.value();
+					std::string currentValue = item.value();
+					if (it.value() == item.value()) {
+						shouldUpdate = false;
+					} else {
+						shouldUpdate = true;
+					}
+				}
+				if (it.value() == item.value()) {
+					shouldUpdate = false;
+				}
+				if (item.value().is_object()) {
+					std::cout << "This is an array" << std::endl;
+				}
+			}
+			it++;
+		}
+	}
 
+	if (shouldUpdate) {
+		auto conn = GetConnection();
+		if (!conn)
+			return;
+
+		std::vector<ipc::value> response = conn->call_synchronous_helper(
+		    "Source",
+		    "Update",
+		    {ipc::value(hndl->sourceId), ipc::value(std::string(*jsondatautf8, (size_t)jsondatautf8.length()))});
+
+		if (!ValidateResponse(response))
+			return;
+
+		sid->settingsChanged   = true;
+		sid->propertiesChanged = true;
+	}
 	info.GetReturnValue().Set(true);
 	return;
 }

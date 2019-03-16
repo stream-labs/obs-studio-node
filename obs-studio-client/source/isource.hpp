@@ -23,6 +23,9 @@
 #include "properties.hpp"
 #include "obs-property.hpp"
 
+#undef strtoll
+#include "nlohmann/json.hpp"
+
 struct SourceDataInfo
 {
 	std::string obs_sourceId = "";

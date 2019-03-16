@@ -1,5 +1,7 @@
 PROJECT(obs_studio_client VERSION ${obs-studio-node_VERSION})
 
+include(FetchContent)
+
 if(WIN32)
 	# Resource VersionInfo
 	set(PROJECT_PRODUCT_NAME "OBS Studio for Node.JS (Server)")
@@ -24,6 +26,17 @@ if (STREAMLABS_BUILD)
 	)
 else()
 	nodejs_init()
+endif()
+
+# Nlohmann JSON (modern JSON for C++)
+FetchContent_Declare(
+  nlohmannjson
+  GIT_REPOSITORY https://github.com/nlohmann/json
+)
+
+FetchContent_GetProperties(nlohmannjson)
+if(NOT nlohmannjson_POPULATED)
+  FetchContent_Populate(nlohmannjson)
 endif()
 
 add_nodejs_module(
@@ -81,6 +94,10 @@ add_nodejs_module(
 	"source/callback-manager.hpp"
 )
 
+set(PROJECT_INCLUDE_PATHS
+	"${nlohmannjson_SOURCE_DIR}/single_include"
+)
+
 if(WIN32)
 	target_sources(obs_studio_client PUBLIC ${PROJECT_BINARY_DIR}/version.rc)
 endif()
@@ -92,6 +109,7 @@ target_include_directories(
 	PUBLIC
 		"${CMAKE_SOURCE_DIR}/source/"
 		"${CMAKE_SOURCE_DIR}/lib-streamlabs-ipc/include"
+		${PROJECT_INCLUDE_PATHS}
 )
  
 set_target_properties(
