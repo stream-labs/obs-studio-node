@@ -229,6 +229,15 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::FromName(Nan::NAN_METHOD_ARGS_TYPE info)
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], name);
 
+	std::map<std::string, SourceDataInfo*>::iterator it;
+	it = sourcesByName.find(name);
+
+	if (it != sourcesByName.end() && name.size() > 0) {
+		osn::Input* obj = new osn::Input(it->second->id);
+		info.GetReturnValue().Set(osn::Input::Store(obj));
+		return;
+	}
+
 	auto conn = GetConnection();
 	if (!conn)
 		return;
