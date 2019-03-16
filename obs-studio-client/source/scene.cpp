@@ -97,9 +97,16 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	// Create new Filter
 	osn::Scene* obj   = new osn::Scene(sourceId);
+
 	scenesByName.erase(name);
 	scenesByName.emplace(name, sourceId);
 	scenesById.emplace(sourceId, new SceneInfo);
+
+	SourceDataInfo* sdi = new SourceDataInfo;
+	sdi->name           = name;
+	sdi->obs_sourceId   = "scene";
+	sources.emplace(response[1].value_union.ui64, sdi);
+
 	info.GetReturnValue().Set(osn::Scene::Store(obj));
 }
 
@@ -123,9 +130,16 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE 
 	uint64_t sourceId = response[1].value_union.ui64;
 
 	osn::Scene* obj   = new osn::Scene(sourceId);
+
 	scenesByName.erase(name);
 	scenesByName.emplace(name, sourceId);
 	scenesById.emplace(sourceId, new SceneInfo);
+
+	SourceDataInfo* sdi = new SourceDataInfo;
+	sdi->name           = name;
+	sdi->obs_sourceId   = "scene";
+	sources.emplace(response[1].value_union.ui64, sdi);
+
 	info.GetReturnValue().Set(osn::Scene::Store(obj));
 }
 
