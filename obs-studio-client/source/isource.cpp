@@ -505,8 +505,6 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetName(Nan::NAN_METHOD_ARGS_TYPE info
 			info.GetReturnValue().Set(utilv8::ToValue(it->second->name));
 			return;
 		}
-	} else {
-		it = sources.emplace(is->sourceId, new SourceDataInfo).first;
 	}
 
 	auto conn = GetConnection();
@@ -642,8 +640,6 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetId(Nan::NAN_METHOD_ARGS_TYPE info)
 			info.GetReturnValue().Set(utilv8::ToValue(it->second->obs_sourceId));
 			return;
 		}
-	} else {
-		it = sources.emplace(is->sourceId, new SourceDataInfo).first;
 	}
 
 	auto conn = GetConnection();
