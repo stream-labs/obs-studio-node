@@ -37,7 +37,7 @@ struct SourceDataInfo
 
 	std::string         setting         = "";
 	osn::property_map_t properties;
-	bool                settingsChanged = true;
+	bool                settingsChanged = false;
 	bool                propertiesChanged = false;
 
 	float volume        = 1;

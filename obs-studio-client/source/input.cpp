@@ -161,6 +161,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 	sdi->name           = name;
 	sdi->obs_sourceId   = type;
 	sdi->id             = response[1].value_union.ui64;
+	sdi->setting        = response[2].value_str;
 
 	sourcesById.emplace(response[1].value_union.ui64, sdi);
 	sourcesByName.emplace(name, sdi);
