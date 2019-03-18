@@ -437,16 +437,17 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 	// telling the user that he is using too much cpu/ram or process any Dx11 message and output
 	// that to the user
 
-	// If we cannot destroy the obs and exit normally without causing a crash report,
-	// proceed with a crash
-	try {
-		// If for any reason `destroyOBS_API` crashes, the crash recursion is handled
-		OBS_API::destroyOBS_API();
-		exit(0);
-	} catch (...) {
-		util::CrashManager::HandleCrash(_crashMessage);
+	// If we cannot destroy the obs kill the process without causing a crash report,
+	// proceed with it
+	DWORD pid = GetCurrentProcessId();
+	HANDLE hnd = OpenProcess(SYNCHRONIZE | PROCESS_TERMINATE, TRUE, pid);
+	if (hnd != nullptr) {
+		TerminateProcess(hnd, 0);
 	}
 
+	// Something really bad went wrong when killing this process, generate a crash report!
+	util::CrashManager::HandleCrash(_crashMessage);
+	
 	// Unreachable statement
 	return true;
 }
