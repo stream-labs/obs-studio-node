@@ -200,7 +200,7 @@ describe('osn-input', () => {
     context('# AddFilter, RemoveFilter, Filters and FindFilter', () => {
         it('Add video filter to video sources', () => {
             let videoFilters: string[] = [];
-            let addedFilters: IFilter[] = [];
+            let addedFilters: string[] = [];
 
             // Getting all video filter types
             osn.FilterFactory.types().forEach(function(filterType) {
@@ -218,40 +218,64 @@ describe('osn-input', () => {
 
                 if (videoSource) {
                     // Creating video source
-                    const input = osn.InputFactory.create(inputType, 'input');
+                    const input = osn.InputFactory.create(inputType, inputType);
 
                     // Checking if input source was created correctly
                     expect(input).to.not.equal(undefined);
                     expect(input.id).to.equal(inputType);
-                    expect(input.name).to.equal('input');
+                    expect(input.name).to.equal(inputType);
 
                     videoFilters.forEach(function(filterType) {
-                        const filter = osn.FilterFactory.create(filterType, filterType);
+                        if (filterType === 'ndi_filter') {
+                            if (inputType === 'ndi_source') {
+                                const filter = osn.FilterFactory.create(filterType, filterType);
 
-                        // Checking if filter was created correctly
-                        expect(filter).to.not.equal(undefined);
-                        
-                        if(filterType === 'ndi_filter') {
-                            if(inputType === 'ndi_source') {
+                                // Checking if filter was created correctly
+                                expect(filter).to.not.equal(undefined);
+
                                 // Adding ndi filter to ndi source
                                 input.addFilter(filter);
+
+                                // Adding filter to addedFilters array
+                                addedFilters.push(filter.id);
                             }
+                        } else if (filterType === 'async_delay_filter') {
+                            if (inputType === 'ffmpeg_source' ||
+                                inputType === 'dshow_input') {
+                                const filter = osn.FilterFactory.create(filterType, filterType);
+
+                                // Checking if filter was created correctly
+                                expect(filter).to.not.equal(undefined);
+
+                                // Adding ndi filter to ndi source
+                                input.addFilter(filter);
+
+                                // Adding filter to addedFilters array
+                                addedFilters.push(filter.id);
+                            }
+                        } else {
+                            const filter = osn.FilterFactory.create(filterType, filterType);
+
+                            // Checking if filter was created correctly
+                            expect(filter).to.not.equal(undefined);
+
+                            // Adding filter to source
+                            input.addFilter(filter);
+                        
+                            // Adding filter to addedFilters array
+                            addedFilters.push(filter.id);
                         }
-                        
-                        // Adding filter to source
-                        input.addFilter(filter);
-                        
-                        // Adding filter to addedFilters index
-                        addedFilters.push(filter);
                     });
-                    
-                    // Checking if source has all video filters
-                    expect(input.filters.toString).to.equal(addedFilters.toString);
 
                     // Finding each filter and removing all of them
                     input.filters.forEach(function(filter) {
                         const foundFilter = input.findFilter(filter.name);
+
+                        // Checking if source has all video filters
+                        expect(addedFilters).to.include(foundFilter.id);
+
                         input.removeFilter(foundFilter);
+                        filter.release();
                     });
 
                     // Checking if all filters where removed
@@ -264,7 +288,7 @@ describe('osn-input', () => {
 
         it('Add async filters to async sources', () => {
             let asyncFilters: string[] = [];
-            let addedFilters: IFilter[] = [];
+            let addedFilters: osn.ESourceType[] = [];
 
             // Getting all filter types and separating them between video, audio and async
             osn.FilterFactory.types().forEach(function(filterType) {
@@ -278,16 +302,16 @@ describe('osn-input', () => {
 
             // Create all async sources available
             inputTypes.forEach(function (inputType) {
-                const asyncSource = !!(osn.ESourceOutputFlags.Video & osn.Global.getOutputFlagsFromId(inputType));
+                const asyncSource = !!(osn.ESourceOutputFlags.Async & osn.Global.getOutputFlagsFromId(inputType));
 
                 if (asyncSource) {
                     // Creating async source
-                    const input = osn.InputFactory.create(inputType, 'input');
+                    const input = osn.InputFactory.create(inputType, inputType);
 
                     // Checking if input source was created correctly
                     expect(input).to.not.equal(undefined);
                     expect(input.id).to.equal(inputType);
-                    expect(input.name).to.equal('input');
+                    expect(input.name).to.equal(inputType);
 
                     asyncFilters.forEach(function(filterType) {
                         const filter = osn.FilterFactory.create(filterType, filterType);
@@ -298,17 +322,19 @@ describe('osn-input', () => {
                         // Adding filter to source
                         input.addFilter(filter);
                         
-                        // Adding filter to addedFilters index
-                        addedFilters.push(filter);
+                        // Adding filter to addedFilters array
+                        addedFilters.push(filter.type);
                     });
-
-                    // Checking if source has all video filters
-                    expect(input.filters.toString).to.equal(addedFilters.toString);
 
                     // Finding each filter and removing all of them
                     input.filters.forEach(function(filter) {
                         const foundFilter = input.findFilter(filter.name);
-                        input.removeFilter(foundFilter);
+
+                        // Checking if source has all video filters
+                        expect(addedFilters).to.include(foundFilter.type);
+
+                        input.removeFilter(filter);
+                        filter.release();
                     });
 
                     // Checking if all filters where removed
@@ -321,7 +347,7 @@ describe('osn-input', () => {
 
         it('Add audio filters to audio sources', () => {
             let audioFilters: string[] = [];
-            let addedFilters: IFilter[] = [];
+            let addedFilters: osn.ESourceType[] = [];
 
             // Getting all audio filter types
             osn.FilterFactory.types().forEach(function(filterType) {
@@ -356,16 +382,18 @@ describe('osn-input', () => {
                         input.addFilter(filter);
                         
                         // Adding filter to addedFilters index
-                        addedFilters.push(filter);
+                        addedFilters.push(filter.type);
                     });
-                    
-                    // Checking if source has all video filters
-                    expect(input.filters.toString).to.equal(addedFilters.toString);
 
                     // Finding each filter and removing all of them
                     input.filters.forEach(function(filter) {
                         const foundFilter = input.findFilter(filter.name);
+
+                        // Checking if source has all video filters
+                        expect(addedFilters).to.include(foundFilter.type);
+
                         input.removeFilter(foundFilter);
+                        filter.release();
                     });
 
                     // Checking if all filters where removed
@@ -425,6 +453,15 @@ describe('osn-input', () => {
 
             // Checking if filter is in the right position
             expect(input.filters[0].name).to.equal('filter2');
+
+            // Finding each filter and removing all of them
+            input.filters.forEach(function(filter) {
+                const foundFilter = input.findFilter(filter.name);
+                input.removeFilter(foundFilter);
+                filter.release();
+            });
+
+            input.release();
         });
     });
 });

@@ -378,11 +378,11 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	annotations.insert({{"Leaks", std::to_string(bnum_allocs())}});
 	annotations.insert({{"Total memory", PrettyBytes(totalPhysMem)}});
 	annotations.insert({{"Total used memory",
-	                     PrettyBytes(physMemUsed)
-	                         + " - percentage: " + std::to_string(double(physMemUsed) / double(totalPhysMem)) + "%"}});
+	                     PrettyBytes(physMemUsed) + " - percentage: "
+	                         + std::to_string(double(physMemUsed * 100) / double(totalPhysMem)) + "%"}});
 	annotations.insert({{"Total SLOBS memory",
 	                     PrettyBytes(physMemUsedByMe) + " - percentage: "
-	                         + std::to_string(double(physMemUsedByMe) / double(totalPhysMem)) + "%"}});
+	                         + std::to_string(double(physMemUsedByMe * 100) / double(totalPhysMem)) + "%"}});
 	annotations.insert({{"CPU usage", std::to_string(int(totalCPUUsed)) + "%"}});
 	annotations.insert({{"OBS errors", RequestOBSLog(OBSLogType::Errors).dump(4)}});
 	annotations.insert({{"OBS warnings", RequestOBSLog(OBSLogType::Warnings).dump(4)}});
@@ -437,16 +437,17 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 	// telling the user that he is using too much cpu/ram or process any Dx11 message and output
 	// that to the user
 
-	// If we cannot destroy the obs and exit normally without causing a crash report,
-	// proceed with a crash
-	try {
-		// If for any reason `destroyOBS_API` crashes, the crash recursion is handled
-		OBS_API::destroyOBS_API();
-		exit(0);
-	} catch (...) {
-		util::CrashManager::HandleCrash(_crashMessage);
+	// If we cannot destroy the obs kill the process without causing a crash report,
+	// proceed with it
+	DWORD pid = GetCurrentProcessId();
+	HANDLE hnd = OpenProcess(SYNCHRONIZE | PROCESS_TERMINATE, TRUE, pid);
+	if (hnd != nullptr) {
+		TerminateProcess(hnd, 0);
 	}
 
+	// Something really bad went wrong when killing this process, generate a crash report!
+	util::CrashManager::HandleCrash(_crashMessage);
+	
 	// Unreachable statement
 	return true;
 }
@@ -549,6 +550,8 @@ nlohmann::json util::CrashManager::RequestOBSLog(OBSLogType type)
             break;
         }
     }
+
+	std::reverse(result.begin(), result.end());
     
 	return result;
 }
