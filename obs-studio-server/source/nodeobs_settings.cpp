@@ -1087,13 +1087,13 @@ void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::strin
 		streamEncoder->push_back(std::make_pair("Hardware (QSV)", ipc::value(ADVANCED_ENCODER_QSV)));
 
 	if (EncoderAvailable("ffmpeg_nvenc"))
-		streamEncoder->push_back(std::make_pair("NVIDIA NVENC H.264", ipc::value(ADVANCED_ENCODER_NVENC)));
+		streamEncoder->push_back(std::make_pair("Hardware (NVENC)", ipc::value(ADVANCED_ENCODER_NVENC)));
 
 	if (EncoderAvailable("amd_amf_h264"))
 		streamEncoder->push_back(std::make_pair("AMD", ipc::value(ADVANCED_ENCODER_AMD)));
 
 	if (EncoderAvailable("jim_nvenc"))
-		streamEncoder->push_back(std::make_pair("NVIDIA NVENC H.264 (new)", ipc::value(ENCODER_NEW_NVENC)));
+		streamEncoder->push_back(std::make_pair("Hardware (NVENC) (new)", ipc::value(ENCODER_NEW_NVENC)));
 }
 
 void OBS_settings::getSimpleOutputSettings(
