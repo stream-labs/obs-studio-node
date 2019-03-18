@@ -441,7 +441,9 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 	// proceed with it
 	DWORD pid = GetCurrentProcessId();
 	HANDLE hnd = OpenProcess(SYNCHRONIZE | PROCESS_TERMINATE, TRUE, pid);
-	TerminateProcess(hnd, 0);
+	if (hnd != nullptr) {
+		TerminateProcess(hnd, 0);
+	}
 
 	// Something really bad went wrong when killing this process, generate a crash report!
 	util::CrashManager::HandleCrash(_crashMessage);
