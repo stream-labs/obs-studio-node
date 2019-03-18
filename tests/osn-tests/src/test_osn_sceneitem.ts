@@ -30,6 +30,7 @@ function createInputSource(sourceType: string, sourceName: string): IInput {
 describe('osn-sceneitem', () => {
     let obs: OBSProcessHandler;
     let sceneName: string = 'test_scene';
+    let scene: osn.IScene;
 
     // Initialize OBS process
     before(function() {
@@ -41,7 +42,7 @@ describe('osn-sceneitem', () => {
         }
 
         // Creating scene
-        const scene = osn.SceneFactory.create(sceneName); 
+        scene = osn.SceneFactory.create(sceneName); 
 
         // Checking if scene was created correctly
         expect(scene).to.not.equal(undefined);
@@ -52,6 +53,7 @@ describe('osn-sceneitem', () => {
 
     // Shutdown OBS process
     after(function() {
+        scene.release();
         obs.shutdown();
         obs = null;
     });
@@ -82,6 +84,7 @@ describe('osn-sceneitem', () => {
             expect(returnedSource).to.not.equal(undefined);
             expect(returnedSource.id).to.equal(sourceType);
             expect(returnedSource.name).to.equal(sourceName);
+            sceneItem.source.release();
             sceneItem.remove();
         });
     });
@@ -113,6 +116,7 @@ describe('osn-sceneitem', () => {
             expect(returnedScene.id).to.equal('scene');
             expect(returnedScene.name).to.equal(sceneName);
             expect(returnedScene.type).to.equal(osn.ESourceType.Scene);
+            sceneItem.source.release();
             sceneItem.remove();
         });
     });
@@ -147,6 +151,7 @@ describe('osn-sceneitem', () => {
 
             // Checking if scene item is not visible
             expect(sceneItem.visible).to.equal(false);
+            sceneItem.source.release();
             sceneItem.remove();
         });
     });
@@ -181,6 +186,7 @@ describe('osn-sceneitem', () => {
 
             // Checking if scene item is selected
             expect(sceneItem.selected).to.equal(false);
+            sceneItem.source.release();
             sceneItem.remove();
         });
     });
@@ -214,6 +220,7 @@ describe('osn-sceneitem', () => {
             // Checking if position was set properly
             expect(sceneItem.position.x).to.equal(returnedPosition.x);
             expect(sceneItem.position.y).to.equal(returnedPosition.y);
+            sceneItem.source.release();
             sceneItem.remove();
         });
     });
@@ -246,6 +253,7 @@ describe('osn-sceneitem', () => {
 
             // Checkin if rotation was set properly
             expect(sceneItem.rotation).to.equal(returnedRotation);
+            sceneItem.source.release();
             sceneItem.remove();
         });
     });
@@ -279,6 +287,7 @@ describe('osn-sceneitem', () => {
             // Checking if scale was set properly
             expect(sceneItem.scale.x).to.equal(returnedScale.x);
             expect(sceneItem.scale.y).to.equal(returnedScale.y);
+            sceneItem.source.release();
             sceneItem.remove();
         });
     });
@@ -314,6 +323,7 @@ describe('osn-sceneitem', () => {
             expect(sceneItem.crop.bottom).to.equal(returnedCrop.bottom);
             expect(sceneItem.crop.left).to.equal(returnedCrop.left);
             expect(sceneItem.crop.right).to.equal(returnedCrop.right);
+            sceneItem.source.release();
             sceneItem.remove();
         });
     });
@@ -343,6 +353,7 @@ describe('osn-sceneitem', () => {
 
             // Checking
             expect(sceneItemId).to.not.equal(undefined);
+            sceneItem.source.release();
             sceneItem.remove();
         });
     });
