@@ -179,6 +179,8 @@ describe('osn-scene', () => {
             expect(function () {
                 const sceneItem = scene.findItem('does_not_exist');
             }).to.throw;
+
+            scene.release();
         });
     });
 
