@@ -976,6 +976,7 @@ bool OBS_service::updateAdvancedReplayBuffer(void)
 	int         rbSize;
 
 	std::string recEnc = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecEncoder");
+	int         tracks = int(config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecTracks"));
 
 	ffmpegOutput = false;
 
@@ -998,6 +999,16 @@ bool OBS_service::updateAdvancedReplayBuffer(void)
 	} else if (!obs_output_active(streamingOutput)) {
 		updateAudioStreamingEncoder();
 		updateStreamSettings();
+	}
+
+	updateAudioTracks();
+	int idx = 0;
+	for (int i = 0; i < MAX_AUDIO_MIXES; i++) {
+		if ((tracks & (1 << i)) != 0)
+		{
+			obs_output_set_audio_encoder(replayBufferOutput, aacTracks[i], idx);
+			idx++;
+		}
 	}
 
 	if (!ffmpegOutput) {
@@ -1499,15 +1510,18 @@ void OBS_service::updateAudioTracks()
 	obs_data_t* settings[MAX_AUDIO_MIXES];
 
 	for (size_t i = 0; i < MAX_AUDIO_MIXES; i++) {
-		settings[i] = obs_data_create();
-		obs_data_set_int(settings[i], "bitrate", GetAdvancedAudioBitrate(i));
+		if (aacTracks[i] && !obs_encoder_active(aacTracks[i])) {
+			settings[i] = obs_data_create();
+			obs_data_set_int(settings[i], "bitrate", GetAdvancedAudioBitrate(i));
 
-		const char* name = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", configTracksNames[i]);
-		if (name)
-			obs_encoder_set_name(aacTracks[i], name);
+			const char* name =
+			    config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", configTracksNames[i]);
+			if (name)
+				obs_encoder_set_name(aacTracks[i], name);
 
-		obs_encoder_update(aacTracks[i], settings[i]);
-		obs_data_release(settings[i]);
+			obs_encoder_update(aacTracks[i], settings[i]);
+			obs_data_release(settings[i]);
+		}
 	}
 }
 
@@ -1551,9 +1565,6 @@ void OBS_service::updateAdvancedRecordingOutput(void)
     {
 		if ((tracks & (1 << i)) != 0) {
 			obs_output_set_audio_encoder(recordingOutput, aacTracks[i], idx);
-
-			if (replayBufferOutput)
-				obs_output_set_audio_encoder(replayBufferOutput, aacTracks[i], idx);
 			idx++;
 		}
 	}
