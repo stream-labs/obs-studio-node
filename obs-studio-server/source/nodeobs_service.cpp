@@ -1561,8 +1561,7 @@ void OBS_service::updateAdvancedRecordingOutput(void)
 
     updateAudioTracks();
 
-    for (int i = 0; i < MAX_AUDIO_MIXES; i++)
-    {
+    for (int i = 0; i < MAX_AUDIO_MIXES; i++) {
 		if ((tracks & (1 << i)) != 0) {
 			obs_output_set_audio_encoder(recordingOutput, aacTracks[i], idx);
 			idx++;
