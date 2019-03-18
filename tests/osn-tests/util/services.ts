@@ -51,6 +51,10 @@ export class Services {
                         reject(`Unable to request user ${err || body}`);
                     }
 
+                    if (body == undefined) {
+                        reject(`Body is undefined or with wrong format ${body}`);
+                    }
+
                     resolve(JSON.parse(body));
                 }
             );
@@ -70,6 +74,10 @@ export class Services {
                     reject(`Unable to validate token ${err || body}`);
                 }
 
+                if (body == undefined) {
+                    reject(`Body is undefined or with wrong format ${body}`);
+                }
+
                 resolve(JSON.parse(body));
             });
         });
@@ -86,6 +94,10 @@ export class Services {
             }, (err: any, res: any, body: any) => {
                 if (err || res.statusCode !== 200) {
                     reject(`Unable to get channel info ${err || body}`);
+                }
+
+                if (body == undefined) {
+                    reject(`Body is undefined or with wrong format ${body}`);
                 }
 
                 resolve(JSON.parse(body));
@@ -137,6 +149,10 @@ export class Services {
             }, (err: any, res: any, body: any) => {
                 if (err || res.statusCode !== 200) {
                     reject(`Unable to release user ${err || body}`);
+                }
+
+                if (body == undefined) {
+                    reject(`Body is undefined or with wrong format ${body}`);
                 }
 
                 this.username = '';
