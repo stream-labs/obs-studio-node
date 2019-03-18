@@ -982,9 +982,9 @@ bool OBS_service::updateAdvancedReplayBuffer(void)
 	bool useStreamEncoder = recEnc.compare("none") == 0;
 
 	obs_data_t* streamEncSettings =
-        obs_data_create_from_json_file_safe(ConfigManager::getInstance().getStream().c_str(), "bak");
+	 obs_data_create_from_json_file_safe(ConfigManager::getInstance().getStream().c_str(), "bak");
 	obs_data_t* recordEncSettings =
-        obs_data_create_from_json_file_safe(ConfigManager::getInstance().getRecord().c_str(), "bak");
+	 obs_data_create_from_json_file_safe(ConfigManager::getInstance().getRecord().c_str(), "bak");
 
 	const char* rate_control =
 	    obs_data_get_string(useStreamEncoder ? streamEncSettings : recordEncSettings, "rate_control");
@@ -1173,7 +1173,7 @@ void OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(bool
 	if (useStreamingEncoder) {
 		obs_output_set_video_encoder(recordingOutput, videoStreamingEncoder);
 		if (simple)
-			obs_output_set_audio_encoder(recordingOutput, audioSimpleStreamingEncoder, 0);
+		        obs_output_set_audio_encoder(recordingOutput, audioSimpleStreamingEncoder, 0);
 
 		if (replayBufferOutput) {
 			obs_output_set_video_encoder(replayBufferOutput, videoStreamingEncoder);
@@ -1485,6 +1485,32 @@ void OBS_service::updateRecordingOutput(bool updateReplayBuffer)
 	obs_data_release(settings);
 }
 
+void OBS_service::updateAudioTracks()
+{
+	static const char* configTracksNames[] = {
+	    "Track1Name",
+	    "Track2Name",
+	    "Track3Name",
+	    "Track4Name",
+	    "Track5Name",
+	    "Track6Name",
+	};
+
+	obs_data_t* settings[MAX_AUDIO_MIXES];
+
+	for (size_t i = 0; i < MAX_AUDIO_MIXES; i++) {
+		settings[i] = obs_data_create();
+		obs_data_set_int(settings[i], "bitrate", GetAdvancedAudioBitrate(i));
+
+		const char* name = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", configTracksNames[i]);
+		if (name)
+			obs_encoder_set_name(aacTracks[i], name);
+
+		obs_encoder_update(aacTracks[i], settings[i]);
+		obs_data_release(settings[i]);
+	}
+}
+
 void OBS_service::updateAdvancedRecordingOutput(void)
 {
 	const char* path       = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecFilePath");
@@ -1516,10 +1542,13 @@ void OBS_service::updateAdvancedRecordingOutput(void)
 	if (!overwriteIfExists)
 		FindBestFilename(strPath, noSpace);
 
-	obs_data_t*  settings = obs_data_create();
-	int          idx      = 0;
+	obs_data_t* settings  = obs_data_create();
+	int         idx       = 0;
 
-	for (int i = 0; i < MAX_AUDIO_MIXES; i++) {
+    updateAudioTracks();
+
+    for (int i = 0; i < MAX_AUDIO_MIXES; i++)
+    {
 		if ((tracks & (1 << i)) != 0) {
 			obs_output_set_audio_encoder(recordingOutput, aacTracks[i], idx);
 
