@@ -94,6 +94,8 @@ describe('osn-volmeter', () => {
 
             // Checking if callback was removed correctly
             expect(rmResult).to.equal(true)
+
+            input.release();
         });
     });
 });
