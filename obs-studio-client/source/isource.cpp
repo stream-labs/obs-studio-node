@@ -88,6 +88,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Remove(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
+	if (sourcesById.find(is->sourceId) != sourcesById.end()) {
+		SourceDataInfo* sid = sourcesById.find(is->sourceId)->second;
+		sourcesByName.erase(sid->name);
+		sourcesById.erase(sid->id);
+	}
+
 	auto conn = GetConnection();
 	if (!conn)
 		return;

@@ -164,6 +164,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 	sdi->setting        = response[2].value_str;
 	sdi->audioMixers    = response[3].value_union.ui32;
 
+	sourcesById.erase(response[1].value_union.ui64);
+	sourcesByName.erase(name);
+
 	sourcesById.emplace(response[1].value_union.ui64, sdi);
 	sourcesByName.emplace(name, sdi);
 
@@ -216,6 +219,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE 
 	sdi->name           = name;
 	sdi->obs_sourceId   = type;
 	sdi->id             = response[1].value_union.ui64;
+
+	sourcesById.erase(response[1].value_union.ui64);
+	sourcesByName.erase(name);
 
 	sourcesById.emplace(response[1].value_union.ui64, sdi);
 	sourcesByName.emplace(name, sdi);

@@ -99,6 +99,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 	osn::Scene* obj   = new osn::Scene(sourceId);
 
 	scenesByName.erase(name);
+	scenesById.erase(sourceId);
+
 	scenesByName.emplace(name, sourceId);
 	scenesById.emplace(sourceId, new SceneInfo);
 
@@ -106,6 +108,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 	sdi->name           = name;
 	sdi->obs_sourceId   = "scene";
 	sdi->id             = response[1].value_union.ui64;
+
+	sourcesById.erase(response[1].value_union.ui64);
+	sourcesByName.erase(name);
 
 	sourcesById.emplace(response[1].value_union.ui64, sdi);
 	sourcesByName.emplace(name, sdi);
@@ -135,6 +140,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE 
 	osn::Scene* obj   = new osn::Scene(sourceId);
 
 	scenesByName.erase(name);
+	scenesById.erase(sourceId);
+
 	scenesByName.emplace(name, sourceId);
 	scenesById.emplace(sourceId, new SceneInfo);
 
@@ -142,6 +149,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE 
 	sdi->name           = name;
 	sdi->obs_sourceId   = "scene";
 	sdi->id             = response[1].value_union.ui64;
+
+	sourcesById.erase(response[1].value_union.ui64);
+	sourcesByName.erase(name);
 
 	sourcesById.emplace(response[1].value_union.ui64, sdi);
 	sourcesByName.emplace(name, sdi);
@@ -256,9 +266,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info
 	uint64_t sourceId = response[1].value_union.ui64;
 
 	osn::Scene* obj = new osn::Scene(sourceId);
+
 	scenesByName.erase(name);
+	scenesById.erase(sourceId);
+
 	scenesByName.emplace(name, sourceId);
 	scenesById.emplace(sourceId, new SceneInfo);
+
 	info.GetReturnValue().Set(osn::Scene::Store(obj));
 }
 

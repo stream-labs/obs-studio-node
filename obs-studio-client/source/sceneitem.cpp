@@ -64,6 +64,7 @@ osn::SceneItem::SceneItem(uint64_t id, int64_t obs_id)
 	this->itemId       = id;
 	SceneItemData* sid = new SceneItemData;
 	sid->obs_itemId    = obs_id;
+	itemsData.erase(id);
 	itemsData.emplace(id, sid);
 }
 

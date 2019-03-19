@@ -130,6 +130,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Create(Nan::NAN_METHOD_ARGS_TYPE in
 	sdi->obs_sourceId   = type;
 	sdi->id             = response[1].value_union.ui64;
 
+	sourcesById.erase(response[1].value_union.ui64);
+	sourcesByName.erase(name);
+
 	sourcesById.emplace(response[1].value_union.ui64, sdi);
 	sourcesByName.emplace(name, sdi);
 
@@ -183,6 +186,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::CreatePrivate(Nan::NAN_METHOD_ARGS_
 	sdi->name           = name;
 	sdi->obs_sourceId   = type;
 	sdi->id             = response[1].value_union.ui64;
+
+	sourcesById.erase(response[1].value_union.ui64);
+	sourcesByName.erase(name);
 
 	sourcesById.emplace(response[1].value_union.ui64, sdi);
 	sourcesByName.emplace(name, sdi);

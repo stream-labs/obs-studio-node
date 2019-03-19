@@ -121,6 +121,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 	sdi->obs_sourceId   = type;
 	sdi->id             = response[1].value_union.ui64;
 
+	sourcesById.erase(response[1].value_union.ui64);
+	sourcesByName.erase(name);
+
 	sourcesById.emplace(response[1].value_union.ui64, sdi);
 	sourcesByName.emplace(name, sdi);
 
