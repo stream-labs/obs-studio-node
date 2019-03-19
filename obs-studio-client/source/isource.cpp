@@ -371,7 +371,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Update(Nan::NAN_METHOD_ARGS_TYPE info)
 {
 	v8::Local<v8::Object> json;
 	ASSERT_GET_VALUE(info[0], json);
-	bool shouldUpdate = false;
+	bool shouldUpdate = true;
 
 	// Retrieve Object
 	osn::ISource* hndl = nullptr;
@@ -390,7 +390,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Update(Nan::NAN_METHOD_ARGS_TYPE info)
 		auto settings    = nlohmann::json::parse(sid->setting);
 
 		nlohmann::json::iterator it = newSettings.begin();
-
+		shouldUpdate                = false;
 		while (!shouldUpdate && it != newSettings.end()) {
 			shouldUpdate                    = true;
 			auto                     newKey = it.key();
