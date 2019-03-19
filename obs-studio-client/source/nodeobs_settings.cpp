@@ -321,7 +321,22 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 				}
 				values->Set(k, valueObject);
 			}
+			if (params.at(j).countValues > 0 && params.at(j).currentValue.size() == 0
+			    && params.at(j).type.compare("OBS_PROPERTY_LIST") == 0 && params.at(j).enabled) {
+				uint32_t indexData = 0;
+				size_t* sizeName = reinterpret_cast<std::size_t*>(params.at(j).values.data() + indexData);
+				indexData += sizeof(size_t);
+				std::string name(params.at(j).values.data() + indexData, *sizeName);
+				indexData += uint32_t(*sizeName);
 
+				size_t* sizeValue = reinterpret_cast<std::size_t*>(params.at(j).values.data() + indexData);
+				indexData += sizeof(size_t);
+				std::string value(params.at(j).values.data() + indexData, *sizeValue);
+				indexData += uint32_t(*sizeValue);
+
+				parameter->Set(
+				    v8::String::NewFromUtf8(isolate, "currentValue"), v8::String::NewFromUtf8(isolate, value.c_str()));
+			}
 			parameter->Set(v8::String::NewFromUtf8(isolate, "values"), values);
 
 			parameter->Set(
