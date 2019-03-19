@@ -38,23 +38,23 @@ struct SceneItemData
 
 	float posX       = 0;
 	float posY       = 0;
-	bool  posChanged = false;
+	bool  posChanged = true;
 
 	float scaleX       = 1;
 	float scaleY       = 1;
-	bool  scaleChanged = false;
+	bool  scaleChanged = true;
 
 	bool isVisible      = true;
-	bool visibleChanged = false;
+	bool visibleChanged = true;
 
 	int32_t cropLeft    = 0;
 	int32_t cropTop     = 0;
 	int32_t cropRight   = 0;
 	int32_t cropBottom  = 0;
-	bool    cropChanged = false;
+	bool    cropChanged = true;
 
 	float rotation        = 0;
-	bool  rotationChanged = false;
+	bool  rotationChanged = true;
 };
 
 std::map<uint64_t, SceneItemData*> itemsData;
@@ -224,7 +224,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetVisible(Nan::NAN_METHOD_ARGS_TYPE
 	std::vector<ipc::value> response = conn->call_synchronous_helper(
 	    "SceneItem", "SetVisible", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(visible)});
 
-	sid->visibleChanged = true;
+	sid->isVisible = visible;
 
 	ValidateResponse(response);
 }
@@ -359,7 +359,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetPosition(Nan::NAN_METHOD_ARGS_TYP
 	std::vector<ipc::value> response = conn->call_synchronous_helper(
 	    "SceneItem", "SetPosition", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(x), ipc::value(y)});
 
-	sid->posChanged = true;
+	sid->posX = x;
+	sid->posY = y;
 
 	ValidateResponse(response);
 }
@@ -418,7 +419,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetRotation(Nan::NAN_METHOD_ARGS_TYP
 	std::vector<ipc::value> response = conn->call_synchronous_helper(
 	    "SceneItem", "SetRotation", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(vector)});
 
-	sid->rotationChanged = true;
+	sid->rotation = vector;
 
 	ValidateResponse(response);
 }
@@ -490,7 +491,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetScale(Nan::NAN_METHOD_ARGS_TYPE i
 	std::vector<ipc::value> response = conn->call_synchronous_helper(
 	    "SceneItem", "SetScale", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(x), ipc::value(y)});
 
-	sid->scaleChanged = true;
+	sid->scaleX = x;
+	sid->scaleY = y;
 
 	ValidateResponse(response);
 }
@@ -799,7 +801,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetCrop(Nan::NAN_METHOD_ARGS_TYPE in
 	    std::vector<ipc::value>{
 	        ipc::value(item->itemId), ipc::value(left), ipc::value(top), ipc::value(right), ipc::value(bottom)});
 
-	sid->cropTop = true;
+	sid->cropLeft   = left;
+	sid->cropTop    = top;
+	sid->cropRight  = right;
+	sid->cropBottom = bottom;
 
 	ValidateResponse(response);
 }
