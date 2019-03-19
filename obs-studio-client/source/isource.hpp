@@ -43,6 +43,9 @@ struct SourceDataInfo
 	float volume        = 1;
 	bool  volumeChanged = false;
 
+	uint32_t audioMixers = UINT32_MAX;
+	bool     audioMixersChanged = false;
+
 	std::vector<uint64_t>* filters = new std::vector<uint64_t>();
 };
 

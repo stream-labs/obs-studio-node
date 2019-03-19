@@ -162,6 +162,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 	sdi->obs_sourceId   = type;
 	sdi->id             = response[1].value_union.ui64;
 	sdi->setting        = response[2].value_str;
+	sdi->audioMixers    = response[3].value_union.ui32;
 
 	sourcesById.emplace(response[1].value_union.ui64, sdi);
 	sourcesByName.emplace(name, sdi);
@@ -563,6 +564,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE
 		return;
 	}
 
+	SourceDataInfo* sid = sourcesById.find(baseobj->sourceId)->second;
+	if (sid && !sid->audioMixersChanged && sid->audioMixers != UINT32_MAX) {
+		info.GetReturnValue().Set(sid->audioMixers);
+		return;
+	}
+
 	auto conn = GetConnection();
 	if (!conn)
 		return;
@@ -572,6 +579,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE
 
 	if (!ValidateResponse(response))
 		return;
+
+	sid->audioMixers        = response[1].value_union.ui32;
+	sid->audioMixersChanged = false;
 
 	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.ui32));
 }
@@ -592,6 +602,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], audiomixers);
 
+	SourceDataInfo* sid = sourcesById.find(baseobj->sourceId)->second;
+
 	auto conn = GetConnection();
 	if (!conn)
 		return;
@@ -601,6 +613,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE
 
 	if (!ValidateResponse(response))
 		return;
+
+	sid->audioMixersChanged = true;
 
 	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.ui32));
 }
