@@ -231,6 +231,7 @@ class OBS_service
 	static void updateVideoStreamingEncoder(void);
 	static bool updateAudioStreamingEncoder(void);
 	static void updateVideoRecordingEncoder(void);
+	static void updateAudioTracks(void);
 
 	// Update outputs
 	static void updateStreamingOutput(void);

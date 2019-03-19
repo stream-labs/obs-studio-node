@@ -99,7 +99,7 @@ void OBS_settings::OBS_settings_getSettings(
 	AUTO_DEBUG;
 }
 
-void UpdateAudioSettings(bool saveSettings, bool saveOnlyIfLimitApplied = false)
+void UpdateAudioSettings(bool saveOnlyIfLimitApplied)
 {
 	// Do nothing if there is no info
 	if (currentAudioSettings.size() == 0)
@@ -134,7 +134,7 @@ void UpdateAudioSettings(bool saveSettings, bool saveOnlyIfLimitApplied = false)
 		}
 	}
 
-	if (saveSettings && (!saveOnlyIfLimitApplied || (saveOnlyIfLimitApplied && limitApplied))) {
+	if ((!saveOnlyIfLimitApplied || (saveOnlyIfLimitApplied && limitApplied))) {
 		OBS_settings::saveGenericSettings(currentAudioSettings, "AdvOut", ConfigManager::getInstance().getBasic());
 	}
 }
@@ -1087,13 +1087,13 @@ void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::strin
 		streamEncoder->push_back(std::make_pair("Hardware (QSV)", ipc::value(ADVANCED_ENCODER_QSV)));
 
 	if (EncoderAvailable("ffmpeg_nvenc"))
-		streamEncoder->push_back(std::make_pair("NVIDIA NVENC H.264", ipc::value(ADVANCED_ENCODER_NVENC)));
+		streamEncoder->push_back(std::make_pair("Hardware (NVENC)", ipc::value(ADVANCED_ENCODER_NVENC)));
 
 	if (EncoderAvailable("amd_amf_h264"))
 		streamEncoder->push_back(std::make_pair("AMD", ipc::value(ADVANCED_ENCODER_AMD)));
 
 	if (EncoderAvailable("jim_nvenc"))
-		streamEncoder->push_back(std::make_pair("NVIDIA NVENC H.264 (new)", ipc::value(ENCODER_NEW_NVENC)));
+		streamEncoder->push_back(std::make_pair("Hardware (NVENC) (new)", ipc::value(ENCODER_NEW_NVENC)));
 }
 
 void OBS_settings::getSimpleOutputSettings(
@@ -2258,7 +2258,7 @@ void OBS_settings::getAdvancedOutputAudioSettings(
 	uint32_t initialSettingsIndex = outputSettings->size();
 
 	auto& bitrateMap = GetAACEncoderBitrateMap();
-	UpdateAudioSettings(true, true);
+	UpdateAudioSettings(true);
 
 	// Track 1
 	std::vector<std::pair<std::string, ipc::value>> Track1Bitrate;
@@ -2811,7 +2811,7 @@ void OBS_settings::saveAdvancedOutputSettings(std::vector<SubCategory> settings)
 
 		// Update the current audio settings, limiting them if necessary
 		currentAudioSettings = audioSettings;
-		UpdateAudioSettings(true);
+		UpdateAudioSettings(false);
 	}
 
 	// Replay buffer
