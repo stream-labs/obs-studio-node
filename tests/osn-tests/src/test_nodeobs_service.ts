@@ -182,6 +182,11 @@ describe('nodeobs_service', function() {
                             }, 5000);
                         } else if (signalInfo.signal === EOBSOutputSignal.Stopping) {
                             osn.NodeObs.OBS_service_stopStreaming(true);
+                        } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                            // If signal code is different than 0, something went wrong
+                            if (signalInfo.code != 0) {
+                                done(new Error('Stop failed with code ' + signalInfo.code));
+                            }
                         } else if (signalInfo.signal === EOBSOutputSignal.Deactivate) {
                             isStreaming = false;
                             done();
@@ -215,6 +220,11 @@ describe('nodeobs_service', function() {
                             }, 1000);
                         } else if (signalInfo.signal === EOBSOutputSignal.Stopping) {
                             osn.NodeObs.OBS_service_stopStreaming(true);
+                        } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                            // If signal code is different than 0, something went wrong
+                            if (signalInfo.code != 0) {
+                                done(new Error('Stop failed with code ' + signalInfo.code));
+                            }
                         } else if (signalInfo.signal === EOBSOutputSignal.Deactivate) {
                             isRecordingWhileStreaming = false;
                             done();
@@ -225,6 +235,11 @@ describe('nodeobs_service', function() {
                             setTimeout(function() {
                                 osn.NodeObs.OBS_service_stopRecording();
                             }, 3000);
+                        } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                            // If signal code is different than 0, something went wrong
+                            if (signalInfo.code != 0) {
+                                done(new Error('Stop failed with code ' + signalInfo.code));
+                            }
                         }
                     } else {
                         isRecordingWhileStreaming = false;
@@ -256,6 +271,11 @@ describe('nodeobs_service', function() {
                             }, 1000);
                         } else if (signalInfo.signal === EOBSOutputSignal.Stopping) {
                             osn.NodeObs.OBS_service_stopStreaming(true);
+                        } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                            // If signal code is different than 0, something went wrong
+                            if (signalInfo.code != 0) {
+                                done(new Error('Stop failed with code ' + signalInfo.code));
+                            }
                         } else if (signalInfo.signal === EOBSOutputSignal.Deactivate) {
                             isReplayWhileStreaming = false;
                             done();
@@ -277,6 +297,11 @@ describe('nodeobs_service', function() {
                         } else if (signalInfo.signal === EOBSOutputSignal.Stopping) {
                             osn.NodeObs.OBS_service_stopReplayBuffer(true);
                         } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                            // If signal code is different than 0, something went wrong
+                            if (signalInfo.code != 0) {
+                                done(new Error('Stop failed with code ' + signalInfo.code));
+                            }
+
                             // Getting saved replay file name
                             lastReplay = osn.NodeObs.OBS_service_getLastReplay();
 
