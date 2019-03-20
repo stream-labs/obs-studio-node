@@ -1951,13 +1951,13 @@ void OBS_settings::getStandardRecordingSettings(
 
 		std::string value = recFormatValues.at(i).second;
 
-uint64_t          sizeValue = value.length();
-std::vector<char> sizeValueBuffer;
-sizeValueBuffer.resize(sizeof(sizeValue));
-memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+		uint64_t          sizeValue = value.length();
+		std::vector<char> sizeValueBuffer;
+		sizeValueBuffer.resize(sizeof(sizeValue));
+		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
 
-recFormat.values.insert(recFormat.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
-recFormat.values.insert(recFormat.values.end(), value.begin(), value.end());
+		recFormat.values.insert(recFormat.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+		recFormat.values.insert(recFormat.values.end(), value.begin(), value.end());
 	}
 
 	recFormat.sizeOfValues = recFormat.values.size();
