@@ -1747,7 +1747,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	memcpy(rescale.currentValue.data(), &doRescale, sizeof(doRescale));
 	rescale.sizeOfCurrentValue = sizeof(doRescale);
 
-	rescale.visible = true;
+	rescale.visible = strcmp(encoderCurrentValue, ENCODER_NEW_NVENC) != 0;
 	rescale.enabled = isCategoryEnabled;
 	rescale.masked  = false;
 
@@ -1797,7 +1797,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 		rescaleRes.sizeOfValues = rescaleRes.values.size();
 		rescaleRes.countValues  = outputResolutions.size();
 
-		rescaleRes.visible = true;
+		rescaleRes.visible = strcmp(encoderCurrentValue, ENCODER_NEW_NVENC) != 0;
 		rescaleRes.enabled = isCategoryEnabled;
 		rescaleRes.masked  = false;
 
@@ -2045,6 +2045,15 @@ void OBS_settings::getStandardRecordingSettings(
 
 	subCategoryParameters->params.push_back(recEncoder);
 
+	const char* streamEncoderCurrentValue = config_get_string(config, "AdvOut", "Encoder");
+	bool        streamScaleAvailable      = true;
+
+	if (strcmp(recEncoderCurrentValue, "none") == 0) {
+		if (strcmp(streamEncoderCurrentValue, ENCODER_NEW_NVENC) == 0) {
+			streamScaleAvailable = false;
+		}
+	}
+
 	// Rescale Output : boolean
 	Parameter recRescale;
 	recRescale.name        = "RecRescale";
@@ -2057,7 +2066,7 @@ void OBS_settings::getStandardRecordingSettings(
 	memcpy(recRescale.currentValue.data(), &doRescale, sizeof(doRescale));
 	recRescale.sizeOfCurrentValue = sizeof(doRescale);
 
-	recRescale.visible = true;
+	recRescale.visible = strcmp(recEncoderCurrentValue, ENCODER_NEW_NVENC) != 0 && streamScaleAvailable;
 	recRescale.enabled = isCategoryEnabled;
 	recRescale.masked  = false;
 
@@ -2108,7 +2117,7 @@ void OBS_settings::getStandardRecordingSettings(
 		recRescaleRes.sizeOfValues = recRescaleRes.values.size();
 		recRescaleRes.countValues  = outputResolutions.size();
 
-		recRescaleRes.visible = true;
+		recRescaleRes.visible = strcmp(recEncoderCurrentValue, ENCODER_NEW_NVENC) != 0 && streamScaleAvailable;
 		recRescaleRes.enabled = isCategoryEnabled;
 		recRescaleRes.masked  = false;
 
