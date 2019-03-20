@@ -802,6 +802,20 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Filters(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
+	std::map<uint64_t, SourceDataInfo*>::iterator sourceIt = sourcesById.find(baseobj->sourceId);
+
+	if (sourceIt != sourcesById.end() && !sourceIt->second->filtersOrderChanged) {
+		std::vector<uint64_t>* filters = sourceIt->second->filters;
+		v8::Local<v8::Array>   arr     = Nan::New<v8::Array>(int(filters->size()));
+		for (uint32_t i = 0; i < filters->size(); i++) {
+			osn::Filter* obj    = new osn::Filter(filters->at(i));
+			auto         object = osn::Filter::Store(obj);
+			Nan::Set(arr, i, object);
+		}
+		info.GetReturnValue().Set(arr);
+		return;
+	}
+
 	auto conn = GetConnection();
 	if (!conn)
 		return;
@@ -820,6 +834,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Filters(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 
 	info.GetReturnValue().Set(arr);
+
+	if (sourceIt != sourcesById.end()) {
+		sourceIt->second->filtersOrderChanged = false;
+	}
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::AddFilter(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -860,7 +878,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::AddFilter(Nan::NAN_METHOD_ARGS_TYPE info
 
 	std::map<uint64_t, SourceDataInfo*>::iterator it = sourcesById.find(baseobj->sourceId);
 	if (it != sourcesById.end()) {
-		it->second->filters->push_back(filter->sourceId);
+		std::vector<uint64_t>*          filters = it->second->filters;
+		std::vector<uint64_t>::iterator filterIt = std::find(filters->begin(), filters->end(), basefilter->sourceId);
+		if (filterIt != filters->end())
+			it->second->filters->erase(filterIt);
+
+		filters->push_back(filter->sourceId);
+		it->second->filtersOrderChanged = true;
 	}
 
 	ValidateResponse(response);
@@ -942,6 +966,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetFilterOrder(Nan::NAN_METHOD_ARGS_TYPE
 	    "Input", "MoveFilter", {ipc::value(obj->sourceId), ipc::value(basefilter->sourceId), ipc::value(movement)});
 
 	ValidateResponse(response);
+
+	std::map<uint64_t, SourceDataInfo*>::iterator sourceIt = sourcesById.find(baseobj->sourceId);
+	if (sourceIt != sourcesById.end()) {
+		sourceIt->second->filtersOrderChanged = true;
+	}
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::FindFilter(Nan::NAN_METHOD_ARGS_TYPE info)

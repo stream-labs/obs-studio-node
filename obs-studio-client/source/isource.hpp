@@ -47,6 +47,7 @@ struct SourceDataInfo
 	bool     audioMixersChanged = false;
 
 	std::vector<uint64_t>* filters = new std::vector<uint64_t>();
+	bool                   filtersOrderChanged = false;
 };
 
 extern std::map<uint64_t, SourceDataInfo*> sourcesById;
