@@ -267,6 +267,18 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info
 
 	osn::Scene* obj = new osn::Scene(sourceId);
 
+	SourceDataInfo* sdi = new SourceDataInfo;
+	sdi->name           = name;
+	sdi->obs_sourceId   = "scene";
+	sdi->id             = sourceId;
+
+	sourcesById.erase(sourceId);
+	sourcesByName.erase(name);
+
+	sourcesById.emplace(sourceId, sdi);
+	sourcesByName.emplace(name, sdi);
+
+
 	scenesByName.erase(name);
 	scenesById.erase(sourceId);
 
