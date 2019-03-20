@@ -29,43 +29,11 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
-struct SceneItemData
-{
-	int64_t obs_itemId      = -1;
-	bool    cached          = false;
-	bool    isSelected      = false;
-	bool    selectedChanged = false;
-
-	float posX       = 0;
-	float posY       = 0;
-	bool  posChanged = true;
-
-	float scaleX       = 1;
-	float scaleY       = 1;
-	bool  scaleChanged = true;
-
-	bool isVisible      = true;
-	bool visibleChanged = true;
-
-	int32_t cropLeft    = 0;
-	int32_t cropTop     = 0;
-	int32_t cropRight   = 0;
-	int32_t cropBottom  = 0;
-	bool    cropChanged = true;
-
-	float rotation        = 0;
-	bool  rotationChanged = true;
-};
-
 std::map<uint64_t, SceneItemData*> itemsData;
 
-osn::SceneItem::SceneItem(uint64_t id, int64_t obs_id)
+osn::SceneItem::SceneItem(uint64_t id)
 {
 	this->itemId       = id;
-	SceneItemData* sid = new SceneItemData;
-	sid->obs_itemId    = obs_id;
-	itemsData.erase(id);
-	itemsData.emplace(id, sid);
 }
 
 Nan::Persistent<v8::FunctionTemplate> osn::SceneItem::prototype = Nan::Persistent<v8::FunctionTemplate>();
@@ -263,9 +231,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsSelected(Nan::NAN_METHOD_ARGS_TYPE
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetSelected(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	bool visible;
+	bool selected;
 
-	ASSERT_GET_VALUE(info[0], visible);
+	ASSERT_GET_VALUE(info[0], selected);
 
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
@@ -274,7 +242,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetSelected(Nan::NAN_METHOD_ARGS_TYP
 
 	SceneItemData* sid = itemsData.find(item->itemId)->second;
 
-	if (sid && visible == sid->isSelected) {
+	if (sid && selected == sid->isSelected) {
 		sid->selectedChanged = false;
 		return;
 	}
@@ -284,11 +252,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetSelected(Nan::NAN_METHOD_ARGS_TYP
 		return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "SceneItem", "SetSelected", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(visible)});
+	    "SceneItem", "SetSelected", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(selected)});
 
 	sid->selectedChanged = true;
 	sid->cached          = true;
-	sid->isSelected      = visible;
+	sid->isSelected      = selected;
 	ValidateResponse(response);
 }
 
