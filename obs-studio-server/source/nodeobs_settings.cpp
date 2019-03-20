@@ -1735,73 +1735,75 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 
 	streamingSettings.params.push_back(applyServiceSettings);
 
-	// Rescale Output : boolean
-	Parameter rescale;
-	rescale.name        = "Rescale";
-	rescale.type        = "OBS_PROPERTY_BOOL";
-	rescale.description = "Rescale Output";
+	if (strcmp(encoderCurrentValue, ENCODER_NEW_NVENC) != 0) {
+		// Rescale Output : boolean
+		Parameter rescale;
+		rescale.name        = "Rescale";
+		rescale.type        = "OBS_PROPERTY_BOOL";
+		rescale.description = "Rescale Output";
 
-	bool doRescale = config_get_bool(config, "AdvOut", "Rescale");
+		bool doRescale = config_get_bool(config, "AdvOut", "Rescale");
 
-	rescale.currentValue.resize(sizeof(doRescale));
-	memcpy(rescale.currentValue.data(), &doRescale, sizeof(doRescale));
-	rescale.sizeOfCurrentValue = sizeof(doRescale);
+		rescale.currentValue.resize(sizeof(doRescale));
+		memcpy(rescale.currentValue.data(), &doRescale, sizeof(doRescale));
+		rescale.sizeOfCurrentValue = sizeof(doRescale);
 
-	rescale.visible = true;
-	rescale.enabled = isCategoryEnabled;
-	rescale.masked  = false;
+		rescale.visible = true;
+		rescale.enabled = isCategoryEnabled;
+		rescale.masked  = false;
 
-	streamingSettings.params.push_back(rescale);
+		streamingSettings.params.push_back(rescale);
 
-	if (doRescale) {
-		// Output Resolution : list
-		Parameter rescaleRes;
-		rescaleRes.name        = "RescaleRes";
-		rescaleRes.type        = "OBS_INPUT_RESOLUTION_LIST";
-		rescaleRes.description = "Output Resolution";
-		rescaleRes.subType     = "OBS_COMBO_FORMAT_STRING";
+		if (doRescale) {
+			// Output Resolution : list
+			Parameter rescaleRes;
+			rescaleRes.name        = "RescaleRes";
+			rescaleRes.type        = "OBS_INPUT_RESOLUTION_LIST";
+			rescaleRes.description = "Output Resolution";
+			rescaleRes.subType     = "OBS_COMBO_FORMAT_STRING";
 
-		uint64_t base_cx = config_get_uint(config, "Video", "BaseCX");
-		uint64_t base_cy = config_get_uint(config, "Video", "BaseCY");
+			uint64_t base_cx = config_get_uint(config, "Video", "BaseCX");
+			uint64_t base_cy = config_get_uint(config, "Video", "BaseCY");
 
-		const char* outputResString = config_get_string(config, "AdvOut", "RescaleRes");
+			const char* outputResString = config_get_string(config, "AdvOut", "RescaleRes");
 
-		if (outputResString == NULL) {
-			outputResString = "1280x720";
-			config_set_string(config, "AdvOut", "RescaleRes", outputResString);
-			config_save_safe(config, "tmp", nullptr);
-		}
-
-		rescaleRes.currentValue.resize(strlen(outputResString));
-		memcpy(rescaleRes.currentValue.data(), outputResString, strlen(outputResString));
-		rescaleRes.sizeOfCurrentValue = strlen(outputResString);
-
-		std::vector<std::pair<uint64_t, uint64_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
-
-		uint32_t indexDataRescaleRes = 0;
-
-		for (int i = 0; i < outputResolutions.size(); i++) {
-			std::string outRes = ResString(outputResolutions.at(i).first, outputResolutions.at(i).second);
-
-			for (int j = 0; j < 2; j++) {
-				uint64_t          sizeRes = outRes.length();
-				std::vector<char> sizeNameBuffer;
-				sizeNameBuffer.resize(sizeof(sizeRes));
-				memcpy(sizeNameBuffer.data(), &sizeRes, sizeof(sizeRes));
-
-				rescaleRes.values.insert(rescaleRes.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-				rescaleRes.values.insert(rescaleRes.values.end(), outRes.begin(), outRes.end());
+			if (outputResString == NULL) {
+				outputResString = "1280x720";
+				config_set_string(config, "AdvOut", "RescaleRes", outputResString);
+				config_save_safe(config, "tmp", nullptr);
 			}
+
+			rescaleRes.currentValue.resize(strlen(outputResString));
+			memcpy(rescaleRes.currentValue.data(), outputResString, strlen(outputResString));
+			rescaleRes.sizeOfCurrentValue = strlen(outputResString);
+
+			std::vector<std::pair<uint64_t, uint64_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
+
+			uint32_t indexDataRescaleRes = 0;
+
+			for (int i = 0; i < outputResolutions.size(); i++) {
+				std::string outRes = ResString(outputResolutions.at(i).first, outputResolutions.at(i).second);
+
+				for (int j = 0; j < 2; j++) {
+					uint64_t          sizeRes = outRes.length();
+					std::vector<char> sizeNameBuffer;
+					sizeNameBuffer.resize(sizeof(sizeRes));
+					memcpy(sizeNameBuffer.data(), &sizeRes, sizeof(sizeRes));
+
+					rescaleRes.values.insert(rescaleRes.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+					rescaleRes.values.insert(rescaleRes.values.end(), outRes.begin(), outRes.end());
+				}
+			}
+
+			rescaleRes.sizeOfValues = rescaleRes.values.size();
+			rescaleRes.countValues  = outputResolutions.size();
+
+			rescaleRes.visible = true;
+			rescaleRes.enabled = isCategoryEnabled;
+			rescaleRes.masked  = false;
+
+			streamingSettings.params.push_back(rescaleRes);
 		}
-
-		rescaleRes.sizeOfValues = rescaleRes.values.size();
-		rescaleRes.countValues  = outputResolutions.size();
-
-		rescaleRes.visible = true;
-		rescaleRes.enabled = isCategoryEnabled;
-		rescaleRes.masked  = false;
-
-		streamingSettings.params.push_back(rescaleRes);
 	}
 
 	// Encoder settings
@@ -1949,36 +1951,36 @@ void OBS_settings::getStandardRecordingSettings(
 
 		std::string value = recFormatValues.at(i).second;
 
-		uint64_t          sizeValue = value.length();
-		std::vector<char> sizeValueBuffer;
-		sizeValueBuffer.resize(sizeof(sizeValue));
-		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+uint64_t          sizeValue = value.length();
+std::vector<char> sizeValueBuffer;
+sizeValueBuffer.resize(sizeof(sizeValue));
+memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
 
-		recFormat.values.insert(recFormat.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
-		recFormat.values.insert(recFormat.values.end(), value.begin(), value.end());
+recFormat.values.insert(recFormat.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+recFormat.values.insert(recFormat.values.end(), value.begin(), value.end());
 	}
 
 	recFormat.sizeOfValues = recFormat.values.size();
-	recFormat.countValues  = recFormatValues.size();
+	recFormat.countValues = recFormatValues.size();
 
 	recFormat.visible = true;
 	recFormat.enabled = isCategoryEnabled;
-	recFormat.masked  = false;
+	recFormat.masked = false;
 
 	subCategoryParameters->params.push_back(recFormat);
 
 	// Audio Track : list
 
 	std::string recTracksDesc = std::string("Audio Track")
-	    + (IsMultitrackAudioSupported(recFormatCurrentValue) ? 
-		   "" : 
-		   " (Format FLV does not support multiple audio tracks per recording)");
-	
+		+ (IsMultitrackAudioSupported(recFormatCurrentValue) ?
+			"" :
+			" (Format FLV does not support multiple audio tracks per recording)");
+
 	Parameter recTracks;
-	recTracks.name        = "RecTracks";
-	recTracks.type        = "OBS_PROPERTY_BITMASK";
+	recTracks.name = "RecTracks";
+	recTracks.type = "OBS_PROPERTY_BITMASK";
 	recTracks.description = recTracksDesc;
-	recTracks.subType     = "";
+	recTracks.subType = "";
 
 	uint64_t recTracksCurrentValue = config_get_uint(config, "AdvOut", "RecTracks");
 
@@ -1988,17 +1990,17 @@ void OBS_settings::getStandardRecordingSettings(
 
 	recTracks.visible = true;
 	recTracks.enabled = IsMultitrackAudioSupported(recFormatCurrentValue);
-	recTracks.masked  = false;
+	recTracks.masked = false;
 
 	subCategoryParameters->params.push_back(recTracks);
-	
+
 
 	// Encoder : list
 	Parameter recEncoder;
-	recEncoder.name        = "RecEncoder";
-	recEncoder.type        = "OBS_PROPERTY_LIST";
+	recEncoder.name = "RecEncoder";
+	recEncoder.type = "OBS_PROPERTY_LIST";
 	recEncoder.description = "Recording";
-	recEncoder.subType     = "OBS_COMBO_FORMAT_STRING";
+	recEncoder.subType = "OBS_COMBO_FORMAT_STRING";
 
 	const char* recEncoderCurrentValue = config_get_string(config, "AdvOut", "RecEncoder");
 	if (!recEncoderCurrentValue)
@@ -2037,82 +2039,93 @@ void OBS_settings::getStandardRecordingSettings(
 	}
 
 	recEncoder.sizeOfValues = recEncoder.values.size();
-	recEncoder.countValues  = Encoder.size();
+	recEncoder.countValues = Encoder.size();
 
 	recEncoder.visible = true;
 	recEncoder.enabled = isCategoryEnabled;
-	recEncoder.masked  = false;
+	recEncoder.masked = false;
 
 	subCategoryParameters->params.push_back(recEncoder);
 
-	// Rescale Output : boolean
-	Parameter recRescale;
-	recRescale.name        = "RecRescale";
-	recRescale.type        = "OBS_PROPERTY_BOOL";
-	recRescale.description = "Rescale Output";
+	const char* streamEncoderCurrentValue = config_get_string(config, "AdvOut", "Encoder");
+	bool        streamScaleAvailable      = true;
 
-	bool doRescale = config_get_bool(config, "AdvOut", "RecRescale");
+	if (strcmp(recEncoderCurrentValue, "none") == 0) {
+		if (strcmp(streamEncoderCurrentValue, ENCODER_NEW_NVENC) == 0) {
+			streamScaleAvailable = false;
+		}
+	}
 
-	recRescale.currentValue.resize(sizeof(doRescale));
-	memcpy(recRescale.currentValue.data(), &doRescale, sizeof(doRescale));
-	recRescale.sizeOfCurrentValue = sizeof(doRescale);
+	if (strcmp(recEncoderCurrentValue, ENCODER_NEW_NVENC) != 0 && streamScaleAvailable) {
+		// Rescale Output : boolean
+		Parameter recRescale;
+		recRescale.name        = "RecRescale";
+		recRescale.type        = "OBS_PROPERTY_BOOL";
+		recRescale.description = "Rescale Output";
 
-	recRescale.visible = true;
-	recRescale.enabled = isCategoryEnabled;
-	recRescale.masked  = false;
+		bool doRescale = config_get_bool(config, "AdvOut", "RecRescale");
 
-	subCategoryParameters->params.push_back(recRescale);
+		recRescale.currentValue.resize(sizeof(doRescale));
+		memcpy(recRescale.currentValue.data(), &doRescale, sizeof(doRescale));
+		recRescale.sizeOfCurrentValue = sizeof(doRescale);
 
-	// Output Resolution : list
-	if (doRescale) {
+		recRescale.visible = true;
+		recRescale.enabled = isCategoryEnabled;
+		recRescale.masked  = false;
+
+		subCategoryParameters->params.push_back(recRescale);
+
 		// Output Resolution : list
-		Parameter recRescaleRes;
-		recRescaleRes.name        = "RecRescaleRes";
-		recRescaleRes.type        = "OBS_INPUT_RESOLUTION_LIST";
-		recRescaleRes.description = "Output Resolution";
-		recRescaleRes.subType     = "OBS_COMBO_FORMAT_STRING";
+		if (doRescale) {
+			// Output Resolution : list
+			Parameter recRescaleRes;
+			recRescaleRes.name        = "RecRescaleRes";
+			recRescaleRes.type        = "OBS_INPUT_RESOLUTION_LIST";
+			recRescaleRes.description = "Output Resolution";
+			recRescaleRes.subType     = "OBS_COMBO_FORMAT_STRING";
 
-		uint64_t base_cx = config_get_uint(config, "Video", "BaseCX");
-		uint64_t base_cy = config_get_uint(config, "Video", "BaseCY");
+			uint64_t base_cx = config_get_uint(config, "Video", "BaseCX");
+			uint64_t base_cy = config_get_uint(config, "Video", "BaseCY");
 
-		const char* outputResString = config_get_string(config, "AdvOut", "RecRescaleRes");
+			const char* outputResString = config_get_string(config, "AdvOut", "RecRescaleRes");
 
-		if (outputResString == NULL) {
-			outputResString = "1280x720";
-			config_set_string(config, "AdvOut", "RecRescaleRes", outputResString);
-			config_save_safe(config, "tmp", nullptr);
-		}
-
-		recRescaleRes.currentValue.resize(strlen(outputResString));
-		memcpy(recRescaleRes.currentValue.data(), outputResString, strlen(outputResString));
-		recRescaleRes.sizeOfCurrentValue = strlen(outputResString);
-
-		std::vector<std::pair<uint64_t, uint64_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
-
-		uint32_t indexDataRecRescaleRes = 0;
-
-		for (int i = 0; i < outputResolutions.size(); i++) {
-			std::string outRes = ResString(outputResolutions.at(i).first, outputResolutions.at(i).second);
-
-			for (int j = 0; j < 2; j++) {
-				uint64_t          sizeRes = outRes.length();
-				std::vector<char> sizeNameBuffer;
-				sizeNameBuffer.resize(sizeof(sizeRes));
-				memcpy(sizeNameBuffer.data(), &sizeRes, sizeof(sizeRes));
-
-				recRescaleRes.values.insert(recRescaleRes.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-				recRescaleRes.values.insert(recRescaleRes.values.end(), outRes.begin(), outRes.end());
+			if (outputResString == NULL) {
+				outputResString = "1280x720";
+				config_set_string(config, "AdvOut", "RecRescaleRes", outputResString);
+				config_save_safe(config, "tmp", nullptr);
 			}
+
+			recRescaleRes.currentValue.resize(strlen(outputResString));
+			memcpy(recRescaleRes.currentValue.data(), outputResString, strlen(outputResString));
+			recRescaleRes.sizeOfCurrentValue = strlen(outputResString);
+
+			std::vector<std::pair<uint64_t, uint64_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
+
+			uint32_t indexDataRecRescaleRes = 0;
+
+			for (int i = 0; i < outputResolutions.size(); i++) {
+				std::string outRes = ResString(outputResolutions.at(i).first, outputResolutions.at(i).second);
+
+				for (int j = 0; j < 2; j++) {
+					uint64_t          sizeRes = outRes.length();
+					std::vector<char> sizeNameBuffer;
+					sizeNameBuffer.resize(sizeof(sizeRes));
+					memcpy(sizeNameBuffer.data(), &sizeRes, sizeof(sizeRes));
+
+					recRescaleRes.values.insert(recRescaleRes.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+					recRescaleRes.values.insert(recRescaleRes.values.end(), outRes.begin(), outRes.end());
+				}
+			}
+
+			recRescaleRes.sizeOfValues = recRescaleRes.values.size();
+			recRescaleRes.countValues  = outputResolutions.size();
+
+			recRescaleRes.visible = true;
+			recRescaleRes.enabled = isCategoryEnabled;
+			recRescaleRes.masked  = false;
+
+			subCategoryParameters->params.push_back(recRescaleRes);
 		}
-
-		recRescaleRes.sizeOfValues = recRescaleRes.values.size();
-		recRescaleRes.countValues  = outputResolutions.size();
-
-		recRescaleRes.visible = true;
-		recRescaleRes.enabled = isCategoryEnabled;
-		recRescaleRes.masked  = false;
-
-		subCategoryParameters->params.push_back(recRescaleRes);
 	}
 
 	// Custom Muxer Settings : edit_text
