@@ -858,7 +858,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::AddFilter(Nan::NAN_METHOD_ARGS_TYPE info
 	std::vector<ipc::value> response =
 	    conn->call_synchronous_helper("Input", "AddFilter", {ipc::value(obj->sourceId), ipc::value(filter->sourceId)});
 
-	sourcesById.find(baseobj->sourceId)->second->filters->push_back(filter->sourceId);
+	std::map<uint64_t, SourceDataInfo*>::iterator it = sourcesById.find(baseobj->sourceId);
+	if (it != sourcesById.end()) {
+		it->second->filters->push_back(filter->sourceId);
+	}
 
 	ValidateResponse(response);
 }
@@ -893,15 +896,17 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::RemoveFilter(Nan::NAN_METHOD_ARGS_TYPE i
 	std::vector<ipc::value> response = conn->call_synchronous_helper(
 	    "Input", "RemoveFilter", {ipc::value(obj->sourceId), ipc::value(basefilter->sourceId)});
 
+	std::map<uint64_t, SourceDataInfo*>::iterator sourceIt      = sourcesById.find(baseobj->sourceId);
+	if (sourceIt != sourcesById.end()) {
+		std::vector<uint64_t>*          filters  = sourceIt->second->filters;
+		std::vector<uint64_t>::iterator filterIt = std::find(filters->begin(), filters->end(), basefilter->sourceId);
 
-	std::vector<uint64_t>*          filters = sourcesById.find(baseobj->sourceId)->second->filters;
-	std::vector<uint64_t>::iterator it = std::find(filters->begin(), filters->end(), basefilter->sourceId);
+		if (filterIt != filters->end()) {
+			filters->erase(filterIt);
+		}
+	}
 
 	ValidateResponse(response);
-
-	if (it != filters->end()) {
-		filters->erase(it);
-	}
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetFilterOrder(Nan::NAN_METHOD_ARGS_TYPE info)
