@@ -51,9 +51,9 @@ describe('osn-global', () => {
         });
 
         it('FAIL TEST: Set source to output channel that does not exist', () => {
-            // expect(function() {
-            //     osn.Global.setOutputSource(99, input);
-            // }).to.throw();
+            expect(function() {
+                osn.Global.setOutputSource(99, input);
+            }).to.throw();
         });
 
         it('FAIL TEST: Get source from empty output channel', () => {
