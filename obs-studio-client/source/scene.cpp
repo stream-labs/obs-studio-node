@@ -439,22 +439,6 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItems(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	std::map<uint64_t, SceneInfo*>::iterator it;
-	it       = scenesById.find(scene->sourceId);
-
-	if (it != scenesById.end()) {
-		auto arr = Nan::New<v8::Array>(int(it->second->items.size()) - 1);
-		size_t index = 0;
-		for (std::map<int64_t, uint64_t>::const_iterator ite = it->second->items.begin(); ite != it->second->items.end();
-		     ++ite) {
-			osn::SceneItem* obj   = new osn::SceneItem(ite->second);
-			Nan::Set(arr, uint32_t(index++), osn::SceneItem::Store(obj));
-		}
-
-		info.GetReturnValue().Set(arr);
-		return;
-	}
-
 	auto conn = GetConnection();
 	if (!conn)
 		return;
@@ -465,7 +449,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItems(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!ValidateResponse(response))
 		return;
 
-	auto arr = Nan::New<v8::Array>(int(it->second->items.size()) - 1);
+	auto arr = Nan::New<v8::Array>(int(response.size()) - 1);
 	for (size_t i = 1; i < response.size(); i++) {
 		osn::SceneItem* obj = new osn::SceneItem(response[i].value_union.ui64);
 		Nan::Set(arr, uint32_t(i - 1), osn::SceneItem::Store(obj));

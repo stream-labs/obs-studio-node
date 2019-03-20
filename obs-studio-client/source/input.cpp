@@ -802,20 +802,6 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Filters(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	std::map<uint64_t, SourceDataInfo*>::iterator it = sourcesById.find(baseobj->sourceId);
-
-	if (it != sourcesById.end()) {
-		std::vector<uint64_t>* filters = sourcesById.find(baseobj->sourceId)->second->filters;
-		v8::Local<v8::Array>   arr     = Nan::New<v8::Array>(int(filters->size()));
-		for (uint32_t i = 0; i < filters->size(); i++) {
-			osn::Filter* obj    = new osn::Filter(filters->at(i));
-			auto         object = osn::Filter::Store(obj);
-			Nan::Set(arr, i, object);
-		}
-		info.GetReturnValue().Set(arr);
-		return;
-	}
-
 	auto conn = GetConnection();
 	if (!conn)
 		return;
