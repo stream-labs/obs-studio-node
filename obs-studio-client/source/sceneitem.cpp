@@ -147,27 +147,31 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsVisible(Nan::NAN_METHOD_ARGS_TYPE 
 		return;
 	}
 
-	SceneItemData* sid = itemsData.find(item->itemId)->second;
-	if (sid && !sid->visibleChanged) {
-		info.GetReturnValue().Set(sid->isVisible);
-		return;
+	std::map<uint64_t, SceneItemData*>::iterator it  = itemsData.find(item->itemId);
+
+	if (it != itemsData.end()) {
+		SceneItemData* sid = it->second;
+		if (sid && !sid->visibleChanged) {
+			info.GetReturnValue().Set(sid->isVisible);
+			return;
+		}
+
+		auto conn = GetConnection();
+		if (!conn)
+			return;
+
+		std::vector<ipc::value> response =
+			conn->call_synchronous_helper("SceneItem", "IsVisible", std::vector<ipc::value>{ipc::value(item->itemId)});
+
+		if (!ValidateResponse(response))
+			return;
+		bool flag = !!response[1].value_union.ui32;
+
+		sid->isVisible      = flag;
+		sid->visibleChanged = false;
+
+		info.GetReturnValue().Set(flag);
 	}
-
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("SceneItem", "IsVisible", std::vector<ipc::value>{ipc::value(item->itemId)});
-
-	if (!ValidateResponse(response))
-		return;
-	bool flag = !!response[1].value_union.ui32;
-
-	sid->isVisible      = flag;
-	sid->visibleChanged = false;
-
-	info.GetReturnValue().Set(flag);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetVisible(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -181,21 +185,25 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetVisible(Nan::NAN_METHOD_ARGS_TYPE
 		return;
 	}
 
-	SceneItemData* sid = itemsData.find(item->itemId)->second;
+	std::map<uint64_t, SceneItemData*>::iterator it  = itemsData.find(item->itemId);
 
-	if (sid && visible == sid->isVisible)
-		return;
+	if (it != itemsData.end()) {
+		SceneItemData* sid = it->second;
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+		if (sid && visible == sid->isVisible)
+			return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "SceneItem", "SetVisible", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(visible)});
+		auto conn = GetConnection();
+		if (!conn)
+			return;
 
-	sid->isVisible = visible;
+		std::vector<ipc::value> response = conn->call_synchronous_helper(
+			"SceneItem", "SetVisible", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(visible)});
 
-	ValidateResponse(response);
+		sid->isVisible = visible;
+
+		ValidateResponse(response);
+	}
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsSelected(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -205,28 +213,32 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsSelected(Nan::NAN_METHOD_ARGS_TYPE
 		return;
 	}
 
-	SceneItemData* sid = itemsData.find(item->itemId)->second;
+	std::map<uint64_t, SceneItemData*>::iterator it  = itemsData.find(item->itemId);
 
-	if (sid && sid->cached && !sid->selectedChanged) {
-		info.GetReturnValue().Set(utilv8::ToValue(item->IsSelected));
-		return;
+	if (it != itemsData.end()) {
+		SceneItemData* sid = it->second;
+
+		if (sid && sid->cached && !sid->selectedChanged) {
+			info.GetReturnValue().Set(utilv8::ToValue(item->IsSelected));
+			return;
+		}
+
+		auto conn = GetConnection();
+		if (!conn)
+			return;
+
+		std::vector<ipc::value> response =
+			conn->call_synchronous_helper("SceneItem", "IsSelected", std::vector<ipc::value>{ipc::value(item->itemId)});
+
+		if (!ValidateResponse(response))
+			return;
+		bool flag = !!response[1].value_union.ui32;
+
+		sid->selectedChanged = false;
+		sid->cached          = true;
+		sid->isSelected      = flag;
+		info.GetReturnValue().Set(flag);
 	}
-
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("SceneItem", "IsSelected", std::vector<ipc::value>{ipc::value(item->itemId)});
-
-	if (!ValidateResponse(response))
-		return;
-	bool flag = !!response[1].value_union.ui32;
-
-	sid->selectedChanged = false;
-	sid->cached          = true;
-	sid->isSelected      = flag;
-	info.GetReturnValue().Set(flag);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetSelected(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -240,24 +252,28 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetSelected(Nan::NAN_METHOD_ARGS_TYP
 		return;
 	}
 
-	SceneItemData* sid = itemsData.find(item->itemId)->second;
+	std::map<uint64_t, SceneItemData*>::iterator it  = itemsData.find(item->itemId);
 
-	if (sid && selected == sid->isSelected) {
-		sid->selectedChanged = false;
-		return;
+	if (it != itemsData.end()) {
+		SceneItemData* sid = it->second;
+
+		if (sid && selected == sid->isSelected) {
+			sid->selectedChanged = false;
+			return;
+		}
+
+		auto conn = GetConnection();
+		if (!conn)
+			return;
+
+		std::vector<ipc::value> response = conn->call_synchronous_helper(
+			"SceneItem", "SetSelected", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(selected)});
+
+		sid->selectedChanged = true;
+		sid->cached          = true;
+		sid->isSelected      = selected;
+		ValidateResponse(response);
 	}
-
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "SceneItem", "SetSelected", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(selected)});
-
-	sid->selectedChanged = true;
-	sid->cached          = true;
-	sid->isSelected      = selected;
-	ValidateResponse(response);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetPosition(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -267,37 +283,41 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetPosition(Nan::NAN_METHOD_ARGS_TYP
 		return;
 	}
 
-	SceneItemData* sid = itemsData.find(item->itemId)->second;
+	std::map<uint64_t, SceneItemData*>::iterator it  = itemsData.find(item->itemId);
 
-	if (sid && !sid->posChanged) {
+	if (it != itemsData.end()) {
+		SceneItemData* sid = it->second;
+
+		if (sid && !sid->posChanged) {
+			auto obj = Nan::New<v8::Object>();
+			utilv8::SetObjectField(obj, "x", sid->posX);
+			utilv8::SetObjectField(obj, "y", sid->posY);
+			info.GetReturnValue().Set(obj);
+			return;
+		}
+
+		auto conn = GetConnection();
+		if (!conn)
+			return;
+
+		std::vector<ipc::value> response =
+			conn->call_synchronous_helper("SceneItem", "GetPosition", std::vector<ipc::value>{ipc::value(item->itemId)});
+
+		if (!ValidateResponse(response))
+			return;
+		float x = response[1].value_union.fp32;
+		float y = response[2].value_union.fp32;
+
 		auto obj = Nan::New<v8::Object>();
-		utilv8::SetObjectField(obj, "x", sid->posX);
-		utilv8::SetObjectField(obj, "y", sid->posY);
+		utilv8::SetObjectField(obj, "x", x);
+		utilv8::SetObjectField(obj, "y", y);
+
+		sid->posX       = x;
+		sid->posY       = y;
+		sid->posChanged = false;
+
 		info.GetReturnValue().Set(obj);
-		return;
 	}
-
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("SceneItem", "GetPosition", std::vector<ipc::value>{ipc::value(item->itemId)});
-
-	if (!ValidateResponse(response))
-		return;
-	float x = response[1].value_union.fp32;
-	float y = response[2].value_union.fp32;
-
-	auto obj = Nan::New<v8::Object>();
-	utilv8::SetObjectField(obj, "x", x);
-	utilv8::SetObjectField(obj, "y", y);
-
-	sid->posX       = x;
-	sid->posY       = y;
-	sid->posChanged = false;
-
-	info.GetReturnValue().Set(obj);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetPosition(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -316,22 +336,26 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetPosition(Nan::NAN_METHOD_ARGS_TYP
 		return;
 	}
 
-	SceneItemData* sid = itemsData.find(item->itemId)->second;
+	std::map<uint64_t, SceneItemData*>::iterator it  = itemsData.find(item->itemId);
 
-	if (sid && x == sid->posX && y == sid->posY)
-		return;
+	if (it != itemsData.end()) {
+		SceneItemData* sid = it->second;
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+		if (sid && x == sid->posX && y == sid->posY)
+			return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "SceneItem", "SetPosition", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(x), ipc::value(y)});
+		auto conn = GetConnection();
+		if (!conn)
+			return;
 
-	sid->posX = x;
-	sid->posY = y;
+		std::vector<ipc::value> response = conn->call_synchronous_helper(
+			"SceneItem", "SetPosition", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(x), ipc::value(y)});
 
-	ValidateResponse(response);
+		sid->posX = x;
+		sid->posY = y;
+
+		ValidateResponse(response);
+	}
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetRotation(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -341,27 +365,31 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetRotation(Nan::NAN_METHOD_ARGS_TYP
 		return;
 	}
 
-	SceneItemData* sid = itemsData.find(item->itemId)->second;
-	if (sid && !sid->rotationChanged) {
-		info.GetReturnValue().Set(sid->rotation);
-		return;
+	std::map<uint64_t, SceneItemData*>::iterator it  = itemsData.find(item->itemId);
+
+	if (it != itemsData.end()) {
+		SceneItemData* sid = it->second;
+		if (sid && !sid->rotationChanged) {
+			info.GetReturnValue().Set(sid->rotation);
+			return;
+		}
+
+		auto conn = GetConnection();
+		if (!conn)
+			return;
+
+		std::vector<ipc::value> response =
+			conn->call_synchronous_helper("SceneItem", "GetRotation", std::vector<ipc::value>{ipc::value(item->itemId)});
+
+		if (!ValidateResponse(response))
+			return;
+		float rotation = response[1].value_union.fp32;
+
+		sid->rotation        = rotation;
+		sid->rotationChanged = false;
+
+		info.GetReturnValue().Set(utilv8::ToValue(rotation));
 	}
-
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("SceneItem", "GetRotation", std::vector<ipc::value>{ipc::value(item->itemId)});
-
-	if (!ValidateResponse(response))
-		return;
-	float rotation = response[1].value_union.fp32;
-
-	sid->rotation        = rotation;
-	sid->rotationChanged = false;
-
-	info.GetReturnValue().Set(utilv8::ToValue(rotation));
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetRotation(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -376,21 +404,25 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetRotation(Nan::NAN_METHOD_ARGS_TYP
 		return;
 	}
 
-	SceneItemData* sid = itemsData.find(item->itemId)->second;
+	std::map<uint64_t, SceneItemData*>::iterator it  = itemsData.find(item->itemId);
 
-	if (sid && vector == sid->rotation)
-		return;
+	if (it != itemsData.end()) {
+		SceneItemData* sid = it->second;
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+		if (sid && vector == sid->rotation)
+			return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "SceneItem", "SetRotation", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(vector)});
+		auto conn = GetConnection();
+		if (!conn)
+			return;
 
-	sid->rotation = vector;
+		std::vector<ipc::value> response = conn->call_synchronous_helper(
+			"SceneItem", "SetRotation", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(vector)});
 
-	ValidateResponse(response);
+		sid->rotation = vector;
+
+		ValidateResponse(response);
+	}
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetScale(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -400,36 +432,40 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetScale(Nan::NAN_METHOD_ARGS_TYPE i
 		return;
 	}
 
-	SceneItemData* sid = itemsData.find(item->itemId)->second;
-	if (sid && !sid->scaleChanged) {
+	std::map<uint64_t, SceneItemData*>::iterator it  = itemsData.find(item->itemId);
+
+	if (it != itemsData.end()) {
+		SceneItemData* sid = it->second;
+		if (sid && !sid->scaleChanged) {
+			auto obj = Nan::New<v8::Object>();
+			utilv8::SetObjectField(obj, "x", sid->scaleX);
+			utilv8::SetObjectField(obj, "y", sid->scaleY);
+			info.GetReturnValue().Set(obj);
+			return;
+		}
+
+		auto conn = GetConnection();
+		if (!conn)
+			return;
+
+		std::vector<ipc::value> response =
+			conn->call_synchronous_helper("SceneItem", "GetScale", std::vector<ipc::value>{ipc::value(item->itemId)});
+
+		if (!ValidateResponse(response))
+			return;
+		float x = response[1].value_union.fp32;
+		float y = response[2].value_union.fp32;
+
 		auto obj = Nan::New<v8::Object>();
-		utilv8::SetObjectField(obj, "x", sid->scaleX);
-		utilv8::SetObjectField(obj, "y", sid->scaleY);
+		utilv8::SetObjectField(obj, "x", x);
+		utilv8::SetObjectField(obj, "y", y);
+
+		sid->scaleX       = x;
+		sid->scaleY       = y;
+		sid->scaleChanged = false;
+
 		info.GetReturnValue().Set(obj);
-		return;
 	}
-
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("SceneItem", "GetScale", std::vector<ipc::value>{ipc::value(item->itemId)});
-
-	if (!ValidateResponse(response))
-		return;
-	float x = response[1].value_union.fp32;
-	float y = response[2].value_union.fp32;
-
-	auto obj = Nan::New<v8::Object>();
-	utilv8::SetObjectField(obj, "x", x);
-	utilv8::SetObjectField(obj, "y", y);
-
-	sid->scaleX       = x;
-	sid->scaleY       = y;
-	sid->scaleChanged = false;
-
-	info.GetReturnValue().Set(obj);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetScale(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -448,22 +484,26 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetScale(Nan::NAN_METHOD_ARGS_TYPE i
 		return;
 	}
 
-	SceneItemData* sid = itemsData.find(item->itemId)->second;
+	std::map<uint64_t, SceneItemData*>::iterator it  = itemsData.find(item->itemId);
 
-	if (sid && x == sid->scaleX && y == sid->scaleY)
-		return;
+	if (it != itemsData.end()) {
+		SceneItemData* sid = it->second;
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+		if (sid && x == sid->scaleX && y == sid->scaleY)
+			return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "SceneItem", "SetScale", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(x), ipc::value(y)});
+		auto conn = GetConnection();
+		if (!conn)
+			return;
 
-	sid->scaleX = x;
-	sid->scaleY = y;
+		std::vector<ipc::value> response = conn->call_synchronous_helper(
+			"SceneItem", "SetScale", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(x), ipc::value(y)});
 
-	ValidateResponse(response);
+		sid->scaleX = x;
+		sid->scaleY = y;
+
+		ValidateResponse(response);
+	}
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetScaleFilter(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -693,45 +733,49 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetCrop(Nan::NAN_METHOD_ARGS_TYPE in
 		return;
 	}
 
-	SceneItemData* sid = itemsData.find(item->itemId)->second;
-	if (sid && !sid->cropChanged) {
+	std::map<uint64_t, SceneItemData*>::iterator it  = itemsData.find(item->itemId);
+
+	if (it != itemsData.end()) {
+		SceneItemData* sid = it->second;
+		if (sid && !sid->cropChanged) {
+			auto obj = Nan::New<v8::Object>();
+			utilv8::SetObjectField(obj, "left", sid->cropLeft);
+			utilv8::SetObjectField(obj, "top", sid->cropTop);
+			utilv8::SetObjectField(obj, "right", sid->cropRight);
+			utilv8::SetObjectField(obj, "bottom", sid->cropBottom);
+			info.GetReturnValue().Set(obj);
+			return;
+		}
+
+		auto conn = GetConnection();
+		if (!conn)
+			return;
+
+		std::vector<ipc::value> response =
+			conn->call_synchronous_helper("SceneItem", "GetCrop", std::vector<ipc::value>{ipc::value(item->itemId)});
+
+		if (!ValidateResponse(response))
+			return;
+
+		uint32_t left   = response[1].value_union.i32;
+		uint32_t top    = response[2].value_union.i32;
+		uint32_t right  = response[3].value_union.i32;
+		uint32_t bottom = response[4].value_union.i32;
+
 		auto obj = Nan::New<v8::Object>();
-		utilv8::SetObjectField(obj, "left", sid->cropLeft);
-		utilv8::SetObjectField(obj, "top", sid->cropTop);
-		utilv8::SetObjectField(obj, "right", sid->cropRight);
-		utilv8::SetObjectField(obj, "bottom", sid->cropBottom);
+		utilv8::SetObjectField(obj, "left", left);
+		utilv8::SetObjectField(obj, "top", top);
+		utilv8::SetObjectField(obj, "right", right);
+		utilv8::SetObjectField(obj, "bottom", bottom);
+
+		sid->cropLeft    = left;
+		sid->cropTop     = top;
+		sid->cropRight   = right;
+		sid->cropBottom  = bottom;
+		sid->cropChanged = false;
+
 		info.GetReturnValue().Set(obj);
-		return;
 	}
-
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("SceneItem", "GetCrop", std::vector<ipc::value>{ipc::value(item->itemId)});
-
-	if (!ValidateResponse(response))
-		return;
-
-	uint32_t left   = response[1].value_union.i32;
-	uint32_t top    = response[2].value_union.i32;
-	uint32_t right  = response[3].value_union.i32;
-	uint32_t bottom = response[4].value_union.i32;
-
-	auto obj = Nan::New<v8::Object>();
-	utilv8::SetObjectField(obj, "left", left);
-	utilv8::SetObjectField(obj, "top", top);
-	utilv8::SetObjectField(obj, "right", right);
-	utilv8::SetObjectField(obj, "bottom", bottom);
-
-	sid->cropLeft    = left;
-	sid->cropTop     = top;
-	sid->cropRight   = right;
-	sid->cropBottom  = bottom;
-	sid->cropChanged = false;
-
-	info.GetReturnValue().Set(obj);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetCrop(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -754,28 +798,32 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetCrop(Nan::NAN_METHOD_ARGS_TYPE in
 		return;
 	}
 
-	SceneItemData* sid = itemsData.find(item->itemId)->second;
+	std::map<uint64_t, SceneItemData*>::iterator it  = itemsData.find(item->itemId);
 
-    if (sid && left == sid->cropLeft && top == sid->cropTop &&
-		right == sid->cropRight && bottom == sid->cropBottom)
-		return;
+	if (it != itemsData.end()) {
+		SceneItemData* sid = itemsData.find(item->itemId)->second;
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+		if (sid && left == sid->cropLeft && top == sid->cropTop &&
+			right == sid->cropRight && bottom == sid->cropBottom)
+			return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "SceneItem",
-	    "SetCrop",
-	    std::vector<ipc::value>{
-	        ipc::value(item->itemId), ipc::value(left), ipc::value(top), ipc::value(right), ipc::value(bottom)});
+		auto conn = GetConnection();
+		if (!conn)
+			return;
 
-	sid->cropLeft   = left;
-	sid->cropTop    = top;
-	sid->cropRight  = right;
-	sid->cropBottom = bottom;
+		std::vector<ipc::value> response = conn->call_synchronous_helper(
+			"SceneItem",
+			"SetCrop",
+			std::vector<ipc::value>{
+				ipc::value(item->itemId), ipc::value(left), ipc::value(top), ipc::value(right), ipc::value(bottom)});
 
-	ValidateResponse(response);
+		sid->cropLeft   = left;
+		sid->cropTop    = top;
+		sid->cropRight  = right;
+		sid->cropBottom = bottom;
+
+		ValidateResponse(response);
+	}
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetTransformInfo(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -857,23 +905,27 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetId(Nan::NAN_METHOD_ARGS_TYPE info
 		return;
 	}
 
-	SceneItemData* sid = itemsData.find(item->itemId)->second;
+	std::map<uint64_t, SceneItemData*>::iterator it = itemsData.find(item->itemId);
+	if (it != itemsData.end()) {
+		SceneItemData* sid = it->second;
 
-	if (sid->obs_itemId < 0) {
-		auto conn = GetConnection();
-		if (!conn)
-			return;
+		if (sid->obs_itemId < 0) {
+			auto conn = GetConnection();
+			if (!conn)
+				return;
 
-		std::vector<ipc::value> response =
-		    conn->call_synchronous_helper("SceneItem", "GetId", std::vector<ipc::value>{ipc::value(item->itemId)});
+			std::vector<ipc::value> response =
+			    conn->call_synchronous_helper("SceneItem", "GetId", std::vector<ipc::value>{ipc::value(item->itemId)});
 
-		if (!ValidateResponse(response))
-			return;
+			if (!ValidateResponse(response))
+				return;
 
-		sid->obs_itemId = response[1].value_union.ui64;
+			sid->obs_itemId = response[1].value_union.ui64;
+		}
+
+		info.GetReturnValue().Set(utilv8::ToValue(sid->obs_itemId));
 	}
 
-	info.GetReturnValue().Set(utilv8::ToValue(sid->obs_itemId));
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveUp(Nan::NAN_METHOD_ARGS_TYPE info)
