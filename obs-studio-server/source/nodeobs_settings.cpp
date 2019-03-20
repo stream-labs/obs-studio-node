@@ -1747,7 +1747,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	memcpy(rescale.currentValue.data(), &doRescale, sizeof(doRescale));
 	rescale.sizeOfCurrentValue = sizeof(doRescale);
 
-	rescale.visible = true;
+	rescale.visible = strcmp(encoderCurrentValue, ENCODER_NEW_NVENC) != 0;
 	rescale.enabled = isCategoryEnabled;
 	rescale.masked  = false;
 
@@ -1797,7 +1797,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 		rescaleRes.sizeOfValues = rescaleRes.values.size();
 		rescaleRes.countValues  = outputResolutions.size();
 
-		rescaleRes.visible = true;
+		rescaleRes.visible = strcmp(encoderCurrentValue, ENCODER_NEW_NVENC) != 0;
 		rescaleRes.enabled = isCategoryEnabled;
 		rescaleRes.masked  = false;
 
