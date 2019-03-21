@@ -1,4 +1,4 @@
-export * from 'C:/Users/pablo/Streamlabs/obs-studio-node/obs-studio-node/index';
+export * from '';
 
-const wd: string = "C:/Users/pablo/Streamlabs/obs-studio-node/obs-studio-node";
+const wd: string = "";
 export {wd};
