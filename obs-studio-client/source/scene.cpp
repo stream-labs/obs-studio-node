@@ -290,15 +290,34 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info)
 {
+	std::vector<ipc::value> params;
 	osn::Scene* scene = nullptr;
 	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), scene)) {
 		return;
 	}
 
 	osn::Input* input = nullptr;
-	ASSERT_INFO_LENGTH(info, 1);
-	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Input>(info[0]->ToObject(), input)) {
-		return;
+	if (info.Length() >= 1) {
+		if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Input>(info[0]->ToObject(), input)) {
+			return;
+		}
+	}
+	params.push_back(ipc::value(scene->sourceId));
+	params.push_back(ipc::value(input->sourceId));
+	if (info.Length() >= 2) {
+		v8::Local<v8::Object> transform = info[1]->ToObject();
+		params.push_back(ipc::value(transform->Get(utilv8::ToValue("scaleX"))->ToNumber()->Value()));
+		params.push_back(ipc::value(transform->Get(utilv8::ToValue("scaleY"))->ToNumber()->Value()));
+		params.push_back(ipc::value(transform->Get(utilv8::ToValue("visible"))->ToBoolean()->Value()));
+		params.push_back(ipc::value(transform->Get(utilv8::ToValue("x"))->ToNumber()->Value()));
+		params.push_back(ipc::value(transform->Get(utilv8::ToValue("y"))->ToNumber()->Value()));
+		params.push_back(ipc::value(transform->Get(utilv8::ToValue("rotation"))->ToNumber()->Value()));
+
+		v8::Local<v8::Object> crop = transform->Get(utilv8::ToValue("crop"))->ToObject();
+		params.push_back(ipc::value(crop->Get(utilv8::ToValue("left"))->ToInteger()->Value()));
+		params.push_back(ipc::value(crop->Get(utilv8::ToValue("top"))->ToInteger()->Value()));
+		params.push_back(ipc::value(crop->Get(utilv8::ToValue("right"))->ToInteger()->Value()));
+		params.push_back(ipc::value(crop->Get(utilv8::ToValue("bottom"))->ToInteger()->Value()));
 	}
 
 	auto conn = GetConnection();
@@ -306,7 +325,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 		return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Scene", "AddSource", std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(input->sourceId)});
+	    "Scene", "AddSource", params);
 
 	if (!ValidateResponse(response))
 		return;

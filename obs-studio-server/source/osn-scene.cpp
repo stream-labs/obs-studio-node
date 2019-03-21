@@ -44,6 +44,14 @@ void osn::Scene::Register(ipc::server& srv)
 
 	cls->register_function(std::make_shared<ipc::function>(
 	    "AddSource", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, AddSource));
+
+	cls->register_function(std::make_shared<ipc::function>(
+	    "AddSource", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64, 
+		ipc::type::Double, ipc::type::Double, ipc::type::Int32,
+	    ipc::type::Double, ipc::type::Double, ipc::type::Double,
+        ipc::type::Int64, ipc::type::Int64, ipc::type::Int64,
+	    ipc::type::Int64}, AddSource));
+
 	cls->register_function(std::make_shared<ipc::function>(
 	    "FindItem", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, FindItemByName));
 	cls->register_function(std::make_shared<ipc::function>(
@@ -369,6 +377,31 @@ void osn::Scene::AddSource(
 		AUTO_DEBUG;
 		return;
 	}
+
+	if (args.size() > 2) {
+		vec2 scale;
+		scale.x = args[2].value_union.fp64;
+		scale.y = args[3].value_union.fp64;
+		obs_sceneitem_set_scale(item, &scale);
+
+		obs_sceneitem_set_visible(item, !!args[4].value_union.i32);
+
+		vec2 pos;
+		pos.x = args[5].value_union.fp64;
+		pos.y = args[6].value_union.fp64;
+		obs_sceneitem_set_pos(item, &pos);
+
+		obs_sceneitem_set_rot(item, args[7].value_union.fp64);
+
+		obs_sceneitem_crop crop;
+		crop.left   = args[8].value_union.i64;
+		crop.top    = args[9].value_union.i64;
+		crop.right  = args[10].value_union.i64;
+		crop.bottom = args[11].value_union.i64;
+
+		obs_sceneitem_set_crop(item, &crop);
+	}
+
 	obs_sceneitem_addref(item);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
