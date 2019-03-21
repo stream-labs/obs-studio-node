@@ -438,7 +438,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Update(Nan::NAN_METHOD_ARGS_TYPE info)
 		if (!ValidateResponse(response))
 			return;
 
-		sid->settingsChanged   = true;
+		sid->setting           = response[1].value_str;
+		sid->settingsChanged   = false;
 		sid->propertiesChanged = true;
 	}
 	info.GetReturnValue().Set(true);

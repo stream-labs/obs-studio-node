@@ -469,7 +469,11 @@ void osn::Source::Update(
 	obs_source_update(src, sets);
 	obs_data_release(sets);
 
+	obs_data_t* updatedSettings = obs_source_get_settings(src);
+
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_data_get_full_json(updatedSettings)));
+	obs_data_release(updatedSettings);
 	AUTO_DEBUG;
 }
 
