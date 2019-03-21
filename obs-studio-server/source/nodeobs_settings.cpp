@@ -52,27 +52,8 @@ void OBS_settings::Register(ipc::server& srv)
 	    "OBS_settings_saveSettings",
 	    std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::Binary},
 	    OBS_settings_saveSettings));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_settings_getListCategories", std::vector<ipc::type>{}, OBS_settings_getListCategories));
 
 	srv.register_collection(cls);
-}
-
-void OBS_settings::OBS_settings_getListCategories(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	std::vector<std::string> listCategories = getListCategories();
-	size_t                   size           = listCategories.size();
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-
-	for (int i = 0; i < size; i++) {
-		rval.push_back(ipc::value(listCategories.at(i).c_str()));
-	}
-	AUTO_DEBUG;
 }
 
 void OBS_settings::OBS_settings_getSettings(
@@ -3722,21 +3703,6 @@ void OBS_settings::saveAdvancedSettings(std::vector<SubCategory> advancedSetting
 
 	sourcesSettings.push_back(advancedSettings.at(8));
 	saveGenericSettings(sourcesSettings, "General", ConfigManager::getInstance().getGlobal());
-}
-
-std::vector<std::string> OBS_settings::getListCategories(void)
-{
-	std::vector<std::string> categories;
-
-	categories.push_back("General");
-	categories.push_back("Stream");
-	categories.push_back("Output");
-	categories.push_back("Audio");
-	categories.push_back("Video");
-	categories.push_back("Hotkeys");
-	categories.push_back("Advanced");
-
-	return categories;
 }
 
 std::vector<SubCategory> OBS_settings::getSettings(std::string nameCategory, CategoryTypes& type)
