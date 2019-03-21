@@ -1,7 +1,7 @@
 import 'mocha'
 import { expect } from 'chai'
 import { OBSProcessHandler } from '../util/obs_process_handler'
-import * as osn from 'obs-studio-node';
+import * as osn from '../osn';
 
 describe('osn_fader', () => {
     let obs: OBSProcessHandler;

@@ -1,6 +1,6 @@
 import 'mocha';
 import { expect } from 'chai';
-import * as osn from 'obs-studio-node';
+import * as osn from '../osn';
 import * as path from 'path';
 import * as fs from 'fs';
 import { OBSProcessHandler } from '../util/obs_process_handler';

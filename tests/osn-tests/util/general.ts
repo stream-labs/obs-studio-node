@@ -1,4 +1,4 @@
-import { ITimeSpec } from 'obs-studio-node';
+import { ITimeSpec } from '../osn';
 import { setOptions } from 'marked';
 
 const basicOBSInputTypes: string[] = ['image_source', 'color_source', 'slideshow', 'browser_source', 'ffmpeg_source', 'text_gdiplus', 'text_ft2_source', 

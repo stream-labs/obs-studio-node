@@ -1,6 +1,6 @@
 import 'mocha';
 import { expect } from 'chai';
-import * as osn from 'obs-studio-node';
+import * as osn from '../osn';
 import { OBSProcessHandler } from '../util/obs_process_handler';
 
 describe('osn-video', () => {

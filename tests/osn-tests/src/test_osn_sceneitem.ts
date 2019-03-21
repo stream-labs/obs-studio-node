@@ -1,7 +1,7 @@
 import 'mocha';
 import { expect } from 'chai';
-import { IInput } from 'obs-studio-node';
-import * as osn from 'obs-studio-node';
+import { IInput } from '../osn';
+import * as osn from '../osn';
 import { OBSProcessHandler } from '../util/obs_process_handler';
 
 interface IVec2 {
