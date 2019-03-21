@@ -170,10 +170,10 @@ namespace osn
 			FILES_AND_URLS,
 		};
 
-		Type        field_type;
-		std::string filter;
-		std::string default_path;
-		std::string value;
+		Type                   field_type;
+		std::string            filter;
+		std::string            default_path;
+		std::list<std::string> values;
 	};
 
 	struct FrameRateProperty : Property

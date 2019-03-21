@@ -879,7 +879,13 @@ size_t obs::EditableListProperty::size()
 	total += sizeof(uint8_t);
 	total += sizeof(size_t) + filter.size();
 	total += sizeof(size_t) + default_path.size();
-	total += sizeof(size_t) + value.size();
+	total += sizeof(size_t);
+
+	for (auto& entry : values) {
+		total += sizeof(size_t);
+		total += entry.size();
+	}
+
 	return total;
 }
 
@@ -911,11 +917,15 @@ bool obs::EditableListProperty::serialize(std::vector<char>& buf)
 		offset += default_path.size();
 	}
 
-    reinterpret_cast<size_t&>(buf[offset]) = value.size();
+	reinterpret_cast<size_t&>(buf[offset]) = values.size();
 	offset += sizeof(size_t);
-	if (value.size() > 0) {
-		memcpy(&buf[offset], value.data(), value.size());
-		offset += value.size();
+	for (auto& entry : values) {
+		reinterpret_cast<size_t&>(buf[offset]) = entry.size();
+		offset += sizeof(size_t);
+		if (entry.size() > 0) {
+			memcpy(&buf[offset], entry.data(), entry.size());
+			offset += entry.size();
+		}
 	}
 
 	return true;
@@ -951,11 +961,18 @@ bool obs::EditableListProperty::read(std::vector<char> const& buf)
 		offset += length;
 	}
 
-    length = reinterpret_cast<const size_t&>(buf[offset]);
+	size_t num_entries = reinterpret_cast<const size_t&>(buf[offset]);
 	offset += sizeof(size_t);
-	if (length > 0) {
-		value = std::string(&buf[offset], length);
-		offset += length;
+	for (size_t idx = 0; idx < num_entries; idx++) {
+		length = reinterpret_cast<const size_t&>(buf[offset]);
+		offset += sizeof(size_t);
+		std::string entry = "";
+		if (length > 0) {
+			entry = std::string(&buf[offset], length);
+			offset += length;
+		}
+
+		values.push_back(entry);
 	}
 
 	return true;
