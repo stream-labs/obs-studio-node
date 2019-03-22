@@ -527,8 +527,8 @@ void settings::OBS_settings_getListCategories(const v8::FunctionCallbackInfo<v8:
 
 	std::vector<std::string> settings = getListCategories();
 
-	for (int i = 1; i < settings.size(); i++) {
-		categories->Set(i - 1, v8::String::NewFromUtf8(isolate, settings.at(i).c_str()));
+	for (int i = 0; i < settings.size(); i++) {
+		categories->Set(i, v8::String::NewFromUtf8(isolate, settings.at(i).c_str()));
 	}
 
 	args.GetReturnValue().Set(categories);
