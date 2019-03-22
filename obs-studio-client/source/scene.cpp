@@ -420,7 +420,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::MoveItem(Nan::NAN_METHOD_ARGS_TYPE info)
 	std::map<uint64_t, SceneInfo*>::iterator it;
 	it = scenesById.find(scene->sourceId);
 
-	if (it != scenesById.end()) {
+	if (it != scenesById.end() && response.size() > 2) {
 		it->second->items.clear();
 
 		for (size_t i = 1; i < response.size(); i += 2) {
