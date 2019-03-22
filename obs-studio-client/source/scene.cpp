@@ -334,6 +334,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 
 	if (it != scenesById.end()) {
 		it->second->items.emplace(obs_id, id);
+		it->second->itemsOrderCached = true;
 	}
 
 	SceneItemData* sid = new SceneItemData;
@@ -471,13 +472,21 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItems(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (it != scenesById.end() && it->second->itemsOrderCached) {
 		auto   arr   = Nan::New<v8::Array>(int(it->second->items.size()) - 1);
 		size_t index = 0;
+		bool   itemRemoved = false;
 
 		for (auto item : it->second->items) {
+			std::map<uint64_t, SceneItemData*>::iterator itemsIt = itemsData.find(item.first);
+			if (itemsIt == itemsData.end()) {
+				itemRemoved = true;
+				break;
+			}
 			osn::SceneItem* obj = new osn::SceneItem(item.second);
 			Nan::Set(arr, uint32_t(index++), osn::SceneItem::Store(obj));
 		}
-		info.GetReturnValue().Set(arr);
-		return;
+		if (!itemRemoved) {
+			info.GetReturnValue().Set(arr);
+			return;
+		}
 	}
 
 	auto conn = GetConnection();
