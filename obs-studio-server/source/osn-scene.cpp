@@ -568,6 +568,30 @@ void osn::Scene::MoveItem(
 	obs_sceneitem_set_order_position(ed.item, (int(num_items) - 1) - args[2].value_union.i32);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+	std::list<obs_sceneitem_t*> items;
+	auto                        cb_items = [](obs_scene_t* scene, obs_sceneitem_t* item, void* data) {
+        std::list<obs_sceneitem_t*>* items = reinterpret_cast<std::list<obs_sceneitem_t*>*>(data);
+        items->push_back(item);
+        return true;
+	};
+	obs_scene_enum_items(scene, cb_items, &items);
+
+	for (obs_sceneitem_t* item : items) {
+		utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
+		if (uid == UINT64_MAX) {
+			uid = osn::SceneItem::Manager::GetInstance().allocate(item);
+			if (uid == UINT64_MAX) {
+				rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
+				rval.push_back(ipc::value("Index list is full."));
+				AUTO_DEBUG;
+				return;
+			}
+			obs_sceneitem_addref(item);
+		}
+		rval.push_back(ipc::value((uint64_t)uid));
+		rval.push_back(ipc::value(obs_sceneitem_get_id(item)));
+	}
 	AUTO_DEBUG;
 }
 
@@ -680,6 +704,7 @@ void osn::Scene::GetItems(
 			obs_sceneitem_addref(item);
 		}
 		rval.push_back(ipc::value((uint64_t)uid));
+		rval.push_back(ipc::value(obs_sceneitem_get_id(item)));
 	}
 	AUTO_DEBUG;
 }

@@ -22,6 +22,15 @@
 #include "isource.hpp"
 #include "utility-v8.hpp"
 
+struct SceneInfo
+{
+	std::map<int64_t, uint64_t> items;
+	bool                        itemsOrderCached = false;
+};
+
+extern std::map<std::string, uint64_t> scenesByName;
+extern std::map<uint64_t, SceneInfo*>  scenesById;
+
 namespace osn
 {
 	class Scene : public osn::ISource, public utilv8::ManagedObject<osn::Scene>
