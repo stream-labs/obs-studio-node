@@ -129,4 +129,41 @@ ninja.exe clean
 
 scan-build --keep-empty -internal-stats -stats -v -v -v -o check ninja.exe
 ```
-Step with `"fixing"` errors is important as code base and especially third-party code are not ready to be build with clang. And files which failed to compile will not be scanned for errors. 
+Step with `"fixing"` errors is important as code base and especially third-party code are not ready to be build with clang. And files which failed to compile will not be scanned for errors.
+
+### Tests
+
+The tests for obs studio node are written in Typescript and use Mocha as test framework and Chai as assertion framework.
+
+You need to build obs-studio-node in order to run the tests. You can build it any way you want, just be sure to use CMAKE_INSTALL_PREFIX to install obs-studio-node in a folder of your choosing. The tests use this variable to know where the obs-studio-node module is. Below are three different ways to build obs-studio-node:
+
+#### Terminal commands
+In obs-studio-node root folder:
+1. `yarn install`
+2. `git submodule update --init --recursive --force`
+3. `mkdir build`
+3. `cmake -Bbuild -H. -G"Visual Studio 15 2017" -A x64 -DCMAKE_INSTALL_PREFIX="path_of_your_choosing"`
+4. `cmake --build build --target install`
+
+#### Terminal using package.json scripts
+In obs-studio-node root folder:
+1. `mkdir build`
+2. `yarn local:config`
+3. `yarn local:build`
+4. Optional: To clean build folder to repeat the steps 2 to 3 again do `yarn local:clean`
+
+#### CMake GUI
+1. Create a build folder in obs-studio-node root
+2. Open CMake GUI
+3. Put obs-studio-node project path in `Where is the source code:` box
+4. Put path to build folder in `Where to build the binaries:` box
+5. Click `Configure`
+6. Change CMAKE_INSTALL_PREFIX to a folder path of your choosing
+7. Click `Generate`
+8. Click `Open Project` to open Visual Studio and build the project there
+
+Some tests interact with Twitch and we use a user pool service to get users but in case we are not able to fetch a user from it, we use the stream key provided by an environment variable. Create an environment variable called SLOBS_BE_STREAMKEY with the stream key of a Twitch account of your choosing.
+
+#### Running tests
+* To run all the tests do `yarn run test` 
+* To run only run one test do `yarn run test --grep describe_name_value` where `describe_name_value` is the name of the test passed to the describe call in each test file. Example: `yarn run test --grep nodeobs_api`
