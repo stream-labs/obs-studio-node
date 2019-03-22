@@ -285,7 +285,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 			pr2->field_type                                = osn::EditableListProperty::Type(cast_property->field_type);
 			pr2->filter                                    = cast_property->filter;
 			pr2->default_path                              = cast_property->default_path;
-			pr2->value                                     = cast_property->value;
+
+			for (auto& item : cast_property->values) {
+				pr2->values.push_back(item);
+			}
 			pr                                             = std::static_pointer_cast<osn::Property>(pr2);
 			break;
 		}

@@ -365,11 +365,19 @@ void osn::Source::GetProperties(
 			break;
 		}
 		case OBS_PROPERTY_EDITABLE_LIST: {
-			auto prop2          = std::make_shared<obs::EditableListProperty>();
-			prop2->field_type   = obs::EditableListProperty::ListType(obs_property_editable_list_type(p));
-			prop2->filter       = (buf = obs_property_editable_list_filter(p)) != nullptr ? buf : "";
-			prop2->default_path = (buf = obs_property_editable_list_default_path(p)) != nullptr ? buf : "";
-			prop2->value        = (buf = obs_data_get_string(settings, name)) != nullptr ? buf : "";
+			auto prop2              = std::make_shared<obs::EditableListProperty>();
+			prop2->field_type       = obs::EditableListProperty::ListType(obs_property_editable_list_type(p));
+			prop2->filter           = (buf = obs_property_editable_list_filter(p)) != nullptr ? buf : "";
+			prop2->default_path     = (buf = obs_property_editable_list_default_path(p)) != nullptr ? buf : "";
+
+			obs_data_array_t* array = obs_data_get_array(settings, name);
+			size_t            count = obs_data_array_count(array);
+
+			for (size_t idx = 0; idx < count; ++idx) {
+				obs_data_t* item = obs_data_array_item(array, idx);
+				prop2->values.push_back((buf = obs_data_get_string(item, "value")) != nullptr ? buf : "");
+			}
+
 			prop                = prop2;
 			break;
 		}
