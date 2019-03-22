@@ -927,6 +927,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::RemoveFilter(Nan::NAN_METHOD_ARGS_TYPE i
 
 		if (filterIt != filters->end()) {
 			filters->erase(filterIt);
+			sourceIt->second->filtersOrderChanged = true;
 		}
 	}
 
