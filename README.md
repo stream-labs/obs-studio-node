@@ -162,8 +162,8 @@ In obs-studio-node root folder:
 7. Click `Generate`
 8. Click `Open Project` to open Visual Studio and build the project there
 
+#### Running tests
 Some tests interact with Twitch and we use a user pool service to get users but in case we are not able to fetch a user from it, we use the stream key provided by an environment variable. Create an environment variable called SLOBS_BE_STREAMKEY with the stream key of a Twitch account of your choosing.
 
-#### Running tests
 * To run all the tests do `yarn run test` 
 * To run only run one test do `yarn run test --grep describe_name_value` where `describe_name_value` is the name of the test passed to the describe call in each test file. Example: `yarn run test --grep nodeobs_api`
