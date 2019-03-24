@@ -75,10 +75,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Release(Nan::NAN_METHOD_ARGS_TYPE info
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Source", "Release", {ipc::value(obj->sourceId)});
-
-	if (!ValidateResponse(response))
-		return;
+	conn->call("Source", "Release", {ipc::value(obj->sourceId)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Remove(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -98,10 +95,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Remove(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Source", "Remove", {ipc::value(is->sourceId)});
-
-	if (!ValidateResponse(response))
-		return;
+	conn->call("Source", "Remove", {ipc::value(is->sourceId)});
 
 	is->sourceId = UINT64_MAX;
 	return;
@@ -460,9 +454,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Load(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Source", "Load", {ipc::value(is->sourceId)});
-
-	ValidateResponse(response);
+	conn->call("Source", "Load", {ipc::value(is->sourceId)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Save(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -477,9 +469,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Save(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Source", "Save", {ipc::value(is->sourceId)});
-
-	ValidateResponse(response);
+	conn->call("Source", "Save", {ipc::value(is->sourceId)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetType(Nan::NAN_METHOD_ARGS_TYPE info)
