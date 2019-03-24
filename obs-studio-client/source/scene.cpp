@@ -196,10 +196,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Release(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Scene", "Release", std::vector<ipc::value>{ipc::value(source->sourceId)});
-
-	ValidateResponse(response);
+	conn->call("Scene", "Release", std::vector<ipc::value>{ipc::value(source->sourceId)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Remove(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -213,11 +210,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Remove(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Scene", "Remove", std::vector<ipc::value>{ipc::value(source->sourceId)});
-
-	if (!ValidateResponse(response))
-		return;
+	conn->call("Scene", "Remove", std::vector<ipc::value>{ipc::value(source->sourceId)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AsSource(Nan::NAN_METHOD_ARGS_TYPE info)
