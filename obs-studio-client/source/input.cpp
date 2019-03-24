@@ -873,8 +873,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::AddFilter(Nan::NAN_METHOD_ARGS_TYPE info
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "AddFilter", {ipc::value(obj->sourceId), ipc::value(filter->sourceId)});
+	conn->call("Input", "AddFilter", {ipc::value(obj->sourceId), ipc::value(filter->sourceId)});
 
 	std::map<uint64_t, SourceDataInfo*>::iterator it = sourcesById.find(baseobj->sourceId);
 	if (it != sourcesById.end()) {
@@ -886,8 +885,6 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::AddFilter(Nan::NAN_METHOD_ARGS_TYPE info
 		filters->push_back(filter->sourceId);
 		it->second->filtersOrderChanged = true;
 	}
-
-	ValidateResponse(response);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::RemoveFilter(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -917,8 +914,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::RemoveFilter(Nan::NAN_METHOD_ARGS_TYPE i
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Input", "RemoveFilter", {ipc::value(obj->sourceId), ipc::value(basefilter->sourceId)});
+	conn->call("Input", "RemoveFilter", {ipc::value(obj->sourceId), ipc::value(basefilter->sourceId)});
 
 	std::map<uint64_t, SourceDataInfo*>::iterator sourceIt      = sourcesById.find(baseobj->sourceId);
 	if (sourceIt != sourcesById.end()) {
@@ -930,8 +926,6 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::RemoveFilter(Nan::NAN_METHOD_ARGS_TYPE i
 			sourceIt->second->filtersOrderChanged = true;
 		}
 	}
-
-	ValidateResponse(response);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetFilterOrder(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -963,10 +957,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetFilterOrder(Nan::NAN_METHOD_ARGS_TYPE
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Input", "MoveFilter", {ipc::value(obj->sourceId), ipc::value(basefilter->sourceId), ipc::value(movement)});
-
-	ValidateResponse(response);
+	conn->call("Input", "MoveFilter", {ipc::value(obj->sourceId), ipc::value(basefilter->sourceId), ipc::value(movement)});
 
 	std::map<uint64_t, SourceDataInfo*>::iterator sourceIt = sourcesById.find(baseobj->sourceId);
 	if (sourceIt != sourcesById.end()) {
@@ -1041,8 +1032,5 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::CopyFilters(Nan::NAN_METHOD_ARGS_TYPE in
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Input", "CopyFiltersTo", {ipc::value(obj->sourceId), ipc::value(input->sourceId)});
-
-	ValidateResponse(response);
+	conn->call("Input", "CopyFiltersTo", {ipc::value(obj->sourceId), ipc::value(input->sourceId)});
 }
