@@ -498,12 +498,8 @@ void settings::OBS_settings_saveSettings(const v8::FunctionCallbackInfo<v8::Valu
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Settings",
-	    "OBS_settings_saveSettings",
+	conn->call("Settings", "OBS_settings_saveSettings",
 	    {ipc::value(category), ipc::value(subCategoriesCount), ipc::value(sizeStruct), ipc::value(buffer)});
-
-	ValidateResponse(response);
 }
 
 std::vector<std::string> settings::getListCategories(void)
