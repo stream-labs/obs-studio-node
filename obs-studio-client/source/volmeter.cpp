@@ -324,12 +324,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Attach(Nan::NAN_METHOD_ARGS_TYPE info
 	}
 
 	// Call
-	std::vector<ipc::value> rval =
-	    conn->call_synchronous_helper("VolMeter", "Attach", {ipc::value(fader->m_uid), ipc::value(source->sourceId)});
-
-	if (!ValidateResponse(rval)) {
-		return;
-	}
+	conn->call("VolMeter", "Attach", {ipc::value(fader->m_uid), ipc::value(source->sourceId)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Detach(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -351,11 +346,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Detach(Nan::NAN_METHOD_ARGS_TYPE info
 	}
 
 	// Call
-	std::vector<ipc::value> rval = conn->call_synchronous_helper("VolMeter", "Detach", {ipc::value(fader->m_uid)});
-
-	if (!ValidateResponse(rval)) {
-		return;
-	}
+	conn->call("VolMeter", "Detach", {ipc::value(fader->m_uid)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::AddCallback(Nan::NAN_METHOD_ARGS_TYPE info)
