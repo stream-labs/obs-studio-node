@@ -95,9 +95,7 @@ void service::OBS_service_resetAudioContext(const v8::FunctionCallbackInfo<v8::V
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "OBS_service_resetAudioContext", {});
-
-	ValidateResponse(response);
+	conn->call("Service", "OBS_service_resetAudioContext", {});
 }
 
 void service::OBS_service_resetVideoContext(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -106,9 +104,7 @@ void service::OBS_service_resetVideoContext(const v8::FunctionCallbackInfo<v8::V
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "OBS_service_resetVideoContext", {});
-
-	ValidateResponse(response);
+	conn->call("Service", "OBS_service_resetVideoContext", {});
 }
 
 void service::OBS_service_startStreaming(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -126,9 +122,7 @@ void service::OBS_service_startStreaming(const v8::FunctionCallbackInfo<v8::Valu
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "OBS_service_startStreaming", {});
-
-	ValidateResponse(response);
+	conn->call("Service", "OBS_service_startStreaming", {});
 }
 
 void service::OBS_service_startRecording(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -146,9 +140,7 @@ void service::OBS_service_startRecording(const v8::FunctionCallbackInfo<v8::Valu
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "OBS_service_startRecording", {});
-
-	ValidateResponse(response);
+	conn->call("Service", "OBS_service_startRecording", {});
 }
 
 void service::OBS_service_startReplayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -166,9 +158,7 @@ void service::OBS_service_startReplayBuffer(const v8::FunctionCallbackInfo<v8::V
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "OBS_service_startReplayBuffer", {});
-
-	ValidateResponse(response);
+	conn->call("Service", "OBS_service_startReplayBuffer", {});
 }
 
 void service::OBS_service_stopStreaming(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -180,10 +170,7 @@ void service::OBS_service_stopStreaming(const v8::FunctionCallbackInfo<v8::Value
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Service", "OBS_service_stopStreaming", {ipc::value(forceStop)});
-
-	ValidateResponse(response);
+	conn->call("Service", "OBS_service_stopStreaming", {ipc::value(forceStop)});
 }
 
 void service::OBS_service_stopRecording(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -192,9 +179,7 @@ void service::OBS_service_stopRecording(const v8::FunctionCallbackInfo<v8::Value
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "OBS_service_stopRecording", {});
-
-	ValidateResponse(response);
+	conn->call("Service", "OBS_service_stopRecording", {});
 }
 
 void service::OBS_service_stopReplayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -206,10 +191,7 @@ void service::OBS_service_stopReplayBuffer(const v8::FunctionCallbackInfo<v8::Va
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Service", "OBS_service_stopReplayBuffer", {ipc::value(forceStop)});
-
-	ValidateResponse(response);
+	conn->call("Service", "OBS_service_stopReplayBuffer", {ipc::value(forceStop)});
 }
 
 static v8::Persistent<v8::Object> serviceCallbackObject;
@@ -226,11 +208,7 @@ void service::OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8
 	}
 
 	// Send request
-	std::vector<ipc::value> rval = conn->call_synchronous_helper("Service", "OBS_service_connectOutputSignals", {});
-	if (!ValidateResponse(rval)) {
-		args.GetReturnValue().Set(Nan::Null());
-		return;
-	}
+	conn->call("Service", "OBS_service_connectOutputSignals", {});
 
 	serviceObject = new Service();
 	serviceObject->m_callback_function.Reset(callback);
@@ -243,10 +221,7 @@ void service::OBS_service_processReplayBufferHotkey(const v8::FunctionCallbackIn
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Service", "OBS_service_processReplayBufferHotkey", {});
-
-	ValidateResponse(response);
+    conn->call("Service", "OBS_service_processReplayBufferHotkey", {});
 }
 
 void service::OBS_service_getLastReplay(const v8::FunctionCallbackInfo<v8::Value>& args)
