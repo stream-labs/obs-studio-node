@@ -30,6 +30,8 @@
 Service::Service(){};
 Service::~Service(){};
 
+bool isWorkerRunning = false;
+
 void Service::start_async_runner()
 {
 	if (m_async_callback)
@@ -111,6 +113,15 @@ void service::OBS_service_resetVideoContext(const v8::FunctionCallbackInfo<v8::V
 
 void service::OBS_service_startStreaming(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+	// Callback
+	if (!isWorkerRunning) {
+		serviceObject->start_async_runner();
+		serviceObject->set_keepalive(args.This());
+		serviceObject->start_worker();
+
+		isWorkerRunning = true;
+	}
+
 	auto conn = GetConnection();
 	if (!conn)
 		return;
@@ -122,6 +133,15 @@ void service::OBS_service_startStreaming(const v8::FunctionCallbackInfo<v8::Valu
 
 void service::OBS_service_startRecording(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+	// Callback
+	if (!isWorkerRunning) {
+		serviceObject->start_async_runner();
+		serviceObject->set_keepalive(args.This());
+		serviceObject->start_worker();
+
+		isWorkerRunning = true;
+	}
+
 	auto conn = GetConnection();
 	if (!conn)
 		return;
@@ -133,6 +153,15 @@ void service::OBS_service_startRecording(const v8::FunctionCallbackInfo<v8::Valu
 
 void service::OBS_service_startReplayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+	// Callback
+	if (!isWorkerRunning) {
+		serviceObject->start_async_runner();
+		serviceObject->set_keepalive(args.This());
+		serviceObject->start_worker();
+
+		isWorkerRunning = true;
+	}
+
 	auto conn = GetConnection();
 	if (!conn)
 		return;
@@ -203,12 +232,8 @@ void service::OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8
 		return;
 	}
 
-	// Callback
 	serviceObject = new Service();
 	serviceObject->m_callback_function.Reset(callback);
-	serviceObject->start_async_runner();
-	serviceObject->set_keepalive(args.This());
-	serviceObject->start_worker();
 	args.GetReturnValue().Set(true);
 }
 
@@ -290,8 +315,10 @@ void Service::set_keepalive(v8::Local<v8::Object> obj)
 
 void service::OBS_service_removeCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	serviceObject->stop_worker();
-	serviceObject->stop_async_runner();
+	if (isWorkerRunning) {
+		serviceObject->stop_worker();
+		serviceObject->stop_async_runner();
+	}
 }
 
 INITIALIZER(nodeobs_service)
