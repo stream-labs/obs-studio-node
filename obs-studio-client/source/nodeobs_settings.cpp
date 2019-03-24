@@ -515,6 +515,7 @@ std::vector<std::string> settings::getListCategories(void)
 	categories.push_back("Output");
 	categories.push_back("Audio");
 	categories.push_back("Video");
+	categories.push_back("Hotkeys");
 	categories.push_back("Advanced");
 
 	return categories;

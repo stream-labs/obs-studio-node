@@ -13,7 +13,7 @@ export {basicOBSFilterTypes};
 let basicOBSTransitionTypes: string[] = ['cut_transition', 'fade_transition', 'swipe_transition', 'slide_transition', 'fade_to_color_transition', 'wipe_transition', 'obs_stinger_transition'];
 export {basicOBSTransitionTypes};
 
-let basicOBSSettingsCategories: string[] = ['General', 'Stream', 'Output', 'Audio', 'Video', 'Advanced'];
+let basicOBSSettingsCategories: string[] = ['General', 'Stream', 'Output', 'Audio', 'Video', 'Hotkeys', 'Advanced'];
 export {basicOBSSettingsCategories}
 
 let showHideInputHotkeys: string[] = ['SHOW_SCENE_ITEM.WASAPI_OUTPUT_CAPTURE', 'HIDE_SCENE_ITEM.WASAPI_OUTPUT_CAPTURE', 'SHOW_SCENE_ITEM.WASAPI_INPUT_CAPTURE', 
