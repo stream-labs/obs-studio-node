@@ -480,15 +480,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetVolume(Nan::NAN_METHOD_ARGS_TYPE info
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "SetVolume", {ipc::value(obj->sourceId), ipc::value(volume)});
-
-	if (!ValidateResponse(response))
-		return;
+	conn->call("Input", "SetVolume", {ipc::value(obj->sourceId), ipc::value(volume)});
 
 	sid->volumeChanged = true;
-
-	info.GetReturnValue().Set(response[1].value_union.fp32);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -549,13 +543,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE 
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "SetSyncOffset", {ipc::value(obj->sourceId), ipc::value(syncoffset)});
-
-	if (!ValidateResponse(response))
-		return;
-
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.i64));
+	conn->call("Input", "SetSyncOffset", {ipc::value(obj->sourceId), ipc::value(syncoffset)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -614,15 +602,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "SetAudioMixers", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
-
-	if (!ValidateResponse(response))
-		return;
+	conn->call("Input", "SetAudioMixers", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
 
 	sid->audioMixersChanged = true;
-
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.ui32));
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetMonitoringType(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -670,13 +652,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetMonitoringType(Nan::NAN_METHOD_ARGS_T
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Input", "SetMonitoringType", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
-
-	if (!ValidateResponse(response))
-		return;
-
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.i32));
+	conn->call("Input", "SetMonitoringType", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetDeinterlaceFieldOrder(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -724,14 +700,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetDeinterlaceFieldOrder(Nan::NAN_METHOD
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Input", "SetDeInterlaceFieldOrder", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
-
-	if (!ValidateResponse(response))
-		return;
-
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.i32));
-	return;
+	conn->call("Input", "SetDeInterlaceFieldOrder", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetDeinterlaceMode(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -780,14 +749,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetDeinterlaceMode(Nan::NAN_METHOD_ARGS_
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Input", "SetDeInterlaceMode", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
-
-	if (!ValidateResponse(response))
-		return;
-
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.i32));
-	return;
+	conn->call("Input", "SetDeInterlaceMode", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::Filters(Nan::NAN_METHOD_ARGS_TYPE info)
