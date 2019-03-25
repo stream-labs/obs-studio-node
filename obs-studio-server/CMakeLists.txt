@@ -1,14 +1,9 @@
 ﻿PROJECT(obs-studio-server VERSION ${obs-studio-node_VERSION})
 
-include(ExternalProject)
-include(DownloadProject)
-include(FetchContent)
-
 # Detect Architecture (Bitness)
 IF( NOT CLANG_ANALYZE_CONFIG)
 	math(EXPR BITS "8*${CMAKE_SIZEOF_VOID_P}")
 ENDIF()
-
 
 if(WIN32)
 	set(PROJECT_PRODUCT_NAME "OBS Studio for Node.JS (Server)")
@@ -19,36 +14,6 @@ if(WIN32)
 		${PROJECT_BINARY_DIR}/version.rc
 		@ONLY
 	)
-endif()
-
-#######################################
-# Download crashmanager dependencies 
-#######################################
-
-# Override a test flag
-set(StackWalker_DISABLE_TESTS true CACHE BOOL "" FORCE)
-
-# StackWalker (Callstack rewind
-FetchContent_Declare(
-  stackwalker
-  GIT_REPOSITORY https://github.com/stream-labs/StackWalker
-)
-
-# Nlohmann JSON (modern JSON for C++)
-FetchContent_Declare(
-  nlohmannjson
-  GIT_REPOSITORY https://github.com/nlohmann/json
-)
-
-FetchContent_GetProperties(stackwalker)
-if(NOT stackwalker_POPULATED)
-  FetchContent_Populate(stackwalker)
-  add_subdirectory(${stackwalker_SOURCE_DIR} ${stackwalker_BINARY_DIR})
-endif()
-
-FetchContent_GetProperties(nlohmannjson)
-if(NOT nlohmannjson_POPULATED)
-  FetchContent_Populate(nlohmannjson)
 endif()
 
 ############################
