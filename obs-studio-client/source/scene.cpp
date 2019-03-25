@@ -318,12 +318,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 	if (!ValidateResponse(response))
 		return;
 
-	uint64_t id = response[1].value_union.ui64;
+	uint64_t id     = response[1].value_union.ui64;
 	int64_t  obs_id = response[2].value_union.i64;
 	// Create new SceneItem
 	osn::SceneItem*                          obj = new osn::SceneItem(id);
-	std::map<uint64_t, SceneInfo*>::iterator it;
-	it = scenesById.find(scene->sourceId);
+	std::map<uint64_t, SceneInfo*>::iterator it  = scenesById.find(scene->sourceId);
 
 	if (it != scenesById.end()) {
 		it->second->items.emplace(obs_id, id);
@@ -361,15 +360,15 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FindItem(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	std::map<uint64_t, SceneInfo*>::iterator it;
-	it = scenesById.find(scene->sourceId);
+	std::map<uint64_t, SceneInfo*>::iterator sceneIt = scenesById.find(scene->sourceId);
 
-	if (!haveName) {
-		it->second->items.find(position)->second;
-		osn::SceneItem* obj =
-		    new osn::SceneItem(it->second->items.find(position)->second);
-		info.GetReturnValue().Set(osn::SceneItem::Store(obj));
-		return;
+	if (sceneIt != scenesById.end() && !haveName) {
+		std::map<int64_t, uint64_t>::iterator itemIt = sceneIt->second->items.find(position);
+		if (itemIt != sceneIt->second->items.end()) {
+			osn::SceneItem* obj = new osn::SceneItem(itemIt->second);
+			info.GetReturnValue().Set(osn::SceneItem::Store(obj));
+			return;
+		}
 	}
 
 	auto conn = GetConnection();
@@ -411,8 +410,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::MoveItem(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	ValidateResponse(response);
 
-	std::map<uint64_t, SceneInfo*>::iterator it;
-	it = scenesById.find(scene->sourceId);
+	std::map<uint64_t, SceneInfo*>::iterator it = scenesById.find(scene->sourceId);
 
 	if (it != scenesById.end() && response.size() > 2) {
 		it->second->items.clear();
@@ -459,8 +457,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItems(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	std::map<uint64_t, SceneInfo*>::iterator it;
-	it = scenesById.find(scene->sourceId);
+	std::map<uint64_t, SceneInfo*>::iterator it = scenesById.find(scene->sourceId);
 
 	if (it != scenesById.end() && it->second->itemsOrderCached) {
 		auto   arr   = Nan::New<v8::Array>(int(it->second->items.size()) - 1);

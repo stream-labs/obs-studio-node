@@ -657,10 +657,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetMuted(Nan::NAN_METHOD_ARGS_TYPE inf
 		return;
 	}
 
-	SourceDataInfo* sid = sourcesById.find(is->sourceId)->second;
-	if (sid && !sid->mutedChanged) {
-		info.GetReturnValue().Set(sid->isMuted);
-		return;
+	std::map<uint64_t, SourceDataInfo*>::iterator sourceIt = sourcesById.find(is->sourceId);
+	if (sourceIt != sourcesById.end()) {
+		if (sourceIt->second && !sourceIt->second->mutedChanged) {
+			info.GetReturnValue().Set(sourceIt->second->isMuted);
+			return;
+		}
 	}
 
 	auto conn = GetConnection();
@@ -672,8 +674,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetMuted(Nan::NAN_METHOD_ARGS_TYPE inf
 	if (!ValidateResponse(response))
 		return;
 
-	sid->isMuted      = (bool)response[1].value_union.i32;
-	sid->mutedChanged = false;
+	if (sourceIt != sourcesById.end()) {
+		sourceIt->second->isMuted      = (bool)response[1].value_union.i32;
+		sourceIt->second->mutedChanged = false;
+	}
 
 	info.GetReturnValue().Set((bool)response[1].value_union.i32);
 	return;
@@ -690,15 +694,16 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetMuted(Nan::NAN_METHOD_ARGS_TYPE inf
 		return;
 	}
 
-	SourceDataInfo* sid = sourcesById.find(is->sourceId)->second;
-
 	auto conn = GetConnection();
 	if (!conn)
 		return;
 
 	conn->call("Source", "SetMuted", {ipc::value(is->sourceId), ipc::value(muted)});
 
-	sid->mutedChanged = true;
+	std::map<uint64_t, SourceDataInfo*>::iterator sourceIt = sourcesById.find(is->sourceId);
+	if (sourceIt != sourcesById.end()) {
+		sourceIt->second->mutedChanged = true;
+	}
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetEnabled(Nan::NAN_METHOD_ARGS_TYPE info)

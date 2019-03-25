@@ -71,7 +71,7 @@ void CallbackManager::QuerySourceSize(
 
 	rval.insert(rval.begin() + 1, ipc::value(size));
 
-	//AUTO_DEBUG;
+	AUTO_DEBUG;
 }
 
 void CallbackManager::addSource(obs_source_t* source)

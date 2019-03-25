@@ -35,18 +35,19 @@ struct SourceDataInfo
 	bool isMuted      = false;
 	bool mutedChanged = false;
 
-	std::string         setting         = "";
+	std::string setting           = "";
+	bool        settingsChanged   = false;
+
 	osn::property_map_t properties;
-	bool                settingsChanged = false;
 	bool                propertiesChanged = false;
 
 	float volume        = 1;
 	bool  volumeChanged = false;
 
-	uint32_t audioMixers = UINT32_MAX;
+	uint32_t audioMixers        = UINT32_MAX;
 	bool     audioMixersChanged = false;
 
-	std::vector<uint64_t>* filters = new std::vector<uint64_t>();
+	std::vector<uint64_t>* filters             = new std::vector<uint64_t>();
 	bool                   filtersOrderChanged = false;
 };
 

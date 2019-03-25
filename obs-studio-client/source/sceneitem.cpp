@@ -133,7 +133,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::Remove(Nan::NAN_METHOD_ARGS_TYPE inf
 
 	conn->call("SceneItem", "Remove", std::vector<ipc::value>{ipc::value(item->itemId)});
 
-	itemsData.erase(itemsData.find(item->itemId));
+	std::map<uint64_t, SceneItemData*>::iterator itemIt = itemsData.find(item->itemId);
+	if (itemIt != itemsData.end())
+		itemsData.erase(itemIt);
 	item->itemId = UINT64_MAX;
 }
 

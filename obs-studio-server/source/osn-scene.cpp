@@ -46,11 +46,9 @@ void osn::Scene::Register(ipc::server& srv)
 	    "AddSource", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, AddSource));
 
 	cls->register_function(std::make_shared<ipc::function>(
-	    "AddSource", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64, 
-		ipc::type::Double, ipc::type::Double, ipc::type::Int32,
-	    ipc::type::Double, ipc::type::Double, ipc::type::Double,
-        ipc::type::Int64, ipc::type::Int64, ipc::type::Int64,
-	    ipc::type::Int64}, AddSource));
+        "AddSource", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64,
+        ipc::type::Double,ipc::type::Double, ipc::type::Int32, ipc::type::Double, ipc::type::Double, ipc::type::Double,
+        ipc::type::Int64, ipc::type::Int64, ipc::type::Int64, ipc::type::Int64}, AddSource));
 
 	cls->register_function(std::make_shared<ipc::function>(
 	    "FindItem", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, FindItemByName));

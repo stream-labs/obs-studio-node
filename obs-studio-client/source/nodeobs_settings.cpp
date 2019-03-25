@@ -137,7 +137,7 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 	ASSERT_GET_VALUE(args[0], category);
 
 	std::vector<std::string> listSettings = getListCategories();
-	std::vector<std::string>::iterator it           = std::find(listSettings.begin(), listSettings.end(), category);
+	std::vector<std::string>::iterator it = std::find(listSettings.begin(), listSettings.end(), category);
 
 	if (it == listSettings.end()) {
 		v8::Isolate*         isolate = v8::Isolate::GetCurrent();
