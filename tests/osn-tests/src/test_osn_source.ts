@@ -418,12 +418,9 @@ describe('osn-source', () => {
                 // Setting input source flags
                 input.muted = true;
 
-                // Getting input source flags
-                const muted = input.muted;
-
                 // Checking if flags were returned correctly
-                expect(muted).to.not.equal(undefined);
-                expect(muted).to.equal(true);
+                expect(input.muted).to.not.equal(undefined);
+                expect(input.muted).to.equal(true);
 
                 input.release();
             });
