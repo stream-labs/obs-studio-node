@@ -692,6 +692,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetMuted(Nan::NAN_METHOD_ARGS_TYPE inf
 		return;
 
 	conn->call("Source", "SetMuted", {ipc::value(is->sourceId), ipc::value(muted)});
+
+	sid->mutedChanged = true;
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetEnabled(Nan::NAN_METHOD_ARGS_TYPE info)
