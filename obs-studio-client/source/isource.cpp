@@ -536,13 +536,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetName(Nan::NAN_METHOD_ARGS_TYPE info
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Source", "SetName", {ipc::value(is->sourceId), ipc::value(name)});
-
-	if (!ValidateResponse(response))
-		return;
-
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_str == name));
+	conn->call("Source", "SetName", {ipc::value(is->sourceId), ipc::value(name)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetOutputFlags(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -598,13 +592,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetFlags(Nan::NAN_METHOD_ARGS_TYPE inf
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Source", "SetFlags", {ipc::value(is->sourceId), ipc::value(flags)});
-
-	if (!ValidateResponse(response))
-		return;
-
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.ui32 != flags));
+	conn->call("Source", "SetFlags", {ipc::value(is->sourceId), ipc::value(flags)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetStatus(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -703,15 +691,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetMuted(Nan::NAN_METHOD_ARGS_TYPE inf
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Source", "SetMuted", {ipc::value(is->sourceId), ipc::value(muted)});
-
-	if (!ValidateResponse(response))
-		return;
-
-	sid->mutedChanged = true;
-
-	info.GetReturnValue().Set((bool)response[1].value_union.i32 == muted);
+	conn->call("Source", "SetMuted", {ipc::value(is->sourceId), ipc::value(muted)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetEnabled(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -749,11 +729,5 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetEnabled(Nan::NAN_METHOD_ARGS_TYPE i
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Source", "SetEnabled", {ipc::value(is->sourceId), ipc::value(enabled)});
-
-	if (!ValidateResponse(response))
-		return;
-
-	info.GetReturnValue().Set((bool)response[1].value_union.i32 == enabled);
+	conn->call("Source", "SetEnabled", {ipc::value(is->sourceId), ipc::value(enabled)});
 }
