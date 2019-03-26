@@ -28,9 +28,6 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
-std::map<std::string, uint64_t> scenesByName;
-std::map<uint64_t, SceneInfo*>  scenesById;
-
 osn::Scene::Scene(uint64_t id)
 {
 	this->sourceId = id;
@@ -90,25 +87,18 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	uint64_t sourceId = response[1].value_union.ui64;
 
-	// Create new Filter
 	osn::Scene* obj   = new osn::Scene(sourceId);
 
-	scenesByName.erase(name);
-	scenesById.erase(sourceId);
-
-	scenesByName.emplace(name, sourceId);
-	scenesById.emplace(sourceId, new SceneInfo);
-
+	SceneInfo* si       = new SceneInfo();
+	si->name            = name;
+	si->id              = sourceId;
 	SourceDataInfo* sdi = new SourceDataInfo;
 	sdi->name           = name;
 	sdi->obs_sourceId   = "scene";
 	sdi->id             = response[1].value_union.ui64;
 
-	sourcesById.erase(response[1].value_union.ui64);
-	sourcesByName.erase(name);
-
-	sourcesById.emplace(response[1].value_union.ui64, sdi);
-	sourcesByName.emplace(name, sdi);
+	CacheManager<SourceDataInfo*>::getInstance().Store(sourceId, name, sdi);
+	CacheManager<SceneInfo*>::getInstance().Store(sourceId, name, si);
 
 	info.GetReturnValue().Set(osn::Scene::Store(obj));
 }
@@ -134,22 +124,16 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE 
 
 	osn::Scene* obj   = new osn::Scene(sourceId);
 
-	scenesByName.erase(name);
-	scenesById.erase(sourceId);
-
-	scenesByName.emplace(name, sourceId);
-	scenesById.emplace(sourceId, new SceneInfo);
-
+	SceneInfo* si       = new SceneInfo();
+	si->name            = name;
+	si->id              = sourceId;
 	SourceDataInfo* sdi = new SourceDataInfo;
 	sdi->name           = name;
 	sdi->obs_sourceId   = "scene";
 	sdi->id             = response[1].value_union.ui64;
 
-	sourcesById.erase(response[1].value_union.ui64);
-	sourcesByName.erase(name);
-
-	sourcesById.emplace(response[1].value_union.ui64, sdi);
-	sourcesByName.emplace(name, sdi);
+	CacheManager<SourceDataInfo*>::getInstance().Store(sourceId, name, sdi);
+	CacheManager<SceneInfo*>::getInstance().Store(sourceId, name, si);
 
 	info.GetReturnValue().Set(osn::Scene::Store(obj));
 }
@@ -161,27 +145,24 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FromName(Nan::NAN_METHOD_ARGS_TYPE info)
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], name);
 
-	std::map<std::string, uint64_t>::iterator it;
-	it = scenesByName.find(name);
+	SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(name);
 
-	if (it != scenesByName.end() && name.size() > 0) {
-		osn::Scene* obj = new osn::Scene(it->second);
-		info.GetReturnValue().Set(osn::Scene::Store(obj));
-		return;
+	if (!si) {
+		auto conn = GetConnection();
+		if (!conn)
+			return;
+
+		std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "FromName", {ipc::value(name)});
+
+		if (!ValidateResponse(response))
+			return;
+
+		si = new SceneInfo;
+		si->id = response[1].value_union.ui64;
+		si->name = name;
+		CacheManager<SceneInfo*>::getInstance().Store(response[1].value_union.ui64, name, si);
 	}
-
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "FromName", {ipc::value(name)});
-
-	if (!ValidateResponse(response))
-		return;
-
-	uint64_t sourceId = response[1].value_union.ui64;
-
-	osn::Scene* obj = new osn::Scene(sourceId);
+	osn::Scene* obj = new osn::Scene(si->id);
 	info.GetReturnValue().Set(osn::Scene::Store(obj));
 }
 
@@ -258,20 +239,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info
 	SourceDataInfo* sdi = new SourceDataInfo;
 	sdi->name           = name;
 	sdi->obs_sourceId   = "scene";
-	sdi->id             = sourceId;
+	sdi->id             = response[1].value_union.ui64;
 
-	sourcesById.erase(sourceId);
-	sourcesByName.erase(name);
-
-	sourcesById.emplace(sourceId, sdi);
-	sourcesByName.emplace(name, sdi);
-
-
-	scenesByName.erase(name);
-	scenesById.erase(sourceId);
-
-	scenesByName.emplace(name, sourceId);
-	scenesById.emplace(sourceId, new SceneInfo);
+	CacheManager<SourceDataInfo*>::getInstance().Store(sourceId, name, sdi);
+	CacheManager<SceneInfo*>::getInstance().Store(sourceId, name, new SceneInfo);
 
 	info.GetReturnValue().Set(osn::Scene::Store(obj));
 }
@@ -321,12 +292,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 	uint64_t id     = response[1].value_union.ui64;
 	int64_t  obs_id = response[2].value_union.i64;
 	// Create new SceneItem
-	osn::SceneItem*                          obj = new osn::SceneItem(id);
-	std::map<uint64_t, SceneInfo*>::iterator it  = scenesById.find(scene->sourceId);
+	osn::SceneItem* obj = new osn::SceneItem(id);
+	SceneInfo*      si  = CacheManager<SceneInfo*>::getInstance().Retrieve(scene->sourceId);
 
-	if (it != scenesById.end()) {
-		it->second->items.emplace(obs_id, id);
-		it->second->itemsOrderCached = true;
+	if (si) {
+		si->items.emplace(obs_id, id);
+		si->itemsOrderCached = true;
 	}
 
 	SceneItemData* sid = new SceneItemData;
@@ -360,11 +331,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FindItem(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	std::map<uint64_t, SceneInfo*>::iterator sceneIt = scenesById.find(scene->sourceId);
+	SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(scene->sourceId);
 
-	if (sceneIt != scenesById.end() && !haveName) {
-		std::map<int64_t, uint64_t>::iterator itemIt = sceneIt->second->items.find(position);
-		if (itemIt != sceneIt->second->items.end()) {
+	if (si && !haveName) {
+		auto itemIt = si->items.find(position);
+		if (itemIt != si->items.end()) {
 			osn::SceneItem* obj = new osn::SceneItem(itemIt->second);
 			info.GetReturnValue().Set(osn::SceneItem::Store(obj));
 			return;
@@ -410,15 +381,15 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::MoveItem(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	ValidateResponse(response);
 
-	std::map<uint64_t, SceneInfo*>::iterator it = scenesById.find(scene->sourceId);
+	SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(scene->sourceId);
 
-	if (it != scenesById.end() && response.size() > 2) {
-		it->second->items.clear();
+	if (si && response.size() > 2) {
+		si->items.clear();
 
 		for (size_t i = 1; i < response.size(); i += 2) {
-			it->second->items.emplace(response[i + 1].value_union.i64, response[i].value_union.ui64);
+			si->items.emplace(response[i + 1].value_union.i64, response[i].value_union.ui64);
 		}
-		it->second->itemsOrderCached = true;
+		si->itemsOrderCached = true;
 	}
 }
 
@@ -457,14 +428,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItems(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	std::map<uint64_t, SceneInfo*>::iterator it = scenesById.find(scene->sourceId);
+	SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(scene->sourceId);
 
-	if (it != scenesById.end() && it->second->itemsOrderCached) {
-		auto   arr   = Nan::New<v8::Array>(int(it->second->items.size()) - 1);
+	if (si && si->itemsOrderCached) {
+		auto   arr         = Nan::New<v8::Array>(int(si->items.size()) - 1);
 		size_t index = 0;
 		bool   itemRemoved = false;
 
-		for (auto item : it->second->items) {
+		for (auto item : si->items) {
 			std::map<uint64_t, SceneItemData*>::iterator itemsIt = itemsData.find(item.first);
 			if (itemsIt == itemsData.end()) {
 				itemRemoved = true;
@@ -498,14 +469,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItems(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	info.GetReturnValue().Set(arr);
 
-	if (it != scenesById.end()) {
-		it->second->items.clear();
+	if (si) {
+		si->items.clear();
 
 		for (size_t i = 1; i < response.size(); i+= 2) {
-			it->second->items.emplace(response[i+1].value_union.i64, response[i].value_union.ui64);
+			si->items.emplace(response[i + 1].value_union.i64, response[i].value_union.ui64);
 		}
 
-		it->second->itemsOrderCached = true;
+		si->itemsOrderCached = true;
 	}
 }
 

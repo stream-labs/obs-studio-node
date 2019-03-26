@@ -27,9 +27,6 @@
 Nan::Persistent<v8::FunctionTemplate> osn::ISource::prototype = Nan::Persistent<v8::FunctionTemplate>();
 osn::ISource*                         sourceObject;
 
-std::map<uint64_t, SourceDataInfo*>    sourcesById;
-std::map<std::string, SourceDataInfo*> sourcesByName;
-
 osn::ISource::~ISource() {}
 
 void osn::ISource::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
@@ -83,11 +80,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Remove(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	if (sourcesById.find(is->sourceId) != sourcesById.end()) {
-		SourceDataInfo* sid = sourcesById.find(is->sourceId)->second;
-		sourcesByName.erase(sid->name);
-		sourcesById.erase(sid->id);
-	}
+	CacheManager<SourceDataInfo*>::getInstance().Remove(is->sourceId);
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -127,14 +120,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 		return;
 	}
 
-	std::map<uint64_t, SourceDataInfo*>::iterator sourceIt = sourcesById.find(hndl->sourceId);
-	if (sourceIt != sourcesById.end()) {
-		SourceDataInfo* sid = sourceIt->second;
-		if (sid && !sid->propertiesChanged && sid->properties.size() > 0) {
-			osn::Properties* props = new osn::Properties(sid->properties, info.This());
-			info.GetReturnValue().Set(osn::Properties::Store(props));
-			return;
-		}
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(hndl->sourceId);
+
+	if (sdi && !sdi->propertiesChanged && sdi->properties.size() > 0) {
+		osn::Properties* props = new osn::Properties(sdi->properties, info.This());
+		info.GetReturnValue().Set(osn::Properties::Store(props));
+		return;
 	}
 
 	auto conn = GetConnection();
@@ -326,9 +317,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 		}
 	}
 
-	if (sourceIt != sourcesById.end()) {
-		sourceIt->second->properties        = pmap;
-		sourceIt->second->propertiesChanged = false;
+	if (sdi) {
+		sdi->properties        = pmap;
+		sdi->propertiesChanged = false;
 	}
 
 	// obj = std::move(pmap);
@@ -344,16 +335,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetSettings(Nan::NAN_METHOD_ARGS_TYPE 
 		return;
 	}
 
-	std::map<uint64_t, SourceDataInfo*>::iterator sourceIt = sourcesById.find(hndl->sourceId);
-	if (sourceIt != sourcesById.end()) {
-		SourceDataInfo* sid = sourceIt->second;
-		if (sid && !sid->settingsChanged && sid->setting.size() > 0) {
-			v8::Local<v8::String> jsondata = Nan::New<v8::String>(sid->setting).ToLocalChecked();
-			v8::Local<v8::Value>  json =
-			    v8::JSON::Parse(info.GetIsolate()->GetCurrentContext(), jsondata).ToLocalChecked();
-			info.GetReturnValue().Set(json);
-			return;
-		}
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(hndl->sourceId);
+
+	if (sdi && !sdi->settingsChanged && sdi->setting.size() > 0) {
+		v8::Local<v8::String> jsondata = Nan::New<v8::String>(sdi->setting).ToLocalChecked();
+		v8::Local<v8::Value>  json =
+	    v8::JSON::Parse(info.GetIsolate()->GetCurrentContext(), jsondata).ToLocalChecked();
+		info.GetReturnValue().Set(json);
+		return;
 	}
 
 	auto conn = GetConnection();
@@ -369,9 +358,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetSettings(Nan::NAN_METHOD_ARGS_TYPE 
 	v8::Local<v8::String> jsondata = Nan::New<v8::String>(response[1].value_str).ToLocalChecked();
 	v8::Local<v8::Value>  json     = v8::JSON::Parse(info.GetIsolate()->GetCurrentContext(), jsondata).ToLocalChecked();
 
-	if (sourceIt != sourcesById.end()) {
-		sourceIt->second->setting         = response[1].value_str;
-		sourceIt->second->settingsChanged = false;
+	if (sdi) {
+		sdi->setting         = response[1].value_str;
+		sdi->settingsChanged = false;
 	}
 
 	info.GetReturnValue().Set(json);
@@ -394,10 +383,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Update(Nan::NAN_METHOD_ARGS_TYPE info)
 	v8::Local<v8::String> jsondata = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), json).ToLocalChecked();
 	v8::String::Utf8Value jsondatautf8(jsondata);
 
-	std::map<uint64_t, SourceDataInfo*>::iterator sourceIt = sourcesById.find(hndl->sourceId);
-	if (sourceIt != sourcesById.end() && sourceIt->second->setting.size() > 0) {
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(hndl->sourceId);
+
+	if (sdi && sdi->setting.size() > 0) {
 		auto newSettings = nlohmann::json::parse(std::string(*jsondatautf8, (size_t)jsondatautf8.length()));
-		auto settings    = nlohmann::json::parse(sourceIt->second->setting);
+		auto settings    = nlohmann::json::parse(sdi->setting);
 
 		nlohmann::json::iterator it = newSettings.begin();
 		while (!shouldUpdate && it != newSettings.end()) {
@@ -424,10 +414,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Update(Nan::NAN_METHOD_ARGS_TYPE info)
 		if (!ValidateResponse(response))
 			return;
 
-		if (sourceIt != sourcesById.end()) {
-			sourceIt->second->setting           = response[1].value_str;
-			sourceIt->second->settingsChanged   = false;
-			sourceIt->second->propertiesChanged = true;
+		if (sdi) {
+			sdi->setting           = response[1].value_str;
+			sdi->settingsChanged   = false;
+			sdi->propertiesChanged = true;
 		}
 	}
 	info.GetReturnValue().Set(true);
@@ -489,12 +479,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetName(Nan::NAN_METHOD_ARGS_TYPE info
 		return;
 	}
 
-	std::map<uint64_t, SourceDataInfo*>::iterator it;
-	it = sourcesById.find(is->sourceId);
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(is->sourceId);
 
-	if (it != sourcesById.end()) {
-		if (it->second->name.size() > 0) {
-			info.GetReturnValue().Set(utilv8::ToValue(it->second->name));
+	if (sdi) {
+		if (sdi->name.size() > 0) {
+			info.GetReturnValue().Set(utilv8::ToValue(sdi->name));
 			return;
 		}
 	}
@@ -508,7 +497,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetName(Nan::NAN_METHOD_ARGS_TYPE info
 	if (!ValidateResponse(response))
 		return;
 
-	it->second->name = response[1].value_str.c_str();
+	if (sdi)
+		sdi->name = response[1].value_str.c_str();
 
 	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
 }
@@ -612,11 +602,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetId(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	std::map<uint64_t, SourceDataInfo*>::iterator it = sourcesById.find(is->sourceId);
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(is->sourceId);
 
-	if (it != sourcesById.end()) {
-		if (it->second->obs_sourceId.size() > 0) {
-			info.GetReturnValue().Set(utilv8::ToValue(it->second->obs_sourceId));
+	if (sdi) {
+		if (sdi->obs_sourceId.size() > 0) {
+			info.GetReturnValue().Set(utilv8::ToValue(sdi->obs_sourceId));
 			return;
 		}
 	}
@@ -630,8 +620,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetId(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!ValidateResponse(response))
 		return;
 
-	if (it != sourcesById.end()) {
-		it->second->obs_sourceId = response[1].value_str;
+	if (sdi) {
+		sdi->obs_sourceId = response[1].value_str;
 	}
 
 	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
@@ -643,11 +633,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetMuted(Nan::NAN_METHOD_ARGS_TYPE inf
 	if (!utilv8::SafeUnwrap(info, is)) {
 		return;
 	}
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(is->sourceId);
 
-	std::map<uint64_t, SourceDataInfo*>::iterator sourceIt = sourcesById.find(is->sourceId);
-	if (sourceIt != sourcesById.end()) {
-		if (sourceIt->second && !sourceIt->second->mutedChanged) {
-			info.GetReturnValue().Set(sourceIt->second->isMuted);
+	if (sdi) {
+		if (sdi && !sdi->mutedChanged) {
+			info.GetReturnValue().Set(sdi->isMuted);
 			return;
 		}
 	}
@@ -661,9 +651,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetMuted(Nan::NAN_METHOD_ARGS_TYPE inf
 	if (!ValidateResponse(response))
 		return;
 
-	if (sourceIt != sourcesById.end()) {
-		sourceIt->second->isMuted      = (bool)response[1].value_union.i32;
-		sourceIt->second->mutedChanged = false;
+	if (sdi) {
+		sdi->isMuted      = (bool)response[1].value_union.i32;
+		sdi->mutedChanged = false;
 	}
 
 	info.GetReturnValue().Set((bool)response[1].value_union.i32);
@@ -687,9 +677,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetMuted(Nan::NAN_METHOD_ARGS_TYPE inf
 
 	conn->call("Source", "SetMuted", {ipc::value(is->sourceId), ipc::value(muted)});
 
-	std::map<uint64_t, SourceDataInfo*>::iterator sourceIt = sourcesById.find(is->sourceId);
-	if (sourceIt != sourcesById.end()) {
-		sourceIt->second->mutedChanged = true;
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(is->sourceId);
+	if (sdi) {
+		sdi->mutedChanged = true;
 	}
 }
 

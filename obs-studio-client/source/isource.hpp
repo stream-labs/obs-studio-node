@@ -22,37 +22,10 @@
 #include "utility-v8.hpp"
 #include "properties.hpp"
 #include "obs-property.hpp"
+#include "cache-manager.hpp"
 
 #undef strtoll
 #include "nlohmann/json.hpp"
-
-struct SourceDataInfo
-{
-	std::string obs_sourceId = "";
-	std::string name         = "";
-	uint64_t    id           = UINT64_MAX;
-
-	bool isMuted      = false;
-	bool mutedChanged = false;
-
-	std::string setting           = "";
-	bool        settingsChanged   = false;
-
-	osn::property_map_t properties;
-	bool                propertiesChanged = false;
-
-	float volume        = 1;
-	bool  volumeChanged = false;
-
-	uint32_t audioMixers        = UINT32_MAX;
-	bool     audioMixersChanged = false;
-
-	std::vector<uint64_t>* filters             = new std::vector<uint64_t>();
-	bool                   filtersOrderChanged = false;
-};
-
-extern std::map<uint64_t, SourceDataInfo*> sourcesById;
-extern std::map<std::string, SourceDataInfo*> sourcesByName;
 
 namespace osn
 {

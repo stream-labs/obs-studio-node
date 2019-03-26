@@ -75,6 +75,8 @@ add_nodejs_module(
 	"source/video.hpp"
 	"source/module.cpp"
 	"source/module.hpp"
+	"source/cache-manager.hpp"
+	"source/cache-manager.cpp"
 
 	###### callback-manager ######
 	"source/callback-manager.cpp"

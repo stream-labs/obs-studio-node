@@ -164,11 +164,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 	sdi->setting        = response[2].value_str;
 	sdi->audioMixers    = response[3].value_union.ui32;
 
-	sourcesById.erase(response[1].value_union.ui64);
-	sourcesByName.erase(name);
-
-	sourcesById.emplace(response[1].value_union.ui64, sdi);
-	sourcesByName.emplace(name, sdi);
+	CacheManager<SourceDataInfo*>::getInstance().Store(response[1].value_union.ui64, name, sdi);
 
 	info.GetReturnValue().Set(osn::Input::Store(obj));
 }
@@ -219,12 +215,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE 
 	sdi->name           = name;
 	sdi->obs_sourceId   = type;
 	sdi->id             = response[1].value_union.ui64;
+	sdi->setting        = response[2].value_str;
+	sdi->audioMixers    = response[3].value_union.ui32;
 
-	sourcesById.erase(response[1].value_union.ui64);
-	sourcesByName.erase(name);
-
-	sourcesById.emplace(response[1].value_union.ui64, sdi);
-	sourcesByName.emplace(name, sdi);
+	CacheManager<SourceDataInfo*>::getInstance().Store(response[1].value_union.ui64, name, sdi);
 
 	info.GetReturnValue().Set(osn::Input::Store(obj));
 }
@@ -237,10 +231,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::FromName(Nan::NAN_METHOD_ARGS_TYPE info)
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], name);
 
-	std::map<std::string, SourceDataInfo*>::iterator it = sourcesByName.find(name);
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(name);
 
-	if (it != sourcesByName.end()) {
-		osn::Input* obj = new osn::Input(it->second->id);
+	if (sdi) {
+		osn::Input* obj = new osn::Input(sdi->id);
 		info.GetReturnValue().Set(osn::Input::Store(obj));
 		return;
 	}
@@ -436,13 +430,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetVolume(Nan::NAN_METHOD_ARGS_TYPE info
 		return;
 	}
 
-	std::map<uint64_t, SourceDataInfo*>::iterator sourceIt = sourcesById.find(baseobj->sourceId);
-	if (sourceIt != sourcesById.end()) {
-		SourceDataInfo* sid = sourceIt->second;
-		if (sid && !sid->volumeChanged) {
-			info.GetReturnValue().Set(sid->volume);
-			return;
-		}
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
+
+	if (sdi && !sdi->volumeChanged) {
+		info.GetReturnValue().Set(sdi->volume);
+		return;
 	}
 
 	auto conn = GetConnection();
@@ -454,9 +446,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetVolume(Nan::NAN_METHOD_ARGS_TYPE info
 	if (!ValidateResponse(response))
 		return;
 
-	if (sourceIt != sourcesById.end()) {
-		sourceIt->second->volume = response[1].value_union.fp32;
-		sourceIt->second->volumeChanged = false;
+	if (sdi) {
+		sdi->volume        = response[1].value_union.fp32;
+		sdi->volumeChanged = false;
 	}
 
 	info.GetReturnValue().Set(response[1].value_union.fp32);
@@ -484,10 +476,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetVolume(Nan::NAN_METHOD_ARGS_TYPE info
 
 	conn->call("Input", "SetVolume", {ipc::value(obj->sourceId), ipc::value(volume)});
 
-	std::map<uint64_t, SourceDataInfo*>::iterator sourceIt = sourcesById.find(baseobj->sourceId);
-	if (sourceIt != sourcesById.end()) {
-		SourceDataInfo* sid = sourceIt->second;
-		sid->volumeChanged  = true;
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
+	if (sdi) {
+		sdi->volumeChanged = true;
 	}
 }
 
@@ -564,13 +555,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE
 		return;
 	}
 
-	std::map<uint64_t, SourceDataInfo*>::iterator sourceIt = sourcesById.find(baseobj->sourceId);
-	if (sourceIt != sourcesById.end()) {
-		SourceDataInfo* sid = sourceIt->second;
-		if (sid && !sid->audioMixersChanged && sid->audioMixers != UINT32_MAX) {
-			info.GetReturnValue().Set(sid->audioMixers);
-			return;
-		}
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
+	if (sdi && !sdi->audioMixersChanged && sdi->audioMixers != UINT32_MAX) {
+		info.GetReturnValue().Set(sdi->audioMixers);
+		return;
 	}
 
 	auto conn = GetConnection();
@@ -583,9 +571,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE
 	if (!ValidateResponse(response))
 		return;
 
-	if (sourceIt != sourcesById.end()) {
-		sourceIt->second->audioMixers = response[1].value_union.ui32;
-		sourceIt->second->audioMixersChanged = false;
+	if (sdi) {
+		sdi->audioMixers        = response[1].value_union.ui32;
+		sdi->audioMixersChanged = false;
 	}
 
 	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.ui32));
@@ -613,9 +601,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE
 
 	conn->call("Input", "SetAudioMixers", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
 
-	std::map<uint64_t, SourceDataInfo*>::iterator sourceIt = sourcesById.find(baseobj->sourceId);
-	if (sourceIt != sourcesById.end()) {
-		sourceIt->second->audioMixersChanged = true;
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
+	if (sdi) {
+		sdi->audioMixersChanged = true;
 	}
 }
 
@@ -776,10 +764,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Filters(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	std::map<uint64_t, SourceDataInfo*>::iterator sourceIt = sourcesById.find(baseobj->sourceId);
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
 
-	if (sourceIt != sourcesById.end() && !sourceIt->second->filtersOrderChanged) {
-		std::vector<uint64_t>* filters = sourceIt->second->filters;
+	if (sdi && !sdi->filtersOrderChanged) {
+		std::vector<uint64_t>* filters = sdi->filters;
 		v8::Local<v8::Array>   arr     = Nan::New<v8::Array>(int(filters->size()));
 		for (uint32_t i = 0; i < filters->size(); i++) {
 			osn::Filter* obj    = new osn::Filter(filters->at(i));
@@ -809,8 +797,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Filters(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	info.GetReturnValue().Set(arr);
 
-	if (sourceIt != sourcesById.end()) {
-		sourceIt->second->filtersOrderChanged = false;
+	if (sdi) {
+		sdi->filtersOrderChanged = false;
 	}
 }
 
@@ -849,15 +837,15 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::AddFilter(Nan::NAN_METHOD_ARGS_TYPE info
 
 	conn->call("Input", "AddFilter", {ipc::value(obj->sourceId), ipc::value(filter->sourceId)});
 
-	std::map<uint64_t, SourceDataInfo*>::iterator it = sourcesById.find(baseobj->sourceId);
-	if (it != sourcesById.end()) {
-		std::vector<uint64_t>*          filters  = it->second->filters;
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
+	if (sdi) {
+		std::vector<uint64_t>*          filters  = sdi->filters;
 		std::vector<uint64_t>::iterator filterIt = std::find(filters->begin(), filters->end(), basefilter->sourceId);
 		if (filterIt != filters->end())
-			it->second->filters->erase(filterIt);
+			sdi->filters->erase(filterIt);
 
 		filters->push_back(filter->sourceId);
-		it->second->filtersOrderChanged = true;
+		sdi->filtersOrderChanged = true;
 	}
 }
 
@@ -890,14 +878,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::RemoveFilter(Nan::NAN_METHOD_ARGS_TYPE i
 
 	conn->call("Input", "RemoveFilter", {ipc::value(obj->sourceId), ipc::value(basefilter->sourceId)});
 
-	std::map<uint64_t, SourceDataInfo*>::iterator sourceIt = sourcesById.find(baseobj->sourceId);
-	if (sourceIt != sourcesById.end()) {
-		std::vector<uint64_t>*          filters  = sourceIt->second->filters;
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
+	if (sdi) {
+		std::vector<uint64_t>*          filters  = sdi->filters;
 		std::vector<uint64_t>::iterator filterIt = std::find(filters->begin(), filters->end(), basefilter->sourceId);
 
 		if (filterIt != filters->end()) {
 			filters->erase(filterIt);
-			sourceIt->second->filtersOrderChanged = true;
+			sdi->filtersOrderChanged = true;
 		}
 	}
 }
@@ -934,9 +922,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetFilterOrder(Nan::NAN_METHOD_ARGS_TYPE
 	conn->call(
 	    "Input", "MoveFilter", {ipc::value(obj->sourceId), ipc::value(basefilter->sourceId), ipc::value(movement)});
 
-	std::map<uint64_t, SourceDataInfo*>::iterator sourceIt = sourcesById.find(baseobj->sourceId);
-	if (sourceIt != sourcesById.end()) {
-		sourceIt->second->filtersOrderChanged = true;
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
+	if (sdi) {
+		sdi->filtersOrderChanged = true;
 	}
 }
 
