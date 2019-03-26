@@ -327,7 +327,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 	}
 
 	if (sourceIt != sourcesById.end()) {
-		sourceIt->second->properties   = pmap;
+		sourceIt->second->properties        = pmap;
 		sourceIt->second->propertiesChanged = false;
 	}
 
@@ -400,25 +400,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Update(Nan::NAN_METHOD_ARGS_TYPE info)
 		auto settings    = nlohmann::json::parse(sourceIt->second->setting);
 
 		nlohmann::json::iterator it = newSettings.begin();
-		shouldUpdate                = false;
 		while (!shouldUpdate && it != newSettings.end()) {
-			shouldUpdate                    = true;
-			auto                     newKey = it.key();
-			auto                     newVal = it.value();
-			nlohmann::json::iterator item   = settings.find(it.key());
+			nlohmann::json::iterator item = settings.find(it.key());
 			if (item != settings.end()) {
-				auto currentKey   = item.key();
-				auto currentValue = item.value();
-				if (it.value().is_string()) {
-					std::string newValue     = it.value();
-					std::string currentValue = item.value();
-					if (it.value() == item.value()) {
-						shouldUpdate = false;
-					} else {
-						shouldUpdate = true;
-					}
-				}
-				if (it.value() == item.value()) {
+				if (it.value() != item.value()) {
 					shouldUpdate = false;
 				}
 			}
@@ -439,9 +424,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Update(Nan::NAN_METHOD_ARGS_TYPE info)
 		if (!ValidateResponse(response))
 			return;
 
-		sourceIt->second->setting           = response[1].value_str;
-		sourceIt->second->settingsChanged   = false;
-		sourceIt->second->propertiesChanged = true;
+		if (sourceIt != sourcesById.end()) {
+			sourceIt->second->setting           = response[1].value_str;
+			sourceIt->second->settingsChanged   = false;
+			sourceIt->second->propertiesChanged = true;
+		}
 	}
 	info.GetReturnValue().Set(true);
 	return;
