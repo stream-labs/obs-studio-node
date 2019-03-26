@@ -22,36 +22,6 @@
 #include "isource.hpp"
 #include "utility-v8.hpp"
 
-struct SceneItemData
-{
-	int64_t obs_itemId      = -1;
-	bool    cached          = false;
-	bool    isSelected      = false;
-	bool    selectedChanged = false;
-
-	float posX       = 0;
-	float posY       = 0;
-	bool  posChanged = true;
-
-	float scaleX       = 1;
-	float scaleY       = 1;
-	bool  scaleChanged = true;
-
-	bool isVisible      = true;
-	bool visibleChanged = true;
-
-	int32_t cropLeft    = 0;
-	int32_t cropTop     = 0;
-	int32_t cropRight   = 0;
-	int32_t cropBottom  = 0;
-	bool    cropChanged = true;
-
-	float rotation        = 0;
-	bool  rotationChanged = true;
-};
-
-extern std::map<uint64_t, SceneItemData*> itemsData;
-
 namespace osn
 {
 	class SceneItem : public Nan::ObjectWrap,

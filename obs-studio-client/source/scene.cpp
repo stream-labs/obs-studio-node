@@ -302,8 +302,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 
 	SceneItemData* sid = new SceneItemData;
 	sid->obs_itemId    = obs_id;
-	itemsData.erase(id);
-	itemsData.emplace(id, sid);
+
+	CacheManager<SceneItemData*>::getInstance().Store(id, sid);	
 
 	info.GetReturnValue().Set(osn::SceneItem::Store(obj));
 }
@@ -436,8 +436,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItems(Nan::NAN_METHOD_ARGS_TYPE info)
 		bool   itemRemoved = false;
 
 		for (auto item : si->items) {
-			std::map<uint64_t, SceneItemData*>::iterator itemsIt = itemsData.find(item.first);
-			if (itemsIt == itemsData.end()) {
+			SceneItemData*  sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item.first);
+			if (!sid) {
 				itemRemoved = true;
 				break;
 			}

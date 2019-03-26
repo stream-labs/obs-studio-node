@@ -52,6 +52,34 @@ struct SourceDataInfo
 	bool                   filtersOrderChanged = false;
 };
 
+struct SceneItemData
+{
+	int64_t obs_itemId      = -1;
+	bool    cached          = false;
+	bool    isSelected      = false;
+	bool    selectedChanged = false;
+
+	float posX       = 0;
+	float posY       = 0;
+	bool  posChanged = true;
+
+	float scaleX       = 1;
+	float scaleY       = 1;
+	bool  scaleChanged = true;
+
+	bool isVisible      = true;
+	bool visibleChanged = true;
+
+	int32_t cropLeft    = 0;
+	int32_t cropTop     = 0;
+	int32_t cropRight   = 0;
+	int32_t cropBottom  = 0;
+	bool    cropChanged = true;
+
+	float rotation        = 0;
+	bool  rotationChanged = true;
+};
+
 template<class T>
 class CacheManager
 {
@@ -70,27 +98,31 @@ class CacheManager
 	void operator=(CacheManager const&) = delete;
 
 	private:
-	std::map<std::string, SceneInfo*>    scenesByName;
-	std::map<uint64_t, SceneInfo*>      scenesById;
+	std::map<std::string, SceneInfo*>      scenesByName;
+	std::map<uint64_t, SceneInfo*>         scenesById;
 	std::map<std::string, SourceDataInfo*> sourcesByName;
-	std::map<uint64_t, SourceDataInfo*> sourcesById;
+	std::map<uint64_t, SourceDataInfo*>    sourcesById;
+	std::map<uint64_t, SceneItemData*>     itemsData;
 
 	public:
-	void Store(uint64_t sourceId, std::string name, SceneInfo* si)
-	{
+	void Store(uint64_t id, std::string name, SceneInfo* si) {
 		si->name = name;
 		scenesByName.erase(name);
-		scenesById.erase(sourceId);
+		scenesById.erase(id);
 		scenesByName.emplace(name, si);
-		scenesById.emplace(sourceId, si);
+		scenesById.emplace(id, si);
 	}
-	void Store(uint64_t sourceId, std::string name, SourceDataInfo* sdi)
-	{
+	void Store(uint64_t id, std::string name, SourceDataInfo* sdi) {
 		sdi->name = name;
 		sourcesByName.erase(name);
-		sourcesById.erase(sourceId);
+		sourcesById.erase(id);
 		sourcesByName.emplace(name, sdi);
-		sourcesById.emplace(sourceId, sdi);
+		sourcesById.emplace(id, sdi);
+	}
+	void Store(uint64_t id, SceneItemData* sid)
+	{
+		itemsData.erase(id);
+		itemsData.emplace(id, sid);
 	}
 	T Retrieve(uint64_t id) {
 		if (id != UINT64_MAX) {
@@ -102,6 +134,11 @@ class CacheManager
 			} else if (typeid(T) == typeid(SourceDataInfo*)) {
 				auto it = sourcesById.find(id);
 				if (it != sourcesById.end()) {
+					return (T)it->second;
+				}
+			} else if (typeid(T) == typeid(SceneItemData*)) {
+				auto it = itemsData.find(id);
+				if (it != itemsData.end()) {
 					return (T)it->second;
 				}
 			}
@@ -137,6 +174,11 @@ class CacheManager
 				if (it != sourcesById.end()) {
 					sourcesByName.erase(it->second->name);
 					sourcesById.erase(id);
+				}
+			} else if (typeid(T) == typeid(SceneItemData*)) {
+				auto it = itemsData.find(id);
+				if (it != itemsData.end()) {
+					itemsData.erase(id);
 				}
 			}
 		} 
