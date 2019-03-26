@@ -31,7 +31,7 @@
 
 osn::SceneItem::SceneItem(uint64_t id)
 {
-	this->itemId       = id;
+	this->itemId = id;
 }
 
 Nan::Persistent<v8::FunctionTemplate> osn::SceneItem::prototype = Nan::Persistent<v8::FunctionTemplate>();
