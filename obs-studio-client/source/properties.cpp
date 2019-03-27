@@ -359,7 +359,17 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetValue(Nan::NAN_METHOD_ARGS_T
 	case osn::Property::Type::EDITABLELIST: {
 		std::shared_ptr<osn::EditableListProperty> cast_property =
 		    std::static_pointer_cast<osn::EditableListProperty>(iter->second);
-		info.GetReturnValue().Set(utilv8::ToValue(cast_property->value));
+
+		v8::Local<v8::Array> values = Nan::New<v8::Array>();
+		size_t               idx      = 0;
+		for (auto value : cast_property->values) {
+			v8::Local<v8::Object> iobj = Nan::New<v8::Object>();
+			utilv8::SetObjectField(iobj, "value", value);
+
+			utilv8::SetObjectField(values, (uint32_t)idx++, iobj);
+		}
+
+		info.GetReturnValue().Set(values);
 		break;
 	}
 	case osn::Property::Type::BUTTON:

@@ -99,7 +99,7 @@ void OBS_settings::OBS_settings_getSettings(
 	AUTO_DEBUG;
 }
 
-void UpdateAudioSettings(bool saveSettings, bool saveOnlyIfLimitApplied = false)
+void UpdateAudioSettings(bool saveOnlyIfLimitApplied)
 {
 	// Do nothing if there is no info
 	if (currentAudioSettings.size() == 0)
@@ -134,7 +134,7 @@ void UpdateAudioSettings(bool saveSettings, bool saveOnlyIfLimitApplied = false)
 		}
 	}
 
-	if (saveSettings && (!saveOnlyIfLimitApplied || (saveOnlyIfLimitApplied && limitApplied))) {
+	if ((!saveOnlyIfLimitApplied || (saveOnlyIfLimitApplied && limitApplied))) {
 		OBS_settings::saveGenericSettings(currentAudioSettings, "AdvOut", ConfigManager::getInstance().getBasic());
 	}
 }
@@ -1087,13 +1087,13 @@ void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::strin
 		streamEncoder->push_back(std::make_pair("Hardware (QSV)", ipc::value(ADVANCED_ENCODER_QSV)));
 
 	if (EncoderAvailable("ffmpeg_nvenc"))
-		streamEncoder->push_back(std::make_pair("NVIDIA NVENC H.264", ipc::value(ADVANCED_ENCODER_NVENC)));
+		streamEncoder->push_back(std::make_pair("Hardware (NVENC)", ipc::value(ADVANCED_ENCODER_NVENC)));
 
 	if (EncoderAvailable("amd_amf_h264"))
 		streamEncoder->push_back(std::make_pair("AMD", ipc::value(ADVANCED_ENCODER_AMD)));
 
 	if (EncoderAvailable("jim_nvenc"))
-		streamEncoder->push_back(std::make_pair("NVIDIA NVENC H.264 (new)", ipc::value(ENCODER_NEW_NVENC)));
+		streamEncoder->push_back(std::make_pair("Hardware (NVENC) (new)", ipc::value(ENCODER_NEW_NVENC)));
 }
 
 void OBS_settings::getSimpleOutputSettings(
@@ -1747,7 +1747,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	memcpy(rescale.currentValue.data(), &doRescale, sizeof(doRescale));
 	rescale.sizeOfCurrentValue = sizeof(doRescale);
 
-	rescale.visible = true;
+	rescale.visible = strcmp(encoderCurrentValue, ENCODER_NEW_NVENC) != 0;
 	rescale.enabled = isCategoryEnabled;
 	rescale.masked  = false;
 
@@ -1797,7 +1797,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 		rescaleRes.sizeOfValues = rescaleRes.values.size();
 		rescaleRes.countValues  = outputResolutions.size();
 
-		rescaleRes.visible = true;
+		rescaleRes.visible = strcmp(encoderCurrentValue, ENCODER_NEW_NVENC) != 0;
 		rescaleRes.enabled = isCategoryEnabled;
 		rescaleRes.masked  = false;
 
@@ -2045,6 +2045,15 @@ void OBS_settings::getStandardRecordingSettings(
 
 	subCategoryParameters->params.push_back(recEncoder);
 
+	const char* streamEncoderCurrentValue = config_get_string(config, "AdvOut", "Encoder");
+	bool        streamScaleAvailable      = true;
+
+	if (strcmp(recEncoderCurrentValue, "none") == 0) {
+		if (strcmp(streamEncoderCurrentValue, ENCODER_NEW_NVENC) == 0) {
+			streamScaleAvailable = false;
+		}
+	}
+
 	// Rescale Output : boolean
 	Parameter recRescale;
 	recRescale.name        = "RecRescale";
@@ -2057,7 +2066,7 @@ void OBS_settings::getStandardRecordingSettings(
 	memcpy(recRescale.currentValue.data(), &doRescale, sizeof(doRescale));
 	recRescale.sizeOfCurrentValue = sizeof(doRescale);
 
-	recRescale.visible = true;
+	recRescale.visible = strcmp(recEncoderCurrentValue, ENCODER_NEW_NVENC) != 0 && streamScaleAvailable;
 	recRescale.enabled = isCategoryEnabled;
 	recRescale.masked  = false;
 
@@ -2108,7 +2117,7 @@ void OBS_settings::getStandardRecordingSettings(
 		recRescaleRes.sizeOfValues = recRescaleRes.values.size();
 		recRescaleRes.countValues  = outputResolutions.size();
 
-		recRescaleRes.visible = true;
+		recRescaleRes.visible = strcmp(recEncoderCurrentValue, ENCODER_NEW_NVENC) != 0 && streamScaleAvailable;
 		recRescaleRes.enabled = isCategoryEnabled;
 		recRescaleRes.masked  = false;
 
@@ -2258,7 +2267,7 @@ void OBS_settings::getAdvancedOutputAudioSettings(
 	uint32_t initialSettingsIndex = outputSettings->size();
 
 	auto& bitrateMap = GetAACEncoderBitrateMap();
-	UpdateAudioSettings(true, true);
+	UpdateAudioSettings(true);
 
 	// Track 1
 	std::vector<std::pair<std::string, ipc::value>> Track1Bitrate;
@@ -2811,7 +2820,7 @@ void OBS_settings::saveAdvancedOutputSettings(std::vector<SubCategory> settings)
 
 		// Update the current audio settings, limiting them if necessary
 		currentAudioSettings = audioSettings;
-		UpdateAudioSettings(true);
+		UpdateAudioSettings(false);
 	}
 
 	// Replay buffer

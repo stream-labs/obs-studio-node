@@ -262,10 +262,10 @@ namespace obs
 			Files,
 			FilesAndURLs,
 		};
-		ListType    field_type;
-		std::string filter;
-		std::string default_path;
-		std::string value;
+		ListType               field_type;
+		std::string            filter;
+		std::string            default_path;
+		std::list<std::string> values;
 
 		virtual ~EditableListProperty(){};
 

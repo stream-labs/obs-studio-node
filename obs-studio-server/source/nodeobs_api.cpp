@@ -21,6 +21,7 @@
 #include "osn-volmeter.hpp"
 #include "osn-fader.hpp"
 #include "util/lexer.h"
+#include "util-crashmanager.h"
 
 #ifdef _WIN32
 
@@ -488,7 +489,14 @@ void OBS_API::OBS_API_initAPI(
 
 	std::vector<char> userData = std::vector<char>(1024);
 	os_get_config_path(userData.data(), userData.capacity() - 1, "slobs-client/plugin_config");
-	obs_startup(locale.c_str(), userData.data(), NULL);
+	if (!obs_startup(locale.c_str(), userData.data(), NULL)) {
+		// TODO: We should return an error code if obs fails to initialize.
+		// This was added as a temporary measure to detect what could be happening in some
+		// cases (if the user data path is wrong for ex). This will be correctly adjusted 
+		// when init API supports more return codes.
+		std::string userDataPath = std::string(userData.begin(), userData.end());
+		util::CrashManager::AddWarning("Failed to start OBS, locale: " + locale + " user data: " + userDataPath);
+	}
 
 	/* Logging */
 	std::string filename = GenerateTimeDateFilename("txt");
@@ -514,6 +522,7 @@ void OBS_API::OBS_API_initAPI(
 
 	if (!logfile->is_open()) {
 		logfile = nullptr;
+		blog(LOG_WARNING, "Failed to open log file");
 		std::cerr << "Failed to open log file" << std::endl;
 	}
 
