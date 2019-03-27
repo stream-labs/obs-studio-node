@@ -143,7 +143,7 @@ namespace utility
 
         size_t size()
         {
-		    return object_map.size();
+            return object_map.size();
         }
 
         void clear()
