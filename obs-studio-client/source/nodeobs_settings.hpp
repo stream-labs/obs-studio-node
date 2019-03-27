@@ -137,4 +137,6 @@ namespace settings
 	static void OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_settings_saveSettings(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_settings_getListCategories(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+	static std::vector<std::string> getListCategories(void);
 } // namespace settings

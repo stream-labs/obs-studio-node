@@ -20,6 +20,12 @@
 #include <nan.h>
 #include <node.h>
 #include "utility-v8.hpp"
+#include "properties.hpp"
+#include "obs-property.hpp"
+#include "cache-manager.hpp"
+
+#undef strtoll
+#include "nlohmann/json.hpp"
 
 namespace osn
 {

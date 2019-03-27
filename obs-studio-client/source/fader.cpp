@@ -151,15 +151,7 @@ void osn::Fader::SetDezibel(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 
 	// Call
-	std::vector<ipc::value> rval =
-	    conn->call_synchronous_helper("Fader", "SetDeziBel", {ipc::value(fader->uid), ipc::value(dezibel)});
-
-	if (!ValidateResponse(rval)) {
-		return;
-	}
-
-	// Return DeziBel Value
-	info.GetReturnValue().Set(rval[1].value_union.fp32);
+	conn->call("Fader", "SetDeziBel", {ipc::value(fader->uid), ipc::value(dezibel)});
 }
 
 void osn::Fader::GetDeflection(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -217,15 +209,7 @@ void osn::Fader::SetDeflection(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 
 	// Call
-	std::vector<ipc::value> rval =
-	    conn->call_synchronous_helper("Fader", "SetDeflection", {ipc::value(fader->uid), ipc::value(dezibel)});
-
-	if (!ValidateResponse(rval)) {
-		return;
-	}
-
-	// Return DeziBel Value
-	info.GetReturnValue().Set(rval[1].value_union.fp32);
+	conn->call("Fader", "SetDeflection", {ipc::value(fader->uid), ipc::value(dezibel)});
 }
 
 void osn::Fader::GetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -283,15 +267,7 @@ void osn::Fader::SetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 
 	// Call
-	std::vector<ipc::value> rval =
-	    conn->call_synchronous_helper("Fader", "SetMultiplier", {ipc::value(fader->uid), ipc::value(dezibel)});
-
-	if (!ValidateResponse(rval)) {
-		return;
-	}
-
-	// Return DeziBel Value
-	info.GetReturnValue().Set(rval[1].value_union.fp32);
+	conn->call("Fader", "SetMultiplier", {ipc::value(fader->uid), ipc::value(dezibel)});
 }
 
 void osn::Fader::Attach(Nan::NAN_METHOD_ARGS_TYPE info)

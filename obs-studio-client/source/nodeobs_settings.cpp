@@ -136,6 +136,16 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 	std::string category;
 	ASSERT_GET_VALUE(args[0], category);
 
+	std::vector<std::string> listSettings = getListCategories();
+	std::vector<std::string>::iterator it = std::find(listSettings.begin(), listSettings.end(), category);
+
+	if (it == listSettings.end()) {
+		v8::Isolate*         isolate = v8::Isolate::GetCurrent();
+		v8::Local<v8::Array> rval    = v8::Array::New(isolate);
+		args.GetReturnValue().Set(rval);
+		return;
+	}
+
 	auto conn = GetConnection();
 	if (!conn)
 		return;
@@ -488,30 +498,34 @@ void settings::OBS_settings_saveSettings(const v8::FunctionCallbackInfo<v8::Valu
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Settings",
-	    "OBS_settings_saveSettings",
+	conn->call("Settings", "OBS_settings_saveSettings",
 	    {ipc::value(category), ipc::value(subCategoriesCount), ipc::value(sizeStruct), ipc::value(buffer)});
+}
 
-	ValidateResponse(response);
+std::vector<std::string> settings::getListCategories(void)
+{
+	std::vector<std::string> categories;
+
+	categories.push_back("General");
+	categories.push_back("Stream");
+	categories.push_back("Output");
+	categories.push_back("Audio");
+	categories.push_back("Video");
+	categories.push_back("Hotkeys");
+	categories.push_back("Advanced");
+
+	return categories;
 }
 
 void settings::OBS_settings_getListCategories(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Settings", "OBS_settings_getListCategories", {});
-
-	if (!ValidateResponse(response))
-		return;
-
 	v8::Isolate*         isolate    = v8::Isolate::GetCurrent();
 	v8::Local<v8::Array> categories = v8::Array::New(isolate);
 
-	for (int i = 1; i < response.size(); i++) {
-		categories->Set(i - 1, v8::String::NewFromUtf8(isolate, response.at(i).value_str.c_str()));
+	std::vector<std::string> settings = getListCategories();
+
+	for (int i = 0; i < settings.size(); i++) {
+		categories->Set(i, v8::String::NewFromUtf8(isolate, settings.at(i).c_str()));
 	}
 
 	args.GetReturnValue().Set(categories);

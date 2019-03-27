@@ -75,10 +75,16 @@ add_nodejs_module(
 	"source/video.hpp"
 	"source/module.cpp"
 	"source/module.hpp"
+	"source/cache-manager.hpp"
+	"source/cache-manager.cpp"
 
 	###### callback-manager ######
 	"source/callback-manager.cpp"
 	"source/callback-manager.hpp"
+)
+
+set(PROJECT_INCLUDE_PATHS
+	"${nlohmannjson_SOURCE_DIR}/single_include"
 )
 
 if(WIN32)
@@ -92,6 +98,7 @@ target_include_directories(
 	PUBLIC
 		"${CMAKE_SOURCE_DIR}/source/"
 		"${CMAKE_SOURCE_DIR}/lib-streamlabs-ipc/include"
+		${PROJECT_INCLUDE_PATHS}
 )
  
 set_target_properties(

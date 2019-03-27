@@ -154,9 +154,12 @@ void osn::Input::Create(
 		AUTO_DEBUG;
 		return;
 	}
+	obs_data_t* settingsSource = obs_source_get_settings(source);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
+	rval.push_back(ipc::value(obs_data_get_full_json(settingsSource)));
+	rval.push_back(ipc::value(obs_source_get_audio_mixers(source)));
 	AUTO_DEBUG;
 }
 

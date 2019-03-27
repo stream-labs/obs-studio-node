@@ -68,10 +68,7 @@ void display::OBS_content_createDisplay(const v8::FunctionCallbackInfo<v8::Value
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Display", "OBS_content_createDisplay", {ipc::value(windowHandle), ipc::value(key)});
-
-	ValidateResponse(response);
+	conn->call("Display", "OBS_content_createDisplay", {ipc::value(windowHandle), ipc::value(key)});
 }
 
 void display::OBS_content_destroyDisplay(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -84,10 +81,7 @@ void display::OBS_content_destroyDisplay(const v8::FunctionCallbackInfo<v8::Valu
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Display", "OBS_content_destroyDisplay", {ipc::value(key)});
-
-	ValidateResponse(response);
+    conn->call("Display", "OBS_content_destroyDisplay", {ipc::value(key)});
 }
 
 void display::OBS_content_getDisplayPreviewOffset(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -161,12 +155,8 @@ void display::OBS_content_createSourcePreviewDisplay(const v8::FunctionCallbackI
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Display",
-	    "OBS_content_createSourcePreviewDisplay",
+	conn->call("Display", "OBS_content_createSourcePreviewDisplay",
 	    {ipc::value(windowHandle), ipc::value(sourceName), ipc::value(key)});
-
-	ValidateResponse(response);
 }
 
 void display::OBS_content_resizeDisplay(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -186,10 +176,7 @@ void display::OBS_content_resizeDisplay(const v8::FunctionCallbackInfo<v8::Value
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Display", "OBS_content_resizeDisplay", {ipc::value(key), ipc::value(width), ipc::value(height)});
-
-	ValidateResponse(response);
+	conn->call("Display", "OBS_content_resizeDisplay", {ipc::value(key), ipc::value(width), ipc::value(height)});
 }
 
 void display::OBS_content_moveDisplay(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -209,10 +196,7 @@ void display::OBS_content_moveDisplay(const v8::FunctionCallbackInfo<v8::Value>&
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Display", "OBS_content_moveDisplay", {ipc::value(key), ipc::value(x), ipc::value(y)});
-
-	ValidateResponse(response);
+	conn->call("Display", "OBS_content_moveDisplay", {ipc::value(key), ipc::value(x), ipc::value(y)});
 }
 
 void display::OBS_content_setPaddingSize(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -227,10 +211,7 @@ void display::OBS_content_setPaddingSize(const v8::FunctionCallbackInfo<v8::Valu
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Display", "OBS_content_setPaddingSize", {ipc::value(key), ipc::value(paddingSize)});
-
-	ValidateResponse(response);
+	conn->call("Display", "OBS_content_setPaddingSize", {ipc::value(key), ipc::value(paddingSize)});
 }
 
 void display::OBS_content_setPaddingColor(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -250,12 +231,8 @@ void display::OBS_content_setPaddingColor(const v8::FunctionCallbackInfo<v8::Val
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Display",
-	    "OBS_content_setPaddingColor",
+	conn->call("Display", "OBS_content_setPaddingColor",
 	    {ipc::value(key), ipc::value(r), ipc::value(g), ipc::value(b), ipc::value(a)});
-
-	ValidateResponse(response);
 }
 
 void display::OBS_content_setOutlineColor(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -275,12 +252,8 @@ void display::OBS_content_setOutlineColor(const v8::FunctionCallbackInfo<v8::Val
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Display",
-	    "OBS_content_setOutlineColor",
+	conn->call("Display", "OBS_content_setOutlineColor",
 	    {ipc::value(key), ipc::value(r), ipc::value(g), ipc::value(b), ipc::value(a)});
-
-	ValidateResponse(response);
 }
 
 void display::OBS_content_setShouldDrawUI(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -295,10 +268,7 @@ void display::OBS_content_setShouldDrawUI(const v8::FunctionCallbackInfo<v8::Val
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Display", "OBS_content_setShouldDrawUI", {ipc::value(key), ipc::value(drawUI)});
-
-	ValidateResponse(response);
+	conn->call("Display", "OBS_content_setShouldDrawUI", {ipc::value(key), ipc::value(drawUI)});
 }
 
 void display::OBS_content_setDrawGuideLines(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -313,10 +283,7 @@ void display::OBS_content_setDrawGuideLines(const v8::FunctionCallbackInfo<v8::V
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Display", "OBS_content_setDrawGuideLines", {ipc::value(key), ipc::value(drawGuideLines)});
-
-	ValidateResponse(response);
+	conn->call("Display", "OBS_content_setDrawGuideLines", {ipc::value(key), ipc::value(drawGuideLines)});
 }
 
 INITIALIZER(nodeobs_display)

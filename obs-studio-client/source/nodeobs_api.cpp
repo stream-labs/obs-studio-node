@@ -63,12 +63,7 @@ void api::OBS_API_destroyOBS_API(const v8::FunctionCallbackInfo<v8::Value>& args
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("API", "OBS_API_destroyOBS_API", {});
-
-	// There is no need to validate the response here since we are closing the app. If for any reason
-	// the server crashes and we receive an error or an IPC timeout, this will throw an error. Throwing
-	// an error makes no sense (for now) since this is a shutdown operation.
-	// ValidateResponse(response);
+	conn->call("API", "OBS_API_destroyOBS_API", {});
 }
 
 void api::OBS_API_getPerformanceStatistics(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -113,9 +108,7 @@ void api::SetWorkingDirectory(const v8::FunctionCallbackInfo<v8::Value>& args)
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("API", "SetWorkingDirectory", {ipc::value(path)});
-
-	ValidateResponse(response);
+	conn->call("API", "SetWorkingDirectory", {ipc::value(path)});
 }
 
 void api::StopCrashHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -189,11 +182,7 @@ Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_ProcessHotkeyStatus(const v8::FunctionC
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "API", "OBS_API_ProcessHotkeyStatus", {ipc::value(hotkeyId), ipc::value(press)});
-
-	if (!ValidateResponse(response))
-		return;
+	conn->call("API", "OBS_API_ProcessHotkeyStatus", {ipc::value(hotkeyId), ipc::value(press)});
 }
 
 INITIALIZER(nodeobs_api)
