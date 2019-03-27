@@ -141,10 +141,10 @@ namespace utility
             }
         }
 
-		size_t size()
-		{
-			return object_map.size();
-		}
+        size_t size()
+        {
+		    return object_map.size();
+        }
 
         void clear()
         {
@@ -235,10 +235,10 @@ namespace utility
             }
         }
 
-		size_t size()
-		{
-			return object_map.size();
-		}
+        size_t size()
+        {
+            return object_map.size();
+        }
 
         void clear()
         {

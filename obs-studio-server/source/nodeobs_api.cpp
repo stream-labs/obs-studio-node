@@ -1060,9 +1060,9 @@ void OBS_API::destroyOBS_API(void)
 	// Check if the frontend was able to shutdown correctly, if there are some sources here it's
 	// because it ended unexpectedly and thus we need to consider the option to crash when calling
 	// obs_shutdown()
-	if (osn::Source::Manager::GetInstance().size() > 0    ||
-		osn::Scene::Manager::GetInstance().size() > 0     ||
-		osn::SceneItem::Manager::GetInstance().size() > 0 ||
+	if (osn::Source::Manager::GetInstance().size() > 0		||
+		osn::Scene::Manager::GetInstance().size() > 0		||
+		osn::SceneItem::Manager::GetInstance().size() > 0	||
 		osn::Input::Manager::GetInstance().size() > 0) {
 
 		util::CrashManager::DisableReports();
