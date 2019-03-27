@@ -15,12 +15,11 @@
   "main": "./index.js",
   "types": "./index.d.ts",
   "scripts": {
-    "clean": "git clean -fxd",
     "build:bindings": "cmake-js configure -a x64 --CDCMAKE_PREFIX_INSTALL=distribute && cmake --build build --target install --config Release",
     "build:javascript": "tsc -p js",
     "build:docs": "typedoc --out docs",
     "local:config": "yarn install && git submodule update --init --recursive --force && cmake -Bbuild -H. -G\"Visual Studio 15 2017\" -A x64 -DCMAKE_INSTALL_PREFIX=\"./obs-studio-node\"",
-    "local:build": "cmake --build build --target install",
+    "local:build": "cmake --build build --target install --config Debug",
     "local:clean": "rm -rf build/*",
     "test": "mocha --no-timeouts -r ts-node/register tests/osn-tests/src/**/*.ts"
   },
