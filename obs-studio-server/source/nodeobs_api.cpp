@@ -18,6 +18,9 @@
 
 #include "nodeobs_api.h"
 #include "osn-source.hpp"
+#include "osn-scene.hpp"
+#include "osn-sceneitem.hpp"
+#include "osn-input.hpp"
 #include "osn-volmeter.hpp"
 #include "osn-fader.hpp"
 #include "util/lexer.h"
@@ -1054,7 +1057,24 @@ void OBS_API::destroyOBS_API(void)
     osn::VolMeter::ClearVolmeters();
     osn::Fader::ClearFaders();
 
-	obs_shutdown();
+	// Check if the frontend was able to shutdown correctly, if there are some sources here it's
+	// because it ended unexpectedly and thus we need to consider the option to crash when calling
+	// obs_shutdown()
+	if (osn::Source::Manager::GetInstance().size() > 0    ||
+		osn::Scene::Manager::GetInstance().size() > 0     ||
+		osn::SceneItem::Manager::GetInstance().size() > 0 ||
+		osn::Input::Manager::GetInstance().size() > 0) {
+
+		util::CrashManager::DisableReports();
+
+		try {
+			obs_shutdown();
+		} catch (...) {}
+
+	} else {
+	
+		obs_shutdown();
+	}
 
 	// Release each obs module (dlls for windows)
 	// TODO: We should release these modules (dlls) manually and not let the garbage

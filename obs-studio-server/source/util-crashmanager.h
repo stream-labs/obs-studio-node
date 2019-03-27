@@ -48,6 +48,7 @@ namespace util
 		static void AddWarning(const std::string& warning);
 		static void AddBreadcrumb(const std::string& message);
 		static void ClearBreadcrumbs();
+		static void DisableReports();
 
 		private:
 		static nlohmann::json RequestOBSLog(OBSLogType type);
