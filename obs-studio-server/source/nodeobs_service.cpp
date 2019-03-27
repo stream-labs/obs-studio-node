@@ -775,7 +775,7 @@ bool OBS_service::createService()
 		data = obs_data_create_from_json_file_safe(ConfigManager::getInstance().getService().c_str(), "bak");
 		if (data == nullptr) {
 
-			blog(LOG_WARNING, "Failed to create data from service json, it was invalid!");
+			blog(LOG_WARNING, "Failed to create data from service json, using default properties!");
 			CreateNewService();
 		}
 		else {
@@ -784,6 +784,16 @@ bool OBS_service::createService()
 
 			settings    = obs_data_get_obj(data, "settings");
 			hotkey_data = obs_data_get_obj(data, "hotkeys");
+
+			// If the type is invalid it could cause a crash since internally obs uses strcmp (nullptr = undef behavior)
+			if (type == nullptr) {
+				obs_data_release(data);
+				obs_data_release(hotkey_data);
+				obs_data_release(settings);
+
+				blog(LOG_WARNING, "Failed to retrieve a valid service type from the data, using default properties!");
+				CreateNewService();
+			}
 
 			service = obs_service_create(type, "default_service", settings, hotkey_data);
 			if (service == nullptr) {
