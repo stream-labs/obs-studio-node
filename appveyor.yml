@@ -42,13 +42,8 @@ after_build:
   - copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\ucrtbase.dll" "%SLFullDistributePath%\obs-studio-node\"
   - tar cvaf "%UnsignedArtifact%.tar.gz" -C "%SLFullDistributePath%" "obs-studio-node"
 
-before_test:
-  - cmd: cd tests\osn-tests
-  - cmd: yarn install
-
 test_script:
   - cmd: yarn run test
-  - cmd: cd ..\..
 
 before_deploy:
   - cmd: ci\copy-signed-binaries.cmd

@@ -1,7 +1,7 @@
 import 'mocha'
 import { expect } from 'chai'
-import * as osn from 'obs-studio-node';
-import { IScene, ITransition, ISettings, ISource } from 'obs-studio-node';
+import * as osn from '../osn';
+import { IScene, ITransition, ISettings, ISource } from '../osn';
 import { OBSProcessHandler } from '../util/obs_process_handler';
 import { basicOBSTransitionTypes } from '../util/general';
 
