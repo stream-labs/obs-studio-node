@@ -1099,6 +1099,19 @@ struct ci_char_traits : public std::char_traits<char>
 
 typedef std::basic_string<char, ci_char_traits> istring;
 
+enum InitializationCodes
+{
+	Success             = 0,
+	VideoFail           = -1,
+	VideoNotSupported   = -2,
+	VideoInvalidParam   = -3,
+	VideoAlreadyActive  = -4,
+	VideoModuleNotFound = -5,
+	ServiceInvalidFile  = -6,
+	OBSInitFailed       = -7
+};
+
+
 /* This should be reusable outside of node-obs, especially
 * if we go a server/client route. */
 bool OBS_API::openAllModules(int& video_err)
