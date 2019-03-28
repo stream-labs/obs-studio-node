@@ -21,7 +21,7 @@
 
 namespace osn
 {
-	class Filter : Source
+	class Filter : public Source
 	{
 		public:
 		static void Register(ipc::server&);
