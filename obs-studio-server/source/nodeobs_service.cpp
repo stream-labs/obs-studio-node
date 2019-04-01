@@ -963,7 +963,7 @@ void OBS_service::stopRecording(void)
 	isRecording = false;
 }
 
-bool OBS_service::updateAdvancedReplayBuffer(void)
+void OBS_service::updateAdvancedReplayBuffer(void)
 {
 	const char* path;
 	const char* recFormat;
@@ -1022,14 +1022,6 @@ bool OBS_service::updateAdvancedReplayBuffer(void)
 		rbTime   = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecRBTime");
 		rbSize   = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecRBSize");
 
-		os_dir_t* dir = path && path[0] ? os_opendir(path) : nullptr;
-
-		if (!dir) {
-			return false;
-		}
-
-		os_closedir(dir);
-
 		std::string strPath;
 		strPath += path;
 
@@ -1072,8 +1064,6 @@ bool OBS_service::updateAdvancedReplayBuffer(void)
 
 		obs_data_release(settings);
 	}
-
-	return true;
 }
 
 bool OBS_service::startReplayBuffer(void)
@@ -1096,8 +1086,7 @@ bool OBS_service::startReplayBuffer(void)
 
 		associateAudioAndVideoEncodersToTheCurrentRecordingOutput(useStreamingEncoder);
 	} else {
-		if (!updateAdvancedReplayBuffer())
-			return false;
+		updateAdvancedReplayBuffer();
 	}
 
 	bool result = obs_output_start(replayBufferOutput);
