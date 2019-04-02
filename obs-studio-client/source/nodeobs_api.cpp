@@ -196,6 +196,23 @@ Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_ProcessHotkeyStatus(const v8::FunctionC
 		return;
 }
 
+Nan::NAN_METHOD_RETURN_TYPE api::LogMessage(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	std::string message;
+	
+	ASSERT_GET_VALUE(args[0], message);
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("API", "LogMessage", {ipc::value(message)});
+
+	if (!ValidateResponse(response))
+		return;
+}
+
 INITIALIZER(nodeobs_api)
 {
 	initializerFunctions.push([](v8::Local<v8::Object> exports) {
@@ -206,5 +223,6 @@ INITIALIZER(nodeobs_api)
 		NODE_SET_METHOD(exports, "StopCrashHandler", api::StopCrashHandler);
 		NODE_SET_METHOD(exports, "OBS_API_QueryHotkeys", api::OBS_API_QueryHotkeys);
 		NODE_SET_METHOD(exports, "OBS_API_ProcessHotkeyStatus", api::OBS_API_ProcessHotkeyStatus);
+		NODE_SET_METHOD(exports, "log", api::LogMessage);
 	});
 }

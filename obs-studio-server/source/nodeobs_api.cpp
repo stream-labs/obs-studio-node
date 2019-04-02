@@ -94,6 +94,9 @@ void OBS_API::Register(ipc::server& srv)
 	    "OBS_API_ProcessHotkeyStatus",
 	    std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32},
 	    ProcessHotkeyStatus));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "LogMessage",
+	    std::vector<ipc::type>{ipc::type::String}, LogMessage));
 
 	srv.register_collection(cls);
 }
@@ -1339,4 +1342,11 @@ std::vector<Screen> OBS_API::availableResolutions(void)
 	EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, reinterpret_cast<LPARAM>(&resolutions));
 
 	return resolutions;
+}
+
+void OBS_API::LogMessage(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
+{
+	std::string message = args[0].value_str;
+	blog(LOG_INFO, message.c_str());
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
