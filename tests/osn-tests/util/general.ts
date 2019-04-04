@@ -62,3 +62,8 @@ export function deleteConfigFiles(): void {
         }
     });
 }
+
+export function getRandomValue(list: any) {
+    const value = list[Math.floor(Math.random() * list.length)];
+    return value[Object.keys(value)[0]];
+}
