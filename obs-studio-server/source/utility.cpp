@@ -18,6 +18,8 @@
 
 #include "utility.hpp"
 
+ipc::server* g_srv = nullptr;
+
 utility::unique_id::unique_id() {}
 
 utility::unique_id::~unique_id() {}

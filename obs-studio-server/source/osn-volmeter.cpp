@@ -61,6 +61,7 @@ void osn::VolMeter::Register(ipc::server& srv)
 	    std::make_shared<ipc::function>("RemoveCallback", std::vector<ipc::type>{ipc::type::UInt64}, RemoveCallback));
 	cls->register_function(std::make_shared<ipc::function>("Query", std::vector<ipc::type>{ipc::type::UInt64}, Query));
 	srv.register_collection(cls);
+	g_srv = &srv;
 }
 
 void osn::VolMeter::ClearVolmeters()
@@ -347,6 +348,20 @@ void osn::VolMeter::OBSCallback(
 		meter->current_data.peak[ch]       = MAKE_FLOAT_SANE(peak[ch]);
 		meter->current_data.input_peak[ch] = MAKE_FLOAT_SANE(input_peak[ch]);
 	}
+	std::vector<ipc::value> agrs;
+	agrs.push_back(ipc::value(meter->id));
+	agrs.push_back(ipc::value(obs_volmeter_get_nr_channels(meter->self)));
+
+	for (size_t ch = 0; ch < meter->current_data.ch; ch++) {
+		agrs.push_back(ipc::value(meter->current_data.magnitude[ch]));
+		agrs.push_back(ipc::value(meter->current_data.peak[ch]));
+		agrs.push_back(ipc::value(meter->current_data.input_peak[ch]));
+	}
+
+	if (g_srv) {
+		(++g_srv->m_clients.begin())->second->call("VolMeter", "UpdateVolmeter", agrs);
+	}
+		
 
 #undef MAKE_FLOAT_SANE
 }

@@ -193,6 +193,15 @@ void osn::VolMeter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	// Stuff
 	utilv8::SetObjectField(target, "Volmeter", fnctemplate->GetFunction());
 	prototype.Reset(fnctemplate);
+
+	auto conn = Controller::GetInstance().GetConnection();
+	if (!conn) {
+		return;
+	}
+
+	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Volmeter");
+	cls->register_function(std::make_shared<ipc::function>("UpdateVolmeter", std::vector<ipc::type>{}, UpdateVolmeter));
+	conn->register_collection(cls);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Create(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -412,6 +421,34 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::RemoveCallback(Nan::NAN_METHOD_ARGS_T
 	}
 
 	info.GetReturnValue().Set(true);
+}
+
+void osn::VolMeter::UpdateVolmeter(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	std::shared_ptr<osn::VolMeterData> item       = std::make_shared<osn::VolMeterData>();
+	uint64_t                           idVolmeter = args[0].value_union.ui64;
+	size_t                             channels   = args[1].value_union.i32;
+
+	item->magnitude.resize(channels);
+	item->peak.resize(channels);
+	item->input_peak.resize(channels);
+	for (size_t ch = 0; ch < channels; ch++) {
+		item->magnitude[ch]  = args[2 + ch * 3 + 0].value_union.fp32;
+		item->peak[ch]       = args[2 + ch * 3 + 1].value_union.fp32;
+		item->input_peak[ch] = args[2 + ch * 3 + 2].value_union.fp32;
+	}
+
+	v8::Local<v8::Value> param[] = {
+	    utilv8::ToValue(item->magnitude), utilv8::ToValue(item->peak), utilv8::ToValue(item->input_peak)};
+
+	osn::VolMeter* obj = new osn::VolMeter(idVolmeter);
+	Nan::Call(obj->m_callback_function, 3, param);
+	std::cout << "New volmeter value" << std::endl;
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
 INITIALIZER(nodeobs_volmeter)
