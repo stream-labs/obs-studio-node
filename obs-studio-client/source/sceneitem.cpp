@@ -235,7 +235,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetSelected(Nan::NAN_METHOD_ARGS_TYP
 
 	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
 
-	if (sid && selected == sid->isSelected) {
+	if (sid == nullptr) {
+		return;
+   }
+
+	if (selected == sid->isSelected) {
 		sid->selectedChanged = false;
 		return;
 	}
@@ -824,7 +828,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetId(Nan::NAN_METHOD_ARGS_TYPE info
 	}
 
 	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
-	if (sid && sid->obs_itemId < 0) {
+
+	if (sid == nullptr) {
+		return;
+   }
+
+	if (sid->obs_itemId < 0) {
 		auto conn = GetConnection();
 		if (!conn)
 			return;
