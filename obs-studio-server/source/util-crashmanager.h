@@ -40,7 +40,9 @@ namespace util
 
 		public:
 
-		bool Initialize();
+		~CrashManager();
+
+		bool Initialize(std::wstring app_data);
 		void Configure();
 		void OpenConsole();
 
