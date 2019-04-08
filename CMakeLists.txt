@@ -83,6 +83,12 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/nlohmann/json
 )
 
+# Curl for people
+FetchContent_Declare(
+  cpr
+  GIT_REPOSITORY https://github.com/whoshuu/cpr/
+)
+
 FetchContent_GetProperties(stackwalker)
 if(NOT stackwalker_POPULATED)
   FetchContent_Populate(stackwalker)
@@ -92,6 +98,19 @@ endif()
 FetchContent_GetProperties(nlohmannjson)
 if(NOT nlohmannjson_POPULATED)
   FetchContent_Populate(nlohmannjson)
+endif()
+
+set(BUILD_CURL_EXE false CACHE BOOL "" FORCE)
+set(CURL_STATIC_CRT true CACHE BOOL "" FORCE)
+set(BUILD_CPR_TESTS false CACHE BOOL "" FORCE)
+set(BUILD_TESTING false CACHE BOOL "" FORCE)
+set(CMAKE_USE_OPENSSL false CACHE BOOL "" FORCE)
+
+
+FetchContent_GetProperties(cpr)
+if(NOT cpr_POPULATED)
+  FetchContent_Populate(cpr)
+  add_subdirectory(${cpr_SOURCE_DIR} ${cpr_BINARY_DIR})
 endif()
 
 add_subdirectory(lib-streamlabs-ipc)

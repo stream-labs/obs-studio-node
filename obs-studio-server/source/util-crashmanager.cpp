@@ -18,9 +18,9 @@
 */
 
 #include "util-crashmanager.h"
-#include "StackWalker.h"
 #include <chrono>
 #include <codecvt>
+#include <cpr/cpr.h>
 #include <iostream>
 #include <locale>
 #include <map>
@@ -30,6 +30,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include "StackWalker.h"
 #include "nodeobs_api.h"
 
 #if defined(_WIN32)
@@ -203,15 +204,169 @@ nlohmann::json RequestProcessList()
 	return result;
 }
 
+std::string m_public_key;
+/// the secret key to be used in requests
+std::string m_secret_key;
+/// the URL to send events to
+std::string m_store_url;
+
+#include <regex> // regex, regex_match, smatch
+
+void SetupSentryDNS(const std::string& dsn)
+{
+	if (!dsn.empty()) {
+		const std::regex dsn_regex("(http[s]?)://([^:]+):([^@]+)@([^/]+)/([0-9]+)");
+		std::smatch      pieces_match;
+
+		if (std::regex_match(dsn, pieces_match, dsn_regex) and pieces_match.size() == 6) {
+			const auto scheme     = pieces_match.str(1);
+			m_public_key          = pieces_match.str(2);
+			m_secret_key          = pieces_match.str(3);
+			const auto host       = pieces_match.str(4);
+			const auto project_id = pieces_match.str(5);
+			m_store_url           = scheme + "://" + host + "/api/" + project_id + "/store/";
+		} else {
+			throw std::invalid_argument("DNS " + dsn + " is invalid");
+		}
+	}
+}
+#include <curl/curl.h>
+
+#include <cstring>
+#include <curl/curl.h>
+#include <string>
+
+class curl_wrapper
+{
+	public:
+	class response
+	{
+		public:
+		response(std::string d, int sc) : data(std::move(d)), status_code(sc) {}
+
+		std::string data;
+		int         status_code;
+
+		nlohmann::json json()
+		{
+			return nlohmann::json::parse(data);
+		}
+	};
+
+	public:
+	curl_wrapper() : m_curl(curl_easy_init())
+	{
+		assert(m_curl);
+
+		//set_option(CURLOPT_VERBOSE, 1L);
+		set_option(CURLOPT_SSL_VERIFYPEER, 0L);
+	}
+
+	~curl_wrapper()
+	{
+		curl_slist_free_all(m_headers);
+		curl_easy_cleanup(m_curl);
+	}
+
+	response post(const std::string& url, const nlohmann::json& payload, const bool compress = false)
+	{
+		set_header("Content-Type: application/json");
+		return post(url, payload.dump(), compress);
+	}
+
+	response post(const std::string& url, const std::string& data, const bool compress = false)
+	{
+		std::string c_data;
+
+		set_option(CURLOPT_POSTFIELDS, data.c_str());
+		set_option(CURLOPT_POSTFIELDSIZE, data.size());
+
+		set_option(CURLOPT_URL, url.c_str());
+		set_option(CURLOPT_POST, 1);
+		set_option(CURLOPT_WRITEFUNCTION, &write_callback);
+		set_option(CURLOPT_WRITEDATA, &string_buffer);
+
+		auto res = curl_easy_perform(m_curl);
+
+		if (res != CURLE_OK) {
+			std::string error_msg = std::string("curl_easy_perform() failed: ") + curl_easy_strerror(res);
+			throw std::runtime_error(error_msg);
+		}
+
+		int status_code;
+		curl_easy_getinfo(m_curl, CURLINFO_RESPONSE_CODE, &status_code);
+
+		return {std::move(string_buffer), status_code};
+	}
+
+	template<typename T>
+	CURLcode set_option(CURLoption option, T parameter)
+	{
+		return curl_easy_setopt(m_curl, option, parameter);
+	}
+
+	void set_header(const char* header)
+	{
+		m_headers = curl_slist_append(m_headers, header);
+		set_option(CURLOPT_HTTPHEADER, m_headers);
+	}
+
+	private:
+	static size_t write_callback(char* ptr, size_t size, size_t nmemb, void* userdata)
+	{
+		assert(userdata);
+		((std::string*)userdata)->append(ptr, size * nmemb);
+		return size * nmemb;
+	}
+
+
+	private:
+	CURL* const        m_curl;
+	struct curl_slist* m_headers = nullptr;
+	std::string        string_buffer;
+};
+
 bool util::CrashManager::Initialize()
 {
 #ifndef _DEBUG
 
-    if (!SetupCrashpad()) {
-		return false;
-    }
+	curl_wrapper curl;
 
-    // Handler for obs errors (mainly for bcrash() calls)
+	SetupSentryDNS("https://7376a60665cd40bebbd59d6bf8363172:13804c42a5a84504bb5475050f6392e0@sentry.io/1406061");
+
+	// add security header
+	std::string security_header = "X-Sentry-Auth: Sentry sentry_version=5,sentry_client=crow/";
+	security_header += std::string("6.8.9") + ",sentry_timestamp=";
+	security_header += std::to_string(34546456);
+	security_header += ",sentry_key=" + m_public_key;
+	security_header += ",sentry_secret=" + m_secret_key;
+	curl.set_header(security_header.c_str());
+
+	nlohmann::json j;
+	j["test"] = "testing";
+
+	auto curl_response = curl.post(m_store_url, j, true).data;
+	curl_response.c_str();
+
+	// return curl.post(m_store_url, payload.dump(), true).data;
+
+	std::vector<char> content{'t', 'e', 's', 't'};
+	auto              r = cpr::Post(
+        cpr::Url{"https://sentry.io/api/1406061/store/?sentry_key=7376a60665cd40bebbd59d6bf8363172"},
+        cpr::Multipart{
+			{"sentry_version", "5"}, 
+			{"sentry_key", m_public_key}, 
+		{"sentry_secret", m_secret_key}});
+
+	r.status_code;            // 200
+	r.header["content-type"]; // application/json; charset=utf-8
+	r.text;                   // JSON text string
+
+	if (!SetupCrashpad()) {
+		return false;
+	}
+
+	// Handler for obs errors (mainly for bcrash() calls)
 	base_set_crash_handler(
 	    [](const char* format, va_list args, void* param) {
 		    std::string errorMessage = FormatVAString(format, args);

@@ -139,6 +139,7 @@ set(PROJECT_INCLUDE_PATHS
 	${LIBOBS_INCLUDE_DIRS}
 	"${stackwalker_SOURCE_DIR}/Main/StackWalker"
 	"${nlohmannjson_SOURCE_DIR}/single_include"
+	"${cpr_SOURCE_DIR}/include"
 )
 
 set(PROJECT_DATA "${PROJECT_SOURCE_DIR}/resources")
@@ -234,6 +235,7 @@ add_executable(
 
 # Include/link crash manager dependencies
 target_link_libraries(${PROJECT_NAME} StackWalker)
+target_link_libraries(${PROJECT_NAME} cpr)
 
 if(WIN32)
 	target_sources(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}/version.rc")
