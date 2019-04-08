@@ -621,7 +621,7 @@ void OBS_API::OBS_API_getPerformanceStatistics(
 	rval.push_back(ipc::value(getCurrentBandwidth()));
 	rval.push_back(ipc::value(getCurrentFrameRate()));
 
-	g_srv->m_clients.begin()->second->call("MyClass", "MyFunction", {});
+	// g_srv->m_clients.begin()->second->call("MyClass", "MyFunction", {});
 
 	AUTO_DEBUG;
 }

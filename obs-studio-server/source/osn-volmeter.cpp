@@ -352,14 +352,23 @@ void osn::VolMeter::OBSCallback(
 	agrs.push_back(ipc::value(meter->id));
 	agrs.push_back(ipc::value(obs_volmeter_get_nr_channels(meter->self)));
 
+	std::vector<char> binData;
+	binData.resize(agrs.at(1).value_union.i32 * 3 * sizeof(float));
+	uint32_t indexBuffer = 0;
+
 	for (size_t ch = 0; ch < meter->current_data.ch; ch++) {
-		agrs.push_back(ipc::value(meter->current_data.magnitude[ch]));
-		agrs.push_back(ipc::value(meter->current_data.peak[ch]));
-		agrs.push_back(ipc::value(meter->current_data.input_peak[ch]));
+		*reinterpret_cast<float*>(binData.data() + indexBuffer) = meter->current_data.magnitude[ch];
+		indexBuffer += sizeof(float);
+		*reinterpret_cast<float*>(binData.data() + indexBuffer) = meter->current_data.peak[ch];
+		indexBuffer += sizeof(float);		
+		*reinterpret_cast<float*>(binData.data() + indexBuffer) = meter->current_data.input_peak[ch];
+		indexBuffer += sizeof(float);
 	}
 
+	agrs.push_back(ipc::value(binData));
+
 	if (g_srv) {
-		(++g_srv->m_clients.begin())->second->call("VolMeter", "UpdateVolmeter", agrs);
+		g_srv->m_clients.begin()->second->call("Volmeter", "UpdateVolmeter", agrs);
 	}
 		
 

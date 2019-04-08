@@ -25,6 +25,7 @@
 #include <string>
 #include "shared.hpp"
 #include "utility.hpp"
+#include "volmeter.hpp"
 
 static std::string serverBinaryPath  = "";
 static std::string serverWorkingPath = "";
@@ -318,6 +319,14 @@ std::shared_ptr<ipc::client> Controller::connect(
 	cls->register_function(
 	    std::make_shared<ipc::function>("MyFunction", std::vector<ipc::type>{}, MyFunction));
 	m_connection->register_collection(cls);
+
+	
+	std::shared_ptr<ipc::collection> cls_vol = std::make_shared<ipc::collection>("Volmeter");
+	cls_vol->register_function(
+	    std::make_shared<ipc::function>("UpdateVolmeter",
+		std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32, ipc::type::Binary},
+		osn::VolMeter::UpdateVolmeter));
+	m_connection->register_collection(cls_vol);
 
 	return m_connection;
 }
