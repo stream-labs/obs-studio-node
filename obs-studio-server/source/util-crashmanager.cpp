@@ -744,3 +744,10 @@ void util::CrashManager::ClearBreadcrumbs()
 	std::lock_guard<std::mutex> lock(messageMutex);
 	breadcrumbs.clear();
 }
+
+void util::CrashManager::DisableReports()
+{
+	client.~CrashpadClient();
+	database->~CrashReportDatabase();
+	database = nullptr;
+}
