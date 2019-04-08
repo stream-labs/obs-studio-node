@@ -21,7 +21,7 @@
 
 namespace osn
 {
-	class Transition : Source
+	class Transition : public Source
 	{
 		public:
 		static void Register(ipc::server&);

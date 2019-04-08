@@ -21,7 +21,7 @@
 
 namespace osn
 {
-	class Scene : Source
+	class Scene : public Source
 	{
 		public:
 		static void Register(ipc::server&);
