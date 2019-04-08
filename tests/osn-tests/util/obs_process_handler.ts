@@ -1,11 +1,11 @@
-import * as osn from 'obs-studio-node';
+import * as osn from '../osn';
 
 export class OBSProcessHandler {
     startup(): osn.EVideoCodes {
         const path = require('path');
         const uuid = require('uuid/v4');
 
-        const wd = path.join(path.normalize(__dirname), '..', 'node_modules', 'obs-studio-node');
+        const wd = path.normalize(osn.wd);
         const pipeName = 'osn-tests-pipe'.concat(uuid());  
 
         try {

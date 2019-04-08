@@ -945,6 +945,17 @@ export interface IKeyEvent {
 	nativeVkey: number;
 };
 
+export interface ISceneItemInfo {
+    name: string,
+    crop: ICropInfo,
+    scaleX: number,
+    scaleY: number,
+    visible: boolean,
+    x: number,
+    y: number,
+    rotation: number
+}
+
 /**
  * Class representing a source
  * 
@@ -1065,7 +1076,7 @@ export interface IScene extends ISource {
      * @param source - Input source to add to the scene
      * @returns - Return the sceneitem or null on failure
      */
-    add(source: IInput): ISceneItem;
+    add(source: IInput, transform?: ISceneItemInfo): ISceneItem;
     
     /**
      * A scene may be used as an input source (even though its type
@@ -1531,36 +1542,12 @@ export interface IModule {
     status(): number;
 }
 
-export interface ISceneItemInfo {
-    name: string,
-    crop: ICropInfo,
-    scaleX: number,
-    scaleY: number,
-    visible: boolean,
-    x: number,
-    y: number,
-    rotation: number
-}
 export function addItems(scene: IScene, sceneItems: ISceneItemInfo[]): ISceneItem[] {
     const items: ISceneItem[] = [];
     if (Array.isArray(sceneItems)) {
         sceneItems.forEach(function(sceneItem) {
             const source = obs.Input.fromName(sceneItem.name);
-            const item = scene.add(source);
-
-            item.position = {x: sceneItem.x, y: sceneItem.y};
-            item.scale = {x: sceneItem.scaleX, y: sceneItem.scaleY};
-            item.visible = sceneItem.visible;
-            item.rotation = sceneItem.rotation;
-
-            const cropModel = {
-                top: Math.round(sceneItem.crop.top),
-                right: Math.round(sceneItem.crop.right),
-                bottom: Math.round(sceneItem.crop.bottom),
-                left: Math.round(sceneItem.crop.left)
-              };
-
-            item.crop = cropModel;
+            const item = scene.add(source, sceneItem);
             items.push(item);
         });
     }

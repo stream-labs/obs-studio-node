@@ -441,6 +441,11 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 	DWORD pid = GetCurrentProcessId();
 	HANDLE hnd = OpenProcess(SYNCHRONIZE | PROCESS_TERMINATE, TRUE, pid);
 	if (hnd != nullptr) {
+
+		client.~CrashpadClient();
+		database->~CrashReportDatabase();
+		database = nullptr;
+
 		TerminateProcess(hnd, 0);
 	}
 
@@ -791,4 +796,11 @@ void util::CrashManager::ProcessPostServerCall(
 	}
 
 	ClearBreadcrumbs();
+}
+
+	void util::CrashManager::DisableReports()
+{
+	client.~CrashpadClient();
+	database->~CrashReportDatabase();
+	database = nullptr;
 }

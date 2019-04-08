@@ -21,7 +21,7 @@
 
 namespace osn
 {
-	class Input : Source
+	class Input : public Source
 	{
 		public:
 		static void Register(ipc::server&);

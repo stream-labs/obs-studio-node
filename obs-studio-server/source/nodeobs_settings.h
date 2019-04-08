@@ -163,17 +163,10 @@ class OBS_settings
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
-	static void OBS_settings_getListCategories(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
 
 	static void saveGenericSettings(std::vector<SubCategory> genericSettings, std::string section, config_t* config);
 
 	private:
-	static std::vector<std::string> getListCategories(void);
-
 	// Exposed methods to the frontend
 	static std::vector<SubCategory> getSettings(std::string nameCategory, CategoryTypes&);
 	static void                     saveSettings(std::string nameCategory, std::vector<SubCategory> settings);

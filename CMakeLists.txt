@@ -52,6 +52,46 @@ if(WIN32)
 		${PROJECT_SOURCE_DIR}/tests/helpers/obs.js
 		@ONLY
 	)
+
+	configure_file(
+		${PROJECT_SOURCE_DIR}/cmake/index.ts.in
+		${PROJECT_SOURCE_DIR}/tests/osn-tests/osn/index.ts
+		@ONLY
+	)
+endif()
+
+############################
+# Setup global dependencies
+############################
+
+include(ExternalProject)
+include(DownloadProject)
+include(FetchContent)
+
+# Override a test flag
+set(StackWalker_DISABLE_TESTS true CACHE BOOL "" FORCE)
+
+# StackWalker (Callstack rewind
+FetchContent_Declare(
+  stackwalker
+  GIT_REPOSITORY https://github.com/stream-labs/StackWalker
+)
+
+# Nlohmann JSON (modern JSON for C++)
+FetchContent_Declare(
+  nlohmannjson
+  GIT_REPOSITORY https://github.com/nlohmann/json
+)
+
+FetchContent_GetProperties(stackwalker)
+if(NOT stackwalker_POPULATED)
+  FetchContent_Populate(stackwalker)
+  add_subdirectory(${stackwalker_SOURCE_DIR} ${stackwalker_BINARY_DIR})
+endif()
+
+FetchContent_GetProperties(nlohmannjson)
+if(NOT nlohmannjson_POPULATED)
+  FetchContent_Populate(nlohmannjson)
 endif()
 
 add_subdirectory(lib-streamlabs-ipc)

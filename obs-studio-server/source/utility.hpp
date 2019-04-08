@@ -141,6 +141,11 @@ namespace utility
             }
         }
 
+        size_t size()
+        {
+            return object_map.size();
+        }
+
         void clear()
         {
             object_map.clear();
@@ -228,6 +233,11 @@ namespace utility
             for (auto it = object_map.begin(); it != object_map.end(); ++it) {
                 for_each_method(it->second);
             }
+        }
+
+        size_t size()
+        {
+            return object_map.size();
         }
 
         void clear()

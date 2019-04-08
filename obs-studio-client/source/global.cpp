@@ -93,10 +93,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Global::setOutputSource(Nan::NAN_METHOD_ARGS_TY
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Global", "SetOutputSource", {ipc::value(channel), ipc::value(source ? source->sourceId : UINT64_MAX)});
-
-	ValidateResponse(response);
+	conn->call("Global", "SetOutputSource", {ipc::value(channel), ipc::value(source ? source->sourceId : UINT64_MAX)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Global::getOutputFlagsFromId(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -172,8 +169,5 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Global::setLocale(Nan::NAN_METHOD_ARGS_TYPE inf
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Global", "SetLocale", {ipc::value(locale)});
-
-	if (!ValidateResponse(response))
-		return;
+	conn->call("Global", "SetLocale", {ipc::value(locale)});
 }

@@ -1,4 +1,4 @@
-import { ITimeSpec } from 'obs-studio-node';
+import { ITimeSpec } from '../osn';
 import { setOptions } from 'marked';
 
 const basicOBSInputTypes: string[] = ['image_source', 'color_source', 'slideshow', 'browser_source', 'ffmpeg_source', 'text_gdiplus', 'text_ft2_source', 
@@ -61,4 +61,9 @@ export function deleteConfigFiles(): void {
           });
         }
     });
+}
+
+export function getRandomValue(list: any) {
+    const value = list[Math.floor(Math.random() * list.length)];
+    return value[Object.keys(value)[0]];
 }

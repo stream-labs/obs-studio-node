@@ -124,6 +124,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Create(Nan::NAN_METHOD_ARGS_TYPE in
 
 	// Create new Filter
 	osn::Transition* obj = new osn::Transition(response[1].value_union.ui64);
+
+	SourceDataInfo* sdi = new SourceDataInfo;
+	sdi->name           = name;
+	sdi->obs_sourceId   = type;
+	sdi->id             = response[1].value_union.ui64;
+
+	CacheManager<SourceDataInfo*>::getInstance().Store(response[1].value_union.ui64, name, sdi);
+
 	info.GetReturnValue().Set(osn::Transition::Store(obj));
 }
 
@@ -169,6 +177,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::CreatePrivate(Nan::NAN_METHOD_ARGS_
 
 	// Create new Filter
 	osn::Transition* obj = new osn::Transition(response[1].value_union.ui64);
+
+	SourceDataInfo* sdi = new SourceDataInfo;
+	sdi->name           = name;
+	sdi->obs_sourceId   = type;
+	sdi->id             = response[1].value_union.ui64;
+
+	CacheManager<SourceDataInfo*>::getInstance().Store(response[1].value_union.ui64, name, sdi);
+
 	info.GetReturnValue().Set(osn::Transition::Store(obj));
 }
 
@@ -251,12 +267,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Clear(Nan::NAN_METHOD_ARGS_TYPE inf
 
 	auto params = std::vector<ipc::value>{ipc::value(obj->sourceId)};
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Transition", "Clear", {std::move(params)});
-
-	if (!ValidateResponse(response))
-		return;
-
-	return;
+	conn->call("Transition", "Clear", {std::move(params)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Set(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -289,12 +300,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Set(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	auto params = std::vector<ipc::value>{ipc::value(obj->sourceId), ipc::value(targetobj->sourceId)};
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Transition", "Set", {std::move(params)});
-
-	if (!ValidateResponse(response))
-		return;
-
-	return;
+	conn->call("Transition", "Set", {std::move(params)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Start(Nan::NAN_METHOD_ARGS_TYPE info)

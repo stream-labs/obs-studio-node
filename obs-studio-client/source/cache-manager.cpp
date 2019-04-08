@@ -16,20 +16,4 @@
 
 ******************************************************************************/
 
-#pragma once
-#include "osn-source.hpp"
-
-namespace osn
-{
-	class Filter : public Source
-	{
-		public:
-		static void Register(ipc::server&);
-
-		// Function
-		static void
-		    Types(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		    Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-	};
-} // namespace osn
+#include "cache-manager.hpp"

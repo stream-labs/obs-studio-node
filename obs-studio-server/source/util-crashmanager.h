@@ -49,6 +49,7 @@ namespace util
 		static void AddBreadcrumb(const nlohmann::json& message);
 		static void AddBreadcrumb(const std::string& message);
 		static void ClearBreadcrumbs();
+		static void DisableReports();
 
 		static void ProcessPreServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args);
 		static void ProcessPostServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args);

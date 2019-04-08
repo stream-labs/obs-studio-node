@@ -1,7 +1,7 @@
 import 'mocha'
 import { expect } from 'chai'
-import * as osn from 'obs-studio-node';
-import { IInput, ISource } from 'obs-studio-node';
+import * as osn from '../osn';
+import { IInput, ISource } from '../osn';
 import { OBSProcessHandler } from '../util/obs_process_handler';
 import { basicOBSInputTypes } from '../util/general';
 
@@ -48,12 +48,6 @@ describe('osn-global', () => {
             expect(returnSource.id).to.equal('image_source');
             expect(returnSource.name).to.equal('test_osn_global_source');
             input.release();
-        });
-
-        it('FAIL TEST: Set source to output channel that does not exist', () => {
-            expect(function() {
-                osn.Global.setOutputSource(99, input);
-            }).to.throw();
         });
 
         it('FAIL TEST: Get source from empty output channel', () => {

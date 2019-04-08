@@ -1,5 +1,5 @@
 import 'mocha';
-import * as osn from 'obs-studio-node';
+import * as osn from '../osn';
 import { OBSProcessHandler } from '../util/obs_process_handler';
 import { Services } from '../util/services';
 import { deleteConfigFiles } from '../util/general';

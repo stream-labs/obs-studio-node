@@ -1,0 +1,4 @@
+export * from '@CMAKE_INSTALL_PREFIX@/index';
+
+const wd: string = "@CMAKE_INSTALL_PREFIX@";
+export {wd};

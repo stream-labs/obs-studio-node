@@ -156,6 +156,16 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	// Create new Filter
 	osn::Input* obj = new osn::Input(response[1].value_union.ui64);
+
+	SourceDataInfo* sdi = new SourceDataInfo;
+	sdi->name           = name;
+	sdi->obs_sourceId   = type;
+	sdi->id             = response[1].value_union.ui64;
+	sdi->setting        = response[2].value_str;
+	sdi->audioMixers    = response[3].value_union.ui32;
+
+	CacheManager<SourceDataInfo*>::getInstance().Store(response[1].value_union.ui64, name, sdi);
+
 	info.GetReturnValue().Set(osn::Input::Store(obj));
 }
 
@@ -200,6 +210,16 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE 
 
 	// Create new Filter
 	osn::Input* obj = new osn::Input(response[1].value_union.ui64);
+
+	SourceDataInfo* sdi = new SourceDataInfo;
+	sdi->name           = name;
+	sdi->obs_sourceId   = type;
+	sdi->id             = response[1].value_union.ui64;
+	sdi->setting        = response[2].value_str;
+	sdi->audioMixers    = response[3].value_union.ui32;
+
+	CacheManager<SourceDataInfo*>::getInstance().Store(response[1].value_union.ui64, name, sdi);
+
 	info.GetReturnValue().Set(osn::Input::Store(obj));
 }
 
@@ -210,6 +230,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::FromName(Nan::NAN_METHOD_ARGS_TYPE info)
 	// Parameters: <string> Name
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], name);
+
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(name);
+
+	if (sdi) {
+		osn::Input* obj = new osn::Input(sdi->id);
+		info.GetReturnValue().Set(osn::Input::Store(obj));
+		return;
+	}
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -402,6 +430,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetVolume(Nan::NAN_METHOD_ARGS_TYPE info
 		return;
 	}
 
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
+
+	if (sdi && !sdi->volumeChanged) {
+		info.GetReturnValue().Set(sdi->volume);
+		return;
+	}
+
 	auto conn = GetConnection();
 	if (!conn)
 		return;
@@ -410,6 +445,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetVolume(Nan::NAN_METHOD_ARGS_TYPE info
 
 	if (!ValidateResponse(response))
 		return;
+
+	if (sdi) {
+		sdi->volume        = response[1].value_union.fp32;
+		sdi->volumeChanged = false;
+	}
 
 	info.GetReturnValue().Set(response[1].value_union.fp32);
 }
@@ -434,13 +474,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetVolume(Nan::NAN_METHOD_ARGS_TYPE info
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "SetVolume", {ipc::value(obj->sourceId), ipc::value(volume)});
+	conn->call("Input", "SetVolume", {ipc::value(obj->sourceId), ipc::value(volume)});
 
-	if (!ValidateResponse(response))
-		return;
-
-	info.GetReturnValue().Set(response[1].value_union.fp32);
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
+	if (sdi) {
+		sdi->volumeChanged = true;
+	}
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -501,13 +540,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE 
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "SetSyncOffset", {ipc::value(obj->sourceId), ipc::value(syncoffset)});
-
-	if (!ValidateResponse(response))
-		return;
-
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.i64));
+	conn->call("Input", "SetSyncOffset", {ipc::value(obj->sourceId), ipc::value(syncoffset)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -522,6 +555,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE
 		return;
 	}
 
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
+	if (sdi && !sdi->audioMixersChanged && sdi->audioMixers != UINT32_MAX) {
+		info.GetReturnValue().Set(sdi->audioMixers);
+		return;
+	}
+
 	auto conn = GetConnection();
 	if (!conn)
 		return;
@@ -531,6 +570,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE
 
 	if (!ValidateResponse(response))
 		return;
+
+	if (sdi) {
+		sdi->audioMixers        = response[1].value_union.ui32;
+		sdi->audioMixersChanged = false;
+	}
 
 	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.ui32));
 }
@@ -555,13 +599,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "SetAudioMixers", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
+	conn->call("Input", "SetAudioMixers", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
 
-	if (!ValidateResponse(response))
-		return;
-
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.ui32));
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
+	if (sdi) {
+		sdi->audioMixersChanged = true;
+	}
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetMonitoringType(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -609,13 +652,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetMonitoringType(Nan::NAN_METHOD_ARGS_T
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Input", "SetMonitoringType", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
-
-	if (!ValidateResponse(response))
-		return;
-
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.i32));
+	conn->call("Input", "SetMonitoringType", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetDeinterlaceFieldOrder(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -663,14 +700,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetDeinterlaceFieldOrder(Nan::NAN_METHOD
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Input", "SetDeInterlaceFieldOrder", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
-
-	if (!ValidateResponse(response))
-		return;
-
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.i32));
-	return;
+	conn->call("Input", "SetDeInterlaceFieldOrder", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetDeinterlaceMode(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -719,14 +749,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetDeinterlaceMode(Nan::NAN_METHOD_ARGS_
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Input", "SetDeInterlaceMode", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
-
-	if (!ValidateResponse(response))
-		return;
-
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.i32));
-	return;
+	conn->call("Input", "SetDeInterlaceMode", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::Filters(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -738,6 +761,20 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Filters(Nan::NAN_METHOD_ARGS_TYPE info)
 	osn::Input* obj = static_cast<osn::Input*>(baseobj);
 	if (!obj) {
 		// How did you even call this? o.o
+		return;
+	}
+
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
+
+	if (sdi && !sdi->filtersOrderChanged) {
+		std::vector<uint64_t>* filters = sdi->filters;
+		v8::Local<v8::Array>   arr     = Nan::New<v8::Array>(int(filters->size()));
+		for (uint32_t i = 0; i < filters->size(); i++) {
+			osn::Filter* obj    = new osn::Filter(filters->at(i));
+			auto         object = osn::Filter::Store(obj);
+			Nan::Set(arr, i, object);
+		}
+		info.GetReturnValue().Set(arr);
 		return;
 	}
 
@@ -759,6 +796,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Filters(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 
 	info.GetReturnValue().Set(arr);
+
+	if (sdi) {
+		sdi->filtersOrderChanged = false;
+	}
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::AddFilter(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -794,10 +835,18 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::AddFilter(Nan::NAN_METHOD_ARGS_TYPE info
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "AddFilter", {ipc::value(obj->sourceId), ipc::value(filter->sourceId)});
+	conn->call("Input", "AddFilter", {ipc::value(obj->sourceId), ipc::value(filter->sourceId)});
 
-	ValidateResponse(response);
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
+	if (sdi) {
+		std::vector<uint64_t>*          filters  = sdi->filters;
+		std::vector<uint64_t>::iterator filterIt = std::find(filters->begin(), filters->end(), basefilter->sourceId);
+		if (filterIt != filters->end())
+			sdi->filters->erase(filterIt);
+
+		filters->push_back(filter->sourceId);
+		sdi->filtersOrderChanged = true;
+	}
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::RemoveFilter(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -827,10 +876,18 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::RemoveFilter(Nan::NAN_METHOD_ARGS_TYPE i
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Input", "RemoveFilter", {ipc::value(obj->sourceId), ipc::value(basefilter->sourceId)});
+	conn->call("Input", "RemoveFilter", {ipc::value(obj->sourceId), ipc::value(basefilter->sourceId)});
 
-	ValidateResponse(response);
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
+	if (sdi) {
+		std::vector<uint64_t>*          filters  = sdi->filters;
+		std::vector<uint64_t>::iterator filterIt = std::find(filters->begin(), filters->end(), basefilter->sourceId);
+
+		if (filterIt != filters->end()) {
+			filters->erase(filterIt);
+			sdi->filtersOrderChanged = true;
+		}
+	}
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetFilterOrder(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -862,10 +919,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetFilterOrder(Nan::NAN_METHOD_ARGS_TYPE
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
+	conn->call(
 	    "Input", "MoveFilter", {ipc::value(obj->sourceId), ipc::value(basefilter->sourceId), ipc::value(movement)});
 
-	ValidateResponse(response);
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
+	if (sdi) {
+		sdi->filtersOrderChanged = true;
+	}
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::FindFilter(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -935,8 +995,5 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::CopyFilters(Nan::NAN_METHOD_ARGS_TYPE in
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Input", "CopyFiltersTo", {ipc::value(obj->sourceId), ipc::value(input->sourceId)});
-
-	ValidateResponse(response);
+	conn->call("Input", "CopyFiltersTo", {ipc::value(obj->sourceId), ipc::value(input->sourceId)});
 }

@@ -745,7 +745,8 @@ bool OBS_service::createService()
 	obs_data_t* settings;
 	obs_data_t* hotkey_data;
 
-	if (!fileExist) {
+	auto CreateNewService = [&]()
+	{
 		service = obs_service_create("rtmp_common", "default_service", nullptr, nullptr);
 		if (service == nullptr) {
 			return false;
@@ -762,25 +763,48 @@ bool OBS_service::createService()
 
 		obs_data_set_string(data, "type", obs_service_get_type(service));
 		obs_data_set_obj(data, "settings", settings);
+	};
+
+	if (!fileExist) {
+
+		CreateNewService();
 
 	} else {
+		
+		// Verify if the service.json was corrupted
 		data = obs_data_create_from_json_file_safe(ConfigManager::getInstance().getService().c_str(), "bak");
+		if (data == nullptr) {
 
-		obs_data_set_default_string(data, "type", "rtmp_common");
-		type = obs_data_get_string(data, "type");
-
-		settings    = obs_data_get_obj(data, "settings");
-		hotkey_data = obs_data_get_obj(data, "hotkeys");
-
-		service = obs_service_create(type, "default_service", settings, hotkey_data);
-		if (service == nullptr) {
-			obs_data_release(data);
-			obs_data_release(hotkey_data);
-			obs_data_release(settings);
-			return false;
+			blog(LOG_WARNING, "Failed to create data from service json, using default properties!");
+			CreateNewService();
 		}
+		else {
+			obs_data_set_default_string(data, "type", "rtmp_common");
+			type = obs_data_get_string(data, "type");
 
-		obs_data_release(hotkey_data);
+			settings    = obs_data_get_obj(data, "settings");
+			hotkey_data = obs_data_get_obj(data, "hotkeys");
+
+			// If the type is invalid it could cause a crash since internally obs uses strcmp (nullptr = undef behavior)
+			if (type == nullptr) {
+				obs_data_release(data);
+				obs_data_release(hotkey_data);
+				obs_data_release(settings);
+
+				blog(LOG_WARNING, "Failed to retrieve a valid service type from the data, using default properties!");
+				CreateNewService();
+			}
+
+			service = obs_service_create(type, "default_service", settings, hotkey_data);
+			if (service == nullptr) {
+				obs_data_release(data);
+				obs_data_release(hotkey_data);
+				obs_data_release(settings);
+				return false;
+			}
+
+			obs_data_release(hotkey_data);
+		}
 	}
 
 	if (!obs_data_save_json_safe(data, ConfigManager::getInstance().getService().c_str(), "tmp", "bak")) {
@@ -963,7 +987,7 @@ void OBS_service::stopRecording(void)
 	isRecording = false;
 }
 
-bool OBS_service::updateAdvancedReplayBuffer(void)
+void OBS_service::updateAdvancedReplayBuffer(void)
 {
 	const char* path;
 	const char* recFormat;
@@ -1022,14 +1046,6 @@ bool OBS_service::updateAdvancedReplayBuffer(void)
 		rbTime   = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecRBTime");
 		rbSize   = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecRBSize");
 
-		os_dir_t* dir = path && path[0] ? os_opendir(path) : nullptr;
-
-		if (!dir) {
-			return false;
-		}
-
-		os_closedir(dir);
-
 		std::string strPath;
 		strPath += path;
 
@@ -1072,8 +1088,6 @@ bool OBS_service::updateAdvancedReplayBuffer(void)
 
 		obs_data_release(settings);
 	}
-
-	return true;
 }
 
 bool OBS_service::startReplayBuffer(void)
@@ -1096,8 +1110,7 @@ bool OBS_service::startReplayBuffer(void)
 
 		associateAudioAndVideoEncodersToTheCurrentRecordingOutput(useStreamingEncoder);
 	} else {
-		if (!updateAdvancedReplayBuffer())
-			return false;
+		updateAdvancedReplayBuffer();
 	}
 
 	bool result = obs_output_start(replayBufferOutput);
