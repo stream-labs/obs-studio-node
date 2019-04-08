@@ -201,6 +201,8 @@ int main(int argc, char* argv[])
 		return -2;
 	}
 
+#ifndef _DEBUG
+
 	// Register the pre and post server callbacks to log the data into the crashmanager
 	myServer.set_pre_callback([](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data)
 	{ 
@@ -213,6 +215,8 @@ int main(int argc, char* argv[])
 		util::CrashManager& crashManager = *static_cast<util::CrashManager*>(data);
 		crashManager.ProcessPostServerCall(cname, fname, args);
 	}, &crashManager);
+
+#endif
 
 	// Reset Connect/Disconnect time.
 	sd.last_disconnect = sd.last_connect = std::chrono::high_resolution_clock::now();
