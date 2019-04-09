@@ -442,9 +442,12 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 	HANDLE hnd = OpenProcess(SYNCHRONIZE | PROCESS_TERMINATE, TRUE, pid);
 	if (hnd != nullptr) {
 
+#ifndef _DEBUG
+
 		client.~CrashpadClient();
 		database->~CrashReportDatabase();
 		database = nullptr;
+#endif
 
 		TerminateProcess(hnd, 0);
 	}
@@ -798,9 +801,13 @@ void util::CrashManager::ProcessPostServerCall(
 	ClearBreadcrumbs();
 }
 
-	void util::CrashManager::DisableReports()
+void util::CrashManager::DisableReports()
 {
+#ifndef _DEBUG
+
 	client.~CrashpadClient();
 	database->~CrashReportDatabase();
 	database = nullptr;
+
+#endif
 }
