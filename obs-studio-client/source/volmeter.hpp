@@ -62,10 +62,6 @@ namespace osn
 		void stop_async_runner();
 		void callback_handler(void* data, std::shared_ptr<osn::VolMeterData> item);
 
-		void start_worker();
-		void stop_worker();
-		void worker();
-
 		void set_keepalive(v8::Local<v8::Object>);
 
 		public:
