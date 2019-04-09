@@ -273,12 +273,6 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 	return m_connection;
 }
 
-void MyFunction(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
-{
-	std::cout << "I'm a client and the server is calling me" << std::endl;
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-}
-
 std::shared_ptr<ipc::client> Controller::connect(
     const std::string& uri)
 {
@@ -315,12 +309,6 @@ std::shared_ptr<ipc::client> Controller::connect(
 
 	m_connection = cl;
 
-	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("MyClass");
-	cls->register_function(
-	    std::make_shared<ipc::function>("MyFunction", std::vector<ipc::type>{}, MyFunction));
-	m_connection->register_collection(cls);
-
-	
 	std::shared_ptr<ipc::collection> cls_vol = std::make_shared<ipc::collection>("Volmeter");
 	cls_vol->register_function(
 	    std::make_shared<ipc::function>("UpdateVolmeter",

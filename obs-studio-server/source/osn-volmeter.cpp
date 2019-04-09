@@ -59,7 +59,6 @@ void osn::VolMeter::Register(ipc::server& srv)
 	    std::make_shared<ipc::function>("AddCallback", std::vector<ipc::type>{ipc::type::UInt64}, AddCallback));
 	cls->register_function(
 	    std::make_shared<ipc::function>("RemoveCallback", std::vector<ipc::type>{ipc::type::UInt64}, RemoveCallback));
-	cls->register_function(std::make_shared<ipc::function>("Query", std::vector<ipc::type>{ipc::type::UInt64}, Query));
 	srv.register_collection(cls);
 	g_srv = &srv;
 }
@@ -291,38 +290,6 @@ void osn::VolMeter::RemoveCallback(
 
 	rval.push_back(ipc::value(uint64_t(ErrorCode::Ok)));
 	rval.push_back(ipc::value(meter->callback_count));
-	AUTO_DEBUG;
-}
-
-void osn::VolMeter::Query(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	auto uid   = args[0].value_union.ui64;
-	auto meter = Manager::GetInstance().find(uid);
-	if (!meter) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Invalid Meter Reference."));
-		AUTO_DEBUG;
-		return;
-	}
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-
-	std::unique_lock<std::mutex> ulock(meter->current_data_mtx);
-
-	rval.push_back(ipc::value(meter->current_data.ch));
-
-	for (size_t ch = 0; ch < meter->current_data.ch; ch++) {
-		rval.push_back(ipc::value(meter->current_data.magnitude[ch]));
-		rval.push_back(ipc::value(meter->current_data.peak[ch]));
-		rval.push_back(ipc::value(meter->current_data.input_peak[ch]));
-	}
-
-	ulock.unlock();
-
 	AUTO_DEBUG;
 }
 
