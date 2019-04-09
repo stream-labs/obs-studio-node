@@ -348,7 +348,7 @@ void osn::VolMeter::OBSCallback(
 		meter->current_data.peak[ch]       = MAKE_FLOAT_SANE(peak[ch]);
 		meter->current_data.input_peak[ch] = MAKE_FLOAT_SANE(input_peak[ch]);
 	}
-	std::vector<ipc::value> agrs;
+/*	std::vector<ipc::value> agrs;
 	agrs.push_back(ipc::value(meter->id));
 	agrs.push_back(ipc::value(obs_volmeter_get_nr_channels(meter->self)));
 
@@ -370,7 +370,7 @@ void osn::VolMeter::OBSCallback(
 	if (g_srv) {
 		g_srv->m_clients.begin()->second->call("Volmeter", "UpdateVolmeter", agrs);
 	}
-		
+	*/	
 
 #undef MAKE_FLOAT_SANE
 }

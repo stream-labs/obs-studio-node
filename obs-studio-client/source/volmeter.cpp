@@ -145,7 +145,7 @@ void osn::VolMeter::worker()
 					data->peak[ch]       = response[1 + ch * 3 + 1].value_union.fp32;
 					data->input_peak[ch] = response[1 + ch * 3 + 2].value_union.fp32;
 				}
-				/*m_async_callback->queue(std::move(data));*/
+				m_async_callback->queue(std::move(data));
 			} else if(error == ErrorCode::InvalidReference) {
 				goto do_sleep;
 			}
@@ -424,33 +424,33 @@ void osn::VolMeter::UpdateVolmeter(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	std::shared_ptr<osn::VolMeterData> item       = std::make_shared<osn::VolMeterData>();
-	uint64_t                           idVolmeter = args[0].value_union.ui64;
-	size_t                             channels   = args[1].value_union.i32;
-	uint32_t                           indexData  = 0;
-	std::vector<char>                  buffer     = args[2].value_bin;
-	osn::VolMeter*                     obj        = nullptr;
+	//std::shared_ptr<osn::VolMeterData> item       = std::make_shared<osn::VolMeterData>();
+	//uint64_t                           idVolmeter = args[0].value_union.ui64;
+	//size_t                             channels   = args[1].value_union.i32;
+	//uint32_t                           indexData  = 0;
+	//std::vector<char>                  buffer     = args[2].value_bin;
+	//osn::VolMeter*                     obj        = nullptr;
 
-	auto it = volmeters.find(args[0].value_union.ui64);
-	if (it != volmeters.end())
-		obj = it->second;
+	//auto it = volmeters.find(args[0].value_union.ui64);
+	//if (it != volmeters.end())
+	//	obj = it->second;
 
-	item->magnitude.resize(channels);
-	item->peak.resize(channels);
-	item->input_peak.resize(channels);
-	for (size_t ch = 0; ch < channels; ch++) {
-		item->magnitude[ch]  = *reinterpret_cast<float*>(buffer.data() + indexData);
-		indexData            += sizeof(float);
-		item->peak[ch]       = *reinterpret_cast<float*>(buffer.data() + indexData);
-		indexData            += sizeof(float);
-		item->input_peak[ch] = *reinterpret_cast<float*>(buffer.data() + indexData);
-		indexData            += sizeof(float);
-	}
-	if (obj && obj->m_async_callback) {
-		item->param = obj;
-		std::unique_lock<std::mutex> ul(obj->m_worker_lock);
-		obj->m_async_callback->queue(std::move(item));
-	}
+	//item->magnitude.resize(channels);
+	//item->peak.resize(channels);
+	//item->input_peak.resize(channels);
+	//for (size_t ch = 0; ch < channels; ch++) {
+	//	item->magnitude[ch]  = *reinterpret_cast<float*>(buffer.data() + indexData);
+	//	indexData            += sizeof(float);
+	//	item->peak[ch]       = *reinterpret_cast<float*>(buffer.data() + indexData);
+	//	indexData            += sizeof(float);
+	//	item->input_peak[ch] = *reinterpret_cast<float*>(buffer.data() + indexData);
+	//	indexData            += sizeof(float);
+	//}
+	//if (obj && obj->m_async_callback) {
+	//	//item->param = obj;
+	//	//std::unique_lock<std::mutex> ul(obj->m_worker_lock);
+	//	//obj->m_async_callback->queue(std::move(item));
+	//}
 
 
 	//auto test = Nan::New<v8::Number>(5);
