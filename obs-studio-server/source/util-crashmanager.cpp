@@ -940,7 +940,7 @@ void util::CrashManager::ProcessPreServerCall(
 
 	AddBreadcrumb(jsonEntry);
 
-	MetricsFileSetStatus(fname);
+	MetricsFileSetStatus(cname + "-" + fname);
 }
 
 void util::CrashManager::ProcessPostServerCall(
@@ -970,9 +970,12 @@ void util::CrashManager::DisableReports()
 
 void MetricsFileOpen(std::wstring app_data)
 {
-	std::wstring file_path = app_data + L"\\" + CrashMetricsFilename;
+	if (app_data.length() == 0) {
+		return;
+	}
 
 	try {
+		std::wstring file_path = app_data + L"\\" + CrashMetricsFilename;
 		auto metrics_file_read = std::ifstream(file_path);
 		if (metrics_file_read.is_open()) {
 			std::string metrics_string;
@@ -983,13 +986,10 @@ void MetricsFileOpen(std::wstring app_data)
 				    "https://7376a60665cd40bebbd59d6bf8363172:13804c42a5a84504bb5475050f6392e0@sentry.io/1406061");
 
 				nlohmann::json j;
-				j["crash_on"] = metrics_string;
+				j["message"] = metrics_string;
+				j["level"]   = "info";
 
-				auto curl_response = curl.post(j, true).data;
-				curl_response.c_str();
-
-				// Generate a report
-				// ...
+				curl.post(j, true).data;
 			}
 
 			metrics_file_read.close();
