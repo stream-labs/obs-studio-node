@@ -18,7 +18,6 @@
 */
 
 #include "util-crashmanager.h"
-#include "StackWalker.h"
 #include <chrono>
 #include <codecvt>
 #include <iostream>
@@ -30,7 +29,9 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include "StackWalker.h"
 #include "nodeobs_api.h"
+#include "error.hpp"
 
 #if defined(_WIN32)
 
@@ -58,7 +59,7 @@
 std::vector<std::string>              handledOBSCrashes;
 PDH_HQUERY                            cpuQuery;
 PDH_HCOUNTER                          cpuTotal;
-std::vector<std::string>              breadcrumbs;
+std::vector<nlohmann::json>           breadcrumbs;
 std::vector<std::string>              warnings;
 std::chrono::steady_clock::time_point initialTime;
 std::mutex                            messageMutex;
@@ -93,7 +94,7 @@ std::string PrettyBytes(uint64_t bytes)
 	suffixes[5]    = "pb";
 	suffixes[6]    = "eb";
 	uint64_t s     = 0; // which suffix to use
-	double count = double(bytes);
+	double   count = double(bytes);
 	while (count >= 1024 && s < 7) {
 		s++;
 		count /= 1024;
@@ -151,7 +152,7 @@ void GetUserInfo(std::string& computerName)
 	if (!GetComputerName(infoBuf, &bufCharCount))
 		return;
 
-    using convert_typeX = std::codecvt_utf8<wchar_t>;
+	using convert_typeX = std::codecvt_utf8<wchar_t>;
 	std::wstring_convert<convert_typeX, wchar_t> converterX;
 
 	computerName = converterX.to_bytes(std::wstring(infoBuf));
@@ -207,11 +208,11 @@ bool util::CrashManager::Initialize()
 {
 #ifndef _DEBUG
 
-    if (!SetupCrashpad()) {
+	if (!SetupCrashpad()) {
 		return false;
-    }
+	}
 
-    // Handler for obs errors (mainly for bcrash() calls)
+	// Handler for obs errors (mainly for bcrash() calls)
 	base_set_crash_handler(
 	    [](const char* format, va_list args, void* param) {
 		    std::string errorMessage = FormatVAString(format, args);
@@ -256,7 +257,7 @@ bool util::CrashManager::Initialize()
 
 #endif
 
-    initialTime = std::chrono::steady_clock::now();
+	initialTime = std::chrono::steady_clock::now();
 
 	return true;
 }
@@ -298,19 +299,19 @@ bool util::CrashManager::SetupCrashpad()
 
 	std::wstring handler_path(L"crashpad_handler.exe");
 
-    url = isPreview ? 
-		std::string("https://sentry.io/api/1406061/minidump/?sentry_key=7376a60665cd40bebbd59d6bf8363172") : 
-		std::string("https://sentry.io/api/1283431/minidump/?sentry_key=ec98eac4e3ce49c7be1d83c8fb2005ef");
+	url = isPreview
+	          ? std::string("https://sentry.io/api/1406061/minidump/?sentry_key=7376a60665cd40bebbd59d6bf8363172")
+	          : std::string("https://sentry.io/api/1283431/minidump/?sentry_key=ec98eac4e3ce49c7be1d83c8fb2005ef");
 
-	db = base::FilePath(appdata_path);
-    handler = base::FilePath(handler_path);
+	db      = base::FilePath(appdata_path);
+	handler = base::FilePath(handler_path);
 
 	database = crashpad::CrashReportDatabase::Initialize(db);
 	if (database == nullptr || database->GetSettings() == NULL)
 		return false;
 
 	database->GetSettings()->SetUploadsEnabled(true);
-    
+
 	bool rc = client.StartHandler(handler, db, db, url, annotations, arguments, true, true);
 	if (!rc)
 		return false;
@@ -365,15 +366,13 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	size_t    physMemUsedByMe;
 	RequestComputerUsageParams(totalPhysMem, physMemUsed, physMemUsedByMe, totalCPUUsed);
 
-    std::string computerName;
+	std::string computerName;
 	GetUserInfo(computerName);
 
-    auto timeElapsed =
-	    std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - initialTime);
-	
+	auto timeElapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - initialTime);
+
 	// Setup all the custom annotations that are important too our crash report
-	annotations.insert({{"Time elapsed: ", std::to_string(timeElapsed
-	    .count()) + "s"}});
+	annotations.insert({{"Time elapsed: ", std::to_string(timeElapsed.count()) + "s"}});
 	annotations.insert({{"Status", obs_initialized() ? "initialized" : "shutdown"}});
 	annotations.insert({{"Leaks", std::to_string(bnum_allocs())}});
 	annotations.insert({{"Total memory", PrettyBytes(totalPhysMem)}});
@@ -396,13 +395,13 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 
 	// If the callstack rewind operation returned an error, use it instead its result
 	annotations.insert({{"Manual callstack", callStack.dump(4)}});
-	
-    // Recreate crashpad instance, this is a well defined/supported operation
+
+	// Recreate crashpad instance, this is a well defined/supported operation
 	SetupCrashpad();
 
-    // Finish the execution and let crashpad handle the crash
-	if(callAbort)
-        abort();
+	// Finish the execution and let crashpad handle the crash
+	if (callAbort)
+		abort();
 
 	insideCrashMethod = false;
 
@@ -442,6 +441,14 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 	DWORD pid = GetCurrentProcessId();
 	HANDLE hnd = OpenProcess(SYNCHRONIZE | PROCESS_TERMINATE, TRUE, pid);
 	if (hnd != nullptr) {
+
+#ifndef _DEBUG
+
+		client.~CrashpadClient();
+		database->~CrashReportDatabase();
+		database = nullptr;
+#endif
+
 		TerminateProcess(hnd, 0);
 	}
 
@@ -472,10 +479,9 @@ nlohmann::json RewindCallStack(std::string& crashedMethod)
 	class MyStackWalker : public StackWalker
 	{
 		public:
-		MyStackWalker(nlohmann::json& _outJson, std::string& _crashMethod) : 
-			StackWalker(), 
-			m_OutJson(_outJson), 
-			m_OutCrashMethodName(_crashMethod) {}
+		MyStackWalker(nlohmann::json& _outJson, std::string& _crashMethod)
+		    : StackWalker(), m_OutJson(_outJson), m_OutCrashMethodName(_crashMethod)
+		{}
 
 		protected:
 		virtual void OnCallstackEntry(CallstackEntryType eType, CallstackEntry& entry)
@@ -558,12 +564,12 @@ nlohmann::json util::CrashManager::RequestOBSLog(OBSLogType type)
 
 nlohmann::json util::CrashManager::ComputeBreadcrumbs()
 {
-	nlohmann::json result;
+	nlohmann::json result = nlohmann::json::array();
 
-    for (auto& msg : breadcrumbs)
+	for (auto& msg : breadcrumbs)
 		result.push_back(msg);
 
-    return result;
+	return result;
 }
 
 nlohmann::json util::CrashManager::ComputeWarnings()
@@ -686,39 +692,39 @@ void util::CrashManager::IPCValuesToData(const std::vector<ipc::value>& values, 
 	for (auto& value : values) {
 		switch (value.type) {
 		case ipc::type::Null: {
-			data.push_back({"arg" + std::to_string(paramCounter), "null"});
+			data.push_back({{"arg" + std::to_string(paramCounter), "null"}});
 			break;
 		}
 		case ipc::type::Float: {
-			data.push_back({"arg" + std::to_string(paramCounter), std::to_string(value.value_union.fp32)});
+			data.push_back({{"arg" + std::to_string(paramCounter), std::to_string(value.value_union.fp32)}});
 			break;
 		}
 		case ipc::type::Double: {
-			data.push_back({"arg" + std::to_string(paramCounter), std::to_string(value.value_union.fp64)});
+			data.push_back({{"arg" + std::to_string(paramCounter), std::to_string(value.value_union.fp64)}});
 			break;
 		}
 		case ipc::type::Int32: {
-			data.push_back({"arg" + std::to_string(paramCounter), std::to_string(value.value_union.i32)});
+			data.push_back({{"arg" + std::to_string(paramCounter), std::to_string(value.value_union.i32)}});
 			break;
 		}
 		case ipc::type::Int64: {
-			data.push_back({"arg" + std::to_string(paramCounter), std::to_string(value.value_union.i64)});
+			data.push_back({{"arg" + std::to_string(paramCounter), std::to_string(value.value_union.i64)}});
 			break;
 		}
 		case ipc::type::UInt32: {
-			data.push_back({"arg" + std::to_string(paramCounter), std::to_string(value.value_union.ui32)});
+			data.push_back({{"arg" + std::to_string(paramCounter), std::to_string(value.value_union.ui32)}});
 			break;
 		}
 		case ipc::type::UInt64: {
-			data.push_back({"arg" + std::to_string(paramCounter), std::to_string(value.value_union.ui64)});
+			data.push_back({{"arg" + std::to_string(paramCounter), std::to_string(value.value_union.ui64)}});
 			break;
 		}
 		case ipc::type::String: {
-			data.push_back({"arg" + std::to_string(paramCounter), value.value_str});
+			data.push_back({{"arg" + std::to_string(paramCounter), value.value_str}});
 			break;
 		}
 		case ipc::type::Binary: {
-			data.push_back({"arg" + std::to_string(paramCounter), ""});
+			data.push_back({{"arg" + std::to_string(paramCounter), ""}});
 			break;
 		}
 		}
@@ -733,14 +739,75 @@ void util::CrashManager::AddWarning(const std::string& warning)
 	warnings.push_back(warning);
 }
 
-void util::CrashManager::AddBreadcrumb(const std::string& message)
+void util::CrashManager::AddBreadcrumb(const nlohmann::json& message)
 {
 	std::lock_guard<std::mutex> lock(messageMutex);
 	breadcrumbs.push_back(message);
+}
+
+void util::CrashManager::AddBreadcrumb(const std::string& message)
+{
+	nlohmann::json j = nlohmann::json::array();
+	j.push_back({{message}});
+
+	std::lock_guard<std::mutex> lock(messageMutex);
+	breadcrumbs.push_back(j);
 }
 
 void util::CrashManager::ClearBreadcrumbs()
 {
 	std::lock_guard<std::mutex> lock(messageMutex);
 	breadcrumbs.clear();
+}
+
+void util::CrashManager::ProcessPreServerCall(
+    std::string                    cname,
+    std::string                    fname,
+    const std::vector<ipc::value>& args)
+{
+	nlohmann::json jsonEntry;
+	jsonEntry["cname"]      = cname;
+	jsonEntry["fname"]      = fname;
+
+	// Perform this only if this user have a high crash rate (TODO: this check must be implemented)
+	/*
+	nlohmann::json ipcValues = nlohmann::json::array();
+	IPCValuesToData(args, ipcValues);
+	jsonEntry["ipc values"] = ipcValues;
+	*/
+
+	AddBreadcrumb(jsonEntry);
+}
+
+void util::CrashManager::ProcessPostServerCall(
+    std::string                    cname,
+    std::string                    fname,
+    const std::vector<ipc::value>& args)
+{
+	if (args.size() == 0) {
+		AddWarning(std::string("No return params on method ")
+				   + fname 
+				   + std::string(" for class ") 
+				   + cname);
+	} else if ((ErrorCode)args[0].value_union.ui64 != ErrorCode::Ok) {
+		AddWarning(std::string("Server call returned error number ")
+				   + std::to_string(args[0].value_union.ui64)
+				   + " on method " 
+				   + fname
+				   + std::string(" for class ")
+				   + cname);
+	}
+
+	ClearBreadcrumbs();
+}
+
+void util::CrashManager::DisableReports()
+{
+#ifndef _DEBUG
+
+	client.~CrashpadClient();
+	database->~CrashReportDatabase();
+	database = nullptr;
+
+#endif
 }

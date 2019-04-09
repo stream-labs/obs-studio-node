@@ -4,11 +4,6 @@ import * as osn from '../osn';
 import { OBSProcessHandler } from '../util/obs_process_handler';
 import { deleteConfigFiles, basicOBSSettingsCategories } from '../util/general';
 
-function getRandomValue(list: any) {
-    const value = list[Math.floor(Math.random() * list.length)];
-    return value[Object.keys(value)[0]];
-}
-
 describe('nodeobs_settings', function() {
     let obs: OBSProcessHandler;
 
@@ -100,8 +95,8 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'server': {
-                                // Selecting one random server
-                                parameter.currentValue = getRandomValue(parameter.values);
+                                const value = parameter.values[0];
+                                parameter.currentValue = value[Object.keys(value)[0]];
                                 break;
                             }
                             case 'key': {
@@ -136,17 +131,6 @@ describe('nodeobs_settings', function() {
             // Getting simple output settings container
             let setRecQualityAndReplayBuffer = osn.NodeObs.OBS_settings_getSettings('Output');
 
-            // Getting available encoders
-            const availableEncoders: string[] = setRecQualityAndReplayBuffer.find(category => {
-                return category.nameSubCategory === 'Streaming';
-            }).parameters.find(parameter => {
-                return parameter.name === 'StreamEncoder';
-            }).values;
-
-            // Selecting one random available enconder
-            const encoderObject = availableEncoders[Math.floor(Math.random() * availableEncoders.length)];
-            const encoder = encoderObject[Object.keys(encoderObject)[0]];
-
             // Setting recording quality to same as stream and activating replay buffer
             setRecQualityAndReplayBuffer.find(category => {
                 return category.nameSubCategory === 'Recording';
@@ -178,11 +162,11 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'StreamEncoder': {
-                            parameter.currentValue = encoder;
+                            parameter.currentValue = 'x264';
                             break;
                         }
                         case 'ABitrate': {
-                            parameter.currentValue = getRandomValue(parameter.values);
+                            parameter.currentValue = '320';
                             break;
                         }
                         case 'FileNameWithoutSpace': {
@@ -195,7 +179,7 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'RecFormat': {
-                            parameter.currentValue = getRandomValue(parameter.values);
+                            parameter.currentValue = 'm3u8';
                             break;
                         }
                         case 'MuxerCustom': {
@@ -249,11 +233,11 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'StreamEncoder': {
-                            expect(parameter.currentValue).to.equal(encoder);
+                            expect(parameter.currentValue).to.equal('x264');
                             break;
                         }
                         case 'ABitrate': {
-                            parameter.currentValue = getRandomValue(parameter.values);
+                            parameter.currentValue = '288';
                             break;
                         }
                         case 'FileNameWithoutSpace': {
@@ -266,11 +250,11 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'RecFormat': {
-                            parameter.currentValue = getRandomValue(parameter.values);
+                            parameter.currentValue = 'ts';
                             break;
                         }
                         case 'RecEncoder': {
-                            parameter.currentValue = encoder;
+                            parameter.currentValue = 'x264';
                             break;
                         }
                     }
@@ -312,11 +296,11 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'StreamEncoder': {
-                            expect(parameter.currentValue).to.equal(encoder);
+                            expect(parameter.currentValue).to.equal('x264');
                             break;
                         }
                         case 'ABitrate': {
-                            parameter.currentValue = getRandomValue(parameter.values);
+                            parameter.currentValue = '256';
                             break;
                         }
                         case 'FileNameWithoutSpace': {
@@ -329,11 +313,11 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'RecFormat': {
-                            parameter.currentValue = getRandomValue(parameter.values);
+                            parameter.currentValue ='mkv';
                             break;
                         }
                         case 'RecEncoder': {
-                            expect(parameter.currentValue).to.equal(encoder);
+                            expect(parameter.currentValue).to.equal('x264');
                             break;
                         }
                     }
@@ -375,11 +359,11 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'StreamEncoder': {
-                            expect(parameter.currentValue).to.equal(encoder);
+                            expect(parameter.currentValue).to.equal('x264');
                             break;
                         }
                         case 'ABitrate': {
-                            parameter.currentValue = getRandomValue(parameter.values);
+                            parameter.currentValue = '224';
                             break;
                         }
                         case 'FileNameWithoutSpace': {
@@ -392,7 +376,7 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'RecFormat': {
-                            parameter.currentValue = getRandomValue(parameter.values);
+                            parameter.currentValue = 'mov';
                             break;
                         }
                     }
@@ -466,19 +450,11 @@ describe('nodeobs_settings', function() {
                     return parameter.name === 'Recrate_control';
                 }).currentValue = 'CBR';
 
-                let selectedFormat;
-
-                selectedFormat = getRandomValue(setCBR.find(category => {
-                    return category.nameSubCategory === 'Recording';
-                }).parameters.find(parameter => {
-                    return parameter.name === 'RecFormat';
-                }).values);
-
                 setCBR.find(category => {
                     return category.nameSubCategory === 'Recording';
                 }).parameters.find(parameter => {
                     return parameter.name === 'RecFormat';
-                }).currentValue = selectedFormat;
+                }).currentValue = 'flv';
 
                 osn.NodeObs.OBS_settings_saveSettings('Output', setCBR);
 
@@ -494,7 +470,7 @@ describe('nodeobs_settings', function() {
                             }
                             // Streaming
                             case 'TrackIndex': {
-                                parameter.currentValue = getRandomValue(parameter.values);
+                                parameter.currentValue = '1';
                                 break;
                             }
                             case 'Encoder': {
@@ -506,11 +482,11 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'target_usage': {
-                                parameter.currentValue = getRandomValue(parameter.values);
+                                parameter.currentValue = 'quality';
                                 break;
                             }
                             case 'profile': {
-                                parameter.currentValue = getRandomValue(parameter.values);
+                                parameter.currentValue = 'high';
                                 break;
                             }
                             case 'keyint_sec': {
@@ -535,16 +511,11 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'RecFormat': {
-                                expect(parameter.currentValue).to.equal(selectedFormat);
+                                expect(parameter.currentValue).to.equal('flv');
                                 break;
                             }
                             case 'RecTracks': {
-                                if(selectedFormat === 'flv') {
-                                    parameter.currentValue = 1;
-                                }
-                                else {
-                                    parameter.currentValue = 2;
-                                }
+                                expect(parameter.currentValue).to.equal(1);
                                 break;
                             }
                             case 'RecEncoder': {
@@ -556,11 +527,11 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'Rectarget_usage': {
-                                parameter.currentValue = getRandomValue(parameter.values);
+                                parameter.currentValue = 'quality';
                                 break;
                             }
                             case 'Recprofile': {
-                                parameter.currentValue = getRandomValue(parameter.values);
+                                parameter.currentValue = 'high';
                                 break;
                             }
                             case 'Reckeyint_sec': {
@@ -605,6 +576,12 @@ describe('nodeobs_settings', function() {
                     return parameter.name === 'Recrate_control';
                 }).currentValue = 'VBR';
 
+                setVBR.find(category => {
+                    return category.nameSubCategory === 'Recording';
+                }).parameters.find(parameter => {
+                    return parameter.name === 'RecFormat';
+                }).currentValue = 'mp4';
+
                 osn.NodeObs.OBS_settings_saveSettings('Output', setVBR);
 
                 // Getting advanced output settings container with VBR parameters
@@ -626,6 +603,14 @@ describe('nodeobs_settings', function() {
                                 expect(parameter.currentValue).to.equal('VBR');
                                 break;
                             }
+                            case 'target_usage': {
+                                parameter.currentValue = 'balanced';
+                                break;
+                            }
+                            case 'profile': {
+                                parameter.currentValue = 'main';
+                                break;
+                            }
                             case 'bitrate': {
                                 parameter.currentValue = 2000;
                                 break;
@@ -635,12 +620,24 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             // Recording
+                            case 'RecFormat': {
+                                expect(parameter.currentValue).to.equal('mp4');
+                                break;
+                            }
                             case 'RecEncoder': {
                                 expect(parameter.currentValue).to.equal('obs_qsv11');
                                 break;
                             }
                             case 'Recrate_control': {
                                 expect(parameter.currentValue).to.equal('VBR');
+                                break;
+                            }
+                            case 'Rectarget_usage': {
+                                parameter.currentValue = 'balanced';
+                                break;
+                            }
+                            case 'Recprofile': {
+                                parameter.currentValue = 'main';
                                 break;
                             }
                             case 'Recbitrate': {
@@ -677,6 +674,12 @@ describe('nodeobs_settings', function() {
                     return parameter.name === 'Recrate_control';
                 }).currentValue = 'VCM';
 
+                setVCM.find(category => {
+                    return category.nameSubCategory === 'Recording';
+                }).parameters.find(parameter => {
+                    return parameter.name === 'RecFormat';
+                }).currentValue = 'mov';
+
                 osn.NodeObs.OBS_settings_saveSettings('Output', setVCM);
 
                 // Getting advanced output settings container with VCM parameters
@@ -698,6 +701,14 @@ describe('nodeobs_settings', function() {
                                 expect(parameter.currentValue).to.equal('VCM');
                                 break;
                             }
+                            case 'target_usage': {
+                                parameter.currentValue = 'speed';
+                                break;
+                            }
+                            case 'profile': {
+                                parameter.currentValue = 'baseline';
+                                break;
+                            }
                             case 'bitrate': {
                                 parameter.currentValue = 1000;
                                 break;
@@ -707,12 +718,24 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             //Recording
+                            case 'RecFormat': {
+                                expect(parameter.currentValue).to.equal('mov');
+                                break;
+                            }
                             case 'RecEncoder': {
                                 expect(parameter.currentValue).to.equal('obs_qsv11');
                                 break;
                             }
                             case 'Recrate_control': {
                                 expect(parameter.currentValue).to.equal('VCM');
+                                break;
+                            }
+                            case 'Rectarget_usage': {
+                                parameter.currentValue = 'balanced';
+                                break;
+                            }
+                            case 'Recprofile': {
+                                parameter.currentValue = 'main';
                                 break;
                             }
                             case 'Recbitrate': {
@@ -749,6 +772,12 @@ describe('nodeobs_settings', function() {
                     return parameter.name === 'Recrate_control';
                 }).currentValue = 'CQP';
 
+                setCQP.find(category => {
+                    return category.nameSubCategory === 'Recording';
+                }).parameters.find(parameter => {
+                    return parameter.name === 'RecFormat';
+                }).currentValue = 'mkv';
+
                 osn.NodeObs.OBS_settings_saveSettings('Output', setCQP);
 
                 // Getting advanced output settings container with CQP parameters
@@ -783,6 +812,10 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             // Recording
+                            case 'RecFormat': {
+                                expect(parameter.currentValue).to.equal('mkv');
+                                break;
+                            }
                             case 'RecEncoder': {
                                 expect(parameter.currentValue).to.equal('obs_qsv11');
                                 break;
@@ -829,6 +862,12 @@ describe('nodeobs_settings', function() {
                     return parameter.name === 'Recrate_control';
                 }).currentValue = 'AVBR';
 
+                setAVBR.find(category => {
+                    return category.nameSubCategory === 'Recording';
+                }).parameters.find(parameter => {
+                    return parameter.name === 'RecFormat';
+                }).currentValue = 'ts';
+
                 osn.NodeObs.OBS_settings_saveSettings('Output', setAVBR);
 
                 // Getting advanced output settings container with AVBR parameters
@@ -863,6 +902,10 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             // Recording
+                            case 'RecFormat': {
+                                expect(parameter.currentValue).to.equal('ts');
+                                break;
+                            }
                             case 'RecEncoder': {
                                 expect(parameter.currentValue).to.equal('obs_qsv11');
                                 break;
@@ -909,6 +952,12 @@ describe('nodeobs_settings', function() {
                     return parameter.name === 'Recrate_control';
                 }).currentValue = 'ICQ';
 
+                setICQ.find(category => {
+                    return category.nameSubCategory === 'Recording';
+                }).parameters.find(parameter => {
+                    return parameter.name === 'RecFormat';
+                }).currentValue = 'm3u8';
+
                 osn.NodeObs.OBS_settings_saveSettings('Output', setICQ);
 
                 // Getting advanced output settings container with ICQ parameters
@@ -935,6 +984,10 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             // Recording
+                            case 'RecFormat': {
+                                expect(parameter.currentValue).to.equal('m3u8');
+                                break;
+                            }
                             case 'RecEncoder': {
                                 expect(parameter.currentValue).to.equal('obs_qsv11');
                                 break;
@@ -1080,7 +1133,7 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'RescaleRes': {
-                                parameter.currentValue = getRandomValue(parameter.values);
+                                parameter.currentValue = '1920x1080';
                                 break;
                             }
                             case 'rate_control': {
@@ -1105,7 +1158,7 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'RecRescaleRes': {
-                                parameter.currentValue = getRandomValue(parameter.values);
+                                parameter.currentValue = '1920x1080';
                                 break;
                             }
                             case 'Recrate_control': {
@@ -1195,19 +1248,11 @@ describe('nodeobs_settings', function() {
                     return parameter.name === 'Recrate_control';
                 }).currentValue = 'CBR';
 
-                let selectedFormat;
-
-                selectedFormat = getRandomValue(setCBR.find(category => {
-                    return category.nameSubCategory === 'Recording';
-                }).parameters.find(parameter => {
-                    return parameter.name === 'RecFormat';
-                }).values);
-
                 setCBR.find(category => {
                     return category.nameSubCategory === 'Recording';
                 }).parameters.find(parameter => {
                     return parameter.name === 'RecFormat';
-                }).currentValue = selectedFormat;
+                }).currentValue = 'flv';
 
                 osn.NodeObs.OBS_settings_saveSettings('Output', setCBR);
 
@@ -1223,7 +1268,7 @@ describe('nodeobs_settings', function() {
                             }
                             // Streaming
                             case 'TrackIndex': {
-                                parameter.currentValue = getRandomValue(parameter.values);
+                                parameter.currentValue = '5';
                                 break;
                             }
                             case 'Encoder': {
@@ -1247,15 +1292,15 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'preset': {
-                                parameter.currentValue = getRandomValue(parameter.values);
+                                parameter.currentValue = 'ultrafast';
                                 break;
                             }
                             case 'profile': {
-                                parameter.currentValue = getRandomValue(parameter.values);
+                                parameter.currentValue = 'baseline';
                                 break;
                             }
                             case 'tune': {
-                                parameter.currentValue = getRandomValue(parameter.values);
+                                parameter.currentValue = 'film';
                                 break;
                             }
                             case 'x264opts': {
@@ -1268,16 +1313,11 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'RecFormat': {
-                                expect(parameter.currentValue).to.equal(selectedFormat);
+                                expect(parameter.currentValue).to.equal('flv');
                                 break;
                             }
                             case 'RecTracks': {
-                                if(selectedFormat === 'flv') {
-                                    parameter.currentValue = 1;
-                                }
-                                else {
-                                    parameter.currentValue = 4;
-                                }
+                                expect(parameter.currentValue).to.equal(1);
                                 break;
                             }
                             case 'RecEncoder': {
@@ -1301,15 +1341,15 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'Recpreset': {
-                                parameter.currentValue = getRandomValue(parameter.values);
+                                parameter.currentValue = 'placebo';
                                 break;
                             }
                             case 'Recprofile': {
-                                parameter.currentValue = getRandomValue(parameter.values);
+                                parameter.currentValue = 'high';
                                 break;
                             }
                             case 'Rectune': {
-                                parameter.currentValue = getRandomValue(parameter.values);
+                                parameter.currentValue = 'zerolatency';
                                 break;
                             }
                             case 'Recx264opts': {
@@ -1352,6 +1392,12 @@ describe('nodeobs_settings', function() {
                 setABR.find(category => {
                     return category.nameSubCategory === 'Recording';
                 }).parameters.find(parameter => {
+                    return parameter.name === 'RecFormat';
+                }).currentValue = 'mp4';
+
+                setABR.find(category => {
+                    return category.nameSubCategory === 'Recording';
+                }).parameters.find(parameter => {
                     return parameter.name === 'Recuse_bufsize';
                 }).currentValue = true;
 
@@ -1376,6 +1422,18 @@ describe('nodeobs_settings', function() {
                                 expect(parameter.currentValue).to.equal('ABR');
                                 break;
                             }
+                            case 'preset': {
+                                parameter.currentValue = 'superfast';
+                                break;
+                            }
+                            case 'profile': {
+                                parameter.currentValue = 'main';
+                                break;
+                            }
+                            case 'tune': {
+                                parameter.currentValue = 'animation';
+                                break;
+                            }
                             case 'use_bufsize': {
                                 expect(parameter.currentValue).to.equal(true);
                                 break;
@@ -1385,12 +1443,28 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             // Recording
+                            case 'RecFormat': {
+                                expect(parameter.currentValue).to.equal('mp4');
+                                break;
+                            }
                             case 'RecEncoder': {
                                 expect(parameter.currentValue).to.equal('obs_x264');
                                 break;
                             }
                             case 'Recrate_control': {
                                 expect(parameter.currentValue).to.equal('ABR');
+                                break;
+                            }
+                            case 'Recpreset': {
+                                parameter.currentValue = 'veryslow';
+                                break;
+                            }
+                            case 'Recprofile': {
+                                parameter.currentValue = 'main';
+                                break;
+                            }
+                            case 'Rectune': {
+                                parameter.currentValue = 'fastdecode';
                                 break;
                             }
                             case 'Recuse_bufsize': {
@@ -1427,6 +1501,12 @@ describe('nodeobs_settings', function() {
                     return parameter.name === 'Recrate_control';
                 }).currentValue = 'VBR';
 
+                setVBR.find(category => {
+                    return category.nameSubCategory === 'Recording';
+                }).parameters.find(parameter => {
+                    return parameter.name === 'RecFormat';
+                }).currentValue = 'mov';
+
                 osn.NodeObs.OBS_settings_saveSettings('Output', setVBR);
 
                 // Getting advanced output settings container with VBR parameters
@@ -1448,6 +1528,18 @@ describe('nodeobs_settings', function() {
                                 expect(parameter.currentValue).to.equal('VBR');
                                 break;
                             }
+                            case 'preset': {
+                                parameter.currentValue = 'veryfast';
+                                break;
+                            }
+                            case 'profile': {
+                                parameter.currentValue = 'high';
+                                break;
+                            }
+                            case 'tune': {
+                                parameter.currentValue = 'grain';
+                                break;
+                            }
                             case 'crf': {
                                 parameter.currentValue = 26;
                                 break;
@@ -1457,12 +1549,28 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             // Recording
+                            case 'RecFormat': {
+                                expect(parameter.currentValue).to.equal('mov');
+                                break;
+                            }
                             case 'RecEncoder': {
                                 expect(parameter.currentValue).to.equal('obs_x264');
                                 break;
                             }
                             case 'Recrate_control': {
                                 expect(parameter.currentValue).to.equal('VBR');
+                                break;
+                            }
+                            case 'Recpreset': {
+                                parameter.currentValue = 'slower';
+                                break;
+                            }
+                            case 'Recprofile': {
+                                parameter.currentValue = 'baseline';
+                                break;
+                            }
+                            case 'Rectune': {
+                                parameter.currentValue = 'ssim';
                                 break;
                             }
                             case 'Reccrf': {
@@ -1499,6 +1607,12 @@ describe('nodeobs_settings', function() {
                     return parameter.name === 'Recrate_control';
                 }).currentValue = 'CRF';
 
+                setCRF.find(category => {
+                    return category.nameSubCategory === 'Recording';
+                }).parameters.find(parameter => {
+                    return parameter.name === 'RecFormat';
+                }).currentValue = 'mkv';
+
                 osn.NodeObs.OBS_settings_saveSettings('Output', setCRF);
 
                 // Getting advanced output settings container with CRF parameters
@@ -1520,6 +1634,14 @@ describe('nodeobs_settings', function() {
                                 expect(parameter.currentValue).to.equal('CRF');
                                 break;
                             }
+                            case 'preset': {
+                                parameter.currentValue = 'faster';
+                                break;
+                            }
+                            case 'tune': {
+                                parameter.currentValue = 'stillimage';
+                                break;
+                            }
                             case 'crf': {
                                 parameter.currentValue = 8;
                                 break;
@@ -1529,12 +1651,24 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             // Recording
+                            case 'RecFormat': {
+                                expect(parameter.currentValue).to.equal('mkv');
+                                break;
+                            }
                             case 'RecEncoder': {
                                 expect(parameter.currentValue).to.equal('obs_x264');
                                 break;
                             }
                             case 'Recrate_control': {
                                 expect(parameter.currentValue).to.equal('CRF');
+                                break;
+                            }
+                            case 'Recpreset': {
+                                parameter.currentValue = 'slow';
+                                break;
+                            }
+                            case 'Rectune': {
+                                parameter.currentValue = 'psnr';
                                 break;
                             }
                             case 'Reccrf': {
@@ -1620,19 +1754,11 @@ describe('nodeobs_settings', function() {
                     return parameter.name === 'Recrate_control';
                 }).currentValue = 'CBR';
 
-                let selectedFormat;
-
-                selectedFormat = getRandomValue(setCBR.find(category => {
-                    return category.nameSubCategory === 'Recording';
-                }).parameters.find(parameter => {
-                    return parameter.name === 'RecFormat';
-                }).values);
-
                 setCBR.find(category => {
                     return category.nameSubCategory === 'Recording';
                 }).parameters.find(parameter => {
                     return parameter.name === 'RecFormat';
-                }).currentValue = selectedFormat;
+                }).currentValue = 'flv';
 
                 osn.NodeObs.OBS_settings_saveSettings('Output', setCBR);
 
@@ -1648,7 +1774,7 @@ describe('nodeobs_settings', function() {
                             }
                             // Streaming 
                             case 'TrackIndex': {
-                                parameter.currentValue = getRandomValue(parameter.values);
+                                parameter.currentValue = '4';
                                 break;
                             }
                             case 'Encoder': {
@@ -1672,11 +1798,11 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'preset': {
-                                parameter.currentValue = getRandomValue(parameter.values);
+                                parameter.currentValue = 'mq';
                                 break;
                             }
                             case 'profile': {
-                                parameter.currentValue = getRandomValue(parameter.values);
+                                parameter.currentValue = 'high';
                                 break;
                             }
                             case 'gpu': {
@@ -1693,16 +1819,11 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'RecFormat': {
-                                expect(parameter.currentValue).to.equal(selectedFormat);
+                                expect(parameter.currentValue).to.equal('flv');
                                 break;
                             }
                             case 'RecTracks': {
-                                if(selectedFormat === 'flv') {
-                                    parameter.currentValue = 1;
-                                }
-                                else {
-                                    parameter.currentValue = 6;
-                                }
+                                expect(parameter.currentValue).to.equal(1);
                                 break;
                             }
                             case 'RecEncoder': {
@@ -1726,11 +1847,11 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'Recpreset': {
-                                parameter.currentValue = getRandomValue(parameter.values);
+                                parameter.currentValue = '11hp';
                                 break;
                             }
                             case 'Recprofile': {
-                                parameter.currentValue = getRandomValue(parameter.values);
+                                parameter.currentValue = 'baseline';
                                 break;
                             }
                             case 'Recgpu': {
@@ -1767,6 +1888,12 @@ describe('nodeobs_settings', function() {
                     return parameter.name === 'Recrate_control';
                 }).currentValue = 'VBR';
 
+                setVBR.find(category => {
+                    return category.nameSubCategory === 'Recording';
+                }).parameters.find(parameter => {
+                    return parameter.name === 'RecFormat';
+                }).currentValue = 'mp4';
+
                 osn.NodeObs.OBS_settings_saveSettings('Output', setVBR);
 
                 // Getting advanced output settings container with VBR parameters
@@ -1788,13 +1915,33 @@ describe('nodeobs_settings', function() {
                                 expect(parameter.currentValue).to.equal('VBR');
                                 break;
                             }
+                            case 'preset': {
+                                parameter.currentValue = 'hq';
+                                break;
+                            }
+                            case 'profile': {
+                                parameter.currentValue = 'main';
+                                break;
+                            }
                             // Recording
+                            case 'RecFormat': {
+                                expect(parameter.currentValue).to.equal('mp4');
+                                break;
+                            }
                             case 'RecEncoder': {
                                 expect(parameter.currentValue).to.equal('ffmpeg_nvenc');
                                 break;
                             }
                             case 'Recrate_control': {
                                 expect(parameter.currentValue).to.equal('VBR');
+                                break;
+                            }
+                            case 'Recpreset': {
+                                parameter.currentValue = '11hq';
+                                break;
+                            }
+                            case 'Recprofile': {
+                                parameter.currentValue = 'main';
                                 break;
                             }
                         }
@@ -1823,6 +1970,12 @@ describe('nodeobs_settings', function() {
                     return parameter.name === 'Recrate_control';
                 }).currentValue = 'CQP';
 
+                setCQP.find(category => {
+                    return category.nameSubCategory === 'Recording';
+                }).parameters.find(parameter => {
+                    return parameter.name === 'RecFormat';
+                }).currentValue = 'mov';
+
                 osn.NodeObs.OBS_settings_saveSettings('Output', setCQP);
 
                 // Getting advanced output settings container with CQP parameters
@@ -1848,7 +2001,19 @@ describe('nodeobs_settings', function() {
                                 parameter.currentValue = 25;
                                 break;
                             }
+                            case 'preset': {
+                                parameter.currentValue = 'default';
+                                break;
+                            }
+                            case 'profile': {
+                                parameter.currentValue = 'baseline';
+                                break;
+                            }
                             // Recording
+                            case 'RecFormat': {
+                                expect(parameter.currentValue).to.equal('mov');
+                                break;
+                            }
                             case 'RecEncoder': {
                                 expect(parameter.currentValue).to.equal('ffmpeg_nvenc');
                                 break;
@@ -1859,6 +2024,14 @@ describe('nodeobs_settings', function() {
                             }
                             case 'Reccqp': {
                                 parameter.currentValue = 31;
+                                break;
+                            }
+                            case 'Recpreset': {
+                                parameter.currentValue = '11';
+                                break;
+                            }
+                            case 'Recprofile': {
+                                parameter.currentValue = 'high';
                                 break;
                             }
                         }
@@ -1887,6 +2060,12 @@ describe('nodeobs_settings', function() {
                     return parameter.name === 'Recrate_control';
                 }).currentValue = 'lossless';
 
+                setLossless.find(category => {
+                    return category.nameSubCategory === 'Recording';
+                }).parameters.find(parameter => {
+                    return parameter.name === 'RecFormat';
+                }).currentValue = 'mkv';
+
                 osn.NodeObs.OBS_settings_saveSettings('Output', setLossless);
 
                 // Getting advanced output settings container with Lossless parameters
@@ -1908,13 +2087,25 @@ describe('nodeobs_settings', function() {
                                 expect(parameter.currentValue).to.equal('lossless');
                                 break;
                             }
+                            case 'preset': {
+                                parameter.currentValue = 'hp';
+                                break;
+                            }
                             // Recording
+                            case 'RecFormat': {
+                                expect(parameter.currentValue).to.equal('mkv');
+                                break;
+                            }
                             case 'RecEncoder': {
                                 expect(parameter.currentValue).to.equal('ffmpeg_nvenc');
                                 break;
                             }
                             case 'Recrate_control': {
                                 expect(parameter.currentValue).to.equal('lossless');
+                                break;
+                            }
+                            case 'Recpreset': {
+                                parameter.currentValue = 'hp';
                                 break;
                             }
                         }
@@ -1992,19 +2183,11 @@ describe('nodeobs_settings', function() {
                     return parameter.name === 'Recrate_control';
                 }).currentValue = 'CBR';
 
-                let selectedFormat;
-
-                selectedFormat = getRandomValue(setCBR.find(category => {
-                    return category.nameSubCategory === 'Recording';
-                }).parameters.find(parameter => {
-                    return parameter.name === 'RecFormat';
-                }).values);
-
                 setCBR.find(category => {
                     return category.nameSubCategory === 'Recording';
                 }).parameters.find(parameter => {
                     return parameter.name === 'RecFormat';
-                }).currentValue = selectedFormat;
+                }).currentValue = 'flv';
 
                 osn.NodeObs.OBS_settings_saveSettings('Output', setCBR);
 
@@ -2020,7 +2203,7 @@ describe('nodeobs_settings', function() {
                             }
                             // Streaming 
                             case 'TrackIndex': {
-                                parameter.currentValue = getRandomValue(parameter.values);
+                                parameter.currentValue = '2';
                                 break;
                             }
                             case 'Encoder': {
@@ -2044,11 +2227,11 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'preset': {
-                                parameter.currentValue = getRandomValue(parameter.values);
+                                parameter.currentValue = 'mq';
                                 break;
                             }
                             case 'profile': {
-                                parameter.currentValue = getRandomValue(parameter.values);
+                                parameter.currentValue = 'high';
                                 break;
                             }
                             case 'lookahead': {
@@ -2073,16 +2256,11 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'RecFormat': {
-                                expect(parameter.currentValue).to.equal(selectedFormat);
+                                expect(parameter.currentValue).to.equal('flv');
                                 break;
                             }
                             case 'RecTracks': {
-                                if(selectedFormat === 'flv') {
-                                    parameter.currentValue = 1;
-                                }
-                                else {
-                                    parameter.currentValue = 3;
-                                }
+                                expect(parameter.currentValue).to.equal(1);
                                 break;
                             }
                             case 'RecEncoder': {
@@ -2106,11 +2284,11 @@ describe('nodeobs_settings', function() {
                                 break;
                             }
                             case 'Recpreset': {
-                                parameter.currentValue = getRandomValue(parameter.values);
+                                parameter.currentValue = '11hp';
                                 break;
                             }
                             case 'Recprofile': {
-                                parameter.currentValue = getRandomValue(parameter.values);
+                                parameter.currentValue = 'baseline';
                                 break;
                             }
                             case 'Reclookahead': {
@@ -2155,6 +2333,12 @@ describe('nodeobs_settings', function() {
                     return parameter.name === 'Recrate_control';
                 }).currentValue = 'VBR';
 
+                setVBR.find(category => {
+                    return category.nameSubCategory === 'Recording';
+                }).parameters.find(parameter => {
+                    return parameter.name === 'RecFormat';
+                }).currentValue = 'mp4';
+
                 osn.NodeObs.OBS_settings_saveSettings('Output', setVBR);
 
                 // Getting advanced output settings container with VBR parameters
@@ -2176,6 +2360,14 @@ describe('nodeobs_settings', function() {
                                 expect(parameter.currentValue).to.equal('VBR');
                                 break;
                             }
+                            case 'preset': {
+                                parameter.currentValue = 'hq';
+                                break;
+                            }
+                            case 'profile': {
+                                parameter.currentValue = 'main';
+                                break;
+                            }
                             // Recording
                             case 'RecEncoder': {
                                 expect(parameter.currentValue).to.equal('jim_nvenc');
@@ -2183,6 +2375,14 @@ describe('nodeobs_settings', function() {
                             }
                             case 'Recrate_control': {
                                 expect(parameter.currentValue).to.equal('VBR');
+                                break;
+                            }
+                            case 'Recpreset': {
+                                parameter.currentValue = '11hq';
+                                break;
+                            }
+                            case 'Recprofile': {
+                                parameter.currentValue = 'main';
                                 break;
                             }
                         }
@@ -2211,6 +2411,12 @@ describe('nodeobs_settings', function() {
                     return parameter.name === 'Recrate_control';
                 }).currentValue = 'CQP';
 
+                setCQP.find(category => {
+                    return category.nameSubCategory === 'Recording';
+                }).parameters.find(parameter => {
+                    return parameter.name === 'RecFormat';
+                }).currentValue = 'mov';
+
                 osn.NodeObs.OBS_settings_saveSettings('Output', setCQP);
 
                 // Getting advanced output settings container with CQP parameters
@@ -2232,6 +2438,14 @@ describe('nodeobs_settings', function() {
                                 expect(parameter.currentValue).to.equal('CQP');
                                 break;
                             }
+                            case 'preset': {
+                                parameter.currentValue = 'default';
+                                break;
+                            }
+                            case 'profile': {
+                                parameter.currentValue = 'baseline';
+                                break;
+                            }
                             case 'cqp': {
                                 parameter.currentValue = 35;
                                 break;
@@ -2247,6 +2461,14 @@ describe('nodeobs_settings', function() {
                             }
                             case 'Reccqp': {
                                 parameter.currentValue = 40;
+                                break;
+                            }
+                            case 'Recpreset': {
+                                parameter.currentValue = '11';
+                                break;
+                            }
+                            case 'Recprofile': {
+                                parameter.currentValue = 'high';
                                 break;
                             }
                         }
@@ -2275,6 +2497,12 @@ describe('nodeobs_settings', function() {
                     return parameter.name === 'Recrate_control';
                 }).currentValue = 'lossless';
 
+                setLossless.find(category => {
+                    return category.nameSubCategory === 'Recording';
+                }).parameters.find(parameter => {
+                    return parameter.name === 'RecFormat';
+                }).currentValue = 'mkv';
+
                 osn.NodeObs.OBS_settings_saveSettings('Output', setLossless);
 
                 // Getting advanced output settings container with Lossless parameters
@@ -2296,6 +2524,10 @@ describe('nodeobs_settings', function() {
                                 expect(parameter.currentValue).to.equal('lossless');
                                 break;
                             }
+                            case 'preset': {
+                                parameter.currentValue = 'hp';
+                                break;
+                            }
                             // Recording
                             case 'RecEncoder': {
                                 expect(parameter.currentValue).to.equal('jim_nvenc');
@@ -2303,6 +2535,10 @@ describe('nodeobs_settings', function() {
                             }
                             case 'Recrate_control': {
                                 expect(parameter.currentValue).to.equal('lossless');
+                                break;
+                            }
+                            case 'Recpreset': {
+                                parameter.currentValue = 'hp';
                                 break;
                             }
                         }
@@ -2350,7 +2586,7 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'Track1Bitrate': {
-                            parameter.currentValue = getRandomValue(parameter.values);
+                            parameter.currentValue = '64';
                             break;
                         }
                         case 'Track1Name': {
@@ -2358,7 +2594,7 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'Track2Bitrate': {
-                            parameter.currentValue = getRandomValue(parameter.values);
+                            parameter.currentValue = '96';
                             break;
                         }
                         case 'Track2Name': {
@@ -2366,7 +2602,7 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'Track3Bitrate': {
-                            parameter.currentValue = getRandomValue(parameter.values);
+                            parameter.currentValue = '128';
                             break;
                         }
                         case 'Track3Name': {
@@ -2374,7 +2610,7 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'Track4Bitrate': {
-                            parameter.currentValue = getRandomValue(parameter.values);
+                            parameter.currentValue = '160';
                             break;
                         }
                         case 'Track4Name': {
@@ -2382,7 +2618,7 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'Track5Bitrate': {
-                            parameter.currentValue = getRandomValue(parameter.values);
+                            parameter.currentValue = '192';
                             break;
                         }
                         case 'Track5Name': {
@@ -2390,7 +2626,7 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'Track6Bitrate': {
-                            parameter.currentValue = getRandomValue(parameter.values);
+                            parameter.currentValue = '224';
                             break;
                         }
                         case 'Track6Name': {
@@ -2446,11 +2682,11 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'Output': {
-                            parameter.currentValue = getRandomValue(parameter.values);
+                            parameter.currentValue = '640x360';
                             break;
                         }
                         case 'ScaleType': {
-                            parameter.currentValue = getRandomValue(parameter.values);
+                            parameter.currentValue = 'bilinear';
                             break;
                         }
                         case 'FPSType': {
@@ -2458,7 +2694,7 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'FPSCommon': {
-                            parameter.currentValue = getRandomValue(parameter.values);
+                            parameter.currentValue = '10';
                             break;
                         }
                     }
@@ -2499,6 +2735,14 @@ describe('nodeobs_settings', function() {
                             expect(parameter.currentValue).to.equal('1280x720');
                             break;
                         }
+                        case 'Output': {
+                            parameter.currentValue = '730x410';
+                            break;
+                        }
+                        case 'ScaleType': {
+                            parameter.currentValue = 'bicubic';
+                            break;
+                        }
                         case 'FPSType': {
                             expect(parameter.currentValue).to.equal('Integer FPS Value');
                             break;
@@ -2535,6 +2779,14 @@ describe('nodeobs_settings', function() {
             fractionalFPSVideoSettings.forEach(subCategory => {
                 subCategory.parameters.forEach(parameter => {
                     switch(parameter.name) {
+                        case 'Output': {
+                            parameter.currentValue = '960x540';
+                            break;
+                        }
+                        case 'ScaleType': {
+                            parameter.currentValue = 'lanczos';
+                            break;
+                        }
                         case 'FPSType': {
                             expect(parameter.currentValue).to.equal('Fractional FPS Value');
                             break;
@@ -2572,11 +2824,11 @@ describe('nodeobs_settings', function() {
                             break;
                         }
                         case 'ColorFormat': {
-                            parameter.currentValue = getRandomValue(parameter.values);
+                            parameter.currentValue = 'NV12';
                             break;
                         }
                         case 'ColorSpace': {
-                            parameter.currentValue = getRandomValue(parameter.values);
+                            parameter.currentValue = '601';
                             break;
                         }
                         case 'ForceGPUAsRenderDevice': {

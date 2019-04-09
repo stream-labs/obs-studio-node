@@ -19,6 +19,11 @@
 #include "nodeobs_api.h"
 #include "osn-fader.hpp"
 #include "osn-source.hpp"
+#include "osn-scene.hpp"
+#include "osn-sceneitem.hpp"
+#include "osn-input.hpp"
+#include "osn-transition.hpp"
+#include "osn-filter.hpp"
 #include "osn-volmeter.hpp"
 #include "util-crashmanager.h"
 #include "util/lexer.h"
@@ -1055,7 +1060,28 @@ void OBS_API::destroyOBS_API(void)
 	osn::VolMeter::ClearVolmeters();
 	osn::Fader::ClearFaders();
 
-	obs_shutdown();
+	// Check if the frontend was able to shutdown correctly:
+	// If there are some sources here it's because it ended unexpectedly, this represents a 
+	// problem since obs doesn't handle releasing leaked sources very well. The best we can
+	// do is to insert a try-catch block and disable the crash handler to avoid false positives
+	if (osn::Source::Manager::GetInstance().size() > 0		||
+		osn::Scene::Manager::GetInstance().size() > 0		||
+		osn::SceneItem::Manager::GetInstance().size() > 0	||
+		osn::Transition::Manager::GetInstance().size() > 0	||
+		osn::Filter::Manager::GetInstance().size() > 0		||
+		osn::Input::Manager::GetInstance().size() > 0) {
+
+		util::CrashManager::DisableReports();
+
+		// Try-catch should suppress any error message that could be thrown to the user
+		try {
+			obs_shutdown();
+		} catch (...) {}
+
+	} else {
+	
+		obs_shutdown();
+	}
 
 	// Release each obs module (dlls for windows)
 	// TODO: We should release these modules (dlls) manually and not let the garbage

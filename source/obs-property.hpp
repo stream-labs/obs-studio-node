@@ -21,6 +21,7 @@
 #include <list>
 #include <memory>
 #include <vector>
+#include <string>
 
 namespace obs
 {
