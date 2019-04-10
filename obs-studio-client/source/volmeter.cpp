@@ -304,6 +304,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::RemoveCallback(Nan::NAN_METHOD_ARGS_T
 		}
 	}
 
+	self->stop_async_runner();
+	self->m_callback_function.Reset();
+
 	// Grab IPC Connection
 	{
 		std::shared_ptr<ipc::client> conn = nullptr;
