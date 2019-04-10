@@ -27,8 +27,8 @@
 #include "utility-v8.hpp"
 #include "utility.hpp"
 
-std::mutex                volmeters_lock;
-std::map<uint64_t, void*> volmeters;
+std::mutex                         volmeters_lock;
+std::map<uint64_t, osn::VolMeter*> volmeters;
 
 osn::VolMeter::VolMeter(uint64_t p_uid)
 {
@@ -332,38 +332,26 @@ void osn::VolMeter::UpdateVolmeter(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	std::shared_ptr<osn::VolMeterData> item       = std::make_shared<osn::VolMeterData>();
-	uint64_t                           idVolmeter = args[0].value_union.ui64;
-	size_t                             channels   = args[1].value_union.i32;
-	uint32_t                           indexData  = 0;
-	std::vector<char>                  buffer     = args[2].value_bin;
-	osn::VolMeter*                     obj        = nullptr;
+	std::unique_lock<std::mutex>       lck(volmeters_lock);
 
-	std::unique_lock<std::mutex> lck(volmeters_lock);
 	auto it = volmeters.find(args[0].value_union.ui64);
-	if (it != volmeters.end())
-		obj = (osn::VolMeter*)it->second;
-	else
+	if (it == volmeters.end())
 		return;
 
-	item->magnitude.resize(channels);
-	item->peak.resize(channels);
-	item->input_peak.resize(channels);
-	for (size_t ch = 0; ch < channels; ch++) {
-		item->magnitude[ch]  = *reinterpret_cast<float*>(buffer.data() + indexData);
-		indexData            += sizeof(float);
-		item->peak[ch]       = *reinterpret_cast<float*>(buffer.data() + indexData);
-		indexData            += sizeof(float);
-		item->input_peak[ch] = *reinterpret_cast<float*>(buffer.data() + indexData);
-		indexData            += sizeof(float);
-	}
-	if (obj && obj->m_async_callback) {
-		item->param = obj;
-		std::unique_lock<std::mutex> ul(obj->m_worker_lock);
-		obj->m_async_callback->queue(std::move(item));
+	std::shared_ptr<osn::VolMeterData> item      = std::make_shared<osn::VolMeterData>();
+	uint32_t                           indexData = 0;
+	std::vector<char>                  buffer    = args[2].value_bin;
+
+	for (size_t ch = 0; ch < args[1].value_union.i32; ch++) {
+		item->magnitude.push_back(*reinterpret_cast<float*>(buffer.data() + indexData));
+		indexData += sizeof(float);
+		item->peak.push_back(*reinterpret_cast<float*>(buffer.data() + indexData));
+		indexData += sizeof(float);
+		item->input_peak.push_back(*reinterpret_cast<float*>(buffer.data() + indexData));
+		indexData += sizeof(float);
 	}
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	it->second->m_async_callback->queue(item);
 }
 
 INITIALIZER(nodeobs_volmeter)

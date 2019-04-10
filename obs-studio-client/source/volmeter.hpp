@@ -29,7 +29,6 @@ namespace osn
 		std::vector<float> magnitude;
 		std::vector<float> peak;
 		std::vector<float> input_peak;
-		void*              param;
 	};
 
 	typedef utilv8::managed_callback<std::shared_ptr<osn::VolMeterData>> VolMeterCallback;
