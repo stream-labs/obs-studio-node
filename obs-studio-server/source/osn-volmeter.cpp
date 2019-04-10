@@ -304,12 +304,11 @@ void osn::VolMeter::OBSCallback(
 		return;
 	}
 
-	std::chrono::high_resolution_clock::time_point now   = std::chrono::high_resolution_clock::now();
-	auto                                           delta = now - meter->previous;
-	if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() < 50) {
+	meter->count++;
+
+	if (meter->count < 5)
 		return;
-	}
-	meter->previous = now;
+	meter->count = 0;
 
 #define MAKE_FLOAT_SANE(db) (std::isfinite(db) ? db : (db > 0 ? 0.0f : -65535.0f))
 #define PREVIOUS_FRAME_WEIGHT

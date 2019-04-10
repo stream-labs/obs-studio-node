@@ -49,7 +49,7 @@ namespace osn
 		uint64_t                                       id;
 		size_t                                         callback_count = 0;
 		uint64_t*                                      id2            = nullptr;
-		std::chrono::high_resolution_clock::time_point previous       = std::chrono::high_resolution_clock::now();
+		uint64_t                                       count          = 0;
 
 		struct AudioData
 		{
