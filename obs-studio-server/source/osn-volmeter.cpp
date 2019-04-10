@@ -307,28 +307,21 @@ void osn::VolMeter::OBSCallback(
 #define MAKE_FLOAT_SANE(db) (std::isfinite(db) ? db : (db > 0 ? 0.0f : -65535.0f))
 #define PREVIOUS_FRAME_WEIGHT
 
-	std::unique_lock<std::mutex> ulock(meter->current_data_mtx);
-
 	meter->current_data.ch = obs_volmeter_get_nr_channels(meter->self);
-	for (size_t ch = 0; ch < MAX_AUDIO_CHANNELS; ch++) {
-		meter->current_data.magnitude[ch]  = MAKE_FLOAT_SANE(magnitude[ch]);
-		meter->current_data.peak[ch]       = MAKE_FLOAT_SANE(peak[ch]);
-		meter->current_data.input_peak[ch] = MAKE_FLOAT_SANE(input_peak[ch]);
-	}
 	std::vector<ipc::value> agrs;
 	agrs.push_back(ipc::value(meter->id));
-	agrs.push_back(ipc::value(obs_volmeter_get_nr_channels(meter->self)));
+	agrs.push_back(ipc::value(meter->current_data.ch));
 
 	std::vector<char> binData;
 	binData.resize(agrs.at(1).value_union.i32 * 3 * sizeof(float));
 	uint32_t indexBuffer = 0;
 
 	for (size_t ch = 0; ch < meter->current_data.ch; ch++) {
-		*reinterpret_cast<float*>(binData.data() + indexBuffer) = meter->current_data.magnitude[ch];
+		*reinterpret_cast<float*>(binData.data() + indexBuffer) = MAKE_FLOAT_SANE(magnitude[ch]);
 		indexBuffer += sizeof(float);
-		*reinterpret_cast<float*>(binData.data() + indexBuffer) = meter->current_data.peak[ch];
+		*reinterpret_cast<float*>(binData.data() + indexBuffer) = MAKE_FLOAT_SANE(peak[ch]);
 		indexBuffer += sizeof(float);		
-		*reinterpret_cast<float*>(binData.data() + indexBuffer) = meter->current_data.input_peak[ch];
+		*reinterpret_cast<float*>(binData.data() + indexBuffer) = MAKE_FLOAT_SANE(input_peak[ch]);
 		indexBuffer += sizeof(float);
 	}
 
@@ -336,7 +329,6 @@ void osn::VolMeter::OBSCallback(
 
 	if (g_srv) {
 		std::unique_lock<std::mutex> ul(g_srv->m_clients_mtx);
-
 		for (auto client : g_srv->m_clients) {
 			if (!client.second->host)
 				client.second->call("Volmeter", "UpdateVolmeter", agrs);
