@@ -21,8 +21,6 @@
 
 #include <chrono>
 #include <codecvt>
-#include <cpr/cpr.h>
-#include <curl/curl.h>
 #include <fstream>
 #include <iostream>
 #include <locale>
