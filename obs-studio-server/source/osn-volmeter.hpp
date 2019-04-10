@@ -45,10 +45,11 @@ namespace osn
 		};
 
 		private:
-		obs_volmeter_t* self;
-		uint64_t        id;
-		size_t          callback_count = 0;
-		uint64_t*       id2            = nullptr;
+		obs_volmeter_t*                                self;
+		uint64_t                                       id;
+		size_t                                         callback_count = 0;
+		uint64_t*                                      id2            = nullptr;
+		std::chrono::high_resolution_clock::time_point previous       = std::chrono::high_resolution_clock::now();
 
 		struct AudioData
 		{

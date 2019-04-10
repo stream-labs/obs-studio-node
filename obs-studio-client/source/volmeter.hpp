@@ -49,7 +49,7 @@ namespace osn
 		std::mutex  m_worker_lock;
 
 		osn::VolMeterCallback* m_async_callback = nullptr;
-		Nan::Callback          m_callback_function;
+		Nan::Callback                                  m_callback_function;
 
 		public:
 		VolMeter(uint64_t uid);
