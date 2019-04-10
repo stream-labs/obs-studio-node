@@ -103,6 +103,23 @@ nlohmann::json RewindCallStack(std::string& crashedMethod);
 
 class MetricsPipeClient
 {
+	const static int StringSize = 64;
+
+	enum class MessageType
+	{
+		Pid,
+		Tag,
+		Status,
+		Shutdown
+	};
+
+	struct MetricsMessage
+	{
+		MessageType type;
+		char        param1[StringSize];
+		char        param2[StringSize];
+	};
+
 	public:
 	~MetricsPipeClient()
 	{
@@ -110,12 +127,17 @@ class MetricsPipeClient
 		if (m_PollingThread.joinable()) {
 			m_PollingThread.join();
 		}
+
+		MetricsMessage message;
+		message.type = MessageType::Shutdown;
+		SendMessage(message);
+		CloseHandle(m_Pipe);
 	}
 
 	bool CreateClient(std::string name)
 	{
 		m_Pipe = CreateFileA(
-		    name.c_str(),                 // L"\\\\.\\pipe\\my_pipe"
+		    name.c_str(),  // L"\\\\.\\pipe\\my_pipe"
 		    GENERIC_WRITE, // only need read access
 		    FILE_SHARE_READ | FILE_SHARE_WRITE,
 		    NULL,
@@ -128,6 +150,13 @@ class MetricsPipeClient
 			// look up error code here using GetLastError()
 			return false;
 		}
+
+		// Send the pid
+		MetricsMessage message;
+		DWORD pid = GetCurrentProcessId(); 
+		message.type = MessageType::Pid;
+		memcpy(message.param1, &pid, sizeof(DWORD));
+		bool result = SendMessage(message);
 
 		return true;
 	}
@@ -145,18 +174,14 @@ class MetricsPipeClient
 					m_PollingMutex.unlock();
 
 					while (!pendingData.empty()) {
-						auto message = pendingData.front();
+						auto status = pendingData.front();
 						pendingData.pop();
 
-						DWORD numBytesWritten = 0;
-						BOOL  result          = WriteFile(
-                            m_Pipe,           // handle to our outbound pipe
-                            message.data(),   // data to send
-                            message.size(),   // length of data to send (bytes)
-                            &numBytesWritten, // will store actual amount of data sent
-                            NULL              // not using overlapped IO
-                        );
+						MetricsMessage message;
+						message.type = MessageType::Status;
+						strcpy(message.param1, status.c_str());
 
+						bool result = SendMessage(message);
 						if (!result) {
 							auto lastError = GetLastError();
 							if (lastError == 2) {
@@ -178,6 +203,19 @@ class MetricsPipeClient
 		std::lock_guard<std::mutex> l(m_PollingMutex);
 
 		m_AsyncData.emplace(message);
+	}
+
+	private:
+	bool SendMessage(MetricsMessage& message)
+	{
+		DWORD numBytesWritten = 0;
+		return WriteFile(
+		    m_Pipe,                 // handle to our outbound pipe
+		    &message,               // data to send
+		    sizeof(MetricsMessage), // length of data to send (bytes)
+		    &numBytesWritten,       // will store actual amount of data sent
+		    NULL                    // not using overlapped IO
+		);
 	}
 
 	private:
@@ -313,9 +351,7 @@ nlohmann::json RequestProcessList()
 	return result;
 }
 
-util::CrashManager::~CrashManager()
-{
-}
+util::CrashManager::~CrashManager() {}
 
 bool util::CrashManager::Initialize()
 {

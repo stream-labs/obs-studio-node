@@ -482,7 +482,7 @@ void OBS_API::OBS_API_initAPI(
 	std::string locale  = args[1].value_str;
 	currentVersion      = args[2].value_str;
 
-	util::CrashManager::MetricsFileOpen(std::string("OBS_API") + std::string("OBS_API_initAPI"), currentVersion);
+	util::CrashManager::MetricsFileOpen(std::string("OBS_API-OBS_API_initAPI"), currentVersion);
 
 	/* libobs will use three methods of finding data files:
 	* 1. ${CWD}/data/libobs <- This doesn't work for us
