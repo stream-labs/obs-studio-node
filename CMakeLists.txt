@@ -106,7 +106,6 @@ set(BUILD_CPR_TESTS false CACHE BOOL "" FORCE)
 set(BUILD_TESTING false CACHE BOOL "" FORCE)
 set(CMAKE_USE_OPENSSL false CACHE BOOL "" FORCE)
 
-
 FetchContent_GetProperties(cpr)
 if(NOT cpr_POPULATED)
   FetchContent_Populate(cpr)

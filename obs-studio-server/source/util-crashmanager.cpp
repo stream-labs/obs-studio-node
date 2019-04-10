@@ -40,6 +40,7 @@
 
 #if defined(_WIN32)
 
+#include <Lmcons.h>
 #include <WinBase.h>
 #include "DbgHelp.h"
 #include "Shlobj.h"
@@ -64,136 +65,6 @@
 // STRUCTS //
 /////////////
 
-class curl_wrapper
-{
-	public:
-	class response
-	{
-		public:
-		response(std::string d, int sc) : data(std::move(d)), status_code(sc) {}
-
-		std::string data;
-		int         status_code;
-
-		nlohmann::json json()
-		{
-			return nlohmann::json::parse(data);
-		}
-	};
-
-	public:
-	curl_wrapper(std::string dns) : m_curl(curl_easy_init())
-	{
-		assert(m_curl);
-
-		setup_sentry_dns(dns);
-
-		//set_option(CURLOPT_VERBOSE, 1L);
-		set_option(CURLOPT_SSL_VERIFYPEER, 0L);
-	}
-
-	~curl_wrapper()
-	{
-		curl_slist_free_all(m_headers);
-		curl_easy_cleanup(m_curl);
-	}
-
-	void config_secure_header()
-	{
-		// add security header
-		std::string security_header = "X-Sentry-Auth: Sentry sentry_version=5,sentry_client=crow/";
-		security_header += std::string("6.8.9") + ",sentry_timestamp=";
-		security_header += std::to_string(34546456);
-		security_header += ",sentry_key=" + m_public_key;
-		security_header += ",sentry_secret=" + m_secret_key;
-		set_header(security_header.c_str());
-	}
-
-	response post(const nlohmann::json& payload, const bool compress = false)
-	{
-		config_secure_header();
-
-		set_header("Content-Type: application/json");
-
-		return post(m_store_url, payload.dump(), compress);
-	}
-
-	private:
-	response post(const std::string& url, const std::string& data, const bool compress = false)
-	{
-		std::string c_data;
-
-		set_option(CURLOPT_POSTFIELDS, data.c_str());
-		set_option(CURLOPT_POSTFIELDSIZE, data.size());
-
-		set_option(CURLOPT_URL, url.c_str());
-		set_option(CURLOPT_POST, 1);
-		set_option(CURLOPT_WRITEFUNCTION, &write_callback);
-		set_option(CURLOPT_WRITEDATA, &string_buffer);
-
-		auto res = curl_easy_perform(m_curl);
-
-		if (res != CURLE_OK) {
-			std::string error_msg = std::string("curl_easy_perform() failed: ") + curl_easy_strerror(res);
-			throw std::runtime_error(error_msg);
-		}
-
-		int status_code;
-		curl_easy_getinfo(m_curl, CURLINFO_RESPONSE_CODE, &status_code);
-
-		return {std::move(string_buffer), status_code};
-	}
-
-	template<typename T>
-	CURLcode set_option(CURLoption option, T parameter)
-	{
-		return curl_easy_setopt(m_curl, option, parameter);
-	}
-
-	void set_header(const char* header)
-	{
-		m_headers = curl_slist_append(m_headers, header);
-		set_option(CURLOPT_HTTPHEADER, m_headers);
-	}
-
-	private:
-	static size_t write_callback(char* ptr, size_t size, size_t nmemb, void* userdata)
-	{
-		assert(userdata);
-		((std::string*)userdata)->append(ptr, size * nmemb);
-		return size * nmemb;
-	}
-
-	void setup_sentry_dns(const std::string& dsn)
-	{
-		if (!dsn.empty()) {
-			const std::regex dsn_regex("(http[s]?)://([^:]+):([^@]+)@([^/]+)/([0-9]+)");
-			std::smatch      pieces_match;
-
-			if (std::regex_match(dsn, pieces_match, dsn_regex) and pieces_match.size() == 6) {
-				const auto scheme     = pieces_match.str(1);
-				m_public_key          = pieces_match.str(2);
-				m_secret_key          = pieces_match.str(3);
-				const auto host       = pieces_match.str(4);
-				const auto project_id = pieces_match.str(5);
-				m_store_url           = scheme + "://" + host + "/api/" + project_id + "/store/";
-			} else {
-				throw std::invalid_argument("DNS " + dsn + " is invalid");
-			}
-		} else {
-			throw std::invalid_argument("DNS is empty");
-		}
-	}
-
-	private:
-	CURL* const        m_curl;
-	struct curl_slist* m_headers = nullptr;
-	std::string        string_buffer;
-	std::string        m_public_key;
-	std::string        m_secret_key;
-	std::string        m_store_url;
-};
-
 //////////////////////
 // STATIC VARIABLES //
 //////////////////////
@@ -207,9 +78,6 @@ std::vector<std::string>              warnings;
 std::chrono::steady_clock::time_point initialTime;
 std::mutex                            messageMutex;
 std::mutex                            metricsFileMutex;
-std::ofstream                         metricsFile;
-
-const static std::wstring CrashMetricsFilename = L"backend-metrics.doc";
 
 // Crashpad variables
 #ifndef _DEBUG
@@ -230,13 +98,99 @@ LPTOP_LEVEL_EXCEPTION_FILTER                   crashpadInternalExceptionFilterMe
 
 std::string    FormatVAString(const char* const format, va_list args);
 nlohmann::json RewindCallStack(std::string& crashedMethod);
-void           MetricsFileOpen(std::wstring app_data);
-void           MetricsFileSetStatus(std::string status);
-void           MetricsFileClose();
 
 /////////////
 // METHODS //
 /////////////
+
+class MetricsPipeClient
+{
+	public:
+	~MetricsPipeClient()
+	{
+		m_StopPolling = true;
+		if (m_PollingThread.joinable()) {
+			m_PollingThread.join();
+		}
+	}
+
+	bool CreateClient(std::string name)
+	{
+		m_Pipe = CreateFileA(
+		    name.c_str(),                 // L"\\\\.\\pipe\\my_pipe"
+		    GENERIC_WRITE, // only need read access
+		    FILE_SHARE_READ | FILE_SHARE_WRITE,
+		    NULL,
+		    OPEN_EXISTING,
+		    FILE_ATTRIBUTE_NORMAL,
+		    NULL);
+
+		if (m_Pipe == NULL || m_Pipe == INVALID_HANDLE_VALUE) {
+			std::cout << "Failed to create outbound pipe instance." << std::endl;
+			// look up error code here using GetLastError()
+			return false;
+		}
+
+		return true;
+	}
+
+	void StartPolling()
+	{
+		m_PollingThread = std::thread([=]() {
+			while (!m_StopPolling) {
+				// Check if we have data to be sent
+				{
+					m_PollingMutex.lock();
+
+					std::queue<std::string> pendingData = std::move(m_AsyncData);
+
+					m_PollingMutex.unlock();
+
+					while (!pendingData.empty()) {
+						auto message = pendingData.front();
+						pendingData.pop();
+
+						DWORD numBytesWritten = 0;
+						BOOL  result          = WriteFile(
+                            m_Pipe,           // handle to our outbound pipe
+                            message.data(),   // data to send
+                            message.size(),   // length of data to send (bytes)
+                            &numBytesWritten, // will store actual amount of data sent
+                            NULL              // not using overlapped IO
+                        );
+
+						if (!result) {
+							auto lastError = GetLastError();
+							if (lastError == 2) {
+								m_StopPolling = true;
+							}
+							std::cout << lastError << std::endl;
+							m_StopPolling = false;
+						}
+					}
+				}
+
+				std::this_thread::sleep_for(std::chrono::milliseconds(30));
+			}
+		});
+	}
+
+	void SendDataAsync(std::string message)
+	{
+		std::lock_guard<std::mutex> l(m_PollingMutex);
+
+		m_AsyncData.emplace(message);
+	}
+
+	private:
+	HANDLE                  m_Pipe;
+	bool                    m_StopPolling = false;
+	std::thread             m_PollingThread;
+	std::mutex              m_PollingMutex;
+	std::queue<std::string> m_AsyncData;
+};
+
+MetricsPipeClient s_MetricsClient;
 
 // Transform a byte value into a string + sufix
 std::string PrettyBytes(uint64_t bytes)
@@ -363,14 +317,10 @@ nlohmann::json RequestProcessList()
 
 util::CrashManager::~CrashManager()
 {
-	MetricsFileClose();
 }
 
-bool util::CrashManager::Initialize(std::wstring app_data)
+bool util::CrashManager::Initialize()
 {
-	// Open the metrics file
-	MetricsFileOpen(app_data);
-
 #ifndef _DEBUG
 
 	if (!SetupCrashpad()) {
@@ -603,10 +553,9 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 
 	// If we cannot destroy the obs kill the process without causing a crash report,
 	// proceed with it
-	DWORD pid = GetCurrentProcessId();
+	DWORD  pid = GetCurrentProcessId();
 	HANDLE hnd = OpenProcess(SYNCHRONIZE | PROCESS_TERMINATE, TRUE, pid);
 	if (hnd != nullptr) {
-
 		client.~CrashpadClient();
 		database->~CrashReportDatabase();
 		database = nullptr;
@@ -616,7 +565,7 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 
 	// Something really bad went wrong when killing this process, generate a crash report!
 	util::CrashManager::HandleCrash(_crashMessage);
-	
+
 	// Unreachable statement
 	return true;
 }
@@ -689,38 +638,34 @@ nlohmann::json util::CrashManager::RequestOBSLog(OBSLogType type)
 {
 	nlohmann::json result;
 
-    switch (type)
-    {
-        case OBSLogType::Errors:
-        {
-		    auto& errors = OBS_API::getOBSLogErrors();
-			for (auto& msg : errors)
-				result.push_back(msg);
-            break;
-        }
+	switch (type) {
+	case OBSLogType::Errors: {
+		auto& errors = OBS_API::getOBSLogErrors();
+		for (auto& msg : errors)
+			result.push_back(msg);
+		break;
+	}
 
-        case OBSLogType::Warnings:
-        {
-		    auto& warnings = OBS_API::getOBSLogWarnings();
-			for (auto& msg : warnings)
-				result.push_back(msg);
-            break;
-        }
+	case OBSLogType::Warnings: {
+		auto& warnings = OBS_API::getOBSLogWarnings();
+		for (auto& msg : warnings)
+			result.push_back(msg);
+		break;
+	}
 
-        case OBSLogType::General:
-        {
-		    auto& general = OBS_API::getOBSLogGeneral();
-		    while (!general.empty()) {
-			    result.push_back(general.front());
-			    general.pop();
-            }
-		    
-            break;
-        }
-    }
+	case OBSLogType::General: {
+		auto& general = OBS_API::getOBSLogGeneral();
+		while (!general.empty()) {
+			result.push_back(general.front());
+			general.pop();
+		}
+
+		break;
+	}
+	}
 
 	std::reverse(result.begin(), result.end());
-    
+
 	return result;
 }
 
@@ -922,14 +867,11 @@ void util::CrashManager::ClearBreadcrumbs()
 	breadcrumbs.clear();
 }
 
-void util::CrashManager::ProcessPreServerCall(
-    std::string                    cname,
-    std::string                    fname,
-    const std::vector<ipc::value>& args)
+void util::CrashManager::ProcessPreServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args)
 {
 	nlohmann::json jsonEntry;
-	jsonEntry["cname"]      = cname;
-	jsonEntry["fname"]      = fname;
+	jsonEntry["cname"] = cname;
+	jsonEntry["fname"] = fname;
 
 	// Perform this only if this user have a high crash rate (TODO: this check must be implemented)
 	/*
@@ -940,7 +882,7 @@ void util::CrashManager::ProcessPreServerCall(
 
 	AddBreadcrumb(jsonEntry);
 
-	MetricsFileSetStatus(cname + "-" + fname);
+	s_MetricsClient.SendDataAsync(cname + "-" + fname);
 }
 
 void util::CrashManager::ProcessPostServerCall(
@@ -958,7 +900,7 @@ void util::CrashManager::ProcessPostServerCall(
 
 	ClearBreadcrumbs();
 
-	MetricsFileSetStatus("generic-idle");
+	s_MetricsClient.SendDataAsync("generic-idle");
 }
 
 void util::CrashManager::DisableReports()
@@ -968,53 +910,16 @@ void util::CrashManager::DisableReports()
 	database = nullptr;
 }
 
-void MetricsFileOpen(std::wstring app_data)
+void util::CrashManager::MetricsFileOpen(std::string current_function_class_name, std::string current_version)
 {
-	if (app_data.length() == 0) {
+	std::wstring appdata_path;
+
+	bool result = s_MetricsClient.CreateClient("\\\\.\\pipe\\my_pipe");
+	if (!result) {
 		return;
 	}
 
-	try {
-		std::wstring file_path = app_data + L"\\" + CrashMetricsFilename;
-		auto metrics_file_read = std::ifstream(file_path);
-		if (metrics_file_read.is_open()) {
-			std::string metrics_string;
-			getline(metrics_file_read, metrics_string);
+	s_MetricsClient.StartPolling();
 
-			if (metrics_string != "shutdown") {
-				curl_wrapper curl(
-				    "https://7376a60665cd40bebbd59d6bf8363172:13804c42a5a84504bb5475050f6392e0@sentry.io/1406061");
-
-				nlohmann::json j;
-				j["message"] = metrics_string;
-				j["level"]   = "info";
-
-				curl.post(j, true).data;
-			}
-
-			metrics_file_read.close();
-		}
-
-		metricsFile = std::ofstream(file_path, std::ios::trunc | std::ios::ate);
-
-	} catch (...) {
-	}
-}
-
-void MetricsFileSetStatus(std::string status)
-{
-	std::lock_guard<std::mutex> l(metricsFileMutex);
-
-	if (metricsFile.is_open()) {
-		metricsFile.seekp(0, std::ios::beg);
-		metricsFile << status << std::endl;
-	}
-}
-
-void MetricsFileClose()
-{
-	if (metricsFile.is_open()) {
-		MetricsFileSetStatus("shutdown");
-		metricsFile.close();
-	}
+	s_MetricsClient.SendDataAsync(current_function_class_name);
 }

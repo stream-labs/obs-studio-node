@@ -42,10 +42,11 @@ namespace util
 
 		~CrashManager();
 
-		bool Initialize(std::wstring app_data);
+		bool Initialize();
 		void Configure();
 		void OpenConsole();
 
+		static void MetricsFileOpen(std::string current_function_class_name, std::string current_version);
 		static void IPCValuesToData(const std::vector<ipc::value>&, nlohmann::json&);
 		static void AddWarning(const std::string& warning);
 		static void AddBreadcrumb(const nlohmann::json& message);

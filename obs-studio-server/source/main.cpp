@@ -129,24 +129,11 @@ namespace System
 
 int main(int argc, char* argv[])
 {
-	std::wstring appdata_path;
-
-#if defined(_WIN32)
-	HRESULT hResult;
-	PWSTR   ppszPath;
-
-	hResult = SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, NULL, &ppszPath);
-
-	appdata_path.assign(ppszPath);
-	appdata_path.append(L"\\obs-studio-node-server");
-
-	CoTaskMemFree(ppszPath);
-#endif
 
 #ifndef _DEBUG
 
     util::CrashManager crashManager;
-	if (!crashManager.Initialize(appdata_path)) {
+	if (!crashManager.Initialize()) {
 		return -1;
     }
 
