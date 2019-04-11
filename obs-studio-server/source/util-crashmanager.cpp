@@ -153,8 +153,8 @@ class MetricsPipeClient
 
 		// Send the pid
 		MetricsMessage message;
-		DWORD pid = GetCurrentProcessId(); 
-		message.type = MessageType::Pid;
+		DWORD          pid = GetCurrentProcessId();
+		message.type       = MessageType::Pid;
 		memcpy(message.param1, &pid, sizeof(DWORD));
 		bool result = SendMessage(message);
 
@@ -165,42 +165,48 @@ class MetricsPipeClient
 	{
 		m_PollingThread = std::thread([=]() {
 			while (!m_StopPolling) {
+
 				// Check if we have data to be sent
 				{
 					m_PollingMutex.lock();
-
-					std::queue<std::string> pendingData = std::move(m_AsyncData);
-
+					std::queue<MetricsMessage> pendingData = std::move(m_AsyncData);
 					m_PollingMutex.unlock();
 
 					while (!pendingData.empty()) {
-						auto status = pendingData.front();
+						auto message = pendingData.front();
 						pendingData.pop();
-
-						MetricsMessage message;
-						message.type = MessageType::Status;
-						strcpy(message.param1, status.c_str());
 
 						bool result = SendMessage(message);
 						if (!result) {
-							auto lastError = GetLastError();
-							if (lastError == 2) {
-								m_StopPolling = true;
-							}
-							std::cout << lastError << std::endl;
-							m_StopPolling = false;
+                            // ?
 						}
 					}
 				}
 
-				std::this_thread::sleep_for(std::chrono::milliseconds(30));
+				std::this_thread::sleep_for(std::chrono::milliseconds(50));
 			}
 		});
 	}
 
-	void SendDataAsync(std::string message)
+	void SendStatus(std::string status)
 	{
 		std::lock_guard<std::mutex> l(m_PollingMutex);
+
+        MetricsMessage message = {};
+		message.type           = MessageType::Status;
+		strcpy(message.param1, status.c_str());
+
+		m_AsyncData.emplace(message);
+	}
+
+    void SendTag(std::string tag, std::string value)
+	{
+		std::lock_guard<std::mutex> l(m_PollingMutex);
+
+		MetricsMessage message = {};
+		message.type           = MessageType::Tag;
+		strcpy(message.param1, tag.c_str());
+		strcpy(message.param2, value.c_str());
 
 		m_AsyncData.emplace(message);
 	}
@@ -219,11 +225,11 @@ class MetricsPipeClient
 	}
 
 	private:
-	HANDLE                  m_Pipe;
-	bool                    m_StopPolling = false;
-	std::thread             m_PollingThread;
-	std::mutex              m_PollingMutex;
-	std::queue<std::string> m_AsyncData;
+	HANDLE                     m_Pipe;
+	bool                       m_StopPolling = false;
+	std::thread                m_PollingThread;
+	std::mutex                 m_PollingMutex;
+	std::queue<MetricsMessage> m_AsyncData;
 };
 
 MetricsPipeClient s_MetricsClient;
@@ -916,7 +922,7 @@ void util::CrashManager::ProcessPreServerCall(std::string cname, std::string fna
 
 	AddBreadcrumb(jsonEntry);
 
-	s_MetricsClient.SendDataAsync(cname + "-" + fname);
+	s_MetricsClient.SendStatus(cname + "-" + fname);
 }
 
 void util::CrashManager::ProcessPostServerCall(
@@ -934,7 +940,7 @@ void util::CrashManager::ProcessPostServerCall(
 
 	ClearBreadcrumbs();
 
-	s_MetricsClient.SendDataAsync("generic-idle");
+	s_MetricsClient.SendStatus("generic-idle");
 }
 
 void util::CrashManager::DisableReports()
@@ -955,5 +961,5 @@ void util::CrashManager::MetricsFileOpen(std::string current_function_class_name
 
 	s_MetricsClient.StartPolling();
 
-	s_MetricsClient.SendDataAsync(current_function_class_name);
+    s_MetricsClient.SendTag("version", current_version);
 }
