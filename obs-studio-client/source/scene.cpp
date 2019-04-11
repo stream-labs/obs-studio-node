@@ -302,6 +302,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 
 	SceneItemData* sid = new SceneItemData;
 	sid->obs_itemId    = obs_id;
+	sid->scene_id      = scene->sourceId;
 
 	CacheManager<SceneItemData*>::getInstance().Store(id, sid);	
 

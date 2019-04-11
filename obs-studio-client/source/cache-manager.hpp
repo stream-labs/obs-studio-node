@@ -54,7 +54,9 @@ struct SourceDataInfo
 
 struct SceneItemData
 {
-	int64_t obs_itemId      = -1;
+	int64_t  obs_itemId = -1;
+	uint64_t scene_id   = UINT64_MAX;
+
 	bool    cached          = false;
 	bool    isSelected      = false;
 	bool    selectedChanged = false;
