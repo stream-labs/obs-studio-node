@@ -52,38 +52,82 @@ function saveStreamKey(key: string) {
     osn.NodeObs.OBS_settings_saveSettings('Stream', streamSettings);
 }
 
-function setEnconderAndRecordingPath() {
+function setEnconderAndRecordingPath(mode: string, invalidPath: boolean = false) {
     const path = require('path');
 
     // Getting stream settings container
     const streamSettings = osn.NodeObs.OBS_settings_getSettings('Output');
 
-    // Changing mode to simple
+    // Changing mode to simple or advanced
     streamSettings.find(category => {
         return category.nameSubCategory === 'Untitled';
     }).parameters.find(parameter => {
         return parameter.name === 'Mode';
-    }).currentValue = 'Simple';
+    }).currentValue = mode;
 
     osn.NodeObs.OBS_settings_saveSettings('Output', streamSettings);
 
     let setEncoderAndRecordingFilePath = osn.NodeObs.OBS_settings_getSettings('Output');
 
-    // Setting encoder to x264, AppVeyor does not have any hardware encoders
-    setEncoderAndRecordingFilePath.find(category => {
-        return category.nameSubCategory === 'Streaming';
-    }).parameters.find(parameter => {
-        return parameter.name === 'StreamEncoder';
-    }).currentValue = 'x264';
+    if (mode == 'Simple') {
+        // Setting encoder to x264, AppVeyor does not have any hardware encoders
+        setEncoderAndRecordingFilePath.find(category => {
+            return category.nameSubCategory === 'Streaming';
+        }).parameters.find(parameter => {
+            return parameter.name === 'StreamEncoder';
+        }).currentValue = 'x264';
 
-    // Setting recording file path
-    setEncoderAndRecordingFilePath.find(category => {
-        return category.nameSubCategory === 'Recording';
-    }).parameters.find(parameter => {
-        return parameter.name === 'FilePath';
-    }).currentValue = path.join(path.normalize(__dirname), '..', 'osnData');
+        if (!invalidPath) {
+            // Setting recording file path
+            setEncoderAndRecordingFilePath.find(category => {
+                return category.nameSubCategory === 'Recording';
+            }).parameters.find(parameter => {
+                return parameter.name === 'FilePath';
+            }).currentValue = path.join(path.normalize(__dirname), '..', 'osnData');
+        } else {
+            // Setting invalid recording file path
+            setEncoderAndRecordingFilePath.find(category => {
+                return category.nameSubCategory === 'Recording';
+            }).parameters.find(parameter => {
+                return parameter.name === 'FilePath';
+            }).currentValue = 'C:\\Test';
+        }
 
-    osn.NodeObs.OBS_settings_saveSettings('Output', setEncoderAndRecordingFilePath);
+        osn.NodeObs.OBS_settings_saveSettings('Output', setEncoderAndRecordingFilePath);
+    } 
+    
+    if (mode == 'Advanced') {
+        // Setting encoder to x264, AppVeyor does not have any hardware encoders
+        setEncoderAndRecordingFilePath.find(category => {
+            return category.nameSubCategory === 'Streaming';
+        }).parameters.find(parameter => {
+            return parameter.name === 'Encoder';
+        }).currentValue = 'obs_x264';
+
+        setEncoderAndRecordingFilePath.find(category => {
+            return category.nameSubCategory === 'Recording';
+        }).parameters.find(parameter => {
+            return parameter.name === 'RecEncoder';
+        }).currentValue = 'none';
+
+        if (!invalidPath) {
+            // Setting recording file path
+            setEncoderAndRecordingFilePath.find(category => {
+                return category.nameSubCategory === 'Recording';
+            }).parameters.find(parameter => {
+                return parameter.name === 'RecFilePath';
+            }).currentValue = path.join(path.normalize(__dirname), '..', 'osnData');
+        } else {
+            // Setting invalid recording file path
+            setEncoderAndRecordingFilePath.find(category => {
+                return category.nameSubCategory === 'Recording';
+            }).parameters.find(parameter => {
+                return parameter.name === 'RecFilePath';
+            }).currentValue = 'C:\\Test';
+        }
+
+        osn.NodeObs.OBS_settings_saveSettings('Output', setEncoderAndRecordingFilePath);
+    }
 }
 
 describe('nodeobs_service', function() {
@@ -91,17 +135,56 @@ describe('nodeobs_service', function() {
     let services: Services;
     let hasUserFromPool: boolean;
 
-    let streamingSignals = new Subject<IOBSOutputSignalInfo>();
-    let isStreaming: boolean = false;
+    let simpleStreamingSignals = new Subject<IOBSOutputSignalInfo>();
+    let isStreamingSimple: boolean = false;
 
-    let recordWhileStreamingSignals = new Subject<IOBSOutputSignalInfo>();
-    let isRecordingWhileStreaming: boolean = false;
+    let advStreamingSignals = new Subject<IOBSOutputSignalInfo>();
+    let isStreamingAdv: boolean = false;
 
-    let replayWhileStreamingSignals = new Subject<IOBSOutputSignalInfo>();
-    let isReplayWhileStreaming: boolean = false;
+    let simpleRecordingSignals = new Subject<IOBSOutputSignalInfo>();
+    let isRecordingSimple: boolean = false;
 
-    let allSignals = new Subject<IOBSOutputSignalInfo>();
-    let isRecordingAndReplayWhileStreaming: boolean = false;
+    let advRecordingSignals = new Subject<IOBSOutputSignalInfo>();
+    let isRecordingAdv: boolean = false;
+
+    let simpleReplaybufferSignals = new Subject<IOBSOutputSignalInfo>();
+    let isReplayBufferSimple: boolean = false;
+
+    let advReplaybufferSignals = new Subject<IOBSOutputSignalInfo>();
+    let isReplayBufferAdv: boolean = false;
+
+    let simpleRecordWhileStreamingSignals = new Subject<IOBSOutputSignalInfo>();
+    let isRecordingWhileStreamingSimple: boolean = false;
+
+    let advRecordWhileStreamingSignals = new Subject<IOBSOutputSignalInfo>();
+    let isRecordingWhileStreamingAdv: boolean = false;
+
+    let simpleReplayWhileStreamingSignals = new Subject<IOBSOutputSignalInfo>();
+    let isReplayWhileStreamingSimple: boolean = false;
+
+    let advReplayWhileStreamingSignals = new Subject<IOBSOutputSignalInfo>();
+    let isReplayWhileStreamingAdv: boolean = false;
+
+    let simpleAllSignals = new Subject<IOBSOutputSignalInfo>();
+    let isAllRecordingWhileStreamingSimple: boolean = false;
+
+    let advAllSignals = new Subject<IOBSOutputSignalInfo>();
+    let isAllRecordingWhileStreamingAdv: boolean = false;
+
+    let invalidKeySignals = new Subject<IOBSOutputSignalInfo>();
+    let isStreamingWithInvalidKey: boolean = false;
+
+    let invalidPathRecordSignalsSimple = new Subject<IOBSOutputSignalInfo>();
+    let isRecordingWithInvalidPathSimple: boolean = false;
+
+    let invalidPathRecordSignalsAdv = new Subject<IOBSOutputSignalInfo>();
+    let isRecordingWithInvalidPathAdv: boolean = false;
+
+    let invalidPathReplaySignalsSimple = new Subject<IOBSOutputSignalInfo>();
+    let isReplayWithInvalidPathSimple: boolean = false;
+
+    let invalidPathReplaySignalsAdv = new Subject<IOBSOutputSignalInfo>();
+    let isReplayWithInvalidPathAdv: boolean = false;
 
     // Initialize OBS process
     before(function() {
@@ -115,33 +198,108 @@ describe('nodeobs_service', function() {
 
         // Connecting output signals
         osn.NodeObs.OBS_service_connectOutputSignals((signalInfo: IOBSOutputSignalInfo) => {
-            if (isStreaming == true) {
+            if (isStreamingSimple == true) {
                 if (signalInfo.type === EOBSOutputType.Streaming) {
-                    streamingSignals.next(signalInfo);
+                    simpleStreamingSignals.next(signalInfo);
                 }
             }
 
-            if (isRecordingWhileStreaming == true) {
+            if (isStreamingAdv == true) {
+                if (signalInfo.type === EOBSOutputType.Streaming) {
+                    advStreamingSignals.next(signalInfo);
+                }
+            }
+
+            if (isRecordingSimple == true) {
+                if (signalInfo.type === EOBSOutputType.Recording) {
+                    simpleRecordingSignals.next(signalInfo);
+                }
+            }
+
+            if (isRecordingAdv == true) {
+                if (signalInfo.type === EOBSOutputType.Recording) {
+                    advRecordingSignals.next(signalInfo);
+                }
+            }
+
+            if (isReplayBufferSimple == true) {
+                if (signalInfo.type === EOBSOutputType.ReplayBuffer) {
+                    simpleReplaybufferSignals.next(signalInfo);
+                }
+            }
+
+            if (isReplayBufferAdv == true) {
+                if (signalInfo.type === EOBSOutputType.ReplayBuffer) {
+                    advReplaybufferSignals.next(signalInfo);
+                }
+            }
+
+            if (isRecordingWhileStreamingSimple == true) {
                 if (signalInfo.type === EOBSOutputType.Streaming ||
                     signalInfo.type === EOBSOutputType.Recording) {
-                    recordWhileStreamingSignals.next(signalInfo);
+                    simpleRecordWhileStreamingSignals.next(signalInfo);
+                }
+            }
+
+            if (isRecordingWhileStreamingAdv == true) {
+                if (signalInfo.type === EOBSOutputType.Streaming ||
+                    signalInfo.type === EOBSOutputType.Recording) {
+                    advRecordWhileStreamingSignals.next(signalInfo);
                 }
             }
             
-            if (isReplayWhileStreaming == true) {
+            if (isReplayWhileStreamingSimple == true) {
                 if (signalInfo.type === EOBSOutputType.Streaming ||
                     signalInfo.type === EOBSOutputType.ReplayBuffer) {
-                    replayWhileStreamingSignals.next(signalInfo);
+                    simpleReplayWhileStreamingSignals.next(signalInfo);
                 }
             }
 
-            if (isRecordingAndReplayWhileStreaming == true) {
-                allSignals.next(signalInfo);
+            if (isReplayWhileStreamingAdv == true) {
+                if (signalInfo.type === EOBSOutputType.Streaming ||
+                    signalInfo.type === EOBSOutputType.ReplayBuffer) {
+                    advReplayWhileStreamingSignals.next(signalInfo);
+                }
+            }
+
+            if (isAllRecordingWhileStreamingSimple == true) {
+                simpleAllSignals.next(signalInfo);
+            }
+
+            if (isAllRecordingWhileStreamingAdv == true) {
+                advAllSignals.next(signalInfo);
+            }
+
+            if (isStreamingWithInvalidKey == true) {
+                if (signalInfo.type === EOBSOutputType.Streaming) {
+                    invalidKeySignals.next(signalInfo);
+                }
+            }
+
+            if (isRecordingWithInvalidPathSimple == true) {
+                if (signalInfo.type === EOBSOutputType.Recording) {
+                    invalidPathRecordSignalsSimple.next(signalInfo);
+                }
+            }
+
+            if (isRecordingWithInvalidPathAdv == true) {
+                if (signalInfo.type === EOBSOutputType.Recording) {
+                    invalidPathRecordSignalsAdv.next(signalInfo);
+                }
+            }
+
+            if (isReplayWithInvalidPathSimple == true) {
+                if (signalInfo.type === EOBSOutputType.ReplayBuffer) {
+                    invalidPathReplaySignalsSimple.next(signalInfo);
+                }
+            }
+
+            if (isReplayWithInvalidPathAdv == true) {
+                if (signalInfo.type === EOBSOutputType.ReplayBuffer) {
+                    invalidPathReplaySignalsAdv.next(signalInfo);
+                }
             }
         });
-
-        // Setting encoder and recording path
-        setEnconderAndRecordingPath();
     });
 
     // Shutdown OBS process
@@ -156,250 +314,774 @@ describe('nodeobs_service', function() {
     });
 
     context('# OBS_service_startStreaming, OBS_service_stopStreaming and recording functions', function() {
-        it('Start and stop streaming (Twitch)', function(done) {
-            // Getting stream key from user pool
-            services.getStreamKey('twitch').then(key => {
-                // Saving stream key
-                saveStreamKey(key);
-                hasUserFromPool = true;
+        it('Set stream key', async function() {
+            let streamKey: string = "";
+            let updatedStreamKey: string = "";
 
-            // If unable to get stream key use environment variable
-            }).catch(function() {
-                // Saving stream key
-                saveStreamKey(process.env.SLOBS_BE_STREAMKEY);
+            try {
+                streamKey = await services.getStreamKey('twitch');
+                hasUserFromPool = true;
+            } catch(e) {
+                streamKey = process.env.SLOBS_BE_STREAMKEY;
                 hasUserFromPool = false;
+            }
+                
+            saveStreamKey(streamKey);
+
+            const updatedStreamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
+
+            updatedStreamSettings.forEach(subCategory => {
+                subCategory.parameters.forEach(parameter => {
+                    if (parameter.name === 'key') {
+                        updatedStreamKey = parameter.currentValue;
+                    }
+                });
             });
 
-            isStreaming = true;
-
-            streamingSignals.subscribe(
-                signalInfo => {
-                    if (signalInfo.type === EOBSOutputType.Streaming) {
-                        if (signalInfo.signal === EOBSOutputSignal.Start) {
-                            // Streaming for 5 seconds
-                            setTimeout(function() {
-                                osn.NodeObs.OBS_service_stopStreaming(false);
-                            }, 5000);
-                        } else if (signalInfo.signal === EOBSOutputSignal.Stopping) {
-                            osn.NodeObs.OBS_service_stopStreaming(true);
-                        } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
-                            // If signal code is different than 0, something went wrong
-                            if (signalInfo.code != 0) {
-                                done(new Error('Stop failed with code ' + signalInfo.code));
-                            }
-                        } else if (signalInfo.signal === EOBSOutputSignal.Deactivate) {
-                            isStreaming = false;
-                            done();
-                        }
-                    } else {
-                        isStreaming = false;
-                        done(new Error('No output signals received.'));
-                    }
-                },
-                done
-            );
-
-            osn.NodeObs.OBS_service_startStreaming();
+            expect(streamKey).to.equal(updatedStreamKey);
         });
 
-        it('Record while streaming', function(done) {
-            isRecordingWhileStreaming = true;
-
-            recordWhileStreamingSignals.subscribe(
-                signalInfo => {
-                    if (signalInfo.type === EOBSOutputType.Streaming) {
-                        if (signalInfo.signal === EOBSOutputSignal.Start) {
-                            // Streaming for 5 secods
-                            setTimeout(function() {
-                                osn.NodeObs.OBS_service_stopStreaming(false);
-                            }, 5000);
-
-                            // Start recording after 1 seconds
-                            setTimeout(function() {
-                                osn.NodeObs.OBS_service_startRecording();
-                            }, 1000);
-                        } else if (signalInfo.signal === EOBSOutputSignal.Stopping) {
-                            osn.NodeObs.OBS_service_stopStreaming(true);
-                        } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
-                            // If signal code is different than 0, something went wrong
-                            if (signalInfo.code != 0) {
-                                done(new Error('Stop failed with code ' + signalInfo.code));
-                            }
-                        } else if (signalInfo.signal === EOBSOutputSignal.Deactivate) {
-                            isRecordingWhileStreaming = false;
-                            done();
-                        }
-                    } else if (signalInfo.type === EOBSOutputType.Recording) {
-                        if (signalInfo.signal === EOBSOutputSignal.Start) {
-                            // Recording for 3 seconds
-                            setTimeout(function() {
-                                osn.NodeObs.OBS_service_stopRecording();
-                            }, 3000);
-                        } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
-                            // If signal code is different than 0, something went wrong
-                            if (signalInfo.code != 0) {
-                                done(new Error('Stop failed with code ' + signalInfo.code));
-                            }
-                        }
-                    } else {
-                        isRecordingWhileStreaming = false;
-                        done(new Error('No output signals received.'));
-                    }
-                },
-                done
-            );
-
-            osn.NodeObs.OBS_service_startStreaming();
-        });
-
-        it('Record replay while streaming and save it', function(done) {
-            let lastReplay: string = "";
-            isReplayWhileStreaming = true;
-
-            replayWhileStreamingSignals.subscribe(
-                signalInfo => {
-                    if (signalInfo.type === EOBSOutputType.Streaming) {
-                        if (signalInfo.signal === EOBSOutputSignal.Start) {
-                            // Streaming for 8 secods
-                            setTimeout(function() {
-                                osn.NodeObs.OBS_service_stopStreaming(false);
-                            }, 8000);
-
-                             // Starting replay buffer after 1 second
-                             setTimeout(function() {
-                                osn.NodeObs.OBS_service_startReplayBuffer();
-                            }, 1000);
-                        } else if (signalInfo.signal === EOBSOutputSignal.Stopping) {
-                            osn.NodeObs.OBS_service_stopStreaming(true);
-                        } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
-                            // If signal code is different than 0, something went wrong
-                            if (signalInfo.code != 0) {
-                                done(new Error('Stop failed with code ' + signalInfo.code));
-                            }
-                        } else if (signalInfo.signal === EOBSOutputSignal.Deactivate) {
-                            isReplayWhileStreaming = false;
-                            done();
-                        }
-                    } else if (signalInfo.type === EOBSOutputType.ReplayBuffer) {
-                        if (signalInfo.signal === EOBSOutputSignal.Start) {
-                            // Recording replay for 5 seconds
-                            setTimeout(function() {
-                                osn.NodeObs.OBS_service_stopReplayBuffer(false);
-                            }, 5000);
+        context('* Simple mode', function() {
+            it('Start and stop streaming', function(done) {
+                let signalCode: number = 0;
+                let outputType: string = "";
     
-                            // Saving replay after 2 seconds
-                            setTimeout(function() {
-                                osn.NodeObs.OBS_service_processReplayBufferHotkey();
-                            }, 2000);
-                        } else if (signalInfo.signal === EOBSOutputSignal.Wrote) {
-                            // Getting saved replay file name
-                            lastReplay = osn.NodeObs.OBS_service_getLastReplay();
-                        } else if (signalInfo.signal === EOBSOutputSignal.Stopping) {
-                            osn.NodeObs.OBS_service_stopReplayBuffer(true);
-                        } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
-                            // If signal code is different than 0, something went wrong
-                            if (signalInfo.code != 0) {
-                                done(new Error('Stop failed with code ' + signalInfo.code));
+                // Setting encoder and recording path
+                setEnconderAndRecordingPath('Simple', false);
+    
+                isStreamingSimple = true;
+    
+                simpleStreamingSignals.subscribe(
+                    signalInfo => {
+                        if (signalInfo.type === EOBSOutputType.Streaming) {
+                            if (signalInfo.signal === EOBSOutputSignal.Start) {
+                                // Stopping stream
+                                osn.NodeObs.OBS_service_stopStreaming(false);
+                            } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                                // If signal code is different than 0, something went wrong
+                                if (signalInfo.code != 0) {
+                                    signalCode = signalInfo.code;
+                                    outputType = signalInfo.type;
+                                }
+                            } else if (signalInfo.signal === EOBSOutputSignal.Deactivate) {
+                                isStreamingSimple = false;
+    
+                                if (signalCode != 0 && outputType != "") {
+                                    done(new Error(outputType + ' stop signal returned with code ' + signalCode));
+                                } else {
+                                    done();
+                                }
                             }
-
-                            // Getting saved replay file name
-                            lastReplay = osn.NodeObs.OBS_service_getLastReplay();
-
-                            // Checking if last replay returned correctly
-                            try {
-                                expect(lastReplay).to.not.equal(undefined);
-                                expect(lastReplay.length).to.not.equal(0);
-                            } catch (e) {
-                                // Failed to get last replay
-                                isReplayWhileStreaming = false;
-                                done(new Error(e));
-                            }
+                        } else {
+                            isStreamingSimple = false;
+                            done(new Error('No output signals received.'));
                         }
-                    } else {
-                        isReplayWhileStreaming = false;
-                        done(new Error('No output signals received.'));
                     }
-                },
-                done
-            );
+                );
+    
+                osn.NodeObs.OBS_service_startStreaming();
+            });
+    
+            it('Start recording and stop', function(done) {
+                isRecordingSimple = true;
+    
+                simpleRecordingSignals.subscribe(
+                    signalInfo => {
+                        if (signalInfo.type === EOBSOutputType.Recording) {
+                            if (signalInfo.signal === EOBSOutputSignal.Start) {
+                                setTimeout(function() {
+                                    // Stopping recording
+                                    osn.NodeObs.OBS_service_stopRecording();
+                                }, 500);
+                            } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                                isRecordingSimple = false;
+    
+                                // If signal code is different than 0, something went wrong
+                                if (signalInfo.code != 0) {
+                                    done(new Error(signalInfo.type + ' stop signal returned with code ' + signalInfo.code));
+                                } else {
+                                    done();
+                                }
+                            }
+                        } else {
+                            isRecordingSimple = false;
+                            done(new Error('No output signals received.'));
+                        }
+                    }
+                );
+    
+                osn.NodeObs.OBS_service_startRecording();
+            });
+    
+            it('Start replay buffer, save replay and stop', function(done) {
+                let lastReplay: string = "";
+    
+                isReplayBufferSimple = true;
+    
+                simpleReplaybufferSignals.subscribe(
+                    signalInfo => {
+                        if (signalInfo.type === EOBSOutputType.ReplayBuffer) {
+                            if (signalInfo.signal === EOBSOutputSignal.Start) {
+                                setTimeout(function() {
+                                    // Saving replay
+                                    osn.NodeObs.OBS_service_processReplayBufferHotkey();
+                                }, 500);
+                            } else if (signalInfo.signal === EOBSOutputSignal.Wrote) {
+                                lastReplay = osn.NodeObs.OBS_service_getLastReplay();
+    
+                                // Stopping replay buffer
+                                osn.NodeObs.OBS_service_stopReplayBuffer(false);
+                            } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                                isReplayBufferSimple = false;
+    
+                                // If signal code is different than 0, something went wrong
+                                if (signalInfo.code != 0) {
+                                    done(new Error(signalInfo.type + ' stop signal returned with code ' + signalInfo.code));
+                                } else if (lastReplay == undefined || lastReplay.length == 0) {
+                                    done(new Error('Failed to get last replay'));
+                                } else {
+                                    done();
+                                }
+                            }
+                        } else {
+                            isReplayBufferSimple = false;
+                            done(new Error('No output signals received.'));
+                        }
+                    }
+                );
+    
+                osn.NodeObs.OBS_service_startReplayBuffer();
+            });
+    
+            it('Record while streaming', function(done) {
+                let signalCode: number = 0;
+                let outputType: string = "";
+                isRecordingWhileStreamingSimple = true;
+    
+                simpleRecordWhileStreamingSignals.subscribe(
+                    signalInfo => {
+                        if (signalInfo.type === EOBSOutputType.Streaming) {
+                            if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                                // If signal code is different than 0, something went wrong
+                                if (signalInfo.code != 0) {
+                                    signalCode = signalInfo.code;
+                                    outputType = signalInfo.type;
+                                }
+                            } else if (signalInfo.signal === EOBSOutputSignal.Deactivate) {
+                                isRecordingWhileStreamingSimple = false;
+                                
+                                if (signalCode != 0 && outputType != "") {
+                                    done(new Error(outputType + ' stop signal returned with code ' + signalCode));
+                                } else {
+                                    done();
+                                }
+                            }
+                        } else if (signalInfo.type === EOBSOutputType.Recording) {
+                            if (signalInfo.signal === EOBSOutputSignal.Start) {
+                                setTimeout(function() {
+                                    // Stopping recording
+                                    osn.NodeObs.OBS_service_stopRecording();
+                                }, 500);
+                            } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                                // If signal code is different than 0, something went wrong
+                                if (signalInfo.code != 0) {
+                                    signalCode = signalInfo.code;
+                                    outputType = signalInfo.type;
+                                }
+    
+                                // Stopping stream
+                                osn.NodeObs.OBS_service_stopStreaming(false);
+                            }
+                        } else {
+                            isRecordingWhileStreamingSimple = false;
+                            done(new Error('No output signals received.'));
+                        }
+                    }
+                );
+    
+                osn.NodeObs.OBS_service_startStreaming();
+                osn.NodeObs.OBS_service_startRecording();
+            });
+    
+            it('Record replay while streaming and save', function(done) {
+                let lastReplay: string = "";
+                let signalCode: number = 0;
+                let outputType: string = "";
+                
+                isReplayWhileStreamingSimple = true;
+    
+                simpleReplayWhileStreamingSignals.subscribe(
+                    signalInfo => {
+                        if (signalInfo.type === EOBSOutputType.Streaming) {
+                            if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                                // If signal code is different than 0, something went wrong
+                                if (signalInfo.code != 0) {
+                                    signalCode = signalInfo.code;
+                                    outputType = signalInfo.type;
+                                }
+                            } else if (signalInfo.signal === EOBSOutputSignal.Deactivate) {
+                                isReplayWhileStreamingSimple = false;
+    
+                                if (signalCode != 0 && outputType != "") {
+                                    done(new Error(outputType + ' stop signal returned with code ' + signalCode));
+                                } else if (lastReplay == undefined || lastReplay.length == 0) {
+                                    done(new Error('Failed to get last replay'));
+                                } else {
+                                    done();
+                                }
+                            }
+                        } else if (signalInfo.type === EOBSOutputType.ReplayBuffer) {
+                            if (signalInfo.signal === EOBSOutputSignal.Start) {
+                                setTimeout(function() {
+                                    // Saving replay
+                                    osn.NodeObs.OBS_service_processReplayBufferHotkey();
+                                }, 500);
+                            } else if (signalInfo.signal === EOBSOutputSignal.Wrote) {
+                                lastReplay = osn.NodeObs.OBS_service_getLastReplay();
+    
+                                // Stopping replay buffer
+                                osn.NodeObs.OBS_service_stopReplayBuffer(false);
+                                //osn.NodeObs.OBS_service_stopStreaming(false);
+                            } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                                // If signal code is different than 0, something went wrong
+                                if (signalInfo.code != 0) {
+                                    signalCode = signalInfo.code;
+                                    outputType = signalInfo.type;
+                                }
+    
+                                // Stopping stream
+                                osn.NodeObs.OBS_service_stopStreaming(false);
+                            }
+                        } else {
+                            isReplayWhileStreamingSimple = false;
+                            done(new Error('No output signals received.'));
+                        }
+                    }
+                );
+    
+                osn.NodeObs.OBS_service_startStreaming();
+                osn.NodeObs.OBS_service_startReplayBuffer();
+            });
+    
+            it('Record and use replay buffer while streaming', function(done) {
+                let lastReplay: string = "";
+                let signalCode: number = 0;
+                let outputType: string = "";
+    
+                isAllRecordingWhileStreamingSimple = true;
+    
+                simpleAllSignals.subscribe(
+                    signalInfo => {
+                        if (signalInfo.type === EOBSOutputType.Streaming) {
+                            if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                                // If signal code is different than 0, something went wrong
+                                if (signalInfo.code != 0) {
+                                    signalCode = signalInfo.code;
+                                    outputType = signalInfo.type;
+                                }
+                            } else if (signalInfo.signal === EOBSOutputSignal.Deactivate) {
+                                isAllRecordingWhileStreamingSimple = false;
+                                
+                                if (signalCode != 0 && outputType != "") {
+                                    done(new Error(outputType + ' stop signal returned with code ' + signalCode));
+                                } else if (lastReplay == undefined || lastReplay.length == 0) {
+                                    done(new Error('Failed to get last replay'));
+                                } else {
+                                    done();
+                                }
+                            }
+                        } else if (signalInfo.type === EOBSOutputType.Recording) {
+                            if (signalInfo.signal === EOBSOutputSignal.Start) {
+                                setTimeout(function() {
+                                    // Stopping recording
+                                    osn.NodeObs.OBS_service_stopRecording();
+                                }, 500);
+                            } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                                // If signal code is different than 0, something went wrong
+                                if (signalInfo.code != 0) {
+                                    signalCode = signalInfo.code;
+                                    outputType = signalInfo.type;
+                                }
+                            }  
+                        } else if (signalInfo.type === EOBSOutputType.ReplayBuffer) {
+                            if (signalInfo.signal === EOBSOutputSignal.Start) {
+                                setTimeout(function() {
+                                    // Saving replay
+                                    osn.NodeObs.OBS_service_processReplayBufferHotkey();
+                                }, 500);
+                            } else if (signalInfo.signal === EOBSOutputSignal.Wrote) {
+                                lastReplay = osn.NodeObs.OBS_service_getLastReplay()
+    
+                                // Stopping replay buffer
+                                osn.NodeObs.OBS_service_stopReplayBuffer(false);
+                            } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                                // If signal code is different than 0, something went wrong
+                                if (signalInfo.code != 0) {
+                                    signalCode = signalInfo.code;
+                                    outputType = signalInfo.type;
+                                }
+    
+                                // Stopping stream
+                                osn.NodeObs.OBS_service_stopStreaming(false);
+                            }
+                        } else {
+                            isAllRecordingWhileStreamingSimple = false;
+                            done(new Error('No output signals received.'));
+                        }
+                    }
+                );
+    
+                osn.NodeObs.OBS_service_startStreaming();
+                osn.NodeObs.OBS_service_startRecording();
+                osn.NodeObs.OBS_service_startReplayBuffer();
+            });
+        });
+        
+        context('* Advanced mode' , function() {
+            it('Start and stop streaming', function(done) {
+                let signalCode: number = 0;
+                let outputType: string = "";
+    
+                // Setting encoder and recording path
+                setEnconderAndRecordingPath('Advanced', false);
+    
+                isStreamingAdv = true;
+    
+                advStreamingSignals.subscribe(
+                    signalInfo => {
+                        if (signalInfo.type === EOBSOutputType.Streaming) {
+                            if (signalInfo.signal === EOBSOutputSignal.Start) {
+                                // Stopping stream
+                                osn.NodeObs.OBS_service_stopStreaming(false);
+                            } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                                // If signal code is different than 0, something went wrong
+                                if (signalInfo.code != 0) {
+                                    signalCode = signalInfo.code;
+                                    outputType = signalInfo.type;
+                                }
+                            } else if (signalInfo.signal === EOBSOutputSignal.Deactivate) {
+                                isStreamingAdv = false;
+    
+                                if (signalCode != 0 && outputType != "") {
+                                    done(new Error(outputType + ' stop signal returned with code ' + signalCode));
+                                } else {
+                                    done();
+                                }
+                            }
+                        } else {
+                            isStreamingAdv = false;
+                            done(new Error('No output signals received.'));
+                        }
+                    }
+                );
+    
+                osn.NodeObs.OBS_service_startStreaming();
+            });
+    
+            it('Start recording and stop', function(done) {
+                isRecordingAdv = true;
+    
+                advRecordingSignals.subscribe(
+                    signalInfo => {
+                        if (signalInfo.type === EOBSOutputType.Recording) {
+                            if (signalInfo.signal === EOBSOutputSignal.Start) {
+                                setTimeout(function() {
+                                    // Stopping recording
+                                    osn.NodeObs.OBS_service_stopRecording();
+                                }, 500);
+                            } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                                isRecordingAdv = false;
+    
+                                // If signal code is different than 0, something went wrong
+                                if (signalInfo.code != 0) {
+                                    done(new Error(signalInfo.type + ' stop signal returned with code ' + signalInfo.code));
+                                } else {
+                                    done();
+                                }
+                            }
+                        } else {
+                            isRecordingAdv = false;
+                            done(new Error('No output signals received.'));
+                        }
+                    },
+                    done
+                );
+    
+                osn.NodeObs.OBS_service_startRecording();
+            });
+    
+            it('Start replay buffer, save replay and stop', function(done) {
+                let lastReplay: string = "";
+    
+                isReplayBufferAdv = true;
+    
+                advReplaybufferSignals.subscribe(
+                    signalInfo => {
+                        if (signalInfo.type === EOBSOutputType.ReplayBuffer) {
+                            if (signalInfo.signal === EOBSOutputSignal.Start) {
+                                setTimeout(function() {
+                                    // Saving replay
+                                    osn.NodeObs.OBS_service_processReplayBufferHotkey();
+                                }, 500);
+                            } else if (signalInfo.signal === EOBSOutputSignal.Wrote) {
+                                lastReplay = osn.NodeObs.OBS_service_getLastReplay();
+    
+                                // Stopping replay buffer
+                                osn.NodeObs.OBS_service_stopReplayBuffer(false);
+                            } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                                isReplayBufferAdv = false;
+    
+                                // If signal code is different than 0, something went wrong
+                                if (signalInfo.code != 0) {
+                                    done(new Error(signalInfo.type + ' stop signal returned with code ' + signalInfo.code));
+                                } else if (lastReplay == undefined || lastReplay.length == 0) {
+                                    done(new Error('Failed to get last replay'));
+                                } else {
+                                    done();
+                                }
+                            }
+                        } else {
+                            isReplayBufferAdv = false;
+                            done(new Error('No output signals received.'));
+                        }
+                    }
+                );
+    
+                osn.NodeObs.OBS_service_startReplayBuffer();
+            });
 
-            osn.NodeObs.OBS_service_startStreaming();
+            it('Record while streaming', function(done) {
+                let signalCode: number = 0;
+                let outputType: string = "";
+    
+                // Setting encoder and recording path
+                setEnconderAndRecordingPath('Advanced', false);
+                
+                isRecordingWhileStreamingAdv = true;
+    
+                advRecordWhileStreamingSignals.subscribe(
+                    signalInfo => {
+                        if (signalInfo.type === EOBSOutputType.Streaming) {
+                            if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                                // If signal code is different than 0, something went wrong
+                                if (signalInfo.code != 0) {
+                                    signalCode = signalInfo.code;
+                                    outputType = signalInfo.type;
+                                }
+                            } else if (signalInfo.signal === EOBSOutputSignal.Deactivate) {
+                                isRecordingWhileStreamingAdv = false;
+                                
+                                if (signalCode != 0 && outputType != "") {
+                                    done(new Error(outputType + ' stop signal returned with code ' + signalCode));
+                                } else {
+                                    done();
+                                }
+                            }
+                        } else if (signalInfo.type === EOBSOutputType.Recording) {
+                            if (signalInfo.signal === EOBSOutputSignal.Start) {
+                                setTimeout(function() {
+                                    // Stopping recording
+                                    osn.NodeObs.OBS_service_stopRecording();
+                                }, 500);
+                            } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                                // If signal code is different than 0, something went wrong
+                                if (signalInfo.code != 0) {
+                                    signalCode = signalInfo.code;
+                                    outputType = signalInfo.type;
+                                }
+    
+                                // Stopping stream
+                                osn.NodeObs.OBS_service_stopStreaming(false);
+                            }
+                        } else {
+                            isRecordingWhileStreamingAdv = false;
+                            done(new Error('No output signals received.'));
+                        }
+                    }
+                );
+    
+                osn.NodeObs.OBS_service_startStreaming();
+                osn.NodeObs.OBS_service_startRecording();
+            });
+
+            it('Record replay while streaming and save', function(done) {
+                let lastReplay: string = "";
+                let signalCode: number = 0;
+                let outputType: string = "";
+                
+                isReplayWhileStreamingAdv = true;
+    
+                advReplayWhileStreamingSignals.subscribe(
+                    signalInfo => {
+                        if (signalInfo.type === EOBSOutputType.Streaming) {
+                            if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                                // If signal code is different than 0, something went wrong
+                                if (signalInfo.code != 0) {
+                                    signalCode = signalInfo.code;
+                                    outputType = signalInfo.type;
+                                }
+                            } else if (signalInfo.signal === EOBSOutputSignal.Deactivate) {
+                                isReplayWhileStreamingAdv = false;
+    
+                                if (signalCode != 0 && outputType != "") {
+                                    done(new Error(outputType + ' stop signal returned with code ' + signalCode));
+                                } else if (lastReplay == undefined || lastReplay.length == 0) {
+                                    done(new Error('Failed to get last replay'));
+                                } else {
+                                    done();
+                                }
+                            }
+                        } else if (signalInfo.type === EOBSOutputType.ReplayBuffer) {
+                            if (signalInfo.signal === EOBSOutputSignal.Start) {
+                                setTimeout(function() {
+                                    // Saving replay
+                                    osn.NodeObs.OBS_service_processReplayBufferHotkey();
+                                }, 500);
+                            } else if (signalInfo.signal === EOBSOutputSignal.Wrote) {
+                                // Getting saved replay file name
+                                lastReplay = osn.NodeObs.OBS_service_getLastReplay();
+    
+                                // Stopping replay buffer
+                                osn.NodeObs.OBS_service_stopReplayBuffer(false);
+                            } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                                // If signal code is different than 0, something went wrong
+                                if (signalInfo.code != 0) {
+                                    signalCode = signalInfo.code;
+                                    outputType = signalInfo.type;
+                                }
+    
+                                // Stopping stream
+                                osn.NodeObs.OBS_service_stopStreaming(false);
+                            }
+                        } else {
+                            isReplayWhileStreamingAdv = false;
+                            done(new Error('No output signals received.'));
+                        }
+                    }
+                );
+    
+                osn.NodeObs.OBS_service_startStreaming();
+                osn.NodeObs.OBS_service_startReplayBuffer();
+            });
+
+            it('Record and use replay buffer while streaming', function(done) {
+                let lastReplay: string = "";
+                let signalCode: number = 0;
+                let outputType: string = "";
+    
+                isAllRecordingWhileStreamingAdv = true;
+    
+                advAllSignals.subscribe(
+                    signalInfo => {
+                        if (signalInfo.type === EOBSOutputType.Streaming) {
+                            if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                                // If signal code is different than 0, something went wrong
+                                if (signalInfo.code != 0) {
+                                    signalCode = signalInfo.code;
+                                    outputType = signalInfo.type;
+                                }
+                            } else if (signalInfo.signal === EOBSOutputSignal.Deactivate) {
+                                isAllRecordingWhileStreamingAdv = false;
+                                
+                                if (signalCode != 0 && outputType != "") {
+                                    done(new Error(outputType + ' stop signal returned with code ' + signalCode));
+                                } else if (lastReplay == undefined || lastReplay.length == 0) {
+                                    done(new Error('Failed to get last replay'));
+                                } else {
+                                    done();
+                                }
+                            }
+                        } else if (signalInfo.type === EOBSOutputType.Recording) {
+                            if (signalInfo.signal === EOBSOutputSignal.Start) {
+                                setTimeout(function() {
+                                    // Stopping recording
+                                    osn.NodeObs.OBS_service_stopRecording();
+                                }, 500);
+                            } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                                // If signal code is different than 0, something went wrong
+                                if (signalInfo.code != 0) {
+                                    signalCode = signalInfo.code;
+                                    outputType = signalInfo.type;
+                                }
+                            }  
+                        } else if (signalInfo.type === EOBSOutputType.ReplayBuffer) {
+                            if (signalInfo.signal === EOBSOutputSignal.Start) {
+                                setTimeout(function() {
+                                    // Saving replay
+                                    osn.NodeObs.OBS_service_processReplayBufferHotkey();
+                                }, 500);
+                            } else if (signalInfo.signal === EOBSOutputSignal.Wrote) {
+                                // Getting saved replay file name
+                                lastReplay = osn.NodeObs.OBS_service_getLastReplay();
+    
+                                // Stopping replay buffer
+                                osn.NodeObs.OBS_service_stopReplayBuffer(false);
+                            } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                                // If signal code is different than 0, something went wrong
+                                if (signalInfo.code != 0) {
+                                    signalCode = signalInfo.code;
+                                    outputType = signalInfo.type;
+                                }
+    
+                                // Stopping stream
+                                osn.NodeObs.OBS_service_stopStreaming(false);
+                            }
+                        } else {
+                            isAllRecordingWhileStreamingAdv = false;
+                            done(new Error('No output signals received.'));
+                        }
+                    }
+                );
+    
+                osn.NodeObs.OBS_service_startStreaming();
+                osn.NodeObs.OBS_service_startRecording();
+                osn.NodeObs.OBS_service_startReplayBuffer();
+            });
         });
 
-        it('Record and use replay buffer while streaming', function(done) {
-            let lastReplay: string = "";
-            isRecordingAndReplayWhileStreaming = true;
+        context('* Fail tests', function() {
+            it('Record with invalid path in simple mode', function(done) {
+                // Setting encoder and recording path
+                setEnconderAndRecordingPath('Simple', true);
 
-            allSignals.subscribe(
-                signalInfo => {
-                    if (signalInfo.type === EOBSOutputType.Streaming) {
-                        if (signalInfo.signal === EOBSOutputSignal.Start) {
-                            // Streaming for 12 secods
-                            setTimeout(function() {
-                                osn.NodeObs.OBS_service_stopStreaming(false);
-                            }, 12000);
+                isRecordingWithInvalidPathSimple = true;
 
-                            // Start recording after 1 seconds
-                            setTimeout(function() {
-                                osn.NodeObs.OBS_service_startRecording();
-                            }, 1000);
+                invalidPathRecordSignalsSimple.subscribe(
+                    signalInfo => {
+                        if (signalInfo.type === EOBSOutputType.Recording) {
+                            if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                                isRecordingWithInvalidPathSimple = false;
 
-                             // Starting replay buffer after 2 second
-                             setTimeout(function() {
-                                osn.NodeObs.OBS_service_startReplayBuffer();
-                            }, 2000);
-                        } else if (signalInfo.signal === EOBSOutputSignal.Stopping) {
-                            osn.NodeObs.OBS_service_stopStreaming(true);
-                        } else if (signalInfo.signal === EOBSOutputSignal.Deactivate) {
-                            isRecordingAndReplayWhileStreaming = false;
-                            done();
-                        }
-                    } else if (signalInfo.type === EOBSOutputType.Recording) {
-                        if (signalInfo.signal === EOBSOutputSignal.Start) {
-                            // Recording for 8 seconds
-                            setTimeout(function() {
-                                osn.NodeObs.OBS_service_stopRecording();
-                            }, 8000);
-                        }
-                    } else if (signalInfo.type === EOBSOutputType.ReplayBuffer) {
-                        if (signalInfo.signal === EOBSOutputSignal.Start) {
-                            // Recording replay for 6 seconds
-                            setTimeout(function() {
-                                osn.NodeObs.OBS_service_stopReplayBuffer(false);
-                            }, 6000);
-    
-                            // Saving replay after 3 seconds
-                            setTimeout(function() {
-                                osn.NodeObs.OBS_service_processReplayBufferHotkey();
-                            }, 3000);
-                        } else if (signalInfo.signal === EOBSOutputSignal.Wrote) {
-                            // Getting saved replay file name
-                            lastReplay = osn.NodeObs.OBS_service_getLastReplay();
-                        } else if (signalInfo.signal === EOBSOutputSignal.Stopping) {
-                            osn.NodeObs.OBS_service_stopReplayBuffer(true);
-                        } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
-                            // Getting saved replay file name
-                            lastReplay = osn.NodeObs.OBS_service_getLastReplay();
-
-                            // Checking if last replay returned correctly
-                            try {
-                                expect(lastReplay).to.not.equal(undefined);
-                                expect(lastReplay.length).to.not.equal(0);
-                            } catch (e) {
-                                // Failed to get last replay
-                                isRecordingAndReplayWhileStreaming = false;
-                                done(new Error(e));
+                                if (signalInfo.code != osn.EOutputCode.Error) {
+                                    done(new Error('Received wrong signal code. Was expecting -4.'));
+                                } else {
+                                    done();
+                                }
                             }
+                        } else {
+                            isRecordingWithInvalidPathSimple = false;
+                            done(new Error('No output signals received.'));
                         }
-                    } else {
-                        isRecordingAndReplayWhileStreaming = false;
-                        done(new Error('No output signals received.'));
                     }
-                },
-                done
-            );
+                );
 
-            osn.NodeObs.OBS_service_startStreaming();
+                osn.NodeObs.OBS_service_startRecording();
+            });
+
+            it('Start replay buffer with invalid path in simple mode', function(done) {
+                isReplayWithInvalidPathSimple = true;
+
+                invalidPathReplaySignalsSimple.subscribe(
+                    signalInfo => {
+                        if (signalInfo.type === EOBSOutputType.ReplayBuffer) {
+                            if (signalInfo.signal === EOBSOutputSignal.Start) {
+                                setTimeout(function() {
+                                    // Saving replay
+                                    osn.NodeObs.OBS_service_processReplayBufferHotkey();
+                                }, 500);
+                            } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                                isReplayWithInvalidPathSimple = false;
+
+                                if (signalInfo.code != osn.EOutputCode.Error) {
+                                    done(new Error('Received wrong signal code (). Was expecting -4'));
+                                } else {
+                                    done();
+                                }
+                            }
+                        } else {
+                            isReplayWithInvalidPathSimple = false;
+                            done(new Error('No output signals received.'));
+                        }
+                    }
+                );
+
+                osn.NodeObs.OBS_service_startReplayBuffer();
+            });
+
+            it('Record with invalid path in advanced mode', function(done) {
+                // Setting encoder and recording path
+                setEnconderAndRecordingPath('Advanced', true);
+
+                isRecordingWithInvalidPathAdv = true;
+
+                invalidPathRecordSignalsAdv.subscribe(
+                    signalInfo => {
+                        if (signalInfo.type === EOBSOutputType.Recording) {
+                            if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                                isRecordingWithInvalidPathAdv = false;
+
+                                if (signalInfo.code != osn.EOutputCode.Error) {
+                                    done(new Error('Received wrong signal code. Was expecting -4'));
+                                } else {
+                                    done();
+                                }
+                            }
+                        } else {
+                            isRecordingWithInvalidPathAdv = false;
+                            done(new Error('No output signals received.'));
+                        }
+                    }
+                );
+
+                osn.NodeObs.OBS_service_startRecording();
+            });
+
+            it('Start replay buffer with invalid path in advanced mode', function(done) {
+                isReplayWithInvalidPathAdv = true;
+
+                invalidPathReplaySignalsAdv.subscribe(
+                    signalInfo => {
+                        if (signalInfo.type === EOBSOutputType.ReplayBuffer) {
+                            if (signalInfo.signal === EOBSOutputSignal.Start) {
+                                setTimeout(function() {
+                                    // Saving replay
+                                    osn.NodeObs.OBS_service_processReplayBufferHotkey();
+                                }, 500);
+                            } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                                isReplayWithInvalidPathAdv = false;
+
+                                if (signalInfo.code != osn.EOutputCode.Error) {
+                                    done(new Error('Received wrong signal code. Expecting -4'));
+                                } else {
+                                    done();
+                                }
+                            }
+                        } else {
+                            isReplayWithInvalidPathAdv = false;
+                            done(new Error('No output signals received.'));
+                        }
+                    }
+                );
+
+                osn.NodeObs.OBS_service_startReplayBuffer();
+            });
+
+            it('Stream with invalid stream key', function(done) {
+                saveStreamKey('invalid');
+    
+                isStreamingWithInvalidKey = true;
+    
+                invalidKeySignals.subscribe(
+                    signalInfo => {
+                        if (signalInfo.type === EOBSOutputType.Streaming) {
+                            if (signalInfo.signal === EOBSOutputSignal.Stop) {
+                                isStreamingWithInvalidKey = false;
+
+                                if (signalInfo.code != osn.EOutputCode.InvalidStream) {
+                                    done(new Error('Received signal code. Was expecting -3.'));
+                                } else {
+                                    done();
+                                }
+                            }
+                        } else {
+                            isStreamingWithInvalidKey = false;
+                            done(new Error('No output signals received.'));
+                        }
+                    }
+                );
+    
+                osn.NodeObs.OBS_service_startStreaming();
+            });
         });
     });
 
