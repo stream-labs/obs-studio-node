@@ -310,12 +310,6 @@ describe('osn-source', () => {
                         settings['color2'] = 5294967295;
                         break;
                     }
-                    case 'vlc_source': {
-                        settings['loop'] = false;
-                        settings['network_caching'] = 400;
-                        settings['shuffle'] = true;
-                        break;
-                    }
                     case 'monitor_capture': {
                         settings['capture_cursor'] = false;
                         settings['monitor'] = 1;
