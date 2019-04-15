@@ -34,22 +34,19 @@ struct SourceDataInfo
 	uint64_t    id           = UINT64_MAX;
 
 	bool isMuted      = false;
-	bool mutedChanged = false;
+	bool mutedChanged = true;
 
 	std::string setting         = "";
-	bool        settingsChanged = false;
+	bool        settingsChanged = true;
 
 	osn::property_map_t properties;
-	bool                propertiesChanged = false;
-
-	float volume        = 1;
-	bool  volumeChanged = false;
+	bool                propertiesChanged = true;
 
 	uint32_t audioMixers        = UINT32_MAX;
-	bool     audioMixersChanged = false;
+	bool     audioMixersChanged = true;
 
 	std::vector<uint64_t>* filters             = new std::vector<uint64_t>();
-	bool                   filtersOrderChanged = false;
+	bool                   filtersOrderChanged = true;
 };
 
 struct SceneItemData
