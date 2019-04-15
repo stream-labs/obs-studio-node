@@ -129,7 +129,6 @@ namespace System
 
 int main(int argc, char* argv[])
 {
-
 #ifndef _DEBUG
 
     util::CrashManager crashManager;
