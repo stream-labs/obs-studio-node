@@ -935,7 +935,7 @@ void util::CrashManager::MetricsFileOpen(std::string current_function_class_name
 {
 	std::wstring appdata_path;
 
-	bool result = metricsClient.CreateClient("\\\\.\\pipe\\my_pipe");
+	bool result = metricsClient.CreateClient("\\\\.\\pipe\\metrics_pipe");
 	if (!result) {
 		return;
 	}
