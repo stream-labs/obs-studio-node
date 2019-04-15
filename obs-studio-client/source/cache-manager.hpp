@@ -21,10 +21,10 @@
 
 struct SceneInfo
 {
-	uint64_t                    id;
-	std::map<int64_t, uint64_t> items;
-	bool                        itemsOrderCached = false;
-	std::string                 name;
+	uint64_t                                  id;
+	std::vector<std::pair<int64_t, uint64_t>> items;
+	bool                                      itemsOrderCached = false;
+	std::string                               name;
 };
 
 struct SourceDataInfo
