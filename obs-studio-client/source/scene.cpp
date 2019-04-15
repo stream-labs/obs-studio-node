@@ -263,8 +263,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 	}
 	params.push_back(ipc::value(scene->sourceId));
 	params.push_back(ipc::value(input->sourceId));
+	v8::Local<v8::Object> transform = v8::Object::New(v8::Isolate::GetCurrent());
+	v8::Local<v8::Object> crop      = v8::Object::New(v8::Isolate::GetCurrent());
 	if (info.Length() >= 2) {
-		v8::Local<v8::Object> transform = info[1]->ToObject();
+		transform = info[1]->ToObject();
 		params.push_back(ipc::value(transform->Get(utilv8::ToValue("scaleX"))->ToNumber()->Value()));
 		params.push_back(ipc::value(transform->Get(utilv8::ToValue("scaleY"))->ToNumber()->Value()));
 		params.push_back(ipc::value(transform->Get(utilv8::ToValue("visible"))->ToBoolean()->Value()));
@@ -272,7 +274,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 		params.push_back(ipc::value(transform->Get(utilv8::ToValue("y"))->ToNumber()->Value()));
 		params.push_back(ipc::value(transform->Get(utilv8::ToValue("rotation"))->ToNumber()->Value()));
 
-		v8::Local<v8::Object> crop = transform->Get(utilv8::ToValue("crop"))->ToObject();
+		transform->Get(utilv8::ToValue("crop"))->ToObject();
 		params.push_back(ipc::value(crop->Get(utilv8::ToValue("left"))->ToInteger()->Value()));
 		params.push_back(ipc::value(crop->Get(utilv8::ToValue("top"))->ToInteger()->Value()));
 		params.push_back(ipc::value(crop->Get(utilv8::ToValue("right"))->ToInteger()->Value()));
@@ -303,6 +305,33 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 	SceneItemData* sid = new SceneItemData;
 	sid->obs_itemId    = obs_id;
 	sid->scene_id      = scene->sourceId;
+
+	if (info.Length() >= 2) {
+		// Position
+		sid->posX       = transform->Get(utilv8::ToValue("x"))->ToNumber()->Value();
+		sid->posY       = transform->Get(utilv8::ToValue("y"))->ToNumber()->Value();
+		sid->posChanged = false;
+
+		// Scale
+		sid->scaleX       = transform->Get(utilv8::ToValue("scaleX"))->ToNumber()->Value();
+		sid->scaleY       = transform->Get(utilv8::ToValue("scaleY"))->ToNumber()->Value();
+		sid->scaleChanged = false;
+
+		// Visibility
+		sid->isVisible      = transform->Get(utilv8::ToValue("visible"))->ToBoolean()->Value();
+		sid->visibleChanged = false;
+
+		// Crop
+		sid->cropLeft    = crop->Get(utilv8::ToValue("left"))->ToInteger()->Value();
+		sid->cropTop     = crop->Get(utilv8::ToValue("top"))->ToInteger()->Value();
+		sid->cropRight   = crop->Get(utilv8::ToValue("right"))->ToInteger()->Value();
+		sid->cropBottom  = crop->Get(utilv8::ToValue("bottom"))->ToInteger()->Value();
+		sid->cropChanged = false;
+
+		// Rotation
+		sid->rotation        = transform->Get(utilv8::ToValue("rotation"))->ToNumber()->Value();
+		sid->rotationChanged = false;
+	}
 
 	CacheManager<SceneItemData*>::getInstance().Store(id, sid);	
 
