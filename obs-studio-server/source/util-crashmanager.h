@@ -23,6 +23,9 @@
 #include <string>
 #include <vector>
 #include <ipc.hpp>
+#include <mutex>
+#include <queue>
+#include <thread>
 
 #undef strtoll
 #include "nlohmann/json.hpp"
@@ -31,12 +34,51 @@ namespace util
 {
 	class CrashManager
 	{
+		public:
         enum OBSLogType
         {
             General,
             Errors,
             Warnings
         };
+
+        class MetricsPipeClient
+		{
+			const static int StringSize = 64;
+
+			enum class MessageType
+			{
+				Pid,
+				Tag,
+				Status,
+				Shutdown
+			};
+
+			struct MetricsMessage
+			{
+				MessageType type;
+				char        param1[StringSize];
+				char        param2[StringSize];
+			};
+
+			public:
+			~MetricsPipeClient();
+
+			bool CreateClient(std::string name);
+			void StartPolling();
+			void SendStatus(std::string status);
+			void SendTag(std::string tag, std::string value);
+
+			private:
+			bool SendPipeMessage(MetricsMessage& message);
+
+			private:
+			void*                      m_Pipe;
+			bool                       m_StopPolling = false;
+			std::thread                m_PollingThread;
+			std::mutex                 m_PollingMutex;
+			std::queue<MetricsMessage> m_AsyncData;
+		};
 
 		public:
 
