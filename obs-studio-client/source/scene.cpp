@@ -335,8 +335,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FindItem(Nan::NAN_METHOD_ARGS_TYPE info)
 	SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(scene->sourceId);
 
 	if (si && !haveName) {
-		auto find = [position](std::pair<int64_t, uint64_t> item) {
-			return item.first == position; };
+		auto find = [position](const std::pair<int64_t, uint64_t> &item) {
+			return item.first == position;
+		};
 
 		auto itemIt = std::find_if(si->items.begin(), si->items.end(), find);
 		if (itemIt != si->items.end()) {
