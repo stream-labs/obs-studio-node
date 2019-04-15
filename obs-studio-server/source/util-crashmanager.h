@@ -74,6 +74,7 @@ namespace util
 
 			private:
 			void*                      m_Pipe;
+			bool                       m_PipeIsOpen  = false;
 			bool                       m_StopPolling = false;
 			std::thread                m_PollingThread;
 			std::mutex                 m_PollingMutex;

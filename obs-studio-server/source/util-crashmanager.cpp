@@ -251,8 +251,11 @@ bool util::CrashManager::MetricsPipeClient::CreateClient(std::string name)
 	if (m_Pipe == NULL || m_Pipe == INVALID_HANDLE_VALUE) {
 		std::cout << "Failed to create outbound pipe instance." << std::endl;
 		// look up error code here using GetLastError()
+		m_PipeIsOpen = false;
 		return false;
 	}
+
+    m_PipeIsOpen = true;
 
 	// Send the pid
 	MetricsMessage message;
@@ -315,14 +318,20 @@ void util::CrashManager::MetricsPipeClient::SendTag(std::string tag, std::string
 
 bool util::CrashManager::MetricsPipeClient::SendPipeMessage(MetricsMessage& message)
 {
-	DWORD numBytesWritten = 0;
-	return WriteFile(
-	    m_Pipe,                 // handle to our outbound pipe
-	    &message,               // data to send
-	    sizeof(MetricsMessage), // length of data to send (bytes)
-	    &numBytesWritten,       // will store actual amount of data sent
-	    NULL                    // not using overlapped IO
-	);
+	if (m_PipeIsOpen) {
+
+		DWORD numBytesWritten = 0;
+		return WriteFile(
+		    m_Pipe,                 // handle to our outbound pipe
+		    &message,               // data to send
+		    sizeof(MetricsMessage), // length of data to send (bytes)
+		    &numBytesWritten,       // will store actual amount of data sent
+		    NULL                    // not using overlapped IO
+		);
+
+	}
+
+	return false;
 }
 
 //////////////////
