@@ -724,6 +724,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Modified(Nan::NAN_METHOD_ARGS_T
 		return;
 	}
 
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(parent_source->sourceId);
+	if (sdi) {
+		sdi->propertiesChanged = true;
+		sdi->settingsChanged   = true;
+	}
+
 	info.GetReturnValue().Set(!!rval[1].value_union.i32);
 }
 
@@ -775,6 +781,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::ButtonClicked(Nan::NAN_METHOD_A
 	if (!ValidateResponse(rval)) {
 		info.GetReturnValue().Set(false);
 		return;
+	}
+
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(source->sourceId);
+	if (sdi) {
+		sdi->propertiesChanged = true;
 	}
 
 	info.GetReturnValue().Set(true);
