@@ -21,7 +21,7 @@
     "local:config": "yarn install && git submodule update --init --recursive --force && cmake -Bbuild -H. -G\"Visual Studio 15 2017\" -A x64 -DCMAKE_INSTALL_PREFIX=\"./obs-studio-node\"",
     "local:build": "cmake --build build --target install --config Debug",
     "local:clean": "rm -rf build/*",
-    "test": "electron-mocha -t 120000 -c true -r ts-node/register tests/osn-tests/src/**/*.ts"
+    "test": "electron-mocha -t 80000 -c true -r ts-node/register tests/osn-tests/src/**/*.ts"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
