@@ -274,7 +274,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 		params.push_back(ipc::value(transform->Get(utilv8::ToValue("y"))->ToNumber()->Value()));
 		params.push_back(ipc::value(transform->Get(utilv8::ToValue("rotation"))->ToNumber()->Value()));
 
-		transform->Get(utilv8::ToValue("crop"))->ToObject();
+		crop = transform->Get(utilv8::ToValue("crop"))->ToObject();
 		params.push_back(ipc::value(crop->Get(utilv8::ToValue("left"))->ToInteger()->Value()));
 		params.push_back(ipc::value(crop->Get(utilv8::ToValue("top"))->ToInteger()->Value()));
 		params.push_back(ipc::value(crop->Get(utilv8::ToValue("right"))->ToInteger()->Value()));
