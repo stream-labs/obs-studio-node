@@ -336,7 +336,7 @@ void osn::VolMeter::OBSCallback(
 	if (g_srv) {
 		std::unique_lock<std::mutex> ul(g_srv->m_clients_mtx);
 		for (auto client : g_srv->m_clients) {
-			if (!client.second->host)
+			if (client.second->host)
 				client.second->call("Volmeter", "UpdateVolmeter", agrs);
 		}
 	}
