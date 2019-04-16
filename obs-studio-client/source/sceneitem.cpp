@@ -131,6 +131,15 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::Remove(Nan::NAN_METHOD_ARGS_TYPE inf
 
 	conn->call("SceneItem", "Remove", std::vector<ipc::value>{ipc::value(item->itemId)});
 
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+
+	if (sid) {
+		SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(sid->scene_id);
+
+		if (si) {
+			si->itemsOrderCached = false;
+		}
+	}
 	CacheManager<SceneItemData*>::getInstance().Remove(item->itemId);
 	item->itemId = UINT64_MAX;
 }
@@ -237,7 +246,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetSelected(Nan::NAN_METHOD_ARGS_TYP
 
 	if (sid == nullptr) {
 		return;
-   }
+    }
 
 	if (selected == sid->isSelected) {
 		sid->selectedChanged = false;
@@ -831,7 +840,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetId(Nan::NAN_METHOD_ARGS_TYPE info
 
 	if (sid == nullptr) {
 		return;
-   }
+    }
 
 	if (sid->obs_itemId < 0) {
 		auto conn = GetConnection();

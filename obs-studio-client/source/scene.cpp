@@ -296,12 +296,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 	SceneInfo*      si  = CacheManager<SceneInfo*>::getInstance().Retrieve(scene->sourceId);
 
 	if (si) {
-		si->items.emplace(obs_id, id);
+		si->items.push_back(std::make_pair(obs_id, id));
 		si->itemsOrderCached = true;
 	}
 
 	SceneItemData* sid = new SceneItemData;
 	sid->obs_itemId    = obs_id;
+	sid->scene_id      = scene->sourceId;
 
 	CacheManager<SceneItemData*>::getInstance().Store(id, sid);	
 
@@ -334,7 +335,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FindItem(Nan::NAN_METHOD_ARGS_TYPE info)
 	SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(scene->sourceId);
 
 	if (si && !haveName) {
-		auto itemIt = si->items.find(position);
+		auto find = [position](const std::pair<int64_t, uint64_t> &item) {
+			return item.first == position;
+		};
+
+		auto itemIt = std::find_if(si->items.begin(), si->items.end(), find);
 		if (itemIt != si->items.end()) {
 			osn::SceneItem* obj = new osn::SceneItem(itemIt->second);
 			info.GetReturnValue().Set(osn::SceneItem::Store(obj));
@@ -387,7 +392,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::MoveItem(Nan::NAN_METHOD_ARGS_TYPE info)
 		si->items.clear();
 
 		for (size_t i = 1; i < response.size(); i += 2) {
-			si->items.emplace(response[i + 1].value_union.i64, response[i].value_union.ui64);
+			si->items.push_back(std::make_pair(response[i + 1].value_union.i64, response[i].value_union.ui64));
 		}
 		si->itemsOrderCached = true;
 	}
@@ -473,7 +478,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItems(Nan::NAN_METHOD_ARGS_TYPE info)
 		si->items.clear();
 
 		for (size_t i = 1; i < response.size(); i+= 2) {
-			si->items.emplace(response[i + 1].value_union.i64, response[i].value_union.ui64);
+			si->items.push_back(std::make_pair(response[i + 1].value_union.i64, response[i].value_union.ui64));
 		}
 
 		si->itemsOrderCached = true;

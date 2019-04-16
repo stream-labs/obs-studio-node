@@ -21,10 +21,10 @@
 
 struct SceneInfo
 {
-	uint64_t                    id;
-	std::map<int64_t, uint64_t> items;
-	bool                        itemsOrderCached = false;
-	std::string                 name;
+	uint64_t                                  id;
+	std::vector<std::pair<int64_t, uint64_t>> items;
+	bool                                      itemsOrderCached = false;
+	std::string                               name;
 };
 
 struct SourceDataInfo
@@ -54,7 +54,9 @@ struct SourceDataInfo
 
 struct SceneItemData
 {
-	int64_t obs_itemId      = -1;
+	int64_t  obs_itemId = -1;
+	uint64_t scene_id   = UINT64_MAX;
+
 	bool    cached          = false;
 	bool    isSelected      = false;
 	bool    selectedChanged = false;
