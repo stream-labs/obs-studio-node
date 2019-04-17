@@ -430,13 +430,6 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetVolume(Nan::NAN_METHOD_ARGS_TYPE info
 		return;
 	}
 
-	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
-
-	if (sdi && !sdi->volumeChanged) {
-		info.GetReturnValue().Set(sdi->volume);
-		return;
-	}
-
 	auto conn = GetConnection();
 	if (!conn)
 		return;
@@ -445,11 +438,6 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetVolume(Nan::NAN_METHOD_ARGS_TYPE info
 
 	if (!ValidateResponse(response))
 		return;
-
-	if (sdi) {
-		sdi->volume        = response[1].value_union.fp32;
-		sdi->volumeChanged = false;
-	}
 
 	info.GetReturnValue().Set(response[1].value_union.fp32);
 }
@@ -475,11 +463,6 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetVolume(Nan::NAN_METHOD_ARGS_TYPE info
 		return;
 
 	conn->call("Input", "SetVolume", {ipc::value(obj->sourceId), ipc::value(volume)});
-
-	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
-	if (sdi) {
-		sdi->volumeChanged = true;
-	}
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE info)

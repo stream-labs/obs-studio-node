@@ -21,10 +21,10 @@
 
 struct SceneInfo
 {
-	uint64_t                    id;
-	std::map<int64_t, uint64_t> items;
-	bool                        itemsOrderCached = false;
-	std::string                 name;
+	uint64_t                                  id;
+	std::vector<std::pair<int64_t, uint64_t>> items;
+	bool                                      itemsOrderCached = false;
+	std::string                               name;
 };
 
 struct SourceDataInfo
@@ -34,27 +34,26 @@ struct SourceDataInfo
 	uint64_t    id           = UINT64_MAX;
 
 	bool isMuted      = false;
-	bool mutedChanged = false;
+	bool mutedChanged = true;
 
 	std::string setting         = "";
-	bool        settingsChanged = false;
+	bool        settingsChanged = true;
 
 	osn::property_map_t properties;
-	bool                propertiesChanged = false;
-
-	float volume        = 1;
-	bool  volumeChanged = false;
+	bool                propertiesChanged = true;
 
 	uint32_t audioMixers        = UINT32_MAX;
-	bool     audioMixersChanged = false;
+	bool     audioMixersChanged = true;
 
 	std::vector<uint64_t>* filters             = new std::vector<uint64_t>();
-	bool                   filtersOrderChanged = false;
+	bool                   filtersOrderChanged = true;
 };
 
 struct SceneItemData
 {
-	int64_t obs_itemId      = -1;
+	int64_t  obs_itemId = -1;
+	uint64_t scene_id   = UINT64_MAX;
+
 	bool    cached          = false;
 	bool    isSelected      = false;
 	bool    selectedChanged = false;
