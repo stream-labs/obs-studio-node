@@ -287,6 +287,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::AddCallback(Nan::NAN_METHOD_ARGS_TYPE
 
 	self->m_callback_function.Reset(callback);
 	self->start_async_runner();
+	self->set_keepalive(info.This());
 
 	std::unique_lock<std::mutex> lck(volmeters_lock);
 	volmeters.emplace(std::make_pair(self->m_uid, self));

@@ -259,9 +259,9 @@ void updateVolmeters(std::shared_ptr<osn::VolMeter> meter)
 			if (meter->values.size() > 0) {
 				for (auto client : g_srv->m_clients) {
 					if (client.second->host)
-						client.second->call("Volmeter", "UpdateVolmeter", meter->values.front());
+						client.second->call("Volmeter", "UpdateVolmeter", meter->values.back());
 				}
-				meter->values.pop();
+				meter->values.clear();
 			}
 		}
 	}
@@ -342,7 +342,7 @@ void osn::VolMeter::OBSCallback(
 #define PREVIOUS_FRAME_WEIGHT
 
 	std::vector<ipc::value> agrs;
-	agrs.push_back(ipc::value(meter->id));
+	agrs.push_back(ipc::value(*meter->id2));
 	agrs.push_back(ipc::value(obs_volmeter_get_nr_channels(meter->self)));
 
 	std::vector<char> binData;
@@ -360,6 +360,6 @@ void osn::VolMeter::OBSCallback(
 
 	agrs.push_back(ipc::value(binData));
 	std::unique_lock<std::mutex> lck(meter->mutex);
-	meter->values.push(agrs);
+	meter->values.push_back(agrs);
 #undef MAKE_FLOAT_SANE
 }

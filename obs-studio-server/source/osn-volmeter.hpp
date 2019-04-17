@@ -52,10 +52,10 @@ namespace osn
 		uint64_t                                       count          = 0;
 
 		public:
-		std::thread                         worker;
-		std::mutex                          mutex;
-		std::queue<std::vector<ipc::value>> values;
-		bool                                stopWorker = false;
+		std::thread                                    worker;
+		std::mutex                                     mutex;
+		std::vector<std::vector<ipc::value>>           values;
+		bool                                           stopWorker = false;
 		std::chrono::high_resolution_clock::time_point previous;
 
 		public:
