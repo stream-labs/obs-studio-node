@@ -293,6 +293,29 @@ void osn::VolMeter::RemoveCallback(
 	AUTO_DEBUG;
 }
 
+std::chrono::high_resolution_clock::time_point previous = std::chrono::high_resolution_clock::now();
+
+void updateVolmeters(std::vector<ipc::value> agrs)
+{
+	std::chrono::high_resolution_clock::time_point current = std::chrono::high_resolution_clock::now();
+	auto                                           delta   = current - previous;
+
+	if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() < 50) {
+		std::this_thread::sleep_for(
+		    std::chrono::milliseconds(50 - std::chrono::duration_cast<std::chrono::milliseconds>(delta).count()));
+	}
+
+	previous = std::chrono::high_resolution_clock::now();
+
+	if (g_srv) {
+		std::unique_lock<std::mutex> ul(g_srv->m_clients_mtx);
+		for (auto client : g_srv->m_clients) {
+			if (client.second->host)
+				client.second->call("Volmeter", "UpdateVolmeter", agrs);
+		}
+	}
+}
+
 void osn::VolMeter::OBSCallback(
     void*       param,
     const float magnitude[MAX_AUDIO_CHANNELS],
@@ -303,12 +326,6 @@ void osn::VolMeter::OBSCallback(
 	if (!meter) {
 		return;
 	}
-
-	meter->count++;
-
-	if (meter->count < 5)
-		return;
-	meter->count = 0;
 
 #define MAKE_FLOAT_SANE(db) (std::isfinite(db) ? db : (db > 0 ? 0.0f : -65535.0f))
 #define PREVIOUS_FRAME_WEIGHT
@@ -333,13 +350,7 @@ void osn::VolMeter::OBSCallback(
 
 	agrs.push_back(ipc::value(binData));
 
-	if (g_srv) {
-		std::unique_lock<std::mutex> ul(g_srv->m_clients_mtx);
-		for (auto client : g_srv->m_clients) {
-			if (client.second->host)
-				client.second->call("Volmeter", "UpdateVolmeter", agrs);
-		}
-	}
-
+	std::thread worker(updateVolmeters, agrs);
+	worker.detach();
 #undef MAKE_FLOAT_SANE
 }

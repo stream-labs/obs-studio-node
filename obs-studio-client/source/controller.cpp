@@ -55,7 +55,7 @@ ProcessInfo spawn(const std::string& program, const std::string& commandLine, co
 	    NULL,
 	    NULL,
 	    FALSE,
-	    CREATE_NO_WINDOW | DETACHED_PROCESS,
+	    CREATE_NEW_CONSOLE,
 	    NULL,
 	    utfWorkingDir.empty() ? NULL : utfWorkingDir.c_str(),
 	    &m_win32_startupInfo,
