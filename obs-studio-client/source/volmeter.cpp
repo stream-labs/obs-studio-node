@@ -139,9 +139,9 @@ void osn::VolMeter::worker()
 				data->input_peak.resize(channels);
 				data->param = this;
 				for (size_t ch = 0; ch < channels; ch++) {
-					data->magnitude[ch]  = response[1 + ch * 3 + 0].value_union.fp32;
-					data->peak[ch]       = response[1 + ch * 3 + 1].value_union.fp32;
-					data->input_peak[ch] = response[1 + ch * 3 + 2].value_union.fp32;
+					data->magnitude[ch]  = response[2 + ch * 3 + 0].value_union.fp32;
+					data->peak[ch]       = response[2 + ch * 3 + 1].value_union.fp32;
+					data->input_peak[ch] = response[2 + ch * 3 + 2].value_union.fp32;
 				}
 				m_async_callback->queue(std::move(data));
 			} else if(error == ErrorCode::InvalidReference) {
