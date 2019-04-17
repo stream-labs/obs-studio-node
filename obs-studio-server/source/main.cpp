@@ -44,6 +44,7 @@
 #include "osn-video.hpp"
 #include "osn-volmeter.hpp"
 #include "callback-manager.h"
+#include "ltalloc.h"
 
 #include "util-crashmanager.h"
 
@@ -189,6 +190,12 @@ int main(int argc, char* argv[])
 	// Register Connect/Disconnect Handlers
 	myServer.set_connect_handler(ServerConnectHandler, &sd);
 	myServer.set_disconnect_handler(ServerDisconnectHandler, &sd);
+
+    base_allocator my_allocators = {};
+	my_allocators.malloc         = [](size_t s) { return ltmalloc(s); };
+	my_allocators.realloc        = [](void* p, size_t s) { return ltrealloc(p, s); };
+	my_allocators.free           = [](void* p) { return ltfreeclear(p); };
+    base_set_allocator(&my_allocators);
 
 	// Initialize Server
 	try {

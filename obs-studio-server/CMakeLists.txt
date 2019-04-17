@@ -230,6 +230,11 @@ add_executable(
 	###### callback-manager ######
 	"${PROJECT_SOURCE_DIR}/source/callback-manager.cpp"
 	"${PROJECT_SOURCE_DIR}/source/callback-manager.h"
+
+	###### memory allocator ######
+	"${PROJECT_SOURCE_DIR}/source/ltalloc.h"
+	"${PROJECT_SOURCE_DIR}/source/ltalloc.hpp"
+	"${PROJECT_SOURCE_DIR}/source/ltalloc.cc"
 )
 
 # Include/link crash manager dependencies
