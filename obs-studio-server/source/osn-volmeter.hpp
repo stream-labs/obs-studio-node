@@ -51,16 +51,12 @@ namespace osn
 		uint64_t*                                      id2            = nullptr;
 		uint64_t                                       count          = 0;
 
-		struct AudioData
-		{
-			float   magnitude[MAX_AUDIO_CHANNELS]  = {0};
-			float   peak[MAX_AUDIO_CHANNELS]       = {0};
-			float   input_peak[MAX_AUDIO_CHANNELS] = {0};
-			int32_t ch                             = 0;
-		};
-
-		AudioData current_data;
-		std::mutex                 current_data_mtx;
+		public:
+		std::thread                         worker;
+		std::mutex                          mutex;
+		std::queue<std::vector<ipc::value>> values;
+		bool                                stopWorker = false;
+		std::chrono::high_resolution_clock::time_point previous, current;
 
 		public:
 		VolMeter(obs_fader_type type);

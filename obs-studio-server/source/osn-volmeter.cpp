@@ -239,6 +239,35 @@ void osn::VolMeter::Detach(
 	AUTO_DEBUG;
 }
 
+void updateVolmeters(std::shared_ptr<osn::VolMeter> meter)
+{
+	meter->previous = std::chrono::high_resolution_clock::now();
+	while (!meter->stopWorker) {
+		std::chrono::high_resolution_clock::time_point current = std::chrono::high_resolution_clock::now();
+		auto                                           delta   = current - meter->previous;
+
+		if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() < 50) {
+			std::this_thread::sleep_for(
+			    std::chrono::milliseconds(50 - std::chrono::duration_cast<std::chrono::milliseconds>(delta).count()));
+		}
+
+		meter->previous = std::chrono::high_resolution_clock::now();
+
+		if (g_srv) {
+			std::unique_lock<std::mutex> ul(g_srv->m_clients_mtx);
+			std::unique_lock<std::mutex> lck(meter->mutex);
+			if (meter->values.size() > 0) {
+				for (auto client : g_srv->m_clients) {
+					if (client.second->host)
+						client.second->call("Volmeter", "UpdateVolmeter", meter->values.front());
+				}
+				meter->values.pop();
+			}
+		}
+	}
+
+}
+
 void osn::VolMeter::AddCallback(
     void*                          data,
     const int64_t                  id,
@@ -261,6 +290,8 @@ void osn::VolMeter::AddCallback(
 		obs_volmeter_add_callback(meter->self, OBSCallback, meter->id2);
 	}
 
+	meter->worker = std::thread(updateVolmeters, meter);
+
 	rval.push_back(ipc::value(uint64_t(ErrorCode::Ok)));
 	rval.push_back(ipc::value(meter->callback_count));
 	AUTO_DEBUG;
@@ -281,6 +312,10 @@ void osn::VolMeter::RemoveCallback(
 		return;
 	}
 
+	meter->stopWorker = true;
+	if (meter->worker.joinable())
+		meter->worker.join();
+
 	meter->callback_count--;
 	if (meter->callback_count == 0) {
 		obs_volmeter_remove_callback(meter->self, OBSCallback, meter->id2);
@@ -291,29 +326,6 @@ void osn::VolMeter::RemoveCallback(
 	rval.push_back(ipc::value(uint64_t(ErrorCode::Ok)));
 	rval.push_back(ipc::value(meter->callback_count));
 	AUTO_DEBUG;
-}
-
-std::chrono::high_resolution_clock::time_point previous = std::chrono::high_resolution_clock::now();
-
-void updateVolmeters(std::vector<ipc::value> agrs)
-{
-	std::chrono::high_resolution_clock::time_point current = std::chrono::high_resolution_clock::now();
-	auto                                           delta   = current - previous;
-
-	if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() < 50) {
-		std::this_thread::sleep_for(
-		    std::chrono::milliseconds(50 - std::chrono::duration_cast<std::chrono::milliseconds>(delta).count()));
-	}
-
-	previous = std::chrono::high_resolution_clock::now();
-
-	if (g_srv) {
-		std::unique_lock<std::mutex> ul(g_srv->m_clients_mtx);
-		for (auto client : g_srv->m_clients) {
-			if (client.second->host)
-				client.second->call("Volmeter", "UpdateVolmeter", agrs);
-		}
-	}
 }
 
 void osn::VolMeter::OBSCallback(
@@ -330,16 +342,15 @@ void osn::VolMeter::OBSCallback(
 #define MAKE_FLOAT_SANE(db) (std::isfinite(db) ? db : (db > 0 ? 0.0f : -65535.0f))
 #define PREVIOUS_FRAME_WEIGHT
 
-	meter->current_data.ch = obs_volmeter_get_nr_channels(meter->self);
 	std::vector<ipc::value> agrs;
 	agrs.push_back(ipc::value(meter->id));
-	agrs.push_back(ipc::value(meter->current_data.ch));
+	agrs.push_back(ipc::value(obs_volmeter_get_nr_channels(meter->self)));
 
 	std::vector<char> binData;
 	binData.resize(agrs.at(1).value_union.i32 * 3 * sizeof(float));
 	uint32_t indexBuffer = 0;
 
-	for (size_t ch = 0; ch < meter->current_data.ch; ch++) {
+	for (size_t ch = 0; ch < obs_volmeter_get_nr_channels(meter->self); ch++) {
 		*reinterpret_cast<float*>(binData.data() + indexBuffer) = MAKE_FLOAT_SANE(magnitude[ch]);
 		indexBuffer += sizeof(float);
 		*reinterpret_cast<float*>(binData.data() + indexBuffer) = MAKE_FLOAT_SANE(peak[ch]);
@@ -349,8 +360,7 @@ void osn::VolMeter::OBSCallback(
 	}
 
 	agrs.push_back(ipc::value(binData));
-
-	std::thread worker(updateVolmeters, agrs);
-	worker.detach();
+	std::unique_lock<std::mutex> lck(meter->mutex);
+	meter->values.push(agrs);
 #undef MAKE_FLOAT_SANE
 }
