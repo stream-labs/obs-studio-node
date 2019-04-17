@@ -265,7 +265,6 @@ void updateVolmeters(std::shared_ptr<osn::VolMeter> meter)
 			}
 		}
 	}
-
 }
 
 void osn::VolMeter::AddCallback(

@@ -360,8 +360,8 @@ void osn::VolMeter::UpdateVolmeter(
 		item->input_peak.push_back(*reinterpret_cast<float*>(buffer.data() + indexData));
 		indexData += sizeof(float);
 	}
-
-	it->second->m_async_callback->queue(item);
+	if (it->second->m_async_callback)
+		it->second->m_async_callback->queue(item);
 }
 
 INITIALIZER(nodeobs_volmeter)

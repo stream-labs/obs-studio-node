@@ -56,7 +56,7 @@ namespace osn
 		std::mutex                          mutex;
 		std::queue<std::vector<ipc::value>> values;
 		bool                                stopWorker = false;
-		std::chrono::high_resolution_clock::time_point previous, current;
+		std::chrono::high_resolution_clock::time_point previous;
 
 		public:
 		VolMeter(obs_fader_type type);
