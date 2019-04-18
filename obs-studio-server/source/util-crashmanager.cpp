@@ -215,7 +215,11 @@ bool util::CrashManager::Initialize()
 	// Handler for obs errors (mainly for bcrash() calls)
 	base_set_crash_handler(
 	    [](const char* format, va_list args, void* param) {
-		    std::string errorMessage = FormatVAString(format, args);
+		    std::string errorMessage;
+		    if (format == nullptr)
+			    errorMessage = "unknown error";
+		    else
+			    errorMessage = FormatVAString(format, args);
 
 		    // Check if this crash error is handled internally (if this is a known
 		    // error that we can't do anything about it, just let the application
@@ -462,8 +466,9 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 // Format a var arg string into a c++ std::string type
 std::string FormatVAString(const char* const format, va_list args)
 {
+	static const int MaximumVAStringSize = 63;
 	auto temp   = std::vector<char>{};
-	auto length = std::size_t{63};
+	auto             length              = std::size_t{MaximumVAStringSize};
 	while (temp.size() <= length) {
 		temp.resize(length + 1);
 		const auto status = std::vsnprintf(temp.data(), temp.size(), format, args);
@@ -471,6 +476,11 @@ std::string FormatVAString(const char* const format, va_list args)
 			throw std::runtime_error{"string formatting error"};
 		length = static_cast<std::size_t>(status);
 	}
+
+	if (length > MaximumVAStringSize) {
+		return "unknown error string";
+    }
+
 	return std::string{temp.data(), length};
 }
 
