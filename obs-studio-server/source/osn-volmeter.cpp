@@ -243,6 +243,45 @@ void updateVolmeters(std::shared_ptr<osn::VolMeter> meter)
 {
 	meter->previous = std::chrono::high_resolution_clock::now();
 	while (!meter->stopWorker) {
+
+#define MAKE_FLOAT_SANE(db) (std::isfinite(db) ? db : (db > 0 ? 0.0f : -65535.0f))
+#define PREVIOUS_FRAME_WEIGHT
+
+		std::vector<ipc::value> agrs;
+		agrs.push_back(ipc::value(meter->id));
+		agrs.push_back(ipc::value(obs_volmeter_get_nr_channels(meter->self)));
+
+		std::vector<char> binData;
+		binData.resize(agrs.at(1).value_union.i32 * 3 * sizeof(float));
+		uint32_t indexBuffer = 0;
+
+		// Critical section
+		{
+			std::unique_lock<std::mutex> lck(meter->mutex);
+
+			if (meter->values.size() == 0)
+				continue;
+
+			int channels = obs_volmeter_get_nr_channels(meter->self);
+
+			for (size_t ch = 0; ch < obs_volmeter_get_nr_channels(meter->self); ch++) {
+				*reinterpret_cast<float*>(binData.data() + indexBuffer) =
+				    MAKE_FLOAT_SANE(meter->values.back()->magnitude[ch]);
+				indexBuffer += sizeof(float);
+				*reinterpret_cast<float*>(binData.data() + indexBuffer) =
+				    MAKE_FLOAT_SANE(meter->values.back()->peak[ch]);
+				indexBuffer += sizeof(float);
+				*reinterpret_cast<float*>(binData.data() + indexBuffer) =
+				    MAKE_FLOAT_SANE(meter->values.back()->input_peak[ch]);
+				indexBuffer += sizeof(float);
+			}
+			meter->values.clear();
+		}
+
+		agrs.push_back(ipc::value(binData));
+
+#undef MAKE_FLOAT_SANE
+
 		std::chrono::high_resolution_clock::time_point current = std::chrono::high_resolution_clock::now();
 		auto                                           delta   = current - meter->previous;
 
@@ -255,13 +294,11 @@ void updateVolmeters(std::shared_ptr<osn::VolMeter> meter)
 
 		if (g_srv) {
 			std::unique_lock<std::mutex> ul(g_srv->m_clients_mtx);
-			std::unique_lock<std::mutex> lck(meter->mutex);
 			if (meter->values.size() > 0) {
 				for (auto client : g_srv->m_clients) {
 					if (client.second->host)
-						client.second->call("Volmeter", "UpdateVolmeter", meter->values.back());
+						client.second->call("Volmeter", "UpdateVolmeter", agrs);
 				}
-				meter->values.clear();
 			}
 		}
 	}
@@ -338,28 +375,18 @@ void osn::VolMeter::OBSCallback(
 		return;
 	}
 
-#define MAKE_FLOAT_SANE(db) (std::isfinite(db) ? db : (db > 0 ? 0.0f : -65535.0f))
-#define PREVIOUS_FRAME_WEIGHT
+	osn::AudioData* ad = new osn::AudioData();
+	uint32_t        count_ch = obs_volmeter_get_nr_channels(meter->self);
+	ad->magnitude.resize(count_ch);
+	ad->peak.resize(count_ch);
+	ad->input_peak.resize(count_ch);
 
-	std::vector<ipc::value> agrs;
-	agrs.push_back(ipc::value(*meter->id2));
-	agrs.push_back(ipc::value(obs_volmeter_get_nr_channels(meter->self)));
-
-	std::vector<char> binData;
-	binData.resize(agrs.at(1).value_union.i32 * 3 * sizeof(float));
-	uint32_t indexBuffer = 0;
-
-	for (size_t ch = 0; ch < obs_volmeter_get_nr_channels(meter->self); ch++) {
-		*reinterpret_cast<float*>(binData.data() + indexBuffer) = MAKE_FLOAT_SANE(magnitude[ch]);
-		indexBuffer += sizeof(float);
-		*reinterpret_cast<float*>(binData.data() + indexBuffer) = MAKE_FLOAT_SANE(peak[ch]);
-		indexBuffer += sizeof(float);		
-		*reinterpret_cast<float*>(binData.data() + indexBuffer) = MAKE_FLOAT_SANE(input_peak[ch]);
-		indexBuffer += sizeof(float);
+	for (size_t ch = 0; ch < count_ch; ch++) {
+		ad->magnitude[ch]     = magnitude[ch];
+		ad->peak[ch]          = peak[ch];
+		ad->input_peak[ch]    = input_peak[ch];
 	}
 
-	agrs.push_back(ipc::value(binData));
 	std::unique_lock<std::mutex> lck(meter->mutex);
-	meter->values.push_back(agrs);
-#undef MAKE_FLOAT_SANE
+	meter->values.push_back(ad);
 }

@@ -25,6 +25,12 @@
 
 namespace osn
 {
+	struct AudioData
+	{
+		std::vector<float> magnitude;
+		std::vector<float> peak;
+		std::vector<float> input_peak;
+	};
 	class VolMeter
 	{
 		public:
@@ -44,7 +50,7 @@ namespace osn
 			static Manager& GetInstance();
 		};
 
-		private:
+		public:
 		obs_volmeter_t*                                self;
 		uint64_t                                       id;
 		size_t                                         callback_count = 0;
@@ -54,7 +60,7 @@ namespace osn
 		public:
 		std::thread                                    worker;
 		std::mutex                                     mutex;
-		std::vector<std::vector<ipc::value>>           values;
+		std::vector<AudioData*> values;
 		bool                                           stopWorker = false;
 		std::chrono::high_resolution_clock::time_point previous;
 
