@@ -330,19 +330,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::RemoveCallback(Nan::NAN_METHOD_ARGS_T
 	info.GetReturnValue().Set(true);
 }
 
-std::chrono::high_resolution_clock::time_point previous = std::chrono::high_resolution_clock::now();
-
 void osn::VolMeter::UpdateVolmeter(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	std::chrono::high_resolution_clock::time_point current = std::chrono::high_resolution_clock::now();
-
-	auto delta = current - previous;
-
-	previous = current;
 	std::unique_lock<std::mutex>       lck(volmeters_lock);
 
 	auto it = volmeters.find(args[0].value_union.ui64);
