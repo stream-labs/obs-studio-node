@@ -62,6 +62,7 @@ namespace osn
 		std::mutex                                     mutex;
 		std::vector<AudioData*> values;
 		bool                                           stopWorker = false;
+		bool                                           isRunning  = false;
 		std::chrono::high_resolution_clock::time_point previous;
 
 		public:

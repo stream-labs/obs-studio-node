@@ -259,8 +259,10 @@ void updateVolmeters(std::shared_ptr<osn::VolMeter> meter)
 		{
 			std::unique_lock<std::mutex> lck(meter->mutex);
 
-			if (meter->values.size() == 0)
+			if (meter->values.size() == 0) {
+				meter->stopWorker = true;
 				continue;
+			}
 
 			int channels = obs_volmeter_get_nr_channels(meter->self);
 
@@ -302,6 +304,8 @@ void updateVolmeters(std::shared_ptr<osn::VolMeter> meter)
 			}
 		}
 	}
+	std::unique_lock<std::mutex> lck(meter->mutex);
+	meter->isRunning = false;
 }
 
 void osn::VolMeter::AddCallback(
@@ -325,8 +329,6 @@ void osn::VolMeter::AddCallback(
 		*meter->id2 = meter->id;
 		obs_volmeter_add_callback(meter->self, OBSCallback, meter->id2);
 	}
-
-	meter->worker = std::thread(updateVolmeters, meter);
 
 	rval.push_back(ipc::value(uint64_t(ErrorCode::Ok)));
 	rval.push_back(ipc::value(meter->callback_count));
@@ -389,4 +391,11 @@ void osn::VolMeter::OBSCallback(
 
 	std::unique_lock<std::mutex> lck(meter->mutex);
 	meter->values.push_back(ad);
+
+	if (!meter->isRunning) {
+		meter->stopWorker = false;
+		meter->isRunning  = true;
+		meter->worker     = std::thread(updateVolmeters, meter);
+	}
+
 }
