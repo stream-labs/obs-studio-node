@@ -350,16 +350,22 @@ void osn::VolMeter::RemoveCallback(
 		return;
 	}
 
-	meter->stopWorker = true;
-	if (meter->worker.joinable())
-		meter->worker.join();
-
 	meter->callback_count--;
 	if (meter->callback_count == 0) {
 		obs_volmeter_remove_callback(meter->self, OBSCallback, meter->id2);
 		delete meter->id2;
 		meter->id2 = nullptr;
 	}
+
+	meter->mutex.lock();
+	if (meter->isRunning) {
+		meter->stopWorker = true;
+		meter->mutex.unlock();
+		if (meter->worker.joinable())
+			meter->worker.join();
+		meter->isRunning = false;
+	}
+
 
 	rval.push_back(ipc::value(uint64_t(ErrorCode::Ok)));
 	rval.push_back(ipc::value(meter->callback_count));
@@ -393,6 +399,8 @@ void osn::VolMeter::OBSCallback(
 	meter->values.push_back(ad);
 
 	if (!meter->isRunning) {
+		if (meter->worker.joinable())
+			meter->worker.join();
 		meter->stopWorker = false;
 		meter->isRunning  = true;
 		meter->worker     = std::thread(updateVolmeters, meter);
