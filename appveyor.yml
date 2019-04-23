@@ -15,7 +15,7 @@ environment:
 
     - RuntimeURL: https://atom.io/download/atom-shell
       RuntimeName: iojs
-      RuntimeVersion: v3.0.1
+      RuntimeVersion: v4.1.4
 
     - RuntimeURL: https://atom.io/download/atom-shell
       RuntimeName: iojs
