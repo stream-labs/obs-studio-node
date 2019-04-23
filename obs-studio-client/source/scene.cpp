@@ -267,12 +267,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 	v8::Local<v8::Object> crop      = v8::Object::New(v8::Isolate::GetCurrent());
 	if (info.Length() >= 2) {
 		transform = info[1]->ToObject();
-		params.push_back(ipc::value(transform->Get(utilv8::ToValue("scaleX"))->ToNumber()->Value()));
-		params.push_back(ipc::value(transform->Get(utilv8::ToValue("scaleY"))->ToNumber()->Value()));
+		params.push_back(ipc::value(transform->Get(utilv8::ToValue("scaleX"))->ToNumber(info.GetIsolate())->Value()));
+		params.push_back(ipc::value(transform->Get(utilv8::ToValue("scaleY"))->ToNumber(info.GetIsolate())->Value()));
 		params.push_back(ipc::value(transform->Get(utilv8::ToValue("visible"))->ToBoolean()->Value()));
-		params.push_back(ipc::value(transform->Get(utilv8::ToValue("x"))->ToNumber()->Value()));
-		params.push_back(ipc::value(transform->Get(utilv8::ToValue("y"))->ToNumber()->Value()));
-		params.push_back(ipc::value(transform->Get(utilv8::ToValue("rotation"))->ToNumber()->Value()));
+		params.push_back(ipc::value(transform->Get(utilv8::ToValue("x"))->ToNumber(info.GetIsolate())->Value()));
+		params.push_back(ipc::value(transform->Get(utilv8::ToValue("y"))->ToNumber(info.GetIsolate())->Value()));
+		params.push_back(ipc::value(transform->Get(utilv8::ToValue("rotation"))->ToNumber(info.GetIsolate())->Value()));
 
 		crop = transform->Get(utilv8::ToValue("crop"))->ToObject();
 		params.push_back(ipc::value(crop->Get(utilv8::ToValue("left"))->ToInteger()->Value()));
@@ -308,13 +308,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 
 	if (info.Length() >= 2) {
 		// Position
-		sid->posX       = transform->Get(utilv8::ToValue("x"))->ToNumber()->Value();
-		sid->posY       = transform->Get(utilv8::ToValue("y"))->ToNumber()->Value();
+		sid->posX       = transform->Get(utilv8::ToValue("x"))->ToNumber(info.GetIsolate())->Value();
+		sid->posY       = transform->Get(utilv8::ToValue("y"))->ToNumber(info.GetIsolate())->Value();
 		sid->posChanged = false;
 
 		// Scale
-		sid->scaleX       = transform->Get(utilv8::ToValue("scaleX"))->ToNumber()->Value();
-		sid->scaleY       = transform->Get(utilv8::ToValue("scaleY"))->ToNumber()->Value();
+		sid->scaleX       = transform->Get(utilv8::ToValue("scaleX"))->ToNumber(info.GetIsolate())->Value();
+		sid->scaleY       = transform->Get(utilv8::ToValue("scaleY"))->ToNumber(info.GetIsolate())->Value();
 		sid->scaleChanged = false;
 
 		// Visibility
@@ -329,7 +329,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 		sid->cropChanged = false;
 
 		// Rotation
-		sid->rotation        = transform->Get(utilv8::ToValue("rotation"))->ToNumber()->Value();
+		sid->rotation        = transform->Get(utilv8::ToValue("rotation"))->ToNumber(info.GetIsolate())->Value();
 		sid->rotationChanged = false;
 	}
 
