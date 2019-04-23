@@ -91,6 +91,8 @@ extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = [] {
 
 #define BUFFSIZE 512
 
+ipc::server myServer;
+
 struct ServerData
 {
 	std::mutex                                     mtx;
@@ -122,6 +124,12 @@ namespace System
 	{
 		bool* shutdown = (bool*)data;
 		*shutdown      = true;
+
+		for (auto client: myServer.m_clients) {
+			std::unique_lock<std::mutex> lck (client.second->m_lock);
+			client.second->m_watcher.stop = true;
+		}
+
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		return;
 	}
@@ -150,7 +158,6 @@ int main(int argc, char* argv[])
 	}
 
 	// Instance
-	ipc::server myServer;
 	bool        doShutdown = false;
 	ServerData  sd;
 	sd.last_disconnect = sd.last_connect = std::chrono::high_resolution_clock::now();
