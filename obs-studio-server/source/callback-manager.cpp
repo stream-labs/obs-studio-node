@@ -26,7 +26,7 @@ std::map<std::string, SourceSizeInfo*> sources;
 std::thread                            worker;
 bool                                   stopWorker      = false;
 bool                                   isRunning       = false;
-uint32_t                               update_interval = 100;
+uint32_t                               update_interval = 1000;
 
 void CallbackManager::Register(ipc::server& srv)
 {
@@ -49,7 +49,8 @@ void updateSourceSize()
 		uint32_t          indexBuffer = 0;
 
 		buffer.resize(65536);
-
+		*reinterpret_cast<uint32_t*>(buffer.data()) = size;
+		indexBuffer += sizeof(uint32_t);
 		{
 			// Critical section
 			std::unique_lock<std::mutex> ulock(mtx);
@@ -82,8 +83,7 @@ void updateSourceSize()
 				}
 			}
 		}
-		buffer.insert(buffer.begin(), *reinterpret_cast<char*>(size));
-		indexBuffer += sizeof(uint32_t);
+		*reinterpret_cast<uint32_t*>(buffer.data()) = size;
 		buffer.resize(indexBuffer);
 
 		if (size == 0) {
@@ -92,12 +92,15 @@ void updateSourceSize()
 			if (g_srv) {
 				std::unique_lock<std::mutex> ul(g_srv->m_clients_mtx);
 				for (auto client : g_srv->m_clients) {
+					std::vector<ipc::value> agrs;
+					agrs.push_back(ipc::value(buffer));
 					if (client.second->host)
-						client.second->call("SourceManager", "UpdateSourceSize", {ipc::value(buffer)});
+						client.second->call("SourceManager", "UpdateSourceSize", agrs);
 				}
 			}
 		}
 	}
+	isRunning = false;
 }
 
 void CallbackManager::StartWorker(
@@ -185,6 +188,8 @@ void CallbackManager::addSource(obs_source_t* source)
 	sources.emplace(std::make_pair(std::string(obs_source_get_name(source)), si));
 
 	if (!isRunning) {
+		if (worker.joinable())
+			worker.join();
 		stopWorker = false;
 		isRunning  = true;
 		worker     = std::thread(updateSourceSize);

@@ -318,7 +318,7 @@ std::shared_ptr<ipc::client> Controller::connect(
 	m_connection->register_collection(cls_vol);
 
 	std::shared_ptr<ipc::collection> cls_cb = std::make_shared<ipc::collection>("SourceManager");
-	cls_vol->register_function(
+	cls_cb->register_function(
 		std::make_shared<ipc::function>("UpdateSourceSize",
 	    std::vector<ipc::type>{ipc::type::Binary}, CallbackManager::UpdateSourceSize));
 	m_connection->register_collection(cls_cb);
