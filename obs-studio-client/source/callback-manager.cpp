@@ -110,7 +110,7 @@ void RemoveSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
 		return;
 	}
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("CallbackManager", "StartWorker", {});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("CallbackManager", "StopWorker", {});
 	cm->stop_async_runner();
 }
 
