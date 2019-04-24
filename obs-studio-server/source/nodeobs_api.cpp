@@ -24,9 +24,9 @@
 #include "osn-transition.hpp"
 #include "osn-filter.hpp"
 #include "osn-volmeter.hpp"
-#include "util-crashmanager.h"
 #include "osn-fader.hpp"
 #include "util/lexer.h"
+#include "util-crashmanager.h"
 
 #ifdef _WIN32
 
@@ -94,8 +94,7 @@ void OBS_API::Register(ipc::server& srv)
 	    "SetWorkingDirectory", std::vector<ipc::type>{ipc::type::String}, SetWorkingDirectory));
 	cls->register_function(
 	    std::make_shared<ipc::function>("StopCrashHandler", std::vector<ipc::type>{}, StopCrashHandler));
-	cls->register_function(
-	    std::make_shared<ipc::function>("OBS_API_QueryHotkeys", std::vector<ipc::type>{}, QueryHotkeys));
+	cls->register_function(std::make_shared<ipc::function>("OBS_API_QueryHotkeys", std::vector<ipc::type>{}, QueryHotkeys));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_API_ProcessHotkeyStatus",
 	    std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32},
@@ -179,7 +178,7 @@ static bool ExpectToken(lexer* lex, const char* str, base_token_type type)
 * for right now.  */
 static uint64_t ConvertLogName(const char* name)
 {
-	lexer       lex;
+	lexer  lex;
 	std::string year, month, day, hour, minute, second;
 
 	lexer_init(&lex);
@@ -214,7 +213,7 @@ static uint64_t ConvertLogName(const char* name)
 
 static void DeleteOldestFile(const char* location, unsigned maxLogs)
 {
-	std::string       oldestLog;
+	std::string            oldestLog;
 	uint64_t          oldest_ts = (uint64_t)-1;
 	struct os_dirent* entry;
 
@@ -362,7 +361,7 @@ static void                                    node_obs_log(int log_level, const
 			// File Log
 			*logStream << newmsg << std::flush;
 
-			// Internal Log
+            // Internal Log
 			logReport.push(newmsg, log_level);
 
 			// Std Out / Std Err
@@ -453,8 +452,7 @@ std::vector<char> terminateCrashHandler(void)
 
 void writeCrashHandler(std::vector<char> buffer)
 {
-	HANDLE hPipe = CreateFile(
-	    TEXT("\\\\.\\pipe\\slobs-crash-handler"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+	HANDLE hPipe = CreateFile( TEXT("\\\\.\\pipe\\slobs-crash-handler"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 
 	if (hPipe == INVALID_HANDLE_VALUE)
 		return;
@@ -499,7 +497,7 @@ void OBS_API::OBS_API_initAPI(
 	if (!obs_startup(locale.c_str(), userData.data(), NULL)) {
 		// TODO: We should return an error code if obs fails to initialize.
 		// This was added as a temporary measure to detect what could be happening in some
-		// cases (if the user data path is wrong for ex). This will be correctly adjusted
+		// cases (if the user data path is wrong for ex). This will be correctly adjusted 
 		// when init API supports more return codes.
 		std::string userDataPath = std::string(userData.begin(), userData.end());
 		util::CrashManager::AddWarning("Failed to start OBS, locale: " + locale + " user data: " + userDataPath);
@@ -548,7 +546,7 @@ void OBS_API::OBS_API_initAPI(
 	ConfigManager::getInstance().setAppdataPath(appdata);
 
 	/* Set global private settings for whomever it concerns */
-	bool        browserHWAccel = config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "BrowserHWAccel");
+	bool        browserHWAccel   = config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "BrowserHWAccel");
 	obs_data_t* private_settings = obs_data_create();
 	obs_data_set_bool(private_settings, "BrowserHWAccel", browserHWAccel);
 	obs_apply_private_data(private_settings);
@@ -672,8 +670,8 @@ void OBS_API::QueryHotkeys(
 			    break;
 		    }
 		    case OBS_HOTKEY_REGISTERER_SOURCE: {
-			    auto* weak_source = static_cast<obs_weak_source_t*>(registerer);
-			    auto  key_source  = OBSGetStrongRef(weak_source);
+			    auto* weak_source            = static_cast<obs_weak_source_t*>(registerer);
+			    auto  key_source             = OBSGetStrongRef(weak_source);
 			    if (key_source == nullptr)
 				    return true;
 			    currentHotkeyInfo.objectName = obs_source_get_name(key_source);
@@ -681,8 +679,8 @@ void OBS_API::QueryHotkeys(
 			    break;
 		    }
 		    case OBS_HOTKEY_REGISTERER_OUTPUT: {
-			    auto* weak_output = static_cast<obs_weak_output_t*>(registerer);
-			    auto  key_output  = OBSGetStrongRef(weak_output);
+			    auto* weak_output            = static_cast<obs_weak_output_t*>(registerer);
+			    auto  key_output             = OBSGetStrongRef(weak_output);
 			    if (key_output == nullptr)
 				    return true;
 			    currentHotkeyInfo.objectName = obs_output_get_name(key_output);
@@ -690,8 +688,8 @@ void OBS_API::QueryHotkeys(
 			    break;
 		    }
 		    case OBS_HOTKEY_REGISTERER_ENCODER: {
-			    auto* weak_encoder = static_cast<obs_weak_encoder_t*>(registerer);
-			    auto  key_encoder  = OBSGetStrongRef(weak_encoder);
+			    auto* weak_encoder           = static_cast<obs_weak_encoder_t*>(registerer);
+			    auto  key_encoder            = OBSGetStrongRef(weak_encoder);
 			    if (key_encoder == nullptr)
 				    return true;
 			    currentHotkeyInfo.objectName = obs_encoder_get_name(key_encoder);
@@ -699,8 +697,8 @@ void OBS_API::QueryHotkeys(
 			    break;
 		    }
 		    case OBS_HOTKEY_REGISTERER_SERVICE: {
-			    auto* weak_service = static_cast<obs_weak_service_t*>(registerer);
-			    auto  key_service  = OBSGetStrongRef(weak_service);
+			    auto* weak_service           = static_cast<obs_weak_service_t*>(registerer);
+			    auto  key_service            = OBSGetStrongRef(weak_service);
 			    if (key_service == nullptr)
 				    return true;
 			    currentHotkeyInfo.objectName = obs_service_get_name(key_service);
@@ -917,8 +915,8 @@ void acknowledgeTerminate(void)
 
 	Pipe.dwState = Pipe.fPendingIO ? CONNECTING_STATE : READING_STATE;
 
-	bool  exit    = false;
-	auto  timeNow = std::chrono::high_resolution_clock::now();
+	bool exit = false;
+	auto timeNow = std::chrono::high_resolution_clock::now();
 	DWORD i, dwWait, cbRet, dwErr;
 
 	while (!exit) {
@@ -967,7 +965,11 @@ void acknowledgeTerminate(void)
 			case READING_STATE: {
 				Pipe.chRequest.resize(BUFFSIZE);
 				fSuccess = ReadFile(
-				    Pipe.hPipeInst, Pipe.chRequest.data(), BUFFSIZE * sizeof(TCHAR), &Pipe.cbRead, &Pipe.oOverlap);
+					Pipe.hPipeInst,
+					Pipe.chRequest.data(),
+					BUFFSIZE * sizeof(TCHAR),
+					&Pipe.cbRead,
+					&Pipe.oOverlap);
 
 				GetOverlappedResult(Pipe.hPipeInst, &Pipe.oOverlap, &Pipe.cbRead, false);
 
@@ -1014,7 +1016,7 @@ void OBS_API::destroyOBS_API(void)
 	os_cpu_usage_info_destroy(cpuUsageInfo);
 
 #ifdef _WIN32
-	config_t* basicConfig = ConfigManager::getInstance().getBasic();
+	config_t* basicConfig         = ConfigManager::getInstance().getBasic();
 	if (basicConfig) {
 		bool disableAudioDucking = config_get_bool(basicConfig, "Audio", "DisableAudioDucking");
 		if (disableAudioDucking)

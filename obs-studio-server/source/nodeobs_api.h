@@ -30,7 +30,7 @@
 #include "nodeobs_configManager.hpp"
 #include "nodeobs_service.h"
 
-extern std::string  g_moduleDirectory;
+extern std::string g_moduleDirectory;
 
 struct Screen
 {
