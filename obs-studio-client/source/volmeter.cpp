@@ -296,7 +296,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::AddCallback(Nan::NAN_METHOD_ARGS_TYPE
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	osn::VolMeter*               self;
+	osn::VolMeter* self;
 
 	{
 		ASSERT_INFO_LENGTH(info, 1);
