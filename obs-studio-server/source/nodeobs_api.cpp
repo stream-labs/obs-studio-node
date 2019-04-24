@@ -17,7 +17,6 @@
 ******************************************************************************/
 
 #include "nodeobs_api.h"
-#include "osn-fader.hpp"
 #include "osn-source.hpp"
 #include "osn-scene.hpp"
 #include "osn-sceneitem.hpp"
@@ -26,6 +25,7 @@
 #include "osn-filter.hpp"
 #include "osn-volmeter.hpp"
 #include "util-crashmanager.h"
+#include "osn-fader.hpp"
 #include "util/lexer.h"
 
 #ifdef _WIN32
