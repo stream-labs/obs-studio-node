@@ -255,8 +255,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Detach(Nan::NAN_METHOD_ARGS_TYPE info
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::AddCallback(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	osn::VolMeter*               self;
-	v8::Local<v8::Function>      callback;
+	osn::VolMeter*          self;
+	v8::Local<v8::Function> callback;
 
 	{
 		// Arguments
