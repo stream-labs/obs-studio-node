@@ -27,11 +27,12 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
+CallbackManager* cm;
+
 void CallbackManager::start_async_runner()
 {
 	if (m_async_callback)
 		return;
-	std::unique_lock<std::mutex> ul(m_worker_lock);
 	// Start v8/uv asynchronous runner.
 	m_async_callback = new cm_Callback();
 	m_async_callback->set_handler(
@@ -41,7 +42,6 @@ void CallbackManager::stop_async_runner()
 {
 	if (!m_async_callback)
 		return;
-	std::unique_lock<std::mutex> ul(m_worker_lock);
 	// Stop v8/uv asynchronous runner.
 	m_async_callback->clear();
 	m_async_callback->finalize();
@@ -53,7 +53,7 @@ void CallbackManager::callback_handler(void* data, std::shared_ptr<SourceSizeInf
 	v8::Isolate*         isolate = v8::Isolate::GetCurrent();
 	v8::Local<v8::Value> args[1];
 	Nan::HandleScope     scope;
-	uint32_t             i = 0;
+	uint32_t             i    = 0;
 	v8::Local<v8::Array> rslt = v8::Array::New(isolate);
 
 	if (sourceSizes->items.size() == 0)
@@ -66,28 +66,10 @@ void CallbackManager::callback_handler(void* data, std::shared_ptr<SourceSizeInf
 		argv->ToObject()->Set(utilv8::ToValue("height"), utilv8::ToValue(item->height));
 		argv->ToObject()->Set(utilv8::ToValue("flags"), utilv8::ToValue(item->flags));
 		rslt->Set(i++, argv);
-	}	
+	}
 
 	args[0] = rslt;
 	Nan::Call(m_callback_function, 1, args);
-}
-void CallbackManager::start_worker()
-{
-	if (!m_worker_stop)
-		return;
-	// Launch worker thread.
-	m_worker_stop = false;
-	m_worker      = std::thread(std::bind(&CallbackManager::worker, this));
-}
-void CallbackManager::stop_worker()
-{
-	if (m_worker_stop != false)
-		return;
-	// Stop worker thread.
-	m_worker_stop = true;
-	if (m_worker.joinable()) {
-		m_worker.join();
-	}
 }
 
 static v8::Persistent<v8::Object> cm_CallbackObject;
@@ -108,54 +90,10 @@ void RegisterSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
 	cm->m_callback_function.Reset(callback);
 	cm->start_async_runner();
 	cm->set_keepalive(args.This());
-	cm->start_worker();
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("CallbackManager", "StartWorker", {});
+
 	args.GetReturnValue().Set(utilv8::ToValue(true));
-}
-
-void CallbackManager::worker()
-{
-	size_t totalSleepMS = 0;
-
-	while (!m_worker_stop) {
-		auto tp_start = std::chrono::high_resolution_clock::now();
-
-		// Validate Connection
-		auto conn = Controller::GetInstance().GetConnection();
-		if (!conn) {
-			goto do_sleep;
-		}
-
-		// Call
-		{
-			std::vector<ipc::value> response = conn->call_synchronous_helper("CallbackManager", "QuerySourceSize", {});
-			if (!response.size() || (response.size() == 1)) {
-				goto do_sleep;
-			}
-
-			ErrorCode error = (ErrorCode)response[0].value_union.ui64;
-			if (error == ErrorCode::Ok) {
-				std::shared_ptr<SourceSizeInfoData> data = std::make_shared<SourceSizeInfoData>();
-				for (int i = 2; i < (response[1].value_union.ui32*4) + 2; i++) {
-					SourceSizeInfo* item = new SourceSizeInfo;
-
-					item->name   = response[i++].value_str;
-					item->width  = response[i++].value_union.ui32;
-					item->height = response[i++].value_union.ui32;
-					item->flags  = response[i].value_union.ui32;
-					data->items.push_back(item);
-				}
-				data->param = this;
-				m_async_callback->queue(std::move(data));
-			}
-		}
-
-	do_sleep:
-		auto tp_end  = std::chrono::high_resolution_clock::now();
-		auto dur     = std::chrono::duration_cast<std::chrono::milliseconds>(tp_end - tp_start);
-		totalSleepMS = sleepIntervalMS - dur.count();
-		std::this_thread::sleep_for(std::chrono::milliseconds(totalSleepMS));
-	}
-	return;
 }
 
 void CallbackManager::set_keepalive(v8::Local<v8::Object> obj)
@@ -167,8 +105,46 @@ void CallbackManager::set_keepalive(v8::Local<v8::Object> obj)
 
 void RemoveSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	cm->stop_worker();
+	std::shared_ptr<ipc::client> conn = nullptr;
+	if (!(conn = GetConnection())) {
+		return;
+	}
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("CallbackManager", "StartWorker", {});
 	cm->stop_async_runner();
+}
+
+void CallbackManager::UpdateSourceSize(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	std::vector<char>                   buffer      = args[0].value_bin;
+	uint32_t                            size        = *reinterpret_cast<uint32_t*>(buffer.data());
+	uint32_t                            indexBuffer = sizeof(uint32_t);
+	std::shared_ptr<SourceSizeInfoData> dataSource  = std::make_shared<SourceSizeInfoData>();
+
+	for (size_t i = 0; i < size; i++) {
+		SourceSizeInfo* item = new SourceSizeInfo;
+
+		size_t sizeName = *reinterpret_cast<size_t*>(buffer.data() + indexBuffer);
+		indexBuffer += sizeof(size_t);
+		item->name = std::string(buffer.data() + indexBuffer, sizeName);
+		indexBuffer += sizeName;
+
+		item->width = *reinterpret_cast<uint32_t*>(buffer.data() + indexBuffer);
+		indexBuffer += sizeof(uint32_t);
+		item->height = *reinterpret_cast<uint32_t*>(buffer.data() + indexBuffer);
+		indexBuffer += sizeof(uint32_t);
+		item->flags = *reinterpret_cast<uint32_t*>(buffer.data() + indexBuffer);
+		indexBuffer += sizeof(uint32_t);
+
+		dataSource->items.push_back(item);
+	}
+
+	if (cm->m_async_callback)
+		cm->m_async_callback->queue(std::move(dataSource));
 }
 
 INITIALIZER(callback_manager)

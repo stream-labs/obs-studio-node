@@ -23,14 +23,110 @@
 
 std::mutex                             mtx;
 std::map<std::string, SourceSizeInfo*> sources;
+std::thread                            worker;
+bool                                   stopWorker      = false;
+bool                                   isRunning       = false;
+uint32_t                               update_interval = 100;
 
 void CallbackManager::Register(ipc::server& srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("CallbackManager");
 
-	cls->register_function(std::make_shared<ipc::function>("QuerySourceSize", std::vector<ipc::type>{}, QuerySourceSize));
+	cls->register_function(
+	    std::make_shared<ipc::function>("QuerySourceSize", std::vector<ipc::type>{}, QuerySourceSize));
+	cls->register_function(std::make_shared<ipc::function>("StartWorker", std::vector<ipc::type>{}, StartWorker));
+	cls->register_function(std::make_shared<ipc::function>("StopWorker", std::vector<ipc::type>{}, StopWorker));
 
 	srv.register_collection(cls);
+	g_srv = &srv;
+}
+
+void updateSourceSize()
+{
+	while (!stopWorker && !sources.empty()) {
+		uint32_t          size = 0;
+		std::vector<char> buffer;
+		uint32_t          indexBuffer = 0;
+
+		buffer.resize(65536);
+
+		{
+			// Critical section
+			std::unique_lock<std::mutex> ulock(mtx);
+
+			for (auto item : sources) {
+				SourceSizeInfo* si = item.second;
+				// See if width or height changed here
+				uint32_t newWidth  = obs_source_get_width(si->source);
+				uint32_t newHeight = obs_source_get_height(si->source);
+				uint32_t newFlags  = obs_source_get_output_flags(si->source);
+
+				if (si->width != newWidth || si->height != newHeight || si->flags != newFlags) {
+					si->width  = newWidth;
+					si->height = newHeight;
+					si->flags  = newFlags;
+
+					std::string name = obs_source_get_name(si->source);
+					*reinterpret_cast<size_t*>(buffer.data() + indexBuffer) = name.size();
+					indexBuffer += sizeof(size_t);
+					memcpy(buffer.data() + indexBuffer, name.data(), name.size());
+					indexBuffer += name.size();
+
+					*reinterpret_cast<uint32_t*>(buffer.data() + indexBuffer) = si->width;
+					indexBuffer += sizeof(uint32_t);
+					*reinterpret_cast<uint32_t*>(buffer.data() + indexBuffer) = si->height;
+					indexBuffer += sizeof(uint32_t);
+					*reinterpret_cast<uint32_t*>(buffer.data() + indexBuffer) = si->flags;
+					indexBuffer += sizeof(uint32_t);
+					size++;
+				}
+			}
+		}
+		buffer.insert(buffer.begin(), *reinterpret_cast<char*>(size));
+		indexBuffer += sizeof(uint32_t);
+		buffer.resize(indexBuffer);
+
+		if (size == 0) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(update_interval));
+		} else {
+			if (g_srv) {
+				std::unique_lock<std::mutex> ul(g_srv->m_clients_mtx);
+				for (auto client : g_srv->m_clients) {
+					if (client.second->host)
+						client.second->call("SourceManager", "UpdateSourceSize", {ipc::value(buffer)});
+				}
+			}
+		}
+	}
+}
+
+void CallbackManager::StartWorker(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	stopWorker = false;
+	if (!isRunning) {
+		isRunning = true;
+		worker    = std::thread(updateSourceSize);
+	}
+	AUTO_DEBUG;
+}
+
+void CallbackManager::StopWorker(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	if (isRunning) {
+		stopWorker = true;
+		if (worker.joinable())
+			worker.join();
+		isRunning = false;
+	}
+	AUTO_DEBUG;
 }
 
 void CallbackManager::QuerySourceSize(
@@ -56,7 +152,7 @@ void CallbackManager::QuerySourceSize(
 		uint32_t newFlags  = obs_source_get_output_flags(si->source);
 
 		if (si->width != newWidth || si->height != newHeight || si->flags != newFlags) {
-			si->width = newWidth;
+			si->width  = newWidth;
 			si->height = newHeight;
 			si->flags  = newFlags;
 
@@ -81,22 +177,28 @@ void CallbackManager::addSource(obs_source_t* source)
 	if (!source || obs_source_get_type(source) == OBS_SOURCE_TYPE_FILTER)
 		return;
 
-	SourceSizeInfo* si               = new SourceSizeInfo;
-	si->source                       = source;
-	si->width                        = obs_source_get_width(source);
-	si->height                       = obs_source_get_height(source);
+	SourceSizeInfo* si = new SourceSizeInfo;
+	si->source         = source;
+	si->width          = obs_source_get_width(source);
+	si->height         = obs_source_get_height(source);
 
 	sources.emplace(std::make_pair(std::string(obs_source_get_name(source)), si));
+
+	if (!isRunning) {
+		stopWorker = false;
+		isRunning  = true;
+		worker     = std::thread(updateSourceSize);
+	}
 }
 void CallbackManager::removeSource(obs_source_t* source)
 {
 	std::unique_lock<std::mutex> ulock(mtx);
-	
+
 	if (!source)
 		return;
 
 	const char* name = obs_source_get_name(source);
-	
+
 	if (name)
 		sources.erase(name);
 }

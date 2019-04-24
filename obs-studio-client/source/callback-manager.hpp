@@ -38,7 +38,7 @@ struct SourceSizeInfoData
 
 class CallbackManager;
 typedef utilv8::managed_callback<std::shared_ptr<SourceSizeInfoData>> cm_Callback;
-CallbackManager*                                              cm;
+extern CallbackManager*                                              cm;
 
 class CallbackManager : public Nan::ObjectWrap,
                         public utilv8::InterfaceObject<CallbackManager>,
@@ -48,12 +48,7 @@ class CallbackManager : public Nan::ObjectWrap,
 	friend utilv8::ManagedObject<CallbackManager>;
 	friend utilv8::CallbackData<SourceSizeInfoData, CallbackManager>;
 
-	uint32_t sleepIntervalMS = 1000;
-
 	public:
-	std::thread   m_worker;
-	bool          m_worker_stop = true;
-	std::mutex    m_worker_lock;
 	cm_Callback*  m_async_callback = nullptr;
 	Nan::Callback m_callback_function;
 
@@ -63,12 +58,14 @@ class CallbackManager : public Nan::ObjectWrap,
 	void start_async_runner();
 	void stop_async_runner();
 	void callback_handler(void* data, std::shared_ptr<SourceSizeInfoData> sourceSizes);
-	void start_worker();
-	void stop_worker();
-	void worker();
 	void set_keepalive(v8::Local<v8::Object>);
 
-	std::list<cm_Callback*> callbacks;
+	public:
+	static void UpdateSourceSize(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
 };
 
 static void RegisterSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args);

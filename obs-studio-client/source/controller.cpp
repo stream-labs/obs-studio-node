@@ -26,6 +26,7 @@
 #include "shared.hpp"
 #include "utility.hpp"
 #include "volmeter.hpp"
+#include "callback-manager.hpp"
 
 static std::string serverBinaryPath  = "";
 static std::string serverWorkingPath = "";
@@ -315,6 +316,12 @@ std::shared_ptr<ipc::client> Controller::connect(
 		std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32, ipc::type::Binary},
 		osn::VolMeter::UpdateVolmeter));
 	m_connection->register_collection(cls_vol);
+
+	std::shared_ptr<ipc::collection> cls_cb = std::make_shared<ipc::collection>("SourceManager");
+	cls_vol->register_function(
+		std::make_shared<ipc::function>("UpdateSourceSize",
+	    std::vector<ipc::type>{ipc::type::Binary}, CallbackManager::UpdateSourceSize));
+	m_connection->register_collection(cls_cb);
 
 	return m_connection;
 }

@@ -31,26 +31,36 @@
 #include <util/dstr.h>
 #include <util/platform.h>
 #include "nodeobs_api.h"
+#include "utility.hpp"
 
 #include "nodeobs_audio_encoders.h"
 
 struct SourceSizeInfo
 {
 	obs_source_t* source;
-	uint32_t      width = 0;
+	uint32_t      width  = 0;
 	uint32_t      height = 0;
-	uint32_t      flags = 0;
+	uint32_t      flags  = 0;
 };
+
+extern std::thread worker;
 
 class CallbackManager
 {
 	public:
-	CallbackManager() {};
-	~CallbackManager() {};
+	CallbackManager(){};
+	~CallbackManager(){};
 
 	static void Register(ipc::server&);
-	static void QuerySourceSize(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-	
+	static void QuerySourceSize(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void
+	    StartWorker(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+	static void
+	            StopWorker(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 	static void addSource(obs_source_t* source);
 	static void removeSource(obs_source_t* source);
 };
