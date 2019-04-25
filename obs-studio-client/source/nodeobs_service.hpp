@@ -33,7 +33,7 @@ struct SignalInfo
 
 class Service;
 typedef utilv8::managed_callback<std::shared_ptr<SignalInfo>> ServiceCallback;
-Service*                                                      serviceObject;
+extern Service* serviceObject;
 
 class Service : public Nan::ObjectWrap, public utilv8::InterfaceObject<Service>, public utilv8::ManagedObject<Service>
 {
@@ -41,13 +41,7 @@ class Service : public Nan::ObjectWrap, public utilv8::InterfaceObject<Service>,
 	friend utilv8::ManagedObject<Service>;
 	friend utilv8::CallbackData<SignalInfo, Service>;
 
-	uint32_t sleepIntervalMS = 33;
-
 	public:
-	std::thread m_worker;
-	bool        m_worker_stop = true;
-	std::mutex  m_worker_lock;
-
 	ServiceCallback* m_async_callback = nullptr;
 	Nan::Callback    m_callback_function;
 
@@ -57,12 +51,14 @@ class Service : public Nan::ObjectWrap, public utilv8::InterfaceObject<Service>,
 	void start_async_runner();
 	void stop_async_runner();
 	void callback_handler(void* data, std::shared_ptr<SignalInfo> item);
-	void start_worker();
-	void stop_worker();
-	void worker();
 	void set_keepalive(v8::Local<v8::Object>);
 
-	std::list<ServiceCallback*> callbacks;
+	public:
+	static void SendSignal(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
 };
 
 namespace service

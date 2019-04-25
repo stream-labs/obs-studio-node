@@ -31,7 +31,7 @@
 #include <util/dstr.h>
 #include <util/platform.h>
 #include "nodeobs_api.h"
-
+#include "utility.hpp"
 #include "nodeobs_audio_encoders.h"
 
 #ifdef _WIN32
@@ -166,7 +166,6 @@ class OBS_service
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
-	static void Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 
 	private:
 	static bool startStreaming(void);

@@ -77,13 +77,13 @@ void OBS_service::Register(ipc::server& srv)
 	    "OBS_service_stopReplayBuffer", std::vector<ipc::type>{ipc::type::Int32}, OBS_service_stopReplayBuffer));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_connectOutputSignals", std::vector<ipc::type>{}, OBS_service_connectOutputSignals));
-	cls->register_function(std::make_shared<ipc::function>("Query", std::vector<ipc::type>{}, Query));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_processReplayBufferHotkey", std::vector<ipc::type>{}, OBS_service_processReplayBufferHotkey));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_getLastReplay", std::vector<ipc::type>{}, OBS_service_getLastReplay));
 
 	srv.register_collection(cls);
+	g_srv = &srv;
 }
 
 void OBS_service::OBS_service_resetAudioContext(
@@ -2137,31 +2137,6 @@ void OBS_service::OBS_service_connectOutputSignals(
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
-void OBS_service::Query(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	std::unique_lock<std::mutex> ulock(signalMutex);
-	if (outputSignal.empty()) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-		AUTO_DEBUG;
-		return;
-	}
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-
-	rval.push_back(ipc::value(outputSignal.front().getOutputType()));
-	rval.push_back(ipc::value(outputSignal.front().getSignal()));
-	rval.push_back(ipc::value(outputSignal.front().getCode()));
-	rval.push_back(ipc::value(outputSignal.front().getErrorMessage()));
-
-	outputSignal.pop();
-
-	AUTO_DEBUG;
-}
-
 void OBS_service::JSCallbackOutputSignal(void* data, calldata_t* params)
 {
 	SignalInfo& signal = *reinterpret_cast<SignalInfo*>(data);
@@ -2183,6 +2158,19 @@ void OBS_service::JSCallbackOutputSignal(void* data, calldata_t* params)
 			if (signal.getOutputType().compare("recording") == 0 && signal.getCode() == 0)
 				signal.setCode(OBS_OUTPUT_ERROR);
 			signal.setErrorMessage(error);
+		}
+	}
+
+	if (g_srv) {
+		std::unique_lock<std::mutex> ul(g_srv->m_clients_mtx);
+		for (auto client : g_srv->m_clients) {
+			if (client.second->host)
+				client.second->call("Output", "SendSignal", {
+					ipc::value(signal.getOutputType()), 
+					ipc::value(signal.getSignal()), 
+					ipc::value(signal.getCode()), 
+					ipc::value(signal.getErrorMessage())
+				});
 		}
 	}
 

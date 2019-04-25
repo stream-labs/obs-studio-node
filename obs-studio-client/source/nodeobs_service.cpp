@@ -30,13 +30,12 @@
 Service::Service(){};
 Service::~Service(){};
 
-bool isWorkerRunning = false;
+Service* serviceObject;
 
 void Service::start_async_runner()
 {
 	if (m_async_callback)
 		return;
-	std::unique_lock<std::mutex> ul(m_worker_lock);
 	// Start v8/uv asynchronous runner.
 	m_async_callback = new ServiceCallback();
 	m_async_callback->set_handler(std::bind(&Service::callback_handler, this, std::placeholders::_1, std::placeholders::_2), nullptr);
@@ -45,7 +44,6 @@ void Service::stop_async_runner()
 {
 	if (!m_async_callback)
 		return;
-	std::unique_lock<std::mutex> ul(m_worker_lock);
 	// Stop v8/uv asynchronous runner.
 	m_async_callback->clear();
 	m_async_callback->finalize();
@@ -70,23 +68,22 @@ void Service::callback_handler(void* data, std::shared_ptr<SignalInfo> item)
 
 	Nan::Call(m_callback_function, 1, args);
 }
-void Service::start_worker()
+
+void Service::SendSignal(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
 {
-	if (!m_worker_stop)
-		return;
-	// Launch worker thread.
-	m_worker_stop = false;
-	m_worker      = std::thread(std::bind(&Service::worker, this));
-}
-void Service::stop_worker()
-{
-	if (m_worker_stop != false)
-		return;
-	// Stop worker thread.
-	m_worker_stop = true;
-	if (m_worker.joinable()) {
-		m_worker.join();
-	}
+	std::shared_ptr<SignalInfo> signal = std::make_shared<SignalInfo>();
+
+	signal->outputType   = args[0].value_str;
+	signal->signal       = args[1].value_str;
+	signal->code         = args[2].value_union.i32;
+	signal->errorMessage = args[3].value_str;
+
+	if (serviceObject->m_async_callback)
+		serviceObject->m_async_callback->queue(std::move(signal));
 }
 
 void service::OBS_service_resetAudioContext(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -109,14 +106,8 @@ void service::OBS_service_resetVideoContext(const v8::FunctionCallbackInfo<v8::V
 
 void service::OBS_service_startStreaming(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	// Callback
-	if (!isWorkerRunning) {
-		serviceObject->start_async_runner();
-		serviceObject->set_keepalive(args.This());
-		serviceObject->start_worker();
-
-		isWorkerRunning = true;
-	}
+	serviceObject->start_async_runner();
+	serviceObject->set_keepalive(args.This());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -127,14 +118,8 @@ void service::OBS_service_startStreaming(const v8::FunctionCallbackInfo<v8::Valu
 
 void service::OBS_service_startRecording(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	// Callback
-	if (!isWorkerRunning) {
-		serviceObject->start_async_runner();
-		serviceObject->set_keepalive(args.This());
-		serviceObject->start_worker();
-
-		isWorkerRunning = true;
-	}
+	serviceObject->start_async_runner();
+	serviceObject->set_keepalive(args.This());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -145,14 +130,8 @@ void service::OBS_service_startRecording(const v8::FunctionCallbackInfo<v8::Valu
 
 void service::OBS_service_startReplayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	// Callback
-	if (!isWorkerRunning) {
-		serviceObject->start_async_runner();
-		serviceObject->set_keepalive(args.This());
-		serviceObject->start_worker();
-
-		isWorkerRunning = true;
-	}
+	serviceObject->start_async_runner();
+	serviceObject->set_keepalive(args.This());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -238,49 +217,6 @@ void service::OBS_service_getLastReplay(const v8::FunctionCallbackInfo<v8::Value
 	args.GetReturnValue().Set(v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), response.at(1).value_str.c_str()));
 }
 
-void Service::worker()
-{
-	size_t totalSleepMS = 0;
-
-	while (!m_worker_stop) {
-		auto tp_start = std::chrono::high_resolution_clock::now();
-
-		// Validate Connection
-		auto conn = Controller::GetInstance().GetConnection();
-		if (!conn) {
-			goto do_sleep;
-		}
-
-		// Call
-		{
-			std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "Query", {});
-			if (!response.size() || (response.size() == 1)) {
-				goto do_sleep;
-			}
-
-			ErrorCode error = (ErrorCode)response[0].value_union.ui64;
-			if (error == ErrorCode::Ok) {
-				std::shared_ptr<SignalInfo> data = std::make_shared<SignalInfo>();
-
-				data->outputType   = response[1].value_str;
-				data->signal       = response[2].value_str;
-				data->code         = response[3].value_union.i32;
-				data->errorMessage = response[4].value_str;
-				data->param        = this;
-
-				m_async_callback->queue(std::move(data));
-			}
-		}
-
-	do_sleep:
-		auto tp_end  = std::chrono::high_resolution_clock::now();
-		auto dur     = std::chrono::duration_cast<std::chrono::milliseconds>(tp_end - tp_start);
-		totalSleepMS = sleepIntervalMS - dur.count();
-		std::this_thread::sleep_for(std::chrono::milliseconds(totalSleepMS));
-	}
-	return;
-}
-
 void Service::set_keepalive(v8::Local<v8::Object> obj)
 {
 	if (!m_async_callback)
@@ -290,10 +226,7 @@ void Service::set_keepalive(v8::Local<v8::Object> obj)
 
 void service::OBS_service_removeCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	if (isWorkerRunning) {
-		serviceObject->stop_worker();
-		serviceObject->stop_async_runner();
-	}
+	serviceObject->stop_async_runner();
 }
 
 INITIALIZER(nodeobs_service)

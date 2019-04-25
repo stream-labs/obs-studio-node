@@ -27,6 +27,7 @@
 #include "utility.hpp"
 #include "volmeter.hpp"
 #include "callback-manager.hpp"
+#include "nodeobs_service.hpp"
 
 static std::string serverBinaryPath  = "";
 static std::string serverWorkingPath = "";
@@ -322,6 +323,13 @@ std::shared_ptr<ipc::client> Controller::connect(
 		std::make_shared<ipc::function>("UpdateSourceSize",
 	    std::vector<ipc::type>{ipc::type::Binary}, CallbackManager::UpdateSourceSize));
 	m_connection->register_collection(cls_cb);
+
+	std::shared_ptr<ipc::collection> cls_output = std::make_shared<ipc::collection>("Output");
+	cls_output->register_function(std::make_shared<ipc::function>(
+	    "SendSignal",
+	    std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::Int32, ipc::type::String},
+	    Service::SendSignal));
+	m_connection->register_collection(cls_output);
 
 	return m_connection;
 }
