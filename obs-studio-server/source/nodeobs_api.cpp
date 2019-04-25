@@ -533,6 +533,14 @@ void OBS_API::OBS_API_initAPI(
 
 	base_set_log_handler(node_obs_log, logfile);
 
+#ifndef _DEBUG
+    // Redirect the ipc log callbacks to our log handler
+    ipc::register_log_callback([](void* data, const char* fmt, va_list args)
+    {
+        blog(LOG_ERROR, fmt, args);
+	}, nullptr);
+#endif
+
 	/* INJECT osn::Source::Manager */
 	// Alright, you're probably wondering: Why is osn code here?
 	// Well, simply because the hooks need to run as soon as possible. We don't
