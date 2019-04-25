@@ -212,13 +212,6 @@ void osn::Scene::Release(
 	obs_scene_enum_items(scene, cb, &items);
 
 	obs_source_release(source);
-	if (obs_source_removed(source)) {
-		osn::Source::Manager::GetInstance().free(args[0].value_union.ui64);
-		for (auto item : items) {
-			osn::SceneItem::Manager::GetInstance().free(item);
-			obs_sceneitem_release(item);
-		}
-	}
 
 	for (auto item : items) {
 		obs_sceneitem_release(item);
