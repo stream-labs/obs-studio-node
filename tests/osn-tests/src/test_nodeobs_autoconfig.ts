@@ -127,7 +127,7 @@ describe('nodeobs_autoconfig', () => {
             hasStepFailed = false;
 
             // Getting stream key from user pool
-            services.getStreamKey('twitch').then(key => {
+            services.getStreamKey().then(key => {
                 // Saving stream key
                 saveStreamKey(key);
                 hasUserFromPool = true;
