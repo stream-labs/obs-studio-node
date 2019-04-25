@@ -325,8 +325,6 @@ describe('nodeobs_service', function() {
                 streamKey = process.env.SLOBS_BE_STREAMKEY;
                 hasUserFromPool = false;
             }
-
-            console.log(streamKey);
                 
             saveStreamKey(streamKey);
 
