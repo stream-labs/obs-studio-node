@@ -88,4 +88,4 @@ artifacts:
   - path: $(UnsignedArtifact).tar.gz
     name: Unsigned Aritfact
 
-test: off
+test: on
