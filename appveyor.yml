@@ -24,7 +24,7 @@ environment:
       RuntimeName: iojs
       RuntimeVersion: v5.0.0-beta.3
       ElectronVersion: 5.0.0-beta.3
-      NodeVersion: 12
+      NodeVersion: 10
 
   SLBuildDirectory: streamlabs-build
   SLGenerator: Visual Studio 15 2017 Win64
