@@ -1,5 +1,9 @@
 PROJECT(obs_studio_client VERSION ${obs-studio-node_VERSION})
 
+SET(NODEJS_URL "https://atom.io/download/atom-shell" CACHE STRING "Node.JS URL")
+SET(NODEJS_NAME "iojs" CACHE STRING "Node.JS Name")
+SET(NODEJS_VERSION "v4.1.4" CACHE STRING "Node.JS Version")
+
 if(WIN32)
 	# Resource VersionInfo
 	set(PROJECT_PRODUCT_NAME "OBS Studio for Node.JS (Server)")
