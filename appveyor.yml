@@ -11,19 +11,21 @@ environment:
     - RuntimeURL: https://atom.io/download/atom-shell
       RuntimeName: iojs
       RuntimeVersion: v2.0.8
-      NodeVersion: 8
+      ElectronVersion: 2.0.8
+      NodeVersion: 10
 
     - RuntimeURL: https://atom.io/download/atom-shell
       RuntimeName: iojs
       RuntimeVersion: v4.1.4
+      ElectronVersion: 4.1.4
       NodeVersion: 10 
 
     - RuntimeURL: https://atom.io/download/atom-shell
       RuntimeName: iojs
       RuntimeVersion: v5.0.0-beta.3
-      NodeVersion: 10
+      ElectronVersion: 5.0.0-beta.3
+      NodeVersion: 12
 
-  NodeVersion: 10
   SLBuildDirectory: streamlabs-build
   SLGenerator: Visual Studio 15 2017 Win64
   SLDistributeDirectory: distribute
@@ -39,6 +41,7 @@ environment:
 install:
   - ps: Install-Product node $env:NodeVersion x64
   - yarn install
+  - yarn add electron@$env:ElectronVersion -D
   - git submodule update --init --recursive
   - ps: $env:SignedArtifact = "obs-studio-node-$(git describe --tags --abbrev=0)-$env:RuntimeName-$env:RuntimeVersion"
   - ps: $env:UnsignedArtifact = "obs-studio-node-us-$env:APPVEYOR_BUILD_NUMBER-$env:RuntimeName-$env:RuntimeVersion"
