@@ -461,7 +461,7 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 #endif
 
 		// Directly blame the user for this error since it was caused by the user side
-		util::CrashManager::GetMetricsProvider()->BlameUser();
+		util::CrashManager::GetMetricsProvider()->SendStatus("Handled Crash");
 
 		TerminateProcess(hnd, 0);
 	}
