@@ -460,6 +460,9 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 		database = nullptr;
 #endif
 
+		// Directly blame the user for this error since it was caused by the user side
+		util::CrashManager::GetMetricsProvider()->BlameUser();
+
 		TerminateProcess(hnd, 0);
 	}
 
