@@ -99,6 +99,10 @@ namespace util
 		static void ClearBreadcrumbs();
 		static void DisableReports();
 
+        static void BlameServer();
+		static void BlameUser();
+		static void BlameFrontend();
+
 		static void ProcessPreServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args);
 		static void ProcessPostServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args);
 

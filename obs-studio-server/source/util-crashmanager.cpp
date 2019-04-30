@@ -76,6 +76,9 @@ std::vector<std::string>              warnings;
 std::chrono::steady_clock::time_point initialTime;
 std::mutex                            messageMutex;
 util::CrashManager::MetricsPipeClient metricsClient;
+bool                                  m_BlameServer   = false;
+bool                                  m_BlameFrontend = false;
+bool                                  m_BlameUser     = false;
 
 // Crashpad variables
 #ifndef _DEBUG
@@ -232,7 +235,21 @@ util::CrashManager::MetricsPipeClient::~MetricsPipeClient()
 	}
 
 	MetricsMessage message;
-	message.type = MessageType::Shutdown;
+
+	// If we should blame the server
+	if (m_BlameServer) {
+		message.type = MessageType::Status;
+		strcpy(message.param1, "Server Crash");
+	} else if (m_BlameFrontend) {
+		message.type = MessageType::Status;
+		strcpy(message.param1, "Frontend Crash");
+	} else if (m_BlameUser) {
+		message.type = MessageType::Status;
+		strcpy(message.param1, "User Crash");
+	} else {
+		message.type = MessageType::Shutdown;
+	}
+
 	SendPipeMessage(message);
 	CloseHandle(m_Pipe);
 }
@@ -916,8 +933,6 @@ void util::CrashManager::ProcessPreServerCall(std::string cname, std::string fna
 	*/
 
 	AddBreadcrumb(jsonEntry);
-
-	metricsClient.SendStatus(cname + "-" + fname);
 }
 
 void util::CrashManager::ProcessPostServerCall(
@@ -934,8 +949,6 @@ void util::CrashManager::ProcessPostServerCall(
 	}
 
 	ClearBreadcrumbs();
-
-	metricsClient.SendStatus("generic-idle");
 }
 
 void util::CrashManager::DisableReports()
@@ -947,6 +960,21 @@ void util::CrashManager::DisableReports()
 	database = nullptr;
 
 #endif
+}
+
+void util::CrashManager::BlameServer()
+{
+	m_BlameServer = true;
+}
+
+void util::CrashManager::BlameUser()
+{
+	m_BlameUser = true;
+}
+
+void util::CrashManager::BlameFrontend()
+{
+	m_BlameFrontend = true;
 }
 
 void util::CrashManager::MetricsFileOpen(std::string current_function_class_name, std::string current_version)
