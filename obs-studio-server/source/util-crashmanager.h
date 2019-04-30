@@ -65,17 +65,19 @@ namespace util
 			~MetricsPipeClient();
 
 			bool CreateClient(std::string name);
-			void StartPolling();
+			void StartPolling(bool sendAsync = true);
 			void SendStatus(std::string status);
 			void SendTag(std::string tag, std::string value);
 
 			private:
+			void PrepareMessage(MetricsMessage& message);
 			bool SendPipeMessage(MetricsMessage& message);
 
 			private:
 			void*                      m_Pipe;
 			bool                       m_PipeIsOpen  = false;
 			bool                       m_StopPolling = false;
+			bool                       m_SendMessagesAsync = true;
 			std::thread                m_PollingThread;
 			std::mutex                 m_PollingMutex;
 			std::queue<MetricsMessage> m_AsyncData;

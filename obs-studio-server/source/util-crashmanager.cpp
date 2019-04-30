@@ -267,8 +267,14 @@ bool util::CrashManager::MetricsPipeClient::CreateClient(std::string name)
 	return true;
 }
 
-void util::CrashManager::MetricsPipeClient::StartPolling()
+void util::CrashManager::MetricsPipeClient::StartPolling(bool sendAsync)
 {
+	// Update how we should send the messages, it it's synchronous just exist
+	m_SendMessagesAsync = sendAsync;
+	if (!m_SendMessagesAsync) {
+		return;
+	}
+
 	m_PollingThread = std::thread([=]() {
 		while (!m_StopPolling) {
 			// Check if we have data to be sent
@@ -295,31 +301,38 @@ void util::CrashManager::MetricsPipeClient::StartPolling()
 
 void util::CrashManager::MetricsPipeClient::SendStatus(std::string status)
 {
-	std::lock_guard<std::mutex> l(m_PollingMutex);
-
 	MetricsMessage message = {};
 	message.type           = MessageType::Status;
 	strcpy(message.param1, status.c_str());
 
-	m_AsyncData.emplace(message);
+	PrepareMessage(message);
 }
 
 void util::CrashManager::MetricsPipeClient::SendTag(std::string tag, std::string value)
 {
-	std::lock_guard<std::mutex> l(m_PollingMutex);
-
 	MetricsMessage message = {};
 	message.type           = MessageType::Tag;
 	strcpy(message.param1, tag.c_str());
 	strcpy(message.param2, value.c_str());
 
-	m_AsyncData.emplace(message);
+	PrepareMessage(message);
+}
+
+void util::CrashManager::MetricsPipeClient::PrepareMessage(MetricsMessage& message)
+{
+	std::lock_guard<std::mutex> l(m_PollingMutex);
+
+	// Check if the message should be send asynchronous, else send it directly
+	if (m_SendMessagesAsync) {
+		m_AsyncData.emplace(message);
+	} else {
+		SendPipeMessage(message);
+    }
 }
 
 bool util::CrashManager::MetricsPipeClient::SendPipeMessage(MetricsMessage& message)
 {
 	if (m_PipeIsOpen) {
-
 		DWORD numBytesWritten = 0;
 		return WriteFile(
 		    m_Pipe,                 // handle to our outbound pipe
@@ -328,7 +341,6 @@ bool util::CrashManager::MetricsPipeClient::SendPipeMessage(MetricsMessage& mess
 		    &numBytesWritten,       // will store actual amount of data sent
 		    NULL                    // not using overlapped IO
 		);
-
 	}
 
 	return false;
@@ -577,7 +589,6 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 	DWORD  pid = GetCurrentProcessId();
 	HANDLE hnd = OpenProcess(SYNCHRONIZE | PROCESS_TERMINATE, TRUE, pid);
 	if (hnd != nullptr) {
-
 #ifndef _DEBUG
 		client.~CrashpadClient();
 		database->~CrashReportDatabase();
