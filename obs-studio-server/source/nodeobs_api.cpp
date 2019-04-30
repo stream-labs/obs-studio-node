@@ -485,7 +485,7 @@ void OBS_API::OBS_API_initAPI(
 
 	// Connect the metrics provider with our crash handler process, sending our current version tag
 	// and enabling metrics
-	util::CrashManager::GetMetricsProvider()->Initialize("\\\\.\\pipe\\metrics_pipe", currentVersion);
+	util::CrashManager::GetMetricsProvider()->Initialize("\\\\.\\pipe\\metrics_pipe", currentVersion, false);
 
 	/* libobs will use three methods of finding data files:
 	* 1. ${CWD}/data/libobs <- This doesn't work for us
