@@ -57,8 +57,8 @@ namespace util
 		static void ClearBreadcrumbs();
 		static void DisableReports();
 
-        // Return our global instance of the metrics provider, it's always valid
-        static MetricsProvider* const GetMetricsProvider();
+		// Return our global instance of the metrics provider, it's always valid
+		static MetricsProvider* const GetMetricsProvider();
 
 		static void ProcessPreServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args);
 		static void ProcessPostServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args);

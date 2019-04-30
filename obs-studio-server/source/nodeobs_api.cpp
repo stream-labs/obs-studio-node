@@ -483,8 +483,8 @@ void OBS_API::OBS_API_initAPI(
 	std::string locale  = args[1].value_str;
 	currentVersion      = args[2].value_str;
 
-    // Connect the metrics provider with our crash handler process, sending our current version tag
-    // and enabling metrics
+	// Connect the metrics provider with our crash handler process, sending our current version tag
+	// and enabling metrics
 	util::CrashManager::GetMetricsProvider()->Initialize("\\\\.\\pipe\\metrics_pipe", currentVersion);
 
 	/* libobs will use three methods of finding data files:
@@ -560,7 +560,7 @@ void OBS_API::OBS_API_initAPI(
 	int videoError;
 	if (!openAllModules(videoError)) {
 
-        // Directly blame the user for this error (since he is the culprit of having an invalid Dx version)
+		// Directly blame the user for this error (since he is the culprit of having an invalid Dx version)
 		util::CrashManager::GetMetricsProvider()->BlameUser();
 
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
