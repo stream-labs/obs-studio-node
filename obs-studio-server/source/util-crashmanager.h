@@ -32,6 +32,8 @@
 
 namespace util
 {
+	class MetricsProvider;
+
 	class CrashManager
 	{
 		public:
@@ -42,47 +44,6 @@ namespace util
             Warnings
         };
 
-        class MetricsPipeClient
-		{
-			const static int StringSize = 64;
-
-			enum class MessageType
-			{
-				Pid,
-				Tag,
-				Status,
-				Shutdown
-			};
-
-			struct MetricsMessage
-			{
-				MessageType type;
-				char        param1[StringSize];
-				char        param2[StringSize];
-			};
-
-			public:
-			~MetricsPipeClient();
-
-			bool CreateClient(std::string name);
-			void StartPolling(bool sendAsync = true);
-			void SendStatus(std::string status);
-			void SendTag(std::string tag, std::string value);
-
-			private:
-			void PrepareMessage(MetricsMessage& message);
-			bool SendPipeMessage(MetricsMessage& message);
-
-			private:
-			void*                      m_Pipe;
-			bool                       m_PipeIsOpen  = false;
-			bool                       m_StopPolling = false;
-			bool                       m_SendMessagesAsync = true;
-			std::thread                m_PollingThread;
-			std::mutex                 m_PollingMutex;
-			std::queue<MetricsMessage> m_AsyncData;
-		};
-
 		public:
 
 		~CrashManager();
@@ -91,7 +52,6 @@ namespace util
 		void Configure();
 		void OpenConsole();
 
-		static void MetricsFileOpen(std::string current_function_class_name, std::string current_version);
 		static void IPCValuesToData(const std::vector<ipc::value>&, nlohmann::json&);
 		static void AddWarning(const std::string& warning);
 		static void AddBreadcrumb(const nlohmann::json& message);
@@ -99,9 +59,8 @@ namespace util
 		static void ClearBreadcrumbs();
 		static void DisableReports();
 
-        static void BlameServer();
-		static void BlameUser();
-		static void BlameFrontend();
+        // Return our global instance of the metrics provider, it's always valid
+        static MetricsProvider* const GetMetricsProvider();
 
 		static void ProcessPreServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args);
 		static void ProcessPostServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args);

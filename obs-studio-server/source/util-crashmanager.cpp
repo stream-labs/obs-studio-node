@@ -18,6 +18,7 @@
 */
 
 #include "util-crashmanager.h"
+#include "util-metricsprovider.h"
 
 #include <chrono>
 #include <codecvt>
@@ -75,10 +76,7 @@ std::vector<nlohmann::json>           breadcrumbs;
 std::vector<std::string>              warnings;
 std::chrono::steady_clock::time_point initialTime;
 std::mutex                            messageMutex;
-util::CrashManager::MetricsPipeClient metricsClient;
-bool                                  m_BlameServer   = false;
-bool                                  m_BlameFrontend = false;
-bool                                  m_BlameUser     = false;
+util::MetricsProvider                 metricsClient;
 
 // Crashpad variables
 #ifndef _DEBUG
@@ -221,146 +219,6 @@ nlohmann::json RequestProcessList()
 #endif
 
 	return result;
-}
-
-///////////////////////
-// MetricsPipeClient //
-///////////////////////
-
-util::CrashManager::MetricsPipeClient::~MetricsPipeClient()
-{
-	m_StopPolling = true;
-	if (m_PollingThread.joinable()) {
-		m_PollingThread.join();
-	}
-
-	MetricsMessage message;
-
-	// If we should blame the server
-	if (m_BlameServer) {
-		message.type = MessageType::Status;
-		strcpy(message.param1, "Server Crash");
-	} else if (m_BlameFrontend) {
-		message.type = MessageType::Status;
-		strcpy(message.param1, "Frontend Crash");
-	} else if (m_BlameUser) {
-		message.type = MessageType::Status;
-		strcpy(message.param1, "User Crash");
-	} else {
-		message.type = MessageType::Shutdown;
-	}
-
-	SendPipeMessage(message);
-	CloseHandle(m_Pipe);
-}
-
-bool util::CrashManager::MetricsPipeClient::CreateClient(std::string name)
-{
-	m_Pipe = CreateFileA(
-	    name.c_str(),  // L"\\\\.\\pipe\\my_pipe"
-	    GENERIC_WRITE, // only need read access
-	    FILE_SHARE_READ | FILE_SHARE_WRITE,
-	    NULL,
-	    OPEN_EXISTING,
-	    FILE_ATTRIBUTE_NORMAL,
-	    NULL);
-
-	if (m_Pipe == NULL || m_Pipe == INVALID_HANDLE_VALUE) {
-		std::cout << "Failed to create outbound pipe instance." << std::endl;
-		// look up error code here using GetLastError()
-		m_PipeIsOpen = false;
-		return false;
-	}
-
-    m_PipeIsOpen = true;
-
-	// Send the pid
-	MetricsMessage message;
-	DWORD          pid = GetCurrentProcessId();
-	message.type       = MessageType::Pid;
-	memcpy(message.param1, &pid, sizeof(DWORD));
-	bool result = SendPipeMessage(message);
-
-	return true;
-}
-
-void util::CrashManager::MetricsPipeClient::StartPolling(bool sendAsync)
-{
-	// Update how we should send the messages, it it's synchronous just exist
-	m_SendMessagesAsync = sendAsync;
-	if (!m_SendMessagesAsync) {
-		return;
-	}
-
-	m_PollingThread = std::thread([=]() {
-		while (!m_StopPolling) {
-			// Check if we have data to be sent
-			{
-				m_PollingMutex.lock();
-				std::queue<MetricsMessage> pendingData = std::move(m_AsyncData);
-				m_PollingMutex.unlock();
-
-				while (!pendingData.empty()) {
-					auto message = pendingData.front();
-					pendingData.pop();
-
-					bool result = SendPipeMessage(message);
-					if (!result) {
-						// ?
-					}
-				}
-			}
-
-			std::this_thread::sleep_for(std::chrono::milliseconds(50));
-		}
-	});
-}
-
-void util::CrashManager::MetricsPipeClient::SendStatus(std::string status)
-{
-	MetricsMessage message = {};
-	message.type           = MessageType::Status;
-	strcpy(message.param1, status.c_str());
-
-	PrepareMessage(message);
-}
-
-void util::CrashManager::MetricsPipeClient::SendTag(std::string tag, std::string value)
-{
-	MetricsMessage message = {};
-	message.type           = MessageType::Tag;
-	strcpy(message.param1, tag.c_str());
-	strcpy(message.param2, value.c_str());
-
-	PrepareMessage(message);
-}
-
-void util::CrashManager::MetricsPipeClient::PrepareMessage(MetricsMessage& message)
-{
-	std::lock_guard<std::mutex> l(m_PollingMutex);
-
-	// Check if the message should be send asynchronous, else send it directly
-	if (m_SendMessagesAsync) {
-		m_AsyncData.emplace(message);
-	} else {
-		SendPipeMessage(message);
-    }
-}
-
-bool util::CrashManager::MetricsPipeClient::SendPipeMessage(MetricsMessage& message)
-{
-	if (m_PipeIsOpen) {
-		DWORD numBytesWritten = 0;
-		return WriteFile(
-		    m_Pipe,                 // handle to our outbound pipe
-		    &message,               // data to send
-		    sizeof(MetricsMessage), // length of data to send (bytes)
-		    &numBytesWritten,       // will store actual amount of data sent
-		    NULL                    // not using overlapped IO
-		);
-	}
-
-	return false;
 }
 
 //////////////////
@@ -962,31 +820,7 @@ void util::CrashManager::DisableReports()
 #endif
 }
 
-void util::CrashManager::BlameServer()
+util::MetricsProvider* const util::CrashManager::GetMetricsProvider()
 {
-	m_BlameServer = true;
-}
-
-void util::CrashManager::BlameUser()
-{
-	m_BlameUser = true;
-}
-
-void util::CrashManager::BlameFrontend()
-{
-	m_BlameFrontend = true;
-}
-
-void util::CrashManager::MetricsFileOpen(std::string current_function_class_name, std::string current_version)
-{
-	std::wstring appdata_path;
-
-	bool result = metricsClient.CreateClient("\\\\.\\pipe\\metrics_pipe");
-	if (!result) {
-		return;
-	}
-
-	metricsClient.StartPolling();
-
-    metricsClient.SendTag("version", current_version);
+	return &metricsClient;
 }
