@@ -539,34 +539,30 @@ nlohmann::json util::CrashManager::RequestOBSLog(OBSLogType type)
 {
 	nlohmann::json result;
 
-	switch (type) 
-    {
-	    case OBSLogType::Errors:
-        {
-		    auto& errors = OBS_API::getOBSLogErrors();
-		    for (auto& msg : errors)
-			    result.push_back(msg);
-		    break;
-	    }
+	switch (type) {
+	case OBSLogType::Errors: {
+		auto& errors = OBS_API::getOBSLogErrors();
+		for (auto& msg : errors)
+			result.push_back(msg);
+		break;
+	}
 
-	    case OBSLogType::Warnings:
-        {
-		    auto& warnings = OBS_API::getOBSLogWarnings();
-		    for (auto& msg : warnings)
-			    result.push_back(msg);
-		    break;
-	    }
+	case OBSLogType::Warnings: {
+		auto& warnings = OBS_API::getOBSLogWarnings();
+		for (auto& msg : warnings)
+			result.push_back(msg);
+		break;
+	}
 
-	    case OBSLogType::General: 
-        {
-		    auto& general = OBS_API::getOBSLogGeneral();
-		    while (!general.empty()) {
-			    result.push_back(general.front());
-			    general.pop();
-		    }
+	case OBSLogType::General: {
+		auto& general = OBS_API::getOBSLogGeneral();
+		while (!general.empty()) {
+			result.push_back(general.front());
+			general.pop();
+		}
 
-		    break;
-	    }
+		break;
+	}
 	}
 
 	std::reverse(result.begin(), result.end());
@@ -794,17 +790,11 @@ void util::CrashManager::ProcessPostServerCall(
     const std::vector<ipc::value>& args)
 {
 	if (args.size() == 0) {
-		AddWarning(std::string("No return params on method ")
-                   + fname 
-                   + std::string(" for class ")
-                   + cname);
+		AddWarning(std::string("No return params on method ") + fname + std::string(" for class ") + cname);
 	} else if ((ErrorCode)args[0].value_union.ui64 != ErrorCode::Ok) {
 		AddWarning(
-		    std::string("Server call returned error number ") 
-            + std::to_string(args[0].value_union.ui64)
-            + " on method "
-		    + fname 
-            + std::string(" for class ") + cname);
+		    std::string("Server call returned error number ") + std::to_string(args[0].value_union.ui64) + " on method "
+		    + fname + std::string(" for class ") + cname);
 	}
 
 	ClearBreadcrumbs();
