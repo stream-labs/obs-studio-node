@@ -46,8 +46,6 @@ namespace util
 
 		public:
 
-		~CrashManager();
-
 		bool Initialize();
 		void Configure();
 		void OpenConsole();
