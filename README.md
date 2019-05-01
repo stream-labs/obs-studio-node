@@ -26,6 +26,7 @@ We use a flexible cmake script to be as broad and generic as possible in order t
 
 Example:
 ```
+yarn install
 git submodule update --init --recursive
 mkdir build
 cd build
