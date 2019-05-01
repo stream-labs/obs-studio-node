@@ -40,6 +40,7 @@ namespace util
             Pid,
             Tag,
             Status,
+            Blame, 
             Shutdown
         };
 

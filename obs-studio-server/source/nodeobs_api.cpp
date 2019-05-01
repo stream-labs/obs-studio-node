@@ -1079,6 +1079,10 @@ void OBS_API::destroyOBS_API(void)
 		osn::Filter::Manager::GetInstance().size() > 0		||
 		osn::Input::Manager::GetInstance().size() > 0) {
 
+        // Directly blame the frontend since the crash happened there and if for any reason 
+        // we crash here it isn't supposed to be our fault
+		util::CrashManager::GetMetricsProvider()->BlameFrontend();
+
 		util::CrashManager::DisableReports();
 
 		// Try-catch should suppress any error message that could be thrown to the user

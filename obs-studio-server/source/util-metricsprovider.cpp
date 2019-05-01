@@ -49,7 +49,7 @@ util::MetricsProvider::~MetricsProvider()
 	// If we should blame the server
 	if (m_BlameServer) {
 		message.type = MessageType::Status;
-		strcpy(message.param1, "Server Crash");
+		strcpy(message.param1, "Backend Crash");
 	} else if (m_BlameFrontend) {
 		message.type = MessageType::Status;
 		strcpy(message.param1, "Frontend Crash");
@@ -180,14 +180,32 @@ bool util::MetricsProvider::SendPipeMessage(MetricsMessage& message)
 void util::MetricsProvider::BlameServer()
 {
 	m_BlameServer = true;
+
+    MetricsMessage message = {};
+	message.type           = MessageType::Blame;
+	strcpy(message.param1, "Backend Crash");
+
+	PrepareMessage(message);
 }
 
 void util::MetricsProvider::BlameUser()
 {
 	m_BlameUser = true;
+
+    MetricsMessage message = {};
+	message.type           = MessageType::Blame;
+	strcpy(message.param1, "User Crash");
+
+	PrepareMessage(message);
 }
 
 void util::MetricsProvider::BlameFrontend()
 {
 	m_BlameFrontend = true;
+
+    MetricsMessage message = {};
+	message.type           = MessageType::Blame;
+	strcpy(message.param1, "Frontend Crash");
+
+	PrepareMessage(message);
 }
