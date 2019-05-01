@@ -1077,8 +1077,6 @@ void OBS_API::destroyOBS_API(void)
     osn::VolMeter::ClearVolmeters();
     osn::Fader::ClearFaders();
 
-    bool forceCrash = MessageBox(NULL, L"Blame Frontend Shutdown Crash", L"Crash Option", MB_YESNO) == IDYES;
-
 	// Check if the frontend was able to shutdown correctly:
 	// If there are some sources here it's because it ended unexpectedly, this represents a 
 	// problem since obs doesn't handle releasing leaked sources very well. The best we can
@@ -1088,7 +1086,7 @@ void OBS_API::destroyOBS_API(void)
 		osn::SceneItem::Manager::GetInstance().size() > 0	||
 		osn::Transition::Manager::GetInstance().size() > 0	||
 		osn::Filter::Manager::GetInstance().size() > 0		||
-		osn::Input::Manager::GetInstance().size() > 0 || forceCrash) {
+		osn::Input::Manager::GetInstance().size() > 0) {
 
 		util::CrashManager::DisableReports();
 
