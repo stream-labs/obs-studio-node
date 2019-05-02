@@ -534,10 +534,9 @@ void OBS_API::OBS_API_initAPI(
 	base_set_log_handler(node_obs_log, logfile);
 
 #ifndef _DEBUG
-    // Redirect the ipc log callbacks to our log handler
-    ipc::register_log_callback([](void* data, const char* fmt, va_list args)
-    {
-        blog(LOG_ERROR, fmt, args);
+	// Redirect the ipc log callbacks to our log handler
+	ipc::register_log_callback([](void* data, const char* fmt, va_list args) { 
+		blog(LOG_ERROR, fmt, args);
 	}, nullptr);
 #endif
 
