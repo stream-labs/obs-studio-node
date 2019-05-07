@@ -49,13 +49,13 @@ util::MetricsProvider::~MetricsProvider()
 	// If we should blame the server
 	if (m_BlameServer) {
 		message.type = MessageType::Status;
-		strcpy(message.param1, "Backend Crash");
+		strcpy_s(message.param1, "Backend Crash");
 	} else if (m_BlameFrontend) {
 		message.type = MessageType::Status;
-		strcpy(message.param1, "Frontend Crash");
+		strcpy_s(message.param1, "Frontend Crash");
 	} else if (m_BlameUser) {
 		message.type = MessageType::Status;
-		strcpy(message.param1, "User Crash");
+		strcpy_s(message.param1, "User Crash");
 	} else {
 		message.type = MessageType::Shutdown;
 	}
@@ -134,7 +134,7 @@ void util::MetricsProvider::SendStatus(std::string status)
 {
 	MetricsMessage message = {};
 	message.type           = MessageType::Status;
-	strcpy(message.param1, status.c_str());
+	strcpy_s(message.param1, status.c_str());
 
 	PrepareMessage(message);
 }
@@ -143,8 +143,8 @@ void util::MetricsProvider::SendTag(std::string tag, std::string value)
 {
 	MetricsMessage message = {};
 	message.type           = MessageType::Tag;
-	strcpy(message.param1, tag.c_str());
-	strcpy(message.param2, value.c_str());
+	strcpy_s(message.param1, tag.c_str());
+	strcpy_s(message.param2, value.c_str());
 
 	PrepareMessage(message);
 }
@@ -183,7 +183,7 @@ void util::MetricsProvider::BlameServer()
 
     MetricsMessage message = {};
 	message.type           = MessageType::Blame;
-	strcpy(message.param1, "Backend Crash");
+	strcpy_s(message.param1, "Backend Crash");
 
 	PrepareMessage(message);
 }
@@ -194,7 +194,7 @@ void util::MetricsProvider::BlameUser()
 
     MetricsMessage message = {};
 	message.type           = MessageType::Blame;
-	strcpy(message.param1, "User Crash");
+	strcpy_s(message.param1, "User Crash");
 
 	PrepareMessage(message);
 }
@@ -205,7 +205,7 @@ void util::MetricsProvider::BlameFrontend()
 
     MetricsMessage message = {};
 	message.type           = MessageType::Blame;
-	strcpy(message.param1, "Frontend Crash");
+	strcpy_s(message.param1, "Frontend Crash");
 
 	PrepareMessage(message);
 }

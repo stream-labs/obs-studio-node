@@ -517,6 +517,7 @@ void OBS_API::OBS_API_initAPI(
 	before attempting to make a file there. */
 	if (os_mkdirs(log_path.c_str()) == MKDIR_ERROR) {
 		std::cerr << "Failed to open log file" << std::endl;
+		util::CrashManager::AddWarning("Error on log file, failed to create path: " + log_path);
 	}
 
 	/* Delete oldest file in the folder to imitate rotating */
@@ -532,11 +533,18 @@ void OBS_API::OBS_API_initAPI(
 
 	if (!logfile->is_open()) {
 		logfile = nullptr;
-		blog(LOG_WARNING, "Failed to open log file");
+		util::CrashManager::AddWarning("Error on log file, failed to open: " + log_path);
 		std::cerr << "Failed to open log file" << std::endl;
 	}
 
 	base_set_log_handler(node_obs_log, logfile);
+
+#ifndef _DEBUG
+	// Redirect the ipc log callbacks to our log handler
+	ipc::register_log_callback([](void* data, const char* fmt, va_list args) { 
+		blog(LOG_ERROR, fmt, args);
+	}, nullptr);
+#endif
 
 	/* INJECT osn::Source::Manager */
 	// Alright, you're probably wondering: Why is osn code here?

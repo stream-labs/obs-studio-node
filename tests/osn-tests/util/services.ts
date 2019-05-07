@@ -2,38 +2,21 @@ const request = require('request');
 
 type TPlatform = 'twitch' | 'youtube' | 'mixer' | 'facebook';
 
-interface IPlatformAuth {
-    widgetToken: string;
-    apiToken: string; // Streamlabs API Token
-    platform: {
-      type: TPlatform;
-      username: string;
-      token: string;
-      id: string;
-      channelId?: string;
-    };
-}
-
 interface ITestUser {
-    name: string; // must be unique
+    email: string;
     workerId: string; // null if user is not active right now
     updated: string; // time of the last request for this user
-    platforms: {
-      // tokens for platforms
-      username: string; // Mixer use username as an id for API requests
-      type: TPlatform; // twitch, youtube, etc..
-      id: string; // platform userId
-      token: string; // platform token
-      apiToken: string; // Streamlabs API token
-      widgetToken: string; // needs for widgets showing
-      channelId?: string; // for the Mixer and Facebook only
-    }[];
+    username: string; // Mixer use username as an id for API requests
+    type: TPlatform; // twitch, youtube, etc..
+    id: string; // platform userId
+    token: string; // platform token
+    apiToken: string; // Streamlabs API token
+    widgetToken: string; // needs for widgets showing
+    channelId?: string; // for the Mixer and Facebook only
 }
 
 export class Services {
-    private username: string = '';
     private user: ITestUser;
-    private authInfo: IPlatformAuth;
     private userPoolUrl: string = 'https://slobs-users-pool.herokuapp.com/';
     private clientId = '8bmp6j83z5w4mepq0dn0q1a7g186azi';
 
@@ -44,7 +27,7 @@ export class Services {
     private async requestUser(): Promise<any> {
         return new Promise((resolve, reject) => {
             request({
-                url: this.userPoolUrl + 'reserve',
+                url: this.userPoolUrl + 'reserve' + '/twitch',
                 headers: {Authorization: `Bearer: ${process.env.SLOBS_TEST_USER_POOL_TOKEN}`}},
                 (err: any, res: any, body: any) => {
                     if (err || res.statusCode !== 200) {
@@ -105,12 +88,9 @@ export class Services {
         });
     }
 
-    async getStreamKey(lsPlatform: TPlatform): Promise<string> {
+    async getStreamKey(): Promise<string> {
         let attemps: number = 3;
-
-        if (this.username.length > 0) {
-            throw 'User already being used.';
-        }
+        let channelInfo: any;
 
         while(attemps--) {
             try {
@@ -125,18 +105,9 @@ export class Services {
         if (!this.user) {
             throw 'Unable to get user from pool.';
         }
-
-        this.username = this.user.name;
-        const token = this.user.platforms.find(platform => {
-            return platform.type === lsPlatform;
-        }).token;
-
-        let channelInfo: any;
-
-        if (lsPlatform == 'twitch') {
-            await this.validateToken(token);
-            channelInfo = await this.requestStreamKey(token);
-        }
+        
+        await this.validateToken(this.user.token);
+        channelInfo = await this.requestStreamKey(this.user.token);
 
         return channelInfo.stream_key;
     }
@@ -144,7 +115,7 @@ export class Services {
     async releaseUser() {
         return new Promise((resolve, reject) => {
             request({
-                url: this.userPoolUrl + `release/${this.username}`,
+                url: this.userPoolUrl + `release/${this.user.type}/${this.user.email}`,
                 headers: {Authorization: `Bearer: ${process.env.SLOBS_TEST_USER_POOL_TOKEN}`}
             }, (err: any, res: any, body: any) => {
                 if (err || res.statusCode !== 200) {
@@ -155,7 +126,6 @@ export class Services {
                     reject(`Body is undefined or with wrong format ${body}`);
                 }
 
-                this.username = '';
                 resolve(JSON.parse(body));
             });
         });

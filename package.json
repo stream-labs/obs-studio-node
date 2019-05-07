@@ -18,7 +18,7 @@
     "build:bindings": "cmake-js configure -a x64 --CDCMAKE_PREFIX_INSTALL=distribute && cmake --build build --target install --config Release",
     "build:javascript": "tsc -p js",
     "build:docs": "typedoc --out docs",
-    "local:config": "yarn install && git submodule update --init --recursive --force && cmake -Bbuild -H. -G\"Visual Studio 15 2017\" -A x64 -DCMAKE_INSTALL_PREFIX=\"./obs-studio-node\"",
+    "local:config": "yarn install && electron-rebuild && git submodule update --init --recursive --force && cmake -Bbuild -H. -G\"Visual Studio 15 2017\" -A x64 -DCMAKE_INSTALL_PREFIX=\"./obs-studio-node\"",
     "local:build": "cmake --build build --target install --config Debug",
     "local:clean": "rm -rf build/*",
     "test": "electron-mocha -t 80000 -c true -r ts-node/register tests/osn-tests/src/**/*.ts"
@@ -29,6 +29,7 @@
     "@types/node": "^11.9.5",
     "chai": "^4.2.0",
     "electron": "https://github.com/stream-labs/electron/releases/download/2.0.16-streamlabs/electron-2.0.16-streamlabs.tgz",
+    "electron-rebuild": "^1.8.4",
     "electron-mocha": "^8.0.1",
     "mocha": "^5.2.0",
     "nan": "2.12.1",

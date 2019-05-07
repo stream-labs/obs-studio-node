@@ -69,6 +69,7 @@ std::vector<std::string>              warnings;
 std::chrono::steady_clock::time_point initialTime;
 std::mutex                            messageMutex;
 util::MetricsProvider                 metricsClient;
+bool                                  reportsEnabled = true;
 
 // Crashpad variables
 #ifndef _DEBUG
@@ -228,7 +229,11 @@ bool util::CrashManager::Initialize()
 	// Handler for obs errors (mainly for bcrash() calls)
 	base_set_crash_handler(
 	    [](const char* format, va_list args, void* param) {
-		    std::string errorMessage = FormatVAString(format, args);
+		    std::string errorMessage;
+		    if (format == nullptr)
+			    errorMessage = "unknown error";
+		    else
+			    errorMessage = FormatVAString(format, args);
 
 		    // Check if this crash error is handled internally (if this is a known
 		    // error that we can't do anything about it, just let the application
@@ -290,6 +295,10 @@ void util::CrashManager::Configure()
 
 bool util::CrashManager::SetupCrashpad()
 {
+	if (!reportsEnabled) {
+		return false;
+	}
+
 	// Define if this is a preview or live version
 	bool isPreview = OBS_API::getCurrentVersion().find("preview") != std::string::npos;
 
@@ -449,16 +458,12 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 	// telling the user that he is using too much cpu/ram or process any Dx11 message and output
 	// that to the user
 
-	// If we cannot destroy the obs kill the process without causing a crash report,
-	// proceed with it
-	DWORD  pid = GetCurrentProcessId();
+	// Disable reports and kill the obs process
+	DWORD pid = GetCurrentProcessId();
 	HANDLE hnd = OpenProcess(SYNCHRONIZE | PROCESS_TERMINATE, TRUE, pid);
 	if (hnd != nullptr) {
-#ifndef _DEBUG
-		client.~CrashpadClient();
-		database->~CrashReportDatabase();
-		database = nullptr;
-#endif
+
+		DisableReports();
 
 		// Directly blame the user for this error since it was caused by the user side
 		util::CrashManager::GetMetricsProvider()->SendStatus("Handled Crash");
@@ -476,8 +481,9 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 // Format a var arg string into a c++ std::string type
 std::string FormatVAString(const char* const format, va_list args)
 {
+	static const int MaximumVAStringSize = 63;
 	auto temp   = std::vector<char>{};
-	auto length = std::size_t{63};
+	auto length = std::size_t{MaximumVAStringSize};
 	while (temp.size() <= length) {
 		temp.resize(length + 1);
 		const auto status = std::vsnprintf(temp.data(), temp.size(), format, args);
@@ -485,6 +491,11 @@ std::string FormatVAString(const char* const format, va_list args)
 			throw std::runtime_error{"string formatting error"};
 		length = static_cast<std::size_t>(status);
 	}
+
+	if (length > MaximumVAStringSize) {
+		return "unknown error string";
+	}
+
 	return std::string{temp.data(), length};
 }
 
@@ -804,6 +815,8 @@ void util::CrashManager::ProcessPostServerCall(
 
 void util::CrashManager::DisableReports()
 {
+	reportsEnabled = false;
+
 #ifndef _DEBUG
 
 	client.~CrashpadClient();
