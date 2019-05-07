@@ -468,7 +468,7 @@ std::string FormatVAString(const char* const format, va_list args)
 {
 	static const int MaximumVAStringSize = 63;
 	auto temp   = std::vector<char>{};
-	auto             length              = std::size_t{MaximumVAStringSize};
+	auto length = std::size_t{MaximumVAStringSize};
 	while (temp.size() <= length) {
 		temp.resize(length + 1);
 		const auto status = std::vsnprintf(temp.data(), temp.size(), format, args);
