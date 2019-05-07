@@ -1604,7 +1604,7 @@ void OBS_service::LoadRecordingPreset_Lossless()
 	obs_data_set_string(settings, "video_encoder", "utvideo");
 	obs_data_set_string(settings, "audio_encoder", "pcm_s16le");
 
-   int aMixes = 1;
+	int aMixes = 1;
 	obs_output_set_mixers(recordingOutput, aMixes);
 	obs_output_update(recordingOutput, settings);
 	obs_data_release(settings);
