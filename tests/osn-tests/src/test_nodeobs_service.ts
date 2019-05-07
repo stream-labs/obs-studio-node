@@ -319,7 +319,7 @@ describe('nodeobs_service', function() {
             let updatedStreamKey: string = "";
 
             try {
-                streamKey = await services.getStreamKey('twitch');
+                streamKey = await services.getStreamKey();
                 hasUserFromPool = true;
             } catch(e) {
                 streamKey = process.env.SLOBS_BE_STREAMKEY;
