@@ -60,8 +60,10 @@ util::MetricsProvider::~MetricsProvider()
 		message.type = MessageType::Shutdown;
 	}
 
-	SendPipeMessage(message);
-	CloseHandle(m_Pipe);
+	if (m_PipeIsOpen) {
+		SendPipeMessage(message);
+		CloseHandle(m_Pipe);
+	}
 }
 
 bool util::MetricsProvider::Initialize(std::string pipe_name, std::string current_version, bool send_messages_async)
