@@ -479,7 +479,7 @@ std::string FormatVAString(const char* const format, va_list args)
 
 	if (length > MaximumVAStringSize) {
 		return "unknown error string";
-    }
+	}
 
 	return std::string{temp.data(), length};
 }
