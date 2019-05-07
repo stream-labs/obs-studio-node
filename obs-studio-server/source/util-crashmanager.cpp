@@ -63,6 +63,7 @@ std::vector<nlohmann::json>           breadcrumbs;
 std::vector<std::string>              warnings;
 std::chrono::steady_clock::time_point initialTime;
 std::mutex                            messageMutex;
+bool                                  reportsEnabled = true;
 
 // Crashpad variables
 #ifndef _DEBUG
@@ -277,6 +278,10 @@ void util::CrashManager::Configure()
 
 bool util::CrashManager::SetupCrashpad()
 {
+	if (!reportsEnabled) {
+		return false;
+	}
+
 	// Define if this is a preview or live version
 	bool isPreview = OBS_API::getCurrentVersion().find("preview") != std::string::npos;
 
@@ -436,18 +441,12 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 	// telling the user that he is using too much cpu/ram or process any Dx11 message and output
 	// that to the user
 
-	// If we cannot destroy the obs kill the process without causing a crash report,
-	// proceed with it
+	// Disable reports and kill the obs process
 	DWORD pid = GetCurrentProcessId();
 	HANDLE hnd = OpenProcess(SYNCHRONIZE | PROCESS_TERMINATE, TRUE, pid);
 	if (hnd != nullptr) {
 
-#ifndef _DEBUG
-
-		client.~CrashpadClient();
-		database->~CrashReportDatabase();
-		database = nullptr;
-#endif
+		DisableReports();
 
 		TerminateProcess(hnd, 0);
 	}
@@ -803,6 +802,8 @@ void util::CrashManager::ProcessPostServerCall(
 
 void util::CrashManager::DisableReports()
 {
+	reportsEnabled = false;
+
 #ifndef _DEBUG
 
 	client.~CrashpadClient();
