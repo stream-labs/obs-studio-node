@@ -2173,8 +2173,10 @@ void OBS_service::JSCallbackOutputSignal(void* data, calldata_t* params)
 
 		if (signal.getOutputType().compare("streaming") == 0)
 			output = streamingOutput;
-		else
+		else if (signal.getOutputType().compare("recording") == 0)
 			output = recordingOutput;
+		else
+			output = replayBufferOutput;
 
 		const char* error = obs_output_get_last_error(output);
 		if (error) {
