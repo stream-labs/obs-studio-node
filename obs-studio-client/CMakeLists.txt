@@ -1,5 +1,9 @@
 PROJECT(obs_studio_client VERSION ${obs-studio-node_VERSION})
 
+SET(NODEJS_URL "https://atom.io/download/atom-shell" CACHE STRING "Node.JS URL")
+SET(NODEJS_NAME "iojs" CACHE STRING "Node.JS Name")
+SET(NODEJS_VERSION "v2.0.8" CACHE STRING "Node.JS Version")
+
 if(WIN32)
 	# Resource VersionInfo
 	set(PROJECT_PRODUCT_NAME "OBS Studio for Node.JS (Server)")
@@ -16,15 +20,7 @@ include(NodeJS)
 
 set(STREAMLABS_BUILD ON CACHE BOOL "Whether to build for streamlabs-obs")
 
-if (STREAMLABS_BUILD)
-	nodejs_init(
-		URL https://atom.io/download/atom-shell
-		NAME iojs
-		VERSION v2.0.8
-	)
-else()
-	nodejs_init()
-endif()
+nodejs_init()
 
 add_nodejs_module(
 	obs_studio_client

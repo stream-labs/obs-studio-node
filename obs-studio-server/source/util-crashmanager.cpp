@@ -1,23 +1,24 @@
-/*
-* Modern effects for a modern Streamer
-* Copyright (C) 2017 Michael Fabian Dirks
-*
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
-*/
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
 
 #include "util-crashmanager.h"
+#include "util-metricsprovider.h"
+
 #include <chrono>
 #include <codecvt>
 #include <iostream>
@@ -55,6 +56,10 @@
 #include "client/settings.h"
 #endif
 
+//////////////////////
+// STATIC VARIABLES //
+//////////////////////
+
 // Global/static variables
 std::vector<std::string>              handledOBSCrashes;
 PDH_HQUERY                            cpuQuery;
@@ -63,6 +68,8 @@ std::vector<nlohmann::json>           breadcrumbs;
 std::vector<std::string>              warnings;
 std::chrono::steady_clock::time_point initialTime;
 std::mutex                            messageMutex;
+util::MetricsProvider                 metricsClient;
+bool                                  reportsEnabled = true;
 
 // Crashpad variables
 #ifndef _DEBUG
@@ -77,7 +84,10 @@ std::map<std::string, std::string>             annotations;
 LPTOP_LEVEL_EXCEPTION_FILTER                   crashpadInternalExceptionFilterMethod = nullptr;
 #endif
 
-// Forward
+/////////////
+// FORWARD //
+/////////////
+
 std::string    FormatVAString(const char* const format, va_list args);
 nlohmann::json RewindCallStack(std::string& crashedMethod);
 
@@ -204,6 +214,10 @@ nlohmann::json RequestProcessList()
 	return result;
 }
 
+//////////////////
+// CrashManager //
+//////////////////
+
 bool util::CrashManager::Initialize()
 {
 #ifndef _DEBUG
@@ -215,7 +229,11 @@ bool util::CrashManager::Initialize()
 	// Handler for obs errors (mainly for bcrash() calls)
 	base_set_crash_handler(
 	    [](const char* format, va_list args, void* param) {
-		    std::string errorMessage = FormatVAString(format, args);
+		    std::string errorMessage;
+		    if (format == nullptr)
+			    errorMessage = "unknown error";
+		    else
+			    errorMessage = FormatVAString(format, args);
 
 		    // Check if this crash error is handled internally (if this is a known
 		    // error that we can't do anything about it, just let the application
@@ -277,6 +295,10 @@ void util::CrashManager::Configure()
 
 bool util::CrashManager::SetupCrashpad()
 {
+	if (!reportsEnabled) {
+		return false;
+	}
+
 	// Define if this is a preview or live version
 	bool isPreview = OBS_API::getCurrentVersion().find("preview") != std::string::npos;
 
@@ -354,7 +376,7 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	insideCrashMethod = true;
 
 	// This will manually rewind the callstack, we will use this info to populate an
-	// cras report attribute, avoiding some cases that the memory dump is corrupted
+	// crash report attribute, avoiding some cases that the memory dump is corrupted
 	// and we don't have access to the callstack.
 	std::string    crashedMethodName;
 	nlohmann::json callStack = RewindCallStack(crashedMethodName);
@@ -411,7 +433,7 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashMessage)
 {
 	// This method can only be called by the obs-studio crash handler method, this means that
-	// an internal error occured.
+	// an internal error occurred.
 	// handledOBSCrashes will contain all error messages that we should ignore from obs-studio,
 	// like Dx11 errors for example, here we will check if this error is known, if true we will
 	// try to finalize SLOBS in an attempt to NOT generate a crash report for it
@@ -436,25 +458,22 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 	// telling the user that he is using too much cpu/ram or process any Dx11 message and output
 	// that to the user
 
-	// If we cannot destroy the obs kill the process without causing a crash report,
-	// proceed with it
+	// Disable reports and kill the obs process
 	DWORD pid = GetCurrentProcessId();
 	HANDLE hnd = OpenProcess(SYNCHRONIZE | PROCESS_TERMINATE, TRUE, pid);
 	if (hnd != nullptr) {
 
-#ifndef _DEBUG
+		DisableReports();
 
-		client.~CrashpadClient();
-		database->~CrashReportDatabase();
-		database = nullptr;
-#endif
+		// Directly blame the user for this error since it was caused by the user side
+		util::CrashManager::GetMetricsProvider()->SendStatus("Handled Crash");
 
 		TerminateProcess(hnd, 0);
 	}
 
 	// Something really bad went wrong when killing this process, generate a crash report!
 	util::CrashManager::HandleCrash(_crashMessage);
-	
+
 	// Unreachable statement
 	return true;
 }
@@ -462,8 +481,9 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 // Format a var arg string into a c++ std::string type
 std::string FormatVAString(const char* const format, va_list args)
 {
+	static const int MaximumVAStringSize = 63;
 	auto temp   = std::vector<char>{};
-	auto length = std::size_t{63};
+	auto length = std::size_t{MaximumVAStringSize};
 	while (temp.size() <= length) {
 		temp.resize(length + 1);
 		const auto status = std::vsnprintf(temp.data(), temp.size(), format, args);
@@ -471,6 +491,11 @@ std::string FormatVAString(const char* const format, va_list args)
 			throw std::runtime_error{"string formatting error"};
 		length = static_cast<std::size_t>(status);
 	}
+
+	if (length > MaximumVAStringSize) {
+		return "unknown error string";
+	}
+
 	return std::string{temp.data(), length};
 }
 
@@ -527,38 +552,34 @@ nlohmann::json util::CrashManager::RequestOBSLog(OBSLogType type)
 {
 	nlohmann::json result;
 
-    switch (type)
-    {
-        case OBSLogType::Errors:
-        {
-		    auto& errors = OBS_API::getOBSLogErrors();
-			for (auto& msg : errors)
-				result.push_back(msg);
-            break;
-        }
+	switch (type) {
+	case OBSLogType::Errors: {
+		auto& errors = OBS_API::getOBSLogErrors();
+		for (auto& msg : errors)
+			result.push_back(msg);
+		break;
+	}
 
-        case OBSLogType::Warnings:
-        {
-		    auto& warnings = OBS_API::getOBSLogWarnings();
-			for (auto& msg : warnings)
-				result.push_back(msg);
-            break;
-        }
+	case OBSLogType::Warnings: {
+		auto& warnings = OBS_API::getOBSLogWarnings();
+		for (auto& msg : warnings)
+			result.push_back(msg);
+		break;
+	}
 
-        case OBSLogType::General:
-        {
-		    auto& general = OBS_API::getOBSLogGeneral();
-		    while (!general.empty()) {
-			    result.push_back(general.front());
-			    general.pop();
-            }
-		    
-            break;
-        }
-    }
+	case OBSLogType::General: {
+		auto& general = OBS_API::getOBSLogGeneral();
+		while (!general.empty()) {
+			result.push_back(general.front());
+			general.pop();
+		}
+
+		break;
+	}
+	}
 
 	std::reverse(result.begin(), result.end());
-    
+
 	return result;
 }
 
@@ -760,14 +781,11 @@ void util::CrashManager::ClearBreadcrumbs()
 	breadcrumbs.clear();
 }
 
-void util::CrashManager::ProcessPreServerCall(
-    std::string                    cname,
-    std::string                    fname,
-    const std::vector<ipc::value>& args)
+void util::CrashManager::ProcessPreServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args)
 {
 	nlohmann::json jsonEntry;
-	jsonEntry["cname"]      = cname;
-	jsonEntry["fname"]      = fname;
+	jsonEntry["cname"] = cname;
+	jsonEntry["fname"] = fname;
 
 	// Perform this only if this user have a high crash rate (TODO: this check must be implemented)
 	/*
@@ -785,17 +803,11 @@ void util::CrashManager::ProcessPostServerCall(
     const std::vector<ipc::value>& args)
 {
 	if (args.size() == 0) {
-		AddWarning(std::string("No return params on method ")
-				   + fname 
-				   + std::string(" for class ") 
-				   + cname);
+		AddWarning(std::string("No return params on method ") + fname + std::string(" for class ") + cname);
 	} else if ((ErrorCode)args[0].value_union.ui64 != ErrorCode::Ok) {
-		AddWarning(std::string("Server call returned error number ")
-				   + std::to_string(args[0].value_union.ui64)
-				   + " on method " 
-				   + fname
-				   + std::string(" for class ")
-				   + cname);
+		AddWarning(
+		    std::string("Server call returned error number ") + std::to_string(args[0].value_union.ui64) + " on method "
+		    + fname + std::string(" for class ") + cname);
 	}
 
 	ClearBreadcrumbs();
@@ -803,6 +815,8 @@ void util::CrashManager::ProcessPostServerCall(
 
 void util::CrashManager::DisableReports()
 {
+	reportsEnabled = false;
+
 #ifndef _DEBUG
 
 	client.~CrashpadClient();
@@ -810,4 +824,9 @@ void util::CrashManager::DisableReports()
 	database = nullptr;
 
 #endif
+}
+
+util::MetricsProvider* const util::CrashManager::GetMetricsProvider()
+{
+	return &metricsClient;
 }

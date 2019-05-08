@@ -736,17 +736,13 @@ bool OBS_service::createVideoRecordingEncoder()
 
 bool OBS_service::createService()
 {
-	const char* type;
-
+	const char* type        = nullptr;
+	obs_data_t* data        = nullptr;
+	obs_data_t* settings    = nullptr;
+	obs_data_t* hotkey_data = nullptr;
 	struct stat buffer;
-	bool        fileExist = (os_stat(ConfigManager::getInstance().getService().c_str(), &buffer) == 0);
 
-	obs_data_t* data;
-	obs_data_t* settings;
-	obs_data_t* hotkey_data;
-
-	auto CreateNewService = [&]()
-	{
+	auto CreateNewService = [&]() {
 		service = obs_service_create("rtmp_common", "default_service", nullptr, nullptr);
 		if (service == nullptr) {
 			return false;
@@ -765,20 +761,17 @@ bool OBS_service::createService()
 		obs_data_set_obj(data, "settings", settings);
 	};
 
+    bool fileExist = (os_stat(ConfigManager::getInstance().getService().c_str(), &buffer) == 0);
 	if (!fileExist) {
-
 		CreateNewService();
 
 	} else {
-		
 		// Verify if the service.json was corrupted
 		data = obs_data_create_from_json_file_safe(ConfigManager::getInstance().getService().c_str(), "bak");
 		if (data == nullptr) {
-
 			blog(LOG_WARNING, "Failed to create data from service json, using default properties!");
 			CreateNewService();
-		}
-		else {
+		} else {
 			obs_data_set_default_string(data, "type", "rtmp_common");
 			type = obs_data_get_string(data, "type");
 
@@ -793,17 +786,20 @@ bool OBS_service::createService()
 
 				blog(LOG_WARNING, "Failed to retrieve a valid service type from the data, using default properties!");
 				CreateNewService();
-			}
 
-			service = obs_service_create(type, "default_service", settings, hotkey_data);
-			if (service == nullptr) {
-				obs_data_release(data);
-				obs_data_release(hotkey_data);
-				obs_data_release(settings);
-				return false;
-			}
+			// Create the service normally since the service.json info looks valid
+			} else {
+                
+				service = obs_service_create(type, "default_service", settings, hotkey_data);
+				if (service == nullptr) {
+					obs_data_release(data);
+					obs_data_release(hotkey_data);
+					obs_data_release(settings);
+					return false;
+				}
 
-			obs_data_release(hotkey_data);
+                obs_data_release(hotkey_data);
+            }	
 		}
 	}
 
@@ -1604,6 +1600,8 @@ void OBS_service::LoadRecordingPreset_Lossless()
 	obs_data_set_string(settings, "video_encoder", "utvideo");
 	obs_data_set_string(settings, "audio_encoder", "pcm_s16le");
 
+	int aMixes = 1;
+	obs_output_set_mixers(recordingOutput, aMixes);
 	obs_output_update(recordingOutput, settings);
 	obs_data_release(settings);
 }

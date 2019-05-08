@@ -246,10 +246,9 @@ describe('osn-source', () => {
     });
 
     context('# Update and Save', () => {
-        let settings: ISettings = {};
-        settings['test'] = 1;
-
         it('Update settings of all inputs', () => {
+            let settings: ISettings = {};
+
             // Getting all input source types
             const inputTypes = osn.InputFactory.types();
 
@@ -265,6 +264,83 @@ describe('osn-source', () => {
                 expect(input).to.not.equal(undefined);
                 expect(input.id).to.equal(inputType);
                 expect(input.name).to.equal('input');
+
+                // Preparing settings object
+                settings = input.settings;
+                
+                switch(inputType) {
+                    case 'image_source': {
+                        settings['unload'] = true;
+                        break;
+                    }
+                    case 'color_source': {
+                        settings['height'] = 500;
+                        settings['width'] = 600;
+                        break;
+                    }
+                    case 'slideshow': {
+                        settings['loop'] = false;
+                        settings['slide_time'] = 9000;
+                        settings['transition_speed'] = 800;
+                        break;
+                    }
+                    case 'browser_source': {
+                        settings['fps'] = 60;
+                        settings['height'] = 500;
+                        settings['restart_when_active'] = true;
+                        settings['shutdown'] = true;
+                        break;
+                    }
+                    case 'ffmpeg_source': {
+                        settings['buffering_mb'] = 3;
+                        settings['clear_on_media_end'] = false;
+                        settings['looping'] = true;
+                        settings['speed_percent'] = 80;
+                        break;
+                    }
+                    case 'text_gdiplus': {
+                        settings['align'] = 'right';
+                        settings['extents_cx'] = 90;
+                        settings['extents_cy'] = 90;
+                        settings['valign'] = 'bottom';
+                        break;
+                    }
+                    case 'text_ft2_source': {
+                        settings['color1'] = 4294967296;
+                        settings['color2'] = 5294967295;
+                        break;
+                    }
+                    case 'monitor_capture': {
+                        settings['capture_cursor'] = false;
+                        settings['monitor'] = 1;
+                        break;
+                    }
+                    case 'window_capture': {
+                        settings['compatibility'] = true;
+                        settings['cursor'] = false;
+                        break;
+                    }
+                    case 'game_capture': {
+                        settings['allow_transparency'] = true;
+                        settings['force_scaling'] = true;
+                        settings['hook_rate'] = 2;
+                        break;
+                    }
+                    case 'dshow_input': {
+                        settings['audio_output_mode'] = 1;
+                        settings['res_type'] = 1;
+                        settings['video_format'] = 2;
+                        break;
+                    }
+                    case 'wasapi_input_capture': {
+                        settings['use_device_timing'] = true;
+                        break;
+                    }
+                    case 'wasapi_output_capture': {
+                        settings['use_device_timing'] = false;
+                        break;
+                    }
+                }
     
                 // Updating settings of source
                 input.update(settings);
@@ -275,13 +351,16 @@ describe('osn-source', () => {
                 }).to.not.throw;
 
                 // Checking if setting was added to source
-                expect(input.settings).to.include(settings);
+                expect(input.settings).to.eql(settings);
 
+                settings = {};
                 input.release();
             });
         });
 
         it('Update settings of all filters', () => {
+            let settings: ISettings = {};
+
             // Getting all filter types
             const filterTypes = osn.FilterFactory.types();
 
@@ -290,30 +369,121 @@ describe('osn-source', () => {
             expect(filterTypes).to.include.members(basicOBSFilterTypes);
 
             filterTypes.forEach(function(filterType) {
-                // Creating filter
-                const filter = osn.FilterFactory.create(filterType, 'filter', settings);
-    
-                // Checking if filter source was created correctly
-                expect(filter).to.not.equal(undefined);
-                expect(filter.id).to.equal(filterType);
-                expect(filter.name).to.equal('filter');
-    
-                // Updating settings of filter
-                filter.update(settings);
+                if (filterType != 'gpu_delay' &&
+                    filterType != 'async_delay_filter' &&
+                    filterType != 'invert_polarity_filter' &&
+                    filterType != 'vst_filter') {
+                    // Creating filter
+                    const filter = osn.FilterFactory.create(filterType, 'filter');
+        
+                    // Checking if filter source was created correctly
+                    expect(filter).to.not.equal(undefined);
+                    expect(filter.id).to.equal(filterType);
+                    expect(filter.name).to.equal('filter');
 
-                // Sending save signal to filter
-                expect(function() {
-                    filter.save();
-                }).to.not.throw;
+                    // Preparing settings object
+                    settings = filter.settings;
 
-                // Checking if setting was added to filter
-                expect(filter.settings).to.include(settings);
-    
-                filter.release();
+                    switch(filterType) {
+                        case 'mask_filter': {
+                            settings['color'] = 26777215;
+                            settings['opacity'] = 80;
+                            break;
+                        }
+                        case 'crop_filter': {
+                            settings['relative'] = false;
+                            break;
+                        }
+                        case 'gain_filter': {
+                            settings['db'] = 5;
+                            break;
+                        }
+                        case 'color_filter': {
+                            settings['brightness'] = 10;
+                            settings['contrast'] = 15;
+                            settings['saturation'] = 55;
+                            break;
+                        }
+                        case 'scale_filter': {
+                            settings['sampling'] = 'bilinear';
+                            settings['undistort'] = true;
+                            break;
+                        }
+                        case 'scroll_filter': {
+                            settings['cx'] = 80;
+                            settings['cy'] = 60;
+                            settings['limit_size'] = true;
+                            break;
+                        }
+                        case 'color_key_filter': {
+                            settings['gamma'] = 60;
+                            settings['key_color_type'] = 'red';
+                            settings['similarity'] = 55;
+                            break;
+                        }
+                        case 'clut_filter': {
+                            settings['clut_amount'] = 2;
+                            break;
+                        }
+                        case 'sharpness_filter': {
+                            settings['sharpness'] = 0.05;
+                            break;
+                        }
+                        case 'chroma_key_filter': {
+                            settings['key_color'] = 68280;
+                            settings['smoothness'] = 20;
+                            settings['spill'] = 90;
+                            break;
+                        }
+                        case 'noise_suppress_filter': {
+                            settings['suppress_level'] = -10;
+                            settings['']
+                            break;
+                        }
+                        case 'noise_gate_filter': {
+                            settings['hold_time'] = 120;
+                            settings['open_threshold'] = -12;
+                            settings['release_time'] = 80;
+                            break;
+                        }
+                        case 'compressor_filter': {
+                            settings['attack_time'] = 8;
+                            settings['output_gain'] = 4;
+                            settings['threshold'] = -9;
+                            break;
+                        }
+                        case 'limiter_filter': {
+                            settings['release_time'] = 30;
+                            settings['threshold'] = -12;
+                            break;
+                        }
+                        case 'expander_filter': {
+                            settings['attack_time'] = 15;
+                            settings['ratio'] = 5;
+                            settings['threshold'] = -20;
+                            break;
+                        }
+                    }
+        
+                    // Updating settings of filter
+                    filter.update(settings);
+
+                    // Sending save signal to filter
+                    expect(function() {
+                        filter.save();
+                    }).to.not.throw;
+
+                    // Checking if setting was added to filter
+                    expect(filter.settings).to.eql(settings);
+        
+                    filter.release();
+                }
             });
         });
 
         it('Update settings of all transitions', () => {
+            let settings: ISettings = {};
+
             // Getting all transition types
             const transitionTypes = osn.TransitionFactory.types();
 
@@ -321,46 +491,47 @@ describe('osn-source', () => {
             expect(transitionTypes.length).to.not.equal(0);
             expect(transitionTypes).to.include.members(basicOBSTransitionTypes);
 
-            transitionTypes.forEach(function(filterType) {
-                // Creating filter
-                const filter = osn.FilterFactory.create(filterType, 'filter', settings);
-    
-                // Checking if filter source was created correctly
-                expect(filter).to.not.equal(undefined);
-                expect(filter.id).to.equal(filterType);
-                expect(filter.name).to.equal('filter');
-    
-                // Updating settings of filter
-                filter.update(settings);
+            transitionTypes.forEach(function(transitionType) {
+                if(transitionType == 'fade_to_color_transition' ||
+                   transitionType == 'wipe_transition') {
+                    // Creating filter
+                    const transition = osn.FilterFactory.create(transitionType, 'transition');
+        
+                    // Checking if filter source was created correctly
+                    expect(transition).to.not.equal(undefined);
+                    expect(transition.id).to.equal(transitionType);
+                    expect(transition.name).to.equal('transition');
 
-                // Sending save signal to filter
-                expect(function() {
-                    filter.save();
-                }).to.not.throw;
+                    // Preparing settings object
+                    settings = transition.settings;
 
-                // Checking if setting was added to filter
-                expect(filter.settings).to.include(settings);
-    
-                filter.release();
+                    switch(transitionType) {
+                        case 'fade_to_color_transition': {
+                            settings['color'] = 5278190080;
+                            settings['switch_point'] = 80;
+                            break;
+                        }
+                        case 'wipe_transition': {
+                            settings['luma_invert'] = true;
+                            settings['luma_softness'] = 0.05;
+                            break;
+                        }
+                    }
+        
+                    // Updating settings of transition
+                    transition.update(settings);
+
+                    // Sending save signal to transition
+                    expect(function() {
+                        transition.save();
+                    }).to.not.throw;
+
+                    // Checking if setting was added to transition
+                    expect(transition.settings).to.include(settings);
+        
+                    transition.release();
+                }
             });
-        });
-
-        it('Update settings of a scene', () => {
-            // Creating scene
-            const scene = osn.SceneFactory.create('test_osn_scene'); 
-
-            // Checking if scene was created correctly
-            expect(scene).to.not.equal(undefined);
-            expect(scene.id).to.equal('scene');
-            expect(scene.name).to.equal('test_osn_scene');
-
-            // Updating settings of scene
-            scene.update(settings);
-
-            // Checking if setting was added to scene
-            expect(scene.settings).to.include(settings);
-
-            scene.release();
         });
     });
 

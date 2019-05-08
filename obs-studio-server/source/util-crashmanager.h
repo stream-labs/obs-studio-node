@@ -23,14 +23,20 @@
 #include <string>
 #include <vector>
 #include <ipc.hpp>
+#include <mutex>
+#include <queue>
+#include <thread>
 
 #undef strtoll
 #include "nlohmann/json.hpp"
 
 namespace util
 {
+	class MetricsProvider;
+
 	class CrashManager
 	{
+		public:
         enum OBSLogType
         {
             General,
@@ -50,6 +56,9 @@ namespace util
 		static void AddBreadcrumb(const std::string& message);
 		static void ClearBreadcrumbs();
 		static void DisableReports();
+
+		// Return our global instance of the metrics provider, it's always valid
+		static MetricsProvider* const GetMetricsProvider();
 
 		static void ProcessPreServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args);
 		static void ProcessPostServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args);
