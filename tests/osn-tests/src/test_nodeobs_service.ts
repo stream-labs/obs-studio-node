@@ -34,7 +34,7 @@ interface IOBSOutputSignalInfo {
 
 function saveStreamKey(key: string) {
     // Getting stream settings container
-    const streamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
+    const streamSettings = osn.NodeObs.OBS_settings_getSettings('Stream').data;
 
     // Setting stream service and stream key
     streamSettings.forEach(subCategory => {
@@ -56,7 +56,7 @@ function setEnconderAndRecordingPath(mode: string, invalidPath: boolean = false)
     const path = require('path');
 
     // Getting stream settings container
-    const streamSettings = osn.NodeObs.OBS_settings_getSettings('Output');
+    const streamSettings = osn.NodeObs.OBS_settings_getSettings('Output').data;
 
     // Changing mode to simple or advanced
     streamSettings.find(category => {
@@ -67,7 +67,7 @@ function setEnconderAndRecordingPath(mode: string, invalidPath: boolean = false)
 
     osn.NodeObs.OBS_settings_saveSettings('Output', streamSettings);
 
-    let setEncoderAndRecordingFilePath = osn.NodeObs.OBS_settings_getSettings('Output');
+    let setEncoderAndRecordingFilePath = osn.NodeObs.OBS_settings_getSettings('Output').data;
 
     if (mode == 'Simple') {
         // Setting encoder to x264, AppVeyor does not have any hardware encoders
@@ -328,7 +328,7 @@ describe('nodeobs_service', function() {
                 
             saveStreamKey(streamKey);
 
-            const updatedStreamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
+            const updatedStreamSettings = osn.NodeObs.OBS_settings_getSettings('Stream').data;
 
             updatedStreamSettings.forEach(subCategory => {
                 subCategory.parameters.forEach(parameter => {
