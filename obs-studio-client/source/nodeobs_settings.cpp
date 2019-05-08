@@ -157,7 +157,7 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 		return;
 
 	v8::Isolate*          isolate  = v8::Isolate::GetCurrent();
-	v8::Local<v8::Array>  rval     = v8::Array::New(isolate);
+	v8::Local<v8::Array>  array    = v8::Array::New(isolate);
 	v8::Local<v8::Object> settings = v8::Object::New(isolate);
 
 	std::vector<settings::SubCategory> categorySettings = serializeCategory(
@@ -367,9 +367,9 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 
 		subCategory->Set(v8::String::NewFromUtf8(isolate, "parameters"), subCategoryParameters);
 
-		rval->Set(i, subCategory);
+		array->Set(i, subCategory);
 
-		settings->Set(v8::String::NewFromUtf8(isolate, "data"), rval);
+		settings->Set(v8::String::NewFromUtf8(isolate, "data"), array);
 		settings->Set(v8::String::NewFromUtf8(isolate, "type"), v8::Integer::New(isolate, response[4].value_union.ui32));
 	}
 	args.GetReturnValue().Set(settings);
