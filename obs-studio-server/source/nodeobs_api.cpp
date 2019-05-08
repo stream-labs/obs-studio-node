@@ -27,6 +27,7 @@
 #include "osn-fader.hpp"
 #include "util/lexer.h"
 #include "util-crashmanager.h"
+#include "util-metricsprovider.h"
 
 #ifdef _WIN32
 
@@ -482,6 +483,10 @@ void OBS_API::OBS_API_initAPI(
 	std::string locale  = args[1].value_str;
 	currentVersion      = args[2].value_str;
 
+	// Connect the metrics provider with our crash handler process, sending our current version tag
+	// and enabling metrics
+	util::CrashManager::GetMetricsProvider()->Initialize("\\\\.\\pipe\\metrics_pipe", currentVersion, false);
+
 	/* libobs will use three methods of finding data files:
 	* 1. ${CWD}/data/libobs <- This doesn't work for us
 	* 2. ${OBS_DATA_PATH}/libobs <- This works but is inflexible
@@ -562,6 +567,10 @@ void OBS_API::OBS_API_initAPI(
 
 	int videoError;
 	if (!openAllModules(videoError)) {
+
+		// Directly blame the user for this error (since he is the culprit of having an invalid Dx version)
+		util::CrashManager::GetMetricsProvider()->BlameUser();
+
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value(videoError));
 		AUTO_DEBUG;

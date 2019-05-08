@@ -226,7 +226,9 @@ add_executable(
 	###### crash-manager ######
 	"${PROJECT_SOURCE_DIR}/source/util-crashmanager.cpp"
 	"${PROJECT_SOURCE_DIR}/source/util-crashmanager.h"
-
+	"${PROJECT_SOURCE_DIR}/source/util-metricsprovider.cpp"
+	"${PROJECT_SOURCE_DIR}/source/util-metricsprovider.h"
+	
 	###### callback-manager ######
 	"${PROJECT_SOURCE_DIR}/source/callback-manager.cpp"
 	"${PROJECT_SOURCE_DIR}/source/callback-manager.h"
