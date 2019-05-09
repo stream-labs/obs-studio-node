@@ -31,11 +31,13 @@
 #include "osn-common.hpp"
 #include "shared.hpp"
 #include "callback-manager.h"
+#include "memory-manager.h"
 
 void osn::Source::initialize_global_signals()
 {
 	signal_handler_t* sh = obs_get_signal_handler();
 	signal_handler_connect(sh, "source_create", osn::Source::global_source_create_cb, nullptr);
+	signal_handler_connect(sh, "source_activate", osn::Source::global_source_activate_cb, nullptr);
 }
 
 void osn::Source::finalize_global_signals()
@@ -72,6 +74,16 @@ void osn::Source::global_source_create_cb(void* ptr, calldata_t* cd)
 	CallbackManager::addSource(source);
 }
 
+void osn::Source::global_source_activate_cb(void* ptr, calldata_t* cd)
+{
+	obs_source_t* source = nullptr;
+	if (!calldata_get_ptr(cd, "source", &source)) {
+		throw std::exception("calldata did not contain source pointer");
+	}
+
+	MemoryManager::GetInstance().registerSource(source);
+}
+
 void osn::Source::global_source_destroy_cb(void* ptr, calldata_t* cd)
 {
 	obs_source_t* source = nullptr;
@@ -82,6 +94,7 @@ void osn::Source::global_source_destroy_cb(void* ptr, calldata_t* cd)
 	CallbackManager::removeSource(source);
 	detach_source_signals(source);
 	osn::Source::Manager::GetInstance().free(source);
+	MemoryManager::GetInstance().unregisterSource(source);
 }
 
 void osn::Source::Register(ipc::server& srv)

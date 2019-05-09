@@ -108,8 +108,8 @@ add_dependencies(crashpad_util crashpad_client)
 
 string(
 	CONCAT OSN_DEFAULT_LIBOBS_URL
-	"https://obsstudios3.streamlabs.com/"
-	"libobs-release-23.1.0-sl.425-win32-x64.7z"
+	"https://ci.appveyor.com/api/buildjobs/45rmoofcmf90rbma/artifacts/"
+	"libobs-debug-23.1.0-sl.426-win32-x64.7z"
 )
 
 set(
@@ -232,6 +232,10 @@ add_executable(
 	###### callback-manager ######
 	"${PROJECT_SOURCE_DIR}/source/callback-manager.cpp"
 	"${PROJECT_SOURCE_DIR}/source/callback-manager.h"
+
+	###### memory-manager ######
+	"${PROJECT_SOURCE_DIR}/source/memory-manager.cpp"
+	"${PROJECT_SOURCE_DIR}/source/memory-manager.h"
 )
 
 # Include/link crash manager dependencies
