@@ -20,6 +20,7 @@
 #include "error.hpp"
 #include "nodeobs_api.h"
 #include "shared.hpp"
+#include "memory-manager.h"
 
 #include <windows.h>
 
@@ -3654,6 +3655,22 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	    serializeSettingsData("Sources", entries, ConfigManager::getInstance().getGlobal(), "General", true, true));
 	entries.clear();
 
+	//Media Files
+	std::vector<std::pair<std::string, ipc::value>> fileCaching;
+	fileCaching.push_back(std::make_pair("name", ipc::value("fileCaching")));
+	fileCaching.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+	fileCaching.push_back(std::make_pair("description", ipc::value("Enable media file caching")));
+	fileCaching.push_back(std::make_pair("subType", ipc::value("")));
+	fileCaching.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	fileCaching.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	fileCaching.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	entries.push_back(fileCaching);
+
+	advancedSettings.push_back(
+	    serializeSettingsData("Media Files", entries, ConfigManager::getInstance().getGlobal(), "General", true, true));
+	entries.clear();
+
+
 	return advancedSettings;
 }
 
@@ -3712,6 +3729,14 @@ void OBS_settings::saveAdvancedSettings(std::vector<SubCategory> advancedSetting
 
 	sourcesSettings.push_back(advancedSettings.at(8));
 	saveGenericSettings(sourcesSettings, "General", ConfigManager::getInstance().getGlobal());
+
+	//Media Files
+	std::vector<SubCategory> mediaFilesSettings;
+
+	mediaFilesSettings.push_back(advancedSettings.at(9));
+	saveGenericSettings(mediaFilesSettings, "General", ConfigManager::getInstance().getGlobal());
+	MemoryManager::GetInstance().updateCacheState(
+	    *reinterpret_cast<bool*>(advancedSettings.at(9).params.at(0).currentValue.data()));
 }
 
 std::vector<SubCategory> OBS_settings::getSettings(std::string nameCategory, CategoryTypes& type)
