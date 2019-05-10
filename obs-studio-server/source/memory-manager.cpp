@@ -51,3 +51,14 @@ void MemoryManager::unregisterSource(obs_source_t* source)
 
 	sources.erase(source);
 }
+
+void MemoryManager::updateCacheState(bool caching)
+{
+	std::unique_lock<std::mutex> ulock(mtx);
+
+	for (auto data : sources) {
+		obs_data_t* settings = obs_source_get_settings(data.first);
+		obs_data_set_bool(settings, "caching", caching);
+		obs_source_update(data.first, settings);
+	}
+}

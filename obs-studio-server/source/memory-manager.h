@@ -43,4 +43,5 @@ class MemoryManager {
 	public:
 	void registerSource(obs_source_t *source);
 	void unregisterSource(obs_source_t* source);
+	void updateCacheState(bool caching);
 };
