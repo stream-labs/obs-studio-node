@@ -18,6 +18,7 @@
 
 #pragma once
 #include "obs.h"
+#include "nodeobs_configManager.hpp"
 #include <map>
 #include <mutex>
 
