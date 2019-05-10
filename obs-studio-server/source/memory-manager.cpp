@@ -38,8 +38,14 @@ void MemoryManager::registerSource(obs_source_t* source)
 
 	// Size in MB
 	uint64_t size = width * height * 1.5 * nb_frames / 1000000;
-
 	sources.emplace(source, size);
+
+	bool caching         = config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "fileCaching");
+	obs_data_t* settings = obs_source_get_settings(source);
+
+	obs_data_set_bool(settings, "caching", caching);
+	obs_source_update(source, settings);
+	obs_data_release(settings);
 }
 
 void MemoryManager::unregisterSource(obs_source_t* source)
@@ -60,5 +66,6 @@ void MemoryManager::updateCacheState(bool caching)
 		obs_data_t* settings = obs_source_get_settings(data.first);
 		obs_data_set_bool(settings, "caching", caching);
 		obs_source_update(data.first, settings);
+		obs_data_release(settings);
 	}
 }
