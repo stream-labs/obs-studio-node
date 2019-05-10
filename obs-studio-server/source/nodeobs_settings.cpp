@@ -459,7 +459,7 @@ std::vector<SubCategory> OBS_settings::getGeneralSettings()
 	std::vector<std::pair<std::string, ipc::value>> snapDistance;
 	snapDistance.push_back(std::make_pair("name", ipc::value("SnapDistance")));
 	snapDistance.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_DOUBLE")));
-	snapDistance.push_back(std::make_pair("description", ipc::value("Snap Sensitivy")));
+	snapDistance.push_back(std::make_pair("description", ipc::value("Snap Sensitivity")));
 	snapDistance.push_back(std::make_pair("subType", ipc::value("")));
 	snapDistance.push_back(std::make_pair("minVal", ipc::value((double)0)));
 	snapDistance.push_back(std::make_pair("maxVal", ipc::value((double)100)));
