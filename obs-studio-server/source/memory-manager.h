@@ -59,8 +59,9 @@ class MemoryManager {
 	uint64_t   allowed_cached_size;
 
 	public:
-	void registerSource(obs_source_t *source);
+	void registerSource(obs_source_t* source);
 	void unregisterSource(obs_source_t* source);
+	void refreshSourceState(obs_source_t* source);
 	void updateCacheState(bool caching);
 	void updateSourceCache(source_info* info, bool caching);
 };
