@@ -72,6 +72,7 @@ void osn::Source::global_source_create_cb(void* ptr, calldata_t* cd)
 	osn::Source::Manager::GetInstance().allocate(source);
 	osn::Source::attach_source_signals(source);
 	CallbackManager::addSource(source);
+	MemoryManager::GetInstance().registerSource(source);
 }
 
 void osn::Source::global_source_activate_cb(void* ptr, calldata_t* cd)
@@ -80,8 +81,6 @@ void osn::Source::global_source_activate_cb(void* ptr, calldata_t* cd)
 	if (!calldata_get_ptr(cd, "source", &source)) {
 		throw std::exception("calldata did not contain source pointer");
 	}
-
-	MemoryManager::GetInstance().registerSource(source);
 }
 
 void osn::Source::global_source_update_cb(void* prt, calldata_t* cd)
