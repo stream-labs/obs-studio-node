@@ -18,6 +18,19 @@
 
 #include "memory-manager.h"
 
+MemoryManager::MemoryManager()
+{
+	MEMORYSTATUSEX statex;
+	statex.dwLength = sizeof(statex);
+	int ret         = GlobalMemoryStatusEx(&statex);
+
+	if (ret) {
+		available_memory    = statex.ullTotalPhys;
+	} else {
+		available_memory    = 0;
+	}
+}
+
 void MemoryManager::registerSource(obs_source_t* source)
 {
 	std::unique_lock<std::mutex> ulock(mtx);

@@ -21,6 +21,11 @@
 #include "nodeobs_configManager.hpp"
 #include <map>
 #include <mutex>
+#include <windows.h>
+#include "psapi.h"
+#include <algorithm>
+
+#define LIMIT 5120000000
 
 class MemoryManager {
 	public:
@@ -31,7 +36,7 @@ class MemoryManager {
 	}
 
 	private:
-	MemoryManager(){};
+	MemoryManager();
 
 	public:
 	MemoryManager(MemoryManager const&) = delete;
@@ -39,7 +44,9 @@ class MemoryManager {
 
 	private:
 	std::map<obs_source_t*, uint64_t> sources;
-	std::mutex               mtx;
+
+	std::mutex mtx;
+	uint64_t   available_memory;
 
 	public:
 	void registerSource(obs_source_t *source);
