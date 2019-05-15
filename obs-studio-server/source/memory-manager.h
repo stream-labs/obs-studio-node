@@ -49,7 +49,8 @@ class MemoryManager {
 	uint64_t   available_memory;
 
 	public:
-	void registerSource(obs_source_t *source);
+	void registerSource(obs_source_t* source);
 	void unregisterSource(obs_source_t* source);
-	void updateCacheState(bool caching);
+	void updateCacheState();
+	void updateCacheSettings(obs_source_t* source);
 };

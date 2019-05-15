@@ -53,11 +53,26 @@ void MemoryManager::registerSource(obs_source_t* source)
 	uint64_t size = width * height * 1.5 * nb_frames / 1000000;
 	sources.emplace(source, size);
 
-	bool caching         = config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "fileCaching");
+	updateCacheSettings(source);
+}
+
+void MemoryManager::updateCacheSettings(obs_source_t* source)
+{
 	obs_data_t* settings = obs_source_get_settings(source);
 
-	obs_data_set_bool(settings, "caching", caching);
-	obs_source_update(source, settings);
+	bool looping        = obs_data_get_bool(settings, "looping");
+	bool local_file     = obs_data_get_bool(settings, "is_local_file");
+	bool enable_caching = config_get_bool(
+		ConfigManager::getInstance().getGlobal(), "General", "fileCaching");
+
+	bool cache_source = enable_caching && looping && local_file;
+
+	bool current_cache_state = obs_data_get_bool(settings, "caching");
+
+	if (current_cache_state != cache_source) {
+		obs_data_set_bool(settings, "caching", cache_source);
+		obs_source_update(source, settings);
+	}
 	obs_data_release(settings);
 }
 
@@ -71,14 +86,11 @@ void MemoryManager::unregisterSource(obs_source_t* source)
 	sources.erase(source);
 }
 
-void MemoryManager::updateCacheState(bool caching)
+void MemoryManager::updateCacheState()
 {
 	std::unique_lock<std::mutex> ulock(mtx);
 
 	for (auto data : sources) {
-		obs_data_t* settings = obs_source_get_settings(data.first);
-		obs_data_set_bool(settings, "caching", caching);
-		obs_source_update(data.first, settings);
-		obs_data_release(settings);
+		updateCacheSettings(data.first);
 	}
 }

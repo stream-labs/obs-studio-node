@@ -443,8 +443,10 @@ void osn::Source::GetProperties(
 	}
 	obs_properties_destroy(prp);
 
-	if (updateSource)
+	if (updateSource) {
 		obs_source_update(src, settings);
+		MemoryManager::GetInstance().updateCacheSettings(src);
+	}
 	AUTO_DEBUG;
 }
 
@@ -487,6 +489,7 @@ void osn::Source::Update(
 
 	obs_data_t* sets = obs_data_create_from_json(args[1].value_str.c_str());
 	obs_source_update(src, sets);
+	MemoryManager::GetInstance().updateCacheSettings(src);
 	obs_data_release(sets);
 
 	obs_data_t* updatedSettings = obs_source_get_settings(src);
