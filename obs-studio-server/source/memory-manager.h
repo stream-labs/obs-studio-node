@@ -61,7 +61,7 @@ class MemoryManager {
 	public:
 	void registerSource(obs_source_t* source);
 	void unregisterSource(obs_source_t* source);
-	void refreshSourceState(obs_source_t* source);
+	void defer_updateSourceCache(obs_source_t* source, bool caching);
 	void updateCacheState(bool caching);
 	void updateSourceCache(source_info* info, bool caching);
 };

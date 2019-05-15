@@ -85,9 +85,10 @@ void MemoryManager::unregisterSource(obs_source_t* source)
 	sources.erase(obs_source_get_name(source));
 }
 
-void MemoryManager::refreshSourceState(obs_source_t* source)
+void MemoryManager::defer_updateSourceCache(obs_source_t* source, bool caching)
 {
-	std::unique_lock<std::mutex> ulock(mtx);
+	// This function will update the cache state once the file reaches its end
+	// std::unique_lock<std::mutex> ulock(mtx);
 	auto                         it = sources.find(obs_source_get_name(source));
 
 	if (it == sources.end())
@@ -95,6 +96,12 @@ void MemoryManager::refreshSourceState(obs_source_t* source)
 
 	if (strcmp(obs_source_get_id(source), "ffmpeg_source") != 0)
 		return;
+
+	calldata_t cd = {0};
+	calldata_set_bool(&cd, "caching", caching);
+
+	proc_handler_t* ph = obs_source_get_proc_handler(source);
+	proc_handler_call(ph, "update_cache_state", &cd);
 }
 
 void MemoryManager::updateCacheState(bool caching)
@@ -107,17 +114,20 @@ void MemoryManager::updateCacheState(bool caching)
 
 void MemoryManager::updateSourceCache(source_info* info, bool caching)
 {
+	// This function is causing the file to restart
 	obs_data_t* settings   = obs_source_get_settings(info->source);
 	bool        looping    = obs_data_get_bool(settings, "looping");
 	bool        local_file = obs_data_get_bool(settings, "is_local_file");
 
-	info->cached =
+	info->cached = caching &&
 		current_cached_size < allowed_cached_size &&
 		looping && local_file;
 
-	obs_data_set_bool(settings, "caching", info->cached);
-	obs_source_update(info->source, settings);
-	obs_data_release(settings);
+	//obs_data_set_bool(settings, "caching", info->cached);
+	//obs_source_update(info->source, settings);
+	//obs_data_release(settings);
+
+	defer_updateSourceCache(info->source, caching);
 
 	if (info->cached)
 		current_cached_size += info->size;
