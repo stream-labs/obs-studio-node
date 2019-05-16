@@ -62,4 +62,7 @@ class MemoryManager {
 	void unregisterSource(obs_source_t* source);
 	void updateCacheState();
 	void updateCacheSettings(obs_source_t* source, bool updateSize);
+
+	private:
+	uint64_t calculateRawSize(obs_source_t* source);
 };

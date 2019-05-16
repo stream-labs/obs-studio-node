@@ -51,6 +51,22 @@ void MemoryManager::registerSource(obs_source_t* source)
 	updateCacheSettings(source, false);
 }
 
+uint64_t MemoryManager::calculateRawSize(obs_source_t* source)
+{
+	uint64_t        width  = obs_source_get_width(source);
+	uint64_t        height = obs_source_get_height(source);
+
+	calldata_t      cd = {0};
+	proc_handler_t* ph = obs_source_get_proc_handler(source);
+	proc_handler_call(ph, "restart", &cd);
+	proc_handler_call(ph, "get_nb_frames", &cd);
+	uint64_t nb_frames = calldata_int(&cd, "num_frames");
+
+	uint64_t size = width * height * 1.5 * nb_frames;
+
+	return size < 0 ? 0 : size;
+}
+
 void MemoryManager::updateCacheSettings(obs_source_t* source, bool updateSize)
 {
 	std::unique_lock<std::mutex> ulock(mtx);
@@ -66,22 +82,11 @@ void MemoryManager::updateCacheSettings(obs_source_t* source, bool updateSize)
 	bool enable_caching = config_get_bool(
 		ConfigManager::getInstance().getGlobal(), "General", "fileCaching");
 
-	bool cache_source        = enable_caching && looping && local_file;
+	bool cache_source = enable_caching && looping && local_file;
 
 	if (updateSize) {
-		uint64_t width  = obs_source_get_width(source);
-		uint64_t height = obs_source_get_height(source);
-
-		if (it->second->size == 0) {
-			calldata_t      cd = {0};
-			proc_handler_t* ph = obs_source_get_proc_handler(source);
-			proc_handler_call(ph, "restart", &cd);
-			proc_handler_call(ph, "get_nb_frames", &cd);
-			uint64_t nb_frames = calldata_int(&cd, "num_frames");
-
-			int64_t size     = width * height * 1.5 * nb_frames;
-			it->second->size = size < 0 ? 0 : size;
-		}
+		if (it->second->size == 0)
+			it->second->size = calculateRawSize(source);
 
 		if (it->second->size != 0 && cache_source && !it->second->cached) {
 			cache_source = current_cached_size + it->second->size < allowed_cached_size;
