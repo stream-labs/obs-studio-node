@@ -53,8 +53,7 @@ void MemoryManager::registerSource(obs_source_t* source)
 
 void MemoryManager::updateCacheSettings(obs_source_t* source, bool updateSize)
 {
-	if (strcmp(obs_source_get_id(source), "ffmpeg_source") != 0)
-		return;
+	std::unique_lock<std::mutex> ulock(mtx);
 
 	auto it = sources.find(obs_source_get_name(source));
 	if (it == sources.end())
@@ -125,6 +124,7 @@ void MemoryManager::unregisterSource(obs_source_t* source)
 		current_cached_size -= it->second->size;
 
 	blog(LOG_INFO, "current cached size: %d", current_cached_size / 1000000);
+	free(it->second);
 	sources.erase(obs_source_get_name(source));
 }
 
