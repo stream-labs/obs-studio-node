@@ -27,6 +27,13 @@
 
 #define LIMIT 5120000000
 
+struct source_info
+{
+	bool          cached;
+	uint64_t      size;
+	obs_source_t* source;
+};
+
 class MemoryManager {
 	public:
 	static MemoryManager& GetInstance()
@@ -43,14 +50,16 @@ class MemoryManager {
 	void operator=(MemoryManager const&) = delete;
 
 	private:
-	std::map<obs_source_t*, uint64_t> sources;
+	std::map<const char*, source_info*> sources;
 
 	std::mutex mtx;
 	uint64_t   available_memory;
+	uint64_t   current_cached_size;
+	uint64_t   allowed_cached_size;
 
 	public:
 	void registerSource(obs_source_t* source);
 	void unregisterSource(obs_source_t* source);
 	void updateCacheState();
-	void updateCacheSettings(obs_source_t* source);
+	void updateCacheSettings(obs_source_t* source, bool updateSize);
 };

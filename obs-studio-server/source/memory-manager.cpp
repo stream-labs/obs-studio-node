@@ -26,8 +26,10 @@ MemoryManager::MemoryManager()
 
 	if (ret) {
 		available_memory    = statex.ullTotalPhys;
+		allowed_cached_size = std::min((uint64_t)LIMIT, (uint64_t)available_memory / 2);
 	} else {
 		available_memory    = 0;
+		allowed_cached_size = LIMIT;
 	}
 }
 
@@ -40,23 +42,16 @@ void MemoryManager::registerSource(obs_source_t* source)
 	if (strcmp(obs_source_get_id(source), "ffmpeg_source") != 0)
 		return;
 
-	uint64_t width  = obs_source_get_width(source);
-	uint64_t height = obs_source_get_height(source);
+	source_info* info = new source_info;
+	info->cached      = false;
+	info->size        = 0;
+	info->source      = source;
+	sources.emplace(obs_source_get_name(source), info);
 
-	calldata_t cd = {0};
-	proc_handler_t* ph = obs_source_get_proc_handler(source);
-	proc_handler_call(ph, "restart", &cd);
-	proc_handler_call(ph, "get_nb_frames", &cd);
-	uint64_t nb_frames = calldata_int(&cd, "num_frames");
-
-	// Size in MB
-	uint64_t size = width * height * 1.5 * nb_frames / 1000000;
-	sources.emplace(source, size);
-
-	updateCacheSettings(source);
+	updateCacheSettings(source, false);
 }
 
-void MemoryManager::updateCacheSettings(obs_source_t* source)
+void MemoryManager::updateCacheSettings(obs_source_t* source, bool updateSize)
 {
 	obs_data_t* settings = obs_source_get_settings(source);
 
@@ -69,7 +64,32 @@ void MemoryManager::updateCacheSettings(obs_source_t* source)
 
 	bool current_cache_state = obs_data_get_bool(settings, "caching");
 
-	if (current_cache_state != cache_source) {
+	if (current_cache_state != cache_source || updateSize) {
+		auto it = sources.find(obs_source_get_name(source));
+
+		if (it != sources.end() && updateSize) {
+			uint64_t width  = obs_source_get_width(source);
+			uint64_t height = obs_source_get_height(source);
+
+			if (it->second->size == 0) {
+				calldata_t      cd = {0};
+				proc_handler_t* ph = obs_source_get_proc_handler(source);
+				proc_handler_call(ph, "restart", &cd);
+				proc_handler_call(ph, "get_nb_frames", &cd);
+				uint64_t nb_frames = calldata_int(&cd, "num_frames");
+
+				int64_t size     = width * height * 1.5 * nb_frames;
+				it->second->size = size < 0 ? 0 : size;
+			}
+
+			if (cache_source && !it->second->cached) {
+				current_cached_size += it->second->size;
+				it->second->cached = true;
+			} else if (it->second->cached) {
+				current_cached_size -= it->second->size;
+				it->second->cached = false;
+			}
+		}
 		obs_data_set_bool(settings, "caching", cache_source);
 		obs_source_update(source, settings);
 	}
@@ -80,10 +100,21 @@ void MemoryManager::unregisterSource(obs_source_t* source)
 {
 	std::unique_lock<std::mutex> ulock(mtx);
 	
+	auto it = sources.find(obs_source_get_name(source));
+
+	if (it == sources.end())
+		return;
+
 	if (strcmp(obs_source_get_id(source), "ffmpeg_source") != 0)
 		return;
 
-	sources.erase(source);
+	obs_data_t* settings = obs_source_get_settings(source);
+	bool        current_cache_state = obs_data_get_bool(settings, "caching");
+
+	if (current_cache_state && it->second->cached)
+		current_cached_size -= it->second->size;
+
+	sources.erase(obs_source_get_name(source));
 }
 
 void MemoryManager::updateCacheState()
@@ -91,6 +122,6 @@ void MemoryManager::updateCacheState()
 	std::unique_lock<std::mutex> ulock(mtx);
 
 	for (auto data : sources) {
-		updateCacheSettings(data.first);
+		updateCacheSettings(data.second->source, true);
 	}
 }
