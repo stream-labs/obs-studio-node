@@ -121,12 +121,10 @@ describe('nodeobs_settings', function() {
                             index_p++;
                             found = parameter.name === updatedStreamSettings[index_sc].parameters[index_p].name;
                         }
-                        expect(parameter.currentValue).to.eql(updatedStreamSettings[index_sc].parameters[index_p].currentValue);
+                        expect(parameter.currentValue).to.equal(updatedStreamSettings[index_sc].parameters[index_p].currentValue);
                     });
                     index_sc++;
                 });
-
-                expect(streamSettings).to.eql(updatedStreamSettings);
             });
         });
 
