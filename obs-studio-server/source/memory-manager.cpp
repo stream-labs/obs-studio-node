@@ -35,10 +35,7 @@ MemoryManager::MemoryManager()
 
 void MemoryManager::registerSource(obs_source_t* source)
 {
-	std::unique_lock<std::mutex> ulock(mtx);
-
-	const char *test = obs_source_get_id(source);
-
+	mtx.lock();
 	if (strcmp(obs_source_get_id(source), "ffmpeg_source") != 0)
 		return;
 
@@ -48,6 +45,7 @@ void MemoryManager::registerSource(obs_source_t* source)
 	info->source      = source;
 	sources.emplace(obs_source_get_name(source), info);
 
+	mtx.unlock();
 	updateCacheSettings(source, false);
 }
 
