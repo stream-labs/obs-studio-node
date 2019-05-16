@@ -296,6 +296,7 @@ describe('osn-source', () => {
                         settings['clear_on_media_end'] = false;
                         settings['looping'] = true;
                         settings['speed_percent'] = 80;
+                        settings['caching'] = true;
                         break;
                     }
                     case 'text_gdiplus': {
