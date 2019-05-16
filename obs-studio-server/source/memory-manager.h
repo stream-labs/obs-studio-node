@@ -25,7 +25,7 @@
 #include "psapi.h"
 #include <algorithm>
 
-#define LIMIT 5120000000
+#define LIMIT 2048000000
 
 struct source_info
 {
