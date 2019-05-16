@@ -36,8 +36,10 @@ MemoryManager::MemoryManager()
 void MemoryManager::registerSource(obs_source_t* source)
 {
 	mtx.lock();
-	if (strcmp(obs_source_get_id(source), "ffmpeg_source") != 0)
+	if (strcmp(obs_source_get_id(source), "ffmpeg_source") != 0) {
+		mtx.unlock();
 		return;
+	}
 
 	source_info* info = new source_info;
 	info->cached      = false;
