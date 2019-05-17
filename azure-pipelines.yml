@@ -50,6 +50,9 @@ steps:
 
 - script: 'yarn run test'
   displayName: 'Run Tests'
+  env:
+    SLOBS_BE_STREAMKEY: $(testsStreamKey)
+    SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
 
 - script: "shutdown /r /t 10 /c \"Reboot after CI Job finished\" /f /d p:4:1"
   displayName: "Schedule Reboot"
