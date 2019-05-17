@@ -15,7 +15,7 @@ strategy:
       ElectronVersion: 2.0.8
 
 pool:
-  vmImage: vs2017-win2016
+  name: 'Streamlabs OBS Backend'
 
 variables:
   SLBuildDirectory: streamlabs-build
