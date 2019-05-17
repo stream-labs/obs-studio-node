@@ -41,30 +41,73 @@ void MemoryManager::registerSource(obs_source_t* source)
 		return;
 	}
 
-	source_info* info = new source_info;
-	info->cached      = false;
-	info->size        = 0;
-	info->source      = source;
-	sources.emplace(obs_source_get_name(source), info);
+	source_info* si = new source_info;
+	si->cached      = false;
+	si->size        = 0;
+	si->source      = source;
+	sources.emplace(obs_source_get_name(source), si);
 
 	mtx.unlock();
 	updateCacheSettings(source, false);
 }
 
-uint64_t MemoryManager::calculateRawSize(obs_source_t* source)
+void MemoryManager::calculateRawSize(source_info* si)
 {
-	uint64_t        width  = obs_source_get_width(source);
-	uint64_t        height = obs_source_get_height(source);
+	uint64_t width  = obs_source_get_width(si->source);
+	uint64_t height = obs_source_get_height(si->source);
 
 	calldata_t      cd = {0};
-	proc_handler_t* ph = obs_source_get_proc_handler(source);
+	proc_handler_t* ph = obs_source_get_proc_handler(si->source);
 	proc_handler_call(ph, "restart", &cd);
 	proc_handler_call(ph, "get_nb_frames", &cd);
 	uint64_t nb_frames = calldata_int(&cd, "num_frames");
 
 	uint64_t size = width * height * 1.5 * nb_frames;
+	si->size = size < 0 ? 0 : size;
+}
 
-	return size < 0 ? 0 : size;
+bool MemoryManager::shouldCacheSource(source_info* si)
+{
+	bool should_cache = false;
+
+	obs_data_t* settings = obs_source_get_settings(si->source);
+
+	bool looping        = obs_data_get_bool(settings, "looping");
+	bool local_file     = obs_data_get_bool(settings, "is_local_file");
+	bool enable_caching = config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "fileCaching");
+	bool is_small       = current_cached_size + si->size < allowed_cached_size;
+
+	obs_data_release(settings);
+
+	return looping && local_file && enable_caching && is_small;
+}
+
+void MemoryManager::addCachedMemory(source_info* si)
+{
+	blog(LOG_INFO, "adding %d", si->size);
+
+	current_cached_size += si->size;
+	si->cached          = true;
+}
+
+void MemoryManager::removeCacheMemory(source_info* si)
+{
+	blog(LOG_INFO, "removing %d", si->size);
+
+	current_cached_size -= si->size;
+	si->cached          = false;
+
+	if (current_cached_size < allowed_cached_size) {
+		for (auto data : sources) {
+			obs_data_t* settings = obs_source_get_settings(si->source);
+			bool        should_cache = obs_data_get_bool(settings, "caching");
+
+			if (!data.second->cached && should_cache)
+				addCachedMemory(data.second);
+
+			obs_data_release(settings);
+		}
+	}
 }
 
 void MemoryManager::updateCacheSettings(obs_source_t* source, bool updateSize)
@@ -86,20 +129,14 @@ void MemoryManager::updateCacheSettings(obs_source_t* source, bool updateSize)
 
 	if (updateSize) {
 		if (it->second->size == 0)
-			it->second->size = calculateRawSize(source);
+			calculateRawSize(it->second);
 
 		if (it->second->size != 0 && cache_source && !it->second->cached) {
 			cache_source = current_cached_size + it->second->size < allowed_cached_size;
-			if (cache_source) {
-				blog(LOG_INFO, "adding %d", it->second->size);
-				current_cached_size += it->second->size;
-				it->second->cached = true;
-			}
-		} else if (it->second->cached && !cache_source) {
-			blog(LOG_INFO, "removing %d", it->second->size);
-			current_cached_size -= it->second->size;
-			it->second->cached = false;
-		}
+			if (cache_source)
+				addCachedMemory(it->second);
+		} else if (it->second->cached && !cache_source)
+			removeCacheMemory(it->second);
 
 		blog(LOG_INFO, "current cached size: %d", current_cached_size / 1000000);
 	}
@@ -126,7 +163,7 @@ void MemoryManager::unregisterSource(obs_source_t* source)
 	obs_data_t* settings = obs_source_get_settings(source);
 
 	if (obs_data_get_bool(settings, "caching") && it->second->cached)
-		current_cached_size -= it->second->size;
+		removeCacheMemory(it->second);
 
 	blog(LOG_INFO, "current cached size: %d", current_cached_size / 1000000);
 	free(it->second);
@@ -137,7 +174,6 @@ void MemoryManager::updateCacheState()
 {
 	std::unique_lock<std::mutex> ulock(mtx);
 
-	for (auto data : sources) {
+	for (auto data : sources)
 		updateCacheSettings(data.second->source, true);
-	}
 }
