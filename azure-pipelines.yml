@@ -35,10 +35,10 @@ steps:
 - script: 'git submodule update --init --recursive'
   displayName: 'Update Submodules'
 
-- script: 'cmake -H. -B"%SLBuildDirectory%" -G"%SLGenerator%" -DCMAKE_INSTALL_PREFIX="%SLFullDistributePath%\obs-studio-node" -DSTREAMLABS_BUILD=OFF -DNODEJS_NAME=%RuntimeName% -DNODEJS_URL=%RuntimeURL% -DNODEJS_VERSION=%RuntimeVersion%'
+- script: 'cmake.exe -H. -B"%SLBuildDirectory%" -G"%SLGenerator%" -DCMAKE_INSTALL_PREFIX="%SLFullDistributePath%\obs-studio-node" -DSTREAMLABS_BUILD=OFF -DNODEJS_NAME=%RuntimeName% -DNODEJS_URL=%RuntimeURL% -DNODEJS_VERSION=%RuntimeVersion%'
   displayName: 'Configure OSN project'
 
-- script: 'cmake --build %SLBuildDirectory% --target install --config RelWithDebInfo'
+- script: 'cmake.exe --build %SLBuildDirectory% --target install --config RelWithDebInfo'
   displayName: 'Build OSN project'
 
 - script: |
