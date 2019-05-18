@@ -32,6 +32,8 @@ struct source_info
 	bool          cached;
 	uint64_t      size;
 	obs_source_t* source;
+	std::thread   worker;
+	bool          running;
 };
 
 class MemoryManager {
@@ -68,4 +70,5 @@ class MemoryManager {
 	bool shouldCacheSource(source_info* si);
 	void addCachedMemory(source_info* si);
 	void removeCacheMemory(source_info* si);
+	void worker(obs_source_t* source, bool updateSize);
 };

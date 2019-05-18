@@ -45,10 +45,11 @@ void MemoryManager::registerSource(obs_source_t* source)
 	si->cached      = false;
 	si->size        = 0;
 	si->source      = source;
+	si->running     = false;
 	sources.emplace(obs_source_get_name(source), si);
 
 	mtx.unlock();
-	updateCacheSettings(source, false);
+	updateCacheSettings(source, true);
 }
 
 void MemoryManager::calculateRawSize(source_info* si)
@@ -58,7 +59,6 @@ void MemoryManager::calculateRawSize(source_info* si)
 
 	calldata_t      cd = {0};
 	proc_handler_t* ph = obs_source_get_proc_handler(si->source);
-	proc_handler_call(ph, "restart", &cd);
 	proc_handler_call(ph, "get_nb_frames", &cd);
 	uint64_t nb_frames = calldata_int(&cd, "num_frames");
 
@@ -75,8 +75,13 @@ bool MemoryManager::shouldCacheSource(source_info* si)
 	bool looping        = obs_data_get_bool(settings, "looping");
 	bool local_file     = obs_data_get_bool(settings, "is_local_file");
 	bool enable_caching = config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "fileCaching");
-	bool is_small       = current_cached_size + si->size < allowed_cached_size;
-
+	bool is_small       = si->size < allowed_cached_size;
+	blog(
+	    LOG_INFO,
+	    "current cached size: %dMB, source size: %dMB, allowed cached size %dMB",
+	    current_cached_size / 1000000,
+	    si->size / 1000000,
+	    allowed_cached_size / 1000000);
 	obs_data_release(settings);
 
 	return looping && local_file && enable_caching && is_small;
@@ -84,7 +89,7 @@ bool MemoryManager::shouldCacheSource(source_info* si)
 
 void MemoryManager::addCachedMemory(source_info* si)
 {
-	blog(LOG_INFO, "adding %d", si->size);
+	blog(LOG_INFO, "adding %dMB", si->size / 1000000);
 
 	current_cached_size += si->size;
 	si->cached          = true;
@@ -92,22 +97,34 @@ void MemoryManager::addCachedMemory(source_info* si)
 
 void MemoryManager::removeCacheMemory(source_info* si)
 {
-	blog(LOG_INFO, "removing %d", si->size);
+	blog(LOG_INFO, "removing %dMB", si->size / 1000000);
 
-	current_cached_size -= si->size;
-	si->cached          = false;
+	current_cached_size     -= si->size;
+	si->cached              = false;
+	const char* current_key = obs_source_get_name(si->source);
 
 	if (current_cached_size < allowed_cached_size) {
+		blog(LOG_INFO, "size sources: %d", sources.size());
 		for (auto data : sources) {
-			bool        should_cache = shouldCacheSource(si);
+			if (strcmp(current_key, data.first) != 0) {
+				bool should_cache = shouldCacheSource(si);
 
-			if (!data.second->cached && should_cache)
-				addCachedMemory(data.second);
+				if (!data.second->cached && should_cache) {
+					blog(LOG_INFO, "checking if we should add sources in the cache");
+					addCachedMemory(data.second);
+					data.second->cached = true;
+					obs_data_t* settings = obs_source_get_settings(data.second->source);
+					obs_data_set_bool(settings, "caching", true);
+					blog(LOG_INFO, "updating caching in source settings");
+					obs_source_update(data.second->source, settings);
+					obs_data_release(settings);
+				}
+			}
 		}
 	}
 }
 
-void MemoryManager::updateCacheSettings(obs_source_t* source, bool updateSize)
+void MemoryManager::worker(obs_source_t* source, bool updateSize)
 {
 	std::unique_lock<std::mutex> ulock(mtx);
 
@@ -115,34 +132,53 @@ void MemoryManager::updateCacheSettings(obs_source_t* source, bool updateSize)
 	if (it == sources.end())
 		return;
 
-	obs_data_t* settings = obs_source_get_settings(source);
+	it->second->running = true;
 
-	bool looping        = obs_data_get_bool(settings, "looping");
-	bool local_file     = obs_data_get_bool(settings, "is_local_file");
-	bool enable_caching = config_get_bool(
-		ConfigManager::getInstance().getGlobal(), "General", "fileCaching");
-
-	bool cache_source = enable_caching && looping && local_file;
-
+	bool cache_source = shouldCacheSource(it->second);
 	if (updateSize) {
-		if (it->second->size == 0)
+		uint32_t retry = 10;
+		while (it->second->size == 0 && retry > 0) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(500));
 			calculateRawSize(it->second);
+			retry--;
+		}
 
 		if (it->second->size != 0 && cache_source && !it->second->cached) {
 			cache_source = current_cached_size + it->second->size < allowed_cached_size;
 			if (cache_source)
 				addCachedMemory(it->second);
+			else
+				blog(LOG_INFO, "Too big, not caching %dMB", it->second->size / 1000000);
 		} else if (it->second->cached && !cache_source)
 			removeCacheMemory(it->second);
 
-		blog(LOG_INFO, "current cached size: %d", current_cached_size / 1000000);
+		blog(LOG_INFO, "current cached size: %dMB", current_cached_size / 1000000);
 	}
 
+	obs_data_t* settings = obs_source_get_settings(source);
 	if (obs_data_get_bool(settings, "caching") != cache_source) {
 		obs_data_set_bool(settings, "caching", cache_source);
 		obs_source_update(source, settings);
 	}
 	obs_data_release(settings);
+	it->second->running = false;
+}
+
+void MemoryManager::updateCacheSettings(obs_source_t* source, bool updateSize)
+{
+	auto it = sources.find(obs_source_get_name(source));
+
+	if (it == sources.end())
+		return;
+
+	if (it->second->running)
+		return;
+
+	if (it->second->worker.joinable())
+		it->second->worker.join();
+
+	it->second->worker = std::thread(&MemoryManager::worker, this, source, updateSize);
+	it->second->worker.detach();
 }
 
 void MemoryManager::unregisterSource(obs_source_t* source)
@@ -162,7 +198,7 @@ void MemoryManager::unregisterSource(obs_source_t* source)
 	if (obs_data_get_bool(settings, "caching") && it->second->cached)
 		removeCacheMemory(it->second);
 
-	blog(LOG_INFO, "current cached size: %d", current_cached_size / 1000000);
+	blog(LOG_INFO, "current cached size: %dMB", current_cached_size / 1000000);
 	free(it->second);
 	sources.erase(obs_source_get_name(source));
 }

@@ -37,7 +37,6 @@ void osn::Source::initialize_global_signals()
 {
 	signal_handler_t* sh = obs_get_signal_handler();
 	signal_handler_connect(sh, "source_create", osn::Source::global_source_create_cb, nullptr);
-	signal_handler_connect(sh, "source_activate", osn::Source::global_source_activate_cb, nullptr);
 }
 
 void osn::Source::finalize_global_signals()
@@ -73,16 +72,6 @@ void osn::Source::global_source_create_cb(void* ptr, calldata_t* cd)
 	osn::Source::attach_source_signals(source);
 	CallbackManager::addSource(source);
 	MemoryManager::GetInstance().registerSource(source);
-}
-
-void osn::Source::global_source_activate_cb(void* ptr, calldata_t* cd)
-{
-	obs_source_t* source = nullptr;
-	if (!calldata_get_ptr(cd, "source", &source)) {
-		throw std::exception("calldata did not contain source pointer");
-	}
-
-	MemoryManager::GetInstance().updateCacheSettings(source, true);
 }
 
 void osn::Source::global_source_destroy_cb(void* ptr, calldata_t* cd)
