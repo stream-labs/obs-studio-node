@@ -99,13 +99,10 @@ void MemoryManager::removeCacheMemory(source_info* si)
 
 	if (current_cached_size < allowed_cached_size) {
 		for (auto data : sources) {
-			obs_data_t* settings = obs_source_get_settings(si->source);
-			bool        should_cache = obs_data_get_bool(settings, "caching");
+			bool        should_cache = shouldCacheSource(si);
 
 			if (!data.second->cached && should_cache)
 				addCachedMemory(data.second);
-
-			obs_data_release(settings);
 		}
 	}
 }
