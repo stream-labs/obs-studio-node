@@ -87,12 +87,23 @@ bool MemoryManager::shouldCacheSource(source_info* si)
 	return looping && local_file && enable_caching && is_small;
 }
 
+void updateSource(obs_source_t* source, bool caching)
+{
+	obs_data_t* settings = obs_source_get_settings(source);
+	if (obs_data_get_bool(settings, "caching") != caching) {
+		obs_data_set_bool(settings, "caching", caching);
+		obs_source_update(source, settings);
+	}
+	obs_data_release(settings);
+}
+
 void MemoryManager::addCachedMemory(source_info* si)
 {
 	blog(LOG_INFO, "adding %dMB", si->size / 1000000);
 
 	current_cached_size += si->size;
 	si->cached          = true;
+	updateSource(si->source, true);
 }
 
 void MemoryManager::removeCacheMemory(source_info* si)
@@ -122,6 +133,7 @@ void MemoryManager::removeCacheMemory(source_info* si)
 			}
 		}
 	}
+	updateSource(si->source, false);
 }
 
 void MemoryManager::worker(obs_source_t* source, bool updateSize)
@@ -154,13 +166,6 @@ void MemoryManager::worker(obs_source_t* source, bool updateSize)
 
 		blog(LOG_INFO, "current cached size: %dMB", current_cached_size / 1000000);
 	}
-
-	obs_data_t* settings = obs_source_get_settings(source);
-	if (obs_data_get_bool(settings, "caching") != cache_source) {
-		obs_data_set_bool(settings, "caching", cache_source);
-		obs_source_update(source, settings);
-	}
-	obs_data_release(settings);
 	it->second->running = false;
 }
 
