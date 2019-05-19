@@ -33,7 +33,7 @@ struct source_info
 	uint64_t      size;
 	obs_source_t* source;
 	std::thread   worker;
-	bool          running;
+	std::mutex    mtx;
 };
 
 class MemoryManager {
@@ -63,12 +63,12 @@ class MemoryManager {
 	void registerSource(obs_source_t* source);
 	void unregisterSource(obs_source_t* source);
 	void updateCacheState();
-	void updateCacheSettings(obs_source_t* source, bool updateSize);
+	void updateCacheSettings(obs_source_t* source);
 
 	private:
 	void calculateRawSize(source_info* si);
 	bool shouldCacheSource(source_info* si);
 	void addCachedMemory(source_info* si);
 	void removeCacheMemory(source_info* si);
-	void worker(obs_source_t* source, bool updateSize);
+	void worker(source_info* si);
 };
