@@ -82,7 +82,7 @@ void osn::Source::global_source_activate_cb(void* ptr, calldata_t* cd)
 	if (!calldata_get_ptr(cd, "source", &source)) {
 		throw std::exception("calldata did not contain source pointer");
 	}
-	MemoryManager::GetInstance().updateCacheSettings(source);
+	MemoryManager::GetInstance().updateSourceCache(source);
 }
 
 void osn::Source::global_source_deactivate_cb(void* ptr, calldata_t* cd)
@@ -91,7 +91,7 @@ void osn::Source::global_source_deactivate_cb(void* ptr, calldata_t* cd)
 	if (!calldata_get_ptr(cd, "source", &source)) {
 		throw std::exception("calldata did not contain source pointer");
 	}
-	MemoryManager::GetInstance().updateCacheSettings(source);
+	MemoryManager::GetInstance().updateSourceCache(source);
 }
 
 void osn::Source::global_source_destroy_cb(void* ptr, calldata_t* cd)
@@ -456,7 +456,7 @@ void osn::Source::GetProperties(
 
 	if (updateSource) {
 		obs_source_update(src, settings);
-		MemoryManager::GetInstance().updateCacheSettings(src);
+		MemoryManager::GetInstance().updateSourceCache(src);
 	}
 	AUTO_DEBUG;
 }
@@ -500,7 +500,7 @@ void osn::Source::Update(
 
 	obs_data_t* sets = obs_data_create_from_json(args[1].value_str.c_str());
 	obs_source_update(src, sets);
-	MemoryManager::GetInstance().updateCacheSettings(src);
+	MemoryManager::GetInstance().updateSourceCache(src);
 	obs_data_release(sets);
 
 	obs_data_t* updatedSettings = obs_source_get_settings(src);

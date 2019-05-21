@@ -33,23 +33,6 @@ MemoryManager::MemoryManager()
 	}
 }
 
-void MemoryManager::registerSource(obs_source_t* source)
-{
-	mtx.lock();
-	if (strcmp(obs_source_get_id(source), "ffmpeg_source") != 0) {
-		mtx.unlock();
-		return;
-	}
-
-	source_info* si = new source_info;
-	si->cached      = false;
-	si->size        = 0;
-	si->source      = source;
-	sources.emplace(obs_source_get_name(source), si);
-
-	mtx.unlock();
-}
-
 void MemoryManager::calculateRawSize(source_info* si)
 {
 	calldata_t      cd = {0};
@@ -118,6 +101,8 @@ void updateSource(obs_source_t* source, bool caching)
 
 void MemoryManager::addCachedMemory(source_info* si)
 {
+	std::unique_lock<std::mutex> ulock(si->mtx);
+
 	bool allow_caching = current_cached_size + si->size < allowed_cached_size;
 	if (allow_caching) {
 		current_cached_size += si->size;
@@ -132,6 +117,11 @@ void MemoryManager::addCachedMemory(source_info* si)
 
 void MemoryManager::removeCacheMemory(source_info* si)
 {
+	std::unique_lock<std::mutex> ulock(si->mtx);
+
+	if (!si->cached)
+		return;
+
 	blog(LOG_INFO, "removing %dMB, source: %s", si->size / 1000000, obs_source_get_name(si->source));
 
 	current_cached_size -= si->size;
@@ -152,16 +142,19 @@ void MemoryManager::removeCacheMemory(source_info* si)
 	updateSource(si->source, false);
 }
 
-void MemoryManager::worker(source_info* si)
+void MemoryManager::sources_manager(source_info* si)
 {
 	if (si->size == 0) {
-		uint32_t retry = 10;
-		while (si->size == 0 && retry > 0) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(500));
-			si->mtx.lock();
+		uint32_t retry = MAX_POOLS;
+		while (retry > 0) {
+			std::unique_lock<std::mutex> ulock(si->mtx);
 			calculateRawSize(si);
-			si->mtx.unlock();
+
+			if (si->size)
+				break;
+
 			retry--;
+			std::this_thread::sleep_for(std::chrono::milliseconds(500));
 		}
 	}
 
@@ -177,9 +170,8 @@ void MemoryManager::worker(source_info* si)
 	}
 }
 
-void MemoryManager::updateCacheSettings(obs_source_t * source)
+void MemoryManager::updateSettings(obs_source_t * source)
 {
-	const char* name = obs_source_get_name(source);
 	auto it = sources.find(obs_source_get_name(source));
 
 	if (it == sources.end())
@@ -188,35 +180,56 @@ void MemoryManager::updateCacheSettings(obs_source_t * source)
 	if (it->second->worker.joinable())
 		it->second->worker.join();
 
-	it->second->worker = std::thread(&MemoryManager::worker, this, it->second);
+	it->second->worker = std::thread(&MemoryManager::sources_manager, this, it->second);
 	it->second->worker.detach();
+}
+
+void MemoryManager::updateSourceCache(obs_source_t* source)
+{
+	std::unique_lock<std::mutex> ulock(mtx);
+
+	updateSettings(source);
+}
+
+void MemoryManager::updateSourcesCache(void)
+{
+	std::unique_lock<std::mutex> ulock(mtx);
+
+	for (auto data : sources)
+		updateSettings(data.second->source);
+}
+
+void MemoryManager::registerSource(obs_source_t* source)
+{
+	if (strcmp(obs_source_get_id(source), "ffmpeg_source") != 0)
+		return;
+
+	std::unique_lock<std::mutex> ulock(mtx);
+
+	source_info* si = new source_info;
+	si->cached      = false;
+	si->size        = 0;
+	si->source      = source;
+	sources.emplace(obs_source_get_name(source), si);
 }
 
 void MemoryManager::unregisterSource(obs_source_t * source)
 {
-	std::unique_lock<std::mutex> ulock(mtx);
-
 	if (strcmp(obs_source_get_id(source), "ffmpeg_source") != 0)
 		return;
+
+	std::unique_lock<std::mutex> ulock(mtx);
 
 	auto it = sources.find(obs_source_get_name(source));
 
 	if (it == sources.end())
 		return;
 
-	obs_data_t* settings = obs_source_get_settings(source);
+	removeCacheMemory(it->second);
 
-	if (obs_data_get_bool(settings, "caching") && it->second->cached)
-		removeCacheMemory(it->second);
+	if (it->second->worker.joinable())
+		it->second->worker.join();
 
 	free(it->second);
 	sources.erase(obs_source_get_name(source));
-}
-
-void MemoryManager::updateCacheState()
-{
-	std::unique_lock<std::mutex> ulock(mtx);
-
-	for (auto data : sources)
-		updateCacheSettings(data.second->source);
 }

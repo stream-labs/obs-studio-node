@@ -26,6 +26,7 @@
 #include <algorithm>
 
 #define LIMIT 2048000000
+#define MAX_POOLS 10
 
 struct source_info
 {
@@ -62,13 +63,15 @@ class MemoryManager {
 	public:
 	void registerSource(obs_source_t* source);
 	void unregisterSource(obs_source_t* source);
-	void updateCacheState();
-	void updateCacheSettings(obs_source_t* source);
+
+	void updateSourceCache(obs_source_t* source);
+	void updateSourcesCache(void);
 
 	private:
 	void calculateRawSize(source_info* si);
 	bool shouldCacheSource(source_info* si);
 	void addCachedMemory(source_info* si);
 	void removeCacheMemory(source_info* si);
-	void worker(source_info* si);
+	void sources_manager(source_info* si);
+	void updateSettings(obs_source_t* source);
 };
