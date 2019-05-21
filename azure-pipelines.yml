@@ -28,13 +28,13 @@ variables:
 
 steps:
 - script: 'yarn install'
-  displayName: 'Install Dependencies'
+  displayName: 'Install dependencies'
 
 - script: 'yarn add electron@%ElectronVersion% -D'
   displayName: 'Install Electron'
 
 - script: 'git submodule update --init --recursive'
-  displayName: 'Update Submodules'
+  displayName: 'Update submodules'
 
 - script: 'cmake.exe -H. -B"%SLBuildDirectory%" -G"%SLGenerator%" -DCMAKE_INSTALL_PREFIX="%SLFullDistributePath%\obs-studio-node" -DSTREAMLABS_BUILD=OFF -DNODEJS_NAME=%RuntimeName% -DNODEJS_URL=%RuntimeURL% -DNODEJS_VERSION=%RuntimeVersion%'
   displayName: 'Configure OSN project'
@@ -47,7 +47,7 @@ steps:
     copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Redist\MSVC\14.16.27012\onecore\x64\Microsoft.VC141.CRT\msvcp140.dll" "%SLFullDistributePath%\obs-studio-node\"
     copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Redist\MSVC\14.16.27012\onecore\x64\Microsoft.VC141.CRT\concrt140.dll" "%SLFullDistributePath%\obs-studio-node\"
     copy "C:\Program Files (x86)\Microsoft Visual Studio\Installer\ucrtbase.dll" "%SLFullDistributePath%\obs-studio-node\"
-  displayName: 'Post Build'
+  displayName: 'Post build'
 
 - task: ArchiveFiles@2
   inputs:
@@ -59,17 +59,17 @@ steps:
   displayName: 'Generate unsigned artifact'
 
 - script: 'yarn run test'
-  displayName: 'Run Tests'
+  displayName: 'Run tests'
   env:
     SLOBS_BE_STREAMKEY: $(testsStreamKey)
     SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
 
 - task: PublishBuildArtifacts@1
   inputs: 
-    pathtoPublish: $(SLFullDistributePath)\obs-studio-node\$(UnsignedArtifact).tar.gz
-    artifactName: build-$(Build.BuildId)
+    pathtoPublish: $(SLFullDistributePath)\$(UnsignedArtifact).tar.gz
+    artifactName: $(UnsignedArtifact).tar.gz
   displayName: 'Publish unsigned artifact'
 
 - script: "shutdown /r /t 10 /c \"Reboot after CI Job finished\" /f /d p:4:1"
-  displayName: "Schedule Reboot"
+  displayName: "Schedule reboot"
   condition: always()
