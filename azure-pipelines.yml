@@ -42,10 +42,10 @@ steps:
   displayName: 'Build OSN project'
 
 - script: |
-    'copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Redist\MSVC\14.16.27012\onecore\x64\Microsoft.VC141.CRT\vcruntime140.dll" "%SLFullDistributePath%\obs-studio-node\"'
-    'copy "C:\C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Redist\MSVC\14.16.27012\onecore\x64\Microsoft.VC141.CRT\msvcp140.dll" "%SLFullDistributePath%\obs-studio-node\"'
-    'copy "C:\C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Redist\MSVC\14.16.27012\onecore\x64\Microsoft.VC141.CRT\concrt140.dll" "%SLFullDistributePath%\obs-studio-node\"'
-    'copy "C:\Program Files (x86)\Microsoft Visual Studio\Installer\ucrtbase.dll" "%SLFullDistributePath%\obs-studio-node\"'
+    copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Redist\MSVC\14.16.27012\onecore\x64\Microsoft.VC141.CRT\vcruntime140.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Redist\MSVC\14.16.27012\onecore\x64\Microsoft.VC141.CRT\msvcp140.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Redist\MSVC\14.16.27012\onecore\x64\Microsoft.VC141.CRT\concrt140.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Microsoft Visual Studio\Installer\ucrtbase.dll" "%SLFullDistributePath%\obs-studio-node\"
   displayName: 'Post Build'
 
 - script: 'yarn run test'
