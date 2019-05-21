@@ -59,17 +59,31 @@ void MemoryManager::calculateRawSize(source_info* si)
 	uint64_t nb_frames = calldata_int(&cd, "num_frames");
 	uint64_t width     = calldata_int(&cd, "width");
 	uint64_t height    = calldata_int(&cd, "height");
-	uint32_t codec_id  = calldata_int(&cd, "codec_id");
-	float    bpp       = 1.5;
+	uint32_t pix_fmt   = calldata_int(&cd, "pix_format");
+	float    bpp       = 0;
 
-	// 168 is VP9, this method of calculating bpp is inacurate
-	// The real pixel format should be used here to determine the bpp
-	if (codec_id == 168)
-		bpp = 4;
-	blog(LOG_INFO, "codec_id: %d", codec_id);
-	blog(LOG_INFO, "bpp: %d", bpp);
+	switch (pix_fmt) {
+		case VIDEO_FORMAT_I420:
+		case VIDEO_FORMAT_NV12:
+			bpp = 1.5;
+			break;
+		case VIDEO_FORMAT_YVYU:
+		case VIDEO_FORMAT_YUY2:
+		case VIDEO_FORMAT_UYVY:
+			bpp = 2;
+			break;
+		case VIDEO_FORMAT_RGBA:
+		case VIDEO_FORMAT_BGRA:
+		case VIDEO_FORMAT_BGRX:
+		case VIDEO_FORMAT_Y800:
+			bpp = 4;
+			break;
+		case VIDEO_FORMAT_I444:
+			bpp = 4;
+			break;
+	}
+
 	uint64_t size = width * height * bpp * nb_frames;
-
 	si->size = size < 0 ? 0 : size;
 }
 
@@ -85,14 +99,10 @@ bool MemoryManager::shouldCacheSource(source_info* si)
 	bool is_small       = si->size < allowed_cached_size;
 	bool showing        = obs_source_showing(si->source);
 
-	blog(LOG_INFO, "OBS showing %s", showing ? "true" : "false");
-	blog(LOG_INFO, "close when inactive %s", obs_data_get_bool(settings, "close_when_inactive") ? "true" : "false");
 	if (!showing && !obs_data_get_bool(settings, "close_when_inactive"))
 		showing = true;
 
-	blog(LOG_INFO, "Is %s showing? %s", obs_source_get_name(si->source), showing ? "true" : "false");
 	obs_data_release(settings);
-
 	return looping && local_file && enable_caching && is_small && showing;
 }
 
@@ -129,13 +139,11 @@ void MemoryManager::removeCacheMemory(source_info* si)
 	const char* current_key = obs_source_get_name(si->source);
 
 	if (current_cached_size < allowed_cached_size) {
-		blog(LOG_INFO, "size sources: %d", sources.size());
 		for (auto data : sources) {
 			if (strcmp(current_key, data.first) != 0) {
 				bool should_cache = shouldCacheSource(data.second);
 
 				if (!data.second->cached && should_cache) {
-					blog(LOG_INFO, "checking if we should add sources in the cache");
 					addCachedMemory(data.second);
 				}
 			}
@@ -167,7 +175,6 @@ void MemoryManager::worker(source_info* si)
 	} else if (!cache_source && si->cached) {
 		removeCacheMemory(si);
 	}
-	blog(LOG_INFO, "current cached size: %dMB", current_cached_size / 1000000);
 }
 
 void MemoryManager::updateCacheSettings(obs_source_t * source)
@@ -202,7 +209,6 @@ void MemoryManager::unregisterSource(obs_source_t * source)
 	if (obs_data_get_bool(settings, "caching") && it->second->cached)
 		removeCacheMemory(it->second);
 
-	blog(LOG_INFO, "current cached size: %dMB", current_cached_size / 1000000);
 	free(it->second);
 	sources.erase(obs_source_get_name(source));
 }
