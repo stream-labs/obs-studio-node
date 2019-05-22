@@ -25,9 +25,9 @@
 #include "psapi.h"
 #include <algorithm>
 
-#define LIMIT 20048000000
+#define LIMIT 2004800000
 #define MAX_POOLS 10
-#define UPPER_LIMIT 60
+#define UPPER_LIMIT 80
 #define LOWER_LIMIT 50
 
 struct source_info
@@ -49,7 +49,6 @@ class MemoryManager {
 
 	private:
 	MemoryManager();
-	~MemoryManager();
 
 	public:
 	MemoryManager(MemoryManager const&) = delete;
@@ -67,6 +66,7 @@ class MemoryManager {
 	{
 		std::thread worker;
 		bool        stop = false;
+		bool        running = false;
 	} watcher;
 
 	public:
