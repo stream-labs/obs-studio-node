@@ -144,12 +144,13 @@ void MemoryManager::sourceManager(source_info* si)
 	if (si->size == 0) {
 		uint32_t retry = MAX_POOLS;
 		while (retry > 0) {
-			std::unique_lock<std::mutex> ulock(si->mtx);
+			si->mtx.lock();
 			calculateRawSize(si);
 
 			if (si->size)
 				break;
 
+			si->mtx.unlock();
 			retry--;
 			std::this_thread::sleep_for(std::chrono::milliseconds(500));
 		}
