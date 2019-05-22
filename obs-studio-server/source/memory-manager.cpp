@@ -22,15 +22,24 @@ MemoryManager::MemoryManager()
 {
 	MEMORYSTATUSEX statex;
 	statex.dwLength = sizeof(statex);
-	int ret         = GlobalMemoryStatusEx(&statex);
 
-	if (ret) {
+	if (GlobalMemoryStatusEx(&statex)) {
 		available_memory    = statex.ullTotalPhys;
 		allowed_cached_size = std::min((uint64_t)LIMIT, (uint64_t)available_memory / 2);
 	} else {
 		available_memory    = 0;
 		allowed_cached_size = LIMIT;
 	}
+
+	watcher.worker = std::thread(&MemoryManager::monitorMemory, this);
+}
+
+MemoryManager::~MemoryManager()
+{
+	watcher.stop  = true;
+
+	if (watcher.worker.joinable())
+		watcher.worker.join();
 }
 
 void MemoryManager::calculateRawSize(source_info* si)
@@ -86,7 +95,11 @@ bool MemoryManager::shouldCacheSource(source_info* si)
 		showing = true;
 
 	obs_data_release(settings);
-	return looping && local_file && enable_caching && is_small && showing;
+
+	return looping &&
+		   local_file &&
+		   enable_caching &&
+		   is_small && showing;
 }
 
 void updateSource(obs_source_t* source, bool caching)
@@ -103,19 +116,18 @@ void MemoryManager::addCachedMemory(source_info* si)
 {
 	std::unique_lock<std::mutex> ulock(si->mtx);
 
-	bool allow_caching = current_cached_size + si->size < allowed_cached_size;
-	if (allow_caching) {
-		current_cached_size += si->size;
-		si->cached = true;
-		updateSource(si->source, true);
-		blog(LOG_INFO, "adding %dMB, source: %s", si->size / 1000000, obs_source_get_name(si->source));
-	} else {
-		updateSource(si->source, false);
-		blog(LOG_INFO, "Too big, not caching %dMB, source: %s", si->size / 1000000, obs_source_get_name(si->source));
-	}
+	if (si->cached || current_cached_size + si->size > allowed_cached_size)
+		return;
+
+	blog(LOG_INFO, "adding %dMB, source: %s", si->size / 1000000, obs_source_get_name(si->source));
+
+	current_cached_size += si->size;
+	si->cached          =  true;
+
+	updateSource(si->source, true);
 }
 
-void MemoryManager::removeCacheMemory(source_info* si)
+void MemoryManager::removeCachedMemory(source_info* si, bool cacheNewFiles)
 {
 	std::unique_lock<std::mutex> ulock(si->mtx);
 
@@ -125,24 +137,21 @@ void MemoryManager::removeCacheMemory(source_info* si)
 	blog(LOG_INFO, "removing %dMB, source: %s", si->size / 1000000, obs_source_get_name(si->source));
 
 	current_cached_size -= si->size;
-	si->cached              = false;
-	const char* current_key = obs_source_get_name(si->source);
+	si->cached          =  false;
 
-	if (current_cached_size < allowed_cached_size) {
-		for (auto data : sources) {
-			if (strcmp(current_key, data.first) != 0) {
-				bool should_cache = shouldCacheSource(data.second);
-
-				if (!data.second->cached && should_cache) {
-					addCachedMemory(data.second);
-				}
-			}
-		}
-	}
 	updateSource(si->source, false);
+
+	if (!cacheNewFiles || current_cached_size >= allowed_cached_size)
+		return;
+
+
+	for (auto data : sources) {
+		if (strcmp(obs_source_get_name(si->source), data.first) != 0 && shouldCacheSource(data.second))
+			addCachedMemory(data.second);
+	}
 }
 
-void MemoryManager::sources_manager(source_info* si)
+void MemoryManager::sourceManager(source_info* si)
 {
 	if (si->size == 0) {
 		uint32_t retry = MAX_POOLS;
@@ -161,13 +170,10 @@ void MemoryManager::sources_manager(source_info* si)
 	if (si->size == 0)
 		return;
 
-	bool cache_source = shouldCacheSource(si);
-
-	if (cache_source && !si->cached) {
+	if (shouldCacheSource(si))
 		addCachedMemory(si);
-	} else if (!cache_source && si->cached) {
-		removeCacheMemory(si);
-	}
+	else
+		removeCachedMemory(si, true);
 }
 
 void MemoryManager::updateSettings(obs_source_t * source)
@@ -180,7 +186,7 @@ void MemoryManager::updateSettings(obs_source_t * source)
 	if (it->second->worker.joinable())
 		it->second->worker.join();
 
-	it->second->worker = std::thread(&MemoryManager::sources_manager, this, it->second);
+	it->second->worker = std::thread(&MemoryManager::sourceManager, this, it->second);
 	it->second->worker.detach();
 }
 
@@ -225,11 +231,56 @@ void MemoryManager::unregisterSource(obs_source_t * source)
 	if (it == sources.end())
 		return;
 
-	removeCacheMemory(it->second);
+	removeCachedMemory(it->second, true);
 
 	if (it->second->worker.joinable())
 		it->second->worker.join();
 
 	free(it->second);
 	sources.erase(obs_source_get_name(source));
+}
+
+void MemoryManager::monitorMemory()
+{
+	while (!watcher.stop) {
+		double   memory_load = 0;
+		uint32_t physical_memory_used = 0;
+
+		MEMORYSTATUSEX statex;
+		statex.dwLength = sizeof(statex);
+
+		if (GlobalMemoryStatusEx(&statex)) {
+			memory_load          = statex.dwMemoryLoad;
+			physical_memory_used = statex.ullTotalPhys - statex.ullAvailPhys;
+
+			std::unique_lock<std::mutex> ulock(mtx);
+
+			auto     it              = sources.begin();
+			uint64_t old_cached_size = current_cached_size;
+			if (memory_load && memory_load >= UPPER_LIMIT) {
+				blog(LOG_INFO, "We are above the upper limit");
+				while (memory_load >= UPPER_LIMIT && it != sources.end()) {
+					removeCachedMemory(it->second, false);
+					memory_load =
+					    (double)(statex.ullTotalPhys - statex.ullAvailPhys - current_cached_size + old_cached_size)
+					    / (double)statex.ullTotalPhys * 100;
+					blog(LOG_INFO, "New current_cached_size: %d", current_cached_size);
+					blog(LOG_INFO, "Current memoy load after removing -> %F", memory_load);
+					it++;
+				}
+			} else if (memory_load && memory_load < LOWER_LIMIT) {
+				blog(LOG_INFO, "We are below the lower limit");
+				while (memory_load < LOWER_LIMIT && it != sources.end()) {
+					addCachedMemory(it->second);
+					memory_load =
+					    (double)(statex.ullTotalPhys - statex.ullAvailPhys - current_cached_size + old_cached_size)
+					    / (double)statex.ullTotalPhys * 100;
+					it++;
+				}
+			}
+			blog(LOG_INFO, "Current memoy load -> %F", memory_load);
+		}
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	}
 }

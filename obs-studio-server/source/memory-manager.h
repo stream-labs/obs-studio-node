@@ -25,8 +25,10 @@
 #include "psapi.h"
 #include <algorithm>
 
-#define LIMIT 2048000000
+#define LIMIT 20048000000
 #define MAX_POOLS 10
+#define UPPER_LIMIT 60
+#define LOWER_LIMIT 50
 
 struct source_info
 {
@@ -47,6 +49,7 @@ class MemoryManager {
 
 	private:
 	MemoryManager();
+	~MemoryManager();
 
 	public:
 	MemoryManager(MemoryManager const&) = delete;
@@ -60,6 +63,12 @@ class MemoryManager {
 	uint64_t   current_cached_size;
 	uint64_t   allowed_cached_size;
 
+	struct
+	{
+		std::thread worker;
+		bool        stop = false;
+	} watcher;
+
 	public:
 	void registerSource(obs_source_t* source);
 	void unregisterSource(obs_source_t* source);
@@ -70,8 +79,11 @@ class MemoryManager {
 	private:
 	void calculateRawSize(source_info* si);
 	bool shouldCacheSource(source_info* si);
-	void addCachedMemory(source_info* si);
-	void removeCacheMemory(source_info* si);
-	void sources_manager(source_info* si);
 	void updateSettings(obs_source_t* source);
+
+	void addCachedMemory(source_info* si);
+	void removeCachedMemory(source_info* si, bool cacheNewFiles);
+
+	void sourceManager(source_info* si);
+	void monitorMemory(void);
 };
