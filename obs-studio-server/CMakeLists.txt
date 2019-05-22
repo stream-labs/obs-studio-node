@@ -108,8 +108,8 @@ add_dependencies(crashpad_util crashpad_client)
 
 string(
 	CONCAT OSN_DEFAULT_LIBOBS_URL
-	"https://ci.appveyor.com/api/buildjobs/a5way4ah42pcdmto/artifacts/"
-	"libobs-debug-23.1.0-sl.485-win32-x64.7z"
+	"https://obsstudios3.streamlabs.com/"
+	"libobs-release-23.1.0-sl.491-win32-x64.7z"
 )
 
 set(
