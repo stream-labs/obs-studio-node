@@ -79,11 +79,12 @@ class MemoryManager {
 	private:
 	void calculateRawSize(source_info* si);
 	bool shouldCacheSource(source_info* si);
-	void updateSettings(obs_source_t* source);
+	void updateSettings(obs_source_t* source, bool async);
+	void updateSource(obs_source_t* source, bool caching, bool async);
 
-	void addCachedMemory(source_info* si);
-	void removeCachedMemory(source_info* si, bool cacheNewFiles);
+	void addCachedMemory(source_info* si, bool async);
+	void removeCachedMemory(source_info* si, bool cacheNewFiles, bool async);
 
-	void sourceManager(source_info* si);
+	void sourceManager(source_info* si, bool async);
 	void monitorMemory(void);
 };
