@@ -87,9 +87,9 @@ bool MemoryManager::shouldCacheSource(source_info* si)
 	obs_data_release(settings);
 
 	return looping &&
-		   local_file &&
-		   enable_caching &&
-		   is_small && showing;
+           local_file &&
+           enable_caching &&
+           is_small && showing;
 }
 
 void updateSource(obs_source_t* source, bool caching)
