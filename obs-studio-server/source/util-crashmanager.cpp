@@ -832,7 +832,7 @@ void util::CrashManager::ProcessPreServerCall(std::string cname, std::string fna
 	jsonEntry["ipc values"] = ipcValues;
 	*/
 
-    RegisterAction(jsonEntry);
+	RegisterAction(jsonEntry);
 }
 
 void util::CrashManager::ProcessPostServerCall(
