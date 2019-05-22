@@ -924,8 +924,10 @@ bool OBS_service::updateAudioStreamingEncoder() {
 	} else {
 		uint64_t trackIndex = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex");
 
-		if (audioAdvancedStreamingEncoder)
+		if (audioAdvancedStreamingEncoder) {
 			obs_encoder_release(audioAdvancedStreamingEncoder);
+			audioAdvancedStreamingEncoder = nullptr;
+		}
 
 		if (strcmp(codec, "aac") == 0) {
 			audioAdvancedStreamingEncoder = aacTracks[trackIndex - 1];
