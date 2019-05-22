@@ -112,7 +112,19 @@ describe('nodeobs_settings', function() {
 
                 // Checking if stream settings were updated correctly
                 const updatedStreamSettings = osn.NodeObs.OBS_settings_getSettings('Stream').data;
-                expect(streamSettings).to.eql(updatedStreamSettings);
+                let index_sc = 0;
+                streamSettings.forEach(subCategory => {
+                    subCategory.parameters.forEach(parameter => {
+                        let found = false;
+                        let index_p = -1;
+                        while(!found && index_p < updatedStreamSettings[index_sc].parameters.length) {
+                            index_p++;
+                            found = parameter.name === updatedStreamSettings[index_sc].parameters[index_p].name;
+                        }
+                        expect(parameter.currentValue).to.equal(updatedStreamSettings[index_sc].parameters[index_p].currentValue);
+                    });
+                    index_sc++;
+                });
             });
         });
 
