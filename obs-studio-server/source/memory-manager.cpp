@@ -78,7 +78,7 @@ bool MemoryManager::shouldCacheSource(source_info* si)
 	bool looping        = obs_data_get_bool(settings, "looping");
 	bool local_file     = obs_data_get_bool(settings, "is_local_file");
 	bool enable_caching = config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "fileCaching");
-	bool is_small       = si->size < allowed_cached_size;
+	bool is_small       = current_cached_size + si->size < allowed_cached_size;
 	bool showing        = obs_source_showing(si->source);
 
 	if (!showing && !obs_data_get_bool(settings, "close_when_inactive"))
@@ -106,7 +106,7 @@ void MemoryManager::addCachedMemory(source_info* si)
 {
 	std::unique_lock<std::mutex> ulock(si->mtx);
 
-	if (si->cached || current_cached_size + si->size > allowed_cached_size)
+	if (!si->size || si->cached || current_cached_size + si->size > allowed_cached_size)
 		return;
 
 	blog(LOG_INFO, "adding %dMB, source: %s", si->size / 1000000, obs_source_get_name(si->source));
@@ -119,7 +119,6 @@ void MemoryManager::addCachedMemory(source_info* si)
 void MemoryManager::removeCachedMemory(source_info* si, bool cacheNewFiles)
 {
 	std::unique_lock<std::mutex> ulock(si->mtx);
-
 	if (!si->cached)
 		return;
 
@@ -156,7 +155,7 @@ void MemoryManager::sourceManager(source_info* si)
 		}
 	}
 
-	if (si->size == 0)
+	if (!si->size)
 		return;
 
 	if (shouldCacheSource(si))
@@ -206,7 +205,7 @@ void MemoryManager::registerSource(obs_source_t* source)
 	si->size        = 0;
 	si->source      = source;
 	sources.emplace(obs_source_get_name(source), si);
-
+	updateSource(source, false);
 	if (!watcher.running) {
 		watcher.running = true;
 		watcher.worker  = std::thread(&MemoryManager::monitorMemory, this);
@@ -261,7 +260,6 @@ void MemoryManager::monitorMemory()
 
 			auto it = sources.begin();
 			if (memory_load >= UPPER_LIMIT) {
-				blog(LOG_INFO, "We are above the upper limit");
 				while (memory_load >= (UPPER_LIMIT - 10) && it != sources.end()) {
 					removeCachedMemory(it->second, false);
 					memory_load =
@@ -269,9 +267,9 @@ void MemoryManager::monitorMemory()
 					it++;
 				}
 			} else if (memory_load < LOWER_LIMIT) {
-				blog(LOG_INFO, "We are below the upper limit");
 				while (memory_load < (LOWER_LIMIT + 10) && it != sources.end()) {
-					addCachedMemory(it->second);
+					if (shouldCacheSource(it->second))
+						addCachedMemory(it->second);
 					memory_load =
 					    (float)(memory_in_use_without_cache + current_cached_size) / (float)total_memory * 100;
 					it++;
