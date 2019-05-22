@@ -60,7 +60,7 @@ function start(cb: TConfigProgressCallback) {
 
 function saveStreamKey(key: string) {
     // Getting stream settings container
-    const streamSettings = osn.NodeObs.OBS_settings_getSettings('Stream');
+    const streamSettings = osn.NodeObs.OBS_settings_getSettings('Stream').data;
 
     // Setting stream service and stream key
     streamSettings.forEach(subCategory => {

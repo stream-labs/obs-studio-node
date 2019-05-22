@@ -924,8 +924,12 @@ bool OBS_service::updateAudioStreamingEncoder() {
 	} else {
 		uint64_t trackIndex = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex");
 
+		if (audioAdvancedStreamingEncoder)
+			obs_encoder_release(audioAdvancedStreamingEncoder);
+
 		if (strcmp(codec, "aac") == 0) {
 			audioAdvancedStreamingEncoder = aacTracks[trackIndex - 1];
+			obs_encoder_addref(audioAdvancedStreamingEncoder);
 		} else {
 			const char* id           = FindAudioEncoderFromCodec(codec);
 			int         audioBitrate = GetAdvancedAudioBitrate(trackIndex - 1);
@@ -1973,6 +1977,17 @@ void OBS_service::setAudioSimpleRecordingEncoder(obs_encoder_t* encoder)
 	audioSimpleRecordingEncoder = encoder;
 }
 
+obs_encoder_t* OBS_service::getAudioAdvancedStreamingEncoder(void)
+{
+	return audioAdvancedStreamingEncoder;
+}
+
+void OBS_service::setAudioAdvancedStreamingEncoder(obs_encoder_t* encoder)
+{
+	obs_encoder_release(audioAdvancedStreamingEncoder);
+	audioAdvancedStreamingEncoder = encoder;
+}
+
 obs_output_t* OBS_service::getStreamingOutput(void)
 {
 	return streamingOutput;
@@ -2173,8 +2188,10 @@ void OBS_service::JSCallbackOutputSignal(void* data, calldata_t* params)
 
 		if (signal.getOutputType().compare("streaming") == 0)
 			output = streamingOutput;
-		else
+		else if (signal.getOutputType().compare("recording") == 0)
 			output = recordingOutput;
+		else
+			output = replayBufferOutput;
 
 		const char* error = obs_output_get_last_error(output);
 		if (error) {
