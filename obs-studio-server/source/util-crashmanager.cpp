@@ -605,7 +605,7 @@ nlohmann::json util::CrashManager::ComputeActions()
 
         // Update the message to reflect the count amount, if applicable
         if (counter > 0) {
-			message["repeat"] = counter;
+            message["repeat"] = counter;
         }
 
 		result.push_back(message);
@@ -787,7 +787,7 @@ void RegisterAction(const nlohmann::json& message)
 	static const int            MaximumActionsRegistered = 50;
 	std::lock_guard<std::mutex> lock(messageMutex);
 
-    // Check if this and the last message are the same, if true just add a counter
+	// Check if this and the last message are the same, if true just add a counter
 	if (lastActions.size() > 0 && lastActions.back().second == message) {
 		lastActions.back().first++;
 	} else {
