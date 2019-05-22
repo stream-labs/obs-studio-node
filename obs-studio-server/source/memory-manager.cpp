@@ -251,19 +251,18 @@ void MemoryManager::monitorMemory()
 		if (GlobalMemoryStatusEx(&statex)) {
 			std::unique_lock<std::mutex> ulock(mtx);
 
-			uint64_t total_memory = statex.ullTotalPhys;
-			uint64_t free_memory   = statex.ullAvailPhys;
-			uint64_t memory_in_use = total_memory - free_memory;
+			uint64_t memory_in_use               = statex.ullTotalPhys - statex.ullAvailPhys;
 			uint64_t memory_in_use_without_cache = memory_in_use - current_cached_size;
 
-			float memory_load = (float)(memory_in_use_without_cache + current_cached_size) / (float)total_memory * 100;
+			float memory_load =
+			    (float)(memory_in_use_without_cache + current_cached_size) / (float)statex.ullTotalPhys * 100;
 
 			auto it = sources.begin();
 			if (memory_load >= UPPER_LIMIT) {
 				while (memory_load >= (UPPER_LIMIT - 10) && it != sources.end()) {
 					removeCachedMemory(it->second, false);
 					memory_load =
-					    (float)(memory_in_use_without_cache + current_cached_size) / (float)total_memory * 100;
+					    (float)(memory_in_use_without_cache + current_cached_size) / (float)statex.ullTotalPhys * 100;
 					it++;
 				}
 			} else if (memory_load < LOWER_LIMIT) {
@@ -271,12 +270,11 @@ void MemoryManager::monitorMemory()
 					if (shouldCacheSource(it->second))
 						addCachedMemory(it->second);
 					memory_load =
-					    (float)(memory_in_use_without_cache + current_cached_size) / (float)total_memory * 100;
+					    (float)(memory_in_use_without_cache + current_cached_size) / (float)statex.ullTotalPhys * 100;
 					it++;
 				}
 			}
 		}
-
 		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	}
 }
