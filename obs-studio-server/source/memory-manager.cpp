@@ -145,10 +145,12 @@ void MemoryManager::sourceManager(source_info* si)
 		while (retry > 0) {
 			si->mtx.lock();
 			calculateRawSize(si);
-			si->mtx.unlock();
 
-			if (si->size)
+			if (si->size) {
+				si->mtx.unlock();
 				break;
+			}
+			si->mtx.unlock();
 
 			retry--;
 			std::this_thread::sleep_for(std::chrono::milliseconds(500));
