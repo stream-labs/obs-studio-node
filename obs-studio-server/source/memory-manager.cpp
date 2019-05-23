@@ -140,6 +140,19 @@ void MemoryManager::removeCachedMemory(source_info* si, bool cacheNewFiles)
 
 void MemoryManager::sourceManager(source_info* si)
 {
+	si->mtx.lock();
+	obs_data_t*                  settings = obs_source_get_settings(si->source);
+
+	bool looping    = obs_data_get_bool(settings, "looping");
+	bool local_file = obs_data_get_bool(settings, "is_local_file");
+
+	obs_data_release(settings);
+	if (!looping || !local_file) {
+		si->mtx.unlock();
+		return;
+	}
+	si->mtx.unlock();
+
 	if (si->size == 0) {
 		uint32_t retry = MAX_POOLS;
 		while (retry > 0) {
