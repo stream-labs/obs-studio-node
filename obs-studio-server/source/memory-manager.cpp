@@ -175,7 +175,6 @@ void MemoryManager::updateSettings(obs_source_t * source)
 		it->second->worker.join();
 
 	it->second->worker = std::thread(&MemoryManager::sourceManager, this, it->second);
-	it->second->worker.detach();
 }
 
 void MemoryManager::updateSourceCache(obs_source_t* source)
@@ -224,10 +223,10 @@ void MemoryManager::unregisterSource(obs_source_t * source)
 	if (it == sources.end())
 		return;
 
-	removeCachedMemory(it->second, true);
-
 	if (it->second->worker.joinable())
 		it->second->worker.join();
+	
+	removeCachedMemory(it->second, true);
 
 	free(it->second);
 	sources.erase(obs_source_get_name(source));
