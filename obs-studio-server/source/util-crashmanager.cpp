@@ -61,15 +61,16 @@
 //////////////////////
 
 // Global/static variables
-std::vector<std::string>              handledOBSCrashes;
-PDH_HQUERY                            cpuQuery;
-PDH_HCOUNTER                          cpuTotal;
-std::vector<nlohmann::json>           breadcrumbs;
-std::vector<std::string>              warnings;
-std::chrono::steady_clock::time_point initialTime;
-std::mutex                            messageMutex;
-util::MetricsProvider                 metricsClient;
-bool                                  reportsEnabled = true;
+std::vector<std::string>                   handledOBSCrashes;
+PDH_HQUERY                                 cpuQuery;
+PDH_HCOUNTER                               cpuTotal;
+std::vector<nlohmann::json>                breadcrumbs;
+std::queue<std::pair<int, nlohmann::json>> lastActions;
+std::vector<std::string>                   warnings;
+std::chrono::steady_clock::time_point      initialTime;
+std::mutex                                 messageMutex;
+util::MetricsProvider                      metricsClient;
+bool                                       reportsEnabled = true;
 
 // Crashpad variables
 #ifndef _DEBUG
@@ -412,6 +413,7 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	annotations.insert({{"Crash reason", _crashInfo}});
 	annotations.insert({{"Computer name", computerName}});
 	annotations.insert({{"Breadcrumbs", ComputeBreadcrumbs().dump(4)}});
+	annotations.insert({{"Last actions", ComputeActions().dump(4)}});
 	annotations.insert({{"Warnings", ComputeWarnings().dump(4)}});
 	annotations.insert({{"Version", OBS_API::getCurrentVersion()}});
 
@@ -593,6 +595,26 @@ nlohmann::json util::CrashManager::ComputeBreadcrumbs()
 	return result;
 }
 
+nlohmann::json util::CrashManager::ComputeActions()
+{
+	nlohmann::json result = nlohmann::json::array();
+
+	while (!lastActions.empty()) {
+		auto counter = lastActions.front().first;
+		auto message = lastActions.front().second;
+
+        // Update the message to reflect the count amount, if applicable
+        if (counter > 0) {
+            message["repeat"] = counter;
+        }
+
+		result.push_back(message);
+		lastActions.pop();
+	}
+
+	return result;
+}
+
 nlohmann::json util::CrashManager::ComputeWarnings()
 {
 	nlohmann::json result;
@@ -760,6 +782,22 @@ void util::CrashManager::AddWarning(const std::string& warning)
 	warnings.push_back(warning);
 }
 
+void RegisterAction(const nlohmann::json& message) 
+{
+	static const int            MaximumActionsRegistered = 50;
+	std::lock_guard<std::mutex> lock(messageMutex);
+
+	// Check if this and the last message are the same, if true just add a counter
+	if (lastActions.size() > 0 && lastActions.back().second == message) {
+		lastActions.back().first++;
+	} else {
+		lastActions.push({0, message});
+		if (lastActions.size() >= MaximumActionsRegistered) {
+			lastActions.pop();
+		}
+	}
+}
+
 void util::CrashManager::AddBreadcrumb(const nlohmann::json& message)
 {
 	std::lock_guard<std::mutex> lock(messageMutex);
@@ -794,7 +832,7 @@ void util::CrashManager::ProcessPreServerCall(std::string cname, std::string fna
 	jsonEntry["ipc values"] = ipcValues;
 	*/
 
-	AddBreadcrumb(jsonEntry);
+	RegisterAction(jsonEntry);
 }
 
 void util::CrashManager::ProcessPostServerCall(
@@ -809,8 +847,6 @@ void util::CrashManager::ProcessPostServerCall(
 		    std::string("Server call returned error number ") + std::to_string(args[0].value_union.ui64) + " on method "
 		    + fname + std::string(" for class ") + cname);
 	}
-
-	ClearBreadcrumbs();
 }
 
 void util::CrashManager::DisableReports()
