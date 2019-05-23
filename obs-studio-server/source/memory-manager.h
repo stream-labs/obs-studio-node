@@ -24,6 +24,7 @@
 #include <windows.h>
 #include "psapi.h"
 #include <algorithm>
+#include <vector>
 
 #define LIMIT 2004800000
 #define MAX_POOLS 10
@@ -35,7 +36,7 @@ struct source_info
 	bool          cached;
 	uint64_t      size;
 	obs_source_t* source;
-	std::thread   worker;
+	std::vector<std::thread> workers;
 	std::mutex    mtx;
 };
 

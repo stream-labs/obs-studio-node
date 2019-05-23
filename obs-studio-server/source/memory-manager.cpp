@@ -143,20 +143,23 @@ void MemoryManager::sourceManager(source_info* si)
 	if (si->size == 0) {
 		uint32_t retry = MAX_POOLS;
 		while (retry > 0) {
+			mtx.lock();
 			si->mtx.lock();
 			calculateRawSize(si);
 
 			if (si->size) {
 				si->mtx.unlock();
+				mtx.unlock();
 				break;
 			}
 			si->mtx.unlock();
+			mtx.unlock();
 
 			retry--;
 			std::this_thread::sleep_for(std::chrono::milliseconds(500));
 		}
 	}
-
+	std::unique_lock<std::mutex> ulock(mtx);
 	si->mtx.lock();
 	if (!si->size) {
 		si->mtx.unlock();
@@ -178,10 +181,7 @@ void MemoryManager::updateSettings(obs_source_t * source)
 	if (it == sources.end())
 		return;
 
-	if (it->second->worker.joinable())
-		it->second->worker.join();
-
-	it->second->worker = std::thread(&MemoryManager::sourceManager, this, it->second);
+	it->second->workers.push_back(std::thread(&MemoryManager::sourceManager, this, it->second));
 }
 
 void MemoryManager::updateSourceCache(obs_source_t* source)
@@ -230,9 +230,12 @@ void MemoryManager::unregisterSource(obs_source_t * source)
 	if (it == sources.end())
 		return;
 
-	if (it->second->worker.joinable())
-		it->second->worker.join();
+	for (auto& worker : it->second->workers) {
+		if (worker.joinable())
+			worker.join();
+	}
 	
+	it->second->workers.clear();
 	removeCachedMemory(it->second, true);
 
 	free(it->second);
