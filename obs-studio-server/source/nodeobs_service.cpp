@@ -924,8 +924,14 @@ bool OBS_service::updateAudioStreamingEncoder() {
 	} else {
 		uint64_t trackIndex = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex");
 
+		if (audioAdvancedStreamingEncoder) {
+			obs_encoder_release(audioAdvancedStreamingEncoder);
+			audioAdvancedStreamingEncoder = nullptr;
+		}
+
 		if (strcmp(codec, "aac") == 0) {
 			audioAdvancedStreamingEncoder = aacTracks[trackIndex - 1];
+			obs_encoder_addref(audioAdvancedStreamingEncoder);
 		} else {
 			const char* id           = FindAudioEncoderFromCodec(codec);
 			int         audioBitrate = GetAdvancedAudioBitrate(trackIndex - 1);
@@ -1971,6 +1977,17 @@ void OBS_service::setAudioSimpleRecordingEncoder(obs_encoder_t* encoder)
 {
 	obs_encoder_release(audioSimpleRecordingEncoder);
 	audioSimpleRecordingEncoder = encoder;
+}
+
+obs_encoder_t* OBS_service::getAudioAdvancedStreamingEncoder(void)
+{
+	return audioAdvancedStreamingEncoder;
+}
+
+void OBS_service::setAudioAdvancedStreamingEncoder(obs_encoder_t* encoder)
+{
+	obs_encoder_release(audioAdvancedStreamingEncoder);
+	audioAdvancedStreamingEncoder = encoder;
 }
 
 obs_output_t* OBS_service::getStreamingOutput(void)
