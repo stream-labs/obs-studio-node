@@ -236,17 +236,22 @@ void MemoryManager::unregisterSource(obs_source_t * source)
 	if (strcmp(obs_source_get_id(source), "ffmpeg_source") != 0)
 		return;
 
-	std::unique_lock<std::mutex> ulock(mtx);
+	mtx.lock();
 
 	auto it = sources.find(obs_source_get_name(source));
 
-	if (it == sources.end())
+	if (it == sources.end()) {
+		mtx.unlock();
 		return;
+	}
+	mtx.unlock();
 
 	for (auto& worker : it->second->workers) {
 		if (worker.joinable())
 			worker.join();
 	}
+
+	mtx.lock();
 	
 	it->second->workers.clear();
 	removeCachedMemory(it->second, true);
@@ -262,6 +267,8 @@ void MemoryManager::unregisterSource(obs_source_t * source)
 
 		watcher.running = false;
 	}
+
+	mtx.unlock();
 }
 
 void MemoryManager::monitorMemory()
