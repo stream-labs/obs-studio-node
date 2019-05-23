@@ -157,10 +157,15 @@ void MemoryManager::sourceManager(source_info* si)
 		}
 	}
 
-	if (!si->size)
+	si->mtx.lock();
+	if (!si->size) {
+		si->mtx.unlock();
 		return;
+	}
+	bool should_cache = shouldCacheSource(si);
+	si->mtx.unlock();
 
-	if (shouldCacheSource(si))
+	if (should_cache)
 		addCachedMemory(si);
 	else
 		removeCachedMemory(si, true);
