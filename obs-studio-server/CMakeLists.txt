@@ -1,5 +1,9 @@
 ﻿PROJECT(obs-studio-server VERSION ${obs-studio-node_VERSION})
 
+if(MSVC)
+  add_definitions(/MP)
+endif()
+
 # Detect Architecture (Bitness)
 IF( NOT CLANG_ANALYZE_CONFIG)
 	math(EXPR BITS "8*${CMAKE_SIZEOF_VOID_P}")
