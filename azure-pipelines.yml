@@ -51,6 +51,12 @@ steps:
 - script: 'cmake.exe --build %SLBuildDirectory% --target install --config RelWithDebInfo'
   displayName: 'Build obs-studio-node'
 
+- script: 'yarn run test'
+  displayName: 'Run tests'
+  env:
+    SLOBS_BE_STREAMKEY: $(testsStreamKey)
+    SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+
 - script: |
     copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Redist\MSVC\14.16.27012\onecore\x64\Microsoft.VC141.CRT\vcruntime140.dll" "%SLFullDistributePath%\obs-studio-node\"
     copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Redist\MSVC\14.16.27012\onecore\x64\Microsoft.VC141.CRT\msvcp140.dll" "%SLFullDistributePath%\obs-studio-node\"
@@ -66,12 +72,6 @@ steps:
     tarCompression: gz
     archiveFile: '$(SLFullDistributePath)\$(UnsignedArtifact).tar.gz'
   displayName: 'Generate unsigned artifact'
-
-- script: 'yarn run test'
-  displayName: 'Run tests'
-  env:
-    SLOBS_BE_STREAMKEY: $(testsStreamKey)
-    SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
 
 - task: PublishBuildArtifacts@1
   inputs: 
@@ -102,6 +102,7 @@ steps:
     pathtoPublish: $(SLFullDistributePath)\$(SignedArtifact).tar.gz
     artifactName: $(SignedArtifact).tar.gz
   displayName: 'Publish signed artifact'
+  condition: contains(variables['Build.SourceBranch'], 'tags')
 
 - script: |
     curl -kL "https://github.com/getsentry/sentry-cli/releases/download/1.37.3/sentry-cli-Windows-i686.exe" -o "sentry-cli.exe" -f --retry 5
