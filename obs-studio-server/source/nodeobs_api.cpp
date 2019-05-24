@@ -1095,7 +1095,7 @@ void OBS_API::destroyOBS_API(void)
 		// a crash on the backend
 		// This is necessary since the frontend could still finish after the backend, causing the
 		// crash manager to think the backend crashed first while the real culprit is the frontend
-		util::CrashManager::GetMetricsProvider()->BlameUser();
+		util::CrashManager::GetMetricsProvider()->BlameFrontend();
 
 		util::CrashManager::DisableReports();
 
