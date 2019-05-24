@@ -1,10 +1,10 @@
 trigger:
   branches:
     include:
-      - refs/heads/staging
+      - staging
   tags:
     include:
-      - refs/tags/v*
+      - v*
 
 workspace:
   clean: all
@@ -32,7 +32,7 @@ variables:
   SLFullDistributePath: $(SLBuildDirectory)\$(SLDistributeDirectory)
   SLArch: x64
   SignTool: C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe
-  SignedArtifact: 
+  SignedArtifact: obs-studio-node-$(git describe --tags --abbrev=0)-$(RuntimeName)-$(RuntimeVersion)
   UnsignedArtifact: obs-studio-node-us-$(Build.BuildId)-$(RuntimeName)-$(RuntimeVersion)
 
 steps:
@@ -52,10 +52,10 @@ steps:
   displayName: 'Build obs-studio-node'
 
 - script: 'yarn run test'
-  displayName: 'Run tests'
   env:
     SLOBS_BE_STREAMKEY: $(testsStreamKey)
     SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+  displayName: 'Run tests'
 
 - script: |
     copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Redist\MSVC\14.16.27012\onecore\x64\Microsoft.VC141.CRT\vcruntime140.dll" "%SLFullDistributePath%\obs-studio-node\"
@@ -80,7 +80,6 @@ steps:
   displayName: 'Publish unsigned artifact'
 
 - script: |
-    $env:SignedArtifact = "obs-studio-node-$(git describe --tags --abbrev=0)-$env:RuntimeName-$env:RuntimeVersion"
     curl -kLO "https://github.com/obsproject/obs-studio/releases/download/%OBSVersion%/OBS-Studio-%OBSVersion%-Full-x64.zip" -f --retry 5
     7z x "OBS-Studio-%OBSVersion%-Full-x64.zip" -oobs-studio-jp9000
     robocopy "obs-studio-jp9000\data\obs-plugins\win-capture" "%SLFullDistributePath%\obs-studio-node\data\obs-plugins\win-capture" & exit 0
