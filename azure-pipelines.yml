@@ -1,6 +1,7 @@
 trigger:
   branches:
-    - refs/heads/staging
+    include:
+      - refs/heads/staging
   tags:
     include:
       - refs/tags/v*
