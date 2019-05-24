@@ -1,5 +1,12 @@
 trigger:
-- staging
+  branches:
+    - refs/heads/staging
+  tags:
+    include:
+      - refs/tags/v*
+
+workspace:
+  clean: all
 
 strategy:
   matrix:
@@ -24,6 +31,7 @@ variables:
   SLFullDistributePath: $(SLBuildDirectory)\$(SLDistributeDirectory)
   SLArch: x64
   SignTool: C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe
+  SignedArtifact: 
   UnsignedArtifact: obs-studio-node-us-$(Build.BuildId)-$(RuntimeName)-$(RuntimeVersion)
 
 steps:
@@ -37,17 +45,17 @@ steps:
   displayName: 'Update submodules'
 
 - script: 'cmake.exe -H. -B"%SLBuildDirectory%" -G"%SLGenerator%" -DCMAKE_INSTALL_PREFIX="%SLFullDistributePath%\obs-studio-node" -DSTREAMLABS_BUILD=OFF -DNODEJS_NAME=%RuntimeName% -DNODEJS_URL=%RuntimeURL% -DNODEJS_VERSION=%RuntimeVersion%'
-  displayName: 'Configure OSN project'
+  displayName: 'Configure obs-studio-node'
 
 - script: 'cmake.exe --build %SLBuildDirectory% --target install --config RelWithDebInfo'
-  displayName: 'Build OSN project'
+  displayName: 'Build obs-studio-node'
 
 - script: |
     copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Redist\MSVC\14.16.27012\onecore\x64\Microsoft.VC141.CRT\vcruntime140.dll" "%SLFullDistributePath%\obs-studio-node\"
     copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Redist\MSVC\14.16.27012\onecore\x64\Microsoft.VC141.CRT\msvcp140.dll" "%SLFullDistributePath%\obs-studio-node\"
     copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Redist\MSVC\14.16.27012\onecore\x64\Microsoft.VC141.CRT\concrt140.dll" "%SLFullDistributePath%\obs-studio-node\"
     copy "C:\Program Files (x86)\Microsoft Visual Studio\Installer\ucrtbase.dll" "%SLFullDistributePath%\obs-studio-node\"
-  displayName: 'Post build'
+  displayName: 'Post build dll copy'
 
 - task: ArchiveFiles@2
   inputs:
@@ -69,6 +77,46 @@ steps:
     pathtoPublish: $(SLFullDistributePath)\$(UnsignedArtifact).tar.gz
     artifactName: $(UnsignedArtifact).tar.gz
   displayName: 'Publish unsigned artifact'
+
+- script: |
+    $env:SignedArtifact = "obs-studio-node-$(git describe --tags --abbrev=0)-$env:RuntimeName-$env:RuntimeVersion"
+    curl -kLO "https://github.com/obsproject/obs-studio/releases/download/%OBSVersion%/OBS-Studio-%OBSVersion%-Full-x64.zip" -f --retry 5
+    7z x "OBS-Studio-%OBSVersion%-Full-x64.zip" -oobs-studio-jp9000
+    robocopy "obs-studio-jp9000\data\obs-plugins\win-capture" "%SLFullDistributePath%\obs-studio-node\data\obs-plugins\win-capture" & exit 0
+  displayName: 'Prepare signed artifact'
+  condition: contains(variables['Build.SourceBranch'], 'tags')
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: $(SLFullDistributePath)\obs-studio-node
+    includeRootFolder: true
+    archiveType: tar
+    tarCompression: gz
+    archiveFile: '$(SLFullDistributePath)\$(SignedArtifact).tar.gz'
+  displayName: 'Generate signed artifact'
+  condition: contains(variables['Build.SourceBranch'], 'tags')
+
+- task: PublishBuildArtifacts@1
+  inputs: 
+    pathtoPublish: $(SLFullDistributePath)\$(SignedArtifact).tar.gz
+    artifactName: $(UnsignedArtifact).tar.gz
+  displayName: 'Publish signed artifact'
+
+- script: |
+    curl -kL "https://github.com/getsentry/sentry-cli/releases/download/1.37.3/sentry-cli-Windows-i686.exe" -o "sentry-cli.exe" -f --retry 5
+    ci\run-sentry-cli.cmd 
+  displayName: 'Upload pdbs to Sentry'
+  condition: contains(variables['Build.SourceBranch'], 'tags')
+
+- task: S3Upload@1
+  inputs:
+    awsCredentials: 'SLOBS Backend AWS buckets'
+    regionName: 'us-west-2'
+    bucketName: 'obsstudionodes3.streamlabs.com'
+    globExpressions: '$(SignedArtifact).tar.gz'
+    filesAcl: 'public-read'
+  displayName: 'Upload artifact to S3'
+  condition: contains(variables['Build.SourceBranch'], 'tags')
 
 - script: "shutdown /r /t 10 /c \"Reboot after CI Job finished\" /f /d p:4:1"
   displayName: "Schedule reboot"
