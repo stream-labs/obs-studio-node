@@ -7,10 +7,6 @@ IF(CLANG_ANALYZE_CONFIG)
 	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xclang -fexceptions -Xclang -fcxx-exceptions")
 ENDIF()
 
-if(MSVC)
-  add_definitions(/MP)
-endif()
-
 set(VERSION_FULL 0.3.21)
 set(VERSION_BUILD 0)
 
@@ -71,6 +67,10 @@ endif()
 include(ExternalProject)
 include(DownloadProject)
 include(FetchContent)
+
+if(MSVC)
+	add_definitions(/MP)
+endif()
 
 # Override a test flag
 set(StackWalker_DISABLE_TESTS true CACHE BOOL "" FORCE)
