@@ -4,13 +4,13 @@ md syms\server
 
 rem -> copy all .pdb files from the root dir
 cd "%SLFullDistributePath%\obs-studio-node\"
-for /f %%f in ('dir /b "%SLFullDistributePath%\obs-studio-node\*.pdb"') do "%SLFullDistributePath%\obs-studio-node\dump_syms.exe" %%f > "%SLFullDistributePath%\obs-studio-node\syms\%%~nf.sym"
+for /f %%f in ('dir /b "%SLFullDistributePath%\obs-studio-node\*.pdb"') do "%RootDirectory%\obs-studio-node\dump_syms.exe" %%f > "%RootDirectory%\obs-studio-node\syms\%%~nf.sym"
 
 rem -> copy all .pdb files from plugins dir
 cd "%SLFullDistributePath%\obs-studio-node\streamlabs-build\distribute\obs-studio-node\obs-plugins\64bit\"
-for /f %%f in ('dir /b "%SLFullDistributePath%\obs-studio-node\streamlabs-build\distribute\obs-studio-node\obs-plugins\64bit\*.pdb"') do "%SLFullDistributePath%\obs-studio-node\dump_syms.exe" %%f > "%SLFullDistributePath%\obs-studio-node\syms\%%~nf.sym"
+for /f %%f in ('dir /b "%SLFullDistributePath%\obs-studio-node\streamlabs-build\distribute\obs-studio-node\obs-plugins\64bit\*.pdb"') do "%RootDirectory%\obs-studio-node\dump_syms.exe" %%f > "%RootDirectory%\obs-studio-node\syms\%%~nf.sym"
 
-cd "%SLFullDistributePath%\obs-studio-node\syms"
+cd "%RootDirectory%\obs-studio-node\syms"
 
 rem -> move the files who are unique to the client dir
 move /y "obs_studio_client.sym" "client\obs_studio_client.sym"

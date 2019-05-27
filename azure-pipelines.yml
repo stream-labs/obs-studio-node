@@ -26,6 +26,7 @@ pool:
   name: 'Streamlabs OBS Backend'
 
 variables:
+  RootDirectory: $(Build.SourcesDirectory)
   SLBuildDirectory: streamlabs-build
   SLGenerator: Visual Studio 15 2017 Win64
   SLDistributeDirectory: distribute
@@ -34,7 +35,7 @@ variables:
   SignTool: C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe
   SignedArtifact: obs-studio-node-$(git describe --tags --abbrev=0)-$(RuntimeName)-$(RuntimeVersion)
   UnsignedArtifact: obs-studio-node-us-$(Build.BuildId)-$(RuntimeName)-$(RuntimeVersion)
-  OBSVersion: 23.1.0
+  OBSVersion: 22.0.2
 
 steps:
 - script: 'yarn install'
