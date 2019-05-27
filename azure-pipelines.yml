@@ -34,6 +34,7 @@ variables:
   SignTool: C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe
   SignedArtifact: obs-studio-node-$(git describe --tags --abbrev=0)-$(RuntimeName)-$(RuntimeVersion)
   UnsignedArtifact: obs-studio-node-us-$(Build.BuildId)-$(RuntimeName)-$(RuntimeVersion)
+  OBSVersion: 23.1.0
 
 steps:
 - script: 'yarn install'
@@ -105,7 +106,7 @@ steps:
 
 - script: |
     curl -kL "https://github.com/getsentry/sentry-cli/releases/download/1.37.3/sentry-cli-Windows-i686.exe" -o "sentry-cli.exe" -f --retry 5
-    ci\run-sentry-cli.cmd 
+    ci\run-sentry-cli-azure.cmd 
   displayName: 'Upload pdbs to Sentry'
   condition: contains(variables['Build.SourceBranch'], 'tags')
 
