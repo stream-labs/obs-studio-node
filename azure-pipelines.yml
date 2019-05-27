@@ -82,7 +82,9 @@ steps:
 
 - script: |
     echo '##vso[task.setvariable variable=tag]git describe --tags --abbrev=0'
-    echo '##vso[task.setvariable variable=signedartifact]obs-studio-node-$env:TAG-$env:RuntimeName-$env:RuntimeVersion)'
+    echo $TAG
+    echo '##vso[task.setvariable variable=signedartifact]obs-studio-node-$env:TAG-$env:RuntimeName-$env:RuntimeVersion'
+    echo $SIGNEDARTIFACT
     curl -kLO "https://github.com/obsproject/obs-studio/releases/download/%OBSVersion%/OBS-Studio-%OBSVersion%-Full-x64.zip" -f --retry 5
     7z x "OBS-Studio-%OBSVersion%-Full-x64.zip" -oobs-studio-jp9000
     robocopy "obs-studio-jp9000\data\obs-plugins\win-capture" "%SLFullDistributePath%\obs-studio-node\data\obs-plugins\win-capture" & exit 0
@@ -95,13 +97,13 @@ steps:
     includeRootFolder: true
     archiveType: tar
     tarCompression: gz
-    archiveFile: '$(SLFullDistributePath)\$(env:SIGNEDARTIFACT).tar.gz'
+    archiveFile: '$(SLFullDistributePath)\$(SIGNEDARTIFACT).tar.gz'
   displayName: 'Generate signed artifact'
   condition: contains(variables['Build.SourceBranch'], 'tags')
 
 - task: PublishBuildArtifacts@1
   inputs: 
-    pathtoPublish: $(SLFullDistributePath)\$(env:SIGNEDARTIFACT)tar.gz
+    pathtoPublish: $(SLFullDistributePath)\$(SIGNEDARTIFACT)tar.gz
     artifactName: $(env:SIGNEDARTIFACT).tar.gz
   displayName: 'Publish signed artifact'
   condition: contains(variables['Build.SourceBranch'], 'tags')
