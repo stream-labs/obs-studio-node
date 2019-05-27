@@ -1,16 +1,12 @@
-md syms
-md syms\client
-md syms\server
-
 rem -> copy all .pdb files from the root dir
 cd "%SLFullDistributePath%\obs-studio-node\"
-for /f %%f in ('dir /b "%SLFullDistributePath%\obs-studio-node\*.pdb"') do "%RootDirectory%\obs-studio-node\dump_syms.exe" %%f > "%RootDirectory%\obs-studio-node\syms\%%~nf.sym"
+for /f %%f in ('dir /b "%SLFullDistributePath%\obs-studio-node\*.pdb"') do "%RootDirectory%\dump_syms.exe" %%f > "%RootDirectory%\syms\%%~nf.sym"
 
 rem -> copy all .pdb files from plugins dir
 cd "%SLFullDistributePath%\obs-studio-node\streamlabs-build\distribute\obs-studio-node\obs-plugins\64bit\"
-for /f %%f in ('dir /b "%SLFullDistributePath%\obs-studio-node\streamlabs-build\distribute\obs-studio-node\obs-plugins\64bit\*.pdb"') do "%RootDirectory%\obs-studio-node\dump_syms.exe" %%f > "%RootDirectory%\obs-studio-node\syms\%%~nf.sym"
+for /f %%f in ('dir /b "%SLFullDistributePath%\obs-studio-node\streamlabs-build\distribute\obs-studio-node\obs-plugins\64bit\*.pdb"') do "%RootDirectory%\dump_syms.exe" %%f > "%RootDirectory%\syms\%%~nf.sym"
 
-cd "%RootDirectory%\obs-studio-node\syms"
+cd "%RootDirectory%\syms"
 
 rem -> move the files who are unique to the client dir
 move /y "obs_studio_client.sym" "client\obs_studio_client.sym"
@@ -54,6 +50,6 @@ cd ..
 xcopy /y syms syms\client
 xcopy /y syms syms\server
 
-"sentry-cli.exe" --auth-token "d6526d57bb84421eaaeff7983639897de9a0c51ab5274cf4b89d3ad3944d3cbd" upload-dif --org streamlabs-obs --project obs-server "syms\server"
-"sentry-cli.exe" --auth-token "d6526d57bb84421eaaeff7983639897de9a0c51ab5274cf4b89d3ad3944d3cbd" upload-dif --org streamlabs-obs --project obs-server-preview "syms\server"
-"sentry-cli.exe" --auth-token "d6526d57bb84421eaaeff7983639897de9a0c51ab5274cf4b89d3ad3944d3cbd" upload-dif --org streamlabs-obs --project obs-client "syms\client"
+"%RootDirectory%\sentry-cli.exe" --auth-token "d6526d57bb84421eaaeff7983639897de9a0c51ab5274cf4b89d3ad3944d3cbd" upload-dif --org streamlabs-obs --project obs-server "syms\server"
+"%RootDirectory%\sentry-cli.exe" --auth-token "d6526d57bb84421eaaeff7983639897de9a0c51ab5274cf4b89d3ad3944d3cbd" upload-dif --org streamlabs-obs --project obs-server-preview "syms\server"
+"%RootDirectory%\sentry-cli.exe" --auth-token "d6526d57bb84421eaaeff7983639897de9a0c51ab5274cf4b89d3ad3944d3cbd" upload-dif --org streamlabs-obs --project obs-client "syms\client"

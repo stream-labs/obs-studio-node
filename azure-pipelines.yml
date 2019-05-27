@@ -64,7 +64,7 @@ steps:
     copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Redist\MSVC\14.16.27012\onecore\x64\Microsoft.VC141.CRT\msvcp140.dll" "%SLFullDistributePath%\obs-studio-node\"
     copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Redist\MSVC\14.16.27012\onecore\x64\Microsoft.VC141.CRT\concrt140.dll" "%SLFullDistributePath%\obs-studio-node\"
     copy "C:\Program Files (x86)\Microsoft Visual Studio\Installer\ucrtbase.dll" "%SLFullDistributePath%\obs-studio-node\"
-  displayName: 'Post build dll copy'
+  displayName: 'Prepare artifacts'
 
 - task: ArchiveFiles@2
   inputs:
@@ -106,6 +106,12 @@ steps:
   condition: contains(variables['Build.SourceBranch'], 'tags')
 
 - script: |
+    mkdir syms
+    mkdir syms\client
+    mkdir syms\server
+
+    curl -kL "https://s3.amazonaws.com/getsentry-builds/getsentry/breakpad-tools/windows/breakpad-tools-windows.zip" -o "breakpadtools.zip" -f --retry 5
+    7z x "breakpadtools.zip" > nul
     curl -kL "https://github.com/getsentry/sentry-cli/releases/download/1.37.3/sentry-cli-Windows-i686.exe" -o "sentry-cli.exe" -f --retry 5
     ci\run-sentry-cli-azure.cmd 
   displayName: 'Upload pdbs to Sentry'
