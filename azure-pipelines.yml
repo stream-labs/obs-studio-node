@@ -33,7 +33,6 @@ variables:
   SLFullDistributePath: $(SLBuildDirectory)\$(SLDistributeDirectory)
   SLArch: x64
   SignTool: C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe
-  SignedArtifact: obs-studio-node-$(git describe --tags --abbrev=0)-$(RuntimeName)-$(RuntimeVersion)
   UnsignedArtifact: obs-studio-node-us-$(Build.BuildId)-$(RuntimeName)-$(RuntimeVersion)
   OBSVersion: 22.0.2
 
@@ -82,6 +81,8 @@ steps:
   displayName: 'Publish unsigned artifact'
 
 - script: |
+    echo '##vso[task.setvariable variable=tag]git describe --tags --abbrev=0'
+    echo '##vso[task.setvariable variable=signedartifact]obs-studio-node-$env:TAG-$env:RuntimeName-$env:RuntimeVersion)'
     curl -kLO "https://github.com/obsproject/obs-studio/releases/download/%OBSVersion%/OBS-Studio-%OBSVersion%-Full-x64.zip" -f --retry 5
     7z x "OBS-Studio-%OBSVersion%-Full-x64.zip" -oobs-studio-jp9000
     robocopy "obs-studio-jp9000\data\obs-plugins\win-capture" "%SLFullDistributePath%\obs-studio-node\data\obs-plugins\win-capture" & exit 0
@@ -94,14 +95,14 @@ steps:
     includeRootFolder: true
     archiveType: tar
     tarCompression: gz
-    archiveFile: '$(SLFullDistributePath)\$(SignedArtifact).tar.gz'
+    archiveFile: '$(SLFullDistributePath)\$(env:SIGNEDARTIFACT).tar.gz'
   displayName: 'Generate signed artifact'
   condition: contains(variables['Build.SourceBranch'], 'tags')
 
 - task: PublishBuildArtifacts@1
   inputs: 
-    pathtoPublish: $(SLFullDistributePath)\$(SignedArtifact).tar.gz
-    artifactName: $(SignedArtifact).tar.gz
+    pathtoPublish: $(SLFullDistributePath)\$(env:SIGNEDARTIFACT)tar.gz
+    artifactName: $(env:SIGNEDARTIFACT).tar.gz
   displayName: 'Publish signed artifact'
   condition: contains(variables['Build.SourceBranch'], 'tags')
 
@@ -122,7 +123,7 @@ steps:
     awsCredentials: 'SLOBS Backend AWS buckets'
     regionName: 'us-west-2'
     bucketName: 'obsstudionodes3.streamlabs.com'
-    globExpressions: '$(SignedArtifact).tar.gz'
+    globExpressions: '$(env:SIGNEDARTIFACT).tar.gz'
     filesAcl: 'public-read'
   displayName: 'Upload artifact to S3'
   condition: contains(variables['Build.SourceBranch'], 'tags')
