@@ -112,16 +112,20 @@ void MemoryManager::addCachedMemory(source_info* si)
 	int32_t retry = MAX_POOLS;
 
 	proc_handler_t* ph = obs_source_get_proc_handler(si->source);
+	bool            playing = false;
 	while (retry > 0) {
 		calldata_t      cd = {0};
 		proc_handler_call(ph, "get_playing", &cd);
-
-		if (calldata_bool(&cd, "playing"))
+		playing = calldata_bool(&cd, "playing");
+		if (playing)
 			break;
 
 		retry--;
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
+
+	if (!playing)
+		return;
 
 	blog(LOG_INFO, "adding %dMB, source: %s", si->size / 1000000, obs_source_get_name(si->source));
 	current_cached_size += si->size;
