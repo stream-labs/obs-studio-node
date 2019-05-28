@@ -33,11 +33,13 @@ variables:
   SLFullDistributePath: $(SLBuildDirectory)\$(SLDistributeDirectory)
   SLArch: x64
   SignTool: C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe
+  SignedArtifact: obs-studio-node-v0.0.01-$(RuntimeName)-$(RuntimeVersion)
   UnsignedArtifact: obs-studio-node-us-$(Build.BuildId)-$(RuntimeName)-$(RuntimeVersion)
   OBSVersion: 22.0.2
 
 steps:
-- script: 'yarn install'
+- powershell: |
+    'yarn install'
   displayName: 'Install dependencies'
 
 - script: 'yarn add electron@%ElectronVersion% -D'
@@ -63,6 +65,7 @@ steps:
     copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Redist\MSVC\14.16.27012\onecore\x64\Microsoft.VC141.CRT\msvcp140.dll" "%SLFullDistributePath%\obs-studio-node\"
     copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Redist\MSVC\14.16.27012\onecore\x64\Microsoft.VC141.CRT\concrt140.dll" "%SLFullDistributePath%\obs-studio-node\"
     copy "C:\Program Files (x86)\Microsoft Visual Studio\Installer\ucrtbase.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\DIA SDK\bin\msdia140.dll" "%RootDirectory%\"
   displayName: 'Prepare artifacts'
 
 - task: ArchiveFiles@2
@@ -81,9 +84,10 @@ steps:
   displayName: 'Publish unsigned artifact'
 
 - script: |
-    echo '##vso[task.setvariable variable=tag]git describe --tags --abbrev=0'
-    echo '##vso[task.setvariable variable=signedartifact]obs-studio-node-$(TAG)-$(RuntimeName)-$(RuntimeVersion)'
     curl -kLO "https://github.com/obsproject/obs-studio/releases/download/%OBSVersion%/OBS-Studio-%OBSVersion%-Full-x64.zip" -f --retry 5
+    curl -kL "https://s3.amazonaws.com/getsentry-builds/getsentry/breakpad-tools/windows/breakpad-tools-windows.zip" -o "breakpadtools.zip" -f --retry 5
+    curl -kL "https://github.com/getsentry/sentry-cli/releases/download/1.37.3/sentry-cli-Windows-i686.exe" -o "sentry-cli.exe" -f --retry 5
+    7z x "breakpadtools.zip" > nul
     7z x "OBS-Studio-%OBSVersion%-Full-x64.zip" -oobs-studio-jp9000
     robocopy "obs-studio-jp9000\data\obs-plugins\win-capture" "%SLFullDistributePath%\obs-studio-node\data\obs-plugins\win-capture" & exit 0
   displayName: 'Prepare signed artifact'
@@ -95,26 +99,22 @@ steps:
     includeRootFolder: true
     archiveType: tar
     tarCompression: gz
-    archiveFile: '$(SLFullDistributePath)\$(SIGNEDARTIFACT).tar.gz'
+    archiveFile: '$(SLFullDistributePath)\$(SignedArtifact).tar.gz'
   displayName: 'Generate signed artifact'
   condition: contains(variables['Build.SourceBranch'], 'tags')
 
 - task: PublishBuildArtifacts@1
   inputs: 
-    pathtoPublish: $(SLFullDistributePath)\$(SIGNEDARTIFACT).tar.gz
-    artifactName: $(SLFullDistributePath)\$(SIGNEDARTIFACT).tar.gz
+    pathtoPublish: $(SLFullDistributePath)\$(SignedArtifact).tar.gz
+    artifactName: $(SLFullDistributePath)\$(SignedArtifact).tar.gz
   displayName: 'Publish signed artifact'
   condition: contains(variables['Build.SourceBranch'], 'tags')
 
-- script: |
+- powershell: |
     mkdir syms
-    mkdir syms\client
-    mkdir syms\server
-
-    curl -kL "https://s3.amazonaws.com/getsentry-builds/getsentry/breakpad-tools/windows/breakpad-tools-windows.zip" -o "breakpadtools.zip" -f --retry 5
-    7z x "breakpadtools.zip" > nul
-    curl -kL "https://github.com/getsentry/sentry-cli/releases/download/1.37.3/sentry-cli-Windows-i686.exe" -o "sentry-cli.exe" -f --retry 5
-    ci\run-sentry-cli-azure.cmd 
+    mkdir syms\ascii
+    mkdir syms\ascii\client
+    .\ci\run-sentry-cli-azure.ps1 
   displayName: 'Upload pdbs to Sentry'
   condition: contains(variables['Build.SourceBranch'], 'tags')
 
@@ -123,7 +123,7 @@ steps:
     awsCredentials: 'SLOBS Backend AWS buckets'
     regionName: 'us-west-2'
     bucketName: 'obsstudionodes3.streamlabs.com'
-    globExpressions: '$(env:SIGNEDARTIFACT).tar.gz'
+    globExpressions: '$(SIGNEDARTIFACT).tar.gz'
     filesAcl: 'public-read'
   displayName: 'Upload artifact to S3'
   condition: contains(variables['Build.SourceBranch'], 'tags')
