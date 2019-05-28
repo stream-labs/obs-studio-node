@@ -82,6 +82,7 @@ void osn::Source::global_source_activate_cb(void* ptr, calldata_t* cd)
 	if (!calldata_get_ptr(cd, "source", &source)) {
 		throw std::exception("calldata did not contain source pointer");
 	}
+
 	MemoryManager::GetInstance().updateSourceCache(source);
 }
 
