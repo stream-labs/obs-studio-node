@@ -119,6 +119,7 @@ steps:
   env:
     RootDirectory: $(Build.SourcesDirectory)
     PDBPath: $(Build.SourcesDirectory)\$(SLFullDistributePath)
+  errorActionPreference: silentlyContinue
   displayName: 'Upload pdbs to Sentry'
   condition: contains(variables['Build.SourceBranch'], 'tags')
 
