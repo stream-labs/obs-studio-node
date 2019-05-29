@@ -95,6 +95,7 @@ export class Services {
         while(attemps--) {
             try {
                 this.user = await this.requestUser();
+                break;
             } catch(e) {
                 if (attemps) {
                     await this.sleep(20000);
