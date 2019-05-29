@@ -1,5 +1,5 @@
-Get-ChildItem -Path $RootDirectory\streamlabs-build\distribute\obs-studio-node -Filter *.pdb -File | ForEach-Object {.\dump_syms.exe $_.FullName > $RootDirectory\syms\$_} 
-Get-ChildItem -Path $RootDirectory\streamlabs-build\distribute\obs-studio-node -Filter *.pdb -Recurse -File | ForEach-Object {.\dump_syms.exe $_.FullName > $RootDirectory\syms\$_}
+Get-ChildItem -Path $PDBPath\obs-studio-node -Filter *.pdb -File | ForEach-Object {.\dump_syms.exe $_.FullName > $RootDirectory\syms\$_} 
+Get-ChildItem -Path $PDBPath\obs-studio-node -Filter *.pdb -Recurse -File | ForEach-Object {.\dump_syms.exe $_.FullName > $RootDirectory\syms\$_}
 Get-ChildItem -Path $RootDirectory\syms\*.pdb | Rename-Item -NewName { $_.Name -Replace ".pdb",".sym"}
 Get-ChildItem -Path $RootDirectory\syms -Filter *.sym -File | ForEach-Object {Get-Content $_.FullName | Out-File -Encoding Ascii "$RootDirectory\syms\ascii\$($_.BaseName).sym" } 
 
