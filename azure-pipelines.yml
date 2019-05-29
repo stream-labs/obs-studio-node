@@ -26,19 +26,18 @@ pool:
   name: 'Streamlabs OBS Backend'
 
 variables:
-  RootDirectory: $(Build.SourcesDirectory)
   SLBuildDirectory: streamlabs-build
   SLGenerator: Visual Studio 15 2017 Win64
   SLDistributeDirectory: distribute
   SLFullDistributePath: $(SLBuildDirectory)\$(SLDistributeDirectory)
   SLArch: x64
   SignTool: C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe
-  SignedArtifact: obs-studio-node-v0.0.01-$(RuntimeName)-$(RuntimeVersion)
   UnsignedArtifact: obs-studio-node-us-$(Build.BuildId)-$(RuntimeName)-$(RuntimeVersion)
   OBSVersion: 22.0.2
 
 steps:
 - powershell: |
+    Write-Host "##vso[task.setvariable variable=signedartifact]obs-studio-node-$((git.exe describe --tags --abbrev=0) | Out-String)"
     'yarn install'
   displayName: 'Install dependencies'
 
@@ -65,7 +64,7 @@ steps:
     copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Redist\MSVC\14.16.27012\onecore\x64\Microsoft.VC141.CRT\msvcp140.dll" "%SLFullDistributePath%\obs-studio-node\"
     copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Redist\MSVC\14.16.27012\onecore\x64\Microsoft.VC141.CRT\concrt140.dll" "%SLFullDistributePath%\obs-studio-node\"
     copy "C:\Program Files (x86)\Microsoft Visual Studio\Installer\ucrtbase.dll" "%SLFullDistributePath%\obs-studio-node\"
-    copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\DIA SDK\bin\msdia140.dll" "%RootDirectory%\"
+    copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\DIA SDK\bin\msdia140.dll" "%BUILD_SOURCESDIRECTORY%\"
   displayName: 'Prepare artifacts'
 
 - task: ArchiveFiles@2
@@ -99,14 +98,14 @@ steps:
     includeRootFolder: true
     archiveType: tar
     tarCompression: gz
-    archiveFile: '$(SLFullDistributePath)\$(SignedArtifact).tar.gz'
+    archiveFile: '$(SLFullDistributePath)\$(signedartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz'
   displayName: 'Generate signed artifact'
   condition: contains(variables['Build.SourceBranch'], 'tags')
 
 - task: PublishBuildArtifacts@1
   inputs: 
-    pathtoPublish: $(SLFullDistributePath)\$(SignedArtifact).tar.gz
-    artifactName: $(SLFullDistributePath)\$(SignedArtifact).tar.gz
+    pathtoPublish: $(SLFullDistributePath)\$(signedartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz
+    artifactName: $(SLFullDistributePath)\$(signedartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz
   displayName: 'Publish signed artifact'
   condition: contains(variables['Build.SourceBranch'], 'tags')
 
@@ -114,7 +113,12 @@ steps:
     mkdir syms
     mkdir syms\ascii
     mkdir syms\ascii\client
+    $RootDirectory = $env:ROOTDIRECTORY
+    $PDBPath = $env:PDBPATH
     .\ci\run-sentry-cli-azure.ps1 
+  env:
+    RootDirectory: $(Build.SourcesDirectory)
+    PDBPath: $(Build.SourcesDirectory)\$(SLFullDistributePath)
   displayName: 'Upload pdbs to Sentry'
   condition: contains(variables['Build.SourceBranch'], 'tags')
 
@@ -123,7 +127,7 @@ steps:
     awsCredentials: 'SLOBS Backend AWS buckets'
     regionName: 'us-west-2'
     bucketName: 'obsstudionodes3.streamlabs.com'
-    globExpressions: '$(SIGNEDARTIFACT).tar.gz'
+    globExpressions: '$(signedartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz'
     filesAcl: 'public-read'
   displayName: 'Upload artifact to S3'
   condition: contains(variables['Build.SourceBranch'], 'tags')
