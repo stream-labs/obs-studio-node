@@ -32,8 +32,29 @@ MemoryManager::MemoryManager()
 	}
 }
 
+bool is_playing(source_info* si)
+{
+	int32_t         retry   = MAX_POOLS;
+	proc_handler_t* ph      = obs_source_get_proc_handler(si->source);
+	bool            playing = false;
+	while (retry > 0) {
+		calldata_t cd = {0};
+		proc_handler_call(ph, "get_playing", &cd);
+		playing = calldata_bool(&cd, "playing");
+		if (playing)
+			break;
+
+		retry--;
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}
+	return playing;
+}
+
 void MemoryManager::calculateRawSize(source_info* si)
 {
+	if (!is_playing(si))
+		return;
+
 	calldata_t      cd = {0};
 	proc_handler_t* ph = obs_source_get_proc_handler(si->source);
 	proc_handler_call(ph, "get_nb_frames", &cd);
@@ -109,22 +130,7 @@ void MemoryManager::addCachedMemory(source_info* si)
 	if (!si->size || si->cached || current_cached_size + si->size > allowed_cached_size)
 		return;
 
-	int32_t retry = MAX_POOLS;
-
-	proc_handler_t* ph = obs_source_get_proc_handler(si->source);
-	bool            playing = false;
-	while (retry > 0) {
-		calldata_t      cd = {0};
-		proc_handler_call(ph, "get_playing", &cd);
-		playing = calldata_bool(&cd, "playing");
-		if (playing)
-			break;
-
-		retry--;
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
-	}
-
-	if (!playing)
+	if (!is_playing(si))
 		return;
 
 	blog(LOG_INFO, "adding %dMB, source: %s", si->size / 1000000, obs_source_get_name(si->source));
