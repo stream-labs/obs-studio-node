@@ -23,7 +23,7 @@ strategy:
       ElectronVersion: 2.0.8
 
 pool:
-  name: 'Streamlabs OBS Backend'
+  name: 'Default'
 
 variables:
   SLBuildDirectory: streamlabs-build
