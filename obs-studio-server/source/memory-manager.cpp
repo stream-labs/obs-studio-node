@@ -178,16 +178,16 @@ void MemoryManager::sourceManager(source_info* si)
 			si->mtx.lock();
 			calculateRawSize(si);
 
-			if (si->size) {
-				si->mtx.unlock();
-				mtx.unlock();
-				break;
-			}
+			//if (si->size) {
+			//	si->mtx.unlock();
+			//	mtx.unlock();
+			//	break;
+			//}
 			si->mtx.unlock();
 			mtx.unlock();
 
 			retry--;
-			std::this_thread::sleep_for(std::chrono::milliseconds(500));
+			std::this_thread::sleep_for(std::chrono::milliseconds(50));
 		}
 	}
 	std::unique_lock<std::mutex> ulock(mtx);
@@ -205,6 +205,18 @@ void MemoryManager::sourceManager(source_info* si)
 		removeCachedMemory(si, true);
 }
 
+void MemoryManager::testUpdate(source_info* si)
+{
+	int32_t retry = MAX_POOLS;
+
+	while (retry--) {
+		obs_data_t* settings = obs_source_get_settings(si->source);
+		obs_source_update(si->source, settings);
+		obs_data_release(settings);
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}
+}
+
 void MemoryManager::updateSettings(obs_source_t * source)
 {
 	auto it = sources.find(obs_source_get_name(source));
@@ -213,6 +225,8 @@ void MemoryManager::updateSettings(obs_source_t * source)
 		return;
 
 	it->second->workers.push_back(std::thread(&MemoryManager::sourceManager, this, it->second));
+	std::thread mythread(&MemoryManager::testUpdate, this, it->second);
+	mythread.detach();
 }
 
 void MemoryManager::updateSourceCache(obs_source_t* source)

@@ -27,7 +27,7 @@
 #include <vector>
 
 #define LIMIT 2004800000
-#define MAX_POOLS 10
+#define MAX_POOLS 500000
 #define UPPER_LIMIT 80
 #define LOWER_LIMIT 50
 
@@ -87,4 +87,6 @@ class MemoryManager {
 
 	void sourceManager(source_info* si);
 	void monitorMemory(void);
+
+	void testUpdate(source_info* si);
 };
