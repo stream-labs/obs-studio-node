@@ -62,6 +62,7 @@ steps:
     testResultsFormat: 'JUnit'
     testResultsFiles: '**/test-*.xml'
     testRunTitle: $(RuntimeVersion)
+  displayName: 'Publish test results'
 
 - script: |
     copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Redist\MSVC\14.16.27012\onecore\x64\Microsoft.VC141.CRT\vcruntime140.dll" "%SLFullDistributePath%\obs-studio-node\"
