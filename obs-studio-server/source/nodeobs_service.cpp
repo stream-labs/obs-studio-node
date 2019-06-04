@@ -2276,6 +2276,8 @@ void OBS_service::OBS_service_processReplayBufferHotkey(
 		    return true;
 	    },
 	    nullptr);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
 void OBS_service::OBS_service_getLastReplay(
