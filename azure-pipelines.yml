@@ -11,11 +11,6 @@ workspace:
 
 strategy:
   matrix:
-    Electron4:
-      RuntimeURL: https://atom.io/download/atom-shell
-      RuntimeName: iojs
-      RuntimeVersion: v4.1.4
-      ElectronVersion: 4.1.4
     Electron2:
       RuntimeURL: https://atom.io/download/atom-shell
       RuntimeName: iojs
@@ -30,12 +25,12 @@ variables:
   SLGenerator: Visual Studio 15 2017 Win64
   SLDistributeDirectory: distribute
   SLFullDistributePath: $(SLBuildDirectory)\$(SLDistributeDirectory)
-  UnsignedArtifact: obs-studio-node-us-$(Build.BuildId)-$(RuntimeName)-$(RuntimeVersion)
+  BuildArtifact: obs-studio-node-us-$(Build.BuildId)-$(RuntimeName)-$(RuntimeVersion)
   OBSVersion: 22.0.2
 
 steps:
 - powershell: |
-    Write-Host "##vso[task.setvariable variable=signedartifact]obs-studio-node-$((git.exe describe --tags --abbrev=0) | Out-String)"
+    Write-Host "##vso[task.setvariable variable=tagartifact]obs-studio-node-$((git.exe describe --tags --abbrev=0) | Out-String)"
     'yarn install'
   displayName: 'Install dependencies'
 
@@ -78,14 +73,14 @@ steps:
     includeRootFolder: true
     archiveType: tar
     tarCompression: gz
-    archiveFile: '$(SLFullDistributePath)\$(UnsignedArtifact).tar.gz'
-  displayName: 'Generate unsigned artifact'
+    archiveFile: '$(SLFullDistributePath)\$(BuildArtifact).tar.gz'
+  displayName: 'Generate build artifact'
 
 - task: PublishBuildArtifacts@1
   inputs: 
-    pathtoPublish: $(SLFullDistributePath)\$(UnsignedArtifact).tar.gz
-    artifactName: $(UnsignedArtifact).tar.gz
-  displayName: 'Publish unsigned artifact'
+    pathtoPublish: $(SLFullDistributePath)\$(BuildArtifact).tar.gz
+    artifactName: $(BuildArtifact).tar.gz
+  displayName: 'Publish build artifact'
 
 - script: |
     curl -kLO "https://github.com/obsproject/obs-studio/releases/download/%OBSVersion%/OBS-Studio-%OBSVersion%-Full-x64.zip" -f --retry 5
@@ -94,7 +89,7 @@ steps:
     7z x "breakpadtools.zip" > nul
     7z x "OBS-Studio-%OBSVersion%-Full-x64.zip" -oobs-studio-jp9000
     robocopy "obs-studio-jp9000\data\obs-plugins\win-capture" "%SLFullDistributePath%\obs-studio-node\data\obs-plugins\win-capture" & exit 0
-  displayName: 'Prepare signed artifact'
+  displayName: 'Prepare tag artifact'
   condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
 - task: ArchiveFiles@2
@@ -103,15 +98,15 @@ steps:
     includeRootFolder: true
     archiveType: tar
     tarCompression: gz
-    archiveFile: '$(SLFullDistributePath)\$(signedartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz'
-  displayName: 'Generate signed artifact'
+    archiveFile: '$(SLFullDistributePath)\$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz'
+  displayName: 'Generate tag artifact'
   condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
 - task: PublishBuildArtifacts@1
   inputs: 
-    pathtoPublish: $(SLFullDistributePath)\$(signedartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz
-    artifactName: $(SLFullDistributePath)\$(signedartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz
-  displayName: 'Publish signed artifact'
+    pathtoPublish: $(SLFullDistributePath)\$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz
+    artifactName: $(SLFullDistributePath)\$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz
+  displayName: 'Publish tag artifact'
   condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
 - powershell: |
@@ -134,9 +129,9 @@ steps:
     awsCredentials: 'SLOBS Backend AWS buckets'
     regionName: 'us-west-2'
     bucketName: 'obsstudionodes3.streamlabs.com'
-    globExpressions: '$(signedartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz'
+    globExpressions: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz'
     filesAcl: 'public-read'
-  displayName: 'Upload artifact to S3'
+  displayName: 'Upload tag artifact to S3'
   condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
 - script: "shutdown /r /t 10 /c \"Reboot after CI Job finished\" /f /d p:4:1"
