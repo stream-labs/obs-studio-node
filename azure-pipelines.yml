@@ -1,0 +1,139 @@
+trigger:
+  branches:
+    include:
+      - staging
+  tags:
+    include:
+      - v*
+
+workspace:
+  clean: all
+
+strategy:
+  matrix:
+    Electron2:
+      RuntimeURL: https://atom.io/download/atom-shell
+      RuntimeName: iojs
+      RuntimeVersion: v2.0.8
+      ElectronVersion: 2.0.8
+
+pool:
+  name: 'Default'
+
+variables:
+  SLBuildDirectory: streamlabs-build
+  SLGenerator: Visual Studio 15 2017 Win64
+  SLDistributeDirectory: distribute
+  SLFullDistributePath: $(SLBuildDirectory)\$(SLDistributeDirectory)
+  BuildArtifact: obs-studio-node-us-$(Build.BuildId)-$(RuntimeName)-$(RuntimeVersion)
+  OBSVersion: 23.1.0
+
+steps:
+- powershell: |
+    Write-Host "##vso[task.setvariable variable=tagartifact]obs-studio-node-$((git.exe describe --tags --abbrev=0) | Out-String)"
+    'yarn install'
+  displayName: 'Install dependencies'
+
+- script: 'yarn add electron@%ElectronVersion% -D'
+  displayName: 'Install Electron'
+
+- script: 'git submodule update --init --recursive'
+  displayName: 'Update submodules'
+
+- script: 'cmake.exe -H. -B"%SLBuildDirectory%" -G"%SLGenerator%" -DCMAKE_INSTALL_PREFIX="%SLFullDistributePath%\obs-studio-node" -DSTREAMLABS_BUILD=OFF -DNODEJS_NAME=%RuntimeName% -DNODEJS_URL=%RuntimeURL% -DNODEJS_VERSION=%RuntimeVersion%'
+  displayName: 'Configure obs-studio-node'
+
+- script: 'cmake.exe --build %SLBuildDirectory% --target install --config RelWithDebInfo'
+  displayName: 'Build obs-studio-node'
+
+- script: 'yarn run test:azure'
+  env:
+    SLOBS_BE_STREAMKEY: $(testsStreamKey)
+    SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+  displayName: 'Run tests'
+
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: '**/test-*.xml'
+    testRunTitle: $(RuntimeVersion)
+  displayName: 'Publish test results'
+
+- script: |
+    copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Redist\MSVC\14.16.27012\onecore\x64\Microsoft.VC141.CRT\vcruntime140.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Redist\MSVC\14.16.27012\onecore\x64\Microsoft.VC141.CRT\msvcp140.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Redist\MSVC\14.16.27012\onecore\x64\Microsoft.VC141.CRT\concrt140.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Microsoft Visual Studio\Installer\ucrtbase.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\DIA SDK\bin\msdia140.dll" "%BUILD_SOURCESDIRECTORY%\"
+  displayName: 'Copy necessary dll files'
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: $(SLFullDistributePath)\obs-studio-node
+    includeRootFolder: true
+    archiveType: tar
+    tarCompression: gz
+    archiveFile: '$(SLFullDistributePath)\$(BuildArtifact).tar.gz'
+  displayName: 'Generate build artifact'
+
+- task: PublishBuildArtifacts@1
+  inputs: 
+    pathtoPublish: $(SLFullDistributePath)\$(BuildArtifact).tar.gz
+    artifactName: $(BuildArtifact).tar.gz
+  displayName: 'Publish build artifact'
+
+- script: |
+    curl -kLO "https://github.com/obsproject/obs-studio/releases/download/%OBSVersion%/OBS-Studio-%OBSVersion%-Full-x64.zip" -f --retry 5
+    curl -kL "https://s3.amazonaws.com/getsentry-builds/getsentry/breakpad-tools/windows/breakpad-tools-windows.zip" -o "breakpadtools.zip" -f --retry 5
+    curl -kL "https://github.com/getsentry/sentry-cli/releases/download/1.37.3/sentry-cli-Windows-i686.exe" -o "sentry-cli.exe" -f --retry 5
+    7z x "breakpadtools.zip" > nul
+    7z x "OBS-Studio-%OBSVersion%-Full-x64.zip" -oobs-studio-jp9000
+    robocopy "obs-studio-jp9000\data\obs-plugins\win-capture" "%SLFullDistributePath%\obs-studio-node\data\obs-plugins\win-capture" & exit 0
+  displayName: 'Prepare tag artifact'
+  condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: $(SLFullDistributePath)\obs-studio-node
+    includeRootFolder: true
+    archiveType: tar
+    tarCompression: gz
+    archiveFile: '$(SLFullDistributePath)\$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz'
+  displayName: 'Generate tag artifact'
+  condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+
+- task: PublishBuildArtifacts@1
+  inputs: 
+    pathtoPublish: $(SLFullDistributePath)\$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz
+    artifactName: $(SLFullDistributePath)\$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz
+  displayName: 'Publish tag artifact'
+  condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+
+- powershell: |
+    mkdir syms
+    mkdir syms\ascii
+    mkdir syms\ascii\client
+    $RootDirectory=$env:ROOTDIRECTORY
+    $PDBPath=$env:PDBPATH
+    .\ci\run-sentry-cli-azure.ps1
+  env:
+    RootDirectory: $(Build.SourcesDirectory)
+    PDBPath: $(Build.SourcesDirectory)\$(SLFullDistributePath)
+  errorActionPreference: silentlyContinue
+  ignoreLASTEXITCODE: true
+  displayName: 'Upload pdbs to Sentry'
+  condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+
+- task: S3Upload@1
+  inputs:
+    awsCredentials: 'SLOBS Backend AWS buckets'
+    regionName: 'us-west-2'
+    bucketName: 'obsstudionodes3.streamlabs.com'
+    globExpressions: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz'
+    filesAcl: 'public-read'
+  displayName: 'Upload tag artifact to S3'
+  condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+
+- script: "shutdown /r /t 10 /c \"Reboot after CI Job finished\" /f /d p:4:1"
+  displayName: "Schedule reboot"
+  condition: always()

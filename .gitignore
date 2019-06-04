@@ -4,6 +4,7 @@ logs/
 node_modules/
 distribute/
 yarn-error.log 
+test-results.xml
 
 # Binaries
 *.dll
