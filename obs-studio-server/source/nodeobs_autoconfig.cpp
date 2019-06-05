@@ -247,25 +247,12 @@ void autoConfig::Register(ipc::server& srv)
 	srv.register_collection(cls);
 }
 
-void autoConfig::WaitPendingTests(double timeout)
+void autoConfig::WaitPendingTests()
 {
-	clock_t start_time = clock();
-	while ((float(clock() - start_time) / CLOCKS_PER_SEC) < timeout) {
-
-		bool all_finished = true;
-		for (auto& async_test : asyncTests) {
-			if (async_test.valid()) {
-				auto status = async_test.wait_for(std::chrono::milliseconds(0));
-				if (status != std::future_status::ready) {
-					all_finished = false;
-				}			
-			}
+	for (auto& async_test : asyncTests) {
+		if (async_test.valid()) {
+			async_test.wait();
 		}
-
-		if (all_finished)
-			break;
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(50));
 	}
 }
 

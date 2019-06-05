@@ -90,5 +90,5 @@ namespace autoConfig
 	void SetDefaultSettings();
 	void TestHardwareEncoding();
 	bool CanTestServer(const char* server);
-	void WaitPendingTests(double timeout = 10);
+	void WaitPendingTests();
 } // namespace autoConfig
