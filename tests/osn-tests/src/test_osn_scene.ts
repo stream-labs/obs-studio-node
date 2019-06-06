@@ -107,41 +107,40 @@ describe('osn-scene', () => {
 
             // Getting all input source types
             const inputTypes = osn.InputFactory.types();
-            console.log("109");
+
             // Checking if inputTypes array contains the basic obs input types
             expect(inputTypes.length).to.not.equal(0);
             expect(inputTypes).to.include.members(basicOBSInputTypes);
-            console.log("113");
+
             inputTypes.forEach(function(inputType) {
                 const input = createSource(inputType, 'input');
-                console.log("116");
+
                 // Adding input source to scene
                 const sceneItem = scene.add(input);
-                console.log("120 " + inputType);
+
                 // Checking if input source was added to the scene correctly
                 expect(sceneItem).to.not.equal(undefined);
                 expect(sceneItem.source.id).to.equal(inputType);
                 expect(sceneItem.source.name).to.equal('input');
             });
-            console.log("loop end");
+
             // Creating source scene
             const sourceScene = createScene('source_scene');
-            console.log("129");
+
             // Adding a scene as source
             const sourceSceneItem = scene.add(sourceScene.source);
-            console.log("131");
+
             // Checking if input source was added to the scene correctly
             expect(sourceSceneItem).to.not.equal(undefined);
             expect(sourceSceneItem.source.id).to.equal('scene');
             expect(sourceSceneItem.source.name).to.equal('source_scene');
-            console.log("136");
+
             scene.getItems().forEach(function(sceneItem) {
                 sceneItem.source.release();
                 sceneItem.remove();
             });
-            console.log("141");
+
             scene.release();
-            console.log("143");
         });
     });
 
