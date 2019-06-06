@@ -107,7 +107,7 @@ steps:
 - task: PublishBuildArtifacts@1
   inputs: 
     pathtoPublish: $(SLFullDistributePath)\$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz
-    artifactName: $(SLFullDistributePath)\$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz
+    artifactName: $(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz
   displayName: 'Publish tag artifact'
   condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
