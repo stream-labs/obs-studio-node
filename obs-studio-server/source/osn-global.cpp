@@ -47,22 +47,18 @@ void osn::Global::GetOutputSource(
 {
 	obs_source_t* source = obs_get_output_source(args[0].value_union.ui32);
 	if (!source) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-		rval.push_back(ipc::value(UINT64_MAX));
-		rval.push_back(ipc::value(-1));
-		AUTO_DEBUG;
-		return;
+		// Not expected to fail
+		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid source index!";
+		blog(LOG_ERROR, error_message.c_str());
+		throw error_message;
 	}
 
 	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
-#ifdef DEBUG // Debug should throw an error for debuggers to catch.
-		throw std::runtime_error("Source found but not indexed.");
-#endif
-		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
-		rval.push_back(ipc::value("Source found but not indexed."));
-		AUTO_DEBUG;
-		return;
+		// Not expected to fail
+		auto error_message = std::string(__PRETTY_FUNCTION__) + " source not indexed!";
+		blog(LOG_ERROR, error_message.c_str());
+		throw error_message;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -82,25 +78,29 @@ void osn::Global::SetOutputSource(
 	uint32_t      channel = args[0].value_union.ui32;
 
 	if (channel >= MAX_CHANNELS) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::OutOfBounds));
-		rval.push_back(ipc::value("Invalid output channel."));
+		// Not expected to fail
+		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid output channel!";
+		blog(LOG_ERROR, error_message.c_str());
+		throw error_message;
 	}
 
 	if (args[1].value_union.ui64 != UINT64_MAX) {
 		source = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
 		if (!source) {
-			rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-			rval.push_back(ipc::value("Source reference is not valid."));
-			AUTO_DEBUG;
-			return;
+			// Not expected to fail
+			auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
+			blog(LOG_ERROR, error_message.c_str());
+			throw error_message;
 		}
 	}
 
 	obs_set_output_source(channel, source);
 	obs_source_t* newsource = obs_get_output_source(channel);
 	if (newsource != source) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-		rval.push_back(ipc::value("Failed to set output source."));
+		// Not expected to fail
+		auto error_message = std::string(__PRETTY_FUNCTION__) + " failed to set output source!";
+		blog(LOG_ERROR, error_message.c_str());
+		throw error_message;
 	} else {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	}
