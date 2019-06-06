@@ -53,9 +53,10 @@ void osn::IEncoder::GetId(
 {
 	auto p = obs_get_encoder_by_name(args[0].value_str.c_str());
 	if (p == nullptr) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Unable to find encoder."));
-		return;
+		// Not expected to fail
+		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
+		blog(LOG_ERROR, error_message.c_str());
+		throw error_message;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -72,9 +73,10 @@ void osn::IEncoder::GetName(
 {
 	auto p = obs_get_encoder_by_name(args[0].value_str.c_str());
 	if (p == nullptr) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Unable to find encoder."));
-		return;
+		// Not expected to fail
+		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
+		blog(LOG_ERROR, error_message.c_str());
+		throw error_message;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -91,9 +93,10 @@ void osn::IEncoder::SetName(
 {
 	auto p = obs_get_encoder_by_name(args[0].value_str.c_str());
 	if (p == nullptr) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Unable to find encoder."));
-		return;
+		// Not expected to fail
+		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
+		blog(LOG_ERROR, error_message.c_str());
+		throw error_message;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -120,9 +123,10 @@ void osn::IEncoder::GetType(
 {
 	auto p = obs_get_encoder_by_name(args[0].value_str.c_str());
 	if (p == nullptr) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Unable to find encoder."));
-		return;
+		// Not expected to fail
+		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
+		blog(LOG_ERROR, error_message.c_str());
+		throw error_message;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -139,9 +143,10 @@ void osn::IEncoder::GetCodec(
 {
 	auto p = obs_get_encoder_by_name(args[0].value_str.c_str());
 	if (p == nullptr) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Unable to find encoder."));
-		return;
+		// Not expected to fail
+		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
+		blog(LOG_ERROR, error_message.c_str());
+		throw error_message;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -179,9 +184,10 @@ void osn::IEncoder::Release(
 {
 	auto p = obs_get_encoder_by_name(args[0].value_str.c_str());
 	if (p == nullptr) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Unable to find encoder."));
-		return;
+		// Not expected to fail
+		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
+		blog(LOG_ERROR, error_message.c_str());
+		throw error_message;
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
