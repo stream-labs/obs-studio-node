@@ -83,7 +83,7 @@ steps:
   displayName: 'Publish build artifact'
 
 - script: |
-    curl -kLO "https://github.com/obsproject/obs-studio/releases/download/%OBSVersion%/OBS-Studio-%OBSVersion%-Full-x64.zip" -f --retry 5
+    curl -kLO "https://github.com/obsproject/obs-studio/releases/download/%OBSVersion%/OBS-Studio-%OBSVersion:.0=%-Full-x64.zip" -f --retry 5
     curl -kL "https://s3.amazonaws.com/getsentry-builds/getsentry/breakpad-tools/windows/breakpad-tools-windows.zip" -o "breakpadtools.zip" -f --retry 5
     curl -kL "https://github.com/getsentry/sentry-cli/releases/download/1.37.3/sentry-cli-Windows-i686.exe" -o "sentry-cli.exe" -f --retry 5
     7z x "breakpadtools.zip" > nul
