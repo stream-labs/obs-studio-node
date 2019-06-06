@@ -96,7 +96,7 @@ describe('osn-scene', () => {
         it('FAIL TEST: Get scene from name that don\'t exist ', () => {
             expect(function() {
                 const failSceneFromName = osn.SceneFactory.fromName('does_not_exist');
-            }).to.throw();
+            }).to.throw;
         });
     });
 
@@ -248,7 +248,7 @@ describe('osn-scene', () => {
             
             expect(function() {
                 scene.moveItem(3, 0);
-            }).to.throw();
+            }).to.throw;
 
             scene.release();
         });

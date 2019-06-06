@@ -96,7 +96,7 @@ describe('osn-transition', () => {
 
             expect(function() {
                 source = transition.getActiveSource();
-            }).to.throw();
+            }).to.throw;
 
             transition.release();
             scene.release();         
