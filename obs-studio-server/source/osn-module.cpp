@@ -63,10 +63,7 @@ void osn::Module::Open(void* data, const int64_t id, const std::vector<ipc::valu
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		rval.push_back(ipc::value(uid));
 	} else {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " failed to create module!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("failed to create module");
 	}
 
 	AUTO_DEBUG;
@@ -101,10 +98,7 @@ void osn::Module::Initialize(
 	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	if (!module) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid reference");
 	}
 	
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -121,10 +115,7 @@ void osn::Module::GetName(
 	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	if (!module) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid reference");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -141,10 +132,7 @@ void osn::Module::GetFileName(
 	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	if (!module) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid reference");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -161,10 +149,7 @@ void osn::Module::GetAuthor(
 	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	if (!module) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid reference");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -181,10 +166,7 @@ void osn::Module::GetDescription(
 	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	if (!module) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid reference");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -201,10 +183,7 @@ void osn::Module::GetBinaryPath(
 	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	if (!module) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid reference");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -221,10 +200,7 @@ void osn::Module::GetDataPath(
 	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	if (!module) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid reference");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));

@@ -47,18 +47,12 @@ void osn::Global::GetOutputSource(
 {
 	obs_source_t* source = obs_get_output_source(args[0].value_union.ui32);
 	if (!source) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid source index!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid source index");
 	}
 
 	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " source not indexed!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("source not indexed");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -78,29 +72,20 @@ void osn::Global::SetOutputSource(
 	uint32_t      channel = args[0].value_union.ui32;
 
 	if (channel >= MAX_CHANNELS) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid output channel!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid output channel");
 	}
 
 	if (args[1].value_union.ui64 != UINT64_MAX) {
 		source = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
 		if (!source) {
-			// Not expected to fail
-			auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
-			blog(LOG_ERROR, error_message.c_str());
-			throw error_message;
+			PRETTY_THROW("invalid reference");
 		}
 	}
 
 	obs_set_output_source(channel, source);
 	obs_source_t* newsource = obs_get_output_source(channel);
 	if (newsource != source) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " failed to set output source!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("failed to set output source");
 	} else {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	}

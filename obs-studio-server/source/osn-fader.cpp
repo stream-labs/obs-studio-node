@@ -78,18 +78,12 @@ void osn::Fader::Create(
 
 	obs_fader_t* fader = obs_fader_create(type);
 	if (!fader) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " failed to create!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("failed to create");
 	}
 
 	auto uid = Manager::GetInstance().allocate(fader);
 	if (uid == std::numeric_limits<utility::unique_id::id_t>::max()) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid uid!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid uid");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -107,10 +101,7 @@ void osn::Fader::Destroy(
 
 	auto fader = Manager::GetInstance().find(uid);
 	if (!fader) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid reference");
 	}
 
 	obs_fader_destroy(fader);
@@ -130,10 +121,7 @@ void osn::Fader::GetDeziBel(
 
 	auto fader = Manager::GetInstance().find(uid);
 	if (!fader) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid reference");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -151,10 +139,7 @@ void osn::Fader::SetDeziBel(
 
 	auto fader = Manager::GetInstance().find(uid);
 	if (!fader) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid reference");
 	}
 
 	obs_fader_set_db(fader, args[1].value_union.fp32);
@@ -174,10 +159,7 @@ void osn::Fader::GetDeflection(
 
 	auto fader = Manager::GetInstance().find(uid);
 	if (!fader) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid reference");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -195,10 +177,7 @@ void osn::Fader::SetDeflection(
 
 	auto fader = Manager::GetInstance().find(uid);
 	if (!fader) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid reference");
 	}
 
 	obs_fader_set_deflection(fader, args[1].value_union.fp32);
@@ -218,10 +197,7 @@ void osn::Fader::GetMultiplier(
 
 	auto fader = Manager::GetInstance().find(uid);
 	if (!fader) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid reference");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -239,10 +215,7 @@ void osn::Fader::SetMultiplier(
 
 	auto fader = Manager::GetInstance().find(uid);
 	if (!fader) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid reference");
 	}
 
 	obs_fader_set_mul(fader, args[1].value_union.fp32);
@@ -263,25 +236,16 @@ void osn::Fader::Attach(
 
 	auto fader = Manager::GetInstance().find(uid_fader);
 	if (!fader) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid fader reference");
 	}
 
 	auto source = osn::Source::Manager::GetInstance().find(uid_source);
 	if (!source) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid source reference");
 	}
 
 	if (!obs_fader_attach_source(fader, source)) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " cannot attach to source!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("cannot attach to source");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -298,10 +262,7 @@ void osn::Fader::Detach(
 
 	auto fader = Manager::GetInstance().find(uid);
 	if (!fader) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid reference");
 	}
 
 	obs_fader_detach_source(fader);

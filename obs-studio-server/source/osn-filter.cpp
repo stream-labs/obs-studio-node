@@ -69,20 +69,14 @@ void osn::Filter::Create(
 
 	obs_source_t* source = obs_source_create_private(sourceId.c_str(), name.c_str(), settings);
 	if (!source) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid reference");
 	}
 
 	obs_data_release(settings);
 
 	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
 	if (uid == UINT64_MAX) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " index list is full!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("index list is full");
 	}
 	osn::Source::attach_source_signals(source);
 

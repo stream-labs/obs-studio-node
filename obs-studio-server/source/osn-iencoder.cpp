@@ -18,6 +18,7 @@
 
 #include "osn-IEncoder.hpp"
 #include "error.hpp"
+#include "utility.hpp"
 #include <obs.h>
 
 void osn::IEncoder::Register(ipc::server& srv)
@@ -53,10 +54,7 @@ void osn::IEncoder::GetId(
 {
 	auto p = obs_get_encoder_by_name(args[0].value_str.c_str());
 	if (p == nullptr) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid reference");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -73,10 +71,7 @@ void osn::IEncoder::GetName(
 {
 	auto p = obs_get_encoder_by_name(args[0].value_str.c_str());
 	if (p == nullptr) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid reference");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -93,10 +88,7 @@ void osn::IEncoder::SetName(
 {
 	auto p = obs_get_encoder_by_name(args[0].value_str.c_str());
 	if (p == nullptr) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid reference");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -123,10 +115,7 @@ void osn::IEncoder::GetType(
 {
 	auto p = obs_get_encoder_by_name(args[0].value_str.c_str());
 	if (p == nullptr) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid reference");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -143,10 +132,7 @@ void osn::IEncoder::GetCodec(
 {
 	auto p = obs_get_encoder_by_name(args[0].value_str.c_str());
 	if (p == nullptr) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid reference");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -184,10 +170,7 @@ void osn::IEncoder::Release(
 {
 	auto p = obs_get_encoder_by_name(args[0].value_str.c_str());
 	if (p == nullptr) {
-		// Not expected to fail
-		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
-		blog(LOG_ERROR, error_message.c_str());
-		throw error_message;
+		PRETTY_THROW("invalid reference");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
