@@ -94,13 +94,13 @@ describe('osn-input', () => {
                 input.release();
             });
         });
-
+        
         it('FAIL TEST: Try to find an input that does not exist', () => {
             let inputFromName: IInput;
 
             expect(function () {
                 inputFromName = osn.InputFactory.fromName('doesNotExist');
-            }).to.throw;
+            }).to.throw();
         });
     });
 

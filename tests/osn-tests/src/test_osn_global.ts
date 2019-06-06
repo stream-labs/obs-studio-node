@@ -49,14 +49,14 @@ describe('osn-global', () => {
             expect(returnSource.name).to.equal('test_osn_global_source');
             input.release();
         });
-
+        
         it('FAIL TEST: Get source from empty output channel', () => {
             let source: ISource;
 
             // Trying to get source from empty channel
             expect(function () {
                 source = osn.Global.getOutputSource(5);
-            }).to.throw;
+            }).to.throw();
         });
     });
 
