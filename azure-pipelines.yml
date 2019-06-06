@@ -46,7 +46,7 @@ steps:
 - script: 'cmake.exe --build %SLBuildDirectory% --target install --config RelWithDebInfo'
   displayName: 'Build obs-studio-node'
 
-- script: 'yarn run test'
+- script: 'yarn run test:azure'
   env:
     SLOBS_BE_STREAMKEY: $(testsStreamKey)
     SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
