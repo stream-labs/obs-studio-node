@@ -18,7 +18,7 @@ describe('osn-global', () => {
             throw new Error("Could not start OBS process. Aborting!")
         }
 
-        if (process.env.BUILD_REASON=="PullRequest") {
+        if (process.env.BUILD_REASON == "PullRequest") {
             OBSInputTypes = basicDebugOBSInputTypes;
         } else {
             OBSInputTypes = basicOBSInputTypes;
@@ -73,8 +73,6 @@ describe('osn-global', () => {
             let inputType: string;
             let inputTypes: string[];
             let flags: number = undefined;
-
-            console.log(OBSInputTypes);
 
             // Getting all input source types
             inputTypes = osn.InputFactory.types();

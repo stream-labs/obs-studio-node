@@ -19,7 +19,7 @@ describe('osn-input', () => {
             throw new Error("Could not start OBS process. Aborting!")
         }
 
-        if (process.env.BUILD_REASON=="PullRequest") {
+        if (process.env.BUILD_REASON == "PullRequest") {
             OBSInputTypes = basicDebugOBSInputTypes;
         } else {
             OBSInputTypes = basicOBSInputTypes;
