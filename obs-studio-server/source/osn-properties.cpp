@@ -43,10 +43,10 @@ void osn::Properties::Modified(
 
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(sourceId);
 	if (!source) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Invalid Reference."));
-		AUTO_DEBUG;
-		return;
+		// Not expected to fail
+		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
+		blog(LOG_ERROR, error_message.c_str());
+		throw error_message;
 	}
 	obs_data_t* settings = obs_data_create_from_json(args[2].value_str.c_str());
 
@@ -76,17 +76,19 @@ void osn::Properties::Clicked(
 
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(sourceId);
 	if (!source) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Invalid Reference."));
-		AUTO_DEBUG;
-		return;
+		// Not expected to fail
+		auto error_message = std::string(__PRETTY_FUNCTION__) + " invalid reference!";
+		blog(LOG_ERROR, error_message.c_str());
+		throw error_message;
 	}
 
 	obs_properties_t* props = obs_source_properties(source);
 	obs_property_t*   prop  = obs_properties_get(props, name.c_str());
 	if (!prop) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-		rval.push_back(ipc::value("Failed to find property in source."));
+		// Not expected to fail
+		auto error_message = std::string(__PRETTY_FUNCTION__) + " failed to find property on source!";
+		blog(LOG_ERROR, error_message.c_str());
+		throw error_message;
 	} else {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		rval.push_back(ipc::value((int32_t)obs_property_button_clicked(prop, source)));
