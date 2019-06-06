@@ -54,10 +54,9 @@ describe('osn-global', () => {
             let source: ISource;
 
             // Trying to get source from empty channel
-            source = osn.Global.getOutputSource(5);
-
-            // Checking if source is undefined
-            expect(source).to.equal(undefined);
+            expect(function () {
+                source = osn.Global.getOutputSource(5);
+            }).to.throw;
         });
     });
 
