@@ -30,6 +30,13 @@
 #endif
 #define force_inline FORCE_INLINE
 
+#define PRETTY_THROW(_message)                                                                 \
+{                                                                                              \
+	auto error_message = std::string(__PRETTY_FUNCTION__) + " " + std::string(_message);       \
+	blog(LOG_ERROR, error_message.c_str());                                                    \
+	throw error_message;                                                                       \
+}
+
 namespace utility
 {
 	class unique_id
