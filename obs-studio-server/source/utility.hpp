@@ -31,26 +31,22 @@
 #endif
 #define force_inline FORCE_INLINE
 
-#define OSN_TESTS
-
-#ifndef OSN_TESTS
 #define PRETTY_THROW(_message)                                                                 \
 {                                                                                              \
+if (utility::osn_current_version() == "0.00.00-preview.0") {                                   \
+	rval.push_back((uint64_t)ErrorCode::Error);                                                \
+	return;                                                                                    \
+} else {                                                                                       \
 	auto error_message = std::string(__PRETTY_FUNCTION__) + " " + std::string(_message);       \
 	blog(LOG_ERROR, error_message.c_str());                                                    \
 	throw error_message;                                                                       \
+}                                                                                              \
 }
-#else
-#define PRETTY_THROW(_message)                                                                 \
-	{                                                                                          \
-		rval.push_back((uint64_t)ErrorCode::Error);                                            \
-		return;                                                                                \
-	}
-#endif
-
 
 namespace utility
 {
+	std::string osn_current_version(std::string _version = "");
+
 	class unique_id
 	{
 		public:

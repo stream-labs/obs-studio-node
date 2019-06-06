@@ -482,6 +482,7 @@ void OBS_API::OBS_API_initAPI(
 	std::string appdata = args[0].value_str;
 	std::string locale  = args[1].value_str;
 	currentVersion      = args[2].value_str;
+	utility::osn_current_version(currentVersion);
 
 	// Connect the metrics provider with our crash handler process, sending our current version tag
 	// and enabling metrics
