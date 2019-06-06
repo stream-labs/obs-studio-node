@@ -102,9 +102,9 @@ describe('osn-scene', () => {
 
     context('# AddSource and AsSource', () => {
         it('Add all source types (including scene as source) to scene', () => {
-            // Creating scene
+            console.log("104");
             const scene = createScene('addSource_test');
-
+            console.log("107");
             // Getting all input source types
             const inputTypes = osn.InputFactory.types();
             console.log("109");
