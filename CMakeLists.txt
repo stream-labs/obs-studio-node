@@ -68,6 +68,11 @@ include(ExternalProject)
 include(DownloadProject)
 include(FetchContent)
 
+if(MSVC)
+	add_definitions(/MP)
+	add_definitions(/debug:fastlink)
+endif()
+
 # Override a test flag
 set(StackWalker_DISABLE_TESTS true CACHE BOOL "" FORCE)
 
