@@ -128,7 +128,7 @@ steps:
 
 - task: S3Upload@1
   inputs:
-    awsCredentials: 'SLOBS Backend AWS buckets'
+    awsCredentials: 'Streamlabs AWS'
     regionName: 'us-west-2'
     bucketName: 'obsstudionodes3.streamlabs.com'
     globExpressions: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz'
