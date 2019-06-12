@@ -133,5 +133,7 @@ steps:
     bucketName: 'obsstudionodes3.streamlabs.com'
     globExpressions: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz'
     filesAcl: 'public-read'
+    logRequest: true
+    logResponse: true
   displayName: 'Upload tag artifact to S3'
   condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
