@@ -57,6 +57,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 //////////////////////////////////////////////////////////////////////////
 // Customizable constants
+#define LTALLOC_OVERFLOW_DETECTION
 
 // Define to disable the override of the new operator (enabled by default if compiling this file in c++).
 //#define LTALLOC_DISABLE_OPERATOR_NEW_OVERRIDE
@@ -1955,7 +1956,12 @@ CPPCODE(extern "C") void* ltrealloc(void* ptr, size_t sz)
 		return ltmalloc(sz);
 	if (!sz)
 		return ltfree(ptr), (void*)0;
-	size_t osz = ltmsize(ptr);
+	size_t osz;
+	if (likely((uintptr_t)ptr & (CHUNK_SIZE - 1))) {
+		osz = class_to_size(((Chunk*)((uintptr_t)ptr & ~(CHUNK_SIZE - 1)))->sizeClass) - LTALLOC_CANARY_SIZE;
+	} else {
+		osz = ltmsize(ptr);
+	}
 	if (sz <= osz) {
 		return ptr;
 	}

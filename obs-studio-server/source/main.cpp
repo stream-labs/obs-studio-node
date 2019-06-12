@@ -194,7 +194,7 @@ int main(int argc, char* argv[])
     base_allocator my_allocators = {};
 	my_allocators.malloc         = [](size_t s) { return ltmalloc(s); };
 	my_allocators.realloc        = [](void* p, size_t s) { return ltrealloc(p, s); };
-	my_allocators.free           = [](void* p) { return ltfreeclear(p); };
+	my_allocators.free           = [](void* p) { return ltfree(p); };
     base_set_allocator(&my_allocators);
 
 	// Initialize Server
