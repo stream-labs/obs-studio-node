@@ -47,6 +47,12 @@ steps:
 - script: ./ci/build-osn.cmd
   displayName: 'Build obs-studio-node'
 
+- script: 'yarn run test:azure'
+  env:
+    SLOBS_BE_STREAMKEY: $(testsStreamKey)
+    SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+  displayName: 'Run tests'
+
 - task: PublishTestResults@2
   inputs:
     testResultsFormat: 'JUnit'
@@ -102,13 +108,13 @@ steps:
     includeRootFolder: true
     archiveType: tar
     tarCompression: gz
-    archiveFile: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz'
+    archiveFile: '$(SLFullDistributePath)\$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz'
   displayName: 'Generate tag artifact'
   condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
 - task: PublishBuildArtifacts@1
   inputs: 
-    pathtoPublish: $(Build.SourcesDirectory)\$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz
+    pathtoPublish: $(SLFullDistributePath)\$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz
     artifactName: $(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz
   displayName: 'Publish tag artifact'
   condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
