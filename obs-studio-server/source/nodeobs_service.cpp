@@ -22,6 +22,7 @@
 #include <windows.h>
 #include "error.hpp"
 #include "shared.hpp"
+#include "utility.hpp"
 
 obs_output_t* streamingOutput    = nullptr;
 obs_output_t* recordingOutput    = nullptr;
@@ -93,9 +94,7 @@ void OBS_service::OBS_service_resetAudioContext(
     std::vector<ipc::value>&       rval)
 {
 	if (!resetAudioContext(true)) {
-
-		// Not expected to fail
-		throw "OBS_service_resetAudioContext failed!";
+		PRETTY_THROW("OBS_service_resetAudioContext failed!");
 	} else {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	}
@@ -112,8 +111,7 @@ void OBS_service::OBS_service_resetVideoContext(
 	if (result == OBS_VIDEO_SUCCESS) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	} else {
-		// Not expected to fail
-		throw "OBS_service_resetVideoContext failed with error: " + std::to_string(result);
+		PRETTY_THROW("OBS_service_resetVideoContext failed with error: " + std::to_string(result));
 	}
 
 	AUTO_DEBUG;
