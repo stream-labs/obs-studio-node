@@ -3,10 +3,11 @@ import { expect } from 'chai'
 import * as osn from '../osn';
 import { IInput, ISource } from '../osn';
 import { OBSProcessHandler } from '../util/obs_process_handler';
-import { basicOBSInputTypes } from '../util/general';
+import { basicOBSInputTypes, basicDebugOBSInputTypes } from '../util/general';
 
 describe('osn-global', () => {
     let obs: OBSProcessHandler;
+    let OBSInputTypes: string[];
     
     // Initialize OBS process
     before(function() {
@@ -15,6 +16,12 @@ describe('osn-global', () => {
         if (obs.startup() !== osn.EVideoCodes.Success)
         {
             throw new Error("Could not start OBS process. Aborting!")
+        }
+
+        if (process.env.BUILD_REASON == "PullRequest") {
+            OBSInputTypes = basicDebugOBSInputTypes;
+        } else {
+            OBSInputTypes = basicOBSInputTypes;
         }
     });
 
@@ -49,15 +56,14 @@ describe('osn-global', () => {
             expect(returnSource.name).to.equal('test_osn_global_source');
             input.release();
         });
-
+        
         it('FAIL TEST: Get source from empty output channel', () => {
             let source: ISource;
 
             // Trying to get source from empty channel
-            source = osn.Global.getOutputSource(5);
-
-            // Checking if source is undefined
-            expect(source).to.equal(undefined);
+            expect(function () {
+                source = osn.Global.getOutputSource(5);
+            }).to.throw();
         });
     });
 
@@ -72,7 +78,7 @@ describe('osn-global', () => {
 
             // Checking if sourceTypes array contains the basic obs input types
             expect(inputTypes.length).to.not.equal(0);
-            expect(inputTypes).to.include.members(basicOBSInputTypes);
+            expect(inputTypes).to.include.members(OBSInputTypes);
 
             // For each input type available get their flags and check if they are not undefined
             for (inputType of inputTypes)

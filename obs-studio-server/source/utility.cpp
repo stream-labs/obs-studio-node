@@ -18,6 +18,15 @@
 
 #include "utility.hpp"
 
+std::string utility::osn_current_version(std::string _version)
+{
+	static std::string current_version = "";
+	if (_version != "")
+		current_version = _version;
+
+	return current_version;
+}
+
 utility::unique_id::unique_id() {}
 
 utility::unique_id::~unique_id() {}

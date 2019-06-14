@@ -90,21 +90,14 @@ void osn::Transition::Create(
 
 	obs_source_t* source = obs_source_create(sourceId.c_str(), name.c_str(), settings, hotkeys);
 	if (!source) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-		rval.push_back(ipc::value("Failed to create transition."));
-		AUTO_DEBUG;
-		return;
+		PRETTY_THROW("failed to create transition");
 	}
 
 	obs_data_release(settings);
 
 	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
-		// No further Ids left, leak somewhere.
-		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
-		rval.push_back(ipc::value("Index list is full."));
-		AUTO_DEBUG;
-		return;
+		PRETTY_THROW("the index list is full");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -132,21 +125,14 @@ void osn::Transition::CreatePrivate(
 
 	obs_source_t* source = obs_source_create_private(sourceId.c_str(), name.c_str(), settings);
 	if (!source) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-		rval.push_back(ipc::value("Failed to create transition."));
-		AUTO_DEBUG;
-		return;
+		PRETTY_THROW("failed to create transition");
 	}
 
 	obs_data_release(settings);
 
 	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
 	if (uid == UINT64_MAX) {
-		// No further Ids left, leak somewhere.
-		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
-		rval.push_back(ipc::value("Index list is full."));
-		AUTO_DEBUG;
-		return;
+		PRETTY_THROW("index list is full");
 	}
 	osn::Source::attach_source_signals(source);
 
@@ -163,23 +149,12 @@ void osn::Transition::FromName(
 {
 	obs_source_t* source = obs_get_source_by_name(args[0].value_str.c_str());
 	if (!source) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::NotFound));
-		rval.push_back(ipc::value("Named transition could not be found."));
-		AUTO_DEBUG;
-		return;
+		PRETTY_THROW("named transitions could not be found");
 	}
 
 	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
-		// This is an impossible case, but we handle it in case it happens.
-		obs_source_release(source);
-#ifdef DEBUG // Debug should throw an error for debuggers to catch.
-		throw std::runtime_error("Source found but not indexed.");
-#endif
-		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
-		rval.push_back(ipc::value("Source found but not indexed."));
-		AUTO_DEBUG;
-		return;
+		PRETTY_THROW("source found but not indexed");
 	}
 
 	obs_source_release(source);
@@ -200,10 +175,7 @@ void osn::Transition::GetActiveSource(
 	// Attempt to find the source asked to load.
 	obs_source_t* transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!transition) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Transition reference is not valid."));
-		AUTO_DEBUG;
-		return;
+		PRETTY_THROW("invalid reference");
 	}
 
 	obs_source_type type   = OBS_SOURCE_TYPE_INPUT;
@@ -215,13 +187,7 @@ void osn::Transition::GetActiveSource(
 	}
 
 	if (uid == UINT64_MAX) {
-#ifdef DEBUG // Debug should throw an error for debuggers to catch.
-		throw std::runtime_error("Source found but not indexed.");
-#endif
-		rval.push_back(ipc::value((uint64_t)ErrorCode::CriticalError));
-		rval.push_back(ipc::value("Source found but not indexed."));
-		AUTO_DEBUG;
-		return;
+		PRETTY_THROW("source found but not indexed");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -239,10 +205,7 @@ void osn::Transition::Clear(
 	// Attempt to find the source asked to load.
 	obs_source_t* transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!transition) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Transition reference is not valid."));
-		AUTO_DEBUG;
-		return;
+		PRETTY_THROW("invalid reference");
 	}
 
 	obs_transition_clear(transition);
@@ -260,18 +223,12 @@ void osn::Transition::Set(
 	// Attempt to find the source asked to load.
 	obs_source_t* transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!transition) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Transition reference is not valid."));
-		AUTO_DEBUG;
-		return;
+		PRETTY_THROW("invalid transition reference");
 	}
 
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
 	if (!source) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Source reference is not valid."));
-		AUTO_DEBUG;
-		return;
+		PRETTY_THROW("invalid source reference");
 	}
 
 	obs_transition_set(transition, source);
@@ -289,18 +246,12 @@ void osn::Transition::Start(
 	// Attempt to find the source asked to load.
 	obs_source_t* transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!transition) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Transition reference is not valid."));
-		AUTO_DEBUG;
-		return;
+		PRETTY_THROW("invalid transition reference");
 	}
 
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[2].value_union.ui64);
 	if (!source) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
-		rval.push_back(ipc::value("Source reference is not valid."));
-		AUTO_DEBUG;
-		return;
+		PRETTY_THROW("invalid source reference");
 	}
 
 	uint32_t ms = args[1].value_union.ui32;

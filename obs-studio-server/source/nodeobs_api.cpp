@@ -25,6 +25,7 @@
 #include "osn-filter.hpp"
 #include "osn-volmeter.hpp"
 #include "osn-fader.hpp"
+#include "nodeobs_autoconfig.h"
 #include "util/lexer.h"
 #include "util-crashmanager.h"
 #include "util-metricsprovider.h"
@@ -482,6 +483,7 @@ void OBS_API::OBS_API_initAPI(
 	std::string appdata = args[0].value_str;
 	std::string locale  = args[1].value_str;
 	currentVersion      = args[2].value_str;
+	utility::osn_current_version(currentVersion);
 
 	// Connect the metrics provider with our crash handler process, sending our current version tag
 	// and enabling metrics
@@ -1039,6 +1041,8 @@ void OBS_API::destroyOBS_API(void)
 			DisableAudioDucking(false);
 	}
 #endif
+
+	autoConfig::WaitPendingTests();
 
 	obs_encoder_t* streamingEncoder = OBS_service::getStreamingEncoder();
 	if (streamingEncoder != NULL)

@@ -3,10 +3,11 @@ import { expect } from 'chai';
 import * as osn from '../osn';
 import { ISettings } from '../osn';
 import { OBSProcessHandler } from '../util/obs_process_handler';
-import { basicOBSInputTypes, basicOBSFilterTypes, basicOBSTransitionTypes } from '../util/general';
+import { basicOBSInputTypes, basicDebugOBSInputTypes, basicOBSFilterTypes, basicOBSTransitionTypes } from '../util/general';
 
 describe('osn-source', () => {
     let obs: OBSProcessHandler;
+    let OBSInputTypes: string[];
 
     // Initialize OBS process
     before(function() {
@@ -15,6 +16,12 @@ describe('osn-source', () => {
         if (obs.startup() !== osn.EVideoCodes.Success)
         {
             throw new Error("Could not start OBS process. Aborting!")
+        }
+
+        if (process.env.BUILD_REASON == "PullRequest") {
+            OBSInputTypes = basicDebugOBSInputTypes;
+        } else {
+            OBSInputTypes = basicOBSInputTypes;
         }
     });
 
@@ -31,7 +38,7 @@ describe('osn-source', () => {
 
             // Checking if inputTypes array contains the basic obs input types
             expect(inputTypes.length).to.not.equal(0);
-            expect(inputTypes).to.include.members(basicOBSInputTypes);
+            expect(inputTypes).to.include.members(OBSInputTypes);
 
             inputTypes.forEach(function(inputType) {
                 // Creating input source
@@ -254,7 +261,7 @@ describe('osn-source', () => {
 
             // Checking if inputTypes array contains the basic obs input types
             expect(inputTypes.length).to.not.equal(0);
-            expect(inputTypes).to.include.members(basicOBSInputTypes);
+            expect(inputTypes).to.include.members(OBSInputTypes);
 
             inputTypes.forEach(function(inputType) {
                 // Creating input source
@@ -543,7 +550,7 @@ describe('osn-source', () => {
 
             // Checking if inputTypes array contains the basic obs input types
             expect(inputTypes.length).to.not.equal(0);
-            expect(inputTypes).to.include.members(basicOBSInputTypes);
+            expect(inputTypes).to.include.members(OBSInputTypes);
 
             inputTypes.forEach(function(inputType) {
                 // Creating input source
@@ -576,7 +583,7 @@ describe('osn-source', () => {
 
             // Checking if inputTypes array contains the basic obs input types
             expect(inputTypes.length).to.not.equal(0);
-            expect(inputTypes).to.include.members(basicOBSInputTypes);
+            expect(inputTypes).to.include.members(OBSInputTypes);
 
             inputTypes.forEach(function(inputType) {
                 // Creating input source

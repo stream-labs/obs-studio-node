@@ -93,8 +93,9 @@ void OBS_service::OBS_service_resetAudioContext(
     std::vector<ipc::value>&       rval)
 {
 	if (!resetAudioContext(true)) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 
+		// Not expected to fail
+		throw "OBS_service_resetAudioContext failed!";
 	} else {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	}
@@ -111,8 +112,8 @@ void OBS_service::OBS_service_resetVideoContext(
 	if (result == OBS_VIDEO_SUCCESS) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	} else {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-		rval.push_back(ipc::value(result));
+		// Not expected to fail
+		throw "OBS_service_resetVideoContext failed with error: " + std::to_string(result);
 	}
 
 	AUTO_DEBUG;
@@ -146,8 +147,7 @@ void OBS_service::OBS_service_startRecording(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	// TODO : Use the utility function when merged
-	if (obs_output_active(recordingOutput)) {
+	if (isRecordingOutputActive()) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		AUTO_DEBUG;
 		return;
@@ -168,8 +168,18 @@ void OBS_service::OBS_service_startReplayBuffer(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	startReplayBuffer();
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	if (isReplayBufferOutputActive()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+		AUTO_DEBUG;
+		return;
+	}
+
+	if (!startReplayBuffer()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Failed to start the replay buffer!"));
+	} else {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	}
 	AUTO_DEBUG;
 }
 
@@ -1116,6 +1126,18 @@ bool OBS_service::startReplayBuffer(void)
 	}
 
 	bool result = obs_output_start(replayBufferOutput);
+	if (!result) {
+		SignalInfo  signal = SignalInfo("replay-buffer", "stop");
+		const char* error  = obs_output_get_last_error(replayBufferOutput);
+		if (error) {
+			signal.setErrorMessage(error);
+			std::cout << "Last replay buffer error: " << error << std::endl;
+		}
+		signal.setCode(OBS_OUTPUT_ERROR);
+		std::unique_lock<std::mutex> ulock(signalMutex);
+		outputSignal.push(signal);
+	}
+
 	return result;
 }
 
@@ -2276,6 +2298,8 @@ void OBS_service::OBS_service_processReplayBufferHotkey(
 		    return true;
 	    },
 	    nullptr);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
 void OBS_service::OBS_service_getLastReplay(
