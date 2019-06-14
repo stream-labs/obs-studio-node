@@ -17,6 +17,8 @@
 ******************************************************************************/
 
 #include "nodeobs_autoconfig.h"
+#include <array>
+#include <future>
 #include "error.hpp"
 #include "shared.hpp"
 
@@ -59,6 +61,17 @@ enum class FPSType : int
 	fps60
 };
 
+enum ThreadedTests : int
+{
+	BandwidthTest,
+	StreamEncoderTest,
+	RecordingEncoderTest,
+	SaveStreamSettings,
+	SaveSettings,
+	SetDefaultSettings,
+	Count
+};
+
 struct Event
 {
 	// obs::CallbackInfo *cb_info;
@@ -84,8 +97,9 @@ class AutoConfigInfo
 	double      percentage;
 };
 
-std::mutex                 eventsMutex;
-std::queue<AutoConfigInfo> events;
+std::array<std::future<void>, ThreadedTests::Count> asyncTests;
+std::mutex                                          eventsMutex;
+std::queue<AutoConfigInfo>                          events;
 
 Service     serviceSelected   = Service::Other;
 Quality     recordingQuality  = Quality::Stream;
@@ -126,7 +140,6 @@ bool preferHardware = true;
 int  specificFPSNum = 0;
 int  specificFPSDen = 0;
 
-std::thread             testThread;
 std::condition_variable cv;
 std::mutex              m;
 bool                    cancel  = false;
@@ -232,6 +245,28 @@ void autoConfig::Register(ipc::server& srv)
 	cls->register_function(std::make_shared<ipc::function>("Query", std::vector<ipc::type>{}, autoConfig::Query));
 
 	srv.register_collection(cls);
+}
+
+void autoConfig::WaitPendingTests(double timeout)
+{
+	clock_t start_time = clock();
+	while ((float(clock() - start_time) / CLOCKS_PER_SEC) < timeout) {
+
+		bool all_finished = true;
+		for (auto& async_test : asyncTests) {
+			if (async_test.valid()) {
+				auto status = async_test.wait_for(std::chrono::milliseconds(0));
+				if (status != std::future_status::ready) {
+					all_finished = false;
+				}			
+			}
+		}
+
+		if (all_finished)
+			break;
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	}
 }
 
 void autoConfig::TestHardwareEncoding(void)
@@ -417,7 +452,7 @@ void autoConfig::StartBandwidthTest(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	std::thread(TestBandwidthThread).detach();
+	asyncTests[ThreadedTests::BandwidthTest] = std::async(std::launch::async, TestBandwidthThread);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
@@ -428,7 +463,7 @@ void autoConfig::StartStreamEncoderTest(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	std::thread(TestStreamEncoderThread).detach();
+	asyncTests[ThreadedTests::StreamEncoderTest] = std::async(std::launch::async, TestStreamEncoderThread);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
@@ -439,7 +474,7 @@ void autoConfig::StartRecordingEncoderTest(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	std::thread(TestRecordingEncoderThread).detach();
+	asyncTests[ThreadedTests::RecordingEncoderTest] = std::async(std::launch::async, TestRecordingEncoderThread);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
@@ -450,7 +485,7 @@ void autoConfig::StartSaveStreamSettings(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	std::thread(SaveStreamSettings).detach();
+	asyncTests[ThreadedTests::SaveStreamSettings] = std::async(std::launch::async, SaveStreamSettings);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
@@ -461,7 +496,7 @@ void autoConfig::StartSaveSettings(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	std::thread(SaveSettings).detach();
+	asyncTests[ThreadedTests::SaveSettings] = std::async(std::launch::async, SaveSettings);
 
 	cancel = false;
 
@@ -486,7 +521,7 @@ void autoConfig::StartSetDefaultSettings(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	std::thread(SetDefaultSettings).detach();
+	asyncTests[ThreadedTests::SetDefaultSettings] = std::async(std::launch::async, SetDefaultSettings);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
