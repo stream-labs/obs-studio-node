@@ -29,7 +29,7 @@
     "@types/mocha": "^5.2.5",
     "@types/node": "^11.9.5",
     "chai": "^4.2.0",
-    "electron": "https://github.com/stream-labs/electron/releases/download/2.0.16-streamlabs/electron-2.0.16-streamlabs.tgz",
+    "electron": "5.0.3",
     "electron-mocha": "^8.0.1",
     "electron-rebuild": "^1.8.4",
     "mocha": "^5.2.0",
