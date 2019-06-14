@@ -94,7 +94,7 @@ describe('osn-input', () => {
                 input.release();
             });
         });
-
+        
         it('FAIL TEST: Try to find an input that does not exist', () => {
             let inputFromName: IInput;
 
