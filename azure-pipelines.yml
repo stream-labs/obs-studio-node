@@ -108,13 +108,13 @@ steps:
     includeRootFolder: true
     archiveType: tar
     tarCompression: gz
-    archiveFile: '$(SLFullDistributePath)\$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz'
+    archiveFile: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz'
   displayName: 'Generate tag artifact'
   condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
 - task: PublishBuildArtifacts@1
   inputs: 
-    pathtoPublish: $(SLFullDistributePath)\$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz
+    pathtoPublish: $(Build.SourcesDirectory)\$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz
     artifactName: $(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz
   displayName: 'Publish tag artifact'
   condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
