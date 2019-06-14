@@ -100,7 +100,7 @@ describe('osn-input', () => {
 
             expect(function () {
                 inputFromName = osn.InputFactory.fromName('doesNotExist');
-            }).to.throw;
+            }).to.throw();
         });
     });
 
