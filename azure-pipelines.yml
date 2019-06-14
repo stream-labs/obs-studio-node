@@ -47,12 +47,6 @@ steps:
 - script: ./ci/build-osn.cmd
   displayName: 'Build obs-studio-node'
 
-- script: 'yarn run test'
-  env:
-    SLOBS_BE_STREAMKEY: $(testsStreamKey)
-    SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
-  displayName: 'Run tests'
-
 - task: PublishTestResults@2
   inputs:
     testResultsFormat: 'JUnit'
