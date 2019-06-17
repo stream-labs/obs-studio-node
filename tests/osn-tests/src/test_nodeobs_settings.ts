@@ -1213,7 +1213,7 @@ describe('nodeobs_settings', function() {
                 return parameter.name === 'Mode';
             }).currentValue = 'Advanced';
 
-            osn.NodeObs.OBS_settings_saveSettings('Output', setToAdvanced);
+            osn.NodeObs.OBS_settings_saveSettings(`Output`, Array.prototype.slice.call(setToAdvanced));
 
             // Getting advanced output settings container
             let setx264 = osn.NodeObs.OBS_settings_getSettings('Output').data;
@@ -1719,7 +1719,7 @@ describe('nodeobs_settings', function() {
                 return parameter.name === 'Mode';
             }).currentValue = 'Advanced';
 
-            osn.NodeObs.OBS_settings_saveSettings('Output', setToAdvanced);
+            osn.NodeObs.OBS_settings_saveSettings(`Output`, Array.prototype.slice.call(setToAdvanced));
 
             // Getting advanced output settings container
             let setNVENC = osn.NodeObs.OBS_settings_getSettings('Output').data;
@@ -2148,7 +2148,7 @@ describe('nodeobs_settings', function() {
                 return parameter.name === 'Mode';
             }).currentValue = 'Advanced';
 
-            osn.NodeObs.OBS_settings_saveSettings('Output', setToAdvanced);
+            osn.NodeObs.OBS_settings_saveSettings(`Output`, Array.prototype.slice.call(setToAdvanced));
 
             // Getting advanced output settings container
             let setNewNVENC = osn.NodeObs.OBS_settings_getSettings('Output').data;
@@ -2585,7 +2585,7 @@ describe('nodeobs_settings', function() {
                 return parameter.name === 'RecRB';
             }).currentValue = true;
 
-            osn.NodeObs.OBS_settings_saveSettings('Output', setToAdvanced);
+            osn.NodeObs.OBS_settings_saveSettings(`Output`, Array.prototype.slice.call(setToAdvanced));
 
             // Getting advanced output settings
             let audioTrackReplayBufferSettings = osn.NodeObs.OBS_settings_getSettings('Video').data;
