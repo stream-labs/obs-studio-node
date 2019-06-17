@@ -767,6 +767,7 @@ bool OBS_service::createService()
 
 		obs_data_set_string(data, "type", obs_service_get_type(service));
 		obs_data_set_obj(data, "settings", settings);
+		return true;
 	};
 
     bool fileExist = (os_stat(ConfigManager::getInstance().getService().c_str(), &buffer) == 0);
@@ -956,6 +957,7 @@ bool OBS_service::updateAudioStreamingEncoder() {
 		}
 		obs_encoder_set_audio(audioAdvancedStreamingEncoder, obs_get_audio());
 	}
+	return true;
 }
 
 bool OBS_service::startRecording(void)
@@ -1348,9 +1350,9 @@ void OBS_service::updateVideoStreamingEncoder()
 	bool enforceBitrate = config_get_bool(ConfigManager::getInstance().getBasic(), "SimpleOutput", "EnforceBitrate");
 	const char* custom  = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "x264Settings");
 	const char* encoder = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "StreamEncoder");
-	const char* encoderID;
-	const char* presetType;
-	const char* preset;
+	const char* encoderID = nullptr;
+	const char* presetType = nullptr;
+	const char* preset = nullptr;
 
 	if (encoder != NULL) {
 		if (strcmp(encoder, SIMPLE_ENCODER_QSV) == 0 || strcmp(encoder, ADVANCED_ENCODER_QSV) == 0) {

@@ -694,7 +694,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 
 	obs_properties_t* properties = obs_service_properties(currentService);
 	obs_property_t*   property   = obs_properties_first(properties);
-	obs_combo_format  format;
+	obs_combo_format  format     = OBS_COMBO_FORMAT_INVALID;
 	std::string       formatString;
 
 	index                                  = 0;
@@ -2132,7 +2132,7 @@ void OBS_settings::getStandardRecordingSettings(
 	bool fileExist = (os_stat(ConfigManager::getInstance().getRecord().c_str(), &buffer) == 0);
 
 	obs_data_t*    settings = obs_encoder_defaults(recEncoderCurrentValue);
-	obs_encoder_t* recordingEncoder;
+	obs_encoder_t* recordingEncoder = nullptr;
 
 	obs_output_t* recordOutput = OBS_service::getRecordingOutput();
 
