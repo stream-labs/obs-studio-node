@@ -126,7 +126,7 @@ function setEnconderAndRecordingPath(mode: string, invalidPath: boolean = false)
             }).currentValue = 'C:\\Test';
         }
 
-        osn.NodeObs.OBS_settings_saveSettings('Output', Array.prototype.slice.call(setEncoderAndRecordingFilePath));
+        osn.NodeObs.OBS_settings_saveSettings(`Output`, Array.prototype.slice.call(setEncoderAndRecordingFilePath));
     }
 }
 
