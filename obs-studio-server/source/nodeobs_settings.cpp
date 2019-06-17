@@ -1882,10 +1882,10 @@ void OBS_settings::getStandardRecordingSettings(
 	recFileNameWithoutSpace.type        = "OBS_PROPERTY_BOOL";
 	recFileNameWithoutSpace.description = "Generate File Name without Space";
 
-	const char* currentValue = "RecFileNameWithoutSpace";
-	recFileNameWithoutSpace.currentValue.resize(strlen(currentValue));
-	memcpy(recFileNameWithoutSpace.currentValue.data(), currentValue, strlen(currentValue));
-	recFileNameWithoutSpace.sizeOfCurrentValue = strlen(currentValue);
+	bool noSpace = config_get_bool(config, "AdvOut", "RecFileNameWithoutSpace");
+	recFileNameWithoutSpace.currentValue.resize(sizeof(noSpace));
+	memcpy(recFileNameWithoutSpace.currentValue.data(), &noSpace, sizeof(noSpace));
+	recFileNameWithoutSpace.sizeOfCurrentValue = (noSpace);
 
 	recFileNameWithoutSpace.visible = true;
 	recFileNameWithoutSpace.enabled = isCategoryEnabled;
