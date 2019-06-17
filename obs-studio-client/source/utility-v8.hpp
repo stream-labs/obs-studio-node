@@ -328,8 +328,10 @@ namespace utilv8
 			v8::String::Utf8Value utfv8(v8s);
 			if (*utfv8) {
 				r = (char*)malloc(v8s->Utf8Length() + 1);
-				memcpy(r, *utfv8, v8s->Utf8Length());
-				r[v8s->Utf8Length()] = 0;
+				if (r != nullptr) {
+					memcpy(r, *utfv8, v8s->Utf8Length());
+					r[v8s->Utf8Length()] = 0;
+				}
 				return true;
 			}
 		}

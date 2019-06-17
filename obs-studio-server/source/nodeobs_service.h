@@ -64,7 +64,7 @@ class SignalInfo
 	private:
 	std::string m_outputType;
 	std::string m_signal;
-	int         m_code;
+	int         m_code = 0;
 	std::string m_errorMessage;
 
 	public:

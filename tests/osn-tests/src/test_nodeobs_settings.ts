@@ -138,7 +138,7 @@ describe('nodeobs_settings', function() {
                 return parameter.name === 'Mode';
             }).currentValue = 'Simple';
 
-            osn.NodeObs.OBS_settings_saveSettings('Output', setToSimple);
+            osn.NodeObs.OBS_settings_saveSettings('Output',  setToSimple);
 
             // Getting simple output settings container
             let setRecQualityAndReplayBuffer = osn.NodeObs.OBS_settings_getSettings('Output').data;
@@ -445,7 +445,14 @@ describe('nodeobs_settings', function() {
                     return parameter.name === 'RecEncoder';
                 }).currentValue = 'obs_qsv11';
 
-                osn.NodeObs.OBS_settings_saveSettings('Output', setQSV);
+                setQSV.forEach(subCategory => {
+                    console.log(subCategory.nameSubCategory);
+                    subCategory.parameters.forEach(parameter => {
+                            console.log(parameter);
+                    });
+                });
+
+                osn.NodeObs.OBS_settings_saveSettings('Output', setQSV); 
 
                 // Setting rate control to CBR
                 let setCBR = osn.NodeObs.OBS_settings_getSettings('Output').data;

@@ -1,4 +1,3 @@
-/*
 import 'mocha';
 import { expect } from 'chai';
 import * as osn from '../osn';
@@ -1101,4 +1100,3 @@ describe('nodeobs_service', function() {
         })
     });
 });
-*/

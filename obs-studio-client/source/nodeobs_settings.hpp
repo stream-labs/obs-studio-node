@@ -27,9 +27,9 @@ namespace settings
 		std::string       description;
 		std::string       type;
 		std::string       subType;
-		bool              enabled;
-		bool              masked;
-		bool              visible;
+		bool              enabled = false;
+		bool              masked = false;
+		bool              visible = false;
 		double            minVal;
 		double            maxVal;
 		double            stepVal;
