@@ -1031,6 +1031,7 @@ describe('nodeobs_service', function() {
 
                 invalidPathReplaySignalsAdv.subscribe(
                     signalInfo => {
+                        done(new Error('Received signal code ' + signalInfo.code + ' , signal' + signalInfo.signal));
                         if (signalInfo.type === EOBSOutputType.ReplayBuffer) {
                             if (signalInfo.signal === EOBSOutputSignal.Start) {
                                 setTimeout(function() {
@@ -1041,7 +1042,7 @@ describe('nodeobs_service', function() {
                                 isReplayWithInvalidPathAdv = false;
 
                                 if (signalInfo.code != osn.EOutputCode.Error) {
-                                    done(new Error('Received wrong signal code. Expecting -4'));
+                                    done(new Error('Received wrong signal code. Expecting -4. Got ' + signalInfo.code));
                                 } else {
                                     done();
                                 }
