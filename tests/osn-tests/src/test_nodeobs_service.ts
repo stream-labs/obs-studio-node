@@ -317,7 +317,7 @@ describe('nodeobs_service', function() {
         it('Set stream key', async function() {
             let streamKey: string = "";
             let updatedStreamKey: string = "";
-
+            
             try {
                 streamKey = await services.getStreamKey();
                 hasUserFromPool = true;
@@ -325,7 +325,7 @@ describe('nodeobs_service', function() {
                 streamKey = process.env.SLOBS_BE_STREAMKEY;
                 hasUserFromPool = false;
             }
-                
+
             saveStreamKey(streamKey);
 
             const updatedStreamSettings = osn.NodeObs.OBS_settings_getSettings('Stream').data;
@@ -983,7 +983,7 @@ describe('nodeobs_service', function() {
                                 isReplayWithInvalidPathSimple = false;
 
                                 if (signalInfo.code != osn.EOutputCode.Error) {
-                                    done(new Error('Received wrong signal code (). Was expecting -4'));
+                                    done(new Error('Received wrong signal code (). Was expecting -4. Got '+signalInfo.code));
                                 } else {
                                     done();
                                 }
@@ -1011,7 +1011,7 @@ describe('nodeobs_service', function() {
                                 isRecordingWithInvalidPathAdv = false;
 
                                 if (signalInfo.code != osn.EOutputCode.Error) {
-                                    done(new Error('Received wrong signal code. Was expecting -4'));
+                                    done(new Error('Received wrong signal code. Was expecting -4. Got '+signalInfo.code ));
                                 } else {
                                     done();
                                 }

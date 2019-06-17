@@ -2331,7 +2331,7 @@ describe('nodeobs_settings', function() {
                 expect(cbrOutputSettings).to.eql(updatedCBROutputSettings);
 
                 // Setting rate control to VBR
-                let setVBR = osn.NodeObs.OBS_settings_getSettings('Output');
+                let setVBR = osn.NodeObs.OBS_settings_getSettings('Output').data;
 
                 setVBR.find(category => {
                     return category.nameSubCategory === 'Streaming';
