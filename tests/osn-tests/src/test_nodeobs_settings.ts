@@ -445,12 +445,6 @@ describe('nodeobs_settings', function() {
                     return parameter.name === 'RecEncoder';
                 }).currentValue = 'obs_qsv11';
 
-                setQSV.forEach(subCategory => {
-                    console.log(subCategory.nameSubCategory);
-                    subCategory.parameters.forEach(parameter => {
-                            console.log(parameter);
-                    });
-                });
 
                 osn.NodeObs.OBS_settings_saveSettings('Output', setQSV); 
 
