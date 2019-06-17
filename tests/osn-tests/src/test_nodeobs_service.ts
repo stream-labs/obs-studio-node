@@ -49,7 +49,7 @@ function saveStreamKey(key: string) {
         });
     });
 
-    osn.NodeObs.OBS_settings_saveSettings('Stream', streamSettings);
+    osn.NodeObs.OBS_settings_saveSettings('Stream', Array.prototype.slice.call(streamSettings));
 }
 
 function setEnconderAndRecordingPath(mode: string, invalidPath: boolean = false) {
@@ -65,7 +65,7 @@ function setEnconderAndRecordingPath(mode: string, invalidPath: boolean = false)
         return parameter.name === 'Mode';
     }).currentValue = mode;
 
-    osn.NodeObs.OBS_settings_saveSettings('Output', streamSettings);
+    osn.NodeObs.OBS_settings_saveSettings('Output', Array.prototype.slice.call(streamSettings));
 
     let setEncoderAndRecordingFilePath = osn.NodeObs.OBS_settings_getSettings('Output').data;
 
@@ -93,7 +93,7 @@ function setEnconderAndRecordingPath(mode: string, invalidPath: boolean = false)
             }).currentValue = 'C:\\Test';
         }
 
-        osn.NodeObs.OBS_settings_saveSettings('Output', setEncoderAndRecordingFilePath);
+        osn.NodeObs.OBS_settings_saveSettings('Output', Array.prototype.slice.call(setEncoderAndRecordingFilePath));
     } 
     
     if (mode == 'Advanced') {
@@ -126,7 +126,7 @@ function setEnconderAndRecordingPath(mode: string, invalidPath: boolean = false)
             }).currentValue = 'C:\\Test';
         }
 
-        osn.NodeObs.OBS_settings_saveSettings('Output', setEncoderAndRecordingFilePath);
+        osn.NodeObs.OBS_settings_saveSettings('Output', Array.prototype.slice.call(setEncoderAndRecordingFilePath));
     }
 }
 

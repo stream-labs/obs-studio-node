@@ -75,7 +75,7 @@ function saveStreamKey(key: string) {
         });
     });
 
-    osn.NodeObs.OBS_settings_saveSettings('Stream', streamSettings);
+    osn.NodeObs.OBS_settings_saveSettings('Stream', Array.prototype.slice.call(streamSettings));
 }
 
 describe('nodeobs_autoconfig', () => {
