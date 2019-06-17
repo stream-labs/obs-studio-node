@@ -1031,7 +1031,6 @@ describe('nodeobs_service', function() {
 
                 invalidPathReplaySignalsAdv.subscribe(
                     signalInfo => {
-                        done(new Error('Received signal code ' + signalInfo.code + ' , signal' + signalInfo.signal));
                         if (signalInfo.type === EOBSOutputType.ReplayBuffer) {
                             if (signalInfo.signal === EOBSOutputSignal.Start) {
                                 setTimeout(function() {
