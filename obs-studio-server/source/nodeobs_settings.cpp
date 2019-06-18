@@ -708,11 +708,10 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 		std::vector<std::pair<std::string, void*>> values;
 
 		int count = (int)obs_property_list_item_count(property);
+		format = obs_property_list_format(property);
 
 		for (int i = 0; i < count; i++) {
 			//Value
-			format = obs_property_list_format(property);
-
 			if (format == OBS_COMBO_FORMAT_INT) {
 				std::string name = obs_property_list_item_name(property, i);
 
