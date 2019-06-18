@@ -18,6 +18,7 @@
 
 #pragma once
 #include <iostream>
+#include <nlohmann/json.hpp>
 #include <obs.h>
 #include <sstream>
 #include <string>
@@ -30,7 +31,30 @@
 enum CategoryTypes : uint32_t
 {
 	NODEOBS_CATEGORY_LIST = 0,
-	NODEOBS_CATEGORY_TAB = 1
+	NODEOBS_CATEGORY_TAB  = 1
+};
+
+enum ParameterTypes : uint32_t
+{
+	INVALID,
+	BOOL,
+	INT,
+	UINT,
+	DOUBLE,
+	PATH,
+	LIST,
+	EDIT_PATH,
+	EDIT_TEXT,
+	COUNT
+};
+
+enum ParameterSubTypes : uint32_t
+{
+	INVALID,
+	COMBO_INT,
+	COMBO_FLOAT,
+	COMBO_STRING,
+	COUNT
 };
 
 struct Parameter
@@ -42,9 +66,9 @@ struct Parameter
 	bool              enabled;
 	bool              masked;
 	bool              visible;
-	double            minVal = -200;
-	double            maxVal = 200;
-	double            stepVal = 1;
+	double            minVal             = -200;
+	double            maxVal             = 200;
+	double            stepVal            = 1;
 	size_t            sizeOfCurrentValue = 0;
 	std::vector<char> currentValue;
 	size_t            sizeOfValues = 0;
@@ -168,61 +192,52 @@ class OBS_settings
 
 	private:
 	// Exposed methods to the frontend
-	static std::vector<SubCategory> getSettings(std::string nameCategory, CategoryTypes&);
-	static void                     saveSettings(std::string nameCategory, std::vector<SubCategory> settings);
+	static nlohmann::json getSettings(std::string nameCategory, CategoryTypes&);
+	static void           saveSettings(std::string nameCategory, nlohmann::json);
 
 	// Get each category
-	static std::vector<SubCategory> getGeneralSettings();
-	static std::vector<SubCategory> getStreamSettings();
-	static std::vector<SubCategory> getOutputSettings(CategoryTypes&);
-	static std::vector<SubCategory> getAudioSettings();
-	static std::vector<SubCategory> getVideoSettings();
-	static std::vector<SubCategory> getAdvancedSettings();
+	static nlohmann::json getGeneralSettings();
+	static nlohmann::json getStreamSettings();
+	static nlohmann::json getOutputSettings(CategoryTypes&);
+	static nlohmann::json getAudioSettings();
+	static nlohmann::json getVideoSettings();
+	static nlohmann::json getAdvancedSettings();
 
 	// Save each category
-	static void saveGeneralSettings(std::vector<SubCategory> generalSettings, std::string pathConfigDirectory);
-	static void saveStreamSettings(std::vector<SubCategory> streamSettings);
-	static void saveOutputSettings(std::vector<SubCategory> streamSettings);
-	static void saveAudioSettings(std::vector<SubCategory> audioSettings);
-	static void saveVideoSettings(std::vector<SubCategory> videoSettings);
-	static void saveAdvancedSettings(std::vector<SubCategory> advancedSettings);
+	static void saveGeneralSettings(nlohmann::json generalSettings, std::string pathConfigDirectory);
+	static void saveStreamSettings(nlohmann::json streamSettings);
+	static void saveOutputSettings(nlohmann::json streamSettings);
+	static void saveAudioSettings(nlohmann::json audioSettings);
+	static void saveVideoSettings(nlohmann::json videoSettings);
+	static void saveAdvancedSettings(nlohmann::json advancedSettings);
 
-	static SubCategory serializeSettingsData(
-	    const std::string &                                           nameSubCategory,
-	    std::vector<std::vector<std::pair<std::string, ipc::value>>>& entries,
-	    config_t*                                                     config,
-	    const std::string &                                           section,
-	    bool                                                          isVisible,
-	    bool                                                          isEnabled);
+	static nlohmann::json serializeSettingsData(
+	    std::string      nameSubCategory,
+	    nlohmann::json&& entries,
+	    config_t*        config,
+	    std::string      section,
+	    bool             isVisible,
+	    bool             isEnabled);
 
 	/****** Get Output Settings ******/
 
 	// Simple Output mode
-	static void
-	    getSimpleOutputSettings(std::vector<SubCategory>* outputSettings, config_t* config, bool isCategoryEnabled);
+	static void getSimpleOutputSettings(nlohmann::json& outputSettings, config_t* config, bool isCategoryEnabled);
 
 	// Advanced Output mode
-	static void
-	    getAdvancedOutputSettings(std::vector<SubCategory>* outputSettings, config_t* config, bool isCategoryEnabled);
+	static void getAdvancedOutputSettings(nlohmann::json& outputSettings, config_t* config, bool isCategoryEnabled);
 
-	static SubCategory getAdvancedOutputStreamingSettings(config_t* config, bool isCategoryEnabled);
+	static nlohmann::json getAdvancedOutputStreamingSettings(config_t* config, bool isCategoryEnabled);
 
-	static SubCategory getAdvancedOutputRecordingSettings(config_t* config, bool isCategoryEnabled);
+	static nlohmann::json getAdvancedOutputRecordingSettings(config_t* config, bool isCategoryEnabled);
 	static void
 	    getStandardRecordingSettings(SubCategory* subCategoryParameters, config_t* config, bool isCategoryEnabled);
 	static void
 	    getFFmpegOutputRecordingSettings(SubCategory* subCategoryParameters, config_t* config, bool isCategoryEnabled);
 
-	static void getAdvancedOutputAudioSettings(
-	    std::vector<SubCategory>* outputSettings,
-	    config_t*                 config,
-	    bool                      isCategoryEnabled);
+	static nlohmann::json getAdvancedOutputAudioSettings(config_t* config, bool isCategoryEnabled);
 
-	static void getReplayBufferSettings(
-	    std::vector<SubCategory>* outputSettings,
-	    config_t*                 config,
-	    bool                      advanced,
-	    bool                      isCategoryEnabled);
+	static nlohmann::json getReplayBufferSettings(config_t* config, bool advanced, bool isCategoryEnabled);
 
 	/****** Save Output Settings ******/
 
@@ -237,14 +252,15 @@ class OBS_settings
 	static void saveAdvancedOutputSettings(std::vector<SubCategory> settings);
 
 	//Utility functions
-	static void getSimpleAvailableEncoders(std::vector<std::pair<std::string, ipc::value>>* streamEncode, bool recording);
+	static void
+	            getSimpleAvailableEncoders(std::vector<std::pair<std::string, ipc::value>>* streamEncode, bool recording);
 	static void getAdvancedAvailableEncoders(std::vector<std::pair<std::string, ipc::value>>* streamEncode);
 	static std::vector<std::pair<uint64_t, uint64_t>> getOutputResolutions(uint64_t base_cx, uint64_t base_cy);
-	static void                                  getEncoderSettings(
-	                                     const obs_encoder_t*    encoder,
-	                                     obs_data_t*             settings,
-	                                     std::vector<Parameter>* subCategoryParameters,
-	                                     int                     index,
-	                                     bool                    isCategoryEnabled,
-	                                     bool                    recordEncoder);
+	static void                                       getEncoderSettings(
+	                                          const obs_encoder_t*    encoder,
+	                                          obs_data_t*             settings,
+	                                          std::vector<Parameter>* subCategoryParameters,
+	                                          int                     index,
+	                                          bool                    isCategoryEnabled,
+	                                          bool                    recordEncoder);
 };
