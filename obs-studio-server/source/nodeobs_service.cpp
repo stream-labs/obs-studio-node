@@ -956,6 +956,7 @@ bool OBS_service::updateAudioStreamingEncoder() {
 		}
 		obs_encoder_set_audio(audioAdvancedStreamingEncoder, obs_get_audio());
 	}
+	return true;
 }
 
 bool OBS_service::startRecording(void)
