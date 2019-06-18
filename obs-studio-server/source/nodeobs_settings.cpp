@@ -247,10 +247,10 @@ void OBS_settings::OBS_settings_saveSettings(
 }
 
 SubCategory OBS_settings::serializeSettingsData(
-    std::string                                                  nameSubCategory,
-    std::vector<std::vector<std::pair<std::string, ipc::value>>> entries,
+    const std::string &                                           nameSubCategory,
+    std::vector<std::vector<std::pair<std::string, ipc::value>>>& entries,
     config_t*                                                    config,
-    std::string                                                  section,
+    const std::string &                                          section,
     bool                                                         isVisible,
     bool                                                         isEnabled)
 {
@@ -267,13 +267,13 @@ SubCategory OBS_settings::serializeSettingsData(
 		param.maxVal      = entries.at(i).at(5).second.value_union.fp64;
 		param.stepVal     = entries.at(i).at(6).second.value_union.fp64;
 
-		std::string currentValue;
+		std::string currentValueParam;
 		if (entries.at(i).size() > 7) {
-			currentValue = entries.at(i).at(7).first.c_str();
+			currentValueParam = entries.at(i).at(7).first.c_str();
 		}
 
 		// Current value
-		if (!currentValue.empty() && currentValue.compare("currentValue") == 0) {
+		if (!currentValueParam.empty() && currentValueParam.compare("currentValue") == 0) {
 			const char* currentValue = entries.at(i).at(7).second.value_str.c_str();
 			param.currentValue.resize(strlen(currentValue));
 			std::memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
