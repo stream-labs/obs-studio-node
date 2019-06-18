@@ -11,11 +11,11 @@ workspace:
 
 strategy:
   matrix:
-    Electron2:
+    Electron5:
       RuntimeURL: https://atom.io/download/atom-shell
       RuntimeName: iojs
-      RuntimeVersion: v2.0.8
-      ElectronVersion: 2.0.8
+      RuntimeVersion: v5.0.3
+      ElectronVersion: 5.0.3
 
 pool:
   name: 'Default'

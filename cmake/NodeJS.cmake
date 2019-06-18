@@ -295,7 +295,7 @@ function(nodejs_init)
     endif()
 
     foreach(HEADER ${HEADERS_CHECKSUMS})
-        message("Found headers archive: ${HEADER}")
+        message(STATUS "Found headers archive: ${HEADER}")
         string(REGEX MATCH ${HEADERS_MATCH} HEADERS_CHECKSUM ${HEADER})
 
         if (HEADERS_CHECKSUM AND CMAKE_MATCH_3 STREQUAL NAME)
@@ -374,7 +374,7 @@ function(nodejs_init)
         )
 
         foreach(HEADER_PATH ${NODEJS_HEADERS_SEARCH_PATHS})
-            message("Searching path for headers: ${HEADER_PATH}")
+            message(STATUS "Searching path for headers: ${HEADER_PATH}")
 
             find_path(NODEJS_HEADERS_PATH
                 NAMES src include
