@@ -16,8 +16,6 @@ if(WIN32)
 	)
 endif()
 
-add_dependencies(obs-studio-server proto-categories-gen)
-
 ############################
 # Setup crashpad binaries
 ############################
@@ -250,6 +248,8 @@ endif()
 target_link_libraries(${PROJECT_NAME} ${PROJECT_LIBRARIES} optimized crashpad)
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE_PATHS})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "obs${BITS}")
+
+add_dependencies(obs-studio-server proto-categories-gen)
 
 if(WIN32)
 	set_target_properties(
