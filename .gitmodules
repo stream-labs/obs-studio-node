@@ -2,6 +2,3 @@
 	path = lib-streamlabs-ipc
 	url = https://github.com/stream-labs/lib-streamlabs-ipc.git
 	branch = master
-[submodule "flatbuffers"]
-	path = flatbuffers
-	url = git@github.com:google/flatbuffers.git
