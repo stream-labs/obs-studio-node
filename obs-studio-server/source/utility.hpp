@@ -1,38 +1,56 @@
-// Server program for the OBS Studio node module.
-// Copyright(C) 2017 Streamlabs (General Workings Inc)
-// 
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
 
 #pragma once
-#include <inttypes.h>
-#include <list>
+#include <functional>
 #include <limits>
+#include <list>
 #include <map>
-#include <memory>
+#include <mutex>
 
 #if defined(_MSC_VER)
+#define __PRETTY_FUNCTION__ __FUNCSIG__
 #define FORCE_INLINE __forceinline
 #else
 #define FORCE_INLINE __attribute__((always_inline))
 #endif
 #define force_inline FORCE_INLINE
 
-namespace utility {
-	class unique_id {
+#define PRETTY_THROW(_message)                                                                 \
+{                                                                                              \
+if (utility::osn_current_version() == "0.00.00-preview.0") {                                   \
+    rval.push_back((uint64_t)ErrorCode::Error);                                                \
+    return;                                                                                    \
+} else {                                                                                       \
+    auto error_message = std::string(__PRETTY_FUNCTION__) + " " + std::string(_message);       \
+    blog(LOG_ERROR, error_message.c_str());                                                    \
+    throw error_message;                                                                       \
+}                                                                                              \
+}
+
+namespace utility
+{
+	std::string osn_current_version(std::string _version = "");
+
+	class unique_id
+	{
 		public:
-		typedef uint64_t id_t;
+		typedef uint64_t              id_t;
 		typedef std::pair<id_t, id_t> range_t;
 
 		public:
@@ -56,16 +74,24 @@ namespace utility {
 	};
 
 	template<typename T>
-	class unique_object_manager {
+	class unique_object_manager
+	{
 		protected:
-		utility::unique_id id_generator;
+		utility::unique_id                     id_generator;
 		std::map<utility::unique_id::id_t, T*> object_map;
-		
+		std::recursive_mutex                   internal_mutex;
+
 		public:
 		unique_object_manager() {}
-		~unique_object_manager() {}
+		~unique_object_manager()
+		{
+			clear();
+		}
 
-		utility::unique_id::id_t allocate(T* obj) {
+		utility::unique_id::id_t allocate(T* obj)
+		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			utility::unique_id::id_t uid = id_generator.allocate();
 			if (uid == std::numeric_limits<utility::unique_id::id_t>::max()) {
 				return uid;
@@ -74,7 +100,10 @@ namespace utility {
 			return uid;
 		}
 
-		utility::unique_id::id_t find(T* obj) {
+		utility::unique_id::id_t find(T* obj)
+		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			for (auto kv : object_map) {
 				if (kv.second == obj) {
 					return kv.first;
@@ -82,7 +111,10 @@ namespace utility {
 			}
 			return std::numeric_limits<utility::unique_id::id_t>::max();
 		}
-		T* find(utility::unique_id::id_t id) {
+		T* find(utility::unique_id::id_t id)
+		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			auto iter = object_map.find(id);
 			if (iter != object_map.end()) {
 				return iter->second;
@@ -90,7 +122,10 @@ namespace utility {
 			return nullptr;
 		}
 
-		utility::unique_id::id_t free(T* obj) {
+		utility::unique_id::id_t free(T* obj)
+		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			utility::unique_id::id_t uid = std::numeric_limits<utility::unique_id::id_t>::max();
 			for (auto kv : object_map) {
 				if (kv.second == obj) {
@@ -101,7 +136,10 @@ namespace utility {
 			}
 			return uid;
 		}
-		T* free(utility::unique_id::id_t id) {
+		T* free(utility::unique_id::id_t id)
+		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			auto iter = object_map.find(id);
 			if (iter == object_map.end()) {
 				return nullptr;
@@ -110,19 +148,44 @@ namespace utility {
 			object_map.erase(iter);
 			return obj;
 		}
+
+        void for_each(std::function<void(T*)> for_each_method)
+        {
+            for (auto it = object_map.begin(); it != object_map.end(); ++it) {
+                for_each_method(it->second);
+            }
+        }
+
+        size_t size()
+        {
+            return object_map.size();
+        }
+
+        void clear()
+        {
+            object_map.clear();
+        }
 	};
 
 	template<typename T>
-	class generic_object_manager {
+	class generic_object_manager
+	{
 		protected:
-		utility::unique_id id_generator;
+		utility::unique_id                    id_generator;
 		std::map<utility::unique_id::id_t, T> object_map;
+		std::recursive_mutex                  internal_mutex;
 
 		public:
 		generic_object_manager() {}
-		~generic_object_manager() {}
+		~generic_object_manager()
+		{
+			clear();
+		}
 
-		utility::unique_id::id_t allocate(T obj) {
+		utility::unique_id::id_t allocate(T obj)
+		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			utility::unique_id::id_t uid = id_generator.allocate();
 			if (uid == std::numeric_limits<utility::unique_id::id_t>::max()) {
 				return uid;
@@ -131,7 +194,10 @@ namespace utility {
 			return uid;
 		}
 
-		utility::unique_id::id_t find(T obj) {
+		utility::unique_id::id_t find(T obj)
+		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			for (auto kv : object_map) {
 				if (kv.second == obj) {
 					return kv.first;
@@ -139,7 +205,10 @@ namespace utility {
 			}
 			return std::numeric_limits<utility::unique_id::id_t>::max();
 		}
-		T find(utility::unique_id::id_t id) {
+		T find(utility::unique_id::id_t id)
+		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			auto iter = object_map.find(id);
 			if (iter != object_map.end()) {
 				return iter->second;
@@ -147,7 +216,10 @@ namespace utility {
 			return nullptr;
 		}
 
-		utility::unique_id::id_t free(T obj) {
+		utility::unique_id::id_t free(T obj)
+		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			utility::unique_id::id_t uid = std::numeric_limits<utility::unique_id::id_t>::max();
 			for (auto kv : object_map) {
 				if (kv.second == obj) {
@@ -158,7 +230,10 @@ namespace utility {
 			}
 			return uid;
 		}
-		T free(utility::unique_id::id_t id) {
+		T free(utility::unique_id::id_t id)
+		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+
 			auto iter = object_map.find(id);
 			if (iter == object_map.end()) {
 				return nullptr;
@@ -167,5 +242,22 @@ namespace utility {
 			object_map.erase(iter);
 			return obj;
 		}
+
+        void for_each(std::function<void(T&)> for_each_method)
+        {
+            for (auto it = object_map.begin(); it != object_map.end(); ++it) {
+                for_each_method(it->second);
+            }
+        }
+
+        size_t size()
+        {
+            return object_map.size();
+        }
+
+        void clear()
+        {
+            object_map.clear();
+        }
 	};
-}
+} // namespace utility

@@ -1,39 +1,42 @@
-// Client module for the OBS Studio node module.
-// Copyright(C) 2017 Streamlabs (General Workings Inc)
-// 
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
 
 #include "scene.hpp"
-#include "shared.hpp"
-#include "utility.hpp"
-#include "error.hpp"
-#include "controller.hpp"
-#include "ipc-value.hpp"
-#include <string>
 #include <condition_variable>
 #include <mutex>
+#include <string>
+#include "controller.hpp"
+#include "error.hpp"
 #include "input.hpp"
+#include "ipc-value.hpp"
 #include "sceneitem.hpp"
+#include "shared.hpp"
+#include "utility.hpp"
 
-osn::Scene::Scene(uint64_t id) {
+osn::Scene::Scene(uint64_t id)
+{
 	this->sourceId = id;
 }
 
 Nan::Persistent<v8::FunctionTemplate> osn::Scene::prototype = Nan::Persistent<v8::FunctionTemplate>();
 
-void osn::Scene::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
+void osn::Scene::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
+{
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->Inherit(Nan::New<v8::FunctionTemplate>(osn::ISource::prototype));
 	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
@@ -65,100 +68,134 @@ void osn::Scene::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target) {
 	prototype.Reset(fnctemplate);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Create(Nan::NAN_METHOD_ARGS_TYPE info) {
+Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Create(Nan::NAN_METHOD_ARGS_TYPE info)
+{
 	std::string name;
 
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], name);
 
 	auto conn = GetConnection();
-	if (!conn) return;
+	if (!conn)
+		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-		"Scene", "Create",
-		std::vector<ipc::value>{ ipc::value(name) }
-	);
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Scene", "Create", std::vector<ipc::value>{ipc::value(name)});
 
-	if (!ValidateResponse(response)) return;
+	if (!ValidateResponse(response))
+		return;
 
 	uint64_t sourceId = response[1].value_union.ui64;
 
-	// Create new Filter
-	osn::Scene* obj = new osn::Scene(sourceId);
+	osn::Scene* obj   = new osn::Scene(sourceId);
+
+	SceneInfo* si       = new SceneInfo();
+	si->name            = name;
+	si->id              = sourceId;
+	SourceDataInfo* sdi = new SourceDataInfo;
+	sdi->name           = name;
+	sdi->obs_sourceId   = "scene";
+	sdi->id             = response[1].value_union.ui64;
+
+	CacheManager<SourceDataInfo*>::getInstance().Store(sourceId, name, sdi);
+	CacheManager<SceneInfo*>::getInstance().Store(sourceId, name, si);
+
 	info.GetReturnValue().Set(osn::Scene::Store(obj));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE info) {
+Nan::NAN_METHOD_RETURN_TYPE osn::Scene::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE info)
+{
 	std::string name;
 
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], name);
 
 	auto conn = GetConnection();
-	if (!conn) return;
+	if (!conn)
+		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "CreatePrivate",
-		std::vector<ipc::value>{ ipc::value(name) });
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Scene", "CreatePrivate", std::vector<ipc::value>{ipc::value(name)});
 
-	if (!ValidateResponse(response)) return;
+	if (!ValidateResponse(response))
+		return;
 
 	uint64_t sourceId = response[1].value_union.ui64;
 
-	osn::Scene* obj = new osn::Scene(sourceId);
+	osn::Scene* obj   = new osn::Scene(sourceId);
+
+	SceneInfo* si       = new SceneInfo();
+	si->name            = name;
+	si->id              = sourceId;
+	SourceDataInfo* sdi = new SourceDataInfo;
+	sdi->name           = name;
+	sdi->obs_sourceId   = "scene";
+	sdi->id             = response[1].value_union.ui64;
+
+	CacheManager<SourceDataInfo*>::getInstance().Store(sourceId, name, sdi);
+	CacheManager<SceneInfo*>::getInstance().Store(sourceId, name, si);
+
 	info.GetReturnValue().Set(osn::Scene::Store(obj));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FromName(Nan::NAN_METHOD_ARGS_TYPE info) {
+Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FromName(Nan::NAN_METHOD_ARGS_TYPE info)
+{
 	std::string name;
 
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], name);
 
-	auto conn = GetConnection();
-	if (!conn) return;
+	SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(name);
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "FromName",
-		{ ipc::value(name) });
+	if (!si) {
+		auto conn = GetConnection();
+		if (!conn)
+			return;
 
-	if (!ValidateResponse(response)) return;
+		std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "FromName", {ipc::value(name)});
 
-	uint64_t sourceId = response[1].value_union.ui64;
+		if (!ValidateResponse(response))
+			return;
 
-	osn::Scene* obj = new osn::Scene(sourceId);
+		si = new SceneInfo;
+		si->id = response[1].value_union.ui64;
+		si->name = name;
+		CacheManager<SceneInfo*>::getInstance().Store(response[1].value_union.ui64, name, si);
+	}
+	osn::Scene* obj = new osn::Scene(si->id);
 	info.GetReturnValue().Set(osn::Scene::Store(obj));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Release(Nan::NAN_METHOD_ARGS_TYPE info) {
+Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Release(Nan::NAN_METHOD_ARGS_TYPE info)
+{
 	osn::Scene* source = nullptr;
 	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), source)) {
 		return;
 	}
 
 	auto conn = GetConnection();
-	if (!conn) return;
+	if (!conn)
+		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "Release",
-		std::vector<ipc::value>{ipc::value(source->sourceId)});
-
-	ValidateResponse(response);
+	conn->call("Scene", "Release", std::vector<ipc::value>{ipc::value(source->sourceId)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Remove(Nan::NAN_METHOD_ARGS_TYPE info) {
+Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Remove(Nan::NAN_METHOD_ARGS_TYPE info)
+{
 	osn::Scene* source = nullptr;
 	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), source)) {
 		return;
 	}
 
 	auto conn = GetConnection();
-	if (!conn) return;
+	if (!conn)
+		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "Remove",
-		std::vector<ipc::value>{ipc::value(source->sourceId)});
-
-	if (!ValidateResponse(response)) return;
+	conn->call("Scene", "Remove", std::vector<ipc::value>{ipc::value(source->sourceId)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AsSource(Nan::NAN_METHOD_ARGS_TYPE info) {
+Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AsSource(Nan::NAN_METHOD_ARGS_TYPE info)
+{
 	// Scenes are simply stored as a normal source object on the server, no additional calls necessary.
 	osn::Scene* source = nullptr;
 	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), source)) {
@@ -169,9 +206,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AsSource(Nan::NAN_METHOD_ARGS_TYPE info)
 	info.GetReturnValue().Set(osn::Input::Store(obj));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info) {
+Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info)
+{
 	std::string name;
-	int duplicate_type;
+	int         duplicate_type;
 	osn::Scene* source = nullptr;
 
 	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), source)) {
@@ -183,50 +221,128 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info
 	ASSERT_GET_VALUE(info[1], duplicate_type);
 
 	auto conn = GetConnection();
-	if (!conn) return;
+	if (!conn)
+		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "Duplicate",
-		std::vector<ipc::value>{ipc::value(source->sourceId), ipc::value(name), ipc::value(duplicate_type)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper(
+	    "Scene",
+	    "Duplicate",
+	    std::vector<ipc::value>{ipc::value(source->sourceId), ipc::value(name), ipc::value(duplicate_type)});
 
-	if (!ValidateResponse(response)) return;
+	if (!ValidateResponse(response))
+		return;
 
 	uint64_t sourceId = response[1].value_union.ui64;
 
 	osn::Scene* obj = new osn::Scene(sourceId);
+
+	SourceDataInfo* sdi = new SourceDataInfo;
+	sdi->name           = name;
+	sdi->obs_sourceId   = "scene";
+	sdi->id             = response[1].value_union.ui64;
+
+	CacheManager<SourceDataInfo*>::getInstance().Store(sourceId, name, sdi);
+	CacheManager<SceneInfo*>::getInstance().Store(sourceId, name, new SceneInfo);
+
 	info.GetReturnValue().Set(osn::Scene::Store(obj));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info) {
+Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	std::vector<ipc::value> params;
 	osn::Scene* scene = nullptr;
 	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), scene)) {
 		return;
 	}
 
 	osn::Input* input = nullptr;
-	ASSERT_INFO_LENGTH(info, 1);
-	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Input>(info[0]->ToObject(), input)) {
-		return;
+	if (info.Length() >= 1) {
+		if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Input>(info[0]->ToObject(), input)) {
+			return;
+		}
+	}
+	params.push_back(ipc::value(scene->sourceId));
+	params.push_back(ipc::value(input->sourceId));
+	v8::Local<v8::Object> transform = v8::Object::New(v8::Isolate::GetCurrent());
+	v8::Local<v8::Object> crop      = v8::Object::New(v8::Isolate::GetCurrent());
+	if (info.Length() >= 2) {
+		transform = info[1]->ToObject();
+		params.push_back(ipc::value(transform->Get(utilv8::ToValue("scaleX"))->ToNumber(info.GetIsolate())->Value()));
+		params.push_back(ipc::value(transform->Get(utilv8::ToValue("scaleY"))->ToNumber(info.GetIsolate())->Value()));
+		params.push_back(ipc::value(transform->Get(utilv8::ToValue("visible"))->ToBoolean()->Value()));
+		params.push_back(ipc::value(transform->Get(utilv8::ToValue("x"))->ToNumber(info.GetIsolate())->Value()));
+		params.push_back(ipc::value(transform->Get(utilv8::ToValue("y"))->ToNumber(info.GetIsolate())->Value()));
+		params.push_back(ipc::value(transform->Get(utilv8::ToValue("rotation"))->ToNumber(info.GetIsolate())->Value()));
+
+		crop = transform->Get(utilv8::ToValue("crop"))->ToObject();
+		params.push_back(ipc::value(crop->Get(utilv8::ToValue("left"))->ToInteger()->Value()));
+		params.push_back(ipc::value(crop->Get(utilv8::ToValue("top"))->ToInteger()->Value()));
+		params.push_back(ipc::value(crop->Get(utilv8::ToValue("right"))->ToInteger()->Value()));
+		params.push_back(ipc::value(crop->Get(utilv8::ToValue("bottom"))->ToInteger()->Value()));
 	}
 
 	auto conn = GetConnection();
-	if (!conn) return;
+	if (!conn)
+		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "AddSource",
-		std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(input->sourceId)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper(
+	    "Scene", "AddSource", params);
 
-	if (!ValidateResponse(response)) return;
+	if (!ValidateResponse(response))
+		return;
 
-	uint64_t id = response[1].value_union.ui64;
-
+	uint64_t id     = response[1].value_union.ui64;
+	int64_t  obs_id = response[2].value_union.i64;
 	// Create new SceneItem
 	osn::SceneItem* obj = new osn::SceneItem(id);
+	SceneInfo*      si  = CacheManager<SceneInfo*>::getInstance().Retrieve(scene->sourceId);
+
+	if (si) {
+		si->items.push_back(std::make_pair(obs_id, id));
+		si->itemsOrderCached = true;
+	}
+
+	SceneItemData* sid = new SceneItemData;
+	sid->obs_itemId    = obs_id;
+	sid->scene_id      = scene->sourceId;
+
+	if (info.Length() >= 2) {
+		// Position
+		sid->posX       = transform->Get(utilv8::ToValue("x"))->ToNumber(info.GetIsolate())->Value();
+		sid->posY       = transform->Get(utilv8::ToValue("y"))->ToNumber(info.GetIsolate())->Value();
+		sid->posChanged = false;
+
+		// Scale
+		sid->scaleX       = transform->Get(utilv8::ToValue("scaleX"))->ToNumber(info.GetIsolate())->Value();
+		sid->scaleY       = transform->Get(utilv8::ToValue("scaleY"))->ToNumber(info.GetIsolate())->Value();
+		sid->scaleChanged = false;
+
+		// Visibility
+		sid->isVisible      = transform->Get(utilv8::ToValue("visible"))->ToBoolean()->Value();
+		sid->visibleChanged = false;
+
+		// Crop
+		sid->cropLeft    = crop->Get(utilv8::ToValue("left"))->ToInteger()->Value();
+		sid->cropTop     = crop->Get(utilv8::ToValue("top"))->ToInteger()->Value();
+		sid->cropRight   = crop->Get(utilv8::ToValue("right"))->ToInteger()->Value();
+		sid->cropBottom  = crop->Get(utilv8::ToValue("bottom"))->ToInteger()->Value();
+		sid->cropChanged = false;
+
+		// Rotation
+		sid->rotation        = transform->Get(utilv8::ToValue("rotation"))->ToNumber(info.GetIsolate())->Value();
+		sid->rotationChanged = false;
+	}
+
+	CacheManager<SceneItemData*>::getInstance().Store(id, sid);	
+
 	info.GetReturnValue().Set(osn::SceneItem::Store(obj));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FindItem(Nan::NAN_METHOD_ARGS_TYPE info) {
-	bool haveName = false;
+Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FindItem(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	bool        haveName = false;
 	std::string name;
-	int64_t position;
+	int64_t     position;
 
 	osn::Scene* scene = nullptr;
 	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), scene)) {
@@ -237,7 +353,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FindItem(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (info[0]->IsNumber()) {
 		haveName = false;
 		ASSERT_GET_VALUE(info[0], position);
-	} else if (info[0]->IsNumber()) {
+	} else if (info[0]->IsString()) {
 		haveName = true;
 		ASSERT_GET_VALUE(info[0], name);
 	} else {
@@ -245,14 +361,32 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FindItem(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
+	SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(scene->sourceId);
+
+	if (si && !haveName) {
+		auto find = [position](const std::pair<int64_t, uint64_t> &item) {
+			return item.first == position;
+		};
+
+		auto itemIt = std::find_if(si->items.begin(), si->items.end(), find);
+		if (itemIt != si->items.end()) {
+			osn::SceneItem* obj = new osn::SceneItem(itemIt->second);
+			info.GetReturnValue().Set(osn::SceneItem::Store(obj));
+			return;
+		}
+	}
+
 	auto conn = GetConnection();
-	if (!conn) return;
+	if (!conn)
+		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "FindItem",
-		std::vector<ipc::value>{ipc::value(scene->sourceId),
-		(haveName ? ipc::value(name) : ipc::value(position))});
+	std::vector<ipc::value> response = conn->call_synchronous_helper(
+	    "Scene",
+	    "FindItem",
+	    std::vector<ipc::value>{ipc::value(scene->sourceId), (haveName ? ipc::value(name) : ipc::value(position))});
 
-	if (!ValidateResponse(response)) return;
+	if (!ValidateResponse(response))
+		return;
 
 	uint64_t id = response[1].value_union.ui64;
 
@@ -260,7 +394,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FindItem(Nan::NAN_METHOD_ARGS_TYPE info)
 	info.GetReturnValue().Set(osn::SceneItem::Store(obj));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::MoveItem(Nan::NAN_METHOD_ARGS_TYPE info) {
+Nan::NAN_METHOD_RETURN_TYPE osn::Scene::MoveItem(Nan::NAN_METHOD_ARGS_TYPE info)
+{
 	osn::Scene* scene = nullptr;
 	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), scene)) {
 		return;
@@ -272,16 +407,29 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::MoveItem(Nan::NAN_METHOD_ARGS_TYPE info)
 	ASSERT_GET_VALUE(info[1], to);
 
 	auto conn = GetConnection();
-	if (!conn) return;
+	if (!conn)
+		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "MoveItem",
-		std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(from), ipc::value(to)});
-	
+	std::vector<ipc::value> response = conn->call_synchronous_helper(
+	    "Scene", "MoveItem", std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(from), ipc::value(to)});
+
 	ValidateResponse(response);
+
+	SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(scene->sourceId);
+
+	if (si && response.size() > 2) {
+		si->items.clear();
+
+		for (size_t i = 1; i < response.size(); i += 2) {
+			si->items.push_back(std::make_pair(response[i + 1].value_union.i64, response[i].value_union.ui64));
+		}
+		si->itemsOrderCached = true;
+	}
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemAtIndex(Nan::NAN_METHOD_ARGS_TYPE info) {
-	int64_t index;
+Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemAtIndex(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	int32_t index;
 
 	osn::Scene* scene = nullptr;
 	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), scene)) {
@@ -292,12 +440,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemAtIndex(Nan::NAN_METHOD_ARGS_TYPE
 	ASSERT_GET_VALUE(info[0], index);
 
 	auto conn = GetConnection();
-	if (!conn) return;
+	if (!conn)
+		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "GetItem",
-		std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(index)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper(
+	    "Scene", "GetItem", std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(index)});
 
-	if (!ValidateResponse(response)) return;
+	if (!ValidateResponse(response))
+		return;
 
 	uint64_t id = response[1].value_union.ui64;
 
@@ -305,31 +455,67 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemAtIndex(Nan::NAN_METHOD_ARGS_TYPE
 	info.GetReturnValue().Set(osn::SceneItem::Store(obj));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItems(Nan::NAN_METHOD_ARGS_TYPE info) {
+Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItems(Nan::NAN_METHOD_ARGS_TYPE info)
+{
 	osn::Scene* scene = nullptr;
 	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), scene)) {
 		return;
 	}
 
+	SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(scene->sourceId);
+
+	if (si && si->itemsOrderCached) {
+		auto   arr         = Nan::New<v8::Array>(int(si->items.size()) - 1);
+		size_t index = 0;
+		bool   itemRemoved = false;
+
+		for (auto item : si->items) {
+			SceneItemData*  sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item.first);
+			if (!sid) {
+				itemRemoved = true;
+				break;
+			}
+			osn::SceneItem* obj = new osn::SceneItem(item.second);
+			Nan::Set(arr, uint32_t(index++), osn::SceneItem::Store(obj));
+		}
+		if (!itemRemoved) {
+			info.GetReturnValue().Set(arr);
+			return;
+		}
+	}
+
 	auto conn = GetConnection();
-	if (!conn) return;
+	if (!conn)
+		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "GetItems",
-		std::vector<ipc::value>{ipc::value(scene->sourceId)});
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Scene", "GetItems", std::vector<ipc::value>{ipc::value(scene->sourceId)});
 
-	if (!ValidateResponse(response)) return;
+	if (!ValidateResponse(response))
+		return;
 
-	auto arr = Nan::New<v8::Array>(response.size() - 1);
-
+	auto arr = Nan::New<v8::Array>(int((response.size()) - 1)/2);
+	size_t index = 0;
 	for (size_t i = 1; i < response.size(); i++) {
-		osn::SceneItem* obj = new osn::SceneItem(response[i].value_union.ui64);
-		Nan::Set(arr, i - 1, osn::SceneItem::Store(obj));
+		osn::SceneItem* obj = new osn::SceneItem(response[i++].value_union.ui64);
+		Nan::Set(arr, uint32_t(index++), osn::SceneItem::Store(obj));
 	}
 
 	info.GetReturnValue().Set(arr);
+
+	if (si) {
+		si->items.clear();
+
+		for (size_t i = 1; i < response.size(); i+= 2) {
+			si->items.push_back(std::make_pair(response[i + 1].value_union.i64, response[i].value_union.ui64));
+		}
+
+		si->itemsOrderCached = true;
+	}
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemsInRange(Nan::NAN_METHOD_ARGS_TYPE info) {
+Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemsInRange(Nan::NAN_METHOD_ARGS_TYPE info)
+{
 	osn::Scene* scene = nullptr;
 	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), scene)) {
 		return;
@@ -341,18 +527,22 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemsInRange(Nan::NAN_METHOD_ARGS_TYP
 	ASSERT_GET_VALUE(info[1], to);
 
 	auto conn = GetConnection();
-	if (!conn) return;
+	if (!conn)
+		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "GetItemsInRange",
-		std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(from), ipc::value(to)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper(
+	    "Scene",
+	    "GetItemsInRange",
+	    std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(from), ipc::value(to)});
 
-	if (!ValidateResponse(response)) return;
-	
-	auto arr = Nan::New<v8::Array>(response.size() - 1);
+	if (!ValidateResponse(response))
+		return;
+
+	auto arr = Nan::New<v8::Array>(int(response.size() - 1));
 
 	for (size_t i = 1; i < response.size(); i++) {
 		osn::SceneItem* obj = new osn::SceneItem(response[i].value_union.ui64);
-		Nan::Set(arr, i - 1, osn::SceneItem::Store(obj));
+		Nan::Set(arr, uint32_t(i - 1), osn::SceneItem::Store(obj));
 	}
 
 	info.GetReturnValue().Set(arr);
@@ -420,7 +610,8 @@ simple.
 //	item_signal_desc
 //};
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Connect(Nan::NAN_METHOD_ARGS_TYPE info) {
+Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Connect(Nan::NAN_METHOD_ARGS_TYPE info)
+{
 	//obs::weak<obs::scene> &scene = Scene::Object::GetHandle(info.Holder());
 	//Scene* this_binding = Nan::ObjectWrap::Unwrap<Scene>(info.Holder());
 
@@ -454,7 +645,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Connect(Nan::NAN_METHOD_ARGS_TYPE info) 
 	//info.GetReturnValue().Set(object);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Disconnect(Nan::NAN_METHOD_ARGS_TYPE info) {
+Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Disconnect(Nan::NAN_METHOD_ARGS_TYPE info)
+{
 	//obs::weak<obs::scene> &scene = Scene::Object::GetHandle(info.Holder());
 
 	//uint32_t signal_type;

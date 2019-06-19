@@ -1,33 +1,33 @@
-/*
- * Modern effects for a modern Streamer
- * Copyright (C) 2017 Michael Fabian Dirks
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
- */
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
 
 #include "gs-vertexbuffer.h"
-#include "util-memory.h"
 #include <stdexcept>
+#include "util-memory.h"
 extern "C" {
-#pragma warning( push )
-#pragma warning( disable: 4201 )
+#pragma warning(push)
+#pragma warning(disable : 4201)
 #include <obs.h>
-#pragma warning( pop )
+#pragma warning(pop)
 }
 
-GS::VertexBuffer::~VertexBuffer() {
+GS::VertexBuffer::~VertexBuffer()
+{
 	if (m_positions) {
 		util::free_aligned(m_positions);
 		m_positions = nullptr;
@@ -69,18 +69,20 @@ GS::VertexBuffer::~VertexBuffer() {
 	}
 }
 
-GS::VertexBuffer::VertexBuffer(uint32_t maximumVertices) {
+GS::VertexBuffer::VertexBuffer(uint32_t maximumVertices)
+{
 	if (maximumVertices > MAXIMUM_VERTICES) {
 		throw std::out_of_range("maximumVertices out of range");
 	}
 
+	m_size = 0;
 	// Assign limits.
 	m_capacity = maximumVertices;
-	m_layers = MAXIMUM_UVW_LAYERS;
+	m_layers   = MAXIMUM_UVW_LAYERS;
 
 	// Allocate memory for data.
-	m_vertexbufferdata = gs_vbdata_create();
-	m_vertexbufferdata->num = m_capacity;
+	m_vertexbufferdata         = gs_vbdata_create();
+	m_vertexbufferdata->num    = m_capacity;
 	m_vertexbufferdata->points = m_positions = (vec3*)util::malloc_aligned(16, sizeof(vec3) * m_capacity);
 	std::memset(m_positions, 0, sizeof(vec3) * m_capacity);
 	m_vertexbufferdata->normals = m_normals = (vec3*)util::malloc_aligned(16, sizeof(vec3) * m_capacity);
@@ -90,10 +92,11 @@ GS::VertexBuffer::VertexBuffer(uint32_t maximumVertices) {
 	m_vertexbufferdata->colors = m_colors = (uint32_t*)util::malloc_aligned(16, sizeof(uint32_t) * m_capacity);
 	std::memset(m_colors, 0, sizeof(uint32_t) * m_capacity);
 	m_vertexbufferdata->num_tex = m_layers;
-	m_vertexbufferdata->tvarray = m_layerdata = (gs_tvertarray*)util::malloc_aligned(16, sizeof(gs_tvertarray)* m_layers);
+	m_vertexbufferdata->tvarray = m_layerdata =
+	    (gs_tvertarray*)util::malloc_aligned(16, sizeof(gs_tvertarray) * m_layers);
 	for (size_t n = 0; n < MAXIMUM_UVW_LAYERS; n++) {
 		m_layerdata[n].array = m_uvs[n] = (vec4*)util::malloc_aligned(16, sizeof(vec4) * m_capacity);
-		m_layerdata[n].width = 4;
+		m_layerdata[n].width            = 4;
 		std::memset(m_uvs[n], 0, sizeof(vec4) * m_capacity);
 	}
 
@@ -101,7 +104,7 @@ GS::VertexBuffer::VertexBuffer(uint32_t maximumVertices) {
 	obs_enter_graphics();
 	m_vertexbuffer = gs_vertexbuffer_create(m_vertexbufferdata, GS_DYNAMIC);
 	std::memset(m_vertexbufferdata, 0, sizeof(gs_vb_data));
-	m_vertexbufferdata->num = m_capacity;
+	m_vertexbufferdata->num     = m_capacity;
 	m_vertexbufferdata->num_tex = m_layers;
 	obs_leave_graphics();
 	if (!m_vertexbuffer) {
@@ -109,9 +112,10 @@ GS::VertexBuffer::VertexBuffer(uint32_t maximumVertices) {
 	}
 }
 
-GS::VertexBuffer::VertexBuffer(gs_vertbuffer_t* vb) {
+GS::VertexBuffer::VertexBuffer(gs_vertbuffer_t* vb)
+{
 	gs_vb_data* vbd = gs_vertexbuffer_get_data(vb);
-	VertexBuffer((uint32_t)vbd->num);
+	this->VertexBuffer::VertexBuffer((uint32_t)vbd->num);
 	this->SetUVLayers((uint32_t)vbd->num_tex);
 
 	if (vbd->points != nullptr)
@@ -129,8 +133,7 @@ GS::VertexBuffer::VertexBuffer(gs_vertbuffer_t* vb) {
 					std::memcpy(m_uvs[n], vbd->tvarray[n].array, vbd->num * sizeof(vec4));
 				} else {
 					for (size_t idx = 0; idx < m_capacity; idx++) {
-						float* mem = reinterpret_cast<float*>(vbd->tvarray[n].array)
-							+ (idx * vbd->tvarray[n].width);
+						float* mem = reinterpret_cast<float*>(vbd->tvarray[n].array) + (idx * vbd->tvarray[n].width);
 						std::memset(&m_uvs[n][idx], 0, sizeof(vec4));
 						std::memcpy(&m_uvs[n][idx], mem, vbd->tvarray[n].width);
 					}
@@ -140,8 +143,8 @@ GS::VertexBuffer::VertexBuffer(gs_vertbuffer_t* vb) {
 	}
 }
 
-
-GS::VertexBuffer::VertexBuffer(VertexBuffer const& other) : VertexBuffer(other.m_capacity) {
+GS::VertexBuffer::VertexBuffer(VertexBuffer const& other) : VertexBuffer(other.m_capacity)
+{
 	// Copy Constructor
 	std::memcpy(m_positions, other.m_positions, m_capacity * sizeof(vec3));
 	std::memcpy(m_normals, other.m_normals, m_capacity * sizeof(vec3));
@@ -152,23 +155,26 @@ GS::VertexBuffer::VertexBuffer(VertexBuffer const& other) : VertexBuffer(other.m
 	}
 }
 
-GS::VertexBuffer::VertexBuffer(VertexBuffer const&& other) {
+GS::VertexBuffer::VertexBuffer(VertexBuffer const&& other)
+{
 	// Move Constructor
-	m_capacity = other.m_capacity;
-	m_size = other.m_size;
-	m_layers = other.m_layers;
+	m_capacity  = other.m_capacity;
+	m_size      = other.m_size;
+	m_layers    = other.m_layers;
 	m_positions = other.m_positions;
-	m_normals = other.m_normals;
-	m_tangents = other.m_tangents;
+	m_normals   = other.m_normals;
+	m_tangents  = other.m_tangents;
 	for (size_t n = 0; n < MAXIMUM_UVW_LAYERS; n++) {
 		m_uvs[n] = other.m_uvs[n];
 	}
 	m_vertexbufferdata = other.m_vertexbufferdata;
-	m_vertexbuffer = other.m_vertexbuffer;
-	m_layerdata = other.m_layerdata;
+	m_vertexbuffer     = other.m_vertexbuffer;
+	m_layerdata        = other.m_layerdata;
+	m_colors           = other.m_colors;
 }
 
-void GS::VertexBuffer::operator=(VertexBuffer const&& other) {
+void GS::VertexBuffer::operator=(VertexBuffer const&& other)
+{
 	// Move Assignment
 	/// First self-destruct (semi-destruct itself).
 	if (m_positions) {
@@ -212,36 +218,41 @@ void GS::VertexBuffer::operator=(VertexBuffer const&& other) {
 	}
 
 	/// Then assign new values.
-	m_capacity = other.m_capacity;
-	m_size = other.m_size;
-	m_layers = other.m_layers;
+	m_capacity  = other.m_capacity;
+	m_size      = other.m_size;
+	m_layers    = other.m_layers;
 	m_positions = other.m_positions;
-	m_normals = other.m_normals;
-	m_tangents = other.m_tangents;
+	m_normals   = other.m_normals;
+	m_tangents  = other.m_tangents;
 	for (size_t n = 0; n < MAXIMUM_UVW_LAYERS; n++) {
 		m_uvs[n] = other.m_uvs[n];
 	}
 	m_vertexbufferdata = other.m_vertexbufferdata;
-	m_vertexbuffer = other.m_vertexbuffer;
-	m_layerdata = other.m_layerdata;
+	m_vertexbuffer     = other.m_vertexbuffer;
+	m_layerdata        = other.m_layerdata;
+	m_colors           = other.m_colors;
 }
 
-void GS::VertexBuffer::Resize(uint32_t new_size) {
+void GS::VertexBuffer::Resize(uint32_t new_size)
+{
 	if (new_size > m_capacity) {
 		throw std::out_of_range("new_size out of range");
 	}
 	m_size = new_size;
 }
 
-uint32_t GS::VertexBuffer::Size() {
+uint32_t GS::VertexBuffer::Size()
+{
 	return m_size;
 }
 
-bool GS::VertexBuffer::Empty() {
+bool GS::VertexBuffer::Empty()
+{
 	return m_size == 0;
 }
 
-const GS::Vertex GS::VertexBuffer::At(uint32_t idx) {
+const GS::Vertex GS::VertexBuffer::At(uint32_t idx)
+{
 	if ((idx < 0) || (idx >= m_size)) {
 		throw std::out_of_range("idx out of range");
 	}
@@ -253,42 +264,51 @@ const GS::Vertex GS::VertexBuffer::At(uint32_t idx) {
 	return vtx;
 }
 
-const GS::Vertex GS::VertexBuffer::operator[](uint32_t const pos) {
+const GS::Vertex GS::VertexBuffer::operator[](uint32_t const pos)
+{
 	return At(pos);
 }
 
-void GS::VertexBuffer::SetUVLayers(uint32_t layers) {
+void GS::VertexBuffer::SetUVLayers(uint32_t layers)
+{
 	m_layers = layers;
 }
 
-uint32_t GS::VertexBuffer::GetUVLayers() {
+uint32_t GS::VertexBuffer::GetUVLayers()
+{
 	return m_layers;
 }
 
-vec3* GS::VertexBuffer::GetPositions() {
+vec3* GS::VertexBuffer::GetPositions()
+{
 	return m_positions;
 }
 
-vec3* GS::VertexBuffer::GetNormals() {
+vec3* GS::VertexBuffer::GetNormals()
+{
 	return m_normals;
 }
 
-vec3* GS::VertexBuffer::GetTangents() {
+vec3* GS::VertexBuffer::GetTangents()
+{
 	return m_tangents;
 }
 
-uint32_t* GS::VertexBuffer::GetColors() {
+uint32_t* GS::VertexBuffer::GetColors()
+{
 	return m_colors;
 }
 
-vec4* GS::VertexBuffer::GetUVLayer(size_t idx) {
+vec4* GS::VertexBuffer::GetUVLayer(size_t idx)
+{
 	if ((idx < 0) || (idx >= m_layers)) {
 		throw std::out_of_range("idx out of range");
 	}
 	return m_uvs[idx];
 }
 
-gs_vertbuffer_t* GS::VertexBuffer::Update(bool refreshGPU) {
+gs_vertbuffer_t* GS::VertexBuffer::Update(bool refreshGPU)
+{
 	if (!refreshGPU)
 		return m_vertexbuffer;
 
@@ -298,13 +318,13 @@ gs_vertbuffer_t* GS::VertexBuffer::Update(bool refreshGPU) {
 	// Update VertexBuffer data.
 	m_vertexbufferdata = gs_vertexbuffer_get_data(m_vertexbuffer);
 	std::memset(m_vertexbufferdata, 0, sizeof(gs_vb_data));
-	m_vertexbufferdata->num = m_capacity;
-	m_vertexbufferdata->points = m_positions;
-	m_vertexbufferdata->normals = m_normals;
+	m_vertexbufferdata->num      = m_capacity;
+	m_vertexbufferdata->points   = m_positions;
+	m_vertexbufferdata->normals  = m_normals;
 	m_vertexbufferdata->tangents = m_tangents;
-	m_vertexbufferdata->colors = m_colors;
-	m_vertexbufferdata->num_tex = m_layers;
-	m_vertexbufferdata->tvarray = m_layerdata;
+	m_vertexbufferdata->colors   = m_colors;
+	m_vertexbufferdata->num_tex  = m_layers;
+	m_vertexbufferdata->tvarray  = m_layerdata;
 	for (size_t n = 0; n < MAXIMUM_UVW_LAYERS; n++) {
 		m_layerdata[n].array = m_uvs[n];
 		m_layerdata[n].width = 4;
@@ -316,7 +336,7 @@ gs_vertbuffer_t* GS::VertexBuffer::Update(bool refreshGPU) {
 	obs_leave_graphics();
 
 	// WORKAROUND: OBS Studio 20.x and below incorrectly deletes data that it doesn't own.
-	m_vertexbufferdata->num = m_capacity;
+	m_vertexbufferdata->num     = m_capacity;
 	m_vertexbufferdata->num_tex = m_layers;
 	for (uint32_t n = 0; n < m_layers; n++) {
 		m_layerdata[n].width = 4;
@@ -325,6 +345,7 @@ gs_vertbuffer_t* GS::VertexBuffer::Update(bool refreshGPU) {
 	return m_vertexbuffer;
 }
 
-gs_vertbuffer_t* GS::VertexBuffer::Update() {
+gs_vertbuffer_t* GS::VertexBuffer::Update()
+{
 	return Update(true);
 }

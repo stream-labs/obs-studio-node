@@ -1,77 +1,173 @@
-# OBS Studio for Node.Js
-`obs-studio-node` is a Node.Js compatible wrapper around [OBS Studio](https://github.com/stream-labs/obs-studio). It works by wrapping libOBS inside a secondary process that is talked to using [lib-streamlabs-ipc](https://github.com/stream-labs/lib-streamlabs-ipc), which results in better stability and performance.
-
-The goal of the project is to provide a fully featured working Node.Js and electron wrapper around libOBS (OBS Studio). 
+# libobs via node bindings
+This library intends to provide bindings to obs-studio's internal library, named libobs accordingly, for the purpose of using it from a node runtime.
+Currently, only Windows is supported.
 
 ## Why CMake?
-CMake offers better compatibility with existing projects than node-gyp and comparable solutions. It's also capable of generating solution files for multiple different IDEs and compilers, which makes it ideal for a native module. It is also the build system of obs-studio, which we depend on for any functionality.
+CMake offers better compatibility with existing projects than node-gyp and comparable solutions. It's also capable of generating solution files for multiple different IDEs and compilers, which makes it ideal for a native module. Personally, I don't like gyp syntax or the build system surrounding it or the fact it requires you to install python.
 
-# Building The Project
-The project is for the most part automated, so there is very little to actually do.
+# Building
 
 ## Prerequisites
 You will need to have the following installed:
 
-* [Node.JS](https://nodejs.org/en/) (LTS or latest, LTS recommended for now)
-* Yarn (Run `npm install -g yarn` inside a shell with node.js access)
-* [CMake](https://cmake.org/), Version 3.1 or higher
+* Git
+* [Node.js](https://nodejs.org/en/)
+* [Yarn](https://yarnpkg.com/en/docs/install#windows-stable)
+* [CMake](https://cmake.org/)
 
 ### Windows
 Building on windows requires additional software:
 
-* [Visual Studio 2017 or 2015](https://visualstudio.microsoft.com/) with the latest update installed.
-* [Windows SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk) (latest version, included in Visual Studio 2017)
+* [Visual Studio 2017 or 2015](https://visualstudio.microsoft.com/)
+* [Windows SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk) (may be installed with Visual Studio 2017 Installer)
 
-## First Steps
-1. Open a git enabled shell.
-2. Clone the project: `git clone https://github.com/stream-labs/obs-studio-node.git`
-3. Enter the cloned project directory: `cd obs-studio-node`
-4. Initialize all submodules recursively: `git submodule update --init --recursive --force`
-5. Open a node.js enabled shell (if not already in one) inside the project directory.
-6. Initialize any node dependencies of the project: `yarn install`
+### Example Build
+We use a flexible cmake script to be as broad and generic as possible in order to prevent the need to constantly manage the cmake script for custom uses, while also providing sane defaults. It follows a pretty standard cmake layout and you may execute it however you want.
 
-## Configuration
-1. Open CMake-GUI.
-2. Set "Where is the source code:" to the cloned project directory.
-3. Set "Where to build the binaries:" to the build directory inside the project directory (you might have to create it first).
-4. Click "Configure".
-5. Specify the generator that you want to use. "... Win64" are 64-bit capable generators.
-6. Optional: If you have a 64-bit system, type in `host=x64` into the "Optional toolset to use" box.
-7. Leave it at default native compilers.
-8. Click Finish.
-9. Click Generate once the button is no longer grey.
+Example:
+```
+yarn install
+git submodule update --init --recursive
+mkdir build
+cd build
+cmake .. -G"Visual Studio 15 2017" -A x64
+cmake --build .
+cpack -G ZIP
+```
 
-## Building
-1. Open the project (if you still have CMake-GUI open, just click Open Project)
-2. Build the "ALL_BUILD" project.
+This will will download any required dependencies, build the module, and then place it in an archive compatible with npm or yarn that you may specify in a given package.json.
 
-## Installing and Distribution
-1. Open CMake-GUI
-2. Change the "Where to build the binaries:" directory to the configured build directory. CMake should automatically update.
-3. Modify the CMAKE_INSTALL_PREFIX variable to the directory of your liking. Visual Studio will need to have _write & execute_ access to that location.
-4. Click Configure.
-5. Click Generate.
-6. Open the project and build the INSTALL project. This will create the proper node module structure in the directory you specified to CMAKE_INSTALL_PREFIX
+### Custom OBS Build
+By default, we download a pre-built version of libobs if none is specified. However, this pre-built version may not be what you want to use or maybe you're testing a new obs feature.
 
-# Building The Documentation
-First make sure that you've configured and built obs-studio-node. Once you have done that, do the following:
+You may specify a custom archive of your own. However, some changes need to be made to obs-studio's default configuration before building:
 
-1. Open a node.js enabled shell inside the project directory.
-2. Run `yarn build:docs` and wait for the command to be done.
-3. Documentation will be inside the `/docs/` directory as a static HTML file.
+* `ENABLE_SCRIPTING` must be set to `false`
+* `ENABLE_UI` must be set to `false`
+* `QTDIR` should *not* be specified.
 
-# Using a custom OBS Studio
-A lot of the build system is automated, which makes integrating custom dependencies difficult. However there are some steps that can be taken to at least debug using custom built versions of OBS Studio.
+If you don't know how to build obs-studio from source, you may find instructions [here](https://github.com/obsproject/obs-studio/wiki/Install-Instructions#windows-build-directions).
 
-## Configuration Requirements
-The following setting must be changed before clicking Generate for the first time in obs-studio:
+Example (from root of obs-studio repository clone):
+```
+mkdir build
+cd build
+cmake .. -DENABLE_UI=false -DDepsPath="C:\Users\computerquip\Projectslibobs-deps\win64" -DENABLE_SCRIPTING=false -G"Visual Studio 15 2017" -A x64
+cmake --build .
+cpack -G ZIP
+```
 
-* ENABLE_SCRIPTING must be Off (false)
-* ENABLE_UI must be Off (false)
-* QTDIR must be empty
+This will create an archive that's compatible with obs-studio-node. The destination of the archive will appear after cpack is finished executing.
+Example:
 
-## Install/Distribution requirements
-To go from just a compiling obs-studio to using the actual custom obs-studio inside obs-studio-node, you must reconfigure obs-studio to install things into `<obs-studio-node build dir>/libobs-src`. You can do this by changing CMAKE_INSTALL_PREFIX in the obs-studio project. Any changes done to obs-studio must now be installed by building the INSTALL project in obs-studio, and will then be sent along to whatever is using obs-studio-node once you build the INSTALL project in obs-studio-node.
+> CPack: Create package using ZIP
+>
+> CPack: Install projects
+>
+> CPack: - Install project: obs-studio
+>
+> CPack: Create package
+>
+> CPack: - package: C:/Users/computerquip/Projects/obs-studio/build/obs-studio-x64-22.0.3-sl-7-13-g208cb2f5.zip generated.
 
-# Contributing To The Project
-See the [Guidelines for contributing](https://github.com/stream-labs/obs-studio-node/blob/staging/CONTRIBUTING.md).
+This archive may then be specified as a cmake variable when building obs-studio-node like so:
+```
+cmake .. -G"Visual Studio 15 2017" -A x64 -DOSN_LIBOBS_URL="C:/Users/computerquip/Projects/obs-studio/build/obs-studio-x64-22.0.3-sl-7-13-g208cb2f5.zip"
+cmake --build .
+cpack -G ZIP
+```
+
+### Further Building
+I don't specify every possible combination of variables. Here's a list of actively maintained variables that control how obs-studio-node is built:
+
+* All configurable node-cmake variables found [here](https://github.com/cjntaylor/node-cmake/blob/dev/docs/NodeJSCmakeManual.md).
+* `OSN_LIBOBS_URL` - Controls where to fetch the libobs archive. May be a directory, any compressed archive that cpack supports, or a URI of various types including FTP or HTTP/S.
+
+If you find yourself unable to configure something about our build script or have any questions, please file a github issue!
+
+### Static code analyzis 
+
+#### cppcheck 
+
+Install cppcheck from http://cppcheck.sourceforge.net/ and add cppcheck folder to PATH 
+To run check from console:  
+```
+cd build 
+cmake --build . --target CPPCHECK
+```
+
+Also target can be built from Visula Studio. 
+Report output format set as compatible and navigation to file:line posiible from build results panel.  
+
+Some warnings suppressed in files `obs-studio-client/cppcheck_suppressions_list.txt` and `obs-studio-server/cppcheck_suppressions_list.txt`.
+
+#### Clang Analyzer 
+
+`Ninja` and `LLVM` have to be installed in system. Warning: depot_tool have broken ninja.  
+To make build open `cmd.exe`. 
+
+
+```
+mkdir build_clang
+cd build_clang
+
+"c:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\amd64\vcvars64.bat"
+ 
+set CCC_CC=clang-cl
+set CCC_CXX=clang-cl
+set CC=ccc-analyzer.bat
+set CXX=c++-analyzer.bat
+#set CCC_ANALYZER_VERBOSE=1
+
+#make ninja project 
+cmake  -G "Ninja" -DCLANG_ANALYZE_CONFIG=1 -DCMAKE_INSTALL_PREFIX:PATH=""  -DCMAKE_LINKER=lld-link -DCMAKE_BUILD_TYPE="Debug"   -DCMAKE_SYSTEM_NAME="Generic" -DCMAKE_MAKE_PROGRAM=ninja.exe ..
+
+#try to build and "fix" errors 
+ninja.exe 
+
+#clean build to scan 
+ninja.exe clean 
+
+scan-build --keep-empty -internal-stats -stats -v -v -v -o check ninja.exe
+```
+Step with `"fixing"` errors is important as code base and especially third-party code are not ready to be build with clang. And files which failed to compile will not be scanned for errors.
+
+### Tests
+
+The tests for obs studio node are written in Typescript and use Mocha as test framework, with electron-mocha pacakage to make Mocha run in Electron, and Chai as assertion framework.
+
+You need to build obs-studio-node in order to run the tests. You can build it any way you want, just be sure to use `CMAKE_INSTALL_PREFIX` to install obs-studio-node in a folder of your choosing. The tests use this variable to know where the obs-studio-node module is. Since we use our own fork of Electron, you also need to create an environment variable called `ELECTRON_PATH` pointing to where the Electron binary is in the node_modules folder after you run `yarn install`. Below are three different ways to build obs-studio-node:
+
+#### Terminal commands
+In obs-studio-node root folder:
+1. `yarn install`
+2. `./node_modules/.bin/electron-rebuild`
+3. `git submodule update --init --recursive --force`
+4. `mkdir build`
+5. `cmake -Bbuild -H. -G"Visual Studio 15 2017" -A x64 -DCMAKE_INSTALL_PREFIX="path_of_your_choosing"`
+6. `cmake --build build --target install`
+
+#### Terminal using package.json scripts
+In obs-studio-node root folder:
+1. `mkdir build`
+2. `yarn local:config`
+3. `yarn local:build`
+4. Optional: To clean build folder to repeat the steps 2 to 3 again do `yarn local:clean`
+
+#### CMake GUI
+1. `yarn install`
+2. `./node_modules/.bin/electron-rebuild`
+3. Create a build folder in obs-studio-node root
+4. Open CMake GUI
+5. Put obs-studio-node project path in `Where is the source code:` box
+6. Put path to build folder in `Where to build the binaries:` box
+7. Click `Configure`
+8. Change CMAKE_INSTALL_PREFIX to a folder path of your choosing
+9. Click `Generate`
+10. Click `Open Project` to open Visual Studio and build the project there
+
+#### Running tests
+Some tests interact with Twitch and we use a user pool service to get users but in case we are not able to fetch a user from it, we use the stream key provided by an environment variable. Create an environment variable called SLOBS_BE_STREAMKEY with the stream key of a Twitch account of your choosing.
+
+* To run all the tests do `yarn run test` 
+* To run only run one test do `yarn run test --grep describe_name_value` where `describe_name_value` is the name of the test passed to the describe call in each test file. Example: `yarn run test --grep nodeobs_api`

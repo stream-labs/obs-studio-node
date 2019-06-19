@@ -1,31 +1,35 @@
-// Client module for the OBS Studio node module.
-// Copyright(C) 2017 Streamlabs (General Workings Inc)
-// 
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
 
 #pragma once
 #include <ipc-server.hpp>
-#include "utility.hpp"
-#include "obs.h"
 #include <memory>
 #include <queue>
+#include "obs.h"
+#include "utility.hpp"
 
-namespace osn {
-	class VolMeter {
+namespace osn
+{
+	class VolMeter
+	{
 		public:
-		class Manager : public utility::generic_object_manager<std::shared_ptr<VolMeter>> {
+		class Manager : public utility::generic_object_manager<std::shared_ptr<VolMeter>>
+		{
 			friend class std::shared_ptr<Manager>;
 
 			protected:
@@ -39,23 +43,23 @@ namespace osn {
 			public:
 			static Manager& GetInstance();
 		};
-		
+
 		private:
 		obs_volmeter_t* self;
-		uint64_t id;
-		size_t callback_count = 0;
-		uint64_t* id2 = nullptr;
+		uint64_t        id;
+		size_t          callback_count = 0;
+		uint64_t*       id2            = nullptr;
 
-		struct AudioData {
-			float magnitude[MAX_AUDIO_CHANNELS] = { 0 };
-			float peak[MAX_AUDIO_CHANNELS] = { 0 };
-			float input_peak[MAX_AUDIO_CHANNELS] = { 0 };
-			int32_t ch = 0;
+		struct AudioData
+		{
+			float   magnitude[MAX_AUDIO_CHANNELS]  = {0};
+			float   peak[MAX_AUDIO_CHANNELS]       = {0};
+			float   input_peak[MAX_AUDIO_CHANNELS] = {0};
+			int32_t ch                             = 0;
 		};
-		std::shared_ptr<AudioData> current_data;
-		std::mutex current_data_mtx;
-		std::shared_ptr<AudioData> free_data;
-		std::mutex free_data_mtx;
+
+		AudioData current_data;
+		std::mutex                 current_data_mtx;
 
 		public:
 		VolMeter(obs_fader_type type);
@@ -64,18 +68,44 @@ namespace osn {
 		public:
 		static void Register(ipc::server&);
 
-		static void Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void Destroy(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+        static void ClearVolmeters();
 
-		static void GetUpdateInterval(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void SetUpdateInterval(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void Attach(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void Detach(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void AddCallback(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void RemoveCallback(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static void
+		    Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static void
+		    Destroy(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 
-		static void Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void OBSCallback(void *param, const float magnitude[MAX_AUDIO_CHANNELS],
-			const float peak[MAX_AUDIO_CHANNELS], const float input_peak[MAX_AUDIO_CHANNELS]);
+		static void GetUpdateInterval(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void SetUpdateInterval(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void
+		    Attach(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static void
+		            Detach(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static void AddCallback(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void RemoveCallback(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+
+		static void
+		            Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static void OBSCallback(
+		    void*       param,
+		    const float magnitude[MAX_AUDIO_CHANNELS],
+		    const float peak[MAX_AUDIO_CHANNELS],
+		    const float input_peak[MAX_AUDIO_CHANNELS]);
 	};
-}
+} // namespace osn

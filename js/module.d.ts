@@ -24,6 +24,14 @@ export declare const enum EDeinterlaceFieldOrder {
     Top = 0,
     Bottom = 1
 }
+export declare const enum EVideoCodes {
+    Success = 0,
+    Fail = -1,
+    NotSupported = -2,
+    InvalidParam = -3,
+    CurrentlyActive = -4,
+    ModuleNotFound = -5
+}
 export declare const enum EDeinterlaceMode {
     Disable = 0,
     Discard = 1,
@@ -230,7 +238,12 @@ export declare const enum EOutputCode {
     Unsupported = -6,
     NoSpace = -7
 }
+export declare const enum ECategoryTypes {
+    NODEOBS_CATEGORY_LIST = 0,
+	NODEOBS_CATEGORY_TAB = 1
+}
 export declare const Global: IGlobal;
+export declare const Video: IVideo;
 export declare const OutputFactory: IOutputFactory;
 export declare const AudioEncoderFactory: IAudioEncoderFactory;
 export declare const VideoEncoderFactory: IVideoEncoderFactory;
@@ -243,7 +256,6 @@ export declare const DisplayFactory: IDisplayFactory;
 export declare const VolmeterFactory: IVolmeterFactory;
 export declare const FaderFactory: IFaderFactory;
 export declare const AudioFactory: IAudioFactory;
-export declare const VideoFactory: IVideoFactory;
 export declare const ModuleFactory: IModuleFactory;
 export declare const IPC: IIPC;
 export interface ISettings {
@@ -301,7 +313,6 @@ export interface IIPC {
     setServerPath(binaryPath: string, workingDirectoryPath?: string): void;
     connect(uri: string): void;
     host(uri: string): void;
-    connectOrHost(uri: string): void;
     disconnect(): void;
 }
 export interface IGlobal {
@@ -374,6 +385,7 @@ export interface IProperty {
     readonly enabled: boolean;
     readonly visible: boolean;
     readonly type: EPropertyType;
+    readonly value: any;
     next(): IProperty;
     modified(): boolean;
 }
@@ -647,24 +659,22 @@ export interface IDisplay {
     setResizeBoxInnerColor(r: number, g: number, b: number, a: number): void;
 }
 export interface IVideo {
-    readonly totalFrames: number;
     readonly skippedFrames: number;
+    readonly encodedFrames: number;	
 }
-export interface IVideoFactory {
-    reset(info: IVideoInfo): number;
-    getGlobal(): IVideo;
-}
+
 export interface IAudio {
 }
 export interface IAudioFactory {
     reset(info: IAudioInfo): boolean;
     getGlobal(): IAudio;
 }
-export interface IModuleFactory {
-    create(binPath: string, dataPath: string): IModule;
+export interface IModuleFactory extends IFactoryTypes {
+    open(binPath: string, dataPath: string): IModule;
     loadAll(): void;
     addPath(path: string, dataPath: string): void;
     logLoaded(): void;
+    modules(): String[];
 }
 export interface IModule {
     initialize(): void;

@@ -1,6 +1,6 @@
 {
   "name": "@streamlabs/obs-studio-node",
-  "version": "0.3.4",
+  "version": "0.3.99",
   "description": "Experimental bindings to obs-studio using nan directly",
   "author": "Streamlabs <support@streamlabs.com>",
   "license": "GPL-2.0",
@@ -15,17 +15,34 @@
   "main": "./index.js",
   "types": "./index.d.ts",
   "scripts": {
-    "clean": "git clean -fxd",
     "build:bindings": "cmake-js configure -a x64 --CDCMAKE_PREFIX_INSTALL=distribute && cmake --build build --target install --config Release",
     "build:javascript": "tsc -p js",
-    "build:docs": "typedoc --out docs"
+    "build:docs": "typedoc --out docs",
+    "local:config": "yarn install && electron-rebuild && git submodule update --init --recursive --force && cmake -Bbuild -H. -G\"Visual Studio 15 2017 Win64\" -DCMAKE_INSTALL_PREFIX=\"./obs-studio-node\"",
+    "local:build": "cmake --build build --target install --config Debug",
+    "local:clean": "rm -rf build/*",
+    "test:azure": "electron-mocha -t 80000 -c true -r ts-node/register tests/osn-tests/src/**/*.ts -R mocha-junit-reporter -O [includePending=true,useFullSuiteTitle=true,outputs=true]",
+    "test": "electron-mocha -t 80000 -c true -r ts-node/register tests/osn-tests/src/**/*.ts"
   },
   "devDependencies": {
-    "nan": "2.10.0",
+    "@types/chai": "^4.1.7",
+    "@types/mocha": "^5.2.5",
+    "@types/node": "^11.9.5",
+    "chai": "^4.2.0",
+    "electron": "https://github.com/stream-labs/electron/releases/download/2.0.16-streamlabs/electron-2.0.16-streamlabs.tgz",
+    "electron-mocha": "^8.0.1",
+    "electron-rebuild": "^1.8.4",
+    "mocha": "^5.2.0",
+    "mocha-junit-reporter": "^1.22.0",
+    "nan": "2.12.1",
+    "request": "^2.88.0",
+    "rxjs": "^6.4.0",
+    "ts-node": "^7.0.1",
     "typedoc": "^0.11.1",
     "typedoc-default-themes": "^0.5.0",
     "typedoc-plugin-markdown": "^1.0.12",
-    "typescript": "^2.9.2"
+    "typescript": "^2.9.2",
+    "uuid": "^3.0.1"
   },
   "keywords": [
     "capture",

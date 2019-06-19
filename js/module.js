@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const obs = require('./obs-studio-client.node');
+const obs = require('./obs_studio_client.node');
 const path = require("path");
 const fs = require("fs");
 exports.DefaultD3D11Path = path.resolve(__dirname, `libobs-d3d11.dll`);
@@ -24,7 +24,7 @@ exports.DisplayFactory = obs.Display;
 exports.VolmeterFactory = obs.Volmeter;
 exports.FaderFactory = obs.Fader;
 exports.AudioFactory = obs.Audio;
-exports.VideoFactory = obs.Video;
+exports.Video = obs.Video;
 exports.ModuleFactory = obs.Module;
 exports.IPC = obs.IPC;
 var EDelayFlags;
@@ -40,18 +40,7 @@ function addItems(scene, sceneItems) {
     if (Array.isArray(sceneItems)) {
         sceneItems.forEach(function (sceneItem) {
             const source = obs.Input.fromName(sceneItem.name);
-            const item = scene.add(source);
-            item.position = { x: sceneItem.x, y: sceneItem.y };
-            item.scale = { x: sceneItem.scaleX, y: sceneItem.scaleY };
-            item.visible = sceneItem.visible;
-            item.rotation = sceneItem.rotation;
-            const cropModel = {
-                top: Math.round(sceneItem.crop.top),
-                right: Math.round(sceneItem.crop.right),
-                bottom: Math.round(sceneItem.crop.bottom),
-                left: Math.round(sceneItem.crop.left)
-            };
-            item.crop = cropModel;
+            const item = scene.add(source, sceneItem);
             items.push(item);
         });
     }

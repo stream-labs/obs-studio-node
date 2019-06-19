@@ -1,29 +1,32 @@
-// Client module for the OBS Studio node module.
-// Copyright(C) 2017 Streamlabs (General Workings Inc)
-// 
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
 
 #pragma once
-#include <node.h>
 #include <nan.h>
+#include <node.h>
 #include "utility-v8.hpp"
 
-namespace osn {
+namespace osn
+{
 	class Fader : public Nan::ObjectWrap,
-		public utilv8::InterfaceObject<osn::Fader>,
-		public utilv8::ManagedObject<osn::Fader> {
+	              public utilv8::InterfaceObject<osn::Fader>,
+	              public utilv8::ManagedObject<osn::Fader>
+	{
 		friend utilv8::InterfaceObject<osn::Fader>;
 		friend utilv8::ManagedObject<osn::Fader>;
 
@@ -33,7 +36,9 @@ namespace osn {
 		public:
 		Fader(uint64_t uid);
 		~Fader();
-		
+
+		uint64_t GetId();
+
 		public:
 		static Nan::Persistent<v8::FunctionTemplate> prototype;
 
@@ -51,4 +56,4 @@ namespace osn {
 		static void AddCallback(Nan::NAN_METHOD_ARGS_TYPE info);
 		static void RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info);
 	};
-}
+} // namespace osn

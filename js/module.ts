@@ -1,4 +1,4 @@
-const obs = require('./obs-studio-client.node');
+const obs = require('./obs_studio_client.node');
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -48,6 +48,23 @@ export const enum EOrderMovement {
 export const enum EDeinterlaceFieldOrder {
     Top,
     Bottom
+}
+
+export const enum EVideoCodes {
+	Success = 0,
+	Fail = -1,
+	NotSupported = -2,
+	InvalidParam = -3,
+	CurrentlyActive = -4,
+	ModuleNotFound = -5	
+}
+
+export const enum EHotkeyObjectType {
+	Frontend = 0,
+	Source = 1,
+	Output = 2,
+	Encoder = 3,
+	Service = 4
 }
 
 export const enum EDeinterlaceMode {
@@ -303,7 +320,13 @@ export const enum EOutputCode {
     NoSpace = -7
 }
 
+export declare const enum ECategoryTypes {
+    NODEOBS_CATEGORY_LIST = 0,
+	NODEOBS_CATEGORY_TAB = 1
+}
+
 export const Global: IGlobal = obs.Global;
+export const Video: IVideo = obs.Video;
 export const OutputFactory: IOutputFactory = obs.Output;
 export const AudioEncoderFactory: IAudioEncoderFactory = obs.AudioEncoder;
 export const VideoEncoderFactory: IVideoEncoderFactory = obs.VideoEncoder;
@@ -316,7 +339,6 @@ export const DisplayFactory: IDisplayFactory = obs.Display;
 export const VolmeterFactory: IVolmeterFactory = obs.Volmeter;
 export const FaderFactory: IFaderFactory = obs.Fader;
 export const AudioFactory: IAudioFactory = obs.Audio;
-export const VideoFactory: IVideoFactory = obs.Video;
 export const ModuleFactory: IModuleFactory = obs.Module;
 export const IPC: IIPC = obs.IPC;
 
@@ -427,15 +449,6 @@ export interface IIPC {
 	 * @throws Error if it failed to host and connect.
      */
 	host(uri: string): void;
-	
-    /**
-     * Connects to an existing server or hosts a new server and connects to it.
-     * @param uri - URI for the server.
-	 * @throws SyntaxError if an invalid number of parameters is given.
-	 * @throws TypeError if a parameter is of invalid type.
-	 * @throws Error if it failed to connect or host and connect.
-     */
-	connectOrHost(uri: string): void;
 	
     /**
      * Disconnect from a server.
@@ -624,6 +637,9 @@ export interface IProperty {
 
     /** Type of the property */
     readonly type: EPropertyType;
+
+    /** Current value of the property */
+    readonly value: any;
 
     /**
      * Uses the current object to obtain the next
@@ -929,6 +945,17 @@ export interface IKeyEvent {
 	nativeVkey: number;
 };
 
+export interface ISceneItemInfo {
+    name: string,
+    crop: ICropInfo,
+    scaleX: number,
+    scaleY: number,
+    visible: boolean,
+    x: number,
+    y: number,
+    rotation: number
+}
+
 /**
  * Class representing a source
  * 
@@ -1049,7 +1076,7 @@ export interface IScene extends ISource {
      * @param source - Input source to add to the scene
      * @returns - Return the sceneitem or null on failure
      */
-    add(source: IInput): ISceneItem;
+    add(source: IInput, transform?: ISceneItemInfo): ISceneItem;
     
     /**
      * A scene may be used as an input source (even though its type
@@ -1470,13 +1497,16 @@ export interface IDisplay {
  * For now, only the global context functions are implemented
  */
 export interface IVideo {
-    readonly totalFrames: number;
+	
+	/**
+     * Number of total skipped frames
+     */
     readonly skippedFrames: number;
-}
-
-export interface IVideoFactory {
-    reset(info: IVideoInfo): number;
-    getGlobal(): IVideo;
+	
+    /**
+     * Number of total encoded frames
+     */
+    readonly encodedFrames: number;
 }
 
 /**
@@ -1493,11 +1523,12 @@ export interface IAudioFactory {
 }
 
 
-export interface IModuleFactory {
-    create(binPath: string, dataPath: string): IModule;
+export interface IModuleFactory extends IFactoryTypes {
+    open(binPath: string, dataPath: string): IModule;
     loadAll(): void;
     addPath(path: string, dataPath: string): void;
     logLoaded(): void;
+    modules(): String[];
 }
 
 export interface IModule {
@@ -1511,36 +1542,12 @@ export interface IModule {
     status(): number;
 }
 
-export interface ISceneItemInfo {
-    name: string,
-    crop: ICropInfo,
-    scaleX: number,
-    scaleY: number,
-    visible: boolean,
-    x: number,
-    y: number,
-    rotation: number
-}
 export function addItems(scene: IScene, sceneItems: ISceneItemInfo[]): ISceneItem[] {
     const items: ISceneItem[] = [];
     if (Array.isArray(sceneItems)) {
         sceneItems.forEach(function(sceneItem) {
             const source = obs.Input.fromName(sceneItem.name);
-            const item = scene.add(source);
-
-            item.position = {x: sceneItem.x, y: sceneItem.y};
-            item.scale = {x: sceneItem.scaleX, y: sceneItem.scaleY};
-            item.visible = sceneItem.visible;
-            item.rotation = sceneItem.rotation;
-
-            const cropModel = {
-                top: Math.round(sceneItem.crop.top),
-                right: Math.round(sceneItem.crop.right),
-                bottom: Math.round(sceneItem.crop.bottom),
-                left: Math.round(sceneItem.crop.left)
-              };
-
-            item.crop = cropModel;
+            const item = scene.add(source, sceneItem);
             items.push(item);
         });
     }

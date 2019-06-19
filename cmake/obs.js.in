@@ -1,0 +1,2 @@
+const obs = require("@CMAKE_INSTALL_PREFIX@")
+exports.obs = obs;

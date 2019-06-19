@@ -1,138 +1,143 @@
-// Server program for the OBS Studio node module.
-// Copyright(C) 2017 Streamlabs (General Workings Inc)
-// 
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110 - 1301, USA.
+/******************************************************************************
+    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
 
-#include <iostream>
-#include <thread>
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
+
 #include <chrono>
-#include <vector>
 #include <inttypes.h>
-#include <memory>
-#include <ipc-function.hpp>
+#include <iostream>
 #include <ipc-class.hpp>
+#include <ipc-function.hpp>
 #include <ipc-server.hpp>
-#include "osn-global.hpp"
-#include "osn-source.hpp"
-#include "osn-input.hpp"
-#include "osn-filter.hpp"
-#include "osn-transition.hpp"
-#include "osn-scene.hpp"
-#include "osn-sceneitem.hpp"
-#include "osn-properties.hpp"
+#include <memory>
+#include <thread>
+#include <vector>
+#include "error.hpp"
 #include "nodeobs_api.h"
+#include "nodeobs_autoconfig.h"
 #include "nodeobs_content.h"
 #include "nodeobs_service.h"
 #include "nodeobs_settings.h"
-#include "nodeobs_autoconfig.h"
-#include "error.hpp"
-#include <chrono>
 #include "osn-fader.hpp"
-#include "osn-volmeter.hpp"
+#include "osn-filter.hpp"
+#include "osn-global.hpp"
+#include "osn-input.hpp"
+#include "osn-module.hpp"
+#include "osn-properties.hpp"
+#include "osn-scene.hpp"
+#include "osn-sceneitem.hpp"
+#include "osn-source.hpp"
+#include "osn-transition.hpp"
 #include "osn-video.hpp"
+#include "osn-volmeter.hpp"
+#include "callback-manager.h"
 
-extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = 1;
-
-#ifndef _DEBUG
-#include "client/crashpad_client.h"
-#include "client/crash_report_database.h"
-#include "client/settings.h"
-#endif
+#include "util-crashmanager.h"
 
 #if defined(_WIN32)
 #include "Shlobj.h"
+
+// Checks ForceGPUAsRenderDevice setting
+extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = [] {
+	LPWSTR       roamingPath;
+	std::wstring filePath;
+	std::string  line;
+	std::fstream file;
+	bool         settingValue = true; // Default value (NvOptimusEnablement = 1)
+
+	if (FAILED(SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, nullptr, &roamingPath))) {
+		// Couldn't find roaming app data folder path, assume default value
+		return settingValue;
+	} else {
+		filePath.assign(roamingPath);
+		filePath.append(L"\\slobs-client\\basic.ini");
+		CoTaskMemFree(roamingPath);
+	}
+
+	file.open(filePath);
+
+	if (file.is_open()) {
+		while (std::getline(file, line)) {
+			if (line.find("ForceGPUAsRenderDevice", 0) != std::string::npos) {
+				if (line.substr(line.find('=') + 1) == "false") {
+					settingValue = false;
+					file.close();
+					break;
+				}
+			}
+		}
+	} else {
+		//Couldn't open config file, assume default value
+		return settingValue;
+	}
+
+	// Return setting value
+	return settingValue;
+}();
 #endif
 
-struct ServerData {
-	std::mutex mtx;
+#define BUFFSIZE 512
+
+struct ServerData
+{
+	std::mutex                                     mtx;
 	std::chrono::high_resolution_clock::time_point last_connect, last_disconnect;
-	size_t count_connected = 0;
+	size_t                                         count_connected = 0;
 };
 
-bool ServerConnectHandler(void* data, int64_t) {
-	ServerData* sd = reinterpret_cast<ServerData*>(data);
+bool ServerConnectHandler(void* data, int64_t)
+{
+	ServerData*                  sd = reinterpret_cast<ServerData*>(data);
 	std::unique_lock<std::mutex> ulock(sd->mtx);
 	sd->last_connect = std::chrono::high_resolution_clock::now();
 	sd->count_connected++;
 	return true;
 }
 
-void ServerDisconnectHandler(void* data, int64_t) {
-	ServerData* sd = reinterpret_cast<ServerData*>(data);
+void ServerDisconnectHandler(void* data, int64_t)
+{
+	ServerData*                  sd = reinterpret_cast<ServerData*>(data);
 	std::unique_lock<std::mutex> ulock(sd->mtx);
 	sd->last_disconnect = std::chrono::high_resolution_clock::now();
 	sd->count_connected--;
 }
 
-namespace System {
-	static void Shutdown(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval) {
+namespace System
+{
+	static void
+	    Shutdown(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
+	{
 		bool* shutdown = (bool*)data;
-		*shutdown = true;
+		*shutdown      = true;
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		return;
 	}
-}
+} // namespace System
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
 #ifndef _DEBUG
-	std::wstring appdata_path;
-	crashpad::CrashpadClient client;
-	bool rc;
 
-#if defined(_WIN32)
-	HRESULT hResult;
-	PWSTR ppszPath;
-	
-	hResult = SHGetKnownFolderPath(
-		FOLDERID_RoamingAppData,
-		0, NULL, &ppszPath
-	);
+    util::CrashManager crashManager;
+	if (!crashManager.Initialize()) {
+		return -1;
+    }
 
-	appdata_path.assign(ppszPath);
-	appdata_path.append(L"\\obs-studio-node-server");
+    crashManager.Configure();
 
-	CoTaskMemFree(ppszPath);
-#endif
-
-	std::map<std::string, std::string> annotations;
-	std::vector<std::string> arguments;
-
-	std::wstring handler_path(L"crashpad_handler.exe");
-	std::string url("https://streamlabs.sp.backtrace.io:6098");
-	annotations["token"] = "513fa5577d6a193ed34965e18b93d7b00813e9eb2f4b0b7059b30e66afebe4fe";
-	annotations["format"] = "minidump";
-
-	base::FilePath db(appdata_path);
-	base::FilePath handler(handler_path);
-
-	std::unique_ptr<crashpad::CrashReportDatabase> database =
-		crashpad::CrashReportDatabase::Initialize(db);
-	if (database == nullptr || database->GetSettings() == NULL)
-		return false;
-
-	database->GetSettings()->SetUploadsEnabled(true);
-
-	rc = client.StartHandler(
-		handler, db, db, url,
-		annotations, arguments,
-		true, true
-	);
-	/* TODO Check rc value for errors */
-
-	rc = client.WaitForHandlerStart(INFINITE);
-	/* TODO Check rc value for errors */
 #endif
 
 	// Usage:
@@ -146,16 +151,17 @@ int main(int argc, char* argv[]) {
 
 	// Instance
 	ipc::server myServer;
-	bool doShutdown = false;
-	ServerData sd;
+	bool        doShutdown = false;
+	ServerData  sd;
 	sd.last_disconnect = sd.last_connect = std::chrono::high_resolution_clock::now();
-	sd.count_connected = 0;
+	sd.count_connected                   = 0;
 
 	// Classes
 	/// System
 	{
 		std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("System");
-		cls->register_function(std::make_shared<ipc::function>("Shutdown", std::vector<ipc::type>{}, System::Shutdown, &doShutdown));
+		cls->register_function(
+		    std::make_shared<ipc::function>("Shutdown", std::vector<ipc::type>{}, System::Shutdown, &doShutdown));
 		myServer.register_collection(cls);
 	};
 
@@ -171,6 +177,8 @@ int main(int argc, char* argv[]) {
 	osn::VolMeter::Register(myServer);
 	osn::Properties::Register(myServer);
 	osn::Video::Register(myServer);
+	osn::Module::Register(myServer);
+	CallbackManager::Register(myServer);
 	OBS_API::Register(myServer);
 	OBS_content::Register(myServer);
 	OBS_service::Register(myServer);
@@ -185,7 +193,7 @@ int main(int argc, char* argv[]) {
 	// Initialize Server
 	try {
 		myServer.initialize(argv[1]);
-	} catch (std::exception e) {
+	} catch (std::exception& e) {
 		std::cerr << "Initialization failed with error " << e.what() << "." << std::endl;
 		return -2;
 	} catch (...) {
@@ -193,19 +201,68 @@ int main(int argc, char* argv[]) {
 		return -2;
 	}
 
+#ifndef _DEBUG
+
+	// Register the pre and post server callbacks to log the data into the crashmanager
+	myServer.set_pre_callback([](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data)
+	{ 
+		util::CrashManager& crashManager = *static_cast<util::CrashManager*>(data);
+		crashManager.ProcessPreServerCall(cname, fname, args);
+
+	}, &crashManager);
+	myServer.set_post_callback([](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data)
+	{
+		util::CrashManager& crashManager = *static_cast<util::CrashManager*>(data);
+		crashManager.ProcessPostServerCall(cname, fname, args);
+	}, &crashManager);
+
+#endif
+
 	// Reset Connect/Disconnect time.
 	sd.last_disconnect = sd.last_connect = std::chrono::high_resolution_clock::now();
 
+	bool waitBeforeClosing = false;
+
 	while (!doShutdown) {
 		if (sd.count_connected == 0) {
-			auto tp = std::chrono::high_resolution_clock::now();
+			auto tp    = std::chrono::high_resolution_clock::now();
 			auto delta = tp - sd.last_disconnect;
 			if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() > 5000) {
 				doShutdown = true;
+				waitBeforeClosing = true;
 			}
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(50));
 	}
+
+	// Wait on receive the exit message from the crash-handler
+	if (waitBeforeClosing) {
+		HANDLE hPipe;
+		TCHAR  chBuf[BUFFSIZE];
+		DWORD  cbRead;
+		hPipe = CreateNamedPipe(
+		    TEXT("\\\\.\\pipe\\exit-slobs-crash-handler"),
+		    PIPE_ACCESS_DUPLEX,
+		    PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
+		    1,
+		    BUFFSIZE * sizeof(TCHAR),
+		    BUFFSIZE * sizeof(TCHAR),
+		    NULL,
+		    NULL);
+
+		if (hPipe != INVALID_HANDLE_VALUE) {
+			if (ConnectNamedPipe(hPipe, NULL) != FALSE) {
+				BOOL fSuccess = ReadFile(hPipe, chBuf, BUFFSIZE * sizeof(TCHAR), &cbRead, NULL);
+
+				if (!fSuccess)
+					return 0;
+				CloseHandle(hPipe);
+			}
+		}
+	}
+
+	osn::Source::finalize_global_signals();
+	OBS_API::destroyOBS_API();
 
 	// Finalize Server
 	myServer.finalize();
