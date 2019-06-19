@@ -1,0 +1,43 @@
+// Generated from categories.proto
+
+namespace nodeobs;
+
+table value { 
+  boolean: bool;
+  fp32: float;
+  fp64: double;
+  i32: int;
+  i64: long;
+  ui32: uint;
+  ui64: ulong;
+  str: string;
+}
+
+table values {
+	fc_name: string;
+	fc_value: value;
+}
+
+table fc_Parameter {
+  fc_name: string;
+  fc_description: string;
+  fc_type: string;
+  fc_sub_type: string;
+  fc_enabled: bool;
+  fc_masked: bool;
+  fc_visible: bool;
+  fc_currentValue: value;
+  fc_values: [values];
+}
+
+table fc_SubCategory {
+  fc_name: string;
+  fc_params: [fc_Parameter];
+}
+
+table fc_Category {
+  fc_name: string;
+  fc_sub_categories: [fc_SubCategory];
+}
+
+root_type fc_Category;

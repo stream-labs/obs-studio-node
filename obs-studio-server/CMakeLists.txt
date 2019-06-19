@@ -16,6 +16,8 @@ if(WIN32)
 	)
 endif()
 
+add_dependencies(obs-studio-server proto-categories-gen)
+
 ############################
 # Setup crashpad binaries
 ############################
