@@ -531,7 +531,7 @@ int EvaluateBandwidth(
     bool&       connected,
     bool&       stopped,
     bool&       success,
-	bool&		errorOnStop,
+    bool&       errorOnStop,
     OBSData&    service_settings,
     OBSService& service,
     OBSOutput&  output,
