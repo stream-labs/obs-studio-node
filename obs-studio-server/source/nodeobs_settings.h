@@ -132,8 +132,8 @@ struct SubCategory
 		memcpy(buffer.data() + indexBuffer, name.data(), name.length());
 		indexBuffer += name.length();
 
-		*reinterpret_cast<size_t*>(buffer.data() + indexBuffer) = paramsCount;
-		indexBuffer += sizeof(size_t);
+		*reinterpret_cast<uint32_t*>(buffer.data() + indexBuffer) = paramsCount;
+		indexBuffer += sizeof(uint32_t);
 
 		for (int i = 0; i < params.size(); i++) {
 			std::vector<char> serializedBuf = params.at(i).serialize();
