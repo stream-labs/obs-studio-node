@@ -57,7 +57,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 //////////////////////////////////////////////////////////////////////////
 // Customizable constants
-#define LTALLOC_OVERFLOW_DETECTION
+// #define LTALLOC_OVERFLOW_DETECTION
 
 // Define to disable the override of the new operator (enabled by default if compiling this file in c++).
 //#define LTALLOC_DISABLE_OPERATOR_NEW_OVERRIDE
