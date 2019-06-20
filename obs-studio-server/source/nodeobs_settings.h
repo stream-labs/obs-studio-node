@@ -188,10 +188,10 @@ class OBS_settings
 	static void saveAdvancedSettings(std::vector<SubCategory> advancedSettings);
 
 	static SubCategory serializeSettingsData(
-	    std::string                                                   nameSubCategory,
-	    std::vector<std::vector<std::pair<std::string, ipc::value>>> entries,
+	    const std::string &                                           nameSubCategory,
+	    std::vector<std::vector<std::pair<std::string, ipc::value>>>& entries,
 	    config_t*                                                     config,
-	    std::string                                                   section,
+	    const std::string &                                           section,
 	    bool                                                          isVisible,
 	    bool                                                          isEnabled);
 
