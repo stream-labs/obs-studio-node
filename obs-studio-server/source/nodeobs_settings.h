@@ -45,40 +45,41 @@ struct Parameter
 	double            minVal = -200;
 	double            maxVal = 200;
 	double            stepVal = 1;
-	size_t            sizeOfCurrentValue = 0;
+	uint64_t          sizeOfCurrentValue = 0;
 	std::vector<char> currentValue;
-	size_t            sizeOfValues = 0;
-	size_t            countValues  = 0;
+	uint64_t          sizeOfValues = 0;
+	uint64_t          countValues  = 0;
 	std::vector<char> values;
 
 	std::vector<char> serialize()
 	{
 		std::vector<char> buffer;
-		size_t            indexBuffer = 0;
+		uint32_t          indexBuffer = 0;
 
-		size_t sizeStruct = name.length() + description.length() + type.length() + subType.length() + sizeof(size_t) * 7
-		                    + sizeof(bool) * 3 + sizeof(double) * 3 + sizeOfCurrentValue + sizeOfValues;
+		size_t sizeStruct = name.length() + description.length() + type.length() + subType.length()
+		                    + sizeof(uint64_t) * 7 + sizeof(bool) * 3 + sizeof(double) * 3 + sizeOfCurrentValue
+		                    + sizeOfValues;
 		buffer.resize(sizeStruct);
 
-		*reinterpret_cast<size_t*>(buffer.data() + indexBuffer) = name.length();
-		indexBuffer += sizeof(size_t);
+		*reinterpret_cast<uint64_t*>(buffer.data() + indexBuffer) = name.length();
+		indexBuffer += sizeof(uint64_t);
 		memcpy(buffer.data() + indexBuffer, name.data(), name.length());
-		indexBuffer += name.length();
+		indexBuffer += uint32_t(name.length());
 
-		*reinterpret_cast<size_t*>(buffer.data() + indexBuffer) = description.length();
-		indexBuffer += sizeof(size_t);
+		*reinterpret_cast<uint64_t*>(buffer.data() + indexBuffer) = description.length();
+		indexBuffer += sizeof(uint64_t);
 		memcpy(buffer.data() + indexBuffer, description.data(), description.length());
-		indexBuffer += description.length();
+		indexBuffer += uint32_t(description.length());
 
-		*reinterpret_cast<size_t*>(buffer.data() + indexBuffer) = type.length();
-		indexBuffer += sizeof(size_t);
+		*reinterpret_cast<uint64_t*>(buffer.data() + indexBuffer) = type.length();
+		indexBuffer += sizeof(uint64_t);
 		memcpy(buffer.data() + indexBuffer, type.data(), type.length());
-		indexBuffer += type.length();
+		indexBuffer += uint32_t(type.length());
 
-		*reinterpret_cast<size_t*>(buffer.data() + indexBuffer) = subType.length();
-		indexBuffer += sizeof(size_t);
+		*reinterpret_cast<uint64_t*>(buffer.data() + indexBuffer) = subType.length();
+		indexBuffer += sizeof(uint64_t);
 		memcpy(buffer.data() + indexBuffer, subType.data(), subType.length());
-		indexBuffer += subType.length();
+		indexBuffer += uint32_t(subType.length());
 
 		*reinterpret_cast<bool*>(buffer.data() + indexBuffer) = enabled;
 		indexBuffer += sizeof(bool);
@@ -91,23 +92,23 @@ struct Parameter
 		indexBuffer += sizeof(double);
 		*reinterpret_cast<double*>(buffer.data() + indexBuffer) = maxVal;
 		indexBuffer += sizeof(double);
-		*reinterpret_cast<bool*>(buffer.data() + indexBuffer) = stepVal;
+		*reinterpret_cast<double*>(buffer.data() + indexBuffer) = stepVal;
 		indexBuffer += sizeof(double);
 
-		*reinterpret_cast<size_t*>(buffer.data() + indexBuffer) = sizeOfCurrentValue;
-		indexBuffer += sizeof(size_t);
+		*reinterpret_cast<uint64_t*>(buffer.data() + indexBuffer) = sizeOfCurrentValue;
+		indexBuffer += sizeof(uint64_t);
 
 		memcpy(buffer.data() + indexBuffer, currentValue.data(), sizeOfCurrentValue);
-		indexBuffer += sizeOfCurrentValue;
+		indexBuffer += uint32_t(sizeOfCurrentValue);
 
-		*reinterpret_cast<size_t*>(buffer.data() + indexBuffer) = sizeOfValues;
-		indexBuffer += sizeof(size_t);
+		*reinterpret_cast<uint64_t*>(buffer.data() + indexBuffer) = sizeOfValues;
+		indexBuffer += sizeof(uint64_t);
 
-		*reinterpret_cast<size_t*>(buffer.data() + indexBuffer) = countValues;
-		indexBuffer += sizeof(size_t);
+		*reinterpret_cast<uint64_t*>(buffer.data() + indexBuffer) = countValues;
+		indexBuffer += sizeof(uint64_t);
 
 		memcpy(buffer.data() + indexBuffer, values.data(), sizeOfValues);
-		indexBuffer += sizeOfValues;
+		indexBuffer += uint32_t(sizeOfValues);
 
 		return buffer;
 	}
@@ -116,19 +117,19 @@ struct Parameter
 struct SubCategory
 {
 	std::string            name;
-	size_t                 paramsCount = 0;
+	uint32_t               paramsCount = 0;
 	std::vector<Parameter> params;
 
 	std::vector<char> serialize()
 	{
 		std::vector<char> buffer;
-		size_t            indexBuffer = 0;
+		uint64_t          indexBuffer = 0;
 
-		size_t sizeStruct = name.length() + sizeof(size_t) + sizeof(size_t);
+		size_t sizeStruct = name.length() + sizeof(uint64_t) + sizeof(uint32_t);
 		buffer.resize(sizeStruct);
 
-		*reinterpret_cast<size_t*>(buffer.data()) = name.length();
-		indexBuffer += sizeof(size_t);
+		*reinterpret_cast<uint64_t*>(buffer.data()) = name.length();
+		indexBuffer += sizeof(uint64_t);
 		memcpy(buffer.data() + indexBuffer, name.data(), name.length());
 		indexBuffer += name.length();
 

@@ -36,37 +36,37 @@ std::vector<settings::SubCategory>
 	for (int i = 0; i < int(subCategoriesCount); i++) {
 		settings::SubCategory sc;
 
-		size_t* sizeMessage = reinterpret_cast<size_t*>(buffer.data() + indexData);
-		indexData += sizeof(size_t);
+		uint64_t* sizeMessage = reinterpret_cast<uint64_t*>(buffer.data() + indexData);
+		indexData += sizeof(uint64_t);
 
 		std::string name(buffer.data() + indexData, *sizeMessage);
 		indexData += uint32_t(*sizeMessage);
 
-		size_t* paramsCount = reinterpret_cast<size_t*>(buffer.data() + indexData);
-		indexData += sizeof(size_t);
+		uint32_t* paramsCount = reinterpret_cast<uint32_t*>(buffer.data() + indexData);
+		indexData += sizeof(uint32_t);
 
 		settings::Parameter param;
-		for (size_t j = 0; j < *paramsCount; j++) {
-			size_t* sizeName = reinterpret_cast<std::size_t*>(buffer.data() + indexData);
-			indexData += sizeof(size_t);
+		for (int j = 0; j < *paramsCount; j++) {
+			uint64_t* sizeName = reinterpret_cast<uint64_t*>(buffer.data() + indexData);
+			indexData += sizeof(uint64_t);
 
 			std::string name(buffer.data() + indexData, *sizeName);
 			indexData += uint32_t(*sizeName);
 
-			size_t* sizeDescription = reinterpret_cast<std::size_t*>(buffer.data() + indexData);
-			indexData += sizeof(size_t);
+			uint64_t* sizeDescription = reinterpret_cast<uint64_t*>(buffer.data() + indexData);
+			indexData += sizeof(uint64_t);
 
 			std::string description(buffer.data() + indexData, *sizeDescription);
 			indexData += uint32_t(*sizeDescription);
 
-			size_t* sizeType = reinterpret_cast<std::size_t*>(buffer.data() + indexData);
-			indexData += sizeof(size_t);
+			uint64_t* sizeType = reinterpret_cast<uint64_t*>(buffer.data() + indexData);
+			indexData += sizeof(uint64_t);
 
 			std::string type(buffer.data() + indexData, *sizeType);
 			indexData += uint32_t(*sizeType);
 
-			size_t* sizeSubType = reinterpret_cast<std::size_t*>(buffer.data() + indexData);
-			indexData += sizeof(size_t);
+			uint64_t* sizeSubType = reinterpret_cast<uint64_t*>(buffer.data() + indexData);
+			indexData += sizeof(uint64_t);
 
 			std::string subType(buffer.data() + indexData, *sizeSubType);
 			indexData += uint32_t(*sizeSubType);
@@ -89,19 +89,19 @@ std::vector<settings::SubCategory>
 			double* stepVal = reinterpret_cast<double*>(buffer.data() + indexData);
 			indexData += sizeof(double);
 
-			size_t* sizeOfCurrentValue = reinterpret_cast<std::size_t*>(buffer.data() + indexData);
-			indexData += sizeof(size_t);
+			uint64_t* sizeOfCurrentValue = reinterpret_cast<uint64_t*>(buffer.data() + indexData);
+			indexData += sizeof(uint64_t);
 
 			std::vector<char> currentValue;
 			currentValue.resize(*sizeOfCurrentValue);
 			memcpy(currentValue.data(), buffer.data() + indexData, *sizeOfCurrentValue);
 			indexData += uint32_t(*sizeOfCurrentValue);
 
-			size_t* sizeOfValues = reinterpret_cast<size_t*>(buffer.data() + indexData);
-			indexData += sizeof(size_t);
+			uint64_t* sizeOfValues = reinterpret_cast<uint64_t*>(buffer.data() + indexData);
+			indexData += sizeof(uint64_t);
 
-			size_t* countValues = reinterpret_cast<size_t*>(buffer.data() + indexData);
-			indexData += sizeof(size_t);
+			uint64_t* countValues = reinterpret_cast<uint64_t*>(buffer.data() + indexData);
+			indexData += sizeof(uint64_t);
 
 			std::vector<char> values;
 			values.resize(*sizeOfValues);
@@ -288,7 +288,7 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 				v8::Local<v8::Object> valueObject = v8::Object::New(isolate);
 
 				if (params.at(j).subType.compare("OBS_COMBO_FORMAT_INT") == 0) {
-					size_t* sizeName = reinterpret_cast<std::size_t*>(params.at(j).values.data() + indexData);
+					size_t* sizeName = reinterpret_cast<size_t*>(params.at(j).values.data() + indexData);
 					indexData += sizeof(size_t);
 					std::string name(params.at(j).values.data() + indexData, *sizeName);
 					indexData += uint32_t(*sizeName);
@@ -302,7 +302,7 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 				}
 				else if (params.at(j).subType.compare("OBS_COMBO_FORMAT_FLOAT") == 0) {
 					size_t *sizeName =
-						reinterpret_cast<std::size_t*>(params.at(j).values.data() + indexData);
+						reinterpret_cast<size_t*>(params.at(j).values.data() + indexData);
 					indexData += sizeof(size_t);
 					std::string name(params.at(j).values.data() + indexData, *sizeName);
 					indexData += uint32_t(*sizeName);
@@ -316,12 +316,12 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 				}
 				else {
 					size_t *sizeName =
-						reinterpret_cast<std::size_t*>(params.at(j).values.data() + indexData);
+						reinterpret_cast<size_t*>(params.at(j).values.data() + indexData);
 					indexData += sizeof(size_t);
 					std::string name(params.at(j).values.data() + indexData, *sizeName);
 					indexData += uint32_t(*sizeName);
 
-					size_t* sizeValue = reinterpret_cast<std::size_t*>(params.at(j).values.data() + indexData);
+					size_t* sizeValue = reinterpret_cast<size_t*>(params.at(j).values.data() + indexData);
 					indexData += sizeof(size_t);
 					std::string value(params.at(j).values.data() + indexData, *sizeValue);
 					indexData += uint32_t(*sizeValue);
@@ -335,12 +335,12 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 			if (params.at(j).countValues > 0 && params.at(j).currentValue.size() == 0
 			    && params.at(j).type.compare("OBS_PROPERTY_LIST") == 0 && params.at(j).enabled) {
 				uint32_t indexData = 0;
-				size_t* sizeName = reinterpret_cast<std::size_t*>(params.at(j).values.data() + indexData);
+				size_t* sizeName = reinterpret_cast<size_t*>(params.at(j).values.data() + indexData);
 				indexData += sizeof(size_t);
 				std::string name(params.at(j).values.data() + indexData, *sizeName);
 				indexData += uint32_t(*sizeName);
 
-				size_t* sizeValue = reinterpret_cast<std::size_t*>(params.at(j).values.data() + indexData);
+				size_t* sizeValue = reinterpret_cast<size_t*>(params.at(j).values.data() + indexData);
 				indexData += sizeof(size_t);
 				std::string value(params.at(j).values.data() + indexData, *sizeValue);
 				indexData += uint32_t(*sizeValue);
