@@ -2178,6 +2178,7 @@ SubCategory OBS_settings::getAdvancedOutputRecordingSettings(config_t* config, b
 	Parameter recType;
 	recType.name        = "RecType";
 	recType.type        = "OBS_PROPERTY_LIST";
+	recType.subType     = "OBS_COMBO_FORMAT_STRING";
 	recType.description = "Type";
 
 	std::vector<std::pair<std::string, std::string>> recTypeValues;
