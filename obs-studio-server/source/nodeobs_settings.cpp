@@ -1884,7 +1884,7 @@ void OBS_settings::getStandardRecordingSettings(
 	bool noSpace = config_get_bool(config, "AdvOut", "RecFileNameWithoutSpace");
 	recFileNameWithoutSpace.currentValue.resize(sizeof(noSpace));
 	memcpy(recFileNameWithoutSpace.currentValue.data(), &noSpace, sizeof(noSpace));
-	recFileNameWithoutSpace.sizeOfCurrentValue = (noSpace);
+	recFileNameWithoutSpace.sizeOfCurrentValue = sizeof(noSpace);
 
 	recFileNameWithoutSpace.visible = true;
 	recFileNameWithoutSpace.enabled = isCategoryEnabled;
