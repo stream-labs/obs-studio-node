@@ -48,6 +48,8 @@ void osn::SceneItem::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	utilv8::SetTemplateAccessorProperty(objtemplate, "scene", GetScene);
 	utilv8::SetTemplateAccessorProperty(objtemplate, "visible", IsVisible, SetVisible);
 	utilv8::SetTemplateAccessorProperty(objtemplate, "selected", IsSelected, SetSelected);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "showingStreaming", IsShowingStreaming, SetShowingStreaming);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "showingRecording", IsShowingRecording, SetShowingRecording);
 	utilv8::SetTemplateAccessorProperty(objtemplate, "position", GetPosition, SetPosition);
 	utilv8::SetTemplateAccessorProperty(objtemplate, "rotation", GetRotation, SetRotation);
 	utilv8::SetTemplateAccessorProperty(objtemplate, "scale", GetScale, SetScale);
@@ -246,7 +248,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetSelected(Nan::NAN_METHOD_ARGS_TYP
 
 	if (sid == nullptr) {
 		return;
-    }
+	}
 
 	if (selected == sid->isSelected) {
 		sid->selectedChanged = false;
@@ -262,6 +264,136 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetSelected(Nan::NAN_METHOD_ARGS_TYP
 	sid->selectedChanged = true;
 	sid->cached          = true;
 	sid->isSelected      = selected;
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsShowingStreaming(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	osn::SceneItem* item = nullptr;
+	if (!Retrieve(info.This(), item)) {
+		return;
+	}
+
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+
+	if (sid && !sid->showingStreamingChanged) {
+		info.GetReturnValue().Set(utilv8::ToValue(item->IsShowingStreaming));
+		return;
+	}
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("SceneItem", "IsShowingStreaming", std::vector<ipc::value>{ipc::value(item->itemId)});
+
+	if (!ValidateResponse(response))
+		return;
+	bool showingStreaming = !!response[1].value_union.ui32;
+
+	sid->showingStreamingChanged = false;
+	sid->isShowingStreaming      = showingStreaming;
+	info.GetReturnValue().Set(showingStreaming);
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetShowingStreaming(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	bool showingStreaming;
+
+	ASSERT_GET_VALUE(info[0], showingStreaming);
+
+	osn::SceneItem* item = nullptr;
+	if (!Retrieve(info.This(), item)) {
+		return;
+	}
+
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+
+	if (sid == nullptr) {
+		return;
+	}
+
+	if (showingStreaming == sid->isShowingStreaming) {
+		sid->showingStreamingChanged = false;
+		return;
+	}
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	conn->call(
+	    "SceneItem",
+	    "SetShowingStreaming",
+	    std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(showingStreaming)});
+
+	sid->showingStreamingChanged = true;
+	sid->isShowingStreaming      = showingStreaming;
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsShowingRecording(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	osn::SceneItem* item = nullptr;
+	if (!Retrieve(info.This(), item)) {
+		return;
+	}
+
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+
+	if (sid && !sid->showingRecordingChanged) {
+		info.GetReturnValue().Set(utilv8::ToValue(item->IsShowingRecording));
+		return;
+	}
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper(
+	    "SceneItem", "IsShowingRecording", std::vector<ipc::value>{ipc::value(item->itemId)});
+
+	if (!ValidateResponse(response))
+		return;
+	bool showingRecording = !!response[1].value_union.ui32;
+
+	sid->showingRecordingChanged = false;
+	sid->isShowingRecording      = showingRecording;
+	info.GetReturnValue().Set(showingRecording);
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetShowingRecording(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	bool showingRecording;
+
+	ASSERT_GET_VALUE(info[0], showingRecording);
+
+	osn::SceneItem* item = nullptr;
+	if (!Retrieve(info.This(), item)) {
+		return;
+	}
+
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+
+	if (sid == nullptr) {
+		return;
+	}
+
+	if (showingRecording == sid->isShowingRecording) {
+		sid->showingRecordingChanged = false;
+		return;
+	}
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	conn->call(
+	    "SceneItem",
+	    "SetShowingRecording",
+	    std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(showingRecording)});
+
+	sid->showingRecordingChanged = true;
+	sid->isShowingRecording      = showingRecording;
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetPosition(Nan::NAN_METHOD_ARGS_TYPE info)

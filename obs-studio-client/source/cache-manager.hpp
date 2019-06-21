@@ -77,6 +77,12 @@ struct SceneItemData
 
 	float rotation        = 0;
 	bool  rotationChanged = true;
+
+	bool isShowingStreaming = true;
+	bool showingStreamingChanged = true;
+
+	bool isShowingRecording = true;
+	bool showingRecordingChanged = true;
 };
 
 template<class T>

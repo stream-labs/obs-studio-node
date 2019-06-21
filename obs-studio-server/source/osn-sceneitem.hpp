@@ -70,6 +70,26 @@ namespace osn
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
+		static void IsShowingStreaming(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void SetShowingStreaming(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void IsShowingRecording(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void SetShowingRecording(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
 		static void GetPosition(
 		    void*                          data,
 		    const int64_t                  id,
