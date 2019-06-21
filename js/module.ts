@@ -325,6 +325,12 @@ export declare const enum ECategoryTypes {
 	NODEOBS_CATEGORY_TAB = 1
 }
 
+export declare const enum ERenderingMode {
+    OBS_MAIN_RENDERING = 0,
+	OBS_STREAMING_RENDERING = 1,
+	OBS_RECORDING_RENDERING = 2,
+}
+
 export const Global: IGlobal = obs.Global;
 export const Video: IVideo = obs.Video;
 export const OutputFactory: IOutputFactory = obs.Output;
@@ -1177,6 +1183,12 @@ export interface ISceneItem {
 
     /** Whether or not the item is visible */
     visible: boolean;
+
+    /** Whether or not the item is showing on the streaming output */
+    showingStreaming: boolean;
+
+    /** Whether or not the item is showing on the recording output */
+    showingRecording: boolean;
 
     /**
      * Transform information on the item packed into
