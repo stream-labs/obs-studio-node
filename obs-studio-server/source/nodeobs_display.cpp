@@ -322,7 +322,7 @@ OBS::Display::Display()
 	m_drawGuideLines = true;
 }
 
-OBS::Display::Display(uint64_t windowHandle) : Display()
+OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode) : Display()
 {
 #ifdef _WIN32
 	CreateWindowMessageQuestion question;
@@ -360,13 +360,16 @@ OBS::Display::Display(uint64_t windowHandle) : Display()
 	if (!m_display)
 		throw std::runtime_error("unable to create display");
 
+	m_renderingMode = mode;
+
 	obs_display_add_draw_callback(m_display, DisplayCallback, this);
 
 	SetSize(0, 0);
 	SetPosition(0, 0);
 }
 
-OBS::Display::Display(uint64_t windowHandle, std::string sourceName) : Display(windowHandle)
+OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, std::string sourceName)
+    : Display(windowHandle, mode)
 {
 	std::cout << "creating display" << std::endl;
 	m_source = obs_get_source_by_name(sourceName.c_str());
@@ -1074,7 +1077,18 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 			obs_source_addref(source);
 		}
 	} else {
-		obs_render_main_texture();
+		switch (dp->m_renderingMode) {
+		case OBS_MAIN_VIDEO_RENDERING:
+			obs_render_main_texture();
+			break;
+		case OBS_STREAMING_VIDEO_RENDERING:
+			obs_render_streaming_texture();
+			break;
+		case OBS_RECORDING_VIDEO_RENDERING:
+			obs_render_recording_texture();
+			break;
+		}
+		
 		/* Here we assume that channel 0 holds the primary transition.
 		* We also assume that the active source within that transition is
 		* the scene that we need */

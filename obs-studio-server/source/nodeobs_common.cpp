@@ -130,7 +130,7 @@ void OBS_content::Register(ipc::server& srv)
 
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_content_createDisplay",
-	    std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String},
+	    std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32},
 	    OBS_content_createDisplay));
 
 	cls->register_function(std::make_shared<ipc::function>(
@@ -228,7 +228,20 @@ void OBS_content::OBS_content_createDisplay(
 		return;
 	}
 
-	displays.insert_or_assign(args[1].value_str, new OBS::Display(windowHandle));
+	enum obs_video_rendering_mode mode = OBS_MAIN_VIDEO_RENDERING;
+	switch (args[2].value_union.i32) {
+	case 0:
+		mode = OBS_MAIN_VIDEO_RENDERING;
+		break;
+	case 1:
+		mode = OBS_STREAMING_VIDEO_RENDERING;
+		break;
+	case 2:
+		mode = OBS_RECORDING_VIDEO_RENDERING;
+		break;
+	}
+
+	displays.insert_or_assign(args[1].value_str, new OBS::Display(windowHandle, mode));
 
 	if (!IsWindows8OrGreater()) {
 		BOOL enabled = FALSE;
@@ -283,7 +296,8 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(
 		rval.push_back(ipc::value("Duplicate key provided to createDisplay!"));
 		return;
 	}
-	displays.insert_or_assign(args[2].value_str, new OBS::Display(windowHandle, args[1].value_str));
+	displays.insert_or_assign(
+	    args[2].value_str, new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str));
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }

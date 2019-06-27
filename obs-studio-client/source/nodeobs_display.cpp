@@ -62,13 +62,15 @@ void display::OBS_content_createDisplay(const v8::FunctionCallbackInfo<v8::Value
 	FixChromeD3DIssue((HWND)windowHandle);
 
 	std::string key;
+	int32_t     mode;
 	ASSERT_GET_VALUE(args[1], key);
+	ASSERT_GET_VALUE(args[2], mode);
 
 	auto conn = GetConnection();
 	if (!conn)
 		return;
 
-	conn->call("Display", "OBS_content_createDisplay", {ipc::value(windowHandle), ipc::value(key)});
+	conn->call("Display", "OBS_content_createDisplay", {ipc::value(windowHandle), ipc::value(key), ipc::value(mode)});
 }
 
 void display::OBS_content_destroyDisplay(const v8::FunctionCallbackInfo<v8::Value>& args)
