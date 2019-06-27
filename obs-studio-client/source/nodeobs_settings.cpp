@@ -288,8 +288,8 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 				v8::Local<v8::Object> valueObject = v8::Object::New(isolate);
 
 				if (params.at(j).subType.compare("OBS_COMBO_FORMAT_INT") == 0) {
-					size_t* sizeName = reinterpret_cast<size_t*>(params.at(j).values.data() + indexData);
-					indexData += sizeof(size_t);
+					uint64_t* sizeName = reinterpret_cast<uint64_t*>(params.at(j).values.data() + indexData);
+					indexData += sizeof(uint64_t);
 					std::string name(params.at(j).values.data() + indexData, *sizeName);
 					indexData += uint32_t(*sizeName);
 
@@ -301,9 +301,8 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 						v8::Integer::New(isolate, int32_t(*value)));
 				}
 				else if (params.at(j).subType.compare("OBS_COMBO_FORMAT_FLOAT") == 0) {
-					size_t *sizeName =
-						reinterpret_cast<size_t*>(params.at(j).values.data() + indexData);
-					indexData += sizeof(size_t);
+					uint64_t* sizeName = reinterpret_cast<uint64_t*>(params.at(j).values.data() + indexData);
+					indexData += sizeof(uint64_t);
 					std::string name(params.at(j).values.data() + indexData, *sizeName);
 					indexData += uint32_t(*sizeName);
 
@@ -315,14 +314,13 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 						v8::Number::New(isolate, *value));
 				}
 				else {
-					size_t *sizeName =
-						reinterpret_cast<size_t*>(params.at(j).values.data() + indexData);
-					indexData += sizeof(size_t);
+					uint64_t* sizeName = reinterpret_cast<uint64_t*>(params.at(j).values.data() + indexData);
+					indexData += sizeof(uint64_t);
 					std::string name(params.at(j).values.data() + indexData, *sizeName);
 					indexData += uint32_t(*sizeName);
 
-					size_t* sizeValue = reinterpret_cast<size_t*>(params.at(j).values.data() + indexData);
-					indexData += sizeof(size_t);
+					uint64_t* sizeValue = reinterpret_cast<uint64_t*>(params.at(j).values.data() + indexData);
+					indexData += sizeof(uint64_t);
 					std::string value(params.at(j).values.data() + indexData, *sizeValue);
 					indexData += uint32_t(*sizeValue);
 
@@ -335,13 +333,13 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 			if (params.at(j).countValues > 0 && params.at(j).currentValue.size() == 0
 			    && params.at(j).type.compare("OBS_PROPERTY_LIST") == 0 && params.at(j).enabled) {
 				uint32_t indexData = 0;
-				size_t* sizeName = reinterpret_cast<size_t*>(params.at(j).values.data() + indexData);
-				indexData += sizeof(size_t);
+				uint64_t* sizeName  = reinterpret_cast<uint64_t*>(params.at(j).values.data() + indexData);
+				indexData += sizeof(uint64_t);
 				std::string name(params.at(j).values.data() + indexData, *sizeName);
 				indexData += uint32_t(*sizeName);
 
-				size_t* sizeValue = reinterpret_cast<size_t*>(params.at(j).values.data() + indexData);
-				indexData += sizeof(size_t);
+				uint64_t* sizeValue = reinterpret_cast<uint64_t*>(params.at(j).values.data() + indexData);
+				indexData += sizeof(uint64_t);
 				std::string value(params.at(j).values.data() + indexData, *sizeValue);
 				indexData += uint32_t(*sizeValue);
 
