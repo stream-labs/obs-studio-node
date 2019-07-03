@@ -264,4 +264,6 @@ class OBS_service
 	static void JSCallbackOutputSignal(void* data, calldata_t*);
 
 	static bool useRecordingPreset();
+
+	static void duplicate_encoder(obs_encoder_t** dst, obs_encoder_t* src);
 };
