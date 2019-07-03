@@ -54,10 +54,11 @@ namespace OBS
 		Display();
 
 		public:
-		Display(uint64_t windowHandle, enum obs_video_rendering_mode mode); // Create a Main Preview one
+		Display(uint64_t windowHandle,
+		    enum obs_video_rendering_mode mode);       // Create a Main Preview one
 		Display(uint64_t windowHandle,
 		    enum obs_video_rendering_mode mode,
-			std::string sourceName); // Create a Source-Specific one
+		    std::string                   sourceName); // Create a Source-Specific one
 		~Display();
 
 		void                          SetPosition(uint32_t x, uint32_t y);
