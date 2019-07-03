@@ -48,7 +48,7 @@ void osn::Scene::Register(ipc::server& srv)
 	cls->register_function(std::make_shared<ipc::function>(
         "AddSource", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64,
         ipc::type::Double,ipc::type::Double, ipc::type::Int32, ipc::type::Double, ipc::type::Double, ipc::type::Double,
-        ipc::type::Int64, ipc::type::Int64, ipc::type::Int64, ipc::type::Int64}, AddSource));
+        ipc::type::Int64, ipc::type::Int64, ipc::type::Int64, ipc::type::Int64, ipc::type::Int32, ipc::type::Int32}, AddSource));
 
 	cls->register_function(std::make_shared<ipc::function>(
 	    "FindItem", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, FindItemByName));
@@ -323,6 +323,9 @@ void osn::Scene::AddSource(
 		crop.bottom = args[11].value_union.i64;
 
 		obs_sceneitem_set_crop(item, &crop);
+
+		obs_sceneitem_set_showing_streaming(item , !!args[12].value_union.i32);
+		obs_sceneitem_set_showing_recording(item , !!args[13].value_union.i32);
 	}
 
 	obs_sceneitem_addref(item);

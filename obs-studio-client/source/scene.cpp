@@ -279,6 +279,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 		params.push_back(ipc::value(crop->Get(utilv8::ToValue("top"))->ToInteger()->Value()));
 		params.push_back(ipc::value(crop->Get(utilv8::ToValue("right"))->ToInteger()->Value()));
 		params.push_back(ipc::value(crop->Get(utilv8::ToValue("bottom"))->ToInteger()->Value()));
+
+		params.push_back(ipc::value(transform->Get(utilv8::ToValue("showingStreaming"))->ToBoolean()->Value()));
+		params.push_back(ipc::value(transform->Get(utilv8::ToValue("showingRecording"))->ToBoolean()->Value()));
 	}
 
 	auto conn = GetConnection();
@@ -331,6 +334,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 		// Rotation
 		sid->rotation        = transform->Get(utilv8::ToValue("rotation"))->ToNumber(info.GetIsolate())->Value();
 		sid->rotationChanged = false;
+
+		// Showing streaming
+		sid->isShowingStreaming      = transform->Get(utilv8::ToValue("showingStreaming"))->ToBoolean()->Value();
+		sid->showingStreamingChanged = false;
+
+		// Showing recording
+		sid->isShowingRecording      = transform->Get(utilv8::ToValue("showingRecording"))->ToBoolean()->Value();
+		sid->showingRecordingChanged = false;
 	}
 
 	CacheManager<SceneItemData*>::getInstance().Store(id, sid);	
