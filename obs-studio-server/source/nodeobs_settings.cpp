@@ -129,8 +129,8 @@ std::vector<SubCategory> serializeCategory(uint32_t subCategoriesCount, uint32_t
 	for (uint32_t i = 0; i < subCategoriesCount; i++) {
 		SubCategory sc;
 
-		size_t* sizeMessage = reinterpret_cast<size_t*>(buffer.data() + indexData);
-		indexData += sizeof(size_t);
+		uint64_t* sizeMessage = reinterpret_cast<uint64_t*>(buffer.data() + indexData);
+		indexData += sizeof(uint64_t);
 
 		std::string name(buffer.data() + indexData, *sizeMessage);
 		indexData += *sizeMessage;
@@ -139,27 +139,27 @@ std::vector<SubCategory> serializeCategory(uint32_t subCategoriesCount, uint32_t
 		indexData += sizeof(uint32_t);
 
 		Parameter param;
-		for (uint32_t j = 0; j < *paramsCount; j++) {
-			size_t* sizeName = reinterpret_cast<std::size_t*>(buffer.data() + indexData);
-			indexData += sizeof(size_t);
+		for (int j = 0; j < *paramsCount; j++) {
+			uint64_t* sizeName = reinterpret_cast<std::uint64_t*>(buffer.data() + indexData);
+			indexData += sizeof(uint64_t);
 
 			std::string name(buffer.data() + indexData, *sizeName);
 			indexData += *sizeName;
 
-			size_t* sizeDescription = reinterpret_cast<std::size_t*>(buffer.data() + indexData);
-			indexData += sizeof(size_t);
+			uint64_t* sizeDescription = reinterpret_cast<uint64_t*>(buffer.data() + indexData);
+			indexData += sizeof(uint64_t);
 
 			std::string description(buffer.data() + indexData, *sizeDescription);
 			indexData += *sizeDescription;
 
-			size_t* sizeType = reinterpret_cast<std::size_t*>(buffer.data() + indexData);
-			indexData += sizeof(size_t);
+			uint64_t* sizeType = reinterpret_cast<uint64_t*>(buffer.data() + indexData);
+			indexData += sizeof(uint64_t);
 
 			std::string type(buffer.data() + indexData, *sizeType);
 			indexData += *sizeType;
 
-			size_t* sizeSubType = reinterpret_cast<std::size_t*>(buffer.data() + indexData);
-			indexData += sizeof(size_t);
+			uint64_t* sizeSubType = reinterpret_cast<uint64_t*>(buffer.data() + indexData);
+			indexData += sizeof(uint64_t);
 
 			std::string subType(buffer.data() + indexData, *sizeSubType);
 			indexData += *sizeSubType;
@@ -182,19 +182,19 @@ std::vector<SubCategory> serializeCategory(uint32_t subCategoriesCount, uint32_t
 			double* stepVal = reinterpret_cast<double*>(buffer.data() + indexData);
 			indexData += sizeof(double);
 
-			size_t* sizeOfCurrentValue = reinterpret_cast<std::size_t*>(buffer.data() + indexData);
-			indexData += sizeof(size_t);
+			uint64_t* sizeOfCurrentValue = reinterpret_cast<uint64_t*>(buffer.data() + indexData);
+			indexData += sizeof(uint64_t);
 
 			std::vector<char> currentValue;
 			currentValue.resize(*sizeOfCurrentValue);
 			memcpy(currentValue.data(), buffer.data() + indexData, *sizeOfCurrentValue);
 			indexData += *sizeOfCurrentValue;
 
-			size_t* sizeOfValues = reinterpret_cast<size_t*>(buffer.data() + indexData);
-			indexData += sizeof(size_t);
+			uint64_t* sizeOfValues = reinterpret_cast<uint64_t*>(buffer.data() + indexData);
+			indexData += sizeof(uint64_t);
 
-			size_t* countValues = reinterpret_cast<size_t*>(buffer.data() + indexData);
-			indexData += sizeof(size_t);
+			uint64_t* countValues = reinterpret_cast<uint64_t*>(buffer.data() + indexData);
+			indexData += sizeof(uint64_t);
 
 			std::vector<char> values;
 			values.resize(*sizeOfValues);
@@ -1884,7 +1884,7 @@ void OBS_settings::getStandardRecordingSettings(
 	bool noSpace = config_get_bool(config, "AdvOut", "RecFileNameWithoutSpace");
 	recFileNameWithoutSpace.currentValue.resize(sizeof(noSpace));
 	memcpy(recFileNameWithoutSpace.currentValue.data(), &noSpace, sizeof(noSpace));
-	recFileNameWithoutSpace.sizeOfCurrentValue = (noSpace);
+	recFileNameWithoutSpace.sizeOfCurrentValue = sizeof(noSpace);
 
 	recFileNameWithoutSpace.visible = true;
 	recFileNameWithoutSpace.enabled = isCategoryEnabled;
@@ -2178,6 +2178,7 @@ SubCategory OBS_settings::getAdvancedOutputRecordingSettings(config_t* config, b
 	Parameter recType;
 	recType.name        = "RecType";
 	recType.type        = "OBS_PROPERTY_LIST";
+	recType.subType     = "OBS_COMBO_FORMAT_STRING";
 	recType.description = "Type";
 
 	std::vector<std::pair<std::string, std::string>> recTypeValues;

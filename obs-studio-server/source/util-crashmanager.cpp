@@ -417,6 +417,8 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	annotations.insert({{"Warnings", ComputeWarnings().dump(4)}});
 	annotations.insert({{"Version", OBS_API::getCurrentVersion()}});
 
+	annotations.insert({{"sentry[release]", OBS_API::getCurrentVersion()}});
+
 	// If the callstack rewind operation returned an error, use it instead its result
 	annotations.insert({{"Manual callstack", callStack.dump(4)}});
 

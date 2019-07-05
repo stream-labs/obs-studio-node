@@ -455,7 +455,11 @@ void osn::Scene::MoveItem(
 	obs_scene_enum_items(scene, cb, &ed);
 
 	if (!ed.item) {
-		PRETTY_THROW("index not found in scene");
+		std::string err_message = std::string("index not found in scene. index ");
+		err_message += std::to_string( args[1].value_union.i32 ) + ", total ";
+		err_message += std::to_string( num_items) + ", to " ;
+		err_message += std::to_string( args[2].value_union.i32 );
+		PRETTY_THROW( err_message.c_str() );
 	}
 
 	obs_sceneitem_set_order_position(ed.item, (int(num_items) - 1) - args[2].value_union.i32);
