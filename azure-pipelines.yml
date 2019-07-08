@@ -123,12 +123,11 @@ steps:
     mkdir syms
     mkdir syms\ascii
     mkdir syms\ascii\client
-    $RootDirectory=$env:ROOTDIRECTORY
-    $PDBPath=$env:PDBPATH
     .\ci\run-sentry-cli-azure.ps1
   env:
     RootDirectory: $(Build.SourcesDirectory)
     PDBPath: $(Build.SourcesDirectory)\$(SLFullDistributePath)
+    SentryToken: $(sentryAuth)
   errorActionPreference: silentlyContinue
   ignoreLASTEXITCODE: true
   displayName: 'Upload pdbs to Sentry'
