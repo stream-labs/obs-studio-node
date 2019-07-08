@@ -90,14 +90,14 @@ void osn::Transition::Create(
 
 	obs_source_t* source = obs_source_create(sourceId.c_str(), name.c_str(), settings, hotkeys);
 	if (!source) {
-		PRETTY_THROW("failed to create transition");
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to create transition.");
 	}
 
 	obs_data_release(settings);
 
 	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
-		PRETTY_THROW("the index list is full");
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -125,14 +125,14 @@ void osn::Transition::CreatePrivate(
 
 	obs_source_t* source = obs_source_create_private(sourceId.c_str(), name.c_str(), settings);
 	if (!source) {
-		PRETTY_THROW("failed to create transition");
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to create transition.");
 	}
 
 	obs_data_release(settings);
 
 	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
 	if (uid == UINT64_MAX) {
-		PRETTY_THROW("index list is full");
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
 	osn::Source::attach_source_signals(source);
 
@@ -149,12 +149,12 @@ void osn::Transition::FromName(
 {
 	obs_source_t* source = obs_get_source_by_name(args[0].value_str.c_str());
 	if (!source) {
-		PRETTY_THROW("named transitions could not be found");
+		PRETTY_ERROR_RETURN(ErrorCode::NotFound, "Named transition could not be found.");
 	}
 
 	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
-		PRETTY_THROW("source found but not indexed");
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Source found but not indexed.");
 	}
 
 	obs_source_release(source);
@@ -175,7 +175,7 @@ void osn::Transition::GetActiveSource(
 	// Attempt to find the source asked to load.
 	obs_source_t* transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!transition) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Transition reference is not valid.");
 	}
 
 	obs_source_type type   = OBS_SOURCE_TYPE_INPUT;
@@ -187,7 +187,7 @@ void osn::Transition::GetActiveSource(
 	}
 
 	if (uid == UINT64_MAX) {
-		PRETTY_THROW("source found but not indexed");
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Source found but not indexed.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -205,7 +205,7 @@ void osn::Transition::Clear(
 	// Attempt to find the source asked to load.
 	obs_source_t* transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!transition) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Transition reference is not valid.");
 	}
 
 	obs_transition_clear(transition);
@@ -223,12 +223,12 @@ void osn::Transition::Set(
 	// Attempt to find the source asked to load.
 	obs_source_t* transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!transition) {
-		PRETTY_THROW("invalid transition reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Transition reference is not valid.");
 	}
 
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
 	if (!source) {
-		PRETTY_THROW("invalid source reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	obs_transition_set(transition, source);
@@ -246,12 +246,12 @@ void osn::Transition::Start(
 	// Attempt to find the source asked to load.
 	obs_source_t* transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!transition) {
-		PRETTY_THROW("invalid transition reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Transition reference is not valid.");
 	}
 
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[2].value_union.ui64);
 	if (!source) {
-		PRETTY_THROW("invalid source reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	uint32_t ms = args[1].value_union.ui32;
