@@ -137,7 +137,7 @@ void osn::Input::Create(
 
 	obs_source_t* source = obs_source_create(sourceId.c_str(), name.c_str(), settings, hotkeys);
 	if (!source) {
-		PRETTY_THROW("failed to create input");
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to create input.");
 	}
 
 	obs_data_release(hotkeys);
@@ -145,7 +145,7 @@ void osn::Input::Create(
 
 	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
-		PRETTY_THROW("index list is full");
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
 	obs_data_t* settingsSource = obs_source_get_settings(source);
 
@@ -176,14 +176,14 @@ void osn::Input::CreatePrivate(
 
 	obs_source_t* source = obs_source_create_private(sourceId.c_str(), name.c_str(), settings);
 	if (!source) {
-		PRETTY_THROW("failed to create input");
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to create input.");
 	}
 
 	obs_data_release(settings);
 
 	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
 	if (uid == UINT64_MAX) {
-		PRETTY_THROW("index list is full");
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
 	osn::Source::attach_source_signals(source);
 
@@ -200,7 +200,7 @@ void osn::Input::Duplicate(
 {
 	obs_source_t* filter = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!filter) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
 
 	bool        isPrivate    = false;
@@ -210,13 +210,13 @@ void osn::Input::Duplicate(
 	source               = obs_source_duplicate(filter, nameOverride, isPrivate);
 
 	if (!source) {
-		PRETTY_THROW("failed to duplicate input");
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to duplicate input.");
 	}
 
 	if (source != filter) {
 		uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
 		if (uid == UINT64_MAX) {
-			PRETTY_THROW("index list is full");
+			PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 		}
 
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -236,12 +236,13 @@ void osn::Input::FromName(
 {
 	obs_source_t* source = obs_get_source_by_name(args[0].value_str.c_str());
 	if (!source) {
-		PRETTY_THROW("invalid input name");
+		
+		PRETTY_ERROR_RETURN(ErrorCode::NotFound, "Named input could not be found.");
 	}
 
 	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
-		PRETTY_THROW("input not indexed");
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Source found but not indexed.");
 	}
 
 	obs_source_release(source);
@@ -285,7 +286,7 @@ void osn::Input::GetActive(
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -301,7 +302,7 @@ void osn::Input::GetShowing(
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -317,7 +318,7 @@ void osn::Input::GetVolume(
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -333,7 +334,7 @@ void osn::Input::SetVolume(
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
 
 	obs_source_set_volume(input, (float_t)args[1].value_union.fp64);
@@ -351,7 +352,7 @@ void osn::Input::GetSyncOffset(
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -367,7 +368,7 @@ void osn::Input::SetSyncOffset(
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
 
 	obs_source_set_sync_offset(input, args[1].value_union.i64);
@@ -385,7 +386,7 @@ void osn::Input::GetAudioMixers(
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -401,7 +402,7 @@ void osn::Input::SetAudioMixers(
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
 
 	obs_source_set_audio_mixers(input, (obs_monitoring_type)args[1].value_union.ui32);
@@ -419,7 +420,7 @@ void osn::Input::GetMonitoringType(
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -435,7 +436,7 @@ void osn::Input::SetMonitoringType(
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
 
 	obs_source_set_monitoring_type(input, (obs_monitoring_type)args[1].value_union.ui32);
@@ -453,7 +454,7 @@ void osn::Input::GetWidth(
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -469,7 +470,7 @@ void osn::Input::GetHeight(
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -485,7 +486,7 @@ void osn::Input::GetDeInterlaceFieldOrder(
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -501,7 +502,7 @@ void osn::Input::SetDeInterlaceFieldOrder(
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
 
 	obs_source_set_deinterlace_field_order(input, (obs_deinterlace_field_order)args[1].value_union.ui32);
@@ -519,7 +520,7 @@ void osn::Input::GetDeInterlaceMode(
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -535,7 +536,7 @@ void osn::Input::SetDeInterlaceMode(
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
 
 	obs_source_set_deinterlace_mode(input, (obs_deinterlace_mode)args[1].value_union.ui32);
@@ -553,12 +554,12 @@ void osn::Input::AddFilter(
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
-		PRETTY_THROW("invalid input reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
 
 	obs_source_t* filter = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
 	if (!filter) {
-		PRETTY_THROW("invalid filter reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Filter reference is not valid.");
 	}
 
 	obs_source_filter_add(input, filter);
@@ -575,12 +576,12 @@ void osn::Input::RemoveFilter(
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
-		PRETTY_THROW("invalid input reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
 
 	obs_source_t* filter = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
 	if (!filter) {
-		PRETTY_THROW("invalid filter reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Filter reference is not valid.");
 	}
 
 	obs_source_filter_remove(input, filter);
@@ -597,12 +598,12 @@ void osn::Input::MoveFilter(
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
-		PRETTY_THROW("invalid input reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
 
 	obs_source_t* filter = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
 	if (!filter) {
-		PRETTY_THROW("invalid filter reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Filter reference is not valid.");
 	}
 
 	obs_order_movement movement = (obs_order_movement)args[2].value_union.ui32;
@@ -621,7 +622,7 @@ void osn::Input::FindFilter(
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
 
 	obs_source_t* filter = obs_source_get_filter_by_name(input, args[1].value_str.c_str());
@@ -634,7 +635,7 @@ void osn::Input::FindFilter(
 
 	uint64_t uid = osn::Source::Manager::GetInstance().find(filter);
 	if (uid == UINT64_MAX) {
-		PRETTY_THROW("filter not indexed");
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Filter found but not indexed.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -650,7 +651,7 @@ void osn::Input::GetFilters(
 {
 	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
 
 	auto enum_cb = [](obs_source_t* parent, obs_source_t* filter, void* data) {
@@ -675,12 +676,12 @@ void osn::Input::CopyFiltersTo(
 {
 	obs_source_t* input_from = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input_from) {
-		PRETTY_THROW("invalid 1st input reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "1st Input reference is not valid.");
 	}
 
 	obs_source_t* input_to = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
 	if (!input_to) {
-		PRETTY_THROW("invalid 2nd input reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "2nd Input reference is not valid.");
 	}
 
 	obs_source_copy_filters(input_to, input_from);

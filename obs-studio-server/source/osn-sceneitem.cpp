@@ -103,12 +103,12 @@ void osn::SceneItem::GetSource(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	obs_source_t* source = obs_sceneitem_get_source(item);
 	if (!source) {
-		PRETTY_THROW("item does not contain a scene");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item does not contain a source.");
 	}
 
 	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
@@ -125,17 +125,17 @@ void osn::SceneItem::GetScene(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	obs_scene_t* scene = obs_sceneitem_get_scene(item);
 	if (!scene) {
-		PRETTY_THROW("item does not belong to a scene");
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Item does not belong to a scene.");
 	}
 
 	obs_source_t* source = obs_scene_get_source(scene);
 	if (!source) {
-		PRETTY_THROW("scene is invalid");
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Scene is invalid.");
 	}
 
 	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
@@ -152,7 +152,7 @@ void osn::SceneItem::Remove(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	osn::SceneItem::Manager::GetInstance().free(args[0].value_union.ui64);
@@ -171,7 +171,7 @@ void osn::SceneItem::IsVisible(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -187,7 +187,7 @@ void osn::SceneItem::SetVisible(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	obs_sceneitem_set_visible(item, !!args[1].value_union.i32);
@@ -205,7 +205,7 @@ void osn::SceneItem::IsSelected(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -221,7 +221,7 @@ void osn::SceneItem::SetSelected(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	obs_sceneitem_select(item, !!args[1].value_union.i32);
@@ -239,7 +239,7 @@ void osn::SceneItem::GetPosition(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	vec2 pos;
@@ -259,7 +259,7 @@ void osn::SceneItem::SetPosition(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	vec2 pos;
@@ -283,7 +283,7 @@ void osn::SceneItem::GetRotation(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -299,7 +299,7 @@ void osn::SceneItem::SetRotation(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	obs_sceneitem_set_rot(item, args[1].value_union.fp32);
@@ -317,7 +317,7 @@ void osn::SceneItem::GetScale(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	vec2 scale;
@@ -337,7 +337,7 @@ void osn::SceneItem::SetScale(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	vec2 scale;
@@ -361,7 +361,7 @@ void osn::SceneItem::GetScaleFilter(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	obs_scale_type type = obs_sceneitem_get_scale_filter(item);
@@ -379,7 +379,7 @@ void osn::SceneItem::SetScaleFilter(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	obs_sceneitem_set_scale_filter(item, (obs_scale_type)args[1].value_union.i32);
@@ -398,7 +398,7 @@ void osn::SceneItem::GetAlignment(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	uint32_t align = obs_sceneitem_get_alignment(item);
@@ -416,7 +416,7 @@ void osn::SceneItem::SetAlignment(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	obs_sceneitem_set_alignment(item, args[1].value_union.ui32);
@@ -435,7 +435,7 @@ void osn::SceneItem::GetBounds(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	vec2 bounds;
@@ -454,7 +454,7 @@ void osn::SceneItem::SetBounds(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	vec2 bounds;
@@ -476,7 +476,7 @@ void osn::SceneItem::GetBoundsAlignment(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	uint32_t align = obs_sceneitem_get_bounds_alignment(item);
@@ -494,7 +494,7 @@ void osn::SceneItem::SetBoundsAlignment(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	obs_sceneitem_set_bounds_alignment(item, args[1].value_union.ui32);
@@ -513,7 +513,7 @@ void osn::SceneItem::GetBoundsType(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	obs_bounds_type bounds = obs_sceneitem_get_bounds_type(item);
@@ -531,7 +531,7 @@ void osn::SceneItem::SetBoundsType(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	obs_sceneitem_set_bounds_type(item, (obs_bounds_type)args[1].value_union.i32);
@@ -550,7 +550,7 @@ void osn::SceneItem::GetCrop(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	obs_sceneitem_crop crop;
@@ -572,7 +572,7 @@ void osn::SceneItem::SetCrop(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	obs_sceneitem_crop crop;
@@ -600,7 +600,7 @@ void osn::SceneItem::GetId(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -616,7 +616,7 @@ void osn::SceneItem::MoveUp(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	obs_sceneitem_set_order(item, OBS_ORDER_MOVE_UP);
@@ -632,7 +632,7 @@ void osn::SceneItem::MoveDown(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	obs_sceneitem_set_order(item, OBS_ORDER_MOVE_DOWN);
@@ -649,7 +649,7 @@ void osn::SceneItem::MoveTop(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	obs_sceneitem_set_order(item, OBS_ORDER_MOVE_TOP);
@@ -666,7 +666,7 @@ void osn::SceneItem::MoveBottom(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	obs_sceneitem_set_order(item, OBS_ORDER_MOVE_BOTTOM);
@@ -683,7 +683,7 @@ void osn::SceneItem::Move(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	obs_sceneitem_set_order_position(item, args[1].value_union.i32);
@@ -700,7 +700,7 @@ void osn::SceneItem::DeferUpdateBegin(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	obs_sceneitem_defer_update_begin(item);
@@ -717,7 +717,7 @@ void osn::SceneItem::DeferUpdateEnd(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	obs_sceneitem_defer_update_end(item);
