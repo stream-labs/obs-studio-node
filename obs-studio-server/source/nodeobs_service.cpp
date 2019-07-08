@@ -94,7 +94,6 @@ void OBS_service::OBS_service_resetAudioContext(
     std::vector<ipc::value>&       rval)
 {
 	if (!resetAudioContext(true)) {
-		
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed OBS_service_resetAudioContext.");
 	} else {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
