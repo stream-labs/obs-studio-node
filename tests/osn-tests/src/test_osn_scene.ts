@@ -183,9 +183,10 @@ describe('osn-scene', () => {
             const scene = createScene('findItem_fail_test');
 
             // Getting scene item with id that does not exist
-            expect(function () {
-                const sceneItem = scene.findItem('does_not_exist');
-            }).to.throw();
+            
+            const sceneItem = scene.findItem('does_not_exist');
+            
+            expect(sceneItem).to.equal(undefined);
 
             scene.release();
         });

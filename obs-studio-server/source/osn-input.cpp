@@ -236,7 +236,6 @@ void osn::Input::FromName(
 {
 	obs_source_t* source = obs_get_source_by_name(args[0].value_str.c_str());
 	if (!source) {
-		
 		PRETTY_ERROR_RETURN(ErrorCode::NotFound, "Named input could not be found.");
 	}
 
