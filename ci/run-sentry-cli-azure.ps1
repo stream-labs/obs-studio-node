@@ -6,6 +6,6 @@ Get-ChildItem -Path $env:ROOTDIRECTORY\syms -Filter *.sym -File | ForEach-Object
 Move-Item -Path  $env:ROOTDIRECTORY\syms\ascii\obs_studio_client.sym -Destination $env:ROOTDIRECTORY\syms\ascii\client
 Move-Item -Path  $env:ROOTDIRECTORY\syms\ascii\obs-frontend-api.sym -Destination $env:ROOTDIRECTORY\syms\ascii\client
 
-.\sentry-cli.exe --auth-token "$env:SENTRYTOKEN" upload-dif --org streamlabs-obs --project obs-server "$env:ROOTDIRECTORY\syms\ascii"
-.\sentry-cli.exe --auth-token "$env:SENTRYTOKEN" upload-dif --org streamlabs-obs --project obs-server-preview "$env:ROOTDIRECTORY\syms\ascii"
-.\sentry-cli.exe --auth-token "$env:SENTRYTOKEN" upload-dif --org streamlabs-obs --project obs-client "$env:ROOTDIRECTORY\syms\ascii\client"
+.\sentry-cli.exe upload-dif --org streamlabs-obs --project obs-server "$env:ROOTDIRECTORY\syms\ascii"
+.\sentry-cli.exe upload-dif --org streamlabs-obs --project obs-server-preview "$env:ROOTDIRECTORY\syms\ascii"
+.\sentry-cli.exe upload-dif --org streamlabs-obs --project obs-client "$env:ROOTDIRECTORY\syms\ascii\client"

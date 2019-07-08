@@ -127,7 +127,7 @@ steps:
   env:
     RootDirectory: $(Build.SourcesDirectory)
     PDBPath: $(Build.SourcesDirectory)\$(SLFullDistributePath)
-    SentryToken: $(sentryAuth)
+    SENTRY_AUTH_TOKEN: $(sentryAuth)
   errorActionPreference: silentlyContinue
   ignoreLASTEXITCODE: true
   displayName: 'Upload pdbs to Sentry'
