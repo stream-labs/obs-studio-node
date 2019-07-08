@@ -105,8 +105,9 @@ describe('osn-input', () => {
         it('FAIL TEST: Try to find an input that does not exist', () => {
             let inputFromName: IInput;
 
-            inputFromName = osn.InputFactory.fromName('doesNotExist');
-            expect(inputFromName).to.equal(undefined);
+            expect(function () {
+                inputFromName = osn.InputFactory.fromName('doesNotExist');
+            }).to.throw();
         });
     });
 
