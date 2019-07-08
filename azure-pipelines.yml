@@ -123,9 +123,6 @@ steps:
     mkdir syms
     mkdir syms\ascii
     mkdir syms\ascii\client
-    $RootDirectory=$env:ROOTDIRECTORY
-    $PDBPath=$env:PDBPATH
-    $SentryToken=$env:SENTRYTOKEN
     .\ci\run-sentry-cli-azure.ps1
   env:
     RootDirectory: $(Build.SourcesDirectory)
