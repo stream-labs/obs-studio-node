@@ -80,17 +80,17 @@ void osn::Scene::Create(
 {
 	obs_scene_t* scene = obs_scene_create(args[0].value_str.c_str());
 	if (!scene) {
-		PRETTY_THROW("failed to create scene");
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to create scene.");
 	}
 
 	obs_source_t* source = obs_scene_get_source(scene);
 	if (!source) {
-		PRETTY_THROW("failed to get source from scene");
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to get source from scene.");
 	}
 
 	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
-		PRETTY_THROW("index list is full");
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -108,17 +108,17 @@ void osn::Scene::CreatePrivate(
 {
 	obs_scene_t* scene = obs_scene_create_private(args[0].value_str.c_str());
 	if (!scene) {
-		PRETTY_THROW("failed to create scene");
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to create scene.");
 	}
 
 	obs_source_t* source = obs_scene_get_source(scene);
 	if (!source) {
-		PRETTY_THROW("failed to get source from scene");
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to get source from scene.");
 	}
 
 	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
 	if (uid == UINT64_MAX) {
-		PRETTY_THROW("index list is full");
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -136,15 +136,16 @@ void osn::Scene::FromName(
 {
 	obs_source_t* source = obs_get_source_by_name(args[0].value_str.c_str());
 	if (!source) {
-		PRETTY_THROW("failed to get source from scene");
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to get source from scene.");
 	}
 
 	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
-	if (uid == UINT64_MAX) {
-		PRETTY_THROW("source found but no indexed");
-	}
-
 	obs_source_release(source);
+
+	if (uid == UINT64_MAX) {
+
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Source found but not indexed.");
+	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
@@ -159,12 +160,12 @@ void osn::Scene::Release(
 {
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	obs_scene_t* scene = obs_scene_from_source(source);
 	if (!scene) {
-		PRETTY_THROW("source is not a scene");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not a scene.");
 	}
 
 	std::list<obs_sceneitem_t*> items;
@@ -194,12 +195,12 @@ void osn::Scene::Remove(
 {
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	obs_scene_t* scene = obs_scene_from_source(source);
 	if (!scene) {
-		PRETTY_THROW("source is not a scene");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not a scene.");
 	}
 
 	std::list<obs_sceneitem_t*> items;
@@ -244,28 +245,28 @@ void osn::Scene::Duplicate(
 {
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	obs_scene_t* scene = obs_scene_from_source(source);
 	if (!scene) {
-		PRETTY_THROW("source is not a scene");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not a scene.");
 	}
 
 	obs_scene_t* scene2 =
 	    obs_scene_duplicate(scene, args[1].value_str.c_str(), (obs_scene_duplicate_type)args[2].value_union.i32);
 	if (!scene2) {
-		PRETTY_THROW("failed to duplicate scene");
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to duplicate scene.");
 	}
 
 	obs_source_t* source2 = obs_scene_get_source(scene2);
 	if (!source2) {
-		PRETTY_THROW("failed to get source from duplicated one");
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to get source from duplicate scene.");
 	}
 
 	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source2);
 	if (uid == UINT64_MAX) {
-		PRETTY_THROW("index list is full");
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -281,24 +282,24 @@ void osn::Scene::AddSource(
 {
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
-		PRETTY_THROW("invalid source reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	obs_scene_t* scene = obs_scene_from_source(source);
 	if (!scene) {
-		PRETTY_THROW("source is not a scene");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not a scene.");
 	}
 
 	obs_source_t* added_source = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
 	if (!added_source) {
-		PRETTY_THROW("invalid add target source");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference to add is not valid.");
 	}
 
 	obs_sceneitem_t* item = obs_scene_add(scene, added_source);
 
 	utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().allocate(item);
 	if (uid == UINT64_MAX) {
-		PRETTY_THROW("index list is full");
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
 
 	if (args.size() > 2) {
@@ -341,24 +342,24 @@ void osn::Scene::FindItemByName(
 {
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	obs_scene_t* scene = obs_scene_from_source(source);
 	if (!scene) {
-		PRETTY_THROW("source is not a scene");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not a scene.");
 	}
 
 	obs_sceneitem_t* item = obs_scene_find_source(scene, args[1].value_str.c_str());
 	if (!item) {
-		PRETTY_THROW("source not found");
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Source not found.");
 	}
 
 	utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
 	if (uid == UINT64_MAX) {
 		uid = osn::SceneItem::Manager::GetInstance().allocate(item);
 		if (uid == UINT64_MAX) {
-			PRETTY_THROW("index list is full");
+			PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 		}
 		obs_sceneitem_addref(item);
 	}
@@ -376,24 +377,24 @@ void osn::Scene::FindItemByItemId(
 {
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	obs_scene_t* scene = obs_scene_from_source(source);
 	if (!scene) {
-		PRETTY_THROW("source is not a scene");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not a scene.");
 	}
 
 	obs_sceneitem_t* item = obs_scene_find_sceneitem_by_id(scene, args[1].value_union.i64);
 	if (!item) {
-		PRETTY_THROW("source not found");
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Source not found.");
 	}
 
 	utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
 	if (uid == UINT64_MAX) {
 		uid = osn::SceneItem::Manager::GetInstance().allocate(item);
 		if (uid == UINT64_MAX) {
-			PRETTY_THROW("index list is full");
+			PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 		}
 		obs_sceneitem_addref(item);
 	}
@@ -411,12 +412,12 @@ void osn::Scene::MoveItem(
 {
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	obs_scene_t* scene = obs_scene_from_source(source);
 	if (!scene) {
-		PRETTY_THROW("source is not a scene");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not a scene.");
 	}
 
 	// Listen up! This function does not work as you might expect it to (lowest index is furthest
@@ -452,7 +453,7 @@ void osn::Scene::MoveItem(
 	obs_scene_enum_items(scene, cb, &ed);
 
 	if (!ed.item) {
-		PRETTY_THROW("index not found in scene");
+		PRETTY_ERROR_RETURN(ErrorCode::OutOfBounds, "Index not found in Scene.");
 	}
 
 	obs_sceneitem_set_order_position(ed.item, (int(num_items) - 1) - args[2].value_union.i32);
@@ -472,7 +473,7 @@ void osn::Scene::MoveItem(
 		if (uid == UINT64_MAX) {
 			uid = osn::SceneItem::Manager::GetInstance().allocate(item);
 			if (uid == UINT64_MAX) {
-				PRETTY_THROW("index list is full");
+				PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 			}
 			obs_sceneitem_addref(item);
 		}
@@ -490,12 +491,12 @@ void osn::Scene::GetItem(
 {
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	obs_scene_t* scene = obs_scene_from_source(source);
 	if (!scene) {
-		PRETTY_THROW("source is not a scene");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not a scene.");
 	}
 
 	struct EnumData
@@ -518,14 +519,14 @@ void osn::Scene::GetItem(
 	obs_scene_enum_items(scene, cb, &ed);
 
 	if (!ed.item) {
-		PRETTY_THROW("index not found in scene");
+		PRETTY_ERROR_RETURN(ErrorCode::OutOfBounds, "Index not found in Scene.");
 	}
 
 	utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(ed.item);
 	if (uid == UINT64_MAX) {
 		uid = osn::SceneItem::Manager::GetInstance().allocate(ed.item);
 		if (uid == UINT64_MAX) {
-			PRETTY_THROW("index list is full");
+			PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 		}
 		obs_sceneitem_addref(ed.item);
 	}
@@ -543,12 +544,12 @@ void osn::Scene::GetItems(
 {
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	obs_scene_t* scene = obs_scene_from_source(source);
 	if (!scene) {
-		PRETTY_THROW("source is not a scene");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not a scene.");
 	}
 
 	std::list<obs_sceneitem_t*> items;
@@ -565,7 +566,7 @@ void osn::Scene::GetItems(
 		if (uid == UINT64_MAX) {
 			uid = osn::SceneItem::Manager::GetInstance().allocate(item);
 			if (uid == UINT64_MAX) {
-				PRETTY_THROW("index list is full");
+				PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 			}
 			obs_sceneitem_addref(item);
 		}
@@ -583,12 +584,12 @@ void osn::Scene::GetItemsInRange(
 {
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	obs_scene_t* scene = obs_scene_from_source(source);
 	if (!scene) {
-		PRETTY_THROW("source is not a scene");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not a scene.");
 	}
 
 	struct EnumData
@@ -618,7 +619,7 @@ void osn::Scene::GetItemsInRange(
 		if (uid == UINT64_MAX) {
 			uid = osn::SceneItem::Manager::GetInstance().allocate(item);
 			if (uid == UINT64_MAX) {
-				PRETTY_THROW("index list is full");
+				PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 			}
 			obs_sceneitem_addref(item);
 		}

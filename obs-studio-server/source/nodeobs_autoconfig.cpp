@@ -531,6 +531,7 @@ int EvaluateBandwidth(
     bool&       connected,
     bool&       stopped,
     bool&       success,
+    bool&       errorOnStop,
     OBSData&    service_settings,
     OBSService& service,
     OBSOutput&  output,
@@ -540,6 +541,7 @@ int EvaluateBandwidth(
 
 	connected = false;
 	stopped   = false;
+	errorOnStop = false;
 
 	// int per = int((i + 1) * 100 / servers.size());
 
@@ -580,8 +582,15 @@ int EvaluateBandwidth(
 	obs_output_stop(output);
 
 	while (!obs_output_active(output)) {
+		if (errorOnStop) {
+			ul.unlock();
+			obs_output_force_stop(output);
+			return -1;
+		}
+
 		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	}
+
 	cv.wait(ul);
 
 	uint64_t total_time  = os_gettime_ns() - t_start;
@@ -616,8 +625,9 @@ void autoConfig::TestBandwidthThread(void)
 	events.push(AutoConfigInfo("starting_step", "bandwidth_test", 0));
 	eventsMutex.unlock();
 
-	bool connected = false;
-	bool stopped   = false;
+	bool connected   = false;
+	bool stopped     = false;
+	bool errorOnStop = false;
 
 	obs_video_info ovi;
 	obs_get_video_info(&ovi);
@@ -776,10 +786,16 @@ void autoConfig::TestBandwidthThread(void)
 	};
 
 	auto on_stopped = [&]() {
-		std::unique_lock<std::mutex> lock(m);
-		connected = false;
-		stopped   = true;
-		cv.notify_one();
+		const char* output_error = obs_output_get_last_error(output);
+
+		if (output_error == nullptr) {
+			std::unique_lock<std::mutex> lock(m);
+			connected = false;
+			stopped   = true;
+			cv.notify_one();
+		} else {
+			errorOnStop = true;
+		}
 	};
 
 	using on_started_t = decltype(on_started);
@@ -811,8 +827,7 @@ void autoConfig::TestBandwidthThread(void)
 	if (serverName.compare("") != 0) {
 		ServerInfo info(serverName.c_str(), server.c_str());
 
-		if (EvaluateBandwidth(info, connected, stopped, success, service_settings, service, output, vencoder_settings)
-		    < 0) {
+		if (EvaluateBandwidth(info, connected, stopped, success, errorOnStop, service_settings, service, output, vencoder_settings) < 0) {
 			eventsMutex.lock();
 			events.push(AutoConfigInfo("error", "invalid_stream_settings", 0));
 			eventsMutex.unlock();
@@ -829,8 +844,7 @@ void autoConfig::TestBandwidthThread(void)
 
 	} else {
 		for (size_t i = 0; i < servers.size(); i++) {
-			EvaluateBandwidth(
-			    servers[i], connected, stopped, success, service_settings, service, output, vencoder_settings);
+			EvaluateBandwidth(servers[i], connected, stopped, success, errorOnStop, service_settings, service, output, vencoder_settings);
 			eventsMutex.lock();
 			events.push(AutoConfigInfo("progress", "bandwidth_test", (double)(i + 1) * 100 / servers.size()));
 			eventsMutex.unlock();

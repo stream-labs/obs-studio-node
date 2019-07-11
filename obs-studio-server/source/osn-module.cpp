@@ -63,7 +63,7 @@ void osn::Module::Open(void* data, const int64_t id, const std::vector<ipc::valu
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		rval.push_back(ipc::value(uid));
 	} else {
-		PRETTY_THROW("failed to create module");
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to create module.");
 	}
 
 	AUTO_DEBUG;
@@ -98,7 +98,7 @@ void osn::Module::Initialize(
 	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	if (!module) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Module reference is not valid.");
 	}
 	
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -115,7 +115,7 @@ void osn::Module::GetName(
 	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	if (!module) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Module reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -132,7 +132,7 @@ void osn::Module::GetFileName(
 	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	if (!module) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Module reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -149,7 +149,7 @@ void osn::Module::GetAuthor(
 	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	if (!module) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Module reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -166,7 +166,7 @@ void osn::Module::GetDescription(
 	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	if (!module) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Module reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -183,7 +183,7 @@ void osn::Module::GetBinaryPath(
 	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	if (!module) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Module reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -200,7 +200,7 @@ void osn::Module::GetDataPath(
 	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	if (!module) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Module reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));

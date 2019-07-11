@@ -78,12 +78,13 @@ void osn::Fader::Create(
 
 	obs_fader_t* fader = obs_fader_create(type);
 	if (!fader) {
-		PRETTY_THROW("failed to create");
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to create Fader.");
 	}
 
 	auto uid = Manager::GetInstance().allocate(fader);
 	if (uid == std::numeric_limits<utility::unique_id::id_t>::max()) {
-		PRETTY_THROW("invalid uid");
+		obs_fader_destroy(fader);
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Failed to allocate unique id for Fader.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -101,7 +102,7 @@ void osn::Fader::Destroy(
 
 	auto fader = Manager::GetInstance().find(uid);
 	if (!fader) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference , "Invalid Fader Reference.");
 	}
 
 	obs_fader_destroy(fader);
@@ -121,7 +122,7 @@ void osn::Fader::GetDeziBel(
 
 	auto fader = Manager::GetInstance().find(uid);
 	if (!fader) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Fader Reference.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -139,7 +140,7 @@ void osn::Fader::SetDeziBel(
 
 	auto fader = Manager::GetInstance().find(uid);
 	if (!fader) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Fader Reference.");
 	}
 
 	obs_fader_set_db(fader, args[1].value_union.fp32);
@@ -159,7 +160,7 @@ void osn::Fader::GetDeflection(
 
 	auto fader = Manager::GetInstance().find(uid);
 	if (!fader) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Fader Reference.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -177,7 +178,7 @@ void osn::Fader::SetDeflection(
 
 	auto fader = Manager::GetInstance().find(uid);
 	if (!fader) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Fader Reference.");
 	}
 
 	obs_fader_set_deflection(fader, args[1].value_union.fp32);
@@ -197,7 +198,7 @@ void osn::Fader::GetMultiplier(
 
 	auto fader = Manager::GetInstance().find(uid);
 	if (!fader) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Fader Reference.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -215,7 +216,7 @@ void osn::Fader::SetMultiplier(
 
 	auto fader = Manager::GetInstance().find(uid);
 	if (!fader) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Fader Reference.");
 	}
 
 	obs_fader_set_mul(fader, args[1].value_union.fp32);
@@ -236,16 +237,16 @@ void osn::Fader::Attach(
 
 	auto fader = Manager::GetInstance().find(uid_fader);
 	if (!fader) {
-		PRETTY_THROW("invalid fader reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Fader Reference.");
 	}
 
 	auto source = osn::Source::Manager::GetInstance().find(uid_source);
 	if (!source) {
-		PRETTY_THROW("invalid source reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Source Reference.");
 	}
 
 	if (!obs_fader_attach_source(fader, source)) {
-		PRETTY_THROW("cannot attach to source");
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Error attaching source..");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -262,7 +263,7 @@ void osn::Fader::Detach(
 
 	auto fader = Manager::GetInstance().find(uid);
 	if (!fader) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Fader Reference.");
 	}
 
 	obs_fader_detach_source(fader);

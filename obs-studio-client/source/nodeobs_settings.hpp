@@ -33,10 +33,10 @@ namespace settings
 		double            minVal;
 		double            maxVal;
 		double            stepVal;
-		size_t            sizeOfCurrentValue = 0;
+		uint64_t          sizeOfCurrentValue = 0;
 		std::vector<char> currentValue;
-		size_t            sizeOfValues = 0;
-		size_t            countValues  = 0;
+		uint64_t          sizeOfValues = 0;
+		uint64_t          countValues  = 0;
 		std::vector<char> values;
 
 		std::vector<char> serialize()
@@ -45,27 +45,27 @@ namespace settings
 			uint32_t          indexBuffer = 0;
 
 			size_t sizeStruct = name.length() + description.length() + type.length() + subType.length()
-			                    + sizeof(size_t) * 7 + sizeof(bool) * 3 + sizeof(double) * 3 + sizeOfCurrentValue
+			                    + sizeof(uint64_t) * 7 + sizeof(bool) * 3 + sizeof(double) * 3 + sizeOfCurrentValue
 			                    + sizeOfValues;
 			buffer.resize(sizeStruct);
 
-			*reinterpret_cast<size_t*>(buffer.data() + indexBuffer) = name.length();
-			indexBuffer += sizeof(size_t);
+			*reinterpret_cast<uint64_t*>(buffer.data() + indexBuffer) = name.length();
+			indexBuffer += sizeof(uint64_t);
 			memcpy(buffer.data() + indexBuffer, name.data(), name.length());
 			indexBuffer += uint32_t(name.length());
 
-			*reinterpret_cast<size_t*>(buffer.data() + indexBuffer) = description.length();
-			indexBuffer += sizeof(size_t);
+			*reinterpret_cast<uint64_t*>(buffer.data() + indexBuffer) = description.length();
+			indexBuffer += sizeof(uint64_t);
 			memcpy(buffer.data() + indexBuffer, description.data(), description.length());
 			indexBuffer += uint32_t(description.length());
 
-			*reinterpret_cast<size_t*>(buffer.data() + indexBuffer) = type.length();
-			indexBuffer += sizeof(size_t);
+			*reinterpret_cast<uint64_t*>(buffer.data() + indexBuffer) = type.length();
+			indexBuffer += sizeof(uint64_t);
 			memcpy(buffer.data() + indexBuffer, type.data(), type.length());
 			indexBuffer += uint32_t(type.length());
 
-			*reinterpret_cast<size_t*>(buffer.data() + indexBuffer) = subType.length();
-			indexBuffer += sizeof(size_t);
+			*reinterpret_cast<uint64_t*>(buffer.data() + indexBuffer) = subType.length();
+			indexBuffer += sizeof(uint64_t);
 			memcpy(buffer.data() + indexBuffer, subType.data(), subType.length());
 			indexBuffer += uint32_t(subType.length());
 
@@ -83,17 +83,17 @@ namespace settings
 			*reinterpret_cast<double*>(buffer.data() + indexBuffer) = stepVal;
 			indexBuffer += sizeof(double);
 
-			*reinterpret_cast<size_t*>(buffer.data() + indexBuffer) = sizeOfCurrentValue;
-			indexBuffer += sizeof(size_t);
+			*reinterpret_cast<uint64_t*>(buffer.data() + indexBuffer) = sizeOfCurrentValue;
+			indexBuffer += sizeof(uint64_t);
 
 			memcpy(buffer.data() + indexBuffer, currentValue.data(), sizeOfCurrentValue);
 			indexBuffer += uint32_t(sizeOfCurrentValue);
 
-			*reinterpret_cast<size_t*>(buffer.data() + indexBuffer) = sizeOfValues;
-			indexBuffer += sizeof(size_t);
+			*reinterpret_cast<uint64_t*>(buffer.data() + indexBuffer) = sizeOfValues;
+			indexBuffer += sizeof(uint64_t);
 
-			*reinterpret_cast<size_t*>(buffer.data() + indexBuffer) = countValues;
-			indexBuffer += sizeof(size_t);
+			*reinterpret_cast<uint64_t*>(buffer.data() + indexBuffer) = countValues;
+			indexBuffer += sizeof(uint64_t);
 
 			memcpy(buffer.data() + indexBuffer, values.data(), sizeOfValues);
 			indexBuffer += uint32_t(sizeOfValues);
@@ -111,15 +111,15 @@ namespace settings
 		std::vector<char> serialize()
 		{
 			std::vector<char> buffer;
-			uint32_t          indexBuffer = 0;
+			uint64_t          indexBuffer = 0;
 
-			size_t sizeStruct = name.length() + sizeof(size_t) + sizeof(uint32_t);
+			size_t sizeStruct = name.length() + sizeof(uint64_t) + sizeof(uint32_t);
 			buffer.resize(sizeStruct);
 
-			*reinterpret_cast<size_t*>(buffer.data()) = name.length();
-			indexBuffer += sizeof(size_t);
+			*reinterpret_cast<uint64_t*>(buffer.data()) = name.length();
+			indexBuffer += sizeof(uint64_t);
 			memcpy(buffer.data() + indexBuffer, name.data(), name.length());
-			indexBuffer += uint32_t(name.length());
+			indexBuffer += name.length();
 
 			*reinterpret_cast<uint32_t*>(buffer.data() + indexBuffer) = paramsCount;
 			indexBuffer += sizeof(uint32_t);

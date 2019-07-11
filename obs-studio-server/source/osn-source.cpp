@@ -199,7 +199,7 @@ void osn::Source::Remove(
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	obs_source_remove(src);
@@ -217,7 +217,7 @@ void osn::Source::Release(
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	obs_source_release(src);
@@ -235,7 +235,7 @@ void osn::Source::IsConfigurable(
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -252,7 +252,7 @@ void osn::Source::GetProperties(
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	obs_properties_t* prp = obs_source_properties(src);
@@ -458,7 +458,7 @@ void osn::Source::GetSettings(
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	obs_data_t* sets = obs_source_get_settings(src);
@@ -477,7 +477,7 @@ void osn::Source::Update(
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	obs_data_t* sets = obs_data_create_from_json(args[1].value_str.c_str());
@@ -498,7 +498,7 @@ void osn::Source::Load(void* data, const int64_t id, const std::vector<ipc::valu
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	obs_source_load(src);
@@ -512,7 +512,7 @@ void osn::Source::Save(void* data, const int64_t id, const std::vector<ipc::valu
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	obs_source_save(src);
@@ -530,7 +530,7 @@ void osn::Source::GetType(
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -547,7 +547,7 @@ void osn::Source::GetName(
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -564,7 +564,7 @@ void osn::Source::SetName(
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	obs_source_set_name(src, args[1].value_str.c_str());
@@ -583,7 +583,7 @@ void osn::Source::GetOutputFlags(
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -600,7 +600,7 @@ void osn::Source::GetFlags(
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -617,7 +617,7 @@ void osn::Source::SetFlags(
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	obs_source_set_flags(src, args[1].value_union.ui32);
@@ -636,7 +636,7 @@ void osn::Source::GetStatus(
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -653,7 +653,7 @@ void osn::Source::GetId(
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -671,7 +671,7 @@ void osn::Source::GetMuted(
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -688,7 +688,7 @@ void osn::Source::SetMuted(
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	obs_source_set_muted(src, !!args[1].value_union.i32);
@@ -707,7 +707,7 @@ void osn::Source::GetEnabled(
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -724,7 +724,7 @@ void osn::Source::SetEnabled(
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
 	obs_source_set_enabled(src, !!args[1].value_union.i32);

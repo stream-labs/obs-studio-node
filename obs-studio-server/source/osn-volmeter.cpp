@@ -89,12 +89,13 @@ void osn::VolMeter::Create(
 	try {
 		meter = std::make_shared<osn::VolMeter>(type);
 	} catch (...) {
-		PRETTY_THROW("failed to create meter");
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to create Meter.");
 	}
 
 	meter->id = Manager::GetInstance().allocate(meter);
 	if (meter->id == std::numeric_limits<utility::unique_id::id_t>::max()) {
-		PRETTY_THROW("failed to allocate unique id for meter");
+		meter.reset();
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Failed to allocate unique id for Meter.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -113,7 +114,7 @@ void osn::VolMeter::Destroy(
 
 	auto meter = Manager::GetInstance().find(uid);
 	if (!meter) {
-		PRETTY_THROW("invalid meter reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
 	}
 
 	Manager::GetInstance().free(uid);
@@ -137,7 +138,7 @@ void osn::VolMeter::GetUpdateInterval(
 
 	auto meter = Manager::GetInstance().find(uid);
 	if (!meter) {
-		PRETTY_THROW("invalid meter reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -155,7 +156,7 @@ void osn::VolMeter::SetUpdateInterval(
 
 	auto meter = Manager::GetInstance().find(uid);
 	if (!meter) {
-		PRETTY_THROW("invalid meter reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
 	}
 
 	obs_volmeter_set_update_interval(meter->self, args[1].value_union.ui32);
@@ -176,16 +177,16 @@ void osn::VolMeter::Attach(
 
 	auto meter = Manager::GetInstance().find(uid_fader);
 	if (!meter) {
-		PRETTY_THROW("invalid meter reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
 	}
 
 	auto source = osn::Source::Manager::GetInstance().find(uid_source);
 	if (!source) {
-		PRETTY_THROW("invalid source reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Source reference.");
 	}
 
 	if (!obs_volmeter_attach_source(meter->self, source)) {
-		PRETTY_THROW("error attaching source");
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Error attaching source.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -202,7 +203,7 @@ void osn::VolMeter::Detach(
 
 	auto meter = Manager::GetInstance().find(uid);
 	if (!meter) {
-		PRETTY_THROW("invalid meter reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
 	}
 
 	obs_volmeter_detach_source(meter->self);
@@ -220,7 +221,7 @@ void osn::VolMeter::AddCallback(
 	auto uid   = args[0].value_union.ui64;
 	auto meter = Manager::GetInstance().find(uid);
 	if (!meter) {
-		PRETTY_THROW("invalid meter reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
 	}
 
 	meter->callback_count++;
@@ -244,7 +245,7 @@ void osn::VolMeter::RemoveCallback(
 	auto uid   = args[0].value_union.ui64;
 	auto meter = Manager::GetInstance().find(uid);
 	if (!meter) {
-		PRETTY_THROW("invalid meter reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
 	}
 
 	meter->callback_count--;
@@ -268,7 +269,7 @@ void osn::VolMeter::Query(
 	auto uid   = args[0].value_union.ui64;
 	auto meter = Manager::GetInstance().find(uid);
 	if (!meter) {
-		PRETTY_THROW("invalid meter reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
