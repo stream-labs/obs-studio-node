@@ -247,7 +247,7 @@ void osn::SceneItem::IsShowingStreaming(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN("invalid reference");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -263,7 +263,7 @@ void osn::SceneItem::SetShowingStreaming(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN("invalid reference");
 	}
 
 	obs_sceneitem_set_showing_streaming(item, !!args[1].value_union.i32);
@@ -281,7 +281,7 @@ void osn::SceneItem::IsShowingRecording(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN("invalid reference");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -297,7 +297,7 @@ void osn::SceneItem::SetShowingRecording(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN("invalid reference");
 	}
 
 	obs_sceneitem_set_showing_recording(item, !!args[1].value_union.i32);
