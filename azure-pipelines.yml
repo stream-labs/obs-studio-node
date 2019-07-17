@@ -47,20 +47,6 @@ steps:
 - script: ./ci/build-osn.cmd
   displayName: 'Build obs-studio-node'
 
-- script: 'yarn run test:azure'
-  env:
-    SLOBS_BE_STREAMKEY: $(testsStreamKey)
-    SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
-  displayName: 'Run tests'
-
-- task: PublishTestResults@2
-  inputs:
-    testResultsFormat: 'JUnit'
-    testResultsFiles: '**/test-*.xml'
-    testRunTitle: $(RuntimeVersion)
-  displayName: 'Publish test results'
-  condition: always()
-
 - script: |
     copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Redist\MSVC\14.16.27012\x64\Microsoft.VC141.CRT\vcruntime140.dll" "%SLFullDistributePath%\obs-studio-node\"
     copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Redist\MSVC\14.16.27012\x64\Microsoft.VC141.CRT\msvcp140.dll" "%SLFullDistributePath%\obs-studio-node\"
