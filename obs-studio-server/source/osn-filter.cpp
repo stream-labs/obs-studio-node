@@ -69,14 +69,14 @@ void osn::Filter::Create(
 
 	obs_source_t* source = obs_source_create_private(sourceId.c_str(), name.c_str(), settings);
 	if (!source) {
-		PRETTY_THROW("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to create filter.");
 	}
 
 	obs_data_release(settings);
 
 	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
 	if (uid == UINT64_MAX) {
-		PRETTY_THROW("index list is full");
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
 	osn::Source::attach_source_signals(source);
 

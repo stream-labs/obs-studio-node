@@ -47,12 +47,16 @@ void osn::Global::GetOutputSource(
 {
 	obs_source_t* source = obs_get_output_source(args[0].value_union.ui32);
 	if (!source) {
-		PRETTY_THROW("invalid source index");
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+		rval.push_back(ipc::value(UINT64_MAX));
+		rval.push_back(ipc::value(-1));
+		AUTO_DEBUG;
+		return;
 	}
 
 	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
-		PRETTY_THROW("source not indexed");
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Source found but not indexed.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -72,20 +76,21 @@ void osn::Global::SetOutputSource(
 	uint32_t      channel = args[0].value_union.ui32;
 
 	if (channel >= MAX_CHANNELS) {
-		PRETTY_THROW("invalid output channel");
+		PRETTY_ERROR_RETURN(ErrorCode::OutOfBounds, "Invalid output channel.");
 	}
 
 	if (args[1].value_union.ui64 != UINT64_MAX) {
 		source = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
 		if (!source) {
-			PRETTY_THROW("invalid reference");
+			PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 		}
 	}
 
 	obs_set_output_source(channel, source);
 	obs_source_t* newsource = obs_get_output_source(channel);
 	if (newsource != source) {
-		PRETTY_THROW("failed to set output source");
+		obs_source_release(newsource);
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to set output source.");
 	} else {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	}
