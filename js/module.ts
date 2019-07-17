@@ -320,12 +320,12 @@ export const enum EOutputCode {
     NoSpace = -7
 }
 
-export declare const enum ECategoryTypes {
+export const enum ECategoryTypes {
     NODEOBS_CATEGORY_LIST = 0,
 	NODEOBS_CATEGORY_TAB = 1
 }
 
-export declare const enum ERenderingMode {
+export const enum ERenderingMode {
     OBS_MAIN_RENDERING = 0,
 	OBS_STREAMING_RENDERING = 1,
 	OBS_RECORDING_RENDERING = 2,
