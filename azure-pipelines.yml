@@ -47,20 +47,6 @@ steps:
 - script: ./ci/build-osn.cmd
   displayName: 'Build obs-studio-node'
 
-- script: 'yarn run test:azure'
-  env:
-    SLOBS_BE_STREAMKEY: $(testsStreamKey)
-    SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
-  displayName: 'Run tests'
-
-- task: PublishTestResults@2
-  inputs:
-    testResultsFormat: 'JUnit'
-    testResultsFiles: '**/test-*.xml'
-    testRunTitle: $(RuntimeVersion)
-  displayName: 'Publish test results'
-  condition: always()
-
 - script: |
     copy "C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64\api-ms-win-core-file-l1-2-0.dll" "%SLFullDistributePath%\obs-studio-node\"
     copy "C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64\api-ms-win-core-file-l2-1-0.dll" "%SLFullDistributePath%\obs-studio-node\"
