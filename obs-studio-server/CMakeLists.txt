@@ -108,7 +108,7 @@ add_dependencies(crashpad_util crashpad_client)
 
 string(
 	CONCAT OSN_DEFAULT_LIBOBS_URL
-	"https://dev.azure.com/streamlabs/_apis/resources/Containers/1206071?itemPath=libobs-release-661.7z%2F"
+	"https://obsstudios3.streamlabs.com/"
 	"libobs-release-23.1.0-streamlabs-v0.0.4-sm.1.7z"
 )
 
