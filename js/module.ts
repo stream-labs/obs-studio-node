@@ -297,7 +297,7 @@ export const enum ESpeakerLayout {
     SevenOne,
     SevenOneSurround,
     Surround
-};
+}
 
 export const enum ESceneSignalType {
     ItemAdd,
@@ -328,7 +328,7 @@ export const enum ECategoryTypes {
 export const enum ERenderingMode {
     OBS_MAIN_RENDERING = 0,
 	OBS_STREAMING_RENDERING = 1,
-	OBS_RECORDING_RENDERING = 2,
+	OBS_RECORDING_RENDERING = 2
 }
 
 export const Global: IGlobal = obs.Global;
