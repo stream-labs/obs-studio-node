@@ -1,7 +1,7 @@
 ﻿cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
 
 IF(CLANG_ANALYZE_CONFIG)
-	set(CMAKE_C_COMPILER_WORKS 1)
+	set(CMAKE_C_COMPILER_WORKS 1)  
 	set(CMAKE_CXX_COMPILER_WORKS 1)
 	
 	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xclang -fexceptions -Xclang -fcxx-exceptions")
