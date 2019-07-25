@@ -120,7 +120,6 @@ steps:
     
     robocopy "obs-studio-jp9000\data\obs-plugins\win-capture" "%SLFullDistributePath%\obs-studio-node\data\obs-plugins\win-capture" & exit 0
   displayName: 'Prepare tag artifact'
-  condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
 - task: ArchiveFiles@2
   inputs:
@@ -130,14 +129,12 @@ steps:
     tarCompression: gz
     archiveFile: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz'
   displayName: 'Generate tag artifact'
-  condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
 - task: PublishBuildArtifacts@1
   inputs: 
     pathtoPublish: $(Build.SourcesDirectory)\$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz
     artifactName: $(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz
   displayName: 'Publish tag artifact'
-  condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
 - powershell: |
     mkdir syms
@@ -151,7 +148,6 @@ steps:
   errorActionPreference: silentlyContinue
   ignoreLASTEXITCODE: true
   displayName: 'Upload pdbs to Sentry'
-  condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
 - task: S3Upload@1
   inputs:
@@ -161,4 +157,3 @@ steps:
     globExpressions: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz'
     filesAcl: 'public-read'
   displayName: 'Upload tag artifact to S3'
-  condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
