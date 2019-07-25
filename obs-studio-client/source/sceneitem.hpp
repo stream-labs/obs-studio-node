@@ -50,10 +50,10 @@ namespace osn
 		static Nan::NAN_METHOD_RETURN_TYPE IsSelected(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE SetSelected(Nan::NAN_METHOD_ARGS_TYPE info);
 
-		static Nan::NAN_METHOD_RETURN_TYPE IsShowingStreaming(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetShowingStreaming(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE IsShowingRecording(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetShowingRecording(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE IsStreamVisible(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE SetStreamVisible(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE IsRecordingVisible(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE SetRecordingVisible(Nan::NAN_METHOD_ARGS_TYPE info);
 
 		static Nan::NAN_METHOD_RETURN_TYPE GetPosition(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE SetPosition(Nan::NAN_METHOD_ARGS_TYPE info);

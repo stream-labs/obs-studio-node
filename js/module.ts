@@ -1184,11 +1184,11 @@ export interface ISceneItem {
     /** Whether or not the item is visible */
     visible: boolean;
 
-    /** Whether or not the item is showing on the streaming output */
-    showingStreaming: boolean;
+    /** Whether or not the item is visible on the streaming output */
+    streamVisible: boolean;
 
-    /** Whether or not the item is showing on the recording output */
-    showingRecording: boolean;
+    /** Whether or not the item is visible on the recording output */
+    recordingVisible: boolean;
 
     /**
      * Transform information on the item packed into

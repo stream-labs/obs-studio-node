@@ -325,8 +325,8 @@ void osn::Scene::AddSource(
 
 		obs_sceneitem_set_crop(item, &crop);
 
-		obs_sceneitem_set_showing_streaming(item , !!args[12].value_union.i32);
-		obs_sceneitem_set_showing_recording(item , !!args[13].value_union.i32);
+		obs_sceneitem_set_stream_visible(item , !!args[12].value_union.i32);
+		obs_sceneitem_set_recording_visible(item , !!args[13].value_union.i32);
 	}
 
 	obs_sceneitem_addref(item);

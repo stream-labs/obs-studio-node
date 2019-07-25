@@ -579,8 +579,8 @@ export interface ISceneItem {
     boundsType: EBoundsType;
     scaleFilter: EScaleType;
     visible: boolean;
-    showingStreaming: boolean;
-    showingRecording: boolean;
+    streamVisible: boolean;
+    recordingVisible: boolean;
     readonly transformInfo: ITransformInfo;
     crop: ICropInfo;
     moveUp(): void;

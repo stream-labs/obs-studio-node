@@ -39,13 +39,13 @@ void osn::SceneItem::Register(ipc::server& srv)
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SetSelected", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SetSelected));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "IsShowingStreaming", std::vector<ipc::type>{ipc::type::UInt64}, IsShowingStreaming));
+	    "IsStreamVisible", std::vector<ipc::type>{ipc::type::UInt64}, IsStreamVisible));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "SetShowingStreaming", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SetShowingStreaming));
+	    "SetStreamVisible", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SetStreamVisible));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "IsShowingRecording", std::vector<ipc::type>{ipc::type::UInt64}, IsShowingRecording));
+	    "IsRecordingVisible", std::vector<ipc::type>{ipc::type::UInt64}, IsRecordingVisible));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "SetShowingRecording", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SetShowingRecording));
+	    "SetRecordingVisible", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SetRecordingVisible));
 	cls->register_function(
 	    std::make_shared<ipc::function>("GetPosition", std::vector<ipc::type>{ipc::type::UInt64}, GetPosition));
 	cls->register_function(std::make_shared<ipc::function>(
@@ -239,7 +239,7 @@ void osn::SceneItem::SetSelected(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::IsShowingStreaming(
+void osn::SceneItem::IsStreamVisible(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -251,11 +251,11 @@ void osn::SceneItem::IsShowingStreaming(
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(obs_sceneitem_showing_streaming(item)));
+	rval.push_back(ipc::value(obs_sceneitem_stream_visible(item)));
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::SetShowingStreaming(
+void osn::SceneItem::SetStreamVisible(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -266,14 +266,14 @@ void osn::SceneItem::SetShowingStreaming(
 		PRETTY_ERROR_RETURN("invalid reference");
 	}
 
-	obs_sceneitem_set_showing_streaming(item, !!args[1].value_union.i32);
+	obs_sceneitem_set_stream_visible(item, !!args[1].value_union.i32);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(obs_sceneitem_showing_streaming(item)));
+	rval.push_back(ipc::value(obs_sceneitem_stream_visible(item)));
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::IsShowingRecording(
+void osn::SceneItem::IsRecordingVisible(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -285,11 +285,11 @@ void osn::SceneItem::IsShowingRecording(
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(obs_sceneitem_showing_recording(item)));
+	rval.push_back(ipc::value(obs_sceneitem_recording_visible(item)));
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::SetShowingRecording(
+void osn::SceneItem::SetRecordingVisible(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -300,10 +300,10 @@ void osn::SceneItem::SetShowingRecording(
 		PRETTY_ERROR_RETURN("invalid reference");
 	}
 
-	obs_sceneitem_set_showing_recording(item, !!args[1].value_union.i32);
+	obs_sceneitem_set_recording_visible(item, !!args[1].value_union.i32);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(obs_sceneitem_showing_recording(item)));
+	rval.push_back(ipc::value(obs_sceneitem_recording_visible(item)));
 	AUTO_DEBUG;
 }
 

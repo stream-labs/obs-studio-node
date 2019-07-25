@@ -70,22 +70,22 @@ namespace osn
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
-		static void IsShowingStreaming(
+		static void IsStreamVisible(
 		    void*                          data,
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
-		static void SetShowingStreaming(
+		static void SetStreamVisible(
 		    void*                          data,
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
-		static void IsShowingRecording(
+		static void IsRecordingVisible(
 		    void*                          data,
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
-		static void SetShowingRecording(
+		static void SetRecordingVisible(
 		    void*                          data,
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,

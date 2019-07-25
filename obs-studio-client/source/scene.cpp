@@ -280,8 +280,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 		params.push_back(ipc::value(crop->Get(utilv8::ToValue("right"))->ToInteger()->Value()));
 		params.push_back(ipc::value(crop->Get(utilv8::ToValue("bottom"))->ToInteger()->Value()));
 
-		params.push_back(ipc::value(transform->Get(utilv8::ToValue("showingStreaming"))->ToBoolean()->Value()));
-		params.push_back(ipc::value(transform->Get(utilv8::ToValue("showingRecording"))->ToBoolean()->Value()));
+		params.push_back(ipc::value(transform->Get(utilv8::ToValue("streamVisible"))->ToBoolean()->Value()));
+		params.push_back(ipc::value(transform->Get(utilv8::ToValue("recordingVisible"))->ToBoolean()->Value()));
 	}
 
 	auto conn = GetConnection();
@@ -335,13 +335,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 		sid->rotation        = transform->Get(utilv8::ToValue("rotation"))->ToNumber(info.GetIsolate())->Value();
 		sid->rotationChanged = false;
 
-		// Showing streaming
-		sid->isShowingStreaming      = transform->Get(utilv8::ToValue("showingStreaming"))->ToBoolean()->Value();
-		sid->showingStreamingChanged = false;
+		// Stream visible
+		sid->isStreamVisible      = transform->Get(utilv8::ToValue("streamVisible"))->ToBoolean()->Value();
+		sid->streamVisibleChanged = false;
 
-		// Showing recording
-		sid->isShowingRecording      = transform->Get(utilv8::ToValue("showingRecording"))->ToBoolean()->Value();
-		sid->showingRecordingChanged = false;
+		// Recording visible
+		sid->isRecordingVisible      = transform->Get(utilv8::ToValue("recordingVisiblle"))->ToBoolean()->Value();
+		sid->recordingVisibleChanged = false;
 	}
 
 	CacheManager<SceneItemData*>::getInstance().Store(id, sid);	
