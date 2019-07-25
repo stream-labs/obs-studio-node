@@ -7,7 +7,7 @@ IF(CLANG_ANALYZE_CONFIG)
 	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xclang -fexceptions -Xclang -fcxx-exceptions")
 ENDIF()
 
-set(VERSION_FULL 0.3.21)
+set(VERSION_FULL 0.3.21)   
 set(VERSION_BUILD 0)
 
 find_package(Git)
