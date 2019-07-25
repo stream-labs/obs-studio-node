@@ -524,6 +524,11 @@ export interface IGlobal {
     locale: string;
 
     /**
+     * Rendering of current libobs context
+     */
+    multipleRendering: boolean;
+
+    /**
      * Version of current libobs context.
      * Represented as a 32-bit unsigned integer.
      * First 2 bytes are major.

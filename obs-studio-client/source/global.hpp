@@ -34,5 +34,7 @@ namespace osn
 		static Nan::NAN_METHOD_RETURN_TYPE totalFrames(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE getLocale(Nan::NAN_METHOD_ARGS_TYPE info);
 		static Nan::NAN_METHOD_RETURN_TYPE setLocale(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE getMultipleRendering(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE setMultipleRendering(Nan::NAN_METHOD_ARGS_TYPE info);
 	};
 } // namespace osn

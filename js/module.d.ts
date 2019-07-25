@@ -330,6 +330,7 @@ export interface IGlobal {
     readonly laggedFrames: number;
     readonly initialized: boolean;
     locale: string;
+    multipleRendering: boolean;
     readonly version: number;
 }
 export interface IBooleanProperty extends IProperty {

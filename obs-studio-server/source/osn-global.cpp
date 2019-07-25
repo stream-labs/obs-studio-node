@@ -36,6 +36,10 @@ void osn::Global::Register(ipc::server& srv)
 	cls->register_function(std::make_shared<ipc::function>("GetLocale", std::vector<ipc::type>{}, GetLocale));
 	cls->register_function(
 	    std::make_shared<ipc::function>("SetLocale", std::vector<ipc::type>{ipc::type::String}, SetLocale));
+	cls->register_function(
+	    std::make_shared<ipc::function>("GetMultipleRendering", std::vector<ipc::type>{}, GetMultipleRendering));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetMultipleRendering", std::vector<ipc::type>{ipc::type::Int32}, SetMultipleRendering));
 	srv.register_collection(cls);
 }
 
@@ -151,6 +155,28 @@ void osn::Global::SetLocale(
     std::vector<ipc::value>&       rval)
 {
 	obs_set_locale(args[0].value_str.c_str());
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void osn::Global::GetMultipleRendering(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_get_multiple_rendering()));
+	AUTO_DEBUG;
+}
+
+void osn::Global::SetMultipleRendering(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_set_multiple_rendering(args[0].value_union.i32);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
