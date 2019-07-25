@@ -3670,21 +3670,6 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	    serializeSettingsData("Media Files", entries, ConfigManager::getInstance().getGlobal(), "General", true, true));
 	entries.clear();
 
-	//Multiple rendering
-	std::vector<std::pair<std::string, ipc::value>> multipleRendering;
-	multipleRendering.push_back(std::make_pair("name", ipc::value("multipleRendering")));
-	multipleRendering.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	multipleRendering.push_back(std::make_pair("description", ipc::value("Enable multiple rendering")));
-	multipleRendering.push_back(std::make_pair("subType", ipc::value("")));
-	multipleRendering.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	multipleRendering.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	multipleRendering.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(multipleRendering);
-
-	advancedSettings.push_back(
-	    serializeSettingsData("Multiple rendering", entries, ConfigManager::getInstance().getGlobal(), "General", true, true));
-	entries.clear();
-
 	return advancedSettings;
 }
 
@@ -3750,13 +3735,6 @@ void OBS_settings::saveAdvancedSettings(std::vector<SubCategory> advancedSetting
 	mediaFilesSettings.push_back(advancedSettings.at(9));
 	saveGenericSettings(mediaFilesSettings, "General", ConfigManager::getInstance().getGlobal());
 	MemoryManager::GetInstance().updateSourcesCache();
-
-	//Multiple rendering
-	std::vector<SubCategory> multipleRenderingSettings;
-	multipleRenderingSettings.push_back(advancedSettings.at(10));
-	saveGenericSettings(multipleRenderingSettings, "General", ConfigManager::getInstance().getGlobal());
-	bool multipleRendering = *reinterpret_cast<bool*>(advancedSettings[10].params[0].currentValue.data());
-	obs_set_multiple_rendering(multipleRendering);
 }
 
 std::vector<SubCategory> OBS_settings::getSettings(std::string nameCategory, CategoryTypes& type)

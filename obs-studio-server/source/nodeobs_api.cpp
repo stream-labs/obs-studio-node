@@ -603,9 +603,6 @@ void OBS_API::OBS_API_initAPI(
 	// Enable the hotkey callback rerouting that will be used when manually handling hotkeys on the frontend
 	obs_hotkey_enable_callback_rerouting(true);
 
-	obs_set_multiple_rendering(
-	    config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "multipleRendering"));
-
 	// We are returning a video result here because the frontend needs to know if we sucessfully
 	// initialized the Dx11 API
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
