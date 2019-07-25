@@ -36,7 +36,7 @@ void MemoryManager::calculateRawSize(source_info* si)
 {
 	calldata_t      cd = {0};
 	proc_handler_t* ph = obs_source_get_proc_handler(si->source);
-	proc_handler_call(ph, "get_nb_frames", &cd);
+	proc_handler_call(ph, "get_file_info", &cd);
 
 	uint64_t nb_frames = calldata_int(&cd, "num_frames");
 	uint64_t width     = calldata_int(&cd, "width");
