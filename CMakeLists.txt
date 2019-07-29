@@ -38,7 +38,7 @@ if(WIN32)
 	set(PROJECT_COMPANY_NAME "Streamlabs")
 	set(PROJECT_COPYRIGHT "Streamlabs © 2017 - 2018")
 	set(PROJECT_LEGAL_TRADEMARKS_1 "")
-	set(PROJECT_LEGAL_TRADEMARKS_2 "")
+	set(PROJECT_LEGAL_TRADEMARKS_2 "")   
 
 	configure_file(
 		${PROJECT_SOURCE_DIR}/cmake/version.rc.in
