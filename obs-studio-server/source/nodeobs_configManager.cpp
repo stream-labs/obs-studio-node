@@ -131,6 +131,7 @@ void initBasicDefault(config_t* config)
 	config_set_default_int(config, "SimpleOutput", "RecRBTime", 20);
 	config_set_default_int(config, "SimpleOutput", "RecRBSize", 512);
 	config_set_default_string(config, "SimpleOutput", "RecRBPrefix", "Replay");
+	config_set_default_bool(config, "SimpleOutput", "replayBufferUseStreamOutput", true);
 
 	config_set_default_bool(config, "AdvOut", "ApplyServiceSettings", true);
 	config_set_default_bool(config, "AdvOut", "UseRescale", false);
@@ -165,6 +166,7 @@ void initBasicDefault(config_t* config)
 	config_set_default_bool(config, "AdvOut", "RecRB", true);
 	config_set_default_uint(config, "AdvOut", "RecRBTime", 20);
 	config_set_default_int(config, "AdvOut", "RecRBSize", 512);
+	config_set_default_bool(config, "AdvOut", "replayBufferUseStreamOutput", true);
 
 	config_set_default_uint(config, "Video", "BaseCX", cx);
 	config_set_default_uint(config, "Video", "BaseCY", cy);
