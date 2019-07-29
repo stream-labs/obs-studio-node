@@ -48,8 +48,8 @@ void osn::SceneItem::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	utilv8::SetTemplateAccessorProperty(objtemplate, "scene", GetScene);
 	utilv8::SetTemplateAccessorProperty(objtemplate, "visible", IsVisible, SetVisible);
 	utilv8::SetTemplateAccessorProperty(objtemplate, "selected", IsSelected, SetSelected);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "showingStreaming", IsStreamVisible, SetStreamVisible);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "showingRecording", IsRecordingVisible, SetRecordingVisible);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "streamVisible", IsStreamVisible, SetStreamVisible);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "recordingVisible", IsRecordingVisible, SetRecordingVisible);
 	utilv8::SetTemplateAccessorProperty(objtemplate, "position", GetPosition, SetPosition);
 	utilv8::SetTemplateAccessorProperty(objtemplate, "rotation", GetRotation, SetRotation);
 	utilv8::SetTemplateAccessorProperty(objtemplate, "scale", GetScale, SetScale);
