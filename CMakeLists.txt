@@ -10,8 +10,6 @@ ENDIF()
 set(VERSION_FULL 0.3.21)
 set(VERSION_BUILD 0)
 
-find_package(Git)
-
 project(obs-studio-node VERSION ${VERSION_FULL}.${VERSION_BUILD})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
