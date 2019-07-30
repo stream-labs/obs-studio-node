@@ -232,7 +232,7 @@ class OBS_service
 	// Update video encoders
 	static void updateVideoStreamingEncoder(void);
 	static bool updateAudioStreamingEncoder(void);
-	static void updateVideoRecordingEncoder(void);
+	static void updateVideoRecordingEncoder(bool useStreamingEncoder);
 	static void updateAudioTracks(void);
 
 	// Update outputs

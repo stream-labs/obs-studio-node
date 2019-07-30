@@ -1108,9 +1108,14 @@ bool OBS_service::startReplayBuffer(void)
 	if (!advanced) {
 		std::string quality = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
 
-		bool useStreamingEncoder = quality.compare("Stream") == 0;
+		bool useStreamingEncoder = false;
 
-		updateVideoRecordingEncoder();
+		if (!obs_get_multiple_rendering())
+			useStreamingEncoder = quality.compare("Stream") == 0;
+		else
+			useStreamingEncoder = obs_get_replay_buffer_rendering_mode() == OBS_STREAMING_REPLAY_BUFFER_RENDERING;
+
+		updateVideoRecordingEncoder(useStreamingEncoder);
 		updateRecordingOutput(true);
 
 		if (useStreamingEncoder)
@@ -1743,7 +1748,7 @@ void OBS_service::UpdateFFmpegOutput(void)
 	obs_data_release(settings);
 }
 
-void OBS_service::updateVideoRecordingEncoder()
+void OBS_service::updateVideoRecordingEncoder(bool useStreamingEncoder)
 {
 	if (videoRecordingEncoder && obs_encoder_active(videoRecordingEncoder))
 		return;
@@ -1755,7 +1760,7 @@ void OBS_service::updateVideoRecordingEncoder()
 	videoQuality = quality;
 	ffmpegOutput = false;
 
-	if (strcmp(quality, "Stream") == 0) {
+	if (useStreamingEncoder) {
 		if (!isStreaming) {
 			updateAudioStreamingEncoder();
 			updateVideoStreamingEncoder();
@@ -1767,7 +1772,7 @@ void OBS_service::updateVideoRecordingEncoder()
 			audioSimpleRecordingEncoder = nullptr;
 			usingRecordingPreset        = false;
 		}
-		if (config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "multipleRendering")) {
+		if (obs_get_multiple_rendering()) {
 			duplicate_encoder(&videoRecordingEncoder, videoStreamingEncoder);
 			duplicate_encoder(&audioSimpleRecordingEncoder, audioSimpleStreamingEncoder);
 		}
@@ -2111,7 +2116,7 @@ void OBS_service::updateRecordSettings(void)
 
 		useStreamingEncoder = quality.compare("Stream") == 0;
 
-		updateVideoRecordingEncoder();
+		updateVideoRecordingEncoder(useStreamingEncoder);
 		updateRecordingOutput(false);
 
 		if (quality.compare("Lossless") == 0)
@@ -2133,8 +2138,7 @@ void OBS_service::updateRecordSettings(void)
 		updateAdvancedRecordingOutput();
 	}
 
-	bool multipleRendering =
-		config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "multipleRendering");
+	bool multipleRendering = obs_get_multiple_rendering();
 
 	if (useStreamingEncoder && !multipleRendering)
 		associateAudioAndVideoToTheCurrentStreamingContext();
