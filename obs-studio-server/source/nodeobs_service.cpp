@@ -1236,7 +1236,11 @@ void OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(bool
 		if (simple)
 			obs_output_set_audio_encoder(recordingOutput, audioSimpleRecordingEncoder, 0);
 
-		if (replayBufferOutput) {
+
+
+		if (replayBufferOutput
+		    && !(obs_get_multiple_rendering()
+		         && obs_get_replay_buffer_rendering_mode() == OBS_STREAMING_REPLAY_BUFFER_RENDERING)) {
 			obs_output_set_video_encoder(replayBufferOutput, videoRecordingEncoder);
 
 			if (simple)
@@ -1750,8 +1754,13 @@ void OBS_service::UpdateFFmpegOutput(void)
 
 void OBS_service::updateVideoRecordingEncoder(bool useStreamingEncoder)
 {
-	if (videoRecordingEncoder && obs_encoder_active(videoRecordingEncoder))
-		return;
+	if (!useStreamingEncoder) {
+		if (videoRecordingEncoder && obs_encoder_active(videoRecordingEncoder))
+			return;
+	} else {
+		if (videoStreamingEncoder && obs_encoder_active(videoStreamingEncoder))
+			return;
+	}
 
 	const char* quality = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
 	const char* encoder = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecEncoder");
