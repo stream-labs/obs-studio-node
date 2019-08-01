@@ -1758,7 +1758,7 @@ void OBS_service::updateVideoRecordingEncoder(bool useStreamingEncoder)
 		if (videoRecordingEncoder && obs_encoder_active(videoRecordingEncoder))
 			return;
 	} else {
-		if (videoStreamingEncoder && obs_encoder_active(videoStreamingEncoder))
+		if (videoStreamingEncoder && obs_encoder_active(videoStreamingEncoder) && !obs_get_multiple_rendering())
 			return;
 	}
 
