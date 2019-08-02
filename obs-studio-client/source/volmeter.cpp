@@ -100,6 +100,7 @@ void osn::VolMeter::stop_worker()
 void osn::VolMeter::worker()
 {
 	size_t totalSleepMS = 0;
+	osn::VolMeterData previousData = {};
 
 	while (!m_worker_stop) {
 		auto tp_start = std::chrono::high_resolution_clock::now();
@@ -143,6 +144,14 @@ void osn::VolMeter::worker()
 					data->peak[ch]       = response[2 + ch * 3 + 1].value_union.fp32;
 					data->input_peak[ch] = response[2 + ch * 3 + 2].value_union.fp32;
 				}
+
+				if (previousData.peak == data->peak) {
+					std::fill(data->peak.begin(), data->peak.end(), -std::numeric_limits<float>::infinity());
+				} else {
+					previousData = {};
+					previousData = *data;
+				}
+
 				m_async_callback->queue(std::move(data));
 			} else if(error == ErrorCode::InvalidReference) {
 				goto do_sleep;
