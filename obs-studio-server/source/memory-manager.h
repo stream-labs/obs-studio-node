@@ -38,6 +38,7 @@ struct source_info
 	obs_source_t* source;
 	std::vector<std::thread> workers;
 	std::mutex    mtx;
+	bool          have_video;
 };
 
 class MemoryManager {

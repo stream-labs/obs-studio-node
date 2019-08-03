@@ -42,6 +42,7 @@ void MemoryManager::calculateRawSize(source_info* si)
 	uint64_t width     = calldata_int(&cd, "width");
 	uint64_t height    = calldata_int(&cd, "height");
 	uint32_t pix_fmt   = calldata_int(&cd, "pix_format");
+	si->have_video     = calldata_bool(&cd, "have_video");
 	float    bpp       = 0;
 
 	switch (pix_fmt) {
@@ -178,7 +179,7 @@ void MemoryManager::sourceManager(source_info* si)
 			si->mtx.lock();
 			calculateRawSize(si);
 
-			if (si->size) {
+			if (si->size || !si->have_video) {
 				si->mtx.unlock();
 				mtx.unlock();
 				break;
@@ -198,7 +199,7 @@ void MemoryManager::sourceManager(source_info* si)
 	}
 	bool should_cache = shouldCacheSource(si);
 	si->mtx.unlock();
-
+	
 	if (should_cache)
 		addCachedMemory(si);
 	else
@@ -253,7 +254,7 @@ void MemoryManager::unregisterSource(obs_source_t * source)
 {
 	if (strcmp(obs_source_get_id(source), "ffmpeg_source") != 0)
 		return;
-
+	
 	mtx.lock();
 
 	auto it = sources.find(obs_source_get_name(source));
@@ -270,13 +271,13 @@ void MemoryManager::unregisterSource(obs_source_t * source)
 	}
 
 	mtx.lock();
-	
+
 	it->second->workers.clear();
 	removeCachedMemory(it->second, true);
 
 	free(it->second);
 	sources.erase(obs_source_get_name(source));
-
+	
 	if (!sources.size() && watcher.running) {
 		watcher.stop    = true;
 
