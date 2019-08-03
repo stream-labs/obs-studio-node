@@ -199,7 +199,7 @@ void MemoryManager::sourceManager(source_info* si)
 	}
 	bool should_cache = shouldCacheSource(si);
 	si->mtx.unlock();
-	
+
 	if (should_cache)
 		addCachedMemory(si);
 	else
@@ -254,7 +254,7 @@ void MemoryManager::unregisterSource(obs_source_t * source)
 {
 	if (strcmp(obs_source_get_id(source), "ffmpeg_source") != 0)
 		return;
-	
+
 	mtx.lock();
 
 	auto it = sources.find(obs_source_get_name(source));
@@ -271,13 +271,13 @@ void MemoryManager::unregisterSource(obs_source_t * source)
 	}
 
 	mtx.lock();
-
+	
 	it->second->workers.clear();
 	removeCachedMemory(it->second, true);
 
 	free(it->second);
 	sources.erase(obs_source_get_name(source));
-	
+
 	if (!sources.size() && watcher.running) {
 		watcher.stop    = true;
 
