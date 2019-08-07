@@ -21,8 +21,11 @@
 #include "nodeobs_configManager.hpp"
 #include <map>
 #include <mutex>
+#ifdef WIN32
 #include <windows.h>
 #include "psapi.h"
+#endif
+#include <thread>
 #include <algorithm>
 #include <vector>
 

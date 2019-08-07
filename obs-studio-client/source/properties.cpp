@@ -288,10 +288,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetValue(Nan::NAN_METHOD_ARGS_T
 	if (!Retrieve(info.This(), self)) {
 		return;
 	}
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
-		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
-		return;
-	}
+//    if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+//        Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
+//        return;
+//    }
 
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
 	auto iter = parent->GetProperties()->find(self->index);

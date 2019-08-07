@@ -76,14 +76,8 @@ void OBS_settings::OBS_settings_getSettings(
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-<<<<<<< HEAD
-	rval.push_back(ipc::value(settings.size()));
-	rval.push_back(ipc::value(binaryValue.size()));
-=======
 	rval.push_back(ipc::value((uint64_t)settings.size()));
 	rval.push_back(ipc::value((uint64_t)binaryValue.size()));
-
->>>>>>> Build successful of obs-server on Mac
 	rval.push_back(ipc::value(binaryValue));
 	rval.push_back(ipc::value(type));
 	AUTO_DEBUG;

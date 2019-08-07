@@ -20,6 +20,7 @@
 
 MemoryManager::MemoryManager()
 {
+#ifdef WIN32
 	MEMORYSTATUSEX statex;
 	statex.dwLength = sizeof(statex);
 
@@ -30,6 +31,7 @@ MemoryManager::MemoryManager()
 		available_memory    = 0;
 		allowed_cached_size = LIMIT;
 	}
+#endif
 }
 
 void MemoryManager::calculateRawSize(source_info* si)
@@ -291,10 +293,10 @@ void MemoryManager::unregisterSource(obs_source_t * source)
 
 void MemoryManager::monitorMemory()
 {
+#ifdef WIN32
 	while (!watcher.stop) {
 		MEMORYSTATUSEX statex;
 		statex.dwLength = sizeof(statex);
-
 		if (GlobalMemoryStatusEx(&statex)) {
 			std::unique_lock<std::mutex> ulock(mtx);
 
@@ -324,4 +326,5 @@ void MemoryManager::monitorMemory()
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	}
+#endif
 }

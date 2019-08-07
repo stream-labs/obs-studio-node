@@ -338,6 +338,7 @@ static void                                    node_obs_log(int log_level, const
 
 	std::vector<char> timebuf(128, '\0');
 	std::string       timeformat = "[%.3d:%.2d:%.2d:%.2d.%.3d.%.3d.%.3d][%*s]"; // "%*s";
+#ifdef WIN32
 	int               length     = sprintf_s(
         timebuf.data(),
         timebuf.size(),
@@ -401,12 +402,12 @@ static void                                    node_obs_log(int log_level, const
 		}
 	}
 	*logStream << std::flush;
-
+#endif
 #if defined(_WIN32) && defined(OBS_DEBUGBREAK_ON_ERROR)
 	if (log_level <= LOG_ERROR && IsDebuggerPresent())
 		__debugbreak();
 #endif
-#endif
+
 }
 #ifdef WIN32
 uint32_t pid = GetCurrentProcessId();
@@ -497,7 +498,7 @@ void OBS_API::OBS_API_initAPI(
 
 	// Connect the metrics provider with our crash handler process, sending our current version tag
 	// and enabling metrics
-	util::CrashManager::GetMetricsProvider()->Initialize("\\\\.\\pipe\\metrics_pipe", currentVersion, false);
+	// util::CrashManager::GetMetricsProvider()->Initialize("\\\\.\\pipe\\metrics_pipe", currentVersion, false);
 
 	/* libobs will use three methods of finding data files:
 	* 1. ${CWD}/data/libobs <- This doesn't work for us
@@ -517,7 +518,7 @@ void OBS_API::OBS_API_initAPI(
 		// cases (if the user data path is wrong for ex). This will be correctly adjusted 
 		// when init API supports more return codes.
 		std::string userDataPath = std::string(userData.begin(), userData.end());
-		util::CrashManager::AddWarning("Failed to start OBS, locale: " + locale + " user data: " + userDataPath);
+		// util::CrashManager::AddWarning("Failed to start OBS, locale: " + locale + " user data: " + userDataPath);
 	}
 
 	/* Logging */
@@ -529,7 +530,7 @@ void OBS_API::OBS_API_initAPI(
 	before attempting to make a file there. */
 	if (os_mkdirs(log_path.c_str()) == MKDIR_ERROR) {
 		std::cerr << "Failed to open log file" << std::endl;
-		util::CrashManager::AddWarning("Error on log file, failed to create path: " + log_path);
+		// util::CrashManager::AddWarning("Error on log file, failed to create path: " + log_path);
 	}
 	/* Delete oldest file in the folder to imitate rotating */
 	DeleteOldestFile(log_path.c_str(), 3);
@@ -581,7 +582,7 @@ void OBS_API::OBS_API_initAPI(
 	if (!openAllModules(videoError)) {
 
 		// Directly blame the user for this error (since he is the culprit of having an invalid Dx version)
-		util::CrashManager::GetMetricsProvider()->BlameUser();
+		// util::CrashManager::GetMetricsProvider()->BlameUser();
 
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value(videoError));
@@ -1113,9 +1114,9 @@ void OBS_API::destroyOBS_API(void)
 		// a crash on the backend
 		// This is necessary since the frontend could still finish after the backend, causing the
 		// crash manager to think the backend crashed first while the real culprit is the frontend
-		util::CrashManager::GetMetricsProvider()->BlameFrontend();
+		// util::CrashManager::GetMetricsProvider()->BlameFrontend();
 
-		util::CrashManager::DisableReports();
+		// util::CrashManager::DisableReports();
 
 		// Try-catch should suppress any error message that could be thrown to the user
 		try {
@@ -1205,14 +1206,18 @@ bool OBS_API::openAllModules(int& video_err)
 		* with some metainfo so we don't attempt just any
 		* shared library. */
 		if (!os_file_exists(plugins_path.c_str())) {
+#ifdef WIN32
 			blog(LOG_ERROR, "Plugin Path provided is invalid: %s", plugins_path);
 			std::cerr << "Plugin Path provided is invalid: " << plugins_path << std::endl;
+#endif
 			continue;
 		}
 
 		os_dir_t* plugin_dir = os_opendir(plugins_path.c_str());
 		if (!plugin_dir) {
+#ifdef WIN32
 			blog(LOG_ERROR, "Failed to open plugin diretory: %s", plugins_path);
+#endif
 			std::cerr << "Failed to open plugin diretory: " << plugins_path << std::endl;
 			continue;
 		}
@@ -1239,10 +1244,14 @@ bool OBS_API::openAllModules(int& video_err)
 			try {
 				result = obs_open_module(&module, plugin_path.c_str(), plugin_data_path.c_str());
 			} catch (std::string errorMsg) {
+#ifdef WIN32
 				blog(LOG_ERROR, "Failed to load module: %s - %s", basename, errorMsg);
+#endif
 				continue;
 			} catch (...) {
+#ifdef WIN32
 				blog(LOG_ERROR, "Failed to load module: %s", basename);
+#endif
 				continue;
 			}
 
@@ -1273,10 +1282,14 @@ bool OBS_API::openAllModules(int& video_err)
 					/* Just continue to next one */
 				}
 			} catch (std::string errorMsg) {
+#ifdef WIN32
 				blog(LOG_ERROR, "Failed to initialize module: %s - %s", basename, errorMsg);
+#endif
 				continue;
 			} catch (...) {
+#ifdef WIN32
 				blog(LOG_ERROR, "Failed to initialize module: %s", basename);
+#endif
 				continue;
 			}
 		}
@@ -1386,7 +1399,7 @@ std::string OBS_API::getCurrentVersion()
 {
 	return currentVersion;
 }
-
+#ifdef WIN32
 static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData)
 {
 	MONITORINFO info;

@@ -64,11 +64,13 @@ endif()
 # Override a test flag
 set(StackWalker_DISABLE_TESTS true CACHE BOOL "" FORCE)
 
+if(WIN32)
 # StackWalker (Callstack rewind
 FetchContent_Declare(
   stackwalker
   GIT_REPOSITORY https://github.com/stream-labs/StackWalker
 )
+endif()
 
 # Nlohmann JSON (modern JSON for C++)
 FetchContent_Declare(
@@ -76,10 +78,12 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/nlohmann/json
 )
 
+if(WIN32)
 FetchContent_GetProperties(stackwalker)
 if(NOT stackwalker_POPULATED)
   FetchContent_Populate(stackwalker)
   add_subdirectory(${stackwalker_SOURCE_DIR} ${stackwalker_BINARY_DIR})
+endif()
 endif()
 
 FetchContent_GetProperties(nlohmannjson)

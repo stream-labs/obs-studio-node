@@ -30,7 +30,9 @@
 #include <string>
 #include <thread>
 #include <vector>
+#ifdef WIN32
 #include "StackWalker.h"
+#endif
 #include "nodeobs_api.h"
 #include "error.hpp"
 
@@ -85,12 +87,13 @@ base::FilePath                                 handler;
 std::string                                    url;
 std::vector<std::string>                       arguments;
 std::map<std::string, std::string>             annotations;
-LPTOP_LEVEL_EXCEPTION_FILTER                   crashpadInternalExceptionFilterMethod = nullptr;
 #endif
 #ifdef WIN32
 // Forward
+LPTOP_LEVEL_EXCEPTION_FILTER                   crashpadInternalExceptionFilterMethod = nullptr;
 std::string    FormatVAString(const char* const format, va_list args);
 nlohmann::json RewindCallStack(std::string& crashedMethod);
+#endif
 
 // Transform a byte value into a string + sufix
 std::string PrettyBytes(uint64_t bytes)
@@ -147,16 +150,17 @@ void RequestComputerUsageParams(
 
 	// This link has info about the linux and Mac OS versions
 	// https://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process
-	totalPhysMem    = long long(-1);
-	physMemUsed     = long long(-1);
-	physMemUsedByMe = size_t(-1);
-	totalCPUUsed    = double(-1.0);
+//    totalPhysMem    = long long(-1);
+//    physMemUsed     = long long(-1);
+//    physMemUsedByMe = size_t(-1);
+//    totalCPUUsed    = double(-1.0);
 
 #endif
 }
 
 void GetUserInfo(std::string& computerName)
 {
+#ifdef WIN32
 	TCHAR infoBuf[MAX_COMPUTERNAME_LENGTH + 1];
 	DWORD bufCharCount = MAX_COMPUTERNAME_LENGTH + 1;
 
@@ -167,14 +171,15 @@ void GetUserInfo(std::string& computerName)
 	std::wstring_convert<convert_typeX, wchar_t> converterX;
 
 	computerName = converterX.to_bytes(std::wstring(infoBuf));
+#endif
 }
 
 nlohmann::json RequestProcessList()
 {
-	DWORD          aProcesses[1024], cbNeeded, cProcesses;
 	nlohmann::json result = nlohmann::json::object();
 
 #if defined(_WIN32)
+    DWORD          aProcesses[1024], cbNeeded, cProcesses;
 
 	if (!EnumProcesses(aProcesses, sizeof(aProcesses), &cbNeeded)) {
 		return 1;

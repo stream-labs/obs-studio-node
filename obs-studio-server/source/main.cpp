@@ -202,7 +202,7 @@ int main(int argc, char* argv[])
 		std::cerr << "Failed to initialize server" << std::endl;
 		return -2;
 	}
-
+#ifdef WIN32
 #ifndef _DEBUG
 
 	// Register the pre and post server callbacks to log the data into the crashmanager
@@ -218,6 +218,7 @@ int main(int argc, char* argv[])
 		crashManager.ProcessPostServerCall(cname, fname, args);
 	}, &crashManager);
 
+#endif
 #endif
 
 	// Reset Connect/Disconnect time.

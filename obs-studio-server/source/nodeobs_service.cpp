@@ -21,6 +21,7 @@
 #include <ShlObj.h>
 #include <filesystem>
 #include <windows.h>
+#endif
 #include "error.hpp"
 #include "shared.hpp"
 #include "utility.hpp"
@@ -774,7 +775,6 @@ bool OBS_service::createService()
 		obs_data_set_obj(data, "settings", settings);
 	};
 
-    bool fileExist = (os_stat(ConfigManager::getInstance().getService().c_str(), &buffer) == 0);
 	if (!fileExist) {
 		CreateNewService();
 

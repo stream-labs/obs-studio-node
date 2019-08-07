@@ -112,30 +112,34 @@ add_dependencies(crashpad_client crashpad_base)
 add_dependencies(crashpad_util crashpad_client)
 ENDIF ()
 
-string(
-	CONCAT OSN_DEFAULT_LIBOBS_URL
-	"https://obsstudios3.streamlabs.com/"
-	"libobs-release-23.1.0-streamlabs-v0.0.10.7z"
+IF(WIN32)
+	string(
+		CONCAT OSN_DEFAULT_LIBOBS_URL
+		"https://obsstudios3.streamlabs.com/"
+		"libobs-release-23.1.0-streamlabs-v0.0.10.7z"
+	)
+ENDIF()
+IF(APPLE)
+	string(
+		CONCAT OSN_DEFAULT_LIBOBS_URL
+		"https://obsstudios3.streamlabs.com/"
+		"libobs-mac-debug-23.1.0-streamlabs-v0.0.0.7z"
+	)
+ENDIF()
+
+set(
+	OSN_LIBOBS_URL
+	${OSN_DEFAULT_LIBOBS_URL}
+	CACHE STRING "Location of libobs archive to base on"
 )
 
-	set(
-		OSN_LIBOBS_URL
-		${OSN_DEFAULT_LIBOBS_URL}
-		CACHE STRING "Location of libobs archive to base on"
-	)
+download_project(
+	PROJ libobs
+	URL ${OSN_LIBOBS_URL}
+	UPDATE_DISCONNECTED 1
+)
 
-	download_project(
-		PROJ libobs
-		URL ${OSN_LIBOBS_URL}
-		UPDATE_DISCONNECTED 1
-	)
-
-	include("${libobs_SOURCE_DIR}/cmake/LibObs/LibObsConfig.cmake")
-ELSE ()
-	SET(LIBOBS_INCLUDE_DIRS "/Users/eddygharbi/streamlabs/obs-studio/libobs/")
-	SET(libobs_SOURCE_DIR "/Users/eddygharbi/streamlabs/obs-studio/build/rundir/Debug")
-	SET(LIBOBS_LIBRARIES "/Users/eddygharbi/streamlabs/obs-studio/build/rundir/Debug/bin/libobs.0.dylib")
-ENDIF ()
+include("${libobs_SOURCE_DIR}/cmake/LibObs/LibObsConfig.cmake")
 
 set(PROJECT_LIBRARIES
 	lib-streamlabs-ipc
@@ -148,7 +152,7 @@ set(PROJECT_INCLUDE_PATHS
 	"${PROJECT_SOURCE_DIR}/source"
 	"${lib-streamlabs-ipc_SOURCE_DIR}/include"
 	${LIBOBS_INCLUDE_DIRS}
-	"${stackwalker_SOURCE_DIR}/Main/StackWalker"
+	#"${stackwalker_SOURCE_DIR}/Main/StackWalker"
 	"${nlohmannjson_SOURCE_DIR}/single_include"
 )
 
@@ -235,8 +239,8 @@ add_executable(
 	"${PROJECT_SOURCE_DIR}/source/util-memory.h"
 
 	###### crash-manager ######
-	"${PROJECT_SOURCE_DIR}/source/util-crashmanager.cpp"
-	"${PROJECT_SOURCE_DIR}/source/util-crashmanager.h"
+	#"${PROJECT_SOURCE_DIR}/source/util-crashmanager.cpp"
+	#"${PROJECT_SOURCE_DIR}/source/util-crashmanager.h"
 	"${PROJECT_SOURCE_DIR}/source/util-metricsprovider.cpp"
 	"${PROJECT_SOURCE_DIR}/source/util-metricsprovider.h"
 	
@@ -250,7 +254,7 @@ add_executable(
 )
 
 # Include/link crash manager dependencies
-target_link_libraries(${PROJECT_NAME} StackWalker)
+#target_link_libraries(${PROJECT_NAME} StackWalker)
 
 if(WIN32)
 	target_sources(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}/version.rc")
@@ -276,6 +280,12 @@ else()
 		VERSION ${PROJECT_VERSION}
 		SOVERSION ${PROJECT_VERSION}
 	)
+	set_target_properties(
+		${PROJECT_NAME}
+    	PROPERTIES
+    	INSTALL_RPATH
+		"./"
+)
 ENDIF()
 
 IF(WIN32)

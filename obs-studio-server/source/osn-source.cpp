@@ -80,7 +80,7 @@ void osn::Source::global_source_activate_cb(void* ptr, calldata_t* cd)
 {
 	obs_source_t* source = nullptr;
 	if (!calldata_get_ptr(cd, "source", &source)) {
-		throw std::exception("calldata did not contain source pointer");
+		throw std::exception((const std::exception&)"calldata did not contain source pointer");
 	}
 	MemoryManager::GetInstance().updateSourceCache(source);
 }
@@ -89,7 +89,7 @@ void osn::Source::global_source_deactivate_cb(void* ptr, calldata_t* cd)
 {
 	obs_source_t* source = nullptr;
 	if (!calldata_get_ptr(cd, "source", &source)) {
-		throw std::exception("calldata did not contain source pointer");
+		throw std::exception((const std::exception&)"calldata did not contain source pointer");
 	}
 	MemoryManager::GetInstance().updateSourceCache(source);
 }

@@ -45,6 +45,8 @@ util::MetricsProvider::~MetricsProvider()
 	}
 
 	MetricsMessage message;
+    
+#ifdef WIN32
 
 	// If we should blame the server
 	if (m_BlameServer) {
@@ -64,10 +66,12 @@ util::MetricsProvider::~MetricsProvider()
 		SendPipeMessage(message);
 		CloseHandle(m_Pipe);
 	}
+#endif
 }
 
 bool util::MetricsProvider::Initialize(std::string pipe_name, std::string current_version, bool send_messages_async)
 {
+#ifdef WIN32
 	m_Pipe = CreateFileA(
 	    pipe_name.c_str(),
 	    GENERIC_WRITE,
@@ -96,6 +100,7 @@ bool util::MetricsProvider::Initialize(std::string pipe_name, std::string curren
 	// Start pooling and send our tag
 	StartPolling(send_messages_async);
 	SendTag("version", current_version);
+#endif
 
 	return true;
 }
@@ -136,7 +141,9 @@ void util::MetricsProvider::SendStatus(std::string status)
 {
 	MetricsMessage message = {};
 	message.type           = MessageType::Status;
+#ifdef WIN32
 	strcpy_s(message.param1, status.c_str());
+#endif
 
 	PrepareMessage(message);
 }
@@ -145,9 +152,10 @@ void util::MetricsProvider::SendTag(std::string tag, std::string value)
 {
 	MetricsMessage message = {};
 	message.type           = MessageType::Tag;
+#ifdef WIN32
 	strcpy_s(message.param1, tag.c_str());
 	strcpy_s(message.param2, value.c_str());
-
+#endif
 	PrepareMessage(message);
 }
 
@@ -165,6 +173,7 @@ void util::MetricsProvider::PrepareMessage(MetricsMessage& message)
 
 bool util::MetricsProvider::SendPipeMessage(MetricsMessage& message)
 {
+#ifdef WIN32
 	if (m_PipeIsOpen) {
 		DWORD numBytesWritten = 0;
 		return WriteFile(
@@ -175,7 +184,7 @@ bool util::MetricsProvider::SendPipeMessage(MetricsMessage& message)
 		    NULL                    // not using overlapped IO
 		);
 	}
-
+#endif
 	return false;
 }
 
@@ -185,8 +194,9 @@ void util::MetricsProvider::BlameServer()
 
     MetricsMessage message = {};
 	message.type           = MessageType::Blame;
+#ifdef WIN32
 	strcpy_s(message.param1, "Backend Crash");
-
+#endif
 	PrepareMessage(message);
 }
 
@@ -196,8 +206,9 @@ void util::MetricsProvider::BlameUser()
 
     MetricsMessage message = {};
 	message.type           = MessageType::Blame;
+#ifdef WIN32
 	strcpy_s(message.param1, "User Crash");
-
+#endif
 	PrepareMessage(message);
 }
 
@@ -207,7 +218,8 @@ void util::MetricsProvider::BlameFrontend()
 
     MetricsMessage message = {};
 	message.type           = MessageType::Blame;
+#ifdef WIN32
 	strcpy_s(message.param1, "Frontend Crash");
-
+#endif
 	PrepareMessage(message);
 }
