@@ -276,6 +276,11 @@ void osn::VolMeter::Query(
 
 	std::unique_lock<std::mutex> ulock(meter->current_data_mtx);
 
+	// Reset audio data if OBSCallBack is idle
+	if (CheckIdle(GetTime(), meter->current_data.lastUpdateTime)) {
+		meter->current_data.resetData();
+	}
+
 	rval.push_back(ipc::value(meter->current_data.ch));
 
 	for (size_t ch = 0; ch < meter->current_data.ch; ch++) {
@@ -305,6 +310,7 @@ void osn::VolMeter::OBSCallback(
 
 	std::unique_lock<std::mutex> ulock(meter->current_data_mtx);
 
+	meter->current_data.lastUpdateTime = GetTime();
 	meter->current_data.ch = obs_volmeter_get_nr_channels(meter->self);
 	for (size_t ch = 0; ch < MAX_AUDIO_CHANNELS; ch++) {
 		meter->current_data.magnitude[ch]  = MAKE_FLOAT_SANE(magnitude[ch]);
@@ -313,4 +319,22 @@ void osn::VolMeter::OBSCallback(
 	}
 
 #undef MAKE_FLOAT_SANE
+}
+
+std::chrono::milliseconds osn::VolMeter::GetTime()
+{
+	auto currentTime   = std::chrono::high_resolution_clock::now();
+	auto currentTimeMs = std::chrono::time_point_cast<std::chrono::milliseconds>(currentTime);
+	return currentTimeMs.time_since_epoch();
+}
+
+bool osn::VolMeter::CheckIdle(std::chrono::milliseconds currentTime, std::chrono::milliseconds lastUpdateTime)
+{
+	auto idleTime = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastUpdateTime);
+
+	if (lastUpdateTime != std::chrono::milliseconds(0) && idleTime > std::chrono::milliseconds(300)) {
+		return true;
+	}
+
+	return false;
 }
