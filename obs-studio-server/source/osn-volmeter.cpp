@@ -277,9 +277,12 @@ void osn::VolMeter::Query(
 	std::unique_lock<std::mutex> ulock(meter->current_data_mtx);
 
 	// Reset audio data if OBSCallBack is idle
-	if (CheckIdle(GetTime(), meter->current_data.lastUpdateTime)) {
-		meter->current_data.resetData();
+	if (meter->current_data.lastUpdateTime != std::chrono::milliseconds(0)) {
+		if (CheckIdle(GetTime(), meter->current_data.lastUpdateTime)) {
+			meter->current_data.resetData();
+		}
 	}
+	
 
 	rval.push_back(ipc::value(meter->current_data.ch));
 
@@ -332,7 +335,7 @@ bool osn::VolMeter::CheckIdle(std::chrono::milliseconds currentTime, std::chrono
 {
 	auto idleTime = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastUpdateTime);
 
-	if (lastUpdateTime != std::chrono::milliseconds(0) && idleTime > std::chrono::milliseconds(300)) {
+	if (idleTime > std::chrono::milliseconds(300)) {
 		return true;
 	}
 
