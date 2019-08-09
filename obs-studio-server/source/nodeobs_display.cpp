@@ -163,7 +163,7 @@ void OBS::Display::SystemWorker()
 			DWORD windowStyle;
 
 			if (IsWindows8OrGreater() || !enabled) {
-				windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT;
+				windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST;
 			} else {
 				windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_COMPOSITED;
 			}
