@@ -885,7 +885,7 @@ void osn::Source::SendKeyClick(
 		return;
 	}
 
-	char* text = new char[args[2].value_str.size()];
+	char* text = new char[args[2].value_str.size() + 1];
 	strcpy(text, args[2].value_str.c_str());
 
 
