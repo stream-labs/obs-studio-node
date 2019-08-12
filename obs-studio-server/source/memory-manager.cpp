@@ -42,6 +42,7 @@ void MemoryManager::calculateRawSize(source_info* si)
 	uint64_t width     = calldata_int(&cd, "width");
 	uint64_t height    = calldata_int(&cd, "height");
 	uint32_t pix_fmt   = calldata_int(&cd, "pix_format");
+	si->have_video     = calldata_bool(&cd, "have_video");
 	float    bpp       = 0;
 
 	switch (pix_fmt) {
@@ -178,7 +179,7 @@ void MemoryManager::sourceManager(source_info* si)
 			si->mtx.lock();
 			calculateRawSize(si);
 
-			if (si->size) {
+			if (si->size || !si->have_video) {
 				si->mtx.unlock();
 				mtx.unlock();
 				break;
