@@ -125,13 +125,37 @@ namespace osn
 		static void
 		    GetMuted(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 		static void
-		            SetMuted(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		    SetMuted(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 		static void GetEnabled(
 		    void*                          data,
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
 		static void SetEnabled(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+
+		// Browser source interaction
+		static void SendMouseClick(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void SendMouseMove(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void SendMouseWheel(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void
+		    SendFocus(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static void SendKeyClick(
 		    void*                          data,
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,

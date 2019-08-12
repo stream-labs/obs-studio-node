@@ -55,6 +55,12 @@ void osn::ISource::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	utilv8::SetTemplateAccessorProperty(objtemplate, "muted", GetMuted, SetMuted);
 	utilv8::SetTemplateAccessorProperty(objtemplate, "enabled", GetEnabled, SetEnabled);
 
+	utilv8::SetTemplateField(objtemplate, "sendMouseClick", SendMouseClick);
+	utilv8::SetTemplateField(objtemplate, "sendMouseMove", SendMouseMove);
+	utilv8::SetTemplateField(objtemplate, "sendMouseWheel", SendMouseWheel);
+	utilv8::SetTemplateField(objtemplate, "sendFocus", SendFocus);
+	utilv8::SetTemplateField(objtemplate, "sendKeyClick", SendKeyClick);
+
 	utilv8::SetObjectField(target, "Source", fnctemplate->GetFunction());
 	prototype.Reset(fnctemplate);
 }
@@ -719,4 +725,169 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetEnabled(Nan::NAN_METHOD_ARGS_TYPE i
 		return;
 
 	conn->call("Source", "SetEnabled", {ipc::value(is->sourceId), ipc::value(enabled)});
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseClick(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	osn::ISource* obj;
+	if (!utilv8::SafeUnwrap(info, obj)) {
+		return;
+	}
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	v8::Local<v8::Object> mouse_event_obj;
+	uint32_t              type;
+	bool                  mouse_up;
+	uint32_t              click_count;
+
+	ASSERT_GET_VALUE(info[0], mouse_event_obj);
+	ASSERT_GET_VALUE(info[1], type);
+	ASSERT_GET_VALUE(info[2], mouse_up);
+	ASSERT_GET_VALUE(info[3], click_count);
+
+	uint32_t modifiers, x, y;
+
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "modifiers", modifiers);
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "x", x);
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "y", y);
+
+	conn->call(
+	    "Source",
+	    "SendMouseClick",
+	    {
+			ipc::value(obj->sourceId),
+			ipc::value(modifiers),
+			ipc::value(x),
+			ipc::value(y),
+			ipc::value(type),
+			ipc::value(mouse_up),
+			ipc::value(click_count)
+		}
+	);
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseMove(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	osn::ISource* obj;
+	if (!utilv8::SafeUnwrap(info, obj)) {
+		return;
+	}
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	v8::Local<v8::Object> mouse_event_obj;
+	bool                  mouse_leave;
+
+	ASSERT_GET_VALUE(info[0], mouse_event_obj);
+	ASSERT_GET_VALUE(info[1], mouse_leave);
+
+	uint32_t modifiers, x, y;
+
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "modifiers", modifiers);
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "x", x);
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "y", y);
+
+	conn->call("Source", "SendMouseMove", {ipc::value(obj->sourceId), ipc::value(modifiers), ipc::value(x), ipc::value(y), ipc::value(mouse_leave)});
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseWheel(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	osn::ISource* obj;
+	if (!utilv8::SafeUnwrap(info, obj)) {
+		return;
+	}
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	v8::Local<v8::Object> mouse_event_obj;
+	int                   x_delta, y_delta;
+
+	ASSERT_GET_VALUE(info[0], mouse_event_obj);
+	ASSERT_GET_VALUE(info[1], x_delta);
+	ASSERT_GET_VALUE(info[2], y_delta);
+
+	uint32_t modifiers, x, y;
+
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "modifiers", modifiers);
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "x", x);
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "y", y);
+
+	conn->call(
+	    "Source",
+	    "SendMouseWheel",
+	    {
+			ipc::value(obj->sourceId),
+			ipc::value(modifiers),
+			ipc::value(x),
+			ipc::value(y),
+			ipc::value(x_delta),
+			ipc::value(y_delta)
+		}
+	);
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendFocus(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	osn::ISource* obj;
+	if (!utilv8::SafeUnwrap(info, obj)) {
+		return;
+	}
+
+	bool focus;
+
+	ASSERT_GET_VALUE(info[0], focus);
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+    conn->call("Source", "SendFocus", {ipc::value(obj->sourceId), ipc::value(focus)});
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendKeyClick(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	osn::ISource* obj;
+	if (!utilv8::SafeUnwrap(info, obj)) {
+		return;
+	}
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	v8::Local<v8::Object> key_event_obj;
+	bool                  key_up;
+
+	ASSERT_GET_VALUE(info[0], key_event_obj);
+	ASSERT_GET_VALUE(info[1], key_up);
+
+	uint32_t    modifiers, native_modifiers, native_scancode, native_vkey;
+	std::string text;
+
+	ASSERT_GET_OBJECT_FIELD(key_event_obj, "modifiers", modifiers);
+	ASSERT_GET_OBJECT_FIELD(key_event_obj, "text", text);
+	ASSERT_GET_OBJECT_FIELD(key_event_obj, "nativeModifiers", native_modifiers);
+	ASSERT_GET_OBJECT_FIELD(key_event_obj, "nativeScancode", native_scancode);
+	ASSERT_GET_OBJECT_FIELD(key_event_obj, "nativeVkey", native_vkey);
+
+	conn->call(
+	    "Source",
+	    "SendKeyClick",
+	    {
+			ipc::value(obj->sourceId),
+			ipc::value(modifiers),
+			ipc::value(text),
+			ipc::value(native_modifiers),
+			ipc::value(native_scancode),
+			ipc::value(native_vkey),
+			ipc::value((int32_t)key_up)
+		}
+	);
 }
