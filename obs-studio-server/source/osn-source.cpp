@@ -171,7 +171,7 @@ void osn::Source::Register(ipc::server& srv)
 	                           ipc::type::UInt32,
 	                           ipc::type::UInt32,
 	                           ipc::type::UInt32,
-                               ipc::type::Int32},
+	                           ipc::type::Int32},
 	    SendMouseMove));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SendMouseWheel",
