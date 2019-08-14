@@ -27,7 +27,7 @@
 obs_output_t* streamingOutput    = nullptr;
 obs_output_t* recordingOutput    = nullptr;
 obs_output_t* replayBufferOutput = nullptr;
-;
+
 obs_encoder_t* audioSimpleStreamingEncoder   = nullptr;
 obs_encoder_t* audioSimpleRecordingEncoder   = nullptr;
 obs_encoder_t* audioAdvancedStreamingEncoder = nullptr;
@@ -849,7 +849,14 @@ void OBS_service::createReplayBufferOutput(void)
 	connectOutputSignals();
 }
 
-void OBS_service::setupAudioEncoder(void) {
+void OBS_service::setupAudioEncoder(void)
+{
+	std::string id;
+	if (!createAudioEncoder(&audioSimpleRecordingEncoder, id, GetSimpleAudioBitrate(), "acc", 0)) {
+		throw "Failed to create audio encoder "
+			  "(simple output)";
+	}
+
 	for (int i = 0; i < MAX_AUDIO_MIXES; i++) {
 		char name[9];
 		sprintf(name, "adv_aac%d", i);
@@ -962,6 +969,11 @@ bool OBS_service::startRecording(void)
 	obs_output_release(recordingOutput);
 	recordingOutput = obs_output_create("ffmpeg_muxer", "simple_file_output", nullptr, nullptr);
 	connectOutputSignals();
+
+	obs_data_t* settings = obs_data_create();
+	obs_data_set_int(settings, "bitrate", GetSimpleAudioBitrate());
+	obs_encoder_update(audioSimpleRecordingEncoder, settings);
+	obs_data_release(settings);
 
 	updateRecordSettings();
 	isRecording = true;
@@ -1104,6 +1116,11 @@ bool OBS_service::startReplayBuffer(void)
 	std::string currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
 	bool        advanced          = currentOutputMode.compare("Advanced") == 0;
 
+	obs_data_t* settings = obs_data_create();
+	obs_data_set_int(settings, "bitrate", GetSimpleAudioBitrate());
+	obs_encoder_update(audioSimpleRecordingEncoder, settings);
+	obs_data_release(settings);
+
 	if (!advanced) {
 		std::string quality = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
 
@@ -1112,11 +1129,7 @@ bool OBS_service::startReplayBuffer(void)
 		updateVideoRecordingEncoder();
 		updateRecordingOutput(true);
 
-		if (useStreamingEncoder)
-			associateAudioAndVideoToTheCurrentStreamingContext();
-		else
-			associateAudioAndVideoToTheCurrentRecordingContext();
-
+		associateAudioAndVideoToTheCurrentRecordingContext(useStreamingEncoder);
 		associateAudioAndVideoEncodersToTheCurrentRecordingOutput(useStreamingEncoder);
 	} else {
 		updateAdvancedReplayBuffer();
@@ -1169,7 +1182,7 @@ void OBS_service::associateAudioAndVideoToTheCurrentStreamingContext(void)
 	obs_encoder_set_video(videoStreamingEncoder, obs_get_video());
 }
 
-void OBS_service::associateAudioAndVideoToTheCurrentRecordingContext(void)
+void OBS_service::associateAudioAndVideoToTheCurrentRecordingContext(bool useStreamingEncoder)
 {
 	const char* advancedMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
 
@@ -1193,7 +1206,11 @@ void OBS_service::associateAudioAndVideoToTheCurrentRecordingContext(void)
 		obs_encoder_set_audio(audioSimpleRecordingEncoder, obs_get_audio());
 	}
 
-	obs_encoder_set_video(videoRecordingEncoder, obs_get_video());
+	if (useStreamingEncoder) {
+		obs_encoder_set_video(videoStreamingEncoder, obs_get_video());
+	} else {
+		obs_encoder_set_video(videoRecordingEncoder, obs_get_video());
+	}
 }
 
 void OBS_service::associateAudioAndVideoEncodersToTheCurrentStreamingOutput(void)
@@ -1217,24 +1234,23 @@ void OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(bool
 
 	if (useStreamingEncoder) {
 		obs_output_set_video_encoder(recordingOutput, videoStreamingEncoder);
-		if (simple)
-		        obs_output_set_audio_encoder(recordingOutput, audioSimpleStreamingEncoder, 0);
 
 		if (replayBufferOutput) {
 			obs_output_set_video_encoder(replayBufferOutput, videoStreamingEncoder);
-			if (simple)
-			obs_output_set_audio_encoder(replayBufferOutput, audioSimpleStreamingEncoder, 0);
 		}
 	} else {
 		obs_output_set_video_encoder(recordingOutput, videoRecordingEncoder);
-		if (simple)
-			obs_output_set_audio_encoder(recordingOutput, audioSimpleRecordingEncoder, 0);
-
+		
 		if (replayBufferOutput) {
 			obs_output_set_video_encoder(replayBufferOutput, videoRecordingEncoder);
+		}
+	}
 
-			if (simple)
-				obs_output_set_audio_encoder(replayBufferOutput, audioSimpleRecordingEncoder, 0);
+	if (simple) {
+		obs_output_set_audio_encoder(recordingOutput, audioSimpleRecordingEncoder, 0);
+
+		if (replayBufferOutput) {
+			obs_output_set_audio_encoder(replayBufferOutput, audioSimpleRecordingEncoder, 0);
 		}
 	}
 }
@@ -1371,7 +1387,7 @@ void OBS_service::updateVideoStreamingEncoder()
 		}
 		preset = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", presetType);
 
-		if (videoStreamingEncoder != NULL && usingRecordingPreset) {
+		if (videoStreamingEncoder != NULL) {
 			obs_encoder_release(videoStreamingEncoder);
 		}
 		videoStreamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
@@ -1759,12 +1775,11 @@ void OBS_service::updateVideoRecordingEncoder()
 			updateAudioStreamingEncoder();
 			updateVideoStreamingEncoder();
 		}
+
 		if (videoRecordingEncoder != videoStreamingEncoder) {
 			obs_encoder_release(videoRecordingEncoder);
 			videoRecordingEncoder = nullptr;
-			obs_encoder_release(audioSimpleRecordingEncoder);
-			audioSimpleRecordingEncoder = nullptr;
-			usingRecordingPreset  = false;
+			usingRecordingPreset        = false;
 		}
 		return;
 
@@ -1793,8 +1808,10 @@ void OBS_service::updateVideoRecordingEncoder()
 		}
 		usingRecordingPreset = true;
 
-		if (!createAudioEncoder(&audioSimpleRecordingEncoder, aacSimpleRecEncID, 192, "simple_aac_recording", 0))
-			throw "Failed to create audio simple recording encoder";
+		obs_data_t* settings = obs_data_create();
+		obs_data_set_int(settings, "bitrate", 192);
+		obs_encoder_update(audioSimpleRecordingEncoder, settings);
+		obs_data_release(settings);
 	}
 	UpdateRecordingSettings();
 }
@@ -2127,11 +2144,8 @@ void OBS_service::updateRecordSettings(void)
 		}
 		updateAdvancedRecordingOutput();
 	}
-	if (useStreamingEncoder)
-		associateAudioAndVideoToTheCurrentStreamingContext();
-	else
-		associateAudioAndVideoToTheCurrentRecordingContext();
 
+	associateAudioAndVideoToTheCurrentRecordingContext(useStreamingEncoder);
 	associateAudioAndVideoEncodersToTheCurrentRecordingOutput(useStreamingEncoder);
 }
 

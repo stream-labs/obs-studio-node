@@ -252,7 +252,7 @@ class OBS_service
 	static int  resetVideoContext(bool reload = false);
 
 	static void associateAudioAndVideoToTheCurrentStreamingContext(void);
-	static void associateAudioAndVideoToTheCurrentRecordingContext(void);
+	static void associateAudioAndVideoToTheCurrentRecordingContext(bool useStreamingEncoder = false);
 	static void associateAudioAndVideoEncodersToTheCurrentStreamingOutput(void);
 	static void associateAudioAndVideoEncodersToTheCurrentRecordingOutput(bool useStreamingEncoder);
 
