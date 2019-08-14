@@ -489,21 +489,21 @@ export interface IInputFactory extends IFactoryTypes {
     fromName(name: string): IInput;
     getPublicSources(): IInput[];
 }
-export declare const enum EInteractionFlags {
-    None = 0,
-    CapsKey = 1,
-    ShiftKey = 2,
-    ControlKey = 4,
-    AltKey = 8,
-    MouseLeft = 16,
-    MouseMiddle = 32,
-    MouseRight = 64,
-    CommandKey = 128,
-    Numlock_Key = 256,
-    IsKeyPad = 512,
-    IsLeft = 1024,
-    IsRight = 2048
-}
+export const enum EInteractionFlags {
+    None         = 0,
+    CapsKey      = 1,
+    ShiftKey     = 1 << 1,
+    ControlKey   = 1 << 2,
+    AltKey       = 1 << 3,
+    MouseLeft    = 1 << 4,
+    MouseMiddle  = 1 << 5,
+    MouseRight   = 1 << 6,
+    CommandKey   = 1 << 7,
+    Numlock_Key  = 1 << 8,
+    IsKeyPad     = 1 << 9,
+    IsLeft       = 1 << 10,
+    IsRight      = 1 << 11
+};
 export declare const enum EMouseButtonType {
     Left = 0,
     Middle = 1,
