@@ -50,7 +50,7 @@
 
 #endif
 
-#ifndef _DEBUG
+#ifdef ENABLE_CRASHREPORT
 #include "client/crash_report_database.h"
 #include "client/crashpad_client.h"
 #include "client/settings.h"
@@ -73,7 +73,7 @@ util::MetricsProvider                      metricsClient;
 bool                                       reportsEnabled = true;
 
 // Crashpad variables
-#ifndef _DEBUG
+#ifdef ENABLE_CRASHREPORT
 std::wstring                                   appdata_path;
 crashpad::CrashpadClient                       client;
 std::unique_ptr<crashpad::CrashReportDatabase> database;
@@ -221,7 +221,7 @@ nlohmann::json RequestProcessList()
 
 bool util::CrashManager::Initialize()
 {
-#ifndef _DEBUG
+#ifdef ENABLE_CRASHREPORT
 
 	if (!SetupCrashpad()) {
 		return false;
@@ -303,7 +303,7 @@ bool util::CrashManager::SetupCrashpad()
 	// Define if this is a preview or live version
 	bool isPreview = OBS_API::getCurrentVersion().find("preview") != std::string::npos;
 
-#ifndef _DEBUG
+#ifdef ENABLE_CRASHREPORT
 
 #if defined(_WIN32)
 	HRESULT hResult;
@@ -365,7 +365,7 @@ void util::CrashManager::HandleExit() noexcept
 
 void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noexcept
 {
-#ifndef _DEBUG
+#ifdef ENABLE_CRASHREPORT
 
 	// If for any reason this is true, it means that we are crashing inside this same
 	// method, if that happens just call abort and ignore any remaining processing since
@@ -855,7 +855,7 @@ void util::CrashManager::DisableReports()
 {
 	reportsEnabled = false;
 
-#ifndef _DEBUG
+#ifdef ENABLE_CRASHREPORT
 
 	client.~CrashpadClient();
 	database->~CrashReportDatabase();
