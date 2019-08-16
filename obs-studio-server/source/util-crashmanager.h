@@ -33,7 +33,6 @@
 #ifndef _DEBUG
 #define ENABLE_CRASHREPORT
 #endif
-#define ENABLE_CRASHREPORT
 
 namespace util
 {
