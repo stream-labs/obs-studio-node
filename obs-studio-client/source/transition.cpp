@@ -54,7 +54,8 @@ void osn::Transition::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	utilv8::SetTemplateField(objtemplate, "clear", Clear);
 
 	// Stuff
-	utilv8::SetObjectField(target, "Transition", fnctemplate->GetFunction());
+	utilv8::SetObjectField(
+	    target, "Transition", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
 	prototype.Reset(fnctemplate);
 }
 

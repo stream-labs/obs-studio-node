@@ -45,7 +45,8 @@ void osn::Filter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	utilv8::SetTemplateField(fnctemplate, "create", Create);
 
 	// Stuff
-	utilv8::SetObjectField(target, "Filter", fnctemplate->GetFunction());
+	utilv8::SetObjectField(
+	    target, "Filter", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
 	prototype.Reset(fnctemplate);
 }
 
