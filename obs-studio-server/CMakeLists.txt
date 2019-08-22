@@ -1,5 +1,5 @@
 ﻿cmake_minimum_required(VERSION 3.1.3)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 PROJECT(obs-studio-server VERSION ${obs-studio-node_VERSION})
@@ -123,7 +123,7 @@ IF(APPLE)
 	string(
 		CONCAT OSN_DEFAULT_LIBOBS_URL
 		"https://obsstudios3.streamlabs.com/"
-		"libobs-mac-debug-23.1.0-streamlabs-v0.0.0.7z"
+		"libobs-mac-debug-23.1.0-streamlabs-v0.0.1.7z"
 	)
 ENDIF()
 

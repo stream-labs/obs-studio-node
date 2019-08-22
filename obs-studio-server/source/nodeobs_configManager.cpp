@@ -24,6 +24,7 @@
 #endif
 
 #include <util/platform.h>
+#include <iostream>
 
 void ConfigManager::setAppdataPath(std::string path)
 {
@@ -62,6 +63,11 @@ void initGlobalDefault(config_t* config)
 	config_set_default_bool(config, "BasicWindow", "CenterSnapping", false);
 	config_set_default_bool(config, "General", "BrowserHWAccel", true);
 	config_set_default_bool(config, "General", "fileCaching", true);
+
+#ifdef __APPLE__
+	config_set_default_bool(config, "Video", "DisableOSXVSync", true);
+	config_set_default_bool(config, "Video", "ResetOSXVSyncOnExit", true);
+#endif
 
 	config_save_safe(config, "tmp", nullptr);
 }
@@ -246,7 +252,11 @@ void ConfigManager::reloadConfig(void)
 config_t* ConfigManager::getGlobal()
 {
 	if (!global) {
+#ifdef WIN32
 		global = getConfig("\\global.ini");
+#elif __APPLE__
+		global = getConfig("global.ini");
+#endif
 		if(global) {
 			initGlobalDefault(global);
 		}
@@ -257,7 +267,11 @@ config_t* ConfigManager::getGlobal()
 config_t* ConfigManager::getBasic()
 {
 	if (!basic) {
+#ifdef WIN32
 		basic = getConfig("\\basic.ini");
+#elif __APPLE__
+		basic = getConfig("basic.ini");
+#endif
 		if (basic) {
 			initBasicDefault(basic);
 		}
@@ -267,13 +281,25 @@ config_t* ConfigManager::getBasic()
 };
 std::string ConfigManager::getService()
 {
+#ifdef WIN32
 	return appdata + "\\service.json";
+#elif __APPLE__
+	return appdata + "service.json";
+#endif
 };
 std::string ConfigManager::getStream()
 {
+#ifdef WIN32
 	return appdata + "\\streamEncoder.json";
+#elif __APPLE__
+	return appdata + "streamEncoder.json";
+#endif
 };
 std::string ConfigManager::getRecord()
 {
+#ifdef WIN32
 	return appdata + "\\recordEncoder.json";
+#elif __APPLE__
+	return appdata + "recordEncoder.json";
+#endif
 };

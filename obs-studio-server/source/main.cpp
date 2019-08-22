@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
 		std::cerr << "There must be exactly one parameter." << std::endl;
 		return -1;
 	}
-
+	std::cout << std::endl << std::endl << "##########This is the server##########" << std::endl;
 	// Instance
 	ipc::server myServer;
 	bool        doShutdown = false;
@@ -168,25 +168,25 @@ int main(int argc, char* argv[])
 	};
 
 	/// OBS Studio Node
-	osn::Global::Register(myServer);
-	osn::Source::Register(myServer);
-	osn::Input::Register(myServer);
-	osn::Filter::Register(myServer);
-	osn::Transition::Register(myServer);
-	osn::Scene::Register(myServer);
-	osn::SceneItem::Register(myServer);
-	osn::Fader::Register(myServer);
-	osn::VolMeter::Register(myServer);
-	osn::Properties::Register(myServer);
-	osn::Video::Register(myServer);
-	osn::Module::Register(myServer);
-	CallbackManager::Register(myServer);
+	// osn::Global::Register(myServer);
+	// osn::Source::Register(myServer);
+	// osn::Input::Register(myServer);
+	// osn::Filter::Register(myServer);
+	// osn::Transition::Register(myServer);
+	// osn::Scene::Register(myServer);
+	// osn::SceneItem::Register(myServer);
+	// osn::Fader::Register(myServer);
+	// osn::VolMeter::Register(myServer);
+	// osn::Properties::Register(myServer);
+	// osn::Video::Register(myServer);
+	// osn::Module::Register(myServer);
+	// CallbackManager::Register(myServer);
 	OBS_API::Register(myServer);
-	OBS_content::Register(myServer);
-	OBS_service::Register(myServer);
-	OBS_settings::Register(myServer);
-	OBS_settings::Register(myServer);
-	autoConfig::Register(myServer);
+	// OBS_content::Register(myServer);
+	// OBS_service::Register(myServer);
+	// OBS_settings::Register(myServer);
+	// OBS_settings::Register(myServer);
+	// autoConfig::Register(myServer);
 
 	// Register Connect/Disconnect Handlers
 	myServer.set_connect_handler(ServerConnectHandler, &sd);
@@ -227,14 +227,14 @@ int main(int argc, char* argv[])
 	bool waitBeforeClosing = false;
 
 	while (!doShutdown) {
-		if (sd.count_connected == 0) {
-			auto tp    = std::chrono::high_resolution_clock::now();
-			auto delta = tp - sd.last_disconnect;
-			if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() > 5000) {
-				doShutdown = true;
-				waitBeforeClosing = true;
-			}
-		}
+//        if (sd.count_connected == 0) {
+//            auto tp    = std::chrono::high_resolution_clock::now();
+//            auto delta = tp - sd.last_disconnect;
+//            if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() > 5000) {
+//                doShutdown = true;
+//                waitBeforeClosing = true;
+//            }
+//        }
 		std::this_thread::sleep_for(std::chrono::milliseconds(50));
 	}
 

@@ -475,12 +475,20 @@ void writeCrashHandler(std::vector<char> buffer)
 }
 #endif
 
+int count = 0;
+
 void OBS_API::OBS_API_initAPI(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	std::cout << "OBS_API_initAPI - start " << std::endl;
+	// rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	// rval.push_back(ipc::value(OBS_VIDEO_SUCCESS));
+	// // std::cout << "Return OBS_API_initAPI" << std::endl;
+	// // std::cout << "Count " << count++ << std::endl;
+	// return;
 #ifdef WIN32
 	writeCrashHandler(registerProcess());
 #endif
@@ -618,7 +626,7 @@ void OBS_API::OBS_API_initAPI(
 	// initialized the Dx11 API
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(OBS_VIDEO_SUCCESS));
-
+	std::cout << "Returning value " << std::endl; 
 	AUTO_DEBUG;
 }
 
@@ -1185,6 +1193,7 @@ typedef std::basic_string<char, ci_char_traits> istring;
 bool OBS_API::openAllModules(int& video_err)
 {
 	video_err = OBS_service::resetVideoContext();
+	std::cout << "Result reset video context " << video_err << std::endl;
 	if (video_err != OBS_VIDEO_SUCCESS) {
 		return false;
 	}
@@ -1201,6 +1210,9 @@ bool OBS_API::openAllModules(int& video_err)
 	for (int i = 0; i < num_paths; ++i) {
 		std::string& plugins_path      = plugins_paths[i];
 		std::string& plugins_data_path = plugins_data_paths[i];
+
+		std::cout << "plugins_path: " << plugins_path.c_str() << std::endl;
+		std::cout << "plugins_data_path: " << plugins_data_path.c_str() << std::endl;
 
 		/* FIXME Plugins could be in individual folders, maybe
 		* with some metainfo so we don't attempt just any

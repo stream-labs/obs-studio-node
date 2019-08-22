@@ -415,7 +415,7 @@ int OBS_service::resetVideoContext(bool reload)
 #ifdef _WIN32
 	gslib = "libobs-d3d11.dll";
 #else
-	gslib     = "libobs-opengl";
+	gslib = "libobs-opengl";
 #endif
 	ovi.graphics_module = gslib.c_str();
 
@@ -434,15 +434,20 @@ int OBS_service::resetVideoContext(bool reload)
 	ovi.output_width  = (uint32_t)config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCX");
 	ovi.output_height = (uint32_t)config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCY");
 
-	std::vector<Screen> resolutions = OBS_API::availableResolutions();
 
 	if (ovi.base_width == 0 || ovi.base_height == 0) {
+#ifdef WIN32
+		std::vector<Screen> resolutions = OBS_API::availableResolutions();
 		for (int i = 0; i < resolutions.size(); i++) {
 			if (int(ovi.base_width * ovi.base_height) < resolutions.at(i).width * resolutions.at(i).height) {
 				ovi.base_width  = resolutions.at(i).width;
 				ovi.base_height = resolutions.at(i).height;
 			}
 		}
+#elif __APPLE__
+		ovi.base_width  = 1920;
+		ovi.base_height = 1080;
+#endif
 	}
 
 	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCX", ovi.base_width);

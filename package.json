@@ -22,7 +22,8 @@
     "local:build": "cmake --build build --target install --config Debug",
     "local:clean": "rm -rf build/*",
     "test:azure": "electron-mocha -t 80000 -c true -r ts-node/register tests/osn-tests/src/**/*.ts -R mocha-junit-reporter -O [includePending=true,useFullSuiteTitle=true,outputs=true]",
-    "test": "electron-mocha -t 80000 -c true -r ts-node/register tests/osn-tests/src/**/*.ts"
+    "test": "electron-mocha -t 80000 -c true -r ts-node/register tests/osn-tests/src/**/*.ts",
+    "start": "node ./js/index.js"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
