@@ -27,7 +27,7 @@
 obs_output_t* streamingOutput    = nullptr;
 obs_output_t* recordingOutput    = nullptr;
 obs_output_t* replayBufferOutput = nullptr;
-;
+
 obs_encoder_t* audioSimpleStreamingEncoder   = nullptr;
 obs_encoder_t* audioSimpleRecordingEncoder   = nullptr;
 obs_encoder_t* audioAdvancedStreamingEncoder = nullptr;
@@ -560,6 +560,32 @@ bool OBS_service::createVideoStreamingEncoder()
 	return true;
 }
 
+void OBS_service::createSimpleAudioStreamingEncoder()
+{
+	std::string id;
+
+	if (audioSimpleStreamingEncoder != nullptr) {
+		obs_encoder_release(audioSimpleStreamingEncoder);
+		audioSimpleStreamingEncoder = nullptr;
+	}
+
+	if (!createAudioEncoder(&audioSimpleStreamingEncoder, id, GetSimpleAudioBitrate(), "acc", 0)) {
+		throw "Failed to create audio simple recording encoder";
+	}
+
+	const char* quality = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
+
+	if (strcmp(quality, "Stream") == 0) {
+		if (audioSimpleRecordingEncoder != nullptr) {
+			obs_encoder_release(audioSimpleRecordingEncoder);
+			audioSimpleRecordingEncoder = nullptr;
+		}
+
+		audioSimpleRecordingEncoder = audioSimpleStreamingEncoder;
+		obs_encoder_addref(audioSimpleRecordingEncoder);
+	}
+}
+
 static inline bool valid_string(const char* str)
 {
 	while (str && *str) {
@@ -908,24 +934,21 @@ bool OBS_service::updateAudioStreamingEncoder() {
 				obs_data_t* settings     = obs_data_create();
 				obs_data_set_int(settings, "bitrate", audioBitrate);
 
-				if (audioSimpleStreamingEncoder)
+				if (audioSimpleStreamingEncoder) {
 					obs_encoder_release(audioSimpleStreamingEncoder);
+					audioSimpleStreamingEncoder = nullptr;
+				}
 
 				audioSimpleStreamingEncoder = obs_audio_encoder_create(id, "alt_audio_enc", nullptr, 0, nullptr);
 				if (!audioSimpleStreamingEncoder)
 					return false;
 
 				obs_encoder_update(audioSimpleStreamingEncoder, settings);
-				obs_encoder_set_audio(audioSimpleStreamingEncoder, obs_get_audio());
 
 				obs_data_release(settings);
-			} else {
-				if (audioSimpleStreamingEncoder)
-					obs_encoder_release(audioSimpleStreamingEncoder);
-
-				createAudioEncoder(&audioSimpleStreamingEncoder, id, GetSimpleAudioBitrate(), "acc", 0);
-				obs_encoder_set_audio(audioSimpleStreamingEncoder, obs_get_audio());
 			}
+
+			obs_encoder_set_audio(audioSimpleStreamingEncoder, obs_get_audio());
 		}
 	} else {
 		uint64_t trackIndex = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex");
@@ -1189,8 +1212,6 @@ void OBS_service::associateAudioAndVideoToTheCurrentRecordingContext(void)
 		}
 		for (size_t i = 0; i < MAX_AUDIO_MIXES; i++)
 			obs_encoder_set_audio(aacTracks[i], obs_get_audio());
-	} else {
-		obs_encoder_set_audio(audioSimpleRecordingEncoder, obs_get_audio());
 	}
 
 	obs_encoder_set_video(videoRecordingEncoder, obs_get_video());
@@ -1217,24 +1238,24 @@ void OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(bool
 
 	if (useStreamingEncoder) {
 		obs_output_set_video_encoder(recordingOutput, videoStreamingEncoder);
-		if (simple)
-		        obs_output_set_audio_encoder(recordingOutput, audioSimpleStreamingEncoder, 0);
 
 		if (replayBufferOutput) {
 			obs_output_set_video_encoder(replayBufferOutput, videoStreamingEncoder);
-			if (simple)
-			obs_output_set_audio_encoder(replayBufferOutput, audioSimpleStreamingEncoder, 0);
 		}
 	} else {
 		obs_output_set_video_encoder(recordingOutput, videoRecordingEncoder);
-		if (simple)
-			obs_output_set_audio_encoder(recordingOutput, audioSimpleRecordingEncoder, 0);
 
 		if (replayBufferOutput) {
 			obs_output_set_video_encoder(replayBufferOutput, videoRecordingEncoder);
+		}
+	}
 
-			if (simple)
-				obs_output_set_audio_encoder(replayBufferOutput, audioSimpleRecordingEncoder, 0);
+	if (simple) {
+		obs_encoder_set_audio(audioSimpleRecordingEncoder, obs_get_audio());
+		obs_output_set_audio_encoder(recordingOutput, audioSimpleRecordingEncoder, 0);
+
+		if (replayBufferOutput) {
+			obs_output_set_audio_encoder(replayBufferOutput, audioSimpleRecordingEncoder, 0);
 		}
 	}
 }
@@ -1371,8 +1392,9 @@ void OBS_service::updateVideoStreamingEncoder()
 		}
 		preset = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", presetType);
 
-		if (videoStreamingEncoder != NULL && usingRecordingPreset) {
+		if (videoStreamingEncoder != nullptr) {
 			obs_encoder_release(videoStreamingEncoder);
+			videoStreamingEncoder = nullptr;
 		}
 		videoStreamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
 	}
@@ -1756,14 +1778,12 @@ void OBS_service::updateVideoRecordingEncoder()
 
 	if (strcmp(quality, "Stream") == 0) {
 		if (!isStreaming) {
-			updateAudioStreamingEncoder();
 			updateVideoStreamingEncoder();
 		}
+
 		if (videoRecordingEncoder != videoStreamingEncoder) {
 			obs_encoder_release(videoRecordingEncoder);
 			videoRecordingEncoder = nullptr;
-			obs_encoder_release(audioSimpleRecordingEncoder);
-			audioSimpleRecordingEncoder = nullptr;
 			usingRecordingPreset  = false;
 		}
 		return;
@@ -1792,6 +1812,11 @@ void OBS_service::updateVideoRecordingEncoder()
 			LoadRecordingPreset_h264("jim_nvenc");
 		}
 		usingRecordingPreset = true;
+
+		if (audioSimpleRecordingEncoder != nullptr) {
+			obs_encoder_release(audioSimpleRecordingEncoder);
+			audioSimpleRecordingEncoder = nullptr;
+		}
 
 		if (!createAudioEncoder(&audioSimpleRecordingEncoder, aacSimpleRecEncID, 192, "simple_aac_recording", 0))
 			throw "Failed to create audio simple recording encoder";
