@@ -47,7 +47,7 @@ steps:
 - script: ./ci/build-osn.cmd
   displayName: 'Build obs-studio-node'
 
-- script: 'yarn run test:azure'
+- script: 'yarn run test:azure --grep nodeobs_service'
   env:
     SLOBS_BE_STREAMKEY: $(testsStreamKey)
     SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
