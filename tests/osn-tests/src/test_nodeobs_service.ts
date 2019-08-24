@@ -968,7 +968,7 @@ describe('nodeobs_service', function() {
                 osn.NodeObs.OBS_service_startRecording();
             });
 
-            it('Start replay buffer with invalid path in simple mode', function(done) {
+            /*it('Start replay buffer with invalid path in simple mode', function(done) {
                 isReplayWithInvalidPathSimple = true;
 
                 invalidPathReplaySignalsSimple.subscribe(
@@ -996,7 +996,7 @@ describe('nodeobs_service', function() {
                 );
 
                 osn.NodeObs.OBS_service_startReplayBuffer();
-            });
+            });*/
 
             it('Record with invalid path in advanced mode', function(done) {
                 // Setting encoder and recording path
@@ -1026,7 +1026,7 @@ describe('nodeobs_service', function() {
                 osn.NodeObs.OBS_service_startRecording();
             });
 
-            it('Start replay buffer with invalid path in advanced mode', function(done) {
+            /*it('Start replay buffer with invalid path in advanced mode', function(done) {
                 isReplayWithInvalidPathAdv = true;
 
                 invalidPathReplaySignalsAdv.subscribe(
@@ -1054,7 +1054,7 @@ describe('nodeobs_service', function() {
                 );
 
                 osn.NodeObs.OBS_service_startReplayBuffer();
-            });
+            });*/
 
             it('Stream with invalid stream key', function(done) {
                 saveStreamKey('invalid');
