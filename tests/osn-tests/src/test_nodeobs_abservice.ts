@@ -519,6 +519,7 @@ describe('nodeobs_service', function() {
                                     signalCode = signalInfo.code;
                                     outputType = signalInfo.type;
                                 }
+                                console.log("Received stream stop signal...");
                             } else if (signalInfo.signal === EOBSOutputSignal.Deactivate) {
                                 isReplayWhileStreamingSimple = false;
     
@@ -536,11 +537,14 @@ describe('nodeobs_service', function() {
                                     // Saving replay
                                     osn.NodeObs.OBS_service_processReplayBufferHotkey();
                                 }, 500);
+                                console.log("Saving replay...");
                             } else if (signalInfo.signal === EOBSOutputSignal.Wrote) {
                                 lastReplay = osn.NodeObs.OBS_service_getLastReplay();
+                                console.log("Getting last replay...");
     
                                 // Stopping replay buffer
                                 osn.NodeObs.OBS_service_stopReplayBuffer(false);
+                                console.log("Stopping replay buffer...");
                                 //osn.NodeObs.OBS_service_stopStreaming(false);
                             } else if (signalInfo.signal === EOBSOutputSignal.Stop) {
                                 // If signal code is different than 0, something went wrong
@@ -551,6 +555,7 @@ describe('nodeobs_service', function() {
     
                                 // Stopping stream
                                 osn.NodeObs.OBS_service_stopStreaming(false);
+                                console.log("Stopping stream...");
                             }
                         } else {
                             isReplayWhileStreamingSimple = false;
@@ -968,7 +973,7 @@ describe('nodeobs_service', function() {
                 osn.NodeObs.OBS_service_startRecording();
             });
 
-            /*it('Start replay buffer with invalid path in simple mode', function(done) {
+            it('Start replay buffer with invalid path in simple mode', function(done) {
                 isReplayWithInvalidPathSimple = true;
 
                 invalidPathReplaySignalsSimple.subscribe(
@@ -996,7 +1001,7 @@ describe('nodeobs_service', function() {
                 );
 
                 osn.NodeObs.OBS_service_startReplayBuffer();
-            });*/
+            });
 
             it('Record with invalid path in advanced mode', function(done) {
                 // Setting encoder and recording path
@@ -1026,7 +1031,7 @@ describe('nodeobs_service', function() {
                 osn.NodeObs.OBS_service_startRecording();
             });
 
-            /*it('Start replay buffer with invalid path in advanced mode', function(done) {
+            it('Start replay buffer with invalid path in advanced mode', function(done) {
                 isReplayWithInvalidPathAdv = true;
 
                 invalidPathReplaySignalsAdv.subscribe(
@@ -1054,7 +1059,7 @@ describe('nodeobs_service', function() {
                 );
 
                 osn.NodeObs.OBS_service_startReplayBuffer();
-            });*/
+            });
 
             it('Stream with invalid stream key', function(done) {
                 saveStreamKey('invalid');
