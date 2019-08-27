@@ -14,8 +14,8 @@ strategy:
     Electron5:
       RuntimeURL: https://atom.io/download/atom-shell
       RuntimeName: iojs
-      RuntimeVersion: v5.0.3
-      ElectronVersion: 5.0.3
+      RuntimeVersion: v6.0.3
+      ElectronVersion: 6.0.3
 
 pool:
   name: 'Default'

@@ -331,16 +331,16 @@ void js_setServerPath(const v8::FunctionCallbackInfo<v8::Value>& args)
 		isol->ThrowException(v8::Exception::SyntaxError(v8::String::NewFromUtf8(
 		    isol,
 		    "Too few arguments, usage: setServerPath(<string> binaryPath[, <string> workingDirectoryPath = "
-		    "get_working_directory()]).")));
+		    "get_working_directory()]).").ToLocalChecked()));
 		return;
 	} else if (args.Length() > 2) {
-		isol->ThrowException(v8::Exception::SyntaxError(v8::String::NewFromUtf8(isol, "Too many arguments.")));
+		isol->ThrowException(v8::Exception::SyntaxError(v8::String::NewFromUtf8(isol, "Too many arguments.").ToLocalChecked()));
 		return;
 	}
 
 	if (!args[0]->IsString()) {
 		isol->ThrowException(
-		    v8::Exception::TypeError(v8::String::NewFromUtf8(isol, "Argument 'binaryPath' must be of type 'String'.")));
+		    v8::Exception::TypeError(v8::String::NewFromUtf8(isol, "Argument 'binaryPath' must be of type 'String'.").ToLocalChecked()));
 		return;
 	}
 	serverBinaryPath = *v8::String::Utf8Value(args[0]);
@@ -348,7 +348,7 @@ void js_setServerPath(const v8::FunctionCallbackInfo<v8::Value>& args)
 	if (args.Length() == 2) {
 		if (!args[1]->IsString()) {
 			isol->ThrowException(v8::Exception::TypeError(
-			    v8::String::NewFromUtf8(isol, "Argument 'workingDirectoryPath' must be of type 'String'.")));
+			    v8::String::NewFromUtf8(isol, "Argument 'workingDirectoryPath' must be of type 'String'.").ToLocalChecked()));
 			return;
 		}
 
@@ -427,6 +427,6 @@ INITIALIZER(js_ipc)
 		NODE_SET_METHOD(obj, "connect", js_connect);
 		NODE_SET_METHOD(obj, "host", js_host);
 		NODE_SET_METHOD(obj, "disconnect", js_disconnect);
-		exports->Set(v8::String::NewFromUtf8(exports->GetIsolate(), "IPC"), obj);
+		exports->Set(v8::String::NewFromUtf8(exports->GetIsolate(), "IPC").ToLocalChecked(), obj);
 	});
 }

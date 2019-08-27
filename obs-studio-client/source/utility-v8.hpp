@@ -442,7 +442,9 @@ namespace utilv8
 	template<typename T>
 	inline void SetObjectField(v8::Local<v8::Object> object, const char* field, T value)
 	{
-		Nan::Set(object, ToValue(field), ToValue(value));
+		Nan::Set(object, 
+			ToValue(field), 
+			ToValue(value));
 	}
 
 	template<typename T>
