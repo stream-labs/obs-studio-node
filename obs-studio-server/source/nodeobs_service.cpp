@@ -564,6 +564,10 @@ void OBS_service::createSimpleAudioStreamingEncoder()
 {
 	std::string id;
 
+	if (obs_encoder_active(audioSimpleStreamingEncoder)) {
+		return;
+	}
+
 	if (audioSimpleStreamingEncoder != nullptr) {
 		obs_encoder_release(audioSimpleStreamingEncoder);
 		audioSimpleStreamingEncoder = nullptr;
@@ -572,6 +576,8 @@ void OBS_service::createSimpleAudioStreamingEncoder()
 	if (!createAudioEncoder(&audioSimpleStreamingEncoder, id, GetSimpleAudioBitrate(), "acc", 0)) {
 		throw "Failed to create audio simple recording encoder";
 	}
+
+	obs_encoder_set_audio(audioSimpleStreamingEncoder, obs_get_audio());
 
 	const char* quality = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
 
@@ -945,6 +951,8 @@ bool OBS_service::updateAudioStreamingEncoder() {
 				obs_data_t* settings     = obs_data_create();
 				obs_data_set_int(settings, "bitrate", audioBitrate);
 
+				createSimpleAudioStreamingEncoder();
+
 				if (audioSimpleStreamingEncoder) {
 					obs_encoder_release(audioSimpleStreamingEncoder);
 					audioSimpleStreamingEncoder = nullptr;
@@ -954,12 +962,14 @@ bool OBS_service::updateAudioStreamingEncoder() {
 				if (!audioSimpleStreamingEncoder)
 					return false;
 
+				obs_encoder_set_audio(audioSimpleStreamingEncoder, obs_get_audio());
+
 				obs_encoder_update(audioSimpleStreamingEncoder, settings);
 
 				obs_data_release(settings);
+			} else {
+				createSimpleAudioStreamingEncoder();
 			}
-
-			obs_encoder_set_audio(audioSimpleStreamingEncoder, obs_get_audio());
 		}
 	} else {
 		uint64_t trackIndex = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex");
@@ -1793,6 +1803,7 @@ void OBS_service::updateVideoRecordingEncoder()
 
 	if (strcmp(quality, "Stream") == 0) {
 		if (!isStreaming) {
+			updateAudioStreamingEncoder();
 			updateVideoStreamingEncoder();
 		}
 

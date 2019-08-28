@@ -585,7 +585,6 @@ void OBS_API::OBS_API_initAPI(
 
 	OBS_service::createVideoStreamingEncoder();
 	OBS_service::createVideoRecordingEncoder();
-	OBS_service::createSimpleAudioStreamingEncoder();
 
 	OBS_service::resetAudioContext();
 	OBS_service::resetVideoContext();
