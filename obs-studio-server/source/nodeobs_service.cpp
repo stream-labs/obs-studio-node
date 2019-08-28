@@ -962,9 +962,8 @@ bool OBS_service::updateAudioStreamingEncoder() {
 				if (!audioSimpleStreamingEncoder)
 					return false;
 
-				obs_encoder_set_audio(audioSimpleStreamingEncoder, obs_get_audio());
-
 				obs_encoder_update(audioSimpleStreamingEncoder, settings);
+				obs_encoder_set_audio(audioSimpleStreamingEncoder, obs_get_audio());
 
 				obs_data_release(settings);
 			} else {
