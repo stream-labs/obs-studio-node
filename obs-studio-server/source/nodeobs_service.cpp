@@ -892,8 +892,17 @@ bool OBS_service::updateAudioStreamingEncoder() {
 	std::string currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
 	bool        advanced          = currentOutputMode.compare("Advanced") == 0;
 	std::string id;
+	const char* codec = NULL;
 
-	const char* codec = obs_output_get_supported_audio_codecs(streamingOutput);
+	if (!streamingOutput) {
+		createStreamingOutput();
+		codec = obs_output_get_supported_audio_codecs(streamingOutput);
+		obs_output_release(streamingOutput);
+		streamingOutput = nullptr;
+	} else {
+		codec = obs_output_get_supported_audio_codecs(streamingOutput);
+	}
+
 	if (!codec) {
 		return false;
 	}
