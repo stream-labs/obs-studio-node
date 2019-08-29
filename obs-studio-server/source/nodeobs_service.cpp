@@ -874,7 +874,9 @@ bool OBS_service::startStreaming(void)
 	if (!type)
 		type = "rtmp_output";
 
-	obs_output_release(streamingOutput);
+	if (streamingOutput)
+		obs_output_release(streamingOutput);
+
 	streamingOutput = obs_output_create(type, "simple_stream", nullptr, nullptr);
 	connectOutputSignals();
 
@@ -987,6 +989,10 @@ void OBS_service::stopStreaming(bool forceStop)
 		obs_output_force_stop(streamingOutput);
 	else
 		obs_output_stop(streamingOutput);
+
+	obs_output_release(streamingOutput);
+	streamingOutput = nullptr;
+
 	isStreaming = false;
 }
 
