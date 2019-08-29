@@ -2073,12 +2073,14 @@ void OBS_service::updateStreamSettings(void)
 		delaySec = 0;
 
 	const char* bindIP = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "BindIP");
+	bool        enableDynBitrate = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "DynamicBitrate");
 	bool        enableNewSocketLoop =
 	    config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "NewSocketLoopEnable");
 	bool enableLowLatencyMode = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "LowLatencyEnable");
 
 	obs_data_t* settings = obs_data_create();
 	obs_data_set_string(settings, "bind_ip", bindIP);
+	obs_data_set_bool(settings, "dyn_bitrate", enableDynBitrate);
 	obs_data_set_bool(settings, "new_socket_loop_enabled", enableNewSocketLoop);
 	obs_data_set_bool(settings, "low_latency_mode_enabled", enableLowLatencyMode);
 	obs_output_update(streamingOutput, settings);

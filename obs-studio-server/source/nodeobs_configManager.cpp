@@ -186,6 +186,7 @@ void initBasicDefault(config_t* config)
 	config_set_default_uint(config, "Output", "MaxRetries", 20);
 
 	config_set_default_string(config, "Output", "BindIP", "default");
+	config_set_default_bool(config, "Output", "DynamicBitrate", false);
 	config_set_default_bool(config, "Output", "NewSocketLoopEnable", false);
 	config_set_default_bool(config, "Output", "LowLatencyEnable", false);
 
