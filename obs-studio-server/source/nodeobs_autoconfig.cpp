@@ -645,10 +645,6 @@ void autoConfig::TestBandwidthThread(void)
 	OBSEncoder aencoder = obs_audio_encoder_create("ffmpeg_aac", "test_aac", nullptr, 0, nullptr);
 	OBSService service  = obs_service_create(serverType, "test_service", nullptr, nullptr);
 	OBSOutput  output   = obs_output_create("rtmp_output", "test_stream", nullptr, nullptr);
-	obs_output_release(output);
-	obs_encoder_release(vencoder);
-	obs_encoder_release(aencoder);
-	obs_service_release(service);
 
 	/* -----------------------------------*/
 	/* configure settings                 */
@@ -873,6 +869,11 @@ void autoConfig::TestBandwidthThread(void)
 	serverName   = bestServerName;
 	idealBitrate = bestBitrate;
 
+	obs_output_release(output);
+	obs_encoder_release(vencoder);
+	obs_encoder_release(aencoder);
+	obs_service_release(service);
+
 	eventsMutex.lock();
 	events.push(AutoConfigInfo("stopping_step", "bandwidth_test", 100));
 	eventsMutex.unlock();
@@ -1009,9 +1010,6 @@ bool autoConfig::TestSoftwareEncoding()
 	OBSEncoder vencoder = obs_video_encoder_create("obs_x264", "test_x264", nullptr, nullptr);
 	OBSEncoder aencoder = obs_audio_encoder_create("ffmpeg_aac", "test_aac", nullptr, 0, nullptr);
 	OBSOutput  output   = obs_output_create("null_output", "null", nullptr, nullptr);
-	obs_output_release(output);
-	obs_encoder_release(vencoder);
-	obs_encoder_release(aencoder);
 
 	/* -----------------------------------*/
 	/* configure settings                 */
@@ -1240,6 +1238,10 @@ bool autoConfig::TestSoftwareEncoding()
 	if (idealBitrate > upperBitrate)
 		idealBitrate = upperBitrate;
 
+	obs_output_release(output);
+	obs_encoder_release(vencoder);
+	obs_encoder_release(aencoder);
+
 	softwareTested = true;
 	return true;
 }
@@ -1393,10 +1395,6 @@ bool autoConfig::CheckSettings(void)
 	OBSEncoder vencoder = obs_video_encoder_create(GetEncoderId(streamingEncoder), "test_encoder", nullptr, nullptr);
 	OBSEncoder aencoder = obs_audio_encoder_create("ffmpeg_aac", "test_aac", nullptr, 0, nullptr);
 	OBSOutput  output   = obs_output_create("rtmp_output", "test_stream", nullptr, nullptr);
-	obs_output_release(output);
-	obs_encoder_release(vencoder);
-	obs_encoder_release(aencoder);
-	obs_service_release(service);
 
 	OBSData service_settings  = obs_data_create();
 	OBSData vencoder_settings = obs_data_create();
@@ -1449,6 +1447,11 @@ bool autoConfig::CheckSettings(void)
 
 	if (success)
 		obs_output_stop(output);
+
+	obs_output_release(output);
+	obs_encoder_release(vencoder);
+	obs_encoder_release(aencoder);
+	obs_service_release(service);
 
 	return success;
 }
