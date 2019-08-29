@@ -3611,6 +3611,18 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 
 	entries.push_back(bindIP);
 
+	//Enable dynamic bitrate
+	std::vector<std::pair<std::string, ipc::value>> dynamicBitrate;
+	dynamicBitrate.push_back(std::make_pair("name", ipc::value("DynamicBitrate")));
+	dynamicBitrate.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+	dynamicBitrate.push_back(
+	    std::make_pair("description", ipc::value("Dynamically change bitrate when dropping frames while streaming")));
+	dynamicBitrate.push_back(std::make_pair("subType", ipc::value("")));
+	dynamicBitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	dynamicBitrate.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	dynamicBitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	entries.push_back(dynamicBitrate);
+
 	//Enable new networking code
 	std::vector<std::pair<std::string, ipc::value>> newSocketLoopEnable;
 	newSocketLoopEnable.push_back(std::make_pair("name", ipc::value("NewSocketLoopEnable")));
