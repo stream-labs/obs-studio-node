@@ -38,7 +38,12 @@ extern char **environ;
 #include <psapi.h>
 #include <wchar.h>
 #include <windows.h>
+#elif __APPLE__
+#include <signal.h>
+#include <libproc.h>
+#endif
 
+#ifdef WIN32
 ProcessInfo spawn(const std::string& program, const std::string& commandLine, const std::string& workingDirectory)
 {
 	PROCESS_INFORMATION m_win32_processInformation = {0};
@@ -249,7 +254,7 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 		workingDirectory = get_working_directory();
 	else
 #endif
-		workingDirectory = serverWorkingPath;
+	workingDirectory = serverWorkingPath;
 #ifdef WIN32
 	// Test for existing process.
 	std::string pid_path(get_temp_directory());
@@ -274,17 +279,59 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
     }
     
 #else
+    pid_t pids[2048];
+    int bytes = proc_listpids(PROC_ALL_PIDS, 0, pids, sizeof(pids));
+    int n_proc = bytes / sizeof(pids[0]);
+    for (int i = 0; i < n_proc; i++) {
+        struct proc_bsdinfo proc;
+        int st = proc_pidinfo(pids[i], PROC_PIDTBSDINFO, 0,
+                             &proc, PROC_PIDTBSDINFO_SIZE);
+        if (st == PROC_PIDTBSDINFO_SIZE) {
+            if (strcmp("obs64", proc.pbi_name) == 0) {
+                if (pids[i] != 0)
+					kill(pids[i], SIGKILL);          
+            }
+        }       
+    }
+
     pid_t pid;
     std::vector<char> uri_str(uri.c_str(), uri.c_str() + uri.size() + 1);
     char *argv[] = {"obs64", uri_str.data(), NULL};
-    int status = posix_spawnp(&pid, serverBinaryPath.c_str(), NULL, NULL, argv, environ);
-    
-    if (status != 0) {
-        return nullptr;
-    }
+	std::cout << "Spawning obs server" << std::endl;
+    remove(uri.c_str());
+    // posix_spawn_file_actions_t action;
+    // posix_spawn_file_actions_init(&action);
+    // posix_spawn_file_actions_addopen (&action, STDOUT_FILENO, "/dev/null", O_RDONLY, 0);
+    // int status = posix_spawnp(&pid, serverBinaryPath.c_str(), &action, NULL, argv, environ);
+    // posix_spawn_file_actions_destroy(&action);
+	int ret = 0;
+	posix_spawn_file_actions_t child_fd_actions;
+    if (ret = posix_spawn_file_actions_init (&child_fd_actions))
+        perror ("posix_spawn_file_actions_init"), exit(ret);
+    if (ret = posix_spawn_file_actions_addopen (&child_fd_actions, 1, "/Users/eddygharbi/streamlabs/obs-studio-node/logs/log", 
+            O_WRONLY | O_CREAT | O_TRUNC, 0644))
+        perror ("posix_spawn_file_actions_addopen"), exit(ret);
+    if (ret = posix_spawn_file_actions_adddup2 (&child_fd_actions, 1, 2))
+        perror ("posix_spawn_file_actions_adddup2"), exit(ret);
+
+    if (ret = posix_spawnp(&pid, serverBinaryPath.c_str(), &child_fd_actions, NULL, argv, environ))
+        perror ("posix_spawn"), exit(ret);
+
+	// int status = posix_spawn(&pid, serverBinaryPath.c_str(), NULL, NULL, argv, environ);
+
+    // std::cout << "Status: " << status << std::endl;
+    // if (status != 0) {
+    //     return nullptr;
+    // }
     
     // Connect
     std::shared_ptr<ipc::client> cl = connect(uri);
+	if (!cl) { // Assume the server broke or was not allowed to run.
+        disconnect();
+        uint32_t exitcode;
+        kill(pid, SIGKILL);
+        return nullptr;
+    }
 #endif
     
 	m_isServer = true;

@@ -123,7 +123,7 @@ IF(APPLE)
 	string(
 		CONCAT OSN_DEFAULT_LIBOBS_URL
 		"https://obsstudios3.streamlabs.com/"
-		"libobs-mac-debug-23.1.0-streamlabs-v0.0.1.7z"
+		"libobs-osx-debug-23.1.0-streamlabs-v0.0.13-azure.3.7z"
 	)
 ENDIF()
 

@@ -40,9 +40,25 @@ void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args)
 	auto conn = GetConnection();
 	if (!conn)
 		return;
+		
+	// int count = 10000;
+	// std::chrono::high_resolution_clock::time_point start, end;
+	// start = std::chrono::high_resolution_clock::now();
+	// for (int i = 0; i < count; i++) {
+	// 	// std::cout << "processing" << std::endl;
+	// 	std::vector<ipc::value> response = conn->call_synchronous_helper(
+	//     	"API", "OBS_API_initAPI", {ipc::value(path), ipc::value(language), ipc::value(version)});
+	// }
+	// end = std::chrono::high_resolution_clock::now();
+	// auto delta = end - start;
+	// std::cout << "Finished " << count 
+	// 	<< ", it took: " << std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() << "ms" << std::endl;
+	// double average = (double) std::chrono::duration_cast<std::chrono::nanoseconds>(delta).count() / count / 1000000;
+	// std::cout << "Average time per calls: " << average
+	// 	<< "ms" << std::endl;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "API", "OBS_API_initAPI", {ipc::value(path), ipc::value(language), ipc::value(version)});
+		"API", "OBS_API_initAPI", {ipc::value(path), ipc::value(language), ipc::value(version)});
 
 	// The API init method will return a response error + graphical error
 	// If there is a problem with the IPC the number of responses here will be zero so we must validate the
