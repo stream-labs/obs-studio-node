@@ -60,8 +60,9 @@ void osn::ISource::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	utilv8::SetTemplateField(objtemplate, "sendMouseWheel", SendMouseWheel);
 	utilv8::SetTemplateField(objtemplate, "sendFocus", SendFocus);
 	utilv8::SetTemplateField(objtemplate, "sendKeyClick", SendKeyClick);
-
-	utilv8::SetObjectField(target, "Source", fnctemplate->GetFunction());
+	
+	utilv8::SetObjectField(
+	    target, "Source", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
 	prototype.Reset(fnctemplate);
 }
 

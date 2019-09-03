@@ -73,7 +73,8 @@ void osn::Input::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	utilv8::SetTemplateField(objtemplate, "copyFilters", CopyFilters);
 
 	// Stuff
-	utilv8::SetObjectField(target, "Input", fnctemplate->GetFunction());
+	utilv8::SetObjectField(
+	    target, "Input", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
 	prototype.Reset(fnctemplate);
 }
 

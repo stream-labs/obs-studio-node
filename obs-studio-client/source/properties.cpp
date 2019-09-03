@@ -67,7 +67,8 @@ void osn::Properties::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	utilv8::SetTemplateField(objtemplate, "last", Last);
 	utilv8::SetTemplateField(objtemplate, "get", Get);
 
-	utilv8::SetObjectField(target, "Properties", fnctemplate->GetFunction());
+	utilv8::SetObjectField(
+	    target, "Properties", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
 	prototype.Reset(fnctemplate);
 }
 
@@ -174,7 +175,8 @@ void osn::PropertyObject::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target
 	utilv8::SetTemplateField(objtemplate, "modified", Modified);
 	utilv8::SetTemplateField(objtemplate, "buttonClicked", ButtonClicked);
 
-	utilv8::SetObjectField(target, "Property", fnctemplate->GetFunction());
+	utilv8::SetObjectField(
+	    target, "Property", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
 	osn::PropertyObject::prototype.Reset(fnctemplate);
 }
 

@@ -191,7 +191,8 @@ void osn::VolMeter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	utilv8::SetTemplateField(objtemplate, "removeCallback", RemoveCallback);
 
 	// Stuff
-	utilv8::SetObjectField(target, "Volmeter", fnctemplate->GetFunction());
+	utilv8::SetObjectField(
+	    target, "Volmeter", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
 	prototype.Reset(fnctemplate);
 }
 
