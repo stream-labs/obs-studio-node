@@ -1,4 +1,4 @@
-/******************************************************************************
+﻿/******************************************************************************
     Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
 
     This program is free software: you can redistribute it and/or modify
@@ -222,6 +222,7 @@ nlohmann::json RequestProcessList()
 bool util::CrashManager::Initialize()
 {
 #ifndef _DEBUG
+	annotations.insert({{"crashpad_status", "internal crash handler missed"}});
 
 	if (!SetupCrashpad()) {
 		return false;
@@ -246,7 +247,7 @@ bool util::CrashManager::Initialize()
 
 	// Redirect all the calls from std::terminate
 	std::set_terminate([]() { HandleCrash("Direct call to std::terminate"); });
-
+	
 #if defined(_WIN32)
 
 	// Setup the windows exeption filter
@@ -393,6 +394,7 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	GetUserInfo(computerName);
 
 	auto timeElapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - initialTime);
+	annotations.clear();
 
 	// Setup all the custom annotations that are important too our crash report
 	annotations.insert({{"Time elapsed: ", std::to_string(timeElapsed.count()) + "s"}});
@@ -605,10 +607,10 @@ nlohmann::json util::CrashManager::ComputeActions()
 		auto counter = lastActions.front().first;
 		auto message = lastActions.front().second;
 
-        // Update the message to reflect the count amount, if applicable
-        if (counter > 0) {
-            message["repeat"] = counter;
-        }
+		// Update the message to reflect the count amount, if applicable
+		if (counter > 0) {
+			message["repeat"] = counter;
+		}
 
 		result.push_back(message);
 		lastActions.pop();
@@ -784,7 +786,7 @@ void util::CrashManager::AddWarning(const std::string& warning)
 	warnings.push_back(warning);
 }
 
-void RegisterAction(const nlohmann::json& message) 
+void RegisterAction(const nlohmann::json& message)
 {
 	static const int            MaximumActionsRegistered = 50;
 	std::lock_guard<std::mutex> lock(messageMutex);
