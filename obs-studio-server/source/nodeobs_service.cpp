@@ -1838,11 +1838,6 @@ void OBS_service::updateVideoRecordingEncoder()
 		}
 		usingRecordingPreset = true;
 
-		if (audioSimpleRecordingEncoder != nullptr) {
-			obs_encoder_release(audioSimpleRecordingEncoder);
-			audioSimpleRecordingEncoder = nullptr;
-		}
-
 		if (!createAudioEncoder(&audioSimpleRecordingEncoder, aacSimpleRecEncID, 192, "simple_aac_recording", 0))
 			throw "Failed to create audio simple recording encoder";
 	}
