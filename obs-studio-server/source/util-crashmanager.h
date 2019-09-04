@@ -30,6 +30,10 @@
 #undef strtoll
 #include "nlohmann/json.hpp"
 
+#ifndef _DEBUG
+#define ENABLE_CRASHREPORT
+#endif
+
 namespace util
 {
 	class MetricsProvider;
