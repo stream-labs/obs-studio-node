@@ -1804,9 +1804,6 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	obs_output_t*  streamOutput     = OBS_service::getStreamingOutput();
 	obs_output_t*  recordOutput     = OBS_service::getRecordingOutput();
 
-	if (streamOutput == NULL)
-		return streamingSettings;
-
 	/*
 		If the stream and recording outputs uses the same encoders, we need to check if both aren't active 
 		before recreating the stream encoder to prevent releasing it when it's still being used.
@@ -1817,7 +1814,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	bool recStreamUsesSameEncoder   = streamingEncoder == recordEncoder;
 	bool recOutputBlockStreamOutput = !(!recStreamUsesSameEncoder || (recStreamUsesSameEncoder && !recOutputIsActive));
 
-	if ((!streamOutputIsActive && !recOutputBlockStreamOutput) || streamingEncoder == nullptr) {
+	if ((!streamOutput && !streamOutputIsActive && !recOutputBlockStreamOutput) || streamingEncoder == nullptr) {
 		if (!fileExist) {
 			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
 			OBS_service::setStreamingEncoder(streamingEncoder);
@@ -3622,6 +3619,18 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	}
 
 	entries.push_back(bindIP);
+
+	//Enable dynamic bitrate
+	std::vector<std::pair<std::string, ipc::value>> dynamicBitrate;
+	dynamicBitrate.push_back(std::make_pair("name", ipc::value("DynamicBitrate")));
+	dynamicBitrate.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+	dynamicBitrate.push_back(
+	    std::make_pair("description", ipc::value("Dynamically change bitrate when dropping frames while streaming")));
+	dynamicBitrate.push_back(std::make_pair("subType", ipc::value("")));
+	dynamicBitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	dynamicBitrate.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	dynamicBitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	entries.push_back(dynamicBitrate);
 
 	//Enable new networking code
 	std::vector<std::pair<std::string, ipc::value>> newSocketLoopEnable;

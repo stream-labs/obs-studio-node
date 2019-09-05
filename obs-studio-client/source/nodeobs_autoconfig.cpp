@@ -55,13 +55,16 @@ void AutoConfig::callback_handler(void* data, std::shared_ptr<AutoConfigInfo> it
 
 	v8::Local<v8::Value> argv = v8::Object::New(isolate);
 	argv->ToObject()->Set(
-	    v8::String::NewFromUtf8(isolate, "event"), v8::String::NewFromUtf8(isolate, item->event.c_str()));
+	    v8::String::NewFromUtf8(isolate, "event").ToLocalChecked(),
+	    v8::String::NewFromUtf8(isolate, item->event.c_str()).ToLocalChecked());
 	argv->ToObject()->Set(
-	    v8::String::NewFromUtf8(isolate, "description"), v8::String::NewFromUtf8(isolate, item->description.c_str()));
+	    v8::String::NewFromUtf8(isolate, "description").ToLocalChecked(),
+	    v8::String::NewFromUtf8(isolate, item->description.c_str()).ToLocalChecked());
 
 	if (item->event.compare("error") != 0) {
 		argv->ToObject()->Set(
-		    v8::String::NewFromUtf8(isolate, "percentage"), v8::Number::New(isolate, item->percentage));
+		    v8::String::NewFromUtf8(isolate, "percentage").ToLocalChecked(),
+		    v8::Number::New(isolate, item->percentage));
 	}
 
 	args[0] = argv;
@@ -149,10 +152,10 @@ void autoConfig::InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>&
 
 	v8::Local<v8::Object> serverInfo = args[1].As<v8::Object>();
 
-	v8::String::Utf8Value param0(serverInfo->Get(v8::String::NewFromUtf8(isolate, "continent")));
+	v8::String::Utf8Value param0(serverInfo->Get(v8::String::NewFromUtf8(isolate, "continent").ToLocalChecked()));
 	std::string           continent = std::string(*param0);
 
-	v8::String::Utf8Value param1(serverInfo->Get(v8::String::NewFromUtf8(isolate, "service_name")));
+	v8::String::Utf8Value param1(serverInfo->Get(v8::String::NewFromUtf8(isolate, "service_name").ToLocalChecked()));
 	std::string           service = std::string(*param1);
 
 	auto conn = GetConnection();

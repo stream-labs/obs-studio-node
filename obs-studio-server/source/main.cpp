@@ -129,7 +129,7 @@ namespace System
 
 int main(int argc, char* argv[])
 {
-#ifndef _DEBUG
+#ifdef ENABLE_CRASHREPORT
 
     util::CrashManager crashManager;
 	if (!crashManager.Initialize()) {
@@ -201,7 +201,7 @@ int main(int argc, char* argv[])
 		return -2;
 	}
 
-#ifndef _DEBUG
+#ifdef ENABLE_CRASHREPORT
 
 	// Register the pre and post server callbacks to log the data into the crashmanager
 	myServer.set_pre_callback([](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data)

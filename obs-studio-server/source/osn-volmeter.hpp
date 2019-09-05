@@ -20,6 +20,7 @@
 #include <ipc-server.hpp>
 #include <memory>
 #include <queue>
+#include <array>
 #include "obs.h"
 #include "utility.hpp"
 
@@ -52,10 +53,19 @@ namespace osn
 
 		struct AudioData
 		{
-			float   magnitude[MAX_AUDIO_CHANNELS]  = {0};
-			float   peak[MAX_AUDIO_CHANNELS]       = {0};
-			float   input_peak[MAX_AUDIO_CHANNELS] = {0};
+			std::array<float, MAX_AUDIO_CHANNELS> magnitude{0};
+			std::array<float, MAX_AUDIO_CHANNELS> peak{0};
+			std::array<float, MAX_AUDIO_CHANNELS> input_peak{0};
+			std::chrono::milliseconds             lastUpdateTime = std::chrono::milliseconds(0);
 			int32_t ch                             = 0;
+
+			void resetData()
+			{
+				std::fill(magnitude.begin(), magnitude.end(), -65535.0f);
+				std::fill(peak.begin(), peak.end(), -65535.0f);
+				std::fill(input_peak.begin(), input_peak.end(), -65535.0f);
+				lastUpdateTime = std::chrono::milliseconds(0);
+			}
 		};
 
 		AudioData current_data;
@@ -107,5 +117,9 @@ namespace osn
 		    const float magnitude[MAX_AUDIO_CHANNELS],
 		    const float peak[MAX_AUDIO_CHANNELS],
 		    const float input_peak[MAX_AUDIO_CHANNELS]);
+
+		private:
+		static std::chrono::milliseconds GetTime();
+		static bool CheckIdle(std::chrono::milliseconds currentTime, std::chrono::milliseconds lastUpdateTime);
 	};
 } // namespace osn

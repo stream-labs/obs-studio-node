@@ -71,7 +71,8 @@ void osn::SceneItem::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	utilv8::SetTemplateField(objtemplate, "deferUpdateEnd", DeferUpdateEnd);
 
 	// Stuff
-	utilv8::SetObjectField(target, "SceneItem", fnctemplate->GetFunction());
+	utilv8::SetObjectField(
+	    target, "SceneItem", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
 	prototype.Reset(fnctemplate);
 }
 

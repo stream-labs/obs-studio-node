@@ -1,4 +1,4 @@
-/******************************************************************************
+﻿/******************************************************************************
     Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
 
     This program is free software: you can redistribute it and/or modify
@@ -50,7 +50,7 @@
 
 #endif
 
-#ifndef _DEBUG
+#ifdef ENABLE_CRASHREPORT
 #include "client/crash_report_database.h"
 #include "client/crashpad_client.h"
 #include "client/settings.h"
@@ -73,7 +73,7 @@ util::MetricsProvider                      metricsClient;
 bool                                       reportsEnabled = true;
 
 // Crashpad variables
-#ifndef _DEBUG
+#ifdef ENABLE_CRASHREPORT
 std::wstring                                   appdata_path;
 crashpad::CrashpadClient                       client;
 std::unique_ptr<crashpad::CrashReportDatabase> database;
@@ -221,7 +221,8 @@ nlohmann::json RequestProcessList()
 
 bool util::CrashManager::Initialize()
 {
-#ifndef _DEBUG
+#ifdef ENABLE_CRASHREPORT
+	annotations.insert({{"crashpad_status", "internal crash handler missed"}});
 
 	if (!SetupCrashpad()) {
 		return false;
@@ -246,7 +247,7 @@ bool util::CrashManager::Initialize()
 
 	// Redirect all the calls from std::terminate
 	std::set_terminate([]() { HandleCrash("Direct call to std::terminate"); });
-
+	
 #if defined(_WIN32)
 
 	// Setup the windows exeption filter
@@ -303,7 +304,7 @@ bool util::CrashManager::SetupCrashpad()
 	// Define if this is a preview or live version
 	bool isPreview = OBS_API::getCurrentVersion().find("preview") != std::string::npos;
 
-#ifndef _DEBUG
+#ifdef ENABLE_CRASHREPORT
 
 #if defined(_WIN32)
 	HRESULT hResult;
@@ -365,7 +366,7 @@ void util::CrashManager::HandleExit() noexcept
 
 void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noexcept
 {
-#ifndef _DEBUG
+#ifdef ENABLE_CRASHREPORT
 
 	// If for any reason this is true, it means that we are crashing inside this same
 	// method, if that happens just call abort and ignore any remaining processing since
@@ -393,6 +394,7 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	GetUserInfo(computerName);
 
 	auto timeElapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - initialTime);
+	annotations.clear();
 
 	// Setup all the custom annotations that are important too our crash report
 	annotations.insert({{"Time elapsed: ", std::to_string(timeElapsed.count()) + "s"}});
@@ -605,10 +607,10 @@ nlohmann::json util::CrashManager::ComputeActions()
 		auto counter = lastActions.front().first;
 		auto message = lastActions.front().second;
 
-        // Update the message to reflect the count amount, if applicable
-        if (counter > 0) {
-            message["repeat"] = counter;
-        }
+		// Update the message to reflect the count amount, if applicable
+		if (counter > 0) {
+			message["repeat"] = counter;
+		}
 
 		result.push_back(message);
 		lastActions.pop();
@@ -784,7 +786,7 @@ void util::CrashManager::AddWarning(const std::string& warning)
 	warnings.push_back(warning);
 }
 
-void RegisterAction(const nlohmann::json& message) 
+void RegisterAction(const nlohmann::json& message)
 {
 	static const int            MaximumActionsRegistered = 50;
 	std::lock_guard<std::mutex> lock(messageMutex);
@@ -855,7 +857,7 @@ void util::CrashManager::DisableReports()
 {
 	reportsEnabled = false;
 
-#ifndef _DEBUG
+#ifdef ENABLE_CRASHREPORT
 
 	client.~CrashpadClient();
 	database->~CrashReportDatabase();

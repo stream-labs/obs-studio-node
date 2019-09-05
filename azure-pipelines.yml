@@ -14,8 +14,8 @@ strategy:
     Electron5:
       RuntimeURL: https://atom.io/download/atom-shell
       RuntimeName: iojs
-      RuntimeVersion: v5.0.3
-      ElectronVersion: 5.0.3
+      RuntimeVersion: v6.0.3
+      ElectronVersion: 6.0.3
 
 pool:
   name: 'Default'
@@ -26,7 +26,7 @@ variables:
   SLDistributeDirectory: distribute
   SLFullDistributePath: $(SLBuildDirectory)\$(SLDistributeDirectory)
   BuildArtifact: obs-studio-node-us-$(Build.BuildId)-$(RuntimeName)-$(RuntimeVersion)
-  LibOBSDebugArtifact: libobs-debug-23.1.0-streamlabs-v0.0.8-sm.11.7z
+  LibOBSDebugArtifact: libobs-debug-24.0.0-rc1-streamlabs-v3.7z
   OBSVersion: 23.1.0
 
 steps:

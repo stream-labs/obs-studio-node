@@ -64,7 +64,8 @@ void osn::Scene::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	utilv8::SetTemplateField(objtemplate, "disconnect", Disconnect);
 
 	// Stuff
-	utilv8::SetObjectField(target, "Scene", fnctemplate->GetFunction());
+	utilv8::SetObjectField(
+	    target, "Scene", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
 	prototype.Reset(fnctemplate);
 }
 
@@ -265,23 +266,73 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 	params.push_back(ipc::value(input->sourceId));
 	v8::Local<v8::Object> transform = v8::Object::New(v8::Isolate::GetCurrent());
 	v8::Local<v8::Object> crop      = v8::Object::New(v8::Isolate::GetCurrent());
+	
+	transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("scaleX"))
+	    .ToLocalChecked()
+	    ->ToNumber(info.GetIsolate()->GetCurrentContext()).ToLocalChecked()->Value();
+
 	if (info.Length() >= 2) {
 		transform = info[1]->ToObject();
-		params.push_back(ipc::value(transform->Get(utilv8::ToValue("scaleX"))->ToNumber(info.GetIsolate())->Value()));
-		params.push_back(ipc::value(transform->Get(utilv8::ToValue("scaleY"))->ToNumber(info.GetIsolate())->Value()));
-		params.push_back(ipc::value(transform->Get(utilv8::ToValue("visible"))->ToBoolean()->Value()));
-		params.push_back(ipc::value(transform->Get(utilv8::ToValue("x"))->ToNumber(info.GetIsolate())->Value()));
-		params.push_back(ipc::value(transform->Get(utilv8::ToValue("y"))->ToNumber(info.GetIsolate())->Value()));
-		params.push_back(ipc::value(transform->Get(utilv8::ToValue("rotation"))->ToNumber(info.GetIsolate())->Value()));
+		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("scaleX"))
+		                                .ToLocalChecked()
+		                                ->ToNumber(info.GetIsolate()->GetCurrentContext())
+		                                .ToLocalChecked()
+		                                ->Value()
+		));
 
-		crop = transform->Get(utilv8::ToValue("crop"))->ToObject();
-		params.push_back(ipc::value(crop->Get(utilv8::ToValue("left"))->ToInteger()->Value()));
-		params.push_back(ipc::value(crop->Get(utilv8::ToValue("top"))->ToInteger()->Value()));
-		params.push_back(ipc::value(crop->Get(utilv8::ToValue("right"))->ToInteger()->Value()));
-		params.push_back(ipc::value(crop->Get(utilv8::ToValue("bottom"))->ToInteger()->Value()));
+		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("scaleY"))
+		                                .ToLocalChecked()
+		                                ->ToNumber(info.GetIsolate()->GetCurrentContext())
+		                                .ToLocalChecked()
+		                                ->Value()));
+		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("visible"))
+		                                .ToLocalChecked()
+		                                ->ToBoolean()
+		                                ->Value()));
+		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("x"))
+		                                .ToLocalChecked()
+		                                ->ToNumber(info.GetIsolate()->GetCurrentContext())
+		                                .ToLocalChecked()
+		                                ->Value()));
+		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("y"))
+		                                .ToLocalChecked()
+		                                ->ToNumber(info.GetIsolate()->GetCurrentContext())
+		                                .ToLocalChecked()
+		                                ->Value()));
+		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("rotation"))
+		                                .ToLocalChecked()
+		                                ->ToNumber(info.GetIsolate()->GetCurrentContext())
+		                                .ToLocalChecked()
+		                                ->Value()));
 
-		params.push_back(ipc::value(transform->Get(utilv8::ToValue("streamVisible"))->ToBoolean()->Value()));
-		params.push_back(ipc::value(transform->Get(utilv8::ToValue("recordingVisible"))->ToBoolean()->Value()));
+		crop = transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("crop"))
+		           .ToLocalChecked()
+		           ->ToObject();
+		params.push_back(ipc::value(crop->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("left"))
+		                                .ToLocalChecked()
+		                                ->ToInteger()
+		                                ->Value()));
+		params.push_back(ipc::value(crop->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("top"))
+		                                .ToLocalChecked()
+		                                ->ToInteger()
+		                                ->Value()));
+		params.push_back(ipc::value(crop->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("right"))
+		                                .ToLocalChecked()
+		                                ->ToInteger()
+		                                ->Value()));
+		params.push_back(ipc::value(crop->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("bottom"))
+		                                .ToLocalChecked()
+		                                ->ToInteger()
+		                                ->Value()));
+
+		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("streamVisible"))
+										.ToLocalChecked()
+										->ToBoolean()
+										->Value()));
+		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("recordingVisible"))
+										.ToLocalChecked()
+										->ToBoolean()
+										->Value()));
 	}
 
 	auto conn = GetConnection();
@@ -311,13 +362,29 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 
 	if (info.Length() >= 2) {
 		// Position
-		sid->posX       = transform->Get(utilv8::ToValue("x"))->ToNumber(info.GetIsolate())->Value();
-		sid->posY       = transform->Get(utilv8::ToValue("y"))->ToNumber(info.GetIsolate())->Value();
+		sid->posX = transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("x"))
+		                .ToLocalChecked()
+		                ->ToNumber(info.GetIsolate()->GetCurrentContext())
+		                .ToLocalChecked()
+		                ->Value();
+		sid->posY = transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("y"))
+		                .ToLocalChecked()
+		                ->ToNumber(info.GetIsolate()->GetCurrentContext())
+		                .ToLocalChecked()
+		                ->Value();
 		sid->posChanged = false;
 
 		// Scale
-		sid->scaleX       = transform->Get(utilv8::ToValue("scaleX"))->ToNumber(info.GetIsolate())->Value();
-		sid->scaleY       = transform->Get(utilv8::ToValue("scaleY"))->ToNumber(info.GetIsolate())->Value();
+		sid->scaleX = transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("scaleX"))
+		                  .ToLocalChecked()
+		                  ->ToNumber(info.GetIsolate()->GetCurrentContext())
+		                  .ToLocalChecked()
+		                  ->Value();
+		sid->scaleY = transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("scaleY"))
+		                  .ToLocalChecked()
+		                  ->ToNumber(info.GetIsolate()->GetCurrentContext())
+		                  .ToLocalChecked()
+		                  ->Value();
 		sid->scaleChanged = false;
 
 		// Visibility
@@ -332,7 +399,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 		sid->cropChanged = false;
 
 		// Rotation
-		sid->rotation        = transform->Get(utilv8::ToValue("rotation"))->ToNumber(info.GetIsolate())->Value();
+		sid->rotation = transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("rotation"))
+		                    .ToLocalChecked()
+		                    ->ToNumber(info.GetIsolate()->GetCurrentContext())
+		                    .ToLocalChecked()
+		                    ->Value();
 		sid->rotationChanged = false;
 
 		// Stream visible
