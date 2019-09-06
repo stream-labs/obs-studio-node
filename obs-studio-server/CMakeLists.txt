@@ -109,7 +109,7 @@ add_dependencies(crashpad_util crashpad_client)
 string(
 	CONCAT OSN_DEFAULT_LIBOBS_URL
 	"https://obsstudios3.streamlabs.com/"
-	"libobs-release-24.0.0-rc1-streamlabs-v3.7z"
+	"libobs-release-24.0.0-rc1-streamlabs-v3-media-fix.0.7z"
 )
 
 set(
