@@ -52,6 +52,7 @@ bool        isRecording          = false;
 
 std::mutex             signalMutex;
 std::queue<SignalInfo> outputSignal;
+std::thread            releaseWorker;
 
 OBS_service::OBS_service() {}
 OBS_service::~OBS_service() {}
@@ -1031,8 +1032,8 @@ void OBS_service::stopStreaming(bool forceStop)
 	else
 		obs_output_stop(streamingOutput);
 
-	obs_output_release(streamingOutput);
-	streamingOutput = nullptr;
+	releaseWorker = std::thread(releaseStreamingOutput);
+	releaseWorker.detach();
 
 	isStreaming = false;
 }
@@ -2369,4 +2370,16 @@ void OBS_service::OBS_service_getLastReplay(
 bool OBS_service::useRecordingPreset()
 {
 	return usingRecordingPreset;
+}
+
+void OBS_service::releaseStreamingOutput() {
+	if (config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "DelayEnable")) {
+		uint32_t delay = obs_output_get_active_delay(streamingOutput);
+		while (delay != 0) {
+			delay = obs_output_get_active_delay(streamingOutput);
+		}
+	}
+	
+	obs_output_release(streamingOutput);
+	streamingOutput = nullptr;
 }
