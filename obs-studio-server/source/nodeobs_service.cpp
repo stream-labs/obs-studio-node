@@ -1032,8 +1032,9 @@ void OBS_service::stopStreaming(bool forceStop)
 	else
 		obs_output_stop(streamingOutput);
 
+	waitReleaseWorker();
+
 	releaseWorker = std::thread(releaseStreamingOutput);
-	releaseWorker.detach();
 
 	isStreaming = false;
 }
@@ -2372,7 +2373,8 @@ bool OBS_service::useRecordingPreset()
 	return usingRecordingPreset;
 }
 
-void OBS_service::releaseStreamingOutput() {
+void OBS_service::releaseStreamingOutput()
+{
 	if (config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "DelayEnable")) {
 		uint32_t delay = obs_output_get_active_delay(streamingOutput);
 		while (delay != 0) {
@@ -2382,4 +2384,11 @@ void OBS_service::releaseStreamingOutput() {
 	
 	obs_output_release(streamingOutput);
 	streamingOutput = nullptr;
+}
+
+void OBS_service::waitReleaseWorker()
+{
+	if (releaseWorker.joinable()) {
+		releaseWorker.join();
+	}
 }
