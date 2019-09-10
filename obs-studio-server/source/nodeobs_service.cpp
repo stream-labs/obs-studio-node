@@ -981,7 +981,11 @@ bool OBS_service::updateAudioStreamingEncoder()
 		}
 
 		if (strcmp(codec, "aac") == 0) {
-			audioAdvancedStreamingEncoder = aacTracks[trackIndex - 1];
+			if (!obs_get_multiple_rendering())
+				audioAdvancedStreamingEncoder = aacTracks[trackIndex - 1];
+			else
+				duplicate_encoder(&audioAdvancedStreamingEncoder, aacTracks[trackIndex - 1], trackIndex - 1);
+
 			obs_encoder_addref(audioAdvancedStreamingEncoder);
 		} else {
 			const char* id           = FindAudioEncoderFromCodec(codec);
@@ -2393,7 +2397,7 @@ bool OBS_service::useRecordingPreset()
 	return usingRecordingPreset;
 }
 
-void OBS_service::duplicate_encoder(obs_encoder_t** dst, obs_encoder_t* src)
+void OBS_service::duplicate_encoder(obs_encoder_t** dst, obs_encoder_t* src, uint64_t trackIndex)
 {
 	if (!src)
 		return;
@@ -2412,7 +2416,7 @@ void OBS_service::duplicate_encoder(obs_encoder_t** dst, obs_encoder_t* src)
 			obs_audio_encoder_create(obs_encoder_get_id(src),
 				name.c_str(),
 				obs_encoder_get_settings(src),
-				0,
+				trackIndex,
 				nullptr);
 	} else if (obs_encoder_get_type(src) == OBS_ENCODER_VIDEO) {
 		*dst =
