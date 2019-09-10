@@ -1314,7 +1314,7 @@ void OBS_service::saveService(void)
 
 	const char* serviceType = obs_service_get_type(service);
 
-	if (serviceType) {
+	if (serviceType && strlen(serviceType) > 0) {
 		obs_data_set_string(data, "type", serviceType);
 		obs_data_set_obj(data, "settings", settings);
 
