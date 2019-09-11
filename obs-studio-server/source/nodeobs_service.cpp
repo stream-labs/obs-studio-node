@@ -2185,6 +2185,9 @@ void OBS_service::updateRecordSettings(void)
 		const char* recEncoder = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecEncoder");
 		if (!recEncoder || strcmp(recEncoder, "none") == 0) {
 			useStreamingEncoder = true;
+			if (obs_get_multiple_rendering()) {
+				duplicate_encoder(&videoRecordingEncoder, videoStreamingEncoder);
+			}
 		} else {
 			const char* recType = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecType");
 
