@@ -1166,7 +1166,10 @@ bool OBS_service::startReplayBuffer(void)
 		else
 			useStreamingEncoder = obs_get_replay_buffer_rendering_mode() == OBS_STREAMING_REPLAY_BUFFER_RENDERING;
 
-		updateVideoRecordingEncoder(useStreamingEncoder);
+		if (!(obs_get_multiple_rendering() && useStreamingEncoder && isStreaming)) {
+			updateVideoRecordingEncoder(useStreamingEncoder);
+		}
+
 		updateRecordingOutput(true);
 
 		if (useStreamingEncoder)
@@ -1174,7 +1177,7 @@ bool OBS_service::startReplayBuffer(void)
 		else
 			associateAudioAndVideoToTheCurrentRecordingContext();
 
-		associateAudioAndVideoEncodersToTheCurrentRecordingOutput(useStreamingEncoder);
+		associateAudioAndVideoEncodersToTheCurrentRecordingOutput(useStreamingEncoder, true);
 	} else {
 		updateAdvancedReplayBuffer();
 	}
@@ -1266,22 +1269,24 @@ void OBS_service::associateAudioAndVideoEncodersToTheCurrentStreamingOutput(void
 	}
 }
 
-void OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(bool useStreamingEncoder)
+void OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(bool useStreamingEncoder, bool replayBuffer)
 {
 	bool simple = strcmp(config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode"), "Simple") == 0;
 
 	if (useStreamingEncoder) {
-		obs_output_set_video_encoder(recordingOutput, videoStreamingEncoder);
+		if (!replayBuffer)
+			obs_output_set_video_encoder(recordingOutput, videoStreamingEncoder);
 
-		if (replayBufferOutput) {
-			obs_output_set_video_encoder(replayBufferOutput, videoStreamingEncoder);
+		if (replayBuffer && replayBufferOutput
+		    && !(obs_get_multiple_rendering()
+		         && obs_get_replay_buffer_rendering_mode() == OBS_RECORDING_REPLAY_BUFFER_RENDERING)) {
+				obs_output_set_video_encoder(replayBufferOutput, videoStreamingEncoder);
 		}
 	} else {
-		obs_output_set_video_encoder(recordingOutput, videoRecordingEncoder);
+		if (!replayBuffer)
+			obs_output_set_video_encoder(recordingOutput, videoRecordingEncoder);
 
-
-
-		if (replayBufferOutput
+		if (replayBuffer && replayBufferOutput
 		    && !(obs_get_multiple_rendering()
 		         && obs_get_replay_buffer_rendering_mode() == OBS_STREAMING_REPLAY_BUFFER_RENDERING)) {
 			obs_output_set_video_encoder(replayBufferOutput, videoRecordingEncoder);
@@ -1289,10 +1294,14 @@ void OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(bool
 	}
 
 	if (simple) {
-		obs_encoder_set_audio(audioSimpleRecordingEncoder, obs_get_audio());
-		obs_output_set_audio_encoder(recordingOutput, audioSimpleRecordingEncoder, 0);
+		if (!replayBuffer) {
+			obs_encoder_set_audio(audioSimpleRecordingEncoder, obs_get_audio());
+			obs_output_set_audio_encoder(recordingOutput, audioSimpleRecordingEncoder, 0);
+		}
 
-		if (replayBufferOutput) {
+		if (replayBuffer && replayBufferOutput
+		    && !(obs_get_multiple_rendering()
+		         && obs_get_replay_buffer_rendering_mode() == OBS_STREAMING_REPLAY_BUFFER_RENDERING)) {
 			obs_output_set_audio_encoder(replayBufferOutput, audioSimpleRecordingEncoder, 0);
 		}
 	}
@@ -1808,7 +1817,7 @@ void OBS_service::updateVideoRecordingEncoder(bool useStreamingEncoder)
 		if (videoRecordingEncoder && obs_encoder_active(videoRecordingEncoder))
 			return;
 	} else {
-		if (videoStreamingEncoder && obs_encoder_active(videoStreamingEncoder) && !obs_get_multiple_rendering())
+		if (videoStreamingEncoder && obs_encoder_active(videoStreamingEncoder))
 			return;
 	}
 
@@ -2176,7 +2185,7 @@ void OBS_service::updateRecordSettings(void)
 
 		useStreamingEncoder = quality.compare("Stream") == 0;
 
-		updateVideoRecordingEncoder(useStreamingEncoder);
+		updateVideoRecordingEncoder(useStreamingEncoder && !obs_get_multiple_rendering());
 		updateRecordingOutput(false);
 
 		if (quality.compare("Lossless") == 0)
@@ -2208,7 +2217,7 @@ void OBS_service::updateRecordSettings(void)
 	else
 		associateAudioAndVideoToTheCurrentRecordingContext();
 
-	associateAudioAndVideoEncodersToTheCurrentRecordingOutput(useStreamingEncoder && !multipleRendering);
+	associateAudioAndVideoEncodersToTheCurrentRecordingOutput(useStreamingEncoder && !multipleRendering, false);
 }
 
 std::vector<SignalInfo> streamingSignals;

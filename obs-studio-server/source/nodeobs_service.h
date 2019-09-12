@@ -255,7 +255,7 @@ class OBS_service
 	static void associateAudioAndVideoToTheCurrentStreamingContext(void);
 	static void associateAudioAndVideoToTheCurrentRecordingContext(void);
 	static void associateAudioAndVideoEncodersToTheCurrentStreamingOutput(void);
-	static void associateAudioAndVideoEncodersToTheCurrentRecordingOutput(bool useStreamingEncoder);
+	static void associateAudioAndVideoEncodersToTheCurrentRecordingOutput(bool useStreamingEncoder, bool replayBuffer);
 
 	static int GetSimpleAudioBitrate(void);
 	static int GetAdvancedAudioBitrate(int i);
