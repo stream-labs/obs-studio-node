@@ -946,7 +946,7 @@ bool OBS_service::updateAudioStreamingEncoder()
 			return false;
 
 		const char* quality = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
-		if ((strcmp(quality, "Stream") != 0) || (strcmp(quality, "Stream") == 0 && !isRecording)) {
+		if ((strcmp(quality, "Stream") != 0) || (strcmp(quality, "Stream") == 0 && !isRecording) || obs_get_multiple_rendering()) {
 			if (strcmp(codec, "aac") != 0) {
 				const char* id           = FindAudioEncoderFromCodec(codec);
 				int         audioBitrate = GetSimpleAudioBitrate();
@@ -2125,7 +2125,7 @@ void OBS_service::updateStreamSettings(void)
 
 	if (strcmp(currentOutputMode, "Simple") == 0) {
 		const char* quality = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
-		if ((strcmp(quality, "Stream") != 0) || (strcmp(quality, "Stream") == 0 && !isRecording)) {
+		if ((strcmp(quality, "Stream") != 0) || (strcmp(quality, "Stream") == 0 && !isRecording) || obs_get_multiple_rendering()) {
 			updateVideoStreamingEncoder();
 		}
 	} else if (strcmp(currentOutputMode, "Advanced") == 0) {
