@@ -774,7 +774,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Filters(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!ValidateResponse(response))
 		return;
 
-	std::vector<uint64_t>* filters = {};
+	std::vector<uint64_t>* filters;
 	if (sdi) {
 		filters = sdi->filters;
 		filters->clear();
@@ -835,12 +835,6 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::AddFilter(Nan::NAN_METHOD_ARGS_TYPE info
 
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
 	if (sdi) {
-		std::vector<uint64_t>*          filters  = sdi->filters;
-		std::vector<uint64_t>::iterator filterIt = std::find(filters->begin(), filters->end(), basefilter->sourceId);
-		if (filterIt != filters->end())
-			sdi->filters->erase(filterIt);
-
-		filters->push_back(filter->sourceId);
 		sdi->filtersOrderChanged = true;
 	}
 }
@@ -876,13 +870,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::RemoveFilter(Nan::NAN_METHOD_ARGS_TYPE i
 
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
 	if (sdi) {
-		std::vector<uint64_t>*          filters  = sdi->filters;
-		std::vector<uint64_t>::iterator filterIt = std::find(filters->begin(), filters->end(), basefilter->sourceId);
-
-		if (filterIt != filters->end()) {
-			filters->erase(filterIt);
-			sdi->filtersOrderChanged = true;
-		}
+		sdi->filtersOrderChanged = true;
 	}
 }
 

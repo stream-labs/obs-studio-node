@@ -26,14 +26,6 @@ namespace osn
 {
 	class Input : public osn::ISource, public utilv8::ManagedObject<osn::Input>
 	{
-		enum FilterMovement
-		{
-			UP = 0,
-			DOWN = 1,
-			TOP = 2,
-			BOTTOM = 3,
-		};
-
 		friend class utilv8::ManagedObject<osn::Input>;
 
 		public:
