@@ -918,29 +918,29 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetFilterOrder(Nan::NAN_METHOD_ARGS_TYPE
 				if (it != sdi->filters->begin()) {
 					std::iter_swap(it, it - 1);
 				}
-		    } break;
+			} break;
 
 			case FilterMovement::DOWN: {
-			    if (it != std::prev(sdi->filters->end())) {
-				    std::iter_swap(it, it + 1);
-			    }
-		    } break;
+				if (it != std::prev(sdi->filters->end())) {
+					std::iter_swap(it, it + 1);
+				}
+			} break;
 
 			case FilterMovement::TOP: {
-			    auto rit = std::make_reverse_iterator(it);
-			    for (--rit; rit != std::prev(sdi->filters->rend()); ++rit) {
-				    std::iter_swap(rit, rit + 1);
-			    }
+				auto rit = std::make_reverse_iterator(it);
+				for (--rit; rit != std::prev(sdi->filters->rend()); ++rit) {
+					std::iter_swap(rit, rit + 1);
+				}
 			} break;
 
 			case FilterMovement::BOTTOM: {
-			    for (it; it != std::prev(sdi->filters->end()); ++it) {
-				    std::iter_swap(it, it + 1);
-			    }
+				for (it; it != std::prev(sdi->filters->end()); ++it) {
+					std::iter_swap(it, it + 1);
+				}
 			}
 
 			default:
-			    break;
+				break;
 		}
 
 		sdi->filtersOrderChanged = true;
