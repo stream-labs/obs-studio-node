@@ -774,11 +774,21 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Filters(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!ValidateResponse(response))
 		return;
 
+	std::vector<uint64_t>* filters = {};
+	if (sdi) {
+		filters = sdi->filters;
+		filters->clear();
+	}
+
 	v8::Local<v8::Array> arr = Nan::New<v8::Array>(int(response.size()) - 1);
 	for (size_t idx = 1; idx < response.size(); idx++) {
 		osn::Filter* obj    = new osn::Filter(response[idx].value_union.ui64);
 		auto         object = osn::Filter::Store(obj);
 		Nan::Set(arr, uint32_t(idx) - 1, object);
+
+		if (sdi) {
+			filters->push_back(response[idx].value_union.ui64);
+		}
 	}
 
 	info.GetReturnValue().Set(arr);
@@ -910,39 +920,6 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetFilterOrder(Nan::NAN_METHOD_ARGS_TYPE
 
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
 	if (sdi) {
-		// Update order on cache manager filter container
-		auto it = std::find(sdi->filters->begin(), sdi->filters->end(), basefilter->sourceId);
-
-		switch (movement) {
-			case FilterMovement::UP: {
-				if (it != sdi->filters->begin()) {
-					std::iter_swap(it, it - 1);
-				}
-			} break;
-
-			case FilterMovement::DOWN: {
-				if (it != std::prev(sdi->filters->end())) {
-					std::iter_swap(it, it + 1);
-				}
-			} break;
-
-			case FilterMovement::TOP: {
-				auto rit = std::make_reverse_iterator(it);
-				for (--rit; rit != std::prev(sdi->filters->rend()); ++rit) {
-					std::iter_swap(rit, rit + 1);
-				}
-			} break;
-
-			case FilterMovement::BOTTOM: {
-				for (it; it != std::prev(sdi->filters->end()); ++it) {
-					std::iter_swap(it, it + 1);
-				}
-			}
-
-			default:
-				break;
-		}
-
 		sdi->filtersOrderChanged = true;
 	}
 }
