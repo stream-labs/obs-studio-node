@@ -28,10 +28,10 @@ namespace osn
 	{
 		enum FilterMovement
 		{
-			UP,
-			DOWN,
-			TOP,
-			BOTTOM,
+			UP = 0,
+			DOWN = 1,
+			TOP = 2,
+			BOTTOM = 3,
 		};
 
 		friend class utilv8::ManagedObject<osn::Input>;
