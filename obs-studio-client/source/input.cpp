@@ -20,6 +20,8 @@
 #include <condition_variable>
 #include <mutex>
 #include <string>
+#include <algorithm>
+#include <iterator>
 #include "controller.hpp"
 #include "error.hpp"
 #include "filter.hpp"
@@ -908,6 +910,29 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetFilterOrder(Nan::NAN_METHOD_ARGS_TYPE
 
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
 	if (sdi) {
+		// Update order on cache manager filter container
+		auto it = std::find(sdi->filters->begin(), sdi->filters->end(), basefilter->sourceId);
+
+		if (movement == FilterMovement::UP) {
+			std::iter_swap(it, it - 1);
+		}
+
+		if (movement == FilterMovement::DOWN) {
+			std::iter_swap(it, it + 1);
+		}
+
+		if (movement == FilterMovement::TOP) {
+			for (it; it != sdi->filters->begin(); --it) {
+				std::iter_swap(it, it - 1);
+			}
+		}
+
+		if (movement == FilterMovement::BOTTOM) {
+			for (it; it != sdi->filters->end(); ++it) {
+				std::iter_swap(it, it + 1);
+			}
+		}
+
 		sdi->filtersOrderChanged = true;
 	}
 }
