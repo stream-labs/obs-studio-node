@@ -177,6 +177,8 @@ class OBS_service
 	static void stopRecording(void);
 	static void setRecordingSettings(void);
 
+	static void releaseStreamingOutput(void);
+
 	static void LoadRecordingPreset_h264(const char* encoder);
 	static void LoadRecordingPreset_Lossless(void);
 	// static void LoadRecordingPreset(void);
@@ -224,6 +226,7 @@ class OBS_service
 	static void          setRecordingOutput(obs_output_t* output);
 	static obs_output_t* getReplayBufferOutput(void);
 	static void          setReplayBufferOutput(obs_output_t* output);
+	static void          waitReleaseWorker(void);
 
 	// Update settings
 	static void updateStreamSettings(void);
