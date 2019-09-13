@@ -913,22 +913,23 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetFilterOrder(Nan::NAN_METHOD_ARGS_TYPE
 		// Update order on cache manager filter container
 		auto it = std::find(sdi->filters->begin(), sdi->filters->end(), basefilter->sourceId);
 
-		if (movement == FilterMovement::UP) {
+		if (movement == FilterMovement::UP && it != sdi->filters->begin()) {
 			std::iter_swap(it, it - 1);
 		}
 
-		if (movement == FilterMovement::DOWN) {
+		if (movement == FilterMovement::DOWN && it != std::prev(sdi->filters->end())) {
 			std::iter_swap(it, it + 1);
 		}
 
 		if (movement == FilterMovement::TOP) {
-			for (it; it != sdi->filters->begin(); --it) {
-				std::iter_swap(it, it - 1);
+			auto rit = std::make_reverse_iterator(it);
+			for (--rit; rit != std::prev(sdi->filters->rend()); ++rit) {
+				std::iter_swap(rit, rit + 1);
 			}
 		}
 
 		if (movement == FilterMovement::BOTTOM) {
-			for (it; it != sdi->filters->end(); ++it) {
+			for (it; it != std::prev(sdi->filters->end()); ++it) {
 				std::iter_swap(it, it + 1);
 			}
 		}
