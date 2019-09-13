@@ -817,7 +817,7 @@ bool OBS_service::createService()
 			hotkey_data = obs_data_get_obj(data, "hotkeys");
 
 			// If the type is invalid it could cause a crash since internally obs uses strcmp (nullptr = undef behavior)
-			if (type == nullptr) {
+			if (type == nullptr || strlen(type) == 0) {
 				obs_data_release(data);
 				obs_data_release(hotkey_data);
 				obs_data_release(settings);
@@ -827,17 +827,18 @@ bool OBS_service::createService()
 
 			// Create the service normally since the service.json info looks valid
 			} else {
-                
+
 				service = obs_service_create(type, "default_service", settings, hotkey_data);
 				if (service == nullptr) {
 					obs_data_release(data);
 					obs_data_release(hotkey_data);
 					obs_data_release(settings);
+					blog( LOG_ERROR, "Failed to create service using service info from a file!");
 					return false;
 				}
 
-                obs_data_release(hotkey_data);
-            }	
+				obs_data_release(hotkey_data);
+			}
 		}
 	}
 
@@ -1313,16 +1314,17 @@ void OBS_service::saveService(void)
 
 	const char* serviceType = obs_service_get_type(service);
 
-	obs_data_set_string(data, "type", obs_service_get_type(service));
-	obs_data_set_obj(data, "settings", settings);
+	if (serviceType && strlen(serviceType) > 0) {
+		obs_data_set_string(data, "type", serviceType);
+		obs_data_set_obj(data, "settings", settings);
 
-	if (!obs_data_save_json_safe(data, ConfigManager::getInstance().getService().c_str(), "tmp", "bak"))
-		blog(LOG_WARNING, "Failed to save service");
+		if (!obs_data_save_json_safe(data, ConfigManager::getInstance().getService().c_str(), "tmp", "bak"))
+			blog(LOG_WARNING, "Failed to save service");
 
-	obs_service_update(service, settings);
+		obs_service_update(service, settings);
 
-	serviceType = obs_service_get_type(service);
-
+		serviceType = obs_service_get_type(service);
+	}
 	obs_data_release(settings);
 	obs_data_release(data);
 }
