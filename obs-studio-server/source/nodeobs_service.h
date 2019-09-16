@@ -227,7 +227,7 @@ class OBS_service
 
 	// Update settings
 	static void updateStreamSettings(void);
-	static void updateRecordSettings(void);
+	static void updateRecordSettings(bool replayBuffer = false);
 	static void updateAdvancedReplayBuffer(void);
 
 	// Update video encoders

@@ -1068,6 +1068,9 @@ void OBS_service::updateAdvancedReplayBuffer(void)
 
 	bool useStreamEncoder = recEnc.compare("none") == 0;
 
+	if (obs_get_multiple_rendering())
+		useStreamEncoder = obs_get_replay_buffer_rendering_mode() == OBS_STREAMING_REPLAY_BUFFER_RENDERING;
+
 	obs_data_t* streamEncSettings =
 	    obs_data_create_from_json_file_safe(ConfigManager::getInstance().getStream().c_str(), "bak");
 	obs_data_t* recordEncSettings =
@@ -1081,7 +1084,7 @@ void OBS_service::updateAdvancedReplayBuffer(void)
 	    astrcmpi(rate_control, "CBR") == 0 || astrcmpi(rate_control, "VBR") == 0 || astrcmpi(rate_control, "ABR") == 0;
 	if (!useStreamEncoder) {
 		if (!ffmpegOutput)
-			updateRecordSettings();
+			updateRecordSettings(true);
 	} else if (!obs_output_active(streamingOutput)) {
 		updateAudioStreamingEncoder();
 		updateStreamSettings();
@@ -2175,7 +2178,7 @@ void OBS_service::updateStreamSettings(void)
 	associateAudioAndVideoEncodersToTheCurrentStreamingOutput();
 }
 
-void OBS_service::updateRecordSettings(void)
+void OBS_service::updateRecordSettings(bool replayBuffer)
 {
 	const char* currentOutputMode   = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
 	bool        useStreamingEncoder = false;
@@ -2217,7 +2220,7 @@ void OBS_service::updateRecordSettings(void)
 	else
 		associateAudioAndVideoToTheCurrentRecordingContext();
 
-	associateAudioAndVideoEncodersToTheCurrentRecordingOutput(useStreamingEncoder && !multipleRendering, false);
+	associateAudioAndVideoEncodersToTheCurrentRecordingOutput(useStreamingEncoder && !multipleRendering, replayBuffer);
 }
 
 std::vector<SignalInfo> streamingSignals;
