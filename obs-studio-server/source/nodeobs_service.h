@@ -175,7 +175,6 @@ class OBS_service
 	static bool startReplayBuffer(void);
 	static void stopReplayBuffer(bool forceStop);
 	static void stopRecording(void);
-	static void setRecordingSettings(void);
 
 	static void LoadRecordingPreset_h264(const char* encoder);
 	static void LoadRecordingPreset_Lossless(void);
@@ -227,8 +226,6 @@ class OBS_service
 
 	// Update settings
 	static void updateStreamingOutput(bool isSimpleMode);
-	static void updateRecordSettings(bool replayBuffer = false);
-	static void updateAdvancedReplayBuffer(void);
 
 	// Update video encoders
 	static void updateStreamingEncoders(bool isSimpleMode);
@@ -242,8 +239,7 @@ class OBS_service
 
 	// Update outputs
 	static void updateFfmpegOutput(obs_output_t* output);
-	static void updateAdvancedRecordingOutput(void);
-	static void UpdateFFmpegOutput(void);
+	static void UpdateFFmpegCustomOutput(void);
 	static void updateReplayBufferOutput(bool isSimpleMode);
 
 
@@ -256,11 +252,6 @@ class OBS_service
 	// Reset contexts
 	static bool resetAudioContext(bool reload = false);
 	static int  resetVideoContext(bool reload = false);
-
-	static void associateAudioAndVideoToTheCurrentStreamingContext(void);
-	static void associateAudioAndVideoToTheCurrentRecordingContext(void);
-	static void associateAudioAndVideoEncodersToTheCurrentStreamingOutput(void);
-	static void associateAudioAndVideoEncodersToTheCurrentRecordingOutput(bool useStreamingEncoder, bool replayBuffer);
 
 	static int GetSimpleAudioBitrate(void);
 	static int GetAdvancedAudioBitrate(int i);

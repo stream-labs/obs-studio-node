@@ -592,12 +592,6 @@ void OBS_API::OBS_API_initAPI(
 
 	OBS_service::setupAudioEncoder();
 
-	OBS_service::associateAudioAndVideoToTheCurrentStreamingContext();
-	OBS_service::associateAudioAndVideoToTheCurrentRecordingContext();
-
-	OBS_service::associateAudioAndVideoEncodersToTheCurrentStreamingOutput();
-	OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(false, true);
-
 	setAudioDeviceMonitoring();
 
 	// Enable the hotkey callback rerouting that will be used when manually handling hotkeys on the frontend
