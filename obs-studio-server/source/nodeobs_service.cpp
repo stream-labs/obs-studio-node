@@ -835,7 +835,11 @@ bool OBS_service::createService()
 
 bool OBS_service::createStreamingOutput(void)
 {
-	streamingOutput = obs_output_create("rtmp_output", "simple_stream", nullptr, nullptr);
+	const char* type = obs_service_get_output_type(service);
+	if (!type)
+		type = "rtmp_output";
+
+	streamingOutput = obs_output_create(type, "simple_stream", nullptr, nullptr);
 	if (streamingOutput == nullptr) {
 		return false;
 	}
@@ -902,7 +906,7 @@ bool OBS_service::startStreaming(void)
 	std::string currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
 	bool        isSimpleMode      = currentOutputMode.compare("Simple") == 0;
 
-	updateAudioStreamingEncoder(isSimpleMode);
+	updateAudioStreamingEncoder(isSimpleMode, streamingOutput);
 	updateVideoStreamingEncoder(isSimpleMode);
 	updateService();
 	updateStreamingOutput(isSimpleMode);
@@ -921,9 +925,9 @@ bool OBS_service::startStreaming(void)
 	return obs_output_start(streamingOutput);
 }
 
-void OBS_service::updateAudioStreamingEncoder(bool isSimpleMode)
+void OBS_service::updateAudioStreamingEncoder(bool isSimpleMode, obs_output_t* output)
 {
-	const char* codec = obs_output_get_supported_audio_codecs(streamingOutput);
+	const char* codec = obs_output_get_supported_audio_codecs(output);
 
 	if (!codec) {
 		return;
@@ -936,7 +940,7 @@ void OBS_service::updateAudioStreamingEncoder(bool isSimpleMode)
 
 	if (*enc) {
 		obs_encoder_release(*enc);
-		enc = nullptr;
+		*enc = nullptr;
 	}
 
 	if (strcmp(codec, "aac") == 0 && isSimpleMode) {
@@ -1033,11 +1037,35 @@ bool OBS_service::startRecording(void)
 
 	std::string currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
 	bool        isSimpleMode      = currentOutputMode.compare("Simple") == 0;
-	std::string quality = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
+	std::string simpleQuality = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
+	std::string advancedQuality = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecEncoder");
 
-	if (isSimpleMode && quality.compare("Lossless") == 0) {
+	if (isSimpleMode && simpleQuality.compare("Lossless") == 0) {
 		LoadRecordingPreset_Lossless();
 		ffmpegOutput = true;
+	} else if (
+	    (isSimpleMode && simpleQuality.compare("Stream") == 0) || (!isSimpleMode &&
+				(advancedQuality.compare("") == 0 ||
+				advancedQuality.compare("none") == 0))) {
+		if (isSimpleMode && audioSimpleRecordingEncoder &&
+				audioSimpleRecordingEncoder != audioSimpleStreamingEncoder) {
+			obs_encoder_release(audioSimpleRecordingEncoder);
+			audioSimpleRecordingEncoder = nullptr;
+		}
+		if (videoRecordingEncoder && videoRecordingEncoder != videoStreamingEncoder) {
+			obs_encoder_release(videoRecordingEncoder);
+			videoRecordingEncoder = nullptr;
+		}
+
+		if (isSimpleMode) {
+			updateAudioStreamingEncoder(isSimpleMode, streamingOutput);
+			audioSimpleRecordingEncoder = audioSimpleStreamingEncoder;
+		} else {
+			updateAudioRecordingEncoder(isSimpleMode);
+		}
+
+		updateVideoStreamingEncoder(isSimpleMode);
+		videoRecordingEncoder = videoStreamingEncoder;
 	} else {
 		updateAudioRecordingEncoder(isSimpleMode);
 		updateVideoRecordingEncoder(isSimpleMode);
@@ -1130,7 +1158,7 @@ void OBS_service::updateAdvancedReplayBuffer(void)
 		if (!ffmpegOutput)
 			updateRecordSettings(true);
 	} else if (!obs_output_active(streamingOutput)) {
-		updateAudioStreamingEncoder(false);
+		updateAudioStreamingEncoder(false, replayBufferOutput);
 		updateStreamingOutput(false);
 	}
 

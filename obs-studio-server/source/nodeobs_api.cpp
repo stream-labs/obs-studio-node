@@ -580,6 +580,7 @@ void OBS_API::OBS_API_initAPI(
 	}
 
 	OBS_service::createService();
+	OBS_service::createStreamingOutput();
 	OBS_service::createRecordingOutput();
 	OBS_service::createReplayBufferOutput();
 
