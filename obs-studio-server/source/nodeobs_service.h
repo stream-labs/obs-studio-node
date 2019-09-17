@@ -186,7 +186,7 @@ class OBS_service
 	static void UpdateRecordingSettings_nvenc(int cqp);
 	static void UpdateStreamingSettings_amd(obs_data_t* settings, int bitrate);
 	static void UpdateRecordingSettings_amd_cqp(int cqp);
-	static void UpdateRecordingSettings(void);
+	static void updateVideoRecordingEncoderSettings(void);
 
 	public:
 	// Service
@@ -233,11 +233,12 @@ class OBS_service
 	// Update video encoders
 	static void updateVideoStreamingEncoder(bool isSimpleMode);
 	static void updateAudioStreamingEncoder(bool isSimpleMode);
-	static void updateVideoRecordingEncoder(bool useStreamingEncoder);
+	static void updateAudioRecordingEncoder(bool isSimpleMode);
+	static void updateVideoRecordingEncoder(bool isSimpleMode);
 	static void updateAudioTracks(void);
 
 	// Update outputs
-	static void updateRecordingOutput(bool updateReplayBuffer);
+	static void updateRecordingOutput(void);
 	static void updateAdvancedRecordingOutput(void);
 	static void UpdateFFmpegOutput(void);
 
