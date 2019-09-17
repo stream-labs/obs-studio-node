@@ -1064,17 +1064,22 @@ bool OBS_service::startRecording(void)
 			updateAudioStreamingEncoder(isSimpleMode, streamingOutput);
 			if (!obs_get_multiple_rendering())
 				audioSimpleRecordingEncoder = audioSimpleStreamingEncoder;
-			else
+			else {
 				duplicate_encoder(&audioSimpleRecordingEncoder, audioSimpleStreamingEncoder, 0);
+				obs_encoder_set_audio(audioSimpleRecordingEncoder, obs_get_audio());
+			}
 		} else {
 			updateAudioRecordingEncoder(isSimpleMode);
 		}
 
 		updateVideoStreamingEncoder(isSimpleMode);
-		if (!obs_get_multiple_rendering())
+		if (!obs_get_multiple_rendering()) {
 			videoRecordingEncoder = videoStreamingEncoder;
-		else
+		}
+		else {
 			duplicate_encoder(&videoRecordingEncoder, videoStreamingEncoder);
+			obs_encoder_set_video(videoRecordingEncoder, obs_get_video());
+		}
 	} else {
 		updateAudioRecordingEncoder(isSimpleMode);
 		updateVideoRecordingEncoder(isSimpleMode);
