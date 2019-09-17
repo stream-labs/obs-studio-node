@@ -938,7 +938,7 @@ void OBS_service::updateAudioStreamingEncoder(bool isSimpleMode, obs_output_t* o
 	if (*enc && obs_encoder_active(*enc))
 		return;
 
-	if (*enc) {
+	if (*enc && isSimpleMode) {
 		obs_encoder_release(*enc);
 		*enc = nullptr;
 	}
@@ -1055,7 +1055,9 @@ bool OBS_service::startRecording(void)
 		ffmpegOutput         = false;
 
 		if (isSimpleMode) {
-			updateAudioStreamingEncoder(isSimpleMode, streamingOutput);
+			if (audioSimpleStreamingEncoder && !isStreaming)
+				updateAudioStreamingEncoder(isSimpleMode, streamingOutput);
+
 			if (!obs_get_multiple_rendering())
 				audioEnc = &audioSimpleStreamingEncoder;
 			else {
@@ -1067,7 +1069,9 @@ bool OBS_service::startRecording(void)
 			updateAudioRecordingEncoder(isSimpleMode);
 		}
 
-		updateVideoStreamingEncoder(isSimpleMode);
+		if (videoStreamingEncoder && !isStreaming)
+			updateVideoStreamingEncoder(isSimpleMode);
+
 		if (!obs_get_multiple_rendering()) {
 			videoEnc = &videoStreamingEncoder;
 		}
