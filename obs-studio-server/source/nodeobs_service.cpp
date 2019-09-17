@@ -1040,13 +1040,15 @@ bool OBS_service::startRecording(void)
 	std::string simpleQuality = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
 	std::string advancedQuality = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecEncoder");
 
+	usingRecordingPreset = true;
 	if (isSimpleMode && simpleQuality.compare("Lossless") == 0) {
 		LoadRecordingPreset_Lossless();
-		ffmpegOutput = true;
+		ffmpegOutput         = true;
 	} else if (
 	    (isSimpleMode && simpleQuality.compare("Stream") == 0) || (!isSimpleMode &&
 				(advancedQuality.compare("") == 0 ||
 				advancedQuality.compare("none") == 0))) {
+		usingRecordingPreset = false;
 		if (isSimpleMode && audioSimpleRecordingEncoder &&
 				audioSimpleRecordingEncoder != audioSimpleStreamingEncoder) {
 			obs_encoder_release(audioSimpleRecordingEncoder);
