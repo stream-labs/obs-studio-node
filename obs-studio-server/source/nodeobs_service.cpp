@@ -931,20 +931,22 @@ void OBS_service::updateAudioStreamingEncoder(bool isSimpleMode)
 		return;
 	}
 
-	obs_encoder_t* enc = isSimpleMode ?
-		audioSimpleStreamingEncoder : audioAdvancedStreamingEncoder;
+	obs_encoder_t** enc = isSimpleMode ?
+		&audioSimpleStreamingEncoder : &audioAdvancedStreamingEncoder;
 
-	if (enc && obs_encoder_active(enc))
+	if (*enc && obs_encoder_active(*enc))
 		return;
 
-	if (enc) {
-		obs_encoder_release(enc);
+	if (*enc) {
+		obs_encoder_release(*enc);
 		enc = nullptr;
 	}
 
 	if (strcmp(codec, "aac") == 0 && isSimpleMode) {
 		createSimpleAudioStreamingEncoder();
-		enc = audioSimpleStreamingEncoder;
+	} else if (strcmp(codec, "aac") == 0 && !isSimpleMode) {
+		uint64_t trackIndex = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex");
+		*enc = aacTracks[trackIndex - 1];
 	} else {
 		uint64_t    trackIndex   = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex");
 		const char* id           = FindAudioEncoderFromCodec(codec);
@@ -952,14 +954,14 @@ void OBS_service::updateAudioStreamingEncoder(bool isSimpleMode)
 		obs_data_t* settings     = obs_data_create();
 		obs_data_set_int(settings, "bitrate", audioBitrate);
 
-		enc = obs_audio_encoder_create(id, "alt_audio_enc", nullptr, isSimpleMode ? 0 : trackIndex - 1, nullptr);
-		if (!enc)
+		*enc = obs_audio_encoder_create(id, "alt_audio_enc", nullptr, isSimpleMode ? 0 : trackIndex - 1, nullptr);
+		if (!(*enc))
 			return;
 
-		obs_encoder_update(enc, settings);
+		obs_encoder_update(*enc, settings);
 		obs_data_release(settings);
 	}
-	obs_encoder_set_audio(enc, obs_get_audio());
+	obs_encoder_set_audio(*enc, obs_get_audio());
 	
 	return;
 }
