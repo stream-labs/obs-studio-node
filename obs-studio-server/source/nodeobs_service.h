@@ -226,18 +226,17 @@ class OBS_service
 	static void          setReplayBufferOutput(obs_output_t* output);
 
 	// Update settings
-	static void updateStreamSettings(void);
+	static void updateStreamingOutput(bool isSimpleMode);
 	static void updateRecordSettings(bool replayBuffer = false);
 	static void updateAdvancedReplayBuffer(void);
 
 	// Update video encoders
-	static void updateVideoStreamingEncoder(void);
-	static bool updateAudioStreamingEncoder(void);
+	static void updateVideoStreamingEncoder(bool isSimpleMode);
+	static void updateAudioStreamingEncoder(bool isSimpleMode);
 	static void updateVideoRecordingEncoder(bool useStreamingEncoder);
 	static void updateAudioTracks(void);
 
 	// Update outputs
-	static void updateStreamingOutput(void);
 	static void updateRecordingOutput(bool updateReplayBuffer);
 	static void updateAdvancedRecordingOutput(void);
 	static void UpdateFFmpegOutput(void);
