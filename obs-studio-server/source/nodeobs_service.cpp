@@ -1039,6 +1039,8 @@ bool OBS_service::startRecording(void)
 	bool        isSimpleMode      = currentOutputMode.compare("Simple") == 0;
 	std::string simpleQuality = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
 	std::string advancedQuality = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecEncoder");
+	obs_encoder_t** audioEnc    = nullptr;
+	obs_encoder_t** videoEnc    = nullptr;
 
 	bool simpleUsesStream = isSimpleMode && simpleQuality.compare("Stream") == 0;
 	bool advancedUsesStream =
@@ -1047,7 +1049,9 @@ bool OBS_service::startRecording(void)
 	usingRecordingPreset = true;
 	if (isSimpleMode && simpleQuality.compare("Lossless") == 0) {
 		LoadRecordingPreset_Lossless();
-		ffmpegOutput         = true;
+		ffmpegOutput = true;
+		audioEnc     = &audioSimpleRecordingEncoder;
+		videoEnc     = &videoRecordingEncoder;
 	} else if (simpleUsesStream || advancedUsesStream) {
 		usingRecordingPreset = false;
 		if (isSimpleMode && audioSimpleRecordingEncoder &&
@@ -1063,10 +1067,11 @@ bool OBS_service::startRecording(void)
 		if (isSimpleMode) {
 			updateAudioStreamingEncoder(isSimpleMode, streamingOutput);
 			if (!obs_get_multiple_rendering())
-				audioSimpleRecordingEncoder = audioSimpleStreamingEncoder;
+				audioEnc = &audioSimpleStreamingEncoder;
 			else {
 				duplicate_encoder(&audioSimpleRecordingEncoder, audioSimpleStreamingEncoder, 0);
 				obs_encoder_set_audio(audioSimpleRecordingEncoder, obs_get_audio());
+				audioEnc = &audioSimpleRecordingEncoder;
 			}
 		} else {
 			updateAudioRecordingEncoder(isSimpleMode);
@@ -1074,21 +1079,25 @@ bool OBS_service::startRecording(void)
 
 		updateVideoStreamingEncoder(isSimpleMode);
 		if (!obs_get_multiple_rendering()) {
-			videoRecordingEncoder = videoStreamingEncoder;
+			videoEnc = &videoStreamingEncoder;
 		}
 		else {
 			duplicate_encoder(&videoRecordingEncoder, videoStreamingEncoder);
 			obs_encoder_set_video(videoRecordingEncoder, obs_get_video());
+			videoEnc = &videoRecordingEncoder;
 		}
 	} else {
 		updateAudioRecordingEncoder(isSimpleMode);
 		updateVideoRecordingEncoder(isSimpleMode);
+
+		audioEnc = &audioSimpleStreamingEncoder;
+		videoEnc = &videoRecordingEncoder;
 	}
 	updateRecordingOutput();
 
-	obs_output_set_video_encoder(recordingOutput, videoRecordingEncoder);
+	obs_output_set_video_encoder(recordingOutput, *videoEnc);
 	if (isSimpleMode) {
-		obs_output_set_audio_encoder(recordingOutput, audioSimpleRecordingEncoder, 0);
+		obs_output_set_audio_encoder(recordingOutput, *audioEnc, 0);
 	} else {
 		int tracks = int(config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecTracks"));
 		int idx    = 0;
