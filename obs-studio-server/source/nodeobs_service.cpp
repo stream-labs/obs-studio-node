@@ -50,6 +50,8 @@ bool        lowCPUx264           = false;
 bool        isStreaming          = false;
 bool        isRecording          = false;
 bool        isReplayBufferActive = false;
+bool        rpUsesRec            = false;
+bool        rpUsesStream         = false;
 
 std::mutex             signalMutex;
 std::queue<SignalInfo> outputSignal;
@@ -209,6 +211,8 @@ void OBS_service::OBS_service_stopReplayBuffer(
     std::vector<ipc::value>&       rval)
 {
 	stopReplayBuffer((bool)args[0].value_union.i32);
+	rpUsesRec    = false;
+	rpUsesStream = false;
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -959,6 +963,9 @@ void OBS_service::updateAudioStreamingEncoder(bool isSimpleMode)
 
 void OBS_service::updateAudioRecordingEncoder(bool isSimpleMode)
 {
+	if (isRecording || rpUsesRec)
+		return;
+
 	if (isSimpleMode) {
 		if (!createAudioEncoder(&audioSimpleRecordingEncoder, aacSimpleRecEncID, 192, "simple_aac_recording", 0))
 			throw "Failed to create audio simple recording encoder";
@@ -971,6 +978,9 @@ void OBS_service::updateAudioRecordingEncoder(bool isSimpleMode)
 
 void OBS_service::updateVideoRecordingEncoder(bool isSimpleMode)
 {
+	if (isRecording || rpUsesRec)
+		return;
+
 	const char* quality = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
 	const char* encoder = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecEncoder");
 
@@ -1079,13 +1089,9 @@ bool OBS_service::startRecording(void)
 	bool        isSimpleMode      = currentOutputMode.compare("Simple") == 0;
 	std::string simpleQuality =
 	    config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
-	std::string advancedQuality = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecEncoder");
+
 	obs_encoder_t** audioEnc    = &audioSimpleRecordingEncoder;
 	obs_encoder_t** videoEnc    = &videoRecordingEncoder;
-
-	bool simpleUsesStream = isSimpleMode && simpleQuality.compare("Stream") == 0;
-	bool advancedUsesStream =
-	    !isSimpleMode && (advancedQuality.compare("") == 0 || advancedQuality.compare("none") == 0);
 
 	usingRecordingPreset = true;
 	if (isSimpleMode && simpleQuality.compare("Lossless") == 0) {
@@ -1145,7 +1151,7 @@ void OBS_service::stopRecording(void)
 	isRecording = false;
 }
 
-void OBS_service::updateReplayBufferOutput(bool isSimpleMode)
+void OBS_service::updateReplayBufferOutput(bool isSimpleMode, bool useStreamEncoder)
 {
 	const char* path;
 	const char* format;
@@ -1173,15 +1179,15 @@ void OBS_service::updateReplayBufferOutput(bool isSimpleMode)
 		path           = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecFilePath");
 		format         = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecFormat");
 		fileNameFormat = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "FilenameFormatting");
-		bool overwriteIfExists =
+		overwriteIfExists =
 		    config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "OverwriteIfExists");
-		bool noSpace = config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecFileNameWithoutSpace");
-		const char* rbPrefix =
+		noSpace = config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecFileNameWithoutSpace");
+		rbPrefix =
 		    config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecRBPrefix");
-		const char* rbSuffix =
+		rbSuffix =
 		    config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecRBSuffix");
-		int64_t rbTime = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecRBTime");
-		int64_t rbSize = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecRBSize");
+		rbTime = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecRBTime");
+		rbSize = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecRBSize");
 	}
 
 	std::string f;
@@ -1205,8 +1211,22 @@ void OBS_service::updateReplayBufferOutput(bool isSimpleMode)
 	obs_data_set_bool(settings, "allow_spaces", !noSpace);
 	obs_data_set_int(settings, "max_time_sec", rbTime);
 	obs_data_set_int(settings, "max_size_mb", usingRecordingPreset ? rbSize : 0);
-	//if (!isSimpleMode)
-	//obs_data_set_int(settings, "max_size_mb", usesBitrate ? 0 : rbSize);
+
+	if (!isSimpleMode) {
+		bool        usesBitrate = false;
+		obs_data_t* streamEncSettings =
+		    obs_data_create_from_json_file_safe(ConfigManager::getInstance().getStream().c_str(), "bak");
+		obs_data_t* recordEncSettings =
+		    obs_data_create_from_json_file_safe(ConfigManager::getInstance().getRecord().c_str(), "bak");
+
+		const char* rate_control =
+		    obs_data_get_string(useStreamEncoder ? streamEncSettings : recordEncSettings, "rate_control");
+		if (!rate_control)
+			rate_control = "";
+		usesBitrate = astrcmpi(rate_control, "CBR") == 0 || astrcmpi(rate_control, "VBR") == 0
+		              || astrcmpi(rate_control, "ABR") == 0;
+		obs_data_set_int(settings, "max_size_mb", usesBitrate ? 0 : rbSize);
+	}
 
 	obs_output_update(replayBufferOutput, settings);
 	obs_data_release(settings);
@@ -1228,19 +1248,23 @@ bool OBS_service::startReplayBuffer(void)
 	obs_encoder_t** audioEnc          = NULL;
 	obs_encoder_t** videoEnc          = NULL;
 
+	bool useStreamEncoder = false;
 	if (obs_get_multiple_rendering()
 	    && obs_get_replay_buffer_rendering_mode() == OBS_STREAMING_REPLAY_BUFFER_RENDERING) {
 		updateStreamingEncoders(isSimpleMode);
 		audioEnc = &audioSimpleStreamingEncoder;
 		videoEnc = &videoStreamingEncoder;
+		rpUsesStream = true;
+		useStreamEncoder = true;
 	} else {
 		updateRecordingEncoders(isSimpleMode, audioEnc, videoEnc);
-		audioEnc = &audioSimpleRecordingEncoder;
-		videoEnc = &videoRecordingEncoder;
+		audioEnc  = &audioSimpleRecordingEncoder;
+		videoEnc  = &videoRecordingEncoder;
+		rpUsesRec = true;
 	}
 
 	updateFfmpegOutput(replayBufferOutput);
-	updateReplayBufferOutput(isSimpleMode);
+	updateReplayBufferOutput(isSimpleMode, useStreamEncoder);
 
 	obs_output_set_video_encoder(replayBufferOutput, *videoEnc);
 	if (isSimpleMode) {
@@ -1260,6 +1284,8 @@ bool OBS_service::startReplayBuffer(void)
 	if (!result) {
 		SignalInfo signal    = SignalInfo("replay-buffer", "stop");
 		isReplayBufferActive = false;
+		rpUsesRec            = false;
+		rpUsesStream         = false;
 		const char* error    = obs_output_get_last_error(replayBufferOutput);
 		if (error) {
 			signal.setErrorMessage(error);
