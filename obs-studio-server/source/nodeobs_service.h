@@ -231,16 +231,21 @@ class OBS_service
 	static void updateAdvancedReplayBuffer(void);
 
 	// Update video encoders
+	static void updateStreamingEncoders(bool isSimpleMode);
+	static void updateRecordingEncoders(bool isSimpleMode, obs_encoder_t** audioEnc, obs_encoder_t** videoEnc);
+
 	static void updateVideoStreamingEncoder(bool isSimpleMode);
-	static void updateAudioStreamingEncoder(bool isSimpleMode, obs_output_t* output);
+	static void updateAudioStreamingEncoder(bool isSimpleMode);
 	static void updateAudioRecordingEncoder(bool isSimpleMode);
 	static void updateVideoRecordingEncoder(bool isSimpleMode);
 	static void updateAudioTracks(void);
 
 	// Update outputs
-	static void updateRecordingOutput(void);
+	static void updateFfmpegOutput(obs_output_t* output);
 	static void updateAdvancedRecordingOutput(void);
 	static void UpdateFFmpegOutput(void);
+	static void updateReplayBufferOutput(bool isSimpleMode);
+
 
 	static std::string GetDefaultVideoSavePath(void);
 
