@@ -441,7 +441,7 @@ void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 	// Move Window
 #if defined(_WIN32)
 	SetWindowPos(
-	    m_ourWindow, NULL, x, y, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOZORDER | SWP_ASYNCWINDOWPOS);
+	    m_ourWindow, NULL, x, y, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE  );
 #elif defined(__APPLE__)
 #elif defined(__linux__) || defined(__FreeBSD__)
 #endif
@@ -476,7 +476,7 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 	    m_position.second,
 	    width,
 	    height,
-	    SWP_NOCOPYBITS | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER | SWP_ASYNCWINDOWPOS );
+	    SWP_NOCOPYBITS | SWP_NOMOVE  );
 #elif defined(__APPLE__)
 #elif defined(__linux__) || defined(__FreeBSD__)
 #endif
