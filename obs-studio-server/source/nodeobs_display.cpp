@@ -427,6 +427,20 @@ OBS::Display::~Display()
 		worker.join();
 }
 
+void fixForegroundPosition(HWND m_hWnd)
+{
+	HWND hCurWnd = ::GetForegroundWindow();
+    DWORD dwMyID = ::GetCurrentThreadId();
+    DWORD dwCurID = ::GetWindowThreadProcessId(hCurWnd, NULL);
+    ::AttachThreadInput(dwCurID, dwMyID, TRUE);
+    ::SetWindowPos(m_hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+    ::SetWindowPos(m_hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+    ::SetForegroundWindow(m_hWnd);
+    ::AttachThreadInput(dwCurID, dwMyID, FALSE);
+    ::SetFocus(m_hWnd);
+    ::SetActiveWindow(m_hWnd);
+}
+
 void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 {
 	if (m_source != NULL) {
@@ -442,6 +456,7 @@ void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 #if defined(_WIN32)
 	SetWindowPos(
 	    m_ourWindow, NULL, x, y, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE  );
+	fixForegroundPosition(m_ourWindow);
 #elif defined(__APPLE__)
 #elif defined(__linux__) || defined(__FreeBSD__)
 #endif
@@ -477,6 +492,7 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 	    width,
 	    height,
 	    SWP_NOCOPYBITS | SWP_NOMOVE  );
+	fixForegroundPosition(m_ourWindow);
 #elif defined(__APPLE__)
 #elif defined(__linux__) || defined(__FreeBSD__)
 #endif
