@@ -1099,6 +1099,8 @@ bool OBS_service::startRecording(void)
 		LoadRecordingPreset_Lossless();
 		ffmpegOutput = true;
 	} else {
+		if (!(obs_get_multiple_rendering()
+		    && obs_get_replay_buffer_rendering_mode() == OBS_RECORDING_REPLAY_BUFFER_RENDERING && isReplayBufferActive))
 		updateRecordingEncoders(isSimpleMode, audioEnc, videoEnc);
 	}
 	updateFfmpegOutput(recordingOutput);
@@ -1250,12 +1252,13 @@ bool OBS_service::startReplayBuffer(void)
 	if (obs_get_multiple_rendering()
 	    && obs_get_replay_buffer_rendering_mode() == OBS_STREAMING_REPLAY_BUFFER_RENDERING) {
 		updateStreamingEncoders(isSimpleMode);
-		*audioEnc        = audioSimpleStreamingEncoder;
-		*videoEnc        = videoStreamingEncoder;
+		audioEnc        = &audioSimpleStreamingEncoder;
+		videoEnc        = &videoStreamingEncoder;
 		rpUsesStream     = true;
 		useStreamEncoder = true;
 	} else {
-		updateRecordingEncoders(isSimpleMode, audioEnc, videoEnc);
+		if (!isRecording)
+			updateRecordingEncoders(isSimpleMode, audioEnc, videoEnc);
 		rpUsesRec = true;
 	}
 
