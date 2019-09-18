@@ -879,8 +879,10 @@ void OBS_service::clearAudioEncoder(void)
 
 void OBS_service::updateStreamingEncoders(bool isSimpleMode)
 {
-	updateAudioStreamingEncoder(isSimpleMode);
-	updateVideoStreamingEncoder(isSimpleMode);
+	if (!isStreaming) {
+		updateAudioStreamingEncoder(isSimpleMode);
+		updateVideoStreamingEncoder(isSimpleMode);
+	}
 }
 
 bool OBS_service::startStreaming(void)
@@ -1025,13 +1027,11 @@ void OBS_service::updateVideoRecordingEncoder(bool isSimpleMode)
 	obs_encoder_set_video(videoRecordingEncoder, obs_get_video());
 }
 
-void OBS_service::updateRecordingEncoders(bool isSimpleMode,
-										  obs_encoder_t** audioEnc,
-	                                      obs_encoder_t** videoEnc)
+void OBS_service::updateRecordingEncoders(bool isSimpleMode, obs_encoder_t** audioEnc, obs_encoder_t** videoEnc)
 {
 	std::string simpleQuality =
 	    config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
-	std::string advancedQuality  = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecEncoder");
+	std::string advancedQuality = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecEncoder");
 
 	bool simpleUsesStream = isSimpleMode && simpleQuality.compare("Stream") == 0;
 	bool advancedUsesStream =
@@ -1091,8 +1091,8 @@ bool OBS_service::startRecording(void)
 	std::string simpleQuality =
 	    config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
 
-	obs_encoder_t** audioEnc    = &audioSimpleRecordingEncoder;
-	obs_encoder_t** videoEnc    = &videoRecordingEncoder;
+	obs_encoder_t** audioEnc = &audioSimpleRecordingEncoder;
+	obs_encoder_t** videoEnc = &videoRecordingEncoder;
 
 	usingRecordingPreset = true;
 	if (isSimpleMode && simpleQuality.compare("Lossless") == 0) {
@@ -1177,18 +1177,15 @@ void OBS_service::updateReplayBufferOutput(bool isSimpleMode, bool useStreamEnco
 		rbTime            = int(config_get_int(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecRBTime"));
 		rbSize            = int(config_get_int(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecRBSize"));
 	} else {
-		path           = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecFilePath");
-		format         = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecFormat");
-		fileNameFormat = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "FilenameFormatting");
-		overwriteIfExists =
-		    config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "OverwriteIfExists");
-		noSpace = config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecFileNameWithoutSpace");
-		rbPrefix =
-		    config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecRBPrefix");
-		rbSuffix =
-		    config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecRBSuffix");
-		rbTime = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecRBTime");
-		rbSize = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecRBSize");
+		path              = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecFilePath");
+		format            = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecFormat");
+		fileNameFormat    = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "FilenameFormatting");
+		overwriteIfExists = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "OverwriteIfExists");
+		noSpace  = config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecFileNameWithoutSpace");
+		rbPrefix = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecRBPrefix");
+		rbSuffix = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecRBSuffix");
+		rbTime   = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecRBTime");
+		rbSize   = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecRBSize");
 	}
 
 	std::string f;
@@ -1253,9 +1250,9 @@ bool OBS_service::startReplayBuffer(void)
 	if (obs_get_multiple_rendering()
 	    && obs_get_replay_buffer_rendering_mode() == OBS_STREAMING_REPLAY_BUFFER_RENDERING) {
 		updateStreamingEncoders(isSimpleMode);
-		*audioEnc = audioSimpleStreamingEncoder;
-		*videoEnc = videoStreamingEncoder;
-		rpUsesStream = true;
+		*audioEnc        = audioSimpleStreamingEncoder;
+		*videoEnc        = videoStreamingEncoder;
+		rpUsesStream     = true;
 		useStreamEncoder = true;
 	} else {
 		updateRecordingEncoders(isSimpleMode, audioEnc, videoEnc);
