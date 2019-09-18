@@ -939,6 +939,7 @@ void OBS_service::updateAudioStreamingEncoder(bool isSimpleMode)
 
 	if (strcmp(codec, "aac") == 0 && isSimpleMode) {
 		createSimpleAudioStreamingEncoder();
+		*enc = audioSimpleStreamingEncoder;
 	} else if (strcmp(codec, "aac") == 0 && !isSimpleMode) {
 		uint64_t trackIndex = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex");
 		*enc                = aacTracks[trackIndex - 1];
@@ -1045,11 +1046,11 @@ void OBS_service::updateRecordingEncoders(bool isSimpleMode,
 				updateAudioStreamingEncoder(isSimpleMode);
 
 			if (!obs_get_multiple_rendering())
-				audioEnc = &audioSimpleStreamingEncoder;
+				*audioEnc = audioSimpleStreamingEncoder;
 			else {
 				duplicate_encoder(&audioSimpleRecordingEncoder, audioSimpleStreamingEncoder, 0);
 				obs_encoder_set_audio(audioSimpleRecordingEncoder, obs_get_audio());
-				audioEnc = &audioSimpleRecordingEncoder;
+				*audioEnc = audioSimpleRecordingEncoder;
 			}
 		} else {
 			updateAudioRecordingEncoder(isSimpleMode);
@@ -1059,18 +1060,18 @@ void OBS_service::updateRecordingEncoders(bool isSimpleMode,
 			updateVideoStreamingEncoder(isSimpleMode);
 
 		if (!obs_get_multiple_rendering()) {
-			videoEnc = &videoStreamingEncoder;
+			*videoEnc = videoStreamingEncoder;
 		} else {
 			duplicate_encoder(&videoRecordingEncoder, videoStreamingEncoder);
 			obs_encoder_set_video(videoRecordingEncoder, obs_get_video());
-			videoEnc = &videoRecordingEncoder;
+			*videoEnc = videoRecordingEncoder;
 		}
 	} else {
 		updateAudioRecordingEncoder(isSimpleMode);
 		updateVideoRecordingEncoder(isSimpleMode);
 
-		audioEnc = &audioSimpleRecordingEncoder;
-		videoEnc = &videoRecordingEncoder;
+		*audioEnc = audioSimpleRecordingEncoder;
+		*videoEnc = videoRecordingEncoder;
 	}
 }
 
@@ -1245,21 +1246,19 @@ bool OBS_service::startReplayBuffer(void)
 
 	std::string     currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
 	bool            isSimpleMode      = currentOutputMode.compare("Simple") == 0;
-	obs_encoder_t** audioEnc          = NULL;
-	obs_encoder_t** videoEnc          = NULL;
+	obs_encoder_t** audioEnc          = &audioSimpleRecordingEncoder;
+	obs_encoder_t** videoEnc          = &videoRecordingEncoder;
 
 	bool useStreamEncoder = false;
 	if (obs_get_multiple_rendering()
 	    && obs_get_replay_buffer_rendering_mode() == OBS_STREAMING_REPLAY_BUFFER_RENDERING) {
 		updateStreamingEncoders(isSimpleMode);
-		audioEnc = &audioSimpleStreamingEncoder;
-		videoEnc = &videoStreamingEncoder;
+		*audioEnc = audioSimpleStreamingEncoder;
+		*videoEnc = videoStreamingEncoder;
 		rpUsesStream = true;
 		useStreamEncoder = true;
 	} else {
 		updateRecordingEncoders(isSimpleMode, audioEnc, videoEnc);
-		audioEnc  = &audioSimpleRecordingEncoder;
-		videoEnc  = &videoRecordingEncoder;
 		rpUsesRec = true;
 	}
 
@@ -2221,10 +2220,7 @@ void OBS_service::duplicate_encoder(obs_encoder_t** dst, obs_encoder_t* src, uin
 	if (!src)
 		return;
 
-	if (*dst == src)
-		return;
-
-	if (dst)
+	if (*dst != src && *dst)
 		obs_encoder_release(*dst);
 
 	std::string name = obs_encoder_get_name(src);
