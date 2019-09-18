@@ -163,16 +163,16 @@ void OBS::Display::SystemWorker()
 			DWORD windowStyle;
 
 			if (IsWindows8OrGreater() || !enabled) {
-				windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST;
+				windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST ;
 			} else {
-				windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_COMPOSITED;
+				windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_COMPOSITED ;
 			}
 
 			HWND newWindow = CreateWindowEx(
 			    windowStyle,
 			    TEXT("Win32DisplayClass"),
 			    TEXT("SlobsChildWindowPreview"),
-			    WS_VISIBLE | WS_POPUP,
+			    WS_VISIBLE | WS_POPUP | WS_CHILD,
 			    0,
 			    0,
 			    question->width,
@@ -441,7 +441,7 @@ void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 	// Move Window
 #if defined(_WIN32)
 	SetWindowPos(
-	    m_ourWindow, NULL, x, y, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE);
+	    m_ourWindow, NULL, x, y, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOZORDER | SWP_ASYNCWINDOWPOS);
 #elif defined(__APPLE__)
 #elif defined(__linux__) || defined(__FreeBSD__)
 #endif
@@ -470,13 +470,13 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 	// Resize Window
 #if defined(_WIN32)
 	SetWindowPos(
-	    (HWND)(m_gsInitData.window.hwnd),
+	    m_ourWindow,
 	    NULL,
 	    m_position.first,
 	    m_position.second,
 	    width,
 	    height,
-	    SWP_NOCOPYBITS | SWP_NOMOVE | SWP_NOACTIVATE);
+	    SWP_NOCOPYBITS | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER | SWP_ASYNCWINDOWPOS );
 #elif defined(__APPLE__)
 #elif defined(__linux__) || defined(__FreeBSD__)
 #endif
