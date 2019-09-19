@@ -469,7 +469,7 @@ void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 	SetWindowPos(
 	    m_ourWindow, NULL, x, y, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE  );
  
- 	std::thread{fixForegroundPosition, m_ourWindow}.detach();
+ 	//std::thread{fixForegroundPosition, m_ourWindow}.detach();
 	
 #elif defined(__APPLE__)
 #elif defined(__linux__) || defined(__FreeBSD__)
@@ -502,7 +502,8 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 		    width,
 		    height,
 			m_ourWindow);
-
+	width = width-10;
+	height = height-10;
 	// Resize Window
 #if defined(_WIN32)
 	SetWindowPos(
@@ -514,7 +515,7 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 	    height,
 	    SWP_NOCOPYBITS | SWP_NOMOVE  );
 
-	 	std::thread{fixForegroundPosition, m_ourWindow}.detach();
+	 	//std::thread{fixForegroundPosition, m_ourWindow}.detach();
 
 #elif defined(__APPLE__)
 #elif defined(__linux__) || defined(__FreeBSD__)
