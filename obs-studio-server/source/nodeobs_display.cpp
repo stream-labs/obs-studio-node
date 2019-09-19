@@ -430,19 +430,20 @@ OBS::Display::~Display()
 void fixForegroundPosition(HWND m_hWnd)
 {
 	std::this_thread::sleep_for(std::chrono::seconds(1));
-	
+
 	HWND hCurWnd = ::GetForegroundWindow();
     DWORD dwMyID = ::GetCurrentThreadId();
     DWORD dwCurID = ::GetWindowThreadProcessId(hCurWnd, NULL);
     ::AttachThreadInput(dwCurID, dwMyID, TRUE);
-    ::SetWindowPos(m_hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+	::SetWindowPos(m_hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE );
+    ::SetWindowPos(m_hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_SHOWWINDOW);
 //    ::SetWindowPos(m_hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
     ::SetForegroundWindow(m_hWnd);
     ::AttachThreadInput(dwCurID, dwMyID, FALSE);
     ::SetFocus(m_hWnd);
     ::SetActiveWindow(m_hWnd);
 	
-	RedrawWindow(m_hWnd, NULL, 0, RDW_FRAME | RDW_INVALIDATE | RDW_ALLCHILDREN );
+	RedrawWindow(m_hWnd, NULL, 0, RDW_INVALIDATE | RDW_ALLCHILDREN );
 }
 
 void OBS::Display::SetPosition(uint32_t x, uint32_t y)
@@ -456,6 +457,12 @@ void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 		    y,
 			m_ourWindow);
 	}
+		blog(
+		    LOG_WARNING,
+		    "<" __FUNCTION__ "> Adjusting display position for source to %ldx%ld. hwnd %d",
+		    x,
+		    y,
+			m_ourWindow);
 
 	// Move Window
 #if defined(_WIN32)
@@ -489,6 +496,12 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 		    height,
 			m_ourWindow);
 	}
+		blog(
+		    LOG_WARNING,
+		    "<" __FUNCTION__ "> Adjusting display size for source to %ldx%ld. hwnd %d",
+		    width,
+		    height,
+			m_ourWindow);
 
 	// Resize Window
 #if defined(_WIN32)
