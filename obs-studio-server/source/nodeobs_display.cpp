@@ -449,8 +449,8 @@ void fixForegroundPosition(HWND m_hWnd)
 void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 {
 	// Store new position.
-	m_position.first  = x+1;
-	m_position.second = y+1;
+	m_position.first  = x;
+	m_position.second = y;
 
 	if (m_source != NULL) {
 		blog(
@@ -488,34 +488,40 @@ std::pair<uint32_t, uint32_t> OBS::Display::GetPosition()
 
 void OBS::Display::SetSize(uint32_t width, uint32_t height)
 {
-	m_gsInitData.cx = width-2;
-	m_gsInitData.cy = height-2;
+	auto setSizeCall = [width, height](OBS::Display* display)
+	{
+	if(width != 0)
+	{
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+	}
+	display->m_gsInitData.cx = width;
+	display->m_gsInitData.cy = height;
 
-	if (m_source != NULL) {
+	if (display->m_source != NULL) {
 		blog(
 		    LOG_INFO,
 		    "<" __FUNCTION__ "> Adjusting display size for source %s to %ldx%ld. hwnd %d",
-		    obs_source_get_name(m_source),
+		    obs_source_get_name(display->m_source),
 		    width,
 		    height,
-			m_ourWindow);
+			display->m_ourWindow);
 	}
 		blog(
 		    LOG_WARNING,
 		    "<" __FUNCTION__ "> Adjusting display size for source to %ldx%ld. hwnd %d. cut",
 		    width,
 		    height,
-			m_ourWindow);
+			display->m_ourWindow);
 
 	// Resize Window
 #if defined(_WIN32)
 	SetWindowPos(
-	    m_ourWindow,
+	    display->m_ourWindow,
 	    NULL,
-	    m_position.first,
-	    m_position.second,
-		m_gsInitData.cx,
-	    m_gsInitData.cy,
+	    display->m_position.first,
+	    display->m_position.second,
+		display->m_gsInitData.cx,
+	    display->m_gsInitData.cy,
 	    SWP_NOCOPYBITS );
 
 	 	//std::thread{fixForegroundPosition, m_ourWindow}.detach();
@@ -525,10 +531,18 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 #endif
 
 	// Resize Display
-	obs_display_resize(m_display, m_gsInitData.cx, m_gsInitData.cy);
+	obs_display_resize(display->m_display, display->m_gsInitData.cx, display->m_gsInitData.cy);
 
 	// Store new size.
-	UpdatePreviewArea();
+	display->UpdatePreviewArea();
+	};
+
+	if(width == 0)
+	{
+		setSizeCall(this);
+	} else {
+		std::thread{setSizeCall, this}.detach();
+	}
 }
 
 std::pair<uint32_t, uint32_t> OBS::Display::GetSize()
@@ -1218,6 +1232,17 @@ void OBS::Display::UpdatePreviewArea()
 	m_worldToPreviewScale.y = float_t(m_previewSize.second) / float_t(sourceH);
 	m_previewToWorldScale.x = float_t(sourceW) / float_t(m_previewSize.first);
 	m_previewToWorldScale.y = float_t(sourceH) / float_t(m_previewSize.second);
+			blog(
+		    LOG_WARNING,
+		    "<" __FUNCTION__ "> Previce area %ldx%ld. %ldx%ld. %ldx%ld. %ldx%ld. ",
+		    m_worldToPreviewScale.x,
+		    m_worldToPreviewScale.y,
+			m_previewToWorldScale.x,
+			m_previewToWorldScale.y,
+			m_previewSize.first,
+			m_previewSize.second, 
+			m_previewOffset.first,
+			m_previewOffset.second);
 }
 
 #if defined(_WIN32)
