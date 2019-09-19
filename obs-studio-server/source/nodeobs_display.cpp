@@ -498,7 +498,7 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 	}
 		blog(
 		    LOG_WARNING,
-		    "<" __FUNCTION__ "> Adjusting display size for source to %ldx%ld. hwnd %d",
+		    "<" __FUNCTION__ "> Adjusting display size for source to %ldx%ld. hwnd %d. cut",
 		    width,
 		    height,
 			m_ourWindow);
