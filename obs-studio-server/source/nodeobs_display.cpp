@@ -427,25 +427,6 @@ OBS::Display::~Display()
 		worker.join();
 }
 
-void fixForegroundPosition(HWND m_hWnd)
-{
-	std::this_thread::sleep_for(std::chrono::seconds(1));
-
-	HWND hCurWnd = ::GetForegroundWindow();
-    DWORD dwMyID = ::GetCurrentThreadId();
-    DWORD dwCurID = ::GetWindowThreadProcessId(hCurWnd, NULL);
-    ::AttachThreadInput(dwCurID, dwMyID, TRUE);
-	::SetWindowPos(m_hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE );
-    ::SetWindowPos(m_hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_SHOWWINDOW);
-//    ::SetWindowPos(m_hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
-    ::SetForegroundWindow(m_hWnd);
-    ::AttachThreadInput(dwCurID, dwMyID, FALSE);
-    ::SetFocus(m_hWnd);
-    ::SetActiveWindow(m_hWnd);
-	
-	RedrawWindow(m_hWnd, NULL, 0, RDW_INVALIDATE | RDW_ALLCHILDREN );
-}
-
 void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 {
 	// Store new position.
@@ -456,25 +437,13 @@ void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 		blog(
 		    LOG_INFO,
 		    "<" __FUNCTION__ "> Adjusting display position for source %s to %ldx%ld. hwnd %d",
-		    obs_source_get_name(m_source),
-		    x,
-		    y,
-			m_ourWindow);
+		    obs_source_get_name(m_source), x, y, m_ourWindow);
 	}
-		blog(
-		    LOG_WARNING,
-		    "<" __FUNCTION__ "> Adjusting display position for source to %ldx%ld. hwnd %d",
-		    x,
-		    y,
-			m_ourWindow);
 
 	// Move Window
 #if defined(_WIN32)
 	SetWindowPos(
 	    m_ourWindow, NULL, m_position.first, m_position.second, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE);
- 
- 	//std::thread{fixForegroundPosition, m_ourWindow}.detach();
-	
 #elif defined(__APPLE__)
 #elif defined(__linux__) || defined(__FreeBSD__)
 #endif
@@ -490,15 +459,10 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 {
 	if (m_source != NULL) {
 		blog(
-			LOG_INFO,
+			LOG_DEBUG,
 			"<" __FUNCTION__ "> Adjusting display size for source %s to %ldx%ld. hwnd %d",
-			obs_source_get_name(m_source),
-			width,
-			height,
-			m_ourWindow);
+			obs_source_get_name(m_source), width, height, m_ourWindow);
 	}
-	blog( LOG_WARNING, "<" __FUNCTION__ "> Adjusting display size for source to %ldx%ld. hwnd %d. cut",
-		width, height, m_ourWindow);
 
 	auto setSizeCall = [](OBS::Display* display, int x, int y, int width, int height)
 	{
@@ -506,33 +470,30 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 		{
 			std::this_thread::sleep_for(std::chrono::seconds(1));
 		}
-		blog( LOG_WARNING, "<" __FUNCTION__ ">  size for source to %ldx%ld. cut", width, height);
 
 		// Resize Window
-	#if defined(_WIN32)
-		SetWindowPos(
-			display->m_ourWindow,
-			NULL,
-			x, y,
-			width, height,
-			SWP_NOCOPYBITS );
-
-			//std::thread{fixForegroundPosition, m_ourWindow}.detach();
-
-	#elif defined(__APPLE__)
-	#elif defined(__linux__) || defined(__FreeBSD__)
-	#endif
+#if defined(_WIN32)
+		SetWindowPos( display->m_ourWindow, NULL, x, y, width, height, SWP_NOCOPYBITS );
+#elif defined(__APPLE__)
+#elif defined(__linux__) || defined(__FreeBSD__)
+#endif
 
 	};
 
 	m_gsInitData.cx = width;
 	m_gsInitData.cy = height;
-
-	if(width == 0)
+	
+	if(width == 0 || height == 0)
 	{
-		setSizeCall(this, 0, 0, width, height);
+		setSizeCall(this, m_position.first, m_position.second, width, height);
 	} else {
-		setSizeCall(this, 100, 100, 100, 100 );
+		if(width > 64 || height > 64)
+		{
+			int small_width = 0, small_height = 0;
+			small_width = float(width)/float(3);
+			small_height = float(height)/float(3);
+			setSizeCall(this, m_position.first+(width-small_width)/2, m_position.second+(height-small_height)/2, small_width, small_height );
+		}
 		std::thread{setSizeCall, this, m_position.first, m_position.second, width, height }.detach();
 	}
 
@@ -1230,17 +1191,6 @@ void OBS::Display::UpdatePreviewArea()
 	m_worldToPreviewScale.y = float_t(m_previewSize.second) / float_t(sourceH);
 	m_previewToWorldScale.x = float_t(sourceW) / float_t(m_previewSize.first);
 	m_previewToWorldScale.y = float_t(sourceH) / float_t(m_previewSize.second);
-			blog(
-		    LOG_WARNING,
-		    "<" __FUNCTION__ "> Previce area %fx%f. %fx%f. %ldx%ld. %ldx%ld. ",
-		    m_worldToPreviewScale.x,
-		    m_worldToPreviewScale.y,
-			m_previewToWorldScale.x,
-			m_previewToWorldScale.y,
-			m_previewSize.first,
-			m_previewSize.second, 
-			m_previewOffset.first,
-			m_previewOffset.second);
 }
 
 #if defined(_WIN32)
