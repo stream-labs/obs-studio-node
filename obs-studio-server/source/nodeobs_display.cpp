@@ -488,53 +488,59 @@ std::pair<uint32_t, uint32_t> OBS::Display::GetPosition()
 
 void OBS::Display::SetSize(uint32_t width, uint32_t height)
 {
-	auto setSizeCall = [width, height](OBS::Display* display)
-	{
 	if(width != 0)
 	{
-		std::this_thread::sleep_for(std::chrono::seconds(1));
+		width -= 20;
+		height -= 20;
 	}
-	display->m_gsInitData.cx = width;
-	display->m_gsInitData.cy = height;
 
-	if (display->m_source != NULL) {
-		blog(
-		    LOG_INFO,
-		    "<" __FUNCTION__ "> Adjusting display size for source %s to %ldx%ld. hwnd %d",
-		    obs_source_get_name(display->m_source),
-		    width,
-		    height,
-			display->m_ourWindow);
-	}
-		blog(
-		    LOG_WARNING,
-		    "<" __FUNCTION__ "> Adjusting display size for source to %ldx%ld. hwnd %d. cut",
-		    width,
-		    height,
-			display->m_ourWindow);
+	auto setSizeCall = [width, height](OBS::Display* display)
+	{
+		if(width != 0)
+		{
+			std::this_thread::sleep_for(std::chrono::seconds(1));
+		}
+		display->m_gsInitData.cx = width;
+		display->m_gsInitData.cy = height;
 
-	// Resize Window
-#if defined(_WIN32)
-	SetWindowPos(
-	    display->m_ourWindow,
-	    NULL,
-	    display->m_position.first,
-	    display->m_position.second,
-		display->m_gsInitData.cx,
-	    display->m_gsInitData.cy,
-	    SWP_NOCOPYBITS );
+		if (display->m_source != NULL) {
+			blog(
+				LOG_INFO,
+				"<" __FUNCTION__ "> Adjusting display size for source %s to %ldx%ld. hwnd %d",
+				obs_source_get_name(display->m_source),
+				width,
+				height,
+				display->m_ourWindow);
+		}
+			blog(
+				LOG_WARNING,
+				"<" __FUNCTION__ "> Adjusting display size for source to %ldx%ld. hwnd %d. cut",
+				width,
+				height,
+				display->m_ourWindow);
 
-	 	//std::thread{fixForegroundPosition, m_ourWindow}.detach();
+		// Resize Window
+	#if defined(_WIN32)
+		SetWindowPos(
+			display->m_ourWindow,
+			NULL,
+			display->m_position.first,
+			display->m_position.second,
+			display->m_gsInitData.cx,
+			display->m_gsInitData.cy,
+			SWP_NOCOPYBITS );
 
-#elif defined(__APPLE__)
-#elif defined(__linux__) || defined(__FreeBSD__)
-#endif
+			//std::thread{fixForegroundPosition, m_ourWindow}.detach();
 
-	// Resize Display
-	obs_display_resize(display->m_display, display->m_gsInitData.cx, display->m_gsInitData.cy);
+	#elif defined(__APPLE__)
+	#elif defined(__linux__) || defined(__FreeBSD__)
+	#endif
 
-	// Store new size.
-	display->UpdatePreviewArea();
+		// Resize Display
+		obs_display_resize(display->m_display, display->m_gsInitData.cx, display->m_gsInitData.cy);
+
+		// Store new size.
+		display->UpdatePreviewArea();
 	};
 
 	if(width == 0)
@@ -1234,7 +1240,7 @@ void OBS::Display::UpdatePreviewArea()
 	m_previewToWorldScale.y = float_t(sourceH) / float_t(m_previewSize.second);
 			blog(
 		    LOG_WARNING,
-		    "<" __FUNCTION__ "> Previce area %ldx%ld. %ldx%ld. %ldx%ld. %ldx%ld. ",
+		    "<" __FUNCTION__ "> Previce area %fx%f. %fx%f. %ldx%ld. %ldx%ld. ",
 		    m_worldToPreviewScale.x,
 		    m_worldToPreviewScale.y,
 			m_previewToWorldScale.x,
