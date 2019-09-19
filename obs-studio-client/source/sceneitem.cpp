@@ -292,8 +292,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsStreamVisible(Nan::NAN_METHOD_ARGS
 		return;
 	bool streamVisible = !!response[1].value_union.ui32;
 
-	sid->streamVisibleChanged = false;
-	sid->isStreamVisible      = streamVisible;
+
+	if (sid) {
+		sid->streamVisibleChanged = false;
+		sid->isStreamVisible      = streamVisible;
+	}
 	info.GetReturnValue().Set(streamVisible);
 }
 
@@ -393,8 +396,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetRecordingVisible(Nan::NAN_METHOD_
 	    "SetRecordingVisible",
 	    std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(recordingVisible)});
 
-	sid->recordingVisibleChanged = true;
-	sid->isRecordingVisible      = recordingVisible;
+	if (sid) {
+		sid->recordingVisibleChanged = true;
+		sid->isRecordingVisible      = recordingVisible;
+	}
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetPosition(Nan::NAN_METHOD_ARGS_TYPE info)
