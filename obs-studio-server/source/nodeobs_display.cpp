@@ -429,34 +429,41 @@ OBS::Display::~Display()
 
 void fixForegroundPosition(HWND m_hWnd)
 {
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+	
 	HWND hCurWnd = ::GetForegroundWindow();
     DWORD dwMyID = ::GetCurrentThreadId();
     DWORD dwCurID = ::GetWindowThreadProcessId(hCurWnd, NULL);
     ::AttachThreadInput(dwCurID, dwMyID, TRUE);
     ::SetWindowPos(m_hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
-    ::SetWindowPos(m_hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+//    ::SetWindowPos(m_hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
     ::SetForegroundWindow(m_hWnd);
     ::AttachThreadInput(dwCurID, dwMyID, FALSE);
     ::SetFocus(m_hWnd);
     ::SetActiveWindow(m_hWnd);
+	
+	RedrawWindow(m_hWnd, NULL, 0, RDW_FRAME | RDW_INVALIDATE | RDW_ALLCHILDREN );
 }
 
 void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 {
 	if (m_source != NULL) {
 		blog(
-		    LOG_DEBUG,
-		    "<" __FUNCTION__ "> Adjusting display position for source %s to %ldx%ld.",
+		    LOG_INFO,
+		    "<" __FUNCTION__ "> Adjusting display position for source %s to %ldx%ld. hwnd %d",
 		    obs_source_get_name(m_source),
 		    x,
-		    y);
+		    y,
+			m_ourWindow);
 	}
 
 	// Move Window
 #if defined(_WIN32)
 	SetWindowPos(
 	    m_ourWindow, NULL, x, y, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE  );
-	fixForegroundPosition(m_ourWindow);
+ 
+ 	std::thread{fixForegroundPosition, m_ourWindow}.detach();
+	
 #elif defined(__APPLE__)
 #elif defined(__linux__) || defined(__FreeBSD__)
 #endif
@@ -475,11 +482,12 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 {
 	if (m_source != NULL) {
 		blog(
-		    LOG_DEBUG,
-		    "<" __FUNCTION__ "> Adjusting display size for source %s to %ldx%ld.",
+		    LOG_INFO,
+		    "<" __FUNCTION__ "> Adjusting display size for source %s to %ldx%ld. hwnd %d",
 		    obs_source_get_name(m_source),
 		    width,
-		    height);
+		    height,
+			m_ourWindow);
 	}
 
 	// Resize Window
@@ -492,7 +500,9 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 	    width,
 	    height,
 	    SWP_NOCOPYBITS | SWP_NOMOVE  );
-	fixForegroundPosition(m_ourWindow);
+
+	 	std::thread{fixForegroundPosition, m_ourWindow}.detach();
+
 #elif defined(__APPLE__)
 #elif defined(__linux__) || defined(__FreeBSD__)
 #endif
