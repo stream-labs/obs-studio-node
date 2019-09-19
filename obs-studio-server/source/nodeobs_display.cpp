@@ -488,36 +488,24 @@ std::pair<uint32_t, uint32_t> OBS::Display::GetPosition()
 
 void OBS::Display::SetSize(uint32_t width, uint32_t height)
 {
-	if(width != 0)
-	{
-		width -= 20;
-		height -= 20;
+	if (m_source != NULL) {
+		blog(
+			LOG_INFO,
+			"<" __FUNCTION__ "> Adjusting display size for source %s to %ldx%ld. hwnd %d",
+			obs_source_get_name(m_source),
+			width,
+			height,
+			m_ourWindow);
 	}
+	blog( LOG_WARNING, "<" __FUNCTION__ "> Adjusting display size for source to %ldx%ld. hwnd %d. cut",
+		width, height, m_ourWindow);
 
-	auto setSizeCall = [width, height](OBS::Display* display)
+	auto setSizeCall = [](OBS::Display* display, int width, int height)
 	{
-		if(width != 0)
+		if( !(width == 0 || width == 100) )
 		{
 			std::this_thread::sleep_for(std::chrono::seconds(1));
 		}
-		display->m_gsInitData.cx = width;
-		display->m_gsInitData.cy = height;
-
-		if (display->m_source != NULL) {
-			blog(
-				LOG_INFO,
-				"<" __FUNCTION__ "> Adjusting display size for source %s to %ldx%ld. hwnd %d",
-				obs_source_get_name(display->m_source),
-				width,
-				height,
-				display->m_ourWindow);
-		}
-			blog(
-				LOG_WARNING,
-				"<" __FUNCTION__ "> Adjusting display size for source to %ldx%ld. hwnd %d. cut",
-				width,
-				height,
-				display->m_ourWindow);
 
 		// Resize Window
 	#if defined(_WIN32)
@@ -526,8 +514,8 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 			NULL,
 			display->m_position.first,
 			display->m_position.second,
-			display->m_gsInitData.cx,
-			display->m_gsInitData.cy,
+			width,
+			height,
 			SWP_NOCOPYBITS );
 
 			//std::thread{fixForegroundPosition, m_ourWindow}.detach();
@@ -536,19 +524,25 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 	#elif defined(__linux__) || defined(__FreeBSD__)
 	#endif
 
-		// Resize Display
-		obs_display_resize(display->m_display, display->m_gsInitData.cx, display->m_gsInitData.cy);
-
-		// Store new size.
-		display->UpdatePreviewArea();
 	};
+
+	m_gsInitData.cx = width;
+	m_gsInitData.cy = height;
+
 
 	if(width == 0)
 	{
-		setSizeCall(this);
+		setSizeCall(this, width, height);
 	} else {
-		std::thread{setSizeCall, this}.detach();
+		std::thread{setSizeCall, this, 100, 100 }.detach();
+		std::thread{setSizeCall, this, width, height }.detach();
 	}
+
+	// Resize Display
+	obs_display_resize(m_display, m_gsInitData.cx, m_gsInitData.cy);
+
+	// Store new size.
+	UpdatePreviewArea();
 }
 
 std::pair<uint32_t, uint32_t> OBS::Display::GetSize()
