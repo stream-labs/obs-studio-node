@@ -381,19 +381,29 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	// crash report attribute, avoiding some cases that the memory dump is corrupted
 	// and we don't have access to the callstack.
 	std::string    crashedMethodName;
-	nlohmann::json callStack = RewindCallStack(crashedMethodName);
+	nlohmann::json callStack;
+	try {
+		callStack = RewindCallStack(crashedMethodName);
+	} catch (...) {
+		//ignore exceptions to not loose current crash info 
+		callStack =  nlohmann::json::array();
+	}
 
 	// Get the information about the total of CPU and RAM used by this user
-	long long totalPhysMem;
-	long long physMemUsed;
-	double    totalCPUUsed;
-	size_t    physMemUsedByMe;
-	RequestComputerUsageParams(totalPhysMem, physMemUsed, physMemUsedByMe, totalCPUUsed);
-
+	long long totalPhysMem = 1;
+	long long physMemUsed = 0;
+	double    totalCPUUsed = 0.0;
+	size_t    physMemUsedByMe = 0;
 	std::string computerName;
-	GetUserInfo(computerName);
+	
+	try {
+		RequestComputerUsageParams(totalPhysMem, physMemUsed, physMemUsedByMe, totalCPUUsed);
+
+		GetUserInfo(computerName);
+	} catch (...) { }
 
 	auto timeElapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - initialTime);
+
 	annotations.clear();
 
 	// Setup all the custom annotations that are important too our crash report
@@ -408,16 +418,19 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	                     PrettyBytes(physMemUsedByMe) + " - percentage: "
 	                         + std::to_string(double(physMemUsedByMe * 100) / double(totalPhysMem)) + "%"}});
 	annotations.insert({{"CPU usage", std::to_string(int(totalCPUUsed)) + "%"}});
-	annotations.insert({{"OBS errors", RequestOBSLog(OBSLogType::Errors).dump(4)}});
-	annotations.insert({{"OBS warnings", RequestOBSLog(OBSLogType::Warnings).dump(4)}});
-	annotations.insert({{"OBS log general", RequestOBSLog(OBSLogType::General).dump(4)}});
-	annotations.insert({{"Process List", RequestProcessList().dump(4)}});
-	annotations.insert({{"Crash reason", _crashInfo}});
-	annotations.insert({{"Computer name", computerName}});
-	annotations.insert({{"Breadcrumbs", ComputeBreadcrumbs().dump(4)}});
-	annotations.insert({{"Last actions", ComputeActions().dump(4)}});
-	annotations.insert({{"Warnings", ComputeWarnings().dump(4)}});
-	annotations.insert({{"Version", OBS_API::getCurrentVersion()}});
+	
+	try {
+		annotations.insert({{"Process List", RequestProcessList().dump(4)}});
+	} catch (...) {}
+	
+	try {
+		annotations.insert({{"OBS log general", RequestOBSLog(OBSLogType::General).dump(4)}});
+		annotations.insert({{"Crash reason", _crashInfo}});
+		annotations.insert({{"Computer name", computerName}});
+		annotations.insert({{"Breadcrumbs", ComputeBreadcrumbs().dump(4)}});
+		annotations.insert({{"Last actions", ComputeActions().dump(4)}});
+		annotations.insert({{"Warnings", ComputeWarnings().dump(4)}});
+	} catch (...) {}
 
 	annotations.insert({{"sentry[release]", OBS_API::getCurrentVersion()}});
 
@@ -528,13 +541,26 @@ nlohmann::json RewindCallStack(std::string& crashedMethod)
 				return;
 
 			nlohmann::json jsonEntry;
-			jsonEntry["function"]      = std::string(entry.name);
-			jsonEntry["filename"]      = entry.lineFileName;
-			jsonEntry["lineno"]        = entry.lineNumber;
-			jsonEntry["module"]        = std::string(entry.moduleName);
-			jsonEntry["und-name"]      = std::string(entry.undName);
-			jsonEntry["und-full-name"] = std::string(entry.undFullName);
+			if(strlen(entry.name) > 0)
+			{
+				jsonEntry["function"] = std::string(entry.name);
+				entry.name[0] = 0x00;
 
+				if(strlen(entry.lineFileName) > 0 )
+					jsonEntry["filename"] = entry.lineFileName;
+				entry.lineFileName[0] = 0x00;
+
+				if(entry.lineNumber > 0)
+					jsonEntry["lineno"] = entry.lineNumber;
+
+				if(strlen(entry.moduleName) > 0)
+					jsonEntry["module"] = std::string(entry.moduleName);
+					entry.moduleName[0] = 0x00;
+
+			} else {
+				jsonEntry["function"] = "unknown";
+			}
+			
 			// Check if we should update the crash method variable
 			if (m_OutCrashMethodName.length() == 0)
 				m_OutCrashMethodName = std::string(entry.name);

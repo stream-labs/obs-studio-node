@@ -1085,6 +1085,7 @@ void OBS_API::destroyOBS_API(void)
 	if (service != NULL)
 		obs_service_release(service);
 
+    OBS_service::waitReleaseWorker();
     OBS_service::clearAudioEncoder();
     osn::VolMeter::ClearVolmeters();
     osn::Fader::ClearFaders();
