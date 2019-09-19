@@ -500,7 +500,7 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 	blog( LOG_WARNING, "<" __FUNCTION__ "> Adjusting display size for source to %ldx%ld. hwnd %d. cut",
 		width, height, m_ourWindow);
 
-	auto setSizeCall = [](OBS::Display* display, int width, int height)
+	auto setSizeCall = [](OBS::Display* display, int x, int y, int width, int height)
 	{
 		if( !(width == 0 || width == 100) )
 		{
@@ -513,7 +513,7 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 		SetWindowPos(
 			display->m_ourWindow,
 			NULL,
-			display->m_position.first, display->m_position.second,
+			x, y,
 			width, height,
 			SWP_NOCOPYBITS );
 
@@ -528,13 +528,12 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 	m_gsInitData.cx = width;
 	m_gsInitData.cy = height;
 
-
 	if(width == 0)
 	{
-		setSizeCall(this, width, height);
+		setSizeCall(this, 0, 0, width, height);
 	} else {
-		setSizeCall(this, 100, 100 );
-		std::thread{setSizeCall, this, width, height }.detach();
+		setSizeCall(this, 100, 100, 100, 100 );
+		std::thread{setSizeCall, this, m_position.first, m_position.second, width, height }.detach();
 	}
 
 	// Resize Display
