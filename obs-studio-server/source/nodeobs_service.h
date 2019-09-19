@@ -225,7 +225,7 @@ class OBS_service
 	static void          setReplayBufferOutput(obs_output_t* output);
 
 	// Update settings
-	static void updateStreamingOutput(bool isSimpleMode);
+	static void updateStreamingOutput();
 
 	// Update video encoders
 	static void updateStreamingEncoders(bool isSimpleMode);

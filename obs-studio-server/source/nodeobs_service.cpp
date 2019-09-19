@@ -905,7 +905,7 @@ bool OBS_service::startStreaming(void)
 
 	updateStreamingEncoders(isSimpleMode);
 	updateService();
-	updateStreamingOutput(isSimpleMode);
+	updateStreamingOutput();
 
 	obs_output_set_video_encoder(streamingOutput, videoStreamingEncoder);
 
@@ -1978,7 +1978,7 @@ void OBS_service::setReplayBufferOutput(obs_output_t* output)
 	replayBufferOutput = output;
 }
 
-void OBS_service::updateStreamingOutput(bool isSimpleMode)
+void OBS_service::updateStreamingOutput()
 {
 	const char* currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
 
