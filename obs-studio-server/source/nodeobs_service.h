@@ -175,7 +175,6 @@ class OBS_service
 	static bool startReplayBuffer(void);
 	static void stopReplayBuffer(bool forceStop);
 	static void stopRecording(void);
-	static void setRecordingSettings(void);
 
 	static void releaseStreamingOutput(void);
 
@@ -188,7 +187,7 @@ class OBS_service
 	static void UpdateRecordingSettings_nvenc(int cqp);
 	static void UpdateStreamingSettings_amd(obs_data_t* settings, int bitrate);
 	static void UpdateRecordingSettings_amd_cqp(int cqp);
-	static void UpdateRecordingSettings(void);
+	static void updateVideoRecordingEncoderSettings(void);
 
 	public:
 	// Service
@@ -229,21 +228,23 @@ class OBS_service
 	static void          waitReleaseWorker(void);
 
 	// Update settings
-	static void updateStreamSettings(void);
-	static void updateRecordSettings(void);
-	static void updateAdvancedReplayBuffer(void);
+	static void updateStreamingOutput();
 
 	// Update video encoders
-	static void updateVideoStreamingEncoder(void);
-	static bool updateAudioStreamingEncoder(void);
-	static void updateVideoRecordingEncoder(void);
+	static void updateStreamingEncoders(bool isSimpleMode);
+	static void updateRecordingEncoders(bool isSimpleMode, obs_encoder_t** audioEnc, obs_encoder_t** videoEnc);
+
+	static void updateVideoStreamingEncoder(bool isSimpleMode);
+	static void updateAudioStreamingEncoder(bool isSimpleMode);
+	static void updateAudioRecordingEncoder(bool isSimpleMode);
+	static void updateVideoRecordingEncoder(bool isSimpleMode);
 	static void updateAudioTracks(void);
 
 	// Update outputs
-	static void updateStreamingOutput(void);
-	static void updateRecordingOutput(bool updateReplayBuffer);
-	static void updateAdvancedRecordingOutput(void);
-	static void UpdateFFmpegOutput(void);
+	static void updateFfmpegOutput(obs_output_t* output);
+	static void UpdateFFmpegCustomOutput(void);
+	static void updateReplayBufferOutput(bool isSimpleMode, bool useStreamEncoder);
+
 
 	static std::string GetDefaultVideoSavePath(void);
 
@@ -255,11 +256,6 @@ class OBS_service
 	static bool resetAudioContext(bool reload = false);
 	static int  resetVideoContext(bool reload = false);
 
-	static void associateAudioAndVideoToTheCurrentStreamingContext(void);
-	static void associateAudioAndVideoToTheCurrentRecordingContext(void);
-	static void associateAudioAndVideoEncodersToTheCurrentStreamingOutput(void);
-	static void associateAudioAndVideoEncodersToTheCurrentRecordingOutput(bool useStreamingEncoder);
-
 	static int GetSimpleAudioBitrate(void);
 	static int GetAdvancedAudioBitrate(int i);
 
@@ -268,4 +264,6 @@ class OBS_service
 	static void JSCallbackOutputSignal(void* data, calldata_t*);
 
 	static bool useRecordingPreset();
+
+	static void duplicate_encoder(obs_encoder_t** dst, obs_encoder_t* src, uint64_t trackIndex = 0);
 };

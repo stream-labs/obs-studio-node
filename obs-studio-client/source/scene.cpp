@@ -273,11 +273,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 
 	if (info.Length() >= 2) {
 		transform = info[1]->ToObject();
-		params.push_back(ipc::value(
-			transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("scaleX"))
+		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("scaleX"))
 		                                .ToLocalChecked()
-		                                ->ToNumber(
-				info.GetIsolate()->GetCurrentContext())
+		                                ->ToNumber(info.GetIsolate()->GetCurrentContext())
 		                                .ToLocalChecked()
 		                                ->Value()
 		));
@@ -326,6 +324,15 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 		                                .ToLocalChecked()
 		                                ->ToInteger()
 		                                ->Value()));
+
+		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("streamVisible"))
+										.ToLocalChecked()
+										->ToBoolean()
+										->Value()));
+		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("recordingVisible"))
+										.ToLocalChecked()
+										->ToBoolean()
+										->Value()));
 	}
 
 	auto conn = GetConnection();
@@ -398,6 +405,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 		                    .ToLocalChecked()
 		                    ->Value();
 		sid->rotationChanged = false;
+
+		// Stream visible
+		sid->isStreamVisible      = transform->Get(utilv8::ToValue("streamVisible"))->ToBoolean()->Value();
+		sid->streamVisibleChanged = false;
+
+		// Recording visible
+		sid->isRecordingVisible      = transform->Get(utilv8::ToValue("recordingVisiblle"))->ToBoolean()->Value();
+		sid->recordingVisibleChanged = false;
 	}
 
 	CacheManager<SceneItemData*>::getInstance().Store(id, sid);	

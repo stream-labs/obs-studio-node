@@ -580,6 +580,7 @@ void OBS_API::OBS_API_initAPI(
 	}
 
 	OBS_service::createService();
+	OBS_service::createStreamingOutput();
 	OBS_service::createRecordingOutput();
 	OBS_service::createReplayBufferOutput();
 
@@ -591,16 +592,25 @@ void OBS_API::OBS_API_initAPI(
 
 	OBS_service::setupAudioEncoder();
 
-	OBS_service::associateAudioAndVideoToTheCurrentStreamingContext();
-	OBS_service::associateAudioAndVideoToTheCurrentRecordingContext();
-
-	OBS_service::associateAudioAndVideoEncodersToTheCurrentStreamingOutput();
-	OBS_service::associateAudioAndVideoEncodersToTheCurrentRecordingOutput(false);
-
 	setAudioDeviceMonitoring();
 
 	// Enable the hotkey callback rerouting that will be used when manually handling hotkeys on the frontend
 	obs_hotkey_enable_callback_rerouting(true);
+
+	// Init replay buffer rendering mode
+	const char* currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
+	bool        simple            = true;
+
+	if (currentOutputMode)
+		simple = strcmp(currentOutputMode, "Simple") == 0;
+
+	enum obs_replay_buffer_rendering_mode mode = OBS_STREAMING_REPLAY_BUFFER_RENDERING;
+
+	bool useStreamOutput = config_get_bool(
+	    ConfigManager::getInstance().getBasic(), simple ? "SimpleOutput" : "AdvOut", "replayBufferUseStreamOutput");
+
+	obs_set_replay_buffer_rendering_mode(
+		useStreamOutput ? OBS_STREAMING_REPLAY_BUFFER_RENDERING : OBS_RECORDING_REPLAY_BUFFER_RENDERING);
 
 	// We are returning a video result here because the frontend needs to know if we sucessfully
 	// initialized the Dx11 API
@@ -1048,7 +1058,7 @@ void OBS_API::destroyOBS_API(void)
 		obs_encoder_release(streamingEncoder);
 
 	obs_encoder_t* recordingEncoder = OBS_service::getRecordingEncoder();
-	if (recordingEncoder != NULL && OBS_service::useRecordingPreset())
+	if (recordingEncoder != NULL && (OBS_service::useRecordingPreset() || obs_get_multiple_rendering()))
 		obs_encoder_release(recordingEncoder);
 
 	obs_encoder_t* audioStreamingEncoder = OBS_service::getAudioSimpleStreamingEncoder();
@@ -1056,12 +1066,8 @@ void OBS_API::destroyOBS_API(void)
 		obs_encoder_release(audioStreamingEncoder);
 
 	obs_encoder_t* audioRecordingEncoder = OBS_service::getAudioSimpleRecordingEncoder();
-	if (audioRecordingEncoder != NULL)
+	if (audioRecordingEncoder != NULL && (OBS_service::useRecordingPreset() || obs_get_multiple_rendering()))
 		obs_encoder_release(audioRecordingEncoder);
-
-	obs_encoder_t* audioAdvancedStreamingEncoder = OBS_service::getAudioAdvancedStreamingEncoder();
-	if (audioAdvancedStreamingEncoder != NULL)
-		obs_encoder_release(audioAdvancedStreamingEncoder);
 
 	obs_output_t* streamingOutput = OBS_service::getStreamingOutput();
 	if (streamingOutput != NULL)

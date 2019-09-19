@@ -38,6 +38,7 @@ void osn::Global::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	utilv8::SetObjectAccessorProperty(ObsGlobal, "totalFrames", totalFrames);
 
 	utilv8::SetObjectAccessorProperty(ObsGlobal, "locale", getLocale, setLocale);
+	utilv8::SetObjectAccessorProperty(ObsGlobal, "multipleRendering", getMultipleRendering, setMultipleRendering);
 
 	Nan::Set(target, FIELD_NAME("Global"), ObsGlobal);
 }
@@ -170,4 +171,32 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Global::setLocale(Nan::NAN_METHOD_ARGS_TYPE inf
 		return;
 
 	conn->call("Global", "SetLocale", {ipc::value(locale)});
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::Global::getMultipleRendering(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Global", "GetMultipleRendering", {});
+
+	if (!ValidateResponse(response))
+		return;
+
+	info.GetReturnValue().Set(utilv8::ToValue((bool)response[1].value_union.i32));
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::Global::setMultipleRendering(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	bool multipleRendering;
+
+	ASSERT_INFO_LENGTH(info, 1);
+	ASSERT_GET_VALUE(info[0], multipleRendering);
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	conn->call("Global", "SetMultipleRendering", {ipc::value(multipleRendering)});
 }

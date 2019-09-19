@@ -38,6 +38,14 @@ void osn::SceneItem::Register(ipc::server& srv)
 	    std::make_shared<ipc::function>("IsSelected", std::vector<ipc::type>{ipc::type::UInt64}, IsSelected));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SetSelected", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SetSelected));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "IsStreamVisible", std::vector<ipc::type>{ipc::type::UInt64}, IsStreamVisible));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetStreamVisible", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SetStreamVisible));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "IsRecordingVisible", std::vector<ipc::type>{ipc::type::UInt64}, IsRecordingVisible));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetRecordingVisible", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SetRecordingVisible));
 	cls->register_function(
 	    std::make_shared<ipc::function>("GetPosition", std::vector<ipc::type>{ipc::type::UInt64}, GetPosition));
 	cls->register_function(std::make_shared<ipc::function>(
@@ -228,6 +236,74 @@ void osn::SceneItem::SetSelected(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_sceneitem_selected(item)));
+	AUTO_DEBUG;
+}
+
+void osn::SceneItem::IsStreamVisible(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!item) {
+		PRETTY_ERROR_RETURN("invalid reference");
+	}
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_sceneitem_stream_visible(item)));
+	AUTO_DEBUG;
+}
+
+void osn::SceneItem::SetStreamVisible(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!item) {
+		PRETTY_ERROR_RETURN("invalid reference");
+	}
+
+	obs_sceneitem_set_stream_visible(item, !!args[1].value_union.i32);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_sceneitem_stream_visible(item)));
+	AUTO_DEBUG;
+}
+
+void osn::SceneItem::IsRecordingVisible(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!item) {
+		PRETTY_ERROR_RETURN("invalid reference");
+	}
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_sceneitem_recording_visible(item)));
+	AUTO_DEBUG;
+}
+
+void osn::SceneItem::SetRecordingVisible(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!item) {
+		PRETTY_ERROR_RETURN("invalid reference");
+	}
+
+	obs_sceneitem_set_recording_visible(item, !!args[1].value_union.i32);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_sceneitem_recording_visible(item)));
 	AUTO_DEBUG;
 }
 

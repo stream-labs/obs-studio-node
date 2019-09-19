@@ -2460,6 +2460,18 @@ void OBS_settings::getReplayBufferSettings(
 		entries.push_back(RecRBTime);
 	}
 
+	if (obs_get_multiple_rendering()) {
+		std::vector<std::pair<std::string, ipc::value>> replayBufferUseStreamOutput;
+		replayBufferUseStreamOutput.push_back(std::make_pair("name", ipc::value("replayBufferUseStreamOutput")));
+		replayBufferUseStreamOutput.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+		replayBufferUseStreamOutput.push_back(std::make_pair("description", ipc::value("Use stream output")));
+		replayBufferUseStreamOutput.push_back(std::make_pair("subType", ipc::value("")));
+		replayBufferUseStreamOutput.push_back(std::make_pair("minVal", ipc::value((double)0)));
+		replayBufferUseStreamOutput.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+		replayBufferUseStreamOutput.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+		entries.push_back(replayBufferUseStreamOutput);
+	}
+
 	outputSettings->push_back(serializeSettingsData(
 	    "Replay Buffer", entries, config, advanced ? "AdvOut" : "SimpleOutput", true, isCategoryEnabled));
 	entries.clear();
@@ -3679,7 +3691,6 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	    serializeSettingsData("Media Files", entries, ConfigManager::getInstance().getGlobal(), "General", true, true));
 	entries.clear();
 
-
 	return advancedSettings;
 }
 
@@ -3823,6 +3834,13 @@ void OBS_settings::saveGenericSettings(std::vector<SubCategory> genericSettings,
 			} else if (type.compare("OBS_PROPERTY_BOOL") == 0) {
 				uint32_t* value = reinterpret_cast<uint32_t*>(param.currentValue.data());
 				config_set_bool(config, section.c_str(), name.c_str(), *value);
+
+				if (name.compare("replayBufferUseStreamOutput") == 0) {
+					if (*value)
+						obs_set_replay_buffer_rendering_mode(OBS_STREAMING_REPLAY_BUFFER_RENDERING);
+					else
+						obs_set_replay_buffer_rendering_mode(OBS_RECORDING_REPLAY_BUFFER_RENDERING);
+				}
 			} else if (type.compare("OBS_PROPERTY_DOUBLE") == 0) {
 				double* value = reinterpret_cast<double*>(param.currentValue.data());
 				config_set_double(config, section.c_str(), name.c_str(), *value);

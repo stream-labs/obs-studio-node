@@ -297,7 +297,7 @@ export const enum ESpeakerLayout {
     SevenOne,
     SevenOneSurround,
     Surround
-};
+}
 
 export const enum ESceneSignalType {
     ItemAdd,
@@ -320,9 +320,15 @@ export const enum EOutputCode {
     NoSpace = -7
 }
 
-export declare const enum ECategoryTypes {
+export const enum ECategoryTypes {
     NODEOBS_CATEGORY_LIST = 0,
 	NODEOBS_CATEGORY_TAB = 1
+}
+
+export const enum ERenderingMode {
+    OBS_MAIN_RENDERING = 0,
+	OBS_STREAMING_RENDERING = 1,
+	OBS_RECORDING_RENDERING = 2
 }
 
 export const Global: IGlobal = obs.Global;
@@ -516,6 +522,11 @@ export interface IGlobal {
      * Current locale of current libobs context
      */
     locale: string;
+
+    /**
+     * Rendering of current libobs context
+     */
+    multipleRendering: boolean;
 
     /**
      * Version of current libobs context.
@@ -1177,6 +1188,12 @@ export interface ISceneItem {
 
     /** Whether or not the item is visible */
     visible: boolean;
+
+    /** Whether or not the item is visible on the streaming output */
+    streamVisible: boolean;
+
+    /** Whether or not the item is visible on the recording output */
+    recordingVisible: boolean;
 
     /**
      * Transform information on the item packed into

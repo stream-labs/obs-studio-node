@@ -48,6 +48,8 @@ void osn::SceneItem::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	utilv8::SetTemplateAccessorProperty(objtemplate, "scene", GetScene);
 	utilv8::SetTemplateAccessorProperty(objtemplate, "visible", IsVisible, SetVisible);
 	utilv8::SetTemplateAccessorProperty(objtemplate, "selected", IsSelected, SetSelected);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "streamVisible", IsStreamVisible, SetStreamVisible);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "recordingVisible", IsRecordingVisible, SetRecordingVisible);
 	utilv8::SetTemplateAccessorProperty(objtemplate, "position", GetPosition, SetPosition);
 	utilv8::SetTemplateAccessorProperty(objtemplate, "rotation", GetRotation, SetRotation);
 	utilv8::SetTemplateAccessorProperty(objtemplate, "scale", GetScale, SetScale);
@@ -247,7 +249,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetSelected(Nan::NAN_METHOD_ARGS_TYP
 
 	if (sid == nullptr) {
 		return;
-    }
+	}
 
 	if (selected == sid->isSelected) {
 		sid->selectedChanged = false;
@@ -263,6 +265,141 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetSelected(Nan::NAN_METHOD_ARGS_TYP
 	sid->selectedChanged = true;
 	sid->cached          = true;
 	sid->isSelected      = selected;
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsStreamVisible(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	osn::SceneItem* item = nullptr;
+	if (!Retrieve(info.This(), item)) {
+		return;
+	}
+
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+
+	if (sid && !sid->streamVisibleChanged) {
+		info.GetReturnValue().Set(utilv8::ToValue(item->IsStreamVisible));
+		return;
+	}
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("SceneItem", "IsStreamVisible", std::vector<ipc::value>{ipc::value(item->itemId)});
+
+	if (!ValidateResponse(response))
+		return;
+	bool streamVisible = !!response[1].value_union.ui32;
+
+
+	if (sid) {
+		sid->streamVisibleChanged = false;
+		sid->isStreamVisible      = streamVisible;
+	}
+	info.GetReturnValue().Set(streamVisible);
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetStreamVisible(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	bool streamVisible;
+
+	ASSERT_GET_VALUE(info[0], streamVisible);
+
+	osn::SceneItem* item = nullptr;
+	if (!Retrieve(info.This(), item)) {
+		return;
+	}
+
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+
+	if (sid == nullptr) {
+		return;
+	}
+
+	if (streamVisible == sid->isStreamVisible) {
+		sid->streamVisibleChanged = false;
+		return;
+	}
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	conn->call(
+	    "SceneItem",
+	    "SetStreamVisible",
+	    std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(streamVisible)});
+
+	sid->streamVisibleChanged = true;
+	sid->isStreamVisible      = streamVisible;
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsRecordingVisible(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	osn::SceneItem* item = nullptr;
+	if (!Retrieve(info.This(), item)) {
+		return;
+	}
+
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+
+	if (sid && !sid->recordingVisibleChanged) {
+		info.GetReturnValue().Set(utilv8::ToValue(item->IsRecordingVisible));
+		return;
+	}
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper(
+	    "SceneItem", "IsRecordingVisible", std::vector<ipc::value>{ipc::value(item->itemId)});
+
+	if (!ValidateResponse(response))
+		return;
+	bool recordingVisible = !!response[1].value_union.ui32;
+
+	sid->recordingVisibleChanged = false;
+	sid->isRecordingVisible      = recordingVisible;
+	info.GetReturnValue().Set(recordingVisible);
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetRecordingVisible(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	bool recordingVisible;
+
+	ASSERT_GET_VALUE(info[0], recordingVisible);
+
+	osn::SceneItem* item = nullptr;
+	if (!Retrieve(info.This(), item)) {
+		return;
+	}
+
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+
+	if (sid == nullptr) {
+		return;
+	}
+
+	if (recordingVisible == sid->isRecordingVisible) {
+		sid->recordingVisibleChanged = false;
+		return;
+	}
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	conn->call(
+	    "SceneItem",
+	    "SetRecordingVisible",
+	    std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(recordingVisible)});
+
+	if (sid) {
+		sid->recordingVisibleChanged = true;
+		sid->isRecordingVisible      = recordingVisible;
+	}
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetPosition(Nan::NAN_METHOD_ARGS_TYPE info)

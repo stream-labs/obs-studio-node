@@ -55,5 +55,16 @@ namespace osn
 		    GetLocale(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 		static void
 		    SetLocale(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+
+		static void GetMultipleRendering(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void SetMultipleRendering(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
 	};
 } // namespace osn
