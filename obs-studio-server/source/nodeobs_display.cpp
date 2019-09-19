@@ -467,7 +467,7 @@ void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 	// Move Window
 #if defined(_WIN32)
 	SetWindowPos(
-	    m_ourWindow, NULL, x, y, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE  );
+	    m_ourWindow, NULL, x, y, 0, 0, SWP_NOCOPYBITS | SWP_NOSIZE  );
  
  	//std::thread{fixForegroundPosition, m_ourWindow}.detach();
 	
@@ -502,18 +502,18 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 		    width,
 		    height,
 			m_ourWindow);
-	width = width-10;
-	height = height-10;
+	width = width-100;
+	height = height-100;
 	// Resize Window
 #if defined(_WIN32)
 	SetWindowPos(
 	    m_ourWindow,
-	    NULL,
-	    m_position.first,
-	    m_position.second,
+	    HWND_TOPMOST,
+	    0,
+	    0,
 	    width,
 	    height,
-	    SWP_NOCOPYBITS | SWP_NOMOVE  );
+	    SWP_NOCOPYBITS | SWP_NOMOVE );
 
 	 	//std::thread{fixForegroundPosition, m_ourWindow}.detach();
 
