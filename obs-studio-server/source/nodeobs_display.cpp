@@ -506,16 +506,15 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 		{
 			std::this_thread::sleep_for(std::chrono::seconds(1));
 		}
+		blog( LOG_WARNING, "<" __FUNCTION__ ">  size for source to %ldx%ld. cut", width, height);
 
 		// Resize Window
 	#if defined(_WIN32)
 		SetWindowPos(
 			display->m_ourWindow,
 			NULL,
-			display->m_position.first,
-			display->m_position.second,
-			width,
-			height,
+			display->m_position.first, display->m_position.second,
+			width, height,
 			SWP_NOCOPYBITS );
 
 			//std::thread{fixForegroundPosition, m_ourWindow}.detach();
@@ -534,7 +533,7 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 	{
 		setSizeCall(this, width, height);
 	} else {
-		std::thread{setSizeCall, this, 100, 100 }.detach();
+		setSizeCall(this, 100, 100 );
 		std::thread{setSizeCall, this, width, height }.detach();
 	}
 
