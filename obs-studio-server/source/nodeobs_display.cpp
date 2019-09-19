@@ -448,6 +448,10 @@ void fixForegroundPosition(HWND m_hWnd)
 
 void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 {
+	// Store new position.
+	m_position.first  = x+1;
+	m_position.second = y+1;
+
 	if (m_source != NULL) {
 		blog(
 		    LOG_INFO,
@@ -467,7 +471,7 @@ void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 	// Move Window
 #if defined(_WIN32)
 	SetWindowPos(
-	    m_ourWindow, NULL, x, y, 0, 0, SWP_NOCOPYBITS | SWP_NOSIZE  );
+	    m_ourWindow, NULL, m_position.first, m_position.second, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE);
  
  	//std::thread{fixForegroundPosition, m_ourWindow}.detach();
 	
@@ -475,9 +479,6 @@ void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 #elif defined(__linux__) || defined(__FreeBSD__)
 #endif
 
-	// Store new position.
-	m_position.first  = x;
-	m_position.second = y;
 }
 
 std::pair<uint32_t, uint32_t> OBS::Display::GetPosition()
@@ -487,6 +488,9 @@ std::pair<uint32_t, uint32_t> OBS::Display::GetPosition()
 
 void OBS::Display::SetSize(uint32_t width, uint32_t height)
 {
+	m_gsInitData.cx = width-2;
+	m_gsInitData.cy = height-2;
+
 	if (m_source != NULL) {
 		blog(
 		    LOG_INFO,
@@ -502,18 +506,17 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 		    width,
 		    height,
 			m_ourWindow);
-	width = width-100;
-	height = height-100;
+
 	// Resize Window
 #if defined(_WIN32)
 	SetWindowPos(
 	    m_ourWindow,
-	    HWND_TOPMOST,
-	    0,
-	    0,
-	    width,
-	    height,
-	    SWP_NOCOPYBITS | SWP_NOMOVE );
+	    NULL,
+	    m_position.first,
+	    m_position.second,
+		m_gsInitData.cx,
+	    m_gsInitData.cy,
+	    SWP_NOCOPYBITS );
 
 	 	//std::thread{fixForegroundPosition, m_ourWindow}.detach();
 
@@ -522,11 +525,9 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 #endif
 
 	// Resize Display
-	obs_display_resize(m_display, width, height);
+	obs_display_resize(m_display, m_gsInitData.cx, m_gsInitData.cy);
 
 	// Store new size.
-	m_gsInitData.cx = width;
-	m_gsInitData.cy = height;
 	UpdatePreviewArea();
 }
 
