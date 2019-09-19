@@ -771,7 +771,7 @@ bool OBS_service::createService()
 		obs_data_set_obj(data, "settings", settings);
 	};
 
-	bool fileExist = (os_stat(ConfigManager::getInstance().getService().c_str(), &buffer) == 0);
+    bool fileExist = (os_stat(ConfigManager::getInstance().getService().c_str(), &buffer) == 0);
 	if (!fileExist) {
 		CreateNewService();
 
