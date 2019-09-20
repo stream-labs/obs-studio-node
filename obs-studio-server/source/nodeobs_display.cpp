@@ -533,9 +533,10 @@ void OBS::Display::setSizeCall(int step)
 #if defined(_WIN32)
 	if(step > 0)
 	{
-		SetWindowPos( m_ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_ASYNCWINDOWPOS | SWP_HIDEWINDOW);
+		SetWindowPos( m_ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_HIDEWINDOW);
 	} else {
-		SetWindowPos( m_ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOZORDER | SWP_SHOWWINDOW );
+		SetWindowPos( m_ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_SHOWWINDOW );
+		RedrawWindow( m_ourWindow, NULL, NULL, RDW_ERASE | RDW_INVALIDATE );
 	}
 #elif defined(__APPLE__)
 #elif defined(__linux__) || defined(__FreeBSD__)
