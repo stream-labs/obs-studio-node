@@ -492,30 +492,36 @@ void OBS::Display::setSizeCall(int step)
 		use_y = m_position.second;
 		break;
 	case 0:
+		use_width = m_gsInitData.cx;
+		use_height = m_gsInitData.cy;
+		use_x = m_position.first + (m_gsInitData.cx-use_width)/2;
+		use_y = m_position.second + (m_gsInitData.cy-use_height)/2;
+		break;
+	case 1:
 		use_width = float(m_gsInitData.cx)/float(1.05);
 		use_height = float(m_gsInitData.cy)/float(1.05);
 		use_x = m_position.first + (m_gsInitData.cx-use_width)/2;
 		use_y = m_position.second + (m_gsInitData.cy-use_height)/2;
 		break;
-	case 1:
-		use_width = float(m_gsInitData.cx)/float(1.3);
-		use_height = float(m_gsInitData.cy)/float(1.3);
+	case 2:
+		use_width = float(m_gsInitData.cx)/float(1.25);
+		use_height = float(m_gsInitData.cy)/float(1.25);
 		use_x = m_position.first + (m_gsInitData.cx-use_width)/2;
 		use_y = m_position.second + (m_gsInitData.cy-use_height)/2;
 		break;
-	case 2:
+	case 3:
 		use_width = float(m_gsInitData.cx)/float(1.5);
 		use_height = float(m_gsInitData.cy)/float(1.5);
 		use_x = m_position.first + (m_gsInitData.cx-use_width)/2;
 		use_y = m_position.second + (m_gsInitData.cy-use_height)/2;
 		break;
-	case 3:
+	case 4:
 		use_width = float(m_gsInitData.cx)/float(2);
 		use_height = float(m_gsInitData.cy)/float(2);
 		use_x = m_position.first + (m_gsInitData.cx-use_width)/2;
 		use_y = m_position.second + (m_gsInitData.cy-use_height)/2;
 		break;
-	case 4:
+	case 5:
 		use_width = float(m_gsInitData.cx)/float(3);
 		use_height = float(m_gsInitData.cy)/float(3);
 		use_x = m_position.first + (m_gsInitData.cx-use_width)/2;
@@ -525,7 +531,7 @@ void OBS::Display::setSizeCall(int step)
 
 	// Resize Window
 #if defined(_WIN32)
-	if(step >= 0)
+	if(step > 0)
 	{
 		ShowWindow(m_ourWindow, SW_HIDE);
 		SetWindowPos( m_ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_ASYNCWINDOWPOS);
@@ -559,9 +565,9 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 	
 	if(width == 0 || height == 0 || isNewerThanWindows7())
 	{
-		setSizeCall( -1);
+		setSizeCall(-1);
 	} else {
-		setSizeCall( 4);
+		setSizeCall(4);
 	}
 
 	// Resize Display
