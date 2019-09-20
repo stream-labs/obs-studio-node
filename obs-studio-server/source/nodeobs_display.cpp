@@ -492,10 +492,10 @@ void OBS::Display::setSizeCall(int step)
 		use_y = m_position.second;
 		break;
 	case 0:
-		use_width = m_gsInitData.cx;
-		use_height = m_gsInitData.cy;
-		use_x = m_position.first + (m_gsInitData.cx-use_width)/2;
-		use_y = m_position.second + (m_gsInitData.cy-use_height)/2;
+		use_width = m_gsInitData.cx-2;
+		use_height = m_gsInitData.cy-2;
+		use_x = m_position.first + 1;
+		use_y = m_position.second + 1;
 		break;
 	case 1:
 		use_width = float(m_gsInitData.cx)/float(1.05);
