@@ -455,6 +455,95 @@ std::pair<uint32_t, uint32_t> OBS::Display::GetPosition()
 	return m_position;
 }
 
+bool isNewerThanWindows7()
+{
+	static bool versionIsHigherThan7 = false; 
+	static bool versionIsChecked = false; 
+	if( !versionIsChecked )
+	{
+		OSVERSIONINFO osvi;
+		BOOL bIsWindowsXPorLater;
+
+		ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
+		osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+
+		GetVersionEx(&osvi);
+
+		versionIsHigherThan7 = 
+		( (osvi.dwMajorVersion > 6 ) ||
+		( (osvi.dwMajorVersion == 6) && 
+		(osvi.dwMinorVersion > 1) ));
+
+		versionIsChecked = true;
+	}
+	return versionIsHigherThan7;
+}
+
+void setSizeCall(HWND ourWindow, int x, int y, int width, int height, int step )
+{
+	int use_x, use_y;
+	int use_width, use_height;
+	switch( step ) 
+	{
+	case -1:
+		use_width = width;
+		use_height = height;
+		use_x = x;
+		use_y = y;
+		break;
+	case 0:
+		use_width = float(width)/float(1.05);
+		use_height = float(height)/float(1.05);
+		use_x = x + (width-use_width)/2;
+		use_y = y + (height-use_height)/2;
+		break;
+	case 1:
+		use_width = float(width)/float(1.3);
+		use_height = float(height)/float(1.3);
+		use_x = x + (width-use_width)/2;
+		use_y = y + (height-use_height)/2;
+		break;
+	case 2:
+		use_width = float(width)/float(1.5);
+		use_height = float(height)/float(1.5);
+		use_x = x + (width-use_width)/2;
+		use_y = y + (height-use_height)/2;
+		break;
+	case 3:
+		use_width = float(width)/float(2);
+		use_height = float(height)/float(2);
+		use_x = x + (width-use_width)/2;
+		use_y = y + (height-use_height)/2;
+		break;
+	case 4:
+		use_width = float(width)/float(3);
+		use_height = float(height)/float(3);
+		use_x = x + (width-use_width)/2;
+		use_y = y + (height-use_height)/2;
+		break;
+	}
+
+	// Resize Window
+#if defined(_WIN32)
+	if(step > 0)
+	{
+		ShowWindow(ourWindow, SW_HIDE);
+		SetWindowPos( ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_ASYNCWINDOWPOS);
+	} else {
+		SetWindowPos( ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_SHOWWINDOW | SWP_ASYNCWINDOWPOS);
+	}
+#elif defined(__APPLE__)
+#elif defined(__linux__) || defined(__FreeBSD__)
+#endif
+
+	if(step >= 0)
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(250));
+		std::thread{setSizeCall, ourWindow, x, y, width, height, step -1 }.detach();
+	}
+};
+
+
 void OBS::Display::SetSize(uint32_t width, uint32_t height)
 {
 	if (m_source != NULL) {
@@ -464,37 +553,14 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 			obs_source_get_name(m_source), width, height, m_ourWindow);
 	}
 
-	auto setSizeCall = [](OBS::Display* display, int x, int y, int width, int height)
-	{
-		if( !(width == 0 || width == 100) )
-		{
-			std::this_thread::sleep_for(std::chrono::seconds(1));
-		}
-
-		// Resize Window
-#if defined(_WIN32)
-		SetWindowPos( display->m_ourWindow, NULL, x, y, width, height, SWP_NOCOPYBITS );
-#elif defined(__APPLE__)
-#elif defined(__linux__) || defined(__FreeBSD__)
-#endif
-
-	};
-
 	m_gsInitData.cx = width;
 	m_gsInitData.cy = height;
 	
-	if(width == 0 || height == 0)
+	if(width == 0 || height == 0 || isNewerThanWindows7())
 	{
-		setSizeCall(this, m_position.first, m_position.second, width, height);
+		setSizeCall(m_ourWindow, m_position.first, m_position.second, width, height, -1);
 	} else {
-		if(width > 64 || height > 64)
-		{
-			int small_width = 0, small_height = 0;
-			small_width = float(width)/float(3);
-			small_height = float(height)/float(3);
-			setSizeCall(this, m_position.first+(width-small_width)/2, m_position.second+(height-small_height)/2, small_width, small_height );
-		}
-		std::thread{setSizeCall, this, m_position.first, m_position.second, width, height }.detach();
+		setSizeCall(m_ourWindow, m_position.first, m_position.second, width, height, 4);
 	}
 
 	// Resize Display
