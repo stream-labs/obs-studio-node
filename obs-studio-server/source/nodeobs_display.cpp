@@ -435,15 +435,15 @@ void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 
 	if (m_source != NULL) {
 		blog(
-		    LOG_INFO,
+		    LOG_DEBUG,
 		    "<" __FUNCTION__ "> Adjusting display position for source %s to %ldx%ld. hwnd %d",
 		    obs_source_get_name(m_source), x, y, m_ourWindow);
 	}
+	blog( LOG_WARNING, "<" __FUNCTION__ "> Adjusting display position for source %s to %ldx%ld. hwnd %d", obs_source_get_name(m_source), x, y, m_ourWindow);
 
 	// Move Window
 #if defined(_WIN32)
-	SetWindowPos(
-	    m_ourWindow, NULL, m_position.first, m_position.second, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE);
+	SetWindowPos( m_ourWindow, NULL, m_position.first, m_position.second, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE);
 #elif defined(__APPLE__)
 #elif defined(__linux__) || defined(__FreeBSD__)
 #endif
@@ -479,58 +479,58 @@ bool isNewerThanWindows7()
 	return versionIsHigherThan7;
 }
 
-void setSizeCall(HWND ourWindow, int x, int y, int width, int height, int step )
+void OBS::Display::setSizeCall(int step)
 {
 	int use_x, use_y;
 	int use_width, use_height;
 	switch( step ) 
 	{
 	case -1:
-		use_width = width;
-		use_height = height;
-		use_x = x;
-		use_y = y;
+		use_width = m_gsInitData.cx;
+		use_height = m_gsInitData.cy;
+		use_x = m_position.first;
+		use_y = m_position.second;
 		break;
 	case 0:
-		use_width = float(width)/float(1.05);
-		use_height = float(height)/float(1.05);
-		use_x = x + (width-use_width)/2;
-		use_y = y + (height-use_height)/2;
+		use_width = float(m_gsInitData.cx)/float(1.05);
+		use_height = float(m_gsInitData.cy)/float(1.05);
+		use_x = m_position.first + (m_gsInitData.cx-use_width)/2;
+		use_y = m_position.second + (m_gsInitData.cy-use_height)/2;
 		break;
 	case 1:
-		use_width = float(width)/float(1.3);
-		use_height = float(height)/float(1.3);
-		use_x = x + (width-use_width)/2;
-		use_y = y + (height-use_height)/2;
+		use_width = float(m_gsInitData.cx)/float(1.3);
+		use_height = float(m_gsInitData.cy)/float(1.3);
+		use_x = m_position.first + (m_gsInitData.cx-use_width)/2;
+		use_y = m_position.second + (m_gsInitData.cy-use_height)/2;
 		break;
 	case 2:
-		use_width = float(width)/float(1.5);
-		use_height = float(height)/float(1.5);
-		use_x = x + (width-use_width)/2;
-		use_y = y + (height-use_height)/2;
+		use_width = float(m_gsInitData.cx)/float(1.5);
+		use_height = float(m_gsInitData.cy)/float(1.5);
+		use_x = m_position.first + (m_gsInitData.cx-use_width)/2;
+		use_y = m_position.second + (m_gsInitData.cy-use_height)/2;
 		break;
 	case 3:
-		use_width = float(width)/float(2);
-		use_height = float(height)/float(2);
-		use_x = x + (width-use_width)/2;
-		use_y = y + (height-use_height)/2;
+		use_width = float(m_gsInitData.cx)/float(2);
+		use_height = float(m_gsInitData.cy)/float(2);
+		use_x = m_position.first + (m_gsInitData.cx-use_width)/2;
+		use_y = m_position.second + (m_gsInitData.cy-use_height)/2;
 		break;
 	case 4:
-		use_width = float(width)/float(3);
-		use_height = float(height)/float(3);
-		use_x = x + (width-use_width)/2;
-		use_y = y + (height-use_height)/2;
+		use_width = float(m_gsInitData.cx)/float(3);
+		use_height = float(m_gsInitData.cy)/float(3);
+		use_x = m_position.first + (m_gsInitData.cx-use_width)/2;
+		use_y = m_position.second + (m_gsInitData.cy-use_height)/2;
 		break;
 	}
 
 	// Resize Window
 #if defined(_WIN32)
-	if(step > 0)
+	if(step >= 0)
 	{
-		ShowWindow(ourWindow, SW_HIDE);
-		SetWindowPos( ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_ASYNCWINDOWPOS);
+		ShowWindow(m_ourWindow, SW_HIDE);
+		SetWindowPos( m_ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_ASYNCWINDOWPOS);
 	} else {
-		SetWindowPos( ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_SHOWWINDOW | SWP_ASYNCWINDOWPOS);
+		SetWindowPos( m_ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_SHOWWINDOW | SWP_ASYNCWINDOWPOS);
 	}
 #elif defined(__APPLE__)
 #elif defined(__linux__) || defined(__FreeBSD__)
@@ -539,7 +539,7 @@ void setSizeCall(HWND ourWindow, int x, int y, int width, int height, int step )
 	if(step >= 0)
 	{
 		std::this_thread::sleep_for(std::chrono::milliseconds(250));
-		std::thread{setSizeCall, ourWindow, x, y, width, height, step -1 }.detach();
+		std::thread{&OBS::Display::setSizeCall, this, step -1 }.detach();
 	}
 };
 
@@ -552,15 +552,16 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 			"<" __FUNCTION__ "> Adjusting display size for source %s to %ldx%ld. hwnd %d",
 			obs_source_get_name(m_source), width, height, m_ourWindow);
 	}
+	blog( LOG_WARNING, "<" __FUNCTION__ "> Adjusting display size for source %s to %ldx%ld. hwnd %d", obs_source_get_name(m_source), width, height, m_ourWindow);
 
 	m_gsInitData.cx = width;
 	m_gsInitData.cy = height;
 	
 	if(width == 0 || height == 0 || isNewerThanWindows7())
 	{
-		setSizeCall(m_ourWindow, m_position.first, m_position.second, width, height, -1);
+		setSizeCall( -1);
 	} else {
-		setSizeCall(m_ourWindow, m_position.first, m_position.second, width, height, 4);
+		setSizeCall( 4);
 	}
 
 	// Resize Display

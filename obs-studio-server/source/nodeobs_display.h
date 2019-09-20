@@ -84,6 +84,7 @@ namespace OBS
 		static void DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy);
 		static bool DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item, void* param);
 		void        UpdatePreviewArea();
+		void        setSizeCall(int step);
 
 		public: // Rendering code needs it.
 		vec2 m_worldToPreviewScale, m_previewToWorldScale;
