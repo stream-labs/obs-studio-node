@@ -533,10 +533,9 @@ void OBS::Display::setSizeCall(int step)
 #if defined(_WIN32)
 	if(step > 0)
 	{
-		ShowWindow(m_ourWindow, SW_HIDE);
-		SetWindowPos( m_ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_ASYNCWINDOWPOS);
+		SetWindowPos( m_ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_ASYNCWINDOWPOS | SWP_HIDEWINDOW);
 	} else {
-		SetWindowPos( m_ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_SHOWWINDOW | SWP_ASYNCWINDOWPOS);
+		SetWindowPos( m_ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOZORDER | SWP_SHOWWINDOW );
 	}
 #elif defined(__APPLE__)
 #elif defined(__linux__) || defined(__FreeBSD__)
@@ -544,7 +543,7 @@ void OBS::Display::setSizeCall(int step)
 
 	if(step >= 0)
 	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(250));
+		std::this_thread::sleep_for(std::chrono::milliseconds(300));
 		std::thread{&OBS::Display::setSizeCall, this, step -1 }.detach();
 	}
 };
@@ -567,7 +566,7 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 	{
 		setSizeCall(-1);
 	} else {
-		setSizeCall(4);
+		setSizeCall(5);
 	}
 
 	// Resize Display
