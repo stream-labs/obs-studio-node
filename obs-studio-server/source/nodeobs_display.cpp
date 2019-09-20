@@ -439,7 +439,6 @@ void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 		    "<" __FUNCTION__ "> Adjusting display position for source %s to %ldx%ld. hwnd %d",
 		    obs_source_get_name(m_source), x, y, m_ourWindow);
 	}
-	blog( LOG_WARNING, "<" __FUNCTION__ "> Adjusting display position for source %s to %ldx%ld. hwnd %d", obs_source_get_name(m_source), x, y, m_ourWindow);
 
 	// Move Window
 #if defined(_WIN32)
@@ -483,6 +482,8 @@ void OBS::Display::setSizeCall(int step)
 {
 	int use_x, use_y;
 	int use_width, use_height;
+	const float presizes[] = {1 ,1.05, 1.25, 1.5, 2.0 , 3.0};
+
 	switch( step ) 
 	{
 	case -1:
@@ -498,32 +499,12 @@ void OBS::Display::setSizeCall(int step)
 		use_y = m_position.second + 1;
 		break;
 	case 1:
-		use_width = float(m_gsInitData.cx)/float(1.05);
-		use_height = float(m_gsInitData.cy)/float(1.05);
-		use_x = m_position.first + (m_gsInitData.cx-use_width)/2;
-		use_y = m_position.second + (m_gsInitData.cy-use_height)/2;
-		break;
 	case 2:
-		use_width = float(m_gsInitData.cx)/float(1.25);
-		use_height = float(m_gsInitData.cy)/float(1.25);
-		use_x = m_position.first + (m_gsInitData.cx-use_width)/2;
-		use_y = m_position.second + (m_gsInitData.cy-use_height)/2;
-		break;
 	case 3:
-		use_width = float(m_gsInitData.cx)/float(1.5);
-		use_height = float(m_gsInitData.cy)/float(1.5);
-		use_x = m_position.first + (m_gsInitData.cx-use_width)/2;
-		use_y = m_position.second + (m_gsInitData.cy-use_height)/2;
-		break;
 	case 4:
-		use_width = float(m_gsInitData.cx)/float(2);
-		use_height = float(m_gsInitData.cy)/float(2);
-		use_x = m_position.first + (m_gsInitData.cx-use_width)/2;
-		use_y = m_position.second + (m_gsInitData.cy-use_height)/2;
-		break;
 	case 5:
-		use_width = float(m_gsInitData.cx)/float(3);
-		use_height = float(m_gsInitData.cy)/float(3);
+		use_width = float(m_gsInitData.cx)/presizes[step];
+		use_height = float(m_gsInitData.cy)/presizes[step];
 		use_x = m_position.first + (m_gsInitData.cx-use_width)/2;
 		use_y = m_position.second + (m_gsInitData.cy-use_height)/2;
 		break;
@@ -544,7 +525,7 @@ void OBS::Display::setSizeCall(int step)
 
 	if(step >= 0)
 	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(300));
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		std::thread{&OBS::Display::setSizeCall, this, step -1 }.detach();
 	}
 };
@@ -558,7 +539,6 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 			"<" __FUNCTION__ "> Adjusting display size for source %s to %ldx%ld. hwnd %d",
 			obs_source_get_name(m_source), width, height, m_ourWindow);
 	}
-	blog( LOG_WARNING, "<" __FUNCTION__ "> Adjusting display size for source %s to %ldx%ld. hwnd %d", obs_source_get_name(m_source), width, height, m_ourWindow);
 
 	m_gsInitData.cx = width;
 	m_gsInitData.cy = height;
@@ -567,7 +547,7 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 	{
 		setSizeCall(-1);
 	} else {
-		setSizeCall(5);
+		setSizeCall(2);
 	}
 
 	// Resize Display
