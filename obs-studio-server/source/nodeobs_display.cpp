@@ -165,7 +165,7 @@ void OBS::Display::SystemWorker()
 			if (IsWindows8OrGreater() || !enabled) {
 				windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST;
 			} else {
-				windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_COMPOSITED ;
+				windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_COMPOSITED;
 			}
 
 			HWND newWindow = CreateWindowEx(
@@ -516,8 +516,8 @@ void OBS::Display::setSizeCall(int step)
 	{
 		SetWindowPos( m_ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_HIDEWINDOW);
 	} else {
-		SetWindowPos( m_ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_SHOWWINDOW );
-		RedrawWindow( m_ourWindow, NULL, NULL, RDW_ERASE | RDW_INVALIDATE );
+		SetWindowPos( m_ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_SHOWWINDOW);
+		RedrawWindow( m_ourWindow, NULL, NULL, RDW_ERASE | RDW_INVALIDATE);
 	}
 #elif defined(__APPLE__)
 #elif defined(__linux__) || defined(__FreeBSD__)
@@ -547,7 +547,7 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 	{
 		setSizeCall(-1);
 	} else {
-		setSizeCall(2);
+		setSizeCall(4);
 	}
 
 	// Resize Display
