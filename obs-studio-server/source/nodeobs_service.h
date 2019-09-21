@@ -232,7 +232,7 @@ class OBS_service
 
 	// Update video encoders
 	static void updateStreamingEncoders(bool isSimpleMode);
-	static void updateRecordingEncoders(bool isSimpleMode, obs_encoder_t** audioEnc, obs_encoder_t** videoEnc);
+	static bool updateRecordingEncoders(bool isSimpleMode);
 
 	static void updateVideoStreamingEncoder(bool isSimpleMode);
 	static void updateAudioStreamingEncoder(bool isSimpleMode);
