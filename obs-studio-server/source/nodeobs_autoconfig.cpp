@@ -441,6 +441,10 @@ void autoConfig::InitializeAutoConfig(
 	serverName = "Auto (Recommended)";
 	server     = "auto";
 
+	obs_output_t* streamOutput = OBS_service::getStreamingOutput();
+	if (streamOutput)
+		OBS_service::setStreamingOutput(nullptr);
+
 	cancel = false;
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
