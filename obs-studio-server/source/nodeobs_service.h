@@ -232,7 +232,7 @@ class OBS_service
 
 	// Update video encoders
 	static void updateStreamingEncoders(bool isSimpleMode);
-	static void updateRecordingEncoders(bool isSimpleMode, obs_encoder_t** audioEnc, obs_encoder_t** videoEnc);
+	static bool updateRecordingEncoders(bool isSimpleMode);
 
 	static void updateVideoStreamingEncoder(bool isSimpleMode);
 	static void updateAudioStreamingEncoder(bool isSimpleMode);
@@ -241,7 +241,7 @@ class OBS_service
 	static void updateAudioTracks(void);
 
 	// Update outputs
-	static void updateFfmpegOutput(obs_output_t* output);
+	static void updateFfmpegOutput(bool isSimpleMode, obs_output_t* output);
 	static void UpdateFFmpegCustomOutput(void);
 	static void updateReplayBufferOutput(bool isSimpleMode, bool useStreamEncoder);
 

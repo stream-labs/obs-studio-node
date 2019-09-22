@@ -1296,7 +1296,7 @@ int OBS_API::getNumberOfDroppedFrames(void)
 
 	int totalDropped = 0;
 
-	if (obs_output_active(streamOutput)) {
+	if (streamOutput && obs_output_active(streamOutput)) {
 		totalDropped = obs_output_get_frames_dropped(streamOutput);
 	}
 
@@ -1309,7 +1309,7 @@ double OBS_API::getDroppedFramesPercentage(void)
 
 	double percent = 0;
 
-	if (obs_output_active(streamOutput)) {
+	if (streamOutput && obs_output_active(streamOutput)) {
 		int totalDropped = obs_output_get_frames_dropped(streamOutput);
 		int totalFrames  = obs_output_get_total_frames(streamOutput);
 		if (totalFrames == 0) {
@@ -1328,7 +1328,7 @@ double OBS_API::getCurrentBandwidth(void)
 
 	double kbitsPerSec = 0;
 
-	if (obs_output_active(streamOutput)) {
+	if (streamOutput && obs_output_active(streamOutput)) {
 		uint64_t bytesSent     = obs_output_get_total_bytes(streamOutput);
 		uint64_t bytesSentTime = os_gettime_ns();
 

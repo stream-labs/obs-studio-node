@@ -411,7 +411,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 		sid->streamVisibleChanged = false;
 
 		// Recording visible
-		sid->isRecordingVisible      = transform->Get(utilv8::ToValue("recordingVisiblle"))->ToBoolean()->Value();
+		sid->isRecordingVisible      = transform->Get(utilv8::ToValue("recordingVisible"))->ToBoolean()->Value();
 		sid->recordingVisibleChanged = false;
 	}
 
