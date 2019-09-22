@@ -1108,7 +1108,7 @@ bool OBS_service::startRecording(void)
 			useStreamEncoder = updateRecordingEncoders(isSimpleMode);
 		}
 	}
-	updateFfmpegOutput(recordingOutput);
+	updateFfmpegOutput(isSimpleMode, recordingOutput);
 
 	obs_output_set_video_encoder(recordingOutput, useStreamEncoder ? videoStreamingEncoder : videoRecordingEncoder);
 	if (isSimpleMode) {
@@ -1270,7 +1270,7 @@ bool OBS_service::startReplayBuffer(void)
 		rpUsesRec = true;
 	}
 
-	updateFfmpegOutput(replayBufferOutput);
+	updateFfmpegOutput(isSimpleMode, replayBufferOutput);
 	updateReplayBufferOutput(isSimpleMode, useStreamEncoder);
 
 	obs_output_set_video_encoder(replayBufferOutput, useStreamEncoder ? videoStreamingEncoder : videoRecordingEncoder);
@@ -1540,27 +1540,37 @@ void OBS_service::updateService(void)
 	obs_output_set_service(streamingOutput, service);
 }
 
-void OBS_service::updateFfmpegOutput(obs_output_t* output)
+void OBS_service::updateFfmpegOutput(bool isSimpleMode, obs_output_t* output)
 {
-	const char* path   = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "FilePath");
-	const char* format = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecFormat");
-	const char* mux    = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "MuxerCustom");
-	bool noSpace = config_get_bool(ConfigManager::getInstance().getBasic(), "SimpleOutput", "FileNameWithoutSpace");
-	const char* filenameFormat =
-	    config_get_string(ConfigManager::getInstance().getBasic(), "Output", "FilenameFormatting");
-	bool overwriteIfExists = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "OverwriteIfExists");
-	const char* rbPrefix   = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecRBPrefix");
-	const char* rbSuffix   = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecRBSuffix");
-	int         rbTime     = int(config_get_int(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecRBTime"));
-	int         rbSize     = int(config_get_int(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecRBSize"));
+	const char* path;
+	const char* format;
+	const char* mux;
+	bool        noSpace;
+	const char* fileNameFormat;
+	bool        overwriteIfExists;
+
+	if (isSimpleMode) {
+		path    = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "FilePath");
+		format  = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecFormat");
+		mux     = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "MuxerCustom");
+		noSpace = config_get_bool(ConfigManager::getInstance().getBasic(), "SimpleOutput", "FileNameWithoutSpace");
+		fileNameFormat    = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "FilenameFormatting");
+		overwriteIfExists = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "OverwriteIfExists");
+	} else {
+		path              = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecFilePath");
+		format            = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecFormat");
+		fileNameFormat    = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "FilenameFormatting");
+		overwriteIfExists = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "OverwriteIfExists");
+		noSpace  = config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecFileNameWithoutSpace");
+	}
 
 	std::string initialPath;
 	if (path != nullptr) {
 		initialPath = path;
 	}
 
-	if (filenameFormat == NULL) {
-		filenameFormat = "%CCYY-%MM-%DD %hh-%mm-%ss";
+	if (fileNameFormat == NULL) {
+		fileNameFormat = "%CCYY-%MM-%DD %hh-%mm-%ss";
 	}
 
 	std::string strPath;
@@ -1570,8 +1580,8 @@ void OBS_service::updateFfmpegOutput(obs_output_t* output)
 	if (lastChar != '/' && lastChar != '\\')
 		strPath += "/";
 
-	if (filenameFormat != NULL && format != NULL) {
-		strPath += GenerateSpecifiedFilename(ffmpegOutput ? "avi" : format, noSpace, filenameFormat);
+	if (fileNameFormat != NULL && format != NULL) {
+		strPath += GenerateSpecifiedFilename(ffmpegOutput ? "avi" : format, noSpace, fileNameFormat);
 		if (!strPath.empty())
 			ensure_directory_exists(strPath);
 	}
