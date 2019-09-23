@@ -1814,7 +1814,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	bool recStreamUsesSameEncoder   = streamingEncoder == recordEncoder;
 	bool recOutputBlockStreamOutput = !(!recStreamUsesSameEncoder || (recStreamUsesSameEncoder && !recOutputIsActive));
 
-	if ((!streamOutput && !streamOutputIsActive && !recOutputBlockStreamOutput) || streamingEncoder == nullptr) {
+	if ((!streamOutputIsActive && !recOutputBlockStreamOutput) || streamingEncoder == nullptr) {
 		if (!fileExist) {
 			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
 			OBS_service::setStreamingEncoder(streamingEncoder);
