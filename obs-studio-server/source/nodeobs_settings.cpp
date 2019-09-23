@@ -2646,8 +2646,16 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 
 	if (newEncoderType) {
+		obs_data_t* data = obs_data_create_from_json_file_safe(ConfigManager::getInstance().getRecord().c_str(), "bak");
+		obs_data_apply(encoderSettings, data);
 		encoderSettings = obs_encoder_defaults(
 		    config_get_string(ConfigManager::getInstance().getBasic(), section.c_str(), "Encoder"));
+		encoder = obs_video_encoder_create(
+		    config_get_string(ConfigManager::getInstance().getBasic(), section.c_str(), "Encoder"),
+		    "streaming_h264",
+		    encoderSettings,
+		    nullptr);
+		OBS_service::setStreamingEncoder(encoder);
 	}
 
 	obs_encoder_update(encoder, encoderSettings);
