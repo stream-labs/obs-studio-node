@@ -26,8 +26,8 @@ variables:
   SLDistributeDirectory: distribute
   SLFullDistributePath: $(SLBuildDirectory)\$(SLDistributeDirectory)
   BuildArtifact: obs-studio-node-us-$(Build.BuildId)-$(RuntimeName)-$(RuntimeVersion)
-  LibOBSDebugArtifact: libobs-debug-24.0.0-rc1-streamlabs-v7.7z
-  OBSVersion: 23.1.0
+  LibOBSDebugArtifact: libobs-debug-24.0.1-streamlabs-v0.7z
+  OBSVersion: 24.0.1
 
 steps:
 - powershell: |
