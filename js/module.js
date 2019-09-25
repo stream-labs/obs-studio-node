@@ -55,6 +55,8 @@ function createSources(sources) {
             if (newSource.audioMixers) {
                 newSource.muted = (source.muted != null) ? source.muted : false;
                 newSource.volume = (source.volume != null) ? source.volume : 1;
+                newSource.syncOffset =
+                (source.syncOffset != null) ? source.syncOffset : {sec: 0, nsec: 0};
             }
             items.push(newSource);
             const filters = source.filters;
