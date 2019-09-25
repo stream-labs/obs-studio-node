@@ -1576,13 +1576,18 @@ export interface FilterInfo {
     settings: ISettings,
     enabled: boolean
 }
+export interface SyncOffset {
+    sec: number,
+    nsec: number
+}
 export interface SourceInfo {
     filters: FilterInfo[],
     muted: boolean,
     name: string,
     settings: ISettings,
     type: string,
-    volume: number
+    volume: number,
+    syncOffset: SyncOffset
 }
 export function createSources(sources: SourceInfo[]): IInput[] {
     const items: IInput[] = [];
