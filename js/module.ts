@@ -1576,13 +1576,18 @@ export interface FilterInfo {
     settings: ISettings,
     enabled: boolean
 }
+export interface SyncOffset {
+    sec: number,
+    nsec: number
+}
 export interface SourceInfo {
     filters: FilterInfo[],
     muted: boolean,
     name: string,
     settings: ISettings,
     type: string,
-    volume: number
+    volume: number,
+    syncOffset: SyncOffset
 }
 export function createSources(sources: SourceInfo[]): IInput[] {
     const items: IInput[] = [];
@@ -1592,6 +1597,8 @@ export function createSources(sources: SourceInfo[]): IInput[] {
             if (newSource.audioMixers) {
                 newSource.muted = (source.muted != null) ? source.muted : false;
                 newSource.volume = (source.volume != null) ? source.volume : 1;
+                newSource.syncOffset =
+                (source.syncOffset != null) ? source.syncOffset : {sec: 0, nsec: 0};
             }
             items.push(newSource);
             const filters = source.filters;
