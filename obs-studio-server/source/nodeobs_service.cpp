@@ -2127,10 +2127,10 @@ void OBS_service::JSCallbackOutputSignal(void* data, calldata_t* params)
 			isStreaming = false;
 		} else if (signal.getOutputType().compare("recording") == 0) {
 			output = recordingOutput;
-			isRecording = true;
+			isRecording = false;
 		} else {
 			output = replayBufferOutput;
-			isReplayBufferActive = true;
+			isReplayBufferActive = false;
 		}
 
 		const char* error = obs_output_get_last_error(output);
