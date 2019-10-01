@@ -919,8 +919,8 @@ bool OBS_service::startStreaming(void)
 		    audioAdvancedStreamingEncoder,
 		    config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex") - 1);
 
-	isStreaming = true;
-	return obs_output_start(streamingOutput);
+	isStreaming = obs_output_start(streamingOutput);
+	return isStreaming;
 }
 
 void OBS_service::updateAudioStreamingEncoder(bool isSimpleMode)
@@ -1305,10 +1305,11 @@ bool OBS_service::startReplayBuffer(void)
 		signal.setCode(OBS_OUTPUT_ERROR);
 		std::unique_lock<std::mutex> ulock(signalMutex);
 		outputSignal.push(signal);
+	} else {
+		isReplayBufferActive = true;
 	}
 
-	isReplayBufferActive = true;
-	return result;
+	return isReplayBufferActive;
 }
 
 void OBS_service::stopReplayBuffer(bool forceStop)
@@ -2121,12 +2122,16 @@ void OBS_service::JSCallbackOutputSignal(void* data, calldata_t* params)
 
 		obs_output_t* output;
 
-		if (signal.getOutputType().compare("streaming") == 0)
+		if (signal.getOutputType().compare("streaming") == 0) {
 			output = streamingOutput;
-		else if (signal.getOutputType().compare("recording") == 0)
+			isStreaming = false;
+		} else if (signal.getOutputType().compare("recording") == 0) {
 			output = recordingOutput;
-		else
+			isRecording = false;
+		} else {
 			output = replayBufferOutput;
+			isReplayBufferActive = false;
+		}
 
 		const char* error = obs_output_get_last_error(output);
 		if (error) {
