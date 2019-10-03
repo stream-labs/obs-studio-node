@@ -48,11 +48,14 @@ void MemoryManager::calculateRawSize(source_info* si)
 	switch (pix_fmt) {
 		case VIDEO_FORMAT_I420:
 		case VIDEO_FORMAT_NV12:
+	    case VIDEO_FORMAT_I40A:
 			bpp = 1.5;
 			break;
 		case VIDEO_FORMAT_YVYU:
 		case VIDEO_FORMAT_YUY2:
 		case VIDEO_FORMAT_UYVY:
+	    case VIDEO_FORMAT_I422:
+	    case VIDEO_FORMAT_I42A:
 			bpp = 2;
 			break;
 		case VIDEO_FORMAT_RGBA:
@@ -62,6 +65,9 @@ void MemoryManager::calculateRawSize(source_info* si)
 			bpp = 4;
 			break;
 		case VIDEO_FORMAT_I444:
+	    case VIDEO_FORMAT_BGR3:
+	    case VIDEO_FORMAT_YUVA:
+	    case VIDEO_FORMAT_AYUV:
 			bpp = 4;
 			break;
 	}
