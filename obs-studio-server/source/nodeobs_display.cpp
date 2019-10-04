@@ -391,7 +391,6 @@ OBS::Display::~Display()
 
 	if (m_textVertices) {
 		m_textVertices->m_vertexbuffer = nullptr;
-		delete m_textVertices->m_vertexbuffer;
 		delete m_textVertices;
 	}
 
