@@ -77,12 +77,6 @@ jobs:
       artifactName: $(BuildArtifact).tar.gz
     displayName: 'Publish build artifact'
 
-  - task: PublishBuildArtifacts@1
-    inputs: 
-      pathtoPublish: $(SLFullDistributePath)\$(BuildArtifact)-$(ReleaseName).tar.gz
-      artifactName: $(BuildArtifact).tar.gz
-    displayName: 'Publish build artifact'
-
   - script: ./ci/prepare-artifact.cmd
     displayName: 'Prepare tag artifact'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
@@ -178,12 +172,6 @@ jobs:
       tarCompression: gz
       archiveFile: '$(SLFullDistributePath)\$(BuildArtifact)-$(ReleaseName).tar.gz'
     displayName: 'Generate build artifact'
-
-  - task: PublishBuildArtifacts@1
-    inputs: 
-      pathtoPublish: $(SLFullDistributePath)\$(BuildArtifact)-$(ReleaseName).tar.gz
-      artifactName: $(BuildArtifact).tar.gz
-    displayName: 'Publish build artifact'
 
   - task: PublishBuildArtifacts@1
     inputs: 
