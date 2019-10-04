@@ -677,8 +677,9 @@ void OBS_API::QueryHotkeys(
 		    auto ToTitle = [](std::string s) {
 			    bool last = true;
 			    for (char& c : s) {
-				    c    = last ? ::toupper(c) : ::tolower(c);
-				    last = ::isspace(c);
+				    int full_c = (uint8_t)c;
+				    full_c     = last ? ::toupper(full_c) : ::tolower(full_c);
+				    last       = ::isspace(full_c);
 			    }
 			    return s;
 		    };
