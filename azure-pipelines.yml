@@ -11,16 +11,19 @@ workspace:
 
 strategy:
   matrix:
-    Electron5:
-      RuntimeURL: https://atom.io/download/atom-shell
-      RuntimeName: iojs
-      RuntimeVersion: v6.0.3
-      ElectronVersion: 6.0.3
+    Release:
+      ReleaseName: release
+    Debug:
+      ReleaseName: debug
 
 pool:
   name: 'Default'
 
 variables:
+  RuntimeURL: https://atom.io/download/atom-shell
+  RuntimeName: iojs
+  RuntimeVersion: v6.0.3
+  ElectronVersion: 6.0.3
   SLBuildDirectory: streamlabs-build
   SLGenerator: Visual Studio 15 2017 Win64
   SLDistributeDirectory: distribute
@@ -81,7 +84,6 @@ steps:
     copy "C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64\api-ms-win-crt-time-l1-1-0.dll" "%SLFullDistributePath%\obs-studio-node\"
     copy "C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64\api-ms-win-crt-utility-l1-1-0.dll" "%SLFullDistributePath%\obs-studio-node\"
 
-
     copy "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\redist\x64\Microsoft.VC140.CRT\vcruntime140.dll" "%SLFullDistributePath%\obs-studio-node\"
     copy "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\redist\x64\Microsoft.VC140.CRT\msvcp140.dll" "%SLFullDistributePath%\obs-studio-node\"
     copy "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\redist\x64\Microsoft.VC140.CRT\concrt140.dll" "%SLFullDistributePath%\obs-studio-node\"
@@ -128,14 +130,14 @@ steps:
     includeRootFolder: true
     archiveType: tar
     tarCompression: gz
-    archiveFile: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz'
+    archiveFile: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz'
   displayName: 'Generate tag artifact'
   condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
 - task: PublishBuildArtifacts@1
   inputs: 
-    pathtoPublish: $(Build.SourcesDirectory)\$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz
-    artifactName: $(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz
+    pathtoPublish: $(Build.SourcesDirectory)\$(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz
+    artifactName: $(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz
   displayName: 'Publish tag artifact'
   condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
@@ -158,7 +160,7 @@ steps:
     awsCredentials: 'Streamlabs AWS'
     regionName: 'us-west-2'
     bucketName: 'obsstudionodes3.streamlabs.com'
-    globExpressions: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz'
+    globExpressions: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz'
     filesAcl: 'public-read'
   displayName: 'Upload tag artifact to S3'
   condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
