@@ -28,8 +28,8 @@ jobs:
     ReleaseName: release
   steps:
   - powershell: |
-    Write-Host "##vso[task.setvariable variable=tagartifact]obs-studio-node-$((git.exe describe --tags --abbrev=0) | Out-String)"
-    'yarn install'
+      Write-Host "##vso[task.setvariable variable=tagartifact]obs-studio-node-$((git.exe describe --tags --abbrev=0) | Out-String)"
+      'yarn install'
     displayName: 'Install dependencies'
 
   - script: 'yarn add electron@%ElectronVersion% -D'
@@ -136,8 +136,8 @@ jobs:
     ReleaseName: debug
   steps:
   - powershell: |
-    Write-Host "##vso[task.setvariable variable=tagartifact]obs-studio-node-$((git.exe describe --tags --abbrev=0) | Out-String)"
-    'yarn install'
+      Write-Host "##vso[task.setvariable variable=tagartifact]obs-studio-node-$((git.exe describe --tags --abbrev=0) | Out-String)"
+      'yarn install'
     displayName: 'Install dependencies'
 
   - script: 'yarn add electron@%ElectronVersion% -D'
