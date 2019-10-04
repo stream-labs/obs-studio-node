@@ -98,12 +98,12 @@ steps:
     includeRootFolder: true
     archiveType: tar
     tarCompression: gz
-    archiveFile: '$(SLFullDistributePath)\$(BuildArtifact).tar.gz'
+    archiveFile: '$(SLFullDistributePath)\$(BuildArtifact)-$(ReleaseName).tar.gz'
   displayName: 'Generate build artifact'
 
 - task: PublishBuildArtifacts@1
   inputs: 
-    pathtoPublish: $(SLFullDistributePath)\$(BuildArtifact).tar.gz
+    pathtoPublish: $(SLFullDistributePath)\$(BuildArtifact)-$(ReleaseName).tar.gz
     artifactName: $(BuildArtifact).tar.gz
   displayName: 'Publish build artifact'
 
