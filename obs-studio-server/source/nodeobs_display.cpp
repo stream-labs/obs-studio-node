@@ -378,7 +378,6 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
 
 OBS::Display::~Display()
 {
-	/* Make sure display loop isn't be executed before cleaning resources */
 	obs_display_remove_draw_callback(m_display, DisplayCallback, this);
 
 	if (m_source) {
@@ -389,8 +388,11 @@ OBS::Display::~Display()
 		obs_display_destroy(m_display);
 
 	obs_enter_graphics();
-	if (m_textVertices)
+
+	if (m_textVertices) {
+		m_textVertices->m_vertexbuffer = nullptr;
 		delete m_textVertices;
+	}
 
 	if (m_textTexture) {
 		gs_texture_destroy(m_textTexture);
@@ -629,10 +631,6 @@ void OBS::Display::SetResizeBoxInnerColor(uint8_t r, uint8_t g, uint8_t b, uint8
 static void
     DrawGlyph(GS::VertexBuffer* vb, float_t x, float_t y, float_t scale, float_t depth, char glyph, uint32_t color)
 {
-	// I'll be fully honest here, this code is pretty much shit. It works but
-	//  it is far from ideal and can just render very basic text. It does the
-	//  job but, well, lets just say it shouldn't be used for other things.
-
 	float uvX = 0, uvY = 0, uvO = 1.0 / 4.0;
 	switch (glyph) {
 	default:
@@ -843,7 +841,7 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 
 	obs_source_t* sceneSource = obs_scene_get_source(scene);
 
-	uint32_t sceneWidth  = obs_source_get_width(sceneSource); // Xaymar: this actually works \o/
+	uint32_t sceneWidth  = obs_source_get_width(sceneSource);
 	uint32_t sceneHeight = obs_source_get_height(sceneSource);
 	uint32_t itemWidth   = obs_source_get_width(itemSource);
 	uint32_t itemHeight  = obs_source_get_height(itemSource);

@@ -164,6 +164,7 @@ namespace GS
 		vec4*     m_uvs[MAXIMUM_UVW_LAYERS];
 
 		// OBS GS Data
+		public:
 		gs_vb_data*      m_vertexbufferdata;
 		gs_vertbuffer_t* m_vertexbuffer;
 		gs_tvertarray*   m_layerdata;
