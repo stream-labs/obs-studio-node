@@ -79,6 +79,7 @@ std::vector<std::pair<std::string, obs_module_t*>>     obsModules;
 OBS_API::LogReport                                     logReport;
 std::mutex                                             logMutex;
 std::string                                            currentVersion;
+std::string                                            username("unknown");
 
 void OBS_API::Register(ipc::server& srv)
 {
@@ -101,6 +102,8 @@ void OBS_API::Register(ipc::server& srv)
 	    "OBS_API_ProcessHotkeyStatus",
 	    std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32},
 	    ProcessHotkeyStatus));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetUsername", std::vector<ipc::type>{ipc::type::String}, SetUsername));
 
 	srv.register_collection(cls);
 }
@@ -787,6 +790,19 @@ void OBS_API::ProcessHotkeyStatus(
 	AUTO_DEBUG;
 }
 
+void OBS_API::SetUsername(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	username = args[0].value_str;
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+	AUTO_DEBUG;
+}
+
 void OBS_API::SetProcessPriority(const char* priority)
 {
 	if (!priority)
@@ -1378,6 +1394,11 @@ std::queue<std::string>& OBS_API::getOBSLogGeneral()
 std::string OBS_API::getCurrentVersion()
 {
 	return currentVersion;
+}
+
+std::string OBS_API::getUsername()
+{
+	return username;
 }
 
 static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData)
