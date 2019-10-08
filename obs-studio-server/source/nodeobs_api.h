@@ -111,6 +111,11 @@ class OBS_API
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
+	static void SetUsername(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
 
 	protected:
 	static void initAPI(void);
@@ -127,6 +132,7 @@ class OBS_API
 	static std::queue<std::string>&        getOBSLogGeneral();
 
 	static std::string getCurrentVersion();
+	static std::string getUsername();
 
 	static std::vector<std::string> exploreDirectory(std::string directory, std::string typeToReturn);
 

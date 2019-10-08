@@ -187,6 +187,19 @@ Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_ProcessHotkeyStatus(const v8::FunctionC
 	conn->call("API", "OBS_API_ProcessHotkeyStatus", {ipc::value(hotkeyId), ipc::value(press)});
 }
 
+Nan::NAN_METHOD_RETURN_TYPE api::SetUsername(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	std::string username;
+
+	ASSERT_GET_VALUE(args[0], username);
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	conn->call("API", "SetUsername", {ipc::value(username)});
+}
+
 INITIALIZER(nodeobs_api)
 {
 	initializerFunctions.push([](v8::Local<v8::Object> exports) {
@@ -197,5 +210,6 @@ INITIALIZER(nodeobs_api)
 		NODE_SET_METHOD(exports, "StopCrashHandler", api::StopCrashHandler);
 		NODE_SET_METHOD(exports, "OBS_API_QueryHotkeys", api::OBS_API_QueryHotkeys);
 		NODE_SET_METHOD(exports, "OBS_API_ProcessHotkeyStatus", api::OBS_API_ProcessHotkeyStatus);
+		NODE_SET_METHOD(exports, "SetUsername", api::SetUsername);
 	});
 }
