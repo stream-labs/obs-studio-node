@@ -31,7 +31,7 @@ export class Services {
                 headers: {Authorization: `Bearer: ${process.env.SLOBS_TEST_USER_POOL_TOKEN}`}},
                 (err: any, res: any, body: any) => {
                     console.log('requestUser');
-                    console.log(err);
+                    console.log(res.statusCode);
                     if (err || res.statusCode !== 200) {
                         reject(`Unable to request user ${err || body}`);
                     }
@@ -56,7 +56,7 @@ export class Services {
                           Authorization: `OAuth ${token}`}
             }, (err: any, res: any, body: any) => {
                 console.log('validateToken');
-                console.log(err);
+                console.log(res.statusCode);
                 if (err || res.statusCode !== 200) {
                     reject(`Unable to validate token ${err || body}`);
                 }
@@ -80,7 +80,7 @@ export class Services {
                           Authorization: `OAuth ${token}`}
             }, (err: any, res: any, body: any) => {
                 console.log('requestStreamKey');
-                console.log(err);
+                console.log(res.statusCode);
                 if (err || res.statusCode !== 200) {
                     reject(`Unable to get channel info ${err || body}`);
                 }
@@ -126,7 +126,7 @@ export class Services {
                 headers: {Authorization: `Bearer: ${process.env.SLOBS_TEST_USER_POOL_TOKEN}`}
             }, (err: any, res: any, body: any) => {
                 console.log('releaseUser');
-                console.log(err);
+                console.log(res.statusCode);
                 if (err || res.statusCode !== 200) {
                     reject(`Unable to release user ${err || body}`);
                 }
