@@ -632,7 +632,6 @@ void autoConfig::TestBandwidthThread(void)
 	bool connected   = false;
 	bool stopped     = false;
 	bool errorOnStop = false;
-	bool gotError    = false;
 
 	obs_video_info ovi;
 	obs_get_video_info(&ovi);
@@ -680,25 +679,17 @@ void autoConfig::TestBandwidthThread(void)
 			key = obs_service_get_key(currentService);
 			if (key.empty()) {
 				sendErrorMessage("invalid_stream_settings");
-				gotError = true;
+				return;
 			}
 		} else {
 			sendErrorMessage("invalid_stream_settings");
-			gotError = true;
+			return;
 		}
 	} else {
 		sendErrorMessage("invalid_stream_settings");
-		gotError = true;
-	}
-
-	if (gotError) { 
-		obs_output_release(output);
-		obs_encoder_release(vencoder);
-		obs_encoder_release(aencoder);
-		obs_service_release(service);
 		return;
 	}
-	
+
 	if (!customServer) {
 		if (serviceName == "Twitch")
 			serviceSelected = Service::Twitch;
@@ -840,16 +831,17 @@ void autoConfig::TestBandwidthThread(void)
 			eventsMutex.lock();
 			events.push(AutoConfigInfo("error", "invalid_stream_settings", 0));
 			eventsMutex.unlock();
-			gotError = true;
-		} else {
-			bestServer     = info.address;
-			bestServerName = info.name;
-			bestBitrate    = info.bitrate;
-
-			eventsMutex.lock();
-			events.push(AutoConfigInfo("progress", "bandwidth_test", 100));
-			eventsMutex.unlock();
+			return;
 		}
+
+		bestServer     = info.address;
+		bestServerName = info.name;
+		bestBitrate    = info.bitrate;
+
+		eventsMutex.lock();
+		events.push(AutoConfigInfo("progress", "bandwidth_test", 100));
+		eventsMutex.unlock();
+
 	} else {
 		for (size_t i = 0; i < servers.size(); i++) {
 			EvaluateBandwidth(servers[i], connected, stopped, success, errorOnStop, service_settings, service, output, vencoder_settings);
@@ -859,39 +851,36 @@ void autoConfig::TestBandwidthThread(void)
 		}
 	}
 
-	if (!success && !gotError) {
+	if (!success) {
 		eventsMutex.lock();
 		events.push(AutoConfigInfo("error", "invalid_stream_settings", 0));
 		eventsMutex.unlock();
-		gotError = true;
+		return;
 	}
 
-	if (!gotError) {
-		for (auto& server : servers) {
-			bool close = abs(server.bitrate - bestBitrate) < 400;
+	for (auto& server : servers) {
+		bool close = abs(server.bitrate - bestBitrate) < 400;
 
-			if ((!close && server.bitrate > bestBitrate) || (close && server.ms < bestMS)) {
-				bestServer     = server.address;
-				bestServerName = server.name;
-				bestBitrate    = server.bitrate;
-				bestMS         = server.ms;
-			}
+		if ((!close && server.bitrate > bestBitrate) || (close && server.ms < bestMS)) {
+			bestServer     = server.address;
+			bestServerName = server.name;
+			bestBitrate    = server.bitrate;
+			bestMS         = server.ms;
 		}
-		server       = bestServer;
-		serverName   = bestServerName;
-		idealBitrate = bestBitrate;
 	}
+
+	server       = bestServer;
+	serverName   = bestServerName;
+	idealBitrate = bestBitrate;
 
 	obs_output_release(output);
 	obs_encoder_release(vencoder);
 	obs_encoder_release(aencoder);
 	obs_service_release(service);
 
-	if(!gotError) { 
-		eventsMutex.lock();
-		events.push(AutoConfigInfo("stopping_step", "bandwidth_test", 100));
-		eventsMutex.unlock();
-	}
+	eventsMutex.lock();
+	events.push(AutoConfigInfo("stopping_step", "bandwidth_test", 100));
+	eventsMutex.unlock();
 }
 
 /* this is used to estimate the lower bitrate limit for a given
