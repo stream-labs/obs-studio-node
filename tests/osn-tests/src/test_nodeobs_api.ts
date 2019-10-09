@@ -50,7 +50,6 @@ describe('nodeobs_api', function() {
     let obs: OBSProcessHandler;
     
     before(function() {
-        deleteConfigFiles();
         obs = new OBSProcessHandler();
         
         if (obs.startup() !== osn.EVideoCodes.Success)
@@ -62,6 +61,7 @@ describe('nodeobs_api', function() {
     after(function() {
         obs.shutdown();
         obs = null;
+        deleteConfigFiles();
     });
 
     context('# OBS_API_getPerformanceStatistics', function() {
