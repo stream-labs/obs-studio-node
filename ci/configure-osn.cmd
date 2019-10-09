@@ -1,4 +1,4 @@
-if "%ReleaseName%"=="debug" (
+if "%BUILD_REASON%"=="PullRequest" (
     cmake -H. ^
           -B"%SLBuildDirectory%" ^
           -G"%SLGenerator%" ^

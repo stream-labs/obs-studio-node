@@ -6,11 +6,21 @@ trigger:
     include:
       - v*
 
+workspace:
+  clean: all
+
+strategy:
+  matrix:
+    Electron5:
+      RuntimeURL: https://atom.io/download/atom-shell
+      RuntimeName: iojs
+      RuntimeVersion: v6.0.3
+      ElectronVersion: 6.0.3
+
+pool:
+  name: 'Default'
+
 variables:
-  RuntimeURL: https://atom.io/download/atom-shell
-  RuntimeName: iojs
-  RuntimeVersion: v6.0.3
-  ElectronVersion: 6.0.3
   SLBuildDirectory: streamlabs-build
   SLGenerator: Visual Studio 15 2017 Win64
   SLDistributeDirectory: distribute
@@ -19,193 +29,136 @@ variables:
   LibOBSDebugArtifact: libobs-debug-24.0.1-streamlabs-v11.7z
   OBSVersion: 24.0.1
 
-jobs:
-- job: 'Release'
-  pool: 'Default'
-  workspace:
-    clean: all
-  variables:
-    ReleaseName: release
-  steps:
-  - powershell: |
-      Write-Host "##vso[task.setvariable variable=tagartifact]obs-studio-node-$((git.exe describe --tags --abbrev=0) | Out-String)"
-      'yarn install'
-    displayName: 'Install dependencies'
+steps:
+- powershell: |
+    Write-Host "##vso[task.setvariable variable=tagartifact]obs-studio-node-$((git.exe describe --tags --abbrev=0) | Out-String)"
+    'yarn install'
+  displayName: 'Install dependencies'
 
-  - script: 'yarn add electron@%ElectronVersion% -D'
-    displayName: 'Install Electron'
+- script: 'yarn add electron@%ElectronVersion% -D'
+  displayName: 'Install Electron'
 
-  - script: 'git submodule update --init --recursive'
-    displayName: 'Update submodules'
+- script: 'git submodule update --init --recursive'
+  displayName: 'Update submodules'
 
-  - script: ./ci/configure-osn.cmd
-    displayName: 'Configure obs-studio-node'
+- script: ./ci/configure-osn.cmd
+  displayName: 'Configure obs-studio-node'
 
-  - script: ./ci/build-osn.cmd
-    displayName: 'Build obs-studio-node'
+- script: ./ci/build-osn.cmd
+  displayName: 'Build obs-studio-node'
 
-  - script: 'yarn run test:azure'
-    env:
-      SLOBS_BE_STREAMKEY: $(testsStreamKey)
-      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
-      RELEASE_NAME: $(ReleaseName)
-    displayName: 'Run tests'
+- script: 'yarn run test:azure'
+  env:
+    SLOBS_BE_STREAMKEY: $(testsStreamKey)
+    SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+  displayName: 'Run tests'
 
-  - task: PublishTestResults@2
-    inputs:
-      testResultsFormat: 'JUnit'
-      testResultsFiles: '**/test-*.xml'
-      testRunTitle: $(RuntimeVersion)
-    displayName: 'Publish test results'
-    condition: always()
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: '**/test-*.xml'
+    testRunTitle: $(RuntimeVersion)
+  displayName: 'Publish test results'
+  condition: always()
 
-  - script: ./ci/copy-files.cmd
-    displayName: 'Copy necessary dll files'
+- script: |
+    copy "C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64\api-ms-win-core-file-l1-2-0.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64\api-ms-win-core-file-l2-1-0.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64\api-ms-win-core-localization-l1-2-0.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64\api-ms-win-core-processthreads-l1-1-1.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64\api-ms-win-core-synch-l1-2-0.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64\api-ms-win-core-timezone-l1-1-0.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64\api-ms-win-crt-convert-l1-1-0.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64\api-ms-win-crt-environment-l1-1-0.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64\api-ms-win-crt-filesystem-l1-1-0.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64\api-ms-win-crt-heap-l1-1-0.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64\api-ms-win-crt-locale-l1-1-0.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64\api-ms-win-crt-math-l1-1-0.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64\api-ms-win-crt-multibyte-l1-1-0.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64\api-ms-win-crt-runtime-l1-1-0.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64\api-ms-win-crt-stdio-l1-1-0.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64\api-ms-win-crt-string-l1-1-0.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64\api-ms-win-crt-time-l1-1-0.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64\api-ms-win-crt-utility-l1-1-0.dll" "%SLFullDistributePath%\obs-studio-node\"
 
-  - task: ArchiveFiles@2
-    inputs:
-      rootFolderOrFile: $(SLFullDistributePath)\obs-studio-node
-      includeRootFolder: true
-      archiveType: tar
-      tarCompression: gz
-      archiveFile: '$(SLFullDistributePath)\$(BuildArtifact)-$(ReleaseName).tar.gz'
-    displayName: 'Generate build artifact'
 
-  - task: PublishBuildArtifacts@1
-    inputs: 
-      pathtoPublish: $(SLFullDistributePath)\$(BuildArtifact)-$(ReleaseName).tar.gz
-      artifactName: $(BuildArtifact).tar.gz
-    displayName: 'Publish build artifact'
+    copy "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\redist\x64\Microsoft.VC140.CRT\vcruntime140.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\redist\x64\Microsoft.VC140.CRT\msvcp140.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\redist\x64\Microsoft.VC140.CRT\concrt140.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64\ucrtbase.dll" "%SLFullDistributePath%\obs-studio-node\"
+    copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\DIA SDK\bin\msdia140.dll" "%BUILD_SOURCESDIRECTORY%\"
+  displayName: 'Copy necessary dll files'
 
-  - script: ./ci/prepare-artifact.cmd
-    displayName: 'Prepare tag artifact'
-    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: $(SLFullDistributePath)\obs-studio-node
+    includeRootFolder: true
+    archiveType: tar
+    tarCompression: gz
+    archiveFile: '$(SLFullDistributePath)\$(BuildArtifact).tar.gz'
+  displayName: 'Generate build artifact'
 
-  - task: ArchiveFiles@2
-    inputs:
-      rootFolderOrFile: $(SLFullDistributePath)\obs-studio-node
-      includeRootFolder: true
-      archiveType: tar
-      tarCompression: gz
-      archiveFile: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz'
-    displayName: 'Generate tag artifact'
-    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+- task: PublishBuildArtifacts@1
+  inputs: 
+    pathtoPublish: $(SLFullDistributePath)\$(BuildArtifact).tar.gz
+    artifactName: $(BuildArtifact).tar.gz
+  displayName: 'Publish build artifact'
 
-  - task: PublishBuildArtifacts@1
-    inputs: 
-      pathtoPublish: $(Build.SourcesDirectory)\$(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz
-      artifactName: $(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz
-    displayName: 'Publish tag artifact'
-    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+- script: |
+    if [%OBSVersion:~-1%] EQU [0] (
+      curl -kLO "https://github.com/obsproject/obs-studio/releases/download/%OBSVersion%/OBS-Studio-%OBSVersion:.0=%-Full-x64.zip" -f --retry 5
+      7z x "OBS-Studio-%OBSVersion:.0=%-Full-x64.zip" -oobs-studio-jp9000
+    ) else (
+      curl -kLO "https://github.com/obsproject/obs-studio/releases/download/%OBSVersion%/OBS-Studio-%OBSVersion%-Full-x64.zip" -f --retry 5
+      7z x "OBS-Studio-%OBSVersion%-Full-x64.zip" -oobs-studio-jp9000
+    )
 
-  - powershell: |
-      mkdir syms
-      mkdir syms\ascii
-      mkdir syms\ascii\client
-      .\ci\run-sentry-cli-azure.ps1
-    env:
-      RootDirectory: $(Build.SourcesDirectory)
-      PDBPath: $(Build.SourcesDirectory)\$(SLFullDistributePath)
-      SENTRY_AUTH_TOKEN: $(sentryAuth)
-    errorActionPreference: silentlyContinue
-    ignoreLASTEXITCODE: true
-    displayName: 'Upload pdbs to Sentry'
-    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+    curl -kL "https://s3.amazonaws.com/getsentry-builds/getsentry/breakpad-tools/windows/breakpad-tools-windows.zip" -o "breakpadtools.zip" -f --retry 5
+    7z x "breakpadtools.zip" > nul
+    
+    curl -kL "https://github.com/getsentry/sentry-cli/releases/download/1.37.3/sentry-cli-Windows-i686.exe" -o "sentry-cli.exe" -f --retry 5
+    
+    robocopy "obs-studio-jp9000\data\obs-plugins\win-capture" "%SLFullDistributePath%\obs-studio-node\data\obs-plugins\win-capture" & exit 0
+  displayName: 'Prepare tag artifact'
+  condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
-  - task: S3Upload@1
-    inputs:
-      awsCredentials: 'Streamlabs AWS'
-      regionName: 'us-west-2'
-      bucketName: 'obsstudionodes3.streamlabs.com'
-      globExpressions: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz'
-      filesAcl: 'public-read'
-    displayName: 'Upload tag artifact to S3'
-    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: $(SLFullDistributePath)\obs-studio-node
+    includeRootFolder: true
+    archiveType: tar
+    tarCompression: gz
+    archiveFile: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz'
+  displayName: 'Generate tag artifact'
+  condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
-- job: 'Debug'
-  pool: 'Default'
-  workspace:
-    clean: all
-  variables:
-    ReleaseName: debug
-  steps:
-  - powershell: |
-      Write-Host "##vso[task.setvariable variable=tagartifact]obs-studio-node-$((git.exe describe --tags --abbrev=0) | Out-String)"
-      'yarn install'
-    displayName: 'Install dependencies'
+- task: PublishBuildArtifacts@1
+  inputs: 
+    pathtoPublish: $(Build.SourcesDirectory)\$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz
+    artifactName: $(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz
+  displayName: 'Publish tag artifact'
+  condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
-  - script: 'yarn add electron@%ElectronVersion% -D'
-    displayName: 'Install Electron'
+- powershell: |
+    mkdir syms
+    mkdir syms\ascii
+    mkdir syms\ascii\client
+    .\ci\run-sentry-cli-azure.ps1
+  env:
+    RootDirectory: $(Build.SourcesDirectory)
+    PDBPath: $(Build.SourcesDirectory)\$(SLFullDistributePath)
+    SENTRY_AUTH_TOKEN: $(sentryAuth)
+  errorActionPreference: silentlyContinue
+  ignoreLASTEXITCODE: true
+  displayName: 'Upload pdbs to Sentry'
+  condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
-  - script: 'git submodule update --init --recursive'
-    displayName: 'Update submodules'
-
-  - script: ./ci/configure-osn.cmd
-    displayName: 'Configure obs-studio-node'
-
-  - script: ./ci/build-osn.cmd
-    displayName: 'Build obs-studio-node'
-
-  - script: 'yarn run test:azure'
-    env:
-      SLOBS_BE_STREAMKEY: $(testsStreamKey)
-      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
-      RELEASE_NAME: $(ReleaseName)
-    displayName: 'Run tests'
-
-  - task: PublishTestResults@2
-    inputs:
-      testResultsFormat: 'JUnit'
-      testResultsFiles: '**/test-*.xml'
-      testRunTitle: $(RuntimeVersion)
-    displayName: 'Publish test results'
-    condition: always()
-
-  - script: ./ci/copy-files.cmd
-    displayName: 'Copy necessary dll files'
-
-  - task: ArchiveFiles@2
-    inputs:
-      rootFolderOrFile: $(SLFullDistributePath)\obs-studio-node
-      includeRootFolder: true
-      archiveType: tar
-      tarCompression: gz
-      archiveFile: '$(SLFullDistributePath)\$(BuildArtifact)-$(ReleaseName).tar.gz'
-    displayName: 'Generate build artifact'
-
-  - task: PublishBuildArtifacts@1
-    inputs: 
-      pathtoPublish: $(SLFullDistributePath)\$(BuildArtifact)-$(ReleaseName).tar.gz
-      artifactName: $(BuildArtifact).tar.gz
-    displayName: 'Publish build artifact'
-
-  - script: ./ci/prepare-artifact.cmd
-    displayName: 'Prepare tag artifact'
-    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
-
-  - task: ArchiveFiles@2
-    inputs:
-      rootFolderOrFile: $(SLFullDistributePath)\obs-studio-node
-      includeRootFolder: true
-      archiveType: tar
-      tarCompression: gz
-      archiveFile: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz'
-    displayName: 'Generate tag artifact'
-    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
-
-  - task: PublishBuildArtifacts@1
-    inputs: 
-      pathtoPublish: $(Build.SourcesDirectory)\$(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz
-      artifactName: $(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz
-    displayName: 'Publish tag artifact'
-    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
-
-  - task: S3Upload@1
-    inputs:
-      awsCredentials: 'Streamlabs AWS'
-      regionName: 'us-west-2'
-      bucketName: 'obsstudionodes3.streamlabs.com'
-      globExpressions: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz'
-      filesAcl: 'public-read'
-    displayName: 'Upload tag artifact to S3'
-    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+- task: S3Upload@1
+  inputs:
+    awsCredentials: 'Streamlabs AWS'
+    regionName: 'us-west-2'
+    bucketName: 'obsstudionodes3.streamlabs.com'
+    globExpressions: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion).tar.gz'
+    filesAcl: 'public-read'
+  displayName: 'Upload tag artifact to S3'
+  condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
