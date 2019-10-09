@@ -2116,7 +2116,10 @@ void OBS_service::JSCallbackOutputSignal(void* data, calldata_t* params)
 	SignalInfo& signal = *reinterpret_cast<SignalInfo*>(data);
 
 	std::string signalReceived = signal.getSignal();
-
+	blog(LOG_INFO, "Output type: %s", signal.getOutputType().c_str());
+	blog(LOG_INFO, "Signal received: %s", signal.getSignal().c_str());
+	blog(LOG_INFO, "Error received: %d", signal.getCode());
+	blog(LOG_INFO, "Error message received: %s", signal.getErrorMessage().c_str());
 	if (signalReceived.compare("stop") == 0) {
 		signal.setCode((int)calldata_int(params, "code"));
 
@@ -2202,6 +2205,7 @@ void OBS_service::OBS_service_processReplayBufferHotkey(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	blog(LOG_INFO, "OBS_service_processReplayBufferHotkey - start");
 	obs_enum_hotkeys(
 	    [](void* data, obs_hotkey_id id, obs_hotkey_t* key) {
 		    if (obs_hotkey_get_registerer_type(key) == OBS_HOTKEY_REGISTERER_OUTPUT) {
@@ -2215,6 +2219,7 @@ void OBS_service::OBS_service_processReplayBufferHotkey(
 	    },
 	    nullptr);
 
+	blog(LOG_INFO, "OBS_service_processReplayBufferHotkey - end");
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 

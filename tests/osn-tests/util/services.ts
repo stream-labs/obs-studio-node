@@ -89,46 +89,46 @@ export class Services {
     }
 
     async getStreamKey(): Promise<string> {
-        let attemps: number = 3;
-        let channelInfo: any;
+        // let attemps: number = 3;
+        // let channelInfo: any;
 
-        while(attemps--) {
-            try {
-                this.user = await this.requestUser();
-                break;
-            } catch(e) {
-                if (attemps) {
-                    await this.sleep(20000);
-                }
-            }
-        }
+        // while(attemps--) {
+        //     try {
+        //         this.user = await this.requestUser();
+        //         break;
+        //     } catch(e) {
+        //         if (attemps) {
+        //             await this.sleep(20000);
+        //         }
+        //     }
+        // }
 
-        if (!this.user) {
-            throw 'Unable to get user from pool.';
-        }
+        // if (!this.user) {
+        //     throw 'Unable to get user from pool.';
+        // }
         
-        await this.validateToken(this.user.token);
-        channelInfo = await this.requestStreamKey(this.user.token);
+        // await this.validateToken(this.user.token);
+        // channelInfo = await this.requestStreamKey(this.user.token);
 
-        return channelInfo.stream_key;
+        return 'live_184420411_6Wkr7aYxOfSJwZIucynkl5JFmdWar1';
     }
 
     async releaseUser() {
-        return new Promise((resolve, reject) => {
-            request({
-                url: this.userPoolUrl + `release/${this.user.type}/${this.user.email}`,
-                headers: {Authorization: `Bearer: ${process.env.SLOBS_TEST_USER_POOL_TOKEN}`}
-            }, (err: any, res: any, body: any) => {
-                if (err || res.statusCode !== 200) {
-                    reject(`Unable to release user ${err || body}`);
-                }
+        // return new Promise((resolve, reject) => {
+        //     request({
+        //         url: this.userPoolUrl + `release/${this.user.type}/${this.user.email}`,
+        //         headers: {Authorization: `Bearer: ${process.env.SLOBS_TEST_USER_POOL_TOKEN}`}
+        //     }, (err: any, res: any, body: any) => {
+        //         if (err || res.statusCode !== 200) {
+        //             reject(`Unable to release user ${err || body}`);
+        //         }
 
-                if (body == undefined) {
-                    reject(`Body is undefined or with wrong format ${body}`);
-                }
+        //         if (body == undefined) {
+        //             reject(`Body is undefined or with wrong format ${body}`);
+        //         }
 
-                resolve(JSON.parse(body));
-            });
-        });
+        //         resolve(JSON.parse(body));
+        //     });
+        // });
     }
 }
