@@ -2643,6 +2643,12 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 		}
 	}
 
+	bool dynamicBitrate = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "DynamicBitrate");
+	std::string encoderID = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "Encoder");
+
+	if (dynamicBitrate && encoderID.compare(ENCODER_NEW_NVENC) == 0)
+		obs_data_set_bool(encoderSettings, "lookahead", false);
+
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 
 	if (newEncoderType) {
