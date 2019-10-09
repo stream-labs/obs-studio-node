@@ -85,6 +85,7 @@ describe('nodeobs_autoconfig', () => {
 
     // Initialize OBS process
     before(function() {
+        deleteConfigFiles();
         obs = new OBSProcessHandler();
         services = new Services();
         

@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import * as osn from '../osn';
 import { ISettings } from '../osn';
 import { OBSProcessHandler } from '../util/obs_process_handler';
-import { basicOBSInputTypes, basicDebugOBSInputTypes, basicOBSFilterTypes, basicOBSTransitionTypes } from '../util/general';
+import { basicOBSInputTypes, basicDebugOBSInputTypes, basicOBSFilterTypes, basicOBSTransitionTypes, deleteConfigFiles } from '../util/general';
 
 describe('osn-source', () => {
     let obs: OBSProcessHandler;
@@ -11,6 +11,7 @@ describe('osn-source', () => {
 
     // Initialize OBS process
     before(function() {
+        deleteConfigFiles();
         obs = new OBSProcessHandler();
         
         if (obs.startup() !== osn.EVideoCodes.Success)
@@ -29,6 +30,7 @@ describe('osn-source', () => {
     after(function() {
         obs.shutdown();
         obs = null;
+        deleteConfigFiles();
     });
 
     context('# IsConfigurable, GetProperties, GetSettings, GetName, GetOutputFlags and GetId', () => {

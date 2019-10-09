@@ -4,12 +4,14 @@ import * as osn from '../osn';
 import * as path from 'path';
 import * as fs from 'fs';
 import { OBSProcessHandler } from '../util/obs_process_handler';
+import { deleteConfigFiles } from '../util/general';
 
 describe('osn-module', () => {
     let obs: OBSProcessHandler;
 
     // Initialize OBS process
     before(function() {
+        deleteConfigFiles();
         obs = new OBSProcessHandler();
         
         if (obs.startup() !== osn.EVideoCodes.Success)
@@ -22,6 +24,7 @@ describe('osn-module', () => {
     after(function() {
         obs.shutdown();
         obs = null;
+        deleteConfigFiles();
     });
 
     context('# Open, Initialize and Modules', () => {

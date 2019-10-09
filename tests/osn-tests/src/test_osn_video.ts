@@ -2,12 +2,14 @@ import 'mocha';
 import { expect } from 'chai';
 import * as osn from '../osn';
 import { OBSProcessHandler } from '../util/obs_process_handler';
+import { deleteConfigFiles } from '../util/general';
 
 describe('osn-video', () => {
     let obs: OBSProcessHandler;
 
     // Initialize OBS process
     before(function() {
+        deleteConfigFiles();
         obs = new OBSProcessHandler();
         
         if (obs.startup() !== osn.EVideoCodes.Success)
@@ -20,6 +22,7 @@ describe('osn-video', () => {
     after(function() {
         obs.shutdown();
         obs = null;
+        deleteConfigFiles();
     });
 
     context('# GetSkippedFrames', () => {

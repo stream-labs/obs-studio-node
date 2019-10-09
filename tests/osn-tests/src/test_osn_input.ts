@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import * as osn from '../osn';
 import { IInput, ISettings, ITimeSpec, IFilter } from '../osn';
 import { OBSProcessHandler } from '../util/obs_process_handler';
-import { basicOBSInputTypes, basicDebugOBSInputTypes, getTimeSpec } from '../util/general';
+import { basicOBSInputTypes, basicDebugOBSInputTypes, getTimeSpec, deleteConfigFiles } from '../util/general';
 
 describe('osn-input', () => {
     let obs: OBSProcessHandler;
@@ -12,6 +12,7 @@ describe('osn-input', () => {
 
     // Initialize OBS process
     before(function() {
+        deleteConfigFiles();
         obs = new OBSProcessHandler();
         
         if (obs.startup() !== osn.EVideoCodes.Success)
@@ -30,6 +31,7 @@ describe('osn-input', () => {
     after(function() {
         obs.shutdown();
         obs = null;
+        deleteConfigFiles();
     });
 
     context('# Types', () => {

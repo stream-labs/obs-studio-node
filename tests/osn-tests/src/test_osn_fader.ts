@@ -2,12 +2,14 @@ import 'mocha'
 import { expect } from 'chai'
 import { OBSProcessHandler } from '../util/obs_process_handler'
 import * as osn from '../osn';
+import { deleteConfigFiles } from '../util/general';
 
 describe('osn_fader', () => {
     let obs: OBSProcessHandler;
 
     // Initialize OBS process
     before(function() {
+        deleteConfigFiles();
         obs = new OBSProcessHandler();
         
         if (obs.startup() !== osn.EVideoCodes.Success)
@@ -20,6 +22,7 @@ describe('osn_fader', () => {
     after(function() {
         obs.shutdown();
         obs = null;
+        deleteConfigFiles();
     });
 
     context('# Create and Attach', () => {
