@@ -4,6 +4,7 @@ import * as osn from '../osn';
 import { OBSProcessHandler } from '../util/obs_process_handler';
 import { Subject } from 'rxjs';
 import { Services } from '../util/services';
+import { deleteConfigFiles } from '../util/general';
 
 enum EOBSOutputType {
     Streaming = 'streaming',
@@ -188,6 +189,7 @@ describe('nodeobs_service', function() {
 
     // Initialize OBS process
     before(function() {
+        deleteConfigFiles();
         obs = new OBSProcessHandler();
         services = new Services();
         

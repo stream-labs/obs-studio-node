@@ -2,7 +2,8 @@ import 'mocha'
 import { expect } from 'chai'
 import * as osn from '../osn';
 import { OBSProcessHandler } from '../util/obs_process_handler';
-import { basicOBSInputTypes, showHideInputHotkeys, slideshowHotkeys, ffmpeg_sourceHotkeys, game_captureHotkeys, dshow_wasapitHotkeys } from '../util/general';
+import { basicOBSInputTypes, showHideInputHotkeys, slideshowHotkeys,
+    ffmpeg_sourceHotkeys, game_captureHotkeys, dshow_wasapitHotkeys, deleteConfigFiles } from '../util/general';
 
 interface IPerformanceState {
     CPU: number;
@@ -60,6 +61,7 @@ describe('nodeobs_api', function() {
     after(function() {
         obs.shutdown();
         obs = null;
+        deleteConfigFiles();
     });
 
     context('# OBS_API_getPerformanceStatistics', function() {

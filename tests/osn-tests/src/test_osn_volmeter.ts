@@ -2,6 +2,7 @@ import 'mocha';
 import { expect } from 'chai';
 import * as osn from '../osn';
 import { OBSProcessHandler } from '../util/obs_process_handler';
+import { deleteConfigFiles } from '../util/general';
 
 interface Dictionary<TItemType> {
     [key: string]: TItemType;
@@ -25,6 +26,7 @@ describe('osn-volmeter', () => {
 
     // Initialize OBS process
     before(function() {
+        deleteConfigFiles();
         obs = new OBSProcessHandler();
         
         if (obs.startup() !== osn.EVideoCodes.Success)
@@ -37,6 +39,7 @@ describe('osn-volmeter', () => {
     after(function() {
         obs.shutdown();
         obs = null;
+        deleteConfigFiles();
     });
 
     context('# Create and Attach', () => {

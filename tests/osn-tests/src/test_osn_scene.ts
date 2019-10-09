@@ -3,7 +3,7 @@ import { expect } from 'chai'
 import * as osn from '../osn';
 import { IScene, ISceneItem, IInput } from '../osn';
 import { OBSProcessHandler } from '../util/obs_process_handler';
-import { basicOBSInputTypes, basicDebugOBSInputTypes } from '../util/general';
+import { basicOBSInputTypes, basicDebugOBSInputTypes, deleteConfigFiles } from '../util/general';
 
 function createScene(sceneName: string): IScene {
     // Creating scene
@@ -36,6 +36,7 @@ describe('osn-scene', () => {
     
     // Initialize OBS process
     before(function() {
+        deleteConfigFiles();
         obs = new OBSProcessHandler();
         
         if (obs.startup() !== osn.EVideoCodes.Success)
@@ -54,6 +55,7 @@ describe('osn-scene', () => {
     after(function() {
         obs.shutdown();
         obs = null;
+        deleteConfigFiles();
     });
 
     context('# Create', () => {

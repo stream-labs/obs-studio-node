@@ -3,7 +3,7 @@ import { expect } from 'chai'
 import * as osn from '../osn';
 import { IScene, ITransition, ISettings, ISource } from '../osn';
 import { OBSProcessHandler } from '../util/obs_process_handler';
-import { basicOBSTransitionTypes } from '../util/general';
+import { basicOBSTransitionTypes, deleteConfigFiles } from '../util/general';
 
 describe('osn-transition', () => {
     let obs: OBSProcessHandler;
@@ -11,6 +11,7 @@ describe('osn-transition', () => {
 
     // Initialize OBS process
     before(function() {
+        deleteConfigFiles();
         obs = new OBSProcessHandler();
         
         if (obs.startup() !== osn.EVideoCodes.Success)
@@ -23,6 +24,7 @@ describe('osn-transition', () => {
     after(function() {
         obs.shutdown();
         obs = null;
+        deleteConfigFiles();
     });
 
     context('# types', () => {

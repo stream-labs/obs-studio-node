@@ -3,6 +3,7 @@ import { expect } from 'chai';
 import { IInput } from '../osn';
 import * as osn from '../osn';
 import { OBSProcessHandler } from '../util/obs_process_handler';
+import { deleteConfigFiles } from '../util/general';
 
 interface IVec2 {
     x: number;
@@ -34,6 +35,7 @@ describe('osn-sceneitem', () => {
 
     // Initialize OBS process
     before(function() {
+        deleteConfigFiles();
         obs = new OBSProcessHandler();
         
         if (obs.startup() !== osn.EVideoCodes.Success)
@@ -56,6 +58,7 @@ describe('osn-sceneitem', () => {
         scene.release();
         obs.shutdown();
         obs = null;
+        deleteConfigFiles();
     });
 
     context('# GetSource', () => {
