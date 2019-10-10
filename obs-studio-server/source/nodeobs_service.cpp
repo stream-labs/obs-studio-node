@@ -913,11 +913,11 @@ bool OBS_service::startStreaming(void)
 
 	if (isSimpleMode)
 		obs_output_set_audio_encoder(streamingOutput, audioSimpleStreamingEncoder, 0);
-	else
+	else {
 		obs_output_set_audio_encoder(
 		    streamingOutput,
-		    audioAdvancedStreamingEncoder,
-		    config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex") - 1);
+		    audioAdvancedStreamingEncoder, 0);
+	}
 
 	isStreaming = obs_output_start(streamingOutput);
 	return isStreaming;
@@ -946,6 +946,7 @@ void OBS_service::updateAudioStreamingEncoder(bool isSimpleMode)
 		*enc = audioSimpleStreamingEncoder;
 	} else if (strcmp(codec, "aac") == 0 && !isSimpleMode) {
 		uint64_t trackIndex = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex");
+		updateAudioTracks();
 		*enc                = aacTracks[trackIndex - 1];
 	} else {
 		uint64_t    trackIndex   = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex");
