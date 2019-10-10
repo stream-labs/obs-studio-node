@@ -41,6 +41,8 @@ export {game_captureHotkeys};
 let dshow_wasapitHotkeys: string[] = ['MUTE', 'UNMUTE', 'PUSH_TO_MUTE', 'PUSH_TO_TALK'];
 export {dshow_wasapitHotkeys};
 
+let deleteTries = 3;
+
 // Helper functions
 export function getTimeSpec(ms: number): ITimeSpec {
     return {
@@ -57,14 +59,23 @@ export function deleteConfigFiles(): void {
     const fs = require('fs');
     const path = require('path');
     const configFolderPath = path.join(path.normalize(__dirname), '..', 'osnData/slobs-client');
+    let files;
+    let currentFile: string;
 
-    const files = fs.readdirSync(configFolderPath);
+    try {
+        files = fs.readdirSync(configFolderPath);
 
-    files.forEach(file => {
-        if (file !== 'node-obs') {
-            fs.unlinkSync(path.join(configFolderPath, file));
+        files.forEach(file => {
+            if (file !== 'node-obs') {
+                currentFile = file;
+                fs.unlinkSync(path.join(configFolderPath, file));
+            }
+        });
+    } catch(error) {
+        if (error.code === "EBUSY") {
+            throw ('Error: the file ' + currentFile + ' or slobs-client folder are busy');
         }
-    });
+    }
 }
 
 export function getRandomValue(list: any) {
