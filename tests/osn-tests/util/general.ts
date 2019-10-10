@@ -58,13 +58,11 @@ export function deleteConfigFiles(): void {
     const path = require('path');
     const configFolderPath = path.join(path.normalize(__dirname), '..', 'osnData/slobs-client');
 
-    fs.readdir(configFolderPath, (error, files) => {
-        if (error) throw error;
-      
-        for (const file of files) {
-              fs.unlink(path.join(configFolderPath, file), err => {
-              if (error) throw error;
-          });
+    const files = fs.readdirSync(configFolderPath);
+
+    files.forEach(file => {
+        if (file !== 'node-obs') {
+            fs.unlinkSync(path.join(configFolderPath, file));
         }
     });
 }
