@@ -913,11 +913,10 @@ bool OBS_service::startStreaming(void)
 
 	if (isSimpleMode)
 		obs_output_set_audio_encoder(streamingOutput, audioSimpleStreamingEncoder, 0);
-	else {
+	else
 		obs_output_set_audio_encoder(
 		    streamingOutput,
 		    audioAdvancedStreamingEncoder, 0);
-	}
 
 	isStreaming = obs_output_start(streamingOutput);
 	return isStreaming;
