@@ -1263,8 +1263,7 @@ bool OBS_service::startReplayBuffer(void)
 		rpUsesStream     = true;
 		useStreamEncoder = true;
 	} else {
-		useStreamEncoder = isRecording
-			? useRecordingPreset
+		useStreamEncoder = isRecording ? !usingRecordingPreset
 			: updateRecordingEncoders(isSimpleMode);
 
 		rpUsesRec = true;
