@@ -50,8 +50,6 @@ bool        lowCPUx264           = false;
 bool        isStreaming          = false;
 bool        isRecording          = false;
 bool        isReplayBufferActive = false;
-bool        rpUsesRec            = false;
-bool        rpUsesStream         = false;
 
 std::mutex             signalMutex;
 std::queue<SignalInfo> outputSignal;
@@ -212,8 +210,6 @@ void OBS_service::OBS_service_stopReplayBuffer(
     std::vector<ipc::value>&       rval)
 {
 	stopReplayBuffer((bool)args[0].value_union.i32);
-	rpUsesRec    = false;
-	rpUsesStream = false;
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -968,7 +964,7 @@ void OBS_service::updateAudioStreamingEncoder(bool isSimpleMode)
 
 void OBS_service::updateAudioRecordingEncoder(bool isSimpleMode)
 {
-	if (isRecording || rpUsesRec)
+	if (isRecording)
 		return;
 
 	if (isSimpleMode) {
@@ -983,7 +979,7 @@ void OBS_service::updateAudioRecordingEncoder(bool isSimpleMode)
 
 void OBS_service::updateVideoRecordingEncoder(bool isSimpleMode)
 {
-	if (isRecording || rpUsesRec)
+	if (isRecording)
 		return;
 
 	const char* quality = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
@@ -1260,13 +1256,10 @@ bool OBS_service::startReplayBuffer(void)
 	    && obs_get_replay_buffer_rendering_mode() == OBS_STREAMING_REPLAY_BUFFER_RENDERING) {
 		updateStreamingEncoders(isSimpleMode);
 		useStreamEncoder = true;
-		rpUsesStream     = true;
 		useStreamEncoder = true;
 	} else {
 		useStreamEncoder = isRecording ? !usingRecordingPreset
 			: updateRecordingEncoders(isSimpleMode);
-
-		rpUsesRec = true;
 	}
 
 	updateFfmpegOutput(isSimpleMode, replayBufferOutput);
@@ -1294,8 +1287,6 @@ bool OBS_service::startReplayBuffer(void)
 	if (!result) {
 		SignalInfo signal    = SignalInfo("replay-buffer", "stop");
 		isReplayBufferActive = false;
-		rpUsesRec            = false;
-		rpUsesStream         = false;
 		const char* error    = obs_output_get_last_error(replayBufferOutput);
 		if (error) {
 			signal.setErrorMessage(error);
