@@ -915,6 +915,17 @@ bool OBS_service::startStreaming(void)
 		    audioAdvancedStreamingEncoder, 0);
 
 	isStreaming = obs_output_start(streamingOutput);
+	if (!isStreaming) {
+		SignalInfo  signal = SignalInfo("streaming", "stop");
+		const char* error  = obs_output_get_last_error(streamingOutput);
+		if (error) {
+			signal.setErrorMessage(error);
+			blog(LOG_INFO, "Last streaming error: %s", error);
+		}
+		signal.setCode(OBS_OUTPUT_ERROR);
+		std::unique_lock<std::mutex> ulock(signalMutex);
+		outputSignal.push(signal);
+	}
 	return isStreaming;
 }
 
