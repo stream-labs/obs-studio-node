@@ -68,15 +68,6 @@ jobs:
       includeRootFolder: true
       archiveType: tar
       tarCompression: gz
-      archiveFile: '$(SLFullDistributePath)\$(BuildArtifact)-$(ReleaseName).tar.gz'
-    displayName: 'Generate build artifact'
-
-  - task: ArchiveFiles@2
-    inputs:
-      rootFolderOrFile: $(SLFullDistributePath)\obs-studio-node
-      includeRootFolder: true
-      archiveType: tar
-      tarCompression: gz
       archiveFile: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz'
     displayName: 'Generate tag artifact'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
@@ -86,14 +77,23 @@ jobs:
       mkdir syms\ascii
       mkdir syms\ascii\client
       .\ci\run-sentry-cli-azure.ps1
-      .\sentry-cli.exe upload-dif --log-level DEBUG --org streamlabs-obs --project obs-server "$Env:BUILD_SOURCESDIRECTORY\syms\ascii"
-      .\sentry-cli.exe upload-dif --log-level DEBUG --org streamlabs-obs --project obs-server-preview "$Env:BUILD_SOURCESDIRECTORY\syms\ascii"
-      .\sentry-cli.exe upload-dif --log-level DEBUG --org streamlabs-obs --project obs-client "$Env:BUILD_SOURCESDIRECTORY\syms\ascii\client"
     env:
       RootDirectory: $(Build.SourcesDirectory)
       PDBPath: $(Build.SourcesDirectory)\$(SLFullDistributePath)
       SENTRY_AUTH_TOKEN: $(sentryAuth)
     errorActionPreference: silentlyContinue
     ignoreLASTEXITCODE: true
-    displayName: 'Upload pdbs to Sentry'
+    displayName: 'Prepare pdbs to Sentry'
+    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+
+  - powershell: '.\sentry-cli.exe upload-dif --log-level DEBUG --org streamlabs-obs --project obs-server "$Env:BUILD_SOURCESDIRECTORY\syms\ascii"'
+    dsiplayName: 'Upload obs-server pdbs'
+    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+
+  - powershell: '.\sentry-cli.exe upload-dif --log-level DEBUG --org streamlabs-obs --project obs-server-preview "$Env:BUILD_SOURCESDIRECTORY\syms\ascii"'
+    dsiplayName: 'Upload obs-server-preview pdbs'
+    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+
+  - powershell: '.\sentry-cli.exe upload-dif --log-level DEBUG --org streamlabs-obs --project obs-client "$Env:BUILD_SOURCESDIRECTORY\syms\ascii"'
+    dsiplayName: 'Upload obs-client pdbs'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
