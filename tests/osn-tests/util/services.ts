@@ -30,6 +30,7 @@ export class Services {
                 url: this.userPoolUrl + 'reserve' + '/twitch',
                 headers: {Authorization: `Bearer: ${process.env.SLOBS_TEST_USER_POOL_TOKEN}`}},
                 (err: any, res: any, body: any) => {
+                    console.log ('requestUser' + res.statusCode);
                     if (err || res.statusCode !== 200) {
                         reject(`Unable to request user ${err || body}`);
                     }
@@ -54,6 +55,7 @@ export class Services {
                           Authorization: `OAuth ${token}`}
             }, (err: any, res: any, body: any) => {
                 if (err || res.statusCode !== 200) {
+                    console.log ('validateToken' + res.statusCode);
                     reject(`Unable to validate token ${err || body}`);
                 }
 
@@ -75,6 +77,7 @@ export class Services {
                           'Content-Type': 'application/json',
                           Authorization: `OAuth ${token}`}
             }, (err: any, res: any, body: any) => {
+                console.log ('requestStreamKey' + res.statusCode);
                 if (err || res.statusCode !== 200) {
                     reject(`Unable to get channel info ${err || body}`);
                 }
@@ -119,6 +122,7 @@ export class Services {
                 url: this.userPoolUrl + `release/${this.user.type}/${this.user.email}`,
                 headers: {Authorization: `Bearer: ${process.env.SLOBS_TEST_USER_POOL_TOKEN}`}
             }, (err: any, res: any, body: any) => {
+                console.log ('releaseUser' + res.statusCode);
                 if (err || res.statusCode !== 200) {
                     reject(`Unable to release user ${err || body}`);
                 }
