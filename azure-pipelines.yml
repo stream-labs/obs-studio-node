@@ -62,6 +62,10 @@ jobs:
   - script: ./ci/copy-files.cmd
     displayName: 'Copy necessary dll files'
 
+  - script: ./ci/prepare-artifact.cmd
+    displayName: 'Prepare tag artifact'
+    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+
   - task: ArchiveFiles@2
     inputs:
       rootFolderOrFile: $(SLFullDistributePath)\obs-studio-node
