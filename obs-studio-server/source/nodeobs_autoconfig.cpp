@@ -1552,7 +1552,7 @@ void autoConfig::SaveSettings()
 	config_set_int(ConfigManager::getInstance().getBasic(), "Video", "OutputCX", idealResolutionCX);
 	config_set_int(ConfigManager::getInstance().getBasic(), "Video", "OutputCY", idealResolutionCY);
 
-	config_set_bool(ConfigManager::getInstance().getBasic(), "Output", "DynamicBitrate", true);
+	config_set_bool(ConfigManager::getInstance().getBasic(), "Output", "DynamicBitrate", false);
 
 	if (fpsType != FPSType::UseCurrent) {
 		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType", 0);
