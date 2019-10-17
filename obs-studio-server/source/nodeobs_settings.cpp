@@ -2130,12 +2130,15 @@ void OBS_settings::getStandardRecordingSettings(
 	obs_data_t*    settings = obs_encoder_defaults(recEncoderCurrentValue);
 	obs_encoder_t* recordingEncoder;
 
+	recordingEncoder           = OBS_service::getRecordingEncoder();
 	obs_output_t* recordOutput = OBS_service::getRecordingOutput();
 
 	if (recordOutput == NULL)
 		return;
 
-	if (!obs_output_active(recordOutput)) {
+	if (obs_output_active(recordOutput)) {
+		settings = obs_encoder_get_settings(recordingEncoder);
+	} else if (!recordingEncoder || (recordingEncoder && !obs_encoder_active(recordingEncoder))) {
 		if (!fileExist) {
 			recordingEncoder = obs_video_encoder_create(recEncoderCurrentValue, "recording_h264", nullptr, nullptr);
 			OBS_service::setRecordingEncoder(recordingEncoder);
@@ -2151,8 +2154,7 @@ void OBS_settings::getStandardRecordingSettings(
 			OBS_service::setRecordingEncoder(recordingEncoder);
 		}
 	} else {
-		recordingEncoder = OBS_service::getRecordingEncoder();
-		settings         = obs_encoder_get_settings(recordingEncoder);
+		settings = obs_encoder_get_settings(recordingEncoder);
 	}
 
 	if (strcmp(recEncoderCurrentValue, "none")) {
