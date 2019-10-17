@@ -103,6 +103,9 @@ jobs:
       mkdir syms\ascii
       mkdir syms\ascii\client
       .\ci\run-sentry-cli-azure.ps1
+      .\sentry-cli.exe upload-dif --log-level DEBUG --org streamlabs-obs --project obs-server "$env:ROOTDIRECTORY\syms\ascii"
+      .\sentry-cli.exe upload-dif --log-level DEBUG --org streamlabs-obs --project obs-server-preview "$env:ROOTDIRECTORY\syms\ascii"
+      .\sentry-cli.exe upload-dif --log-level DEBUG --org streamlabs-obs --project obs-client "$env:ROOTDIRECTORY\syms\ascii\client"
     env:
       RootDirectory: $(Build.SourcesDirectory)
       PDBPath: $(Build.SourcesDirectory)\$(SLFullDistributePath)
