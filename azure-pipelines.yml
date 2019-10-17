@@ -71,16 +71,6 @@ jobs:
       archiveFile: '$(SLFullDistributePath)\$(BuildArtifact)-$(ReleaseName).tar.gz'
     displayName: 'Generate build artifact'
 
-  - task: PublishBuildArtifacts@1
-    inputs: 
-      pathtoPublish: $(SLFullDistributePath)\$(BuildArtifact)-$(ReleaseName).tar.gz
-      artifactName: $(BuildArtifact).tar.gz
-    displayName: 'Publish build artifact'
-
-  - script: ./ci/prepare-artifact.cmd
-    displayName: 'Prepare tag artifact'
-    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
-
   - task: ArchiveFiles@2
     inputs:
       rootFolderOrFile: $(SLFullDistributePath)\obs-studio-node
@@ -89,13 +79,6 @@ jobs:
       tarCompression: gz
       archiveFile: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz'
     displayName: 'Generate tag artifact'
-    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
-
-  - task: PublishBuildArtifacts@1
-    inputs: 
-      pathtoPublish: $(Build.SourcesDirectory)\$(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz
-      artifactName: $(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz
-    displayName: 'Publish tag artifact'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
   - powershell: |
@@ -113,14 +96,4 @@ jobs:
     errorActionPreference: silentlyContinue
     ignoreLASTEXITCODE: true
     displayName: 'Upload pdbs to Sentry'
-    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
-
-  - task: S3Upload@1
-    inputs:
-      awsCredentials: 'Streamlabs AWS'
-      regionName: 'us-west-2'
-      bucketName: 'obsstudionodes3.streamlabs.com'
-      globExpressions: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz'
-      filesAcl: 'public-read'
-    displayName: 'Upload tag artifact to S3'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
