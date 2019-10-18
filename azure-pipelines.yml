@@ -90,14 +90,14 @@ jobs:
     displayName: 'Prepare pdbs to Sentry'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
-  - powershell: '.\sentry-cli.exe upload-dif --log-level DEBUG --org streamlabs-obs --project obs-server $Env:BUILD_SOURCESDIRECTORY\syms\ascii'
+  - script: 'sentry-cli.exe upload-dif --log-level DEBUG --org streamlabs-obs --project obs-server %BUILD_SOURCESDIRECTORY%\syms\ascii'
     displayName: 'Upload obs-server pdbs'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
-  - powershell: '.\sentry-cli.exe upload-dif --log-level DEBUG --org streamlabs-obs --project obs-server-preview $Env:BUILD_SOURCESDIRECTORY\syms\ascii'
+  - script: '.\sentry-cli.exe upload-dif --log-level DEBUG --org streamlabs-obs --project obs-server-preview %BUILD_SOURCESDIRECTORY%\syms\ascii'
     displayName: 'Upload obs-server-preview pdbs'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
-  - powershell: '.\sentry-cli.exe upload-dif --log-level DEBUG --org streamlabs-obs --project obs-client $Env:BUILD_SOURCESDIRECTORY\syms\ascii'
+  - script: '.\sentry-cli.exe upload-dif --log-level DEBUG --org streamlabs-obs --project obs-client %BUILD_SOURCESDIRECTORY%\syms\ascii'
     displayName: 'Upload obs-client pdbs'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
