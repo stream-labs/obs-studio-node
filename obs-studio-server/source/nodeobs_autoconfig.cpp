@@ -1447,22 +1447,54 @@ bool autoConfig::CheckSettings(void)
 
 	obs_output_set_service(output, service);
 
-	obs_output_start(output);
-
-	int  timeout = 8;
+	/* -----------------------------------*/
+	/* connect signals                    */
 	bool success = true;
+	
+	auto on_started = [&]() {
+		std::unique_lock<std::mutex> lock(m);
+		success = true;
+		cv.notify_one();
+	};
 
-	while (!obs_output_active(output) && success) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(500));
-		timeout--;
-		if (timeout == 0) {
-			success = false;
-		}
+	auto on_stopped = [&]() {
+		std::unique_lock<std::mutex> lock(m);
+		cv.notify_one();
+	};
+
+	using on_started_t = decltype(on_started);
+	using on_stopped_t = decltype(on_stopped);
+
+	auto pre_on_started = [](void* data, calldata_t*) {
+		on_started_t& on_started = *reinterpret_cast<on_started_t*>(data);
+		on_started();
+	};
+
+	auto pre_on_stopped = [](void* data, calldata_t*) {
+		on_stopped_t& on_stopped = *reinterpret_cast<on_stopped_t*>(data);
+		on_stopped();
+	};
+
+	signal_handler* sh = obs_output_get_signal_handler(output);
+	signal_handler_connect(sh, "start", pre_on_started, &on_started);
+	signal_handler_connect(sh, "stop", pre_on_stopped, &on_stopped);
+
+	std::unique_lock<std::mutex> ul(m);
+	if (cancel)
+		return false;
+
+	/* -----------------------------------*/
+	/* start and wait to stop             */
+	
+	if (!obs_output_start(output)) {
+		return false;
 	}
 
-	if (success)
-		obs_output_stop(output);
-
+	cv.wait_for(ul, std::chrono::seconds(4));
+	
+	obs_output_stop(output);
+	cv.wait(ul);
+	
 	obs_output_release(output);
 	obs_encoder_release(vencoder);
 	obs_encoder_release(aencoder);
