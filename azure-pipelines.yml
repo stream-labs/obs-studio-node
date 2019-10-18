@@ -90,6 +90,12 @@ jobs:
     displayName: 'Prepare pdbs to Sentry'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
+  - script: 'sentry-cli.exe upload-dif --log-level DEBUG --org streamlabs-obs --project obs-server %BUILD_SOURCESDIRECTORY%\syms\ascii'
+    env:
+      SENTRY_AUTH_TOKEN: $(sentryAuth)
+    displayName: 'Upload obs-server pdbs'
+    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+
   - script: '.\sentry-cli.exe upload-dif --log-level DEBUG --org streamlabs-obs --project obs-server-preview %BUILD_SOURCESDIRECTORY%\syms\ascii'
     env:
       SENTRY_AUTH_TOKEN: $(sentryAuth)
