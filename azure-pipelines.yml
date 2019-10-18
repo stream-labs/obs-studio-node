@@ -106,6 +106,8 @@ jobs:
     env:
       RootDirectory: $(Build.SourcesDirectory)
       PDBPath: $(Build.SourcesDirectory)\$(SLFullDistributePath)
+    errorActionPreference: silentlyContinue
+    ignoreLASTEXITCODE: true
     displayName: 'Prepare pdbs to Sentry'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
   
