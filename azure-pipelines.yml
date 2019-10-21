@@ -62,21 +62,6 @@ jobs:
   - script: ./ci/copy-files.cmd
     displayName: 'Copy necessary dll files'
 
-  - task: ArchiveFiles@2
-    inputs:
-      rootFolderOrFile: $(SLFullDistributePath)\obs-studio-node
-      includeRootFolder: true
-      archiveType: tar
-      tarCompression: gz
-      archiveFile: '$(SLFullDistributePath)\$(BuildArtifact)-$(ReleaseName).tar.gz'
-    displayName: 'Generate build artifact'
-
-  - task: PublishBuildArtifacts@1
-    inputs: 
-      pathtoPublish: $(SLFullDistributePath)\$(BuildArtifact)-$(ReleaseName).tar.gz
-      artifactName: $(BuildArtifact).tar.gz
-    displayName: 'Publish build artifact'
-
   - script: ./ci/prepare-artifact.cmd
     displayName: 'Prepare tag artifact'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
@@ -89,13 +74,6 @@ jobs:
       tarCompression: gz
       archiveFile: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz'
     displayName: 'Generate tag artifact'
-    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
-
-  - task: PublishBuildArtifacts@1
-    inputs: 
-      pathtoPublish: $(Build.SourcesDirectory)\$(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz
-      artifactName: $(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz
-    displayName: 'Publish tag artifact'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
   - powershell: |
@@ -127,102 +105,4 @@ jobs:
     env:
       SENTRY_AUTH_TOKEN: $(sentryAuth)
     displayName: 'Upload obs-client pdbs'
-    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
-
-  - task: S3Upload@1
-    inputs:
-      awsCredentials: 'Streamlabs AWS'
-      regionName: 'us-west-2'
-      bucketName: 'obsstudionodes3.streamlabs.com'
-      globExpressions: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz'
-      filesAcl: 'public-read'
-    displayName: 'Upload tag artifact to S3'
-    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
-
-- job: 'Debug'
-  pool: 'Default'
-  workspace:
-    clean: all
-  variables:
-    ReleaseName: debug
-  steps:
-  - powershell: |
-      Write-Host "##vso[task.setvariable variable=tagartifact]obs-studio-node-$((git.exe describe --tags --abbrev=0) | Out-String)"
-      'yarn install'
-    displayName: 'Install dependencies'
-
-  - script: 'yarn add electron@%ElectronVersion% -D'
-    displayName: 'Install Electron'
-
-  - script: 'git submodule update --init --recursive'
-    displayName: 'Update submodules'
-
-  - script: ./ci/configure-osn.cmd
-    displayName: 'Configure obs-studio-node'
-
-  - script: ./ci/build-osn.cmd
-    displayName: 'Build obs-studio-node'
-
-  - script: 'yarn run test:azure'
-    env:
-      SLOBS_BE_STREAMKEY: $(testsStreamKey)
-      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
-      RELEASE_NAME: $(ReleaseName)
-    displayName: 'Run tests'
-
-  - task: PublishTestResults@2
-    inputs:
-      testResultsFormat: 'JUnit'
-      testResultsFiles: '**/test-*.xml'
-      testRunTitle: $(RuntimeVersion)
-    displayName: 'Publish test results'
-    condition: always()
-
-  - script: ./ci/copy-files.cmd
-    displayName: 'Copy necessary dll files'
-
-  - task: ArchiveFiles@2
-    inputs:
-      rootFolderOrFile: $(SLFullDistributePath)\obs-studio-node
-      includeRootFolder: true
-      archiveType: tar
-      tarCompression: gz
-      archiveFile: '$(SLFullDistributePath)\$(BuildArtifact)-$(ReleaseName).tar.gz'
-    displayName: 'Generate build artifact'
-
-  - task: PublishBuildArtifacts@1
-    inputs: 
-      pathtoPublish: $(SLFullDistributePath)\$(BuildArtifact)-$(ReleaseName).tar.gz
-      artifactName: $(BuildArtifact).tar.gz
-    displayName: 'Publish build artifact'
-
-  - script: ./ci/prepare-artifact.cmd
-    displayName: 'Prepare tag artifact'
-    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
-
-  - task: ArchiveFiles@2
-    inputs:
-      rootFolderOrFile: $(SLFullDistributePath)\obs-studio-node
-      includeRootFolder: true
-      archiveType: tar
-      tarCompression: gz
-      archiveFile: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz'
-    displayName: 'Generate tag artifact'
-    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
-
-  - task: PublishBuildArtifacts@1
-    inputs: 
-      pathtoPublish: $(Build.SourcesDirectory)\$(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz
-      artifactName: $(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz
-    displayName: 'Publish tag artifact'
-    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
-
-  - task: S3Upload@1
-    inputs:
-      awsCredentials: 'Streamlabs AWS'
-      regionName: 'us-west-2'
-      bucketName: 'obsstudionodes3.streamlabs.com'
-      globExpressions: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz'
-      filesAcl: 'public-read'
-    displayName: 'Upload tag artifact to S3'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
