@@ -410,9 +410,9 @@ uint32_t pid = GetCurrentProcessId();
 std::vector<char> registerProcess(void)
 {
 	std::vector<char> buffer;
-	buffer.resize(sizeof(uint8_t) + sizeof(bool) + sizeof(uint32_t));
 	uint8_t action     = 0;
 	bool    isCritical = true;
+	buffer.resize(sizeof(action) + sizeof(isCritical) + sizeof(pid));
 
 	uint32_t offset = 0;
 
@@ -428,8 +428,8 @@ std::vector<char> registerProcess(void)
 std::vector<char> unregisterProcess(void)
 {
 	std::vector<char> buffer;
-	buffer.resize(sizeof(uint8_t) + sizeof(uint32_t));
 	uint8_t action = 1;
+	buffer.resize(sizeof(action) + sizeof(pid));
 
 	uint32_t offset = 0;
 
@@ -443,13 +443,30 @@ std::vector<char> unregisterProcess(void)
 std::vector<char> terminateCrashHandler(void)
 {
 	std::vector<char> buffer;
-	buffer.resize(sizeof(uint8_t) + sizeof(uint32_t));
 	uint8_t action = 2;
+	buffer.resize(sizeof(action) + sizeof(pid));
 
 	uint32_t offset = 0;
 
 	memcpy(buffer.data(), &action, sizeof(action));
 	offset++;
+	memcpy(buffer.data() + offset, &pid, sizeof(pid));
+
+	return buffer;
+}
+
+std::vector<char> crashedProcess(uint32_t crash_id)
+{
+	std::vector<char> buffer;
+	uint8_t action = 3;
+	buffer.resize(sizeof(action) + sizeof(crash_id) + sizeof(pid));
+
+	uint32_t offset = 0;
+
+	memcpy(buffer.data(), &action, sizeof(action));
+	offset++;
+	memcpy(buffer.data() + offset, &crash_id, sizeof(crash_id));
+	offset+=sizeof(crash_id);
 	memcpy(buffer.data() + offset, &pid, sizeof(pid));
 
 	return buffer;
@@ -1051,6 +1068,11 @@ void OBS_API::StopCrashHandler(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
+}
+
+void OBS_API::InformCrashHandler(const int crash_id)
+{
+	writeCrashHandler(crashedProcess(crash_id));
 }
 
 void OBS_API::destroyOBS_API(void)
