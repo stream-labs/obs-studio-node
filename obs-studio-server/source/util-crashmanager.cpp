@@ -372,18 +372,27 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	// method, if that happens just call abort and ignore any remaining processing since
 	// we cannot continue.
 	static bool insideCrashMethod = false;
-	if (insideCrashMethod)
+	static bool insideRewindCallstack = false; //if this is true then we already crashed inside StackWalker and try to skip it this time.
+	if (insideCrashMethod && !insideRewindCallstack)
 		abort();
 
 	insideCrashMethod = true;
-
+	annotations.clear();
 	// This will manually rewind the callstack, we will use this info to populate an
 	// crash report attribute, avoiding some cases that the memory dump is corrupted
 	// and we don't have access to the callstack.
 	std::string    crashedMethodName;
 	nlohmann::json callStack;
 	try {
-		callStack = RewindCallStack(crashedMethodName);
+		if(!insideRewindCallstack)
+		{
+			insideRewindCallstack = true;
+			callStack = RewindCallStack(crashedMethodName);
+			insideRewindCallstack = false;
+		} else {
+			annotations.insert({{"Recrashed_in", "RewindCallStack" }});
+			callStack =  nlohmann::json::array();
+		}
 	} catch (...) {
 		//ignore exceptions to not loose current crash info 
 		callStack =  nlohmann::json::array();
@@ -404,7 +413,6 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 
 	auto timeElapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - initialTime);
 
-	annotations.clear();
 
 	// Setup all the custom annotations that are important too our crash report
 	annotations.insert({{"Time elapsed: ", std::to_string(timeElapsed.count()) + "s"}});
