@@ -77,10 +77,6 @@ jobs:
       artifactName: $(BuildArtifact).tar.gz
     displayName: 'Publish build artifact'
 
-  - script: ./ci/prepare-artifact.cmd
-    displayName: 'Prepare tag artifact'
-    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
-
   - task: ArchiveFiles@2
     inputs:
       rootFolderOrFile: $(SLFullDistributePath)\obs-studio-node
