@@ -267,6 +267,65 @@ static void DeleteOldestFile(const char* location, unsigned maxLogs)
 #include <unistd.h>
 #endif
 
+outdated_driver_error * outdated_driver_error::inst = nullptr;
+
+outdated_driver_error * outdated_driver_error::instance()
+{
+	if(inst == nullptr)
+	{
+		inst = new outdated_driver_error();
+	}
+	return inst;
+}
+
+void outdated_driver_error::set_active( bool state) 
+{
+	if (state) {
+		if (!lookup_enabled)
+		{
+			line_1 = "";
+			line_2 = "";
+		}
+		lookup_enabled++;
+	} else {
+		lookup_enabled--;
+	}
+}
+
+std::string outdated_driver_error::get_error(const char* base_error)
+{
+	if (std::string(base_error).find("Function not implemented") == std::string::npos)
+		return "";
+
+	if(line_1.size() && line_2.size())
+		return line_1 + std::string("\n") + line_2;
+	else 
+		return "";
+}
+
+void outdated_driver_error::catch_error(const char* msg)
+{
+	if (!lookup_enabled)
+		return;
+
+	const std::string msg_string = msg;
+
+	if (line_1.size()==0) {
+		const std::string line_1_pattern = "Driver does not support the required nvenc API version";
+		auto pattern_position = msg_string.find(line_1_pattern);
+		if ( pattern_position != std::string::npos) {
+			line_1 = msg_string.substr(pattern_position);
+			return;
+		}
+	} else if (line_2.size()==0) {
+		const std::string line_2_pattern = "The minimum required Nvidia driver for nvenc";
+		auto pattern_position = msg_string.find(line_2_pattern);
+		if ( pattern_position != std::string::npos) {
+			line_2 = msg_string.substr(pattern_position);
+		}
+	}
+}
+
 inline std::string nodeobs_log_formatted_message(const char* format, va_list& args)
 {
 	size_t            length  = _vscprintf(format, args);
@@ -283,6 +342,8 @@ static void                                    node_obs_log(int log_level, const
 
 	if (param == nullptr)
 		return;
+	
+	outdated_driver_error::instance()->catch_error(msg);
 
 	// Calculate log time.
 	auto timeSinceStart = (std::chrono::high_resolution_clock::now() - tp);
