@@ -41,8 +41,6 @@ export {game_captureHotkeys};
 let dshow_wasapitHotkeys: string[] = ['MUTE', 'UNMUTE', 'PUSH_TO_MUTE', 'PUSH_TO_TALK'];
 export {dshow_wasapitHotkeys};
 
-let deleteTries = 3;
-
 // Helper functions
 export function getTimeSpec(ms: number): ITimeSpec {
     return {
@@ -73,7 +71,7 @@ export function deleteConfigFiles(): void {
         });
     } catch(error) {
         if (error.code === "EBUSY") {
-            throw ('Error: the file ' + currentFile + ' or slobs-client folder are busy');
+            throw ('Error: the file ' + currentFile + ' or slobs-client folder is busy');
         }
     }
 }
