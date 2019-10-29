@@ -24,7 +24,7 @@
 #include <vector>
 #include <mutex>
 #include <queue>
-#include <thread> 
+#include <thread>
 
 #undef strtoll
 #include "nlohmann/json.hpp"
