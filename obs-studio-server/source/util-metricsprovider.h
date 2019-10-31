@@ -26,7 +26,7 @@
 #include <queue>
 #include <thread>
 
-#undef strtoll
+#undef strtoll 
 #include "nlohmann/json.hpp"
 
 namespace util
