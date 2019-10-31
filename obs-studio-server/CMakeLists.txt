@@ -106,10 +106,22 @@ add_dependencies(crashpad_base crashpad_ep)
 add_dependencies(crashpad_client crashpad_base)
 add_dependencies(crashpad_util crashpad_client)
 
+set(
+	LIBOBS_VERSION
+	""
+	CACHE STRING "Version of libobs being used"
+)
+
+set(
+	LIBOBS_BUILD_TYPE
+	"release"
+	CACHE STRING "Build type of libobs artifact"
+)
+
 string(
 	CONCAT OSN_DEFAULT_LIBOBS_URL
 	"https://obsstudios3.streamlabs.com/"
-	"libobs-release-24.0.1-streamlabs-v15.7z"
+	"libobs-${LIBOBS_BUILD_TYPE}-${LIBOBS_VERSION}.7z"
 )
 
 set(
