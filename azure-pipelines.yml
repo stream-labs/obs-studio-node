@@ -15,7 +15,7 @@ variables:
   SLDistributeDirectory: distribute
   SLFullDistributePath: $(SLBuildDirectory)\$(SLDistributeDirectory)
   BuildArtifact: obs-studio-node-us-$(Build.BuildId)-$(RuntimeName)-v$(ElectronVersion)
-  LibOBSVersion: 24.0.1-streamlabs-v15.7z
+  LibOBSVersion: 24.0.1-streamlabs-v15
   SignedOBSVersion: 24.0.3
 
 jobs:
