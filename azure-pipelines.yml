@@ -16,7 +16,7 @@ variables:
   SLDistributeDirectory: distribute
   SLFullDistributePath: $(SLBuildDirectory)\$(SLDistributeDirectory)
   BuildArtifact: obs-studio-node-us-$(Build.BuildId)-$(RuntimeName)-$(RuntimeVersion)
-  LibOBSDebugArtifact: libobs-debug-24.0.1-streamlabs-v15.7z
+  LibOBSDebugArtifact: libobs-debug-24.0.1-streamlabs-v15.4.7z
   OBSVersion: 24.0.3
 
 jobs:
@@ -106,10 +106,27 @@ jobs:
     env:
       RootDirectory: $(Build.SourcesDirectory)
       PDBPath: $(Build.SourcesDirectory)\$(SLFullDistributePath)
-      SENTRY_AUTH_TOKEN: $(sentryAuth)
     errorActionPreference: silentlyContinue
     ignoreLASTEXITCODE: true
-    displayName: 'Upload pdbs to Sentry'
+    displayName: 'Prepare pdbs to Sentry'
+    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+  
+  - script: 'sentry-cli.exe upload-dif --log-level DEBUG --org streamlabs-obs --project obs-server %BUILD_SOURCESDIRECTORY%\syms\ascii'
+    env:
+      SENTRY_AUTH_TOKEN: $(sentryAuth)
+    displayName: 'Upload obs-server pdbs'
+    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+
+  - script: '.\sentry-cli.exe upload-dif --log-level DEBUG --org streamlabs-obs --project obs-server-preview %BUILD_SOURCESDIRECTORY%\syms\ascii'
+    env:
+      SENTRY_AUTH_TOKEN: $(sentryAuth)
+    displayName: 'Upload obs-server-preview pdbs'
+    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+
+  - script: '.\sentry-cli.exe upload-dif --log-level DEBUG --org streamlabs-obs --project obs-client %BUILD_SOURCESDIRECTORY%\syms\ascii'
+    env:
+      SENTRY_AUTH_TOKEN: $(sentryAuth)
+    displayName: 'Upload obs-client pdbs'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
   - task: S3Upload@1
