@@ -1,8 +1,8 @@
 if [%OBSVersion:~-1%] EQU [0] (
-    curl -kLO "https://github.com/obsproject/obs-studio/releases/download/%OBSVersion%/OBS-Studio-%OBSVersion:.0=%-Full-x64.zip" -f --retry 5
+    curl -kLO "https://github.com/obsproject/obs-studio/releases/download/%SignedOBSVersion%/OBS-Studio-%SignedOBSVersion:.0=%-Full-x64.zip" -f --retry 5
     7z x "OBS-Studio-%OBSVersion:.0=%-Full-x64.zip" -oobs-studio-jp9000
 ) else (
-    curl -kLO "https://github.com/obsproject/obs-studio/releases/download/%OBSVersion%/OBS-Studio-%OBSVersion%-Full-x64.zip" -f --retry 5
+    curl -kLO "https://github.com/obsproject/obs-studio/releases/download/%SignedOBSVersion%/OBS-Studio-%SignedOBSVersion%-Full-x64.zip" -f --retry 5
     7z x "OBS-Studio-%OBSVersion%-Full-x64.zip" -oobs-studio-jp9000
 )
 

@@ -9,15 +9,14 @@ trigger:
 variables:
   RuntimeURL: https://atom.io/download/atom-shell
   RuntimeName: iojs
-  RuntimeVersion: v6.0.3
   ElectronVersion: 6.0.3
   SLBuildDirectory: streamlabs-build
   SLGenerator: Visual Studio 15 2017 Win64
   SLDistributeDirectory: distribute
   SLFullDistributePath: $(SLBuildDirectory)\$(SLDistributeDirectory)
-  BuildArtifact: obs-studio-node-us-$(Build.BuildId)-$(RuntimeName)-$(RuntimeVersion)
-  LibOBSDebugArtifact: libobs-debug-24.0.1-streamlabs-v15.7z
-  OBSVersion: 24.0.3
+  BuildArtifact: obs-studio-node-us-$(Build.BuildId)-$(RuntimeName)-v$(ElectronVersion)
+  LibOBSVersion: 24.0.1-streamlabs-v15
+  SignedOBSVersion: 24.0.3
 
 jobs:
 - job: 'Release'
@@ -55,7 +54,7 @@ jobs:
     inputs:
       testResultsFormat: 'JUnit'
       testResultsFiles: '**/test-*.xml'
-      testRunTitle: $(RuntimeVersion)
+      testRunTitle: $(ElectronVersion)
     displayName: 'Publish test results'
     condition: always()
 
@@ -87,14 +86,14 @@ jobs:
       includeRootFolder: true
       archiveType: tar
       tarCompression: gz
-      archiveFile: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz'
+      archiveFile: '$(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-$(ReleaseName).tar.gz'
     displayName: 'Generate tag artifact'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
   - task: PublishBuildArtifacts@1
     inputs: 
-      pathtoPublish: $(Build.SourcesDirectory)\$(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz
-      artifactName: $(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz
+      pathtoPublish: $(Build.SourcesDirectory)\$(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-$(ReleaseName).tar.gz
+      artifactName: $(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-$(ReleaseName).tar.gz
     displayName: 'Publish tag artifact'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
@@ -134,7 +133,7 @@ jobs:
       awsCredentials: 'Streamlabs AWS'
       regionName: 'us-west-2'
       bucketName: 'obsstudionodes3.streamlabs.com'
-      globExpressions: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz'
+      globExpressions: '$(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-$(ReleaseName).tar.gz'
       filesAcl: 'public-read'
     displayName: 'Upload tag artifact to S3'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
@@ -174,7 +173,7 @@ jobs:
     inputs:
       testResultsFormat: 'JUnit'
       testResultsFiles: '**/test-*.xml'
-      testRunTitle: $(RuntimeVersion)
+      testRunTitle: $(ElectronVersion)
     displayName: 'Publish test results'
     condition: always()
 
@@ -206,14 +205,14 @@ jobs:
       includeRootFolder: true
       archiveType: tar
       tarCompression: gz
-      archiveFile: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz'
+      archiveFile: '$(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-$(ReleaseName).tar.gz'
     displayName: 'Generate tag artifact'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
   - task: PublishBuildArtifacts@1
     inputs: 
-      pathtoPublish: $(Build.SourcesDirectory)\$(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz
-      artifactName: $(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz
+      pathtoPublish: $(Build.SourcesDirectory)\$(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-$(ReleaseName).tar.gz
+      artifactName: $(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-$(ReleaseName).tar.gz
     displayName: 'Publish tag artifact'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
@@ -222,7 +221,7 @@ jobs:
       awsCredentials: 'Streamlabs AWS'
       regionName: 'us-west-2'
       bucketName: 'obsstudionodes3.streamlabs.com'
-      globExpressions: '$(tagartifact)-$(RuntimeName)-$(RuntimeVersion)-$(ReleaseName).tar.gz'
+      globExpressions: '$(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-$(ReleaseName).tar.gz'
       filesAcl: 'public-read'
     displayName: 'Upload tag artifact to S3'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
