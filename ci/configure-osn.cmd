@@ -6,7 +6,7 @@ if "%ReleaseName%"=="debug" (
           -DSTREAMLABS_BUILD=OFF ^
           -DNODEJS_NAME=%RuntimeName% ^
           -DNODEJS_URL=%RuntimeURL% ^
-          -DNODEJS_VERSION=%RuntimeVersion% ^
+          -DNODEJS_VERSION="v%ElectronVersion%" ^
           -DLIBOBS_BUILD_TYPE="debug" ^
           -DLIBOBS_VERSION=%LibOBSVersion%
 ) else (
@@ -17,6 +17,6 @@ if "%ReleaseName%"=="debug" (
           -DSTREAMLABS_BUILD=OFF ^
           -DNODEJS_NAME=%RuntimeName% ^
           -DNODEJS_URL=%RuntimeURL% ^
-          -DNODEJS_VERSION=%RuntimeVersion% ^
+          -DNODEJS_VERSION="v%ElectronVersion%" ^
           -DLIBOBS_VERSION=%LibOBSVersion%
 )
