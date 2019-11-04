@@ -294,7 +294,8 @@ void outdated_driver_error::set_active( bool state)
 
 std::string outdated_driver_error::get_error(const char* base_error)
 {
-	if (std::string(base_error).find("Function not implemented") == std::string::npos)
+	if (base_error == nullptr
+		|| std::string(base_error).find("Function not implemented") == std::string::npos)
 		return "";
 
 	if(line_1.size() && line_2.size())
