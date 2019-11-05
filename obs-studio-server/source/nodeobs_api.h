@@ -158,3 +158,18 @@ class OBS_API
 	static void SetProcessPriority(const char* priority);
 	static void destroyOBS_API(void);
 };
+
+class outdated_driver_error 
+{
+	static outdated_driver_error * inst;
+	std::string line_1 = ""; 
+	std::string line_2 = "";
+	int lookup_enabled = 0;
+
+public:
+	static outdated_driver_error * instance();
+	void set_active( bool state); 
+	std::string get_error(const char* base_error);
+
+	void catch_error(const char* msg);
+};
