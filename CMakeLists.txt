@@ -61,26 +61,28 @@ if(MSVC)
 	add_definitions(/debug:fastlink)
 endif()
 
-# Override a test flag
-set(StackWalker_DISABLE_TESTS true CACHE BOOL "" FORCE)
+if (WIN32)
+	# Override a test flag
+	set(StackWalker_DISABLE_TESTS true CACHE BOOL "" FORCE)
 
-# StackWalker (Callstack rewind
-FetchContent_Declare(
-  stackwalker
-  GIT_REPOSITORY https://github.com/stream-labs/StackWalker
-)
+	# StackWalker (Callstack rewind
+	FetchContent_Declare(
+	stackwalker
+	GIT_REPOSITORY https://github.com/stream-labs/StackWalker
+	)
+
+	FetchContent_GetProperties(stackwalker)
+	if(NOT stackwalker_POPULATED)
+	FetchContent_Populate(stackwalker)
+	add_subdirectory(${stackwalker_SOURCE_DIR} ${stackwalker_BINARY_DIR})
+	endif()
+endif()
 
 # Nlohmann JSON (modern JSON for C++)
 FetchContent_Declare(
   nlohmannjson
   GIT_REPOSITORY https://github.com/nlohmann/json
 )
-
-FetchContent_GetProperties(stackwalker)
-if(NOT stackwalker_POPULATED)
-  FetchContent_Populate(stackwalker)
-  add_subdirectory(${stackwalker_SOURCE_DIR} ${stackwalker_BINARY_DIR})
-endif()
 
 FetchContent_GetProperties(nlohmannjson)
 if(NOT nlohmannjson_POPULATED)

@@ -121,7 +121,7 @@ set(
 string(
 	CONCAT OSN_DEFAULT_LIBOBS_URL
 	"https://obsstudios3.streamlabs.com/"
-	"libobs-${LIBOBS_BUILD_TYPE}-${LIBOBS_VERSION}.7z"
+	"libobs-osx-${LIBOBS_BUILD_TYPE}-24.17.2.7z"
 )
 
 set(
@@ -144,14 +144,24 @@ set(PROJECT_LIBRARIES
 	dwmapi.lib
 )
 
-set(PROJECT_INCLUDE_PATHS
+if (WIN32)
+	set(PROJECT_INCLUDE_PATHS
+		"${CMAKE_SOURCE_DIR}/source"
+		"${PROJECT_SOURCE_DIR}/source"
+		"${lib-streamlabs-ipc_SOURCE_DIR}/include"
+		${LIBOBS_INCLUDE_DIRS}
+		"${stackwalker_SOURCE_DIR}/Main/StackWalker"
+		"${nlohmannjson_SOURCE_DIR}/single_include"
+	)
+else ()
+	set(PROJECT_INCLUDE_PATHS
 	"${CMAKE_SOURCE_DIR}/source"
 	"${PROJECT_SOURCE_DIR}/source"
 	"${lib-streamlabs-ipc_SOURCE_DIR}/include"
 	${LIBOBS_INCLUDE_DIRS}
-	"${stackwalker_SOURCE_DIR}/Main/StackWalker"
 	"${nlohmannjson_SOURCE_DIR}/single_include"
-)
+	)
+endif ()
 
 set(PROJECT_DATA "${PROJECT_SOURCE_DIR}/resources")
 
@@ -250,10 +260,10 @@ add_executable(
 	"${PROJECT_SOURCE_DIR}/source/memory-manager.h"
 )
 
-# Include/link crash manager dependencies
-target_link_libraries(${PROJECT_NAME} StackWalker)
-
 if(WIN32)
+	# Include/link crash manager dependencies
+	target_link_libraries(${PROJECT_NAME} StackWalker)
+
 	target_sources(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}/version.rc")
 endif()
 
@@ -295,7 +305,7 @@ IF( NOT CLANG_ANALYZE_CONFIG)
 ENDIF()
 
 install(TARGETS obs-studio-server RUNTIME DESTINATION "./" COMPONENT Runtime)
-IF( NOT CLANG_ANALYZE_CONFIG)
+IF(WIN32 AND NOT CLANG_ANALYZE_CONFIG)
 	install(FILES $<TARGET_PDB_FILE:obs-studio-server> DESTINATION "./" OPTIONAL)
 ENDIF()
 install(DIRECTORY ${PROJECT_DATA} DESTINATION "./" OPTIONAL)
