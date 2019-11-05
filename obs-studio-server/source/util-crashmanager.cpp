@@ -397,6 +397,16 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 		//ignore exceptions to not loose current crash info 
 		callStack =  nlohmann::json::array();
 	}
+	
+	int  known_crash_id = 0;
+	
+	if (is_allocator_failed()) {
+		known_crash_id = 0x1;
+	}
+
+	if (known_crash_id != 0) {
+		OBS_API::InformCrashHandler(known_crash_id);
+	}
 
 	// Get the information about the total of CPU and RAM used by this user
 	long long totalPhysMem = 1;
