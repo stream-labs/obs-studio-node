@@ -199,15 +199,15 @@ void OBS_content::Register(ipc::server& srv)
 
 void popupAeroDisabledWindow(void)
 {
-	MessageBox(
-	    NULL,
-	    TEXT("Streamlabs OBS needs Aero enabled to run properly on Windows 7.  "
-	         "If you've disabled Aero for performance reasons, "
-	         "you may still use the app, but you will need to keep the window maximized.\n\n\n\n\n"
-	         "This is a workaround to keep Streamlabs OBS running and not the preferred route. "
-	         "We recommend upgrading to Windows 10 or enabling Aero."),
-	    TEXT("Aero is disabled"),
-	    MB_OK);
+	// MessageBox(
+	//     NULL,
+	//     TEXT("Streamlabs OBS needs Aero enabled to run properly on Windows 7.  "
+	//          "If you've disabled Aero for performance reasons, "
+	//          "you may still use the app, but you will need to keep the window maximized.\n\n\n\n\n"
+	//          "This is a workaround to keep Streamlabs OBS running and not the preferred route. "
+	//          "We recommend upgrading to Windows 10 or enabling Aero."),
+	//     TEXT("Aero is disabled"),
+	//     MB_OK);
 }
 
 void OBS_content::OBS_content_createDisplay(
@@ -230,13 +230,13 @@ void OBS_content::OBS_content_createDisplay(
 
 	displays.insert_or_assign(args[1].value_str, new OBS::Display(windowHandle));
 
-	if (!IsWindows8OrGreater()) {
-		BOOL enabled = FALSE;
-		DwmIsCompositionEnabled(&enabled);
-		if (!enabled && firstDisplayCreation) {
-			windowMessage = new std::thread(popupAeroDisabledWindow);
-		}
-	}
+	// if (!IsWindows8OrGreater()) {
+	// 	BOOL enabled = FALSE;
+	// 	DwmIsCompositionEnabled(&enabled);
+	// 	if (!enabled && firstDisplayCreation) {
+	// 		windowMessage = new std::thread(popupAeroDisabledWindow);
+	// 	}
+	// }
 	firstDisplayCreation = false;
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;

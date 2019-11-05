@@ -21,9 +21,9 @@
 #include "nodeobs_api.h"
 #include "shared.hpp"
 #include "memory-manager.h"
-
+#ifdef WIN32
 #include <windows.h>
-
+#endif
 std::vector<const char*> tabStreamTypes;
 const char*              currentServiceName;
 std::vector<SubCategory> currentAudioSettings;
@@ -74,8 +74,8 @@ void OBS_settings::OBS_settings_getSettings(
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(settings.size()));
-	rval.push_back(ipc::value(binaryValue.size()));
+	rval.push_back(ipc::value((uint64_t)settings.size()));
+	rval.push_back(ipc::value((uint64_t)binaryValue.size()));
 	rval.push_back(ipc::value(binaryValue));
 	rval.push_back(ipc::value(type));
 	AUTO_DEBUG;

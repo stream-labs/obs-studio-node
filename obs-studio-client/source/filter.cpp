@@ -31,12 +31,12 @@ osn::Filter::Filter(uint64_t id)
 	this->sourceId = id;
 }
 
-Nan::Persistent<v8::FunctionTemplate> osn::Filter::prototype = Nan::Persistent<v8::FunctionTemplate>();
+// Nan::Persistent<v8::FunctionTemplate> osn::Filter::prototype = Nan::Persistent<v8::FunctionTemplate>();
 
 void osn::Filter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
-	fnctemplate->Inherit(Nan::New<v8::FunctionTemplate>(osn::ISource::prototype));
+	// fnctemplate->Inherit(Nan::New<v8::FunctionTemplate>(osn::ISource::prototype));
 	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
 	fnctemplate->SetClassName(Nan::New<v8::String>("Filter").ToLocalChecked());
 
@@ -47,7 +47,7 @@ void osn::Filter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	// Stuff
 	utilv8::SetObjectField(
 	    target, "Filter", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
-	prototype.Reset(fnctemplate);
+	// prototype.Reset(fnctemplate);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Types(Nan::NAN_METHOD_ARGS_TYPE info)

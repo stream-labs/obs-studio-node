@@ -120,9 +120,10 @@ endif()
 IF( NOT CLANG_ANALYZE_CONFIG)
 	cppcheck_add_project(${PROJECT_NAME})
 ENDIF()
-
-IF( NOT CLANG_ANALYZE_CONFIG)
-	install(FILES $<TARGET_PDB_FILE:obs_studio_client> DESTINATION ./ OPTIONAL)
+if(WIN32)
+	IF( NOT CLANG_ANALYZE_CONFIG)
+		install(FILES $<TARGET_PDB_FILE:obs_studio_client> DESTINATION ./ OPTIONAL)
+	ENDIF()
 ENDIF()
 install(FILES "${CMAKE_SOURCE_DIR}/package.json" DESTINATION "./")
 

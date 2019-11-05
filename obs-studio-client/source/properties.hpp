@@ -205,7 +205,7 @@ namespace osn
 		v8::Persistent<v8::Object>      owner;
 
 		protected:
-		static Nan::Persistent<v8::FunctionTemplate> prototype;
+		// static Nan::Persistent<v8::FunctionTemplate> prototype;
 
 		public:
 		Properties();
@@ -230,11 +230,11 @@ namespace osn
 	                       public utilv8::InterfaceObject<PropertyObject>,
 	                       public utilv8::ManagedObject<PropertyObject>
 	{
-		v8::Persistent<v8::Object> parent;
+		// v8::Persistent<v8::Object> parent;
 		size_t                     index;
 
 		protected:
-		static Nan::Persistent<v8::FunctionTemplate> prototype;
+		// static Nan::Persistent<v8::FunctionTemplate> prototype;
 
 		public:
 		PropertyObject(v8::Local<v8::Object> parent, size_t index);

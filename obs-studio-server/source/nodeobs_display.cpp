@@ -430,12 +430,12 @@ OBS::Display::~Display()
 void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 {
 	if (m_source != NULL) {
-		blog(
-		    LOG_DEBUG,
-		    "<" __FUNCTION__ "> Adjusting display position for source %s to %ldx%ld.",
-		    obs_source_get_name(m_source),
-		    x,
-		    y);
+		// blog(
+		//     LOG_DEBUG,
+		//     "<" + std::string(__FUNCTION__) +  "> Adjusting display position for source %s to %ldx%ld.",
+		//     obs_source_get_name(m_source),
+		//     x,
+		//     y);
 	}
 
 	// Move Window
@@ -459,12 +459,12 @@ std::pair<uint32_t, uint32_t> OBS::Display::GetPosition()
 void OBS::Display::SetSize(uint32_t width, uint32_t height)
 {
 	if (m_source != NULL) {
-		blog(
-		    LOG_DEBUG,
-		    "<" __FUNCTION__ "> Adjusting display size for source %s to %ldx%ld.",
-		    obs_source_get_name(m_source),
-		    width,
-		    height);
+		// blog(
+		//     LOG_DEBUG,
+		//     "<" + std::string(__FUNCTION__) +  "> Adjusting display size for source %s to %ldx%ld.",
+		//     obs_source_get_name(m_source),
+		//     width,
+		//     height);
 	}
 
 	// Resize Window
@@ -658,7 +658,7 @@ static void
 
 inline bool CloseFloat(float a, float b, float epsilon = 0.01)
 {
-	return std::abs(a - b) <= epsilon;
+	return abs(a - b) <= epsilon;
 }
 
 inline void DrawOutline(OBS::Display* dp, matrix4& mtx, obs_transform_info& info)

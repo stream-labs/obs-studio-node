@@ -17,9 +17,11 @@
 ******************************************************************************/
 
 #include "nodeobs_service.h"
+#ifdef WIN32
 #include <ShlObj.h>
 #include <filesystem>
 #include <windows.h>
+#endif
 #include "error.hpp"
 #include "shared.hpp"
 #include "utility.hpp"
@@ -680,8 +682,8 @@ static void ensure_directory_exists(std::string& path)
 
 	std::string directory = path.substr(0, last);
 
-	if (std::experimental::filesystem::is_directory(directory))
-		os_mkdirs(directory.c_str());
+	// if (std::experimental::filesystem::is_directory(directory))
+	// 	os_mkdirs(directory.c_str());
 }
 
 static void FindBestFilename(std::string& strPath, bool noSpace)
@@ -1433,13 +1435,14 @@ void OBS_service::updateVideoStreamingEncoder()
 
 std::string OBS_service::GetDefaultVideoSavePath(void)
 {
-	wchar_t path_utf16[MAX_PATH];
-	char    path_utf8[MAX_PATH] = {};
+	// wchar_t path_utf16[MAX_PATH];
+	// char    path_utf8[MAX_PATH] = {};
 
-	SHGetFolderPathW(NULL, CSIDL_MYVIDEO, NULL, SHGFP_TYPE_CURRENT, path_utf16);
+	// SHGetFolderPathW(NULL, CSIDL_MYVIDEO, NULL, SHGFP_TYPE_CURRENT, path_utf16);
 
-	os_wcs_to_utf8(path_utf16, wcslen(path_utf16), path_utf8, MAX_PATH);
-	return std::string(path_utf8);
+	// os_wcs_to_utf8(path_utf16, wcslen(path_utf16), path_utf8, MAX_PATH);
+	// return std::string(path_utf8);
+	return "";
 }
 
 void OBS_service::updateService(void)

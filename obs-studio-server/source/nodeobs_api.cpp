@@ -55,8 +55,10 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 
+#ifdef WIN32
 #include <audiopolicy.h>
 #include <mmdeviceapi.h>
+#endif
 
 #include <util/windows/ComPtr.hpp>
 #include <util/windows/HRError.hpp>
@@ -402,22 +404,22 @@ static void                                    node_obs_log(int log_level, const
 #endif
 }
 
-uint32_t pid = GetCurrentProcessId();
+// uint32_t pid = GetCurrentProcessId();
 
 std::vector<char> registerProcess(void)
 {
 	std::vector<char> buffer;
-	buffer.resize(sizeof(uint8_t) + sizeof(bool) + sizeof(uint32_t));
-	uint8_t action     = 0;
-	bool    isCritical = true;
+	// buffer.resize(sizeof(uint8_t) + sizeof(bool) + sizeof(uint32_t));
+	// uint8_t action     = 0;
+	// bool    isCritical = true;
 
-	uint32_t offset = 0;
+	// uint32_t offset = 0;
 
-	memcpy(buffer.data(), &action, sizeof(action));
-	offset++;
-	memcpy(buffer.data() + offset, &isCritical, sizeof(isCritical));
-	offset++;
-	memcpy(buffer.data() + offset, &pid, sizeof(pid));
+	// memcpy(buffer.data(), &action, sizeof(action));
+	// offset++;
+	// memcpy(buffer.data() + offset, &isCritical, sizeof(isCritical));
+	// offset++;
+	// memcpy(buffer.data() + offset, &pid, sizeof(pid));
 
 	return buffer;
 }
@@ -425,14 +427,14 @@ std::vector<char> registerProcess(void)
 std::vector<char> unregisterProcess(void)
 {
 	std::vector<char> buffer;
-	buffer.resize(sizeof(uint8_t) + sizeof(uint32_t));
-	uint8_t action = 1;
+	// buffer.resize(sizeof(uint8_t) + sizeof(uint32_t));
+	// uint8_t action = 1;
 
-	uint32_t offset = 0;
+	// uint32_t offset = 0;
 
-	memcpy(buffer.data(), &action, sizeof(action));
-	offset++;
-	memcpy(buffer.data() + offset, &pid, sizeof(pid));
+	// memcpy(buffer.data(), &action, sizeof(action));
+	// offset++;
+	// memcpy(buffer.data() + offset, &pid, sizeof(pid));
 
 	return buffer;
 }
@@ -440,30 +442,30 @@ std::vector<char> unregisterProcess(void)
 std::vector<char> terminateCrashHandler(void)
 {
 	std::vector<char> buffer;
-	buffer.resize(sizeof(uint8_t) + sizeof(uint32_t));
-	uint8_t action = 2;
+	// buffer.resize(sizeof(uint8_t) + sizeof(uint32_t));
+	// uint8_t action = 2;
 
-	uint32_t offset = 0;
+	// uint32_t offset = 0;
 
-	memcpy(buffer.data(), &action, sizeof(action));
-	offset++;
-	memcpy(buffer.data() + offset, &pid, sizeof(pid));
+	// memcpy(buffer.data(), &action, sizeof(action));
+	// offset++;
+	// memcpy(buffer.data() + offset, &pid, sizeof(pid));
 
 	return buffer;
 }
 
 void writeCrashHandler(std::vector<char> buffer)
 {
-	HANDLE hPipe = CreateFile( TEXT("\\\\.\\pipe\\slobs-crash-handler"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+	// HANDLE hPipe = CreateFile( TEXT("\\\\.\\pipe\\slobs-crash-handler"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 
-	if (hPipe == INVALID_HANDLE_VALUE)
-		return;
+	// if (hPipe == INVALID_HANDLE_VALUE)
+	// 	return;
 
-	DWORD bytesWritten;
+	// DWORD bytesWritten;
 
-	WriteFile(hPipe, buffer.data(), buffer.size(), &bytesWritten, NULL);
+	// WriteFile(hPipe, buffer.data(), buffer.size(), &bytesWritten, NULL);
 
-	CloseHandle(hPipe);
+	// CloseHandle(hPipe);
 }
 
 void OBS_API::OBS_API_initAPI(
@@ -530,14 +532,14 @@ void OBS_API::OBS_API_initAPI(
 	std::fstream* logfile =
 	    new std::fstream(converter.from_bytes(log_path.c_str()).c_str(), std::ios_base::out | std::ios_base::trunc);
 #else
-	fstream* logfile = new fstream(log_path, ios_base::out | ios_base::trunc);
+	// fstream* logfile = new fstream(log_path, ios_base::out | ios_base::trunc);
 #endif
 
-	if (!logfile->is_open()) {
-		logfile = nullptr;
-		util::CrashManager::AddWarning("Error on log file, failed to open: " + log_path);
-		std::cerr << "Failed to open log file" << std::endl;
-	}
+	// if (!logfile->is_open()) {
+	// 	logfile = nullptr;
+	// 	util::CrashManager::AddWarning("Error on log file, failed to open: " + log_path);
+	// 	std::cerr << "Failed to open log file" << std::endl;
+	// }
 
 	base_set_log_handler(node_obs_log, logfile);
 
@@ -781,16 +783,16 @@ void OBS_API::SetProcessPriority(const char* priority)
 	if (!priority)
 		return;
 
-	if (strcmp(priority, "High") == 0)
-		SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
-	else if (strcmp(priority, "AboveNormal") == 0)
-		SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
-	else if (strcmp(priority, "Normal") == 0)
-		SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
-	else if (strcmp(priority, "BelowNormal") == 0)
-		SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
-	else if (strcmp(priority, "Idle") == 0)
-		SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
+	// if (strcmp(priority, "High") == 0)
+	// 	SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
+	// else if (strcmp(priority, "AboveNormal") == 0)
+	// 	SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
+	// else if (strcmp(priority, "Normal") == 0)
+	// 	SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
+	// else if (strcmp(priority, "BelowNormal") == 0)
+	// 	SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
+	// else if (strcmp(priority, "Idle") == 0)
+	// 	SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
 }
 
 void OBS_API::UpdateProcessPriority()
@@ -802,35 +804,36 @@ void OBS_API::UpdateProcessPriority()
 
 bool DisableAudioDucking(bool disable)
 {
-	ComPtr<IMMDeviceEnumerator>   devEmum;
-	ComPtr<IMMDevice>             device;
-	ComPtr<IAudioSessionManager2> sessionManager2;
-	ComPtr<IAudioSessionControl>  sessionControl;
-	ComPtr<IAudioSessionControl2> sessionControl2;
+	// ComPtr<IMMDeviceEnumerator>   devEmum;
+	// ComPtr<IMMDevice>             device;
+	// ComPtr<IAudioSessionManager2> sessionManager2;
+	// ComPtr<IAudioSessionControl>  sessionControl;
+	// ComPtr<IAudioSessionControl2> sessionControl2;
 
-	HRESULT result = CoCreateInstance(
-	    __uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER, __uuidof(IMMDeviceEnumerator), (void**)&devEmum);
-	if (FAILED(result))
-		return false;
+	// HRESULT result = CoCreateInstance(
+	//     __uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER, __uuidof(IMMDeviceEnumerator), (void**)&devEmum);
+	// if (FAILED(result))
+	// 	return false;
 
-	result = devEmum->GetDefaultAudioEndpoint(eRender, eConsole, &device);
-	if (FAILED(result))
-		return false;
+	// result = devEmum->GetDefaultAudioEndpoint(eRender, eConsole, &device);
+	// if (FAILED(result))
+	// 	return false;
 
-	result = device->Activate(__uuidof(IAudioSessionManager2), CLSCTX_INPROC_SERVER, nullptr, (void**)&sessionManager2);
-	if (FAILED(result))
-		return false;
+	// result = device->Activate(__uuidof(IAudioSessionManager2), CLSCTX_INPROC_SERVER, nullptr, (void**)&sessionManager2);
+	// if (FAILED(result))
+	// 	return false;
 
-	result = sessionManager2->GetAudioSessionControl(nullptr, 0, &sessionControl);
-	if (FAILED(result))
-		return false;
+	// result = sessionManager2->GetAudioSessionControl(nullptr, 0, &sessionControl);
+	// if (FAILED(result))
+	// 	return false;
 
-	result = sessionControl->QueryInterface(&sessionControl2);
-	if (FAILED(result))
-		return false;
+	// result = sessionControl->QueryInterface(&sessionControl2);
+	// if (FAILED(result))
+	// 	return false;
 
-	result = sessionControl2->SetDuckingPreference(disable);
-	return SUCCEEDED(result);
+	// result = sessionControl2->SetDuckingPreference(disable);
+	// return SUCCEEDED(result);
+	return false;
 }
 
 void OBS_API::setAudioDeviceMonitoring(void)

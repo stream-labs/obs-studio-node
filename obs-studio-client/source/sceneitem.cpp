@@ -34,7 +34,7 @@ osn::SceneItem::SceneItem(uint64_t id)
 	this->itemId = id;
 }
 
-Nan::Persistent<v8::FunctionTemplate> osn::SceneItem::prototype = Nan::Persistent<v8::FunctionTemplate>();
+// Nan::Persistent<v8::FunctionTemplate> osn::SceneItem::prototype = Nan::Persistent<v8::FunctionTemplate>();
 
 void osn::SceneItem::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 {
@@ -71,7 +71,7 @@ void osn::SceneItem::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	// Stuff
 	utilv8::SetObjectField(
 	    target, "SceneItem", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
-	prototype.Reset(fnctemplate);
+	// prototype.Reset(fnctemplate);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetSource(Nan::NAN_METHOD_ARGS_TYPE info)

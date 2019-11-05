@@ -30,12 +30,12 @@
 #include <string>
 #include <thread>
 #include <vector>
-#include "StackWalker.h"
 #include "nodeobs_api.h"
 #include "error.hpp"
 
 #if defined(_WIN32)
 
+#include "StackWalker.h"
 #include <WinBase.h>
 #include "DbgHelp.h"
 #include "Shlobj.h"
@@ -505,49 +505,49 @@ std::string FormatVAString(const char* const format, va_list args)
 
 nlohmann::json RewindCallStack(std::string& crashedMethod)
 {
-	class MyStackWalker : public StackWalker
-	{
-		public:
-		MyStackWalker(nlohmann::json& _outJson, std::string& _crashMethod)
-		    : StackWalker(), m_OutJson(_outJson), m_OutCrashMethodName(_crashMethod)
-		{}
+	// class MyStackWalker : public StackWalker
+	// {
+	// 	public:
+	// 	MyStackWalker(nlohmann::json& _outJson, std::string& _crashMethod)
+	// 	    : StackWalker(), m_OutJson(_outJson), m_OutCrashMethodName(_crashMethod)
+	// 	{}
 
-		protected:
-		virtual void OnCallstackEntry(CallstackEntryType eType, CallstackEntry& entry)
-		{
-			// If this entry is valid
-			if (entry.offset == 0)
-				return;
+	// 	protected:
+	// 	virtual void OnCallstackEntry(CallstackEntryType eType, CallstackEntry& entry)
+	// 	{
+	// 		// If this entry is valid
+	// 		if (entry.offset == 0)
+	// 			return;
 
-			// If the entry is inside this file
-			std::string fileName = std::string(entry.lineFileName);
-			if (fileName.find("util-crashmanager.cpp") != std::string::npos
-			    || fileName.find("stackwalker.cpp") != std::string::npos)
-				return;
+	// 		// If the entry is inside this file
+	// 		std::string fileName = std::string(entry.lineFileName);
+	// 		if (fileName.find("util-crashmanager.cpp") != std::string::npos
+	// 		    || fileName.find("stackwalker.cpp") != std::string::npos)
+	// 			return;
 
-			nlohmann::json jsonEntry;
-			jsonEntry["function"]      = std::string(entry.name);
-			jsonEntry["filename"]      = entry.lineFileName;
-			jsonEntry["lineno"]        = entry.lineNumber;
-			jsonEntry["module"]        = std::string(entry.moduleName);
-			jsonEntry["und-name"]      = std::string(entry.undName);
-			jsonEntry["und-full-name"] = std::string(entry.undFullName);
+	// 		nlohmann::json jsonEntry;
+	// 		jsonEntry["function"]      = std::string(entry.name);
+	// 		jsonEntry["filename"]      = entry.lineFileName;
+	// 		jsonEntry["lineno"]        = entry.lineNumber;
+	// 		jsonEntry["module"]        = std::string(entry.moduleName);
+	// 		jsonEntry["und-name"]      = std::string(entry.undName);
+	// 		jsonEntry["und-full-name"] = std::string(entry.undFullName);
 
-			// Check if we should update the crash method variable
-			if (m_OutCrashMethodName.length() == 0)
-				m_OutCrashMethodName = std::string(entry.name);
+	// 		// Check if we should update the crash method variable
+	// 		if (m_OutCrashMethodName.length() == 0)
+	// 			m_OutCrashMethodName = std::string(entry.name);
 
-			m_OutJson.push_back(jsonEntry);
-		}
+	// 		m_OutJson.push_back(jsonEntry);
+	// 	}
 
-		private:
-		nlohmann::json& m_OutJson;
-		std::string&    m_OutCrashMethodName;
-	};
+	// 	private:
+	// 	nlohmann::json& m_OutJson;
+	// 	std::string&    m_OutCrashMethodName;
+	// };
 
-	nlohmann::json result = nlohmann::json::array();
-	MyStackWalker  sw(result, crashedMethod);
-	sw.ShowCallstack();
+	// nlohmann::json result = nlohmann::json::array();
+	// MyStackWalker  sw(result, crashedMethod);
+	// sw.ShowCallstack();
 
 	return result;
 }

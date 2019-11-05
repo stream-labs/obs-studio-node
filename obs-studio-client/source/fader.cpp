@@ -38,7 +38,7 @@ uint64_t osn::Fader::GetId()
 	return this->uid;
 }
 
-Nan::Persistent<v8::FunctionTemplate> osn::Fader::prototype = Nan::Persistent<v8::FunctionTemplate>();
+// Nan::Persistent<v8::FunctionTemplate> osn::Fader::prototype = Nan::Persistent<v8::FunctionTemplate>();
 
 void osn::Fader::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 {
@@ -61,7 +61,7 @@ void osn::Fader::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 
 	// Stuff
 	utilv8::SetObjectField(target, "Fader", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
-	prototype.Reset(fnctemplate);
+	// prototype.Reset(fnctemplate);
 }
 
 void osn::Fader::Create(Nan::NAN_METHOD_ARGS_TYPE info)

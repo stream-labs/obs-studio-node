@@ -1,4 +1,6 @@
 ﻿PROJECT(obs-studio-server VERSION ${obs-studio-node_VERSION})
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Detect Architecture (Bitness)
 IF( NOT CLANG_ANALYZE_CONFIG)
@@ -137,7 +139,6 @@ set(PROJECT_INCLUDE_PATHS
 	"${PROJECT_SOURCE_DIR}/source"
 	"${lib-streamlabs-ipc_SOURCE_DIR}/include"
 	${LIBOBS_INCLUDE_DIRS}
-	"${stackwalker_SOURCE_DIR}/Main/StackWalker"
 	"${nlohmannjson_SOURCE_DIR}/single_include"
 )
 
@@ -238,8 +239,10 @@ add_executable(
 	"${PROJECT_SOURCE_DIR}/source/memory-manager.h"
 )
 
-# Include/link crash manager dependencies
-target_link_libraries(${PROJECT_NAME} StackWalker)
+if(WIN32)
+	# Include/link crash manager dependencies
+	target_link_libraries(${PROJECT_NAME} StackWalker)
+endif()
 
 if(WIN32)
 	target_sources(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}/version.rc")
@@ -283,8 +286,10 @@ IF( NOT CLANG_ANALYZE_CONFIG)
 ENDIF()
 
 install(TARGETS obs-studio-server RUNTIME DESTINATION "./" COMPONENT Runtime)
-IF( NOT CLANG_ANALYZE_CONFIG)
-	install(FILES $<TARGET_PDB_FILE:obs-studio-server> DESTINATION "./" OPTIONAL)
+IF(WIN32)
+	IF( NOT CLANG_ANALYZE_CONFIG)
+		install(FILES $<TARGET_PDB_FILE:obs-studio-server> DESTINATION "./" OPTIONAL)
+	ENDIF()
 ENDIF()
 install(DIRECTORY ${PROJECT_DATA} DESTINATION "./" OPTIONAL)
 install(DIRECTORY ${crashpad_SOURCE_DIR}/bin/ DESTINATION "./")

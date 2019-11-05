@@ -21,10 +21,13 @@
 #include "nodeobs_configManager.hpp"
 #include <map>
 #include <mutex>
+#ifdef WIN32
 #include <windows.h>
 #include "psapi.h"
+#endif
 #include <algorithm>
 #include <vector>
+#include <thread>
 
 #define LIMIT 2004800000
 #define MAX_POOLS 10
