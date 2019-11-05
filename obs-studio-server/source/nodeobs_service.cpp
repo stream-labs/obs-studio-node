@@ -903,13 +903,20 @@ bool OBS_service::startStreaming(void)
 		obs_output_set_audio_encoder(
 		    streamingOutput,
 		    audioAdvancedStreamingEncoder, 0);
-
+	
+	outdated_driver_error::instance()->set_active(true);
 	isStreaming = obs_output_start(streamingOutput);
+	outdated_driver_error::instance()->set_active(false);
 	if (!isStreaming) {
 		SignalInfo  signal = SignalInfo("streaming", "stop");
 		const char* error  = obs_output_get_last_error(streamingOutput);
 		if (error) {
-			signal.setErrorMessage(error);
+			std::string outdated_driver_error = outdated_driver_error::instance()->get_error(error);
+			if (outdated_driver_error.size() != 0) {
+				signal.setErrorMessage(outdated_driver_error);
+			} else {
+				signal.setErrorMessage(error);
+			}
 			blog(LOG_INFO, "Last streaming error: %s", error);
 		}
 		signal.setCode(OBS_OUTPUT_ERROR);
@@ -1124,12 +1131,19 @@ bool OBS_service::startRecording(void)
 		}
 	}
 
+	outdated_driver_error::instance()->set_active(true);
 	isRecording = obs_output_start(recordingOutput);
+	outdated_driver_error::instance()->set_active(false);
 	if (!isRecording) {
 		SignalInfo signal = SignalInfo("recording", "stop");
 		const char* error = obs_output_get_last_error(recordingOutput);
 		if (error) {
-			signal.setErrorMessage(error);
+			std::string outdated_driver_error = outdated_driver_error::instance()->get_error(error);
+			if (outdated_driver_error.size() != 0) {
+				signal.setErrorMessage(outdated_driver_error);
+			} else {
+				signal.setErrorMessage(error);
+			}
 			std::cout << "Last recording error: " << error << std::endl;
 		}
 		signal.setCode(OBS_OUTPUT_ERROR);
@@ -1286,7 +1300,9 @@ bool OBS_service::startReplayBuffer(void)
 		}
 	}
 
+	outdated_driver_error::instance()->set_active(true);
 	bool result = obs_output_start(replayBufferOutput);
+	outdated_driver_error::instance()->set_active(false);
 	if (!result) {
 		SignalInfo signal    = SignalInfo("replay-buffer", "stop");
 		isReplayBufferActive = false;
@@ -1294,7 +1310,12 @@ bool OBS_service::startReplayBuffer(void)
 		rpUsesStream         = false;
 		const char* error    = obs_output_get_last_error(replayBufferOutput);
 		if (error) {
-			signal.setErrorMessage(error);
+			std::string outdated_driver_error = outdated_driver_error::instance()->get_error(error);
+			if (outdated_driver_error.size() != 0) {
+				signal.setErrorMessage(outdated_driver_error);
+			} else {
+				signal.setErrorMessage(error);
+			}
 			std::cout << "Last replay buffer error: " << error << std::endl;
 		}
 		signal.setCode(OBS_OUTPUT_ERROR);
