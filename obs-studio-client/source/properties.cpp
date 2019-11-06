@@ -20,9 +20,6 @@
 #include "isource.hpp"
 #include "utility-v8.hpp"
 
-Nan::Persistent<v8::FunctionTemplate> osn::Properties::prototype     = Nan::Persistent<v8::FunctionTemplate>();
-Nan::Persistent<v8::FunctionTemplate> osn::PropertyObject::prototype = Nan::Persistent<v8::FunctionTemplate>();
-
 osn::Properties::Properties()
 {
 	properties = std::make_shared<property_map_t>();

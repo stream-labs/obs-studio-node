@@ -34,7 +34,15 @@ static std::string serverWorkingPath = "";
 #include <psapi.h>
 #include <wchar.h>
 #include <windows.h>
+#else
+#include <signal.h>
+#include <libproc.h>
+#include <iostream>
+#include <spawn.h>
+extern char **environ;
+#endif
 
+#ifdef _WIN32
 ProcessInfo spawn(const std::string& program, const std::string& commandLine, const std::string& workingDirectory)
 {
 	PROCESS_INFORMATION m_win32_processInformation = {0};
@@ -241,11 +249,14 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 
 	std::string workingDirectory;
 
+#ifdef WIN32
 	if (serverWorkingPath.empty())
 		workingDirectory = get_working_directory();
 	else
+#endif
 		workingDirectory = serverWorkingPath;
 
+#ifdef WIN32
 	// Test for existing process.
 	std::string pid_path(get_temp_directory());
 	pid_path.append("server.pid");
@@ -267,7 +278,58 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 		kill(procId, 0, exitcode);
 		return nullptr;
 	}
+#else
+    pid_t pids[2048];
+    int bytes = proc_listpids(PROC_ALL_PIDS, 0, pids, sizeof(pids));
+    int n_proc = bytes / sizeof(pids[0]);
+    for (int i = 0; i < n_proc; i++) {
+        struct proc_bsdinfo proc;
+        int st = proc_pidinfo(pids[i], PROC_PIDTBSDINFO, 0,
+                             &proc, PROC_PIDTBSDINFO_SIZE);
+        if (st == PROC_PIDTBSDINFO_SIZE) {
+            if (strcmp("obs64", proc.pbi_name) == 0) {
+                if (pids[i] != 0)
+                    kill(pids[i], SIGKILL);
+            }
+        }
+    }
 
+    pid_t pid;
+    std::vector<char> uri_str(uri.c_str(), uri.c_str() + uri.size() + 1);
+    char *argv[] = {"obs64", uri_str.data(), NULL};
+    std::cout << "Spawning obs server" << std::endl;
+    remove(uri.c_str());
+
+    int ret = 0;
+    posix_spawn_file_actions_t child_fd_actions;
+    if (ret = posix_spawn_file_actions_init (&child_fd_actions))
+        perror ("posix_spawn_file_actions_init"), exit(ret);
+    if (ret = posix_spawn_file_actions_addopen (&child_fd_actions, 1, "/Users/eddygharbi/streamlabs/obs-studio-node/logs/log",
+            O_WRONLY | O_CREAT | O_TRUNC, 0644))
+        perror ("posix_spawn_file_actions_addopen"), exit(ret);
+    if (ret = posix_spawn_file_actions_adddup2 (&child_fd_actions, 1, 2))
+        perror ("posix_spawn_file_actions_adddup2"), exit(ret);
+
+    if (ret = posix_spawnp(&pid, serverBinaryPath.c_str(), &child_fd_actions, NULL, argv, environ))
+        perror ("posix_spawn"), exit(ret);
+
+    // int status = posix_spawn(&pid, serverBinaryPath.c_str(), NULL, NULL, argv, environ);
+
+    // std::cout << "Status: " << status << std::endl;
+    // if (status != 0) {
+    //     return nullptr;
+    // }
+    
+    // Connect
+    std::shared_ptr<ipc::client> cl = connect(uri);
+    if (!cl) { // Assume the server broke or was not allowed to run.
+        disconnect();
+        uint32_t exitcode;
+        kill(pid, SIGKILL);
+        return nullptr;
+    }
+#endif
+    
 	m_isServer = true;
 	return m_connection;
 }
@@ -294,10 +356,12 @@ std::shared_ptr<ipc::client> Controller::connect(
 			break;
 
 		if (procId.handle != 0) {
+#ifdef WIN32
 			// We are the owner of the server, but m_isServer is false for now.
 			if (!is_process_alive(procId)) {
 				break;
 			}
+#endif
 		}
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -354,7 +418,9 @@ void js_setServerPath(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 		serverWorkingPath = *v8::String::Utf8Value(args[1]);
 	} else {
+#ifdef WIN32
 		serverWorkingPath = get_working_directory();
+#endif
 	}
 
 	return;

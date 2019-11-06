@@ -34,8 +34,6 @@ osn::Input::Input(uint64_t id)
 	this->sourceId = id;
 }
 
-Nan::Persistent<v8::FunctionTemplate> osn::Input::prototype = Nan::Persistent<v8::FunctionTemplate>();
-
 void osn::Input::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
