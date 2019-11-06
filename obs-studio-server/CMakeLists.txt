@@ -108,7 +108,7 @@ add_dependencies(crashpad_util crashpad_client)
 
 set(
 	LIBOBS_VERSION
-	"24.17.0"
+	24.17.0
 	CACHE STRING "Version of libobs being used"
 )
 
