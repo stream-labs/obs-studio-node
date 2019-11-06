@@ -70,6 +70,7 @@ static const double scaled_vals[] = {1.0, 1.25, (1.0 / 0.75), 1.5, (1.0 / 0.6), 
 
 static inline std::string GetDefaultVideoSavePath()
 {
+#ifdef WIN32
 	wchar_t path_utf16[MAX_PATH];
 	char    path_utf8[MAX_PATH] = {};
 
@@ -77,6 +78,9 @@ static inline std::string GetDefaultVideoSavePath()
 
 	os_wcs_to_utf8(path_utf16, wcslen(path_utf16), path_utf8, MAX_PATH);
 	return std::string(path_utf8);
+#else
+    return "";
+#endif
 }
 
 void initBasicDefault(config_t* config)

@@ -67,7 +67,7 @@ void osn::Source::global_source_create_cb(void* ptr, calldata_t* cd)
 {
 	obs_source_t* source = nullptr;
 	if (!calldata_get_ptr(cd, "source", &source)) {
-		throw std::exception("calldata did not contain source pointer");
+		throw std::runtime_error("calldata did not contain source pointer");
 	}
 
 	osn::Source::Manager::GetInstance().allocate(source);
@@ -80,7 +80,7 @@ void osn::Source::global_source_activate_cb(void* ptr, calldata_t* cd)
 {
 	obs_source_t* source = nullptr;
 	if (!calldata_get_ptr(cd, "source", &source)) {
-		throw std::exception("calldata did not contain source pointer");
+		throw std::runtime_error("calldata did not contain source pointer");
 	}
 	MemoryManager::GetInstance().updateSourceCache(source);
 }
@@ -89,7 +89,7 @@ void osn::Source::global_source_deactivate_cb(void* ptr, calldata_t* cd)
 {
 	obs_source_t* source = nullptr;
 	if (!calldata_get_ptr(cd, "source", &source)) {
-		throw std::exception("calldata did not contain source pointer");
+		throw std::runtime_error("calldata did not contain source pointer");
 	}
 	MemoryManager::GetInstance().updateSourceCache(source);
 }
@@ -98,7 +98,7 @@ void osn::Source::global_source_destroy_cb(void* ptr, calldata_t* cd)
 {
 	obs_source_t* source = nullptr;
 	if (!calldata_get_ptr(cd, "source", &source)) {
-		throw std::exception("calldata did not contain source pointer");
+		throw std::runtime_error("calldata did not contain source pointer");
 	}
 
 	CallbackManager::removeSource(source);
@@ -792,8 +792,8 @@ void osn::Source::SendMouseClick(
 
 	obs_mouse_event event = {
 	    args[1].value_union.ui32,
-	    args[2].value_union.ui32,
-	    args[3].value_union.ui32,
+	    (int32_t)args[2].value_union.ui32,
+	    (int32_t)args[3].value_union.ui32,
 	};
 
 	obs_source_send_mouse_click(
@@ -817,7 +817,7 @@ void osn::Source::SendMouseMove(
 		return;
 	}
 
-	obs_mouse_event event = {args[1].value_union.ui32, args[2].value_union.ui32, args[3].value_union.ui32};
+	obs_mouse_event event = {args[1].value_union.ui32, (int32_t)args[2].value_union.ui32, (int32_t)args[3].value_union.ui32};
 
 	obs_source_send_mouse_move(src, &event, args[4].value_union.i32);
 
@@ -841,8 +841,8 @@ void osn::Source::SendMouseWheel(
 
 	obs_mouse_event event = {
 	    args[1].value_union.ui32,
-	    args[2].value_union.ui32,
-	    args[3].value_union.ui32,
+	    (int32_t)args[2].value_union.ui32,
+	    (int32_t)args[3].value_union.ui32,
 	};
 
 	obs_source_send_mouse_wheel(src, &event, args[4].value_union.i32, args[5].value_union.i32);

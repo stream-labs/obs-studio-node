@@ -1,4 +1,4 @@
-﻿/******************************************************************************
+/******************************************************************************
     Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
 
     This program is free software: you can redistribute it and/or modify
@@ -30,7 +30,9 @@
 #include <string>
 #include <thread>
 #include <vector>
+#ifdef WIN32
 #include "StackWalker.h"
+#endif
 #include "nodeobs_api.h"
 #include "error.hpp"
 
@@ -50,7 +52,7 @@
 
 #endif
 
-#ifdef ENABLE_CRASHREPORT
+#ifdef WIN32 AND ENABLE_CRASHREPORT
 #include "client/crash_report_database.h"
 #include "client/crashpad_client.h"
 #include "client/settings.h"
@@ -59,7 +61,7 @@
 //////////////////////
 // STATIC VARIABLES //
 //////////////////////
-
+#ifdef WIN32
 // Global/static variables
 std::vector<std::string>                   handledOBSCrashes;
 PDH_HQUERY                                 cpuQuery;
@@ -147,16 +149,17 @@ void RequestComputerUsageParams(
 
 	// This link has info about the linux and Mac OS versions
 	// https://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process
-	totalPhysMem    = long long(-1);
-	physMemUsed     = long long(-1);
-	physMemUsedByMe = size_t(-1);
-	totalCPUUsed    = double(-1.0);
+//	totalPhysMem    = long long(-1);
+//	physMemUsed     = long long(-1);
+//	physMemUsedByMe = size_t(-1);
+//	totalCPUUsed    = double(-1.0);
 
 #endif
 }
 
 void GetUserInfo(std::string& computerName)
 {
+#ifdef WIN32
 	TCHAR infoBuf[MAX_COMPUTERNAME_LENGTH + 1];
 	DWORD bufCharCount = MAX_COMPUTERNAME_LENGTH + 1;
 
@@ -167,14 +170,15 @@ void GetUserInfo(std::string& computerName)
 	std::wstring_convert<convert_typeX, wchar_t> converterX;
 
 	computerName = converterX.to_bytes(std::wstring(infoBuf));
+#endif
 }
 
 nlohmann::json RequestProcessList()
 {
+#ifdef WIN32
 	DWORD          aProcesses[1024], cbNeeded, cProcesses;
 	nlohmann::json result = nlohmann::json::object();
 
-#if defined(_WIN32)
 
 	if (!EnumProcesses(aProcesses, sizeof(aProcesses), &cbNeeded)) {
 		return 1;
@@ -209,10 +213,11 @@ nlohmann::json RequestProcessList()
 			}
 		}
 	}
-
+    
+    return result;
+#else
+    return NULL;
 #endif
-
-	return result;
 }
 
 //////////////////
@@ -915,3 +920,4 @@ util::MetricsProvider* const util::CrashManager::GetMetricsProvider()
 {
 	return &metricsClient;
 }
+#endif

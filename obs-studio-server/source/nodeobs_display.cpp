@@ -242,8 +242,9 @@ OBS::Display::Display()
 #elif defined(__linux__) || defined(__FreeBSD__)
 #endif
 
+#ifdef WIN32
 	worker = std::thread(std::bind(&OBS::Display::SystemWorker, this));
-
+#endif
 	m_gsInitData.adapter         = 0;
 	m_gsInitData.cx              = 960;
 	m_gsInitData.cy              = 540;
@@ -439,9 +440,10 @@ void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 	m_position.second = y;
 
 	if (m_source != NULL) {
+        std::string msg = "<" + std::string(__FUNCTION__) + "> Adjusting display position for source %s to %ldx%ld. hwnd %d";
 		blog(
 		    LOG_DEBUG,
-		    "<" __FUNCTION__ "> Adjusting display position for source %s to %ldx%ld. hwnd %d",
+		    msg.c_str(),
 		    obs_source_get_name(m_source), x, y, m_ourWindow);
 	}
 
@@ -461,6 +463,7 @@ std::pair<uint32_t, uint32_t> OBS::Display::GetPosition()
 
 bool isNewerThanWindows7()
 {
+#ifdef WIN32
 	static bool versionIsHigherThan7 = false; 
 	static bool versionIsChecked = false; 
 	if( !versionIsChecked )
@@ -481,6 +484,9 @@ bool isNewerThanWindows7()
 		versionIsChecked = true;
 	}
 	return versionIsHigherThan7;
+#else
+    return false;
+#endif
 }
 
 void OBS::Display::setSizeCall(int step)
@@ -541,9 +547,10 @@ void OBS::Display::setSizeCall(int step)
 void OBS::Display::SetSize(uint32_t width, uint32_t height)
 {
 	if (m_source != NULL) {
+        std::string msg = "<" + std::string(__FUNCTION__) + "> Adjusting display size for source %s to %ldx%ld. hwnd %d";
 		blog(
 			LOG_DEBUG,
-			"<" __FUNCTION__ "> Adjusting display size for source %s to %ldx%ld. hwnd %d",
+			msg.c_str(),
 			obs_source_get_name(m_source), width, height, m_ourWindow);
 	}
 
@@ -728,7 +735,7 @@ static void
 
 inline bool CloseFloat(float a, float b, float epsilon = 0.01)
 {
-	return std::abs(a - b) <= epsilon;
+	return abs(a - b) <= epsilon;
 }
 
 inline void DrawOutline(OBS::Display* dp, matrix4& mtx, obs_transform_info& info)

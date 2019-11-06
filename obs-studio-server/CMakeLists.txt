@@ -1,4 +1,6 @@
 ﻿PROJECT(obs-studio-server VERSION ${obs-studio-node_VERSION})
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Detect Architecture (Bitness)
 IF( NOT CLANG_ANALYZE_CONFIG)
@@ -138,13 +140,12 @@ download_project(
 
 include("${libobs_SOURCE_DIR}/cmake/LibObs/LibObsConfig.cmake")
 
-set(PROJECT_LIBRARIES
-	lib-streamlabs-ipc
-	${LIBOBS_LIBRARIES}
-	dwmapi.lib
-)
-
 if (WIN32)
+	set(PROJECT_LIBRARIES
+		lib-streamlabs-ipc
+		${LIBOBS_LIBRARIES}
+		dwmapi.lib
+	)
 	set(PROJECT_INCLUDE_PATHS
 		"${CMAKE_SOURCE_DIR}/source"
 		"${PROJECT_SOURCE_DIR}/source"
@@ -154,6 +155,10 @@ if (WIN32)
 		"${nlohmannjson_SOURCE_DIR}/single_include"
 	)
 else ()
+	set(PROJECT_LIBRARIES
+		lib-streamlabs-ipc
+		${LIBOBS_LIBRARIES}
+	)
 	set(PROJECT_INCLUDE_PATHS
 	"${CMAKE_SOURCE_DIR}/source"
 	"${PROJECT_SOURCE_DIR}/source"

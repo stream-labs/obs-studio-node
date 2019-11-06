@@ -22,6 +22,7 @@
 #include "osn-source.hpp"
 #include "shared.hpp"
 #include "utility.hpp"
+#include <cmath>
 
 osn::VolMeter::Manager& osn::VolMeter::Manager::GetInstance()
 {
@@ -232,7 +233,7 @@ void osn::VolMeter::AddCallback(
 	}
 
 	rval.push_back(ipc::value(uint64_t(ErrorCode::Ok)));
-	rval.push_back(ipc::value(meter->callback_count));
+	rval.push_back(ipc::value(uint64_t(meter->callback_count)));
 	AUTO_DEBUG;
 }
 
@@ -256,7 +257,7 @@ void osn::VolMeter::RemoveCallback(
 	}
 
 	rval.push_back(ipc::value(uint64_t(ErrorCode::Ok)));
-	rval.push_back(ipc::value(meter->callback_count));
+	rval.push_back(ipc::value(uint64_t(meter->callback_count)));
 	AUTO_DEBUG;
 }
 

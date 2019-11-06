@@ -137,6 +137,7 @@ namespace OBS
 		static void       DisplayWndClass();
 		static LRESULT CALLBACK DisplayWndProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam);
 #elif defined(__APPLE__)
+		int m_ourWindow;
 #elif defined(__linux__) || defined(__FreeBSD__)
 #endif
 	};

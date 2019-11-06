@@ -55,12 +55,14 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 
+#ifdef WIN32
 #include <audiopolicy.h>
 #include <mmdeviceapi.h>
 
 #include <util/windows/ComPtr.hpp>
 #include <util/windows/HRError.hpp>
 #include <util/windows/WinHandle.hpp>
+#endif
 
 #include "error.hpp"
 #include "shared.hpp"
@@ -73,7 +75,9 @@ std::string                                            g_moduleDirectory = "";
 os_cpu_usage_info_t*                                   cpuUsageInfo      = nullptr;
 uint64_t                                               lastBytesSent     = 0;
 uint64_t                                               lastBytesSentTime = 0;
+#ifdef WIN32
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+#endif
 std::string                                            slobs_plugin;
 std::vector<std::pair<std::string, obs_module_t*>>     obsModules;
 OBS_API::LogReport                                     logReport;
@@ -95,8 +99,10 @@ void OBS_API::Register(ipc::server& srv)
 	    "OBS_API_getPerformanceStatistics", std::vector<ipc::type>{}, OBS_API_getPerformanceStatistics));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SetWorkingDirectory", std::vector<ipc::type>{ipc::type::String}, SetWorkingDirectory));
+#ifdef WIN32
 	cls->register_function(
 	    std::make_shared<ipc::function>("StopCrashHandler", std::vector<ipc::type>{}, StopCrashHandler));
+#endif	
 	cls->register_function(std::make_shared<ipc::function>("OBS_API_QueryHotkeys", std::vector<ipc::type>{}, QueryHotkeys));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_API_ProcessHotkeyStatus",
@@ -329,10 +335,14 @@ void outdated_driver_error::catch_error(const char* msg)
 
 inline std::string nodeobs_log_formatted_message(const char* format, va_list& args)
 {
+#ifdef WIN32
 	size_t            length  = _vscprintf(format, args);
 	std::vector<char> buf     = std::vector<char>(length + 1, '\0');
 	size_t            written = vsprintf_s(buf.data(), buf.size(), format, args);
 	return std::string(buf.begin(), buf.begin() + length);
+#else
+    return "";
+#endif
 }
 
 std::chrono::high_resolution_clock             hrc;
@@ -395,6 +405,7 @@ static void                                    node_obs_log(int log_level, const
 
 	std::vector<char> timebuf(128, '\0');
 	std::string       timeformat = "[%.3d:%.2d:%.2d:%.2d.%.3d.%.3d.%.3d][%*s]"; // "%*s";
+#ifdef WIN32
 	int               length     = sprintf_s(
         timebuf.data(),
         timebuf.size(),
@@ -410,7 +421,9 @@ static void                                    node_obs_log(int log_level, const
         levelname.c_str());
 	if (length < 0)
 		return;
+#endif
 
+#ifdef WIN32
 	std::string time_and_level = std::string(timebuf.data(), length);
 
 	// Format incoming text
@@ -460,13 +473,14 @@ static void                                    node_obs_log(int log_level, const
 		}
 	}
 	*logStream << std::flush;
+#endif
 
 #if defined(_WIN32) && defined(OBS_DEBUGBREAK_ON_ERROR)
 	if (log_level <= LOG_ERROR && IsDebuggerPresent())
 		__debugbreak();
 #endif
 }
-
+#ifdef WIN32
 uint32_t pid = GetCurrentProcessId();
 
 std::vector<char> registerProcess(void)
@@ -547,14 +561,16 @@ void writeCrashHandler(std::vector<char> buffer)
 
 	CloseHandle(hPipe);
 }
-
+#endif
 void OBS_API::OBS_API_initAPI(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+#ifdef WIN32
 	writeCrashHandler(registerProcess());
+#endif
 	/* Map base DLLs as soon as possible into the current process space.
 	* In particular, we need to load obs.dll into memory before we call
 	* any functions from obs else if we delay-loaded the dll, it will
@@ -566,11 +582,11 @@ void OBS_API::OBS_API_initAPI(
 	std::string locale  = args[1].value_str;
 	currentVersion      = args[2].value_str;
 	utility::osn_current_version(currentVersion);
-
+#ifdef WIN32
 	// Connect the metrics provider with our crash handler process, sending our current version tag
 	// and enabling metrics
 	util::CrashManager::GetMetricsProvider()->Initialize("\\\\.\\pipe\\metrics_pipe", currentVersion, false);
-
+#endif
 	/* libobs will use three methods of finding data files:
 	* 1. ${CWD}/data/libobs <- This doesn't work for us
 	* 2. ${OBS_DATA_PATH}/libobs <- This works but is inflexible
@@ -589,7 +605,9 @@ void OBS_API::OBS_API_initAPI(
 		// cases (if the user data path is wrong for ex). This will be correctly adjusted 
 		// when init API supports more return codes.
 		std::string userDataPath = std::string(userData.begin(), userData.end());
+#ifdef WIN#2
 		util::CrashManager::AddWarning("Failed to start OBS, locale: " + locale + " user data: " + userDataPath);
+#endif
 	}
 
 	/* Logging */
@@ -601,7 +619,9 @@ void OBS_API::OBS_API_initAPI(
 	before attempting to make a file there. */
 	if (os_mkdirs(log_path.c_str()) == MKDIR_ERROR) {
 		std::cerr << "Failed to open log file" << std::endl;
+#ifdef WIN32
 		util::CrashManager::AddWarning("Error on log file, failed to create path: " + log_path);
+#endif	
 	}
 
 	/* Delete oldest file in the folder to imitate rotating */
@@ -612,9 +632,9 @@ void OBS_API::OBS_API_initAPI(
 	std::fstream* logfile =
 	    new std::fstream(converter.from_bytes(log_path.c_str()).c_str(), std::ios_base::out | std::ios_base::trunc);
 #else
-	fstream* logfile = new fstream(log_path, ios_base::out | ios_base::trunc);
+//	fstream* logfile = new fstream(log_path, ios_base::out | ios_base::trunc);
 #endif
-
+#ifdef WIN32
 	if (!logfile->is_open()) {
 		logfile = nullptr;
 		util::CrashManager::AddWarning("Error on log file, failed to open: " + log_path);
@@ -622,7 +642,7 @@ void OBS_API::OBS_API_initAPI(
 	}
 
 	base_set_log_handler(node_obs_log, logfile);
-
+#endif
 #ifndef _DEBUG
 	// Redirect the ipc log callbacks to our log handler
 	ipc::register_log_callback([](void* data, const char* fmt, va_list args) { 
@@ -651,10 +671,10 @@ void OBS_API::OBS_API_initAPI(
 
 	int videoError;
 	if (!openAllModules(videoError)) {
-
+#ifdef WIN32
 		// Directly blame the user for this error (since he is the culprit of having an invalid Dx version)
 		util::CrashManager::GetMetricsProvider()->BlameUser();
-
+#endif
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value(videoError));
 		AUTO_DEBUG;
@@ -886,7 +906,7 @@ void OBS_API::SetProcessPriority(const char* priority)
 {
 	if (!priority)
 		return;
-
+#ifdef WIN32
 	if (strcmp(priority, "High") == 0)
 		SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
 	else if (strcmp(priority, "AboveNormal") == 0)
@@ -897,6 +917,7 @@ void OBS_API::SetProcessPriority(const char* priority)
 		SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
 	else if (strcmp(priority, "Idle") == 0)
 		SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
+#endif
 }
 
 void OBS_API::UpdateProcessPriority()
@@ -908,6 +929,7 @@ void OBS_API::UpdateProcessPriority()
 
 bool DisableAudioDucking(bool disable)
 {
+#ifdef WIN32
 	ComPtr<IMMDeviceEnumerator>   devEmum;
 	ComPtr<IMMDevice>             device;
 	ComPtr<IAudioSessionManager2> sessionManager2;
@@ -937,6 +959,9 @@ bool DisableAudioDucking(bool disable)
 
 	result = sessionControl2->SetDuckingPreference(disable);
 	return SUCCEEDED(result);
+#else
+    return false;
+#endif
 }
 
 void OBS_API::setAudioDeviceMonitoring(void)
@@ -956,7 +981,7 @@ void OBS_API::setAudioDeviceMonitoring(void)
 		DisableAudioDucking(true);
 #endif
 }
-
+#ifdef WIN32
 typedef struct
 {
 	OVERLAPPED        oOverlap;
@@ -1136,7 +1161,7 @@ void OBS_API::InformCrashHandler(const int crash_id)
 {
 	writeCrashHandler(crashedProcess(crash_id));
 }
-
+#endif
 void OBS_API::destroyOBS_API(void)
 {
 	blog(LOG_DEBUG, "OBS_API::destroyOBS_API started");
@@ -1201,7 +1226,7 @@ void OBS_API::destroyOBS_API(void)
 		osn::Transition::Manager::GetInstance().size() > 0	||
 		osn::Filter::Manager::GetInstance().size() > 0		||
 		osn::Input::Manager::GetInstance().size() > 0) {
-
+#ifdef WIN32
 		// Directly blame the frontend since it didn't release all objects and that could cause 
 		// a crash on the backend
 		// This is necessary since the frontend could still finish after the backend, causing the
@@ -1209,7 +1234,7 @@ void OBS_API::destroyOBS_API(void)
 		util::CrashManager::GetMetricsProvider()->BlameFrontend();
 
 		util::CrashManager::DisableReports();
-
+#endif
 		// Try-catch should suppress any error message that could be thrown to the user
 		try {
 			obs_shutdown();
@@ -1298,14 +1323,14 @@ bool OBS_API::openAllModules(int& video_err)
 		* with some metainfo so we don't attempt just any
 		* shared library. */
 		if (!os_file_exists(plugins_path.c_str())) {
-			blog(LOG_ERROR, "Plugin Path provided is invalid: %s", plugins_path);
+			blog(LOG_ERROR, "Plugin Path provided is invalid: %s", plugins_path.c_str());
 			std::cerr << "Plugin Path provided is invalid: " << plugins_path << std::endl;
 			continue;
 		}
 
 		os_dir_t* plugin_dir = os_opendir(plugins_path.c_str());
 		if (!plugin_dir) {
-			blog(LOG_ERROR, "Failed to open plugin diretory: %s", plugins_path);
+			blog(LOG_ERROR, "Failed to open plugin diretory: %s", plugins_path.c_str());
 			std::cerr << "Failed to open plugin diretory: " << plugins_path << std::endl;
 			continue;
 		}
@@ -1332,10 +1357,10 @@ bool OBS_API::openAllModules(int& video_err)
 			try {
 				result = obs_open_module(&module, plugin_path.c_str(), plugin_data_path.c_str());
 			} catch (std::string errorMsg) {
-				blog(LOG_ERROR, "Failed to load module: %s - %s", basename, errorMsg);
+				blog(LOG_ERROR, "Failed to load module: %s - %s", basename.c_str(), errorMsg.c_str());
 				continue;
 			} catch (...) {
-				blog(LOG_ERROR, "Failed to load module: %s", basename);
+				blog(LOG_ERROR, "Failed to load module: %s", basename.c_str());
 				continue;
 			}
 
@@ -1366,10 +1391,10 @@ bool OBS_API::openAllModules(int& video_err)
 					/* Just continue to next one */
 				}
 			} catch (std::string errorMsg) {
-				blog(LOG_ERROR, "Failed to initialize module: %s - %s", basename, errorMsg);
+				blog(LOG_ERROR, "Failed to initialize module: %s - %s", basename.c_str(), errorMsg.c_str());
 				continue;
 			} catch (...) {
-				blog(LOG_ERROR, "Failed to initialize module: %s", basename);
+				blog(LOG_ERROR, "Failed to initialize module: %s", basename.c_str());
 				continue;
 			}
 		}
@@ -1484,7 +1509,7 @@ std::string OBS_API::getUsername()
 {
 	return username;
 }
-
+#ifdef WIN32
 static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData)
 {
 	MONITORINFO info;
@@ -1501,11 +1526,12 @@ static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT l
 	}
 	return true;
 }
-
+#endif
 std::vector<Screen> OBS_API::availableResolutions(void)
 {
 	std::vector<Screen> resolutions;
+#ifdef WIN32
 	EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, reinterpret_cast<LPARAM>(&resolutions));
-
+#endif
 	return resolutions;
 }

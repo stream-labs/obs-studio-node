@@ -129,7 +129,7 @@ namespace System
 
 int main(int argc, char* argv[])
 {
-#ifdef ENABLE_CRASHREPORT
+#ifdef WIN32 AND ENABLE_CRASHREPORT
 
     util::CrashManager crashManager;
 	if (!crashManager.Initialize()) {
@@ -201,7 +201,7 @@ int main(int argc, char* argv[])
 		return -2;
 	}
 
-#ifdef ENABLE_CRASHREPORT
+#ifdef WIN32 AND ENABLE_CRASHREPORT
 
 	// Register the pre and post server callbacks to log the data into the crashmanager
 	myServer.set_pre_callback([](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data)
@@ -234,7 +234,7 @@ int main(int argc, char* argv[])
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(50));
 	}
-
+#ifdef WIN32
 	// Wait on receive the exit message from the crash-handler
 	if (waitBeforeClosing) {
 		HANDLE hPipe;
@@ -260,7 +260,7 @@ int main(int argc, char* argv[])
 			}
 		}
 	}
-
+#endif
 	osn::Source::finalize_global_signals();
 	OBS_API::destroyOBS_API();
 

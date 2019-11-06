@@ -199,6 +199,7 @@ void OBS_content::Register(ipc::server& srv)
 
 void popupAeroDisabledWindow(void)
 {
+#ifdef WIN32
 	MessageBox(
 	    NULL,
 	    TEXT("Streamlabs OBS needs Aero enabled to run properly on Windows 7.  "
@@ -208,6 +209,7 @@ void popupAeroDisabledWindow(void)
 	         "We recommend upgrading to Windows 10 or enabling Aero."),
 	    TEXT("Aero is disabled"),
 	    MB_OK);
+#endif
 }
 
 void OBS_content::OBS_content_createDisplay(
@@ -242,7 +244,7 @@ void OBS_content::OBS_content_createDisplay(
 	}
 
 	displays.insert_or_assign(args[1].value_str, new OBS::Display(windowHandle, mode));
-
+#ifdef WIN32
 	if (!IsWindows8OrGreater()) {
 		BOOL enabled = FALSE;
 		DwmIsCompositionEnabled(&enabled);
@@ -250,6 +252,7 @@ void OBS_content::OBS_content_createDisplay(
 			windowMessage = new std::thread(popupAeroDisabledWindow);
 		}
 	}
+#endif
 	firstDisplayCreation = false;
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;

@@ -36,7 +36,7 @@
 ///////////////////////
 // MetricsPipeClient //
 ///////////////////////
-
+#ifdef WIN32
 util::MetricsProvider::~MetricsProvider()
 {
 	m_StopPolling = true;
@@ -211,3 +211,4 @@ void util::MetricsProvider::BlameFrontend()
 
 	PrepareMessage(message);
 }
+#endif
