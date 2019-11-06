@@ -1,63 +1,20 @@
 import 'mocha'
 import { expect } from 'chai'
 import * as osn from '../osn';
-import { OBSProcessHandler } from '../util/obs_process_handler';
-import { basicOBSInputTypes, showHideInputHotkeys, slideshowHotkeys,
-    ffmpeg_sourceHotkeys, game_captureHotkeys, dshow_wasapitHotkeys, deleteConfigFiles } from '../util/general';
-
-interface IPerformanceState {
-    CPU: number;
-    numberDroppedFrames: number;
-    percentageDroppedFrames: number;
-    bandwidth: number;
-    frameRate: number;
-}
-
-type OBSHotkey = {
-    ObjectName: string;
-    ObjectType: osn.EHotkeyObjectType;
-    HotkeyName: string;
-    HotkeyDesc: string;
-    HotkeyId: number;
-};
-
-function createScene(sceneName: string): osn.IScene {
-    // Creating scene
-    const scene = osn.SceneFactory.create(sceneName); 
-
-    // Checking if scene was created correctly
-    expect(scene).to.not.equal(undefined);
-    expect(scene.id).to.equal('scene');
-    expect(scene.name).to.equal(sceneName);
-    expect(scene.type).to.equal(osn.ESourceType.Scene);
-
-    return scene;
-}
-
-function createSource(inputType: string, inputName: string): osn.IInput {
-    // Creating source
-    const input = osn.InputFactory.create(inputType, inputName);
-
-    // Checking if input source was created correctly
-    expect(input).to.not.equal(undefined);
-    expect(input.id).to.equal(inputType);
-    expect(input.name).to.equal(inputName);
-
-    return input;
-}
+import { OBSHandler, IPerformanceState, TOBSHotkey } from '../util/obs_handler';
+import { showHideInputHotkeys, slideshowHotkeys, ffmpeg_sourceHotkeys,
+    game_captureHotkeys, dshow_wasapitHotkeys, deleteConfigFiles } from '../util/general';
 
 describe('nodeobs_api', function() {
-    let obs: OBSProcessHandler;
+    let obs: OBSHandler;
     
+    // Initialize OBS process
     before(function() {
-        obs = new OBSProcessHandler();
-        
-        if (obs.startup() !== osn.EVideoCodes.Success)
-        {
-            throw new Error("Could not start OBS process. Aborting!")
-        }
+        deleteConfigFiles();
+        obs = new OBSHandler();
     });
 
+    // Shutdown OBS process
     after(function() {
         obs.shutdown();
         obs = null;
@@ -82,14 +39,25 @@ describe('nodeobs_api', function() {
 
     context('# OBS_API_QueryHotkeys and OBS_API_ProcessHotkeyStatus', function() {
         it('Get hotkeys of sources that have them and process them all', function() {
-            let obsHotkeys: OBSHotkey[];
+            let obsHotkeys: TOBSHotkey[];
 
             // Creating scene
-            const scene = createScene('scene');
+            const scene = osn.SceneFactory.create('scene'); 
 
-            basicOBSInputTypes.forEach(function(inputType) {
+            // Checking if scene was created correctly
+            expect(scene).to.not.equal(undefined);
+            expect(scene.id).to.equal('scene');
+            expect(scene.name).to.equal('scene');
+            expect(scene.type).to.equal(osn.ESourceType.Scene);
+
+            obs.inputTypes.forEach(inputType => {
                 // Creating source
-                const input = createSource(inputType, inputType);
+                const input = osn.InputFactory.create(inputType, inputType);
+
+                // Checking if input source was created correctly
+                expect(input).to.not.equal(undefined);
+                expect(input.id).to.equal(inputType);
+                expect(input.name).to.equal(inputType);
 
                 // Adding input source to scene
                 const sceneItem = scene.add(input);
@@ -115,7 +83,6 @@ describe('nodeobs_api', function() {
                         break;
                     }
                     case 'ffmpeg_source': {
-                        
                         expect(hotkey.HotkeyName).to.be.oneOf(ffmpeg_sourceHotkeys);
                         break;
                     }

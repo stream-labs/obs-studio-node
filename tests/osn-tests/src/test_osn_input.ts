@@ -1,30 +1,18 @@
 import 'mocha';
 import { expect } from 'chai';
 import * as osn from '../osn';
-import { IInput, ISettings, ITimeSpec, IFilter } from '../osn';
-import { OBSProcessHandler } from '../util/obs_process_handler';
-import { basicOBSInputTypes, basicDebugOBSInputTypes, getTimeSpec, deleteConfigFiles } from '../util/general';
+import { IInput, ISettings, ITimeSpec } from '../osn';
+import { OBSHandler } from '../util/obs_handler';
+import { getTimeSpec, deleteConfigFiles} from '../util/general';
+import * as inputSettings from '../util/input_settings';
 
 describe('osn-input', () => {
-    let obs: OBSProcessHandler;
-    let inputTypes: string[];
-    let OBSInputTypes: string[];
+    let obs: OBSHandler;
 
     // Initialize OBS process
     before(function() {
         deleteConfigFiles();
-        obs = new OBSProcessHandler();
-        
-        if (obs.startup() !== osn.EVideoCodes.Success)
-        {
-            throw new Error("Could not start OBS process. Aborting!")
-        }
-
-        if (process.env.RELEASE_NAME == "debug") {
-            OBSInputTypes = basicDebugOBSInputTypes;
-        } else {
-            OBSInputTypes = basicOBSInputTypes;
-        }
+        obs = new OBSHandler();
     });
 
     // Shutdown OBS process
@@ -34,24 +22,10 @@ describe('osn-input', () => {
         deleteConfigFiles();
     });
 
-    context('# Types', () => {
-        it('Get all input types', () => {
-            // Getting all input source types
-            inputTypes = osn.InputFactory.types();
-
-            // Checking if inputTypes array contains the basic obs input types
-            expect(inputTypes.length).to.not.equal(0);
-            expect(inputTypes).to.include.members(OBSInputTypes);
-        });
-    });
-
     context('# Create', () => {
-        let settings: ISettings = {};
-        settings['test'] = 1;
-
-        it('Create all types of input', function() {
+        it('Create all types of input', () => {
             // Create all input sources available
-            inputTypes.forEach(function(inputType) {
+            obs.inputTypes.forEach(function(inputType) {
                 const input = osn.InputFactory.create(inputType, 'input');
 
                 // Checking if input source was created correctly
@@ -63,18 +37,91 @@ describe('osn-input', () => {
         });
 
         it('Create all types of input with settings parameter', () => {
-            let settings: ISettings = {};
-            settings['test'] = 1;
-
             // Create all input sources available
-            inputTypes.forEach(function(inputType) {
+            obs.inputTypes.forEach(function(inputType) {
+                let settings: ISettings = {};
+
+                switch(inputType) {
+                    case 'image_source': {
+                        settings = inputSettings.imageSource;
+                        settings['unload'] = true;
+                        break;
+                    }
+                    case 'color_source': {
+                        settings = inputSettings.colorSource;
+                        settings['height'] = 500;
+                        break;
+                    }
+                    case 'slideshow': {
+                        settings = inputSettings.slideshow;
+                        settings['loop'] = false;
+                        break;
+                    }
+                    case 'browser_source': {
+                        settings = inputSettings.browserSource;
+                        settings['restart_when_active'] = true;
+                        break;
+                    }
+                    case 'ffmpeg_source': {
+                        settings = inputSettings.ffmpegSource;
+                        settings['speed_percent'] = 80;
+                        break;
+                    }
+                    case 'ndi_source': {
+                        settings = inputSettings.ndiSource;
+                        settings['yuv_colorspace'] = 1;
+                        break;
+                    }
+                    case 'text_gdiplus': {
+                        settings = inputSettings.textGDIPlus;
+                        settings['align'] = 'right';
+                        break;
+                    }
+                    case 'text_ft2_source': {
+                        settings = inputSettings.textFT2Source;
+                        settings['log_lines'] = 5;
+                        break;
+                    }
+                    case 'vlc_source': {
+                        settings = inputSettings.vlcSource;
+                        settings['shuffle'] = true;
+                        break;
+                    }
+                    case 'monitor_capture': {
+                        settings = inputSettings.monitorCapture;
+                        settings['capture_cursor'] = false;
+                        break;
+                    }
+                    case 'window_capture': {
+                        settings = inputSettings.windowCapture;
+                        settings['compatibility'] = true;
+                        break;
+                    }
+                    case 'game_capture': {
+                        settings = inputSettings.gameCapture;
+                        settings['allow_transparency'] = true;
+                        break;
+                    }
+                    case 'dshow_input': {
+                        settings = inputSettings.dshowInput;
+                        settings['video_format'] = 1;
+                        break;
+                    }
+                    case 'wasapi_input_capture': 
+                    case 'wasapi_output_capture': {
+                        settings = inputSettings.wasapi;
+                        settings['use_device_timing'] = true;
+                        break;
+                    }
+                }
+
                 const input = osn.InputFactory.create(inputType, 'input', settings);
 
-                // Checking if input source was create correctly
+                // Checking if input source was created correctly
                 expect(input).to.not.equal(undefined);
                 expect(input.id).to.equal(inputType);
                 expect(input.name).to.equal('input');
-                expect(input.settings).to.include(settings);
+                expect(input.settings).to.eql(settings);
                 input.release();
             });
         });
@@ -84,7 +131,7 @@ describe('osn-input', () => {
         it('Create an instance of an input by getting it by name', () => {
             let inputFromName: IInput;
 
-            inputTypes.forEach(function(inputType) {
+            obs.inputTypes.forEach(function(inputType) {
                 // Creating input source
                 const input = osn.InputFactory.create(inputType, 'input');
 
@@ -222,7 +269,7 @@ describe('osn-input', () => {
             });
 
             // Creating all video sources available
-            inputTypes.forEach(function (inputType) {
+            obs.inputTypes.forEach(function(inputType) {
                 const videoSource = !!(osn.ESourceOutputFlags.Video & osn.Global.getOutputFlagsFromId(inputType));
 
                 if (videoSource) {
@@ -310,7 +357,7 @@ describe('osn-input', () => {
             });
 
             // Create all async sources available
-            inputTypes.forEach(function (inputType) {
+            obs.inputTypes.forEach(function(inputType) {
                 const asyncSource = !!(osn.ESourceOutputFlags.Async & osn.Global.getOutputFlagsFromId(inputType));
 
                 if (asyncSource) {
@@ -369,7 +416,7 @@ describe('osn-input', () => {
             });
 
             // Creating all audio sources available
-            inputTypes.forEach(function (inputType) {
+            obs.inputTypes.forEach(function(inputType) {
                 const audioSource = !!(osn.ESourceOutputFlags.Audio & osn.Global.getOutputFlagsFromId(inputType));
 
                 if (audioSource) {

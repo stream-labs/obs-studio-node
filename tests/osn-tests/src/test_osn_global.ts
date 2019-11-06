@@ -2,28 +2,16 @@ import 'mocha'
 import { expect } from 'chai'
 import * as osn from '../osn';
 import { IInput, ISource } from '../osn';
-import { OBSProcessHandler } from '../util/obs_process_handler';
-import { basicOBSInputTypes, basicDebugOBSInputTypes, deleteConfigFiles } from '../util/general';
+import { OBSHandler } from '../util/obs_handler';
+import { deleteConfigFiles } from '../util/general';
 
 describe('osn-global', () => {
-    let obs: OBSProcessHandler;
-    let OBSInputTypes: string[];
+    let obs: OBSHandler;
     
     // Initialize OBS process
     before(function() {
         deleteConfigFiles();
-        obs = new OBSProcessHandler();
-        
-        if (obs.startup() !== osn.EVideoCodes.Success)
-        {
-            throw new Error("Could not start OBS process. Aborting!")
-        }
-
-        if (process.env.RELEASE_NAME == "debug") {
-            OBSInputTypes = basicDebugOBSInputTypes;
-        } else {
-            OBSInputTypes = basicOBSInputTypes;
-        }
+        obs = new OBSHandler();
     });
 
     // Shutdown OBS process
@@ -34,12 +22,9 @@ describe('osn-global', () => {
     });
 
     context('# SetOutputSource and GetOutputSource', () => {
-        let input: IInput;
-        let returnSource: ISource;
-
         it('Set source to output channel and get it', () => {
             // Creating input source
-            input = osn.InputFactory.create('image_source', 'test_osn_global_source');
+            const input = osn.InputFactory.create('image_source', 'test_osn_global_source');
 
             // Checking if input source was created correctly
             expect(input).to.not.equal(undefined);
@@ -50,7 +35,7 @@ describe('osn-global', () => {
             osn.Global.setOutputSource(1, input);
 
             // Getting input source from output channel
-            returnSource = osn.Global.getOutputSource(1);
+            const returnSource = osn.Global.getOutputSource(1);
 
             // Checking if input source returned previously is correct
             expect(returnSource).to.not.equal(undefined);
@@ -60,35 +45,25 @@ describe('osn-global', () => {
         });
         
         it('FAIL TEST: Get source from empty output channel', () => {
-            let source: ISource;
+            let input: ISource;
 
             // Trying to get source from empty channel
-            source = osn.Global.getOutputSource(5);
+            input = osn.Global.getOutputSource(5);
             // Checking if source is undefined	            
-            expect(source).to.equal(undefined);
-          });
+            expect(input).to.equal(undefined);
+        });
     });
 
     context('# GetOutputFlagsFromId', () => {
         it('Get flags (capabilities) of a source type', () => {
-            let inputType: string;
-            let inputTypes: string[];
             let flags: number = undefined;
 
-            // Getting all input source types
-            inputTypes = osn.InputFactory.types();
-
-            // Checking if sourceTypes array contains the basic obs input types
-            expect(inputTypes.length).to.not.equal(0);
-            expect(inputTypes).to.include.members(OBSInputTypes);
-
             // For each input type available get their flags and check if they are not undefined
-            for (inputType of inputTypes)
-            {
+            obs.inputTypes.forEach(inputType => {
                 flags = osn.Global.getOutputFlagsFromId(inputType);
                 expect(flags).to.not.equal(undefined);
                 flags = undefined;
-            }
+            });
         });
     });
 

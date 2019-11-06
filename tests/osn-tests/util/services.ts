@@ -1,3 +1,4 @@
+import { sleep } from './general';
 const request = require('request');
 
 type TPlatform = 'twitch' | 'youtube' | 'mixer' | 'facebook';
@@ -20,10 +21,6 @@ export class Services {
     private user: ITestUser;
     private userPoolUrl: string = 'https://slobs-users-pool.herokuapp.com/';
     private clientId = '8bmp6j83z5w4mepq0dn0q1a7g186azi';
-
-    private sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
 
     private async requestUser(): Promise<any> {
         return new Promise((resolve, reject) => {
@@ -54,7 +51,7 @@ export class Services {
                 break;
             } catch(e) {
                 if (attemps) {
-                    await this.sleep(20000);
+                    await sleep(20000);
                 }
             }
         }
