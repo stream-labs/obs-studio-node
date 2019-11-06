@@ -1,8 +1,9 @@
 import 'mocha';
 import { expect } from 'chai';
 import * as osn from '../osn';
-import { OBSProcessHandler } from '../util/obs_process_handler';
+import { OBSHandler } from '../util/obs_handler';
 import { deleteConfigFiles } from '../util/general';
+import { EOBSInputTypes } from '../util/obs_enums'
 
 interface Dictionary<TItemType> {
     [key: string]: TItemType;
@@ -21,18 +22,12 @@ interface IVolmeter {
 }
 
 describe('osn-volmeter', () => {
-    let obs: OBSProcessHandler;
-    let inputTypes: string[];
+    let obs: OBSHandler;
 
     // Initialize OBS process
     before(function() {
         deleteConfigFiles();
-        obs = new OBSProcessHandler();
-        
-        if (obs.startup() !== osn.EVideoCodes.Success)
-        {
-            throw new Error("Could not start OBS process. Aborting!")
-        }
+        obs = new OBSHandler();
     });
 
     // Shutdown OBS process
@@ -45,11 +40,11 @@ describe('osn-volmeter', () => {
     context('# Create and Attach', () => {
         it('Create volmeter and attach it to a audio source', () => {
             // Creating audio source
-            const input = osn.InputFactory.create('wasapi_input_capture', 'input');
+            const input = osn.InputFactory.create(EOBSInputTypes.WASAPIInput, 'input');
 
             // Checking if input source was created correctly
             expect(input).to.not.equal(undefined);
-            expect(input.id).to.equal('wasapi_input_capture');
+            expect(input.id).to.equal(EOBSInputTypes.WASAPIInput);
             expect(input.name).to.equal('input');
 
             // Creating volmeter
@@ -70,11 +65,11 @@ describe('osn-volmeter', () => {
     context('# AddCallback and RemoveCallback', () => {
         it('Add callback to volmeter and remove it', () => {
             // Creating audio source
-            const input = osn.InputFactory.create('wasapi_input_capture', 'input');
+            const input = osn.InputFactory.create(EOBSInputTypes.WASAPIInput, 'input');
 
             // Checking if input source was created correctly
             expect(input).to.not.equal(undefined);
-            expect(input.id).to.equal('wasapi_input_capture');
+            expect(input.id).to.equal(EOBSInputTypes.WASAPIInput);
             expect(input.name).to.equal('input');
 
             // Creating volmeter

@@ -2,28 +2,17 @@ import 'mocha';
 import { expect } from 'chai';
 import * as osn from '../osn';
 import { ISettings } from '../osn';
-import { OBSProcessHandler } from '../util/obs_process_handler';
-import { basicOBSInputTypes, basicDebugOBSInputTypes, basicOBSFilterTypes, basicOBSTransitionTypes, deleteConfigFiles } from '../util/general';
+import { OBSHandler } from '../util/obs_handler';
+import { EOBSInputTypes, EOBSFilterTypes, EOBSTransitionTypes } from '../util/obs_enums'
+import { basicOBSFilterTypes, basicOBSTransitionTypes, deleteConfigFiles } from '../util/general';
 
 describe('osn-source', () => {
-    let obs: OBSProcessHandler;
-    let OBSInputTypes: string[];
+    let obs: OBSHandler;
 
     // Initialize OBS process
     before(function() {
         deleteConfigFiles();
-        obs = new OBSProcessHandler();
-        
-        if (obs.startup() !== osn.EVideoCodes.Success)
-        {
-            throw new Error("Could not start OBS process. Aborting!")
-        }
-
-        if (process.env.RELEASE_NAME == "debug") {
-            OBSInputTypes = basicDebugOBSInputTypes;
-        } else {
-            OBSInputTypes = basicOBSInputTypes;
-        }
+        obs = new OBSHandler();
     });
 
     // Shutdown OBS process
@@ -35,14 +24,7 @@ describe('osn-source', () => {
 
     context('# IsConfigurable, GetProperties, GetSettings, GetName, GetOutputFlags and GetId', () => {
         it('Get all osn-source info from all input types', () => {
-            // Getting all input source types
-            const inputTypes = osn.InputFactory.types();
-
-            // Checking if inputTypes array contains the basic obs input types
-            expect(inputTypes.length).to.not.equal(0);
-            expect(inputTypes).to.include.members(OBSInputTypes);
-
-            inputTypes.forEach(function(inputType) {
+            obs.inputTypes.forEach(function(inputType) {
                 // Creating input source
                 const input = osn.InputFactory.create(inputType, 'input');
     
@@ -92,14 +74,7 @@ describe('osn-source', () => {
         });
 
         it('Get all osn-source info from all filter types', () => {
-            // Getting all filter types
-            const filterTypes = osn.FilterFactory.types();
-
-            // Checking if filterTypes array contains the basic obs filter types
-            expect(filterTypes.length).to.not.equal(0);
-            expect(filterTypes).to.include.members(basicOBSFilterTypes);
-
-            filterTypes.forEach(function(filterType) {
+            obs.filterTypes.forEach(function(filterType) {
                 // Creating filter
                 const filter = osn.FilterFactory.create(filterType, 'filter');
     
@@ -149,14 +124,7 @@ describe('osn-source', () => {
         });
 
         it('Get all osn-source info from all transition types', () => {
-            // Getting all transition types
-            const transitionTypes = osn.TransitionFactory.types();
-
-            // Checking if transition array contains the basic obs filter types
-            expect(transitionTypes.length).to.not.equal(0);
-            expect(transitionTypes).to.include.members(basicOBSTransitionTypes);
-
-            transitionTypes.forEach(function(transitionType) {
+            obs.transitionTypes.forEach(function(transitionType) {
                 // Creating transition
                 const transition = osn.FilterFactory.create(transitionType, 'transition');
     
@@ -258,14 +226,7 @@ describe('osn-source', () => {
         it('Update settings of all inputs', () => {
             let settings: ISettings = {};
 
-            // Getting all input source types
-            const inputTypes = osn.InputFactory.types();
-
-            // Checking if inputTypes array contains the basic obs input types
-            expect(inputTypes.length).to.not.equal(0);
-            expect(inputTypes).to.include.members(OBSInputTypes);
-
-            inputTypes.forEach(function(inputType) {
+            obs.inputTypes.forEach(function(inputType) {
                 // Creating input source
                 const input = osn.InputFactory.create(inputType, 'input');
     
@@ -278,29 +239,29 @@ describe('osn-source', () => {
                 settings = input.settings;
                 
                 switch(inputType) {
-                    case 'image_source': {
+                    case EOBSInputTypes.ImageSource: {
                         settings['unload'] = true;
                         break;
                     }
-                    case 'color_source': {
+                    case EOBSInputTypes.ColorSource: {
                         settings['height'] = 500;
                         settings['width'] = 600;
                         break;
                     }
-                    case 'slideshow': {
+                    case EOBSInputTypes.Slideshow: {
                         settings['loop'] = false;
                         settings['slide_time'] = 9000;
                         settings['transition_speed'] = 800;
                         break;
                     }
-                    case 'browser_source': {
+                    case EOBSInputTypes.BrowserSource: {
                         settings['fps'] = 60;
                         settings['height'] = 500;
                         settings['restart_when_active'] = true;
                         settings['shutdown'] = true;
                         break;
                     }
-                    case 'ffmpeg_source': {
+                    case EOBSInputTypes.FFMPEGSource: {
                         settings['buffering_mb'] = 3;
                         settings['clear_on_media_end'] = false;
                         settings['looping'] = true;
@@ -308,45 +269,45 @@ describe('osn-source', () => {
                         settings['caching'] = true;
                         break;
                     }
-                    case 'text_gdiplus': {
+                    case EOBSInputTypes.TextGDI: {
                         settings['align'] = 'right';
                         settings['extents_cx'] = 90;
                         settings['extents_cy'] = 90;
                         settings['valign'] = 'bottom';
                         break;
                     }
-                    case 'text_ft2_source': {
+                    case EOBSInputTypes.TextFT2: {
                         settings['color1'] = 4294967296;
                         settings['color2'] = 5294967295;
                         break;
                     }
-                    case 'monitor_capture': {
+                    case EOBSInputTypes.MonitorCapture: {
                         settings['capture_cursor'] = false;
                         settings['monitor'] = 1;
                         break;
                     }
-                    case 'window_capture': {
+                    case EOBSInputTypes.WindowCapture: {
                         settings['compatibility'] = true;
                         settings['cursor'] = false;
                         break;
                     }
-                    case 'game_capture': {
+                    case EOBSInputTypes.GameCapture: {
                         settings['allow_transparency'] = true;
                         settings['force_scaling'] = true;
                         settings['hook_rate'] = 2;
                         break;
                     }
-                    case 'dshow_input': {
+                    case EOBSInputTypes.DShowInput: {
                         settings['audio_output_mode'] = 1;
                         settings['res_type'] = 1;
                         settings['video_format'] = 2;
                         break;
                     }
-                    case 'wasapi_input_capture': {
+                    case EOBSInputTypes.WASAPIInput: {
                         settings['use_device_timing'] = true;
                         break;
                     }
-                    case 'wasapi_output_capture': {
+                    case EOBSInputTypes.WASAPIOutput: {
                         settings['use_device_timing'] = false;
                         break;
                     }
@@ -358,7 +319,7 @@ describe('osn-source', () => {
                 // Sending save signal to source
                 expect(function() {
                     input.save();
-                }).to.not.throw;
+                }).to.not.throw();
 
                 // Checking if setting was added to source
                 expect(input.settings).to.eql(settings);
@@ -371,18 +332,12 @@ describe('osn-source', () => {
         it('Update settings of all filters', () => {
             let settings: ISettings = {};
 
-            // Getting all filter types
-            const filterTypes = osn.FilterFactory.types();
-
-            // Checking if filterTypes array contains the basic obs filter types
-            expect(filterTypes.length).to.not.equal(0);
-            expect(filterTypes).to.include.members(basicOBSFilterTypes);
-
-            filterTypes.forEach(function(filterType) {
-                if (filterType != 'gpu_delay' &&
-                    filterType != 'async_delay_filter' &&
-                    filterType != 'invert_polarity_filter' &&
-                    filterType != 'vst_filter') {
+            obs.filterTypes.forEach(function(filterType) {
+                if (filterType != EOBSFilterTypes.GPUDelay &&
+                    filterType != EOBSFilterTypes.AsyncDelay &&
+                    filterType != EOBSFilterTypes.InvertPolarity &&
+                    filterType != EOBSFilterTypes.PremultipliedAlpha &&
+                    filterType != EOBSFilterTypes.VST) {
                     // Creating filter
                     const filter = osn.FilterFactory.create(filterType, 'filter');
         
@@ -395,83 +350,87 @@ describe('osn-source', () => {
                     settings = filter.settings;
 
                     switch(filterType) {
-                        case 'mask_filter': {
+                        case EOBSFilterTypes.Mask: {
                             settings['color'] = 26777215;
                             settings['opacity'] = 80;
                             break;
                         }
-                        case 'crop_filter': {
+                        case EOBSFilterTypes.Crop: {
                             settings['relative'] = false;
                             break;
                         }
-                        case 'gain_filter': {
+                        case EOBSFilterTypes.Gain: {
                             settings['db'] = 5;
                             break;
                         }
-                        case 'color_filter': {
+                        case EOBSFilterTypes.Color: {
                             settings['brightness'] = 10;
                             settings['contrast'] = 15;
                             settings['saturation'] = 55;
                             break;
                         }
-                        case 'scale_filter': {
+                        case EOBSFilterTypes.Scale: {
                             settings['sampling'] = 'bilinear';
                             settings['undistort'] = true;
                             break;
                         }
-                        case 'scroll_filter': {
+                        case EOBSFilterTypes.Scroll: {
                             settings['cx'] = 80;
                             settings['cy'] = 60;
                             settings['limit_size'] = true;
                             break;
                         }
-                        case 'color_key_filter': {
+                        case EOBSFilterTypes.ColorKey: {
                             settings['gamma'] = 60;
                             settings['key_color_type'] = 'red';
                             settings['similarity'] = 55;
                             break;
                         }
-                        case 'clut_filter': {
+                        case EOBSFilterTypes.Clut: {
                             settings['clut_amount'] = 2;
                             break;
                         }
-                        case 'sharpness_filter': {
+                        case EOBSFilterTypes.Sharpness: {
                             settings['sharpness'] = 0.05;
                             break;
                         }
-                        case 'chroma_key_filter': {
+                        case EOBSFilterTypes.ChromaKey: {
                             settings['key_color'] = 68280;
                             settings['smoothness'] = 20;
                             settings['spill'] = 90;
                             break;
                         }
-                        case 'noise_suppress_filter': {
+                        case EOBSFilterTypes.NoiseSuppress: {
                             settings['suppress_level'] = -10;
                             settings['']
                             break;
                         }
-                        case 'noise_gate_filter': {
+                        case EOBSFilterTypes.NoiseGate: {
                             settings['hold_time'] = 120;
                             settings['open_threshold'] = -12;
                             settings['release_time'] = 80;
                             break;
                         }
-                        case 'compressor_filter': {
+                        case EOBSFilterTypes.Compressor: {
                             settings['attack_time'] = 8;
                             settings['output_gain'] = 4;
                             settings['threshold'] = -9;
                             break;
                         }
-                        case 'limiter_filter': {
+                        case EOBSFilterTypes.Limiter: {
                             settings['release_time'] = 30;
                             settings['threshold'] = -12;
                             break;
                         }
-                        case 'expander_filter': {
+                        case EOBSFilterTypes.Expander: {
                             settings['attack_time'] = 15;
                             settings['ratio'] = 5;
                             settings['threshold'] = -20;
                             break;
+                        }
+                        case EOBSFilterTypes.NDI:
+                        case EOBSFilterTypes.NDIAudio: {
+                            settings['ndi_filter_name'] = 'Test Filter';
                         }
                     }
         
@@ -494,16 +453,9 @@ describe('osn-source', () => {
         it('Update settings of all transitions', () => {
             let settings: ISettings = {};
 
-            // Getting all transition types
-            const transitionTypes = osn.TransitionFactory.types();
-
-            // Checking if transition array contains the basic obs filter types
-            expect(transitionTypes.length).to.not.equal(0);
-            expect(transitionTypes).to.include.members(basicOBSTransitionTypes);
-
-            transitionTypes.forEach(function(transitionType) {
-                if(transitionType == 'fade_to_color_transition' ||
-                   transitionType == 'wipe_transition') {
+            obs.transitionTypes.forEach(function(transitionType) {
+                if(transitionType == EOBSTransitionTypes.FadeToColor ||
+                   transitionType == EOBSTransitionTypes.Wipe) {
                     // Creating filter
                     const transition = osn.FilterFactory.create(transitionType, 'transition');
         
@@ -516,12 +468,12 @@ describe('osn-source', () => {
                     settings = transition.settings;
 
                     switch(transitionType) {
-                        case 'fade_to_color_transition': {
+                        case EOBSTransitionTypes.FadeToColor: {
                             settings['color'] = 5278190080;
                             settings['switch_point'] = 80;
                             break;
                         }
-                        case 'wipe_transition': {
+                        case EOBSTransitionTypes.Wipe: {
                             settings['luma_invert'] = true;
                             settings['luma_softness'] = 0.05;
                             break;
@@ -534,7 +486,7 @@ describe('osn-source', () => {
                     // Sending save signal to transition
                     expect(function() {
                         transition.save();
-                    }).to.not.throw;
+                    }).to.not.throw();
 
                     // Checking if setting was added to transition
                     expect(transition.settings).to.include(settings);
@@ -547,14 +499,7 @@ describe('osn-source', () => {
 
     context('# SetFlag and GetFlag', () => {
         it('Set flags and get them for all input source types', () => {
-            // Getting all input source types
-            const inputTypes = osn.InputFactory.types();
-
-            // Checking if inputTypes array contains the basic obs input types
-            expect(inputTypes.length).to.not.equal(0);
-            expect(inputTypes).to.include.members(OBSInputTypes);
-
-            inputTypes.forEach(function(inputType) {
+            obs.inputTypes.forEach(function(inputType) {
                 // Creating input source
                 const input = osn.InputFactory.create(inputType, 'input');
     
@@ -580,14 +525,7 @@ describe('osn-source', () => {
 
     context('# SetMuted and GetMuted', () => {
         it('Set muted and get it for all input source types', () => {
-            // Getting all input source types
-            const inputTypes = osn.InputFactory.types();
-
-            // Checking if inputTypes array contains the basic obs input types
-            expect(inputTypes.length).to.not.equal(0);
-            expect(inputTypes).to.include.members(OBSInputTypes);
-
-            inputTypes.forEach(function(inputType) {
+            obs.inputTypes.forEach(function(inputType) {
                 // Creating input source
                 const input = osn.InputFactory.create(inputType, 'input');
     

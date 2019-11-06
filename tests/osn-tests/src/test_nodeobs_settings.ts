@@ -1,21 +1,16 @@
 import 'mocha'
 import { expect } from 'chai'
 import * as osn from '../osn';
-import { OBSProcessHandler } from '../util/obs_process_handler';
+import { OBSHandler } from '../util/obs_handler';
 import { deleteConfigFiles, basicOBSSettingsCategories } from '../util/general';
 
 describe('nodeobs_settings', function() {
-    let obs: OBSProcessHandler;
+    let obs: OBSHandler;
 
     // Initialize OBS process
     before(function() {
         deleteConfigFiles();
-        obs = new OBSProcessHandler();
-        
-        if (obs.startup() !== osn.EVideoCodes.Success)
-        {
-            throw new Error("Could not start OBS process. Aborting!")
-        }
+        obs = new OBSHandler();
     });
 
     // Shutdown OBS process

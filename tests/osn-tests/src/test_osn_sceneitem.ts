@@ -1,83 +1,66 @@
 import 'mocha';
 import { expect } from 'chai';
-import { IInput } from '../osn';
 import * as osn from '../osn';
-import { OBSProcessHandler } from '../util/obs_process_handler';
+import { OBSHandler, IVec2, ICrop } from '../util/obs_handler';
+import { EOBSInputTypes } from '../util/obs_enums'
 import { deleteConfigFiles } from '../util/general';
 
-interface IVec2 {
-    x: number;
-    y: number;
-}
-
-interface ICrop {
-    top: number;
-    bottom: number;
-    left: number;
-    right: number;
-}
-
-function createInputSource(sourceType: string, sourceName: string): IInput {
-    const input = osn.InputFactory.create(sourceType, sourceName);
-        
-    // Checking if source was created correctly
-    expect(input).to.not.equal(undefined);
-    expect(input.id).to.equal(sourceType);
-    expect(input.name).to.equal(sourceName);
-
-    return input;
-}
-
 describe('osn-sceneitem', () => {
-    let obs: OBSProcessHandler;
+    let obs: OBSHandler;
     let sceneName: string = 'test_scene';
-    let scene: osn.IScene;
+    let sourceName: string = 'test_source';
 
     // Initialize OBS process
     before(function() {
         deleteConfigFiles();
-        obs = new OBSProcessHandler();
-        
-        if (obs.startup() !== osn.EVideoCodes.Success)
-        {
-            throw new Error("Could not start OBS process. Aborting!")
-        }
+        obs = new OBSHandler();
+    });
 
+    // Shutdown OBS process
+    after(function() {
+        obs.shutdown();
+        obs = null;
+        deleteConfigFiles();
+    });
+
+    beforeEach(function() {
         // Creating scene
-        scene = osn.SceneFactory.create(sceneName); 
+        const scene = osn.SceneFactory.create(sceneName); 
 
         // Checking if scene was created correctly
         expect(scene).to.not.equal(undefined);
         expect(scene.id).to.equal('scene');
         expect(scene.name).to.equal(sceneName);
         expect(scene.type).to.equal(osn.ESourceType.Scene);
+
+        // Creating input source
+        const source = osn.InputFactory.create(EOBSInputTypes.ImageSource, sourceName);
+
+        // Checking if source was created correctly
+        expect(source).to.not.equal(undefined);
+        expect(source.id).to.equal(EOBSInputTypes.ImageSource);
+        expect(source.name).to.equal(sourceName);
     });
 
-    // Shutdown OBS process
-    after(function() {
+    afterEach(function() {
+        const scene = osn.SceneFactory.fromName(sceneName);
         scene.release();
-        obs.shutdown();
-        obs = null;
-        deleteConfigFiles();
     });
 
     context('# GetSource', () => {
         it('Get source associated with a scene item', () => {
-            let sourceType: string = 'image_source';
-            let sourceName: string = 'test_source';
-
             // Getting scene
             const scene = osn.SceneFactory.fromName(sceneName);
 
-            // Creating input source
-            const source = createInputSource(sourceType, sourceName);
+            // Getting source
+            const source = osn.InputFactory.fromName(sourceName);
 
             // Adding input source to scene to create scene item
             const sceneItem = scene.add(source);
 
             // Checking if input source was added to the scene correctly
             expect(sceneItem).to.not.equal(undefined);
-            expect(sceneItem.source.id).to.equal(sourceType);
+            expect(sceneItem.source.id).to.equal(EOBSInputTypes.ImageSource);
             expect(sceneItem.source.name).to.equal(sourceName);
 
             // Getting source from scene item to create scene item
@@ -85,30 +68,29 @@ describe('osn-sceneitem', () => {
 
             // Checking if source was returned correctly
             expect(returnedSource).to.not.equal(undefined);
-            expect(returnedSource.id).to.equal(sourceType);
+            expect(returnedSource.id).to.equal(EOBSInputTypes.ImageSource);
             expect(returnedSource.name).to.equal(sourceName);
+
             sceneItem.source.release();
             sceneItem.remove();
+            scene.release();
         });
     });
 
     context('# GetScene', () => {
         it('Get scene associated with a scene item', () => {
-            let sourceType: string = 'image_source';
-            let sourceName: string = 'test_source';
-
             // Getting scene
             const scene = osn.SceneFactory.fromName(sceneName);
 
-            // Creating input source
-            const source = createInputSource(sourceType, sourceName);
+            // Getting source
+            const source = osn.InputFactory.fromName(sourceName);
 
             // Adding input source to scene to create scene item
             const sceneItem = scene.add(source);
 
             // Checking if input source was added to the scene correctly
             expect(sceneItem).to.not.equal(undefined);
-            expect(sceneItem.source.id).to.equal(sourceType);
+            expect(sceneItem.source.id).to.equal(EOBSInputTypes.ImageSource);
             expect(sceneItem.source.name).to.equal(sourceName);
 
             // Getting scene associated with scene item
@@ -119,28 +101,27 @@ describe('osn-sceneitem', () => {
             expect(returnedScene.id).to.equal('scene');
             expect(returnedScene.name).to.equal(sceneName);
             expect(returnedScene.type).to.equal(osn.ESourceType.Scene);
+            
             sceneItem.source.release();
             sceneItem.remove();
+            scene.release();
         });
     });
 
     context('# SetVisible and IsVisible', () => {
         it('Set scene item as visible and not visible and check it', () => {
-            let sourceType: string = 'image_source';
-            let sourceName: string = 'test_source';
-
             // Getting scene
             const scene = osn.SceneFactory.fromName(sceneName);
 
-            // Creating input source
-            const source = createInputSource(sourceType, sourceName);
+            // Getting source
+            const source = osn.InputFactory.fromName(sourceName);
 
             // Adding input source to scene to create scene item
             const sceneItem = scene.add(source);
 
             // Checking if input source was added to the scene correctly
             expect(sceneItem).to.not.equal(undefined);
-            expect(sceneItem.source.id).to.equal(sourceType);
+            expect(sceneItem.source.id).to.equal(EOBSInputTypes.ImageSource);
             expect(sceneItem.source.name).to.equal(sourceName);
 
             // Setting scene item as visible
@@ -161,21 +142,18 @@ describe('osn-sceneitem', () => {
 
     context('# SetSelected and IsSelected', () => {
         it('Set scene item as selected or not selected and check it', () => {
-            let sourceType: string = 'image_source';
-            let sourceName: string = 'test_source';
-
             // Getting scene
             const scene = osn.SceneFactory.fromName(sceneName);
 
-            // Creating input source
-            const source = createInputSource(sourceType, sourceName);
+            // Getting source
+            const source = osn.InputFactory.fromName(sourceName);
 
             // Adding input source to scene to create scene item
             const sceneItem = scene.add(source);
 
             // Checking if input source was added to the scene correctly
             expect(sceneItem).to.not.equal(undefined);
-            expect(sceneItem.source.id).to.equal(sourceType);
+            expect(sceneItem.source.id).to.equal(EOBSInputTypes.ImageSource);
             expect(sceneItem.source.name).to.equal(sourceName);
 
             // Setting scene item as selected
@@ -196,22 +174,20 @@ describe('osn-sceneitem', () => {
 
     context('# SetPosition and GetPosition', () => {
         it('Set scene item position and get it', () => {
-            let sourceType: string = 'image_source';
-            let sourceName: string = 'test_source';
             let position: IVec2 = {x: 1,y: 2};
 
             // Getting scene
             const scene = osn.SceneFactory.fromName(sceneName);
 
-            // Creating input source
-            const source = createInputSource(sourceType, sourceName);
+            // Getting source
+            const source = osn.InputFactory.fromName(sourceName);
 
             // Adding input source to scene to create scene item
             const sceneItem = scene.add(source);
 
             // Checking if input source was added to the scene correctly
             expect(sceneItem).to.not.equal(undefined);
-            expect(sceneItem.source.id).to.equal(sourceType);
+            expect(sceneItem.source.id).to.equal(EOBSInputTypes.ImageSource);
             expect(sceneItem.source.name).to.equal(sourceName);
 
             // Setting position of scene item
@@ -230,22 +206,20 @@ describe('osn-sceneitem', () => {
 
     context('# SetRotation and GetRotation', () => {
         it('Set scene item rotation and get it', () => {
-            let sourceType: string = 'image_source';
-            let sourceName: string = 'test_source';
             let rotation: number = 180;
 
             // Getting scene
             const scene = osn.SceneFactory.fromName(sceneName);
 
-            // Creating input source
-            const source = createInputSource(sourceType, sourceName);
+            // Getting source
+            const source = osn.InputFactory.fromName(sourceName);
 
             // Adding input source to scene to create scene item
             const sceneItem = scene.add(source);
 
             // Checking if input source was added to the scene correctly
             expect(sceneItem).to.not.equal(undefined);
-            expect(sceneItem.source.id).to.equal(sourceType);
+            expect(sceneItem.source.id).to.equal(EOBSInputTypes.ImageSource);
             expect(sceneItem.source.name).to.equal(sourceName);
 
             // Setting scene item rotation
@@ -263,22 +237,20 @@ describe('osn-sceneitem', () => {
 
     context('# SetScale and Get Scale', () => {
         it('Set scene item scale and get it', () => {
-            let sourceType: string = 'image_source';
-            let sourceName: string = 'test_source';
             let scale: IVec2 = {x: 20, y:30};
 
             // Getting scene
             const scene = osn.SceneFactory.fromName(sceneName);
 
-            // Creating input source
-            const source = createInputSource(sourceType, sourceName);
+            // Getting source
+            const source = osn.InputFactory.fromName(sourceName);
 
             // Adding input source to scene to create scene item
             const sceneItem = scene.add(source);
 
             // Checking if input source was added to the scene correctly
             expect(sceneItem).to.not.equal(undefined);
-            expect(sceneItem.source.id).to.equal(sourceType);
+            expect(sceneItem.source.id).to.equal(EOBSInputTypes.ImageSource);
             expect(sceneItem.source.name).to.equal(sourceName);
 
             // Setting scene item scale
@@ -297,22 +269,20 @@ describe('osn-sceneitem', () => {
 
     context('# SetCrop and GetCrop', () => {
         it('Set crop value and get it', () => {
-            let sourceType: string = 'image_source';
-            let sourceName: string = 'test_source';
             let crop: ICrop = {top: 5, bottom: 5, left: 3, right:3};
 
             // Getting scene
             const scene = osn.SceneFactory.fromName(sceneName);
 
-            // Creating input source
-            const source = createInputSource(sourceType, sourceName);
+            // Getting source
+            const source = osn.InputFactory.fromName(sourceName);
 
             // Adding input source to scene to create scene item
             const sceneItem = scene.add(source);
 
             // Checking if input source was added to the scene correctly
             expect(sceneItem).to.not.equal(undefined);
-            expect(sceneItem.source.id).to.equal(sourceType);
+            expect(sceneItem.source.id).to.equal(EOBSInputTypes.ImageSource);
             expect(sceneItem.source.name).to.equal(sourceName);
 
             // Setting crop
@@ -333,22 +303,20 @@ describe('osn-sceneitem', () => {
 
     context('# GetId', () => {
         it('Get scene item id', () => {
-            let sourceType: string = 'image_source';
-            let sourceName: string = 'test_source';
             let sceneItemId: number = undefined;
 
             // Getting scene
             const scene = osn.SceneFactory.fromName(sceneName);
 
-            // Creating input source
-            const source = createInputSource(sourceType, sourceName);
+            // Getting source
+            const source = osn.InputFactory.fromName(sourceName);
 
             // Adding input source to scene to create scene item
             const sceneItem = scene.add(source);
 
             // Checking if input source was added to the scene correctly
             expect(sceneItem).to.not.equal(undefined);
-            expect(sceneItem.source.id).to.equal(sourceType);
+            expect(sceneItem.source.id).to.equal(EOBSInputTypes.ImageSource);
             expect(sceneItem.source.name).to.equal(sourceName);
 
             // Getting scene item id
