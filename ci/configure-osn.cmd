@@ -7,8 +7,7 @@ if "%ReleaseName%"=="debug" (
           -DNODEJS_NAME=%RuntimeName% ^
           -DNODEJS_URL=%RuntimeURL% ^
           -DNODEJS_VERSION="v%ElectronVersion%" ^
-          -DLIBOBS_BUILD_TYPE="debug" ^
-          -DLIBOBS_VERSION=%LibOBSVersion%
+          -DLIBOBS_BUILD_TYPE="debug"
 ) else (
     cmake -H. ^
           -B"%SLBuildDirectory%" ^
@@ -17,6 +16,5 @@ if "%ReleaseName%"=="debug" (
           -DSTREAMLABS_BUILD=OFF ^
           -DNODEJS_NAME=%RuntimeName% ^
           -DNODEJS_URL=%RuntimeURL% ^
-          -DNODEJS_VERSION="v%ElectronVersion%" ^
-          -DLIBOBS_VERSION=%LibOBSVersion%
+          -DNODEJS_VERSION="v%ElectronVersion%"
 )
