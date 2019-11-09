@@ -191,7 +191,6 @@ void osn::VolMeter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	// Stuff
 	utilv8::SetObjectField(
 	    target, "Volmeter", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
-	prototype.Reset(fnctemplate);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Create(Nan::NAN_METHOD_ARGS_TYPE info)

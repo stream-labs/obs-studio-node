@@ -52,7 +52,6 @@ void osn::Module::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 
 	utilv8::SetObjectField(
 	    target, "Module", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
-	prototype.Reset(fnctemplate);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Module::Open(Nan::NAN_METHOD_ARGS_TYPE info)

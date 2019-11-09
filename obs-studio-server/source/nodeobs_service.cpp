@@ -436,6 +436,8 @@ int OBS_service::resetVideoContext(bool reload)
 		}
 	}
 
+	ovi.base_width  = 1920;
+	ovi.base_height = 1080;
 	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCX", ovi.base_width);
 	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCY", ovi.base_height);
 
@@ -458,6 +460,8 @@ int OBS_service::resetVideoContext(bool reload)
 			ovi.output_height = ovi.base_height;
 		}
 
+		ovi.output_width  = 1280;
+		ovi.output_height = 720;
 		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCX", ovi.output_width);
 		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCY", ovi.output_height);
 	}
@@ -479,7 +483,7 @@ int OBS_service::resetVideoContext(bool reload)
 	ovi.scale_type = GetScaleType(ConfigManager::getInstance().getBasic());
 
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
-
+	blog(LOG_INFO, "About to reset the video context");
 	try {
 		return obs_reset_video(&ovi);
 	} catch (const char* error) {

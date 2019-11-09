@@ -173,7 +173,9 @@ void RemoveSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 INITIALIZER(callback_manager)
 {
-	initializerFunctions.push([](v8::Local<v8::Object> exports) {
+	initializerFunctions =
+    	new std::queue<std::function<void(v8::Local<v8::Object>)>>;
+	initializerFunctions->push([](v8::Local<v8::Object> exports) {
 		NODE_SET_METHOD(exports, "RegisterSourceCallback", RegisterSourceCallback);
 		NODE_SET_METHOD(exports, "RemoveSourceCallback", RemoveSourceCallback);
 	});

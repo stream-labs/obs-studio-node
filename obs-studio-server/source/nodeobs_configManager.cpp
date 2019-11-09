@@ -123,13 +123,13 @@ void initBasicDefault(config_t* config)
 	config_set_default_string(config, "SimpleOutput", "FilePath", filePath.c_str());
 	config_set_default_string(config, "SimpleOutput", "RecFormat", "flv");
 	config_set_default_uint(config, "SimpleOutput", "VBitrate", 2500);
-	config_set_default_string(config, "SimpleOutput", "StreamEncoder", "x264");
+	config_set_default_string(config, "SimpleOutput", "StreamEncoder", "obs_x264");
 	config_set_default_uint(config, "SimpleOutput", "ABitrate", 160);
 	config_set_default_bool(config, "SimpleOutput", "UseAdvanced", false);
 	config_set_default_bool(config, "SimpleOutput", "EnforceBitrate", true);
 	config_set_default_string(config, "SimpleOutput", "Preset", "veryfast");
 	config_set_default_string(config, "SimpleOutput", "RecQuality", "Stream");
-	config_set_default_string(config, "SimpleOutput", "RecEncoder", "x264");
+	config_set_default_string(config, "SimpleOutput", "RecEncoder", "obs_x264");
 	config_set_default_bool(config, "SimpleOutput", "RecRB", true);
 	config_set_default_int(config, "SimpleOutput", "RecRBTime", 20);
 	config_set_default_int(config, "SimpleOutput", "RecRBSize", 512);
@@ -253,7 +253,11 @@ void ConfigManager::reloadConfig(void)
 config_t* ConfigManager::getGlobal()
 {
 	if (!global) {
+#ifdef WIN32
 		global = getConfig("\\global.ini");
+#else
+		global = getConfig("/global.ini");
+#endif
 		if(global) {
 			initGlobalDefault(global);
 		}
@@ -264,7 +268,11 @@ config_t* ConfigManager::getGlobal()
 config_t* ConfigManager::getBasic()
 {
 	if (!basic) {
+#ifdef WIN32
 		basic = getConfig("\\basic.ini");
+#else
+		basic = getConfig("/basic.ini");
+#endif
 		if (basic) {
 			initBasicDefault(basic);
 		}
@@ -274,13 +282,25 @@ config_t* ConfigManager::getBasic()
 };
 std::string ConfigManager::getService()
 {
+#ifdef WIN32
 	return appdata + "\\service.json";
+#else
+	return appdata + "/service.json";
+#endif
 };
 std::string ConfigManager::getStream()
 {
+#ifdef WIN32
 	return appdata + "\\streamEncoder.json";
+#else
+	return appdata + "/streamEncoder.json";
+#endif
 };
 std::string ConfigManager::getRecord()
 {
+#ifdef WIN32
 	return appdata + "\\recordEncoder.json";
+#else
+	return appdata + "/recordEncoder.json";
+#endif
 };

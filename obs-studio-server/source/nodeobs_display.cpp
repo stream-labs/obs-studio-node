@@ -245,82 +245,82 @@ OBS::Display::Display()
 #ifdef WIN32
 	worker = std::thread(std::bind(&OBS::Display::SystemWorker, this));
 #endif
-	m_gsInitData.adapter         = 0;
-	m_gsInitData.cx              = 960;
-	m_gsInitData.cy              = 540;
-	m_gsInitData.format          = GS_RGBA;
-	m_gsInitData.zsformat        = GS_ZS_NONE;
-	m_gsInitData.num_backbuffers = 1;
-	m_display                    = nullptr;
-	m_source                     = nullptr;
-	m_position.first             = 0;
-	m_position.second            = 0;
-
-	obs_enter_graphics();
-	m_gsSolidEffect = obs_get_base_effect(OBS_EFFECT_SOLID);
-
-	GS::Vertex v(nullptr, nullptr, nullptr, nullptr, nullptr);
-
-	m_boxLine = std::make_unique<GS::VertexBuffer>(6);
-	m_boxLine->Resize(6);
-	v = m_boxLine->At(0);
-	vec3_set(v.position, 0, 0, 0);
-	vec4_set(v.uv[0], 0, 0, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	v        = m_boxLine->At(1);
-	vec3_set(v.position, 1, 0, 0);
-	vec4_set(v.uv[0], 1, 0, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	v        = m_boxLine->At(2);
-	vec3_set(v.position, 1, 1, 0);
-	vec4_set(v.uv[0], 1, 1, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	v        = m_boxLine->At(3);
-	vec3_set(v.position, 0, 1, 0);
-	vec4_set(v.uv[0], 0, 1, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	v        = m_boxLine->At(4);
-	vec3_set(v.position, 0, 0, 0);
-	vec4_set(v.uv[0], 0, 0, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	m_boxLine->Update();
-
-	m_boxTris = std::make_unique<GS::VertexBuffer>(4);
-	m_boxTris->Resize(4);
-	v = m_boxTris->At(0);
-	vec3_set(v.position, 0, 0, 0);
-	vec4_set(v.uv[0], 0, 0, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	v        = m_boxTris->At(1);
-	vec3_set(v.position, 1, 0, 0);
-	vec4_set(v.uv[0], 1, 0, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	v        = m_boxTris->At(2);
-	vec3_set(v.position, 0, 1, 0);
-	vec4_set(v.uv[0], 0, 1, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	v        = m_boxTris->At(3);
-	vec3_set(v.position, 1, 1, 0);
-	vec4_set(v.uv[0], 1, 1, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	m_boxTris->Update();
-
-	// Text
-	m_textVertices = new GS::VertexBuffer(65535);
-	m_textEffect   = obs_get_base_effect(OBS_EFFECT_DEFAULT);
-	m_textTexture  = gs_texture_create_from_file((g_moduleDirectory + "/resources/roboto.png").c_str());
-	if (!m_textTexture) {
-		throw std::runtime_error("couldn't load roboto font");
-	}
-
-	obs_leave_graphics();
-
-	SetOutlineColor(26, 230, 168);
-	SetGuidelineColor(26, 230, 168);
-
-	UpdatePreviewArea();
-
-	m_drawGuideLines = true;
+//	m_gsInitData.adapter         = 0;
+//	m_gsInitData.cx              = 960;
+//	m_gsInitData.cy              = 540;
+//	m_gsInitData.format          = GS_RGBA;
+//	m_gsInitData.zsformat        = GS_ZS_NONE;
+//	m_gsInitData.num_backbuffers = 1;
+//	m_display                    = nullptr;
+//	m_source                     = nullptr;
+//	m_position.first             = 0;
+//	m_position.second            = 0;
+//
+//	obs_enter_graphics();
+//	m_gsSolidEffect = obs_get_base_effect(OBS_EFFECT_SOLID);
+//
+//	GS::Vertex v(nullptr, nullptr, nullptr, nullptr, nullptr);
+//
+//	m_boxLine = std::make_unique<GS::VertexBuffer>(6);
+//	m_boxLine->Resize(6);
+//	v = m_boxLine->At(0);
+//	vec3_set(v.position, 0, 0, 0);
+//	vec4_set(v.uv[0], 0, 0, 0, 0);
+//	*v.color = 0xFFFFFFFF;
+//	v        = m_boxLine->At(1);
+//	vec3_set(v.position, 1, 0, 0);
+//	vec4_set(v.uv[0], 1, 0, 0, 0);
+//	*v.color = 0xFFFFFFFF;
+//	v        = m_boxLine->At(2);
+//	vec3_set(v.position, 1, 1, 0);
+//	vec4_set(v.uv[0], 1, 1, 0, 0);
+//	*v.color = 0xFFFFFFFF;
+//	v        = m_boxLine->At(3);
+//	vec3_set(v.position, 0, 1, 0);
+//	vec4_set(v.uv[0], 0, 1, 0, 0);
+//	*v.color = 0xFFFFFFFF;
+//	v        = m_boxLine->At(4);
+//	vec3_set(v.position, 0, 0, 0);
+//	vec4_set(v.uv[0], 0, 0, 0, 0);
+//	*v.color = 0xFFFFFFFF;
+//	m_boxLine->Update();
+//
+//	m_boxTris = std::make_unique<GS::VertexBuffer>(4);
+//	m_boxTris->Resize(4);
+//	v = m_boxTris->At(0);
+//	vec3_set(v.position, 0, 0, 0);
+//	vec4_set(v.uv[0], 0, 0, 0, 0);
+//	*v.color = 0xFFFFFFFF;
+//	v        = m_boxTris->At(1);
+//	vec3_set(v.position, 1, 0, 0);
+//	vec4_set(v.uv[0], 1, 0, 0, 0);
+//	*v.color = 0xFFFFFFFF;
+//	v        = m_boxTris->At(2);
+//	vec3_set(v.position, 0, 1, 0);
+//	vec4_set(v.uv[0], 0, 1, 0, 0);
+//	*v.color = 0xFFFFFFFF;
+//	v        = m_boxTris->At(3);
+//	vec3_set(v.position, 1, 1, 0);
+//	vec4_set(v.uv[0], 1, 1, 0, 0);
+//	*v.color = 0xFFFFFFFF;
+//	m_boxTris->Update();
+//
+//	// Text
+//	m_textVertices = new GS::VertexBuffer(65535);
+//	m_textEffect   = obs_get_base_effect(OBS_EFFECT_DEFAULT);
+//	m_textTexture  = gs_texture_create_from_file((g_moduleDirectory + "/resources/roboto.png").c_str());
+//	if (!m_textTexture) {
+//		throw std::runtime_error("couldn't load roboto font");
+//	}
+//
+//	obs_leave_graphics();
+//
+//	SetOutlineColor(26, 230, 168);
+//	SetGuidelineColor(26, 230, 168);
+//
+//	UpdatePreviewArea();
+//
+//	m_drawGuideLines = true;
 }
 
 OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode) : Display()
@@ -357,16 +357,16 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode)
 	m_gsInitData.window.hwnd = reinterpret_cast<void*>(m_ourWindow);
 #endif
 
-	m_display = obs_display_create(&m_gsInitData, 0x0);
-	if (!m_display)
-		throw std::runtime_error("unable to create display");
-
-	m_renderingMode = mode;
-
-	obs_display_add_draw_callback(m_display, DisplayCallback, this);
-
-	SetSize(0, 0);
-	SetPosition(0, 0);
+//	m_display = obs_display_create(&m_gsInitData, 0x0);
+//	if (!m_display)
+//		throw std::runtime_error("unable to create display");
+//
+//	m_renderingMode = mode;
+//
+//	obs_display_add_draw_callback(m_display, DisplayCallback, this);
+//
+//	SetSize(0, 0);
+//	SetPosition(0, 0);
 }
 
 OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, std::string sourceName)
@@ -379,29 +379,29 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
 
 OBS::Display::~Display()
 {
-	obs_display_remove_draw_callback(m_display, DisplayCallback, this);
-
-	if (m_source) {
-		obs_source_dec_showing(m_source);
-		obs_source_release(m_source);
-	}
-	if (m_display)
-		obs_display_destroy(m_display);
-
-	obs_enter_graphics();
-
-	if (m_textVertices) {
-		m_textVertices->m_vertexbuffer = nullptr;
-		delete m_textVertices;
-	}
-
-	if (m_textTexture) {
-		gs_texture_destroy(m_textTexture);
-	}
-
-	m_boxLine = nullptr;
-	m_boxTris = nullptr;
-	obs_leave_graphics();
+//	obs_display_remove_draw_callback(m_display, DisplayCallback, this);
+//
+//	if (m_source) {
+//		obs_source_dec_showing(m_source);
+//		obs_source_release(m_source);
+//	}
+//	if (m_display)
+//		obs_display_destroy(m_display);
+//
+//	obs_enter_graphics();
+//
+//	if (m_textVertices) {
+//		m_textVertices->m_vertexbuffer = nullptr;
+//		delete m_textVertices;
+//	}
+//
+//	if (m_textTexture) {
+//		gs_texture_destroy(m_textTexture);
+//	}
+//
+//	m_boxLine = nullptr;
+//	m_boxTris = nullptr;
+//	obs_leave_graphics();
 
 #ifdef _WIN32
 	DestroyWindowMessageQuestion question;
@@ -436,16 +436,16 @@ OBS::Display::~Display()
 void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 {
 	// Store new position.
-	m_position.first  = x;
-	m_position.second = y;
-
-	if (m_source != NULL) {
-        std::string msg = "<" + std::string(__FUNCTION__) + "> Adjusting display position for source %s to %ldx%ld. hwnd %d";
-		blog(
-		    LOG_DEBUG,
-		    msg.c_str(),
-		    obs_source_get_name(m_source), x, y, m_ourWindow);
-	}
+//	m_position.first  = x;
+//	m_position.second = y;
+//
+//	if (m_source != NULL) {
+//        std::string msg = "<" + std::string(__FUNCTION__) + "> Adjusting display position for source %s to %ldx%ld. hwnd %d";
+//		blog(
+//		    LOG_DEBUG,
+//		    msg.c_str(),
+//		    obs_source_get_name(m_source), x, y, m_ourWindow);
+//	}
 
 	// Move Window
 #if defined(_WIN32)
@@ -546,29 +546,29 @@ void OBS::Display::setSizeCall(int step)
 
 void OBS::Display::SetSize(uint32_t width, uint32_t height)
 {
-	if (m_source != NULL) {
-        std::string msg = "<" + std::string(__FUNCTION__) + "> Adjusting display size for source %s to %ldx%ld. hwnd %d";
-		blog(
-			LOG_DEBUG,
-			msg.c_str(),
-			obs_source_get_name(m_source), width, height, m_ourWindow);
-	}
-
-	m_gsInitData.cx = width;
-	m_gsInitData.cy = height;
-	
-	if(width == 0 || height == 0 || isNewerThanWindows7())
-	{
-		setSizeCall(-1);
-	} else {
-		setSizeCall(4);
-	}
-
-	// Resize Display
-	obs_display_resize(m_display, m_gsInitData.cx, m_gsInitData.cy);
-
-	// Store new size.
-	UpdatePreviewArea();
+//	if (m_source != NULL) {
+//        std::string msg = "<" + std::string(__FUNCTION__) + "> Adjusting display size for source %s to %ldx%ld. hwnd %d";
+//		blog(
+//			LOG_DEBUG,
+//			msg.c_str(),
+//			obs_source_get_name(m_source), width, height, m_ourWindow);
+//	}
+//
+//	m_gsInitData.cx = width;
+//	m_gsInitData.cy = height;
+//
+//	if(width == 0 || height == 0 || isNewerThanWindows7())
+//	{
+//		setSizeCall(-1);
+//	} else {
+//		setSizeCall(4);
+//	}
+//
+//	// Resize Display
+//	obs_display_resize(m_display, m_gsInitData.cx, m_gsInitData.cy);
+//
+//	// Store new size.
+//	UpdatePreviewArea();
 }
 
 std::pair<uint32_t, uint32_t> OBS::Display::GetSize()
@@ -1219,52 +1219,52 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 
 void OBS::Display::UpdatePreviewArea()
 {
-	int32_t  offsetX = 0, offsetY = 0;
-	uint32_t sourceW, sourceH;
-	if (m_source) {
-		sourceW = obs_source_get_width(m_source);
-		sourceH = obs_source_get_height(m_source);
-	} else {
-		obs_video_info ovi;
-		obs_get_video_info(&ovi);
-
-		sourceW = ovi.base_width;
-		sourceH = ovi.base_height;
-	}
-
-	if (sourceW == 0)
-		sourceW = 1;
-	if (sourceH == 0)
-		sourceH = 1;
-
-	RecalculateApectRatioConstrainedSize(
-	    m_gsInitData.cx,
-	    m_gsInitData.cy,
-	    sourceW,
-	    sourceH,
-	    m_previewOffset.first,
-	    m_previewOffset.second,
-	    m_previewSize.first,
-	    m_previewSize.second);
-
-	offsetX = m_paddingSize;
-	offsetY = float_t(offsetX) * float_t(sourceH) / float_t(sourceW);
-
-	m_previewOffset.first += offsetX;
-	m_previewSize.first -= offsetX * 2;
-	
-	if (m_previewSize.second <= offsetY * 2) {
-		m_previewOffset.second = (m_previewOffset.second - 1) / 2;
-		m_previewSize.second = 1;
-	} else {
-		m_previewOffset.second += offsetY;
-		m_previewSize.second -= offsetY * 2;
-	}
-	
-	m_worldToPreviewScale.x = float_t(m_previewSize.first) / float_t(sourceW);
-	m_worldToPreviewScale.y = float_t(m_previewSize.second) / float_t(sourceH);
-	m_previewToWorldScale.x = float_t(sourceW) / float_t(m_previewSize.first);
-	m_previewToWorldScale.y = float_t(sourceH) / float_t(m_previewSize.second);
+//	int32_t  offsetX = 0, offsetY = 0;
+//	uint32_t sourceW, sourceH;
+//	if (m_source) {
+//		sourceW = obs_source_get_width(m_source);
+//		sourceH = obs_source_get_height(m_source);
+//	} else {
+//		obs_video_info ovi;
+//		obs_get_video_info(&ovi);
+//
+//		sourceW = ovi.base_width;
+//		sourceH = ovi.base_height;
+//	}
+//
+//	if (sourceW == 0)
+//		sourceW = 1;
+//	if (sourceH == 0)
+//		sourceH = 1;
+//
+//	RecalculateApectRatioConstrainedSize(
+//	    m_gsInitData.cx,
+//	    m_gsInitData.cy,
+//	    sourceW,
+//	    sourceH,
+//	    m_previewOffset.first,
+//	    m_previewOffset.second,
+//	    m_previewSize.first,
+//	    m_previewSize.second);
+//
+//	offsetX = m_paddingSize;
+//	offsetY = float_t(offsetX) * float_t(sourceH) / float_t(sourceW);
+//
+//	m_previewOffset.first += offsetX;
+//	m_previewSize.first -= offsetX * 2;
+//
+//	if (m_previewSize.second <= offsetY * 2) {
+//		m_previewOffset.second = (m_previewOffset.second - 1) / 2;
+//		m_previewSize.second = 1;
+//	} else {
+//		m_previewOffset.second += offsetY;
+//		m_previewSize.second -= offsetY * 2;
+//	}
+//
+//	m_worldToPreviewScale.x = float_t(m_previewSize.first) / float_t(sourceW);
+//	m_worldToPreviewScale.y = float_t(m_previewSize.second) / float_t(sourceH);
+//	m_previewToWorldScale.x = float_t(sourceW) / float_t(m_previewSize.first);
+//	m_previewToWorldScale.y = float_t(sourceH) / float_t(m_previewSize.second);
 }
 
 #if defined(_WIN32)

@@ -296,7 +296,7 @@ else()
 		${PROJECT_NAME}
 		PROPERTIES
 		INSTALL_RPATH
-		"./"
+		"/Users/eddygharbi/streamlabs/streamlabs-obs/node_modules/obs-studio-node/"
 	)
 ENDIF()
 

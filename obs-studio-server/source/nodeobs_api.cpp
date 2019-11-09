@@ -568,6 +568,7 @@ void OBS_API::OBS_API_initAPI(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	blog(LOG_INFO, "Server executes - OBS_API_initAPI");
 #ifdef WIN32
 	writeCrashHandler(registerProcess());
 #endif
@@ -592,10 +593,12 @@ void OBS_API::OBS_API_initAPI(
 	* 2. ${OBS_DATA_PATH}/libobs <- This works but is inflexible
 	* 3. getenv(OBS_DATA_PATH) + /libobs <- Can be set anywhere
 	*    on the cli, in the frontend, or the backend. */
-	obs_add_data_path((g_moduleDirectory + "/libobs/data/libobs/").c_str());
-	slobs_plugin = appdata.substr(0, appdata.size() - strlen("/slobs-client"));
-	slobs_plugin.append("/slobs-plugins");
-	obs_add_data_path((slobs_plugin + "/data/").c_str());
+	blog(LOG_INFO, "module directory: %s", g_moduleDirectory.c_str());
+	obs_add_data_path("/Users/eddygharbi/streamlabs/streamlabs-obs/node_modules/obs-studio-node/");
+	// obs_add_data_path((g_moduleDirectory + "/data/libobs/").c_str());
+	// slobs_plugin = appdata.substr(0, appdata.size() - strlen("/slobs-client"));
+	// slobs_plugin.append("/slobs-plugins");
+	// obs_add_data_path((slobs_plugin + "/data/").c_str());
 
 	std::vector<char> userData = std::vector<char>(1024);
 	os_get_config_path(userData.data(), userData.capacity() - 1, "slobs-client/plugin_config");
@@ -604,8 +607,8 @@ void OBS_API::OBS_API_initAPI(
 		// This was added as a temporary measure to detect what could be happening in some
 		// cases (if the user data path is wrong for ex). This will be correctly adjusted 
 		// when init API supports more return codes.
-		std::string userDataPath = std::string(userData.begin(), userData.end());
-#ifdef WIN#2
+		// std::string userDataPath = std::string(userData.begin(), userData.end());
+#ifdef WIN32
 		util::CrashManager::AddWarning("Failed to start OBS, locale: " + locale + " user data: " + userDataPath);
 #endif
 	}
@@ -659,7 +662,7 @@ void OBS_API::OBS_API_initAPI(
 	/* END INJECT osn::Source::Manager */
 
 	cpuUsageInfo = os_cpu_usage_info_start();
-
+	blog(LOG_INFO, "Appdata is %s", appdata.c_str());
 	ConfigManager::getInstance().setAppdataPath(appdata);
 
 	/* Set global private settings for whomever it concerns */
@@ -674,11 +677,13 @@ void OBS_API::OBS_API_initAPI(
 #ifdef WIN32
 		// Directly blame the user for this error (since he is the culprit of having an invalid Dx version)
 		util::CrashManager::GetMetricsProvider()->BlameUser();
-#endif
+
+		blog(LOG_INFO, "Error returning now");
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value(videoError));
 		AUTO_DEBUG;
 		return;
+#endif
 	}
 
 	OBS_service::createService();
@@ -713,7 +718,7 @@ void OBS_API::OBS_API_initAPI(
 
 	obs_set_replay_buffer_rendering_mode(
 		useStreamOutput ? OBS_STREAMING_REPLAY_BUFFER_RENDERING : OBS_RECORDING_REPLAY_BUFFER_RENDERING);
-
+	blog(LOG_INFO, "Init success");
 	// We are returning a video result here because the frontend needs to know if we sucessfully
 	// initialized the Dx11 API
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -1303,12 +1308,14 @@ bool OBS_API::openAllModules(int& video_err)
 {
 	video_err = OBS_service::resetVideoContext();
 	if (video_err != OBS_VIDEO_SUCCESS) {
+		blog(LOG_INFO, "Reset video failed with error: %d", video_err);
 		return false;
 	}
-
-	std::string plugins_paths[] = {g_moduleDirectory + "/obs-plugins/64bit",
-	                               g_moduleDirectory + "/obs-plugins",
-	                               slobs_plugin + "/obs-plugins/64bit"};
+	blog(LOG_INFO, "g_moduleDirectory: %s", g_moduleDirectory.c_str());
+	std::string plugins_paths[] = {g_moduleDirectory + "/obs-plugins"};
+	// std::string plugins_paths[] = {g_moduleDirectory + "/obs-plugins/64bit",
+	//                                g_moduleDirectory + "/obs-plugins",
+	//                                slobs_plugin + "/obs-plugins/64bit"};
 
 	std::string plugins_data_paths[] = {
 	    g_moduleDirectory + "/data/obs-plugins", plugins_data_paths[0], slobs_plugin + "/data/obs-plugins"};

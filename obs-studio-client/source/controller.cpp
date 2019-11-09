@@ -486,7 +486,7 @@ void js_disconnect(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 INITIALIZER(js_ipc)
 {
-	initializerFunctions.push([](v8::Local<v8::Object> exports) {
+	initializerFunctions->push([](v8::Local<v8::Object> exports) {
 		// IPC related functions will be under the IPC object.
 		auto obj = v8::Object::New(exports->GetIsolate());
 		NODE_SET_METHOD(obj, "setServerPath", js_setServerPath);
@@ -495,4 +495,5 @@ INITIALIZER(js_ipc)
 		NODE_SET_METHOD(obj, "disconnect", js_disconnect);
 		exports->Set(v8::String::NewFromUtf8(exports->GetIsolate(), "IPC").ToLocalChecked(), obj);
 	});
+//	std::cout << "Size of init in controller: " << initializerFunctions.size() << std::endl;
 }

@@ -37,7 +37,7 @@ osn::Input::Input(uint64_t id)
 void osn::Input::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
-	fnctemplate->Inherit(Nan::New<v8::FunctionTemplate>(osn::ISource::prototype));
+//	fnctemplate->Inherit(Nan::New<v8::FunctionTemplate>(osn::ISource::prototype));
 	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
 	fnctemplate->SetClassName(Nan::New<v8::String>("Input").ToLocalChecked());
 
@@ -75,7 +75,6 @@ void osn::Input::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	// Stuff
 	utilv8::SetObjectField(
 	    target, "Input", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
-	prototype.Reset(fnctemplate);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::Types(Nan::NAN_METHOD_ARGS_TYPE info)

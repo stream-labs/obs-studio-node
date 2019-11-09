@@ -37,8 +37,6 @@ namespace osn
 
 		// JavaScript
 		public:
-		static Nan::Persistent<v8::FunctionTemplate> prototype;
-
 		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 
 		static Nan::NAN_METHOD_RETURN_TYPE GetSource(Nan::NAN_METHOD_ARGS_TYPE info);

@@ -66,7 +66,6 @@ void osn::Properties::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 
 	utilv8::SetObjectField(
 	    target, "Properties", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
-	prototype.Reset(fnctemplate);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Properties::Count(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -174,7 +173,6 @@ void osn::PropertyObject::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target
 
 	utilv8::SetObjectField(
 	    target, "Property", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
-	osn::PropertyObject::prototype.Reset(fnctemplate);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Previous(Nan::NAN_METHOD_ARGS_TYPE info)
