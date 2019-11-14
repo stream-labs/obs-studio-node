@@ -4,7 +4,7 @@ import * as osn from '../osn';
 import { ISettings } from '../osn';
 import { OBSHandler } from '../util/obs_handler';
 import { EOBSInputTypes, EOBSFilterTypes, EOBSTransitionTypes } from '../util/obs_enums'
-import { basicOBSFilterTypes, basicOBSTransitionTypes, deleteConfigFiles } from '../util/general';
+import { deleteConfigFiles } from '../util/general';
 
 describe('osn-source', () => {
     let obs: OBSHandler;
@@ -551,14 +551,7 @@ describe('osn-source', () => {
 
     context('# SetEnabled and GetEnabled', () => {
         it('Set enabled and get it for all filter types', () => {
-            // Getting all filter types
-            const filterTypes = osn.FilterFactory.types();
-
-            // Checking if filterTypes array contains the basic obs filter types
-            expect(filterTypes.length).to.not.equal(0);
-            expect(filterTypes).to.include.members(basicOBSFilterTypes);
-
-            filterTypes.forEach(function(filterType) {
+            obs.filterTypes.forEach(function(filterType) {
                 // Creating filter
                 const filter = osn.FilterFactory.create(filterType, 'filter');
     
