@@ -37,8 +37,7 @@ describe('osn-volmeter', () => {
         deleteConfigFiles();
     });
 
-    context('# Create and Attach', () => {
-        it('Create volmeter and attach it to a audio source', () => {
+        it('# Create volmeter and attach it to a audio source', () => {
             // Creating audio source
             const input = osn.InputFactory.create(EOBSInputTypes.WASAPIInput, 'input');
 
@@ -60,10 +59,8 @@ describe('osn-volmeter', () => {
 
             input.release();
         });
-    });
 
-    context('# AddCallback and RemoveCallback', () => {
-        it('Add callback to volmeter and remove it', () => {
+        it('# Add callback to volmeter and remove it', () => {
             // Creating audio source
             const input = osn.InputFactory.create(EOBSInputTypes.WASAPIInput, 'input');
 
@@ -95,5 +92,4 @@ describe('osn-volmeter', () => {
 
             input.release();
         });
-    });
 });
