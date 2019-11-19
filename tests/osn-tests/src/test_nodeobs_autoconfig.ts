@@ -53,28 +53,28 @@ describe('nodeobs_autoconfig', function() {
             osn.NodeObs.StartRecordingEncoderTest();
 
             progressInfo = await obs.getNextProgressInfo();
-            expect(progressInfo.event).to.equal('stopping_step', 'RecordingEncoderTest error - ' + progressInfo.description);
+            expect(progressInfo.event).to.equal('stopping_step');
             expect(progressInfo.description).to.equal('recordingEncoder_test');
             expect(progressInfo.percentage).to.equal(100);
 
             osn.NodeObs.StartCheckSettings();
 
             progressInfo = await obs.getNextProgressInfo();
-            expect(progressInfo.event).to.equal('stopping_step', 'CheckSettings error - ' + progressInfo.description);
+            expect(progressInfo.event).to.equal('stopping_step');
             expect(progressInfo.description).to.equal('checking_settings');
             expect(progressInfo.percentage).to.equal(100);
 
             osn.NodeObs.StartSaveStreamSettings();
 
             progressInfo = await obs.getNextProgressInfo();
-            expect(progressInfo.event).to.equal('stopping_step', 'SaveStreamSettings error - ' + progressInfo.description);
+            expect(progressInfo.event).to.equal('stopping_step');
             expect(progressInfo.description).to.equal('saving_service');
             expect(progressInfo.percentage).to.equal(100);
 
             osn.NodeObs.StartSaveSettings();
 
             progressInfo = await obs.getNextProgressInfo();
-            expect(progressInfo.event).to.equal('stopping_step', 'SaveSettings error - ' + progressInfo.description);
+            expect(progressInfo.event).to.equal('stopping_step');
             expect(progressInfo.description).to.equal('saving_settings');
             expect(progressInfo.percentage).to.equal(100);
 
@@ -118,8 +118,6 @@ describe('nodeobs_autoconfig', function() {
 
             progressInfo = await obs.getNextProgressInfo();
             expect(progressInfo.event).to.equal('done');
-
-            osn.NodeObs.TerminateAutoConfig();
 
             // Checking default settings
             settingValue = obs.getSetting('Output', 'Mode');
