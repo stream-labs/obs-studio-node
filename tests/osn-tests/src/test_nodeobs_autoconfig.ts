@@ -99,7 +99,7 @@ describe('nodeobs_autoconfig', function() {
 
             progressInfo = await obs.getNextProgressInfo();
             expect(progressInfo.event).to.equal('stopping_step');
-            expect(progressInfo.description).to.equal('setting_default_settings');
+            expect(progressInfo.description).to.equal('saving_settings');
             expect(progressInfo.percentage).to.equal(100);
 
             progressInfo = await obs.getNextProgressInfo();
