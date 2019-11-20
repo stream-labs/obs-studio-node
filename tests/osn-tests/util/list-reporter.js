@@ -3,7 +3,6 @@ module.exports = ListReporter;
 
 function ListReporter(runner) {
     mocha.reporters.Base.call(this, runner);
-    var isSuite = false;
     var passes = 0;
     var failures = 0;
 
