@@ -47,7 +47,7 @@ describe('osn-sceneitem', () => {
         scene.release();
     });
 
-    it('# Get source associated with a scene item', () => {
+    it('Get source associated with a scene item', () => {
         // Getting scene
         const scene = osn.SceneFactory.fromName(sceneName);
 
@@ -75,7 +75,7 @@ describe('osn-sceneitem', () => {
         scene.release();
     });
 
-    it('# Get scene associated with a scene item', () => {
+    it('Get scene associated with a scene item', () => {
         // Getting scene
         const scene = osn.SceneFactory.fromName(sceneName);
 
@@ -104,7 +104,7 @@ describe('osn-sceneitem', () => {
         scene.release();
     });
 
-    it('# Set scene item as visible and not visible and check it', () => {
+    it('Set scene item as visible and not visible and check it', () => {
         // Getting scene
         const scene = osn.SceneFactory.fromName(sceneName);
 
@@ -134,7 +134,7 @@ describe('osn-sceneitem', () => {
         sceneItem.remove();
     });
 
-    it('# Set scene item as selected or not selected and check it', () => {
+    it('Set scene item as selected or not selected and check it', () => {
         // Getting scene
         const scene = osn.SceneFactory.fromName(sceneName);
 
@@ -164,7 +164,7 @@ describe('osn-sceneitem', () => {
         sceneItem.remove();
     });
 
-    it('# Set scene item position and get it', () => {
+    it('Set scene item position and get it', () => {
         let position: IVec2 = {x: 1,y: 2};
 
         // Getting scene
@@ -194,7 +194,7 @@ describe('osn-sceneitem', () => {
         sceneItem.remove();
     });
 
-    it('# Set scene item rotation and get it', () => {
+    it('Set scene item rotation and get it', () => {
         let rotation: number = 180;
 
         // Getting scene
@@ -223,7 +223,7 @@ describe('osn-sceneitem', () => {
         sceneItem.remove();
     });
 
-    it('# Set scene item scale and get it', () => {
+    it('Set scene item scale and get it', () => {
         let scale: IVec2 = {x: 20, y:30};
 
         // Getting scene
@@ -253,7 +253,7 @@ describe('osn-sceneitem', () => {
         sceneItem.remove();
     });
 
-    it('# Set crop value and get it', () => {
+    it('Set crop value and get it', () => {
         let crop: ICrop = {top: 5, bottom: 5, left: 3, right:3};
 
         // Getting scene
@@ -285,7 +285,7 @@ describe('osn-sceneitem', () => {
         sceneItem.remove();
     });
 
-    it('# Get scene item id', () => {
+    it('Get scene item id', () => {
         let sceneItemId: number = undefined;
 
         // Getting scene

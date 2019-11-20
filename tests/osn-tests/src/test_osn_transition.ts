@@ -23,7 +23,7 @@ describe('osn-transition', () => {
         deleteConfigFiles();
     });
 
-    it('# Create all transition types', () => {
+    it('Create all transition types', () => {
         const transitionName: string = 'test_osn_transition_create';
 
         // Create each transition type available
@@ -38,7 +38,7 @@ describe('osn-transition', () => {
         });
     });
 
-    it('# Create all transition types with settings', () => {
+    it('Create all transition types with settings', () => {
         const transitionName: string = 'test_osn_transition_create_settings';
 
         // Create each transition type availabe passing settings parameter
@@ -69,7 +69,7 @@ describe('osn-transition', () => {
         });
     });
 
-    it('# Set source, get it and clear it', () => {
+    it('Set source, get it and clear it', () => {
         let transition: ITransition;
         let scene: IScene;
         let source: ISource;
@@ -93,7 +93,7 @@ describe('osn-transition', () => {
         scene.release();         
     });
 
-    it('# FAIL TEST: Try to get source from transition without setting in to transition', () => {
+    it('Fail test - Try to get source from transition without setting in to transition', () => {
         let source: ISource;
         let transition: ITransition;
         transition = osn.TransitionFactory.create(EOBSTransitionTypes.Cut, 'transition');  
@@ -105,7 +105,7 @@ describe('osn-transition', () => {
         transition.release();
     });
 
-    it('# Start transition to scene', () => {
+    it('Start transition to scene', () => {
             let transition: ITransition;
             let scene: IScene;
             let source: ISource;

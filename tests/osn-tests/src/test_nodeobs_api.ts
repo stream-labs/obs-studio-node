@@ -21,7 +21,7 @@ describe('nodeobs_api', function() {
         deleteConfigFiles();
     });
 
-    it('# Get performance statistics', function() {
+    it('Get performance statistics', function() {
         let stats: IPerformanceState;
 
         // Getting performance statistics
@@ -35,7 +35,7 @@ describe('nodeobs_api', function() {
         expect(stats.percentageDroppedFrames).to.not.equal(undefined);
     });
 
-    it('# Get hotkeys of all sourcesand process them', function() {
+    it('Get hotkeys of all sourcesand process them', function() {
         let obsHotkeys: TOBSHotkey[];
 
         // Creating scene
@@ -120,7 +120,7 @@ describe('nodeobs_api', function() {
         scene.release();
     });
 
-    it('# Stop crash handler', function() {
+    it('Stop crash handler', function() {
         // Stopping crash handler as a last test case
         expect(function() {
             osn.NodeObs.StopCrashHandler();

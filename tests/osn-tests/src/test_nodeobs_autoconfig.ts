@@ -28,7 +28,7 @@ describe('nodeobs_autoconfig', function() {
         deleteConfigFiles();
     });
 
-    it('# Run autoconfig successfully', async function() {
+    it('Run autoconfig', async function() {
         let progressInfo: IConfigProgress;
 	    let settingValue: any;
 

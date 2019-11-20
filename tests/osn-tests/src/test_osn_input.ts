@@ -22,7 +22,7 @@ describe('osn-input', () => {
         deleteConfigFiles();
     });
 
-    it('# Create all types of input', () => {
+    it('Create all types of input', () => {
         // Create all input sources available
         obs.inputTypes.forEach(function(inputType) {
             const input = osn.InputFactory.create(inputType, 'input');
@@ -35,7 +35,7 @@ describe('osn-input', () => {
         });
     });
 
-    it('# Create all types of input with settings parameter', () => {
+    it('Create all types of input with settings parameter', () => {
         // Create all input sources available
         obs.inputTypes.forEach(function(inputType) {
             let settings: ISettings = {};
@@ -125,7 +125,7 @@ describe('osn-input', () => {
         });
     });
 
-    it('# Create an instance of an input by getting it by name', () => {
+    it('Create an instance of an input by getting it by name', () => {
         let inputFromName: IInput;
 
         obs.inputTypes.forEach(function(inputType) {
@@ -148,7 +148,7 @@ describe('osn-input', () => {
         });
     });
     
-    it('# FAIL TEST: Try to find an input that does not exist', () => {
+    it('Fail test - Try to find an input that does not exist', () => {
         let inputFromName: IInput;
 
         expect(function () {
@@ -156,7 +156,7 @@ describe('osn-input', () => {
         }).to.throw();
     });
 
-    it('# Get volume value from input source', () => {
+    it('Get volume value from input source', () => {
         let volume: number = undefined;
 
         // Creating input source
@@ -175,7 +175,7 @@ describe('osn-input', () => {
         input.release();
     });
 
-    it('# Set sync offset and get it', () => {
+    it('Set sync offset and get it', () => {
         let returnedSyncOffset: ITimeSpec;
 
         // Creating input source
@@ -197,7 +197,7 @@ describe('osn-input', () => {
         input.release();
     });
 
-    it('# Set audio mixers value and get it', () => {
+    it('Set audio mixers value and get it', () => {
         let returnedAudioMixers: number;
 
         // Creating input source
@@ -219,7 +219,7 @@ describe('osn-input', () => {
         input.release();
     });
 
-    it('# Set audio mixers value and get it', () => {
+    it('Set audio mixers value and get it', () => {
         let returnedMonitoringType: osn.EMonitoringType;
 
         // Creating input source
@@ -241,7 +241,7 @@ describe('osn-input', () => {
         input.release();
     });
 
-    it('# Add video filter to video sources', () => {
+    it('Add video filter to video sources', () => {
         let videoFilters: string[] = [];
         let addedFilters: string[] = [];
 
@@ -329,7 +329,7 @@ describe('osn-input', () => {
         });
     });
 
-    it('# Add async filters to async sources', () => {
+    it('Add async filters to async sources', () => {
         let asyncFilters: string[] = [];
         let addedFilters: osn.ESourceType[] = [];
 
@@ -388,7 +388,7 @@ describe('osn-input', () => {
         });
     });
 
-    it('# Add audio filters to audio sources', () => {
+    it('Add audio filters to audio sources', () => {
         let audioFilters: string[] = [];
         let addedFilters: osn.ESourceType[] = [];
 
@@ -447,7 +447,7 @@ describe('osn-input', () => {
         });
     });
 
-    it('# Change the order of filters in the list', () => {
+    it('Change the order of filters in the list', () => {
         // Creating source
         const input = osn.InputFactory.create('game_capture', 'test_source');
         

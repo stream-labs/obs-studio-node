@@ -21,7 +21,7 @@ describe('osn-scene', () => {
         deleteConfigFiles();
     });
 
-    it('# Create scene', () => {
+    it('Create scene', () => {
         // Creating scene
         const scene = osn.SceneFactory.create('create_test'); 
 
@@ -33,7 +33,7 @@ describe('osn-scene', () => {
         scene.release();
     });
 
-    it('# Duplicate scene', () => {
+    it('Duplicate scene', () => {
         // Creating scene
         const scene = osn.SceneFactory.create('duplicate_test'); 
 
@@ -55,7 +55,7 @@ describe('osn-scene', () => {
         duplicatedScene.release();
     });
 
-    it('# Get scene from name', () => {
+    it('Get scene from name', () => {
         // Creating scene
         const scene = osn.SceneFactory.create('fromName_test'); 
 
@@ -76,13 +76,13 @@ describe('osn-scene', () => {
         scene.release();
     });
 
-    it('# FAIL TEST: Get scene from name that don\'t exist ', () => {
+    it('Fail test - Get scene from name that don\'t exist ', () => {
         expect(function() {
             const failSceneFromName = osn.SceneFactory.fromName('does_not_exist');
         }).to.throw();
     });
 
-    it('# Add all source types (including scene as source) to scene', () => {
+    it('Add all source types (including scene as source) to scene', () => {
         // Creating scene
         const scene = osn.SceneFactory.create('addSource_test'); 
 
@@ -132,7 +132,7 @@ describe('osn-scene', () => {
         scene.release();
     });
 
-    it('# Find scene item by id', () => {
+    it('Find scene item by id', () => {
         // Creating scene
         const scene = osn.SceneFactory.create('findItem_test'); 
 
@@ -169,7 +169,7 @@ describe('osn-scene', () => {
         scene.release();
     });
 
-    it('# FAIL TEST: Try to find scene that don\'t exist', () => {
+    it('Fail test - Try to find scene that don\'t exist', () => {
         // Creating scene
         const scene = osn.SceneFactory.create('findItem_fail_test'); 
 
@@ -186,7 +186,7 @@ describe('osn-scene', () => {
         scene.release();
     });
 
-    it('# Get all scene items in a scene', () => {
+    it('Get all scene items in a scene', () => {
         // Creating scene
         const scene = osn.SceneFactory.create('getItems_test'); 
 
@@ -249,7 +249,7 @@ describe('osn-scene', () => {
         scene.release();
     });
 
-    it('# FAIL TEST: Try to access out of bounds', () => {
+    it('Fail test - Try to access out of bounds', () => {
         // Creating scene
         const scene = osn.SceneFactory.create('outOfBounds_test'); 
 

@@ -20,7 +20,7 @@ describe('osn-video', () => {
         deleteConfigFiles();
     });
 
-    it('# Get skipped frames value', () => {
+    it('Get skipped frames value', () => {
         // Getting skipped frames
         const skippedFrames = osn.Video.skippedFrames;
 
@@ -29,7 +29,7 @@ describe('osn-video', () => {
         expect(skippedFrames).to.equal(0);
     });
 
-    it('# Get total frames value', () => {
+    it('Get total frames value', () => {
         // Getting total frames value
         const totalFrames = osn.Video.encodedFrames;
 

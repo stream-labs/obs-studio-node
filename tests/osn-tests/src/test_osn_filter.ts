@@ -22,7 +22,7 @@ describe('osn-filter', () => {
         deleteConfigFiles();
     });
 
-    it('# Create all filter types', () => {
+    it('Create all filter types', () => {
         // Create each filter type available
         obs.filterTypes.forEach(function(filterType) {
             const filter = osn.FilterFactory.create(filterType, 'filter');
@@ -35,7 +35,7 @@ describe('osn-filter', () => {
         });
     });
 
-    it('# Create all filter types with settings', () => {
+    it('Create all filter types with settings', () => {
         
         // Create each filter type availabe passing settings parameter
         obs.filterTypes.forEach(function(filterType) {

@@ -20,7 +20,7 @@ describe('nodeobs_settings', function() {
         deleteConfigFiles();
     });
 
-    it('# Get and set general settings', function() {
+    it('Get and set general settings', function() {
         // Getting general settings
         let generalSettings = osn.NodeObs.OBS_settings_getSettings('General').data;
 
@@ -49,7 +49,7 @@ describe('nodeobs_settings', function() {
         expect(generalSettings).to.eql(updatedGeneralSettings);
     });
 
-    it('# Get and set stream settings', function() {
+    it('Get and set stream settings', function() {
         let availableServices: string[] = [];
         let settings = osn.NodeObs.OBS_settings_getSettings('Stream').data;
 
@@ -123,7 +123,7 @@ describe('nodeobs_settings', function() {
         });
     });
 
-    it('# Get and set simple output settings', function() {
+    it('Get and set simple output settings', function() {
         // Setting output mode to simple
         let setToSimple = osn.NodeObs.OBS_settings_getSettings('Output').data;
 
@@ -398,7 +398,7 @@ describe('nodeobs_settings', function() {
         expect(losslessQualityOutputSettings).to.eql(updatedLosslessOutputSettings);
     });
 
-    it('# Get and set QSV encoder streaming and recording advanced output settings', function() {
+    it('Get and set QSV encoder streaming and recording advanced output settings', function() {
         let availableEncoders: string[] = [];
 
         // Setting output mode to advanced
@@ -1196,7 +1196,7 @@ describe('nodeobs_settings', function() {
         }
     });
 
-    it('# Get and set x264 encoder streaming and recording advanced output settings', function() {
+    it('Get and set x264 encoder streaming and recording advanced output settings', function() {
         let availableEncoders: string[] = [];
 
         // Setting output mode to advanced
@@ -1702,7 +1702,7 @@ describe('nodeobs_settings', function() {
         }
     });
 
-    it('# Get and set NVENC encoder streaming and recording advanced output settings', function() {
+    it('Get and set NVENC encoder streaming and recording advanced output settings', function() {
         let availableEncoders: string[] = [];
 
         // Setting output mode to advanced
@@ -2131,7 +2131,7 @@ describe('nodeobs_settings', function() {
         }
     });
 
-    it('# Get and set New NVENC encoder streaming and recording advanced output settings', function() {
+    it('Get and set New NVENC encoder streaming and recording advanced output settings', function() {
         let availableEncoders: string[] = [];
 
         // Setting output mode to advanced
@@ -2564,7 +2564,7 @@ describe('nodeobs_settings', function() {
         }
     });
 
-    it('# Get and set audio tracks and replay buffer advanced output settings', function() {
+    it('Get and set audio tracks and replay buffer advanced output settings', function() {
         // Setting output mode to advanced
         let setToAdvanced = osn.NodeObs.OBS_settings_getSettings('Output').data;
 
@@ -2660,7 +2660,7 @@ describe('nodeobs_settings', function() {
         expect(audioTrackReplayBufferSettings).to.eql(updatedSettings);
     });
 
-    it('# Get and set video settings', function() {
+    it('Get and set video settings', function() {
         // Setting base resolution to 1920x1080 and FPS type to common
         let set1080pAndCommonFPS = osn.NodeObs.OBS_settings_getSettings('Video').data;
 
@@ -2818,7 +2818,7 @@ describe('nodeobs_settings', function() {
         expect(fractionalFPSVideoSettings).to.eql(updatedFractionalFPSVideoSettings);
     });
 
-    it('# Get and set advanced settings', function() {
+    it('Get and set advanced settings', function() {
         // Getting advanced settings container
         let advancedSettings = osn.NodeObs.OBS_settings_getSettings('Advanced').data;
 
@@ -2910,7 +2910,7 @@ describe('nodeobs_settings', function() {
         expect(advancedSettings).to.eql(updatedAdvancedSettings);
     });
 
-    it('# Get all settings categories', function() {
+    it('Get all settings categories', function() {
         // Getting categories list
         const categories = osn.NodeObs.OBS_settings_getListCategories();
 

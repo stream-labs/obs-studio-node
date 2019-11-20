@@ -22,7 +22,7 @@ describe('osn-module', () => {
         deleteConfigFiles();
     });
 
-    it('# Open all module types and initialize them', () => {
+    it('Open all module types and initialize them', () => {
         let moduleTypes: string[] = [];
 
         fs.readdirSync(path.join(path.normalize(osn.DefaultPluginPath), '64bit')).forEach(file => {

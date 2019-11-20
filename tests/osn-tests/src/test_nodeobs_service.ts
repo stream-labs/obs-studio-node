@@ -707,7 +707,7 @@ describe('nodeobs_service', function() {
         expect(signalInfo.code).to.equal(-4);
     });
 
-    it('Record with invalid path', async function() {
+    it('Fail test - Advanced mode - Record with invalid path', async function() {
         // Preparing environment
         obs.setSetting('Output', 'Mode', 'Advanced');
         obs.setSetting('Output', 'Encoder', 'obs_x264');
@@ -724,7 +724,7 @@ describe('nodeobs_service', function() {
         expect(signalInfo.code).to.equal(-4);
     });
 
-    it('Start replay buffer with invalid path', async function() {
+    it('Fail test - Advanced mode - Start replay buffer with invalid path', async function() {
         // Preparing environment
         obs.setSetting('Output', 'Mode', 'Advanced');
         obs.setSetting('Output', 'Encoder', 'obs_x264');
@@ -753,13 +753,13 @@ describe('nodeobs_service', function() {
         expect(signalInfo.code).to.equal(-4);
     });
 
-    it('# Reset video context', function() {
+    it('Reset video context', function() {
         expect(function() {
             osn.NodeObs.OBS_service_resetVideoContext();
         }).to.not.throw();
     });
 
-    it('# Reset audio context', function() {
+    it('Reset audio context', function() {
         expect(function() {
             osn.NodeObs.OBS_service_resetAudioContext();
         }).to.not.throw();

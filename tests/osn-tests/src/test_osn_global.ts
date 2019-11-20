@@ -21,7 +21,7 @@ describe('osn-global', () => {
         deleteConfigFiles();
     });
 
-    it('# Set source to output channel and get it', () => {
+    it('Set source to output channel and get it', () => {
         // Creating input source
         const input = osn.InputFactory.create('image_source', 'test_osn_global_source');
 
@@ -43,7 +43,7 @@ describe('osn-global', () => {
         input.release();
     });
     
-    it('# FAIL TEST: Get source from empty output channel', () => {
+    it('Fail test - Get source from empty output channel', () => {
         let input: ISource;
 
         // Trying to get source from empty channel
@@ -52,7 +52,7 @@ describe('osn-global', () => {
         expect(input).to.equal(undefined);
     });
 
-    it('# Get flags (capabilities) of a source type', () => {
+    it('Get flags (capabilities) of a source type', () => {
         let flags: number = undefined;
 
         // For each input type available get their flags and check if they are not undefined
@@ -64,7 +64,7 @@ describe('osn-global', () => {
     });
 
 
-    it('# Get lagged frames value', () => {
+    it('Get lagged frames value', () => {
         let laggedFrames: number = undefined;
 
         // Getting lagged frames value
@@ -74,7 +74,7 @@ describe('osn-global', () => {
         expect(laggedFrames).to.not.equal(undefined);
     });
 
-    it('# Get total frames value', () => {
+    it('Get total frames value', () => {
         let totalFrames: number = undefined;
 
         // Getting total frames value
@@ -84,7 +84,7 @@ describe('osn-global', () => {
         expect(totalFrames).to.not.equal(undefined);
     });
 
-    it('# Set locale and get it', () => {
+    it('Set locale and get it', () => {
         let locale: string;
 
         // Setting locale

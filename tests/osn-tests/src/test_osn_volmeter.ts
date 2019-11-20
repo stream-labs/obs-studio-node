@@ -37,59 +37,59 @@ describe('osn-volmeter', () => {
         deleteConfigFiles();
     });
 
-        it('# Create volmeter and attach it to a audio source', () => {
-            // Creating audio source
-            const input = osn.InputFactory.create(EOBSInputTypes.WASAPIInput, 'input');
+    it('Create volmeter and attach it to a audio source', () => {
+        // Creating audio source
+        const input = osn.InputFactory.create(EOBSInputTypes.WASAPIInput, 'input');
 
-            // Checking if input source was created correctly
-            expect(input).to.not.equal(undefined);
-            expect(input.id).to.equal(EOBSInputTypes.WASAPIInput);
-            expect(input.name).to.equal('input');
+        // Checking if input source was created correctly
+        expect(input).to.not.equal(undefined);
+        expect(input.id).to.equal(EOBSInputTypes.WASAPIInput);
+        expect(input.name).to.equal('input');
 
-            // Creating volmeter
-            const volmeter = osn.VolmeterFactory.create(osn.EFaderType.IEC);
+        // Creating volmeter
+        const volmeter = osn.VolmeterFactory.create(osn.EFaderType.IEC);
 
-            // Checking if volmeter was created correctly
-            expect(volmeter).to.not.equal(undefined);
+        // Checking if volmeter was created correctly
+        expect(volmeter).to.not.equal(undefined);
 
-            // Attach volmeter to input source
-            expect(function() {
-                volmeter.attach(input);
-            }).to.not.throw();
-
-            input.release();
-        });
-
-        it('# Add callback to volmeter and remove it', () => {
-            // Creating audio source
-            const input = osn.InputFactory.create(EOBSInputTypes.WASAPIInput, 'input');
-
-            // Checking if input source was created correctly
-            expect(input).to.not.equal(undefined);
-            expect(input.id).to.equal(EOBSInputTypes.WASAPIInput);
-            expect(input.name).to.equal('input');
-
-            // Creating volmeter
-            const volmeter = osn.VolmeterFactory.create(osn.EFaderType.IEC);
-
-            // Checking if volmeter was created correctly
-            expect(volmeter).to.not.equal(undefined);
-
-            // Attaching volmeter to source
+        // Attach volmeter to input source
+        expect(function() {
             volmeter.attach(input);
+        }).to.not.throw();
 
-            // Adding callback to volmeter
-            const cb = volmeter.addCallback((magnitude: number[], peak: number[], inputPeak: number[]) => {});
+        input.release();
+    });
 
-            // Checking if callback was added correctly
-            expect(cb).to.not.equal(undefined);
+    it('Add callback to volmeter and remove it', () => {
+        // Creating audio source
+        const input = osn.InputFactory.create(EOBSInputTypes.WASAPIInput, 'input');
 
-            // Removing callback from volmeter
-            const rmResult = volmeter.removeCallback(cb);
+        // Checking if input source was created correctly
+        expect(input).to.not.equal(undefined);
+        expect(input.id).to.equal(EOBSInputTypes.WASAPIInput);
+        expect(input.name).to.equal('input');
 
-            // Checking if callback was removed correctly
-            expect(rmResult).to.equal(true)
+        // Creating volmeter
+        const volmeter = osn.VolmeterFactory.create(osn.EFaderType.IEC);
 
-            input.release();
-        });
+        // Checking if volmeter was created correctly
+        expect(volmeter).to.not.equal(undefined);
+
+        // Attaching volmeter to source
+        volmeter.attach(input);
+
+        // Adding callback to volmeter
+        const cb = volmeter.addCallback((magnitude: number[], peak: number[], inputPeak: number[]) => {});
+
+        // Checking if callback was added correctly
+        expect(cb).to.not.equal(undefined);
+
+        // Removing callback from volmeter
+        const rmResult = volmeter.removeCallback(cb);
+
+        // Checking if callback was removed correctly
+        expect(rmResult).to.equal(true)
+
+        input.release();
+    });
 });

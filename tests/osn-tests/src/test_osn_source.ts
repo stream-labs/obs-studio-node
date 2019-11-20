@@ -22,7 +22,7 @@ describe('osn-source', () => {
         deleteConfigFiles();
     });
 
-    it('# Get all osn-source info from all input types', () => {
+    it('Get all osn-source info from all input types', () => {
         obs.inputTypes.forEach(function(inputType) {
             // Creating input source
             const input = osn.InputFactory.create(inputType, 'input');
@@ -72,7 +72,7 @@ describe('osn-source', () => {
         });
     });
 
-    it('# Get all osn-source info from all filter types', () => {
+    it('Get all osn-source info from all filter types', () => {
         obs.filterTypes.forEach(function(filterType) {
             // Creating filter
             const filter = osn.FilterFactory.create(filterType, 'filter');
@@ -122,7 +122,7 @@ describe('osn-source', () => {
         });
     });
 
-    it('# Get all osn-source info from all transition types', () => {
+    it('Get all osn-source info from all transition types', () => {
         obs.transitionTypes.forEach(function(transitionType) {
             // Creating transition
             const transition = osn.FilterFactory.create(transitionType, 'transition');
@@ -172,7 +172,7 @@ describe('osn-source', () => {
         });
     });
 
-    it('# Get all osn-source info of a scene', () => {
+    it('Get all osn-source info of a scene', () => {
         // Creating scene
         const scene = osn.SceneFactory.create('test_osn_scene'); 
 
@@ -220,7 +220,7 @@ describe('osn-source', () => {
         scene.release();
     });
 
-    it('# Update settings of all inputs', () => {
+    it('Update settings of all inputs', () => {
         let settings: ISettings = {};
 
         obs.inputTypes.forEach(function(inputType) {
@@ -326,7 +326,7 @@ describe('osn-source', () => {
         });
     });
 
-    it('# Update settings of all filters', () => {
+    it('Update settings of all filters', () => {
         let settings: ISettings = {};
 
         obs.filterTypes.forEach(function(filterType) {
@@ -447,7 +447,7 @@ describe('osn-source', () => {
         });
     });
 
-    it('# Update settings of all transitions', () => {
+    it('Update settings of all transitions', () => {
         let settings: ISettings = {};
 
         obs.transitionTypes.forEach(function(transitionType) {
@@ -493,7 +493,7 @@ describe('osn-source', () => {
         });
     });
 
-    it('# Set flags and get them for all input source types', () => {
+    it('Set flags and get them for all input source types', () => {
         obs.inputTypes.forEach(function(inputType) {
             // Creating input source
             const input = osn.InputFactory.create(inputType, 'input');
@@ -517,7 +517,7 @@ describe('osn-source', () => {
         });
     });
 
-    it('# Set muted and get it for all input source types', () => {
+    it('Set muted and get it for all input source types', () => {
         obs.inputTypes.forEach(function(inputType) {
             // Creating input source
             const input = osn.InputFactory.create(inputType, 'input');
@@ -541,7 +541,7 @@ describe('osn-source', () => {
         });
     });
 
-    it('# Set enabled and get it for all filter types', () => {
+    it('Set enabled and get it for all filter types', () => {
         obs.filterTypes.forEach(function(filterType) {
             // Creating filter
             const filter = osn.FilterFactory.create(filterType, 'filter');

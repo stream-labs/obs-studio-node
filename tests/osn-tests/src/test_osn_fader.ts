@@ -20,7 +20,7 @@ describe('osn-fader', () => {
         deleteConfigFiles();
     });
 
-    it('# Create cubic fader and attach it to a audio source', () => {
+    it('Create cubic fader and attach it to a audio source', () => {
         // Creating audio source
         const input = osn.InputFactory.create('wasapi_input_capture', 'input');
 
@@ -43,7 +43,7 @@ describe('osn-fader', () => {
         input.release();
     });
 
-    it('# Create IEC fader and attach it to a audio source', () => {
+    it('Create IEC fader and attach it to a audio source', () => {
         // Creating audio source
         const input = osn.InputFactory.create('wasapi_input_capture', 'input');
 
@@ -66,7 +66,7 @@ describe('osn-fader', () => {
         input.release();
     });
 
-    it('# Create logarithmic fader and attach it to a audio source', () => {
+    it('Create logarithmic fader and attach it to a audio source', () => {
         // Creating audio source
         const input = osn.InputFactory.create('wasapi_input_capture', 'input');
 
@@ -89,7 +89,7 @@ describe('osn-fader', () => {
         input.release();
     });
 
-    it('# Get decibel, deflection and multiplier values', () => {
+    it('Get decibel, deflection and multiplier values', () => {
         let faderTypes: osn.EFaderType[] = [osn.EFaderType.Cubic, osn.EFaderType.IEC, osn.EFaderType.Log];
 
         faderTypes.forEach(function(faderType) {
