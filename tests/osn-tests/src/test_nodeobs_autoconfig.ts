@@ -102,20 +102,6 @@ describe('nodeobs_autoconfig', function() {
             expect(progressInfo.description).to.equal('setting_default_settings');
             expect(progressInfo.percentage).to.equal(100);
 
-            osn.NodeObs.StartSaveStreamSettings();
-
-            progressInfo = await obs.getNextProgressInfo();
-            expect(progressInfo.event).to.equal('stopping_step');
-            expect(progressInfo.description).to.equal('saving_service');
-            expect(progressInfo.percentage).to.equal(100);
-
-            osn.NodeObs.StartSaveSettings();
-
-            progressInfo = await obs.getNextProgressInfo();
-            expect(progressInfo.event).to.equal('stopping_step');
-            expect(progressInfo.description).to.equal('saving_settings');
-            expect(progressInfo.percentage).to.equal(100);
-
             progressInfo = await obs.getNextProgressInfo();
             expect(progressInfo.event).to.equal('done');
 
