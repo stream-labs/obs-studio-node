@@ -3,6 +3,7 @@ module.exports = ListReporter;
 
 function ListReporter(runner) {
     mocha.reporters.Base.call(this, runner);
+    var isSuite = false;
     var passes = 0;
     var failures = 0;
 
@@ -12,12 +13,12 @@ function ListReporter(runner) {
 
     runner.on('pass', function(test) {
         passes++;
-        console.log('%s: %s pass %dms', test.parent.title, test.title, test.duration);
+        console.log('%s: %s [PASS] %dms', test.parent.title, test.title, test.duration);
     });
 
     runner.on('fail', function(test, err) {
         failures++;
-        console.log('fail: %s -- error: %s', test.fullTitle(), err.message);
+        console.log('%s: %s [FAIL] Error: %s',test.parent.title, test.title, err.message);
     });
 
     runner.on('end', function() {
