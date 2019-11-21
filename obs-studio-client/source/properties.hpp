@@ -204,6 +204,9 @@ namespace osn
 		std::shared_ptr<property_map_t> properties;
 		v8::Persistent<v8::Object>      owner;
 
+		protected:
+		static Nan::Persistent<v8::FunctionTemplate> prototype;
+
 		public:
 		Properties();
 		Properties(property_map_t container);
@@ -229,6 +232,9 @@ namespace osn
 	{
 		v8::Persistent<v8::Object> parent;
 		size_t                     index;
+
+		protected:
+		static Nan::Persistent<v8::FunctionTemplate> prototype;
 
 		public:
 		PropertyObject(v8::Local<v8::Object> parent, size_t index);

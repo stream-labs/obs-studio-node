@@ -24,6 +24,8 @@
 #include "isource.hpp"
 #include "shared.hpp"
 
+Nan::Persistent<v8::FunctionTemplate> osn::Fader::prototype;
+
 osn::Fader::Fader(uint64_t uid)
 {
 	this->uid = uid;
@@ -59,6 +61,7 @@ void osn::Fader::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 
 	// Stuff
 	utilv8::SetObjectField(target, "Fader", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
+	prototype.Reset(fnctemplate);
 }
 
 void osn::Fader::Create(Nan::NAN_METHOD_ARGS_TYPE info)

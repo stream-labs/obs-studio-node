@@ -20,6 +20,9 @@
 #include "isource.hpp"
 #include "utility-v8.hpp"
 
+Nan::Persistent<v8::FunctionTemplate> osn::Properties::prototype;
+Nan::Persistent<v8::FunctionTemplate> osn::PropertyObject::prototype;
+
 osn::Properties::Properties()
 {
 	properties = std::make_shared<property_map_t>();
@@ -66,6 +69,7 @@ void osn::Properties::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 
 	utilv8::SetObjectField(
 	    target, "Properties", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
+	prototype.Reset(fnctemplate);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Properties::Count(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -173,6 +177,7 @@ void osn::PropertyObject::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target
 
 	utilv8::SetObjectField(
 	    target, "Property", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
+	prototype.Reset(fnctemplate);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Previous(Nan::NAN_METHOD_ARGS_TYPE info)

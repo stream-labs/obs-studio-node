@@ -25,6 +25,7 @@
 #include "utility.hpp"
 
 osn::ISource*                         sourceObject;
+Nan::Persistent<v8::FunctionTemplate> osn::ISource::prototype;
 
 osn::ISource::~ISource() {}
 
@@ -62,6 +63,7 @@ void osn::ISource::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	
 	utilv8::SetObjectField(
 	    target, "Source", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
+	prototype.Reset(fnctemplate);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Release(Nan::NAN_METHOD_ARGS_TYPE info)

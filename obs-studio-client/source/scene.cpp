@@ -28,6 +28,8 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
+Nan::Persistent<v8::FunctionTemplate> osn::Scene::prototype;
+
 osn::Scene::Scene(uint64_t id)
 {
 	this->sourceId = id;
@@ -36,7 +38,7 @@ osn::Scene::Scene(uint64_t id)
 void osn::Scene::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
-//	fnctemplate->Inherit(Nan::New<v8::FunctionTemplate>(osn::ISource::prototype));
+	fnctemplate->Inherit(Nan::New<v8::FunctionTemplate>(osn::ISource::prototype));
 	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
 	fnctemplate->SetClassName(Nan::New<v8::String>("Scene").ToLocalChecked());
 
@@ -64,6 +66,7 @@ void osn::Scene::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	// Stuff
 	utilv8::SetObjectField(
 	    target, "Scene", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
+	prototype.Reset(fnctemplate);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Create(Nan::NAN_METHOD_ARGS_TYPE info)

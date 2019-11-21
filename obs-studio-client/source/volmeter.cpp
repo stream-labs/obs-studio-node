@@ -27,6 +27,8 @@
 #include "utility-v8.hpp"
 #include "utility.hpp"
 
+Nan::Persistent<v8::FunctionTemplate> osn::VolMeter::prototype;
+
 osn::VolMeter::VolMeter(uint64_t p_uid)
 {
 	m_uid = p_uid;
@@ -191,6 +193,7 @@ void osn::VolMeter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	// Stuff
 	utilv8::SetObjectField(
 	    target, "Volmeter", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
+	prototype.Reset(fnctemplate);
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Create(Nan::NAN_METHOD_ARGS_TYPE info)

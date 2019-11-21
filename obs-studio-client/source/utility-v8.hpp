@@ -567,10 +567,10 @@ namespace utilv8
 		public:
 		static v8::Local<v8::Object> Store(T* object)
 		{
-//			auto obj =
-//			    Nan::NewInstance(T::prototype.Get(v8::Isolate::GetCurrent())->InstanceTemplate()).ToLocalChecked();
-//			object->Wrap(obj);
-//			return obj;
+			auto obj =
+			    Nan::NewInstance(T::prototype.Get(v8::Isolate::GetCurrent())->InstanceTemplate()).ToLocalChecked();
+			object->Wrap(obj);
+			return obj;
 		}
 	};
 
