@@ -53,18 +53,17 @@ jobs:
     inputs:
       rootFolderOrFile: $(Build.SourcesDirectory)\tests\osn-tests\osnData\slobs-client
       includeRootFolder: true
-      archiveType: tar
       tarCompression: 7z
       archiveFile: 'tests-osn-cache-$(ReleaseName).7z'
     displayName: 'Compress tests cache folder'
-    condition: always()
+    condition: failed()
 
   - task: PublishBuildArtifacts@1
     inputs: 
       pathtoPublish: tests-osn-cache-$(ReleaseName).7z
       artifactName: tests-osn-cache-$(ReleaseName).7z
     displayName: 'Publish build artifact'
-    condition: always()
+    condition: failed()
 
   - script: ./ci/copy-files.cmd
     displayName: 'Copy necessary dll files'
@@ -181,18 +180,17 @@ jobs:
     inputs:
       rootFolderOrFile: $(Build.SourcesDirectory)\tests\osn-tests\osnData\slobs-client
       includeRootFolder: true
-      archiveType: tar
       tarCompression: 7z
       archiveFile: 'tests-osn-cache-$(ReleaseName).7z'
     displayName: 'Compress tests cache folder'
-    condition: always()
+    condition: failed()
 
   - task: PublishBuildArtifacts@1
     inputs: 
       pathtoPublish: tests-osn-cache-$(ReleaseName).7z
       artifactName: tests-osn-cache-$(ReleaseName).7z
     displayName: 'Publish build artifact'
-    condition: always()
+    condition: failed()
 
   - script: ./ci/copy-files.cmd
     displayName: 'Copy necessary dll files'
