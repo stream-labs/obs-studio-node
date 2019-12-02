@@ -1,18 +1,22 @@
 import 'mocha';
-import { expect } from 'chai';
 import * as osn from '../osn';
+import { expect } from 'chai';
+import { logInfo, logEmptyLine } from '../util/logger';
 import { ISettings } from '../osn';
 import { OBSHandler } from '../util/obs_handler';
 import { EOBSInputTypes, EOBSFilterTypes, EOBSTransitionTypes } from '../util/obs_enums'
 import { deleteConfigFiles } from '../util/general';
 
-describe('osn-source', () => {
+const testName = 'osn-source';
+
+describe(testName, () => {
     let obs: OBSHandler;
 
     // Initialize OBS process
     before(function() {
+        logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
-        obs = new OBSHandler();
+        obs = new OBSHandler(testName);
     });
 
     // Shutdown OBS process
@@ -20,6 +24,8 @@ describe('osn-source', () => {
         obs.shutdown();
         obs = null;
         deleteConfigFiles();
+        logInfo(testName, 'Finished ' + testName + ' tests');
+        logEmptyLine();
     });
 
     it('Get all osn-source info from all input types', () => {

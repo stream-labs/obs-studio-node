@@ -1,17 +1,21 @@
-import 'mocha'
-import { expect } from 'chai'
+import 'mocha';
 import * as osn from '../osn';
+import { expect } from 'chai';
+import { logInfo, logEmptyLine } from '../util/logger';
 import { OBSHandler, IPerformanceState, TOBSHotkey } from '../util/obs_handler';
 import { showHideInputHotkeys, slideshowHotkeys, ffmpeg_sourceHotkeys,
     game_captureHotkeys, dshow_wasapitHotkeys, deleteConfigFiles } from '../util/general';
 
-describe('nodeobs_api', function() {
+const testName = 'nodeobs_api';
+
+describe(testName, function() {
     let obs: OBSHandler;
     
     // Initialize OBS process
     before(function() {
+        logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
-        obs = new OBSHandler();
+        obs = new OBSHandler(testName);
     });
 
     // Shutdown OBS process
@@ -19,6 +23,8 @@ describe('nodeobs_api', function() {
         obs.shutdown();
         obs = null;
         deleteConfigFiles();
+        logInfo(testName, 'Finished ' + testName + ' tests');
+        logEmptyLine();
     });
 
     it('Get performance statistics', function() {

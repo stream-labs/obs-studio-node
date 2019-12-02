@@ -1,17 +1,21 @@
-import 'mocha'
-import { expect } from 'chai'
+import 'mocha';
 import * as osn from '../osn';
+import { expect } from 'chai';
+import { logInfo, logEmptyLine } from '../util/logger';
 import { IInput, ISource } from '../osn';
 import { OBSHandler } from '../util/obs_handler';
 import { deleteConfigFiles } from '../util/general';
 
-describe('osn-global', () => {
+const testName = 'osn-global';
+
+describe(testName, () => {
     let obs: OBSHandler;
     
     // Initialize OBS process
     before(function() {
+        logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
-        obs = new OBSHandler();
+        obs = new OBSHandler(testName);
     });
 
     // Shutdown OBS process
@@ -19,6 +23,8 @@ describe('osn-global', () => {
         obs.shutdown();
         obs = null;
         deleteConfigFiles();
+        logInfo(testName, 'Finished ' + testName + ' tests');
+        logEmptyLine();
     });
 
     it('Set source to output channel and get it', () => {

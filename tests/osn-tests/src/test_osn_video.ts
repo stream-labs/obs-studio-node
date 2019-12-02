@@ -1,16 +1,20 @@
 import 'mocha';
-import { expect } from 'chai';
 import * as osn from '../osn';
+import { expect } from 'chai';
+import { logInfo, logEmptyLine } from '../util/logger';
 import { OBSHandler } from '../util/obs_handler';
 import { deleteConfigFiles } from '../util/general';
 
-describe('osn-video', () => {
+const testName = 'osn-video';
+
+describe(testName, () => {
     let obs: OBSHandler;
 
     // Initialize OBS process
     before(function() {
+        logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
-        obs = new OBSHandler();
+        obs = new OBSHandler(testName);
     });
 
     // Shutdown OBS process
@@ -18,6 +22,8 @@ describe('osn-video', () => {
         obs.shutdown();
         obs = null;
         deleteConfigFiles();
+        logInfo(testName, 'Finished ' + testName + ' tests');
+        logEmptyLine();
     });
 
     it('Get skipped frames value', () => {

@@ -1,17 +1,21 @@
 import 'mocha';
-import { expect } from 'chai';
 import * as osn from '../osn';
+import { expect } from 'chai';
+import { logInfo, logEmptyLine } from '../util/logger';
 import { OBSHandler, IOBSOutputSignalInfo } from '../util/obs_handler';
 import { deleteConfigFiles, sleep } from '../util/general';
 import { EOBSOutputType, EOBSOutputSignal } from '../util/obs_enums';
 
-describe('nodeobs_service', function() {
+const testName = 'nodeobs_service';
+
+describe(testName, function() {
     let obs: OBSHandler;
     const path = require('path');
 
     before(async function() {
+        logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
-        obs = new OBSHandler();
+        obs = new OBSHandler(testName);
 
         // Reserving user from pool
         await obs.reserveUser();
@@ -29,6 +33,8 @@ describe('nodeobs_service', function() {
         obs = null;
 
         deleteConfigFiles();
+        logInfo(testName, 'Finished ' + testName + ' tests');
+        logEmptyLine();
     });
 
     it('Simple mode - Start and stop streaming', async function() {

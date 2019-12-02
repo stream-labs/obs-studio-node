@@ -1,19 +1,23 @@
 import 'mocha';
-import { expect } from 'chai';
 import * as osn from '../osn';
+import { expect } from 'chai';
+import { logInfo, logEmptyLine } from '../util/logger';
 import { OBSHandler, IVec2, ICrop } from '../util/obs_handler';
 import { EOBSInputTypes } from '../util/obs_enums'
 import { deleteConfigFiles } from '../util/general';
 
-describe('osn-sceneitem', () => {
+const testName = 'osn-sceneitem';
+
+describe(testName, () => {
     let obs: OBSHandler;
     let sceneName: string = 'test_scene';
     let sourceName: string = 'test_source';
 
     // Initialize OBS process
     before(function() {
+        logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
-        obs = new OBSHandler();
+        obs = new OBSHandler(testName);
     });
 
     // Shutdown OBS process
@@ -21,6 +25,8 @@ describe('osn-sceneitem', () => {
         obs.shutdown();
         obs = null;
         deleteConfigFiles();
+        logInfo(testName, 'Finished ' + testName + ' tests');
+        logEmptyLine();
     });
 
     beforeEach(function() {
