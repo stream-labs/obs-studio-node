@@ -1,5 +1,6 @@
 import 'mocha';
 import * as osn from '../osn';
+import * as logger from '../util/logger';
 import * as path from 'path';
 import * as fs from 'fs';
 import { expect } from 'chai';
@@ -14,7 +15,7 @@ describe(testName, () => {
 
     // Initialize OBS process
     before(function() {
-        logInfo(testName, 'Starting ' + testName + ' tests');
+        logger.logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
         obs = new OBSHandler(testName);
     });
@@ -24,8 +25,8 @@ describe(testName, () => {
         obs.shutdown();
         obs = null;
         deleteConfigFiles();
-        logInfo(testName, 'Finished ' + testName + ' tests');
-        logEmptyLine();
+        logger.logInfo(testName, 'Finished ' + testName + ' tests');
+        logger.logEmptyLine();
     });
 
     it('Open all module types and initialize them', () => {

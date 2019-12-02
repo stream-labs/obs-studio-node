@@ -1,6 +1,6 @@
 import * as osn from '../osn';
+import * as logger from '../util/logger';
 import { Services } from '../util/services';
-import { logInfo, logWarning } from '../util/logger';
 import { EOBSOutputType, EOBSOutputSignal} from '../util/obs_enums'
 import { Subject } from 'rxjs';
 import { first } from 'rxjs/operators';
@@ -83,7 +83,7 @@ export class OBSHandler {
     }
 
     startup() {
-        logInfo(this.osnTestName, 'Initializing OBS');
+        logger.logInfo(this.osnTestName, 'Initializing OBS');
 
         try {
             osn.NodeObs.IPC.host(this.pipeName);
@@ -97,11 +97,11 @@ export class OBSHandler {
             throw Error('Exception when initializing OBS process' + e);
         }
 
-        logInfo(this.osnTestName, 'OBS started successfully')
+        logger.logInfo(this.osnTestName, 'OBS started successfully')
     }
 
     shutdown() {
-        logInfo(this.osnTestName, 'Shutting down OBS');
+        logger.logInfo(this.osnTestName, 'Shutting down OBS');
 
         try {
             osn.NodeObs.OBS_service_removeCallback();
@@ -110,25 +110,25 @@ export class OBSHandler {
             throw Error('Exception when shutting down OBS process' + e);
         }
 
-        logInfo(this.osnTestName, 'OBS shutdown successfully')
+        logger.logInfo(this.osnTestName, 'OBS shutdown successfully')
     }
 
     async reserveUser() {
         let streamKey: string = "";
 
         try {
-            logInfo(this.osnTestName, 'Getting stream key from user pool');
+            logger.logInfo(this.osnTestName, 'Getting stream key from user pool');
             streamKey = await this.services.getStreamKey();
             this.hasUserFromPool = true;
         } catch(e) {
-            logWarning(this.osnTestName, e);
-            logWarning(this.osnTestName, 'Using predefined stream key');
+            logger.logWarning(this.osnTestName, e);
+            logger.logWarning(this.osnTestName, 'Using predefined stream key');
             streamKey = process.env.SLOBS_BE_STREAMKEY;
             this.hasUserFromPool = false;
         }
 
         this.setSetting('Stream', 'key', streamKey);
-        logInfo(this.osnTestName, 'Stream key saved successfully')
+        logger.logInfo(this.osnTestName, 'Stream key saved successfully')
     }
 
     async releaseUser() {

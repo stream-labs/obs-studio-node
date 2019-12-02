@@ -1,7 +1,7 @@
 import 'mocha';
 import * as osn from '../osn';
+import * as logger from '../util/logger';
 import { expect } from 'chai';
-import { logInfo, logEmptyLine } from '../util/logger';
 import { IInput, ISource } from '../osn';
 import { OBSHandler } from '../util/obs_handler';
 import { deleteConfigFiles } from '../util/general';
@@ -13,7 +13,7 @@ describe(testName, () => {
     
     // Initialize OBS process
     before(function() {
-        logInfo(testName, 'Starting ' + testName + ' tests');
+        logger.logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
         obs = new OBSHandler(testName);
     });
@@ -23,8 +23,8 @@ describe(testName, () => {
         obs.shutdown();
         obs = null;
         deleteConfigFiles();
-        logInfo(testName, 'Finished ' + testName + ' tests');
-        logEmptyLine();
+        logger.logInfo(testName, 'Finished ' + testName + ' tests');
+        logger.logEmptyLine();
     });
 
     it('Set source to output channel and get it', () => {
