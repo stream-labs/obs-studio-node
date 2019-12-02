@@ -1,4 +1,6 @@
 import { sleep } from './general';
+import { logInfo, logWarning } from '../util/logger';
+
 const request = require('request');
 
 type TPlatform = 'twitch' | 'youtube' | 'mixer' | 'facebook';
@@ -20,6 +22,11 @@ export class Services {
     private user: ITestUser;
     private userPoolUrl: string = 'https://slobs-users-pool.herokuapp.com/';
     private clientId = '8bmp6j83z5w4mepq0dn0q1a7g186azi';
+    private osnTestName: string;
+
+    constructor(testName: string) {
+        this.osnTestName = testName;
+    }
 
     private async requestUser(): Promise<any> {
         return new Promise((resolve, reject) => {
@@ -28,6 +35,8 @@ export class Services {
                 headers: {Authorization: `Bearer: ${process.env.SLOBS_TEST_USER_POOL_TOKEN}`}},
                 (err: any, res: any, body: any) => {
                     if (err || res.statusCode !== 200) {
+                        logWarning(this.osnTestName, 'Request user got status ' + res.statusCode);
+                        logWarning(this.osnTestName, 'Error mesage \'' + err + '\'');
                         reject(`Unable to request user ${err || body}`);
                     }
 
@@ -51,6 +60,8 @@ export class Services {
                           Authorization: `OAuth ${token}`}
             }, (err: any, res: any, body: any) => {
                 if (err || res.statusCode !== 200) {
+                    logWarning(this.osnTestName, 'Validate token got status ' + res.statusCode);
+                    logWarning(this.osnTestName, 'Error mesage \'' + err + '\'');
                     reject(`Unable to validate token ${err || body}`);
                 }
 
@@ -73,6 +84,8 @@ export class Services {
                           Authorization: `OAuth ${token}`}
             }, (err: any, res: any, body: any) => {
                 if (err || res.statusCode !== 200) {
+                    logWarning(this.osnTestName, 'Request stream key got status ' + res.statusCode);
+                    logWarning(this.osnTestName, 'Error mesage \'' + err + '\'');
                     reject(`Unable to get channel info ${err || body}`);
                 }
 
@@ -86,18 +99,22 @@ export class Services {
     }
 
     async getStreamKey(): Promise<string> {
-        let attemps: number = 3;
+        let attempts: number = 1;
+        let totalAttempts: number = 3;
         let channelInfo: any;
 
-        while(attemps--) {
+        while(attempts <= totalAttempts) {
             try {
+                logInfo(this.osnTestName, 'Requesting user from pool ('+ attempts + '/' + totalAttempts + ')');
                 this.user = await this.requestUser();
                 break;
             } catch(e) {
-                if (attemps) {
+                if (attempts) {
                     await sleep(20000);
                 }
             }
+
+            attempts++;
         }
 
         if (!this.user) {

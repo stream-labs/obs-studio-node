@@ -1,5 +1,6 @@
 import * as osn from '../osn';
 import { Services } from '../util/services';
+import { logInfo, logWarning } from '../util/logger';
 import { EOBSOutputType, EOBSOutputSignal} from '../util/obs_enums'
 import { Subject } from 'rxjs';
 import { first } from 'rxjs/operators';
@@ -52,17 +53,29 @@ export type TConfigEvent = 'starting_step' | 'progress' | 'stopping_step' | 'err
 
 // OBSHandler class
 export class OBSHandler {
-    services: Services;
-    
-    signals = new Subject<IOBSOutputSignalInfo>();
-    progress = new Subject<IConfigProgress>();
-    hasUserFromPool: boolean = false;
+    private path = require('path');
+    private uuid = require('uuid/v4');
+
+    // Variables for obs initialization
+    private workingDirectory: string = this.path.normalize(osn.wd);
+    private language: string = 'en-US';
+    private obsPath: string = this.path.join(this.path.normalize(__dirname), '..', 'osnData/slobs-client');
+    private pipeName: string = 'osn-tests-pipe-'.concat(this.uuid());
+    private version: string = '0.00.00-preview.0';
+
+    // Other variables/objects
+    private services: Services;
+    private hasUserFromPool: boolean = false;
+    private osnTestName: string;
+    private signals = new Subject<IOBSOutputSignalInfo>();
+    private progress = new Subject<IConfigProgress>();
     inputTypes: string[];
     filterTypes: string[];
     transitionTypes: string[];
 
-    constructor() {
-        this.services = new Services();
+    constructor(testName: string) {
+        this.osnTestName = testName;
+        this.services = new Services(testName);
         this.startup();
         this.inputTypes = osn.InputFactory.types();
         this.filterTypes = osn.FilterFactory.types();
@@ -70,16 +83,12 @@ export class OBSHandler {
     }
 
     startup() {
-        const path = require('path');
-        const uuid = require('uuid/v4');
-
-        const wd = path.normalize(osn.wd);
-        const pipeName = 'osn-tests-pipe'.concat(uuid());  
+        logInfo(this.osnTestName, 'Initializing OBS');
 
         try {
-            osn.NodeObs.IPC.host(pipeName);
-            osn.NodeObs.SetWorkingDirectory(wd);
-            const initResult = osn.NodeObs.OBS_API_initAPI('en-US', path.join(path.normalize(__dirname), '..', 'osnData/slobs-client'), '0.00.00-preview.0');
+            osn.NodeObs.IPC.host(this.pipeName);
+            osn.NodeObs.SetWorkingDirectory(this.workingDirectory);
+            const initResult = osn.NodeObs.OBS_API_initAPI(this.language, this.obsPath, this.version);
 
             if (initResult != osn.EVideoCodes.Success) {
                 throw Error('OBS process initialization failed with code ' + initResult);
@@ -87,31 +96,39 @@ export class OBSHandler {
         } catch(e) {
             throw Error('Exception when initializing OBS process' + e);
         }
+
+        logInfo(this.osnTestName, 'OBS started successfully')
     }
 
-    shutdown(): boolean {
+    shutdown() {
+        logInfo(this.osnTestName, 'Shutting down OBS');
+
         try {
             osn.NodeObs.OBS_service_removeCallback();
             osn.NodeObs.IPC.disconnect();
         } catch(e) {
-            return false;
+            throw Error('Exception when shutting down OBS process' + e);
         }
 
-        return true;
+        logInfo(this.osnTestName, 'OBS shutdown successfully')
     }
 
     async reserveUser() {
         let streamKey: string = "";
 
         try {
+            logInfo(this.osnTestName, 'Getting stream key from user pool');
             streamKey = await this.services.getStreamKey();
             this.hasUserFromPool = true;
         } catch(e) {
+            logWarning(this.osnTestName, e);
+            logWarning(this.osnTestName, 'Using predefined stream key');
             streamKey = process.env.SLOBS_BE_STREAMKEY;
             this.hasUserFromPool = false;
         }
 
         this.setSetting('Stream', 'key', streamKey);
+        logInfo(this.osnTestName, 'Stream key saved successfully')
     }
 
     async releaseUser() {
@@ -153,6 +170,14 @@ export class OBSHandler {
         });
 
         return value;
+    }
+
+    setSettingsContainer(category: string, settings: any) {
+        osn.NodeObs.OBS_settings_saveSettings(category, settings);
+    }
+
+    getSettingsContainer(category: string): any {
+        return osn.NodeObs.OBS_settings_getSettings(category).data;
     }
 
     connectOutputSignals() {

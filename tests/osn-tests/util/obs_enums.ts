@@ -73,3 +73,13 @@ export const enum EOBSTransitionTypes {
     FadeToColor = 'fade_to_color_transition',
     Wipe = 'wipe_transition'
 }
+
+export const enum EOBSSettingsCategories {
+    General = 'General',
+    Stream = 'Stream',
+    Output = 'Output',
+    Audio = 'Audio',
+    Video = 'Video',
+    Hotkeys = 'Hotkeys',
+    Advanced = 'Advanced'
+}
