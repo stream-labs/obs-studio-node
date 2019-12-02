@@ -49,6 +49,23 @@ jobs:
       RELEASE_NAME: $(ReleaseName)
     displayName: 'Run tests'
 
+  - task: ArchiveFiles@2
+    inputs:
+      rootFolderOrFile: $(Build.SourcesDirectory)\tests\osn-tests\osnData\slobs-client
+      includeRootFolder: true
+      archiveType: tar
+      tarCompression: 7z
+      archiveFile: 'tests-osn-cache-$(ReleaseName).7z'
+    displayName: 'Compress tests cache folder'
+    condition: always()
+
+  - task: PublishBuildArtifacts@1
+    inputs: 
+      pathtoPublish: tests-osn-cache-$(ReleaseName).7z
+      artifactName: tests-osn-cache-$(ReleaseName).7z
+    displayName: 'Publish build artifact'
+    condition: always()
+
   - script: ./ci/copy-files.cmd
     displayName: 'Copy necessary dll files'
 
@@ -159,6 +176,23 @@ jobs:
       SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
       RELEASE_NAME: $(ReleaseName)
     displayName: 'Run tests'
+
+  - task: ArchiveFiles@2
+    inputs:
+      rootFolderOrFile: $(Build.SourcesDirectory)\tests\osn-tests\osnData\slobs-client
+      includeRootFolder: true
+      archiveType: tar
+      tarCompression: 7z
+      archiveFile: 'tests-osn-cache-$(ReleaseName).7z'
+    displayName: 'Compress tests cache folder'
+    condition: always()
+
+  - task: PublishBuildArtifacts@1
+    inputs: 
+      pathtoPublish: tests-osn-cache-$(ReleaseName).7z
+      artifactName: tests-osn-cache-$(ReleaseName).7z
+    displayName: 'Publish build artifact'
+    condition: always()
 
   - script: ./ci/copy-files.cmd
     displayName: 'Copy necessary dll files'
