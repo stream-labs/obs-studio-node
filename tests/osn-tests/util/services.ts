@@ -4,15 +4,16 @@ type TPlatform = 'twitch' | 'youtube' | 'mixer' | 'facebook';
 
 interface ITestUser {
     email: string;
-    workerId: string; // null if user is not active right now
-    updated: string; // time of the last request for this user
-    username: string; // Mixer use username as an id for API requests
-    type: TPlatform; // twitch, youtube, etc..
-    id: string; // platform userId
-    token: string; // platform token
-    apiToken: string; // Streamlabs API token
-    widgetToken: string; // needs for widgets showing
-    channelId?: string; // for the Mixer and Facebook only
+    workerId: string;
+    updated: string;
+    enabled: boolean;
+    type: TPlatform;
+    username: string;
+    id: string;
+    token: string;
+    apiToken: string;
+    widgetToken: string;
+    streamKey: string;
 }
 
 export class Services {
@@ -44,53 +45,8 @@ export class Services {
         });
     }
 
-    private async validateToken(token: string) {
-        return new Promise((resolve, reject) => {
-            request({
-                url: 'https://id.twitch.tv/oauth2/validate',
-                headers: {'Client-id': this.clientId,
-                          Accept: 'application/vnd.twitchtv.v5+json',
-                          'Content-Type': 'application/json',
-                          Authorization: `OAuth ${token}`}
-            }, (err: any, res: any, body: any) => {
-                if (err || res.statusCode !== 200) {
-                    reject(`Unable to validate token ${err || body}`);
-                }
-
-                if (body == undefined) {
-                    reject(`Body is undefined or with wrong format ${body}`);
-                }
-
-                resolve(JSON.parse(body));
-            });
-        });
-    }
-
-    private async requestStreamKey(token: string) {
-        return new Promise((resolve, reject) => {
-            request({
-                url: 'https://api.twitch.tv/kraken/channel',
-                headers: {'Client-id': this.clientId,
-                          Accept: 'application/vnd.twitchtv.v5+json',
-                          'Content-Type': 'application/json',
-                          Authorization: `OAuth ${token}`}
-            }, (err: any, res: any, body: any) => {
-                if (err || res.statusCode !== 200) {
-                    reject(`Unable to get channel info ${err || body}`);
-                }
-
-                if (body == undefined) {
-                    reject(`Body is undefined or with wrong format ${body}`);
-                }
-
-                resolve(JSON.parse(body));
-            });
-        });
-    }
-
     async getStreamKey(): Promise<string> {
         let attemps: number = 3;
-        let channelInfo: any;
 
         while(attemps--) {
             try {
@@ -106,11 +62,8 @@ export class Services {
         if (!this.user) {
             throw 'Unable to get user from pool.';
         }
-        
-        await this.validateToken(this.user.token);
-        channelInfo = await this.requestStreamKey(this.user.token);
 
-        return channelInfo.stream_key;
+        return this.user.streamKey;
     }
 
     async releaseUser() {
