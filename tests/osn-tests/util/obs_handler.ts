@@ -62,7 +62,6 @@ export class OBSHandler {
     transitionTypes: string[];
 
     constructor() {
-        this.services = new Services();
         this.startup();
         this.inputTypes = osn.InputFactory.types();
         this.filterTypes = osn.FilterFactory.types();
@@ -100,6 +99,10 @@ export class OBSHandler {
         return true;
     }
 
+    instantiateUserPool() {
+        this.services = new Services();
+    }
+
     async reserveUser() {
         let streamKey: string = "";
 
@@ -122,19 +125,24 @@ export class OBSHandler {
     }
 
     setSetting(category: string, parameter: string, value: any) {
+        let oldValue: any;
+
         // Getting settings container
         const settings = osn.NodeObs.OBS_settings_getSettings(category).data;
 
         settings.forEach(subCategory => {
             subCategory.parameters.forEach(param => {
                 if (param.name === parameter) {
+                    oldValue = param.currentValue;
                     param.currentValue = value;
                 }
             });
         });
 
         // Saving updated settings container
-        osn.NodeObs.OBS_settings_saveSettings(category, settings);
+        if (value != oldValue) {
+            osn.NodeObs.OBS_settings_saveSettings(category, settings);
+        }
     }
 	
     getSetting(category: string, parameter: string): any {

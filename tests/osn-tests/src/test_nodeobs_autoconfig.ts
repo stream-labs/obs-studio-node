@@ -12,6 +12,8 @@ describe('nodeobs_autoconfig', function() {
         deleteConfigFiles();
         obs = new OBSHandler();
 
+        obs.instantiateUserPool();
+
         // Reserving user from pool
         await obs.reserveUser();
     });

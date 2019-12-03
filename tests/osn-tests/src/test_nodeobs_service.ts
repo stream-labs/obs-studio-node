@@ -13,6 +13,8 @@ describe('nodeobs_service', function() {
         deleteConfigFiles();
         obs = new OBSHandler();
 
+        obs.instantiateUserPool();
+
         // Reserving user from pool
         await obs.reserveUser();
 
