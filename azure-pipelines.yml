@@ -42,20 +42,12 @@ jobs:
   - script: ./ci/build-osn.cmd
     displayName: 'Build obs-studio-node'
 
-  - script: 'yarn run test:azure'
+  - script: 'yarn run test'
     env:
       SLOBS_BE_STREAMKEY: $(testsStreamKey)
       SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
       RELEASE_NAME: $(ReleaseName)
     displayName: 'Run tests'
-
-  - task: PublishTestResults@2
-    inputs:
-      testResultsFormat: 'JUnit'
-      testResultsFiles: '**/test-*.xml'
-      testRunTitle: $(ElectronVersion)
-    displayName: 'Publish test results'
-    condition: always()
 
   - script: ./ci/copy-files.cmd
     displayName: 'Copy necessary dll files'
@@ -161,20 +153,12 @@ jobs:
   - script: ./ci/build-osn.cmd
     displayName: 'Build obs-studio-node'
 
-  - script: 'yarn run test:azure'
+  - script: 'yarn run test'
     env:
       SLOBS_BE_STREAMKEY: $(testsStreamKey)
       SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
       RELEASE_NAME: $(ReleaseName)
     displayName: 'Run tests'
-
-  - task: PublishTestResults@2
-    inputs:
-      testResultsFormat: 'JUnit'
-      testResultsFiles: '**/test-*.xml'
-      testRunTitle: $(ElectronVersion)
-    displayName: 'Publish test results'
-    condition: always()
 
   - script: ./ci/copy-files.cmd
     displayName: 'Copy necessary dll files'
