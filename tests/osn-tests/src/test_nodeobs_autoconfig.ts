@@ -39,7 +39,7 @@ describe('nodeobs_autoconfig', function() {
 
             osn.NodeObs.StartBandwidthTest();
 
-            progressInfo = await obs.getNextProgressInfo();
+            progressInfo = await obs.getNextProgressInfo('Bandwidth test');
 
             if (progressInfo.event != 'error') {
                 expect(progressInfo.event).to.equal('stopping_step');
@@ -48,64 +48,64 @@ describe('nodeobs_autoconfig', function() {
 
                 osn.NodeObs.StartStreamEncoderTest();
 
-                progressInfo = await obs.getNextProgressInfo();
+                progressInfo = await obs.getNextProgressInfo('Stream Encoder test');
                 expect(progressInfo.event).to.equal('stopping_step');
                 expect(progressInfo.description).to.equal('streamingEncoder_test');
                 expect(progressInfo.percentage).to.equal(100);
 
                 osn.NodeObs.StartRecordingEncoderTest();
 
-                progressInfo = await obs.getNextProgressInfo();
+                progressInfo = await obs.getNextProgressInfo('Recording Encoder test');
                 expect(progressInfo.event).to.equal('stopping_step');
                 expect(progressInfo.description).to.equal('recordingEncoder_test');
                 expect(progressInfo.percentage).to.equal(100);
 
                 osn.NodeObs.StartCheckSettings();
 
-                progressInfo = await obs.getNextProgressInfo();
+                progressInfo = await obs.getNextProgressInfo('Check Settings');
                 expect(progressInfo.event).to.equal('stopping_step');
                 expect(progressInfo.description).to.equal('checking_settings');
                 expect(progressInfo.percentage).to.equal(100);
 
                 osn.NodeObs.StartSaveStreamSettings();
 
-                progressInfo = await obs.getNextProgressInfo();
+                progressInfo = await obs.getNextProgressInfo('Save Stream Settings');
                 expect(progressInfo.event).to.equal('stopping_step');
                 expect(progressInfo.description).to.equal('saving_service');
                 expect(progressInfo.percentage).to.equal(100);
 
                 osn.NodeObs.StartSaveSettings();
 
-                progressInfo = await obs.getNextProgressInfo();
+                progressInfo = await obs.getNextProgressInfo('Save Settings');
                 expect(progressInfo.event).to.equal('stopping_step');
                 expect(progressInfo.description).to.equal('saving_settings');
                 expect(progressInfo.percentage).to.equal(100);
 
-                progressInfo = await obs.getNextProgressInfo();
+                progressInfo = await obs.getNextProgressInfo('Autoconfig done');
                 expect(progressInfo.event).to.equal('done');
             } else {
                 osn.NodeObs.StartSetDefaultSettings();
 
-                progressInfo = await obs.getNextProgressInfo();
+                progressInfo = await obs.getNextProgressInfo('Set Default Settings');
                 expect(progressInfo.event).to.equal('stopping_step');
                 expect(progressInfo.description).to.equal('setting_default_settings');
                 expect(progressInfo.percentage).to.equal(100);
 
                 osn.NodeObs.StartSaveStreamSettings();
 
-                progressInfo = await obs.getNextProgressInfo();
+                progressInfo = await obs.getNextProgressInfo('Save Stream Settings');
                 expect(progressInfo.event).to.equal('stopping_step');
                 expect(progressInfo.description).to.equal('saving_service');
                 expect(progressInfo.percentage).to.equal(100);
 
                 osn.NodeObs.StartSaveSettings();
 
-                progressInfo = await obs.getNextProgressInfo();
+                progressInfo = await obs.getNextProgressInfo('Save Settings');
                 expect(progressInfo.event).to.equal('stopping_step');
                 expect(progressInfo.description).to.equal('saving_settings');
                 expect(progressInfo.percentage).to.equal(100);
 
-                progressInfo = await obs.getNextProgressInfo();
+                progressInfo = await obs.getNextProgressInfo('Autoconfig done');
                 expect(progressInfo.event).to.equal('done');
 
                 // Checking default settings
