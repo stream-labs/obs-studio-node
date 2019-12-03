@@ -1,19 +1,24 @@
 import 'mocha';
 import { expect } from 'chai';
 import * as osn from '../osn';
+import * as logger from '../util/logger';
 import { OBSHandler, IOBSOutputSignalInfo } from '../util/obs_handler';
 import { deleteConfigFiles, sleep } from '../util/general';
-import { EOBSOutputType, EOBSOutputSignal } from '../util/obs_enums';
+import { EOBSOutputType, EOBSOutputSignal, EOBSSettingsCategories } from '../util/obs_enums';
+import { ETestErrorMsg, GetErrorMessage } from '../util/error_messages';
 
-describe('nodeobs_service', function() {
+const testName = 'nodeobs_service';
+
+describe(testName, function() {
     let obs: OBSHandler;
     const path = require('path');
 
     before(async function() {
+        logger.logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
-        obs = new OBSHandler();
-
-        obs.instantiateUserPool();
+        obs = new OBSHandler(testName);
+		
+		obs.instantiateUserPool();
 
         // Reserving user from pool
         await obs.reserveUser();
@@ -31,690 +36,613 @@ describe('nodeobs_service', function() {
         obs = null;
 
         deleteConfigFiles();
+        logger.logInfo(testName, 'Finished ' + testName + ' tests');
+        logger.logEmptyLine();
     });
 
-    context('# OBS_service_startStreaming, OBS_service_stopStreaming and recording functions', function() {
-        context('* Simple mode', function() {
-            this.beforeEach(function() {
-                // Preparing environment
-                obs.setSetting('Output', 'Mode', 'Simple');
-                obs.setSetting('Output', 'StreamEncoder', 'x264');
-                obs.setSetting('Output', 'FilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
-            });
-
-            it('Start and stop streaming', async function() {
-                let signalInfo: IOBSOutputSignalInfo;
-
-                osn.NodeObs.OBS_service_startStreaming();
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Starting);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Activate);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start);
-
-                osn.NodeObs.OBS_service_stopStreaming(false);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Deactivate);
-            });
-    
-            it('Start recording and stop', async function() {
-                let signalInfo: IOBSOutputSignalInfo;
-
-                osn.NodeObs.OBS_service_startRecording();
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Recording);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start);
-
-                await sleep(500);
-
-                osn.NodeObs.OBS_service_stopRecording();
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Recording);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Recording);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop);
-            });
-    
-            it('Start replay buffer, save replay and stop', async function() {
-                let signalInfo: IOBSOutputSignalInfo;
-
-                osn.NodeObs.OBS_service_startReplayBuffer();
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start);
-
-                await sleep(500);
-
-                osn.NodeObs.OBS_service_processReplayBufferHotkey();
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Writing);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Wrote);
-
-                osn.NodeObs.OBS_service_stopReplayBuffer(false);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop);
-            });
-    
-            it('Record while streaming', async function() {
-                let signalInfo: IOBSOutputSignalInfo;
-
-                osn.NodeObs.OBS_service_startStreaming();
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Starting);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Activate);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start);
-
-                osn.NodeObs.OBS_service_startRecording();
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Recording);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start);
-
-                await sleep(500);
-
-                osn.NodeObs.OBS_service_stopRecording();
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Recording);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Recording);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop);
-
-                osn.NodeObs.OBS_service_stopStreaming(false);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Deactivate);
-            });
-    
-            it('Record replay while streaming and save', async function() {
-                let signalInfo: IOBSOutputSignalInfo;
-
-                osn.NodeObs.OBS_service_startStreaming();
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Starting);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Activate);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start);
-
-                osn.NodeObs.OBS_service_startReplayBuffer();
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start);
-
-                await sleep(500);
-
-                osn.NodeObs.OBS_service_processReplayBufferHotkey();
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Writing);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Wrote);
-
-                osn.NodeObs.OBS_service_stopReplayBuffer(false);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop);
-
-                osn.NodeObs.OBS_service_stopStreaming(false);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Deactivate);
-            });
-    
-            it('Record and use replay buffer while streaming', async function() {
-                let signalInfo: IOBSOutputSignalInfo;
-
-                osn.NodeObs.OBS_service_startStreaming();
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Starting);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Activate);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start);
-
-                osn.NodeObs.OBS_service_startRecording();
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Recording);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start);
-
-                osn.NodeObs.OBS_service_startReplayBuffer();
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start);
-
-                await sleep(500);
-
-                osn.NodeObs.OBS_service_processReplayBufferHotkey();
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Writing);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Wrote);
-
-                osn.NodeObs.OBS_service_stopReplayBuffer(false);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop);
-
-                osn.NodeObs.OBS_service_stopRecording();
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Recording);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Recording);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop);
-
-                osn.NodeObs.OBS_service_stopStreaming(false);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop);
-
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Deactivate);
-            });
-        });
+    it('Simple mode - Start and stop streaming', async function() {
+        // Preparing environment
+        obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
+        obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', 'x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
+
+        await runStreamOutputTest();
+    });
+
+    it('Simple mode - Start recording and stop', async function() {
+        // Preparing environment
+        obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
+        obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', 'x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
+
+        await runRecordOutputTest();
+    });
+
+    it('Simple mode - Start replay buffer, save replay and stop', async function() {
+        // Preparing environment
+        obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
+        obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', 'x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
+
+        await runReplayBufferTest();
+    });
+
+    it('Simple mode - Record while streaming', async function() {
+        // Preparing environment
+        obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
+        obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', 'x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
+
+        await runRecordAndStreamTest();
+    });
+
+    it('Simple mode - Record replay while streaming and save', async function() {
+        // Preparing environment
+        obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
+        obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', 'x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
+
+        await runReplayAndStreamTest();
+    });
+
+    it('Simple mode - Record and use replay buffer while streaming', async function() {
+        // Preparing environment
+        obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
+        obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', 'x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
+
+        await runAllOutputsTest();
+    });
+
+    it('Advanced mode - Start and stop streaming', async function() {
+        // Preparing environment
+        obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Advanced');
+        obs.setSetting(EOBSSettingsCategories.Output, 'Encoder', 'obs_x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'RecEncoder', 'none');
+        obs.setSetting(EOBSSettingsCategories.Output, 'RecFilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
+
+        await runStreamOutputTest();
+    });
+
+    it('Advanced mode - Start recording and stop', async function() {
+        // Preparing environment
+        obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Advanced');
+        obs.setSetting(EOBSSettingsCategories.Output, 'Encoder', 'obs_x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'RecEncoder', 'none');
+        obs.setSetting(EOBSSettingsCategories.Output, 'RecFilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
+
+        await runRecordOutputTest();
+    });
+
+    it('Advanced mode - Start replay buffer, save replay and stop', async function() {
+        // Preparing environment
+        obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Advanced');
+        obs.setSetting(EOBSSettingsCategories.Output, 'Encoder', 'obs_x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'RecEncoder', 'none');
+        obs.setSetting(EOBSSettingsCategories.Output, 'RecFilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
+
+        await runReplayBufferTest();
+    });
+
+    it('Advanced mode - Record while streaming', async function() {
+        // Preparing environment
+        obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Advanced');
+        obs.setSetting(EOBSSettingsCategories.Output, 'Encoder', 'obs_x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'RecEncoder', 'none');
+        obs.setSetting(EOBSSettingsCategories.Output, 'RecFilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
+
+        await runRecordAndStreamTest();
+    });
+
+    it('Advanced mode - Record replay while streaming and save', async function() {
+        // Preparing environment
+        obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Advanced');
+        obs.setSetting(EOBSSettingsCategories.Output, 'Encoder', 'obs_x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'RecEncoder', 'none');
+        obs.setSetting(EOBSSettingsCategories.Output, 'RecFilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
+
+        await runReplayAndStreamTest();
+    });
+
+    it('Advanced mode - Record and use replay buffer while streaming', async function() {
+        // Preparing environment
+        obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Advanced');
+        obs.setSetting(EOBSSettingsCategories.Output, 'Encoder', 'obs_x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'RecEncoder', 'none');
+        obs.setSetting(EOBSSettingsCategories.Output, 'RecFilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
+
+        await runAllOutputsTest();
+    });
+
+    it('Fail test - Stream with invalid stream key', async function() {
+        let signalInfo: IOBSOutputSignalInfo;
+
+        obs.setSetting('Stream', 'key', 'invalid');
+
+        osn.NodeObs.OBS_service_startStreaming();
+
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Starting);
+
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop);
+        expect(signalInfo.code).to.equal(-3);
+    });
+
+    it('Fail test - Simple mode - Record with invalid path', async function() {
+        // Preparing environment
+        obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
+        obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', 'x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', 'C:\\Test');
+
+        await runRecordWithInvalidPath();
+    });
+
+    it('Fail test - Simple mode - Start replay buffer with invalid path', async function() {
+        // Preparing environment
+        obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
+        obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', 'x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', 'C:\\Test');
+
+        await runReplayWithInvalidPath();
+    });
+
+    it('Fail test - Advanced mode - Record with invalid path', async function() {
+        // Preparing environment
+        obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Advanced');
+        obs.setSetting(EOBSSettingsCategories.Output, 'Encoder', 'obs_x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'RecEncoder', 'none');
+        obs.setSetting(EOBSSettingsCategories.Output, 'RecFilePath', 'C:\\Test');
+
+        await runRecordWithInvalidPath();
+    });
+
+    it('Fail test - Advanced mode - Start replay buffer with invalid path', async function() {
+        // Preparing environment
+        obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Advanced');
+        obs.setSetting(EOBSSettingsCategories.Output, 'Encoder', 'obs_x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'RecEncoder', 'none');
+        obs.setSetting(EOBSSettingsCategories.Output, 'RecFilePath', 'C:\\Test');
+
+        await runReplayWithInvalidPath();
+    });
+
+    it('Reset video context', function() {
+        expect(function() {
+            osn.NodeObs.OBS_service_resetVideoContext();
+        }).to.not.throw();
+    });
+
+    it('Reset audio context', function() {
+        expect(function() {
+            osn.NodeObs.OBS_service_resetAudioContext();
+        }).to.not.throw();
+    });
+
+    // Test functions
+    async function runStreamOutputTest() {
+        let signalInfo: IOBSOutputSignalInfo;
+
+        osn.NodeObs.OBS_service_startStreaming();
+
+        signalInfo = await obs.getNextSignalInfo();
         
-        context('* Advanced mode', function() {
-            this.beforeEach(function() {
-                // Preparing environment
-                obs.setSetting('Output', 'Mode', 'Advanced');
-                obs.setSetting('Output', 'Encoder', 'obs_x264');
-                obs.setSetting('Output', 'RecEncoder', 'none');
-                obs.setSetting('Output', 'RecFilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
-            });
+        if (signalInfo.signal == EOBSOutputSignal.Stop) {
+            throw Error(GetErrorMessage(ETestErrorMsg.StreamOutputDidNotStart, signalInfo.code.toString(), signalInfo.error));
+        }
 
-            it('Start and stop streaming', async function() {
-                let signalInfo: IOBSOutputSignalInfo;
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Starting, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
-                osn.NodeObs.OBS_service_startStreaming();
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Activate, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Starting);
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Activate);
+        await sleep(500);
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start);
+        osn.NodeObs.OBS_service_stopStreaming(false);
 
-                osn.NodeObs.OBS_service_stopStreaming(false);
+        signalInfo = await obs.getNextSignalInfo();
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping);
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop);
+        signalInfo = await obs.getNextSignalInfo();
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Deactivate);
-            });
-    
-            it('Start recording and stop', async function() {
-                let signalInfo: IOBSOutputSignalInfo;
+        if (signalInfo.code != 0) {
+            throw Error(GetErrorMessage(ETestErrorMsg.StreamOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
+        }
 
-                osn.NodeObs.OBS_service_startRecording();
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Recording);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start);
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Deactivate, GetErrorMessage(ETestErrorMsg.StreamOutput));
+    }
 
-                await sleep(500);
+    async function runRecordOutputTest() {
+        let signalInfo: IOBSOutputSignalInfo;
 
-                osn.NodeObs.OBS_service_stopRecording();
+        osn.NodeObs.OBS_service_startRecording();
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Recording);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping);
+        signalInfo = await obs.getNextSignalInfo();
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Recording);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop);
-            });
-    
-            it('Start replay buffer, save replay and stop', async function() {
-                let signalInfo: IOBSOutputSignalInfo;
+        if (signalInfo.signal == EOBSOutputSignal.Stop) {
+            throw Error(GetErrorMessage(ETestErrorMsg.RecordOutputDidNotStart, signalInfo.code.toString(), signalInfo.error));
+        }
 
-                osn.NodeObs.OBS_service_startReplayBuffer();
+        expect(signalInfo.type).to.equal(EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.RecordingOutput));
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start);
+        await sleep(500);
 
-                await sleep(500);
+        osn.NodeObs.OBS_service_stopRecording();
 
-                osn.NodeObs.OBS_service_processReplayBufferHotkey();
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping, GetErrorMessage(ETestErrorMsg.RecordingOutput));
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Writing);
+        signalInfo = await obs.getNextSignalInfo();
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Wrote);
+        if (signalInfo.code != 0) {
+            throw Error(GetErrorMessage(ETestErrorMsg.RecordOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
+        }
 
-                osn.NodeObs.OBS_service_stopReplayBuffer(false);
+        expect(signalInfo.type).to.equal(EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+    }
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping);
+    async function runReplayBufferTest() {
+        let signalInfo: IOBSOutputSignalInfo;
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop);
-            });
-    
-            it('Record while streaming', async function() {
-                let signalInfo: IOBSOutputSignalInfo;
+        osn.NodeObs.OBS_service_startReplayBuffer();
 
-                osn.NodeObs.OBS_service_startStreaming();
+        signalInfo = await obs.getNextSignalInfo();
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Starting);
+        if (signalInfo.signal == EOBSOutputSignal.Stop) {
+            throw Error(GetErrorMessage(ETestErrorMsg.ReplayBufferDidNotStart, signalInfo.code.toString(), signalInfo.error));
+        }
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Activate);
+        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start);
+        await sleep(500);
 
-                osn.NodeObs.OBS_service_startRecording();
+        osn.NodeObs.OBS_service_processReplayBufferHotkey();
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Recording);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start);
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Writing, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
 
-                await sleep(500);
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Wrote, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
 
-                osn.NodeObs.OBS_service_stopRecording();
+        osn.NodeObs.OBS_service_stopReplayBuffer(false);
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Recording);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping);
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Recording);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop);
+        signalInfo = await obs.getNextSignalInfo();
 
-                osn.NodeObs.OBS_service_stopStreaming(false);
+        if (signalInfo.code != 0) {
+            throw Error(GetErrorMessage(ETestErrorMsg.ReplayBufferStoppedWithError, signalInfo.code.toString(), signalInfo.error));
+        }
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping);
+        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+    }
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop);
+    async function runRecordAndStreamTest() {
+        let signalInfo: IOBSOutputSignalInfo;
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Deactivate);
-            });
-    
-            it('Record replay while streaming and save', async function() {
-                let signalInfo: IOBSOutputSignalInfo;
+        osn.NodeObs.OBS_service_startStreaming();
 
-                osn.NodeObs.OBS_service_startStreaming();
+        signalInfo = await obs.getNextSignalInfo();
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Starting);
+        if (signalInfo.signal == EOBSOutputSignal.Stop) {
+            throw Error(GetErrorMessage(ETestErrorMsg.StreamOutputDidNotStart, signalInfo.code.toString(), signalInfo.error));
+        }
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Activate);
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Starting, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start);
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Activate, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
-                osn.NodeObs.OBS_service_startReplayBuffer();
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start);
+        osn.NodeObs.OBS_service_startRecording();
 
-                await sleep(500);
+        signalInfo = await obs.getNextSignalInfo();
 
-                osn.NodeObs.OBS_service_processReplayBufferHotkey();
+        if (signalInfo.signal == EOBSOutputSignal.Stop) {
+            osn.NodeObs.OBS_service_stopStreaming(false);
+            throw Error(GetErrorMessage(ETestErrorMsg.RecordOutputDidNotStart, signalInfo.code.toString(), signalInfo.error));
+        }
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Writing);
+        expect(signalInfo.type).to.equal(EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.RecordingOutput));
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Wrote);
+        await sleep(500);
 
-                osn.NodeObs.OBS_service_stopReplayBuffer(false);
+        osn.NodeObs.OBS_service_stopRecording();
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping);
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping, GetErrorMessage(ETestErrorMsg.RecordingOutput));
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop);
+        signalInfo = await obs.getNextSignalInfo();
 
-                osn.NodeObs.OBS_service_stopStreaming(false);
+        if (signalInfo.code != 0) {
+            osn.NodeObs.OBS_service_stopStreaming(false);
+            throw Error(GetErrorMessage(ETestErrorMsg.RecordOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
+        }
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping);
+        expect(signalInfo.type).to.equal(EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.RecordingOutput));
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop);
+        osn.NodeObs.OBS_service_stopStreaming(false);
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Deactivate);
-            });
-    
-            it('Record and use replay buffer while streaming', async function() {
-                let signalInfo: IOBSOutputSignalInfo;
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
-                osn.NodeObs.OBS_service_startStreaming();
+        signalInfo = await obs.getNextSignalInfo();
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Starting);
+        if (signalInfo.code != 0) {
+            throw Error(GetErrorMessage(ETestErrorMsg.StreamOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
+        }
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Activate);
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start);
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Deactivate, GetErrorMessage(ETestErrorMsg.StreamOutput));
+    }
 
-                osn.NodeObs.OBS_service_startRecording();
+    async function runReplayAndStreamTest() {
+        let signalInfo: IOBSOutputSignalInfo;
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Recording);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start);
+        osn.NodeObs.OBS_service_startStreaming();
 
-                osn.NodeObs.OBS_service_startReplayBuffer();
+        signalInfo = await obs.getNextSignalInfo();
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start);
+        if (signalInfo.signal == EOBSOutputSignal.Stop) {
+            throw Error(GetErrorMessage(ETestErrorMsg.StreamOutputDidNotStart, signalInfo.code.toString(), signalInfo.error));
+        }
 
-                await sleep(500);
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Starting, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
-                osn.NodeObs.OBS_service_processReplayBufferHotkey();
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Activate, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Writing);
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Wrote);
+        osn.NodeObs.OBS_service_startReplayBuffer();
 
-                osn.NodeObs.OBS_service_stopReplayBuffer(false);
+        signalInfo = await obs.getNextSignalInfo();
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping);
+        if (signalInfo.signal == EOBSOutputSignal.Stop) {
+            osn.NodeObs.OBS_service_stopStreaming(false);
+            throw Error(GetErrorMessage(ETestErrorMsg.ReplayBufferDidNotStart, signalInfo.code.toString(), signalInfo.error));
+        }
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop);
+        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
 
-                osn.NodeObs.OBS_service_stopRecording();
+        await sleep(500);
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Recording);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping);
+        osn.NodeObs.OBS_service_processReplayBufferHotkey();
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Recording);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop);
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Writing, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
 
-                osn.NodeObs.OBS_service_stopStreaming(false);
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Wrote, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping);
+        osn.NodeObs.OBS_service_stopReplayBuffer(false);
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop);
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Deactivate);
-            });
-        });
+        signalInfo = await obs.getNextSignalInfo();
 
-        context('* Fail tests', function() {
-            it('Stream with invalid stream key', async function() {
-                let signalInfo: IOBSOutputSignalInfo;
+        if (signalInfo.code != 0) {
+            osn.NodeObs.OBS_service_stopStreaming(false);
+            throw Error(GetErrorMessage(ETestErrorMsg.ReplayBufferStoppedWithError, signalInfo.code.toString(), signalInfo.error));
+        }
 
-                obs.setSetting('Stream', 'key', 'invalid');
+        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
 
-                osn.NodeObs.OBS_service_startStreaming();
+        osn.NodeObs.OBS_service_stopStreaming(false);
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Starting);
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
-                signalInfo = await obs.getNextSignalInfo();
-                expect(signalInfo.type).to.equal(EOBSOutputType.Streaming);
-                expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop);
-                expect(signalInfo.code).to.equal(-3);
-            });
+        signalInfo = await obs.getNextSignalInfo();
 
-            context('* Simple mode', function() {
-                this.beforeEach(function() {
-                    // Preparing environment
-                    obs.setSetting('Output', 'Mode', 'Simple');
-                    obs.setSetting('Output', 'StreamEncoder', 'x264');
-                    obs.setSetting('Output', 'FilePath', 'C:\\Test');
-                });
+        if (signalInfo.code != 0) {
+            throw Error(GetErrorMessage(ETestErrorMsg.StreamOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
+        }
 
-                it('Record with invalid path', async function() {
-                    let signalInfo: IOBSOutputSignalInfo;
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
-                    osn.NodeObs.OBS_service_startRecording();
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Deactivate, GetErrorMessage(ETestErrorMsg.StreamOutput));
+    }
 
-                    signalInfo = await obs.getNextSignalInfo();
-                    expect(signalInfo.type).to.equal(EOBSOutputType.Recording);
-                    expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop);
-                    expect(signalInfo.code).to.equal(-4);
-                });
+    async function runAllOutputsTest() {
+        let signalInfo: IOBSOutputSignalInfo;
 
-                it('Start replay buffer with invalid path', async function() {
-                    let signalInfo: IOBSOutputSignalInfo;
+        osn.NodeObs.OBS_service_startStreaming();
 
-                    osn.NodeObs.OBS_service_startReplayBuffer();
+        signalInfo = await obs.getNextSignalInfo();
 
-                    signalInfo = await obs.getNextSignalInfo();
-                    expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                    expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start);
+        if (signalInfo.signal == EOBSOutputSignal.Stop) {
+            throw Error(GetErrorMessage(ETestErrorMsg.StreamOutputDidNotStart, signalInfo.code.toString(), signalInfo.error));
+        }
 
-                    await sleep(500);
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Starting, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
-                    osn.NodeObs.OBS_service_processReplayBufferHotkey();
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Activate, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
-                    signalInfo = await obs.getNextSignalInfo();
-                    expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                    expect(signalInfo.signal).to.equal(EOBSOutputSignal.Writing);
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
-                    signalInfo = await obs.getNextSignalInfo();
-                    expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                    expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop);
-                    expect(signalInfo.code).to.equal(-4);
-                });
-            });
+        osn.NodeObs.OBS_service_startRecording();
 
-            context('* Advanced mode', function() {
-                this.beforeEach(function() {
-                    // Preparing environment
-                    obs.setSetting('Output', 'Mode', 'Advanced');
-                    obs.setSetting('Output', 'Encoder', 'obs_x264');
-                    obs.setSetting('Output', 'RecEncoder', 'none');
-                    obs.setSetting('Output', 'RecFilePath', 'C:\\Test');
-                });
+        signalInfo = await obs.getNextSignalInfo();
 
-                it('Record with invalid path', async function() {
-                    let signalInfo: IOBSOutputSignalInfo;
+        if (signalInfo.signal == EOBSOutputSignal.Stop) {
+            osn.NodeObs.OBS_service_stopStreaming(false);
+            throw Error(GetErrorMessage(ETestErrorMsg.RecordOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
+        }
 
-                    osn.NodeObs.OBS_service_startRecording();
+        expect(signalInfo.type).to.equal(EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.RecordingOutput));
 
-                    signalInfo = await obs.getNextSignalInfo();
-                    expect(signalInfo.type).to.equal(EOBSOutputType.Recording);
-                    expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop);
-                    expect(signalInfo.code).to.equal(-4);
-                });
+        osn.NodeObs.OBS_service_startReplayBuffer();
 
-                it('Start replay buffer with invalid path', async function() {
-                    let signalInfo: IOBSOutputSignalInfo;
+        signalInfo = await obs.getNextSignalInfo();
 
-                    osn.NodeObs.OBS_service_startReplayBuffer();
+        if (signalInfo.signal == EOBSOutputSignal.Stop) {
+            osn.NodeObs.OBS_service_stopRecording();
+            osn.NodeObs.OBS_service_stopStreaming(false);
+            throw Error(GetErrorMessage(ETestErrorMsg.ReplayBufferDidNotStart, signalInfo.code.toString(), signalInfo.error));
+        }
 
-                    signalInfo = await obs.getNextSignalInfo();
-                    expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                    expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start);
+        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
 
-                    await sleep(500);
+        await sleep(500);
 
-                    osn.NodeObs.OBS_service_processReplayBufferHotkey();
+        osn.NodeObs.OBS_service_processReplayBufferHotkey();
 
-                    signalInfo = await obs.getNextSignalInfo();
-                    expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                    expect(signalInfo.signal).to.equal(EOBSOutputSignal.Writing);
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Writing, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
 
-                    signalInfo = await obs.getNextSignalInfo();
-                    expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer);
-                    expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop);
-                    expect(signalInfo.code).to.equal(-4);
-                });
-            });
-        });
-    });
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Wrote, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
 
-    context('# OBS_service_resetVideoContext and OBS_service_resetAudioContext', function() {
-        it('Reset video context', function() {
-            expect(function() {
-                osn.NodeObs.OBS_service_resetVideoContext();
-            }).to.not.throw();
-        });
+        osn.NodeObs.OBS_service_stopReplayBuffer(false);
 
-        it('Reset audio context', function() {
-            expect(function() {
-                osn.NodeObs.OBS_service_resetAudioContext();
-            }).to.not.throw();
-        });
-    });
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+
+        signalInfo = await obs.getNextSignalInfo();
+
+        if (signalInfo.code != 0) {
+            osn.NodeObs.OBS_service_stopRecording();
+            osn.NodeObs.OBS_service_stopStreaming(false);
+            throw Error(GetErrorMessage(ETestErrorMsg.ReplayBufferStoppedWithError, signalInfo.code.toString(), signalInfo.error));
+        }
+
+        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+
+        osn.NodeObs.OBS_service_stopRecording();
+
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+
+        signalInfo = await obs.getNextSignalInfo();
+
+        if (signalInfo.code != 0) {
+            osn.NodeObs.OBS_service_stopStreaming(false);
+            throw Error(GetErrorMessage(ETestErrorMsg.RecordOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
+        }
+
+        expect(signalInfo.type).to.equal(EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+
+        osn.NodeObs.OBS_service_stopStreaming(false);
+
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping, GetErrorMessage(ETestErrorMsg.StreamOutput));
+
+        signalInfo = await obs.getNextSignalInfo();
+
+        if (signalInfo.code != 0) {
+            throw Error(GetErrorMessage(ETestErrorMsg.StreamOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
+        }
+
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.StreamOutput));
+
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Deactivate, GetErrorMessage(ETestErrorMsg.StreamOutput));
+    }
+
+    async function runRecordWithInvalidPath() {
+        let signalInfo: IOBSOutputSignalInfo;
+
+        osn.NodeObs.OBS_service_startRecording();
+
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+        expect(signalInfo.code).to.equal(-4, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+    }
+
+    async function runReplayWithInvalidPath() {
+        let signalInfo: IOBSOutputSignalInfo;
+
+        osn.NodeObs.OBS_service_startReplayBuffer();
+
+        signalInfo = await obs.getNextSignalInfo();
+
+        if (signalInfo.signal == EOBSOutputSignal.Stop) {
+            throw Error(GetErrorMessage(ETestErrorMsg.ReplayBufferDidNotStart, signalInfo.code.toString(), signalInfo.error));
+        }
+
+        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+
+        await sleep(500);
+
+        osn.NodeObs.OBS_service_processReplayBufferHotkey();
+
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Writing, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+
+        signalInfo = await obs.getNextSignalInfo();
+        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+        expect(signalInfo.code).to.equal(-4, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+    }
 });
