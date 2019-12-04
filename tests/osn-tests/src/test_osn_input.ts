@@ -1,18 +1,22 @@
 import 'mocha';
 import { expect } from 'chai';
 import * as osn from '../osn';
+import { logInfo, logEmptyLine } from '../util/logger';
 import { IInput, ISettings, ITimeSpec } from '../osn';
 import { OBSHandler } from '../util/obs_handler';
 import { getTimeSpec, deleteConfigFiles} from '../util/general';
 import * as inputSettings from '../util/input_settings';
 
-describe('osn-input', () => {
+const testName = 'osn-input';
+
+describe(testName, () => {
     let obs: OBSHandler;
 
     // Initialize OBS process
     before(function() {
+        logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
-        obs = new OBSHandler();
+        obs = new OBSHandler(testName);
     });
 
     // Shutdown OBS process
@@ -20,6 +24,8 @@ describe('osn-input', () => {
         obs.shutdown();
         obs = null;
         deleteConfigFiles();
+        logInfo(testName, 'Finished ' + testName + ' tests');
+        logEmptyLine();
     });
 
     context('# Create', () => {

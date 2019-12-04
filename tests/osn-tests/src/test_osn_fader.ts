@@ -1,16 +1,20 @@
 import 'mocha'
 import { expect } from 'chai'
-import { OBSHandler } from '../util/obs_handler'
 import * as osn from '../osn';
+import { logInfo, logEmptyLine } from '../util/logger';
+import { OBSHandler } from '../util/obs_handler'
 import { deleteConfigFiles } from '../util/general';
 
-describe('osn-fader', () => {
+const testName = 'osn-fader';
+
+describe(testName, () => {
     let obs: OBSHandler;
 
     // Initialize OBS process
     before(function() {
+        logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
-        obs = new OBSHandler();
+        obs = new OBSHandler(testName);
     });
 
     // Shutdown OBS process
@@ -18,6 +22,8 @@ describe('osn-fader', () => {
         obs.shutdown();
         obs = null;
         deleteConfigFiles();
+        logInfo(testName, 'Finished ' + testName + ' tests');
+        logEmptyLine();
     });
 
     context('# Create and Attach', () => {
