@@ -1,6 +1,7 @@
 import 'mocha';
 import { expect } from 'chai';
 import * as osn from '../osn';
+import { logInfo, logEmptyLine } from '../util/logger';
 import { OBSHandler } from '../util/obs_handler';
 import { deleteConfigFiles } from '../util/general';
 import { EOBSInputTypes } from '../util/obs_enums'
@@ -21,13 +22,16 @@ interface IVolmeter {
     inputPeak: number[];
 }
 
-describe('osn-volmeter', () => {
+const testName = 'osn-volmeter';
+
+describe(testName, () => {
     let obs: OBSHandler;
 
     // Initialize OBS process
     before(function() {
+        logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
-        obs = new OBSHandler();
+        obs = new OBSHandler(testName);
     });
 
     // Shutdown OBS process
@@ -35,6 +39,8 @@ describe('osn-volmeter', () => {
         obs.shutdown();
         obs = null;
         deleteConfigFiles();
+        logInfo(testName, 'Finished ' + testName + ' tests');
+        logEmptyLine();
     });
 
     context('# Create and Attach', () => {

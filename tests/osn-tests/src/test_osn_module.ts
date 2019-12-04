@@ -3,16 +3,20 @@ import { expect } from 'chai';
 import * as osn from '../osn';
 import * as path from 'path';
 import * as fs from 'fs';
+import { logInfo, logEmptyLine } from '../util/logger';
 import { OBSHandler } from '../util/obs_handler';
 import { deleteConfigFiles } from '../util/general';
 
-describe('osn-module', () => {
+const testName = 'osn-module';
+
+describe(testName, () => {
     let obs: OBSHandler;
 
     // Initialize OBS process
     before(function() {
+        logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
-        obs = new OBSHandler();
+        obs = new OBSHandler(testName);
     });
 
     // Shutdown OBS process
@@ -20,6 +24,8 @@ describe('osn-module', () => {
         obs.shutdown();
         obs = null;
         deleteConfigFiles();
+        logInfo(testName, 'Finished ' + testName + ' tests');
+        logEmptyLine();
     });
 
     context('# Open, Initialize, Modules and Get', () => {

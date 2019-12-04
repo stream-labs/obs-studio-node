@@ -1,4 +1,6 @@
 import { sleep } from './general';
+import { logInfo, logWarning } from '../util/logger';
+
 const request = require('request');
 
 type TPlatform = 'twitch' | 'youtube' | 'mixer' | 'facebook';
@@ -21,6 +23,11 @@ export class Services {
     private user: ITestUser;
     private userPoolUrl: string = 'https://slobs-users-pool.herokuapp.com/';
     private clientId = '8bmp6j83z5w4mepq0dn0q1a7g186azi';
+    private osnTestName: string;
+
+    constructor(testName: string) {
+        this.osnTestName = testName;
+    }
 
     private async requestUser(): Promise<any> {
         return new Promise((resolve, reject) => {
@@ -29,6 +36,8 @@ export class Services {
                 headers: {Authorization: `Bearer: ${process.env.SLOBS_TEST_USER_POOL_TOKEN}`}},
                 (err: any, res: any, body: any) => {
                     if (err || res.statusCode !== 200) {
+                        logWarning(this.osnTestName, 'Request user got status ' + res.statusCode);
+                        logWarning(this.osnTestName, 'Error mesage \'' + err + '\'');
                         reject(`Unable to request user ${err || body}`);
                     }
 
@@ -43,23 +52,28 @@ export class Services {
     }
 
     async getStreamKey(): Promise<string> {
-        let attemps: number = 3;
+        let attempt: number = 1;
+        let totalAttempts: number = 3;
 
-        while(attemps--) {
+        while(attempt <= totalAttempts) {
             try {
+                logInfo(this.osnTestName, 'Requesting user from pool ('+ attempt + '/' + totalAttempts + ')');
                 this.user = await this.requestUser();
                 break;
             } catch(e) {
-                if (attemps) {
+                if (attempt) {
                     await sleep(20000);
                 }
             }
+
+            attempt++;
         }
 
         if (!this.user) {
             throw 'Unable to get user from pool.';
         }
 
+        logInfo(this.osnTestName, 'Got user ' + this.user.email);
         return this.user.streamKey;
     }
 

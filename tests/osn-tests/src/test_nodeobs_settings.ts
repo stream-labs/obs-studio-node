@@ -1,16 +1,20 @@
 import 'mocha'
 import { expect } from 'chai'
 import * as osn from '../osn';
+import { logInfo, logEmptyLine } from '../util/logger';
 import { OBSHandler } from '../util/obs_handler';
 import { deleteConfigFiles, basicOBSSettingsCategories } from '../util/general';
 
-describe('nodeobs_settings', function() {
+const testName = 'nodeobs_settings';
+
+describe(testName, function() {
     let obs: OBSHandler;
 
     // Initialize OBS process
     before(function() {
+        logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
-        obs = new OBSHandler();
+        obs = new OBSHandler(testName);
     });
 
     // Shutdown OBS process
@@ -18,6 +22,8 @@ describe('nodeobs_settings', function() {
         obs.shutdown();
         obs = null;
         deleteConfigFiles();
+        logInfo(testName, 'Finished ' + testName + ' tests');
+        logEmptyLine();
     });
 
     context('# OBS_settings_saveSettings and OBS_settings_getSettings', function() {
