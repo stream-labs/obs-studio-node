@@ -1,4 +1,4 @@
-PROJECT(obs-studio-server VERSION ${obs-studio-node_VERSION})
+﻿PROJECT(obs-studio-server VERSION ${obs-studio-node_VERSION})
 
 # Detect Architecture (Bitness)
 IF( NOT CLANG_ANALYZE_CONFIG)
