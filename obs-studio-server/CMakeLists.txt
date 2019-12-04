@@ -106,9 +106,13 @@ add_dependencies(crashpad_base crashpad_ep)
 add_dependencies(crashpad_client crashpad_base)
 add_dependencies(crashpad_util crashpad_client)
 
+# Getting LIBOBS_VERSION from azure script
+file(STRINGS ../azure-pipelines.yml VERSION_LINE REGEX "LibOBSVersion")
+string(REGEX MATCH "[^: ]*$" CURRENT_VERSION ${VERSION_LINE})
+
 set(
 	LIBOBS_VERSION
-	""
+	${CURRENT_VERSION}
 	CACHE STRING "Version of libobs being used"
 )
 
