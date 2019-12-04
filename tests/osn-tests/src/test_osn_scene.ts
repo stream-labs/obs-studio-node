@@ -8,7 +8,7 @@ import { EOBSInputTypes } from '../util/obs_enums';
 
 const testName = 'osn-scene';
 
-describe('osn-scene', () => {
+describe(testName, () => {
     let obs: OBSHandler;
     
     // Initialize OBS process

@@ -1,7 +1,7 @@
 import * as osn from '../osn';
 import { logInfo, logWarning } from '../util/logger';
 import { Services } from '../util/services';
-import { EOBSOutputType, EOBSOutputSignal} from '../util/obs_enums'
+import { EOBSOutputType, EOBSOutputSignal, EOBSSettingsCategories} from '../util/obs_enums'
 import { Subject } from 'rxjs';
 import { first } from 'rxjs/operators';
 
@@ -130,8 +130,15 @@ export class OBSHandler {
             this.hasUserFromPool = false;
         }
 
-        this.setSetting('Stream', 'key', streamKey);
-        logInfo(this.osnTestName, 'Stream key saved successfully')
+        logInfo(this.osnTestName, 'Saving stream key');
+        this.setSetting(EOBSSettingsCategories.Stream, 'key', streamKey);
+
+        let savedStreamKey = this.getSetting(EOBSSettingsCategories.Stream, 'key');
+        if (savedStreamKey == streamKey) {
+            logInfo(this.osnTestName, 'Stream key saved successfully');
+        } else {
+            throw Error('Failed to save stream key');
+        }
     }
 
     async releaseUser() {

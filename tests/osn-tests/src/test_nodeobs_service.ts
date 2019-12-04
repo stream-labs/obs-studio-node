@@ -8,7 +8,7 @@ import { EOBSOutputType, EOBSOutputSignal } from '../util/obs_enums';
 
 const testName = 'nodeobs_service';
 
-describe('nodeobs_service', function() {
+describe(testName, function() {
     let obs: OBSHandler;
     const path = require('path');
 

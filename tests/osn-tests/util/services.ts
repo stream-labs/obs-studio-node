@@ -73,6 +73,7 @@ export class Services {
             throw 'Unable to get user from pool.';
         }
 
+        logInfo(this.osnTestName, 'Got user ' + this.user.email);
         return this.user.streamKey;
     }
 

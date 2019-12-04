@@ -7,7 +7,7 @@ import { deleteConfigFiles } from '../util/general';
 
 const testName = 'nodeobs_autoconfig';
 
-describe('nodeobs_autoconfig', function() {
+describe(testName, function() {
     let obs: OBSHandler;
 
     // Initialize OBS process
