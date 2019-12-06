@@ -8,15 +8,22 @@ export class CacheUploader {
     private testName: string;
     private cachePath: string;
     private dateStr = new Date().toISOString();
+    private releaseName: string;
 
     constructor(test:string, path: string) {
         this.testName = test;
         this.cachePath = path;
+
+        if ("RELEASE_NAME" in process.env) {
+            this.releaseName = process.env.RELEASE_NAME;
+        } else {
+            this.releaseName = 'local';
+        }
     }
 
     uploadCache() {
         return new Promise((resolve, reject) => {
-            const cacheFile = path.join(path.normalize(__dirname), '..', this.testName + '-test-cache.zip');
+            const cacheFile = path.join(path.normalize(__dirname), '..', this.testName + '-test-cache-' + this.releaseName + '.zip');
             const output = fs.createWriteStream(cacheFile);
             const archive = archiver('zip', { zlib: { level: 9 } });
 
@@ -30,7 +37,7 @@ export class CacheUploader {
 
             output.on('close', () => {
                 const file = fs.createReadStream(cacheFile);
-                const keyname = this.dateStr + '-' + this.testName + '-test-cache.zip';
+                const keyname = this.dateStr + '-' + this.testName + '-test-cache-' + this.releaseName + '.zip';
         
                 aws.config.region = 'us-west-2';
         
