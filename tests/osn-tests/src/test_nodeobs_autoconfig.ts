@@ -9,6 +9,7 @@ const testName = 'nodeobs_autoconfig';
 
 describe(testName, function() {
     let obs: OBSHandler;
+    let hasTestFailed: boolean = false;
 
     // Initialize OBS process
     before(async function() {
@@ -29,11 +30,22 @@ describe(testName, function() {
         
         // Closing OBS process
         obs.shutdown();
-        obs = null;
 
+        if (hasTestFailed === true) {
+            logInfo(testName, 'One or more test cases failed. Uploading cache');
+            await obs.uploadTestCache();
+        }
+
+        obs = null;
         deleteConfigFiles();
         logInfo(testName, 'Finished ' + testName + ' tests');
         logEmptyLine();
+    });
+
+    afterEach(function() {
+        if (this.currentTest.state == 'failed') {
+            hasTestFailed = true;
+        }
     });
 
     context('# Full auto config run', function() {
