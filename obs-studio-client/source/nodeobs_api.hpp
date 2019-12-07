@@ -22,12 +22,12 @@
 
 namespace api
 {
-	static void OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void OBS_API_destroyOBS_API(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void OBS_API_getPerformanceStatistics(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void SetWorkingDirectory(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void StopCrashHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void OBS_API_QueryHotkeys(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void OBS_API_ProcessHotkeyStatus(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void SetUsername(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void OBS_API_destroyOBS_API(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void OBS_API_getPerformanceStatistics(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void SetWorkingDirectory(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void StopCrashHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void OBS_API_QueryHotkeys(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void OBS_API_ProcessHotkeyStatus(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void SetUsername(const v8::FunctionCallbackInfo<v8::Value>& args);
 } // namespace api

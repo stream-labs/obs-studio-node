@@ -64,11 +64,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Types(Nan::NAN_METHOD_ARGS_TYPE inf
 	// Function takes no parameters.
 	ASSERT_INFO_LENGTH(info, 0);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Transition", "Types", {});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("Transition", "Types", {});
 
 	if (!ValidateResponse(response))
 		return;
@@ -106,9 +106,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Create(Nan::NAN_METHOD_ARGS_TYPE in
 		settings = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), setobj).ToLocalChecked();
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	auto params = std::vector<ipc::value>{ipc::value(type), ipc::value(name)};
 	if (settings->Length() != 0) {
@@ -118,7 +118,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Create(Nan::NAN_METHOD_ARGS_TYPE in
 		}
 	}
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Transition", "Create", {std::move(params)});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("Transition", "Create", {std::move(params)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -158,9 +158,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::CreatePrivate(Nan::NAN_METHOD_ARGS_
 		settings = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), setobj).ToLocalChecked();
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	auto params = std::vector<ipc::value>{ipc::value(type), ipc::value(name)};
 	if (settings->Length() != 0) {
@@ -171,7 +171,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::CreatePrivate(Nan::NAN_METHOD_ARGS_
 	}
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Transition", "CreatePrivate", {std::move(params)});
+	    client_int->call_synchronous_helper("Transition", "CreatePrivate", {std::move(params)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -197,13 +197,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::FromName(Nan::NAN_METHOD_ARGS_TYPE 
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], name);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	auto params = std::vector<ipc::value>{ipc::value(name)};
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Transition", "FromName", {std::move(params)});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("Transition", "FromName", {std::move(params)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -225,14 +225,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::GetActiveSource(Nan::NAN_METHOD_ARG
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	auto params = std::vector<ipc::value>{ipc::value(obj->sourceId)};
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Transition", "GetActiveSource", {std::move(params)});
+	    client_int->call_synchronous_helper("Transition", "GetActiveSource", {std::move(params)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -262,13 +262,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Clear(Nan::NAN_METHOD_ARGS_TYPE inf
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	auto params = std::vector<ipc::value>{ipc::value(obj->sourceId)};
 
-	conn->call("Transition", "Clear", {std::move(params)});
+	client_int->call("Transition", "Clear", {std::move(params)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Set(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -295,13 +295,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Set(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	auto params = std::vector<ipc::value>{ipc::value(obj->sourceId), ipc::value(targetobj->sourceId)};
 
-	conn->call("Transition", "Set", {std::move(params)});
+	client_int->call("Transition", "Set", {std::move(params)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Start(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -331,13 +331,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Start(Nan::NAN_METHOD_ARGS_TYPE inf
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	auto params = std::vector<ipc::value>{ipc::value(obj->sourceId), ipc::value(ms), ipc::value(targetobj->sourceId)};
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Transition", "Start", {std::move(params)});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("Transition", "Start", {std::move(params)});
 
 	if (!ValidateResponse(response))
 		return;

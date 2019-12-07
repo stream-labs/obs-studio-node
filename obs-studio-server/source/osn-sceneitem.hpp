@@ -17,13 +17,13 @@
 ******************************************************************************/
 
 #pragma once
-#include <ipc-server.hpp>
+#include <ipc-client.hpp>
 #include <obs.h>
-#include <utility.hpp>
+#include <../obs-studio-server/source/utility.hpp>
 
 namespace osn
 {
-	class SceneItem
+	class ServerSceneItem
 	{
 		public:
 		class Manager : public utility::unique_object_manager<obs_sceneitem_t>
@@ -43,7 +43,7 @@ namespace osn
 		};
 
 		public:
-		static void Register(ipc::server&);
+		static void Register(ipc::client*);
 
 		static void
 		    GetSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);

@@ -22,18 +22,18 @@
 #include "shared.hpp"
 
 std::mutex                             mtx;
-std::map<std::string, SourceSizeInfo*> sources;
+std::map<std::string, SourceSizeInfob*> sources;
 
-void CallbackManager::Register(ipc::server& srv)
+void CallbackManagerb::Register(ipc::client* client)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("CallbackManager");
 
 	cls->register_function(std::make_shared<ipc::function>("QuerySourceSize", std::vector<ipc::type>{}, QuerySourceSize));
 
-	srv.register_collection(cls);
+	client->register_collection(cls);
 }
 
-void CallbackManager::QuerySourceSize(
+void CallbackManagerb::QuerySourceSize(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -49,7 +49,7 @@ void CallbackManager::QuerySourceSize(
 	uint32_t size = 0;
 
 	for (auto item : sources) {
-		SourceSizeInfo* si = item.second;
+		SourceSizeInfob* si = item.second;
 		// See if width or height changed here
 		uint32_t newWidth  = obs_source_get_width(si->source);
 		uint32_t newHeight = obs_source_get_height(si->source);
@@ -74,21 +74,21 @@ void CallbackManager::QuerySourceSize(
 	AUTO_DEBUG;
 }
 
-void CallbackManager::addSource(obs_source_t* source)
+void CallbackManagerb::addSource(obs_source_t* source)
 {
 	std::unique_lock<std::mutex> ulock(mtx);
 
 	if (!source || obs_source_get_type(source) == OBS_SOURCE_TYPE_FILTER)
 		return;
 
-	SourceSizeInfo* si               = new SourceSizeInfo;
+	SourceSizeInfob* si               = new SourceSizeInfob;
 	si->source                       = source;
 	si->width                        = obs_source_get_width(source);
 	si->height                       = obs_source_get_height(source);
 
 	sources.emplace(std::make_pair(std::string(obs_source_get_name(source)), si));
 }
-void CallbackManager::removeSource(obs_source_t* source)
+void CallbackManagerb::removeSource(obs_source_t* source)
 {
 	std::unique_lock<std::mutex> ulock(mtx);
 	

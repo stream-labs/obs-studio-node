@@ -15,7 +15,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ******************************************************************************/
-
+#pragma once
 #include <nan.h>
 #include <node.h>
 #include "utility-v8.hpp"
@@ -30,7 +30,7 @@ struct AutoConfigInfo
 
 class AutoConfig;
 typedef utilv8::managed_callback<std::shared_ptr<AutoConfigInfo>> AutoConfigCallback;
-AutoConfig*                                                       autoConfigObject;
+extern AutoConfig*                                                       autoConfigObject;
 
 class AutoConfig : public Nan::ObjectWrap,
                    public utilv8::InterfaceObject<AutoConfig>,
@@ -66,13 +66,13 @@ class AutoConfig : public Nan::ObjectWrap,
 
 namespace autoConfig
 {
-	static void InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void StartBandwidthTest(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void StartStreamEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void StartRecordingEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void StartCheckSettings(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void StartSetDefaultSettings(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void StartSaveStreamSettings(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void StartSaveSettings(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void TerminateAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void StartBandwidthTest(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void StartStreamEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void StartRecordingEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void StartCheckSettings(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void StartSetDefaultSettings(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void StartSaveStreamSettings(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void StartSaveSettings(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void TerminateAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args);
 } // namespace autoConfig

@@ -18,7 +18,7 @@
 
 #include <iomanip>
 #include <map>
-#include "nodeobs_content.h"
+#include "server-nodeobs_content.h"
 
 /* For sceneitem transform modifications.
  * We should consider moving this to another module */
@@ -124,7 +124,7 @@ static bool MultiplySelectedItemScale(obs_scene_t* scene, obs_sceneitem_t* item,
 	return true;
 }
 
-void OBS_content::Register(ipc::server& srv)
+void OBS_content::Register(ipc::client* client)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Display");
 
@@ -194,7 +194,7 @@ void OBS_content::Register(ipc::server& srv)
 	    std::vector<ipc::type>{ipc::type::String, ipc::type::Int32},
 	    OBS_content_setDrawGuideLines));
 
-	srv.register_collection(cls);
+	client->register_collection(cls);
 }
 
 void popupAeroDisabledWindow(void)
@@ -245,7 +245,7 @@ void OBS_content::OBS_content_createDisplay(
 
 	if (!IsWindows8OrGreater()) {
 		BOOL enabled = FALSE;
-		DwmIsCompositionEnabled(&enabled);
+		// DwmIsCompositionEnabled(&enabled);
 		if (!enabled && firstDisplayCreation) {
 			windowMessage = new std::thread(popupAeroDisabledWindow);
 		}

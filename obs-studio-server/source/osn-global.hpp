@@ -17,14 +17,14 @@
 ******************************************************************************/
 
 #pragma once
-#include <ipc-server.hpp>
+#include <ipc-client.hpp>
 
 namespace osn
 {
-	class Global
+	class ServerGlobal
 	{
 		public:
-		static void Register(ipc::server&);
+		static void Register(ipc::client*);
 
 		static void GetOutputSource(
 		    void*                          data,

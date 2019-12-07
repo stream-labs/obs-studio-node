@@ -19,6 +19,8 @@
 #include "nodeobs_autoconfig.hpp"
 #include "shared.hpp"
 
+AutoConfig* autoConfigObject;
+
 AutoConfig::~AutoConfig()
 {
 	stop_worker();
@@ -114,7 +116,7 @@ void AutoConfig::worker()
 
 		// Call
 		{
-			std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "Query", {});
+			std::vector<ipc::value> response = client_int->call_synchronous_helper("AutoConfig", "Query", {});
 			if (!response.size() || (response.size() == 1)) {
 				goto do_sleep;
 			}
@@ -158,12 +160,12 @@ void autoConfig::InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>&
 	v8::String::Utf8Value param1(serverInfo->Get(v8::String::NewFromUtf8(isolate, "service_name").ToLocalChecked()));
 	std::string           service = std::string(*param1);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("AutoConfig", "InitializeAutoConfig", {continent, service});
+	    client_int->call_synchronous_helper("AutoConfig", "InitializeAutoConfig", {continent, service});
 
 	if (!ValidateResponse(response)) {
 		return;
@@ -180,11 +182,11 @@ void autoConfig::InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>&
 
 void autoConfig::StartBandwidthTest(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "StartBandwidthTest", {});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("AutoConfig", "StartBandwidthTest", {});
 	if (!ValidateResponse(response)) {
 		return;
 	}
@@ -192,11 +194,11 @@ void autoConfig::StartBandwidthTest(const v8::FunctionCallbackInfo<v8::Value>& a
 
 void autoConfig::StartStreamEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "StartStreamEncoderTest", {});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("AutoConfig", "StartStreamEncoderTest", {});
 	if (!ValidateResponse(response)) {
 		return;
 	}
@@ -204,11 +206,11 @@ void autoConfig::StartStreamEncoderTest(const v8::FunctionCallbackInfo<v8::Value
 
 void autoConfig::StartRecordingEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "StartRecordingEncoderTest", {});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("AutoConfig", "StartRecordingEncoderTest", {});
 	if (!ValidateResponse(response)) {
 		return;
 	}
@@ -223,11 +225,11 @@ void autoConfig::StartCheckSettings(const v8::FunctionCallbackInfo<v8::Value>& a
 	startData->param                          = autoConfigObject;
 	autoConfigObject->m_async_callback->queue(std::move(startData));
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "StartCheckSettings", {});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("AutoConfig", "StartCheckSettings", {});
 
 	if (!ValidateResponse(response)) {
 		return;
@@ -250,11 +252,11 @@ void autoConfig::StartCheckSettings(const v8::FunctionCallbackInfo<v8::Value>& a
 
 void autoConfig::StartSetDefaultSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "StartSetDefaultSettings", {});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("AutoConfig", "StartSetDefaultSettings", {});
 	if (!ValidateResponse(response)) {
 		return;
 	}
@@ -262,11 +264,11 @@ void autoConfig::StartSetDefaultSettings(const v8::FunctionCallbackInfo<v8::Valu
 
 void autoConfig::StartSaveStreamSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "StartSaveStreamSettings", {});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("AutoConfig", "StartSaveStreamSettings", {});
 	if (!ValidateResponse(response)) {
 		return;
 	}
@@ -274,11 +276,11 @@ void autoConfig::StartSaveStreamSettings(const v8::FunctionCallbackInfo<v8::Valu
 
 void autoConfig::StartSaveSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "StartSaveSettings", {});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("AutoConfig", "StartSaveSettings", {});
 	if (!ValidateResponse(response)) {
 		return;
 	}
@@ -286,11 +288,11 @@ void autoConfig::StartSaveSettings(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 void autoConfig::TerminateAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "TerminateAutoConfig", {});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("AutoConfig", "TerminateAutoConfig", {});
 
 	if (!ValidateResponse(response)) {
 		return;

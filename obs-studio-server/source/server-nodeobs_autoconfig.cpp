@@ -16,7 +16,7 @@
 
 ******************************************************************************/
 
-#include "nodeobs_autoconfig.h"
+#include "server-nodeobs_autoconfig.h"
 #include <array>
 #include <future>
 #include "error.hpp"
@@ -218,36 +218,36 @@ class TestMode
 	}
 };
 
-void autoConfig::Register(ipc::server& srv)
+void ServerAutoConfig::Register(ipc::client* client)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("AutoConfig");
 
 	cls->register_function(std::make_shared<ipc::function>(
 	    "InitializeAutoConfig",
 	    std::vector<ipc::type>{ipc::type::String, ipc::type::String},
-	    autoConfig::InitializeAutoConfig));
+	    ServerAutoConfig::InitializeAutoConfig));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "StartBandwidthTest", std::vector<ipc::type>{}, autoConfig::StartBandwidthTest));
+	    "StartBandwidthTest", std::vector<ipc::type>{}, ServerAutoConfig::StartBandwidthTest));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "StartStreamEncoderTest", std::vector<ipc::type>{}, autoConfig::StartStreamEncoderTest));
+	    "StartStreamEncoderTest", std::vector<ipc::type>{}, ServerAutoConfig::StartStreamEncoderTest));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "StartRecordingEncoderTest", std::vector<ipc::type>{}, autoConfig::StartRecordingEncoderTest));
+	    "StartRecordingEncoderTest", std::vector<ipc::type>{}, ServerAutoConfig::StartRecordingEncoderTest));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "StartCheckSettings", std::vector<ipc::type>{}, autoConfig::StartCheckSettings));
+	    "StartCheckSettings", std::vector<ipc::type>{}, ServerAutoConfig::StartCheckSettings));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "StartSetDefaultSettings", std::vector<ipc::type>{}, autoConfig::StartSetDefaultSettings));
+	    "StartSetDefaultSettings", std::vector<ipc::type>{}, ServerAutoConfig::StartSetDefaultSettings));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "StartSaveStreamSettings", std::vector<ipc::type>{}, autoConfig::StartSaveStreamSettings));
+	    "StartSaveStreamSettings", std::vector<ipc::type>{}, ServerAutoConfig::StartSaveStreamSettings));
 	cls->register_function(
-	    std::make_shared<ipc::function>("StartSaveSettings", std::vector<ipc::type>{}, autoConfig::StartSaveSettings));
+	    std::make_shared<ipc::function>("StartSaveSettings", std::vector<ipc::type>{}, ServerAutoConfig::StartSaveSettings));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "TerminateAutoConfig", std::vector<ipc::type>{}, autoConfig::TerminateAutoConfig));
-	cls->register_function(std::make_shared<ipc::function>("Query", std::vector<ipc::type>{}, autoConfig::Query));
+	    "TerminateAutoConfig", std::vector<ipc::type>{}, ServerAutoConfig::TerminateAutoConfig));
+	cls->register_function(std::make_shared<ipc::function>("Query", std::vector<ipc::type>{}, ServerAutoConfig::Query));
 
-	srv.register_collection(cls);
+	client->register_collection(cls);
 }
 
-void autoConfig::WaitPendingTests(double timeout)
+void ServerAutoConfig::WaitPendingTests(double timeout)
 {
 	clock_t start_time = clock();
 	while ((float(clock() - start_time) / CLOCKS_PER_SEC) < timeout) {
@@ -269,7 +269,7 @@ void autoConfig::WaitPendingTests(double timeout)
 	}
 }
 
-void autoConfig::TestHardwareEncoding(void)
+void ServerAutoConfig::TestHardwareEncoding(void)
 {
 	size_t      idx = 0;
 	const char* id;
@@ -296,7 +296,7 @@ static inline void string_depad_key(std::string& key)
 	}
 }
 
-bool autoConfig::CanTestServer(const char* server)
+bool ServerAutoConfig::CanTestServer(const char* server)
 {
 	if (!testRegions || (regionNA && regionSA && regionEU && regionAS && regionOC))
 		return true;
@@ -377,7 +377,7 @@ void GetServers(std::vector<ServerInfo>& servers)
 		const char* name   = obs_property_list_item_name(p, i);
 		const char* server = obs_property_list_item_string(p, i);
 
-		if (autoConfig::CanTestServer(name)) {
+		if (ServerAutoConfig::CanTestServer(name)) {
 			ServerInfo info(name, server);
 			servers.push_back(info);
 		}
@@ -395,7 +395,7 @@ void start_next_step(void (*task)(), std::string event, std::string description,
     	std::thread(*task).detach();*/
 }
 
-void autoConfig::TerminateAutoConfig(
+void ServerAutoConfig::TerminateAutoConfig(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -405,7 +405,7 @@ void autoConfig::TerminateAutoConfig(
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
-void autoConfig::Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
+void ServerAutoConfig::Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	std::unique_lock<std::mutex> ulock(eventsMutex);
 	if (events.empty()) {
@@ -425,14 +425,14 @@ void autoConfig::Query(void* data, const int64_t id, const std::vector<ipc::valu
 	AUTO_DEBUG;
 }
 
-void autoConfig::StopThread(void)
+void ServerAutoConfig::StopThread(void)
 {
 	std::unique_lock<std::mutex> ul(m);
 	cancel = true;
 	cv.notify_one();
 }
 
-void autoConfig::InitializeAutoConfig(
+void ServerAutoConfig::InitializeAutoConfig(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -450,7 +450,7 @@ void autoConfig::InitializeAutoConfig(
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
-void autoConfig::StartBandwidthTest(
+void ServerAutoConfig::StartBandwidthTest(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -461,7 +461,7 @@ void autoConfig::StartBandwidthTest(
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
-void autoConfig::StartStreamEncoderTest(
+void ServerAutoConfig::StartStreamEncoderTest(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -472,7 +472,7 @@ void autoConfig::StartStreamEncoderTest(
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
-void autoConfig::StartRecordingEncoderTest(
+void ServerAutoConfig::StartRecordingEncoderTest(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -483,7 +483,7 @@ void autoConfig::StartRecordingEncoderTest(
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
-void autoConfig::StartSaveStreamSettings(
+void ServerAutoConfig::StartSaveStreamSettings(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -494,7 +494,7 @@ void autoConfig::StartSaveStreamSettings(
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
-void autoConfig::StartSaveSettings(
+void ServerAutoConfig::StartSaveSettings(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -507,7 +507,7 @@ void autoConfig::StartSaveSettings(
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
-void autoConfig::StartCheckSettings(
+void ServerAutoConfig::StartCheckSettings(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -519,7 +519,7 @@ void autoConfig::StartCheckSettings(
 	rval.push_back(ipc::value((uint32_t)sucess));
 }
 
-void autoConfig::StartSetDefaultSettings(
+void ServerAutoConfig::StartSetDefaultSettings(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -623,7 +623,7 @@ void sendErrorMessage(std::string message) {
 	eventsMutex.unlock();
 }
 
-void autoConfig::TestBandwidthThread(void)
+void ServerAutoConfig::TestBandwidthThread(void)
 {
 	eventsMutex.lock();
 	events.push(AutoConfigInfo("starting_step", "bandwidth_test", 0));
@@ -935,7 +935,7 @@ struct Result
 	{}
 };
 
-void autoConfig::FindIdealHardwareResolution()
+void ServerAutoConfig::FindIdealHardwareResolution()
 {
 	int baseCX = (int)baseResolutionCX;
 	int baseCY = (int)baseResolutionCY;
@@ -1020,7 +1020,7 @@ void autoConfig::FindIdealHardwareResolution()
 	idealFPSDen = result.fps_den;
 }
 
-bool autoConfig::TestSoftwareEncoding()
+bool ServerAutoConfig::TestSoftwareEncoding()
 {
 	OBSEncoder vencoder = obs_video_encoder_create("obs_x264", "test_x264", nullptr, nullptr);
 	OBSEncoder aencoder = obs_audio_encoder_create("ffmpeg_aac", "test_aac", nullptr, 0, nullptr);
@@ -1261,7 +1261,7 @@ bool autoConfig::TestSoftwareEncoding()
 	return true;
 }
 
-void autoConfig::TestStreamEncoderThread()
+void ServerAutoConfig::TestStreamEncoderThread()
 {
 	eventsMutex.lock();
 	events.push(AutoConfigInfo("starting_step", "streamingEncoder_test", 0));
@@ -1299,7 +1299,7 @@ void autoConfig::TestStreamEncoderThread()
 	eventsMutex.unlock();
 }
 
-void autoConfig::TestRecordingEncoderThread()
+void ServerAutoConfig::TestRecordingEncoderThread()
 {
 	eventsMutex.lock();
 	events.push(AutoConfigInfo("starting_step", "recordingEncoder_test", 0));
@@ -1373,7 +1373,7 @@ inline const char* GetEncoderDisplayName(Encoder enc)
 	}
 };
 
-bool autoConfig::CheckSettings(void)
+bool ServerAutoConfig::CheckSettings(void)
 {
 	OBSData settings = obs_data_create();
 
@@ -1503,7 +1503,7 @@ bool autoConfig::CheckSettings(void)
 	return success;
 }
 
-void autoConfig::SetDefaultSettings(void)
+void ServerAutoConfig::SetDefaultSettings(void)
 {
 	eventsMutex.lock();
 	events.push(AutoConfigInfo("starting_step", "setting_default_settings", 0));
@@ -1522,7 +1522,7 @@ void autoConfig::SetDefaultSettings(void)
 	eventsMutex.unlock();
 }
 
-void autoConfig::SaveStreamSettings()
+void ServerAutoConfig::SaveStreamSettings()
 {
 	/* ---------------------------------- */
 	/* save service                       */
@@ -1567,7 +1567,7 @@ void autoConfig::SaveStreamSettings()
 	eventsMutex.unlock();
 }
 
-void autoConfig::SaveSettings()
+void ServerAutoConfig::SaveSettings()
 {
 	eventsMutex.lock();
 	events.push(AutoConfigInfo("starting_step", "saving_settings", 0));

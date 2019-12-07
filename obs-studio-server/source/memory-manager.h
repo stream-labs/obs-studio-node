@@ -18,7 +18,7 @@
 
 #pragma once
 #include "obs.h"
-#include "nodeobs_configManager.hpp"
+#include "server-nodeobs_configManager.hpp"
 #include <map>
 #include <mutex>
 #include <windows.h>

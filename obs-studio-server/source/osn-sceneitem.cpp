@@ -21,7 +21,7 @@
 #include "osn-source.hpp"
 #include "shared.hpp"
 
-void osn::SceneItem::Register(ipc::server& srv)
+void osn::ServerSceneItem::Register(ipc::client* client)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("SceneItem");
 	cls->register_function(
@@ -100,16 +100,16 @@ void osn::SceneItem::Register(ipc::server& srv)
 	    "DeferUpdateBegin", std::vector<ipc::type>{ipc::type::UInt64}, DeferUpdateBegin));
 	cls->register_function(
 	    std::make_shared<ipc::function>("DeferUpdateEnd", std::vector<ipc::type>{ipc::type::UInt64}, DeferUpdateEnd));
-	srv.register_collection(cls);
+	client->register_collection(cls);
 }
 
-void osn::SceneItem::GetSource(
+void osn::ServerSceneItem::GetSource(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -119,19 +119,19 @@ void osn::SceneItem::GetSource(
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item does not contain a source.");
 	}
 
-	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
+	uint64_t uid = osn::ServerSource::Manager::GetInstance().find(source);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint64_t)uid));
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::GetScene(
+void osn::ServerSceneItem::GetScene(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -146,24 +146,24 @@ void osn::SceneItem::GetScene(
 		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Scene is invalid.");
 	}
 
-	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
+	uint64_t uid = osn::ServerSource::Manager::GetInstance().find(source);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint64_t)uid));
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::Remove(
+void osn::ServerSceneItem::Remove(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
-	osn::SceneItem::Manager::GetInstance().free(args[0].value_union.ui64);
+	osn::ServerSceneItem::Manager::GetInstance().free(args[0].value_union.ui64);
 	obs_sceneitem_release(item);
 	obs_sceneitem_remove(item);
 
@@ -171,13 +171,13 @@ void osn::SceneItem::Remove(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::IsVisible(
+void osn::ServerSceneItem::IsVisible(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -187,13 +187,13 @@ void osn::SceneItem::IsVisible(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::SetVisible(
+void osn::ServerSceneItem::SetVisible(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -205,13 +205,13 @@ void osn::SceneItem::SetVisible(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::IsSelected(
+void osn::ServerSceneItem::IsSelected(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -221,13 +221,13 @@ void osn::SceneItem::IsSelected(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::SetSelected(
+void osn::ServerSceneItem::SetSelected(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -239,13 +239,13 @@ void osn::SceneItem::SetSelected(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::IsStreamVisible(
+void osn::ServerSceneItem::IsStreamVisible(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN("invalid reference");
 	}
@@ -255,13 +255,13 @@ void osn::SceneItem::IsStreamVisible(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::SetStreamVisible(
+void osn::ServerSceneItem::SetStreamVisible(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN("invalid reference");
 	}
@@ -273,13 +273,13 @@ void osn::SceneItem::SetStreamVisible(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::IsRecordingVisible(
+void osn::ServerSceneItem::IsRecordingVisible(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN("invalid reference");
 	}
@@ -289,13 +289,13 @@ void osn::SceneItem::IsRecordingVisible(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::SetRecordingVisible(
+void osn::ServerSceneItem::SetRecordingVisible(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN("invalid reference");
 	}
@@ -307,13 +307,13 @@ void osn::SceneItem::SetRecordingVisible(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::GetPosition(
+void osn::ServerSceneItem::GetPosition(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -327,13 +327,13 @@ void osn::SceneItem::GetPosition(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::SetPosition(
+void osn::ServerSceneItem::SetPosition(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -351,13 +351,13 @@ void osn::SceneItem::SetPosition(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::GetRotation(
+void osn::ServerSceneItem::GetRotation(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -367,13 +367,13 @@ void osn::SceneItem::GetRotation(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::SetRotation(
+void osn::ServerSceneItem::SetRotation(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -385,13 +385,13 @@ void osn::SceneItem::SetRotation(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::GetScale(
+void osn::ServerSceneItem::GetScale(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -405,13 +405,13 @@ void osn::SceneItem::GetScale(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::SetScale(
+void osn::ServerSceneItem::SetScale(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -429,13 +429,13 @@ void osn::SceneItem::SetScale(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::GetScaleFilter(
+void osn::ServerSceneItem::GetScaleFilter(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -447,13 +447,13 @@ void osn::SceneItem::GetScaleFilter(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::SetScaleFilter(
+void osn::ServerSceneItem::SetScaleFilter(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -466,13 +466,13 @@ void osn::SceneItem::SetScaleFilter(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::GetAlignment(
+void osn::ServerSceneItem::GetAlignment(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -484,13 +484,13 @@ void osn::SceneItem::GetAlignment(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::SetAlignment(
+void osn::ServerSceneItem::SetAlignment(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -503,13 +503,13 @@ void osn::SceneItem::SetAlignment(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::GetBounds(
+void osn::ServerSceneItem::GetBounds(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -522,13 +522,13 @@ void osn::SceneItem::GetBounds(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::SetBounds(
+void osn::ServerSceneItem::SetBounds(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -544,13 +544,13 @@ void osn::SceneItem::SetBounds(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::GetBoundsAlignment(
+void osn::ServerSceneItem::GetBoundsAlignment(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -562,13 +562,13 @@ void osn::SceneItem::GetBoundsAlignment(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::SetBoundsAlignment(
+void osn::ServerSceneItem::SetBoundsAlignment(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -581,13 +581,13 @@ void osn::SceneItem::SetBoundsAlignment(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::GetBoundsType(
+void osn::ServerSceneItem::GetBoundsType(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -599,13 +599,13 @@ void osn::SceneItem::GetBoundsType(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::SetBoundsType(
+void osn::ServerSceneItem::SetBoundsType(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -618,13 +618,13 @@ void osn::SceneItem::SetBoundsType(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::GetCrop(
+void osn::ServerSceneItem::GetCrop(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -640,13 +640,13 @@ void osn::SceneItem::GetCrop(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::SetCrop(
+void osn::ServerSceneItem::SetCrop(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -668,13 +668,13 @@ void osn::SceneItem::SetCrop(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::GetId(
+void osn::ServerSceneItem::GetId(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -684,13 +684,13 @@ void osn::SceneItem::GetId(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::MoveUp(
+void osn::ServerSceneItem::MoveUp(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -700,13 +700,13 @@ void osn::SceneItem::MoveUp(
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
-void osn::SceneItem::MoveDown(
+void osn::ServerSceneItem::MoveDown(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -717,13 +717,13 @@ void osn::SceneItem::MoveDown(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::MoveTop(
+void osn::ServerSceneItem::MoveTop(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -734,13 +734,13 @@ void osn::SceneItem::MoveTop(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::MoveBottom(
+void osn::ServerSceneItem::MoveBottom(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -751,13 +751,13 @@ void osn::SceneItem::MoveBottom(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::Move(
+void osn::ServerSceneItem::Move(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -768,13 +768,13 @@ void osn::SceneItem::Move(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::DeferUpdateBegin(
+void osn::ServerSceneItem::DeferUpdateBegin(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -785,13 +785,13 @@ void osn::SceneItem::DeferUpdateBegin(
 	AUTO_DEBUG;
 }
 
-void osn::SceneItem::DeferUpdateEnd(
+void osn::ServerSceneItem::DeferUpdateEnd(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_sceneitem_t* item = osn::ServerSceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
@@ -802,7 +802,7 @@ void osn::SceneItem::DeferUpdateEnd(
 	AUTO_DEBUG;
 }
 
-osn::SceneItem::Manager& osn::SceneItem::Manager::GetInstance()
+osn::ServerSceneItem::Manager& osn::ServerSceneItem::Manager::GetInstance()
 {
 	// Thread Safe since C++13 (Visual Studio 2015, GCC 4.3).
 	static Manager instance;

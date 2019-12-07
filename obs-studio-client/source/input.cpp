@@ -85,11 +85,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Types(Nan::NAN_METHOD_ARGS_TYPE info)
 	// Function takes no parameters.
 	ASSERT_INFO_LENGTH(info, 0);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Input", "Types", {});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("Input", "Types", {});
 
 	if (!ValidateResponse(response))
 		return;
@@ -134,9 +134,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 		}
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	auto params = std::vector<ipc::value>{ipc::value(type), ipc::value(name)};
 	if (settings->Length() != 0) {
@@ -152,7 +152,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 		}
 	}
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Input", "Create", {std::move(params)});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("Input", "Create", {std::move(params)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -194,9 +194,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE 
 		settings = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), setobj).ToLocalChecked();
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	auto params = std::vector<ipc::value>{ipc::value(type), ipc::value(name)};
 	if (settings->Length() != 0) {
@@ -206,7 +206,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE 
 		}
 	}
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Input", "CreatePrivate", {std::move(params)});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("Input", "CreatePrivate", {std::move(params)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -242,11 +242,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::FromName(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Input", "FromName", {ipc::value(name)});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("Input", "FromName", {ipc::value(name)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -258,11 +258,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::FromName(Nan::NAN_METHOD_ARGS_TYPE info)
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetPublicSources(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Input", "GetPublicSources", {});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("Input", "GetPublicSources", {});
 
 	if (!ValidateResponse(response))
 		return;
@@ -301,9 +301,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info
 		ASSERT_GET_VALUE(info[1], is_private);
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	auto params = std::vector<ipc::value>{ipc::value(obj->sourceId)};
 	if (info.Length() >= 1) {
@@ -313,7 +313,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info
 		params.push_back(ipc::value(is_private));
 	}
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Input", "Duplicate", {std::move(params)});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("Input", "Duplicate", {std::move(params)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -334,11 +334,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Active(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Input", "GetActive", {ipc::value(obj->sourceId)});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("Input", "GetActive", {ipc::value(obj->sourceId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -359,12 +359,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Showing(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "GetShowing", {ipc::value(obj->sourceId)});
+	    client_int->call_synchronous_helper("Input", "GetShowing", {ipc::value(obj->sourceId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -385,11 +385,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Width(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Input", "GetWidth", {ipc::value(obj->sourceId)});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("Input", "GetWidth", {ipc::value(obj->sourceId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -409,11 +409,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Height(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Input", "GetHeight", {ipc::value(obj->sourceId)});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("Input", "GetHeight", {ipc::value(obj->sourceId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -433,11 +433,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetVolume(Nan::NAN_METHOD_ARGS_TYPE info
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Input", "GetVolume", {ipc::value(obj->sourceId)});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("Input", "GetVolume", {ipc::value(obj->sourceId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -461,11 +461,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetVolume(Nan::NAN_METHOD_ARGS_TYPE info
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], volume);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Input", "SetVolume", {ipc::value(obj->sourceId), ipc::value(volume)});
+	client_int->call("Input", "SetVolume", {ipc::value(obj->sourceId), ipc::value(volume)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -481,12 +481,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE 
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "GetSyncOffset", {ipc::value(obj->sourceId)});
+	    client_int->call_synchronous_helper("Input", "GetSyncOffset", {ipc::value(obj->sourceId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -522,11 +522,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE 
 
 	int64_t syncoffset = sec * 1000000000 + nsec;
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Input", "SetSyncOffset", {ipc::value(obj->sourceId), ipc::value(syncoffset)});
+	client_int->call("Input", "SetSyncOffset", {ipc::value(obj->sourceId), ipc::value(syncoffset)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -547,12 +547,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "GetAudioMixers", {ipc::value(obj->sourceId)});
+	    client_int->call_synchronous_helper("Input", "GetAudioMixers", {ipc::value(obj->sourceId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -581,11 +581,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], audiomixers);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Input", "SetAudioMixers", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
+	client_int->call("Input", "SetAudioMixers", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
 
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
 	if (sdi) {
@@ -605,12 +605,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetMonitoringType(Nan::NAN_METHOD_ARGS_T
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "GetMonitoringType", {ipc::value(obj->sourceId)});
+	    client_int->call_synchronous_helper("Input", "GetMonitoringType", {ipc::value(obj->sourceId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -634,11 +634,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetMonitoringType(Nan::NAN_METHOD_ARGS_T
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], audiomixers);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Input", "SetMonitoringType", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
+	client_int->call("Input", "SetMonitoringType", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetDeinterlaceFieldOrder(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -653,12 +653,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetDeinterlaceFieldOrder(Nan::NAN_METHOD
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "GetDeInterlaceFieldOrder", {ipc::value(obj->sourceId)});
+	    client_int->call_synchronous_helper("Input", "GetDeInterlaceFieldOrder", {ipc::value(obj->sourceId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -682,11 +682,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetDeinterlaceFieldOrder(Nan::NAN_METHOD
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], audiomixers);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Input", "SetDeInterlaceFieldOrder", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
+	client_int->call("Input", "SetDeInterlaceFieldOrder", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetDeinterlaceMode(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -701,12 +701,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetDeinterlaceMode(Nan::NAN_METHOD_ARGS_
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "GetDeInterlaceMode", {ipc::value(obj->sourceId)});
+	    client_int->call_synchronous_helper("Input", "GetDeInterlaceMode", {ipc::value(obj->sourceId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -731,11 +731,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetDeinterlaceMode(Nan::NAN_METHOD_ARGS_
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], audiomixers);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Input", "SetDeInterlaceMode", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
+	client_int->call("Input", "SetDeInterlaceMode", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Input::Filters(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -764,12 +764,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Filters(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "GetFilters", {ipc::value(obj->sourceId)});
+	    client_int->call_synchronous_helper("Input", "GetFilters", {ipc::value(obj->sourceId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -827,11 +827,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::AddFilter(Nan::NAN_METHOD_ARGS_TYPE info
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Input", "AddFilter", {ipc::value(obj->sourceId), ipc::value(filter->sourceId)});
+	client_int->call("Input", "AddFilter", {ipc::value(obj->sourceId), ipc::value(filter->sourceId)});
 
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
 	if (sdi) {
@@ -862,11 +862,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::RemoveFilter(Nan::NAN_METHOD_ARGS_TYPE i
 		    v8::Exception::ReferenceError(Nan::New<v8::String>("Source is invalid.").ToLocalChecked()));
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Input", "RemoveFilter", {ipc::value(obj->sourceId), ipc::value(basefilter->sourceId)});
+	client_int->call("Input", "RemoveFilter", {ipc::value(obj->sourceId), ipc::value(basefilter->sourceId)});
 
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
 	if (sdi) {
@@ -899,11 +899,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetFilterOrder(Nan::NAN_METHOD_ARGS_TYPE
 		    v8::Exception::ReferenceError(Nan::New<v8::String>("Source is invalid.").ToLocalChecked()));
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call(
+	client_int->call(
 	    "Input", "MoveFilter", {ipc::value(obj->sourceId), ipc::value(basefilter->sourceId), ipc::value(movement)});
 
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
@@ -929,12 +929,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::FindFilter(Nan::NAN_METHOD_ARGS_TYPE inf
 	std::string name;
 	ASSERT_GET_VALUE(info[0], name);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "FindFilter", {ipc::value(obj->sourceId), ipc::value(name)});
+	    client_int->call_synchronous_helper("Input", "FindFilter", {ipc::value(obj->sourceId), ipc::value(name)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -975,9 +975,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::CopyFilters(Nan::NAN_METHOD_ARGS_TYPE in
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Input", "CopyFiltersTo", {ipc::value(obj->sourceId), ipc::value(input->sourceId)});
+	client_int->call("Input", "CopyFiltersTo", {ipc::value(obj->sourceId), ipc::value(input->sourceId)});
 }

@@ -84,12 +84,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetSource(Nan::NAN_METHOD_ARGS_TYPE 
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("SceneItem", "GetSource", std::vector<ipc::value>{ipc::value(item->itemId)});
+	    client_int->call_synchronous_helper("SceneItem", "GetSource", std::vector<ipc::value>{ipc::value(item->itemId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -106,12 +106,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetScene(Nan::NAN_METHOD_ARGS_TYPE i
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("SceneItem", "GetScene", std::vector<ipc::value>{ipc::value(item->itemId)});
+	    client_int->call_synchronous_helper("SceneItem", "GetScene", std::vector<ipc::value>{ipc::value(item->itemId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -128,11 +128,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::Remove(Nan::NAN_METHOD_ARGS_TYPE inf
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("SceneItem", "Remove", std::vector<ipc::value>{ipc::value(item->itemId)});
+	client_int->call("SceneItem", "Remove", std::vector<ipc::value>{ipc::value(item->itemId)});
 
 	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
 
@@ -161,12 +161,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsVisible(Nan::NAN_METHOD_ARGS_TYPE 
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("SceneItem", "IsVisible", std::vector<ipc::value>{ipc::value(item->itemId)});
+		client_int->call_synchronous_helper("SceneItem", "IsVisible", std::vector<ipc::value>{ipc::value(item->itemId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -194,11 +194,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetVisible(Nan::NAN_METHOD_ARGS_TYPE
 	if (sid && visible == sid->isVisible)
 		return;
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("SceneItem", "SetVisible", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(visible)});
+	client_int->call("SceneItem", "SetVisible", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(visible)});
 
 	sid->isVisible = visible;
 }
@@ -217,12 +217,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsSelected(Nan::NAN_METHOD_ARGS_TYPE
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("SceneItem", "IsSelected", std::vector<ipc::value>{ipc::value(item->itemId)});
+		client_int->call_synchronous_helper("SceneItem", "IsSelected", std::vector<ipc::value>{ipc::value(item->itemId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -256,11 +256,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetSelected(Nan::NAN_METHOD_ARGS_TYP
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("SceneItem", "SetSelected", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(selected)});
+	client_int->call("SceneItem", "SetSelected", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(selected)});
 
 	sid->selectedChanged = true;
 	sid->cached          = true;
@@ -281,12 +281,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsStreamVisible(Nan::NAN_METHOD_ARGS
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("SceneItem", "IsStreamVisible", std::vector<ipc::value>{ipc::value(item->itemId)});
+	    client_int->call_synchronous_helper("SceneItem", "IsStreamVisible", std::vector<ipc::value>{ipc::value(item->itemId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -322,11 +322,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetStreamVisible(Nan::NAN_METHOD_ARG
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call(
+	client_int->call(
 	    "SceneItem",
 	    "SetStreamVisible",
 	    std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(streamVisible)});
@@ -349,11 +349,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsRecordingVisible(Nan::NAN_METHOD_A
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
+	std::vector<ipc::value> response = client_int->call_synchronous_helper(
 	    "SceneItem", "IsRecordingVisible", std::vector<ipc::value>{ipc::value(item->itemId)});
 
 	if (!ValidateResponse(response))
@@ -387,11 +387,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetRecordingVisible(Nan::NAN_METHOD_
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call(
+	client_int->call(
 	    "SceneItem",
 	    "SetRecordingVisible",
 	    std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(recordingVisible)});
@@ -419,12 +419,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetPosition(Nan::NAN_METHOD_ARGS_TYP
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("SceneItem", "GetPosition", std::vector<ipc::value>{ipc::value(item->itemId)});
+		client_int->call_synchronous_helper("SceneItem", "GetPosition", std::vector<ipc::value>{ipc::value(item->itemId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -463,11 +463,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetPosition(Nan::NAN_METHOD_ARGS_TYP
 	if (sid && x == sid->posX && y == sid->posY)
 		return;
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("SceneItem", "SetPosition", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(x), ipc::value(y)});
+	client_int->call("SceneItem", "SetPosition", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(x), ipc::value(y)});
 
 	sid->posX = x;
 	sid->posY = y;
@@ -487,12 +487,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetRotation(Nan::NAN_METHOD_ARGS_TYP
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("SceneItem", "GetRotation", std::vector<ipc::value>{ipc::value(item->itemId)});
+		client_int->call_synchronous_helper("SceneItem", "GetRotation", std::vector<ipc::value>{ipc::value(item->itemId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -521,11 +521,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetRotation(Nan::NAN_METHOD_ARGS_TYP
 	if (sid && vector == sid->rotation)
 		return;
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("SceneItem", "SetRotation", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(vector)});
+	client_int->call("SceneItem", "SetRotation", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(vector)});
 
 	sid->rotation = vector;
 }
@@ -547,12 +547,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetScale(Nan::NAN_METHOD_ARGS_TYPE i
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("SceneItem", "GetScale", std::vector<ipc::value>{ipc::value(item->itemId)});
+		client_int->call_synchronous_helper("SceneItem", "GetScale", std::vector<ipc::value>{ipc::value(item->itemId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -591,11 +591,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetScale(Nan::NAN_METHOD_ARGS_TYPE i
 	if (sid && x == sid->scaleX && y == sid->scaleY)
 		return;
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("SceneItem", "SetScale", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(x), ipc::value(y)});
+	client_int->call("SceneItem", "SetScale", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(x), ipc::value(y)});
 
 	sid->scaleX = x;
 	sid->scaleY = y;
@@ -608,12 +608,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetScaleFilter(Nan::NAN_METHOD_ARGS_
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("SceneItem", "GetScaleFilter", std::vector<ipc::value>{ipc::value(item->itemId)});
+	    client_int->call_synchronous_helper("SceneItem", "GetScaleFilter", std::vector<ipc::value>{ipc::value(item->itemId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -633,11 +633,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetScaleFilter(Nan::NAN_METHOD_ARGS_
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("SceneItem", "SetScaleFilter", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(visible)});
+	client_int->call("SceneItem", "SetScaleFilter", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(visible)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetAlignment(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -647,12 +647,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetAlignment(Nan::NAN_METHOD_ARGS_TY
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("SceneItem", "GetAlignment", std::vector<ipc::value>{ipc::value(item->itemId)});
+	    client_int->call_synchronous_helper("SceneItem", "GetAlignment", std::vector<ipc::value>{ipc::value(item->itemId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -673,11 +673,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetAlignment(Nan::NAN_METHOD_ARGS_TY
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("SceneItem", "SetAlignment", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(visible)});
+	client_int->call("SceneItem", "SetAlignment", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(visible)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetBounds(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -687,12 +687,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetBounds(Nan::NAN_METHOD_ARGS_TYPE 
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("SceneItem", "GetBounds", std::vector<ipc::value>{ipc::value(item->itemId)});
+	    client_int->call_synchronous_helper("SceneItem", "GetBounds", std::vector<ipc::value>{ipc::value(item->itemId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -721,11 +721,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetBounds(Nan::NAN_METHOD_ARGS_TYPE 
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("SceneItem", "SetBounds", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(x), ipc::value(y)});
+	client_int->call("SceneItem", "SetBounds", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(x), ipc::value(y)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetBoundsAlignment(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -735,11 +735,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetBoundsAlignment(Nan::NAN_METHOD_A
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
+	std::vector<ipc::value> response = client_int->call_synchronous_helper(
 	    "SceneItem", "GetBoundsAlignment", std::vector<ipc::value>{ipc::value(item->itemId)});
 
 	if (!ValidateResponse(response))
@@ -760,11 +760,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetBoundsAlignment(Nan::NAN_METHOD_A
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("SceneItem", "SetBoundsAlignment", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(visible)});
+	client_int->call("SceneItem", "SetBoundsAlignment", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(visible)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetBoundsType(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -774,12 +774,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetBoundsType(Nan::NAN_METHOD_ARGS_T
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("SceneItem", "GetBoundsType", std::vector<ipc::value>{ipc::value(item->itemId)});
+	    client_int->call_synchronous_helper("SceneItem", "GetBoundsType", std::vector<ipc::value>{ipc::value(item->itemId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -799,11 +799,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetBoundsType(Nan::NAN_METHOD_ARGS_T
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("SceneItem", "SetBoundsType", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(visible)});
+	client_int->call("SceneItem", "SetBoundsType", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(visible)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetCrop(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -825,12 +825,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetCrop(Nan::NAN_METHOD_ARGS_TYPE in
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("SceneItem", "GetCrop", std::vector<ipc::value>{ipc::value(item->itemId)});
+		client_int->call_synchronous_helper("SceneItem", "GetCrop", std::vector<ipc::value>{ipc::value(item->itemId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -881,11 +881,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetCrop(Nan::NAN_METHOD_ARGS_TYPE in
 		right == sid->cropRight && bottom == sid->cropBottom)
 		return;
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("SceneItem", "SetCrop",
+	client_int->call("SceneItem", "SetCrop",
 		std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(left),
 		ipc::value(top), ipc::value(right), ipc::value(bottom)});
 
@@ -902,11 +902,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetTransformInfo(Nan::NAN_METHOD_ARG
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
+	std::vector<ipc::value> response = client_int->call_synchronous_helper(
 	    "SceneItem", "GetTransformInfo", std::vector<ipc::value>{ipc::value(item->itemId)});
 
 	if (!ValidateResponse(response))
@@ -981,12 +981,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetId(Nan::NAN_METHOD_ARGS_TYPE info
     }
 
 	if (sid->obs_itemId < 0) {
-		auto conn = GetConnection();
-		if (!conn)
-			return;
+		// auto conn = GetConnection();
+		// if (!conn)
+		// 	return;
 
 		std::vector<ipc::value> response =
-			conn->call_synchronous_helper("SceneItem", "GetId", std::vector<ipc::value>{ipc::value(item->itemId)});
+			client_int->call_synchronous_helper("SceneItem", "GetId", std::vector<ipc::value>{ipc::value(item->itemId)});
 
 		if (!ValidateResponse(response))
 			return;
@@ -1004,11 +1004,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveUp(Nan::NAN_METHOD_ARGS_TYPE inf
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-    conn->call("SceneItem", "MoveUp", std::vector<ipc::value>{ipc::value(item->itemId)});
+    client_int->call("SceneItem", "MoveUp", std::vector<ipc::value>{ipc::value(item->itemId)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveDown(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -1018,11 +1018,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveDown(Nan::NAN_METHOD_ARGS_TYPE i
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-    conn->call("SceneItem", "MoveDown", std::vector<ipc::value>{ipc::value(item->itemId)});
+    client_int->call("SceneItem", "MoveDown", std::vector<ipc::value>{ipc::value(item->itemId)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveTop(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -1032,11 +1032,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveTop(Nan::NAN_METHOD_ARGS_TYPE in
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("SceneItem", "MoveTop", std::vector<ipc::value>{ipc::value(item->itemId)});
+	client_int->call("SceneItem", "MoveTop", std::vector<ipc::value>{ipc::value(item->itemId)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveBottom(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -1046,11 +1046,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveBottom(Nan::NAN_METHOD_ARGS_TYPE
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-    conn->call("SceneItem", "MoveBottom", std::vector<ipc::value>{ipc::value(item->itemId)});
+    client_int->call("SceneItem", "MoveBottom", std::vector<ipc::value>{ipc::value(item->itemId)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::Move(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -1064,11 +1064,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::Move(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("SceneItem", "Move", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(position)});
+	client_int->call("SceneItem", "Move", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(position)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::DeferUpdateBegin(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -1078,11 +1078,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::DeferUpdateBegin(Nan::NAN_METHOD_ARG
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("SceneItem", "DeferUpdateBegin", std::vector<ipc::value>{ipc::value(item->itemId)});
+	client_int->call("SceneItem", "DeferUpdateBegin", std::vector<ipc::value>{ipc::value(item->itemId)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::DeferUpdateEnd(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -1092,9 +1092,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::DeferUpdateEnd(Nan::NAN_METHOD_ARGS_
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("SceneItem", "DeferUpdateEnd", std::vector<ipc::value>{ipc::value(item->itemId)});
+	client_int->call("SceneItem", "DeferUpdateEnd", std::vector<ipc::value>{ipc::value(item->itemId)});
 }

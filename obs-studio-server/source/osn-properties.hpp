@@ -17,14 +17,14 @@
 ******************************************************************************/
 
 #pragma once
-#include <ipc-server.hpp>
+#include <ipc-client.hpp>
 
 namespace osn
 {
-	class Properties
+	class ServerProperties
 	{
 		public:
-		static void Register(ipc::server& srv);
+		static void Register(ipc::client*);
 
 		static void
 		    Modified(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);

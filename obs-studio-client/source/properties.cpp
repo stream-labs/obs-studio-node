@@ -19,6 +19,7 @@
 #include "properties.hpp"
 #include "isource.hpp"
 #include "utility-v8.hpp"
+#include "shared.hpp"
 
 Nan::Persistent<v8::FunctionTemplate> osn::Properties::prototype     = Nan::Persistent<v8::FunctionTemplate>();
 Nan::Persistent<v8::FunctionTemplate> osn::PropertyObject::prototype = Nan::Persistent<v8::FunctionTemplate>();
@@ -712,11 +713,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Modified(Nan::NAN_METHOD_ARGS_T
 	}
 
 	// Call
-	auto conn = GetConnection();
-	if (!conn) {
-		return;
-	}
-	auto rval = conn->call_synchronous_helper(
+	// auto conn = GetConnection();
+	// if (!conn) {
+	// 	return;
+	// }
+	auto rval = client_int->call_synchronous_helper(
 	    "Properties",
 	    "Modified",
 	    {ipc::value(parent_source->sourceId), ipc::value(iter->second->name), ipc::value(value)});
@@ -773,11 +774,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::ButtonClicked(Nan::NAN_METHOD_A
 	}
 
 	// Call
-	auto conn = GetConnection();
-	if (!conn) {
-		return;
-	}
-	auto rval = conn->call_synchronous_helper(
+	// auto conn = GetConnection();
+	// if (!conn) {
+	// 	return;
+	// }
+	auto rval = client_int->call_synchronous_helper(
 	    "Properties", "Clicked", {ipc::value(parent_source->sourceId), ipc::value(iter->second->name)});
 
 	if (!ValidateResponse(rval)) {

@@ -66,11 +66,12 @@ void display::OBS_content_createDisplay(const v8::FunctionCallbackInfo<v8::Value
 	ASSERT_GET_VALUE(args[1], key);
 	ASSERT_GET_VALUE(args[2], mode);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Display", "OBS_content_createDisplay", {ipc::value(windowHandle), ipc::value(key), ipc::value(mode)});
+	client_int->call(
+	    "Display", "OBS_content_createDisplay", {ipc::value(windowHandle), ipc::value(key), ipc::value(mode)});
 }
 
 void display::OBS_content_destroyDisplay(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -79,11 +80,11 @@ void display::OBS_content_destroyDisplay(const v8::FunctionCallbackInfo<v8::Valu
 
 	ASSERT_GET_VALUE(args[0], key);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-    conn->call("Display", "OBS_content_destroyDisplay", {ipc::value(key)});
+    client_int->call("Display", "OBS_content_destroyDisplay", {ipc::value(key)});
 }
 
 void display::OBS_content_getDisplayPreviewOffset(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -92,12 +93,12 @@ void display::OBS_content_getDisplayPreviewOffset(const v8::FunctionCallbackInfo
 
 	ASSERT_GET_VALUE(args[0], key);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Display", "OBS_content_getDisplayPreviewOffset", {ipc::value(key)});
+	    client_int->call_synchronous_helper("Display", "OBS_content_getDisplayPreviewOffset", {ipc::value(key)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -118,12 +119,12 @@ void display::OBS_content_getDisplayPreviewSize(const v8::FunctionCallbackInfo<v
 
 	ASSERT_GET_VALUE(args[0], key);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Display", "OBS_content_getDisplayPreviewSize", {ipc::value(key)});
+	    client_int->call_synchronous_helper("Display", "OBS_content_getDisplayPreviewSize", {ipc::value(key)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -153,11 +154,13 @@ void display::OBS_content_createSourcePreviewDisplay(const v8::FunctionCallbackI
 	ASSERT_GET_VALUE(args[1], sourceName);
 	ASSERT_GET_VALUE(args[2], key);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Display", "OBS_content_createSourcePreviewDisplay",
+	client_int->call(
+	    "Display",
+	    "OBS_content_createSourcePreviewDisplay",
 	    {ipc::value(windowHandle), ipc::value(sourceName), ipc::value(key)});
 }
 
@@ -174,11 +177,11 @@ void display::OBS_content_resizeDisplay(const v8::FunctionCallbackInfo<v8::Value
 	width  = uint32_t(width_d);
 	height = uint32_t(height_d);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Display", "OBS_content_resizeDisplay", {ipc::value(key), ipc::value(width), ipc::value(height)});
+	client_int->call("Display", "OBS_content_resizeDisplay", {ipc::value(key), ipc::value(width), ipc::value(height)});
 }
 
 void display::OBS_content_moveDisplay(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -194,11 +197,11 @@ void display::OBS_content_moveDisplay(const v8::FunctionCallbackInfo<v8::Value>&
 	x = uint32_t(x_d);
 	y = uint32_t(y_d);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Display", "OBS_content_moveDisplay", {ipc::value(key), ipc::value(x), ipc::value(y)});
+	client_int->call("Display", "OBS_content_moveDisplay", {ipc::value(key), ipc::value(x), ipc::value(y)});
 }
 
 void display::OBS_content_setPaddingSize(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -209,11 +212,11 @@ void display::OBS_content_setPaddingSize(const v8::FunctionCallbackInfo<v8::Valu
 	ASSERT_GET_VALUE(args[0], key);
 	ASSERT_GET_VALUE(args[1], paddingSize);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Display", "OBS_content_setPaddingSize", {ipc::value(key), ipc::value(paddingSize)});
+	client_int->call("Display", "OBS_content_setPaddingSize", {ipc::value(key), ipc::value(paddingSize)});
 }
 
 void display::OBS_content_setPaddingColor(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -229,11 +232,13 @@ void display::OBS_content_setPaddingColor(const v8::FunctionCallbackInfo<v8::Val
 	if (args.Length() > 4)
 		ASSERT_GET_VALUE(args[4], a);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Display", "OBS_content_setPaddingColor",
+	client_int->call(
+	    "Display",
+	    "OBS_content_setPaddingColor",
 	    {ipc::value(key), ipc::value(r), ipc::value(g), ipc::value(b), ipc::value(a)});
 }
 
@@ -250,11 +255,13 @@ void display::OBS_content_setOutlineColor(const v8::FunctionCallbackInfo<v8::Val
 	if (args.Length() > 4)
 		ASSERT_GET_VALUE(args[4], a);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Display", "OBS_content_setOutlineColor",
+	client_int->call(
+	    "Display",
+	    "OBS_content_setOutlineColor",
 	    {ipc::value(key), ipc::value(r), ipc::value(g), ipc::value(b), ipc::value(a)});
 }
 
@@ -266,11 +273,11 @@ void display::OBS_content_setShouldDrawUI(const v8::FunctionCallbackInfo<v8::Val
 	ASSERT_GET_VALUE(args[0], key);
 	ASSERT_GET_VALUE(args[1], drawUI);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Display", "OBS_content_setShouldDrawUI", {ipc::value(key), ipc::value(drawUI)});
+	client_int->call("Display", "OBS_content_setShouldDrawUI", {ipc::value(key), ipc::value(drawUI)});
 }
 
 void display::OBS_content_setDrawGuideLines(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -281,11 +288,11 @@ void display::OBS_content_setDrawGuideLines(const v8::FunctionCallbackInfo<v8::V
 	ASSERT_GET_VALUE(args[0], key);
 	ASSERT_GET_VALUE(args[1], drawGuideLines);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Display", "OBS_content_setDrawGuideLines", {ipc::value(key), ipc::value(drawGuideLines)});
+	client_int->call("Display", "OBS_content_setDrawGuideLines", {ipc::value(key), ipc::value(drawGuideLines)});
 }
 
 INITIALIZER(nodeobs_display)

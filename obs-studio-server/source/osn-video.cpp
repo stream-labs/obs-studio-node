@@ -22,17 +22,17 @@
 #include "error.hpp"
 #include "shared.hpp"
 
-void osn::Video::Register(ipc::server& srv)
+void osn::ServerVideo::Register(ipc::client* client)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Video");
 	cls->register_function(std::make_shared<ipc::function>(
 	    "GetSkippedFrames", std::vector<ipc::type>{}, GetSkippedFrames));
 	cls->register_function(
 	    std::make_shared<ipc::function>("GetTotalFrames", std::vector<ipc::type>{}, GetTotalFrames));
-	srv.register_collection(cls);
+	client->register_collection(cls);
 }
 
-void osn::Video::GetSkippedFrames(
+void osn::ServerVideo::GetSkippedFrames(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -43,7 +43,7 @@ void osn::Video::GetSkippedFrames(
 	AUTO_DEBUG;
 }
 
-void osn::Video::GetTotalFrames(
+void osn::ServerVideo::GetTotalFrames(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,

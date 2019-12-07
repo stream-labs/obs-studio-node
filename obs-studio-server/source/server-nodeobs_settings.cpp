@@ -16,9 +16,9 @@
 
 ******************************************************************************/
 
-#include "nodeobs_settings.h"
+#include "server-nodeobs_settings.h"
 #include "error.hpp"
-#include "nodeobs_api.h"
+#include "server-nodeobs_api.h"
 #include "shared.hpp"
 #include "memory-manager.h"
 
@@ -43,7 +43,7 @@ static std::string ResString(uint64_t cx, uint64_t cy)
 OBS_settings::OBS_settings() {}
 OBS_settings::~OBS_settings() {}
 
-void OBS_settings::Register(ipc::server& srv)
+void OBS_settings::Register(ipc::client* client)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Settings");
 
@@ -54,7 +54,7 @@ void OBS_settings::Register(ipc::server& srv)
 	    std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::Binary},
 	    OBS_settings_saveSettings));
 
-	srv.register_collection(cls);
+	client->register_collection(cls);
 }
 
 void OBS_settings::OBS_settings_getSettings(

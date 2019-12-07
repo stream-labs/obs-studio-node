@@ -38,7 +38,7 @@ struct SourceSizeInfoData
 
 class CallbackManager;
 typedef utilv8::managed_callback<std::shared_ptr<SourceSizeInfoData>> cm_Callback;
-CallbackManager*                                              cm;
+extern CallbackManager*                                              cm;
 
 class CallbackManager : public Nan::ObjectWrap,
                         public utilv8::InterfaceObject<CallbackManager>,
@@ -71,5 +71,5 @@ class CallbackManager : public Nan::ObjectWrap,
 	std::list<cm_Callback*> callbacks;
 };
 
-static void RegisterSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
-static void RemoveSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
+void RegisterSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
+void RemoveSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args);

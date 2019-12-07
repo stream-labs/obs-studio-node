@@ -362,60 +362,60 @@ void js_setServerPath(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 void js_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	auto isol = args.GetIsolate();
-	if (args.Length() == 0) {
-		isol->ThrowException(v8::Exception::SyntaxError(
-		    Nan::New<v8::String>("Too few arguments, usage: connect(<string> uri).").ToLocalChecked()));
-		return;
-	} else if (args.Length() > 1) {
-		isol->ThrowException(v8::Exception::SyntaxError(Nan::New<v8::String>("Too many arguments.").ToLocalChecked()));
-		return;
-	} else if (!args[0]->IsString()) {
-		isol->ThrowException(v8::Exception::TypeError(
-		    Nan::New<v8::String>("Argument 'uri' must be of type 'String'.").ToLocalChecked()));
-		return;
-	}
+	// auto isol = args.GetIsolate();
+	// if (args.Length() == 0) {
+	// 	isol->ThrowException(v8::Exception::SyntaxError(
+	// 	    Nan::New<v8::String>("Too few arguments, usage: connect(<string> uri).").ToLocalChecked()));
+	// 	return;
+	// } else if (args.Length() > 1) {
+	// 	isol->ThrowException(v8::Exception::SyntaxError(Nan::New<v8::String>("Too many arguments.").ToLocalChecked()));
+	// 	return;
+	// } else if (!args[0]->IsString()) {
+	// 	isol->ThrowException(v8::Exception::TypeError(
+	// 	    Nan::New<v8::String>("Argument 'uri' must be of type 'String'.").ToLocalChecked()));
+	// 	return;
+	// }
 
-	std::string uri = *v8::String::Utf8Value(args[0]);
-	auto        cl  = Controller::GetInstance().connect(uri);
-	if (!cl) {
-		isol->ThrowException(v8::Exception::Error(Nan::New<v8::String>("Failed to connect.").ToLocalChecked()));
-		return;
-	}
+	// std::string uri = *v8::String::Utf8Value(args[0]);
+	// auto        cl  = Controller::GetInstance().connect(uri);
+	// if (!cl) {
+	// 	isol->ThrowException(v8::Exception::Error(Nan::New<v8::String>("Failed to connect.").ToLocalChecked()));
+	// 	return;
+	// }
 
 	return;
 }
 
 void js_host(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	auto isol = args.GetIsolate();
-	if (args.Length() == 0) {
-		isol->ThrowException(
-		    v8::Exception::SyntaxError(Nan::New<v8::String>("Too few arguments, usage: host(uri).").ToLocalChecked()));
-		return;
-	} else if (args.Length() > 1) {
-		isol->ThrowException(v8::Exception::SyntaxError(Nan::New<v8::String>("Too many arguments.").ToLocalChecked()));
-		return;
-	} else if (!args[0]->IsString()) {
-		isol->ThrowException(v8::Exception::TypeError(
-		    Nan::New<v8::String>("Argument 'uri' must be of type 'String'.").ToLocalChecked()));
-		return;
-	}
+	// auto isol = args.GetIsolate();
+	// if (args.Length() == 0) {
+	// 	isol->ThrowException(
+	// 	    v8::Exception::SyntaxError(Nan::New<v8::String>("Too few arguments, usage: host(uri).").ToLocalChecked()));
+	// 	return;
+	// } else if (args.Length() > 1) {
+	// 	isol->ThrowException(v8::Exception::SyntaxError(Nan::New<v8::String>("Too many arguments.").ToLocalChecked()));
+	// 	return;
+	// } else if (!args[0]->IsString()) {
+	// 	isol->ThrowException(v8::Exception::TypeError(
+	// 	    Nan::New<v8::String>("Argument 'uri' must be of type 'String'.").ToLocalChecked()));
+	// 	return;
+	// }
 
-	std::string uri = *v8::String::Utf8Value(args[0]);
-	auto        cl  = Controller::GetInstance().host(uri);
-	if (!cl) {
-		isol->ThrowException(
-		    v8::Exception::Error(Nan::New<v8::String>("Failed to host and connect.").ToLocalChecked()));
-		return;
-	}
+	// std::string uri = *v8::String::Utf8Value(args[0]);
+	// auto        cl  = Controller::GetInstance().host(uri);
+	// if (!cl) {
+	// 	isol->ThrowException(
+	// 	    v8::Exception::Error(Nan::New<v8::String>("Failed to host and connect.").ToLocalChecked()));
+	// 	return;
+	// }
 
 	return;
 }
 
 void js_disconnect(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	Controller::GetInstance().disconnect();
+	// Controller::GetInstance().disconnect();
 }
 
 INITIALIZER(js_ipc)

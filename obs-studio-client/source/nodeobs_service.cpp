@@ -27,21 +27,24 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
-Service::Service(){};
-Service::~Service(){};
+Serviceb* serviceObject;
+
+Serviceb::Serviceb(){};
+Serviceb::~Serviceb(){};
 
 bool isWorkerRunning = false;
 
-void Service::start_async_runner()
+void Serviceb::start_async_runner()
 {
 	if (m_async_callback)
 		return;
 	std::unique_lock<std::mutex> ul(m_worker_lock);
 	// Start v8/uv asynchronous runner.
 	m_async_callback = new ServiceCallback();
-	m_async_callback->set_handler(std::bind(&Service::callback_handler, this, std::placeholders::_1, std::placeholders::_2), nullptr);
+	m_async_callback->set_handler(
+	    std::bind(&Serviceb::callback_handler, this, std::placeholders::_1, std::placeholders::_2), nullptr);
 }
-void Service::stop_async_runner()
+void Serviceb::stop_async_runner()
 {
 	if (!m_async_callback)
 		return;
@@ -52,7 +55,7 @@ void Service::stop_async_runner()
 	m_async_callback = nullptr;
 }
 
-void Service::callback_handler(void* data, std::shared_ptr<SignalInfo> item)
+void Serviceb::callback_handler(void* data, std::shared_ptr<SignalInfo> item)
 {
 	v8::Isolate*         isolate = v8::Isolate::GetCurrent();
 	v8::Local<v8::Value> args[1];
@@ -74,15 +77,15 @@ void Service::callback_handler(void* data, std::shared_ptr<SignalInfo> item)
 
 	Nan::Call(m_callback_function, 1, args);
 }
-void Service::start_worker()
+void Serviceb::start_worker()
 {
 	if (!m_worker_stop)
 		return;
 	// Launch worker thread.
 	m_worker_stop = false;
-	m_worker      = std::thread(std::bind(&Service::worker, this));
+	m_worker      = std::thread(std::bind(&Serviceb::worker, this));
 }
-void Service::stop_worker()
+void Serviceb::stop_worker()
 {
 	if (m_worker_stop != false)
 		return;
@@ -95,20 +98,20 @@ void Service::stop_worker()
 
 void service::OBS_service_resetAudioContext(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Service", "OBS_service_resetAudioContext", {});
+	client_int->call("Service", "OBS_service_resetAudioContext", {});
 }
 
 void service::OBS_service_resetVideoContext(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Service", "OBS_service_resetVideoContext", {});
+	client_int->call("Service", "OBS_service_resetVideoContext", {});
 }
 
 void service::OBS_service_startStreaming(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -122,11 +125,11 @@ void service::OBS_service_startStreaming(const v8::FunctionCallbackInfo<v8::Valu
 		isWorkerRunning = true;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Service", "OBS_service_startStreaming", {});
+	client_int->call("Service", "OBS_service_startStreaming", {});
 }
 
 void service::OBS_service_startRecording(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -140,11 +143,11 @@ void service::OBS_service_startRecording(const v8::FunctionCallbackInfo<v8::Valu
 		isWorkerRunning = true;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Service", "OBS_service_startRecording", {});
+	client_int->call("Service", "OBS_service_startRecording", {});
 }
 
 void service::OBS_service_startReplayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -158,11 +161,11 @@ void service::OBS_service_startReplayBuffer(const v8::FunctionCallbackInfo<v8::V
 		isWorkerRunning = true;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Service", "OBS_service_startReplayBuffer", {});
+	client_int->call("Service", "OBS_service_startReplayBuffer", {});
 }
 
 void service::OBS_service_stopStreaming(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -170,20 +173,20 @@ void service::OBS_service_stopStreaming(const v8::FunctionCallbackInfo<v8::Value
 	bool forceStop;
 	ASSERT_GET_VALUE(args[0], forceStop);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Service", "OBS_service_stopStreaming", {ipc::value(forceStop)});
+	client_int->call("Service", "OBS_service_stopStreaming", {ipc::value(forceStop)});
 }
 
 void service::OBS_service_stopRecording(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Service", "OBS_service_stopRecording", {});
+	client_int->call("Service", "OBS_service_stopRecording", {});
 }
 
 void service::OBS_service_stopReplayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -191,11 +194,11 @@ void service::OBS_service_stopReplayBuffer(const v8::FunctionCallbackInfo<v8::Va
 	bool forceStop;
 	ASSERT_GET_VALUE(args[0], forceStop);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Service", "OBS_service_stopReplayBuffer", {ipc::value(forceStop)});
+	client_int->call("Service", "OBS_service_stopReplayBuffer", {ipc::value(forceStop)});
 }
 
 static v8::Persistent<v8::Object> serviceCallbackObject;
@@ -206,36 +209,36 @@ void service::OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8
 	ASSERT_GET_VALUE(args[0], callback);
 
 	// Grab IPC Connection
-	std::shared_ptr<ipc::client> conn = nullptr;
-	if (!(conn = GetConnection())) {
-		return;
-	}
+	// std::shared_ptr<ipc::client> conn = nullptr;
+	// if (!(conn = GetConnection())) {
+	// 	return;
+	// }
 
 	// Send request
-	conn->call("Service", "OBS_service_connectOutputSignals", {});
+	client_int->call("Service", "OBS_service_connectOutputSignals", {});
 
-	serviceObject = new Service();
+	serviceObject = new Serviceb();
 	serviceObject->m_callback_function.Reset(callback);
 	args.GetReturnValue().Set(true);
 }
 
 void service::OBS_service_processReplayBufferHotkey(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-    conn->call("Service", "OBS_service_processReplayBufferHotkey", {});
+    client_int->call("Service", "OBS_service_processReplayBufferHotkey", {});
 }
 
 void service::OBS_service_getLastReplay(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Service", "OBS_service_getLastReplay", {});
+	    client_int->call_synchronous_helper("Service", "OBS_service_getLastReplay", {});
 
 	ValidateResponse(response);
 
@@ -243,7 +246,7 @@ void service::OBS_service_getLastReplay(const v8::FunctionCallbackInfo<v8::Value
 	    v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), response.at(1).value_str.c_str()).ToLocalChecked());
 }
 
-void Service::worker()
+void Serviceb::worker()
 {
 	size_t totalSleepMS = 0;
 
@@ -251,14 +254,14 @@ void Service::worker()
 		auto tp_start = std::chrono::high_resolution_clock::now();
 
 		// Validate Connection
-		auto conn = Controller::GetInstance().GetConnection();
-		if (!conn) {
-			goto do_sleep;
-		}
+		// auto conn = Controller::GetInstance().GetConnection();
+		// if (!conn) {
+		// 	goto do_sleep;
+		// }
 
 		// Call
 		{
-			std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "Query", {});
+			std::vector<ipc::value> response = client_int->call_synchronous_helper("Service", "Query", {});
 			if (!response.size() || (response.size() == 1)) {
 				goto do_sleep;
 			}
@@ -286,7 +289,7 @@ void Service::worker()
 	return;
 }
 
-void Service::set_keepalive(v8::Local<v8::Object> obj)
+void Serviceb::set_keepalive(v8::Local<v8::Object> obj)
 {
 	if (!m_async_callback)
 		return;

@@ -17,16 +17,16 @@
 ******************************************************************************/
 
 #pragma once
-#include <ipc-server.hpp>
+#include <ipc-client.hpp>
 #include <obs.h>
 #include "utility.hpp"
 
 namespace osn
 {
-	class Video
+	class ServerVideo
 	{
 		public:
-		static void Register(ipc::server&);
+		static void Register(ipc::client*);
 
 		static void GetSkippedFrames(
 		    void*                          data,

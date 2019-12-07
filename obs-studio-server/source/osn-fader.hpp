@@ -17,14 +17,14 @@
 ******************************************************************************/
 
 #pragma once
-#include <ipc-server.hpp>
+#include <ipc-client.hpp>
 #include <memory>
 #include "obs.h"
 #include "utility.hpp"
 
 namespace osn
 {
-	class Fader
+	class ServerFader
 	{
 		public:
 		class Manager : public utility::unique_object_manager<obs_fader_t>
@@ -44,7 +44,7 @@ namespace osn
 		};
 
 		public:
-		static void Register(ipc::server&);
+		static void Register(ipc::client*);
 		static void ClearFaders();
 
 		static void

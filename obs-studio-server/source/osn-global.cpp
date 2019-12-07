@@ -22,7 +22,7 @@
 #include "osn-source.hpp"
 #include "shared.hpp"
 
-void osn::Global::Register(ipc::server& srv)
+void osn::ServerGlobal::Register(ipc::client* client)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Global");
 	cls->register_function(
@@ -40,10 +40,10 @@ void osn::Global::Register(ipc::server& srv)
 	    std::make_shared<ipc::function>("GetMultipleRendering", std::vector<ipc::type>{}, GetMultipleRendering));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SetMultipleRendering", std::vector<ipc::type>{ipc::type::Int32}, SetMultipleRendering));
-	srv.register_collection(cls);
+	client->register_collection(cls);
 }
 
-void osn::Global::GetOutputSource(
+void osn::ServerGlobal::GetOutputSource(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -58,7 +58,7 @@ void osn::Global::GetOutputSource(
 		return;
 	}
 
-	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
+	uint64_t uid = osn::ServerSource::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
 		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Source found but not indexed.");
 	}
@@ -70,7 +70,7 @@ void osn::Global::GetOutputSource(
 	AUTO_DEBUG;
 }
 
-void osn::Global::SetOutputSource(
+void osn::ServerGlobal::SetOutputSource(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -84,7 +84,7 @@ void osn::Global::SetOutputSource(
 	}
 
 	if (args[1].value_union.ui64 != UINT64_MAX) {
-		source = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
+		source = osn::ServerSource::Manager::GetInstance().find(args[1].value_union.ui64);
 		if (!source) {
 			PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 		}
@@ -102,7 +102,7 @@ void osn::Global::SetOutputSource(
 	AUTO_DEBUG;
 }
 
-void osn::Global::GetOutputFlagsFromId(
+void osn::ServerGlobal::GetOutputFlagsFromId(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -115,7 +115,7 @@ void osn::Global::GetOutputFlagsFromId(
 	AUTO_DEBUG;
 }
 
-void osn::Global::LaggedFrames(
+void osn::ServerGlobal::LaggedFrames(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -126,7 +126,7 @@ void osn::Global::LaggedFrames(
 	AUTO_DEBUG;
 }
 
-void osn::Global::TotalFrames(
+void osn::ServerGlobal::TotalFrames(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -137,7 +137,7 @@ void osn::Global::TotalFrames(
 	AUTO_DEBUG;
 }
 
-void osn::Global::GetLocale(
+void osn::ServerGlobal::GetLocale(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -148,7 +148,7 @@ void osn::Global::GetLocale(
 	AUTO_DEBUG;
 }
 
-void osn::Global::SetLocale(
+void osn::ServerGlobal::SetLocale(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -159,7 +159,7 @@ void osn::Global::SetLocale(
 	AUTO_DEBUG;
 }
 
-void osn::Global::GetMultipleRendering(
+void osn::ServerGlobal::GetMultipleRendering(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -170,7 +170,7 @@ void osn::Global::GetMultipleRendering(
 	AUTO_DEBUG;
 }
 
-void osn::Global::SetMultipleRendering(
+void osn::ServerGlobal::SetMultipleRendering(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,

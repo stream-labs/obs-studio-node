@@ -16,7 +16,7 @@
 
 ******************************************************************************/
 
-#include "nodeobs_configManager.hpp"
+#include "server-nodeobs_configManager.hpp"
 
 #ifdef _WIN32
 #include <ShlObj.h>

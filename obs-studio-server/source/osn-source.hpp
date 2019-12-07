@@ -17,13 +17,13 @@
 ******************************************************************************/
 
 #pragma once
-#include <ipc-server.hpp>
+#include <ipc-client.hpp>
 #include <obs.h>
 #include "utility.hpp"
 
 namespace osn
 {
-	class Source
+	class ServerSource
 	{
 		public:
 		class Manager : public utility::unique_object_manager<obs_source_t>
@@ -53,7 +53,7 @@ namespace osn
 		static void detach_source_signals(obs_source_t* src);
 
 		public:
-		static void Register(ipc::server&);
+		static void Register(ipc::client*);
 
 		// Type Info
 		static void GetTypeProperties(

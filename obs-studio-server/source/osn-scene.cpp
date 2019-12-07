@@ -22,7 +22,7 @@
 #include "osn-sceneitem.hpp"
 #include "shared.hpp"
 
-void osn::Scene::Register(ipc::server& srv)
+void osn::ServerScene::Register(ipc::client* client)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Scene");
 	cls->register_function(
@@ -69,10 +69,10 @@ void osn::Scene::Register(ipc::server& srv)
 	    std::make_shared<ipc::function>("Connect", std::vector<ipc::type>{ipc::type::UInt64}, Connect));
 	cls->register_function(
 	    std::make_shared<ipc::function>("Disconnect", std::vector<ipc::type>{ipc::type::UInt64}, Disconnect));
-	srv.register_collection(cls);
+	client->register_collection(cls);
 }
 
-void osn::Scene::Create(
+void osn::ServerScene::Create(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -88,7 +88,7 @@ void osn::Scene::Create(
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to get source from scene.");
 	}
 
-	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
+	uint64_t uid = osn::ServerSource::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
 		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
@@ -100,7 +100,7 @@ void osn::Scene::Create(
 	AUTO_DEBUG;
 }
 
-void osn::Scene::CreatePrivate(
+void osn::ServerScene::CreatePrivate(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -116,7 +116,7 @@ void osn::Scene::CreatePrivate(
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to get source from scene.");
 	}
 
-	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
+	uint64_t uid = osn::ServerSource::Manager::GetInstance().allocate(source);
 	if (uid == UINT64_MAX) {
 		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
@@ -128,7 +128,7 @@ void osn::Scene::CreatePrivate(
 	AUTO_DEBUG;
 }
 
-void osn::Scene::FromName(
+void osn::ServerScene::FromName(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -139,7 +139,7 @@ void osn::Scene::FromName(
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to get source from scene.");
 	}
 
-	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
+	uint64_t uid = osn::ServerSource::Manager::GetInstance().find(source);
 	obs_source_release(source);
 
 	if (uid == UINT64_MAX) {
@@ -152,13 +152,13 @@ void osn::Scene::FromName(
 	AUTO_DEBUG;
 }
 
-void osn::Scene::Release(
+void osn::ServerScene::Release(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* source = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -187,13 +187,13 @@ void osn::Scene::Release(
 	AUTO_DEBUG;
 }
 
-void osn::Scene::Remove(
+void osn::ServerScene::Remove(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* source = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -213,10 +213,10 @@ void osn::Scene::Remove(
 	obs_scene_enum_items(scene, cb, &items);
 
 	obs_source_remove(source);
-	osn::Source::Manager::GetInstance().free(args[0].value_union.ui64);
+	osn::ServerSource::Manager::GetInstance().free(args[0].value_union.ui64);
 
 	for (auto item : items) {
-		osn::SceneItem::Manager::GetInstance().free(item);
+		osn::ServerSceneItem::Manager::GetInstance().free(item);
 		obs_sceneitem_release(item);
 		obs_sceneitem_release(item);
 	}
@@ -225,7 +225,7 @@ void osn::Scene::Remove(
 	AUTO_DEBUG;
 }
 
-void osn::Scene::AsSource(
+void osn::ServerScene::AsSource(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -237,13 +237,13 @@ void osn::Scene::AsSource(
 	AUTO_DEBUG;
 }
 
-void osn::Scene::Duplicate(
+void osn::ServerScene::Duplicate(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* source = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -264,7 +264,7 @@ void osn::Scene::Duplicate(
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to get source from duplicate scene.");
 	}
 
-	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source2);
+	uint64_t uid = osn::ServerSource::Manager::GetInstance().allocate(source2);
 	if (uid == UINT64_MAX) {
 		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
@@ -274,13 +274,13 @@ void osn::Scene::Duplicate(
 	AUTO_DEBUG;
 }
 
-void osn::Scene::AddSource(
+void osn::ServerScene::AddSource(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* source = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -290,14 +290,14 @@ void osn::Scene::AddSource(
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not a scene.");
 	}
 
-	obs_source_t* added_source = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
+	obs_source_t* added_source = osn::ServerSource::Manager::GetInstance().find(args[1].value_union.ui64);
 	if (!added_source) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference to add is not valid.");
 	}
 
 	obs_sceneitem_t* item = obs_scene_add(scene, added_source);
 
-	utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().allocate(item);
+	utility::unique_id::id_t uid = osn::ServerSceneItem::Manager::GetInstance().allocate(item);
 	if (uid == UINT64_MAX) {
 		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
@@ -337,13 +337,13 @@ void osn::Scene::AddSource(
 	AUTO_DEBUG;
 }
 
-void osn::Scene::FindItemByName(
+void osn::ServerScene::FindItemByName(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* source = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -358,9 +358,9 @@ void osn::Scene::FindItemByName(
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Source not found.");
 	}
 
-	utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
+	utility::unique_id::id_t uid = osn::ServerSceneItem::Manager::GetInstance().find(item);
 	if (uid == UINT64_MAX) {
-		uid = osn::SceneItem::Manager::GetInstance().allocate(item);
+		uid = osn::ServerSceneItem::Manager::GetInstance().allocate(item);
 		if (uid == UINT64_MAX) {
 			PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 		}
@@ -372,13 +372,13 @@ void osn::Scene::FindItemByName(
 	AUTO_DEBUG;
 }
 
-void osn::Scene::FindItemByItemId(
+void osn::ServerScene::FindItemByItemId(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* source = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -393,9 +393,9 @@ void osn::Scene::FindItemByItemId(
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Source not found.");
 	}
 
-	utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
+	utility::unique_id::id_t uid = osn::ServerSceneItem::Manager::GetInstance().find(item);
 	if (uid == UINT64_MAX) {
-		uid = osn::SceneItem::Manager::GetInstance().allocate(item);
+		uid = osn::ServerSceneItem::Manager::GetInstance().allocate(item);
 		if (uid == UINT64_MAX) {
 			PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 		}
@@ -407,13 +407,13 @@ void osn::Scene::FindItemByItemId(
 	AUTO_DEBUG;
 }
 
-void osn::Scene::MoveItem(
+void osn::ServerScene::MoveItem(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* source = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -472,9 +472,9 @@ void osn::Scene::MoveItem(
 	obs_scene_enum_items(scene, cb_items, &items);
 
 	for (obs_sceneitem_t* item : items) {
-		utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
+		utility::unique_id::id_t uid = osn::ServerSceneItem::Manager::GetInstance().find(item);
 		if (uid == UINT64_MAX) {
-			uid = osn::SceneItem::Manager::GetInstance().allocate(item);
+			uid = osn::ServerSceneItem::Manager::GetInstance().allocate(item);
 			if (uid == UINT64_MAX) {
 				PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 			}
@@ -486,13 +486,13 @@ void osn::Scene::MoveItem(
 	AUTO_DEBUG;
 }
 
-void osn::Scene::GetItem(
+void osn::ServerScene::GetItem(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* source = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -525,9 +525,9 @@ void osn::Scene::GetItem(
 		PRETTY_ERROR_RETURN(ErrorCode::OutOfBounds, "Index not found in Scene.");
 	}
 
-	utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(ed.item);
+	utility::unique_id::id_t uid = osn::ServerSceneItem::Manager::GetInstance().find(ed.item);
 	if (uid == UINT64_MAX) {
-		uid = osn::SceneItem::Manager::GetInstance().allocate(ed.item);
+		uid = osn::ServerSceneItem::Manager::GetInstance().allocate(ed.item);
 		if (uid == UINT64_MAX) {
 			PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 		}
@@ -539,13 +539,13 @@ void osn::Scene::GetItem(
 	AUTO_DEBUG;
 }
 
-void osn::Scene::GetItems(
+void osn::ServerScene::GetItems(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* source = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -565,9 +565,9 @@ void osn::Scene::GetItems(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	for (obs_sceneitem_t* item : items) {
-		utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
+		utility::unique_id::id_t uid = osn::ServerSceneItem::Manager::GetInstance().find(item);
 		if (uid == UINT64_MAX) {
-			uid = osn::SceneItem::Manager::GetInstance().allocate(item);
+			uid = osn::ServerSceneItem::Manager::GetInstance().allocate(item);
 			if (uid == UINT64_MAX) {
 				PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 			}
@@ -579,13 +579,13 @@ void osn::Scene::GetItems(
 	AUTO_DEBUG;
 }
 
-void osn::Scene::GetItemsInRange(
+void osn::ServerScene::GetItemsInRange(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* source = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!source) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -618,9 +618,9 @@ void osn::Scene::GetItemsInRange(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	for (obs_sceneitem_t* item : ed.items) {
-		utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
+		utility::unique_id::id_t uid = osn::ServerSceneItem::Manager::GetInstance().find(item);
 		if (uid == UINT64_MAX) {
-			uid = osn::SceneItem::Manager::GetInstance().allocate(item);
+			uid = osn::ServerSceneItem::Manager::GetInstance().allocate(item);
 			if (uid == UINT64_MAX) {
 				PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 			}
@@ -631,7 +631,7 @@ void osn::Scene::GetItemsInRange(
 	AUTO_DEBUG;
 }
 
-void osn::Scene::Connect(
+void osn::ServerScene::Connect(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -641,7 +641,7 @@ void osn::Scene::Connect(
 	// !FIXME! Signals
 }
 
-void osn::Scene::Disconnect(
+void osn::ServerScene::Disconnect(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,

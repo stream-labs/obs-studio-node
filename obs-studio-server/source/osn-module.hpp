@@ -17,16 +17,16 @@
 ******************************************************************************/
 
 #pragma once
-#include <ipc-server.hpp>
+#include <ipc-client.hpp>
 #include <obs.h>
 #include "utility.hpp"
 
 namespace osn
 {
-	class Module
+	class ServerModule
 	{
 		public:
-		static void Register(ipc::server&);
+		static void Register(ipc::client*);
 
 		public:
 		class Manager : public utility::unique_object_manager<obs_module_t>

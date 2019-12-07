@@ -31,7 +31,7 @@
 #include <thread>
 #include <vector>
 #include "StackWalker.h"
-#include "nodeobs_api.h"
+#include "server-nodeobs_api.h"
 #include "error.hpp"
 
 #if defined(_WIN32)

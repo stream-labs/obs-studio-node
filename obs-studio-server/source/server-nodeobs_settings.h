@@ -23,9 +23,9 @@
 #include <string>
 #include <util/lexer.h>
 #include <util/platform.h>
-#include "nodeobs_service.h"
+#include "server-nodeobs_service.h"
 
-#include "nodeobs_audio_encoders.h"
+#include "server-nodeobs_audio_encoders.h"
 
 enum CategoryTypes : uint32_t
 {
@@ -152,7 +152,7 @@ class OBS_settings
 	OBS_settings();
 	~OBS_settings();
 
-	static void Register(ipc::server&);
+	static void Register(ipc::client*);
 
 	static void OBS_settings_getSettings(
 	    void*                          data,

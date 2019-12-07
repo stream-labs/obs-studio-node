@@ -19,7 +19,7 @@
 #pragma once
 #include <io.h>
 #include <iostream>
-#include <ipc-server.hpp>
+#include <ipc-client.hpp>
 #include <math.h>
 #include <obs.h>
 #include <stdio.h>
@@ -27,8 +27,8 @@
 #include <string>
 #include <vector>
 #include <queue>
-#include "nodeobs_configManager.hpp"
-#include "nodeobs_service.h"
+#include "server-nodeobs_configManager.hpp"
+#include "server-nodeobs_service.h"
 
 extern std::string g_moduleDirectory;
 
@@ -77,7 +77,7 @@ class OBS_API
 	OBS_API();
 	~OBS_API();
 
-	static void Register(ipc::server&);
+	static void Register(ipc::client*);
 
 	static void OBS_API_initAPI(
 	    void*                          data,

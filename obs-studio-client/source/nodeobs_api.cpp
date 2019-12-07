@@ -37,11 +37,11 @@ void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args)
 	ASSERT_GET_VALUE(args[1], path);
 	ASSERT_GET_VALUE(args[2], version);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	//auto conn = GetConnection();
+	//if (!conn)
+	//	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
+	std::vector<ipc::value> response = client_int->call_synchronous_helper(
 	    "API", "OBS_API_initAPI", {ipc::value(path), ipc::value(language), ipc::value(version)});
 
 	// The API init method will return a response error + graphical error
@@ -59,20 +59,21 @@ void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 void api::OBS_API_destroyOBS_API(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("API", "OBS_API_destroyOBS_API", {});
+	client_int->call("API", "OBS_API_destroyOBS_API", {});
 }
 
 void api::OBS_API_getPerformanceStatistics(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("API", "OBS_API_getPerformanceStatistics", {});
+	std::vector<ipc::value> response =
+	    client_int->call_synchronous_helper("API", "OBS_API_getPerformanceStatistics", {});
 
 	if (!ValidateResponse(response))
 		return;
@@ -104,20 +105,20 @@ void api::SetWorkingDirectory(const v8::FunctionCallbackInfo<v8::Value>& args)
 	Nan::Utf8String param0(args[0]);
 	std::string     path = *param0;
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	//auto conn = GetConnection();
+	//if (!conn)
+	//	return;
 
-	conn->call("API", "SetWorkingDirectory", {ipc::value(path)});
+	client_int->call("API", "SetWorkingDirectory", {ipc::value(path)});
 }
 
 void api::StopCrashHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("API", "StopCrashHandler", {});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("API", "StopCrashHandler", {});
 
 	// This is a shutdown operation, no response validation needed
 	// ValidateResponse(response);
@@ -125,11 +126,11 @@ void api::StopCrashHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_QueryHotkeys(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("API", "OBS_API_QueryHotkeys", {});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("API", "OBS_API_QueryHotkeys", {});
 
 	if (!ValidateResponse(response))
 		return;
@@ -180,11 +181,11 @@ Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_ProcessHotkeyStatus(const v8::FunctionC
 	ASSERT_GET_VALUE(args[0], hotkeyId);
 	ASSERT_GET_VALUE(args[1], press);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("API", "OBS_API_ProcessHotkeyStatus", {ipc::value(hotkeyId), ipc::value(press)});
+	client_int->call("API", "OBS_API_ProcessHotkeyStatus", {ipc::value(hotkeyId), ipc::value(press)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE api::SetUsername(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -193,11 +194,11 @@ Nan::NAN_METHOD_RETURN_TYPE api::SetUsername(const v8::FunctionCallbackInfo<v8::
 
 	ASSERT_GET_VALUE(args[0], username);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("API", "SetUsername", {ipc::value(username)});
+	client_int->call("API", "SetUsername", {ipc::value(username)});
 }
 
 INITIALIZER(nodeobs_api)

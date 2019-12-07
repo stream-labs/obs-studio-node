@@ -55,11 +55,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Types(Nan::NAN_METHOD_ARGS_TYPE info)
 	// Function takes no parameters.
 	ASSERT_INFO_LENGTH(info, 0);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Filter", "Types", {});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("Filter", "Types", {});
 
 	if (!ValidateResponse(response))
 		return;
@@ -97,9 +97,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 		settings = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), setobj).ToLocalChecked();
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	auto params = std::vector<ipc::value>{ipc::value(type), ipc::value(name)};
 	if (settings->Length() != 0) {
@@ -109,7 +109,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 		}
 	}
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Filter", "Create", {std::move(params)});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("Filter", "Create", {std::move(params)});
 
 	if (!ValidateResponse(response))
 		return;

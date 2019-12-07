@@ -17,78 +17,106 @@
 ******************************************************************************/
 
 #pragma once
+#include <chrono>
 #include <iostream>
-#include <string>
-#pragma once
-#include <graphics/math-extra.h>
 #include <mutex>
-#include <obs.hpp>
-#include <queue>
+#include <obs.h>
+#include <sstream>
+#include <stdio.h>
+#include <string>
 #include <thread>
-#include "nodeobs_api.h"
-#include "nodeobs_service.h"
+#include <vector>
+#ifndef _WIN32
+#include <unistd.h>
+#endif
+#include <ctime>
+#include <fstream>
+#include <map>
+#include "server-nodeobs_api.h"
+#include "server-nodeobs_display.h"
 
-namespace autoConfig
+struct SourceInfo
 {
-	void Register(ipc::server& srv);
-	void InitializeAutoConfig(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	void StartBandwidthTest(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	void StartStreamEncoderTest(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	void StartRecordingEncoderTest(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	void StartCheckSettings(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	void StartSetDefaultSettings(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	void StartSaveStreamSettings(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	void StartSaveSettings(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	void TerminateAutoConfig(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	void Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+	uint32_t fader;
+	uint32_t volmeter;
+};
 
-	void StopThread();
-	void FindIdealHardwareResolution();
-	bool TestSoftwareEncoding();
-	void TestBandwidthThread();
-	void TestStreamEncoderThread();
-	void TestRecordingEncoderThread();
-	void SaveStreamSettings();
-	void SaveSettings();
-	bool CheckSettings();
-	void SetDefaultSettings();
-	void TestHardwareEncoding();
-	bool CanTestServer(const char* server);
-	void WaitPendingTests(double timeout = 10);
-} // namespace autoConfig
+extern std::map<std::string, SourceInfo*> sourceInfo;
+extern std::vector<std::string>           tabScenes;
+extern std::string                        currentTransition;
+extern std::map<std::string, obs_source_t*>    transitions;
+
+class OBS_content
+{
+	public:
+	OBS_content();
+	~OBS_content();
+
+	static void Register(ipc::client*);
+
+	static void OBS_content_createDisplay(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_content_destroyDisplay(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_content_getDisplayPreviewOffset(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_content_getDisplayPreviewSize(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_content_createSourcePreviewDisplay(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_content_resizeDisplay(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_content_moveDisplay(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_content_setPaddingSize(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_content_setPaddingColor(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_content_setBackgroundColor(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_content_setOutlineColor(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_content_setShouldDrawUI(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_content_setDrawGuideLines(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+};

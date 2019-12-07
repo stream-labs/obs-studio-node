@@ -21,6 +21,7 @@
 #include <node.h>
 #include <queue>
 #include <string>
+#include "ipc-client.hpp"
 
 #ifndef __FUNCTION_NAME__
 #if defined(_WIN32) || defined(_WIN64) //WINDOWS
@@ -31,5 +32,6 @@
 #endif
 
 extern std::queue<std::function<void(v8::Local<v8::Object>)>> initializerFunctions;
+extern std::shared_ptr<ipc::client> client_int;
 
 void replaceAll(std::string& str, const std::string& from, const std::string& to);

@@ -65,11 +65,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Module::Open(Nan::NAN_METHOD_ARGS_TYPE info)
 	ASSERT_GET_VALUE(info[0], bin_path);
 	ASSERT_GET_VALUE(info[1], data_path);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Module", "Open", {ipc::value(bin_path), ipc::value(data_path)});
+	std::vector<ipc::value> response =
+	    client_int->call_synchronous_helper("Module", "Open", {ipc::value(bin_path), ipc::value(data_path)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -80,12 +81,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Module::Open(Nan::NAN_METHOD_ARGS_TYPE info)
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Module::Modules(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Module", "Modules", {});
+	    client_int->call_synchronous_helper("Module", "Modules", {});
 
 	if (!ValidateResponse(response))
 		return;
@@ -109,12 +110,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Module::Initialize(Nan::NAN_METHOD_ARGS_TYPE in
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Module", "Initialize", {ipc::value(module->moduleId)});
+	    client_int->call_synchronous_helper("Module", "Initialize", {ipc::value(module->moduleId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -129,12 +130,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Module::Name(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Module", "GetName", {ipc::value(module->moduleId)});
+	    client_int->call_synchronous_helper("Module", "GetName", {ipc::value(module->moduleId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -149,12 +150,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Module::FileName(Nan::NAN_METHOD_ARGS_TYPE info
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Module", "GetFileName", {ipc::value(module->moduleId)});
+	    client_int->call_synchronous_helper("Module", "GetFileName", {ipc::value(module->moduleId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -169,12 +170,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Module::Description(Nan::NAN_METHOD_ARGS_TYPE i
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Module", "GetDescription", {ipc::value(module->moduleId)});
+	    client_int->call_synchronous_helper("Module", "GetDescription", {ipc::value(module->moduleId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -189,12 +190,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Module::Author(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Module", "GetAuthor", {ipc::value(module->moduleId)});
+	    client_int->call_synchronous_helper("Module", "GetAuthor", {ipc::value(module->moduleId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -209,12 +210,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Module::BinaryPath(Nan::NAN_METHOD_ARGS_TYPE in
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Module", "GetBinaryPath", {ipc::value(module->moduleId)});
+	    client_int->call_synchronous_helper("Module", "GetBinaryPath", {ipc::value(module->moduleId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -229,12 +230,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Module::DataPath(Nan::NAN_METHOD_ARGS_TYPE info
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Module", "GetDataPath", {ipc::value(module->moduleId)});
+	    client_int->call_synchronous_helper("Module", "GetDataPath", {ipc::value(module->moduleId)});
 
 	if (!ValidateResponse(response))
 		return;

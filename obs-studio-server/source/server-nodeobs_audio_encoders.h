@@ -20,7 +20,7 @@
 
 #include <map>
 
-#include "nodeobs_api.h"
+#include "server-nodeobs_api.h"
 
 const std::map<int, const char*>& GetAACEncoderBitrateMap();
 const char*                       GetAACEncoderForBitrate(int bitrate);

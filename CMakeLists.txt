@@ -89,6 +89,6 @@ endif()
 
 add_subdirectory(lib-streamlabs-ipc)
 add_subdirectory(obs-studio-client)
-add_subdirectory(obs-studio-server)
+#add_subdirectory(obs-studio-server)
 
 include(CPack)

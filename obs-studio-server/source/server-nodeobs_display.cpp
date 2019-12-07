@@ -16,11 +16,11 @@
 
 ******************************************************************************/
 
-#include "nodeobs_display.h"
+#include "server-nodeobs_display.h"
 #include <iostream>
 #include <map>
 #include <string>
-#include "nodeobs_api.h"
+#include "server-nodeobs_api.h"
 
 #include <graphics/matrix4.h>
 #include <graphics/vec4.h>
@@ -159,7 +159,7 @@ void OBS::Display::SystemWorker()
 			CreateWindowMessageAnswer*   answer   = reinterpret_cast<CreateWindowMessageAnswer*>(message.lParam);
 
 			BOOL enabled = FALSE;
-			DwmIsCompositionEnabled(&enabled);
+			// DwmIsCompositionEnabled(&enabled);
 			DWORD windowStyle;
 
 			if (IsWindows8OrGreater() || !enabled) {

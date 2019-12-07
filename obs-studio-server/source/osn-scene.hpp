@@ -21,10 +21,10 @@
 
 namespace osn
 {
-	class Scene : public Source
+	class ServerScene : public ServerSource
 	{
 		public:
-		static void Register(ipc::server&);
+		static void Register(ipc::client*);
 
 		static void
 		            Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);

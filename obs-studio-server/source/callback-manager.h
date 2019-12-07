@@ -20,7 +20,7 @@
 
 #include <algorithm>
 #include <iostream>
-#include <ipc-server.hpp>
+#include <ipc-client.hpp>
 #include <map>
 #include <mutex>
 #include <obs.h>
@@ -30,11 +30,11 @@
 #include <util/config-file.h>
 #include <util/dstr.h>
 #include <util/platform.h>
-#include "nodeobs_api.h"
+#include "server-nodeobs_api.h"
 
-#include "nodeobs_audio_encoders.h"
+#include "server-nodeobs_audio_encoders.h"
 
-struct SourceSizeInfo
+struct SourceSizeInfob
 {
 	obs_source_t* source;
 	uint32_t      width = 0;
@@ -42,13 +42,13 @@ struct SourceSizeInfo
 	uint32_t      flags = 0;
 };
 
-class CallbackManager
+class CallbackManagerb
 {
 	public:
-	CallbackManager() {};
-	~CallbackManager() {};
+	CallbackManagerb(){};
+	~CallbackManagerb(){};
 
-	static void Register(ipc::server&);
+	static void Register(ipc::client*);
 	static void QuerySourceSize(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 	
 	static void addSource(obs_source_t* source);

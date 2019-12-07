@@ -35,12 +35,12 @@ void osn::Video::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Video::skippedFrames(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Video", "GetSkippedFrames", {});
+	    client_int->call_synchronous_helper("Video", "GetSkippedFrames", {});
 
 	if (!ValidateResponse(response))
 		return;
@@ -50,12 +50,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Video::skippedFrames(Nan::NAN_METHOD_ARGS_TYPE 
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Video::encodedFrames(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Video", "GetTotalFrames", {});
+	    client_int->call_synchronous_helper("Video", "GetTotalFrames", {});
 
 	if (!ValidateResponse(response))
 		return;

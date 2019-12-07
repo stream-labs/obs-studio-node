@@ -16,7 +16,7 @@
 
 ******************************************************************************/
 
-#include "nodeobs_api.h"
+#include "server-nodeobs_api.h"
 #include "osn-source.hpp"
 #include "osn-scene.hpp"
 #include "osn-sceneitem.hpp"
@@ -25,7 +25,7 @@
 #include "osn-filter.hpp"
 #include "osn-volmeter.hpp"
 #include "osn-fader.hpp"
-#include "nodeobs_autoconfig.h"
+#include "server-nodeobs_autoconfig.h"
 #include "util/lexer.h"
 #include "util-crashmanager.h"
 #include "util-metricsprovider.h"
@@ -43,7 +43,7 @@
 #include <locale>
 #include <mutex>
 #include <string>
-#include "nodeobs_content.h"
+#include "server-nodeobs_content.h"
 #endif
 
 #ifdef _MSC_VER
@@ -81,7 +81,7 @@ std::mutex                                             logMutex;
 std::string                                            currentVersion;
 std::string                                            username("unknown");
 
-void OBS_API::Register(ipc::server& srv)
+void OBS_API::Register(ipc::client* client)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("API");
 
@@ -105,10 +105,10 @@ void OBS_API::Register(ipc::server& srv)
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SetUsername", std::vector<ipc::type>{ipc::type::String}, SetUsername));
 
-	srv.register_collection(cls);
+	client->register_collection(cls);
 }
 
-void replaceAll(std::string& str, const std::string& from, const std::string& to)
+void replaceAlln(std::string& str, const std::string& from, const std::string& to)
 {
 	if (from.empty())
 		return;
@@ -126,7 +126,7 @@ void OBS_API::SetWorkingDirectory(
     std::vector<ipc::value>&       rval)
 {
 	g_moduleDirectory = args[0].value_str;
-	replaceAll(g_moduleDirectory, "\\", "/");
+	replaceAlln(g_moduleDirectory, "\\", "/");
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(g_moduleDirectory));
 	AUTO_DEBUG;
@@ -554,7 +554,7 @@ void OBS_API::OBS_API_initAPI(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	writeCrashHandler(registerProcess());
+	//writeCrashHandler(registerProcess());
 	/* Map base DLLs as soon as possible into the current process space.
 	* In particular, we need to load obs.dll into memory before we call
 	* any functions from obs else if we delay-loaded the dll, it will
@@ -576,7 +576,7 @@ void OBS_API::OBS_API_initAPI(
 	* 2. ${OBS_DATA_PATH}/libobs <- This works but is inflexible
 	* 3. getenv(OBS_DATA_PATH) + /libobs <- Can be set anywhere
 	*    on the cli, in the frontend, or the backend. */
-	obs_add_data_path((g_moduleDirectory + "/libobs/data/libobs/").c_str());
+	obs_add_data_path((g_moduleDirectory + "/data/libobs/").c_str());
 	slobs_plugin = appdata.substr(0, appdata.size() - strlen("/slobs-client"));
 	slobs_plugin.append("/slobs-plugins");
 	obs_add_data_path((slobs_plugin + "/data/").c_str());
@@ -635,7 +635,7 @@ void OBS_API::OBS_API_initAPI(
 	// Well, simply because the hooks need to run as soon as possible. We don't
 	//  want to miss a single create or destroy signal OBS gives us for the
 	//  osn::Source::Manager.
-	osn::Source::initialize_global_signals();
+	osn::ServerSource::initialize_global_signals();
 	/* END INJECT osn::Source::Manager */
 
 	cpuUsageInfo = os_cpu_usage_info_start();
@@ -713,7 +713,7 @@ void OBS_API::OBS_API_destroyOBS_API(
 	// Well, simply because the hooks need to run as soon as possible. We don't
 	//  want to miss a single create or destroy signal OBS gives us for the
 	//  osn::Source::Manager.
-	osn::Source::finalize_global_signals();
+	osn::ServerSource::finalize_global_signals();
 	/* END INJECT osn::Source::Manager */
 	destroyOBS_API();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -1152,7 +1152,7 @@ void OBS_API::destroyOBS_API(void)
 	}
 #endif
 
-	autoConfig::WaitPendingTests();
+	ServerAutoConfig::WaitPendingTests();
 
 	obs_encoder_t* streamingEncoder = OBS_service::getStreamingEncoder();
 	if (streamingEncoder != NULL)
@@ -1188,19 +1188,19 @@ void OBS_API::destroyOBS_API(void)
 
     OBS_service::waitReleaseWorker();
     OBS_service::clearAudioEncoder();
-    osn::VolMeter::ClearVolmeters();
-    osn::Fader::ClearFaders();
+    osn::ServerVolMeter::ClearVolmeters();
+	osn::ServerFader::ClearFaders();
 
 	// Check if the frontend was able to shutdown correctly:
 	// If there are some sources here it's because it ended unexpectedly, this represents a 
 	// problem since obs doesn't handle releasing leaked sources very well. The best we can
 	// do is to insert a try-catch block and disable the crash handler to avoid false positives
-	if (osn::Source::Manager::GetInstance().size() > 0		||
-		osn::Scene::Manager::GetInstance().size() > 0		||
-		osn::SceneItem::Manager::GetInstance().size() > 0	||
-		osn::Transition::Manager::GetInstance().size() > 0	||
-		osn::Filter::Manager::GetInstance().size() > 0		||
-		osn::Input::Manager::GetInstance().size() > 0) {
+	if (osn::ServerSource::Manager::GetInstance().size() > 0 ||
+		osn::ServerScene::Manager::GetInstance().size() > 0		||
+		osn::ServerSceneItem::Manager::GetInstance().size() > 0	||
+		osn::ServerTransition::Manager::GetInstance().size() > 0	||
+		osn::ServerFilter::Manager::GetInstance().size() > 0		||
+		osn::ServerInput::Manager::GetInstance().size() > 0) {
 
 		// Directly blame the frontend since it didn't release all objects and that could cause 
 		// a crash on the backend

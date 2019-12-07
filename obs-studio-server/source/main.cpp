@@ -26,11 +26,11 @@
 #include <thread>
 #include <vector>
 #include "error.hpp"
-#include "nodeobs_api.h"
-#include "nodeobs_autoconfig.h"
-#include "nodeobs_content.h"
-#include "nodeobs_service.h"
-#include "nodeobs_settings.h"
+#include "server-nodeobs_api.h"
+#include "server-nodeobs_autoconfig.h"
+#include "server-nodeobs_content.h"
+#include "server-nodeobs_service.h"
+#include "server-nodeobs_settings.h"
 #include "osn-fader.hpp"
 #include "osn-filter.hpp"
 #include "osn-global.hpp"

@@ -15,12 +15,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ******************************************************************************/
-
 #pragma once
 
 #include <algorithm>
 #include <iostream>
-#include <ipc-server.hpp>
+#include <ipc-client.hpp>
 #include <map>
 #include <mutex>
 #include <obs.h>
@@ -30,9 +29,9 @@
 #include <util/config-file.h>
 #include <util/dstr.h>
 #include <util/platform.h>
-#include "nodeobs_api.h"
+#include "server-nodeobs_api.h"
 
-#include "nodeobs_audio_encoders.h"
+#include "server-nodeobs_audio_encoders.h"
 
 #ifdef _WIN32
 
@@ -59,7 +58,7 @@
 
 #define MAX_AUDIO_MIXES 6
 
-class SignalInfo
+class SignalInfob
 {
 	private:
 	std::string m_outputType;
@@ -68,8 +67,8 @@ class SignalInfo
 	std::string m_errorMessage;
 
 	public:
-	SignalInfo(){};
-	SignalInfo(std::string outputType, std::string signal)
+	SignalInfob(){};
+	SignalInfob(std::string outputType, std::string signal)
 	{
 		m_outputType   = outputType;
 		m_signal       = signal;
@@ -109,7 +108,7 @@ class OBS_service
 	OBS_service();
 	~OBS_service();
 
-	static void Register(ipc::server&);
+	static void Register(ipc::client*);
 
 	static void OBS_service_resetAudioContext(
 	    void*                          data,

@@ -33,50 +33,50 @@
 #include "callback-manager.h"
 #include "memory-manager.h"
 
-void osn::Source::initialize_global_signals()
+void osn::ServerSource::initialize_global_signals()
 {
 	signal_handler_t* sh = obs_get_signal_handler();
-	signal_handler_connect(sh, "source_create", osn::Source::global_source_create_cb, nullptr);
-	signal_handler_connect(sh, "source_activate", osn::Source::global_source_activate_cb, nullptr);
-	signal_handler_connect(sh, "source_deactivate", osn::Source::global_source_deactivate_cb, nullptr);
+	signal_handler_connect(sh, "source_create", osn::ServerSource::global_source_create_cb, nullptr);
+	signal_handler_connect(sh, "source_activate", osn::ServerSource::global_source_activate_cb, nullptr);
+	signal_handler_connect(sh, "source_deactivate", osn::ServerSource::global_source_deactivate_cb, nullptr);
 }
 
-void osn::Source::finalize_global_signals()
+void osn::ServerSource::finalize_global_signals()
 {
 	signal_handler_t* sh = obs_get_signal_handler();
-	signal_handler_disconnect(sh, "source_create", osn::Source::global_source_create_cb, nullptr);
+	signal_handler_disconnect(sh, "source_create", osn::ServerSource::global_source_create_cb, nullptr);
 }
 
-void osn::Source::attach_source_signals(obs_source_t* src)
+void osn::ServerSource::attach_source_signals(obs_source_t* src)
 {
 	signal_handler_t* sh = obs_source_get_signal_handler(src);
 	if (!sh)
 		return;
-	signal_handler_connect(sh, "destroy", osn::Source::global_source_destroy_cb, nullptr);
+	signal_handler_connect(sh, "destroy", osn::ServerSource::global_source_destroy_cb, nullptr);
 }
 
-void osn::Source::detach_source_signals(obs_source_t* src)
+void osn::ServerSource::detach_source_signals(obs_source_t* src)
 {
 	signal_handler_t* sh = obs_source_get_signal_handler(src);
 	if (!sh)
 		return;
-	signal_handler_disconnect(sh, "destroy", osn::Source::global_source_destroy_cb, nullptr);
+	signal_handler_disconnect(sh, "destroy", osn::ServerSource::global_source_destroy_cb, nullptr);
 }
 
-void osn::Source::global_source_create_cb(void* ptr, calldata_t* cd)
+void osn::ServerSource::global_source_create_cb(void* ptr, calldata_t* cd)
 {
 	obs_source_t* source = nullptr;
 	if (!calldata_get_ptr(cd, "source", &source)) {
 		throw std::exception("calldata did not contain source pointer");
 	}
 
-	osn::Source::Manager::GetInstance().allocate(source);
-	osn::Source::attach_source_signals(source);
-	CallbackManager::addSource(source);
+	osn::ServerSource::Manager::GetInstance().allocate(source);
+	osn::ServerSource::attach_source_signals(source);
+	CallbackManagerb::addSource(source);
 	MemoryManager::GetInstance().registerSource(source);
 }
 
-void osn::Source::global_source_activate_cb(void* ptr, calldata_t* cd)
+void osn::ServerSource::global_source_activate_cb(void* ptr, calldata_t* cd)
 {
 	obs_source_t* source = nullptr;
 	if (!calldata_get_ptr(cd, "source", &source)) {
@@ -85,7 +85,7 @@ void osn::Source::global_source_activate_cb(void* ptr, calldata_t* cd)
 	MemoryManager::GetInstance().updateSourceCache(source);
 }
 
-void osn::Source::global_source_deactivate_cb(void* ptr, calldata_t* cd)
+void osn::ServerSource::global_source_deactivate_cb(void* ptr, calldata_t* cd)
 {
 	obs_source_t* source = nullptr;
 	if (!calldata_get_ptr(cd, "source", &source)) {
@@ -94,20 +94,20 @@ void osn::Source::global_source_deactivate_cb(void* ptr, calldata_t* cd)
 	MemoryManager::GetInstance().updateSourceCache(source);
 }
 
-void osn::Source::global_source_destroy_cb(void* ptr, calldata_t* cd)
+void osn::ServerSource::global_source_destroy_cb(void* ptr, calldata_t* cd)
 {
 	obs_source_t* source = nullptr;
 	if (!calldata_get_ptr(cd, "source", &source)) {
 		throw std::exception("calldata did not contain source pointer");
 	}
 
-	CallbackManager::removeSource(source);
+	CallbackManagerb::removeSource(source);
 	detach_source_signals(source);
-	osn::Source::Manager::GetInstance().free(source);
+	osn::ServerSource::Manager::GetInstance().free(source);
 	MemoryManager::GetInstance().unregisterSource(source);
 }
 
-void osn::Source::Register(ipc::server& srv)
+void osn::ServerSource::Register(ipc::client* client)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Source");
 	cls->register_function(
@@ -195,10 +195,10 @@ void osn::Source::Register(ipc::server& srv)
 	                           ipc::type::Int32},
 		SendKeyClick));
 
-	srv.register_collection(cls);
+	client->register_collection(cls);
 }
 
-void osn::Source::GetTypeProperties(
+void osn::ServerSource::GetTypeProperties(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -209,7 +209,7 @@ void osn::Source::GetTypeProperties(
 	//obs_get_source_properties();
 }
 
-void osn::Source::GetTypeDefaults(
+void osn::ServerSource::GetTypeDefaults(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -220,7 +220,7 @@ void osn::Source::GetTypeDefaults(
 	//obs_get_source_defaults();
 }
 
-void osn::Source::GetTypeOutputFlags(
+void osn::ServerSource::GetTypeOutputFlags(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -231,14 +231,14 @@ void osn::Source::GetTypeOutputFlags(
 	//obs_get_source_output_flags();
 }
 
-void osn::Source::Remove(
+void osn::ServerSource::Remove(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* src = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -249,14 +249,14 @@ void osn::Source::Remove(
 	AUTO_DEBUG;
 }
 
-void osn::Source::Release(
+void osn::ServerSource::Release(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* src = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -267,14 +267,14 @@ void osn::Source::Release(
 	AUTO_DEBUG;
 }
 
-void osn::Source::IsConfigurable(
+void osn::ServerSource::IsConfigurable(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* src = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -284,14 +284,14 @@ void osn::Source::IsConfigurable(
 	AUTO_DEBUG;
 }
 
-void osn::Source::GetProperties(
+void osn::ServerSource::GetProperties(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* src = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -490,14 +490,14 @@ void osn::Source::GetProperties(
 	AUTO_DEBUG;
 }
 
-void osn::Source::GetSettings(
+void osn::ServerSource::GetSettings(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* src = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -509,14 +509,14 @@ void osn::Source::GetSettings(
 	AUTO_DEBUG;
 }
 
-void osn::Source::Update(
+void osn::ServerSource::Update(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* src = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -534,10 +534,10 @@ void osn::Source::Update(
 	AUTO_DEBUG;
 }
 
-void osn::Source::Load(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
+void osn::ServerSource::Load(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* src = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -548,10 +548,10 @@ void osn::Source::Load(void* data, const int64_t id, const std::vector<ipc::valu
 	AUTO_DEBUG;
 }
 
-void osn::Source::Save(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
+void osn::ServerSource::Save(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* src = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -562,14 +562,14 @@ void osn::Source::Save(void* data, const int64_t id, const std::vector<ipc::valu
 	AUTO_DEBUG;
 }
 
-void osn::Source::GetType(
+void osn::ServerSource::GetType(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* src = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -579,14 +579,14 @@ void osn::Source::GetType(
 	AUTO_DEBUG;
 }
 
-void osn::Source::GetName(
+void osn::ServerSource::GetName(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* src = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -596,14 +596,14 @@ void osn::Source::GetName(
 	AUTO_DEBUG;
 }
 
-void osn::Source::SetName(
+void osn::ServerSource::SetName(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* src = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -615,14 +615,14 @@ void osn::Source::SetName(
 	AUTO_DEBUG;
 }
 
-void osn::Source::GetOutputFlags(
+void osn::ServerSource::GetOutputFlags(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* src = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -632,14 +632,14 @@ void osn::Source::GetOutputFlags(
 	AUTO_DEBUG;
 }
 
-void osn::Source::GetFlags(
+void osn::ServerSource::GetFlags(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* src = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -649,14 +649,14 @@ void osn::Source::GetFlags(
 	AUTO_DEBUG;
 }
 
-void osn::Source::SetFlags(
+void osn::ServerSource::SetFlags(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* src = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -668,14 +668,14 @@ void osn::Source::SetFlags(
 	AUTO_DEBUG;
 }
 
-void osn::Source::GetStatus(
+void osn::ServerSource::GetStatus(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* src = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -685,14 +685,14 @@ void osn::Source::GetStatus(
 	AUTO_DEBUG;
 }
 
-void osn::Source::GetId(
+void osn::ServerSource::GetId(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* src = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -703,14 +703,14 @@ void osn::Source::GetId(
 	AUTO_DEBUG;
 }
 
-void osn::Source::GetMuted(
+void osn::ServerSource::GetMuted(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* src = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -720,14 +720,14 @@ void osn::Source::GetMuted(
 	AUTO_DEBUG;
 }
 
-void osn::Source::SetMuted(
+void osn::ServerSource::SetMuted(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* src = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -739,14 +739,14 @@ void osn::Source::SetMuted(
 	AUTO_DEBUG;
 }
 
-void osn::Source::GetEnabled(
+void osn::ServerSource::GetEnabled(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* src = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -756,14 +756,14 @@ void osn::Source::GetEnabled(
 	AUTO_DEBUG;
 }
 
-void osn::Source::SetEnabled(
+void osn::ServerSource::SetEnabled(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
 	// Attempt to find the source asked to load.
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* src = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (src == nullptr) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -775,13 +775,13 @@ void osn::Source::SetEnabled(
 	AUTO_DEBUG;
 }
 
-void osn::Source::SendMouseClick(
+void osn::ServerSource::SendMouseClick(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* src = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -802,13 +802,13 @@ void osn::Source::SendMouseClick(
 	AUTO_DEBUG;
 }
 
-void osn::Source::SendMouseMove(
+void osn::ServerSource::SendMouseMove(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* src = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -824,13 +824,13 @@ void osn::Source::SendMouseMove(
 	AUTO_DEBUG;
 }
 
-void osn::Source::SendMouseWheel(
+void osn::ServerSource::SendMouseWheel(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* src = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -850,13 +850,13 @@ void osn::Source::SendMouseWheel(
 	AUTO_DEBUG;
 }
 
-void osn::Source::SendFocus(
+void osn::ServerSource::SendFocus(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* src = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -870,13 +870,13 @@ void osn::Source::SendFocus(
 	AUTO_DEBUG;
 }
 
-void osn::Source::SendKeyClick(
+void osn::ServerSource::SendKeyClick(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* src = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	if (src == nullptr) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::InvalidReference));
@@ -900,8 +900,8 @@ void osn::Source::SendKeyClick(
 }
 
 
-osn::Source::Manager& osn::Source::Manager::GetInstance()
+osn::ServerSource::Manager& osn::ServerSource::Manager::GetInstance()
 {
-	static osn::Source::Manager _inst;
+	static osn::ServerSource::Manager _inst;
 	return _inst;
 }

@@ -73,11 +73,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Release(Nan::NAN_METHOD_ARGS_TYPE info
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Source", "Release", {ipc::value(obj->sourceId)});
+	client_int->call("Source", "Release", {ipc::value(obj->sourceId)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Remove(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -89,11 +89,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Remove(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	CacheManager<SourceDataInfo*>::getInstance().Remove(is->sourceId);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Source", "Remove", {ipc::value(is->sourceId)});
+	client_int->call("Source", "Remove", {ipc::value(is->sourceId)});
 
 	is->sourceId = UINT64_MAX;
 	return;
@@ -106,12 +106,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::IsConfigurable(Nan::NAN_METHOD_ARGS_TY
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Source", "IsConfigurable", {ipc::value(is->sourceId)});
+	    client_int->call_synchronous_helper("Source", "IsConfigurable", {ipc::value(is->sourceId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -135,12 +135,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Source", "GetProperties", {ipc::value(hndl->sourceId)});
+	    client_int->call_synchronous_helper("Source", "GetProperties", {ipc::value(hndl->sourceId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -352,12 +352,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetSettings(Nan::NAN_METHOD_ARGS_TYPE 
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Source", "GetSettings", {ipc::value(hndl->sourceId)});
+	    client_int->call_synchronous_helper("Source", "GetSettings", {ipc::value(hndl->sourceId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -409,11 +409,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Update(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 
 	if (shouldUpdate) {
-		auto conn = GetConnection();
-		if (!conn)
-			return;
+		// auto conn = GetConnection();
+		// if (!conn)
+		// 	return;
 
-		std::vector<ipc::value> response = conn->call_synchronous_helper(
+		std::vector<ipc::value> response = client_int->call_synchronous_helper(
 		    "Source",
 		    "Update",
 		    {ipc::value(hndl->sourceId), ipc::value(std::string(*jsondatautf8, (size_t)jsondatautf8.length()))});
@@ -438,11 +438,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Load(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Source", "Load", {ipc::value(is->sourceId)});
+	client_int->call("Source", "Load", {ipc::value(is->sourceId)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Save(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -453,11 +453,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Save(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Source", "Save", {ipc::value(is->sourceId)});
+	client_int->call("Source", "Save", {ipc::value(is->sourceId)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetType(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -467,11 +467,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetType(Nan::NAN_METHOD_ARGS_TYPE info
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Source", "GetType", {ipc::value(is->sourceId)});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("Source", "GetType", {ipc::value(is->sourceId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -495,11 +495,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetName(Nan::NAN_METHOD_ARGS_TYPE info
 		}
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Source", "GetName", {ipc::value(is->sourceId)});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("Source", "GetName", {ipc::value(is->sourceId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -520,11 +520,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetName(Nan::NAN_METHOD_ARGS_TYPE info
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Source", "SetName", {ipc::value(is->sourceId), ipc::value(name)});
+	client_int->call("Source", "SetName", {ipc::value(is->sourceId), ipc::value(name)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetOutputFlags(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -534,12 +534,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetOutputFlags(Nan::NAN_METHOD_ARGS_TY
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Source", "GetOutputFlags", {ipc::value(is->sourceId)});
+	    client_int->call_synchronous_helper("Source", "GetOutputFlags", {ipc::value(is->sourceId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -554,11 +554,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetFlags(Nan::NAN_METHOD_ARGS_TYPE inf
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Source", "GetFlags", {ipc::value(is->sourceId)});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("Source", "GetFlags", {ipc::value(is->sourceId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -576,11 +576,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetFlags(Nan::NAN_METHOD_ARGS_TYPE inf
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Source", "SetFlags", {ipc::value(is->sourceId), ipc::value(flags)});
+	client_int->call("Source", "SetFlags", {ipc::value(is->sourceId), ipc::value(flags)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetStatus(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -590,11 +590,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetStatus(Nan::NAN_METHOD_ARGS_TYPE in
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Source", "GetStatus", {ipc::value(is->sourceId)});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("Source", "GetStatus", {ipc::value(is->sourceId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -618,11 +618,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetId(Nan::NAN_METHOD_ARGS_TYPE info)
 		}
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Source", "GetId", {ipc::value(is->sourceId)});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("Source", "GetId", {ipc::value(is->sourceId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -649,11 +649,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetMuted(Nan::NAN_METHOD_ARGS_TYPE inf
 		}
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Source", "GetMuted", {ipc::value(is->sourceId)});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("Source", "GetMuted", {ipc::value(is->sourceId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -678,11 +678,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetMuted(Nan::NAN_METHOD_ARGS_TYPE inf
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Source", "SetMuted", {ipc::value(is->sourceId), ipc::value(muted)});
+	client_int->call("Source", "SetMuted", {ipc::value(is->sourceId), ipc::value(muted)});
 
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(is->sourceId);
 	if (sdi) {
@@ -697,12 +697,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetEnabled(Nan::NAN_METHOD_ARGS_TYPE i
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Source", "GetEnabled", {ipc::value(is->sourceId)});
+	    client_int->call_synchronous_helper("Source", "GetEnabled", {ipc::value(is->sourceId)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -721,11 +721,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetEnabled(Nan::NAN_METHOD_ARGS_TYPE i
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Source", "SetEnabled", {ipc::value(is->sourceId), ipc::value(enabled)});
+	client_int->call("Source", "SetEnabled", {ipc::value(is->sourceId), ipc::value(enabled)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseClick(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -735,9 +735,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseClick(Nan::NAN_METHOD_ARGS_TY
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	v8::Local<v8::Object> mouse_event_obj;
 	uint32_t              type;
@@ -755,7 +755,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseClick(Nan::NAN_METHOD_ARGS_TY
 	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "x", x);
 	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "y", y);
 
-	conn->call(
+	client_int->call(
 	    "Source",
 	    "SendMouseClick",
 	    {
@@ -777,9 +777,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseMove(Nan::NAN_METHOD_ARGS_TYP
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	v8::Local<v8::Object> mouse_event_obj;
 	bool                  mouse_leave;
@@ -793,7 +793,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseMove(Nan::NAN_METHOD_ARGS_TYP
 	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "x", x);
 	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "y", y);
 
-	conn->call("Source", "SendMouseMove", {ipc::value(obj->sourceId), ipc::value(modifiers), ipc::value(x), ipc::value(y), ipc::value(mouse_leave)});
+	client_int->call("Source", "SendMouseMove", {ipc::value(obj->sourceId), ipc::value(modifiers), ipc::value(x), ipc::value(y), ipc::value(mouse_leave)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseWheel(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -803,9 +803,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseWheel(Nan::NAN_METHOD_ARGS_TY
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	v8::Local<v8::Object> mouse_event_obj;
 	int                   x_delta, y_delta;
@@ -820,7 +820,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseWheel(Nan::NAN_METHOD_ARGS_TY
 	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "x", x);
 	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "y", y);
 
-	conn->call(
+	client_int->call(
 	    "Source",
 	    "SendMouseWheel",
 	    {
@@ -845,11 +845,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendFocus(Nan::NAN_METHOD_ARGS_TYPE in
 
 	ASSERT_GET_VALUE(info[0], focus);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-    conn->call("Source", "SendFocus", {ipc::value(obj->sourceId), ipc::value(focus)});
+    client_int->call("Source", "SendFocus", {ipc::value(obj->sourceId), ipc::value(focus)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendKeyClick(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -859,9 +859,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendKeyClick(Nan::NAN_METHOD_ARGS_TYPE
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	v8::Local<v8::Object> key_event_obj;
 	bool                  key_up;
@@ -878,7 +878,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendKeyClick(Nan::NAN_METHOD_ARGS_TYPE
 	ASSERT_GET_OBJECT_FIELD(key_event_obj, "nativeScancode", native_scancode);
 	ASSERT_GET_OBJECT_FIELD(key_event_obj, "nativeVkey", native_vkey);
 
-	conn->call(
+	client_int->call(
 	    "Source",
 	    "SendKeyClick",
 	    {

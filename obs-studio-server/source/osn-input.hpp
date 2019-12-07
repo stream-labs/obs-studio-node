@@ -21,10 +21,10 @@
 
 namespace osn
 {
-	class Input : public Source
+	class ServerInput : public ServerSource
 	{
 		public:
-		static void Register(ipc::server&);
+		static void Register(ipc::client*);
 
 		// Function
 		static void

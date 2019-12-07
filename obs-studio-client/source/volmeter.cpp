@@ -105,10 +105,10 @@ void osn::VolMeter::worker()
 		auto tp_start = std::chrono::high_resolution_clock::now();
 
 		// Validate Connection
-		auto conn = Controller::GetInstance().GetConnection();
-		if (!conn) {
-			goto do_sleep;
-		}
+		// auto conn = Controller::GetInstance().GetConnection();
+		// if (!conn) {
+		// 	goto do_sleep;
+		// }
 
 		// Call
 		try {
@@ -117,7 +117,7 @@ void osn::VolMeter::worker()
 			if (!m_async_callback)
 				goto do_sleep;
 
-			std::vector<ipc::value> response = conn->call_synchronous_helper(
+			std::vector<ipc::value> response = client_int->call_synchronous_helper(
 			    "VolMeter",
 			    "Query",
 			    {
@@ -205,14 +205,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Create(Nan::NAN_METHOD_ARGS_TYPE info
 	ASSERT_GET_VALUE(info[0], fader_type);
 
 	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		Nan::ThrowError("IPC is not connected.");
-		return;
-	}
+	// auto conn = Controller::GetInstance().GetConnection();
+	// if (!conn) {
+	// 	Nan::ThrowError("IPC is not connected.");
+	// 	return;
+	// }
 
 	// Call
-	std::vector<ipc::value> rval = conn->call_synchronous_helper(
+	std::vector<ipc::value> rval = client_int->call_synchronous_helper(
 	    "VolMeter",
 	    "Create",
 	    {
@@ -241,14 +241,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::GetUpdateInterval(Nan::NAN_METHOD_ARG
 	}
 
 	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		Nan::ThrowError("IPC is not connected.");
-		return;
-	}
+	// auto conn = Controller::GetInstance().GetConnection();
+	// if (!conn) {
+	// 	Nan::ThrowError("IPC is not connected.");
+	// 	return;
+	// }
 
 	// Call
-	std::vector<ipc::value> rval = conn->call_synchronous_helper(
+	std::vector<ipc::value> rval = client_int->call_synchronous_helper(
 	    "VolMeter",
 	    "GetUpdateInterval",
 	    {
@@ -279,14 +279,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::SetUpdateInterval(Nan::NAN_METHOD_ARG
 	}
 
 	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		Nan::ThrowError("IPC is not connected.");
-		return;
-	}
+	// auto conn = Controller::GetInstance().GetConnection();
+	// if (!conn) {
+	// 	Nan::ThrowError("IPC is not connected.");
+	// 	return;
+	// }
 
 	// Call
-	conn->call("VolMeter", "SetUpdateInterval", {ipc::value(self->m_uid), ipc::value(interval)});
+	client_int->call("VolMeter", "SetUpdateInterval", {ipc::value(self->m_uid), ipc::value(interval)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Attach(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -308,14 +308,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Attach(Nan::NAN_METHOD_ARGS_TYPE info
 	}
 
 	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		Nan::ThrowError("IPC is not connected.");
-		return;
-	}
+	// auto conn = Controller::GetInstance().GetConnection();
+	// if (!conn) {
+	// 	Nan::ThrowError("IPC is not connected.");
+	// 	return;
+	// }
 
 	// Call
-	conn->call("VolMeter", "Attach", {ipc::value(fader->m_uid), ipc::value(source->sourceId)});
+	client_int->call("VolMeter", "Attach", {ipc::value(fader->m_uid), ipc::value(source->sourceId)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Detach(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -330,14 +330,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Detach(Nan::NAN_METHOD_ARGS_TYPE info
 	}
 
 	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		Nan::ThrowError("IPC is not connected.");
-		return;
-	}
+	// auto conn = Controller::GetInstance().GetConnection();
+	// if (!conn) {
+	// 	Nan::ThrowError("IPC is not connected.");
+	// 	return;
+	// }
 
 	// Call
-	conn->call("VolMeter", "Detach", {ipc::value(fader->m_uid)});
+	client_int->call("VolMeter", "Detach", {ipc::value(fader->m_uid)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::AddCallback(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -357,14 +357,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::AddCallback(Nan::NAN_METHOD_ARGS_TYPE
 
 	{
 		// Grab IPC Connection
-		std::shared_ptr<ipc::client> conn = nullptr;
-		if (!(conn = GetConnection())) {
-			return;
-		}
+		// std::shared_ptr<ipc::client> conn = nullptr;
+		// if (!(conn = GetConnection())) {
+		// 	return;
+		// }
 
 		// Send request
 		std::vector<ipc::value> rval =
-		    conn->call_synchronous_helper("VolMeter", "AddCallback", {ipc::value(self->m_uid)});
+		    client_int->call_synchronous_helper("VolMeter", "AddCallback", {ipc::value(self->m_uid)});
 
 		if (!ValidateResponse(rval)) {
 			info.GetReturnValue().Set(Nan::Null());
@@ -397,14 +397,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::RemoveCallback(Nan::NAN_METHOD_ARGS_T
 
 	// Grab IPC Connection
 	{
-		std::shared_ptr<ipc::client> conn = nullptr;
-		if (!(conn = GetConnection())) {
-			return;
-		}
+		// std::shared_ptr<ipc::client> conn = nullptr;
+		// if (!(conn = GetConnection())) {
+		// 	return;
+		// }
 
 		// Send request
 		std::vector<ipc::value> rval =
-		    conn->call_synchronous_helper("VolMeter", "RemoveCallback", {ipc::value(self->m_uid)});
+		    client_int->call_synchronous_helper("VolMeter", "RemoveCallback", {ipc::value(self->m_uid)});
 
 		if (!ValidateResponse(rval)) {
 			info.GetReturnValue().Set(Nan::Null());

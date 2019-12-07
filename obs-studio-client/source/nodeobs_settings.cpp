@@ -146,12 +146,12 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 		return;
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	//auto conn = GetConnection();
+	//if (!conn)
+	//	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Settings", "OBS_settings_getSettings", {ipc::value(category)});
+	    client_int->call_synchronous_helper("Settings", "OBS_settings_getSettings", {ipc::value(category)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -540,11 +540,11 @@ void settings::OBS_settings_saveSettings(const v8::FunctionCallbackInfo<v8::Valu
 
 	std::vector<char> buffer = deserializeCategory(&subCategoriesCount, &sizeStruct, settings);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Settings", "OBS_settings_saveSettings",
+	client_int->call("Settings", "OBS_settings_saveSettings",
 	    {ipc::value(category), ipc::value(subCategoriesCount), ipc::value(sizeStruct), ipc::value(buffer)});
 }
 

@@ -25,7 +25,7 @@
 #include <string>
 #include <vector>
 
-#include "nodeobs_audio_encoders.h"
+#include "server-nodeobs_audio_encoders.h"
 
 static const std::string encoders[] = {
     "ffmpeg_aac",

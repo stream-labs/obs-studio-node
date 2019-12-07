@@ -24,7 +24,7 @@
 #include "osn-source.hpp"
 #include "shared.hpp"
 
-void osn::Filter::Register(ipc::server& srv)
+void osn::ServerFilter::Register(ipc::client* client)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Filter");
 	cls->register_function(std::make_shared<ipc::function>("Types", std::vector<ipc::type>{}, Types));
@@ -32,10 +32,10 @@ void osn::Filter::Register(ipc::server& srv)
 	    "Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, Create));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String}, Create));
-	srv.register_collection(cls);
+	client->register_collection(cls);
 }
 
-void osn::Filter::Types(
+void osn::ServerFilter::Types(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -49,7 +49,7 @@ void osn::Filter::Types(
 	AUTO_DEBUG;
 }
 
-void osn::Filter::Create(
+void osn::ServerFilter::Create(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -74,11 +74,11 @@ void osn::Filter::Create(
 
 	obs_data_release(settings);
 
-	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
+	uint64_t uid = osn::ServerSource::Manager::GetInstance().allocate(source);
 	if (uid == UINT64_MAX) {
 		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
-	osn::Source::attach_source_signals(source);
+	osn::ServerSource::attach_source_signals(source);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));

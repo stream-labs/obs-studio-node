@@ -22,17 +22,17 @@
 #include "osn-source.hpp"
 #include "shared.hpp"
 
-void osn::Properties::Register(ipc::server& srv)
+void osn::ServerProperties::Register(ipc::client* client)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Properties");
 	cls->register_function(std::make_shared<ipc::function>(
 	    "Modified", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::String}, Modified));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "Clicked", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, Clicked));
-	srv.register_collection(cls);
+	client->register_collection(cls);
 }
 
-void osn::Properties::Modified(
+void osn::ServerProperties::Modified(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -41,7 +41,7 @@ void osn::Properties::Modified(
 	uint64_t    sourceId = args[0].value_union.ui64;
 	std::string name     = args[1].value_str;
 
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(sourceId);
+	obs_source_t* source = osn::ServerSource::Manager::GetInstance().find(sourceId);
 	if (!source) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid reference.");
 	}
@@ -63,7 +63,7 @@ void osn::Properties::Modified(
 	AUTO_DEBUG;
 }
 
-void osn::Properties::Clicked(
+void osn::ServerProperties::Clicked(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -72,7 +72,7 @@ void osn::Properties::Clicked(
 	uint64_t    sourceId = args[0].value_union.ui64;
 	std::string name     = args[1].value_str;
 
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(sourceId);
+	obs_source_t* source = osn::ServerSource::Manager::GetInstance().find(sourceId);
 	if (!source) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid reference.");
 	}

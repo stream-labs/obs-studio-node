@@ -73,14 +73,14 @@ void osn::Fader::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 	ASSERT_GET_VALUE(info[0], fader_type);
 
 	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		Nan::ThrowError("IPC is not connected.");
-		return;
-	}
+	// auto conn = Controller::GetInstance().GetConnection();
+	// if (!conn) {
+	// 	Nan::ThrowError("IPC is not connected.");
+	// 	return;
+	// }
 
 	// Call
-	std::vector<ipc::value> rval = conn->call_synchronous_helper(
+	std::vector<ipc::value> rval = client_int->call_synchronous_helper(
 	    "Fader",
 	    "Create",
 	    {
@@ -108,14 +108,14 @@ void osn::Fader::GetDeziBel(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 
 	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		Nan::ThrowError("IPC is not connected.");
-		return;
-	}
+	// auto conn = Controller::GetInstance().GetConnection();
+	// if (!conn) {
+	// 	Nan::ThrowError("IPC is not connected.");
+	// 	return;
+	// }
 
 	// Call
-	std::vector<ipc::value> rval = conn->call_synchronous_helper(
+	std::vector<ipc::value> rval = client_int->call_synchronous_helper(
 	    "Fader",
 	    "GetDeziBel",
 	    {
@@ -144,14 +144,14 @@ void osn::Fader::SetDezibel(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 
 	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		Nan::ThrowError("IPC is not connected.");
-		return;
-	}
+	// auto conn = Controller::GetInstance().GetConnection();
+	// if (!conn) {
+	// 	Nan::ThrowError("IPC is not connected.");
+	// 	return;
+	// }
 
 	// Call
-	conn->call("Fader", "SetDeziBel", {ipc::value(fader->uid), ipc::value(dezibel)});
+	client_int->call("Fader", "SetDeziBel", {ipc::value(fader->uid), ipc::value(dezibel)});
 }
 
 void osn::Fader::GetDeflection(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -166,14 +166,14 @@ void osn::Fader::GetDeflection(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 
 	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		Nan::ThrowError("IPC is not connected.");
-		return;
-	}
+	// auto conn = Controller::GetInstance().GetConnection();
+	// if (!conn) {
+	// 	Nan::ThrowError("IPC is not connected.");
+	// 	return;
+	// }
 
 	// Call
-	std::vector<ipc::value> rval = conn->call_synchronous_helper(
+	std::vector<ipc::value> rval = client_int->call_synchronous_helper(
 	    "Fader",
 	    "GetDeflection",
 	    {
@@ -202,14 +202,14 @@ void osn::Fader::SetDeflection(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 
 	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		Nan::ThrowError("IPC is not connected.");
-		return;
-	}
+	// auto conn = Controller::GetInstance().GetConnection();
+	// if (!conn) {
+	// 	Nan::ThrowError("IPC is not connected.");
+	// 	return;
+	// }
 
 	// Call
-	conn->call("Fader", "SetDeflection", {ipc::value(fader->uid), ipc::value(dezibel)});
+	client_int->call("Fader", "SetDeflection", {ipc::value(fader->uid), ipc::value(dezibel)});
 }
 
 void osn::Fader::GetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -224,14 +224,14 @@ void osn::Fader::GetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 
 	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		Nan::ThrowError("IPC is not connected.");
-		return;
-	}
+	// auto conn = Controller::GetInstance().GetConnection();
+	// if (!conn) {
+	// 	Nan::ThrowError("IPC is not connected.");
+	// 	return;
+	// }
 
 	// Call
-	std::vector<ipc::value> rval = conn->call_synchronous_helper(
+	std::vector<ipc::value> rval = client_int->call_synchronous_helper(
 	    "Fader",
 	    "GetMultiplier",
 	    {
@@ -260,14 +260,14 @@ void osn::Fader::SetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 
 	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		Nan::ThrowError("IPC is not connected.");
-		return;
-	}
+	// auto conn = Controller::GetInstance().GetConnection();
+	// if (!conn) {
+	// 	Nan::ThrowError("IPC is not connected.");
+	// 	return;
+	// }
 
 	// Call
-	conn->call("Fader", "SetMultiplier", {ipc::value(fader->uid), ipc::value(dezibel)});
+	client_int->call("Fader", "SetMultiplier", {ipc::value(fader->uid), ipc::value(dezibel)});
 }
 
 void osn::Fader::Attach(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -289,15 +289,15 @@ void osn::Fader::Attach(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 
 	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		Nan::ThrowError("IPC is not connected.");
-		return;
-	}
+	// auto conn = Controller::GetInstance().GetConnection();
+	// if (!conn) {
+	// 	Nan::ThrowError("IPC is not connected.");
+	// 	return;
+	// }
 
 	// Call
 	std::vector<ipc::value> rval =
-	    conn->call_synchronous_helper("Fader", "Attach", {ipc::value(fader->uid), ipc::value(source->sourceId)});
+	    client_int->call_synchronous_helper("Fader", "Attach", {ipc::value(fader->uid), ipc::value(source->sourceId)});
 
 	if (!ValidateResponse(rval)) {
 		return;
@@ -316,14 +316,14 @@ void osn::Fader::Detach(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 
 	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		Nan::ThrowError("IPC is not connected.");
-		return;
-	}
+	// auto conn = Controller::GetInstance().GetConnection();
+	// if (!conn) {
+	// 	Nan::ThrowError("IPC is not connected.");
+	// 	return;
+	// }
 
 	// Call
-	std::vector<ipc::value> rval = conn->call_synchronous_helper("Fader", "Detach", {ipc::value(fader->uid)});
+	std::vector<ipc::value> rval = client_int->call_synchronous_helper("Fader", "Detach", {ipc::value(fader->uid)});
 
 	if (!ValidateResponse(rval)) {
 		return;

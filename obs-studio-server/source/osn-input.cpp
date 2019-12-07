@@ -25,7 +25,7 @@
 #include "osn-source.hpp"
 #include "shared.hpp"
 
-void osn::Input::Register(ipc::server& srv)
+void osn::ServerInput::Register(ipc::client* client)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Input");
 	cls->register_function(std::make_shared<ipc::function>("Types", std::vector<ipc::type>{}, Types));
@@ -102,10 +102,10 @@ void osn::Input::Register(ipc::server& srv)
 	cls->register_function(std::make_shared<ipc::function>(
 	    "CopyFiltersTo", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, CopyFiltersTo));
 
-	srv.register_collection(cls);
+	client->register_collection(cls);
 }
 
-void osn::Input::Types(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
+void osn::ServerInput::Types(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	const char* typeId = nullptr;
@@ -115,7 +115,7 @@ void osn::Input::Types(void* data, const int64_t id, const std::vector<ipc::valu
 	AUTO_DEBUG;
 }
 
-void osn::Input::Create(
+void osn::ServerInput::Create(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -143,7 +143,7 @@ void osn::Input::Create(
 	obs_data_release(hotkeys);
 	obs_data_release(settings);
 
-	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
+	uint64_t uid = osn::ServerSource::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
 		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
@@ -156,7 +156,7 @@ void osn::Input::Create(
 	AUTO_DEBUG;
 }
 
-void osn::Input::CreatePrivate(
+void osn::ServerInput::CreatePrivate(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -181,24 +181,24 @@ void osn::Input::CreatePrivate(
 
 	obs_data_release(settings);
 
-	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
+	uint64_t uid = osn::ServerSource::Manager::GetInstance().allocate(source);
 	if (uid == UINT64_MAX) {
 		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
-	osn::Source::attach_source_signals(source);
+	osn::ServerSource::attach_source_signals(source);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
 	AUTO_DEBUG;
 }
 
-void osn::Input::Duplicate(
+void osn::ServerInput::Duplicate(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* filter = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* filter = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!filter) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
@@ -214,7 +214,7 @@ void osn::Input::Duplicate(
 	}
 
 	if (source != filter) {
-		uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
+		uint64_t uid = osn::ServerSource::Manager::GetInstance().allocate(source);
 		if (uid == UINT64_MAX) {
 			PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 		}
@@ -228,7 +228,7 @@ void osn::Input::Duplicate(
 	AUTO_DEBUG;
 }
 
-void osn::Input::FromName(
+void osn::ServerInput::FromName(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -239,7 +239,7 @@ void osn::Input::FromName(
 		PRETTY_ERROR_RETURN(ErrorCode::NotFound, "Named input could not be found.");
 	}
 
-	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
+	uint64_t uid = osn::ServerSource::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
 		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Source found but not indexed.");
 	}
@@ -251,7 +251,7 @@ void osn::Input::FromName(
 	AUTO_DEBUG;
 }
 
-void osn::Input::GetPublicSources(
+void osn::ServerInput::GetPublicSources(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -261,7 +261,7 @@ void osn::Input::GetPublicSources(
 
 	// !FIXME! Optimize for zero-copy operation, can directly write to rval.
 	auto enum_cb = [](void* data, obs_source_t* source) {
-		uint64_t uid = osn::Source::Manager::GetInstance().find(source);
+		uint64_t uid = osn::ServerSource::Manager::GetInstance().find(source);
 		if (uid != UINT64_MAX) {
 			static_cast<std::list<uint64_t>*>(data)->push_back(uid);
 		}
@@ -277,13 +277,13 @@ void osn::Input::GetPublicSources(
 	AUTO_DEBUG;
 }
 
-void osn::Input::GetActive(
+void osn::ServerInput::GetActive(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* input = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
@@ -293,13 +293,13 @@ void osn::Input::GetActive(
 	AUTO_DEBUG;
 }
 
-void osn::Input::GetShowing(
+void osn::ServerInput::GetShowing(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* input = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
@@ -309,13 +309,13 @@ void osn::Input::GetShowing(
 	AUTO_DEBUG;
 }
 
-void osn::Input::GetVolume(
+void osn::ServerInput::GetVolume(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* input = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
@@ -325,13 +325,13 @@ void osn::Input::GetVolume(
 	AUTO_DEBUG;
 }
 
-void osn::Input::SetVolume(
+void osn::ServerInput::SetVolume(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* input = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
@@ -343,13 +343,13 @@ void osn::Input::SetVolume(
 	AUTO_DEBUG;
 }
 
-void osn::Input::GetSyncOffset(
+void osn::ServerInput::GetSyncOffset(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* input = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
@@ -359,13 +359,13 @@ void osn::Input::GetSyncOffset(
 	AUTO_DEBUG;
 }
 
-void osn::Input::SetSyncOffset(
+void osn::ServerInput::SetSyncOffset(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* input = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
@@ -377,13 +377,13 @@ void osn::Input::SetSyncOffset(
 	AUTO_DEBUG;
 }
 
-void osn::Input::GetAudioMixers(
+void osn::ServerInput::GetAudioMixers(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* input = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
@@ -393,13 +393,13 @@ void osn::Input::GetAudioMixers(
 	AUTO_DEBUG;
 }
 
-void osn::Input::SetAudioMixers(
+void osn::ServerInput::SetAudioMixers(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* input = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
@@ -411,13 +411,13 @@ void osn::Input::SetAudioMixers(
 	AUTO_DEBUG;
 }
 
-void osn::Input::GetMonitoringType(
+void osn::ServerInput::GetMonitoringType(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* input = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
@@ -427,13 +427,13 @@ void osn::Input::GetMonitoringType(
 	AUTO_DEBUG;
 }
 
-void osn::Input::SetMonitoringType(
+void osn::ServerInput::SetMonitoringType(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* input = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
@@ -445,13 +445,13 @@ void osn::Input::SetMonitoringType(
 	AUTO_DEBUG;
 }
 
-void osn::Input::GetWidth(
+void osn::ServerInput::GetWidth(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* input = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
@@ -461,13 +461,13 @@ void osn::Input::GetWidth(
 	AUTO_DEBUG;
 }
 
-void osn::Input::GetHeight(
+void osn::ServerInput::GetHeight(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* input = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
@@ -477,13 +477,13 @@ void osn::Input::GetHeight(
 	AUTO_DEBUG;
 }
 
-void osn::Input::GetDeInterlaceFieldOrder(
+void osn::ServerInput::GetDeInterlaceFieldOrder(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* input = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
@@ -493,13 +493,13 @@ void osn::Input::GetDeInterlaceFieldOrder(
 	AUTO_DEBUG;
 }
 
-void osn::Input::SetDeInterlaceFieldOrder(
+void osn::ServerInput::SetDeInterlaceFieldOrder(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* input = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
@@ -511,13 +511,13 @@ void osn::Input::SetDeInterlaceFieldOrder(
 	AUTO_DEBUG;
 }
 
-void osn::Input::GetDeInterlaceMode(
+void osn::ServerInput::GetDeInterlaceMode(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* input = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
@@ -527,13 +527,13 @@ void osn::Input::GetDeInterlaceMode(
 	AUTO_DEBUG;
 }
 
-void osn::Input::SetDeInterlaceMode(
+void osn::ServerInput::SetDeInterlaceMode(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* input = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
@@ -545,18 +545,18 @@ void osn::Input::SetDeInterlaceMode(
 	AUTO_DEBUG;
 }
 
-void osn::Input::AddFilter(
+void osn::ServerInput::AddFilter(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* input = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
 
-	obs_source_t* filter = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
+	obs_source_t* filter = osn::ServerSource::Manager::GetInstance().find(args[1].value_union.ui64);
 	if (!filter) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Filter reference is not valid.");
 	}
@@ -567,18 +567,18 @@ void osn::Input::AddFilter(
 	AUTO_DEBUG;
 }
 
-void osn::Input::RemoveFilter(
+void osn::ServerInput::RemoveFilter(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* input = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
 
-	obs_source_t* filter = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
+	obs_source_t* filter = osn::ServerSource::Manager::GetInstance().find(args[1].value_union.ui64);
 	if (!filter) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Filter reference is not valid.");
 	}
@@ -589,18 +589,18 @@ void osn::Input::RemoveFilter(
 	AUTO_DEBUG;
 }
 
-void osn::Input::MoveFilter(
+void osn::ServerInput::MoveFilter(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* input = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
 
-	obs_source_t* filter = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
+	obs_source_t* filter = osn::ServerSource::Manager::GetInstance().find(args[1].value_union.ui64);
 	if (!filter) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Filter reference is not valid.");
 	}
@@ -613,13 +613,13 @@ void osn::Input::MoveFilter(
 	AUTO_DEBUG;
 }
 
-void osn::Input::FindFilter(
+void osn::ServerInput::FindFilter(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* input = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
@@ -632,7 +632,7 @@ void osn::Input::FindFilter(
 	}
 	obs_source_release(filter);
 
-	uint64_t uid = osn::Source::Manager::GetInstance().find(filter);
+	uint64_t uid = osn::ServerSource::Manager::GetInstance().find(filter);
 	if (uid == UINT64_MAX) {
 		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Filter found but not indexed.");
 	}
@@ -642,13 +642,13 @@ void osn::Input::FindFilter(
 	AUTO_DEBUG;
 }
 
-void osn::Input::GetFilters(
+void osn::ServerInput::GetFilters(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* input = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
 	}
@@ -656,7 +656,7 @@ void osn::Input::GetFilters(
 	auto enum_cb = [](obs_source_t* parent, obs_source_t* filter, void* data) {
 		std::vector<ipc::value>* rval = reinterpret_cast<std::vector<ipc::value>*>(data);
 
-		uint64_t id = osn::Source::Manager::GetInstance().find(filter);
+		uint64_t id = osn::ServerSource::Manager::GetInstance().find(filter);
 		if (id != UINT64_MAX) {
 			rval->push_back(id);
 		}
@@ -667,18 +667,18 @@ void osn::Input::GetFilters(
 	AUTO_DEBUG;
 }
 
-void osn::Input::CopyFiltersTo(
+void osn::ServerInput::CopyFiltersTo(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_source_t* input_from = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t* input_from = osn::ServerSource::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!input_from) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "1st Input reference is not valid.");
 	}
 
-	obs_source_t* input_to = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
+	obs_source_t* input_to = osn::ServerSource::Manager::GetInstance().find(args[1].value_union.ui64);
 	if (!input_to) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "2nd Input reference is not valid.");
 	}

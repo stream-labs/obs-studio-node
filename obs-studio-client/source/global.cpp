@@ -26,6 +26,7 @@
 #include "scene.hpp"
 #include "transition.hpp"
 #include "utility-v8.hpp"
+#include "shared.hpp"
 
 void osn::Global::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 {
@@ -49,12 +50,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Global::getOutputSource(Nan::NAN_METHOD_ARGS_TY
 	uint32_t channel;
 	ASSERT_GET_VALUE(info[0], channel);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Global", "GetOutputSource", {ipc::value(channel)});
+	    client_int->call_synchronous_helper("Global", "GetOutputSource", {ipc::value(channel)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -90,11 +91,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Global::setOutputSource(Nan::NAN_METHOD_ARGS_TY
 		}
 	}
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Global", "SetOutputSource", {ipc::value(channel), ipc::value(source ? source->sourceId : UINT64_MAX)});
+	client_int->call("Global", "SetOutputSource", {ipc::value(channel), ipc::value(source ? source->sourceId : UINT64_MAX)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Global::getOutputFlagsFromId(Nan::NAN_METHOD_ARGS_TYPE info)
@@ -104,12 +105,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Global::getOutputFlagsFromId(Nan::NAN_METHOD_AR
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], id);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Global", "GetOutputFlagsFromId", {ipc::value(id)});
+	    client_int->call_synchronous_helper("Global", "GetOutputFlagsFromId", {ipc::value(id)});
 
 	if (!ValidateResponse(response))
 		return;
@@ -119,11 +120,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Global::getOutputFlagsFromId(Nan::NAN_METHOD_AR
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Global::laggedFrames(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Global", "LaggedFrames", {});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("Global", "LaggedFrames", {});
 
 	if (!ValidateResponse(response))
 		return;
@@ -133,11 +134,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Global::laggedFrames(Nan::NAN_METHOD_ARGS_TYPE 
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Global::totalFrames(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Global", "TotalFrames", {});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("Global", "TotalFrames", {});
 
 	if (!ValidateResponse(response))
 		return;
@@ -147,11 +148,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Global::totalFrames(Nan::NAN_METHOD_ARGS_TYPE i
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Global::getLocale(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Global", "GetLocale", {});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("Global", "GetLocale", {});
 
 	if (!ValidateResponse(response))
 		return;
@@ -166,20 +167,20 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Global::setLocale(Nan::NAN_METHOD_ARGS_TYPE inf
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], locale);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Global", "SetLocale", {ipc::value(locale)});
+	client_int->call("Global", "SetLocale", {ipc::value(locale)});
 }
 
 Nan::NAN_METHOD_RETURN_TYPE osn::Global::getMultipleRendering(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Global", "GetMultipleRendering", {});
+	std::vector<ipc::value> response = client_int->call_synchronous_helper("Global", "GetMultipleRendering", {});
 
 	if (!ValidateResponse(response))
 		return;
@@ -194,9 +195,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Global::setMultipleRendering(Nan::NAN_METHOD_AR
 	ASSERT_INFO_LENGTH(info, 1);
 	ASSERT_GET_VALUE(info[0], multipleRendering);
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection();
+	// if (!conn)
+	// 	return;
 
-	conn->call("Global", "SetMultipleRendering", {ipc::value(multipleRendering)});
+	client_int->call("Global", "SetMultipleRendering", {ipc::value(multipleRendering)});
 }

@@ -21,10 +21,10 @@
 
 namespace osn
 {
-	class Filter : public Source
+	class ServerFilter : public ServerSource
 	{
 		public:
-		static void Register(ipc::server&);
+		static void Register(ipc::client*);
 
 		// Function
 		static void

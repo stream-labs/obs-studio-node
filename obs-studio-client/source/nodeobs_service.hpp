@@ -15,7 +15,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ******************************************************************************/
-
+#pragma once
 #include <mutex>
 #include <nan.h>
 #include <node.h>
@@ -31,15 +31,17 @@ struct SignalInfo
 	void*       param;
 };
 
-class Service;
+class Serviceb;
 typedef utilv8::managed_callback<std::shared_ptr<SignalInfo>> ServiceCallback;
-Service*                                                      serviceObject;
+extern Serviceb*                                                     serviceObject;
 
-class Service : public Nan::ObjectWrap, public utilv8::InterfaceObject<Service>, public utilv8::ManagedObject<Service>
+class Serviceb : public Nan::ObjectWrap,
+                 public utilv8::InterfaceObject<Serviceb>,
+                 public utilv8::ManagedObject<Serviceb>
 {
-	friend utilv8::InterfaceObject<Service>;
-	friend utilv8::ManagedObject<Service>;
-	friend utilv8::CallbackData<SignalInfo, Service>;
+	friend utilv8::InterfaceObject<Serviceb>;
+	friend utilv8::ManagedObject<Serviceb>;
+	friend utilv8::CallbackData<SignalInfo, Serviceb>;
 
 	uint32_t sleepIntervalMS = 33;
 
@@ -51,8 +53,8 @@ class Service : public Nan::ObjectWrap, public utilv8::InterfaceObject<Service>,
 	ServiceCallback* m_async_callback = nullptr;
 	Nan::Callback    m_callback_function;
 
-	Service();
-	~Service();
+	Serviceb();
+	~Serviceb();
 
 	void start_async_runner();
 	void stop_async_runner();
@@ -67,18 +69,18 @@ class Service : public Nan::ObjectWrap, public utilv8::InterfaceObject<Service>,
 
 namespace service
 {
-	static void OBS_service_resetAudioContext(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void OBS_service_resetVideoContext(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void OBS_service_resetAudioContext(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void OBS_service_resetVideoContext(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-	static void OBS_service_startStreaming(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void OBS_service_startRecording(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void OBS_service_startReplayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void OBS_service_stopStreaming(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void OBS_service_stopRecording(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void OBS_service_stopReplayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void OBS_service_startStreaming(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void OBS_service_startRecording(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void OBS_service_startReplayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void OBS_service_stopStreaming(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void OBS_service_stopRecording(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void OBS_service_stopReplayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-	static void OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void OBS_service_removeCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void OBS_service_processReplayBufferHotkey(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void OBS_service_getLastReplay(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void OBS_service_removeCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void OBS_service_processReplayBufferHotkey(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void OBS_service_getLastReplay(const v8::FunctionCallbackInfo<v8::Value>& args);
 } // namespace service

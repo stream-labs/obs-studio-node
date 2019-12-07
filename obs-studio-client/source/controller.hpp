@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 #include "ipc-client.hpp"
+#include <nan.h>
 
 #ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
@@ -44,6 +45,8 @@ struct ProcessInfo
 		this->id     = i;
 	}
 };
+
+void js_setServerPath(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 class Controller
 {

@@ -27,6 +27,8 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
+CallbackManager* cm;
+
 void CallbackManager::start_async_runner()
 {
 	if (m_async_callback)
@@ -98,10 +100,10 @@ void RegisterSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
 	ASSERT_GET_VALUE(args[0], callback);
 
 	// Grab IPC Connection
-	std::shared_ptr<ipc::client> conn = nullptr;
-	if (!(conn = GetConnection())) {
-		return;
-	}
+	// std::shared_ptr<ipc::client> conn = nullptr;
+	// if (!(conn = GetConnection())) {
+	// 	return;
+	// }
 
 	// Callback
 	cm = new CallbackManager();
@@ -120,14 +122,15 @@ void CallbackManager::worker()
 		auto tp_start = std::chrono::high_resolution_clock::now();
 
 		// Validate Connection
-		auto conn = Controller::GetInstance().GetConnection();
-		if (!conn) {
-			goto do_sleep;
-		}
+		// auto conn = Controller::GetInstance().GetConnection();
+		// if (!conn) {
+		// 	goto do_sleep;
+		// }
 
 		// Call
 		{
-			std::vector<ipc::value> response = conn->call_synchronous_helper("CallbackManager", "QuerySourceSize", {});
+			std::vector<ipc::value> response =
+			    client_int->call_synchronous_helper("CallbackManager", "QuerySourceSize", {});
 			if (!response.size() || (response.size() == 1)) {
 				goto do_sleep;
 			}

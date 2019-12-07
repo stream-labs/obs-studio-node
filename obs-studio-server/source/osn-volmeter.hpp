@@ -17,7 +17,7 @@
 ******************************************************************************/
 
 #pragma once
-#include <ipc-server.hpp>
+#include <ipc-client.hpp>
 #include <memory>
 #include <queue>
 #include <array>
@@ -26,10 +26,10 @@
 
 namespace osn
 {
-	class VolMeter
+	class ServerVolMeter
 	{
 		public:
-		class Manager : public utility::generic_object_manager<std::shared_ptr<VolMeter>>
+		class Manager : public utility::generic_object_manager<std::shared_ptr<ServerVolMeter>>
 		{
 			friend class std::shared_ptr<Manager>;
 
@@ -72,11 +72,11 @@ namespace osn
 		std::mutex                 current_data_mtx;
 
 		public:
-		VolMeter(obs_fader_type type);
-		~VolMeter();
+		ServerVolMeter(obs_fader_type type);
+		~ServerVolMeter();
 
 		public:
-		static void Register(ipc::server&);
+		static void Register(ipc::client*);
 
         static void ClearVolmeters();
 

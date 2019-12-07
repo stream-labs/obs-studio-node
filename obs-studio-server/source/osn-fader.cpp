@@ -23,13 +23,13 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
-osn::Fader::Manager& osn::Fader::Manager::GetInstance()
+osn::ServerFader::Manager& osn::ServerFader::Manager::GetInstance()
 {
-	static osn::Fader::Manager _inst;
+	static osn::ServerFader::Manager _inst;
 	return _inst;
 }
 
-void osn::Fader::Register(ipc::server& srv)
+void osn::ServerFader::Register(ipc::client* client)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Fader");
 	cls->register_function(std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::Int32}, Create));
@@ -55,10 +55,10 @@ void osn::Fader::Register(ipc::server& srv)
 	    std::make_shared<ipc::function>("AddCallback", std::vector<ipc::type>{ipc::type::UInt64}, AddCallback));
 	cls->register_function(
 	    std::make_shared<ipc::function>("RemoveCallback", std::vector<ipc::type>{ipc::type::UInt64}, RemoveCallback));
-	srv.register_collection(cls);
+	client->register_collection(cls);
 }
 
-void osn::Fader::ClearFaders()
+void osn::ServerFader::ClearFaders()
 {
     Manager::GetInstance().for_each([](obs_fader_t* fader)
     { 
@@ -68,7 +68,7 @@ void osn::Fader::ClearFaders()
     Manager::GetInstance().clear();
 }
 
-void osn::Fader::Create(
+void osn::ServerFader::Create(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -92,7 +92,7 @@ void osn::Fader::Create(
 	AUTO_DEBUG;
 }
 
-void osn::Fader::Destroy(
+void osn::ServerFader::Destroy(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -112,7 +112,7 @@ void osn::Fader::Destroy(
 	AUTO_DEBUG;
 }
 
-void osn::Fader::GetDeziBel(
+void osn::ServerFader::GetDeziBel(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -130,7 +130,7 @@ void osn::Fader::GetDeziBel(
 	AUTO_DEBUG;
 }
 
-void osn::Fader::SetDeziBel(
+void osn::ServerFader::SetDeziBel(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -150,7 +150,7 @@ void osn::Fader::SetDeziBel(
 	AUTO_DEBUG;
 }
 
-void osn::Fader::GetDeflection(
+void osn::ServerFader::GetDeflection(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -168,7 +168,7 @@ void osn::Fader::GetDeflection(
 	AUTO_DEBUG;
 }
 
-void osn::Fader::SetDeflection(
+void osn::ServerFader::SetDeflection(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -188,7 +188,7 @@ void osn::Fader::SetDeflection(
 	AUTO_DEBUG;
 }
 
-void osn::Fader::GetMultiplier(
+void osn::ServerFader::GetMultiplier(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -206,7 +206,7 @@ void osn::Fader::GetMultiplier(
 	AUTO_DEBUG;
 }
 
-void osn::Fader::SetMultiplier(
+void osn::ServerFader::SetMultiplier(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -226,7 +226,7 @@ void osn::Fader::SetMultiplier(
 	AUTO_DEBUG;
 }
 
-void osn::Fader::Attach(
+void osn::ServerFader::Attach(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -240,7 +240,7 @@ void osn::Fader::Attach(
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Fader Reference.");
 	}
 
-	auto source = osn::Source::Manager::GetInstance().find(uid_source);
+	auto source = osn::ServerSource::Manager::GetInstance().find(uid_source);
 	if (!source) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Source Reference.");
 	}
@@ -253,7 +253,7 @@ void osn::Fader::Attach(
 	AUTO_DEBUG;
 }
 
-void osn::Fader::Detach(
+void osn::ServerFader::Detach(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -272,7 +272,7 @@ void osn::Fader::Detach(
 	AUTO_DEBUG;
 }
 
-void osn::Fader::AddCallback(
+void osn::ServerFader::AddCallback(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -281,7 +281,7 @@ void osn::Fader::AddCallback(
 	//!FIXME!
 }
 
-void osn::Fader::RemoveCallback(
+void osn::ServerFader::RemoveCallback(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,

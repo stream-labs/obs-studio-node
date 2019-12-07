@@ -20,7 +20,7 @@
 #include "error.hpp"
 #include "shared.hpp"
 
-void osn::Module::Register(ipc::server& srv)
+void osn::ServerModule::Register(ipc::client* client)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Module");
 
@@ -45,10 +45,10 @@ void osn::Module::Register(ipc::server& srv)
 	cls->register_function(
 	    std::make_shared<ipc::function>("GetDataPath", std::vector<ipc::type>{ipc::type::UInt64}, GetDataPath));
 
-	srv.register_collection(cls);
+	client->register_collection(cls);
 }
 
-void osn::Module::Open(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
+void osn::ServerModule::Open(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	obs_module_t*     module;
 
@@ -58,7 +58,7 @@ void osn::Module::Open(void* data, const int64_t id, const std::vector<ipc::valu
 	int64_t result = obs_open_module(&module, bin_path.c_str(), data_path.c_str());
 
 	if (result == MODULE_SUCCESS) {
-		uint64_t uid = osn::Module::Manager::GetInstance().allocate(module);
+		uint64_t uid = osn::ServerModule::Manager::GetInstance().allocate(module);
 
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		rval.push_back(ipc::value(uid));
@@ -69,7 +69,7 @@ void osn::Module::Open(void* data, const int64_t id, const std::vector<ipc::valu
 	AUTO_DEBUG;
 }
 
-void osn::Module::Modules(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
+void osn::ServerModule::Modules(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	std::vector<std::string> modules;
 
@@ -89,13 +89,13 @@ void osn::Module::Modules(void* data, const int64_t id, const std::vector<ipc::v
 
 	AUTO_DEBUG;
 }
-void osn::Module::Initialize(
+void osn::ServerModule::Initialize(
 	void*                          data,
 	const int64_t                  id,
 	const std::vector<ipc::value>& args,
 	std::vector<ipc::value>&       rval)
 {
-	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_module_t* module = osn::ServerModule::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	if (!module) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Module reference is not valid.");
@@ -106,13 +106,13 @@ void osn::Module::Initialize(
 	AUTO_DEBUG;
 }
 
-void osn::Module::GetName(
+void osn::ServerModule::GetName(
 	void*                          data,
 	const int64_t                  id,
 	const std::vector<ipc::value>& args,
 	std::vector<ipc::value>&       rval)
 {
-	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_module_t* module = osn::ServerModule::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	if (!module) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Module reference is not valid.");
@@ -123,13 +123,13 @@ void osn::Module::GetName(
 	AUTO_DEBUG;
 }
 
-void osn::Module::GetFileName(
+void osn::ServerModule::GetFileName(
 	void*                          data,
 	const int64_t                  id,
 	const std::vector<ipc::value>& args,
 	std::vector<ipc::value>&       rval)
 {
-	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_module_t* module = osn::ServerModule::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	if (!module) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Module reference is not valid.");
@@ -140,13 +140,13 @@ void osn::Module::GetFileName(
 	AUTO_DEBUG;
 }
 
-void osn::Module::GetAuthor(
+void osn::ServerModule::GetAuthor(
 	void*                          data,
 	const int64_t                  id,
 	const std::vector<ipc::value>& args,
 	std::vector<ipc::value>&       rval)
 {
-	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_module_t* module = osn::ServerModule::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	if (!module) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Module reference is not valid.");
@@ -157,13 +157,13 @@ void osn::Module::GetAuthor(
 	AUTO_DEBUG;
 }
 
-void osn::Module::GetDescription(
+void osn::ServerModule::GetDescription(
 	void*                          data,
 	const int64_t                  id,
 	const std::vector<ipc::value>& args,
 	std::vector<ipc::value>&       rval)
 {
-	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_module_t* module = osn::ServerModule::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	if (!module) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Module reference is not valid.");
@@ -174,13 +174,13 @@ void osn::Module::GetDescription(
 	AUTO_DEBUG;
 }
 
-void osn::Module::GetBinaryPath(
+void osn::ServerModule::GetBinaryPath(
 	void*                          data,
 	const int64_t                  id,
 	const std::vector<ipc::value>& args,
 	std::vector<ipc::value>&       rval)
 {
-	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_module_t* module = osn::ServerModule::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	if (!module) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Module reference is not valid.");
@@ -191,13 +191,13 @@ void osn::Module::GetBinaryPath(
 	AUTO_DEBUG;
 }
 
-void osn::Module::GetDataPath(
+void osn::ServerModule::GetDataPath(
 	void*                          data,
 	const int64_t                  id,
 	const std::vector<ipc::value>& args,
 	std::vector<ipc::value>&       rval)
 {
-	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_module_t* module = osn::ServerModule::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	if (!module) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Module reference is not valid.");
@@ -208,7 +208,7 @@ void osn::Module::GetDataPath(
 	AUTO_DEBUG;
 }
 
-void osn::Module::GetFilePath(
+void osn::ServerModule::GetFilePath(
 	void*                          data,
 	const int64_t                  id,
 	const std::vector<ipc::value>& args,
@@ -217,7 +217,7 @@ void osn::Module::GetFilePath(
 
 }
 
-void osn::Module::GetConfigFilePath(
+void osn::ServerModule::GetConfigFilePath(
 	void*                          data,
 	const int64_t                  id,
 	const std::vector<ipc::value>& args,
@@ -226,8 +226,8 @@ void osn::Module::GetConfigFilePath(
 
 }
 
-osn::Module::Manager& osn::Module::Manager::GetInstance()
+osn::ServerModule::Manager& osn::ServerModule::Manager::GetInstance()
 {
-	static osn::Module::Manager _inst;
+	static osn::ServerModule::Manager _inst;
 	return _inst;
 }

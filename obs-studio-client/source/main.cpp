@@ -36,6 +36,32 @@
 #include "transition.hpp"
 #include "video.hpp"
 #include "volmeter.hpp"
+#include "controller.hpp"
+#include "nodeobs_autoconfig.hpp"
+#include "nodeobs_service.hpp"
+#include "nodeobs_settings.hpp"
+#include "nodeobs_display.hpp"
+#include "callback-manager.hpp"
+
+#include <../obs-studio-server/source/server-nodeobs_api.h>
+#include <../obs-studio-server/source/server-nodeobs_autoconfig.h>
+#include <../obs-studio-server/source/server-nodeobs_content.h>
+//#include <../obs-studio-server/source/server-nodeobs_service.h>
+#include <../obs-studio-server/source/server-nodeobs_settings.h>
+#include <../obs-studio-server/source/server-nodeobs_display.h>
+#include <../obs-studio-server/source/osn-fader.hpp>
+#include <../obs-studio-server/source/osn-filter.hpp>
+#include <../obs-studio-server/source/osn-global.hpp>
+#include <../obs-studio-server/source/osn-input.hpp>
+#include <../obs-studio-server/source/osn-module.hpp>
+#include <../obs-studio-server/source/osn-properties.hpp>
+#include <../obs-studio-server/source/osn-scene.hpp>
+#include <../obs-studio-server/source/osn-sceneitem.hpp>
+#include <../obs-studio-server/source/osn-source.hpp>
+#include <../obs-studio-server/source/osn-transition.hpp>
+#include <../obs-studio-server/source/osn-video.hpp>
+#include <../obs-studio-server/source/osn-volmeter.hpp>
+#include <../obs-studio-server/source/callback-manager.h>
 
 #if defined(_WIN32)
 // Checks ForceGPUAsRenderDevice setting
@@ -98,10 +124,83 @@ void main_node(v8::Local<v8::Object> exports, v8::Local<v8::Value> module, void*
 	osn::Video::Register(exports);
 	osn::Module::Register(exports);
 
-	while (initializerFunctions.size() > 0) {
-		initializerFunctions.front()(exports);
-		initializerFunctions.pop();
-	}
+	
+
+	osn::ServerGlobal::Register(client_int.get());
+	osn::ServerSource::Register(client_int.get());
+	osn::ServerInput::Register(client_int.get());
+	osn::ServerFilter::Register(client_int.get());
+	osn::ServerTransition::Register(client_int.get());
+	osn::ServerScene::Register(client_int.get());
+	osn::ServerSceneItem::Register(client_int.get());
+	osn::ServerFader::Register(client_int.get());
+	osn::ServerVolMeter::Register(client_int.get());
+	osn::ServerProperties::Register(client_int.get());
+	osn::ServerVideo::Register(client_int.get());
+	osn::ServerModule::Register(client_int.get());
+	CallbackManagerb::Register(client_int.get());
+	OBS_API::Register(client_int.get());
+	OBS_content::Register(client_int.get());
+	OBS_service::Register(client_int.get());
+	OBS_settings::Register(client_int.get());
+	ServerAutoConfig::Register(client_int.get());
+
+	//while (initializerFunctions.size() > 0) {
+		//initializerFunctions.front()(exports);
+		//initializerFunctions.pop();
+	//}
+	NODE_SET_METHOD(exports, "setServerPath", js_setServerPath);
+
+	NODE_SET_METHOD(exports, "OBS_API_initAPI", api::OBS_API_initAPI);
+	NODE_SET_METHOD(exports, "OBS_API_destroyOBS_API", api::OBS_API_destroyOBS_API);
+	NODE_SET_METHOD(exports, "OBS_API_getPerformanceStatistics", api::OBS_API_getPerformanceStatistics);
+	NODE_SET_METHOD(exports, "SetWorkingDirectory", api::SetWorkingDirectory);
+	NODE_SET_METHOD(exports, "StopCrashHandler", api::StopCrashHandler);
+	NODE_SET_METHOD(exports, "OBS_API_QueryHotkeys", api::OBS_API_QueryHotkeys);
+	NODE_SET_METHOD(exports, "OBS_API_ProcessHotkeyStatus", api::OBS_API_ProcessHotkeyStatus);
+	NODE_SET_METHOD(exports, "SetUsername", api::SetUsername);
+
+	NODE_SET_METHOD(exports, "InitializeAutoConfig", autoConfig::InitializeAutoConfig);
+	NODE_SET_METHOD(exports, "StartBandwidthTest", autoConfig::StartBandwidthTest);
+	NODE_SET_METHOD(exports, "StartStreamEncoderTest", autoConfig::StartStreamEncoderTest);
+	NODE_SET_METHOD(exports, "StartRecordingEncoderTest", autoConfig::StartRecordingEncoderTest);
+	NODE_SET_METHOD(exports, "StartCheckSettings", autoConfig::StartCheckSettings);
+	NODE_SET_METHOD(exports, "StartSetDefaultSettings", autoConfig::StartSetDefaultSettings);
+	NODE_SET_METHOD(exports, "StartSaveStreamSettings", autoConfig::StartSaveStreamSettings);
+	NODE_SET_METHOD(exports, "StartSaveSettings", autoConfig::StartSaveSettings);
+	NODE_SET_METHOD(exports, "TerminateAutoConfig", autoConfig::TerminateAutoConfig);
+
+	NODE_SET_METHOD(exports, "OBS_content_createDisplay", display::OBS_content_createDisplay);
+	NODE_SET_METHOD(exports, "OBS_content_destroyDisplay", display::OBS_content_destroyDisplay);
+	NODE_SET_METHOD(exports, "OBS_content_getDisplayPreviewOffset", display::OBS_content_getDisplayPreviewOffset);
+	NODE_SET_METHOD(exports, "OBS_content_getDisplayPreviewSize", display::OBS_content_getDisplayPreviewSize);
+	NODE_SET_METHOD(exports, "OBS_content_createSourcePreviewDisplay", display::OBS_content_createSourcePreviewDisplay);
+	NODE_SET_METHOD(exports, "OBS_content_resizeDisplay", display::OBS_content_resizeDisplay);
+	NODE_SET_METHOD(exports, "OBS_content_moveDisplay", display::OBS_content_moveDisplay);
+	NODE_SET_METHOD(exports, "OBS_content_setPaddingSize", display::OBS_content_setPaddingSize);
+	NODE_SET_METHOD(exports, "OBS_content_setPaddingColor", display::OBS_content_setPaddingColor);
+	NODE_SET_METHOD(exports, "OBS_content_setShouldDrawUI", display::OBS_content_setShouldDrawUI);
+	NODE_SET_METHOD(exports, "OBS_content_setDrawGuideLines", display::OBS_content_setDrawGuideLines);
+
+	NODE_SET_METHOD(exports, "OBS_service_resetAudioContext", service::OBS_service_resetAudioContext);
+	NODE_SET_METHOD(exports, "OBS_service_resetVideoContext", service::OBS_service_resetVideoContext);
+	NODE_SET_METHOD(exports, "OBS_service_startStreaming", service::OBS_service_startStreaming);
+	NODE_SET_METHOD(exports, "OBS_service_startRecording", service::OBS_service_startRecording);
+	NODE_SET_METHOD(exports, "OBS_service_startReplayBuffer", service::OBS_service_startReplayBuffer);
+	NODE_SET_METHOD(exports, "OBS_service_stopRecording", service::OBS_service_stopRecording);
+	NODE_SET_METHOD(exports, "OBS_service_stopStreaming", service::OBS_service_stopStreaming);
+	NODE_SET_METHOD(exports, "OBS_service_stopReplayBuffer", service::OBS_service_stopReplayBuffer);
+	NODE_SET_METHOD(exports, "OBS_service_connectOutputSignals", service::OBS_service_connectOutputSignals);
+	NODE_SET_METHOD(exports, "OBS_service_removeCallback", service::OBS_service_removeCallback);
+	NODE_SET_METHOD(exports, "OBS_service_processReplayBufferHotkey", service::OBS_service_processReplayBufferHotkey);
+	NODE_SET_METHOD(exports, "OBS_service_getLastReplay", service::OBS_service_getLastReplay);
+
+	NODE_SET_METHOD(exports, "RegisterSourceCallback", RegisterSourceCallback);
+	NODE_SET_METHOD(exports, "RemoveSourceCallback", RemoveSourceCallback);
+
+	NODE_SET_METHOD(exports, "OBS_settings_getSettings", settings::OBS_settings_getSettings);
+	NODE_SET_METHOD(exports, "OBS_settings_saveSettings", settings::OBS_settings_saveSettings);
+	NODE_SET_METHOD(exports, "OBS_settings_getListCategories", settings::OBS_settings_getListCategories);
 };
 
 NODE_MODULE(obs_studio_node, main_node); // Upgrade to NAPI_MODULE once N-API hits stable/beta.
