@@ -400,9 +400,9 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	
 	int  known_crash_id = 0;
 	
-	if (is_allocator_failed()) {
-		known_crash_id = 0x1;
-	}
+//	if (is_allocator_failed()) {
+//		known_crash_id = 0x1;
+//	}
 
 	if (known_crash_id != 0) {
 		OBS_API::InformCrashHandler(known_crash_id);
