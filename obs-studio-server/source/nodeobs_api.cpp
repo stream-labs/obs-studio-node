@@ -150,10 +150,7 @@ static void SetPrivilegeForGPUPriority(void)
 		tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
 
 		if (!AdjustTokenPrivileges(token, false, &tp, sizeof(tp), NULL, NULL)) {
-			blog(
-			    LOG_INFO,
-			    "Could not set privilege to "
-			    "increase GPU priority");
+			blog(LOG_INFO, "Could not set privilege to increase GPU priority");
 		}
 	}
 
