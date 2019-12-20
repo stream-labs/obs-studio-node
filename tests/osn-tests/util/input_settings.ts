@@ -115,6 +115,9 @@ export {windowCapture};
 let gameCapture: ISettings = {
     allow_transparency: false,
     anti_cheat_hook: true,
+    auto_capture_list_path: "",
+    auto_fit_to_output: true,
+    auto_placeholder_image: "",
     capture_cursor: true,
     capture_mode: 'any_fullscreen',
     capture_overlays: false,
