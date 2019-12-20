@@ -14,6 +14,11 @@ if(WIN32)
 		${PROJECT_BINARY_DIR}/version.rc
 		@ONLY
 	)
+	set(LIBOBS_PLATFORM "windows64")
+endif()
+
+if(APPLE)
+	set(LIBOBS_PLATFORM "osx")
 endif()
 
 ############################
@@ -125,7 +130,7 @@ set(
 string(
 	CONCAT OSN_DEFAULT_LIBOBS_URL
 	"https://obsstudios3.streamlabs.com/"
-	"libobs-${LIBOBS_BUILD_TYPE}-${LIBOBS_VERSION}.7z"
+	"libobs-${LIBOBS_PLATFORM}-${LIBOBS_BUILD_TYPE}-${LIBOBS_VERSION}.7z"
 )
 
 set(
