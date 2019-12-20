@@ -247,7 +247,7 @@ void osn::SceneItem::IsStreamVisible(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_ERROR_RETURN("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -263,7 +263,7 @@ void osn::SceneItem::SetStreamVisible(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_ERROR_RETURN("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	obs_sceneitem_set_stream_visible(item, !!args[1].value_union.i32);
@@ -281,7 +281,7 @@ void osn::SceneItem::IsRecordingVisible(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_ERROR_RETURN("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -297,7 +297,7 @@ void osn::SceneItem::SetRecordingVisible(
 {
 	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!item) {
-		PRETTY_ERROR_RETURN("invalid reference");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
 	obs_sceneitem_set_recording_visible(item, !!args[1].value_union.i32);
