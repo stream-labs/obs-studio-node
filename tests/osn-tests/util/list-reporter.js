@@ -13,7 +13,7 @@ function ListReporter(runner) {
 
     runner.on('pass', function(test) {
         passes++;
-        console.log('%s: %s [PASS] %dms', test.parent.title, test.title, test.duration);
+        console.log('%s: [TEST CASE] %s [PASS] %dms', test.parent.title, test.title, test.duration);
     });
 
     runner.on('fail', function(test, err) {

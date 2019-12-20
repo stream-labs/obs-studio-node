@@ -10,6 +10,7 @@ const testName = 'osn-sceneitem';
 
 describe(testName, () => {
     let obs: OBSHandler;
+    let hasTestFailed: boolean = false;
     let sceneName: string = 'test_scene';
     let sourceName: string = 'test_source';
 
@@ -21,8 +22,14 @@ describe(testName, () => {
     });
 
     // Shutdown OBS process
-    after(function() {
+    after(async function() {
         obs.shutdown();
+
+        if (hasTestFailed === true) {
+            logInfo(testName, 'One or more test cases failed. Uploading cache');
+            await obs.uploadTestCache();
+        }
+
         obs = null;
         deleteConfigFiles();
         logInfo(testName, 'Finished ' + testName + ' tests');
@@ -51,6 +58,10 @@ describe(testName, () => {
     afterEach(function() {
         const scene = osn.SceneFactory.fromName(sceneName);
         scene.release();
+
+        if (this.currentTest.state == 'failed') {
+            hasTestFailed = true;
+        }
     });
 
     context('# GetSource', () => {

@@ -1,6 +1,7 @@
 import * as osn from '../osn';
 import { logInfo, logWarning } from '../util/logger';
 import { Services } from '../util/services';
+import { CacheUploader } from '../util/cache-uploader'
 import { EOBSOutputType, EOBSOutputSignal, EOBSSettingsCategories} from '../util/obs_enums'
 import { Subject } from 'rxjs';
 import { first } from 'rxjs/operators';
@@ -65,6 +66,7 @@ export class OBSHandler {
 
     // Other variables/objects
     private services: Services;
+    private cacheUploader: CacheUploader;
     private hasUserFromPool: boolean = false;
     private osnTestName: string;
     private signals = new Subject<IOBSOutputSignalInfo>();
@@ -75,6 +77,7 @@ export class OBSHandler {
 
     constructor(testName: string) {
         this.osnTestName = testName;
+        this.cacheUploader = new CacheUploader(testName, this.obsPath);
         this.startup();
         this.inputTypes = osn.InputFactory.types();
         this.filterTypes = osn.FilterFactory.types();
@@ -147,6 +150,14 @@ export class OBSHandler {
             this.hasUserFromPool = false;
         }
     }
+
+    async uploadTestCache() {
+        try {
+            await this.cacheUploader.uploadCache();
+        } catch(e) {
+            logWarning(this.osnTestName, e);
+        }
+    };
 
     setSetting(category: string, parameter: string, value: any) {
         let oldValue: any;
