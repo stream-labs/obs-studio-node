@@ -1,24 +1,43 @@
 import 'mocha'
 import { expect } from 'chai'
 import * as osn from '../osn';
+import { logInfo, logEmptyLine } from '../util/logger';
 import { OBSHandler, IPerformanceState, TOBSHotkey } from '../util/obs_handler';
 import { showHideInputHotkeys, slideshowHotkeys, ffmpeg_sourceHotkeys,
     game_captureHotkeys, dshow_wasapitHotkeys, deleteConfigFiles } from '../util/general';
 
-describe('nodeobs_api', function() {
+const testName = 'nodeobs_api';
+
+describe(testName, function() {
     let obs: OBSHandler;
+    let hasTestFailed: boolean = false;
     
     // Initialize OBS process
     before(function() {
+        logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
-        obs = new OBSHandler();
+        obs = new OBSHandler(testName);
     });
 
     // Shutdown OBS process
-    after(function() {
+    after(async function() {
         obs.shutdown();
+
+        if (hasTestFailed === true) {
+            logInfo(testName, 'One or more test cases failed. Uploading cache');
+            await obs.uploadTestCache();
+        }
+
         obs = null;
         deleteConfigFiles();
+        logInfo(testName, 'Finished ' + testName + ' tests');
+        logEmptyLine();
+    });
+
+    afterEach(function() {
+        if (this.currentTest.state == 'failed') {
+            hasTestFailed = true;
+        }
     });
 
     context('# OBS_API_getPerformanceStatistics', function() {

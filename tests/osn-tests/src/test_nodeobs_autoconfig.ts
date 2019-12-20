@@ -1,18 +1,23 @@
 import 'mocha';
 import { expect } from 'chai';
 import * as osn from '../osn';
+import { logInfo, logEmptyLine } from '../util/logger';
 import { OBSHandler, IConfigProgress } from '../util/obs_handler';
 import { deleteConfigFiles } from '../util/general';
 
-describe('nodeobs_autoconfig', function() {
+const testName = 'nodeobs_autoconfig';
+
+describe(testName, function() {
     let obs: OBSHandler;
+    let hasTestFailed: boolean = false;
 
     // Initialize OBS process
     before(async function() {
+        logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
-        obs = new OBSHandler();
+        obs = new OBSHandler(testName);
 
-        obs.instantiateUserPool();
+        obs.instantiateUserPool(testName);
 
         // Reserving user from pool
         await obs.reserveUser();
@@ -25,9 +30,22 @@ describe('nodeobs_autoconfig', function() {
         
         // Closing OBS process
         obs.shutdown();
-        obs = null;
 
+        if (hasTestFailed === true) {
+            logInfo(testName, 'One or more test cases failed. Uploading cache');
+            await obs.uploadTestCache();
+        }
+
+        obs = null;
         deleteConfigFiles();
+        logInfo(testName, 'Finished ' + testName + ' tests');
+        logEmptyLine();
+    });
+
+    afterEach(function() {
+        if (this.currentTest.state == 'failed') {
+            hasTestFailed = true;
+        }
     });
 
     context('# Full auto config run', function() {

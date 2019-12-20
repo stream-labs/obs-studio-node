@@ -132,6 +132,32 @@ void OBS_API::SetWorkingDirectory(
 	AUTO_DEBUG;
 }
 
+#ifdef _WIN32
+static void SetPrivilegeForGPUPriority(void)
+{
+	const DWORD      flags = TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY;
+	TOKEN_PRIVILEGES tp;
+	HANDLE           token;
+	LUID             val;
+
+	if (!OpenProcessToken(GetCurrentProcess(), flags, &token)) {
+		return;
+	}
+
+	if (!!LookupPrivilegeValue(NULL, SE_INC_BASE_PRIORITY_NAME, &val)) {
+		tp.PrivilegeCount           = 1;
+		tp.Privileges[0].Luid       = val;
+		tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+
+		if (!AdjustTokenPrivileges(token, false, &tp, sizeof(tp), NULL, NULL)) {
+			blog(LOG_INFO, "Could not set privilege to increase GPU priority");
+		}
+	}
+
+	CloseHandle(token);
+}
+#endif
+
 static std::string GenerateTimeDateFilename(const char* extension)
 {
 	time_t     now       = time(0);
@@ -628,6 +654,10 @@ void OBS_API::OBS_API_initAPI(
 	ipc::register_log_callback([](void* data, const char* fmt, va_list args) { 
 		blogva(LOG_ERROR, fmt, args);
 	}, nullptr);
+#endif
+
+#ifdef _WIN32
+	SetPrivilegeForGPUPriority();
 #endif
 
 	/* INJECT osn::Source::Manager */

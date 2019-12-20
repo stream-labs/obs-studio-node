@@ -1,26 +1,39 @@
 import 'mocha';
 import { expect } from 'chai';
 import * as osn from '../osn';
+import { logInfo, logEmptyLine } from '../util/logger';
 import { OBSHandler, IVec2, ICrop } from '../util/obs_handler';
 import { EOBSInputTypes } from '../util/obs_enums'
 import { deleteConfigFiles } from '../util/general';
 
-describe('osn-sceneitem', () => {
+const testName = 'osn-sceneitem';
+
+describe(testName, () => {
     let obs: OBSHandler;
+    let hasTestFailed: boolean = false;
     let sceneName: string = 'test_scene';
     let sourceName: string = 'test_source';
 
     // Initialize OBS process
     before(function() {
+        logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
-        obs = new OBSHandler();
+        obs = new OBSHandler(testName);
     });
 
     // Shutdown OBS process
-    after(function() {
+    after(async function() {
         obs.shutdown();
+
+        if (hasTestFailed === true) {
+            logInfo(testName, 'One or more test cases failed. Uploading cache');
+            await obs.uploadTestCache();
+        }
+
         obs = null;
         deleteConfigFiles();
+        logInfo(testName, 'Finished ' + testName + ' tests');
+        logEmptyLine();
     });
 
     beforeEach(function() {
@@ -45,6 +58,10 @@ describe('osn-sceneitem', () => {
     afterEach(function() {
         const scene = osn.SceneFactory.fromName(sceneName);
         scene.release();
+
+        if (this.currentTest.state == 'failed') {
+            hasTestFailed = true;
+        }
     });
 
     context('# GetSource', () => {

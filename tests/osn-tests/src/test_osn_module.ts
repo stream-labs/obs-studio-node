@@ -3,23 +3,42 @@ import { expect } from 'chai';
 import * as osn from '../osn';
 import * as path from 'path';
 import * as fs from 'fs';
+import { logInfo, logEmptyLine } from '../util/logger';
 import { OBSHandler } from '../util/obs_handler';
 import { deleteConfigFiles } from '../util/general';
 
-describe('osn-module', () => {
+const testName = 'osn-module';
+
+describe(testName, () => {
     let obs: OBSHandler;
+    let hasTestFailed: boolean = false;
 
     // Initialize OBS process
     before(function() {
+        logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
-        obs = new OBSHandler();
+        obs = new OBSHandler(testName);
     });
 
     // Shutdown OBS process
-    after(function() {
+    after(async function() {
         obs.shutdown();
+
+        if (hasTestFailed === true) {
+            logInfo(testName, 'One or more test cases failed. Uploading cache');
+            await obs.uploadTestCache();
+        }
+
         obs = null;
         deleteConfigFiles();
+        logInfo(testName, 'Finished ' + testName + ' tests');
+        logEmptyLine();
+    });
+
+    afterEach(function() {
+        if (this.currentTest.state == 'failed') {
+            hasTestFailed = true;
+        }
     });
 
     context('# Open, Initialize, Modules and Get', () => {
