@@ -6,6 +6,7 @@ function ListReporter(runner) {
     var passes = 0;
     var failures = 0;
     var failedTestCases = [];
+    var testLine = "";
 
     runner.on('start', function() {
         console.log('');
@@ -22,7 +23,9 @@ function ListReporter(runner) {
         // Getting test line with the expect check that failed
         var regex = /(?<=src\\)(.*?)(?=\n)/;
         var str = err.stack.match(regex);
-        var testLine = str[0].substr(0, str[0].lastIndexOf(":"));
+        if (str != null) {
+            testLine = str[0].substr(0, str[0].lastIndexOf(":"));
+        }
 
         // Formatting failure message
         var testCaseFailMsg = test.parent.title + ': [TEST CASE] ' + test.title + ' | [FAIL] ' + testLine;
