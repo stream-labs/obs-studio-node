@@ -1,10 +1,12 @@
-import 'mocha'
-import { expect } from 'chai'
+import 'mocha';
+import { expect } from 'chai';
 import * as osn from '../osn';
 import { logInfo, logEmptyLine } from '../util/logger';
-import { IInput, ISource } from '../osn';
+import { ISource } from '../osn';
 import { OBSHandler } from '../util/obs_handler';
 import { deleteConfigFiles } from '../util/general';
+import { ETestErrorMsg, GetErrorMessage } from '../util/error_messages';
+import { EOBSInputTypes } from '../util/obs_enums';
 
 const testName = 'osn-global';
 
@@ -40,88 +42,81 @@ describe(testName, () => {
         }
     });
 
-    context('# SetOutputSource and GetOutputSource', () => {
-        it('Set source to output channel and get it', () => {
-            // Creating input source
-            const input = osn.InputFactory.create('image_source', 'test_osn_global_source');
+    it('Set source to output channel and get it', () => {
+        // Creating input source
+        const input = osn.InputFactory.create(EOBSInputTypes.ImageSource, 'test_osn_global_source');
 
-            // Checking if input source was created correctly
-            expect(input).to.not.equal(undefined);
-            expect(input.id).to.equal('image_source');
-            expect(input.name).to.equal('test_osn_global_source');
+        // Checking if input source was created correctly
+        expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, EOBSInputTypes.ImageSource));
+        expect(input.id).to.equal(EOBSInputTypes.ImageSource, GetErrorMessage(ETestErrorMsg.InputId, EOBSInputTypes.ImageSource));
+        expect(input.name).to.equal('test_osn_global_source', GetErrorMessage(ETestErrorMsg.InputName, EOBSInputTypes.ImageSource));
 
-            // Setting input source to output channel
-            osn.Global.setOutputSource(1, input);
+        // Setting input source to output channel
+        osn.Global.setOutputSource(1, input);
 
-            // Getting input source from output channel
-            const returnSource = osn.Global.getOutputSource(1);
+        // Getting input source from output channel
+        const channel = 1;
+        const returnSource = osn.Global.getOutputSource(channel);
 
-            // Checking if input source returned previously is correct
-            expect(returnSource).to.not.equal(undefined);
-            expect(returnSource.id).to.equal('image_source');
-            expect(returnSource.name).to.equal('test_osn_global_source');
-            input.release();
-        });
-        
-        it('FAIL TEST: Get source from empty output channel', () => {
-            let input: ISource;
+        // Checking if input source returned previously is correct
+        expect(returnSource).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.NoInputInChannel, channel.toString()));
+        expect(returnSource.id).to.equal(EOBSInputTypes.ImageSource, GetErrorMessage(ETestErrorMsg.InputFromChannelId));
+        expect(returnSource.name).to.equal('test_osn_global_source', GetErrorMessage(ETestErrorMsg.InputFromChannelName));
+        input.release();
+    });
 
-            // Trying to get source from empty channel
-            input = osn.Global.getOutputSource(5);
-            // Checking if source is undefined	            
-            expect(input).to.equal(undefined);
+    it('Get flags (capabilities) of a source type', () => {
+        let flags: number = undefined;
+
+        // For each input type available get their flags and check if they are not undefined
+        obs.inputTypes.forEach(inputType => {
+            flags = osn.Global.getOutputFlagsFromId(inputType);
+            expect(flags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.GetOutputFlags, inputType));
+            flags = undefined;
         });
     });
 
-    context('# GetOutputFlagsFromId', () => {
-        it('Get flags (capabilities) of a source type', () => {
-            let flags: number = undefined;
+    it('Get lagged frames value', () => {
+        let laggedFrames: number = undefined;
 
-            // For each input type available get their flags and check if they are not undefined
-            obs.inputTypes.forEach(inputType => {
-                flags = osn.Global.getOutputFlagsFromId(inputType);
-                expect(flags).to.not.equal(undefined);
-                flags = undefined;
-            });
-        });
+        // Getting lagged frames value
+        laggedFrames = osn.Global.laggedFrames;
+
+        // Checking if lagged frames was returned correctly
+        expect(laggedFrames).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.LaggedFrames));
     });
 
-    context('# LaggedFrames', () => {
-        it('Get lagged frames value', () => {
-            let laggedFrames: number = undefined;
+    it('Get total frames value', () => {
+        let totalFrames: number = undefined;
 
-            // Getting lagged frames value
-            laggedFrames = osn.Global.laggedFrames;
+        // Getting total frames value
+        totalFrames = osn.Global.totalFrames;
 
-            // Checking if lagged frames was returned correctly
-            expect(laggedFrames).to.not.equal(undefined);
-        });
+        // Checking if total frames was returned correctly
+        expect(totalFrames).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.TotalFrames));
     });
 
-    context('# TotalFrames', () => {
-        it('Get total frames value', () => {
-            let totalFrames: number = undefined;
+    it('Set locale and get it', () => {
+        let locale: string;
 
-            // Getting total frames value
-            totalFrames = osn.Global.totalFrames;
+        // Setting locale
+        osn.Global.locale = 'pt-BR';
 
-            // Checking if total frames was returned correctly
-            expect(totalFrames).to.not.equal(undefined);
-        });
+        // Getting locale
+        locale = osn.Global.locale;
+
+        // Checking if locale was returned correctly
+        expect(locale).to.equal('pt-BR', GetErrorMessage(ETestErrorMsg.Locale));
     });
 
-    context('# SetLocale and GetLocale', () => {
-        it('Set locale and get it', () => {
-            let locale: string;
+    it('Fail test - Get source from empty output channel', () => {
+        let input: ISource;
+        let channel: number = 5;
 
-            // Setting locale
-            osn.Global.locale = 'pt-BR';
+        // Trying to get source from empty channel
+        input = osn.Global.getOutputSource(channel);
 
-            // Getting locale
-            locale = osn.Global.locale;
-
-            // Checking if locale was returned correctly
-            expect(locale).to.equal('pt-BR');
-        });
+        // Checking if source is undefined	            
+        expect(input).to.equal(undefined, GetErrorMessage(ETestErrorMsg.ChannelNotEmpty, channel.toString()));
     });
 });
