@@ -34,6 +34,7 @@
 #include <map>
 #include "nodeobs_api.h"
 #include "nodeobs_display.h"
+#include "MyCPPClass.h"
 
 struct SourceInfo
 {
@@ -41,10 +42,12 @@ struct SourceInfo
 	uint32_t volmeter;
 };
 
-extern std::map<std::string, SourceInfo*> sourceInfo;
-extern std::vector<std::string>           tabScenes;
-extern std::string                        currentTransition;
-extern std::map<std::string, obs_source_t*>    transitions;
+// extern std::map<std::string, SourceInfo*> sourceInfo;
+// extern std::vector<std::string>           tabScenes;
+// extern std::string                        currentTransition;
+// extern std::map<std::string, obs_source_t*>    transitions;
+
+extern MyCPPClass *g_obj;
 
 class OBS_content
 {
@@ -119,4 +122,11 @@ class OBS_content
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
+	static void OBS_content_setFocused(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+    
+    static void setObjectInterface(MyCPPClass *obj);
 };

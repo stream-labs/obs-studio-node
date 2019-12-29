@@ -82,6 +82,13 @@ set_property(TARGET crashpad_database_util PROPERTY IMPORTED_LOCATION
 set_property(TARGET crashpad_http_upload PROPERTY IMPORTED_LOCATION
 	"${source_dir}/bin/crashpad_http_upload${CMAKE_EXECUTABLE_SUFFIX}")
 
+
+find_library(COREFOUNDATION CoreFoundation)
+find_library(COCOA Cocoa)
+
+include_directories(${COREFOUNDATION}
+		    ${COCOA})
+
 target_include_directories(
 	crashpad_base
 	INTERFACE "${source_dir}/include/third_party/mini_chromium/mini_chromium"
@@ -165,8 +172,19 @@ else ()
 	"${lib-streamlabs-ipc_SOURCE_DIR}/include"
 	${LIBOBS_INCLUDE_DIRS}
 	"${nlohmannjson_SOURCE_DIR}/single_include"
+	"/usr/local/libxcb/1_13/include"
+	"/usr/X11/include/"
 	)
 endif ()
+
+add_library( xcb UNKNOWN IMPORTED)
+set_property(TARGET xcb PROPERTY IMPORTED_LOCATION "/usr/local/libxcb/1_13/lib/libxcb.dylib")
+add_library( x11 UNKNOWN IMPORTED)
+set_property(TARGET x11 PROPERTY IMPORTED_LOCATION "/usr/X11/lib/libX11.dylib")
+add_library( x11-xcb UNKNOWN IMPORTED)
+set_property(TARGET x11-xcb PROPERTY IMPORTED_LOCATION "/usr/X11/lib/libX11-xcb.dylib")
+add_library( gl UNKNOWN IMPORTED)
+set_property(TARGET gl PROPERTY IMPORTED_LOCATION "/usr/X11/lib/libGL.dylib")
 
 set(PROJECT_DATA "${PROJECT_SOURCE_DIR}/resources")
 
@@ -263,6 +281,14 @@ add_executable(
 	###### memory-manager ######
 	"${PROJECT_SOURCE_DIR}/source/memory-manager.cpp"
 	"${PROJECT_SOURCE_DIR}/source/memory-manager.h"
+
+	"${PROJECT_SOURCE_DIR}/source/mac-display.mm"
+	"${PROJECT_SOURCE_DIR}/source/mac-display.h"
+
+	"${PROJECT_SOURCE_DIR}/source/MyCPPClass.cpp"
+	"${PROJECT_SOURCE_DIR}/source/MyCPPClass.h"
+	
+	"${PROJECT_SOURCE_DIR}/source/MyObject-C-Interface.h"
 )
 
 if(WIN32)
@@ -272,7 +298,7 @@ if(WIN32)
 	target_sources(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}/version.rc")
 endif()
 
-target_link_libraries(${PROJECT_NAME} ${PROJECT_LIBRARIES} optimized crashpad)
+target_link_libraries(${PROJECT_NAME} ${PROJECT_LIBRARIES} optimized crashpad xcb x11 x11-xcb gl ${COREFOUNDATION} ${COCOA})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE_PATHS})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "obs${BITS}")
 

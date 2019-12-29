@@ -16,32 +16,27 @@
 
 ******************************************************************************/
 
-#include "util-memory.h"
-#include <stdlib.h>
+#ifndef __MYOBJECT_C_INTERFACE_H__
+#define __MYOBJECT_C_INTERFACE_H__
 
-void* util::malloc_aligned(size_t align, size_t size)
-{
-#if defined(_MSC_VER)
-#ifdef DEBUG
-	return _aligned_malloc_dbg(size, align);
-#else
-	return _aligned_malloc(size, align);
-#endif
-#else
-//    return aligned_alloc(align, size);
-    return malloc(size);
-#endif
-}
+typedef unsigned long long uint64_t;
 
-void util::free_aligned(void* mem)
+class MyClassImpl
 {
-#if defined(_MSC_VER)
-#ifdef DEBUG
-	_aligned_free_dbg(mem);
-#else
-	_aligned_free(mem);
+public:
+    MyClassImpl ( void );
+    ~MyClassImpl( void );
+
+    void init( void );
+    void createDisplay(void);
+    void destroyDisplay(void);
+    void startDrawing(void *displayObj);
+    void resizeDisplay(void *displayObj, int width, int height);
+    void moveDisplay(int x, int y);
+    void setFocused(bool focused);
+
+private:
+    void * self;
+};
+
 #endif
-#else
-	free(mem);
-#endif
-}

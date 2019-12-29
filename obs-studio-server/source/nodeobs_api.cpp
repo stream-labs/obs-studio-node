@@ -1534,11 +1534,11 @@ static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT l
 	return true;
 }
 #endif
-std::vector<Screen> OBS_API::availableResolutions(void)
-{
-	std::vector<Screen> resolutions;
-#ifdef WIN32
-	EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, reinterpret_cast<LPARAM>(&resolutions));
-#endif
-	return resolutions;
-}
+// std::vector<Screen> OBS_API::availableResolutions(void)
+// {
+// 	std::vector<Screen> resolutions;
+// #ifdef WIN32
+// 	EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, reinterpret_cast<LPARAM>(&resolutions));
+// #endif
+// 	return resolutions;
+// }

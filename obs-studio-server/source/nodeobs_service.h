@@ -44,7 +44,7 @@
 #include <unistd.h>
 #endif
 
-#define SIMPLE_ENCODER_X264 "x264"
+#define SIMPLE_ENCODER_X264 "obs_x264"
 #define SIMPLE_ENCODER_X264_LOWCPU "x264_lowcpu"
 #define SIMPLE_ENCODER_QSV "qsv"
 #define SIMPLE_ENCODER_NVENC "nvenc"

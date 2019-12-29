@@ -34,11 +34,11 @@
 
 extern std::string g_moduleDirectory;
 
-struct Screen
-{
-	int width;
-	int height;
-};
+//struct Screen
+//{
+//	int width;
+//	int height;
+//};
 
 namespace util
 {
@@ -147,7 +147,7 @@ class OBS_API
 	static std::string         getOBS_currentSceneCollection(void);
 	static void                setOBS_currentSceneCollection(std::string sceneCollectionName);
 	static bool                isOBS_configFilesUsed(void);
-	static std::vector<Screen> availableResolutions(void);
+//	static std::vector<Screen> availableResolutions(void);
 	static std::string         getModuleDirectory(void);
 
 	static std::string getGlobalConfigPath(void);

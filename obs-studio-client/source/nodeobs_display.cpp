@@ -294,6 +294,21 @@ void display::OBS_content_setDrawGuideLines(const v8::FunctionCallbackInfo<v8::V
 	conn->call("Display", "OBS_content_setDrawGuideLines", {ipc::value(key), ipc::value(drawGuideLines)});
 }
 
+void display::OBS_content_setFocused(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	std::string key;
+	bool        focused;
+
+	ASSERT_GET_VALUE(args[0], key);
+	ASSERT_GET_VALUE(args[1], focused);
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	conn->call("Display", "OBS_content_setFocused", {ipc::value(key), ipc::value(focused)});
+}
+
 INITIALIZER(nodeobs_display)
 {
 	initializerFunctions->push([](v8::Local<v8::Object> exports) {
@@ -309,5 +324,6 @@ INITIALIZER(nodeobs_display)
 		NODE_SET_METHOD(exports, "OBS_content_setPaddingColor", display::OBS_content_setPaddingColor);
 		NODE_SET_METHOD(exports, "OBS_content_setShouldDrawUI", display::OBS_content_setShouldDrawUI);
 		NODE_SET_METHOD(exports, "OBS_content_setDrawGuideLines", display::OBS_content_setDrawGuideLines);
+		NODE_SET_METHOD(exports, "OBS_content_setFocused", display::OBS_content_setFocused);
 	});
 }

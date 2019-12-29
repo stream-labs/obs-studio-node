@@ -97,6 +97,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Types(Nan::NAN_METHOD_ARGS_TYPE info)
 	std::vector<std::string> types;
 
 	for (size_t i = 1; i < response.size(); i++) {
+		std::cout << "Type: " << response[i].value_str.c_str() << std::endl;
 		types.push_back(response[i].value_str);
 	}
 

@@ -22,8 +22,9 @@
 #endif
 #include "error.hpp"
 #include "shared.hpp"
+#include "MyCPPClass.h"
 
-std::mutex                             mtx;
+std::mutex                             sources_sizes_mtx;
 std::map<std::string, SourceSizeInfo*> sources;
 
 void CallbackManager::Register(ipc::server& srv)
@@ -31,6 +32,7 @@ void CallbackManager::Register(ipc::server& srv)
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("CallbackManager");
 
 	cls->register_function(std::make_shared<ipc::function>("QuerySourceSize", std::vector<ipc::type>{}, QuerySourceSize));
+	cls->register_function(std::make_shared<ipc::function>("QueryWindowEvents", std::vector<ipc::type>{}, QuerySourceSize));
 
 	srv.register_collection(cls);
 }
@@ -41,7 +43,7 @@ void CallbackManager::QuerySourceSize(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	std::unique_lock<std::mutex> ulock(mtx);
+	std::unique_lock<std::mutex> ulock(sources_sizes_mtx);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	if (sources.empty()) {
@@ -78,7 +80,7 @@ void CallbackManager::QuerySourceSize(
 
 void CallbackManager::addSource(obs_source_t* source)
 {
-	std::unique_lock<std::mutex> ulock(mtx);
+	std::unique_lock<std::mutex> ulock(sources_sizes_mtx);
 
 	if (!source || obs_source_get_type(source) == OBS_SOURCE_TYPE_FILTER)
 		return;
@@ -92,7 +94,7 @@ void CallbackManager::addSource(obs_source_t* source)
 }
 void CallbackManager::removeSource(obs_source_t* source)
 {
-	std::unique_lock<std::mutex> ulock(mtx);
+	std::unique_lock<std::mutex> ulock(sources_sizes_mtx);
 	
 	if (!source)
 		return;
@@ -101,4 +103,35 @@ void CallbackManager::removeSource(obs_source_t* source)
 	
 	if (name)
 		sources.erase(name);
+}
+
+void CallbackManager::QueryWindowEvents(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
+{
+	std::unique_lock<std::mutex> ulock(mouseEvents_mtx);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	if (mouseEvents.empty()) {
+		return;
+	}
+
+	uint32_t size = 0;
+
+	while (mouseEvents.size() > 0) {
+		auto mouse_event = mouseEvents.front();
+		rval.push_back(ipc::value(mouse_event.first));
+		rval.push_back(ipc::value(mouse_event.second.x));
+		rval.push_back(ipc::value(mouse_event.second.y));
+		rval.push_back(ipc::value(mouse_event.second.altKey));
+		rval.push_back(ipc::value(mouse_event.second.ctrlKey));
+		rval.push_back(ipc::value(mouse_event.second.shiftKey));
+		rval.push_back(ipc::value(mouse_event.second.button));
+		rval.push_back(ipc::value(mouse_event.second.buttons));
+		mouseEvents.pop();
+
+		size++;
+	}
+
+	rval.insert(rval.begin() + 1, ipc::value(size));
+
+	AUTO_DEBUG;
 }

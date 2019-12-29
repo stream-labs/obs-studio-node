@@ -26,14 +26,18 @@
 
 #include "error.hpp"
 #include "shared.hpp"
+#include "MyCPPClass.h"
 
 #include <thread>
 
 std::map<std::string, OBS::Display*> displays;
 std::string                          sourceSelected;
 bool                                 firstDisplayCreation = true;
+MyCPPClass *g_obj;
 
 std::thread* windowMessage = NULL;
+ipc::server* g_srv;
+bool displayCreated = false;
 
 /* A lot of the sceneitem functionality is a lazy copy-pasta from the Qt UI. */
 // https://github.com/jp9000/obs-studio/blob/master/UI/window-basic-main.cpp#L4888
@@ -194,7 +198,13 @@ void OBS_content::Register(ipc::server& srv)
 	    std::vector<ipc::type>{ipc::type::String, ipc::type::Int32},
 	    OBS_content_setDrawGuideLines));
 
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_content_setFocused",
+	    std::vector<ipc::type>{ipc::type::String, ipc::type::Int32},
+	    OBS_content_setFocused));
+
 	srv.register_collection(cls);
+	g_srv = &srv;
 }
 
 void popupAeroDisabledWindow(void)
@@ -218,6 +228,7 @@ void OBS_content::OBS_content_createDisplay(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	blog(LOG_INFO, "nodeobs create display");
 	uint64_t windowHandle = args[0].value_union.ui64;
 	auto     found        = displays.find(args[1].value_str);
 
@@ -243,8 +254,8 @@ void OBS_content::OBS_content_createDisplay(
 		break;
 	}
 
-	displays.insert_or_assign(args[1].value_str, new OBS::Display(windowHandle, mode));
 #ifdef WIN32
+	displays.insert_or_assign(args[1].value_str, new OBS::Display(windowHandle, mode));
 	if (!IsWindows8OrGreater()) {
 		BOOL enabled = FALSE;
 		DwmIsCompositionEnabled(&enabled);
@@ -252,10 +263,24 @@ void OBS_content::OBS_content_createDisplay(
 			windowMessage = new std::thread(popupAeroDisabledWindow);
 		}
 	}
+#else
+	// g_srv->display_lock.lock();
+	// g_srv->display_actions.push(display);
+	// g_srv->display_lock.unlock();
+
+	OBS::Display *display = new OBS::Display(windowHandle, mode);
+	displays.insert_or_assign(args[1].value_str, display);
+	g_srv->displayHandler->startDrawing(display);
+
 #endif
 	firstDisplayCreation = false;
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
+}
+
+void OBS_content::setObjectInterface(MyCPPClass *myObj)
+{
+    g_obj = myObj;
 }
 
 void OBS_content::OBS_content_destroyDisplay(
@@ -276,8 +301,14 @@ void OBS_content::OBS_content_destroyDisplay(
 	if (windowMessage != NULL && windowMessage->joinable())
 		windowMessage->join();
 
+	blog(LOG_INFO, "(DestroyDisplay) dp: %d", found->second);
+
 	delete found->second;
 	displays.erase(found);
+
+	g_srv->displayHandler->destroyDisplay();
+	// g_srv->displayHandler->resizeDisplay(found->second, 0, 0);
+
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -299,8 +330,8 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(
 		rval.push_back(ipc::value("Duplicate key provided to createDisplay!"));
 		return;
 	}
-	displays.insert_or_assign(
-	    args[2].value_str, new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str));
+	// displays.insert_or_assign(
+	//     args[2].value_str, new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str));
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -320,10 +351,18 @@ void OBS_content::OBS_content_resizeDisplay(
 
 	OBS::Display* display = value->second;
 
-	int width  = args[1].value_union.ui32;
-	int height = args[2].value_union.ui32;
+	display->m_gsInitData.cx = args[1].value_union.ui32;
+	display->m_gsInitData.cy = args[2].value_union.ui32;
 
-	display->SetSize(width, height);
+	// Resize Display
+    obs_display_resize(display->m_display, display->m_gsInitData.cx, display->m_gsInitData.cy);
+
+    // Store new size.
+    display->UpdatePreviewArea();
+
+	g_srv->displayHandler->resizeDisplay(display, display->m_gsInitData.cx, display->m_gsInitData.cy);
+
+	// display->SetSize(width, height);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -346,7 +385,12 @@ void OBS_content::OBS_content_moveDisplay(
 	int x = args[1].value_union.ui32;
 	int y = args[2].value_union.ui32;
 
-	display->SetPosition(x, y);
+	display->m_position.first  = x;
+	display->m_position.second = y;
+
+	g_srv->displayHandler->moveDisplay(x, y);
+
+	// display->SetPosition(x, y);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -563,6 +607,24 @@ void OBS_content::OBS_content_setDrawGuideLines(
 		return;
 	}
 	it->second->SetDrawGuideLines((bool)args[1].value_union.i32);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void OBS_content::OBS_content_setFocused(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	// Find Display
+	auto it = displays.find(args[0].value_str);
+	if (it == displays.end()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Display key is not valid!"));
+		return;
+	}
+	g_srv->displayHandler->setFocused((bool)args[1].value_union.i32);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }

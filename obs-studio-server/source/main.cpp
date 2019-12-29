@@ -47,6 +47,9 @@
 
 #include "util-crashmanager.h"
 
+#include "shared.hpp"
+#include <unistd.h>
+
 #if defined(_WIN32)
 #include "Shlobj.h"
 
@@ -221,8 +224,13 @@ int main(int argc, char* argv[])
 	// Reset Connect/Disconnect time.
 	sd.last_disconnect = sd.last_connect = std::chrono::high_resolution_clock::now();
 
+	// Create display window
+    myServer.displayHandler = new MyCPPClass();
+    myServer.displayHandler->init();
+	myServer.displayHandler->createDisplay();
+	
 	bool waitBeforeClosing = false;
-
+	
 	while (!doShutdown) {
 		if (sd.count_connected == 0) {
 			auto tp    = std::chrono::high_resolution_clock::now();

@@ -16,32 +16,29 @@
 
 ******************************************************************************/
 
-#include "util-memory.h"
-#include <stdlib.h>
+#import "Foundation/Foundation.h"
+#import <Cocoa/Cocoa.h>
+#import <OpenGL/OpenGL.h>
+#import "MyObject-C-Interface.h"
+#include "MyCPPClass.h"
+#include "nodeobs_display.h"
 
-void* util::malloc_aligned(size_t align, size_t size)
-{
-#if defined(_MSC_VER)
-#ifdef DEBUG
-	return _aligned_malloc_dbg(size, align);
-#else
-	return _aligned_malloc(size, align);
-#endif
-#else
-//    return aligned_alloc(align, size);
-    return malloc(size);
-#endif
-}
+NSWindow *win;
+NSView *view;
+NSArray *_array;
 
-void util::free_aligned(void* mem)
-{
-#if defined(_MSC_VER)
-#ifdef DEBUG
-	_aligned_free_dbg(mem);
-#else
-	_aligned_free(mem);
-#endif
-#else
-	free(mem);
-#endif
-}
+@interface MyObject : NSObject
+@end
+
+@interface CustomView: NSView
+- (MouseEvent) translateEvent:(NSEvent *)event;
+@end
+
+@interface WinDel : NSWindow <NSApplicationDelegate, NSWindowDelegate>
+- (void)applicationDidFinishLaunching:(NSNotification *)notification;
+- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)app;
+- (void)windowWillClose:(NSNotification *)notification;
+@end
+
+
+

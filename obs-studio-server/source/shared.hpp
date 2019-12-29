@@ -23,6 +23,7 @@
 #include <sstream>
 #include <vector>
 #include "ipc-value.hpp"
+#include "MyCPPClass.h"
 
 #ifndef __FUNCTION_NAME__
 #if defined(_WIN32) || defined(_WIN64) //WINDOWS
