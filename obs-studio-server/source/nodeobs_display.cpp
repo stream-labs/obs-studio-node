@@ -1107,8 +1107,20 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 	gs_projection_push();
 
 	gs_ortho(0.0f, float(sourceW), 0.0f, float(sourceH), -100.0f, 100.0f);
+	// blog(LOG_INFO, "setting viewport to x:y -> %d:%d", 
+	// 	dp->m_previewOffset.first,
+	// 	dp->m_previewOffset.second);
+
+	// blog(LOG_INFO, "setting viewport size width:height -> %d:%d", 
+	// 	dp->m_previewSize.first,
+	// 	dp->m_previewSize.second);
+	// gs_set_viewport(
+	//     dp->m_previewOffset.first * 2, (dp->m_previewOffset.second * 2 - dp->m_gsInitData.cy),
+	// 	dp->m_previewSize.first * 2, dp->m_previewSize.second * 2);
+
 	gs_set_viewport(
-	    dp->m_previewOffset.first, dp->m_previewOffset.second, dp->m_previewSize.first, dp->m_previewSize.second);
+	    dp->m_previewOffset.first, dp->m_previewOffset.second,
+		dp->m_previewSize.first, dp->m_previewSize.second);
 
 	// Padding
 	vec4_set(&color, dp->m_paddingColor[0], dp->m_paddingColor[1], dp->m_paddingColor[2], dp->m_paddingColor[3]);
@@ -1251,6 +1263,7 @@ void OBS::Display::UpdatePreviewArea()
 	    m_previewOffset.second,
 	    m_previewSize.first,
 	    m_previewSize.second);
+
 
 	offsetX = m_paddingSize;
 	offsetY = float_t(offsetX) * float_t(sourceH) / float_t(sourceW);

@@ -209,21 +209,10 @@ void RegisterMouseEventsCallbacks(const v8::FunctionCallbackInfo<v8::Value>& arg
         v8::Local<v8::Object> obj = callbacks->Get(i)->ToObject();
         MouseEventType type = (MouseEventType) obj->Get(v8::String::NewFromUtf8(isolate, "type").ToLocalChecked())->NumberValue();
         v8::Local<v8::Function> callback = obj->Get(v8::String::NewFromUtf8(isolate, "callback").ToLocalChecked()).As<v8::Function>();
-        
-        Nan::Callback *nan_cb;
-        nan_cb->Reset(callback);
-        
-        cm_mouseEvents->m_callback_functions.emplace(std::make_pair(type, nan_cb));
+		Nan::Callback *nan_cb = new Nan::Callback();
+		nan_cb->Reset(callback);
+		cm_mouseEvents->m_callback_functions.emplace(std::make_pair(type, nan_cb));
     }
-    
-	v8::Local<v8::Function> callback;
-	ASSERT_GET_VALUE(args[0], callback);
-
-	// Grab IPC Connection
-	std::shared_ptr<ipc::client> conn = nullptr;
-	if (!(conn = GetConnection())) {
-		return;
-	}
 
 	// Callback
 	cm_mouseEvents->start_async_runner();
@@ -273,9 +262,18 @@ void MouseEventCallback::worker()
 					event.ctrlKey = response[i++].value_union.i32;
 					event.shiftKey = response[i++].value_union.i32;
 					event.button = response[i++].value_union.i32;
-					event.buttons = response[i++].value_union.i32;
+					event.buttons = response[i].value_union.i32;
 					item->event = event;
 					data->items.push_back(item);
+
+					// std::cout << "Mouse event: " << item->type << std::endl;
+					// std::cout << "x: " << event.x << std::endl;
+					// std::cout << "y: " << event.y << std::endl;
+					// std::cout << "altKey: " << event.altKey << std::endl;
+					// std::cout << "ctrlKey: " << event.ctrlKey << std::endl;
+					// std::cout << "shiftKey: " << event.shiftKey << std::endl;
+					// std::cout << "button: " << event.button << std::endl;
+					// std::cout << "buttons: " << event.buttons << std::endl;
 				}
 				data->param = this;
 				m_async_callback->queue(std::move(data));
@@ -304,16 +302,17 @@ void MouseEventCallback::callback_handler(void* data, std::shared_ptr<MouseEvent
 		v8::Local<v8::Value> args[1];
 		obj->ToObject()->Set(utilv8::ToValue("x"), utilv8::ToValue(item->event.x));
 		obj->ToObject()->Set(utilv8::ToValue("y"), utilv8::ToValue(item->event.y));
-		obj->ToObject()->Set(utilv8::ToValue("altkey"), utilv8::ToValue(item->event.altKey));
+		obj->ToObject()->Set(utilv8::ToValue("altKey"), utilv8::ToValue(item->event.altKey));
 		obj->ToObject()->Set(utilv8::ToValue("ctrlKey"), utilv8::ToValue(item->event.ctrlKey));
 		obj->ToObject()->Set(utilv8::ToValue("shiftKey"), utilv8::ToValue(item->event.shiftKey));
 		obj->ToObject()->Set(utilv8::ToValue("button"), utilv8::ToValue(item->event.button));
 		obj->ToObject()->Set(utilv8::ToValue("buttons"), utilv8::ToValue(item->event.buttons));
 		
 		args[0] = obj;
-		Nan::Callback *callback_function = m_callback_functions.find(item->type)->second;
-
-		Nan::Call(*callback_function, 1, args);
+        auto it = m_callback_functions.find(item->type);
+        if (it != m_callback_functions.end()) {
+            Nan::Call(*it->second, 1, args);
+        }
 	}
 }
 

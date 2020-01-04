@@ -32,7 +32,7 @@ void CallbackManager::Register(ipc::server& srv)
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("CallbackManager");
 
 	cls->register_function(std::make_shared<ipc::function>("QuerySourceSize", std::vector<ipc::type>{}, QuerySourceSize));
-	cls->register_function(std::make_shared<ipc::function>("QueryWindowEvents", std::vector<ipc::type>{}, QuerySourceSize));
+	cls->register_function(std::make_shared<ipc::function>("QueryWindowEvents", std::vector<ipc::type>{}, QueryWindowEvents));
 
 	srv.register_collection(cls);
 }
@@ -108,7 +108,6 @@ void CallbackManager::removeSource(obs_source_t* source)
 void CallbackManager::QueryWindowEvents(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
 {
 	std::unique_lock<std::mutex> ulock(mouseEvents_mtx);
-
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	if (mouseEvents.empty()) {
 		return;
@@ -132,6 +131,5 @@ void CallbackManager::QueryWindowEvents(void* data, const int64_t id, const std:
 	}
 
 	rval.insert(rval.begin() + 1, ipc::value(size));
-
 	AUTO_DEBUG;
 }

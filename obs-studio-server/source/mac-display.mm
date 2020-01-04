@@ -50,39 +50,70 @@ WinDel *del;
 }
 - (void)mouseDown:(NSEvent *)event
 {
-    // NSLog(@"Mouse down");
     addEvent(mouseDown, [self translateEvent: event]);
 }
 
 - (void)mouseUp:(NSEvent *)event {
-    // NSLog(@"Mouse up");
     addEvent(mouseUp, [self translateEvent: event]);
 }
 
 - (void)mouseDragged:(NSEvent *)event {
-    // NSLog(@"Mouse dragged");
-    addEvent(mouseDragged, [self translateEvent: event]);
+    if (!self.mouseIn)
+        return;
+
+    if (!self.previousTimeDragged) {
+        self.previousTimeDragged = [NSDate date];
+    }
+
+    NSDate *timeNow = [NSDate date];
+    NSTimeInterval executionTime = [timeNow timeIntervalSinceDate:self.previousTimeDragged];
+
+    if (executionTime * 1000 > 20) {
+        self.previousTimeDragged = timeNow;
+        addEvent(mouseDragged, [self translateEvent: event]);
+    }
 }
 
 - (void)mouseMoved:(NSEvent *)event {
-    // NSLog(@"Mouse moved");
-    addEvent(mouseMoved, [self translateEvent: event]);
+    if (!self.mouseIn)
+        return;
+
+    if (!self.previousTimeMoved) {
+        self.previousTimeMoved = [NSDate date];
+    }
+
+    NSDate *timeNow = [NSDate date];
+    NSTimeInterval executionTime = [timeNow timeIntervalSinceDate:self.previousTimeMoved];
+
+    if (executionTime * 1000 > 20) {
+        self.previousTimeMoved = timeNow;
+        addEvent(mouseMoved, [self translateEvent: event]);
+    }
 }
 
 - (void)mouseEntered:(NSEvent *)event {
-    // NSLog(@"Mouse entered");
+    if (self.mouseIn)
+        return;
+
     addEvent(mouseEntered, [self translateEvent: event]);
+    self.mouseIn = true;
+}
+
+- (void)mouseExited:(NSEvent *)event {
+    if (!self.mouseIn)
+        return;
+
+    self.mouseIn = false;
 }
 
 - (id)initWithFrame:(NSRect)frame {
     self = [super initWithFrame:frame];
+
     if (self) {
-        NSTrackingArea* trackingArea = [[NSTrackingArea alloc]
-                                        initWithRect:[self bounds]
-                                        options:NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved | NSTrackingActiveAlways
-                                        owner:self userInfo:nil];
-        [self addTrackingArea:trackingArea];
-       }
+        self.previousTimeMoved = nil;
+        self.previousTimeDragged = nil;
+        self.mouseIn = false;
+    }
     return self;
 }
 
@@ -124,6 +155,7 @@ void createWindow(void)
 
     win.contentView = view;
     [win orderFrontRegardless];
+    // [win setHidesOnDeactivate:YES];
 }
 
 @implementation WinDel
@@ -179,6 +211,7 @@ void MyClassImpl::createDisplay(void)
 void MyClassImpl::destroyDisplay(void)
 {
     dispatch_sync(dispatch_get_main_queue(), ^{
+        NSLog(@"Destroy display");
         [win close];
     });
 }
@@ -206,13 +239,29 @@ void MyClassImpl::resizeDisplay(void *displayObj, int width, int height)
 {
     dispatch_sync(dispatch_get_main_queue(), ^{
         [win setContentSize:NSMakeSize(width, height)];
+        // [win setContentSize:NSMakeSize(0, 0)];
     });
 }
 
 void MyClassImpl::moveDisplay(int x, int y)
 {
     dispatch_sync(dispatch_get_main_queue(), ^{
-        [win setFrameTopLeftPoint:NSMakePoint(x, y)];
+        NSScreen *mainScreen = [[NSScreen screens] firstObject];
+        NSRect screenRect = [mainScreen visibleFrame];
+        [win setFrame:CGRectMake(x, 
+            screenRect.size.height - y - [win frame].size.height,
+            [win frame].size.width ,
+            [win frame].size.height) display:YES];
+
+        // Update tracking area
+        NSView *currentView = [win contentView];
+        NSTrackingArea* trackingArea = [[NSTrackingArea alloc]
+                                initWithRect:[currentView bounds]
+                                options:NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved | NSTrackingActiveAlways
+                                owner:currentView userInfo:nil];
+        [currentView addTrackingArea:trackingArea];
+        view.previousTimeMoved = nil;
+        view.previousTimeDragged = nil;
     });
 }
 
@@ -220,10 +269,11 @@ void MyClassImpl::setFocused(bool focused)
 {
     dispatch_sync(dispatch_get_main_queue(), ^{
         if (focused) {
-            [win setLevel:NSStatusWindowLevel];
+            [win setLevel:NSNormalWindowLevel + 1];
+            [win setLevel:NSNormalWindowLevel];
         }
         else {
-            [win setLevel:kCGDesktopWindowLevel];
+            // [win setLevel:NSNormalWindowLevel];
         }
     });
 }

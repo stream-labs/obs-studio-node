@@ -82,7 +82,7 @@ class CallbackManager : public Nan::ObjectWrap,
 	friend utilv8::ManagedObject<CallbackManager>;
 
 	protected:
-	uint32_t sleepIntervalMS = 1000;
+	uint32_t sleepIntervalMS = 15;
 
 	public:
 	std::thread   m_worker;

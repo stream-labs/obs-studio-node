@@ -264,10 +264,6 @@ void OBS_content::OBS_content_createDisplay(
 		}
 	}
 #else
-	// g_srv->display_lock.lock();
-	// g_srv->display_actions.push(display);
-	// g_srv->display_lock.unlock();
-
 	OBS::Display *display = new OBS::Display(windowHandle, mode);
 	displays.insert_or_assign(args[1].value_str, display);
 	g_srv->displayHandler->startDrawing(display);
@@ -307,7 +303,6 @@ void OBS_content::OBS_content_destroyDisplay(
 	displays.erase(found);
 
 	g_srv->displayHandler->destroyDisplay();
-	// g_srv->displayHandler->resizeDisplay(found->second, 0, 0);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -330,8 +325,8 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(
 		rval.push_back(ipc::value("Duplicate key provided to createDisplay!"));
 		return;
 	}
-	// displays.insert_or_assign(
-	//     args[2].value_str, new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str));
+	displays.insert_or_assign(
+	    args[2].value_str, new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str));
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -353,6 +348,8 @@ void OBS_content::OBS_content_resizeDisplay(
 
 	display->m_gsInitData.cx = args[1].value_union.ui32;
 	display->m_gsInitData.cy = args[2].value_union.ui32;
+
+	display->setSizeCall(-4);
 
 	// Resize Display
     obs_display_resize(display->m_display, display->m_gsInitData.cx, display->m_gsInitData.cy);
@@ -618,7 +615,8 @@ void OBS_content::OBS_content_setFocused(
     std::vector<ipc::value>&       rval)
 {
 	// Find Display
-	auto it = displays.find(args[0].value_str);
+	// auto it = displays.find(args[0].value_str);
+	auto it = displays.begin();
 	if (it == displays.end()) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Display key is not valid!"));

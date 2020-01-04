@@ -51,7 +51,6 @@ void addEvent(MouseEventType type, MouseEvent mouse_event);
 
 class MyCPPClass
 {
-    enum { cANSWER_TO_LIFE_THE_UNIVERSE_AND_EVERYTHING = 42 };
 public:
     MyCPPClass ( void );
     ~MyCPPClass( void );

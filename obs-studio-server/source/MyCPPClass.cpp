@@ -18,6 +18,7 @@
 
 #include "MyCPPClass.h"
 #include "MyObject-C-Interface.h"
+#include <obs.h>
 
 std::queue<std::pair<MouseEventType, MouseEvent>> mouseEvents;
 std::mutex mouseEvents_mtx;

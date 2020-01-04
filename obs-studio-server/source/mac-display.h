@@ -24,15 +24,19 @@
 #include "nodeobs_display.h"
 
 NSWindow *win;
-NSView *view;
 NSArray *_array;
 
 @interface MyObject : NSObject
 @end
 
 @interface CustomView: NSView
+@property (atomic, strong) NSDate *previousTimeMoved;
+@property (atomic, strong) NSDate *previousTimeDragged;
+@property bool mouseIn;
 - (MouseEvent) translateEvent:(NSEvent *)event;
 @end
+
+CustomView *view;
 
 @interface WinDel : NSWindow <NSApplicationDelegate, NSWindowDelegate>
 - (void)applicationDidFinishLaunching:(NSNotification *)notification;
