@@ -96,6 +96,7 @@ namespace OBS
 		obs_display_t* m_display;
 		obs_source_t*  m_source;
 		bool           m_drawGuideLines;
+		int            m_screenScale;
 
 		// Preview
 		/// Window Position

@@ -63,6 +63,7 @@ public:
     void resizeDisplay(void *displayObj, int width, int height);
     void moveDisplay(int x, int y);
     void setFocused(bool focused);
+    int  getCurrentScaleFactor(void);
 
 private:
     MyClassImpl * _impl;

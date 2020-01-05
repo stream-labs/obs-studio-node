@@ -67,6 +67,11 @@ void MyCPPClass::setFocused(bool focused)
     return _impl->setFocused(focused);
 }
 
+int MyCPPClass::getCurrentScaleFactor(void)
+{
+    return _impl->getCurrentScaleFactor();
+}
+
 void addEvent(MouseEventType type, MouseEvent mouse_event)
 {
     std::unique_lock<std::mutex> ulock(mouseEvents_mtx);

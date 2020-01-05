@@ -239,7 +239,6 @@ void MyClassImpl::resizeDisplay(void *displayObj, int width, int height)
 {
     dispatch_sync(dispatch_get_main_queue(), ^{
         [win setContentSize:NSMakeSize(width, height)];
-        // [win setContentSize:NSMakeSize(0, 0)];
     });
 }
 
@@ -276,6 +275,11 @@ void MyClassImpl::setFocused(bool focused)
             // [win setLevel:NSNormalWindowLevel];
         }
     });
+}
+
+int MyClassImpl::getCurrentScaleFactor(void)
+{
+    return [[NSScreen mainScreen] backingScaleFactor];
 }
 
 @end

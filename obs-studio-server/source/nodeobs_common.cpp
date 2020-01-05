@@ -265,6 +265,7 @@ void OBS_content::OBS_content_createDisplay(
 	}
 #else
 	OBS::Display *display = new OBS::Display(windowHandle, mode);
+	display->m_screenScale = g_srv->displayHandler->getCurrentScaleFactor();
 	displays.insert_or_assign(args[1].value_str, display);
 	g_srv->displayHandler->startDrawing(display);
 
@@ -348,11 +349,12 @@ void OBS_content::OBS_content_resizeDisplay(
 
 	display->m_gsInitData.cx = args[1].value_union.ui32;
 	display->m_gsInitData.cy = args[2].value_union.ui32;
-
-	display->setSizeCall(-4);
+	display->m_screenScale = g_srv->displayHandler->getCurrentScaleFactor();
 
 	// Resize Display
-    obs_display_resize(display->m_display, display->m_gsInitData.cx, display->m_gsInitData.cy);
+    obs_display_resize(display->m_display,
+		display->m_gsInitData.cx * display->m_screenScale,
+		display->m_gsInitData.cy * display->m_screenScale);
 
     // Store new size.
     display->UpdatePreviewArea();
@@ -384,6 +386,7 @@ void OBS_content::OBS_content_moveDisplay(
 
 	display->m_position.first  = x;
 	display->m_position.second = y;
+	display->m_screenScale = g_srv->displayHandler->getCurrentScaleFactor();
 
 	g_srv->displayHandler->moveDisplay(x, y);
 
