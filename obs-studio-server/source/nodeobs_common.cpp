@@ -268,6 +268,7 @@ void OBS_content::OBS_content_createDisplay(
 	display->m_screenScale = g_srv->displayHandler->getCurrentScaleFactor();
 	displays.insert_or_assign(args[1].value_str, display);
 	g_srv->displayHandler->startDrawing(display);
+	display->m_enableMouseEvents = true;
 
 #endif
 	firstDisplayCreation = false;
@@ -337,6 +338,8 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(
 	displays.insert_or_assign(
 	    args[2].value_str, display);
 	g_srv->displayHandler->startDrawing(display);
+	display->m_enableMouseEvents = false;
+
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -396,6 +399,8 @@ void OBS_content::OBS_content_moveDisplay(
 	display->m_position.first  = x;
 	display->m_position.second = y;
 	display->m_screenScale = g_srv->displayHandler->getCurrentScaleFactor();
+
+	blog(LOG_INFO, "moving display, isMouseEventsTrackingEnabled: %d", display->m_enableMouseEvents);
 
 	g_srv->displayHandler->moveDisplay(display, x, y);
 

@@ -157,8 +157,6 @@ DisplayInfo* createWindow(void)
 
     info->win.contentView = info->view;
     [info->win orderFrontRegardless];
-    // [win setHidesOnDeactivate:YES];
-
     return info;
 }
 
@@ -269,13 +267,15 @@ void MyClassImpl::moveDisplay(void *displayObj, int x, int y)
                 [info->win frame].size.width ,
                 [info->win frame].size.height) display:YES];
 
-            // Update tracking area
-            NSView *currentView = [info->win contentView];
-            NSTrackingArea* trackingArea = [[NSTrackingArea alloc]
-                                    initWithRect:[currentView bounds]
-                                    options:NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved | NSTrackingActiveAlways
-                                    owner:currentView userInfo:nil];
-            [currentView addTrackingArea:trackingArea];
+            if (dp->m_enableMouseEvents) {
+                // Update tracking area
+                NSView *currentView = [info->win contentView];
+                NSTrackingArea* trackingArea = [[NSTrackingArea alloc]
+                                        initWithRect:[currentView bounds]
+                                        options:NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved | NSTrackingActiveAlways
+                                        owner:currentView userInfo:nil];
+                [currentView addTrackingArea:trackingArea];
+            }
             info->view.previousTimeMoved = nil;
             info->view.previousTimeDragged = nil;
         }
