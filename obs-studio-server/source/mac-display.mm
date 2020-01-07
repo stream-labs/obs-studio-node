@@ -20,8 +20,6 @@
 #include <obs.h>
 #include "MyCPPClass.h"
 
-WinDel *del;
-
 @implementation CustomView
 - (MouseEvent)translateEvent:(NSEvent *)event
 {
@@ -122,13 +120,14 @@ WinDel *del;
 }
 @end
 
-void createWindow(void)
+DisplayInfo* createWindow(void)
 {
     NSLog(@"Creating delegate display"); 
+    DisplayInfo *info = new DisplayInfo;
 
     try {
         NSRect content_rect = NSMakeRect(0, 0, 0, 0);
-        win = [
+        NSWindow* win = [
                 [NSWindow alloc]
                 initWithContentRect:content_rect
                 styleMask:NSBorderlessWindowMask // movable
@@ -137,15 +136,18 @@ void createWindow(void)
             ];
         if (!win)
             throw "Could not create window";
+
+        info->win = win;
         
         win.delegate = del;
         NSWindowController *windowController = [[NSWindowController alloc] initWithWindow:win];
         [windowController showWindow:del];
         [_array addObject:windowController];
 
-        view = [[CustomView alloc] initWithFrame:content_rect];
+        CustomView *view = [[CustomView alloc] initWithFrame:content_rect];
         if (!view)
             throw "Could not create view";
+        info->view = view;
     } catch (char const *error) {
         NSLog(@"could not create display");
         NSLog(@"%s\n", error);
@@ -153,9 +155,11 @@ void createWindow(void)
         [NSApp terminate:nil];
     }
 
-    win.contentView = view;
-    [win orderFrontRegardless];
+    info->win.contentView = info->view;
+    [info->win orderFrontRegardless];
     // [win setHidesOnDeactivate:YES];
+
+    return info;
 }
 
 @implementation WinDel
@@ -173,7 +177,6 @@ void createWindow(void)
 
 - (void)windowWillClose:(NSNotification *)notification
 {
-    NSLog(@"WindowController close");
     NSWindow *window = notification.object;
     [_array removeObject:window.windowController];
 }
@@ -208,11 +211,15 @@ void MyClassImpl::createDisplay(void)
     return 1;
 }
 
-void MyClassImpl::destroyDisplay(void)
+void MyClassImpl::destroyDisplay(void *displayObj)
 {
     dispatch_sync(dispatch_get_main_queue(), ^{
-        NSLog(@"Destroy display");
-        [win close];
+        OBS::Display* dp = static_cast<OBS::Display*>(displayObj);
+        auto it = displayWindows.find(dp);
+        if (it != displayWindows.end()) {
+            DisplayInfo *info = it->second;
+            [info->win close];
+        }
     });
 }
 
@@ -220,9 +227,10 @@ void MyClassImpl::startDrawing(void *displayObj)
 {
     NSLog(@"Start drawing");
     dispatch_sync(dispatch_get_main_queue(), ^{
-        createWindow();
         OBS::Display* dp = static_cast<OBS::Display*>(displayObj);
-        dp->m_gsInitData.window.view = (id)view;
+        DisplayInfo *info = createWindow();
+        displayWindows.emplace(dp, info);
+        dp->m_gsInitData.window.view = (id)info->view;
         dp->m_display = obs_display_create(&dp->m_gsInitData, 0x0);
 
         obs_display_add_draw_callback(
@@ -238,41 +246,53 @@ void MyClassImpl::startDrawing(void *displayObj)
 void MyClassImpl::resizeDisplay(void *displayObj, int width, int height)
 {
     dispatch_sync(dispatch_get_main_queue(), ^{
-        [win setContentSize:NSMakeSize(width, height)];
-    });
-}
-
-void MyClassImpl::moveDisplay(int x, int y)
-{
-    dispatch_sync(dispatch_get_main_queue(), ^{
-        NSScreen *mainScreen = [[NSScreen screens] firstObject];
-        NSRect screenRect = [mainScreen visibleFrame];
-        [win setFrame:CGRectMake(x, 
-            screenRect.size.height - y - [win frame].size.height,
-            [win frame].size.width ,
-            [win frame].size.height) display:YES];
-
-        // Update tracking area
-        NSView *currentView = [win contentView];
-        NSTrackingArea* trackingArea = [[NSTrackingArea alloc]
-                                initWithRect:[currentView bounds]
-                                options:NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved | NSTrackingActiveAlways
-                                owner:currentView userInfo:nil];
-        [currentView addTrackingArea:trackingArea];
-        view.previousTimeMoved = nil;
-        view.previousTimeDragged = nil;
-    });
-}
-
-void MyClassImpl::setFocused(bool focused)
-{
-    dispatch_sync(dispatch_get_main_queue(), ^{
-        if (focused) {
-            [win setLevel:NSNormalWindowLevel + 1];
-            [win setLevel:NSNormalWindowLevel];
+        OBS::Display* dp = static_cast<OBS::Display*>(displayObj);
+        auto it = displayWindows.find(dp);
+        if (it != displayWindows.end()) {
+            DisplayInfo *info = it->second;
+            [info->win setContentSize:NSMakeSize(width, height)];
         }
-        else {
-            // [win setLevel:NSNormalWindowLevel];
+    });
+}
+
+void MyClassImpl::moveDisplay(void *displayObj, int x, int y)
+{
+    dispatch_sync(dispatch_get_main_queue(), ^{
+        OBS::Display* dp = static_cast<OBS::Display*>(displayObj);
+        auto it = displayWindows.find(dp);
+        if (it != displayWindows.end()) {
+            DisplayInfo *info = it->second;
+            NSScreen *mainScreen = [[NSScreen screens] firstObject];
+            NSRect screenRect = [mainScreen visibleFrame];
+            [info->win setFrame:CGRectMake(x, 
+                screenRect.size.height - y - [info->win frame].size.height,
+                [info->win frame].size.width ,
+                [info->win frame].size.height) display:YES];
+
+            // Update tracking area
+            NSView *currentView = [info->win contentView];
+            NSTrackingArea* trackingArea = [[NSTrackingArea alloc]
+                                    initWithRect:[currentView bounds]
+                                    options:NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved | NSTrackingActiveAlways
+                                    owner:currentView userInfo:nil];
+            [currentView addTrackingArea:trackingArea];
+            info->view.previousTimeMoved = nil;
+            info->view.previousTimeDragged = nil;
+        }
+    });
+}
+
+void MyClassImpl::setFocused(void *displayObj, bool focused)
+{
+    dispatch_sync(dispatch_get_main_queue(), ^{
+        OBS::Display* dp = static_cast<OBS::Display*>(displayObj);
+        auto it = displayWindows.find(dp);
+        if (it != displayWindows.end()) {
+            DisplayInfo *info = it->second;
+            if (focused) {
+                [info->win setLevel:NSNormalWindowLevel + 1];
+                [info->win setLevel:NSNormalWindowLevel];
+            }
         }
     });
 }

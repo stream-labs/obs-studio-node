@@ -13,7 +13,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+ 
 ******************************************************************************/
 
 #import "Foundation/Foundation.h"
@@ -22,9 +22,8 @@
 #import "MyObject-C-Interface.h"
 #include "MyCPPClass.h"
 #include "nodeobs_display.h"
+#include <map>
 
-NSWindow *win;
-NSArray *_array;
 
 @interface MyObject : NSObject
 @end
@@ -36,13 +35,18 @@ NSArray *_array;
 - (MouseEvent) translateEvent:(NSEvent *)event;
 @end
 
-CustomView *view;
-
 @interface WinDel : NSWindow <NSApplicationDelegate, NSWindowDelegate>
 - (void)applicationDidFinishLaunching:(NSNotification *)notification;
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)app;
 - (void)windowWillClose:(NSNotification *)notification;
 @end
 
+struct DisplayInfo{
+    CustomView *view;
+    NSWindow *win;
+};
 
 
+NSArray *_array;
+WinDel *del;
+std::map<OBS::Display*, DisplayInfo*> displayWindows;

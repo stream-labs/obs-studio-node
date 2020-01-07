@@ -377,14 +377,12 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode)
 OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, std::string sourceName)
     : Display(windowHandle, mode)
 {
-	std::cout << "creating display" << std::endl;
 	m_source = obs_get_source_by_name(sourceName.c_str());
 	obs_source_inc_showing(m_source);
 }
 
 OBS::Display::~Display()
 {
-	blog(LOG_INFO, "Display destructor");
 	obs_display_remove_draw_callback(m_display, DisplayCallback, this);
 
 	if (m_source) {
@@ -433,10 +431,10 @@ OBS::Display::~Display()
 	}
 
 	PostThreadMessage(GetThreadId(worker.native_handle()), (UINT)SystemWorkerMessage::StopThread, NULL, NULL);
-#endif
 
 	if (worker.joinable())
 		worker.join();
+#endif
 }
 
 void OBS::Display::SetPosition(uint32_t x, uint32_t y)

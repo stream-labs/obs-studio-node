@@ -29,11 +29,11 @@ public:
 
     void init( void );
     void createDisplay(void);
-    void destroyDisplay(void);
+    void destroyDisplay(void *displayObj);
     void startDrawing(void *displayObj);
     void resizeDisplay(void *displayObj, int width, int height);
-    void moveDisplay(int x, int y);
-    void setFocused(bool focused);
+    void moveDisplay(void *displayObj, int x, int y);
+    void setFocused(void *displayObj, bool focused);
     int  getCurrentScaleFactor(void);
 
 private:

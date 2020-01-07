@@ -300,10 +300,10 @@ void OBS_content::OBS_content_destroyDisplay(
 
 	blog(LOG_INFO, "(DestroyDisplay) dp: %d", found->second);
 
-	delete found->second;
-	displays.erase(found);
-
-	g_srv->displayHandler->destroyDisplay();
+	g_srv->displayHandler->destroyDisplay(found->second);
+    
+    delete found->second;
+    displays.erase(found);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -326,8 +326,17 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(
 		rval.push_back(ipc::value("Duplicate key provided to createDisplay!"));
 		return;
 	}
+
+	// OBS::Display *display = new OBS::Display(windowHandle, mode);
+	// display->m_screenScale = g_srv->displayHandler->getCurrentScaleFactor();
+	// displays.insert_or_assign(args[1].value_str, display);
+	// g_srv->displayHandler->startDrawing(display);
+
+	OBS::Display *display = new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str);
+	display->m_screenScale = g_srv->displayHandler->getCurrentScaleFactor();
 	displays.insert_or_assign(
-	    args[2].value_str, new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str));
+	    args[2].value_str, display);
+	g_srv->displayHandler->startDrawing(display);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -388,7 +397,7 @@ void OBS_content::OBS_content_moveDisplay(
 	display->m_position.second = y;
 	display->m_screenScale = g_srv->displayHandler->getCurrentScaleFactor();
 
-	g_srv->displayHandler->moveDisplay(x, y);
+	g_srv->displayHandler->moveDisplay(display, x, y);
 
 	// display->SetPosition(x, y);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -618,14 +627,14 @@ void OBS_content::OBS_content_setFocused(
     std::vector<ipc::value>&       rval)
 {
 	// Find Display
-	// auto it = displays.find(args[0].value_str);
-	auto it = displays.begin();
+	auto it = displays.find(args[0].value_str);
+	// auto it = displays.begin();
 	if (it == displays.end()) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value("Display key is not valid!"));
 		return;
 	}
-	g_srv->displayHandler->setFocused((bool)args[1].value_union.i32);
+	g_srv->displayHandler->setFocused(it->second, (bool)args[1].value_union.i32);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }

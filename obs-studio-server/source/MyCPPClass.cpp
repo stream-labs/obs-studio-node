@@ -42,9 +42,9 @@ void MyCPPClass::createDisplay(void)
     return _impl->createDisplay();
 }
 
-void MyCPPClass::destroyDisplay(void)
+void MyCPPClass::destroyDisplay(void *displayObj)
 {
-    return _impl->destroyDisplay();
+    return _impl->destroyDisplay(displayObj);
 }
 
 void MyCPPClass::startDrawing(void *displayObj)
@@ -57,14 +57,14 @@ void MyCPPClass::resizeDisplay(void *displayObj, int width, int height)
     return _impl->resizeDisplay(displayObj, width, height);
 }
 
-void MyCPPClass::moveDisplay(int x, int y)
+void MyCPPClass::moveDisplay(void *displayObj, int x, int y)
 {
-    return _impl->moveDisplay(x, y);
+    return _impl->moveDisplay(displayObj, x, y);
 }
 
-void MyCPPClass::setFocused(bool focused)
+void MyCPPClass::setFocused(void *displayObj, bool focused)
 {
-    return _impl->setFocused(focused);
+    return _impl->setFocused(displayObj, focused);
 }
 
 int MyCPPClass::getCurrentScaleFactor(void)
