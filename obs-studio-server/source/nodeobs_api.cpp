@@ -67,6 +67,8 @@
 #include "error.hpp"
 #include "shared.hpp"
 
+#include <fstream>
+
 #define BUFFSIZE 512
 #define CONNECTING_STATE 0
 #define READING_STATE 1
@@ -333,16 +335,18 @@ void outdated_driver_error::catch_error(const char* msg)
 	}
 }
 
-inline std::string nodeobs_log_formatted_message(const char* format, va_list& args)
+inline std::string nodeobs_log_formatted_message(const char* format, va_list args)
 {
 #ifdef WIN32
 	size_t            length  = _vscprintf(format, args);
-	std::vector<char> buf     = std::vector<char>(length + 1, '\0');
-	size_t            written = vsprintf_s(buf.data(), buf.size(), format, args);
-	return std::string(buf.begin(), buf.begin() + length);
 #else
-    return "";
+    va_list argcopy;
+    va_copy(argcopy, args);
+	size_t            length  = vsnprintf(NULL, 0, format, argcopy);
 #endif
+	std::vector<char> buf     = std::vector<char>(length + 1, '\0');
+	size_t            written = vsprintf(buf.data(), format, args);
+	return std::string(buf.begin(), buf.begin() + length);
 }
 
 std::chrono::high_resolution_clock             hrc;
@@ -406,7 +410,7 @@ static void                                    node_obs_log(int log_level, const
 	std::vector<char> timebuf(128, '\0');
 	std::string       timeformat = "[%.3d:%.2d:%.2d:%.2d.%.3d.%.3d.%.3d][%*s]"; // "%*s";
 #ifdef WIN32
-	int               length     = sprintf_s(
+	int length     = sprintf_s(
         timebuf.data(),
         timebuf.size(),
         timeformat.c_str(),
@@ -419,11 +423,24 @@ static void                                    node_obs_log(int log_level, const
         nanoseconds.count(),
         levelname.length(),
         levelname.c_str());
+#else
+	int length     = snprintf(
+        timebuf.data(),
+        timebuf.size(),
+        timeformat.c_str(),
+        days.count(),
+        hours.count(),
+        minutes.count(),
+        seconds.count(),
+        milliseconds.count(),
+        microseconds.count(),
+        nanoseconds.count(),
+        levelname.length(),
+        levelname.c_str());
+#endif
 	if (length < 0)
 		return;
-#endif
 
-#ifdef WIN32
 	std::string time_and_level = std::string(timebuf.data(), length);
 
 	// Format incoming text
@@ -473,7 +490,6 @@ static void                                    node_obs_log(int log_level, const
 		}
 	}
 	*logStream << std::flush;
-#endif
 
 #if defined(_WIN32) && defined(OBS_DEBUGBREAK_ON_ERROR)
 	if (log_level <= LOG_ERROR && IsDebuggerPresent())
@@ -593,24 +609,24 @@ void OBS_API::OBS_API_initAPI(
 	* 2. ${OBS_DATA_PATH}/libobs <- This works but is inflexible
 	* 3. getenv(OBS_DATA_PATH) + /libobs <- Can be set anywhere
 	*    on the cli, in the frontend, or the backend. */
-	blog(LOG_INFO, "module directory: %s", g_moduleDirectory.c_str());
-	obs_add_data_path("/Users/eddygharbi/streamlabs/streamlabs-obs/node_modules/obs-studio-node/");
-	// obs_add_data_path((g_moduleDirectory + "/data/libobs/").c_str());
-	// slobs_plugin = appdata.substr(0, appdata.size() - strlen("/slobs-client"));
-	// slobs_plugin.append("/slobs-plugins");
-	// obs_add_data_path((slobs_plugin + "/data/").c_str());
+	obs_add_data_path("../../data");
+	obs_add_data_path((g_moduleDirectory + "/libobs/data/libobs/").c_str());
+	obs_add_data_path((g_moduleDirectory + "/data/libobs/").c_str());
+	slobs_plugin = appdata.substr(0, appdata.size() - strlen("/slobs-client"));
+	slobs_plugin.append("/slobs-plugins");
+	obs_add_data_path((slobs_plugin + "/data/").c_str());
 
 	std::vector<char> userData = std::vector<char>(1024);
 	os_get_config_path(userData.data(), userData.capacity() - 1, "slobs-client/plugin_config");
-	if (!obs_startup(locale.c_str(), userData.data(), NULL)) {
-		// TODO: We should return an error code if obs fails to initialize.
-		// This was added as a temporary measure to detect what could be happening in some
-		// cases (if the user data path is wrong for ex). This will be correctly adjusted 
-		// when init API supports more return codes.
-		// std::string userDataPath = std::string(userData.begin(), userData.end());
-#ifdef WIN32
-		util::CrashManager::AddWarning("Failed to start OBS, locale: " + locale + " user data: " + userDataPath);
-#endif
+    if (!obs_startup(locale.c_str(), userData.data(), NULL)) {
+            // TODO: We should return an error code if obs fails to initialize.
+            // This was added as a temporary measure to detect what could be happening in some
+            // cases (if the user data path is wrong for ex). This will be correctly adjusted
+            // when init API supports more return codes.
+            // std::string userDataPath = std::string(userData.begin(), userData.end());
+    #ifdef WIN32
+            util::CrashManager::AddWarning("Failed to start OBS, locale: " + locale + " user data: " + userDataPath);
+    #endif
 	}
 
 	/* Logging */
@@ -635,7 +651,11 @@ void OBS_API::OBS_API_initAPI(
 	std::fstream* logfile =
 	    new std::fstream(converter.from_bytes(log_path.c_str()).c_str(), std::ios_base::out | std::ios_base::trunc);
 #else
-//	fstream* logfile = new fstream(log_path, ios_base::out | ios_base::trunc);
+	std::fstream* logfile = new std::fstream(log_path, std::ios_base::out | std::ios_base::trunc);
+
+	// std::fstream logfile;
+
+	base_set_log_handler(node_obs_log, logfile);
 #endif
 #ifdef WIN32
 	if (!logfile->is_open()) {
