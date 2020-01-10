@@ -318,11 +318,11 @@ else()
 		VERSION ${PROJECT_VERSION}
 		SOVERSION ${PROJECT_VERSION}
 	)
-	set_target_properties(
-		${PROJECT_NAME}
-		PROPERTIES
-		INSTALL_RPATH
-		"/Users/eddygharbi/streamlabs/streamlabs-obs/node_modules/obs-studio-node/"
+	set_property(
+		TARGET ${PROJECT_NAME}
+		APPEND
+		PROPERTY INSTALL_RPATH
+		"@loader_path/" "@executable_path/"
 	)
 ENDIF()
 
