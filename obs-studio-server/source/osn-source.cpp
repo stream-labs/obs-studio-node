@@ -138,21 +138,32 @@ bool selected_item_fit_to_output(void *data, obs_source_t *source)
 	return true;
 }
 
+bool osn::Source::sourceAutoFitEnabled(obs_source_t* src)
+{
+	bool ret = false;
+
+	obs_data* settings = obs_source_get_settings(src);
+	const char * capture_mode = obs_data_get_string(settings, "capture_mode");
+	if (capture_mode != nullptr) {
+		if(std::string(capture_mode).compare( "auto" ) == 0) {
+			if(obs_data_get_bool(settings, "auto_fit_to_output")) {
+				ret = true;	
+			}
+		}
+	}
+	obs_data_release(settings);
+
+	return ret;
+}
+
 void osn::Source::global_source_status_change_cb(void* ptr, calldata_t* cd)
 {
 	obs_source_t* source = nullptr;
 	if (calldata_get_ptr(cd, "source", &source)) {
-		obs_data* settings = obs_source_get_settings(source);
-		const char * capture_mode = obs_data_get_string(settings, "capture_mode");
-		if (capture_mode != nullptr) {
-			if(std::string(capture_mode).compare( "auto" ) == 0) {
-				if(obs_data_get_bool(settings, "auto_fit_to_output")) {
-					const char * source_name = obs_source_get_name(source);
-					obs_enum_scenes(selected_item_fit_to_output, &source_name);
-				}
-			}
+		if (sourceAutoFitEnabled(source)) {
+			const char * source_name = obs_source_get_name(source);
+			obs_enum_scenes(selected_item_fit_to_output, &source_name);
 		}
-		obs_data_release(settings);
 	}
 }
 
