@@ -85,6 +85,8 @@ I don't specify every possible combination of variables. Here's a list of active
 
 If you find yourself unable to configure something about our build script or have any questions, please file a github issue!
 
+define `EXTENDED_DEBUG_LOG` controls logging of ipc requests. 
+
 ### Static code analyzis 
 
 #### cppcheck 
