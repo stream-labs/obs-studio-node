@@ -53,6 +53,8 @@ namespace osn
 		static void attach_source_signals(obs_source_t* src);
 		static void detach_source_signals(obs_source_t* src);
 
+		static bool sourceAutoFitEnabled(obs_source_t* src);
+
 		public:
 		static void Register(ipc::server&);
 
