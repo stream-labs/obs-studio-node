@@ -58,6 +58,7 @@ cpack -G ZIP
 ```
 
 This will create an archive that's compatible with obs-studio-node. The destination of the archive will appear after cpack is finished executing.
+
 Example:
 
 > CPack: Create package using ZIP
