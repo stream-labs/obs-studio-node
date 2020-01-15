@@ -1,6 +1,6 @@
 import * as osn from '../osn';
 import { logInfo, logWarning } from '../util/logger';
-import { Services } from '../util/services';
+import { UserPoolHandler } from './user_pool_handler';
 import { CacheUploader } from '../util/cache-uploader'
 import { EOBSOutputType, EOBSOutputSignal, EOBSSettingsCategories} from '../util/obs_enums'
 import { Subject } from 'rxjs';
@@ -65,7 +65,7 @@ export class OBSHandler {
     private version: string = '0.00.00-preview.0';
 
     // Other variables/objects
-    private services: Services;
+    private userPoolHandler: UserPoolHandler;
     private cacheUploader: CacheUploader;
     private hasUserFromPool: boolean = false;
     private osnTestName: string;
@@ -116,7 +116,7 @@ export class OBSHandler {
     }
 	
 	instantiateUserPool(testName: string) {
-        this.services = new Services(testName);
+        this.userPoolHandler = new UserPoolHandler(testName);
     }
 
     async reserveUser() {
@@ -124,7 +124,7 @@ export class OBSHandler {
 
         try {
             logInfo(this.osnTestName, 'Getting stream key from user pool');
-            streamKey = await this.services.getStreamKey();
+            streamKey = await this.userPoolHandler.getStreamKey();
             this.hasUserFromPool = true;
         } catch(e) {
             logWarning(this.osnTestName, e);
@@ -146,7 +146,7 @@ export class OBSHandler {
 
     async releaseUser() {
         if (this.hasUserFromPool) {
-            await this.services.releaseUser();
+            await this.userPoolHandler.releaseUser();
             this.hasUserFromPool = false;
         }
     }
