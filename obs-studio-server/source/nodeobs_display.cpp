@@ -26,9 +26,9 @@
 #include <graphics/vec4.h>
 #include <util/platform.h>
 
-#include <X11/Xlib-xcb.h>
-#include <GL/glx.h>
-#include <GL/gl.h>
+//#include <X11/Xlib-xcb.h>
+//#include <GL/glx.h>
+//#include <GL/gl.h>
 
 std::vector<std::pair<std::string, std::pair<uint32_t, uint32_t>>> sourcesSize;
 

@@ -1,4 +1,4 @@
-﻿PROJECT(obs-studio-server VERSION ${obs-studio-node_VERSION})
+PROJECT(obs-studio-server VERSION ${obs-studio-node_VERSION})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -130,7 +130,7 @@ set(
 string(
 	CONCAT OSN_DEFAULT_LIBOBS_URL
 	"https://obsstudios3.streamlabs.com/"
-	"libobs-osx-${LIBOBS_BUILD_TYPE}-24.17.13.7z"
+	"libobs-osx-${LIBOBS_BUILD_TYPE}-24.17.21.7z"
 )
 
 set(
@@ -176,15 +176,6 @@ else ()
 	"/usr/X11/include/"
 	)
 endif ()
-
-add_library( xcb UNKNOWN IMPORTED)
-set_property(TARGET xcb PROPERTY IMPORTED_LOCATION "/usr/local/libxcb/1_13/lib/libxcb.dylib")
-add_library( x11 UNKNOWN IMPORTED)
-set_property(TARGET x11 PROPERTY IMPORTED_LOCATION "/usr/X11/lib/libX11.dylib")
-add_library( x11-xcb UNKNOWN IMPORTED)
-set_property(TARGET x11-xcb PROPERTY IMPORTED_LOCATION "/usr/X11/lib/libX11-xcb.dylib")
-add_library( gl UNKNOWN IMPORTED)
-set_property(TARGET gl PROPERTY IMPORTED_LOCATION "/usr/X11/lib/libGL.dylib")
 
 set(PROJECT_DATA "${PROJECT_SOURCE_DIR}/resources")
 
@@ -298,7 +289,7 @@ if(WIN32)
 	target_sources(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}/version.rc")
 endif()
 
-target_link_libraries(${PROJECT_NAME} ${PROJECT_LIBRARIES} optimized crashpad xcb x11 x11-xcb gl ${COREFOUNDATION} ${COCOA})
+target_link_libraries(${PROJECT_NAME} ${PROJECT_LIBRARIES} optimized crashpad ${COREFOUNDATION} ${COCOA})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE_PATHS})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "obs${BITS}")
 
