@@ -92,8 +92,8 @@ export class OBSHandler {
             osn.NodeObs.IPC.host(this.pipeName);
             osn.NodeObs.SetWorkingDirectory(this.workingDirectory);
             initResult = osn.NodeObs.OBS_API_initAPI(this.language, this.obsPath, this.version);
-        } catch(Error) {
-            throw Error('Exception when initializing OBS process: ' + Error.message);
+        } catch(e) {
+            throw Error('Exception when initializing OBS process: ' + e);
         }
 
         if (initResult != osn.EVideoCodes.Success) {
