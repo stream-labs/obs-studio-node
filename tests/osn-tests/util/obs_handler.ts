@@ -85,21 +85,22 @@ export class OBSHandler {
     }
 
     startup() {
+        let initResult: any;
         logInfo(this.osnTestName, 'Initializing OBS');
 
         try {
             osn.NodeObs.IPC.host(this.pipeName);
             osn.NodeObs.SetWorkingDirectory(this.workingDirectory);
-            const initResult = osn.NodeObs.OBS_API_initAPI(this.language, this.obsPath, this.version);
-
-            if (initResult != osn.EVideoCodes.Success) {
-                throw Error('OBS process initialization failed with code ' + initResult);
-            }  
-        } catch(e) {
-            throw Error('Exception when initializing OBS process' + e);
+            initResult = osn.NodeObs.OBS_API_initAPI(this.language, this.obsPath, this.version);
+        } catch(Error) {
+            throw Error('Exception when initializing OBS process: ' + Error.message);
         }
 
-        logInfo(this.osnTestName, 'OBS started successfully')
+        if (initResult != osn.EVideoCodes.Success) {
+            throw Error('OBS process initialization failed with code ' + initResult);
+        }  
+
+        logInfo(this.osnTestName, 'OBS started successfully');
     }
 
     shutdown() {
@@ -109,10 +110,10 @@ export class OBSHandler {
             osn.NodeObs.OBS_service_removeCallback();
             osn.NodeObs.IPC.disconnect();
         } catch(e) {
-            throw Error('Exception when shutting down OBS process' + e);
+            throw Error('Exception when shutting down OBS process: ' + e);
         }
 
-        logInfo(this.osnTestName, 'OBS shutdown successfully')
+        logInfo(this.osnTestName, 'OBS shutdown successfully');
     }
 	
 	instantiateUserPool(testName: string) {
