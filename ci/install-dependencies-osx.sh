@@ -1,6 +1,6 @@
 # Install system dependencies
 brew update
-brew install node
+brew install node@12
 
 # Install module dependencies
 yarn install
