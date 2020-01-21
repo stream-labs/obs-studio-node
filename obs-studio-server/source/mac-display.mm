@@ -157,6 +157,7 @@ DisplayInfo* createWindow(void)
 
     info->win.contentView = info->view;
     [info->win orderFrontRegardless];
+
     return info;
 }
 
@@ -223,7 +224,6 @@ void MyClassImpl::destroyDisplay(void *displayObj)
 
 void MyClassImpl::startDrawing(void *displayObj)
 {
-    NSLog(@"Start drawing");
     dispatch_sync(dispatch_get_main_queue(), ^{
         OBS::Display* dp = static_cast<OBS::Display*>(displayObj);
         DisplayInfo *info = createWindow();
