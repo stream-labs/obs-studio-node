@@ -130,7 +130,7 @@ set(
 string(
 	CONCAT OSN_DEFAULT_LIBOBS_URL
 	"https://obsstudios3.streamlabs.com/"
-	"libobs-osx-${LIBOBS_BUILD_TYPE}-24.17.21.7z"
+	"libobs-osx-${LIBOBS_BUILD_TYPE}-24.17.37.7z"
 )
 
 set(
@@ -340,6 +340,10 @@ install(DIRECTORY ${PROJECT_DATA} DESTINATION "./" OPTIONAL)
 install(DIRECTORY ${crashpad_SOURCE_DIR}/bin/ DESTINATION "./")
 install(DIRECTORY "${libobs_SOURCE_DIR}/data/" DESTINATION "./data")
 
+if (APPLE)
+	install(DIRECTORY "${libobs_SOURCE_DIR}/Frameworks/" DESTINATION "./Frameworks")
+endif()
+
 if (WIN32)
 	install(
 		DIRECTORY "${libobs_SOURCE_DIR}/bin/64bit/"
@@ -352,7 +356,15 @@ else ()
 	)
 endif ()
 
+if (WIN32)
 install(
 	DIRECTORY "${libobs_SOURCE_DIR}/obs-plugins/"
 	DESTINATION "./obs-plugins"
 )
+else ()
+install(
+	DIRECTORY "${libobs_SOURCE_DIR}/obs-plugins/"
+	DESTINATION "./obs-plugins"
+	USE_SOURCE_PERMISSIONS
+)
+endif()
