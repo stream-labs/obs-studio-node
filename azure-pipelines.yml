@@ -225,13 +225,11 @@ jobs:
         BuildConfig: Debug
         ReleaseName: debug
   steps:
-  - powershell: |
-      Write-Host "##vso[task.setvariable variable=tagartifact]obs-studio-node-$((git describe --tags --abbrev=0) | Out-String)"
-      'yarn install'
-    displayName: 'Install dependencies'
+  - powershell: Write-Host "##vso[task.setvariable variable=tagartifact]obs-studio-node-$((git describe --tags --abbrev=0) | Out-String)"
+    displayName: 'Get current tag'
 
-  - script: 'yarn add electron@$(ElectronVersion) -D'
-    displayName: 'Install Electron'
+  - script: './ci/install-dependencies-osx.sh'
+    displayName: 'Install dependencies'
 
   - script: 'git submodule update --init --recursive'
     displayName: 'Update submodules'
