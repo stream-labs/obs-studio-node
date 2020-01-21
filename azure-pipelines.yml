@@ -18,7 +18,7 @@ variables:
   LibOBSVersion: 24.17.37
 
 jobs:
-- job: 'Windows Release'
+- job: 'WindowsRelease'
   pool: 'Default'
   workspace:
     clean: all
@@ -131,7 +131,7 @@ jobs:
     displayName: 'Upload tag artifact to S3'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
-- job: 'Windows Debug'
+- job: 'WindowsDebug'
   pool: 'Default'
   workspace:
     clean: all
