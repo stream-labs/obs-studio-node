@@ -1,7 +1,7 @@
 # Install system dependencies
 brew update
 brew doctor
-brew upgrade node
+brew install node
 
 # Install module dependencies
 yarn install
