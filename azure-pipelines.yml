@@ -230,7 +230,7 @@ jobs:
       'yarn install'
     displayName: 'Install dependencies'
 
-  - script: 'yarn add electron@%ElectronVersion% -D'
+  - script: 'yarn add electron@${ElectronVersion} -D'
     displayName: 'Install Electron'
 
   - script: 'git submodule update --init --recursive'
