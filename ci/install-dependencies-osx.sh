@@ -11,8 +11,4 @@ nvm use 12.14.1
 
 # Install module dependencies
 yarn install
-yarn add electron@${ElectronVersion}
-
-
-echo "Printing electron version"
-echo ${ElectronVersion}
+yarn add electron@${ELECTRONVERSION}
