@@ -58,6 +58,7 @@ cpack -G ZIP
 ```
 
 This will create an archive that's compatible with obs-studio-node. The destination of the archive will appear after cpack is finished executing.
+
 Example:
 
 > CPack: Create package using ZIP
@@ -84,6 +85,8 @@ I don't specify every possible combination of variables. Here's a list of active
 * `OSN_LIBOBS_URL` - Controls where to fetch the libobs archive. May be a directory, any compressed archive that cpack supports, or a URI of various types including FTP or HTTP/S.
 
 If you find yourself unable to configure something about our build script or have any questions, please file a github issue!
+
+define `EXTENDED_DEBUG_LOG` controls logging of ipc requests. 
 
 ### Static code analyzis 
 

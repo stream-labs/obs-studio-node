@@ -17,12 +17,14 @@
 ******************************************************************************/
 
 #include "callback-manager.h"
+
 #ifdef WIN32
 #include <windows.h>
 #endif
 #include "error.hpp"
 #include "shared.hpp"
 #include "MyCPPClass.h"
+#include "osn-source.hpp"
 
 std::mutex                             sources_sizes_mtx;
 std::map<std::string, SourceSizeInfo*> sources;
@@ -58,6 +60,15 @@ void CallbackManager::QuerySourceSize(
 		uint32_t newWidth  = obs_source_get_width(si->source);
 		uint32_t newHeight = obs_source_get_height(si->source);
 		uint32_t newFlags  = obs_source_get_output_flags(si->source);
+
+
+		if(osn::Source::sourceAutoFitEnabled(si->source)) {
+			struct obs_video_info ovi;	
+			obs_get_video_info(&ovi);
+
+			newWidth = ovi.base_width;
+			newHeight = ovi.base_height;
+		}
 
 		if (si->width != newWidth || si->height != newHeight || si->flags != newFlags) {
 			si->width = newWidth;

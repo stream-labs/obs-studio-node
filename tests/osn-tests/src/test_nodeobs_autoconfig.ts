@@ -1,170 +1,159 @@
 import 'mocha';
+import { expect } from 'chai';
 import * as osn from '../osn';
-import { OBSProcessHandler } from '../util/obs_process_handler';
-import { Services } from '../util/services';
+import { logInfo, logEmptyLine, logWarning } from '../util/logger';
+import { ETestErrorMsg, GetErrorMessage } from '../util/error_messages';
+import { OBSHandler, IConfigProgress } from '../util/obs_handler';
 import { deleteConfigFiles } from '../util/general';
 
-type TConfigEvent = 'starting_step' | 'progress' | 'stopping_step' | 'error' | 'done';
+const testName = 'nodeobs_autoconfig';
 
-interface IConfigProgress {
-    event: TConfigEvent;
-    description: string;
-    percentage?: number;
-    continent?: string;
-}
-
-type TConfigProgressCallback = (progress: IConfigProgress) => void;
-
-function handleProgress(progress: IConfigProgress) {
-    if (progress.event === 'stopping_step') {
-        if (progress.description === 'bandwidth_test') {
-            osn.NodeObs.StartStreamEncoderTest();
-        } else if (progress.description === 'streamingEncoder_test') {
-            osn.NodeObs.StartRecordingEncoderTest();
-        } else if (progress.description === 'recordingEncoder_test') {
-            osn.NodeObs.StartCheckSettings();
-        } else if (progress.description === 'checking_settings') {
-            osn.NodeObs.StartSaveStreamSettings();
-        } else if (progress.description === 'saving_service') {
-            osn.NodeObs.StartSaveSettings();
-        } else if (progress.description === 'setting_default_settings') {
-            osn.NodeObs.StartSaveStreamSettings();
-        }
-    }
-
-    if (progress.event === 'error') {
-        osn.NodeObs.StartSetDefaultSettings();
-    }
-
-    if (progress.event === 'done') {
-        osn.NodeObs.TerminateAutoConfig();
-    }
-}
-
-function start(cb: TConfigProgressCallback) {
-    cb({
-        event: 'stopping_step',
-        description: 'location_found',
-    });
-
-    osn.NodeObs.InitializeAutoConfig((progress: IConfigProgress) => {
-        handleProgress(progress);
-        cb(progress);
-    },
-    {
-        service_name: 'Twitch',
-    });
-
-    osn.NodeObs.StartBandwidthTest();
-}
-
-function saveStreamKey(key: string) {
-    // Getting stream settings container
-    const streamSettings = osn.NodeObs.OBS_settings_getSettings('Stream').data;
-
-    // Setting stream service and stream key
-    streamSettings.forEach(subCategory => {
-        subCategory.parameters.forEach(parameter => {
-            if (parameter.name === 'service') {
-                parameter.currentValue = 'Twitch';
-            }
-
-            if (parameter.name === 'key') {
-                parameter.currentValue = key;
-            }
-        });
-    });
-
-    osn.NodeObs.OBS_settings_saveSettings('Stream', streamSettings);
-}
-
-describe('nodeobs_autoconfig', () => {
-    let obs: OBSProcessHandler;
-    let services: Services;
-    let hasUserFromPool: boolean;
+describe(testName, function() {
+    let obs: OBSHandler;
+    let hasTestFailed: boolean = false;
 
     // Initialize OBS process
-    before(function() {
+    before(async function() {
+        logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
-        obs = new OBSProcessHandler();
-        services = new Services();
-        
-        if (obs.startup() !== osn.EVideoCodes.Success)
-        {
-            throw new Error("Could not start OBS process. Aborting!")
-        }
+        obs = new OBSHandler(testName);
+
+        obs.instantiateUserPool(testName);
+
+        // Reserving user from pool
+        await obs.reserveUser();
     });
 
     // Shutdown OBS process
     after(async function() {
-        if (hasUserFromPool) {
-            await services.releaseUser();
-        }
+        // Releasing user got from pool
+        await obs.releaseUser();
         
+        // Closing OBS process
         obs.shutdown();
+
+        if (hasTestFailed === true) {
+            logInfo(testName, 'One or more test cases failed. Uploading cache');
+            await obs.uploadTestCache();
+        }
+
         obs = null;
         deleteConfigFiles();
+        logInfo(testName, 'Finished ' + testName + ' tests');
+        logEmptyLine();
     });
 
-    context('# Full auto config run (all functions)', () => {
-        let hasStepFailed: boolean = false;
+    afterEach(function() {
+        if (this.currentTest.state == 'failed') {
+            hasTestFailed = true;
+        }
+    });
 
-        it('Run all auto config steps (error)', function(done) {
-            // Starting auto configuration processes
-            start(progress => {
-                if (progress.event === 'done') {
-                    if (!hasStepFailed) {
-                        done(new Error('Autoconfig completed successfully. An error was expected.'));
-                    } else {
-                        done();
-                    }
-                } else if (progress.event === 'error') {
-                    hasStepFailed = true;
-                }
-            });
-        });
+    it('Run autoconfig', async function() {
+        let progressInfo: IConfigProgress;
+	    let settingValue: any;
 
-        it('Run all auto config steps (success)', function(done) {
-            hasStepFailed = false;
+        obs.startAutoconfig();
 
-            // Getting stream key from user pool
-            services.getStreamKey().then(key => {
-                // Saving stream key
-                saveStreamKey(key);
-                hasUserFromPool = true;
+        osn.NodeObs.StartBandwidthTest();
 
-                // Starting auto configuration processes
-                start(progress => {
-                    if (progress.event === 'done') {
-                        if (hasStepFailed) {
-                            done(new Error('An autoconfig step has failed.'));
-                        } else {
-                            done();
-                        }
-                        
-                    } else if (progress.event === 'error') {
-                        hasStepFailed = true;
-                    }
-                });
-            // If unable to get stream key use environment variable
-            }).catch(function() {
-                // Saving stream key
-                saveStreamKey(process.env.SLOBS_BE_STREAMKEY);
-                hasUserFromPool = false;
+        progressInfo = await obs.getNextProgressInfo('Bandwidth test');
 
-                // Starting auto configuration processes
-                start(progress => {
-                    if (progress.event === 'done') {
-                        if (hasStepFailed) {
-                            done(new Error('An autoconfig step has failed.'));
-                        } else {
-                            done();
-                        }  
-                    } else if (progress.event === 'error') {
-                        hasStepFailed = true;
-                    }
-                });
-            });            
-        });
+	    if (progressInfo.event != 'error') {
+            expect(progressInfo.event).to.equal('stopping_step', GetErrorMessage(ETestErrorMsg.BandwidthTest));
+            expect(progressInfo.description).to.equal('bandwidth_test',  GetErrorMessage(ETestErrorMsg.BandwidthTest));
+            expect(progressInfo.percentage).to.equal(100,  GetErrorMessage(ETestErrorMsg.BandwidthTest));
+
+            osn.NodeObs.StartStreamEncoderTest();
+
+            progressInfo = await obs.getNextProgressInfo('Stream Encoder test');
+            expect(progressInfo.event).to.equal('stopping_step',  GetErrorMessage(ETestErrorMsg.StreamEncoderTest));
+            expect(progressInfo.description).to.equal('streamingEncoder_test',  GetErrorMessage(ETestErrorMsg.StreamEncoderTest));
+            expect(progressInfo.percentage).to.equal(100,  GetErrorMessage(ETestErrorMsg.StreamEncoderTest));
+
+            osn.NodeObs.StartRecordingEncoderTest();
+
+            progressInfo = await obs.getNextProgressInfo('Recording Encoder test');
+            expect(progressInfo.event).to.equal('stopping_step',  GetErrorMessage(ETestErrorMsg.RecordingEncoderTest));
+            expect(progressInfo.description).to.equal('recordingEncoder_test',  GetErrorMessage(ETestErrorMsg.RecordingEncoderTest));
+            expect(progressInfo.percentage).to.equal(100,  GetErrorMessage(ETestErrorMsg.RecordingEncoderTest));
+
+            osn.NodeObs.StartCheckSettings();
+
+            progressInfo = await obs.getNextProgressInfo('Check Settings');
+            expect(progressInfo.event).to.equal('stopping_step',  GetErrorMessage(ETestErrorMsg.CheckSettings));
+            expect(progressInfo.description).to.equal('checking_settings',  GetErrorMessage(ETestErrorMsg.CheckSettings));
+            expect(progressInfo.percentage).to.equal(100,  GetErrorMessage(ETestErrorMsg.CheckSettings));
+
+            osn.NodeObs.StartSaveStreamSettings();
+
+            progressInfo = await obs.getNextProgressInfo('Save Stream Settings');
+            expect(progressInfo.event).to.equal('stopping_step',  GetErrorMessage(ETestErrorMsg.SaveStreamSettings));
+            expect(progressInfo.description).to.equal('saving_service',  GetErrorMessage(ETestErrorMsg.SaveStreamSettings));
+            expect(progressInfo.percentage).to.equal(100,  GetErrorMessage(ETestErrorMsg.SaveStreamSettings));
+
+            osn.NodeObs.StartSaveSettings();
+
+            progressInfo = await obs.getNextProgressInfo('Save Settings');
+            expect(progressInfo.event).to.equal('stopping_step',  GetErrorMessage(ETestErrorMsg.SaveSettingsStep));
+            expect(progressInfo.description).to.equal('saving_settings',  GetErrorMessage(ETestErrorMsg.SaveSettingsStep));
+            expect(progressInfo.percentage).to.equal(100,  GetErrorMessage(ETestErrorMsg.SaveSettingsStep));
+
+            progressInfo = await obs.getNextProgressInfo('Autoconfig done');
+            expect(progressInfo.event).to.equal('done',  GetErrorMessage(ETestErrorMsg.SaveSettingsStep));
+        } else {
+            logWarning(testName, 'Bandwidth test failed with ' + progressInfo.description + '. Setting default settings');
+
+            osn.NodeObs.StartSetDefaultSettings();
+
+            progressInfo = await obs.getNextProgressInfo('Set Default Settings');
+            expect(progressInfo.event).to.equal('stopping_step',  GetErrorMessage(ETestErrorMsg.SetDefaultSettings));
+            expect(progressInfo.description).to.equal('setting_default_settings',  GetErrorMessage(ETestErrorMsg.SetDefaultSettings));
+            expect(progressInfo.percentage).to.equal(100,  GetErrorMessage(ETestErrorMsg.SetDefaultSettings));
+
+            osn.NodeObs.StartSaveStreamSettings();
+
+            progressInfo = await obs.getNextProgressInfo('Save Stream Settings');
+            expect(progressInfo.event).to.equal('stopping_step',  GetErrorMessage(ETestErrorMsg.SaveStreamSettings));
+            expect(progressInfo.description).to.equal('saving_service',  GetErrorMessage(ETestErrorMsg.SaveStreamSettings));
+            expect(progressInfo.percentage).to.equal(100,  GetErrorMessage(ETestErrorMsg.SaveStreamSettings));
+
+            osn.NodeObs.StartSaveSettings();
+
+            progressInfo = await obs.getNextProgressInfo('Save Settings');
+            expect(progressInfo.event).to.equal('stopping_step',  GetErrorMessage(ETestErrorMsg.SaveSettingsStep));
+            expect(progressInfo.description).to.equal('saving_settings',  GetErrorMessage(ETestErrorMsg.SaveSettingsStep));
+            expect(progressInfo.percentage).to.equal(100,  GetErrorMessage(ETestErrorMsg.SaveSettingsStep));
+
+            progressInfo = await obs.getNextProgressInfo('Autoconfig done');
+            expect(progressInfo.event).to.equal('done',  GetErrorMessage(ETestErrorMsg.SaveSettingsStep));
+
+            // Checking default settings
+            settingValue = obs.getSetting('Output', 'Mode');
+            expect(settingValue).to.equal('Simple',  GetErrorMessage(ETestErrorMsg.DefaultOutputMode));
+
+            settingValue = obs.getSetting('Output', 'VBitrate');
+            expect(settingValue).to.equal(2500, GetErrorMessage(ETestErrorMsg.DefaultVBitrate));
+
+            settingValue = obs.getSetting('Output', 'StreamEncoder');
+            expect(settingValue).to.equal('x264', GetErrorMessage(ETestErrorMsg.DefaultStreamEncoder));
+
+            settingValue = obs.getSetting('Output', 'RecQuality');
+            expect(settingValue).to.equal('Small', GetErrorMessage(ETestErrorMsg.DefaultRecQuality));
+
+            settingValue = obs.getSetting('Advanced', 'DynamicBitrate');
+            expect(settingValue).to.equal(false, GetErrorMessage(ETestErrorMsg.DefaultDinamicBitrate));
+
+            settingValue = obs.getSetting('Video', 'Output');
+            expect(settingValue).to.equal('1280x720', GetErrorMessage(ETestErrorMsg.DefaultVideoOutput));
+
+            settingValue = obs.getSetting('Video', 'FPSType');
+            expect(settingValue).to.equal('Common FPS Values', GetErrorMessage(ETestErrorMsg.DefaultFPSType));
+
+            settingValue = obs.getSetting('Video', 'FPSCommon');
+            expect(settingValue).to.equal('30', GetErrorMessage(ETestErrorMsg.DefaultFPSCommon));
+        }
+
+	osn.NodeObs.TerminateAutoConfig();
     });
 });
