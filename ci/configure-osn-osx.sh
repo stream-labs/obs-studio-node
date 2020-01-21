@@ -1,4 +1,4 @@
-cmake -B${SLBuildDirectory} \
+cmake ${SLBuildDirectory} \
 -DCMAKE_INSTALL_PREFIX=${SLFullDistributePath}\obs-studio-node \
 -DSTREAMLABS_BUILD=OFF \
 -DNODEJS_NAME=${RuntimeName} \
