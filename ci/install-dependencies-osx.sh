@@ -6,7 +6,7 @@ brew install nvm
 mkdir ~/.nvm
 export NVM_DIR=~/.nvm
 source $(brew --prefix nvm)/nvm.sh
-
+npm config delete prefix
 nvm ls
 nvm use 12.14.1
 node -v
