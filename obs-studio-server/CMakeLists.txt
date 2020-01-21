@@ -16,6 +16,11 @@ if(WIN32)
 		${PROJECT_BINARY_DIR}/version.rc
 		@ONLY
 	)
+	set(LIBOBS_PLATFORM "windows64")
+endif()
+
+if(APPLE)
+	set(LIBOBS_PLATFORM "osx")
 endif()
 
 ############################
@@ -115,9 +120,13 @@ add_dependencies(crashpad_base crashpad_ep)
 add_dependencies(crashpad_client crashpad_base)
 add_dependencies(crashpad_util crashpad_client)
 
+# Getting LIBOBS_VERSION from azure script
+file(STRINGS ../azure-pipelines.yml VERSION_LINE REGEX "LibOBSVersion")
+string(REGEX MATCH "[^: ]*$" CURRENT_VERSION ${VERSION_LINE})
+
 set(
 	LIBOBS_VERSION
-	""
+	${CURRENT_VERSION}
 	CACHE STRING "Version of libobs being used"
 )
 
@@ -130,7 +139,7 @@ set(
 string(
 	CONCAT OSN_DEFAULT_LIBOBS_URL
 	"https://obsstudios3.streamlabs.com/"
-	"libobs-osx-${LIBOBS_BUILD_TYPE}-24.17.37.7z"
+	"libobs-${LIBOBS_PLATFORM}-${LIBOBS_BUILD_TYPE}-${LIBOBS_VERSION}.7z"
 )
 
 set(

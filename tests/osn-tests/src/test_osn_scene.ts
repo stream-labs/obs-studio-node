@@ -1,265 +1,321 @@
 import 'mocha'
 import { expect } from 'chai'
 import * as osn from '../osn';
-import { IScene, ISceneItem, IInput } from '../osn';
-import { OBSProcessHandler } from '../util/obs_process_handler';
-import { basicOBSInputTypes, basicDebugOBSInputTypes, deleteConfigFiles } from '../util/general';
+import { logInfo, logEmptyLine } from '../util/logger';
+import { OBSHandler } from '../util/obs_handler';
+import { deleteConfigFiles } from '../util/general';
+import { EOBSInputTypes } from '../util/obs_enums';
+import { ETestErrorMsg, GetErrorMessage } from '../util/error_messages';
 
-function createScene(sceneName: string): IScene {
-    // Creating scene
-    const scene = osn.SceneFactory.create(sceneName); 
+const testName = 'osn-scene';
 
-    // Checking if scene was created correctly
-    expect(scene).to.not.equal(undefined);
-    expect(scene.id).to.equal('scene');
-    expect(scene.name).to.equal(sceneName);
-    expect(scene.type).to.equal(osn.ESourceType.Scene);
-
-    return scene;
-}
-
-function createSource(inputType: string, inputName: string): IInput {
-    // Creating source
-    const input = osn.InputFactory.create(inputType, inputName);
-
-    // Checking if input source was created correctly
-    expect(input).to.not.equal(undefined);
-    expect(input.id).to.equal(inputType);
-    expect(input.name).to.equal(inputName);
-
-    return input;
-}
-
-describe('osn-scene', () => {
-    let obs: OBSProcessHandler;
-    let OBSInputTypes: string[];
+describe(testName, () => {
+    let obs: OBSHandler;
+    let hasTestFailed: boolean = false;
     
     // Initialize OBS process
     before(function() {
+        logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
-        obs = new OBSProcessHandler();
-        
-        if (obs.startup() !== osn.EVideoCodes.Success)
-        {
-            throw new Error("Could not start OBS process. Aborting!")
-        }
-
-        if (process.env.RELEASE_NAME == "debug") {
-            OBSInputTypes = basicDebugOBSInputTypes;
-        } else {
-            OBSInputTypes = basicOBSInputTypes;
-        }
+        obs = new OBSHandler(testName);
     });
 
     // Shutdown OBS process
-    after(function() {
+    after(async function() {
         obs.shutdown();
+
+        if (hasTestFailed === true) {
+            logInfo(testName, 'One or more test cases failed. Uploading cache');
+            await obs.uploadTestCache();
+        }
+
         obs = null;
         deleteConfigFiles();
+        logInfo(testName, 'Finished ' + testName + ' tests');
+        logEmptyLine();
     });
 
-    context('# Create', () => {
-        it('Create scene', () => {
-            // Creating scene
-            const scene = createScene('create_test');
-            scene.release();
-        });
+    afterEach(function() {
+        if (this.currentTest.state == 'failed') {
+            hasTestFailed = true;
+        }
     });
 
-    context('# Duplicate', () => {
-        it('Duplicate scene', () => {
-            // Creating scene
-            const scene = createScene('duplicate_test');
+    it('Create scene', () => {
+        const sceneName = 'create_test_scene';
 
-            // Duplicating scene
-            const duplicatedScene = scene.duplicate('duplicated_scene', osn.ESceneDupType.Copy);
+        // Creating scene
+        const scene = osn.SceneFactory.create(sceneName); 
 
-            // Checking if scene was duplicated correctly
-            expect(duplicatedScene).to.not.equal(undefined);
-            expect(duplicatedScene.id).to.equal('scene');
-            expect(duplicatedScene.name).to.equal('duplicated_scene');
-            expect(duplicatedScene.type).to.equal(osn.ESourceType.Scene);
+        // Checking if scene was created correctly
+        expect(scene).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateScene, sceneName));
+        expect(scene.id).to.equal('scene', GetErrorMessage(ETestErrorMsg.SceneId, sceneName));
+        expect(scene.name).to.equal(sceneName, GetErrorMessage(ETestErrorMsg.SceneName, sceneName));
+        expect(scene.type).to.equal(osn.ESourceType.Scene, GetErrorMessage(ETestErrorMsg.SceneType, sceneName));
 
-            scene.release();
-            duplicatedScene.release();
-        });
+        scene.release();
     });
 
-    context('# FromName', () => {
-        it('Get scene from name', () => {
-            // Creating scene
-            const scene = createScene('fromName_test');
+    it('Duplicate scene', () => {
+        const sceneName = 'duplicate_test_scene';
 
-            // Getting scene by its name
-            const sceneFromName = osn.SceneFactory.fromName('fromName_test');
+        // Creating scene
+        const scene = osn.SceneFactory.create(sceneName); 
 
-            // Checking if scene was returned
-            expect(sceneFromName).to.not.equal(undefined);
-            expect(sceneFromName.id).to.equal('scene');
-            expect(sceneFromName.name).to.equal('fromName_test');
-            expect(sceneFromName.type).to.equal(osn.ESourceType.Scene);
+        // Checking if scene was created correctly
+        expect(scene).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateScene, sceneName));
+        expect(scene.id).to.equal('scene', GetErrorMessage(ETestErrorMsg.SceneId, sceneName));
+        expect(scene.name).to.equal(sceneName, GetErrorMessage(ETestErrorMsg.SceneName, sceneName));
+        expect(scene.type).to.equal(osn.ESourceType.Scene, GetErrorMessage(ETestErrorMsg.SceneType, sceneName));
 
-            scene.release();
-        });
+        // Duplicating scene
+        const duplicatedScene = scene.duplicate(sceneName, osn.ESceneDupType.Copy);
 
-        it('FAIL TEST: Get scene from name that don\'t exist ', () => {
-            expect(function() {
-                const failSceneFromName = osn.SceneFactory.fromName('does_not_exist');
-            }).to.throw();
-        });
+        // Checking if scene was duplicated correctly
+        expect(duplicatedScene).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.DuplicateScene, sceneName));
+        expect(duplicatedScene.id).to.equal('scene', GetErrorMessage(ETestErrorMsg.DuplicateSceneId, sceneName));
+        expect(duplicatedScene.name).to.equal(sceneName, GetErrorMessage(ETestErrorMsg.DuplicateSceneName, sceneName));
+        expect(duplicatedScene.type).to.equal(osn.ESourceType.Scene, GetErrorMessage(ETestErrorMsg.DuplicateSceneType, sceneName));
+
+        scene.release();
+        duplicatedScene.release();
     });
 
-    context('# AddSource and AsSource', () => {
-        it('Add all source types (including scene as source) to scene', () => {
-            // Creating scene
-            const scene = createScene('addSource_test');
+    it('Get scene from name', () => {
+        const sceneName = 'fromName_test_scene'
 
-            // Getting all input source types
-            const inputTypes = osn.InputFactory.types();
+        // Creating scene
+        const scene = osn.SceneFactory.create(sceneName); 
 
-            // Checking if inputTypes array contains the basic obs input types
-            expect(inputTypes.length).to.not.equal(0);
-            expect(inputTypes).to.include.members(OBSInputTypes);
+        // Checking if scene was created correctly
+        expect(scene).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateScene, sceneName));
+        expect(scene.id).to.equal('scene', GetErrorMessage(ETestErrorMsg.SceneId, sceneName));
+        expect(scene.name).to.equal(sceneName, GetErrorMessage(ETestErrorMsg.SceneName, sceneName));
+        expect(scene.type).to.equal(osn.ESourceType.Scene, GetErrorMessage(ETestErrorMsg.SceneType, sceneName));
 
-            inputTypes.forEach(function(inputType) {
-                const input = createSource(inputType, 'input');
+        // Getting scene by its name
+        const sceneFromName = osn.SceneFactory.fromName(sceneName);
 
-                // Adding input source to scene
-                const sceneItem = scene.add(input);
+        // Checking if scene was returned
+        expect(sceneFromName).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SceneFromName, sceneName));
+        expect(sceneFromName.id).to.equal('scene', GetErrorMessage(ETestErrorMsg.SceneFromNameId, sceneName));
+        expect(sceneFromName.name).to.equal(sceneName, GetErrorMessage(ETestErrorMsg.SceneFromNameName, sceneName));
+        expect(sceneFromName.type).to.equal(osn.ESourceType.Scene, GetErrorMessage(ETestErrorMsg.SceneFromNameType, sceneName));
 
-                // Checking if input source was added to the scene correctly
-                expect(sceneItem).to.not.equal(undefined);
-                expect(sceneItem.source.id).to.equal(inputType);
-                expect(sceneItem.source.name).to.equal('input');
-            });
-
-            // Creating source scene
-            const sourceScene = createScene('source_scene');
-
-            // Adding a scene as source
-            const sourceSceneItem = scene.add(sourceScene.source);
-
-            // Checking if input source was added to the scene correctly
-            expect(sourceSceneItem).to.not.equal(undefined);
-            expect(sourceSceneItem.source.id).to.equal('scene');
-            expect(sourceSceneItem.source.name).to.equal('source_scene');
-
-            scene.getItems().forEach(function(sceneItem) {
-                sceneItem.source.release();
-                sceneItem.remove();
-            });
-
-            scene.release();
-        });
+        scene.release();
     });
 
-    context('# FindItem', () => {
-        it('Find scene item by id', () => {
-            // Creating scene
-            const scene = createScene('findItem_test');
+    it('Add all source types (including scene as source) to scene', () => {
+        const sceneName = 'addSource_test_scene';
 
-            const input = createSource('image_source', 'input');
-            
+        // Creating scene
+        const scene = osn.SceneFactory.create(sceneName); 
+
+        // Checking if scene was created correctly
+        expect(scene).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateScene, sceneName));
+        expect(scene.id).to.equal('scene', GetErrorMessage(ETestErrorMsg.SceneId, sceneName));
+        expect(scene.name).to.equal(sceneName, GetErrorMessage(ETestErrorMsg.SceneName, sceneName));
+        expect(scene.type).to.equal(osn.ESourceType.Scene, GetErrorMessage(ETestErrorMsg.SceneType, sceneName));
+
+        obs.inputTypes.forEach(function(inputType) {
+            // Creating source
+            const input = osn.InputFactory.create(inputType, 'input');
+
+            // Checking if input source was created correctly
+            expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
+            expect(input.id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
+            expect(input.name).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
+
             // Adding input source to scene
             const sceneItem = scene.add(input);
 
             // Checking if input source was added to the scene correctly
-            expect(sceneItem).to.not.equal(undefined);
-            expect(sceneItem.source.id).to.equal('image_source');
-            expect(sceneItem.source.name).to.equal('input');
-
-            // Getting scene item by id
-            const sceneItemById = scene.findItem(1);
-
-            // Checking if scene item was returned correctly
-            expect(sceneItemById).to.not.equal(undefined);
-            expect(sceneItemById.source.id).to.equal('image_source');
-            expect(sceneItemById.source.name).to.equal('input');
-
-            sceneItemById.source.release();
-            sceneItemById.remove();
-            scene.release();
+            expect(sceneItem).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.AddSourceToScene, inputType, sceneName));
+            expect(sceneItem.source.id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.SceneItemInputId, inputType));
+            expect(sceneItem.source.name).to.equal('input', GetErrorMessage(ETestErrorMsg.SceneItemInputName, inputType));
         });
 
-        it('FAIL TEST: Try to find scene that don\'t exist', () => {
-            const scene = createScene('findItem_fail_test');
+        // Creating source scene
+        const sourceSceneName = 'source_scene';
+        const sourceScene = osn.SceneFactory.create(sourceSceneName); 
 
-            // Getting scene item with id that does not exist
-            expect(function () {
-                const sceneItem = scene.findItem('does_not_exist');
-            }).to.throw();
+        // Checking if scene was created correctly
+        expect(scene).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateScene, sceneName));
+        expect(scene.id).to.equal('scene', GetErrorMessage(ETestErrorMsg.SceneId, sceneName));
+        expect(scene.name).to.equal(sceneName, GetErrorMessage(ETestErrorMsg.SceneName, sceneName));
+        expect(scene.type).to.equal(osn.ESourceType.Scene, GetErrorMessage(ETestErrorMsg.SceneType, sourceSceneName));
 
-            scene.release();
+        // Adding a scene as source
+        const sourceSceneItem = scene.add(sourceScene.source);
+
+        // Checking if input source was added to the scene correctly
+        expect(sourceSceneItem).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.AddSourceToScene, sourceScene.id, sourceSceneName));
+        expect(sourceSceneItem.source.id).to.equal('scene', GetErrorMessage(ETestErrorMsg.SceneItemInputId, sourceScene.id));
+        expect(sourceSceneItem.source.name).to.equal(sourceSceneName, GetErrorMessage(ETestErrorMsg.SceneItemInputName, sourceScene.id));
+
+        scene.getItems().forEach(function(sceneItem) {
+            sceneItem.source.release();
+            sceneItem.remove();
         });
+
+        scene.release();
     });
 
-    context('# GetItems and MoveItem', () => {
-        it('Get all scene items in a scene', () => {
-            // Creating scene
-            const scene = createScene('addSource_test');
+    it('Find scene item by id', () => {
+        const sceneName = 'findItem_test_scene';
 
-            // Creating new input source
-            const firstInput = createSource('image_source', 'getItems_test1');
+        // Creating scene
+        const scene = osn.SceneFactory.create(sceneName); 
 
-            // Adding input source to existing scene
-            const firstSceneItem = scene.add(firstInput);
-           
-            // Checking if scene item was returned correctly
-            expect(firstSceneItem).to.not.equal(undefined);
-            expect(firstSceneItem.source.id).to.equal('image_source');
-            expect(firstSceneItem.source.name).to.equal('getItems_test1');
+        // Checking if scene was created correctly
+        expect(scene).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateScene, sceneName));
+        expect(scene.id).to.equal('scene', GetErrorMessage(ETestErrorMsg.SceneId, sceneName));
+        expect(scene.name).to.equal(sceneName, GetErrorMessage(ETestErrorMsg.SceneName, sceneName));
+        expect(scene.type).to.equal(osn.ESourceType.Scene, GetErrorMessage(ETestErrorMsg.SceneType, sceneName));
 
-            // Creating new input source
-            const secondInput = createSource('image_source', 'getItems_test2');
+        // Creating source
+        const input = osn.InputFactory.create(EOBSInputTypes.ImageSource, 'input');
 
-            // Checking if input source was created correctly
-            expect(secondInput).to.not.equal(undefined);
-            expect(secondInput.id).to.equal('image_source');
-            expect(secondInput.name).to.equal('getItems_test2');
+        // Checking if input source was created correctly
+        expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, EOBSInputTypes.ImageSource));
+        expect(input.id).to.equal(EOBSInputTypes.ImageSource, GetErrorMessage(ETestErrorMsg.InputId, EOBSInputTypes.ImageSource));
+        expect(input.name).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, EOBSInputTypes.ImageSource));
+        
+        // Adding input source to scene
+        const sceneItem = scene.add(input);
 
-            // Adding input source to existing scene
-            const secondSceneItem = scene.add(secondInput);
-           
-            // Checking if scene item was returned correctly
-            expect(secondSceneItem).to.not.equal(undefined);
-            expect(secondSceneItem.source.id).to.equal('image_source');
-            expect(secondSceneItem.source.name).to.equal('getItems_test2');
+        // Checking if input source was added to the scene correctly
+        expect(sceneItem).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.AddSourceToScene, input.id, sceneName));
+        expect(sceneItem.source.id).to.equal(EOBSInputTypes.ImageSource, GetErrorMessage(ETestErrorMsg.SceneItemInputId, input.id));
+        expect(sceneItem.source.name).to.equal('input', GetErrorMessage(ETestErrorMsg.SceneItemInputName, input.id));
 
-            // Getting all scene items
-            const sceneItems = scene.getItems();
+        // Getting scene item by id
+        const sceneItemById = scene.findItem(1);
 
-            // Checking if sceneItems array has the correct scenes
-            expect(sceneItems.length).to.equal(2);
-            expect(sceneItems[0].source.name).to.equal('getItems_test1');
-            expect(sceneItems[1].source.name).to.equal('getItems_test2');
+        // Checking if scene item was returned correctly
+        expect(sceneItemById).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SceneItemById, EOBSInputTypes.ImageSource));
+        expect(sceneItemById.source.id).to.equal(EOBSInputTypes.ImageSource, GetErrorMessage(ETestErrorMsg.SceneItemInputId, EOBSInputTypes.ImageSource));
+        expect(sceneItemById.source.name).to.equal('input', GetErrorMessage(ETestErrorMsg.SceneItemInputName, EOBSInputTypes.ImageSource));
 
-            // Moving scene item
-            scene.moveItem(1, 0);
+        sceneItemById.source.release();
+        sceneItemById.remove();
+        scene.release();
+    });
 
-            // Getting all scene items
-            const movedSceneItems = scene.getItems();
-            
-            //Checking if scene items were moved
-            expect(movedSceneItems.length).to.equal(2);
-            expect(movedSceneItems[0].source.name).to.equal('getItems_test2');
-            expect(movedSceneItems[1].source.name).to.equal('getItems_test1');
+    it('Get all scene items in a scene', () => {
+        const sceneName = 'getItems_test';
+        const firstInputName = 'getItems_input1';
+        const secondInputName = 'getItems_input2';
 
-            firstSceneItem.source.release();
-            firstSceneItem.remove();
-            secondSceneItem.source.release();
-            secondSceneItem.remove();
-            scene.release();
-        });
+        // Creating scene
+        const scene = osn.SceneFactory.create('getItems_test'); 
 
-        it('FAIL TEST: Try to access out of bounds', () => {
-            // Creating scene
-            const scene = createScene('addSource_test');
-            
-            expect(function() {
-                scene.moveItem(3, 0);
-            }).to.throw();
+        // Checking if scene was created correctly
+        expect(scene).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateScene, sceneName));
+        expect(scene.id).to.equal('scene', GetErrorMessage(ETestErrorMsg.SceneId, sceneName));
+        expect(scene.name).to.equal(sceneName, GetErrorMessage(ETestErrorMsg.SceneName, sceneName));
+        expect(scene.type).to.equal(osn.ESourceType.Scene, GetErrorMessage(ETestErrorMsg.SceneType, sceneName));
+        
+        // Creating first input source
+        const firstInput = osn.InputFactory.create(EOBSInputTypes.ImageSource, firstInputName);
 
-            scene.release();
-        });
+        // Checking if input source was created correctly
+        expect(firstInput).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, EOBSInputTypes.ImageSource));
+        expect(firstInput.id).to.equal(EOBSInputTypes.ImageSource, GetErrorMessage(ETestErrorMsg.InputId, EOBSInputTypes.ImageSource));
+        expect(firstInput.name).to.equal(firstInputName, GetErrorMessage(ETestErrorMsg.InputName, EOBSInputTypes.ImageSource));
+
+        // Adding input source to existing scene
+        const firstSceneItem = scene.add(firstInput);
+        
+        // Checking if scene item was returned correctly
+        expect(firstSceneItem).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.AddSourceToScene, firstInput.id, sceneName));
+        expect(firstSceneItem.source.id).to.equal(EOBSInputTypes.ImageSource, GetErrorMessage(ETestErrorMsg.SceneItemInputId, firstInput.id));
+        expect(firstSceneItem.source.name).to.equal(firstInputName, GetErrorMessage(ETestErrorMsg.SceneItemInputName, firstInput.id));
+
+        // Creating second input source
+        const secondInput = osn.InputFactory.create(EOBSInputTypes.ImageSource, secondInputName);
+
+        // Checking if input source was created correctly
+        expect(secondInput).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, EOBSInputTypes.ImageSource));
+        expect(secondInput.id).to.equal(EOBSInputTypes.ImageSource, GetErrorMessage(ETestErrorMsg.InputId, EOBSInputTypes.ImageSource));
+        expect(secondInput.name).to.equal(secondInputName, GetErrorMessage(ETestErrorMsg.InputName, EOBSInputTypes.ImageSource));
+
+        // Adding input source to existing scene
+        const secondSceneItem = scene.add(secondInput);
+        
+        // Checking if scene item was returned correctly
+        expect(secondSceneItem).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.AddSourceToScene, secondInput.id, sceneName));
+        expect(secondSceneItem.source.id).to.equal(EOBSInputTypes.ImageSource, GetErrorMessage(ETestErrorMsg.SceneItemInputId, secondInput.id));
+        expect(secondSceneItem.source.name).to.equal(secondInputName, GetErrorMessage(ETestErrorMsg.SceneItemInputName, secondInput.id));
+
+        // Getting all scene items
+        const sceneItems = scene.getItems();
+
+        // Checking if sceneItems array has the correct scenes
+        expect(sceneItems.length).to.equal(2, GetErrorMessage(ETestErrorMsg.GetSceneItems, sceneName));
+        expect(sceneItems[0].source.name).to.equal(firstInputName, ETestErrorMsg.SceneItemPosition);
+        expect(sceneItems[1].source.name).to.equal(secondInputName, ETestErrorMsg.SceneItemPosition);
+
+        // Moving scene item
+        scene.moveItem(1, 0);
+
+        // Getting all scene items
+        const movedSceneItems = scene.getItems();
+        
+        //Checking if scene items were moved
+        expect(movedSceneItems.length).to.equal(2, ETestErrorMsg.GetSceneItems);
+        expect(movedSceneItems[0].source.name).to.equal(secondInputName, ETestErrorMsg.SceneItemPositionAfterMove);
+        expect(movedSceneItems[1].source.name).to.equal(firstInputName, ETestErrorMsg.SceneItemPositionAfterMove);
+
+        firstSceneItem.source.release();
+        firstSceneItem.remove();
+        secondSceneItem.source.release();
+        secondSceneItem.remove();
+        scene.release();
+    });
+
+    it('Fail test - Get scene from name that don\'t exist ', () => {
+        expect(function() {
+            const failSceneFromName = osn.SceneFactory.fromName('does_not_exist');
+        }).to.throw();
+    });
+
+    it('Fail test - Try to find scene that don\'t exist', () => {
+        const sceneName = 'findItem_fail_test';
+
+        // Creating scene
+        const scene = osn.SceneFactory.create(sceneName); 
+
+        // Checking if scene was created correctly
+        expect(scene).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateScene, sceneName));
+        expect(scene.id).to.equal('scene', GetErrorMessage(ETestErrorMsg.SceneId, sceneName));
+        expect(scene.name).to.equal(sceneName, GetErrorMessage(ETestErrorMsg.SceneName, sceneName));
+        expect(scene.type).to.equal(osn.ESourceType.Scene, GetErrorMessage(ETestErrorMsg.SceneType, sceneName));
+
+        // Getting scene item with id that does not exist
+        expect(function () {
+            const sceneItem = scene.findItem('does_not_exist');
+        }).to.throw();
+
+        scene.release();
+    });
+
+    it('Fail test - Try to access out of bounds', () => {
+        const sceneName = 'outOfBounds_test_scene';
+
+        // Creating scene
+        const scene = osn.SceneFactory.create(sceneName); 
+
+        // Checking if scene was created correctly
+        expect(scene).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateScene, sceneName));
+        expect(scene.id).to.equal('scene', GetErrorMessage(ETestErrorMsg.SceneId, sceneName));
+        expect(scene.name).to.equal(sceneName, GetErrorMessage(ETestErrorMsg.SceneName, sceneName));
+        expect(scene.type).to.equal(osn.ESourceType.Scene, GetErrorMessage(ETestErrorMsg.SceneType, sceneName));
+        
+        expect(function() {
+            scene.moveItem(3, 0);
+        }).to.throw();
+
+        scene.release();
     });
 });
