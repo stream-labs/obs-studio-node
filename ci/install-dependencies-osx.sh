@@ -8,6 +8,7 @@ export NVM_DIR=~/.nvm
 source $(brew --prefix nvm)/nvm.sh
 
 nvm ls
+nvm use 12.14.1
 node -v
 
 # Install module dependencies
