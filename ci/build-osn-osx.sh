@@ -1,1 +1,1 @@
-cmake --build ${${SLBUILDDIRECTORY}} --target install --config ${BUILDCONFIG}
+cmake --build ${SLBUILDDIRECTORY} --target install --config ${BUILDCONFIG}
