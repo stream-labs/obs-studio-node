@@ -1,3 +1,10 @@
+echo ${BuildConfig}
+echo ${ReleaseName}
+echo ${ElectronVersion}
+echo ${RuntimeName}
+echo ${SLFullDistributePath}
+echo ${SLBuildDirectory}
+
 cmake ${SLBuildDirectory} \
 -DCMAKE_INSTALL_PREFIX=${SLFullDistributePath}\obs-studio-node \
 -DSTREAMLABS_BUILD=OFF \
