@@ -21,8 +21,7 @@ jobs:
 - job: 'MacOSX'
   pool:
     vmImage: 'macos-10.13'
-  workspace:
-    clean: all
+
   strategy:
     matrix:
       Release:
