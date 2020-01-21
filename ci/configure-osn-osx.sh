@@ -1,9 +1,9 @@
-echo ${BuildConfig}
-echo ${ReleaseName}
-echo ${ElectronVersion}
-echo ${RuntimeName}
-echo ${SLFullDistributePath}
-echo ${SLBuildDirectory}
+echo $BuildConfig
+echo $ReleaseName
+echo $ElectronVersion
+echo $RuntimeName
+echo $SLFullDistributePath
+echo $SLBuildDirectory
 
 cmake ${SLBuildDirectory} \
 -DCMAKE_INSTALL_PREFIX=${SLFullDistributePath}\obs-studio-node \
