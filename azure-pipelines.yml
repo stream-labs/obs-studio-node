@@ -40,7 +40,7 @@ jobs:
   - script: 'git submodule update --init --recursive'
     displayName: 'Update submodules'
 
-  - script: ./ci/configure-osn-osx.sh
+  - script: './ci/configure-osn-osx.sh'
     displayName: 'Configure obs-studio-node'
 
   - script: ./ci/build-osn-osx.sh

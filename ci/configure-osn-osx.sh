@@ -5,6 +5,8 @@ echo $RuntimeName
 echo $SLFullDistributePath
 echo $SLBuildDirectory
 
+printenv
+
 cmake ${SLBuildDirectory} \
 -DCMAKE_INSTALL_PREFIX=${SLFullDistributePath}\obs-studio-node \
 -DSTREAMLABS_BUILD=OFF \
