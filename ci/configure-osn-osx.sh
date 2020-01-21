@@ -1,9 +1,9 @@
-echo $BuildConfig
-echo $ReleaseName
-echo $ElectronVersion
-echo $RuntimeName
-echo $SLFullDistributePath
-echo $SLBuildDirectory
+echo $BUILDCONFIG
+echo $RELEASENAME
+echo $ELECTRONVERSION
+echo $RUNTIMENAME
+echo $SLFULLDISTRIBUTEPATH
+echo $SLBUILDIRECTORY
 
 printenv
 
