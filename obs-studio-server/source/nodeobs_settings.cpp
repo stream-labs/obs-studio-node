@@ -1075,6 +1075,12 @@ void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::strin
 
 	if (EncoderAvailable("jim_nvenc"))
 		streamEncoder->push_back(std::make_pair("Hardware (NVENC) (new)", ipc::value(ENCODER_NEW_NVENC)));
+
+	if (EncoderAvailable("vt_h264_sw"))
+		streamEncoder->push_back(std::make_pair("Apple VT H264 Software Encoder", ipc::value(APPLE_SOFTWARE_VIDEO_ENCODER)));
+
+	if (EncoderAvailable("vt_h264_hw"))
+		streamEncoder->push_back(std::make_pair("Apple VT H264 Hardware Encoder", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER)));
 }
 
 void OBS_settings::getSimpleOutputSettings(

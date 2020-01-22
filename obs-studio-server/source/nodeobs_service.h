@@ -57,6 +57,9 @@
 
 #define ENCODER_NEW_NVENC "jim_nvenc"
 
+#define APPLE_SOFTWARE_VIDEO_ENCODER "vt_h264_sw"
+#define APPLE_HARDWARE_VIDEO_ENCODER "vt_h264_hw"
+
 #define MAX_AUDIO_MIXES 6
 
 class SignalInfo
