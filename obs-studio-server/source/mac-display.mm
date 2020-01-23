@@ -206,8 +206,6 @@ void MyClassImpl::createDisplay(void)
         app.delegate = del;
         [app run];
     }
-
-    return 1;
 }
 
 void MyClassImpl::destroyDisplay(void *displayObj)
