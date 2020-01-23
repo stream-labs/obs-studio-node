@@ -20,8 +20,8 @@
 #ifdef WIN32
 #include <ShlObj.h>
 #include <windows.h>
-#endif
 #include <filesystem>
+#endif
 #include "error.hpp"
 #include "shared.hpp"
 #include "utility.hpp"
