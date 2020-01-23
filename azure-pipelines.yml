@@ -241,22 +241,22 @@ jobs:
 
   - task: ArchiveFiles@2
     inputs:
-      rootFolderOrFile: $(SLFullDistributePath)\obs-studio-node
+      rootFolderOrFile: $(SLFullDistributePath)/obs-studio-node
       includeRootFolder: true
       archiveType: tar
       tarCompression: gz
-      archiveFile: '$(SLFullDistributePath)\$(BuildArtifact)-$(ReleaseName).tar.gz'
+      archiveFile: '$(SLBuildDirectory)/$(SLDistributeDirectory)/$(BuildArtifact)-$(ReleaseName).tar.gz'
     displayName: 'Generate build artifact'
 
   - task: PublishBuildArtifacts@1
     inputs:
-      pathtoPublish: $(SLFullDistributePath)\$(BuildArtifact)-$(ReleaseName).tar.gz
+      pathtoPublish: $(SLBuildDirectory)/$(SLDistributeDirectory)/$(BuildArtifact)-$(ReleaseName).tar.gz
       artifactName: $(BuildArtifact).tar.gz
     displayName: 'Publish build artifact'
 
   - task: ArchiveFiles@2
     inputs:
-      rootFolderOrFile: $(SLFullDistributePath)\obs-studio-node
+      rootFolderOrFile: $(SLBuildDirectory)/$(SLDistributeDirectory)/obs-studio-node
       includeRootFolder: true
       archiveType: tar
       tarCompression: gz
@@ -266,7 +266,7 @@ jobs:
 
   - task: PublishBuildArtifacts@1
     inputs:
-      pathtoPublish: $(Build.SourcesDirectory)\$(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-$(ReleaseName).tar.gz
+      pathtoPublish: $(Build.SourcesDirectory)/$(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-$(ReleaseName).tar.gz
       artifactName: $(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-$(ReleaseName).tar.gz
     displayName: 'Publish tag artifact'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
