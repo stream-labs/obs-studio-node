@@ -241,7 +241,7 @@ jobs:
 
   - task: ArchiveFiles@2
     inputs:
-      rootFolderOrFile: $(SLFullDistributePath)/obs-studio-node
+      rootFolderOrFile: $(SLBuildDirectory)/$(SLDistributeDirectory)/obs-studio-node
       includeRootFolder: true
       archiveType: tar
       tarCompression: gz
