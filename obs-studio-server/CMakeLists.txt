@@ -304,7 +304,7 @@ if(WIN32)
 target_link_libraries(${PROJECT_NAME} ${PROJECT_LIBRARIES} optimized crashpad ${COREFOUNDATION} ${COCOA})
 else()
 target_link_libraries(${PROJECT_NAME} ${PROJECT_LIBRARIES} optimized ${COREFOUNDATION} ${COCOA})
-end()
+endif()
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE_PATHS})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "obs${BITS}")
 
