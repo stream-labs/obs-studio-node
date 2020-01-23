@@ -240,9 +240,11 @@ Controller::~Controller() {}
 
 std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 {
+	std::cout << "host - start" << std::endl;
 	if (m_isServer)
 		return nullptr;
 
+	std::cout << "host - 0" << std::endl;
 	std::stringstream commandLine;
 	commandLine << "\"" << serverBinaryPath << "\""
 	            << " " << uri;
@@ -279,6 +281,7 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 		return nullptr;
 	}
 #else
+	std::cout << "host - 1" << std::endl;
     pid_t pids[2048];
     int bytes = proc_listpids(PROC_ALL_PIDS, 0, pids, sizeof(pids));
     int n_proc = bytes / sizeof(pids[0]);
@@ -294,6 +297,7 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
         }
     }
 
+	std::cout << "host - 2" << std::endl;
     pid_t pid;
     std::vector<char> uri_str(uri.c_str(), uri.c_str() + uri.size() + 1);
     char *argv[] = {"obs64", uri_str.data(), NULL};
