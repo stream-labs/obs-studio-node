@@ -1,6 +1,6 @@
 ls
 
-tar -czvfp ${TAGARTIFACT}-${RUNTIMENAME}-v${ELECTRONVERSION}-osx-${RELEASENAME}.tar.gz \
+tar -c --gz -f -p ${TAGARTIFACT}-${RUNTIMENAME}-v${ELECTRONVERSION}-osx-${RELEASENAME}.tar.gz \
     ${SLBUILDDIRECTORY}/${SLDISTRIBUTEDIRECTORY}/obs-studio-node
 
 ls
