@@ -254,7 +254,7 @@ jobs:
       artifactName: $(BuildArtifact).tar.gz
     displayName: 'Publish build artifact'
 
-  - script: 'tar -czvfp $(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-osx-$(ReleaseName).tar.gz $(SLBuildDirectory)/$(SLDistributeDirectory)/obs-studio-node'
+  - script: './ci/deploy-osx.sh'
     displayName: 'Generate tag artifact'
 
   - task: PublishBuildArtifacts@1
