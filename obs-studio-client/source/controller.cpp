@@ -305,24 +305,8 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
     remove(uri.c_str());
 
     int ret = 0;
-    posix_spawn_file_actions_t child_fd_actions;
-    if (ret = posix_spawn_file_actions_init (&child_fd_actions))
-        perror ("posix_spawn_file_actions_init"), exit(ret);
-    if (ret = posix_spawn_file_actions_addopen (&child_fd_actions, 1, "/Users/eddygharbi/streamlabs/obs-studio-node/logs/log",
-            O_WRONLY | O_CREAT | O_TRUNC, 0644))
-        perror ("posix_spawn_file_actions_addopen"), exit(ret);
-    if (ret = posix_spawn_file_actions_adddup2 (&child_fd_actions, 1, 2))
-        perror ("posix_spawn_file_actions_adddup2"), exit(ret);
-
-    if (ret = posix_spawnp(&pid, serverBinaryPath.c_str(), &child_fd_actions, NULL, argv, environ))
+    if (ret = posix_spawnp(&pid, serverBinaryPath.c_str(), NULL, NULL, argv, environ))
         perror ("posix_spawn"), exit(ret);
-
-    // int status = posix_spawn(&pid, serverBinaryPath.c_str(), NULL, NULL, argv, environ);
-
-    // std::cout << "Status: " << status << std::endl;
-    // if (status != 0) {
-    //     return nullptr;
-    // }
     
     // Connect
     std::shared_ptr<ipc::client> cl = connect(uri);

@@ -225,8 +225,8 @@ int main(int argc, char* argv[])
 	sd.last_disconnect = sd.last_connect = std::chrono::high_resolution_clock::now();
 
 	// Create display window
-    myServer.displayHandler = new MyCPPClass();
-    myServer.displayHandler->init();
+	myServer.displayHandler = new MyCPPClass();
+	myServer.displayHandler->init();
 	myServer.displayHandler->createDisplay();
 	
 	bool waitBeforeClosing = false;
