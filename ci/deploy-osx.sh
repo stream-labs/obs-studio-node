@@ -1,6 +1,0 @@
-ls
-
-tar -c --gz -f ${TAGARTIFACT}-${RUNTIMENAME}-v${ELECTRONVERSION}-osx-${RELEASENAME}.tar.gz \
-    ${SLBUILDDIRECTORY}/${SLDISTRIBUTEDIRECTORY}/obs-studio-node
-
-ls

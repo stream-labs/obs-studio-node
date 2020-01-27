@@ -261,8 +261,8 @@ jobs:
       archiveType: tar
       tarCompression: gz
       archiveFile: '$(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-osx-$(ReleaseName).tar.gz'
-      displayName: 'Generate tag artifact'
       condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+    displayName: 'Generate tag artifact'
 
   - task: PublishBuildArtifacts@1
     inputs:
