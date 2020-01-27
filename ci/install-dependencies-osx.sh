@@ -1,6 +1,7 @@
 # Install system dependencies
 brew update
 brew doctor
+brew install cmake
 brew install node
 brew install nvm
 mkdir ~/.nvm

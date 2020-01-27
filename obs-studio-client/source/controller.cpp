@@ -304,10 +304,12 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
     std::cout << "Spawning obs server" << std::endl;
     remove(uri.c_str());
 
-    int ret = 0;
-    if (ret = posix_spawnp(&pid, serverBinaryPath.c_str(), NULL, NULL, argv, environ))
-        perror ("posix_spawn"), exit(ret);
-    
+    // int ret = 0;
+    // if (ret = posix_spawnp(&pid, serverBinaryPath.c_str(), NULL, NULL, argv, environ))
+    //     perror ("posix_spawn"), exit(ret);
+	std::cout << "Opening " << serverBinaryPath.c_str() << std::endl;
+	int ret  = posix_spawnp(&pid, serverBinaryPath.c_str(), NULL, NULL, argv, environ);
+	std::cout << "Result: " << ret << std::endl;
     // Connect
     std::shared_ptr<ipc::client> cl = connect(uri);
     if (!cl) { // Assume the server broke or was not allowed to run.
