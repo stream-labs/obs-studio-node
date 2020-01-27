@@ -254,8 +254,15 @@ jobs:
       artifactName: $(BuildArtifact).tar.gz
     displayName: 'Publish build artifact'
 
-  - script: './ci/deploy-osx.sh'
-    displayName: 'Generate tag artifact'
+  - task: ArchiveFiles@2
+    inputs:
+      rootFolderOrFile: $(SLBuildDirectory)/$(SLDistributeDirectory)/obs-studio-node
+      includeRootFolder: true
+      archiveType: tar
+      tarCompression: gz
+      archiveFile: '$(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-osx-$(ReleaseName).tar.gz'
+      displayName: 'Generate tag artifact'
+      condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
   - task: PublishBuildArtifacts@1
     inputs:
