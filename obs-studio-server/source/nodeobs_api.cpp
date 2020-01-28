@@ -690,7 +690,6 @@ void OBS_API::OBS_API_initAPI(
 		std::cerr << "Failed to open log file" << std::endl;
 	}
 
-	base_set_log_handler(node_obs_log, logfile);
 #endif
 #ifndef _DEBUG
 	// Redirect the ipc log callbacks to our log handler
@@ -768,6 +767,9 @@ void OBS_API::OBS_API_initAPI(
 
 	obs_set_replay_buffer_rendering_mode(
 		useStreamOutput ? OBS_STREAMING_REPLAY_BUFFER_RENDERING : OBS_RECORDING_REPLAY_BUFFER_RENDERING);
+
+	base_set_log_handler(node_obs_log, logfile);
+
 	blog(LOG_INFO, "Init success");
 	// We are returning a video result here because the frontend needs to know if we sucessfully
 	// initialized the Dx11 API
