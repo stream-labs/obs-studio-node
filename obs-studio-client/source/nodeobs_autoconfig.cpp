@@ -53,6 +53,11 @@ void AutoConfig::callback_handler(void* data, std::shared_ptr<AutoConfigInfo> it
 	v8::Local<v8::Value> args[1];
 	Nan::HandleScope     scope;
 
+	std::cout << "client received event ######" << std::endl;
+	std::cout << "- event: " << item->event.c_str() << std::endl;
+	std::cout << "- description: " << item->description.c_str() << std::endl;
+	std::cout << "- percentage: " << item->percentage << std::endl;
+
 	v8::Local<v8::Value> argv = v8::Object::New(isolate);
 	argv->ToObject()->Set(
 	    v8::String::NewFromUtf8(isolate, "event").ToLocalChecked(),
@@ -116,9 +121,11 @@ void AutoConfig::worker()
 		{
 			std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "Query", {});
 			if (!response.size() || (response.size() == 1)) {
+				// std::cout << "No value received, sleeping" << std::endl;
 				goto do_sleep;
 			}
 
+			std::cout << "Event received!" << std::endl;
 			ErrorCode error = (ErrorCode)response[0].value_union.ui64;
 			if (error == ErrorCode::Ok) {
 				std::shared_ptr<AutoConfigInfo> data = std::make_shared<AutoConfigInfo>();

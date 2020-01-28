@@ -409,6 +409,7 @@ void autoConfig::Query(void* data, const int64_t id, const std::vector<ipc::valu
 {
 	std::unique_lock<std::mutex> ulock(eventsMutex);
 	if (events.empty()) {
+		// blog(LOG_INFO, "No auto config events received");
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		AUTO_DEBUG;
 		return;
@@ -416,6 +417,10 @@ void autoConfig::Query(void* data, const int64_t id, const std::vector<ipc::valu
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
+	blog(LOG_INFO, "server pushing events: %d", events.size());
+	blog(LOG_INFO, "event %s", events.front().event.c_str());
+	blog(LOG_INFO, "description %s", events.front().description.c_str());
+	blog(LOG_INFO, "percentage %lf", events.front().percentage);
 	rval.push_back(ipc::value(events.front().event));
 	rval.push_back(ipc::value(events.front().description));
 	rval.push_back(ipc::value(events.front().percentage));
@@ -1263,6 +1268,7 @@ bool autoConfig::TestSoftwareEncoding()
 
 void autoConfig::TestStreamEncoderThread()
 {
+	blog(LOG_INFO, "TestStreamEncoderThread - start");
 	eventsMutex.lock();
 	events.push(AutoConfigInfo("starting_step", "streamingEncoder_test", 0));
 	eventsMutex.unlock();
@@ -1297,10 +1303,12 @@ void autoConfig::TestStreamEncoderThread()
 	eventsMutex.lock();
 	events.push(AutoConfigInfo("stopping_step", "streamingEncoder_test", 100));
 	eventsMutex.unlock();
+	blog(LOG_INFO, "TestStreamEncoderThread - end");
 }
 
 void autoConfig::TestRecordingEncoderThread()
 {
+	blog(LOG_INFO, "TestRecordingEncoderThread - start");
 	eventsMutex.lock();
 	events.push(AutoConfigInfo("starting_step", "recordingEncoder_test", 0));
 	eventsMutex.unlock();
@@ -1341,6 +1349,7 @@ void autoConfig::TestRecordingEncoderThread()
 	eventsMutex.lock();
 	events.push(AutoConfigInfo("stopping_step", "recordingEncoder_test", 100));
 	eventsMutex.unlock();
+	blog(LOG_INFO, "TestRecordingEncoderThread - end");
 }
 
 inline const char* GetEncoderId(Encoder enc)
@@ -1375,6 +1384,7 @@ inline const char* GetEncoderDisplayName(Encoder enc)
 
 bool autoConfig::CheckSettings(void)
 {
+	blog(LOG_INFO, "CheckSettings - start");
 	OBSData settings = obs_data_create();
 
 	obs_data_set_string(settings, "service", serviceName.c_str());
@@ -1500,11 +1510,14 @@ bool autoConfig::CheckSettings(void)
 	obs_encoder_release(aencoder);
 	obs_service_release(service);
 
+	blog(LOG_INFO, "CheckSettings - end");
+
 	return success;
 }
 
 void autoConfig::SetDefaultSettings(void)
 {
+	blog(LOG_INFO, "SetDefaultSettings - start");
 	eventsMutex.lock();
 	events.push(AutoConfigInfo("starting_step", "setting_default_settings", 0));
 	eventsMutex.unlock();
@@ -1520,10 +1533,12 @@ void autoConfig::SetDefaultSettings(void)
 	eventsMutex.lock();
 	events.push(AutoConfigInfo("stopping_step", "setting_default_settings", 100));
 	eventsMutex.unlock();
+	blog(LOG_INFO, "SetDefaultSettings - end");
 }
 
 void autoConfig::SaveStreamSettings()
 {
+	blog(LOG_INFO, "SaveStreamSettings - start");
 	/* ---------------------------------- */
 	/* save service                       */
 
@@ -1565,10 +1580,12 @@ void autoConfig::SaveStreamSettings()
 	eventsMutex.lock();
 	events.push(AutoConfigInfo("stopping_step", "saving_service", 100));
 	eventsMutex.unlock();
+	blog(LOG_INFO, "SaveStreamSettings - end");
 }
 
 void autoConfig::SaveSettings()
 {
+	blog(LOG_INFO, "SaveSettings - start");
 	eventsMutex.lock();
 	events.push(AutoConfigInfo("starting_step", "saving_settings", 0));
 	eventsMutex.unlock();
@@ -1600,4 +1617,5 @@ void autoConfig::SaveSettings()
 	events.push(AutoConfigInfo("stopping_step", "saving_settings", 100));
 	events.push(AutoConfigInfo("done", "", 0));
 	eventsMutex.unlock();
+	blog(LOG_INFO, "SaveSettings - end");
 }
