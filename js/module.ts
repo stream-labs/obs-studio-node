@@ -317,7 +317,9 @@ export const enum EOutputCode {
     Error = -4,
     Disconnected = -5,
     Unsupported = -6,
-    NoSpace = -7
+    NoSpace = -7,
+    EncoderError = -8,
+    OutdatedDriver = -65,
 }
 
 export const enum ECategoryTypes {
