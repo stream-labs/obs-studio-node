@@ -400,8 +400,6 @@ void OBS_content::OBS_content_moveDisplay(
 	display->m_position.second = y;
 	display->m_screenScale = g_srv->displayHandler->getCurrentScaleFactor();
 
-	blog(LOG_INFO, "moving display, isMouseEventsTrackingEnabled: %d", display->m_enableMouseEvents);
-
 	g_srv->displayHandler->moveDisplay(display, x, y);
 
 	// display->SetPosition(x, y);
