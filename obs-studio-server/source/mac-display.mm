@@ -261,7 +261,7 @@ void MyClassImpl::moveDisplay(void *displayObj, int x, int y)
             NSScreen *mainScreen = [[NSScreen screens] firstObject];
             NSRect screenRect = [mainScreen visibleFrame];
             [info->win setFrame:CGRectMake(x, 
-                screenRect.size.height - y - [info->win frame].size.height,
+                screenRect.size.height - y,
                 [info->win frame].size.width ,
                 [info->win frame].size.height) display:YES];
 
