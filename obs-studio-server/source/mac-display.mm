@@ -277,7 +277,7 @@ void MyClassImpl::moveDisplay(void *displayObj, int x, int y)
                 // Update tracking area
                 NSView *currentView = [info->win contentView];
                 NSTrackingArea* trackingArea = [[NSTrackingArea alloc]
-                                        initWithRect:[currentView bounds]
+                                        initWithRect:screenRect
                                         options:NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved | NSTrackingActiveAlways
                                         owner:currentView userInfo:nil];
                 [currentView addTrackingArea:trackingArea];
