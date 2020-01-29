@@ -577,8 +577,8 @@ void OBS_content::OBS_content_getDisplayPreviewOffset(
 	auto offset = display->GetPreviewOffset();
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value((int32_t)offset.first * g_srv->displayHandler->getCurrentScaleFactor()));
-	rval.push_back(ipc::value((int32_t)offset.second * g_srv->displayHandler->getCurrentScaleFactor()));
+	rval.push_back(ipc::value((int32_t)offset.first));
+	rval.push_back(ipc::value((int32_t)offset.second));
 	AUTO_DEBUG;
 }
 
