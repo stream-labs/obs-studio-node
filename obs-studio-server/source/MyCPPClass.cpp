@@ -72,6 +72,11 @@ int MyCPPClass::getCurrentScaleFactor(void)
     return _impl->getCurrentScaleFactor();
 }
 
+void MyCPPClass::destroyWindow(void)
+{
+    _impl->destroyWindow();
+}
+
 void addEvent(MouseEventType type, MouseEvent mouse_event)
 {
     std::unique_lock<std::mutex> ulock(mouseEvents_mtx);

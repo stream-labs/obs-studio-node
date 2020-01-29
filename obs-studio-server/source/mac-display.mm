@@ -19,6 +19,8 @@
 #include "mac-display.h"
 #include <obs.h>
 #include "MyCPPClass.h"
+#include "nodeobs_api.h"
+#include "osn-source.hpp"
 
 @implementation CustomView
 - (MouseEvent)translateEvent:(NSEvent *)event
@@ -180,6 +182,12 @@ DisplayInfo* createWindow(void)
     [_array removeObject:window.windowController];
 }
 
+- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
+{
+    UNUSED_PARAMETER(sender);
+    return NSTerminateNow;
+}
+
 @end
 
 @implementation MyObject
@@ -298,6 +306,16 @@ void MyClassImpl::setFocused(void *displayObj, bool focused)
 int MyClassImpl::getCurrentScaleFactor(void)
 {
     return [[NSScreen mainScreen] backingScaleFactor];
+}
+
+void MyClassImpl::destroyWindow(void)
+{
+    dispatch_sync(dispatch_get_main_queue(), ^{
+        [NSApp stop:nil];
+        osn::Source::finalize_global_signals();
+        OBS_API::destroyOBS_API();
+        exit(0);
+    });
 }
 
 @end

@@ -224,11 +224,12 @@ int main(int argc, char* argv[])
 	// Reset Connect/Disconnect time.
 	sd.last_disconnect = sd.last_connect = std::chrono::high_resolution_clock::now();
 
+#ifdef __APPLE__
 	// Create display window
 	myServer.displayHandler = new MyCPPClass();
 	myServer.displayHandler->init();
 	myServer.displayHandler->createDisplay();
-	
+#endif
 	bool waitBeforeClosing = false;
 	
 	while (!doShutdown) {
