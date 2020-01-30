@@ -31,6 +31,7 @@
 @interface CustomView: NSView
 @property (atomic, strong) NSDate *previousTimeMoved;
 @property (atomic, strong) NSDate *previousTimeDragged;
+@property (atomic, strong) NSTrackingArea* trackingArea;
 @property bool mouseIn;
 - (MouseEvent) translateEvent:(NSEvent *)event;
 @end

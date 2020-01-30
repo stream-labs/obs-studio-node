@@ -106,6 +106,39 @@
     self.mouseIn = false;
 }
 
+- (void) doChangeCursor
+{
+    NSLog(@"mouseMoved");
+    // [[NSCursor IBeamCursor] set];
+}
+
+- (void)cursorUpdate:(NSEvent *)event {
+    NSLog(@"cursorUpdate");
+    // [self performSelector:@selector(doChangeCursor) withObject:nil afterDelay:1];
+}
+
+- (void)updateTrackingAreas {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [super updateTrackingAreas];
+        if (_trackingArea) {
+            [self removeTrackingArea: _trackingArea];
+            _trackingArea = nil;
+        }
+
+        const NSUInteger trackerOptions = NSTrackingMouseMoved | NSTrackingMouseEnteredAndExited |
+                                        NSTrackingActiveInActiveApp | NSTrackingInVisibleRect |
+                                        NSTrackingEnabledDuringMouseDrag | NSTrackingCursorUpdate;
+
+        _trackingArea = [[NSTrackingArea alloc]
+            initWithRect:[self bounds]
+            options: trackerOptions
+            owner:self
+            userInfo:nil];
+
+        [self addTrackingArea:_trackingArea];
+    });
+}
+
 - (id)initWithFrame:(NSRect)frame {
     self = [super initWithFrame:frame];
 
@@ -114,6 +147,7 @@
         self.previousTimeDragged = nil;
         self.mouseIn = false;
     }
+
     return self;
 }
 
@@ -268,20 +302,13 @@ void MyClassImpl::moveDisplay(void *displayObj, int x, int y)
             DisplayInfo *info = it->second;
             NSScreen *mainScreen = [[NSScreen screens] firstObject];
             NSRect screenRect = [mainScreen frame];
-            [info->win setFrame:CGRectMake(x, 
+            NSRect viewRect = CGRectMake(x,
                 screenRect.size.height - y,
                 [info->win frame].size.width ,
-                [info->win frame].size.height) display:YES];
+                [info->win frame].size.height);
 
-            if (dp->m_enableMouseEvents) {
-                // Update tracking area
-                NSView *currentView = [info->win contentView];
-                NSTrackingArea* trackingArea = [[NSTrackingArea alloc]
-                                        initWithRect:screenRect
-                                        options:NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved | NSTrackingActiveAlways
-                                        owner:currentView userInfo:nil];
-                [currentView addTrackingArea:trackingArea];
-            }
+            [info->win setFrame:viewRect display:YES];
+
             info->view.previousTimeMoved = nil;
             info->view.previousTimeDragged = nil;
         }
