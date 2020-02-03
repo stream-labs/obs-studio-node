@@ -610,7 +610,6 @@ void OBS_API::OBS_API_initAPI(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	blog(LOG_INFO, "Server executes - OBS_API_initAPI");
 #ifdef WIN32
 	writeCrashHandler(registerProcess());
 #endif
@@ -819,6 +818,9 @@ void OBS_API::QueryHotkeys(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+#ifdef __APPLE__
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+#else
 	struct HotkeyInfo
 	{
 		std::string                objectName;
@@ -926,6 +928,7 @@ void OBS_API::QueryHotkeys(
 		rval.push_back(ipc::value(uint64_t(hotkeyInfo.hotkeyId)));
 	}
 
+#endif
 	AUTO_DEBUG;
 }
 
