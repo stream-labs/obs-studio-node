@@ -231,9 +231,9 @@ int main(int argc, char* argv[])
 	g_util_osx->init();
 
 	// Create display window
-	myServer.displayHandler = new DisplayInt();
-	myServer.displayHandler->init();
-	myServer.displayHandler->createDisplay();
+	// myServer.displayHandler = new DisplayInt();
+	// myServer.displayHandler->init();
+	// myServer.displayHandler->createDisplay();
 #endif
 	bool waitBeforeClosing = false;
 	
