@@ -24,6 +24,7 @@
 #endif
 
 #include <util/platform.h>
+#include "shared.hpp"
 
 void ConfigManager::setAppdataPath(std::string path)
 {
@@ -79,7 +80,7 @@ static inline std::string GetDefaultVideoSavePath()
 	os_wcs_to_utf8(path_utf16, wcslen(path_utf16), path_utf8, MAX_PATH);
 	return std::string(path_utf8);
 #else
-    return "";
+    return g_util_osx->getDefaultVideoSavePath();
 #endif
 }
 
@@ -121,7 +122,7 @@ void initBasicDefault(config_t* config)
 	config_set_default_string(config, "Output", "Mode", "Simple");
 	std::string filePath = GetDefaultVideoSavePath();
 	config_set_default_string(config, "SimpleOutput", "FilePath", filePath.c_str());
-	config_set_default_string(config, "SimpleOutput", "RecFormat", "flv");
+	config_set_default_string(config, "SimpleOutput", "RecFormat", "mp4");
 	config_set_default_uint(config, "SimpleOutput", "VBitrate", 2500);
 	config_set_default_string(config, "SimpleOutput", "StreamEncoder", "obs_x264");
 	config_set_default_uint(config, "SimpleOutput", "ABitrate", 160);

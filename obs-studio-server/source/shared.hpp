@@ -23,6 +23,7 @@
 #include <sstream>
 #include <vector>
 #include "ipc-value.hpp"
+#include "util-osx.hpp"
 
 #ifndef __FUNCTION_NAME__
 #if defined(_WIN32) || defined(_WIN64) //WINDOWS
@@ -30,6 +31,10 @@
 #else //*NIX
 #define __FUNCTION_NAME__ __func__
 #endif
+#endif
+
+#ifdef __APPLE__
+	extern UtilInt* g_util_osx;
 #endif
 
 static inline std::string StringFromIPCValueVector(std::vector<ipc::value> const& val)

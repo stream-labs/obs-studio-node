@@ -227,6 +227,9 @@ int main(int argc, char* argv[])
 	sd.last_disconnect = sd.last_connect = std::chrono::high_resolution_clock::now();
 
 #ifdef __APPLE__
+	g_util_osx = new UtilInt();
+	g_util_osx->init();
+
 	// Create display window
 	myServer.displayHandler = new DisplayInt();
 	myServer.displayHandler->init();

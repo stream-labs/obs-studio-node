@@ -284,13 +284,19 @@ add_executable(
 	"${PROJECT_SOURCE_DIR}/source/memory-manager.cpp"
 	"${PROJECT_SOURCE_DIR}/source/memory-manager.h"
 
+	###### osx-display ######
 	"${PROJECT_SOURCE_DIR}/source/mac-display.mm"
 	"${PROJECT_SOURCE_DIR}/source/mac-display.h"
-
 	"${PROJECT_SOURCE_DIR}/source/mac-display-int.cpp"
 	"${PROJECT_SOURCE_DIR}/source/mac-display-int.h"
-	
 	"${PROJECT_SOURCE_DIR}/source/mac-display-obj-c-int.h"
+
+	###### osx-util ######
+	"${PROJECT_SOURCE_DIR}/source/util-osx.hpp"
+	"${PROJECT_SOURCE_DIR}/source/util-osx.cpp"
+	"${PROJECT_SOURCE_DIR}/source/util-osx-int.h"
+	"${PROJECT_SOURCE_DIR}/source/util-osx-impl.h"
+	"${PROJECT_SOURCE_DIR}/source/util-osx-impl.mm"
 )
 
 if(WIN32)

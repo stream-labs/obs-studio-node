@@ -13,9 +13,15 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+ 
 ******************************************************************************/
 
-#include "shared.hpp"
+#import "Foundation/Foundation.h"
+#import <Cocoa/Cocoa.h>
+#import <OpenGL/OpenGL.h>
 
-UtilInt* g_util_osx;
+#include "util-osx-int.h"
+#include "util-osx.hpp"
+
+@interface UtilImplObj : NSObject
+@end

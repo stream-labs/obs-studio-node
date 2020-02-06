@@ -224,7 +224,7 @@ DisplayInfo* createWindow(void)
 
 @end
 
-@implementation MyObject
+@implementation DisplayImpl
 
 DisplayObjCInt::DisplayObjCInt( void )
     : self( NULL )
@@ -237,7 +237,7 @@ DisplayObjCInt::~DisplayObjCInt( void )
 
 void DisplayObjCInt::init( void )
 {
-    self = [[MyObject alloc] init];
+    self = [[DisplayImpl alloc] init];
 }
 
 void DisplayObjCInt::createDisplay(void)

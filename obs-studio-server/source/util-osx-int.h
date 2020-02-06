@@ -16,6 +16,22 @@
 
 ******************************************************************************/
 
-#include "shared.hpp"
+#ifndef __UTIL_OBJC_INTERFACE_H__
+#define __UTIL_OBJC_INTERFACE_H__
 
-UtilInt* g_util_osx;
+#include <string>
+
+class UtilObjCInt
+{
+public:
+    UtilObjCInt(void);
+    ~UtilObjCInt(void);
+
+    void init(void);
+    std::string getDefaultVideoSavePath(void);
+
+private:
+    void * self;
+};
+
+#endif

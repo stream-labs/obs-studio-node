@@ -16,6 +16,24 @@
 
 ******************************************************************************/
 
-#include "shared.hpp"
+#include "util-osx.hpp"
+#include "util-osx-int.h"
 
-UtilInt* g_util_osx;
+UtilInt::UtilInt(void)
+    : _impl ( nullptr )
+{   }
+
+void UtilInt::init(void)
+{
+    _impl = new UtilObjCInt();
+}
+
+UtilInt::~UtilInt(void)
+{
+    if ( _impl ) { delete _impl; _impl = nullptr; }
+}
+
+std::string UtilInt::getDefaultVideoSavePath(void)
+{
+    return _impl->getDefaultVideoSavePath();
+}
