@@ -16,15 +16,15 @@
 
 ******************************************************************************/
 
-#ifndef __MYCPP_CLASS_H__
-#define __MYCPP_CLASS_H__
+#ifndef __DISPLAY_CLASS_H__
+#define __DISPLAY_CLASS_H__
 
 #include <queue>
 #include <mutex>
 
 typedef unsigned long long uint64_t;
 
-class MyClassImpl;
+class DisplayObjCInt;
 
 enum MouseEventType: uint8_t {
     mouseDown = 0,
@@ -49,11 +49,11 @@ extern std::mutex mouseEvents_mtx;
 
 void addEvent(MouseEventType type, MouseEvent mouse_event);
 
-class MyCPPClass
+class DisplayInt
 {
 public:
-    MyCPPClass ( void );
-    ~MyCPPClass( void );
+    DisplayInt ( void );
+    ~DisplayInt( void );
 
     void init( void );
 
@@ -66,7 +66,7 @@ public:
     void destroyWindow(void);
 
 private:
-    MyClassImpl * _impl;
+    DisplayObjCInt * _impl;
 };
 
 #endif

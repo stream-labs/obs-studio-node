@@ -228,7 +228,7 @@ int main(int argc, char* argv[])
 
 #ifdef __APPLE__
 	// Create display window
-	myServer.displayHandler = new MyCPPClass();
+	myServer.displayHandler = new DisplayInt();
 	myServer.displayHandler->init();
 	myServer.displayHandler->createDisplay();
 #endif

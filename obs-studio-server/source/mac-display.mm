@@ -18,7 +18,7 @@
 
 #include "mac-display.h"
 #include <obs.h>
-#include "MyCPPClass.h"
+#include "mac-display-int.h"
 #include "nodeobs_api.h"
 #include "osn-source.hpp"
 
@@ -226,21 +226,21 @@ DisplayInfo* createWindow(void)
 
 @implementation MyObject
 
-MyClassImpl::MyClassImpl( void )
+DisplayObjCInt::DisplayObjCInt( void )
     : self( NULL )
 {   }
 
-MyClassImpl::~MyClassImpl( void )
+DisplayObjCInt::~DisplayObjCInt( void )
 {
     [(id)self dealloc];
 }
 
-void MyClassImpl::init( void )
+void DisplayObjCInt::init( void )
 {
     self = [[MyObject alloc] init];
 }
 
-void MyClassImpl::createDisplay(void)
+void DisplayObjCInt::createDisplay(void)
 {
     @autoreleasepool {
         NSApplication *app = [NSApplication sharedApplication];
@@ -250,7 +250,7 @@ void MyClassImpl::createDisplay(void)
     }
 }
 
-void MyClassImpl::destroyDisplay(void *displayObj)
+void DisplayObjCInt::destroyDisplay(void *displayObj)
 {
     dispatch_sync(dispatch_get_main_queue(), ^{
         OBS::Display* dp = static_cast<OBS::Display*>(displayObj);
@@ -262,7 +262,7 @@ void MyClassImpl::destroyDisplay(void *displayObj)
     });
 }
 
-void MyClassImpl::startDrawing(void *displayObj)
+void DisplayObjCInt::startDrawing(void *displayObj)
 {
     dispatch_sync(dispatch_get_main_queue(), ^{
         OBS::Display* dp = static_cast<OBS::Display*>(displayObj);
@@ -281,7 +281,7 @@ void MyClassImpl::startDrawing(void *displayObj)
     });
 }
 
-void MyClassImpl::resizeDisplay(void *displayObj, int width, int height)
+void DisplayObjCInt::resizeDisplay(void *displayObj, int width, int height)
 {
     dispatch_sync(dispatch_get_main_queue(), ^{
         OBS::Display* dp = static_cast<OBS::Display*>(displayObj);
@@ -293,7 +293,7 @@ void MyClassImpl::resizeDisplay(void *displayObj, int width, int height)
     });
 }
 
-void MyClassImpl::moveDisplay(void *displayObj, int x, int y)
+void DisplayObjCInt::moveDisplay(void *displayObj, int x, int y)
 {
     dispatch_sync(dispatch_get_main_queue(), ^{
         OBS::Display* dp = static_cast<OBS::Display*>(displayObj);
@@ -315,7 +315,7 @@ void MyClassImpl::moveDisplay(void *displayObj, int x, int y)
     });
 }
 
-void MyClassImpl::setFocused(void *displayObj, bool focused)
+void DisplayObjCInt::setFocused(void *displayObj, bool focused)
 {
     dispatch_sync(dispatch_get_main_queue(), ^{
         OBS::Display* dp = static_cast<OBS::Display*>(displayObj);
@@ -330,7 +330,7 @@ void MyClassImpl::setFocused(void *displayObj, bool focused)
     });
 }
 
-void MyClassImpl::destroyWindow(void)
+void DisplayObjCInt::destroyWindow(void)
 {
     dispatch_sync(dispatch_get_main_queue(), ^{
         [NSApp stop:nil];

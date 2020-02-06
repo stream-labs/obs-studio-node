@@ -16,16 +16,16 @@
 
 ******************************************************************************/
 
-#ifndef __MYOBJECT_C_INTERFACE_H__
-#define __MYOBJECT_C_INTERFACE_H__
+#ifndef __DISPLAY_OBJC_INTERFACE_H__
+#define __DISPLAY_OBJC_INTERFACE_H__
 
 typedef unsigned long long uint64_t;
 
-class MyClassImpl
+class DisplayObjCInt
 {
 public:
-    MyClassImpl ( void );
-    ~MyClassImpl( void );
+    DisplayObjCInt ( void );
+    ~DisplayObjCInt( void );
 
     void init( void );
     void createDisplay(void);

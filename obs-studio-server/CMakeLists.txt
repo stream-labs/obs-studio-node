@@ -287,10 +287,10 @@ add_executable(
 	"${PROJECT_SOURCE_DIR}/source/mac-display.mm"
 	"${PROJECT_SOURCE_DIR}/source/mac-display.h"
 
-	"${PROJECT_SOURCE_DIR}/source/MyCPPClass.cpp"
-	"${PROJECT_SOURCE_DIR}/source/MyCPPClass.h"
+	"${PROJECT_SOURCE_DIR}/source/mac-display-int.cpp"
+	"${PROJECT_SOURCE_DIR}/source/mac-display-int.h"
 	
-	"${PROJECT_SOURCE_DIR}/source/MyObject-C-Interface.h"
+	"${PROJECT_SOURCE_DIR}/source/mac-display-obj-c-int.h"
 )
 
 if(WIN32)

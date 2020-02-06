@@ -23,7 +23,7 @@
 #endif
 #include "error.hpp"
 #include "shared.hpp"
-#include "MyCPPClass.h"
+#include "mac-display-int.h"
 #include "osn-source.hpp"
 
 std::mutex                             sources_sizes_mtx;

@@ -16,58 +16,58 @@
 
 ******************************************************************************/
 
-#include "MyCPPClass.h"
-#include "MyObject-C-Interface.h"
+#include "mac-display-int.h"
+#include "mac-display-obj-c-int.h"
 #include <obs.h>
 
 std::queue<std::pair<MouseEventType, MouseEvent>> mouseEvents;
 std::mutex mouseEvents_mtx;
 
-MyCPPClass::MyCPPClass( void )
+DisplayInt::DisplayInt( void )
     : _impl ( nullptr )
 {   }
 
-void MyCPPClass::init( void )
+void DisplayInt::init( void )
 {
-    _impl = new MyClassImpl();
+    _impl = new DisplayObjCInt();
 }
 
-MyCPPClass::~MyCPPClass( void )
+DisplayInt::~DisplayInt( void )
 {
     if ( _impl ) { delete _impl; _impl = nullptr; }
 }
 
-void MyCPPClass::createDisplay(void)
+void DisplayInt::createDisplay(void)
 {
     return _impl->createDisplay();
 }
 
-void MyCPPClass::destroyDisplay(void *displayObj)
+void DisplayInt::destroyDisplay(void *displayObj)
 {
     return _impl->destroyDisplay(displayObj);
 }
 
-void MyCPPClass::startDrawing(void *displayObj)
+void DisplayInt::startDrawing(void *displayObj)
 {
     return _impl->startDrawing(displayObj);
 }
 
-void MyCPPClass::resizeDisplay(void *displayObj, int width, int height)
+void DisplayInt::resizeDisplay(void *displayObj, int width, int height)
 {
     return _impl->resizeDisplay(displayObj, width, height);
 }
 
-void MyCPPClass::moveDisplay(void *displayObj, int x, int y)
+void DisplayInt::moveDisplay(void *displayObj, int x, int y)
 {
     return _impl->moveDisplay(displayObj, x, y);
 }
 
-void MyCPPClass::setFocused(void *displayObj, bool focused)
+void DisplayInt::setFocused(void *displayObj, bool focused)
 {
     return _impl->setFocused(displayObj, focused);
 }
 
-void MyCPPClass::destroyWindow(void)
+void DisplayInt::destroyWindow(void)
 {
     _impl->destroyWindow();
 }

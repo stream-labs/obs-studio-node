@@ -19,8 +19,8 @@
 #import "Foundation/Foundation.h"
 #import <Cocoa/Cocoa.h>
 #import <OpenGL/OpenGL.h>
-#import "MyObject-C-Interface.h"
-#include "MyCPPClass.h"
+#import "mac-display-obj-c-int.h"
+#include "mac-display-int.h"
 #include "nodeobs_display.h"
 #include <map>
 

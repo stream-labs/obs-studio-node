@@ -26,14 +26,13 @@
 
 #include "error.hpp"
 #include "shared.hpp"
-#include "MyCPPClass.h"
+#include "mac-display-int.h"
 
 #include <thread>
 
 std::map<std::string, OBS::Display*> displays;
 std::string                          sourceSelected;
-bool                                 firstDisplayCreation = true;
-MyCPPClass *g_obj;
+bool                                 firstDisplayCreation = true;\
 
 std::thread* windowMessage = NULL;
 ipc::server* g_srv;
@@ -278,11 +277,6 @@ void OBS_content::OBS_content_createDisplay(
 	firstDisplayCreation = false;
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
-}
-
-void OBS_content::setObjectInterface(MyCPPClass *myObj)
-{
-    g_obj = myObj;
 }
 
 void OBS_content::OBS_content_destroyDisplay(
