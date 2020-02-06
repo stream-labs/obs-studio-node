@@ -1,5 +1,4 @@
 #include "util-osx-impl.h"
-#include "util-osx-int.h"
 
 @implementation UtilImplObj
 

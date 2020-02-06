@@ -77,6 +77,13 @@ add_nodejs_module(
 	###### callback-manager ######
 	"source/callback-manager.cpp"
 	"source/callback-manager.hpp"
+
+	###### window-osx ######
+	"source/window-osx.h"
+	"source/window-osx.mm"
+	"source/window-osx-obj-c-int.h"
+	"source/window-osx-int.hpp"
+	"source/window-osx-int.cpp"
 )
 
 set(PROJECT_INCLUDE_PATHS
