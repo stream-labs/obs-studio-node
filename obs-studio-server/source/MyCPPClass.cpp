@@ -67,11 +67,6 @@ void MyCPPClass::setFocused(void *displayObj, bool focused)
     return _impl->setFocused(displayObj, focused);
 }
 
-int MyCPPClass::getCurrentScaleFactor(void)
-{
-    return _impl->getCurrentScaleFactor();
-}
-
 void MyCPPClass::destroyWindow(void)
 {
     _impl->destroyWindow();

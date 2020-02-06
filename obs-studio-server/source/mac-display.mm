@@ -330,11 +330,6 @@ void MyClassImpl::setFocused(void *displayObj, bool focused)
     });
 }
 
-int MyClassImpl::getCurrentScaleFactor(void)
-{
-    return [[NSScreen mainScreen] backingScaleFactor];
-}
-
 void MyClassImpl::destroyWindow(void)
 {
     dispatch_sync(dispatch_get_main_queue(), ^{

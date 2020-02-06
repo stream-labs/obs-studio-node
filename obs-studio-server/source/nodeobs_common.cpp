@@ -203,6 +203,11 @@ void OBS_content::Register(ipc::server& srv)
 	    std::vector<ipc::type>{ipc::type::String, ipc::type::Int32},
 	    OBS_content_setFocused));
 
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_content_setDisplayScale",
+	    std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32},
+	    OBS_content_setDisplayScale));
+
 	srv.register_collection(cls);
 	g_srv = &srv;
 }
@@ -265,7 +270,6 @@ void OBS_content::OBS_content_createDisplay(
 	}
 #else
 	OBS::Display *display = new OBS::Display(windowHandle, mode);
-	display->m_screenScale = g_srv->displayHandler->getCurrentScaleFactor();
 	displays.insert_or_assign(args[1].value_str, display);
 	g_srv->displayHandler->startDrawing(display);
 	display->m_enableMouseEvents = true;
@@ -328,13 +332,7 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(
 		return;
 	}
 
-	// OBS::Display *display = new OBS::Display(windowHandle, mode);
-	// display->m_screenScale = g_srv->displayHandler->getCurrentScaleFactor();
-	// displays.insert_or_assign(args[1].value_str, display);
-	// g_srv->displayHandler->startDrawing(display);
-
 	OBS::Display *display = new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str);
-	display->m_screenScale = g_srv->displayHandler->getCurrentScaleFactor();
 	displays.insert_or_assign(
 	    args[2].value_str, display);
 	g_srv->displayHandler->startDrawing(display);
@@ -361,7 +359,6 @@ void OBS_content::OBS_content_resizeDisplay(
 
 	display->m_gsInitData.cx = args[1].value_union.ui32;
 	display->m_gsInitData.cy = args[2].value_union.ui32;
-	display->m_screenScale = g_srv->displayHandler->getCurrentScaleFactor();
 
 	// Resize Display
     obs_display_resize(display->m_display,
@@ -398,7 +395,6 @@ void OBS_content::OBS_content_moveDisplay(
 
 	display->m_position.first  = x;
 	display->m_position.second = y;
-	display->m_screenScale = g_srv->displayHandler->getCurrentScaleFactor();
 
 	g_srv->displayHandler->moveDisplay(display, x, y);
 
@@ -638,6 +634,28 @@ void OBS_content::OBS_content_setFocused(
 		return;
 	}
 	g_srv->displayHandler->setFocused(it->second, (bool)args[1].value_union.i32);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void OBS_content::OBS_content_setDisplayScale(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	// Find Display
+	auto it = displays.find(args[0].value_str);
+	// auto it = displays.begin();
+	if (it == displays.end()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Display key is not valid!"));
+		return;
+	}
+	it->second->m_screenScale = args[1].value_union.ui32;
+
+	blog(LOG_INFO, "New display scale: %d", it->second->m_screenScale);
+
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }

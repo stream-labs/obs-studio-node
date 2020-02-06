@@ -309,6 +309,21 @@ void display::OBS_content_setFocused(const v8::FunctionCallbackInfo<v8::Value>& 
 	conn->call("Display", "OBS_content_setFocused", {ipc::value(key), ipc::value(focused)});
 }
 
+void display::OBS_content_setDisplayScale(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	std::string key;
+	uint32_t    scale;
+
+	ASSERT_GET_VALUE(args[0], key);
+	ASSERT_GET_VALUE(args[1], scale);
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	conn->call("Display", "OBS_content_setDisplayScale", {ipc::value(key), ipc::value(scale)});
+}
+
 INITIALIZER(nodeobs_display)
 {
 	initializerFunctions->push([](v8::Local<v8::Object> exports) {
@@ -325,5 +340,6 @@ INITIALIZER(nodeobs_display)
 		NODE_SET_METHOD(exports, "OBS_content_setShouldDrawUI", display::OBS_content_setShouldDrawUI);
 		NODE_SET_METHOD(exports, "OBS_content_setDrawGuideLines", display::OBS_content_setDrawGuideLines);
 		NODE_SET_METHOD(exports, "OBS_content_setFocused", display::OBS_content_setFocused);
+		NODE_SET_METHOD(exports, "OBS_content_setDisplayScale", display::OBS_content_setDisplayScale);
 	});
 }

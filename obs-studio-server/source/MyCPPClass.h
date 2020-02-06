@@ -63,7 +63,6 @@ public:
     void resizeDisplay(void *displayObj, int width, int height);
     void moveDisplay(void *displayObj, int x, int y);
     void setFocused(void *displayObj, bool focused);
-    int  getCurrentScaleFactor(void);
     void destroyWindow(void);
 
 private:
