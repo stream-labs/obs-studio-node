@@ -1,4 +1,5 @@
 #include "util-osx-impl.h"
+#include <iostream>
 
 @implementation UtilImplObj
 
@@ -18,7 +19,12 @@ void UtilObjCInt::init(void)
 
 std::string UtilObjCInt::getDefaultVideoSavePath(void)
 {
-    NSLog(@"getDefaultVideoSavePath");
+    // NSLog(@"getDefaultVideoSavePath");
+    // CGWindowListOption listOptions;
+    // CFArrayRef windowList = CGWindowListCopyWindowInfo(kCGWindowListOptionAll, kCGNullWindowID);
+    // int count = [windowList count];
+    // std::cout << "COUNT WINDOWS :" << count << std::endl;
+	
 	NSFileManager *fm = [NSFileManager defaultManager];
 	NSURL *url = [fm URLForDirectory:NSMoviesDirectory
 				inDomain:NSUserDomainMask

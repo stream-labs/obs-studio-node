@@ -24,10 +24,11 @@ class WindowObjCInt;
 class WindowInt
 {
 public:
-    WindowInt ( void );
-    ~WindowInt( void );
+    WindowInt (void);
+    ~WindowInt(void);
 
-    void init( void );
+    void init(void);
+    void createWindow(void);
 
 private:
     WindowObjCInt * _impl;

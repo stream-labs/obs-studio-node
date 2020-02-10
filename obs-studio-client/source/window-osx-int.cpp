@@ -19,16 +19,21 @@
 #include "window-osx-int.hpp"
 #include "window-osx-obj-c-int.h"
 
-WindowInt::WindowInt( void )
-    : _impl ( nullptr )
+WindowInt::WindowInt(void)
+    : _impl (nullptr)
 {   }
 
-void WindowInt::init( void )
+void WindowInt::init(void)
 {
     _impl = new WindowObjCInt();
 }
 
-WindowInt::~WindowInt( void )
+WindowInt::~WindowInt(void)
 {
-    if ( _impl ) { delete _impl; _impl = nullptr; }
+    if (_impl) { delete _impl; _impl = nullptr; }
+}
+
+void WindowInt::createWindow(void)
+{
+    _impl->createWindow();
 }

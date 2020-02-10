@@ -24,10 +24,10 @@ typedef unsigned long long uint64_t;
 class DisplayObjCInt
 {
 public:
-    DisplayObjCInt ( void );
-    ~DisplayObjCInt( void );
+    DisplayObjCInt (void);
+    ~DisplayObjCInt(void);
 
-    void init( void );
+    void init(void);
     void createDisplay(void);
     void destroyDisplay(void *displayObj);
     void startDrawing(void *displayObj);

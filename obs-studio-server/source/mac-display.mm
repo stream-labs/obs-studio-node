@@ -158,7 +158,6 @@
 
 DisplayInfo* createWindow(void)
 {
-    NSLog(@"Creating delegate display"); 
     DisplayInfo *info = new DisplayInfo;
 
     try {

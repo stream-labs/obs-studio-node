@@ -22,6 +22,12 @@ set(STREAMLABS_BUILD ON CACHE BOOL "Whether to build for streamlabs-obs")
 
 nodejs_init()
 
+find_library(COREFOUNDATION CoreFoundation)
+find_library(COCOA Cocoa)
+
+include_directories(${COREFOUNDATION}
+		    ${COCOA})
+
 add_nodejs_module(
 	obs_studio_client
 	"${CMAKE_SOURCE_DIR}/source/error.hpp"
@@ -94,7 +100,7 @@ if(WIN32)
 	target_sources(obs_studio_client PUBLIC ${PROJECT_BINARY_DIR}/version.rc)
 endif()
 
-target_link_libraries(obs_studio_client lib-streamlabs-ipc)
+target_link_libraries(obs_studio_client lib-streamlabs-ipc ${COREFOUNDATION} ${COCOA})
 
 target_include_directories(
 	obs_studio_client

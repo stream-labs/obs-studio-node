@@ -7,3 +7,13 @@
 
 @interface WindowImplObj : NSObject
 @end
+
+@interface WinDel : NSWindow <NSApplicationDelegate, NSWindowDelegate>
+- (void)applicationDidFinishLaunching:(NSNotification *)notification;
+- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)app;
+- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender;
+@end
+
+NSView *view;
+NSWindow *win;
+WinDel *del;

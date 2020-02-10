@@ -23,18 +23,18 @@
 std::queue<std::pair<MouseEventType, MouseEvent>> mouseEvents;
 std::mutex mouseEvents_mtx;
 
-DisplayInt::DisplayInt( void )
-    : _impl ( nullptr )
+DisplayInt::DisplayInt(void)
+    : _impl (nullptr)
 {   }
 
-void DisplayInt::init( void )
+void DisplayInt::init(void)
 {
     _impl = new DisplayObjCInt();
 }
 
-DisplayInt::~DisplayInt( void )
+DisplayInt::~DisplayInt(void)
 {
-    if ( _impl ) { delete _impl; _impl = nullptr; }
+    if (_impl) { delete _impl; _impl = nullptr; }
 }
 
 void DisplayInt::createDisplay(void)

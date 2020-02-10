@@ -52,10 +52,10 @@ void addEvent(MouseEventType type, MouseEvent mouse_event);
 class DisplayInt
 {
 public:
-    DisplayInt ( void );
-    ~DisplayInt( void );
+    DisplayInt (void);
+    ~DisplayInt(void);
 
-    void init( void );
+    void init(void);
 
     void createDisplay(void);
     void destroyDisplay(void *displayObj);

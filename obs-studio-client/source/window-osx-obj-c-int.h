@@ -25,7 +25,8 @@ public:
     WindowObjCInt(void);
     ~WindowObjCInt(void);
 
-    void init( void );
+    void init(void);
+    void createWindow(void);
 
 private:
     void * self;
