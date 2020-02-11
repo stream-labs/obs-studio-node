@@ -69,14 +69,14 @@
 #define CONNECTING_STATE 0
 #define READING_STATE 1
 
-std::string                                            g_moduleDirectory = "";
-os_cpu_usage_info_t*                                   cpuUsageInfo      = nullptr;
-uint64_t                                               lastBytesSent     = 0;
-uint64_t                                               lastBytesSentTime = 0;
+std::string          g_moduleDirectory = "";
+os_cpu_usage_info_t* cpuUsageInfo      = nullptr;
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 std::string                                            slobs_plugin;
 std::vector<std::pair<std::string, obs_module_t*>>     obsModules;
 OBS_API::LogReport                                     logReport;
+OBS_API::OutputStats                                   streamingOutputStats;
+OBS_API::OutputStats                                   recordingOutputStats;
 std::mutex                                             logMutex;
 std::string                                            currentVersion;
 std::string                                            username("unknown");
@@ -761,8 +761,19 @@ void OBS_API::OBS_API_getPerformanceStatistics(
 	rval.push_back(ipc::value(getCPU_Percentage()));
 	rval.push_back(ipc::value(getNumberOfDroppedFrames()));
 	rval.push_back(ipc::value(getDroppedFramesPercentage()));
-	rval.push_back(ipc::value(getCurrentBandwidth()));
+
+	streamingOutputStats.getCurrentStats();
+	rval.push_back(ipc::value(streamingOutputStats.kbitsPerSec));
+	rval.push_back(ipc::value(streamingOutputStats.dataOutput));
+
+	recordingOutputStats.getCurrentStats(true);
+	rval.push_back(ipc::value(recordingOutputStats.kbitsPerSec));
+	rval.push_back(ipc::value(recordingOutputStats.dataOutput));
+
 	rval.push_back(ipc::value(getCurrentFrameRate()));
+	rval.push_back(ipc::value(getAverageTimeToRenderFrame()));
+	rval.push_back(ipc::value(getMemoryUsage()));
+	rval.push_back(ipc::value(getDiskSpaceAvailable()));
 	AUTO_DEBUG;
 }
 
@@ -1453,14 +1464,20 @@ double OBS_API::getDroppedFramesPercentage(void)
 	return percent;
 }
 
-double OBS_API::getCurrentBandwidth(void)
+void OBS_API::OutputStats::getCurrentStats(bool recording)
 {
-	obs_output_t* streamOutput = OBS_service::getStreamingOutput();
+	obs_output_t* output = nullptr;
+	kbitsPerSec = 0.0;
+	dataOutput = 0;
 
-	double kbitsPerSec = 0;
+	if (recording) {
+		output = OBS_service::getRecordingOutput();
+	} else {
+		output = OBS_service::getStreamingOutput();
+	}
 
-	if (streamOutput && obs_output_active(streamOutput)) {
-		uint64_t bytesSent     = obs_output_get_total_bytes(streamOutput);
+	if (output && obs_output_active(output)) {
+		uint64_t bytesSent = obs_output_get_total_bytes(output);
 		uint64_t bytesSentTime = os_gettime_ns();
 
 		if (bytesSent < lastBytesSent)
@@ -1478,16 +1495,67 @@ double OBS_API::getCurrentBandwidth(void)
 			kbitsPerSec = double(bitsBetween) / timePassed / 1000.0;
 		}
 
-		lastBytesSent     = bytesSent;
+		lastBytesSent = bytesSent;
 		lastBytesSentTime = bytesSentTime;
+		dataOutput = bytesSent / (1024.0 * 1024.0);
 	}
-
-	return kbitsPerSec;
 }
 
 double OBS_API::getCurrentFrameRate(void)
 {
 	return obs_get_active_fps();
+}
+
+double OBS_API::getAverageTimeToRenderFrame()
+{
+	return (double)obs_get_average_frame_time_ns() / 1000000.0;
+}
+
+std::string OBS_API::getDiskSpaceAvailable()
+{
+#define MBYTE (1024ULL * 1024ULL)
+#define GBYTE (1024ULL * 1024ULL * 1024ULL)
+#define TBYTE (1024ULL * 1024ULL * 1024ULL * 1024ULL)
+
+	const char* path = nullptr;
+	const char* mode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
+
+	if (strcmp(mode, "Advanced") == 0) {
+		const char* advanced_mode = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecType");
+
+		if (strcmp(advanced_mode, "FFmpeg") == 0) {
+			path = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "FFFilePath");
+		} else {
+			path = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecFilePath");
+		}
+	} else {
+		path = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "FilePath");
+	}
+
+	uint64_t bytes = os_get_free_disk_space(path);
+
+	double free_bytes = 0;
+	std::string type;
+
+	if (bytes > TBYTE) {
+		free_bytes = (double)bytes / TBYTE;
+		type = " TB";
+	} else if (bytes > GBYTE) {
+		free_bytes = (double)bytes / GBYTE;
+		type = " GB";
+	} else {
+		free_bytes = (double)bytes / MBYTE;
+		type = " MB";
+	}
+
+	std::stringstream remainingHDSpace;
+	remainingHDSpace << free_bytes << type;
+	return remainingHDSpace.str();
+}
+
+double OBS_API::getMemoryUsage()
+{
+	return (double)os_get_proc_resident_size() / (1024.0 * 1024.0);
 }
 
 const std::vector<std::string>& OBS_API::getOBSLogErrors()
