@@ -46,8 +46,6 @@ describe(testName, function() {
 
         // Getting performance statistics
         stats = osn.NodeObs.OBS_API_getPerformanceStatistics();
-
-        console.log(stats);
         
         // Checking if performance statistics values returned correctly
         expect(stats.CPU).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.GetPerformanceStatistics, 'CPU'));
