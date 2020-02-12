@@ -329,6 +329,21 @@ void display::OBS_content_setDisplayScale(const v8::FunctionCallbackInfo<v8::Val
 	conn->call("Display", "OBS_content_setDisplayScale", {ipc::value(key), ipc::value(scale)});
 }
 
+void display::OBS_content_createIOSurface(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Display", "OBS_content_createIOSurface", {});
+
+	if (!ValidateResponse(response))
+		return;
+
+	args.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.ui32));
+}
+
 INITIALIZER(nodeobs_display)
 {
 	initializerFunctions->push([](v8::Local<v8::Object> exports) {
@@ -346,5 +361,6 @@ INITIALIZER(nodeobs_display)
 		NODE_SET_METHOD(exports, "OBS_content_setDrawGuideLines", display::OBS_content_setDrawGuideLines);
 		NODE_SET_METHOD(exports, "OBS_content_setFocused", display::OBS_content_setFocused);
 		NODE_SET_METHOD(exports, "OBS_content_setDisplayScale", display::OBS_content_setDisplayScale);
+		NODE_SET_METHOD(exports, "OBS_content_createIOSurface", display::OBS_content_createIOSurface);
 	});
 }

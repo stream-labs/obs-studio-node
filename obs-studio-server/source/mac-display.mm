@@ -339,4 +339,12 @@ void DisplayObjCInt::destroyWindow(void)
     });
 }
 
+uint32_t DisplayObjCInt::createIOSurface(void)
+{
+    obs_enter_graphics();
+    uint32_t surfaceID = gs_create_iosurface();
+    obs_leave_graphics();
+    return surfaceID;
+}
+
 @end

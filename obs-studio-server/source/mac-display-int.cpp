@@ -72,6 +72,11 @@ void DisplayInt::destroyWindow(void)
     _impl->destroyWindow();
 }
 
+uint32_t DisplayInt::createIOSurface(void)
+{
+    return _impl->createIOSurface();
+}
+
 void addEvent(MouseEventType type, MouseEvent mouse_event)
 {
     std::unique_lock<std::mutex> ulock(mouseEvents_mtx);

@@ -207,6 +207,11 @@ void OBS_content::Register(ipc::server& srv)
 	    std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32},
 	    OBS_content_setDisplayScale));
 
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_content_createIOSurface",
+	    std::vector<ipc::type>{},
+	    OBS_content_createIOSurface));
+
 	srv.register_collection(cls);
 	g_srv = &srv;
 }
@@ -268,9 +273,9 @@ void OBS_content::OBS_content_createDisplay(
 		}
 	}
 #else
-	// OBS::Display *display = new OBS::Display(windowHandle, mode);
-	// displays.insert_or_assign(args[1].value_str, display);
-	// g_srv->displayHandler->startDrawing(display);
+	OBS::Display *display = new OBS::Display(windowHandle, mode);
+	displays.insert_or_assign(args[1].value_str, display);
+	g_srv->displayHandler->startDrawing(display);
 	// display->m_enableMouseEvents = true;
 
 #endif
@@ -285,24 +290,24 @@ void OBS_content::OBS_content_destroyDisplay(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	// auto found = displays.find(args[0].value_str);
+	auto found = displays.find(args[0].value_str);
 
-	// if (found == displays.end()) {
-	// 	std::cerr << "Failed to find key for destruction: " << args[0].value_str << std::endl;
-	// 	rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-	// 	rval.push_back(ipc::value("Failed to find key for destruction: " + args[0].value_str));
-	// 	return;
-	// }
+	if (found == displays.end()) {
+		std::cerr << "Failed to find key for destruction: " << args[0].value_str << std::endl;
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Failed to find key for destruction: " + args[0].value_str));
+		return;
+	}
 
-	// if (windowMessage != NULL && windowMessage->joinable())
-	// 	windowMessage->join();
+	if (windowMessage != NULL && windowMessage->joinable())
+		windowMessage->join();
 
-	// blog(LOG_INFO, "(DestroyDisplay) dp: %d", found->second);
+	blog(LOG_INFO, "(DestroyDisplay) dp: %d", found->second);
 
-	// g_srv->displayHandler->destroyDisplay(found->second);
+	g_srv->displayHandler->destroyDisplay(found->second);
     
-    // delete found->second;
-    // displays.erase(found);
+    delete found->second;
+    displays.erase(found);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -342,27 +347,27 @@ void OBS_content::OBS_content_resizeDisplay(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	// auto value = displays.find(args[0].value_str);
-	// if (value == displays.end()) {
-	// 	rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-	// 	rval.push_back(ipc::value("Invalid key provided to resizeDisplay: " + args[0].value_str));
-	// 	return;
-	// }
+	auto value = displays.find(args[0].value_str);
+	if (value == displays.end()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Invalid key provided to resizeDisplay: " + args[0].value_str));
+		return;
+	}
 
-	// OBS::Display* display = value->second;
+	OBS::Display* display = value->second;
 
-	// display->m_gsInitData.cx = args[1].value_union.ui32;
-	// display->m_gsInitData.cy = args[2].value_union.ui32;
+	display->m_gsInitData.cx = args[1].value_union.ui32;
+	display->m_gsInitData.cy = args[2].value_union.ui32;
 
-	// // Resize Display
-    // obs_display_resize(display->m_display,
-	// 	display->m_gsInitData.cx * display->m_screenScale,
-	// 	display->m_gsInitData.cy * display->m_screenScale);
+	// Resize Display
+    obs_display_resize(display->m_display,
+		display->m_gsInitData.cx * display->m_screenScale,
+		display->m_gsInitData.cy * display->m_screenScale);
 
-    // // Store new size.
-    // display->UpdatePreviewArea();
+    // Store new size.
+    display->UpdatePreviewArea();
 
-	// g_srv->displayHandler->resizeDisplay(display, display->m_gsInitData.cx, display->m_gsInitData.cy);
+	g_srv->displayHandler->resizeDisplay(display, display->m_gsInitData.cx, display->m_gsInitData.cy);
 
 	// display->SetSize(width, height);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -375,24 +380,24 @@ void OBS_content::OBS_content_moveDisplay(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	// auto value = displays.find(args[0].value_str);
-	// if (value == displays.end()) {
-	// 	rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-	// 	rval.push_back(ipc::value("Invalid key provided to moveDisplay: " + args[0].value_str));
-	// 	return;
-	// }
+	auto value = displays.find(args[0].value_str);
+	if (value == displays.end()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Invalid key provided to moveDisplay: " + args[0].value_str));
+		return;
+	}
 
-	// OBS::Display* display = value->second;
+	OBS::Display* display = value->second;
 
-	// int x = args[1].value_union.ui32;
-	// int y = args[2].value_union.ui32;
+	int x = args[1].value_union.ui32;
+	int y = args[2].value_union.ui32;
 
-	// display->m_position.first  = x;
-	// display->m_position.second = y;
+	display->m_position.first  = x;
+	display->m_position.second = y;
 
-	// g_srv->displayHandler->moveDisplay(display, x, y);
+	g_srv->displayHandler->moveDisplay(display, x, y);
 
-	// display->SetPosition(x, y);
+	display->SetPosition(x, y);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -404,14 +409,14 @@ void OBS_content::OBS_content_setPaddingSize(
     std::vector<ipc::value>&       rval)
 {
 	// Find Display
-	// auto it = displays.find(args[0].value_str);
-	// if (it == displays.end()) {
-	// 	rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-	// 	rval.push_back(ipc::value("Display key is not valid!"));
-	// 	return;
-	// }
+	auto it = displays.find(args[0].value_str);
+	if (it == displays.end()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Display key is not valid!"));
+		return;
+	}
 
-	// it->second->SetPaddingSize(args[1].value_union.ui32);
+	it->second->SetPaddingSize(args[1].value_union.ui32);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 	return;
@@ -423,31 +428,31 @@ void OBS_content::OBS_content_setPaddingColor(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	// union
-	// {
-	// 	uint32_t rgba;
-	// 	uint8_t  c[4];
-	// } color;
+	union
+	{
+		uint32_t rgba;
+		uint8_t  c[4];
+	} color;
 
-	// // Assign Color
-	// color.c[0] = (uint8_t)(args[1].value_union.ui32);
-	// color.c[1] = (uint8_t)(args[2].value_union.ui32);
-	// color.c[2] = (uint8_t)(args[3].value_union.ui32);
-	// if (args[4].value_union.ui32 != NULL)
-	// 	color.c[3] = (uint8_t)(args[4].value_union.ui32 * 255.0);
+	// Assign Color
+	color.c[0] = (uint8_t)(args[1].value_union.ui32);
+	color.c[1] = (uint8_t)(args[2].value_union.ui32);
+	color.c[2] = (uint8_t)(args[3].value_union.ui32);
+	if (args[4].value_union.ui32 != NULL)
+		color.c[3] = (uint8_t)(args[4].value_union.ui32 * 255.0);
 
-	// else
-	// 	color.c[3] = 255;
+	else
+		color.c[3] = 255;
 
-	// // Find Display
-	// auto it = displays.find(args[0].value_str);
-	// if (it == displays.end()) {
-	// 	rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-	// 	rval.push_back(ipc::value("Display key is not valid!"));
-	// 	return;
-	// }
+	// Find Display
+	auto it = displays.find(args[0].value_str);
+	if (it == displays.end()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Display key is not valid!"));
+		return;
+	}
 
-	// it->second->SetPaddingColor(color.c[0], color.c[1], color.c[2], color.c[3]);
+	it->second->SetPaddingColor(color.c[0], color.c[1], color.c[2], color.c[3]);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 	return;
@@ -459,31 +464,31 @@ void OBS_content::OBS_content_setBackgroundColor(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	// union
-	// {
-	// 	uint32_t rgba;
-	// 	uint8_t  c[4];
-	// } color;
+	union
+	{
+		uint32_t rgba;
+		uint8_t  c[4];
+	} color;
 
-	// // Assign Color
-	// color.c[0] = (uint8_t)(args[1].value_union.ui32);
-	// color.c[1] = (uint8_t)(args[2].value_union.ui32);
-	// color.c[2] = (uint8_t)(args[3].value_union.ui32);
-	// if (args[4].value_union.ui32 != NULL)
-	// 	color.c[3] = (uint8_t)(args[4].value_union.ui32 * 255.0);
+	// Assign Color
+	color.c[0] = (uint8_t)(args[1].value_union.ui32);
+	color.c[1] = (uint8_t)(args[2].value_union.ui32);
+	color.c[2] = (uint8_t)(args[3].value_union.ui32);
+	if (args[4].value_union.ui32 != NULL)
+		color.c[3] = (uint8_t)(args[4].value_union.ui32 * 255.0);
 
-	// else
-	// 	color.c[3] = 255;
+	else
+		color.c[3] = 255;
 
-	// // Find Display
-	// auto it = displays.find(args[0].value_str);
-	// if (it == displays.end()) {
-	// 	rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-	// 	rval.push_back(ipc::value("Display key is not valid!"));
-	// 	return;
-	// }
+	// Find Display
+	auto it = displays.find(args[0].value_str);
+	if (it == displays.end()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Display key is not valid!"));
+		return;
+	}
 
-	// it->second->SetBackgroundColor(color.c[0], color.c[1], color.c[2], color.c[3]);
+	it->second->SetBackgroundColor(color.c[0], color.c[1], color.c[2], color.c[3]);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 	return;
@@ -651,5 +656,18 @@ void OBS_content::OBS_content_setDisplayScale(
 	// blog(LOG_INFO, "New display scale: %d", it->second->m_screenScale);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void OBS_content::OBS_content_createIOSurface(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	uint32_t surfaceID = g_srv->displayHandler->createIOSurface();
+	blog(LOG_INFO, "surfaceID: %d", surfaceID);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint32_t)surfaceID));
 	AUTO_DEBUG;
 }
