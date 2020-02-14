@@ -190,8 +190,8 @@ DisplayInfo* createWindow(void)
         [NSApp terminate:nil];
     }
 
-    info->win.contentView = info->view;
-    [info->win orderFrontRegardless];
+    // info->win.contentView = info->view;
+    // [info->win orderFrontRegardless];
 
     return info;
 }
@@ -268,7 +268,7 @@ void DisplayObjCInt::startDrawing(void *displayObj)
         DisplayInfo *info = createWindow();
         displayWindows.emplace(dp, info);
         dp->m_gsInitData.window.view = (id)info->view;
-        dp->m_display = obs_display_create(&dp->m_gsInitData, 0x0);
+        dp->m_display = obs_display_create(&dp->m_gsInitData, 0xFF);
 
         obs_display_add_draw_callback(
             dp->m_display,
