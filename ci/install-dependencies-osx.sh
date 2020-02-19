@@ -8,6 +8,7 @@ mkdir ~/.nvm
 export NVM_DIR=~/.nvm
 source $(brew --prefix nvm)/nvm.sh
 npm config delete prefix
+nvm install 12.14.1
 nvm use 12.14.1
 
 # Install module dependencies
