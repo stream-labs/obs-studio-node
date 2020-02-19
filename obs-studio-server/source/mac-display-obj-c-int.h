@@ -35,7 +35,9 @@ public:
     void moveDisplay(void *displayObj, int x, int y);
     void setFocused(void *displayObj, bool focused);
     void destroyWindow(void);
-    uint32_t createIOSurface(void);
+    uint32_t createIOSurface(void *displayObj);
+    void surfaceLock(void *displayObj);
+    void surfaceUnlock(void *displayObj);
 
 private:
     void * self;

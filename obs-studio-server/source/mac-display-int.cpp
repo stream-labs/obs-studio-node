@@ -72,9 +72,19 @@ void DisplayInt::destroyWindow(void)
     _impl->destroyWindow();
 }
 
-uint32_t DisplayInt::createIOSurface(void)
+uint32_t DisplayInt::createIOSurface(void *displayObj)
 {
-    return _impl->createIOSurface();
+    return _impl->createIOSurface(displayObj);
+}
+
+void DisplayInt::surfaceLock(void *displayObj)
+{
+    _impl->surfaceLock(displayObj);
+}
+
+void DisplayInt::surfaceUnlock(void *displayObj)
+{
+    _impl->surfaceUnlock(displayObj);
 }
 
 void addEvent(MouseEventType type, MouseEvent mouse_event)

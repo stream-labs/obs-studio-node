@@ -339,12 +339,37 @@ void DisplayObjCInt::destroyWindow(void)
     });
 }
 
-uint32_t DisplayObjCInt::createIOSurface(void)
+uint32_t DisplayObjCInt::createIOSurface(void *displayObj)
 {
+    OBS::Display* dp = static_cast<OBS::Display*>(displayObj);
+    std::pair<uint32_t, uint32_t> size = dp->GetSize();
+
+
     obs_enter_graphics();
-    uint32_t surfaceID = gs_create_iosurface();
+    uint32_t surfaceID = gs_create_iosurface(size.first, size.second);
+    blog(LOG_INFO, "nodeobs::createIOSurface %d", surfaceID);
     obs_leave_graphics();
     return surfaceID;
+}
+
+void DisplayObjCInt::surfaceLock(void *displayObj)
+{
+    OBS::Display* dp = static_cast<OBS::Display*>(displayObj);
+    auto it = displayWindows.find(dp);
+    if (it != displayWindows.end()) {
+        DisplayInfo *info = it->second;
+        IOSurfaceLock(info->m_surface , 0, NULL);
+    }
+}
+
+void DisplayObjCInt::surfaceUnlock(void *displayObj)
+{
+    OBS::Display* dp = static_cast<OBS::Display*>(displayObj);
+    auto it = displayWindows.find(dp);
+    if (it != displayWindows.end()) {
+        DisplayInfo *info = it->second;
+        IOSurfaceUnlock(info->m_surface , 0, NULL);
+    }
 }
 
 @end

@@ -25,6 +25,8 @@
 #include <vector>
 #include "gs-vertexbuffer.h"
 #include "obs.h"
+#include "ipc-server.hpp"
+
 
 #if defined(_WIN32)
 #ifdef NOWINOFFSETS
@@ -41,6 +43,8 @@ EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 #elif defined(__linux__) || defined(__FreeBSD__)
 
 #endif
+
+extern ipc::server* g_srv;
 
 namespace OBS
 {

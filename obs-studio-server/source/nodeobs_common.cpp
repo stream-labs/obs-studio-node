@@ -209,7 +209,7 @@ void OBS_content::Register(ipc::server& srv)
 
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_content_createIOSurface",
-	    std::vector<ipc::type>{},
+	    std::vector<ipc::type>{ipc::type::String},
 	    OBS_content_createIOSurface));
 
 	srv.register_collection(cls);
@@ -560,20 +560,20 @@ void OBS_content::OBS_content_getDisplayPreviewOffset(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	// auto value = displays.find(args[0].value_str);
-	// if (value == displays.end()) {
-	// 	rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-	// 	rval.push_back(ipc::value("Invalid key provided to moveDisplay: " + args[0].value_str));
-	// 	return;
-	// }
+	auto value = displays.find(args[0].value_str);
+	if (value == displays.end()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Invalid key provided to moveDisplay: " + args[0].value_str));
+		return;
+	}
 
-	// OBS::Display* display = value->second;
+	OBS::Display* display = value->second;
 
-	// auto offset = display->GetPreviewOffset();
+	auto offset = display->GetPreviewOffset();
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	// rval.push_back(ipc::value((int32_t)offset.first));
-	// rval.push_back(ipc::value((int32_t)offset.second));
+	rval.push_back(ipc::value((int32_t)offset.first));
+	rval.push_back(ipc::value((int32_t)offset.second));
 	AUTO_DEBUG;
 }
 
@@ -583,20 +583,20 @@ void OBS_content::OBS_content_getDisplayPreviewSize(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	// auto value = displays.find(args[0].value_str);
-	// if (value == displays.end()) {
-	// 	rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-	// 	rval.push_back(ipc::value("Invalid key provided to moveDisplay: " + args[0].value_str));
-	// 	return;
-	// }
+	auto value = displays.find(args[0].value_str);
+	if (value == displays.end()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Invalid key provided to moveDisplay: " + args[0].value_str));
+		return;
+	}
 
-	// OBS::Display* display = value->second;
+	OBS::Display* display = value->second;
 
-	// auto size = display->GetPreviewSize();
+	auto size = display->GetPreviewSize();
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	// rval.push_back(ipc::value((int32_t)size.first));
-	// rval.push_back(ipc::value((int32_t)size.second));
+	rval.push_back(ipc::value((int32_t)size.first));
+	rval.push_back(ipc::value((int32_t)size.second));
 	AUTO_DEBUG;
 }
 
@@ -607,13 +607,13 @@ void OBS_content::OBS_content_setDrawGuideLines(
     std::vector<ipc::value>&       rval)
 {
 	// Find Display
-	// auto it = displays.find(args[0].value_str);
-	// if (it == displays.end()) {
-	// 	rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-	// 	rval.push_back(ipc::value("Display key is not valid!"));
-	// 	return;
-	// }
-	// it->second->SetDrawGuideLines((bool)args[1].value_union.i32);
+	auto it = displays.find(args[0].value_str);
+	if (it == displays.end()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Display key is not valid!"));
+		return;
+	}
+	it->second->SetDrawGuideLines((bool)args[1].value_union.i32);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -665,8 +665,16 @@ void OBS_content::OBS_content_createIOSurface(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	uint32_t surfaceID = g_srv->displayHandler->createIOSurface();
-	blog(LOG_INFO, "surfaceID: %d", surfaceID);
+	// Find Display
+	auto it = displays.find(args[0].value_str);
+	if (it == displays.end()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Display key is not valid!"));
+		return;
+	}
+
+	uint32_t surfaceID = g_srv->displayHandler->createIOSurface(it->second);
+
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint32_t)surfaceID));
 	AUTO_DEBUG;

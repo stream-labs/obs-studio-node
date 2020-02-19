@@ -25,7 +25,6 @@
 #include "nodeobs_display.h"
 #include <map>
 
-
 @interface DisplayImpl : NSObject
 @end
 
@@ -47,6 +46,7 @@
 struct DisplayInfo{
     CustomView *view;
     NSWindow *win;
+    IOSurfaceRef m_surface;
 };
 
 
