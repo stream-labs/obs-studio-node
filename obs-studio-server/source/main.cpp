@@ -229,6 +229,7 @@ int main(int argc, char* argv[])
 #ifdef __APPLE__
 	g_util_osx = new UtilInt();
 	g_util_osx->init();
+	g_util_osx->createApplication();
 #endif
 	bool waitBeforeClosing = false;
 	

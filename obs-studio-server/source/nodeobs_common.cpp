@@ -348,9 +348,6 @@ void OBS_content::OBS_content_resizeDisplay(
 		display->m_gsInitData.cx * display->m_screenScale,
 		display->m_gsInitData.cy * display->m_screenScale);
 
-	blog(LOG_INFO, "Resize nodeobs, width: %d", display->m_gsInitData.cx);
-	blog(LOG_INFO, "Resize nodeobs, height: %d", display->m_gsInitData.cy);
-
     // Store new size.
     display->UpdatePreviewArea();
 

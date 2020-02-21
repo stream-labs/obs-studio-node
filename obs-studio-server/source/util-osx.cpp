@@ -37,3 +37,13 @@ std::string UtilInt::getDefaultVideoSavePath(void)
 {
     return _impl->getDefaultVideoSavePath();
 }
+
+void UtilInt::createApplication(void)
+{
+    _impl->createApplication();
+}
+
+void UtilInt::terminateApplication(void)
+{
+    _impl->terminateApplication();
+}

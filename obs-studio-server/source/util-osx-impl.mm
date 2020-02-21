@@ -19,12 +19,6 @@ void UtilObjCInt::init(void)
 
 std::string UtilObjCInt::getDefaultVideoSavePath(void)
 {
-    // NSLog(@"getDefaultVideoSavePath");
-    // CGWindowListOption listOptions;
-    // CFArrayRef windowList = CGWindowListCopyWindowInfo(kCGWindowListOptionAll, kCGNullWindowID);
-    // int count = [windowList count];
-    // std::cout << "COUNT WINDOWS :" << count << std::endl;
-	
 	NSFileManager *fm = [NSFileManager defaultManager];
 	NSURL *url = [fm URLForDirectory:NSMoviesDirectory
 				inDomain:NSUserDomainMask
@@ -36,6 +30,21 @@ std::string UtilObjCInt::getDefaultVideoSavePath(void)
 		return getenv("HOME");
 
 	return url.path.fileSystemRepresentation;
+}
+
+void UtilObjCInt::createApplication(void)
+{
+    @autoreleasepool {
+        NSApplication *app = [NSApplication sharedApplication];
+        [app run];
+    }
+}
+
+void UtilObjCInt::terminateApplication(void)
+{
+	dispatch_sync(dispatch_get_main_queue(), ^{
+		[NSApp stop:nil];
+    });
 }
 
 @end

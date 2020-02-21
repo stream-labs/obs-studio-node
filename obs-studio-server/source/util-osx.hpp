@@ -31,6 +31,8 @@ public:
 
     void init(void);
     std::string getDefaultVideoSavePath(void);
+    void createApplication(void);
+    void terminateApplication(void);
 
 private:
     UtilObjCInt * _impl;
