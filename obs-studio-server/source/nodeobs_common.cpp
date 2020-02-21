@@ -500,36 +500,36 @@ void OBS_content::OBS_content_setOutlineColor(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	// union
-	// {
-	// 	uint32_t rgba;
-	// 	uint8_t  c[4];
-	// } color;
+	union
+	{
+		uint32_t rgba;
+		uint8_t  c[4];
+	} color;
 
-	// // Assign Color
-	// color.c[0] = (uint8_t)(args[1].value_union.ui32);
-	// color.c[1] = (uint8_t)(args[2].value_union.ui32);
-	// color.c[2] = (uint8_t)(args[3].value_union.ui32);
-	// if (args[4].value_union.ui32 != NULL)
-	// 	color.c[3] = (uint8_t)(args[4].value_union.ui32 * 255.0);
+	// Assign Color
+	color.c[0] = (uint8_t)(args[1].value_union.ui32);
+	color.c[1] = (uint8_t)(args[2].value_union.ui32);
+	color.c[2] = (uint8_t)(args[3].value_union.ui32);
+	if (args[4].value_union.ui32 != NULL)
+		color.c[3] = (uint8_t)(args[4].value_union.ui32 * 255.0);
 
-	// else
-	// 	color.c[3] = 255;
+	else
+		color.c[3] = 255;
 
-	// // Find Display
-	// auto it = displays.find(args[0].value_str);
-	// if (it == displays.end()) {
-	// 	/*isolate->ThrowException(
-	// 	      v8::Exception::SyntaxError(
-	// 	            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
-	// 	      )
-	// 	);*/
-	// 	rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-	// 	rval.push_back(ipc::value("Display key is not valid!"));
-	// 	return;
-	// }
+	// Find Display
+	auto it = displays.find(args[0].value_str);
+	if (it == displays.end()) {
+		/*isolate->ThrowException(
+		      v8::Exception::SyntaxError(
+		            v8::String::NewFromUtf8(isolate, "{displayKey} is not valid!")
+		      )
+		);*/
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Display key is not valid!"));
+		return;
+	}
 
-	// it->second->SetOutlineColor(color.c[0], color.c[1], color.c[2], color.c[3]);
+	it->second->SetOutlineColor(color.c[0], color.c[1], color.c[2], color.c[3]);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 	return;
@@ -542,14 +542,14 @@ void OBS_content::OBS_content_setShouldDrawUI(
     std::vector<ipc::value>&       rval)
 {
 	// Find Display
-	// auto it = displays.find(args[0].value_str);
-	// if (it == displays.end()) {
-	// 	rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-	// 	rval.push_back(ipc::value("Display key is not valid!"));
-	// 	return;
-	// }
+	auto it = displays.find(args[0].value_str);
+	if (it == displays.end()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Display key is not valid!"));
+		return;
+	}
 
-	// it->second->SetDrawUI((bool)args[1].value_union.i32);
+	it->second->SetDrawUI((bool)args[1].value_union.i32);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -672,7 +672,6 @@ void OBS_content::OBS_content_createIOSurface(
 		rval.push_back(ipc::value("Display key is not valid!"));
 		return;
 	}
-
 	uint32_t surfaceID = g_srv->displayHandler->createIOSurface(it->second);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));

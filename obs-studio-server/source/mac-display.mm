@@ -344,11 +344,8 @@ uint32_t DisplayObjCInt::createIOSurface(void *displayObj)
     OBS::Display* dp = static_cast<OBS::Display*>(displayObj);
     std::pair<uint32_t, uint32_t> size = dp->GetSize();
 
-
-    obs_enter_graphics();
-    uint32_t surfaceID = gs_create_iosurface(size.first, size.second);
-    blog(LOG_INFO, "nodeobs::createIOSurface %d", surfaceID);
-    obs_leave_graphics();
+    uint32_t surfaceID =
+        obs_display_create_iosurface(dp->m_display, size.first, size.second);
     return surfaceID;
 }
 
