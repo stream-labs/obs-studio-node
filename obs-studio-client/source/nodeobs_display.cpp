@@ -26,7 +26,6 @@
 #include <string>
 #include "shared.hpp"
 #include "utility.hpp"
-#include "window-osx-int.hpp"
 
 #ifdef WIN32
 static BOOL CALLBACK EnumChromeWindowsProc(HWND hwnd, LPARAM lParam)
@@ -71,14 +70,10 @@ void display::OBS_content_createDisplay(const v8::FunctionCallbackInfo<v8::Value
 	ASSERT_GET_VALUE(args[1], key);
 	ASSERT_GET_VALUE(args[2], mode);
 
-	WindowInt* window = new WindowInt();
-	window->init();
-	window->createWindow();
-
 	auto conn = GetConnection();
 	if (!conn)
 		return;
-
+ 
 	conn->call("Display", "OBS_content_createDisplay", {ipc::value(windowHandle), ipc::value(key), ipc::value(mode)});
 }
 
