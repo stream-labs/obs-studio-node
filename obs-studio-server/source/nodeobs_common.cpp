@@ -26,13 +26,12 @@
 
 #include "error.hpp"
 #include "shared.hpp"
-#include "mac-display-int.h"
 
 #include <thread>
 
 std::map<std::string, OBS::Display*> displays;
 std::string                          sourceSelected;
-bool                                 firstDisplayCreation = true;\
+bool                                 firstDisplayCreation = true;
 
 std::thread* windowMessage = NULL;
 ipc::server* g_srv;
@@ -198,11 +197,6 @@ void OBS_content::Register(ipc::server& srv)
 	    OBS_content_setDrawGuideLines));
 
 	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_content_setFocused",
-	    std::vector<ipc::type>{ipc::type::String, ipc::type::Int32},
-	    OBS_content_setFocused));
-
-	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_content_setDisplayScale",
 	    std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32},
 	    OBS_content_setDisplayScale));
@@ -275,11 +269,7 @@ void OBS_content::OBS_content_createDisplay(
 #else
 	OBS::Display *display = new OBS::Display(windowHandle, mode);
 	displays.insert_or_assign(args[1].value_str, display);
-	g_srv->displayHandler->startDrawing(display);
-	// display->m_enableMouseEvents = true;
-
 #endif
-	firstDisplayCreation = false;
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -301,10 +291,6 @@ void OBS_content::OBS_content_destroyDisplay(
 
 	if (windowMessage != NULL && windowMessage->joinable())
 		windowMessage->join();
-
-	blog(LOG_INFO, "(DestroyDisplay) dp: %d", found->second);
-
-	g_srv->displayHandler->destroyDisplay(found->second);
     
     delete found->second;
     displays.erase(found);
@@ -334,8 +320,6 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(
 	OBS::Display *display = new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str);
 	displays.insert_or_assign(
 	    args[2].value_str, display);
-	g_srv->displayHandler->startDrawing(display);
-	display->m_enableMouseEvents = false;
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -364,12 +348,15 @@ void OBS_content::OBS_content_resizeDisplay(
 		display->m_gsInitData.cx * display->m_screenScale,
 		display->m_gsInitData.cy * display->m_screenScale);
 
+	blog(LOG_INFO, "Resize nodeobs, width: %d", display->m_gsInitData.cx);
+	blog(LOG_INFO, "Resize nodeobs, height: %d", display->m_gsInitData.cy);
+
     // Store new size.
     display->UpdatePreviewArea();
 
-	g_srv->displayHandler->resizeDisplay(display, display->m_gsInitData.cx, display->m_gsInitData.cy);
-
-	// display->SetSize(width, height);
+#ifdef WIN32
+	display->SetSize(width, height);
+#endif
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -394,8 +381,6 @@ void OBS_content::OBS_content_moveDisplay(
 
 	display->m_position.first  = x;
 	display->m_position.second = y;
-
-	g_srv->displayHandler->moveDisplay(display, x, y);
 
 	display->SetPosition(x, y);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -618,25 +603,6 @@ void OBS_content::OBS_content_setDrawGuideLines(
 	AUTO_DEBUG;
 }
 
-void OBS_content::OBS_content_setFocused(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	// Find Display
-	// auto it = displays.find(args[0].value_str);
-	// // auto it = displays.begin();
-	// if (it == displays.end()) {
-	// 	rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-	// 	rval.push_back(ipc::value("Display key is not valid!"));
-	// 	return;
-	// }
-	// g_srv->displayHandler->setFocused(it->second, (bool)args[1].value_union.i32);
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
-}
-
 void OBS_content::OBS_content_setDisplayScale(
     void*                          data,
     const int64_t                  id,
@@ -672,7 +638,10 @@ void OBS_content::OBS_content_createIOSurface(
 		rval.push_back(ipc::value("Display key is not valid!"));
 		return;
 	}
-	uint32_t surfaceID = g_srv->displayHandler->createIOSurface(it->second);
+	uint32_t surfaceID =
+		obs_display_create_iosurface(it->second->m_display, 
+			it->second->GetSize().first,
+			it->second->GetSize().second);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint32_t)surfaceID));

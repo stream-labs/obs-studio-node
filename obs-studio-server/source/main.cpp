@@ -229,11 +229,6 @@ int main(int argc, char* argv[])
 #ifdef __APPLE__
 	g_util_osx = new UtilInt();
 	g_util_osx->init();
-
-	// Create display window
-	myServer.displayHandler = new DisplayInt();
-	myServer.displayHandler->init();
-	myServer.displayHandler->createDisplay();
 #endif
 	bool waitBeforeClosing = false;
 	

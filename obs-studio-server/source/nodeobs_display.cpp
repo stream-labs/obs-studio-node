@@ -361,18 +361,15 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode)
 	m_gsInitData.window.hwnd = reinterpret_cast<void*>(m_ourWindow);
 #endif
 	m_screenScale = 1;
-	m_renderingMode = mode;
-// 	m_display = obs_display_create(&info, 0x0);
-//     if (!m_display) {
-//         blog(LOG_INFO, "Failed to create the display");
-//         throw std::runtime_error("unable to create display");
-//     }
+	m_display = obs_display_create(&m_gsInitData, 0x0);
+    if (!m_display) {
+        blog(LOG_INFO, "Failed to create the display");
+        throw std::runtime_error("unable to create display");
+    }
 
-//     blog(LOG_INFO, "Finished creating display");
-//
-//	m_renderingMode = mode;
-//
-//	obs_display_add_draw_callback(m_display, DisplayCallback, this);
+	m_renderingMode = mode;
+
+	obs_display_add_draw_callback(m_display, DisplayCallback, this);
 }
 
 OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, std::string sourceName)

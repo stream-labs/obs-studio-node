@@ -37,42 +37,11 @@ struct SourceSizeInfoData
 	void*                        param;
 };
 
-enum MouseEventType: uint8_t {
-    mouseDown = 0,
-    mouseUp = 1,
-    mouseDragged = 2,
-    mouseMoved = 3,
-    mouseEntered = 4
-};
-
-struct MouseEvent {
-    float x;
-    float y;
-    bool altKey;
-    bool ctrlKey;
-    bool shiftKey;
-    int button;
-    int buttons;
-};
-
-struct MouseEventInfo {
-	MouseEventType type;
-	MouseEvent event;
-};
-
-struct MouseEventInfoData
-{
-	std::vector<MouseEventInfo*> items;
-	void*                        param;
-};
-
 class CallbackManager;
 class SourceCallback;
-class MouseEventCallback;
+
 typedef utilv8::managed_callback<std::shared_ptr<SourceSizeInfoData>> cm_sourcesCallback;
-typedef utilv8::managed_callback<std::shared_ptr<MouseEventInfoData>> cm_mouseEventCallback;
 SourceCallback*                                                        cm_sources;
-MouseEventCallback*                                                   cm_mouseEvents;
 
 class CallbackManager : public Nan::ObjectWrap,
                         public utilv8::InterfaceObject<CallbackManager>,
@@ -113,25 +82,5 @@ class SourceCallback : public CallbackManager
 	void callback_handler(void* data, std::shared_ptr<SourceSizeInfoData> sourceSizes);
 };
 
-class MouseEventCallback : public CallbackManager
-{
-	friend utilv8::CallbackData<MouseEventInfoData, CallbackManager>;
-
-	cm_mouseEventCallback*  m_async_callback = nullptr;
-
-	public:
-	std::map<MouseEventType, Nan::Callback*> m_callback_functions;
-
-	virtual void start_async_runner();
-	virtual void stop_async_runner();
-	virtual void worker();
-	virtual void set_keepalive(v8::Local<v8::Object>);
-	void callback_handler(void* data, std::shared_ptr<MouseEventInfoData> mouseEvents);
-};
-
 static void RegisterSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
 static void RemoveSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
-
-// Mouse events
-static void RegisterMouseEventsCallbacks(const v8::FunctionCallbackInfo<v8::Value>& args);
-static void RemoveMouseEventsCallbacks(const v8::FunctionCallbackInfo<v8::Value>& args);

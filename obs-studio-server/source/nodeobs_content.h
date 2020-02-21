@@ -34,7 +34,6 @@
 #include <map>
 #include "nodeobs_api.h"
 #include "nodeobs_display.h"
-#include "mac-display-int.h"
 
 struct SourceInfo
 {
