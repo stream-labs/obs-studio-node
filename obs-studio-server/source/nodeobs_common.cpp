@@ -319,23 +319,23 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	// uint64_t windowHandle = args[0].value_union.ui64;
+	uint64_t windowHandle = args[0].value_union.ui64;
 
-	// auto found = displays.find(args[2].value_str);
+	auto found = displays.find(args[2].value_str);
 
-	// /* If found, do nothing since it would
-	// be a memory leak otherwise. */
-	// if (found != displays.end()) {
-	// 	rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-	// 	rval.push_back(ipc::value("Duplicate key provided to createDisplay!"));
-	// 	return;
-	// }
+	/* If found, do nothing since it would
+	be a memory leak otherwise. */
+	if (found != displays.end()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Duplicate key provided to createDisplay!"));
+		return;
+	}
 
-	// OBS::Display *display = new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str);
-	// displays.insert_or_assign(
-	//     args[2].value_str, display);
-	// g_srv->displayHandler->startDrawing(display);
-	// display->m_enableMouseEvents = false;
+	OBS::Display *display = new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str);
+	displays.insert_or_assign(
+	    args[2].value_str, display);
+	g_srv->displayHandler->startDrawing(display);
+	display->m_enableMouseEvents = false;
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
