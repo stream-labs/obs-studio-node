@@ -241,6 +241,7 @@ void MemoryManager::updateSourcesCache(void)
 
 void MemoryManager::registerSource(obs_source_t* source)
 {
+	return;
 	if (strcmp(obs_source_get_id(source), "ffmpeg_source") != 0)
 		return;
 
