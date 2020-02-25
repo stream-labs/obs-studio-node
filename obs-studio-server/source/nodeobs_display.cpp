@@ -1070,6 +1070,8 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 		}
 	}
 
+	gs_load_vertexbuffer(nullptr);
+
 	return true;
 }
 
@@ -1180,7 +1182,6 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 		source                   = obs_transition_get_active_source(transition);
 		obs_source_release(transition);
 	}
-	gs_load_vertexbuffer(nullptr);
 
 	if (dp->m_shouldDrawUI == true) {
 		// Display-Aligned Drawing
@@ -1204,7 +1205,6 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 			gs_technique_begin_pass(solid_tech, 0);
 
 			obs_scene_enum_items(scene, DrawSelectedSource, dp);
-			gs_load_vertexbuffer(nullptr);
 
 			gs_technique_end_pass(solid_tech);
 			gs_technique_end(solid_tech);
