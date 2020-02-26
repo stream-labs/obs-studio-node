@@ -1070,8 +1070,6 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 		}
 	}
 
-	gs_load_vertexbuffer(nullptr);
-
 	return true;
 }
 
@@ -1145,8 +1143,6 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 
 		gs_technique_end_pass(solid_tech);
 		gs_technique_end(solid_tech);
-
-		gs_load_vertexbuffer(nullptr);
 	}
 
 	// Source Rendering
