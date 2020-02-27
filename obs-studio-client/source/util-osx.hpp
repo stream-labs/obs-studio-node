@@ -16,21 +16,26 @@
 
 ******************************************************************************/
 
-#include "shared.hpp"
+#ifndef __UTIL_CLASS_H__
+#define __UTIL_CLASS_H__
 
-std::queue<std::function<void(v8::Local<v8::Object>)>>* initializerFunctions;
+#include <string>
 
-#ifdef __APPLE__
-    UtilInt* g_util_osx;
-#endif
+class UtilObjCInt;
+typedef std::function<void(void* data, bool webcam, bool mic)> perms_cb;
 
-void replaceAll(std::string& str, const std::string& from, const std::string& to)
+class UtilInt
 {
-	if (from.empty())
-		return;
-	size_t start_pos = 0;
-	while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
-		str.replace(start_pos, from.length(), to);
-		start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
-	}
+public:
+    UtilInt (void);
+    ~UtilInt(void);
+
+    void init(void);
+    void getPermissionsStatus(bool &webcam, bool &mic);
+    void requestPermissions(void *async_cb, perms_cb cb);
+
+private:
+    UtilObjCInt * _impl;
 };
+
+#endif

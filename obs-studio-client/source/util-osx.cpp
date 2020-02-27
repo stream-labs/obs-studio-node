@@ -16,21 +16,29 @@
 
 ******************************************************************************/
 
-#include "shared.hpp"
+#include "util-osx.hpp"
+#include "util-osx-int.h"
 
-std::queue<std::function<void(v8::Local<v8::Object>)>>* initializerFunctions;
+UtilInt::UtilInt(void)
+    : _impl ( nullptr )
+{   }
 
-#ifdef __APPLE__
-    UtilInt* g_util_osx;
-#endif
-
-void replaceAll(std::string& str, const std::string& from, const std::string& to)
+void UtilInt::init(void)
 {
-	if (from.empty())
-		return;
-	size_t start_pos = 0;
-	while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
-		str.replace(start_pos, from.length(), to);
-		start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
-	}
-};
+    _impl = new UtilObjCInt();
+}
+
+UtilInt::~UtilInt(void)
+{
+    if ( _impl ) { delete _impl; _impl = nullptr; }
+}
+
+void UtilInt::getPermissionsStatus(bool &webcam, bool &mic)
+{
+    _impl->getPermissionsStatus(webcam, mic);
+}
+
+void UtilInt::requestPermissions(void *async_cb, perms_cb cb)
+{
+    _impl->requestPermissions(async_cb, cb);
+}
