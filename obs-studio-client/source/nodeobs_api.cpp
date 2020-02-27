@@ -203,22 +203,23 @@ Nan::NAN_METHOD_RETURN_TYPE api::SetUsername(const v8::FunctionCallbackInfo<v8::
 
 Nan::NAN_METHOD_RETURN_TYPE api::GetPermissionsStatus(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	std::cout << "GetPermissionsStatus" << std::endl;
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	bool webcam, mic;
+	g_util_osx->getPermissionsStatus(webcam, mic);
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("API", "GetPermissionsStatus", {});
+	v8::Local<v8::Object> perms = v8::Object::New(args.GetIsolate());
+	perms->Set(
+		v8::String::NewFromUtf8(args.GetIsolate(), "webcamPermission").ToLocalChecked(),
+		v8::Boolean::New(args.GetIsolate(), webcam));
+	perms->Set(
+		v8::String::NewFromUtf8(args.GetIsolate(), "micPermission").ToLocalChecked(),
+		v8::Boolean::New(args.GetIsolate(), mic));
 
-	if (response.size() < 2) {
-		if (!ValidateResponse(response)) {
-			return;
-		}
-	}
+	args.GetReturnValue().Set(perms);
+}
 
-	std::cout << "Permissions: " << response[1].value_union.ui32 << std::endl;
-
-	args.GetReturnValue().Set(v8::Number::New(args.GetIsolate(), response[1].value_union.ui32));
+Nan::NAN_METHOD_RETURN_TYPE api::RequestPermissions(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	g_util_osx->requestPermissions();
 }
 
 INITIALIZER(nodeobs_api)
@@ -233,5 +234,6 @@ INITIALIZER(nodeobs_api)
 		NODE_SET_METHOD(exports, "OBS_API_ProcessHotkeyStatus", api::OBS_API_ProcessHotkeyStatus);
 		NODE_SET_METHOD(exports, "SetUsername", api::SetUsername);
 		NODE_SET_METHOD(exports, "GetPermissionsStatus", api::GetPermissionsStatus);
+		NODE_SET_METHOD(exports, "RequestPermissions", api::RequestPermissions);
 	});
 }

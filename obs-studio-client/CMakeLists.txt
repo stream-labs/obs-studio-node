@@ -24,9 +24,12 @@ nodejs_init()
 
 find_library(COREFOUNDATION CoreFoundation)
 find_library(COCOA Cocoa)
+find_library(AVFOUNDATION AVFoundation)
 
-include_directories(${COREFOUNDATION}
-		    ${COCOA})
+include_directories(
+	${COREFOUNDATION}
+	${COCOA}
+	${AVFOUNDATION})
 
 add_nodejs_module(
 	obs_studio_client
@@ -83,6 +86,13 @@ add_nodejs_module(
 	###### callback-manager ######
 	"source/callback-manager.cpp"
 	"source/callback-manager.hpp"
+
+	###### osx-util ######
+	"${PROJECT_SOURCE_DIR}/source/util-osx.hpp"
+	"${PROJECT_SOURCE_DIR}/source/util-osx.cpp"
+	"${PROJECT_SOURCE_DIR}/source/util-osx-int.h"
+	"${PROJECT_SOURCE_DIR}/source/util-osx-impl.h"
+	"${PROJECT_SOURCE_DIR}/source/util-osx-impl.mm"
 )
 
 set(PROJECT_INCLUDE_PATHS
@@ -93,7 +103,7 @@ if(WIN32)
 	target_sources(obs_studio_client PUBLIC ${PROJECT_BINARY_DIR}/version.rc)
 endif()
 
-target_link_libraries(obs_studio_client lib-streamlabs-ipc ${COREFOUNDATION} ${COCOA})
+target_link_libraries(obs_studio_client lib-streamlabs-ipc ${COREFOUNDATION} ${COCOA} ${AVFOUNDATION})
 
 target_include_directories(
 	obs_studio_client

@@ -13,24 +13,15 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+ 
 ******************************************************************************/
 
-#include "shared.hpp"
+#import "Foundation/Foundation.h"
+#import <AVFoundation/AVFoundation.h>
+#import <Cocoa/Cocoa.h>
 
-std::queue<std::function<void(v8::Local<v8::Object>)>>* initializerFunctions;
+#include "util-osx-int.h"
+#include "util-osx.hpp"
 
-#ifdef __APPLE__
-    UtilInt* g_util_osx;
-#endif
-
-void replaceAll(std::string& str, const std::string& from, const std::string& to)
-{
-	if (from.empty())
-		return;
-	size_t start_pos = 0;
-	while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
-		str.replace(start_pos, from.length(), to);
-		start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
-	}
-};
+@interface UtilImplObj : NSObject
+@end

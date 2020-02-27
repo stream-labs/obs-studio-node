@@ -112,8 +112,6 @@ void OBS_API::Register(ipc::server& srv)
 	    ProcessHotkeyStatus));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SetUsername", std::vector<ipc::type>{ipc::type::String}, SetUsername));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetPermissionsStatus", std::vector<ipc::type>{}, GetPermissionsStatus));
 
 	srv.register_collection(cls);
 }
@@ -963,21 +961,6 @@ void OBS_API::SetUsername(
 
 	AUTO_DEBUG;
 }
-
-void OBS_API::GetPermissionsStatus(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	bool status = g_util_osx->getPermissionsStatus();
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value((uint32_t)status));
-
-	AUTO_DEBUG;
-}
-
 
 void OBS_API::SetProcessPriority(const char* priority)
 {

@@ -47,33 +47,4 @@ void UtilObjCInt::terminateApplication(void)
     });
 }
 
-bool UtilObjCInt::getPermissionsStatus(void)
-{
-	AVAuthorizationStatus authStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
-
-	switch(authStatus) {
-		case AVAuthorizationStatusAuthorized: {
-			std::cout << "Permissions granted" << std::endl;
-			return true;
-		}
-		case AVAuthorizationStatusNotDetermined:
-		case AVAuthorizationStatusRestricted:
-		default:{
-			std::cout << "Permissions denied" << std::endl;
-			[AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted)
-			{
-				if(granted)
-				{
-					std::cout << "Granted" << std::endl;
-				}
-				else
-				{
-					std::cout << "Denied" << std::endl;
-				}
-			}];
-			return false;
-		}
-	}
-}
-
 @end

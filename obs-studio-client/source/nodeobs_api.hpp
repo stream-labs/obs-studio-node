@@ -31,4 +31,5 @@ namespace api
 	static void OBS_API_ProcessHotkeyStatus(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void SetUsername(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void GetPermissionsStatus(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void RequestPermissions(const v8::FunctionCallbackInfo<v8::Value>& args);
 } // namespace api
