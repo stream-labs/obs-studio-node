@@ -15,6 +15,9 @@ UtilObjCInt::~UtilObjCInt(void)
 void UtilObjCInt::init(void)
 {
     self = [[UtilImplObj alloc] init];
+
+	m_webcam_perm = false;
+	m_mic_perm    = false;
 }
 
 void UtilObjCInt::getPermissionsStatus(bool &webcam, bool &mic)
@@ -31,55 +34,23 @@ void UtilObjCInt::getPermissionsStatus(bool &webcam, bool &mic)
 	else
 		mic = false;
 
-	// switch(authStatus) {
-	// 	case AVAuthorizationStatusAuthorized: {
-	// 		std::cout << "Permissions granted" << std::endl;
-	// 		return true;
-	// 	}
-	// 	case AVAuthorizationStatusNotDetermined:
-	// 	case AVAuthorizationStatusRestricted:
-	// 	default:{
-	// 		std::cout << "Permissions denied" << std::endl;
-	// 		[AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted)
-	// 		{
-	// 			if(granted)
-	// 			{
-	// 				std::cout << "Granted" << std::endl;
-	// 			}
-	// 			else
-	// 			{
-	// 				std::cout << "Denied" << std::endl;
-	// 			}
-	// 		}];
-	// 		return false;
-	// 	}
-	// }
+	m_webcam_perm = webcam;
+	m_mic_perm    = mic;
 }
 
-void UtilObjCInt::requestPermissions(void)
+void UtilObjCInt::requestPermissions(void *async_cb, perms_cb cb)
 {
+	m_async_cb = async_cb;
 	[AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted)
 	{
-		if(granted)
-		{
-			std::cout << "Granted Webcam" << std::endl;
-		}
-		else
-		{
-			std::cout << "Denied Webcam" << std::endl;
-		}
+		m_webcam_perm = granted;
+		cb(m_async_cb, m_webcam_perm, m_mic_perm);
 	}];
 
 	[AVCaptureDevice requestAccessForMediaType:AVMediaTypeAudio completionHandler:^(BOOL granted)
 	{
-		if(granted)
-		{
-			std::cout << "Granted Mic" << std::endl;
-		}
-		else
-		{
-			std::cout << "Denied Mic" << std::endl;
-		}
+		m_mic_perm = granted;
+		cb(m_async_cb, m_webcam_perm, m_mic_perm);
 	}];
 }
 

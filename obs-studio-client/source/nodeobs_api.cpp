@@ -19,7 +19,6 @@
 #include "controller.hpp"
 #include "error.hpp"
 #include "nodeobs_api.hpp"
-#include "utility-v8.hpp"
 
 #include <node.h>
 #include <sstream>
@@ -27,9 +26,64 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
+NodeCallback* node_cb;
+
+void NodeCallback::start_async_runner()
+{
+	if (m_async_callback)
+		return;
+	std::unique_lock<std::mutex> ul(mtx);
+	// Start v8/uv asynchronous runner.
+	m_async_callback = new PermsCallback();
+	m_async_callback->set_handler(
+	    std::bind(&NodeCallback::callback_handler, this, std::placeholders::_1, std::placeholders::_2), nullptr);
+}
+
+void NodeCallback::stop_async_runner()
+{
+	if (!m_async_callback)
+		return;
+	std::unique_lock<std::mutex> ul(mtx);
+	// Stop v8/uv asynchronous runner.
+	m_async_callback->clear();
+	m_async_callback->finalize();
+	m_async_callback = nullptr;
+}
+
+void NodeCallback::callback_handler(
+	void* data, std::shared_ptr<Permissions> perms_status)
+{
+	v8::Isolate*          isolate = v8::Isolate::GetCurrent();
+	v8::Local<v8::Object> obj = v8::Object::New(isolate);
+	v8::Local<v8::Value>  result[1];
+
+	if (!perms_status)
+		return;
+
+	obj->Set(
+		utilv8::ToValue("webcamPermission"),
+		utilv8::ToValue(perms_status->webcam));
+	obj->Set(
+		utilv8::ToValue("micPermission"),
+		utilv8::ToValue(perms_status->mic));
+
+
+	result[0] = obj;
+	Nan::Call(m_callback_function, 1, result);
+
+	if (perms_status->webcam && perms_status->mic)
+		this->stop_async_runner();
+}
+
+void NodeCallback::set_keepalive(v8::Local<v8::Object> obj)
+{
+	if (!m_async_callback)
+		return;
+	m_async_callback->set_keepalive(obj);
+}
+
 void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	std::cout << "OBS_API_initAPI" << std::endl;
 	std::string path;
 	std::string language;
 	std::string version;
@@ -219,7 +273,26 @@ Nan::NAN_METHOD_RETURN_TYPE api::GetPermissionsStatus(const v8::FunctionCallback
 
 Nan::NAN_METHOD_RETURN_TYPE api::RequestPermissions(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	g_util_osx->requestPermissions();
+	v8::Local<v8::Function> callback;
+	ASSERT_GET_VALUE(args[0], callback);
+
+	node_cb = new NodeCallback();
+	node_cb->m_callback_function.Reset(callback);
+	node_cb->start_async_runner();
+	node_cb->set_keepalive(args.This());
+
+	auto cb = [](void* cb, bool webcam, bool mic) {
+		std::shared_ptr<Permissions> perms =
+			std::make_shared<Permissions>();
+		Permissions* item      = new Permissions();
+		perms->webcam          = webcam;
+		perms->mic             = mic;
+		PermsCallback* aync_cb = reinterpret_cast<PermsCallback*>(cb);
+
+		aync_cb->queue(std::move(perms));
+	};
+
+	g_util_osx->requestPermissions(node_cb->m_async_callback, cb);
 }
 
 INITIALIZER(nodeobs_api)

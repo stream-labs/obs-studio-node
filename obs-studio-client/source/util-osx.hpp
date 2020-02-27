@@ -22,6 +22,7 @@
 #include <string>
 
 class UtilObjCInt;
+typedef std::function<void(void* data, bool webcam, bool mic)> perms_cb;
 
 class UtilInt
 {
@@ -31,7 +32,7 @@ public:
 
     void init(void);
     void getPermissionsStatus(bool &webcam, bool &mic);
-    void requestPermissions(void);
+    void requestPermissions(void *async_cb, perms_cb cb);
 
 private:
     UtilObjCInt * _impl;

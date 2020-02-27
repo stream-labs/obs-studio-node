@@ -23,5 +23,7 @@
 #include "util-osx-int.h"
 #include "util-osx.hpp"
 
+typedef std::function<void(void* data, bool webcam, bool mic)> perms_cb;
+
 @interface UtilImplObj : NSObject
 @end

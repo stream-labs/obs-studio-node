@@ -38,7 +38,7 @@ void UtilInt::getPermissionsStatus(bool &webcam, bool &mic)
     _impl->getPermissionsStatus(webcam, mic);
 }
 
-void UtilInt::requestPermissions(void)
+void UtilInt::requestPermissions(void *async_cb, perms_cb cb)
 {
-    _impl->requestPermissions();
+    _impl->requestPermissions(async_cb, cb);
 }

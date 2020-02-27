@@ -21,15 +21,22 @@
 
 #include <string>
 
+typedef std::function<void(void* data, bool webcam, bool mic)> perms_cb;
+
 class UtilObjCInt
 {
+private:
+    bool  m_webcam_perm;
+    bool  m_mic_perm;
+    void* m_async_cb;
+
 public:
     UtilObjCInt(void);
     ~UtilObjCInt(void);
 
     void init(void);
     void getPermissionsStatus(bool &webcam, bool &mic);
-    void requestPermissions(void);
+    void requestPermissions(void *async_cb, perms_cb cb);
 
 private:
     void * self;
