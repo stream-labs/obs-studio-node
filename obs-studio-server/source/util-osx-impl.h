@@ -17,6 +17,7 @@
 ******************************************************************************/
 
 #import "Foundation/Foundation.h"
+#import <AVFoundation/AVFoundation.h>
 #import <Cocoa/Cocoa.h>
 #import <OpenGL/OpenGL.h>
 

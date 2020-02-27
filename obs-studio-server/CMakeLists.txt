@@ -119,12 +119,14 @@ find_library(COREFOUNDATION CoreFoundation)
 find_library(COCOA Cocoa)
 find_library(IOSURF IOSurface)
 find_library(GLKIT GLKit)
+find_library(AVFOUNDATION AVFoundation)
 
 include_directories(
 	${COREFOUNDATION}
 	${COCOA}
 	${IOSURF}
-	${GLKIT})
+	${GLKIT}
+	${AVFOUNDATION})
 
 
 # Getting LIBOBS_VERSION from azure script
@@ -307,7 +309,7 @@ endif()
 if(WIN32)
 target_link_libraries(${PROJECT_NAME} ${PROJECT_LIBRARIES} optimized crashpad)
 else()
-target_link_libraries(${PROJECT_NAME} ${PROJECT_LIBRARIES} optimized ${COREFOUNDATION} ${COCOA} ${IOSURF} ${GLKIT})
+target_link_libraries(${PROJECT_NAME} ${PROJECT_LIBRARIES} optimized ${COREFOUNDATION} ${COCOA} ${IOSURF} ${GLKIT} ${AVFOUNDATION})
 endif()
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE_PATHS})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "obs${BITS}")

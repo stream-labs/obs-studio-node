@@ -31,6 +31,7 @@
 #include <queue>
 #include "nodeobs_configManager.hpp"
 #include "nodeobs_service.h"
+#include "util-osx.hpp"
 
 extern std::string g_moduleDirectory;
 
@@ -115,6 +116,11 @@ class OBS_API
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
 	static void SetUsername(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void GetPermissionsStatus(
 	    void*                          data,
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,

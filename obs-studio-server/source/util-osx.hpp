@@ -33,6 +33,7 @@ public:
     std::string getDefaultVideoSavePath(void);
     void createApplication(void);
     void terminateApplication(void);
+    bool getPermissionsStatus(void);
 
 private:
     UtilObjCInt * _impl;

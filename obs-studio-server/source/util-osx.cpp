@@ -47,3 +47,8 @@ void UtilInt::terminateApplication(void)
 {
     _impl->terminateApplication();
 }
+
+bool UtilInt::getPermissionsStatus(void)
+{
+    return _impl->getPermissionsStatus();
+}

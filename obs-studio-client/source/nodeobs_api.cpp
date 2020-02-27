@@ -29,6 +29,7 @@
 
 void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+	std::cout << "OBS_API_initAPI" << std::endl;
 	std::string path;
 	std::string language;
 	std::string version;
@@ -200,6 +201,26 @@ Nan::NAN_METHOD_RETURN_TYPE api::SetUsername(const v8::FunctionCallbackInfo<v8::
 	conn->call("API", "SetUsername", {ipc::value(username)});
 }
 
+Nan::NAN_METHOD_RETURN_TYPE api::GetPermissionsStatus(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	std::cout << "GetPermissionsStatus" << std::endl;
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("API", "GetPermissionsStatus", {});
+
+	if (response.size() < 2) {
+		if (!ValidateResponse(response)) {
+			return;
+		}
+	}
+
+	std::cout << "Permissions: " << response[1].value_union.ui32 << std::endl;
+
+	args.GetReturnValue().Set(v8::Number::New(args.GetIsolate(), response[1].value_union.ui32));
+}
+
 INITIALIZER(nodeobs_api)
 {
 	initializerFunctions->push([](v8::Local<v8::Object> exports) {
@@ -211,5 +232,6 @@ INITIALIZER(nodeobs_api)
 		NODE_SET_METHOD(exports, "OBS_API_QueryHotkeys", api::OBS_API_QueryHotkeys);
 		NODE_SET_METHOD(exports, "OBS_API_ProcessHotkeyStatus", api::OBS_API_ProcessHotkeyStatus);
 		NODE_SET_METHOD(exports, "SetUsername", api::SetUsername);
+		NODE_SET_METHOD(exports, "GetPermissionsStatus", api::GetPermissionsStatus);
 	});
 }
