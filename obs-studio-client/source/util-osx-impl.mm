@@ -23,16 +23,10 @@ void UtilObjCInt::init(void)
 void UtilObjCInt::getPermissionsStatus(bool &webcam, bool &mic)
 {
 	AVAuthorizationStatus camStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
-	if (camStatus == AVAuthorizationStatusAuthorized)
-		webcam = true;
-	else
-		webcam = false;
+	webcam = camStatus == AVAuthorizationStatusAuthorized;
 
 	AVAuthorizationStatus micStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio];
-	if (micStatus == AVAuthorizationStatusAuthorized)
-		mic = true;
-	else
-		mic = false;
+	mic = micStatus == AVAuthorizationStatusAuthorized;
 
 	m_webcam_perm = webcam;
 	m_mic_perm    = mic;
