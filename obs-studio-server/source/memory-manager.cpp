@@ -31,6 +31,9 @@ MemoryManager::MemoryManager()
 		available_memory    = 0;
 		allowed_cached_size = LIMIT;
 	}
+#elif __APPLE__
+	available_memory = g_util_osx->getTotalPhysicalMemory();
+	allowed_cached_size = std::min((uint64_t)LIMIT, (uint64_t)available_memory / 2);
 #endif
 }
 
@@ -241,7 +244,6 @@ void MemoryManager::updateSourcesCache(void)
 
 void MemoryManager::registerSource(obs_source_t* source)
 {
-	return;
 	if (strcmp(obs_source_get_id(source), "ffmpeg_source") != 0)
 		return;
 
@@ -289,51 +291,58 @@ void MemoryManager::unregisterSource(obs_source_t * source)
 
 	if (!sources.size() && watcher.running) {
 		watcher.stop    = true;
-
+		mtx.unlock();
 		if (watcher.worker.joinable())
 			watcher.worker.join();
 
 		watcher.running = false;
+	} else {
+		mtx.unlock();
 	}
 
-	mtx.unlock();
 }
 
 void MemoryManager::monitorMemory()
 {
-#ifdef WIN32
 	while (!watcher.stop) {
+#ifdef WIN32
 		MEMORYSTATUSEX statex;
 		statex.dwLength = sizeof(statex);
 
-		if (GlobalMemoryStatusEx(&statex)) {
-			std::unique_lock<std::mutex> ulock(mtx);
+		if (!GlobalMemoryStatusEx(&statex))
+			return;
 
-			uint64_t memory_in_use               = statex.ullTotalPhys - statex.ullAvailPhys;
-			uint64_t memory_in_use_without_cache = memory_in_use - current_cached_size;
+		uint64_t memory_in_use               = statex.ullTotalPhys - statex.ullAvailPhys;
+		uint64_t memory_in_use_without_cache = memory_in_use - current_cached_size;
+		uint64_t totalMeory                  = statex.ullTotalPhys;
+#elif __APPLE__
+		uint64_t totalMeory = g_util_osx->getTotalPhysicalMemory();
+		uint64_t availableMemory = g_util_osx->getAvailableMemory();
+		uint64_t memory_in_use = totalMeory - availableMemory;
+		uint64_t memory_in_use_without_cache =
+			memory_in_use - current_cached_size;
+#endif
+		std::unique_lock<std::mutex> ulock(mtx);
 
-			float memory_load =
-			    (float)(memory_in_use_without_cache + current_cached_size) / (float)statex.ullTotalPhys * 100;
-
-			auto it = sources.begin();
-			if (memory_load >= UPPER_LIMIT) {
-				while (memory_load >= (UPPER_LIMIT - 10) && it != sources.end()) {
-					removeCachedMemory(it->second, false);
-					memory_load =
-					    (float)(memory_in_use_without_cache + current_cached_size) / (float)statex.ullTotalPhys * 100;
-					it++;
-				}
-			} else if (memory_load < LOWER_LIMIT) {
-				while (memory_load < (LOWER_LIMIT + 10) && it != sources.end()) {
-					if (shouldCacheSource(it->second))
-						addCachedMemory(it->second);
-					memory_load =
-					    (float)(memory_in_use_without_cache + current_cached_size) / (float)statex.ullTotalPhys * 100;
-					it++;
-				}
+		float memory_load =
+			(float)(memory_in_use_without_cache + current_cached_size) / (float)totalMeory * 100;
+		auto it = sources.begin();
+		if (memory_load >= UPPER_LIMIT) {
+			while (memory_load >= (UPPER_LIMIT - 10) && it != sources.end()) {
+				removeCachedMemory(it->second, false);
+				memory_load =
+					(float)(memory_in_use_without_cache + current_cached_size) / (float)totalMeory * 100;
+				it++;
+			}
+		} else if (memory_load < LOWER_LIMIT) {
+			while (memory_load < (LOWER_LIMIT + 10) && it != sources.end()) {
+				if (shouldCacheSource(it->second))
+					addCachedMemory(it->second);
+				memory_load =
+					(float)(memory_in_use_without_cache + current_cached_size) / (float)totalMeory * 100;
+				it++;
 			}
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	}
-#endif
 }

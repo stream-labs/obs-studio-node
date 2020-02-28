@@ -47,3 +47,13 @@ void UtilInt::terminateApplication(void)
 {
     _impl->terminateApplication();
 }
+
+unsigned long long UtilInt::getTotalPhysicalMemory(void)
+{
+    return _impl->getTotalPhysicalMemory();
+}
+
+unsigned long long UtilInt::getAvailableMemory(void)
+{
+    return _impl->getAvailableMemory();
+}

@@ -33,6 +33,8 @@ public:
     std::string getDefaultVideoSavePath(void);
     void createApplication(void);
     void terminateApplication(void);
+    unsigned long long getTotalPhysicalMemory(void);
+    unsigned long long getAvailableMemory(void);
 
 private:
     UtilObjCInt * _impl;
