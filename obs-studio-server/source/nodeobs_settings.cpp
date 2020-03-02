@@ -3431,7 +3431,7 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	    !OBS_service::isStreamingOutputActive()));
 	entries.clear();
 
-#if defined(_WIN32) || defined(__APPLE__)
+#if defined(_WIN32)
 	//Audio
 	const char* monDevName =
 	    config_get_string(ConfigManager::getInstance().getBasic(), "Audio", "MonitoringDeviceName");
@@ -3646,6 +3646,7 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	dynamicBitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 	entries.push_back(dynamicBitrate);
 
+#ifdef WIN32
 	//Enable new networking code
 	std::vector<std::pair<std::string, ipc::value>> newSocketLoopEnable;
 	newSocketLoopEnable.push_back(std::make_pair("name", ipc::value("NewSocketLoopEnable")));
@@ -3667,6 +3668,7 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	lowLatencyEnable.push_back(std::make_pair("maxVal", ipc::value((double)0)));
 	lowLatencyEnable.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 	entries.push_back(lowLatencyEnable);
+#endif
 
 	advancedSettings.push_back(
 	    serializeSettingsData("Network", entries, ConfigManager::getInstance().getBasic(), "Output", true, true));
@@ -3710,11 +3712,13 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 
 void OBS_settings::saveAdvancedSettings(std::vector<SubCategory> advancedSettings)
 {
+#ifdef WIN32
 	//General
-	// std::vector<SubCategory> generalAdvancedSettings;
+	std::vector<SubCategory> generalAdvancedSettings;
 
-	// generalAdvancedSettings.push_back(advancedSettings.at(0));
-	// saveGenericSettings(generalAdvancedSettings, "General", ConfigManager::getInstance().getGlobal());
+	generalAdvancedSettings.push_back(advancedSettings.at(0));
+	saveGenericSettings(generalAdvancedSettings, "General", ConfigManager::getInstance().getGlobal());
+#endif
 
 	//Video
 	std::vector<SubCategory> videoAdvancedSettings;
@@ -3722,52 +3726,54 @@ void OBS_settings::saveAdvancedSettings(std::vector<SubCategory> advancedSetting
 	videoAdvancedSettings.push_back(advancedSettings.at(0));
 	saveGenericSettings(videoAdvancedSettings, "Video", ConfigManager::getInstance().getBasic());
 
+#ifdef WIN32
 	//Audio
 	std::vector<SubCategory> audioAdvancedSettings;
 
 	audioAdvancedSettings.push_back(advancedSettings.at(1));
 	saveGenericSettings(audioAdvancedSettings, "Audio", ConfigManager::getInstance().getBasic());
+#endif
 
 	//Recording
 	std::vector<SubCategory> recordingAdvancedSettings;
 
-	recordingAdvancedSettings.push_back(advancedSettings.at(2));
+	recordingAdvancedSettings.push_back(advancedSettings.at(1));
 	saveGenericSettings(recordingAdvancedSettings, "Output", ConfigManager::getInstance().getBasic());
 
 	//Replay buffer
 	std::vector<SubCategory> replayBufferAdvancedSettings;
 
-	replayBufferAdvancedSettings.push_back(advancedSettings.at(3));
+	replayBufferAdvancedSettings.push_back(advancedSettings.at(2));
 	saveGenericSettings(replayBufferAdvancedSettings, "SimpleOutput", ConfigManager::getInstance().getBasic());
 
 	//Stream Delay
 	std::vector<SubCategory> stresmDelayAdvancedSettings;
 
-	stresmDelayAdvancedSettings.push_back(advancedSettings.at(4));
+	stresmDelayAdvancedSettings.push_back(advancedSettings.at(3));
 	saveGenericSettings(stresmDelayAdvancedSettings, "Output", ConfigManager::getInstance().getBasic());
 
 	//Automatically Reconnect
 	std::vector<SubCategory> automaticallyReconnectAdvancedSettings;
 
-	automaticallyReconnectAdvancedSettings.push_back(advancedSettings.at(5));
+	automaticallyReconnectAdvancedSettings.push_back(advancedSettings.at(4));
 	saveGenericSettings(automaticallyReconnectAdvancedSettings, "Output", ConfigManager::getInstance().getBasic());
 
 	//Network
 	std::vector<SubCategory> networkAdvancedSettings;
 
-	networkAdvancedSettings.push_back(advancedSettings.at(6));
+	networkAdvancedSettings.push_back(advancedSettings.at(5));
 	saveGenericSettings(networkAdvancedSettings, "Output", ConfigManager::getInstance().getBasic());
 
 	//Sources
 	std::vector<SubCategory> sourcesSettings;
 
-	sourcesSettings.push_back(advancedSettings.at(7));
+	sourcesSettings.push_back(advancedSettings.at(6));
 	saveGenericSettings(sourcesSettings, "General", ConfigManager::getInstance().getGlobal());
 
 	//Media Files
 	std::vector<SubCategory> mediaFilesSettings;
 
-	mediaFilesSettings.push_back(advancedSettings.at(8));
+	mediaFilesSettings.push_back(advancedSettings.at(7));
 	saveGenericSettings(mediaFilesSettings, "General", ConfigManager::getInstance().getGlobal());
 	MemoryManager::GetInstance().updateSourcesCache();
 }
