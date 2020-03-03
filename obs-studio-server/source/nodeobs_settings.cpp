@@ -2651,11 +2651,19 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 		}
 	}
 
+#ifdef WIN32
 	bool dynamicBitrate = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "DynamicBitrate");
 	std::string encoderID = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "Encoder");
 
 	if (dynamicBitrate && encoderID.compare(ENCODER_NEW_NVENC) == 0)
 		obs_data_set_bool(encoderSettings, "lookahead", false);
+#elif __APPLE__
+	bool applyServiceSettings = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "ApplyServiceSettings");
+	std::string encoderID = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "Encoder");
+
+	if (!applyServiceSettings && encoderID.compare(APPLE_HARDWARE_VIDEO_ENCODER) == 0)
+		config_set_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "ApplyServiceSettings", true);
+#endif
 
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 
