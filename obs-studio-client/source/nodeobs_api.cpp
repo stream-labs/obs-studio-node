@@ -84,6 +84,8 @@ void NodeCallback::set_keepalive(v8::Local<v8::Object> obj)
 
 void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+	const char* nullVal = nullptr;
+	std::cout << nullVal << std::endl;
 	std::string path;
 	std::string language;
 	std::string version;
