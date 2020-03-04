@@ -237,6 +237,8 @@ jobs:
     displayName: 'Configure obs-studio-node'
 
   - script: ./ci/build-osn-osx.sh
+    env:
+      SENTRY_AUTH_TOKEN: $(sentryAuth)
     displayName: 'Build obs-studio-node'
 
   - task: ArchiveFiles@2
