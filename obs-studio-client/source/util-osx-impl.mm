@@ -22,7 +22,13 @@ void UtilObjCInt::init(void)
 
 void UtilObjCInt::getPermissionsStatus(bool &webcam, bool &mic)
 {
-	if (@available(macOS 10.14, *)) {
+	NSOperatingSystemVersion OSversion = [NSProcessInfo processInfo].operatingSystemVersion;
+	std::cout << "majorVersion " << OSversion.majorVersion << std::endl;
+	std::cout << "minorVersion " << OSversion.minorVersion << std::endl;
+	std::cout << "patchVersion " << OSversion.patchVersion << std::endl;
+
+	if (@available(macOS 10.15, *)) {
+		NSLog(@"OS available");
 		AVAuthorizationStatus camStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
 		webcam = camStatus == AVAuthorizationStatusAuthorized;
 
@@ -32,6 +38,7 @@ void UtilObjCInt::getPermissionsStatus(bool &webcam, bool &mic)
 		m_webcam_perm = webcam;
 		m_mic_perm    = mic;
 	} else {
+		NSLog(@"OS NOT available");
 		webcam = true;
 		mic = true;
 	}
