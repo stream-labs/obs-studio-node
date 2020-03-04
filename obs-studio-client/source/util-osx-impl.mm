@@ -22,30 +22,37 @@ void UtilObjCInt::init(void)
 
 void UtilObjCInt::getPermissionsStatus(bool &webcam, bool &mic)
 {
-	AVAuthorizationStatus camStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
-	webcam = camStatus == AVAuthorizationStatusAuthorized;
+	if (@available(macOS 10.14, *)) {
+		AVAuthorizationStatus camStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
+		webcam = camStatus == AVAuthorizationStatusAuthorized;
 
-	AVAuthorizationStatus micStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio];
-	mic = micStatus == AVAuthorizationStatusAuthorized;
+		AVAuthorizationStatus micStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio];
+		mic = micStatus == AVAuthorizationStatusAuthorized;
 
-	m_webcam_perm = webcam;
-	m_mic_perm    = mic;
+		m_webcam_perm = webcam;
+		m_mic_perm    = mic;
+	} else {
+		webcam = true;
+		mic = true;
+	}
 }
 
 void UtilObjCInt::requestPermissions(void *async_cb, perms_cb cb)
 {
-	m_async_cb = async_cb;
-	[AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted)
-	{
-		m_webcam_perm = granted;
-		cb(m_async_cb, m_webcam_perm, m_mic_perm);
-	}];
+	if (@available(macOS 10.14, *)) {
+		m_async_cb = async_cb;
+		[AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted)
+		{
+			m_webcam_perm = granted;
+			cb(m_async_cb, m_webcam_perm, m_mic_perm);
+		}];
 
-	[AVCaptureDevice requestAccessForMediaType:AVMediaTypeAudio completionHandler:^(BOOL granted)
-	{
-		m_mic_perm = granted;
-		cb(m_async_cb, m_webcam_perm, m_mic_perm);
-	}];
+		[AVCaptureDevice requestAccessForMediaType:AVMediaTypeAudio completionHandler:^(BOOL granted)
+		{
+			m_mic_perm = granted;
+			cb(m_async_cb, m_webcam_perm, m_mic_perm);
+		}];
+	}
 }
 
 @end
