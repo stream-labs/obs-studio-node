@@ -20,6 +20,7 @@
 #define __UTIL_OBJC_INTERFACE_H__
 
 #include <string>
+#include <functional>
 
 typedef std::function<void(void* data, bool webcam, bool mic)> perms_cb;
 
