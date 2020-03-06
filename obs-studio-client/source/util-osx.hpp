@@ -20,6 +20,7 @@
 #define __UTIL_CLASS_H__
 
 #include <string>
+#include <functional>
 
 class UtilObjCInt;
 typedef std::function<void(void* data, bool webcam, bool mic)> perms_cb;
