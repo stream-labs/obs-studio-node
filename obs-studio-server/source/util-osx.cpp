@@ -57,3 +57,9 @@ unsigned long long UtilInt::getAvailableMemory(void)
 {
     return _impl->getAvailableMemory();
 }
+
+std::vector<std::pair<uint32_t, uint32_t>>
+    UtilInt::getAvailableScreenResolutions(void)
+{
+    return _impl->getAvailableScreenResolutions();
+}

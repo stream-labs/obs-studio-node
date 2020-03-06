@@ -20,6 +20,7 @@
 #define __UTIL_CLASS_H__
 
 #include <string>
+#include <vector>
 
 class UtilObjCInt;
 
@@ -35,6 +36,7 @@ public:
     void terminateApplication(void);
     unsigned long long getTotalPhysicalMemory(void);
     unsigned long long getAvailableMemory(void);
+    std::vector<std::pair<uint32_t, uint32_t>> getAvailableScreenResolutions(void);
 
 private:
     UtilObjCInt * _impl;

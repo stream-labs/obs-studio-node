@@ -1,9 +1,10 @@
 #include "util-osx-impl.h"
 #include <iostream>
-#import <mach/mach.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/sysctl.h>
+
+#import <mach/mach.h>
 
 @implementation UtilImplObj
 
@@ -77,6 +78,20 @@ unsigned long long UtilObjCInt::getAvailableMemory(void)
 
     uint64_t mem_free = (uint64_t)vm_stat.free_count * (uint64_t)pagesize * 10;
 	return mem_free;
+}
+
+std::vector<std::pair<uint32_t, uint32_t>> UtilObjCInt::getAvailableScreenResolutions(void)
+{
+    std::vector<std::pair<uint32_t, uint32_t>> resolutions;
+
+    for (NSScreen* screen: [NSScreen screens]) {
+        resolutions.push_back(std::make_pair(
+            [screen frame].size.width,
+            [screen frame].size.height
+        ));
+    }
+
+    return resolutions;
 }
 
 @end

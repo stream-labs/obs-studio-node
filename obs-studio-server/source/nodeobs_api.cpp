@@ -1577,23 +1577,24 @@ static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT l
 	MONITORINFO info;
 	info.cbSize = sizeof(info);
 	if (GetMonitorInfo(hMonitor, &info)) {
-		std::vector<Screen>* resolutions = reinterpret_cast<std::vector<Screen>*>(dwData);
+		std::vector<std::pair<uint32_t, uint32_t>>* resolutions =
+			reinterpret_cast<std::vector<std::pair<uint32_t, uint32_t>>*>(dwData);
 
-		Screen screen;
-
-		screen.width  = std::abs(info.rcMonitor.left - info.rcMonitor.right);
-		screen.height = std::abs(info.rcMonitor.top - info.rcMonitor.bottom);
-
-		resolutions->push_back(screen);
+		resolutions->push_back(std::make_pair(
+			std::abs(info.rcMonitor.left - info.rcMonitor.right,
+			std::abs(info.rcMonitor.top - info.rcMonitor.bottom)
+		));
 	}
 	return true;
 }
 #endif
-// std::vector<Screen> OBS_API::availableResolutions(void)
-// {
-// 	std::vector<Screen> resolutions;
-// #ifdef WIN32
-// 	EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, reinterpret_cast<LPARAM>(&resolutions));
-// #endif
-// 	return resolutions;
-// }
+std::vector<std::pair<uint32_t, uint32_t>> OBS_API::availableResolutions(void)
+{
+	std::vector<std::pair<uint32_t, uint32_t>> resolutions;
+#ifdef WIN32
+	EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, reinterpret_cast<LPARAM>(&resolutions));
+#else
+	resolutions = g_util_osx->getAvailableScreenResolutions();
+#endif
+	return resolutions;
+}

@@ -3016,29 +3016,30 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 	baseResolution.push_back(std::make_pair("1920x1080", ipc::value("1920x1080")));
 	baseResolution.push_back(std::make_pair("1280x720", ipc::value("1280x720")));
 
-	// std::vector<Screen> resolutions = OBS_API::availableResolutions();
+	std::vector<std::pair<uint32_t, uint32_t>> resolutions =
+		OBS_API::availableResolutions();
 
-	// // Fill available display resolutions
-	// for (int i = 0; i < resolutions.size(); i++) {
-	// 	std::string baseResolutionString;
-	// 	baseResolutionString = std::to_string(resolutions.at(i).width);
-	// 	baseResolutionString += "x";
-	// 	baseResolutionString += std::to_string(resolutions.at(i).height);
+	// Fill available display resolutions
+	for (int i = 0; i < resolutions.size(); i++) {
+		std::string baseResolutionString;
+		baseResolutionString = std::to_string(resolutions.at(i).first);
+		baseResolutionString += "x";
+		baseResolutionString += std::to_string(resolutions.at(i).second);
 
-	// 	std::pair<std::string, std::string> newBaseResolution =
-	// 	    std::make_pair(baseResolutionString.c_str(), baseResolutionString.c_str());
+		std::pair<std::string, std::string> newBaseResolution =
+		    std::make_pair(baseResolutionString.c_str(), baseResolutionString.c_str());
 
-	// 	std::vector<std::pair<std::string, ipc::value>>::iterator it = std::find_if(
-	// 	    baseResolution.begin(),
-	// 	    baseResolution.end(),
-	// 	    [&baseResolutionString](const std::pair<std::string, ipc::value> value) {
-	// 		    return (value.second.value_str.compare(baseResolutionString) == 0);
-	// 	    });
+		std::vector<std::pair<std::string, ipc::value>>::iterator it = std::find_if(
+		    baseResolution.begin(),
+		    baseResolution.end(),
+		    [&baseResolutionString](const std::pair<std::string, ipc::value> value) {
+			    return (value.second.value_str.compare(baseResolutionString) == 0);
+		    });
 
-	// 	if (baseResolution.size() == 7 || it == baseResolution.end()) {
-	// 		baseResolution.push_back(newBaseResolution);
-	// 	}
-	// }
+		if (baseResolution.size() == 7 || it == baseResolution.end()) {
+			baseResolution.push_back(newBaseResolution);
+		}
+	}
 
 	// Set the current base resolution selected by the user
 	std::pair<std::string, std::string> newBaseResolution = std::make_pair("currentValue", baseResolutionString);
