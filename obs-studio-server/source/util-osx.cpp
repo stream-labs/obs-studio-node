@@ -63,3 +63,13 @@ std::vector<std::pair<uint32_t, uint32_t>>
 {
     return _impl->getAvailableScreenResolutions();
 }
+
+std::string UtilInt::getUserDataPath(void)
+{
+    return _impl->getUserDataPath();
+}
+
+std::string UtilInt::getWorkingDirectory(void)
+{
+    return _impl->getWorkingDirectory();
+}

@@ -3,8 +3,10 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/sysctl.h>
+#include <string>
 
 #import <mach/mach.h>
+
 
 @implementation UtilImplObj
 
@@ -92,6 +94,26 @@ std::vector<std::pair<uint32_t, uint32_t>> UtilObjCInt::getAvailableScreenResolu
     }
 
     return resolutions;
+}
+
+std::string UtilObjCInt::getUserDataPath(void)
+{
+    NSArray* paths = NSSearchPathForDirectoriesInDomains(
+        NSApplicationSupportDirectory,
+        NSUserDomainMask,
+        YES);
+    if ([paths count] == 0)
+        return "";
+
+    NSString* userPath = [paths objectAtIndex:0];
+    return std::string([userPath UTF8String]);
+}
+
+std::string UtilObjCInt::getWorkingDirectory(void)
+{
+    NSFileManager* fm = [[NSFileManager alloc] init];
+    NSString* workindDirPath = [fm currentDirectoryPath];
+    return std::string([workindDirPath UTF8String]);
 }
 
 @end

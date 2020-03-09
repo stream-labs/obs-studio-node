@@ -23,111 +23,114 @@ if(APPLE)
 	set(LIBOBS_PLATFORM "osx")
 endif()
 
+############################
+# Setup crashpad binaries
+############################
+
 if(WIN32)
-	############################
-	# Setup crashpad binaries
-	############################
 	download_project(
 		PROJ crashpad
 		URL https://obsstudionodes3.streamlabs.com/crashpad/crashpad-release-1.0.21-win-x64.tar.gz
 		UPDATE_DISCONNECTED 1
 	)
-
-	ExternalProject_Add(
-		crashpad_ep
-		DOWNLOAD_COMMAND ""
-		SOURCE_DIR "${crashpad_SOURCE_DIR}"
-		INSTALL_COMMAND ""
-		BUILD_COMMAND ""
-		CONFIGURE_COMMAND ""
-		BUILD_BYPRODUCTS
-			"<SOURCE_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}base${CMAKE_STATIC_LIBRARY_SUFFIX}"
-			"<SOURCE_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}util${CMAKE_STATIC_LIBRARY_SUFFIX}"
-			"<SOURCE_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}client${CMAKE_STATIC_LIBRARY_SUFFIX}"
-			"<SOURCE_DIR>/bin/crashpad_database_util${CMAKE_EXECUTABLE_SUFFIX}"
-			"<SOURCE_DIR>/bin/crashpad_handler${CMAKE_EXECUTABLE_SUFFIX}"
-			"<SOURCE_DIR>/bin/crashpad_http_upload${CMAKE_EXECUTABLE_SUFFIX}"
+elseif(APPLE)
+	download_project(
+		PROJ crashpad
+		URL https://obsstudionodes3.streamlabs.com/crashpad/crashpad-release-1.0.21-osx.zip
+		UPDATE_DISCONNECTED 1
 	)
-
-	# Our crashpad artifacts assume a particular format
-	# <dir>\bin contains external processes
-	# <dir>\lib contains static libraries we need to link against
-	# <dir>\include contains the primary include path
-	# <dir>\include\third_party\mini_chromium contains chromium include files
-
-	add_library(crashpad_util STATIC IMPORTED)
-	add_library(crashpad_base STATIC IMPORTED)
-	add_library(crashpad_client STATIC IMPORTED)
-	add_executable(crashpad_handler IMPORTED)
-	add_executable(crashpad_database_util IMPORTED)
-	add_executable(crashpad_http_upload IMPORTED)
-
-	# From this, we get three total targets:
-	#   crashpad_base
-	#   crashpad_util
-	#   crashpad_client
-	# It's recommended to use util but not required as far as I know.
-
-	ExternalProject_Get_Property(crashpad_ep source_dir)
-
-	set_property(TARGET crashpad_base PROPERTY IMPORTED_LOCATION
-		"${source_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}base${CMAKE_STATIC_LIBRARY_SUFFIX}")
-
-	set_property(TARGET crashpad_util PROPERTY IMPORTED_LOCATION
-		"${source_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}util${CMAKE_STATIC_LIBRARY_SUFFIX}")
-
-	set_property(TARGET crashpad_client PROPERTY IMPORTED_LOCATION
-		"${source_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}client${CMAKE_STATIC_LIBRARY_SUFFIX}")
-
-	set_property(TARGET crashpad_handler PROPERTY IMPORTED_LOCATION
-		"${source_dir}/bin/crashpad_handler${CMAKE_EXECUTABLE_SUFFIX}")
-
-	set_property(TARGET crashpad_database_util PROPERTY IMPORTED_LOCATION
-		"${source_dir}/bin/crashpad_database_util${CMAKE_EXECUTABLE_SUFFIX}")
-
-	set_property(TARGET crashpad_http_upload PROPERTY IMPORTED_LOCATION
-		"${source_dir}/bin/crashpad_http_upload${CMAKE_EXECUTABLE_SUFFIX}")
-
-	target_include_directories(
-		crashpad_base
-		INTERFACE "${source_dir}/include/third_party/mini_chromium/mini_chromium"
-	)
-
-	target_include_directories(
-		crashpad_client
-		INTERFACE "${source_dir}/include"
-	)
-
-	add_library(crashpad INTERFACE)
-
-	target_link_libraries(
-		crashpad
-		INTERFACE
-			crashpad_base
-			crashpad_client
-			crashpad_util
-	)
-
-	target_link_libraries(crashpad_util INTERFACE crashpad_client)
-
-	add_dependencies(crashpad_base crashpad_ep)
-	add_dependencies(crashpad_client crashpad_base)
-	add_dependencies(crashpad_util crashpad_client)
 endif()
+
+ExternalProject_Add(
+	crashpad_ep
+	DOWNLOAD_COMMAND ""
+	SOURCE_DIR "${crashpad_SOURCE_DIR}"
+	INSTALL_COMMAND ""
+	BUILD_COMMAND ""
+	CONFIGURE_COMMAND ""
+	BUILD_BYPRODUCTS
+		"<SOURCE_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}base${CMAKE_STATIC_LIBRARY_SUFFIX}"
+		"<SOURCE_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}util${CMAKE_STATIC_LIBRARY_SUFFIX}"
+		"<SOURCE_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}client${CMAKE_STATIC_LIBRARY_SUFFIX}"
+		"<SOURCE_DIR>/bin/crashpad_database_util${CMAKE_EXECUTABLE_SUFFIX}"
+		"<SOURCE_DIR>/bin/crashpad_handler${CMAKE_EXECUTABLE_SUFFIX}"
+		"<SOURCE_DIR>/bin/crashpad_http_upload${CMAKE_EXECUTABLE_SUFFIX}"
+)
+
+# Our crashpad artifacts assume a particular format
+# <dir>\bin contains external processes
+# <dir>\lib contains static libraries we need to link against
+# <dir>\include contains the primary include path
+# <dir>\include\third_party\mini_chromium contains chromium include files
+
+add_library(crashpad_util STATIC IMPORTED)
+add_library(crashpad_base STATIC IMPORTED)
+add_library(crashpad_client STATIC IMPORTED)
+add_executable(crashpad_handler IMPORTED)
+add_executable(crashpad_database_util IMPORTED)
+add_executable(crashpad_http_upload IMPORTED)
+
+# From this, we get three total targets:
+#   crashpad_base
+#   crashpad_util
+#   crashpad_client
+# It's recommended to use util but not required as far as I know.
+
+ExternalProject_Get_Property(crashpad_ep source_dir)
+
+set_property(TARGET crashpad_base PROPERTY IMPORTED_LOCATION
+	"${source_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}base${CMAKE_STATIC_LIBRARY_SUFFIX}")
+
+set_property(TARGET crashpad_util PROPERTY IMPORTED_LOCATION
+	"${source_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}util${CMAKE_STATIC_LIBRARY_SUFFIX}")
+
+set_property(TARGET crashpad_client PROPERTY IMPORTED_LOCATION
+	"${source_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}client${CMAKE_STATIC_LIBRARY_SUFFIX}")
+
+set_property(TARGET crashpad_handler PROPERTY IMPORTED_LOCATION
+	"${source_dir}/bin/crashpad_handler${CMAKE_EXECUTABLE_SUFFIX}")
+
+set_property(TARGET crashpad_database_util PROPERTY IMPORTED_LOCATION
+	"${source_dir}/bin/crashpad_database_util${CMAKE_EXECUTABLE_SUFFIX}")
+
+set_property(TARGET crashpad_http_upload PROPERTY IMPORTED_LOCATION
+	"${source_dir}/bin/crashpad_http_upload${CMAKE_EXECUTABLE_SUFFIX}")
+
+target_include_directories(
+	crashpad_base
+	INTERFACE "${source_dir}/include/third_party/mini_chromium/mini_chromium"
+)
+
+target_include_directories(
+	crashpad_client
+	INTERFACE "${source_dir}/include"
+)
+
+add_library(crashpad INTERFACE)
+
+target_link_libraries(
+	crashpad
+	INTERFACE
+		crashpad_base
+		crashpad_client
+		crashpad_util
+)
+
+target_link_libraries(crashpad_util INTERFACE crashpad_client)
+
+add_dependencies(crashpad_base crashpad_ep)
+add_dependencies(crashpad_client crashpad_base)
+add_dependencies(crashpad_util crashpad_client)
+
 
 find_library(COREFOUNDATION CoreFoundation)
 find_library(COCOA Cocoa)
 find_library(IOSURF IOSurface)
 find_library(GLKIT GLKit)
 find_library(AVFOUNDATION AVFoundation)
-
-include_directories(
-	${COREFOUNDATION}
-	${COCOA}
-	${IOSURF}
-	${GLKIT}
-	${AVFOUNDATION})
-
+find_library(IOKit IOKit)
+find_library(SECURITY_LIBRARY Security)
+find_library(BSM_LIBRARY bsm)
 
 # Getting LIBOBS_VERSION from azure script
 file(STRINGS ../azure-pipelines.yml VERSION_LINE REGEX "LibOBSVersion")
@@ -185,13 +188,13 @@ else ()
 		${LIBOBS_LIBRARIES}
 	)
 	set(PROJECT_INCLUDE_PATHS
-	"${CMAKE_SOURCE_DIR}/source"
-	"${PROJECT_SOURCE_DIR}/source"
-	"${lib-streamlabs-ipc_SOURCE_DIR}/include"
-	${LIBOBS_INCLUDE_DIRS}
-	"${nlohmannjson_SOURCE_DIR}/single_include"
-	"/usr/local/libxcb/1_13/include"
-	"/usr/X11/include/"
+		"${CMAKE_SOURCE_DIR}/source"
+		"${PROJECT_SOURCE_DIR}/source"
+		"${lib-streamlabs-ipc_SOURCE_DIR}/include"
+		${LIBOBS_INCLUDE_DIRS}
+		"${nlohmannjson_SOURCE_DIR}/single_include"
+		"${source_dir}/include/third_party/mini_chromium/mini_chromium"
+		"${source_dir}/include"
 	)
 endif ()
 
@@ -307,11 +310,13 @@ if(WIN32)
 endif()
 
 if(WIN32)
-target_link_libraries(${PROJECT_NAME} ${PROJECT_LIBRARIES} optimized crashpad)
+	target_link_libraries(${PROJECT_NAME} ${PROJECT_LIBRARIES} optimized crashpad)
 else()
-target_link_libraries(${PROJECT_NAME} ${PROJECT_LIBRARIES} optimized ${COREFOUNDATION} ${COCOA} ${IOSURF} ${GLKIT} ${AVFOUNDATION})
+	target_link_libraries(${PROJECT_NAME} ${PROJECT_LIBRARIES} crashpad ${COREFOUNDATION} ${COCOA} ${IOSURF} ${GLKIT} ${AVFOUNDATION} ${IOKit} ${SECURITY_LIBRARY} ${BSM_LIBRARY})
 endif()
-target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE_PATHS})
+
+target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE_PATHS} ${COREFOUNDATION} ${COCOA} ${IOSURF} ${GLKIT} ${AVFOUNDATION} ${IOKit} ${SECURITY_LIBRARY} ${BSM_LIBRARY})
+
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "obs${BITS}")
 
 if(WIN32)
@@ -330,6 +335,7 @@ else()
 		VERSION ${PROJECT_VERSION}
 		SOVERSION ${PROJECT_VERSION}
 	)
+	target_compile_definitions(${PROJECT_NAME} PRIVATE)
 	set_property(
 		TARGET ${PROJECT_NAME}
 		APPEND
@@ -361,9 +367,9 @@ set(PROGRAM_PERMISSIONS_DEFAULT
 install(TARGETS obs-studio-server RUNTIME DESTINATION "./" PERMISSIONS ${PROGRAM_PERMISSIONS_DEFAULT} COMPONENT Runtime)
 IF(WIN32 AND NOT CLANG_ANALYZE_CONFIG)
 	install(FILES $<TARGET_PDB_FILE:obs-studio-server> DESTINATION "./" OPTIONAL)
-	install(DIRECTORY ${crashpad_SOURCE_DIR}/bin/ DESTINATION "./")
 ENDIF()
 install(DIRECTORY ${PROJECT_DATA} DESTINATION "./" OPTIONAL USE_SOURCE_PERMISSIONS)
+install(DIRECTORY ${crashpad_SOURCE_DIR}/bin/ DESTINATION "./" USE_SOURCE_PERMISSIONS)
 install(DIRECTORY "${libobs_SOURCE_DIR}/data/" DESTINATION "./data" USE_SOURCE_PERMISSIONS)
 
 if (APPLE)
