@@ -610,6 +610,8 @@ void OBS_API::OBS_API_initAPI(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	const char* name = NULL;
+	std::cout << name;
 #ifdef WIN32
 	writeCrashHandler(registerProcess());
 #endif
