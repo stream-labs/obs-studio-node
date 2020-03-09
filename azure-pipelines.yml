@@ -241,6 +241,11 @@ jobs:
       SENTRY_AUTH_TOKEN: $(sentryAuth)
     displayName: 'Build obs-studio-node'
 
+  - script: ./ci/sentry-osx.py
+    env:
+      SENTRY_AUTH_TOKEN: $(sentryAuth)
+    displayName: 'Upload debug files to Sentry'
+
   - task: ArchiveFiles@2
     inputs:
       rootFolderOrFile: $(SLBuildDirectory)/$(SLDistributeDirectory)/obs-studio-node
