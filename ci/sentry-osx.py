@@ -1,5 +1,5 @@
 import os
-# os.system('curl -sL https://sentry.io/get-cli/ | bash')
+os.system('curl -sL https://sentry.io/get-cli/ | bash')
 
 # # Upload client debug files
 # client_path = "$PWD/${SLBUILDDIRECTORY}/obs-studio-client/${BUILDCONFIG}/"
