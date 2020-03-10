@@ -110,8 +110,9 @@ std::string UtilObjCInt::getUserDataPath(void)
 
 std::string UtilObjCInt::getWorkingDirectory(void)
 {
-    NSFileManager* fm = [[NSFileManager alloc] init];
-    NSString* workindDirPath = [fm currentDirectoryPath];
+    // NSFileManager* fm = [[NSFileManager alloc] init];
+    // NSString* workindDirPath = [fm currentDirectoryPath];
+    NSString* workindDirPath = [[NSProcessInfo processInfo] environment][@"PWD"];
     return std::string([workindDirPath UTF8String]);
 }
 
