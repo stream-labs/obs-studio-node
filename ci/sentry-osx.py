@@ -1,5 +1,5 @@
 import os
-# os.system('curl -sL https://sentry.io/get-cli/ | bash')
+os.system('curl -sL https://sentry.io/get-cli/ | bash')
 
 # # Upload client debug files
 # client_path = "$PWD/${SLBUILDDIRECTORY}/obs-studio-client/${BUILDCONFIG}/"
@@ -20,7 +20,7 @@ import os
 
 
 # Upload obs debug files
-obs_bin_path = os.path.join(os.environ['PWD'], os.environ['SLBUILDDIRECTORY'])
+obs_bin_path = os.path.join(os.environ['PWD'], os.environ['SLBUILDDIRECTORY'], 'libobs-src', 'bin')
 for r, d, f in os.walk(obs_bin_path):
     for file in f:
         if '.dylib' in file or not '.' in file:
