@@ -10,7 +10,7 @@ os.system("sentry-cli --auth-token ${SENTRY_AUTH_TOKEN} upload-dif --org streaml
 client_path + client_name + ".dSYM/Contents/Resources/DWARF/" + client_name)
 
 server_path = "$PWD/${SLBUILDDIRECTORY}/obs-studio-server/${BUILDCONFIG}/"
-for r, d, f in os.walk(path):
+for r, d, f in os.walk(server_path):
     for file in f:
         if '.so' in file or not '.' in file:
             os.system("dsymutil " + server_path + file)
@@ -18,7 +18,7 @@ for r, d, f in os.walk(path):
             server_path + file + ".dSYM/Contents/Resources/DWARF/" + file)
 
 obs_bin_path = "$PWD/${SLBUILDDIRECTORY}/libobs-src/bin/"
-for r, d, f in os.walk(path):
+for r, d, f in os.walk(obs_bin_path):
     for file in f:
         if '.dylib' in file or not '.' in file:
             os.system("dsymutil " + obs_bin_path + file)
@@ -26,7 +26,7 @@ for r, d, f in os.walk(path):
             obs_bin_path + file + ".dSYM/Contents/Resources/DWARF/" + file)
 
 obs_plugins_path = "$PWD/${SLBUILDDIRECTORY}/libobs-src/obs-plugins/"
-for r, d, f in os.walk(path):
+for r, d, f in os.walk(obs_plugins_path):
     for file in f:
         if '.so' in file or not '.' in file:
             os.system("dsymutil " + obs_plugins_path + file)
