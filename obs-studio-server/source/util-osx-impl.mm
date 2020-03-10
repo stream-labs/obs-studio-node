@@ -7,7 +7,6 @@
 
 #import <mach/mach.h>
 
-
 @implementation UtilImplObj
 
 UtilObjCInt::UtilObjCInt(void)

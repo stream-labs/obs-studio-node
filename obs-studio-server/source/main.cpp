@@ -136,7 +136,6 @@ int main(int argc, char* argv[])
 	g_util_osx = new UtilInt();
 	g_util_osx->init();
 #endif
-    const char* fullPath = argv[0];
 
 #ifdef ENABLE_CRASHREPORT
     util::CrashManager crashManager;
@@ -146,7 +145,6 @@ int main(int argc, char* argv[])
     }
 
     crashManager.Configure();
-
 #endif
 
 	// Usage:
