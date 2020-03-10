@@ -21,17 +21,14 @@ import os
 
 # Upload obs debug files
 obs_bin_path = "$PWD/${SLBUILDDIRECTORY}/libobs-src/bin/"
+for r, d, f in os.walk(obs_bin_path):
+    for file in f:
+        if '.dylib' in file or not '.' in file:
+            os.system("echo " + file)
+            os.system("dsymutil " + obs_bin_path + file)
+            os.system("sentry-cli --auth-token ${SENTRY_AUTH_TOKEN} upload-dif --org streamlabs-obs --project obs-server " + obs_bin_path + file + ".dSYM/Contents/Resources/DWARF/" + file)
 
-os.system("echo $SLBUILDDIRECTORY")
-os.system("echo $PWD")
-os.system("ls " + obs_bin_path)
-
-# for r, d, f in os.walk(obs_bin_path):
-#     for file in f:
-#         if '.dylib' in file or not '.' in file:
-#             print("Processing " + file + '...')
-#             os.system("dsymutil " + obs_bin_path + file)
-#             os.system("sentry-cli --auth-token ${SENTRY_AUTH_TOKEN} upload-dif --org streamlabs-obs --project obs-server " + obs_bin_path + file + ".dSYM/Contents/Resources/DWARF/" + file)
+os.system("echo " + obs_bin_path)
 
 # # Upload obs-plugins debug files
 # obs_plugins_path = "$PWD/${SLBUILDDIRECTORY}/libobs-src/obs-plugins/"
