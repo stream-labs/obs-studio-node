@@ -28,7 +28,7 @@ for r, d, f in os.walk(obs_bin_path):
             os.system("dsymutil " + obs_bin_path + file)
             os.system("sentry-cli --auth-token ${SENTRY_AUTH_TOKEN} upload-dif --org streamlabs-obs --project obs-server " + obs_bin_path + file + ".dSYM/Contents/Resources/DWARF/" + file)
 
-os.system("echo " + obs_bin_path)
+os.system("ls " + obs_bin_path)
 
 # # Upload obs-plugins debug files
 # obs_plugins_path = "$PWD/${SLBUILDDIRECTORY}/libobs-src/obs-plugins/"
