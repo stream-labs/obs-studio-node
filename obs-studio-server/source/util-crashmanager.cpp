@@ -329,6 +329,7 @@ bool util::CrashManager::SetupCrashpad()
 #else
 	std::string workingDir = g_util_osx->getWorkingDirectory();
 	// TODO CHANGE WITH PROD PATH
+	std::cout << "WORKING DIRECTORY: " << workingDir.c_str() << std::endl;
 	workingDir.append("/node_modules/obs-studio-node/crashpad_handler");
 	std::string handler_path(workingDir);
 #endif
