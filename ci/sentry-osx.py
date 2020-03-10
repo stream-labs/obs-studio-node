@@ -1,7 +1,7 @@
 import os
 os.system('curl -sL https://sentry.io/get-cli/ | bash')
 
-def process_sentry(project, directory)
+def process_sentry(project, directory):
     for r, d, f in os.walk(directory):
         for file in f:
             if 'lib' in file or 'obs' in file or '.so' in file or '.dylib' in file:
