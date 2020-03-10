@@ -1,3 +1,3 @@
 cmake --build ${SLBUILDDIRECTORY} --target install --config ${BUILDCONFIG}
 
-ls $PWD/${SLBUILDDIRECTORY}
+ls $PWD/${SLBUILDDIRECTORY}/libobs-src/bin
