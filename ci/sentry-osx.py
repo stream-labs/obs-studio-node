@@ -25,7 +25,9 @@ for r, d, f in os.walk(obs_bin_path):
     for file in f:
         if '.dylib' in file or not '.' in file:
             os.system("echo " + file)
-            os.system("dsymutil " + obs_bin_path + file)
+            sentry_cmd = "dsymutil " + obs_bin_path + file
+            os.system("echo " + sentry_cmd)
+            os.system(sentry_cmd)
             os.system("sentry-cli --auth-token ${SENTRY_AUTH_TOKEN} upload-dif --org streamlabs-obs --project obs-server " + obs_bin_path + file + ".dSYM/Contents/Resources/DWARF/" + file)
 
 os.system("ls " + obs_bin_path)
