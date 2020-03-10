@@ -18,7 +18,7 @@ def process_sentry(project, directory)
 # client_path + client_name + ".dSYM/Contents/Resources/DWARF/" + client_name)
 
 # # Upload client debug files
-process_sentry('obs-client', os.path.join(os.environ['PWD'], os.environ['SLBUILDDIRECTORY'], 'obs-studio-client', os.environ['BUILDCONFIG'])
+process_sentry('obs-client', os.path.join(os.environ['PWD'], os.environ['SLBUILDDIRECTORY'], 'obs-studio-client', os.environ['BUILDCONFIG']))
 # # Upload server debug files
 process_sentry('obs-server', os.path.join(os.environ['PWD'], os.environ['SLBUILDDIRECTORY'], 'obs-studio-server', os.environ['BUILDCONFIG']))
 
