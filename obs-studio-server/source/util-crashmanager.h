@@ -34,6 +34,8 @@
 #define ENABLE_CRASHREPORT
 // #endif
 
+extern std::string workingDirectory;
+
 namespace util
 {
 	class MetricsProvider;
@@ -49,7 +51,6 @@ namespace util
         };
 
 		public:
-		std::string workingDirectory;
 
 		bool Initialize(char* path);
 		void Configure();

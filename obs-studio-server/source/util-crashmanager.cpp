@@ -84,6 +84,7 @@ std::vector<std::string>                       arguments;
 std::map<std::string, std::string>             annotations;
 std::chrono::steady_clock::time_point          initialTime;
 bool                                           reportsEnabled = true;
+std::string                                    workingDirectory;
 #endif
 
 /////////////
@@ -328,10 +329,10 @@ bool util::CrashManager::SetupCrashpad()
 #ifdef WIN32
 	std::wstring handler_path(L"crashpad_handler.exe");
 #else
-	blog(LOG_INFO, "Working Directory: %s", workingDir.c_str());
-	workingDir.substr(0, workingDir.size() - strlen("obs64"));
-	workingDir.append("crashpad_handler");
-	std::string handler_path(workingDir);
+	workingDirectory = workingDirectory.substr(0, workingDirectory.size() - strlen("obs64"));
+	std::string handler_path = workingDirectory;
+	handler_path.append("crashpad_handler");
+	std::cout << "Path to crash handler " << handler_path.c_str() << std::endl;
 #endif
 
 	url = isPreview

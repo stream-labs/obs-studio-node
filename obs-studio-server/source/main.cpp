@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
 #ifdef ENABLE_CRASHREPORT
    util::CrashManager crashManager;
 
-	if (crashManager.Initialize(argv[0])) {
+	if (crashManager.Initialize(argv[2])) {
 		crashManager.Configure();
    }
 #endif
@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
 	// argv[0] = Path to this application. (Usually given by default if run via path-based command!)
 	// argv[1] = Path to a named socket.
 
-	if (argc != 2) {
+	if (argc != 3) {
 		std::cerr << "There must be exactly one parameter." << std::endl;
 		return -1;
 	}
