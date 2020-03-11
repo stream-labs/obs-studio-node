@@ -1058,6 +1058,12 @@ void OBS_settings::getSimpleAvailableEncoders(std::vector<std::pair<std::string,
 
 	if (EncoderAvailable("jim_nvenc"))
 		encoders->push_back(std::make_pair("Hardware (NVENC) (new)", ipc::value(ENCODER_NEW_NVENC)));
+
+	if (EncoderAvailable("vt_h264_sw"))
+		encoders->push_back(std::make_pair("Apple VT H264 Software Encoder", ipc::value(APPLE_SOFTWARE_VIDEO_ENCODER)));
+
+	if (EncoderAvailable("vt_h264_hw"))
+		encoders->push_back(std::make_pair("Apple VT H264 Hardware Encoder", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER)));
 }
 
 void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::string, ipc::value>>* streamEncoder)
@@ -1225,6 +1231,18 @@ void OBS_settings::getSimpleOutputSettings(
 
 			defaultPreset = "balanced";
 			// preset = curAMDPreset;
+		} else if (strcmp(encoder, APPLE_SOFTWARE_VIDEO_ENCODER) == 0 || strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER) == 0) {
+			preset.push_back(std::make_pair("name", ipc::value("Profile")));
+			preset.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+			preset.push_back(std::make_pair("description", ipc::value("")));
+			preset.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+			preset.push_back(std::make_pair("minVal", ipc::value((double)0)));
+			preset.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+			preset.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+			preset.push_back(std::make_pair("(None)", ipc::value("")));
+			preset.push_back(std::make_pair("baseline", ipc::value("baseline")));
+			preset.push_back(std::make_pair("main", ipc::value("main")));
+			preset.push_back(std::make_pair("high", ipc::value("high")));
 		} else {
 			preset.push_back(std::make_pair("name", ipc::value("Preset")));
 			preset.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));

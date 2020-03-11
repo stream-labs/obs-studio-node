@@ -534,11 +534,26 @@ bool OBS_service::createAudioEncoder(
 	return false;
 }
 
+static bool EncoderAvailable(const char* encoder)
+{
+	const char* val;
+	int         i = 0;
+
+	while (obs_enum_encoder_types(i++, &val)) {
+		if (val == nullptr)
+			continue;
+		if (strcmp(val, encoder) == 0)
+			return true;
+	}
+
+	return false;
+}
+
 bool OBS_service::createVideoStreamingEncoder()
 {
 	const char* encoder = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "StreamEncoder");
 
-	if (encoder == NULL) {
+	if (encoder == NULL || !EncoderAvailable(encoder)) {
 		encoder = "obs_x264";
 	}
 
@@ -1406,21 +1421,6 @@ int OBS_service::GetAdvancedAudioBitrate(int i)
 	return FindClosestAvailableAACBitrate(bitrate);
 }
 
-static bool EncoderAvailable(const char* encoder)
-{
-	const char* val;
-	int         i = 0;
-
-	while (obs_enum_encoder_types(i++, &val)) {
-		if (val == nullptr)
-			continue;
-		if (strcmp(val, encoder) == 0)
-			return true;
-	}
-
-	return false;
-}
-
 void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
 {
 	if (videoStreamingEncoder && obs_encoder_active(videoStreamingEncoder))
@@ -1438,9 +1438,9 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
 		const char* custom = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "x264Settings");
 		const char* encoder =
 		    config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "StreamEncoder");
-		const char* encoderID;
-		const char* presetType;
-		const char* preset;
+		const char* encoderID = nullptr;
+		const char* presetType = nullptr;
+		const char* preset = nullptr;
 
 		if (encoder != NULL) {
 			if (strcmp(encoder, SIMPLE_ENCODER_QSV) == 0 || strcmp(encoder, ADVANCED_ENCODER_QSV) == 0) {
@@ -1456,11 +1456,16 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
 			} else if (strcmp(encoder, ENCODER_NEW_NVENC) == 0) {
 				presetType = "NVENCPreset";
 				encoderID  = "jim_nvenc";
+			} else if (strcmp(encoder, APPLE_SOFTWARE_VIDEO_ENCODER) == 0)  {
+				encoderID  = APPLE_SOFTWARE_VIDEO_ENCODER;
+			} else if (strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER) == 0)  {
+				encoderID  = APPLE_HARDWARE_VIDEO_ENCODER;
 			} else {
 				presetType = "Preset";
 				encoderID  = "obs_x264";
 			}
-			preset = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", presetType);
+			if (presetType)
+				preset = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", presetType);
 
 			if (videoStreamingEncoder != nullptr) {
 				obs_encoder_release(videoStreamingEncoder);
@@ -1500,6 +1505,13 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
 
 		if (format != VIDEO_FORMAT_NV12 && format != VIDEO_FORMAT_I420)
 			obs_encoder_set_preferred_video_format(videoStreamingEncoder, VIDEO_FORMAT_NV12);
+
+		if (strcmp(encoder, APPLE_SOFTWARE_VIDEO_ENCODER) == 0 ||
+				strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER) == 0) {
+			const char* profile = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "Profile");
+			if (profile)
+				obs_data_set_string(h264Settings, "profile", profile);
+		}
 
 		obs_encoder_update(videoStreamingEncoder, h264Settings);
 		obs_encoder_update(audioSimpleStreamingEncoder, aacSettings);
