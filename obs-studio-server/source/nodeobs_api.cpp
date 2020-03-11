@@ -770,7 +770,6 @@ void OBS_API::OBS_API_initAPI(
 	base_set_log_handler(node_obs_log, logfile);
 
 	blog(LOG_INFO, "Init success");
-
 	// We are returning a video result here because the frontend needs to know if we sucessfully
 	// initialized the Dx11 API
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
