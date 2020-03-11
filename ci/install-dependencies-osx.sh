@@ -2,6 +2,7 @@
 brew update
 brew doctor
 brew install cmake
+brew install python
 brew install node
 brew install nvm
 mkdir ~/.nvm

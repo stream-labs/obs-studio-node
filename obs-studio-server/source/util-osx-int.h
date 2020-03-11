@@ -34,6 +34,8 @@ public:
     unsigned long long getTotalPhysicalMemory(void);
     unsigned long long getAvailableMemory(void);
     std::vector<std::pair<uint32_t, uint32_t>> getAvailableScreenResolutions(void);
+    std::string getUserDataPath(void);
+    std::string getWorkingDirectory(void);
 
 private:
     void * self;

@@ -132,22 +132,24 @@ namespace System
 
 int main(int argc, char* argv[])
 {
-#ifdef WIN32 AND ENABLE_CRASHREPORT
+#ifdef __APPLE__
+	g_util_osx = new UtilInt();
+	g_util_osx->init();
+#endif
 
-    util::CrashManager crashManager;
-	if (!crashManager.Initialize()) {
-		return -1;
-    }
+#ifdef ENABLE_CRASHREPORT
+   util::CrashManager crashManager;
 
-    crashManager.Configure();
-
+	if (crashManager.Initialize(argv[2])) {
+		crashManager.Configure();
+   }
 #endif
 
 	// Usage:
 	// argv[0] = Path to this application. (Usually given by default if run via path-based command!)
 	// argv[1] = Path to a named socket.
 
-	if (argc != 2) {
+	if (argc != 3) {
 		std::cerr << "There must be exactly one parameter." << std::endl;
 		return -1;
 	}
@@ -227,8 +229,6 @@ int main(int argc, char* argv[])
 	sd.last_disconnect = sd.last_connect = std::chrono::high_resolution_clock::now();
 
 #ifdef __APPLE__
-	g_util_osx = new UtilInt();
-	g_util_osx->init();
 	g_util_osx->createApplication();
 #endif
 	bool waitBeforeClosing = false;

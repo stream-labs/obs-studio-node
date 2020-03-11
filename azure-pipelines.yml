@@ -15,7 +15,7 @@ variables:
   SLDistributeDirectory: distribute
   SLFullDistributePath: $(SLBuildDirectory)\$(SLDistributeDirectory)
   BuildArtifact: obs-studio-node-us-$(Build.BuildId)-$(RuntimeName)-v$(ElectronVersion)
-  LibOBSVersion: 24.17.71
+  LibOBSVersion: 24.17.77
 
 jobs:
 - job: 'WindowsRelease'
@@ -240,6 +240,11 @@ jobs:
     env:
       SENTRY_AUTH_TOKEN: $(sentryAuth)
     displayName: 'Build obs-studio-node'
+
+  - script: 'python ./ci/sentry-osx.py'
+    env:
+      SENTRY_AUTH_TOKEN: $(sentryAuth)
+    displayName: 'Upload debug files to Sentry'
 
   - task: ArchiveFiles@2
     inputs:

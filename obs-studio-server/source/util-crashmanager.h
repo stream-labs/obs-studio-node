@@ -30,9 +30,11 @@
 #undef strtoll
 #include "nlohmann/json.hpp"
 
-#ifndef _DEBUG
+// #ifndef _DEBUG
 #define ENABLE_CRASHREPORT
-#endif
+// #endif
+
+extern std::string workingDirectory;
 
 namespace util
 {
@@ -50,7 +52,7 @@ namespace util
 
 		public:
 
-		bool Initialize();
+		bool Initialize(char* path);
 		void Configure();
 		void OpenConsole();
 
