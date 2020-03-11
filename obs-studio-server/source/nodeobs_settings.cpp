@@ -1181,7 +1181,7 @@ void OBS_settings::getSimpleOutputSettings(
 
 			defaultPreset = "balanced";
 			// preset = curQSVPreset;
-
+			entries.push_back(preset);
 		} else if (
 		    strcmp(encoder, SIMPLE_ENCODER_NVENC) == 0 || strcmp(encoder, ADVANCED_ENCODER_NVENC) == 0
 		    || strcmp(encoder, ENCODER_NEW_NVENC) == 0) {
@@ -1216,7 +1216,7 @@ void OBS_settings::getSimpleOutputSettings(
 
 			defaultPreset = "default";
 			// preset = curNVENCPreset;
-
+			entries.push_back(preset);
 		} else if (strcmp(encoder, SIMPLE_ENCODER_AMD) == 0 || strcmp(encoder, ADVANCED_ENCODER_AMD) == 0) {
 			preset.push_back(std::make_pair("name", ipc::value("AMDPreset")));
 			preset.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
@@ -1231,6 +1231,7 @@ void OBS_settings::getSimpleOutputSettings(
 
 			defaultPreset = "balanced";
 			// preset = curAMDPreset;
+			entries.push_back(preset);
 		} else if (strcmp(encoder, APPLE_SOFTWARE_VIDEO_ENCODER) == 0 || strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER) == 0) {
 			preset.push_back(std::make_pair("name", ipc::value("Profile")));
 			preset.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
@@ -1243,6 +1244,7 @@ void OBS_settings::getSimpleOutputSettings(
 			preset.push_back(std::make_pair("baseline", ipc::value("baseline")));
 			preset.push_back(std::make_pair("main", ipc::value("main")));
 			preset.push_back(std::make_pair("high", ipc::value("high")));
+			entries.push_back(preset);
 		} else {
 			preset.push_back(std::make_pair("name", ipc::value("Preset")));
 			preset.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
@@ -1262,20 +1264,19 @@ void OBS_settings::getSimpleOutputSettings(
 
 			defaultPreset = "veryfast";
 			// preset = curPreset;
+			entries.push_back(preset);
+
+			//Custom Encoder Settings
+			std::vector<std::pair<std::string, ipc::value>> x264opts;
+			x264opts.push_back(std::make_pair("name", ipc::value("x264Settings")));
+			x264opts.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
+			x264opts.push_back(std::make_pair("description", ipc::value("Custom Encoder Settings")));
+			x264opts.push_back(std::make_pair("subType", ipc::value("")));
+			x264opts.push_back(std::make_pair("minVal", ipc::value((double)0)));
+			x264opts.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+			x264opts.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+			entries.push_back(x264opts);
 		}
-
-		entries.push_back(preset);
-
-		//Custom Encoder Settings
-		std::vector<std::pair<std::string, ipc::value>> x264opts;
-		x264opts.push_back(std::make_pair("name", ipc::value("x264Settings")));
-		x264opts.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
-		x264opts.push_back(std::make_pair("description", ipc::value("Custom Encoder Settings")));
-		x264opts.push_back(std::make_pair("subType", ipc::value("")));
-		x264opts.push_back(std::make_pair("minVal", ipc::value((double)0)));
-		x264opts.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-		x264opts.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-		entries.push_back(x264opts);
 	}
 
 	outputSettings->push_back(
