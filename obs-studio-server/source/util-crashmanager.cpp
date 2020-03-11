@@ -332,7 +332,6 @@ bool util::CrashManager::SetupCrashpad()
 	workingDirectory = workingDirectory.substr(0, workingDirectory.size() - strlen("obs64"));
 	std::string handler_path = workingDirectory;
 	handler_path.append("crashpad_handler");
-	std::cout << "Path to crash handler " << handler_path.c_str() << std::endl;
 #endif
 
 	url = isPreview
