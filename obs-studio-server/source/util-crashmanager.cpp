@@ -223,11 +223,12 @@ nlohmann::json RequestProcessList()
 // CrashManager //
 //////////////////
 
-bool util::CrashManager::Initialize()
+bool util::CrashManager::Initialize(char* path)
 {
 #ifdef ENABLE_CRASHREPORT
 	annotations.insert({{"crashpad_status", "internal crash handler missed"}});
 
+	workingDirectory = path;
 	if (!SetupCrashpad()) {
 		return false;
 	}
@@ -327,11 +328,9 @@ bool util::CrashManager::SetupCrashpad()
 #ifdef WIN32
 	std::wstring handler_path(L"crashpad_handler.exe");
 #else
-	std::string workingDir = g_util_osx->getWorkingDirectory();
-	// TODO CHANGE WITH PROD PATH
-	// std::cout << "WORKING DIRECTORY: " << workingDir.c_str() << std::endl;
 	blog(LOG_INFO, "Working Directory: %s", workingDir.c_str());
-	workingDir.append("/node_modules/obs-studio-node/crashpad_handler");
+	workingDir.substr(0, workingDir.size() - strlen("obs64"));
+	workingDir.append("crashpad_handler");
 	std::string handler_path(workingDir);
 #endif
 

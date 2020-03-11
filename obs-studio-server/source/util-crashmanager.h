@@ -49,8 +49,9 @@ namespace util
         };
 
 		public:
+		std::string workingDirectory;
 
-		bool Initialize();
+		bool Initialize(char* path);
 		void Configure();
 		void OpenConsole();
 

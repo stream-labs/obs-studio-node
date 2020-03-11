@@ -138,13 +138,11 @@ int main(int argc, char* argv[])
 #endif
 
 #ifdef ENABLE_CRASHREPORT
-    // util::CrashManager crashManager;
+   util::CrashManager crashManager;
 
-	// if (!crashManager.Initialize()) {
-	// 	return -1;
-    // }
-
-    // crashManager.Configure();
+	if (crashManager.Initialize(argv[0])) {
+		crashManager.Configure();
+   }
 #endif
 
 	// Usage:

@@ -771,11 +771,6 @@ void OBS_API::OBS_API_initAPI(
 
 	blog(LOG_INFO, "Init success");
 
-	std::string workingDir = g_util_osx->getWorkingDirectory();
-	// TODO CHANGE WITH PROD PATH
-	// std::cout << "WORKING DIRECTORY: " << workingDir.c_str() << std::endl;
-	blog(LOG_INFO, "Working Directory: %s", workingDir.c_str());
-
 	// We are returning a video result here because the frontend needs to know if we sucessfully
 	// initialized the Dx11 API
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
