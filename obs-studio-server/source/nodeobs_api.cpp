@@ -80,6 +80,7 @@ OBS_API::LogReport                                     logReport;
 std::mutex                                             logMutex;
 std::string                                            currentVersion;
 std::string                                            username("unknown");
+std::mutex                                             obs_initialization_mutex;
 
 void OBS_API::Register(ipc::server& srv)
 {
@@ -580,7 +581,19 @@ void OBS_API::OBS_API_initAPI(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	std::lock_guard<std::mutex> guard(obs_initialization_mutex);
+
 	writeCrashHandler(registerProcess());
+
+	static int initialization_complited = false;
+	if (initialization_complited) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+		rval.push_back(ipc::value(OBS_VIDEO_SUCCESS));
+
+		AUTO_DEBUG;	
+		return;
+	}
+
 	/* Map base DLLs as soon as possible into the current process space.
 	* In particular, we need to load obs.dll into memory before we call
 	* any functions from obs else if we delay-loaded the dll, it will
@@ -728,6 +741,8 @@ void OBS_API::OBS_API_initAPI(
 	// initialized the Dx11 API
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(OBS_VIDEO_SUCCESS));
+	
+	initialization_complited = true;
 
 	AUTO_DEBUG;
 }
