@@ -1133,9 +1133,14 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 	// Source Rendering
 	obs_source_t* source = NULL;
 	if (dp->m_source) {
-		if (obs_get_multiple_rendering()) {
+		/* If the the source is a transition it means this display 
+		 * is for Studio Mode and that the scene it contains is a 
+		 * duplicate of the current scene, apply selective recording
+		 * layer rendering if it is enabled */
+		if (obs_get_multiple_rendering() && obs_source_get_type(dp->m_source) == OBS_SOURCE_TYPE_TRANSITION) {
 			uint8_t start = OBS_MAIN_VIDEO_RENDERING;
 			uint8_t end = obs_get_multiple_rendering() ? OBS_RECORDING_VIDEO_RENDERING : OBS_MAIN_VIDEO_RENDERING;
+
 			for (uint8_t mode = start; mode <= end; mode++) {
 				switch (mode) {
 				case 0:
