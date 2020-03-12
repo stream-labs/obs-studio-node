@@ -44,6 +44,7 @@
 #include "osn-video.hpp"
 #include "osn-volmeter.hpp"
 #include "callback-manager.h"
+#include "error.hpp"
 
 #include "util-crashmanager.h"
 
@@ -143,8 +144,12 @@ int main(int argc, char* argv[])
 	// Usage:
 	// argv[0] = Path to this application. (Usually given by default if run via path-based command!)
 	// argv[1] = Path to a named socket.
+	// When started from launcher
+	// argv[2] = Path to a module directory.
+	// argv[3] = Path to a cache directory.
+	// argv[4] = Version number.
 
-	if (argc != 2) {
+	if (!(argc == 2 || argc == 5)) {
 		std::cerr << "There must be exactly one parameter." << std::endl;
 		return -1;
 	}
@@ -201,6 +206,28 @@ int main(int argc, char* argv[])
 		return -2;
 	}
 
+	if (argc == 5) {
+		std::vector<ipc::value> ipc_args;
+		std::vector<ipc::value> ipc_rval;
+
+		ipc_args.push_back( ipc::value(std::string(argv[2])));
+		OBS_API::SetWorkingDirectory(nullptr, 0, ipc_args, ipc_rval);
+	
+		ipc_rval.clear();
+		ipc_args.clear();
+		ipc_args.push_back( ipc::value(std::string(argv[3])));
+		ipc_args.push_back( ipc::value(std::string("en-US")));
+		ipc_args.push_back( ipc::value(std::string(argv[4])));
+		OBS_API::OBS_API_initAPI(nullptr, 0, ipc_args, ipc_rval);
+		if (ipc_rval.size() != 2) {
+			doShutdown = true;
+		} else {
+			ErrorCode error = (ErrorCode)ipc_rval[0].value_union.ui64;
+			if (error != ErrorCode::Ok) {
+				doShutdown = true;
+			}
+		}
+	}
 #ifdef ENABLE_CRASHREPORT
 
 	// Register the pre and post server callbacks to log the data into the crashmanager
