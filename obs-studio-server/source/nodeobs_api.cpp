@@ -30,6 +30,9 @@
 #include "util-crashmanager.h"
 #include "util-metricsprovider.h"
 
+#include <sys/types.h>
+#include <unistd.h>
+
 #ifdef _WIN32
 
 #ifdef _WIN32_WINNT
@@ -101,10 +104,8 @@ void OBS_API::Register(ipc::server& srv)
 	    "OBS_API_getPerformanceStatistics", std::vector<ipc::type>{}, OBS_API_getPerformanceStatistics));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SetWorkingDirectory", std::vector<ipc::type>{ipc::type::String}, SetWorkingDirectory));
-#ifdef WIN32
 	cls->register_function(
 	    std::make_shared<ipc::function>("StopCrashHandler", std::vector<ipc::type>{}, StopCrashHandler));
-#endif	
 	cls->register_function(std::make_shared<ipc::function>("OBS_API_QueryHotkeys", std::vector<ipc::type>{}, QueryHotkeys));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_API_ProcessHotkeyStatus",
@@ -522,8 +523,12 @@ static void                                    node_obs_log(int log_level, const
 		__debugbreak();
 #endif
 }
+
 #ifdef WIN32
 uint32_t pid = GetCurrentProcessId();
+#else
+uint32_t pid = (uint32_t)getpid();
+#endif
 
 std::vector<char> registerProcess(void)
 {
@@ -590,6 +595,7 @@ std::vector<char> crashedProcess(uint32_t crash_id)
 	return buffer;
 }
 
+#ifdef WIN32
 void writeCrashHandler(std::vector<char> buffer)
 {
 	HANDLE hPipe = CreateFile( TEXT("\\\\.\\pipe\\slobs-crash-handler"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
@@ -603,6 +609,17 @@ void writeCrashHandler(std::vector<char> buffer)
 
 	CloseHandle(hPipe);
 }
+#else
+void writeCrashHandler(std::vector<char> buffer)
+{
+	int file_descriptor = open("/tmp/slobs-crash-handler", O_WRONLY | O_DSYNC);
+	if (file_descriptor < 0) {
+		return;
+	}
+
+	::write(file_descriptor, buffer.data(), buffer.size());
+	close(file_descriptor);
+}
 #endif
 void OBS_API::OBS_API_initAPI(
     void*                          data,
@@ -610,9 +627,8 @@ void OBS_API::OBS_API_initAPI(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-#ifdef WIN32
 	writeCrashHandler(registerProcess());
-#endif
+
 	/* Map base DLLs as soon as possible into the current process space.
 	* In particular, we need to load obs.dll into memory before we call
 	* any functions from obs else if we delay-loaded the dll, it will
@@ -1198,6 +1214,7 @@ void acknowledgeTerminate(void)
 		}
 	}
 }
+#endif
 
 void OBS_API::StopCrashHandler(
     void*                          data,
@@ -1205,11 +1222,11 @@ void OBS_API::StopCrashHandler(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	std::thread worker(acknowledgeTerminate);
+	// std::thread worker(acknowledgeTerminate);
 	writeCrashHandler(unregisterProcess());
 
-	if (worker.joinable())
-		worker.join();
+	// if (worker.joinable())
+	// 	worker.join();
 
 	writeCrashHandler(terminateCrashHandler());
 
@@ -1221,7 +1238,7 @@ void OBS_API::InformCrashHandler(const int crash_id)
 {
 	writeCrashHandler(crashedProcess(crash_id));
 }
-#endif
+
 void OBS_API::destroyOBS_API(void)
 {
 	blog(LOG_DEBUG, "OBS_API::destroyOBS_API started");

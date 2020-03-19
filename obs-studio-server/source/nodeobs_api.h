@@ -101,7 +101,7 @@ class OBS_API
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
-	// static void InformCrashHandler(const int crash_id);
+	static void InformCrashHandler(const int crash_id);
 	static void
 	            QueryHotkeys(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 	static void ProcessHotkeyStatus(
