@@ -59,6 +59,8 @@ namespace osn
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
 		static void
+		    OrderItems(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static void
 		    MoveItem(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 		static void
 		    GetItem(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);

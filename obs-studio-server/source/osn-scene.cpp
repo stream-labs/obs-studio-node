@@ -57,6 +57,8 @@ void osn::Scene::Register(ipc::server& srv)
 	cls->register_function(std::make_shared<ipc::function>(
 	    "MoveItem", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32, ipc::type::Int32}, MoveItem));
 	cls->register_function(std::make_shared<ipc::function>(
+	    "OrderItems", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Binary}, OrderItems));
+	cls->register_function(std::make_shared<ipc::function>(
 	    "GetItem", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, GetItem));
 	cls->register_function(
 	    std::make_shared<ipc::function>("GetItems", std::vector<ipc::type>{ipc::type::UInt64}, GetItems));
@@ -404,6 +406,52 @@ void osn::Scene::FindItemByItemId(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint64_t)uid));
+	AUTO_DEBUG;
+}
+
+void osn::Scene::OrderItems(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!source) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
+	}
+
+	obs_scene_t* scene = obs_scene_from_source(source);
+	if (!scene) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not a scene.");
+	}
+
+    const std::vector<char> & positions_binary = args[1].value_bin;
+	size_t positions_count = positions_binary.size()/sizeof(int64_t);
+
+    obs_scene_set_items_order(scene, (int64_t*)positions_binary.data(), positions_count);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+	std::list<obs_sceneitem_t*> items;
+	auto                        cb_items = [](obs_scene_t* scene, obs_sceneitem_t* item, void* data) {
+        std::list<obs_sceneitem_t*>* items = reinterpret_cast<std::list<obs_sceneitem_t*>*>(data);
+        items->push_back(item);
+        return true;
+	};
+	obs_scene_enum_items(scene, cb_items, &items);
+
+	for (obs_sceneitem_t* item : items) {
+		utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
+		if (uid == UINT64_MAX) {
+			uid = osn::SceneItem::Manager::GetInstance().allocate(item);
+			if (uid == UINT64_MAX) {
+				PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
+			}
+			obs_sceneitem_addref(item);
+		}
+		rval.push_back(ipc::value((uint64_t)uid));
+		rval.push_back(ipc::value(obs_sceneitem_get_id(item)));
+	}
 	AUTO_DEBUG;
 }
 
