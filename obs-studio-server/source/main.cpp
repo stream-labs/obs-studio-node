@@ -125,6 +125,9 @@ namespace System
 	{
 		bool* shutdown = (bool*)data;
 		*shutdown      = true;
+#ifdef __APPLE__
+		g_util_osx->terminateApplication();
+#endif
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		return;
 	}
@@ -229,7 +232,9 @@ int main(int argc, char* argv[])
 	sd.last_disconnect = sd.last_connect = std::chrono::high_resolution_clock::now();
 
 #ifdef __APPLE__
-	g_util_osx->createApplication();
+	// WARNING: Blocking function -> this won't return until the application
+	// receives a stop or terminate event
+	g_util_osx->runApplication();
 #endif
 	bool waitBeforeClosing = false;
 	

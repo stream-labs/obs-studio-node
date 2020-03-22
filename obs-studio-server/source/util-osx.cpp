@@ -38,14 +38,14 @@ std::string UtilInt::getDefaultVideoSavePath(void)
     return _impl->getDefaultVideoSavePath();
 }
 
-void UtilInt::createApplication(void)
+void UtilInt::runApplication(void)
 {
-    _impl->createApplication();
+    _impl->runApplication();
 }
 
-void UtilInt::terminateApplication(void)
+void UtilInt::stopApplication(void)
 {
-    _impl->terminateApplication();
+    _impl->stopApplication();
 }
 
 unsigned long long UtilInt::getTotalPhysicalMemory(void)

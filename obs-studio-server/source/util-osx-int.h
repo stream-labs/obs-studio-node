@@ -29,8 +29,8 @@ public:
 
     void init(void);
     std::string getDefaultVideoSavePath(void);
-    void createApplication(void);
-    void terminateApplication(void);
+    void runApplication(void);
+    void stopApplication(void);
     unsigned long long getTotalPhysicalMemory(void);
     unsigned long long getAvailableMemory(void);
     std::vector<std::pair<uint32_t, uint32_t>> getAvailableScreenResolutions(void);

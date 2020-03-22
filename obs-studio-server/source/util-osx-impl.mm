@@ -38,7 +38,7 @@ std::string UtilObjCInt::getDefaultVideoSavePath(void)
 	return url.path.fileSystemRepresentation;
 }
 
-void UtilObjCInt::createApplication(void)
+void UtilObjCInt::runApplication(void)
 {
     @autoreleasepool {
         NSApplication *app = [NSApplication sharedApplication];
@@ -46,10 +46,21 @@ void UtilObjCInt::createApplication(void)
     }
 }
 
-void UtilObjCInt::terminateApplication(void)
+void UtilObjCInt::stopApplication(void)
 {
-	dispatch_sync(dispatch_get_main_queue(), ^{
-		[NSApp stop:nil];
+	dispatch_async(dispatch_get_main_queue(), ^{
+		[[NSApplication sharedApplication] stop:nil];
+        NSEvent* event = [NSEvent
+            otherEventWithType: NSEventTypeApplicationDefined
+            location: NSZeroPoint
+            modifierFlags: 0
+            timestamp: 0
+            windowNumber: 0
+            context: nil
+            subtype:0
+            data1:0
+            data2:0];
+        [NSApp postEvent: event atStart: TRUE];
     });
 }
 
@@ -110,10 +121,7 @@ std::string UtilObjCInt::getUserDataPath(void)
 
 std::string UtilObjCInt::getWorkingDirectory(void)
 {
-    // NSFileManager* fm = [[NSFileManager alloc] init];
-    // NSString* workindDirPath = [fm currentDirectoryPath];
     NSString* workindDirPath = [[NSProcessInfo processInfo] environment][@"PWD"];
     return std::string([workindDirPath UTF8String]);
 }
-
 @end
