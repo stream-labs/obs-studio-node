@@ -1222,13 +1222,24 @@ void OBS_API::StopCrashHandler(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	// std::thread worker(acknowledgeTerminate);
+#ifdef WIN32
+	// ASYNC operations hence the need to wait and make sure
+	// that the crash-handler correctly unregistered the current
+	// critical obs. The issue we want to avoid is that this
+	// processes finishes before it got unregistered by the
+	// crash-handler.
+	std::thread worker(acknowledgeTerminate);
 	writeCrashHandler(unregisterProcess());
 
-	// if (worker.joinable())
-	// 	worker.join();
-
+	if (worker.joinable())
+		worker.join();
+#else __APPLE__
+	// SYNC operations -> we don't have any need to wait for
+	// the crash-handler to acknowledge the reception of any
+	// instructions.
+	writeCrashHandler(unregisterProcess());
 	writeCrashHandler(terminateCrashHandler());
+#endif
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
