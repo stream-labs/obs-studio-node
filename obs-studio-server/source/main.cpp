@@ -126,7 +126,7 @@ namespace System
 		bool* shutdown = (bool*)data;
 		*shutdown      = true;
 #ifdef __APPLE__
-		g_util_osx->terminateApplication();
+		g_util_osx->stopApplication();
 #endif
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		return;
