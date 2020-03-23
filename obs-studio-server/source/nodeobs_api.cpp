@@ -80,6 +80,7 @@ OBS_API::LogReport                                     logReport;
 std::mutex                                             logMutex;
 std::string                                            currentVersion;
 std::string                                            username("unknown");
+USBNotification*                                       pNotification = new USBNotification();
 
 void OBS_API::Register(ipc::server& srv)
 {
@@ -706,6 +707,8 @@ void OBS_API::OBS_API_initAPI(
 
 	setAudioDeviceMonitoring();
 
+	pNotification->StartNotification();
+
 	// Enable the hotkey callback rerouting that will be used when manually handling hotkeys on the frontend
 	obs_hotkey_enable_callback_rerouting(true);
 
@@ -1220,6 +1223,9 @@ void OBS_API::destroyOBS_API(void)
     OBS_service::clearAudioEncoder();
     osn::VolMeter::ClearVolmeters();
     osn::Fader::ClearFaders();
+
+	pNotification->StopNotification();
+	delete pNotification;
 
 	// Check if the frontend was able to shutdown correctly:
 	// If there are some sources here it's because it ended unexpectedly, this represents a 

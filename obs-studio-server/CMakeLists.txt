@@ -257,6 +257,10 @@ add_executable(
 	###### memory-manager ######
 	"${PROJECT_SOURCE_DIR}/source/memory-manager.cpp"
 	"${PROJECT_SOURCE_DIR}/source/memory-manager.h"
+
+	###### usb-notification ######
+	"${PROJECT_SOURCE_DIR}/source/usb-notification.cpp"
+	"${PROJECT_SOURCE_DIR}/source/usb-notification.h"
 )
 
 # Include/link crash manager dependencies

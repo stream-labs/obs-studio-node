@@ -29,6 +29,7 @@
 #include <queue>
 #include "nodeobs_configManager.hpp"
 #include "nodeobs_service.h"
+#include "usb-notification.h"
 
 extern std::string g_moduleDirectory;
 
