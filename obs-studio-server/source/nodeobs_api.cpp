@@ -1214,6 +1214,19 @@ void acknowledgeTerminate(void)
 		}
 	}
 }
+#else __APPLE__
+void acknowledgeTerminate (void) {
+	std::vector<char> buffer;
+	buffer.resize(64);
+	int file_descriptor = open("exit-slobs-crash-handler", O_RDONLY);
+	if (file_descriptor < 0) {
+		blog(LOG_ERROR, "Could not open crash-handler exit fifo");
+        return;
+    }
+
+	if (::read(file_descriptor, buffer.data(), buffer.size()) <= 0)
+		blog(LOG_ERROR, "Error while reading crash-handler exit message");
+}
 #endif
 
 void OBS_API::StopCrashHandler(
@@ -1222,24 +1235,17 @@ void OBS_API::StopCrashHandler(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-#ifdef WIN32
-	// ASYNC operations hence the need to wait and make sure
-	// that the crash-handler correctly unregistered the current
-	// critical obs. The issue we want to avoid is that this
-	// processes finishes before it got unregistered by the
-	// crash-handler.
 	std::thread worker(acknowledgeTerminate);
 	writeCrashHandler(unregisterProcess());
+	writeCrashHandler(terminateCrashHandler());
 
+	// Block current thread until the crash-handler sends the
+	// achaknwoledge signal, this blocking operation is performed
+	// in a separate thread in order to avoid any race condition that
+	// could happen in between the crash-handler send its exit message
+	// and the fifo being opened and read
 	if (worker.joinable())
 		worker.join();
-#else __APPLE__
-	// SYNC operations -> we don't have any need to wait for
-	// the crash-handler to acknowledge the reception of any
-	// instructions.
-	writeCrashHandler(unregisterProcess());
-	writeCrashHandler(terminateCrashHandler());
-#endif
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
