@@ -329,8 +329,8 @@ bool util::CrashManager::SetupCrashpad()
 #ifdef WIN32
 	std::wstring handler_path(L"crashpad_handler.exe");
 #else
-	workingDirectory = workingDirectory.substr(0, workingDirectory.size() - strlen("obs64"));
-	std::string handler_path = workingDirectory;
+	// workingDirectory = workingDirectory.substr(0, workingDirectory.size() - strlen("obs64"));
+	std::string handler_path = workingDirectory + '/';
 	handler_path.append("crashpad_handler");
 #endif
 
@@ -480,6 +480,15 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	insideCrashMethod = false;
 
 #endif
+}
+
+void util::CrashManager::SetVersionName(std::string name) {
+	std::cout << "version name " << name.c_str() << std::endl;
+	annotations.insert({{"sentry[release]", name}});
+}
+
+void util::CrashManager::SetUsername(std::string name) {
+	annotations.insert({{"sentry[user][username]", name}});
 }
 
 bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashMessage)

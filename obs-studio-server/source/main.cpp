@@ -140,14 +140,6 @@ int main(int argc, char* argv[])
 	g_util_osx->init();
 #endif
 
-#ifdef ENABLE_CRASHREPORT
-   util::CrashManager crashManager;
-
-	if (crashManager.Initialize(argv[2])) {
-		crashManager.Configure();
-   }
-#endif
-
 	// Usage:
 	// argv[0] = Path to this application. (Usually given by default if run via path-based command!)
 	// argv[1] = Path to a named socket.

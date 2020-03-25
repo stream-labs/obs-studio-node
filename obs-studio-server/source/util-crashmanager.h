@@ -69,6 +69,9 @@ namespace util
 		static void ProcessPreServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args);
 		static void ProcessPostServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args);
 
+		static void SetVersionName(std::string name);
+		static void SetUsername(std::string name);
+
 		private:
 		static nlohmann::json RequestOBSLog(OBSLogType type);
 		static nlohmann::json ComputeBreadcrumbs();

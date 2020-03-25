@@ -640,6 +640,17 @@ void OBS_API::OBS_API_initAPI(
 	std::string locale  = args[1].value_str;
 	currentVersion      = args[2].value_str;
 	utility::osn_current_version(currentVersion);
+	util::CrashManager::SetVersionName(currentVersion);
+
+
+#ifdef ENABLE_CRASHREPORT
+   util::CrashManager crashManager;
+	char* path = g_moduleDirectory.data();
+	if (crashManager.Initialize(path)) {
+		crashManager.Configure();
+   }
+#endif
+
 #ifdef WIN32
 	// Connect the metrics provider with our crash handler process, sending our current version tag
 	// and enabling metrics
@@ -972,6 +983,7 @@ void OBS_API::SetUsername(
     std::vector<ipc::value>&       rval)
 {
 	username = args[0].value_str;
+	util::CrashManager::SetUsername(username);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
