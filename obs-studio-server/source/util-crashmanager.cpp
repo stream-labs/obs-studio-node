@@ -81,11 +81,12 @@ std::string                                    url;
 base::FilePath                                 db;
 base::FilePath                                 handler;
 std::vector<std::string>                       arguments;
-std::map<std::string, std::string>             annotations;
-std::chrono::steady_clock::time_point          initialTime;
-bool                                           reportsEnabled = true;
 std::string                                    workingDirectory;
 #endif
+
+std::chrono::steady_clock::time_point          initialTime;
+bool                                           reportsEnabled = true;
+std::map<std::string, std::string>             annotations;
 
 /////////////
 // FORWARD //
