@@ -845,9 +845,9 @@ void OBS_API::QueryHotkeys(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-#ifdef __APPLE__
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-#else
+// #ifdef __APPLE__
+// 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+// #else
 	struct HotkeyInfo
 	{
 		std::string                objectName;
@@ -924,8 +924,17 @@ void OBS_API::QueryHotkeys(
 		    }
 
 		    // Key defs
-		    auto       key_name = std::string(obs_hotkey_get_name(key));
-		    auto       desc     = std::string(obs_hotkey_get_description(key));
+			const char* _key_name = obs_hotkey_get_name(key);
+			const char* _desc = obs_hotkey_get_description(key);
+
+			if (!_key_name)
+				_key_name = "";
+
+			if (!_desc)
+				_desc = "";
+
+		    auto       key_name = std::string(_key_name);
+		    auto       desc     = std::string(_desc);
 		    const auto hotkeyId = obs_hotkey_get_id(key);
 
 		    // Parse the key name and the description
@@ -955,7 +964,7 @@ void OBS_API::QueryHotkeys(
 		rval.push_back(ipc::value(uint64_t(hotkeyInfo.hotkeyId)));
 	}
 
-#endif
+// #endif
 	AUTO_DEBUG;
 }
 
