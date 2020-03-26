@@ -1104,6 +1104,12 @@ export interface IScene extends ISource {
     moveItem(oldIndex: number, newIndex: number): void;
 
     /**
+     * Orders an scene items as provided 
+     * @param order - Item ids in needed order
+     */
+    orderItems( order: number[] ): void;
+
+    /**
      * Find an item within a scene
      * 
      * @param id - A string representing the name of the
