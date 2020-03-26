@@ -1294,8 +1294,9 @@ void autoConfig::TestStreamEncoderThread()
 			streamingEncoder = Encoder::QSV;
 		else if (vceAvailable)
 			streamingEncoder = Encoder::AMD;
-		else if (appleHWAvailable)
-			streamingEncoder = Encoder::appleHW;
+		// HW encoding seems to not be stable on Mac
+		// else if (appleHWAvailable)
+		// 	streamingEncoder = Encoder::appleHW;
 	} else {
 		streamingEncoder = Encoder::x264;
 	}
@@ -1333,8 +1334,9 @@ void autoConfig::TestRecordingEncoderThread()
 			recordingEncoder = Encoder::QSV;
 		else if (vceAvailable)
 			recordingEncoder = Encoder::AMD;
-		else if (appleHWAvailable)
-			recordingEncoder = Encoder::appleHW;
+		// HW encoding seems to not be stable on Mac
+		// else if (appleHWAvailable)
+		// 	recordingEncoder = Encoder::appleHW;
 	} else {
 		recordingEncoder = Encoder::x264;
 	}
