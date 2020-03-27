@@ -128,7 +128,18 @@ namespace System
 	}
 } // namespace System
 
-int main(int argc, char* argv[])
+// Convert a wide Unicode string to an UTF8 string
+std::string utf8_encode(const std::wstring &wstr)
+{
+    if (wstr.empty()) 
+		return std::string();
+    int size_needed = WideCharToMultiByte(CP_UTF8, 0, &wstr[0], (int)wstr.size(), NULL, 0, NULL, NULL);
+    std::string strTo( size_needed, 0 );
+    WideCharToMultiByte(CP_UTF8, 0, &wstr[0], (int)wstr.size(), &strTo[0], size_needed, NULL, NULL);
+    return strTo;
+}
+
+int wmain( int argc, wchar_t *argv[ ], wchar_t *envp[ ] )
 {
 #ifdef ENABLE_CRASHREPORT
 
@@ -148,9 +159,8 @@ int main(int argc, char* argv[])
 	// argv[2] = Path to a module directory.
 	// argv[3] = Path to a cache directory.
 	// argv[4] = Version number.
-
 	if (!(argc == 2 || argc == 5)) {
-		std::cerr << "There must be exactly one parameter." << std::endl;
+		std::cerr << "There must be 1 or 4 parameters." << std::endl;
 		return -1;
 	}
 
@@ -197,7 +207,8 @@ int main(int argc, char* argv[])
 
 	// Initialize Server
 	try {
-		myServer.initialize(argv[1]);
+		std::string pipe_name = utf8_encode(std::wstring(argv[1]));
+		myServer.initialize(pipe_name);
 	} catch (std::exception& e) {
 		std::cerr << "Initialization failed with error " << e.what() << "." << std::endl;
 		return -2;
@@ -210,14 +221,18 @@ int main(int argc, char* argv[])
 		std::vector<ipc::value> ipc_args;
 		std::vector<ipc::value> ipc_rval;
 
-		ipc_args.push_back( ipc::value(std::string(argv[2])));
+		std::string s_module_path = utf8_encode(std::wstring(argv[2]));
+		ipc_args.push_back( ipc::value(s_module_path));
 		OBS_API::SetWorkingDirectory(nullptr, 0, ipc_args, ipc_rval);
 	
 		ipc_rval.clear();
 		ipc_args.clear();
-		ipc_args.push_back( ipc::value(std::string(argv[3])));
+		std::string s_cache_path = utf8_encode(std::wstring(argv[3]));
+		ipc_args.push_back( ipc::value(s_cache_path));
 		ipc_args.push_back( ipc::value(std::string("en-US")));
-		ipc_args.push_back( ipc::value(std::string(argv[4])));
+		std::string s_version = utf8_encode(std::wstring(argv[4]));
+		ipc_args.push_back( ipc::value(s_version));
+
 		OBS_API::OBS_API_initAPI(nullptr, 0, ipc_args, ipc_rval);
 		if (ipc_rval.size() != 2) {
 			doShutdown = true;
