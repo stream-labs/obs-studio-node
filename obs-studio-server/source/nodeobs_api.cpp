@@ -619,6 +619,10 @@ void OBS_API::OBS_API_initAPI(
 	slobs_plugin.append("/slobs-plugins");
 	obs_add_data_path((slobs_plugin + "/data/").c_str());
 
+std::cerr << "obs_add_data_path " << std::wstring(L"ыфва").c_str() << std::endl;
+std::cerr << "obs_add_data_path " << g_moduleDirectory << std::endl;
+std::cerr << "obs_add_data_path " << slobs_plugin << std::endl;
+
 	std::vector<char> userData = std::vector<char>(1024);
 	os_get_config_path(userData.data(), userData.capacity() - 1, "slobs-client/plugin_config");
 	if (!obs_startup(locale.c_str(), userData.data(), NULL)) {
