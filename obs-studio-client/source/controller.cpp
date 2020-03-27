@@ -298,6 +298,8 @@ std::shared_ptr<ipc::client> Controller::connect(
 			if (!is_process_alive(procId)) {
 				break;
 			}
+		} else {
+			break;
 		}
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
