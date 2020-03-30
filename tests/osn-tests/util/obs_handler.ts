@@ -95,6 +95,7 @@ export class OBSHandler {
 
         try {
             osn.NodeObs.IPC.host(this.pipeName);
+            console.log(this.workingDirectory);
             osn.NodeObs.SetWorkingDirectory(this.workingDirectory);
             const initResult = osn.NodeObs.OBS_API_initAPI(this.language, this.obsPath, this.version);
 
@@ -177,10 +178,6 @@ export class OBSHandler {
                     oldValue = param.currentValue;
                     param.currentValue = value;
                 }
-
-                /*if (param.name === 'RecFilePath') {
-                    param.currentValue = '/doesnotexist';
-                }*/
             });
         });
 

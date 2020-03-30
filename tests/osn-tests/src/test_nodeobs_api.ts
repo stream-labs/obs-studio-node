@@ -70,8 +70,6 @@ describe(testName, function() {
         expect(scene.type).to.equal(osn.ESourceType.Scene, GetErrorMessage(ETestErrorMsg.SceneType, sceneName));
 
         obs.inputTypes.forEach(inputType => {
-            console.log(inputType);
-
             // Creating source
             const input = osn.InputFactory.create(inputType, inputType);
 
