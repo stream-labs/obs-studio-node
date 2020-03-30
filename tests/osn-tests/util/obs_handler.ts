@@ -4,7 +4,7 @@ import { Services } from '../util/services';
 import { CacheUploader } from '../util/cache-uploader'
 import { EOBSOutputType, EOBSOutputSignal, EOBSSettingsCategories} from '../util/obs_enums'
 import { Subject } from 'rxjs';
-import { first } from 'rxjs/operators';
+import { first, window } from 'rxjs/operators';
 
 // Interfaces
 export interface IPerformanceState {
@@ -74,12 +74,18 @@ export class OBSHandler {
     inputTypes: string[];
     filterTypes: string[];
     transitionTypes: string[];
+    os: string;
 
     constructor(testName: string) {
+        this.os = process.platform;
         this.osnTestName = testName;
         this.cacheUploader = new CacheUploader(testName, this.obsPath);
         this.startup();
         this.inputTypes = osn.InputFactory.types();
+        const index = this.inputTypes.indexOf('syphon-input', 0);
+        if (index > -1) {
+            this.inputTypes.splice(index, 1);
+        }
         this.filterTypes = osn.FilterFactory.types();
         this.transitionTypes = osn.TransitionFactory.types();
     }
@@ -171,6 +177,10 @@ export class OBSHandler {
                     oldValue = param.currentValue;
                     param.currentValue = value;
                 }
+
+                /*if (param.name === 'RecFilePath') {
+                    param.currentValue = '/doesnotexist';
+                }*/
             });
         });
 
@@ -208,6 +218,11 @@ export class OBSHandler {
 
     connectOutputSignals() {
         osn.NodeObs.OBS_service_connectOutputSignals((signalInfo: IOBSOutputSignalInfo) => {
+            console.log('TYPE:', signalInfo.type);
+            console.log('SIGNAL:', signalInfo.signal);
+            console.log('CODE:', signalInfo.code);
+            console.log('ERROR:', signalInfo.error);
+            console.log('');
             this.signals.next(signalInfo);
         });
     }

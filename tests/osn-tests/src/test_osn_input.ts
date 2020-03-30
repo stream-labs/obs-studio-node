@@ -113,8 +113,14 @@ describe(testName, () => {
                     break;
                 }
                 case 'window_capture': {
-                    settings = inputSettings.windowCapture;
-                    settings['compatibility'] = true;
+                    if (obs.os == 'win32') {
+                        settings = inputSettings.win32WindowCapture;
+                        settings['compatibility'] = true;
+                    } else if (obs.os == 'darwin') {
+                        settings = inputSettings.macWindowCapture;
+                        settings['show_empty_names'] = true;
+                    }
+                    
                     break;
                 }
                 case 'game_capture': {
@@ -132,6 +138,20 @@ describe(testName, () => {
                     settings = inputSettings.wasapi;
                     settings['use_device_timing'] = true;
                     break;
+                }
+                case 'av_capture_input': {
+                    settings = inputSettings.avCaptureInput;
+                    settings['color_space'] = 2;
+                    break;
+                }
+                case 'coreaudio_input_capture':
+                case 'coreaudio_output_capture': {
+                    settings = inputSettings.coreaudio;
+                    break;
+                }
+                case 'display_capture': {
+                    settings = inputSettings.displayCapture;
+                    settings['show_cursor'] = false;
                 }
             }
 
@@ -191,14 +211,21 @@ describe(testName, () => {
 
     it('Set sync offset and get it', () => {
         let returnedSyncOffset: ITimeSpec;
+        let inputType: string;
+
+        if (obs.os == 'win32') {
+            inputType = EOBSInputTypes.WASAPIInput;
+        } else if (obs.os == 'darwin') {
+            inputType = EOBSInputTypes.CoreAudioInput;
+        }
 
         // Creating input source
-        const input = osn.InputFactory.create(EOBSInputTypes.WASAPIInput, 'input');
+        const input = osn.InputFactory.create(inputType, 'input');
 
         // Checking if input source was created correctly
-        expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, EOBSInputTypes.WASAPIInput));
-        expect(input.id).to.equal(EOBSInputTypes.WASAPIInput, GetErrorMessage(ETestErrorMsg.InputId, EOBSInputTypes.WASAPIInput));
-        expect(input.name).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, EOBSInputTypes.WASAPIInput));
+        expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
+        expect(input.id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
+        expect(input.name).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
 
         // Setting input sync offset
         input.syncOffset = getTimeSpec(5000);
@@ -213,14 +240,23 @@ describe(testName, () => {
 
     it('Set audio mixers value and get it', () => {
         let returnedAudioMixers: number;
+        let inputType: string;
+
+        if (obs.os == 'win32') {
+            inputType = EOBSInputTypes.WASAPIOutput;
+        } else if (obs.os == 'darwin') {
+            inputType = EOBSInputTypes.CoreAudioOutput;
+        }
 
         // Creating input source
-        const input = osn.InputFactory.create(EOBSInputTypes.WASAPIOutput, 'input');
+        const input = osn.InputFactory.create(inputType, 'input');
 
         // Checking if input source was created correctly
-        expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, EOBSInputTypes.WASAPIOutput));
-        expect(input.id).to.equal(EOBSInputTypes.WASAPIOutput, GetErrorMessage(ETestErrorMsg.InputId, EOBSInputTypes.WASAPIOutput));
-        expect(input.name).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, EOBSInputTypes.WASAPIOutput));
+        expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
+        expect(input.id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
+        expect(input.name).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
+
+        console.log(input);
 
         // Setting input audio mixers value
         input.audioMixers = 3;
@@ -229,20 +265,27 @@ describe(testName, () => {
         returnedAudioMixers = input.audioMixers;
 
         // Checking if audio mixers value was returned correctly
-        expect(returnedAudioMixers).to.equal(3, GetErrorMessage(ETestErrorMsg.AudioMixers, EOBSInputTypes.WASAPIOutput));
+        expect(returnedAudioMixers).to.equal(3, GetErrorMessage(ETestErrorMsg.AudioMixers, inputType));
         input.release();
     });
 
     it('Set monitoring type value and get it', () => {
         let returnedMonitoringType: osn.EMonitoringType;
+        let inputType: string;
+
+        if (obs.os == 'win32') {
+            inputType = EOBSInputTypes.WASAPIInput;
+        } else if (obs.os == 'darwin') {
+            inputType = EOBSInputTypes.CoreAudioInput;
+        }
 
         // Creating input source
-        const input = osn.InputFactory.create(EOBSInputTypes.WASAPIOutput, 'input');
+        const input = osn.InputFactory.create(inputType, 'input');
 
         // Checking if input source was created correctly
-        expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, EOBSInputTypes.WASAPIOutput));
-        expect(input.id).to.equal(EOBSInputTypes.WASAPIOutput, GetErrorMessage(ETestErrorMsg.InputId, EOBSInputTypes.WASAPIOutput));
-        expect(input.name).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, EOBSInputTypes.WASAPIOutput));
+        expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
+        expect(input.id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
+        expect(input.name).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
 
         // Setting monitoring type value
         input.monitoringType = osn.EMonitoringType.MonitoringAndOutput;
@@ -366,8 +409,10 @@ describe(testName, () => {
         // Create all async sources available
         obs.inputTypes.forEach(function(inputType) {
             const asyncSource = !!(osn.ESourceOutputFlags.Async & osn.Global.getOutputFlagsFromId(inputType));
+            const audioSource = !!(osn.ESourceOutputFlags.Audio & osn.Global.getOutputFlagsFromId(inputType));
 
-            if (asyncSource) {
+            if (asyncSource && audioSource) {
+                console.log(inputType);
                 // Creating async source
                 const input = osn.InputFactory.create(inputType, inputType);
 
@@ -481,12 +526,12 @@ describe(testName, () => {
 
     it('Change the order of filters in the list', () => {
         // Creating source
-        const input = osn.InputFactory.create(EOBSInputTypes.GameCapture, 'test_source');
+        const input = osn.InputFactory.create(EOBSInputTypes.ImageSource, 'test_source');
         
         // Checking if source was created correctly
-        expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, EOBSInputTypes.GameCapture));
-        expect(input.id).to.equal(EOBSInputTypes.GameCapture, GetErrorMessage(ETestErrorMsg.InputId, EOBSInputTypes.GameCapture));
-        expect(input.name).to.equal('test_source', GetErrorMessage(ETestErrorMsg.InputName, EOBSInputTypes.GameCapture));
+        expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, EOBSInputTypes.ImageSource));
+        expect(input.id).to.equal(EOBSInputTypes.ImageSource, GetErrorMessage(ETestErrorMsg.InputId, EOBSInputTypes.ImageSource));
+        expect(input.name).to.equal('test_source', GetErrorMessage(ETestErrorMsg.InputName, EOBSInputTypes.ImageSource));
 
         // Creating filters
         const filter1 = osn.FilterFactory.create(EOBSFilterTypes.Color, 'filter1');

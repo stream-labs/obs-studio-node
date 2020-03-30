@@ -42,13 +42,14 @@ if(WIN32)
 		${PROJECT_SOURCE_DIR}/tests/helpers/obs.js
 		@ONLY
 	)
-
-	configure_file(
-		${PROJECT_SOURCE_DIR}/cmake/index.ts.in
-		${PROJECT_SOURCE_DIR}/tests/osn-tests/osn/index.ts
-		@ONLY
-	)
 endif()
+
+# Tell osn-tests where to finde .node file
+configure_file(
+    ${PROJECT_SOURCE_DIR}/cmake/index.ts.in
+    ${PROJECT_SOURCE_DIR}/tests/osn-tests/osn/index.ts
+    @ONLY
+)
 
 ############################
 # Setup global dependencies
