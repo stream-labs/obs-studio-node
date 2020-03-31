@@ -215,11 +215,6 @@ export class OBSHandler {
 
     connectOutputSignals() {
         osn.NodeObs.OBS_service_connectOutputSignals((signalInfo: IOBSOutputSignalInfo) => {
-            console.log('TYPE:', signalInfo.type);
-            console.log('SIGNAL:', signalInfo.signal);
-            console.log('CODE:', signalInfo.code);
-            console.log('ERROR:', signalInfo.error);
-            console.log('');
             this.signals.next(signalInfo);
         });
     }
