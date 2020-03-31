@@ -4,7 +4,7 @@ import { Services } from '../util/services';
 import { CacheUploader } from '../util/cache-uploader'
 import { EOBSOutputType, EOBSOutputSignal, EOBSSettingsCategories} from '../util/obs_enums'
 import { Subject } from 'rxjs';
-import { first, window } from 'rxjs/operators';
+import { first } from 'rxjs/operators';
 
 // Interfaces
 export interface IPerformanceState {
