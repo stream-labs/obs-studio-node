@@ -65,7 +65,7 @@ class Controller
 	public:
 	std::shared_ptr<ipc::client> host(const std::string& uri);
 
-	std::shared_ptr<ipc::client> connect(const std::string& uri);
+	std::shared_ptr<ipc::client> connect(const std::string& uri, bool makeItServer);
 
 	void disconnect();
 
