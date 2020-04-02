@@ -447,7 +447,16 @@ export interface IIPC {
 	 * @throws TypeError if a parameter is of invalid type.
 	 * @throws Error if it failed to connect.
      */
-	connect(uri: string): void;
+    connect(uri: string): void;
+    
+    /**
+     * Connect to an existing server and make it server connection.
+     * @param uri - URI for the server.
+	 * @throws SyntaxError if an invalid number of parameters is given.
+	 * @throws TypeError if a parameter is of invalid type.
+	 * @throws Error if it failed to connect.
+     */
+	holdon(uri: string): void;
 	
     /**
      * Hosts a new server and connects to it.
