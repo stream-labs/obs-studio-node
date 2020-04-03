@@ -317,7 +317,6 @@ export interface IDisplayInit {
 export interface IIPC {
     setServerPath(binaryPath: string, workingDirectoryPath?: string): void;
     connect(uri: string): void;
-    holdon(uri: string): void;
     host(uri: string): void;
     disconnect(): void;
 }

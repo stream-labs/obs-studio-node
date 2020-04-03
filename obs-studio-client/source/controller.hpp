@@ -65,14 +65,13 @@ class Controller
 	public:
 	std::shared_ptr<ipc::client> host(const std::string& uri);
 
-	std::shared_ptr<ipc::client> connect(const std::string& uri, bool makeItServer);
+	std::shared_ptr<ipc::client> connect(const std::string& uri);
 
 	void disconnect();
 
 	std::shared_ptr<ipc::client> GetConnection();
 
 	private:
-	bool                         m_isServer = false;
 	std::shared_ptr<ipc::client> m_connection;
 	ProcessInfo                  procId;
 };
