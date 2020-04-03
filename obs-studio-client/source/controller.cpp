@@ -232,9 +232,6 @@ Controller::~Controller() {}
 
 std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 {
-	if (m_isServer)
-		return nullptr;
-
 	std::stringstream commandLine;
 	commandLine << "\"" << serverBinaryPath << "\""
 	            << " " << uri;
@@ -260,7 +257,7 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 	write_pid_file(pid_path, procId.id);
 
 	// Connect
-	std::shared_ptr<ipc::client> cl = connect(uri, true);
+	std::shared_ptr<ipc::client> cl = connect(uri);
 	if (!cl) { // Assume the server broke or was not allowed to run.
 		disconnect();
 		uint32_t exitcode;
@@ -272,11 +269,8 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 }
 
 std::shared_ptr<ipc::client> Controller::connect(
-    const std::string& uri, bool makeItServer)
+    const std::string& uri)
 {
-	if (m_isServer)
-		return nullptr;
-
 	if (m_connection)
 		return nullptr;
 
@@ -293,7 +287,6 @@ std::shared_ptr<ipc::client> Controller::connect(
 			break;
 
 		if (procId.handle != 0) {
-			// We are the owner of the server, but m_isServer is false for now.
 			if (!is_process_alive(procId)) {
 				break;
 			}
@@ -307,19 +300,14 @@ std::shared_ptr<ipc::client> Controller::connect(
 		return nullptr;
 	}
 
-	if (makeItServer)
-		m_isServer = true;
-
 	m_connection = cl;
 	return m_connection;
 }
 
 void Controller::disconnect()
 {
-	if (m_isServer) {
-		m_connection->call_synchronous_helper("System", "Shutdown", {});
-		m_isServer = false;
-	}
+	m_connection->call_synchronous_helper("System", "Shutdown", {});
+
 	m_connection = nullptr;
 }
 
@@ -381,33 +369,7 @@ void js_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
 	}
 
 	std::string uri = *v8::String::Utf8Value(args[0]);
-	auto        cl  = Controller::GetInstance().connect(uri, false);
-	if (!cl) {
-		isol->ThrowException(v8::Exception::Error(Nan::New<v8::String>("Failed to connect.").ToLocalChecked()));
-		return;
-	}
-
-	return;
-}
-
-void js_connect_exclusive(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	auto isol = args.GetIsolate();
-	if (args.Length() == 0) {
-		isol->ThrowException(v8::Exception::SyntaxError(
-		    Nan::New<v8::String>("Too few arguments, usage: connect(<string> uri).").ToLocalChecked()));
-		return;
-	} else if (args.Length() > 1) {
-		isol->ThrowException(v8::Exception::SyntaxError(Nan::New<v8::String>("Too many arguments.").ToLocalChecked()));
-		return;
-	} else if (!args[0]->IsString()) {
-		isol->ThrowException(v8::Exception::TypeError(
-		    Nan::New<v8::String>("Argument 'uri' must be of type 'String'.").ToLocalChecked()));
-		return;
-	}
-
-	std::string uri = *v8::String::Utf8Value(args[0]);
-	auto        cl  = Controller::GetInstance().connect(uri, true);
+	auto        cl  = Controller::GetInstance().connect(uri);
 	if (!cl) {
 		isol->ThrowException(v8::Exception::Error(Nan::New<v8::String>("Failed to connect.").ToLocalChecked()));
 		return;
@@ -455,7 +417,6 @@ INITIALIZER(js_ipc)
 		auto obj = v8::Object::New(exports->GetIsolate());
 		NODE_SET_METHOD(obj, "setServerPath", js_setServerPath);
 		NODE_SET_METHOD(obj, "connect", js_connect);
-		NODE_SET_METHOD(obj, "holdon", js_connect_exclusive);
 		NODE_SET_METHOD(obj, "host", js_host);
 		NODE_SET_METHOD(obj, "disconnect", js_disconnect);
 		exports->Set(v8::String::NewFromUtf8(exports->GetIsolate(), "IPC").ToLocalChecked(), obj);
