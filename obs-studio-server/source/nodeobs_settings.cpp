@@ -1010,6 +1010,13 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 
 	obs_data_release(hotkeyData);
 
+	if (OBS_service::isStreamingOutputActive()) {
+		blog(
+		    LOG_WARNING,
+		    "Do not create a new service while old '%s' service is active and streaming",
+		    currentServiceName);
+	}
+
 	OBS_service::setService(newService);
 
 	obs_data_t* data = obs_data_create();
@@ -1020,7 +1027,6 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 		blog(LOG_WARNING, "Failed to save service");
 	}
 
-	obs_data_release(hotkeyData);
 	obs_data_release(data);
 }
 
