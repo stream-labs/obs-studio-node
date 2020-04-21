@@ -171,6 +171,27 @@ class OBS_service
 	    std::vector<ipc::value>&       rval);
 	static void Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 
+	static void OBS_service_createVirtualWebcam(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_service_removeVirtualWebcam(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_service_startVirtualWebcam(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_service_stopVirtualWebcan(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+
 	private:
 	static bool startStreaming(void);
 	static void stopStreaming(bool forceStop);

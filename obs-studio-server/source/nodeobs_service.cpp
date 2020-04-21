@@ -30,6 +30,8 @@ obs_output_t* streamingOutput    = nullptr;
 obs_output_t* recordingOutput    = nullptr;
 obs_output_t* replayBufferOutput = nullptr;
 
+obs_output_t* virtualWebcamOutput = nullptr;
+
 obs_encoder_t* audioSimpleStreamingEncoder   = nullptr;
 obs_encoder_t* audioSimpleRecordingEncoder   = nullptr;
 obs_encoder_t* audioAdvancedStreamingEncoder = nullptr;
@@ -89,6 +91,15 @@ void OBS_service::Register(ipc::server& srv)
 	    "OBS_service_processReplayBufferHotkey", std::vector<ipc::type>{}, OBS_service_processReplayBufferHotkey));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_getLastReplay", std::vector<ipc::type>{}, OBS_service_getLastReplay));
+
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_service_createVirtualWebcam", std::vector<ipc::type>{ipc::type::String}, OBS_service_createVirtualWebcam));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_service_removeVirtualWebcam", std::vector<ipc::type>{}, OBS_service_removeVirtualWebcam));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_service_startVirtualWebcam", std::vector<ipc::type>{}, OBS_service_startVirtualWebcam));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_service_stopVirtualWebcan", std::vector<ipc::type>{}, OBS_service_stopVirtualWebcan));
 
 	srv.register_collection(cls);
 }
@@ -2309,4 +2320,69 @@ void OBS_service::waitReleaseWorker()
 	if (releaseWorker.joinable()) {
 		releaseWorker.join();
 	}
+}
+
+void OBS_service::OBS_service_createVirtualWebcam(
+	void*                          data,
+	const int64_t                  id,
+	const std::vector<ipc::value>& args,
+	std::vector<ipc::value>&       rval)
+{
+	virtualWebcamOutput = nullptr;
+	std::string name = args[0].value_str;
+	if (name.empty())
+		return;
+
+	struct obs_video_info ovi;
+	if (!obs_get_video_info(&ovi))
+		return;
+
+	obs_data_t *settings = obs_data_create();
+	obs_data_set_string(settings, "name", name.c_str());
+	obs_data_set_int(settings, "width", ovi.base_width);
+	obs_data_set_int(settings, "height", ovi.base_height);
+	obs_data_set_double(settings, "fps", ovi.fps_num);
+
+	virtualWebcamOutput = obs_output_create("virtual_output", "Virtual Webcam", settings, NULL);
+	obs_data_release(settings);
+}
+
+void OBS_service::OBS_service_removeVirtualWebcam(
+	void*                          data,
+	const int64_t                  id,
+	const std::vector<ipc::value>& args,
+	std::vector<ipc::value>&       rval)
+{
+	if (!virtualWebcamOutput)
+		return;
+
+	obs_output_release(virtualWebcamOutput);
+	virtualWebcamOutput = nullptr;
+}
+
+void OBS_service::OBS_service_startVirtualWebcam(
+	void*                          data,
+	const int64_t                  id,
+	const std::vector<ipc::value>& args,
+	std::vector<ipc::value>&       rval)
+{
+	if (!virtualWebcamOutput)
+		return;
+	
+	if (obs_output_start(virtualWebcamOutput))
+		blog(LOG_INFO, "Successfully started the Virtual Webcam Output");
+	else
+		blog(LOG_ERROR, "Failed to start the Virtual Webcam Output");
+}
+
+void OBS_service::OBS_service_stopVirtualWebcan(
+	void*                          data,
+	const int64_t                  id,
+	const std::vector<ipc::value>& args,
+	std::vector<ipc::value>&       rval)
+{
+	if (!virtualWebcamOutput)
+		return;
+	
+	obs_output_stop(virtualWebcamOutput);
 }

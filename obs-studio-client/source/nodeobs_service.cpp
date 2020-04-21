@@ -301,6 +301,41 @@ void service::OBS_service_removeCallback(const v8::FunctionCallbackInfo<v8::Valu
 	}
 }
 
+void service::OBS_service_createVirtualWebcam(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	std::string name;
+	ASSERT_GET_VALUE(args[0], name);
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	conn->call("Service", "OBS_service_createVirtualWebcam", {ipc::value(name)});
+}
+
+void service::OBS_service_removeVirtualWebcam(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	conn->call("Service", "OBS_service_removeVirtualWebcam", {});
+}
+
+void service::OBS_service_startVirtualWebcam(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	conn->call("Service", "OBS_service_startVirtualWebcam", {});
+}
+
+void service::OBS_service_stopVirtualWebcan(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	conn->call("Service", "OBS_service_stopVirtualWebcan", {});
+}
+
 INITIALIZER(nodeobs_service)
 {
 	initializerFunctions->push([](v8::Local<v8::Object> exports) {
@@ -327,5 +362,13 @@ INITIALIZER(nodeobs_service)
 		NODE_SET_METHOD(exports, "OBS_service_processReplayBufferHotkey", service::OBS_service_processReplayBufferHotkey);
 
 		NODE_SET_METHOD(exports, "OBS_service_getLastReplay", service::OBS_service_getLastReplay);
+
+		NODE_SET_METHOD(exports, "OBS_service_createVirtualWebcam", service::OBS_service_createVirtualWebcam);
+
+		NODE_SET_METHOD(exports, "OBS_service_removeVirtualWebcam", service::OBS_service_removeVirtualWebcam);
+
+		NODE_SET_METHOD(exports, "OBS_service_startVirtualWebcam", service::OBS_service_startVirtualWebcam);
+
+		NODE_SET_METHOD(exports, "OBS_service_stopVirtualWebcan", service::OBS_service_stopVirtualWebcan);
 	});
 }

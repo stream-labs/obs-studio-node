@@ -81,4 +81,9 @@ namespace service
 	static void OBS_service_removeCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_service_processReplayBufferHotkey(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_service_getLastReplay(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+	static void OBS_service_createVirtualWebcam(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_service_removeVirtualWebcam(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_service_startVirtualWebcam(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_service_stopVirtualWebcan(const v8::FunctionCallbackInfo<v8::Value>& args);
 } // namespace service
