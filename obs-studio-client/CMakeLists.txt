@@ -25,11 +25,15 @@ nodejs_init()
 find_library(COREFOUNDATION CoreFoundation)
 find_library(COCOA Cocoa)
 find_library(AVFOUNDATION AVFoundation)
+find_library(SECURITY_FRAMEWORK Security)
+find_library(FOUNDATION Foundation)
 
 include_directories(
 	${COREFOUNDATION}
 	${COCOA}
-	${AVFOUNDATION})
+	${AVFOUNDATION}
+	${Security}
+	${Foundation})
 
 add_nodejs_module(
 	obs_studio_client
@@ -103,7 +107,7 @@ if(WIN32)
 	target_sources(obs_studio_client PUBLIC ${PROJECT_BINARY_DIR}/version.rc)
 endif()
 
-target_link_libraries(obs_studio_client lib-streamlabs-ipc ${COREFOUNDATION} ${COCOA} ${AVFOUNDATION})
+target_link_libraries(obs_studio_client lib-streamlabs-ipc ${COREFOUNDATION} ${COCOA} ${AVFOUNDATION} ${Security} ${Foundation})
 
 target_include_directories(
 	obs_studio_client

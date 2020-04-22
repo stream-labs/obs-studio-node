@@ -19,11 +19,14 @@
 #import "Foundation/Foundation.h"
 #import <AVFoundation/AVFoundation.h>
 #import <Cocoa/Cocoa.h>
+#import <Security/Security.h>
+#import <Foundation/Foundation.h>
 
 #include "util-osx-int.h"
 #include "util-osx.hpp"
 
 typedef std::function<void(void* data, bool webcam, bool mic)> perms_cb;
+extern std::string g_server_working_dir;
 
 @interface UtilImplObj : NSObject
 @end

@@ -336,6 +336,10 @@ void service::OBS_service_stopVirtualWebcam(const v8::FunctionCallbackInfo<v8::V
 	conn->call("Service", "OBS_service_stopVirtualWebcam", {});
 }
 
+void service::OBS_service_installVirtualCamPlugin(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	g_util_osx->installPlugin();
+}
+
 INITIALIZER(nodeobs_service)
 {
 	initializerFunctions->push([](v8::Local<v8::Object> exports) {
@@ -370,5 +374,7 @@ INITIALIZER(nodeobs_service)
 		NODE_SET_METHOD(exports, "OBS_service_startVirtualWebcam", service::OBS_service_startVirtualWebcam);
 
 		NODE_SET_METHOD(exports, "OBS_service_stopVirtualWebcam", service::OBS_service_stopVirtualWebcam);
+
+		NODE_SET_METHOD(exports, "OBS_service_installVirtualCamPlugin", service::OBS_service_installVirtualCamPlugin);
 	});
 }

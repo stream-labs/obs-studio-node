@@ -42,3 +42,13 @@ void UtilInt::requestPermissions(void *async_cb, perms_cb cb)
 {
     _impl->requestPermissions(async_cb, cb);
 }
+
+void UtilInt::installPlugin(void)
+{
+    _impl->installPlugin();
+}
+
+void UtilInt::setServerWorkingDirectoryPath(std::string path)
+{
+    _impl->setServerWorkingDirectoryPath(path);
+}
