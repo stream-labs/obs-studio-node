@@ -328,12 +328,12 @@ void service::OBS_service_startVirtualWebcam(const v8::FunctionCallbackInfo<v8::
 	conn->call("Service", "OBS_service_startVirtualWebcam", {});
 }
 
-void service::OBS_service_stopVirtualWebcan(const v8::FunctionCallbackInfo<v8::Value>& args) {
+void service::OBS_service_stopVirtualWebcam(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	auto conn = GetConnection();
 	if (!conn)
 		return;
 
-	conn->call("Service", "OBS_service_stopVirtualWebcan", {});
+	conn->call("Service", "OBS_service_stopVirtualWebcam", {});
 }
 
 INITIALIZER(nodeobs_service)
@@ -369,6 +369,6 @@ INITIALIZER(nodeobs_service)
 
 		NODE_SET_METHOD(exports, "OBS_service_startVirtualWebcam", service::OBS_service_startVirtualWebcam);
 
-		NODE_SET_METHOD(exports, "OBS_service_stopVirtualWebcan", service::OBS_service_stopVirtualWebcan);
+		NODE_SET_METHOD(exports, "OBS_service_stopVirtualWebcam", service::OBS_service_stopVirtualWebcam);
 	});
 }
