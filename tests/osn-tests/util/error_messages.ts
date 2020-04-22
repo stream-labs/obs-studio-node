@@ -8,9 +8,6 @@ export const enum ETestErrorMsg {
     DShowInputHotkeys = 'DShow input hotkey container is wrong',
     WASAPIInputHotkeys = 'WASAPI input hotkey container is wrong',
     WASAPIOutputHotkeys = 'WASAPI output hotkey container is wrong',
-    AudioLineHotkeys = 'Audio Line hotkey container is wrong',
-    CoreAudioInputHotkeys = 'Core Audio Input hotkey container is wrong',
-    CoreAudioOutputHotkeys = 'Core Audio Output hotkey container is wrong',
     // nodeobs_autoconfig
     BandwidthTest = 'Bandwidth test',
     StreamEncoderTest = 'Stream encoder test',

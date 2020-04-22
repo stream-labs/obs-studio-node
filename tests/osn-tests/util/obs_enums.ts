@@ -34,10 +34,7 @@ export const enum EOBSInputTypes {
     GameCapture = 'game_capture',
     DShowInput = 'dshow_input',
     WASAPIInput = 'wasapi_input_capture',
-    WASAPIOutput = 'wasapi_output_capture',
-    AVCaptureInput = 'av_capture_input',
-    CoreAudioInput = 'coreaudio_input_capture',
-    CoreAudioOutput = 'coreaudio_output_capture'
+    WASAPIOutput = 'wasapi_output_capture'
 }
 
 export const enum EOBSFilterTypes {

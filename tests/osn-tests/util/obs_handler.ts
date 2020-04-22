@@ -74,18 +74,12 @@ export class OBSHandler {
     inputTypes: string[];
     filterTypes: string[];
     transitionTypes: string[];
-    os: string;
 
     constructor(testName: string) {
-        this.os = process.platform;
         this.osnTestName = testName;
         this.cacheUploader = new CacheUploader(testName, this.obsPath);
         this.startup();
         this.inputTypes = osn.InputFactory.types();
-        const index = this.inputTypes.indexOf('syphon-input', 0);
-        if (index > -1) {
-            this.inputTypes.splice(index, 1);
-        }
         this.filterTypes = osn.FilterFactory.types();
         this.transitionTypes = osn.TransitionFactory.types();
     }
@@ -95,7 +89,6 @@ export class OBSHandler {
 
         try {
             osn.NodeObs.IPC.host(this.pipeName);
-            console.log(this.workingDirectory);
             osn.NodeObs.SetWorkingDirectory(this.workingDirectory);
             const initResult = osn.NodeObs.OBS_API_initAPI(this.language, this.obsPath, this.version);
 

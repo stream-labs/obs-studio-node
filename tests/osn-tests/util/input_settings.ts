@@ -106,18 +106,11 @@ let monitorCapture: ISettings = {
 };
 export {monitorCapture};
 
-let win32WindowCapture: ISettings = {
+let windowCapture: ISettings = {
     compatibility: false,
     cursor: true
 };
-export {win32WindowCapture};
-
-let macWindowCapture: ISettings = {
-    show_empty_names: false,
-    show_shadow: false,
-    window: 0
-};
-export {macWindowCapture};
+export {windowCapture};
 
 let gameCapture: ISettings = {
     allow_transparency: false,
@@ -153,27 +146,3 @@ let wasapi: ISettings = {
     use_device_timing: false
 };
 export {wasapi};
-
-let avCaptureInput: ISettings = {
-    color_space: -1,
-    input_format: 4294967295,
-    preset: 'AVCaptureSessionPreset1280x720',
-    uid: '',
-    use_preset: true,
-    video_range: -1
-};
-export {avCaptureInput};
-
-let coreaudio: ISettings = {
-    device_id: 'default'
-};
-export {coreaudio};
-
-let displayCapture: ISettings = {
-    crop_mode: 0,
-    display: 0,
-    show_cursor: true,
-    show_empty_names: false,
-    window: 0
-};
-export {displayCapture};

@@ -940,7 +940,7 @@ describe(testName, function() {
         expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
 
-        await sleep(1000);
+        await sleep(500);
 
         osn.NodeObs.OBS_service_processReplayBufferHotkey();
 
@@ -991,7 +991,7 @@ describe(testName, function() {
         expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
 
-        await sleep(1000);
+        await sleep(500);
 
         osn.NodeObs.OBS_service_processReplayBufferHotkey();
 
