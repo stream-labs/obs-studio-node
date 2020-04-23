@@ -2339,8 +2339,8 @@ void OBS_service::OBS_service_createVirtualWebcam(
 
 	obs_data_t *settings = obs_data_create();
 	obs_data_set_string(settings, "name", name.c_str());
-	obs_data_set_int(settings, "width", ovi.base_width);
-	obs_data_set_int(settings, "height", ovi.base_height);
+	obs_data_set_int(settings, "width", ovi.output_width);
+	obs_data_set_int(settings, "height", ovi.output_height);
 	obs_data_set_double(settings, "fps", ovi.fps_num);
 
 	virtualWebcamOutput = obs_output_create("virtual_output", "Virtual Webcam", settings, NULL);
