@@ -390,7 +390,6 @@ OBS::Display::~Display()
 	obs_enter_graphics();
 
 	if (m_textVertices) {
-		m_textVertices->m_vertexbuffer = nullptr;
 		delete m_textVertices;
 	}
 
