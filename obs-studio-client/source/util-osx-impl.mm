@@ -64,18 +64,30 @@ void UtilObjCInt::setServerWorkingDirectoryPath(std::string path)
 	g_server_working_dir = path;
 }
 
+bool replace(std::string& str, const std::string& from, const std::string& to) {
+    size_t start_pos = str.find(from);
+    if(start_pos == std::string::npos)
+        return false;
+    str.replace(start_pos, from.length(), to);
+    return true;
+}
+
 void UtilObjCInt::installPlugin()
 {
 	NSDictionary *error = [NSDictionary dictionary];
-	NSString* workindDirPath = [[NSProcessInfo processInfo] environment][@"PWD"];
-	std::string pwd =  std::string([workindDirPath UTF8String]);
 	std::string pathToScript = g_server_working_dir + "/data/obs-plugins/slobs-virtual-cam/install-plugin.sh";
 	std::cout << "launching: " << pathToScript.c_str() << std::endl;
-	std::string cmd = "do shell script \"/bin/sh " + pathToScript + " " + g_server_working_dir + "/data/obs-plugins/slobs-virtual-cam" + "\" with administrator privileges";
+
+	replace(pathToScript, " ", "\\\\ ");
+	std::string arg = g_server_working_dir + "/data/obs-plugins/slobs-virtual-cam";
+	replace(arg, " ", "\\\\ ");
+	std::string cmd = "do shell script \"/bin/sh " + pathToScript + " " + arg + "\" with administrator privileges";
+
 	NSString *script = [NSString stringWithCString:cmd.c_str()
-                                   encoding:[NSString defaultCStringEncoding]];
+	                            encoding:[NSString defaultCStringEncoding]];
 	NSAppleScript *run = [[NSAppleScript alloc]initWithSource:script];
 	[run executeAndReturnError:&error];
+	NSLog(@"errors: %@", error);
 }
 
 @end
