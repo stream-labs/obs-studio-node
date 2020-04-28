@@ -107,8 +107,20 @@ GS::VertexBuffer::VertexBuffer(uint32_t maximumVertices)
 	m_vertexbuffer              = gs_vertexbuffer_create(m_vertexbufferdata, GS_DYNAMIC);
 
 	obs_leave_graphics();
+
+	// In case of device being removed, try again to create VBO
 	if (!m_vertexbuffer) {
-		throw std::runtime_error("Failed to create vertex buffer.");
+		blog(LOG_ERROR, "GS::VertexBuffer: fail to create buffer, trying to rebuild device");
+
+		obs_enter_graphics();
+		// Rebuild device
+		gs_present();
+		m_vertexbuffer = gs_vertexbuffer_create(m_vertexbufferdata, GS_DYNAMIC);
+		obs_leave_graphics();
+
+		if (!m_vertexbuffer) {
+			throw std::runtime_error("Failed to create vertex buffer.");
+		}
 	}
 }
 
