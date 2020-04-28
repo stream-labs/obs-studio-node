@@ -124,6 +124,28 @@ static bool MultiplySelectedItemScale(obs_scene_t* scene, obs_sceneitem_t* item,
 	return true;
 }
 
+#ifdef _WIN32
+
+static void OnDeviceLost(void* data)
+{
+	// Do nothing
+	UNUSED_PARAMETER(data);
+}
+
+static void OnDeviceRebuilt(void* device, void* data)
+{
+	for (const auto& p : displays) {
+		if (auto display = p.second) {
+			// After device is rebuilt, there are can be problems with incorrect size of display
+			// In order to fix this, need to update the display by adjusting it's size
+			// TODO: find a better way to fix this
+			const auto size = display->GetSize();
+			display->SetSize(size.first, size.second);
+		}
+	}
+}
+#endif
+
 void OBS_content::Register(ipc::server& srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Display");
@@ -250,6 +272,22 @@ void OBS_content::OBS_content_createDisplay(
 			windowMessage = new std::thread(popupAeroDisabledWindow);
 		}
 	}
+
+	// device rebuild functionality available only with D3D
+#ifdef _WIN32
+	if (firstDisplayCreation) {
+		obs_enter_graphics();
+
+		gs_device_loss callbacks;
+		callbacks.device_loss_release = &OnDeviceLost;
+		callbacks.device_loss_rebuild = &OnDeviceRebuilt;
+		callbacks.data                = nullptr;
+
+		gs_register_loss_callbacks(&callbacks);
+		obs_leave_graphics();
+	}
+#endif
+
 	firstDisplayCreation = false;
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
