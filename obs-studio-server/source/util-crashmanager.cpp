@@ -1,4 +1,4 @@
-﻿/******************************************************************************
+/******************************************************************************
     Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
 
     This program is free software: you can redistribute it and/or modify
@@ -122,13 +122,17 @@ void RequestComputerUsageParams(
     long long& totalPhysMem,
     long long& physMemUsed,
     size_t&    physMemUsedByMe,
-    double&    totalCPUUsed)
+    double&    totalCPUUsed,
+    long long& commitMemTotal,
+    long long& commitMemLimit)
 {
 #if defined(_WIN32)
 
 	MEMORYSTATUSEX          memInfo;
 	PROCESS_MEMORY_COUNTERS pmc;
 	PDH_FMT_COUNTERVALUE    counterVal;
+	PERFORMANCE_INFORMATION perfInfo;
+	SYSTEM_INFO             sysInfo;
 
 	memInfo.dwLength = sizeof(MEMORYSTATUSEX);
 	GlobalMemoryStatusEx(&memInfo);
@@ -136,12 +140,19 @@ void RequestComputerUsageParams(
 	PdhCollectQueryData(cpuQuery);
 	PdhGetFormattedCounterValue(cpuTotal, PDH_FMT_DOUBLE, NULL, &counterVal);
 
+	ZeroMemory(&perfInfo, sizeof(PERFORMANCE_INFORMATION));
+	perfInfo.cb = sizeof(PERFORMANCE_INFORMATION);
+	GetPerformanceInfo(&perfInfo, sizeof(PERFORMANCE_INFORMATION));
+	GetSystemInfo(&sysInfo);
+
 	DWORDLONG totalVirtualMem = memInfo.ullTotalPageFile;
 
 	totalPhysMem    = memInfo.ullTotalPhys;
 	physMemUsed     = (memInfo.ullTotalPhys - memInfo.ullAvailPhys);
 	physMemUsedByMe = pmc.WorkingSetSize;
 	totalCPUUsed    = counterVal.doubleValue;
+	commitMemTotal  = perfInfo.CommitTotal * sysInfo.dwPageSize;
+	commitMemLimit  = perfInfo.CommitLimit * sysInfo.dwPageSize;
 
 #else
 
@@ -151,6 +162,8 @@ void RequestComputerUsageParams(
 	physMemUsed     = long long(-1);
 	physMemUsedByMe = size_t(-1);
 	totalCPUUsed    = double(-1.0);
+	commitMemTotal  = long long(-1);
+	commitMemLimit  = long long(-1);
 
 #endif
 }
@@ -413,10 +426,13 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	long long physMemUsed = 0;
 	double    totalCPUUsed = 0.0;
 	size_t    physMemUsedByMe = 0;
+	long long   commitMemTotal  = 0ll;
+	long long   commitMemLimit  = 1ll;
 	std::string computerName;
 	
 	try {
-		RequestComputerUsageParams(totalPhysMem, physMemUsed, physMemUsedByMe, totalCPUUsed);
+		RequestComputerUsageParams(
+		    totalPhysMem, physMemUsed, physMemUsedByMe, totalCPUUsed, commitMemTotal, commitMemLimit);
 
 		GetUserInfo(computerName);
 	} catch (...) { }
@@ -428,13 +444,18 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	annotations.insert({{"Time elapsed: ", std::to_string(timeElapsed.count()) + "s"}});
 	annotations.insert({{"Status", obs_initialized() ? "initialized" : "shutdown"}});
 	annotations.insert({{"Leaks", std::to_string(bnum_allocs())}});
-	annotations.insert({{"Total memory", PrettyBytes(totalPhysMem)}});
-	annotations.insert({{"Total used memory",
+	annotations.insert({{"Total RAM", PrettyBytes(totalPhysMem)}});
+	annotations.insert({{"Total used RAM",
 	                     PrettyBytes(physMemUsed) + " - percentage: "
 	                         + std::to_string(double(physMemUsed * 100) / double(totalPhysMem)) + "%"}});
-	annotations.insert({{"Total SLOBS memory",
+	annotations.insert({{"Total SLOBS RAM",
 	                     PrettyBytes(physMemUsedByMe) + " - percentage: "
 	                         + std::to_string(double(physMemUsedByMe * 100) / double(totalPhysMem)) + "%"}});
+	annotations.insert(
+	    {{"Commit charge",
+	      PrettyBytes(commitMemTotal)
+	          + " - percentage: " + std::to_string(double(commitMemTotal * 100) / double(commitMemLimit)) + "%"}});
+	annotations.insert({{"Commit limit", PrettyBytes(commitMemLimit)}});
 	annotations.insert({{"CPU usage", std::to_string(int(totalCPUUsed)) + "%"}});
 	
 	try {
