@@ -49,7 +49,6 @@ jobs:
       OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
       OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
       RELEASE_NAME: $(ReleaseName)
-      ROOT_DIR: $(Build.SourcesDirectory)
     displayName: 'Run tests'
 
   - script: ./ci/copy-files.cmd
@@ -161,7 +160,6 @@ jobs:
       SLOBS_BE_STREAMKEY: $(testsStreamKey)
       SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
       RELEASE_NAME: $(ReleaseName)
-      ROOT_DIR: $(Build.SourcesDirectory)
     displayName: 'Run tests'
 
   - script: ./ci/copy-files.cmd
