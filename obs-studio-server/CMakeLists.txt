@@ -1,4 +1,6 @@
 ﻿PROJECT(obs-studio-server VERSION ${obs-studio-node_VERSION})
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Detect Architecture (Bitness)
 IF( NOT CLANG_ANALYZE_CONFIG)
