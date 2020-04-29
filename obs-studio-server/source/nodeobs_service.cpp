@@ -685,7 +685,7 @@ static void ensure_directory_exists(std::string& path)
 
 	std::string directory = path.substr(0, last);
 
-	if (std::filesystem::is_directory(directory))
+	if (!std::filesystem::is_directory(directory))
 		os_mkdirs(directory.c_str());
 }
 
