@@ -909,7 +909,7 @@ describe(testName, function() {
         // Preparing environment
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
         obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', 'x264');
-        obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', 'C:\\Test');
+        obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', path.join(path.normalize(__dirname), '..', 'invalidPath'));
 
         let signalInfo: IOBSOutputSignalInfo;
 
@@ -925,7 +925,7 @@ describe(testName, function() {
         // Preparing environment
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
         obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', 'x264');
-        obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', 'C:\\Test');
+        obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', path.join(path.normalize(__dirname), '..', 'invalidPath'));
 
         let signalInfo: IOBSOutputSignalInfo;
 
@@ -959,7 +959,7 @@ describe(testName, function() {
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Advanced');
         obs.setSetting(EOBSSettingsCategories.Output, 'Encoder', 'obs_x264');
         obs.setSetting(EOBSSettingsCategories.Output, 'RecEncoder', 'none');
-        obs.setSetting(EOBSSettingsCategories.Output, 'RecFilePath', 'C:\\Test');
+        obs.setSetting(EOBSSettingsCategories.Output, 'RecFilePath', path.join(path.normalize(__dirname), '..', 'invalidPath'));
 
         let signalInfo: IOBSOutputSignalInfo;
 
@@ -976,7 +976,7 @@ describe(testName, function() {
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Advanced');
         obs.setSetting(EOBSSettingsCategories.Output, 'Encoder', 'obs_x264');
         obs.setSetting(EOBSSettingsCategories.Output, 'RecEncoder', 'none');
-        obs.setSetting(EOBSSettingsCategories.Output, 'RecFilePath', 'C:\\Test');
+        obs.setSetting(EOBSSettingsCategories.Output, 'RecFilePath', path.join(path.normalize(__dirname), '..', 'invalidPath'));
 
         let signalInfo: IOBSOutputSignalInfo;
 
