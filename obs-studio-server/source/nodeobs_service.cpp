@@ -675,20 +675,6 @@ std::string GenerateSpecifiedFilename(const char* extension, bool noSpace, const
 	return result;
 }
 
-static void ensure_directory_exists(std::string& path)
-{
-	replace(path.begin(), path.end(), '\\', '/');
-
-	size_t last = path.rfind('/');
-	if (last == std::string::npos)
-		return;
-
-	std::string directory = path.substr(0, last);
-
-	if (std::experimental::filesystem::is_directory(directory))
-		os_mkdirs(directory.c_str());
-}
-
 static void FindBestFilename(std::string& strPath, bool noSpace)
 {
 	int num = 2;
@@ -1590,11 +1576,9 @@ void OBS_service::updateFfmpegOutput(bool isSimpleMode, obs_output_t* output)
 	if (lastChar != '/' && lastChar != '\\')
 		strPath += "/";
 
-	if (fileNameFormat != NULL && format != NULL) {
+	if (fileNameFormat != NULL && format != NULL)
 		strPath += GenerateSpecifiedFilename(ffmpegOutput ? "avi" : format, noSpace, fileNameFormat);
-		if (!strPath.empty())
-			ensure_directory_exists(strPath);
-	}
+
 	if (!overwriteIfExists)
 		FindBestFilename(strPath, noSpace);
 

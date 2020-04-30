@@ -11,7 +11,7 @@ variables:
   RuntimeName: iojs
   ElectronVersion: 6.0.3
   SLBuildDirectory: streamlabs-build
-  SLGenerator: Visual Studio 15 2017 Win64
+  SLGenerator: Visual Studio 16 2019
   SLDistributeDirectory: distribute
   SLFullDistributePath: $(SLBuildDirectory)\$(SLDistributeDirectory)
   BuildArtifact: obs-studio-node-us-$(Build.BuildId)-$(RuntimeName)-v$(ElectronVersion)
