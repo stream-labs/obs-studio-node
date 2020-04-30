@@ -425,10 +425,10 @@ void osn::Scene::OrderItems(
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not a scene.");
 	}
 
-    const std::vector<char> & positions_binary = args[1].value_bin;
-	size_t positions_count = positions_binary.size()/sizeof(int64_t);
+    const std::vector<char> & new_items_order = args[1].value_bin;
+	size_t items_count = new_items_order.size()/sizeof(int64_t);
 
-    obs_scene_set_items_order(scene, (int64_t*)positions_binary.data(), positions_count);
+    obs_scene_set_items_order(scene, (int64_t*)new_items_order.data(), items_count);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
