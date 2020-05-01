@@ -1,5 +1,5 @@
 import { sleep } from './general';
-import { logInfo, logWarning } from '../util/logger';
+import { logInfo, logWarning } from './logger';
 
 const request = require('request');
 
@@ -19,10 +19,9 @@ interface ITestUser {
     streamKey: string;
 }
 
-export class Services {
+export class UserPoolHandler {
     private user: ITestUser;
     private userPoolUrl: string = 'https://slobs-users-pool.herokuapp.com/';
-    private clientId = '8bmp6j83z5w4mepq0dn0q1a7g186azi';
     private osnTestName: string;
 
     constructor(testName: string) {
