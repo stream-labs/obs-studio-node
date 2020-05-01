@@ -1133,7 +1133,33 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 	// Source Rendering
 	obs_source_t* source = NULL;
 	if (dp->m_source) {
-		obs_source_video_render(dp->m_source);
+		/* If the the source is a transition it means this display 
+		 * is for Studio Mode and that the scene it contains is a 
+		 * duplicate of the current scene, apply selective recording
+		 * layer rendering if it is enabled */
+		if (obs_get_multiple_rendering() && obs_source_get_type(dp->m_source) == OBS_SOURCE_TYPE_TRANSITION) {
+			uint8_t start = OBS_MAIN_VIDEO_RENDERING;
+			uint8_t end = obs_get_multiple_rendering() ? OBS_RECORDING_VIDEO_RENDERING : OBS_MAIN_VIDEO_RENDERING;
+
+			for (uint8_t mode = start; mode <= end; mode++) {
+				switch (mode) {
+				case 0:
+					obs_set_video_rendering_mode(OBS_MAIN_VIDEO_RENDERING);
+					break;
+				case 1:
+					obs_set_video_rendering_mode(OBS_STREAMING_VIDEO_RENDERING);
+					break;
+				case 2:
+					obs_set_video_rendering_mode(OBS_RECORDING_VIDEO_RENDERING);
+					break;
+				}
+			
+				obs_source_video_render(dp->m_source);
+			}
+		} else {
+			obs_source_video_render(dp->m_source);
+		}
+		
 		/* If we want to draw guidelines, we need a scene,
 		 * not a transition. This may not be a scene which
 		 * we'll check later. */
