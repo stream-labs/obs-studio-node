@@ -68,6 +68,9 @@
 #define BUFFSIZE 512
 #define CONNECTING_STATE 0
 #define READING_STATE 1
+#define MBYTE (1024ULL * 1024ULL)
+#define GBYTE (1024ULL * 1024ULL * 1024ULL)
+#define TBYTE (1024ULL * 1024ULL * 1024ULL * 1024ULL)
 
 std::string          g_moduleDirectory = "";
 os_cpu_usage_info_t* cpuUsageInfo      = nullptr;
@@ -1513,10 +1516,6 @@ double OBS_API::getAverageTimeToRenderFrame()
 
 std::string OBS_API::getDiskSpaceAvailable()
 {
-#define MBYTE (1024ULL * 1024ULL)
-#define GBYTE (1024ULL * 1024ULL * 1024ULL)
-#define TBYTE (1024ULL * 1024ULL * 1024ULL * 1024ULL)
-
 	const char* path = nullptr;
 	const char* mode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
 
