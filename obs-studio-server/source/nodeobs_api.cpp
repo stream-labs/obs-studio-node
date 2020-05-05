@@ -765,11 +765,11 @@ void OBS_API::OBS_API_getPerformanceStatistics(
 	rval.push_back(ipc::value(getNumberOfDroppedFrames()));
 	rval.push_back(ipc::value(getDroppedFramesPercentage()));
 
-	streamingOutputStats.getCurrentStats();
+	getCurrentOutputStats(OBS_service::getStreamingOutput(), streamingOutputStats);
 	rval.push_back(ipc::value(streamingOutputStats.kbitsPerSec));
 	rval.push_back(ipc::value(streamingOutputStats.dataOutput));
 
-	recordingOutputStats.getCurrentStats(true);
+	getCurrentOutputStats(OBS_service::getRecordingOutput(), recordingOutputStats);
 	rval.push_back(ipc::value(recordingOutputStats.kbitsPerSec));
 	rval.push_back(ipc::value(recordingOutputStats.dataOutput));
 
@@ -1467,40 +1467,37 @@ double OBS_API::getDroppedFramesPercentage(void)
 	return percent;
 }
 
-void OBS_API::OutputStats::getCurrentStats(bool recording)
+void OBS_API::getCurrentOutputStats(obs_output_t* output, OBS_API::OutputStats &outputStats)
 {
-	obs_output_t* output = nullptr;
-	kbitsPerSec = 0.0;
-	dataOutput = 0;
-
-	if (recording) {
-		output = OBS_service::getRecordingOutput();
-	} else {
-		output = OBS_service::getStreamingOutput();
+	if (!output) {
+		return;
 	}
 
-	if (output && obs_output_active(output)) {
+	outputStats.kbitsPerSec = 0.0;
+	outputStats.dataOutput  = 0.0;
+
+	if (obs_output_active(output)) {
 		uint64_t bytesSent = obs_output_get_total_bytes(output);
 		uint64_t bytesSentTime = os_gettime_ns();
 
-		if (bytesSent < lastBytesSent)
+		if (bytesSent < outputStats.lastBytesSent)
 			bytesSent = 0;
 		if (bytesSent == 0)
-			lastBytesSent = 0;
+			outputStats.lastBytesSent = 0;
 
-		uint64_t bitsBetween = (bytesSent - lastBytesSent) * 8;
+		uint64_t bitsBetween = (bytesSent - outputStats.lastBytesSent) * 8;
 
-		double timePassed = double(bytesSentTime - lastBytesSentTime) / 1000000000.0;
+		double timePassed = double(bytesSentTime - outputStats.lastBytesSentTime) / 1000000000.0;
 		if (timePassed < std::numeric_limits<double>::epsilon()
 		    && timePassed > -std::numeric_limits<double>::epsilon()) {
-			kbitsPerSec = 0.0;
+			outputStats.kbitsPerSec = 0.0;
 		} else {
-			kbitsPerSec = double(bitsBetween) / timePassed / 1000.0;
+			outputStats.kbitsPerSec = double(bitsBetween) / timePassed / 1000.0;
 		}
 
-		lastBytesSent = bytesSent;
-		lastBytesSentTime = bytesSentTime;
-		dataOutput = bytesSent / (1024.0 * 1024.0);
+		outputStats.lastBytesSent = bytesSent;
+		outputStats.lastBytesSentTime = bytesSentTime;
+		outputStats.dataOutput = bytesSent / (1024.0 * 1024.0);
 	}
 }
 

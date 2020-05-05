@@ -79,8 +79,6 @@ class OBS_API
         double dataOutput= 0;
         uint64_t lastBytesSent = 0;
         uint64_t lastBytesSentTime = 0;
-
-        void getCurrentStats(bool recording = false);
     };
 
     public:
@@ -139,6 +137,7 @@ class OBS_API
 	static double getAverageTimeToRenderFrame();
 	static std::string getDiskSpaceAvailable();
 	static double getMemoryUsage();
+	static void getCurrentOutputStats(obs_output_t *output, OBS_API::OutputStats &outputStats);
 
 
     static const std::vector<std::string>& getOBSLogErrors();
