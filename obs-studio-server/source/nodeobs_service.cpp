@@ -2265,6 +2265,9 @@ void OBS_service::duplicate_encoder(obs_encoder_t** dst, obs_encoder_t* src, uin
 
 void OBS_service::releaseOutputWithActiveDelay(obs_output_t* output)
 {
+	if (!output)
+		return;
+
 	uint32_t delay = obs_output_get_active_delay(output);
 	while (delay != 0) {
 		delay = obs_output_get_active_delay(output);
