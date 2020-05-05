@@ -1469,12 +1469,12 @@ double OBS_API::getDroppedFramesPercentage(void)
 
 void OBS_API::getCurrentOutputStats(obs_output_t* output, OBS_API::OutputStats &outputStats)
 {
+	outputStats.kbitsPerSec = 0.0;
+	outputStats.dataOutput  = 0.0;
+
 	if (!output) {
 		return;
 	}
-
-	outputStats.kbitsPerSec = 0.0;
-	outputStats.dataOutput  = 0.0;
 
 	if (obs_output_active(output)) {
 		uint64_t bytesSent = obs_output_get_total_bytes(output);
