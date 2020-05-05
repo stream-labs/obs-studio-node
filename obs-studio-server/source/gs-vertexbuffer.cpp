@@ -105,9 +105,6 @@ GS::VertexBuffer::VertexBuffer(uint32_t maximumVertices)
 	m_vertexbufferdata->num     = m_capacity;
 	m_vertexbufferdata->num_tex = m_layers;
 	m_vertexbuffer              = gs_vertexbuffer_create(m_vertexbufferdata, GS_DYNAMIC);
-	// No need to set all the data to zero - the buffer data should be valid
-	// otherwise, during device rebuild, the d3d11 couldn't recreate vertexbuffer
-	//std::memset(m_vertexbufferdata, 0, sizeof(gs_vb_data));
 
 	obs_leave_graphics();
 	if (!m_vertexbuffer) {
