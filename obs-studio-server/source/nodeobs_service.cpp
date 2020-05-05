@@ -1150,7 +1150,12 @@ void OBS_service::stopStreaming(bool forceStop)
 
 	waitReleaseWorker();
 
-	releaseWorker   = std::thread(releaseStreamingOutput, streamingOutput);
+	if (config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "DelayEnable")) {
+		releaseWorker = std::thread(releaseOutputWithActiveDelay, streamingOutput);
+	} else {
+		obs_output_release(streamingOutput);
+	}
+
 	streamingOutput = nullptr;
 
 	isStreaming = false;
@@ -2258,13 +2263,11 @@ void OBS_service::duplicate_encoder(obs_encoder_t** dst, obs_encoder_t* src, uin
 	}
 }
 
-void OBS_service::releaseStreamingOutput(obs_output_t* output)
+void OBS_service::releaseOutputWithActiveDelay(obs_output_t* output)
 {
-	if (config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "DelayEnable")) {
-		uint32_t delay = obs_output_get_active_delay(output);
-		while (delay != 0) {
-			delay = obs_output_get_active_delay(output);
-		}
+	uint32_t delay = obs_output_get_active_delay(output);
+	while (delay != 0) {
+		delay = obs_output_get_active_delay(output);
 	}
 
 	obs_output_release(output);
