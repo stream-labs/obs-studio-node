@@ -89,6 +89,7 @@ describe(testName, () => {
                 case 'scroll_filter': {
                     settings = filterSettings.scroll;
                     settings['cx'] = 200;
+                    settings['loop'] = true;
                     break;
                 }
                 case 'color_key_filter': {

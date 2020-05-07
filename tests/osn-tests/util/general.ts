@@ -33,7 +33,7 @@ export {showHideInputHotkeys};
 let slideshowHotkeys: string[] = ['PLAYPAUSE', 'RESTART', 'STOP', 'NEXTSLIDE', 'PREVIOUSSLIDE'];
 export {slideshowHotkeys};
 
-let ffmpeg_sourceHotkeys: string[] = ['MUTE', 'UNMUTE', 'PUSH_TO_MUTE', 'PUSH_TO_TALK', 'RESTART'];
+let ffmpeg_sourceHotkeys: string[] = ['MUTE', 'UNMUTE', 'PUSH_TO_MUTE', 'PUSH_TO_TALK', 'RESTART', 'PLAY', 'PAUSE', 'STOP'];
 export {ffmpeg_sourceHotkeys};
 
 let game_captureHotkeys: string[] = ['HOTKEY_START', 'HOTKEY_STOP'];
