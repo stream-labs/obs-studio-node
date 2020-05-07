@@ -92,12 +92,14 @@ describe(testName, () => {
                     settings['yuv_colorspace'] = 1;
                     break;
                 }
-                case 'text_gdiplus': {
+                case 'text_gdiplus':
+                case 'text_gdiplus_v2': {
                     settings = inputSettings.textGDIPlus;
                     settings['align'] = 'right';
                     break;
                 }
-                case 'text_ft2_source': {
+                case 'text_ft2_source':
+                case 'text_ft2_source_v2': {
                     settings = inputSettings.textFT2Source;
                     settings['log_lines'] = 5;
                     break;
@@ -115,6 +117,8 @@ describe(testName, () => {
                 case 'window_capture': {
                     settings = inputSettings.windowCapture;
                     settings['compatibility'] = true;
+                    settings['client_area'] = true;
+                    settings['method'] = 0;
                     break;
                 }
                 case 'game_capture': {
