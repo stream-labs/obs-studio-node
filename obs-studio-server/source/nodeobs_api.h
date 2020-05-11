@@ -170,7 +170,7 @@ class outdated_driver_error
 public:
 	static outdated_driver_error * instance();
 	void set_active( bool state); 
-	std::string get_error(const char* base_error);
+	std::string get_error();
 
 	void catch_error(const char* msg);
 };
