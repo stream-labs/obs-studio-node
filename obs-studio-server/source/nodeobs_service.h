@@ -176,7 +176,7 @@ class OBS_service
 	static void stopReplayBuffer(bool forceStop);
 	static void stopRecording(void);
 
-	static void releaseStreamingOutput(void);
+	static void releaseOutputWithActiveDelay(obs_output_t* output);
 
 	static void LoadRecordingPreset_h264(const char* encoder);
 	static void LoadRecordingPreset_Lossless(void);

@@ -879,6 +879,8 @@ bool OBS_service::startStreaming(void)
 	if (!type)
 		type = "rtmp_output";
 
+	waitReleaseWorker();
+
 	if (streamingOutput)
 		obs_output_release(streamingOutput);
 
@@ -1165,7 +1167,13 @@ void OBS_service::stopStreaming(bool forceStop)
 
 	waitReleaseWorker();
 
-	releaseWorker = std::thread(releaseStreamingOutput);
+	if (config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "DelayEnable")) {
+		releaseWorker = std::thread(releaseOutputWithActiveDelay, streamingOutput);
+	} else {
+		obs_output_release(streamingOutput);
+	}
+
+	streamingOutput = nullptr;
 
 	isStreaming = false;
 }
@@ -2280,17 +2288,17 @@ void OBS_service::duplicate_encoder(obs_encoder_t** dst, obs_encoder_t* src, uin
 	}
 }
 
-void OBS_service::releaseStreamingOutput()
+void OBS_service::releaseOutputWithActiveDelay(obs_output_t* output)
 {
-	if (config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "DelayEnable")) {
-		uint32_t delay = obs_output_get_active_delay(streamingOutput);
-		while (delay != 0) {
-			delay = obs_output_get_active_delay(streamingOutput);
-		}
+	if (!output)
+		return;
+
+	uint32_t delay = obs_output_get_active_delay(output);
+	while (delay != 0) {
+		delay = obs_output_get_active_delay(output);
 	}
-	
-	obs_output_release(streamingOutput);
-	streamingOutput = nullptr;
+
+	obs_output_release(output);
 }
 
 void OBS_service::waitReleaseWorker()
