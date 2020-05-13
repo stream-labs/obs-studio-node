@@ -18,7 +18,9 @@
 
 #include <iomanip>
 #include <map>
+#include <future>
 #include "nodeobs_content.h"
+#include "util/platform.h"
 
 /* For sceneitem transform modifications.
  * We should consider moving this to another module */
@@ -126,6 +128,24 @@ static bool MultiplySelectedItemScale(obs_scene_t* scene, obs_sceneitem_t* item,
 
 #ifdef _WIN32
 
+static void showGpuDeviceHasChangedMessageBox(std::string prevGpuName, std::string newGpuName)
+{
+	char buffer[512];
+	sprintf_s(
+	    buffer,
+	    "The Streamlabs OBS forced to switch to the '%s' GPU, because the GPU device '%s' failed to respond. Please, "
+	    "make sure that the latest GPU drivers are installed on your PC.",
+	    prevGpuName.c_str(),
+	    newGpuName.c_str());
+
+	wchar_t*     buffer_w = nullptr;
+	const size_t size     = os_utf8_to_wcs_ptr(buffer, 0, &buffer_w);
+	if (!buffer_w)
+		return;
+
+	MessageBox(NULL, buffer_w, TEXT("slobs-server"), MB_OK);
+}
+
 static void OnDeviceLost(void* data)
 {
 	// Do nothing
@@ -142,6 +162,33 @@ static void OnDeviceRebuilt(void* device, void* data)
 			const auto size = display->GetSize();
 			display->SetSize(size.first, size.second);
 		}
+	}
+
+	char* old_device_name = static_cast<char*>(data);
+	char  new_device_name[512];
+	gs_enum_adapters(
+	    [](void* param, const char* name, uint32_t id) -> bool {
+		    if (id == 0) {
+			    if (char* device_name = reinterpret_cast<char*>(param)) {
+				    strcpy(device_name, name);
+			    }
+			    return false;
+		    } else {
+			    return true;
+		    }
+	    },
+	    new_device_name);
+
+	const int res = strcmp(old_device_name, static_cast<const char*>(new_device_name));
+	if (res == 1) {
+		std::async(
+		    std::launch::async,
+		    showGpuDeviceHasChangedMessageBox,
+		    std::string{old_device_name},
+		    std::string{new_device_name});
+
+		// update old device name:
+		strcpy(old_device_name, new_device_name);
 	}
 }
 #endif
@@ -278,10 +325,26 @@ void OBS_content::OBS_content_createDisplay(
 	if (firstDisplayCreation) {
 		obs_enter_graphics();
 
+		// get current device name
+		char* device_name = (char*)bmalloc(512);
+		memset(device_name, 0, strlen(device_name));
+		gs_enum_adapters(
+		    [](void* param, const char* name, uint32_t id) -> bool {
+			    if (id == 0) {
+				    if (char* device_name = reinterpret_cast<char*>(param)) {
+					    strcpy(device_name, name);
+				    }
+				    return false;
+			    } else {
+				    return true;
+			    }
+		    },
+		    device_name);
+
 		gs_device_loss callbacks;
 		callbacks.device_loss_release = &OnDeviceLost;
 		callbacks.device_loss_rebuild = &OnDeviceRebuilt;
-		callbacks.data                = nullptr;
+		callbacks.data                = device_name;
 
 		gs_register_loss_callbacks(&callbacks);
 		obs_leave_graphics();
