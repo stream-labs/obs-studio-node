@@ -1,4 +1,4 @@
-/******************************************************************************
+﻿/******************************************************************************
     Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
 
     This program is free software: you can redistribute it and/or modify
@@ -441,23 +441,25 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 
 
 	// Setup all the custom annotations that are important too our crash report
+	nlohmann::json systemResources = nlohmann::json::object();
+	systemResources.push_back({"Leaks", std::to_string(bnum_allocs())});
+	systemResources.push_back({"Total RAM", PrettyBytes(totalPhysMem)});
+
+	systemResources.push_back({"Total used RAM",
+	                     PrettyBytes(physMemUsed) + " - percentage: "
+	                         + std::to_string(double(physMemUsed * 100) / double(totalPhysMem)) + "%"});
+	systemResources.push_back({"Total SLOBS RAM",
+	                     PrettyBytes(physMemUsedByMe) + " - percentage: "
+	                         + std::to_string(double(physMemUsedByMe * 100) / double(totalPhysMem)) + "%"});
+	systemResources.push_back({"Commit charge",
+	      PrettyBytes(commitMemTotal)
+	          + " - percentage: " + std::to_string(double(commitMemTotal * 100) / double(commitMemLimit)) + "%"});
+	systemResources.push_back({"Commit limit", PrettyBytes(commitMemLimit)});
+	systemResources.push_back({"CPU usage", std::to_string(int(totalCPUUsed)) + "%"});
+	annotations.insert({{"System Resources", systemResources.dump(4)}});
+	
 	annotations.insert({{"Time elapsed: ", std::to_string(timeElapsed.count()) + "s"}});
 	annotations.insert({{"Status", obs_initialized() ? "initialized" : "shutdown"}});
-	annotations.insert({{"Leaks", std::to_string(bnum_allocs())}});
-	annotations.insert({{"Total RAM", PrettyBytes(totalPhysMem)}});
-	annotations.insert({{"Total used RAM",
-	                     PrettyBytes(physMemUsed) + " - percentage: "
-	                         + std::to_string(double(physMemUsed * 100) / double(totalPhysMem)) + "%"}});
-	annotations.insert({{"Total SLOBS RAM",
-	                     PrettyBytes(physMemUsedByMe) + " - percentage: "
-	                         + std::to_string(double(physMemUsedByMe * 100) / double(totalPhysMem)) + "%"}});
-	annotations.insert(
-	    {{"Commit charge",
-	      PrettyBytes(commitMemTotal)
-	          + " - percentage: " + std::to_string(double(commitMemTotal * 100) / double(commitMemLimit)) + "%"}});
-	annotations.insert({{"Commit limit", PrettyBytes(commitMemLimit)}});
-	annotations.insert({{"CPU usage", std::to_string(int(totalCPUUsed)) + "%"}});
-	
 	try {
 		annotations.insert({{"Process List", RequestProcessList().dump(4)}});
 	} catch (...) {}
