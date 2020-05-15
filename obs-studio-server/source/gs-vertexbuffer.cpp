@@ -102,10 +102,10 @@ GS::VertexBuffer::VertexBuffer(uint32_t maximumVertices)
 
 	// Allocate GPU
 	obs_enter_graphics();
-	m_vertexbuffer = gs_vertexbuffer_create(m_vertexbufferdata, GS_DYNAMIC);
-	std::memset(m_vertexbufferdata, 0, sizeof(gs_vb_data));
 	m_vertexbufferdata->num     = m_capacity;
 	m_vertexbufferdata->num_tex = m_layers;
+	m_vertexbuffer              = gs_vertexbuffer_create(m_vertexbufferdata, GS_DYNAMIC);
+
 	obs_leave_graphics();
 	if (!m_vertexbuffer) {
 		throw std::runtime_error("Failed to create vertex buffer.");
