@@ -560,6 +560,7 @@ export interface IScene extends ISource {
     add(source: IInput): ISceneItem;
     readonly source: IInput;
     moveItem(oldIndex: number, newIndex: number): void;
+    orderItems(order: number[]): void;
     findItem(id: string | number): ISceneItem;
     getItemAtIdx(idx: number): ISceneItem;
     getItems(): ISceneItem[];

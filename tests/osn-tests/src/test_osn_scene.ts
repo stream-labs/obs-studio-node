@@ -267,6 +267,17 @@ describe(testName, () => {
         expect(movedSceneItems[0].source.name).to.equal(secondInputName, ETestErrorMsg.SceneItemPositionAfterMove);
         expect(movedSceneItems[1].source.name).to.equal(firstInputName, ETestErrorMsg.SceneItemPositionAfterMove);
 
+        // Ordering scene item
+        scene.moveItem(movedSceneItems[1].id, movedSceneItems[0].id);
+
+        // Getting all scene items
+        const orderedSceneItems = scene.getItems();
+
+        //Checking if scene items were moved
+        expect(orderedSceneItems.length).to.equal(2, ETestErrorMsg.GetSceneItems);
+        expect(orderedSceneItems[0].source.name).to.equal(firstInputName, ETestErrorMsg.SceneItemPositionAfterMove);
+        expect(orderedSceneItems[1].source.name).to.equal(secondInputName, ETestErrorMsg.SceneItemPositionAfterMove);
+
         firstSceneItem.source.release();
         firstSceneItem.remove();
         secondSceneItem.source.release();
