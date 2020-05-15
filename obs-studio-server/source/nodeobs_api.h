@@ -73,7 +73,15 @@ class OBS_API
 		std::queue<std::string>  general;
 	};
 
-	public:
+    struct OutputStats
+    {
+        double kbitsPerSec = 0;
+        double dataOutput= 0;
+        uint64_t lastBytesSent = 0;
+        uint64_t lastBytesSentTime = 0;
+    };
+
+    public:
 	OBS_API();
 	~OBS_API();
 
@@ -125,8 +133,12 @@ class OBS_API
 	static double getCPU_Percentage(void);
 	static int    getNumberOfDroppedFrames(void);
 	static double getDroppedFramesPercentage(void);
-	static double getCurrentBandwidth(void);
 	static double getCurrentFrameRate(void);
+	static double getAverageTimeToRenderFrame();
+	static std::string getDiskSpaceAvailable();
+	static double getMemoryUsage();
+	static void getCurrentOutputStats(obs_output_t *output, OBS_API::OutputStats &outputStats);
+
 
     static const std::vector<std::string>& getOBSLogErrors();
 	static const std::vector<std::string>& getOBSLogWarnings();

@@ -11,8 +11,14 @@ export interface IPerformanceState {
     CPU: number;
     numberDroppedFrames: number;
     percentageDroppedFrames: number;
-    bandwidth: number;
+    streamingBandwidth: number;
+    streamingDataOutput: number;
+    recordingBandwidth: number;
+    recordingDataOutput: number;
     frameRate: number;
+    averageTimeToRenderFrame: number;
+    memoryUsage: number;
+    diskSpaceAvailable: string;
 }
 
 export interface IOBSOutputSignalInfo {
