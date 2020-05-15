@@ -56,15 +56,6 @@ void CallbackManager::QuerySourceSize(
 		uint32_t newHeight = obs_source_get_height(si->source);
 		uint32_t newFlags  = obs_source_get_output_flags(si->source);
 
-
-		if(osn::Source::sourceAutoFitEnabled(si->source)) {
-			struct obs_video_info ovi;	
-			obs_get_video_info(&ovi);
-
-			newWidth = ovi.base_width;
-			newHeight = ovi.base_height;
-		}
-
 		if (si->width != newWidth || si->height != newHeight || si->flags != newFlags) {
 			si->width = newWidth;
 			si->height = newHeight;

@@ -53,7 +53,6 @@ void osn::Source::attach_source_signals(obs_source_t* src)
 	if (!sh)
 		return;
 	signal_handler_connect(sh, "destroy", osn::Source::global_source_destroy_cb, nullptr);
-	signal_handler_connect(sh, "game_capture_changed", osn::Source::global_source_status_change_cb, nullptr);
 }
 
 void osn::Source::detach_source_signals(obs_source_t* src)
@@ -62,7 +61,6 @@ void osn::Source::detach_source_signals(obs_source_t* src)
 	if (!sh)
 		return;
 	signal_handler_disconnect(sh, "destroy", osn::Source::global_source_destroy_cb, nullptr);
-	signal_handler_disconnect(sh, "game_capture_changed", osn::Source::global_source_status_change_cb, nullptr);
 }
 
 void osn::Source::global_source_create_cb(void* ptr, calldata_t* cd)
@@ -107,64 +105,6 @@ void osn::Source::global_source_destroy_cb(void* ptr, calldata_t* cd)
 	detach_source_signals(source);
 	osn::Source::Manager::GetInstance().free(source);
 	MemoryManager::GetInstance().unregisterSource(source);
-}
-
-bool selected_item_fit_to_output(void *data, obs_source_t *source)
-{
-	char ** checked_source = (char **)data;
-	obs_scene_t * scene = obs_scene_from_source(source);
-
-	obs_sceneitem_t * item = obs_scene_find_source(scene, *checked_source);
-	if (item) {	
-		obs_source_t * item_source = obs_sceneitem_get_source(item);
-		if(item_source) {
-
-			vec2 pos = {0.0, 0.0}; 
-			vec2 scale;
-			float source_width = obs_source_get_width(item_source);
-			float source_height = obs_source_get_height(item_source);
-			struct obs_video_info ovi;	
-			obs_get_video_info(&ovi);
-
-			scale.x = ovi.base_width/source_width;
-			scale.y = ovi.base_height/source_height;
-
-			obs_sceneitem_set_pos(item, &pos);
-
-			obs_sceneitem_set_scale(item, &scale);
-		}
-	}
-
-	return true;
-}
-
-bool osn::Source::sourceAutoFitEnabled(obs_source_t* src)
-{
-	bool ret = false;
-
-	obs_data* settings = obs_source_get_settings(src);
-	const char * capture_mode = obs_data_get_string(settings, "capture_mode");
-	if (capture_mode != nullptr) {
-		if(std::string(capture_mode).compare( "auto" ) == 0) {
-			if(obs_data_get_bool(settings, "auto_fit_to_output")) {
-				ret = true;	
-			}
-		}
-	}
-	obs_data_release(settings);
-
-	return ret;
-}
-
-void osn::Source::global_source_status_change_cb(void* ptr, calldata_t* cd)
-{
-	obs_source_t* source = nullptr;
-	if (calldata_get_ptr(cd, "source", &source)) {
-		if (sourceAutoFitEnabled(source)) {
-			const char * source_name = obs_source_get_name(source);
-			obs_enum_scenes(selected_item_fit_to_output, &source_name);
-		}
-	}
 }
 
 void osn::Source::Register(ipc::server& srv)
