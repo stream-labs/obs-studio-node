@@ -71,44 +71,25 @@ GS::VertexBuffer::~VertexBuffer()
 
 GS::VertexBuffer::VertexBuffer(uint32_t maximumVertices)
 {
-	if (maximumVertices > MAXIMUM_VERTICES) {
-		throw std::out_of_range("maximumVertices out of range");
-	}
+	SetupVertexBuffer(maximumVertices);
 
-	m_size = 0;
-	// Assign limits.
-	m_capacity = maximumVertices;
-	m_layers   = MAXIMUM_UVW_LAYERS;
-
-	// Allocate memory for data.
-	m_vertexbufferdata         = gs_vbdata_create();
-	m_vertexbufferdata->num    = m_capacity;
-	m_vertexbufferdata->points = m_positions = (vec3*)util::malloc_aligned(16, sizeof(vec3) * m_capacity);
-	std::memset(m_positions, 0, sizeof(vec3) * m_capacity);
-	m_vertexbufferdata->normals = m_normals = (vec3*)util::malloc_aligned(16, sizeof(vec3) * m_capacity);
-	std::memset(m_normals, 0, sizeof(vec3) * m_capacity);
-	m_vertexbufferdata->tangents = m_tangents = (vec3*)util::malloc_aligned(16, sizeof(vec3) * m_capacity);
-	std::memset(m_tangents, 0, sizeof(vec3) * m_capacity);
-	m_vertexbufferdata->colors = m_colors = (uint32_t*)util::malloc_aligned(16, sizeof(uint32_t) * m_capacity);
-	std::memset(m_colors, 0, sizeof(uint32_t) * m_capacity);
-	m_vertexbufferdata->num_tex = m_layers;
-	m_vertexbufferdata->tvarray = m_layerdata =
-	    (gs_tvertarray*)util::malloc_aligned(16, sizeof(gs_tvertarray) * m_layers);
-	for (size_t n = 0; n < MAXIMUM_UVW_LAYERS; n++) {
-		m_layerdata[n].array = m_uvs[n] = (vec4*)util::malloc_aligned(16, sizeof(vec4) * m_capacity);
-		m_layerdata[n].width            = 4;
-		std::memset(m_uvs[n], 0, sizeof(vec4) * m_capacity);
-	}
-
-	// Allocate GPU
-	obs_enter_graphics();
-	m_vertexbufferdata->num     = m_capacity;
-	m_vertexbufferdata->num_tex = m_layers;
-	m_vertexbuffer              = gs_vertexbuffer_create(m_vertexbufferdata, GS_DYNAMIC);
-
-	obs_leave_graphics();
+	// In case of device being removed, try again to create VertexBuffer
+	// after manually rebuilding GPU device
 	if (!m_vertexbuffer) {
-		throw std::runtime_error("Failed to create vertex buffer.");
+		blog(LOG_ERROR, "GS::VertexBuffer: fail to create buffer, trying to rebuild device");
+
+		obs_enter_graphics();
+		gs_rebuild_device();
+		obs_leave_graphics();
+
+		// in case the exception is thrown during m_vertexbuffer creation,
+		// it would delete the m_vertexbufferdata as well,
+		// thus, need to recreate everything from scratch.
+		SetupVertexBuffer(maximumVertices);
+
+		if (!m_vertexbuffer) {
+			throw std::runtime_error("Failed to create vertex buffer.");
+		}
 	}
 }
 
@@ -348,4 +329,44 @@ gs_vertbuffer_t* GS::VertexBuffer::Update(bool refreshGPU)
 gs_vertbuffer_t* GS::VertexBuffer::Update()
 {
 	return Update(true);
+}
+
+void GS::VertexBuffer::SetupVertexBuffer(uint32_t maximumVertices)
+{
+	if (maximumVertices > MAXIMUM_VERTICES) {
+		throw std::out_of_range("maximumVertices out of range");
+	}
+
+	m_size = 0;
+	// Assign limits.
+	m_capacity = maximumVertices;
+	m_layers   = MAXIMUM_UVW_LAYERS;
+
+	// Allocate memory for data.
+	m_vertexbufferdata         = gs_vbdata_create();
+	m_vertexbufferdata->num    = m_capacity;
+	m_vertexbufferdata->points = m_positions = (vec3*)util::malloc_aligned(16, sizeof(vec3) * m_capacity);
+	std::memset(m_positions, 0, sizeof(vec3) * m_capacity);
+	m_vertexbufferdata->normals = m_normals = (vec3*)util::malloc_aligned(16, sizeof(vec3) * m_capacity);
+	std::memset(m_normals, 0, sizeof(vec3) * m_capacity);
+	m_vertexbufferdata->tangents = m_tangents = (vec3*)util::malloc_aligned(16, sizeof(vec3) * m_capacity);
+	std::memset(m_tangents, 0, sizeof(vec3) * m_capacity);
+	m_vertexbufferdata->colors = m_colors = (uint32_t*)util::malloc_aligned(16, sizeof(uint32_t) * m_capacity);
+	std::memset(m_colors, 0, sizeof(uint32_t) * m_capacity);
+	m_vertexbufferdata->num_tex = m_layers;
+	m_vertexbufferdata->tvarray = m_layerdata =
+	    (gs_tvertarray*)util::malloc_aligned(16, sizeof(gs_tvertarray) * m_layers);
+	for (size_t n = 0; n < MAXIMUM_UVW_LAYERS; n++) {
+		m_layerdata[n].array = m_uvs[n] = (vec4*)util::malloc_aligned(16, sizeof(vec4) * m_capacity);
+		m_layerdata[n].width            = 4;
+		std::memset(m_uvs[n], 0, sizeof(vec4) * m_capacity);
+	}
+
+	// Allocate GPU
+	obs_enter_graphics();
+	m_vertexbuffer = gs_vertexbuffer_create(m_vertexbufferdata, GS_DYNAMIC);
+	std::memset(m_vertexbufferdata, 0, sizeof(gs_vb_data));
+	m_vertexbufferdata->num     = m_capacity;
+	m_vertexbufferdata->num_tex = m_layers;
+	obs_leave_graphics();
 }
