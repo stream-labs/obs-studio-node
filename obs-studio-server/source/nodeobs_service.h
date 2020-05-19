@@ -266,4 +266,6 @@ class OBS_service
 	static bool useRecordingPreset();
 
 	static void duplicate_encoder(obs_encoder_t** dst, obs_encoder_t* src, uint64_t trackIndex = 0);
+
+	static bool EncoderAvailable(const char* encoder);
 };

@@ -322,3 +322,5 @@ install(
 	DIRECTORY "${libobs_SOURCE_DIR}/obs-plugins/"
 	DESTINATION "./obs-plugins"
 )
+
+install(DIRECTORY "${libobs_SOURCE_DIR}/enc-amf_old" DESTINATION "./" OPTIONAL)
