@@ -112,8 +112,6 @@ void osn::Source::Register(ipc::server& srv)
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Source");
 	cls->register_function(
 	    std::make_shared<ipc::function>("GetDefaults", std::vector<ipc::type>{ipc::type::String}, GetTypeDefaults));
-	cls->register_function(
-	    std::make_shared<ipc::function>("GetProperties", std::vector<ipc::type>{ipc::type::String}, GetTypeProperties));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "GetOutputFlags", std::vector<ipc::type>{ipc::type::String}, GetTypeOutputFlags));
 
@@ -196,17 +194,6 @@ void osn::Source::Register(ipc::server& srv)
 		SendKeyClick));
 
 	srv.register_collection(cls);
-}
-
-void osn::Source::GetTypeProperties(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	AUTO_DEBUG;
-	// Per Type Properties (doesn't have an object).
-	//obs_get_source_properties();
 }
 
 void osn::Source::GetTypeDefaults(
