@@ -1009,8 +1009,8 @@ typedef struct
 	BOOL              fPendingIO;
 } PIPEINST, *LPPIPEINST;
 
-PIPEINST Pipe;
-HANDLE   hEvents;
+PIPEINST Pipe = {0};
+HANDLE   hEvents = {0};
 
 BOOL ConnectToNewClient(HANDLE hPipe, LPOVERLAPPED lpo)
 {
@@ -1047,15 +1047,14 @@ VOID DisconnectAndReconnect(void)
 	Pipe.dwState = Pipe.fPendingIO ? CONNECTING_STATE : READING_STATE;
 }
 
-void acknowledgeTerminate(void)
+bool prepareTerminationPipe()
 {
-	BOOL   fSuccess;
 	LPTSTR lpszPipename = TEXT("\\\\.\\pipe\\exit-slobs-crash-handler");
 
 	hEvents = CreateEvent(NULL, TRUE, TRUE, NULL);
 
 	if (hEvents == NULL) {
-		return;
+		return false;
 	}
 
 	Pipe.oOverlap.hEvent = hEvents;
@@ -1071,12 +1070,22 @@ void acknowledgeTerminate(void)
 	    NULL);
 
 	if (Pipe.hPipeInst == INVALID_HANDLE_VALUE) {
-		return;
+		CloseHandle(hEvents);
+		hEvents = NULL;
+		Pipe.oOverlap.hEvent = NULL;
+		return false;
 	}
 
 	Pipe.fPendingIO = ConnectToNewClient(Pipe.hPipeInst, &(Pipe.oOverlap));
 
 	Pipe.dwState = Pipe.fPendingIO ? CONNECTING_STATE : READING_STATE;
+	
+	return true;
+}
+
+void acknowledgeTerminate()
+{
+	BOOL   fSuccess;
 
 	bool exit = false;
 	auto timeNow = std::chrono::high_resolution_clock::now();
@@ -1160,13 +1169,17 @@ void OBS_API::StopCrashHandler(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	std::thread worker(acknowledgeTerminate);
-	writeCrashHandler(unregisterProcess());
+	if (prepareTerminationPipe()) {
+		std::thread worker(acknowledgeTerminate);
+		writeCrashHandler(unregisterProcess());
 
-	if (worker.joinable())
-		worker.join();
+		if (worker.joinable())
+			worker.join();
 
-	writeCrashHandler(terminateCrashHandler());
+		writeCrashHandler(terminateCrashHandler());
+	} else {
+		writeCrashHandler(unregisterProcess());
+	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
