@@ -1179,6 +1179,7 @@ void OBS_API::StopCrashHandler(
 		writeCrashHandler(terminateCrashHandler());
 	} else {
 		writeCrashHandler(unregisterProcess());
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
