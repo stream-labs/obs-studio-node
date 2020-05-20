@@ -1179,7 +1179,11 @@ void OBS_API::StopCrashHandler(
 		writeCrashHandler(terminateCrashHandler());
 	} else {
 		writeCrashHandler(unregisterProcess());
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+		// Waiting 1 sec to let crash handler process unregister command before continuing 
+		// with shutdown sequence. 
+		// Only for a case when it failed to create a pipe to recieve confirmation from crash handler.  
+		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
