@@ -1421,7 +1421,7 @@ int OBS_service::GetAdvancedAudioBitrate(int i)
 	return FindClosestAvailableAACBitrate(bitrate);
 }
 
-static bool EncoderAvailable(const char* encoder)
+bool OBS_service::EncoderAvailable(const char* encoder)
 {
 	const char* val;
 	int         i = 0;
