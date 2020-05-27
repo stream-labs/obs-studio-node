@@ -1061,12 +1061,14 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 
 void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 {
+	blog(LOG_INFO, "DisplayCallback - 0");
 	Display*        dp          = static_cast<Display*>(displayPtr);
 	gs_effect_t*    solid       = obs_get_base_effect(OBS_EFFECT_SOLID);
 	gs_eparam_t*    solid_color = gs_effect_get_param_by_name(solid, "color");
 	gs_technique_t* solid_tech  = gs_effect_get_technique(solid, "Solid");
 	vec4            color;
 
+	blog(LOG_INFO, "DisplayCallback - 1");
 	dp->UpdatePreviewArea();
 
 	// Get proper source/base size.
@@ -1090,9 +1092,11 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 			sourceH = 1;
 	}
 
+	blog(LOG_INFO, "DisplayCallback - 2");
 	gs_viewport_push();
 	gs_projection_push();
 
+	blog(LOG_INFO, "DisplayCallback - 3");
 	gs_ortho(0.0f, float(sourceW), 0.0f, float(sourceH), -100.0f, 100.0f);
 	gs_set_viewport(
 	    dp->m_previewOffset.first, dp->m_previewOffset.second, dp->m_previewSize.first, dp->m_previewSize.second);
@@ -1129,6 +1133,7 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 		gs_load_vertexbuffer(nullptr);
 	}
 
+	blog(LOG_INFO, "DisplayCallback - 4");
 	// Source Rendering
 	obs_source_t* source = NULL;
 	if (dp->m_source) {
@@ -1188,8 +1193,10 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 		source                   = obs_transition_get_active_source(transition);
 		obs_source_release(transition);
 	}
+	blog(LOG_INFO, "DisplayCallback - 5");
 	gs_load_vertexbuffer(nullptr);
 
+	blog(LOG_INFO, "DisplayCallback - 6");
 	if (dp->m_shouldDrawUI == true) {
 		// Display-Aligned Drawing
 		vec2 tlCorner = {(float)-dp->m_previewOffset.first, (float)-dp->m_previewOffset.second};
@@ -1205,6 +1212,7 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 		/* This should work for both individual sources 
 		 * that are actually scenes and our main transition scene */
 
+		blog(LOG_INFO, "DisplayCallback - 7");
 		if (scene) {
 			dp->m_textVertices->Resize(0);
 
@@ -1230,9 +1238,11 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 		}
 	}
 
+	blog(LOG_INFO, "DisplayCallback - 8");
 	obs_source_release(source);
 	gs_projection_pop();
 	gs_viewport_pop();
+	blog(LOG_INFO, "DisplayCallback - 9");
 }
 
 void OBS::Display::UpdatePreviewArea()
