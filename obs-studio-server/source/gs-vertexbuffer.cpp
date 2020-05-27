@@ -334,6 +334,7 @@ gs_vertbuffer_t* GS::VertexBuffer::Update()
 void GS::VertexBuffer::SetupVertexBuffer(uint32_t maximumVertices)
 {
 	if (maximumVertices > MAXIMUM_VERTICES) {
+		blog(LOG_INFO, "maximumVertices out of range");
 		throw std::out_of_range("maximumVertices out of range");
 	}
 
