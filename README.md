@@ -10,9 +10,9 @@ See [BUILDING.md](./BUILDING.md).
 - [AGView](https://github.com/hrueger/AGView), a slide-based presenting software. It's a little more complex than [obs-studio-node-example](https://github.com/Envek/obs-studio-node-example/) becuase it uses TypeScript and Angular, but all the `obs-studio-node` code lives in [this file](https://github.com/hrueger/AGView/blob/master/src/worker/obs.ts).
 
 ## Usage
-> **Important:** If used with Electron, everything shows here has to be done in the **main** process, not in the renderer process. If you get `Uncaught Error: Failed to host and connect.`, this could be the problem.
+> **Important:** If used with Electron, everything shows here has to be done in the **main** process, not in the renderer process. If you get `Uncaught Error: Failed to host and connect`, this could be the problem.
 
-> Currently, only Electron v6 is supported! The IPC connunication in electron v6 differs from newer electron versions, so you need to use [this one](https://github.com/electron/electron/blob/v6.1.12/docs/api/ipc-main.md).
+> Currently, only Electron v6 is supported! The IPC communication in electron v6 differs from newer electron versions, so you need to use [this one](https://github.com/electron/electron/blob/v6.1.12/docs/api/ipc-main.md).
 
 ### Import `obs-studio-node`
 TypeScript:
@@ -143,7 +143,7 @@ sceneItem.scale = { x: 0.5, y: 0.7 };
 
 #### Setting the scene as an output
 ```JavaScript
-osn.Global.setOutputSource(0, this.scene);
+osn.Global.setOutputSource(0, scene);
 ```
 
 ### Transitions
@@ -246,7 +246,6 @@ function shutdown() {
   try {
     osn.NodeObs.OBS_service_removeCallback();
     osn.NodeObs.IPC.disconnect();
-    this.obsInitialized = false;
   } catch (e) {
     throw Error(`Exception when shutting down OBS process${e}`);
   }
