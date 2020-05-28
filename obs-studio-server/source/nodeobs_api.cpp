@@ -868,8 +868,17 @@ void OBS_API::QueryHotkeys(
 		    }
 
 		    // Key defs
-		    auto       key_name = std::string(obs_hotkey_get_name(key));
-		    auto       desc     = std::string(obs_hotkey_get_description(key));
+		    const char* _key_name = obs_hotkey_get_name(key);
+		    const char* _desc     = obs_hotkey_get_description(key);
+
+		    if (!_key_name)
+			    _key_name = "";
+
+		    if (!_desc)
+			    _desc = "";
+
+		    auto       key_name = std::string(_key_name);
+		    auto       desc     = std::string(_desc);
 		    const auto hotkeyId = obs_hotkey_get_id(key);
 
 		    // Parse the key name and the description
