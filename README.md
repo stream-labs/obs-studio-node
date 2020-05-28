@@ -12,6 +12,8 @@ See [BUILDING.md](./BUILDING.md).
 ## Usage
 > **Important:** If used with Electron, everything shows here has to be done in the **main** process, not in the renderer process. If you get `Uncaught Error: Failed to host and connect.`, this could be the problem.
 
+> Currently, only Electron v6 is supported! The IPC connunication in electron v6 differs from newer electron versions, so you need to use [this one](https://github.com/electron/electron/blob/v6.1.12/docs/api/ipc-main.md).
+
 ### Import `obs-studio-node`
 TypeScript:
 ```TypeScript or ES2015
