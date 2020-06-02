@@ -128,11 +128,10 @@ void RequestComputerUsageParams(
 {
 #if defined(_WIN32)
 
-	MEMORYSTATUSEX          memInfo;
+	MEMORYSTATUSEX          memInfo = {0};
 	PROCESS_MEMORY_COUNTERS pmc;
 	PDH_FMT_COUNTERVALUE    counterVal;
-	PERFORMANCE_INFORMATION perfInfo;
-	SYSTEM_INFO             sysInfo;
+	PERFORMANCE_INFORMATION perfInfo = {0};
 
 	memInfo.dwLength = sizeof(MEMORYSTATUSEX);
 	GlobalMemoryStatusEx(&memInfo);
@@ -140,20 +139,15 @@ void RequestComputerUsageParams(
 	PdhCollectQueryData(cpuQuery);
 	PdhGetFormattedCounterValue(cpuTotal, PDH_FMT_DOUBLE, NULL, &counterVal);
 
-	ZeroMemory(&perfInfo, sizeof(PERFORMANCE_INFORMATION));
-	perfInfo.cb = sizeof(PERFORMANCE_INFORMATION);
-	GetPerformanceInfo(&perfInfo, sizeof(PERFORMANCE_INFORMATION));
-	GetSystemInfo(&sysInfo);
-
-	DWORDLONG totalVirtualMem = memInfo.ullTotalPageFile;
-
 	totalPhysMem    = memInfo.ullTotalPhys;
 	physMemUsed     = (memInfo.ullTotalPhys - memInfo.ullAvailPhys);
 	physMemUsedByMe = pmc.WorkingSetSize;
 	totalCPUUsed    = counterVal.doubleValue;
-	commitMemTotal  = perfInfo.CommitTotal * sysInfo.dwPageSize;
-	commitMemLimit  = perfInfo.CommitLimit * sysInfo.dwPageSize;
-
+	perfInfo.cb = sizeof(PERFORMANCE_INFORMATION);
+	if (GetPerformanceInfo(&perfInfo, sizeof(PERFORMANCE_INFORMATION))) {
+		commitMemTotal = perfInfo.CommitTotal * perfInfo.PageSize;
+		commitMemLimit = perfInfo.CommitLimit * perfInfo.PageSize;
+	} 
 #else
 
 	// This link has info about the linux and Mac OS versions
@@ -426,8 +420,8 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	long long physMemUsed = 0;
 	double    totalCPUUsed = 0.0;
 	size_t    physMemUsedByMe = 0;
-	long long   commitMemTotal  = 0ll;
-	long long   commitMemLimit  = 1ll;
+	long long commitMemTotal = 0ll;
+	long long commitMemLimit = 1ll;
 	std::string computerName;
 	
 	try {
@@ -448,13 +442,11 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	systemResources.push_back({"Total used RAM",
 	                     PrettyBytes(physMemUsed) + " - percentage: "
 	                         + std::to_string(double(physMemUsed * 100) / double(totalPhysMem)) + "%"});
-	systemResources.push_back({"Total SLOBS RAM",
+	systemResources.push_back({"OBS64 RAM",
 	                     PrettyBytes(physMemUsedByMe) + " - percentage: "
 	                         + std::to_string(double(physMemUsedByMe * 100) / double(totalPhysMem)) + "%"});
 	systemResources.push_back({"Commit charge",
-	      PrettyBytes(commitMemTotal)
-	          + " - percentage: " + std::to_string(double(commitMemTotal * 100) / double(commitMemLimit)) + "%"});
-	systemResources.push_back({"Commit limit", PrettyBytes(commitMemLimit)});
+	        	     PrettyBytes(commitMemTotal) + " of "+ PrettyBytes(commitMemLimit) });
 	systemResources.push_back({"CPU usage", std::to_string(int(totalCPUUsed)) + "%"});
 	annotations.insert({{"System Resources", systemResources.dump(4)}});
 	
