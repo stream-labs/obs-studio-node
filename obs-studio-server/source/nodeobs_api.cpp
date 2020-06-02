@@ -1270,6 +1270,37 @@ void OBS_API::destroyOBS_API(void)
 		osn::Filter::Manager::GetInstance().size() > 0		||
 		osn::Input::Manager::GetInstance().size() > 0) {
 
+		size_t sizeSource     = osn::Source::Manager::GetInstance().size();
+		size_t sizeScene      = osn::Scene::Manager::GetInstance().size();
+		size_t sizeSceneItem  = osn::SceneItem::Manager::GetInstance().size();
+		size_t sizeTransition = osn::Filter::Manager::GetInstance().size();
+		size_t sizeFilter     = osn::Filter::Manager::GetInstance().size();
+		size_t sizeInput      = osn::Input::Manager::GetInstance().size();
+
+
+		osn::Scene::Manager::GetInstance().for_each([](obs_source_t* source)
+		{
+			obs_scene_t* scene = obs_scene_from_source(source);
+			if (scene) {
+				std::list<obs_sceneitem_t*> items;
+				auto                        cb = [](obs_scene_t* scene, obs_sceneitem_t* item, void* data) {
+                    std::list<obs_sceneitem_t*>* items = reinterpret_cast<std::list<obs_sceneitem_t*>*>(data);
+                    obs_sceneitem_addref(item);
+                    items->push_back(item);
+                    return true;
+				};
+				obs_scene_enum_items(scene, cb, &items);
+
+				obs_source_remove(source);
+				osn::Source::Manager::GetInstance().free(source);
+				for (auto item : items) {
+					osn::SceneItem::Manager::GetInstance().free(item);
+					obs_sceneitem_release(item);
+					obs_sceneitem_release(item);
+				}
+			}
+		});
+
 		// Directly blame the frontend since it didn't release all objects and that could cause 
 		// a crash on the backend
 		// This is necessary since the frontend could still finish after the backend, causing the
