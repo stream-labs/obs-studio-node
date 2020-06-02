@@ -2307,3 +2307,15 @@ void OBS_service::waitReleaseWorker()
 		releaseWorker.join();
 	}
 }
+
+void OBS_service::stopAllOutputs()
+{
+	if (streamingOutput && obs_output_active(streamingOutput))
+		stopStreaming(true);
+
+	if (replayBufferOutput && obs_output_active(replayBufferOutput))
+		stopReplayBuffer(true);
+
+	if (recordingOutput && obs_output_active(recordingOutput))
+		stopRecording();
+}
