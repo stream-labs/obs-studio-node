@@ -71,7 +71,7 @@ std::chrono::steady_clock::time_point      initialTime;
 std::mutex                                 messageMutex;
 util::MetricsProvider                      metricsClient;
 bool                                       reportsEnabled = true;
-
+std::string 				   appState = "starting"; // "starting","idle","encoding","shutdown"
 // Crashpad variables
 #ifdef ENABLE_CRASHREPORT
 std::wstring                                   appdata_path;
@@ -475,6 +475,7 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 
 	annotations.insert({{"sentry[release]", OBS_API::getCurrentVersion()}});
 	annotations.insert({{"sentry[user][username]", OBS_API::getUsername()}});
+	annotations.insert({{"sentry[app_state]", getAppState()}});
 
 	// If the callstack rewind operation returned an error, use it instead its result
 	annotations.insert({{"Manual callstack", callStack.dump(4)}});
@@ -889,6 +890,21 @@ void util::CrashManager::ClearBreadcrumbs()
 {
 	std::lock_guard<std::mutex> lock(messageMutex);
 	breadcrumbs.clear();
+}
+
+void util::CrashManager::setAppState(std::string newState)
+{
+	appState = newState;
+}
+
+std::string util::CrashManager::getAppState()
+{
+	if (appState.compare("idle") == 0) {
+		if (OBS_service::getStreamingOutput() || OBS_service::getRecordingOutput() || OBS_service::getReplayBufferOutput() ) {
+			return "encoding";
+		}
+	}
+	return appState;
 }
 
 void util::CrashManager::ProcessPreServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args)
