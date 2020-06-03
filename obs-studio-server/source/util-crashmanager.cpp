@@ -71,7 +71,7 @@ std::chrono::steady_clock::time_point      initialTime;
 std::mutex                                 messageMutex;
 util::MetricsProvider                      metricsClient;
 bool                                       reportsEnabled = true;
-std::string 				   appState = "starting"; // "starting","idle","encoding","shutdown"
+std::string                                appState = "starting"; // "starting","idle","encoding","shutdown"
 // Crashpad variables
 #ifdef ENABLE_CRASHREPORT
 std::wstring                                   appdata_path;
