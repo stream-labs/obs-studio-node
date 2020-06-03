@@ -1,6 +1,5 @@
 # Ignore Build directory
 build/
-build2/
 logs/
 node_modules/
 distribute/
@@ -21,4 +20,3 @@ docs/
 .vscode 
 /*.log
 /streamlabs-build
-
