@@ -71,7 +71,7 @@ std::chrono::steady_clock::time_point      initialTime;
 std::mutex                                 messageMutex;
 util::MetricsProvider                      metricsClient;
 bool                                       reportsEnabled = true;
-
+std::string                                appState = "starting"; // "starting","idle","encoding","shutdown"
 // Crashpad variables
 #ifdef ENABLE_CRASHREPORT
 std::wstring                                   appdata_path;
@@ -475,6 +475,7 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 
 	annotations.insert({{"sentry[release]", OBS_API::getCurrentVersion()}});
 	annotations.insert({{"sentry[user][username]", OBS_API::getUsername()}});
+	annotations.insert({{"sentry[environment]", getAppState()}});
 
 	// If the callstack rewind operation returned an error, use it instead its result
 	annotations.insert({{"Manual callstack", callStack.dump(4)}});
@@ -889,6 +890,43 @@ void util::CrashManager::ClearBreadcrumbs()
 {
 	std::lock_guard<std::mutex> lock(messageMutex);
 	breadcrumbs.clear();
+}
+
+void util::CrashManager::setAppState(std::string newState)
+{
+	appState = newState;
+}
+
+std::string util::CrashManager::getAppState()
+{
+	if (appState.compare("idle") == 0) {
+		std::string encoding_state = "";
+		std::string need_space = "";
+		if (OBS_service::getStreamingOutput()) {
+			if (OBS_service::isStreamingOutputActive() ){
+				encoding_state += "activestreaming";
+			} else {
+				encoding_state += "inactivestreaming";
+			}
+			need_space = " ";
+		}
+		if (OBS_service::getRecordingOutput()) {
+			if (OBS_service::isRecordingOutputActive() ){
+				encoding_state += need_space;
+				encoding_state += " activerecording";
+				need_space = " ";
+			} 
+		}
+		if (OBS_service::getReplayBufferOutput()) {
+			if (OBS_service::isReplayBufferOutputActive() ){
+				encoding_state += need_space;
+				encoding_state += " activereply";
+			} 
+		}
+		if (encoding_state.size() > 0)
+			return encoding_state;
+	}
+	return appState;
 }
 
 void util::CrashManager::ProcessPreServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args)

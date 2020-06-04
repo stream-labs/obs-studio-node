@@ -733,6 +733,8 @@ void OBS_API::OBS_API_initAPI(
 	obs_set_replay_buffer_rendering_mode(
 		useStreamOutput ? OBS_STREAMING_REPLAY_BUFFER_RENDERING : OBS_RECORDING_REPLAY_BUFFER_RENDERING);
 
+	util::CrashManager::setAppState("idle");
+
 	// We are returning a video result here because the frontend needs to know if we sucessfully
 	// initialized the Dx11 API
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -1179,6 +1181,8 @@ void OBS_API::StopCrashHandler(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	util::CrashManager::setAppState("shutdown");
+
 	if (prepareTerminationPipe()) {
 		std::thread worker(acknowledgeTerminate);
 		writeCrashHandler(unregisterProcess());
