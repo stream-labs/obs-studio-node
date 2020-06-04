@@ -872,7 +872,7 @@ void OBS_API::QueryHotkeys(
 		    const char* _desc     = obs_hotkey_get_description(key);
 
 		    if (!_key_name)
-			    _key_name = "";
+			    return true;
 
 		    if (!_desc)
 			    _desc = "";
