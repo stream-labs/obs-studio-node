@@ -900,9 +900,31 @@ void util::CrashManager::setAppState(std::string newState)
 std::string util::CrashManager::getAppState()
 {
 	if (appState.compare("idle") == 0) {
-		if (OBS_service::getStreamingOutput() || OBS_service::getRecordingOutput() || OBS_service::getReplayBufferOutput() ) {
-			return "encoding";
+		std::string encoding_state = "";
+		std::string need_space = "";
+		if (OBS_service::getStreamingOutput()) {
+			if (OBS_service::isStreamingOutputActive() ){
+				encoding_state += "activestreaming";
+			} else {
+				encoding_state += "inactivestreaming";
+			}
+			need_space = " ";
 		}
+		if (OBS_service::getRecordingOutput()) {
+			if (OBS_service::isRecordingOutputActive() ){
+				encoding_state += need_space;
+				encoding_state += " activerecording";
+				need_space = " ";
+			} 
+		}
+		if (OBS_service::getReplayBufferOutput()) {
+			if (OBS_service::isReplayBufferOutputActive() ){
+				encoding_state += need_space;
+				encoding_state += " activereply";
+			} 
+		}
+		if (encoding_state.size() > 0)
+			return encoding_state;
 	}
 	return appState;
 }
