@@ -127,7 +127,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Properties::Get(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 
 	std::string name;
-	ASSERT_GET_VALUE(info[0], name);
+	ASSERT_GET_VALUE(info[0], name, info.GetIsolate());
 
 	for (auto iter = obj->properties->begin(); iter != obj->properties->end(); iter++) {
 		if (iter->second->name == name) {
@@ -380,11 +380,16 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetValue(Nan::NAN_METHOD_ARGS_T
 		std::shared_ptr<osn::FontProperty> cast_property = std::static_pointer_cast<osn::FontProperty>(iter->second);
 		v8::Local<v8::Object>              font          = v8::Object::New(info.GetIsolate());
 
-		font->Set(utilv8::ToValue("face"), utilv8::ToValue(cast_property->face));
-		font->Set(utilv8::ToValue("style"), utilv8::ToValue(cast_property->style));
-		font->Set(utilv8::ToValue("path"), utilv8::ToValue(cast_property->path));
-		font->Set(utilv8::ToValue("size"), utilv8::ToValue(cast_property->sizeF));
-		font->Set(utilv8::ToValue("flags"), utilv8::ToValue(cast_property->flags));
+		font->Set(
+		    info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("face"), utilv8::ToValue(cast_property->face));
+		font->Set(
+		    info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("style"), utilv8::ToValue(cast_property->style));
+		font->Set(
+		    info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("path"), utilv8::ToValue(cast_property->path));
+		font->Set(
+		    info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("size"), utilv8::ToValue(cast_property->sizeF));
+		font->Set(
+		    info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("flags"), utilv8::ToValue(cast_property->flags));
 
 		info.GetReturnValue().Set(font);
 		break;
@@ -679,7 +684,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Modified(Nan::NAN_METHOD_ARGS_T
 	// Value Stuff
 	/// Arguments
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], settings);
+	ASSERT_GET_VALUE(info[0], settings, info.GetIsolate());
 	/// Self
 	osn::PropertyObject* self;
 	if (!Retrieve(info.This(), self)) {
@@ -707,7 +712,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Modified(Nan::NAN_METHOD_ARGS_T
 	// Stringify settings
 	v8::MaybeLocal<v8::String> settings_str = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), settings);
 	std::string                value;
-	if (!utilv8::FromValue(settings_str.ToLocalChecked(), value)) {
+	if (!utilv8::FromValue(settings_str.ToLocalChecked(), value, info.GetIsolate())) {
 		Nan::Error("Unable to convert Settings Object to String");
 	}
 
@@ -742,7 +747,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::ButtonClicked(Nan::NAN_METHOD_A
 	// Value Stuff
 	/// Arguments
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], source_obj); // This object is not necessary, we keep track of the parent source here.
+	ASSERT_GET_VALUE(info[0], source_obj, info.GetIsolate()); // This object is not necessary, we keep track of the parent source here.
 	/// Self
 	osn::PropertyObject* self;
 	if (!Retrieve(info.This(), self)) {

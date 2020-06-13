@@ -63,8 +63,8 @@ void display::OBS_content_createDisplay(const v8::FunctionCallbackInfo<v8::Value
 
 	std::string key;
 	int32_t     mode;
-	ASSERT_GET_VALUE(args[1], key);
-	ASSERT_GET_VALUE(args[2], mode);
+	ASSERT_GET_VALUE(args[1], key, args.GetIsolate());
+	ASSERT_GET_VALUE(args[2], mode, args.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -77,7 +77,7 @@ void display::OBS_content_destroyDisplay(const v8::FunctionCallbackInfo<v8::Valu
 {
 	std::string key;
 
-	ASSERT_GET_VALUE(args[0], key);
+	ASSERT_GET_VALUE(args[0], key, args.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -90,7 +90,7 @@ void display::OBS_content_getDisplayPreviewOffset(const v8::FunctionCallbackInfo
 {
 	std::string key;
 
-	ASSERT_GET_VALUE(args[0], key);
+	ASSERT_GET_VALUE(args[0], key, args.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -116,7 +116,7 @@ void display::OBS_content_getDisplayPreviewSize(const v8::FunctionCallbackInfo<v
 {
 	std::string key;
 
-	ASSERT_GET_VALUE(args[0], key);
+	ASSERT_GET_VALUE(args[0], key, args.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -150,8 +150,8 @@ void display::OBS_content_createSourcePreviewDisplay(const v8::FunctionCallbackI
 	FixChromeD3DIssue((HWND)windowHandle);
 
 	std::string sourceName, key;
-	ASSERT_GET_VALUE(args[1], sourceName);
-	ASSERT_GET_VALUE(args[2], key);
+	ASSERT_GET_VALUE(args[1], sourceName, args.GetIsolate());
+	ASSERT_GET_VALUE(args[2], key, args.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -167,9 +167,9 @@ void display::OBS_content_resizeDisplay(const v8::FunctionCallbackInfo<v8::Value
 	double_t    width_d, height_d;
 	uint32_t    width, height;
 
-	ASSERT_GET_VALUE(args[0], key);
-	ASSERT_GET_VALUE(args[1], width_d);
-	ASSERT_GET_VALUE(args[2], height_d);
+	ASSERT_GET_VALUE(args[0], key, args.GetIsolate());
+	ASSERT_GET_VALUE(args[1], width_d, args.GetIsolate());
+	ASSERT_GET_VALUE(args[2], height_d, args.GetIsolate());
 
 	width  = uint32_t(width_d);
 	height = uint32_t(height_d);
@@ -187,9 +187,9 @@ void display::OBS_content_moveDisplay(const v8::FunctionCallbackInfo<v8::Value>&
 	double_t    x_d, y_d;
 	uint32_t    x, y;
 
-	ASSERT_GET_VALUE(args[0], key);
-	ASSERT_GET_VALUE(args[1], x_d);
-	ASSERT_GET_VALUE(args[2], y_d);
+	ASSERT_GET_VALUE(args[0], key, args.GetIsolate());
+	ASSERT_GET_VALUE(args[1], x_d, args.GetIsolate());
+	ASSERT_GET_VALUE(args[2], y_d, args.GetIsolate());
 
 	x = uint32_t(x_d);
 	y = uint32_t(y_d);
@@ -206,8 +206,8 @@ void display::OBS_content_setPaddingSize(const v8::FunctionCallbackInfo<v8::Valu
 	std::string key;
 	uint32_t    paddingSize;
 
-	ASSERT_GET_VALUE(args[0], key);
-	ASSERT_GET_VALUE(args[1], paddingSize);
+	ASSERT_GET_VALUE(args[0], key, args.GetIsolate());
+	ASSERT_GET_VALUE(args[1], paddingSize, args.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -221,13 +221,13 @@ void display::OBS_content_setPaddingColor(const v8::FunctionCallbackInfo<v8::Val
 	std::string key;
 	uint32_t    r, g, b, a = 255;
 
-	ASSERT_GET_VALUE(args[0], key);
-	ASSERT_GET_VALUE(args[1], r);
-	ASSERT_GET_VALUE(args[2], g);
-	ASSERT_GET_VALUE(args[3], b);
+	ASSERT_GET_VALUE(args[0], key, args.GetIsolate());
+	ASSERT_GET_VALUE(args[1], r, args.GetIsolate());
+	ASSERT_GET_VALUE(args[2], g, args.GetIsolate());
+	ASSERT_GET_VALUE(args[3], b, args.GetIsolate());
 
 	if (args.Length() > 4)
-		ASSERT_GET_VALUE(args[4], a);
+		ASSERT_GET_VALUE(args[4], a, args.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -242,13 +242,13 @@ void display::OBS_content_setOutlineColor(const v8::FunctionCallbackInfo<v8::Val
 	std::string key;
 	uint32_t    r, g, b, a = 255;
 
-	ASSERT_GET_VALUE(args[0], key);
-	ASSERT_GET_VALUE(args[1], r);
-	ASSERT_GET_VALUE(args[2], g);
-	ASSERT_GET_VALUE(args[3], b);
+	ASSERT_GET_VALUE(args[0], key, args.GetIsolate());
+	ASSERT_GET_VALUE(args[1], r, args.GetIsolate());
+	ASSERT_GET_VALUE(args[2], g, args.GetIsolate());
+	ASSERT_GET_VALUE(args[3], b, args.GetIsolate());
 
 	if (args.Length() > 4)
-		ASSERT_GET_VALUE(args[4], a);
+		ASSERT_GET_VALUE(args[4], a, args.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -263,8 +263,8 @@ void display::OBS_content_setShouldDrawUI(const v8::FunctionCallbackInfo<v8::Val
 	std::string key;
 	bool        drawUI;
 
-	ASSERT_GET_VALUE(args[0], key);
-	ASSERT_GET_VALUE(args[1], drawUI);
+	ASSERT_GET_VALUE(args[0], key, args.GetIsolate());
+	ASSERT_GET_VALUE(args[1], drawUI, args.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -278,8 +278,8 @@ void display::OBS_content_setDrawGuideLines(const v8::FunctionCallbackInfo<v8::V
 	std::string key;
 	bool        drawGuideLines;
 
-	ASSERT_GET_VALUE(args[0], key);
-	ASSERT_GET_VALUE(args[1], drawGuideLines);
+	ASSERT_GET_VALUE(args[0], key, args.GetIsolate());
+	ASSERT_GET_VALUE(args[1], drawGuideLines, args.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)

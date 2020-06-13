@@ -53,16 +53,19 @@ void AutoConfig::callback_handler(void* data, std::shared_ptr<AutoConfigInfo> it
 	v8::Local<v8::Value> args[1];
 	Nan::HandleScope     scope;
 
-	v8::Local<v8::Value> argv = v8::Object::New(isolate);
-	argv->ToObject()->Set(
+	v8::Local<v8::Object> argv = v8::Object::New(isolate);
+	argv->Set(isolate->GetCurrentContext(), 
 	    v8::String::NewFromUtf8(isolate, "event").ToLocalChecked(),
 	    v8::String::NewFromUtf8(isolate, item->event.c_str()).ToLocalChecked());
-	argv->ToObject()->Set(
+
+	argv->Set(
+	    isolate->GetCurrentContext(), 
 	    v8::String::NewFromUtf8(isolate, "description").ToLocalChecked(),
 	    v8::String::NewFromUtf8(isolate, item->description.c_str()).ToLocalChecked());
 
 	if (item->event.compare("error") != 0) {
-		argv->ToObject()->Set(
+		argv->Set(
+		    isolate->GetCurrentContext(), 
 		    v8::String::NewFromUtf8(isolate, "percentage").ToLocalChecked(),
 		    v8::Number::New(isolate, item->percentage));
 	}
@@ -146,16 +149,25 @@ static v8::Persistent<v8::Object> autoConfigCallbackObject;
 void autoConfig::InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	v8::Local<v8::Function> callback;
-	ASSERT_GET_VALUE(args[0], callback);
+	ASSERT_GET_VALUE(args[0], callback, args.GetIsolate());
 
 	v8::Isolate* isolate = v8::Isolate::GetCurrent();
 
 	v8::Local<v8::Object> serverInfo = args[1].As<v8::Object>();
 
-	v8::String::Utf8Value param0(serverInfo->Get(v8::String::NewFromUtf8(isolate, "continent").ToLocalChecked()));
+	v8::String::Utf8Value param0(
+	    args.GetIsolate(),
+	    serverInfo
+	        ->Get(
+	            args.GetIsolate()->GetCurrentContext(), v8::String::NewFromUtf8(isolate, "continent").ToLocalChecked())
+	        .ToLocalChecked());
 	std::string           continent = std::string(*param0);
 
-	v8::String::Utf8Value param1(serverInfo->Get(v8::String::NewFromUtf8(isolate, "service_name").ToLocalChecked()));
+	v8::String::Utf8Value param1(
+	    args.GetIsolate(),
+	    serverInfo
+	        ->Get(
+	    args.GetIsolate()->GetCurrentContext(), v8::String::NewFromUtf8(isolate, "service_name").ToLocalChecked()).ToLocalChecked());
 	std::string           service = std::string(*param1);
 
 	auto conn = GetConnection();

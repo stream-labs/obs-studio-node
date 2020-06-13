@@ -134,7 +134,7 @@ std::vector<settings::SubCategory>
 void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	std::string category;
-	ASSERT_GET_VALUE(args[0], category);
+	ASSERT_GET_VALUE(args[0], category, args.GetIsolate());
 
 	std::vector<std::string> listSettings = getListCategories();
 	std::vector<std::string>::iterator it = std::find(listSettings.begin(), listSettings.end(), category);
@@ -173,18 +173,22 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 			v8::Local<v8::Object> parameter = v8::Object::New(isolate);
 
 			parameter->Set(
+			    isolate->GetCurrentContext(),
 			    v8::String::NewFromUtf8(isolate, "name").ToLocalChecked(),
 			    v8::String::NewFromUtf8(isolate, params.at(j).name.c_str()).ToLocalChecked());
 
 			parameter->Set(
+			    isolate->GetCurrentContext(),
 			    v8::String::NewFromUtf8(isolate, "type").ToLocalChecked(),
 			    v8::String::NewFromUtf8(isolate, params.at(j).type.c_str()).ToLocalChecked());
 
 			parameter->Set(
+			    isolate->GetCurrentContext(),
 			    v8::String::NewFromUtf8(isolate, "description").ToLocalChecked(),
 			    v8::String::NewFromUtf8(isolate, params.at(j).description.c_str()).ToLocalChecked());
 
 			parameter->Set(
+			    isolate->GetCurrentContext(),
 			    v8::String::NewFromUtf8(isolate, "subType").ToLocalChecked(),
 			    v8::String::NewFromUtf8(isolate, params.at(j).subType.c_str()).ToLocalChecked());
 
@@ -199,22 +203,27 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 						params.at(j).currentValue.end());
 
 					parameter->Set(
+					    isolate->GetCurrentContext(),
 					    v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked(),
 					    v8::String::NewFromUtf8(isolate, value.c_str()).ToLocalChecked());
 				}
 				else if (params.at(j).type.compare("OBS_PROPERTY_INT") == 0) {
 					int64_t *value = reinterpret_cast<int64_t*>(params.at(j).currentValue.data());
 					parameter->Set(
+					    isolate->GetCurrentContext(),
 					    v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked(),
 						v8::Integer::New(isolate, int32_t(*value)));
 
 					parameter->Set(
+					    isolate->GetCurrentContext(),
 					    v8::String::NewFromUtf8(isolate, "minVal").ToLocalChecked(),
 					    v8::Number::New(isolate, params.at(j).minVal));
 					parameter->Set(
+					    isolate->GetCurrentContext(),
 					    v8::String::NewFromUtf8(isolate, "maxVal").ToLocalChecked(),
 					    v8::Number::New(isolate, params.at(j).maxVal));
 					parameter->Set(
+					    isolate->GetCurrentContext(),
 					    v8::String::NewFromUtf8(isolate, "stepVal").ToLocalChecked(),
 					    v8::Number::New(isolate, params.at(j).stepVal));
 				} else if (
@@ -222,38 +231,47 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 				    || params.at(j).type.compare("OBS_PROPERTY_BITMASK") == 0) {
 					uint64_t *value = reinterpret_cast<uint64_t*>(params.at(j).currentValue.data());
 					parameter->Set(
+					    isolate->GetCurrentContext(),
 					    v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked(),
 						v8::Integer::New(isolate, int32_t(*value)));
 
 					parameter->Set(
+					    isolate->GetCurrentContext(),
 					    v8::String::NewFromUtf8(isolate, "minVal").ToLocalChecked(),
 					    v8::Number::New(isolate, params.at(j).minVal));
 					parameter->Set(
+					    isolate->GetCurrentContext(),
 					    v8::String::NewFromUtf8(isolate, "maxVal").ToLocalChecked(),
 					    v8::Number::New(isolate, params.at(j).maxVal));
 					parameter->Set(
+					    isolate->GetCurrentContext(),
 					    v8::String::NewFromUtf8(isolate, "stepVal").ToLocalChecked(),
 					    v8::Number::New(isolate, params.at(j).stepVal));
 				}
 				else if (params.at(j).type.compare("OBS_PROPERTY_BOOL") == 0) {
 					bool *value = reinterpret_cast<bool*>(params.at(j).currentValue.data());
 					parameter->Set(
+					    isolate->GetCurrentContext(),
 					    v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked(),
 						v8::Boolean::New(isolate, (*value)));
 				}
 				else if (params.at(j).type.compare("OBS_PROPERTY_DOUBLE") == 0) {
 					double *value = reinterpret_cast<double*>(params.at(j).currentValue.data());
 					parameter->Set(
+					    isolate->GetCurrentContext(),
 					    v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked(),
 						v8::Number::New(isolate, *value));
 
 					parameter->Set(
+					    isolate->GetCurrentContext(),
 					    v8::String::NewFromUtf8(isolate, "minVal").ToLocalChecked(),
 					    v8::Number::New(isolate, params.at(j).minVal));
 					parameter->Set(
+					    isolate->GetCurrentContext(),
 					    v8::String::NewFromUtf8(isolate, "maxVal").ToLocalChecked(),
 					    v8::Number::New(isolate, params.at(j).maxVal));
 					parameter->Set(
+					    isolate->GetCurrentContext(),
 					    v8::String::NewFromUtf8(isolate, "stepVal").ToLocalChecked(),
 					    v8::Number::New(isolate, params.at(j).stepVal));
 				}
@@ -261,32 +279,40 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 					if (params.at(j).subType.compare("OBS_COMBO_FORMAT_INT") == 0) {
 						int64_t *value = reinterpret_cast<int64_t*>(params.at(j).currentValue.data());
 						parameter->Set(
+						    isolate->GetCurrentContext(),
 						    v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked(),
 							v8::Integer::New(isolate, int32_t(*value)));
 
 						parameter->Set(
+						    isolate->GetCurrentContext(),
 						    v8::String::NewFromUtf8(isolate, "minVal").ToLocalChecked(),
 						    v8::Number::New(isolate, params.at(j).minVal));
 						parameter->Set(
+						    isolate->GetCurrentContext(),
 						    v8::String::NewFromUtf8(isolate, "maxVal").ToLocalChecked(),
 						    v8::Number::New(isolate, params.at(j).maxVal));
 						parameter->Set(
+						    isolate->GetCurrentContext(),
 						    v8::String::NewFromUtf8(isolate, "stepVal").ToLocalChecked(),
-								v8::Number::New(isolate, params.at(j).stepVal));
+							v8::Number::New(isolate, params.at(j).stepVal));
 					}
 					else if (params.at(j).subType.compare("OBS_COMBO_FORMAT_FLOAT") == 0) {
 						double *value = reinterpret_cast<double*>(params.at(j).currentValue.data());
 						parameter->Set(
+						    isolate->GetCurrentContext(),
 						    v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked(),
 							v8::Number::New(isolate, *value));
 
 						parameter->Set(
+						    isolate->GetCurrentContext(),
 						    v8::String::NewFromUtf8(isolate, "minVal").ToLocalChecked(),
 						    v8::Number::New(isolate, params.at(j).minVal));
 						parameter->Set(
+						    isolate->GetCurrentContext(),
 						    v8::String::NewFromUtf8(isolate, "maxVal").ToLocalChecked(),
 						    v8::Number::New(isolate, params.at(j).maxVal));
 						parameter->Set(
+						    isolate->GetCurrentContext(),
 						    v8::String::NewFromUtf8(isolate, "stepVal").ToLocalChecked(),
 						    v8::Number::New(isolate, params.at(j).stepVal));
 					}
@@ -295,12 +321,14 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 							params.at(j).currentValue.end());
 
 						parameter->Set(
+						    isolate->GetCurrentContext(),
 						    v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked(),
 						    v8::String::NewFromUtf8(isolate, value.c_str()).ToLocalChecked());
 					}
 				}
 			} else {
 				parameter->Set(
+				    isolate->GetCurrentContext(),
 				    v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked(),
 				    v8::String::NewFromUtf8(isolate, "").ToLocalChecked());
 			}
@@ -323,6 +351,7 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 					indexData += sizeof(int64_t);
 
 					valueObject->Set(
+					    isolate->GetCurrentContext(),
 					    v8::String::NewFromUtf8(isolate, name.c_str()).ToLocalChecked(),
 						v8::Integer::New(isolate, int32_t(*value)));
 				}
@@ -337,6 +366,7 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 					indexData += sizeof(double);
 
 					valueObject->Set(
+					    isolate->GetCurrentContext(),
 					    v8::String::NewFromUtf8(isolate, name.c_str()).ToLocalChecked(),
 						v8::Number::New(isolate, *value));
 				}
@@ -352,10 +382,11 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 					indexData += uint32_t(*sizeValue);
 
 					valueObject->Set(
+					    isolate->GetCurrentContext(),
 					    v8::String::NewFromUtf8(isolate, name.c_str()).ToLocalChecked(),
 					    v8::String::NewFromUtf8(isolate, value.c_str()).ToLocalChecked());
 				}
-				values->Set(k, valueObject);
+				values->Set(isolate->GetCurrentContext(), k, valueObject);
 			}
 			if (params.at(j).countValues > 0 && params.at(j).currentValue.size() == 0
 			    && params.at(j).type.compare("OBS_PROPERTY_LIST") == 0 && params.at(j).enabled) {
@@ -371,36 +402,46 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 				indexData += uint32_t(*sizeValue);
 
 				parameter->Set(
+				    isolate->GetCurrentContext(),
 				    v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked(),
 				    v8::String::NewFromUtf8(isolate, value.c_str()).ToLocalChecked());
 			}
-			parameter->Set(v8::String::NewFromUtf8(isolate, "values").ToLocalChecked(), values);
+			parameter->Set(
+			    isolate->GetCurrentContext(), v8::String::NewFromUtf8(isolate, "values").ToLocalChecked(), values);
 
 			parameter->Set(
+			    isolate->GetCurrentContext(),
 			    v8::String::NewFromUtf8(isolate, "visible").ToLocalChecked(),
 			    v8::Boolean::New(isolate, params.at(j).visible));
 
 			parameter->Set(
+			    isolate->GetCurrentContext(),
 			    v8::String::NewFromUtf8(isolate, "enabled").ToLocalChecked(),
 			    v8::Boolean::New(isolate, params.at(j).enabled));
 
 			parameter->Set(
+			    isolate->GetCurrentContext(),
 			    v8::String::NewFromUtf8(isolate, "masked").ToLocalChecked(),
 			    v8::Boolean::New(isolate, params.at(j).masked));
 
-			subCategoryParameters->Set(j, parameter);
+			subCategoryParameters->Set(isolate->GetCurrentContext(), j, parameter);
 		}
 
 		subCategory->Set(
+		    isolate->GetCurrentContext(),
 		    v8::String::NewFromUtf8(isolate, "nameSubCategory").ToLocalChecked(),
 		    v8::String::NewFromUtf8(isolate, categorySettings.at(i).name.c_str()).ToLocalChecked());
 
-		subCategory->Set(v8::String::NewFromUtf8(isolate, "parameters").ToLocalChecked(), subCategoryParameters);
+		subCategory->Set(
+		    isolate->GetCurrentContext(),
+		    v8::String::NewFromUtf8(isolate, "parameters").ToLocalChecked(),
+		    subCategoryParameters);
 
-		array->Set(i, subCategory);
+		array->Set(isolate->GetCurrentContext(), i, subCategory);
 
-		settings->Set(v8::String::NewFromUtf8(isolate, "data").ToLocalChecked(), array);
+		settings->Set(isolate->GetCurrentContext(), v8::String::NewFromUtf8(isolate, "data").ToLocalChecked(), array);
 		settings->Set(
+		    isolate->GetCurrentContext(),
 		    v8::String::NewFromUtf8(isolate, "type").ToLocalChecked(),
 		    v8::Integer::New(isolate, response[4].value_union.ui32));
 	}
@@ -418,27 +459,36 @@ std::vector<char> deserializeCategory(uint32_t* subCategoriesCount, uint32_t* si
 	for (int i = 0; i < int(settings->Length()); i++) {
 		settings::SubCategory sc;
 
-		v8::Local<v8::Object> subCategoryObject = v8::Local<v8::Object>::Cast(settings->Get(i));
+		v8::Local<v8::Object> subCategoryObject = v8::Local<v8::Object>::Cast(settings->Get(isolate->GetCurrentContext(), i).ToLocalChecked());
 
 		v8::String::Utf8Value param0(
-		    subCategoryObject->Get(v8::String::NewFromUtf8(isolate, "nameSubCategory").ToLocalChecked()));
+		    isolate,
+		    subCategoryObject->Get(
+		        isolate->GetCurrentContext(), v8::String::NewFromUtf8(isolate, "nameSubCategory").ToLocalChecked()).ToLocalChecked());
 		std::string           test(*param0);
 		sc.name = std::string(*param0);
 
-		v8::Local<v8::Array> parameters = v8::Local<v8::Array>::Cast(
-		    subCategoryObject->Get(v8::String::NewFromUtf8(isolate, "parameters").ToLocalChecked()));
+		v8::Local<v8::Array> parameters = v8::Local<v8::Array>::Cast(subCategoryObject->Get(
+		    isolate->GetCurrentContext(), v8::String::NewFromUtf8(isolate, "parameters").ToLocalChecked()).ToLocalChecked());
 
 		sc.paramsCount = parameters->Length();
 		int sizeParams = parameters->Length();
 		for (int j = 0; j < int(parameters->Length()); j++) {
 			settings::Parameter param;
 
-			v8::Local<v8::Object> parameterObject = v8::Local<v8::Object>::Cast(parameters->Get(j));
+			v8::Local<v8::Object> parameterObject =
+			    v8::Local<v8::Object>::Cast(parameters->Get(isolate->GetCurrentContext(), j).ToLocalChecked());
 
-			v8::String::Utf8Value name(parameterObject->Get(v8::String::NewFromUtf8(isolate, "name").ToLocalChecked()));
-			v8::String::Utf8Value type(parameterObject->Get(v8::String::NewFromUtf8(isolate, "type").ToLocalChecked()));
+			v8::String::Utf8Value name(isolate, parameterObject->Get(
+			    isolate->GetCurrentContext(), v8::String::NewFromUtf8(isolate, "name").ToLocalChecked()).ToLocalChecked());
+			v8::String::Utf8Value type(
+			    isolate,
+			    parameterObject->Get(isolate->GetCurrentContext(), v8::String::NewFromUtf8(isolate, "type").ToLocalChecked())
+			        .ToLocalChecked());
 			v8::String::Utf8Value subType(
-			    parameterObject->Get(v8::String::NewFromUtf8(isolate, "subType").ToLocalChecked()));
+			    isolate,
+			    parameterObject->Get(isolate->GetCurrentContext(), v8::String::NewFromUtf8(isolate, "subType").ToLocalChecked())
+			        .ToLocalChecked());
 
 			param.name    = std::string(*name);
 			param.type    = std::string(*type);
@@ -447,67 +497,95 @@ std::vector<char> deserializeCategory(uint32_t* subCategoriesCount, uint32_t* si
 			if (param.type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 || param.type.compare("OBS_PROPERTY_PATH") == 0
 			    || param.type.compare("OBS_PROPERTY_TEXT") == 0
 			    || param.type.compare("OBS_INPUT_RESOLUTION_LIST") == 0) {
-				v8::String::Utf8Value value(
-				    parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked()));
+				v8::String::Utf8Value value(isolate, 
+				    parameterObject->Get(isolate->GetCurrentContext(), v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked())
+				        .ToLocalChecked());
 				param.sizeOfCurrentValue = strlen(*value);
 				param.currentValue.resize(strlen(*value));
 				memcpy(param.currentValue.data(), *value, strlen(*value));
 			} else if (param.type.compare("OBS_PROPERTY_INT") == 0) {
-				int64_t value =
-				    int64_t(parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked())
-				                ->NumberValue());
+				auto paramValue = parameterObject
+				                            ->Get(
+				                                isolate->GetCurrentContext(), v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked())
+									.ToLocalChecked();
+				int64_t value;
+				utilv8::FromValue(paramValue, value, isolate);
 
 				param.sizeOfCurrentValue = sizeof(value);
 				param.currentValue.resize(sizeof(value));
 				memcpy(param.currentValue.data(), &value, sizeof(value));
 			} else if (param.type.compare("OBS_PROPERTY_UINT") == 0 || param.type.compare("OBS_PROPERTY_BITMASK") == 0) {
-				uint64_t value =
-				    uint64_t(parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked())
-				                 ->NumberValue());
+				auto paramValue = parameterObject
+				                      ->Get(
+				                          isolate->GetCurrentContext(),
+				                          v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked())
+				                      .ToLocalChecked();
+				                 
+				uint64_t value; 
+				utilv8::FromValue(paramValue, value, isolate);
 
 				param.sizeOfCurrentValue = sizeof(value);
 				param.currentValue.resize(sizeof(value));
 				memcpy(param.currentValue.data(), &value, sizeof(value));
 			} else if (param.type.compare("OBS_PROPERTY_BOOL") == 0) {
-				uint64_t value =
-				    uint64_t(parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked())
-				                 ->NumberValue());
+				auto paramValue = parameterObject
+				                      ->Get(
+				                          isolate->GetCurrentContext(),
+				                          v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked())
+				                      .ToLocalChecked();
+				uint64_t value;
+				utilv8::FromValue(paramValue, value, isolate);
 
 				param.sizeOfCurrentValue = sizeof(value);
 				param.currentValue.resize(sizeof(value));
 				memcpy(param.currentValue.data(), &value, sizeof(value));
 			} else if (param.type.compare("OBS_PROPERTY_DOUBLE") == 0) {
-				double value = parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked())
-				                   ->NumberValue();
+				auto paramValue = parameterObject
+				                      ->Get(
+				                          isolate->GetCurrentContext(),
+				                          v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked())
+				                      .ToLocalChecked();
+				                   
+				double value;
+				utilv8::FromValue(paramValue, value, isolate);
 
 				param.sizeOfCurrentValue = sizeof(value);
 				param.currentValue.resize(sizeof(value));
 				memcpy(param.currentValue.data(), &value, sizeof(value));
 			} else if (param.type.compare("OBS_PROPERTY_LIST") == 0) {
-				v8::String::Utf8Value paramSubType(
-				    parameterObject->Get(v8::String::NewFromUtf8(isolate, "subType").ToLocalChecked()));
+				v8::String::Utf8Value paramSubType(isolate, parameterObject->Get(
+				    isolate->GetCurrentContext(), v8::String::NewFromUtf8(isolate, "subType").ToLocalChecked()).ToLocalChecked());
 
 				std::string subType = *paramSubType;
 
 				if (subType.compare("OBS_COMBO_FORMAT_INT") == 0) {
-					int64_t value =
-					    int64_t(parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked())
-					                ->NumberValue());
+					auto paramValue = parameterObject
+					    ->Get(
+					        isolate->GetCurrentContext(),
+					        v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked())
+					    .ToLocalChecked();
+					int64_t value;
+					utilv8::FromValue(paramValue, value, isolate);
 
 					param.sizeOfCurrentValue = sizeof(value);
 					param.currentValue.resize(sizeof(value));
 					memcpy(param.currentValue.data(), &value, sizeof(value));
 				} else if (subType.compare("OBS_COMBO_FORMAT_FLOAT") == 0) {
-					double value =
-					    parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked())
-					        ->NumberValue();
+					auto paramValue = parameterObject
+					                      ->Get(
+					                          isolate->GetCurrentContext(),
+					                          v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked())
+					                      .ToLocalChecked();
+					double value;
+					utilv8::FromValue(paramValue, value, isolate);
 
 					param.sizeOfCurrentValue = sizeof(value);
 					param.currentValue.resize(sizeof(value));
 					memcpy(param.currentValue.data(), &value, sizeof(value));
 				} else if (subType.compare("OBS_COMBO_FORMAT_STRING") == 0) {
-					v8::String::Utf8Value value(
-					    parameterObject->Get(v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked()));
+					v8::String::Utf8Value value(isolate, parameterObject->Get(
+					    isolate->GetCurrentContext(),
+					    v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked()).ToLocalChecked());
 					param.sizeOfCurrentValue = strlen(*value);
 					param.currentValue.resize(strlen(*value));
 					memcpy(param.currentValue.data(), *value, strlen(*value));
@@ -533,7 +611,7 @@ std::vector<char> deserializeCategory(uint32_t* subCategoriesCount, uint32_t* si
 void settings::OBS_settings_saveSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	std::string category;
-	ASSERT_GET_VALUE(args[0], category);
+	ASSERT_GET_VALUE(args[0], category, args.GetIsolate());
 
 	uint32_t             subCategoriesCount, sizeStruct;
 	v8::Local<v8::Array> settings = v8::Local<v8::Array>::Cast(args[1]);
@@ -571,7 +649,11 @@ void settings::OBS_settings_getListCategories(const v8::FunctionCallbackInfo<v8:
 	std::vector<std::string> settings = getListCategories();
 
 	for (int i = 0; i < settings.size(); i++) {
-		categories->Set(i, v8::String::NewFromUtf8(isolate, settings.at(i).c_str()).ToLocalChecked());
+		categories->Set(
+			isolate->GetCurrentContext(), 
+			i, 
+			v8::String::NewFromUtf8(isolate, settings.at(i).c_str()).ToLocalChecked()
+		);
 	}
 
 	args.GetReturnValue().Set(categories);

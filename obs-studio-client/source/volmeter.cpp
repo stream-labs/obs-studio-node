@@ -202,7 +202,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Create(Nan::NAN_METHOD_ARGS_TYPE info
 
 	// Validate and retrieve parameters.
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], fader_type);
+	ASSERT_GET_VALUE(info[0], fader_type, info.GetIsolate());
 
 	// Validate Connection
 	auto conn = Controller::GetInstance().GetConnection();
@@ -272,7 +272,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::SetUpdateInterval(Nan::NAN_METHOD_ARG
 
 	// Validate and retrieve parameters.
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], interval);
+	ASSERT_GET_VALUE(info[0], interval, info.GetIsolate());
 
 	if (!Retrieve(info.This(), self)) {
 		return;
@@ -302,7 +302,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Attach(Nan::NAN_METHOD_ARGS_TYPE info
 	}
 
 	v8::Local<v8::Object> sourceObj;
-	ASSERT_GET_VALUE(info[0], sourceObj);
+	ASSERT_GET_VALUE(info[0], sourceObj, info.GetIsolate());
 	if (!osn::ISource::Retrieve(sourceObj, source)) {
 		return;
 	}
@@ -352,7 +352,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::AddCallback(Nan::NAN_METHOD_ARGS_TYPE
 			return;
 		}
 
-		ASSERT_GET_VALUE(info[0], callback);
+		ASSERT_GET_VALUE(info[0], callback, info.GetIsolate());
 	}
 
 	{

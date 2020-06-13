@@ -75,7 +75,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 	std::string name;
 
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], name);
+	ASSERT_GET_VALUE(info[0], name, info.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -110,7 +110,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE 
 	std::string name;
 
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], name);
+	ASSERT_GET_VALUE(info[0], name, info.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -145,7 +145,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FromName(Nan::NAN_METHOD_ARGS_TYPE info)
 	std::string name;
 
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], name);
+	ASSERT_GET_VALUE(info[0], name, info.GetIsolate());
 
 	SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(name);
 
@@ -219,8 +219,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info
 	}
 
 	ASSERT_INFO_LENGTH(info, 2);
-	ASSERT_GET_VALUE(info[0], name);
-	ASSERT_GET_VALUE(info[1], duplicate_type);
+	ASSERT_GET_VALUE(info[0], name, info.GetIsolate());
+	ASSERT_GET_VALUE(info[1], duplicate_type, info.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -259,7 +259,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 
 	osn::Input* input = nullptr;
 	if (info.Length() >= 1) {
-		if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Input>(info[0]->ToObject(), input)) {
+		if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Input>(info[0]->ToObject(info.GetIsolate()->GetCurrentContext()).ToLocalChecked(), input)) {
 			return;
 		}
 	}
@@ -273,7 +273,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 	    ->ToNumber(info.GetIsolate()->GetCurrentContext()).ToLocalChecked()->Value();
 
 	if (info.Length() >= 2) {
-		transform = info[1]->ToObject();
+		transform = info[1]->ToObject(info.GetIsolate()->GetCurrentContext()).ToLocalChecked();
 		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("scaleX"))
 		                                .ToLocalChecked()
 		                                ->ToNumber(info.GetIsolate()->GetCurrentContext())
@@ -288,7 +288,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 		                                ->Value()));
 		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("visible"))
 		                                .ToLocalChecked()
-		                                ->ToBoolean()
+		                                ->ToBoolean(info.GetIsolate())
 		                                ->Value()));
 		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("x"))
 		                                .ToLocalChecked()
@@ -308,31 +308,36 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 
 		crop = transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("crop"))
 		           .ToLocalChecked()
-		           ->ToObject();
+		           ->ToObject(info.GetIsolate()->GetCurrentContext())
+		           .ToLocalChecked();
 		params.push_back(ipc::value(crop->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("left"))
 		                                .ToLocalChecked()
-		                                ->ToInteger()
+		                                ->ToInteger(info.GetIsolate()->GetCurrentContext())
+		                                .ToLocalChecked()
 		                                ->Value()));
 		params.push_back(ipc::value(crop->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("top"))
 		                                .ToLocalChecked()
-		                                ->ToInteger()
+		                                ->ToInteger(info.GetIsolate()->GetCurrentContext())
+		                                .ToLocalChecked()
 		                                ->Value()));
 		params.push_back(ipc::value(crop->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("right"))
 		                                .ToLocalChecked()
-		                                ->ToInteger()
+		                                ->ToInteger(info.GetIsolate()->GetCurrentContext())
+		                                .ToLocalChecked()
 		                                ->Value()));
 		params.push_back(ipc::value(crop->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("bottom"))
 		                                .ToLocalChecked()
-		                                ->ToInteger()
+		                                ->ToInteger(info.GetIsolate()->GetCurrentContext())
+		                                .ToLocalChecked()
 		                                ->Value()));
 
 		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("streamVisible"))
 										.ToLocalChecked()
-										->ToBoolean()
+										->ToBoolean(info.GetIsolate())
 										->Value()));
 		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("recordingVisible"))
 										.ToLocalChecked()
-										->ToBoolean()
+										->ToBoolean(info.GetIsolate())
 										->Value()));
 	}
 
@@ -389,14 +394,32 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 		sid->scaleChanged = false;
 
 		// Visibility
-		sid->isVisible      = transform->Get(utilv8::ToValue("visible"))->ToBoolean()->Value();
+		sid->isVisible = transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("visible"))
+		                  .ToLocalChecked()
+		                  ->ToBoolean(info.GetIsolate())->Value();
 		sid->visibleChanged = false;
 
 		// Crop
-		sid->cropLeft    = crop->Get(utilv8::ToValue("left"))->ToInteger()->Value();
-		sid->cropTop     = crop->Get(utilv8::ToValue("top"))->ToInteger()->Value();
-		sid->cropRight   = crop->Get(utilv8::ToValue("right"))->ToInteger()->Value();
-		sid->cropBottom  = crop->Get(utilv8::ToValue("bottom"))->ToInteger()->Value();
+		sid->cropLeft = transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("left"))
+		                    .ToLocalChecked()
+		                    ->ToInteger(info.GetIsolate()->GetCurrentContext())
+		                    .ToLocalChecked()
+		                    ->Value();
+		sid->cropTop = transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("top"))
+		                    .ToLocalChecked()
+		                    ->ToInteger(info.GetIsolate()->GetCurrentContext())
+		                    .ToLocalChecked()
+		                    ->Value();
+		sid->cropRight = transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("right"))
+		                    .ToLocalChecked()
+		                    ->ToInteger(info.GetIsolate()->GetCurrentContext())
+		                    .ToLocalChecked()
+		                    ->Value();
+		sid->cropBottom = transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("bottom"))
+		                    .ToLocalChecked()
+		                    ->ToInteger(info.GetIsolate()->GetCurrentContext())
+		                    .ToLocalChecked()
+		                    ->Value();
 		sid->cropChanged = false;
 
 		// Rotation
@@ -408,11 +431,17 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 		sid->rotationChanged = false;
 
 		// Stream visible
-		sid->isStreamVisible      = transform->Get(utilv8::ToValue("streamVisible"))->ToBoolean()->Value();
+		sid->isStreamVisible = transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("streamVisible"))
+		                     .ToLocalChecked()
+		                     ->ToBoolean(info.GetIsolate())
+		                     ->Value();
 		sid->streamVisibleChanged = false;
 
 		// Recording visible
-		sid->isRecordingVisible      = transform->Get(utilv8::ToValue("recordingVisible"))->ToBoolean()->Value();
+		sid->isRecordingVisible = transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("recordingVisible"))
+		                     .ToLocalChecked()
+		                     ->ToBoolean(info.GetIsolate())
+		                     ->Value();
 		sid->recordingVisibleChanged = false;
 	}
 
@@ -435,10 +464,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FindItem(Nan::NAN_METHOD_ARGS_TYPE info)
 	ASSERT_INFO_LENGTH(info, 1);
 	if (info[0]->IsNumber()) {
 		haveName = false;
-		ASSERT_GET_VALUE(info[0], position);
+		ASSERT_GET_VALUE(info[0], position, info.GetIsolate());
 	} else if (info[0]->IsString()) {
 		haveName = true;
-		ASSERT_GET_VALUE(info[0], name);
+		ASSERT_GET_VALUE(info[0], name, info.GetIsolate());
 	} else {
 		Nan::TypeError("Expected string or number");
 		return;
@@ -486,8 +515,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::MoveItem(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	int from, to;
 	ASSERT_INFO_LENGTH(info, 2);
-	ASSERT_GET_VALUE(info[0], from);
-	ASSERT_GET_VALUE(info[1], to);
+	ASSERT_GET_VALUE(info[0], from, info.GetIsolate());
+	ASSERT_GET_VALUE(info[1], to, info.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -526,7 +555,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::OrderItems(Nan::NAN_METHOD_ARGS_TYPE inf
 	order.resize(array->Length());
 	for (unsigned int i = 0; i < array->Length(); i++ ) {
 		if (Nan::Has(array, i).FromJust()) {
-			order[i] = Nan::Get(array, i).ToLocalChecked()->IntegerValue();
+			order[i] = Nan::Get(array, i).ToLocalChecked()->IntegerValue(info.GetIsolate()->GetCurrentContext()).ToChecked();
 		}
 	}
 	order_char.resize(order.size()*sizeof(int64_t));
@@ -563,7 +592,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemAtIndex(Nan::NAN_METHOD_ARGS_TYPE
 	}
 
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], index);
+	ASSERT_GET_VALUE(info[0], index, info.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -649,8 +678,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemsInRange(Nan::NAN_METHOD_ARGS_TYP
 
 	int32_t from, to;
 	ASSERT_INFO_LENGTH(info, 2);
-	ASSERT_GET_VALUE(info[0], from);
-	ASSERT_GET_VALUE(info[1], to);
+	ASSERT_GET_VALUE(info[0], from, info.GetIsolate());
+	ASSERT_GET_VALUE(info[1], to, info.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)

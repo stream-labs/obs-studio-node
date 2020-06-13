@@ -182,7 +182,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetVisible(Nan::NAN_METHOD_ARGS_TYPE
 {
 	bool visible;
 
-	ASSERT_GET_VALUE(info[0], visible);
+	ASSERT_GET_VALUE(info[0], visible, info.GetIsolate());
 
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
@@ -238,7 +238,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetSelected(Nan::NAN_METHOD_ARGS_TYP
 {
 	bool selected;
 
-	ASSERT_GET_VALUE(info[0], selected);
+	ASSERT_GET_VALUE(info[0], selected, info.GetIsolate());
 
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
@@ -304,7 +304,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetStreamVisible(Nan::NAN_METHOD_ARG
 {
 	bool streamVisible;
 
-	ASSERT_GET_VALUE(info[0], streamVisible);
+	ASSERT_GET_VALUE(info[0], streamVisible, info.GetIsolate());
 
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
@@ -369,7 +369,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetRecordingVisible(Nan::NAN_METHOD_
 {
 	bool recordingVisible;
 
-	ASSERT_GET_VALUE(info[0], recordingVisible);
+	ASSERT_GET_VALUE(info[0], recordingVisible, info.GetIsolate());
 
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
@@ -449,9 +449,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetPosition(Nan::NAN_METHOD_ARGS_TYP
 	float_t               y;
 
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], vector);
-	ASSERT_GET_OBJECT_FIELD(vector, "x", x);
-	ASSERT_GET_OBJECT_FIELD(vector, "y", y);
+	ASSERT_GET_VALUE(info[0], vector, info.GetIsolate());
+	ASSERT_GET_OBJECT_FIELD(vector, "x", x, info.GetIsolate());
+	ASSERT_GET_OBJECT_FIELD(vector, "y", y, info.GetIsolate());
 
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
@@ -509,7 +509,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetRotation(Nan::NAN_METHOD_ARGS_TYP
 	float_t vector;
 
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], vector);
+	ASSERT_GET_VALUE(info[0], vector, info.GetIsolate());
 
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
@@ -577,9 +577,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetScale(Nan::NAN_METHOD_ARGS_TYPE i
 	float_t               y;
 
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], vector);
-	ASSERT_GET_OBJECT_FIELD(vector, "x", x);
-	ASSERT_GET_OBJECT_FIELD(vector, "y", y);
+	ASSERT_GET_VALUE(info[0], vector, info.GetIsolate());
+	ASSERT_GET_OBJECT_FIELD(vector, "x", x, info.GetIsolate());
+	ASSERT_GET_OBJECT_FIELD(vector, "y", y, info.GetIsolate());
 
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
@@ -626,7 +626,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetScaleFilter(Nan::NAN_METHOD_ARGS_
 {
 	int32_t visible;
 
-	ASSERT_GET_VALUE(info[0], visible);
+	ASSERT_GET_VALUE(info[0], visible, info.GetIsolate());
 
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
@@ -666,7 +666,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetAlignment(Nan::NAN_METHOD_ARGS_TY
 {
 	uint32_t visible;
 
-	ASSERT_GET_VALUE(info[0], visible);
+	ASSERT_GET_VALUE(info[0], visible, info.GetIsolate());
 
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
@@ -712,9 +712,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetBounds(Nan::NAN_METHOD_ARGS_TYPE 
 	float_t               y;
 
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], vector);
-	ASSERT_GET_OBJECT_FIELD(vector, "x", x);
-	ASSERT_GET_OBJECT_FIELD(vector, "y", y);
+	ASSERT_GET_VALUE(info[0], vector, info.GetIsolate());
+	ASSERT_GET_OBJECT_FIELD(vector, "x", x, info.GetIsolate());
+	ASSERT_GET_OBJECT_FIELD(vector, "y", y, info.GetIsolate());
 
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
@@ -753,7 +753,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetBoundsAlignment(Nan::NAN_METHOD_A
 {
 	uint32_t visible;
 
-	ASSERT_GET_VALUE(info[0], visible);
+	ASSERT_GET_VALUE(info[0], visible, info.GetIsolate());
 
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
@@ -792,7 +792,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetBoundsType(Nan::NAN_METHOD_ARGS_T
 {
 	int32_t visible;
 
-	ASSERT_GET_VALUE(info[0], visible);
+	ASSERT_GET_VALUE(info[0], visible, info.GetIsolate());
 
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
@@ -864,11 +864,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetCrop(Nan::NAN_METHOD_ARGS_TYPE in
 	int32_t               bottom;
 
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], vector);
-	ASSERT_GET_OBJECT_FIELD(vector, "left", left);
-	ASSERT_GET_OBJECT_FIELD(vector, "top", top);
-	ASSERT_GET_OBJECT_FIELD(vector, "right", right);
-	ASSERT_GET_OBJECT_FIELD(vector, "bottom", bottom);
+	ASSERT_GET_VALUE(info[0], vector, info.GetIsolate());
+	ASSERT_GET_OBJECT_FIELD(vector, "left", left, info.GetIsolate());
+	ASSERT_GET_OBJECT_FIELD(vector, "top", top, info.GetIsolate());
+	ASSERT_GET_OBJECT_FIELD(vector, "right", right, info.GetIsolate());
+	ASSERT_GET_OBJECT_FIELD(vector, "bottom", bottom, info.GetIsolate());
 
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {
@@ -1057,7 +1057,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::Move(Nan::NAN_METHOD_ARGS_TYPE info)
 {
 	ASSERT_INFO_LENGTH(info, 1);
 	int32_t position;
-	ASSERT_GET_VALUE(info[0], position);
+	ASSERT_GET_VALUE(info[0], position, info.GetIsolate());
 
 	osn::SceneItem* item = nullptr;
 	if (!Retrieve(info.This(), item)) {

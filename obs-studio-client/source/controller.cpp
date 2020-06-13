@@ -343,7 +343,7 @@ void js_setServerPath(const v8::FunctionCallbackInfo<v8::Value>& args)
 		    v8::Exception::TypeError(v8::String::NewFromUtf8(isol, "Argument 'binaryPath' must be of type 'String'.").ToLocalChecked()));
 		return;
 	}
-	serverBinaryPath = *v8::String::Utf8Value(args[0]);
+	serverBinaryPath = *v8::String::Utf8Value(isol, args[0]);
 
 	if (args.Length() == 2) {
 		if (!args[1]->IsString()) {
@@ -352,7 +352,7 @@ void js_setServerPath(const v8::FunctionCallbackInfo<v8::Value>& args)
 			return;
 		}
 
-		serverWorkingPath = *v8::String::Utf8Value(args[1]);
+		serverWorkingPath = *v8::String::Utf8Value(isol, args[1]);
 	} else {
 		serverWorkingPath = get_working_directory();
 	}
@@ -376,7 +376,7 @@ void js_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
 		return;
 	}
 
-	std::string uri = *v8::String::Utf8Value(args[0]);
+	std::string uri = *v8::String::Utf8Value(isol, args[0]);
 	auto        cl  = Controller::GetInstance().connect(uri);
 	if (!cl) {
 		isol->ThrowException(v8::Exception::Error(Nan::New<v8::String>("Failed to connect.").ToLocalChecked()));
@@ -402,7 +402,7 @@ void js_host(const v8::FunctionCallbackInfo<v8::Value>& args)
 		return;
 	}
 
-	std::string uri = *v8::String::Utf8Value(args[0]);
+	std::string uri = *v8::String::Utf8Value(isol, args[0]);
 	auto        cl  = Controller::GetInstance().host(uri);
 	if (!cl) {
 		isol->ThrowException(
@@ -427,6 +427,7 @@ INITIALIZER(js_ipc)
 		NODE_SET_METHOD(obj, "connect", js_connect);
 		NODE_SET_METHOD(obj, "host", js_host);
 		NODE_SET_METHOD(obj, "disconnect", js_disconnect);
-		exports->Set(v8::String::NewFromUtf8(exports->GetIsolate(), "IPC").ToLocalChecked(), obj);
+		exports->Set(
+		    exports->GetIsolate()->GetCurrentContext(), v8::String::NewFromUtf8(exports->GetIsolate(), "IPC").ToLocalChecked(), obj);
 	});
 }

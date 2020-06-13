@@ -46,14 +46,14 @@
 		return;                                                                                          \
 	}
 
-#define ASSERT_GET_OBJECT_FIELD(object, field, var)                                           \
-	if (!utilv8::GetFromObject((object), (field), (var))) {                                   \
+#define ASSERT_GET_OBJECT_FIELD(object, field, var, isol)                                           \
+	if (!utilv8::GetFromObject((object), (field), (var), (isol))) {                                   \
 		Nan::ThrowTypeError(FIELD_NAME(std::string(__FUNCTION_NAME__ ": Unexpected type."))); \
 		return;                                                                               \
 	}
 
-#define ASSERT_GET_VALUE(value, var)                                                          \
-	if (!utilv8::FromValue((value), (var))) {                                                 \
+#define ASSERT_GET_VALUE(value, var, isol)                                                          \
+	if (!utilv8::FromValue((value), (var), (isol) )) {                                                 \
 		Nan::ThrowTypeError(FIELD_NAME(                                                       \
 		    std::string(__FUNCTION_NAME__ ": Unexpected type, got '") + utilv8::TypeOf(value) \
 		    + std::string("', expected '") + utility::TypeOf(var) + std::string("'.")));      \
@@ -138,7 +138,7 @@ namespace utilv8
 	{
 		auto rv = v8::Array::New(v8::Isolate::GetCurrent());
 		for (size_t idx = 0; idx < v.size(); idx++) {
-			rv->Set((uint32_t)idx, ToValue(v[idx]));
+			rv->Set(v8::Isolate::GetCurrent()->GetCurrentContext(), (uint32_t)idx, ToValue(v[idx]));
 		}
 		return rv;
 	}
@@ -202,118 +202,119 @@ namespace utilv8
 	}
 
 	// Integers
-	inline bool FromValue(v8::Local<v8::Value> l, bool& r)
+	inline bool FromValue(v8::Local<v8::Value> l, bool& r, v8::Isolate* isol)
 	{
 		if (l->IsBoolean()) {
-			r = l->BooleanValue();
+			//r = l->BooleanValue();
+			r = Nan::To<bool>(l).FromMaybe(false);
 			return true;
 		}
 		return false;
 	}
 
-	inline bool FromValue(v8::Local<v8::Value> l, int8_t& r)
+	inline bool FromValue(v8::Local<v8::Value> l, int8_t& r, v8::Isolate* isol)
 	{
 		if (l->IsInt32()) {
-			r = l->Int32Value();
+			r = l->Int32Value(isol->GetCurrentContext()).ToChecked();
 			return true;
 		}
 		return false;
 	}
 
-	inline bool FromValue(v8::Local<v8::Value> l, uint8_t& r)
+	inline bool FromValue(v8::Local<v8::Value> l, uint8_t& r, v8::Isolate* isol)
 	{
 		if (l->IsUint32()) {
-			r = l->Uint32Value();
+			r = l->Uint32Value(isol->GetCurrentContext()).ToChecked();
 			return true;
 		}
 		return false;
 	}
 
-	inline bool FromValue(v8::Local<v8::Value> l, int16_t& r)
+	inline bool FromValue(v8::Local<v8::Value> l, int16_t& r, v8::Isolate* isol)
 	{
 		if (l->IsInt32()) {
-			r = l->Int32Value();
+			r = l->Int32Value(isol->GetCurrentContext()).ToChecked();
 			return true;
 		}
 		return false;
 	}
 
-	inline bool FromValue(v8::Local<v8::Value> l, uint16_t& r)
+	inline bool FromValue(v8::Local<v8::Value> l, uint16_t& r, v8::Isolate* isol)
 	{
 		if (l->IsUint32()) {
-			r = l->Uint32Value();
+			r = l->Uint32Value(isol->GetCurrentContext()).ToChecked();
 			return true;
 		}
 		return false;
 	}
 
-	inline bool FromValue(v8::Local<v8::Value> l, int32_t& r)
+	inline bool FromValue(v8::Local<v8::Value> l, int32_t& r, v8::Isolate* isol)
 	{
 		if (l->IsInt32()) {
-			r = l->Int32Value();
+			r = l->Int32Value(isol->GetCurrentContext()).ToChecked();
 			return true;
 		}
 		return false;
 	}
 
-	inline bool FromValue(v8::Local<v8::Value> l, uint32_t& r)
+	inline bool FromValue(v8::Local<v8::Value> l, uint32_t& r, v8::Isolate* isol)
 	{
 		if (l->IsUint32()) {
-			r = l->Uint32Value();
+			r = l->Uint32Value(isol->GetCurrentContext()).ToChecked();
 			return true;
 		}
 		return false;
 	}
 
 	[[deprecated("v8::Number does not map perfectly to 64-bit Integers")]] inline bool
-	    FromValue(v8::Local<v8::Value> l, int64_t& r)
+	    FromValue(v8::Local<v8::Value> l, int64_t& r, v8::Isolate* isol)
 	{
 		if (l->IsNumber()) {
-			r = (int64_t)l->NumberValue();
+			r = (int64_t)l->NumberValue(isol->GetCurrentContext()).ToChecked();
 			return true;
 		}
 		return false;
 	}
 
 	[[deprecated("v8::Number does not map perfectly to 64-bit Integers")]] inline bool
-	    FromValue(v8::Local<v8::Value> l, uint64_t& r)
+	    FromValue(v8::Local<v8::Value> l, uint64_t& r, v8::Isolate* isol)
 	{
 		if (l->IsNumber()) {
-			r = (uint64_t)l->NumberValue();
+			r = (uint64_t)l->NumberValue(isol->GetCurrentContext()).ToChecked();
 			return true;
 		}
 		return false;
 	}
 
 	// Floating Point
-	inline bool FromValue(v8::Local<v8::Value> l, float_t& r)
+	inline bool FromValue(v8::Local<v8::Value> l, float_t& r, v8::Isolate* isol)
 	{
 		if (l->IsNumber()) {
-			r = (float_t)l->NumberValue();
+			r = (float_t)l->NumberValue(isol->GetCurrentContext()).ToChecked();
 			return true;
 		}
 		return false;
 	}
 
-	inline bool FromValue(v8::Local<v8::Value> l, double_t& r)
+	inline bool FromValue(v8::Local<v8::Value> l, double_t& r, v8::Isolate* isol)
 	{
 		if (l->IsNumber()) {
-			r = (double_t)l->NumberValue();
+			r = (double_t)l->NumberValue(isol->GetCurrentContext()).ToChecked();
 			return true;
 		}
 		return false;
 	}
 
 	// Text
-	inline bool FromValue(v8::Local<v8::Value> l, char*& r, size_t length)
+	inline bool FromValue(v8::Local<v8::Value> l, char*& r, size_t length, v8::Isolate* isol)
 	{
 		if (l->IsString()) {
-			auto v8s = l->ToString();
-			if ((v8s->Utf8Length() + 1) <= length) {
-				v8::String::Utf8Value utfv8(v8s);
+			auto v8s = l->ToString(isol->GetCurrentContext()).FromMaybe(v8::Local<v8::String>());
+			v8::String::Utf8Value utfv8(isol, v8s);
+			if ((utfv8.length() + 1) <= length) {
 				if (*utfv8) {
-					memcpy(r, *utfv8, v8s->Utf8Length());
-					r[v8s->Utf8Length()] = 0;
+					memcpy(r, *utfv8, utfv8.length());
+					r[utfv8.length()] = 0;
 					return true;
 				}
 			}
@@ -321,44 +322,44 @@ namespace utilv8
 		return false;
 	}
 
-	inline bool FromValue(v8::Local<v8::Value> l, char*& r)
+	inline bool FromValue(v8::Local<v8::Value> l, char*& r, v8::Isolate* isol)
 	{
 		if (l->IsString()) {
-			auto                  v8s = l->ToString();
-			v8::String::Utf8Value utfv8(v8s);
+			auto v8s = l->ToString(isol->GetCurrentContext()).FromMaybe(v8::Local<v8::String>());
+			v8::String::Utf8Value utfv8(isol, v8s);
 			if (*utfv8) {
-				r = (char*)malloc(v8s->Utf8Length() + 1);
-				memcpy(r, *utfv8, v8s->Utf8Length());
-				r[v8s->Utf8Length()] = 0;
+				r = (char*)malloc(utfv8.length() + 1);
+				memcpy(r, *utfv8, utfv8.length());
+				r[utfv8.length()] = 0;
 				return true;
 			}
 		}
 		return false;
 	}
 
-	inline bool FromValue(v8::Local<v8::Value> l, std::string& r)
+	inline bool FromValue(v8::Local<v8::Value> l, std::string& r, v8::Isolate* isol)
 	{
 		if (l->IsString()) {
-			auto                  v8s = l->ToString();
-			v8::String::Utf8Value utfv8(v8s);
+			auto v8s = l->ToString(isol->GetCurrentContext()).FromMaybe(v8::Local<v8::String>());
+			v8::String::Utf8Value utfv8(isol, v8s);
 			if (*utfv8) {
-				r = std::string(*utfv8, v8s->Utf8Length());
+				r = std::string(*utfv8, utfv8.length());
 				return true;
 			}
 		}
 		return false;
 	}
 
-	inline bool FromValue(v8::Local<v8::Value> l, v8::Local<v8::Object>& r)
+	inline bool FromValue(v8::Local<v8::Value> l, v8::Local<v8::Object>& r, v8::Isolate* isol)
 	{
 		if (l->IsObject()) {
-			r = l->ToObject();
+			r = l->ToObject(isol->GetCurrentContext()).ToLocalChecked();
 			return true;
 		}
 		return false;
 	}
 
-	inline bool FromValue(v8::Local<v8::Value> l, v8::Local<v8::Function>& r)
+	inline bool FromValue(v8::Local<v8::Value> l, v8::Local<v8::Function>& r, v8::Isolate* isol)
 	{
 		if (l->IsFunction()) {
 			r = l.As<v8::Function>();
@@ -463,10 +464,10 @@ namespace utilv8
 	}
 
 	template<typename Type>
-	bool GetFromObject(v8::Local<v8::Object> object, const char* field, Type& var)
+	bool GetFromObject(v8::Local<v8::Object> object, const char* field, Type& var, v8::Isolate* isol)
 	{
 		auto field_value = Nan::Get(object, ToValue(field)).ToLocalChecked();
-		return FromValue(field_value, var);
+		return FromValue(field_value, var, isol);
 	}
 
 	inline void SetObjectAccessor(
@@ -589,7 +590,7 @@ namespace utilv8
 	inline std::string TypeOf(v8::Local<v8::Value> v)
 	{
 		v8::Local<v8::String> type = v->TypeOf(v8::Isolate::GetCurrent());
-		return std::string(*v8::String::Utf8Value(type));
+		return std::string(*v8::String::Utf8Value(v8::Isolate::GetCurrent(), type));
 	}
 
 	/* This structure is an adaptation of one used in SQLite Node bindings.

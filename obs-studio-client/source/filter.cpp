@@ -84,15 +84,15 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 	// Parameters: <string> Type, <string> Name[,<object> settings]
 	ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
 
-	ASSERT_GET_VALUE(info[0], type);
-	ASSERT_GET_VALUE(info[1], name);
+	ASSERT_GET_VALUE(info[0], type, info.GetIsolate());
+	ASSERT_GET_VALUE(info[1], name, info.GetIsolate());
 
 	// Check if caller provided settings to send across.
 	if (info.Length() >= 3) {
 		ASSERT_INFO_LENGTH(info, 3);
 
 		v8::Local<v8::Object> setobj;
-		ASSERT_GET_VALUE(info[2], setobj);
+		ASSERT_GET_VALUE(info[2], setobj, info.GetIsolate());
 
 		settings = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), setobj).ToLocalChecked();
 	}
@@ -104,7 +104,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 	auto params = std::vector<ipc::value>{ipc::value(type), ipc::value(name)};
 	if (settings->Length() != 0) {
 		std::string value;
-		if (utilv8::FromValue(settings, value)) {
+		if (utilv8::FromValue(settings, value, info.GetIsolate())) {
 			params.push_back(ipc::value(value));
 		}
 	}

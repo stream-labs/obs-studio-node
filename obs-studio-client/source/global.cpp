@@ -47,7 +47,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Global::getOutputSource(Nan::NAN_METHOD_ARGS_TY
 {
 	ASSERT_INFO_LENGTH(info, 1);
 	uint32_t channel;
-	ASSERT_GET_VALUE(info[0], channel);
+	ASSERT_GET_VALUE(info[0], channel, info.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -81,9 +81,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Global::setOutputSource(Nan::NAN_METHOD_ARGS_TY
 	osn::ISource*         source = nullptr;
 
 	ASSERT_INFO_LENGTH(info, 2);
-	ASSERT_GET_VALUE(info[0], channel);
+	ASSERT_GET_VALUE(info[0], channel, info.GetIsolate());
 	if (info[1]->IsObject()) {
-		ASSERT_GET_VALUE(info[1], source_object);
+		ASSERT_GET_VALUE(info[1], source_object, info.GetIsolate());
 
 		if (!osn::ISource::Retrieve(source_object, source)) {
 			return;
@@ -102,7 +102,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Global::getOutputFlagsFromId(Nan::NAN_METHOD_AR
 	std::string id;
 
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], id);
+	ASSERT_GET_VALUE(info[0], id, info.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -164,7 +164,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Global::setLocale(Nan::NAN_METHOD_ARGS_TYPE inf
 	std::string locale;
 
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], locale);
+	ASSERT_GET_VALUE(info[0], locale, info.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -192,7 +192,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Global::setMultipleRendering(Nan::NAN_METHOD_AR
 	bool multipleRendering;
 
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], multipleRendering);
+	ASSERT_GET_VALUE(info[0], multipleRendering, info.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)

@@ -62,8 +62,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Module::Open(Nan::NAN_METHOD_ARGS_TYPE info)
 	std::string bin_path, data_path;
 
 	ASSERT_INFO_LENGTH(info, 2);
-	ASSERT_GET_VALUE(info[0], bin_path);
-	ASSERT_GET_VALUE(info[1], data_path);
+	ASSERT_GET_VALUE(info[0], bin_path, info.GetIsolate());
+	ASSERT_GET_VALUE(info[1], data_path, info.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -90,13 +90,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Module::Modules(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!ValidateResponse(response))
 		return;
 
-	v8::Isolate*         isolate    = v8::Isolate::GetCurrent();
+	v8::Isolate*         isolate = v8::Isolate::GetCurrent();
 	v8::Local<v8::Array> modules = v8::Array::New(isolate);
 
 	uint64_t size = response[1].value_union.ui64;
 
 	for (uint64_t i = 2; i < (size + 2); i++) {
-		modules->Set(i - 2, v8::String::NewFromUtf8(isolate, response.at(i).value_str.c_str()).ToLocalChecked());
+		modules->Set(isolate->GetCurrentContext(), i - 2, v8::String::NewFromUtf8(isolate, response.at(i).value_str.c_str()).ToLocalChecked());
 	}
 
 	info.GetReturnValue().Set(modules);

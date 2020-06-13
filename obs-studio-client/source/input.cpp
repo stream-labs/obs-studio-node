@@ -113,15 +113,15 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 	// Parameters: <string> Type, <string> Name[,<object> settings]
 	ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
 
-	ASSERT_GET_VALUE(info[0], type);
-	ASSERT_GET_VALUE(info[1], name);
+	ASSERT_GET_VALUE(info[0], type, info.GetIsolate());
+	ASSERT_GET_VALUE(info[1], name, info.GetIsolate());
 
 	// Check if caller provided settings to send across.
 	if (info.Length() >= 4) {
 		ASSERT_INFO_LENGTH(info, 4);
 		if (!info[3]->IsUndefined()) {
 			v8::Local<v8::Object> hksobj;
-			ASSERT_GET_VALUE(info[3], hksobj);
+			ASSERT_GET_VALUE(info[3], hksobj, info.GetIsolate());
 			hotkeys = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), hksobj).ToLocalChecked();
 		}
 	}
@@ -129,7 +129,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 		ASSERT_INFO_LENGTH_AT_LEAST(info, 3);
 		if (!info[2]->IsUndefined()) {
 			v8::Local<v8::Object> setobj;
-			ASSERT_GET_VALUE(info[2], setobj);
+			ASSERT_GET_VALUE(info[2], setobj, info.GetIsolate());
 			settings = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), setobj).ToLocalChecked();
 		}
 	}
@@ -141,13 +141,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 	auto params = std::vector<ipc::value>{ipc::value(type), ipc::value(name)};
 	if (settings->Length() != 0) {
 		std::string value;
-		if (utilv8::FromValue(settings, value)) {
+		if (utilv8::FromValue(settings, value, info.GetIsolate())) {
 			params.push_back(ipc::value(value));
 		}
 	}
 	if (hotkeys->Length() != 0) {
 		std::string value;
-		if (utilv8::FromValue(hotkeys, value)) {
+		if (utilv8::FromValue(hotkeys, value, info.GetIsolate())) {
 			params.push_back(ipc::value(value));
 		}
 	}
@@ -181,15 +181,15 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE 
 	// Parameters: <string> Type, <string> Name[,<object> settings]
 	ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
 
-	ASSERT_GET_VALUE(info[0], type);
-	ASSERT_GET_VALUE(info[1], name);
+	ASSERT_GET_VALUE(info[0], type, info.GetIsolate());
+	ASSERT_GET_VALUE(info[1], name, info.GetIsolate());
 
 	// Check if caller provided settings to send across.
 	if (info.Length() >= 3) {
 		ASSERT_INFO_LENGTH(info, 3);
 
 		v8::Local<v8::Object> setobj;
-		ASSERT_GET_VALUE(info[2], setobj);
+		ASSERT_GET_VALUE(info[2], setobj, info.GetIsolate());
 
 		settings = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), setobj).ToLocalChecked();
 	}
@@ -201,7 +201,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE 
 	auto params = std::vector<ipc::value>{ipc::value(type), ipc::value(name)};
 	if (settings->Length() != 0) {
 		std::string value;
-		if (utilv8::FromValue(settings, value)) {
+		if (utilv8::FromValue(settings, value, info.GetIsolate())) {
 			params.push_back(ipc::value(value));
 		}
 	}
@@ -232,7 +232,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::FromName(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	// Parameters: <string> Name
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], name);
+	ASSERT_GET_VALUE(info[0], name, info.GetIsolate());
 
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(name);
 
@@ -294,11 +294,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info
 	bool        is_private = false;
 	ASSERT_INFO_LENGTH_AT_LEAST(info, 0);
 	if (info.Length() >= 1) {
-		ASSERT_GET_VALUE(info[0], name);
+		ASSERT_GET_VALUE(info[0], name, info.GetIsolate());
 	}
 	if (info.Length() >= 2) {
 		ASSERT_INFO_LENGTH(info, 2);
-		ASSERT_GET_VALUE(info[1], is_private);
+		ASSERT_GET_VALUE(info[1], is_private, info.GetIsolate());
 	}
 
 	auto conn = GetConnection();
@@ -459,7 +459,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetVolume(Nan::NAN_METHOD_ARGS_TYPE info
 
 	float_t volume = 0.0f;
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], volume);
+	ASSERT_GET_VALUE(info[0], volume, info.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -514,11 +514,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE 
 
 	v8::Local<v8::Object> tsobj;
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], tsobj);
+	ASSERT_GET_VALUE(info[0], tsobj, info.GetIsolate());
 
 	int64_t sec, nsec;
-	ASSERT_GET_OBJECT_FIELD(tsobj, "sec", sec);
-	ASSERT_GET_OBJECT_FIELD(tsobj, "nsec", nsec);
+	ASSERT_GET_OBJECT_FIELD(tsobj, "sec", sec, info.GetIsolate());
+	ASSERT_GET_OBJECT_FIELD(tsobj, "nsec", nsec, info.GetIsolate());
 
 	int64_t syncoffset = sec * 1000000000 + nsec;
 
@@ -579,7 +579,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE
 
 	uint32_t audiomixers = 0;
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], audiomixers);
+	ASSERT_GET_VALUE(info[0], audiomixers, info.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -632,7 +632,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetMonitoringType(Nan::NAN_METHOD_ARGS_T
 
 	int32_t audiomixers = 0;
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], audiomixers);
+	ASSERT_GET_VALUE(info[0], audiomixers, info.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -680,7 +680,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetDeinterlaceFieldOrder(Nan::NAN_METHOD
 
 	int32_t audiomixers = 0;
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], audiomixers);
+	ASSERT_GET_VALUE(info[0], audiomixers, info.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -729,7 +729,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetDeinterlaceMode(Nan::NAN_METHOD_ARGS_
 
 	int32_t audiomixers = 0;
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], audiomixers);
+	ASSERT_GET_VALUE(info[0], audiomixers, info.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -813,7 +813,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::AddFilter(Nan::NAN_METHOD_ARGS_TYPE info
 	ASSERT_INFO_LENGTH(info, 1);
 
 	v8::Local<v8::Object> objfilter;
-	ASSERT_GET_VALUE(info[0], objfilter);
+	ASSERT_GET_VALUE(info[0], objfilter, info.GetIsolate());
 
 	osn::ISource* basefilter = nullptr;
 	if (!osn::ISource::Retrieve(objfilter, basefilter)) {
@@ -854,7 +854,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::RemoveFilter(Nan::NAN_METHOD_ARGS_TYPE i
 	ASSERT_INFO_LENGTH(info, 1);
 
 	v8::Local<v8::Object> objfilter;
-	ASSERT_GET_VALUE(info[0], objfilter);
+	ASSERT_GET_VALUE(info[0], objfilter, info.GetIsolate());
 
 	osn::ISource* basefilter = nullptr;
 	if (!osn::ISource::Retrieve(objfilter, basefilter)) {
@@ -890,8 +890,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetFilterOrder(Nan::NAN_METHOD_ARGS_TYPE
 
 	v8::Local<v8::Object> objfilter;
 	uint32_t              movement;
-	ASSERT_GET_VALUE(info[0], objfilter);
-	ASSERT_GET_VALUE(info[1], movement);
+	ASSERT_GET_VALUE(info[0], objfilter, info.GetIsolate());
+	ASSERT_GET_VALUE(info[1], movement, info.GetIsolate());
 
 	osn::ISource* basefilter = nullptr;
 	if (!osn::ISource::Retrieve(objfilter, basefilter)) {
@@ -927,7 +927,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::FindFilter(Nan::NAN_METHOD_ARGS_TYPE inf
 	ASSERT_INFO_LENGTH(info, 1);
 
 	std::string name;
-	ASSERT_GET_VALUE(info[0], name);
+	ASSERT_GET_VALUE(info[0], name, info.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -961,7 +961,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::CopyFilters(Nan::NAN_METHOD_ARGS_TYPE in
 	ASSERT_INFO_LENGTH(info, 1);
 
 	v8::Local<v8::Object> objinput;
-	ASSERT_GET_VALUE(info[0], objinput);
+	ASSERT_GET_VALUE(info[0], objinput, info.GetIsolate());
 
 	osn::ISource* baseinput = nullptr;
 	if (!osn::ISource::Retrieve(objinput, baseinput)) {

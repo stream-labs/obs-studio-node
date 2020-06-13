@@ -377,7 +377,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetSettings(Nan::NAN_METHOD_ARGS_TYPE 
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Update(Nan::NAN_METHOD_ARGS_TYPE info)
 {
 	v8::Local<v8::Object> json;
-	ASSERT_GET_VALUE(info[0], json);
+	ASSERT_GET_VALUE(info[0], json, info.GetIsolate());
 	bool shouldUpdate = true;
 
 	// Retrieve Object
@@ -388,7 +388,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Update(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	// Turn json into string
 	v8::Local<v8::String> jsondata = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), json).ToLocalChecked();
-	v8::String::Utf8Value jsondatautf8(jsondata);
+	v8::String::Utf8Value jsondatautf8(info.GetIsolate(), jsondata);
 
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(hndl->sourceId);
 
@@ -513,7 +513,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetName(Nan::NAN_METHOD_ARGS_TYPE info
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetName(Nan::NAN_METHOD_ARGS_TYPE info)
 {
 	std::string name;
-	ASSERT_GET_VALUE(info[0], name);
+	ASSERT_GET_VALUE(info[0], name, info.GetIsolate());
 
 	osn::ISource* is;
 	if (!utilv8::SafeUnwrap(info, is)) {
@@ -569,7 +569,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetFlags(Nan::NAN_METHOD_ARGS_TYPE inf
 Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetFlags(Nan::NAN_METHOD_ARGS_TYPE info)
 {
 	uint32_t flags;
-	ASSERT_GET_VALUE(info[0], flags);
+	ASSERT_GET_VALUE(info[0], flags, info.GetIsolate());
 
 	osn::ISource* is;
 	if (!utilv8::SafeUnwrap(info, is)) {
@@ -671,7 +671,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetMuted(Nan::NAN_METHOD_ARGS_TYPE inf
 {
 	bool muted;
 
-	ASSERT_GET_VALUE(info[0], muted);
+	ASSERT_GET_VALUE(info[0], muted, info.GetIsolate());
 
 	osn::ISource* is;
 	if (!utilv8::SafeUnwrap(info, is)) {
@@ -714,7 +714,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetEnabled(Nan::NAN_METHOD_ARGS_TYPE i
 {
 	bool enabled;
 
-	ASSERT_GET_VALUE(info[0], enabled);
+	ASSERT_GET_VALUE(info[0], enabled, info.GetIsolate());
 
 	osn::ISource* is;
 	if (!utilv8::SafeUnwrap(info, is)) {
@@ -744,16 +744,16 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseClick(Nan::NAN_METHOD_ARGS_TY
 	bool                  mouse_up;
 	uint32_t              click_count;
 
-	ASSERT_GET_VALUE(info[0], mouse_event_obj);
-	ASSERT_GET_VALUE(info[1], type);
-	ASSERT_GET_VALUE(info[2], mouse_up);
-	ASSERT_GET_VALUE(info[3], click_count);
+	ASSERT_GET_VALUE(info[0], mouse_event_obj, info.GetIsolate());
+	ASSERT_GET_VALUE(info[1], type, info.GetIsolate());
+	ASSERT_GET_VALUE(info[2], mouse_up, info.GetIsolate());
+	ASSERT_GET_VALUE(info[3], click_count, info.GetIsolate());
 
 	uint32_t modifiers, x, y;
 
-	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "modifiers", modifiers);
-	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "x", x);
-	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "y", y);
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "modifiers", modifiers, info.GetIsolate());
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "x", x, info.GetIsolate());
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "y", y, info.GetIsolate());
 
 	conn->call(
 	    "Source",
@@ -784,14 +784,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseMove(Nan::NAN_METHOD_ARGS_TYP
 	v8::Local<v8::Object> mouse_event_obj;
 	bool                  mouse_leave;
 
-	ASSERT_GET_VALUE(info[0], mouse_event_obj);
-	ASSERT_GET_VALUE(info[1], mouse_leave);
+	ASSERT_GET_VALUE(info[0], mouse_event_obj, info.GetIsolate());
+	ASSERT_GET_VALUE(info[1], mouse_leave, info.GetIsolate());
 
 	uint32_t modifiers, x, y;
 
-	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "modifiers", modifiers);
-	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "x", x);
-	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "y", y);
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "modifiers", modifiers, info.GetIsolate());
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "x", x, info.GetIsolate());
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "y", y, info.GetIsolate());
 
 	conn->call("Source", "SendMouseMove", {ipc::value(obj->sourceId), ipc::value(modifiers), ipc::value(x), ipc::value(y), ipc::value(mouse_leave)});
 }
@@ -810,15 +810,15 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseWheel(Nan::NAN_METHOD_ARGS_TY
 	v8::Local<v8::Object> mouse_event_obj;
 	int                   x_delta, y_delta;
 
-	ASSERT_GET_VALUE(info[0], mouse_event_obj);
-	ASSERT_GET_VALUE(info[1], x_delta);
-	ASSERT_GET_VALUE(info[2], y_delta);
+	ASSERT_GET_VALUE(info[0], mouse_event_obj, info.GetIsolate());
+	ASSERT_GET_VALUE(info[1], x_delta, info.GetIsolate());
+	ASSERT_GET_VALUE(info[2], y_delta, info.GetIsolate());
 
 	uint32_t modifiers, x, y;
 
-	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "modifiers", modifiers);
-	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "x", x);
-	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "y", y);
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "modifiers", modifiers, info.GetIsolate());
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "x", x, info.GetIsolate());
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "y", y, info.GetIsolate());
 
 	conn->call(
 	    "Source",
@@ -843,7 +843,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendFocus(Nan::NAN_METHOD_ARGS_TYPE in
 
 	bool focus;
 
-	ASSERT_GET_VALUE(info[0], focus);
+	ASSERT_GET_VALUE(info[0], focus, info.GetIsolate());
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -866,17 +866,17 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendKeyClick(Nan::NAN_METHOD_ARGS_TYPE
 	v8::Local<v8::Object> key_event_obj;
 	bool                  key_up;
 
-	ASSERT_GET_VALUE(info[0], key_event_obj);
-	ASSERT_GET_VALUE(info[1], key_up);
+	ASSERT_GET_VALUE(info[0], key_event_obj, info.GetIsolate());
+	ASSERT_GET_VALUE(info[1], key_up, info.GetIsolate());
 
 	uint32_t    modifiers, native_modifiers, native_scancode, native_vkey;
 	std::string text;
 
-	ASSERT_GET_OBJECT_FIELD(key_event_obj, "modifiers", modifiers);
-	ASSERT_GET_OBJECT_FIELD(key_event_obj, "text", text);
-	ASSERT_GET_OBJECT_FIELD(key_event_obj, "nativeModifiers", native_modifiers);
-	ASSERT_GET_OBJECT_FIELD(key_event_obj, "nativeScancode", native_scancode);
-	ASSERT_GET_OBJECT_FIELD(key_event_obj, "nativeVkey", native_vkey);
+	ASSERT_GET_OBJECT_FIELD(key_event_obj, "modifiers", modifiers, info.GetIsolate());
+	ASSERT_GET_OBJECT_FIELD(key_event_obj, "text", text, info.GetIsolate());
+	ASSERT_GET_OBJECT_FIELD(key_event_obj, "nativeModifiers", native_modifiers, info.GetIsolate());
+	ASSERT_GET_OBJECT_FIELD(key_event_obj, "nativeScancode", native_scancode, info.GetIsolate());
+	ASSERT_GET_OBJECT_FIELD(key_event_obj, "nativeVkey", native_vkey, info.GetIsolate());
 
 	conn->call(
 	    "Source",

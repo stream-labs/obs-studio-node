@@ -60,12 +60,12 @@ void CallbackManager::callback_handler(void* data, std::shared_ptr<SourceSizeInf
 		return;
 
 	for (auto item : sourceSizes->items) {
-		v8::Local<v8::Value> argv = v8::Object::New(isolate);
-		argv->ToObject()->Set(utilv8::ToValue("name"), utilv8::ToValue(item->name));
-		argv->ToObject()->Set(utilv8::ToValue("width"), utilv8::ToValue(item->width));
-		argv->ToObject()->Set(utilv8::ToValue("height"), utilv8::ToValue(item->height));
-		argv->ToObject()->Set(utilv8::ToValue("flags"), utilv8::ToValue(item->flags));
-		rslt->Set(i++, argv);
+		v8::Local<v8::Object> argv = v8::Object::New(isolate);
+		argv->Set(isolate->GetCurrentContext(),utilv8::ToValue("name"), utilv8::ToValue(item->name));
+		argv->Set(isolate->GetCurrentContext(), utilv8::ToValue("width"), utilv8::ToValue(item->width));
+		argv->Set(isolate->GetCurrentContext(), utilv8::ToValue("height"), utilv8::ToValue(item->height));
+		argv->Set(isolate->GetCurrentContext(), utilv8::ToValue("flags"), utilv8::ToValue(item->flags));
+		rslt->Set(isolate->GetCurrentContext(), i++, argv);
 	}	
 
 	args[0] = rslt;
@@ -95,7 +95,7 @@ static v8::Persistent<v8::Object> cm_CallbackObject;
 void RegisterSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	v8::Local<v8::Function> callback;
-	ASSERT_GET_VALUE(args[0], callback);
+	ASSERT_GET_VALUE(args[0], callback, args.GetIsolate());
 
 	// Grab IPC Connection
 	std::shared_ptr<ipc::client> conn = nullptr;

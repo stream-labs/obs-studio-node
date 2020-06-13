@@ -70,7 +70,7 @@ void osn::Fader::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	// Validate and retrieve parameters.
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], fader_type);
+	ASSERT_GET_VALUE(info[0], fader_type, info.GetIsolate());
 
 	// Validate Connection
 	auto conn = Controller::GetInstance().GetConnection();
@@ -137,7 +137,7 @@ void osn::Fader::SetDezibel(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	// Validate and retrieve parameters.
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], dezibel);
+	ASSERT_GET_VALUE(info[0], dezibel, info.GetIsolate());
 
 	if (!Retrieve(info.This(), fader)) {
 		return;
@@ -195,7 +195,7 @@ void osn::Fader::SetDeflection(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	// Validate and retrieve parameters.
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], dezibel);
+	ASSERT_GET_VALUE(info[0], dezibel, info.GetIsolate());
 
 	if (!Retrieve(info.This(), fader)) {
 		return;
@@ -253,7 +253,7 @@ void osn::Fader::SetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	// Validate and retrieve parameters.
 	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], dezibel);
+	ASSERT_GET_VALUE(info[0], dezibel, info.GetIsolate());
 
 	if (!Retrieve(info.This(), fader)) {
 		return;
@@ -283,7 +283,7 @@ void osn::Fader::Attach(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 
 	v8::Local<v8::Object> sourceObj;
-	ASSERT_GET_VALUE(info[0], sourceObj);
+	ASSERT_GET_VALUE(info[0], sourceObj, info.GetIsolate());
 	if (!osn::ISource::Retrieve(sourceObj, source)) {
 		return;
 	}
