@@ -82,26 +82,26 @@ extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = [] {
 int main(int, char ** , char **){}
 
 // Definition based on addon_register_func, see 'node.h:L384'.
-void main_node(v8::Local<v8::Object> exports, v8::Local<v8::Value> module, void* priv)
+NAN_MODULE_INIT(main_node)
 {
-	osn::Global::Register(exports);
-	osn::ISource::Register(exports);
-	osn::Input::Register(exports);
-	osn::Filter::Register(exports);
-	osn::Transition::Register(exports);
-	osn::Scene::Register(exports);
-	osn::SceneItem::Register(exports);
-	osn::Properties::Register(exports);
-	osn::PropertyObject::Register(exports);
-	osn::Fader::Register(exports);
-	osn::VolMeter::Register(exports);
-	osn::Video::Register(exports);
-	osn::Module::Register(exports);
+	osn::Global::Register(target);
+	osn::ISource::Register(target);
+	osn::Input::Register(target);
+	osn::Filter::Register(target);
+	osn::Transition::Register(target);
+	osn::Scene::Register(target);
+	osn::SceneItem::Register(target);
+	osn::Properties::Register(target);
+	osn::PropertyObject::Register(target);
+	osn::Fader::Register(target);
+	osn::VolMeter::Register(target);
+	osn::Video::Register(target);
+	osn::Module::Register(target);
 
 	while (initializerFunctions.size() > 0) {
-		initializerFunctions.front()(exports);
+		initializerFunctions.front()(target);
 		initializerFunctions.pop();
 	}
 };
 
-NODE_MODULE(obs_studio_node, main_node); // Upgrade to NAPI_MODULE once N-API hits stable/beta.
+NAN_MODULE_WORKER_ENABLED(obs_studio_node, main_node); // Upgrade to NAPI_MODULE once N-API hits stable/beta.
