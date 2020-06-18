@@ -87,6 +87,7 @@ set(PROJECT_INCLUDE_PATHS
 
 if(WIN32)
 	target_sources(obs_studio_client PUBLIC ${PROJECT_BINARY_DIR}/version.rc)
+	add_definitions(/Ob0)
 endif()
 
 target_link_libraries(obs_studio_client lib-streamlabs-ipc)
@@ -109,6 +110,7 @@ set_target_properties(
 target_compile_definitions(obs_studio_client PRIVATE BUILDING_NODE_EXTENSION)
 
 if(WIN32)
+
 	target_compile_definitions(
 		obs_studio_client
 		PRIVATE
