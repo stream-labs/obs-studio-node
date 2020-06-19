@@ -140,7 +140,7 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 	std::vector<std::string>::iterator it = std::find(listSettings.begin(), listSettings.end(), category);
 
 	if (it == listSettings.end()) {
-		v8::Isolate*         isolate = v8::Isolate::GetCurrent();
+		v8::Isolate*         isolate = args.GetIsolate();
 		v8::Local<v8::Array> rval    = v8::Array::New(isolate);
 		args.GetReturnValue().Set(rval);
 		return;
@@ -156,7 +156,7 @@ void settings::OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value
 	if (!ValidateResponse(response))
 		return;
 
-	v8::Isolate*          isolate  = v8::Isolate::GetCurrent();
+	v8::Isolate*          isolate  = args.GetIsolate();
 	v8::Local<v8::Array>  array    = v8::Array::New(isolate);
 	v8::Local<v8::Object> settings = v8::Object::New(isolate);
 
@@ -533,9 +533,9 @@ std::vector<char> deserializeCategory(uint32_t* subCategoriesCount, uint32_t* si
 				                          isolate->GetCurrentContext(),
 				                          v8::String::NewFromUtf8(isolate, "currentValue").ToLocalChecked())
 				                      .ToLocalChecked();
-				uint64_t value;
-				utilv8::FromValue(paramValue, value, isolate);
-
+				bool bool_value;
+				utilv8::FromValue(paramValue, bool_value, isolate);
+				uint64_t value = bool_value ? 1 : 0;
 				param.sizeOfCurrentValue = sizeof(value);
 				param.currentValue.resize(sizeof(value));
 				memcpy(param.currentValue.data(), &value, sizeof(value));
