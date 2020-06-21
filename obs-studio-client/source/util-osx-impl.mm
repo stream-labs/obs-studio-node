@@ -74,20 +74,38 @@ bool replace(std::string& str, const std::string& from, const std::string& to) {
 
 void UtilObjCInt::installPlugin()
 {
+	char ch;
+	FILE *fpw;
+	fpw = fopen("/tmp/log-osn-client.txt","w");
+
+	if(fpw == NULL)
+	{
+		printf("Error");   
+		exit(1);             
+	}
+
+	fprintf(fpw,"%c", "test - 0");
+
 	NSDictionary *error = [NSDictionary dictionary];
 	std::string pathToScript = g_server_working_dir + "/data/obs-plugins/slobs-virtual-cam/install-plugin.sh";
 	std::cout << "launching: " << pathToScript.c_str() << std::endl;
 
+	fprintf(fpw,"%c", "test - 1");
 	replace(pathToScript, " ", "\\\\ ");
 	std::string arg = g_server_working_dir + "/data/obs-plugins/slobs-virtual-cam";
+	fprintf(fpw,"%c", "test - 2");
 	replace(arg, " ", "\\\\ ");
 	std::string cmd = "do shell script \"/bin/sh " + pathToScript + " " + arg + "\" with administrator privileges";
 
+	fprintf(fpw,"%c", "test - 3");
 	NSString *script = [NSString stringWithCString:cmd.c_str()
 	                            encoding:[NSString defaultCStringEncoding]];
 	NSAppleScript *run = [[NSAppleScript alloc]initWithSource:script];
+	fprintf(fpw,"%c", "test - 4");
 	[run executeAndReturnError:&error];
+	fprintf(fpw,"%c", "test - 5");
 	NSLog(@"errors: %@", error);
+	fclose(fpw);
 }
 
 @end

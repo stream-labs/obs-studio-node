@@ -99,7 +99,9 @@ void OBS_service::Register(ipc::server& srv)
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_startVirtualWebcam", std::vector<ipc::type>{}, OBS_service_startVirtualWebcam));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_stopVirtualWebcan", std::vector<ipc::type>{}, OBS_service_stopVirtualWebcan));
+	    "OBS_service_stopVirtualWebcam", std::vector<ipc::type>{}, OBS_service_stopVirtualWebcam));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_service_setMirroring", std::vector<ipc::type>{ipc::type::Int32}, OBS_service_setMirroring));
 
 	srv.register_collection(cls);
 }
@@ -2375,7 +2377,7 @@ void OBS_service::OBS_service_startVirtualWebcam(
 		blog(LOG_ERROR, "Failed to start the Virtual Webcam Output");
 }
 
-void OBS_service::OBS_service_stopVirtualWebcan(
+void OBS_service::OBS_service_stopVirtualWebcam(
 	void*                          data,
 	const int64_t                  id,
 	const std::vector<ipc::value>& args,
@@ -2385,4 +2387,21 @@ void OBS_service::OBS_service_stopVirtualWebcan(
 		return;
 	
 	obs_output_stop(virtualWebcamOutput);
+}
+
+void OBS_service::OBS_service_setMirroring(
+	void*                          data,
+	const int64_t                  id,
+	const std::vector<ipc::value>& args,
+	std::vector<ipc::value>&       rval)
+{
+	if (!virtualWebcamOutput)
+		return;
+	
+	bool state = args[0].value_union.i32;
+	obs_data_t *settings = obs_data_create();
+	obs_data_set_bool(settings, "mirroring", state);
+	
+	obs_output_update(virtualWebcamOutput, settings);
+	obs_data_release(settings);
 }

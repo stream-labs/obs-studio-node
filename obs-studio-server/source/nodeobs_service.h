@@ -186,7 +186,12 @@ class OBS_service
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
-	static void OBS_service_stopVirtualWebcan(
+	static void OBS_service_stopVirtualWebcam(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_service_setMirroring(
 	    void*                          data,
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,

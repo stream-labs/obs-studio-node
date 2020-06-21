@@ -340,6 +340,17 @@ void service::OBS_service_installVirtualCamPlugin(const v8::FunctionCallbackInfo
 	g_util_osx->installPlugin();
 }
 
+void service::OBS_service_setMirroring(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	bool state;
+	ASSERT_GET_VALUE(args[0], state);
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	conn->call("Service", "OBS_service_setMirroring", {ipc::value(state)});
+}
+
 INITIALIZER(nodeobs_service)
 {
 	initializerFunctions->push([](v8::Local<v8::Object> exports) {
@@ -376,5 +387,7 @@ INITIALIZER(nodeobs_service)
 		NODE_SET_METHOD(exports, "OBS_service_stopVirtualWebcam", service::OBS_service_stopVirtualWebcam);
 
 		NODE_SET_METHOD(exports, "OBS_service_installVirtualCamPlugin", service::OBS_service_installVirtualCamPlugin);
+
+		NODE_SET_METHOD(exports, "OBS_service_setMirroring", service::OBS_service_setMirroring);
 	});
 }
