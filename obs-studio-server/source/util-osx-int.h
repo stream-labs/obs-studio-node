@@ -20,6 +20,8 @@
 #define __UTIL_OBJC_INTERFACE_H__
 
 #include <string>
+#include <thread>
+#include <vector>
 
 class UtilObjCInt
 {
@@ -36,9 +38,12 @@ public:
     std::vector<std::pair<uint32_t, uint32_t>> getAvailableScreenResolutions(void);
     std::string getUserDataPath(void);
     std::string getWorkingDirectory(void);
+    void wait_terminate(void);
 
 private:
     void * self;
+    bool appRunning;
+    std::thread *worker;
 };
 
 #endif

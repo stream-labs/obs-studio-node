@@ -3,15 +3,47 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/sysctl.h>
-#include <string>
 
 #import <mach/mach.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+void UtilObjCInt::wait_terminate(void) {
+    const char *name = "/tmp/exit-slobs-crash-handler";
+    std::vector<char> buffer;
+    size_t count = 10;
+    buffer.resize(count);
+    remove(name);
+
+    if (mkfifo(name, S_IRUSR | S_IWUSR) < 0)
+        return;
+
+    int file_descriptor = open(name, O_RDONLY | O_NONBLOCK);
+    if (file_descriptor < 0)
+        return;
+
+    while (true) {
+        int ret = ::read(file_descriptor, buffer.data(), count);
+        std::cout << "Read for crash-handler, ret = " << ret << std::endl;
+        if (ret > 0) {
+            if (appRunning)
+                this->stopApplication();
+            break;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+    close(file_descriptor);
+    remove(name);
+}
 
 @implementation UtilImplObj
 
 UtilObjCInt::UtilObjCInt(void)
     : self(NULL)
-{   }
+{
+
+}
 
 UtilObjCInt::~UtilObjCInt(void)
 {
@@ -40,8 +72,11 @@ std::string UtilObjCInt::getDefaultVideoSavePath(void)
 
 void UtilObjCInt::runApplication(void)
 {
+    worker = new std::thread(&UtilObjCInt::wait_terminate, this);
+
     @autoreleasepool {
         NSApplication *app = [NSApplication sharedApplication];
+        appRunning = true;
         [app run];
     }
 }
@@ -61,6 +96,11 @@ void UtilObjCInt::stopApplication(void)
             data1:0
             data2:0];
         [NSApp postEvent: event atStart: TRUE];
+
+        if (worker->joinable())
+            worker->join();
+
+        appRunning = false;
     });
 }
 

@@ -228,6 +228,7 @@ int main(int argc, char* argv[])
 	// receives a stop or terminate event
 	g_util_osx->runApplication();
 #endif
+#ifdef WIN32
 	bool waitBeforeClosing = false;
 	
 	while (!doShutdown) {
@@ -241,7 +242,6 @@ int main(int argc, char* argv[])
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(50));
 	}
-#ifdef WIN32
 	// Wait on receive the exit message from the crash-handler
 	if (waitBeforeClosing) {
 		HANDLE hPipe;
