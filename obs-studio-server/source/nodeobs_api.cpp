@@ -527,21 +527,6 @@ std::vector<char> unregisterProcess(void)
 	return buffer;
 }
 
-std::vector<char> terminateCrashHandler(void)
-{
-	std::vector<char> buffer;
-	uint8_t action = 2;
-	buffer.resize(sizeof(action) + sizeof(pid));
-
-	uint32_t offset = 0;
-
-	memcpy(buffer.data(), &action, sizeof(action));
-	offset++;
-	memcpy(buffer.data() + offset, &pid, sizeof(pid));
-
-	return buffer;
-}
-
 std::vector<char> crashedProcess(uint32_t crash_id)
 {
 	std::vector<char> buffer;
@@ -1191,15 +1176,12 @@ void OBS_API::StopCrashHandler(
     std::vector<ipc::value>&       rval)
 {
 	util::CrashManager::setAppState("shutdown");
-
 	if (prepareTerminationPipe()) {
 		std::thread worker(acknowledgeTerminate);
 		writeCrashHandler(unregisterProcess());
 
 		if (worker.joinable())
 			worker.join();
-
-		writeCrashHandler(terminateCrashHandler());
 	} else {
 		writeCrashHandler(unregisterProcess());
 
