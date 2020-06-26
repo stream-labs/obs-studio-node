@@ -26,6 +26,7 @@
 #include <node.h>
 #include <uv.h>
 #include <vector>
+#include <mutex>
 #include "utility.hpp"
 
 #define FIELD_NAME(name) Nan::New(name).ToLocalChecked()

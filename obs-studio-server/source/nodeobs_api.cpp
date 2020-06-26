@@ -31,7 +31,10 @@
 #include "util-metricsprovider.h"
 
 #include <sys/types.h>
+
+#ifdef __APPLE
 #include <unistd.h>
+#endif
 
 #ifdef _WIN32
 

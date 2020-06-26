@@ -285,6 +285,7 @@ Nan::NAN_METHOD_RETURN_TYPE api::SetUsername(const v8::FunctionCallbackInfo<v8::
 
 Nan::NAN_METHOD_RETURN_TYPE api::GetPermissionsStatus(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+#ifdef __APPLE__
 	bool webcam, mic;
 	g_util_osx->getPermissionsStatus(webcam, mic);
 
@@ -297,10 +298,12 @@ Nan::NAN_METHOD_RETURN_TYPE api::GetPermissionsStatus(const v8::FunctionCallback
 		v8::Boolean::New(args.GetIsolate(), mic));
 
 	args.GetReturnValue().Set(perms);
+#endif
 }
 
 Nan::NAN_METHOD_RETURN_TYPE api::RequestPermissions(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+#ifdef __APPLE__
 	v8::Local<v8::Function> callback;
 	ASSERT_GET_VALUE(args[0], callback);
 
@@ -321,6 +324,7 @@ Nan::NAN_METHOD_RETURN_TYPE api::RequestPermissions(const v8::FunctionCallbackIn
 	};
 
 	g_util_osx->requestPermissions(node_cb->m_async_callback, cb);
+#endif
 }
 
 INITIALIZER(nodeobs_api)

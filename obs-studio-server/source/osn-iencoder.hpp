@@ -17,7 +17,7 @@
 ******************************************************************************/
 
 #pragma once
-#include <ipc-server.hpp>
+#include "ipc-server.hpp"
 
 namespace osn
 {

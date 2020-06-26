@@ -48,7 +48,10 @@
 #include "util-crashmanager.h"
 
 #include "shared.hpp"
+
+#ifdef __APPLE__
 #include <unistd.h>
+#endif
 
 #if defined(_WIN32)
 #include "Shlobj.h"

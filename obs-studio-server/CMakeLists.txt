@@ -201,8 +201,7 @@ endif ()
 
 set(PROJECT_DATA "${PROJECT_SOURCE_DIR}/resources")
 
-add_executable(
-	${PROJECT_NAME}
+SET(osn-server_SOURCES
 	"${CMAKE_SOURCE_DIR}/source/error.hpp"
 	"${CMAKE_SOURCE_DIR}/source/obs-property.hpp"
 	"${CMAKE_SOURCE_DIR}/source/obs-property.cpp"
@@ -294,13 +293,27 @@ add_executable(
 	###### memory-manager ######
 	"${PROJECT_SOURCE_DIR}/source/memory-manager.cpp"
 	"${PROJECT_SOURCE_DIR}/source/memory-manager.h"
+)
 
-	###### osx-util ######
-	"${PROJECT_SOURCE_DIR}/source/util-osx.hpp"
-	"${PROJECT_SOURCE_DIR}/source/util-osx.cpp"
-	"${PROJECT_SOURCE_DIR}/source/util-osx-int.h"
-	"${PROJECT_SOURCE_DIR}/source/util-osx-impl.h"
-	"${PROJECT_SOURCE_DIR}/source/util-osx-impl.mm"
+if (APPLE)
+	SET(osn-server-osx_SOURCES
+		###### osx-util ######
+		"${PROJECT_SOURCE_DIR}/source/util-osx.hpp"
+		"${PROJECT_SOURCE_DIR}/source/util-osx.cpp"
+		"${PROJECT_SOURCE_DIR}/source/util-osx-int.h"
+		"${PROJECT_SOURCE_DIR}/source/util-osx-impl.h"
+		"${PROJECT_SOURCE_DIR}/source/util-osx-impl.mm"
+	)
+	LIST(
+		APPEND
+		osn-server_SOURCES
+		${osn-server-osx_SOURCES}
+	)
+endif ()
+
+add_executable(
+	${PROJECT_NAME}
+	${osn-server_SOURCES}
 )
 
 if(WIN32)
@@ -311,12 +324,12 @@ if(WIN32)
 endif()
 
 if(WIN32)
+	target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE_PATHS})
 	target_link_libraries(${PROJECT_NAME} ${PROJECT_LIBRARIES} optimized crashpad)
 else()
+	target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE_PATHS} ${COREFOUNDATION} ${COCOA} ${IOSURF} ${GLKIT} ${AVFOUNDATION} ${IOKit} ${SECURITY_LIBRARY} ${BSM_LIBRARY})
 	target_link_libraries(${PROJECT_NAME} ${PROJECT_LIBRARIES} crashpad ${COREFOUNDATION} ${COCOA} ${IOSURF} ${GLKIT} ${AVFOUNDATION} ${IOKit} ${SECURITY_LIBRARY} ${BSM_LIBRARY})
 endif()
-
-target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE_PATHS} ${COREFOUNDATION} ${COCOA} ${IOSURF} ${GLKIT} ${AVFOUNDATION} ${IOKit} ${SECURITY_LIBRARY} ${BSM_LIBRARY})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "obs${BITS}")
 

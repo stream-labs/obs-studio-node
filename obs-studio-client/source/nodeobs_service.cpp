@@ -337,7 +337,9 @@ void service::OBS_service_stopVirtualWebcam(const v8::FunctionCallbackInfo<v8::V
 }
 
 void service::OBS_service_installVirtualCamPlugin(const v8::FunctionCallbackInfo<v8::Value>& args) {
+#ifdef __APPLE__
 	g_util_osx->installPlugin();
+#endif
 }
 
 INITIALIZER(nodeobs_service)

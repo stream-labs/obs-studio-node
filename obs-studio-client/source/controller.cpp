@@ -257,7 +257,9 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 	else
 #endif
 		workingDirectory = serverWorkingPath;
-		g_util_osx->setServerWorkingDirectoryPath(workingDirectory);
+#ifdef __APPLE__
+	g_util_osx->setServerWorkingDirectoryPath(workingDirectory);
+#endif
 #ifdef WIN32
 	// Test for existing process.
 	std::string pid_path(get_temp_directory());

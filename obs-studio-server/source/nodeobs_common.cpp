@@ -391,7 +391,7 @@ void OBS_content::OBS_content_resizeDisplay(
     display->UpdatePreviewArea();
 
 #ifdef WIN32
-	display->SetSize(width, height);
+	display->SetSize(display->m_gsInitData.cx, display->m_gsInitData.cy);
 #endif
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -667,6 +667,7 @@ void OBS_content::OBS_content_createIOSurface(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+#ifdef __APPLE__
 	// Find Display
 	auto it = displays.find(args[0].value_str);
 	if (it == displays.end()) {
@@ -681,5 +682,8 @@ void OBS_content::OBS_content_createIOSurface(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint32_t)surfaceID));
+#elif WIN32
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+#endif
 	AUTO_DEBUG;
 }

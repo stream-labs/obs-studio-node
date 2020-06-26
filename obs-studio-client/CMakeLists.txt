@@ -24,21 +24,22 @@ set(STREAMLABS_BUILD ON CACHE BOOL "Whether to build for streamlabs-obs")
 
 nodejs_init()
 
-find_library(COREFOUNDATION CoreFoundation)
-find_library(COCOA Cocoa)
-find_library(AVFOUNDATION AVFoundation)
-find_library(SECURITY_FRAMEWORK Security)
-find_library(FOUNDATION Foundation)
+if (APPLE)
+	find_library(COREFOUNDATION CoreFoundation)
+	find_library(COCOA Cocoa)
+	find_library(AVFOUNDATION AVFoundation)
+	find_library(SECURITY_FRAMEWORK Security)
+	find_library(FOUNDATION Foundation)
 
-include_directories(
-	${COREFOUNDATION}
-	${COCOA}
-	${AVFOUNDATION}
-	${Security}
-	${Foundation})
+	include_directories(
+		${COREFOUNDATION}
+		${COCOA}
+		${AVFOUNDATION}
+		${Security}
+		${Foundation})
+endif ()
 
-add_nodejs_module(
-	obs_studio_client
+SET(osn-client_SOURCES
 	"${CMAKE_SOURCE_DIR}/source/error.hpp"
 	"${CMAKE_SOURCE_DIR}/source/obs-property.hpp"
 	"${CMAKE_SOURCE_DIR}/source/obs-property.cpp"
@@ -92,13 +93,27 @@ add_nodejs_module(
 	###### callback-manager ######
 	"source/callback-manager.cpp"
 	"source/callback-manager.hpp"
+)
 
-	###### osx-util ######
-	"${PROJECT_SOURCE_DIR}/source/util-osx.hpp"
-	"${PROJECT_SOURCE_DIR}/source/util-osx.cpp"
-	"${PROJECT_SOURCE_DIR}/source/util-osx-int.h"
-	"${PROJECT_SOURCE_DIR}/source/util-osx-impl.h"
-	"${PROJECT_SOURCE_DIR}/source/util-osx-impl.mm"
+if (APPLE)
+	SET(osn-client-osx_SOURCES
+		###### osx-util ######
+		"${PROJECT_SOURCE_DIR}/source/util-osx.hpp"
+		"${PROJECT_SOURCE_DIR}/source/util-osx.cpp"
+		"${PROJECT_SOURCE_DIR}/source/util-osx-int.h"
+		"${PROJECT_SOURCE_DIR}/source/util-osx-impl.h"
+		"${PROJECT_SOURCE_DIR}/source/util-osx-impl.mm"
+	)
+	LIST(
+		APPEND
+		osn-client_SOURCES
+		${osn-client-osx_SOURCES}
+	)
+endif ()
+
+add_nodejs_module(
+	obs_studio_client
+	${osn-client_SOURCES}
 )
 
 set(PROJECT_INCLUDE_PATHS
@@ -107,9 +122,10 @@ set(PROJECT_INCLUDE_PATHS
 
 if(WIN32)
 	target_sources(obs_studio_client PUBLIC ${PROJECT_BINARY_DIR}/version.rc)
+	target_link_libraries(obs_studio_client lib-streamlabs-ipc)
+else ()
+	target_link_libraries(obs_studio_client lib-streamlabs-ipc ${COREFOUNDATION} ${COCOA} ${AVFOUNDATION} ${Security} ${Foundation})
 endif()
-
-target_link_libraries(obs_studio_client lib-streamlabs-ipc ${COREFOUNDATION} ${COCOA} ${AVFOUNDATION} ${Security} ${Foundation})
 
 target_include_directories(
 	obs_studio_client
