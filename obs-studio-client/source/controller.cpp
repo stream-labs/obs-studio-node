@@ -339,7 +339,7 @@ std::shared_ptr<ipc::client> Controller::connect(
 	while (!cl) {
 		try {
 			std::string path = "/tmp/" + uri;
-			cl = std::make_shared<ipc::client>(path);
+			cl = ipc::client::create(path);
 		} catch (...) {
 			cl = nullptr;
 		}

@@ -67,6 +67,12 @@
 #include <util/windows/WinHandle.hpp>
 #endif
 
+#ifdef __APPLE__
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#endif
+
 #include "error.hpp"
 #include "shared.hpp"
 

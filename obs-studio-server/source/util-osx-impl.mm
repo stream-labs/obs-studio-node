@@ -25,7 +25,6 @@ void UtilObjCInt::wait_terminate(void) {
 
     while (true) {
         int ret = ::read(file_descriptor, buffer.data(), count);
-        std::cout << "Read for crash-handler, ret = " << ret << std::endl;
         if (ret > 0) {
             if (appRunning)
                 this->stopApplication();

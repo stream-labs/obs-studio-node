@@ -21,9 +21,16 @@
 #include "nodeobs_api.h"
 #include "shared.hpp"
 #include "memory-manager.h"
+
 #ifdef WIN32
 #include <windows.h>
 #endif
+
+#ifdef __APPLE__
+#include <sys/types.h>
+#include <sys/stat.h>
+#endif
+
 std::vector<const char*> tabStreamTypes;
 const char*              currentServiceName;
 std::vector<SubCategory> currentAudioSettings;

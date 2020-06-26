@@ -26,6 +26,11 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
+#ifdef __APPLE__
+#include <sys/types.h>
+#include <sys/stat.h>
+#endif
+
 obs_output_t* streamingOutput    = nullptr;
 obs_output_t* recordingOutput    = nullptr;
 obs_output_t* replayBufferOutput = nullptr;
