@@ -152,6 +152,9 @@ namespace GS
 		gs_vertbuffer_t* Update(bool refreshGPU);
 
 		private:
+		void SetupVertexBuffer(uint32_t maximumVertices);
+
+		private:
 		uint32_t m_size;
 		uint32_t m_capacity;
 		uint32_t m_layers;

@@ -72,6 +72,7 @@ util::MetricsProvider                      metricsClient;
 LPTOP_LEVEL_EXCEPTION_FILTER               crashpadInternalExceptionFilterMethod = nullptr;
 #endif
 
+std::string                                appState = "starting"; // "starting","idle","encoding","shutdown"
 // Crashpad variables
 #ifdef ENABLE_CRASHREPORT
 std::wstring                                   appdata_path;
@@ -94,6 +95,8 @@ std::map<std::string, std::string>             annotations;
 
 std::string    FormatVAString(const char* const format, va_list args);
 nlohmann::json RewindCallStack(std::string& crashedMethod);
+
+typedef long long LongLong;
 
 // Transform a byte value into a string + sufix
 std::string PrettyBytes(uint64_t bytes)
@@ -125,13 +128,16 @@ void RequestComputerUsageParams(
     long long& totalPhysMem,
     long long& physMemUsed,
     size_t&    physMemUsedByMe,
-    double&    totalCPUUsed)
+    double&    totalCPUUsed,
+    long long& commitMemTotal,
+    long long& commitMemLimit)
 {
 #ifdef WIN32
 
-	MEMORYSTATUSEX          memInfo;
+	MEMORYSTATUSEX          memInfo = {0};
 	PROCESS_MEMORY_COUNTERS pmc;
 	PDH_FMT_COUNTERVALUE    counterVal;
+	PERFORMANCE_INFORMATION perfInfo = {0};
 
 	memInfo.dwLength = sizeof(MEMORYSTATUSEX);
 	GlobalMemoryStatusEx(&memInfo);
@@ -139,18 +145,22 @@ void RequestComputerUsageParams(
 	PdhCollectQueryData(cpuQuery);
 	PdhGetFormattedCounterValue(cpuTotal, PDH_FMT_DOUBLE, NULL, &counterVal);
 
-	DWORDLONG totalVirtualMem = memInfo.ullTotalPageFile;
-
 	totalPhysMem    = memInfo.ullTotalPhys;
 	physMemUsed     = (memInfo.ullTotalPhys - memInfo.ullAvailPhys);
 	physMemUsedByMe = pmc.WorkingSetSize;
 	totalCPUUsed    = counterVal.doubleValue;
-
+	perfInfo.cb = sizeof(PERFORMANCE_INFORMATION);
+	if (GetPerformanceInfo(&perfInfo, sizeof(PERFORMANCE_INFORMATION))) {
+		commitMemTotal = perfInfo.CommitTotal * perfInfo.PageSize;
+		commitMemLimit = perfInfo.CommitLimit * perfInfo.PageSize;
+	} 
 #else
 	totalPhysMem    = -1;
 	physMemUsed     = -1;
 	physMemUsedByMe = size_t(-1);
 	totalCPUUsed    = double(-1.0);
+	commitMemTotal  = LongLong(-1);
+	commitMemLimit  = LongLong(-1);
 
 #endif
 }
@@ -428,10 +438,13 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	long long physMemUsed = 0;
 	double    totalCPUUsed = 0.0;
 	size_t    physMemUsedByMe = 0;
+	long long commitMemTotal = 0ll;
+	long long commitMemLimit = 1ll;
 	std::string computerName;
 	
 	try {
-		RequestComputerUsageParams(totalPhysMem, physMemUsed, physMemUsedByMe, totalCPUUsed);
+		RequestComputerUsageParams(
+		    totalPhysMem, physMemUsed, physMemUsedByMe, totalCPUUsed, commitMemTotal, commitMemLimit);
 
 		GetUserInfo(computerName);
 	} catch (...) { }
@@ -440,18 +453,23 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 
 
 	// Setup all the custom annotations that are important too our crash report
+	nlohmann::json systemResources = nlohmann::json::object();
+	systemResources.push_back({"Leaks", std::to_string(bnum_allocs())});
+	systemResources.push_back({"Total RAM", PrettyBytes(totalPhysMem)});
+
+	systemResources.push_back({"Total used RAM",
+	                     PrettyBytes(physMemUsed) + " - percentage: "
+	                         + std::to_string(double(physMemUsed * 100) / double(totalPhysMem)) + "%"});
+	systemResources.push_back({"OBS64 RAM",
+	                     PrettyBytes(physMemUsedByMe) + " - percentage: "
+	                         + std::to_string(double(physMemUsedByMe * 100) / double(totalPhysMem)) + "%"});
+	systemResources.push_back({"Commit charge",
+	        	     PrettyBytes(commitMemTotal) + " of "+ PrettyBytes(commitMemLimit) });
+	systemResources.push_back({"CPU usage", std::to_string(int(totalCPUUsed)) + "%"});
+	annotations.insert({{"System Resources", systemResources.dump(4)}});
+	
 	annotations.insert({{"Time elapsed: ", std::to_string(timeElapsed.count()) + "s"}});
 	annotations.insert({{"Status", obs_initialized() ? "initialized" : "shutdown"}});
-	annotations.insert({{"Leaks", std::to_string(bnum_allocs())}});
-	annotations.insert({{"Total memory", PrettyBytes(totalPhysMem)}});
-	annotations.insert({{"Total used memory",
-	                     PrettyBytes(physMemUsed) + " - percentage: "
-	                         + std::to_string(double(physMemUsed * 100) / double(totalPhysMem)) + "%"}});
-	annotations.insert({{"Total SLOBS memory",
-	                     PrettyBytes(physMemUsedByMe) + " - percentage: "
-	                         + std::to_string(double(physMemUsedByMe * 100) / double(totalPhysMem)) + "%"}});
-	annotations.insert({{"CPU usage", std::to_string(int(totalCPUUsed)) + "%"}});
-	
 	try {
 		annotations.insert({{"Process List", RequestProcessList().dump(4)}});
 	} catch (...) {}
@@ -467,6 +485,7 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 
 	annotations.insert({{"sentry[release]", OBS_API::getCurrentVersion()}});
 	annotations.insert({{"sentry[user][username]", OBS_API::getUsername()}});
+	annotations.insert({{"sentry[environment]", getAppState()}});
 
 	// If the callstack rewind operation returned an error, use it instead its result
 	annotations.insert({{"Manual callstack", callStack.dump(4)}});
@@ -919,6 +938,43 @@ void util::CrashManager::ClearBreadcrumbs()
 	std::lock_guard<std::mutex> lock(messageMutex);
 	breadcrumbs.clear();
 #endif
+}
+
+void util::CrashManager::setAppState(std::string newState)
+{
+	appState = newState;
+}
+
+std::string util::CrashManager::getAppState()
+{
+	if (appState.compare("idle") == 0) {
+		std::string encoding_state = "";
+		std::string need_space = "";
+		if (OBS_service::getStreamingOutput()) {
+			if (OBS_service::isStreamingOutputActive() ){
+				encoding_state += "activestreaming";
+			} else {
+				encoding_state += "inactivestreaming";
+			}
+			need_space = " ";
+		}
+		if (OBS_service::getRecordingOutput()) {
+			if (OBS_service::isRecordingOutputActive() ){
+				encoding_state += need_space;
+				encoding_state += " activerecording";
+				need_space = " ";
+			} 
+		}
+		if (OBS_service::getReplayBufferOutput()) {
+			if (OBS_service::isReplayBufferOutputActive() ){
+				encoding_state += need_space;
+				encoding_state += " activereply";
+			} 
+		}
+		if (encoding_state.size() > 0)
+			return encoding_state;
+	}
+	return appState;
 }
 
 void util::CrashManager::ProcessPreServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args)

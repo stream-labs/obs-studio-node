@@ -122,15 +122,16 @@ add_dependencies(crashpad_base crashpad_ep)
 add_dependencies(crashpad_client crashpad_base)
 add_dependencies(crashpad_util crashpad_client)
 
-
-find_library(COREFOUNDATION CoreFoundation)
-find_library(COCOA Cocoa)
-find_library(IOSURF IOSurface)
-find_library(GLKIT GLKit)
-find_library(AVFOUNDATION AVFoundation)
-find_library(IOKit IOKit)
-find_library(SECURITY_LIBRARY Security)
-find_library(BSM_LIBRARY bsm)
+if (APPLE)
+	find_library(COREFOUNDATION CoreFoundation)
+	find_library(COCOA Cocoa)
+	find_library(IOSURF IOSurface)
+	find_library(GLKIT GLKit)
+	find_library(AVFOUNDATION AVFoundation)
+	find_library(IOKit IOKit)
+	find_library(SECURITY_LIBRARY Security)
+	find_library(BSM_LIBRARY bsm)
+endif ()
 
 # Getting LIBOBS_VERSION from azure script
 file(STRINGS ../azure-pipelines.yml VERSION_LINE REGEX "LibOBSVersion")
@@ -400,3 +401,5 @@ install(
 	USE_SOURCE_PERMISSIONS
 )
 endif()
+
+install(DIRECTORY "${libobs_SOURCE_DIR}/enc-amf_old" DESTINATION "./" OPTIONAL)

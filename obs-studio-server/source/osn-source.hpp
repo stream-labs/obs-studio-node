@@ -59,11 +59,6 @@ namespace osn
 		static void Register(ipc::server&);
 
 		// Type Info
-		static void GetTypeProperties(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
 		static void GetTypeDefaults(
 		    void*                          data,
 		    const int64_t                  id,

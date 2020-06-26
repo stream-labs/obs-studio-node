@@ -62,6 +62,8 @@ namespace util
 		static void AddBreadcrumb(const std::string& message);
 		static void ClearBreadcrumbs();
 		static void DisableReports();
+		static void setAppState(std::string newState);
+		static std::string getAppState();
 
 		// Return our global instance of the metrics provider, it's always valid
 		static MetricsProvider* const GetMetricsProvider();

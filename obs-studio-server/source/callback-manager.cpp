@@ -17,7 +17,7 @@
 ******************************************************************************/
 
 #include "callback-manager.h"
-
+#include "osn-source.hpp"
 #ifdef WIN32
 #include <windows.h>
 #endif

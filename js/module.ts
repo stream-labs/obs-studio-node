@@ -317,7 +317,9 @@ export const enum EOutputCode {
     Error = -4,
     Disconnected = -5,
     Unsupported = -6,
-    NoSpace = -7
+    NoSpace = -7,
+    EncoderError = -8,
+    OutdatedDriver = -65,
 }
 
 export const enum ECategoryTypes {
@@ -1102,6 +1104,12 @@ export interface IScene extends ISource {
      * @param newIndex - Index where you want to move item
      */
     moveItem(oldIndex: number, newIndex: number): void;
+
+    /**
+     * Orders an scene items as provided 
+     * @param order - Item ids in needed order
+     */
+    orderItems( order: number[] ): void;
 
     /**
      * Find an item within a scene

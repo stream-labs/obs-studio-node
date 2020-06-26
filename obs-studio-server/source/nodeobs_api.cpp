@@ -81,17 +81,20 @@
 #define BUFFSIZE 512
 #define CONNECTING_STATE 0
 #define READING_STATE 1
+#define MBYTE (1024ULL * 1024ULL)
+#define GBYTE (1024ULL * 1024ULL * 1024ULL)
+#define TBYTE (1024ULL * 1024ULL * 1024ULL * 1024ULL)
 
-std::string                                            g_moduleDirectory = "";
-os_cpu_usage_info_t*                                   cpuUsageInfo      = nullptr;
-uint64_t                                               lastBytesSent     = 0;
-uint64_t                                               lastBytesSentTime = 0;
+std::string g_moduleDirectory = "";
+os_cpu_usage_info_t* cpuUsageInfo      = nullptr;
 #ifdef WIN32
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 #endif
 std::string                                            slobs_plugin;
 std::vector<std::pair<std::string, obs_module_t*>>     obsModules;
 OBS_API::LogReport                                     logReport;
+OBS_API::OutputStats                                   streamingOutputStats;
+OBS_API::OutputStats                                   recordingOutputStats;
 std::mutex                                             logMutex;
 std::string                                            currentVersion;
 std::string                                            username("unknown");
@@ -333,12 +336,8 @@ void outdated_driver_error::set_active( bool state)
 	}
 }
 
-std::string outdated_driver_error::get_error(const char* base_error)
+std::string outdated_driver_error::get_error()
 {
-	if (base_error == nullptr
-		|| std::string(base_error).find("Function not implemented") == std::string::npos)
-		return "";
-
 	if(line_1.size() && line_2.size())
 		return line_1 + std::string("\n") + line_2;
 	else 
@@ -767,6 +766,16 @@ void OBS_API::OBS_API_initAPI(
 #endif
 	}
 
+	if(!OBS_service::EncoderAvailable(SIMPLE_ENCODER_AMD)) {
+		obs_module_t *module;
+		std::string module_path = g_moduleDirectory + "/enc-amf_old/obs-plugins/64bit/enc-amf";
+		std::string data_path = g_moduleDirectory + "/enc-amf_old/data/obs-plugins/enc-amf/";
+		int res = obs_open_module(&module, module_path.c_str(), data_path.c_str());
+
+		if (res == MODULE_SUCCESS)
+			obs_init_module(module);
+	}
+
 	OBS_service::createService();
 	OBS_service::createStreamingOutput();
 	OBS_service::createRecordingOutput();
@@ -800,9 +809,8 @@ void OBS_API::OBS_API_initAPI(
 	obs_set_replay_buffer_rendering_mode(
 		useStreamOutput ? OBS_STREAMING_REPLAY_BUFFER_RENDERING : OBS_RECORDING_REPLAY_BUFFER_RENDERING);
 
-	base_set_log_handler(node_obs_log, logfile);
+	util::CrashManager::setAppState("idle");
 
-	blog(LOG_INFO, "Init success");
 	// We are returning a video result here because the frontend needs to know if we sucessfully
 	// initialized the Dx11 API
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -840,8 +848,19 @@ void OBS_API::OBS_API_getPerformanceStatistics(
 	rval.push_back(ipc::value(getCPU_Percentage()));
 	rval.push_back(ipc::value(getNumberOfDroppedFrames()));
 	rval.push_back(ipc::value(getDroppedFramesPercentage()));
-	rval.push_back(ipc::value(getCurrentBandwidth()));
+
+	getCurrentOutputStats(OBS_service::getStreamingOutput(), streamingOutputStats);
+	rval.push_back(ipc::value(streamingOutputStats.kbitsPerSec));
+	rval.push_back(ipc::value(streamingOutputStats.dataOutput));
+
+	getCurrentOutputStats(OBS_service::getRecordingOutput(), recordingOutputStats);
+	rval.push_back(ipc::value(recordingOutputStats.kbitsPerSec));
+	rval.push_back(ipc::value(recordingOutputStats.dataOutput));
+
 	rval.push_back(ipc::value(getCurrentFrameRate()));
+	rval.push_back(ipc::value(getAverageTimeToRenderFrame()));
+	rval.push_back(ipc::value(getMemoryUsage()));
+	rval.push_back(ipc::value(getDiskSpaceAvailable()));
 	AUTO_DEBUG;
 }
 
@@ -930,14 +949,14 @@ void OBS_API::QueryHotkeys(
 		    }
 
 		    // Key defs
-			const char* _key_name = obs_hotkey_get_name(key);
-			const char* _desc = obs_hotkey_get_description(key);
+		    const char* _key_name = obs_hotkey_get_name(key);
+		    const char* _desc     = obs_hotkey_get_description(key);
 
-			if (!_key_name)
-				_key_name = "";
+		    if (!_key_name)
+			    return true;
 
-			if (!_desc)
-				_desc = "";
+		    if (!_desc)
+			    _desc = "";
 
 		    auto       key_name = std::string(_key_name);
 		    auto       desc     = std::string(_desc);
@@ -1097,8 +1116,8 @@ typedef struct
 	BOOL              fPendingIO;
 } PIPEINST, *LPPIPEINST;
 
-PIPEINST Pipe;
-HANDLE   hEvents;
+PIPEINST Pipe = {0};
+HANDLE   hEvents = {0};
 
 BOOL ConnectToNewClient(HANDLE hPipe, LPOVERLAPPED lpo)
 {
@@ -1135,15 +1154,14 @@ VOID DisconnectAndReconnect(void)
 	Pipe.dwState = Pipe.fPendingIO ? CONNECTING_STATE : READING_STATE;
 }
 
-void acknowledgeTerminate(void)
+bool prepareTerminationPipe()
 {
-	BOOL   fSuccess;
 	LPTSTR lpszPipename = TEXT("\\\\.\\pipe\\exit-slobs-crash-handler");
 
 	hEvents = CreateEvent(NULL, TRUE, TRUE, NULL);
 
 	if (hEvents == NULL) {
-		return;
+		return false;
 	}
 
 	Pipe.oOverlap.hEvent = hEvents;
@@ -1159,12 +1177,22 @@ void acknowledgeTerminate(void)
 	    NULL);
 
 	if (Pipe.hPipeInst == INVALID_HANDLE_VALUE) {
-		return;
+		CloseHandle(hEvents);
+		hEvents = NULL;
+		Pipe.oOverlap.hEvent = NULL;
+		return false;
 	}
 
 	Pipe.fPendingIO = ConnectToNewClient(Pipe.hPipeInst, &(Pipe.oOverlap));
 
 	Pipe.dwState = Pipe.fPendingIO ? CONNECTING_STATE : READING_STATE;
+	
+	return true;
+}
+
+void acknowledgeTerminate()
+{
+	BOOL   fSuccess;
 
 	bool exit = false;
 	auto timeNow = std::chrono::high_resolution_clock::now();
@@ -1254,6 +1282,11 @@ void acknowledgeTerminate (void) {
 	if (::read(file_descriptor, buffer.data(), buffer.size()) <= 0)
 		blog(LOG_ERROR, "Error while reading crash-handler exit message");
 }
+
+bool prepareTerminationPipe() {
+	// TODO
+	return true;
+}
 #endif
 
 void OBS_API::StopCrashHandler(
@@ -1262,17 +1295,24 @@ void OBS_API::StopCrashHandler(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	std::thread worker(acknowledgeTerminate);
-	writeCrashHandler(unregisterProcess());
-	writeCrashHandler(terminateCrashHandler());
+	util::CrashManager::setAppState("shutdown");
 
-	// Block current thread until the crash-handler sends the
-	// achaknwoledge signal, this blocking operation is performed
-	// in a separate thread in order to avoid any race condition that
-	// could happen in between the crash-handler send its exit message
-	// and the fifo being opened and read
-	if (worker.joinable())
-		worker.join();
+	if (prepareTerminationPipe()) {
+		std::thread worker(acknowledgeTerminate);
+		writeCrashHandler(unregisterProcess());
+
+		if (worker.joinable())
+			worker.join();
+
+		writeCrashHandler(terminateCrashHandler());
+	} else {
+		writeCrashHandler(unregisterProcess());
+
+		// Waiting 1 sec to let crash handler process unregister command before continuing 
+		// with shutdown sequence. 
+		// Only for a case when it failed to create a pipe to recieve confirmation from crash handler.  
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -1299,6 +1339,8 @@ void OBS_API::destroyOBS_API(void)
 #endif
 
 	autoConfig::WaitPendingTests();
+
+	OBS_service::stopAllOutputs();
 
 	obs_encoder_t* streamingEncoder = OBS_service::getStreamingEncoder();
 	if (streamingEncoder != NULL)
@@ -1571,41 +1613,91 @@ double OBS_API::getDroppedFramesPercentage(void)
 	return percent;
 }
 
-double OBS_API::getCurrentBandwidth(void)
+void OBS_API::getCurrentOutputStats(obs_output_t* output, OBS_API::OutputStats &outputStats)
 {
-	obs_output_t* streamOutput = OBS_service::getStreamingOutput();
+	outputStats.kbitsPerSec = 0.0;
+	outputStats.dataOutput  = 0.0;
 
-	double kbitsPerSec = 0;
-
-	if (streamOutput && obs_output_active(streamOutput)) {
-		uint64_t bytesSent     = obs_output_get_total_bytes(streamOutput);
-		uint64_t bytesSentTime = os_gettime_ns();
-
-		if (bytesSent < lastBytesSent)
-			bytesSent = 0;
-		if (bytesSent == 0)
-			lastBytesSent = 0;
-
-		uint64_t bitsBetween = (bytesSent - lastBytesSent) * 8;
-
-		double timePassed = double(bytesSentTime - lastBytesSentTime) / 1000000000.0;
-		if (timePassed < std::numeric_limits<double>::epsilon()
-		    && timePassed > -std::numeric_limits<double>::epsilon()) {
-			kbitsPerSec = 0.0;
-		} else {
-			kbitsPerSec = double(bitsBetween) / timePassed / 1000.0;
-		}
-
-		lastBytesSent     = bytesSent;
-		lastBytesSentTime = bytesSentTime;
+	if (!output) {
+		return;
 	}
 
-	return kbitsPerSec;
+	if (obs_output_active(output)) {
+		uint64_t bytesSent = obs_output_get_total_bytes(output);
+		uint64_t bytesSentTime = os_gettime_ns();
+
+		if (bytesSent < outputStats.lastBytesSent)
+			bytesSent = 0;
+		if (bytesSent == 0)
+			outputStats.lastBytesSent = 0;
+
+		uint64_t bitsBetween = (bytesSent - outputStats.lastBytesSent) * 8;
+
+		double timePassed = double(bytesSentTime - outputStats.lastBytesSentTime) / 1000000000.0;
+		if (timePassed < std::numeric_limits<double>::epsilon()
+		    && timePassed > -std::numeric_limits<double>::epsilon()) {
+			outputStats.kbitsPerSec = 0.0;
+		} else {
+			outputStats.kbitsPerSec = double(bitsBetween) / timePassed / 1000.0;
+		}
+
+		outputStats.lastBytesSent = bytesSent;
+		outputStats.lastBytesSentTime = bytesSentTime;
+		outputStats.dataOutput = bytesSent / (1024.0 * 1024.0);
+	}
 }
 
 double OBS_API::getCurrentFrameRate(void)
 {
 	return obs_get_active_fps();
+}
+
+double OBS_API::getAverageTimeToRenderFrame()
+{
+	return (double)obs_get_average_frame_time_ns() / 1000000.0;
+}
+
+std::string OBS_API::getDiskSpaceAvailable()
+{
+	const char* path = nullptr;
+	const char* mode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
+
+	if (strcmp(mode, "Advanced") == 0) {
+		const char* advanced_mode = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecType");
+
+		if (strcmp(advanced_mode, "FFmpeg") == 0) {
+			path = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "FFFilePath");
+		} else {
+			path = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecFilePath");
+		}
+	} else {
+		path = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "FilePath");
+	}
+
+	uint64_t bytes = os_get_free_disk_space(path);
+
+	double free_bytes = 0;
+	std::string type;
+
+	if (bytes > TBYTE) {
+		free_bytes = (double)bytes / TBYTE;
+		type = " TB";
+	} else if (bytes > GBYTE) {
+		free_bytes = (double)bytes / GBYTE;
+		type = " GB";
+	} else {
+		free_bytes = (double)bytes / MBYTE;
+		type = " MB";
+	}
+
+	std::stringstream remainingHDSpace;
+	remainingHDSpace << free_bytes << type;
+	return remainingHDSpace.str();
+}
+
+double OBS_API::getMemoryUsage()
+{
+	return (double)os_get_proc_resident_size() / (1024.0 * 1024.0);
 }
 
 const std::vector<std::string>& OBS_API::getOBSLogErrors()

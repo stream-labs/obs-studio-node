@@ -57,6 +57,7 @@ void osn::Scene::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	utilv8::SetTemplateField(objtemplate, "add", AddSource);
 	utilv8::SetTemplateField(objtemplate, "findItem", FindItem);
 	utilv8::SetTemplateField(objtemplate, "moveItem", MoveItem);
+	utilv8::SetTemplateField(objtemplate, "orderItems", OrderItems);
 	utilv8::SetTemplateField(objtemplate, "getItemAtIdx", GetItemAtIndex);
 	utilv8::SetTemplateField(objtemplate, "getItems", GetItems);
 	utilv8::SetTemplateField(objtemplate, "getItemsInRange", GetItemsInRange);
@@ -494,6 +495,49 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::MoveItem(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper(
 	    "Scene", "MoveItem", std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(from), ipc::value(to)});
+
+	ValidateResponse(response);
+
+	SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(scene->sourceId);
+
+	if (si && response.size() > 2) {
+		si->items.clear();
+
+		for (size_t i = 1; i < response.size(); i += 2) {
+			si->items.push_back(std::make_pair(response[i + 1].value_union.i64, response[i].value_union.ui64));
+		}
+		si->itemsOrderCached = true;
+	}
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::Scene::OrderItems(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	osn::Scene* scene = nullptr;
+	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), scene)) {
+		return;
+	}
+
+	std::vector<int64_t> order;
+	std::vector<char> order_char;
+	ASSERT_INFO_LENGTH(info, 1);
+
+	v8::Local<v8::Array> array = v8::Local<v8::Array>::Cast(info[0]); 
+
+	order.resize(array->Length());
+	for (unsigned int i = 0; i < array->Length(); i++ ) {
+		if (Nan::Has(array, i).FromJust()) {
+			order[i] = Nan::Get(array, i).ToLocalChecked()->IntegerValue();
+		}
+	}
+	order_char.resize(order.size()*sizeof(int64_t));
+	memcpy(order_char.data(), order.data(), order_char.size());
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper(
+	    "Scene", "OrderItems", std::vector<ipc::value>{ipc::value(scene->sourceId), ipc::value(order_char)});
 
 	ValidateResponse(response);
 

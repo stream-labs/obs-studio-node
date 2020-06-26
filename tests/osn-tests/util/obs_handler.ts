@@ -1,6 +1,6 @@
 import * as osn from '../osn';
 import { logInfo, logWarning } from '../util/logger';
-import { Services } from '../util/services';
+import { UserPoolHandler } from './user_pool_handler';
 import { CacheUploader } from '../util/cache-uploader'
 import { EOBSOutputType, EOBSOutputSignal, EOBSSettingsCategories} from '../util/obs_enums'
 import { Subject } from 'rxjs';
@@ -11,8 +11,14 @@ export interface IPerformanceState {
     CPU: number;
     numberDroppedFrames: number;
     percentageDroppedFrames: number;
-    bandwidth: number;
+    streamingBandwidth: number;
+    streamingDataOutput: number;
+    recordingBandwidth: number;
+    recordingDataOutput: number;
     frameRate: number;
+    averageTimeToRenderFrame: number;
+    memoryUsage: number;
+    diskSpaceAvailable: string;
 }
 
 export interface IOBSOutputSignalInfo {
@@ -65,7 +71,7 @@ export class OBSHandler {
     private version: string = '0.00.00-preview.0';
 
     // Other variables/objects
-    private services: Services;
+    private userPoolHandler: UserPoolHandler;
     private cacheUploader: CacheUploader;
     private hasUserFromPool: boolean = false;
     private osnTestName: string;
@@ -85,21 +91,22 @@ export class OBSHandler {
     }
 
     startup() {
+        let initResult: any;
         logInfo(this.osnTestName, 'Initializing OBS');
 
         try {
             osn.NodeObs.IPC.host(this.pipeName);
             osn.NodeObs.SetWorkingDirectory(this.workingDirectory);
-            const initResult = osn.NodeObs.OBS_API_initAPI(this.language, this.obsPath, this.version);
-
-            if (initResult != osn.EVideoCodes.Success) {
-                throw Error('OBS process initialization failed with code ' + initResult);
-            }  
+            initResult = osn.NodeObs.OBS_API_initAPI(this.language, this.obsPath, this.version);
         } catch(e) {
-            throw Error('Exception when initializing OBS process' + e);
+            throw Error('Exception when initializing OBS process: ' + e);
         }
 
-        logInfo(this.osnTestName, 'OBS started successfully')
+        if (initResult != osn.EVideoCodes.Success) {
+            throw Error('OBS process initialization failed with code ' + initResult);
+        }  
+
+        logInfo(this.osnTestName, 'OBS started successfully');
     }
 
     shutdown() {
@@ -109,14 +116,14 @@ export class OBSHandler {
             osn.NodeObs.OBS_service_removeCallback();
             osn.NodeObs.IPC.disconnect();
         } catch(e) {
-            throw Error('Exception when shutting down OBS process' + e);
+            throw Error('Exception when shutting down OBS process: ' + e);
         }
 
-        logInfo(this.osnTestName, 'OBS shutdown successfully')
+        logInfo(this.osnTestName, 'OBS shutdown successfully');
     }
 	
 	instantiateUserPool(testName: string) {
-        this.services = new Services(testName);
+        this.userPoolHandler = new UserPoolHandler(testName);
     }
 
     async reserveUser() {
@@ -124,7 +131,7 @@ export class OBSHandler {
 
         try {
             logInfo(this.osnTestName, 'Getting stream key from user pool');
-            streamKey = await this.services.getStreamKey();
+            streamKey = await this.userPoolHandler.getStreamKey();
             this.hasUserFromPool = true;
         } catch(e) {
             logWarning(this.osnTestName, e);
@@ -146,7 +153,7 @@ export class OBSHandler {
 
     async releaseUser() {
         if (this.hasUserFromPool) {
-            await this.services.releaseUser();
+            await this.userPoolHandler.releaseUser();
             this.hasUserFromPool = false;
         }
     }
@@ -212,10 +219,10 @@ export class OBSHandler {
         });
     }
 
-    getNextSignalInfo(): Promise<IOBSOutputSignalInfo> {
+    getNextSignalInfo(output: string, signal: string): Promise<IOBSOutputSignalInfo> {
         return new Promise((resolve, reject) => {
             this.signals.pipe(first()).subscribe(signalInfo => resolve(signalInfo));
-            setTimeout(() => reject('Output signal timeout'), 30000);
+            setTimeout(() => reject(new Error(output.replace(/^\w/, c => c.toUpperCase()) + ' ' + signal + ' signal timeout')), 30000);
         });
     }
 
@@ -233,7 +240,7 @@ export class OBSHandler {
     getNextProgressInfo(autoconfigStep: string): Promise<IConfigProgress> {
         return new Promise((resolve, reject) => {
             this.progress.pipe(first()).subscribe(progressInfo => resolve(progressInfo));
-            setTimeout(() => reject( autoconfigStep + ' step timeout'), 50000);
+            setTimeout(() => reject(new Error(autoconfigStep + ' step timeout')), 50000);
         });
     }
 }

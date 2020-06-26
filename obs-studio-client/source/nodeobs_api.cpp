@@ -135,20 +135,48 @@ void api::OBS_API_getPerformanceStatistics(const v8::FunctionCallbackInfo<v8::Va
 	v8::Local<v8::Object> statistics = v8::Object::New(args.GetIsolate());
 
 	statistics->Set(
-	    v8::String::NewFromUtf8(args.GetIsolate(), "CPU").ToLocalChecked(),
-	    v8::Number::New(args.GetIsolate(), response[1].value_union.fp64));
+		v8::String::NewFromUtf8(args.GetIsolate(), "CPU").ToLocalChecked(),
+		v8::Number::New(args.GetIsolate(), response[1].value_union.fp64));
 	statistics->Set(
-	    v8::String::NewFromUtf8(args.GetIsolate(), "numberDroppedFrames").ToLocalChecked(),
-	    v8::Number::New(args.GetIsolate(), response[2].value_union.i32));
+		v8::String::NewFromUtf8(args.GetIsolate(), "numberDroppedFrames").ToLocalChecked(),
+		v8::Number::New(args.GetIsolate(), response[2].value_union.i32));
 	statistics->Set(
-	    v8::String::NewFromUtf8(args.GetIsolate(), "percentageDroppedFrames").ToLocalChecked(),
-	    v8::Number::New(args.GetIsolate(), response[3].value_union.fp64));
+		v8::String::NewFromUtf8(args.GetIsolate(), "percentageDroppedFrames").ToLocalChecked(),
+		v8::Number::New(args.GetIsolate(), response[3].value_union.fp64));
 	statistics->Set(
-	    v8::String::NewFromUtf8(args.GetIsolate(), "bandwidth").ToLocalChecked(),
-	    v8::Number::New(args.GetIsolate(), response[4].value_union.fp64));
+		v8::String::NewFromUtf8(args.GetIsolate(), "streamingBandwidth").ToLocalChecked(),
+		v8::Number::New(args.GetIsolate(), response[4].value_union.fp64));
 	statistics->Set(
-	    v8::String::NewFromUtf8(args.GetIsolate(), "frameRate").ToLocalChecked(),
-	    v8::Number::New(args.GetIsolate(), response[5].value_union.fp64));
+		v8::String::NewFromUtf8(args.GetIsolate(), "streamingDataOutput").ToLocalChecked(),
+		v8::Number::New(args.GetIsolate(), response[5].value_union.fp64));
+	statistics->Set(
+		v8::String::NewFromUtf8(args.GetIsolate(), "recordingBandwidth").ToLocalChecked(),
+		v8::Number::New(args.GetIsolate(), response[6].value_union.fp64));
+	statistics->Set(
+		v8::String::NewFromUtf8(args.GetIsolate(), "recordingDataOutput").ToLocalChecked(),
+		v8::Number::New(args.GetIsolate(), response[7].value_union.fp64));
+	statistics->Set(
+		v8::String::NewFromUtf8(args.GetIsolate(), "frameRate").ToLocalChecked(),
+		v8::Number::New(args.GetIsolate(), response[8].value_union.fp64));
+	statistics->Set(
+		v8::String::NewFromUtf8(args.GetIsolate(), "averageTimeToRenderFrame").ToLocalChecked(),
+		v8::Number::New(args.GetIsolate(), response[9].value_union.fp64));
+	statistics->Set(
+		v8::String::NewFromUtf8(args.GetIsolate(), "memoryUsage").ToLocalChecked(),
+		v8::Number::New(args.GetIsolate(), response[10].value_union.fp64));
+
+	std::string diskSpaceAvailable; // workaround for a strlen crash
+	if (response.size() < 12
+	 || response[11].type != ipc::type::String
+	 || response[11].value_str.c_str() == nullptr 
+	 || response[11].value_str.empty()) {
+		diskSpaceAvailable = "0 MB";
+	} else {
+		diskSpaceAvailable = response[11].value_str;
+	}
+	statistics->Set(
+		v8::String::NewFromUtf8(args.GetIsolate(), "diskSpaceAvailable").ToLocalChecked(),
+		v8::String::NewFromUtf8(args.GetIsolate(), diskSpaceAvailable.c_str()).ToLocalChecked());
 
 	args.GetReturnValue().Set(statistics);
 	return;

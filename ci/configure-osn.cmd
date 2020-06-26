@@ -2,6 +2,7 @@ if "%ReleaseName%"=="debug" (
     cmake -H. ^
           -B"%SLBuildDirectory%" ^
           -G"%SLGenerator%" ^
+          -A"x64" ^
           -DCMAKE_INSTALL_PREFIX="%SLFullDistributePath%\obs-studio-node" ^
           -DSTREAMLABS_BUILD=OFF ^
           -DNODEJS_NAME=%RuntimeName% ^
@@ -12,6 +13,7 @@ if "%ReleaseName%"=="debug" (
     cmake -H. ^
           -B"%SLBuildDirectory%" ^
           -G"%SLGenerator%" ^
+          -A"x64" ^
           -DCMAKE_INSTALL_PREFIX="%SLFullDistributePath%\obs-studio-node" ^
           -DSTREAMLABS_BUILD=OFF ^
           -DNODEJS_NAME=%RuntimeName% ^

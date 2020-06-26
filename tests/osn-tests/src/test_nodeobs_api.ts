@@ -49,10 +49,16 @@ describe(testName, function() {
         
         // Checking if performance statistics values returned correctly
         expect(stats.CPU).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.GetPerformanceStatistics, 'CPU'));
-        expect(stats.bandwidth).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.GetPerformanceStatistics, 'bandwidth'));
-        expect(stats.frameRate).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.GetPerformanceStatistics, 'frameRate'));
         expect(stats.numberDroppedFrames).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.GetPerformanceStatistics, 'numberDroppedFrames'));
         expect(stats.percentageDroppedFrames).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.GetPerformanceStatistics, 'percentageDroppedFrames'));
+        expect(stats.streamingBandwidth).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.GetPerformanceStatistics, 'streamingBandwidth'));
+        expect(stats.streamingDataOutput).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.GetPerformanceStatistics, 'streamingDataOutput'));
+        expect(stats.recordingBandwidth).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.GetPerformanceStatistics, 'recordingBandwidth'));
+        expect(stats.recordingDataOutput).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.GetPerformanceStatistics, 'recordingDataOutput'));
+        expect(stats.frameRate).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.GetPerformanceStatistics, 'frameRate'));
+        expect(stats.averageTimeToRenderFrame).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.GetPerformanceStatistics, 'averageTimeToRenderFrame'));
+        expect(stats.memoryUsage).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.GetPerformanceStatistics, 'memoryUsage'));
+        expect(stats.diskSpaceAvailable).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.GetPerformanceStatistics, 'diskSpaceAvailable'));
     });
 
     it('Get hotkeys of all sources and process them', function() {

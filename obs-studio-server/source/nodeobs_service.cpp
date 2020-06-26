@@ -710,20 +710,6 @@ std::string GenerateSpecifiedFilename(const char* extension, bool noSpace, const
 	return result;
 }
 
-static void ensure_directory_exists(std::string& path)
-{
-	replace(path.begin(), path.end(), '\\', '/');
-
-	size_t last = path.rfind('/');
-	if (last == std::string::npos)
-		return;
-
-	std::string directory = path.substr(0, last);
-
-//	if (std::filesystem::is_directory(directory))
-//		os_mkdirs(directory.c_str());
-}
-
 static void FindBestFilename(std::string& strPath, bool noSpace)
 {
 	int num = 2;
@@ -956,12 +942,19 @@ bool OBS_service::startStreaming(void)
 	isStreaming = obs_output_start(streamingOutput);
 	if (!isStreaming) {
 		SignalInfo  signal = SignalInfo("streaming", "stop");
-		const char* error  = obs_output_get_last_error(streamingOutput);
-		if (error) {
-			signal.setErrorMessage(error);
-			blog(LOG_INFO, "Last streaming error: %s", error);
+		std::string outdated_driver_error = outdated_driver_error::instance()->get_error();
+		if (outdated_driver_error.size() != 0) {
+			signal.setErrorMessage(outdated_driver_error);
+			signal.setCode(OBS_OUTPUT_OUTDATED_DRIVER);
+		} else {
+			const char* error = obs_output_get_last_error(streamingOutput);
+			if (error) {
+				signal.setErrorMessage(error);
+				blog(LOG_INFO, "Last streaming error: %s", error);
+			}
+			signal.setCode(OBS_OUTPUT_ERROR);
 		}
-		signal.setCode(OBS_OUTPUT_ERROR);
+
 		std::unique_lock<std::mutex> ulock(signalMutex);
 		outputSignal.push(signal);
 	}
@@ -1176,12 +1169,18 @@ bool OBS_service::startRecording(void)
 	isRecording = obs_output_start(recordingOutput);
 	if (!isRecording) {
 		SignalInfo signal = SignalInfo("recording", "stop");
-		const char* error = obs_output_get_last_error(recordingOutput);
-		if (error) {
-			signal.setErrorMessage(error);
-			std::cout << "Last recording error: " << error << std::endl;
+		std::string outdated_driver_error = outdated_driver_error::instance()->get_error();
+		if (outdated_driver_error.size() != 0) {
+			signal.setErrorMessage(outdated_driver_error);
+			signal.setCode(OBS_OUTPUT_OUTDATED_DRIVER);
+		} else {
+			const char* error = obs_output_get_last_error(recordingOutput);
+			if (error) {
+				signal.setErrorMessage(error);
+				blog(LOG_INFO, "Last recording error: %s", error);
+			}
+			signal.setCode(OBS_OUTPUT_ERROR);
 		}
-		signal.setCode(OBS_OUTPUT_ERROR);
 		std::unique_lock<std::mutex> ulock(signalMutex);
 		outputSignal.push(signal);
 	}
@@ -1341,12 +1340,18 @@ bool OBS_service::startReplayBuffer(void)
 		isReplayBufferActive = false;
 		rpUsesRec            = false;
 		rpUsesStream         = false;
-		const char* error    = obs_output_get_last_error(replayBufferOutput);
-		if (error) {
-			signal.setErrorMessage(error);
-			std::cout << "Last replay buffer error: " << error << std::endl;
+		std::string outdated_driver_error = outdated_driver_error::instance()->get_error();
+		if (outdated_driver_error.size() != 0) {
+			signal.setErrorMessage(outdated_driver_error);
+			signal.setCode(OBS_OUTPUT_OUTDATED_DRIVER);
+		} else {
+			const char* error = obs_output_get_last_error(replayBufferOutput);
+			if (error) {
+				signal.setErrorMessage(error);
+				blog(LOG_INFO, "Last replay buffer error: %s", error);
+			}
+			signal.setCode(OBS_OUTPUT_ERROR);
 		}
-		signal.setCode(OBS_OUTPUT_ERROR);
 		std::unique_lock<std::mutex> ulock(signalMutex);
 		outputSignal.push(signal);
 	} else {
@@ -1435,6 +1440,21 @@ int OBS_service::GetAdvancedAudioBitrate(int i)
 	};
 	int bitrate = (int)config_get_uint(ConfigManager::getInstance().getBasic(), "AdvOut", names[i]);
 	return FindClosestAvailableAACBitrate(bitrate);
+}
+
+bool OBS_service::EncoderAvailable(const char* encoder)
+{
+	const char* val;
+	int         i = 0;
+
+	while (obs_enum_encoder_types(i++, &val)) {
+		if (val == nullptr)
+			continue;
+		if (strcmp(val, encoder) == 0)
+			return true;
+	}
+
+	return false;
 }
 
 void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
@@ -1626,11 +1646,9 @@ void OBS_service::updateFfmpegOutput(bool isSimpleMode, obs_output_t* output)
 	if (lastChar != '/' && lastChar != '\\')
 		strPath += "/";
 
-	if (fileNameFormat != NULL && format != NULL) {
+	if (fileNameFormat != NULL && format != NULL)
 		strPath += GenerateSpecifiedFilename(ffmpegOutput ? "avi" : format, noSpace, fileNameFormat);
-		if (!strPath.empty())
-			ensure_directory_exists(strPath);
-	}
+
 	if (!overwriteIfExists)
 		FindBestFilename(strPath, noSpace);
 
@@ -2390,4 +2408,15 @@ void OBS_service::OBS_service_stopVirtualWebcan(
 		return;
 	
 	obs_output_stop(virtualWebcamOutput);
+}
+void OBS_service::stopAllOutputs()
+{
+	if (streamingOutput && obs_output_active(streamingOutput))
+		stopStreaming(true);
+
+	if (replayBufferOutput && obs_output_active(replayBufferOutput))
+		stopReplayBuffer(true);
+
+	if (recordingOutput && obs_output_active(recordingOutput))
+		stopRecording();
 }
