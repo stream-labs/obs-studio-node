@@ -147,11 +147,6 @@ int main(int argc, char* argv[])
 	// argv[0] = Path to this application. (Usually given by default if run via path-based command!)
 	// argv[1] = Path to a named socket.
 
-	if (argc != 3) {
-		std::cerr << "There must be exactly one parameter." << std::endl;
-		return -1;
-	}
-
 	// Instance
 	ipc::server myServer;
 	bool        doShutdown = false;
@@ -195,7 +190,10 @@ int main(int argc, char* argv[])
 
 	// Initialize Server
 	try {
-		std::string socketPath = "/tmp/";
+		std::string socketPath = "";
+#ifdef __APPLE__
+		socketPath = "/tmp/";
+#endif
 		socketPath += argv[1];
 		myServer.initialize(socketPath.c_str());
 	} catch (std::exception& e) {
@@ -205,23 +203,6 @@ int main(int argc, char* argv[])
 		std::cerr << "Failed to initialize server" << std::endl;
 		return -2;
 	}
-
-#ifdef WIN32 AND ENABLE_CRASHREPORT
-
-	// Register the pre and post server callbacks to log the data into the crashmanager
-	myServer.set_pre_callback([](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data)
-	{ 
-		util::CrashManager& crashManager = *static_cast<util::CrashManager*>(data);
-		crashManager.ProcessPreServerCall(cname, fname, args);
-
-	}, &crashManager);
-	myServer.set_post_callback([](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data)
-	{
-		util::CrashManager& crashManager = *static_cast<util::CrashManager*>(data);
-		crashManager.ProcessPostServerCall(cname, fname, args);
-	}, &crashManager);
-
-#endif
 
 	// Reset Connect/Disconnect time.
 	sd.last_disconnect = sd.last_connect = std::chrono::high_resolution_clock::now();

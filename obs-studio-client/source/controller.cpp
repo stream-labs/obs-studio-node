@@ -340,7 +340,12 @@ std::shared_ptr<ipc::client> Controller::connect(
 	high_resolution_clock::time_point begin_time = high_resolution_clock::now();
 	while (!cl) {
 		try {
-			std::string path = "/tmp/" + uri;
+			std::string path;
+#ifdef WIN32
+			path = uri;
+#else
+			path = "/tmp/" + uri;
+#endif
 			cl = ipc::client::create(path);
 		} catch (...) {
 			cl = nullptr;

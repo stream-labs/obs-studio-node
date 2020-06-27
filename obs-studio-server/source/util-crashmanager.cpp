@@ -349,7 +349,9 @@ bool util::CrashManager::SetupCrashpad()
 	          ? std::string("https://sentry.io/api/1406061/minidump/?sentry_key=7376a60665cd40bebbd59d6bf8363172")
 	          : std::string("https://sentry.io/api/1283431/minidump/?sentry_key=ec98eac4e3ce49c7be1d83c8fb2005ef");
 
+#ifdef __APPLE__
 	std::string appdata_path = g_util_osx->getUserDataPath();
+#endif
 	db      = base::FilePath(appdata_path);
 	handler = base::FilePath(handler_path);
 

@@ -102,6 +102,8 @@ std::mutex                                             logMutex;
 std::string                                            currentVersion;
 std::string                                            username("unknown");
 
+ipc::server* server = nullptr;
+
 void OBS_API::Register(ipc::server& srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("API");
@@ -127,6 +129,7 @@ void OBS_API::Register(ipc::server& srv)
 	    "SetUsername", std::vector<ipc::type>{ipc::type::String}, SetUsername));
 
 	srv.register_collection(cls);
+	server = &srv;
 }
 
 void replaceAll(std::string& str, const std::string& from, const std::string& to)
@@ -657,6 +660,22 @@ void OBS_API::OBS_API_initAPI(
 	if (crashManager.Initialize(path)) {
 		crashManager.Configure();
    }
+
+#ifdef WIN32
+	// Register the pre and post server callbacks to log the data into the crashmanager
+	server->set_pre_callback([](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data)
+	{ 
+		util::CrashManager& crashManager = *static_cast<util::CrashManager*>(data);
+		crashManager.ProcessPreServerCall(cname, fname, args);
+
+	}, &crashManager);
+	server->set_post_callback([](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data)
+	{
+		util::CrashManager& crashManager = *static_cast<util::CrashManager*>(data);
+		crashManager.ProcessPostServerCall(cname, fname, args);
+	}, &crashManager);
+
+#endif
 #endif
 
 #ifdef WIN32
@@ -683,8 +702,8 @@ void OBS_API::OBS_API_initAPI(
             // This was added as a temporary measure to detect what could be happening in some
             // cases (if the user data path is wrong for ex). This will be correctly adjusted
             // when init API supports more return codes.
-            // std::string userDataPath = std::string(userData.begin(), userData.end());
-    #ifdef WIN32
+#ifdef WIN32
+			std::string userDataPath = std::string(userData.begin(), userData.end());
             util::CrashManager::AddWarning("Failed to start OBS, locale: " + locale + " user data: " + userDataPath);
     #endif
 	}
@@ -1473,10 +1492,9 @@ bool OBS_API::openAllModules(int& video_err)
 		return false;
 	}
 	blog(LOG_INFO, "g_moduleDirectory: %s", g_moduleDirectory.c_str());
-	std::string plugins_paths[] = {g_moduleDirectory + "/obs-plugins"};
-	// std::string plugins_paths[] = {g_moduleDirectory + "/obs-plugins/64bit",
-	//                                g_moduleDirectory + "/obs-plugins",
-	//                                slobs_plugin + "/obs-plugins/64bit"};
+	std::string plugins_paths[] = {g_moduleDirectory + "/obs-plugins/64bit",
+	                               g_moduleDirectory + "/obs-plugins",
+	                               slobs_plugin + "/obs-plugins/64bit"};
 
 	std::string plugins_data_paths[] = {
 	    g_moduleDirectory + "/data/obs-plugins", plugins_data_paths[0], slobs_plugin + "/data/obs-plugins"};
@@ -1737,7 +1755,7 @@ static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT l
 			reinterpret_cast<std::vector<std::pair<uint32_t, uint32_t>>*>(dwData);
 
 		resolutions->push_back(std::make_pair(
-			std::abs(info.rcMonitor.left - info.rcMonitor.right,
+			std::abs(info.rcMonitor.left - info.rcMonitor.right),
 			std::abs(info.rcMonitor.top - info.rcMonitor.bottom)
 		));
 	}

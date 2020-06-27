@@ -437,16 +437,16 @@ OBS::Display::~Display()
 void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 {
 	// Store new position.
-//	m_position.first  = x;
-//	m_position.second = y;
-//
-//	if (m_source != NULL) {
-//        std::string msg = "<" + std::string(__FUNCTION__) + "> Adjusting display position for source %s to %ldx%ld. hwnd %d";
-//		blog(
-//		    LOG_DEBUG,
-//		    msg.c_str(),
-//		    obs_source_get_name(m_source), x, y, m_ourWindow);
-//	}
+	m_position.first  = x;
+	m_position.second = y;
+
+	if (m_source != NULL) {
+       std::string msg = "<" + std::string(__FUNCTION__) + "> Adjusting display position for source %s to %ldx%ld. hwnd %d";
+		blog(
+		    LOG_DEBUG,
+		    msg.c_str(),
+		    obs_source_get_name(m_source), x, y, m_ourWindow);
+	}
 
 	// Move Window
 #if defined(_WIN32)
@@ -547,29 +547,29 @@ void OBS::Display::setSizeCall(int step)
 
 void OBS::Display::SetSize(uint32_t width, uint32_t height)
 {
-//	if (m_source != NULL) {
-//        std::string msg = "<" + std::string(__FUNCTION__) + "> Adjusting display size for source %s to %ldx%ld. hwnd %d";
-//		blog(
-//			LOG_DEBUG,
-//			msg.c_str(),
-//			obs_source_get_name(m_source), width, height, m_ourWindow);
-//	}
-//
-//	m_gsInitData.cx = width;
-//	m_gsInitData.cy = height;
-//
-//	if(width == 0 || height == 0 || isNewerThanWindows7())
-//	{
-//		setSizeCall(-1);
-//	} else {
-//		setSizeCall(4);
-//	}
-//
-//	// Resize Display
-//	obs_display_resize(m_display, m_gsInitData.cx, m_gsInitData.cy);
-//
-//	// Store new size.
-//	UpdatePreviewArea();
+	if (m_source != NULL) {
+       std::string msg = "<" + std::string(__FUNCTION__) + "> Adjusting display size for source %s to %ldx%ld. hwnd %d";
+		blog(
+			LOG_DEBUG,
+			msg.c_str(),
+			obs_source_get_name(m_source), width, height, m_ourWindow);
+	}
+
+	m_gsInitData.cx = width;
+	m_gsInitData.cy = height;
+
+	if(width == 0 || height == 0 || isNewerThanWindows7())
+	{
+		setSizeCall(-1);
+	} else {
+		setSizeCall(4);
+	}
+
+	// Resize Display
+	obs_display_resize(m_display, m_gsInitData.cx, m_gsInitData.cy);
+
+	// Store new size.
+	UpdatePreviewArea();
 }
 
 std::pair<uint32_t, uint32_t> OBS::Display::GetSize()

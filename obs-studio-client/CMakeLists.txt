@@ -36,7 +36,8 @@ if (APPLE)
 		${COCOA}
 		${AVFOUNDATION}
 		${Security}
-		${Foundation})
+		${Foundation}
+	)
 endif ()
 
 SET(osn-client_SOURCES

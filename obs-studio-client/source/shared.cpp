@@ -18,7 +18,8 @@
 
 #include "shared.hpp"
 
-std::queue<std::function<void(v8::Local<v8::Object>)>>* initializerFunctions;
+std::queue<std::function<void(v8::Local<v8::Object>)>>* initializerFunctions =
+    new std::queue<std::function<void(v8::Local<v8::Object>)>>;;
 
 #ifdef __APPLE__
     UtilInt* g_util_osx;

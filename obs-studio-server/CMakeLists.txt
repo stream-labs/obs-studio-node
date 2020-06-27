@@ -182,6 +182,8 @@ if (WIN32)
 		${LIBOBS_INCLUDE_DIRS}
 		"${stackwalker_SOURCE_DIR}/Main/StackWalker"
 		"${nlohmannjson_SOURCE_DIR}/single_include"
+		"${source_dir}/include/third_party/mini_chromium/mini_chromium"
+		"${source_dir}/include"
 	)
 else ()
 	set(PROJECT_LIBRARIES
