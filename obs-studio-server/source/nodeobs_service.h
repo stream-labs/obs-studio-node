@@ -44,7 +44,11 @@
 #include <unistd.h>
 #endif
 
+#ifdef WIN32
+#define SIMPLE_ENCODER_X264 "x264"
+#elif __APPLE__
 #define SIMPLE_ENCODER_X264 "obs_x264"
+#endif
 #define SIMPLE_ENCODER_X264_LOWCPU "x264_lowcpu"
 #define SIMPLE_ENCODER_QSV "qsv"
 #define SIMPLE_ENCODER_NVENC "nvenc"
