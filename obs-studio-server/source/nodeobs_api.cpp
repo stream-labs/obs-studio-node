@@ -688,8 +688,6 @@ void OBS_API::OBS_API_initAPI(
 	* 2. ${OBS_DATA_PATH}/libobs <- This works but is inflexible
 	* 3. getenv(OBS_DATA_PATH) + /libobs <- Can be set anywhere
 	*    on the cli, in the frontend, or the backend. */
-	obs_add_data_path("../../data");
-	obs_add_data_path((g_moduleDirectory + "/libobs/data/libobs/").c_str());
 	obs_add_data_path((g_moduleDirectory + "/data/libobs/").c_str());
 	slobs_plugin = appdata.substr(0, appdata.size() - strlen("/slobs-client"));
 	slobs_plugin.append("/slobs-plugins");
