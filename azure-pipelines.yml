@@ -14,7 +14,6 @@ variables:
   SLGenerator: Visual Studio 16 2019
   SLDistributeDirectory: distribute
   SLFullDistributePath: $(SLBuildDirectory)\$(SLDistributeDirectory)
-  BuildArtifact: obs-studio-node-us-$(Build.BuildId)-$(RuntimeName)-v$(ElectronVersion)
   LibOBSVersion: 25.19.3
 
 jobs:
@@ -26,7 +25,7 @@ jobs:
     ReleaseName: release
   steps:
   - powershell: |
-      Write-Host "##vso[task.setvariable variable=tagartifact]obs-studio-node-$((git.exe describe --tags --abbrev=0) | Out-String)"
+      Write-Host "##vso[task.setvariable variable=tagartifact]osn-$((git.exe describe --tags --abbrev=0) | Out-String)"
       'yarn install'
     displayName: 'Install dependencies'
 
@@ -60,13 +59,13 @@ jobs:
       includeRootFolder: true
       archiveType: tar
       tarCompression: gz
-      archiveFile: '$(SLFullDistributePath)\$(BuildArtifact)-$(ReleaseName).tar.gz'
+      archiveFile: '$(SLFullDistributePath)\$(tagartifact)-release-win64.tar.gz'
     displayName: 'Generate build artifact'
 
   - task: PublishBuildArtifacts@1
     inputs: 
-      pathtoPublish: $(SLFullDistributePath)\$(BuildArtifact)-$(ReleaseName).tar.gz
-      artifactName: $(BuildArtifact).tar.gz
+      pathtoPublish: $(SLFullDistributePath)\$(tagartifact)-release-win64.tar.gz
+      artifactName: $(tagartifact)-release-win64.tar.gz
     displayName: 'Publish build artifact'
 
   - script: ./ci/prepare-artifact.cmd
@@ -79,13 +78,13 @@ jobs:
       includeRootFolder: true
       archiveType: tar
       tarCompression: gz
-      archiveFile: '$(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-$(ReleaseName).tar.gz'
+      archiveFile: '$(tagartifact)-release-win64.tar.gz'
     displayName: 'Generate tag artifact'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
   - task: PublishBuildArtifacts@1
     inputs: 
-      pathtoPublish: $(Build.SourcesDirectory)\$(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-$(ReleaseName).tar.gz
+      pathtoPublish: $(Build.SourcesDirectory)\$(tagartifact)-release-win64.tar.gz
       artifactName: $(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-$(ReleaseName).tar.gz
     displayName: 'Publish tag artifact'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
@@ -173,13 +172,13 @@ jobs:
       includeRootFolder: true
       archiveType: tar
       tarCompression: gz
-      archiveFile: '$(SLFullDistributePath)\$(BuildArtifact)-$(ReleaseName).tar.gz'
+      archiveFile: '$(SLFullDistributePath)\$(tagartifact)-debug-win64.tar.gz'
     displayName: 'Generate build artifact'
 
   - task: PublishBuildArtifacts@1
     inputs: 
-      pathtoPublish: $(SLFullDistributePath)\$(BuildArtifact)-$(ReleaseName).tar.gz
-      artifactName: $(BuildArtifact).tar.gz
+      pathtoPublish: $(SLFullDistributePath)\$(tagartifact)-debug-win64.tar.gz
+      artifactName: $(tagartifact)-debug-win64.tar.gz
     displayName: 'Publish build artifact'
 
   - script: ./ci/prepare-artifact.cmd
@@ -198,8 +197,8 @@ jobs:
 
   - task: PublishBuildArtifacts@1
     inputs: 
-      pathtoPublish: $(Build.SourcesDirectory)\$(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-$(ReleaseName).tar.gz
-      artifactName: $(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-$(ReleaseName).tar.gz
+      pathtoPublish: $(Build.SourcesDirectory)\$(tagartifact)-debug-win64.tar.gz
+      artifactName: $(tagartifact)-debug-win64.tar.gz
     displayName: 'Publish tag artifact'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
@@ -208,7 +207,7 @@ jobs:
       awsCredentials: 'Streamlabs AWS'
       regionName: 'us-west-2'
       bucketName: 'obsstudionodes3.streamlabs.com'
-      globExpressions: '$(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-$(ReleaseName).tar.gz'
+      globExpressions: '$(tagartifact)-debug-win64.tar.gz'
       filesAcl: 'public-read'
     displayName: 'Upload tag artifact to S3'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
@@ -226,7 +225,7 @@ jobs:
         BuildConfig: Debug
         ReleaseName: debug
   steps:
-  - powershell: Write-Host "##vso[task.setvariable variable=tagartifact]obs-studio-node-$((git describe --tags --abbrev=0) | Out-String)"
+  - powershell: Write-Host "##vso[task.setvariable variable=tagartifact]osn-$((git describe --tags --abbrev=0) | Out-String)"
     displayName: 'Get current tag'
 
   - script: './ci/install-dependencies-osx.sh'
@@ -254,13 +253,13 @@ jobs:
       includeRootFolder: true
       archiveType: tar
       tarCompression: gz
-      archiveFile: '$(SLBuildDirectory)/$(SLDistributeDirectory)/$(BuildArtifact)-$(ReleaseName).tar.gz'
+      archiveFile: '$(SLBuildDirectory)/$(SLDistributeDirectory)/$(tagartifact)-$(ReleaseName)-osx.tar.gz'
     displayName: 'Generate build artifact'
 
   - task: PublishBuildArtifacts@1
     inputs:
-      pathtoPublish: $(SLBuildDirectory)/$(SLDistributeDirectory)/$(BuildArtifact)-$(ReleaseName).tar.gz
-      artifactName: $(BuildArtifact).tar.gz
+      pathtoPublish: $(SLBuildDirectory)/$(SLDistributeDirectory)/$(tagartifact)-$(ReleaseName)-osx.tar.gz
+      artifactName: $(tagartifact)-$(ReleaseName)-osx.tar.gz
     displayName: 'Publish build artifact'
 
   - task: ArchiveFiles@2
@@ -269,14 +268,14 @@ jobs:
       includeRootFolder: true
       archiveType: tar
       tarCompression: gz
-      archiveFile: '$(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-osx-$(ReleaseName).tar.gz'
+      archiveFile: '$(tagartifact)-$(ReleaseName)-osx.tar.gz'
       condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
     displayName: 'Generate tag artifact'
 
   - task: PublishBuildArtifacts@1
     inputs:
-      pathtoPublish: $(Build.SourcesDirectory)/$(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-osx-$(ReleaseName).tar.gz
-      artifactName: $(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-osx-$(ReleaseName).tar.gz
+      pathtoPublish: $(Build.SourcesDirectory)/$(tagartifact)-$(ReleaseName)-osx.tar.gz
+      artifactName: $(tagartifact)-$(ReleaseName)-osx.tar.gz
     displayName: 'Publish tag artifact'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
@@ -285,7 +284,7 @@ jobs:
       awsCredentials: 'Streamlabs AWS'
       regionName: 'us-west-2'
       bucketName: 'obsstudionodes3.streamlabs.com'
-      globExpressions: '$(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-osx-$(ReleaseName).tar.gz'
+      globExpressions: '$(tagartifact)-$(ReleaseName)-osx.tar.gz'
       filesAcl: 'public-read'
     displayName: 'Upload tag artifact to S3'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
