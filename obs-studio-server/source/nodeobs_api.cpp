@@ -102,7 +102,7 @@ std::mutex                                             logMutex;
 std::string                                            currentVersion;
 std::string                                            username("unknown");
 
-ipc::server* server = nullptr;
+ipc::server* g_server = nullptr;
 
 void OBS_API::Register(ipc::server& srv)
 {
@@ -129,7 +129,7 @@ void OBS_API::Register(ipc::server& srv)
 	    "SetUsername", std::vector<ipc::type>{ipc::type::String}, SetUsername));
 
 	srv.register_collection(cls);
-	server = &srv;
+	g_server = &srv;
 }
 
 void replaceAll(std::string& str, const std::string& from, const std::string& to)
@@ -663,13 +663,13 @@ void OBS_API::OBS_API_initAPI(
 
 #ifdef WIN32
 	// Register the pre and post server callbacks to log the data into the crashmanager
-	server->set_pre_callback([](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data)
+	g_server->set_pre_callback([](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data)
 	{ 
 		util::CrashManager& crashManager = *static_cast<util::CrashManager*>(data);
 		crashManager.ProcessPreServerCall(cname, fname, args);
 
 	}, &crashManager);
-	server->set_post_callback([](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data)
+	g_server->set_post_callback([](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data)
 	{
 		util::CrashManager& crashManager = *static_cast<util::CrashManager*>(data);
 		crashManager.ProcessPostServerCall(cname, fname, args);
@@ -1307,7 +1307,7 @@ void acknowledgeTerminate (void) {
 
 bool prepareTerminationPipe() {
 	// TODO
-	return true;
+	return false;
 }
 #endif
 

@@ -26,7 +26,8 @@ void UtilObjCInt::wait_terminate(void) {
     while (true) {
         int ret = ::read(file_descriptor, buffer.data(), count);
         if (ret > 0) {
-            if (appRunning)
+            bool appCrashed = *reinterpret_cast<bool*>(buffer.data());
+            if (appCrashed && appRunning)
                 this->stopApplication();
             break;
         }
