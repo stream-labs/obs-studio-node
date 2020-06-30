@@ -85,7 +85,7 @@ jobs:
   - task: PublishBuildArtifacts@1
     inputs: 
       pathtoPublish: $(Build.SourcesDirectory)\$(tagartifact)-release-win64.tar.gz
-      artifactName: $(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-$(ReleaseName).tar.gz
+      artifactName: '$(tagartifact)-release-win64.tar.gz'
     displayName: 'Publish tag artifact'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
@@ -125,7 +125,7 @@ jobs:
       awsCredentials: 'Streamlabs AWS'
       regionName: 'us-west-2'
       bucketName: 'obsstudionodes3.streamlabs.com'
-      globExpressions: '$(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-$(ReleaseName).tar.gz'
+      globExpressions: '$(tagartifact)-release-win64.tar.gz'
       filesAcl: 'public-read'
     displayName: 'Upload tag artifact to S3'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
@@ -191,7 +191,7 @@ jobs:
       includeRootFolder: true
       archiveType: tar
       tarCompression: gz
-      archiveFile: '$(tagartifact)-$(RuntimeName)-v$(ElectronVersion)-$(ReleaseName).tar.gz'
+      archiveFile: $(tagartifact)-debug-win64.tar.gz
     displayName: 'Generate tag artifact'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
