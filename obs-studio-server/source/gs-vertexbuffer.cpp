@@ -96,7 +96,6 @@ GS::VertexBuffer::VertexBuffer(uint32_t maximumVertices)
 GS::VertexBuffer::VertexBuffer(gs_vertbuffer_t* vb)
 {
 	gs_vb_data* vbd = gs_vertexbuffer_get_data(vb);
-//	this->VertexBuffer::VertexBuffer((uint32_t)vbd->num);
 	this->SetUVLayers((uint32_t)vbd->num_tex);
 
 	if (vbd->points != nullptr)

@@ -86,12 +86,12 @@ namespace OBS
 		void SetResizeBoxInnerColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
 		bool GetDrawGuideLines(void);
 		void SetDrawGuideLines(bool drawGuideLines);
-		static void DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy);
-		void        UpdatePreviewArea();
-		void        setSizeCall(int step);
 
 		private:
+		static void DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy);
 		static bool DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item, void* param);
+		void        UpdatePreviewArea();
+		void        setSizeCall(int step);
 
 		public: // Rendering code needs it.
 		vec2 m_worldToPreviewScale, m_previewToWorldScale;
@@ -100,8 +100,6 @@ namespace OBS
 		obs_display_t* m_display;
 		obs_source_t*  m_source;
 		bool           m_drawGuideLines;
-		int            m_screenScale;
-		bool           m_enableMouseEvents;
 
 		// Preview
 		/// Window Position
@@ -111,7 +109,6 @@ namespace OBS
 		/// Actual Preview Size
 		std::pair<uint32_t, uint32_t> m_previewSize;
 
-		private:
 		// OBS Graphics API
 		gs_effect_t * m_gsSolidEffect, *m_textEffect;
 		gs_texture_t* m_textTexture;
@@ -143,7 +140,6 @@ namespace OBS
 		static void       DisplayWndClass();
 		static LRESULT CALLBACK DisplayWndProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam);
 #elif defined(__APPLE__)
-		int m_ourWindow;
 #elif defined(__linux__) || defined(__FreeBSD__)
 #endif
 	};

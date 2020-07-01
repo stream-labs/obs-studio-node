@@ -373,17 +373,17 @@ void outdated_driver_error::catch_error(const char* msg)
 	}
 }
 
-inline std::string nodeobs_log_formatted_message(const char* format, va_list args)
+inline std::string nodeobs_log_formatted_message(const char* format, va_list& args)
 {
 #ifdef WIN32
 	size_t            length  = _vscprintf(format, args);
 #else
-    va_list argcopy;
-    va_copy(argcopy, args);
+	va_list argcopy;
+	va_copy(argcopy, args);
 	size_t            length  = vsnprintf(NULL, 0, format, argcopy);
 #endif
 	std::vector<char> buf     = std::vector<char>(length + 1, '\0');
-	size_t            written = vsprintf(buf.data(), format, args);
+	size_t            written = vsprintf_s(buf.data(), buf.size(), format, args);
 	return std::string(buf.begin(), buf.begin() + length);
 }
 
@@ -639,7 +639,6 @@ void OBS_API::OBS_API_initAPI(
     std::vector<ipc::value>&       rval)
 {
 	writeCrashHandler(registerProcess());
-
 	/* Map base DLLs as soon as possible into the current process space.
 	* In particular, we need to load obs.dll into memory before we call
 	* any functions from obs else if we delay-loaded the dll, it will
@@ -702,8 +701,8 @@ void OBS_API::OBS_API_initAPI(
             // when init API supports more return codes.
 #ifdef WIN32
 			std::string userDataPath = std::string(userData.begin(), userData.end());
-            util::CrashManager::AddWarning("Failed to start OBS, locale: " + locale + " user data: " + userDataPath);
-    #endif
+			util::CrashManager::AddWarning("Failed to start OBS, locale: " + locale + " user data: " + userDataPath);
+#endif
 	}
 
 	/* Logging */
@@ -729,10 +728,6 @@ void OBS_API::OBS_API_initAPI(
 	    new std::fstream(converter.from_bytes(log_path.c_str()).c_str(), std::ios_base::out | std::ios_base::trunc);
 #else
 	std::fstream* logfile = new std::fstream(log_path, std::ios_base::out | std::ios_base::trunc);
-
-	// std::fstream logfile;
-
-	base_set_log_handler(node_obs_log, logfile);
 #endif
 #ifdef WIN32
 	if (!logfile->is_open()) {
@@ -740,8 +735,8 @@ void OBS_API::OBS_API_initAPI(
 		util::CrashManager::AddWarning("Error on log file, failed to open: " + log_path);
 		std::cerr << "Failed to open log file" << std::endl;
 	}
-
 #endif
+	// base_set_log_handler(node_obs_log, logfile);
 #ifndef _DEBUG
 	// Redirect the ipc log callbacks to our log handler
 	ipc::register_log_callback([](void* data, const char* fmt, va_list args) { 
@@ -753,16 +748,9 @@ void OBS_API::OBS_API_initAPI(
 	SetPrivilegeForGPUPriority();
 #endif
 
-	/* INJECT osn::Source::Manager */
-	// Alright, you're probably wondering: Why is osn code here?
-	// Well, simply because the hooks need to run as soon as possible. We don't
-	//  want to miss a single create or destroy signal OBS gives us for the
-	//  osn::Source::Manager.
 	osn::Source::initialize_global_signals();
-	/* END INJECT osn::Source::Manager */
 
 	cpuUsageInfo = os_cpu_usage_info_start();
-	blog(LOG_INFO, "Appdata is %s", appdata.c_str());
 	ConfigManager::getInstance().setAppdataPath(appdata);
 
 	/* Set global private settings for whomever it concerns */
@@ -775,7 +763,6 @@ void OBS_API::OBS_API_initAPI(
 	int videoError;
 	if (!openAllModules(videoError)) {
 #ifdef WIN32
-		// Directly blame the user for this error (since he is the culprit of having an invalid Dx version)
 		util::CrashManager::GetMetricsProvider()->BlameUser();
 
 		blog(LOG_INFO, "Error returning now");

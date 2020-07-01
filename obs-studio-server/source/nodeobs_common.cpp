@@ -374,19 +374,21 @@ void OBS_content::OBS_content_resizeDisplay(
 
 	OBS::Display* display = value->second;
 
-	display->m_gsInitData.cx = args[1].value_union.ui32;
-	display->m_gsInitData.cy = args[2].value_union.ui32;
+	// display->m_gsInitData.cx = args[1].value_union.ui32;
+	// display->m_gsInitData.cy = args[2].value_union.ui32;
 
-	// Resize Display
-    obs_display_resize(display->m_display,
-		display->m_gsInitData.cx * display->m_screenScale,
-		display->m_gsInitData.cy * display->m_screenScale);
+	// // Resize Display
+    // obs_display_resize(display->m_display,
+	// 	display->m_gsInitData.cx * display->m_screenScale,
+	// 	display->m_gsInitData.cy * display->m_screenScale);
 
-    // Store new size.
-    display->UpdatePreviewArea();
+    // // Store new size.
+    // display->UpdatePreviewArea();
 
 #ifdef WIN32
-	display->SetSize(display->m_gsInitData.cx, display->m_gsInitData.cy);
+	int width = args[1].value_union.ui32;
+	int height = args[2].value_union.ui32;
+	display->SetSize(width, height);
 #endif
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -410,8 +412,8 @@ void OBS_content::OBS_content_moveDisplay(
 	int x = args[1].value_union.ui32;
 	int y = args[2].value_union.ui32;
 
-	display->m_position.first  = x;
-	display->m_position.second = y;
+	// display->m_position.first  = x;
+	// display->m_position.second = y;
 
 	display->SetPosition(x, y);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));

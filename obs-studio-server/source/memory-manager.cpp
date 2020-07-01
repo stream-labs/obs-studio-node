@@ -304,45 +304,46 @@ void MemoryManager::unregisterSource(obs_source_t * source)
 
 void MemoryManager::monitorMemory()
 {
-// 	while (!watcher.stop) {
-// #ifdef WIN32
-// 		MEMORYSTATUSEX statex;
-// 		statex.dwLength = sizeof(statex);
+#ifdef WIN32
+	while (!watcher.stop) {
+		MEMORYSTATUSEX statex;
+		statex.dwLength = sizeof(statex);
 
-// 		if (!GlobalMemoryStatusEx(&statex))
-// 			return;
+		if (!GlobalMemoryStatusEx(&statex))
+			return;
 
-// 		uint64_t memory_in_use               = statex.ullTotalPhys - statex.ullAvailPhys;
-// 		uint64_t memory_in_use_without_cache = memory_in_use - current_cached_size;
-// 		uint64_t totalMeory                  = statex.ullTotalPhys;
-// #elif __APPLE__
-// 		uint64_t totalMeory = g_util_osx->getTotalPhysicalMemory();
-// 		uint64_t availableMemory = g_util_osx->getAvailableMemory();
-// 		uint64_t memory_in_use = totalMeory - availableMemory;
-// 		uint64_t memory_in_use_without_cache =
-// 			memory_in_use - current_cached_size;
-// #endif
-// 		std::unique_lock<std::mutex> ulock(mtx);
+		uint64_t memory_in_use               = statex.ullTotalPhys - statex.ullAvailPhys;
+		uint64_t memory_in_use_without_cache = memory_in_use - current_cached_size;
+		uint64_t totalMeory                  = statex.ullTotalPhys;
+#ifdef __APPLE__
+		// uint64_t totalMeory = g_util_osx->getTotalPhysicalMemory();
+		// uint64_t availableMemory = g_util_osx->getAvailableMemory();
+		// uint64_t memory_in_use = totalMeory - availableMemory;
+		// uint64_t memory_in_use_without_cache =
+		// 	memory_in_use - current_cached_size;
+#endif
+		std::unique_lock<std::mutex> ulock(mtx);
 
-// 		float memory_load =
-// 			(float)(memory_in_use_without_cache + current_cached_size) / (float)totalMeory * 100;
-// 		auto it = sources.begin();
-// 		if (memory_load >= UPPER_LIMIT) {
-// 			while (memory_load >= (UPPER_LIMIT - 10) && it != sources.end()) {
-// 				removeCachedMemory(it->second, false);
-// 				memory_load =
-// 					(float)(memory_in_use_without_cache + current_cached_size) / (float)totalMeory * 100;
-// 				it++;
-// 			}
-// 		} else if (memory_load < LOWER_LIMIT) {
-// 			while (memory_load < (LOWER_LIMIT + 10) && it != sources.end()) {
-// 				if (shouldCacheSource(it->second))
-// 					addCachedMemory(it->second);
-// 				memory_load =
-// 					(float)(memory_in_use_without_cache + current_cached_size) / (float)totalMeory * 100;
-// 				it++;
-// 			}
-// 		}
-// 		std::this_thread::sleep_for(std::chrono::milliseconds(500));
-// 	}
+		float memory_load =
+			(float)(memory_in_use_without_cache + current_cached_size) / (float)totalMeory * 100;
+		auto it = sources.begin();
+		if (memory_load >= UPPER_LIMIT) {
+			while (memory_load >= (UPPER_LIMIT - 10) && it != sources.end()) {
+				removeCachedMemory(it->second, false);
+				memory_load =
+					(float)(memory_in_use_without_cache + current_cached_size) / (float)totalMeory * 100;
+				it++;
+			}
+		} else if (memory_load < LOWER_LIMIT) {
+			while (memory_load < (LOWER_LIMIT + 10) && it != sources.end()) {
+				if (shouldCacheSource(it->second))
+					addCachedMemory(it->second);
+				memory_load =
+					(float)(memory_in_use_without_cache + current_cached_size) / (float)totalMeory * 100;
+				it++;
+			}
+		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	}
+#endif
 }

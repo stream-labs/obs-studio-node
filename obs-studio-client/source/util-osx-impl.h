@@ -1,5 +1,5 @@
 /******************************************************************************
-    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+    Copyright (C) 2016-2020 by Streamlabs (General Workings Inc)
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

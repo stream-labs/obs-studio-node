@@ -214,7 +214,6 @@ int main(int argc, char* argv[])
 #endif
 #ifdef WIN32
 	bool waitBeforeClosing = false;
-	
 	while (!doShutdown) {
 		if (sd.count_connected == 0) {
 			auto tp    = std::chrono::high_resolution_clock::now();
