@@ -729,10 +729,6 @@ void OBS_API::OBS_API_initAPI(
 	    new std::fstream(converter.from_bytes(log_path.c_str()).c_str(), std::ios_base::out | std::ios_base::trunc);
 #else
 	std::fstream* logfile = new std::fstream(log_path, std::ios_base::out | std::ios_base::trunc);
-
-	// std::fstream logfile;
-
-	base_set_log_handler(node_obs_log, logfile);
 #endif
 #ifdef WIN32
 	if (!logfile->is_open()) {
@@ -740,7 +736,7 @@ void OBS_API::OBS_API_initAPI(
 		util::CrashManager::AddWarning("Error on log file, failed to open: " + log_path);
 		std::cerr << "Failed to open log file" << std::endl;
 	}
-
+	base_set_log_handler(node_obs_log, logfile);
 #endif
 #ifndef _DEBUG
 	// Redirect the ipc log callbacks to our log handler
