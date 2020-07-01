@@ -430,6 +430,7 @@ OBS::Display::~Display()
 
 void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 {
+#if defined(_WIN32)
 	// Store new position.
 	m_position.first  = x;
 	m_position.second = y;
@@ -442,13 +443,8 @@ void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 		    obs_source_get_name(m_source), x, y, m_ourWindow);
 	}
 
-	// Move Window
-#if defined(_WIN32)
 	SetWindowPos( m_ourWindow, NULL, m_position.first, m_position.second, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE);
-#elif defined(__APPLE__)
-#elif defined(__linux__) || defined(__FreeBSD__)
 #endif
-
 }
 
 std::pair<uint32_t, uint32_t> OBS::Display::GetPosition()
@@ -541,6 +537,7 @@ void OBS::Display::setSizeCall(int step)
 
 void OBS::Display::SetSize(uint32_t width, uint32_t height)
 {
+#ifdef WIN32
 	if (m_source != NULL) {
        std::string msg = "<" + std::string(__FUNCTION__) + "> Adjusting display size for source %s to %ldx%ld. hwnd %d";
 		blog(
@@ -564,6 +561,7 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 
 	// Store new size.
 	UpdatePreviewArea();
+#endif
 }
 
 std::pair<uint32_t, uint32_t> OBS::Display::GetSize()
