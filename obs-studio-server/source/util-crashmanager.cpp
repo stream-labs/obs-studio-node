@@ -340,7 +340,6 @@ bool util::CrashManager::SetupCrashpad()
 #ifdef WIN32
 	std::wstring handler_path(L"crashpad_handler.exe");
 #else
-	// workingDirectory = workingDirectory.substr(0, workingDirectory.size() - strlen("obs64"));
 	std::string handler_path = workingDirectory + '/';
 	handler_path.append("crashpad_handler");
 #endif
@@ -361,7 +360,7 @@ bool util::CrashManager::SetupCrashpad()
 
 	database->GetSettings()->SetUploadsEnabled(true);
 
-	bool rc = client.StartHandler(handler, db, db, url, annotations, arguments, true, false);
+	bool rc = client.StartHandler(handler, db, db, url, annotations, arguments, true, true);
 	if (!rc)
 		return false;
 
@@ -430,10 +429,6 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	if (is_allocator_failed()) {
 		known_crash_id = 0x1;
 	}
-
-//	if (known_crash_id != 0) {
-//		OBS_API::InformCrashHandler(known_crash_id);
-//	}
 
 	// Get the information about the total of CPU and RAM used by this user
 	long long totalPhysMem = 1;
