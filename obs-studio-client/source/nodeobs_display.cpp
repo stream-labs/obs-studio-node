@@ -294,36 +294,6 @@ void display::OBS_content_setDrawGuideLines(const v8::FunctionCallbackInfo<v8::V
 	conn->call("Display", "OBS_content_setDrawGuideLines", {ipc::value(key), ipc::value(drawGuideLines)});
 }
 
-void display::OBS_content_setFocused(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	std::string key;
-	bool        focused;
-
-	ASSERT_GET_VALUE(args[0], key);
-	ASSERT_GET_VALUE(args[1], focused);
-
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	conn->call("Display", "OBS_content_setFocused", {ipc::value(key), ipc::value(focused)});
-}
-
-void display::OBS_content_setDisplayScale(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-	std::string key;
-	uint32_t    scale;
-
-	ASSERT_GET_VALUE(args[0], key);
-	ASSERT_GET_VALUE(args[1], scale);
-
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	conn->call("Display", "OBS_content_setDisplayScale", {ipc::value(key), ipc::value(scale)});
-}
-
 void display::OBS_content_createIOSurface(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	std::string key;
@@ -357,8 +327,6 @@ INITIALIZER(nodeobs_display)
 		NODE_SET_METHOD(exports, "OBS_content_setPaddingColor", display::OBS_content_setPaddingColor);
 		NODE_SET_METHOD(exports, "OBS_content_setShouldDrawUI", display::OBS_content_setShouldDrawUI);
 		NODE_SET_METHOD(exports, "OBS_content_setDrawGuideLines", display::OBS_content_setDrawGuideLines);
-		NODE_SET_METHOD(exports, "OBS_content_setFocused", display::OBS_content_setFocused);
-		NODE_SET_METHOD(exports, "OBS_content_setDisplayScale", display::OBS_content_setDisplayScale);
 		NODE_SET_METHOD(exports, "OBS_content_createIOSurface", display::OBS_content_createIOSurface);
 	});
 }

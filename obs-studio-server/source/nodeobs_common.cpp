@@ -219,11 +219,6 @@ void OBS_content::Register(ipc::server& srv)
 	    OBS_content_setDrawGuideLines));
 
 	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_content_setDisplayScale",
-	    std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32},
-	    OBS_content_setDisplayScale));
-
-	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_content_createIOSurface",
 	    std::vector<ipc::type>{ipc::type::String},
 	    OBS_content_createIOSurface));
@@ -635,28 +630,6 @@ void OBS_content::OBS_content_setDrawGuideLines(
 		return;
 	}
 	it->second->SetDrawGuideLines((bool)args[1].value_union.i32);
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
-}
-
-void OBS_content::OBS_content_setDisplayScale(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	// Find Display
-	// auto it = displays.find(args[0].value_str);
-	// // auto it = displays.begin();
-	// if (it == displays.end()) {
-	// 	rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-	// 	rval.push_back(ipc::value("Display key is not valid!"));
-	// 	return;
-	// }
-	// it->second->m_screenScale = args[1].value_union.ui32;
-
-	// blog(LOG_INFO, "New display scale: %d", it->second->m_screenScale);
-
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }

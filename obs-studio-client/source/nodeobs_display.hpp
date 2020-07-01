@@ -33,7 +33,5 @@ namespace display
 	static void OBS_content_setOutlineColor(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_content_setShouldDrawUI(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_content_setDrawGuideLines(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void OBS_content_setFocused(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void OBS_content_setDisplayScale(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_content_createIOSurface(const v8::FunctionCallbackInfo<v8::Value>& args);
 } // namespace display

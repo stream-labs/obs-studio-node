@@ -240,11 +240,9 @@ Controller::~Controller() {}
 
 std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 {
-	std::cout << "host - start" << std::endl;
 	if (m_isServer)
 		return nullptr;
 
-	std::cout << "host - 0" << std::endl;
 	std::stringstream commandLine;
 	commandLine << "\"" << serverBinaryPath << "\""
 	            << " " << uri;
@@ -257,9 +255,7 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 	else
 #endif
 		workingDirectory = serverWorkingPath;
-#ifdef __APPLE__
-	g_util_osx->setServerWorkingDirectoryPath(workingDirectory);
-#endif
+
 #ifdef WIN32
 	// Test for existing process.
 	std::string pid_path(get_temp_directory());
@@ -283,7 +279,7 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 		return nullptr;
 	}
 #else
-	std::cout << "host - 1" << std::endl;
+	g_util_osx->setServerWorkingDirectoryPath(workingDirectory);
     pid_t pids[2048];
     int bytes = proc_listpids(PROC_ALL_PIDS, 0, pids, sizeof(pids));
     int n_proc = bytes / sizeof(pids[0]);
@@ -299,19 +295,12 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
         }
     }
 
-	std::cout << "host - 2" << std::endl;
     pid_t pid;
     std::vector<char> uri_str(uri.c_str(), uri.c_str() + uri.size() + 1);
     char *argv[] = {"obs64", uri_str.data(), (char*)serverBinaryPath.c_str(), NULL};
-    std::cout << "Spawning obs server" << std::endl;
     remove(uri.c_str());
 
-    // int ret = 0;
-    // if (ret = posix_spawnp(&pid, serverBinaryPath.c_str(), NULL, NULL, argv, environ))
-    //     perror ("posix_spawn"), exit(ret);
-	std::cout << "Opening " << serverBinaryPath.c_str() << std::endl;
 	int ret  = posix_spawnp(&pid, serverBinaryPath.c_str(), NULL, NULL, argv, environ);
-	std::cout << "Result: " << ret << std::endl;
     // Connect
     std::shared_ptr<ipc::client> cl = connect(uri);
     if (!cl) { // Assume the server broke or was not allowed to run.
@@ -493,5 +482,4 @@ INITIALIZER(js_ipc)
 		NODE_SET_METHOD(obj, "disconnect", js_disconnect);
 		exports->Set(v8::String::NewFromUtf8(exports->GetIsolate(), "IPC").ToLocalChecked(), obj);
 	});
-//	std::cout << "Size of init in controller: " << initializerFunctions.size() << std::endl;
 }
