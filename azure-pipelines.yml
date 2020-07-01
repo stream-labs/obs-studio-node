@@ -138,7 +138,7 @@ jobs:
     ReleaseName: debug
   steps:
   - powershell: |
-      Write-Host "##vso[task.setvariable variable=tagartifact]obs-studio-node-$((git.exe describe --tags --abbrev=0) | Out-String)"
+      Write-Host "##vso[task.setvariable variable=tagartifact]osn-$((git.exe describe --tags --abbrev=0) | Out-String)"
       'yarn install'
     displayName: 'Install dependencies'
 
