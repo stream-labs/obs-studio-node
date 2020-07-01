@@ -248,7 +248,6 @@ void OBS_content::OBS_content_createDisplay(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	blog(LOG_INFO, "nodeobs create display");
 	uint64_t windowHandle = args[0].value_union.ui64;
 	auto     found        = displays.find(args[1].value_str);
 

@@ -696,8 +696,8 @@ void OBS_API::OBS_API_initAPI(
             // cases (if the user data path is wrong for ex). This will be correctly adjusted
             // when init API supports more return codes.
 #ifdef WIN32
-			std::string userDataPath = std::string(userData.begin(), userData.end());
-			util::CrashManager::AddWarning("Failed to start OBS, locale: " + locale + " user data: " + userDataPath);
+            std::string userDataPath = std::string(userData.begin(), userData.end());
+            util::CrashManager::AddWarning("Failed to start OBS, locale: " + locale + " user data: " + userDataPath);
 #endif
 	}
 
@@ -873,9 +873,6 @@ void OBS_API::QueryHotkeys(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-// #ifdef __APPLE__
-// 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-// #else
 	struct HotkeyInfo
 	{
 		std::string                objectName;
@@ -992,7 +989,6 @@ void OBS_API::QueryHotkeys(
 		rval.push_back(ipc::value(uint64_t(hotkeyInfo.hotkeyId)));
 	}
 
-// #endif
 	AUTO_DEBUG;
 }
 
@@ -1472,7 +1468,6 @@ bool OBS_API::openAllModules(int& video_err)
 		blog(LOG_INFO, "Reset video failed with error: %d", video_err);
 		return false;
 	}
-	blog(LOG_INFO, "g_moduleDirectory: %s", g_moduleDirectory.c_str());
 	std::string plugins_paths[] = {g_moduleDirectory + "/obs-plugins/64bit",
 	                               g_moduleDirectory + "/obs-plugins",
 	                               slobs_plugin + "/obs-plugins/64bit"};
