@@ -41,11 +41,6 @@ struct SourceInfo
 	uint32_t volmeter;
 };
 
-// extern std::map<std::string, SourceInfo*> sourceInfo;
-// extern std::vector<std::string>           tabScenes;
-// extern std::string                        currentTransition;
-// extern std::map<std::string, obs_source_t*>    transitions;
-
 class OBS_content
 {
 	public:

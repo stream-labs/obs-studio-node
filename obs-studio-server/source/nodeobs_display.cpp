@@ -26,10 +26,6 @@
 #include <graphics/vec4.h>
 #include <util/platform.h>
 
-//#include <X11/Xlib-xcb.h>
-//#include <GL/glx.h>
-//#include <GL/gl.h>
-
 std::vector<std::pair<std::string, std::pair<uint32_t, uint32_t>>> sourcesSize;
 
 extern std::string currentScene; /* defined in OBS_content.cpp */
@@ -262,9 +258,8 @@ OBS::Display::Display()
 
 	obs_enter_graphics();
 	m_gsSolidEffect = obs_get_base_effect(OBS_EFFECT_SOLID);
-//
 	GS::Vertex v(nullptr, nullptr, nullptr, nullptr, nullptr);
-//
+
 	m_boxLine = std::make_unique<GS::VertexBuffer>(6);
 	m_boxLine->Resize(6);
 	v = m_boxLine->At(0);
@@ -360,7 +355,6 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode)
 	m_parentWindow           = reinterpret_cast<HWND>(windowHandle);
 	m_gsInitData.window.hwnd = reinterpret_cast<void*>(m_ourWindow);
 #endif
-	m_screenScale = 1;
 	m_display = obs_display_create(&m_gsInitData, 0x0);
     if (!m_display) {
         blog(LOG_INFO, "Failed to create the display");
@@ -755,14 +749,14 @@ inline void DrawBoxAt(OBS::Display* dp, float_t x, float_t y, matrix4& mtx)
 	vec3_transform(&pos, &pos, &mtx);
 
 	vec3 offset = {-HANDLE_RADIUS, -HANDLE_RADIUS, 0.0f};
-	offset.x *= dp->m_previewToWorldScale.x * dp->m_screenScale;
-	offset.y *= dp->m_previewToWorldScale.y * dp->m_screenScale;
+	offset.x *= dp->m_previewToWorldScale.x;
+	offset.y *= dp->m_previewToWorldScale.y;
 
 	gs_matrix_translate(&pos);
 	gs_matrix_translate(&offset);
 	gs_matrix_scale3f(
-	    HANDLE_DIAMETER * dp->m_previewToWorldScale.x * dp->m_screenScale,
-		HANDLE_DIAMETER * dp->m_previewToWorldScale.y * dp->m_screenScale,
+	    HANDLE_DIAMETER * dp->m_previewToWorldScale.x,
+		HANDLE_DIAMETER * dp->m_previewToWorldScale.y,
 		1.0f);
 
 	gs_draw(GS_LINESTRIP, 0, 0);
@@ -777,14 +771,14 @@ inline void DrawSquareAt(OBS::Display* dp, float_t x, float_t y, matrix4& mtx)
 	vec3_transform(&pos, &pos, &mtx);
 
 	vec3 offset = {-HANDLE_RADIUS, -HANDLE_RADIUS, 0.0f};
-	offset.x *= dp->m_previewToWorldScale.x * dp->m_screenScale;
-	offset.y *= dp->m_previewToWorldScale.y * dp->m_screenScale;
+	offset.x *= dp->m_previewToWorldScale.x;
+	offset.y *= dp->m_previewToWorldScale.y;
 
 	gs_matrix_translate(&pos);
 	gs_matrix_translate(&offset);
 	gs_matrix_scale3f(
-	    HANDLE_DIAMETER * dp->m_previewToWorldScale.x * dp->m_screenScale,
-		HANDLE_DIAMETER * dp->m_previewToWorldScale.y * dp->m_screenScale,
+	    HANDLE_DIAMETER * dp->m_previewToWorldScale.x,
+		HANDLE_DIAMETER * dp->m_previewToWorldScale.y,
 		1.0f);
 
 	gs_draw(GS_TRISTRIP, 0, 0);
@@ -979,7 +973,7 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 		}
 
 		std::vector<char> buf(8);
-		float_t           pt = 8 * dp->m_previewToWorldScale.y * dp->m_screenScale;
+		float_t           pt = 8 * dp->m_previewToWorldScale.y;
 		for (size_t n = 0; n < 4; n++) {
 			bool isIn = (edge[n].x >= 0) && (edge[n].x < sceneWidth) && (edge[n].y >= 0) && (edge[n].y < sceneHeight);
 
@@ -1269,8 +1263,8 @@ void OBS::Display::UpdatePreviewArea()
 		sourceH = 1;
 
 	RecalculateApectRatioConstrainedSize(
-	    m_gsInitData.cx * m_screenScale,
-	    m_gsInitData.cy * m_screenScale,
+	    m_gsInitData.cx,
+	    m_gsInitData.cy,
 	    sourceW,
 	    sourceH,
 	    m_previewOffset.first,

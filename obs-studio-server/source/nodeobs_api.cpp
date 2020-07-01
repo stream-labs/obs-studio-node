@@ -378,8 +378,8 @@ inline std::string nodeobs_log_formatted_message(const char* format, va_list arg
 #ifdef WIN32
 	size_t            length  = _vscprintf(format, args);
 #else
-    va_list argcopy;
-    va_copy(argcopy, args);
+	va_list argcopy;
+	va_copy(argcopy, args);
 	size_t            length  = vsnprintf(NULL, 0, format, argcopy);
 #endif
 	std::vector<char> buf     = std::vector<char>(length + 1, '\0');
@@ -683,11 +683,6 @@ void OBS_API::OBS_API_initAPI(
 	// and enabling metrics
 	util::CrashManager::GetMetricsProvider()->Initialize("\\\\.\\pipe\\metrics_pipe", currentVersion, false);
 #endif
-	/* libobs will use three methods of finding data files:
-	* 1. ${CWD}/data/libobs <- This doesn't work for us
-	* 2. ${OBS_DATA_PATH}/libobs <- This works but is inflexible
-	* 3. getenv(OBS_DATA_PATH) + /libobs <- Can be set anywhere
-	*    on the cli, in the frontend, or the backend. */
 	obs_add_data_path((g_moduleDirectory + "/data/libobs/").c_str());
 	slobs_plugin = appdata.substr(0, appdata.size() - strlen("/slobs-client"));
 	slobs_plugin.append("/slobs-plugins");
@@ -702,8 +697,8 @@ void OBS_API::OBS_API_initAPI(
             // when init API supports more return codes.
 #ifdef WIN32
 			std::string userDataPath = std::string(userData.begin(), userData.end());
-            util::CrashManager::AddWarning("Failed to start OBS, locale: " + locale + " user data: " + userDataPath);
-    #endif
+			util::CrashManager::AddWarning("Failed to start OBS, locale: " + locale + " user data: " + userDataPath);
+#endif
 	}
 
 	/* Logging */
@@ -749,16 +744,9 @@ void OBS_API::OBS_API_initAPI(
 	SetPrivilegeForGPUPriority();
 #endif
 
-	/* INJECT osn::Source::Manager */
-	// Alright, you're probably wondering: Why is osn code here?
-	// Well, simply because the hooks need to run as soon as possible. We don't
-	//  want to miss a single create or destroy signal OBS gives us for the
-	//  osn::Source::Manager.
 	osn::Source::initialize_global_signals();
-	/* END INJECT osn::Source::Manager */
 
 	cpuUsageInfo = os_cpu_usage_info_start();
-	blog(LOG_INFO, "Appdata is %s", appdata.c_str());
 	ConfigManager::getInstance().setAppdataPath(appdata);
 
 	/* Set global private settings for whomever it concerns */
@@ -771,7 +759,6 @@ void OBS_API::OBS_API_initAPI(
 	int videoError;
 	if (!openAllModules(videoError)) {
 #ifdef WIN32
-		// Directly blame the user for this error (since he is the culprit of having an invalid Dx version)
 		util::CrashManager::GetMetricsProvider()->BlameUser();
 
 		blog(LOG_INFO, "Error returning now");

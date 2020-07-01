@@ -304,8 +304,8 @@ void MemoryManager::unregisterSource(obs_source_t * source)
 
 void MemoryManager::monitorMemory()
 {
-// 	while (!watcher.stop) {
 // #ifdef WIN32
+// 	while (!watcher.stop) {
 // 		MEMORYSTATUSEX statex;
 // 		statex.dwLength = sizeof(statex);
 
@@ -315,7 +315,7 @@ void MemoryManager::monitorMemory()
 // 		uint64_t memory_in_use               = statex.ullTotalPhys - statex.ullAvailPhys;
 // 		uint64_t memory_in_use_without_cache = memory_in_use - current_cached_size;
 // 		uint64_t totalMeory                  = statex.ullTotalPhys;
-// #elif __APPLE__
+// #ifdef __APPLE__
 // 		uint64_t totalMeory = g_util_osx->getTotalPhysicalMemory();
 // 		uint64_t availableMemory = g_util_osx->getAvailableMemory();
 // 		uint64_t memory_in_use = totalMeory - availableMemory;
@@ -345,4 +345,5 @@ void MemoryManager::monitorMemory()
 // 		}
 // 		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 // 	}
+// #endif
 }

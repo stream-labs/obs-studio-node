@@ -379,8 +379,8 @@ void OBS_content::OBS_content_resizeDisplay(
 
 	// Resize Display
     obs_display_resize(display->m_display,
-		display->m_gsInitData.cx * display->m_screenScale,
-		display->m_gsInitData.cy * display->m_screenScale);
+		display->m_gsInitData.cx,
+		display->m_gsInitData.cy);
 
     // Store new size.
     display->UpdatePreviewArea();
