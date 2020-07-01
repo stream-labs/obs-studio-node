@@ -16,41 +16,34 @@
 
 ******************************************************************************/
 
-#pragma once
+#ifndef __UTIL_OBJC_INTERFACE_H__
+#define __UTIL_OBJC_INTERFACE_H__
 
-#include <algorithm>
-#include <iostream>
-#include <ipc-server.hpp>
-#include <map>
-#include <mutex>
-#include <obs.h>
-#include <queue>
 #include <string>
 #include <thread>
-#include <util/config-file.h>
-#include <util/dstr.h>
-#include <util/platform.h>
-#include "nodeobs_api.h"
+#include <vector>
 
-#include "nodeobs_audio_encoders.h"
-
-struct SourceSizeInfo
+class UtilObjCInt
 {
-	obs_source_t* source;
-	uint32_t      width = 0;
-	uint32_t      height = 0;
-	uint32_t      flags = 0;
+public:
+    UtilObjCInt(void);
+    ~UtilObjCInt(void);
+
+    void init(void);
+    std::string getDefaultVideoSavePath(void);
+    void runApplication(void);
+    void stopApplication(void);
+    unsigned long long getTotalPhysicalMemory(void);
+    unsigned long long getAvailableMemory(void);
+    std::vector<std::pair<uint32_t, uint32_t>> getAvailableScreenResolutions(void);
+    std::string getUserDataPath(void);
+    std::string getWorkingDirectory(void);
+    void wait_terminate(void);
+
+private:
+    void * self;
+    bool appRunning;
+    std::thread *worker;
 };
 
-class CallbackManager
-{
-	public:
-	CallbackManager() {};
-	~CallbackManager() {};
-
-	static void Register(ipc::server&);
-	static void QuerySourceSize(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-
-	static void addSource(obs_source_t* source);
-	static void removeSource(obs_source_t* source);
-};
+#endif

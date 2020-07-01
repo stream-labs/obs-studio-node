@@ -16,41 +16,29 @@
 
 ******************************************************************************/
 
-#pragma once
+#ifndef __UTIL_CLASS_H__
+#define __UTIL_CLASS_H__
 
-#include <algorithm>
-#include <iostream>
-#include <ipc-server.hpp>
-#include <map>
-#include <mutex>
-#include <obs.h>
-#include <queue>
 #include <string>
-#include <thread>
-#include <util/config-file.h>
-#include <util/dstr.h>
-#include <util/platform.h>
-#include "nodeobs_api.h"
+#include <functional>
 
-#include "nodeobs_audio_encoders.h"
+class UtilObjCInt;
+typedef std::function<void(void* data, bool webcam, bool mic)> perms_cb;
 
-struct SourceSizeInfo
+class UtilInt
 {
-	obs_source_t* source;
-	uint32_t      width = 0;
-	uint32_t      height = 0;
-	uint32_t      flags = 0;
+public:
+    UtilInt (void);
+    ~UtilInt(void);
+
+    void init(void);
+    void getPermissionsStatus(bool &webcam, bool &mic);
+    void requestPermissions(void *async_cb, perms_cb cb);
+    void installPlugin(void);
+    void setServerWorkingDirectoryPath(std::string path);
+
+private:
+    UtilObjCInt * _impl;
 };
 
-class CallbackManager
-{
-	public:
-	CallbackManager() {};
-	~CallbackManager() {};
-
-	static void Register(ipc::server&);
-	static void QuerySourceSize(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-
-	static void addSource(obs_source_t* source);
-	static void removeSource(obs_source_t* source);
-};
+#endif

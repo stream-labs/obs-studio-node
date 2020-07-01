@@ -17,7 +17,9 @@
 ******************************************************************************/
 
 #pragma once
+#ifdef WIN32
 #include <io.h>
+#endif
 #include <iostream>
 #include <ipc-server.hpp>
 #include <math.h>
@@ -29,14 +31,9 @@
 #include <queue>
 #include "nodeobs_configManager.hpp"
 #include "nodeobs_service.h"
+#include "util-osx.hpp"
 
 extern std::string g_moduleDirectory;
-
-struct Screen
-{
-	int width;
-	int height;
-};
 
 namespace util
 {
@@ -157,8 +154,9 @@ class OBS_API
 	static std::string         getOBS_currentSceneCollection(void);
 	static void                setOBS_currentSceneCollection(std::string sceneCollectionName);
 	static bool                isOBS_configFilesUsed(void);
-	static std::vector<Screen> availableResolutions(void);
 	static std::string         getModuleDirectory(void);
+
+	static std::vector<std::pair<uint32_t, uint32_t>> availableResolutions(void);
 
 	static std::string getGlobalConfigPath(void);
 	static std::string getBasicConfigPath(void);

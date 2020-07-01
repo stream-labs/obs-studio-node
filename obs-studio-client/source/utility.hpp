@@ -25,6 +25,7 @@
 
 #include "controller.hpp"
 #include "error.hpp"
+#include <thread>
 
 #ifdef __cplusplus
 #define INITIALIZER(f)   \

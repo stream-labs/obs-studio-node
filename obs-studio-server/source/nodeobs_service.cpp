@@ -17,16 +17,25 @@
 ******************************************************************************/
 
 #include "nodeobs_service.h"
+#ifdef WIN32
 #include <ShlObj.h>
-#include <filesystem>
 #include <windows.h>
+#include <filesystem>
+#endif
 #include "error.hpp"
 #include "shared.hpp"
 #include "utility.hpp"
 
+#ifdef __APPLE__
+#include <sys/types.h>
+#include <sys/stat.h>
+#endif
+
 obs_output_t* streamingOutput    = nullptr;
 obs_output_t* recordingOutput    = nullptr;
 obs_output_t* replayBufferOutput = nullptr;
+
+obs_output_t* virtualWebcamOutput = nullptr;
 
 obs_encoder_t* audioSimpleStreamingEncoder   = nullptr;
 obs_encoder_t* audioSimpleRecordingEncoder   = nullptr;
@@ -87,6 +96,15 @@ void OBS_service::Register(ipc::server& srv)
 	    "OBS_service_processReplayBufferHotkey", std::vector<ipc::type>{}, OBS_service_processReplayBufferHotkey));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_getLastReplay", std::vector<ipc::type>{}, OBS_service_getLastReplay));
+
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_service_createVirtualWebcam", std::vector<ipc::type>{ipc::type::String}, OBS_service_createVirtualWebcam));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_service_removeVirtualWebcam", std::vector<ipc::type>{}, OBS_service_removeVirtualWebcam));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_service_startVirtualWebcam", std::vector<ipc::type>{}, OBS_service_startVirtualWebcam));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_service_stopVirtualWebcan", std::vector<ipc::type>{}, OBS_service_stopVirtualWebcan));
 
 	srv.register_collection(cls);
 }
@@ -404,7 +422,7 @@ int OBS_service::resetVideoContext(bool reload)
 #ifdef _WIN32
 	gslib = "libobs-d3d11.dll";
 #else
-	gslib     = "libobs-opengl";
+	gslib = "libobs-opengl";
 #endif
 	ovi.graphics_module = gslib.c_str();
 
@@ -423,13 +441,13 @@ int OBS_service::resetVideoContext(bool reload)
 	ovi.output_width  = (uint32_t)config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCX");
 	ovi.output_height = (uint32_t)config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCY");
 
-	std::vector<Screen> resolutions = OBS_API::availableResolutions();
+	std::vector<std::pair<uint32_t, uint32_t>> resolutions = OBS_API::availableResolutions();
 
 	if (ovi.base_width == 0 || ovi.base_height == 0) {
 		for (int i = 0; i < resolutions.size(); i++) {
-			if (int(ovi.base_width * ovi.base_height) < resolutions.at(i).width * resolutions.at(i).height) {
-				ovi.base_width  = resolutions.at(i).width;
-				ovi.base_height = resolutions.at(i).height;
+			if (int(ovi.base_width * ovi.base_height) < resolutions.at(i).first * resolutions.at(i).second) {
+				ovi.base_width  = resolutions.at(i).first;
+				ovi.base_height = resolutions.at(i).second;
 			}
 		}
 	}
@@ -456,6 +474,8 @@ int OBS_service::resetVideoContext(bool reload)
 			ovi.output_height = ovi.base_height;
 		}
 
+		ovi.output_width  = 1280;
+		ovi.output_height = 720;
 		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCX", ovi.output_width);
 		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCY", ovi.output_height);
 	}
@@ -477,7 +497,7 @@ int OBS_service::resetVideoContext(bool reload)
 	ovi.scale_type = GetScaleType(ConfigManager::getInstance().getBasic());
 
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
-
+	blog(LOG_INFO, "About to reset the video context");
 	try {
 		return obs_reset_video(&ovi);
 	} catch (const char* error) {
@@ -530,11 +550,26 @@ bool OBS_service::createAudioEncoder(
 	return false;
 }
 
+static bool EncoderAvailable(const char* encoder)
+{
+	const char* val;
+	int         i = 0;
+
+	while (obs_enum_encoder_types(i++, &val)) {
+		if (val == nullptr)
+			continue;
+		if (strcmp(val, encoder) == 0)
+			return true;
+	}
+
+	return false;
+}
+
 bool OBS_service::createVideoStreamingEncoder()
 {
 	const char* encoder = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "StreamEncoder");
 
-	if (encoder == NULL) {
+	if (encoder == NULL || !EncoderAvailable(encoder)) {
 		encoder = "obs_x264";
 	}
 
@@ -903,10 +938,8 @@ bool OBS_service::startStreaming(void)
 		obs_output_set_audio_encoder(
 		    streamingOutput,
 		    audioAdvancedStreamingEncoder, 0);
-	
-	outdated_driver_error::instance()->set_active(true);
+
 	isStreaming = obs_output_start(streamingOutput);
-	outdated_driver_error::instance()->set_active(false);
 	if (!isStreaming) {
 		SignalInfo  signal = SignalInfo("streaming", "stop");
 		std::string outdated_driver_error = outdated_driver_error::instance()->get_error();
@@ -1133,9 +1166,7 @@ bool OBS_service::startRecording(void)
 		}
 	}
 
-	outdated_driver_error::instance()->set_active(true);
 	isRecording = obs_output_start(recordingOutput);
-	outdated_driver_error::instance()->set_active(false);
 	if (!isRecording) {
 		SignalInfo signal = SignalInfo("recording", "stop");
 		std::string outdated_driver_error = outdated_driver_error::instance()->get_error();
@@ -1303,9 +1334,7 @@ bool OBS_service::startReplayBuffer(void)
 		}
 	}
 
-	outdated_driver_error::instance()->set_active(true);
 	bool result = obs_output_start(replayBufferOutput);
-	outdated_driver_error::instance()->set_active(false);
 	if (!result) {
 		SignalInfo signal    = SignalInfo("replay-buffer", "stop");
 		isReplayBufferActive = false;
@@ -1445,9 +1474,9 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
 		const char* custom = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "x264Settings");
 		const char* encoder =
 		    config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "StreamEncoder");
-		const char* encoderID;
-		const char* presetType;
-		const char* preset;
+		const char* encoderID = nullptr;
+		const char* presetType = nullptr;
+		const char* preset = nullptr;
 
 		if (encoder != NULL) {
 			if (strcmp(encoder, SIMPLE_ENCODER_QSV) == 0 || strcmp(encoder, ADVANCED_ENCODER_QSV) == 0) {
@@ -1463,11 +1492,16 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
 			} else if (strcmp(encoder, ENCODER_NEW_NVENC) == 0) {
 				presetType = "NVENCPreset";
 				encoderID  = "jim_nvenc";
+			} else if (strcmp(encoder, APPLE_SOFTWARE_VIDEO_ENCODER) == 0)  {
+				encoderID  = APPLE_SOFTWARE_VIDEO_ENCODER;
+			} else if (strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER) == 0)  {
+				encoderID  = APPLE_HARDWARE_VIDEO_ENCODER;
 			} else {
 				presetType = "Preset";
 				encoderID  = "obs_x264";
 			}
-			preset = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", presetType);
+			if (presetType)
+				preset = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", presetType);
 
 			if (videoStreamingEncoder != nullptr) {
 				obs_encoder_release(videoStreamingEncoder);
@@ -1508,6 +1542,13 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
 		if (format != VIDEO_FORMAT_NV12 && format != VIDEO_FORMAT_I420)
 			obs_encoder_set_preferred_video_format(videoStreamingEncoder, VIDEO_FORMAT_NV12);
 
+		if (strcmp(encoder, APPLE_SOFTWARE_VIDEO_ENCODER) == 0 ||
+				strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER) == 0) {
+			const char* profile = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "Profile");
+			if (profile)
+				obs_data_set_string(h264Settings, "profile", profile);
+		}
+
 		obs_encoder_update(videoStreamingEncoder, h264Settings);
 		obs_encoder_update(audioSimpleStreamingEncoder, aacSettings);
 
@@ -1533,6 +1574,7 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
 
 std::string OBS_service::GetDefaultVideoSavePath(void)
 {
+#ifdef WIN32
 	wchar_t path_utf16[MAX_PATH];
 	char    path_utf8[MAX_PATH] = {};
 
@@ -1540,6 +1582,9 @@ std::string OBS_service::GetDefaultVideoSavePath(void)
 
 	os_wcs_to_utf8(path_utf16, wcslen(path_utf16), path_utf8, MAX_PATH);
 	return std::string(path_utf8);
+#else
+    return g_util_osx->getDefaultVideoSavePath();
+#endif
 }
 
 void OBS_service::updateService(void)
@@ -2300,6 +2345,70 @@ void OBS_service::waitReleaseWorker()
 	}
 }
 
+void OBS_service::OBS_service_createVirtualWebcam(
+	void*                          data,
+	const int64_t                  id,
+	const std::vector<ipc::value>& args,
+	std::vector<ipc::value>&       rval)
+{
+	virtualWebcamOutput = nullptr;
+	std::string name = args[0].value_str;
+	if (name.empty())
+		return;
+
+	struct obs_video_info ovi;
+	if (!obs_get_video_info(&ovi))
+		return;
+
+	obs_data_t *settings = obs_data_create();
+	obs_data_set_string(settings, "name", name.c_str());
+	obs_data_set_int(settings, "width", ovi.output_width);
+	obs_data_set_int(settings, "height", ovi.output_height);
+	obs_data_set_double(settings, "fps", ovi.fps_num);
+
+	virtualWebcamOutput = obs_output_create("virtual_output", "Virtual Webcam", settings, NULL);
+	obs_data_release(settings);
+}
+
+void OBS_service::OBS_service_removeVirtualWebcam(
+	void*                          data,
+	const int64_t                  id,
+	const std::vector<ipc::value>& args,
+	std::vector<ipc::value>&       rval)
+{
+	if (!virtualWebcamOutput)
+		return;
+
+	obs_output_release(virtualWebcamOutput);
+	virtualWebcamOutput = nullptr;
+}
+
+void OBS_service::OBS_service_startVirtualWebcam(
+	void*                          data,
+	const int64_t                  id,
+	const std::vector<ipc::value>& args,
+	std::vector<ipc::value>&       rval)
+{
+	if (!virtualWebcamOutput)
+		return;
+	
+	if (obs_output_start(virtualWebcamOutput))
+		blog(LOG_INFO, "Successfully started the Virtual Webcam Output");
+	else
+		blog(LOG_ERROR, "Failed to start the Virtual Webcam Output");
+}
+
+void OBS_service::OBS_service_stopVirtualWebcan(
+	void*                          data,
+	const int64_t                  id,
+	const std::vector<ipc::value>& args,
+	std::vector<ipc::value>&       rval)
+{
+	if (!virtualWebcamOutput)
+		return;
+	
+	obs_output_stop(virtualWebcamOutput);
+}
 void OBS_service::stopAllOutputs()
 {
 	if (streamingOutput && obs_output_active(streamingOutput))

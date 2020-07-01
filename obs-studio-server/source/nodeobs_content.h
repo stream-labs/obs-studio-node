@@ -41,11 +41,6 @@ struct SourceInfo
 	uint32_t volmeter;
 };
 
-extern std::map<std::string, SourceInfo*> sourceInfo;
-extern std::vector<std::string>           tabScenes;
-extern std::string                        currentTransition;
-extern std::map<std::string, obs_source_t*>    transitions;
-
 class OBS_content
 {
 	public:
@@ -115,6 +110,11 @@ class OBS_content
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
 	static void OBS_content_setDrawGuideLines(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_content_createIOSurface(
 	    void*                          data,
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,

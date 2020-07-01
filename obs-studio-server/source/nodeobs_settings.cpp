@@ -22,7 +22,14 @@
 #include "shared.hpp"
 #include "memory-manager.h"
 
+#ifdef WIN32
 #include <windows.h>
+#endif
+
+#ifdef __APPLE__
+#include <sys/types.h>
+#include <sys/stat.h>
+#endif
 
 std::vector<const char*> tabStreamTypes;
 const char*              currentServiceName;
@@ -74,8 +81,8 @@ void OBS_settings::OBS_settings_getSettings(
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(settings.size()));
-	rval.push_back(ipc::value(binaryValue.size()));
+	rval.push_back(ipc::value((uint64_t)settings.size()));
+	rval.push_back(ipc::value((uint64_t)binaryValue.size()));
 	rval.push_back(ipc::value(binaryValue));
 	rval.push_back(ipc::value(type));
 	AUTO_DEBUG;
@@ -1058,6 +1065,12 @@ void OBS_settings::getSimpleAvailableEncoders(std::vector<std::pair<std::string,
 
 	if (EncoderAvailable("jim_nvenc"))
 		encoders->push_back(std::make_pair("Hardware (NVENC) (new)", ipc::value(ENCODER_NEW_NVENC)));
+
+	if (EncoderAvailable("vt_h264_sw"))
+		encoders->push_back(std::make_pair("Apple VT H264 Software Encoder", ipc::value(APPLE_SOFTWARE_VIDEO_ENCODER)));
+
+	if (EncoderAvailable("vt_h264_hw"))
+		encoders->push_back(std::make_pair("Apple VT H264 Hardware Encoder", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER)));
 }
 
 void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::string, ipc::value>>* streamEncoder)
@@ -1075,6 +1088,12 @@ void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::strin
 
 	if (EncoderAvailable("jim_nvenc"))
 		streamEncoder->push_back(std::make_pair("Hardware (NVENC) (new)", ipc::value(ENCODER_NEW_NVENC)));
+
+	if (EncoderAvailable("vt_h264_sw"))
+		streamEncoder->push_back(std::make_pair("Apple VT H264 Software Encoder", ipc::value(APPLE_SOFTWARE_VIDEO_ENCODER)));
+
+	if (EncoderAvailable("vt_h264_hw"))
+		streamEncoder->push_back(std::make_pair("Apple VT H264 Hardware Encoder", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER)));
 }
 
 void OBS_settings::getSimpleOutputSettings(
@@ -1169,7 +1188,7 @@ void OBS_settings::getSimpleOutputSettings(
 
 			defaultPreset = "balanced";
 			// preset = curQSVPreset;
-
+			entries.push_back(preset);
 		} else if (
 		    strcmp(encoder, SIMPLE_ENCODER_NVENC) == 0 || strcmp(encoder, ADVANCED_ENCODER_NVENC) == 0
 		    || strcmp(encoder, ENCODER_NEW_NVENC) == 0) {
@@ -1204,7 +1223,7 @@ void OBS_settings::getSimpleOutputSettings(
 
 			defaultPreset = "default";
 			// preset = curNVENCPreset;
-
+			entries.push_back(preset);
 		} else if (strcmp(encoder, SIMPLE_ENCODER_AMD) == 0 || strcmp(encoder, ADVANCED_ENCODER_AMD) == 0) {
 			preset.push_back(std::make_pair("name", ipc::value("AMDPreset")));
 			preset.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
@@ -1219,6 +1238,20 @@ void OBS_settings::getSimpleOutputSettings(
 
 			defaultPreset = "balanced";
 			// preset = curAMDPreset;
+			entries.push_back(preset);
+		} else if (strcmp(encoder, APPLE_SOFTWARE_VIDEO_ENCODER) == 0 || strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER) == 0) {
+			preset.push_back(std::make_pair("name", ipc::value("Profile")));
+			preset.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+			preset.push_back(std::make_pair("description", ipc::value("")));
+			preset.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+			preset.push_back(std::make_pair("minVal", ipc::value((double)0)));
+			preset.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+			preset.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+			preset.push_back(std::make_pair("(None)", ipc::value("")));
+			preset.push_back(std::make_pair("baseline", ipc::value("baseline")));
+			preset.push_back(std::make_pair("main", ipc::value("main")));
+			preset.push_back(std::make_pair("high", ipc::value("high")));
+			entries.push_back(preset);
 		} else {
 			preset.push_back(std::make_pair("name", ipc::value("Preset")));
 			preset.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
@@ -1238,20 +1271,19 @@ void OBS_settings::getSimpleOutputSettings(
 
 			defaultPreset = "veryfast";
 			// preset = curPreset;
+			entries.push_back(preset);
+
+			//Custom Encoder Settings
+			std::vector<std::pair<std::string, ipc::value>> x264opts;
+			x264opts.push_back(std::make_pair("name", ipc::value("x264Settings")));
+			x264opts.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
+			x264opts.push_back(std::make_pair("description", ipc::value("Custom Encoder Settings")));
+			x264opts.push_back(std::make_pair("subType", ipc::value("")));
+			x264opts.push_back(std::make_pair("minVal", ipc::value((double)0)));
+			x264opts.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+			x264opts.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+			entries.push_back(x264opts);
 		}
-
-		entries.push_back(preset);
-
-		//Custom Encoder Settings
-		std::vector<std::pair<std::string, ipc::value>> x264opts;
-		x264opts.push_back(std::make_pair("name", ipc::value("x264Settings")));
-		x264opts.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
-		x264opts.push_back(std::make_pair("description", ipc::value("Custom Encoder Settings")));
-		x264opts.push_back(std::make_pair("subType", ipc::value("")));
-		x264opts.push_back(std::make_pair("minVal", ipc::value((double)0)));
-		x264opts.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-		x264opts.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-		entries.push_back(x264opts);
 	}
 
 	outputSettings->push_back(
@@ -2645,11 +2677,19 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 		}
 	}
 
+#ifdef WIN32
 	bool dynamicBitrate = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "DynamicBitrate");
 	std::string encoderID = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "Encoder");
 
 	if (dynamicBitrate && encoderID.compare(ENCODER_NEW_NVENC) == 0)
 		obs_data_set_bool(encoderSettings, "lookahead", false);
+#elif __APPLE__
+	bool applyServiceSettings = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "ApplyServiceSettings");
+	std::string encoderID = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "Encoder");
+
+	if (!applyServiceSettings && encoderID.compare(APPLE_HARDWARE_VIDEO_ENCODER) == 0)
+		config_set_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "ApplyServiceSettings", true);
+#endif
 
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 
@@ -3002,14 +3042,15 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 	baseResolution.push_back(std::make_pair("1920x1080", ipc::value("1920x1080")));
 	baseResolution.push_back(std::make_pair("1280x720", ipc::value("1280x720")));
 
-	std::vector<Screen> resolutions = OBS_API::availableResolutions();
+	std::vector<std::pair<uint32_t, uint32_t>> resolutions =
+		OBS_API::availableResolutions();
 
 	// Fill available display resolutions
 	for (int i = 0; i < resolutions.size(); i++) {
 		std::string baseResolutionString;
-		baseResolutionString = std::to_string(resolutions.at(i).width);
+		baseResolutionString = std::to_string(resolutions.at(i).first);
 		baseResolutionString += "x";
-		baseResolutionString += std::to_string(resolutions.at(i).height);
+		baseResolutionString += std::to_string(resolutions.at(i).second);
 
 		std::pair<std::string, std::string> newBaseResolution =
 		    std::make_pair(baseResolutionString.c_str(), baseResolutionString.c_str());
@@ -3425,7 +3466,6 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	    !OBS_service::isStreamingOutputActive()));
 	entries.clear();
 
-#if defined(_WIN32) || defined(__APPLE__)
 	//Audio
 	const char* monDevName =
 	    config_get_string(ConfigManager::getInstance().getBasic(), "Audio", "MonitoringDeviceName");
@@ -3454,6 +3494,7 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	obs_enum_audio_monitoring_devices(enum_devices, monitoringDevice);
 	entries.push_back(*monitoringDevice);
 
+#if defined(_WIN32)
 	//Windows audio ducking
 	std::vector<std::pair<std::string, ipc::value>> disableAudioDucking;
 	disableAudioDucking.push_back(std::make_pair("name", ipc::value("DisableAudioDucking")));
@@ -3464,11 +3505,11 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	disableAudioDucking.push_back(std::make_pair("maxVal", ipc::value((double)0)));
 	disableAudioDucking.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 	entries.push_back(disableAudioDucking);
+#endif
 
 	advancedSettings.push_back(
 	    serializeSettingsData("Audio", entries, ConfigManager::getInstance().getBasic(), "Audio", true, true));
 	entries.clear();
-#endif
 
 	//Recording
 
@@ -3640,6 +3681,7 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	dynamicBitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 	entries.push_back(dynamicBitrate);
 
+#ifdef WIN32
 	//Enable new networking code
 	std::vector<std::pair<std::string, ipc::value>> newSocketLoopEnable;
 	newSocketLoopEnable.push_back(std::make_pair("name", ipc::value("NewSocketLoopEnable")));
@@ -3661,6 +3703,7 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	lowLatencyEnable.push_back(std::make_pair("maxVal", ipc::value((double)0)));
 	lowLatencyEnable.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 	entries.push_back(lowLatencyEnable);
+#endif
 
 	advancedSettings.push_back(
 	    serializeSettingsData("Network", entries, ConfigManager::getInstance().getBasic(), "Output", true, true));
@@ -3704,64 +3747,67 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 
 void OBS_settings::saveAdvancedSettings(std::vector<SubCategory> advancedSettings)
 {
+	uint32_t index = 0;
+#ifdef WIN32
 	//General
 	std::vector<SubCategory> generalAdvancedSettings;
 
-	generalAdvancedSettings.push_back(advancedSettings.at(0));
+	generalAdvancedSettings.push_back(advancedSettings.at(index++));
 	saveGenericSettings(generalAdvancedSettings, "General", ConfigManager::getInstance().getGlobal());
+#endif
 
 	//Video
 	std::vector<SubCategory> videoAdvancedSettings;
 
-	videoAdvancedSettings.push_back(advancedSettings.at(1));
+	videoAdvancedSettings.push_back(advancedSettings.at(index++));
 	saveGenericSettings(videoAdvancedSettings, "Video", ConfigManager::getInstance().getBasic());
 
 	//Audio
 	std::vector<SubCategory> audioAdvancedSettings;
 
-	audioAdvancedSettings.push_back(advancedSettings.at(2));
+	audioAdvancedSettings.push_back(advancedSettings.at(index++));
 	saveGenericSettings(audioAdvancedSettings, "Audio", ConfigManager::getInstance().getBasic());
 
 	//Recording
 	std::vector<SubCategory> recordingAdvancedSettings;
 
-	recordingAdvancedSettings.push_back(advancedSettings.at(3));
+	recordingAdvancedSettings.push_back(advancedSettings.at(index++));
 	saveGenericSettings(recordingAdvancedSettings, "Output", ConfigManager::getInstance().getBasic());
 
 	//Replay buffer
 	std::vector<SubCategory> replayBufferAdvancedSettings;
 
-	replayBufferAdvancedSettings.push_back(advancedSettings.at(4));
+	replayBufferAdvancedSettings.push_back(advancedSettings.at(index++));
 	saveGenericSettings(replayBufferAdvancedSettings, "SimpleOutput", ConfigManager::getInstance().getBasic());
 
 	//Stream Delay
 	std::vector<SubCategory> stresmDelayAdvancedSettings;
 
-	stresmDelayAdvancedSettings.push_back(advancedSettings.at(5));
+	stresmDelayAdvancedSettings.push_back(advancedSettings.at(index++));
 	saveGenericSettings(stresmDelayAdvancedSettings, "Output", ConfigManager::getInstance().getBasic());
 
 	//Automatically Reconnect
 	std::vector<SubCategory> automaticallyReconnectAdvancedSettings;
 
-	automaticallyReconnectAdvancedSettings.push_back(advancedSettings.at(6));
+	automaticallyReconnectAdvancedSettings.push_back(advancedSettings.at(index++));
 	saveGenericSettings(automaticallyReconnectAdvancedSettings, "Output", ConfigManager::getInstance().getBasic());
 
 	//Network
 	std::vector<SubCategory> networkAdvancedSettings;
 
-	networkAdvancedSettings.push_back(advancedSettings.at(7));
+	networkAdvancedSettings.push_back(advancedSettings.at(index++));
 	saveGenericSettings(networkAdvancedSettings, "Output", ConfigManager::getInstance().getBasic());
 
 	//Sources
 	std::vector<SubCategory> sourcesSettings;
 
-	sourcesSettings.push_back(advancedSettings.at(8));
+	sourcesSettings.push_back(advancedSettings.at(index++));
 	saveGenericSettings(sourcesSettings, "General", ConfigManager::getInstance().getGlobal());
 
 	//Media Files
 	std::vector<SubCategory> mediaFilesSettings;
 
-	mediaFilesSettings.push_back(advancedSettings.at(9));
+	mediaFilesSettings.push_back(advancedSettings.at(index++));
 	saveGenericSettings(mediaFilesSettings, "General", ConfigManager::getInstance().getGlobal());
 	MemoryManager::GetInstance().updateSourcesCache();
 }

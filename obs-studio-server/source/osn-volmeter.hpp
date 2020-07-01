@@ -24,6 +24,8 @@
 #include "obs.h"
 #include "utility.hpp"
 
+extern std::mutex mtx;
+
 namespace osn
 {
 	class VolMeter

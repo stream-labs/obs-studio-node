@@ -24,6 +24,8 @@
 #include "isource.hpp"
 #include "shared.hpp"
 
+Nan::Persistent<v8::FunctionTemplate> osn::Fader::prototype;
+
 osn::Fader::Fader(uint64_t uid)
 {
 	this->uid = uid;
@@ -37,8 +39,6 @@ uint64_t osn::Fader::GetId()
 {
 	return this->uid;
 }
-
-Nan::Persistent<v8::FunctionTemplate> osn::Fader::prototype = Nan::Persistent<v8::FunctionTemplate>();
 
 void osn::Fader::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 {

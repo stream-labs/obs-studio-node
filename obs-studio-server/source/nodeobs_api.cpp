@@ -30,6 +30,12 @@
 #include "util-crashmanager.h"
 #include "util-metricsprovider.h"
 
+#include <sys/types.h>
+
+#ifdef __APPLE
+#include <unistd.h>
+#endif
+
 #ifdef _WIN32
 
 #ifdef _WIN32_WINNT
@@ -55,15 +61,25 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 
+#ifdef WIN32
 #include <audiopolicy.h>
 #include <mmdeviceapi.h>
 
 #include <util/windows/ComPtr.hpp>
 #include <util/windows/HRError.hpp>
 #include <util/windows/WinHandle.hpp>
+#endif
+
+#ifdef __APPLE__
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#endif
 
 #include "error.hpp"
 #include "shared.hpp"
+
+#include <fstream>
 
 #define BUFFSIZE 512
 #define CONNECTING_STATE 0
@@ -72,9 +88,11 @@
 #define GBYTE (1024ULL * 1024ULL * 1024ULL)
 #define TBYTE (1024ULL * 1024ULL * 1024ULL * 1024ULL)
 
-std::string          g_moduleDirectory = "";
+std::string g_moduleDirectory = "";
 os_cpu_usage_info_t* cpuUsageInfo      = nullptr;
+#ifdef WIN32
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+#endif
 std::string                                            slobs_plugin;
 std::vector<std::pair<std::string, obs_module_t*>>     obsModules;
 OBS_API::LogReport                                     logReport;
@@ -83,6 +101,8 @@ OBS_API::OutputStats                                   recordingOutputStats;
 std::mutex                                             logMutex;
 std::string                                            currentVersion;
 std::string                                            username("unknown");
+
+ipc::server* g_server = nullptr;
 
 void OBS_API::Register(ipc::server& srv)
 {
@@ -109,6 +129,7 @@ void OBS_API::Register(ipc::server& srv)
 	    "SetUsername", std::vector<ipc::type>{ipc::type::String}, SetUsername));
 
 	srv.register_collection(cls);
+	g_server = &srv;
 }
 
 void replaceAll(std::string& str, const std::string& from, const std::string& to)
@@ -352,11 +373,17 @@ void outdated_driver_error::catch_error(const char* msg)
 	}
 }
 
-inline std::string nodeobs_log_formatted_message(const char* format, va_list& args)
+inline std::string nodeobs_log_formatted_message(const char* format, va_list args)
 {
+#ifdef WIN32
 	size_t            length  = _vscprintf(format, args);
+#else
+	va_list argcopy;
+	va_copy(argcopy, args);
+	size_t            length  = vsnprintf(NULL, 0, format, argcopy);
+#endif
 	std::vector<char> buf     = std::vector<char>(length + 1, '\0');
-	size_t            written = vsprintf_s(buf.data(), buf.size(), format, args);
+	size_t            written = vsprintf(buf.data(), format, args);
 	return std::string(buf.begin(), buf.begin() + length);
 }
 
@@ -420,7 +447,8 @@ static void                                    node_obs_log(int log_level, const
 
 	std::vector<char> timebuf(128, '\0');
 	std::string       timeformat = "[%.3d:%.2d:%.2d:%.2d.%.3d.%.3d.%.3d][%*s]"; // "%*s";
-	int               length     = sprintf_s(
+#ifdef WIN32
+	int length     = sprintf_s(
         timebuf.data(),
         timebuf.size(),
         timeformat.c_str(),
@@ -433,6 +461,21 @@ static void                                    node_obs_log(int log_level, const
         nanoseconds.count(),
         levelname.length(),
         levelname.c_str());
+#else
+	int length     = snprintf(
+        timebuf.data(),
+        timebuf.size(),
+        timeformat.c_str(),
+        days.count(),
+        hours.count(),
+        minutes.count(),
+        seconds.count(),
+        milliseconds.count(),
+        microseconds.count(),
+        nanoseconds.count(),
+        levelname.length(),
+        levelname.c_str());
+#endif
 	if (length < 0)
 		return;
 
@@ -492,7 +535,11 @@ static void                                    node_obs_log(int log_level, const
 #endif
 }
 
+#ifdef WIN32
 uint32_t pid = GetCurrentProcessId();
+#else
+uint32_t pid = (uint32_t)getpid();
+#endif
 
 std::vector<char> registerProcess(void)
 {
@@ -544,6 +591,7 @@ std::vector<char> crashedProcess(uint32_t crash_id)
 	return buffer;
 }
 
+#ifdef WIN32
 void writeCrashHandler(std::vector<char> buffer)
 {
 	HANDLE hPipe = CreateFile( TEXT("\\\\.\\pipe\\slobs-crash-handler"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
@@ -557,7 +605,18 @@ void writeCrashHandler(std::vector<char> buffer)
 
 	CloseHandle(hPipe);
 }
+#else
+void writeCrashHandler(std::vector<char> buffer)
+{
+	int file_descriptor = open("/tmp/slobs-crash-handler", O_WRONLY | O_DSYNC);
+	if (file_descriptor < 0) {
+		return;
+	}
 
+	::write(file_descriptor, buffer.data(), buffer.size());
+	close(file_descriptor);
+}
+#endif
 void OBS_API::OBS_API_initAPI(
     void*                          data,
     const int64_t                  id,
@@ -565,6 +624,7 @@ void OBS_API::OBS_API_initAPI(
     std::vector<ipc::value>&       rval)
 {
 	writeCrashHandler(registerProcess());
+
 	/* Map base DLLs as soon as possible into the current process space.
 	* In particular, we need to load obs.dll into memory before we call
 	* any functions from obs else if we delay-loaded the dll, it will
@@ -576,16 +636,38 @@ void OBS_API::OBS_API_initAPI(
 	std::string locale  = args[1].value_str;
 	currentVersion      = args[2].value_str;
 	utility::osn_current_version(currentVersion);
+	util::CrashManager::SetVersionName(currentVersion);
 
+
+#ifdef ENABLE_CRASHREPORT
+   util::CrashManager crashManager;
+	char* path = g_moduleDirectory.data();
+	if (crashManager.Initialize(path)) {
+		crashManager.Configure();
+   }
+
+#ifdef WIN32
+	// Register the pre and post server callbacks to log the data into the crashmanager
+	g_server->set_pre_callback([](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data)
+	{ 
+		util::CrashManager& crashManager = *static_cast<util::CrashManager*>(data);
+		crashManager.ProcessPreServerCall(cname, fname, args);
+
+	}, &crashManager);
+	g_server->set_post_callback([](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data)
+	{
+		util::CrashManager& crashManager = *static_cast<util::CrashManager*>(data);
+		crashManager.ProcessPostServerCall(cname, fname, args);
+	}, &crashManager);
+
+#endif
+#endif
+
+#ifdef WIN32
 	// Connect the metrics provider with our crash handler process, sending our current version tag
 	// and enabling metrics
 	util::CrashManager::GetMetricsProvider()->Initialize("\\\\.\\pipe\\metrics_pipe", currentVersion, false);
-
-	/* libobs will use three methods of finding data files:
-	* 1. ${CWD}/data/libobs <- This doesn't work for us
-	* 2. ${OBS_DATA_PATH}/libobs <- This works but is inflexible
-	* 3. getenv(OBS_DATA_PATH) + /libobs <- Can be set anywhere
-	*    on the cli, in the frontend, or the backend. */
+#endif
 	obs_add_data_path((g_moduleDirectory + "/data/libobs/").c_str());
 	slobs_plugin = appdata.substr(0, appdata.size() - strlen("/slobs-client"));
 	slobs_plugin.append("/slobs-plugins");
@@ -593,13 +675,15 @@ void OBS_API::OBS_API_initAPI(
 
 	std::vector<char> userData = std::vector<char>(1024);
 	os_get_config_path(userData.data(), userData.capacity() - 1, "slobs-client/plugin_config");
-	if (!obs_startup(locale.c_str(), userData.data(), NULL)) {
-		// TODO: We should return an error code if obs fails to initialize.
-		// This was added as a temporary measure to detect what could be happening in some
-		// cases (if the user data path is wrong for ex). This will be correctly adjusted 
-		// when init API supports more return codes.
-		std::string userDataPath = std::string(userData.begin(), userData.end());
-		util::CrashManager::AddWarning("Failed to start OBS, locale: " + locale + " user data: " + userDataPath);
+    if (!obs_startup(locale.c_str(), userData.data(), NULL)) {
+            // TODO: We should return an error code if obs fails to initialize.
+            // This was added as a temporary measure to detect what could be happening in some
+            // cases (if the user data path is wrong for ex). This will be correctly adjusted
+            // when init API supports more return codes.
+#ifdef WIN32
+            std::string userDataPath = std::string(userData.begin(), userData.end());
+            util::CrashManager::AddWarning("Failed to start OBS, locale: " + locale + " user data: " + userDataPath);
+#endif
 	}
 
 	/* Logging */
@@ -611,7 +695,9 @@ void OBS_API::OBS_API_initAPI(
 	before attempting to make a file there. */
 	if (os_mkdirs(log_path.c_str()) == MKDIR_ERROR) {
 		std::cerr << "Failed to open log file" << std::endl;
+#ifdef WIN32
 		util::CrashManager::AddWarning("Error on log file, failed to create path: " + log_path);
+#endif	
 	}
 
 	/* Delete oldest file in the folder to imitate rotating */
@@ -622,17 +708,16 @@ void OBS_API::OBS_API_initAPI(
 	std::fstream* logfile =
 	    new std::fstream(converter.from_bytes(log_path.c_str()).c_str(), std::ios_base::out | std::ios_base::trunc);
 #else
-	fstream* logfile = new fstream(log_path, ios_base::out | ios_base::trunc);
+	std::fstream* logfile = new std::fstream(log_path, std::ios_base::out | std::ios_base::trunc);
 #endif
-
+#ifdef WIN32
 	if (!logfile->is_open()) {
 		logfile = nullptr;
 		util::CrashManager::AddWarning("Error on log file, failed to open: " + log_path);
 		std::cerr << "Failed to open log file" << std::endl;
 	}
-
 	base_set_log_handler(node_obs_log, logfile);
-
+#endif
 #ifndef _DEBUG
 	// Redirect the ipc log callbacks to our log handler
 	ipc::register_log_callback([](void* data, const char* fmt, va_list args) { 
@@ -644,16 +729,9 @@ void OBS_API::OBS_API_initAPI(
 	SetPrivilegeForGPUPriority();
 #endif
 
-	/* INJECT osn::Source::Manager */
-	// Alright, you're probably wondering: Why is osn code here?
-	// Well, simply because the hooks need to run as soon as possible. We don't
-	//  want to miss a single create or destroy signal OBS gives us for the
-	//  osn::Source::Manager.
 	osn::Source::initialize_global_signals();
-	/* END INJECT osn::Source::Manager */
 
 	cpuUsageInfo = os_cpu_usage_info_start();
-
 	ConfigManager::getInstance().setAppdataPath(appdata);
 
 	/* Set global private settings for whomever it concerns */
@@ -665,14 +743,15 @@ void OBS_API::OBS_API_initAPI(
 
 	int videoError;
 	if (!openAllModules(videoError)) {
-
-		// Directly blame the user for this error (since he is the culprit of having an invalid Dx version)
+#ifdef WIN32
 		util::CrashManager::GetMetricsProvider()->BlameUser();
 
+		blog(LOG_INFO, "Error returning now");
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value(videoError));
 		AUTO_DEBUG;
 		return;
+#endif
 	}
 
 	if(!OBS_service::EncoderAvailable(SIMPLE_ENCODER_AMD)) {
@@ -922,6 +1001,7 @@ void OBS_API::SetUsername(
     std::vector<ipc::value>&       rval)
 {
 	username = args[0].value_str;
+	util::CrashManager::SetUsername(username);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
@@ -932,7 +1012,7 @@ void OBS_API::SetProcessPriority(const char* priority)
 {
 	if (!priority)
 		return;
-
+#ifdef WIN32
 	if (strcmp(priority, "High") == 0)
 		SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
 	else if (strcmp(priority, "AboveNormal") == 0)
@@ -943,6 +1023,7 @@ void OBS_API::SetProcessPriority(const char* priority)
 		SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
 	else if (strcmp(priority, "Idle") == 0)
 		SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
+#endif
 }
 
 void OBS_API::UpdateProcessPriority()
@@ -954,6 +1035,7 @@ void OBS_API::UpdateProcessPriority()
 
 bool DisableAudioDucking(bool disable)
 {
+#ifdef WIN32
 	ComPtr<IMMDeviceEnumerator>   devEmum;
 	ComPtr<IMMDevice>             device;
 	ComPtr<IAudioSessionManager2> sessionManager2;
@@ -983,6 +1065,9 @@ bool DisableAudioDucking(bool disable)
 
 	result = sessionControl2->SetDuckingPreference(disable);
 	return SUCCEEDED(result);
+#else
+    return false;
+#endif
 }
 
 void OBS_API::setAudioDeviceMonitoring(void)
@@ -1002,7 +1087,7 @@ void OBS_API::setAudioDeviceMonitoring(void)
 		DisableAudioDucking(true);
 #endif
 }
-
+#ifdef WIN32
 typedef struct
 {
 	OVERLAPPED        oOverlap;
@@ -1168,6 +1253,25 @@ void acknowledgeTerminate()
 		}
 	}
 }
+#else __APPLE__
+void acknowledgeTerminate (void) {
+	std::vector<char> buffer;
+	buffer.resize(64);
+	int file_descriptor = open("exit-slobs-crash-handler", O_RDONLY);
+	if (file_descriptor < 0) {
+		blog(LOG_ERROR, "Could not open crash-handler exit fifo");
+        return;
+    }
+
+	if (::read(file_descriptor, buffer.data(), buffer.size()) <= 0)
+		blog(LOG_ERROR, "Error while reading crash-handler exit message");
+}
+
+bool prepareTerminationPipe() {
+	// TODO
+	return false;
+}
+#endif
 
 void OBS_API::StopCrashHandler(
     void*                          data,
@@ -1266,7 +1370,7 @@ void OBS_API::destroyOBS_API(void)
 		osn::Transition::Manager::GetInstance().size() > 0	||
 		osn::Filter::Manager::GetInstance().size() > 0		||
 		osn::Input::Manager::GetInstance().size() > 0) {
-
+#ifdef WIN32
 		// Directly blame the frontend since it didn't release all objects and that could cause 
 		// a crash on the backend
 		// This is necessary since the frontend could still finish after the backend, causing the
@@ -1274,7 +1378,7 @@ void OBS_API::destroyOBS_API(void)
 		util::CrashManager::GetMetricsProvider()->BlameFrontend();
 
 		util::CrashManager::DisableReports();
-
+#endif
 		// Try-catch should suppress any error message that could be thrown to the user
 		try {
 			obs_shutdown();
@@ -1343,9 +1447,9 @@ bool OBS_API::openAllModules(int& video_err)
 {
 	video_err = OBS_service::resetVideoContext();
 	if (video_err != OBS_VIDEO_SUCCESS) {
+		blog(LOG_INFO, "Reset video failed with error: %d", video_err);
 		return false;
 	}
-
 	std::string plugins_paths[] = {g_moduleDirectory + "/obs-plugins/64bit",
 	                               g_moduleDirectory + "/obs-plugins",
 	                               slobs_plugin + "/obs-plugins/64bit"};
@@ -1363,14 +1467,14 @@ bool OBS_API::openAllModules(int& video_err)
 		* with some metainfo so we don't attempt just any
 		* shared library. */
 		if (!os_file_exists(plugins_path.c_str())) {
-			blog(LOG_ERROR, "Plugin Path provided is invalid: %s", plugins_path);
+			blog(LOG_ERROR, "Plugin Path provided is invalid: %s", plugins_path.c_str());
 			std::cerr << "Plugin Path provided is invalid: " << plugins_path << std::endl;
 			continue;
 		}
 
 		os_dir_t* plugin_dir = os_opendir(plugins_path.c_str());
 		if (!plugin_dir) {
-			blog(LOG_ERROR, "Failed to open plugin diretory: %s", plugins_path);
+			blog(LOG_ERROR, "Failed to open plugin diretory: %s", plugins_path.c_str());
 			std::cerr << "Failed to open plugin diretory: " << plugins_path << std::endl;
 			continue;
 		}
@@ -1397,10 +1501,10 @@ bool OBS_API::openAllModules(int& video_err)
 			try {
 				result = obs_open_module(&module, plugin_path.c_str(), plugin_data_path.c_str());
 			} catch (std::string errorMsg) {
-				blog(LOG_ERROR, "Failed to load module: %s - %s", basename, errorMsg);
+				blog(LOG_ERROR, "Failed to load module: %s - %s", basename.c_str(), errorMsg.c_str());
 				continue;
 			} catch (...) {
-				blog(LOG_ERROR, "Failed to load module: %s", basename);
+				blog(LOG_ERROR, "Failed to load module: %s", basename.c_str());
 				continue;
 			}
 
@@ -1431,10 +1535,10 @@ bool OBS_API::openAllModules(int& video_err)
 					/* Just continue to next one */
 				}
 			} catch (std::string errorMsg) {
-				blog(LOG_ERROR, "Failed to initialize module: %s - %s", basename, errorMsg);
+				blog(LOG_ERROR, "Failed to initialize module: %s - %s", basename.c_str(), errorMsg.c_str());
 				continue;
 			} catch (...) {
-				blog(LOG_ERROR, "Failed to initialize module: %s", basename);
+				blog(LOG_ERROR, "Failed to initialize module: %s", basename.c_str());
 				continue;
 			}
 		}
@@ -1599,28 +1703,30 @@ std::string OBS_API::getUsername()
 {
 	return username;
 }
-
+#ifdef WIN32
 static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData)
 {
 	MONITORINFO info;
 	info.cbSize = sizeof(info);
 	if (GetMonitorInfo(hMonitor, &info)) {
-		std::vector<Screen>* resolutions = reinterpret_cast<std::vector<Screen>*>(dwData);
+		std::vector<std::pair<uint32_t, uint32_t>>* resolutions =
+			reinterpret_cast<std::vector<std::pair<uint32_t, uint32_t>>*>(dwData);
 
-		Screen screen;
-
-		screen.width  = std::abs(info.rcMonitor.left - info.rcMonitor.right);
-		screen.height = std::abs(info.rcMonitor.top - info.rcMonitor.bottom);
-
-		resolutions->push_back(screen);
+		resolutions->push_back(std::make_pair(
+			std::abs(info.rcMonitor.left - info.rcMonitor.right),
+			std::abs(info.rcMonitor.top - info.rcMonitor.bottom)
+		));
 	}
 	return true;
 }
-
-std::vector<Screen> OBS_API::availableResolutions(void)
+#endif
+std::vector<std::pair<uint32_t, uint32_t>> OBS_API::availableResolutions(void)
 {
-	std::vector<Screen> resolutions;
+	std::vector<std::pair<uint32_t, uint32_t>> resolutions;
+#ifdef WIN32
 	EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, reinterpret_cast<LPARAM>(&resolutions));
-
+#else
+	resolutions = g_util_osx->getAvailableScreenResolutions();
+#endif
 	return resolutions;
 }

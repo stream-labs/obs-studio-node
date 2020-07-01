@@ -84,6 +84,10 @@ int main(int, char ** , char **){}
 // Definition based on addon_register_func, see 'node.h:L384'.
 void main_node(v8::Local<v8::Object> exports, v8::Local<v8::Value> module, void* priv)
 {
+#ifdef __APPLE__
+	g_util_osx = new UtilInt();
+	g_util_osx->init();
+#endif
 	osn::Global::Register(exports);
 	osn::ISource::Register(exports);
 	osn::Input::Register(exports);
@@ -98,9 +102,9 @@ void main_node(v8::Local<v8::Object> exports, v8::Local<v8::Value> module, void*
 	osn::Video::Register(exports);
 	osn::Module::Register(exports);
 
-	while (initializerFunctions.size() > 0) {
-		initializerFunctions.front()(exports);
-		initializerFunctions.pop();
+	while (initializerFunctions->size() > 0) {
+		initializerFunctions->front()(exports);
+		initializerFunctions->pop();
 	}
 };
 

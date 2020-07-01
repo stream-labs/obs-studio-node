@@ -27,17 +27,18 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
-void CallbackManager::start_async_runner()
+void SourceCallback::start_async_runner()
 {
 	if (m_async_callback)
 		return;
 	std::unique_lock<std::mutex> ul(m_worker_lock);
 	// Start v8/uv asynchronous runner.
-	m_async_callback = new cm_Callback();
+	m_async_callback = new cm_sourcesCallback();
 	m_async_callback->set_handler(
-	    std::bind(&CallbackManager::callback_handler, this, std::placeholders::_1, std::placeholders::_2), nullptr);
+	    std::bind(&SourceCallback::callback_handler, this, std::placeholders::_1, std::placeholders::_2), nullptr);
 }
-void CallbackManager::stop_async_runner()
+
+void SourceCallback::stop_async_runner()
 {
 	if (!m_async_callback)
 		return;
@@ -48,7 +49,7 @@ void CallbackManager::stop_async_runner()
 	m_async_callback = nullptr;
 }
 
-void CallbackManager::callback_handler(void* data, std::shared_ptr<SourceSizeInfoData> sourceSizes)
+void SourceCallback::callback_handler(void* data, std::shared_ptr<SourceSizeInfoData> sourceSizes)
 {
 	v8::Isolate*         isolate = v8::Isolate::GetCurrent();
 	v8::Local<v8::Value> args[1];
@@ -104,15 +105,15 @@ void RegisterSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
 	}
 
 	// Callback
-	cm = new CallbackManager();
-	cm->m_callback_function.Reset(callback);
-	cm->start_async_runner();
-	cm->set_keepalive(args.This());
-	cm->start_worker();
+	cm_sources = new SourceCallback;
+    cm_sources->m_callback_function.Reset(callback);
+	cm_sources->start_async_runner();
+	cm_sources->set_keepalive(args.This());
+	cm_sources->start_worker();
 	args.GetReturnValue().Set(utilv8::ToValue(true));
 }
 
-void CallbackManager::worker()
+void SourceCallback::worker()
 {
 	size_t totalSleepMS = 0;
 
@@ -158,7 +159,7 @@ void CallbackManager::worker()
 	return;
 }
 
-void CallbackManager::set_keepalive(v8::Local<v8::Object> obj)
+void SourceCallback::set_keepalive(v8::Local<v8::Object> obj)
 {
 	if (!m_async_callback)
 		return;
@@ -167,13 +168,17 @@ void CallbackManager::set_keepalive(v8::Local<v8::Object> obj)
 
 void RemoveSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	cm->stop_worker();
-	cm->stop_async_runner();
+	cm_sources->stop_worker();
+	cm_sources->stop_async_runner();
 }
 
 INITIALIZER(callback_manager)
 {
-	initializerFunctions.push([](v8::Local<v8::Object> exports) {
+	if (!initializerFunctions) {
+		initializerFunctions =
+			new std::queue<std::function<void(v8::Local<v8::Object>)>>;
+	}
+	initializerFunctions->push([](v8::Local<v8::Object> exports) {
 		NODE_SET_METHOD(exports, "RegisterSourceCallback", RegisterSourceCallback);
 		NODE_SET_METHOD(exports, "RemoveSourceCallback", RemoveSourceCallback);
 	});

@@ -16,41 +16,39 @@
 
 ******************************************************************************/
 
-#pragma once
+#include "util-osx.hpp"
+#include "util-osx-int.h"
 
-#include <algorithm>
-#include <iostream>
-#include <ipc-server.hpp>
-#include <map>
-#include <mutex>
-#include <obs.h>
-#include <queue>
-#include <string>
-#include <thread>
-#include <util/config-file.h>
-#include <util/dstr.h>
-#include <util/platform.h>
-#include "nodeobs_api.h"
+UtilInt::UtilInt(void)
+    : _impl ( nullptr )
+{   }
 
-#include "nodeobs_audio_encoders.h"
-
-struct SourceSizeInfo
+void UtilInt::init(void)
 {
-	obs_source_t* source;
-	uint32_t      width = 0;
-	uint32_t      height = 0;
-	uint32_t      flags = 0;
-};
+    _impl = new UtilObjCInt();
+}
 
-class CallbackManager
+UtilInt::~UtilInt(void)
 {
-	public:
-	CallbackManager() {};
-	~CallbackManager() {};
+    if ( _impl ) { delete _impl; _impl = nullptr; }
+}
 
-	static void Register(ipc::server&);
-	static void QuerySourceSize(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+void UtilInt::getPermissionsStatus(bool &webcam, bool &mic)
+{
+    _impl->getPermissionsStatus(webcam, mic);
+}
 
-	static void addSource(obs_source_t* source);
-	static void removeSource(obs_source_t* source);
-};
+void UtilInt::requestPermissions(void *async_cb, perms_cb cb)
+{
+    _impl->requestPermissions(async_cb, cb);
+}
+
+void UtilInt::installPlugin(void)
+{
+    _impl->installPlugin();
+}
+
+void UtilInt::setServerWorkingDirectoryPath(std::string path)
+{
+    _impl->setServerWorkingDirectoryPath(path);
+}

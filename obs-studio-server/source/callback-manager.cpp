@@ -18,19 +18,20 @@
 
 #include "callback-manager.h"
 #include "osn-source.hpp"
+#ifdef WIN32
 #include <windows.h>
+#endif
 #include "error.hpp"
 #include "shared.hpp"
+#include "osn-source.hpp"
 
-std::mutex                             mtx;
+std::mutex                             sources_sizes_mtx;
 std::map<std::string, SourceSizeInfo*> sources;
 
 void CallbackManager::Register(ipc::server& srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("CallbackManager");
-
 	cls->register_function(std::make_shared<ipc::function>("QuerySourceSize", std::vector<ipc::type>{}, QuerySourceSize));
-
 	srv.register_collection(cls);
 }
 
@@ -40,7 +41,7 @@ void CallbackManager::QuerySourceSize(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	std::unique_lock<std::mutex> ulock(mtx);
+	std::unique_lock<std::mutex> ulock(sources_sizes_mtx);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	if (sources.empty()) {
@@ -77,7 +78,7 @@ void CallbackManager::QuerySourceSize(
 
 void CallbackManager::addSource(obs_source_t* source)
 {
-	std::unique_lock<std::mutex> ulock(mtx);
+	std::unique_lock<std::mutex> ulock(sources_sizes_mtx);
 
 	if (!source || obs_source_get_type(source) == OBS_SOURCE_TYPE_FILTER)
 		return;
@@ -91,7 +92,7 @@ void CallbackManager::addSource(obs_source_t* source)
 }
 void CallbackManager::removeSource(obs_source_t* source)
 {
-	std::unique_lock<std::mutex> ulock(mtx);
+	std::unique_lock<std::mutex> ulock(sources_sizes_mtx);
 	
 	if (!source)
 		return;

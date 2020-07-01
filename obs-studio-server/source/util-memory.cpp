@@ -17,6 +17,7 @@
 ******************************************************************************/
 
 #include "util-memory.h"
+#include <stdlib.h>
 
 void* util::malloc_aligned(size_t align, size_t size)
 {
@@ -27,7 +28,7 @@ void* util::malloc_aligned(size_t align, size_t size)
 	return _aligned_malloc(size, align);
 #endif
 #else
-	return aligned_malloc(align, size);
+    return malloc(size);
 #endif
 }
 

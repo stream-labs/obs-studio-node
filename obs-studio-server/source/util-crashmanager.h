@@ -30,9 +30,11 @@
 #undef strtoll
 #include "nlohmann/json.hpp"
 
-#ifndef _DEBUG
+ #ifndef _DEBUG
 #define ENABLE_CRASHREPORT
-#endif
+ #endif
+
+extern std::string workingDirectory;
 
 namespace util
 {
@@ -50,7 +52,7 @@ namespace util
 
 		public:
 
-		bool Initialize();
+		bool Initialize(char* path);
 		void Configure();
 		void OpenConsole();
 
@@ -68,6 +70,9 @@ namespace util
 
 		static void ProcessPreServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args);
 		static void ProcessPostServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args);
+
+		static void SetVersionName(std::string name);
+		static void SetUsername(std::string name);
 
 		private:
 		static nlohmann::json RequestOBSLog(OBSLogType type);

@@ -24,8 +24,8 @@
 #include "utility-v8.hpp"
 #include "utility.hpp"
 
-Nan::Persistent<v8::FunctionTemplate> osn::ISource::prototype = Nan::Persistent<v8::FunctionTemplate>();
 osn::ISource*                         sourceObject;
+Nan::Persistent<v8::FunctionTemplate> osn::ISource::prototype;
 
 osn::ISource::~ISource() {}
 

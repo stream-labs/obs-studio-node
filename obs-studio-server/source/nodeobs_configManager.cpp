@@ -24,6 +24,7 @@
 #endif
 
 #include <util/platform.h>
+#include "shared.hpp"
 
 void ConfigManager::setAppdataPath(std::string path)
 {
@@ -70,6 +71,7 @@ static const double scaled_vals[] = {1.0, 1.25, (1.0 / 0.75), 1.5, (1.0 / 0.6), 
 
 static inline std::string GetDefaultVideoSavePath()
 {
+#ifdef WIN32
 	wchar_t path_utf16[MAX_PATH];
 	char    path_utf8[MAX_PATH] = {};
 
@@ -77,6 +79,9 @@ static inline std::string GetDefaultVideoSavePath()
 
 	os_wcs_to_utf8(path_utf16, wcslen(path_utf16), path_utf8, MAX_PATH);
 	return std::string(path_utf8);
+#else
+    return g_util_osx->getDefaultVideoSavePath();
+#endif
 }
 
 void initBasicDefault(config_t* config)
@@ -117,20 +122,23 @@ void initBasicDefault(config_t* config)
 	config_set_default_string(config, "Output", "Mode", "Simple");
 	std::string filePath = GetDefaultVideoSavePath();
 	config_set_default_string(config, "SimpleOutput", "FilePath", filePath.c_str());
-	config_set_default_string(config, "SimpleOutput", "RecFormat", "flv");
+	config_set_default_string(config, "SimpleOutput", "RecFormat", "mp4");
 	config_set_default_uint(config, "SimpleOutput", "VBitrate", 2500);
-	config_set_default_string(config, "SimpleOutput", "StreamEncoder", "x264");
+	config_set_default_string(config, "SimpleOutput", "StreamEncoder", "obs_x264");
+
 	config_set_default_uint(config, "SimpleOutput", "ABitrate", 160);
 	config_set_default_bool(config, "SimpleOutput", "UseAdvanced", false);
 	config_set_default_bool(config, "SimpleOutput", "EnforceBitrate", true);
 	config_set_default_string(config, "SimpleOutput", "Preset", "veryfast");
 	config_set_default_string(config, "SimpleOutput", "RecQuality", "Stream");
-	config_set_default_string(config, "SimpleOutput", "RecEncoder", "x264");
+	config_set_default_string(config, "SimpleOutput", "RecEncoder", "obs_x264");
+
 	config_set_default_bool(config, "SimpleOutput", "RecRB", true);
 	config_set_default_int(config, "SimpleOutput", "RecRBTime", 20);
 	config_set_default_int(config, "SimpleOutput", "RecRBSize", 512);
 	config_set_default_string(config, "SimpleOutput", "RecRBPrefix", "Replay");
 	config_set_default_bool(config, "SimpleOutput", "replayBufferUseStreamOutput", true);
+	config_set_default_string(config, "SimpleOutput", "Profile", "main");
 
 	config_set_default_bool(config, "AdvOut", "ApplyServiceSettings", true);
 	config_set_default_bool(config, "AdvOut", "UseRescale", false);
@@ -249,7 +257,11 @@ void ConfigManager::reloadConfig(void)
 config_t* ConfigManager::getGlobal()
 {
 	if (!global) {
+#ifdef WIN32
 		global = getConfig("\\global.ini");
+#else
+		global = getConfig("/global.ini");
+#endif
 		if(global) {
 			initGlobalDefault(global);
 		}
@@ -260,7 +272,11 @@ config_t* ConfigManager::getGlobal()
 config_t* ConfigManager::getBasic()
 {
 	if (!basic) {
+#ifdef WIN32
 		basic = getConfig("\\basic.ini");
+#else
+		basic = getConfig("/basic.ini");
+#endif
 		if (basic) {
 			initBasicDefault(basic);
 		}
@@ -270,13 +286,25 @@ config_t* ConfigManager::getBasic()
 };
 std::string ConfigManager::getService()
 {
+#ifdef WIN32
 	return appdata + "\\service.json";
+#else
+	return appdata + "/service.json";
+#endif
 };
 std::string ConfigManager::getStream()
 {
+#ifdef WIN32
 	return appdata + "\\streamEncoder.json";
+#else
+	return appdata + "/streamEncoder.json";
+#endif
 };
 std::string ConfigManager::getRecord()
 {
+#ifdef WIN32
 	return appdata + "\\recordEncoder.json";
+#else
+	return appdata + "/recordEncoder.json";
+#endif
 };

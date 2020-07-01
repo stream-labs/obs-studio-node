@@ -31,7 +31,7 @@ osn::Module::Module(uint64_t id)
 	this->moduleId = id;
 }
 
-Nan::Persistent<v8::FunctionTemplate> osn::Module::prototype = Nan::Persistent<v8::FunctionTemplate>();
+Nan::Persistent<v8::FunctionTemplate> osn::Module::prototype;
 
 void osn::Module::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 {

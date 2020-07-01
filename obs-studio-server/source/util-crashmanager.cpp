@@ -1,4 +1,4 @@
-﻿/******************************************************************************
+/******************************************************************************
     Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
 
     This program is free software: you can redistribute it and/or modify
@@ -30,12 +30,9 @@
 #include <string>
 #include <thread>
 #include <vector>
+
+#ifdef WIN32
 #include "StackWalker.h"
-#include "nodeobs_api.h"
-#include "error.hpp"
-
-#if defined(_WIN32)
-
 #include <WinBase.h>
 #include "DbgHelp.h"
 #include "Shlobj.h"
@@ -47,8 +44,11 @@
 #include "TCHAR.h"
 #include "pdh.h"
 #include "psapi.h"
-
 #endif
+
+#include "nodeobs_api.h"
+#include "error.hpp"
+#include "shared.hpp"
 
 #ifdef ENABLE_CRASHREPORT
 #include "client/crash_report_database.h"
@@ -59,7 +59,7 @@
 //////////////////////
 // STATIC VARIABLES //
 //////////////////////
-
+#ifdef WIN32
 // Global/static variables
 std::vector<std::string>                   handledOBSCrashes;
 PDH_HQUERY                                 cpuQuery;
@@ -67,10 +67,11 @@ PDH_HCOUNTER                               cpuTotal;
 std::vector<nlohmann::json>                breadcrumbs;
 std::queue<std::pair<int, nlohmann::json>> lastActions;
 std::vector<std::string>                   warnings;
-std::chrono::steady_clock::time_point      initialTime;
 std::mutex                                 messageMutex;
 util::MetricsProvider                      metricsClient;
-bool                                       reportsEnabled = true;
+LPTOP_LEVEL_EXCEPTION_FILTER               crashpadInternalExceptionFilterMethod = nullptr;
+#endif
+
 std::string                                appState = "starting"; // "starting","idle","encoding","shutdown"
 // Crashpad variables
 #ifdef ENABLE_CRASHREPORT
@@ -81,9 +82,12 @@ std::string                                    url;
 base::FilePath                                 db;
 base::FilePath                                 handler;
 std::vector<std::string>                       arguments;
-std::map<std::string, std::string>             annotations;
-LPTOP_LEVEL_EXCEPTION_FILTER                   crashpadInternalExceptionFilterMethod = nullptr;
+std::string                                    workingDirectory;
 #endif
+
+std::chrono::steady_clock::time_point          initialTime;
+bool                                           reportsEnabled = true;
+std::map<std::string, std::string>             annotations;
 
 /////////////
 // FORWARD //
@@ -91,6 +95,8 @@ LPTOP_LEVEL_EXCEPTION_FILTER                   crashpadInternalExceptionFilterMe
 
 std::string    FormatVAString(const char* const format, va_list args);
 nlohmann::json RewindCallStack(std::string& crashedMethod);
+
+typedef long long LongLong;
 
 // Transform a byte value into a string + sufix
 std::string PrettyBytes(uint64_t bytes)
@@ -126,7 +132,7 @@ void RequestComputerUsageParams(
     long long& commitMemTotal,
     long long& commitMemLimit)
 {
-#if defined(_WIN32)
+#ifdef WIN32
 
 	MEMORYSTATUSEX          memInfo = {0};
 	PROCESS_MEMORY_COUNTERS pmc;
@@ -149,21 +155,19 @@ void RequestComputerUsageParams(
 		commitMemLimit = perfInfo.CommitLimit * perfInfo.PageSize;
 	} 
 #else
-
-	// This link has info about the linux and Mac OS versions
-	// https://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process
-	totalPhysMem    = long long(-1);
-	physMemUsed     = long long(-1);
+	totalPhysMem    = -1;
+	physMemUsed     = -1;
 	physMemUsedByMe = size_t(-1);
 	totalCPUUsed    = double(-1.0);
-	commitMemTotal  = long long(-1);
-	commitMemLimit  = long long(-1);
+	commitMemTotal  = LongLong(-1);
+	commitMemLimit  = LongLong(-1);
 
 #endif
 }
 
 void GetUserInfo(std::string& computerName)
 {
+#ifdef WIN32
 	TCHAR infoBuf[MAX_COMPUTERNAME_LENGTH + 1];
 	DWORD bufCharCount = MAX_COMPUTERNAME_LENGTH + 1;
 
@@ -174,14 +178,18 @@ void GetUserInfo(std::string& computerName)
 	std::wstring_convert<convert_typeX, wchar_t> converterX;
 
 	computerName = converterX.to_bytes(std::wstring(infoBuf));
+#else
+	computerName = "";
+#endif
+
 }
 
 nlohmann::json RequestProcessList()
 {
+#ifdef WIN32
 	DWORD          aProcesses[1024], cbNeeded, cProcesses;
 	nlohmann::json result = nlohmann::json::object();
 
-#if defined(_WIN32)
 
 	if (!EnumProcesses(aProcesses, sizeof(aProcesses), &cbNeeded)) {
 		return 1;
@@ -216,21 +224,23 @@ nlohmann::json RequestProcessList()
 			}
 		}
 	}
-
+    
+    return result;
+#else
+    return NULL;
 #endif
-
-	return result;
 }
 
 //////////////////
 // CrashManager //
 //////////////////
 
-bool util::CrashManager::Initialize()
+bool util::CrashManager::Initialize(char* path)
 {
 #ifdef ENABLE_CRASHREPORT
 	annotations.insert({{"crashpad_status", "internal crash handler missed"}});
 
+	workingDirectory = path;
 	if (!SetupCrashpad()) {
 		return false;
 	}
@@ -255,7 +265,7 @@ bool util::CrashManager::Initialize()
 	// Redirect all the calls from std::terminate
 	std::set_terminate([]() { HandleCrash("Direct call to std::terminate"); });
 	
-#if defined(_WIN32)
+#ifdef WIN32
 
 	// Setup the windows exeption filter
 	auto ExceptionHandlerMethod = [](struct _EXCEPTION_POINTERS* ExceptionInfo) {
@@ -276,21 +286,20 @@ bool util::CrashManager::Initialize()
 	PdhAddEnglishCounter(cpuQuery, L"\\Processor(_Total)\\% Processor Time", NULL, &cpuTotal);
 	PdhCollectQueryData(cpuQuery);
 
+    // The atexit will check if obs was safelly closed
+    std::atexit(HandleExit);
+    std::at_quick_exit(HandleExit);
 #endif
-
-	// The atexit will check if obs was safelly closed
-	std::atexit(HandleExit);
-	std::at_quick_exit(HandleExit);
 
 #endif
 
 	initialTime = std::chrono::steady_clock::now();
-
 	return true;
 }
 
 void util::CrashManager::Configure()
 {
+#ifdef WIN32
 	// Add all obs crash messages that are supposed to be handled by our application and
 	// shouldn't cause a crash report (because there is no point on reporting since we
 	// cannot control them)
@@ -300,6 +309,7 @@ void util::CrashManager::Configure()
 		handledOBSCrashes.push_back("Failed to recreate D3D11");
 		// ...
 	}
+#endif
 }
 
 bool util::CrashManager::SetupCrashpad()
@@ -323,17 +333,24 @@ bool util::CrashManager::SetupCrashpad()
 	appdata_path.append(L"\\obs-studio-node-server");
 
 	CoTaskMemFree(ppszPath);
-
 #endif
 
 	arguments.push_back("--no-rate-limit");
 
+#ifdef WIN32
 	std::wstring handler_path(L"crashpad_handler.exe");
+#else
+	std::string handler_path = workingDirectory + '/';
+	handler_path.append("crashpad_handler");
+#endif
 
 	url = isPreview
 	          ? std::string("https://sentry.io/api/1406061/minidump/?sentry_key=7376a60665cd40bebbd59d6bf8363172")
 	          : std::string("https://sentry.io/api/1283431/minidump/?sentry_key=ec98eac4e3ce49c7be1d83c8fb2005ef");
 
+#ifdef __APPLE__
+	std::string appdata_path = g_util_osx->getUserDataPath();
+#endif
 	db      = base::FilePath(appdata_path);
 	handler = base::FilePath(handler_path);
 
@@ -347,9 +364,11 @@ bool util::CrashManager::SetupCrashpad()
 	if (!rc)
 		return false;
 
+#ifdef WIN32
 	rc = client.WaitForHandlerStart(INFINITE);
 	if (!rc)
 		return false;
+#endif
 
 #endif
 
@@ -409,10 +428,6 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	
 	if (is_allocator_failed()) {
 		known_crash_id = 0x1;
-	}
-
-	if (known_crash_id != 0) {
-		OBS_API::InformCrashHandler(known_crash_id);
 	}
 
 	// Get the information about the total of CPU and RAM used by this user
@@ -484,13 +499,24 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 #endif
 }
 
+void util::CrashManager::SetVersionName(std::string name) {
+	std::cout << "version name " << name.c_str() << std::endl;
+	annotations.insert({{"sentry[release]", name}});
+}
+
+void util::CrashManager::SetUsername(std::string name) {
+	annotations.insert({{"sentry[user][username]", name}});
+}
+
 bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashMessage)
 {
+#ifdef WIN32
 	// This method can only be called by the obs-studio crash handler method, this means that
 	// an internal error occurred.
 	// handledOBSCrashes will contain all error messages that we should ignore from obs-studio,
 	// like Dx11 errors for example, here we will check if this error is known, if true we will
 	// try to finalize SLOBS in an attempt to NOT generate a crash report for it
+
 	bool crashIsHandled = false;
 	for (auto& handledCrashes : handledOBSCrashes) {
 		if (std::string(_format).find(handledCrashes) != std::string::npos) {
@@ -498,7 +524,6 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 			break;
 		}
 	}
-
 	if (!crashIsHandled)
 		return false;
 
@@ -527,9 +552,9 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 
 	// Something really bad went wrong when killing this process, generate a crash report!
 	util::CrashManager::HandleCrash(_crashMessage);
+    #endif
 
-	// Unreachable statement
-	return true;
+	return false;
 }
 
 // Format a var arg string into a c++ std::string type
@@ -555,6 +580,7 @@ std::string FormatVAString(const char* const format, va_list args)
 
 nlohmann::json RewindCallStack(std::string& crashedMethod)
 {
+#ifdef WIN32
 	class MyStackWalker : public StackWalker
 	{
 		public:
@@ -613,6 +639,9 @@ nlohmann::json RewindCallStack(std::string& crashedMethod)
 	sw.ShowCallstack();
 
 	return result;
+#else
+    return NULL;
+#endif
 }
 
 nlohmann::json util::CrashManager::RequestOBSLog(OBSLogType type)
@@ -652,16 +681,21 @@ nlohmann::json util::CrashManager::RequestOBSLog(OBSLogType type)
 
 nlohmann::json util::CrashManager::ComputeBreadcrumbs()
 {
+#ifdef WIN32
 	nlohmann::json result = nlohmann::json::array();
 
 	for (auto& msg : breadcrumbs)
 		result.push_back(msg);
 
 	return result;
+#else
+    return NULL;
+#endif
 }
 
 nlohmann::json util::CrashManager::ComputeActions()
 {
+#ifdef WIN#2
 	nlohmann::json result = nlohmann::json::array();
 
 	while (!lastActions.empty()) {
@@ -678,20 +712,28 @@ nlohmann::json util::CrashManager::ComputeActions()
 	}
 
 	return result;
+#else
+    return NULL;
+#endif
 }
 
 nlohmann::json util::CrashManager::ComputeWarnings()
 {
+#ifdef WIN32
 	nlohmann::json result;
 
 	for (auto& msg : warnings)
 		result.push_back(msg);
 
 	return result;
+#else
+    return NULL;
+#endif
 }
 
 void BindCrtHandlesToStdHandles(bool bindStdIn, bool bindStdOut, bool bindStdErr)
 {
+#ifdef WIN32
 	// Re-initialize the C runtime "FILE" handles with clean handles bound to "nul". We do this because it has been
 	// observed that the file number of our standard handle file objects can be assigned internally to a value of -2
 	// when not bound to a valid target, which represents some kind of unknown internal invalid state. In this state our
@@ -779,6 +821,7 @@ void BindCrtHandlesToStdHandles(bool bindStdIn, bool bindStdOut, bool bindStdErr
 		std::wcerr.clear();
 		std::cerr.clear();
 	}
+#endif
 }
 
 void util::CrashManager::OpenConsole()
@@ -843,12 +886,15 @@ void util::CrashManager::IPCValuesToData(const std::vector<ipc::value>& values, 
 
 void util::CrashManager::AddWarning(const std::string& warning)
 {
+#ifdef WIN32
 	std::lock_guard<std::mutex> lock(messageMutex);
 	warnings.push_back(warning);
+#endif
 }
 
 void RegisterAction(const nlohmann::json& message)
 {
+#ifdef WIN32
 	static const int            MaximumActionsRegistered = 50;
 	std::lock_guard<std::mutex> lock(messageMutex);
 
@@ -861,27 +907,34 @@ void RegisterAction(const nlohmann::json& message)
 			lastActions.pop();
 		}
 	}
+#endif
 }
 
 void util::CrashManager::AddBreadcrumb(const nlohmann::json& message)
 {
+#ifdef WIN32
 	std::lock_guard<std::mutex> lock(messageMutex);
 	breadcrumbs.push_back(message);
+#endif
 }
 
 void util::CrashManager::AddBreadcrumb(const std::string& message)
 {
+#ifdef WIN32
 	nlohmann::json j = nlohmann::json::array();
 	j.push_back({{message}});
 
 	std::lock_guard<std::mutex> lock(messageMutex);
 	breadcrumbs.push_back(j);
+#endif
 }
 
 void util::CrashManager::ClearBreadcrumbs()
 {
+#ifdef WIN32
 	std::lock_guard<std::mutex> lock(messageMutex);
 	breadcrumbs.clear();
+#endif
 }
 
 void util::CrashManager::setAppState(std::string newState)
@@ -966,5 +1019,8 @@ void util::CrashManager::DisableReports()
 
 util::MetricsProvider* const util::CrashManager::GetMetricsProvider()
 {
+#ifdef WIN32
 	return &metricsClient;
+#endif
 }
+

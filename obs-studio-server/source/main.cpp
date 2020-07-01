@@ -47,6 +47,12 @@
 
 #include "util-crashmanager.h"
 
+#include "shared.hpp"
+
+#ifdef __APPLE__
+#include <unistd.h>
+#endif
+
 #if defined(_WIN32)
 #include "Shlobj.h"
 
@@ -122,6 +128,9 @@ namespace System
 	{
 		bool* shutdown = (bool*)data;
 		*shutdown      = true;
+#ifdef __APPLE__
+		g_util_osx->stopApplication();
+#endif
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		return;
 	}
@@ -129,25 +138,14 @@ namespace System
 
 int main(int argc, char* argv[])
 {
-#ifdef ENABLE_CRASHREPORT
-
-    util::CrashManager crashManager;
-	if (!crashManager.Initialize()) {
-		return -1;
-    }
-
-    crashManager.Configure();
-
+#ifdef __APPLE__
+	g_util_osx = new UtilInt();
+	g_util_osx->init();
 #endif
 
 	// Usage:
 	// argv[0] = Path to this application. (Usually given by default if run via path-based command!)
 	// argv[1] = Path to a named socket.
-
-	if (argc != 2) {
-		std::cerr << "There must be exactly one parameter." << std::endl;
-		return -1;
-	}
 
 	// Instance
 	ipc::server myServer;
@@ -192,7 +190,12 @@ int main(int argc, char* argv[])
 
 	// Initialize Server
 	try {
-		myServer.initialize(argv[1]);
+		std::string socketPath = "";
+#ifdef __APPLE__
+		socketPath = "/tmp/";
+#endif
+		socketPath += argv[1];
+		myServer.initialize(socketPath.c_str());
 	} catch (std::exception& e) {
 		std::cerr << "Initialization failed with error " << e.what() << "." << std::endl;
 		return -2;
@@ -201,28 +204,16 @@ int main(int argc, char* argv[])
 		return -2;
 	}
 
-#ifdef ENABLE_CRASHREPORT
-
-	// Register the pre and post server callbacks to log the data into the crashmanager
-	myServer.set_pre_callback([](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data)
-	{ 
-		util::CrashManager& crashManager = *static_cast<util::CrashManager*>(data);
-		crashManager.ProcessPreServerCall(cname, fname, args);
-
-	}, &crashManager);
-	myServer.set_post_callback([](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data)
-	{
-		util::CrashManager& crashManager = *static_cast<util::CrashManager*>(data);
-		crashManager.ProcessPostServerCall(cname, fname, args);
-	}, &crashManager);
-
-#endif
-
 	// Reset Connect/Disconnect time.
 	sd.last_disconnect = sd.last_connect = std::chrono::high_resolution_clock::now();
 
+#ifdef __APPLE__
+	// WARNING: Blocking function -> this won't return until the application
+	// receives a stop or terminate event
+	g_util_osx->runApplication();
+#endif
+#ifdef WIN32
 	bool waitBeforeClosing = false;
-
 	while (!doShutdown) {
 		if (sd.count_connected == 0) {
 			auto tp    = std::chrono::high_resolution_clock::now();
@@ -234,7 +225,6 @@ int main(int argc, char* argv[])
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(50));
 	}
-
 	// Wait on receive the exit message from the crash-handler
 	if (waitBeforeClosing) {
 		HANDLE hPipe;
@@ -260,7 +250,7 @@ int main(int argc, char* argv[])
 			}
 		}
 	}
-
+#endif
 	osn::Source::finalize_global_signals();
 	OBS_API::destroyOBS_API();
 

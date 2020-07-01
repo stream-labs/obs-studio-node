@@ -44,7 +44,11 @@
 #include <unistd.h>
 #endif
 
+#ifdef WIN32
 #define SIMPLE_ENCODER_X264 "x264"
+#elif __APPLE__
+#define SIMPLE_ENCODER_X264 "obs_x264"
+#endif
 #define SIMPLE_ENCODER_X264_LOWCPU "x264_lowcpu"
 #define SIMPLE_ENCODER_QSV "qsv"
 #define SIMPLE_ENCODER_NVENC "nvenc"
@@ -56,6 +60,9 @@
 #define ADVANCED_ENCODER_AMD "amd_amf_h264"
 
 #define ENCODER_NEW_NVENC "jim_nvenc"
+
+#define APPLE_SOFTWARE_VIDEO_ENCODER "vt_h264_sw"
+#define APPLE_HARDWARE_VIDEO_ENCODER "vt_h264_hw"
 
 #define MAX_AUDIO_MIXES 6
 
@@ -167,6 +174,27 @@ class OBS_service
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
 	static void Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+
+	static void OBS_service_createVirtualWebcam(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_service_removeVirtualWebcam(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_service_startVirtualWebcam(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_service_stopVirtualWebcan(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
 
 	private:
 	static bool startStreaming(void);

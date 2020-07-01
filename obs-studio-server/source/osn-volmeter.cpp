@@ -22,6 +22,9 @@
 #include "osn-source.hpp"
 #include "shared.hpp"
 #include "utility.hpp"
+#include <cmath>
+
+std::mutex mtx;
 
 osn::VolMeter::Manager& osn::VolMeter::Manager::GetInstance()
 {
@@ -86,6 +89,7 @@ void osn::VolMeter::Create(
 	obs_fader_type            type = (obs_fader_type)args[0].value_union.i32;
 	std::shared_ptr<VolMeter> meter;
 
+	std::unique_lock<std::mutex> ulock(mtx);
 	try {
 		meter = std::make_shared<osn::VolMeter>(type);
 	} catch (...) {
@@ -112,6 +116,7 @@ void osn::VolMeter::Destroy(
 {
 	auto uid = args[0].value_union.ui64;
 
+	std::unique_lock<std::mutex> ulock(mtx);
 	auto meter = Manager::GetInstance().find(uid);
 	if (!meter) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
@@ -136,6 +141,7 @@ void osn::VolMeter::GetUpdateInterval(
 {
 	auto uid = args[0].value_union.ui64;
 
+	std::unique_lock<std::mutex> ulock(mtx);
 	auto meter = Manager::GetInstance().find(uid);
 	if (!meter) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
@@ -154,6 +160,7 @@ void osn::VolMeter::SetUpdateInterval(
 {
 	auto uid = args[0].value_union.ui64;
 
+	std::unique_lock<std::mutex> ulock(mtx);
 	auto meter = Manager::GetInstance().find(uid);
 	if (!meter) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
@@ -175,6 +182,7 @@ void osn::VolMeter::Attach(
 	auto uid_fader  = args[0].value_union.ui64;
 	auto uid_source = args[1].value_union.ui64;
 
+	std::unique_lock<std::mutex> ulock(mtx);
 	auto meter = Manager::GetInstance().find(uid_fader);
 	if (!meter) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
@@ -201,6 +209,7 @@ void osn::VolMeter::Detach(
 {
 	auto uid = args[0].value_union.ui64;
 
+	std::unique_lock<std::mutex> ulock(mtx);
 	auto meter = Manager::GetInstance().find(uid);
 	if (!meter) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
@@ -219,6 +228,7 @@ void osn::VolMeter::AddCallback(
     std::vector<ipc::value>&       rval)
 {
 	auto uid   = args[0].value_union.ui64;
+	std::unique_lock<std::mutex> ulock(mtx);
 	auto meter = Manager::GetInstance().find(uid);
 	if (!meter) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
@@ -232,7 +242,7 @@ void osn::VolMeter::AddCallback(
 	}
 
 	rval.push_back(ipc::value(uint64_t(ErrorCode::Ok)));
-	rval.push_back(ipc::value(meter->callback_count));
+	rval.push_back(ipc::value(uint64_t(meter->callback_count)));
 	AUTO_DEBUG;
 }
 
@@ -243,6 +253,7 @@ void osn::VolMeter::RemoveCallback(
     std::vector<ipc::value>&       rval)
 {
 	auto uid   = args[0].value_union.ui64;
+	std::unique_lock<std::mutex> ulock(mtx);
 	auto meter = Manager::GetInstance().find(uid);
 	if (!meter) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
@@ -256,7 +267,7 @@ void osn::VolMeter::RemoveCallback(
 	}
 
 	rval.push_back(ipc::value(uint64_t(ErrorCode::Ok)));
-	rval.push_back(ipc::value(meter->callback_count));
+	rval.push_back(ipc::value(uint64_t(meter->callback_count)));
 	AUTO_DEBUG;
 }
 
@@ -267,6 +278,7 @@ void osn::VolMeter::Query(
     std::vector<ipc::value>&       rval)
 {
 	auto uid   = args[0].value_union.ui64;
+	std::unique_lock<std::mutex> ulockMutex(mtx);
 	auto meter = Manager::GetInstance().find(uid);
 	if (!meter) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
@@ -303,6 +315,7 @@ void osn::VolMeter::OBSCallback(
     const float peak[MAX_AUDIO_CHANNELS],
     const float input_peak[MAX_AUDIO_CHANNELS])
 {
+	std::unique_lock<std::mutex> ulockMutex(mtx);
 	auto meter = Manager::GetInstance().find(*reinterpret_cast<uint64_t*>(param));
 	if (!meter) {
 		return;

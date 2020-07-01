@@ -21,6 +21,7 @@
 #include <node.h>
 #include <queue>
 #include <string>
+#include "util-osx.hpp"
 
 #ifndef __FUNCTION_NAME__
 #if defined(_WIN32) || defined(_WIN64) //WINDOWS
@@ -30,6 +31,10 @@
 #endif
 #endif
 
-extern std::queue<std::function<void(v8::Local<v8::Object>)>> initializerFunctions;
+extern std::queue<std::function<void(v8::Local<v8::Object>)>>* initializerFunctions;
+
+#ifdef __APPLE__
+	extern UtilInt* g_util_osx;
+#endif
 
 void replaceAll(std::string& str, const std::string& from, const std::string& to);

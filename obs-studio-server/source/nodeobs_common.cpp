@@ -34,6 +34,8 @@ std::string                          sourceSelected;
 bool                                 firstDisplayCreation = true;
 
 std::thread* windowMessage = NULL;
+ipc::server* g_srv;
+bool displayCreated = false;
 
 /* A lot of the sceneitem functionality is a lazy copy-pasta from the Qt UI. */
 // https://github.com/jp9000/obs-studio/blob/master/UI/window-basic-main.cpp#L4888
@@ -216,11 +218,18 @@ void OBS_content::Register(ipc::server& srv)
 	    std::vector<ipc::type>{ipc::type::String, ipc::type::Int32},
 	    OBS_content_setDrawGuideLines));
 
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_content_createIOSurface",
+	    std::vector<ipc::type>{ipc::type::String},
+	    OBS_content_createIOSurface));
+
 	srv.register_collection(cls);
+	g_srv = &srv;
 }
 
 void popupAeroDisabledWindow(void)
 {
+#ifdef WIN32
 	MessageBox(
 	    NULL,
 	    TEXT("Streamlabs OBS needs Aero enabled to run properly on Windows 7.  "
@@ -230,6 +239,7 @@ void popupAeroDisabledWindow(void)
 	         "We recommend upgrading to Windows 10 or enabling Aero."),
 	    TEXT("Aero is disabled"),
 	    MB_OK);
+#endif
 }
 
 void OBS_content::OBS_content_createDisplay(
@@ -263,8 +273,8 @@ void OBS_content::OBS_content_createDisplay(
 		break;
 	}
 
+#ifdef WIN32
 	displays.insert_or_assign(args[1].value_str, new OBS::Display(windowHandle, mode));
-
 	if (!IsWindows8OrGreater()) {
 		BOOL enabled = FALSE;
 		DwmIsCompositionEnabled(&enabled);
@@ -272,6 +282,10 @@ void OBS_content::OBS_content_createDisplay(
 			windowMessage = new std::thread(popupAeroDisabledWindow);
 		}
 	}
+#else
+	OBS::Display *display = new OBS::Display(windowHandle, mode);
+	displays.insert_or_assign(args[1].value_str, display);
+#endif
 
 	// device rebuild functionality available only with D3D
 #ifdef _WIN32
@@ -310,9 +324,10 @@ void OBS_content::OBS_content_destroyDisplay(
 
 	if (windowMessage != NULL && windowMessage->joinable())
 		windowMessage->join();
+    
+    delete found->second;
+    displays.erase(found);
 
-	delete found->second;
-	displays.erase(found);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -334,8 +349,11 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(
 		rval.push_back(ipc::value("Duplicate key provided to createDisplay!"));
 		return;
 	}
+
+	OBS::Display *display = new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str);
 	displays.insert_or_assign(
-	    args[2].value_str, new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str));
+	    args[2].value_str, display);
+
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -355,10 +373,20 @@ void OBS_content::OBS_content_resizeDisplay(
 
 	OBS::Display* display = value->second;
 
-	int width  = args[1].value_union.ui32;
-	int height = args[2].value_union.ui32;
+	display->m_gsInitData.cx = args[1].value_union.ui32;
+	display->m_gsInitData.cy = args[2].value_union.ui32;
 
-	display->SetSize(width, height);
+	// Resize Display
+    obs_display_resize(display->m_display,
+		display->m_gsInitData.cx,
+		display->m_gsInitData.cy);
+
+    // Store new size.
+    display->UpdatePreviewArea();
+
+#ifdef WIN32
+	display->SetSize(display->m_gsInitData.cx, display->m_gsInitData.cy);
+#endif
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -380,6 +408,9 @@ void OBS_content::OBS_content_moveDisplay(
 
 	int x = args[1].value_union.ui32;
 	int y = args[2].value_union.ui32;
+
+	display->m_position.first  = x;
+	display->m_position.second = y;
 
 	display->SetPosition(x, y);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -599,5 +630,32 @@ void OBS_content::OBS_content_setDrawGuideLines(
 	}
 	it->second->SetDrawGuideLines((bool)args[1].value_union.i32);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void OBS_content::OBS_content_createIOSurface(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+#ifdef __APPLE__
+	// Find Display
+	auto it = displays.find(args[0].value_str);
+	if (it == displays.end()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Display key is not valid!"));
+		return;
+	}
+	uint32_t surfaceID =
+		obs_display_create_iosurface(it->second->m_display, 
+			it->second->GetSize().first,
+			it->second->GetSize().second);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint32_t)surfaceID));
+#elif WIN32
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+#endif
 	AUTO_DEBUG;
 }

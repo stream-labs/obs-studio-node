@@ -27,6 +27,8 @@
 #include "utility-v8.hpp"
 #include "utility.hpp"
 
+Nan::Persistent<v8::FunctionTemplate> osn::VolMeter::prototype;
+
 osn::VolMeter::VolMeter(uint64_t p_uid)
 {
 	m_uid = p_uid;
@@ -170,8 +172,6 @@ void osn::VolMeter::set_keepalive(v8::Local<v8::Object> obj)
 		return;
 	m_async_callback->set_keepalive(obj);
 }
-
-Nan::Persistent<v8::FunctionTemplate> osn::VolMeter::prototype = Nan::Persistent<v8::FunctionTemplate>();
 
 void osn::VolMeter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 {

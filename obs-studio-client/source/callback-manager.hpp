@@ -20,6 +20,7 @@
 #include <nan.h>
 #include <node.h>
 #include <thread>
+#include <map>
 #include "utility-v8.hpp"
 
 struct SourceSizeInfo
@@ -37,8 +38,10 @@ struct SourceSizeInfoData
 };
 
 class CallbackManager;
-typedef utilv8::managed_callback<std::shared_ptr<SourceSizeInfoData>> cm_Callback;
-CallbackManager*                                              cm;
+class SourceCallback;
+
+typedef utilv8::managed_callback<std::shared_ptr<SourceSizeInfoData>> cm_sourcesCallback;
+SourceCallback*                                                        cm_sources;
 
 class CallbackManager : public Nan::ObjectWrap,
                         public utilv8::InterfaceObject<CallbackManager>,
@@ -46,29 +49,37 @@ class CallbackManager : public Nan::ObjectWrap,
 {
 	friend utilv8::InterfaceObject<CallbackManager>;
 	friend utilv8::ManagedObject<CallbackManager>;
-	friend utilv8::CallbackData<SourceSizeInfoData, CallbackManager>;
 
-	uint32_t sleepIntervalMS = 1000;
+	protected:
+	uint32_t sleepIntervalMS = 15;
 
 	public:
 	std::thread   m_worker;
 	bool          m_worker_stop = true;
 	std::mutex    m_worker_lock;
-	cm_Callback*  m_async_callback = nullptr;
-	Nan::Callback m_callback_function;
 
-	CallbackManager(){};
-	~CallbackManager(){};
-
-	void start_async_runner();
-	void stop_async_runner();
-	void callback_handler(void* data, std::shared_ptr<SourceSizeInfoData> sourceSizes);
+	virtual void start_async_runner() = 0;
+	virtual void stop_async_runner() = 0;
 	void start_worker();
 	void stop_worker();
-	void worker();
-	void set_keepalive(v8::Local<v8::Object>);
+	virtual void worker() = 0;
+	virtual void set_keepalive(v8::Local<v8::Object>) = 0;
+};
 
-	std::list<cm_Callback*> callbacks;
+class SourceCallback : public CallbackManager
+{
+	friend utilv8::CallbackData<SourceSizeInfoData, CallbackManager>;
+
+	cm_sourcesCallback*  m_async_callback = nullptr;
+
+	public:
+	Nan::Callback        m_callback_function;
+
+	virtual void start_async_runner();
+	virtual void stop_async_runner();
+	virtual void worker();
+	virtual void set_keepalive(v8::Local<v8::Object>);
+	void callback_handler(void* data, std::shared_ptr<SourceSizeInfoData> sourceSizes);
 };
 
 static void RegisterSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args);

@@ -19,13 +19,68 @@
 #include "controller.hpp"
 #include "error.hpp"
 #include "nodeobs_api.hpp"
-#include "utility-v8.hpp"
 
 #include <node.h>
 #include <sstream>
 #include <string>
 #include "shared.hpp"
 #include "utility.hpp"
+
+NodeCallback* node_cb;
+
+void NodeCallback::start_async_runner()
+{
+	if (m_async_callback)
+		return;
+	std::unique_lock<std::mutex> ul(mtx);
+	// Start v8/uv asynchronous runner.
+	m_async_callback = new PermsCallback();
+	m_async_callback->set_handler(
+	    std::bind(&NodeCallback::callback_handler, this, std::placeholders::_1, std::placeholders::_2), nullptr);
+}
+
+void NodeCallback::stop_async_runner()
+{
+	if (!m_async_callback)
+		return;
+	std::unique_lock<std::mutex> ul(mtx);
+	// Stop v8/uv asynchronous runner.
+	m_async_callback->clear();
+	m_async_callback->finalize();
+	m_async_callback = nullptr;
+}
+
+void NodeCallback::callback_handler(
+	void* data, std::shared_ptr<Permissions> perms_status)
+{
+	v8::Isolate*          isolate = v8::Isolate::GetCurrent();
+	v8::Local<v8::Object> obj = v8::Object::New(isolate);
+	v8::Local<v8::Value>  result[1];
+
+	if (!perms_status)
+		return;
+
+	obj->Set(
+		utilv8::ToValue("webcamPermission"),
+		utilv8::ToValue(perms_status->webcam));
+	obj->Set(
+		utilv8::ToValue("micPermission"),
+		utilv8::ToValue(perms_status->mic));
+
+
+	result[0] = obj;
+	Nan::Call(m_callback_function, 1, result);
+
+	if (perms_status->webcam && perms_status->mic)
+		this->stop_async_runner();
+}
+
+void NodeCallback::set_keepalive(v8::Local<v8::Object> obj)
+{
+	if (!m_async_callback)
+		return;
+	m_async_callback->set_keepalive(obj);
+}
 
 void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
@@ -228,9 +283,53 @@ Nan::NAN_METHOD_RETURN_TYPE api::SetUsername(const v8::FunctionCallbackInfo<v8::
 	conn->call("API", "SetUsername", {ipc::value(username)});
 }
 
+Nan::NAN_METHOD_RETURN_TYPE api::GetPermissionsStatus(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+#ifdef __APPLE__
+	bool webcam, mic;
+	g_util_osx->getPermissionsStatus(webcam, mic);
+
+	v8::Local<v8::Object> perms = v8::Object::New(args.GetIsolate());
+	perms->Set(
+		v8::String::NewFromUtf8(args.GetIsolate(), "webcamPermission").ToLocalChecked(),
+		v8::Boolean::New(args.GetIsolate(), webcam));
+	perms->Set(
+		v8::String::NewFromUtf8(args.GetIsolate(), "micPermission").ToLocalChecked(),
+		v8::Boolean::New(args.GetIsolate(), mic));
+
+	args.GetReturnValue().Set(perms);
+#endif
+}
+
+Nan::NAN_METHOD_RETURN_TYPE api::RequestPermissions(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+#ifdef __APPLE__
+	v8::Local<v8::Function> callback;
+	ASSERT_GET_VALUE(args[0], callback);
+
+	node_cb = new NodeCallback();
+	node_cb->m_callback_function.Reset(callback);
+	node_cb->start_async_runner();
+	node_cb->set_keepalive(args.This());
+
+	auto cb = [](void* cb, bool webcam, bool mic) {
+		std::shared_ptr<Permissions> perms =
+			std::make_shared<Permissions>();
+		Permissions* item      = new Permissions();
+		perms->webcam          = webcam;
+		perms->mic             = mic;
+		PermsCallback* aync_cb = reinterpret_cast<PermsCallback*>(cb);
+
+		aync_cb->queue(std::move(perms));
+	};
+
+	g_util_osx->requestPermissions(node_cb->m_async_callback, cb);
+#endif
+}
+
 INITIALIZER(nodeobs_api)
 {
-	initializerFunctions.push([](v8::Local<v8::Object> exports) {
+	initializerFunctions->push([](v8::Local<v8::Object> exports) {
 		NODE_SET_METHOD(exports, "OBS_API_initAPI", api::OBS_API_initAPI);
 		NODE_SET_METHOD(exports, "OBS_API_destroyOBS_API", api::OBS_API_destroyOBS_API);
 		NODE_SET_METHOD(exports, "OBS_API_getPerformanceStatistics", api::OBS_API_getPerformanceStatistics);
@@ -239,5 +338,7 @@ INITIALIZER(nodeobs_api)
 		NODE_SET_METHOD(exports, "OBS_API_QueryHotkeys", api::OBS_API_QueryHotkeys);
 		NODE_SET_METHOD(exports, "OBS_API_ProcessHotkeyStatus", api::OBS_API_ProcessHotkeyStatus);
 		NODE_SET_METHOD(exports, "SetUsername", api::SetUsername);
+		NODE_SET_METHOD(exports, "GetPermissionsStatus", api::GetPermissionsStatus);
+		NODE_SET_METHOD(exports, "RequestPermissions", api::RequestPermissions);
 	});
 }

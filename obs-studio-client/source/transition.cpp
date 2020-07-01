@@ -26,12 +26,12 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
+Nan::Persistent<v8::FunctionTemplate> osn::Transition::prototype;
+
 osn::Transition::Transition(uint64_t id)
 {
 	this->sourceId = id;
 }
-
-Nan::Persistent<v8::FunctionTemplate> osn::Transition::prototype = Nan::Persistent<v8::FunctionTemplate>();
 
 void osn::Transition::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 {

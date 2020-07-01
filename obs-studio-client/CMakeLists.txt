@@ -24,8 +24,23 @@ set(STREAMLABS_BUILD ON CACHE BOOL "Whether to build for streamlabs-obs")
 
 nodejs_init()
 
-add_nodejs_module(
-	obs_studio_client
+if (APPLE)
+	find_library(COREFOUNDATION CoreFoundation)
+	find_library(COCOA Cocoa)
+	find_library(AVFOUNDATION AVFoundation)
+	find_library(SECURITY_FRAMEWORK Security)
+	find_library(FOUNDATION Foundation)
+
+	include_directories(
+		${COREFOUNDATION}
+		${COCOA}
+		${AVFOUNDATION}
+		${Security}
+		${Foundation}
+	)
+endif ()
+
+SET(osn-client_SOURCES
 	"${CMAKE_SOURCE_DIR}/source/error.hpp"
 	"${CMAKE_SOURCE_DIR}/source/obs-property.hpp"
 	"${CMAKE_SOURCE_DIR}/source/obs-property.cpp"
@@ -81,15 +96,37 @@ add_nodejs_module(
 	"source/callback-manager.hpp"
 )
 
+if (APPLE)
+	SET(osn-client-osx_SOURCES
+		###### osx-util ######
+		"${PROJECT_SOURCE_DIR}/source/util-osx.hpp"
+		"${PROJECT_SOURCE_DIR}/source/util-osx.cpp"
+		"${PROJECT_SOURCE_DIR}/source/util-osx-int.h"
+		"${PROJECT_SOURCE_DIR}/source/util-osx-impl.h"
+		"${PROJECT_SOURCE_DIR}/source/util-osx-impl.mm"
+	)
+	LIST(
+		APPEND
+		osn-client_SOURCES
+		${osn-client-osx_SOURCES}
+	)
+endif ()
+
+add_nodejs_module(
+	obs_studio_client
+	${osn-client_SOURCES}
+)
+
 set(PROJECT_INCLUDE_PATHS
 	"${nlohmannjson_SOURCE_DIR}/single_include"
 )
 
 if(WIN32)
 	target_sources(obs_studio_client PUBLIC ${PROJECT_BINARY_DIR}/version.rc)
+	target_link_libraries(obs_studio_client lib-streamlabs-ipc)
+else ()
+	target_link_libraries(obs_studio_client lib-streamlabs-ipc ${COREFOUNDATION} ${COCOA} ${AVFOUNDATION} ${Security} ${Foundation})
 endif()
-
-target_link_libraries(obs_studio_client lib-streamlabs-ipc)
 
 target_include_directories(
 	obs_studio_client
@@ -123,7 +160,7 @@ IF( NOT CLANG_ANALYZE_CONFIG)
 	cppcheck_add_project(${PROJECT_NAME})
 ENDIF()
 
-IF( NOT CLANG_ANALYZE_CONFIG)
+IF(WIN32 AND NOT CLANG_ANALYZE_CONFIG)
 	install(FILES $<TARGET_PDB_FILE:obs_studio_client> DESTINATION ./ OPTIONAL)
 ENDIF()
 install(FILES "${CMAKE_SOURCE_DIR}/package.json" DESTINATION "./")

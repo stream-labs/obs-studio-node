@@ -242,8 +242,9 @@ OBS::Display::Display()
 #elif defined(__linux__) || defined(__FreeBSD__)
 #endif
 
+#ifdef WIN32
 	worker = std::thread(std::bind(&OBS::Display::SystemWorker, this));
-
+#endif
 	m_gsInitData.adapter         = 0;
 	m_gsInitData.cx              = 960;
 	m_gsInitData.cy              = 540;
@@ -257,7 +258,6 @@ OBS::Display::Display()
 
 	obs_enter_graphics();
 	m_gsSolidEffect = obs_get_base_effect(OBS_EFFECT_SOLID);
-
 	GS::Vertex v(nullptr, nullptr, nullptr, nullptr, nullptr);
 
 	m_boxLine = std::make_unique<GS::VertexBuffer>(6);
@@ -355,23 +355,20 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode)
 	m_parentWindow           = reinterpret_cast<HWND>(windowHandle);
 	m_gsInitData.window.hwnd = reinterpret_cast<void*>(m_ourWindow);
 #endif
-
 	m_display = obs_display_create(&m_gsInitData, 0x0);
-	if (!m_display)
-		throw std::runtime_error("unable to create display");
+    if (!m_display) {
+        blog(LOG_INFO, "Failed to create the display");
+        throw std::runtime_error("unable to create display");
+    }
 
 	m_renderingMode = mode;
 
 	obs_display_add_draw_callback(m_display, DisplayCallback, this);
-
-	SetSize(0, 0);
-	SetPosition(0, 0);
 }
 
 OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, std::string sourceName)
     : Display(windowHandle, mode)
 {
-	std::cout << "creating display" << std::endl;
 	m_source = obs_get_source_by_name(sourceName.c_str());
 	obs_source_inc_showing(m_source);
 }
@@ -425,32 +422,29 @@ OBS::Display::~Display()
 	}
 
 	PostThreadMessage(GetThreadId(worker.native_handle()), (UINT)SystemWorkerMessage::StopThread, NULL, NULL);
-#endif
 
 	if (worker.joinable())
 		worker.join();
+#endif
 }
 
 void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 {
+#if defined(_WIN32)
 	// Store new position.
 	m_position.first  = x;
 	m_position.second = y;
 
 	if (m_source != NULL) {
+       std::string msg = "<" + std::string(__FUNCTION__) + "> Adjusting display position for source %s to %ldx%ld. hwnd %d";
 		blog(
 		    LOG_DEBUG,
-		    "<" __FUNCTION__ "> Adjusting display position for source %s to %ldx%ld. hwnd %d",
+		    msg.c_str(),
 		    obs_source_get_name(m_source), x, y, m_ourWindow);
 	}
 
-	// Move Window
-#if defined(_WIN32)
 	SetWindowPos( m_ourWindow, NULL, m_position.first, m_position.second, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE);
-#elif defined(__APPLE__)
-#elif defined(__linux__) || defined(__FreeBSD__)
 #endif
-
 }
 
 std::pair<uint32_t, uint32_t> OBS::Display::GetPosition()
@@ -460,6 +454,7 @@ std::pair<uint32_t, uint32_t> OBS::Display::GetPosition()
 
 bool isNewerThanWindows7()
 {
+#ifdef WIN32
 	static bool versionIsHigherThan7 = false; 
 	static bool versionIsChecked = false; 
 	if( !versionIsChecked )
@@ -480,6 +475,9 @@ bool isNewerThanWindows7()
 		versionIsChecked = true;
 	}
 	return versionIsHigherThan7;
+#else
+    return false;
+#endif
 }
 
 void OBS::Display::setSizeCall(int step)
@@ -539,16 +537,18 @@ void OBS::Display::setSizeCall(int step)
 
 void OBS::Display::SetSize(uint32_t width, uint32_t height)
 {
+#ifdef WIN32
 	if (m_source != NULL) {
+       std::string msg = "<" + std::string(__FUNCTION__) + "> Adjusting display size for source %s to %ldx%ld. hwnd %d";
 		blog(
 			LOG_DEBUG,
-			"<" __FUNCTION__ "> Adjusting display size for source %s to %ldx%ld. hwnd %d",
+			msg.c_str(),
 			obs_source_get_name(m_source), width, height, m_ourWindow);
 	}
 
 	m_gsInitData.cx = width;
 	m_gsInitData.cy = height;
-	
+
 	if(width == 0 || height == 0 || isNewerThanWindows7())
 	{
 		setSizeCall(-1);
@@ -561,6 +561,7 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 
 	// Store new size.
 	UpdatePreviewArea();
+#endif
 }
 
 std::pair<uint32_t, uint32_t> OBS::Display::GetSize()
@@ -727,7 +728,7 @@ static void
 
 inline bool CloseFloat(float a, float b, float epsilon = 0.01)
 {
-	return std::abs(a - b) <= epsilon;
+	return abs(a - b) <= epsilon;
 }
 
 inline void DrawOutline(OBS::Display* dp, matrix4& mtx, obs_transform_info& info)
@@ -752,7 +753,9 @@ inline void DrawBoxAt(OBS::Display* dp, float_t x, float_t y, matrix4& mtx)
 	gs_matrix_translate(&pos);
 	gs_matrix_translate(&offset);
 	gs_matrix_scale3f(
-	    HANDLE_DIAMETER * dp->m_previewToWorldScale.x, HANDLE_DIAMETER * dp->m_previewToWorldScale.y, 1.0f);
+	    HANDLE_DIAMETER * dp->m_previewToWorldScale.x,
+		HANDLE_DIAMETER * dp->m_previewToWorldScale.y,
+		1.0f);
 
 	gs_draw(GS_LINESTRIP, 0, 0);
 	gs_matrix_pop();
@@ -772,7 +775,9 @@ inline void DrawSquareAt(OBS::Display* dp, float_t x, float_t y, matrix4& mtx)
 	gs_matrix_translate(&pos);
 	gs_matrix_translate(&offset);
 	gs_matrix_scale3f(
-	    HANDLE_DIAMETER * dp->m_previewToWorldScale.x, HANDLE_DIAMETER * dp->m_previewToWorldScale.y, 1.0f);
+	    HANDLE_DIAMETER * dp->m_previewToWorldScale.x,
+		HANDLE_DIAMETER * dp->m_previewToWorldScale.y,
+		1.0f);
 
 	gs_draw(GS_TRISTRIP, 0, 0);
 	gs_matrix_pop();
@@ -1094,8 +1099,12 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 	gs_projection_push();
 
 	gs_ortho(0.0f, float(sourceW), 0.0f, float(sourceH), -100.0f, 100.0f);
+
 	gs_set_viewport(
-	    dp->m_previewOffset.first, dp->m_previewOffset.second, dp->m_previewSize.first, dp->m_previewSize.second);
+		dp->m_previewOffset.first,
+		dp->m_previewOffset.second,
+		dp->m_previewSize.first,
+		dp->m_previewSize.second);
 
 	// Padding
 	vec4_set(&color, dp->m_paddingColor[0], dp->m_paddingColor[1], dp->m_paddingColor[2], dp->m_paddingColor[3]);
@@ -1125,8 +1134,6 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 
 		gs_technique_end_pass(solid_tech);
 		gs_technique_end(solid_tech);
-
-		gs_load_vertexbuffer(nullptr);
 	}
 
 	// Source Rendering
@@ -1188,7 +1195,6 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 		source                   = obs_transition_get_active_source(transition);
 		obs_source_release(transition);
 	}
-	gs_load_vertexbuffer(nullptr);
 
 	if (dp->m_shouldDrawUI == true) {
 		// Display-Aligned Drawing
@@ -1212,7 +1218,6 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 			gs_technique_begin_pass(solid_tech, 0);
 
 			obs_scene_enum_items(scene, DrawSelectedSource, dp);
-			gs_load_vertexbuffer(nullptr);
 
 			gs_technique_end_pass(solid_tech);
 			gs_technique_end(solid_tech);
@@ -1265,12 +1270,13 @@ void OBS::Display::UpdatePreviewArea()
 	    m_previewSize.first,
 	    m_previewSize.second);
 
+
 	offsetX = m_paddingSize;
 	offsetY = float_t(offsetX) * float_t(sourceH) / float_t(sourceW);
 
 	m_previewOffset.first += offsetX;
 	m_previewSize.first -= offsetX * 2;
-	
+
 	if (m_previewSize.second <= offsetY * 2) {
 		m_previewOffset.second = (m_previewOffset.second - 1) / 2;
 		m_previewSize.second = 1;
@@ -1278,7 +1284,7 @@ void OBS::Display::UpdatePreviewArea()
 		m_previewOffset.second += offsetY;
 		m_previewSize.second -= offsetY * 2;
 	}
-	
+
 	m_worldToPreviewScale.x = float_t(m_previewSize.first) / float_t(sourceW);
 	m_worldToPreviewScale.y = float_t(m_previewSize.second) / float_t(sourceH);
 	m_previewToWorldScale.x = float_t(sourceW) / float_t(m_previewSize.first);

@@ -1,4 +1,4 @@
-﻿PROJECT(obs-studio-server VERSION ${obs-studio-node_VERSION})
+PROJECT(obs-studio-server VERSION ${obs-studio-node_VERSION})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -26,11 +26,20 @@ endif()
 ############################
 # Setup crashpad binaries
 ############################
-download_project(
-	PROJ crashpad
-	URL https://obsstudionodes3.streamlabs.com/crashpad/crashpad-release-1.0.21-win-x64.tar.gz
-	UPDATE_DISCONNECTED 1
-)
+
+if(WIN32)
+	download_project(
+		PROJ crashpad
+		URL https://obsstudionodes3.streamlabs.com/crashpad/crashpad-release-1.0.21-win-x64.tar.gz
+		UPDATE_DISCONNECTED 1
+	)
+elseif(APPLE)
+	download_project(
+		PROJ crashpad
+		URL https://obsstudionodes3.streamlabs.com/crashpad/crashpad-release-1.0.21-osx.zip
+		UPDATE_DISCONNECTED 1
+	)
+endif()
 
 ExternalProject_Add(
 	crashpad_ep
@@ -113,6 +122,17 @@ add_dependencies(crashpad_base crashpad_ep)
 add_dependencies(crashpad_client crashpad_base)
 add_dependencies(crashpad_util crashpad_client)
 
+if (APPLE)
+	find_library(COREFOUNDATION CoreFoundation)
+	find_library(COCOA Cocoa)
+	find_library(IOSURF IOSurface)
+	find_library(GLKIT GLKit)
+	find_library(AVFOUNDATION AVFoundation)
+	find_library(IOKit IOKit)
+	find_library(SECURITY_LIBRARY Security)
+	find_library(BSM_LIBRARY bsm)
+endif ()
+
 # Getting LIBOBS_VERSION from azure script
 file(STRINGS ../azure-pipelines.yml VERSION_LINE REGEX "LibOBSVersion")
 string(REGEX MATCH "[^: ]*$" CURRENT_VERSION ${VERSION_LINE})
@@ -149,25 +169,41 @@ download_project(
 
 include("${libobs_SOURCE_DIR}/cmake/LibObs/LibObsConfig.cmake")
 
-set(PROJECT_LIBRARIES
-	lib-streamlabs-ipc
-	${LIBOBS_LIBRARIES}
-	dwmapi.lib
-)
-
-set(PROJECT_INCLUDE_PATHS
-	"${CMAKE_SOURCE_DIR}/source"
-	"${PROJECT_SOURCE_DIR}/source"
-	"${lib-streamlabs-ipc_SOURCE_DIR}/include"
-	${LIBOBS_INCLUDE_DIRS}
-	"${stackwalker_SOURCE_DIR}/Main/StackWalker"
-	"${nlohmannjson_SOURCE_DIR}/single_include"
-)
+if (WIN32)
+	set(PROJECT_LIBRARIES
+		lib-streamlabs-ipc
+		${LIBOBS_LIBRARIES}
+		dwmapi.lib
+	)
+	set(PROJECT_INCLUDE_PATHS
+		"${CMAKE_SOURCE_DIR}/source"
+		"${PROJECT_SOURCE_DIR}/source"
+		"${lib-streamlabs-ipc_SOURCE_DIR}/include"
+		${LIBOBS_INCLUDE_DIRS}
+		"${stackwalker_SOURCE_DIR}/Main/StackWalker"
+		"${nlohmannjson_SOURCE_DIR}/single_include"
+		"${source_dir}/include/third_party/mini_chromium/mini_chromium"
+		"${source_dir}/include"
+	)
+else ()
+	set(PROJECT_LIBRARIES
+		lib-streamlabs-ipc
+		${LIBOBS_LIBRARIES}
+	)
+	set(PROJECT_INCLUDE_PATHS
+		"${CMAKE_SOURCE_DIR}/source"
+		"${PROJECT_SOURCE_DIR}/source"
+		"${lib-streamlabs-ipc_SOURCE_DIR}/include"
+		${LIBOBS_INCLUDE_DIRS}
+		"${nlohmannjson_SOURCE_DIR}/single_include"
+		"${source_dir}/include/third_party/mini_chromium/mini_chromium"
+		"${source_dir}/include"
+	)
+endif ()
 
 set(PROJECT_DATA "${PROJECT_SOURCE_DIR}/resources")
 
-add_executable(
-	${PROJECT_NAME}
+SET(osn-server_SOURCES
 	"${CMAKE_SOURCE_DIR}/source/error.hpp"
 	"${CMAKE_SOURCE_DIR}/source/obs-property.hpp"
 	"${CMAKE_SOURCE_DIR}/source/obs-property.cpp"
@@ -261,15 +297,42 @@ add_executable(
 	"${PROJECT_SOURCE_DIR}/source/memory-manager.h"
 )
 
-# Include/link crash manager dependencies
-target_link_libraries(${PROJECT_NAME} StackWalker)
+if (APPLE)
+	SET(osn-server-osx_SOURCES
+		###### osx-util ######
+		"${PROJECT_SOURCE_DIR}/source/util-osx.hpp"
+		"${PROJECT_SOURCE_DIR}/source/util-osx.cpp"
+		"${PROJECT_SOURCE_DIR}/source/util-osx-int.h"
+		"${PROJECT_SOURCE_DIR}/source/util-osx-impl.h"
+		"${PROJECT_SOURCE_DIR}/source/util-osx-impl.mm"
+	)
+	LIST(
+		APPEND
+		osn-server_SOURCES
+		${osn-server-osx_SOURCES}
+	)
+endif ()
+
+add_executable(
+	${PROJECT_NAME}
+	${osn-server_SOURCES}
+)
 
 if(WIN32)
+	# Include/link crash manager dependencies
+	target_link_libraries(${PROJECT_NAME} StackWalker)
+
 	target_sources(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}/version.rc")
 endif()
 
-target_link_libraries(${PROJECT_NAME} ${PROJECT_LIBRARIES} optimized crashpad)
-target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE_PATHS})
+if(WIN32)
+	target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE_PATHS})
+	target_link_libraries(${PROJECT_NAME} ${PROJECT_LIBRARIES} optimized crashpad)
+else()
+	target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE_PATHS} ${COREFOUNDATION} ${COCOA} ${IOSURF} ${GLKIT} ${AVFOUNDATION} ${IOKit} ${SECURITY_LIBRARY} ${BSM_LIBRARY})
+	target_link_libraries(${PROJECT_NAME} ${PROJECT_LIBRARIES} crashpad ${COREFOUNDATION} ${COCOA} ${IOSURF} ${GLKIT} ${AVFOUNDATION} ${IOKit} ${SECURITY_LIBRARY} ${BSM_LIBRARY})
+endif()
+
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "obs${BITS}")
 
 if(WIN32)
@@ -288,6 +351,13 @@ else()
 		VERSION ${PROJECT_VERSION}
 		SOVERSION ${PROJECT_VERSION}
 	)
+	target_compile_definitions(${PROJECT_NAME} PRIVATE)
+	set_property(
+		TARGET ${PROJECT_NAME}
+		APPEND
+		PROPERTY INSTALL_RPATH
+		"@loader_path/" "@executable_path/"
+	)
 ENDIF()
 
 IF(WIN32)
@@ -305,22 +375,46 @@ IF( NOT CLANG_ANALYZE_CONFIG)
 	cppcheck_add_project(${PROJECT_NAME})
 ENDIF()
 
-install(TARGETS obs-studio-server RUNTIME DESTINATION "./" COMPONENT Runtime)
-IF( NOT CLANG_ANALYZE_CONFIG)
+set(PROGRAM_PERMISSIONS_DEFAULT
+    OWNER_WRITE OWNER_READ OWNER_EXECUTE
+    GROUP_READ GROUP_EXECUTE
+    WORLD_READ WORLD_EXECUTE)
+
+install(TARGETS obs-studio-server RUNTIME DESTINATION "./" PERMISSIONS ${PROGRAM_PERMISSIONS_DEFAULT} COMPONENT Runtime)
+IF(WIN32 AND NOT CLANG_ANALYZE_CONFIG)
 	install(FILES $<TARGET_PDB_FILE:obs-studio-server> DESTINATION "./" OPTIONAL)
 ENDIF()
-install(DIRECTORY ${PROJECT_DATA} DESTINATION "./" OPTIONAL)
-install(DIRECTORY ${crashpad_SOURCE_DIR}/bin/ DESTINATION "./")
-install(DIRECTORY "${libobs_SOURCE_DIR}/data/" DESTINATION "./data")
+install(DIRECTORY ${PROJECT_DATA} DESTINATION "./" OPTIONAL USE_SOURCE_PERMISSIONS)
+install(DIRECTORY ${crashpad_SOURCE_DIR}/bin/ DESTINATION "./" USE_SOURCE_PERMISSIONS)
+install(DIRECTORY "${libobs_SOURCE_DIR}/data/" DESTINATION "./data" USE_SOURCE_PERMISSIONS)
 
-install(
-	DIRECTORY "${libobs_SOURCE_DIR}/bin/64bit/"
-	DESTINATION "./" PATTERN "*.lib" EXCLUDE
-)
+if (APPLE)
+	install(DIRECTORY "${libobs_SOURCE_DIR}/Frameworks/" DESTINATION "./Frameworks")
+endif()
 
+if (WIN32)
+	install(
+		DIRECTORY "${libobs_SOURCE_DIR}/bin/64bit/"
+		DESTINATION "./" PATTERN "*.lib" EXCLUDE
+	)
+else ()
+	install(
+		DIRECTORY "${libobs_SOURCE_DIR}/bin/"
+		DESTINATION "./" USE_SOURCE_PERMISSIONS PATTERN "*.lib" EXCLUDE
+	)
+endif ()
+
+if (WIN32)
 install(
 	DIRECTORY "${libobs_SOURCE_DIR}/obs-plugins/"
 	DESTINATION "./obs-plugins"
 )
+else ()
+install(
+	DIRECTORY "${libobs_SOURCE_DIR}/obs-plugins/"
+	DESTINATION "./obs-plugins"
+	USE_SOURCE_PERMISSIONS
+)
+endif()
 
 install(DIRECTORY "${libobs_SOURCE_DIR}/enc-amf_old" DESTINATION "./" OPTIONAL)

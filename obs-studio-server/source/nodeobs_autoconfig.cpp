@@ -43,7 +43,8 @@ enum class Encoder
 	NVENC,
 	QSV,
 	AMD,
-	Stream
+	Stream,
+	appleHW
 };
 
 enum class Quality
@@ -123,6 +124,7 @@ bool hardwareEncodingAvailable = false;
 bool nvencAvailable            = false;
 bool qsvAvailable              = false;
 bool vceAvailable              = false;
+bool appleHWAvailable          = false;
 
 int  startingBitrate = 2500;
 bool customServer    = false;
@@ -282,6 +284,8 @@ void autoConfig::TestHardwareEncoding(void)
 			hardwareEncodingAvailable = qsvAvailable = true;
 		else if (strcmp(id, "amd_amf_h264") == 0)
 			hardwareEncodingAvailable = vceAvailable = true;
+		else if (strcmp(id, "vt_h264_hw") == 0)
+			hardwareEncodingAvailable = appleHWAvailable = true;
 	}
 }
 
@@ -1288,8 +1292,11 @@ void autoConfig::TestStreamEncoderThread()
 			streamingEncoder = Encoder::NVENC;
 		else if (qsvAvailable)
 			streamingEncoder = Encoder::QSV;
-		else
+		else if (vceAvailable)
 			streamingEncoder = Encoder::AMD;
+		// HW encoding seems to not be stable on Mac
+		// else if (appleHWAvailable)
+		// 	streamingEncoder = Encoder::appleHW;
 	} else {
 		streamingEncoder = Encoder::x264;
 	}
@@ -1325,8 +1332,11 @@ void autoConfig::TestRecordingEncoderThread()
 			recordingEncoder = Encoder::NVENC;
 		else if (qsvAvailable)
 			recordingEncoder = Encoder::QSV;
-		else
+		else if (vceAvailable)
 			recordingEncoder = Encoder::AMD;
+		// HW encoding seems to not be stable on Mac
+		// else if (appleHWAvailable)
+		// 	recordingEncoder = Encoder::appleHW;
 	} else {
 		recordingEncoder = Encoder::x264;
 	}
@@ -1352,6 +1362,8 @@ inline const char* GetEncoderId(Encoder enc)
 		return "obs_qsv11";
 	case Encoder::AMD:
 		return "amd_amf_h264";
+	case Encoder::appleHW:
+		return "vt_h264_hw";
 	case Encoder::x264:
 		return "obs_x264";
 	default:
@@ -1368,6 +1380,8 @@ inline const char* GetEncoderDisplayName(Encoder enc)
 		return SIMPLE_ENCODER_QSV;
 	case Encoder::AMD:
 		return SIMPLE_ENCODER_AMD;
+	case Encoder::appleHW:
+		return APPLE_HARDWARE_VIDEO_ENCODER;
 	default:
 		return SIMPLE_ENCODER_X264;
 	}

@@ -22,6 +22,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <cmath>
 
 namespace obs
 {

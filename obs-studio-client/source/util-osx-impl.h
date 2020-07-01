@@ -1,5 +1,5 @@
 /******************************************************************************
-    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+    Copyright (C) 2016-2020 by Streamlabs (General Workings Inc)
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,24 +16,17 @@
 
 ******************************************************************************/
 
-#include "shared.hpp"
+#import "Foundation/Foundation.h"
+#import <AVFoundation/AVFoundation.h>
+#import <Cocoa/Cocoa.h>
+#import <Security/Security.h>
+#import <Foundation/Foundation.h>
 
-#ifdef WIN32
-    std::queue<std::function<void(v8::Local<v8::Object>)>>* initializerFunctions =
-        new std::queue<std::function<void(v8::Local<v8::Object>)>>;
-#endif
-#ifdef __APPLE__
-    std::queue<std::function<void(v8::Local<v8::Object>)>>* initializerFunctions = nullptr;
-    UtilInt* g_util_osx;
-#endif
+#include "util-osx-int.h"
+#include "util-osx.hpp"
 
-void replaceAll(std::string& str, const std::string& from, const std::string& to)
-{
-	if (from.empty())
-		return;
-	size_t start_pos = 0;
-	while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
-		str.replace(start_pos, from.length(), to);
-		start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
-	}
-};
+typedef std::function<void(void* data, bool webcam, bool mic)> perms_cb;
+extern std::string g_server_working_dir;
+
+@interface UtilImplObj : NSObject
+@end

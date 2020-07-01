@@ -13,44 +13,16 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+ 
 ******************************************************************************/
 
-#pragma once
+#import "Foundation/Foundation.h"
+#import <AVFoundation/AVFoundation.h>
+#import <Cocoa/Cocoa.h>
+#import <OpenGL/OpenGL.h>
 
-#include <algorithm>
-#include <iostream>
-#include <ipc-server.hpp>
-#include <map>
-#include <mutex>
-#include <obs.h>
-#include <queue>
-#include <string>
-#include <thread>
-#include <util/config-file.h>
-#include <util/dstr.h>
-#include <util/platform.h>
-#include "nodeobs_api.h"
+#include "util-osx-int.h"
+#include "util-osx.hpp"
 
-#include "nodeobs_audio_encoders.h"
-
-struct SourceSizeInfo
-{
-	obs_source_t* source;
-	uint32_t      width = 0;
-	uint32_t      height = 0;
-	uint32_t      flags = 0;
-};
-
-class CallbackManager
-{
-	public:
-	CallbackManager() {};
-	~CallbackManager() {};
-
-	static void Register(ipc::server&);
-	static void QuerySourceSize(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-
-	static void addSource(obs_source_t* source);
-	static void removeSource(obs_source_t* source);
-};
+@interface UtilImplObj : NSObject
+@end

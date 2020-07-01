@@ -1,5 +1,5 @@
 /******************************************************************************
-    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+    Copyright (C) 2016-2020 by Streamlabs (General Workings Inc)
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,24 +16,33 @@
 
 ******************************************************************************/
 
-#include "shared.hpp"
+#ifndef __UTIL_OBJC_INTERFACE_H__
+#define __UTIL_OBJC_INTERFACE_H__
 
-#ifdef WIN32
-    std::queue<std::function<void(v8::Local<v8::Object>)>>* initializerFunctions =
-        new std::queue<std::function<void(v8::Local<v8::Object>)>>;
-#endif
-#ifdef __APPLE__
-    std::queue<std::function<void(v8::Local<v8::Object>)>>* initializerFunctions = nullptr;
-    UtilInt* g_util_osx;
-#endif
+#include <string>
+#include <functional>
 
-void replaceAll(std::string& str, const std::string& from, const std::string& to)
+typedef std::function<void(void* data, bool webcam, bool mic)> perms_cb;
+
+class UtilObjCInt
 {
-	if (from.empty())
-		return;
-	size_t start_pos = 0;
-	while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
-		str.replace(start_pos, from.length(), to);
-		start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
-	}
+private:
+    bool  m_webcam_perm;
+    bool  m_mic_perm;
+    void* m_async_cb;
+
+public:
+    UtilObjCInt(void);
+    ~UtilObjCInt(void);
+
+    void init(void);
+    void getPermissionsStatus(bool &webcam, bool &mic);
+    void requestPermissions(void *async_cb, perms_cb cb);
+    void installPlugin(void);
+    void setServerWorkingDirectoryPath(std::string path);
+
+private:
+    void * self;
 };
+
+#endif
