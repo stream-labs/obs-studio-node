@@ -38,6 +38,10 @@ jobs:
   - script: ./ci/configure-osn.cmd
     displayName: 'Configure obs-studio-node'
 
+  - script: 'node ci/bump-version.js'
+    displayName: 'Bump version number'
+    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+
   - script: ./ci/build-osn.cmd
     displayName: 'Build obs-studio-node'
 
@@ -151,6 +155,10 @@ jobs:
   - script: ./ci/configure-osn.cmd
     displayName: 'Configure obs-studio-node'
 
+  - script: 'node ci/bump-version.js'
+    displayName: 'Bump version number'
+    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+
   - script: ./ci/build-osn.cmd
     displayName: 'Build obs-studio-node'
 
@@ -236,6 +244,10 @@ jobs:
 
   - script: './ci/configure-osn-osx.sh'
     displayName: 'Configure obs-studio-node'
+
+  - script: 'node ci/bump-version.js'
+    displayName: 'Bump version number'
+    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
   - script: ./ci/build-osn-osx.sh
     env:
