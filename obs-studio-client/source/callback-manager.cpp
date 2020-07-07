@@ -140,7 +140,7 @@ void SourceCallback::worker()
 				goto do_sleep;
 			}
 
-			fib(100);
+			fib(30);
 
 			ErrorCode error = (ErrorCode)response[0].value_union.ui64;
 			if (error == ErrorCode::Ok) {
