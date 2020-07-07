@@ -20,6 +20,10 @@
 #include <codecvt>
 #include <locale>
 
+#include "nlohmann/json.hpp"
+#include <sstream>
+#include <fstream>
+
 // This is from enc-amf
 #if (defined _WIN32) || (defined _WIN64) // Windows
 
@@ -99,4 +103,73 @@ std::wstring from_utf8_to_utf16_wide(const char* from, size_t length)
 		return converter.from_bytes(from);
 
 	return converter.from_bytes(from, from_end);
+}
+
+std::string read_app_state_data(std::string app_state_path)
+{
+	std::ostringstream buffer; 
+ 	std::ifstream state_file(app_state_path, std::ios::in);
+	if (state_file.is_open())
+	{
+		buffer << state_file.rdbuf(); 
+		state_file.close();
+		return buffer.str();
+	} 
+	return "";
+}
+
+void write_app_state_data(std::string app_state_path, std::string updated_status)
+{
+	std::ofstream out_state_file;
+	out_state_file.open(app_state_path, std::ios::trunc | std::ios::out );
+	if (out_state_file.is_open()) {
+		out_state_file << updated_status << "\n";
+		out_state_file.flush();
+		out_state_file.close();
+	}
+}
+
+void ipc_freez_callback(bool freez_detected, std::string call_name, std::string app_state_path)
+{
+	static int freez_counter = 0;
+	if (freez_detected) {
+		freez_counter++;
+		if (freez_counter > 1) {
+			return;
+		}
+	} else {
+		freez_counter--;
+		if (freez_counter > 0) {
+			return;
+		}
+	}
+
+	app_state_path += "\\appState";
+	std::string current_status = read_app_state_data(app_state_path);
+
+	if (current_status.size() != 0) {
+		std::string updated_status = "";
+		nlohmann::json jsonEntry = nlohmann::json::parse(current_status);
+		if ( freez_detected )
+			jsonEntry["detected"] = "ipc_freez";
+		else
+			jsonEntry["detected"] = "";
+		updated_status = jsonEntry.dump(-1);
+		write_app_state_data(app_state_path, updated_status);
+	}
+
+#if 0  // Debug output
+	app_state_path += "Debug";
+	std::ofstream out_state_file;
+	out_state_file.open(app_state_path, std::ios::app );
+	if (freez_detected) {
+		out_state_file << "freez " << call_name << " in " << app_state_path << "\n";
+		out_state_file << updated_status <<  "\n";
+	 } else {
+		out_state_file << "unfreez " << call_name << " in " << app_state_path << "\n";
+		out_state_file << updated_status <<  "\n";
+	 }
+	out_state_file.flush();
+	out_state_file.close();
+#endif
 }
