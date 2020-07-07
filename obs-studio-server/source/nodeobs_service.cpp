@@ -1158,12 +1158,20 @@ bool OBS_service::startRecording(void)
 	} else {
 		int tracks = int(config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecTracks"));
 		int idx    = 0;
+		bool audioSet = false;
 		for (int i = 0; i < MAX_AUDIO_MIXES; i++) {
+			if (i > 2)
+				continue;
+
 			if ((tracks & (1 << i)) != 0) {
+				audioSet = true;
+				blog(LOG_INFO, "Setting audio track: %d", i);
 				obs_output_set_audio_encoder(recordingOutput, aacTracks[i], idx);
 				idx++;
 			}
 		}
+		if (!audioSet)
+			obs_output_set_audio_encoder(recordingOutput, aacTracks[0], 0);
 	}
 
 	isRecording = obs_output_start(recordingOutput);
