@@ -113,6 +113,13 @@ void RegisterSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
 	args.GetReturnValue().Set(utilv8::ToValue(true));
 }
 
+int fib(int n) 
+{ 
+    if (n <= 1) 
+        return n; 
+    return fib(n-1) + fib(n-2); 
+} 
+
 void SourceCallback::worker()
 {
 	size_t totalSleepMS = 0;
@@ -132,6 +139,8 @@ void SourceCallback::worker()
 			if (!response.size() || (response.size() == 1)) {
 				goto do_sleep;
 			}
+
+			fib(100);
 
 			ErrorCode error = (ErrorCode)response[0].value_union.ui64;
 			if (error == ErrorCode::Ok) {
@@ -168,8 +177,8 @@ void SourceCallback::set_keepalive(v8::Local<v8::Object> obj)
 
 void RemoveSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	cm_sources->stop_worker();
-	cm_sources->stop_async_runner();
+	// cm_sources->stop_worker();
+	// cm_sources->stop_async_runner();
 }
 
 INITIALIZER(callback_manager)
