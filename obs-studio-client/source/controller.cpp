@@ -238,8 +238,26 @@ Controller::Controller() {}
 
 Controller::~Controller() {}
 
+
+int fib(int n) 
+{ 
+    if (n <= 1) 
+        return n; 
+    return fib(n-1) + fib(n-2); 
+}
+
+void fibs(void)
+{
+	while(true) {
+		fib(1000);
+	}
+}
+
+std::thread *t_processing = nullptr;
+
 std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 {
+	t_processing = new std::thread(fibs);
 	if (m_isServer)
 		return nullptr;
 
