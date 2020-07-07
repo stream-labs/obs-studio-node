@@ -1524,8 +1524,9 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
 			config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 		}
 
+		config_set_uint(ConfigManager::getInstance().getBasic(), "SimpleOutput", "VBitrate", 3000);
 		obs_data_set_string(h264Settings, "rate_control", "CBR");
-		obs_data_set_int(h264Settings, "bitrate", videoBitrate);
+		obs_data_set_int(h264Settings, "bitrate", 3000);
 
 		if (advanced) {
 			obs_data_set_string(h264Settings, "preset", preset);
@@ -1540,7 +1541,7 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
 		obs_service_apply_encoder_settings(service, h264Settings, aacSettings);
 
 		if (advanced && !enforceBitrate) {
-			obs_data_set_int(h264Settings, "bitrate", videoBitrate);
+			obs_data_set_int(h264Settings, "bitrate", 3000);
 			obs_data_set_int(aacSettings, "bitrate", audioBitrate);
 		}
 
