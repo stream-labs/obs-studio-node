@@ -157,19 +157,4 @@ void ipc_freez_callback(bool freez_detected, std::string call_name, std::string 
 		updated_status = jsonEntry.dump(-1);
 		write_app_state_data(app_state_path, updated_status);
 	}
-
-#if 0  // Debug output
-	app_state_path += "Debug";
-	std::ofstream out_state_file;
-	out_state_file.open(app_state_path, std::ios::app );
-	if (freez_detected) {
-		out_state_file << "freez " << call_name << " in " << app_state_path << "\n";
-		out_state_file << updated_status <<  "\n";
-	 } else {
-		out_state_file << "unfreez " << call_name << " in " << app_state_path << "\n";
-		out_state_file << updated_status <<  "\n";
-	 }
-	out_state_file.flush();
-	out_state_file.close();
-#endif
 }
