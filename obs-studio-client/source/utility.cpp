@@ -129,7 +129,7 @@ void write_app_state_data(std::string app_state_path, std::string updated_status
 	}
 }
 
-void ipc_freez_callback(bool freez_detected, std::string call_name, std::string app_state_path)
+void ipc_freez_callback(bool freez_detected, std::string app_state_path)
 {
 	static int freez_counter = 0;
 	if (freez_detected) {
