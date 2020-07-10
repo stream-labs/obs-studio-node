@@ -129,7 +129,7 @@ void write_app_state_data(std::string app_state_path, std::string updated_status
 	}
 }
 
-void ipc_freez_callback(bool freez_detected, std::string call_name, std::string app_state_path)
+void ipc_freez_callback(bool freez_detected, std::string app_state_path)
 {
 	static int freez_counter = 0;
 	if (freez_detected) {
@@ -143,6 +143,8 @@ void ipc_freez_callback(bool freez_detected, std::string call_name, std::string 
 			return;
 		}
 	}
+	const std::string freez_flag = "ipc_freez";
+	const std::string flag_name = "detected";
 
 	app_state_path += "\\appState";
 	std::string current_status = read_app_state_data(app_state_path);
@@ -150,10 +152,14 @@ void ipc_freez_callback(bool freez_detected, std::string call_name, std::string 
 	if (current_status.size() != 0) {
 		std::string updated_status = "";
 		nlohmann::json jsonEntry = nlohmann::json::parse(current_status);
-		if ( freez_detected )
-			jsonEntry["detected"] = "ipc_freez";
-		else
-			jsonEntry["detected"] = "";
+		std::string existing_flag_value = jsonEntry.at(flag_name);
+		if (freez_detected) {
+			if (existing_flag_value.empty())
+				jsonEntry[flag_name] = freez_flag;
+		} else {
+			if (existing_flag_value.compare(freez_flag) == 0)
+				jsonEntry[flag_name] = "";
+		}
 		updated_status = jsonEntry.dump(-1);
 		write_app_state_data(app_state_path, updated_status);
 	}
