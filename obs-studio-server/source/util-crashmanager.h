@@ -52,7 +52,7 @@ namespace util
 
 		public:
 
-		bool Initialize(char* path);
+		bool Initialize(char* path, std::string app_state_path);
 		void Configure();
 		void OpenConsole();
 
@@ -64,6 +64,7 @@ namespace util
 		static void DisableReports();
 		static void setAppState(std::string newState);
 		static std::string getAppState();
+		static void SaveToAppStateFile();
 
 		// Return our global instance of the metrics provider, it's always valid
 		static MetricsProvider* const GetMetricsProvider();

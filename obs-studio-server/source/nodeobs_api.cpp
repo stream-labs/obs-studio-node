@@ -642,7 +642,7 @@ void OBS_API::OBS_API_initAPI(
 #ifdef ENABLE_CRASHREPORT
    util::CrashManager crashManager;
 	char* path = g_moduleDirectory.data();
-	if (crashManager.Initialize(path)) {
+	if (crashManager.Initialize(path, appdata)) {
 		crashManager.Configure();
    }
 

@@ -151,6 +151,25 @@ void OBS_service::OBS_service_startStreaming(
 		AUTO_DEBUG;
 		return;
 	}
+//		os_sleep_ms(30000);
+
+// []() {
+// 	class test{
+// 	public:
+// 		void testing() {
+// 			crashing();
+// 		}
+// 		void crashing() {
+// 			throw std::exception("123123123123");
+// 			const char * pet = 0;
+// 			char ped = pet[1];
+// 			//ShowError(&ped);
+// 		}
+// 	};
+// 	test tested;
+// 	return  tested.testing();
+// }();	
+
 
 	if (!startStreaming()) {
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to start streaming!");

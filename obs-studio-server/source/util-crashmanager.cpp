@@ -27,6 +27,7 @@
 #include <obs.h>
 #include <queue>
 #include <sstream>
+#include <fstream>
 #include <string>
 #include <thread>
 #include <vector>
@@ -84,6 +85,8 @@ base::FilePath                                 handler;
 std::vector<std::string>                       arguments;
 std::string                                    workingDirectory;
 #endif
+
+std::string                                    appStateFile;
 
 std::chrono::steady_clock::time_point          initialTime;
 bool                                           reportsEnabled = true;
@@ -235,9 +238,12 @@ nlohmann::json RequestProcessList()
 // CrashManager //
 //////////////////
 
-bool util::CrashManager::Initialize(char* path)
+bool util::CrashManager::Initialize(char* path, std::string appdata)
 {
+
 #ifdef ENABLE_CRASHREPORT
+	appStateFile = appdata + "\\appState";
+
 	annotations.insert({{"crashpad_status", "internal crash handler missed"}});
 
 	workingDirectory = path;
@@ -401,6 +407,8 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	static bool insideRewindCallstack = false; //if this is true then we already crashed inside StackWalker and try to skip it this time.
 	if (insideCrashMethod && !insideRewindCallstack)
 		abort();
+	
+	SaveToAppStateFile();
 
 	insideCrashMethod = true;
 	annotations.clear();
@@ -1024,3 +1032,33 @@ util::MetricsProvider* const util::CrashManager::GetMetricsProvider()
 #endif
 }
 
+void util::CrashManager::SaveToAppStateFile()
+{
+ 	std::ifstream state_file(appStateFile, std::ios::in);
+	if (!state_file.is_open())
+		return;
+
+	std::ostringstream buffer; 
+	buffer << state_file.rdbuf(); 
+	state_file.close();
+
+	std::string current_status = buffer.str();
+	if (current_status.size() == 0) 
+		return;
+	
+	const std::string freez_flag = "ipc_freez";
+	const std::string flag_name = "detected";
+
+	nlohmann::json jsonEntry = nlohmann::json::parse(current_status);
+	jsonEntry[flag_name] = freez_flag;
+	std::string updated_status = jsonEntry.dump(-1);
+
+	std::ofstream out_state_file;
+	out_state_file.open(appStateFile, std::ios::trunc | std::ios::out );
+	if (!out_state_file.is_open())
+		return;
+
+	out_state_file << updated_status << "\n";
+	out_state_file.flush();
+	out_state_file.close();
+}
