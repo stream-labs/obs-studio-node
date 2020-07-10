@@ -27,6 +27,10 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
+#ifdef WIN32
+#include <shellapi.h>
+#endif
+
 Service::Service(){};
 Service::~Service(){};
 
@@ -337,7 +341,11 @@ void service::OBS_service_stopVirtualWebcam(const v8::FunctionCallbackInfo<v8::V
 }
 
 void service::OBS_service_installVirtualCamPlugin(const v8::FunctionCallbackInfo<v8::Value>& args) {
-#ifdef __APPLE__
+#ifdef WIN32
+	std::wstring pathToBin = from_utf8_to_utf16_wide(serverWorkingPath.c_str());
+	pathToBin += L"\\obs-virtualsource.dll";
+	ShellExecute(NULL, L"runas", L"regsvr32.exe", pathToBin.c_str(), NULL, SW_SHOW);
+#elif __APPLE__
 	g_util_osx->installPlugin();
 #endif
 }

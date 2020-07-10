@@ -27,7 +27,7 @@
 #include "utility.hpp"
 
 static std::string serverBinaryPath  = "";
-static std::string serverWorkingPath = "";
+std::string serverWorkingPath = "";
 
 #ifdef _WIN32
 #include <direct.h>
