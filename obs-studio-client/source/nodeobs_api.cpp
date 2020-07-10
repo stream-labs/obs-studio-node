@@ -96,6 +96,8 @@ void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args)
 	if (!conn)
 		return;
 
+	conn->set_freez_callback(ipc_freez_callback, path);
+
 	std::vector<ipc::value> response = conn->call_synchronous_helper(
 	    "API", "OBS_API_initAPI", {ipc::value(path), ipc::value(language), ipc::value(version)});
 
