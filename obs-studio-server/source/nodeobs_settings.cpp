@@ -910,7 +910,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 bool OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 {
 	obs_service_t* currentService = OBS_service::getService();
-	if (!obs_service_is_ready_for_settings_update(currentService))
+	if (!obs_service_is_ready_to_update(currentService))
 		return false;
 
 	obs_data_t* settings = nullptr;
