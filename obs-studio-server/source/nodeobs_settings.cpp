@@ -247,9 +247,14 @@ void OBS_settings::OBS_settings_saveSettings(
 
 	std::vector<SubCategory> settings = serializeCategory(subCategoriesCount, sizeStruct, buffer);
 
-	saveSettings(nameCategory, settings);
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	if (saveSettings(nameCategory, settings))
+	{
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	} else {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Failed to save settings"));
+	}
+	
 	AUTO_DEBUG;
 }
 
@@ -902,9 +907,11 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 	return streamSettings;
 }
 
-void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
+bool OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 {
 	obs_service_t* currentService = OBS_service::getService();
+	if (!obs_service_is_ready_to_update(currentService))
+		return false;
 
 	obs_data_t* settings = nullptr;
 
@@ -1029,6 +1036,7 @@ void OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 
 	obs_data_release(hotkeyData);
 	obs_data_release(data);
+	return true;
 }
 
 static bool EncoderAvailable(const char* encoder)
@@ -3833,13 +3841,18 @@ std::vector<SubCategory> OBS_settings::getSettings(std::string nameCategory, Cat
 	return settings;
 }
 
-void OBS_settings::saveSettings(std::string nameCategory, std::vector<SubCategory> settings)
+bool OBS_settings::saveSettings(std::string nameCategory, std::vector<SubCategory> settings)
 {
+	bool ret = true;
+
 	if (nameCategory.compare("General") == 0) {
 		saveGenericSettings(settings, "BasicWindow", ConfigManager::getInstance().getGlobal());
 	} else if (nameCategory.compare("Stream") == 0) {
-		saveStreamSettings(settings);
-		OBS_service::updateService();
+		if (saveStreamSettings(settings)) {
+			OBS_service::updateService();
+		} else {
+			ret = false;
+		}
 	} else if (nameCategory.compare("Output") == 0) {
 		saveOutputSettings(settings);
 	} else if (nameCategory.compare("Audio") == 0) {
@@ -3855,6 +3868,7 @@ void OBS_settings::saveSettings(std::string nameCategory, std::vector<SubCategor
 
 		OBS_API::setAudioDeviceMonitoring();
 	}
+	return ret;
 }
 
 void OBS_settings::saveGenericSettings(std::vector<SubCategory> genericSettings, std::string section, config_t* config)

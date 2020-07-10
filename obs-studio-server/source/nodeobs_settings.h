@@ -170,7 +170,7 @@ class OBS_settings
 	private:
 	// Exposed methods to the frontend
 	static std::vector<SubCategory> getSettings(std::string nameCategory, CategoryTypes&);
-	static void                     saveSettings(std::string nameCategory, std::vector<SubCategory> settings);
+	static bool                     saveSettings(std::string nameCategory, std::vector<SubCategory> settings);
 
 	// Get each category
 	static std::vector<SubCategory> getGeneralSettings();
@@ -182,7 +182,7 @@ class OBS_settings
 
 	// Save each category
 	static void saveGeneralSettings(std::vector<SubCategory> generalSettings, std::string pathConfigDirectory);
-	static void saveStreamSettings(std::vector<SubCategory> streamSettings);
+	static bool saveStreamSettings(std::vector<SubCategory> streamSettings);
 	static void saveOutputSettings(std::vector<SubCategory> streamSettings);
 	static void saveAudioSettings(std::vector<SubCategory> audioSettings);
 	static void saveVideoSettings(std::vector<SubCategory> videoSettings);
