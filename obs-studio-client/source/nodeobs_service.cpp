@@ -342,8 +342,8 @@ void service::OBS_service_stopVirtualWebcam(const v8::FunctionCallbackInfo<v8::V
 
 void service::OBS_service_installVirtualCamPlugin(const v8::FunctionCallbackInfo<v8::Value>& args) {
 #ifdef WIN32
-	std::wstring pathToBin = utfWorkingDir;
-	pathToBin += L"\\obs-virtualsource.dll";
+	std::wstring pathToBin = L"\"" + utfWorkingDir;
+	pathToBin += L"\\obs-virtualsource.dll\"";
 
 	SHELLEXECUTEINFO ShExecInfo = {0};
 	ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
