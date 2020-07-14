@@ -344,7 +344,20 @@ void service::OBS_service_installVirtualCamPlugin(const v8::FunctionCallbackInfo
 #ifdef WIN32
 	std::wstring pathToBin = from_utf8_to_utf16_wide(serverWorkingPath.c_str());
 	pathToBin += L"\\obs-virtualsource.dll";
-	ShellExecute(NULL, L"runas", L"regsvr32.exe", pathToBin.c_str(), NULL, SW_HIDE);
+
+	SHELLEXECUTEINFO ShExecInfo = {0};
+	ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
+	ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
+	ShExecInfo.hwnd = NULL;
+	ShExecInfo.lpVerb = L"runas";
+	ShExecInfo.lpFile = L"regsvr32.exe";
+	ShExecInfo.lpParameters = pathToBin.c_str();
+	ShExecInfo.lpDirectory = NULL;
+	ShExecInfo.nShow = SW_HIDE;
+	ShExecInfo.hInstApp = NULL;
+	ShellExecuteEx(&ShExecInfo);
+	WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
+	CloseHandle(ShExecInfo.hProcess);
 #elif __APPLE__
 	g_util_osx->installPlugin();
 #endif
