@@ -342,7 +342,7 @@ void service::OBS_service_stopVirtualWebcam(const v8::FunctionCallbackInfo<v8::V
 
 void service::OBS_service_installVirtualCamPlugin(const v8::FunctionCallbackInfo<v8::Value>& args) {
 #ifdef WIN32
-	std::wstring pathToBin = from_utf8_to_utf16_wide(serverWorkingPath.c_str());
+	std::wstring pathToBin = utfWorkingDir;
 	pathToBin += L"\\obs-virtualsource.dll";
 
 	SHELLEXECUTEINFO ShExecInfo = {0};

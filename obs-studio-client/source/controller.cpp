@@ -27,7 +27,8 @@
 #include "utility.hpp"
 
 static std::string serverBinaryPath  = "";
-std::string serverWorkingPath = "";
+static std::string serverWorkingPath = "";
+std::wstring utfWorkingDir = L"";
 
 #ifdef _WIN32
 #include <direct.h>
@@ -52,7 +53,7 @@ ProcessInfo spawn(const std::string& program, const std::string& commandLine, co
 
 	std::wstring utfCommandLine(from_utf8_to_utf16_wide(commandLine.c_str()));
 
-	const std::wstring utfWorkingDir(from_utf8_to_utf16_wide(workingDirectory.c_str()));
+	utfWorkingDir = std::wstring(from_utf8_to_utf16_wide(workingDirectory.c_str()));
 
 	BOOL success = CreateProcessW(
 	    utfProgram.c_str(),
