@@ -344,9 +344,21 @@ void service::OBS_service_installVirtualCamPlugin(const v8::FunctionCallbackInfo
 #ifdef WIN32
 	std::wstring pathToBin = from_utf8_to_utf16_wide(serverWorkingPath.c_str());
 	pathToBin += L"\\obs-virtualsource.dll";
-	ShellExecute(NULL, L"runas", L"regsvr32.exe", pathToBin.c_str(), NULL, SW_SHOW);
+	ShellExecute(NULL, L"runas", L"regsvr32.exe", pathToBin.c_str(), NULL, SW_HIDE);
 #elif __APPLE__
 	g_util_osx->installPlugin();
+#endif
+}
+
+void service::OBS_service_isVirtualCamPluginInstalled(const v8::FunctionCallbackInfo<v8::Value>& args) {
+#ifdef WIN32
+	HKEY OpenResult;
+	LONG err = RegOpenKeyEx(HKEY_CLASSES_ROOT, L"CLSID\\{27B05C2D-93DC-474A-A5DA-9BBA34CB2AA0}", 0, KEY_READ|KEY_WOW64_64KEY, &OpenResult);
+
+	args.GetReturnValue().Set(
+	    v8::Boolean::New(v8::Isolate::GetCurrent(), err == 0));
+#elif __APPLE__
+	// Not implemented
 #endif
 }
 
@@ -386,5 +398,7 @@ INITIALIZER(nodeobs_service)
 		NODE_SET_METHOD(exports, "OBS_service_stopVirtualWebcam", service::OBS_service_stopVirtualWebcam);
 
 		NODE_SET_METHOD(exports, "OBS_service_installVirtualCamPlugin", service::OBS_service_installVirtualCamPlugin);
+
+		NODE_SET_METHOD(exports, "OBS_service_isVirtualCamPluginInstalled", service::OBS_service_isVirtualCamPluginInstalled);
 	});
 }
