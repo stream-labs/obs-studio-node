@@ -358,6 +358,22 @@ void service::OBS_service_installVirtualCamPlugin(const v8::FunctionCallbackInfo
 	ShellExecuteEx(&ShExecInfo);
 	WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
 	CloseHandle(ShExecInfo.hProcess);
+
+	std::wstring pathToRegFile = L"/s \"" + utfWorkingDir;
+	pathToRegFile += L"\\reg_path.reg\"";
+	SHELLEXECUTEINFO ShExecInfob = {0};
+	ShExecInfob.cbSize = sizeof(SHELLEXECUTEINFO);
+	ShExecInfob.fMask = SEE_MASK_NOCLOSEPROCESS;
+	ShExecInfob.hwnd = NULL;
+	ShExecInfob.lpVerb = L"runas";
+	ShExecInfob.lpFile = L"regedit.exe";
+	ShExecInfob.lpParameters = pathToRegFile.c_str();
+	ShExecInfob.lpDirectory = NULL;
+	ShExecInfob.nShow = SW_HIDE;
+	ShExecInfob.hInstApp = NULL;
+	ShellExecuteEx(&ShExecInfob);
+	WaitForSingleObject(ShExecInfob.hProcess, INFINITE);
+	CloseHandle(ShExecInfob.hProcess);
 #elif __APPLE__
 	g_util_osx->installPlugin();
 #endif
@@ -366,7 +382,7 @@ void service::OBS_service_installVirtualCamPlugin(const v8::FunctionCallbackInfo
 void service::OBS_service_isVirtualCamPluginInstalled(const v8::FunctionCallbackInfo<v8::Value>& args) {
 #ifdef WIN32
 	HKEY OpenResult;
-	LONG err = RegOpenKeyEx(HKEY_CLASSES_ROOT, L"CLSID\\{27B05C2D-93DC-474A-A5DA-9BBA34CB2AA0}", 0, KEY_READ|KEY_WOW64_64KEY, &OpenResult);
+	LONG err = RegOpenKeyEx(HKEY_CLASSES_ROOT, L"CLSID\\{27B05C2D-93DC-474A-A5DA-9BBA34CB2A9C}", 0, KEY_READ|KEY_WOW64_64KEY, &OpenResult);
 
 	args.GetReturnValue().Set(
 	    v8::Boolean::New(v8::Isolate::GetCurrent(), err == 0));
