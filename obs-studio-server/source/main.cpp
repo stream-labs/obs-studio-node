@@ -184,6 +184,8 @@ int main(int argc, char* argv[])
 	OBS_settings::Register(myServer);
 	autoConfig::Register(myServer);
 
+	OBS_API::CreateCrashHandlerExitPipe();
+
 	// Register Connect/Disconnect Handlers
 	myServer.set_connect_handler(ServerConnectHandler, &sd);
 	myServer.set_disconnect_handler(ServerDisconnectHandler, &sd);
@@ -227,28 +229,7 @@ int main(int argc, char* argv[])
 	}
 	// Wait on receive the exit message from the crash-handler
 	if (waitBeforeClosing) {
-		HANDLE hPipe;
-		TCHAR  chBuf[BUFFSIZE];
-		DWORD  cbRead;
-		hPipe = CreateNamedPipe(
-		    TEXT("\\\\.\\pipe\\exit-slobs-crash-handler"),
-		    PIPE_ACCESS_DUPLEX,
-		    PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
-		    1,
-		    BUFFSIZE * sizeof(TCHAR),
-		    BUFFSIZE * sizeof(TCHAR),
-		    NULL,
-		    NULL);
-
-		if (hPipe != INVALID_HANDLE_VALUE) {
-			if (ConnectNamedPipe(hPipe, NULL) != FALSE) {
-				BOOL fSuccess = ReadFile(hPipe, chBuf, BUFFSIZE * sizeof(TCHAR), &cbRead, NULL);
-
-				if (!fSuccess)
-					return 0;
-				CloseHandle(hPipe);
-			}
-		}
+		OBS_API::WaitCrashHandlerClose();
 	}
 #endif
 	osn::Source::finalize_global_signals();

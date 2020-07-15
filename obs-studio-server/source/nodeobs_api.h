@@ -168,6 +168,9 @@ class OBS_API
 	static void UpdateProcessPriority(void);
 	static void SetProcessPriority(const char* priority);
 	static void destroyOBS_API(void);
+
+	static void CreateCrashHandlerExitPipe();
+	static void WaitCrashHandlerClose();
 };
 
 class outdated_driver_error 
