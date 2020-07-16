@@ -1189,6 +1189,12 @@ bool OBS_service::startRecording(void)
 
 void OBS_service::stopStreaming(bool forceStop)
 {
+	if (!obs_output_active(streamingOutput) && !obs_output_reconnecting(streamingOutput))
+	{
+		blog(LOG_WARNING, "stopStreaming was ignored as stream not active or reconnecting");
+		return;
+	}
+
 	if (forceStop)
 		obs_output_force_stop(streamingOutput);
 	else
