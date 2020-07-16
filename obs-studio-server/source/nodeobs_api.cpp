@@ -1087,6 +1087,10 @@ void OBS_API::setAudioDeviceMonitoring(void)
 		DisableAudioDucking(true);
 #endif
 }
+
+std::shared_ptr<std::thread> crash_handler_responce_thread;
+bool crash_handler_timeout_activated = false;
+
 #ifdef WIN32
 typedef struct
 {
@@ -1184,14 +1188,16 @@ void acknowledgeTerminate()
 
 	while (!exit) {
 		auto tp    = std::chrono::high_resolution_clock::now();
-		auto delta = tp - timeNow;
+		if (crash_handler_timeout_activated) {
+			auto delta = tp - timeNow;
 
-		if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() > 5000) {
-			// We timeout, crash handler failed to send the shutdown acknowledge,
-			// we move forward with the shutdown procedure
-			exit = true;
-			CloseHandle(Pipe.hPipeInst);
-			break;
+			if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() > 5000) {
+				// We timeout, crash handler failed to send the shutdown acknowledge,
+				// we move forward with the shutdown procedure
+				exit = true;
+				CloseHandle(Pipe.hPipeInst);
+				break;
+			}
 		}
 
 		dwWait = WaitForSingleObject(hEvents, 500);
@@ -1273,6 +1279,24 @@ bool prepareTerminationPipe() {
 }
 #endif
 
+void OBS_API::CreateCrashHandlerExitPipe() 
+{
+	if (prepareTerminationPipe()) {
+		crash_handler_responce_thread = std::make_shared<std::thread>( acknowledgeTerminate );
+	} else {
+		blog(LOG_ERROR, "Failed to create pipe for crash-handler exit message");
+	}
+}
+
+void OBS_API::WaitCrashHandlerClose() 
+{
+	if (crash_handler_responce_thread) {
+		crash_handler_timeout_activated = true;
+		if (crash_handler_responce_thread->joinable())
+			crash_handler_responce_thread->join();
+	}
+}
+
 void OBS_API::StopCrashHandler(
     void*                          data,
     const int64_t                  id,
@@ -1280,12 +1304,11 @@ void OBS_API::StopCrashHandler(
     std::vector<ipc::value>&       rval)
 {
 	util::CrashManager::setAppState("shutdown");
-	if (prepareTerminationPipe()) {
-		std::thread worker(acknowledgeTerminate);
+
+	if (crash_handler_responce_thread) {
 		writeCrashHandler(unregisterProcess());
 
-		if (worker.joinable())
-			worker.join();
+		WaitCrashHandlerClose();
 	} else {
 		writeCrashHandler(unregisterProcess());
 
