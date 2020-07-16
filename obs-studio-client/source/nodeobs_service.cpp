@@ -27,6 +27,10 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
+#ifdef WIN32
+#include <shellapi.h>
+#endif
+
 Service::Service(){};
 Service::~Service(){};
 
@@ -337,8 +341,52 @@ void service::OBS_service_stopVirtualWebcam(const v8::FunctionCallbackInfo<v8::V
 }
 
 void service::OBS_service_installVirtualCamPlugin(const v8::FunctionCallbackInfo<v8::Value>& args) {
-#ifdef __APPLE__
+#ifdef WIN32
+	std::wstring pathToRegFile = L"/s /n /i:\"1\" \"" + utfWorkingDir;
+	pathToRegFile += L"\\obs-virtualsource.dll\"";
+	SHELLEXECUTEINFO ShExecInfo = {0};
+	ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
+	ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
+	ShExecInfo.hwnd = NULL;
+	ShExecInfo.lpVerb = L"runas";
+	ShExecInfo.lpFile = L"regsvr32.exe";
+	ShExecInfo.lpParameters = pathToRegFile.c_str();
+	ShExecInfo.lpDirectory = NULL;
+	ShExecInfo.nShow = SW_HIDE;
+	ShExecInfo.hInstApp = NULL;
+	ShellExecuteEx(&ShExecInfo);
+	WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
+	CloseHandle(ShExecInfo.hProcess);
+
+	std::wstring pathToRegFile32 = L"/s /n /i:\"1\" \"" + utfWorkingDir;
+	pathToRegFile32 += L"\\data\\obs-plugins\\obs-virtualoutput\\obs-virtualsource_32bit\\obs-virtualsource.dll\"";
+	SHELLEXECUTEINFO ShExecInfob = {0};
+	ShExecInfob.cbSize = sizeof(SHELLEXECUTEINFO);
+	ShExecInfob.fMask = SEE_MASK_NOCLOSEPROCESS;
+	ShExecInfob.hwnd = NULL;
+	ShExecInfob.lpVerb = L"runas";
+	ShExecInfob.lpFile = L"regsvr32.exe";
+	ShExecInfob.lpParameters = pathToRegFile32.c_str();
+	ShExecInfob.lpDirectory = NULL;
+	ShExecInfob.nShow = SW_HIDE;
+	ShExecInfob.hInstApp = NULL;
+	ShellExecuteEx(&ShExecInfob);
+	WaitForSingleObject(ShExecInfob.hProcess, INFINITE);
+	CloseHandle(ShExecInfob.hProcess);
+#elif __APPLE__
 	g_util_osx->installPlugin();
+#endif
+}
+
+void service::OBS_service_isVirtualCamPluginInstalled(const v8::FunctionCallbackInfo<v8::Value>& args) {
+#ifdef WIN32
+	HKEY OpenResult;
+	LONG err = RegOpenKeyEx(HKEY_CLASSES_ROOT, L"CLSID\\{27B05C2D-93DC-474A-A5DA-9BBA34CB2A9C}", 0, KEY_READ|KEY_WOW64_64KEY, &OpenResult);
+
+	args.GetReturnValue().Set(
+	    v8::Boolean::New(v8::Isolate::GetCurrent(), err == 0));
+#elif __APPLE__
+	// Not implemented
 #endif
 }
 
@@ -378,5 +426,7 @@ INITIALIZER(nodeobs_service)
 		NODE_SET_METHOD(exports, "OBS_service_stopVirtualWebcam", service::OBS_service_stopVirtualWebcam);
 
 		NODE_SET_METHOD(exports, "OBS_service_installVirtualCamPlugin", service::OBS_service_installVirtualCamPlugin);
+
+		NODE_SET_METHOD(exports, "OBS_service_isVirtualCamPluginInstalled", service::OBS_service_isVirtualCamPluginInstalled);
 	});
 }

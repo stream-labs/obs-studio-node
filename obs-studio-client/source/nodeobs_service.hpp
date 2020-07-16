@@ -87,4 +87,5 @@ namespace service
 	static void OBS_service_startVirtualWebcam(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_service_stopVirtualWebcam(const v8::FunctionCallbackInfo<v8::Value>& args);
 	static void OBS_service_installVirtualCamPlugin(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_service_isVirtualCamPluginInstalled(const v8::FunctionCallbackInfo<v8::Value>& args);
 } // namespace service

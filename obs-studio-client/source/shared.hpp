@@ -32,6 +32,7 @@
 #endif
 
 extern std::queue<std::function<void(v8::Local<v8::Object>)>>* initializerFunctions;
+extern std::wstring utfWorkingDir;
 
 #ifdef __APPLE__
 	extern UtilInt* g_util_osx;
