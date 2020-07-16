@@ -1087,6 +1087,8 @@ void OBS_API::setAudioDeviceMonitoring(void)
 		DisableAudioDucking(true);
 #endif
 }
+
+std::shared_ptr<std::thread> crash_handler_responce_thread;
 #ifdef WIN32
 typedef struct
 {
@@ -1102,7 +1104,6 @@ typedef struct
 
 PIPEINST Pipe = {0};
 HANDLE   hEvents = {0};
-std::shared_ptr<std::thread> crash_handler_responce_thread;
 bool crash_handler_timeout_activated = true;
 
 BOOL ConnectToNewClient(HANDLE hPipe, LPOVERLAPPED lpo)
