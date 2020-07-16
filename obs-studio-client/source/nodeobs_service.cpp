@@ -342,16 +342,15 @@ void service::OBS_service_stopVirtualWebcam(const v8::FunctionCallbackInfo<v8::V
 
 void service::OBS_service_installVirtualCamPlugin(const v8::FunctionCallbackInfo<v8::Value>& args) {
 #ifdef WIN32
-	std::wstring pathToBin = L"\"" + utfWorkingDir;
-	pathToBin += L"\\obs-virtualsource.dll\"";
-
+	std::wstring pathToRegFile = L"/s /n /i:\"1\" \"" + utfWorkingDir;
+	pathToRegFile += L"\\obs-virtualsource.dll\"";
 	SHELLEXECUTEINFO ShExecInfo = {0};
 	ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
 	ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
 	ShExecInfo.hwnd = NULL;
 	ShExecInfo.lpVerb = L"runas";
 	ShExecInfo.lpFile = L"regsvr32.exe";
-	ShExecInfo.lpParameters = pathToBin.c_str();
+	ShExecInfo.lpParameters = pathToRegFile.c_str();
 	ShExecInfo.lpDirectory = NULL;
 	ShExecInfo.nShow = SW_HIDE;
 	ShExecInfo.hInstApp = NULL;
@@ -359,15 +358,15 @@ void service::OBS_service_installVirtualCamPlugin(const v8::FunctionCallbackInfo
 	WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
 	CloseHandle(ShExecInfo.hProcess);
 
-	std::wstring pathToRegFile = L"/s \"" + utfWorkingDir;
-	pathToRegFile += L"\\reg_path.reg\"";
+	std::wstring pathToRegFile32 = L"/s /n /i:\"1\" \"" + utfWorkingDir;
+	pathToRegFile32 += L"\\data\\obs-plugins\\obs-virtualoutput\\obs-virtualsource_32bit\\obs-virtualsource.dll\"";
 	SHELLEXECUTEINFO ShExecInfob = {0};
 	ShExecInfob.cbSize = sizeof(SHELLEXECUTEINFO);
 	ShExecInfob.fMask = SEE_MASK_NOCLOSEPROCESS;
 	ShExecInfob.hwnd = NULL;
 	ShExecInfob.lpVerb = L"runas";
-	ShExecInfob.lpFile = L"regedit.exe";
-	ShExecInfob.lpParameters = pathToRegFile.c_str();
+	ShExecInfob.lpFile = L"regsvr32.exe";
+	ShExecInfob.lpParameters = pathToRegFile32.c_str();
 	ShExecInfob.lpDirectory = NULL;
 	ShExecInfob.nShow = SW_HIDE;
 	ShExecInfob.hInstApp = NULL;
