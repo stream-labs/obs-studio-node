@@ -1089,6 +1089,8 @@ void OBS_API::setAudioDeviceMonitoring(void)
 }
 
 std::shared_ptr<std::thread> crash_handler_responce_thread;
+bool crash_handler_timeout_activated = false;
+
 #ifdef WIN32
 typedef struct
 {
@@ -1104,7 +1106,6 @@ typedef struct
 
 PIPEINST Pipe = {0};
 HANDLE   hEvents = {0};
-bool crash_handler_timeout_activated = true;
 
 BOOL ConnectToNewClient(HANDLE hPipe, LPOVERLAPPED lpo)
 {
@@ -1187,7 +1188,7 @@ void acknowledgeTerminate()
 
 	while (!exit) {
 		auto tp    = std::chrono::high_resolution_clock::now();
-		if (!crash_handler_timeout_activated) {
+		if (crash_handler_timeout_activated) {
 			auto delta = tp - timeNow;
 
 			if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() > 5000) {
