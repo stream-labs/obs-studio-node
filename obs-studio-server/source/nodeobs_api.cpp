@@ -101,6 +101,7 @@ OBS_API::OutputStats                                   recordingOutputStats;
 std::mutex                                             logMutex;
 std::string                                            currentVersion;
 std::string                                            username("unknown");
+std::chrono::high_resolution_clock::time_point         start_wait_acknowledge;
 
 ipc::server* g_server = nullptr;
 
@@ -1183,13 +1184,12 @@ void acknowledgeTerminate()
 	BOOL   fSuccess;
 
 	bool exit = false;
-	auto timeNow = std::chrono::high_resolution_clock::now();
 	DWORD i, dwWait, cbRet, dwErr;
 
 	while (!exit) {
-		auto tp    = std::chrono::high_resolution_clock::now();
 		if (crash_handler_timeout_activated) {
-			auto delta = tp - timeNow;
+			auto tp    = std::chrono::high_resolution_clock::now();
+			auto delta = tp - start_wait_acknowledge;
 
 			if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() > 5000) {
 				// We timeout, crash handler failed to send the shutdown acknowledge,
@@ -1199,7 +1199,6 @@ void acknowledgeTerminate()
 				break;
 			}
 		}
-
 		dwWait = WaitForSingleObject(hEvents, 500);
 
 		if (dwWait == WAIT_OBJECT_0) {
@@ -1291,7 +1290,9 @@ void OBS_API::CreateCrashHandlerExitPipe()
 void OBS_API::WaitCrashHandlerClose() 
 {
 	if (crash_handler_responce_thread) {
+		start_wait_acknowledge = std::chrono::high_resolution_clock::now();
 		crash_handler_timeout_activated = true;
+
 		if (crash_handler_responce_thread->joinable())
 			crash_handler_responce_thread->join();
 	}
