@@ -1091,6 +1091,7 @@ void OBS_API::setAudioDeviceMonitoring(void)
 
 std::shared_ptr<std::thread> crash_handler_responce_thread;
 bool crash_handler_timeout_activated = false;
+bool crash_handler_exit = false;
 
 #ifdef WIN32
 typedef struct
@@ -1182,11 +1183,9 @@ bool prepareTerminationPipe()
 void acknowledgeTerminate()
 {
 	BOOL   fSuccess;
-
-	bool exit = false;
 	DWORD i, dwWait, cbRet, dwErr;
 
-	while (!exit) {
+	while (!crash_handler_exit) {
 		if (crash_handler_timeout_activated) {
 			auto tp    = std::chrono::high_resolution_clock::now();
 			auto delta = tp - start_wait_acknowledge;
@@ -1194,7 +1193,7 @@ void acknowledgeTerminate()
 			if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() > 5000) {
 				// We timeout, crash handler failed to send the shutdown acknowledge,
 				// we move forward with the shutdown procedure
-				exit = true;
+				crash_handler_exit = true;
 				CloseHandle(Pipe.hPipeInst);
 				break;
 			}
@@ -1215,7 +1214,7 @@ void acknowledgeTerminate()
 				}
 				case READING_STATE: {
 					if (!fSuccess || cbRet == 0) {
-						exit = true;
+						crash_handler_exit = true;
 						DisconnectAndReconnect();
 						break;
 					}
@@ -1250,7 +1249,7 @@ void acknowledgeTerminate()
 					Pipe.fPendingIO = TRUE;
 					break;
 				}
-				exit = true;
+				crash_handler_exit = true;
 				DisconnectAndReconnect();
 				break;
 			}
@@ -1287,12 +1286,17 @@ void OBS_API::CreateCrashHandlerExitPipe()
 	}
 }
 
-void OBS_API::WaitCrashHandlerClose() 
+void OBS_API::WaitCrashHandlerClose(bool WaitCrashHandlerClose) 
 {
 	if (crash_handler_responce_thread) {
-		start_wait_acknowledge = std::chrono::high_resolution_clock::now();
-		crash_handler_timeout_activated = true;
 
+		if (WaitCrashHandlerClose) {
+			start_wait_acknowledge = std::chrono::high_resolution_clock::now();
+			crash_handler_timeout_activated = true;
+		}
+		else 			
+			 crash_handler_exit = true;
+			
 		if (crash_handler_responce_thread->joinable())
 			crash_handler_responce_thread->join();
 	}
@@ -1309,7 +1313,7 @@ void OBS_API::StopCrashHandler(
 	if (crash_handler_responce_thread) {
 		writeCrashHandler(unregisterProcess());
 
-		WaitCrashHandlerClose();
+		WaitCrashHandlerClose(true);
 	} else {
 		writeCrashHandler(unregisterProcess());
 
