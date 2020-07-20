@@ -228,9 +228,7 @@ int main(int argc, char* argv[])
 		std::this_thread::sleep_for(std::chrono::milliseconds(50));
 	}
 	// Wait on receive the exit message from the crash-handler
-	if (waitBeforeClosing) {
-		OBS_API::WaitCrashHandlerClose();
-	}
+	OBS_API::WaitCrashHandlerClose(waitBeforeClosing);
 #endif
 	osn::Source::finalize_global_signals();
 	OBS_API::destroyOBS_API();

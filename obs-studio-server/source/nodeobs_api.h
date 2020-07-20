@@ -170,7 +170,7 @@ class OBS_API
 	static void destroyOBS_API(void);
 
 	static void CreateCrashHandlerExitPipe();
-	static void WaitCrashHandlerClose();
+	static void WaitCrashHandlerClose(bool WaitCrashHandlerClose);
 };
 
 class outdated_driver_error 
