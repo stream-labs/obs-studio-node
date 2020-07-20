@@ -137,6 +137,14 @@ describe(testName, () => {
                     settings['use_device_timing'] = true;
                     break;
                 }
+                case 'openvr_capture': {
+                    settings['cropbottom'] = 0;
+                    settings['cropleft'] = 1;
+                    settings['cropright'] = 1;
+                    settings['croptop'] = 0;
+                    settings['righteye'] = true;
+                    break;
+                }
             }
 
             const input = osn.InputFactory.create(inputType, 'input', settings);
