@@ -10,6 +10,11 @@ def process_sentry(project, directory):
                 os.system("sentry-cli --auth-token ${SENTRY_AUTH_TOKEN} upload-dif --org streamlabs-obs --project " + project + " " + path + ".dSYM/Contents/Resources/DWARF/" + file)
 
 # # Upload client debug files
-process_sentry('obs-client', os.path.join(os.environ['PWD'], os.environ['SLBUILDDIRECTORY'], 'obs-studio-client', os.environ['BUILDCONFIG']))
+process_sentry('obs-client', os.path.join(os.environ['PWD'], os.environ['SLBUILDDIRECTORY'], 'obs-client', os.environ['BUILDCONFIG']))
 # # Upload server debug files
-process_sentry('obs-server', os.path.join(os.environ['PWD'], os.environ['SLBUILDDIRECTORY'], 'obs-studio-server', os.environ['BUILDCONFIG']))
+process_sentry('obs-server', os.path.join(os.environ['PWD'], os.environ['SLBUILDDIRECTORY'], 'obs-server', os.environ['BUILDCONFIG']))
+
+# # Upload client debug files
+process_sentry('obs-client', os.path.join(os.environ['PWD'], os.environ['SLBUILDDIRECTORY'], 'obs-client-preview', os.environ['BUILDCONFIG']))
+# # Upload server debug files
+process_sentry('obs-server', os.path.join(os.environ['PWD'], os.environ['SLBUILDDIRECTORY'], 'obs-server-preview', os.environ['BUILDCONFIG']))
