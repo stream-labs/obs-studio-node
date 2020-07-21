@@ -703,7 +703,7 @@ nlohmann::json util::CrashManager::ComputeBreadcrumbs()
 
 nlohmann::json util::CrashManager::ComputeActions()
 {
-#ifdef WIN#2
+#ifdef WIN32
 	nlohmann::json result = nlohmann::json::array();
 
 	while (!lastActions.empty()) {
