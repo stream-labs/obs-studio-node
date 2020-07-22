@@ -55,7 +55,7 @@ describe(testName, function() {
     it('Simple mode - Start and stop streaming', async function() {
         // Preparing environment
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
-        obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', 'x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', obs.os === 'win32' ? 'x264' : 'obs_x264');
         obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
 
         let signalInfo: IOBSOutputSignalInfo;
@@ -105,7 +105,7 @@ describe(testName, function() {
     it('Simple mode - Start recording and stop', async function() {
         // Preparing environment
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
-        obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', 'x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', obs.os === 'win32' ? 'x264' : 'obs_x264');
         obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
 
         let signalInfo: IOBSOutputSignalInfo;
@@ -142,7 +142,7 @@ describe(testName, function() {
     it('Simple mode - Start replay buffer, save replay and stop', async function() {
         // Preparing environment
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
-        obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', 'x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', obs.os === 'win32' ? 'x264' : 'obs_x264');
         obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
 
         let signalInfo: IOBSOutputSignalInfo;
@@ -189,7 +189,7 @@ describe(testName, function() {
     it('Simple mode - Record while streaming', async function() {
         // Preparing environment
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
-        obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', 'x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', obs.os === 'win32' ? 'x264' : 'obs_x264');
         obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
 
         let signalInfo: IOBSOutputSignalInfo;
@@ -266,7 +266,7 @@ describe(testName, function() {
     it('Simple mode - Record replay while streaming and save', async function() {
         // Preparing environment
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
-        obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', 'x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', obs.os === 'win32' ? 'x264' : 'obs_x264');
         obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
 
         let signalInfo: IOBSOutputSignalInfo;
@@ -353,11 +353,7 @@ describe(testName, function() {
     it('Simple mode - Record and use replay buffer while streaming', async function() {
         // Preparing environment
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
-        if (obs.os == 'win32') {
-            obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', 'x264');
-        } else if (obs.os == 'darwin') {
-            obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', 'obs_x264');
-        }
+        obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', obs.os === 'win32' ? 'x264' : 'obs_x264');
         obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
 
         let signalInfo: IOBSOutputSignalInfo;
@@ -912,7 +908,7 @@ describe(testName, function() {
     it('Fail test - Simple mode - Record with invalid path', async function() {
         // Preparing environment
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
-        obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', 'x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', obs.os === 'win32' ? 'x264' : 'obs_x264');
         obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', path.join(path.normalize(__dirname), '..', 'invalidPath'));
 
         let signalInfo: IOBSOutputSignalInfo;
@@ -928,7 +924,7 @@ describe(testName, function() {
     it('Fail test - Simple mode - Start replay buffer with invalid path', async function() {
         // Preparing environment
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
-        obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', 'x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', obs.os === 'win32' ? 'x264' : 'obs_x264');
         obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', path.join(path.normalize(__dirname), '..', 'invalidPath'));
 
         let signalInfo: IOBSOutputSignalInfo;
