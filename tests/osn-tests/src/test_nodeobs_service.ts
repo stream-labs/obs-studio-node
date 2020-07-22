@@ -353,7 +353,11 @@ describe(testName, function() {
     it('Simple mode - Record and use replay buffer while streaming', async function() {
         // Preparing environment
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
-        obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', 'x264');
+        if (obs.os == 'win32') {
+            obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', 'x264');
+        } else if (obs.os == 'darwin') {
+            obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', 'obs_x264');
+        }
         obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
 
         let signalInfo: IOBSOutputSignalInfo;
