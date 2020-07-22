@@ -538,6 +538,7 @@ describe(testName, function() {
     });
 
     it('Advanced mode - Start recording and stop', async function() {
+        logInfo(testName,'DEBUG - 0');
         // Preparing environment
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Advanced');
         obs.setSetting(EOBSSettingsCategories.Output, 'Encoder', 'obs_x264');
@@ -546,33 +547,40 @@ describe(testName, function() {
 
         let signalInfo: IOBSOutputSignalInfo;
 
+        logInfo(testName,'DEBUG - 1');
         osn.NodeObs.OBS_service_startRecording();
 
+        logInfo(testName,'DEBUG - 2');
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Recording, EOBSOutputSignal.Start);
 
         if (signalInfo.signal == EOBSOutputSignal.Stop) {
             throw Error(GetErrorMessage(ETestErrorMsg.RecordOutputDidNotStart, signalInfo.code.toString(), signalInfo.error));
         }
 
+        logInfo(testName,'DEBUG - 3');
         expect(signalInfo.type).to.equal(EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.RecordingOutput));
 
         await sleep(500);
 
+        logInfo(testName,'DEBUG - 4');
         osn.NodeObs.OBS_service_stopRecording();
 
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Recording, EOBSOutputSignal.Stopping);
         expect(signalInfo.type).to.equal(EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping, GetErrorMessage(ETestErrorMsg.RecordingOutput));
 
+        logInfo(testName,'DEBUG - 5');
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Recording, EOBSOutputSignal.Stop);
 
         if (signalInfo.code != 0) {
             throw Error(GetErrorMessage(ETestErrorMsg.RecordOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
         }
 
+        logInfo(testName,'DEBUG - 6');
         expect(signalInfo.type).to.equal(EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+        logInfo(testName,'DEBUG - 7');
     });
 
     it('Advanced mode - Start replay buffer, save replay and stop', async function() {
