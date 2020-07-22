@@ -662,6 +662,8 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 
 	uint32_t indexData = 0;
 	while (obs_enum_service_types(index++, &type)) {
+		if (type == nullptr || strlen(type) == 0)
+			continue;
 		std::string name = obs_service_get_display_name(type);
 
 		uint64_t          sizeName = name.length();
