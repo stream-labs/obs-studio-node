@@ -541,9 +541,13 @@ describe(testName, function() {
         logInfo(testName,'DEBUG - 0');
         // Preparing environment
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Advanced');
+        logInfo(testName,'DEBUG - 0.1');
         obs.setSetting(EOBSSettingsCategories.Output, 'Encoder', 'obs_x264');
+        logInfo(testName,'DEBUG - 0.2');
         obs.setSetting(EOBSSettingsCategories.Output, 'RecEncoder', 'none');
+        logInfo(testName,'DEBUG - 0.3');
         obs.setSetting(EOBSSettingsCategories.Output, 'RecFilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
+        logInfo(testName,'DEBUG - 0.4');
 
         let signalInfo: IOBSOutputSignalInfo;
 
