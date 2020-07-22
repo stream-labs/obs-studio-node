@@ -152,18 +152,24 @@ void ipc_freez_callback(bool freez_detected, std::string app_state_path)
 	if (current_status.size() != 0) {
 		std::string updated_status = "";
 		std::string existing_flag_value = "";
-		nlohmann::json jsonEntry = nlohmann::json::parse(current_status);
 		try {
-			existing_flag_value = jsonEntry.at(flag_name);
-		} catch (...) {}
-		if (freez_detected) {
-			if (existing_flag_value.empty())
-				jsonEntry[flag_name] = freez_flag;
-		} else {
-			if (existing_flag_value.compare(freez_flag) == 0)
-				jsonEntry[flag_name] = "";
+			nlohmann::json jsonEntry = nlohmann::json::parse(current_status);
+			
+			try {
+				existing_flag_value = jsonEntry.at(flag_name);
+			} catch (...) {}
+			
+			if (freez_detected) {
+				if (existing_flag_value.empty())
+					jsonEntry[flag_name] = freez_flag;
+			} else {
+				if (existing_flag_value.compare(freez_flag) == 0)
+					jsonEntry[flag_name] = "";
+			}
+			updated_status = jsonEntry.dump(-1);
+			write_app_state_data(app_state_path, updated_status);
+		} catch (...) {
+
 		}
-		updated_status = jsonEntry.dump(-1);
-		write_app_state_data(app_state_path, updated_status);
 	}
 }
