@@ -351,6 +351,7 @@ describe(testName, function() {
     });
 
     it('Simple mode - Record and use replay buffer while streaming', async function() {
+        logInfo(testName,'DEBUG - 0');
         // Preparing environment
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
         obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', obs.os === 'win32' ? 'x264' : 'obs_x264');
@@ -358,14 +359,17 @@ describe(testName, function() {
 
         let signalInfo: IOBSOutputSignalInfo;
 
+        logInfo(testName,'DEBUG - 1');
         osn.NodeObs.OBS_service_startStreaming();
 
+        logInfo(testName,'DEBUG - 2');
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Starting);
         expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Starting, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Activate);
 
+        logInfo(testName,'DEBUG - 3');
         if (signalInfo.signal == EOBSOutputSignal.Stop) {
             throw Error(GetErrorMessage(ETestErrorMsg.StreamOutputDidNotStart, signalInfo.code.toString(), signalInfo.error));
         }
@@ -379,6 +383,7 @@ describe(testName, function() {
 
         osn.NodeObs.OBS_service_startRecording();
 
+        logInfo(testName,'DEBUG - 4');
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Recording, EOBSOutputSignal.Start);
 
         if (signalInfo.signal == EOBSOutputSignal.Stop) {
@@ -386,11 +391,13 @@ describe(testName, function() {
             throw Error(GetErrorMessage(ETestErrorMsg.RecordOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
         }
 
+        logInfo(testName,'DEBUG - 5');
         expect(signalInfo.type).to.equal(EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.RecordingOutput));
 
         osn.NodeObs.OBS_service_startReplayBuffer();
 
+        logInfo(testName,'DEBUG - 6');
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.ReplayBuffer, EOBSOutputSignal.Start);
 
         if (signalInfo.signal == EOBSOutputSignal.Stop) {
@@ -399,6 +406,7 @@ describe(testName, function() {
             throw Error(GetErrorMessage(ETestErrorMsg.ReplayBufferDidNotStart, signalInfo.code.toString(), signalInfo.error));
         }
 
+        logInfo(testName,'DEBUG - 7');
         expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
 
@@ -414,6 +422,7 @@ describe(testName, function() {
         expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Wrote, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
 
+        logInfo(testName,'DEBUG - 8');
         osn.NodeObs.OBS_service_stopReplayBuffer(false);
 
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.ReplayBuffer, EOBSOutputSignal.Stopping);
@@ -439,6 +448,7 @@ describe(testName, function() {
 
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Recording, EOBSOutputSignal.Stop);
 
+        logInfo(testName,'DEBUG - 9');
         if (signalInfo.code != 0) {
             osn.NodeObs.OBS_service_stopStreaming(false);
             throw Error(GetErrorMessage(ETestErrorMsg.RecordOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
@@ -462,22 +472,26 @@ describe(testName, function() {
         expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
+        logInfo(testName,'DEBUG - 10');
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Deactivate);
         expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Deactivate, GetErrorMessage(ETestErrorMsg.StreamOutput));
     });
 
     it('Advanced mode - Start and stop streaming', async function() {
+        logInfo(testName,'DEBUG - 0');
         // Preparing environment
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Advanced');
         obs.setSetting(EOBSSettingsCategories.Output, 'Encoder', 'obs_x264');
         obs.setSetting(EOBSSettingsCategories.Output, 'RecEncoder', 'none');
         obs.setSetting(EOBSSettingsCategories.Output, 'RecFilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
 
+        logInfo(testName,'DEBUG - 1');
         let signalInfo: IOBSOutputSignalInfo;
 
         osn.NodeObs.OBS_service_startStreaming();
 
+        logInfo(testName,'DEBUG - 2');
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Starting);
         expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Starting, GetErrorMessage(ETestErrorMsg.StreamOutput));
@@ -497,8 +511,10 @@ describe(testName, function() {
 
         await sleep(500);
 
+        logInfo(testName,'DEBUG - 3');
         osn.NodeObs.OBS_service_stopStreaming(false);
 
+        logInfo(testName,'DEBUG - 4');
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Stopping);
 
         expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
@@ -510,12 +526,15 @@ describe(testName, function() {
             throw Error(GetErrorMessage(ETestErrorMsg.StreamOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
         }
 
+        logInfo(testName,'DEBUG - 5');
         expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
+        logInfo(testName,'DEBUG - 6');
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Deactivate);
         expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Deactivate, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        logInfo(testName,'DEBUG - 7');
     });
 
     it('Advanced mode - Start recording and stop', async function() {
