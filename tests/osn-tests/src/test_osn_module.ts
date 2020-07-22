@@ -44,15 +44,22 @@ describe(testName, () => {
 
     it('Open all module types and initialize them', () => {
         let moduleTypes: string[] = [];
+        let modulePath: string;
 
-        fs.readdirSync(path.join(path.normalize(osn.DefaultPluginPath), '64bit')).forEach(file => {
+        if (obs.os == 'win32') {
+            modulePath = path.join(path.normalize(osn.DefaultPluginPath), '64bit');
+        } else if (obs.os == 'darwin') {
+            modulePath = path.normalize(osn.DefaultPluginPath);
+        }
+
+        fs.readdirSync(modulePath).forEach(file => {
             if (file.endsWith('.dll')) {
                 if (file != 'chrome_elf.dll' && 
                     file != 'libcef.dll' &&
                     file != 'libEGL.dll' &&
                     file != 'libGLESv2.dll') {
                     // Opening module
-                    const moduleType = osn.ModuleFactory.open(path.join(path.normalize(osn.DefaultPluginPath), '64bit/' + file), path.normalize(osn.DefaultDataPath));
+                    const moduleType = osn.ModuleFactory.open(path.join(modulePath, '/' + file), path.normalize(osn.DefaultDataPath));
 
                     // Checking if module was opened properly
                     expect(moduleType).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OpenModule, file));
