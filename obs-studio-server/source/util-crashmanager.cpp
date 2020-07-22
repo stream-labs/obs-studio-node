@@ -1049,16 +1049,18 @@ void util::CrashManager::SaveToAppStateFile()
 	const std::string freez_flag = "ipc_freez";
 	const std::string flag_name = "detected";
 
-	nlohmann::json jsonEntry = nlohmann::json::parse(current_status);
-	jsonEntry[flag_name] = freez_flag;
-	std::string updated_status = jsonEntry.dump(-1);
+	try {
+		nlohmann::json jsonEntry = nlohmann::json::parse(current_status);
+		jsonEntry[flag_name] = freez_flag;
+		std::string updated_status = jsonEntry.dump(-1);
 
-	std::ofstream out_state_file;
-	out_state_file.open(appStateFile, std::ios::trunc | std::ios::out );
-	if (!out_state_file.is_open())
-		return;
+		std::ofstream out_state_file;
+		out_state_file.open(appStateFile, std::ios::trunc | std::ios::out );
+		if (!out_state_file.is_open())
+			return;
 
-	out_state_file << updated_status << "\n";
-	out_state_file.flush();
-	out_state_file.close();
+		out_state_file << updated_status << "\n";
+		out_state_file.flush();
+		out_state_file.close();
+	} catch(...) {}
 }
