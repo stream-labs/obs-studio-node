@@ -662,8 +662,6 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 
 	uint32_t indexData = 0;
 	while (obs_enum_service_types(index++, &type)) {
-		if (type == nullptr || strlen(type) == 0)
-			continue;
 		std::string name = obs_service_get_display_name(type);
 
 		uint64_t          sizeName = name.length();
@@ -926,6 +924,7 @@ bool OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 	SubCategory sc;
 	bool        serviceChanged     = false;
 	bool        serviceTypeChanged = false;
+	bool		serviceSettingsInvalid = false;
 
 	for (int i = 0; i < streamSettings.size(); i++) {
 		sc = streamSettings.at(i);
@@ -942,6 +941,10 @@ bool OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 				std::string value(param.currentValue.data(), param.currentValue.size());
 
 				if (name.compare("streamType") == 0) {
+					if (value.size() == 0) {
+						serviceSettingsInvalid = true;
+						break;
+					}
 					newserviceTypeValue = value;
 					settings            = obs_service_defaults(newserviceTypeValue.c_str());
 					if (currentStreamType.compare(newserviceTypeValue) != 0) {
@@ -950,6 +953,10 @@ bool OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 				}
 
 				if (name.compare("service") == 0) {
+					if (value.size() == 0) {
+						serviceSettingsInvalid = true;
+						break;
+					}
 					newServiceValue = value;
 					if (currentServiceName.compare(newServiceValue) != 0) {
 						serviceChanged = true;
@@ -967,6 +974,12 @@ bool OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 				obs_data_set_double(settings, name.c_str(), *value);
 			}
 		}
+	}
+
+	if (serviceSettingsInvalid) {
+		if (settings)
+			obs_data_release(settings);
+		return false;
 	}
 
 	if (serviceTypeChanged) {
@@ -3001,7 +3014,9 @@ void OBS_settings::saveAudioSettings(std::vector<SubCategory> audioSettings)
 
 	Parameter sampleRate = sc.params.at(0);
 	uint64_t* sr_value   = reinterpret_cast<uint64_t*>(sampleRate.currentValue.data());
-	config_set_uint(ConfigManager::getInstance().getBasic(), "Audio", "SampleRate", *sr_value);
+	if (*sr_value != 0)	{
+		config_set_uint(ConfigManager::getInstance().getBasic(), "Audio", "SampleRate", *sr_value);
+	}
 
 	Parameter   channels = sc.params.at(1);
 	std::string cv(channels.currentValue.data(), channels.currentValue.size());
