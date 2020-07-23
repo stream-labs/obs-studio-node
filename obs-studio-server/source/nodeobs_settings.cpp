@@ -924,7 +924,7 @@ bool OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings)
 	SubCategory sc;
 	bool        serviceChanged     = false;
 	bool        serviceTypeChanged = false;
-	bool		serviceSettingsInvalid = false;
+	bool        serviceSettingsInvalid = false;
 
 	for (int i = 0; i < streamSettings.size(); i++) {
 		sc = streamSettings.at(i);
