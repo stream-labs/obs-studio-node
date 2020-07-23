@@ -2078,7 +2078,9 @@ obs_output_t* OBS_service::getVirtualWebcamOutput(void)
 
 void OBS_service::setVirtualWebcamOutput(obs_output_t* output)
 {
-	obs_output_release(virtualWebcamOutput);
+	if (virtualWebcamOutput)
+		obs_output_release(virtualWebcamOutput);
+
 	virtualWebcamOutput = output;
 }
 
