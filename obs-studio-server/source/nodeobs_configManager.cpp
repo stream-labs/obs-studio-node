@@ -236,6 +236,11 @@ void initBasicDefault(config_t* config)
 
 	config_set_default_string(config, "Audio", "MonitoringDeviceId", "default");
 	config_set_default_string(config, "Audio", "MonitoringDeviceName", "Default");
+	
+	if (config_get_uint(config, "Audio", "SampleRate") == 0 ) {
+		config_set_uint(config, "Audio", "SampleRate", 44100);
+		config_save_safe(config, "tmp", nullptr);
+	}
 	config_set_default_uint(config, "Audio", "SampleRate", 44100);
 	config_set_default_string(config, "Audio", "ChannelSetup", "Stereo");
 
