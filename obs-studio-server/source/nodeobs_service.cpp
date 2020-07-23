@@ -2071,6 +2071,17 @@ void OBS_service::setReplayBufferOutput(obs_output_t* output)
 	replayBufferOutput = output;
 }
 
+obs_output_t* OBS_service::getVirtualWebcamOutput(void)
+{
+	return virtualWebcamOutput;
+}
+
+void OBS_service::setVirtualWebcamOutput(obs_output_t* output)
+{
+	obs_output_release(virtualWebcamOutput);
+	virtualWebcamOutput = output;
+}
+
 void OBS_service::updateStreamingOutput()
 {
 	const char* currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");

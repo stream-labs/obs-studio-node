@@ -253,6 +253,8 @@ class OBS_service
 	static void          setRecordingOutput(obs_output_t* output);
 	static obs_output_t* getReplayBufferOutput(void);
 	static void          setReplayBufferOutput(obs_output_t* output);
+	static obs_output_t* getVirtualWebcamOutput(void);
+	static void          setVirtualWebcamOutput(obs_output_t* output);
 	static void          waitReleaseWorker(void);
 
 	// Update settings
