@@ -1379,6 +1379,14 @@ void OBS_API::destroyOBS_API(void)
 	if (replayBufferOutput != NULL)
 		obs_output_release(replayBufferOutput);
 
+	obs_output* virtualWebcamOutput = OBS_service::getVirtualWebcamOutput();
+	if (virtualWebcamOutput != NULL) {
+		if (obs_output_active(virtualWebcamOutput))
+			obs_output_stop(virtualWebcamOutput);
+
+		obs_output_release(virtualWebcamOutput);
+	}
+
 	obs_service_t* service = OBS_service::getService();
 	if (service != NULL)
 		obs_service_release(service);
