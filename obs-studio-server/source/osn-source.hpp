@@ -84,6 +84,11 @@ namespace osn
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
+		static void ProcessProperties(
+		    obs_properties_t*              prp,
+		    obs_data*                      settings,
+		    bool&                          updateSource,
+		    std::vector<ipc::value>&       rval);
 		static void GetSettings(
 		    void*                          data,
 		    const int64_t                  id,
