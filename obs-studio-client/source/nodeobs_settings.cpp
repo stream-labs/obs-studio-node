@@ -42,7 +42,7 @@ std::vector<settings::SubCategory>
 		std::string name(buffer.data() + indexData, *sizeMessage);
 		indexData += uint32_t(*sizeMessage);
 
-		std:: cout << "Subcategory: " << name.c_str() << std::endl;
+		// std:: cout << "Subcategory: " << name.c_str() << std::endl;
 
 		uint32_t* paramsCount = reinterpret_cast<uint32_t*>(buffer.data() + indexData);
 		indexData += sizeof(uint32_t);
@@ -142,9 +142,9 @@ std::vector<settings::SubCategory>
 		sc.name        = name;
 		sc.paramsCount = uint32_t(*paramsCount);
 		category.push_back(sc);
-		std:: cout << "Subcategory: " << name.c_str() << " - end " << std::endl;
+		// std:: cout << "Subcategory: " << name.c_str() << " - end " << std::endl;
 	}
-	std:: cout << "End serializing category" << std::endl;
+	// std:: cout << "End serializing category" << std::endl;
 	return category;
 }
 
