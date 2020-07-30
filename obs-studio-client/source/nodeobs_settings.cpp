@@ -42,8 +42,6 @@ std::vector<settings::SubCategory>
 		std::string name(buffer.data() + indexData, *sizeMessage);
 		indexData += uint32_t(*sizeMessage);
 
-		// std:: cout << "Subcategory: " << name.c_str() << std::endl;
-
 		uint32_t* paramsCount = reinterpret_cast<uint32_t*>(buffer.data() + indexData);
 		indexData += sizeof(uint32_t);
 
@@ -55,15 +53,11 @@ std::vector<settings::SubCategory>
 			std::string name(buffer.data() + indexData, *sizeName);
 			indexData += uint32_t(*sizeName);
 
-			// std:: cout << "param - name: " << name.c_str() << std::endl;
-
 			uint64_t* sizeDescription = reinterpret_cast<uint64_t*>(buffer.data() + indexData);
 			indexData += sizeof(uint64_t);
 
 			std::string description(buffer.data() + indexData, *sizeDescription);
 			indexData += uint32_t(*sizeDescription);
-
-			// std:: cout << "param - description: " << description.c_str() << std::endl;
 
 			uint64_t* sizeType = reinterpret_cast<uint64_t*>(buffer.data() + indexData);
 			indexData += sizeof(uint64_t);
@@ -71,36 +65,27 @@ std::vector<settings::SubCategory>
 			std::string type(buffer.data() + indexData, *sizeType);
 			indexData += uint32_t(*sizeType);
 
-			// std:: cout << "param - type: " << type.c_str() << std::endl;
-
 			uint64_t* sizeSubType = reinterpret_cast<uint64_t*>(buffer.data() + indexData);
 			indexData += sizeof(uint64_t);
 
 			std::string subType(buffer.data() + indexData, *sizeSubType);
 			indexData += uint32_t(*sizeSubType);
 
-			// std:: cout << "param - subType: " << subType.c_str() << std::endl;
-
 			bool* enabled = reinterpret_cast<bool*>(buffer.data() + indexData);
 			indexData += sizeof(bool);
 
-			// std:: cout << "param - enabled: " << enabled << std::endl;
 			bool* masked = reinterpret_cast<bool*>(buffer.data() + indexData);
 			indexData += sizeof(bool);
 
-			// std:: cout << "param - masked: " << masked << std::endl;
 			bool* visible = reinterpret_cast<bool*>(buffer.data() + indexData);
 			indexData += sizeof(bool);
 
-			// std:: cout << "param - visible: " << visible << std::endl;
 			double* minVal = reinterpret_cast<double*>(buffer.data() + indexData);
 			indexData += sizeof(double);
 
-			// std:: cout << "param - minVal: " << minVal << std::endl;
 			double* maxVal = reinterpret_cast<double*>(buffer.data() + indexData);
 			indexData += sizeof(double);
 
-			// std:: cout << "param - maxVal: " << maxVal << std::endl;
 			double* stepVal = reinterpret_cast<double*>(buffer.data() + indexData);
 			indexData += sizeof(double);
 
@@ -142,9 +127,7 @@ std::vector<settings::SubCategory>
 		sc.name        = name;
 		sc.paramsCount = uint32_t(*paramsCount);
 		category.push_back(sc);
-		// std:: cout << "Subcategory: " << name.c_str() << " - end " << std::endl;
 	}
-	// std:: cout << "End serializing category" << std::endl;
 	return category;
 }
 

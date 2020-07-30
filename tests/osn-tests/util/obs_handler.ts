@@ -101,10 +101,6 @@ export class OBSHandler {
         logInfo(this.osnTestName, 'Initializing OBS');
 
         try {
-            logInfo(this.osnTestName, 'pipeName: ' + this.pipeName);
-            logInfo(this.osnTestName, 'workingDirectory: ' + this.workingDirectory);
-            logInfo(this.osnTestName, 'obsPath: ' + this.obsPath);
-            logInfo(this.osnTestName, 'version: ' + this.version);
             osn.NodeObs.IPC.host(this.pipeName);
             osn.NodeObs.SetWorkingDirectory(this.workingDirectory);
             initResult = osn.NodeObs.OBS_API_initAPI(this.language, this.obsPath, this.version);

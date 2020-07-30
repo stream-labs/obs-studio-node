@@ -504,7 +504,6 @@ int OBS_service::resetVideoContext(bool reload)
 		blog(LOG_ERROR, error);
 		return OBS_VIDEO_FAIL;
 	}
-	blog(LOG_INFO, "About to reset the video context - end");
 }
 
 const char* FindAudioEncoderFromCodec(const char* type)
