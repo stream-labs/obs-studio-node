@@ -79,7 +79,7 @@ describe(testName, function() {
         expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
-        await sleep(10000);
+        await sleep(500);
 
         osn.NodeObs.OBS_service_stopStreaming(false);
 
@@ -121,7 +121,7 @@ describe(testName, function() {
         expect(signalInfo.type).to.equal(EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.RecordingOutput));
 
-        await sleep(10000);
+        await sleep(500);
 
         osn.NodeObs.OBS_service_stopRecording();
 
@@ -158,7 +158,7 @@ describe(testName, function() {
         expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
 
-        await sleep(10000);
+        await sleep(500);
 
         osn.NodeObs.OBS_service_processReplayBufferHotkey();
 
@@ -225,7 +225,7 @@ describe(testName, function() {
         expect(signalInfo.type).to.equal(EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.RecordingOutput));
 
-        await sleep(10000);
+        await sleep(500);
 
         osn.NodeObs.OBS_service_stopRecording();
 
@@ -302,7 +302,7 @@ describe(testName, function() {
         expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
 
-        await sleep(10000);
+        await sleep(500);
 
         osn.NodeObs.OBS_service_processReplayBufferHotkey();
 
@@ -410,7 +410,7 @@ describe(testName, function() {
         expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
 
-        await sleep(10000);
+        await sleep(500);
 
         osn.NodeObs.OBS_service_processReplayBufferHotkey();
 
@@ -509,7 +509,7 @@ describe(testName, function() {
         expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
-        await sleep(10000);
+        await sleep(500);
 
         logInfo(testName,'DEBUG - 3');
         osn.NodeObs.OBS_service_stopStreaming(false);
@@ -565,7 +565,7 @@ describe(testName, function() {
         expect(signalInfo.type).to.equal(EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.RecordingOutput));
 
-        await sleep(10000);
+        await sleep(500);
 
         logInfo(testName,'DEBUG - 4');
         osn.NodeObs.OBS_service_stopRecording();
@@ -607,7 +607,7 @@ describe(testName, function() {
         expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
 
-        await sleep(10000);
+        await sleep(500);
 
         osn.NodeObs.OBS_service_processReplayBufferHotkey();
 
@@ -675,7 +675,7 @@ describe(testName, function() {
         expect(signalInfo.type).to.equal(EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.RecordingOutput));
 
-        await sleep(10000);
+        await sleep(500);
 
         osn.NodeObs.OBS_service_stopRecording();
 
@@ -753,7 +753,7 @@ describe(testName, function() {
         expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
 
-        await sleep(10000);
+        await sleep(500);
 
         osn.NodeObs.OBS_service_processReplayBufferHotkey();
 
@@ -854,7 +854,7 @@ describe(testName, function() {
         expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
 
-        await sleep(10000);
+        await sleep(500);
 
         osn.NodeObs.OBS_service_processReplayBufferHotkey();
 
@@ -971,7 +971,7 @@ describe(testName, function() {
         expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
 
-        await sleep(10000);
+        await sleep(500);
 
         osn.NodeObs.OBS_service_processReplayBufferHotkey();
 
@@ -1022,7 +1022,7 @@ describe(testName, function() {
         expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
 
-        await sleep(10000);
+        await sleep(500);
 
         osn.NodeObs.OBS_service_processReplayBufferHotkey();
 
