@@ -5,7 +5,7 @@ import { logInfo, logEmptyLine } from '../util/logger';
 import { ETestErrorMsg, GetErrorMessage } from '../util/error_messages';
 import { OBSHandler, IPerformanceState, TOBSHotkey } from '../util/obs_handler';
 import { showHideInputHotkeys, slideshowHotkeys, ffmpeg_sourceHotkeys,
-    game_captureHotkeys, dshow_wasapitHotkeys, deleteConfigFiles } from '../util/general';
+    game_captureHotkeys, dshow_wasapitHotkeys,coreaudioHotkeys,  deleteConfigFiles } from '../util/general';
 
 const testName = 'nodeobs_api';
 
@@ -98,7 +98,7 @@ describe(testName, function() {
         // Check if hotkeys exists and process them
         obsHotkeys.forEach(function(hotkey) {
             switch(hotkey.ObjectName) {
-                case 'scene': {
+                case sceneName: {
                     expect(hotkey.HotkeyName).to.be.oneOf(showHideInputHotkeys, GetErrorMessage(ETestErrorMsg.ShowHideInputHotkeys));
                     break;
                 }
@@ -126,16 +126,22 @@ describe(testName, function() {
                     expect(hotkey.HotkeyName).to.be.oneOf(dshow_wasapitHotkeys, GetErrorMessage(ETestErrorMsg.WASAPIOutputHotkeys));
                     break;
                 }
+                case 'coreaudio_input_capture': {
+                    expect(hotkey.HotkeyName).to.be.oneOf(coreaudioHotkeys, GetErrorMessage(ETestErrorMsg.CoreAudioInputHotkeys));
+                    break;
+                }
+                case 'coreaudio_output_capture': {
+                    expect(hotkey.HotkeyName).to.be.oneOf(coreaudioHotkeys, GetErrorMessage(ETestErrorMsg.CoreAudioOutputHotkeys));
+                    break;
+                }
                 default: {
                     break;
                 }
             }
-
             expect(function() {
                 osn.NodeObs.OBS_API_ProcessHotkeyStatus(hotkey.HotkeyId, true);
             }).to.not.throw();
         });
-
         // Checking if hotkeys returned properly
         expect(obsHotkeys.length).to.not.equal(0);
 
