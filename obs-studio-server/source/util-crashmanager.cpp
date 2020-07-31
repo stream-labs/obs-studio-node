@@ -1046,7 +1046,7 @@ void util::CrashManager::SaveToAppStateFile()
 	if (current_status.size() == 0) 
 		return;
 	
-	const std::string freez_flag = "ipc_freez";
+	const std::string freez_flag = "obs_crash";
 	const std::string flag_name = "detected";
 
 	try {
