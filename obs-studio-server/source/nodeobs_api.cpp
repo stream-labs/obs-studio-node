@@ -1282,7 +1282,9 @@ void OBS_API::CreateCrashHandlerExitPipe()
 	if (prepareTerminationPipe()) {
 		crash_handler_responce_thread = std::make_shared<std::thread>( acknowledgeTerminate );
 	} else {
+#ifdef WIN32
 		blog(LOG_ERROR, "Failed to create pipe for crash-handler exit message");
+#endif
 	}
 }
 
