@@ -61,9 +61,11 @@ void NodeCallback::callback_handler(
 		return;
 
 	obj->Set(
+		Nan::GetCurrentContext(),
 		utilv8::ToValue("webcamPermission"),
 		utilv8::ToValue(perms_status->webcam));
 	obj->Set(
+		Nan::GetCurrentContext(),
 		utilv8::ToValue("micPermission"),
 		utilv8::ToValue(perms_status->mic));
 
@@ -137,33 +139,43 @@ void api::OBS_API_getPerformanceStatistics(const v8::FunctionCallbackInfo<v8::Va
 	v8::Local<v8::Object> statistics = v8::Object::New(args.GetIsolate());
 
 	statistics->Set(
+		Nan::GetCurrentContext(),
 		v8::String::NewFromUtf8(args.GetIsolate(), "CPU").ToLocalChecked(),
 		v8::Number::New(args.GetIsolate(), response[1].value_union.fp64));
 	statistics->Set(
+	    Nan::GetCurrentContext(),
 		v8::String::NewFromUtf8(args.GetIsolate(), "numberDroppedFrames").ToLocalChecked(),
 		v8::Number::New(args.GetIsolate(), response[2].value_union.i32));
 	statistics->Set(
+	    Nan::GetCurrentContext(),
 		v8::String::NewFromUtf8(args.GetIsolate(), "percentageDroppedFrames").ToLocalChecked(),
 		v8::Number::New(args.GetIsolate(), response[3].value_union.fp64));
 	statistics->Set(
+	    Nan::GetCurrentContext(),
 		v8::String::NewFromUtf8(args.GetIsolate(), "streamingBandwidth").ToLocalChecked(),
 		v8::Number::New(args.GetIsolate(), response[4].value_union.fp64));
 	statistics->Set(
+	    Nan::GetCurrentContext(),
 		v8::String::NewFromUtf8(args.GetIsolate(), "streamingDataOutput").ToLocalChecked(),
 		v8::Number::New(args.GetIsolate(), response[5].value_union.fp64));
 	statistics->Set(
+	    Nan::GetCurrentContext(),
 		v8::String::NewFromUtf8(args.GetIsolate(), "recordingBandwidth").ToLocalChecked(),
 		v8::Number::New(args.GetIsolate(), response[6].value_union.fp64));
 	statistics->Set(
+	    Nan::GetCurrentContext(),
 		v8::String::NewFromUtf8(args.GetIsolate(), "recordingDataOutput").ToLocalChecked(),
 		v8::Number::New(args.GetIsolate(), response[7].value_union.fp64));
 	statistics->Set(
+	    Nan::GetCurrentContext(),
 		v8::String::NewFromUtf8(args.GetIsolate(), "frameRate").ToLocalChecked(),
 		v8::Number::New(args.GetIsolate(), response[8].value_union.fp64));
 	statistics->Set(
+	    Nan::GetCurrentContext(),
 		v8::String::NewFromUtf8(args.GetIsolate(), "averageTimeToRenderFrame").ToLocalChecked(),
 		v8::Number::New(args.GetIsolate(), response[9].value_union.fp64));
 	statistics->Set(
+	    Nan::GetCurrentContext(),
 		v8::String::NewFromUtf8(args.GetIsolate(), "memoryUsage").ToLocalChecked(),
 		v8::Number::New(args.GetIsolate(), response[10].value_union.fp64));
 
@@ -177,6 +189,7 @@ void api::OBS_API_getPerformanceStatistics(const v8::FunctionCallbackInfo<v8::Va
 		diskSpaceAvailable = response[11].value_str;
 	}
 	statistics->Set(
+	    Nan::GetCurrentContext(),
 		v8::String::NewFromUtf8(args.GetIsolate(), "diskSpaceAvailable").ToLocalChecked(),
 		v8::String::NewFromUtf8(args.GetIsolate(), diskSpaceAvailable.c_str()).ToLocalChecked());
 
@@ -232,26 +245,31 @@ Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_QueryHotkeys(const v8::FunctionCallback
 		uint64_t              hotkeyId      = response[responseIndex + 4].value_union.ui64;
 
 		object->Set(
+		    Nan::GetCurrentContext(),
 		    v8::String::NewFromUtf8(args.GetIsolate(), "ObjectName").ToLocalChecked(),
 		    v8::String::NewFromUtf8(args.GetIsolate(), objectName.c_str()).ToLocalChecked());
 
 		object->Set(
+		    Nan::GetCurrentContext(),
 		    v8::String::NewFromUtf8(args.GetIsolate(), "ObjectType").ToLocalChecked(),
 		    v8::Number::New(args.GetIsolate(), objectType));
 
 		object->Set(
+		    Nan::GetCurrentContext(),
 		    v8::String::NewFromUtf8(args.GetIsolate(), "HotkeyName").ToLocalChecked(),
 		    v8::String::NewFromUtf8(args.GetIsolate(), hotkeyName.c_str()).ToLocalChecked());
 
 		object->Set(
+		    Nan::GetCurrentContext(),
 		    v8::String::NewFromUtf8(args.GetIsolate(), "HotkeyDesc").ToLocalChecked(),
 		    v8::String::NewFromUtf8(args.GetIsolate(), hotkeyDesc.c_str()).ToLocalChecked());
 
 		object->Set(
+		    Nan::GetCurrentContext(),
 		    v8::String::NewFromUtf8(args.GetIsolate(), "HotkeyId").ToLocalChecked(),
 		    v8::Number::New(args.GetIsolate(), hotkeyId));
 
-		hotkeyInfos->Set(i, object);
+		hotkeyInfos->Set(Nan::GetCurrentContext(), i, object);
 	}
 
 	args.GetReturnValue().Set(hotkeyInfos);

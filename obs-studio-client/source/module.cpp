@@ -96,7 +96,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Module::Modules(Nan::NAN_METHOD_ARGS_TYPE info)
 	uint64_t size = response[1].value_union.ui64;
 
 	for (uint64_t i = 2; i < (size + 2); i++) {
-		modules->Set(i - 2, v8::String::NewFromUtf8(isolate, response.at(i).value_str.c_str()).ToLocalChecked());
+		modules->Set(
+		    Nan::GetCurrentContext(),
+		    i - 2,
+		    v8::String::NewFromUtf8(isolate, response.at(i).value_str.c_str()).ToLocalChecked());
 	}
 
 	info.GetReturnValue().Set(modules);

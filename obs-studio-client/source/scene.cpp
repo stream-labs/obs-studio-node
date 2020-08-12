@@ -259,7 +259,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 
 	osn::Input* input = nullptr;
 	if (info.Length() >= 1) {
-		if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Input>(info[0]->ToObject(), input)) {
+		if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Input>(
+		        info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked(), input)) {
 			return;
 		}
 	}
@@ -273,7 +274,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 	    ->ToNumber(info.GetIsolate()->GetCurrentContext()).ToLocalChecked()->Value();
 
 	if (info.Length() >= 2) {
-		transform = info[1]->ToObject();
+		transform = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
 		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("scaleX"))
 		                                .ToLocalChecked()
 		                                ->ToNumber(info.GetIsolate()->GetCurrentContext())
@@ -288,7 +289,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 		                                ->Value()));
 		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("visible"))
 		                                .ToLocalChecked()
-		                                ->ToBoolean()
+		                                ->ToBoolean(v8::Isolate::GetCurrent())
 		                                ->Value()));
 		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("x"))
 		                                .ToLocalChecked()
@@ -308,31 +309,35 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 
 		crop = transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("crop"))
 		           .ToLocalChecked()
-		           ->ToObject();
+		           ->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
 		params.push_back(ipc::value(crop->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("left"))
 		                                .ToLocalChecked()
-		                                ->ToInteger()
+		                                ->ToInteger(Nan::GetCurrentContext())
+		                                .ToLocalChecked()
 		                                ->Value()));
 		params.push_back(ipc::value(crop->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("top"))
 		                                .ToLocalChecked()
-		                                ->ToInteger()
+		                                ->ToInteger(Nan::GetCurrentContext())
+		                                .ToLocalChecked()
 		                                ->Value()));
 		params.push_back(ipc::value(crop->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("right"))
 		                                .ToLocalChecked()
-		                                ->ToInteger()
+		                                ->ToInteger(Nan::GetCurrentContext())
+		                                .ToLocalChecked()
 		                                ->Value()));
 		params.push_back(ipc::value(crop->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("bottom"))
 		                                .ToLocalChecked()
-		                                ->ToInteger()
+		                                ->ToInteger(Nan::GetCurrentContext())
+		                                .ToLocalChecked()
 		                                ->Value()));
 
 		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("streamVisible"))
 										.ToLocalChecked()
-										->ToBoolean()
+										->ToBoolean(v8::Isolate::GetCurrent())
 										->Value()));
 		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("recordingVisible"))
 										.ToLocalChecked()
-										->ToBoolean()
+										->ToBoolean(v8::Isolate::GetCurrent())
 										->Value()));
 	}
 
@@ -389,30 +394,55 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 		sid->scaleChanged = false;
 
 		// Visibility
-		sid->isVisible      = transform->Get(utilv8::ToValue("visible"))->ToBoolean()->Value();
+		sid->isVisible = transform->Get(Nan::GetCurrentContext(), utilv8::ToValue("visible"))
+		                     .ToLocalChecked()
+		                     ->ToBoolean(v8::Isolate::GetCurrent())
+		                     ->Value();
 		sid->visibleChanged = false;
 
 		// Crop
-		sid->cropLeft    = crop->Get(utilv8::ToValue("left"))->ToInteger()->Value();
-		sid->cropTop     = crop->Get(utilv8::ToValue("top"))->ToInteger()->Value();
-		sid->cropRight   = crop->Get(utilv8::ToValue("right"))->ToInteger()->Value();
-		sid->cropBottom  = crop->Get(utilv8::ToValue("bottom"))->ToInteger()->Value();
+		sid->cropLeft = crop->Get(Nan::GetCurrentContext(), utilv8::ToValue("left"))
+		                    .ToLocalChecked()
+		                    ->ToInteger(Nan::GetCurrentContext())
+		                    .ToLocalChecked()
+		                    ->Value();
+		sid->cropTop = crop->Get(Nan::GetCurrentContext(), utilv8::ToValue("top"))
+		                   .ToLocalChecked()
+		                   ->ToInteger(Nan::GetCurrentContext())
+		                   .ToLocalChecked()
+		                   ->Value();
+		sid->cropRight = crop->Get(Nan::GetCurrentContext(), utilv8::ToValue("right"))
+		                     .ToLocalChecked()
+		                     ->ToInteger(Nan::GetCurrentContext())
+		                     .ToLocalChecked()
+		                     ->Value();
+		sid->cropBottom = crop->Get(Nan::GetCurrentContext(), utilv8::ToValue("bottom"))
+		                      .ToLocalChecked()
+		                      ->ToInteger(Nan::GetCurrentContext())
+		                      .ToLocalChecked()
+		                      ->Value();
 		sid->cropChanged = false;
 
 		// Rotation
-		sid->rotation = transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("rotation"))
+		sid->rotation = transform->Get(Nan::GetCurrentContext(), utilv8::ToValue("rotation"))
 		                    .ToLocalChecked()
-		                    ->ToNumber(info.GetIsolate()->GetCurrentContext())
+		                    ->ToNumber(Nan::GetCurrentContext())
 		                    .ToLocalChecked()
 		                    ->Value();
 		sid->rotationChanged = false;
 
 		// Stream visible
-		sid->isStreamVisible      = transform->Get(utilv8::ToValue("streamVisible"))->ToBoolean()->Value();
+		sid->isStreamVisible = transform->Get(Nan::GetCurrentContext(), utilv8::ToValue("streamVisible"))
+		                           .ToLocalChecked()
+		                           ->ToBoolean(v8::Isolate::GetCurrent())
+		                           ->Value();
 		sid->streamVisibleChanged = false;
 
 		// Recording visible
-		sid->isRecordingVisible      = transform->Get(utilv8::ToValue("recordingVisible"))->ToBoolean()->Value();
+		sid->isRecordingVisible = transform->Get(Nan::GetCurrentContext(), utilv8::ToValue("recordingVisible"))
+		                              .ToLocalChecked()
+		                              ->ToBoolean(v8::Isolate::GetCurrent())
+		                              ->Value();
 		sid->recordingVisibleChanged = false;
 	}
 
@@ -526,7 +556,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::OrderItems(Nan::NAN_METHOD_ARGS_TYPE inf
 	order.resize(array->Length());
 	for (unsigned int i = 0; i < array->Length(); i++ ) {
 		if (Nan::Has(array, i).FromJust()) {
-			order[i] = Nan::Get(array, i).ToLocalChecked()->IntegerValue();
+			order[i] = Nan::Get(array, i).ToLocalChecked()->IntegerValue(Nan::GetCurrentContext()).FromJust();
 		}
 	}
 	order_char.resize(order.size()*sizeof(int64_t));

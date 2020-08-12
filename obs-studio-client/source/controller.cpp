@@ -395,7 +395,10 @@ void js_setServerPath(const v8::FunctionCallbackInfo<v8::Value>& args)
 		    v8::Exception::TypeError(v8::String::NewFromUtf8(isol, "Argument 'binaryPath' must be of type 'String'.").ToLocalChecked()));
 		return;
 	}
-	serverBinaryPath = *v8::String::Utf8Value(args[0]);
+	v8::Local<v8::String> value_string(args[0]->ToString(Nan::GetCurrentContext()).FromMaybe(v8::Local<v8::String>()));
+	Nan::Utf8String       nan_string(value_string);
+
+	serverBinaryPath = std::string(*nan_string);
 
 	if (args.Length() == 2) {
 		if (!args[1]->IsString()) {
@@ -404,7 +407,9 @@ void js_setServerPath(const v8::FunctionCallbackInfo<v8::Value>& args)
 			return;
 		}
 
-		serverWorkingPath = *v8::String::Utf8Value(args[1]);
+		v8::Local<v8::String> value_string(args[1]->ToString(Nan::GetCurrentContext()).FromMaybe(v8::Local<v8::String>()));
+		Nan::Utf8String       nan_string(value_string);
+		serverWorkingPath = std::string(*nan_string);
 	} else {
 #ifdef WIN32
 		serverWorkingPath = get_working_directory();
@@ -430,7 +435,10 @@ void js_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
 		return;
 	}
 
-	std::string uri = *v8::String::Utf8Value(args[0]);
+	v8::Local<v8::String> value_string(args[0]->ToString(Nan::GetCurrentContext()).FromMaybe(v8::Local<v8::String>()));
+	Nan::Utf8String       nan_string(value_string);
+
+	std::string uri = std::string(*nan_string);
 	auto        cl  = Controller::GetInstance().connect(uri);
 	if (!cl) {
 		isol->ThrowException(v8::Exception::Error(Nan::New<v8::String>("Failed to connect.").ToLocalChecked()));
@@ -456,7 +464,10 @@ void js_host(const v8::FunctionCallbackInfo<v8::Value>& args)
 		return;
 	}
 
-	std::string uri = *v8::String::Utf8Value(args[0]);
+	v8::Local<v8::String> value_string(args[0]->ToString(Nan::GetCurrentContext()).FromMaybe(v8::Local<v8::String>()));
+	Nan::Utf8String       nan_string(value_string);
+
+	std::string uri = std::string(*nan_string);
 	auto        cl  = Controller::GetInstance().host(uri);
 	if (!cl) {
 		isol->ThrowException(
@@ -481,6 +492,7 @@ INITIALIZER(js_ipc)
 		NODE_SET_METHOD(obj, "connect", js_connect);
 		NODE_SET_METHOD(obj, "host", js_host);
 		NODE_SET_METHOD(obj, "disconnect", js_disconnect);
-		exports->Set(v8::String::NewFromUtf8(exports->GetIsolate(), "IPC").ToLocalChecked(), obj);
+		exports->Set(
+		    Nan::GetCurrentContext(), v8::String::NewFromUtf8(exports->GetIsolate(), "IPC").ToLocalChecked(), obj);
 	});
 }

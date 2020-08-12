@@ -210,7 +210,7 @@ namespace utilv8
 	inline bool FromValue(v8::Local<v8::Value> l, bool& r)
 	{
 		if (l->IsBoolean()) {
-			r = l->BooleanValue();
+			r = l->BooleanValue(v8::Isolate::GetCurrent());
 			return true;
 		}
 		return false;
@@ -219,7 +219,7 @@ namespace utilv8
 	inline bool FromValue(v8::Local<v8::Value> l, int8_t& r)
 	{
 		if (l->IsInt32()) {
-			r = l->Int32Value();
+			r = l->Int32Value(Nan::GetCurrentContext()).FromJust();
 			return true;
 		}
 		return false;
@@ -228,7 +228,7 @@ namespace utilv8
 	inline bool FromValue(v8::Local<v8::Value> l, uint8_t& r)
 	{
 		if (l->IsUint32()) {
-			r = l->Uint32Value();
+			r = l->Uint32Value(Nan::GetCurrentContext()).FromJust();
 			return true;
 		}
 		return false;
@@ -237,7 +237,7 @@ namespace utilv8
 	inline bool FromValue(v8::Local<v8::Value> l, int16_t& r)
 	{
 		if (l->IsInt32()) {
-			r = l->Int32Value();
+			r = l->Int32Value(Nan::GetCurrentContext()).FromJust();
 			return true;
 		}
 		return false;
@@ -246,7 +246,7 @@ namespace utilv8
 	inline bool FromValue(v8::Local<v8::Value> l, uint16_t& r)
 	{
 		if (l->IsUint32()) {
-			r = l->Uint32Value();
+			r = l->Uint32Value(Nan::GetCurrentContext()).FromJust();
 			return true;
 		}
 		return false;
@@ -255,7 +255,7 @@ namespace utilv8
 	inline bool FromValue(v8::Local<v8::Value> l, int32_t& r)
 	{
 		if (l->IsInt32()) {
-			r = l->Int32Value();
+			r = l->Int32Value(Nan::GetCurrentContext()).FromJust();
 			return true;
 		}
 		return false;
@@ -264,7 +264,7 @@ namespace utilv8
 	inline bool FromValue(v8::Local<v8::Value> l, uint32_t& r)
 	{
 		if (l->IsUint32()) {
-			r = l->Uint32Value();
+			r = l->Uint32Value(Nan::GetCurrentContext()).FromJust();
 			return true;
 		}
 		return false;
@@ -274,7 +274,7 @@ namespace utilv8
 	    FromValue(v8::Local<v8::Value> l, int64_t& r)
 	{
 		if (l->IsNumber()) {
-			r = (int64_t)l->NumberValue();
+			r = (int64_t)l->NumberValue(Nan::GetCurrentContext()).FromJust();
 			return true;
 		}
 		return false;
@@ -284,7 +284,7 @@ namespace utilv8
 	    FromValue(v8::Local<v8::Value> l, uint64_t& r)
 	{
 		if (l->IsNumber()) {
-			r = (uint64_t)l->NumberValue();
+			r = (uint64_t)l->NumberValue(Nan::GetCurrentContext()).FromJust();
 			return true;
 		}
 		return false;
@@ -294,7 +294,7 @@ namespace utilv8
 	inline bool FromValue(v8::Local<v8::Value> l, float_t& r)
 	{
 		if (l->IsNumber()) {
-			r = (float_t)l->NumberValue();
+			r = (float_t)l->NumberValue(Nan::GetCurrentContext()).FromJust();
 			return true;
 		}
 		return false;
@@ -303,7 +303,7 @@ namespace utilv8
 	inline bool FromValue(v8::Local<v8::Value> l, double_t& r)
 	{
 		if (l->IsNumber()) {
-			r = (double_t)l->NumberValue();
+			r = (double_t)l->NumberValue(Nan::GetCurrentContext()).FromJust();
 			return true;
 		}
 		return false;
@@ -313,12 +313,12 @@ namespace utilv8
 	inline bool FromValue(v8::Local<v8::Value> l, char*& r, size_t length)
 	{
 		if (l->IsString()) {
-			auto v8s = l->ToString();
-			if ((v8s->Utf8Length() + 1) <= length) {
-				v8::String::Utf8Value utfv8(v8s);
+			auto v8s = l->ToString(Nan::GetCurrentContext()).FromMaybe(v8::Local<v8::String>());
+			if ((v8s->Utf8Length(v8::Isolate::GetCurrent()) + 1) <= length) {
+				Nan::Utf8String utfv8(v8s);
 				if (*utfv8) {
-					memcpy(r, *utfv8, v8s->Utf8Length());
-					r[v8s->Utf8Length()] = 0;
+					memcpy(r, *utfv8, v8s->Utf8Length(v8::Isolate::GetCurrent()));
+					r[v8s->Utf8Length(v8::Isolate::GetCurrent())] = 0;
 					return true;
 				}
 			}
@@ -329,12 +329,12 @@ namespace utilv8
 	inline bool FromValue(v8::Local<v8::Value> l, char*& r)
 	{
 		if (l->IsString()) {
-			auto                  v8s = l->ToString();
-			v8::String::Utf8Value utfv8(v8s);
+			auto v8s = l->ToString(Nan::GetCurrentContext()).FromMaybe(v8::Local<v8::String>());
+			Nan::Utf8String utfv8(v8s);
 			if (*utfv8) {
-				r = (char*)malloc(v8s->Utf8Length() + 1);
-				memcpy(r, *utfv8, v8s->Utf8Length());
-				r[v8s->Utf8Length()] = 0;
+				r = (char*)malloc(v8s->Utf8Length(v8::Isolate::GetCurrent()) + 1);
+				memcpy(r, *utfv8, v8s->Utf8Length(v8::Isolate::GetCurrent()));
+				r[v8s->Utf8Length(v8::Isolate::GetCurrent())] = 0;
 				return true;
 			}
 		}
@@ -344,10 +344,10 @@ namespace utilv8
 	inline bool FromValue(v8::Local<v8::Value> l, std::string& r)
 	{
 		if (l->IsString()) {
-			auto                  v8s = l->ToString();
-			v8::String::Utf8Value utfv8(v8s);
+			auto v8s = l->ToString(Nan::GetCurrentContext()).FromMaybe(v8::Local<v8::String>());
+			Nan::Utf8String utfv8(v8s);
 			if (*utfv8) {
-				r = std::string(*utfv8, v8s->Utf8Length());
+				r = std::string(*utfv8, v8s->Utf8Length(v8::Isolate::GetCurrent()));
 				return true;
 			}
 		}
@@ -357,7 +357,7 @@ namespace utilv8
 	inline bool FromValue(v8::Local<v8::Value> l, v8::Local<v8::Object>& r)
 	{
 		if (l->IsObject()) {
-			r = l->ToObject();
+			r = l->ToObject(Nan::GetCurrentContext()).FromMaybe(v8::Local<v8::Object>());
 			return true;
 		}
 		return false;
@@ -594,7 +594,8 @@ namespace utilv8
 	inline std::string TypeOf(v8::Local<v8::Value> v)
 	{
 		v8::Local<v8::String> type = v->TypeOf(v8::Isolate::GetCurrent());
-		return std::string(*v8::String::Utf8Value(type));
+		Nan::Utf8String       nan_string(type);
+		return std::string(*nan_string);
 	}
 
 	/* This structure is an adaptation of one used in SQLite Node bindings.

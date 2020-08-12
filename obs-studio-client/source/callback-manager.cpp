@@ -62,7 +62,7 @@ void SourceCallback::callback_handler(void* data, std::shared_ptr<SourceSizeInfo
 
 	for (auto item : sourceSizes->items) {
 		v8::Local<v8::Value> argv = v8::Object::New(isolate);
-		argv->ToObject()->Set(utilv8::ToValue("name"), utilv8::ToValue(item->name));
+		argv->ToObject(Nan::GetCurrentContext())->Set(utilv8::ToValue("name"), utilv8::ToValue(item->name));
 		argv->ToObject()->Set(utilv8::ToValue("width"), utilv8::ToValue(item->width));
 		argv->ToObject()->Set(utilv8::ToValue("height"), utilv8::ToValue(item->height));
 		argv->ToObject()->Set(utilv8::ToValue("flags"), utilv8::ToValue(item->flags));
