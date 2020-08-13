@@ -62,16 +62,21 @@ void Service::callback_handler(void* data, std::shared_ptr<SignalInfo> item)
 	v8::Local<v8::Value> args[1];
 	Nan::HandleScope     scope;
 
-	v8::Local<v8::Value> argv = v8::Object::New(isolate);
-	argv->ToObject()->Set(
+	v8::Local<v8::Object> argv = v8::Object::New(isolate);
+	argv->Set(
+	    Nan::GetCurrentContext(),
 	    v8::String::NewFromUtf8(isolate, "type").ToLocalChecked(),
 	    v8::String::NewFromUtf8(isolate, item->outputType.c_str()).ToLocalChecked());
-	argv->ToObject()->Set(
+	argv->Set(
+	    Nan::GetCurrentContext(),
 	    v8::String::NewFromUtf8(isolate, "signal").ToLocalChecked(),
 	    v8::String::NewFromUtf8(isolate, item->signal.c_str()).ToLocalChecked());
-	argv->ToObject()->Set(
-	    v8::String::NewFromUtf8(isolate, "code").ToLocalChecked(), v8::Number::New(isolate, item->code));
-	argv->ToObject()->Set(
+	argv->Set(
+	    Nan::GetCurrentContext(),
+	    v8::String::NewFromUtf8(isolate, "code").ToLocalChecked(),
+		v8::Number::New(isolate, item->code));
+	argv->Set(
+	    Nan::GetCurrentContext(),
 	    v8::String::NewFromUtf8(isolate, "error").ToLocalChecked(),
 	    v8::String::NewFromUtf8(isolate, item->errorMessage.c_str()).ToLocalChecked());
 	args[0] = argv;

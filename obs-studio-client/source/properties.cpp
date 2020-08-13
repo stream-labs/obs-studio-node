@@ -380,11 +380,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetValue(Nan::NAN_METHOD_ARGS_T
 		std::shared_ptr<osn::FontProperty> cast_property = std::static_pointer_cast<osn::FontProperty>(iter->second);
 		v8::Local<v8::Object>              font          = v8::Object::New(info.GetIsolate());
 
-		font->Set(utilv8::ToValue("face"), utilv8::ToValue(cast_property->face));
-		font->Set(utilv8::ToValue("style"), utilv8::ToValue(cast_property->style));
-		font->Set(utilv8::ToValue("path"), utilv8::ToValue(cast_property->path));
-		font->Set(utilv8::ToValue("size"), utilv8::ToValue(cast_property->sizeF));
-		font->Set(utilv8::ToValue("flags"), utilv8::ToValue(cast_property->flags));
+		font->Set(Nan::GetCurrentContext(), utilv8::ToValue("face"), utilv8::ToValue(cast_property->face));
+		font->Set(Nan::GetCurrentContext(), utilv8::ToValue("style"), utilv8::ToValue(cast_property->style));
+		font->Set(Nan::GetCurrentContext(), utilv8::ToValue("path"), utilv8::ToValue(cast_property->path));
+		font->Set(Nan::GetCurrentContext(), utilv8::ToValue("size"), utilv8::ToValue(cast_property->sizeF));
+		font->Set(Nan::GetCurrentContext(), utilv8::ToValue("flags"), utilv8::ToValue(cast_property->flags));
 
 		info.GetReturnValue().Set(font);
 		break;

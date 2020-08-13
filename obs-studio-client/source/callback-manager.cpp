@@ -61,12 +61,12 @@ void SourceCallback::callback_handler(void* data, std::shared_ptr<SourceSizeInfo
 		return;
 
 	for (auto item : sourceSizes->items) {
-		v8::Local<v8::Value> argv = v8::Object::New(isolate);
-		argv->ToObject(Nan::GetCurrentContext())->Set(utilv8::ToValue("name"), utilv8::ToValue(item->name));
-		argv->ToObject()->Set(utilv8::ToValue("width"), utilv8::ToValue(item->width));
-		argv->ToObject()->Set(utilv8::ToValue("height"), utilv8::ToValue(item->height));
-		argv->ToObject()->Set(utilv8::ToValue("flags"), utilv8::ToValue(item->flags));
-		rslt->Set(i++, argv);
+		v8::Local<v8::Object> argv = v8::Object::New(isolate);
+		argv->Set(Nan::GetCurrentContext(), utilv8::ToValue("name"), utilv8::ToValue(item->name));
+		argv->Set(Nan::GetCurrentContext(), utilv8::ToValue("width"), utilv8::ToValue(item->width));
+		argv->Set(Nan::GetCurrentContext(), utilv8::ToValue("height"), utilv8::ToValue(item->height));
+		argv->Set(Nan::GetCurrentContext(), utilv8::ToValue("flags"), utilv8::ToValue(item->flags));
+		rslt->Set(Nan::GetCurrentContext(), i++, argv);
 	}	
 
 	args[0] = rslt;

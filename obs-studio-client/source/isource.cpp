@@ -388,7 +388,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Update(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	// Turn json into string
 	v8::Local<v8::String> jsondata = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), json).ToLocalChecked();
-	v8::String::Utf8Value jsondatautf8(jsondata);
+	v8::String::Utf8Value jsondatautf8(v8::Isolate::GetCurrent(), jsondata);
 
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(hndl->sourceId);
 

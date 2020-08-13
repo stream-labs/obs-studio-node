@@ -143,7 +143,7 @@ namespace utilv8
 	{
 		auto rv = v8::Array::New(v8::Isolate::GetCurrent());
 		for (size_t idx = 0; idx < v.size(); idx++) {
-			rv->Set((uint32_t)idx, ToValue(v[idx]));
+			rv->Set(Nan::GetCurrentContext(), (uint32_t)idx, ToValue(v[idx]));
 		}
 		return rv;
 	}
