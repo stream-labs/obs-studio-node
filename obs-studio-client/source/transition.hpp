@@ -37,16 +37,16 @@ namespace osn
 		public:
 		static Nan::Persistent<v8::FunctionTemplate> prototype;
 
-		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+		static void Register(v8::Local<v8::Object> exports);
 
-		static Nan::NAN_METHOD_RETURN_TYPE Types(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Create(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE FromName(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void Types(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void Create(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void CreatePrivate(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void FromName(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-		static Nan::NAN_METHOD_RETURN_TYPE GetActiveSource(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Clear(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Set(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Start(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void GetActiveSource(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void Clear(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void Set(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void Start(const v8::FunctionCallbackInfo<v8::Value>& args);
 	};
 } // namespace osn

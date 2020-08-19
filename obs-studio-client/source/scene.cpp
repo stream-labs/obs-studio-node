@@ -43,26 +43,26 @@ void osn::Scene::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	fnctemplate->SetClassName(Nan::New<v8::String>("Scene").ToLocalChecked());
 
 	// Class Template
-	utilv8::SetTemplateField(fnctemplate, "create", Create);
-	utilv8::SetTemplateField(fnctemplate, "createPrivate", CreatePrivate);
-	utilv8::SetTemplateField(fnctemplate, "fromName", FromName);
+	utilv8::SetTemplateField(fnctemplate, "create", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Create));
+	utilv8::SetTemplateField(fnctemplate, "createPrivate", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), CreatePrivate));
+	utilv8::SetTemplateField(fnctemplate, "fromName", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), FromName));
 
 	// Prototype/Class Template
 	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->PrototypeTemplate();
-	utilv8::SetTemplateField(objtemplate, "release", Release);
-	utilv8::SetTemplateField(objtemplate, "remove", Remove);
+	utilv8::SetTemplateField(objtemplate, "release", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Release));
+	utilv8::SetTemplateField(objtemplate, "remove", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Remove));
 
-	utilv8::SetTemplateAccessorProperty(objtemplate, "source", AsSource);
-	utilv8::SetTemplateField(objtemplate, "duplicate", Duplicate);
-	utilv8::SetTemplateField(objtemplate, "add", AddSource);
-	utilv8::SetTemplateField(objtemplate, "findItem", FindItem);
-	utilv8::SetTemplateField(objtemplate, "moveItem", MoveItem);
-	utilv8::SetTemplateField(objtemplate, "orderItems", OrderItems);
-	utilv8::SetTemplateField(objtemplate, "getItemAtIdx", GetItemAtIndex);
-	utilv8::SetTemplateField(objtemplate, "getItems", GetItems);
-	utilv8::SetTemplateField(objtemplate, "getItemsInRange", GetItemsInRange);
-	utilv8::SetTemplateField(objtemplate, "connect", Connect);
-	utilv8::SetTemplateField(objtemplate, "disconnect", Disconnect);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "source", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), AsSource));
+	utilv8::SetTemplateField(objtemplate, "duplicate", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Duplicate));
+	utilv8::SetTemplateField(objtemplate, "add", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), AddSource));
+	utilv8::SetTemplateField(objtemplate, "findItem", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), FindItem));
+	utilv8::SetTemplateField(objtemplate, "moveItem", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), MoveItem));
+	utilv8::SetTemplateField(objtemplate, "orderItems", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), OrderItems));
+	utilv8::SetTemplateField(objtemplate, "getItemAtIdx", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetItemAtIndex));
+	utilv8::SetTemplateField(objtemplate, "getItems", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetItems));
+	utilv8::SetTemplateField(objtemplate, "getItemsInRange", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetItemsInRange));
+	utilv8::SetTemplateField(objtemplate, "connect", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Connect));
+	utilv8::SetTemplateField(objtemplate, "disconnect", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Disconnect));
 
 	// Stuff
 	utilv8::SetObjectField(
@@ -70,12 +70,12 @@ void osn::Scene::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	prototype.Reset(fnctemplate);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Create(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Scene::Create(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	std::string name;
 
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], name);
+	ASSERT_INFO_LENGTH(args, 1);
+	ASSERT_GET_VALUE(args[0], name);
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -102,15 +102,15 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 	CacheManager<SourceDataInfo*>::getInstance().Store(sourceId, name, sdi);
 	CacheManager<SceneInfo*>::getInstance().Store(sourceId, name, si);
 
-	info.GetReturnValue().Set(osn::Scene::Store(obj));
+	args.GetReturnValue().Set(osn::Scene::Store(obj));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Scene::CreatePrivate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	std::string name;
 
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], name);
+	ASSERT_INFO_LENGTH(args, 1);
+	ASSERT_GET_VALUE(args[0], name);
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -137,15 +137,15 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE 
 	CacheManager<SourceDataInfo*>::getInstance().Store(sourceId, name, sdi);
 	CacheManager<SceneInfo*>::getInstance().Store(sourceId, name, si);
 
-	info.GetReturnValue().Set(osn::Scene::Store(obj));
+	args.GetReturnValue().Set(osn::Scene::Store(obj));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FromName(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Scene::FromName(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	std::string name;
 
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], name);
+	ASSERT_INFO_LENGTH(args, 1);
+	ASSERT_GET_VALUE(args[0], name);
 
 	SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(name);
 
@@ -165,13 +165,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FromName(Nan::NAN_METHOD_ARGS_TYPE info)
 		CacheManager<SceneInfo*>::getInstance().Store(response[1].value_union.ui64, name, si);
 	}
 	osn::Scene* obj = new osn::Scene(si->id);
-	info.GetReturnValue().Set(osn::Scene::Store(obj));
+	args.GetReturnValue().Set(osn::Scene::Store(obj));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Release(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Scene::Release(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::Scene* source = nullptr;
-	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), source)) {
+	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(args.This(), source)) {
 		return;
 	}
 
@@ -182,10 +182,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Release(Nan::NAN_METHOD_ARGS_TYPE info)
 	conn->call("Scene", "Release", std::vector<ipc::value>{ipc::value(source->sourceId)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Remove(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Scene::Remove(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::Scene* source = nullptr;
-	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), source)) {
+	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(args.This(), source)) {
 		return;
 	}
 
@@ -196,31 +196,31 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Remove(Nan::NAN_METHOD_ARGS_TYPE info)
 	conn->call("Scene", "Remove", std::vector<ipc::value>{ipc::value(source->sourceId)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AsSource(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Scene::AsSource(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	// Scenes are simply stored as a normal source object on the server, no additional calls necessary.
 	osn::Scene* source = nullptr;
-	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), source)) {
+	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(args.This(), source)) {
 		return;
 	}
 
 	osn::Input* obj = new osn::Input(source->sourceId);
-	info.GetReturnValue().Set(osn::Input::Store(obj));
+	args.GetReturnValue().Set(osn::Input::Store(obj));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Scene::Duplicate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	std::string name;
 	int         duplicate_type;
 	osn::Scene* source = nullptr;
 
-	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), source)) {
+	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(args.This(), source)) {
 		return;
 	}
 
-	ASSERT_INFO_LENGTH(info, 2);
-	ASSERT_GET_VALUE(info[0], name);
-	ASSERT_GET_VALUE(info[1], duplicate_type);
+	ASSERT_INFO_LENGTH(args, 2);
+	ASSERT_GET_VALUE(args[0], name);
+	ASSERT_GET_VALUE(args[1], duplicate_type);
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -246,21 +246,21 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info
 	CacheManager<SourceDataInfo*>::getInstance().Store(sourceId, name, sdi);
 	CacheManager<SceneInfo*>::getInstance().Store(sourceId, name, new SceneInfo);
 
-	info.GetReturnValue().Set(osn::Scene::Store(obj));
+	args.GetReturnValue().Set(osn::Scene::Store(obj));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Scene::AddSource(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	std::vector<ipc::value> params;
 	osn::Scene* scene = nullptr;
-	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), scene)) {
+	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(args.This(), scene)) {
 		return;
 	}
 
 	osn::Input* input = nullptr;
-	if (info.Length() >= 1) {
+	if (args.Length() >= 1) {
 		if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Input>(
-		        info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked(), input)) {
+		        args[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked(), input)) {
 			return;
 		}
 	}
@@ -269,73 +269,73 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 	v8::Local<v8::Object> transform = v8::Object::New(v8::Isolate::GetCurrent());
 	v8::Local<v8::Object> crop      = v8::Object::New(v8::Isolate::GetCurrent());
 	
-	transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("scaleX"))
+	transform->Get(args.GetIsolate()->GetCurrentContext(), utilv8::ToValue("scaleX"))
 	    .ToLocalChecked()
-	    ->ToNumber(info.GetIsolate()->GetCurrentContext()).ToLocalChecked()->Value();
+	    ->ToNumber(args.GetIsolate()->GetCurrentContext()).ToLocalChecked()->Value();
 
-	if (info.Length() >= 2) {
-		transform = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("scaleX"))
+	if (args.Length() >= 2) {
+		transform = args[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
+		params.push_back(ipc::value(transform->Get(args.GetIsolate()->GetCurrentContext(), utilv8::ToValue("scaleX"))
 		                                .ToLocalChecked()
-		                                ->ToNumber(info.GetIsolate()->GetCurrentContext())
+		                                ->ToNumber(args.GetIsolate()->GetCurrentContext())
 		                                .ToLocalChecked()
 		                                ->Value()
 		));
 
-		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("scaleY"))
+		params.push_back(ipc::value(transform->Get(args.GetIsolate()->GetCurrentContext(), utilv8::ToValue("scaleY"))
 		                                .ToLocalChecked()
-		                                ->ToNumber(info.GetIsolate()->GetCurrentContext())
+		                                ->ToNumber(args.GetIsolate()->GetCurrentContext())
 		                                .ToLocalChecked()
 		                                ->Value()));
-		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("visible"))
+		params.push_back(ipc::value(transform->Get(args.GetIsolate()->GetCurrentContext(), utilv8::ToValue("visible"))
 		                                .ToLocalChecked()
 		                                ->ToBoolean(v8::Isolate::GetCurrent())
 		                                ->Value()));
-		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("x"))
+		params.push_back(ipc::value(transform->Get(args.GetIsolate()->GetCurrentContext(), utilv8::ToValue("x"))
 		                                .ToLocalChecked()
-		                                ->ToNumber(info.GetIsolate()->GetCurrentContext())
-		                                .ToLocalChecked()
-		                                ->Value()));
-		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("y"))
-		                                .ToLocalChecked()
-		                                ->ToNumber(info.GetIsolate()->GetCurrentContext())
+		                                ->ToNumber(args.GetIsolate()->GetCurrentContext())
 		                                .ToLocalChecked()
 		                                ->Value()));
-		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("rotation"))
+		params.push_back(ipc::value(transform->Get(args.GetIsolate()->GetCurrentContext(), utilv8::ToValue("y"))
 		                                .ToLocalChecked()
-		                                ->ToNumber(info.GetIsolate()->GetCurrentContext())
+		                                ->ToNumber(args.GetIsolate()->GetCurrentContext())
+		                                .ToLocalChecked()
+		                                ->Value()));
+		params.push_back(ipc::value(transform->Get(args.GetIsolate()->GetCurrentContext(), utilv8::ToValue("rotation"))
+		                                .ToLocalChecked()
+		                                ->ToNumber(args.GetIsolate()->GetCurrentContext())
 		                                .ToLocalChecked()
 		                                ->Value()));
 
-		crop = transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("crop"))
+		crop = transform->Get(args.GetIsolate()->GetCurrentContext(), utilv8::ToValue("crop"))
 		           .ToLocalChecked()
 		           ->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-		params.push_back(ipc::value(crop->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("left"))
+		params.push_back(ipc::value(crop->Get(args.GetIsolate()->GetCurrentContext(), utilv8::ToValue("left"))
 		                                .ToLocalChecked()
 		                                ->ToInteger(Nan::GetCurrentContext())
 		                                .ToLocalChecked()
 		                                ->Value()));
-		params.push_back(ipc::value(crop->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("top"))
+		params.push_back(ipc::value(crop->Get(args.GetIsolate()->GetCurrentContext(), utilv8::ToValue("top"))
 		                                .ToLocalChecked()
 		                                ->ToInteger(Nan::GetCurrentContext())
 		                                .ToLocalChecked()
 		                                ->Value()));
-		params.push_back(ipc::value(crop->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("right"))
+		params.push_back(ipc::value(crop->Get(args.GetIsolate()->GetCurrentContext(), utilv8::ToValue("right"))
 		                                .ToLocalChecked()
 		                                ->ToInteger(Nan::GetCurrentContext())
 		                                .ToLocalChecked()
 		                                ->Value()));
-		params.push_back(ipc::value(crop->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("bottom"))
+		params.push_back(ipc::value(crop->Get(args.GetIsolate()->GetCurrentContext(), utilv8::ToValue("bottom"))
 		                                .ToLocalChecked()
 		                                ->ToInteger(Nan::GetCurrentContext())
 		                                .ToLocalChecked()
 		                                ->Value()));
 
-		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("streamVisible"))
+		params.push_back(ipc::value(transform->Get(args.GetIsolate()->GetCurrentContext(), utilv8::ToValue("streamVisible"))
 										.ToLocalChecked()
 										->ToBoolean(v8::Isolate::GetCurrent())
 										->Value()));
-		params.push_back(ipc::value(transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("recordingVisible"))
+		params.push_back(ipc::value(transform->Get(args.GetIsolate()->GetCurrentContext(), utilv8::ToValue("recordingVisible"))
 										.ToLocalChecked()
 										->ToBoolean(v8::Isolate::GetCurrent())
 										->Value()));
@@ -366,29 +366,29 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 	sid->obs_itemId    = obs_id;
 	sid->scene_id      = scene->sourceId;
 
-	if (info.Length() >= 2) {
+	if (args.Length() >= 2) {
 		// Position
-		sid->posX = transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("x"))
+		sid->posX = transform->Get(args.GetIsolate()->GetCurrentContext(), utilv8::ToValue("x"))
 		                .ToLocalChecked()
-		                ->ToNumber(info.GetIsolate()->GetCurrentContext())
+		                ->ToNumber(args.GetIsolate()->GetCurrentContext())
 		                .ToLocalChecked()
 		                ->Value();
-		sid->posY = transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("y"))
+		sid->posY = transform->Get(args.GetIsolate()->GetCurrentContext(), utilv8::ToValue("y"))
 		                .ToLocalChecked()
-		                ->ToNumber(info.GetIsolate()->GetCurrentContext())
+		                ->ToNumber(args.GetIsolate()->GetCurrentContext())
 		                .ToLocalChecked()
 		                ->Value();
 		sid->posChanged = false;
 
 		// Scale
-		sid->scaleX = transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("scaleX"))
+		sid->scaleX = transform->Get(args.GetIsolate()->GetCurrentContext(), utilv8::ToValue("scaleX"))
 		                  .ToLocalChecked()
-		                  ->ToNumber(info.GetIsolate()->GetCurrentContext())
+		                  ->ToNumber(args.GetIsolate()->GetCurrentContext())
 		                  .ToLocalChecked()
 		                  ->Value();
-		sid->scaleY = transform->Get(info.GetIsolate()->GetCurrentContext(), utilv8::ToValue("scaleY"))
+		sid->scaleY = transform->Get(args.GetIsolate()->GetCurrentContext(), utilv8::ToValue("scaleY"))
 		                  .ToLocalChecked()
-		                  ->ToNumber(info.GetIsolate()->GetCurrentContext())
+		                  ->ToNumber(args.GetIsolate()->GetCurrentContext())
 		                  .ToLocalChecked()
 		                  ->Value();
 		sid->scaleChanged = false;
@@ -448,31 +448,32 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::AddSource(Nan::NAN_METHOD_ARGS_TYPE info
 
 	CacheManager<SceneItemData*>::getInstance().Store(id, sid);	
 
-	info.GetReturnValue().Set(osn::SceneItem::Store(obj));
+	args.GetReturnValue().Set(osn::SceneItem::Store(obj));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FindItem(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Scene::FindItem(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	bool        haveName = false;
 	std::string name;
 	int64_t     position;
 
 	osn::Scene* scene = nullptr;
-	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), scene)) {
+	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(args.This(), scene)) {
 		return;
 	}
 
-	ASSERT_INFO_LENGTH(info, 1);
-	if (info[0]->IsNumber()) {
+	ASSERT_INFO_LENGTH(args, 1);
+	if (args[0]->IsNumber()) {
 		haveName = false;
-		ASSERT_GET_VALUE(info[0], position);
-	} else if (info[0]->IsString()) {
-		haveName = true;
-		ASSERT_GET_VALUE(info[0], name);
+		ASSERT_GET_VALUE(args[0], position);
 	} else {
-		Nan::TypeError("Expected string or number");
-		return;
+		haveName = true;
+		ASSERT_GET_VALUE(args[0], name);
 	}
+	// } else {
+	// 	Nan::TypeError("Expected string or number");
+	// 	return;
+	// }
 
 	SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(scene->sourceId);
 
@@ -484,7 +485,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FindItem(Nan::NAN_METHOD_ARGS_TYPE info)
 		auto itemIt = std::find_if(si->items.begin(), si->items.end(), find);
 		if (itemIt != si->items.end()) {
 			osn::SceneItem* obj = new osn::SceneItem(itemIt->second);
-			info.GetReturnValue().Set(osn::SceneItem::Store(obj));
+			args.GetReturnValue().Set(osn::SceneItem::Store(obj));
 			return;
 		}
 	}
@@ -504,20 +505,20 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::FindItem(Nan::NAN_METHOD_ARGS_TYPE info)
 	uint64_t id = response[1].value_union.ui64;
 
 	osn::SceneItem* obj = new osn::SceneItem(id);
-	info.GetReturnValue().Set(osn::SceneItem::Store(obj));
+	args.GetReturnValue().Set(osn::SceneItem::Store(obj));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::MoveItem(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Scene::MoveItem(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::Scene* scene = nullptr;
-	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), scene)) {
+	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(args.This(), scene)) {
 		return;
 	}
 
 	int from, to;
-	ASSERT_INFO_LENGTH(info, 2);
-	ASSERT_GET_VALUE(info[0], from);
-	ASSERT_GET_VALUE(info[1], to);
+	ASSERT_INFO_LENGTH(args, 2);
+	ASSERT_GET_VALUE(args[0], from);
+	ASSERT_GET_VALUE(args[1], to);
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -540,18 +541,18 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::MoveItem(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::OrderItems(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Scene::OrderItems(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::Scene* scene = nullptr;
-	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), scene)) {
+	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(args.This(), scene)) {
 		return;
 	}
 
 	std::vector<int64_t> order;
 	std::vector<char> order_char;
-	ASSERT_INFO_LENGTH(info, 1);
+	ASSERT_INFO_LENGTH(args, 1);
 
-	v8::Local<v8::Array> array = v8::Local<v8::Array>::Cast(info[0]); 
+	v8::Local<v8::Array> array = v8::Local<v8::Array>::Cast(args[0]); 
 
 	order.resize(array->Length());
 	for (unsigned int i = 0; i < array->Length(); i++ ) {
@@ -583,17 +584,17 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::OrderItems(Nan::NAN_METHOD_ARGS_TYPE inf
 	}
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemAtIndex(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Scene::GetItemAtIndex(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	int32_t index;
 
 	osn::Scene* scene = nullptr;
-	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), scene)) {
+	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(args.This(), scene)) {
 		return;
 	}
 
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], index);
+	ASSERT_INFO_LENGTH(args, 1);
+	ASSERT_GET_VALUE(args[0], index);
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -608,13 +609,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemAtIndex(Nan::NAN_METHOD_ARGS_TYPE
 	uint64_t id = response[1].value_union.ui64;
 
 	osn::SceneItem* obj = new osn::SceneItem(id);
-	info.GetReturnValue().Set(osn::SceneItem::Store(obj));
+	args.GetReturnValue().Set(osn::SceneItem::Store(obj));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItems(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Scene::GetItems(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::Scene* scene = nullptr;
-	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), scene)) {
+	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(args.This(), scene)) {
 		return;
 	}
 
@@ -635,7 +636,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItems(Nan::NAN_METHOD_ARGS_TYPE info)
 			Nan::Set(arr, uint32_t(index++), osn::SceneItem::Store(obj));
 		}
 		if (!itemRemoved) {
-			info.GetReturnValue().Set(arr);
+			args.GetReturnValue().Set(arr);
 			return;
 		}
 	}
@@ -657,7 +658,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItems(Nan::NAN_METHOD_ARGS_TYPE info)
 		Nan::Set(arr, uint32_t(index++), osn::SceneItem::Store(obj));
 	}
 
-	info.GetReturnValue().Set(arr);
+	args.GetReturnValue().Set(arr);
 
 	if (si) {
 		si->items.clear();
@@ -670,17 +671,17 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItems(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemsInRange(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Scene::GetItemsInRange(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::Scene* scene = nullptr;
-	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(info.This(), scene)) {
+	if (!utilv8::RetrieveDynamicCast<osn::ISource, osn::Scene>(args.This(), scene)) {
 		return;
 	}
 
 	int32_t from, to;
-	ASSERT_INFO_LENGTH(info, 2);
-	ASSERT_GET_VALUE(info[0], from);
-	ASSERT_GET_VALUE(info[1], to);
+	ASSERT_INFO_LENGTH(args, 2);
+	ASSERT_GET_VALUE(args[0], from);
+	ASSERT_GET_VALUE(args[1], to);
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -701,7 +702,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::GetItemsInRange(Nan::NAN_METHOD_ARGS_TYP
 		Nan::Set(arr, uint32_t(i - 1), osn::SceneItem::Store(obj));
 	}
 
-	info.GetReturnValue().Set(arr);
+	args.GetReturnValue().Set(arr);
 }
 
 /**
@@ -766,16 +767,16 @@ simple.
 //	item_signal_desc
 //};
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Connect(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Scene::Connect(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	//obs::weak<obs::scene> &scene = Scene::Object::GetHandle(info.Holder());
-	//Scene* this_binding = Nan::ObjectWrap::Unwrap<Scene>(info.Holder());
+	//obs::weak<obs::scene> &scene = Scene::Object::GetHandle(args.Holder());
+	//Scene* this_binding = Nan::ObjectWrap::Unwrap<Scene>(args.Holder());
 
 	//uint32_t signal_type;
 	//v8::Local<v8::Function> callback;
 
-	//ASSERT_GET_VALUE(info[0], signal_type);
-	//ASSERT_GET_VALUE(info[1], callback);
+	//ASSERT_GET_VALUE(args[0], signal_type);
+	//ASSERT_GET_VALUE(args[1], callback);
 
 	//if (signal_type >= SIG_TYPE_OVERFLOW || signal_type < 0) {
 	//	Nan::ThrowError("Detected signal type out of range");
@@ -798,18 +799,18 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Connect(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	//auto object = SceneSignalCallback::Object::GenerateObject(cb_binding);
 	//cb_binding->obj_ref.Reset(object);
-	//info.GetReturnValue().Set(object);
+	//args.GetReturnValue().Set(object);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Scene::Disconnect(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Scene::Disconnect(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	//obs::weak<obs::scene> &scene = Scene::Object::GetHandle(info.Holder());
+	//obs::weak<obs::scene> &scene = Scene::Object::GetHandle(args.Holder());
 
 	//uint32_t signal_type;
 	//v8::Local<v8::Object> cb_data_object;
 
-	//ASSERT_GET_VALUE(info[0], signal_type);
-	//ASSERT_GET_VALUE(info[1], cb_data_object);
+	//ASSERT_GET_VALUE(args[0], signal_type);
+	//ASSERT_GET_VALUE(args[1], cb_data_object);
 
 	//if (signal_type >= SIG_TYPE_OVERFLOW || signal_type < 0) {
 	//	Nan::ThrowError("Detected signal type out of range");

@@ -71,14 +71,14 @@ namespace osn
 		public:
 		static Nan::Persistent<v8::FunctionTemplate> prototype;
 
-		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+		static void Register(v8::Local<v8::Object> exports);
 
-		static Nan::NAN_METHOD_RETURN_TYPE Create(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetUpdateInterval(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetUpdateInterval(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Attach(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Detach(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE AddCallback(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void Create(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void GetUpdateInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void SetUpdateInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void Attach(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void Detach(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void AddCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void RemoveCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
 	};
 } // namespace osn

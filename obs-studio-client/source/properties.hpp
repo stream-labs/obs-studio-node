@@ -216,11 +216,11 @@ namespace osn
 		std::shared_ptr<property_map_t> GetProperties();
 		v8::Local<v8::Object>           GetOwner();
 
-		static void                        Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
-		static Nan::NAN_METHOD_RETURN_TYPE Count(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE First(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Last(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Get(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void Register(v8::Local<v8::Object> exports);
+		static void Count(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void First(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void Last(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void Get(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 		friend class utilv8::ManagedObject<Properties>;
 		friend class utilv8::InterfaceObject<Properties>;
@@ -240,26 +240,26 @@ namespace osn
 		PropertyObject(v8::Local<v8::Object> parent, size_t index);
 		~PropertyObject();
 
-		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+		static void Register(v8::Local<v8::Object> exports);
 
-		static Nan::NAN_METHOD_RETURN_TYPE Previous(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Next(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE IsFirst(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE IsLast(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void Previous(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void Next(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void IsFirst(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void IsLast(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-		static Nan::NAN_METHOD_RETURN_TYPE GetValue(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void GetValue(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-		static Nan::NAN_METHOD_RETURN_TYPE GetName(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetDescription(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetLongDescription(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE IsEnabled(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE IsVisible(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetType(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void GetName(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void GetDescription(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void GetLongDescription(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void IsEnabled(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void IsVisible(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void GetType(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-		static Nan::NAN_METHOD_RETURN_TYPE GetDetails(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void GetDetails(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-		static Nan::NAN_METHOD_RETURN_TYPE Modified(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE ButtonClicked(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void Modified(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void ButtonClicked(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 		friend class utilv8::ManagedObject<PropertyObject>;
 		friend class utilv8::InterfaceObject<PropertyObject>;

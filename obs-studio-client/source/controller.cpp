@@ -390,22 +390,22 @@ void js_setServerPath(const v8::FunctionCallbackInfo<v8::Value>& args)
 		return;
 	}
 
-	if (!args[0]->IsString()) {
-		isol->ThrowException(
-		    v8::Exception::TypeError(v8::String::NewFromUtf8(isol, "Argument 'binaryPath' must be of type 'String'.").ToLocalChecked()));
-		return;
-	}
+	// if (!args[0]->IsString()) {
+	// 	isol->ThrowException(
+	// 	    v8::Exception::TypeError(v8::String::NewFromUtf8(isol, "Argument 'binaryPath' must be of type 'String'.").ToLocalChecked()));
+	// 	return;
+	// }
 	v8::Local<v8::String> value_string(args[0]->ToString(Nan::GetCurrentContext()).FromMaybe(v8::Local<v8::String>()));
 	Nan::Utf8String       nan_string(value_string);
 
 	serverBinaryPath = std::string(*nan_string);
 
 	if (args.Length() == 2) {
-		if (!args[1]->IsString()) {
-			isol->ThrowException(v8::Exception::TypeError(
-			    v8::String::NewFromUtf8(isol, "Argument 'workingDirectoryPath' must be of type 'String'.").ToLocalChecked()));
-			return;
-		}
+		// if (!args[1]->IsString()) {
+		// 	isol->ThrowException(v8::Exception::TypeError(
+		// 	    v8::String::NewFromUtf8(isol, "Argument 'workingDirectoryPath' must be of type 'String'.").ToLocalChecked()));
+		// 	return;
+		// }
 
 		v8::Local<v8::String> value_string(args[1]->ToString(Nan::GetCurrentContext()).FromMaybe(v8::Local<v8::String>()));
 		Nan::Utf8String       nan_string(value_string);
@@ -422,18 +422,18 @@ void js_setServerPath(const v8::FunctionCallbackInfo<v8::Value>& args)
 void js_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	auto isol = args.GetIsolate();
-	if (args.Length() == 0) {
-		isol->ThrowException(v8::Exception::SyntaxError(
-		    Nan::New<v8::String>("Too few arguments, usage: connect(<string> uri).").ToLocalChecked()));
-		return;
-	} else if (args.Length() > 1) {
-		isol->ThrowException(v8::Exception::SyntaxError(Nan::New<v8::String>("Too many arguments.").ToLocalChecked()));
-		return;
-	} else if (!args[0]->IsString()) {
-		isol->ThrowException(v8::Exception::TypeError(
-		    Nan::New<v8::String>("Argument 'uri' must be of type 'String'.").ToLocalChecked()));
-		return;
-	}
+	// if (args.Length() == 0) {
+	// 	isol->ThrowException(v8::Exception::SyntaxError(
+	// 	    Nan::New<v8::String>("Too few arguments, usage: connect(<string> uri).").ToLocalChecked()));
+	// 	return;
+	// } else if (args.Length() > 1) {
+	// 	isol->ThrowException(v8::Exception::SyntaxError(Nan::New<v8::String>("Too many arguments.").ToLocalChecked()));
+	// 	return;
+	// } else if (!args[0]->IsString()) {
+	// 	isol->ThrowException(v8::Exception::TypeError(
+	// 	    Nan::New<v8::String>("Argument 'uri' must be of type 'String'.").ToLocalChecked()));
+	// 	return;
+	// }
 
 	v8::Local<v8::String> value_string(args[0]->ToString(Nan::GetCurrentContext()).FromMaybe(v8::Local<v8::String>()));
 	Nan::Utf8String       nan_string(value_string);
@@ -451,18 +451,18 @@ void js_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
 void js_host(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	auto isol = args.GetIsolate();
-	if (args.Length() == 0) {
-		isol->ThrowException(
-		    v8::Exception::SyntaxError(Nan::New<v8::String>("Too few arguments, usage: host(uri).").ToLocalChecked()));
-		return;
-	} else if (args.Length() > 1) {
-		isol->ThrowException(v8::Exception::SyntaxError(Nan::New<v8::String>("Too many arguments.").ToLocalChecked()));
-		return;
-	} else if (!args[0]->IsString()) {
-		isol->ThrowException(v8::Exception::TypeError(
-		    Nan::New<v8::String>("Argument 'uri' must be of type 'String'.").ToLocalChecked()));
-		return;
-	}
+	// if (args.Length() == 0) {
+	// 	isol->ThrowException(
+	// 	    v8::Exception::SyntaxError(Nan::New<v8::String>("Too few arguments, usage: host(uri).").ToLocalChecked()));
+	// 	return;
+	// } else if (args.Length() > 1) {
+	// 	isol->ThrowException(v8::Exception::SyntaxError(Nan::New<v8::String>("Too many arguments.").ToLocalChecked()));
+	// 	return;
+	// } else if (!args[0]->IsString()) {
+	// 	isol->ThrowException(v8::Exception::TypeError(
+	// 	    Nan::New<v8::String>("Argument 'uri' must be of type 'String'.").ToLocalChecked()));
+	// 	return;
+	// }
 
 	v8::Local<v8::String> value_string(args[0]->ToString(Nan::GetCurrentContext()).FromMaybe(v8::Local<v8::String>()));
 	Nan::Utf8String       nan_string(value_string);

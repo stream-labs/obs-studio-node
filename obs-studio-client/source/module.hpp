@@ -35,20 +35,20 @@ namespace osn
 		public:
 		static Nan::Persistent<v8::FunctionTemplate> prototype;
 
-		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+		static void Register(v8::Local<v8::Object> exports);
 
 		//Functions
-		static Nan::NAN_METHOD_RETURN_TYPE Open(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Modules(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Initialize(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void Open(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void Modules(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void Initialize(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 		//Methods
-		static Nan::NAN_METHOD_RETURN_TYPE Name(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE FileName(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Author(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Description(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE BinaryPath(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE DataPath(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void Name(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void FileName(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void Author(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void Description(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void BinaryPath(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void DataPath(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 
 	};

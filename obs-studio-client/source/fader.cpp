@@ -40,45 +40,60 @@ uint64_t osn::Fader::GetId()
 	return this->uid;
 }
 
-void osn::Fader::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
+void osn::Fader::Register(v8::Local<v8::Object> exports)
 {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
 	fnctemplate->SetClassName(Nan::New<v8::String>("Fader").ToLocalChecked());
 
 	// Class Template
-	utilv8::SetTemplateField(fnctemplate, "create", Create);
+	utilv8::SetTemplateField(fnctemplate, "create", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Create));
 
 	// Object Template
 	auto objtemplate = fnctemplate->PrototypeTemplate();
-	utilv8::SetTemplateAccessorProperty(objtemplate, "db", GetDeziBel, SetDezibel);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "deflection", GetDeflection, SetDeflection);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "mul", GetMultiplier, SetMultiplier);
-	utilv8::SetTemplateField(objtemplate, "attach", Attach);
-	utilv8::SetTemplateField(objtemplate, "detach", Detach);
-	utilv8::SetTemplateField(objtemplate, "addCallback", AddCallback);
-	utilv8::SetTemplateField(objtemplate, "removeCallback", RemoveCallback);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "db",
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetDeziBel),
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetDezibel));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "deflection",
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetDeflection),
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetDeflection));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "mul",
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetMultiplier),
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetMultiplier));
+	utilv8::SetTemplateField(objtemplate, "attach", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Attach));
+	utilv8::SetTemplateField(objtemplate, "detach", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Detach));
+	utilv8::SetTemplateField(objtemplate, "addCallback", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), AddCallback));
+	utilv8::SetTemplateField(objtemplate, "removeCallback", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), RemoveCallback));
 
 	// Stuff
-	utilv8::SetObjectField(target, "Fader", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
+	exports->Set(
+		Nan::GetCurrentContext(),
+		v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), "Fader").ToLocalChecked(),
+		fnctemplate->GetFunction(Nan::GetCurrentContext()).ToLocalChecked()).FromJust();
 	prototype.Reset(fnctemplate);
 }
 
-void osn::Fader::Create(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Fader::Create(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+	std::cout << "Fader::Create 0" << std::endl;
 	int32_t fader_type;
 
 	// Validate and retrieve parameters.
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], fader_type);
+	// ASSERT_INFO_LENGTH(args, 1);
+	std::cout << "Fader::Create 0.1" << std::endl;
+	ASSERT_GET_VALUE(args[0], fader_type);
+	std::cout << "Fader::Create 0.2" << std::endl;
 
 	// Validate Connection
 	auto conn = Controller::GetInstance().GetConnection();
+	std::cout << "Fader::Create 0.3" << std::endl;
 	if (!conn) {
+		std::cout << "Fader::Create 0.4" << std::endl;
 		Nan::ThrowError("IPC is not connected.");
 		return;
 	}
 
+	std::cout << "Fader::Create 1" << std::endl;
 	// Call
 	std::vector<ipc::value> rval = conn->call_synchronous_helper(
 	    "Fader",
@@ -91,19 +106,22 @@ void osn::Fader::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
+	std::cout << "Fader::Create 2" << std::endl;
 	// Return created Object
 	auto* newFader = new osn::Fader(rval[1].value_union.ui64);
-	info.GetReturnValue().Set(Store(newFader));
+	std::cout << "Fader::Create 3" << std::endl;
+	args.GetReturnValue().Set(Store(newFader));
+	std::cout << "Fader::Create 4" << std::endl;
 }
 
-void osn::Fader::GetDeziBel(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Fader::GetDeziBel(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::Fader* fader;
 
 	// Validate and retrieve parameters.
-	ASSERT_INFO_LENGTH(info, 0);
+	ASSERT_INFO_LENGTH(args, 0);
 
-	if (!Retrieve(info.This(), fader)) {
+	if (!Retrieve(args.This(), fader)) {
 		return;
 	}
 
@@ -127,19 +145,19 @@ void osn::Fader::GetDeziBel(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 
 	// Return DeziBel Value
-	info.GetReturnValue().Set(rval[1].value_union.fp32);
+	args.GetReturnValue().Set(rval[1].value_union.fp32);
 }
 
-void osn::Fader::SetDezibel(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Fader::SetDezibel(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	float_t     dezibel;
 	osn::Fader* fader;
 
 	// Validate and retrieve parameters.
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], dezibel);
+	ASSERT_INFO_LENGTH(args, 1);
+	ASSERT_GET_VALUE(args[0], dezibel);
 
-	if (!Retrieve(info.This(), fader)) {
+	if (!Retrieve(args.This(), fader)) {
 		return;
 	}
 
@@ -154,14 +172,14 @@ void osn::Fader::SetDezibel(Nan::NAN_METHOD_ARGS_TYPE info)
 	conn->call("Fader", "SetDeziBel", {ipc::value(fader->uid), ipc::value(dezibel)});
 }
 
-void osn::Fader::GetDeflection(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Fader::GetDeflection(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::Fader* fader;
 
 	// Validate and retrieve parameters.
-	ASSERT_INFO_LENGTH(info, 0);
+	ASSERT_INFO_LENGTH(args, 0);
 
-	if (!Retrieve(info.This(), fader)) {
+	if (!Retrieve(args.This(), fader)) {
 		return;
 	}
 
@@ -185,19 +203,19 @@ void osn::Fader::GetDeflection(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 
 	// Return DeziBel Value
-	info.GetReturnValue().Set(rval[1].value_union.fp32);
+	args.GetReturnValue().Set(rval[1].value_union.fp32);
 }
 
-void osn::Fader::SetDeflection(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Fader::SetDeflection(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	float_t     dezibel;
 	osn::Fader* fader;
 
 	// Validate and retrieve parameters.
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], dezibel);
+	ASSERT_INFO_LENGTH(args, 1);
+	ASSERT_GET_VALUE(args[0], dezibel);
 
-	if (!Retrieve(info.This(), fader)) {
+	if (!Retrieve(args.This(), fader)) {
 		return;
 	}
 
@@ -212,14 +230,14 @@ void osn::Fader::SetDeflection(Nan::NAN_METHOD_ARGS_TYPE info)
 	conn->call("Fader", "SetDeflection", {ipc::value(fader->uid), ipc::value(dezibel)});
 }
 
-void osn::Fader::GetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Fader::GetMultiplier(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::Fader* fader;
 
 	// Validate and retrieve parameters.
-	ASSERT_INFO_LENGTH(info, 0);
+	ASSERT_INFO_LENGTH(args, 0);
 
-	if (!Retrieve(info.This(), fader)) {
+	if (!Retrieve(args.This(), fader)) {
 		return;
 	}
 
@@ -243,19 +261,19 @@ void osn::Fader::GetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 
 	// Return DeziBel Value
-	info.GetReturnValue().Set(rval[1].value_union.fp32);
+	args.GetReturnValue().Set(rval[1].value_union.fp32);
 }
 
-void osn::Fader::SetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Fader::SetMultiplier(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	float_t     dezibel;
 	osn::Fader* fader;
 
 	// Validate and retrieve parameters.
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], dezibel);
+	ASSERT_INFO_LENGTH(args, 1);
+	ASSERT_GET_VALUE(args[0], dezibel);
 
-	if (!Retrieve(info.This(), fader)) {
+	if (!Retrieve(args.This(), fader)) {
 		return;
 	}
 
@@ -270,20 +288,20 @@ void osn::Fader::SetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info)
 	conn->call("Fader", "SetMultiplier", {ipc::value(fader->uid), ipc::value(dezibel)});
 }
 
-void osn::Fader::Attach(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Fader::Attach(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::Fader*   fader;
 	osn::ISource* source;
 
 	// Validate and retrieve parameters.
-	ASSERT_INFO_LENGTH(info, 1);
+	ASSERT_INFO_LENGTH(args, 1);
 
-	if (!Retrieve(info.This(), fader)) {
+	if (!Retrieve(args.This(), fader)) {
 		return;
 	}
 
 	v8::Local<v8::Object> sourceObj;
-	ASSERT_GET_VALUE(info[0], sourceObj);
+	ASSERT_GET_VALUE(args[0], sourceObj);
 	if (!osn::ISource::Retrieve(sourceObj, source)) {
 		return;
 	}
@@ -304,14 +322,14 @@ void osn::Fader::Attach(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 }
 
-void osn::Fader::Detach(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Fader::Detach(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::Fader* fader;
 
 	// Validate and retrieve parameters.
-	ASSERT_INFO_LENGTH(info, 0);
+	ASSERT_INFO_LENGTH(args, 0);
 
-	if (!Retrieve(info.This(), fader)) {
+	if (!Retrieve(args.This(), fader)) {
 		return;
 	}
 
@@ -330,10 +348,10 @@ void osn::Fader::Detach(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 }
 
-void osn::Fader::AddCallback(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Fader::AddCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	//obs::fader &handle = Fader::Object::GetHandle(info.Holder());
-	//Fader* binding = Nan::ObjectWrap::Unwrap<Fader>(info.Holder());
+	//obs::fader &handle = Fader::Object::GetHandle(args.Holder());
+	//Fader* binding = Nan::ObjectWrap::Unwrap<Fader>(args.Holder());
 
 	//ASSERT_INFO_LENGTH(info, 1);
 
@@ -347,12 +365,12 @@ void osn::Fader::AddCallback(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	//auto object = FaderCallback::Object::GenerateObject(cb_binding);
 	//cb_binding->obj_ref.Reset(object);
-	//info.GetReturnValue().Set(object);
+	//args.GetReturnValue().Set(object);
 }
 
-void osn::Fader::RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Fader::RemoveCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	//obs::fader &handle = Fader::Object::GetHandle(info.Holder());
+	//obs::fader &handle = Fader::Object::GetHandle(args.Holder());
 
 	//v8::Local<v8::Object> cb_object;
 	//ASSERT_GET_VALUE(info[0], cb_object);

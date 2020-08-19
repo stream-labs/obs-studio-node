@@ -33,37 +33,39 @@ osn::Module::Module(uint64_t id)
 
 Nan::Persistent<v8::FunctionTemplate> osn::Module::prototype;
 
-void osn::Module::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
+void osn::Module::Register(v8::Local<v8::Object> exports)
 {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
 	fnctemplate->SetClassName(Nan::New<v8::String>("Module").ToLocalChecked());
 
-	utilv8::SetTemplateField(fnctemplate, "open", Open);
-	utilv8::SetTemplateField(fnctemplate, "modules", Modules);
+	utilv8::SetTemplateField(fnctemplate, "open", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Open));
+	utilv8::SetTemplateField(fnctemplate, "modules", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Modules));
 
 	v8::Local<v8::Template> objtemplate = fnctemplate->PrototypeTemplate();
-	utilv8::SetTemplateField(objtemplate, "initialize", Initialize);
+	utilv8::SetTemplateField(objtemplate, "initialize", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Initialize));
 
-	utilv8::SetTemplateAccessorProperty(objtemplate, "name", Name);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "fileName", FileName);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "author", Author);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "description", Description);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "binaryPath", BinaryPath);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "dataPath", DataPath);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "name", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Name));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "fileName", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), FileName));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "author", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Author));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "description", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Description));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "binaryPath", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), BinaryPath));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "dataPath", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), DataPath));
 
-	utilv8::SetObjectField(
-	    target, "Module", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
+	exports->Set(
+		Nan::GetCurrentContext(),
+		v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), "Module").ToLocalChecked(),
+		fnctemplate->GetFunction(Nan::GetCurrentContext()).ToLocalChecked()).FromJust();
 	prototype.Reset(fnctemplate);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Module::Open(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Module::Open(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	std::string bin_path, data_path;
 
-	ASSERT_INFO_LENGTH(info, 2);
-	ASSERT_GET_VALUE(info[0], bin_path);
-	ASSERT_GET_VALUE(info[1], data_path);
+	ASSERT_INFO_LENGTH(args, 2);
+	ASSERT_GET_VALUE(args[0], bin_path);
+	ASSERT_GET_VALUE(args[1], data_path);
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -75,10 +77,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Module::Open(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 
 	osn::Module* obj = new osn::Module(response[1].value_union.ui64);
-	info.GetReturnValue().Set(osn::Module::Store(obj));
+	args.GetReturnValue().Set(osn::Module::Store(obj));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Module::Modules(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Module::Modules(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	auto conn = GetConnection();
 	if (!conn)
@@ -102,13 +104,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Module::Modules(Nan::NAN_METHOD_ARGS_TYPE info)
 		    v8::String::NewFromUtf8(isolate, response.at(i).value_str.c_str()).ToLocalChecked());
 	}
 
-	info.GetReturnValue().Set(modules);
+	args.GetReturnValue().Set(modules);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Module::Initialize(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Module::Initialize(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::Module* module;
-	if (!utilv8::SafeUnwrap(info, module)) {
+	if (!utilv8::SafeUnwrap(args, module)) {
 		return;
 	}
 
@@ -122,13 +124,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Module::Initialize(Nan::NAN_METHOD_ARGS_TYPE in
 	if (!ValidateResponse(response))
 		return;
 
-	info.GetReturnValue().Set(response[1].value_union.i32);
+	args.GetReturnValue().Set(response[1].value_union.i32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Module::Name(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Module::Name(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::Module* module;
-	if (!utilv8::SafeUnwrap(info, module)) {
+	if (!utilv8::SafeUnwrap(args, module)) {
 		return;
 	}
 
@@ -142,13 +144,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Module::Name(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!ValidateResponse(response))
 		return;
 
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
+	args.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Module::FileName(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Module::FileName(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::Module* module;
-	if (!utilv8::SafeUnwrap(info, module)) {
+	if (!utilv8::SafeUnwrap(args, module)) {
 		return;
 	}
 
@@ -162,13 +164,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Module::FileName(Nan::NAN_METHOD_ARGS_TYPE info
 	if (!ValidateResponse(response))
 		return;
 
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
+	args.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Module::Description(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Module::Description(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::Module* module;
-	if (!utilv8::SafeUnwrap(info, module)) {
+	if (!utilv8::SafeUnwrap(args, module)) {
 		return;
 	}
 
@@ -182,13 +184,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Module::Description(Nan::NAN_METHOD_ARGS_TYPE i
 	if (!ValidateResponse(response))
 		return;
 
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
+	args.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Module::Author(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Module::Author(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::Module* module;
-	if (!utilv8::SafeUnwrap(info, module)) {
+	if (!utilv8::SafeUnwrap(args, module)) {
 		return;
 	}
 
@@ -202,13 +204,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Module::Author(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!ValidateResponse(response))
 		return;
 
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
+	args.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Module::BinaryPath(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Module::BinaryPath(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::Module* module;
-	if (!utilv8::SafeUnwrap(info, module)) {
+	if (!utilv8::SafeUnwrap(args, module)) {
 		return;
 	}
 
@@ -222,13 +224,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Module::BinaryPath(Nan::NAN_METHOD_ARGS_TYPE in
 	if (!ValidateResponse(response))
 		return;
 
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
+	args.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Module::DataPath(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Module::DataPath(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::Module* module;
-	if (!utilv8::SafeUnwrap(info, module)) {
+	if (!utilv8::SafeUnwrap(args, module)) {
 		return;
 	}
 
@@ -242,5 +244,5 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Module::DataPath(Nan::NAN_METHOD_ARGS_TYPE info
 	if (!ValidateResponse(response))
 		return;
 
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
+	args.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
 }

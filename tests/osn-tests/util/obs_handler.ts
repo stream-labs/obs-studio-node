@@ -87,13 +87,34 @@ export class OBSHandler {
         this.osnTestName = testName;
         this.cacheUploader = new CacheUploader(testName, this.obsPath);
         this.startup();
+        
+        // console.log('HERE 0');
+        // console.log(osn.FaderFactory);
+        // console.log('HERE 1');
+        // const cubicFader = osn.FaderFactory.create(osn.EFaderType.Cubic);
+        // console.log('HERE 2');
+        // console.log('HERE - 3');
+        console.log('HERE - 4');
+        console.log(osn.InputFactory);
+        console.log('HERE - 4.1');
         this.inputTypes = osn.InputFactory.types();
-        const index = this.inputTypes.indexOf('syphon-input', 0);
-        if (index > -1) {
-            this.inputTypes.splice(index, 1);
-        }
-        this.filterTypes = osn.FilterFactory.types();
-        this.transitionTypes = osn.TransitionFactory.types();
+        console.log('HERE - 4.2');
+        console.log(this.inputTypes);
+        console.log('HERE - 5');
+        const source = osn.InputFactory.create('ffmpeg_source', "MySource", {width: 100});
+        console.log('HERE - 5.1');
+        console.log(source.width);
+        console.log('HERE - 5.2');
+        // const index = this.inputTypes.indexOf('syphon-input', 0);
+        // console.log('HERE - 6');
+        // if (index > -1) {
+        //     this.inputTypes.splice(index, 1);
+        // }
+        // console.log('HERE - 7');
+        // this.filterTypes = osn.FilterFactory.types();
+        // console.log('HERE - 8');
+        // this.transitionTypes = osn.TransitionFactory.types();
+        // console.log('HERE - 9');
     }
 
     startup() {

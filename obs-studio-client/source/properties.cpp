@@ -55,88 +55,90 @@ v8::Local<v8::Object> osn::Properties::GetOwner()
 	return this->owner.Get(v8::Isolate::GetCurrent());
 }
 
-void osn::Properties::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
+void osn::Properties::Register(v8::Local<v8::Object> exports)
 {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->SetClassName(Nan::New<v8::String>("Properties").ToLocalChecked());
 	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
 	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->PrototypeTemplate();
-	utilv8::SetTemplateField(objtemplate, "count", Count);
-	utilv8::SetTemplateField(objtemplate, "first", First);
-	utilv8::SetTemplateField(objtemplate, "last", Last);
-	utilv8::SetTemplateField(objtemplate, "get", Get);
+	utilv8::SetTemplateField(objtemplate, "count", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Count));
+	utilv8::SetTemplateField(objtemplate, "first", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), First));
+	utilv8::SetTemplateField(objtemplate, "last", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Last));
+	utilv8::SetTemplateField(objtemplate, "get", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Get));
 
-	utilv8::SetObjectField(
-	    target, "Properties", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
+	exports->Set(
+		Nan::GetCurrentContext(),
+		v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), "Properties").ToLocalChecked(),
+		fnctemplate->GetFunction(Nan::GetCurrentContext()).ToLocalChecked()).FromJust();
 	prototype.Reset(fnctemplate);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Properties::Count(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Properties::Count(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::Properties* obj;
-	if (!utilv8::SafeUnwrap(info, obj)) {
+	if (!utilv8::SafeUnwrap(args, obj)) {
 		return;
 	}
 
-	info.GetReturnValue().Set((uint32_t)obj->properties->size());
+	args.GetReturnValue().Set((uint32_t)obj->properties->size());
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Properties::First(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Properties::First(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::Properties* obj;
-	if (!utilv8::SafeUnwrap(info, obj)) {
+	if (!utilv8::SafeUnwrap(args, obj)) {
 		return;
 	}
 
 	if (obj->properties->size() == 0) {
-		info.GetReturnValue().Set(Nan::Null());
+		args.GetReturnValue().Set(Nan::Null());
 		return;
 	}
 
 	auto                 iter    = obj->properties->begin();
-	osn::PropertyObject* propobj = new osn::PropertyObject(info.This(), iter->first);
-	info.GetReturnValue().Set(osn::PropertyObject::Store(propobj));
+	osn::PropertyObject* propobj = new osn::PropertyObject(args.This(), iter->first);
+	args.GetReturnValue().Set(osn::PropertyObject::Store(propobj));
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Properties::Last(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Properties::Last(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::Properties* obj;
-	if (!utilv8::SafeUnwrap(info, obj)) {
+	if (!utilv8::SafeUnwrap(args, obj)) {
 		return;
 	}
 
 	if (obj->properties->size() == 0) {
-		info.GetReturnValue().Set(Nan::Null());
+		args.GetReturnValue().Set(Nan::Null());
 		return;
 	}
 
 	auto                 iter    = --obj->properties->end();
-	osn::PropertyObject* propobj = new osn::PropertyObject(info.This(), iter->first);
-	info.GetReturnValue().Set(osn::PropertyObject::Store(propobj));
+	osn::PropertyObject* propobj = new osn::PropertyObject(args.This(), iter->first);
+	args.GetReturnValue().Set(osn::PropertyObject::Store(propobj));
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Properties::Get(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Properties::Get(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::Properties* obj;
-	if (!utilv8::SafeUnwrap(info, obj)) {
+	if (!utilv8::SafeUnwrap(args, obj)) {
 		return;
 	}
 
 	std::string name;
-	ASSERT_GET_VALUE(info[0], name);
+	ASSERT_GET_VALUE(args[0], name);
 
 	for (auto iter = obj->properties->begin(); iter != obj->properties->end(); iter++) {
 		if (iter->second->name == name) {
-			osn::PropertyObject* propobj = new osn::PropertyObject(info.This(), iter->first);
-			info.GetReturnValue().Set(osn::PropertyObject::Store(propobj));
+			osn::PropertyObject* propobj = new osn::PropertyObject(args.This(), iter->first);
+			args.GetReturnValue().Set(osn::PropertyObject::Store(propobj));
 			return;
 		}
 	}
-	info.GetReturnValue().Set(Nan::Null());
+	args.GetReturnValue().Set(Nan::Null());
 	return;
 }
 
@@ -148,7 +150,7 @@ osn::PropertyObject::PropertyObject(v8::Local<v8::Object> p_parent, size_t index
 
 osn::PropertyObject::~PropertyObject() {}
 
-void osn::PropertyObject::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
+void osn::PropertyObject::Register(v8::Local<v8::Object> exports)
 {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->SetClassName(Nan::New<v8::String>("Property").ToLocalChecked());
@@ -156,39 +158,41 @@ void osn::PropertyObject::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target
 	fnctemplate->PrototypeTemplate()->SetInternalFieldCount(1);
 
 	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->PrototypeTemplate();
-	utilv8::SetTemplateField(objtemplate, "previous", Previous);
-	utilv8::SetTemplateField(objtemplate, "next", Next);
-	utilv8::SetTemplateField(objtemplate, "is_first", IsFirst);
-	utilv8::SetTemplateField(objtemplate, "is_last", IsLast);
+	utilv8::SetTemplateField(objtemplate, "previous", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Previous));
+	utilv8::SetTemplateField(objtemplate, "next", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Next));
+	utilv8::SetTemplateField(objtemplate, "is_first", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), IsFirst));
+	utilv8::SetTemplateField(objtemplate, "is_last", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), IsLast));
 
-	utilv8::SetTemplateAccessorProperty(objtemplate, "value", GetValue);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "value", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetValue));
 
-	utilv8::SetTemplateAccessorProperty(objtemplate, "name", GetName);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "description", GetDescription);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "longDescription", GetLongDescription);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "enabled", IsEnabled);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "visible", IsVisible);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "details", GetDetails);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "name", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetName));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "description", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetDescription));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "longDescription", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetLongDescription));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "enabled", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), IsEnabled));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "visible", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), IsVisible));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "details", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetDetails));
 
-	utilv8::SetTemplateAccessorProperty(objtemplate, "type", GetType);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "type", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetType));
 
-	utilv8::SetTemplateField(objtemplate, "modified", Modified);
-	utilv8::SetTemplateField(objtemplate, "buttonClicked", ButtonClicked);
+	utilv8::SetTemplateField(objtemplate, "modified", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Modified));
+	utilv8::SetTemplateField(objtemplate, "buttonClicked", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), ButtonClicked));
 
-	utilv8::SetObjectField(
-	    target, "Property", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
+	exports->Set(
+		Nan::GetCurrentContext(),
+		v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), "Property").ToLocalChecked(),
+		fnctemplate->GetFunction(Nan::GetCurrentContext()).ToLocalChecked()).FromJust();
 	prototype.Reset(fnctemplate);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Previous(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::PropertyObject::Previous(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::PropertyObject* self;
 	osn::Properties*     parent;
 
-	if (!Retrieve(info.This(), self)) {
+	if (!Retrieve(args.This(), self)) {
 		return;
 	}
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+	if (!osn::Properties::Retrieve(self->parent.Get(args.GetIsolate()), parent)) {
 		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
 		return;
 	}
@@ -196,32 +200,32 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Previous(Nan::NAN_METHOD_ARGS_T
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
 	auto iter = parent->GetProperties()->find(self->index);
 	if (iter == parent->GetProperties()->end()) {
-		info.GetReturnValue().Set(Nan::Null());
+		args.GetReturnValue().Set(Nan::Null());
 		return;
 	}
 
 	if (iter == parent->GetProperties()->begin()) {
-		info.GetReturnValue().Set(Nan::Null());
+		args.GetReturnValue().Set(Nan::Null());
 		return;
 	}
 
 	/// Decrement iterator, which sounds really stupid but works fine. Until you invalidate it, that is.
 	iter--;
 
-	osn::PropertyObject* propobj = new osn::PropertyObject(self->parent.Get(info.GetIsolate()), iter->first);
-	info.GetReturnValue().Set(osn::PropertyObject::Store(propobj));
+	osn::PropertyObject* propobj = new osn::PropertyObject(self->parent.Get(args.GetIsolate()), iter->first);
+	args.GetReturnValue().Set(osn::PropertyObject::Store(propobj));
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Next(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::PropertyObject::Next(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::PropertyObject* self;
 	osn::Properties*     parent;
 
-	if (!Retrieve(info.This(), self)) {
+	if (!Retrieve(args.This(), self)) {
 		return;
 	}
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+	if (!osn::Properties::Retrieve(self->parent.Get(args.GetIsolate()), parent)) {
 		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
 		return;
 	}
@@ -229,68 +233,68 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Next(Nan::NAN_METHOD_ARGS_TYPE 
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
 	auto iter = parent->GetProperties()->find(self->index);
 	if (iter == parent->GetProperties()->end()) {
-		info.GetReturnValue().Set(Nan::Null());
+		args.GetReturnValue().Set(Nan::Null());
 		return;
 	}
 
 	iter++;
 	if (iter == parent->GetProperties()->end()) {
-		info.GetReturnValue().Set(Nan::Null());
+		args.GetReturnValue().Set(Nan::Null());
 		return;
 	}
 
-	osn::PropertyObject* propobj = new osn::PropertyObject(self->parent.Get(info.GetIsolate()), iter->first);
-	info.GetReturnValue().Set(osn::PropertyObject::Store(propobj));
+	osn::PropertyObject* propobj = new osn::PropertyObject(self->parent.Get(args.GetIsolate()), iter->first);
+	args.GetReturnValue().Set(osn::PropertyObject::Store(propobj));
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::IsFirst(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::PropertyObject::IsFirst(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::PropertyObject* self;
 	osn::Properties*     parent;
 
-	if (!Retrieve(info.This(), self)) {
+	if (!Retrieve(args.This(), self)) {
 		return;
 	}
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+	if (!osn::Properties::Retrieve(self->parent.Get(args.GetIsolate()), parent)) {
 		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
 		return;
 	}
 
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
 	auto iter = parent->GetProperties()->find(self->index);
-	info.GetReturnValue().Set(iter == parent->GetProperties()->begin());
+	args.GetReturnValue().Set(iter == parent->GetProperties()->begin());
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::IsLast(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::PropertyObject::IsLast(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::PropertyObject* self;
 	osn::Properties*     parent;
 
-	if (!Retrieve(info.This(), self)) {
+	if (!Retrieve(args.This(), self)) {
 		return;
 	}
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+	if (!osn::Properties::Retrieve(self->parent.Get(args.GetIsolate()), parent)) {
 		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
 		return;
 	}
 
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
 	auto iter = property_map_t::reverse_iterator(parent->GetProperties()->find(self->index));
-	info.GetReturnValue().Set(iter == parent->GetProperties()->rbegin());
+	args.GetReturnValue().Set(iter == parent->GetProperties()->rbegin());
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetValue(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::PropertyObject::GetValue(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::PropertyObject* self;
 	osn::Properties*     parent;
 
-	if (!Retrieve(info.This(), self)) {
+	if (!Retrieve(args.This(), self)) {
 		return;
 	}
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+	if (!osn::Properties::Retrieve(self->parent.Get(args.GetIsolate()), parent)) {
 		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
 		return;
 	}
@@ -298,7 +302,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetValue(Nan::NAN_METHOD_ARGS_T
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
 	auto iter = parent->GetProperties()->find(self->index);
 	if (iter == parent->GetProperties()->end()) {
-		info.GetReturnValue().Set(Nan::Null());
+		args.GetReturnValue().Set(Nan::Null());
 		return;
 	}
 
@@ -308,38 +312,38 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetValue(Nan::NAN_METHOD_ARGS_T
 	case osn::Property::Type::BOOL: {
 		std::shared_ptr<osn::NumberProperty> cast_property =
 		    std::static_pointer_cast<osn::NumberProperty>(iter->second);
-		info.GetReturnValue().Set(utilv8::ToValue(reinterpret_cast<bool*>(cast_property->bool_value.value)));
+		args.GetReturnValue().Set(utilv8::ToValue(reinterpret_cast<bool*>(cast_property->bool_value.value)));
 		break;
 	}
 	case osn::Property::Type::INT: {
 		std::shared_ptr<osn::NumberProperty> cast_property =
 		    std::static_pointer_cast<osn::NumberProperty>(iter->second);
 
-		info.GetReturnValue().Set(utilv8::ToValue(cast_property->int_value.value));
+		args.GetReturnValue().Set(utilv8::ToValue(cast_property->int_value.value));
 		break;
 	}
 	case osn::Property::Type::COLOR: {
 		std::shared_ptr<osn::NumberProperty> cast_property =
 		    std::static_pointer_cast<osn::NumberProperty>(iter->second);
 
-		info.GetReturnValue().Set(utilv8::ToValue(cast_property->int_value.value));
+		args.GetReturnValue().Set(utilv8::ToValue(cast_property->int_value.value));
 		break;
 	}
 	case osn::Property::Type::FLOAT: {
 		std::shared_ptr<osn::NumberProperty> cast_property =
 		    std::static_pointer_cast<osn::NumberProperty>(iter->second);
 
-		info.GetReturnValue().Set(utilv8::ToValue(cast_property->float_value.value));
+		args.GetReturnValue().Set(utilv8::ToValue(cast_property->float_value.value));
 		break;
 	}
 	case osn::Property::Type::TEXT: {
 		std::shared_ptr<osn::TextProperty> cast_property = std::static_pointer_cast<osn::TextProperty>(iter->second);
-		info.GetReturnValue().Set(utilv8::ToValue(cast_property->value));
+		args.GetReturnValue().Set(utilv8::ToValue(cast_property->value));
 		break;
 	}
 	case osn::Property::Type::PATH: {
 		std::shared_ptr<osn::PathProperty> cast_property = std::static_pointer_cast<osn::PathProperty>(iter->second);
-		info.GetReturnValue().Set(utilv8::ToValue(cast_property->value));
+		args.GetReturnValue().Set(utilv8::ToValue(cast_property->value));
 		break;
 	}
 
@@ -347,13 +351,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetValue(Nan::NAN_METHOD_ARGS_T
 		std::shared_ptr<osn::ListProperty> cast_property = std::static_pointer_cast<osn::ListProperty>(iter->second);
 		switch (cast_property->item_format) {
 		case ListProperty::Format::FLOAT:
-			info.GetReturnValue().Set(utilv8::ToValue(cast_property->current_value_float));
+			args.GetReturnValue().Set(utilv8::ToValue(cast_property->current_value_float));
 			break;
 		case ListProperty::Format::INT:
-			info.GetReturnValue().Set(utilv8::ToValue(cast_property->current_value_int));
+			args.GetReturnValue().Set(utilv8::ToValue(cast_property->current_value_int));
 			break;
 		case ListProperty::Format::STRING:
-			info.GetReturnValue().Set(utilv8::ToValue(cast_property->current_value_str));
+			args.GetReturnValue().Set(utilv8::ToValue(cast_property->current_value_str));
 			break;
 		}
 		break;
@@ -371,14 +375,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetValue(Nan::NAN_METHOD_ARGS_T
 			utilv8::SetObjectField(values, (uint32_t)idx++, iobj);
 		}
 
-		info.GetReturnValue().Set(values);
+		args.GetReturnValue().Set(values);
 		break;
 	}
 	case osn::Property::Type::BUTTON:
 		break;
 	case osn::Property::Type::FONT: {
 		std::shared_ptr<osn::FontProperty> cast_property = std::static_pointer_cast<osn::FontProperty>(iter->second);
-		v8::Local<v8::Object>              font          = v8::Object::New(info.GetIsolate());
+		v8::Local<v8::Object>              font          = v8::Object::New(args.GetIsolate());
 
 		font->Set(Nan::GetCurrentContext(), utilv8::ToValue("face"), utilv8::ToValue(cast_property->face));
 		font->Set(Nan::GetCurrentContext(), utilv8::ToValue("style"), utilv8::ToValue(cast_property->style));
@@ -386,7 +390,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetValue(Nan::NAN_METHOD_ARGS_T
 		font->Set(Nan::GetCurrentContext(), utilv8::ToValue("size"), utilv8::ToValue(cast_property->sizeF));
 		font->Set(Nan::GetCurrentContext(), utilv8::ToValue("flags"), utilv8::ToValue(cast_property->flags));
 
-		info.GetReturnValue().Set(font);
+		args.GetReturnValue().Set(font);
 		break;
 	}
 	case osn::Property::Type::FRAMERATE:
@@ -394,15 +398,15 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetValue(Nan::NAN_METHOD_ARGS_T
 	}
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetName(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::PropertyObject::GetName(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::PropertyObject* self;
 	osn::Properties*     parent;
 
-	if (!Retrieve(info.This(), self)) {
+	if (!Retrieve(args.This(), self)) {
 		return;
 	}
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+	if (!osn::Properties::Retrieve(self->parent.Get(args.GetIsolate()), parent)) {
 		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
 		return;
 	}
@@ -410,23 +414,23 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetName(Nan::NAN_METHOD_ARGS_TY
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
 	auto iter = parent->GetProperties()->find(self->index);
 	if (iter == parent->GetProperties()->end()) {
-		info.GetReturnValue().Set(Nan::Null());
+		args.GetReturnValue().Set(Nan::Null());
 		return;
 	}
 
-	info.GetReturnValue().Set(utilv8::ToValue(iter->second->name));
+	args.GetReturnValue().Set(utilv8::ToValue(iter->second->name));
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetDescription(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::PropertyObject::GetDescription(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::PropertyObject* self;
 	osn::Properties*     parent;
 
-	if (!Retrieve(info.This(), self)) {
+	if (!Retrieve(args.This(), self)) {
 		return;
 	}
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+	if (!osn::Properties::Retrieve(self->parent.Get(args.GetIsolate()), parent)) {
 		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
 		return;
 	}
@@ -434,23 +438,23 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetDescription(Nan::NAN_METHOD_
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
 	auto iter = parent->GetProperties()->find(self->index);
 	if (iter == parent->GetProperties()->end()) {
-		info.GetReturnValue().Set(Nan::Null());
+		args.GetReturnValue().Set(Nan::Null());
 		return;
 	}
 
-	info.GetReturnValue().Set(utilv8::ToValue(iter->second->description));
+	args.GetReturnValue().Set(utilv8::ToValue(iter->second->description));
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetLongDescription(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::PropertyObject::GetLongDescription(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::PropertyObject* self;
 	osn::Properties*     parent;
 
-	if (!Retrieve(info.This(), self)) {
+	if (!Retrieve(args.This(), self)) {
 		return;
 	}
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+	if (!osn::Properties::Retrieve(self->parent.Get(args.GetIsolate()), parent)) {
 		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
 		return;
 	}
@@ -458,23 +462,23 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetLongDescription(Nan::NAN_MET
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
 	auto iter = parent->GetProperties()->find(self->index);
 	if (iter == parent->GetProperties()->end()) {
-		info.GetReturnValue().Set(Nan::Null());
+		args.GetReturnValue().Set(Nan::Null());
 		return;
 	}
 
-	info.GetReturnValue().Set(utilv8::ToValue(iter->second->long_description));
+	args.GetReturnValue().Set(utilv8::ToValue(iter->second->long_description));
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::IsEnabled(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::PropertyObject::IsEnabled(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::PropertyObject* self;
 	osn::Properties*     parent;
 
-	if (!Retrieve(info.This(), self)) {
+	if (!Retrieve(args.This(), self)) {
 		return;
 	}
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+	if (!osn::Properties::Retrieve(self->parent.Get(args.GetIsolate()), parent)) {
 		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
 		return;
 	}
@@ -482,23 +486,23 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::IsEnabled(Nan::NAN_METHOD_ARGS_
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
 	auto iter = parent->GetProperties()->find(self->index);
 	if (iter == parent->GetProperties()->end()) {
-		info.GetReturnValue().Set(Nan::Null());
+		args.GetReturnValue().Set(Nan::Null());
 		return;
 	}
 
-	info.GetReturnValue().Set(iter->second->enabled);
+	args.GetReturnValue().Set(iter->second->enabled);
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::IsVisible(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::PropertyObject::IsVisible(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::PropertyObject* self;
 	osn::Properties*     parent;
 
-	if (!Retrieve(info.This(), self)) {
+	if (!Retrieve(args.This(), self)) {
 		return;
 	}
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+	if (!osn::Properties::Retrieve(self->parent.Get(args.GetIsolate()), parent)) {
 		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
 		return;
 	}
@@ -506,23 +510,23 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::IsVisible(Nan::NAN_METHOD_ARGS_
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
 	auto iter = parent->GetProperties()->find(self->index);
 	if (iter == parent->GetProperties()->end()) {
-		info.GetReturnValue().Set(Nan::Null());
+		args.GetReturnValue().Set(Nan::Null());
 		return;
 	}
 
-	info.GetReturnValue().Set(iter->second->visible);
+	args.GetReturnValue().Set(iter->second->visible);
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetType(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::PropertyObject::GetType(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::PropertyObject* self;
 	osn::Properties*     parent;
 
-	if (!Retrieve(info.This(), self)) {
+	if (!Retrieve(args.This(), self)) {
 		return;
 	}
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+	if (!osn::Properties::Retrieve(self->parent.Get(args.GetIsolate()), parent)) {
 		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
 		return;
 	}
@@ -530,23 +534,23 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetType(Nan::NAN_METHOD_ARGS_TY
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
 	auto iter = parent->GetProperties()->find(self->index);
 	if (iter == parent->GetProperties()->end()) {
-		info.GetReturnValue().Set(Nan::Null());
+		args.GetReturnValue().Set(Nan::Null());
 		return;
 	}
 
-	info.GetReturnValue().Set(utilv8::ToValue((uint32_t)iter->second->type));
+	args.GetReturnValue().Set(utilv8::ToValue((uint32_t)iter->second->type));
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetDetails(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::PropertyObject::GetDetails(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::PropertyObject* self;
 	osn::Properties*     parent;
 
-	if (!Retrieve(info.This(), self)) {
+	if (!Retrieve(args.This(), self)) {
 		return;
 	}
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+	if (!osn::Properties::Retrieve(self->parent.Get(args.GetIsolate()), parent)) {
 		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
 		return;
 	}
@@ -554,7 +558,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetDetails(Nan::NAN_METHOD_ARGS
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
 	auto iter = parent->GetProperties()->find(self->index);
 	if (iter == parent->GetProperties()->end()) {
-		info.GetReturnValue().Set(Nan::Null());
+		args.GetReturnValue().Set(Nan::Null());
 		return;
 	}
 
@@ -668,26 +672,26 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::GetDetails(Nan::NAN_METHOD_ARGS
 	}
 	}
 
-	info.GetReturnValue().Set(object);
+	args.GetReturnValue().Set(object);
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Modified(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::PropertyObject::Modified(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	v8::Local<v8::Object> settings;
 
 	// Value Stuff
 	/// Arguments
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], settings);
+	ASSERT_INFO_LENGTH(args, 1);
+	ASSERT_GET_VALUE(args[0], settings);
 	/// Self
 	osn::PropertyObject* self;
-	if (!Retrieve(info.This(), self)) {
+	if (!Retrieve(args.This(), self)) {
 		return;
 	}
 	/// Parent
 	osn::Properties* parent;
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+	if (!osn::Properties::Retrieve(self->parent.Get(args.GetIsolate()), parent)) {
 		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
 		return;
 	}
@@ -700,12 +704,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Modified(Nan::NAN_METHOD_ARGS_T
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
 	auto iter = parent->GetProperties()->find(self->index);
 	if (iter == parent->GetProperties()->end()) {
-		info.GetReturnValue().Set(Nan::Null());
+		args.GetReturnValue().Set(Nan::Null());
 		return;
 	}
 
 	// Stringify settings
-	v8::MaybeLocal<v8::String> settings_str = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), settings);
+	v8::MaybeLocal<v8::String> settings_str = v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), settings);
 	std::string                value;
 	if (!utilv8::FromValue(settings_str.ToLocalChecked(), value)) {
 		Nan::Error("Unable to convert Settings Object to String");
@@ -722,7 +726,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Modified(Nan::NAN_METHOD_ARGS_T
 	    {ipc::value(parent_source->sourceId), ipc::value(iter->second->name), ipc::value(value)});
 
 	if (!ValidateResponse(rval)) {
-		info.GetReturnValue().Set(false);
+		args.GetReturnValue().Set(false);
 		return;
 	}
 
@@ -732,25 +736,25 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::Modified(Nan::NAN_METHOD_ARGS_T
 		sdi->settingsChanged   = true;
 	}
 
-	info.GetReturnValue().Set(!!rval[1].value_union.i32);
+	args.GetReturnValue().Set(!!rval[1].value_union.i32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::ButtonClicked(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::PropertyObject::ButtonClicked(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	v8::Local<v8::Object> source_obj;
 
 	// Value Stuff
 	/// Arguments
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], source_obj); // This object is not necessary, we keep track of the parent source here.
+	ASSERT_INFO_LENGTH(args, 1);
+	ASSERT_GET_VALUE(args[0], source_obj); // This object is not necessary, we keep track of the parent source here.
 	/// Self
 	osn::PropertyObject* self;
-	if (!Retrieve(info.This(), self)) {
+	if (!Retrieve(args.This(), self)) {
 		return;
 	}
 	/// Parent
 	osn::Properties* parent;
-	if (!osn::Properties::Retrieve(self->parent.Get(info.GetIsolate()), parent)) {
+	if (!osn::Properties::Retrieve(self->parent.Get(args.GetIsolate()), parent)) {
 		Nan::ThrowReferenceError("Parent invalidated while child is still alive.");
 		return;
 	}
@@ -768,7 +772,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::ButtonClicked(Nan::NAN_METHOD_A
 	// !FIXME! Optimize so we can directly access the map whenever possible, if at all possible.
 	auto iter = parent->GetProperties()->find(self->index);
 	if (iter == parent->GetProperties()->end()) {
-		info.GetReturnValue().Set(Nan::Null());
+		args.GetReturnValue().Set(Nan::Null());
 		return;
 	}
 
@@ -781,7 +785,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::ButtonClicked(Nan::NAN_METHOD_A
 	    "Properties", "Clicked", {ipc::value(parent_source->sourceId), ipc::value(iter->second->name)});
 
 	if (!ValidateResponse(rval)) {
-		info.GetReturnValue().Set(false);
+		args.GetReturnValue().Set(false);
 		return;
 	}
 
@@ -790,5 +794,5 @@ Nan::NAN_METHOD_RETURN_TYPE osn::PropertyObject::ButtonClicked(Nan::NAN_METHOD_A
 		sdi->propertiesChanged = true;
 	}
 
-	info.GetReturnValue().Set(true);
+	args.GetReturnValue().Set(true);
 }

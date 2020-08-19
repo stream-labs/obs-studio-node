@@ -180,15 +180,17 @@ void osn::VolMeter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	fnctemplate->SetClassName(Nan::New<v8::String>("Volmeter").ToLocalChecked());
 
 	// Class Template
-	utilv8::SetTemplateField(fnctemplate, "create", Create);
+	utilv8::SetTemplateField(fnctemplate, "create", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Create));
 
 	// Instance Template
 	auto objtemplate = fnctemplate->PrototypeTemplate();
-	utilv8::SetTemplateAccessorProperty(objtemplate, "updateInterval", GetUpdateInterval, SetUpdateInterval);
-	utilv8::SetTemplateField(objtemplate, "attach", Attach);
-	utilv8::SetTemplateField(objtemplate, "detach", Detach);
-	utilv8::SetTemplateField(objtemplate, "addCallback", AddCallback);
-	utilv8::SetTemplateField(objtemplate, "removeCallback", RemoveCallback);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "updateInterval",
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetUpdateInterval),
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetUpdateInterval));
+	utilv8::SetTemplateField(objtemplate, "attach", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Attach));
+	utilv8::SetTemplateField(objtemplate, "detach", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Detach));
+	utilv8::SetTemplateField(objtemplate, "addCallback", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), AddCallback));
+	utilv8::SetTemplateField(objtemplate, "removeCallback", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), RemoveCallback));
 
 	// Stuff
 	utilv8::SetObjectField(
@@ -196,13 +198,13 @@ void osn::VolMeter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	prototype.Reset(fnctemplate);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Create(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::VolMeter::Create(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	int32_t fader_type;
 
 	// Validate and retrieve parameters.
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], fader_type);
+	ASSERT_INFO_LENGTH(args, 1);
+	ASSERT_GET_VALUE(args[0], fader_type);
 
 	// Validate Connection
 	auto conn = Controller::GetInstance().GetConnection();
@@ -226,17 +228,17 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Create(Nan::NAN_METHOD_ARGS_TYPE info
 	// Return created Object
 	auto* newVolmeter              = new osn::VolMeter(rval[1].value_union.ui64);
 	newVolmeter->m_sleep_interval  = rval[2].value_union.ui32;
-	info.GetReturnValue().Set(Store(newVolmeter));
+	args.GetReturnValue().Set(Store(newVolmeter));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::GetUpdateInterval(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::VolMeter::GetUpdateInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::VolMeter* self;
 
 	// Validate and retrieve parameters.
-	ASSERT_INFO_LENGTH(info, 0);
+	ASSERT_INFO_LENGTH(args, 0);
 
-	if (!Retrieve(info.This(), self)) {
+	if (!Retrieve(args.This(), self)) {
 		return;
 	}
 
@@ -262,19 +264,19 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::GetUpdateInterval(Nan::NAN_METHOD_ARG
 	self->m_sleep_interval = rval[1].value_union.ui32;
 
 	// Return DeziBel Value
-	info.GetReturnValue().Set(rval[1].value_union.ui32);
+	args.GetReturnValue().Set(rval[1].value_union.ui32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::SetUpdateInterval(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::VolMeter::SetUpdateInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	uint32_t       interval;
 	osn::VolMeter* self;
 
 	// Validate and retrieve parameters.
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], interval);
+	ASSERT_INFO_LENGTH(args, 1);
+	ASSERT_GET_VALUE(args[0], interval);
 
-	if (!Retrieve(info.This(), self)) {
+	if (!Retrieve(args.This(), self)) {
 		return;
 	}
 
@@ -289,20 +291,20 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::SetUpdateInterval(Nan::NAN_METHOD_ARG
 	conn->call("VolMeter", "SetUpdateInterval", {ipc::value(self->m_uid), ipc::value(interval)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Attach(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::VolMeter::Attach(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::VolMeter* fader;
 	osn::ISource*  source;
 
 	// Validate and retrieve parameters.
-	ASSERT_INFO_LENGTH(info, 1);
+	ASSERT_INFO_LENGTH(args, 1);
 
-	if (!Retrieve(info.This(), fader)) {
+	if (!Retrieve(args.This(), fader)) {
 		return;
 	}
 
 	v8::Local<v8::Object> sourceObj;
-	ASSERT_GET_VALUE(info[0], sourceObj);
+	ASSERT_GET_VALUE(args[0], sourceObj);
 	if (!osn::ISource::Retrieve(sourceObj, source)) {
 		return;
 	}
@@ -318,14 +320,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Attach(Nan::NAN_METHOD_ARGS_TYPE info
 	conn->call("VolMeter", "Attach", {ipc::value(fader->m_uid), ipc::value(source->sourceId)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Detach(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::VolMeter::Detach(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::VolMeter* fader;
 
 	// Validate and retrieve parameters.
-	ASSERT_INFO_LENGTH(info, 0);
+	ASSERT_INFO_LENGTH(args, 0);
 
-	if (!Retrieve(info.This(), fader)) {
+	if (!Retrieve(args.This(), fader)) {
 		return;
 	}
 
@@ -340,19 +342,19 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Detach(Nan::NAN_METHOD_ARGS_TYPE info
 	conn->call("VolMeter", "Detach", {ipc::value(fader->m_uid)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::AddCallback(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::VolMeter::AddCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::VolMeter*          self;
 	v8::Local<v8::Function> callback;
 
 	{
 		// Arguments
-		ASSERT_INFO_LENGTH(info, 1);
-		if (!Retrieve(info.This(), self)) {
+		ASSERT_INFO_LENGTH(args, 1);
+		if (!Retrieve(args.This(), self)) {
 			return;
 		}
 
-		ASSERT_GET_VALUE(info[0], callback);
+		ASSERT_GET_VALUE(args[0], callback);
 	}
 
 	{
@@ -367,26 +369,26 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::AddCallback(Nan::NAN_METHOD_ARGS_TYPE
 		    conn->call_synchronous_helper("VolMeter", "AddCallback", {ipc::value(self->m_uid)});
 
 		if (!ValidateResponse(rval)) {
-			info.GetReturnValue().Set(Nan::Null());
+			args.GetReturnValue().Set(Nan::Null());
 			return;
 		}
 	}
 
 	self->m_callback_function.Reset(callback);
 	self->start_async_runner();
-	self->set_keepalive(info.This());
+	self->set_keepalive(args.This());
 	self->start_worker();
 
-	info.GetReturnValue().Set(true);
+	args.GetReturnValue().Set(true);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::VolMeter::RemoveCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::VolMeter* self;
 
 	{
-		ASSERT_INFO_LENGTH(info, 1);
-		if (!Retrieve(info.This(), self)) {
+		ASSERT_INFO_LENGTH(args, 1);
+		if (!Retrieve(args.This(), self)) {
 			return;
 		}
 	}
@@ -407,12 +409,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::RemoveCallback(Nan::NAN_METHOD_ARGS_T
 		    conn->call_synchronous_helper("VolMeter", "RemoveCallback", {ipc::value(self->m_uid)});
 
 		if (!ValidateResponse(rval)) {
-			info.GetReturnValue().Set(Nan::Null());
+			args.GetReturnValue().Set(Nan::Null());
 			return;
 		}
 	}
 
-	info.GetReturnValue().Set(true);
+	args.GetReturnValue().Set(true);
 }
 
 INITIALIZER(nodeobs_volmeter)

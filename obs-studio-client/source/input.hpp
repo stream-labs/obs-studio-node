@@ -35,40 +35,40 @@ namespace osn
 		public:
 		static Nan::Persistent<v8::FunctionTemplate> prototype;
 
-		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+		static void Register(v8::Local<v8::Object> exports);
 
 		// Functions
-		static Nan::NAN_METHOD_RETURN_TYPE Types(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Create(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE FromName(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetPublicSources(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void Types(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void Create(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void CreatePrivate(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void FromName(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void GetPublicSources(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 		// Methods
-		static Nan::NAN_METHOD_RETURN_TYPE Duplicate(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void Duplicate(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-		static Nan::NAN_METHOD_RETURN_TYPE Active(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Showing(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Width(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Height(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetVolume(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetVolume(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetMonitoringType(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetMonitoringType(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetDeinterlaceFieldOrder(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetDeinterlaceFieldOrder(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetDeinterlaceMode(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetDeinterlaceMode(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void Active(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void Showing(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void Width(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void Height(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void GetVolume(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void SetVolume(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void GetSyncOffset(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void SetSyncOffset(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void GetAudioMixers(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void SetAudioMixers(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void GetMonitoringType(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void SetMonitoringType(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void GetDeinterlaceFieldOrder(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void SetDeinterlaceFieldOrder(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void GetDeinterlaceMode(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void SetDeinterlaceMode(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-		static Nan::NAN_METHOD_RETURN_TYPE Filters(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE AddFilter(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE RemoveFilter(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetFilterOrder(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE FindFilter(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE CopyFilters(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void Filters(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void AddFilter(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void RemoveFilter(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void SetFilterOrder(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void FindFilter(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void CopyFilters(const v8::FunctionCallbackInfo<v8::Value>& args);
 	};
 } // namespace osn

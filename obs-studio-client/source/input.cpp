@@ -36,54 +36,63 @@ osn::Input::Input(uint64_t id)
 	this->sourceId = id;
 }
 
-void osn::Input::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
+void osn::Input::Register(v8::Local<v8::Object> exports)
 {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->Inherit(Nan::New<v8::FunctionTemplate>(osn::ISource::prototype));
 	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
 	fnctemplate->SetClassName(Nan::New<v8::String>("Input").ToLocalChecked());
 
-	// Function Template
-	utilv8::SetTemplateField(fnctemplate, "types", Types);
-	utilv8::SetTemplateField(fnctemplate, "create", Create);
-	utilv8::SetTemplateField(fnctemplate, "createPrivate", CreatePrivate);
-	utilv8::SetTemplateField(fnctemplate, "fromName", FromName);
-	utilv8::SetTemplateField(fnctemplate, "getPublicSources", GetPublicSources);
+	utilv8::SetTemplateField(fnctemplate, "types", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Types));
+	utilv8::SetTemplateField(fnctemplate, "create", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Create));
+	utilv8::SetTemplateField(fnctemplate, "createPrivate", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), CreatePrivate));
+	utilv8::SetTemplateField(fnctemplate, "fromName", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), FromName));
+	utilv8::SetTemplateField(fnctemplate, "getPublicSources", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetPublicSources));
 
-	// Prototype Template
-
-	// Instance Template
 	v8::Local<v8::Template> objtemplate = fnctemplate->PrototypeTemplate();
-	utilv8::SetTemplateField(objtemplate, "duplicate", Duplicate);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "active", Active);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "showing", Showing);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "width", Width);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "height", Height);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "volume", GetVolume, SetVolume);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "syncOffset", GetSyncOffset, SetSyncOffset);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "audioMixers", GetAudioMixers, SetAudioMixers);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "monitoringType", GetMonitoringType, SetMonitoringType);
+	utilv8::SetTemplateField(objtemplate, "duplicate", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Duplicate));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "active", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Active));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "showing", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Showing));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "width", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Width));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "height", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Height));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "volume",
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetVolume),
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetVolume));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "syncOffset",
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetSyncOffset),
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetSyncOffset));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "audioMixers",
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetAudioMixers),
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetAudioMixers));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "monitoringType",
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetMonitoringType),
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetMonitoringType));
 	utilv8::SetTemplateAccessorProperty(
-	    objtemplate, "deinterlaceFieldOrder", GetDeinterlaceFieldOrder, SetDeinterlaceFieldOrder);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "deinterlaceMode", GetDeinterlaceMode, SetDeinterlaceMode);
+	    objtemplate, "deinterlaceFieldOrder",
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetDeinterlaceFieldOrder),
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetDeinterlaceFieldOrder));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "deinterlaceMode",
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetDeinterlaceMode),
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetDeinterlaceMode));
 
-	utilv8::SetTemplateAccessorProperty(objtemplate, "filters", Filters);
-	utilv8::SetTemplateField(objtemplate, "addFilter", AddFilter);
-	utilv8::SetTemplateField(objtemplate, "removeFilter", RemoveFilter);
-	utilv8::SetTemplateField(objtemplate, "setFilterOrder", SetFilterOrder);
-	utilv8::SetTemplateField(objtemplate, "findFilter", FindFilter);
-	utilv8::SetTemplateField(objtemplate, "copyFilters", CopyFilters);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "filters", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Filters));
+	utilv8::SetTemplateField(objtemplate, "addFilter", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), AddFilter));
+	utilv8::SetTemplateField(objtemplate, "removeFilter", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), RemoveFilter));
+	utilv8::SetTemplateField(objtemplate, "setFilterOrder", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetFilterOrder));
+	utilv8::SetTemplateField(objtemplate, "findFilter", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), FindFilter));
+	utilv8::SetTemplateField(objtemplate, "copyFilters", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), CopyFilters));
 
-	// Stuff
-	utilv8::SetObjectField(
-	    target, "Input", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
+	exports->Set(
+		Nan::GetCurrentContext(),
+		v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), "Input").ToLocalChecked(),
+		fnctemplate->GetFunction(Nan::GetCurrentContext()).ToLocalChecked()).FromJust();
 	prototype.Reset(fnctemplate);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::Types(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::Types(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	// Function takes no parameters.
-	ASSERT_INFO_LENGTH(info, 0);
+	ASSERT_INFO_LENGTH(args, 0);
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -100,40 +109,45 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Types(Nan::NAN_METHOD_ARGS_TYPE info)
 		types.push_back(response[i].value_str);
 	}
 
-	info.GetReturnValue().Set(utilv8::ToValue<std::string>(types));
+	args.GetReturnValue().Set(utilv8::ToValue<std::string>(types));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::Create(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::Create(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+	std::cout << "Create 0 " << std::endl;
 	std::string           type;
 	std::string           name;
 	v8::Local<v8::String> settings = Nan::New<v8::String>("").ToLocalChecked();
 	v8::Local<v8::String> hotkeys  = Nan::New<v8::String>("").ToLocalChecked();
 
 	// Parameters: <string> Type, <string> Name[,<object> settings]
-	ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
+	ASSERT_INFO_LENGTH_AT_LEAST(args, 2);
 
-	ASSERT_GET_VALUE(info[0], type);
-	ASSERT_GET_VALUE(info[1], name);
+	std::cout << "Create 1 " << std::endl;
+	ASSERT_GET_VALUE(args[0], type);
+	ASSERT_GET_VALUE(args[1], name);
 
+	std::cout << "Create 2 " << std::endl;
 	// Check if caller provided settings to send across.
-	if (info.Length() >= 4) {
-		ASSERT_INFO_LENGTH(info, 4);
-		if (!info[3]->IsUndefined()) {
+	if (args.Length() >= 4) {
+		ASSERT_INFO_LENGTH(args, 4);
+		// if (!args[3]->IsUndefined()) {
 			v8::Local<v8::Object> hksobj;
-			ASSERT_GET_VALUE(info[3], hksobj);
-			hotkeys = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), hksobj).ToLocalChecked();
-		}
+			ASSERT_GET_VALUE(args[3], hksobj);
+			hotkeys = v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), hksobj).ToLocalChecked();
+		// }
 	}
-	if (info.Length() >= 3) {
-		ASSERT_INFO_LENGTH_AT_LEAST(info, 3);
-		if (!info[2]->IsUndefined()) {
+	std::cout << "Create 3 " << std::endl;
+	if (args.Length() >= 3) {
+		ASSERT_INFO_LENGTH_AT_LEAST(args, 3);
+		// if (!args[2]->IsUndefined()) {
 			v8::Local<v8::Object> setobj;
-			ASSERT_GET_VALUE(info[2], setobj);
-			settings = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), setobj).ToLocalChecked();
-		}
+			ASSERT_GET_VALUE(args[2], setobj);
+			settings = v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), setobj).ToLocalChecked();
+		// }
 	}
 
+	std::cout << "Create 4 " << std::endl;
 	auto conn = GetConnection();
 	if (!conn)
 		return;
@@ -145,6 +159,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 			params.push_back(ipc::value(value));
 		}
 	}
+	std::cout << "Create 5 " << std::endl;
 	if (hotkeys->Length() != 0) {
 		std::string value;
 		if (utilv8::FromValue(hotkeys, value)) {
@@ -152,14 +167,18 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 		}
 	}
 
+	std::cout << "Create 6 " << std::endl;
 	std::vector<ipc::value> response = conn->call_synchronous_helper("Input", "Create", {std::move(params)});
 
+	std::cout << "Create 6.1 " << std::endl;
 	if (!ValidateResponse(response))
 		return;
 
+	std::cout << "Create 6.2 " << std::endl;
 	// Create new Filter
 	osn::Input* obj = new osn::Input(response[1].value_union.ui64);
 
+	std::cout << "Create 6.3 " << std::endl;
 	SourceDataInfo* sdi = new SourceDataInfo;
 	sdi->name           = name;
 	sdi->obs_sourceId   = type;
@@ -167,31 +186,34 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 	sdi->setting        = response[2].value_str;
 	sdi->audioMixers    = response[3].value_union.ui32;
 
+	std::cout << "Create 6.4 " << std::endl;
 	CacheManager<SourceDataInfo*>::getInstance().Store(response[1].value_union.ui64, name, sdi);
 
-	info.GetReturnValue().Set(osn::Input::Store(obj));
+	std::cout << "Create 6.5 " << std::endl;
+	args.GetReturnValue().Set(osn::Input::Store(obj));
+	std::cout << "Create 7 " << std::endl;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::CreatePrivate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	std::string           type;
 	std::string           name;
 	v8::Local<v8::String> settings = Nan::New<v8::String>("").ToLocalChecked();
 
 	// Parameters: <string> Type, <string> Name[,<object> settings]
-	ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
+	ASSERT_INFO_LENGTH_AT_LEAST(args, 2);
 
-	ASSERT_GET_VALUE(info[0], type);
-	ASSERT_GET_VALUE(info[1], name);
+	ASSERT_GET_VALUE(args[0], type);
+	ASSERT_GET_VALUE(args[1], name);
 
 	// Check if caller provided settings to send across.
-	if (info.Length() >= 3) {
-		ASSERT_INFO_LENGTH(info, 3);
+	if (args.Length() >= 3) {
+		ASSERT_INFO_LENGTH(args, 3);
 
 		v8::Local<v8::Object> setobj;
-		ASSERT_GET_VALUE(info[2], setobj);
+		ASSERT_GET_VALUE(args[2], setobj);
 
-		settings = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), setobj).ToLocalChecked();
+		settings = v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), setobj).ToLocalChecked();
 	}
 
 	auto conn = GetConnection();
@@ -223,22 +245,22 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE 
 
 	CacheManager<SourceDataInfo*>::getInstance().Store(response[1].value_union.ui64, name, sdi);
 
-	info.GetReturnValue().Set(osn::Input::Store(obj));
+	args.GetReturnValue().Set(osn::Input::Store(obj));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::FromName(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::FromName(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	std::string name;
 
 	// Parameters: <string> Name
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], name);
+	ASSERT_INFO_LENGTH(args, 1);
+	ASSERT_GET_VALUE(args[0], name);
 
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(name);
 
 	if (sdi) {
 		osn::Input* obj = new osn::Input(sdi->id);
-		info.GetReturnValue().Set(osn::Input::Store(obj));
+		args.GetReturnValue().Set(osn::Input::Store(obj));
 		return;
 	}
 
@@ -253,10 +275,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::FromName(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	// Create new Filter
 	osn::Input* obj = new osn::Input(response[1].value_union.ui64);
-	info.GetReturnValue().Set(osn::Input::Store(obj));
+	args.GetReturnValue().Set(osn::Input::Store(obj));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetPublicSources(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::GetPublicSources(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	auto conn = GetConnection();
 	if (!conn)
@@ -274,13 +296,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetPublicSources(Nan::NAN_METHOD_ARGS_TY
 		Nan::Set(arr, uint32_t(idx), object);
 	}
 
-	info.GetReturnValue().Set(arr);
+	args.GetReturnValue().Set(arr);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::Duplicate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
 		return;
 	}
 	osn::Input* obj = static_cast<osn::Input*>(baseobj);
@@ -292,13 +314,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info
 	//parameters
 	std::string name       = "";
 	bool        is_private = false;
-	ASSERT_INFO_LENGTH_AT_LEAST(info, 0);
-	if (info.Length() >= 1) {
-		ASSERT_GET_VALUE(info[0], name);
+	ASSERT_INFO_LENGTH_AT_LEAST(args, 0);
+	if (args.Length() >= 1) {
+		ASSERT_GET_VALUE(args[0], name);
 	}
-	if (info.Length() >= 2) {
-		ASSERT_INFO_LENGTH(info, 2);
-		ASSERT_GET_VALUE(info[1], is_private);
+	if (args.Length() >= 2) {
+		ASSERT_INFO_LENGTH(args, 2);
+		ASSERT_GET_VALUE(args[1], is_private);
 	}
 
 	auto conn = GetConnection();
@@ -306,10 +328,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info
 		return;
 
 	auto params = std::vector<ipc::value>{ipc::value(obj->sourceId)};
-	if (info.Length() >= 1) {
+	if (args.Length() >= 1) {
 		params.push_back(ipc::value(name));
 	}
-	if (info.Length() >= 2) {
+	if (args.Length() >= 2) {
 		params.push_back(ipc::value(is_private));
 	}
 
@@ -319,13 +341,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info
 		return;
 
 	osn::Input* nobj = new osn::Input(response[1].value_union.ui64);
-	info.GetReturnValue().Set(osn::Input::Store(nobj));
+	args.GetReturnValue().Set(osn::Input::Store(nobj));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::Active(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::Active(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
 		return;
 	}
 	osn::Input* obj = static_cast<osn::Input*>(baseobj);
@@ -343,14 +365,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Active(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!ValidateResponse(response))
 		return;
 
-	info.GetReturnValue().Set(response[1].value_union.i32);
+	args.GetReturnValue().Set(response[1].value_union.i32);
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::Showing(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::Showing(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
 		return;
 	}
 	osn::Input* obj = static_cast<osn::Input*>(baseobj);
@@ -369,22 +391,27 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Showing(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!ValidateResponse(response))
 		return;
 
-	info.GetReturnValue().Set(response[1].value_union.i32);
+	args.GetReturnValue().Set(response[1].value_union.i32);
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::Width(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::Width(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	std::cout << "Width 0" << std::endl;
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
+		std::cout << "Width 1" << std::endl;
 		return;
 	}
+	std::cout << "Width 2" << std::endl;
 	osn::Input* obj = static_cast<osn::Input*>(baseobj);
 	if (!obj) {
+		std::cout << "Width 3" << std::endl;
 		// How did you even call this? o.o
 		return;
 	}
 
+	std::cout << "Width 4" << std::endl;
 	auto conn = GetConnection();
 	if (!conn)
 		return;
@@ -394,13 +421,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Width(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!ValidateResponse(response))
 		return;
 
-	info.GetReturnValue().Set(response[1].value_union.ui32);
+	args.GetReturnValue().Set(response[1].value_union.ui32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::Height(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::Height(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
 		return;
 	}
 	osn::Input* obj = static_cast<osn::Input*>(baseobj);
@@ -418,13 +445,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Height(Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!ValidateResponse(response))
 		return;
 
-	info.GetReturnValue().Set(response[1].value_union.ui32);
+	args.GetReturnValue().Set(response[1].value_union.ui32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetVolume(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::GetVolume(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
 		return;
 	}
 	osn::Input* obj = static_cast<osn::Input*>(baseobj);
@@ -442,13 +469,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetVolume(Nan::NAN_METHOD_ARGS_TYPE info
 	if (!ValidateResponse(response))
 		return;
 
-	info.GetReturnValue().Set(response[1].value_union.fp32);
+	args.GetReturnValue().Set(response[1].value_union.fp32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetVolume(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::SetVolume(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
 		return;
 	}
 	osn::Input* obj = static_cast<osn::Input*>(baseobj);
@@ -458,8 +485,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetVolume(Nan::NAN_METHOD_ARGS_TYPE info
 	}
 
 	float_t volume = 0.0f;
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], volume);
+	ASSERT_INFO_LENGTH(args, 1);
+	ASSERT_GET_VALUE(args[0], volume);
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -468,10 +495,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetVolume(Nan::NAN_METHOD_ARGS_TYPE info
 	conn->call("Input", "SetVolume", {ipc::value(obj->sourceId), ipc::value(volume)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::GetSyncOffset(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
 		return;
 	}
 	osn::Input* obj = static_cast<osn::Input*>(baseobj);
@@ -497,13 +524,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE 
 
 	utilv8::SetObjectField(tsobj, "nsec", response[1].value_union.i64 % 1000000000);
 
-	info.GetReturnValue().Set(tsobj);
+	args.GetReturnValue().Set(tsobj);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::SetSyncOffset(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
 		return;
 	}
 	osn::Input* obj = static_cast<osn::Input*>(baseobj);
@@ -513,8 +540,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE 
 	}
 
 	v8::Local<v8::Object> tsobj;
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], tsobj);
+	ASSERT_INFO_LENGTH(args, 1);
+	ASSERT_GET_VALUE(args[0], tsobj);
 
 	int64_t sec, nsec;
 	ASSERT_GET_OBJECT_FIELD(tsobj, "sec", sec);
@@ -529,10 +556,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE 
 	conn->call("Input", "SetSyncOffset", {ipc::value(obj->sourceId), ipc::value(syncoffset)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::GetAudioMixers(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
 		return;
 	}
 	osn::Input* obj = static_cast<osn::Input*>(baseobj);
@@ -543,7 +570,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE
 
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
 	if (sdi && !sdi->audioMixersChanged && sdi->audioMixers != UINT32_MAX) {
-		info.GetReturnValue().Set(sdi->audioMixers);
+		args.GetReturnValue().Set(sdi->audioMixers);
 		return;
 	}
 
@@ -562,13 +589,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE
 		sdi->audioMixersChanged = false;
 	}
 
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.ui32));
+	args.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.ui32));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::SetAudioMixers(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
 		return;
 	}
 	osn::Input* obj = static_cast<osn::Input*>(baseobj);
@@ -578,8 +605,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE
 	}
 
 	uint32_t audiomixers = 0;
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], audiomixers);
+	ASSERT_INFO_LENGTH(args, 1);
+	ASSERT_GET_VALUE(args[0], audiomixers);
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -593,10 +620,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE
 	}
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetMonitoringType(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::GetMonitoringType(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
 		return;
 	}
 	osn::Input* obj = static_cast<osn::Input*>(baseobj);
@@ -615,13 +642,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetMonitoringType(Nan::NAN_METHOD_ARGS_T
 	if (!ValidateResponse(response))
 		return;
 
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.i32));
+	args.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.i32));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetMonitoringType(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::SetMonitoringType(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
 		return;
 	}
 	osn::Input* obj = static_cast<osn::Input*>(baseobj);
@@ -631,8 +658,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetMonitoringType(Nan::NAN_METHOD_ARGS_T
 	}
 
 	int32_t audiomixers = 0;
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], audiomixers);
+	ASSERT_INFO_LENGTH(args, 1);
+	ASSERT_GET_VALUE(args[0], audiomixers);
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -641,10 +668,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetMonitoringType(Nan::NAN_METHOD_ARGS_T
 	conn->call("Input", "SetMonitoringType", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetDeinterlaceFieldOrder(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::GetDeinterlaceFieldOrder(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
 		return;
 	}
 	osn::Input* obj = static_cast<osn::Input*>(baseobj);
@@ -663,13 +690,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetDeinterlaceFieldOrder(Nan::NAN_METHOD
 	if (!ValidateResponse(response))
 		return;
 
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.i32));
+	args.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.i32));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetDeinterlaceFieldOrder(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::SetDeinterlaceFieldOrder(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
 		return;
 	}
 	osn::Input* obj = static_cast<osn::Input*>(baseobj);
@@ -679,8 +706,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetDeinterlaceFieldOrder(Nan::NAN_METHOD
 	}
 
 	int32_t audiomixers = 0;
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], audiomixers);
+	ASSERT_INFO_LENGTH(args, 1);
+	ASSERT_GET_VALUE(args[0], audiomixers);
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -689,10 +716,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetDeinterlaceFieldOrder(Nan::NAN_METHOD
 	conn->call("Input", "SetDeInterlaceFieldOrder", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetDeinterlaceMode(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::GetDeinterlaceMode(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
 		return;
 	}
 	osn::Input* obj = static_cast<osn::Input*>(baseobj);
@@ -711,14 +738,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetDeinterlaceMode(Nan::NAN_METHOD_ARGS_
 	if (!ValidateResponse(response))
 		return;
 
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.i32));
+	args.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.i32));
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetDeinterlaceMode(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::SetDeinterlaceMode(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
 		return;
 	}
 	osn::Input* obj = static_cast<osn::Input*>(baseobj);
@@ -728,8 +755,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetDeinterlaceMode(Nan::NAN_METHOD_ARGS_
 	}
 
 	int32_t audiomixers = 0;
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], audiomixers);
+	ASSERT_INFO_LENGTH(args, 1);
+	ASSERT_GET_VALUE(args[0], audiomixers);
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -738,10 +765,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetDeinterlaceMode(Nan::NAN_METHOD_ARGS_
 	conn->call("Input", "SetDeInterlaceMode", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::Filters(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::Filters(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
 		return;
 	}
 	osn::Input* obj = static_cast<osn::Input*>(baseobj);
@@ -760,7 +787,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Filters(Nan::NAN_METHOD_ARGS_TYPE info)
 			auto         object = osn::Filter::Store(obj);
 			Nan::Set(arr, i, object);
 		}
-		info.GetReturnValue().Set(arr);
+		args.GetReturnValue().Set(arr);
 		return;
 	}
 
@@ -791,17 +818,17 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Filters(Nan::NAN_METHOD_ARGS_TYPE info)
 		}
 	}
 
-	info.GetReturnValue().Set(arr);
+	args.GetReturnValue().Set(arr);
 
 	if (sdi) {
 		sdi->filtersOrderChanged = false;
 	}
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::AddFilter(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::AddFilter(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
 		return;
 	}
 	osn::Input* obj = static_cast<osn::Input*>(baseobj);
@@ -810,19 +837,19 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::AddFilter(Nan::NAN_METHOD_ARGS_TYPE info
 		return;
 	}
 
-	ASSERT_INFO_LENGTH(info, 1);
+	ASSERT_INFO_LENGTH(args, 1);
 
 	v8::Local<v8::Object> objfilter;
-	ASSERT_GET_VALUE(info[0], objfilter);
+	ASSERT_GET_VALUE(args[0], objfilter);
 
 	osn::ISource* basefilter = nullptr;
 	if (!osn::ISource::Retrieve(objfilter, basefilter)) {
-		info.GetIsolate()->ThrowException(
+		args.GetIsolate()->ThrowException(
 		    v8::Exception::ReferenceError(Nan::New<v8::String>("Source is invalid.").ToLocalChecked()));
 	}
 	osn::Filter* filter = static_cast<osn::Filter*>(basefilter);
 	if (!filter) {
-		info.GetIsolate()->ThrowException(
+		args.GetIsolate()->ThrowException(
 		    v8::Exception::TypeError(Nan::New<v8::String>("Source is not a filter.").ToLocalChecked()));
 		return;
 	}
@@ -839,10 +866,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::AddFilter(Nan::NAN_METHOD_ARGS_TYPE info
 	}
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::RemoveFilter(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::RemoveFilter(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
 		return;
 	}
 	osn::Input* obj = static_cast<osn::Input*>(baseobj);
@@ -851,14 +878,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::RemoveFilter(Nan::NAN_METHOD_ARGS_TYPE i
 		return;
 	}
 
-	ASSERT_INFO_LENGTH(info, 1);
+	ASSERT_INFO_LENGTH(args, 1);
 
 	v8::Local<v8::Object> objfilter;
-	ASSERT_GET_VALUE(info[0], objfilter);
+	ASSERT_GET_VALUE(args[0], objfilter);
 
 	osn::ISource* basefilter = nullptr;
 	if (!osn::ISource::Retrieve(objfilter, basefilter)) {
-		info.GetIsolate()->ThrowException(
+		args.GetIsolate()->ThrowException(
 		    v8::Exception::ReferenceError(Nan::New<v8::String>("Source is invalid.").ToLocalChecked()));
 	}
 
@@ -874,10 +901,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::RemoveFilter(Nan::NAN_METHOD_ARGS_TYPE i
 	}
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetFilterOrder(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::SetFilterOrder(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
 		return;
 	}
 	osn::Input* obj = static_cast<osn::Input*>(baseobj);
@@ -886,16 +913,16 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetFilterOrder(Nan::NAN_METHOD_ARGS_TYPE
 		return;
 	}
 
-	ASSERT_INFO_LENGTH(info, 2);
+	ASSERT_INFO_LENGTH(args, 2);
 
 	v8::Local<v8::Object> objfilter;
 	uint32_t              movement;
-	ASSERT_GET_VALUE(info[0], objfilter);
-	ASSERT_GET_VALUE(info[1], movement);
+	ASSERT_GET_VALUE(args[0], objfilter);
+	ASSERT_GET_VALUE(args[1], movement);
 
 	osn::ISource* basefilter = nullptr;
 	if (!osn::ISource::Retrieve(objfilter, basefilter)) {
-		info.GetIsolate()->ThrowException(
+		args.GetIsolate()->ThrowException(
 		    v8::Exception::ReferenceError(Nan::New<v8::String>("Source is invalid.").ToLocalChecked()));
 	}
 
@@ -912,10 +939,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetFilterOrder(Nan::NAN_METHOD_ARGS_TYPE
 	}
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::FindFilter(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::FindFilter(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
 		return;
 	}
 	osn::Input* obj = static_cast<osn::Input*>(baseobj);
@@ -924,10 +951,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::FindFilter(Nan::NAN_METHOD_ARGS_TYPE inf
 		return;
 	}
 
-	ASSERT_INFO_LENGTH(info, 1);
+	ASSERT_INFO_LENGTH(args, 1);
 
 	std::string name;
-	ASSERT_GET_VALUE(info[0], name);
+	ASSERT_GET_VALUE(args[0], name);
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -942,14 +969,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::FindFilter(Nan::NAN_METHOD_ARGS_TYPE inf
 	if (response.size() > 1) {
 		// Create new Filter
 		osn::Input* nobj = new osn::Input(response[1].value_union.ui64);
-		info.GetReturnValue().Set(osn::Input::Store(nobj));
+		args.GetReturnValue().Set(osn::Input::Store(nobj));
 	}
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::CopyFilters(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::CopyFilters(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
 		return;
 	}
 	osn::Input* obj = static_cast<osn::Input*>(baseobj);
@@ -958,19 +985,19 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::CopyFilters(Nan::NAN_METHOD_ARGS_TYPE in
 		return;
 	}
 
-	ASSERT_INFO_LENGTH(info, 1);
+	ASSERT_INFO_LENGTH(args, 1);
 
 	v8::Local<v8::Object> objinput;
-	ASSERT_GET_VALUE(info[0], objinput);
+	ASSERT_GET_VALUE(args[0], objinput);
 
 	osn::ISource* baseinput = nullptr;
 	if (!osn::ISource::Retrieve(objinput, baseinput)) {
-		info.GetIsolate()->ThrowException(
+		args.GetIsolate()->ThrowException(
 		    v8::Exception::ReferenceError(Nan::New<v8::String>("Source is invalid.").ToLocalChecked()));
 	}
 	osn::Input* input = static_cast<osn::Input*>(baseinput);
 	if (!input) {
-		info.GetIsolate()->ThrowException(
+		args.GetIsolate()->ThrowException(
 		    v8::Exception::TypeError(Nan::New<v8::String>("Source is not a input.").ToLocalChecked()));
 		return;
 	}

@@ -36,7 +36,7 @@ osn::SceneItem::SceneItem(uint64_t id)
 	this->itemId = id;
 }
 
-void osn::SceneItem::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
+void osn::SceneItem::Register(v8::Local<v8::Object> exports)
 {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
@@ -44,43 +44,44 @@ void osn::SceneItem::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 
 	// Prototype/Class Template
 	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->PrototypeTemplate();
-	utilv8::SetTemplateAccessorProperty(objtemplate, "source", GetSource);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "scene", GetScene);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "visible", IsVisible, SetVisible);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "selected", IsSelected, SetSelected);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "streamVisible", IsStreamVisible, SetStreamVisible);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "recordingVisible", IsRecordingVisible, SetRecordingVisible);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "position", GetPosition, SetPosition);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "rotation", GetRotation, SetRotation);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "scale", GetScale, SetScale);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "alignment", GetAlignment, SetAlignment);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "boundsAlignment", GetBoundsAlignment, SetBoundsAlignment);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "bounds", GetBounds, SetBounds);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "transformInfo", GetTransformInfo, SetTransformInfo);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "boundsType", GetBoundsType, SetBoundsType);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "crop", GetCrop, SetCrop);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "scaleFilter", GetScaleFilter, SetScaleFilter);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "id", GetId);
-	utilv8::SetTemplateField(objtemplate, "moveUp", MoveUp);
-	utilv8::SetTemplateField(objtemplate, "moveDown", MoveDown);
-	utilv8::SetTemplateField(objtemplate, "moveTop", MoveTop);
-	utilv8::SetTemplateField(objtemplate, "moveBottom", MoveBottom);
-	utilv8::SetTemplateField(objtemplate, "move", Move);
-	utilv8::SetTemplateField(objtemplate, "remove", Remove);
-	utilv8::SetTemplateField(objtemplate, "deferUpdateBegin", DeferUpdateBegin);
-	utilv8::SetTemplateField(objtemplate, "deferUpdateEnd", DeferUpdateEnd);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "source", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetSource));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "scene", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetScene));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "visible", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), IsVisible), v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetVisible));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "selected", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), IsSelected), v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetSelected));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "streamVisible", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), IsStreamVisible), v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetStreamVisible));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "recordingVisible", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), IsRecordingVisible), v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetRecordingVisible));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "position", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetPosition), v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetPosition));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "rotation", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetRotation), v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetRotation));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "scale", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetScale), v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetScale));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "alignment", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetAlignment), v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetAlignment));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "boundsAlignment", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetBoundsAlignment), v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetBoundsAlignment));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "bounds", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetBounds), v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetBounds));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "transformInfo", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetTransformInfo), v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetTransformInfo));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "boundsType", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetBoundsType), v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetBoundsType));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "crop", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetCrop), v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetCrop));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "id", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetId));
+	utilv8::SetTemplateField(objtemplate, "moveUp", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), MoveUp));
+	utilv8::SetTemplateField(objtemplate, "moveDown", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), MoveDown));
+	utilv8::SetTemplateField(objtemplate, "moveTop", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), MoveTop));
+	utilv8::SetTemplateField(objtemplate, "moveBottom", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), MoveBottom));
+	utilv8::SetTemplateField(objtemplate, "move",v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Move) );
+	utilv8::SetTemplateField(objtemplate, "remove", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Remove));
+	utilv8::SetTemplateField(objtemplate, "deferUpdateBegin", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), DeferUpdateBegin));
+	utilv8::SetTemplateField(objtemplate, "deferUpdateEnd", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), DeferUpdateEnd));
 
 	// Stuff
-	utilv8::SetObjectField(
-	    target, "SceneItem", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
+	exports->Set(
+		Nan::GetCurrentContext(),
+		v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), "SceneItem").ToLocalChecked(),
+		fnctemplate->GetFunction(Nan::GetCurrentContext()).ToLocalChecked()).FromJust();
 	prototype.Reset(fnctemplate);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetSource(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::GetSource(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::SceneItem* item = nullptr;
 
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -96,13 +97,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetSource(Nan::NAN_METHOD_ARGS_TYPE 
 	uint64_t sourceId = response[1].value_union.ui64;
 
 	osn::Input* obj = new osn::Input(sourceId);
-	info.GetReturnValue().Set(osn::Input::Store(obj));
+	args.GetReturnValue().Set(osn::Input::Store(obj));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetScene(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::GetScene(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -118,13 +119,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetScene(Nan::NAN_METHOD_ARGS_TYPE i
 	uint64_t sourceId = response[1].value_union.ui64;
 
 	osn::Scene* obj = new osn::Scene(sourceId);
-	info.GetReturnValue().Set(osn::Scene::Store(obj));
+	args.GetReturnValue().Set(osn::Scene::Store(obj));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::Remove(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::Remove(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -147,17 +148,17 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::Remove(Nan::NAN_METHOD_ARGS_TYPE inf
 	item->itemId = UINT64_MAX;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsVisible(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::IsVisible(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
 	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
 
 	if (sid && !sid->visibleChanged) {
-		info.GetReturnValue().Set(sid->isVisible);
+		args.GetReturnValue().Set(sid->isVisible);
 		return;
 	}
 
@@ -175,17 +176,17 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsVisible(Nan::NAN_METHOD_ARGS_TYPE 
 	sid->isVisible      = flag;
 	sid->visibleChanged = false;
 
-	info.GetReturnValue().Set(flag);
+	args.GetReturnValue().Set(flag);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetVisible(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetVisible(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	bool visible;
 
-	ASSERT_GET_VALUE(info[0], visible);
+	ASSERT_GET_VALUE(args[0], visible);
 
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -203,17 +204,17 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetVisible(Nan::NAN_METHOD_ARGS_TYPE
 	sid->isVisible = visible;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsSelected(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::IsSelected(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
 	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
 
 	if (sid && sid->cached && !sid->selectedChanged) {
-		info.GetReturnValue().Set(utilv8::ToValue(item->IsSelected));
+		args.GetReturnValue().Set(utilv8::ToValue(item->IsSelected));
 		return;
 	}
 
@@ -231,17 +232,17 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsSelected(Nan::NAN_METHOD_ARGS_TYPE
 	sid->selectedChanged = false;
 	sid->cached          = true;
 	sid->isSelected      = flag;
-	info.GetReturnValue().Set(flag);
+	args.GetReturnValue().Set(flag);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetSelected(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetSelected(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	bool selected;
 
-	ASSERT_GET_VALUE(info[0], selected);
+	ASSERT_GET_VALUE(args[0], selected);
 
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -267,17 +268,17 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetSelected(Nan::NAN_METHOD_ARGS_TYP
 	sid->isSelected      = selected;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsStreamVisible(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::IsStreamVisible(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
 	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
 
 	if (sid && !sid->streamVisibleChanged) {
-		info.GetReturnValue().Set(utilv8::ToValue(item->IsStreamVisible));
+		args.GetReturnValue().Set(utilv8::ToValue(item->IsStreamVisible));
 		return;
 	}
 
@@ -297,17 +298,17 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsStreamVisible(Nan::NAN_METHOD_ARGS
 		sid->streamVisibleChanged = false;
 		sid->isStreamVisible      = streamVisible;
 	}
-	info.GetReturnValue().Set(streamVisible);
+	args.GetReturnValue().Set(streamVisible);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetStreamVisible(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetStreamVisible(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	bool streamVisible;
 
-	ASSERT_GET_VALUE(info[0], streamVisible);
+	ASSERT_GET_VALUE(args[0], streamVisible);
 
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -335,17 +336,17 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetStreamVisible(Nan::NAN_METHOD_ARG
 	sid->isStreamVisible      = streamVisible;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsRecordingVisible(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::IsRecordingVisible(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
 	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
 
 	if (sid && !sid->recordingVisibleChanged) {
-		info.GetReturnValue().Set(utilv8::ToValue(item->IsRecordingVisible));
+		args.GetReturnValue().Set(utilv8::ToValue(item->IsRecordingVisible));
 		return;
 	}
 
@@ -362,17 +363,17 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsRecordingVisible(Nan::NAN_METHOD_A
 
 	sid->recordingVisibleChanged = false;
 	sid->isRecordingVisible      = recordingVisible;
-	info.GetReturnValue().Set(recordingVisible);
+	args.GetReturnValue().Set(recordingVisible);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetRecordingVisible(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetRecordingVisible(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	bool recordingVisible;
 
-	ASSERT_GET_VALUE(info[0], recordingVisible);
+	ASSERT_GET_VALUE(args[0], recordingVisible);
 
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -402,10 +403,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetRecordingVisible(Nan::NAN_METHOD_
 	}
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetPosition(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::GetPosition(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -415,7 +416,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetPosition(Nan::NAN_METHOD_ARGS_TYP
 		auto obj = Nan::New<v8::Object>();
 		utilv8::SetObjectField(obj, "x", sid->posX);
 		utilv8::SetObjectField(obj, "y", sid->posY);
-		info.GetReturnValue().Set(obj);
+		args.GetReturnValue().Set(obj);
 		return;
 	}
 
@@ -439,22 +440,22 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetPosition(Nan::NAN_METHOD_ARGS_TYP
 	sid->posY       = y;
 	sid->posChanged = false;
 
-	info.GetReturnValue().Set(obj);
+	args.GetReturnValue().Set(obj);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetPosition(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetPosition(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	v8::Local<v8::Object> vector;
 	float_t               x;
 	float_t               y;
 
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], vector);
+	ASSERT_INFO_LENGTH(args, 1);
+	ASSERT_GET_VALUE(args[0], vector);
 	ASSERT_GET_OBJECT_FIELD(vector, "x", x);
 	ASSERT_GET_OBJECT_FIELD(vector, "y", y);
 
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -473,17 +474,17 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetPosition(Nan::NAN_METHOD_ARGS_TYP
 	sid->posY = y;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetRotation(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::GetRotation(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
 	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
 
 	if (sid && !sid->rotationChanged) {
-		info.GetReturnValue().Set(sid->rotation);
+		args.GetReturnValue().Set(sid->rotation);
 		return;
 	}
 
@@ -501,18 +502,18 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetRotation(Nan::NAN_METHOD_ARGS_TYP
 	sid->rotation        = rotation;
 	sid->rotationChanged = false;
 
-	info.GetReturnValue().Set(utilv8::ToValue(rotation));
+	args.GetReturnValue().Set(utilv8::ToValue(rotation));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetRotation(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetRotation(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	float_t vector;
 
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], vector);
+	ASSERT_INFO_LENGTH(args, 1);
+	ASSERT_GET_VALUE(args[0], vector);
 
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -530,10 +531,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetRotation(Nan::NAN_METHOD_ARGS_TYP
 	sid->rotation = vector;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetScale(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::GetScale(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -543,7 +544,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetScale(Nan::NAN_METHOD_ARGS_TYPE i
 		auto obj = Nan::New<v8::Object>();
 		utilv8::SetObjectField(obj, "x", sid->scaleX);
 		utilv8::SetObjectField(obj, "y", sid->scaleY);
-		info.GetReturnValue().Set(obj);
+		args.GetReturnValue().Set(obj);
 		return;
 	}
 
@@ -567,22 +568,22 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetScale(Nan::NAN_METHOD_ARGS_TYPE i
 	sid->scaleY       = y;
 	sid->scaleChanged = false;
 
-	info.GetReturnValue().Set(obj);
+	args.GetReturnValue().Set(obj);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetScale(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetScale(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	v8::Local<v8::Object> vector;
 	float_t               x;
 	float_t               y;
 
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], vector);
+	ASSERT_INFO_LENGTH(args, 1);
+	ASSERT_GET_VALUE(args[0], vector);
 	ASSERT_GET_OBJECT_FIELD(vector, "x", x);
 	ASSERT_GET_OBJECT_FIELD(vector, "y", y);
 
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -601,10 +602,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetScale(Nan::NAN_METHOD_ARGS_TYPE i
 	sid->scaleY = y;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetScaleFilter(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::GetScaleFilter(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -619,17 +620,17 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetScaleFilter(Nan::NAN_METHOD_ARGS_
 		return;
 	bool flag = !!response[1].value_union.ui32;
 
-	info.GetReturnValue().Set(flag);
+	args.GetReturnValue().Set(flag);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetScaleFilter(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetScaleFilter(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	int32_t visible;
 
-	ASSERT_GET_VALUE(info[0], visible);
+	ASSERT_GET_VALUE(args[0], visible);
 
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -640,10 +641,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetScaleFilter(Nan::NAN_METHOD_ARGS_
 	conn->call("SceneItem", "SetScaleFilter", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(visible)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetAlignment(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::GetAlignment(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -659,17 +660,17 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetAlignment(Nan::NAN_METHOD_ARGS_TY
 
 	bool flag = !!response[1].value_union.ui32;
 
-	info.GetReturnValue().Set(flag);
+	args.GetReturnValue().Set(flag);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetAlignment(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetAlignment(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	uint32_t visible;
 
-	ASSERT_GET_VALUE(info[0], visible);
+	ASSERT_GET_VALUE(args[0], visible);
 
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -680,10 +681,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetAlignment(Nan::NAN_METHOD_ARGS_TY
 	conn->call("SceneItem", "SetAlignment", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(visible)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetBounds(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::GetBounds(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -702,22 +703,22 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetBounds(Nan::NAN_METHOD_ARGS_TYPE 
 	auto obj = Nan::New<v8::Object>();
 	utilv8::SetObjectField(obj, "x", x);
 	utilv8::SetObjectField(obj, "y", y);
-	info.GetReturnValue().Set(obj);
+	args.GetReturnValue().Set(obj);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetBounds(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetBounds(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	v8::Local<v8::Object> vector;
 	float_t               x;
 	float_t               y;
 
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], vector);
+	ASSERT_INFO_LENGTH(args, 1);
+	ASSERT_GET_VALUE(args[0], vector);
 	ASSERT_GET_OBJECT_FIELD(vector, "x", x);
 	ASSERT_GET_OBJECT_FIELD(vector, "y", y);
 
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -728,10 +729,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetBounds(Nan::NAN_METHOD_ARGS_TYPE 
 	conn->call("SceneItem", "SetBounds", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(x), ipc::value(y)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetBoundsAlignment(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::GetBoundsAlignment(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -746,17 +747,17 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetBoundsAlignment(Nan::NAN_METHOD_A
 		return;
 	uint32_t bounds_alignment = response[1].value_union.ui32;
 
-	info.GetReturnValue().Set(bounds_alignment);
+	args.GetReturnValue().Set(bounds_alignment);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetBoundsAlignment(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetBoundsAlignment(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	uint32_t visible;
 
-	ASSERT_GET_VALUE(info[0], visible);
+	ASSERT_GET_VALUE(args[0], visible);
 
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -767,10 +768,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetBoundsAlignment(Nan::NAN_METHOD_A
 	conn->call("SceneItem", "SetBoundsAlignment", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(visible)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetBoundsType(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::GetBoundsType(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -785,17 +786,17 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetBoundsType(Nan::NAN_METHOD_ARGS_T
 		return;
 	uint32_t bounds_type = response[1].value_union.ui32;
 
-	info.GetReturnValue().Set(bounds_type);
+	args.GetReturnValue().Set(bounds_type);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetBoundsType(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetBoundsType(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	int32_t visible;
 
-	ASSERT_GET_VALUE(info[0], visible);
+	ASSERT_GET_VALUE(args[0], visible);
 
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -806,10 +807,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetBoundsType(Nan::NAN_METHOD_ARGS_T
 	conn->call("SceneItem", "SetBoundsType", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(visible)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetCrop(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::GetCrop(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -821,7 +822,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetCrop(Nan::NAN_METHOD_ARGS_TYPE in
 		utilv8::SetObjectField(obj, "top", sid->cropTop);
 		utilv8::SetObjectField(obj, "right", sid->cropRight);
 		utilv8::SetObjectField(obj, "bottom", sid->cropBottom);
-		info.GetReturnValue().Set(obj);
+		args.GetReturnValue().Set(obj);
 		return;
 	}
 
@@ -852,10 +853,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetCrop(Nan::NAN_METHOD_ARGS_TYPE in
 	sid->cropBottom  = bottom;
 	sid->cropChanged = false;
 
-	info.GetReturnValue().Set(obj);
+	args.GetReturnValue().Set(obj);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetCrop(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetCrop(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	v8::Local<v8::Object> vector;
 	int32_t               left;
@@ -863,15 +864,15 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetCrop(Nan::NAN_METHOD_ARGS_TYPE in
 	int32_t               right;
 	int32_t               bottom;
 
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], vector);
+	ASSERT_INFO_LENGTH(args, 1);
+	ASSERT_GET_VALUE(args[0], vector);
 	ASSERT_GET_OBJECT_FIELD(vector, "left", left);
 	ASSERT_GET_OBJECT_FIELD(vector, "top", top);
 	ASSERT_GET_OBJECT_FIELD(vector, "right", right);
 	ASSERT_GET_OBJECT_FIELD(vector, "bottom", bottom);
 
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -895,10 +896,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetCrop(Nan::NAN_METHOD_ARGS_TYPE in
 	sid->cropBottom = bottom;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetTransformInfo(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::GetTransformInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -943,10 +944,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetTransformInfo(Nan::NAN_METHOD_ARG
 	utilv8::SetObjectField(obj, "boundsType", response[10].value_union.ui32);
 	utilv8::SetObjectField(obj, "boundsAlignment", response[11].value_union.ui32);
 
-	info.GetReturnValue().Set(obj);
+	args.GetReturnValue().Set(obj);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetTransformInfo(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetTransformInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	//obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
@@ -967,10 +968,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetTransformInfo(Nan::NAN_METHOD_ARG
 	//handle.transform_info(tf_info);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetId(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::GetId(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -994,13 +995,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetId(Nan::NAN_METHOD_ARGS_TYPE info
 		sid->obs_itemId = response[1].value_union.ui64;
 	}
 
-	info.GetReturnValue().Set(utilv8::ToValue(sid->obs_itemId));
+	args.GetReturnValue().Set(utilv8::ToValue(sid->obs_itemId));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveUp(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::MoveUp(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -1011,10 +1012,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveUp(Nan::NAN_METHOD_ARGS_TYPE inf
     conn->call("SceneItem", "MoveUp", std::vector<ipc::value>{ipc::value(item->itemId)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveDown(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::MoveDown(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -1025,10 +1026,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveDown(Nan::NAN_METHOD_ARGS_TYPE i
     conn->call("SceneItem", "MoveDown", std::vector<ipc::value>{ipc::value(item->itemId)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveTop(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::MoveTop(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -1039,10 +1040,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveTop(Nan::NAN_METHOD_ARGS_TYPE in
 	conn->call("SceneItem", "MoveTop", std::vector<ipc::value>{ipc::value(item->itemId)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveBottom(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::MoveBottom(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -1053,14 +1054,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveBottom(Nan::NAN_METHOD_ARGS_TYPE
     conn->call("SceneItem", "MoveBottom", std::vector<ipc::value>{ipc::value(item->itemId)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::Move(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::Move(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	ASSERT_INFO_LENGTH(info, 1);
+	ASSERT_INFO_LENGTH(args, 1);
 	int32_t position;
-	ASSERT_GET_VALUE(info[0], position);
+	ASSERT_GET_VALUE(args[0], position);
 
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -1071,10 +1072,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::Move(Nan::NAN_METHOD_ARGS_TYPE info)
 	conn->call("SceneItem", "Move", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(position)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::DeferUpdateBegin(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::DeferUpdateBegin(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 
@@ -1085,10 +1086,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::DeferUpdateBegin(Nan::NAN_METHOD_ARG
 	conn->call("SceneItem", "DeferUpdateBegin", std::vector<ipc::value>{ipc::value(item->itemId)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::DeferUpdateEnd(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::DeferUpdateEnd(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
+	if (!Retrieve(args.This(), item)) {
 		return;
 	}
 

@@ -33,7 +33,7 @@ osn::Filter::Filter(uint64_t id)
 	this->sourceId = id;
 }
 
-void osn::Filter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
+void osn::Filter::Register(v8::Local<v8::Object> exports)
 {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->Inherit(Nan::New<v8::FunctionTemplate>(osn::ISource::prototype));
@@ -41,19 +41,21 @@ void osn::Filter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	fnctemplate->SetClassName(Nan::New<v8::String>("Filter").ToLocalChecked());
 
 	// Class Template
-	utilv8::SetTemplateField(fnctemplate, "types", Types);
-	utilv8::SetTemplateField(fnctemplate, "create", Create);
+	utilv8::SetTemplateField(fnctemplate, "types", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Types));
+	utilv8::SetTemplateField(fnctemplate, "create", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Create));
 
 	// Stuff
-	utilv8::SetObjectField(
-	    target, "Filter", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
+	exports->Set(
+		Nan::GetCurrentContext(),
+		v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), "Filter").ToLocalChecked(),
+		fnctemplate->GetFunction(Nan::GetCurrentContext()).ToLocalChecked()).FromJust();
 	prototype.Reset(fnctemplate);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Types(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Filter::Types(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	// Function takes no parameters.
-	ASSERT_INFO_LENGTH(info, 0);
+	ASSERT_INFO_LENGTH(args, 0);
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -71,30 +73,30 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Types(Nan::NAN_METHOD_ARGS_TYPE info)
 		types.push_back(response[1 + idx].value_str);
 	}
 
-	info.GetReturnValue().Set(utilv8::ToValue<std::string>(types));
+	args.GetReturnValue().Set(utilv8::ToValue<std::string>(types));
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Create(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Filter::Create(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	std::string           type;
 	std::string           name;
 	v8::Local<v8::String> settings = Nan::New<v8::String>("").ToLocalChecked();
 
 	// Parameters: <string> Type, <string> Name[,<object> settings]
-	ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
+	ASSERT_INFO_LENGTH_AT_LEAST(args, 2);
 
-	ASSERT_GET_VALUE(info[0], type);
-	ASSERT_GET_VALUE(info[1], name);
+	ASSERT_GET_VALUE(args[0], type);
+	ASSERT_GET_VALUE(args[1], name);
 
 	// Check if caller provided settings to send across.
-	if (info.Length() >= 3) {
-		ASSERT_INFO_LENGTH(info, 3);
+	if (args.Length() >= 3) {
+		ASSERT_INFO_LENGTH(args, 3);
 
 		v8::Local<v8::Object> setobj;
-		ASSERT_GET_VALUE(info[2], setobj);
+		ASSERT_GET_VALUE(args[2], setobj);
 
-		settings = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), setobj).ToLocalChecked();
+		settings = v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), setobj).ToLocalChecked();
 	}
 
 	auto conn = GetConnection();
@@ -124,5 +126,5 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	CacheManager<SourceDataInfo*>::getInstance().Store(response[1].value_union.ui64, name, sdi);
 
-	info.GetReturnValue().Set(osn::Filter::Store(obj));
+	args.GetReturnValue().Set(osn::Filter::Store(obj));
 }

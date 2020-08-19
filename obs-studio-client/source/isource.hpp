@@ -53,36 +53,36 @@ namespace osn
 		~ISource();
 		static Nan::Persistent<v8::FunctionTemplate> prototype;
 
-		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+		static void Register(v8::Local<v8::Object> exports);
 
-		static Nan::NAN_METHOD_RETURN_TYPE Release(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Remove(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void Release(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void Remove(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-		static Nan::NAN_METHOD_RETURN_TYPE IsConfigurable(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetProperties(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetSettings(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Update(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Load(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Save(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void IsConfigurable(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void GetProperties(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void GetSettings(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void Update(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void Load(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void Save(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-		static Nan::NAN_METHOD_RETURN_TYPE GetType(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetName(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetName(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetOutputFlags(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetFlags(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetFlags(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetStatus(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetId(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetMuted(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetMuted(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetEnabled(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetEnabled(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void GetType(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void GetName(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void SetName(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void GetOutputFlags(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void GetFlags(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void SetFlags(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void GetStatus(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void GetId(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void GetMuted(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void SetMuted(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void GetEnabled(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void SetEnabled(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 		// Browser source interaction
-		static Nan::NAN_METHOD_RETURN_TYPE SendMouseClick(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SendMouseMove(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SendMouseWheel(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SendFocus(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SendKeyClick(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void SendMouseClick(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void SendMouseMove(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void SendMouseWheel(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void SendFocus(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void SendKeyClick(const v8::FunctionCallbackInfo<v8::Value>& args);
 	};
 } // namespace osn

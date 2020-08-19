@@ -35,9 +35,9 @@ namespace osn
 		public:
 		static Nan::Persistent<v8::FunctionTemplate> prototype;
 
-		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+		static void Register(v8::Local<v8::Object> exports);
 
-		static Nan::NAN_METHOD_RETURN_TYPE Types(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Create(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void Types(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void Create(const v8::FunctionCallbackInfo<v8::Value>& args);
 	};
 } // namespace osn

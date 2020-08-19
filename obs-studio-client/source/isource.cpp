@@ -29,47 +29,57 @@ Nan::Persistent<v8::FunctionTemplate> osn::ISource::prototype;
 
 osn::ISource::~ISource() {}
 
-void osn::ISource::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
+void osn::ISource::Register(v8::Local<v8::Object> exports)
 {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->SetClassName(Nan::New<v8::String>("Source").ToLocalChecked());
 	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
 	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->PrototypeTemplate();
-	utilv8::SetTemplateField(objtemplate, "release", Release);
-	utilv8::SetTemplateField(objtemplate, "remove", Remove);
+	utilv8::SetTemplateField(objtemplate, "release", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Release));
+	utilv8::SetTemplateField(objtemplate, "remove", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Remove));
 
-	utilv8::SetTemplateAccessorProperty(objtemplate, "configurable", IsConfigurable);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "properties", GetProperties);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "settings", GetSettings);
-	utilv8::SetTemplateField(objtemplate, "update", Update);
-	utilv8::SetTemplateField(objtemplate, "load", Load);
-	utilv8::SetTemplateField(objtemplate, "save", Save);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "configurable", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), IsConfigurable));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "properties", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetProperties));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "settings", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetSettings));
+	utilv8::SetTemplateField(objtemplate, "update", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Update));
+	utilv8::SetTemplateField(objtemplate, "load", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Load));
+	utilv8::SetTemplateField(objtemplate, "save", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Save));
 
-	utilv8::SetTemplateAccessorProperty(objtemplate, "type", GetType);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "name", GetName, SetName);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "outputFlags", GetOutputFlags);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "flags", GetFlags, SetFlags);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "status", GetStatus);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "id", GetId);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "muted", GetMuted, SetMuted);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "enabled", GetEnabled, SetEnabled);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "type", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetType));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "name",
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetName),
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetName));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "outputFlags",v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetOutputFlags));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "flags",
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetFlags),
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetFlags));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "status", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetStatus));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "id", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetId));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "muted",
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetMuted),
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetMuted));
+	utilv8::SetTemplateAccessorProperty(objtemplate, "enabled",
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetEnabled),
+		v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SetEnabled));
 
-	utilv8::SetTemplateField(objtemplate, "sendMouseClick", SendMouseClick);
-	utilv8::SetTemplateField(objtemplate, "sendMouseMove", SendMouseMove);
-	utilv8::SetTemplateField(objtemplate, "sendMouseWheel", SendMouseWheel);
-	utilv8::SetTemplateField(objtemplate, "sendFocus", SendFocus);
-	utilv8::SetTemplateField(objtemplate, "sendKeyClick", SendKeyClick);
-	
-	utilv8::SetObjectField(
-	    target, "Source", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
+	utilv8::SetTemplateField(objtemplate, "sendMouseClick", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SendMouseClick));
+	utilv8::SetTemplateField(objtemplate, "sendMouseMove", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SendMouseMove));
+	utilv8::SetTemplateField(objtemplate, "sendMouseWheel", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SendMouseWheel));
+	utilv8::SetTemplateField(objtemplate, "sendFocus", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SendFocus));
+	utilv8::SetTemplateField(objtemplate, "sendKeyClick", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), SendKeyClick));
+
+	exports->Set(
+		Nan::GetCurrentContext(),
+		v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), "Source").ToLocalChecked(),
+		fnctemplate->GetFunction(Nan::GetCurrentContext()).ToLocalChecked()).FromJust();
 	prototype.Reset(fnctemplate);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Release(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::Release(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* obj;
-	if (!utilv8::SafeUnwrap(info, obj)) {
+	if (!utilv8::SafeUnwrap(args, obj)) {
 		return;
 	}
 
@@ -80,10 +90,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Release(Nan::NAN_METHOD_ARGS_TYPE info
 	conn->call("Source", "Release", {ipc::value(obj->sourceId)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Remove(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::Remove(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
+	if (!utilv8::SafeUnwrap(args, is)) {
 		return;
 	}
 
@@ -99,10 +109,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Remove(Nan::NAN_METHOD_ARGS_TYPE info)
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::IsConfigurable(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::IsConfigurable(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
+	if (!utilv8::SafeUnwrap(args, is)) {
 		return;
 	}
 
@@ -116,22 +126,22 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::IsConfigurable(Nan::NAN_METHOD_ARGS_TY
 	if (!ValidateResponse(response))
 		return;
 
-	info.GetReturnValue().Set((bool)response[1].value_union.i32);
+	args.GetReturnValue().Set((bool)response[1].value_union.i32);
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::GetProperties(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* hndl = nullptr;
-	if (!utilv8::SafeUnwrap<osn::ISource>(info, hndl)) {
+	if (!utilv8::SafeUnwrap<osn::ISource>(args, hndl)) {
 		return;
 	}
 
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(hndl->sourceId);
 
 	if (sdi && !sdi->propertiesChanged && sdi->properties.size() > 0) {
-		osn::Properties* props = new osn::Properties(sdi->properties, info.This());
-		info.GetReturnValue().Set(osn::Properties::Store(props));
+		osn::Properties* props = new osn::Properties(sdi->properties, args.This());
+		args.GetReturnValue().Set(osn::Properties::Store(props));
 		return;
 	}
 
@@ -146,7 +156,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 		return;
 
 	if (response.size() == 1) {
-		info.GetReturnValue().Set(Nan::Null());
+		args.GetReturnValue().Set(Nan::Null());
 		return;
 	}
 
@@ -330,64 +340,71 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYP
 	}
 
 	// obj = std::move(pmap);
-	osn::Properties* props = new osn::Properties(std::move(pmap), info.This());
-	info.GetReturnValue().Set(osn::Properties::Store(props));
+	osn::Properties* props = new osn::Properties(std::move(pmap), args.This());
+	args.GetReturnValue().Set(osn::Properties::Store(props));
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetSettings(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::GetSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+	std::cout << "GetSettings 0" << std::endl;
 	osn::ISource* hndl = nullptr;
-	if (!utilv8::SafeUnwrap<osn::ISource>(info, hndl)) {
+	if (!utilv8::SafeUnwrap<osn::ISource>(args, hndl)) {
 		return;
 	}
 
+	std::cout << "GetSettings 1" << std::endl;
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(hndl->sourceId);
 
 	if (sdi && !sdi->settingsChanged && sdi->setting.size() > 0) {
 		v8::Local<v8::String> jsondata = Nan::New<v8::String>(sdi->setting).ToLocalChecked();
 		v8::Local<v8::Value>  json =
-	    v8::JSON::Parse(info.GetIsolate()->GetCurrentContext(), jsondata).ToLocalChecked();
-		info.GetReturnValue().Set(json);
+	    v8::JSON::Parse(args.GetIsolate()->GetCurrentContext(), jsondata).ToLocalChecked();
+		args.GetReturnValue().Set(json);
 		return;
 	}
 
+	std::cout << "GetSettings 2" << std::endl;
 	auto conn = GetConnection();
 	if (!conn)
 		return;
 
+	std::cout << "GetSettings 3" << std::endl;
 	std::vector<ipc::value> response =
 	    conn->call_synchronous_helper("Source", "GetSettings", {ipc::value(hndl->sourceId)});
 
 	if (!ValidateResponse(response))
 		return;
 
+	std::cout << "GetSettings 4" << std::endl;
 	v8::Local<v8::String> jsondata = Nan::New<v8::String>(response[1].value_str).ToLocalChecked();
-	v8::Local<v8::Value>  json     = v8::JSON::Parse(info.GetIsolate()->GetCurrentContext(), jsondata).ToLocalChecked();
+	v8::Local<v8::Value>  json     = v8::JSON::Parse(args.GetIsolate()->GetCurrentContext(), jsondata).ToLocalChecked();
 
 	if (sdi) {
 		sdi->setting         = response[1].value_str;
 		sdi->settingsChanged = false;
 	}
 
-	info.GetReturnValue().Set(json);
+	std::cout << "GetSettings 5" << std::endl;
+	args.GetReturnValue().Set(json);
+	std::cout << "GetSettings 6" << std::endl;
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Update(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::Update(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	v8::Local<v8::Object> json;
-	ASSERT_GET_VALUE(info[0], json);
+	ASSERT_GET_VALUE(args[0], json);
 	bool shouldUpdate = true;
 
 	// Retrieve Object
 	osn::ISource* hndl = nullptr;
-	if (!Retrieve(info.This(), hndl)) {
+	if (!Retrieve(args.This(), hndl)) {
 		return;
 	}
 
 	// Turn json into string
-	v8::Local<v8::String> jsondata = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), json).ToLocalChecked();
+	v8::Local<v8::String> jsondata = v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), json).ToLocalChecked();
 	v8::String::Utf8Value jsondatautf8(v8::Isolate::GetCurrent(), jsondata);
 
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(hndl->sourceId);
@@ -427,14 +444,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Update(Nan::NAN_METHOD_ARGS_TYPE info)
 			sdi->propertiesChanged = true;
 		}
 	}
-	info.GetReturnValue().Set(true);
+	args.GetReturnValue().Set(true);
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Load(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::Load(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
+	if (!utilv8::SafeUnwrap(args, is)) {
 		return;
 	}
 
@@ -445,11 +462,11 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Load(Nan::NAN_METHOD_ARGS_TYPE info)
 	conn->call("Source", "Load", {ipc::value(is->sourceId)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Save(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::Save(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	return;
 	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
+	if (!utilv8::SafeUnwrap(args, is)) {
 		return;
 	}
 
@@ -460,10 +477,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Save(Nan::NAN_METHOD_ARGS_TYPE info)
 	conn->call("Source", "Save", {ipc::value(is->sourceId)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetType(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::GetType(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
+	if (!utilv8::SafeUnwrap(args, is)) {
 		return;
 	}
 
@@ -476,13 +493,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetType(Nan::NAN_METHOD_ARGS_TYPE info
 	if (!ValidateResponse(response))
 		return;
 
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.i32));
+	args.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.i32));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetName(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::GetName(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
+	if (!utilv8::SafeUnwrap(args, is)) {
 		return;
 	}
 
@@ -490,7 +507,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetName(Nan::NAN_METHOD_ARGS_TYPE info
 
 	if (sdi) {
 		if (sdi->name.size() > 0) {
-			info.GetReturnValue().Set(utilv8::ToValue(sdi->name));
+			args.GetReturnValue().Set(utilv8::ToValue(sdi->name));
 			return;
 		}
 	}
@@ -507,16 +524,16 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetName(Nan::NAN_METHOD_ARGS_TYPE info
 	if (sdi)
 		sdi->name = response[1].value_str.c_str();
 
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
+	args.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetName(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::SetName(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	std::string name;
-	ASSERT_GET_VALUE(info[0], name);
+	ASSERT_GET_VALUE(args[0], name);
 
 	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
+	if (!utilv8::SafeUnwrap(args, is)) {
 		return;
 	}
 
@@ -527,10 +544,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetName(Nan::NAN_METHOD_ARGS_TYPE info
 	conn->call("Source", "SetName", {ipc::value(is->sourceId), ipc::value(name)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetOutputFlags(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::GetOutputFlags(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
+	if (!utilv8::SafeUnwrap(args, is)) {
 		return;
 	}
 
@@ -544,13 +561,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetOutputFlags(Nan::NAN_METHOD_ARGS_TY
 	if (!ValidateResponse(response))
 		return;
 
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.ui32));
+	args.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.ui32));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetFlags(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::GetFlags(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
+	if (!utilv8::SafeUnwrap(args, is)) {
 		return;
 	}
 
@@ -563,16 +580,16 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetFlags(Nan::NAN_METHOD_ARGS_TYPE inf
 	if (!ValidateResponse(response))
 		return;
 
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.ui32));
+	args.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.ui32));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetFlags(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::SetFlags(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	uint32_t flags;
-	ASSERT_GET_VALUE(info[0], flags);
+	ASSERT_GET_VALUE(args[0], flags);
 
 	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
+	if (!utilv8::SafeUnwrap(args, is)) {
 		return;
 	}
 
@@ -583,10 +600,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetFlags(Nan::NAN_METHOD_ARGS_TYPE inf
 	conn->call("Source", "SetFlags", {ipc::value(is->sourceId), ipc::value(flags)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetStatus(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::GetStatus(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
+	if (!utilv8::SafeUnwrap(args, is)) {
 		return;
 	}
 
@@ -599,13 +616,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetStatus(Nan::NAN_METHOD_ARGS_TYPE in
 	if (!ValidateResponse(response))
 		return;
 
-	info.GetReturnValue().Set(response[1].value_union.ui32);
+	args.GetReturnValue().Set(response[1].value_union.ui32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetId(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::GetId(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
+	if (!utilv8::SafeUnwrap(args, is)) {
 		return;
 	}
 
@@ -613,7 +630,7 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetId(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	if (sdi) {
 		if (sdi->obs_sourceId.size() > 0) {
-			info.GetReturnValue().Set(utilv8::ToValue(sdi->obs_sourceId));
+			args.GetReturnValue().Set(utilv8::ToValue(sdi->obs_sourceId));
 			return;
 		}
 	}
@@ -631,20 +648,20 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetId(Nan::NAN_METHOD_ARGS_TYPE info)
 		sdi->obs_sourceId = response[1].value_str;
 	}
 
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
+	args.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetMuted(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::GetMuted(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
+	if (!utilv8::SafeUnwrap(args, is)) {
 		return;
 	}
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(is->sourceId);
 
 	if (sdi) {
 		if (sdi && !sdi->mutedChanged) {
-			info.GetReturnValue().Set(sdi->isMuted);
+			args.GetReturnValue().Set(sdi->isMuted);
 			return;
 		}
 	}
@@ -663,18 +680,18 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetMuted(Nan::NAN_METHOD_ARGS_TYPE inf
 		sdi->mutedChanged = false;
 	}
 
-	info.GetReturnValue().Set((bool)response[1].value_union.i32);
+	args.GetReturnValue().Set((bool)response[1].value_union.i32);
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetMuted(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::SetMuted(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	bool muted;
 
-	ASSERT_GET_VALUE(info[0], muted);
+	ASSERT_GET_VALUE(args[0], muted);
 
 	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
+	if (!utilv8::SafeUnwrap(args, is)) {
 		return;
 	}
 
@@ -690,10 +707,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetMuted(Nan::NAN_METHOD_ARGS_TYPE inf
 	}
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetEnabled(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::GetEnabled(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
+	if (!utilv8::SafeUnwrap(args, is)) {
 		return;
 	}
 
@@ -707,17 +724,17 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetEnabled(Nan::NAN_METHOD_ARGS_TYPE i
 	if (!ValidateResponse(response))
 		return;
 
-	info.GetReturnValue().Set((bool)response[1].value_union.i32);
+	args.GetReturnValue().Set((bool)response[1].value_union.i32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetEnabled(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::SetEnabled(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	bool enabled;
 
-	ASSERT_GET_VALUE(info[0], enabled);
+	ASSERT_GET_VALUE(args[0], enabled);
 
 	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
+	if (!utilv8::SafeUnwrap(args, is)) {
 		return;
 	}
 
@@ -728,10 +745,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetEnabled(Nan::NAN_METHOD_ARGS_TYPE i
 	conn->call("Source", "SetEnabled", {ipc::value(is->sourceId), ipc::value(enabled)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseClick(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::SendMouseClick(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* obj;
-	if (!utilv8::SafeUnwrap(info, obj)) {
+	if (!utilv8::SafeUnwrap(args, obj)) {
 		return;
 	}
 
@@ -744,10 +761,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseClick(Nan::NAN_METHOD_ARGS_TY
 	bool                  mouse_up;
 	uint32_t              click_count;
 
-	ASSERT_GET_VALUE(info[0], mouse_event_obj);
-	ASSERT_GET_VALUE(info[1], type);
-	ASSERT_GET_VALUE(info[2], mouse_up);
-	ASSERT_GET_VALUE(info[3], click_count);
+	ASSERT_GET_VALUE(args[0], mouse_event_obj);
+	ASSERT_GET_VALUE(args[1], type);
+	ASSERT_GET_VALUE(args[2], mouse_up);
+	ASSERT_GET_VALUE(args[3], click_count);
 
 	uint32_t modifiers, x, y;
 
@@ -770,10 +787,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseClick(Nan::NAN_METHOD_ARGS_TY
 	);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseMove(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::SendMouseMove(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* obj;
-	if (!utilv8::SafeUnwrap(info, obj)) {
+	if (!utilv8::SafeUnwrap(args, obj)) {
 		return;
 	}
 
@@ -784,8 +801,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseMove(Nan::NAN_METHOD_ARGS_TYP
 	v8::Local<v8::Object> mouse_event_obj;
 	bool                  mouse_leave;
 
-	ASSERT_GET_VALUE(info[0], mouse_event_obj);
-	ASSERT_GET_VALUE(info[1], mouse_leave);
+	ASSERT_GET_VALUE(args[0], mouse_event_obj);
+	ASSERT_GET_VALUE(args[1], mouse_leave);
 
 	uint32_t modifiers, x, y;
 
@@ -796,10 +813,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseMove(Nan::NAN_METHOD_ARGS_TYP
 	conn->call("Source", "SendMouseMove", {ipc::value(obj->sourceId), ipc::value(modifiers), ipc::value(x), ipc::value(y), ipc::value(mouse_leave)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseWheel(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::SendMouseWheel(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* obj;
-	if (!utilv8::SafeUnwrap(info, obj)) {
+	if (!utilv8::SafeUnwrap(args, obj)) {
 		return;
 	}
 
@@ -810,9 +827,9 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseWheel(Nan::NAN_METHOD_ARGS_TY
 	v8::Local<v8::Object> mouse_event_obj;
 	int                   x_delta, y_delta;
 
-	ASSERT_GET_VALUE(info[0], mouse_event_obj);
-	ASSERT_GET_VALUE(info[1], x_delta);
-	ASSERT_GET_VALUE(info[2], y_delta);
+	ASSERT_GET_VALUE(args[0], mouse_event_obj);
+	ASSERT_GET_VALUE(args[1], x_delta);
+	ASSERT_GET_VALUE(args[2], y_delta);
 
 	uint32_t modifiers, x, y;
 
@@ -834,16 +851,16 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseWheel(Nan::NAN_METHOD_ARGS_TY
 	);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendFocus(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::SendFocus(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* obj;
-	if (!utilv8::SafeUnwrap(info, obj)) {
+	if (!utilv8::SafeUnwrap(args, obj)) {
 		return;
 	}
 
 	bool focus;
 
-	ASSERT_GET_VALUE(info[0], focus);
+	ASSERT_GET_VALUE(args[0], focus);
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -852,10 +869,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendFocus(Nan::NAN_METHOD_ARGS_TYPE in
     conn->call("Source", "SendFocus", {ipc::value(obj->sourceId), ipc::value(focus)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendKeyClick(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::SendKeyClick(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* obj;
-	if (!utilv8::SafeUnwrap(info, obj)) {
+	if (!utilv8::SafeUnwrap(args, obj)) {
 		return;
 	}
 
@@ -866,8 +883,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendKeyClick(Nan::NAN_METHOD_ARGS_TYPE
 	v8::Local<v8::Object> key_event_obj;
 	bool                  key_up;
 
-	ASSERT_GET_VALUE(info[0], key_event_obj);
-	ASSERT_GET_VALUE(info[1], key_up);
+	ASSERT_GET_VALUE(args[0], key_event_obj);
+	ASSERT_GET_VALUE(args[1], key_up);
 
 	uint32_t    modifiers, native_modifiers, native_scancode, native_vkey;
 	std::string text;

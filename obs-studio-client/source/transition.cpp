@@ -33,7 +33,7 @@ osn::Transition::Transition(uint64_t id)
 	this->sourceId = id;
 }
 
-void osn::Transition::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
+void osn::Transition::Register(v8::Local<v8::Object> exports)
 {
 	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
 	fnctemplate->Inherit(Nan::New<v8::FunctionTemplate>(osn::ISource::prototype));
@@ -41,28 +41,30 @@ void osn::Transition::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 	fnctemplate->SetClassName(Nan::New<v8::String>("Transition").ToLocalChecked());
 
 	// Class Template
-	utilv8::SetTemplateField(fnctemplate, "types", Types);
-	utilv8::SetTemplateField(fnctemplate, "create", Create);
-	utilv8::SetTemplateField(fnctemplate, "createPrivate", CreatePrivate);
-	utilv8::SetTemplateField(fnctemplate, "fromName", FromName);
+	utilv8::SetTemplateField(fnctemplate, "types", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Types));
+	utilv8::SetTemplateField(fnctemplate, "create", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Create));
+	utilv8::SetTemplateField(fnctemplate, "createPrivate", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), CreatePrivate));
+	utilv8::SetTemplateField(fnctemplate, "fromName", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), FromName));
 
 	// Object Template
 	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->PrototypeTemplate();
-	utilv8::SetTemplateField(objtemplate, "getActiveSource", GetActiveSource);
-	utilv8::SetTemplateField(objtemplate, "start", Start);
-	utilv8::SetTemplateField(objtemplate, "set", Set);
-	utilv8::SetTemplateField(objtemplate, "clear", Clear);
+	utilv8::SetTemplateField(objtemplate, "getActiveSource", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), GetActiveSource));
+	utilv8::SetTemplateField(objtemplate, "start", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Start));
+	utilv8::SetTemplateField(objtemplate, "set", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Set));
+	utilv8::SetTemplateField(objtemplate, "clear", v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), Clear));
 
 	// Stuff
-	utilv8::SetObjectField(
-	    target, "Transition", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
+	exports->Set(
+		Nan::GetCurrentContext(),
+		v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), "Transition").ToLocalChecked(),
+		fnctemplate->GetFunction(Nan::GetCurrentContext()).ToLocalChecked()).FromJust();
 	prototype.Reset(fnctemplate);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Types(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Transition::Types(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	// Function takes no parameters.
-	ASSERT_INFO_LENGTH(info, 0);
+	ASSERT_INFO_LENGTH(args, 0);
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -80,30 +82,30 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Types(Nan::NAN_METHOD_ARGS_TYPE inf
 		types.push_back(response[1 + idx].value_str);
 	}
 
-	info.GetReturnValue().Set(utilv8::ToValue<std::string>(types));
+	args.GetReturnValue().Set(utilv8::ToValue<std::string>(types));
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Create(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Transition::Create(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	std::string           type;
 	std::string           name;
 	v8::Local<v8::String> settings = Nan::New<v8::String>("").ToLocalChecked();
 
 	// Parameters: <string> Type, <string> Name[,<object> settings]
-	ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
+	ASSERT_INFO_LENGTH_AT_LEAST(args, 2);
 
-	ASSERT_GET_VALUE(info[0], type);
-	ASSERT_GET_VALUE(info[1], name);
+	ASSERT_GET_VALUE(args[0], type);
+	ASSERT_GET_VALUE(args[1], name);
 
 	// Check if caller provided settings to send across.
-	if (info.Length() >= 3) {
-		ASSERT_INFO_LENGTH(info, 3);
+	if (args.Length() >= 3) {
+		ASSERT_INFO_LENGTH(args, 3);
 
 		v8::Local<v8::Object> setobj;
-		ASSERT_GET_VALUE(info[2], setobj);
+		ASSERT_GET_VALUE(args[2], setobj);
 
-		settings = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), setobj).ToLocalChecked();
+		settings = v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), setobj).ToLocalChecked();
 	}
 
 	auto conn = GetConnection();
@@ -133,29 +135,29 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Create(Nan::NAN_METHOD_ARGS_TYPE in
 
 	CacheManager<SourceDataInfo*>::getInstance().Store(response[1].value_union.ui64, name, sdi);
 
-	info.GetReturnValue().Set(osn::Transition::Store(obj));
+	args.GetReturnValue().Set(osn::Transition::Store(obj));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Transition::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Transition::CreatePrivate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	std::string           type;
 	std::string           name;
 	v8::Local<v8::String> settings = Nan::New<v8::String>("").ToLocalChecked();
 
 	// Parameters: <string> Type, <string> Name[,<object> settings]
-	ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
+	ASSERT_INFO_LENGTH_AT_LEAST(args, 2);
 
-	ASSERT_GET_VALUE(info[0], type);
-	ASSERT_GET_VALUE(info[1], name);
+	ASSERT_GET_VALUE(args[0], type);
+	ASSERT_GET_VALUE(args[1], name);
 
 	// Check if caller provided settings to send across.
-	if (info.Length() >= 3) {
-		ASSERT_INFO_LENGTH(info, 3);
+	if (args.Length() >= 3) {
+		ASSERT_INFO_LENGTH(args, 3);
 
 		v8::Local<v8::Object> setobj;
-		ASSERT_GET_VALUE(info[2], setobj);
+		ASSERT_GET_VALUE(args[2], setobj);
 
-		settings = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), setobj).ToLocalChecked();
+		settings = v8::JSON::Stringify(args.GetIsolate()->GetCurrentContext(), setobj).ToLocalChecked();
 	}
 
 	auto conn = GetConnection();
@@ -186,16 +188,16 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::CreatePrivate(Nan::NAN_METHOD_ARGS_
 
 	CacheManager<SourceDataInfo*>::getInstance().Store(response[1].value_union.ui64, name, sdi);
 
-	info.GetReturnValue().Set(osn::Transition::Store(obj));
+	args.GetReturnValue().Set(osn::Transition::Store(obj));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Transition::FromName(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Transition::FromName(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	std::string name;
 
 	// Parameters: <string> Name
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], name);
+	ASSERT_INFO_LENGTH(args, 1);
+	ASSERT_GET_VALUE(args[0], name);
 
 	auto conn = GetConnection();
 	if (!conn)
@@ -210,13 +212,13 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::FromName(Nan::NAN_METHOD_ARGS_TYPE 
 
 	// Create new Filter
 	osn::Transition* obj = new osn::Transition(response[1].value_union.ui64);
-	info.GetReturnValue().Set(osn::Transition::Store(obj));
+	args.GetReturnValue().Set(osn::Transition::Store(obj));
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Transition::GetActiveSource(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Transition::GetActiveSource(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
 		return;
 	}
 	osn::Transition* obj = static_cast<osn::Transition*>(baseobj);
@@ -240,20 +242,20 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::GetActiveSource(Nan::NAN_METHOD_ARG
 	if (response[2].value_union.ui32 == 0) {
 		// Input
 		osn::Input* obj = new osn::Input(response[1].value_union.ui64);
-		info.GetReturnValue().Set(osn::Input::Store(obj));
+		args.GetReturnValue().Set(osn::Input::Store(obj));
 	} else if (response[2].value_union.ui32 == 3) {
 		// Scene
 		osn::Scene* obj = new osn::Scene(response[1].value_union.ui64);
-		info.GetReturnValue().Set(osn::Scene::Store(obj));
+		args.GetReturnValue().Set(osn::Scene::Store(obj));
 	}
 
 	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Clear(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Transition::Clear(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
 		return;
 	}
 	osn::Transition* obj = static_cast<osn::Transition*>(baseobj);
@@ -271,10 +273,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Clear(Nan::NAN_METHOD_ARGS_TYPE inf
 	conn->call("Transition", "Clear", {std::move(params)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Set(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Transition::Set(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
 		return;
 	}
 	osn::Transition* obj = static_cast<osn::Transition*>(baseobj);
@@ -283,14 +285,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Set(Nan::NAN_METHOD_ARGS_TYPE info)
 		return;
 	}
 
-	ASSERT_INFO_LENGTH(info, 1);
+	ASSERT_INFO_LENGTH(args, 1);
 
 	v8::Local<v8::Object> targetbaseobj;
-	ASSERT_GET_VALUE(info[0], targetbaseobj);
+	ASSERT_GET_VALUE(args[0], targetbaseobj);
 
 	osn::ISource* targetobj = nullptr;
 	if (!osn::ISource::Retrieve(targetbaseobj, targetobj)) {
-		info.GetIsolate()->ThrowException(
+		args.GetIsolate()->ThrowException(
 		    v8::Exception::TypeError(Nan::New<v8::String>("Invalid type for target source.").ToLocalChecked()));
 		return;
 	}
@@ -304,10 +306,10 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Set(Nan::NAN_METHOD_ARGS_TYPE info)
 	conn->call("Transition", "Set", {std::move(params)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Start(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Transition::Start(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
+	if (!osn::ISource::Retrieve(args.This(), baseobj)) {
 		return;
 	}
 	osn::Transition* obj = static_cast<osn::Transition*>(baseobj);
@@ -317,16 +319,16 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Start(Nan::NAN_METHOD_ARGS_TYPE inf
 	}
 
 	// Parameters
-	ASSERT_INFO_LENGTH(info, 2);
+	ASSERT_INFO_LENGTH(args, 2);
 
 	uint32_t ms = 0;
-	ASSERT_GET_VALUE(info[0], ms);
+	ASSERT_GET_VALUE(args[0], ms);
 
 	v8::Local<v8::Object> targetbaseobj;
-	ASSERT_GET_VALUE(info[1], targetbaseobj);
+	ASSERT_GET_VALUE(args[1], targetbaseobj);
 	osn::ISource* targetobj = nullptr;
 	if (!osn::ISource::Retrieve(targetbaseobj, targetobj)) {
-		info.GetIsolate()->ThrowException(
+		args.GetIsolate()->ThrowException(
 		    v8::Exception::TypeError(Nan::New<v8::String>("Invalid type for target source.").ToLocalChecked()));
 		return;
 	}
@@ -341,5 +343,5 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Transition::Start(Nan::NAN_METHOD_ARGS_TYPE inf
 
 	if (!ValidateResponse(response))
 		return;
-	info.GetReturnValue().Set(!!response[1].value_union.i32);
+	args.GetReturnValue().Set(!!response[1].value_union.i32);
 }

@@ -35,27 +35,27 @@ namespace osn
 		public:
 		static Nan::Persistent<v8::FunctionTemplate> prototype;
 
-		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+		static void Register(v8::Local<v8::Object> exports);
 
-		static Nan::NAN_METHOD_RETURN_TYPE Create(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE FromName(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void Create(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void CreatePrivate(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void FromName(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-		static Nan::NAN_METHOD_RETURN_TYPE Release(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Remove(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void Release(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void Remove(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-		static Nan::NAN_METHOD_RETURN_TYPE AsSource(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Duplicate(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void AsSource(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void Duplicate(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-		static Nan::NAN_METHOD_RETURN_TYPE AddSource(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE FindItem(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE MoveItem(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE OrderItems(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetItemAtIndex(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetItems(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetItemsInRange(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void AddSource(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void FindItem(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void MoveItem(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void OrderItems(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void GetItemAtIndex(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void GetItems(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void GetItemsInRange(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-		static Nan::NAN_METHOD_RETURN_TYPE Connect(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Disconnect(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void Connect(const v8::FunctionCallbackInfo<v8::Value>& args);
+		static void Disconnect(const v8::FunctionCallbackInfo<v8::Value>& args);
 	};
 } // namespace osn

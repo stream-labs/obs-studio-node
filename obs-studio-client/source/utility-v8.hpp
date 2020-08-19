@@ -312,7 +312,7 @@ namespace utilv8
 	// Text
 	inline bool FromValue(v8::Local<v8::Value> l, char*& r, size_t length)
 	{
-		if (l->IsString()) {
+		// if (l->IsString()) {
 			auto v8s = l->ToString(Nan::GetCurrentContext()).FromMaybe(v8::Local<v8::String>());
 			if ((v8s->Utf8Length(v8::Isolate::GetCurrent()) + 1) <= length) {
 				Nan::Utf8String utfv8(v8s);
@@ -322,13 +322,13 @@ namespace utilv8
 					return true;
 				}
 			}
-		}
+		// }
 		return false;
 	}
 
 	inline bool FromValue(v8::Local<v8::Value> l, char*& r)
 	{
-		if (l->IsString()) {
+		// if (l->IsString()) {
 			auto v8s = l->ToString(Nan::GetCurrentContext()).FromMaybe(v8::Local<v8::String>());
 			Nan::Utf8String utfv8(v8s);
 			if (*utfv8) {
@@ -337,20 +337,20 @@ namespace utilv8
 				r[v8s->Utf8Length(v8::Isolate::GetCurrent())] = 0;
 				return true;
 			}
-		}
+		// }
 		return false;
 	}
 
 	inline bool FromValue(v8::Local<v8::Value> l, std::string& r)
 	{
-		if (l->IsString()) {
+		// if (l->IsString()) {
 			auto v8s = l->ToString(Nan::GetCurrentContext()).FromMaybe(v8::Local<v8::String>());
 			Nan::Utf8String utfv8(v8s);
 			if (*utfv8) {
 				r = std::string(*utfv8, v8s->Utf8Length(v8::Isolate::GetCurrent()));
 				return true;
 			}
-		}
+		// }
 		return false;
 	}
 
@@ -495,7 +495,13 @@ namespace utilv8
 	template<typename T>
 	inline void SetTemplateField(v8::Local<v8::Template> object, const char* field, T value)
 	{
-		Nan::SetMethod(object, ToValue(field), ToValue(value));
+		Nan::SetMethod(object, field, ToValue(value));
+		// v8::Local<v8::FunctionTemplate> t =
+		// 	v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), value);
+		// v8::Local<v8::String> fn_name = Nan::New<v8::String>(field).ToLocalChecked();
+		// t->SetClassName(fn_name);
+
+		// object->Set(fn_name, t);
 	}
 
 	template<typename T>
@@ -505,22 +511,25 @@ namespace utilv8
 	}
 
 	template<>
-	inline void SetTemplateField<Nan::FunctionCallback>(
-	    v8::Local<v8::Template> object,
-	    const char*             name,
-	    Nan::FunctionCallback   value)
+	inline void SetTemplateField<v8::Local<v8::FunctionTemplate>>(
+	    v8::Local<v8::Template>         object,
+	    const char*                     name,
+	    v8::Local<v8::FunctionTemplate> value)
 	{
-		Nan::SetMethod(object, name, value);
+		v8::Local<v8::String> fn_name = Nan::New<v8::String>(name).ToLocalChecked();
+		value->SetClassName(fn_name);
+
+		object->Set(fn_name, value);
 	}
 
 	inline void SetTemplateAccessorProperty(
-	    v8::Local<v8::Template> object,
-	    const char*             name,
-	    Nan::FunctionCallback   get,
-	    Nan::FunctionCallback   set = nullptr)
+	    v8::Local<v8::Template>                    object,
+	    const char*                                name,
+	    v8::Local<v8::FunctionTemplate> get,
+	    v8::Local<v8::FunctionTemplate> set = v8::Local<v8::FunctionTemplate>())
 	{
 		object->SetAccessorProperty(
-		    FIELD_NAME(name), Nan::New<v8::FunctionTemplate>(get), Nan::New<v8::FunctionTemplate>(set));
+		    FIELD_NAME(name), get, set);
 	}
 
 	inline void SetObjectTemplateAccessor(
@@ -533,14 +542,23 @@ namespace utilv8
 	}
 
 	template<typename T>
-	inline bool SafeUnwrap(Nan::NAN_METHOD_ARGS_TYPE info, T*& valp)
+	inline bool SafeUnwrap(const v8::FunctionCallbackInfo<v8::Value>& args, T*& valp)
 	{
-		T* val = Nan::ObjectWrap::Unwrap<T>(info.This());
+		std::cout << "SafeUnwrap 0 " << std::endl;
+		T* val = Nan::ObjectWrap::Unwrap<T>(args[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked());
+
+		// void* ptr = args.This()->GetAlignedPointerFromInternalField(0);
+		std::cout << "SafeUnwrap 0.1 " << std::endl;
+		// Nan::ObjectWrap* wrap = static_cast<Nan::ObjectWrap*>(ptr);
+		// std::cout << "SafeUnwrap 0.2 " << std::endl;
+		// T* val = static_cast<T*>(wrap);
+		// std::cout << "SafeUnwrap 1 " << std::endl;
 		if (!val) {
-			info.GetIsolate()->ThrowException(
+			args.GetIsolate()->ThrowException(
 			    v8::Exception::TypeError(Nan::New<v8::String>("No wrapped object.").ToLocalChecked()));
 			return false;
 		}
+		std::cout << "SafeUnwrap 2 " << std::endl;
 		valp = val;
 		return true;
 	}
@@ -551,12 +569,16 @@ namespace utilv8
 		public:
 		static bool Retrieve(v8::Local<v8::Object> object, T*& valp)
 		{
+			std::cout << "Retrieve 0" << std::endl;
 			T* val = Nan::ObjectWrap::Unwrap<T>(object);
+			std::cout << "Retrieve 1" << std::endl;
 			if (!val) {
+				std::cout << "Retrieve 3" << std::endl;
 				v8::Isolate::GetCurrent()->ThrowException(
 				    v8::Exception::TypeError(Nan::New<v8::String>("No wrapped object.").ToLocalChecked()));
 				return false;
 			}
+			std::cout << "Retrieve 4" << std::endl;
 			valp = val;
 			return true;
 		}
@@ -568,9 +590,19 @@ namespace utilv8
 		public:
 		static v8::Local<v8::Object> Store(T* object)
 		{
-			auto obj =
-			    Nan::NewInstance(T::prototype.Get(v8::Isolate::GetCurrent())->InstanceTemplate()).ToLocalChecked();
+			std::cout << "Store 0" << std::endl;
+			v8::Isolate *isolate = v8::Isolate::GetCurrent();
+			v8::EscapableHandleScope scope(isolate);
+
+			// auto obj =
+			//     Nan::NewInstance(T::prototype.Get(v8::Isolate::GetCurrent())->InstanceTemplate()).ToLocalChecked();
+			
+			auto obj = scope.Escape(T::prototype.Get(v8::Isolate::GetCurrent())->InstanceTemplate()->NewInstance(isolate->GetCurrentContext())
+                          .FromMaybe(v8::Local<v8::Object>()));
+			
+			std::cout << "Store 1" << std::endl;
 			object->Wrap(obj);
+			std::cout << "Store 2" << std::endl;
 			return obj;
 		}
 	};
