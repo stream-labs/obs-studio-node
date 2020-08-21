@@ -83,17 +83,31 @@ export class OBSHandler {
     os: string;
 
     constructor(testName: string) {
-        this.os = process.platform;
-        this.osnTestName = testName;
-        this.cacheUploader = new CacheUploader(testName, this.obsPath);
-        this.startup();
-        this.inputTypes = osn.InputFactory.types();
-        const index = this.inputTypes.indexOf('syphon-input', 0);
-        if (index > -1) {
-            this.inputTypes.splice(index, 1);
+        console.log(osn.NodeObs.Fader);
+        console.log('create fader');
+        const fader = osn.NodeObs.Fader.create(osn.EFaderType.Log);
+        console.log(osn.NodeObs.Fader.test_static_value);
+        console.log(fader);
+        console.log(fader.test_instance_value);
+        console.log('created');
+        try {
+            console.log(fader.value());
+        } catch (e) {
+            console.log(e);
         }
-        this.filterTypes = osn.FilterFactory.types();
-        this.transitionTypes = osn.TransitionFactory.types();
+        
+        // console.log(obj.value);
+        // this.os = process.platform;
+        // this.osnTestName = testName;
+        // this.cacheUploader = new CacheUploader(testName, this.obsPath);
+        // this.startup();
+        // this.inputTypes = osn.InputFactory.types();
+        // const index = this.inputTypes.indexOf('syphon-input', 0);
+        // if (index > -1) {
+        //     this.inputTypes.splice(index, 1);
+        // }
+        // this.filterTypes = osn.FilterFactory.types();
+        // this.transitionTypes = osn.TransitionFactory.types();
     }
 
     startup() {

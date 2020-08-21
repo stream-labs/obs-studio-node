@@ -17,43 +17,38 @@
 ******************************************************************************/
 
 #pragma once
-#include <nan.h>
-#include <node.h>
-#include "utility-v8.hpp"
+#include <napi.h>
+// #include "utility-v8.hpp"
 
 namespace osn
 {
-	class Fader : public Nan::ObjectWrap,
-	              public utilv8::InterfaceObject<osn::Fader>,
-	              public utilv8::ManagedObject<osn::Fader>
+	class Fader : public Napi::ObjectWrap<osn::Fader>
 	{
-		friend utilv8::InterfaceObject<osn::Fader>;
-		friend utilv8::ManagedObject<osn::Fader>;
-
 		private:
+		static Napi::FunctionReference constructor;
+		double value_;
 		uint64_t uid;
 
 		public:
-		Fader(uint64_t uid);
-		~Fader();
-
 		uint64_t GetId();
 
 		public:
-		static Nan::Persistent<v8::FunctionTemplate> prototype;
+		static Napi::Object Init(Napi::Env env, Napi::Object exports);
+		Fader(const Napi::CallbackInfo& info);
 
-		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+		Napi::Value GetValue(const Napi::CallbackInfo& info);
+		static Napi::Value Create(const Napi::CallbackInfo& info);
 
-		static void Create(Nan::NAN_METHOD_ARGS_TYPE info);
-		static void GetDeziBel(Nan::NAN_METHOD_ARGS_TYPE info);
-		static void SetDezibel(Nan::NAN_METHOD_ARGS_TYPE info);
-		static void GetDeflection(Nan::NAN_METHOD_ARGS_TYPE info);
-		static void SetDeflection(Nan::NAN_METHOD_ARGS_TYPE info);
-		static void GetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info);
-		static void SetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info);
-		static void Attach(Nan::NAN_METHOD_ARGS_TYPE info);
-		static void Detach(Nan::NAN_METHOD_ARGS_TYPE info);
-		static void AddCallback(Nan::NAN_METHOD_ARGS_TYPE info);
-		static void RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info);
+		// static void Create(Nan::NAN_METHOD_ARGS_TYPE info);
+		// static void GetDeziBel(Nan::NAN_METHOD_ARGS_TYPE info);
+		// static void SetDezibel(Nan::NAN_METHOD_ARGS_TYPE info);
+		// static void GetDeflection(Nan::NAN_METHOD_ARGS_TYPE info);
+		// static void SetDeflection(Nan::NAN_METHOD_ARGS_TYPE info);
+		// static void GetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info);
+		// static void SetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info);
+		// static void Attach(Nan::NAN_METHOD_ARGS_TYPE info);
+		// static void Detach(Nan::NAN_METHOD_ARGS_TYPE info);
+		// static void AddCallback(Nan::NAN_METHOD_ARGS_TYPE info);
+		// static void RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info);
 	};
 } // namespace osn

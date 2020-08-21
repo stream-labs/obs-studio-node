@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 SET(NODEJS_URL "https://atom.io/download/atom-shell" CACHE STRING "Node.JS URL")
 SET(NODEJS_NAME "iojs" CACHE STRING "Node.JS Name")
-SET(NODEJS_VERSION "v6.0.3" CACHE STRING "Node.JS Version")
+SET(NODEJS_VERSION "v6.1.11" CACHE STRING "Node.JS Version")
 
 if(WIN32)
 	# Resource VersionInfo
@@ -45,55 +45,55 @@ SET(osn-client_SOURCES
 	"${CMAKE_SOURCE_DIR}/source/obs-property.hpp"
 	"${CMAKE_SOURCE_DIR}/source/obs-property.cpp"
 
-	"source/shared.cpp"
-	"source/shared.hpp"
-	"source/utility.cpp"
-	"source/utility.hpp"
-	"source/utility-v8.cpp"
-	"source/utility-v8.hpp"
-	"source/controller.cpp"
-	"source/controller.hpp"
+#	"source/shared.cpp"
+#	"source/shared.hpp"
+#	"source/utility.cpp"
+#	"source/utility.hpp"
+#	"source/utility-v8.cpp"
+#	"source/utility-v8.hpp"
+#	"source/controller.cpp"
+#	"source/controller.hpp"
 	"source/fader.cpp"
 	"source/fader.hpp"
-	"source/global.cpp"
-	"source/global.hpp"
-	"source/input.cpp"
-	"source/input.hpp"
-	"source/isource.cpp"
-	"source/isource.hpp"
-	"source/properties.cpp"
-	"source/properties.hpp"
-	"source/filter.cpp"
-	"source/filter.hpp"
-	"source/transition.cpp"
-	"source/transition.hpp"
-	"source/scene.cpp"
-	"source/scene.hpp"
-	"source/sceneitem.cpp"
-	"source/sceneitem.hpp"
-	"source/nodeobs_api.cpp"
-	"source/nodeobs_api.hpp"
-	"source/nodeobs_service.cpp"
-	"source/nodeobs_service.hpp"
-	"source/nodeobs_display.cpp"
-	"source/nodeobs_display.hpp"
-	"source/nodeobs_settings.cpp"
-	"source/nodeobs_settings.hpp"
-	"source/nodeobs_autoconfig.cpp"
-	"source/nodeobs_autoconfig.hpp"
+#	"source/global.cpp"
+#	"source/global.hpp"
+#	"source/input.cpp"
+#	"source/input.hpp"
+#	"source/isource.cpp"
+#	"source/isource.hpp"
+#	"source/properties.cpp"
+#	"source/properties.hpp"
+#	"source/filter.cpp"
+#	"source/filter.hpp"
+#	"source/transition.cpp"
+#	"source/transition.hpp"
+#	"source/scene.cpp"
+#	"source/scene.hpp"
+#	"source/sceneitem.cpp"
+#	"source/sceneitem.hpp"
+#	"source/nodeobs_api.cpp"
+#	"source/nodeobs_api.hpp"
+#   "source/nodeobs_service.cpp"
+#	"source/nodeobs_service.hpp"
+#	"source/nodeobs_display.cpp"
+#	"source/nodeobs_display.hpp"
+#	"source/nodeobs_settings.cpp"
+#	"source/nodeobs_settings.hpp"
+#	"source/nodeobs_autoconfig.cpp"
+#	"source/nodeobs_autoconfig.hpp"
 	"source/main.cpp"
-	"source/volmeter.cpp"
-	"source/volmeter.hpp"
-	"source/video.cpp"
-	"source/video.hpp"
-	"source/module.cpp"
-	"source/module.hpp"
-	"source/cache-manager.hpp"
-	"source/cache-manager.cpp"
+#	"source/volmeter.cpp"
+#	"source/volmeter.hpp"
+#	"source/video.cpp"
+#	"source/video.hpp"
+#	"source/module.cpp"
+#	"source/module.hpp"
+#	"source/cache-manager.hpp"
+#	"source/cache-manager.cpp"
 
 	###### callback-manager ######
-	"source/callback-manager.cpp"
-	"source/callback-manager.hpp"
+#	"source/callback-manager.cpp"
+#	"source/callback-manager.hpp"
 )
 
 if (APPLE)
@@ -119,13 +119,14 @@ add_nodejs_module(
 
 set(PROJECT_INCLUDE_PATHS
 	"${nlohmannjson_SOURCE_DIR}/single_include"
+	${CMAKE_JS_INC}
 )
 
 if(WIN32)
 	target_sources(obs_studio_client PUBLIC ${PROJECT_BINARY_DIR}/version.rc)
-	target_link_libraries(obs_studio_client lib-streamlabs-ipc)
+	target_link_libraries(obs_studio_client lib-streamlabs-ipc ${CMAKE_JS_LIB})
 else ()
-	target_link_libraries(obs_studio_client lib-streamlabs-ipc ${COREFOUNDATION} ${COCOA} ${AVFOUNDATION} ${Security} ${Foundation})
+	target_link_libraries(obs_studio_client lib-streamlabs-ipc ${COREFOUNDATION} ${COCOA} ${AVFOUNDATION} ${Security} ${Foundation} ${CMAKE_JS_LIB})
 endif()
 
 target_include_directories(
@@ -135,12 +136,26 @@ target_include_directories(
 		"${CMAKE_SOURCE_DIR}/lib-streamlabs-ipc/include"
 		${PROJECT_INCLUDE_PATHS}
 )
+
+# Include N-API wrappers
+execute_process(COMMAND node -p "require('node-addon-api').include"
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE NODE_ADDON_API_DIR
+        )
+string(REPLACE "\n" "" NODE_ADDON_API_DIR ${NODE_ADDON_API_DIR})
+string(REPLACE "\"" "" NODE_ADDON_API_DIR ${NODE_ADDON_API_DIR})
+target_include_directories(${PROJECT_NAME} PRIVATE ${NODE_ADDON_API_DIR})
+target_link_libraries(${PROJECT_NAME} ${LIBOBS_LIBRARIES})
+
+# Define NAPI_VERSION
+add_definitions(-DNAPI_VERSION=3)
  
 set_target_properties(
 	obs_studio_client
 	PROPERTIES
 	VERSION ${PROJECT_VERSION}
 	SOVERSION ${PROJECT_VERSION}
+	PREFIX "" SUFFIX ".node"
 )
 
 target_compile_definitions(obs_studio_client PRIVATE BUILDING_NODE_EXTENSION)

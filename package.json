@@ -35,7 +35,7 @@
     "electron-mocha": "^8.2.2",
     "mocha": "^7.1.0",
     "mocha-junit-reporter": "^1.22.0",
-    "nan": "2.14.0",
+    "node-addon-api": "^3.0.0",
     "request": "^2.88.0",
     "rxjs": "^6.4.0",
     "ts-node": "^7.0.1",
@@ -65,5 +65,13 @@
     "audio",
     "mixer",
     "beam"
-  ]
+  ],
+  "dependencies": {
+    "cmake-js": "^6.1.0"
+  },
+  "cmake-js": {
+    "runtime": "electron",
+    "runtimeVersion": "6.1.11",
+    "arch": "x64"
+  }
 }
