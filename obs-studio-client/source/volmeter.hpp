@@ -68,6 +68,8 @@ namespace osn
 
 		void set_keepalive(v8::Local<v8::Object>);
 
+		static bool m_all_workers_stop;
+
 		public:
 		static Nan::Persistent<v8::FunctionTemplate> prototype;
 

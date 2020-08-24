@@ -27,6 +27,9 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
+SourceCallback* cm_sources = nullptr;
+bool SourceCallback::m_all_workers_stop = false;
+
 void SourceCallback::start_async_runner()
 {
 	if (m_async_callback)
@@ -106,7 +109,7 @@ void RegisterSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 	// Callback
 	cm_sources = new SourceCallback;
-    cm_sources->m_callback_function.Reset(callback);
+	cm_sources->m_callback_function.Reset(callback);
 	cm_sources->start_async_runner();
 	cm_sources->set_keepalive(args.This());
 	cm_sources->start_worker();
@@ -117,7 +120,7 @@ void SourceCallback::worker()
 {
 	size_t totalSleepMS = 0;
 
-	while (!m_worker_stop) {
+	while (!m_worker_stop && !m_all_workers_stop) {
 		auto tp_start = std::chrono::high_resolution_clock::now();
 
 		// Validate Connection

@@ -26,6 +26,9 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
+#include "volmeter.hpp"
+#include "callback-manager.hpp"
+
 NodeCallback* node_cb;
 
 void NodeCallback::start_async_runner()
@@ -208,6 +211,12 @@ void api::StopCrashHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
 	// ValidateResponse(response);
 }
 
+void api::StopCallbackWorkers(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+	osn::VolMeter::m_all_workers_stop = true;
+	SourceCallback::m_all_workers_stop = true;
+}
+
 Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_QueryHotkeys(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	auto conn = GetConnection();
@@ -337,6 +346,7 @@ INITIALIZER(nodeobs_api)
 		NODE_SET_METHOD(exports, "OBS_API_getPerformanceStatistics", api::OBS_API_getPerformanceStatistics);
 		NODE_SET_METHOD(exports, "SetWorkingDirectory", api::SetWorkingDirectory);
 		NODE_SET_METHOD(exports, "StopCrashHandler", api::StopCrashHandler);
+		NODE_SET_METHOD(exports, "StopCallbackWorkers", api::StopCallbackWorkers);
 		NODE_SET_METHOD(exports, "OBS_API_QueryHotkeys", api::OBS_API_QueryHotkeys);
 		NODE_SET_METHOD(exports, "OBS_API_ProcessHotkeyStatus", api::OBS_API_ProcessHotkeyStatus);
 		NODE_SET_METHOD(exports, "SetUsername", api::SetUsername);
