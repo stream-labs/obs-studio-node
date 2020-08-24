@@ -85,17 +85,18 @@ export class OBSHandler {
     constructor(testName: string) {
         console.log(osn.NodeObs.Fader);
         console.log('create fader');
-        const fader = osn.NodeObs.Fader.create(osn.EFaderType.Log);
-        console.log(osn.NodeObs.Fader.test_static_value);
-        console.log(fader);
-        console.log(fader.test_instance_value);
-        console.log('created');
         try {
-            console.log(fader.value());
-        } catch (e) {
-            console.log(e);
+            const fader = osn.NodeObs.Fader.create(osn.EFaderType.Log);
+            console.log(fader);
+            console.log(fader.registerCallback((myString, myString2)=> {
+                console.log('1 '+ myString);
+                console.log('2 '+ myString2);
+            }));
+            console.log(fader.unregisterCallback());
+        } catch (error) {
+            console.log(error);
         }
-        
+
         // console.log(obj.value);
         // this.os = process.platform;
         // this.osnTestName = testName;

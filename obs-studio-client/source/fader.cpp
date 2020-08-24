@@ -19,44 +19,46 @@
 #include "fader.hpp"
 #include <iterator>
 #include <vector>
-// #include "controller.hpp"
+ #include "controller.hpp"
 // #include "error.hpp"
 // #include "isource.hpp"
-// #include "shared.hpp"
+ #include "shared.hpp"
 #include <iostream>
 
 Napi::FunctionReference osn::Fader::constructor;
 
 Napi::Object osn::Fader::Init(Napi::Env env, Napi::Object exports) {
-  Napi::HandleScope scope(env);
-
-std::cout << "Init 0" << std::endl;
-  Napi::Function func =
-      DefineClass(env,
-                  "Fader",
-                  {
+    Napi::HandleScope scope(env);
+    Napi::Function func =
+        DefineClass(env,
+                    "Fader",
+                    {
                         InstanceMethod("value", &osn::Fader::GetValue),
                         StaticMethod("create", &osn::Fader::Create),
                         StaticValue("test_static_value", Napi::Number::New(env, 2)),
                         InstanceValue("test_instance_value", Napi::Number::New(env, 3)),
-                  });
+                        InstanceMethod("registerCallback", &osn::Fader::RegisterCallback),
+                        InstanceMethod("unregisterCallback", &osn::Fader::UnregisterCallback),
+                    });
+    constructor = Napi::Persistent(func);
+    constructor.SuppressDestruct();
 
-  std::cout << "Init 1" << std::endl;
-  constructor = Napi::Persistent(func);
-  std::cout << "Init 2" << std::endl;
-  constructor.SuppressDestruct();
-
-  std::cout << "Init 3" << std::endl;
-  exports.Set("Fader", func);
-  return exports;
+    exports.Set("Fader", func);
+    return exports;
 }
 
 osn::Fader::Fader(const Napi::CallbackInfo& info)
     : Napi::ObjectWrap<osn::Fader>(info) {
-  Napi::Env env = info.Env();
-  Napi::HandleScope scope(env);
-  std::cout << "Fader constuctor" << std::endl;
-  this->uid = 1;
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    int length = info.Length();
+
+    if (length <= 0 || !info[0].IsNumber()) {
+        Napi::TypeError::New(env, "Number expected").ThrowAsJavaScriptException();
+        return;
+    }
+
+    this->uid = info[0].As<Napi::Number>().Int64Value();
 }
 
 Napi::Value osn::Fader::GetValue(const Napi::CallbackInfo& info) {
@@ -67,18 +69,60 @@ std::cout << "GetValue 0" << std::endl;
 }
 
 Napi::Value osn::Fader::Create(const Napi::CallbackInfo& info) {
-      auto instance = osn::Fader::constructor.New({});
-      return instance;
+    // int length = info.Length();
+
+    // if (length <= 0 || !info[0].IsNumber()) {
+    //     Napi::TypeError::New(info.Env(), "Number expected").ThrowAsJavaScriptException();
+    // }
+
+    // int32_t fader_type = info[0].ToNumber().Int32Value();
+
+	// // Validate Connection
+	// auto conn = Controller::GetInstance().GetConnection();
+	// if (!conn)
+    //     Napi::TypeError::New(info.Env(), "IPC is not connected.").ThrowAsJavaScriptException();
+
+	// // Call
+	// std::vector<ipc::value> rval = conn->call_synchronous_helper(
+	//     "Fader",
+	//     "Create",
+	//     {
+	//         ipc::value(fader_type),
+	//     });
+
+	// if (!ValidateResponse(info, rval))
+	// 	return info.Env().Undefined();
+
+    // auto instance =
+    //     osn::Fader::constructor.New({
+    //         Napi::Number::New(info.Env(), rval[1].value_union.ui64)
+    //         });
+    // return instance;
+
+    std::cout << "Create" << std::endl;
+
+    auto instance =
+        osn::Fader::constructor.New({
+            Napi::Number::New(info.Env(), 2)
+            });
+    return instance;
 }
 
-// osn::Fader::Fader(uint64_t uid)
-// {
-// 	this->uid = uid;
-// }
+Napi::Value osn::Fader::RegisterCallback(const Napi::CallbackInfo& info) {
+    this->cb = info[0].As<Napi::Function>();
+    FaderWorker* asyncWorker = new FaderWorker(cb);
+    asyncWorker->Queue();
+    FaderWorker* asyncWorker2 = new FaderWorker(cb);
+    asyncWorker2->Queue();
+    return Napi::Boolean::New(info.Env(), true);
+}
 
-// osn::Fader::~Fader()
-// {
-// }
+Napi::Value osn::Fader::UnregisterCallback(const Napi::CallbackInfo& info) {
+    // if (this->t_worker->joinable())
+    //     this->t_worker->join();
+    // std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+    return Napi::Boolean::New(info.Env(), true);
+}
 
 uint64_t osn::Fader::GetId()
 {

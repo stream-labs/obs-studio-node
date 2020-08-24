@@ -19,11 +19,11 @@
 #include "shared.hpp"
 
 #ifdef WIN32
-    std::queue<std::function<void(v8::Local<v8::Object>)>>* initializerFunctions =
-        new std::queue<std::function<void(v8::Local<v8::Object>)>>;
+    std::queue<std::function<void(Napi::Object)>>* initializerFunctions =
+        new std::queue<std::function<void(Napi::Object)>>;
 #endif
 #ifdef __APPLE__
-    std::queue<std::function<void(v8::Local<v8::Object>)>>* initializerFunctions = nullptr;
+    std::queue<std::function<void(Napi::Object)>>* initializerFunctions = nullptr;
     UtilInt* g_util_osx;
 #endif
 

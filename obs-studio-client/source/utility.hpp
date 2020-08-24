@@ -21,7 +21,7 @@
 #include <string>
 #include <vector>
 
-#include <nan.h>
+#include <napi.h>
 
 #include "controller.hpp"
 #include "error.hpp"
@@ -80,15 +80,15 @@
 #define dstr(s) #s
 #define vstr(s) dstr(s)
 
-static bool ValidateResponse(std::vector<ipc::value>& response)
+static bool ValidateResponse(const Napi::CallbackInfo& info, std::vector<ipc::value>& response)
 {
 	if (response.size() == 0) {
-		Nan::Error("Failed to make IPC call, verify IPC status.");
+		Napi::TypeError::New(info.Env(), "Failed to make IPC call, verify IPC status.").ThrowAsJavaScriptException();
 		return false;
 	}
 
 	if ((response.size() == 1) && (response[0].type == ipc::type::Null)) {
-		Nan::ThrowError(Nan::New<v8::String>(response[0].value_str).ToLocalChecked());
+		Napi::TypeError::New(info.Env(), response[0].value_str).ThrowAsJavaScriptException();
 		return false;
 	}
 
@@ -98,34 +98,34 @@ static bool ValidateResponse(std::vector<ipc::value>& response)
 
 		// Check if there is an error message to show
 		if (response.size() == 1) {
-			Nan::ThrowError("Error without description.");
+			Napi::TypeError::New(info.Env(), "Error without description.").ThrowAsJavaScriptException();
 			return false;
 		}
 
 		if (error == ErrorCode::InvalidReference) {
-			Nan::ThrowReferenceError(Nan::New(response[1].value_str).ToLocalChecked());
+			Napi::TypeError::New(info.Env(), response[1].value_str).ThrowAsJavaScriptException();
 			return false;
 		}
 
 		if (error != ErrorCode::Ok) {
-			Nan::ThrowError(Nan::New<v8::String>(response[1].value_str).ToLocalChecked());
+			Napi::TypeError::New(info.Env(), response[1].value_str).ThrowAsJavaScriptException();
 			return false;
 		}
 	}
 
 	if (!response.size()) {
-		Nan::ThrowError("Failed to make IPC call, verify IPC status.");
+		Napi::TypeError::New(info.Env(), "Failed to make IPC call, verify IPC status.").ThrowAsJavaScriptException();
 		return false;
 	}
 
 	return true;
 }
 
-static FORCE_INLINE std::shared_ptr<ipc::client> GetConnection()
+static FORCE_INLINE std::shared_ptr<ipc::client> GetConnection(const Napi::CallbackInfo& info)
 {
 	auto conn = Controller::GetInstance().GetConnection();
 	if (!conn) {
-		Nan::ThrowError("Failed to obtain IPC connection.");
+		Napi::TypeError::New(info.Env(), "Failed to obtain IPC connection.").ThrowAsJavaScriptException();
 		exit(1);
 	}
 	return conn;
@@ -166,9 +166,9 @@ namespace utility
 	AUTO_TYPEOF_NAME(std::string, "string");
 	AUTO_TYPEOF(std::vector<char>);
 
-	AUTO_TYPEOF_NAME(v8::Local<v8::Value>, "value");
-	AUTO_TYPEOF_NAME(v8::Local<v8::Object>, "object");
-	AUTO_TYPEOF_NAME(v8::Local<v8::Function>, "function");
+	AUTO_TYPEOF_NAME(Napi::Value, "value");
+	AUTO_TYPEOF_NAME(Napi::Object, "object");
+	AUTO_TYPEOF_NAME(Napi::Function, "function");
 
 	// This is from enc-amf
 #if (defined _WIN32) || (defined _WIN64)

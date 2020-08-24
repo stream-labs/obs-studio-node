@@ -18,7 +18,7 @@
 
 #pragma once
 #include <functional>
-#include <node.h>
+#include <napi.h>
 #include <queue>
 #include <string>
 #include "util-osx.hpp"
@@ -31,7 +31,7 @@
 #endif
 #endif
 
-extern std::queue<std::function<void(v8::Local<v8::Object>)>>* initializerFunctions;
+extern std::queue<std::function<void(Napi::Object)>>* initializerFunctions;
 extern std::wstring utfWorkingDir;
 
 #ifdef __APPLE__

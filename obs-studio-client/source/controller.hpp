@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 #include "ipc-client.hpp"
+#include <napi.h>
 
 #ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
@@ -61,6 +62,8 @@ class Controller
 	public: // C++11
 	Controller(Controller const&) = delete;
 	void operator=(Controller const&) = delete;
+
+	static void Init(Napi::Env env, Napi::Object exports);
 
 	public:
 	std::shared_ptr<ipc::client> host(const std::string& uri);

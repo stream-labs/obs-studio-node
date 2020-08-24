@@ -18,16 +18,33 @@
 
 #pragma once
 #include <napi.h>
-// #include "utility-v8.hpp"
+#include "utility.hpp"
+#include <thread>
 
 namespace osn
 {
+	class FaderWorker: public Napi::AsyncWorker
+	{
+		public:
+			FaderWorker(Napi::Function& callback) : AsyncWorker(callback) {};
+			virtual ~FaderWorker() {};
+
+			void Execute() {
+				// NO V8 / NAPI
+			};
+			void OnOK() {
+				// NODE THREAD
+				Callback().Call({Napi::String::New(Env(), "hello"), Napi::String::New(Env(), "world")});
+			};
+	};
 	class Fader : public Napi::ObjectWrap<osn::Fader>
 	{
 		private:
 		static Napi::FunctionReference constructor;
 		double value_;
 		uint64_t uid;
+		Napi::Function cb;
+		std::thread* t_worker;
 
 		public:
 		uint64_t GetId();
@@ -38,6 +55,8 @@ namespace osn
 
 		Napi::Value GetValue(const Napi::CallbackInfo& info);
 		static Napi::Value Create(const Napi::CallbackInfo& info);
+		Napi::Value RegisterCallback(const Napi::CallbackInfo& info);
+		Napi::Value UnregisterCallback(const Napi::CallbackInfo& info);
 
 		// static void Create(Nan::NAN_METHOD_ARGS_TYPE info);
 		// static void GetDeziBel(Nan::NAN_METHOD_ARGS_TYPE info);
