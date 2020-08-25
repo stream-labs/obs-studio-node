@@ -135,16 +135,9 @@ export class OBSHandler {
     async reserveUser() {
         let streamKey: string = "";
 
-        try {
-            logInfo(this.osnTestName, 'Getting stream key from user pool');
-            streamKey = await this.userPoolHandler.getStreamKey();
-            this.hasUserFromPool = true;
-        } catch(e) {
-            logWarning(this.osnTestName, e);
             logWarning(this.osnTestName, 'Using predefined stream key');
             streamKey = process.env.SLOBS_BE_STREAMKEY;
             this.hasUserFromPool = false;
-        }
 
         logInfo(this.osnTestName, 'Saving stream key');
         this.setSetting(EOBSSettingsCategories.Stream, 'key', streamKey);

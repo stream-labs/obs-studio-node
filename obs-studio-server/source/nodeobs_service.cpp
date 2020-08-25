@@ -167,13 +167,15 @@ void OBS_service::OBS_service_startRecording(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	blog(LOG_ERROR, "OBS_service_startRecording called");
 	if (isRecordingOutputActive()) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		AUTO_DEBUG;
 		return;
 	}
-
+	blog(LOG_ERROR, "OBS_service_startRecording before startRecording()");
 	if (!startRecording()) {
+		blog(LOG_ERROR, "OBS_service_startRecording failed startRecording()");
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to start recording!");
 	} else {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -957,6 +959,7 @@ bool OBS_service::startStreaming(void)
 
 		std::unique_lock<std::mutex> ulock(signalMutex);
 		outputSignal.push(signal);
+		blog(LOG_ERROR, "push signal on startStreaming stop");
 	}
 	return isStreaming;
 }
@@ -1183,6 +1186,7 @@ bool OBS_service::startRecording(void)
 		}
 		std::unique_lock<std::mutex> ulock(signalMutex);
 		outputSignal.push(signal);
+		blog(LOG_ERROR, "push signal on startRecording stop");
 	}
 	return isRecording;
 }
@@ -1360,6 +1364,7 @@ bool OBS_service::startReplayBuffer(void)
 		}
 		std::unique_lock<std::mutex> ulock(signalMutex);
 		outputSignal.push(signal);
+		blog(LOG_ERROR, "push signal on startReply stop");
 	} else {
 		isReplayBufferActive = true;
 	}
@@ -2174,6 +2179,7 @@ void OBS_service::Query(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	blog(LOG_ERROR, "OBS_service::Query request queue size %d", outputSignal.size());
 	std::unique_lock<std::mutex> ulock(signalMutex);
 	if (outputSignal.empty()) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -2225,6 +2231,7 @@ void OBS_service::JSCallbackOutputSignal(void* data, calldata_t* params)
 
 	std::unique_lock<std::mutex> ulock(signalMutex);
 	outputSignal.push(signal);
+	blog(LOG_ERROR, "push signal %s", signalReceived.c_str());
 }
 
 void OBS_service::connectOutputSignals(void)
