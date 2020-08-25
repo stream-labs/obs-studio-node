@@ -88,11 +88,18 @@ export class OBSHandler {
         try {
             const fader = osn.NodeObs.Fader.create(osn.EFaderType.Log);
             console.log(fader);
-            console.log(fader.registerCallback((myString, myString2)=> {
-                console.log('1 '+ myString);
-                console.log('2 '+ myString2);
-            }));
-            console.log(fader.unregisterCallback());
+            console.log(fader.test_instance_value);
+            console.log(osn.NodeObs.Fader.test_static_value);
+            console.log(osn.NodeObs.FaderSub);
+            console.log(osn.NodeObs.FaderSub.subvalue);
+            console.log(osn.NodeObs.FaderSub.test_static_value);
+            const fadersub = osn.NodeObs.FaderSub.create(osn.EFaderType.Log);
+            console.log(fadersub.test_instance_value);
+            // console.log(fader.registerCallback((myString, myString2)=> {
+            //     console.log('1 '+ myString);
+            //     console.log('2 '+ myString2);
+            // }));
+            // console.log(fader.unregisterCallback());
         } catch (error) {
             console.log(error);
         }

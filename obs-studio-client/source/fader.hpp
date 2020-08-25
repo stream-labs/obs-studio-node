@@ -40,7 +40,6 @@ namespace osn
 	class Fader : public Napi::ObjectWrap<osn::Fader>
 	{
 		private:
-		static Napi::FunctionReference constructor;
 		double value_;
 		uint64_t uid;
 		Napi::Function cb;
@@ -50,6 +49,7 @@ namespace osn
 		uint64_t GetId();
 
 		public:
+		static Napi::FunctionReference constructor;
 		static Napi::Object Init(Napi::Env env, Napi::Object exports);
 		Fader(const Napi::CallbackInfo& info);
 
@@ -69,5 +69,15 @@ namespace osn
 		// static void Detach(Nan::NAN_METHOD_ARGS_TYPE info);
 		// static void AddCallback(Nan::NAN_METHOD_ARGS_TYPE info);
 		// static void RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info);
+	};
+
+	class FaderSub : public Napi::ObjectWrap<osn::FaderSub>
+	{
+		private:
+		static Napi::FunctionReference constructorSub;
+
+		public:
+		static Napi::Object Init(Napi::Env env, Napi::Object exports);
+		FaderSub(const Napi::CallbackInfo& info);
 	};
 } // namespace osn

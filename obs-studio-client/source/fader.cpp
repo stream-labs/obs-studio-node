@@ -61,6 +61,50 @@ osn::Fader::Fader(const Napi::CallbackInfo& info)
     this->uid = info[0].As<Napi::Number>().Int64Value();
 }
 
+inline void napi_inherits(napi_env env, napi_value ctor, napi_value super_ctor)
+{
+    napi_value global, global_object, set_proto, ctor_proto_prop, super_ctor_proto_prop;
+    napi_value argv[2];
+
+    napi_get_global(env, &global);
+    napi_get_named_property(env, global, "Object", &global_object);
+    napi_get_named_property(env, global_object, "setPrototypeOf", &set_proto);
+    napi_get_named_property(env, ctor, "prototype", &ctor_proto_prop);
+    napi_get_named_property(env, super_ctor, "prototype", &super_ctor_proto_prop);
+
+    argv[0] = ctor_proto_prop;
+    argv[1] = super_ctor_proto_prop;
+    napi_call_function(env, global, set_proto, 2, argv, nullptr);
+
+    argv[0] = ctor;
+    argv[1] = super_ctor;
+    napi_call_function(env, global, set_proto, 2, argv, nullptr);
+}
+
+Napi::FunctionReference osn::FaderSub::constructorSub;
+
+Napi::Object osn::FaderSub::Init(Napi::Env env, Napi::Object exports) {
+    Napi::HandleScope scope(env);
+    Napi::Function func =
+        DefineClass(env,
+                    "FaderSub",
+                    {
+                        StaticValue("subvalue", Napi::Number::New(env, 4)),
+                    });
+
+    napi_inherits(env, func, osn::Fader::constructor.Value());
+    exports.Set("FaderSub", func);
+    constructorSub = Napi::Persistent(func);
+    constructorSub.SuppressDestruct();
+    return exports;
+}
+
+osn::FaderSub::FaderSub(const Napi::CallbackInfo& info)
+    : Napi::ObjectWrap<osn::FaderSub>(info) {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+}
+
 Napi::Value osn::Fader::GetValue(const Napi::CallbackInfo& info) {
 std::cout << "GetValue 0" << std::endl;
   double uid = this->uid;

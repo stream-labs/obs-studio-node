@@ -107,6 +107,7 @@ Napi::Object main_node(Napi::Env env, Napi::Object exports) {
 	// }
 	// return osn::Fader::Init(env, exports);
 	osn::Fader::Init(env, exports);
+	osn::FaderSub::Init(env, exports);
 	return exports;
 };
 
