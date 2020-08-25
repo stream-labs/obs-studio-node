@@ -74,6 +74,7 @@ void CallbackManager::QuerySourceSize(
 
 	rval.insert(rval.begin() + 1, ipc::value(size));
 
+
 	AUTO_DEBUG;
 }
 
