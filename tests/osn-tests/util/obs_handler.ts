@@ -222,7 +222,7 @@ export class OBSHandler {
     getNextSignalInfo(output: string, signal: string): Promise<IOBSOutputSignalInfo> {
         logInfo(this.osnTestName, 'Wait signal ' + signal);
         return new Promise((resolve, reject) => {
-            this.signals.pipe(first()).subscribe(signalInfo => resolve(signalInfo));
+            this.signals.pipe(first(signalInfo => signalInfo.signal === signal)).subscribe(signalInfo => resolve(signalInfo));
             setTimeout(() => reject(new Error(output.replace(/^\w/, c => c.toUpperCase()) + ' ' + signal + ' signal timeout')), 30000);
         }
         );
