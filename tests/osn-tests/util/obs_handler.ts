@@ -4,7 +4,8 @@ import { UserPoolHandler } from './user_pool_handler';
 import { CacheUploader } from '../util/cache-uploader'
 import { EOBSOutputType, EOBSOutputSignal, EOBSSettingsCategories} from '../util/obs_enums'
 import { Subject } from 'rxjs';
-import { first } from 'rxjs/operators';
+import { first, take } from 'rxjs/operators';
+const WaitQueue = require('wait-queue');
 
 // Interfaces
 export interface IPerformanceState {
@@ -75,7 +76,7 @@ export class OBSHandler {
     private cacheUploader: CacheUploader;
     private hasUserFromPool: boolean = false;
     private osnTestName: string;
-    private signals = new Subject<IOBSOutputSignalInfo>();
+    private signals = new WaitQueue();
     private progress = new Subject<IConfigProgress>();
     inputTypes: string[];
     filterTypes: string[];
@@ -215,14 +216,18 @@ export class OBSHandler {
     connectOutputSignals() {
         osn.NodeObs.OBS_service_connectOutputSignals((signalInfo: IOBSOutputSignalInfo) => {
             logInfo(this.osnTestName, 'Get signal ' + signalInfo.signal);
-            this.signals.next(signalInfo);
+            this.signals.push(signalInfo);
         });
     }
 
     getNextSignalInfo(output: string, signal: string): Promise<IOBSOutputSignalInfo> {
         logInfo(this.osnTestName, 'Wait signal ' + signal);
         return new Promise((resolve, reject) => {
-            this.signals.pipe(first(signalInfo => signalInfo.signal === signal)).subscribe(signalInfo => resolve(signalInfo));
+            this.signals.shift().then(
+                function(signalInfo) {
+                    resolve(signalInfo)
+                  }
+            );
             setTimeout(() => reject(new Error(output.replace(/^\w/, c => c.toUpperCase()) + ' ' + signal + ' signal timeout')), 30000);
         }
         );
