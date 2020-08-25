@@ -21,6 +21,7 @@
 #ifdef WIN32
 #include <windows.h>
 #endif
+#include "obs.h"
 #include "error.hpp"
 #include "shared.hpp"
 #include "osn-source.hpp"
