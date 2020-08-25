@@ -83,10 +83,11 @@ static inline std::string StringFromIPCValueVector(std::vector<ipc::value> const
 
 #define EXTENDED_DEBUG_LOG
 #if defined(EXTENDED_DEBUG_LOG)
-#define AUTO_DEBUG                              \
+#define AUTO_DEBUG                                  \
 	blog(                                       \
 	    LOG_DEBUG,                              \
-	    __FUNCTION_NAME__ "(%s) = %s",          \
+	    "%s(%s) = %s",                          \
+	    __FUNCTION_NAME__ ,                     \
 	    StringFromIPCValueVector(args).c_str(), \
 	    StringFromIPCValueVector(rval).c_str());
 #else
