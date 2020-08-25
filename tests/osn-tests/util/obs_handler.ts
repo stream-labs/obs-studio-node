@@ -214,15 +214,18 @@ export class OBSHandler {
 
     connectOutputSignals() {
         osn.NodeObs.OBS_service_connectOutputSignals((signalInfo: IOBSOutputSignalInfo) => {
+            logInfo(this.osnTestName, 'Get signal ' + signalInfo.signal);
             this.signals.next(signalInfo);
         });
     }
 
     getNextSignalInfo(output: string, signal: string): Promise<IOBSOutputSignalInfo> {
+        logInfo(this.osnTestName, 'Wait signal ' + signal);
         return new Promise((resolve, reject) => {
             this.signals.pipe(first()).subscribe(signalInfo => resolve(signalInfo));
             setTimeout(() => reject(new Error(output.replace(/^\w/, c => c.toUpperCase()) + ' ' + signal + ' signal timeout')), 30000);
-        });
+        }
+        );
     }
 
     startAutoconfig() {
