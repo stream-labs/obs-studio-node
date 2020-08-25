@@ -83,12 +83,12 @@
 static bool ValidateResponse(const Napi::CallbackInfo& info, std::vector<ipc::value>& response)
 {
 	if (response.size() == 0) {
-		Napi::TypeError::New(info.Env(), "Failed to make IPC call, verify IPC status.").ThrowAsJavaScriptException();
+		Napi::Error::New(info.Env(), "Failed to make IPC call, verify IPC status.").ThrowAsJavaScriptException();
 		return false;
 	}
 
 	if ((response.size() == 1) && (response[0].type == ipc::type::Null)) {
-		Napi::TypeError::New(info.Env(), response[0].value_str).ThrowAsJavaScriptException();
+		Napi::Error::New(info.Env(), response[0].value_str).ThrowAsJavaScriptException();
 		return false;
 	}
 
@@ -98,23 +98,23 @@ static bool ValidateResponse(const Napi::CallbackInfo& info, std::vector<ipc::va
 
 		// Check if there is an error message to show
 		if (response.size() == 1) {
-			Napi::TypeError::New(info.Env(), "Error without description.").ThrowAsJavaScriptException();
+			Napi::Error::New(info.Env(), "Error without description.").ThrowAsJavaScriptException();
 			return false;
 		}
 
 		if (error == ErrorCode::InvalidReference) {
-			Napi::TypeError::New(info.Env(), response[1].value_str).ThrowAsJavaScriptException();
+			Napi::Error::New(info.Env(), response[1].value_str).ThrowAsJavaScriptException();
 			return false;
 		}
 
 		if (error != ErrorCode::Ok) {
-			Napi::TypeError::New(info.Env(), response[1].value_str).ThrowAsJavaScriptException();
+			Napi::Error::New(info.Env(), response[1].value_str).ThrowAsJavaScriptException();
 			return false;
 		}
 	}
 
 	if (!response.size()) {
-		Napi::TypeError::New(info.Env(), "Failed to make IPC call, verify IPC status.").ThrowAsJavaScriptException();
+		Napi::Error::New(info.Env(), "Failed to make IPC call, verify IPC status.").ThrowAsJavaScriptException();
 		return false;
 	}
 
@@ -125,7 +125,7 @@ static FORCE_INLINE std::shared_ptr<ipc::client> GetConnection(const Napi::Callb
 {
 	auto conn = Controller::GetInstance().GetConnection();
 	if (!conn) {
-		Napi::TypeError::New(info.Env(), "Failed to obtain IPC connection.").ThrowAsJavaScriptException();
+		Napi::Error::New(info.Env(), "Failed to obtain IPC connection.").ThrowAsJavaScriptException();
 		exit(1);
 	}
 	return conn;

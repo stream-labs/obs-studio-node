@@ -23,6 +23,7 @@
 #include <fstream>
 #include <string>
 // #include <node.h>
+#include "controller.hpp"
 #include "fader.hpp"
 // #include "filter.hpp"
 // #include "global.hpp"
@@ -108,6 +109,7 @@ Napi::Object main_node(Napi::Env env, Napi::Object exports) {
 	// return osn::Fader::Init(env, exports);
 	osn::Fader::Init(env, exports);
 	osn::FaderSub::Init(env, exports);
+	Controller::Init(env, exports);
 	return exports;
 };
 
