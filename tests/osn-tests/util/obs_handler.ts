@@ -108,8 +108,6 @@ export class OBSHandler {
         this.osnTestName = testName;
         this.cacheUploader = new CacheUploader(testName, this.obsPath);
         this.startup();
-        const fader = osn.NodeObs.Fader.create(osn.EFaderType.Log);
-        console.log(fader);
         // this.inputTypes = osn.InputFactory.types();
         // const index = this.inputTypes.indexOf('syphon-input', 0);
         // if (index > -1) {
@@ -142,7 +140,7 @@ export class OBSHandler {
         logInfo(this.osnTestName, 'Shutting down OBS');
 
         try {
-            osn.NodeObs.OBS_service_removeCallback();
+            // osn.NodeObs.OBS_service_removeCallback();
             osn.NodeObs.IPC.disconnect();
         } catch(e) {
             throw Error('Exception when shutting down OBS process: ' + e);
