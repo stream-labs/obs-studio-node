@@ -60,14 +60,12 @@
 		return;                                                                               \
 	}
 
-#define ASSERT_GET_VALUE(value, var)                                                          \
+#define ASSERT_GET_VALUE(info, value, var)                                                    \
 	if (!utilv8::FromValue((value), (var))) {                                                 \
 		Napi::Error::New(info.Env(), FIELD_NAME(info,                                         \
-		    std::string(__FUNCTION_NAME__) + ": Unexpected type, got '"                       \
-		    + utilv8::TypeOf(value)                                                           \
-		    + std::string("', expected '") + utility::TypeOf(var) + std::string("'.")));      \
-		return;                                                                               \
-	}
+		    std::string(__FUNCTION_NAME__) + ": Unexpected type."));                          \
+		return info.Env().Undefined();                                                        \
+	}                                                                                         \
 
 namespace utilv8
 {
@@ -297,14 +295,14 @@ namespace utilv8
 		return false;
 	}
 
-	// inline bool FromValue(Napi::Value l, uint64_t& r)
-	// {
-	// 	if (l.IsNumber()) {
-	// 		r = l.ToNumber().Uint64Value();
-	// 		return true;
-	// 	}
-	// 	return false;
-	// }
+	inline bool FromValue(Napi::Value l, uint64_t& r)
+	{
+		if (l.IsNumber()) {
+			r = l.ToNumber().Int64Value(); // Uint64 not available
+			return true;
+		}
+		return false;
+	}
 
 	// Floating Point
 	inline bool FromValue(Napi::Value l, float_t& r)
@@ -368,6 +366,7 @@ namespace utilv8
 			// 	return true;
 			// }
 			r = l.ToString().Utf8Value();
+			return true;
 		}
 		return false;
 	}
