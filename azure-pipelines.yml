@@ -45,7 +45,7 @@ jobs:
   - script: ./ci/build-osn.cmd
     displayName: 'Build obs-studio-node'
 
-  - script: 'yarn run test'
+  - script: 'yarn run test --grep nodeobs_api'
     env:
       SLOBS_BE_STREAMKEY: $(testsStreamKey)
       SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
@@ -162,7 +162,7 @@ jobs:
   - script: ./ci/build-osn.cmd
     displayName: 'Build obs-studio-node'
 
-  - script: 'yarn run test'
+  - script: 'yarn run test --grep nodeobs_api'
     env:
       SLOBS_BE_STREAMKEY: $(testsStreamKey)
       SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
@@ -254,7 +254,7 @@ jobs:
       SENTRY_AUTH_TOKEN: $(sentryAuth)
     displayName: 'Build obs-studio-node'
 
-  - script: 'yarn run test'
+  - script: 'yarn run test --grep nodeobs_api'
     env:
       SLOBS_BE_STREAMKEY: $(testsStreamKey)
       SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
