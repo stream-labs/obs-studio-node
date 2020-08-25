@@ -20,81 +20,81 @@
 #include "error.hpp"
 #include "nodeobs_api.hpp"
 
-#include <node.h>
+// #include <node.h>
 #include <sstream>
 #include <string>
 #include "shared.hpp"
 #include "utility.hpp"
 
-NodeCallback* node_cb;
+// NodeCallback* node_cb;
 
-void NodeCallback::start_async_runner()
-{
-	if (m_async_callback)
-		return;
-	std::unique_lock<std::mutex> ul(mtx);
-	// Start v8/uv asynchronous runner.
-	m_async_callback = new PermsCallback();
-	m_async_callback->set_handler(
-	    std::bind(&NodeCallback::callback_handler, this, std::placeholders::_1, std::placeholders::_2), nullptr);
-}
+// void NodeCallback::start_async_runner()
+// {
+// 	if (m_async_callback)
+// 		return;
+// 	std::unique_lock<std::mutex> ul(mtx);
+// 	// Start v8/uv asynchronous runner.
+// 	m_async_callback = new PermsCallback();
+// 	m_async_callback->set_handler(
+// 	    std::bind(&NodeCallback::callback_handler, this, std::placeholders::_1, std::placeholders::_2), nullptr);
+// }
 
-void NodeCallback::stop_async_runner()
-{
-	if (!m_async_callback)
-		return;
-	std::unique_lock<std::mutex> ul(mtx);
-	// Stop v8/uv asynchronous runner.
-	m_async_callback->clear();
-	m_async_callback->finalize();
-	m_async_callback = nullptr;
-}
+// void NodeCallback::stop_async_runner()
+// {
+// 	if (!m_async_callback)
+// 		return;
+// 	std::unique_lock<std::mutex> ul(mtx);
+// 	// Stop v8/uv asynchronous runner.
+// 	m_async_callback->clear();
+// 	m_async_callback->finalize();
+// 	m_async_callback = nullptr;
+// }
 
-void NodeCallback::callback_handler(
-	void* data, std::shared_ptr<Permissions> perms_status)
-{
-	v8::Isolate*          isolate = v8::Isolate::GetCurrent();
-	v8::Local<v8::Object> obj = v8::Object::New(isolate);
-	v8::Local<v8::Value>  result[1];
+// void NodeCallback::callback_handler(
+// 	void* data, std::shared_ptr<Permissions> perms_status)
+// {
+// 	v8::Isolate*          isolate = v8::Isolate::GetCurrent();
+// 	v8::Local<v8::Object> obj = v8::Object::New(isolate);
+// 	v8::Local<v8::Value>  result[1];
 
-	if (!perms_status)
-		return;
+// 	if (!perms_status)
+// 		return;
 
-	obj->Set(
-		utilv8::ToValue("webcamPermission"),
-		utilv8::ToValue(perms_status->webcam));
-	obj->Set(
-		utilv8::ToValue("micPermission"),
-		utilv8::ToValue(perms_status->mic));
+// 	obj->Set(
+// 		utilv8::ToValue("webcamPermission"),
+// 		utilv8::ToValue(perms_status->webcam));
+// 	obj->Set(
+// 		utilv8::ToValue("micPermission"),
+// 		utilv8::ToValue(perms_status->mic));
 
 
-	result[0] = obj;
-	Nan::Call(m_callback_function, 1, result);
+// 	result[0] = obj;
+// 	Nan::Call(m_callback_function, 1, result);
 
-	if (perms_status->webcam && perms_status->mic)
-		this->stop_async_runner();
-}
+// 	if (perms_status->webcam && perms_status->mic)
+// 		this->stop_async_runner();
+// }
 
-void NodeCallback::set_keepalive(v8::Local<v8::Object> obj)
-{
-	if (!m_async_callback)
-		return;
-	m_async_callback->set_keepalive(obj);
-}
+// void NodeCallback::set_keepalive(v8::Local<v8::Object> obj)
+// {
+// 	if (!m_async_callback)
+// 		return;
+// 	m_async_callback->set_keepalive(obj);
+// }
 
-void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value api::OBS_API_initAPI(const Napi::CallbackInfo& info)
 {
 	std::string path;
 	std::string language;
 	std::string version;
 
-	ASSERT_GET_VALUE(args[0], language);
-	ASSERT_GET_VALUE(args[1], path);
-	ASSERT_GET_VALUE(args[2], version);
+	ASSERT_GET_VALUE(info, info[0], language);
+	ASSERT_GET_VALUE(info, info[1], path);
+	ASSERT_GET_VALUE(info, info[2], version);
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	conn->set_freez_callback(ipc_freez_callback, path);
 
@@ -107,65 +107,68 @@ void api::OBS_API_initAPI(const v8::FunctionCallbackInfo<v8::Value>& args)
 	// If the method call was sucessfull we will have 2 arguments, also there is no need to validate the
 	// response
 	if (response.size() < 2) {
-		if (!ValidateResponse(response)) {
-			return;
+		if (!ValidateResponse(info, response)) {
+			return info.Env().Undefined();
 		}
 	}
-	args.GetReturnValue().Set(v8::Number::New(args.GetIsolate(), response[1].value_union.i32));
+
+	return Napi::Number::New(info.Env(), response[1].value_union.i32);
 }
 
-void api::OBS_API_destroyOBS_API(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value api::OBS_API_destroyOBS_API(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	conn->call("API", "OBS_API_destroyOBS_API", {});
+
+	return info.Env().Undefined();
 }
 
-void api::OBS_API_getPerformanceStatistics(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value api::OBS_API_getPerformanceStatistics(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("API", "OBS_API_getPerformanceStatistics", {});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	v8::Local<v8::Object> statistics = v8::Object::New(args.GetIsolate());
+	Napi::Object statistics = Napi::Object::New(info.Env());
 
-	statistics->Set(
-		v8::String::NewFromUtf8(args.GetIsolate(), "CPU").ToLocalChecked(),
-		v8::Number::New(args.GetIsolate(), response[1].value_union.fp64));
-	statistics->Set(
-		v8::String::NewFromUtf8(args.GetIsolate(), "numberDroppedFrames").ToLocalChecked(),
-		v8::Number::New(args.GetIsolate(), response[2].value_union.i32));
-	statistics->Set(
-		v8::String::NewFromUtf8(args.GetIsolate(), "percentageDroppedFrames").ToLocalChecked(),
-		v8::Number::New(args.GetIsolate(), response[3].value_union.fp64));
-	statistics->Set(
-		v8::String::NewFromUtf8(args.GetIsolate(), "streamingBandwidth").ToLocalChecked(),
-		v8::Number::New(args.GetIsolate(), response[4].value_union.fp64));
-	statistics->Set(
-		v8::String::NewFromUtf8(args.GetIsolate(), "streamingDataOutput").ToLocalChecked(),
-		v8::Number::New(args.GetIsolate(), response[5].value_union.fp64));
-	statistics->Set(
-		v8::String::NewFromUtf8(args.GetIsolate(), "recordingBandwidth").ToLocalChecked(),
-		v8::Number::New(args.GetIsolate(), response[6].value_union.fp64));
-	statistics->Set(
-		v8::String::NewFromUtf8(args.GetIsolate(), "recordingDataOutput").ToLocalChecked(),
-		v8::Number::New(args.GetIsolate(), response[7].value_union.fp64));
-	statistics->Set(
-		v8::String::NewFromUtf8(args.GetIsolate(), "frameRate").ToLocalChecked(),
-		v8::Number::New(args.GetIsolate(), response[8].value_union.fp64));
-	statistics->Set(
-		v8::String::NewFromUtf8(args.GetIsolate(), "averageTimeToRenderFrame").ToLocalChecked(),
-		v8::Number::New(args.GetIsolate(), response[9].value_union.fp64));
-	statistics->Set(
-		v8::String::NewFromUtf8(args.GetIsolate(), "memoryUsage").ToLocalChecked(),
-		v8::Number::New(args.GetIsolate(), response[10].value_union.fp64));
+	statistics.Set(
+		Napi::String::New(info.Env(), "CPU"),
+		Napi::Number::New(info.Env(), response[1].value_union.fp64));
+	statistics.Set(
+		Napi::String::New(info.Env(), "numberDroppedFrames"),
+		Napi::Number::New(info.Env(), response[2].value_union.i32));
+	statistics.Set(
+		Napi::String::New(info.Env(), "percentageDroppedFrames"),
+		Napi::Number::New(info.Env(), response[3].value_union.fp64));
+	statistics.Set(
+		Napi::String::New(info.Env(), "streamingBandwidth"),
+		Napi::Number::New(info.Env(), response[4].value_union.fp64));
+	statistics.Set(
+		Napi::String::New(info.Env(), "streamingDataOutput"),
+		Napi::Number::New(info.Env(), response[5].value_union.fp64));
+	statistics.Set(
+		Napi::String::New(info.Env(), "recordingBandwidth"),
+		Napi::Number::New(info.Env(), response[6].value_union.fp64));
+	statistics.Set(
+		Napi::String::New(info.Env(), "recordingDataOutput"),
+		Napi::Number::New(info.Env(), response[7].value_union.fp64));
+	statistics.Set(
+		Napi::String::New(info.Env(), "frameRate"),
+		Napi::Number::New(info.Env(), response[8].value_union.fp64));
+	statistics.Set(
+		Napi::String::New(info.Env(), "averageTimeToRenderFrame"),
+		Napi::Number::New(info.Env(), response[9].value_union.fp64));
+	statistics.Set(
+		Napi::String::New(info.Env(), "memoryUsage"),
+		Napi::Number::New(info.Env(), response[10].value_union.fp64));
 
 	std::string diskSpaceAvailable; // workaround for a strlen crash
 	if (response.size() < 12
@@ -176,116 +179,121 @@ void api::OBS_API_getPerformanceStatistics(const v8::FunctionCallbackInfo<v8::Va
 	} else {
 		diskSpaceAvailable = response[11].value_str;
 	}
-	statistics->Set(
-		v8::String::NewFromUtf8(args.GetIsolate(), "diskSpaceAvailable").ToLocalChecked(),
-		v8::String::NewFromUtf8(args.GetIsolate(), diskSpaceAvailable.c_str()).ToLocalChecked());
+	statistics.Set(
+		Napi::String::New(info.Env(), "diskSpaceAvailable"),
+		Napi::String::New(info.Env(),diskSpaceAvailable));
 
-	args.GetReturnValue().Set(statistics);
-	return;
+	return statistics;
 }
 
-void api::SetWorkingDirectory(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value api::SetWorkingDirectory(const Napi::CallbackInfo& info)
 {
-	Nan::Utf8String param0(args[0]);
-	std::string     path = *param0;
+	std::string path = info[0].ToString().Utf8Value();
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	conn->call("API", "SetWorkingDirectory", {ipc::value(path)});
+	return info.Env().Undefined();
 }
 
-void api::StopCrashHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value api::StopCrashHandler(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("API", "StopCrashHandler", {});
 
 	// This is a shutdown operation, no response validation needed
-	// ValidateResponse(response);
+	// ValidateResponse(info, response);
+
+	return info.Env().Undefined();
 }
 
-Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_QueryHotkeys(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value api::OBS_API_QueryHotkeys(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("API", "OBS_API_QueryHotkeys", {});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	v8::Local<v8::Array> hotkeyInfos = v8::Array::New(args.GetIsolate());
+	Napi::Array hotkeyInfos = Napi::Array::New(info.Env());
 
 	// For each hotkey info that we need to fill
 	for (int i = 0; i < (response.size() - 1) / 5; i++) {
 		int                   responseIndex = i * 5 + 1;
-		v8::Local<v8::Object> object        = v8::Object::New(args.GetIsolate());
-		std::string           objectName    = response[responseIndex + 0].value_str;
-		uint32_t              objectType    = response[responseIndex + 1].value_union.ui32;
-		std::string           hotkeyName    = response[responseIndex + 2].value_str;
-		std::string           hotkeyDesc    = response[responseIndex + 3].value_str;
-		uint64_t              hotkeyId      = response[responseIndex + 4].value_union.ui64;
+		Napi::Object object     = Napi::Object::New(info.Env());
+		std::string  objectName = response[responseIndex + 0].value_str;
+		uint32_t     objectType = response[responseIndex + 1].value_union.ui32;
+		std::string  hotkeyName = response[responseIndex + 2].value_str;
+		std::string  hotkeyDesc = response[responseIndex + 3].value_str;
+		uint64_t     hotkeyId   = response[responseIndex + 4].value_union.ui64;
 
-		object->Set(
-		    v8::String::NewFromUtf8(args.GetIsolate(), "ObjectName").ToLocalChecked(),
-		    v8::String::NewFromUtf8(args.GetIsolate(), objectName.c_str()).ToLocalChecked());
+		object.Set(
+			Napi::String::New(info.Env(), "ObjectName"),
+			Napi::String::New(info.Env(), objectName));
 
-		object->Set(
-		    v8::String::NewFromUtf8(args.GetIsolate(), "ObjectType").ToLocalChecked(),
-		    v8::Number::New(args.GetIsolate(), objectType));
+		object.Set(
+			Napi::String::New(info.Env(), "ObjectType"),
+			Napi::Number::New(info.Env(), objectType));
 
-		object->Set(
-		    v8::String::NewFromUtf8(args.GetIsolate(), "HotkeyName").ToLocalChecked(),
-		    v8::String::NewFromUtf8(args.GetIsolate(), hotkeyName.c_str()).ToLocalChecked());
+		object.Set(
+			Napi::String::New(info.Env(), "HotkeyName"),
+			Napi::String::New(info.Env(), hotkeyName));
 
-		object->Set(
-		    v8::String::NewFromUtf8(args.GetIsolate(), "HotkeyDesc").ToLocalChecked(),
-		    v8::String::NewFromUtf8(args.GetIsolate(), hotkeyDesc.c_str()).ToLocalChecked());
+		object.Set(
+			Napi::String::New(info.Env(), "HotkeyDesc"),
+			Napi::String::New(info.Env(), hotkeyDesc));
 
-		object->Set(
-		    v8::String::NewFromUtf8(args.GetIsolate(), "HotkeyId").ToLocalChecked(),
-		    v8::Number::New(args.GetIsolate(), hotkeyId));
+		object.Set(
+			Napi::String::New(info.Env(), "HotkeyDesc"),
+			Napi::Number::New(info.Env(), hotkeyId));
 
-		hotkeyInfos->Set(i, object);
+		hotkeyInfos.Set(i, object);
 	}
 
-	args.GetReturnValue().Set(hotkeyInfos);
+	return hotkeyInfos;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE api::OBS_API_ProcessHotkeyStatus(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value api::OBS_API_ProcessHotkeyStatus(const Napi::CallbackInfo& info)
 {
 	uint64_t    hotkeyId;
 	bool        press;
 
-	ASSERT_GET_VALUE(args[0], hotkeyId);
-	ASSERT_GET_VALUE(args[1], press);
+	ASSERT_GET_VALUE(info, info[0], hotkeyId);
+	ASSERT_GET_VALUE(info, info[1], press);
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	conn->call("API", "OBS_API_ProcessHotkeyStatus", {ipc::value(hotkeyId), ipc::value(press)});
+
+	return info.Env().Undefined();
 }
 
-Nan::NAN_METHOD_RETURN_TYPE api::SetUsername(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value api::SetUsername(const Napi::CallbackInfo& info)
 {
 	std::string username;
 
-	ASSERT_GET_VALUE(args[0], username);
+	ASSERT_GET_VALUE(info, info[0], username);
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	conn->call("API", "SetUsername", {ipc::value(username)});
+
+	return info.Env().Undefined();
 }
 
-Nan::NAN_METHOD_RETURN_TYPE api::GetPermissionsStatus(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value api::GetPermissionsStatus(const Napi::CallbackInfo& info)
 {
 #ifdef __APPLE__
 	bool webcam, mic;
@@ -301,9 +309,10 @@ Nan::NAN_METHOD_RETURN_TYPE api::GetPermissionsStatus(const v8::FunctionCallback
 
 	args.GetReturnValue().Set(perms);
 #endif
+	return info.Env().Undefined();
 }
 
-Nan::NAN_METHOD_RETURN_TYPE api::RequestPermissions(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value api::RequestPermissions(const Napi::CallbackInfo& info)
 {
 #ifdef __APPLE__
 	v8::Local<v8::Function> callback;
@@ -327,20 +336,19 @@ Nan::NAN_METHOD_RETURN_TYPE api::RequestPermissions(const v8::FunctionCallbackIn
 
 	g_util_osx->requestPermissions(node_cb->m_async_callback, cb);
 #endif
+	return info.Env().Undefined();
 }
 
-INITIALIZER(nodeobs_api)
+void api::Init(Napi::Env env, Napi::Object exports)
 {
-	initializerFunctions->push([](v8::Local<v8::Object> exports) {
-		NODE_SET_METHOD(exports, "OBS_API_initAPI", api::OBS_API_initAPI);
-		NODE_SET_METHOD(exports, "OBS_API_destroyOBS_API", api::OBS_API_destroyOBS_API);
-		NODE_SET_METHOD(exports, "OBS_API_getPerformanceStatistics", api::OBS_API_getPerformanceStatistics);
-		NODE_SET_METHOD(exports, "SetWorkingDirectory", api::SetWorkingDirectory);
-		NODE_SET_METHOD(exports, "StopCrashHandler", api::StopCrashHandler);
-		NODE_SET_METHOD(exports, "OBS_API_QueryHotkeys", api::OBS_API_QueryHotkeys);
-		NODE_SET_METHOD(exports, "OBS_API_ProcessHotkeyStatus", api::OBS_API_ProcessHotkeyStatus);
-		NODE_SET_METHOD(exports, "SetUsername", api::SetUsername);
-		NODE_SET_METHOD(exports, "GetPermissionsStatus", api::GetPermissionsStatus);
-		NODE_SET_METHOD(exports, "RequestPermissions", api::RequestPermissions);
-	});
+	exports.Set(Napi::String::New(env, "OBS_API_initAPI"), Napi::Function::New(env, api::OBS_API_initAPI));
+	exports.Set(Napi::String::New(env, "OBS_API_destroyOBS_API"), Napi::Function::New(env, api::OBS_API_destroyOBS_API));
+	exports.Set(Napi::String::New(env, "OBS_API_getPerformanceStatistics"), Napi::Function::New(env, api::OBS_API_getPerformanceStatistics));
+	exports.Set(Napi::String::New(env, "SetWorkingDirectory"), Napi::Function::New(env, api::SetWorkingDirectory));
+	exports.Set(Napi::String::New(env, "StopCrashHandler"), Napi::Function::New(env, api::StopCrashHandler));
+	exports.Set(Napi::String::New(env, "OBS_API_QueryHotkeys"), Napi::Function::New(env, api::OBS_API_QueryHotkeys));
+	exports.Set(Napi::String::New(env, "OBS_API_ProcessHotkeyStatus"), Napi::Function::New(env, api::OBS_API_ProcessHotkeyStatus));
+	exports.Set(Napi::String::New(env, "SetUsername"), Napi::Function::New(env, api::SetUsername));
+	exports.Set(Napi::String::New(env, "GetPermissionsStatus"), Napi::Function::New(env, api::GetPermissionsStatus));
+	exports.Set(Napi::String::New(env, "RequestPermissions"), Napi::Function::New(env, api::RequestPermissions));
 }

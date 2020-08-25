@@ -30,7 +30,7 @@
 // #include "input.hpp"
 // #include "isource.hpp"
 // #include "module.hpp"
-// #include "nodeobs_api.hpp"
+#include "nodeobs_api.hpp"
 // #include "properties.hpp"
 // #include "scene.hpp"
 // #include "sceneitem.hpp"
@@ -110,6 +110,7 @@ Napi::Object main_node(Napi::Env env, Napi::Object exports) {
 	osn::Fader::Init(env, exports);
 	osn::FaderSub::Init(env, exports);
 	Controller::Init(env, exports);
+	api::Init(env, exports);
 	return exports;
 };
 
