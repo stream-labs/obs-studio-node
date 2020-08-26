@@ -105,6 +105,14 @@ export class OBSHandler {
                 console.log('2 '+ myString2);
             }));
             console.log(fader.unregisterCallback());
+
+            // console.log('Permissions test');
+            // const perms = osn.NodeObs.GetPermissionsStatus();
+            // console.log(perms);
+            // osn.NodeObs.RequestPermissions(perms => {
+            //     console.log('Updated permissions');
+            //     console.log(perms);
+            // });
         } catch (error) {
             console.log(error);
         }
