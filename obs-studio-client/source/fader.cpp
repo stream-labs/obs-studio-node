@@ -113,41 +113,33 @@ std::cout << "GetValue 0" << std::endl;
 }
 
 Napi::Value osn::Fader::Create(const Napi::CallbackInfo& info) {
-    // int length = info.Length();
+    int length = info.Length();
 
-    // if (length <= 0 || !info[0].IsNumber()) {
-    //     Napi::TypeError::New(info.Env(), "Number expected").ThrowAsJavaScriptException();
-    // }
+    if (length <= 0 || !info[0].IsNumber()) {
+        Napi::TypeError::New(info.Env(), "Number expected").ThrowAsJavaScriptException();
+    }
 
-    // int32_t fader_type = info[0].ToNumber().Int32Value();
+    int32_t fader_type = info[0].ToNumber().Int32Value();
 
-	// // Validate Connection
-	// auto conn = Controller::GetInstance().GetConnection();
-	// if (!conn)
-    //     Napi::TypeError::New(info.Env(), "IPC is not connected.").ThrowAsJavaScriptException();
+	// Validate Connection
+	auto conn = Controller::GetInstance().GetConnection();
+	if (!conn)
+        Napi::TypeError::New(info.Env(), "IPC is not connected.").ThrowAsJavaScriptException();
 
-	// // Call
-	// std::vector<ipc::value> rval = conn->call_synchronous_helper(
-	//     "Fader",
-	//     "Create",
-	//     {
-	//         ipc::value(fader_type),
-	//     });
+	// Call
+	std::vector<ipc::value> rval = conn->call_synchronous_helper(
+	    "Fader",
+	    "Create",
+	    {
+	        ipc::value(fader_type),
+	    });
 
-	// if (!ValidateResponse(info, rval))
-	// 	return info.Env().Undefined();
-
-    // auto instance =
-    //     osn::Fader::constructor.New({
-    //         Napi::Number::New(info.Env(), rval[1].value_union.ui64)
-    //         });
-    // return instance;
-
-    std::cout << "Create" << std::endl;
+	if (!ValidateResponse(info, rval))
+		return info.Env().Undefined();
 
     auto instance =
         osn::Fader::constructor.New({
-            Napi::Number::New(info.Env(), 2)
+            Napi::Number::New(info.Env(), rval[1].value_union.ui64)
             });
     return instance;
 }
