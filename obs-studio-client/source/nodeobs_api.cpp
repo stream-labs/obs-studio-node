@@ -299,15 +299,15 @@ Napi::Value api::GetPermissionsStatus(const Napi::CallbackInfo& info)
 	bool webcam, mic;
 	g_util_osx->getPermissionsStatus(webcam, mic);
 
-	v8::Local<v8::Object> perms = v8::Object::New(args.GetIsolate());
-	perms->Set(
-		v8::String::NewFromUtf8(args.GetIsolate(), "webcamPermission").ToLocalChecked(),
-		v8::Boolean::New(args.GetIsolate(), webcam));
-	perms->Set(
-		v8::String::NewFromUtf8(args.GetIsolate(), "micPermission").ToLocalChecked(),
-		v8::Boolean::New(args.GetIsolate(), mic));
+	Napi::Object perms = Napi::Object::New(info.Env());
+	perms.Set(
+		Napi::String::New(info.Env(), "webcamPermission"),
+		Napi::Boolean::New(info.Env(), webcam));
+	perms.Set(
+		Napi::String::New(info.Env(), "micPermission"),
+		Napi::Boolean::New(info.Env(), mic));
 
-	args.GetReturnValue().Set(perms);
+	return perms;
 #endif
 	return info.Env().Undefined();
 }
@@ -315,26 +315,26 @@ Napi::Value api::GetPermissionsStatus(const Napi::CallbackInfo& info)
 Napi::Value api::RequestPermissions(const Napi::CallbackInfo& info)
 {
 #ifdef __APPLE__
-	v8::Local<v8::Function> callback;
-	ASSERT_GET_VALUE(args[0], callback);
+	// v8::Local<v8::Function> callback;
+	// ASSERT_GET_VALUE(args[0], callback);
 
-	node_cb = new NodeCallback();
-	node_cb->m_callback_function.Reset(callback);
-	node_cb->start_async_runner();
-	node_cb->set_keepalive(args.This());
+	// node_cb = new NodeCallback();
+	// node_cb->m_callback_function.Reset(callback);
+	// node_cb->start_async_runner();
+	// node_cb->set_keepalive(args.This());
 
-	auto cb = [](void* cb, bool webcam, bool mic) {
-		std::shared_ptr<Permissions> perms =
-			std::make_shared<Permissions>();
-		Permissions* item      = new Permissions();
-		perms->webcam          = webcam;
-		perms->mic             = mic;
-		PermsCallback* aync_cb = reinterpret_cast<PermsCallback*>(cb);
+	// auto cb = [](void* cb, bool webcam, bool mic) {
+	// 	std::shared_ptr<Permissions> perms =
+	// 		std::make_shared<Permissions>();
+	// 	Permissions* item      = new Permissions();
+	// 	perms->webcam          = webcam;
+	// 	perms->mic             = mic;
+	// 	PermsCallback* aync_cb = reinterpret_cast<PermsCallback*>(cb);
 
-		aync_cb->queue(std::move(perms));
-	};
+	// 	aync_cb->queue(std::move(perms));
+	// };
 
-	g_util_osx->requestPermissions(node_cb->m_async_callback, cb);
+	// g_util_osx->requestPermissions(node_cb->m_async_callback, cb);
 #endif
 	return info.Env().Undefined();
 }

@@ -22,7 +22,7 @@
 #include <vector>
 
 #include <napi.h>
-
+#include "shared.hpp"
 #include "controller.hpp"
 #include "error.hpp"
 #include <thread>
