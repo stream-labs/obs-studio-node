@@ -179,7 +179,7 @@ namespace utilv8
 		// auto rv = v8::Object::New(v8::Isolate::GetCurrent());
 		auto rv = Napi::Object::New(info.Env());
 		for (auto kv : v) {
-			rv->Set(ToValue(kv.first), ToValue(kv.second));
+			rv.Set(ToValue(kv.first), ToValue(kv.second));
 		}
 		return rv;
 	}
@@ -190,7 +190,7 @@ namespace utilv8
 		// auto rv = v8::Object::New(v8::Isolate::GetCurrent());
 		auto rv = Napi::Object::New(info.Env());
 		for (auto kv : v) {
-			rv->Set(kv.first, ToValue(kv.second));
+			rv.Set(kv.first, ToValue(kv.second));
 		}
 		return rv;
 	}
