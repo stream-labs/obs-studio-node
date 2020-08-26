@@ -100,11 +100,11 @@ export class OBSHandler {
             console.log(osn.NodeObs.FaderSub.test_static_value);
             const fadersub = osn.NodeObs.FaderSub.create(osn.EFaderType.Log);
             console.log(fadersub.test_instance_value);
-            // console.log(fader.registerCallback((myString, myString2)=> {
-            //     console.log('1 '+ myString);
-            //     console.log('2 '+ myString2);
-            // }));
-            // console.log(fader.unregisterCallback());
+            console.log(fader.registerCallback((myString, myString2)=> {
+                console.log('1 '+ myString);
+                console.log('2 '+ myString2);
+            }));
+            console.log(fader.unregisterCallback());
         } catch (error) {
             console.log(error);
         }
