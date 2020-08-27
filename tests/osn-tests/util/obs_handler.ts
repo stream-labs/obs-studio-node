@@ -3,8 +3,7 @@ import { logInfo, logWarning } from '../util/logger';
 import { UserPoolHandler } from './user_pool_handler';
 import { CacheUploader } from '../util/cache-uploader'
 import { EOBSOutputType, EOBSOutputSignal, EOBSSettingsCategories} from '../util/obs_enums'
-import { Subject } from 'rxjs';
-import { first } from 'rxjs/operators';
+const WaitQueue = require('wait-queue');
 
 // Interfaces
 export interface IPerformanceState {
@@ -75,8 +74,8 @@ export class OBSHandler {
     private cacheUploader: CacheUploader;
     private hasUserFromPool: boolean = false;
     private osnTestName: string;
-    private signals = new Subject<IOBSOutputSignalInfo>();
-    private progress = new Subject<IConfigProgress>();
+    private signals = new WaitQueue();
+    private progress = new  WaitQueue();
     inputTypes: string[];
     filterTypes: string[];
     transitionTypes: string[];
@@ -221,21 +220,26 @@ export class OBSHandler {
 
     connectOutputSignals() {
         osn.NodeObs.OBS_service_connectOutputSignals((signalInfo: IOBSOutputSignalInfo) => {
-            this.signals.next(signalInfo);
+            this.signals.push(signalInfo);
         });
     }
 
     getNextSignalInfo(output: string, signal: string): Promise<IOBSOutputSignalInfo> {
         return new Promise((resolve, reject) => {
-            this.signals.pipe(first()).subscribe(signalInfo => resolve(signalInfo));
+            this.signals.shift().then(
+                function(signalInfo) {
+                    resolve(signalInfo)
+                  }
+            );
             setTimeout(() => reject(new Error(output.replace(/^\w/, c => c.toUpperCase()) + ' ' + signal + ' signal timeout')), 30000);
-        });
+        }
+        );
     }
 
     startAutoconfig() {
         osn.NodeObs.InitializeAutoConfig((progressInfo: IConfigProgress) => {
             if (progressInfo.event == 'stopping_step' || progressInfo.event == 'done' || progressInfo.event == 'error') {
-                this.progress.next(progressInfo);
+                this.progress.push(progressInfo);
             }
         },
         {
@@ -245,7 +249,11 @@ export class OBSHandler {
 
     getNextProgressInfo(autoconfigStep: string): Promise<IConfigProgress> {
         return new Promise((resolve, reject) => {
-            this.progress.pipe(first()).subscribe(progressInfo => resolve(progressInfo));
+            this.progress.shift().then(
+                function(progressInfo) {
+                    resolve(progressInfo)
+                  }
+            );
             setTimeout(() => reject(new Error(autoconfigStep + ' step timeout')), 50000);
         });
     }
