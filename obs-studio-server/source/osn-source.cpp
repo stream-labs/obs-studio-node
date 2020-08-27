@@ -283,14 +283,30 @@ void osn::Source::GetProperties(
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
-	obs_properties_t* prp = obs_source_properties(src);
-	const char*       buf;
-
+	bool updateSource = false;
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
+	obs_properties_t* prp = obs_source_properties(src);
 	obs_data* settings = obs_source_get_settings(src);
-	bool      updateSource = false;
 
+	ProcessProperties(prp, settings, updateSource, rval);
+
+	obs_properties_destroy(prp);
+
+	if (updateSource) {
+		obs_source_update(src, settings);
+		MemoryManager::GetInstance().updateSourceCache(src);
+	}
+	AUTO_DEBUG;
+}
+
+void osn::Source::ProcessProperties(
+	obs_properties_t*           prp,
+	obs_data*                   settings,
+	bool&                       updateSource,
+	std::vector<ipc::value>&    rval)
+{
+	const char* buf = nullptr;
 	for (obs_property_t* p = obs_properties_first(prp); (p != nullptr); obs_property_next(&p)) {
 		std::shared_ptr<obs::Property> prop;
 		const char*                    name = obs_property_name(p);
@@ -451,6 +467,12 @@ void osn::Source::GetProperties(
 			prop = prop2;
 			break;
 		}
+		case OBS_PROPERTY_GROUP: {
+			auto grp = obs_property_group_content(p);
+			ProcessProperties(grp, settings, updateSource, rval);
+			prop = nullptr;
+			break;
+		}
 		}
 
 		if (!prop) {
@@ -468,13 +490,6 @@ void osn::Source::GetProperties(
 			rval.push_back(ipc::value(buf));
 		}
 	}
-	obs_properties_destroy(prp);
-
-	if (updateSource) {
-		obs_source_update(src, settings);
-		MemoryManager::GetInstance().updateSourceCache(src);
-	}
-	AUTO_DEBUG;
 }
 
 void osn::Source::GetSettings(
