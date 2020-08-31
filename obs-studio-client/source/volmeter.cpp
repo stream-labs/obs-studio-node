@@ -29,6 +29,8 @@
 
 Nan::Persistent<v8::FunctionTemplate> osn::VolMeter::prototype;
 
+bool osn::VolMeter::m_all_workers_stop = false;
+
 osn::VolMeter::VolMeter(uint64_t p_uid)
 {
 	m_uid = p_uid;
@@ -103,7 +105,7 @@ void osn::VolMeter::worker()
 {
 	size_t totalSleepMS = 0;
 
-	while (!m_worker_stop) {
+	while (!m_worker_stop && !m_all_workers_stop) {
 		auto tp_start = std::chrono::high_resolution_clock::now();
 
 		// Validate Connection

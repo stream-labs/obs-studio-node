@@ -41,7 +41,6 @@ class CallbackManager;
 class SourceCallback;
 
 typedef utilv8::managed_callback<std::shared_ptr<SourceSizeInfoData>> cm_sourcesCallback;
-SourceCallback*                                                        cm_sources;
 
 class CallbackManager : public Nan::ObjectWrap,
                         public utilv8::InterfaceObject<CallbackManager>,
@@ -80,6 +79,7 @@ class SourceCallback : public CallbackManager
 	virtual void worker();
 	virtual void set_keepalive(v8::Local<v8::Object>);
 	void callback_handler(void* data, std::shared_ptr<SourceSizeInfoData> sourceSizes);
+	static bool m_all_workers_stop;
 };
 
 static void RegisterSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
