@@ -100,6 +100,8 @@ export class OBSHandler {
             console.log(osn.NodeObs.FaderSub.test_static_value);
             const fadersub = osn.NodeObs.FaderSub.create(osn.EFaderType.Log);
             console.log(fadersub.test_instance_value);
+            console.log('Fadersub instance method');
+            fadersub.value();
             console.log(fader.registerCallback((myString, myString2)=> {
                 console.log('1 '+ myString);
                 console.log('2 '+ myString2);
@@ -117,7 +119,7 @@ export class OBSHandler {
             console.log(error);
         }
 
-        // this.inputTypes = osn.InputFactory.types();
+        this.inputTypes = osn.InputFactory.types();
         // const index = this.inputTypes.indexOf('syphon-input', 0);
         // if (index > -1) {
         //     this.inputTypes.splice(index, 1);

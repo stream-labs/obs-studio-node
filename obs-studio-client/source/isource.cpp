@@ -24,376 +24,379 @@
 #include "utility-v8.hpp"
 #include "utility.hpp"
 
-osn::ISource*                         sourceObject;
-Nan::Persistent<v8::FunctionTemplate> osn::ISource::prototype;
+Napi::FunctionReference osn::ISource::constructor;
 
-osn::ISource::~ISource() {}
+void osn::ISource::napi_inherits(napi_env env, napi_value ctor, napi_value super_ctor) {
+    napi_value global, global_object, set_proto, ctor_proto_prop, super_ctor_proto_prop;
+    napi_value argv[2];
 
-void osn::ISource::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
-{
-	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
-	fnctemplate->SetClassName(Nan::New<v8::String>("Source").ToLocalChecked());
-	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
+    napi_get_global(env, &global);
+    napi_get_named_property(env, global, "Object", &global_object);
+    napi_get_named_property(env, global_object, "setPrototypeOf", &set_proto);
+    napi_get_named_property(env, ctor, "prototype", &ctor_proto_prop);
+    napi_get_named_property(env, super_ctor, "prototype", &super_ctor_proto_prop);
 
-	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->PrototypeTemplate();
-	utilv8::SetTemplateField(objtemplate, "release", Release);
-	utilv8::SetTemplateField(objtemplate, "remove", Remove);
+    argv[0] = ctor_proto_prop;
+    argv[1] = super_ctor_proto_prop;
+    napi_call_function(env, global, set_proto, 2, argv, nullptr);
 
-	utilv8::SetTemplateAccessorProperty(objtemplate, "configurable", IsConfigurable);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "properties", GetProperties);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "settings", GetSettings);
-	utilv8::SetTemplateField(objtemplate, "update", Update);
-	utilv8::SetTemplateField(objtemplate, "load", Load);
-	utilv8::SetTemplateField(objtemplate, "save", Save);
-
-	utilv8::SetTemplateAccessorProperty(objtemplate, "type", GetType);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "name", GetName, SetName);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "outputFlags", GetOutputFlags);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "flags", GetFlags, SetFlags);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "status", GetStatus);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "id", GetId);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "muted", GetMuted, SetMuted);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "enabled", GetEnabled, SetEnabled);
-
-	utilv8::SetTemplateField(objtemplate, "sendMouseClick", SendMouseClick);
-	utilv8::SetTemplateField(objtemplate, "sendMouseMove", SendMouseMove);
-	utilv8::SetTemplateField(objtemplate, "sendMouseWheel", SendMouseWheel);
-	utilv8::SetTemplateField(objtemplate, "sendFocus", SendFocus);
-	utilv8::SetTemplateField(objtemplate, "sendKeyClick", SendKeyClick);
-	
-	utilv8::SetObjectField(
-	    target, "Source", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
-	prototype.Reset(fnctemplate);
+    argv[0] = ctor;
+    argv[1] = super_ctor;
+    napi_call_function(env, global, set_proto, 2, argv, nullptr);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Release(Nan::NAN_METHOD_ARGS_TYPE info)
-{
-	osn::ISource* obj;
-	if (!utilv8::SafeUnwrap(info, obj)) {
-		return;
-	}
+Napi::Object osn::ISource::Init(Napi::Env env, Napi::Object exports) {
+    Napi::HandleScope scope(env);
+    Napi::Function func =
+        DefineClass(env,
+                    "Source",
+                    {
+                        // InstanceMethod("release", &osn::ISource::Release),
+                        // InstanceMethod("remove", &osn::ISource::Remove),
+                        // InstanceMethod("update", &osn::ISource::Update),
+                        // InstanceMethod("load", &osn::ISource::Load),
+                        // InstanceMethod("save", &osn::ISource::Save),
+                        // InstanceMethod("sendMouseClick", &osn::ISource::SendMouseClick),
+                        // InstanceMethod("sendMouseMove", &osn::ISource::SendMouseMove),
+                        // InstanceMethod("sendMouseWheel", &osn::ISource::SendMouseWheel),
+                        // InstanceMethod("sendFocus", &osn::ISource::SendFocus),
+                        // InstanceMethod("sendKeyClick", &osn::ISource::SendKeyClick),
 
-	auto conn = GetConnection();
+						InstanceAccessor("configurable", &osn::ISource::IsConfigurable, nullptr),
+						InstanceAccessor("properties", &osn::ISource::GetProperties, nullptr),
+						InstanceAccessor("settings", &osn::ISource::GetSettings, nullptr),
+						InstanceAccessor("type", &osn::ISource::GetType, nullptr),
+						InstanceAccessor("name", &osn::ISource::GetName, &osn::ISource::SetName),
+						InstanceAccessor("outputFlags", &osn::ISource::GetOutputFlags, nullptr),
+						InstanceAccessor("flags", &osn::ISource::GetFlags, &osn::ISource::SetFlags),
+						InstanceAccessor("status", &osn::ISource::GetStatus, nullptr),
+						InstanceAccessor("id", &osn::ISource::GetId, nullptr),
+						InstanceAccessor("muted", &osn::ISource::GetMuted, &osn::ISource::SetMuted),
+						InstanceAccessor("enabled", &osn::ISource::GetEnabled, &osn::ISource::SetEnabled),
+						
+						InstanceAccessor("sourceId", &osn::ISource::GetSourceId, &osn::ISource::SetSourceId),
+                    });
+    constructor = Napi::Persistent(func);
+    constructor.SuppressDestruct();
+
+    exports.Set("Source", func);
+    return exports;
+}
+
+osn::ISource::ISource(const Napi::CallbackInfo& info)
+    : Napi::ObjectWrap<osn::ISource>(info) {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+}
+
+void osn::ISource::Release(const Napi::CallbackInfo& info, uint64_t id)
+{
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call("Source", "Release", {ipc::value(obj->sourceId)});
+	conn->call("Source", "Release", {ipc::value(id)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Remove(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::Remove(const Napi::CallbackInfo& info, uint64_t id)
 {
-	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
-		return;
-	}
+	CacheManager<SourceDataInfo*>::getInstance().Remove(id);
 
-	CacheManager<SourceDataInfo*>::getInstance().Remove(is->sourceId);
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call("Source", "Remove", {ipc::value(is->sourceId)});
-
-	is->sourceId = UINT64_MAX;
-	return;
+	conn->call("Source", "Remove", {ipc::value(id)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::IsConfigurable(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::ISource::IsConfigurable(const Napi::CallbackInfo& info)
 {
-	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
-		return;
-	}
+	osn::ISource* source =
+		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
+	if (!source)
+		return info.Env().Undefined();
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Source", "IsConfigurable", {ipc::value(is->sourceId)});
+	    conn->call_synchronous_helper("Source", "IsConfigurable", {ipc::value(source->sourceId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	info.GetReturnValue().Set((bool)response[1].value_union.i32);
-	return;
+	return Napi::Boolean::New(info.Env(), (bool)response[1].value_union.i32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::ISource::GetProperties(const Napi::CallbackInfo& info)
 {
-	osn::ISource* hndl = nullptr;
-	if (!utilv8::SafeUnwrap<osn::ISource>(info, hndl)) {
-		return;
-	}
+	return info.Env().Undefined();
+	// osn::ISource* source =
+	// 	Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
+	// if (!source)
+	// 	return info.Env().Undefined();
 
-	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(hndl->sourceId);
+	// SourceDataInfo* sdi =
+	// 	CacheManager<SourceDataInfo*>::getInstance().Retrieve(source->sourceId);
 
-	if (sdi && !sdi->propertiesChanged && sdi->properties.size() > 0) {
-		osn::Properties* props = new osn::Properties(sdi->properties, info.This());
-		info.GetReturnValue().Set(osn::Properties::Store(props));
-		return;
-	}
+	// if (sdi && !sdi->propertiesChanged && sdi->properties.size() > 0) {
+	// 	osn::Properties* props = new osn::Properties(sdi->properties, info.This());
+	// 	info.GetReturnValue().Set(osn::Properties::Store(props));
+	// 	return;
+	// }
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	// auto conn = GetConnection(info);
+	// if (!conn)
+	// 	return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Source", "GetProperties", {ipc::value(hndl->sourceId)});
+	// std::vector<ipc::value> response =
+	//     conn->call_synchronous_helper("Source", "GetProperties", {ipc::value(source->sourceId)});
 
-	if (!ValidateResponse(response))
-		return;
+	// if (!ValidateResponse(info, response))
+	// 	return;
 
-	if (response.size() == 1) {
-		info.GetReturnValue().Set(Nan::Null());
-		return;
-	}
+	// if (response.size() == 1)
+	// 	return info.Env().Undefined();
 
-	// Parse the massive structure of properties we were just sent.
-	osn::property_map_t pmap;
-	for (size_t idx = 1; idx < response.size(); ++idx) {
-		// !FIXME! Use the already existing obs::Property object instead of copying data.
-		auto raw_property = obs::Property::deserialize(response[idx].value_bin);
+	// // Parse the massive structure of properties we were just sent.
+	// osn::property_map_t pmap;
+	// for (size_t idx = 1; idx < response.size(); ++idx) {
+	// 	// !FIXME! Use the already existing obs::Property object instead of copying data.
+	// 	auto raw_property = obs::Property::deserialize(response[idx].value_bin);
 
-		std::shared_ptr<osn::Property> pr;
+	// 	std::shared_ptr<osn::Property> pr;
 
-		switch (raw_property->type()) {
-		case obs::Property::Type::Boolean: {
-			std::shared_ptr<obs::BooleanProperty> cast_property =
-			    std::dynamic_pointer_cast<obs::BooleanProperty>(raw_property);
-			std::shared_ptr<osn::NumberProperty> pr2 = std::make_shared<osn::NumberProperty>();
-			pr2->bool_value.value                    = cast_property->value;
-			pr                                       = std::static_pointer_cast<osn::Property>(pr2);
-			break;
-		}
-		case obs::Property::Type::Integer: {
-			std::shared_ptr<obs::IntegerProperty> cast_property =
-			    std::dynamic_pointer_cast<obs::IntegerProperty>(raw_property);
-			std::shared_ptr<osn::NumberProperty> pr2 = std::make_shared<osn::NumberProperty>();
-			pr2->field_type                          = osn::NumberProperty::Type(cast_property->field_type);
-			pr2->int_value.min                       = cast_property->minimum;
-			pr2->int_value.max                       = cast_property->maximum;
-			pr2->int_value.step                      = cast_property->step;
-			pr2->int_value.value                     = cast_property->value;
-			pr                                       = std::static_pointer_cast<osn::Property>(pr2);
-			break;
-		}
-		case obs::Property::Type::Color: {
-			std::shared_ptr<obs::ColorProperty> cast_property =
-			    std::dynamic_pointer_cast<obs::ColorProperty>(raw_property);
-			std::shared_ptr<osn::NumberProperty> pr2 = std::make_shared<osn::NumberProperty>();
-			pr2->field_type                          = osn::NumberProperty::Type(cast_property->field_type);
-			pr2->int_value.value                     = cast_property->value;
-			pr                                       = std::static_pointer_cast<osn::Property>(pr2);
-			break;
-		}
-		case obs::Property::Type::Float: {
-			std::shared_ptr<obs::FloatProperty> cast_property =
-			    std::dynamic_pointer_cast<obs::FloatProperty>(raw_property);
-			std::shared_ptr<osn::NumberProperty> pr2 = std::make_shared<osn::NumberProperty>();
-			pr2->field_type                          = osn::NumberProperty::Type(cast_property->field_type);
-			pr2->float_value.min                     = cast_property->minimum;
-			pr2->float_value.max                     = cast_property->maximum;
-			pr2->float_value.step                    = cast_property->step;
-			pr2->float_value.value                   = cast_property->value;
-			pr                                       = std::static_pointer_cast<osn::Property>(pr2);
-			break;
-		}
-		case obs::Property::Type::Text: {
-			std::shared_ptr<obs::TextProperty> cast_property =
-			    std::dynamic_pointer_cast<obs::TextProperty>(raw_property);
-			std::shared_ptr<osn::TextProperty> pr2 = std::make_shared<osn::TextProperty>();
-			pr2->field_type                        = osn::TextProperty::Type(cast_property->field_type);
-			pr2->value                             = cast_property->value;
-			pr                                     = std::static_pointer_cast<osn::Property>(pr2);
-			break;
-		}
-		case obs::Property::Type::Path: {
-			std::shared_ptr<obs::PathProperty> cast_property =
-			    std::dynamic_pointer_cast<obs::PathProperty>(raw_property);
-			std::shared_ptr<osn::PathProperty> pr2 = std::make_shared<osn::PathProperty>();
-			pr2->field_type                        = osn::PathProperty::Type(cast_property->field_type);
-			pr2->filter                            = cast_property->filter;
-			pr2->default_path                      = cast_property->default_path;
-			pr2->value                             = cast_property->value;
-			pr                                     = std::static_pointer_cast<osn::Property>(pr2);
-			break;
-		}
-		case obs::Property::Type::List: {
-			std::shared_ptr<obs::ListProperty> cast_property =
-			    std::dynamic_pointer_cast<obs::ListProperty>(raw_property);
-			std::shared_ptr<osn::ListProperty> pr2 = std::make_shared<osn::ListProperty>();
-			pr2->field_type                        = osn::ListProperty::Type(cast_property->field_type);
-			pr2->item_format                       = osn::ListProperty::Format(cast_property->format);
+	// 	switch (raw_property->type()) {
+	// 	case obs::Property::Type::Boolean: {
+	// 		std::shared_ptr<obs::BooleanProperty> cast_property =
+	// 		    std::dynamic_pointer_cast<obs::BooleanProperty>(raw_property);
+	// 		std::shared_ptr<osn::NumberProperty> pr2 = std::make_shared<osn::NumberProperty>();
+	// 		pr2->bool_value.value                    = cast_property->value;
+	// 		pr                                       = std::static_pointer_cast<osn::Property>(pr2);
+	// 		break;
+	// 	}
+	// 	case obs::Property::Type::Integer: {
+	// 		std::shared_ptr<obs::IntegerProperty> cast_property =
+	// 		    std::dynamic_pointer_cast<obs::IntegerProperty>(raw_property);
+	// 		std::shared_ptr<osn::NumberProperty> pr2 = std::make_shared<osn::NumberProperty>();
+	// 		pr2->field_type                          = osn::NumberProperty::Type(cast_property->field_type);
+	// 		pr2->int_value.min                       = cast_property->minimum;
+	// 		pr2->int_value.max                       = cast_property->maximum;
+	// 		pr2->int_value.step                      = cast_property->step;
+	// 		pr2->int_value.value                     = cast_property->value;
+	// 		pr                                       = std::static_pointer_cast<osn::Property>(pr2);
+	// 		break;
+	// 	}
+	// 	case obs::Property::Type::Color: {
+	// 		std::shared_ptr<obs::ColorProperty> cast_property =
+	// 		    std::dynamic_pointer_cast<obs::ColorProperty>(raw_property);
+	// 		std::shared_ptr<osn::NumberProperty> pr2 = std::make_shared<osn::NumberProperty>();
+	// 		pr2->field_type                          = osn::NumberProperty::Type(cast_property->field_type);
+	// 		pr2->int_value.value                     = cast_property->value;
+	// 		pr                                       = std::static_pointer_cast<osn::Property>(pr2);
+	// 		break;
+	// 	}
+	// 	case obs::Property::Type::Float: {
+	// 		std::shared_ptr<obs::FloatProperty> cast_property =
+	// 		    std::dynamic_pointer_cast<obs::FloatProperty>(raw_property);
+	// 		std::shared_ptr<osn::NumberProperty> pr2 = std::make_shared<osn::NumberProperty>();
+	// 		pr2->field_type                          = osn::NumberProperty::Type(cast_property->field_type);
+	// 		pr2->float_value.min                     = cast_property->minimum;
+	// 		pr2->float_value.max                     = cast_property->maximum;
+	// 		pr2->float_value.step                    = cast_property->step;
+	// 		pr2->float_value.value                   = cast_property->value;
+	// 		pr                                       = std::static_pointer_cast<osn::Property>(pr2);
+	// 		break;
+	// 	}
+	// 	case obs::Property::Type::Text: {
+	// 		std::shared_ptr<obs::TextProperty> cast_property =
+	// 		    std::dynamic_pointer_cast<obs::TextProperty>(raw_property);
+	// 		std::shared_ptr<osn::TextProperty> pr2 = std::make_shared<osn::TextProperty>();
+	// 		pr2->field_type                        = osn::TextProperty::Type(cast_property->field_type);
+	// 		pr2->value                             = cast_property->value;
+	// 		pr                                     = std::static_pointer_cast<osn::Property>(pr2);
+	// 		break;
+	// 	}
+	// 	case obs::Property::Type::Path: {
+	// 		std::shared_ptr<obs::PathProperty> cast_property =
+	// 		    std::dynamic_pointer_cast<obs::PathProperty>(raw_property);
+	// 		std::shared_ptr<osn::PathProperty> pr2 = std::make_shared<osn::PathProperty>();
+	// 		pr2->field_type                        = osn::PathProperty::Type(cast_property->field_type);
+	// 		pr2->filter                            = cast_property->filter;
+	// 		pr2->default_path                      = cast_property->default_path;
+	// 		pr2->value                             = cast_property->value;
+	// 		pr                                     = std::static_pointer_cast<osn::Property>(pr2);
+	// 		break;
+	// 	}
+	// 	case obs::Property::Type::List: {
+	// 		std::shared_ptr<obs::ListProperty> cast_property =
+	// 		    std::dynamic_pointer_cast<obs::ListProperty>(raw_property);
+	// 		std::shared_ptr<osn::ListProperty> pr2 = std::make_shared<osn::ListProperty>();
+	// 		pr2->field_type                        = osn::ListProperty::Type(cast_property->field_type);
+	// 		pr2->item_format                       = osn::ListProperty::Format(cast_property->format);
 
-			switch (cast_property->format) {
-			case obs::ListProperty::Format::Integer:
-				pr2->current_value_int = cast_property->current_value_int;
-				break;
-			case obs::ListProperty::Format::Float:
-				pr2->current_value_float = cast_property->current_value_float;
-				break;
-			case obs::ListProperty::Format::String:
-				pr2->current_value_str = cast_property->current_value_str;
-				break;
-			}
+	// 		switch (cast_property->format) {
+	// 		case obs::ListProperty::Format::Integer:
+	// 			pr2->current_value_int = cast_property->current_value_int;
+	// 			break;
+	// 		case obs::ListProperty::Format::Float:
+	// 			pr2->current_value_float = cast_property->current_value_float;
+	// 			break;
+	// 		case obs::ListProperty::Format::String:
+	// 			pr2->current_value_str = cast_property->current_value_str;
+	// 			break;
+	// 		}
 
-			for (auto& item : cast_property->items) {
-				osn::ListProperty::Item item2;
-				item2.name     = item.name;
-				item2.disabled = !item.enabled;
-				switch (cast_property->format) {
-				case obs::ListProperty::Format::Integer:
-					item2.value_int = item.value_int;
-					break;
-				case obs::ListProperty::Format::Float:
-					item2.value_float = item.value_float;
-					break;
-				case obs::ListProperty::Format::String:
-					item2.value_str = item.value_string;
-					break;
-				}
-				pr2->items.push_back(std::move(item2));
-			}
-			pr = std::static_pointer_cast<osn::Property>(pr2);
-			break;
-		}
-		case obs::Property::Type::Font: {
-			std::shared_ptr<obs::FontProperty> cast_property =
-			    std::dynamic_pointer_cast<obs::FontProperty>(raw_property);
-			std::shared_ptr<osn::FontProperty> pr2 = std::make_shared<osn::FontProperty>();
-			pr2->face                              = cast_property->face;
-			pr2->style                             = cast_property->style;
-			pr2->path                              = cast_property->path;
-			pr2->sizeF                             = cast_property->sizeF;
-			pr2->flags                             = cast_property->flags;
-			pr                                     = std::static_pointer_cast<osn::Property>(pr2);
-			break;
-		}
-		case obs::Property::Type::EditableList: {
-			std::shared_ptr<obs::EditableListProperty> cast_property =
-			    std::dynamic_pointer_cast<obs::EditableListProperty>(raw_property);
-			std::shared_ptr<osn::EditableListProperty> pr2 = std::make_shared<osn::EditableListProperty>();
-			pr2->field_type                                = osn::EditableListProperty::Type(cast_property->field_type);
-			pr2->filter                                    = cast_property->filter;
-			pr2->default_path                              = cast_property->default_path;
+	// 		for (auto& item : cast_property->items) {
+	// 			osn::ListProperty::Item item2;
+	// 			item2.name     = item.name;
+	// 			item2.disabled = !item.enabled;
+	// 			switch (cast_property->format) {
+	// 			case obs::ListProperty::Format::Integer:
+	// 				item2.value_int = item.value_int;
+	// 				break;
+	// 			case obs::ListProperty::Format::Float:
+	// 				item2.value_float = item.value_float;
+	// 				break;
+	// 			case obs::ListProperty::Format::String:
+	// 				item2.value_str = item.value_string;
+	// 				break;
+	// 			}
+	// 			pr2->items.push_back(std::move(item2));
+	// 		}
+	// 		pr = std::static_pointer_cast<osn::Property>(pr2);
+	// 		break;
+	// 	}
+	// 	case obs::Property::Type::Font: {
+	// 		std::shared_ptr<obs::FontProperty> cast_property =
+	// 		    std::dynamic_pointer_cast<obs::FontProperty>(raw_property);
+	// 		std::shared_ptr<osn::FontProperty> pr2 = std::make_shared<osn::FontProperty>();
+	// 		pr2->face                              = cast_property->face;
+	// 		pr2->style                             = cast_property->style;
+	// 		pr2->path                              = cast_property->path;
+	// 		pr2->sizeF                             = cast_property->sizeF;
+	// 		pr2->flags                             = cast_property->flags;
+	// 		pr                                     = std::static_pointer_cast<osn::Property>(pr2);
+	// 		break;
+	// 	}
+	// 	case obs::Property::Type::EditableList: {
+	// 		std::shared_ptr<obs::EditableListProperty> cast_property =
+	// 		    std::dynamic_pointer_cast<obs::EditableListProperty>(raw_property);
+	// 		std::shared_ptr<osn::EditableListProperty> pr2 = std::make_shared<osn::EditableListProperty>();
+	// 		pr2->field_type                                = osn::EditableListProperty::Type(cast_property->field_type);
+	// 		pr2->filter                                    = cast_property->filter;
+	// 		pr2->default_path                              = cast_property->default_path;
 
-			for (auto& item : cast_property->values) {
-				pr2->values.push_back(item);
-			}
-			pr = std::static_pointer_cast<osn::Property>(pr2);
-			break;
-		}
-		case obs::Property::Type::FrameRate: {
-			std::shared_ptr<obs::FrameRateProperty> cast_property =
-			    std::dynamic_pointer_cast<obs::FrameRateProperty>(raw_property);
-			std::shared_ptr<osn::FrameRateProperty> pr2 = std::make_shared<osn::FrameRateProperty>();
-			for (auto& option : cast_property->ranges) {
-				std::pair<osn::FrameRateProperty::FrameRate, osn::FrameRateProperty::FrameRate> range2;
-				range2.first.numerator    = option.minimum.first;
-				range2.first.denominator  = option.minimum.second;
-				range2.second.numerator   = option.maximum.first;
-				range2.second.denominator = option.maximum.second;
-				pr2->ranges.push_back(std::move(range2));
-			}
-			for (auto& option : cast_property->options) {
-				osn::FrameRateProperty::Option option2;
-				option2.name        = option.name;
-				option2.description = option.description;
-				pr2->options.push_back(std::move(option2));
-			}
+	// 		for (auto& item : cast_property->values) {
+	// 			pr2->values.push_back(item);
+	// 		}
+	// 		pr = std::static_pointer_cast<osn::Property>(pr2);
+	// 		break;
+	// 	}
+	// 	case obs::Property::Type::FrameRate: {
+	// 		std::shared_ptr<obs::FrameRateProperty> cast_property =
+	// 		    std::dynamic_pointer_cast<obs::FrameRateProperty>(raw_property);
+	// 		std::shared_ptr<osn::FrameRateProperty> pr2 = std::make_shared<osn::FrameRateProperty>();
+	// 		for (auto& option : cast_property->ranges) {
+	// 			std::pair<osn::FrameRateProperty::FrameRate, osn::FrameRateProperty::FrameRate> range2;
+	// 			range2.first.numerator    = option.minimum.first;
+	// 			range2.first.denominator  = option.minimum.second;
+	// 			range2.second.numerator   = option.maximum.first;
+	// 			range2.second.denominator = option.maximum.second;
+	// 			pr2->ranges.push_back(std::move(range2));
+	// 		}
+	// 		for (auto& option : cast_property->options) {
+	// 			osn::FrameRateProperty::Option option2;
+	// 			option2.name        = option.name;
+	// 			option2.description = option.description;
+	// 			pr2->options.push_back(std::move(option2));
+	// 		}
 
-			break;
-		}
-		default: {
-			pr = std::make_shared<osn::Property>();
-			break;
-		}
-		}
+	// 		break;
+	// 	}
+	// 	default: {
+	// 		pr = std::make_shared<osn::Property>();
+	// 		break;
+	// 	}
+	// 	}
 
-		if (pr) {
-			pr->name             = raw_property->name;
-			pr->description      = raw_property->description;
-			pr->long_description = raw_property->long_description;
-			pr->type             = osn::Property::Type(raw_property->type());
-			pr->enabled          = raw_property->enabled;
-			pr->visible          = raw_property->visible;
+	// 	if (pr) {
+	// 		pr->name             = raw_property->name;
+	// 		pr->description      = raw_property->description;
+	// 		pr->long_description = raw_property->long_description;
+	// 		pr->type             = osn::Property::Type(raw_property->type());
+	// 		pr->enabled          = raw_property->enabled;
+	// 		pr->visible          = raw_property->visible;
 
-			pmap.emplace(idx - 1, pr);
-		}
-	}
+	// 		pmap.emplace(idx - 1, pr);
+	// 	}
+	// }
 
-	if (sdi) {
-		sdi->properties        = pmap;
-		sdi->propertiesChanged = false;
-	}
+	// if (sdi) {
+	// 	sdi->properties        = pmap;
+	// 	sdi->propertiesChanged = false;
+	// }
 
-	// obj = std::move(pmap);
-	osn::Properties* props = new osn::Properties(std::move(pmap), info.This());
-	info.GetReturnValue().Set(osn::Properties::Store(props));
-	return;
+	// // obj = std::move(pmap);
+	// osn::Properties* props = new osn::Properties(std::move(pmap), info.This());
+	// info.GetReturnValue().Set(osn::Properties::Store(props));
+	// return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetSettings(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::ISource::GetSettings(const Napi::CallbackInfo& info)
 {
-	osn::ISource* hndl = nullptr;
-	if (!utilv8::SafeUnwrap<osn::ISource>(info, hndl)) {
-		return;
-	}
+	osn::ISource* source =
+		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
+	if (!source)
+		return info.Env().Undefined();
 
-	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(hndl->sourceId);
+	Napi::Object json = info.Env().Global().Get("JSON").As<Napi::Object>();
+	Napi::Function parse = json.Get("parse").As<Napi::Function>();
+
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(source->sourceId);
 
 	if (sdi && !sdi->settingsChanged && sdi->setting.size() > 0) {
-		v8::Local<v8::String> jsondata = Nan::New<v8::String>(sdi->setting).ToLocalChecked();
-		v8::Local<v8::Value>  json =
-	    v8::JSON::Parse(info.GetIsolate()->GetCurrentContext(), jsondata).ToLocalChecked();
-		info.GetReturnValue().Set(json);
-		return;
+		Napi::String jsondata = Napi::String::New(info.Env(), sdi->setting);
+		Napi::Object jsonObj = parse.Call(json, {jsondata}).As<Napi::Object>();
+		return jsonObj;
 	}
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Source", "GetSettings", {ipc::value(hndl->sourceId)});
+	    conn->call_synchronous_helper("Source", "GetSettings", {ipc::value(source->sourceId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	v8::Local<v8::String> jsondata = Nan::New<v8::String>(response[1].value_str).ToLocalChecked();
-	v8::Local<v8::Value>  json     = v8::JSON::Parse(info.GetIsolate()->GetCurrentContext(), jsondata).ToLocalChecked();
+	Napi::String jsondata = Napi::String::New(info.Env(), response[1].value_str);
+	Napi::Object jsonObj = parse.Call(json, {jsondata}).As<Napi::Object>();
 
 	if (sdi) {
 		sdi->setting         = response[1].value_str;
 		sdi->settingsChanged = false;
 	}
 
-	info.GetReturnValue().Set(json);
-	return;
+	return jsonObj;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Update(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::Update(const Napi::CallbackInfo& info, uint64_t id)
 {
-	v8::Local<v8::Object> json;
-	ASSERT_GET_VALUE(info[0], json);
+	Napi::Object jsonObj = info[0].ToObject();
 	bool shouldUpdate = true;
 
-	// Retrieve Object
-	osn::ISource* hndl = nullptr;
-	if (!Retrieve(info.This(), hndl)) {
-		return;
-	}
+	Napi::Object json = info.Env().Global().Get("JSON").As<Napi::Object>();
+	Napi::Function stringify = json.Get("stringify").As<Napi::Function>();
 
-	// Turn json into string
-	v8::Local<v8::String> jsondata = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), json).ToLocalChecked();
-	v8::String::Utf8Value jsondatautf8(jsondata);
+	std::string jsondata = stringify.Call(json, { jsonObj }).As<Napi::String>();
 
-	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(hndl->sourceId);
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(id);
 
 	if (sdi && sdi->setting.size() > 0) {
-		auto newSettings = nlohmann::json::parse(std::string(*jsondatautf8, (size_t)jsondatautf8.length()));
+		auto newSettings = nlohmann::json::parse(jsondata);
 		auto settings    = nlohmann::json::parse(sdi->setting);
 
 		nlohmann::json::iterator it = newSettings.begin();
@@ -409,357 +412,330 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Update(Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 
 	if (shouldUpdate) {
-		auto conn = GetConnection();
+		auto conn = GetConnection(info);
 		if (!conn)
 			return;
 
 		std::vector<ipc::value> response = conn->call_synchronous_helper(
 		    "Source",
 		    "Update",
-		    {ipc::value(hndl->sourceId), ipc::value(std::string(*jsondatautf8, (size_t)jsondatautf8.length()))});
+		    {ipc::value(id), ipc::value(jsondata)});
 
-		if (!ValidateResponse(response))
+		if (!ValidateResponse(info, response))
 			return;
 
 		if (sdi) {
 			sdi->setting           = response[1].value_str;
 			sdi->settingsChanged   = false;
-			sdi->propertiesChanged = true;
+			// sdi->propertiesChanged = true; // UNCOMENT ME ONCE PROPERTIES ARE MIGRATED
 		}
 	}
-	info.GetReturnValue().Set(true);
-	return;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Load(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::Load(const Napi::CallbackInfo& info, uint64_t id)
 {
-	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call("Source", "Load", {ipc::value(is->sourceId)});
+	conn->call("Source", "Load", {ipc::value(id)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Save(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::Save(const Napi::CallbackInfo& info, uint64_t id)
 {
-	return;
-	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call("Source", "Save", {ipc::value(is->sourceId)});
+	conn->call("Source", "Save", {ipc::value(id)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetType(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::ISource::GetType(const Napi::CallbackInfo& info)
 {
-	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
-		return;
-	}
+	osn::ISource* source =
+		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
+	if (!source)
+		return info.Env().Undefined();
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Source", "GetType", {ipc::value(is->sourceId)});
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Source", "GetType", {ipc::value(source->sourceId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.i32));
+	return Napi::Number::New(info.Env(), response[1].value_union.i32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetName(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::ISource::GetName(const Napi::CallbackInfo& info)
 {
-	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
-		return;
-	}
+	osn::ISource* source =
+		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
+	if (!source)
+		return info.Env().Undefined();
 
-	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(is->sourceId);
+	SourceDataInfo* sdi =
+		CacheManager<SourceDataInfo*>::getInstance().Retrieve(source->sourceId);
 
 	if (sdi) {
 		if (sdi->name.size() > 0) {
-			info.GetReturnValue().Set(utilv8::ToValue(sdi->name));
-			return;
+			return Napi::String::New(info.Env(), sdi->name);
 		}
 	}
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Source", "GetName", {ipc::value(is->sourceId)});
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Source", "GetName", {ipc::value(source->sourceId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
 	if (sdi)
 		sdi->name = response[1].value_str.c_str();
 
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
+	return Napi::String::New(info.Env(), response[1].value_str);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetName(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::SetName(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	std::string name;
-	ASSERT_GET_VALUE(info[0], name);
+	std::string name = value.ToString().Utf8Value();
 
-	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
+	osn::ISource* source =
+		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
+	if (!source)
 		return;
-	}
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call("Source", "SetName", {ipc::value(is->sourceId), ipc::value(name)});
+	conn->call("Source", "SetName", {ipc::value(source->sourceId), ipc::value(name)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetOutputFlags(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::ISource::GetOutputFlags(const Napi::CallbackInfo& info)
 {
-	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
-		return;
-	}
+	osn::ISource* source =
+		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
+	if (!source)
+		return info.Env().Undefined();
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Source", "GetOutputFlags", {ipc::value(is->sourceId)});
+	    conn->call_synchronous_helper("Source", "GetOutputFlags", {ipc::value(source->sourceId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.ui32));
+	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetFlags(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::ISource::GetFlags(const Napi::CallbackInfo& info)
 {
-	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
-		return;
-	}
+	osn::ISource* source =
+		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
+	if (!source)
+		return info.Env().Undefined();
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Source", "GetFlags", {ipc::value(source->sourceId)});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+}
+
+void osn::ISource::SetFlags(const Napi::CallbackInfo& info, const Napi::Value &value)
+{
+	uint32_t flags = value.ToNumber().Uint32Value();
+
+	osn::ISource* source =
+		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
+	if (!source)
+		return;
+
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Source", "GetFlags", {ipc::value(is->sourceId)});
-
-	if (!ValidateResponse(response))
-		return;
-
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.ui32));
+	conn->call("Source", "SetFlags", {ipc::value(source->sourceId), ipc::value(flags)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetFlags(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::ISource::GetStatus(const Napi::CallbackInfo& info)
 {
-	uint32_t flags;
-	ASSERT_GET_VALUE(info[0], flags);
+	osn::ISource* source =
+		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
+	if (!source)
+		return info.Env().Undefined();
 
-	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
-	conn->call("Source", "SetFlags", {ipc::value(is->sourceId), ipc::value(flags)});
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Source", "GetStatus", {ipc::value(source->sourceId)});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetStatus(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::ISource::GetId(const Napi::CallbackInfo& info)
 {
-	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
-		return;
-	}
+	osn::ISource* source =
+		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
+	if (!source)
+		return info.Env().Undefined();
 
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Source", "GetStatus", {ipc::value(is->sourceId)});
-
-	if (!ValidateResponse(response))
-		return;
-
-	info.GetReturnValue().Set(response[1].value_union.ui32);
-}
-
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetId(Nan::NAN_METHOD_ARGS_TYPE info)
-{
-	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
-		return;
-	}
-
-	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(is->sourceId);
+	SourceDataInfo* sdi =
+		CacheManager<SourceDataInfo*>::getInstance().Retrieve(source->sourceId);
 
 	if (sdi) {
-		if (sdi->obs_sourceId.size() > 0) {
-			info.GetReturnValue().Set(utilv8::ToValue(sdi->obs_sourceId));
-			return;
-		}
+		if (sdi->obs_sourceId.size() > 0)
+			return Napi::String::New(info.Env(), sdi->obs_sourceId);
 	}
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Source", "GetId", {ipc::value(is->sourceId)});
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Source", "GetId", {ipc::value(source->sourceId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
 	if (sdi) {
 		sdi->obs_sourceId = response[1].value_str;
 	}
 
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
+	return Napi::String::New(info.Env(), response[1].value_str);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetMuted(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::ISource::GetMuted(const Napi::CallbackInfo& info)
 {
-	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
-		return;
-	}
-	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(is->sourceId);
+	osn::ISource* source =
+		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
+	if (!source)
+		return info.Env().Undefined();
+
+	SourceDataInfo* sdi =
+		CacheManager<SourceDataInfo*>::getInstance().Retrieve(source->sourceId);
 
 	if (sdi) {
-		if (sdi && !sdi->mutedChanged) {
-			info.GetReturnValue().Set(sdi->isMuted);
-			return;
-		}
+		if (sdi && !sdi->mutedChanged)
+			return Napi::Boolean::New(info.Env(), sdi->isMuted);
 	}
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Source", "GetMuted", {ipc::value(is->sourceId)});
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Source", "GetMuted", {ipc::value(source->sourceId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
 	if (sdi) {
 		sdi->isMuted      = (bool)response[1].value_union.i32;
 		sdi->mutedChanged = false;
 	}
 
-	info.GetReturnValue().Set((bool)response[1].value_union.i32);
-	return;
+	return Napi::Boolean::New(info.Env(),(bool)response[1].value_union.i32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetMuted(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::SetMuted(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	bool muted;
+	bool muted = value.ToBoolean().Value();
 
-	ASSERT_GET_VALUE(info[0], muted);
-
-	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
+	osn::ISource* source =
+		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
+	if (!source)
 		return;
-	}
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call("Source", "SetMuted", {ipc::value(is->sourceId), ipc::value(muted)});
+	conn->call("Source", "SetMuted", {ipc::value(source->sourceId), ipc::value(muted)});
 
-	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(is->sourceId);
-	if (sdi) {
+	SourceDataInfo* sdi =
+		CacheManager<SourceDataInfo*>::getInstance().Retrieve(source->sourceId);
+	if (sdi)
 		sdi->mutedChanged = true;
-	}
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetEnabled(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::ISource::GetEnabled(const Napi::CallbackInfo& info)
 {
-	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
-		return;
-	}
+	osn::ISource* source =
+		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
+	if (!source)
+		return info.Env().Undefined();
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Source", "GetEnabled", {ipc::value(is->sourceId)});
+	    conn->call_synchronous_helper("Source", "GetEnabled", {ipc::value(source->sourceId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	info.GetReturnValue().Set((bool)response[1].value_union.i32);
+	return Napi::Boolean::New(info.Env(), (bool)response[1].value_union.i32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetEnabled(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::SetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	bool enabled;
+	bool enabled = value.ToBoolean().Value();
 
-	ASSERT_GET_VALUE(info[0], enabled);
-
-	osn::ISource* is;
-	if (!utilv8::SafeUnwrap(info, is)) {
+	osn::ISource* source =
+		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
+	if (!source)
 		return;
-	}
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call("Source", "SetEnabled", {ipc::value(is->sourceId), ipc::value(enabled)});
+	conn->call("Source", "SetEnabled", {ipc::value(source->sourceId), ipc::value(enabled)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseClick(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::SendMouseClick(const Napi::CallbackInfo& info, uint64_t id)
 {
-	osn::ISource* obj;
-	if (!utilv8::SafeUnwrap(info, obj)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	v8::Local<v8::Object> mouse_event_obj;
-	uint32_t              type;
-	bool                  mouse_up;
-	uint32_t              click_count;
+	Napi::Object mouse_event_obj = info[0].ToObject();
+	uint32_t type = info[1].ToNumber().Uint32Value();
+	bool mouse_up = info[2].ToBoolean().Value();
+	uint32_t click_count = info[3].ToNumber().Uint32Value();
 
-	ASSERT_GET_VALUE(info[0], mouse_event_obj);
-	ASSERT_GET_VALUE(info[1], type);
-	ASSERT_GET_VALUE(info[2], mouse_up);
-	ASSERT_GET_VALUE(info[3], click_count);
-
-	uint32_t modifiers, x, y;
-
-	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "modifiers", modifiers);
-	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "x", x);
-	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "y", y);
+	uint32_t modifiers = mouse_event_obj.Get("modifiers").ToNumber().Uint32Value();
+	uint32_t x = mouse_event_obj.Get("x").ToNumber().Uint32Value();
+	uint32_t y = mouse_event_obj.Get("y").ToNumber().Uint32Value();
 
 	conn->call(
 	    "Source",
 	    "SendMouseClick",
 	    {
-			ipc::value(obj->sourceId),
+			ipc::value(id),
 			ipc::value(modifiers),
 			ipc::value(x),
 			ipc::value(y),
@@ -770,61 +746,51 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseClick(Nan::NAN_METHOD_ARGS_TY
 	);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseMove(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::SendMouseMove(const Napi::CallbackInfo& info, uint64_t id)
 {
-	osn::ISource* obj;
-	if (!utilv8::SafeUnwrap(info, obj)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	v8::Local<v8::Object> mouse_event_obj;
-	bool                  mouse_leave;
+	Napi::Object mouse_event_obj = info[0].ToObject();
+	bool mouse_leave = info[1].ToBoolean().Value();
 
-	ASSERT_GET_VALUE(info[0], mouse_event_obj);
-	ASSERT_GET_VALUE(info[1], mouse_leave);
+	uint32_t modifiers = mouse_event_obj.Get("modifiers").ToNumber().Uint32Value();
+	uint32_t x = mouse_event_obj.Get("x").ToNumber().Uint32Value();
+	uint32_t y = mouse_event_obj.Get("y").ToNumber().Uint32Value();
 
-	uint32_t modifiers, x, y;
-
-	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "modifiers", modifiers);
-	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "x", x);
-	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "y", y);
-
-	conn->call("Source", "SendMouseMove", {ipc::value(obj->sourceId), ipc::value(modifiers), ipc::value(x), ipc::value(y), ipc::value(mouse_leave)});
+	conn->call(
+		"Source",
+		"SendMouseMove",
+		{
+			ipc::value(id),
+			ipc::value(modifiers),
+			ipc::value(x),
+			ipc::value(y),
+			ipc::value(mouse_leave)
+		}
+	);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseWheel(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::SendMouseWheel(const Napi::CallbackInfo& info, uint64_t id)
 {
-	osn::ISource* obj;
-	if (!utilv8::SafeUnwrap(info, obj)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	v8::Local<v8::Object> mouse_event_obj;
-	int                   x_delta, y_delta;
+	Napi::Object mouse_event_obj = info[0].ToObject();
+	int32_t x_delta = info[1].ToNumber().Int32Value();
+	int32_t y_delta = info[2].ToNumber().Int32Value();
 
-	ASSERT_GET_VALUE(info[0], mouse_event_obj);
-	ASSERT_GET_VALUE(info[1], x_delta);
-	ASSERT_GET_VALUE(info[2], y_delta);
-
-	uint32_t modifiers, x, y;
-
-	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "modifiers", modifiers);
-	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "x", x);
-	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "y", y);
+	uint32_t modifiers = mouse_event_obj.Get("modifiers").ToNumber().Uint32Value();
+	uint32_t x = mouse_event_obj.Get("x").ToNumber().Uint32Value();
+	uint32_t y = mouse_event_obj.Get("y").ToNumber().Uint32Value();
 
 	conn->call(
 	    "Source",
 	    "SendMouseWheel",
 	    {
-			ipc::value(obj->sourceId),
+			ipc::value(id),
 			ipc::value(modifiers),
 			ipc::value(x),
 			ipc::value(y),
@@ -834,55 +800,36 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseWheel(Nan::NAN_METHOD_ARGS_TY
 	);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendFocus(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::SendFocus(const Napi::CallbackInfo& info, uint64_t id)
 {
-	osn::ISource* obj;
-	if (!utilv8::SafeUnwrap(info, obj)) {
-		return;
-	}
+	bool focus = info[0].ToBoolean().Value();
 
-	bool focus;
-
-	ASSERT_GET_VALUE(info[0], focus);
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-    conn->call("Source", "SendFocus", {ipc::value(obj->sourceId), ipc::value(focus)});
+    conn->call("Source", "SendFocus", {ipc::value(id), ipc::value(focus)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendKeyClick(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::ISource::SendKeyClick(const Napi::CallbackInfo& info, uint64_t id)
 {
-	osn::ISource* obj;
-	if (!utilv8::SafeUnwrap(info, obj)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
+	Napi::Object key_event_obj = info[0].ToObject();
+	bool key_up = info[1].ToBoolean().Value();
 
-	v8::Local<v8::Object> key_event_obj;
-	bool                  key_up;
-
-	ASSERT_GET_VALUE(info[0], key_event_obj);
-	ASSERT_GET_VALUE(info[1], key_up);
-
-	uint32_t    modifiers, native_modifiers, native_scancode, native_vkey;
-	std::string text;
-
-	ASSERT_GET_OBJECT_FIELD(key_event_obj, "modifiers", modifiers);
-	ASSERT_GET_OBJECT_FIELD(key_event_obj, "text", text);
-	ASSERT_GET_OBJECT_FIELD(key_event_obj, "nativeModifiers", native_modifiers);
-	ASSERT_GET_OBJECT_FIELD(key_event_obj, "nativeScancode", native_scancode);
-	ASSERT_GET_OBJECT_FIELD(key_event_obj, "nativeVkey", native_vkey);
+	uint32_t modifiers = key_event_obj.Get("modifiers").ToNumber().Uint32Value();
+	uint32_t native_modifiers = key_event_obj.Get("nativeModifiers").ToNumber().Uint32Value();
+	uint32_t native_scancode = key_event_obj.Get("nativeScancode").ToNumber().Uint32Value();
+	uint32_t native_vkey = key_event_obj.Get("nativeVkey").ToNumber().Uint32Value();
+	std::string text = key_event_obj.Get("text").ToString().Utf8Value();
 
 	conn->call(
 	    "Source",
 	    "SendKeyClick",
 	    {
-			ipc::value(obj->sourceId),
+			ipc::value(id),
 			ipc::value(modifiers),
 			ipc::value(text),
 			ipc::value(native_modifiers),
@@ -891,4 +838,12 @@ Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendKeyClick(Nan::NAN_METHOD_ARGS_TYPE
 			ipc::value((int32_t)key_up)
 		}
 	);
+}
+
+Napi::Value osn::ISource::GetSourceId(const Napi::CallbackInfo& info) {
+	return Napi::Number::New(info.Env(), this->sourceId);
+}
+
+void osn::ISource::SetSourceId(const Napi::CallbackInfo& info, const Napi::Value &value) {
+	this->sourceId = (uint64_t)value.ToNumber().Int64Value();
 }

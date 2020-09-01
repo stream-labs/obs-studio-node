@@ -17,11 +17,10 @@
 ******************************************************************************/
 
 #pragma once
-#include <nan.h>
-#include <node.h>
+#include <napi.h>
 #include "utility-v8.hpp"
-#include "properties.hpp"
-#include "obs-property.hpp"
+// #include "properties.hpp"
+// #include "obs-property.hpp"
 #include "cache-manager.hpp"
 
 #undef strtoll
@@ -37,52 +36,51 @@ namespace osn
 		size_t		hotkeyId;
 	};
 
-	typedef utilv8::managed_callback<std::shared_ptr<std::vector<SourceHotkeyInfo>>>	SourceCallback;
-
-	class ISource : public Nan::ObjectWrap, public utilv8::InterfaceObject<osn::ISource>
+	class ISource: public Napi::ObjectWrap<osn::ISource>
 	{
-		friend class utilv8::InterfaceObject<osn::ISource>;
-
 		public:
 		uint64_t sourceId;
 
-		private:
+		public:
 		uint64_t m_uid;
 	
 		public:
-		~ISource();
-		static Nan::Persistent<v8::FunctionTemplate> prototype;
+		static Napi::FunctionReference constructor;
+		static Napi::Object Init(Napi::Env env, Napi::Object exports);
+		ISource(const Napi::CallbackInfo& info);
 
-		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+		static void napi_inherits(napi_env env, napi_value ctor, napi_value super_ctor);
 
-		static Nan::NAN_METHOD_RETURN_TYPE Release(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Remove(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void Release(const Napi::CallbackInfo& info, uint64_t id);
+		static void Remove(const Napi::CallbackInfo& info, uint64_t id);
+		static void Update(const Napi::CallbackInfo& info, uint64_t id);
+		static void Load(const Napi::CallbackInfo& info, uint64_t id);
+		static void Save(const Napi::CallbackInfo& info, uint64_t id);
 
-		static Nan::NAN_METHOD_RETURN_TYPE IsConfigurable(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetProperties(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetSettings(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Update(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Load(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Save(Nan::NAN_METHOD_ARGS_TYPE info);
+		Napi::Value IsConfigurable(const Napi::CallbackInfo& info);
+		Napi::Value GetProperties(const Napi::CallbackInfo& info);
+		Napi::Value GetSettings(const Napi::CallbackInfo& info);
 
-		static Nan::NAN_METHOD_RETURN_TYPE GetType(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetName(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetName(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetOutputFlags(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetFlags(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetFlags(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetStatus(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetId(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetMuted(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetMuted(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetEnabled(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetEnabled(Nan::NAN_METHOD_ARGS_TYPE info);
+		Napi::Value GetType(const Napi::CallbackInfo& info);
+		Napi::Value GetName(const Napi::CallbackInfo& info);
+		void SetName(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value GetOutputFlags(const Napi::CallbackInfo& info);
+		Napi::Value GetFlags(const Napi::CallbackInfo& info);
+		void SetFlags(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value GetStatus(const Napi::CallbackInfo& info);
+		Napi::Value GetId(const Napi::CallbackInfo& info);
+		Napi::Value GetMuted(const Napi::CallbackInfo& info);
+		void SetMuted(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value GetEnabled(const Napi::CallbackInfo& info);
+		void SetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value);
 
-		// Browser source interaction
-		static Nan::NAN_METHOD_RETURN_TYPE SendMouseClick(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SendMouseMove(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SendMouseWheel(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SendFocus(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SendKeyClick(Nan::NAN_METHOD_ARGS_TYPE info);
+		static void SendMouseClick(const Napi::CallbackInfo& info, uint64_t id);
+		static void SendMouseMove(const Napi::CallbackInfo& info, uint64_t id);
+		static void SendMouseWheel(const Napi::CallbackInfo& info, uint64_t id);
+		static void SendFocus(const Napi::CallbackInfo& info, uint64_t id);
+		static void SendKeyClick(const Napi::CallbackInfo& info, uint64_t id);
+
+		Napi::Value GetSourceId(const Napi::CallbackInfo& info);
+		void SetSourceId(const Napi::CallbackInfo& info, const Napi::Value &value);
 	};
-} // namespace osn
+}
