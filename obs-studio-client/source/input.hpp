@@ -25,6 +25,9 @@ namespace osn
 {
 	class Input : public Napi::ObjectWrap<osn::Input>
 	{
+		private:
+		uint64_t sourceId;
+
 		public:
 		static Napi::FunctionReference constructor;
 		static Napi::Object Init(Napi::Env env, Napi::Object exports);
@@ -61,6 +64,22 @@ namespace osn
 		void SetDeinterlaceMode(const Napi::CallbackInfo& info, const Napi::Value &value);
 		// Napi::Value Filters(const Napi::CallbackInfo& info);
 
+		Napi::Value CallIsConfigurable(const Napi::CallbackInfo& info);
+		Napi::Value CallGetProperties(const Napi::CallbackInfo& info);
+		Napi::Value CallGetSettings(const Napi::CallbackInfo& info);
+
+		Napi::Value CallGetType(const Napi::CallbackInfo& info);
+		Napi::Value CallGetName(const Napi::CallbackInfo& info);
+		void CallSetName(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value CallGetOutputFlags(const Napi::CallbackInfo& info);
+		Napi::Value CallGetFlags(const Napi::CallbackInfo& info);
+		void CallSetFlags(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value CallGetStatus(const Napi::CallbackInfo& info);
+		Napi::Value CallGetId(const Napi::CallbackInfo& info);
+		Napi::Value CallGetMuted(const Napi::CallbackInfo& info);
+		void CallSetMuted(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value CallGetEnabled(const Napi::CallbackInfo& info);
+		void CallSetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value);
 
 		Napi::Value CallRelease(const Napi::CallbackInfo& info);
 		Napi::Value CallRemove(const Napi::CallbackInfo& info);

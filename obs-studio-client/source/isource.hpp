@@ -36,51 +36,36 @@ namespace osn
 		size_t		hotkeyId;
 	};
 
-	class ISource: public Napi::ObjectWrap<osn::ISource>
+	class ISource
 	{
 		public:
-		uint64_t sourceId;
-
-		public:
-		uint64_t m_uid;
-	
-		public:
-		static Napi::FunctionReference constructor;
-		static Napi::Object Init(Napi::Env env, Napi::Object exports);
-		ISource(const Napi::CallbackInfo& info);
-
-		static void napi_inherits(napi_env env, napi_value ctor, napi_value super_ctor);
-
 		static void Release(const Napi::CallbackInfo& info, uint64_t id);
 		static void Remove(const Napi::CallbackInfo& info, uint64_t id);
 		static void Update(const Napi::CallbackInfo& info, uint64_t id);
 		static void Load(const Napi::CallbackInfo& info, uint64_t id);
 		static void Save(const Napi::CallbackInfo& info, uint64_t id);
 
-		Napi::Value IsConfigurable(const Napi::CallbackInfo& info);
-		Napi::Value GetProperties(const Napi::CallbackInfo& info);
-		Napi::Value GetSettings(const Napi::CallbackInfo& info);
+		static Napi::Value IsConfigurable(const Napi::CallbackInfo& info, uint64_t id);
+		static Napi::Value GetProperties(const Napi::CallbackInfo& info, uint64_t id);
+		static Napi::Value GetSettings(const Napi::CallbackInfo& info, uint64_t id);
 
-		Napi::Value GetType(const Napi::CallbackInfo& info);
-		Napi::Value GetName(const Napi::CallbackInfo& info);
-		void SetName(const Napi::CallbackInfo& info, const Napi::Value &value);
-		Napi::Value GetOutputFlags(const Napi::CallbackInfo& info);
-		Napi::Value GetFlags(const Napi::CallbackInfo& info);
-		void SetFlags(const Napi::CallbackInfo& info, const Napi::Value &value);
-		Napi::Value GetStatus(const Napi::CallbackInfo& info);
-		Napi::Value GetId(const Napi::CallbackInfo& info);
-		Napi::Value GetMuted(const Napi::CallbackInfo& info);
-		void SetMuted(const Napi::CallbackInfo& info, const Napi::Value &value);
-		Napi::Value GetEnabled(const Napi::CallbackInfo& info);
-		void SetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value);
+		static Napi::Value GetType(const Napi::CallbackInfo& info, uint64_t id);
+		static Napi::Value GetName(const Napi::CallbackInfo& info, uint64_t id);
+		static void SetName(const Napi::CallbackInfo& info, const Napi::Value &value, uint64_t id);
+		static Napi::Value GetOutputFlags(const Napi::CallbackInfo& info, uint64_t id);
+		static Napi::Value GetFlags(const Napi::CallbackInfo& info, uint64_t id);
+		static void SetFlags(const Napi::CallbackInfo& info, const Napi::Value &value, uint64_t id);
+		static Napi::Value GetStatus(const Napi::CallbackInfo& info, uint64_t id);
+		static Napi::Value GetId(const Napi::CallbackInfo& info, uint64_t id);
+		static Napi::Value GetMuted(const Napi::CallbackInfo& info, uint64_t id);
+		static void SetMuted(const Napi::CallbackInfo& info, const Napi::Value &value, uint64_t id);
+		static Napi::Value GetEnabled(const Napi::CallbackInfo& info, uint64_t id);
+		static void SetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value, uint64_t id);
 
 		static void SendMouseClick(const Napi::CallbackInfo& info, uint64_t id);
 		static void SendMouseMove(const Napi::CallbackInfo& info, uint64_t id);
 		static void SendMouseWheel(const Napi::CallbackInfo& info, uint64_t id);
 		static void SendFocus(const Napi::CallbackInfo& info, uint64_t id);
 		static void SendKeyClick(const Napi::CallbackInfo& info, uint64_t id);
-
-		Napi::Value GetSourceId(const Napi::CallbackInfo& info);
-		void SetSourceId(const Napi::CallbackInfo& info, const Napi::Value &value);
 	};
 }

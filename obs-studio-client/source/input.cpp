@@ -62,6 +62,18 @@ Napi::Object osn::Input::Init(Napi::Env env, Napi::Object exports) {
 			InstanceAccessor("deinterlaceMode", &osn::Input::GetDeinterlaceMode, &osn::Input::SetDeinterlaceMode),
 			// InstanceAccessor("filters", &osn::Input::Filters, nullptr),
 
+			InstanceAccessor("configurable", &osn::Input::CallIsConfigurable, nullptr),
+			InstanceAccessor("properties", &osn::Input::CallGetProperties, nullptr),
+			InstanceAccessor("settings", &osn::Input::CallGetSettings, nullptr),
+			InstanceAccessor("type", &osn::Input::CallGetType, nullptr),
+			InstanceAccessor("name", &osn::Input::CallGetName, &osn::Input::CallSetName),
+			InstanceAccessor("outputFlags", &osn::Input::CallGetOutputFlags, nullptr),
+			InstanceAccessor("flags", &osn::Input::CallGetFlags, &osn::Input::CallSetFlags),
+			InstanceAccessor("status", &osn::Input::CallGetStatus, nullptr),
+			InstanceAccessor("id", &osn::Input::CallGetId, nullptr),
+			InstanceAccessor("muted", &osn::Input::CallGetMuted, &osn::Input::CallSetMuted),
+			InstanceAccessor("enabled", &osn::Input::CallGetEnabled, &osn::Input::CallSetEnabled),
+
 			InstanceMethod("release", &osn::Input::CallRelease),
 			InstanceMethod("remove", &osn::Input::CallRemove),
 			InstanceMethod("update", &osn::Input::CallUpdate),
@@ -73,7 +85,6 @@ Napi::Object osn::Input::Init(Napi::Env env, Napi::Object exports) {
 			InstanceMethod("sendFocus", &osn::Input::CallSendFocus),
 			InstanceMethod("sendKeyClick", &osn::Input::CallSendKeyClick),
 		});
-	osn::ISource::napi_inherits(env, func, osn::ISource::constructor.Value());
 	exports.Set("Input", func);
 	osn::Input::constructor = Napi::Persistent(func);
 	osn::Input::constructor.SuppressDestruct();
@@ -91,7 +102,162 @@ osn::Input::Input(const Napi::CallbackInfo& info)
         Napi::TypeError::New(env, "Number expected").ThrowAsJavaScriptException();
         return;
     }
+
+	this->sourceId = (uint64_t)info[0].ToNumber().Int64Value();
 }
+
+Napi::Value osn::Input::CallIsConfigurable(const Napi::CallbackInfo& info)
+{
+	osn::Input* input =
+		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
+	if (!input)
+		return info.Env().Undefined();
+
+	return osn::ISource::IsConfigurable(info, this->sourceId);
+}
+
+Napi::Value osn::Input::CallGetProperties(const Napi::CallbackInfo& info)
+{
+	osn::Input* input =
+		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
+	if (!input)
+		return info.Env().Undefined();
+
+	return osn::ISource::GetProperties(info, this->sourceId);
+}
+
+Napi::Value osn::Input::CallGetSettings(const Napi::CallbackInfo& info)
+{
+	osn::Input* input =
+		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
+	if (!input)
+		return info.Env().Undefined();
+
+	return osn::ISource::GetSettings(info, this->sourceId);
+}
+
+
+Napi::Value osn::Input::CallGetType(const Napi::CallbackInfo& info)
+{
+	osn::Input* input =
+		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
+	if (!input)
+		return info.Env().Undefined();
+
+	return osn::ISource::GetType(info, this->sourceId);
+}
+
+Napi::Value osn::Input::CallGetName(const Napi::CallbackInfo& info)
+{
+	osn::Input* input =
+		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
+	if (!input)
+		return info.Env().Undefined();
+
+	return osn::ISource::GetName(info, this->sourceId);
+}
+
+void osn::Input::CallSetName(const Napi::CallbackInfo& info, const Napi::Value &value)
+{
+	osn::Input* input =
+		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
+	if (!input)
+		return;
+
+	osn::ISource::SetName(info, value, this->sourceId);
+}
+
+Napi::Value osn::Input::CallGetOutputFlags(const Napi::CallbackInfo& info)
+{
+	osn::Input* input =
+		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
+	if (!input)
+		return info.Env().Undefined();
+
+	return osn::ISource::GetOutputFlags(info, this->sourceId);
+}
+
+Napi::Value osn::Input::CallGetFlags(const Napi::CallbackInfo& info)
+{
+	osn::Input* input =
+		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
+	if (!input)
+		return info.Env().Undefined();
+
+	return osn::ISource::GetFlags(info, this->sourceId);
+}
+
+void osn::Input::CallSetFlags(const Napi::CallbackInfo& info, const Napi::Value &value)
+{
+	osn::Input* input =
+		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
+	if (!input)
+		return;
+
+	osn::ISource::SetFlags(info, value, this->sourceId);
+}
+
+Napi::Value osn::Input::CallGetStatus(const Napi::CallbackInfo& info)
+{
+	osn::Input* input =
+		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
+	if (!input)
+		return info.Env().Undefined();
+
+	return osn::ISource::GetStatus(info, this->sourceId);
+}
+
+Napi::Value osn::Input::CallGetId(const Napi::CallbackInfo& info)
+{
+	osn::Input* input =
+		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
+	if (!input)
+		return info.Env().Undefined();
+
+
+	return osn::ISource::GetId(info, this->sourceId);
+}
+
+Napi::Value osn::Input::CallGetMuted(const Napi::CallbackInfo& info)
+{
+	osn::Input* input =
+		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
+	if (!input)
+		return info.Env().Undefined();
+
+	return osn::ISource::GetMuted(info, this->sourceId);
+}
+
+void osn::Input::CallSetMuted(const Napi::CallbackInfo& info, const Napi::Value &value)
+{
+	osn::Input* input =
+		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
+	if (!input)
+		return;
+
+	osn::ISource::SetMuted(info, value, this->sourceId);
+}
+
+Napi::Value osn::Input::CallGetEnabled(const Napi::CallbackInfo& info)
+{
+	osn::Input* input =
+		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
+	if (!input)
+		return info.Env().Undefined();
+
+	return osn::ISource::GetEnabled(info, this->sourceId);
+}
+
+void osn::Input::CallSetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value)
+{
+	osn::Input* input =
+		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
+	if (!input)
+		return;
+
+	osn::ISource::SetEnabled(info, value, this->sourceId);
+}
+
 
 Napi::Value osn::Input::CallRelease(const Napi::CallbackInfo& info)
 {
@@ -100,7 +266,7 @@ Napi::Value osn::Input::CallRelease(const Napi::CallbackInfo& info)
 	if (!input)
 		return info.Env().Undefined();
 
-	osn::ISource::Release(info, info.This().ToObject().Get("sourceId").ToNumber().Int64Value());
+	osn::ISource::Release(info, this->sourceId);
 
 	return info.Env().Undefined();
 }
@@ -112,7 +278,7 @@ Napi::Value osn::Input::CallRemove(const Napi::CallbackInfo& info)
 	if (!input)
 		return info.Env().Undefined();
 
-	osn::ISource::Remove(info, info.This().ToObject().Get("sourceId").ToNumber().Int64Value());
+	osn::ISource::Remove(info, this->sourceId);
 	info.This().ToObject().Set("sourceId", UINT64_MAX);
 
 	return info.Env().Undefined();
@@ -125,7 +291,7 @@ Napi::Value osn::Input::CallUpdate(const Napi::CallbackInfo& info)
 	if (!input)
 		return info.Env().Undefined();
 
-	osn::ISource::Update(info, info.This().ToObject().Get("sourceId").ToNumber().Int64Value());
+	osn::ISource::Update(info, this->sourceId);
 
 	return info.Env().Undefined();
 }
@@ -137,7 +303,7 @@ Napi::Value osn::Input::CallLoad(const Napi::CallbackInfo& info)
 	if (!input)
 		return info.Env().Undefined();
 
-	osn::ISource::Load(info, info.This().ToObject().Get("sourceId").ToNumber().Int64Value());
+	osn::ISource::Load(info, this->sourceId);
 
 	return info.Env().Undefined();
 }
@@ -149,7 +315,7 @@ Napi::Value osn::Input::CallSave(const Napi::CallbackInfo& info)
 	if (!input)
 		return info.Env().Undefined();
 
-	osn::ISource::Save(info, info.This().ToObject().Get("sourceId").ToNumber().Int64Value());
+	osn::ISource::Save(info, this->sourceId);
 
 	return info.Env().Undefined();
 }
@@ -161,7 +327,7 @@ Napi::Value osn::Input::CallSendMouseClick(const Napi::CallbackInfo& info)
 	if (!input)
 		return info.Env().Undefined();
 
-	osn::ISource::SendMouseClick(info, info.This().ToObject().Get("sourceId").ToNumber().Int64Value());
+	osn::ISource::SendMouseClick(info, this->sourceId);
 
 	return info.Env().Undefined();
 }
@@ -173,7 +339,7 @@ Napi::Value osn::Input::CallSendMouseMove(const Napi::CallbackInfo& info)
 	if (!input)
 		return info.Env().Undefined();
 
-	osn::ISource::SendMouseMove(info, info.This().ToObject().Get("sourceId").ToNumber().Int64Value());
+	osn::ISource::SendMouseMove(info, this->sourceId);
 
 	return info.Env().Undefined();
 }
@@ -185,7 +351,7 @@ Napi::Value osn::Input::CallSendMouseWheel(const Napi::CallbackInfo& info)
 	if (!input)
 		return info.Env().Undefined();
 
-	osn::ISource::SendMouseWheel(info, info.This().ToObject().Get("sourceId").ToNumber().Int64Value());
+	osn::ISource::SendMouseWheel(info, this->sourceId);
 
 	return info.Env().Undefined();
 }
@@ -197,7 +363,7 @@ Napi::Value osn::Input::CallSendFocus(const Napi::CallbackInfo& info)
 	if (!input)
 		return info.Env().Undefined();
 
-	osn::ISource::SendFocus(info, info.This().ToObject().Get("sourceId").ToNumber().Int64Value());
+	osn::ISource::SendFocus(info, this->sourceId);
 
 	return info.Env().Undefined();
 }
@@ -209,7 +375,7 @@ Napi::Value osn::Input::CallSendKeyClick(const Napi::CallbackInfo& info)
 	if (!input)
 		return info.Env().Undefined();
 
-	osn::ISource::SendKeyClick(info, info.This().ToObject().Get("sourceId").ToNumber().Int64Value());
+	osn::ISource::SendKeyClick(info, this->sourceId);
 
 	return info.Env().Undefined();
 }
@@ -296,7 +462,6 @@ Napi::Value osn::Input::Create(const Napi::CallbackInfo& info)
             Napi::Number::New(info.Env(), response[1].value_union.ui64)
             });
 
-	instance.Set("sourceId", response[1].value_union.ui64);
     return instance;
 }
 
@@ -345,7 +510,6 @@ Napi::Value osn::Input::CreatePrivate(const Napi::CallbackInfo& info)
         osn::Input::constructor.New({
             Napi::Number::New(info.Env(), response[1].value_union.ui64)
             });
-	instance.Set("sourceId", response[1].value_union.ui64);
     return instance;
 }
 
@@ -360,7 +524,6 @@ Napi::Value osn::Input::FromName(const Napi::CallbackInfo& info)
 			osn::Input::constructor.New({
 				Napi::Number::New(info.Env(), sdi->id)
 				});
-		instance.Set("sourceId", sdi->id);
 		return instance;
 	}
 
@@ -425,7 +588,7 @@ Napi::Value osn::Input::Duplicate(const Napi::CallbackInfo& info)
 		return info.Env().Undefined();
 
 	auto params =
-		std::vector<ipc::value>{ipc::value((uint64_t)info.This().ToObject().Get("sourceId").ToNumber().Int64Value())};
+		std::vector<ipc::value>{ipc::value((uint64_t)this->sourceId)};
 	if (info.Length() >= 1) {
 		params.push_back(ipc::value(name));
 	}
@@ -457,7 +620,7 @@ Napi::Value osn::Input::Active(const Napi::CallbackInfo& info)
 		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Input", "GetActive", {ipc::value((uint64_t)info.This().ToObject().Get("sourceId").ToNumber().Int64Value())});
+		conn->call_synchronous_helper("Input", "GetActive", {ipc::value((uint64_t)this->sourceId)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -479,9 +642,9 @@ Napi::Value osn::Input::Showing(const Napi::CallbackInfo& info)
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::cout << "Showing - 3, id " << info.This().ToObject().Get("sourceId").ToNumber().Int64Value() << std::endl;
+	std::cout << "Showing - 3, id " << this->sourceId << std::endl;
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "GetShowing", {ipc::value((uint64_t)info.This().ToObject().Get("sourceId").ToNumber().Int64Value())});
+	    conn->call_synchronous_helper("Input", "GetShowing", {ipc::value((uint64_t)this->sourceId)});
 
 	std::cout << "Showing - 4" << std::endl;
 	if (!ValidateResponse(info, response))
@@ -503,7 +666,7 @@ Napi::Value osn::Input::Width(const Napi::CallbackInfo& info)
 		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Input", "GetWidth", {ipc::value((uint64_t)info.This().ToObject().Get("sourceId").ToNumber().Int64Value())});
+		conn->call_synchronous_helper("Input", "GetWidth", {ipc::value((uint64_t)this->sourceId)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -523,7 +686,7 @@ Napi::Value osn::Input::Height(const Napi::CallbackInfo& info)
 		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Input", "GetHeight", {ipc::value((uint64_t)info.This().ToObject().Get("sourceId").ToNumber().Int64Value())});
+		conn->call_synchronous_helper("Input", "GetHeight", {ipc::value((uint64_t)this->sourceId)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -543,7 +706,7 @@ Napi::Value osn::Input::GetVolume(const Napi::CallbackInfo& info)
 		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Input", "GetVolume", {ipc::value((uint64_t)info.This().ToObject().Get("sourceId").ToNumber().Int64Value())});
+		conn->call_synchronous_helper("Input", "GetVolume", {ipc::value((uint64_t)this->sourceId)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -562,7 +725,7 @@ void osn::Input::SetVolume(const Napi::CallbackInfo& info, const Napi::Value &va
 	if (!conn)
 		return;
 
-	conn->call("Input", "SetVolume", {ipc::value((uint64_t)info.This().ToObject().Get("sourceId").ToNumber().Int64Value()), ipc::value(value.ToNumber().FloatValue())});
+	conn->call("Input", "SetVolume", {ipc::value((uint64_t)this->sourceId), ipc::value(value.ToNumber().FloatValue())});
 }
 
 Napi::Value osn::Input::GetSyncOffset(const Napi::CallbackInfo& info)
@@ -577,7 +740,7 @@ Napi::Value osn::Input::GetSyncOffset(const Napi::CallbackInfo& info)
 		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "GetSyncOffset", {ipc::value((uint64_t)info.This().ToObject().Get("sourceId").ToNumber().Int64Value())});
+	    conn->call_synchronous_helper("Input", "GetSyncOffset", {ipc::value((uint64_t)this->sourceId)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -606,7 +769,7 @@ void osn::Input::SetSyncOffset(const Napi::CallbackInfo& info, const Napi::Value
 	if (!conn)
 		return;
 
-	conn->call("Input", "SetSyncOffset", {ipc::value((uint64_t)info.This().ToObject().Get("sourceId").ToNumber().Int64Value()), ipc::value(syncoffset)});
+	conn->call("Input", "SetSyncOffset", {ipc::value((uint64_t)this->sourceId), ipc::value(syncoffset)});
 }
 
 Napi::Value osn::Input::GetAudioMixers(const Napi::CallbackInfo& info)
@@ -616,7 +779,7 @@ Napi::Value osn::Input::GetAudioMixers(const Napi::CallbackInfo& info)
 	if (!input)
 		return info.Env().Undefined();
 
-	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(info.This().ToObject().Get("sourceId").ToNumber().Int64Value());
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(this->sourceId);
 	if (sdi && !sdi->audioMixersChanged && sdi->audioMixers != UINT32_MAX)
 		return Napi::Number::New(info.Env(), sdi->audioMixers);
 
@@ -625,7 +788,7 @@ Napi::Value osn::Input::GetAudioMixers(const Napi::CallbackInfo& info)
 		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "GetAudioMixers", {ipc::value((uint64_t)info.This().ToObject().Get("sourceId").ToNumber().Int64Value())});
+	    conn->call_synchronous_helper("Input", "GetAudioMixers", {ipc::value((uint64_t)this->sourceId)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -651,9 +814,9 @@ void osn::Input::SetAudioMixers(const Napi::CallbackInfo& info, const Napi::Valu
 	if (!conn)
 		return;
 
-	conn->call("Input", "SetAudioMixers", {ipc::value((uint64_t)info.This().ToObject().Get("sourceId").ToNumber().Int64Value()), ipc::value(audiomixers)});
+	conn->call("Input", "SetAudioMixers", {ipc::value((uint64_t)this->sourceId), ipc::value(audiomixers)});
 
-	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(info.This().ToObject().Get("sourceId").ToNumber().Int64Value());
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(this->sourceId);
 	if (sdi) {
 		sdi->audioMixersChanged = true;
 	}
@@ -671,7 +834,7 @@ Napi::Value osn::Input::GetMonitoringType(const Napi::CallbackInfo& info)
 		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "GetMonitoringType", {ipc::value((uint64_t)info.This().ToObject().Get("sourceId").ToNumber().Int64Value())});
+	    conn->call_synchronous_helper("Input", "GetMonitoringType", {ipc::value((uint64_t)this->sourceId)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -692,7 +855,7 @@ void osn::Input::SetMonitoringType(const Napi::CallbackInfo& info, const Napi::V
 	if (!conn)
 		return;
 
-	conn->call("Input", "SetMonitoringType", {ipc::value((uint64_t)info.This().ToObject().Get("sourceId").ToNumber().Int64Value()), ipc::value(audiomixers)});
+	conn->call("Input", "SetMonitoringType", {ipc::value((uint64_t)this->sourceId), ipc::value(audiomixers)});
 }
 
 Napi::Value osn::Input::GetDeinterlaceFieldOrder(const Napi::CallbackInfo& info)
@@ -707,7 +870,7 @@ Napi::Value osn::Input::GetDeinterlaceFieldOrder(const Napi::CallbackInfo& info)
 		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "GetDeInterlaceFieldOrder", {ipc::value((uint64_t)info.This().ToObject().Get("sourceId").ToNumber().Int64Value())});
+	    conn->call_synchronous_helper("Input", "GetDeInterlaceFieldOrder", {ipc::value((uint64_t)this->sourceId)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -728,7 +891,7 @@ void osn::Input::SetDeinterlaceFieldOrder(const Napi::CallbackInfo& info, const 
 	if (!conn)
 		return;
 
-	conn->call("Input", "SetDeInterlaceFieldOrder", {ipc::value((uint64_t)info.This().ToObject().Get("sourceId").ToNumber().Int64Value()), ipc::value(deinterlaceOrder)});
+	conn->call("Input", "SetDeInterlaceFieldOrder", {ipc::value((uint64_t)this->sourceId), ipc::value(deinterlaceOrder)});
 }
 
 Napi::Value osn::Input::GetDeinterlaceMode(const Napi::CallbackInfo& info)
@@ -743,7 +906,7 @@ Napi::Value osn::Input::GetDeinterlaceMode(const Napi::CallbackInfo& info)
 		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "GetDeInterlaceMode", {ipc::value((uint64_t)info.This().ToObject().Get("sourceId").ToNumber().Int64Value())});
+	    conn->call_synchronous_helper("Input", "GetDeInterlaceMode", {ipc::value((uint64_t)this->sourceId)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -764,7 +927,7 @@ void osn::Input::SetDeinterlaceMode(const Napi::CallbackInfo& info, const Napi::
 	if (!conn)
 		return;
 
-	conn->call("Input", "SetDeInterlaceMode", {ipc::value((uint64_t)info.This().ToObject().Get("sourceId").ToNumber().Int64Value()), ipc::value(deinterlaceMode)});
+	conn->call("Input", "SetDeInterlaceMode", {ipc::value((uint64_t)this->sourceId), ipc::value(deinterlaceMode)});
 }
 
 // Napi::Value osn::Input::Filters(const Napi::CallbackInfo& info)
