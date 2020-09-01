@@ -156,7 +156,7 @@ namespace utilv8
 		// auto rv = v8::Array::New(v8::Isolate::GetCurrent());
 		auto rv = Napi::Array::New(info.Env(), v.size());
 		for (size_t idx = 0; idx < v.size(); idx++) {
-			rv->Set((uint32_t)idx, ToValue(v[idx]));
+			rv[(uint32_t)idx] = ToValue(info, v[idx]);
 		}
 		return rv;
 	}
@@ -167,7 +167,7 @@ namespace utilv8
 		// auto rv = v8::Array::New(v8::Isolate::GetCurrent());
 		auto rv = Napi::Array::New(info.Env(), v.size());
 		for (size_t idx = 0; idx < v.size(); idx++) {
-			rv->Set((uint32_t)idx, ToValue(v[idx]));
+			rv[(uint32_t)idx] = ToValue(info, v[idx]);
 		}
 		return rv;
 	}
