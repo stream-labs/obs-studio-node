@@ -25,7 +25,7 @@ namespace osn
 {
 	class Input : public Napi::ObjectWrap<osn::Input>
 	{
-		private:
+		public:
 		uint64_t sourceId;
 
 		public:
@@ -40,11 +40,11 @@ namespace osn
 		static Napi::Value GetPublicSources(const Napi::CallbackInfo& info);
 
 		Napi::Value Duplicate(const Napi::CallbackInfo& info);
-		// Napi::Value AddFilter(const Napi::CallbackInfo& info);
-		// Napi::Value RemoveFilter(const Napi::CallbackInfo& info);
-		// Napi::Value SetFilterOrder(const Napi::CallbackInfo& info);
-		// Napi::Value FindFilter(const Napi::CallbackInfo& info);
-		// Napi::Value CopyFilters(const Napi::CallbackInfo& info);
+		Napi::Value AddFilter(const Napi::CallbackInfo& info);
+		Napi::Value RemoveFilter(const Napi::CallbackInfo& info);
+		Napi::Value SetFilterOrder(const Napi::CallbackInfo& info);
+		Napi::Value FindFilter(const Napi::CallbackInfo& info);
+		Napi::Value CopyFilters(const Napi::CallbackInfo& info);
 
 		Napi::Value Active(const Napi::CallbackInfo& info);
 		Napi::Value Showing(const Napi::CallbackInfo& info);
@@ -62,7 +62,7 @@ namespace osn
 		void SetDeinterlaceFieldOrder(const Napi::CallbackInfo& info, const Napi::Value &value);
 		Napi::Value GetDeinterlaceMode(const Napi::CallbackInfo& info);
 		void SetDeinterlaceMode(const Napi::CallbackInfo& info, const Napi::Value &value);
-		// Napi::Value Filters(const Napi::CallbackInfo& info);
+		Napi::Value Filters(const Napi::CallbackInfo& info);
 
 		Napi::Value CallIsConfigurable(const Napi::CallbackInfo& info);
 		Napi::Value CallGetProperties(const Napi::CallbackInfo& info);

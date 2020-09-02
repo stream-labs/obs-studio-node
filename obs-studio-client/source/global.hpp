@@ -17,24 +17,25 @@
 ******************************************************************************/
 
 #pragma once
-#include <nan.h>
-#include <node.h>
+#include <napi.h>
 
 namespace osn
 {
-	class Global
+	class Global : public Napi::ObjectWrap<osn::Global>
 	{
 		public:
-		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+		static Napi::FunctionReference constructor;
+		static Napi::Object Init(Napi::Env env, Napi::Object exports);
+		Global(const Napi::CallbackInfo& info);
 
-		static Nan::NAN_METHOD_RETURN_TYPE getOutputSource(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE setOutputSource(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE getOutputFlagsFromId(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE laggedFrames(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE totalFrames(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE getLocale(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE setLocale(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE getMultipleRendering(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE setMultipleRendering(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Napi::Value getOutputSource(const Napi::CallbackInfo& info);
+		static Napi::Value setOutputSource(const Napi::CallbackInfo& info);
+		static Napi::Value getOutputFlagsFromId(const Napi::CallbackInfo& info);
+		static Napi::Value laggedFrames(const Napi::CallbackInfo& info);
+		static Napi::Value totalFrames(const Napi::CallbackInfo& info);
+		static Napi::Value getLocale(const Napi::CallbackInfo& info);
+		static void setLocale(const Napi::CallbackInfo& info, const Napi::Value &value);
+		static Napi::Value getMultipleRendering(const Napi::CallbackInfo& info);
+		static void setMultipleRendering(const Napi::CallbackInfo& info, const Napi::Value &value);
 	};
-} // namespace osn
+}

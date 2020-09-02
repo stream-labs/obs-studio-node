@@ -25,8 +25,8 @@
 // #include <node.h>
 #include "controller.hpp"
 #include "fader.hpp"
-// #include "filter.hpp"
-// #include "global.hpp"
+#include "filter.hpp"
+#include "global.hpp"
 #include "input.hpp"
 // #include "isource.hpp"
 // #include "module.hpp"
@@ -114,6 +114,8 @@ Napi::Object main_node(Napi::Env env, Napi::Object exports) {
 	osn::Input::Init(env, exports);
 	osn::Properties::Init(env, exports);
 	osn::PropertyObject::Init(env, exports);
+	osn::Filter::Init(env, exports);
+	osn::Global::Init(env, exports);
 	return exports;
 };
 
