@@ -124,7 +124,7 @@ export class OBSHandler {
         if (index > -1) {
             this.inputTypes.splice(index, 1);
         }
-        // this.filterTypes = osn.FilterFactory.types();
+        this.filterTypes = osn.FilterFactory.types();
         // this.transitionTypes = osn.TransitionFactory.types();
     }
 

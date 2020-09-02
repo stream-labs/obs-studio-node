@@ -308,287 +308,287 @@ describe(testName, () => {
         input.release();
     });
 
-    // it('Add video filter to video sources', () => {
-    //     let videoFilters: string[] = [];
-    //     let addedFilters: string[] = [];
+    it('Add video filter to video sources', () => {
+        let videoFilters: string[] = [];
+        let addedFilters: string[] = [];
 
-    //     // Getting all video filter types
-    //     osn.FilterFactory.types().forEach(function(filterType) {
-    //         const video = !!(osn.ESourceOutputFlags.Video & osn.Global.getOutputFlagsFromId(filterType));
+        // Getting all video filter types
+        osn.FilterFactory.types().forEach(function(filterType) {
+            const video = !!(osn.ESourceOutputFlags.Video & osn.Global.getOutputFlagsFromId(filterType));
 
-    //         // Filling videoFilters array
-    //         if (video) {
-    //             videoFilters.push(filterType);
-    //         }
-    //     });
+            // Filling videoFilters array
+            if (video) {
+                videoFilters.push(filterType);
+            }
+        });
 
-    //     // Creating all video sources available
-    //     obs.inputTypes.forEach(function(inputType) {
-    //         const videoSource = !!(osn.ESourceOutputFlags.Video & osn.Global.getOutputFlagsFromId(inputType));
+        // Creating all video sources available
+        obs.inputTypes.forEach(function(inputType) {
+            const videoSource = !!(osn.ESourceOutputFlags.Video & osn.Global.getOutputFlagsFromId(inputType));
 
-    //         if (videoSource) {
-    //             // Creating video source
-    //             const input = osn.InputFactory.create(inputType, inputType);
+            if (videoSource) {
+                // Creating video source
+                const input = osn.InputFactory.create(inputType, inputType);
 
-    //             // Checking if input source was created correctly
-    //             expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
-    //             expect(input.id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
-    //             expect(input.name).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputName, inputType));
+                // Checking if input source was created correctly
+                expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
+                expect(input.id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
+                expect(input.name).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputName, inputType));
 
-    //             videoFilters.forEach(function(filterType) {
-    //                 if (filterType === 'ndi_filter') {
-    //                     if (inputType === 'ndi_source') {
-    //                         const filter = osn.FilterFactory.create(filterType, filterType);
+                videoFilters.forEach(function(filterType) {
+                    if (filterType === 'ndi_filter') {
+                        if (inputType === 'ndi_source') {
+                            const filter = osn.FilterFactory.create(filterType, filterType);
 
-    //                         // Checking if filter was created correctly
-    //                         expect(filter).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, filterType));
+                            // Checking if filter was created correctly
+                            expect(filter).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, filterType));
 
-    //                         // Adding filter to addedFilters array
-    //                         addedFilters.push(filter.name);
+                            // Adding filter to addedFilters array
+                            addedFilters.push(filter.name);
 
-    //                         // Adding ndi filter to ndi source
-    //                         input.addFilter(filter);
-    //                     }
-    //                 } else if (filterType === 'async_delay_filter') {
-    //                     if (inputType === 'ffmpeg_source' ||
-    //                         inputType === 'dshow_input') {
-    //                         const filter = osn.FilterFactory.create(filterType, filterType);
+                            // Adding ndi filter to ndi source
+                            input.addFilter(filter);
+                        }
+                    } else if (filterType === 'async_delay_filter') {
+                        if (inputType === 'ffmpeg_source' ||
+                            inputType === 'dshow_input') {
+                            const filter = osn.FilterFactory.create(filterType, filterType);
 
-    //                         // Checking if filter was created correctly
-    //                         expect(filter).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, filterType));
+                            // Checking if filter was created correctly
+                            expect(filter).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, filterType));
 
-    //                         // Adding filter to addedFilters array
-    //                         addedFilters.push(filter.name);
+                            // Adding filter to addedFilters array
+                            addedFilters.push(filter.name);
 
-    //                         // Adding async delay filter to source
-    //                         input.addFilter(filter);
-    //                     }
-    //                 } else {
-    //                     const filter = osn.FilterFactory.create(filterType, filterType);
+                            // Adding async delay filter to source
+                            input.addFilter(filter);
+                        }
+                    } else {
+                        const filter = osn.FilterFactory.create(filterType, filterType);
 
-    //                     // Checking if filter was created correctly
-    //                     expect(filter).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, filterType));
+                        // Checking if filter was created correctly
+                        expect(filter).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, filterType));
 
-    //                     // Adding filter to addedFilters array
-    //                     addedFilters.push(filter.name);
+                        // Adding filter to addedFilters array
+                        addedFilters.push(filter.name);
 
-    //                     // Adding filter to source
-    //                     input.addFilter(filter);
-    //                 }
-    //             });
+                        // Adding filter to source
+                        input.addFilter(filter);
+                    }
+                });
 
-    //             // Finding each filter
-    //             addedFilters.forEach(function(filterName) {
-    //                 const foundFilter = input.findFilter(filterName);
+                // Finding each filter
+                addedFilters.forEach(function(filterName) {
+                    const foundFilter = input.findFilter(filterName);
 
-    //                 // Checking if filter was found
-    //                 expect(foundFilter).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.FindFilter, filterName, inputType));
-    //             });
+                    // Checking if filter was found
+                    expect(foundFilter).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.FindFilter, filterName, inputType));
+                });
 
-    //             // Cleaning addedFilters array
-    //             addedFilters = [];
+                // Cleaning addedFilters array
+                addedFilters = [];
 
-    //             // Removing all filters from input
-    //             input.filters.forEach(function(filter) {
-    //                 input.removeFilter(filter);
-    //                 filter.release();
-    //             });
+                // Removing all filters from input
+                input.filters.forEach(function(filter) {
+                    input.removeFilter(filter);
+                    filter.release();
+                });
 
-    //             // Checking if all filters where removed
-    //             expect(input.filters.length).to.equal(0, GetErrorMessage(ETestErrorMsg.RemoveFilter));
+                // Checking if all filters where removed
+                expect(input.filters.length).to.equal(0, GetErrorMessage(ETestErrorMsg.RemoveFilter));
 
-    //             input.release();
-    //         }
-    //     });
-    // });
+                input.release();
+            }
+        });
+    });
 
-    // it('Add async filters to async sources', () => {
-    //     let asyncFilters: string[] = [];
-    //     let addedFilters: string[] = [];
+    it('Add async filters to async sources', () => {
+        let asyncFilters: string[] = [];
+        let addedFilters: string[] = [];
 
-    //     // Getting all filter types and separating them between video, audio and async
-    //     osn.FilterFactory.types().forEach(function(filterType) {
-    //         const async = !!(osn.ESourceOutputFlags.Async & osn.Global.getOutputFlagsFromId(filterType));
+        // Getting all filter types and separating them between video, audio and async
+        osn.FilterFactory.types().forEach(function(filterType) {
+            const async = !!(osn.ESourceOutputFlags.Async & osn.Global.getOutputFlagsFromId(filterType));
 
-    //         // Filling asyncFilters array
-    //         if (async) {
-    //             asyncFilters.push(filterType);
-    //         }
-    //     });
+            // Filling asyncFilters array
+            if (async) {
+                asyncFilters.push(filterType);
+            }
+        });
 
-    //     // Create all async sources available
-    //     obs.inputTypes.forEach(function(inputType) {
-    //         const asyncSource = !!(osn.ESourceOutputFlags.Async & osn.Global.getOutputFlagsFromId(inputType));
-    //         const audioSource = !!(osn.ESourceOutputFlags.Audio & osn.Global.getOutputFlagsFromId(inputType));
+        // Create all async sources available
+        obs.inputTypes.forEach(function(inputType) {
+            const asyncSource = !!(osn.ESourceOutputFlags.Async & osn.Global.getOutputFlagsFromId(inputType));
+            const audioSource = !!(osn.ESourceOutputFlags.Audio & osn.Global.getOutputFlagsFromId(inputType));
 
-    //         if (asyncSource && audioSource) {
-    //             // Creating async source
-    //             const input = osn.InputFactory.create(inputType, inputType);
+            if (asyncSource && audioSource) {
+                // Creating async source
+                const input = osn.InputFactory.create(inputType, inputType);
 
-    //             // Checking if input source was created correctly
-    //             expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
-    //             expect(input.id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
-    //             expect(input.name).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputName, inputType));
+                // Checking if input source was created correctly
+                expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
+                expect(input.id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
+                expect(input.name).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputName, inputType));
 
-    //             asyncFilters.forEach(function(filterType) {
-    //                 const filter = osn.FilterFactory.create(filterType, filterType);
+                asyncFilters.forEach(function(filterType) {
+                    const filter = osn.FilterFactory.create(filterType, filterType);
 
-    //                 // Checking if filter was created correctly
-    //                 expect(filter).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, filterType));
+                    // Checking if filter was created correctly
+                    expect(filter).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, filterType));
                     
-    //                 // Adding filter to addedFilters array
-    //                 addedFilters.push(filter.name);
+                    // Adding filter to addedFilters array
+                    addedFilters.push(filter.name);
 
-    //                 // Adding filter to source
-    //                 input.addFilter(filter);
-    //             });
+                    // Adding filter to source
+                    input.addFilter(filter);
+                });
 
-    //             // Finding each filter
-    //             addedFilters.forEach(function(filterName) {
-    //                 const foundFilter = input.findFilter(filterName);
+                // Finding each filter
+                addedFilters.forEach(function(filterName) {
+                    const foundFilter = input.findFilter(filterName);
 
-    //                 // Checking if filter was found
-    //                 expect(foundFilter).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.FindFilter, filterName, inputType));
-    //             });
+                    // Checking if filter was found
+                    expect(foundFilter).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.FindFilter, filterName, inputType));
+                });
 
-    //             // Cleaning addedFilters array
-    //             addedFilters = [];
+                // Cleaning addedFilters array
+                addedFilters = [];
 
-    //             // Removing all filters from input
-    //             input.filters.forEach(function(filter) {
-    //                 input.removeFilter(filter);
-    //                 filter.release();
-    //             });
+                // Removing all filters from input
+                input.filters.forEach(function(filter) {
+                    input.removeFilter(filter);
+                    filter.release();
+                });
 
-    //             // Checking if all filters where removed
-    //             expect(input.filters.length).to.equal(0, GetErrorMessage(ETestErrorMsg.RemoveFilter));
+                // Checking if all filters where removed
+                expect(input.filters.length).to.equal(0, GetErrorMessage(ETestErrorMsg.RemoveFilter));
 
-    //             input.release();
-    //         }
-    //     });
-    // });
+                input.release();
+            }
+        });
+    });
 
-    // it('Add audio filters to audio sources', () => {
-    //     let audioFilters: string[] = [];
-    //     let addedFilters: string[] = [];
+    it('Add audio filters to audio sources', () => {
+        let audioFilters: string[] = [];
+        let addedFilters: string[] = [];
 
-    //     // Getting all audio filter types
-    //     osn.FilterFactory.types().forEach(function(filterType) {
-    //         const audio = !!(osn.ESourceOutputFlags.Audio & osn.Global.getOutputFlagsFromId(filterType));
+        // Getting all audio filter types
+        osn.FilterFactory.types().forEach(function(filterType) {
+            const audio = !!(osn.ESourceOutputFlags.Audio & osn.Global.getOutputFlagsFromId(filterType));
 
-    //         // Filling audioFilters array
-    //         if (audio) {
-    //             audioFilters.push(filterType);
-    //         }
-    //     });
+            // Filling audioFilters array
+            if (audio) {
+                audioFilters.push(filterType);
+            }
+        });
 
-    //     // Creating all audio sources available
-    //     obs.inputTypes.forEach(function(inputType) {
-    //         const audioSource = !!(osn.ESourceOutputFlags.Audio & osn.Global.getOutputFlagsFromId(inputType));
+        // Creating all audio sources available
+        obs.inputTypes.forEach(function(inputType) {
+            const audioSource = !!(osn.ESourceOutputFlags.Audio & osn.Global.getOutputFlagsFromId(inputType));
 
-    //         if (audioSource) {
-    //             // Creating audio source
-    //             const input = osn.InputFactory.create(inputType, 'input');
+            if (audioSource) {
+                // Creating audio source
+                const input = osn.InputFactory.create(inputType, 'input');
 
-    //             // Checking if input source was created correctly
-    //             expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
-    //             expect(input.id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
-    //             expect(input.name).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
+                // Checking if input source was created correctly
+                expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
+                expect(input.id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
+                expect(input.name).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
 
-    //             audioFilters.forEach(function(filterType) {
-    //                 const filter = osn.FilterFactory.create(filterType, filterType);
+                audioFilters.forEach(function(filterType) {
+                    const filter = osn.FilterFactory.create(filterType, filterType);
 
-    //                 // Checking if filter was created correctly
-    //                 expect(filter).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, filterType));
+                    // Checking if filter was created correctly
+                    expect(filter).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, filterType));
                     
-    //                 // Adding filter to addedFilters index
-    //                 addedFilters.push(filter.name);
+                    // Adding filter to addedFilters index
+                    addedFilters.push(filter.name);
 
-    //                 // Adding filter to source
-    //                 input.addFilter(filter);
-    //             });
+                    // Adding filter to source
+                    input.addFilter(filter);
+                });
 
-    //             // Finding each filter
-    //             addedFilters.forEach(function(filterName) {
-    //                 const foundFilter = input.findFilter(filterName);
+                // Finding each filter
+                addedFilters.forEach(function(filterName) {
+                    const foundFilter = input.findFilter(filterName);
 
-    //                 // Checking if filter was found
-    //                 expect(foundFilter).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.FindFilter, filterName, inputType));
-    //             });
+                    // Checking if filter was found
+                    expect(foundFilter).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.FindFilter, filterName, inputType));
+                });
 
-    //             // Cleaning addedFilters array
-    //             addedFilters = [];
+                // Cleaning addedFilters array
+                addedFilters = [];
 
-    //             // Removing all filters from input
-    //             input.filters.forEach(function(filter) {
-    //                 input.removeFilter(filter);
-    //                 filter.release();
-    //             });
+                // Removing all filters from input
+                input.filters.forEach(function(filter) {
+                    input.removeFilter(filter);
+                    filter.release();
+                });
 
-    //             // Checking if all filters where removed
-    //             expect(input.filters.length).to.equal(0, GetErrorMessage(ETestErrorMsg.RemoveFilter));
+                // Checking if all filters where removed
+                expect(input.filters.length).to.equal(0, GetErrorMessage(ETestErrorMsg.RemoveFilter));
                 
-    //             input.release();
-    //         }
-    //     });
-    // });
+                input.release();
+            }
+        });
+    });
 
-    // it('Change the order of filters in the list', () => {
-    //     // Creating source
-    //     const input = osn.InputFactory.create(EOBSInputTypes.ImageSource, 'test_source');
+    it('Change the order of filters in the list', () => {
+        // Creating source
+        const input = osn.InputFactory.create(EOBSInputTypes.ImageSource, 'test_source');
         
-    //     // Checking if source was created correctly
-    //     expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, EOBSInputTypes.ImageSource));
-    //     expect(input.id).to.equal(EOBSInputTypes.ImageSource, GetErrorMessage(ETestErrorMsg.InputId, EOBSInputTypes.ImageSource));
-    //     expect(input.name).to.equal('test_source', GetErrorMessage(ETestErrorMsg.InputName, EOBSInputTypes.ImageSource));
+        // Checking if source was created correctly
+        expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, EOBSInputTypes.ImageSource));
+        expect(input.id).to.equal(EOBSInputTypes.ImageSource, GetErrorMessage(ETestErrorMsg.InputId, EOBSInputTypes.ImageSource));
+        expect(input.name).to.equal('test_source', GetErrorMessage(ETestErrorMsg.InputName, EOBSInputTypes.ImageSource));
 
-    //     // Creating filters
-    //     const filter1 = osn.FilterFactory.create(EOBSFilterTypes.Color, 'filter1');
-    //     const filter2 = osn.FilterFactory.create(EOBSFilterTypes.Crop, 'filter2');
-    //     const filter3 = osn.FilterFactory.create(EOBSFilterTypes.GPUDelay, 'filter3');
+        // Creating filters
+        const filter1 = osn.FilterFactory.create(EOBSFilterTypes.Color, 'filter1');
+        const filter2 = osn.FilterFactory.create(EOBSFilterTypes.Crop, 'filter2');
+        const filter3 = osn.FilterFactory.create(EOBSFilterTypes.GPUDelay, 'filter3');
 
-    //     // Checking if filters were created correctly
-    //     expect(filter1).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, EOBSFilterTypes.Color));
-    //     expect(filter2).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, EOBSFilterTypes.Crop));
-    //     expect(filter3).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, EOBSFilterTypes.GPUDelay));
+        // Checking if filters were created correctly
+        expect(filter1).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, EOBSFilterTypes.Color));
+        expect(filter2).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, EOBSFilterTypes.Crop));
+        expect(filter3).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, EOBSFilterTypes.GPUDelay));
                     
-    //     // Adding filters to source
-    //     input.addFilter(filter1);
-    //     input.addFilter(filter2);
-    //     input.addFilter(filter3);
+        // Adding filters to source
+        input.addFilter(filter1);
+        input.addFilter(filter2);
+        input.addFilter(filter3);
 
-    //     // Changing filter order down
-    //     input.setFilterOrder(filter1, osn.EOrderMovement.Down);
+        // Changing filter order down
+        input.setFilterOrder(filter1, osn.EOrderMovement.Down);
 
-    //     // Checking if filter is in the right position
-    //     expect(input.filters[1].name).to.equal('filter1', GetErrorMessage(ETestErrorMsg.MoveFilterDown, EOBSFilterTypes.Color));
+        // Checking if filter is in the right position
+        expect(input.filters[1].name).to.equal('filter1', GetErrorMessage(ETestErrorMsg.MoveFilterDown, EOBSFilterTypes.Color));
 
-    //     // Changing filter order up
-    //     input.setFilterOrder(filter3, osn.EOrderMovement.Up);
+        // Changing filter order up
+        input.setFilterOrder(filter3, osn.EOrderMovement.Up);
 
-    //     // Checking if filter is in the right position
-    //     expect(input.filters[1].name).to.equal('filter3', GetErrorMessage(ETestErrorMsg.MoveFilterUp, EOBSFilterTypes.GPUDelay));
+        // Checking if filter is in the right position
+        expect(input.filters[1].name).to.equal('filter3', GetErrorMessage(ETestErrorMsg.MoveFilterUp, EOBSFilterTypes.GPUDelay));
 
-    //     // Changing filter order to bottom
-    //     input.setFilterOrder(filter2, osn.EOrderMovement.Bottom);
+        // Changing filter order to bottom
+        input.setFilterOrder(filter2, osn.EOrderMovement.Bottom);
 
-    //     // Checking if filter is in the right position
-    //     expect(input.filters[2].name).to.equal('filter2', GetErrorMessage(ETestErrorMsg.MoveFilterBottom, EOBSFilterTypes.Crop));
+        // Checking if filter is in the right position
+        expect(input.filters[2].name).to.equal('filter2', GetErrorMessage(ETestErrorMsg.MoveFilterBottom, EOBSFilterTypes.Crop));
 
-    //     // Changing filter order to top
-    //     input.setFilterOrder(filter2, osn.EOrderMovement.Top);
+        // Changing filter order to top
+        input.setFilterOrder(filter2, osn.EOrderMovement.Top);
 
-    //     // Checking if filter is in the right position
-    //     expect(input.filters[0].name).to.equal('filter2', GetErrorMessage(ETestErrorMsg.MoveFilterTop, EOBSFilterTypes.Crop));
+        // Checking if filter is in the right position
+        expect(input.filters[0].name).to.equal('filter2', GetErrorMessage(ETestErrorMsg.MoveFilterTop, EOBSFilterTypes.Crop));
 
-    //     // Removing all filters
-    //     input.filters.forEach(function(filter) {
-    //         input.removeFilter(filter);
-    //         filter.release();
-    //     });
+        // Removing all filters
+        input.filters.forEach(function(filter) {
+            input.removeFilter(filter);
+            filter.release();
+        });
 
-    //     input.release();
-    // });
+        input.release();
+    });
 
     it('Fail test - Try to find an input that does not exist', () => {
         let inputFromName: IInput;
