@@ -98,7 +98,6 @@ osn::Input::Input(const Napi::CallbackInfo& info)
     int length = info.Length();
 
     if (length <= 0 || !info[0].IsNumber()) {
-		std::cout << "Error" << std::endl;
         Napi::TypeError::New(env, "Number expected").ThrowAsJavaScriptException();
         return;
     }

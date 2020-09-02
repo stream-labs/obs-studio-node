@@ -31,7 +31,7 @@
 // #include "isource.hpp"
 // #include "module.hpp"
 #include "nodeobs_api.hpp"
-// #include "properties.hpp"
+#include "properties.hpp"
 // #include "scene.hpp"
 // #include "sceneitem.hpp"
 // #include "shared.hpp"
@@ -112,6 +112,8 @@ Napi::Object main_node(Napi::Env env, Napi::Object exports) {
 	Controller::Init(env, exports);
 	api::Init(env, exports);
 	osn::Input::Init(env, exports);
+	osn::Properties::Init(env, exports);
+	osn::PropertyObject::Init(env, exports);
 	return exports;
 };
 
