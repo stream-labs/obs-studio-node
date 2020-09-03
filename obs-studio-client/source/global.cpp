@@ -23,8 +23,8 @@
 #include "controller.hpp"
 #include "error.hpp"
 #include "input.hpp"
-// #include "scene.hpp"
-// #include "transition.hpp"
+#include "scene.hpp"
+#include "transition.hpp"
 #include "utility-v8.hpp"
 
 Napi::FunctionReference osn::Global::constructor;
@@ -80,13 +80,19 @@ Napi::Value osn::Global::getOutputSource(const Napi::CallbackInfo& info)
 
 		return instance;
 	} else if (response[2].value_union.i32 == 2) {
-		// // Transition
-		// osn::Transition* scene = new osn::Transition(response[1].value_union.ui64);
-		// info.GetReturnValue().Set(osn::Transition::Store(scene));
+		auto instance =
+			osn::Transition::constructor.New({
+				Napi::Number::New(info.Env(), response[1].value_union.ui64)
+				});
+
+		return instance;
 	} else if (response[2].value_union.i32 == 3) {
-		// // Scene
-		// osn::Scene* scene = new osn::Scene(response[1].value_union.ui64);
-		// info.GetReturnValue().Set(osn::Scene::Store(scene));
+		auto instance =
+			osn::Scene::constructor.New({
+				Napi::Number::New(info.Env(), response[1].value_union.ui64)
+				});
+
+		return instance;
 	}
 	return info.Env().Undefined();
 }

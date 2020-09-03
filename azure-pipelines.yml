@@ -99,6 +99,15 @@ jobs:
       RELEASE_NAME: $(ReleaseName)
     displayName: 'Run tests osn-scene and osn-sceneitem'
 
+  - script: 'yarn run test --grep osn-transition'
+    env:
+      SLOBS_BE_STREAMKEY: $(testsStreamKey)
+      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+      RELEASE_NAME: $(ReleaseName)
+    displayName: 'Run tests osn-transition'
+
   - script: ./ci/copy-files.cmd
     displayName: 'Copy necessary dll files'
 
@@ -261,6 +270,15 @@ jobs:
       RELEASE_NAME: $(ReleaseName)
     displayName: 'Run tests osn-scene and osn-sceneitem'
 
+  - script: 'yarn run test --grep osn-transition'
+    env:
+      SLOBS_BE_STREAMKEY: $(testsStreamKey)
+      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+      RELEASE_NAME: $(ReleaseName)
+    displayName: 'Run tests osn-transition'
+
   - script: ./ci/copy-files.cmd
     displayName: 'Copy necessary dll files'
 
@@ -397,6 +415,15 @@ jobs:
       OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
       RELEASE_NAME: $(ReleaseName)
     displayName: 'Run tests osn-scene and osn-sceneitem'
+
+  - script: 'yarn run test --grep osn-transition'
+    env:
+      SLOBS_BE_STREAMKEY: $(testsStreamKey)
+      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+      RELEASE_NAME: $(ReleaseName)
+    displayName: 'Run tests osn-transition'
 
   - script: 'python ./ci/sentry-osx.py'
     env:
