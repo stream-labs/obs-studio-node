@@ -16,8 +16,7 @@
 
 ******************************************************************************/
 
-#include <nan.h>
-#include <node.h>
+#include <napi.h>
 
 namespace settings
 {
@@ -134,9 +133,11 @@ namespace settings
 		}
 	};
 
-	static void OBS_settings_getSettings(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void OBS_settings_saveSettings(const v8::FunctionCallbackInfo<v8::Value>& args);
-	static void OBS_settings_getListCategories(const v8::FunctionCallbackInfo<v8::Value>& args);
+	void Init(Napi::Env env, Napi::Object exports);
+
+	Napi::Value OBS_settings_getSettings(const Napi::CallbackInfo& info);
+	void OBS_settings_saveSettings(const Napi::CallbackInfo& info);
+	Napi::Value OBS_settings_getListCategories(const Napi::CallbackInfo& info);
 
 	static std::vector<std::string> getListCategories(void);
-} // namespace settings
+}
