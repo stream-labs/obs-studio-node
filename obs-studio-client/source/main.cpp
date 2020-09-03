@@ -35,6 +35,7 @@
 #include "transition.hpp"
 #include "video.hpp"
 #include "volmeter.hpp"
+#include "nodeobs_settings.hpp"
 
 #if defined(_WIN32)
 // Checks ForceGPUAsRenderDevice setting
@@ -119,6 +120,7 @@ Napi::Object main_node(Napi::Env env, Napi::Object exports) {
 	osn::Module::Init(env, exports);
 	osn::Video::Init(env, exports);
 	osn::Volmeter::Init(env, exports);
+	settings::Init(env, exports);
 	return exports;
 };
 
