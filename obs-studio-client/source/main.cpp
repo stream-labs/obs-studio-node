@@ -32,8 +32,8 @@
 // #include "module.hpp"
 #include "nodeobs_api.hpp"
 #include "properties.hpp"
-// #include "scene.hpp"
-// #include "sceneitem.hpp"
+#include "scene.hpp"
+#include "sceneitem.hpp"
 // #include "shared.hpp"
 // #include "transition.hpp"
 // #include "video.hpp"
@@ -116,6 +116,8 @@ Napi::Object main_node(Napi::Env env, Napi::Object exports) {
 	osn::PropertyObject::Init(env, exports);
 	osn::Filter::Init(env, exports);
 	osn::Global::Init(env, exports);
+	osn::Scene::Init(env, exports);
+	osn::SceneItem::Init(env, exports);
 	return exports;
 };
 
