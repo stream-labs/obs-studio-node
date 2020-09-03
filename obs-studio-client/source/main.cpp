@@ -27,14 +27,14 @@
 #include "filter.hpp"
 #include "global.hpp"
 #include "input.hpp"
-// #include "module.hpp"
+#include "module.hpp"
 #include "nodeobs_api.hpp"
 #include "properties.hpp"
 #include "scene.hpp"
 #include "sceneitem.hpp"
 // #include "shared.hpp"
 #include "transition.hpp"
-// #include "video.hpp"
+#include "video.hpp"
 // #include "volmeter.hpp"
 
 #if defined(_WIN32)
@@ -117,6 +117,8 @@ Napi::Object main_node(Napi::Env env, Napi::Object exports) {
 	osn::Scene::Init(env, exports);
 	osn::SceneItem::Init(env, exports);
 	osn::Transition::Init(env, exports);
+	osn::Module::Init(env, exports);
+	osn::Video::Init(env, exports);
 	return exports;
 };
 

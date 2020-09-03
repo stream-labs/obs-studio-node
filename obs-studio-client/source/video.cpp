@@ -23,42 +23,56 @@
 #include "utility-v8.hpp"
 #include "utility.hpp"
 
-void osn::Video::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
-{
-	auto ObsVideo = Nan::New<v8::Object>();
 
-	utilv8::SetObjectAccessorProperty(ObsVideo, "skippedFrames", skippedFrames);
-	utilv8::SetObjectAccessorProperty(ObsVideo, "encodedFrames", encodedFrames);
+Napi::FunctionReference osn::Video::constructor;
 
-	Nan::Set(target, FIELD_NAME("Video"), ObsVideo);
+Napi::Object osn::Video::Init(Napi::Env env, Napi::Object exports) {
+	Napi::HandleScope scope(env);
+	Napi::Function func =
+		DefineClass(env,
+		"Video",
+		{
+			StaticAccessor("skippedFrames", &osn::Video::skippedFrames, nullptr),
+			StaticAccessor("encodedFrames", &osn::Video::encodedFrames, nullptr),
+		});
+	exports.Set("Video", func);
+	osn::Video::constructor = Napi::Persistent(func);
+	osn::Video::constructor.SuppressDestruct();
+	return exports;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Video::skippedFrames(Nan::NAN_METHOD_ARGS_TYPE info)
+osn::Video::Video(const Napi::CallbackInfo& info)
+    : Napi::ObjectWrap<osn::Video>(info) {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+}
+
+Napi::Value osn::Video::skippedFrames(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
 	    conn->call_synchronous_helper("Video", "GetSkippedFrames", {});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.ui32));
+	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Video::encodedFrames(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Video::encodedFrames(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
 	    conn->call_synchronous_helper("Video", "GetTotalFrames", {});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.ui32));
+	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
 }
