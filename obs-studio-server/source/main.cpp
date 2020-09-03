@@ -172,7 +172,7 @@ int main(int argc, char* argv[])
 	osn::Scene::Register(myServer);
 	osn::SceneItem::Register(myServer);
 	osn::Fader::Register(myServer);
-	osn::VolMeter::Register(myServer);
+	osn::Volmeter::Register(myServer);
 	osn::Properties::Register(myServer);
 	osn::Video::Register(myServer);
 	osn::Module::Register(myServer);

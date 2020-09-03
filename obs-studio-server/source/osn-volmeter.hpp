@@ -28,10 +28,10 @@ extern std::mutex mtx;
 
 namespace osn
 {
-	class VolMeter
+	class Volmeter
 	{
 		public:
-		class Manager : public utility::generic_object_manager<std::shared_ptr<VolMeter>>
+		class Manager : public utility::generic_object_manager<std::shared_ptr<Volmeter>>
 		{
 			friend class std::shared_ptr<Manager>;
 
@@ -74,8 +74,8 @@ namespace osn
 		std::mutex                 current_data_mtx;
 
 		public:
-		VolMeter(obs_fader_type type);
-		~VolMeter();
+		Volmeter(obs_fader_type type);
+		~Volmeter();
 
 		public:
 		static void Register(ipc::server&);
