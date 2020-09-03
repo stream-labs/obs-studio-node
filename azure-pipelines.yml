@@ -90,6 +90,15 @@ jobs:
       RELEASE_NAME: $(ReleaseName)
     displayName: 'Run tests osn-global'
 
+  - script: 'yarn run test --grep osn-scene'
+    env:
+      SLOBS_BE_STREAMKEY: $(testsStreamKey)
+      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+      RELEASE_NAME: $(ReleaseName)
+    displayName: 'Run tests osn-scene and osn-sceneitem'
+
   - script: ./ci/copy-files.cmd
     displayName: 'Copy necessary dll files'
 
@@ -243,6 +252,15 @@ jobs:
       RELEASE_NAME: $(ReleaseName)
     displayName: 'Run tests osn-global'
 
+  - script: 'yarn run test --grep osn-scene'
+    env:
+      SLOBS_BE_STREAMKEY: $(testsStreamKey)
+      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+      RELEASE_NAME: $(ReleaseName)
+    displayName: 'Run tests osn-scene and osn-sceneitem'
+
   - script: ./ci/copy-files.cmd
     displayName: 'Copy necessary dll files'
 
@@ -370,6 +388,15 @@ jobs:
       OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
       RELEASE_NAME: $(ReleaseName)
     displayName: 'Run tests osn-global'
+
+  - script: 'yarn run test --grep osn-scene'
+    env:
+      SLOBS_BE_STREAMKEY: $(testsStreamKey)
+      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+      RELEASE_NAME: $(ReleaseName)
+    displayName: 'Run tests osn-scene and osn-sceneitem'
 
   - script: 'python ./ci/sentry-osx.py'
     env:
