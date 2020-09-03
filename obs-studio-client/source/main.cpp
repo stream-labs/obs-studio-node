@@ -22,20 +22,18 @@
 
 #include <fstream>
 #include <string>
-// #include <node.h>
 #include "controller.hpp"
 #include "fader.hpp"
 #include "filter.hpp"
 #include "global.hpp"
 #include "input.hpp"
-// #include "isource.hpp"
 // #include "module.hpp"
 #include "nodeobs_api.hpp"
 #include "properties.hpp"
 #include "scene.hpp"
 #include "sceneitem.hpp"
 // #include "shared.hpp"
-// #include "transition.hpp"
+#include "transition.hpp"
 // #include "video.hpp"
 // #include "volmeter.hpp"
 
@@ -118,6 +116,7 @@ Napi::Object main_node(Napi::Env env, Napi::Object exports) {
 	osn::Global::Init(env, exports);
 	osn::Scene::Init(env, exports);
 	osn::SceneItem::Init(env, exports);
+	osn::Transition::Init(env, exports);
 	return exports;
 };
 

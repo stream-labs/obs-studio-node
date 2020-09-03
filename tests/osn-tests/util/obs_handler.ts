@@ -125,7 +125,7 @@ export class OBSHandler {
             this.inputTypes.splice(index, 1);
         }
         this.filterTypes = osn.FilterFactory.types();
-        // this.transitionTypes = osn.TransitionFactory.types();
+        this.transitionTypes = osn.TransitionFactory.types();
     }
 
     startup() {
