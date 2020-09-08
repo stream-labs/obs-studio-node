@@ -17,8 +17,6 @@
 ******************************************************************************/
 
 #include <iostream>
-// #include <nan.h>
-// #include <node.h>
 #include <mutex>
 #include "utility-v8.hpp"
 

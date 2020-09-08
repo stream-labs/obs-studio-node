@@ -144,6 +144,15 @@ jobs:
       RELEASE_NAME: $(ReleaseName)
     displayName: 'Run tests nodeobs_settings'
 
+  - script: 'yarn run test --grep nodeobs_service'
+    env:
+      SLOBS_BE_STREAMKEY: $(testsStreamKey)
+      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+      RELEASE_NAME: $(ReleaseName)
+    displayName: 'Run tests nodeobs_service'
+
   - script: ./ci/copy-files.cmd
     displayName: 'Copy necessary dll files'
 
@@ -351,6 +360,15 @@ jobs:
       RELEASE_NAME: $(ReleaseName)
     displayName: 'Run tests nodeobs_settings'
 
+  - script: 'yarn run test --grep nodeobs_service'
+    env:
+      SLOBS_BE_STREAMKEY: $(testsStreamKey)
+      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+      RELEASE_NAME: $(ReleaseName)
+    displayName: 'Run tests nodeobs_service'
+
   - script: ./ci/copy-files.cmd
     displayName: 'Copy necessary dll files'
 
@@ -532,6 +550,15 @@ jobs:
       OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
       RELEASE_NAME: $(ReleaseName)
     displayName: 'Run tests nodeobs_settings'
+
+  - script: 'yarn run test --grep nodeobs_service'
+    env:
+      SLOBS_BE_STREAMKEY: $(testsStreamKey)
+      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+      RELEASE_NAME: $(ReleaseName)
+    displayName: 'Run tests nodeobs_service'
 
   - script: 'python ./ci/sentry-osx.py'
     env:
