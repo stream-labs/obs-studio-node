@@ -47,8 +47,8 @@ extern std::wstring utfWorkingDir;
 void replaceAll(std::string& str, const std::string& from, const std::string& to);
 
 #ifdef WIN32
-extern HANDLE create_semaphore(const char* name = nullptr);
-extern void remove_semaphore(HANDLE sem, const char* name = nullptr);
+extern HANDLE create_semaphore(const char* name);
+extern void remove_semaphore(HANDLE sem, const char* name);
 extern void wait_semaphore(HANDLE sem);
 extern void release_semaphore(HANDLE sem);
 #else
