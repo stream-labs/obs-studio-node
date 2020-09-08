@@ -55,278 +55,263 @@ static void FixChromeD3DIssue(HWND chromeWindow)
 }
 #endif
 
-void display::OBS_content_createDisplay(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value display::OBS_content_createDisplay(const Napi::CallbackInfo& info)
 {
-	v8::Local<v8::Object> bufferObj    = args[0].As<v8::Object>();
-	unsigned char*        bufferData   = (unsigned char*)node::Buffer::Data(bufferObj);
-	uint64_t              windowHandle = *reinterpret_cast<uint64_t*>(bufferData);
+	Napi::Buffer<unsigned char*> buffer = info[0].As<Napi::Buffer<unsigned char*>>();
+	unsigned char* bufferData = *buffer.Data();
+	uint64_t windowHandle = *reinterpret_cast<uint64_t*>(bufferData);
 
 #ifdef WIN32
 	FixChromeD3DIssue((HWND)windowHandle);
 #endif
 
-	std::string key;
-	int32_t     mode;
-	ASSERT_GET_VALUE(args[1], key);
-	ASSERT_GET_VALUE(args[2], mode);
+	std::string key = info[1].ToString().Utf8Value();
+	int32_t mode = info[2].ToNumber().Int32Value();
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
  
 	conn->call("Display", "OBS_content_createDisplay", {ipc::value(windowHandle), ipc::value(key), ipc::value(mode)});
+	return info.Env().Undefined();
 }
 
-void display::OBS_content_destroyDisplay(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value display::OBS_content_destroyDisplay(const Napi::CallbackInfo& info)
 {
-	std::string key;
+	std::string key = info[0].ToString().Utf8Value();
 
-	ASSERT_GET_VALUE(args[0], key);
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
     conn->call("Display", "OBS_content_destroyDisplay", {ipc::value(key)});
+	return info.Env().Undefined();
 }
 
-void display::OBS_content_getDisplayPreviewOffset(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value display::OBS_content_getDisplayPreviewOffset(const Napi::CallbackInfo& info)
 {
-	std::string key;
+	std::string key = info[0].ToString().Utf8Value();
 
-	ASSERT_GET_VALUE(args[0], key);
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
 	    conn->call_synchronous_helper("Display", "OBS_content_getDisplayPreviewOffset", {ipc::value(key)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	v8::Local<v8::Object> previewOffset = v8::Object::New(args.GetIsolate());
-
-	utilv8::SetObjectField(previewOffset, "x", response[1].value_union.i32);
-	utilv8::SetObjectField(previewOffset, "y", response[2].value_union.i32);
-
-	args.GetReturnValue().Set(previewOffset);
-
-	return;
+	Napi::Object previewOffset = Napi::Object::New(info.Env());
+	previewOffset.Set("x", Napi::Number::New(info.Env(), response[1].value_union.i32));
+	previewOffset.Set("y", Napi::Number::New(info.Env(), response[2].value_union.i32));
+	return previewOffset;
 }
 
-void display::OBS_content_getDisplayPreviewSize(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value display::OBS_content_getDisplayPreviewSize(const Napi::CallbackInfo& info)
 {
-	std::string key;
+	std::string key = info[0].ToString().Utf8Value();
 
-	ASSERT_GET_VALUE(args[0], key);
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
 	    conn->call_synchronous_helper("Display", "OBS_content_getDisplayPreviewSize", {ipc::value(key)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	v8::Local<v8::Object> previewOffset = v8::Object::New(args.GetIsolate());
-
-	utilv8::SetObjectField(previewOffset, "width", response[1].value_union.i32);
-	utilv8::SetObjectField(previewOffset, "height", response[2].value_union.i32);
-
-	args.GetReturnValue().Set(previewOffset);
-
-	return;
+	Napi::Object previewSize = Napi::Object::New(info.Env());
+	previewSize.Set("width", Napi::Number::New(info.Env(), response[1].value_union.i32));
+	previewSize.Set("height", Napi::Number::New(info.Env(), response[2].value_union.i32));
+	return previewSize;
 }
 
-void display::OBS_content_createSourcePreviewDisplay(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value display::OBS_content_createSourcePreviewDisplay(const Napi::CallbackInfo& info)
 {
-	v8::Isolate*             isolate = args.GetIsolate();
-	v8::EscapableHandleScope scope(isolate);
-
-	v8::Local<v8::Object> bufferObj    = args[0].As<v8::Object>();
-	unsigned char*        bufferData   = (unsigned char*)node::Buffer::Data(bufferObj);
-	uint64_t              windowHandle = *reinterpret_cast<uint64_t*>(bufferData);
+	Napi::Buffer<unsigned char*> buffer = info[0].As<Napi::Buffer<unsigned char*>>();
+	unsigned char* bufferData = *buffer.Data();
+	uint64_t windowHandle = *reinterpret_cast<uint64_t*>(bufferData);
 
 #ifdef WIN32
 	FixChromeD3DIssue((HWND)windowHandle);
 #endif
 
-	std::string sourceName, key;
-	ASSERT_GET_VALUE(args[1], sourceName);
-	ASSERT_GET_VALUE(args[2], key);
+	std::string sourceName = info[1].ToString().Utf8Value();
+	std::string key = info[2].ToString().Utf8Value();
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	conn->call("Display", "OBS_content_createSourcePreviewDisplay",
 	    {ipc::value(windowHandle), ipc::value(sourceName), ipc::value(key)});
+
+	return info.Env().Undefined();
 }
 
-void display::OBS_content_resizeDisplay(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value display::OBS_content_resizeDisplay(const Napi::CallbackInfo& info)
 {
-	std::string key;
-	double_t    width_d, height_d;
-	uint32_t    width, height;
+	std::string key = info[0].ToString().Utf8Value();
+	uint32_t width = info[1].ToNumber().Uint32Value();
+	uint32_t height = info[2].ToNumber().Uint32Value();
 
-	ASSERT_GET_VALUE(args[0], key);
-	ASSERT_GET_VALUE(args[1], width_d);
-	ASSERT_GET_VALUE(args[2], height_d);
-
-	width  = uint32_t(width_d);
-	height = uint32_t(height_d);
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	conn->call("Display", "OBS_content_resizeDisplay", {ipc::value(key), ipc::value(width), ipc::value(height)});
+
+	return info.Env().Undefined();
 }
 
-void display::OBS_content_moveDisplay(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value display::OBS_content_moveDisplay(const Napi::CallbackInfo& info)
 {
-	std::string key;
-	double_t    x_d, y_d;
-	uint32_t    x, y;
+	std::string key = info[0].ToString().Utf8Value();
+	uint32_t x = info[1].ToNumber().Uint32Value();
+	uint32_t y = info[2].ToNumber().Uint32Value();
 
-	ASSERT_GET_VALUE(args[0], key);
-	ASSERT_GET_VALUE(args[1], x_d);
-	ASSERT_GET_VALUE(args[2], y_d);
-
-	x = uint32_t(x_d);
-	y = uint32_t(y_d);
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	conn->call("Display", "OBS_content_moveDisplay", {ipc::value(key), ipc::value(x), ipc::value(y)});
+	return info.Env().Undefined();
 }
 
-void display::OBS_content_setPaddingSize(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value display::OBS_content_setPaddingSize(const Napi::CallbackInfo& info)
 {
-	std::string key;
-	uint32_t    paddingSize;
+	std::string key = info[0].ToString().Utf8Value();
+	uint32_t paddingSize = info[1].ToNumber().Uint32Value();
 
-	ASSERT_GET_VALUE(args[0], key);
-	ASSERT_GET_VALUE(args[1], paddingSize);
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	conn->call("Display", "OBS_content_setPaddingSize", {ipc::value(key), ipc::value(paddingSize)});
+	return info.Env().Undefined();
 }
 
-void display::OBS_content_setPaddingColor(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value display::OBS_content_setPaddingColor(const Napi::CallbackInfo& info)
 {
-	std::string key;
-	uint32_t    r, g, b, a = 255;
+	std::string key = info[0].ToString().Utf8Value();
+	uint32_t r = info[1].ToNumber().Uint32Value();
+	uint32_t g = info[2].ToNumber().Uint32Value();
+	uint32_t b = info[3].ToNumber().Uint32Value();
+	uint32_t a = 255;
 
-	ASSERT_GET_VALUE(args[0], key);
-	ASSERT_GET_VALUE(args[1], r);
-	ASSERT_GET_VALUE(args[2], g);
-	ASSERT_GET_VALUE(args[3], b);
+	if (info.Length() > 4)
+		a = info[4].ToNumber().Uint32Value();
 
-	if (args.Length() > 4)
-		ASSERT_GET_VALUE(args[4], a);
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	conn->call("Display", "OBS_content_setPaddingColor",
 	    {ipc::value(key), ipc::value(r), ipc::value(g), ipc::value(b), ipc::value(a)});
+	return info.Env().Undefined();
 }
 
-void display::OBS_content_setOutlineColor(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value display::OBS_content_setOutlineColor(const Napi::CallbackInfo& info)
 {
-	std::string key;
-	uint32_t    r, g, b, a = 255;
+	std::string key = info[0].ToString().Utf8Value();
+	uint32_t r = info[1].ToNumber().Uint32Value();
+	uint32_t g = info[2].ToNumber().Uint32Value();
+	uint32_t b = info[3].ToNumber().Uint32Value();
+	uint32_t a = 255;
 
-	ASSERT_GET_VALUE(args[0], key);
-	ASSERT_GET_VALUE(args[1], r);
-	ASSERT_GET_VALUE(args[2], g);
-	ASSERT_GET_VALUE(args[3], b);
+	if (info.Length() > 4)
+		a = info[4].ToNumber().Uint32Value();
 
-	if (args.Length() > 4)
-		ASSERT_GET_VALUE(args[4], a);
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	conn->call("Display", "OBS_content_setOutlineColor",
 	    {ipc::value(key), ipc::value(r), ipc::value(g), ipc::value(b), ipc::value(a)});
+	return info.Env().Undefined();
 }
 
-void display::OBS_content_setShouldDrawUI(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value display::OBS_content_setShouldDrawUI(const Napi::CallbackInfo& info)
 {
-	std::string key;
-	bool        drawUI;
+	std::string key = info[0].ToString().Utf8Value();
+	bool drawUI = info[1].ToBoolean().Value();
 
-	ASSERT_GET_VALUE(args[0], key);
-	ASSERT_GET_VALUE(args[1], drawUI);
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	conn->call("Display", "OBS_content_setShouldDrawUI", {ipc::value(key), ipc::value(drawUI)});
+	return info.Env().Undefined();
 }
 
-void display::OBS_content_setDrawGuideLines(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value display::OBS_content_setDrawGuideLines(const Napi::CallbackInfo& info)
 {
-	std::string key;
-	bool        drawGuideLines;
+	std::string key = info[0].ToString().Utf8Value();
+	bool drawGuideLines = info[1].ToBoolean().Value();
 
-	ASSERT_GET_VALUE(args[0], key);
-	ASSERT_GET_VALUE(args[1], drawGuideLines);
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	conn->call("Display", "OBS_content_setDrawGuideLines", {ipc::value(key), ipc::value(drawGuideLines)});
+	return info.Env().Undefined();
 }
 
-void display::OBS_content_createIOSurface(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value display::OBS_content_createIOSurface(const Napi::CallbackInfo& info)
 {
-	std::string key;
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+	std::string key = info[0].ToString().Utf8Value();
 
-	ASSERT_GET_VALUE(args[0], key);
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
 	    conn->call_synchronous_helper("Display", "OBS_content_createIOSurface", {ipc::value(key)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	args.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.ui32));
+	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
 }
 
-INITIALIZER(nodeobs_display)
+void display::Init(Napi::Env env, Napi::Object exports)
 {
-	initializerFunctions->push([](v8::Local<v8::Object> exports) {
-		NODE_SET_METHOD(exports, "OBS_content_createDisplay", display::OBS_content_createDisplay);
-		NODE_SET_METHOD(exports, "OBS_content_destroyDisplay", display::OBS_content_destroyDisplay);
-		NODE_SET_METHOD(exports, "OBS_content_getDisplayPreviewOffset", display::OBS_content_getDisplayPreviewOffset);
-		NODE_SET_METHOD(exports, "OBS_content_getDisplayPreviewSize", display::OBS_content_getDisplayPreviewSize);
-		NODE_SET_METHOD(
-		    exports, "OBS_content_createSourcePreviewDisplay", display::OBS_content_createSourcePreviewDisplay);
-		NODE_SET_METHOD(exports, "OBS_content_resizeDisplay", display::OBS_content_resizeDisplay);
-		NODE_SET_METHOD(exports, "OBS_content_moveDisplay", display::OBS_content_moveDisplay);
-		NODE_SET_METHOD(exports, "OBS_content_setPaddingSize", display::OBS_content_setPaddingSize);
-		NODE_SET_METHOD(exports, "OBS_content_setPaddingColor", display::OBS_content_setPaddingColor);
-		NODE_SET_METHOD(exports, "OBS_content_setShouldDrawUI", display::OBS_content_setShouldDrawUI);
-		NODE_SET_METHOD(exports, "OBS_content_setDrawGuideLines", display::OBS_content_setDrawGuideLines);
-		NODE_SET_METHOD(exports, "OBS_content_createIOSurface", display::OBS_content_createIOSurface);
-	});
+	exports.Set(
+		Napi::String::New(env, "OBS_content_createDisplay"),
+		Napi::Function::New(env, display::OBS_content_createDisplay));
+	exports.Set(
+		Napi::String::New(env, "OBS_content_destroyDisplay"),
+		Napi::Function::New(env, display::OBS_content_destroyDisplay));
+	exports.Set(
+		Napi::String::New(env, "OBS_content_getDisplayPreviewOffset"),
+		Napi::Function::New(env, display::OBS_content_getDisplayPreviewOffset));
+	exports.Set(
+		Napi::String::New(env, "OBS_content_getDisplayPreviewSize"),
+		Napi::Function::New(env, display::OBS_content_getDisplayPreviewSize));
+	exports.Set(
+		Napi::String::New(env, "OBS_content_createSourcePreviewDisplay"),
+		Napi::Function::New(env, display::OBS_content_createSourcePreviewDisplay));
+	exports.Set(
+		Napi::String::New(env, "OBS_content_resizeDisplay"),
+		Napi::Function::New(env, display::OBS_content_resizeDisplay));
+	exports.Set(
+		Napi::String::New(env, "OBS_content_moveDisplay"),
+		Napi::Function::New(env, display::OBS_content_moveDisplay));
+	exports.Set(
+		Napi::String::New(env, "OBS_content_setPaddingSize"),
+		Napi::Function::New(env, display::OBS_content_setPaddingSize));
+	exports.Set(
+		Napi::String::New(env, "OBS_content_setPaddingColor"),
+		Napi::Function::New(env, display::OBS_content_setPaddingColor));
+	exports.Set(
+		Napi::String::New(env, "OBS_content_setShouldDrawUI"),
+		Napi::Function::New(env, display::OBS_content_setShouldDrawUI));
+	exports.Set(
+		Napi::String::New(env, "OBS_content_setDrawGuideLines"),
+		Napi::Function::New(env, display::OBS_content_setDrawGuideLines));
+	exports.Set(
+		Napi::String::New(env, "OBS_content_createIOSurface"),
+		Napi::Function::New(env, display::OBS_content_createIOSurface));
 }
