@@ -37,3 +37,29 @@ void replaceAll(std::string& str, const std::string& from, const std::string& to
 		start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
 	}
 };
+
+#ifdef WIN32
+HANDLE create_semaphore() {
+	return CreateSemaphore(NULL, 1, 1, NULL);
+}
+
+void remove_semaphore(HANDLE sem) {
+	if (sem) {
+		CloseHandle(sem);
+	}
+}
+
+void wait_semaphore(HANDLE sem) {
+	if (sem) {
+		WaitForSingleObject(sem, INFINITE);
+	}
+}
+
+void release_semaphore(HANDLE sem) {
+	if (sem) {
+		ReleaseSemaphore(sem, 1, NULL);
+	}
+}
+#else
+
+#endif

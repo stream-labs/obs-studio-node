@@ -38,6 +38,7 @@
 #include "nodeobs_settings.hpp"
 #include "nodeobs_display.hpp"
 #include "nodeobs_service.hpp"
+#include "nodeobs_autoconfig.hpp"
 
 #if defined(_WIN32)
 // Checks ForceGPUAsRenderDevice setting
@@ -125,6 +126,7 @@ Napi::Object main_node(Napi::Env env, Napi::Object exports) {
 	settings::Init(env, exports);
 	display::Init(env, exports);
 	service::Init(env, exports);
+	autoConfig::Init(env, exports);
 	return exports;
 };
 
