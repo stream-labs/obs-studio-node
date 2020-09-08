@@ -27,9 +27,11 @@ std::thread* autoConfig::worker_thread = nullptr;
 std::vector<std::thread*> queue_task_workers;
 
 #ifdef WIN32
+const char* sem_name = nullptr; // Not used on Windows
 HANDLE sem;
 #else
-
+const char* sem_name = "autoconfig-semaphore";
+sem_t *sem;
 #endif
 
 void autoConfig::worker()
@@ -77,7 +79,7 @@ void autoConfig::start_worker()
 		return;
 
 	worker_stop = false;
-	sem = create_semaphore();
+	sem = create_semaphore(sem_name);
 	worker_thread = new std::thread(&autoConfig::worker);
 }
 
@@ -95,7 +97,7 @@ void autoConfig::stop_worker()
 			queue_worker->join();
 	}
 	}
-	remove_semaphore(sem);
+	remove_semaphore(sem, sem_name);
 }
 
 Napi::Value autoConfig::InitializeAutoConfig(const Napi::CallbackInfo& info)

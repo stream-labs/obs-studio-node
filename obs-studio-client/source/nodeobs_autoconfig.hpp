@@ -21,6 +21,7 @@
 #ifdef WIN32
 #include <windows.h>
 #else
+#include <semaphore.h>
 #endif
 
 struct AutoConfigInfo
@@ -30,11 +31,11 @@ struct AutoConfigInfo
 	double      percentage;
 };
 
-
+extern const char* sem_name;
 #ifdef WIN32
 extern HANDLE sem;
 #else
-
+extern sem_t *sem;
 #endif
 
 namespace autoConfig
