@@ -26,6 +26,7 @@
 #ifdef WIN32
 #include <windows.h>
 #else
+#include <semaphore.h>
 #endif
 
 #ifndef __FUNCTION_NAME__
@@ -46,10 +47,13 @@ extern std::wstring utfWorkingDir;
 void replaceAll(std::string& str, const std::string& from, const std::string& to);
 
 #ifdef WIN32
-extern HANDLE create_semaphore();
-extern void remove_semaphore(HANDLE sem);
+extern HANDLE create_semaphore(const char* name = nullptr);
+extern void remove_semaphore(HANDLE sem, const char* name = nullptr);
 extern void wait_semaphore(HANDLE sem);
 extern void release_semaphore(HANDLE sem);
 #else
-
+extern sem_t* create_semaphore(const char* name);
+extern void remove_semaphore(sem_t *sem, const char* name);
+extern void wait_semaphore(sem_t *sem);
+extern void release_semaphore(sem_t *sem);
 #endif

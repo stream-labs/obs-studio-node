@@ -39,11 +39,11 @@ void replaceAll(std::string& str, const std::string& from, const std::string& to
 };
 
 #ifdef WIN32
-HANDLE create_semaphore() {
+HANDLE create_semaphore(const char* name = nullptr) {
 	return CreateSemaphore(NULL, 1, 1, NULL);
 }
 
-void remove_semaphore(HANDLE sem) {
+void remove_semaphore(HANDLE sem, const char* name = nullptr) {
 	if (sem) {
 		CloseHandle(sem);
 	}
@@ -61,5 +61,22 @@ void release_semaphore(HANDLE sem) {
 	}
 }
 #else
+sem_t* create_semaphore(const char* name) {
+	sem_unlink(name);
+	remove(name);
+	return sem_open(name, O_CREAT | O_EXCL, 0644, 1);
+}
 
+void remove_semaphore(sem_t *sem, const char* name) {
+	sem_close(sem);
+	remove(name);
+}
+
+void wait_semaphore(sem_t *sem) {
+	sem_wait(sem);
+}
+
+void release_semaphore(sem_t *sem) {
+	sem_post(sem);
+}
 #endif
