@@ -23,6 +23,11 @@
 #include <string>
 #include "util-osx.hpp"
 
+#ifdef WIN32
+#include <windows.h>
+#else
+#endif
+
 #ifndef __FUNCTION_NAME__
 #if defined(_WIN32) || defined(_WIN64) //WINDOWS
 #define __FUNCTION_NAME__ __FUNCTION__
@@ -39,3 +44,12 @@ extern std::wstring utfWorkingDir;
 #endif
 
 void replaceAll(std::string& str, const std::string& from, const std::string& to);
+
+#ifdef WIN32
+extern HANDLE create_semaphore();
+extern void remove_semaphore(HANDLE sem);
+extern void wait_semaphore(HANDLE sem);
+extern void release_semaphore(HANDLE sem);
+#else
+
+#endif
