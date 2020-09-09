@@ -23,61 +23,27 @@
 
 namespace osn
 {
-	class FaderWorker: public Napi::AsyncWorker
-	{
-		public:
-			FaderWorker(Napi::Function& callback) : AsyncWorker(callback) {};
-			virtual ~FaderWorker() {};
-
-			void Execute() {
-				// NO V8 / NAPI
-			};
-			void OnOK() {
-				// NODE THREAD
-				Callback().Call({Napi::String::New(Env(), "hello"), Napi::String::New(Env(), "world")});
-			};
-	};
 	class Fader : public Napi::ObjectWrap<osn::Fader>
 	{
-		private:
-		double value_;
-		uint64_t uid;
-		Napi::Function cb;
-		std::thread* t_worker;
-
 		public:
-		uint64_t GetId();
+		uint64_t uid;
 
 		public:
 		static Napi::FunctionReference constructor;
 		static Napi::Object Init(Napi::Env env, Napi::Object exports);
 		Fader(const Napi::CallbackInfo& info);
 
-		Napi::Value GetValue(const Napi::CallbackInfo& info);
 		static Napi::Value Create(const Napi::CallbackInfo& info);
-		Napi::Value RegisterCallback(const Napi::CallbackInfo& info);
-		Napi::Value UnregisterCallback(const Napi::CallbackInfo& info);
 
-		// static void Create(Nan::NAN_METHOD_ARGS_TYPE info);
-		// static void GetDeziBel(Nan::NAN_METHOD_ARGS_TYPE info);
-		// static void SetDezibel(Nan::NAN_METHOD_ARGS_TYPE info);
-		// static void GetDeflection(Nan::NAN_METHOD_ARGS_TYPE info);
-		// static void SetDeflection(Nan::NAN_METHOD_ARGS_TYPE info);
-		// static void GetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info);
-		// static void SetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info);
-		// static void Attach(Nan::NAN_METHOD_ARGS_TYPE info);
-		// static void Detach(Nan::NAN_METHOD_ARGS_TYPE info);
-		// static void AddCallback(Nan::NAN_METHOD_ARGS_TYPE info);
-		// static void RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info);
+		Napi::Value GetDeziBel(const Napi::CallbackInfo& info);
+		void SetDezibel(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value GetDeflection(const Napi::CallbackInfo& info);
+		void SetDeflection(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value GetMultiplier(const Napi::CallbackInfo& info);
+		void SetMultiplier(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value Attach(const Napi::CallbackInfo& info);
+		Napi::Value Detach(const Napi::CallbackInfo& info);
+		Napi::Value AddCallback(const Napi::CallbackInfo& info);
+		Napi::Value RemoveCallback(const Napi::CallbackInfo& info);
 	};
-
-	class FaderSub : public Napi::ObjectWrap<osn::FaderSub>
-	{
-		private:
-		static Napi::FunctionReference constructorSub;
-
-		public:
-		static Napi::Object Init(Napi::Env env, Napi::Object exports);
-		FaderSub(const Napi::CallbackInfo& info);
-	};
-} // namespace osn
+}

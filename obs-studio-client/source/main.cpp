@@ -39,6 +39,7 @@
 #include "nodeobs_display.hpp"
 #include "nodeobs_service.hpp"
 #include "nodeobs_autoconfig.hpp"
+#include "callback-manager.hpp"
 
 #if defined(_WIN32)
 // Checks ForceGPUAsRenderDevice setting
@@ -109,7 +110,6 @@ Napi::Object main_node(Napi::Env env, Napi::Object exports) {
 	// }
 	// return osn::Fader::Init(env, exports);
 	osn::Fader::Init(env, exports);
-	osn::FaderSub::Init(env, exports);
 	Controller::Init(env, exports);
 	api::Init(env, exports);
 	osn::Input::Init(env, exports);
@@ -127,6 +127,7 @@ Napi::Object main_node(Napi::Env env, Napi::Object exports) {
 	display::Init(env, exports);
 	service::Init(env, exports);
 	autoConfig::Init(env, exports);
+	sourceCallback::Init(env, exports);
 	return exports;
 };
 

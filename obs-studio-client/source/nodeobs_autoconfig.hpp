@@ -31,11 +31,11 @@ struct AutoConfigInfo
 	double      percentage;
 };
 
-extern const char* sem_name;
+extern const char* ac_sem_name;
 #ifdef WIN32
-extern HANDLE sem;
+extern HANDLE ac_sem;
 #else
-extern sem_t *sem;
+extern sem_t *ac_sem;
 #endif
 
 namespace autoConfig
@@ -70,7 +70,7 @@ namespace autoConfig
 			}
 
             Callback().Call({ result });
-			release_semaphore(sem);
+			release_semaphore(ac_sem);
         };
 		void SetData(std::shared_ptr<AutoConfigInfo> new_data) {
 			data = new_data;
@@ -82,6 +82,7 @@ namespace autoConfig
 	extern uint32_t sleepIntervalMS;
 	extern autoConfig::Worker* asyncWorker;
 	extern std::thread* worker_thread;
+	extern std::vector<std::thread*> ac_queue_task_workers;
 
 	void worker(void);
 	void start_worker(void);
