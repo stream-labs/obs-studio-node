@@ -550,21 +550,6 @@ bool OBS_service::createAudioEncoder(
 	return false;
 }
 
-static bool EncoderAvailable(const char* encoder)
-{
-	const char* val;
-	int         i = 0;
-
-	while (obs_enum_encoder_types(i++, &val)) {
-		if (val == nullptr)
-			continue;
-		if (strcmp(val, encoder) == 0)
-			return true;
-	}
-
-	return false;
-}
-
 bool OBS_service::createVideoStreamingEncoder()
 {
 	const char* encoder = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "StreamEncoder");

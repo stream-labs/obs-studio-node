@@ -64,7 +64,7 @@ namespace api
 	Napi::Value OBS_API_destroyOBS_API(const Napi::CallbackInfo& info);
 	Napi::Value OBS_API_getPerformanceStatistics(const Napi::CallbackInfo& info);
 	Napi::Value SetWorkingDirectory(const Napi::CallbackInfo& info);
-	Napi::Value StopCrashHandler(const Napi::CallbackInfo& info);
+	Napi::Value InitShutdownSequence(const Napi::CallbackInfo& info);
 	Napi::Value OBS_API_QueryHotkeys(const Napi::CallbackInfo& info);
 	Napi::Value OBS_API_ProcessHotkeyStatus(const Napi::CallbackInfo& info);
 	Napi::Value SetUsername(const Napi::CallbackInfo& info);

@@ -35,6 +35,8 @@ const char* v_sem_name = "volmeter-semaphore";
 sem_t *v_sem;
 #endif
 
+bool osn::Volmeter::m_all_workers_stop = false;
+
 void osn::Volmeter::start_worker(void)
 {
 	if (!worker_stop)
@@ -72,7 +74,7 @@ void osn::Volmeter::worker()
 {
 	size_t totalSleepMS = 0;
 
-	while (!worker_stop) {
+	while (!worker_stop && !m_all_workers_stop) {
 		auto tp_start = std::chrono::high_resolution_clock::now();
 
 		// Validate Connection

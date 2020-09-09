@@ -143,7 +143,7 @@ void ipc_freez_callback(bool freez_detected, std::string app_state_path)
 			return;
 		}
 	}
-	const std::string freez_flag = "ipc_freez";
+	const std::string flag_value = "ipc_freez";
 	const std::string flag_name = "detected";
 
 	app_state_path += "\\appState";
@@ -161,9 +161,9 @@ void ipc_freez_callback(bool freez_detected, std::string app_state_path)
 			
 			if (freez_detected) {
 				if (existing_flag_value.empty())
-					jsonEntry[flag_name] = freez_flag;
+					jsonEntry[flag_name] = flag_value;
 			} else {
-				if (existing_flag_value.compare(freez_flag) == 0)
+				if (existing_flag_value.compare(flag_value) == 0)
 					jsonEntry[flag_name] = "";
 			}
 			updated_status = jsonEntry.dump(-1);

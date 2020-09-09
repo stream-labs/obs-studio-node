@@ -33,6 +33,7 @@ uint32_t sourceCallback::sleepIntervalMS = 33;
 sourceCallback::Worker* sourceCallback::asyncWorker = nullptr;
 std::thread* sourceCallback::worker_thread = nullptr;
 std::vector<std::thread*> sourceCallback::source_queue_task_workers;
+bool sourceCallback::m_all_workers_stop = false;
 
 #ifdef WIN32
 const char* source_sem_name = nullptr; // Not used on Windows
@@ -92,7 +93,7 @@ void sourceCallback::worker()
 {
 	size_t totalSleepMS = 0;
 
-	while (!worker_stop) {
+	while (!worker_stop && !m_all_workers_stop) {
 		auto tp_start = std::chrono::high_resolution_clock::now();
 
 		// Validate Connection

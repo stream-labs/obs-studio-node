@@ -270,18 +270,18 @@ Napi::Value osn::Scene::AddSource(const Napi::CallbackInfo& info)
 
 	if (info.Length() >= 2) {
 		transform = info[1].ToObject();
-		params.push_back(ipc::value(transform.Get("scaleX").ToNumber().FloatValue()));
-		params.push_back(ipc::value(transform.Get("scaleY").ToNumber().FloatValue()));
+		params.push_back(ipc::value(transform.Get("scaleX").ToNumber().DoubleValue()));
+		params.push_back(ipc::value(transform.Get("scaleY").ToNumber().DoubleValue()));
 		params.push_back(ipc::value(transform.Get("visible").ToBoolean().Value()));
-		params.push_back(ipc::value(transform.Get("x").ToNumber().FloatValue()));
-		params.push_back(ipc::value(transform.Get("y").ToNumber().FloatValue()));
-		params.push_back(ipc::value(transform.Get("rotation").ToNumber().FloatValue()));
+		params.push_back(ipc::value(transform.Get("x").ToNumber().DoubleValue()));
+		params.push_back(ipc::value(transform.Get("y").ToNumber().DoubleValue()));
+		params.push_back(ipc::value(transform.Get("rotation").ToNumber().DoubleValue()));
 
 		crop = transform.Get("crop").ToObject();
-		params.push_back(ipc::value(crop.Get("left").ToNumber().Int32Value()));
-		params.push_back(ipc::value(crop.Get("top").ToNumber().Int32Value()));
-		params.push_back(ipc::value(crop.Get("right").ToNumber().Int32Value()));
-		params.push_back(ipc::value(crop.Get("bottom").ToNumber().Int32Value()));
+		params.push_back(ipc::value(crop.Get("left").ToNumber().Int64Value()));
+		params.push_back(ipc::value(crop.Get("top").ToNumber().Int64Value()));
+		params.push_back(ipc::value(crop.Get("right").ToNumber().Int64Value()));
+		params.push_back(ipc::value(crop.Get("bottom").ToNumber().Int64Value()));
 
 		params.push_back(ipc::value(crop.Get("streamVisible").ToBoolean().Value()));
 		params.push_back(ipc::value(crop.Get("recordingVisible").ToBoolean().Value()));

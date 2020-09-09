@@ -156,7 +156,7 @@ describe(testName, function() {
     it('Stop crash handler', function() {
         // Stopping crash handler as a last test case
         expect(function() {
-            osn.NodeObs.StopCrashHandler();
+            osn.NodeObs.InitShutdownSequence();
         }).to.not.throw();
     });
 });

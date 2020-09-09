@@ -23,6 +23,8 @@
 #include <string>
 #include "shared.hpp"
 #include "utility.hpp"
+#include "volmeter.hpp"
+#include "callback-manager.hpp"
 
 api::Worker* worker = nullptr;
 
@@ -142,8 +144,11 @@ Napi::Value api::SetWorkingDirectory(const Napi::CallbackInfo& info)
 	return info.Env().Undefined();
 }
 
-Napi::Value api::StopCrashHandler(const Napi::CallbackInfo& info)
+Napi::Value api::InitShutdownSequence(const Napi::CallbackInfo& info)
 {
+	osn::Volmeter::m_all_workers_stop = true;
+	sourceCallback::m_all_workers_stop = true;
+
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
@@ -281,7 +286,7 @@ void api::Init(Napi::Env env, Napi::Object exports)
 	exports.Set(Napi::String::New(env, "OBS_API_destroyOBS_API"), Napi::Function::New(env, api::OBS_API_destroyOBS_API));
 	exports.Set(Napi::String::New(env, "OBS_API_getPerformanceStatistics"), Napi::Function::New(env, api::OBS_API_getPerformanceStatistics));
 	exports.Set(Napi::String::New(env, "SetWorkingDirectory"), Napi::Function::New(env, api::SetWorkingDirectory));
-	exports.Set(Napi::String::New(env, "StopCrashHandler"), Napi::Function::New(env, api::StopCrashHandler));
+	exports.Set(Napi::String::New(env, "InitShutdownSequence"), Napi::Function::New(env, api::InitShutdownSequence));
 	exports.Set(Napi::String::New(env, "OBS_API_QueryHotkeys"), Napi::Function::New(env, api::OBS_API_QueryHotkeys));
 	exports.Set(Napi::String::New(env, "OBS_API_ProcessHotkeyStatus"), Napi::Function::New(env, api::OBS_API_ProcessHotkeyStatus));
 	exports.Set(Napi::String::New(env, "SetUsername"), Napi::Function::New(env, api::SetUsername));
