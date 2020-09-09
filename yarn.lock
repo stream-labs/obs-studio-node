@@ -2555,6 +2555,11 @@ verror@1.10.0:
     core-util-is "1.0.2"
     extsprintf "^1.2.0"
 
+wait-queue@^1.1.3:
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/wait-queue/-/wait-queue-1.1.3.tgz#f540778d3b2002e063f10092185e6692fb2bf874"
+  integrity sha512-TCbw/7+8E9JvxEMxKyy5Ubz1qRS0fRm1guhbDu2rQcP3g9nXhx4Y16DUgxfyOEm3/ocNq4oMO99lHc6UDVX+fg==
+
 which-module@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/which-module/-/which-module-2.0.0.tgz#d9ef07dce77b9902b8a3a8fa4b31c3e3f7e6e87a"

@@ -100,13 +100,16 @@ Napi::Value osn::Global::getOutputSource(const Napi::CallbackInfo& info)
 Napi::Value osn::Global::setOutputSource(const Napi::CallbackInfo& info)
 {
 	uint32_t channel = info[0].ToNumber().Uint32Value();
-	osn::Input* input = Napi::ObjectWrap<osn::Input>::Unwrap(info[1].ToObject());
+	osn::Input* input = nullptr;
+
+	if (info[1].IsObject())
+		input = Napi::ObjectWrap<osn::Input>::Unwrap(info[1].ToObject());
 
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
 
-	conn->call("Global", "SetOutputSource", {ipc::value(channel), ipc::value(input->sourceId)});
+	conn->call("Global", "SetOutputSource", {ipc::value(channel), ipc::value(input ? input->sourceId : UINT64_MAX)});
 
 	return info.Env().Undefined();
 }

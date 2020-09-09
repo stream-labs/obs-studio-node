@@ -88,6 +88,7 @@ namespace sourceCallback
 	extern Worker* asyncWorker;
 	extern std::thread* worker_thread;
 	extern std::vector<std::thread*> source_queue_task_workers;
+	extern bool m_all_workers_stop;
 
 	void worker(void);
 	void start_worker(void);

@@ -57,12 +57,11 @@ static void FixChromeD3DIssue(HWND chromeWindow)
 
 Napi::Value display::OBS_content_createDisplay(const Napi::CallbackInfo& info)
 {
-	Napi::Buffer<unsigned char*> buffer = info[0].As<Napi::Buffer<unsigned char*>>();
-	unsigned char* bufferData = *buffer.Data();
-	uint64_t windowHandle = *reinterpret_cast<uint64_t*>(bufferData);
+	Napi::Buffer<void *> bufferData = info[0].As<Napi::Buffer<void*>>();
+	HWND windowHandle = static_cast<HWND>(*reinterpret_cast<void **>(bufferData.Data()));
 
 #ifdef WIN32
-	FixChromeD3DIssue((HWND)windowHandle);
+	FixChromeD3DIssue(windowHandle);
 #endif
 
 	std::string key = info[1].ToString().Utf8Value();
@@ -72,7 +71,7 @@ Napi::Value display::OBS_content_createDisplay(const Napi::CallbackInfo& info)
 	if (!conn)
 		return info.Env().Undefined();
  
-	conn->call("Display", "OBS_content_createDisplay", {ipc::value(windowHandle), ipc::value(key), ipc::value(mode)});
+	conn->call("Display", "OBS_content_createDisplay", {ipc::value((uint64_t)windowHandle), ipc::value(key), ipc::value(mode)});
 	return info.Env().Undefined();
 }
 
@@ -130,12 +129,11 @@ Napi::Value display::OBS_content_getDisplayPreviewSize(const Napi::CallbackInfo&
 
 Napi::Value display::OBS_content_createSourcePreviewDisplay(const Napi::CallbackInfo& info)
 {
-	Napi::Buffer<unsigned char*> buffer = info[0].As<Napi::Buffer<unsigned char*>>();
-	unsigned char* bufferData = *buffer.Data();
-	uint64_t windowHandle = *reinterpret_cast<uint64_t*>(bufferData);
+	Napi::Buffer<void *> bufferData = info[0].As<Napi::Buffer<void*>>();
+	HWND windowHandle = static_cast<HWND>(*reinterpret_cast<void **>(bufferData.Data()));
 
 #ifdef WIN32
-	FixChromeD3DIssue((HWND)windowHandle);
+	FixChromeD3DIssue(windowHandle);
 #endif
 
 	std::string sourceName = info[1].ToString().Utf8Value();
@@ -146,7 +144,7 @@ Napi::Value display::OBS_content_createSourcePreviewDisplay(const Napi::Callback
 		return info.Env().Undefined();
 
 	conn->call("Display", "OBS_content_createSourcePreviewDisplay",
-	    {ipc::value(windowHandle), ipc::value(sourceName), ipc::value(key)});
+	    {ipc::value((uint64_t)windowHandle), ipc::value(sourceName), ipc::value(key)});
 
 	return info.Env().Undefined();
 }

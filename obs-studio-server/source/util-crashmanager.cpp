@@ -1046,12 +1046,12 @@ void util::CrashManager::SaveToAppStateFile()
 	if (current_status.size() == 0) 
 		return;
 	
-	const std::string freez_flag = "ipc_freez";
+	const std::string flag_value = "obs_crash";
 	const std::string flag_name = "detected";
 
 	try {
 		nlohmann::json jsonEntry = nlohmann::json::parse(current_status);
-		jsonEntry[flag_name] = freez_flag;
+		jsonEntry[flag_name] = flag_value;
 		std::string updated_status = jsonEntry.dump(-1);
 
 		std::ofstream out_state_file;

@@ -90,6 +90,8 @@ namespace osn
 		void queueTask(std::shared_ptr<VolmeterData> data);
 		std::vector<std::thread*> v_queue_task_workers;
 
+		static bool m_all_workers_stop;
+
 		public:
 		static Napi::FunctionReference constructor;
 		static Napi::Object Init(Napi::Env env, Napi::Object exports);
