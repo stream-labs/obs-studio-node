@@ -21,49 +21,74 @@
 #include <thread>
 #include "utility-v8.hpp"
 
+struct VolmeterData
+{
+	std::vector<float> magnitude;
+	std::vector<float> peak;
+	std::vector<float> input_peak;
+};
+
+extern const char* v_sem_name;
+#ifdef WIN32
+extern HANDLE v_sem;
+#else
+extern sem_t *v_sem;
+#endif
+
 namespace osn
 {
-	struct VolmeterData
-	{
-		std::vector<float> magnitude;
-		std::vector<float> peak;
-		std::vector<float> input_peak;
-		void*              param;
-	};
-
-	// typedef utilv8::managed_callback<std::shared_ptr<osn::VolMeterData>> VolMeterCallback;
-
 	class Volmeter : public Napi::ObjectWrap<osn::Volmeter>
 	{
-		// friend utilv8::InterfaceObject<osn::VolMeter>;
-		// friend utilv8::ManagedObject<osn::VolMeter>;
-		// friend utilv8::CallbackData<osn::VolMeterData, osn::VolMeter>;
+		class Worker: public Napi::AsyncWorker
+		{
+			public:
+			std::shared_ptr<VolmeterData> data = nullptr;
+
+			public:
+			Worker(Napi::Function& callback) : AsyncWorker(callback){};
+			virtual ~Worker() {};
+
+			void Execute() {
+				if (!data)
+					SetError("Invalid signal object");
+			};
+			void OnOK() {
+				Napi::Array magnitude;
+				Napi::Array peak;
+				Napi::Array input_peak;
+
+				for (size_t i = 0; i < data->magnitude.size(); i++) {
+					magnitude.Set(i, Napi::Number::New(Env(), data->magnitude[i]));
+				}
+				for (size_t i = 0; i < data->peak.size(); i++) {
+					peak.Set(i, Napi::Number::New(Env(), data->peak[i]));
+				}
+				for (size_t i = 0; i < data->input_peak.size(); i++) {
+					input_peak.Set(i, Napi::Number::New(Env(), data->input_peak[i]));
+				}
+
+				Callback().Call({ magnitude, peak, input_peak });
+				release_semaphore(v_sem);
+			};
+			void SetData(std::shared_ptr<VolmeterData> new_data) {
+				data = new_data;
+			};
+		};
 
 		public:
 		uint64_t m_uid;
-		uint32_t m_sleep_interval = 33;
 
-		// std::thread m_worker;
-		// bool        m_worker_stop = true;
-		// std::mutex  m_worker_lock;
+		bool isWorkerRunning;
+		bool worker_stop;
+		uint32_t sleepIntervalMS;
+		Worker* asyncWorker;
+		std::thread* worker_thread;
 
-		// osn::VolMeterCallback* m_async_callback = nullptr;
-		// Nan::Callback          m_callback_function;
-
-		// VolMeter(uint64_t uid);
-		// ~VolMeter();
-
-		// uint64_t GetId();
-
-		// void start_async_runner();
-		// void stop_async_runner();
-		// void callback_handler(void* data, std::shared_ptr<osn::VolMeterData> item);
-
-		// void start_worker();
-		// void stop_worker();
-		// void worker();
-
-		// void set_keepalive(v8::Local<v8::Object>);
+		void worker(void);
+		void start_worker(void);
+		void stop_worker(void);
+		void queueTask(std::shared_ptr<VolmeterData> data);
+		std::vector<std::thread*> v_queue_task_workers;
 
 		public:
 		static Napi::FunctionReference constructor;

@@ -24,14 +24,14 @@ bool autoConfig::worker_stop = true;
 uint32_t autoConfig::sleepIntervalMS = 33;
 autoConfig::Worker* autoConfig::asyncWorker = nullptr;
 std::thread* autoConfig::worker_thread = nullptr;
-std::vector<std::thread*> queue_task_workers;
+std::vector<std::thread*> autoConfig::ac_queue_task_workers;
 
 #ifdef WIN32
-const char* sem_name = nullptr; // Not used on Windows
-HANDLE sem;
+const char* ac_sem_name = nullptr; // Not used on Windows
+HANDLE ac_sem;
 #else
-const char* sem_name = "autoconfig-semaphore";
-sem_t *sem;
+const char* ac_sem_name = "autoconfig-semaphore";
+sem_t *ac_sem;
 #endif
 
 void autoConfig::worker()
@@ -60,7 +60,7 @@ void autoConfig::worker()
 				data->event       = response[1].value_str;
 				data->description = response[2].value_str;
 				data->percentage  = response[3].value_union.fp64;
-				queue_task_workers.push_back(new std::thread(&autoConfig::queueTask, data));
+				ac_queue_task_workers.push_back(new std::thread(&autoConfig::queueTask, data));
 			}
 		}
 
@@ -79,7 +79,7 @@ void autoConfig::start_worker()
 		return;
 
 	worker_stop = false;
-	sem = create_semaphore(sem_name);
+	ac_sem = create_semaphore(ac_sem_name);
 	worker_thread = new std::thread(&autoConfig::worker);
 }
 
@@ -92,12 +92,12 @@ void autoConfig::stop_worker()
 	if (worker_thread->joinable()) {
 		worker_thread->join();
 	}
-	for (auto queue_worker: queue_task_workers) {
+	for (auto queue_worker: ac_queue_task_workers) {
 		if (queue_worker->joinable()) {
 			queue_worker->join();
+		}
 	}
-	}
-	remove_semaphore(sem, sem_name);
+	remove_semaphore(ac_sem, ac_sem_name);
 }
 
 Napi::Value autoConfig::InitializeAutoConfig(const Napi::CallbackInfo& info)
@@ -166,7 +166,7 @@ Napi::Value autoConfig::StartRecordingEncoderTest(const Napi::CallbackInfo& info
 }
 
 void autoConfig::queueTask(std::shared_ptr<AutoConfigInfo> data) {
-	wait_semaphore(sem);
+	wait_semaphore(ac_sem);
 	asyncWorker->SetData(data);
 	asyncWorker->Queue();
 }
@@ -177,7 +177,7 @@ Napi::Value autoConfig::StartCheckSettings(const Napi::CallbackInfo& info)
 	startData->event                          = "starting_step";
 	startData->description                    = "checking_settings";
 	startData->percentage                     = 0;
-	queue_task_workers.push_back(new std::thread(&autoConfig::queueTask, startData));
+	ac_queue_task_workers.push_back(new std::thread(&autoConfig::queueTask, startData));
 
 	auto conn = GetConnection(info);
 	if (!conn)
@@ -199,7 +199,7 @@ Napi::Value autoConfig::StartCheckSettings(const Napi::CallbackInfo& info)
 	}
 
 	stopData->percentage = 100;
-	queue_task_workers.push_back(new std::thread(&autoConfig::queueTask, stopData));
+	ac_queue_task_workers.push_back(new std::thread(&autoConfig::queueTask, stopData));
 
 	return info.Env().Undefined();
 }

@@ -17,11 +17,15 @@
 ******************************************************************************/
 
 #include <mutex>
-#include <nan.h>
-#include <node.h>
+#include <napi.h>
 #include <thread>
 #include <map>
 #include "utility-v8.hpp"
+#ifdef WIN32
+#include <windows.h>
+#else
+#include <semaphore.h>
+#endif
 
 struct SourceSizeInfo
 {
@@ -34,53 +38,64 @@ struct SourceSizeInfo
 struct SourceSizeInfoData
 {
 	std::vector<SourceSizeInfo*> items;
-	void*                        param;
 };
 
-class CallbackManager;
-class SourceCallback;
+extern const char* source_sem_name;
+#ifdef WIN32
+extern HANDLE source_sem;
+#else
+extern sem_t *source_sem;
+#endif
 
-typedef utilv8::managed_callback<std::shared_ptr<SourceSizeInfoData>> cm_sourcesCallback;
-SourceCallback*                                                        cm_sources;
-
-class CallbackManager : public Nan::ObjectWrap,
-                        public utilv8::InterfaceObject<CallbackManager>,
-                        public utilv8::ManagedObject<CallbackManager>
+namespace sourceCallback
 {
-	friend utilv8::InterfaceObject<CallbackManager>;
-	friend utilv8::ManagedObject<CallbackManager>;
+	class Worker: public Napi::AsyncWorker
+    {
+        public:
+        std::shared_ptr<SourceSizeInfoData> data = nullptr;
 
-	protected:
-	uint32_t sleepIntervalMS = 15;
+        public:
+        Worker(Napi::Function& callback) : AsyncWorker(callback){};
+        virtual ~Worker() {};
 
-	public:
-	std::thread   m_worker;
-	bool          m_worker_stop = true;
-	std::mutex    m_worker_lock;
+        void Execute() {
+            if (!data)
+                SetError("Invalid signal object");
+        };
+        void OnOK() {
+            Napi::Array result = Napi::Array::New(Env(), data->items.size());
 
-	virtual void start_async_runner() = 0;
-	virtual void stop_async_runner() = 0;
-	void start_worker();
-	void stop_worker();
-	virtual void worker() = 0;
-	virtual void set_keepalive(v8::Local<v8::Object>) = 0;
-};
+			for (size_t i = 0; i < data->items.size(); i++) {
+				Napi::Object obj = Napi::Object::New(Env());
+				obj.Set("name", Napi::String::New(Env(), data->items[i]->name));
+				obj.Set("width", Napi::Number::New(Env(), data->items[i]->width));
+				obj.Set("height", Napi::Number::New(Env(), data->items[i]->height));
+				obj.Set("flags", Napi::Number::New(Env(), data->items[i]->flags));
+				result.Set(i, obj);
+			}
 
-class SourceCallback : public CallbackManager
-{
-	friend utilv8::CallbackData<SourceSizeInfoData, CallbackManager>;
+            Callback().Call({ result });
+			release_semaphore(source_sem);
+        };
+		void SetData(std::shared_ptr<SourceSizeInfoData> new_data) {
+			data = new_data;
+		};
+    };
 
-	cm_sourcesCallback*  m_async_callback = nullptr;
+	extern bool isWorkerRunning;
+	extern bool worker_stop;
+	extern uint32_t sleepIntervalMS;
+	extern Worker* asyncWorker;
+	extern std::thread* worker_thread;
+	extern std::vector<std::thread*> source_queue_task_workers;
 
-	public:
-	Nan::Callback        m_callback_function;
+	void worker(void);
+	void start_worker(void);
+	void stop_worker(void);
+	void queueTask(std::shared_ptr<SourceSizeInfoData> data);
 
-	virtual void start_async_runner();
-	virtual void stop_async_runner();
-	virtual void worker();
-	virtual void set_keepalive(v8::Local<v8::Object>);
-	void callback_handler(void* data, std::shared_ptr<SourceSizeInfoData> sourceSizes);
-};
+	void Init(Napi::Env env, Napi::Object exports);
 
-static void RegisterSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
-static void RemoveSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
+	Napi::Value RegisterSourceCallback(const Napi::CallbackInfo& info);
+	Napi::Value RemoveSourceCallback(const Napi::CallbackInfo& info);
+}

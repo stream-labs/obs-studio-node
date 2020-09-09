@@ -20,6 +20,11 @@
 #include <napi.h>
 #include <thread>
 #include "utility-v8.hpp"
+#ifdef WIN32
+#include <windows.h>
+#else
+#include <semaphore.h>
+#endif
 
 struct SignalInfo
 {
@@ -29,19 +34,26 @@ struct SignalInfo
 	std::string errorMessage;
 };
 
+extern const char* service_sem_name;
+#ifdef WIN32
+extern HANDLE service_sem;
+#else
+extern sem_t *service_sem;
+#endif
+
 namespace service
 {
 	class Worker: public Napi::AsyncWorker
     {
         public:
-        std::shared_ptr<SignalInfo> sg = nullptr;
+        std::shared_ptr<SignalInfo> data = nullptr;
 
         public:
         Worker(Napi::Function& callback) : AsyncWorker(callback){};
         virtual ~Worker() {};
 
         void Execute() {
-            if (!sg)
+            if (!data)
                 SetError("Invalid signal object");
         };
         void OnOK() {
@@ -49,27 +61,36 @@ namespace service
 
             result.Set(
                 Napi::String::New(Env(), "type"),
-                Napi::String::New(Env(), sg->outputType));
+                Napi::String::New(Env(), data->outputType));
             result.Set(
                 Napi::String::New(Env(), "signal"),
-                Napi::String::New(Env(), sg->signal));
+                Napi::String::New(Env(), data->signal));
             result.Set(
                 Napi::String::New(Env(), "code"),
-                Napi::Number::New(Env(), sg->code));
+                Napi::Number::New(Env(), data->code));
             result.Set(
                 Napi::String::New(Env(), "error"),
-                Napi::String::New(Env(), sg->errorMessage));
+                Napi::String::New(Env(), data->errorMessage));
 
             Callback().Call({ result });
+			release_semaphore(service_sem);
         };
-		void SetSignalInfo(std::shared_ptr<SignalInfo> new_data) {
-			sg = new_data;
+		void SetData(std::shared_ptr<SignalInfo> new_data) {
+			data = new_data;
 		};
     };
+
+	extern bool isWorkerRunning;
+	extern bool worker_stop;
+	extern uint32_t sleepIntervalMS;
+	extern Worker* asyncWorker;
+	extern std::thread* worker_thread;
+	extern std::vector<std::thread*> service_queue_task_workers;
 
 	void worker(void);
 	void start_worker(void);
 	void stop_worker(void);
+	void queueTask(std::shared_ptr<SignalInfo> data);
 
     void Init(Napi::Env env, Napi::Object exports);
 

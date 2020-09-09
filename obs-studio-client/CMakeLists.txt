@@ -92,8 +92,8 @@ SET(osn-client_SOURCES
 	"source/cache-manager.cpp"
 
 	###### callback-manager ######
-#	"source/callback-manager.cpp"
-#	"source/callback-manager.hpp"
+	"source/callback-manager.cpp"
+	"source/callback-manager.hpp"
 )
 
 if (APPLE)
