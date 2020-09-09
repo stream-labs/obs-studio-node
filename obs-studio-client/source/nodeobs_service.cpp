@@ -262,9 +262,10 @@ void service::worker()
 
 Napi::Value service::OBS_service_removeCallback(const Napi::CallbackInfo& info)
 {
-	if (isWorkerRunning)
+	if (isWorkerRunning) {
 		stop_worker();
-	delete asyncWorker;
+		// delete asyncWorker;
+	}
 	return info.Env().Undefined();
 }
 

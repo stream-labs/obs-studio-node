@@ -88,37 +88,6 @@ export class OBSHandler {
         this.cacheUploader = new CacheUploader(testName, this.obsPath);
         this.startup();
 
-        // console.log(osn.NodeObs.Fader);
-        // console.log('create fader');
-        // try {
-        //     const fader = osn.NodeObs.Fader.create(osn.EFaderType.Log);
-        //     console.log(fader);
-        //     console.log(fader.test_instance_value);
-        //     console.log(osn.NodeObs.Fader.test_static_value);
-        //     console.log(osn.NodeObs.FaderSub);
-        //     console.log(osn.NodeObs.FaderSub.subvalue);
-        //     console.log(osn.NodeObs.FaderSub.test_static_value);
-        //     const fadersub = osn.NodeObs.FaderSub.create(osn.EFaderType.Log);
-        //     console.log(fadersub.test_instance_value);
-        //     console.log('Fadersub instance method');
-        //     fadersub.value();
-        //     console.log(fader.registerCallback((myString, myString2)=> {
-        //         console.log('1 '+ myString);
-        //         console.log('2 '+ myString2);
-        //     }));
-        //     console.log(fader.unregisterCallback());
-
-        //     // console.log('Permissions test');
-        //     // const perms = osn.NodeObs.GetPermissionsStatus();
-        //     // console.log(perms);
-        //     // osn.NodeObs.RequestPermissions(perms => {
-        //     //     console.log('Updated permissions');
-        //     //     console.log(perms);
-        //     // });
-        // } catch (error) {
-        //     console.log(error);
-        // }
-
         this.inputTypes = osn.InputFactory.types();
         const index = this.inputTypes.indexOf('syphon-input', 0);
         if (index > -1) {
@@ -151,7 +120,7 @@ export class OBSHandler {
         logInfo(this.osnTestName, 'Shutting down OBS');
 
         try {
-            // osn.NodeObs.OBS_service_removeCallback();
+            osn.NodeObs.OBS_service_removeCallback();
             osn.NodeObs.IPC.disconnect();
         } catch(e) {
             throw Error('Exception when shutting down OBS process: ' + e);

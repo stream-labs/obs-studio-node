@@ -137,7 +137,7 @@ Napi::Value sourceCallback::RemoveSourceCallback(const Napi::CallbackInfo& info)
 {
 	if (isWorkerRunning)
 		stop_worker();
-	delete asyncWorker;
+	// delete asyncWorker;
 	return info.Env().Undefined();
 }
 
