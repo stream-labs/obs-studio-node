@@ -27,23 +27,17 @@
 #include "utility-v8.hpp"
 #include "utility.hpp"
 
-#ifdef WIN32
-const char* v_sem_name = nullptr; // Not used on Windows
-HANDLE v_sem;
-#else
-const char* v_sem_name = "volmeter-semaphore";
-sem_t *v_sem;
-#endif
-
 bool osn::Volmeter::m_all_workers_stop = false;
 
-void osn::Volmeter::start_worker(void)
+void osn::Volmeter::start_worker(Napi::Function async_callback)
 {
 	if (!worker_stop)
 		return;
 
 	worker_stop = false;
-	v_sem = create_semaphore(v_sem_name);
+	this->v_sem = create_semaphore(this->v_sem_name + this->m_uid);
+	asyncWorker = new osn::Volmeter::Worker(async_callback, this->v_sem);
+	asyncWorker->SuppressDestruct();
 	worker_thread = new std::thread(&osn::Volmeter::worker, this);
 }
 
@@ -53,21 +47,11 @@ void osn::Volmeter::stop_worker(void)
 		return;
 
 	worker_stop = true;
+	release_semaphore(this->v_sem);
 	if (worker_thread->joinable()) {
 		worker_thread->join();
 	}
-	for (auto queue_worker: v_queue_task_workers) {
-		if (queue_worker->joinable()) {
-			queue_worker->join();
-		}
-	}
-	remove_semaphore(v_sem, v_sem_name);
-}
-
-void osn::Volmeter::queueTask(std::shared_ptr<VolmeterData> data) {
-	wait_semaphore(v_sem);
-	asyncWorker->SetData(data);
-	asyncWorker->Queue();
+	remove_semaphore(this->v_sem, this->v_sem_name + this->m_uid);
 }
 
 void osn::Volmeter::worker()
@@ -75,6 +59,9 @@ void osn::Volmeter::worker()
 	size_t totalSleepMS = 0;
 
 	while (!worker_stop && !m_all_workers_stop) {
+		wait_semaphore(this->v_sem);
+		if (worker_stop || m_all_workers_stop)
+			break;
 		auto tp_start = std::chrono::high_resolution_clock::now();
 
 		// Validate Connection
@@ -86,7 +73,7 @@ void osn::Volmeter::worker()
 		// Call
 		try {
 			std::vector<ipc::value> response = conn->call_synchronous_helper(
-			    "VolMeter",
+			    "Volmeter",
 			    "Query",
 			    {
 			        ipc::value(m_uid),
@@ -111,7 +98,8 @@ void osn::Volmeter::worker()
 					data->peak[ch]       = response[2 + ch * 3 + 1].value_union.fp32;
 					data->input_peak[ch] = response[2 + ch * 3 + 2].value_union.fp32;
 				}
-				v_queue_task_workers.push_back(new std::thread(&Volmeter::queueTask, this, data));
+				asyncWorker->SetData(data);
+				asyncWorker->Queue();
 			} else if(error == ErrorCode::InvalidReference) {
 				goto do_sleep;
 			}
@@ -169,7 +157,7 @@ osn::Volmeter::Volmeter(const Napi::CallbackInfo& info)
 	this->m_uid = (uint64_t)info[0].ToNumber().Int64Value();
 	isWorkerRunning = false;
 	worker_stop = true;
-	sleepIntervalMS = 33;
+	sleepIntervalMS = info[1].ToNumber().Uint32Value();
 	asyncWorker = nullptr;
 	worker_thread = nullptr;
 }
@@ -194,9 +182,9 @@ Napi::Value osn::Volmeter::Create(const Napi::CallbackInfo& info)
 
     auto instance =
         osn::Volmeter::constructor.New({
-            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+            Napi::Number::New(info.Env(), response[1].value_union.ui64),
+            Napi::Number::New(info.Env(), response[2].value_union.ui32)
             });
-
     return instance;
 }
 
@@ -268,9 +256,7 @@ Napi::Value osn::Volmeter::AddCallback(const Napi::CallbackInfo& info)
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-	asyncWorker = new osn::Volmeter::Worker(async_callback);
-	asyncWorker->SuppressDestruct();
-	start_worker();
+	start_worker(async_callback);
 	isWorkerRunning = true;
 
 	return Napi::Boolean::New(info.Env(), true);

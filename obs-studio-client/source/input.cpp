@@ -714,8 +714,7 @@ Napi::Value osn::Input::AddFilter(const Napi::CallbackInfo& info)
 		return info.Env().Undefined();
 
 	conn->call("Input", "AddFilter", {ipc::value(this->sourceId), ipc::value(objfilter->sourceId)});
-
-	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(objfilter->sourceId);
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(this->sourceId);
 	if (sdi) {
 		sdi->filtersOrderChanged = true;
 	}
@@ -780,6 +779,7 @@ Napi::Value osn::Input::FindFilter(const Napi::CallbackInfo& info)
 				});
 		return instance;
 	}
+	return info.Env().Undefined();
 }
 
 Napi::Value osn::Input::CopyFilters(const Napi::CallbackInfo& info)

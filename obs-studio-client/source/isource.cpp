@@ -367,7 +367,7 @@ void osn::ISource::Update(const Napi::CallbackInfo& info, uint64_t id)
 		if (sdi) {
 			sdi->setting           = response[1].value_str;
 			sdi->settingsChanged   = false;
-			// sdi->propertiesChanged = true; // UNCOMENT ME ONCE PROPERTIES ARE MIGRATED
+			sdi->propertiesChanged = true;
 		}
 	}
 }

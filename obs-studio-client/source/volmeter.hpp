@@ -39,13 +39,29 @@ namespace osn
 {
 	class Volmeter : public Napi::ObjectWrap<osn::Volmeter>
 	{
+#ifdef WIN32
+		const char* v_sem_name = nullptr; // Not used on Windows
+		HANDLE v_sem;
+#else
+		const char* v_sem_name = "volmeter-semaphore";
+		sem_t *v_sem;
+#endif
 		class Worker: public Napi::AsyncWorker
 		{
+#ifdef WIN32
+		HANDLE sem;
+#else
+		sem_t *sem;
+#endif
 			public:
 			std::shared_ptr<VolmeterData> data = nullptr;
 
 			public:
-			Worker(Napi::Function& callback) : AsyncWorker(callback){};
+#ifdef WIN32
+			Worker(Napi::Function& callback, HANDLE sem) : AsyncWorker(callback){ this->sem = sem; };
+#else
+			Worker(Napi::Function& callback, sem_t *sem) : AsyncWorker(callback){ this->sem = sem; };
+#endif
 			virtual ~Worker() {};
 
 			void Execute() {
@@ -53,9 +69,9 @@ namespace osn
 					SetError("Invalid signal object");
 			};
 			void OnOK() {
-				Napi::Array magnitude;
-				Napi::Array peak;
-				Napi::Array input_peak;
+				Napi::Array magnitude = Napi::Array::New(Env());
+				Napi::Array peak = Napi::Array::New(Env());
+				Napi::Array input_peak = Napi::Array::New(Env());
 
 				for (size_t i = 0; i < data->magnitude.size(); i++) {
 					magnitude.Set(i, Napi::Number::New(Env(), data->magnitude[i]));
@@ -68,7 +84,7 @@ namespace osn
 				}
 
 				Callback().Call({ magnitude, peak, input_peak });
-				release_semaphore(v_sem);
+				release_semaphore(this->sem);
 			};
 			void SetData(std::shared_ptr<VolmeterData> new_data) {
 				data = new_data;
@@ -85,10 +101,8 @@ namespace osn
 		std::thread* worker_thread;
 
 		void worker(void);
-		void start_worker(void);
+		void start_worker(Napi::Function async_callback);
 		void stop_worker(void);
-		void queueTask(std::shared_ptr<VolmeterData> data);
-		std::vector<std::thread*> v_queue_task_workers;
 
 		static bool m_all_workers_stop;
 
