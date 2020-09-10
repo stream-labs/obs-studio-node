@@ -62,7 +62,7 @@ namespace osn
 #else
 			Worker(Napi::Function& callback, sem_t *sem) : AsyncWorker(callback){ this->sem = sem; };
 #endif
-			virtual ~Worker() {};
+			// virtual ~Worker() {};
 
 			void Execute() {
 				if (!data)
@@ -83,7 +83,9 @@ namespace osn
 					input_peak.Set(i, Napi::Number::New(Env(), data->input_peak[i]));
 				}
 
-				Callback().Call({ magnitude, peak, input_peak });
+				if (data->magnitude.size() > 0 && data->peak.size() > 0 && data->input_peak.size() > 0) {
+					Callback().Call({ magnitude, peak, input_peak });
+				}
 				release_semaphore(this->sem);
 			};
 			void SetData(std::shared_ptr<VolmeterData> new_data) {
