@@ -148,7 +148,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${NODE_ADDON_API_DIR})
 target_link_libraries(${PROJECT_NAME} ${LIBOBS_LIBRARIES})
 
 # Define NAPI_VERSION
-add_definitions(-DNAPI_VERSION=3)
+add_definitions(-DNAPI_VERSION=4)
  
 set_target_properties(
 	obs_studio_client

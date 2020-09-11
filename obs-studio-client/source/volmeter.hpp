@@ -28,82 +28,21 @@ struct VolmeterData
 	std::vector<float> input_peak;
 };
 
-extern const char* v_sem_name;
-#ifdef WIN32
-extern HANDLE v_sem;
-#else
-extern sem_t *v_sem;
-#endif
-
 namespace osn
 {
 	class Volmeter : public Napi::ObjectWrap<osn::Volmeter>
 	{
-#ifdef WIN32
-		const char* v_sem_name = nullptr; // Not used on Windows
-		HANDLE v_sem;
-#else
-		const char* v_sem_name = "volmeter-semaphore";
-		sem_t *v_sem;
-#endif
-		class Worker: public Napi::AsyncWorker
-		{
-#ifdef WIN32
-		HANDLE sem;
-#else
-		sem_t *sem;
-#endif
-			public:
-			std::shared_ptr<VolmeterData> data = nullptr;
-
-			public:
-#ifdef WIN32
-			Worker(Napi::Function& callback, HANDLE sem) : AsyncWorker(callback){ this->sem = sem; };
-#else
-			Worker(Napi::Function& callback, sem_t *sem) : AsyncWorker(callback){ this->sem = sem; };
-#endif
-			// virtual ~Worker() {};
-
-			void Execute() {
-				if (!data)
-					SetError("Invalid signal object");
-			};
-			void OnOK() {
-				Napi::Array magnitude = Napi::Array::New(Env());
-				Napi::Array peak = Napi::Array::New(Env());
-				Napi::Array input_peak = Napi::Array::New(Env());
-
-				for (size_t i = 0; i < data->magnitude.size(); i++) {
-					magnitude.Set(i, Napi::Number::New(Env(), data->magnitude[i]));
-				}
-				for (size_t i = 0; i < data->peak.size(); i++) {
-					peak.Set(i, Napi::Number::New(Env(), data->peak[i]));
-				}
-				for (size_t i = 0; i < data->input_peak.size(); i++) {
-					input_peak.Set(i, Napi::Number::New(Env(), data->input_peak[i]));
-				}
-
-				if (data->magnitude.size() > 0 && data->peak.size() > 0 && data->input_peak.size() > 0) {
-					Callback().Call({ magnitude, peak, input_peak });
-				}
-				release_semaphore(this->sem);
-			};
-			void SetData(std::shared_ptr<VolmeterData> new_data) {
-				data = new_data;
-			};
-		};
-
 		public:
 		uint64_t m_uid;
 
 		bool isWorkerRunning;
 		bool worker_stop;
 		uint32_t sleepIntervalMS;
-		Worker* asyncWorker;
 		std::thread* worker_thread;
+		Napi::ThreadSafeFunction js_thread;
 
 		void worker(void);
-		void start_worker(Napi::Function async_callback);
+		void start_worker(napi_env env, Napi::Function async_callback);
 		void stop_worker(void);
 
 		static bool m_all_workers_stop;
