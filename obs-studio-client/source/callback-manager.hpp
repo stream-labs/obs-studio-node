@@ -40,60 +40,19 @@ struct SourceSizeInfoData
 	std::vector<SourceSizeInfo*> items;
 };
 
-extern const char* source_sem_name;
-#ifdef WIN32
-extern HANDLE source_sem;
-#else
-extern sem_t *source_sem;
-#endif
-
 namespace sourceCallback
 {
-	class Worker: public Napi::AsyncWorker
-    {
-        public:
-        std::shared_ptr<SourceSizeInfoData> data = nullptr;
-
-        public:
-        Worker(Napi::Function& callback) : AsyncWorker(callback){};
-        virtual ~Worker() {};
-
-        void Execute() {
-            if (!data)
-                SetError("Invalid signal object");
-        };
-        void OnOK() {
-            Napi::Array result = Napi::Array::New(Env(), data->items.size());
-
-			for (size_t i = 0; i < data->items.size(); i++) {
-				Napi::Object obj = Napi::Object::New(Env());
-				obj.Set("name", Napi::String::New(Env(), data->items[i]->name));
-				obj.Set("width", Napi::Number::New(Env(), data->items[i]->width));
-				obj.Set("height", Napi::Number::New(Env(), data->items[i]->height));
-				obj.Set("flags", Napi::Number::New(Env(), data->items[i]->flags));
-				result.Set(i, obj);
-			}
-
-            Callback().Call({ result });
-			release_semaphore(source_sem);
-        };
-		void SetData(std::shared_ptr<SourceSizeInfoData> new_data) {
-			data = new_data;
-		};
-    };
-
 	extern bool isWorkerRunning;
 	extern bool worker_stop;
 	extern uint32_t sleepIntervalMS;
-	extern Worker* asyncWorker;
 	extern std::thread* worker_thread;
-	extern std::vector<std::thread*> source_queue_task_workers;
+	extern Napi::ThreadSafeFunction js_thread;
+    extern Napi::FunctionReference cb;
 	extern bool m_all_workers_stop;
 
 	void worker(void);
-	void start_worker(void);
+	void start_worker(napi_env env, Napi::Function async_callback);
 	void stop_worker(void);
-	void queueTask(std::shared_ptr<SourceSizeInfoData> data);
 
 	void Init(Napi::Env env, Napi::Object exports);
 

@@ -29,15 +29,19 @@
 
 bool osn::Volmeter::m_all_workers_stop = false;
 
-void osn::Volmeter::start_worker(Napi::Function async_callback)
+void osn::Volmeter::start_worker(napi_env env, Napi::Function async_callback)
 {
 	if (!worker_stop)
 		return;
 
 	worker_stop = false;
-	this->v_sem = create_semaphore(this->v_sem_name + this->m_uid);
-	asyncWorker = new osn::Volmeter::Worker(async_callback, this->v_sem);
-	asyncWorker->SuppressDestruct();
+	js_thread = Napi::ThreadSafeFunction::New(
+      env,
+      async_callback,
+      "Volmeter " + this->m_uid,
+      0,
+      1,
+      []( Napi::Env ) {} );
 	worker_thread = new std::thread(&osn::Volmeter::worker, this);
 }
 
@@ -47,30 +51,42 @@ void osn::Volmeter::stop_worker(void)
 		return;
 
 	worker_stop = true;
-	release_semaphore(this->v_sem);
 	if (worker_thread->joinable()) {
 		worker_thread->join();
 	}
-	remove_semaphore(this->v_sem, this->v_sem_name + this->m_uid);
 }
 
 void osn::Volmeter::worker()
 {
+    auto callback = []( Napi::Env env, Napi::Function jsCallback, VolmeterData* data ) {
+		Napi::Array magnitude = Napi::Array::New(env);
+		Napi::Array peak = Napi::Array::New(env);
+		Napi::Array input_peak = Napi::Array::New(env);
+
+		for (size_t i = 0; i < data->magnitude.size(); i++) {
+			magnitude.Set(i, Napi::Number::New(env, data->magnitude[i]));
+		}
+		for (size_t i = 0; i < data->peak.size(); i++) {
+			peak.Set(i, Napi::Number::New(env, data->peak[i]));
+		}
+		for (size_t i = 0; i < data->input_peak.size(); i++) {
+			input_peak.Set(i, Napi::Number::New(env, data->input_peak[i]));
+		}
+
+		if (data->magnitude.size() > 0 && data->peak.size() > 0 && data->input_peak.size() > 0) {
+			jsCallback.Call({ magnitude, peak, input_peak });
+		}
+    };
 	size_t totalSleepMS = 0;
 
 	while (!worker_stop && !m_all_workers_stop) {
-		wait_semaphore(this->v_sem);
-		if (worker_stop || m_all_workers_stop)
-			break;
 		auto tp_start = std::chrono::high_resolution_clock::now();
 
-		// Validate Connection
 		auto conn = Controller::GetInstance().GetConnection();
 		if (!conn) {
 			goto do_sleep;
 		}
 
-		// Call
 		try {
 			std::vector<ipc::value> response = conn->call_synchronous_helper(
 			    "Volmeter",
@@ -87,7 +103,7 @@ void osn::Volmeter::worker()
 
 			ErrorCode error = (ErrorCode)response[0].value_union.ui64;
 			if (error == ErrorCode::Ok) {
-				std::shared_ptr<VolmeterData> data     = std::make_shared<VolmeterData>();
+				VolmeterData* data     = new VolmeterData{{}, {}, {}};
 				size_t                             channels = response[1].value_union.i32;
 				data->magnitude.resize(channels);
 				data->peak.resize(channels);
@@ -98,8 +114,7 @@ void osn::Volmeter::worker()
 					data->peak[ch]       = response[2 + ch * 3 + 1].value_union.fp32;
 					data->input_peak[ch] = response[2 + ch * 3 + 2].value_union.fp32;
 				}
-				asyncWorker->SetData(data);
-				asyncWorker->Queue();
+				js_thread.BlockingCall( data, callback );
 			} else if(error == ErrorCode::InvalidReference) {
 				goto do_sleep;
 			}
@@ -118,6 +133,7 @@ void osn::Volmeter::worker()
 		totalSleepMS = sleepIntervalMS - dur.count();
 		std::this_thread::sleep_for(std::chrono::milliseconds(totalSleepMS));
 	}
+	js_thread.Release();
 }
 
 Napi::FunctionReference osn::Volmeter::constructor;
@@ -157,8 +173,8 @@ osn::Volmeter::Volmeter(const Napi::CallbackInfo& info)
 	this->m_uid = (uint64_t)info[0].ToNumber().Int64Value();
 	isWorkerRunning = false;
 	worker_stop = true;
-	sleepIntervalMS = info[1].ToNumber().Uint32Value();
-	asyncWorker = nullptr;
+	// sleepIntervalMS = info[1].ToNumber().Uint32Value();
+	sleepIntervalMS = 1;
 	worker_thread = nullptr;
 }
 
@@ -256,7 +272,7 @@ Napi::Value osn::Volmeter::AddCallback(const Napi::CallbackInfo& info)
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-	start_worker(async_callback);
+	start_worker(info.Env(), async_callback);
 	isWorkerRunning = true;
 
 	return Napi::Boolean::New(info.Env(), true);

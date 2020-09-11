@@ -34,25 +34,23 @@
 bool service::isWorkerRunning = false;
 bool service::worker_stop = true;
 uint32_t service::sleepIntervalMS = 33;
-service::Worker* service::asyncWorker = nullptr;
 std::thread* service::worker_thread = nullptr;
-std::vector<std::thread*> service::service_queue_task_workers;
+Napi::ThreadSafeFunction service::js_thread;
+Napi::FunctionReference service::cb;
 
-#ifdef WIN32
-const char* service_sem_name = nullptr; // Not used on Windows
-HANDLE service_sem;
-#else
-const char* service_sem_name = "service-semaphore";
-sem_t *service_sem;
-#endif
-
-void service::start_worker(void)
+void service::start_worker(napi_env env, Napi::Function async_callback)
 {
 	if (!worker_stop)
 		return;
 
 	worker_stop = false;
-	service_sem = create_semaphore(service_sem_name);
+	js_thread = Napi::ThreadSafeFunction::New(
+      env,
+      async_callback,
+      "Service",
+      0,
+      1,
+      []( Napi::Env ) {} );
 	worker_thread = new std::thread(&service::worker);
 }
 
@@ -65,18 +63,6 @@ void service::stop_worker(void)
 	if (worker_thread->joinable()) {
 		worker_thread->join();
 	}
-	for (auto queue_worker: service_queue_task_workers) {
-		if (queue_worker->joinable()) {
-			queue_worker->join();
-		}
-	}
-	remove_semaphore(service_sem, service_sem_name);
-}
-
-void service::queueTask(std::shared_ptr<SignalInfo> data) {
-	wait_semaphore(service_sem);
-	asyncWorker->SetData(data);
-	asyncWorker->Queue();
 }
 
 Napi::Value service::OBS_service_resetAudioContext(const Napi::CallbackInfo& info)
@@ -102,7 +88,7 @@ Napi::Value service::OBS_service_resetVideoContext(const Napi::CallbackInfo& inf
 Napi::Value service::OBS_service_startStreaming(const Napi::CallbackInfo& info)
 {
 	if (!isWorkerRunning) {
-		start_worker();
+		start_worker(info.Env(), cb.Value());
 		isWorkerRunning = true;
 	}
 
@@ -117,7 +103,7 @@ Napi::Value service::OBS_service_startStreaming(const Napi::CallbackInfo& info)
 Napi::Value service::OBS_service_startRecording(const Napi::CallbackInfo& info)
 {
 	if (!isWorkerRunning) {
-		start_worker();
+		start_worker(info.Env(), cb.Value());
 		isWorkerRunning = true;
 	}
 
@@ -132,7 +118,7 @@ Napi::Value service::OBS_service_startRecording(const Napi::CallbackInfo& info)
 Napi::Value service::OBS_service_startReplayBuffer(const Napi::CallbackInfo& info)
 {
 	if (!isWorkerRunning) {
-		start_worker();
+		start_worker(info.Env(), cb.Value());
 		isWorkerRunning = true;
 	}
 
@@ -190,8 +176,7 @@ Napi::Value service::OBS_service_connectOutputSignals(const Napi::CallbackInfo& 
 
 	conn->call("Service", "OBS_service_connectOutputSignals", {});
 
-	asyncWorker = new service::Worker(async_callback);
-	asyncWorker->SuppressDestruct();
+	cb = Napi::Persistent(async_callback);
 	return Napi::Boolean::New(info.Env(), true);
 }
 
@@ -222,6 +207,24 @@ Napi::Value service::OBS_service_getLastReplay(const Napi::CallbackInfo& info)
 
 void service::worker()
 {
+    auto callback = []( Napi::Env env, Napi::Function jsCallback, SignalInfo* data ) {
+		Napi::Object result = Napi::Object::New(env);
+
+		result.Set(
+			Napi::String::New(env, "type"),
+			Napi::String::New(env, data->outputType));
+		result.Set(
+			Napi::String::New(env, "signal"),
+			Napi::String::New(env, data->signal));
+		result.Set(
+			Napi::String::New(env, "code"),
+			Napi::Number::New(env, data->code));
+		result.Set(
+			Napi::String::New(env, "error"),
+			Napi::String::New(env, data->errorMessage));
+
+		jsCallback.Call({ result });
+    };
 	size_t totalSleepMS = 0;
 
 	while (!worker_stop) {
@@ -242,12 +245,12 @@ void service::worker()
 
 			ErrorCode error = (ErrorCode)response[0].value_union.ui64;
 			if (error == ErrorCode::Ok) {
-				std::shared_ptr<SignalInfo> data = std::make_shared<SignalInfo>();
+				SignalInfo* data = new SignalInfo{ "", "", 0, ""};
 				data->outputType   = response[1].value_str;
 				data->signal       = response[2].value_str;
 				data->code         = response[3].value_union.i32;
 				data->errorMessage = response[4].value_str;
-				service_queue_task_workers.push_back(new std::thread(&service::queueTask, data));
+				js_thread.BlockingCall( data, callback );
 			}
 		}
 
@@ -264,7 +267,6 @@ Napi::Value service::OBS_service_removeCallback(const Napi::CallbackInfo& info)
 {
 	if (isWorkerRunning) {
 		stop_worker();
-		// delete asyncWorker;
 	}
 	return info.Env().Undefined();
 }
