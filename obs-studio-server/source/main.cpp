@@ -221,6 +221,7 @@ int main(int argc, char* argv[])
 			auto tp    = std::chrono::high_resolution_clock::now();
 			auto delta = tp - sd.last_disconnect;
 			if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() > 5000) {
+				blog(LOG_INFO, "Waiting for ipc timed out");
 				doShutdown = true;
 				waitBeforeClosing = true;
 			}

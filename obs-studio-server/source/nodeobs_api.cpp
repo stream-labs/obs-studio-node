@@ -1184,15 +1184,34 @@ void acknowledgeTerminate()
 {
 	BOOL   fSuccess;
 	DWORD i, dwWait, cbRet, dwErr;
+	DWORD crash_handler_pid = 0;
 
 	while (!crash_handler_exit) {
-		if (crash_handler_timeout_activated) {
+		bool wait_crash_handler = false;
+		if (crash_handler_pid != 0) {
+			DWORD exit_code = (DWORD)-1;
+			const HANDLE parent_process_handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, crash_handler_pid);
+			if (parent_process_handle != INVALID_HANDLE_VALUE) {
+				GetExitCodeProcess(parent_process_handle, &exit_code);
+			}
+
+			CloseHandle(parent_process_handle);
+			if (exit_code != STILL_ACTIVE) {
+				crash_handler_pid = 0;
+				wait_crash_handler = false;
+				blog(LOG_INFO, "Crash handler process not alive anymore %d", exit_code);
+			} else {
+				wait_crash_handler = true;
+			}
+		}
+		if (crash_handler_timeout_activated && !wait_crash_handler) {
 			auto tp    = std::chrono::high_resolution_clock::now();
 			auto delta = tp - start_wait_acknowledge;
 
 			if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() > 5000) {
 				// We timeout, crash handler failed to send the shutdown acknowledge,
 				// we move forward with the shutdown procedure
+				blog(LOG_INFO, "Waiting for a message from crash handler is timedout");
 				crash_handler_exit = true;
 				CloseHandle(Pipe.hPipeInst);
 				break;
@@ -1237,20 +1256,26 @@ void acknowledgeTerminate()
 				    BUFFSIZE * sizeof(TCHAR),
 				    &Pipe.cbRead,
 				    &Pipe.oOverlap);
-
-				GetOverlappedResult(Pipe.hPipeInst, &Pipe.oOverlap, &Pipe.cbRead, false);
-
 				// The read operation completed successfully.
 				if (Pipe.cbRead > 0) {
 					Pipe.fPendingIO = FALSE;
+					char code = Pipe.chRequest.data()[0];
+					if (code == 1) {
+						crash_handler_exit = true;
+						crash_handler_pid = 0;
+						blog(LOG_INFO, "Got crash handler exit command");
+					} else if (code == 2) {
+						std::memcpy(&crash_handler_pid, Pipe.chRequest.data()+1, 4);
+						blog(LOG_INFO, "Got crash handler stay message with pid %d", crash_handler_pid);
+					}
 				}
 				dwErr = GetLastError();
 				if (!fSuccess && (dwErr == ERROR_IO_PENDING)) {
 					Pipe.fPendingIO = TRUE;
 					break;
 				}
-				crash_handler_exit = true;
 				DisconnectAndReconnect();
+
 				break;
 			}
 			}
@@ -1264,11 +1289,27 @@ void acknowledgeTerminate (void) {
 	int file_descriptor = open("exit-slobs-crash-handler", O_RDONLY);
 	if (file_descriptor < 0) {
 		blog(LOG_ERROR, "Could not open crash-handler exit fifo");
-        return;
-    }
+		return;
+	}
 
-	if (::read(file_descriptor, buffer.data(), buffer.size()) <= 0)
-		blog(LOG_ERROR, "Error while reading crash-handler exit message");
+	bool can_exit = false;
+	while (!can_exit) {
+		int read_bytes = 0;
+		if (read_bytes = ::read(file_descriptor, buffer.data(), buffer.size()) <= 0) {
+			blog(LOG_ERROR, "Error while reading crash-handler exit message");
+			can_exit = true;
+		} else {
+			char code = buffer.data()[0];
+			if(code == 1) {
+				blog(LOG_INFO, "Got crash handler exit command");
+				can_exit = true;
+			} else if (code == 2) {
+				blog(LOG_INFO, "Got crash handler stay message");
+				continue;
+			}
+		}
+	}
+	::close(file_descriptor);
 }
 
 bool prepareTerminationPipe() {
