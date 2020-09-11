@@ -1190,12 +1190,12 @@ void acknowledgeTerminate()
 		bool wait_crash_handler = false;
 		if (crash_handler_pid != 0) {
 			DWORD exit_code = (DWORD)-1;
-			const HANDLE parent_process_handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, crash_handler_pid);
-			if (parent_process_handle != INVALID_HANDLE_VALUE) {
-				GetExitCodeProcess(parent_process_handle, &exit_code);
+			HANDLE handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, crash_handler_pid);
+			if (handle != INVALID_HANDLE_VALUE) {
+				GetExitCodeProcess(handle, &exit_code);
 			}
 
-			CloseHandle(parent_process_handle);
+			CloseHandle(handle);
 			if (exit_code != STILL_ACTIVE) {
 				crash_handler_pid = 0;
 				wait_crash_handler = false;
