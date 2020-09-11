@@ -40,7 +40,7 @@ void replaceAll(std::string& str, const std::string& from, const std::string& to
 
 #ifdef WIN32
 HANDLE create_semaphore(const char* name = nullptr) {
-	return CreateSemaphore(NULL, 1, 2, NULL);
+	return CreateSemaphore(NULL, 1, 0, NULL);
 }
 
 void remove_semaphore(HANDLE sem, const char* name = nullptr) {

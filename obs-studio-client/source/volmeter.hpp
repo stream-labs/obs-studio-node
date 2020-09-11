@@ -20,6 +20,7 @@
 #include <napi.h>
 #include <thread>
 #include "utility-v8.hpp"
+#include <mutex>
 
 struct VolmeterData
 {
@@ -28,69 +29,115 @@ struct VolmeterData
 	std::vector<float> input_peak;
 };
 
-extern const char* v_sem_name;
-#ifdef WIN32
-extern HANDLE v_sem;
-#else
-extern sem_t *v_sem;
-#endif
-
 namespace osn
 {
 	class Volmeter : public Napi::ObjectWrap<osn::Volmeter>
 	{
-#ifdef WIN32
-		const char* v_sem_name = nullptr; // Not used on Windows
-		HANDLE v_sem;
-#else
-		const char* v_sem_name = "volmeter-semaphore";
-		sem_t *v_sem;
-#endif
-		class Worker: public Napi::AsyncWorker
+		class Worker: public Napi::AsyncProgressQueueWorker<VolmeterData>
 		{
-#ifdef WIN32
-		HANDLE sem;
-#else
-		sem_t *sem;
-#endif
 			public:
-			std::shared_ptr<VolmeterData> data = nullptr;
+			osn::Volmeter* parent;
 
 			public:
-#ifdef WIN32
-			Worker(Napi::Function& callback, HANDLE sem) : AsyncWorker(callback){ this->sem = sem; };
-#else
-			Worker(Napi::Function& callback, sem_t *sem) : AsyncWorker(callback){ this->sem = sem; };
-#endif
-			// virtual ~Worker() {};
-
-			void Execute() {
-				if (!data)
-					SetError("Invalid signal object");
+			Worker(Napi::Function& callback, osn::Volmeter* vol) :
+				AsyncProgressQueueWorker<VolmeterData>(callback) {
+				parent = vol;
+				std::cout << "constructor for " << parent->m_uid << std::endl;
 			};
-			void OnOK() {
+
+			virtual ~Worker() {};
+
+			void Execute(const ExecutionProgress& progress) {
+				std::cout << "Execute - " << parent->m_uid << std::endl;
+				size_t totalSleepMS = 0;
+
+				while (!parent->worker_stop && !parent->m_all_workers_stop) {
+					if (parent->m_uid == 4)
+						std::cout << "looping for " << parent->m_uid << std::endl;
+					auto tp_start = std::chrono::high_resolution_clock::now();
+
+					// Validate Connection
+					auto conn = Controller::GetInstance().GetConnection();
+					if (!conn) {
+						goto do_sleep;
+					}
+
+					// Call
+					try {
+						std::vector<ipc::value> response = conn->call_synchronous_helper(
+							"Volmeter",
+							"Query",
+							{
+								ipc::value(parent->m_uid),
+							});
+						if (!response.size()) {
+							goto do_sleep;
+						}
+						if ((response.size() == 1) && (response[0].type == ipc::type::Null)) {
+							goto do_sleep;
+						}
+
+						ErrorCode error = (ErrorCode)response[0].value_union.ui64;
+						if (error == ErrorCode::Ok) {
+							if (parent->m_uid == 4)
+								std::cout << "receiving data for " << parent->m_uid << std::endl;
+							VolmeterData* data = new VolmeterData { {}, {}, {}};
+							size_t channels = response[1].value_union.i32;
+							data->magnitude.resize(channels);
+							data->peak.resize(channels);
+							data->input_peak.resize(channels);
+
+							for (size_t ch = 0; ch < channels; ch++) {
+								data->magnitude[ch]  = response[2 + ch * 3 + 0].value_union.fp32;
+								data->peak[ch]       = response[2 + ch * 3 + 1].value_union.fp32;
+								data->input_peak[ch] = response[2 + ch * 3 + 2].value_union.fp32;
+							}
+							progress.Send(std::move(data), 1);
+						} else if(error == ErrorCode::InvalidReference) {
+							goto do_sleep;
+						}
+						else
+						{
+							std::cerr << "Failed VolMeter" << std::endl;
+							break;
+						}
+					} catch (std::exception e) {
+						goto do_sleep;
+					}
+
+				do_sleep:
+					auto tp_end  = std::chrono::high_resolution_clock::now();
+					auto dur     = std::chrono::duration_cast<std::chrono::milliseconds>(tp_end - tp_start);
+					totalSleepMS = parent->sleepIntervalMS - dur.count();
+					std::this_thread::sleep_for(std::chrono::milliseconds(totalSleepMS));
+				}
+				std::cout << "end for " << parent->m_uid << std::endl;
+			};
+			void OnProgress(const VolmeterData* data, size_t size) {
+				if (parent->m_uid == 4)
+					std::cout << "OnProgress for " << parent->m_uid << std::endl;
+				if (!data)
+					return;
 				Napi::Array magnitude = Napi::Array::New(Env());
 				Napi::Array peak = Napi::Array::New(Env());
 				Napi::Array input_peak = Napi::Array::New(Env());
 
-				for (size_t i = 0; i < data->magnitude.size(); i++) {
+				for (size_t i = 0; i < data->magnitude.size(); i++)
 					magnitude.Set(i, Napi::Number::New(Env(), data->magnitude[i]));
-				}
-				for (size_t i = 0; i < data->peak.size(); i++) {
+				for (size_t i = 0; i < data->peak.size(); i++)
 					peak.Set(i, Napi::Number::New(Env(), data->peak[i]));
-				}
-				for (size_t i = 0; i < data->input_peak.size(); i++) {
+				for (size_t i = 0; i < data->input_peak.size(); i++)
 					input_peak.Set(i, Napi::Number::New(Env(), data->input_peak[i]));
-				}
 
-				if (data->magnitude.size() > 0 && data->peak.size() > 0 && data->input_peak.size() > 0) {
+				if (data->magnitude.size() == 0 && data->peak.size() == 0 && data->input_peak.size() == 0) {
+
+				} else {
+					if (parent->m_uid == 4)
+						std::cout << "Calling for " << parent->m_uid << std::endl;
 					Callback().Call({ magnitude, peak, input_peak });
 				}
-				release_semaphore(this->sem);
 			};
-			void SetData(std::shared_ptr<VolmeterData> new_data) {
-				data = new_data;
-			};
+			void OnOk() {};
 		};
 
 		public:

@@ -128,6 +128,14 @@ Napi::Object main_node(Napi::Env env, Napi::Object exports) {
 	service::Init(env, exports);
 	autoConfig::Init(env, exports);
 	sourceCallback::Init(env, exports);
+	
+// putenv("UV_THREADPOOL_SIZE=5");
+
+	// std::ostringstream classSize;
+	// classSize << "UV_THREADPOOL_SIZE=" << 5;
+	// _putenv(classSize.str().c_str());
+	// putenv("UV_THREADPOOL_SIZE=8");
+	// setenv("UV_THREADPOOL_SIZE", 8, 1);
 	return exports;
 };
 

@@ -29,97 +29,6 @@
 
 bool osn::Volmeter::m_all_workers_stop = false;
 
-void osn::Volmeter::start_worker(Napi::Function async_callback)
-{
-	if (!worker_stop)
-		return;
-
-	worker_stop = false;
-	this->v_sem = create_semaphore(this->v_sem_name + this->m_uid);
-	asyncWorker = new osn::Volmeter::Worker(async_callback, this->v_sem);
-	asyncWorker->SuppressDestruct();
-	worker_thread = new std::thread(&osn::Volmeter::worker, this);
-}
-
-void osn::Volmeter::stop_worker(void)
-{
-	if (worker_stop != false)
-		return;
-
-	worker_stop = true;
-	release_semaphore(this->v_sem);
-	if (worker_thread->joinable()) {
-		worker_thread->join();
-	}
-	remove_semaphore(this->v_sem, this->v_sem_name + this->m_uid);
-}
-
-void osn::Volmeter::worker()
-{
-	size_t totalSleepMS = 0;
-
-	while (!worker_stop && !m_all_workers_stop) {
-		wait_semaphore(this->v_sem);
-		if (worker_stop || m_all_workers_stop)
-			break;
-		auto tp_start = std::chrono::high_resolution_clock::now();
-
-		// Validate Connection
-		auto conn = Controller::GetInstance().GetConnection();
-		if (!conn) {
-			goto do_sleep;
-		}
-
-		// Call
-		try {
-			std::vector<ipc::value> response = conn->call_synchronous_helper(
-			    "Volmeter",
-			    "Query",
-			    {
-			        ipc::value(m_uid),
-			    });
-			if (!response.size()) {
-				goto do_sleep;
-			}
-			if ((response.size() == 1) && (response[0].type == ipc::type::Null)) {
-				goto do_sleep;
-			}
-
-			ErrorCode error = (ErrorCode)response[0].value_union.ui64;
-			if (error == ErrorCode::Ok) {
-				std::shared_ptr<VolmeterData> data     = std::make_shared<VolmeterData>();
-				size_t                             channels = response[1].value_union.i32;
-				data->magnitude.resize(channels);
-				data->peak.resize(channels);
-				data->input_peak.resize(channels);
-
-				for (size_t ch = 0; ch < channels; ch++) {
-					data->magnitude[ch]  = response[2 + ch * 3 + 0].value_union.fp32;
-					data->peak[ch]       = response[2 + ch * 3 + 1].value_union.fp32;
-					data->input_peak[ch] = response[2 + ch * 3 + 2].value_union.fp32;
-				}
-				asyncWorker->SetData(data);
-				asyncWorker->Queue();
-			} else if(error == ErrorCode::InvalidReference) {
-				goto do_sleep;
-			}
-			else
-			{
-				std::cerr << "Failed VolMeter" << std::endl;
-				break;
-			}
-		} catch (std::exception e) {
-			goto do_sleep;
-		}
-
-	do_sleep:
-		auto tp_end  = std::chrono::high_resolution_clock::now();
-		auto dur     = std::chrono::duration_cast<std::chrono::milliseconds>(tp_end - tp_start);
-		totalSleepMS = sleepIntervalMS - dur.count();
-		std::this_thread::sleep_for(std::chrono::milliseconds(totalSleepMS));
-	}
-}
-
 Napi::FunctionReference osn::Volmeter::constructor;
 
 Napi::Object osn::Volmeter::Init(Napi::Env env, Napi::Object exports) {
@@ -158,6 +67,7 @@ osn::Volmeter::Volmeter(const Napi::CallbackInfo& info)
 	isWorkerRunning = false;
 	worker_stop = true;
 	sleepIntervalMS = info[1].ToNumber().Uint32Value();
+	// sleepIntervalMS = 500;
 	asyncWorker = nullptr;
 	worker_thread = nullptr;
 }
@@ -228,6 +138,7 @@ Napi::Value osn::Volmeter::Attach(const Napi::CallbackInfo& info)
 	if (!conn)
 		return info.Env().Undefined();
 
+	std::cout << "Attaching volmeter " << this->m_uid << " to source " << input->sourceId << std::endl;
 	conn->call("Volmeter", "Attach", {ipc::value(this->m_uid), ipc::value(input->sourceId)});
 	return info.Env().Undefined();
 }
@@ -250,15 +161,23 @@ Napi::Value osn::Volmeter::AddCallback(const Napi::CallbackInfo& info)
 	if (!conn)
 		return info.Env().Undefined();
 
+	std::cout << "Adding callback for " << this->m_uid	<< std::endl;
+
 	std::vector<ipc::value> response =
 		conn->call_synchronous_helper("Volmeter", "AddCallback", {ipc::value(this->m_uid)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-	start_worker(async_callback);
+	worker_stop = false;
+	std::cout << "creating asyncWorker for " << this->m_uid << std::endl;
+	asyncWorker = new osn::Volmeter::Worker(async_callback, this);
+	asyncWorker->SuppressDestruct();
+	std::cout << "asyncWorker queue for " << this->m_uid << std::endl;
+	asyncWorker->Queue();
 	isWorkerRunning = true;
-
+	
+	std::cout << "return for " << this->m_uid << std::endl;
 	return Napi::Boolean::New(info.Env(), true);
 }
 
@@ -268,14 +187,17 @@ Napi::Value osn::Volmeter::RemoveCallback(const Napi::CallbackInfo& info)
 	if (!conn)
 		return info.Env().Undefined();
 
+	std::cout << "Remove callback for " << this->m_uid	<< std::endl;
+
 	std::vector<ipc::value> response =
 		conn->call_synchronous_helper("Volmeter", "RemoveCallback", {ipc::value(this->m_uid)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-	if (isWorkerRunning)
-		stop_worker();
+	worker_stop = true;
+	// asyncWorker->Cancel();
 	// delete asyncWorker;
+	std::cout << "Delete async worker for " << this->m_uid	<< std::endl;
 	return Napi::Boolean::New(info.Env(), true);
 }

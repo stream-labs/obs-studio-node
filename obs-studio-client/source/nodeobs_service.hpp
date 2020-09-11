@@ -50,7 +50,7 @@ namespace service
 
         public:
         Worker(Napi::Function& callback) : AsyncWorker(callback){};
-        virtual ~Worker() {};
+        // virtual ~Worker() {};
 
         void Execute() {
             if (!data)
@@ -72,6 +72,7 @@ namespace service
                 Napi::String::New(Env(), "error"),
                 Napi::String::New(Env(), data->errorMessage));
 
+            std::cout << "calling " << data->signal.c_str() << std::endl;
             Callback().Call({ result });
 			release_semaphore(service_sem);
         };

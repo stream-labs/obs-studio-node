@@ -91,47 +91,47 @@ Napi::Value sourceCallback::RegisterSourceCallback(const Napi::CallbackInfo& inf
 
 void sourceCallback::worker()
 {
-	size_t totalSleepMS = 0;
+	// size_t totalSleepMS = 0;
 
-	while (!worker_stop && !m_all_workers_stop) {
-		auto tp_start = std::chrono::high_resolution_clock::now();
+	// while (!worker_stop && !m_all_workers_stop) {
+	// 	auto tp_start = std::chrono::high_resolution_clock::now();
 
-		// Validate Connection
-		auto conn = Controller::GetInstance().GetConnection();
-		if (!conn) {
-			goto do_sleep;
-		}
+	// 	// Validate Connection
+	// 	auto conn = Controller::GetInstance().GetConnection();
+	// 	if (!conn) {
+	// 		goto do_sleep;
+	// 	}
 
-		// Call
-		{
-			std::vector<ipc::value> response = conn->call_synchronous_helper("CallbackManager", "QuerySourceSize", {});
-			if (!response.size() || (response.size() == 1)) {
-				goto do_sleep;
-			}
+	// 	// Call
+	// 	{
+	// 		std::vector<ipc::value> response = conn->call_synchronous_helper("CallbackManager", "QuerySourceSize", {});
+	// 		if (!response.size() || (response.size() == 1)) {
+	// 			goto do_sleep;
+	// 		}
 
-			ErrorCode error = (ErrorCode)response[0].value_union.ui64;
-			if (error == ErrorCode::Ok) {
-				std::shared_ptr<SourceSizeInfoData> data = std::make_shared<SourceSizeInfoData>();
-				for (int i = 2; i < (response[1].value_union.ui32*4) + 2; i++) {
-					SourceSizeInfo* item = new SourceSizeInfo;
+	// 		ErrorCode error = (ErrorCode)response[0].value_union.ui64;
+	// 		if (error == ErrorCode::Ok) {
+	// 			std::shared_ptr<SourceSizeInfoData> data = std::make_shared<SourceSizeInfoData>();
+	// 			for (int i = 2; i < (response[1].value_union.ui32*4) + 2; i++) {
+	// 				SourceSizeInfo* item = new SourceSizeInfo;
 
-					item->name   = response[i++].value_str;
-					item->width  = response[i++].value_union.ui32;
-					item->height = response[i++].value_union.ui32;
-					item->flags  = response[i].value_union.ui32;
-					data->items.push_back(item);
-				}
-				source_queue_task_workers.push_back(new std::thread(&sourceCallback::queueTask, data));
-			}
-		}
+	// 				item->name   = response[i++].value_str;
+	// 				item->width  = response[i++].value_union.ui32;
+	// 				item->height = response[i++].value_union.ui32;
+	// 				item->flags  = response[i].value_union.ui32;
+	// 				data->items.push_back(item);
+	// 			}
+	// 			source_queue_task_workers.push_back(new std::thread(&sourceCallback::queueTask, data));
+	// 		}
+	// 	}
 
-	do_sleep:
-		auto tp_end  = std::chrono::high_resolution_clock::now();
-		auto dur     = std::chrono::duration_cast<std::chrono::milliseconds>(tp_end - tp_start);
-		totalSleepMS = sleepIntervalMS - dur.count();
-		std::this_thread::sleep_for(std::chrono::milliseconds(totalSleepMS));
-	}
-	return;
+	// do_sleep:
+	// 	auto tp_end  = std::chrono::high_resolution_clock::now();
+	// 	auto dur     = std::chrono::duration_cast<std::chrono::milliseconds>(tp_end - tp_start);
+	// 	totalSleepMS = sleepIntervalMS - dur.count();
+	// 	std::this_thread::sleep_for(std::chrono::milliseconds(totalSleepMS));
+	// }
+	// return;
 }
 
 Napi::Value sourceCallback::RemoveSourceCallback(const Napi::CallbackInfo& info)

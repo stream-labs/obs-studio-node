@@ -242,12 +242,18 @@ void service::worker()
 
 			ErrorCode error = (ErrorCode)response[0].value_union.ui64;
 			if (error == ErrorCode::Ok) {
+				std::cout << "service sem_wait" << std::endl;
+				wait_semaphore(service_sem);
+				std::cout << "service sem_wait - end" << std::endl;
 				std::shared_ptr<SignalInfo> data = std::make_shared<SignalInfo>();
 				data->outputType   = response[1].value_str;
 				data->signal       = response[2].value_str;
 				data->code         = response[3].value_union.i32;
 				data->errorMessage = response[4].value_str;
-				service_queue_task_workers.push_back(new std::thread(&service::queueTask, data));
+				// service_queue_task_workers.push_back(new std::thread(&service::queueTask, data));
+				std::cout << "queueing " << data->signal.c_str() << std::endl;
+				asyncWorker->SetData(data);
+				asyncWorker->Queue();
 			}
 		}
 

@@ -180,7 +180,7 @@ Napi::Value osn::Input::Create(const Napi::CallbackInfo& info)
 	sdi->audioMixers    = response[3].value_union.ui32;
 
 	CacheManager<SourceDataInfo*>::getInstance().Store(response[1].value_union.ui64, name, sdi);
-
+	std::cout << "Create input " << name.c_str() << " with id " << response[1].value_union.ui64 << std::endl;
     auto instance =
         osn::Input::constructor.New({
             Napi::Number::New(info.Env(), response[1].value_union.ui64)
