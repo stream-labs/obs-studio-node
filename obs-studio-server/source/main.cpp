@@ -227,7 +227,9 @@ int main(int argc, char* argv[])
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(50));
 	}
-	// Wait on receive the exit message from the crash-handler
+	// Wait on crash handler listening thread to finish.
+	// waitBeforeClosing - we expect to receive the exit message from the crash-handler before going further.
+	// It required for obs64 process to stay alive till user confirm exit in crash-handler.
 	OBS_API::WaitCrashHandlerClose(waitBeforeClosing);
 #endif
 	osn::Source::finalize_global_signals();

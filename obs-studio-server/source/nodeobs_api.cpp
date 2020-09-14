@@ -1288,16 +1288,11 @@ void OBS_API::CreateCrashHandlerExitPipe()
 	}
 }
 
-void OBS_API::WaitCrashHandlerClose(bool WaitCrashHandlerClose) 
+void OBS_API::WaitCrashHandlerClose(bool waitBeforeClosing)
 {
 	if (crash_handler_responce_thread) {
-
-		if (WaitCrashHandlerClose) {
-			start_wait_acknowledge = std::chrono::high_resolution_clock::now();
-			crash_handler_timeout_activated = true;
-		}
-		else 			
-			 crash_handler_exit = true;
+		if (!waitBeforeClosing)
+			crash_handler_exit = true;
 			
 		if (crash_handler_responce_thread->joinable())
 			crash_handler_responce_thread->join();
@@ -1315,7 +1310,11 @@ void OBS_API::StopCrashHandler(
 	if (crash_handler_responce_thread) {
 		writeCrashHandler(unregisterProcess());
 
-		WaitCrashHandlerClose(true);
+		start_wait_acknowledge = std::chrono::high_resolution_clock::now();
+		crash_handler_timeout_activated = true;
+
+		if (crash_handler_responce_thread->joinable())
+			crash_handler_responce_thread->join();
 	} else {
 		writeCrashHandler(unregisterProcess());
 
