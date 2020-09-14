@@ -58,10 +58,10 @@ static void FixChromeD3DIssue(HWND chromeWindow)
 Napi::Value display::OBS_content_createDisplay(const Napi::CallbackInfo& info)
 {
 	Napi::Buffer<void *> bufferData = info[0].As<Napi::Buffer<void*>>();
-	HWND windowHandle = static_cast<HWND>(*reinterpret_cast<void **>(bufferData.Data()));
+	uint64_t* windowHandle = static_cast<uint64_t*>(*reinterpret_cast<void **>(bufferData.Data()));
 
 #ifdef WIN32
-	FixChromeD3DIssue(windowHandle);
+	FixChromeD3DIssue((HWND)windowHandle);
 #endif
 
 	std::string key = info[1].ToString().Utf8Value();
@@ -130,10 +130,10 @@ Napi::Value display::OBS_content_getDisplayPreviewSize(const Napi::CallbackInfo&
 Napi::Value display::OBS_content_createSourcePreviewDisplay(const Napi::CallbackInfo& info)
 {
 	Napi::Buffer<void *> bufferData = info[0].As<Napi::Buffer<void*>>();
-	HWND windowHandle = static_cast<HWND>(*reinterpret_cast<void **>(bufferData.Data()));
+	uint64_t* windowHandle = static_cast<uint64_t*>(*reinterpret_cast<void **>(bufferData.Data()));
 
 #ifdef WIN32
-	FixChromeD3DIssue(windowHandle);
+	FixChromeD3DIssue((HWND)windowHandle);
 #endif
 
 	std::string sourceName = info[1].ToString().Utf8Value();
