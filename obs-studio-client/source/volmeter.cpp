@@ -173,8 +173,7 @@ osn::Volmeter::Volmeter(const Napi::CallbackInfo& info)
 	this->m_uid = (uint64_t)info[0].ToNumber().Int64Value();
 	isWorkerRunning = false;
 	worker_stop = true;
-	// sleepIntervalMS = info[1].ToNumber().Uint32Value();
-	sleepIntervalMS = 1;
+	sleepIntervalMS = info[1].ToNumber().Uint32Value();
 	worker_thread = nullptr;
 }
 
