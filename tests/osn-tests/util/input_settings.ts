@@ -126,7 +126,7 @@ let gameCapture: ISettings = {
     auto_capture_rules_path: '',
     auto_fit_to_output: true,
     auto_placeholder_image: "",
-    auto_placeholder_message: 'Looking for a game to caputure',
+    auto_placeholder_message: 'Looking for a game to capture',
     capture_cursor: true,
     capture_mode: 'any_fullscreen',
     capture_overlays: false,
@@ -135,7 +135,9 @@ let gameCapture: ISettings = {
     limit_framerate: false,
     priority: 2,
     scale_res: '0x0',
-    sli_compatibility: false
+    sli_compatibility: false,
+    user_placeholder_image: '',
+    user_placeholder_use: false
 };
 export {gameCapture};
 
