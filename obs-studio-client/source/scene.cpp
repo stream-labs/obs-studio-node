@@ -283,8 +283,8 @@ Napi::Value osn::Scene::AddSource(const Napi::CallbackInfo& info)
 		params.push_back(ipc::value(crop.Get("right").ToNumber().Int64Value()));
 		params.push_back(ipc::value(crop.Get("bottom").ToNumber().Int64Value()));
 
-		params.push_back(ipc::value(crop.Get("streamVisible").ToBoolean().Value()));
-		params.push_back(ipc::value(crop.Get("recordingVisible").ToBoolean().Value()));
+		params.push_back(ipc::value(transform.Get("streamVisible").ToBoolean().Value()));
+		params.push_back(ipc::value(transform.Get("recordingVisible").ToBoolean().Value()));
 	}
 
 	auto conn = GetConnection(info);
