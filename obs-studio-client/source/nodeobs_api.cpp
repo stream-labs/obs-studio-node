@@ -266,6 +266,7 @@ Napi::Value api::RequestPermissions(const Napi::CallbackInfo& info)
 #ifdef __APPLE__
 	Napi::Function async_callback = info[0].As<Napi::Function>();
 	worker = new api::Worker(async_callback);
+	worker->SuppressDestruct();
 
 	auto cb = [](void* data, bool webcam, bool mic) {
 		api::Worker* worker = reinterpret_cast<api::Worker*>(data);
