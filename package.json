@@ -66,10 +66,5 @@
     "mixer",
     "beam"
   ],
-  "dependencies": {},
-  "cmake-js": {
-    "runtime": "electron",
-    "runtimeVersion": "6.1.11",
-    "arch": "x64"
-  }
+  "dependencies": {}
 }
