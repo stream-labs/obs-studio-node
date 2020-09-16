@@ -42,7 +42,6 @@ namespace sourceCallback
 	extern uint32_t sleepIntervalMS;
 	extern std::thread* worker_thread;
 	extern Napi::ThreadSafeFunction js_thread;
-	extern Napi::FunctionReference cb;
 	extern bool m_all_workers_stop;
 
 	void worker(void);
