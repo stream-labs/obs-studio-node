@@ -32,7 +32,6 @@ bool sourceCallback::worker_stop = true;
 uint32_t sourceCallback::sleepIntervalMS = 33;
 std::thread* sourceCallback::worker_thread = nullptr;
 Napi::ThreadSafeFunction sourceCallback::js_thread;
-Napi::FunctionReference sourceCallback::cb;
 bool sourceCallback::m_all_workers_stop = false;
 
 void sourceCallback::start_worker(napi_env env, Napi::Function async_callback)
