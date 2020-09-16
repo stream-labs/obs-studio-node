@@ -47,6 +47,7 @@ describe(testName, () => {
         // Create all input sources available
         obs.inputTypes.forEach(function(inputType) {
             const input = osn.InputFactory.create(inputType, 'input');
+
             // Checking if input source was created correctly
             expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
             expect(input.id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
@@ -169,6 +170,7 @@ describe(testName, () => {
 
             const input = osn.InputFactory.create(inputType, 'input', settings);
 
+
             // Checking if input source was created correctly
             expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
             expect(input.id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
@@ -267,7 +269,7 @@ describe(testName, () => {
         expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
         expect(input.id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
         expect(input.name).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
-        
+
         // Setting input audio mixers value
         input.audioMixers = 3;
 

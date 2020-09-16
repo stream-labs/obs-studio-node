@@ -1411,8 +1411,6 @@ export interface IFader {
      */
     mul: number;
 
-    value(): number;
-
     /**
      * Attach to a source to monitor the volume of
      * @param source Input source to attach to

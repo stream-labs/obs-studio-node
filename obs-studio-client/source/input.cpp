@@ -198,7 +198,6 @@ Napi::Value osn::Input::CreatePrivate(const Napi::CallbackInfo& info)
 	Napi::Object json = info.Env().Global().Get("JSON").As<Napi::Object>();
 	Napi::Function stringify = json.Get("stringify").As<Napi::Function>();
 
-	// Check if caller provided settings to send across.
 	if (info.Length() >= 3) {
 		Napi::Object setobj = info[2].ToObject();
 		settings = stringify.Call(json, { setobj }).As<Napi::String>();
@@ -293,11 +292,6 @@ Napi::Value osn::Input::GetPublicSources(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::Duplicate(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	std::string name       = "";
 	bool        is_private = false;
 
@@ -334,11 +328,6 @@ Napi::Value osn::Input::Duplicate(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::Active(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
@@ -354,11 +343,6 @@ Napi::Value osn::Input::Active(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::Showing(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
@@ -374,11 +358,6 @@ Napi::Value osn::Input::Showing(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::Width(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
@@ -394,11 +373,6 @@ Napi::Value osn::Input::Width(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::Height(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
@@ -414,11 +388,6 @@ Napi::Value osn::Input::Height(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::GetVolume(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
@@ -434,11 +403,6 @@ Napi::Value osn::Input::GetVolume(const Napi::CallbackInfo& info)
 
 void osn::Input::SetVolume(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return;
-
 	auto conn = GetConnection(info);
 	if (!conn)
 		return;
@@ -448,11 +412,6 @@ void osn::Input::SetVolume(const Napi::CallbackInfo& info, const Napi::Value &va
 
 Napi::Value osn::Input::GetSyncOffset(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
@@ -471,11 +430,6 @@ Napi::Value osn::Input::GetSyncOffset(const Napi::CallbackInfo& info)
 
 void osn::Input::SetSyncOffset(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return;
-
 	Napi::Object tsobj = info[0].ToObject();
 
 	int64_t sec = tsobj.Get("sec").ToNumber().Int64Value();
@@ -492,11 +446,6 @@ void osn::Input::SetSyncOffset(const Napi::CallbackInfo& info, const Napi::Value
 
 Napi::Value osn::Input::GetAudioMixers(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(this->sourceId);
 	if (sdi && !sdi->audioMixersChanged && sdi->audioMixers != UINT32_MAX)
 		return Napi::Number::New(info.Env(), sdi->audioMixers);
@@ -521,11 +470,6 @@ Napi::Value osn::Input::GetAudioMixers(const Napi::CallbackInfo& info)
 
 void osn::Input::SetAudioMixers(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return;
-
 	uint32_t audiomixers = info[0].ToNumber().Uint32Value();
 
 	auto conn = GetConnection(info);
@@ -542,11 +486,6 @@ void osn::Input::SetAudioMixers(const Napi::CallbackInfo& info, const Napi::Valu
 
 Napi::Value osn::Input::GetMonitoringType(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
@@ -562,11 +501,6 @@ Napi::Value osn::Input::GetMonitoringType(const Napi::CallbackInfo& info)
 
 void osn::Input::SetMonitoringType(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return;
-
 	int32_t audiomixers = info[0].ToNumber().Int32Value();
 
 	auto conn = GetConnection(info);
@@ -578,11 +512,6 @@ void osn::Input::SetMonitoringType(const Napi::CallbackInfo& info, const Napi::V
 
 Napi::Value osn::Input::GetDeinterlaceFieldOrder(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
@@ -598,11 +527,6 @@ Napi::Value osn::Input::GetDeinterlaceFieldOrder(const Napi::CallbackInfo& info)
 
 void osn::Input::SetDeinterlaceFieldOrder(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return;
-
 	int32_t deinterlaceOrder = info[0].ToNumber().Int32Value();
 
 	auto conn = GetConnection(info);
@@ -614,11 +538,6 @@ void osn::Input::SetDeinterlaceFieldOrder(const Napi::CallbackInfo& info, const 
 
 Napi::Value osn::Input::GetDeinterlaceMode(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
@@ -634,11 +553,6 @@ Napi::Value osn::Input::GetDeinterlaceMode(const Napi::CallbackInfo& info)
 
 void osn::Input::SetDeinterlaceMode(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return;
-
 	int32_t deinterlaceMode = info[0].ToNumber().Int32Value();
 
 	auto conn = GetConnection(info);
@@ -650,11 +564,6 @@ void osn::Input::SetDeinterlaceMode(const Napi::CallbackInfo& info, const Napi::
 
 Napi::Value osn::Input::Filters(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(this->sourceId);
 
 	if (sdi && !sdi->filtersOrderChanged) {
@@ -694,14 +603,13 @@ Napi::Value osn::Input::Filters(const Napi::CallbackInfo& info)
 				});
 		array.Set(uint32_t(idx) - 1, instance);
 
-		if (sdi) {
+		if (sdi)
 			filters->push_back(response[idx].value_union.ui64);
-		}
 	}
 
-	if (sdi) {
+	if (sdi)
 		sdi->filtersOrderChanged = false;
-	}
+
 	return array;
 }
 
@@ -795,163 +703,82 @@ Napi::Value osn::Input::CopyFilters(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::CallIsConfigurable(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	return osn::ISource::IsConfigurable(info, this->sourceId);
 }
 
 Napi::Value osn::Input::CallGetProperties(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetProperties(info, this->sourceId);
 }
 
 Napi::Value osn::Input::CallGetSettings(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetSettings(info, this->sourceId);
 }
 
 
 Napi::Value osn::Input::CallGetType(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetType(info, this->sourceId);
 }
 
 Napi::Value osn::Input::CallGetName(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetName(info, this->sourceId);
 }
 
 void osn::Input::CallSetName(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return;
-
 	osn::ISource::SetName(info, value, this->sourceId);
 }
 
 Napi::Value osn::Input::CallGetOutputFlags(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetOutputFlags(info, this->sourceId);
 }
 
 Napi::Value osn::Input::CallGetFlags(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetFlags(info, this->sourceId);
 }
 
 void osn::Input::CallSetFlags(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return;
-
 	osn::ISource::SetFlags(info, value, this->sourceId);
 }
 
 Napi::Value osn::Input::CallGetStatus(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetStatus(info, this->sourceId);
 }
 
 Napi::Value osn::Input::CallGetId(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
-
 	return osn::ISource::GetId(info, this->sourceId);
 }
 
 Napi::Value osn::Input::CallGetMuted(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetMuted(info, this->sourceId);
 }
 
 void osn::Input::CallSetMuted(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return;
-
 	osn::ISource::SetMuted(info, value, this->sourceId);
 }
 
 Napi::Value osn::Input::CallGetEnabled(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetEnabled(info, this->sourceId);
 }
 
 void osn::Input::CallSetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return;
-
 	osn::ISource::SetEnabled(info, value, this->sourceId);
 }
 
 Napi::Value osn::Input::CallRelease(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	osn::ISource::Release(info, this->sourceId);
 
 	return info.Env().Undefined();
@@ -959,24 +786,14 @@ Napi::Value osn::Input::CallRelease(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::CallRemove(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	osn::ISource::Remove(info, this->sourceId);
-	info.This().ToObject().Set("sourceId", UINT64_MAX);
+	this->sourceId = UINT64_MAX;
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Input::CallUpdate(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	osn::ISource::Update(info, this->sourceId);
 
 	return info.Env().Undefined();
@@ -984,11 +801,6 @@ Napi::Value osn::Input::CallUpdate(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::CallLoad(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	osn::ISource::Load(info, this->sourceId);
 
 	return info.Env().Undefined();
@@ -996,11 +808,6 @@ Napi::Value osn::Input::CallLoad(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::CallSave(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	osn::ISource::Save(info, this->sourceId);
 
 	return info.Env().Undefined();
@@ -1008,11 +815,6 @@ Napi::Value osn::Input::CallSave(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::CallSendMouseClick(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	osn::ISource::SendMouseClick(info, this->sourceId);
 
 	return info.Env().Undefined();
@@ -1020,11 +822,6 @@ Napi::Value osn::Input::CallSendMouseClick(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::CallSendMouseMove(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	osn::ISource::SendMouseMove(info, this->sourceId);
 
 	return info.Env().Undefined();
@@ -1032,11 +829,6 @@ Napi::Value osn::Input::CallSendMouseMove(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::CallSendMouseWheel(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	osn::ISource::SendMouseWheel(info, this->sourceId);
 
 	return info.Env().Undefined();
@@ -1044,11 +836,6 @@ Napi::Value osn::Input::CallSendMouseWheel(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::CallSendFocus(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	osn::ISource::SendFocus(info, this->sourceId);
 
 	return info.Env().Undefined();
@@ -1056,11 +843,6 @@ Napi::Value osn::Input::CallSendFocus(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::CallSendKeyClick(const Napi::CallbackInfo& info)
 {
-	osn::Input* input =
-		Napi::ObjectWrap<osn::Input>::Unwrap(info.This().ToObject());
-	if (!input)
-		return info.Env().Undefined();
-
 	osn::ISource::SendKeyClick(info, this->sourceId);
 
 	return info.Env().Undefined();

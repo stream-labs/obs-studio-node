@@ -21,11 +21,6 @@
 #include <thread>
 #include <map>
 #include "utility-v8.hpp"
-#ifdef WIN32
-#include <windows.h>
-#else
-#include <semaphore.h>
-#endif
 
 struct SourceSizeInfo
 {
@@ -47,7 +42,7 @@ namespace sourceCallback
 	extern uint32_t sleepIntervalMS;
 	extern std::thread* worker_thread;
 	extern Napi::ThreadSafeFunction js_thread;
-    extern Napi::FunctionReference cb;
+	extern Napi::FunctionReference cb;
 	extern bool m_all_workers_stop;
 
 	void worker(void);

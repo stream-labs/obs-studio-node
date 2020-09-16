@@ -72,10 +72,10 @@ Napi::Value osn::Properties::First(const Napi::CallbackInfo& info)
 		return info.Env().Undefined();
 
 	auto iter = obj->properties->begin();
-    auto instance =
-        osn::PropertyObject::constructor.New({
-            info.This(), Napi::Number::New(info.Env(), (uint32_t)iter->first)
-            });
+	auto instance =
+		osn::PropertyObject::constructor.New({
+			info.This(), Napi::Number::New(info.Env(), (uint32_t)iter->first)
+			});
 	return instance;
 }
 
@@ -90,10 +90,10 @@ Napi::Value osn::Properties::Last(const Napi::CallbackInfo& info)
 		return info.Env().Undefined();
 
 	auto iter = --obj->properties->end();
-    auto instance =
-        osn::PropertyObject::constructor.New({
-            info.This(), Napi::Number::New(info.Env(), (uint32_t)iter->first)
-            });
+	auto instance =
+		osn::PropertyObject::constructor.New({
+			info.This(), Napi::Number::New(info.Env(), (uint32_t)iter->first)
+			});
 	return instance;
 }
 
@@ -150,9 +150,9 @@ Napi::Object osn::PropertyObject::Init(Napi::Env env, Napi::Object exports) {
 }
 
 osn::PropertyObject::PropertyObject(const Napi::CallbackInfo& info)
-    : Napi::ObjectWrap<osn::PropertyObject>(info) {
-    Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
+	: Napi::ObjectWrap<osn::PropertyObject>(info) {
+	Napi::Env env = info.Env();
+	Napi::HandleScope scope(env);
 	this->parent = Napi::ObjectWrap<osn::Properties>::Unwrap(info[0].ToObject());
 	this->index = (uint64_t)info[1].ToNumber().Uint32Value();
 }

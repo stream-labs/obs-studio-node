@@ -45,12 +45,12 @@ void service::start_worker(napi_env env, Napi::Function async_callback)
 
 	worker_stop = false;
 	js_thread = Napi::ThreadSafeFunction::New(
-      env,
-      async_callback,
-      "Service",
-      0,
-      1,
-      []( Napi::Env ) {} );
+		env,
+		async_callback,
+		"Service",
+		0,
+		1,
+		[]( Napi::Env ) {} );
 	worker_thread = new std::thread(&service::worker);
 }
 

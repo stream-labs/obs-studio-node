@@ -594,163 +594,82 @@ Napi::Value osn::Scene::GetItemsInRange(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::CallIsConfigurable(const Napi::CallbackInfo& info)
 {
-	osn::Scene* scene =
-		Napi::ObjectWrap<osn::Scene>::Unwrap(info.This().ToObject());
-	if (!scene)
-		return info.Env().Undefined();
-
 	return osn::ISource::IsConfigurable(info, this->sourceId);
 }
 
 Napi::Value osn::Scene::CallGetProperties(const Napi::CallbackInfo& info)
 {
-	osn::Scene* scene =
-		Napi::ObjectWrap<osn::Scene>::Unwrap(info.This().ToObject());
-	if (!scene)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetProperties(info, this->sourceId);
 }
 
 Napi::Value osn::Scene::CallGetSettings(const Napi::CallbackInfo& info)
 {
-	osn::Scene* scene =
-		Napi::ObjectWrap<osn::Scene>::Unwrap(info.This().ToObject());
-	if (!scene)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetSettings(info, this->sourceId);
 }
 
 
 Napi::Value osn::Scene::CallGetType(const Napi::CallbackInfo& info)
 {
-	osn::Scene* scene =
-		Napi::ObjectWrap<osn::Scene>::Unwrap(info.This().ToObject());
-	if (!scene)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetType(info, this->sourceId);
 }
 
 Napi::Value osn::Scene::CallGetName(const Napi::CallbackInfo& info)
 {
-	osn::Scene* scene =
-		Napi::ObjectWrap<osn::Scene>::Unwrap(info.This().ToObject());
-	if (!scene)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetName(info, this->sourceId);
 }
 
 void osn::Scene::CallSetName(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::Scene* scene =
-		Napi::ObjectWrap<osn::Scene>::Unwrap(info.This().ToObject());
-	if (!scene)
-		return;
-
 	osn::ISource::SetName(info, value, this->sourceId);
 }
 
 Napi::Value osn::Scene::CallGetOutputFlags(const Napi::CallbackInfo& info)
 {
-	osn::Scene* scene =
-		Napi::ObjectWrap<osn::Scene>::Unwrap(info.This().ToObject());
-	if (!scene)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetOutputFlags(info, this->sourceId);
 }
 
 Napi::Value osn::Scene::CallGetFlags(const Napi::CallbackInfo& info)
 {
-	osn::Scene* scene =
-		Napi::ObjectWrap<osn::Scene>::Unwrap(info.This().ToObject());
-	if (!scene)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetFlags(info, this->sourceId);
 }
 
 void osn::Scene::CallSetFlags(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::Scene* scene =
-		Napi::ObjectWrap<osn::Scene>::Unwrap(info.This().ToObject());
-	if (!scene)
-		return;
-
 	osn::ISource::SetFlags(info, value, this->sourceId);
 }
 
 Napi::Value osn::Scene::CallGetStatus(const Napi::CallbackInfo& info)
 {
-	osn::Scene* scene =
-		Napi::ObjectWrap<osn::Scene>::Unwrap(info.This().ToObject());
-	if (!scene)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetStatus(info, this->sourceId);
 }
 
 Napi::Value osn::Scene::CallGetId(const Napi::CallbackInfo& info)
 {
-	osn::Scene* scene =
-		Napi::ObjectWrap<osn::Scene>::Unwrap(info.This().ToObject());
-	if (!scene)
-		return info.Env().Undefined();
-
-
 	return osn::ISource::GetId(info, this->sourceId);
 }
 
 Napi::Value osn::Scene::CallGetMuted(const Napi::CallbackInfo& info)
 {
-	osn::Scene* scene =
-		Napi::ObjectWrap<osn::Scene>::Unwrap(info.This().ToObject());
-	if (!scene)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetMuted(info, this->sourceId);
 }
 
 void osn::Scene::CallSetMuted(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::Scene* scene =
-		Napi::ObjectWrap<osn::Scene>::Unwrap(info.This().ToObject());
-	if (!scene)
-		return;
-
 	osn::ISource::SetMuted(info, value, this->sourceId);
 }
 
 Napi::Value osn::Scene::CallGetEnabled(const Napi::CallbackInfo& info)
 {
-	osn::Scene* scene =
-		Napi::ObjectWrap<osn::Scene>::Unwrap(info.This().ToObject());
-	if (!scene)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetEnabled(info, this->sourceId);
 }
 
 void osn::Scene::CallSetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::Scene* scene =
-		Napi::ObjectWrap<osn::Scene>::Unwrap(info.This().ToObject());
-	if (!scene)
-		return;
-
 	osn::ISource::SetEnabled(info, value, this->sourceId);
 }
 
 Napi::Value osn::Scene::CallRelease(const Napi::CallbackInfo& info)
 {
-	osn::Scene* scene =
-		Napi::ObjectWrap<osn::Scene>::Unwrap(info.This().ToObject());
-	if (!scene)
-		return info.Env().Undefined();
-
 	osn::ISource::Release(info, this->sourceId);
 
 	return info.Env().Undefined();
@@ -758,24 +677,14 @@ Napi::Value osn::Scene::CallRelease(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::CallRemove(const Napi::CallbackInfo& info)
 {
-	osn::Scene* scene =
-		Napi::ObjectWrap<osn::Scene>::Unwrap(info.This().ToObject());
-	if (!scene)
-		return info.Env().Undefined();
-
 	osn::ISource::Remove(info, this->sourceId);
-	info.This().ToObject().Set("sourceId", UINT64_MAX);
+	this->sourceId = UINT64_MAX;
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Scene::CallUpdate(const Napi::CallbackInfo& info)
 {
-	osn::Scene* scene =
-		Napi::ObjectWrap<osn::Scene>::Unwrap(info.This().ToObject());
-	if (!scene)
-		return info.Env().Undefined();
-
 	osn::ISource::Update(info, this->sourceId);
 
 	return info.Env().Undefined();
@@ -783,11 +692,6 @@ Napi::Value osn::Scene::CallUpdate(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::CallLoad(const Napi::CallbackInfo& info)
 {
-	osn::Scene* scene =
-		Napi::ObjectWrap<osn::Scene>::Unwrap(info.This().ToObject());
-	if (!scene)
-		return info.Env().Undefined();
-
 	osn::ISource::Load(info, this->sourceId);
 
 	return info.Env().Undefined();
@@ -795,11 +699,6 @@ Napi::Value osn::Scene::CallLoad(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::CallSave(const Napi::CallbackInfo& info)
 {
-	osn::Scene* scene =
-		Napi::ObjectWrap<osn::Scene>::Unwrap(info.This().ToObject());
-	if (!scene)
-		return info.Env().Undefined();
-
 	osn::ISource::Save(info, this->sourceId);
 
 	return info.Env().Undefined();
@@ -807,11 +706,6 @@ Napi::Value osn::Scene::CallSave(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::CallSendMouseClick(const Napi::CallbackInfo& info)
 {
-	osn::Scene* scene =
-		Napi::ObjectWrap<osn::Scene>::Unwrap(info.This().ToObject());
-	if (!scene)
-		return info.Env().Undefined();
-
 	osn::ISource::SendMouseClick(info, this->sourceId);
 
 	return info.Env().Undefined();
@@ -819,11 +713,6 @@ Napi::Value osn::Scene::CallSendMouseClick(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::CallSendMouseMove(const Napi::CallbackInfo& info)
 {
-	osn::Scene* scene =
-		Napi::ObjectWrap<osn::Scene>::Unwrap(info.This().ToObject());
-	if (!scene)
-		return info.Env().Undefined();
-
 	osn::ISource::SendMouseMove(info, this->sourceId);
 
 	return info.Env().Undefined();
@@ -831,11 +720,6 @@ Napi::Value osn::Scene::CallSendMouseMove(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::CallSendMouseWheel(const Napi::CallbackInfo& info)
 {
-	osn::Scene* scene =
-		Napi::ObjectWrap<osn::Scene>::Unwrap(info.This().ToObject());
-	if (!scene)
-		return info.Env().Undefined();
-
 	osn::ISource::SendMouseWheel(info, this->sourceId);
 
 	return info.Env().Undefined();
@@ -843,11 +727,6 @@ Napi::Value osn::Scene::CallSendMouseWheel(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::CallSendFocus(const Napi::CallbackInfo& info)
 {
-	osn::Scene* scene =
-		Napi::ObjectWrap<osn::Scene>::Unwrap(info.This().ToObject());
-	if (!scene)
-		return info.Env().Undefined();
-
 	osn::ISource::SendFocus(info, this->sourceId);
 
 	return info.Env().Undefined();
@@ -855,11 +734,6 @@ Napi::Value osn::Scene::CallSendFocus(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::CallSendKeyClick(const Napi::CallbackInfo& info)
 {
-	osn::Scene* scene =
-		Napi::ObjectWrap<osn::Scene>::Unwrap(info.This().ToObject());
-	if (!scene)
-		return info.Env().Undefined();
-
 	osn::ISource::SendKeyClick(info, this->sourceId);
 
 	return info.Env().Undefined();

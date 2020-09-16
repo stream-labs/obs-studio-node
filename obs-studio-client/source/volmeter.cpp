@@ -291,6 +291,6 @@ Napi::Value osn::Volmeter::RemoveCallback(const Napi::CallbackInfo& info)
 
 	if (isWorkerRunning)
 		stop_worker();
-	// delete asyncWorker;
+
 	return Napi::Boolean::New(info.Env(), true);
 }

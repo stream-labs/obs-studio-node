@@ -86,7 +86,6 @@ export class OBSHandler {
         this.osnTestName = testName;
         this.cacheUploader = new CacheUploader(testName, this.obsPath);
         this.startup();
-
         this.inputTypes = osn.InputFactory.types();
         const index = this.inputTypes.indexOf('syphon-input', 0);
         if (index > -1) {

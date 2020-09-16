@@ -20,11 +20,6 @@
 #include <napi.h>
 #include <thread>
 #include "utility-v8.hpp"
-#ifdef WIN32
-#include <windows.h>
-#else
-#include <semaphore.h>
-#endif
 
 struct SignalInfo
 {
@@ -42,13 +37,13 @@ namespace service
 	extern uint32_t sleepIntervalMS;
 	extern std::thread* worker_thread;
 	extern Napi::ThreadSafeFunction js_thread;
-    extern Napi::FunctionReference cb;
+	extern Napi::FunctionReference cb;
 
 	void worker(void);
 	void start_worker(napi_env env, Napi::Function async_callback);
 	void stop_worker(void);
 
-    void Init(Napi::Env env, Napi::Object exports);
+	void Init(Napi::Env env, Napi::Object exports);
 
 	Napi::Value OBS_service_resetAudioContext(const Napi::CallbackInfo& info);
 	Napi::Value OBS_service_resetVideoContext(const Napi::CallbackInfo& info);

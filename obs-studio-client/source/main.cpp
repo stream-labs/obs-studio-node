@@ -90,25 +90,6 @@ Napi::Object main_node(Napi::Env env, Napi::Object exports) {
 	g_util_osx = new UtilInt();
 	g_util_osx->init();
 #endif
-	// osn::Global::Register(exports);
-	// osn::ISource::Register(exports);
-	// osn::Input::Register(exports);
-	// osn::Filter::Register(exports);
-	// osn::Transition::Register(exports);
-	// osn::Scene::Register(exports);
-	// osn::SceneItem::Register(exports);
-	// osn::Properties::Register(exports);
-	// osn::PropertyObject::Register(exports);
-	// osn::Fader::Register(exports);
-	// osn::VolMeter::Register(exports);
-	// osn::Video::Register(exports);
-	// osn::Module::Register(exports);
-
-	// while (initializerFunctions->size() > 0) {
-	// 	initializerFunctions->front()(exports);
-	// 	initializerFunctions->pop();
-	// }
-	// return osn::Fader::Init(env, exports);
 	osn::Fader::Init(env, exports);
 	Controller::Init(env, exports);
 	api::Init(env, exports);

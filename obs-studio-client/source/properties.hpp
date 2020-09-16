@@ -21,8 +21,6 @@
 #include <map>
 #include <math.h>
 #include <napi.h>
-// #include <nan.h>
-// #include <node.h>
 #include <unordered_map>
 #include "utility-v8.hpp"
 
@@ -203,22 +201,9 @@ namespace osn
 		public:
 		std::shared_ptr<property_map_t> properties;
 		uint64_t sourceId;
-		// v8::Persistent<v8::Object>      owner;
-
-		// protected:
-		// static Nan::Persistent<v8::FunctionTemplate> prototype;
 
 		public:
-		// Properties();
-		// Properties(property_map_t container);
-		// Properties(property_map_t container, v8::Local<v8::Object> owner);
-		// ~Properties();
-
 		std::shared_ptr<property_map_t> GetProperties();
-		// v8::Local<v8::Object>           GetOwner();
-
-		// static void                        Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
-
 		static Napi::FunctionReference constructor;
 		static Napi::Object Init(Napi::Env env, Napi::Object exports);
 		Properties(const Napi::CallbackInfo& info);
@@ -227,25 +212,14 @@ namespace osn
 		Napi::Value First(const Napi::CallbackInfo& info);
 		Napi::Value Last(const Napi::CallbackInfo& info);
 		Napi::Value Get(const Napi::CallbackInfo& info);
-
-		// friend class utilv8::ManagedObject<Properties>;
-		// friend class utilv8::InterfaceObject<Properties>;
 	};
 
 	class PropertyObject : public Napi::ObjectWrap<osn::PropertyObject>
 	{
-		// v8::Persistent<v8::Object> parent;
 		osn::Properties* parent;
 		uint32_t index;
 
-		protected:
-		// static Nan::Persistent<v8::FunctionTemplate> prototype;
-
 		public:
-		// PropertyObject(v8::Local<v8::Object> parent, size_t index);
-		// ~PropertyObject();
-
-		// static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 		static Napi::FunctionReference constructor;
 		static Napi::Object Init(Napi::Env env, Napi::Object exports);
 		PropertyObject(const Napi::CallbackInfo& info);
@@ -268,8 +242,5 @@ namespace osn
 
 		Napi::Value Modified(const Napi::CallbackInfo& info);
 		Napi::Value ButtonClicked(const Napi::CallbackInfo& info);
-
-		// friend class utilv8::ManagedObject<PropertyObject>;
-		// friend class utilv8::InterfaceObject<PropertyObject>;
 	};
-} // namespace osn
+}

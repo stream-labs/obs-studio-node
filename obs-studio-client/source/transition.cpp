@@ -301,163 +301,83 @@ Napi::Value osn::Transition::Start(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Transition::CallIsConfigurable(const Napi::CallbackInfo& info)
 {
-	osn::Transition* transition =
-		Napi::ObjectWrap<osn::Transition>::Unwrap(info.This().ToObject());
-	if (!transition)
-		return info.Env().Undefined();
-
 	return osn::ISource::IsConfigurable(info, this->sourceId);
 }
 
 Napi::Value osn::Transition::CallGetProperties(const Napi::CallbackInfo& info)
 {
-	osn::Transition* transition =
-		Napi::ObjectWrap<osn::Transition>::Unwrap(info.This().ToObject());
-	if (!transition)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetProperties(info, this->sourceId);
 }
 
 Napi::Value osn::Transition::CallGetSettings(const Napi::CallbackInfo& info)
 {
-	osn::Transition* transition =
-		Napi::ObjectWrap<osn::Transition>::Unwrap(info.This().ToObject());
-	if (!transition)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetSettings(info, this->sourceId);
 }
 
 
 Napi::Value osn::Transition::CallGetType(const Napi::CallbackInfo& info)
 {
-	osn::Transition* transition =
-		Napi::ObjectWrap<osn::Transition>::Unwrap(info.This().ToObject());
-	if (!transition)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetType(info, this->sourceId);
 }
 
 Napi::Value osn::Transition::CallGetName(const Napi::CallbackInfo& info)
 {
-	osn::Transition* transition =
-		Napi::ObjectWrap<osn::Transition>::Unwrap(info.This().ToObject());
-	if (!transition)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetName(info, this->sourceId);
 }
 
 void osn::Transition::CallSetName(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::Transition* transition =
-		Napi::ObjectWrap<osn::Transition>::Unwrap(info.This().ToObject());
-	if (!transition)
-		return;
-
 	osn::ISource::SetName(info, value, this->sourceId);
 }
 
 Napi::Value osn::Transition::CallGetOutputFlags(const Napi::CallbackInfo& info)
 {
-	osn::Transition* transition =
-		Napi::ObjectWrap<osn::Transition>::Unwrap(info.This().ToObject());
-	if (!transition)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetOutputFlags(info, this->sourceId);
 }
 
 Napi::Value osn::Transition::CallGetFlags(const Napi::CallbackInfo& info)
 {
-	osn::Transition* transition =
-		Napi::ObjectWrap<osn::Transition>::Unwrap(info.This().ToObject());
-	if (!transition)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetFlags(info, this->sourceId);
 }
 
 void osn::Transition::CallSetFlags(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::Transition* transition =
-		Napi::ObjectWrap<osn::Transition>::Unwrap(info.This().ToObject());
-	if (!transition)
-		return;
-
 	osn::ISource::SetFlags(info, value, this->sourceId);
 }
 
 Napi::Value osn::Transition::CallGetStatus(const Napi::CallbackInfo& info)
 {
-	osn::Transition* transition =
-		Napi::ObjectWrap<osn::Transition>::Unwrap(info.This().ToObject());
-	if (!transition)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetStatus(info, this->sourceId);
 }
 
 Napi::Value osn::Transition::CallGetId(const Napi::CallbackInfo& info)
 {
-	osn::Transition* transition =
-		Napi::ObjectWrap<osn::Transition>::Unwrap(info.This().ToObject());
-	if (!transition)
-		return info.Env().Undefined();
-
 
 	return osn::ISource::GetId(info, this->sourceId);
 }
 
 Napi::Value osn::Transition::CallGetMuted(const Napi::CallbackInfo& info)
 {
-	osn::Transition* transition =
-		Napi::ObjectWrap<osn::Transition>::Unwrap(info.This().ToObject());
-	if (!transition)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetMuted(info, this->sourceId);
 }
 
 void osn::Transition::CallSetMuted(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::Transition* transition =
-		Napi::ObjectWrap<osn::Transition>::Unwrap(info.This().ToObject());
-	if (!transition)
-		return;
-
 	osn::ISource::SetMuted(info, value, this->sourceId);
 }
 
 Napi::Value osn::Transition::CallGetEnabled(const Napi::CallbackInfo& info)
 {
-	osn::Transition* transition =
-		Napi::ObjectWrap<osn::Transition>::Unwrap(info.This().ToObject());
-	if (!transition)
-		return info.Env().Undefined();
-
 	return osn::ISource::GetEnabled(info, this->sourceId);
 }
 
 void osn::Transition::CallSetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::Transition* transition =
-		Napi::ObjectWrap<osn::Transition>::Unwrap(info.This().ToObject());
-	if (!transition)
-		return;
-
 	osn::ISource::SetEnabled(info, value, this->sourceId);
 }
 
 Napi::Value osn::Transition::CallRelease(const Napi::CallbackInfo& info)
 {
-	osn::Transition* transition =
-		Napi::ObjectWrap<osn::Transition>::Unwrap(info.This().ToObject());
-	if (!transition)
-		return info.Env().Undefined();
-
 	osn::ISource::Release(info, this->sourceId);
 
 	return info.Env().Undefined();
@@ -465,24 +385,14 @@ Napi::Value osn::Transition::CallRelease(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Transition::CallRemove(const Napi::CallbackInfo& info)
 {
-	osn::Transition* transition =
-		Napi::ObjectWrap<osn::Transition>::Unwrap(info.This().ToObject());
-	if (!transition)
-		return info.Env().Undefined();
-
 	osn::ISource::Remove(info, this->sourceId);
-	info.This().ToObject().Set("sourceId", UINT64_MAX);
+	this->sourceId = UINT64_MAX;
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Transition::CallUpdate(const Napi::CallbackInfo& info)
 {
-	osn::Transition* transition =
-		Napi::ObjectWrap<osn::Transition>::Unwrap(info.This().ToObject());
-	if (!transition)
-		return info.Env().Undefined();
-
 	osn::ISource::Update(info, this->sourceId);
 
 	return info.Env().Undefined();
@@ -490,11 +400,6 @@ Napi::Value osn::Transition::CallUpdate(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Transition::CallLoad(const Napi::CallbackInfo& info)
 {
-	osn::Transition* transition =
-		Napi::ObjectWrap<osn::Transition>::Unwrap(info.This().ToObject());
-	if (!transition)
-		return info.Env().Undefined();
-
 	osn::ISource::Load(info, this->sourceId);
 
 	return info.Env().Undefined();
@@ -502,11 +407,6 @@ Napi::Value osn::Transition::CallLoad(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Transition::CallSave(const Napi::CallbackInfo& info)
 {
-	osn::Transition* transition =
-		Napi::ObjectWrap<osn::Transition>::Unwrap(info.This().ToObject());
-	if (!transition)
-		return info.Env().Undefined();
-
 	osn::ISource::Save(info, this->sourceId);
 
 	return info.Env().Undefined();
@@ -514,11 +414,6 @@ Napi::Value osn::Transition::CallSave(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Transition::CallSendMouseClick(const Napi::CallbackInfo& info)
 {
-	osn::Transition* transition =
-		Napi::ObjectWrap<osn::Transition>::Unwrap(info.This().ToObject());
-	if (!transition)
-		return info.Env().Undefined();
-
 	osn::ISource::SendMouseClick(info, this->sourceId);
 
 	return info.Env().Undefined();
@@ -526,11 +421,6 @@ Napi::Value osn::Transition::CallSendMouseClick(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Transition::CallSendMouseMove(const Napi::CallbackInfo& info)
 {
-	osn::Transition* transition =
-		Napi::ObjectWrap<osn::Transition>::Unwrap(info.This().ToObject());
-	if (!transition)
-		return info.Env().Undefined();
-
 	osn::ISource::SendMouseMove(info, this->sourceId);
 
 	return info.Env().Undefined();
@@ -538,11 +428,6 @@ Napi::Value osn::Transition::CallSendMouseMove(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Transition::CallSendMouseWheel(const Napi::CallbackInfo& info)
 {
-	osn::Transition* transition =
-		Napi::ObjectWrap<osn::Transition>::Unwrap(info.This().ToObject());
-	if (!transition)
-		return info.Env().Undefined();
-
 	osn::ISource::SendMouseWheel(info, this->sourceId);
 
 	return info.Env().Undefined();
@@ -550,11 +435,6 @@ Napi::Value osn::Transition::CallSendMouseWheel(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Transition::CallSendFocus(const Napi::CallbackInfo& info)
 {
-	osn::Transition* transition =
-		Napi::ObjectWrap<osn::Transition>::Unwrap(info.This().ToObject());
-	if (!transition)
-		return info.Env().Undefined();
-
 	osn::ISource::SendFocus(info, this->sourceId);
 
 	return info.Env().Undefined();
@@ -562,11 +442,6 @@ Napi::Value osn::Transition::CallSendFocus(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Transition::CallSendKeyClick(const Napi::CallbackInfo& info)
 {
-	osn::Transition* transition =
-		Napi::ObjectWrap<osn::Transition>::Unwrap(info.This().ToObject());
-	if (!transition)
-		return info.Env().Undefined();
-
 	osn::ISource::SendKeyClick(info, this->sourceId);
 
 	return info.Env().Undefined();

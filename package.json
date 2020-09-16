@@ -42,8 +42,8 @@
     "typedoc-default-themes": "^0.5.0",
     "typedoc-plugin-markdown": "^2.2.17",
     "typescript": "^2.9.2",
-    "wait-queue": "^1.1.3",
-    "uuid": "^3.0.1"
+    "uuid": "^3.0.1",
+    "wait-queue": "^1.1.3"
   },
   "keywords": [
     "capture",
@@ -66,9 +66,7 @@
     "mixer",
     "beam"
   ],
-  "dependencies": {
-    "cmake-js": "^6.1.0"
-  },
+  "dependencies": {},
   "cmake-js": {
     "runtime": "electron",
     "runtimeVersion": "6.1.11",
