@@ -711,14 +711,12 @@ void OBS_API::OBS_API_initAPI(
 #else
 	std::fstream* logfile = new std::fstream(log_path, std::ios_base::out | std::ios_base::trunc);
 #endif
-#ifdef WIN32
 	if (!logfile->is_open()) {
 		logfile = nullptr;
 		util::CrashManager::AddWarning("Error on log file, failed to open: " + log_path);
 		std::cerr << "Failed to open log file" << std::endl;
 	}
 	base_set_log_handler(node_obs_log, logfile);
-#endif
 #ifndef _DEBUG
 	// Redirect the ipc log callbacks to our log handler
 	ipc::register_log_callback([](void* data, const char* fmt, va_list args) { 
@@ -1288,16 +1286,11 @@ void OBS_API::CreateCrashHandlerExitPipe()
 	}
 }
 
-void OBS_API::WaitCrashHandlerClose(bool WaitCrashHandlerClose) 
+void OBS_API::WaitCrashHandlerClose(bool waitBeforeClosing)
 {
 	if (crash_handler_responce_thread) {
-
-		if (WaitCrashHandlerClose) {
-			start_wait_acknowledge = std::chrono::high_resolution_clock::now();
-			crash_handler_timeout_activated = true;
-		}
-		else 			
-			 crash_handler_exit = true;
+		if (!waitBeforeClosing)
+			crash_handler_exit = true;
 			
 		if (crash_handler_responce_thread->joinable())
 			crash_handler_responce_thread->join();
@@ -1315,7 +1308,11 @@ void OBS_API::StopCrashHandler(
 	if (crash_handler_responce_thread) {
 		writeCrashHandler(unregisterProcess());
 
-		WaitCrashHandlerClose(true);
+		start_wait_acknowledge = std::chrono::high_resolution_clock::now();
+		crash_handler_timeout_activated = true;
+
+		if (crash_handler_responce_thread->joinable())
+			crash_handler_responce_thread->join();
 	} else {
 		writeCrashHandler(unregisterProcess());
 
