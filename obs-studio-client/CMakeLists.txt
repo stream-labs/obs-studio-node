@@ -119,14 +119,13 @@ add_nodejs_module(
 
 set(PROJECT_INCLUDE_PATHS
 	"${nlohmannjson_SOURCE_DIR}/single_include"
-	${CMAKE_JS_INC}
 )
 
 if(WIN32)
 	target_sources(obs_studio_client PUBLIC ${PROJECT_BINARY_DIR}/version.rc)
-	target_link_libraries(obs_studio_client lib-streamlabs-ipc ${CMAKE_JS_LIB})
+	target_link_libraries(obs_studio_client lib-streamlabs-ipc)
 else ()
-	target_link_libraries(obs_studio_client lib-streamlabs-ipc ${COREFOUNDATION} ${COCOA} ${AVFOUNDATION} ${Security} ${Foundation} ${CMAKE_JS_LIB})
+	target_link_libraries(obs_studio_client lib-streamlabs-ipc ${COREFOUNDATION} ${COCOA} ${AVFOUNDATION} ${Security} ${Foundation})
 endif()
 
 target_include_directories(
