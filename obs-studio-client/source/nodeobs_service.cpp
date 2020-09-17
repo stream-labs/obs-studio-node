@@ -31,227 +31,204 @@
 #include <shellapi.h>
 #endif
 
-Service::Service(){};
-Service::~Service(){};
+bool service::isWorkerRunning = false;
+bool service::worker_stop = true;
+uint32_t service::sleepIntervalMS = 33;
+std::thread* service::worker_thread = nullptr;
+Napi::ThreadSafeFunction service::js_thread;
+Napi::FunctionReference service::cb;
 
-bool isWorkerRunning = false;
+void service::start_worker(napi_env env, Napi::Function async_callback)
+{
+	if (!worker_stop)
+		return;
 
-void Service::start_async_runner()
-{
-	if (m_async_callback)
-		return;
-	std::unique_lock<std::mutex> ul(m_worker_lock);
-	// Start v8/uv asynchronous runner.
-	m_async_callback = new ServiceCallback();
-	m_async_callback->set_handler(std::bind(&Service::callback_handler, this, std::placeholders::_1, std::placeholders::_2), nullptr);
-}
-void Service::stop_async_runner()
-{
-	if (!m_async_callback)
-		return;
-	std::unique_lock<std::mutex> ul(m_worker_lock);
-	// Stop v8/uv asynchronous runner.
-	m_async_callback->clear();
-	m_async_callback->finalize();
-	m_async_callback = nullptr;
+	worker_stop = false;
+	js_thread = Napi::ThreadSafeFunction::New(
+		env,
+		async_callback,
+		"Service",
+		0,
+		1,
+		[]( Napi::Env ) {} );
+	worker_thread = new std::thread(&service::worker);
 }
 
-void Service::callback_handler(void* data, std::shared_ptr<SignalInfo> item)
+void service::stop_worker(void)
 {
-	v8::Isolate*         isolate = v8::Isolate::GetCurrent();
-	v8::Local<v8::Value> args[1];
-	Nan::HandleScope     scope;
-
-	v8::Local<v8::Value> argv = v8::Object::New(isolate);
-	argv->ToObject()->Set(
-	    v8::String::NewFromUtf8(isolate, "type").ToLocalChecked(),
-	    v8::String::NewFromUtf8(isolate, item->outputType.c_str()).ToLocalChecked());
-	argv->ToObject()->Set(
-	    v8::String::NewFromUtf8(isolate, "signal").ToLocalChecked(),
-	    v8::String::NewFromUtf8(isolate, item->signal.c_str()).ToLocalChecked());
-	argv->ToObject()->Set(
-	    v8::String::NewFromUtf8(isolate, "code").ToLocalChecked(), v8::Number::New(isolate, item->code));
-	argv->ToObject()->Set(
-	    v8::String::NewFromUtf8(isolate, "error").ToLocalChecked(),
-	    v8::String::NewFromUtf8(isolate, item->errorMessage.c_str()).ToLocalChecked());
-	args[0] = argv;
-
-	Nan::Call(m_callback_function, 1, args);
-}
-void Service::start_worker()
-{
-	if (!m_worker_stop)
+	if (worker_stop != false)
 		return;
-	// Launch worker thread.
-	m_worker_stop = false;
-	m_worker      = std::thread(std::bind(&Service::worker, this));
-}
-void Service::stop_worker()
-{
-	if (m_worker_stop != false)
-		return;
-	// Stop worker thread.
-	m_worker_stop = true;
-	if (m_worker.joinable()) {
-		m_worker.join();
+
+	worker_stop = true;
+	if (worker_thread->joinable()) {
+		worker_thread->join();
 	}
 }
 
-void service::OBS_service_resetAudioContext(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value service::OBS_service_resetAudioContext(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	conn->call("Service", "OBS_service_resetAudioContext", {});
+	return info.Env().Undefined();
 }
 
-void service::OBS_service_resetVideoContext(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value service::OBS_service_resetVideoContext(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	conn->call("Service", "OBS_service_resetVideoContext", {});
+	return info.Env().Undefined();
 }
 
-void service::OBS_service_startStreaming(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value service::OBS_service_startStreaming(const Napi::CallbackInfo& info)
 {
-	// Callback
 	if (!isWorkerRunning) {
-		serviceObject->start_async_runner();
-		serviceObject->set_keepalive(args.This());
-		serviceObject->start_worker();
-
+		start_worker(info.Env(), cb.Value());
 		isWorkerRunning = true;
 	}
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	conn->call("Service", "OBS_service_startStreaming", {});
+	return info.Env().Undefined();
 }
 
-void service::OBS_service_startRecording(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value service::OBS_service_startRecording(const Napi::CallbackInfo& info)
 {
-	// Callback
 	if (!isWorkerRunning) {
-		serviceObject->start_async_runner();
-		serviceObject->set_keepalive(args.This());
-		serviceObject->start_worker();
-
+		start_worker(info.Env(), cb.Value());
 		isWorkerRunning = true;
 	}
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	conn->call("Service", "OBS_service_startRecording", {});
+	return info.Env().Undefined();
 }
 
-void service::OBS_service_startReplayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value service::OBS_service_startReplayBuffer(const Napi::CallbackInfo& info)
 {
-	// Callback
 	if (!isWorkerRunning) {
-		serviceObject->start_async_runner();
-		serviceObject->set_keepalive(args.This());
-		serviceObject->start_worker();
-
+		start_worker(info.Env(), cb.Value());
 		isWorkerRunning = true;
 	}
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	conn->call("Service", "OBS_service_startReplayBuffer", {});
+	return info.Env().Undefined();
 }
 
-void service::OBS_service_stopStreaming(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value service::OBS_service_stopStreaming(const Napi::CallbackInfo& info)
 {
-	bool forceStop;
-	ASSERT_GET_VALUE(args[0], forceStop);
+	bool forceStop = info[0].ToBoolean().Value();
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	conn->call("Service", "OBS_service_stopStreaming", {ipc::value(forceStop)});
+	return info.Env().Undefined();
 }
 
-void service::OBS_service_stopRecording(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value service::OBS_service_stopRecording(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	conn->call("Service", "OBS_service_stopRecording", {});
+	return info.Env().Undefined();
 }
 
-void service::OBS_service_stopReplayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value service::OBS_service_stopReplayBuffer(const Napi::CallbackInfo& info)
 {
-	bool forceStop;
-	ASSERT_GET_VALUE(args[0], forceStop);
+	bool forceStop = info[0].ToBoolean().Value();
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	conn->call("Service", "OBS_service_stopReplayBuffer", {ipc::value(forceStop)});
+	return info.Env().Undefined();
 }
 
 static v8::Persistent<v8::Object> serviceCallbackObject;
 
-void service::OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value service::OBS_service_connectOutputSignals(const Napi::CallbackInfo& info)
 {
-	v8::Local<v8::Function> callback;
-	ASSERT_GET_VALUE(args[0], callback);
+	Napi::Function async_callback = info[0].As<Napi::Function>();
 
-	// Grab IPC Connection
-	std::shared_ptr<ipc::client> conn = nullptr;
-	if (!(conn = GetConnection())) {
-		return;
-	}
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
 
-	// Send request
 	conn->call("Service", "OBS_service_connectOutputSignals", {});
 
-	serviceObject = new Service();
-	serviceObject->m_callback_function.Reset(callback);
-	args.GetReturnValue().Set(true);
+	cb = Napi::Persistent(async_callback);
+	cb.SuppressDestruct();
+	return Napi::Boolean::New(info.Env(), true);
 }
 
-void service::OBS_service_processReplayBufferHotkey(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value service::OBS_service_processReplayBufferHotkey(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
     conn->call("Service", "OBS_service_processReplayBufferHotkey", {});
+	return info.Env().Undefined();
 }
 
-void service::OBS_service_getLastReplay(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value service::OBS_service_getLastReplay(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
 	    conn->call_synchronous_helper("Service", "OBS_service_getLastReplay", {});
 
-	ValidateResponse(response);
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	args.GetReturnValue().Set(
-	    v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), response.at(1).value_str.c_str()).ToLocalChecked());
+	return Napi::String::New(info.Env(), response.at(1).value_str);
 }
 
-void Service::worker()
+void service::worker()
 {
+    auto callback = []( Napi::Env env, Napi::Function jsCallback, SignalInfo* data ) {
+		Napi::Object result = Napi::Object::New(env);
+
+		result.Set(
+			Napi::String::New(env, "type"),
+			Napi::String::New(env, data->outputType));
+		result.Set(
+			Napi::String::New(env, "signal"),
+			Napi::String::New(env, data->signal));
+		result.Set(
+			Napi::String::New(env, "code"),
+			Napi::Number::New(env, data->code));
+		result.Set(
+			Napi::String::New(env, "error"),
+			Napi::String::New(env, data->errorMessage));
+
+		jsCallback.Call({ result });
+    };
 	size_t totalSleepMS = 0;
 
-	while (!m_worker_stop) {
+	while (!worker_stop) {
 		auto tp_start = std::chrono::high_resolution_clock::now();
 
 		// Validate Connection
@@ -269,15 +246,12 @@ void Service::worker()
 
 			ErrorCode error = (ErrorCode)response[0].value_union.ui64;
 			if (error == ErrorCode::Ok) {
-				std::shared_ptr<SignalInfo> data = std::make_shared<SignalInfo>();
-
+				SignalInfo* data = new SignalInfo{ "", "", 0, ""};
 				data->outputType   = response[1].value_str;
 				data->signal       = response[2].value_str;
 				data->code         = response[3].value_union.i32;
 				data->errorMessage = response[4].value_str;
-				data->param        = this;
-
-				m_async_callback->queue(std::move(data));
+				js_thread.BlockingCall( data, callback );
 			}
 		}
 
@@ -290,57 +264,53 @@ void Service::worker()
 	return;
 }
 
-void Service::set_keepalive(v8::Local<v8::Object> obj)
-{
-	if (!m_async_callback)
-		return;
-	m_async_callback->set_keepalive(obj);
-}
-
-void service::OBS_service_removeCallback(const v8::FunctionCallbackInfo<v8::Value>& args)
+Napi::Value service::OBS_service_removeCallback(const Napi::CallbackInfo& info)
 {
 	if (isWorkerRunning) {
-		serviceObject->stop_worker();
-		serviceObject->stop_async_runner();
+		stop_worker();
 	}
+	return info.Env().Undefined();
 }
 
-void service::OBS_service_createVirtualWebcam(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	std::string name;
-	ASSERT_GET_VALUE(args[0], name);
+Napi::Value service::OBS_service_createVirtualWebcam(const Napi::CallbackInfo& info) {
+	std::string name = info[0].ToString().Utf8Value();
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	conn->call("Service", "OBS_service_createVirtualWebcam", {ipc::value(name)});
+	return info.Env().Undefined();
 }
 
-void service::OBS_service_removeVirtualWebcam(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	auto conn = GetConnection();
+Napi::Value service::OBS_service_removeVirtualWebcam(const Napi::CallbackInfo& info) {
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	conn->call("Service", "OBS_service_removeVirtualWebcam", {});
+	return info.Env().Undefined();
 }
 
-void service::OBS_service_startVirtualWebcam(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	auto conn = GetConnection();
+Napi::Value service::OBS_service_startVirtualWebcam(const Napi::CallbackInfo& info) {
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	conn->call("Service", "OBS_service_startVirtualWebcam", {});
+	return info.Env().Undefined();
 }
 
-void service::OBS_service_stopVirtualWebcam(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	auto conn = GetConnection();
+Napi::Value service::OBS_service_stopVirtualWebcam(const Napi::CallbackInfo& info) {
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	conn->call("Service", "OBS_service_stopVirtualWebcam", {});
+	return info.Env().Undefined();
 }
 
-void service::OBS_service_installVirtualCamPlugin(const v8::FunctionCallbackInfo<v8::Value>& args) {
+Napi::Value service::OBS_service_installVirtualCamPlugin(const Napi::CallbackInfo& info) {
 #ifdef WIN32
 	std::wstring pathToRegFile = L"/s /n /i:\"1\" \"" + utfWorkingDir;
 	pathToRegFile += L"\\obs-virtualsource.dll\"";
@@ -376,57 +346,75 @@ void service::OBS_service_installVirtualCamPlugin(const v8::FunctionCallbackInfo
 #elif __APPLE__
 	g_util_osx->installPlugin();
 #endif
+	return info.Env().Undefined();
 }
 
-void service::OBS_service_isVirtualCamPluginInstalled(const v8::FunctionCallbackInfo<v8::Value>& args) {
+Napi::Value service::OBS_service_isVirtualCamPluginInstalled(const Napi::CallbackInfo& info) {
 #ifdef WIN32
 	HKEY OpenResult;
 	LONG err = RegOpenKeyEx(HKEY_CLASSES_ROOT, L"CLSID\\{27B05C2D-93DC-474A-A5DA-9BBA34CB2A9C}", 0, KEY_READ|KEY_WOW64_64KEY, &OpenResult);
 
-	args.GetReturnValue().Set(
-	    v8::Boolean::New(v8::Isolate::GetCurrent(), err == 0));
+	return Napi::Boolean::New(info.Env(), err == 0);
 #elif __APPLE__
 	// Not implemented
+	return info.Env().Undefined();
 #endif
 }
 
-INITIALIZER(nodeobs_service)
+void service::Init(Napi::Env env, Napi::Object exports)
 {
-	initializerFunctions->push([](v8::Local<v8::Object> exports) {
-		NODE_SET_METHOD(exports, "OBS_service_resetAudioContext", service::OBS_service_resetAudioContext);
-
-		NODE_SET_METHOD(exports, "OBS_service_resetVideoContext", service::OBS_service_resetVideoContext);
-
-		NODE_SET_METHOD(exports, "OBS_service_startStreaming", service::OBS_service_startStreaming);
-
-		NODE_SET_METHOD(exports, "OBS_service_startRecording", service::OBS_service_startRecording);
-
-		NODE_SET_METHOD(exports, "OBS_service_startReplayBuffer", service::OBS_service_startReplayBuffer);
-
-		NODE_SET_METHOD(exports, "OBS_service_stopRecording", service::OBS_service_stopRecording);
-
-		NODE_SET_METHOD(exports, "OBS_service_stopStreaming", service::OBS_service_stopStreaming);
-
-		NODE_SET_METHOD(exports, "OBS_service_stopReplayBuffer", service::OBS_service_stopReplayBuffer);
-
-		NODE_SET_METHOD(exports, "OBS_service_connectOutputSignals", service::OBS_service_connectOutputSignals);
-
-		NODE_SET_METHOD(exports, "OBS_service_removeCallback", service::OBS_service_removeCallback);
-
-		NODE_SET_METHOD(exports, "OBS_service_processReplayBufferHotkey", service::OBS_service_processReplayBufferHotkey);
-
-		NODE_SET_METHOD(exports, "OBS_service_getLastReplay", service::OBS_service_getLastReplay);
-
-		NODE_SET_METHOD(exports, "OBS_service_createVirtualWebcam", service::OBS_service_createVirtualWebcam);
-
-		NODE_SET_METHOD(exports, "OBS_service_removeVirtualWebcam", service::OBS_service_removeVirtualWebcam);
-
-		NODE_SET_METHOD(exports, "OBS_service_startVirtualWebcam", service::OBS_service_startVirtualWebcam);
-
-		NODE_SET_METHOD(exports, "OBS_service_stopVirtualWebcam", service::OBS_service_stopVirtualWebcam);
-
-		NODE_SET_METHOD(exports, "OBS_service_installVirtualCamPlugin", service::OBS_service_installVirtualCamPlugin);
-
-		NODE_SET_METHOD(exports, "OBS_service_isVirtualCamPluginInstalled", service::OBS_service_isVirtualCamPluginInstalled);
-	});
+	exports.Set(
+		Napi::String::New(env, "OBS_service_resetAudioContext"),
+		Napi::Function::New(env, service::OBS_service_resetAudioContext));
+	exports.Set(
+		Napi::String::New(env, "OBS_service_resetVideoContext"),
+		Napi::Function::New(env, service::OBS_service_resetVideoContext));
+	exports.Set(
+		Napi::String::New(env, "OBS_service_startStreaming"),
+		Napi::Function::New(env, service::OBS_service_startStreaming));
+	exports.Set(
+		Napi::String::New(env, "OBS_service_startRecording"),
+		Napi::Function::New(env, service::OBS_service_startRecording));
+	exports.Set(
+		Napi::String::New(env, "OBS_service_startReplayBuffer"),
+		Napi::Function::New(env, service::OBS_service_startReplayBuffer));
+	exports.Set(
+		Napi::String::New(env, "OBS_service_stopRecording"),
+		Napi::Function::New(env, service::OBS_service_stopRecording));
+	exports.Set(
+		Napi::String::New(env, "OBS_service_stopStreaming"),
+		Napi::Function::New(env, service::OBS_service_stopStreaming));
+	exports.Set(
+		Napi::String::New(env, "OBS_service_stopReplayBuffer"),
+		Napi::Function::New(env, service::OBS_service_stopReplayBuffer));
+	exports.Set(
+		Napi::String::New(env, "OBS_service_connectOutputSignals"),
+		Napi::Function::New(env, service::OBS_service_connectOutputSignals));
+	exports.Set(
+		Napi::String::New(env, "OBS_service_removeCallback"),
+		Napi::Function::New(env, service::OBS_service_removeCallback));
+	exports.Set(
+		Napi::String::New(env, "OBS_service_processReplayBufferHotkey"),
+		Napi::Function::New(env, service::OBS_service_processReplayBufferHotkey));
+	exports.Set(
+		Napi::String::New(env, "OBS_service_getLastReplay"),
+		Napi::Function::New(env, service::OBS_service_getLastReplay));
+	exports.Set(
+		Napi::String::New(env, "OBS_service_createVirtualWebcam"),
+		Napi::Function::New(env, service::OBS_service_createVirtualWebcam));
+	exports.Set(
+		Napi::String::New(env, "OBS_service_removeVirtualWebcam"),
+		Napi::Function::New(env, service::OBS_service_removeVirtualWebcam));
+	exports.Set(
+		Napi::String::New(env, "OBS_service_startVirtualWebcam"),
+		Napi::Function::New(env, service::OBS_service_startVirtualWebcam));
+	exports.Set(
+		Napi::String::New(env, "OBS_service_stopVirtualWebcam"),
+		Napi::Function::New(env, service::OBS_service_stopVirtualWebcam));
+	exports.Set(
+		Napi::String::New(env, "OBS_service_installVirtualCamPlugin"),
+		Napi::Function::New(env, service::OBS_service_installVirtualCamPlugin));
+	exports.Set(
+		Napi::String::New(env, "OBS_service_isVirtualCamPluginInstalled"),
+		Napi::Function::New(env, service::OBS_service_isVirtualCamPluginInstalled));
 }

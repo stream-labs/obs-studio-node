@@ -29,112 +29,112 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
-Nan::Persistent<v8::FunctionTemplate> osn::SceneItem::prototype;
+Napi::FunctionReference osn::SceneItem::constructor;
 
-osn::SceneItem::SceneItem(uint64_t id)
-{
-	this->itemId = id;
+Napi::Object osn::SceneItem::Init(Napi::Env env, Napi::Object exports) {
+	Napi::HandleScope scope(env);
+	Napi::Function func =
+		DefineClass(env,
+		"SceneItem",
+		{
+			InstanceAccessor("source", &osn::SceneItem::GetSource, nullptr),
+			InstanceAccessor("scene", &osn::SceneItem::GetScene, nullptr),
+			InstanceAccessor("visible", &osn::SceneItem::IsVisible, &osn::SceneItem::SetVisible),
+			InstanceAccessor("selected", &osn::SceneItem::IsSelected, &osn::SceneItem::SetSelected),
+			InstanceAccessor("streamVisible", &osn::SceneItem::IsStreamVisible, &osn::SceneItem::SetStreamVisible),
+			InstanceAccessor("recordingVisible", &osn::SceneItem::IsRecordingVisible, &osn::SceneItem::SetRecordingVisible),
+			InstanceAccessor("position", &osn::SceneItem::GetPosition, &osn::SceneItem::SetPosition),
+			InstanceAccessor("rotation", &osn::SceneItem::GetRotation, &osn::SceneItem::SetRotation),
+			InstanceAccessor("scale", &osn::SceneItem::GetScale, &osn::SceneItem::SetScale),
+			InstanceAccessor("alignment", &osn::SceneItem::GetAlignment, &osn::SceneItem::SetAlignment),
+			InstanceAccessor("boundsAlignment", &osn::SceneItem::GetBoundsAlignment, &osn::SceneItem::SetBoundsAlignment),
+			InstanceAccessor("bounds", &osn::SceneItem::GetBounds, &osn::SceneItem::SetBounds),
+			InstanceAccessor("transformInfo", &osn::SceneItem::GetTransformInfo, &osn::SceneItem::SetTransformInfo),
+			InstanceAccessor("boundsType", &osn::SceneItem::GetBoundsType, &osn::SceneItem::SetBoundsType),
+			InstanceAccessor("crop", &osn::SceneItem::GetCrop, &osn::SceneItem::SetCrop),
+			InstanceAccessor("scaleFilter", &osn::SceneItem::GetScaleFilter, &osn::SceneItem::SetScaleFilter),
+			InstanceAccessor("id", &osn::SceneItem::GetId, nullptr),
+
+			InstanceMethod("moveUp", &osn::SceneItem::MoveUp),
+			InstanceMethod("moveDown", &osn::SceneItem::MoveDown),
+			InstanceMethod("moveTop", &osn::SceneItem::MoveTop),
+			InstanceMethod("moveBottom", &osn::SceneItem::MoveBottom),
+			InstanceMethod("move", &osn::SceneItem::Move),
+			InstanceMethod("remove", &osn::SceneItem::Remove),
+			InstanceMethod("deferUpdateBegin", &osn::SceneItem::DeferUpdateBegin),
+			InstanceMethod("deferUpdateEnd", &osn::SceneItem::DeferUpdateEnd),
+		});
+	exports.Set("SceneItem", func);
+	osn::SceneItem::constructor = Napi::Persistent(func);
+	osn::SceneItem::constructor.SuppressDestruct();
+	return exports;
 }
 
-void osn::SceneItem::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
-{
-	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
-	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
-	fnctemplate->SetClassName(Nan::New<v8::String>("SceneItem").ToLocalChecked());
+osn::SceneItem::SceneItem(const Napi::CallbackInfo& info)
+    : Napi::ObjectWrap<osn::SceneItem>(info) {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    int length = info.Length();
 
-	// Prototype/Class Template
-	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->PrototypeTemplate();
-	utilv8::SetTemplateAccessorProperty(objtemplate, "source", GetSource);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "scene", GetScene);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "visible", IsVisible, SetVisible);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "selected", IsSelected, SetSelected);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "streamVisible", IsStreamVisible, SetStreamVisible);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "recordingVisible", IsRecordingVisible, SetRecordingVisible);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "position", GetPosition, SetPosition);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "rotation", GetRotation, SetRotation);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "scale", GetScale, SetScale);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "alignment", GetAlignment, SetAlignment);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "boundsAlignment", GetBoundsAlignment, SetBoundsAlignment);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "bounds", GetBounds, SetBounds);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "transformInfo", GetTransformInfo, SetTransformInfo);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "boundsType", GetBoundsType, SetBoundsType);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "crop", GetCrop, SetCrop);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "scaleFilter", GetScaleFilter, SetScaleFilter);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "id", GetId);
-	utilv8::SetTemplateField(objtemplate, "moveUp", MoveUp);
-	utilv8::SetTemplateField(objtemplate, "moveDown", MoveDown);
-	utilv8::SetTemplateField(objtemplate, "moveTop", MoveTop);
-	utilv8::SetTemplateField(objtemplate, "moveBottom", MoveBottom);
-	utilv8::SetTemplateField(objtemplate, "move", Move);
-	utilv8::SetTemplateField(objtemplate, "remove", Remove);
-	utilv8::SetTemplateField(objtemplate, "deferUpdateBegin", DeferUpdateBegin);
-	utilv8::SetTemplateField(objtemplate, "deferUpdateEnd", DeferUpdateEnd);
+    if (length <= 0 || !info[0].IsNumber()) {
+        Napi::TypeError::New(env, "Number expected").ThrowAsJavaScriptException();
+        return;
+    }
 
-	// Stuff
-	utilv8::SetObjectField(
-	    target, "SceneItem", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
-	prototype.Reset(fnctemplate);
+	this->itemId = (uint64_t)info[0].ToNumber().Int64Value();
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetSource(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::SceneItem::GetSource(const Napi::CallbackInfo& info)
 {
-	osn::SceneItem* item = nullptr;
-
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("SceneItem", "GetSource", std::vector<ipc::value>{ipc::value(item->itemId)});
+	    conn->call_synchronous_helper("SceneItem", "GetSource", std::vector<ipc::value>{ipc::value(this->itemId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 	uint64_t sourceId = response[1].value_union.ui64;
 
-	osn::Input* obj = new osn::Input(sourceId);
-	info.GetReturnValue().Set(osn::Input::Store(obj));
+    auto instance =
+        osn::Input::constructor.New({
+            Napi::Number::New(info.Env(), sourceId)
+            });
+
+    return instance;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetScene(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::SceneItem::GetScene(const Napi::CallbackInfo& info)
 {
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("SceneItem", "GetScene", std::vector<ipc::value>{ipc::value(item->itemId)});
+	    conn->call_synchronous_helper("SceneItem", "GetScene", std::vector<ipc::value>{ipc::value(this->itemId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 	uint64_t sourceId = response[1].value_union.ui64;
 
-	osn::Scene* obj = new osn::Scene(sourceId);
-	info.GetReturnValue().Set(osn::Scene::Store(obj));
+    auto instance =
+        osn::Scene::constructor.New({
+            Napi::Number::New(info.Env(), sourceId)
+            });
+
+    return instance;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::Remove(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::SceneItem::Remove(const Napi::CallbackInfo& info)
 {
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
-	conn->call("SceneItem", "Remove", std::vector<ipc::value>{ipc::value(item->itemId)});
+	conn->call("SceneItem", "Remove", std::vector<ipc::value>{ipc::value(this->itemId)});
 
-	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(this->itemId);
 
 	if (sid) {
 		SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(sid->scene_id);
@@ -143,109 +143,82 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::Remove(Nan::NAN_METHOD_ARGS_TYPE inf
 			si->itemsOrderCached = false;
 		}
 	}
-	CacheManager<SceneItemData*>::getInstance().Remove(item->itemId);
-	item->itemId = UINT64_MAX;
+	CacheManager<SceneItemData*>::getInstance().Remove(this->itemId);
+	this->itemId = UINT64_MAX;
+	return info.Env().Undefined();
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsVisible(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::SceneItem::IsVisible(const Napi::CallbackInfo& info)
 {
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(this->itemId);
 
 	if (sid && !sid->visibleChanged) {
-		info.GetReturnValue().Set(sid->isVisible);
-		return;
+		return Napi::Boolean::New(info.Env(), sid->isVisible);
 	}
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("SceneItem", "IsVisible", std::vector<ipc::value>{ipc::value(item->itemId)});
+		conn->call_synchronous_helper("SceneItem", "IsVisible", std::vector<ipc::value>{ipc::value(this->itemId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 	bool flag = !!response[1].value_union.ui32;
 
 	sid->isVisible      = flag;
 	sid->visibleChanged = false;
 
-	info.GetReturnValue().Set(flag);
+	return Napi::Boolean::New(info.Env(), flag);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetVisible(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetVisible(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	bool visible;
-
-	ASSERT_GET_VALUE(info[0], visible);
-
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+	bool visible = value.ToBoolean().Value();
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(this->itemId);
 
 	if (sid && visible == sid->isVisible)
 		return;
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call("SceneItem", "SetVisible", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(visible)});
+	conn->call("SceneItem", "SetVisible", std::vector<ipc::value>{ipc::value(this->itemId), ipc::value(visible)});
 
 	sid->isVisible = visible;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsSelected(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::SceneItem::IsSelected(const Napi::CallbackInfo& info)
 {
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(this->itemId);
 
 	if (sid && sid->cached && !sid->selectedChanged) {
-		info.GetReturnValue().Set(utilv8::ToValue(item->IsSelected));
-		return;
+		return Napi::Boolean::New(info.Env(), sid->isSelected);
 	}
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("SceneItem", "IsSelected", std::vector<ipc::value>{ipc::value(item->itemId)});
+		conn->call_synchronous_helper("SceneItem", "IsSelected", std::vector<ipc::value>{ipc::value(this->itemId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 	bool flag = !!response[1].value_union.ui32;
 
 	sid->selectedChanged = false;
 	sid->cached          = true;
 	sid->isSelected      = flag;
-	info.GetReturnValue().Set(flag);
+	return Napi::Boolean::New(info.Env(), flag);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetSelected(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetSelected(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	bool selected;
-
-	ASSERT_GET_VALUE(info[0], selected);
-
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+	bool selected = value.ToBoolean().Value();
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(this->itemId);
 
 	if (sid == nullptr) {
 		return;
@@ -256,40 +229,33 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetSelected(Nan::NAN_METHOD_ARGS_TYP
 		return;
 	}
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call("SceneItem", "SetSelected", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(selected)});
+	conn->call("SceneItem", "SetSelected", std::vector<ipc::value>{ipc::value(this->itemId), ipc::value(selected)});
 
 	sid->selectedChanged = true;
 	sid->cached          = true;
 	sid->isSelected      = selected;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsStreamVisible(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::SceneItem::IsStreamVisible(const Napi::CallbackInfo& info)
 {
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(this->itemId);
 
-	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+	if (sid && !sid->streamVisibleChanged)
+		return Napi::Boolean::New(info.Env(), sid->isStreamVisible);
 
-	if (sid && !sid->streamVisibleChanged) {
-		info.GetReturnValue().Set(utilv8::ToValue(item->IsStreamVisible));
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("SceneItem", "IsStreamVisible", std::vector<ipc::value>{ipc::value(item->itemId)});
+	    conn->call_synchronous_helper("SceneItem", "IsStreamVisible", std::vector<ipc::value>{ipc::value(this->itemId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 	bool streamVisible = !!response[1].value_union.ui32;
 
 
@@ -297,21 +263,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsStreamVisible(Nan::NAN_METHOD_ARGS
 		sid->streamVisibleChanged = false;
 		sid->isStreamVisible      = streamVisible;
 	}
-	info.GetReturnValue().Set(streamVisible);
+	return Napi::Boolean::New(info.Env(), streamVisible);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetStreamVisible(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetStreamVisible(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	bool streamVisible;
+	bool streamVisible = value.ToBoolean().Value();
 
-	ASSERT_GET_VALUE(info[0], streamVisible);
-
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(this->itemId);
 
 	if (sid == nullptr) {
 		return;
@@ -322,61 +281,48 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetStreamVisible(Nan::NAN_METHOD_ARG
 		return;
 	}
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
 	conn->call(
 	    "SceneItem",
 	    "SetStreamVisible",
-	    std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(streamVisible)});
+	    std::vector<ipc::value>{ipc::value(this->itemId), ipc::value(streamVisible)});
 
 	sid->streamVisibleChanged = true;
 	sid->isStreamVisible      = streamVisible;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::IsRecordingVisible(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::SceneItem::IsRecordingVisible(const Napi::CallbackInfo& info)
 {
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(this->itemId);
 
 	if (sid && !sid->recordingVisibleChanged) {
-		info.GetReturnValue().Set(utilv8::ToValue(item->IsRecordingVisible));
-		return;
+		return Napi::Boolean::New(info.Env(), sid->isRecordingVisible);
 	}
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "SceneItem", "IsRecordingVisible", std::vector<ipc::value>{ipc::value(item->itemId)});
+	    "SceneItem", "IsRecordingVisible", std::vector<ipc::value>{ipc::value(this->itemId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 	bool recordingVisible = !!response[1].value_union.ui32;
 
 	sid->recordingVisibleChanged = false;
 	sid->isRecordingVisible      = recordingVisible;
-	info.GetReturnValue().Set(recordingVisible);
+	return Napi::Boolean::New(info.Env(), recordingVisible);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetRecordingVisible(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetRecordingVisible(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	bool recordingVisible;
+	bool recordingVisible = value.ToBoolean().Value();
 
-	ASSERT_GET_VALUE(info[0], recordingVisible);
-
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(this->itemId);
 
 	if (sid == nullptr) {
 		return;
@@ -387,14 +333,14 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetRecordingVisible(Nan::NAN_METHOD_
 		return;
 	}
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
 	conn->call(
 	    "SceneItem",
 	    "SetRecordingVisible",
-	    std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(recordingVisible)});
+	    std::vector<ipc::value>{ipc::value(this->itemId), ipc::value(recordingVisible)});
 
 	if (sid) {
 		sid->recordingVisibleChanged = true;
@@ -402,449 +348,333 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetRecordingVisible(Nan::NAN_METHOD_
 	}
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetPosition(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::SceneItem::GetPosition(const Napi::CallbackInfo& info)
 {
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(this->itemId);
 
 	if (sid && !sid->posChanged) {
-		auto obj = Nan::New<v8::Object>();
-		utilv8::SetObjectField(obj, "x", sid->posX);
-		utilv8::SetObjectField(obj, "y", sid->posY);
-		info.GetReturnValue().Set(obj);
-		return;
+		Napi::Object obj = Napi::Object::New(info.Env());
+		obj.Set("x", Napi::Number::New(info.Env(), sid->posX));
+		obj.Set("y", Napi::Number::New(info.Env(), sid->posY));
+		return obj;
 	}
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("SceneItem", "GetPosition", std::vector<ipc::value>{ipc::value(item->itemId)});
+		conn->call_synchronous_helper("SceneItem", "GetPosition", std::vector<ipc::value>{ipc::value(this->itemId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 	float x = response[1].value_union.fp32;
 	float y = response[2].value_union.fp32;
 
-	auto obj = Nan::New<v8::Object>();
-	utilv8::SetObjectField(obj, "x", x);
-	utilv8::SetObjectField(obj, "y", y);
+	Napi::Object obj = Napi::Object::New(info.Env());
+	obj.Set("x", Napi::Number::New(info.Env(), x));
+	obj.Set("y", Napi::Number::New(info.Env(), y));
 
 	sid->posX       = x;
 	sid->posY       = y;
 	sid->posChanged = false;
 
-	info.GetReturnValue().Set(obj);
+	return obj;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetPosition(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetPosition(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	v8::Local<v8::Object> vector;
-	float_t               x;
-	float_t               y;
+	Napi::Object vector = info[0].ToObject();
+	float_t x = vector.Get("x").ToNumber().FloatValue();
+	float_t y = vector.Get("y").ToNumber().FloatValue();
 
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], vector);
-	ASSERT_GET_OBJECT_FIELD(vector, "x", x);
-	ASSERT_GET_OBJECT_FIELD(vector, "y", y);
-
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(this->itemId);
 
 	if (sid && x == sid->posX && y == sid->posY)
 		return;
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call("SceneItem", "SetPosition", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(x), ipc::value(y)});
+	conn->call("SceneItem", "SetPosition", std::vector<ipc::value>{ipc::value(this->itemId), ipc::value(x), ipc::value(y)});
 
 	sid->posX = x;
 	sid->posY = y;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetRotation(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::SceneItem::GetRotation(const Napi::CallbackInfo& info)
 {
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(this->itemId);
 
-	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+	if (sid && !sid->rotationChanged)
+		return Napi::Number::New(info.Env(), sid->rotation);
 
-	if (sid && !sid->rotationChanged) {
-		info.GetReturnValue().Set(sid->rotation);
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("SceneItem", "GetRotation", std::vector<ipc::value>{ipc::value(item->itemId)});
+		conn->call_synchronous_helper("SceneItem", "GetRotation", std::vector<ipc::value>{ipc::value(this->itemId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 	float rotation = response[1].value_union.fp32;
 
 	sid->rotation        = rotation;
 	sid->rotationChanged = false;
 
-	info.GetReturnValue().Set(utilv8::ToValue(rotation));
+	return Napi::Number::New(info.Env(), rotation);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetRotation(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetRotation(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	float_t vector;
+	float_t vector = info[0].ToNumber().FloatValue();
 
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], vector);
-
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(this->itemId);
 
 	if (sid && vector == sid->rotation)
 		return;
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call("SceneItem", "SetRotation", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(vector)});
+	conn->call("SceneItem", "SetRotation", std::vector<ipc::value>{ipc::value(this->itemId), ipc::value(vector)});
 
 	sid->rotation = vector;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetScale(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::SceneItem::GetScale(const Napi::CallbackInfo& info)
 {
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(this->itemId);
 
 	if (sid && !sid->scaleChanged) {
-		auto obj = Nan::New<v8::Object>();
-		utilv8::SetObjectField(obj, "x", sid->scaleX);
-		utilv8::SetObjectField(obj, "y", sid->scaleY);
-		info.GetReturnValue().Set(obj);
-		return;
+		Napi::Object obj = Napi::Object::New(info.Env());
+		obj.Set("x", Napi::Number::New(info.Env(), sid->scaleX));
+		obj.Set("y", Napi::Number::New(info.Env(), sid->scaleY));
+		return obj;
 	}
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("SceneItem", "GetScale", std::vector<ipc::value>{ipc::value(item->itemId)});
+		conn->call_synchronous_helper("SceneItem", "GetScale", std::vector<ipc::value>{ipc::value(this->itemId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 	float x = response[1].value_union.fp32;
 	float y = response[2].value_union.fp32;
 
-	auto obj = Nan::New<v8::Object>();
-	utilv8::SetObjectField(obj, "x", x);
-	utilv8::SetObjectField(obj, "y", y);
+	Napi::Object obj = Napi::Object::New(info.Env());
+	obj.Set("x", Napi::Number::New(info.Env(), x));
+	obj.Set("y", Napi::Number::New(info.Env(), y));
 
 	sid->scaleX       = x;
 	sid->scaleY       = y;
 	sid->scaleChanged = false;
 
-	info.GetReturnValue().Set(obj);
+	return obj;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetScale(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetScale(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	v8::Local<v8::Object> vector;
-	float_t               x;
-	float_t               y;
+	Napi::Object vector = info[0].ToObject();
+	float_t x = vector.Get("x").ToNumber().FloatValue();
+	float_t y = vector.Get("y").ToNumber().FloatValue();
 
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], vector);
-	ASSERT_GET_OBJECT_FIELD(vector, "x", x);
-	ASSERT_GET_OBJECT_FIELD(vector, "y", y);
-
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(this->itemId);
 
 	if (sid && x == sid->scaleX && y == sid->scaleY)
 		return;
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call("SceneItem", "SetScale", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(x), ipc::value(y)});
+	conn->call("SceneItem", "SetScale", std::vector<ipc::value>{ipc::value(this->itemId), ipc::value(x), ipc::value(y)});
 
 	sid->scaleX = x;
 	sid->scaleY = y;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetScaleFilter(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::SceneItem::GetScaleFilter(const Napi::CallbackInfo& info)
 {
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("SceneItem", "GetScaleFilter", std::vector<ipc::value>{ipc::value(item->itemId)});
+	    conn->call_synchronous_helper("SceneItem", "GetScaleFilter", std::vector<ipc::value>{ipc::value(this->itemId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 	bool flag = !!response[1].value_union.ui32;
 
-	info.GetReturnValue().Set(flag);
+	return Napi::Boolean::New(info.Env(), flag);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetScaleFilter(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetScaleFilter(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	int32_t visible;
+	int32_t visible = value.ToNumber().Int32Value();
 
-	ASSERT_GET_VALUE(info[0], visible);
-
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call("SceneItem", "SetScaleFilter", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(visible)});
+	conn->call("SceneItem", "SetScaleFilter", std::vector<ipc::value>{ipc::value(this->itemId), ipc::value(visible)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetAlignment(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::SceneItem::GetAlignment(const Napi::CallbackInfo& info)
 {
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("SceneItem", "GetAlignment", std::vector<ipc::value>{ipc::value(item->itemId)});
+	    conn->call_synchronous_helper("SceneItem", "GetAlignment", std::vector<ipc::value>{ipc::value(this->itemId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
 	bool flag = !!response[1].value_union.ui32;
 
-	info.GetReturnValue().Set(flag);
+	return Napi::Boolean::New(info.Env(), flag);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetAlignment(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetAlignment(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	uint32_t visible;
+	uint32_t visible = value.ToNumber().Uint32Value();
 
-	ASSERT_GET_VALUE(info[0], visible);
-
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call("SceneItem", "SetAlignment", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(visible)});
+	conn->call("SceneItem", "SetAlignment", std::vector<ipc::value>{ipc::value(this->itemId), ipc::value(visible)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetBounds(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::SceneItem::GetBounds(const Napi::CallbackInfo& info)
 {
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("SceneItem", "GetBounds", std::vector<ipc::value>{ipc::value(item->itemId)});
+	    conn->call_synchronous_helper("SceneItem", "GetBounds", std::vector<ipc::value>{ipc::value(this->itemId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 	float x = response[1].value_union.fp32;
 	float y = response[2].value_union.fp32;
 
-	auto obj = Nan::New<v8::Object>();
-	utilv8::SetObjectField(obj, "x", x);
-	utilv8::SetObjectField(obj, "y", y);
-	info.GetReturnValue().Set(obj);
+	Napi::Object obj = Napi::Object::New(info.Env());
+	obj.Set("x", Napi::Number::New(info.Env(), x));
+	obj.Set("y", Napi::Number::New(info.Env(), y));
+	return obj;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetBounds(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetBounds(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	v8::Local<v8::Object> vector;
-	float_t               x;
-	float_t               y;
+	Napi::Object vector = info[0].ToObject();
+	float_t x = vector.Get("x").ToNumber().FloatValue();
+	float_t y = vector.Get("y").ToNumber().FloatValue();
 
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], vector);
-	ASSERT_GET_OBJECT_FIELD(vector, "x", x);
-	ASSERT_GET_OBJECT_FIELD(vector, "y", y);
-
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call("SceneItem", "SetBounds", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(x), ipc::value(y)});
+	conn->call("SceneItem", "SetBounds", std::vector<ipc::value>{ipc::value(this->itemId), ipc::value(x), ipc::value(y)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetBoundsAlignment(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::SceneItem::GetBoundsAlignment(const Napi::CallbackInfo& info)
 {
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "SceneItem", "GetBoundsAlignment", std::vector<ipc::value>{ipc::value(item->itemId)});
+	    "SceneItem", "GetBoundsAlignment", std::vector<ipc::value>{ipc::value(this->itemId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 	uint32_t bounds_alignment = response[1].value_union.ui32;
 
-	info.GetReturnValue().Set(bounds_alignment);
+	return Napi::Number::New(info.Env(), bounds_alignment);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetBoundsAlignment(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetBoundsAlignment(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	uint32_t visible;
+	uint32_t visible = value.ToNumber().Uint32Value();
 
-	ASSERT_GET_VALUE(info[0], visible);
-
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call("SceneItem", "SetBoundsAlignment", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(visible)});
+	conn->call("SceneItem", "SetBoundsAlignment", std::vector<ipc::value>{ipc::value(this->itemId), ipc::value(visible)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetBoundsType(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::SceneItem::GetBoundsType(const Napi::CallbackInfo& info)
 {
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("SceneItem", "GetBoundsType", std::vector<ipc::value>{ipc::value(item->itemId)});
+	    conn->call_synchronous_helper("SceneItem", "GetBoundsType", std::vector<ipc::value>{ipc::value(this->itemId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 	uint32_t bounds_type = response[1].value_union.ui32;
 
-	info.GetReturnValue().Set(bounds_type);
+	return Napi::Number::New(info.Env(), bounds_type);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetBoundsType(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetBoundsType(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	int32_t visible;
+	int32_t boundsType = value.ToNumber().Int32Value();
 
-	ASSERT_GET_VALUE(info[0], visible);
-
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call("SceneItem", "SetBoundsType", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(visible)});
+	conn->call("SceneItem", "SetBoundsType", std::vector<ipc::value>{ipc::value(this->itemId), ipc::value(boundsType)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetCrop(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::SceneItem::GetCrop(const Napi::CallbackInfo& info)
 {
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(this->itemId);
 
 	if (sid && !sid->cropChanged) {
-		auto obj = Nan::New<v8::Object>();
-		utilv8::SetObjectField(obj, "left", sid->cropLeft);
-		utilv8::SetObjectField(obj, "top", sid->cropTop);
-		utilv8::SetObjectField(obj, "right", sid->cropRight);
-		utilv8::SetObjectField(obj, "bottom", sid->cropBottom);
-		info.GetReturnValue().Set(obj);
-		return;
+		Napi::Object obj = Napi::Object::New(info.Env());
+		obj.Set("left", Napi::Number::New(info.Env(), sid->cropLeft));
+		obj.Set("top", Napi::Number::New(info.Env(), sid->cropTop));
+		obj.Set("right", Napi::Number::New(info.Env(), sid->cropRight));
+		obj.Set("bottom", Napi::Number::New(info.Env(), sid->cropBottom));
+		return obj;
 	}
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("SceneItem", "GetCrop", std::vector<ipc::value>{ipc::value(item->itemId)});
+		conn->call_synchronous_helper("SceneItem", "GetCrop", std::vector<ipc::value>{ipc::value(this->itemId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
 	uint32_t left   = response[1].value_union.i32;
 	uint32_t top    = response[2].value_union.i32;
 	uint32_t right  = response[3].value_union.i32;
 	uint32_t bottom = response[4].value_union.i32;
 
-	auto obj = Nan::New<v8::Object>();
-	utilv8::SetObjectField(obj, "left", left);
-	utilv8::SetObjectField(obj, "top", top);
-	utilv8::SetObjectField(obj, "right", right);
-	utilv8::SetObjectField(obj, "bottom", bottom);
+	Napi::Object obj = Napi::Object::New(info.Env());
+	obj.Set("left", Napi::Number::New(info.Env(), left));
+	obj.Set("top", Napi::Number::New(info.Env(), top));
+	obj.Set("right", Napi::Number::New(info.Env(), right));
+	obj.Set("bottom", Napi::Number::New(info.Env(), bottom));
 
 	sid->cropLeft    = left;
 	sid->cropTop     = top;
@@ -852,41 +682,29 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetCrop(Nan::NAN_METHOD_ARGS_TYPE in
 	sid->cropBottom  = bottom;
 	sid->cropChanged = false;
 
-	info.GetReturnValue().Set(obj);
+	return obj;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetCrop(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetCrop(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	v8::Local<v8::Object> vector;
-	int32_t               left;
-	int32_t               top;
-	int32_t               right;
-	int32_t               bottom;
+	Napi::Object vector = info[0].ToObject();
+	int32_t left = vector.Get("left").ToNumber().Int32Value();
+	int32_t top = vector.Get("top").ToNumber().Int32Value();
+	int32_t right = vector.Get("right").ToNumber().Int32Value();
+	int32_t bottom = vector.Get("bottom").ToNumber().Int32Value();
 
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], vector);
-	ASSERT_GET_OBJECT_FIELD(vector, "left", left);
-	ASSERT_GET_OBJECT_FIELD(vector, "top", top);
-	ASSERT_GET_OBJECT_FIELD(vector, "right", right);
-	ASSERT_GET_OBJECT_FIELD(vector, "bottom", bottom);
-
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(this->itemId);
 
 	if (sid && left == sid->cropLeft && top == sid->cropTop &&
 		right == sid->cropRight && bottom == sid->cropBottom)
 		return;
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
 	conn->call("SceneItem", "SetCrop",
-		std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(left),
+		std::vector<ipc::value>{ipc::value(this->itemId), ipc::value(left),
 		ipc::value(top), ipc::value(right), ipc::value(bottom)});
 
 	sid->cropLeft   = left;
@@ -895,58 +713,53 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetCrop(Nan::NAN_METHOD_ARGS_TYPE in
 	sid->cropBottom = bottom;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetTransformInfo(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::SceneItem::GetTransformInfo(const Napi::CallbackInfo& info)
 {
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "SceneItem", "GetTransformInfo", std::vector<ipc::value>{ipc::value(item->itemId)});
+	    "SceneItem", "GetTransformInfo", std::vector<ipc::value>{ipc::value(this->itemId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
 	/* Guess we forgot about alignment, not sure where this goes */
 	uint32_t alignment = response[7].value_union.ui32;
 
-	auto positionObj = Nan::New<v8::Object>();
-	utilv8::SetObjectField(positionObj, "x", response[1].value_union.fp32);
-	utilv8::SetObjectField(positionObj, "y", response[2].value_union.fp32);
+	Napi::Object positionObj = Napi::Object::New(info.Env());
+	positionObj.Set("x", Napi::Number::New(info.Env(), response[1].value_union.fp32));
+	positionObj.Set("y", Napi::Number::New(info.Env(), response[2].value_union.fp32));
 
-	auto scaleObj = Nan::New<v8::Object>();
-	utilv8::SetObjectField(scaleObj, "x", response[3].value_union.fp32);
-	utilv8::SetObjectField(scaleObj, "y", response[4].value_union.fp32);
+	Napi::Object scaleObj = Napi::Object::New(info.Env());
+	scaleObj.Set("x", Napi::Number::New(info.Env(), response[3].value_union.fp32));
+	scaleObj.Set("y", Napi::Number::New(info.Env(), response[4].value_union.fp32));
 
-	auto boundsObj = Nan::New<v8::Object>();
-	utilv8::SetObjectField(boundsObj, "x", response[8].value_union.fp32);
-	utilv8::SetObjectField(boundsObj, "y", response[9].value_union.fp32);
+	Napi::Object boundsObj = Napi::Object::New(info.Env());
+	boundsObj.Set("x", Napi::Number::New(info.Env(), response[8].value_union.fp32));
+	boundsObj.Set("y", Napi::Number::New(info.Env(), response[9].value_union.fp32));
 
-	auto cropObj = Nan::New<v8::Object>();
-	utilv8::SetObjectField(cropObj, "left", response[12].value_union.ui32);
-	utilv8::SetObjectField(cropObj, "top", response[13].value_union.ui32);
-	utilv8::SetObjectField(cropObj, "right", response[14].value_union.ui32);
-	utilv8::SetObjectField(cropObj, "bottom", response[15].value_union.ui32);
+	Napi::Object cropObj = Napi::Object::New(info.Env());
+	boundsObj.Set("left", Napi::Number::New(info.Env(), response[12].value_union.ui32));
+	boundsObj.Set("top", Napi::Number::New(info.Env(), response[13].value_union.ui32));
+	boundsObj.Set("right", Napi::Number::New(info.Env(), response[14].value_union.ui32));
+	boundsObj.Set("bottom", Napi::Number::New(info.Env(), response[15].value_union.ui32));
 
-	auto obj = Nan::New<v8::Object>();
-	utilv8::SetObjectField(obj, "pos", positionObj);
-	utilv8::SetObjectField(obj, "scale", scaleObj);
-	utilv8::SetObjectField(obj, "bounds", boundsObj);
-	utilv8::SetObjectField(obj, "crop", cropObj);
-	utilv8::SetObjectField(obj, "scaleFilter", response[5].value_union.ui32);
-	utilv8::SetObjectField(obj, "rotation", response[6].value_union.fp32);
-	utilv8::SetObjectField(obj, "boundsType", response[10].value_union.ui32);
-	utilv8::SetObjectField(obj, "boundsAlignment", response[11].value_union.ui32);
+	Napi::Object obj = Napi::Object::New(info.Env());
+	obj.Set("pos", positionObj);
+	obj.Set("scale", scaleObj);
+	obj.Set("bounds", boundsObj);
+	obj.Set("crop", cropObj);
+	obj.Set("scaleFilter", Napi::Number::New(info.Env(), response[5].value_union.ui32));
+	obj.Set("rotation", Napi::Number::New(info.Env(), response[6].value_union.fp32));
+	obj.Set("boundsType", Napi::Number::New(info.Env(), response[10].value_union.ui32));
+	obj.Set("boundsAlignment", Napi::Number::New(info.Env(), response[11].value_union.ui32));
 
-	info.GetReturnValue().Set(obj);
+	return obj;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetTransformInfo(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::SceneItem::SetTransformInfo(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
 	//obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
 
@@ -967,134 +780,99 @@ Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::SetTransformInfo(Nan::NAN_METHOD_ARG
 	//handle.transform_info(tf_info);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::GetId(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::SceneItem::GetId(const Napi::CallbackInfo& info)
 {
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item->itemId);
+	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(this->itemId);
 
 	if (sid == nullptr) {
-		return;
+		return info.Env().Undefined();
     }
 
 	if (sid->obs_itemId < 0) {
-		auto conn = GetConnection();
+		auto conn = GetConnection(info);
 		if (!conn)
-			return;
+		return info.Env().Undefined();
 
 		std::vector<ipc::value> response =
-			conn->call_synchronous_helper("SceneItem", "GetId", std::vector<ipc::value>{ipc::value(item->itemId)});
+			conn->call_synchronous_helper("SceneItem", "GetId", std::vector<ipc::value>{ipc::value(this->itemId)});
 
-		if (!ValidateResponse(response))
-			return;
+		if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
 		sid->obs_itemId = response[1].value_union.ui64;
 	}
 
-	info.GetReturnValue().Set(utilv8::ToValue(sid->obs_itemId));
+	return Napi::Number::New(info.Env(), sid->obs_itemId);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveUp(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::SceneItem::MoveUp(const Napi::CallbackInfo& info)
 {
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
-    conn->call("SceneItem", "MoveUp", std::vector<ipc::value>{ipc::value(item->itemId)});
+    conn->call("SceneItem", "MoveUp", std::vector<ipc::value>{ipc::value(this->itemId)});
+	return info.Env().Undefined();
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveDown(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::SceneItem::MoveDown(const Napi::CallbackInfo& info)
 {
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
-    conn->call("SceneItem", "MoveDown", std::vector<ipc::value>{ipc::value(item->itemId)});
+    conn->call("SceneItem", "MoveDown", std::vector<ipc::value>{ipc::value(this->itemId)});
+	return info.Env().Undefined();
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveTop(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::SceneItem::MoveTop(const Napi::CallbackInfo& info)
 {
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
-	conn->call("SceneItem", "MoveTop", std::vector<ipc::value>{ipc::value(item->itemId)});
+	conn->call("SceneItem", "MoveTop", std::vector<ipc::value>{ipc::value(this->itemId)});
+	return info.Env().Undefined();
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::MoveBottom(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::SceneItem::MoveBottom(const Napi::CallbackInfo& info)
 {
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
-    conn->call("SceneItem", "MoveBottom", std::vector<ipc::value>{ipc::value(item->itemId)});
+    conn->call("SceneItem", "MoveBottom", std::vector<ipc::value>{ipc::value(this->itemId)});
+	return info.Env().Undefined();
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::Move(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::SceneItem::Move(const Napi::CallbackInfo& info)
 {
-	ASSERT_INFO_LENGTH(info, 1);
-	int32_t position;
-	ASSERT_GET_VALUE(info[0], position);
+	int32_t position = info[0].ToNumber().Int32Value();
 
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
-	conn->call("SceneItem", "Move", std::vector<ipc::value>{ipc::value(item->itemId), ipc::value(position)});
+	conn->call("SceneItem", "Move", std::vector<ipc::value>{ipc::value(this->itemId), ipc::value(position)});
+	return info.Env().Undefined();
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::DeferUpdateBegin(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::SceneItem::DeferUpdateBegin(const Napi::CallbackInfo& info)
 {
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
-	conn->call("SceneItem", "DeferUpdateBegin", std::vector<ipc::value>{ipc::value(item->itemId)});
+	conn->call("SceneItem", "DeferUpdateBegin", std::vector<ipc::value>{ipc::value(this->itemId)});
+	return info.Env().Undefined();
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::SceneItem::DeferUpdateEnd(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::SceneItem::DeferUpdateEnd(const Napi::CallbackInfo& info)
 {
-	osn::SceneItem* item = nullptr;
-	if (!Retrieve(info.This(), item)) {
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
-	conn->call("SceneItem", "DeferUpdateEnd", std::vector<ipc::value>{ipc::value(item->itemId)});
+	conn->call("SceneItem", "DeferUpdateEnd", std::vector<ipc::value>{ipc::value(this->itemId)});
+	return info.Env().Undefined();
 }

@@ -29,70 +29,92 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
-Nan::Persistent<v8::FunctionTemplate> osn::Input::prototype;
+Napi::FunctionReference osn::Input::constructor;
 
-osn::Input::Input(uint64_t id)
-{
-	this->sourceId = id;
+Napi::Object osn::Input::Init(Napi::Env env, Napi::Object exports) {
+	Napi::HandleScope scope(env);
+	Napi::Function func =
+		DefineClass(env,
+		"Input",
+		{
+			StaticMethod("types", &osn::Input::Types),
+			StaticMethod("create", &osn::Input::Create),
+			StaticMethod("createPrivate", &osn::Input::CreatePrivate),
+			StaticMethod("fromName", &osn::Input::FromName),
+			StaticMethod("getPublicSources", &osn::Input::GetPublicSources),
+
+			InstanceMethod("duplicate", &osn::Input::Duplicate),
+			InstanceMethod("addFilter", &osn::Input::AddFilter),
+			InstanceMethod("removeFilter", &osn::Input::RemoveFilter),
+			InstanceMethod("setFilterOrder", &osn::Input::SetFilterOrder),
+			InstanceMethod("findFilter", &osn::Input::FindFilter),
+			InstanceMethod("copyFilters", &osn::Input::CopyFilters),
+
+			InstanceAccessor("active", &osn::Input::Active, nullptr),
+			InstanceAccessor("showing", &osn::Input::Showing, nullptr),
+			InstanceAccessor("width", &osn::Input::Width, nullptr),
+			InstanceAccessor("height", &osn::Input::Height, nullptr),
+			InstanceAccessor("volume", &osn::Input::GetVolume, &osn::Input::SetVolume),
+			InstanceAccessor("syncOffset", &osn::Input::GetSyncOffset, &osn::Input::SetSyncOffset),
+			InstanceAccessor("audioMixers", &osn::Input::GetAudioMixers, &osn::Input::SetAudioMixers),
+			InstanceAccessor("monitoringType", &osn::Input::GetMonitoringType, &osn::Input::SetMonitoringType),
+			InstanceAccessor("deinterlaceFieldOrder", &osn::Input::GetDeinterlaceFieldOrder, &osn::Input::SetDeinterlaceFieldOrder),
+			InstanceAccessor("deinterlaceMode", &osn::Input::GetDeinterlaceMode, &osn::Input::SetDeinterlaceMode),
+			InstanceAccessor("filters", &osn::Input::Filters, nullptr),
+
+			InstanceAccessor("configurable", &osn::Input::CallIsConfigurable, nullptr),
+			InstanceAccessor("properties", &osn::Input::CallGetProperties, nullptr),
+			InstanceAccessor("settings", &osn::Input::CallGetSettings, nullptr),
+			InstanceAccessor("type", &osn::Input::CallGetType, nullptr),
+			InstanceAccessor("name", &osn::Input::CallGetName, &osn::Input::CallSetName),
+			InstanceAccessor("outputFlags", &osn::Input::CallGetOutputFlags, nullptr),
+			InstanceAccessor("flags", &osn::Input::CallGetFlags, &osn::Input::CallSetFlags),
+			InstanceAccessor("status", &osn::Input::CallGetStatus, nullptr),
+			InstanceAccessor("id", &osn::Input::CallGetId, nullptr),
+			InstanceAccessor("muted", &osn::Input::CallGetMuted, &osn::Input::CallSetMuted),
+			InstanceAccessor("enabled", &osn::Input::CallGetEnabled, &osn::Input::CallSetEnabled),
+
+			InstanceMethod("release", &osn::Input::CallRelease),
+			InstanceMethod("remove", &osn::Input::CallRemove),
+			InstanceMethod("update", &osn::Input::CallUpdate),
+			InstanceMethod("load", &osn::Input::CallLoad),
+			InstanceMethod("save", &osn::Input::CallSave),
+			InstanceMethod("sendMouseClick", &osn::Input::CallSendMouseClick),
+			InstanceMethod("sendMouseMove", &osn::Input::CallSendMouseMove),
+			InstanceMethod("sendMouseWheel", &osn::Input::CallSendMouseWheel),
+			InstanceMethod("sendFocus", &osn::Input::CallSendFocus),
+			InstanceMethod("sendKeyClick", &osn::Input::CallSendKeyClick),
+		});
+	exports.Set("Input", func);
+	osn::Input::constructor = Napi::Persistent(func);
+	osn::Input::constructor.SuppressDestruct();
+	return exports;
 }
 
-void osn::Input::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
-{
-	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
-	fnctemplate->Inherit(Nan::New<v8::FunctionTemplate>(osn::ISource::prototype));
-	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
-	fnctemplate->SetClassName(Nan::New<v8::String>("Input").ToLocalChecked());
+osn::Input::Input(const Napi::CallbackInfo& info)
+    : Napi::ObjectWrap<osn::Input>(info) {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    int length = info.Length();
 
-	// Function Template
-	utilv8::SetTemplateField(fnctemplate, "types", Types);
-	utilv8::SetTemplateField(fnctemplate, "create", Create);
-	utilv8::SetTemplateField(fnctemplate, "createPrivate", CreatePrivate);
-	utilv8::SetTemplateField(fnctemplate, "fromName", FromName);
-	utilv8::SetTemplateField(fnctemplate, "getPublicSources", GetPublicSources);
+    if (length <= 0 || !info[0].IsNumber()) {
+        Napi::TypeError::New(env, "Number expected").ThrowAsJavaScriptException();
+        return;
+    }
 
-	// Prototype Template
-
-	// Instance Template
-	v8::Local<v8::Template> objtemplate = fnctemplate->PrototypeTemplate();
-	utilv8::SetTemplateField(objtemplate, "duplicate", Duplicate);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "active", Active);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "showing", Showing);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "width", Width);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "height", Height);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "volume", GetVolume, SetVolume);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "syncOffset", GetSyncOffset, SetSyncOffset);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "audioMixers", GetAudioMixers, SetAudioMixers);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "monitoringType", GetMonitoringType, SetMonitoringType);
-	utilv8::SetTemplateAccessorProperty(
-	    objtemplate, "deinterlaceFieldOrder", GetDeinterlaceFieldOrder, SetDeinterlaceFieldOrder);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "deinterlaceMode", GetDeinterlaceMode, SetDeinterlaceMode);
-
-	utilv8::SetTemplateAccessorProperty(objtemplate, "filters", Filters);
-	utilv8::SetTemplateField(objtemplate, "addFilter", AddFilter);
-	utilv8::SetTemplateField(objtemplate, "removeFilter", RemoveFilter);
-	utilv8::SetTemplateField(objtemplate, "setFilterOrder", SetFilterOrder);
-	utilv8::SetTemplateField(objtemplate, "findFilter", FindFilter);
-	utilv8::SetTemplateField(objtemplate, "copyFilters", CopyFilters);
-
-	// Stuff
-	utilv8::SetObjectField(
-	    target, "Input", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
-	prototype.Reset(fnctemplate);
+	this->sourceId = (uint64_t)info[0].ToNumber().Int64Value();
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::Types(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Input::Types(const Napi::CallbackInfo& info)
 {
-	// Function takes no parameters.
-	ASSERT_INFO_LENGTH(info, 0);
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("Input", "Types", {});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
 	std::vector<std::string> types;
 
@@ -100,52 +122,45 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Types(Nan::NAN_METHOD_ARGS_TYPE info)
 		types.push_back(response[i].value_str);
 	}
 
-	info.GetReturnValue().Set(utilv8::ToValue<std::string>(types));
+	return utilv8::ToValue<std::string>(info, types);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::Create(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Input::Create(const Napi::CallbackInfo& info)
 {
-	std::string           type;
-	std::string           name;
-	v8::Local<v8::String> settings = Nan::New<v8::String>("").ToLocalChecked();
-	v8::Local<v8::String> hotkeys  = Nan::New<v8::String>("").ToLocalChecked();
+	std::string type = info[0].ToString().Utf8Value();
+	std::string name = info[1].ToString().Utf8Value();
+	Napi::String settings = Napi::String::New(info.Env(), "");
+	Napi::String hotkeys = Napi::String::New(info.Env(), "");
 
-	// Parameters: <string> Type, <string> Name[,<object> settings]
-	ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
-
-	ASSERT_GET_VALUE(info[0], type);
-	ASSERT_GET_VALUE(info[1], name);
+	Napi::Object json = info.Env().Global().Get("JSON").As<Napi::Object>();
+	Napi::Function stringify = json.Get("stringify").As<Napi::Function>();
 
 	// Check if caller provided settings to send across.
 	if (info.Length() >= 4) {
-		ASSERT_INFO_LENGTH(info, 4);
-		if (!info[3]->IsUndefined()) {
-			v8::Local<v8::Object> hksobj;
-			ASSERT_GET_VALUE(info[3], hksobj);
-			hotkeys = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), hksobj).ToLocalChecked();
+		if (!info[3].IsUndefined()) {
+			Napi::Object hksobj = info[3].ToObject();
+			hotkeys = stringify.Call(json, { hksobj }).As<Napi::String>();
 		}
 	}
 	if (info.Length() >= 3) {
-		ASSERT_INFO_LENGTH_AT_LEAST(info, 3);
-		if (!info[2]->IsUndefined()) {
-			v8::Local<v8::Object> setobj;
-			ASSERT_GET_VALUE(info[2], setobj);
-			settings = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), setobj).ToLocalChecked();
+		if (!info[2].IsUndefined()) {
+			Napi::Object setobj = info[2].ToObject();
+			settings = stringify.Call(json, { setobj }).As<Napi::String>();
 		}
 	}
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	auto params = std::vector<ipc::value>{ipc::value(type), ipc::value(name)};
-	if (settings->Length() != 0) {
+	if (settings.Utf8Value().length() != 0) {
 		std::string value;
 		if (utilv8::FromValue(settings, value)) {
 			params.push_back(ipc::value(value));
 		}
 	}
-	if (hotkeys->Length() != 0) {
+	if (hotkeys.Utf8Value().length() != 0) {
 		std::string value;
 		if (utilv8::FromValue(hotkeys, value)) {
 			params.push_back(ipc::value(value));
@@ -154,11 +169,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("Input", "Create", {std::move(params)});
 
-	if (!ValidateResponse(response))
-		return;
-
-	// Create new Filter
-	osn::Input* obj = new osn::Input(response[1].value_union.ui64);
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
 	SourceDataInfo* sdi = new SourceDataInfo;
 	sdi->name           = name;
@@ -169,37 +181,34 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	CacheManager<SourceDataInfo*>::getInstance().Store(response[1].value_union.ui64, name, sdi);
 
-	info.GetReturnValue().Set(osn::Input::Store(obj));
+    auto instance =
+        osn::Input::constructor.New({
+            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+            });
+
+    return instance;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Input::CreatePrivate(const Napi::CallbackInfo& info)
 {
-	std::string           type;
-	std::string           name;
-	v8::Local<v8::String> settings = Nan::New<v8::String>("").ToLocalChecked();
+	std::string type = info[0].ToString().Utf8Value();
+	std::string name = info[1].ToString().Utf8Value();
+	Napi::String settings = Napi::String::New(info.Env(), "");
 
-	// Parameters: <string> Type, <string> Name[,<object> settings]
-	ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
+	Napi::Object json = info.Env().Global().Get("JSON").As<Napi::Object>();
+	Napi::Function stringify = json.Get("stringify").As<Napi::Function>();
 
-	ASSERT_GET_VALUE(info[0], type);
-	ASSERT_GET_VALUE(info[1], name);
-
-	// Check if caller provided settings to send across.
 	if (info.Length() >= 3) {
-		ASSERT_INFO_LENGTH(info, 3);
-
-		v8::Local<v8::Object> setobj;
-		ASSERT_GET_VALUE(info[2], setobj);
-
-		settings = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), setobj).ToLocalChecked();
+		Napi::Object setobj = info[2].ToObject();
+		settings = stringify.Call(json, { setobj }).As<Napi::String>();
 	}
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	auto params = std::vector<ipc::value>{ipc::value(type), ipc::value(name)};
-	if (settings->Length() != 0) {
+	if (settings.Utf8Value().length() != 0) {
 		std::string value;
 		if (utilv8::FromValue(settings, value)) {
 			params.push_back(ipc::value(value));
@@ -208,11 +217,8 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE 
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("Input", "CreatePrivate", {std::move(params)});
 
-	if (!ValidateResponse(response))
-		return;
-
-	// Create new Filter
-	osn::Input* obj = new osn::Input(response[1].value_union.ui64);
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
 	SourceDataInfo* sdi = new SourceDataInfo;
 	sdi->name           = name;
@@ -223,89 +229,84 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE 
 
 	CacheManager<SourceDataInfo*>::getInstance().Store(response[1].value_union.ui64, name, sdi);
 
-	info.GetReturnValue().Set(osn::Input::Store(obj));
+    auto instance =
+        osn::Input::constructor.New({
+            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+            });
+    return instance;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::FromName(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Input::FromName(const Napi::CallbackInfo& info)
 {
-	std::string name;
-
-	// Parameters: <string> Name
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], name);
+	std::string name = info[0].ToString().Utf8Value();
 
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(name);
 
 	if (sdi) {
-		osn::Input* obj = new osn::Input(sdi->id);
-		info.GetReturnValue().Set(osn::Input::Store(obj));
-		return;
+		auto instance =
+			osn::Input::constructor.New({
+				Napi::Number::New(info.Env(), sdi->id)
+				});
+		return instance;
 	}
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("Input", "FromName", {ipc::value(name)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	// Create new Filter
-	osn::Input* obj = new osn::Input(response[1].value_union.ui64);
-	info.GetReturnValue().Set(osn::Input::Store(obj));
+    auto instance =
+        osn::Input::constructor.New({
+            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+            });
+	instance.Set("sourceId", response[1].value_union.ui64);
+    return instance;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetPublicSources(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Input::GetPublicSources(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("Input", "GetPublicSources", {});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	v8::Local<v8::Array> arr = Nan::New<v8::Array>(int(response.size() - 1));
+	Napi::Array arr = Napi::Array::New(info.Env(), int(response.size() - 1));
 	for (size_t idx = 1; idx < response.size(); idx++) {
-		osn::Input* obj    = new osn::Input(response[idx - 1].value_union.ui64);
-		auto        object = osn::Input::Store(obj);
-		Nan::Set(arr, uint32_t(idx), object);
+		auto object =
+			osn::Input::constructor.New({
+				Napi::Number::New(info.Env(), response[idx - 1].value_union.ui64)
+				});
+		arr[uint32_t(idx)] = object;
 	}
 
-	info.GetReturnValue().Set(arr);
+	return arr;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Input::Duplicate(const Napi::CallbackInfo& info)
 {
-	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
-		return;
-	}
-	osn::Input* obj = static_cast<osn::Input*>(baseobj);
-	if (!obj) {
-		// How did you even call this? o.o
-		return;
-	}
-
-	//parameters
 	std::string name       = "";
 	bool        is_private = false;
-	ASSERT_INFO_LENGTH_AT_LEAST(info, 0);
-	if (info.Length() >= 1) {
-		ASSERT_GET_VALUE(info[0], name);
-	}
-	if (info.Length() >= 2) {
-		ASSERT_INFO_LENGTH(info, 2);
-		ASSERT_GET_VALUE(info[1], is_private);
-	}
 
-	auto conn = GetConnection();
+	if (info.Length() >= 1)
+		name = info[0].ToString().Utf8Value();
+
+	if (info.Length() >= 2)
+		is_private = info[1].ToBoolean().Value();
+
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
-	auto params = std::vector<ipc::value>{ipc::value(obj->sourceId)};
+	auto params =
+		std::vector<ipc::value>{ipc::value((uint64_t)this->sourceId)};
 	if (info.Length() >= 1) {
 		params.push_back(ipc::value(name));
 	}
@@ -315,464 +316,278 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Duplicate(Nan::NAN_METHOD_ARGS_TYPE info
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("Input", "Duplicate", {std::move(params)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	osn::Input* nobj = new osn::Input(response[1].value_union.ui64);
-	info.GetReturnValue().Set(osn::Input::Store(nobj));
+    auto instance =
+        osn::Input::constructor.New({
+            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+            });
+    return instance;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::Active(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Input::Active(const Napi::CallbackInfo& info)
 {
-	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
-		return;
-	}
-	osn::Input* obj = static_cast<osn::Input*>(baseobj);
-	if (!obj) {
-		// How did you even call this? o.o
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Input", "GetActive", {ipc::value(obj->sourceId)});
-
-	if (!ValidateResponse(response))
-		return;
-
-	info.GetReturnValue().Set(response[1].value_union.i32);
-	return;
-}
-
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::Showing(Nan::NAN_METHOD_ARGS_TYPE info)
-{
-	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
-		return;
-	}
-	osn::Input* obj = static_cast<osn::Input*>(baseobj);
-	if (!obj) {
-		// How did you even call this? o.o
-		return;
-	}
-
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "GetShowing", {ipc::value(obj->sourceId)});
+		conn->call_synchronous_helper("Input", "GetActive", {ipc::value((uint64_t)this->sourceId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	info.GetReturnValue().Set(response[1].value_union.i32);
-	return;
+	return Napi::Boolean::New(info.Env(), response[1].value_union.i32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::Width(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Input::Showing(const Napi::CallbackInfo& info)
 {
-	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
-		return;
-	}
-	osn::Input* obj = static_cast<osn::Input*>(baseobj);
-	if (!obj) {
-		// How did you even call this? o.o
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Input", "GetWidth", {ipc::value(obj->sourceId)});
-
-	if (!ValidateResponse(response))
-		return;
-
-	info.GetReturnValue().Set(response[1].value_union.ui32);
-}
-
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::Height(Nan::NAN_METHOD_ARGS_TYPE info)
-{
-	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
-		return;
-	}
-	osn::Input* obj = static_cast<osn::Input*>(baseobj);
-	if (!obj) {
-		// How did you even call this? o.o
-		return;
-	}
-
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Input", "GetHeight", {ipc::value(obj->sourceId)});
-
-	if (!ValidateResponse(response))
-		return;
-
-	info.GetReturnValue().Set(response[1].value_union.ui32);
-}
-
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetVolume(Nan::NAN_METHOD_ARGS_TYPE info)
-{
-	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
-		return;
-	}
-	osn::Input* obj = static_cast<osn::Input*>(baseobj);
-	if (!obj) {
-		// How did you even call this? o.o
-		return;
-	}
-
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Input", "GetVolume", {ipc::value(obj->sourceId)});
-
-	if (!ValidateResponse(response))
-		return;
-
-	info.GetReturnValue().Set(response[1].value_union.fp32);
-}
-
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetVolume(Nan::NAN_METHOD_ARGS_TYPE info)
-{
-	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
-		return;
-	}
-	osn::Input* obj = static_cast<osn::Input*>(baseobj);
-	if (!obj) {
-		// How did you even call this? o.o
-		return;
-	}
-
-	float_t volume = 0.0f;
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], volume);
-
-	auto conn = GetConnection();
-	if (!conn)
-		return;
-
-	conn->call("Input", "SetVolume", {ipc::value(obj->sourceId), ipc::value(volume)});
-}
-
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE info)
-{
-	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
-		return;
-	}
-	osn::Input* obj = static_cast<osn::Input*>(baseobj);
-	if (!obj) {
-		// Don't call methods on the prototype itself,
-		// but call them on the object
-		return;
-	}
-
-	auto conn = GetConnection();
-	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "GetSyncOffset", {ipc::value(obj->sourceId)});
+	    conn->call_synchronous_helper("Input", "GetShowing", {ipc::value((uint64_t)this->sourceId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	v8::Local<v8::Object> tsobj = Nan::New<v8::Object>();
-
-	utilv8::SetObjectField(tsobj, "sec", response[1].value_union.i64 / 1000000000);
-
-	utilv8::SetObjectField(tsobj, "nsec", response[1].value_union.i64 % 1000000000);
-
-	info.GetReturnValue().Set(tsobj);
+	return Napi::Boolean::New(info.Env(), response[1].value_union.i32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Input::Width(const Napi::CallbackInfo& info)
 {
-	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
-		return;
-	}
-	osn::Input* obj = static_cast<osn::Input*>(baseobj);
-	if (!obj) {
-		// How did you even call this? o.o
-		return;
-	}
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
 
-	v8::Local<v8::Object> tsobj;
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], tsobj);
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Input", "GetWidth", {ipc::value((uint64_t)this->sourceId)});
 
-	int64_t sec, nsec;
-	ASSERT_GET_OBJECT_FIELD(tsobj, "sec", sec);
-	ASSERT_GET_OBJECT_FIELD(tsobj, "nsec", nsec);
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+}
+
+Napi::Value osn::Input::Height(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Input", "GetHeight", {ipc::value((uint64_t)this->sourceId)});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+}
+
+Napi::Value osn::Input::GetVolume(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Input", "GetVolume", {ipc::value((uint64_t)this->sourceId)});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	return Napi::Number::New(info.Env(), response[1].value_union.fp32);
+}
+
+void osn::Input::SetVolume(const Napi::CallbackInfo& info, const Napi::Value &value)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
+
+	conn->call("Input", "SetVolume", {ipc::value((uint64_t)this->sourceId), ipc::value(value.ToNumber().FloatValue())});
+}
+
+Napi::Value osn::Input::GetSyncOffset(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Input", "GetSyncOffset", {ipc::value((uint64_t)this->sourceId)});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	Napi::Object tsobj = Napi::Object::New(info.Env());
+	tsobj.Set("sec", response[1].value_union.i64 / 1000000000);
+	tsobj.Set("nsec", response[1].value_union.i64 % 1000000000);
+	return tsobj;
+}
+
+void osn::Input::SetSyncOffset(const Napi::CallbackInfo& info, const Napi::Value &value)
+{
+	Napi::Object tsobj = info[0].ToObject();
+
+	int64_t sec = tsobj.Get("sec").ToNumber().Int64Value();
+	int64_t nsec = tsobj.Get("nsec").ToNumber().Int64Value();
 
 	int64_t syncoffset = sec * 1000000000 + nsec;
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call("Input", "SetSyncOffset", {ipc::value(obj->sourceId), ipc::value(syncoffset)});
+	conn->call("Input", "SetSyncOffset", {ipc::value((uint64_t)this->sourceId), ipc::value(syncoffset)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Input::GetAudioMixers(const Napi::CallbackInfo& info)
 {
-	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
-		return;
-	}
-	osn::Input* obj = static_cast<osn::Input*>(baseobj);
-	if (!obj) {
-		// How did you even call this? o.o
-		return;
-	}
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(this->sourceId);
+	if (sdi && !sdi->audioMixersChanged && sdi->audioMixers != UINT32_MAX)
+		return Napi::Number::New(info.Env(), sdi->audioMixers);
 
-	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
-	if (sdi && !sdi->audioMixersChanged && sdi->audioMixers != UINT32_MAX) {
-		info.GetReturnValue().Set(sdi->audioMixers);
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "GetAudioMixers", {ipc::value(obj->sourceId)});
+	    conn->call_synchronous_helper("Input", "GetAudioMixers", {ipc::value((uint64_t)this->sourceId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
 	if (sdi) {
 		sdi->audioMixers        = response[1].value_union.ui32;
 		sdi->audioMixersChanged = false;
 	}
 
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.ui32));
+	return Napi::Number::New(info.Env(),response[1].value_union.ui32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::SetAudioMixers(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
-		return;
-	}
-	osn::Input* obj = static_cast<osn::Input*>(baseobj);
-	if (!obj) {
-		// How did you even call this? o.o
-		return;
-	}
+	uint32_t audiomixers = info[0].ToNumber().Uint32Value();
 
-	uint32_t audiomixers = 0;
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], audiomixers);
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call("Input", "SetAudioMixers", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
+	conn->call("Input", "SetAudioMixers", {ipc::value((uint64_t)this->sourceId), ipc::value(audiomixers)});
 
-	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(this->sourceId);
 	if (sdi) {
 		sdi->audioMixersChanged = true;
 	}
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetMonitoringType(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Input::GetMonitoringType(const Napi::CallbackInfo& info)
 {
-	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
-		return;
-	}
-	osn::Input* obj = static_cast<osn::Input*>(baseobj);
-	if (!obj) {
-		// How did you even call this? o.o
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "GetMonitoringType", {ipc::value(obj->sourceId)});
+	    conn->call_synchronous_helper("Input", "GetMonitoringType", {ipc::value((uint64_t)this->sourceId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.i32));
+	return Napi::Number::New(info.Env(), response[1].value_union.i32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetMonitoringType(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::SetMonitoringType(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
-		return;
-	}
-	osn::Input* obj = static_cast<osn::Input*>(baseobj);
-	if (!obj) {
-		// How did you even call this? o.o
-		return;
-	}
+	int32_t audiomixers = info[0].ToNumber().Int32Value();
 
-	int32_t audiomixers = 0;
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], audiomixers);
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call("Input", "SetMonitoringType", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
+	conn->call("Input", "SetMonitoringType", {ipc::value((uint64_t)this->sourceId), ipc::value(audiomixers)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetDeinterlaceFieldOrder(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Input::GetDeinterlaceFieldOrder(const Napi::CallbackInfo& info)
 {
-	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
-		return;
-	}
-	osn::Input* obj = static_cast<osn::Input*>(baseobj);
-	if (!obj) {
-		// How did you even call this? o.o
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "GetDeInterlaceFieldOrder", {ipc::value(obj->sourceId)});
+	    conn->call_synchronous_helper("Input", "GetDeInterlaceFieldOrder", {ipc::value((uint64_t)this->sourceId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.i32));
+	return Napi::Number::New(info.Env(), response[1].value_union.i32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetDeinterlaceFieldOrder(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::SetDeinterlaceFieldOrder(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
-		return;
-	}
-	osn::Input* obj = static_cast<osn::Input*>(baseobj);
-	if (!obj) {
-		// How did you even call this? o.o
-		return;
-	}
+	int32_t deinterlaceOrder = info[0].ToNumber().Int32Value();
 
-	int32_t audiomixers = 0;
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], audiomixers);
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call("Input", "SetDeInterlaceFieldOrder", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
+	conn->call("Input", "SetDeInterlaceFieldOrder", {ipc::value((uint64_t)this->sourceId), ipc::value(deinterlaceOrder)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::GetDeinterlaceMode(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Input::GetDeinterlaceMode(const Napi::CallbackInfo& info)
 {
-	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
-		return;
-	}
-	osn::Input* obj = static_cast<osn::Input*>(baseobj);
-	if (!obj) {
-		// How did you even call this? o.o
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "GetDeInterlaceMode", {ipc::value(obj->sourceId)});
+	    conn->call_synchronous_helper("Input", "GetDeInterlaceMode", {ipc::value((uint64_t)this->sourceId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.i32));
-	return;
+	return Napi::Number::New(info.Env(), response[1].value_union.i32);
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetDeinterlaceMode(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Input::SetDeinterlaceMode(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
-		return;
-	}
-	osn::Input* obj = static_cast<osn::Input*>(baseobj);
-	if (!obj) {
-		// How did you even call this? o.o
-		return;
-	}
+	int32_t deinterlaceMode = info[0].ToNumber().Int32Value();
 
-	int32_t audiomixers = 0;
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], audiomixers);
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call("Input", "SetDeInterlaceMode", {ipc::value(obj->sourceId), ipc::value(audiomixers)});
+	conn->call("Input", "SetDeInterlaceMode", {ipc::value((uint64_t)this->sourceId), ipc::value(deinterlaceMode)});
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::Filters(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Input::Filters(const Napi::CallbackInfo& info)
 {
-	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
-		return;
-	}
-	osn::Input* obj = static_cast<osn::Input*>(baseobj);
-	if (!obj) {
-		// How did you even call this? o.o
-		return;
-	}
-
-	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(this->sourceId);
 
 	if (sdi && !sdi->filtersOrderChanged) {
 		std::vector<uint64_t>* filters = sdi->filters;
-		v8::Local<v8::Array>   arr     = Nan::New<v8::Array>(int(filters->size()));
+		Napi::Array array = Napi::Array::New(info.Env(), int(filters->size()));
 		for (uint32_t i = 0; i < filters->size(); i++) {
-			osn::Filter* obj    = new osn::Filter(filters->at(i));
-			auto         object = osn::Filter::Store(obj);
-			Nan::Set(arr, i, object);
+			auto instance =
+				osn::Filter::constructor.New({
+					Napi::Number::New(info.Env(), filters->at(i))
+					});
+			array.Set(i, instance);
 		}
-		info.GetReturnValue().Set(arr);
-		return;
+		return array;
 	}
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "GetFilters", {ipc::value(obj->sourceId)});
+	    conn->call_synchronous_helper("Input", "GetFilters", {ipc::value(this->sourceId)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
 	std::vector<uint64_t>* filters;
 	if (sdi) {
@@ -780,204 +595,255 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Input::Filters(Nan::NAN_METHOD_ARGS_TYPE info)
 		filters->clear();
 	}
 
-	v8::Local<v8::Array> arr = Nan::New<v8::Array>(int(response.size()) - 1);
+	Napi::Array array = Napi::Array::New(info.Env(), response.size() - 1);
 	for (size_t idx = 1; idx < response.size(); idx++) {
-		osn::Filter* obj    = new osn::Filter(response[idx].value_union.ui64);
-		auto         object = osn::Filter::Store(obj);
-		Nan::Set(arr, uint32_t(idx) - 1, object);
+		auto instance =
+			osn::Filter::constructor.New({
+				Napi::Number::New(info.Env(), response[idx].value_union.ui64)
+				});
+		array.Set(uint32_t(idx) - 1, instance);
 
-		if (sdi) {
+		if (sdi)
 			filters->push_back(response[idx].value_union.ui64);
-		}
 	}
 
-	info.GetReturnValue().Set(arr);
-
-	if (sdi) {
+	if (sdi)
 		sdi->filtersOrderChanged = false;
-	}
+
+	return array;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::AddFilter(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Input::AddFilter(const Napi::CallbackInfo& info)
 {
-	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
-		return;
-	}
-	osn::Input* obj = static_cast<osn::Input*>(baseobj);
-	if (!obj) {
-		// How did you even call this? o.o
-		return;
-	}
+	osn::Filter* objfilter = Napi::ObjectWrap<osn::Filter>::Unwrap(info[0].ToObject());
 
-	ASSERT_INFO_LENGTH(info, 1);
-
-	v8::Local<v8::Object> objfilter;
-	ASSERT_GET_VALUE(info[0], objfilter);
-
-	osn::ISource* basefilter = nullptr;
-	if (!osn::ISource::Retrieve(objfilter, basefilter)) {
-		info.GetIsolate()->ThrowException(
-		    v8::Exception::ReferenceError(Nan::New<v8::String>("Source is invalid.").ToLocalChecked()));
-	}
-	osn::Filter* filter = static_cast<osn::Filter*>(basefilter);
-	if (!filter) {
-		info.GetIsolate()->ThrowException(
-		    v8::Exception::TypeError(Nan::New<v8::String>("Source is not a filter.").ToLocalChecked()));
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
-	conn->call("Input", "AddFilter", {ipc::value(obj->sourceId), ipc::value(filter->sourceId)});
-
-	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
+	conn->call("Input", "AddFilter", {ipc::value(this->sourceId), ipc::value(objfilter->sourceId)});
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(this->sourceId);
 	if (sdi) {
 		sdi->filtersOrderChanged = true;
 	}
+	return info.Env().Undefined();
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::RemoveFilter(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Input::RemoveFilter(const Napi::CallbackInfo& info)
 {
-	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
-		return;
-	}
-	osn::Input* obj = static_cast<osn::Input*>(baseobj);
-	if (!obj) {
-		// How did you even call this? o.o
-		return;
-	}
+	osn::Filter* objfilter = Napi::ObjectWrap<osn::Filter>::Unwrap(info[0].ToObject());
 
-	ASSERT_INFO_LENGTH(info, 1);
-
-	v8::Local<v8::Object> objfilter;
-	ASSERT_GET_VALUE(info[0], objfilter);
-
-	osn::ISource* basefilter = nullptr;
-	if (!osn::ISource::Retrieve(objfilter, basefilter)) {
-		info.GetIsolate()->ThrowException(
-		    v8::Exception::ReferenceError(Nan::New<v8::String>("Source is invalid.").ToLocalChecked()));
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
-	conn->call("Input", "RemoveFilter", {ipc::value(obj->sourceId), ipc::value(basefilter->sourceId)});
+	conn->call("Input", "RemoveFilter", {ipc::value(this->sourceId), ipc::value(objfilter->sourceId)});
 
-	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(this->sourceId);
 	if (sdi) {
 		sdi->filtersOrderChanged = true;
 	}
+	return info.Env().Undefined();
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::SetFilterOrder(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Input::SetFilterOrder(const Napi::CallbackInfo& info)
 {
-	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
-		return;
-	}
-	osn::Input* obj = static_cast<osn::Input*>(baseobj);
-	if (!obj) {
-		// How did you even call this? o.o
-		return;
-	}
+	osn::Filter* objfilter = Napi::ObjectWrap<osn::Filter>::Unwrap(info[0].ToObject());
+	uint32_t movement = info[1].ToNumber().Uint32Value();
 
-	ASSERT_INFO_LENGTH(info, 2);
-
-	v8::Local<v8::Object> objfilter;
-	uint32_t              movement;
-	ASSERT_GET_VALUE(info[0], objfilter);
-	ASSERT_GET_VALUE(info[1], movement);
-
-	osn::ISource* basefilter = nullptr;
-	if (!osn::ISource::Retrieve(objfilter, basefilter)) {
-		info.GetIsolate()->ThrowException(
-		    v8::Exception::ReferenceError(Nan::New<v8::String>("Source is invalid.").ToLocalChecked()));
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	conn->call(
-	    "Input", "MoveFilter", {ipc::value(obj->sourceId), ipc::value(basefilter->sourceId), ipc::value(movement)});
+	    "Input", "MoveFilter", {ipc::value(this->sourceId), ipc::value(objfilter->sourceId), ipc::value(movement)});
 
-	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(baseobj->sourceId);
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(this->sourceId);
 	if (sdi) {
 		sdi->filtersOrderChanged = true;
 	}
+
+	return info.Env().Undefined();
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::FindFilter(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Input::FindFilter(const Napi::CallbackInfo& info)
 {
-	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
-		return;
-	}
-	osn::Input* obj = static_cast<osn::Input*>(baseobj);
-	if (!obj) {
-		// How did you even call this? o.o
-		return;
-	}
+	std::string name = info[0].ToString().Utf8Value();
 
-	ASSERT_INFO_LENGTH(info, 1);
-
-	std::string name;
-	ASSERT_GET_VALUE(info[0], name);
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "FindFilter", {ipc::value(obj->sourceId), ipc::value(name)});
+	    conn->call_synchronous_helper("Input", "FindFilter", {ipc::value(this->sourceId), ipc::value(name)});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
 	if (response.size() > 1) {
-		// Create new Filter
-		osn::Input* nobj = new osn::Input(response[1].value_union.ui64);
-		info.GetReturnValue().Set(osn::Input::Store(nobj));
+		auto instance =
+			osn::Filter::constructor.New({
+				Napi::Number::New(info.Env(), response[1].value_union.ui64)
+				});
+		return instance;
 	}
+	return info.Env().Undefined();
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Input::CopyFilters(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Input::CopyFilters(const Napi::CallbackInfo& info)
 {
-	osn::ISource* baseobj = nullptr;
-	if (!osn::ISource::Retrieve(info.This(), baseobj)) {
-		return;
-	}
-	osn::Input* obj = static_cast<osn::Input*>(baseobj);
-	if (!obj) {
-		// How did you even call this? o.o
-		return;
-	}
+	osn::Input* objfilter = Napi::ObjectWrap<osn::Input>::Unwrap(info[0].ToObject());
 
-	ASSERT_INFO_LENGTH(info, 1);
-
-	v8::Local<v8::Object> objinput;
-	ASSERT_GET_VALUE(info[0], objinput);
-
-	osn::ISource* baseinput = nullptr;
-	if (!osn::ISource::Retrieve(objinput, baseinput)) {
-		info.GetIsolate()->ThrowException(
-		    v8::Exception::ReferenceError(Nan::New<v8::String>("Source is invalid.").ToLocalChecked()));
-	}
-	osn::Input* input = static_cast<osn::Input*>(baseinput);
-	if (!input) {
-		info.GetIsolate()->ThrowException(
-		    v8::Exception::TypeError(Nan::New<v8::String>("Source is not a input.").ToLocalChecked()));
-		return;
-	}
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
-	conn->call("Input", "CopyFiltersTo", {ipc::value(obj->sourceId), ipc::value(input->sourceId)});
+	conn->call("Input", "CopyFiltersTo", {ipc::value(this->sourceId), ipc::value(objfilter->sourceId)});
+}
+
+Napi::Value osn::Input::CallIsConfigurable(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::IsConfigurable(info, this->sourceId);
+}
+
+Napi::Value osn::Input::CallGetProperties(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::GetProperties(info, this->sourceId);
+}
+
+Napi::Value osn::Input::CallGetSettings(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::GetSettings(info, this->sourceId);
+}
+
+
+Napi::Value osn::Input::CallGetType(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::GetType(info, this->sourceId);
+}
+
+Napi::Value osn::Input::CallGetName(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::GetName(info, this->sourceId);
+}
+
+void osn::Input::CallSetName(const Napi::CallbackInfo& info, const Napi::Value &value)
+{
+	osn::ISource::SetName(info, value, this->sourceId);
+}
+
+Napi::Value osn::Input::CallGetOutputFlags(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::GetOutputFlags(info, this->sourceId);
+}
+
+Napi::Value osn::Input::CallGetFlags(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::GetFlags(info, this->sourceId);
+}
+
+void osn::Input::CallSetFlags(const Napi::CallbackInfo& info, const Napi::Value &value)
+{
+	osn::ISource::SetFlags(info, value, this->sourceId);
+}
+
+Napi::Value osn::Input::CallGetStatus(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::GetStatus(info, this->sourceId);
+}
+
+Napi::Value osn::Input::CallGetId(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::GetId(info, this->sourceId);
+}
+
+Napi::Value osn::Input::CallGetMuted(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::GetMuted(info, this->sourceId);
+}
+
+void osn::Input::CallSetMuted(const Napi::CallbackInfo& info, const Napi::Value &value)
+{
+	osn::ISource::SetMuted(info, value, this->sourceId);
+}
+
+Napi::Value osn::Input::CallGetEnabled(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::GetEnabled(info, this->sourceId);
+}
+
+void osn::Input::CallSetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value)
+{
+	osn::ISource::SetEnabled(info, value, this->sourceId);
+}
+
+Napi::Value osn::Input::CallRelease(const Napi::CallbackInfo& info)
+{
+	osn::ISource::Release(info, this->sourceId);
+
+	return info.Env().Undefined();
+}
+
+Napi::Value osn::Input::CallRemove(const Napi::CallbackInfo& info)
+{
+	osn::ISource::Remove(info, this->sourceId);
+	this->sourceId = UINT64_MAX;
+
+	return info.Env().Undefined();
+}
+
+Napi::Value osn::Input::CallUpdate(const Napi::CallbackInfo& info)
+{
+	osn::ISource::Update(info, this->sourceId);
+
+	return info.Env().Undefined();
+}
+
+Napi::Value osn::Input::CallLoad(const Napi::CallbackInfo& info)
+{
+	osn::ISource::Load(info, this->sourceId);
+
+	return info.Env().Undefined();
+}
+
+Napi::Value osn::Input::CallSave(const Napi::CallbackInfo& info)
+{
+	osn::ISource::Save(info, this->sourceId);
+
+	return info.Env().Undefined();
+}
+
+Napi::Value osn::Input::CallSendMouseClick(const Napi::CallbackInfo& info)
+{
+	osn::ISource::SendMouseClick(info, this->sourceId);
+
+	return info.Env().Undefined();
+}
+
+Napi::Value osn::Input::CallSendMouseMove(const Napi::CallbackInfo& info)
+{
+	osn::ISource::SendMouseMove(info, this->sourceId);
+
+	return info.Env().Undefined();
+}
+
+Napi::Value osn::Input::CallSendMouseWheel(const Napi::CallbackInfo& info)
+{
+	osn::ISource::SendMouseWheel(info, this->sourceId);
+
+	return info.Env().Undefined();
+}
+
+Napi::Value osn::Input::CallSendFocus(const Napi::CallbackInfo& info)
+{
+	osn::ISource::SendFocus(info, this->sourceId);
+
+	return info.Env().Undefined();
+}
+
+Napi::Value osn::Input::CallSendKeyClick(const Napi::CallbackInfo& info)
+{
+	osn::ISource::SendKeyClick(info, this->sourceId);
+
+	return info.Env().Undefined();
 }

@@ -17,27 +17,52 @@
 ******************************************************************************/
 
 #pragma once
-#include <nan.h>
-#include <node.h>
+#include <napi.h>
 #include "isource.hpp"
 #include "utility-v8.hpp"
 
 namespace osn
 {
-	class Filter : public osn::ISource, public utilv8::ManagedObject<osn::Filter>
+	class Filter : public Napi::ObjectWrap<osn::Filter>
 	{
-		friend class utilv8::ManagedObject<osn::Filter>;
+		public:
+		uint64_t sourceId;
 
 		public:
-		Filter(uint64_t id);
+		static Napi::FunctionReference constructor;
+		static Napi::Object Init(Napi::Env env, Napi::Object exports);
+		Filter(const Napi::CallbackInfo& info);
 
-		// JavaScript
-		public:
-		static Nan::Persistent<v8::FunctionTemplate> prototype;
+		static Napi::Value Types(const Napi::CallbackInfo& info);
+		static Napi::Value Create(const Napi::CallbackInfo& info);
 
-		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+		Napi::Value CallIsConfigurable(const Napi::CallbackInfo& info);
+		Napi::Value CallGetProperties(const Napi::CallbackInfo& info);
+		Napi::Value CallGetSettings(const Napi::CallbackInfo& info);
 
-		static Nan::NAN_METHOD_RETURN_TYPE Types(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Create(Nan::NAN_METHOD_ARGS_TYPE info);
+		Napi::Value CallGetType(const Napi::CallbackInfo& info);
+		Napi::Value CallGetName(const Napi::CallbackInfo& info);
+		void CallSetName(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value CallGetOutputFlags(const Napi::CallbackInfo& info);
+		Napi::Value CallGetFlags(const Napi::CallbackInfo& info);
+		void CallSetFlags(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value CallGetStatus(const Napi::CallbackInfo& info);
+		Napi::Value CallGetId(const Napi::CallbackInfo& info);
+		Napi::Value CallGetMuted(const Napi::CallbackInfo& info);
+		void CallSetMuted(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value CallGetEnabled(const Napi::CallbackInfo& info);
+		void CallSetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value);
+
+		Napi::Value CallRelease(const Napi::CallbackInfo& info);
+		Napi::Value CallRemove(const Napi::CallbackInfo& info);
+		Napi::Value CallUpdate(const Napi::CallbackInfo& info);
+		Napi::Value CallLoad(const Napi::CallbackInfo& info);
+		Napi::Value CallSave(const Napi::CallbackInfo& info);
+
+		Napi::Value CallSendMouseClick(const Napi::CallbackInfo& info);
+		Napi::Value CallSendMouseMove(const Napi::CallbackInfo& info);
+		Napi::Value CallSendMouseWheel(const Napi::CallbackInfo& info);
+		Napi::Value CallSendFocus(const Napi::CallbackInfo& info);
+		Napi::Value CallSendKeyClick(const Napi::CallbackInfo& info);
 	};
-} // namespace osn
+}

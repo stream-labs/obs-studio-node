@@ -26,96 +26,108 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
-Nan::Persistent<v8::FunctionTemplate> osn::Filter::prototype;
+Napi::FunctionReference osn::Filter::constructor;
 
-osn::Filter::Filter(uint64_t id)
-{
-	this->sourceId = id;
+Napi::Object osn::Filter::Init(Napi::Env env, Napi::Object exports) {
+	Napi::HandleScope scope(env);
+	Napi::Function func =
+		DefineClass(env,
+		"Filter",
+		{
+			StaticMethod("types", &osn::Filter::Types),
+			StaticMethod("create", &osn::Filter::Create),
+
+			InstanceAccessor("configurable", &osn::Filter::CallIsConfigurable, nullptr),
+			InstanceAccessor("properties", &osn::Filter::CallGetProperties, nullptr),
+			InstanceAccessor("settings", &osn::Filter::CallGetSettings, nullptr),
+			InstanceAccessor("type", &osn::Filter::CallGetType, nullptr),
+			InstanceAccessor("name", &osn::Filter::CallGetName, &osn::Filter::CallSetName),
+			InstanceAccessor("outputFlags", &osn::Filter::CallGetOutputFlags, nullptr),
+			InstanceAccessor("flags", &osn::Filter::CallGetFlags, &osn::Filter::CallSetFlags),
+			InstanceAccessor("status", &osn::Filter::CallGetStatus, nullptr),
+			InstanceAccessor("id", &osn::Filter::CallGetId, nullptr),
+			InstanceAccessor("muted", &osn::Filter::CallGetMuted, &osn::Filter::CallSetMuted),
+			InstanceAccessor("enabled", &osn::Filter::CallGetEnabled, &osn::Filter::CallSetEnabled),
+
+			InstanceMethod("release", &osn::Filter::CallRelease),
+			InstanceMethod("remove", &osn::Filter::CallRemove),
+			InstanceMethod("update", &osn::Filter::CallUpdate),
+			InstanceMethod("load", &osn::Filter::CallLoad),
+			InstanceMethod("save", &osn::Filter::CallSave),
+			InstanceMethod("sendMouseClick", &osn::Filter::CallSendMouseClick),
+			InstanceMethod("sendMouseMove", &osn::Filter::CallSendMouseMove),
+			InstanceMethod("sendMouseWheel", &osn::Filter::CallSendMouseWheel),
+			InstanceMethod("sendFocus", &osn::Filter::CallSendFocus),
+			InstanceMethod("sendKeyClick", &osn::Filter::CallSendKeyClick),
+		});
+	exports.Set("Filter", func);
+	osn::Filter::constructor = Napi::Persistent(func);
+	osn::Filter::constructor.SuppressDestruct();
+	return exports;
 }
 
-void osn::Filter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
-{
-	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
-	fnctemplate->Inherit(Nan::New<v8::FunctionTemplate>(osn::ISource::prototype));
-	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
-	fnctemplate->SetClassName(Nan::New<v8::String>("Filter").ToLocalChecked());
+osn::Filter::Filter(const Napi::CallbackInfo& info)
+    : Napi::ObjectWrap<osn::Filter>(info) {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    int length = info.Length();
 
-	// Class Template
-	utilv8::SetTemplateField(fnctemplate, "types", Types);
-	utilv8::SetTemplateField(fnctemplate, "create", Create);
+    if (length <= 0 || !info[0].IsNumber()) {
+        Napi::TypeError::New(env, "Number expected").ThrowAsJavaScriptException();
+        return;
+    }
 
-	// Stuff
-	utilv8::SetObjectField(
-	    target, "Filter", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
-	prototype.Reset(fnctemplate);
+	this->sourceId = (uint64_t)info[0].ToNumber().Int64Value();
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Types(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Filter::Types(const Napi::CallbackInfo& info)
 {
-	// Function takes no parameters.
-	ASSERT_INFO_LENGTH(info, 0);
-
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("Filter", "Types", {});
 
-	if (!ValidateResponse(response))
-		return;
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	std::vector<std::string> types;
-	size_t                   count = response.size() - 1;
+	size_t count = response.size() - 1;
+	Napi::Array types = Napi::Array::New(info.Env(), count);
 
-	for (size_t idx = 0; idx < count; idx++) {
-		types.push_back(response[1 + idx].value_str);
-	}
+	for (size_t idx = 0; idx < count; idx++)
+		types.Set(idx, Napi::String::New(info.Env(), response[1 + idx].value_str));
 
-	info.GetReturnValue().Set(utilv8::ToValue<std::string>(types));
-	return;
+	return types;
 }
 
-Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Create(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Filter::Create(const Napi::CallbackInfo& info)
 {
-	std::string           type;
-	std::string           name;
-	v8::Local<v8::String> settings = Nan::New<v8::String>("").ToLocalChecked();
+	std::string type = info[0].ToString().Utf8Value();
+	std::string name = info[1].ToString().Utf8Value();
+	Napi::String settings = Napi::String::New(info.Env(), "");
 
-	// Parameters: <string> Type, <string> Name[,<object> settings]
-	ASSERT_INFO_LENGTH_AT_LEAST(info, 2);
-
-	ASSERT_GET_VALUE(info[0], type);
-	ASSERT_GET_VALUE(info[1], name);
-
-	// Check if caller provided settings to send across.
 	if (info.Length() >= 3) {
-		ASSERT_INFO_LENGTH(info, 3);
+		Napi::Object json = info.Env().Global().Get("JSON").As<Napi::Object>();
+		Napi::Function stringify = json.Get("stringify").As<Napi::Function>();
 
-		v8::Local<v8::Object> setobj;
-		ASSERT_GET_VALUE(info[2], setobj);
-
-		settings = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), setobj).ToLocalChecked();
+		Napi::Object setobj = info[2].ToObject();
+		settings = stringify.Call(json, { setobj }).As<Napi::String>();
 	}
 
-	auto conn = GetConnection();
+	auto conn = GetConnection(info);
 	if (!conn)
-		return;
+		return info.Env().Undefined();
 
 	auto params = std::vector<ipc::value>{ipc::value(type), ipc::value(name)};
-	if (settings->Length() != 0) {
-		std::string value;
-		if (utilv8::FromValue(settings, value)) {
-			params.push_back(ipc::value(value));
-		}
+	std::string settings_str = settings.Utf8Value();
+	if (settings_str.size() != 0) {
+		params.push_back(ipc::value(settings_str));
 	}
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("Filter", "Create", {std::move(params)});
 
-	if (!ValidateResponse(response))
-		return;
-
-	// Create new Filter
-	osn::Filter* obj = new osn::Filter(response[1].value_union.ui64);
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
 	SourceDataInfo* sdi = new SourceDataInfo;
 	sdi->name           = name;
@@ -124,5 +136,157 @@ Nan::NAN_METHOD_RETURN_TYPE osn::Filter::Create(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	CacheManager<SourceDataInfo*>::getInstance().Store(response[1].value_union.ui64, name, sdi);
 
-	info.GetReturnValue().Set(osn::Filter::Store(obj));
+    auto instance =
+        osn::Filter::constructor.New({
+            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+            });
+
+    return instance;
+}
+
+Napi::Value osn::Filter::CallIsConfigurable(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::IsConfigurable(info, this->sourceId);
+}
+
+Napi::Value osn::Filter::CallGetProperties(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::GetProperties(info, this->sourceId);
+}
+
+Napi::Value osn::Filter::CallGetSettings(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::GetSettings(info, this->sourceId);
+}
+
+
+Napi::Value osn::Filter::CallGetType(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::GetType(info, this->sourceId);
+}
+
+Napi::Value osn::Filter::CallGetName(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::GetName(info, this->sourceId);
+}
+
+void osn::Filter::CallSetName(const Napi::CallbackInfo& info, const Napi::Value &value)
+{
+	osn::ISource::SetName(info, value, this->sourceId);
+}
+
+Napi::Value osn::Filter::CallGetOutputFlags(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::GetOutputFlags(info, this->sourceId);
+}
+
+Napi::Value osn::Filter::CallGetFlags(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::GetFlags(info, this->sourceId);
+}
+
+void osn::Filter::CallSetFlags(const Napi::CallbackInfo& info, const Napi::Value &value)
+{
+	osn::ISource::SetFlags(info, value, this->sourceId);
+}
+
+Napi::Value osn::Filter::CallGetStatus(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::GetStatus(info, this->sourceId);
+}
+
+Napi::Value osn::Filter::CallGetId(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::GetId(info, this->sourceId);
+}
+
+Napi::Value osn::Filter::CallGetMuted(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::GetMuted(info, this->sourceId);
+}
+
+void osn::Filter::CallSetMuted(const Napi::CallbackInfo& info, const Napi::Value &value)
+{
+	osn::ISource::SetMuted(info, value, this->sourceId);
+}
+
+Napi::Value osn::Filter::CallGetEnabled(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::GetEnabled(info, this->sourceId);
+}
+
+void osn::Filter::CallSetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value)
+{
+	osn::ISource::SetEnabled(info, value, this->sourceId);
+}
+
+Napi::Value osn::Filter::CallRelease(const Napi::CallbackInfo& info)
+{
+	osn::ISource::Release(info, this->sourceId);
+
+	return info.Env().Undefined();
+}
+
+Napi::Value osn::Filter::CallRemove(const Napi::CallbackInfo& info)
+{
+	osn::ISource::Remove(info, this->sourceId);
+	this->sourceId = UINT64_MAX;
+
+	return info.Env().Undefined();
+}
+
+Napi::Value osn::Filter::CallUpdate(const Napi::CallbackInfo& info)
+{
+	osn::ISource::Update(info, this->sourceId);
+
+	return info.Env().Undefined();
+}
+
+Napi::Value osn::Filter::CallLoad(const Napi::CallbackInfo& info)
+{
+	osn::ISource::Load(info, this->sourceId);
+
+	return info.Env().Undefined();
+}
+
+Napi::Value osn::Filter::CallSave(const Napi::CallbackInfo& info)
+{
+	osn::ISource::Save(info, this->sourceId);
+
+	return info.Env().Undefined();
+}
+
+Napi::Value osn::Filter::CallSendMouseClick(const Napi::CallbackInfo& info)
+{
+	osn::ISource::SendMouseClick(info, this->sourceId);
+
+	return info.Env().Undefined();
+}
+
+Napi::Value osn::Filter::CallSendMouseMove(const Napi::CallbackInfo& info)
+{
+	osn::ISource::SendMouseMove(info, this->sourceId);
+
+	return info.Env().Undefined();
+}
+
+Napi::Value osn::Filter::CallSendMouseWheel(const Napi::CallbackInfo& info)
+{
+	osn::ISource::SendMouseWheel(info, this->sourceId);
+
+	return info.Env().Undefined();
+}
+
+Napi::Value osn::Filter::CallSendFocus(const Napi::CallbackInfo& info)
+{
+	osn::ISource::SendFocus(info, this->sourceId);
+
+	return info.Env().Undefined();
+}
+
+Napi::Value osn::Filter::CallSendKeyClick(const Napi::CallbackInfo& info)
+{
+	osn::ISource::SendKeyClick(info, this->sourceId);
+
+	return info.Env().Undefined();
 }

@@ -17,18 +17,19 @@
 ******************************************************************************/
 
 #pragma once
-#include <nan.h>
-#include <node.h>
+#include <napi.h>
 #include "utility-v8.hpp"
 
 namespace osn
 {
-	class Video
+	class Video : public Napi::ObjectWrap<osn::Video>
 	{
 		public:
-		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+		static Napi::FunctionReference constructor;
+		static Napi::Object Init(Napi::Env env, Napi::Object exports);
+		Video(const Napi::CallbackInfo& info);
 
-		static Nan::NAN_METHOD_RETURN_TYPE skippedFrames(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE encodedFrames(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Napi::Value skippedFrames(const Napi::CallbackInfo& info);
+		static Napi::Value encodedFrames(const Napi::CallbackInfo& info);
 	};
-} // namespace osn
+}

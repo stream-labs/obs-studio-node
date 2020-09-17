@@ -17,70 +17,47 @@
 ******************************************************************************/
 
 #pragma once
-#include <nan.h>
-#include <node.h>
+#include <napi.h>
 #include <thread>
 #include "utility-v8.hpp"
 
+struct VolmeterData
+{
+	std::vector<float> magnitude;
+	std::vector<float> peak;
+	std::vector<float> input_peak;
+};
+
 namespace osn
 {
-	struct VolMeterData
+	class Volmeter : public Napi::ObjectWrap<osn::Volmeter>
 	{
-		std::vector<float> magnitude;
-		std::vector<float> peak;
-		std::vector<float> input_peak;
-		void*              param;
-	};
-
-	typedef utilv8::managed_callback<std::shared_ptr<osn::VolMeterData>> VolMeterCallback;
-
-	class VolMeter : public Nan::ObjectWrap,
-	                 public utilv8::InterfaceObject<osn::VolMeter>,
-	                 public utilv8::ManagedObject<osn::VolMeter>
-	{
-		friend utilv8::InterfaceObject<osn::VolMeter>;
-		friend utilv8::ManagedObject<osn::VolMeter>;
-		friend utilv8::CallbackData<osn::VolMeterData, osn::VolMeter>;
-
-		uint64_t m_uid;
-		uint32_t m_sleep_interval = 33;
-
-		std::thread m_worker;
-		bool        m_worker_stop = true;
-		std::mutex  m_worker_lock;
-
-		osn::VolMeterCallback* m_async_callback = nullptr;
-		Nan::Callback          m_callback_function;
-
 		public:
-		VolMeter(uint64_t uid);
-		~VolMeter();
+		uint64_t m_uid;
 
-		uint64_t GetId();
+		bool isWorkerRunning;
+		bool worker_stop;
+		uint32_t sleepIntervalMS;
+		std::thread* worker_thread;
+		Napi::ThreadSafeFunction js_thread;
 
-		void start_async_runner();
-		void stop_async_runner();
-		void callback_handler(void* data, std::shared_ptr<osn::VolMeterData> item);
-
-		void start_worker();
-		void stop_worker();
-		void worker();
-
-		void set_keepalive(v8::Local<v8::Object>);
+		void worker(void);
+		void start_worker(napi_env env, Napi::Function async_callback);
+		void stop_worker(void);
 
 		static bool m_all_workers_stop;
 
 		public:
-		static Nan::Persistent<v8::FunctionTemplate> prototype;
+		static Napi::FunctionReference constructor;
+		static Napi::Object Init(Napi::Env env, Napi::Object exports);
+		Volmeter(const Napi::CallbackInfo& info);
 
-		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
-
-		static Nan::NAN_METHOD_RETURN_TYPE Create(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetUpdateInterval(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetUpdateInterval(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Attach(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Detach(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE AddCallback(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Napi::Value Create(const Napi::CallbackInfo& info);
+		Napi::Value GetUpdateInterval(const Napi::CallbackInfo& info);
+		void SetUpdateInterval(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value Attach(const Napi::CallbackInfo& info);
+		Napi::Value Detach(const Napi::CallbackInfo& info);
+		Napi::Value AddCallback(const Napi::CallbackInfo& info);
+		Napi::Value RemoveCallback(const Napi::CallbackInfo& info);
 	};
-} // namespace osn
+}

@@ -21,316 +21,198 @@
 #include <vector>
 #include "controller.hpp"
 #include "error.hpp"
-#include "isource.hpp"
+#include "input.hpp"
 #include "shared.hpp"
+#include <iostream>
 
-Nan::Persistent<v8::FunctionTemplate> osn::Fader::prototype;
+Napi::FunctionReference osn::Fader::constructor;
 
-osn::Fader::Fader(uint64_t uid)
-{
-	this->uid = uid;
+Napi::Object osn::Fader::Init(Napi::Env env, Napi::Object exports) {
+	Napi::HandleScope scope(env);
+	Napi::Function func =
+		DefineClass(env,
+		"Fader",
+		{
+			StaticMethod("create", &osn::Fader::Create),
+
+			InstanceMethod("attach", &osn::Fader::Attach),
+			InstanceMethod("detach", &osn::Fader::Detach),
+			InstanceMethod("addCallback", &osn::Fader::AddCallback),
+			InstanceMethod("removeCallback", &osn::Fader::RemoveCallback),
+
+			InstanceAccessor("db", &osn::Fader::GetDeziBel, &osn::Fader::SetDezibel),
+			InstanceAccessor("deflection", &osn::Fader::GetDeflection, &osn::Fader::SetDeflection),
+			InstanceAccessor("mul", &osn::Fader::GetMultiplier, &osn::Fader::SetMultiplier),
+		});
+	exports.Set("Fader", func);
+	osn::Fader::constructor = Napi::Persistent(func);
+	osn::Fader::constructor.SuppressDestruct();
+	return exports;
 }
 
-osn::Fader::~Fader()
-{
+osn::Fader::Fader(const Napi::CallbackInfo& info)
+	: Napi::ObjectWrap<osn::Fader>(info) {
+	Napi::Env env = info.Env();
+	Napi::HandleScope scope(env);
+	int length = info.Length();
+
+	if (length <= 0 || !info[0].IsNumber()) {
+		Napi::TypeError::New(env, "Number expected").ThrowAsJavaScriptException();
+		return;
+	}
+
+	this->uid = (uint64_t)info[0].ToNumber().Int64Value();
 }
 
-uint64_t osn::Fader::GetId()
+Napi::Value osn::Fader::Create(const Napi::CallbackInfo& info)
 {
-	return this->uid;
+	int32_t fader_type = info[0].ToNumber().Int32Value();
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper(
+		"Fader",
+		"Create",
+		{
+			ipc::value(fader_type),
+		});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	auto instance =
+		osn::Fader::constructor.New({
+			Napi::Number::New(info.Env(), response[1].value_union.ui64)
+			});
+
+	return instance;
 }
 
-void osn::Fader::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
+Napi::Value osn::Fader::GetDeziBel(const Napi::CallbackInfo& info)
 {
-	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
-	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
-	fnctemplate->SetClassName(Nan::New<v8::String>("Fader").ToLocalChecked());
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
 
-	// Class Template
-	utilv8::SetTemplateField(fnctemplate, "create", Create);
+	std::vector<ipc::value> response = conn->call_synchronous_helper(
+		"Fader",
+		"GetDeziBel",
+		{
+			ipc::value(this->uid),
+		});
 
-	// Object Template
-	auto objtemplate = fnctemplate->PrototypeTemplate();
-	utilv8::SetTemplateAccessorProperty(objtemplate, "db", GetDeziBel, SetDezibel);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "deflection", GetDeflection, SetDeflection);
-	utilv8::SetTemplateAccessorProperty(objtemplate, "mul", GetMultiplier, SetMultiplier);
-	utilv8::SetTemplateField(objtemplate, "attach", Attach);
-	utilv8::SetTemplateField(objtemplate, "detach", Detach);
-	utilv8::SetTemplateField(objtemplate, "addCallback", AddCallback);
-	utilv8::SetTemplateField(objtemplate, "removeCallback", RemoveCallback);
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	// Stuff
-	utilv8::SetObjectField(target, "Fader", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
-	prototype.Reset(fnctemplate);
+	return Napi::Number::New(Env(), response[1].value_union.fp32);
 }
 
-void osn::Fader::Create(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Fader::SetDezibel(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	int32_t fader_type;
+	float_t db = value.ToNumber().FloatValue();
 
-	// Validate and retrieve parameters.
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], fader_type);
-
-	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		Nan::ThrowError("IPC is not connected.");
+	auto conn = GetConnection(info);
+	if (!conn)
 		return;
-	}
 
-	// Call
-	std::vector<ipc::value> rval = conn->call_synchronous_helper(
-	    "Fader",
-	    "Create",
-	    {
-	        ipc::value(fader_type),
-	    });
-
-	if (!ValidateResponse(rval)) {
-		return;
-	}
-
-	// Return created Object
-	auto* newFader = new osn::Fader(rval[1].value_union.ui64);
-	info.GetReturnValue().Set(Store(newFader));
+	conn->call("Fader", "SetDeziBel", {ipc::value(this->uid), ipc::value(db)});
 }
 
-void osn::Fader::GetDeziBel(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Fader::GetDeflection(const Napi::CallbackInfo& info)
 {
-	osn::Fader* fader;
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
 
-	// Validate and retrieve parameters.
-	ASSERT_INFO_LENGTH(info, 0);
+	std::vector<ipc::value> response = conn->call_synchronous_helper(
+		"Fader",
+		"GetDeflection",
+		{
+			ipc::value(this->uid),
+		});
 
-	if (!Retrieve(info.This(), fader)) {
-		return;
-	}
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		Nan::ThrowError("IPC is not connected.");
-		return;
-	}
-
-	// Call
-	std::vector<ipc::value> rval = conn->call_synchronous_helper(
-	    "Fader",
-	    "GetDeziBel",
-	    {
-	        ipc::value(fader->uid),
-	    });
-
-	if (!ValidateResponse(rval)) {
-		return;
-	}
-
-	// Return DeziBel Value
-	info.GetReturnValue().Set(rval[1].value_union.fp32);
+    return Napi::Number::New(Env(), response[1].value_union.fp32);
 }
 
-void osn::Fader::SetDezibel(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Fader::SetDeflection(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	float_t     dezibel;
-	osn::Fader* fader;
+	float_t deflection = value.ToNumber().FloatValue();
 
-	// Validate and retrieve parameters.
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], dezibel);
-
-	if (!Retrieve(info.This(), fader)) {
+	auto conn = GetConnection(info);
+	if (!conn)
 		return;
-	}
 
-	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		Nan::ThrowError("IPC is not connected.");
-		return;
-	}
-
-	// Call
-	conn->call("Fader", "SetDeziBel", {ipc::value(fader->uid), ipc::value(dezibel)});
+	conn->call("Fader", "SetDeflection", {ipc::value(this->uid), ipc::value(deflection)});
 }
 
-void osn::Fader::GetDeflection(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Fader::GetMultiplier(const Napi::CallbackInfo& info)
 {
-	osn::Fader* fader;
+    auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
 
-	// Validate and retrieve parameters.
-	ASSERT_INFO_LENGTH(info, 0);
+	std::vector<ipc::value> response = conn->call_synchronous_helper(
+		"Fader",
+		"GetMultiplier",
+		{
+			ipc::value(this->uid),
+		});
 
-	if (!Retrieve(info.This(), fader)) {
-		return;
-	}
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		Nan::ThrowError("IPC is not connected.");
-		return;
-	}
-
-	// Call
-	std::vector<ipc::value> rval = conn->call_synchronous_helper(
-	    "Fader",
-	    "GetDeflection",
-	    {
-	        ipc::value(fader->uid),
-	    });
-
-	if (!ValidateResponse(rval)) {
-		return;
-	}
-
-	// Return DeziBel Value
-	info.GetReturnValue().Set(rval[1].value_union.fp32);
+    return Napi::Number::New(Env(), response[1].value_union.fp32);
 }
 
-void osn::Fader::SetDeflection(Nan::NAN_METHOD_ARGS_TYPE info)
+void osn::Fader::SetMultiplier(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	float_t     dezibel;
-	osn::Fader* fader;
+	float_t mul = value.ToNumber().FloatValue();
 
-	// Validate and retrieve parameters.
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], dezibel);
-
-	if (!Retrieve(info.This(), fader)) {
+	auto conn = GetConnection(info);
+	if (!conn)
 		return;
-	}
 
-	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		Nan::ThrowError("IPC is not connected.");
-		return;
-	}
-
-	// Call
-	conn->call("Fader", "SetDeflection", {ipc::value(fader->uid), ipc::value(dezibel)});
+	conn->call("Fader", "SetMultiplier", {ipc::value(this->uid), ipc::value(mul)});
 }
 
-void osn::Fader::GetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Fader::Attach(const Napi::CallbackInfo& info)
 {
-	osn::Fader* fader;
+    osn::Input* input = Napi::ObjectWrap<osn::Input>::Unwrap(info[0].ToObject());
 
-	// Validate and retrieve parameters.
-	ASSERT_INFO_LENGTH(info, 0);
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
 
-	if (!Retrieve(info.This(), fader)) {
-		return;
-	}
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Fader", "Attach", {ipc::value(this->uid), ipc::value(input->sourceId)});
 
-	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		Nan::ThrowError("IPC is not connected.");
-		return;
-	}
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	// Call
-	std::vector<ipc::value> rval = conn->call_synchronous_helper(
-	    "Fader",
-	    "GetMultiplier",
-	    {
-	        ipc::value(fader->uid),
-	    });
-
-	if (!ValidateResponse(rval)) {
-		return;
-	}
-
-	// Return DeziBel Value
-	info.GetReturnValue().Set(rval[1].value_union.fp32);
+	return info.Env().Undefined();
 }
 
-void osn::Fader::SetMultiplier(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Fader::Detach(const Napi::CallbackInfo& info)
 {
-	float_t     dezibel;
-	osn::Fader* fader;
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
 
-	// Validate and retrieve parameters.
-	ASSERT_INFO_LENGTH(info, 1);
-	ASSERT_GET_VALUE(info[0], dezibel);
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Fader", "Detach", {ipc::value(this->uid)});
 
-	if (!Retrieve(info.This(), fader)) {
-		return;
-	}
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		Nan::ThrowError("IPC is not connected.");
-		return;
-	}
-
-	// Call
-	conn->call("Fader", "SetMultiplier", {ipc::value(fader->uid), ipc::value(dezibel)});
+	return info.Env().Undefined();
 }
 
-void osn::Fader::Attach(Nan::NAN_METHOD_ARGS_TYPE info)
-{
-	osn::Fader*   fader;
-	osn::ISource* source;
-
-	// Validate and retrieve parameters.
-	ASSERT_INFO_LENGTH(info, 1);
-
-	if (!Retrieve(info.This(), fader)) {
-		return;
-	}
-
-	v8::Local<v8::Object> sourceObj;
-	ASSERT_GET_VALUE(info[0], sourceObj);
-	if (!osn::ISource::Retrieve(sourceObj, source)) {
-		return;
-	}
-
-	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		Nan::ThrowError("IPC is not connected.");
-		return;
-	}
-
-	// Call
-	std::vector<ipc::value> rval =
-	    conn->call_synchronous_helper("Fader", "Attach", {ipc::value(fader->uid), ipc::value(source->sourceId)});
-
-	if (!ValidateResponse(rval)) {
-		return;
-	}
-}
-
-void osn::Fader::Detach(Nan::NAN_METHOD_ARGS_TYPE info)
-{
-	osn::Fader* fader;
-
-	// Validate and retrieve parameters.
-	ASSERT_INFO_LENGTH(info, 0);
-
-	if (!Retrieve(info.This(), fader)) {
-		return;
-	}
-
-	// Validate Connection
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		Nan::ThrowError("IPC is not connected.");
-		return;
-	}
-
-	// Call
-	std::vector<ipc::value> rval = conn->call_synchronous_helper("Fader", "Detach", {ipc::value(fader->uid)});
-
-	if (!ValidateResponse(rval)) {
-		return;
-	}
-}
-
-void osn::Fader::AddCallback(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Fader::AddCallback(const Napi::CallbackInfo& info)
 {
 	//obs::fader &handle = Fader::Object::GetHandle(info.Holder());
 	//Fader* binding = Nan::ObjectWrap::Unwrap<Fader>(info.Holder());
@@ -348,9 +230,10 @@ void osn::Fader::AddCallback(Nan::NAN_METHOD_ARGS_TYPE info)
 	//auto object = FaderCallback::Object::GenerateObject(cb_binding);
 	//cb_binding->obj_ref.Reset(object);
 	//info.GetReturnValue().Set(object);
+    return info.Env().Undefined();
 }
 
-void osn::Fader::RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value osn::Fader::RemoveCallback(const Napi::CallbackInfo& info)
 {
 	//obs::fader &handle = Fader::Object::GetHandle(info.Holder());
 
@@ -364,11 +247,5 @@ void osn::Fader::RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info)
 
 	//handle.remove_callback(fader_cb_wrapper, cb_binding);
 	//cb_binding->obj_ref.Reset();
-
-	///* What's this? A memory leak? Nope! The GC will decide when
-	//* and where to destroy the object. */
-}
-
-INITIALIZER(nodeobs_fader)
-{
+    return info.Env().Undefined();
 }

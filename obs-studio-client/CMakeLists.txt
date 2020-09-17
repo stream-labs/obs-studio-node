@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 SET(NODEJS_URL "https://atom.io/download/atom-shell" CACHE STRING "Node.JS URL")
 SET(NODEJS_NAME "iojs" CACHE STRING "Node.JS Name")
-SET(NODEJS_VERSION "v6.0.3" CACHE STRING "Node.JS Version")
+SET(NODEJS_VERSION "v6.1.11" CACHE STRING "Node.JS Version")
 
 if(WIN32)
 	# Resource VersionInfo
@@ -135,12 +135,26 @@ target_include_directories(
 		"${CMAKE_SOURCE_DIR}/lib-streamlabs-ipc/include"
 		${PROJECT_INCLUDE_PATHS}
 )
+
+# Include N-API wrappers
+execute_process(COMMAND node -p "require('node-addon-api').include"
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE NODE_ADDON_API_DIR
+        )
+string(REPLACE "\n" "" NODE_ADDON_API_DIR ${NODE_ADDON_API_DIR})
+string(REPLACE "\"" "" NODE_ADDON_API_DIR ${NODE_ADDON_API_DIR})
+target_include_directories(${PROJECT_NAME} PRIVATE ${NODE_ADDON_API_DIR})
+target_link_libraries(${PROJECT_NAME} ${LIBOBS_LIBRARIES})
+
+# Define NAPI_VERSION
+add_definitions(-DNAPI_VERSION=4)
  
 set_target_properties(
 	obs_studio_client
 	PROPERTIES
 	VERSION ${PROJECT_VERSION}
 	SOVERSION ${PROJECT_VERSION}
+	PREFIX "" SUFFIX ".node"
 )
 
 target_compile_definitions(obs_studio_client PRIVATE BUILDING_NODE_EXTENSION)

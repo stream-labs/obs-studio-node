@@ -17,58 +17,80 @@
 ******************************************************************************/
 
 #pragma once
-#include <nan.h>
-#include <node.h>
+#include <napi.h>
 #include "isource.hpp"
 #include "utility-v8.hpp"
 
 namespace osn
 {
-	class Input : public osn::ISource, public utilv8::ManagedObject<osn::Input>
+	class Input : public Napi::ObjectWrap<osn::Input>
 	{
-		friend class utilv8::ManagedObject<osn::Input>;
+		public:
+		uint64_t sourceId;
 
 		public:
-		Input(uint64_t id);
+		static Napi::FunctionReference constructor;
+		static Napi::Object Init(Napi::Env env, Napi::Object exports);
+		Input(const Napi::CallbackInfo& info);
 
-		// JavaScript
-		public:
-		static Nan::Persistent<v8::FunctionTemplate> prototype;
+		static Napi::Value Types(const Napi::CallbackInfo& info);
+		static Napi::Value Create(const Napi::CallbackInfo& info);
+		static Napi::Value CreatePrivate(const Napi::CallbackInfo& info);
+		static Napi::Value FromName(const Napi::CallbackInfo& info);
+		static Napi::Value GetPublicSources(const Napi::CallbackInfo& info);
 
-		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+		Napi::Value Duplicate(const Napi::CallbackInfo& info);
+		Napi::Value AddFilter(const Napi::CallbackInfo& info);
+		Napi::Value RemoveFilter(const Napi::CallbackInfo& info);
+		Napi::Value SetFilterOrder(const Napi::CallbackInfo& info);
+		Napi::Value FindFilter(const Napi::CallbackInfo& info);
+		Napi::Value CopyFilters(const Napi::CallbackInfo& info);
 
-		// Functions
-		static Nan::NAN_METHOD_RETURN_TYPE Types(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Create(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE FromName(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetPublicSources(Nan::NAN_METHOD_ARGS_TYPE info);
+		Napi::Value Active(const Napi::CallbackInfo& info);
+		Napi::Value Showing(const Napi::CallbackInfo& info);
+		Napi::Value Width(const Napi::CallbackInfo& info);
+		Napi::Value Height(const Napi::CallbackInfo& info);
+		Napi::Value GetVolume(const Napi::CallbackInfo& info);
+		void SetVolume(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value GetSyncOffset(const Napi::CallbackInfo& info);
+		void SetSyncOffset(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value GetAudioMixers(const Napi::CallbackInfo& info);
+		void SetAudioMixers(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value GetMonitoringType(const Napi::CallbackInfo& info);
+		void SetMonitoringType(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value GetDeinterlaceFieldOrder(const Napi::CallbackInfo& info);
+		void SetDeinterlaceFieldOrder(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value GetDeinterlaceMode(const Napi::CallbackInfo& info);
+		void SetDeinterlaceMode(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value Filters(const Napi::CallbackInfo& info);
 
-		// Methods
-		static Nan::NAN_METHOD_RETURN_TYPE Duplicate(Nan::NAN_METHOD_ARGS_TYPE info);
+		Napi::Value CallIsConfigurable(const Napi::CallbackInfo& info);
+		Napi::Value CallGetProperties(const Napi::CallbackInfo& info);
+		Napi::Value CallGetSettings(const Napi::CallbackInfo& info);
 
-		static Nan::NAN_METHOD_RETURN_TYPE Active(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Showing(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Width(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Height(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetVolume(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetVolume(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetSyncOffset(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetAudioMixers(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetMonitoringType(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetMonitoringType(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetDeinterlaceFieldOrder(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetDeinterlaceFieldOrder(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetDeinterlaceMode(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetDeinterlaceMode(Nan::NAN_METHOD_ARGS_TYPE info);
+		Napi::Value CallGetType(const Napi::CallbackInfo& info);
+		Napi::Value CallGetName(const Napi::CallbackInfo& info);
+		void CallSetName(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value CallGetOutputFlags(const Napi::CallbackInfo& info);
+		Napi::Value CallGetFlags(const Napi::CallbackInfo& info);
+		void CallSetFlags(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value CallGetStatus(const Napi::CallbackInfo& info);
+		Napi::Value CallGetId(const Napi::CallbackInfo& info);
+		Napi::Value CallGetMuted(const Napi::CallbackInfo& info);
+		void CallSetMuted(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value CallGetEnabled(const Napi::CallbackInfo& info);
+		void CallSetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value);
 
-		static Nan::NAN_METHOD_RETURN_TYPE Filters(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE AddFilter(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE RemoveFilter(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetFilterOrder(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE FindFilter(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE CopyFilters(Nan::NAN_METHOD_ARGS_TYPE info);
+		Napi::Value CallRelease(const Napi::CallbackInfo& info);
+		Napi::Value CallRemove(const Napi::CallbackInfo& info);
+		Napi::Value CallUpdate(const Napi::CallbackInfo& info);
+		Napi::Value CallLoad(const Napi::CallbackInfo& info);
+		Napi::Value CallSave(const Napi::CallbackInfo& info);
+
+		Napi::Value CallSendMouseClick(const Napi::CallbackInfo& info);
+		Napi::Value CallSendMouseMove(const Napi::CallbackInfo& info);
+		Napi::Value CallSendMouseWheel(const Napi::CallbackInfo& info);
+		Napi::Value CallSendFocus(const Napi::CallbackInfo& info);
+		Napi::Value CallSendKeyClick(const Napi::CallbackInfo& info);
 	};
-} // namespace osn
+}

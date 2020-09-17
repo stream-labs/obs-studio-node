@@ -17,71 +17,63 @@
 ******************************************************************************/
 
 #pragma once
-#include <nan.h>
-#include <node.h>
+#include <napi.h>
 #include "isource.hpp"
 #include "utility-v8.hpp"
 
 namespace osn
 {
-	class SceneItem : public Nan::ObjectWrap,
-	                  public utilv8::InterfaceObject<osn::SceneItem>,
-	                  public utilv8::ManagedObject<osn::SceneItem>
+	class SceneItem : public Napi::ObjectWrap<osn::SceneItem>
 	{
-		friend class utilv8::InterfaceObject<osn::SceneItem>;
-		friend class utilv8::ManagedObject<osn::SceneItem>;
-
 		public:
 		uint64_t itemId;
-		SceneItem(uint64_t id);
 
-		// JavaScript
 		public:
-		static Nan::Persistent<v8::FunctionTemplate> prototype;
+		static Napi::FunctionReference constructor;
+		static Napi::Object Init(Napi::Env env, Napi::Object exports);
+		SceneItem(const Napi::CallbackInfo& info);
 
-		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+		Napi::Value GetSource(const Napi::CallbackInfo& info);
+		Napi::Value GetScene(const Napi::CallbackInfo& info);
+		Napi::Value Remove(const Napi::CallbackInfo& info);
+		Napi::Value IsVisible(const Napi::CallbackInfo& info);
+		void SetVisible(const Napi::CallbackInfo& info, const Napi::Value &value);
 
-		static Nan::NAN_METHOD_RETURN_TYPE GetSource(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetScene(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Remove(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE IsVisible(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetVisible(Nan::NAN_METHOD_ARGS_TYPE info);
+		Napi::Value IsSelected(const Napi::CallbackInfo& info);
+		void SetSelected(const Napi::CallbackInfo& info, const Napi::Value &value);
 
-		static Nan::NAN_METHOD_RETURN_TYPE IsSelected(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetSelected(Nan::NAN_METHOD_ARGS_TYPE info);
+		Napi::Value IsStreamVisible(const Napi::CallbackInfo& info);
+		void SetStreamVisible(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value IsRecordingVisible(const Napi::CallbackInfo& info);
+		void SetRecordingVisible(const Napi::CallbackInfo& info, const Napi::Value &value);
 
-		static Nan::NAN_METHOD_RETURN_TYPE IsStreamVisible(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetStreamVisible(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE IsRecordingVisible(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetRecordingVisible(Nan::NAN_METHOD_ARGS_TYPE info);
-
-		static Nan::NAN_METHOD_RETURN_TYPE GetPosition(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetPosition(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetRotation(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetRotation(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetScale(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetScale(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetScaleFilter(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetScaleFilter(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetAlignment(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetAlignment(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetBounds(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetBounds(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetBoundsAlignment(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetBoundsAlignment(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetBoundsType(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetBoundsType(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetCrop(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetCrop(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetTransformInfo(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE SetTransformInfo(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE GetId(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE MoveUp(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE MoveDown(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE MoveTop(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE MoveBottom(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE Move(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE DeferUpdateBegin(Nan::NAN_METHOD_ARGS_TYPE info);
-		static Nan::NAN_METHOD_RETURN_TYPE DeferUpdateEnd(Nan::NAN_METHOD_ARGS_TYPE info);
+		Napi::Value GetPosition(const Napi::CallbackInfo& info);
+		void SetPosition(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value GetRotation(const Napi::CallbackInfo& info);
+		void SetRotation(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value GetScale(const Napi::CallbackInfo& info);
+		void SetScale(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value GetScaleFilter(const Napi::CallbackInfo& info);
+		void SetScaleFilter(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value GetAlignment(const Napi::CallbackInfo& info);
+		void SetAlignment(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value GetBounds(const Napi::CallbackInfo& info);
+		void SetBounds(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value GetBoundsAlignment(const Napi::CallbackInfo& info);
+		void SetBoundsAlignment(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value GetBoundsType(const Napi::CallbackInfo& info);
+		void SetBoundsType(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value GetCrop(const Napi::CallbackInfo& info);
+		void SetCrop(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value GetTransformInfo(const Napi::CallbackInfo& info);
+		void SetTransformInfo(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value GetId(const Napi::CallbackInfo& info);
+		Napi::Value MoveUp(const Napi::CallbackInfo& info);
+		Napi::Value MoveDown(const Napi::CallbackInfo& info);
+		Napi::Value MoveTop(const Napi::CallbackInfo& info);
+		Napi::Value MoveBottom(const Napi::CallbackInfo& info);
+		Napi::Value Move(const Napi::CallbackInfo& info);
+		Napi::Value DeferUpdateBegin(const Napi::CallbackInfo& info);
+		Napi::Value DeferUpdateEnd(const Napi::CallbackInfo& info);
 	};
-} // namespace osn
+}
