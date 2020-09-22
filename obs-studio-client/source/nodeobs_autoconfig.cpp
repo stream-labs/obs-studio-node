@@ -19,34 +19,100 @@
 #include "nodeobs_autoconfig.hpp"
 #include "shared.hpp"
 
-bool autoConfig::isWorkerRunning = false;
-bool autoConfig::worker_stop = true;
-uint32_t autoConfig::sleepIntervalMS = 33;
-autoConfig::Worker* autoConfig::asyncWorker = nullptr;
-std::thread* autoConfig::worker_thread = nullptr;
-std::vector<std::thread*> autoConfig::ac_queue_task_workers;
+AutoConfig::~AutoConfig()
+{
+	stop_worker();
+	stop_async_runner();
+}
 
-#ifdef WIN32
-const char* ac_sem_name = nullptr; // Not used on Windows
-HANDLE ac_sem;
-#else
-const char* ac_sem_name = "autoconfig-semaphore";
-sem_t *ac_sem;
-#endif
+void AutoConfig::start_async_runner()
+{
+	if (m_async_callback)
+		return;
+	std::unique_lock<std::mutex> ul(m_worker_lock);
+	// Start v8/uv asynchronous runner.
+	m_async_callback = new AutoConfigCallback();
+	m_async_callback->set_handler(
+	    std::bind(&AutoConfig::callback_handler, this, std::placeholders::_1, std::placeholders::_2), nullptr);
+}
 
-void autoConfig::worker()
+void AutoConfig::stop_async_runner()
+{
+	if (!m_async_callback)
+		return;
+	std::unique_lock<std::mutex> ul(m_worker_lock);
+	// Stop v8/uv asynchronous runner.
+	m_async_callback->clear();
+	m_async_callback->finalize();
+	m_async_callback = nullptr;
+}
+
+void AutoConfig::callback_handler(void* data, std::shared_ptr<AutoConfigInfo> item)
+{
+	v8::Isolate*         isolate = v8::Isolate::GetCurrent();
+	v8::Local<v8::Value> args[1];
+	Nan::HandleScope     scope;
+
+	v8::Local<v8::Value> argv = v8::Object::New(isolate);
+	argv->ToObject()->Set(
+	    v8::String::NewFromUtf8(isolate, "event").ToLocalChecked(),
+	    v8::String::NewFromUtf8(isolate, item->event.c_str()).ToLocalChecked());
+	argv->ToObject()->Set(
+	    v8::String::NewFromUtf8(isolate, "description").ToLocalChecked(),
+	    v8::String::NewFromUtf8(isolate, item->description.c_str()).ToLocalChecked());
+
+	if (item->event.compare("error") != 0) {
+		argv->ToObject()->Set(
+		    v8::String::NewFromUtf8(isolate, "percentage").ToLocalChecked(),
+		    v8::Number::New(isolate, item->percentage));
+	}
+
+	args[0] = argv;
+
+	Nan::Call(m_callback_function, 1, args);
+}
+
+void AutoConfig::start_worker()
+{
+	if (!m_worker_stop)
+		return;
+	// Launch worker thread.
+	m_worker_stop = false;
+	m_worker      = std::thread(std::bind(&AutoConfig::worker, this));
+}
+
+void AutoConfig::stop_worker()
+{
+	if (m_worker_stop != false)
+		return;
+	// Stop worker thread.
+	m_worker_stop = true;
+	if (m_worker.joinable()) {
+		m_worker.join();
+	}
+}
+
+void AutoConfig::set_keepalive(v8::Local<v8::Object> obj)
+{
+	if (!m_async_callback)
+		return;
+	m_async_callback->set_keepalive(obj);
+}
+
+void AutoConfig::worker()
 {
 	size_t totalSleepMS = 0;
 
-	while (!worker_stop) {
+	while (!m_worker_stop) {
 		auto tp_start = std::chrono::high_resolution_clock::now();
 
+		// Validate Connection
 		auto conn = Controller::GetInstance().GetConnection();
 		if (!conn) {
 			goto do_sleep;
 		}
 
-
+		// Call
 		{
 			std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "Query", {});
 			if (!response.size() || (response.size() == 1)) {
@@ -60,7 +126,9 @@ void autoConfig::worker()
 				data->event       = response[1].value_str;
 				data->description = response[2].value_str;
 				data->percentage  = response[3].value_union.fp64;
-				ac_queue_task_workers.push_back(new std::thread(&autoConfig::queueTask, data));
+				data->param       = this;
+
+				m_async_callback->queue(std::move(data));
 			}
 		}
 
@@ -73,120 +141,97 @@ void autoConfig::worker()
 	return;
 }
 
-void autoConfig::start_worker()
+static v8::Persistent<v8::Object> autoConfigCallbackObject;
+
+void autoConfig::InitializeAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	if (!worker_stop)
-		return;
+	v8::Local<v8::Function> callback;
+	ASSERT_GET_VALUE(args[0], callback);
 
-	worker_stop = false;
-	ac_sem = create_semaphore(ac_sem_name);
-	worker_thread = new std::thread(&autoConfig::worker);
-}
+	v8::Isolate* isolate = v8::Isolate::GetCurrent();
 
-void autoConfig::stop_worker()
-{
-	if (worker_stop != false)
-		return;
+	v8::Local<v8::Object> serverInfo = args[1].As<v8::Object>();
 
-	worker_stop = true;
-	if (worker_thread->joinable()) {
-		worker_thread->join();
-	}
-	for (auto queue_worker: ac_queue_task_workers) {
-		if (queue_worker->joinable()) {
-			queue_worker->join();
-		}
-	}
-	remove_semaphore(ac_sem, ac_sem_name);
-}
+	v8::String::Utf8Value param0(serverInfo->Get(v8::String::NewFromUtf8(isolate, "continent").ToLocalChecked()));
+	std::string           continent = std::string(*param0);
 
-Napi::Value autoConfig::InitializeAutoConfig(const Napi::CallbackInfo& info)
-{
-	Napi::Function async_callback = info[0].As<Napi::Function>();
-	Napi::Object serverInfo = info[1].ToObject();
-	std::string continent = serverInfo.Get("continent").ToString().Utf8Value();
-	std::string service = serverInfo.Get("service_name").ToString().Utf8Value();
+	v8::String::Utf8Value param1(serverInfo->Get(v8::String::NewFromUtf8(isolate, "service_name").ToLocalChecked()));
+	std::string           service = std::string(*param1);
 
-	auto conn = GetConnection(info);
+	auto conn = GetConnection();
 	if (!conn)
-		return info.Env().Undefined();
+		return;
 
 	std::vector<ipc::value> response =
 	    conn->call_synchronous_helper("AutoConfig", "InitializeAutoConfig", {continent, service});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+	if (!ValidateResponse(response)) {
+		return;
+	}
 
-	asyncWorker = new autoConfig::Worker(async_callback);
-	asyncWorker->SuppressDestruct();
-
-	start_worker();
-	isWorkerRunning = true;
-
-	return Napi::Boolean::New(info.Env(), true);
+	// Callback
+	autoConfigObject = new AutoConfig();
+	autoConfigObject->m_callback_function.Reset(callback);
+	autoConfigObject->start_async_runner();
+	autoConfigObject->set_keepalive(args.This());
+	autoConfigObject->start_worker();
+	args.GetReturnValue().Set(true);
 }
 
-Napi::Value autoConfig::StartBandwidthTest(const Napi::CallbackInfo& info)
+void autoConfig::StartBandwidthTest(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	auto conn = GetConnection(info);
+	auto conn = GetConnection();
 	if (!conn)
-		return info.Env().Undefined();
+		return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "StartBandwidthTest", {});
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return info.Env().Undefined();
+	if (!ValidateResponse(response)) {
+		return;
+	}
 }
 
-Napi::Value autoConfig::StartStreamEncoderTest(const Napi::CallbackInfo& info)
+void autoConfig::StartStreamEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	auto conn = GetConnection(info);
+	auto conn = GetConnection();
 	if (!conn)
-		return info.Env().Undefined();
+		return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "StartStreamEncoderTest", {});
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return info.Env().Undefined();
+	if (!ValidateResponse(response)) {
+		return;
+	}
 }
 
-Napi::Value autoConfig::StartRecordingEncoderTest(const Napi::CallbackInfo& info)
+void autoConfig::StartRecordingEncoderTest(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	auto conn = GetConnection(info);
+	auto conn = GetConnection();
 	if (!conn)
-		return info.Env().Undefined();
+		return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "StartRecordingEncoderTest", {});
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return info.Env().Undefined();
+	if (!ValidateResponse(response)) {
+		return;
+	}
 }
 
-void autoConfig::queueTask(std::shared_ptr<AutoConfigInfo> data) {
-	wait_semaphore(ac_sem);
-	asyncWorker->SetData(data);
-	asyncWorker->Queue();
-}
-
-Napi::Value autoConfig::StartCheckSettings(const Napi::CallbackInfo& info)
+void autoConfig::StartCheckSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	std::shared_ptr<AutoConfigInfo> startData = std::make_shared<AutoConfigInfo>();
 	startData->event                          = "starting_step";
 	startData->description                    = "checking_settings";
 	startData->percentage                     = 0;
-	ac_queue_task_workers.push_back(new std::thread(&autoConfig::queueTask, startData));
+	startData->param                          = autoConfigObject;
+	autoConfigObject->m_async_callback->queue(std::move(startData));
 
-	auto conn = GetConnection(info);
+	auto conn = GetConnection();
 	if (!conn)
-		return info.Env().Undefined();
+		return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "StartCheckSettings", {});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+	if (!ValidateResponse(response)) {
+		return;
+	}
 
 	bool                            success  = (bool)response[1].value_union.ui32;
 	std::shared_ptr<AutoConfigInfo> stopData = std::make_shared<AutoConfigInfo>();
@@ -199,94 +244,74 @@ Napi::Value autoConfig::StartCheckSettings(const Napi::CallbackInfo& info)
 	}
 
 	stopData->percentage = 100;
-	ac_queue_task_workers.push_back(new std::thread(&autoConfig::queueTask, stopData));
-
-	return info.Env().Undefined();
+	stopData->param      = autoConfigObject;
+	autoConfigObject->m_async_callback->queue(std::move(stopData));
 }
 
-Napi::Value autoConfig::StartSetDefaultSettings(const Napi::CallbackInfo& info)
+void autoConfig::StartSetDefaultSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	auto conn = GetConnection(info);
+	auto conn = GetConnection();
 	if (!conn)
-		return info.Env().Undefined();
+		return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "StartSetDefaultSettings", {});
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return info.Env().Undefined();
+	if (!ValidateResponse(response)) {
+		return;
+	}
 }
 
-Napi::Value autoConfig::StartSaveStreamSettings(const Napi::CallbackInfo& info)
+void autoConfig::StartSaveStreamSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	auto conn = GetConnection(info);
+	auto conn = GetConnection();
 	if (!conn)
-		return info.Env().Undefined();
+		return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "StartSaveStreamSettings", {});
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return info.Env().Undefined();
+	if (!ValidateResponse(response)) {
+		return;
+	}
 }
 
-Napi::Value autoConfig::StartSaveSettings(const Napi::CallbackInfo& info)
+void autoConfig::StartSaveSettings(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	auto conn = GetConnection(info);
+	auto conn = GetConnection();
 	if (!conn)
-		return info.Env().Undefined();
+		return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "StartSaveSettings", {});
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return info.Env().Undefined();
+	if (!ValidateResponse(response)) {
+		return;
+	}
 }
 
-Napi::Value autoConfig::TerminateAutoConfig(const Napi::CallbackInfo& info)
+void autoConfig::TerminateAutoConfig(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	auto conn = GetConnection(info);
+	auto conn = GetConnection();
 	if (!conn)
-		return info.Env().Undefined();
+		return;
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("AutoConfig", "TerminateAutoConfig", {});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+	if (!ValidateResponse(response)) {
+		return;
+	}
 
-	if (isWorkerRunning)
-		stop_worker();
-	delete asyncWorker;
-	return info.Env().Undefined();
+	autoConfigObject->stop_worker();
+	autoConfigObject->stop_async_runner();
+	delete autoConfigObject;
 }
 
-void autoConfig::Init(Napi::Env env, Napi::Object exports)
+INITIALIZER(nodeobs_autoconfig)
 {
-	exports.Set(
-		Napi::String::New(env, "InitializeAutoConfig"),
-		Napi::Function::New(env, autoConfig::InitializeAutoConfig));
-	exports.Set(
-		Napi::String::New(env, "StartBandwidthTest"),
-		Napi::Function::New(env, autoConfig::StartBandwidthTest));
-	exports.Set(
-		Napi::String::New(env, "StartStreamEncoderTest"),
-		Napi::Function::New(env, autoConfig::StartStreamEncoderTest));
-	exports.Set(
-		Napi::String::New(env, "StartRecordingEncoderTest"),
-		Napi::Function::New(env, autoConfig::StartRecordingEncoderTest));
-	exports.Set(
-		Napi::String::New(env, "StartCheckSettings"),
-		Napi::Function::New(env, autoConfig::StartCheckSettings));
-	exports.Set(
-		Napi::String::New(env, "StartSetDefaultSettings"),
-		Napi::Function::New(env, autoConfig::StartSetDefaultSettings));
-	exports.Set(
-		Napi::String::New(env, "StartSaveStreamSettings"),
-		Napi::Function::New(env, autoConfig::StartSaveStreamSettings));
-	exports.Set(
-		Napi::String::New(env, "StartSaveSettings"),
-		Napi::Function::New(env, autoConfig::StartSaveSettings));
-	exports.Set(
-		Napi::String::New(env, "TerminateAutoConfig"),
-		Napi::Function::New(env, autoConfig::TerminateAutoConfig));
+	initializerFunctions->push([](v8::Local<v8::Object> exports) {
+		NODE_SET_METHOD(exports, "InitializeAutoConfig", autoConfig::InitializeAutoConfig);
+		NODE_SET_METHOD(exports, "StartBandwidthTest", autoConfig::StartBandwidthTest);
+		NODE_SET_METHOD(exports, "StartStreamEncoderTest", autoConfig::StartStreamEncoderTest);
+		NODE_SET_METHOD(exports, "StartRecordingEncoderTest", autoConfig::StartRecordingEncoderTest);
+		NODE_SET_METHOD(exports, "StartCheckSettings", autoConfig::StartCheckSettings);
+		NODE_SET_METHOD(exports, "StartSetDefaultSettings", autoConfig::StartSetDefaultSettings);
+		NODE_SET_METHOD(exports, "StartSaveStreamSettings", autoConfig::StartSaveStreamSettings);
+		NODE_SET_METHOD(exports, "StartSaveSettings", autoConfig::StartSaveSettings);
+		NODE_SET_METHOD(exports, "TerminateAutoConfig", autoConfig::TerminateAutoConfig);
+	});
 }

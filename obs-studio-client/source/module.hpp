@@ -17,31 +17,39 @@
 ******************************************************************************/
 
 #pragma once
-#include <napi.h>
+#include <nan.h>
+#include <node.h>
 #include "utility-v8.hpp"
 
 namespace osn
 {
-	class Module : public Napi::ObjectWrap<osn::Module>
+	class Module : public utilv8::ManagedObject<osn::Module>, public Nan::ObjectWrap
 	{
+		friend class utilv8::ManagedObject<osn::Module>;
+
 		public:
 		uint64_t moduleId;
+		Module(uint64_t id);
 
+		// JavaScript
 		public:
-		static Napi::FunctionReference constructor;
-		static Napi::Object Init(Napi::Env env, Napi::Object exports);
-		Module(const Napi::CallbackInfo& info);
+		static Nan::Persistent<v8::FunctionTemplate> prototype;
 
-		static Napi::Value Open(const Napi::CallbackInfo& info);
-		static Napi::Value Modules(const Napi::CallbackInfo& info);
+		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 
-		Napi::Value Initialize(const Napi::CallbackInfo& info);
+		//Functions
+		static Nan::NAN_METHOD_RETURN_TYPE Open(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE Modules(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE Initialize(Nan::NAN_METHOD_ARGS_TYPE info);
 
-		Napi::Value Name(const Napi::CallbackInfo& info);
-		Napi::Value FileName(const Napi::CallbackInfo& info);
-		Napi::Value Author(const Napi::CallbackInfo& info);
-		Napi::Value Description(const Napi::CallbackInfo& info);
-		Napi::Value BinaryPath(const Napi::CallbackInfo& info);
-		Napi::Value DataPath(const Napi::CallbackInfo& info);
+		//Methods
+		static Nan::NAN_METHOD_RETURN_TYPE Name(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE FileName(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE Author(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE Description(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE BinaryPath(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE DataPath(Nan::NAN_METHOD_ARGS_TYPE info);
+
+
 	};
-}
+} // namespace osn

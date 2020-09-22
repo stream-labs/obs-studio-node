@@ -17,7 +17,8 @@
 ******************************************************************************/
 
 #pragma once
-#include <napi.h>
+#include <nan.h>
+#include <node.h>
 #include "utility-v8.hpp"
 #include "properties.hpp"
 #include "obs-property.hpp"
@@ -36,36 +37,52 @@ namespace osn
 		size_t		hotkeyId;
 	};
 
-	class ISource
+	typedef utilv8::managed_callback<std::shared_ptr<std::vector<SourceHotkeyInfo>>>	SourceCallback;
+
+	class ISource : public Nan::ObjectWrap, public utilv8::InterfaceObject<osn::ISource>
 	{
+		friend class utilv8::InterfaceObject<osn::ISource>;
+
 		public:
-		static void Release(const Napi::CallbackInfo& info, uint64_t id);
-		static void Remove(const Napi::CallbackInfo& info, uint64_t id);
-		static void Update(const Napi::CallbackInfo& info, uint64_t id);
-		static void Load(const Napi::CallbackInfo& info, uint64_t id);
-		static void Save(const Napi::CallbackInfo& info, uint64_t id);
+		uint64_t sourceId;
 
-		static Napi::Value IsConfigurable(const Napi::CallbackInfo& info, uint64_t id);
-		static Napi::Value GetProperties(const Napi::CallbackInfo& info, uint64_t id);
-		static Napi::Value GetSettings(const Napi::CallbackInfo& info, uint64_t id);
+		private:
+		uint64_t m_uid;
+	
+		public:
+		~ISource();
+		static Nan::Persistent<v8::FunctionTemplate> prototype;
 
-		static Napi::Value GetType(const Napi::CallbackInfo& info, uint64_t id);
-		static Napi::Value GetName(const Napi::CallbackInfo& info, uint64_t id);
-		static void SetName(const Napi::CallbackInfo& info, const Napi::Value &value, uint64_t id);
-		static Napi::Value GetOutputFlags(const Napi::CallbackInfo& info, uint64_t id);
-		static Napi::Value GetFlags(const Napi::CallbackInfo& info, uint64_t id);
-		static void SetFlags(const Napi::CallbackInfo& info, const Napi::Value &value, uint64_t id);
-		static Napi::Value GetStatus(const Napi::CallbackInfo& info, uint64_t id);
-		static Napi::Value GetId(const Napi::CallbackInfo& info, uint64_t id);
-		static Napi::Value GetMuted(const Napi::CallbackInfo& info, uint64_t id);
-		static void SetMuted(const Napi::CallbackInfo& info, const Napi::Value &value, uint64_t id);
-		static Napi::Value GetEnabled(const Napi::CallbackInfo& info, uint64_t id);
-		static void SetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value, uint64_t id);
+		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 
-		static void SendMouseClick(const Napi::CallbackInfo& info, uint64_t id);
-		static void SendMouseMove(const Napi::CallbackInfo& info, uint64_t id);
-		static void SendMouseWheel(const Napi::CallbackInfo& info, uint64_t id);
-		static void SendFocus(const Napi::CallbackInfo& info, uint64_t id);
-		static void SendKeyClick(const Napi::CallbackInfo& info, uint64_t id);
+		static Nan::NAN_METHOD_RETURN_TYPE Release(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE Remove(Nan::NAN_METHOD_ARGS_TYPE info);
+
+		static Nan::NAN_METHOD_RETURN_TYPE IsConfigurable(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE GetProperties(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE GetSettings(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE Update(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE Load(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE Save(Nan::NAN_METHOD_ARGS_TYPE info);
+
+		static Nan::NAN_METHOD_RETURN_TYPE GetType(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE GetName(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE SetName(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE GetOutputFlags(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE GetFlags(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE SetFlags(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE GetStatus(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE GetId(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE GetMuted(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE SetMuted(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE GetEnabled(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE SetEnabled(Nan::NAN_METHOD_ARGS_TYPE info);
+
+		// Browser source interaction
+		static Nan::NAN_METHOD_RETURN_TYPE SendMouseClick(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE SendMouseMove(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE SendMouseWheel(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE SendFocus(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE SendKeyClick(Nan::NAN_METHOD_ARGS_TYPE info);
 	};
-}
+} // namespace osn

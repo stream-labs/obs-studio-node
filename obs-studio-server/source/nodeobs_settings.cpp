@@ -2647,7 +2647,7 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 				obs_data_set_int(encoderSettings, name.c_str(), *value);
 			}
 		} else if (type.compare("OBS_PROPERTY_BOOL") == 0) {
-			bool* value = reinterpret_cast<bool*>(param.currentValue.data());
+			uint32_t* value = reinterpret_cast<uint32_t*>(param.currentValue.data());
 			if (i < indexEncoderSettings) {
 				if (name.compare("Rescale") == 0 && *value) {
 					indexEncoderSettings++;
@@ -2791,7 +2791,7 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 				obs_data_set_int(encoderSettings, name.c_str(), value);
 			}
 		} else if (type.compare("OBS_PROPERTY_BOOL") == 0) {
-			bool* value = reinterpret_cast<bool*>(param.currentValue.data());
+			uint32_t* value = reinterpret_cast<uint32_t*>(param.currentValue.data());
 			if (i < indexEncoderSettings) {
 				if (name.compare("RecRescale") == 0 && *value) {
 					indexEncoderSettings++;
@@ -3917,7 +3917,7 @@ void OBS_settings::saveGenericSettings(std::vector<SubCategory> genericSettings,
 				uint64_t* value = reinterpret_cast<uint64_t*>(param.currentValue.data());
 				config_set_uint(config, section.c_str(), name.c_str(), *value);
 			} else if (type.compare("OBS_PROPERTY_BOOL") == 0) {
-				bool* value = reinterpret_cast<bool*>(param.currentValue.data());
+				uint32_t* value = reinterpret_cast<uint32_t*>(param.currentValue.data());
 				config_set_bool(config, section.c_str(), name.c_str(), *value);
 
 				if (name.compare("replayBufferUseStreamOutput") == 0) {

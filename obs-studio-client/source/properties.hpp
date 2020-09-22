@@ -20,7 +20,8 @@
 #include <inttypes.h>
 #include <map>
 #include <math.h>
-#include <napi.h>
+#include <nan.h>
+#include <node.h>
 #include <unordered_map>
 #include "utility-v8.hpp"
 
@@ -196,51 +197,71 @@ namespace osn
 	typedef std::map<size_t, std::shared_ptr<Property>> property_map_t;
 
 	// The actual classes that work with JavaScript
-	class Properties : public Napi::ObjectWrap<osn::Properties>
+	class Properties : public Nan::ObjectWrap,
+	                   public utilv8::InterfaceObject<Properties>,
+	                   public utilv8::ManagedObject<Properties>
 	{
-		public:
 		std::shared_ptr<property_map_t> properties;
-		uint64_t sourceId;
+		v8::Persistent<v8::Object>      owner;
+
+		protected:
+		static Nan::Persistent<v8::FunctionTemplate> prototype;
 
 		public:
+		Properties();
+		Properties(property_map_t container);
+		Properties(property_map_t container, v8::Local<v8::Object> owner);
+		~Properties();
+
 		std::shared_ptr<property_map_t> GetProperties();
-		static Napi::FunctionReference constructor;
-		static Napi::Object Init(Napi::Env env, Napi::Object exports);
-		Properties(const Napi::CallbackInfo& info);
+		v8::Local<v8::Object>           GetOwner();
 
-		Napi::Value Count(const Napi::CallbackInfo& info);
-		Napi::Value First(const Napi::CallbackInfo& info);
-		Napi::Value Last(const Napi::CallbackInfo& info);
-		Napi::Value Get(const Napi::CallbackInfo& info);
+		static void                        Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+		static Nan::NAN_METHOD_RETURN_TYPE Count(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE First(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE Last(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE Get(Nan::NAN_METHOD_ARGS_TYPE info);
+
+		friend class utilv8::ManagedObject<Properties>;
+		friend class utilv8::InterfaceObject<Properties>;
 	};
 
-	class PropertyObject : public Napi::ObjectWrap<osn::PropertyObject>
+	class PropertyObject : public Nan::ObjectWrap,
+	                       public utilv8::InterfaceObject<PropertyObject>,
+	                       public utilv8::ManagedObject<PropertyObject>
 	{
-		osn::Properties* parent;
-		uint32_t index;
+		v8::Persistent<v8::Object> parent;
+		size_t                     index;
+
+		protected:
+		static Nan::Persistent<v8::FunctionTemplate> prototype;
 
 		public:
-		static Napi::FunctionReference constructor;
-		static Napi::Object Init(Napi::Env env, Napi::Object exports);
-		PropertyObject(const Napi::CallbackInfo& info);
+		PropertyObject(v8::Local<v8::Object> parent, size_t index);
+		~PropertyObject();
 
-		Napi::Value Previous(const Napi::CallbackInfo& info);
-		Napi::Value Next(const Napi::CallbackInfo& info);
-		Napi::Value IsFirst(const Napi::CallbackInfo& info);
-		Napi::Value IsLast(const Napi::CallbackInfo& info);
+		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 
-		Napi::Value GetValue(const Napi::CallbackInfo& info);
+		static Nan::NAN_METHOD_RETURN_TYPE Previous(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE Next(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE IsFirst(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE IsLast(Nan::NAN_METHOD_ARGS_TYPE info);
 
-		Napi::Value GetName(const Napi::CallbackInfo& info);
-		Napi::Value GetDescription(const Napi::CallbackInfo& info);
-		Napi::Value GetLongDescription(const Napi::CallbackInfo& info);
-		Napi::Value IsEnabled(const Napi::CallbackInfo& info);
-		Napi::Value IsVisible(const Napi::CallbackInfo& info);
-		Napi::Value GetType(const Napi::CallbackInfo& info);
+		static Nan::NAN_METHOD_RETURN_TYPE GetValue(Nan::NAN_METHOD_ARGS_TYPE info);
 
-		Napi::Value GetDetails(const Napi::CallbackInfo& info);
+		static Nan::NAN_METHOD_RETURN_TYPE GetName(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE GetDescription(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE GetLongDescription(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE IsEnabled(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE IsVisible(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE GetType(Nan::NAN_METHOD_ARGS_TYPE info);
 
-		Napi::Value Modified(const Napi::CallbackInfo& info);
-		Napi::Value ButtonClicked(const Napi::CallbackInfo& info);
+		static Nan::NAN_METHOD_RETURN_TYPE GetDetails(Nan::NAN_METHOD_ARGS_TYPE info);
+
+		static Nan::NAN_METHOD_RETURN_TYPE Modified(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE ButtonClicked(Nan::NAN_METHOD_ARGS_TYPE info);
+
+		friend class utilv8::ManagedObject<PropertyObject>;
+		friend class utilv8::InterfaceObject<PropertyObject>;
 	};
-}
+} // namespace osn

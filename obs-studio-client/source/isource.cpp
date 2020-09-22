@@ -24,82 +24,136 @@
 #include "utility-v8.hpp"
 #include "utility.hpp"
 
-void osn::ISource::Release(const Napi::CallbackInfo& info, uint64_t id)
+osn::ISource*                         sourceObject;
+Nan::Persistent<v8::FunctionTemplate> osn::ISource::prototype;
+
+osn::ISource::~ISource() {}
+
+void osn::ISource::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
+	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
+	fnctemplate->SetClassName(Nan::New<v8::String>("Source").ToLocalChecked());
+	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
+
+	v8::Local<v8::ObjectTemplate> objtemplate = fnctemplate->PrototypeTemplate();
+	utilv8::SetTemplateField(objtemplate, "release", Release);
+	utilv8::SetTemplateField(objtemplate, "remove", Remove);
+
+	utilv8::SetTemplateAccessorProperty(objtemplate, "configurable", IsConfigurable);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "properties", GetProperties);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "settings", GetSettings);
+	utilv8::SetTemplateField(objtemplate, "update", Update);
+	utilv8::SetTemplateField(objtemplate, "load", Load);
+	utilv8::SetTemplateField(objtemplate, "save", Save);
+
+	utilv8::SetTemplateAccessorProperty(objtemplate, "type", GetType);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "name", GetName, SetName);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "outputFlags", GetOutputFlags);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "flags", GetFlags, SetFlags);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "status", GetStatus);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "id", GetId);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "muted", GetMuted, SetMuted);
+	utilv8::SetTemplateAccessorProperty(objtemplate, "enabled", GetEnabled, SetEnabled);
+
+	utilv8::SetTemplateField(objtemplate, "sendMouseClick", SendMouseClick);
+	utilv8::SetTemplateField(objtemplate, "sendMouseMove", SendMouseMove);
+	utilv8::SetTemplateField(objtemplate, "sendMouseWheel", SendMouseWheel);
+	utilv8::SetTemplateField(objtemplate, "sendFocus", SendFocus);
+	utilv8::SetTemplateField(objtemplate, "sendKeyClick", SendKeyClick);
+	
+	utilv8::SetObjectField(
+	    target, "Source", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
+	prototype.Reset(fnctemplate);
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Release(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	osn::ISource* obj;
+	if (!utilv8::SafeUnwrap(info, obj)) {
 		return;
-
-	conn->call("Source", "Release", {ipc::value(id)});
-}
-
-void osn::ISource::Remove(const Napi::CallbackInfo& info, uint64_t id)
-{
-	CacheManager<SourceDataInfo*>::getInstance().Remove(id);
-
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
-
-	conn->call("Source", "Remove", {ipc::value(id)});
-}
-
-Napi::Value osn::ISource::IsConfigurable(const Napi::CallbackInfo& info, uint64_t id)
-{
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
-		return info.Env().Undefined();
-
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Source", "IsConfigurable", {ipc::value(id)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return Napi::Boolean::New(info.Env(), (bool)response[1].value_union.i32);
-}
-
-Napi::Value osn::ISource::GetProperties(const Napi::CallbackInfo& info, uint64_t id)
-{
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
-		return info.Env().Undefined();
-
-	SourceDataInfo* sdi =
-		CacheManager<SourceDataInfo*>::getInstance().Retrieve(id);
-
-	if (sdi && !sdi->propertiesChanged && sdi->properties.size() > 0) {
-		std::shared_ptr<property_map_t> pSomeObject = std::make_shared<property_map_t>(sdi->properties);
-		auto prop_ptr = Napi::External<property_map_t>::New(info.Env(), pSomeObject.get());
-		auto instance =
-			osn::Properties::constructor.New({
-				prop_ptr,
-				Napi::Number::New(info.Env(), (uint32_t)id)
-				});
-		return instance;
 	}
 
-	auto conn = GetConnection(info);
+	auto conn = GetConnection();
 	if (!conn)
-		return info.Env().Undefined();
+		return;
+
+	conn->call("Source", "Release", {ipc::value(obj->sourceId)});
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Remove(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
+		return;
+	}
+
+	CacheManager<SourceDataInfo*>::getInstance().Remove(is->sourceId);
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	conn->call("Source", "Remove", {ipc::value(is->sourceId)});
+
+	is->sourceId = UINT64_MAX;
+	return;
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::IsConfigurable(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
+		return;
+	}
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Source", "GetProperties", {ipc::value(id)});
+	    conn->call_synchronous_helper("Source", "IsConfigurable", {ipc::value(is->sourceId)});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+	if (!ValidateResponse(response))
+		return;
 
-	if (response.size() == 1)
-		return info.Env().Null();
+	info.GetReturnValue().Set((bool)response[1].value_union.i32);
+	return;
+}
 
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetProperties(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	osn::ISource* hndl = nullptr;
+	if (!utilv8::SafeUnwrap<osn::ISource>(info, hndl)) {
+		return;
+	}
+
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(hndl->sourceId);
+
+	if (sdi && !sdi->propertiesChanged && sdi->properties.size() > 0) {
+		osn::Properties* props = new osn::Properties(sdi->properties, info.This());
+		info.GetReturnValue().Set(osn::Properties::Store(props));
+		return;
+	}
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Source", "GetProperties", {ipc::value(hndl->sourceId)});
+
+	if (!ValidateResponse(response))
+		return;
+
+	if (response.size() == 1) {
+		info.GetReturnValue().Set(Nan::Null());
+		return;
+	}
+
+	// Parse the massive structure of properties we were just sent.
 	osn::property_map_t pmap;
 	for (size_t idx = 1; idx < response.size(); ++idx) {
+		// !FIXME! Use the already existing obs::Property object instead of copying data.
 		auto raw_property = obs::Property::deserialize(response[idx].value_bin);
 
 		std::shared_ptr<osn::Property> pr;
@@ -274,69 +328,72 @@ Napi::Value osn::ISource::GetProperties(const Napi::CallbackInfo& info, uint64_t
 		sdi->properties        = pmap;
 		sdi->propertiesChanged = false;
 	}
-	std::shared_ptr<property_map_t> pSomeObject = std::make_shared<property_map_t>(pmap);
-	auto prop_ptr = Napi::External<property_map_t>::New(info.Env(), pSomeObject.get());
-	auto instance =
-		osn::Properties::constructor.New({
-			prop_ptr,
-			Napi::Number::New(info.Env(), (uint32_t)id)
-			});
-	return instance;
+
+	// obj = std::move(pmap);
+	osn::Properties* props = new osn::Properties(std::move(pmap), info.This());
+	info.GetReturnValue().Set(osn::Properties::Store(props));
+	return;
 }
 
-Napi::Value osn::ISource::GetSettings(const Napi::CallbackInfo& info, uint64_t id)
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetSettings(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
-		return info.Env().Undefined();
-
-	Napi::Object json = info.Env().Global().Get("JSON").As<Napi::Object>();
-	Napi::Function parse = json.Get("parse").As<Napi::Function>();
-
-	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(id);
-
-	if (sdi && !sdi->settingsChanged && sdi->setting.size() > 0) {
-		Napi::String jsondata = Napi::String::New(info.Env(), sdi->setting);
-		Napi::Object jsonObj = parse.Call(json, {jsondata}).As<Napi::Object>();
-		return jsonObj;
+	osn::ISource* hndl = nullptr;
+	if (!utilv8::SafeUnwrap<osn::ISource>(info, hndl)) {
+		return;
 	}
 
-	auto conn = GetConnection(info);
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(hndl->sourceId);
+
+	if (sdi && !sdi->settingsChanged && sdi->setting.size() > 0) {
+		v8::Local<v8::String> jsondata = Nan::New<v8::String>(sdi->setting).ToLocalChecked();
+		v8::Local<v8::Value>  json =
+	    v8::JSON::Parse(info.GetIsolate()->GetCurrentContext(), jsondata).ToLocalChecked();
+		info.GetReturnValue().Set(json);
+		return;
+	}
+
+	auto conn = GetConnection();
 	if (!conn)
-		return info.Env().Undefined();
+		return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Source", "GetSettings", {ipc::value(id)});
+	    conn->call_synchronous_helper("Source", "GetSettings", {ipc::value(hndl->sourceId)});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+	if (!ValidateResponse(response))
+		return;
 
-	Napi::String jsondata = Napi::String::New(info.Env(), response[1].value_str);
-	Napi::Object jsonObj = parse.Call(json, {jsondata}).As<Napi::Object>();
+	v8::Local<v8::String> jsondata = Nan::New<v8::String>(response[1].value_str).ToLocalChecked();
+	v8::Local<v8::Value>  json     = v8::JSON::Parse(info.GetIsolate()->GetCurrentContext(), jsondata).ToLocalChecked();
 
 	if (sdi) {
 		sdi->setting         = response[1].value_str;
 		sdi->settingsChanged = false;
 	}
 
-	return jsonObj;
+	info.GetReturnValue().Set(json);
+	return;
 }
 
-void osn::ISource::Update(const Napi::CallbackInfo& info, uint64_t id)
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Update(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	Napi::Object jsonObj = info[0].ToObject();
+	v8::Local<v8::Object> json;
+	ASSERT_GET_VALUE(info[0], json);
 	bool shouldUpdate = true;
 
-	Napi::Object json = info.Env().Global().Get("JSON").As<Napi::Object>();
-	Napi::Function stringify = json.Get("stringify").As<Napi::Function>();
+	// Retrieve Object
+	osn::ISource* hndl = nullptr;
+	if (!Retrieve(info.This(), hndl)) {
+		return;
+	}
 
-	std::string jsondata = stringify.Call(json, { jsonObj }).As<Napi::String>();
+	// Turn json into string
+	v8::Local<v8::String> jsondata = v8::JSON::Stringify(info.GetIsolate()->GetCurrentContext(), json).ToLocalChecked();
+	v8::String::Utf8Value jsondatautf8(jsondata);
 
-	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(id);
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(hndl->sourceId);
 
 	if (sdi && sdi->setting.size() > 0) {
-		auto newSettings = nlohmann::json::parse(jsondata);
+		auto newSettings = nlohmann::json::parse(std::string(*jsondatautf8, (size_t)jsondatautf8.length()));
 		auto settings    = nlohmann::json::parse(sdi->setting);
 
 		nlohmann::json::iterator it = newSettings.begin();
@@ -352,16 +409,16 @@ void osn::ISource::Update(const Napi::CallbackInfo& info, uint64_t id)
 	}
 
 	if (shouldUpdate) {
-		auto conn = GetConnection(info);
+		auto conn = GetConnection();
 		if (!conn)
 			return;
 
 		std::vector<ipc::value> response = conn->call_synchronous_helper(
 		    "Source",
 		    "Update",
-		    {ipc::value(id), ipc::value(jsondata)});
+		    {ipc::value(hndl->sourceId), ipc::value(std::string(*jsondatautf8, (size_t)jsondatautf8.length()))});
 
-		if (!ValidateResponse(info, response))
+		if (!ValidateResponse(response))
 			return;
 
 		if (sdi) {
@@ -370,312 +427,339 @@ void osn::ISource::Update(const Napi::CallbackInfo& info, uint64_t id)
 			sdi->propertiesChanged = true;
 		}
 	}
+	info.GetReturnValue().Set(true);
+	return;
 }
 
-void osn::ISource::Load(const Napi::CallbackInfo& info, uint64_t id)
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Load(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	auto conn = GetConnection(info);
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
+		return;
+	}
+
+	auto conn = GetConnection();
 	if (!conn)
 		return;
 
-	conn->call("Source", "Load", {ipc::value(id)});
+	conn->call("Source", "Load", {ipc::value(is->sourceId)});
 }
 
-void osn::ISource::Save(const Napi::CallbackInfo& info, uint64_t id)
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::Save(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	auto conn = GetConnection(info);
+	return;
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
+		return;
+	}
+
+	auto conn = GetConnection();
 	if (!conn)
 		return;
 
-	conn->call("Source", "Save", {ipc::value(id)});
+	conn->call("Source", "Save", {ipc::value(is->sourceId)});
 }
 
-Napi::Value osn::ISource::GetType(const Napi::CallbackInfo& info, uint64_t id)
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetType(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
-		return info.Env().Undefined();
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
+		return;
+	}
 
-	auto conn = GetConnection(info);
+	auto conn = GetConnection();
 	if (!conn)
-		return info.Env().Undefined();
+		return;
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Source", "GetType", {ipc::value(id)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Source", "GetType", {ipc::value(is->sourceId)});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+	if (!ValidateResponse(response))
+		return;
 
-	return Napi::Number::New(info.Env(), response[1].value_union.i32);
+	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.i32));
 }
 
-Napi::Value osn::ISource::GetName(const Napi::CallbackInfo& info, uint64_t id)
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetName(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
-		return info.Env().Undefined();
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
+		return;
+	}
 
-	SourceDataInfo* sdi =
-		CacheManager<SourceDataInfo*>::getInstance().Retrieve(id);
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(is->sourceId);
 
 	if (sdi) {
 		if (sdi->name.size() > 0) {
-			return Napi::String::New(info.Env(), sdi->name);
+			info.GetReturnValue().Set(utilv8::ToValue(sdi->name));
+			return;
 		}
 	}
 
-	auto conn = GetConnection(info);
+	auto conn = GetConnection();
 	if (!conn)
-		return info.Env().Undefined();
+		return;
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Source", "GetName", {ipc::value(id)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Source", "GetName", {ipc::value(is->sourceId)});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+	if (!ValidateResponse(response))
+		return;
 
 	if (sdi)
 		sdi->name = response[1].value_str.c_str();
 
-	return Napi::String::New(info.Env(), response[1].value_str);
+	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
 }
 
-void osn::ISource::SetName(const Napi::CallbackInfo& info, const Napi::Value &value, uint64_t id)
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetName(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	std::string name = value.ToString().Utf8Value();
+	std::string name;
+	ASSERT_GET_VALUE(info[0], name);
 
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
 		return;
-
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
-
-	conn->call("Source", "SetName", {ipc::value(id), ipc::value(name)});
-}
-
-Napi::Value osn::ISource::GetOutputFlags(const Napi::CallbackInfo& info, uint64_t id)
-{
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
-		return info.Env().Undefined();
-
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Source", "GetOutputFlags", {ipc::value(id)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
-}
-
-Napi::Value osn::ISource::GetFlags(const Napi::CallbackInfo& info, uint64_t id)
-{
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
-		return info.Env().Undefined();
-
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Source", "GetFlags", {ipc::value(id)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
-}
-
-void osn::ISource::SetFlags(const Napi::CallbackInfo& info, const Napi::Value &value, uint64_t id)
-{
-	uint32_t flags = value.ToNumber().Uint32Value();
-
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
-		return;
-
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
-
-	conn->call("Source", "SetFlags", {ipc::value(id), ipc::value(flags)});
-}
-
-Napi::Value osn::ISource::GetStatus(const Napi::CallbackInfo& info, uint64_t id)
-{
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
-		return info.Env().Undefined();
-
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Source", "GetStatus", {ipc::value(id)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
-}
-
-Napi::Value osn::ISource::GetId(const Napi::CallbackInfo& info, uint64_t id)
-{
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
-		return info.Env().Undefined();
-
-	SourceDataInfo* sdi =
-		CacheManager<SourceDataInfo*>::getInstance().Retrieve(id);
-
-	if (sdi) {
-		if (sdi->obs_sourceId.size() > 0)
-			return Napi::String::New(info.Env(), sdi->obs_sourceId);
 	}
 
-	auto conn = GetConnection(info);
+	auto conn = GetConnection();
 	if (!conn)
-		return info.Env().Undefined();
+		return;
+
+	conn->call("Source", "SetName", {ipc::value(is->sourceId), ipc::value(name)});
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetOutputFlags(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
+		return;
+	}
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Source", "GetId", {ipc::value(id)});
+	    conn->call_synchronous_helper("Source", "GetOutputFlags", {ipc::value(is->sourceId)});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+	if (!ValidateResponse(response))
+		return;
+
+	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.ui32));
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetFlags(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
+		return;
+	}
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Source", "GetFlags", {ipc::value(is->sourceId)});
+
+	if (!ValidateResponse(response))
+		return;
+
+	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_union.ui32));
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetFlags(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	uint32_t flags;
+	ASSERT_GET_VALUE(info[0], flags);
+
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
+		return;
+	}
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	conn->call("Source", "SetFlags", {ipc::value(is->sourceId), ipc::value(flags)});
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetStatus(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
+		return;
+	}
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Source", "GetStatus", {ipc::value(is->sourceId)});
+
+	if (!ValidateResponse(response))
+		return;
+
+	info.GetReturnValue().Set(response[1].value_union.ui32);
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetId(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
+		return;
+	}
+
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(is->sourceId);
+
+	if (sdi) {
+		if (sdi->obs_sourceId.size() > 0) {
+			info.GetReturnValue().Set(utilv8::ToValue(sdi->obs_sourceId));
+			return;
+		}
+	}
+
+	auto conn = GetConnection();
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Source", "GetId", {ipc::value(is->sourceId)});
+
+	if (!ValidateResponse(response))
+		return;
 
 	if (sdi) {
 		sdi->obs_sourceId = response[1].value_str;
 	}
 
-	return Napi::String::New(info.Env(), response[1].value_str);
+	info.GetReturnValue().Set(utilv8::ToValue(response[1].value_str));
 }
 
-Napi::Value osn::ISource::GetMuted(const Napi::CallbackInfo& info, uint64_t id)
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetMuted(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
-		return info.Env().Undefined();
-
-	SourceDataInfo* sdi =
-		CacheManager<SourceDataInfo*>::getInstance().Retrieve(id);
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
+		return;
+	}
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(is->sourceId);
 
 	if (sdi) {
-		if (sdi && !sdi->mutedChanged)
-			return Napi::Boolean::New(info.Env(), sdi->isMuted);
+		if (sdi && !sdi->mutedChanged) {
+			info.GetReturnValue().Set(sdi->isMuted);
+			return;
+		}
 	}
 
-	auto conn = GetConnection(info);
+	auto conn = GetConnection();
 	if (!conn)
-		return info.Env().Undefined();
+		return;
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Source", "GetMuted", {ipc::value(id)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Source", "GetMuted", {ipc::value(is->sourceId)});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+	if (!ValidateResponse(response))
+		return;
 
 	if (sdi) {
 		sdi->isMuted      = (bool)response[1].value_union.i32;
 		sdi->mutedChanged = false;
 	}
 
-	return Napi::Boolean::New(info.Env(),(bool)response[1].value_union.i32);
+	info.GetReturnValue().Set((bool)response[1].value_union.i32);
+	return;
 }
 
-void osn::ISource::SetMuted(const Napi::CallbackInfo& info, const Napi::Value &value, uint64_t id)
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetMuted(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	bool muted = value.ToBoolean().Value();
+	bool muted;
 
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
+	ASSERT_GET_VALUE(info[0], muted);
+
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
 		return;
+	}
 
-	auto conn = GetConnection(info);
+	auto conn = GetConnection();
 	if (!conn)
 		return;
 
-	conn->call("Source", "SetMuted", {ipc::value(id), ipc::value(muted)});
+	conn->call("Source", "SetMuted", {ipc::value(is->sourceId), ipc::value(muted)});
 
-	SourceDataInfo* sdi =
-		CacheManager<SourceDataInfo*>::getInstance().Retrieve(id);
-	if (sdi)
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(is->sourceId);
+	if (sdi) {
 		sdi->mutedChanged = true;
+	}
 }
 
-Napi::Value osn::ISource::GetEnabled(const Napi::CallbackInfo& info, uint64_t id)
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::GetEnabled(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
-		return info.Env().Undefined();
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
+		return;
+	}
 
-	auto conn = GetConnection(info);
+	auto conn = GetConnection();
 	if (!conn)
-		return info.Env().Undefined();
+		return;
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Source", "GetEnabled", {ipc::value(id)});
+	    conn->call_synchronous_helper("Source", "GetEnabled", {ipc::value(is->sourceId)});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return Napi::Boolean::New(info.Env(), (bool)response[1].value_union.i32);
-}
-
-void osn::ISource::SetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value, uint64_t id)
-{
-	bool enabled = value.ToBoolean().Value();
-
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
+	if (!ValidateResponse(response))
 		return;
 
-	auto conn = GetConnection(info);
+	info.GetReturnValue().Set((bool)response[1].value_union.i32);
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SetEnabled(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	bool enabled;
+
+	ASSERT_GET_VALUE(info[0], enabled);
+
+	osn::ISource* is;
+	if (!utilv8::SafeUnwrap(info, is)) {
+		return;
+	}
+
+	auto conn = GetConnection();
 	if (!conn)
 		return;
 
-	conn->call("Source", "SetEnabled", {ipc::value(id), ipc::value(enabled)});
+	conn->call("Source", "SetEnabled", {ipc::value(is->sourceId), ipc::value(enabled)});
 }
 
-void osn::ISource::SendMouseClick(const Napi::CallbackInfo& info, uint64_t id)
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseClick(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	auto conn = GetConnection(info);
+	osn::ISource* obj;
+	if (!utilv8::SafeUnwrap(info, obj)) {
+		return;
+	}
+
+	auto conn = GetConnection();
 	if (!conn)
 		return;
 
-	Napi::Object mouse_event_obj = info[0].ToObject();
-	uint32_t type = info[1].ToNumber().Uint32Value();
-	bool mouse_up = info[2].ToBoolean().Value();
-	uint32_t click_count = info[3].ToNumber().Uint32Value();
+	v8::Local<v8::Object> mouse_event_obj;
+	uint32_t              type;
+	bool                  mouse_up;
+	uint32_t              click_count;
 
-	uint32_t modifiers = mouse_event_obj.Get("modifiers").ToNumber().Uint32Value();
-	uint32_t x = mouse_event_obj.Get("x").ToNumber().Uint32Value();
-	uint32_t y = mouse_event_obj.Get("y").ToNumber().Uint32Value();
+	ASSERT_GET_VALUE(info[0], mouse_event_obj);
+	ASSERT_GET_VALUE(info[1], type);
+	ASSERT_GET_VALUE(info[2], mouse_up);
+	ASSERT_GET_VALUE(info[3], click_count);
+
+	uint32_t modifiers, x, y;
+
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "modifiers", modifiers);
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "x", x);
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "y", y);
 
 	conn->call(
 	    "Source",
 	    "SendMouseClick",
 	    {
-			ipc::value(id),
+			ipc::value(obj->sourceId),
 			ipc::value(modifiers),
 			ipc::value(x),
 			ipc::value(y),
@@ -686,51 +770,61 @@ void osn::ISource::SendMouseClick(const Napi::CallbackInfo& info, uint64_t id)
 	);
 }
 
-void osn::ISource::SendMouseMove(const Napi::CallbackInfo& info, uint64_t id)
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseMove(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	auto conn = GetConnection(info);
+	osn::ISource* obj;
+	if (!utilv8::SafeUnwrap(info, obj)) {
+		return;
+	}
+
+	auto conn = GetConnection();
 	if (!conn)
 		return;
 
-	Napi::Object mouse_event_obj = info[0].ToObject();
-	bool mouse_leave = info[1].ToBoolean().Value();
+	v8::Local<v8::Object> mouse_event_obj;
+	bool                  mouse_leave;
 
-	uint32_t modifiers = mouse_event_obj.Get("modifiers").ToNumber().Uint32Value();
-	uint32_t x = mouse_event_obj.Get("x").ToNumber().Uint32Value();
-	uint32_t y = mouse_event_obj.Get("y").ToNumber().Uint32Value();
+	ASSERT_GET_VALUE(info[0], mouse_event_obj);
+	ASSERT_GET_VALUE(info[1], mouse_leave);
 
-	conn->call(
-		"Source",
-		"SendMouseMove",
-		{
-			ipc::value(id),
-			ipc::value(modifiers),
-			ipc::value(x),
-			ipc::value(y),
-			ipc::value(mouse_leave)
-		}
-	);
+	uint32_t modifiers, x, y;
+
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "modifiers", modifiers);
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "x", x);
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "y", y);
+
+	conn->call("Source", "SendMouseMove", {ipc::value(obj->sourceId), ipc::value(modifiers), ipc::value(x), ipc::value(y), ipc::value(mouse_leave)});
 }
 
-void osn::ISource::SendMouseWheel(const Napi::CallbackInfo& info, uint64_t id)
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendMouseWheel(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	auto conn = GetConnection(info);
+	osn::ISource* obj;
+	if (!utilv8::SafeUnwrap(info, obj)) {
+		return;
+	}
+
+	auto conn = GetConnection();
 	if (!conn)
 		return;
 
-	Napi::Object mouse_event_obj = info[0].ToObject();
-	int32_t x_delta = info[1].ToNumber().Int32Value();
-	int32_t y_delta = info[2].ToNumber().Int32Value();
+	v8::Local<v8::Object> mouse_event_obj;
+	int                   x_delta, y_delta;
 
-	uint32_t modifiers = mouse_event_obj.Get("modifiers").ToNumber().Uint32Value();
-	uint32_t x = mouse_event_obj.Get("x").ToNumber().Uint32Value();
-	uint32_t y = mouse_event_obj.Get("y").ToNumber().Uint32Value();
+	ASSERT_GET_VALUE(info[0], mouse_event_obj);
+	ASSERT_GET_VALUE(info[1], x_delta);
+	ASSERT_GET_VALUE(info[2], y_delta);
+
+	uint32_t modifiers, x, y;
+
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "modifiers", modifiers);
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "x", x);
+	ASSERT_GET_OBJECT_FIELD(mouse_event_obj, "y", y);
 
 	conn->call(
 	    "Source",
 	    "SendMouseWheel",
 	    {
-			ipc::value(id),
+			ipc::value(obj->sourceId),
 			ipc::value(modifiers),
 			ipc::value(x),
 			ipc::value(y),
@@ -740,36 +834,55 @@ void osn::ISource::SendMouseWheel(const Napi::CallbackInfo& info, uint64_t id)
 	);
 }
 
-void osn::ISource::SendFocus(const Napi::CallbackInfo& info, uint64_t id)
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendFocus(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	bool focus = info[0].ToBoolean().Value();
+	osn::ISource* obj;
+	if (!utilv8::SafeUnwrap(info, obj)) {
+		return;
+	}
 
-	auto conn = GetConnection(info);
+	bool focus;
+
+	ASSERT_GET_VALUE(info[0], focus);
+
+	auto conn = GetConnection();
 	if (!conn)
 		return;
 
-    conn->call("Source", "SendFocus", {ipc::value(id), ipc::value(focus)});
+    conn->call("Source", "SendFocus", {ipc::value(obj->sourceId), ipc::value(focus)});
 }
 
-void osn::ISource::SendKeyClick(const Napi::CallbackInfo& info, uint64_t id)
+Nan::NAN_METHOD_RETURN_TYPE osn::ISource::SendKeyClick(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	auto conn = GetConnection(info);
+	osn::ISource* obj;
+	if (!utilv8::SafeUnwrap(info, obj)) {
+		return;
+	}
+
+	auto conn = GetConnection();
 	if (!conn)
 		return;
-	Napi::Object key_event_obj = info[0].ToObject();
-	bool key_up = info[1].ToBoolean().Value();
 
-	uint32_t modifiers = key_event_obj.Get("modifiers").ToNumber().Uint32Value();
-	uint32_t native_modifiers = key_event_obj.Get("nativeModifiers").ToNumber().Uint32Value();
-	uint32_t native_scancode = key_event_obj.Get("nativeScancode").ToNumber().Uint32Value();
-	uint32_t native_vkey = key_event_obj.Get("nativeVkey").ToNumber().Uint32Value();
-	std::string text = key_event_obj.Get("text").ToString().Utf8Value();
+	v8::Local<v8::Object> key_event_obj;
+	bool                  key_up;
+
+	ASSERT_GET_VALUE(info[0], key_event_obj);
+	ASSERT_GET_VALUE(info[1], key_up);
+
+	uint32_t    modifiers, native_modifiers, native_scancode, native_vkey;
+	std::string text;
+
+	ASSERT_GET_OBJECT_FIELD(key_event_obj, "modifiers", modifiers);
+	ASSERT_GET_OBJECT_FIELD(key_event_obj, "text", text);
+	ASSERT_GET_OBJECT_FIELD(key_event_obj, "nativeModifiers", native_modifiers);
+	ASSERT_GET_OBJECT_FIELD(key_event_obj, "nativeScancode", native_scancode);
+	ASSERT_GET_OBJECT_FIELD(key_event_obj, "nativeVkey", native_vkey);
 
 	conn->call(
 	    "Source",
 	    "SendKeyClick",
 	    {
-			ipc::value(id),
+			ipc::value(obj->sourceId),
 			ipc::value(modifiers),
 			ipc::value(text),
 			ipc::value(native_modifiers),
