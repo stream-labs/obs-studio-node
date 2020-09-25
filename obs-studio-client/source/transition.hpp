@@ -17,7 +17,8 @@
 ******************************************************************************/
 
 #pragma once
-#include <napi.h>
+#include <nan.h>
+#include <node.h>
 #include "input.hpp"
 #include "isource.hpp"
 #include "scene.hpp"
@@ -25,53 +26,27 @@
 
 namespace osn
 {
-	class Transition : public Napi::ObjectWrap<osn::Transition>
+	class Transition : public osn::ISource, public utilv8::ManagedObject<osn::Transition>
 	{
-		public:
-		uint64_t sourceId;
+		friend class utilv8::ManagedObject<osn::Transition>;
 
 		public:
-		static Napi::FunctionReference constructor;
-		static Napi::Object Init(Napi::Env env, Napi::Object exports);
-		Transition(const Napi::CallbackInfo& info);
+		Transition(uint64_t id);
 
-		static Napi::Value Types(const Napi::CallbackInfo& info);
-		static Napi::Value Create(const Napi::CallbackInfo& info);
-		static Napi::Value CreatePrivate(const Napi::CallbackInfo& info);
-		static Napi::Value FromName(const Napi::CallbackInfo& info);
+		// JavaScript
+		public:
+		static Nan::Persistent<v8::FunctionTemplate> prototype;
 
-		Napi::Value GetActiveSource(const Napi::CallbackInfo& info);
-		Napi::Value Clear(const Napi::CallbackInfo& info);
-		Napi::Value Set(const Napi::CallbackInfo& info);
-		Napi::Value Start(const Napi::CallbackInfo& info);
+		static void Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 
-		Napi::Value CallIsConfigurable(const Napi::CallbackInfo& info);
-		Napi::Value CallGetProperties(const Napi::CallbackInfo& info);
-		Napi::Value CallGetSettings(const Napi::CallbackInfo& info);
+		static Nan::NAN_METHOD_RETURN_TYPE Types(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE Create(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE CreatePrivate(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE FromName(Nan::NAN_METHOD_ARGS_TYPE info);
 
-		Napi::Value CallGetType(const Napi::CallbackInfo& info);
-		Napi::Value CallGetName(const Napi::CallbackInfo& info);
-		void CallSetName(const Napi::CallbackInfo& info, const Napi::Value &value);
-		Napi::Value CallGetOutputFlags(const Napi::CallbackInfo& info);
-		Napi::Value CallGetFlags(const Napi::CallbackInfo& info);
-		void CallSetFlags(const Napi::CallbackInfo& info, const Napi::Value &value);
-		Napi::Value CallGetStatus(const Napi::CallbackInfo& info);
-		Napi::Value CallGetId(const Napi::CallbackInfo& info);
-		Napi::Value CallGetMuted(const Napi::CallbackInfo& info);
-		void CallSetMuted(const Napi::CallbackInfo& info, const Napi::Value &value);
-		Napi::Value CallGetEnabled(const Napi::CallbackInfo& info);
-		void CallSetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value);
-
-		Napi::Value CallRelease(const Napi::CallbackInfo& info);
-		Napi::Value CallRemove(const Napi::CallbackInfo& info);
-		Napi::Value CallUpdate(const Napi::CallbackInfo& info);
-		Napi::Value CallLoad(const Napi::CallbackInfo& info);
-		Napi::Value CallSave(const Napi::CallbackInfo& info);
-
-		Napi::Value CallSendMouseClick(const Napi::CallbackInfo& info);
-		Napi::Value CallSendMouseMove(const Napi::CallbackInfo& info);
-		Napi::Value CallSendMouseWheel(const Napi::CallbackInfo& info);
-		Napi::Value CallSendFocus(const Napi::CallbackInfo& info);
-		Napi::Value CallSendKeyClick(const Napi::CallbackInfo& info);
+		static Nan::NAN_METHOD_RETURN_TYPE GetActiveSource(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE Clear(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE Set(Nan::NAN_METHOD_ARGS_TYPE info);
+		static Nan::NAN_METHOD_RETURN_TYPE Start(Nan::NAN_METHOD_ARGS_TYPE info);
 	};
-}
+} // namespace osn

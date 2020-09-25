@@ -17,7 +17,8 @@
 ******************************************************************************/
 
 #include <mutex>
-#include <napi.h>
+#include <nan.h>
+#include <node.h>
 #include <thread>
 #include "utility-v8.hpp"
 
@@ -27,43 +28,64 @@ struct SignalInfo
 	std::string signal;
 	int         code;
 	std::string errorMessage;
+	void*       param;
+};
+
+class Service;
+typedef utilv8::managed_callback<std::shared_ptr<SignalInfo>> ServiceCallback;
+Service*                                                      serviceObject;
+
+class Service : public Nan::ObjectWrap, public utilv8::InterfaceObject<Service>, public utilv8::ManagedObject<Service>
+{
+	friend utilv8::InterfaceObject<Service>;
+	friend utilv8::ManagedObject<Service>;
+	friend utilv8::CallbackData<SignalInfo, Service>;
+
+	uint32_t sleepIntervalMS = 33;
+
+	public:
+	std::thread m_worker;
+	bool        m_worker_stop = true;
+	std::mutex  m_worker_lock;
+
+	ServiceCallback* m_async_callback = nullptr;
+	Nan::Callback    m_callback_function;
+
+	Service();
+	~Service();
+
+	void start_async_runner();
+	void stop_async_runner();
+	void callback_handler(void* data, std::shared_ptr<SignalInfo> item);
+	void start_worker();
+	void stop_worker();
+	void worker();
+	void set_keepalive(v8::Local<v8::Object>);
+
+	std::list<ServiceCallback*> callbacks;
 };
 
 namespace service
 {
+	static void OBS_service_resetAudioContext(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_service_resetVideoContext(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-	extern bool isWorkerRunning;
-	extern bool worker_stop;
-	extern uint32_t sleepIntervalMS;
-	extern std::thread* worker_thread;
-	extern Napi::ThreadSafeFunction js_thread;
-	extern Napi::FunctionReference cb;
+	static void OBS_service_startStreaming(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_service_startRecording(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_service_startReplayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_service_stopStreaming(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_service_stopRecording(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_service_stopReplayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-	void worker(void);
-	void start_worker(napi_env env, Napi::Function async_callback);
-	void stop_worker(void);
+	static void OBS_service_connectOutputSignals(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_service_removeCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_service_processReplayBufferHotkey(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_service_getLastReplay(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-	void Init(Napi::Env env, Napi::Object exports);
-
-	Napi::Value OBS_service_resetAudioContext(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_resetVideoContext(const Napi::CallbackInfo& info);
-
-	Napi::Value OBS_service_startStreaming(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_startRecording(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_startReplayBuffer(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_stopStreaming(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_stopRecording(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_stopReplayBuffer(const Napi::CallbackInfo& info);
-
-	Napi::Value OBS_service_connectOutputSignals(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_removeCallback(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_processReplayBufferHotkey(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_getLastReplay(const Napi::CallbackInfo& info);
-
-	Napi::Value OBS_service_createVirtualWebcam(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_removeVirtualWebcam(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_startVirtualWebcam(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_stopVirtualWebcam(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_installVirtualCamPlugin(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_isVirtualCamPluginInstalled(const Napi::CallbackInfo& info);
-}
+	static void OBS_service_createVirtualWebcam(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_service_removeVirtualWebcam(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_service_startVirtualWebcam(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_service_stopVirtualWebcam(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_service_installVirtualCamPlugin(const v8::FunctionCallbackInfo<v8::Value>& args);
+	static void OBS_service_isVirtualCamPluginInstalled(const v8::FunctionCallbackInfo<v8::Value>& args);
+} // namespace service

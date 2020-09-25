@@ -17,7 +17,8 @@
 ******************************************************************************/
 
 #include <mutex>
-#include <napi.h>
+#include <nan.h>
+#include <node.h>
 #include <thread>
 #include <map>
 #include "utility-v8.hpp"
@@ -33,23 +34,53 @@ struct SourceSizeInfo
 struct SourceSizeInfoData
 {
 	std::vector<SourceSizeInfo*> items;
+	void*                        param;
 };
 
-namespace sourceCallback
+class CallbackManager;
+class SourceCallback;
+
+typedef utilv8::managed_callback<std::shared_ptr<SourceSizeInfoData>> cm_sourcesCallback;
+
+class CallbackManager : public Nan::ObjectWrap,
+                        public utilv8::InterfaceObject<CallbackManager>,
+                        public utilv8::ManagedObject<CallbackManager>
 {
-	extern bool isWorkerRunning;
-	extern bool worker_stop;
-	extern uint32_t sleepIntervalMS;
-	extern std::thread* worker_thread;
-	extern Napi::ThreadSafeFunction js_thread;
-	extern bool m_all_workers_stop;
+	friend utilv8::InterfaceObject<CallbackManager>;
+	friend utilv8::ManagedObject<CallbackManager>;
 
-	void worker(void);
-	void start_worker(napi_env env, Napi::Function async_callback);
-	void stop_worker(void);
+	protected:
+	uint32_t sleepIntervalMS = 15;
 
-	void Init(Napi::Env env, Napi::Object exports);
+	public:
+	std::thread   m_worker;
+	bool          m_worker_stop = true;
+	std::mutex    m_worker_lock;
 
-	Napi::Value RegisterSourceCallback(const Napi::CallbackInfo& info);
-	Napi::Value RemoveSourceCallback(const Napi::CallbackInfo& info);
-}
+	virtual void start_async_runner() = 0;
+	virtual void stop_async_runner() = 0;
+	void start_worker();
+	void stop_worker();
+	virtual void worker() = 0;
+	virtual void set_keepalive(v8::Local<v8::Object>) = 0;
+};
+
+class SourceCallback : public CallbackManager
+{
+	friend utilv8::CallbackData<SourceSizeInfoData, CallbackManager>;
+
+	cm_sourcesCallback*  m_async_callback = nullptr;
+
+	public:
+	Nan::Callback        m_callback_function;
+
+	virtual void start_async_runner();
+	virtual void stop_async_runner();
+	virtual void worker();
+	virtual void set_keepalive(v8::Local<v8::Object>);
+	void callback_handler(void* data, std::shared_ptr<SourceSizeInfoData> sourceSizes);
+	static bool m_all_workers_stop;
+};
+
+static void RegisterSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
+static void RemoveSourceCallback(const v8::FunctionCallbackInfo<v8::Value>& args);

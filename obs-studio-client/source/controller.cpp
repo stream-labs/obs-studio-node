@@ -20,6 +20,7 @@
 #include <codecvt>
 #include <fstream>
 #include <locale>
+#include <nan.h>
 #include <sstream>
 #include <string>
 #include "shared.hpp"
@@ -375,97 +376,111 @@ std::shared_ptr<ipc::client> Controller::GetConnection()
 	return m_connection;
 }
 
-Napi::Value js_setServerPath(const Napi::CallbackInfo& info)
+void js_setServerPath(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	if (info.Length() == 0) {
-		Napi::Error::New(info.Env(), "Too few arguments, usage: setServerPath(<string> binaryPath[, <string> workingDirectoryPath = "
-		    "get_working_directory()]).").ThrowAsJavaScriptException();
-		return info.Env().Undefined();
-	} else if (info.Length() > 2) {
-		Napi::Error::New(info.Env(), "Too many arguments.").ThrowAsJavaScriptException();
-		return info.Env().Undefined();
+	auto isol = args.GetIsolate();
+	if (args.Length() == 0) {
+		isol->ThrowException(v8::Exception::SyntaxError(v8::String::NewFromUtf8(
+		    isol,
+		    "Too few arguments, usage: setServerPath(<string> binaryPath[, <string> workingDirectoryPath = "
+		    "get_working_directory()]).").ToLocalChecked()));
+		return;
+	} else if (args.Length() > 2) {
+		isol->ThrowException(v8::Exception::SyntaxError(v8::String::NewFromUtf8(isol, "Too many arguments.").ToLocalChecked()));
+		return;
 	}
 
-	if (!info[0].IsString()) {
-		Napi::Error::New(info.Env(), "Argument 'binaryPath' must be of type 'String'.").ThrowAsJavaScriptException();
-		return info.Env().Undefined();
+	if (!args[0]->IsString()) {
+		isol->ThrowException(
+		    v8::Exception::TypeError(v8::String::NewFromUtf8(isol, "Argument 'binaryPath' must be of type 'String'.").ToLocalChecked()));
+		return;
 	}
-	serverBinaryPath = info[0].ToString().Utf8Value();
+	serverBinaryPath = *v8::String::Utf8Value(args[0]);
 
-	if (info.Length() == 2) {
-		if (!info[1].IsString()) {
-			Napi::Error::New(info.Env(), "Argument 'workingDirectoryPath' must be of type 'String'.").ThrowAsJavaScriptException();
-			return info.Env().Undefined();
+	if (args.Length() == 2) {
+		if (!args[1]->IsString()) {
+			isol->ThrowException(v8::Exception::TypeError(
+			    v8::String::NewFromUtf8(isol, "Argument 'workingDirectoryPath' must be of type 'String'.").ToLocalChecked()));
+			return;
 		}
 
-		serverWorkingPath = info[1].ToString().Utf8Value();
+		serverWorkingPath = *v8::String::Utf8Value(args[1]);
 	} else {
 #ifdef WIN32
 		serverWorkingPath = get_working_directory();
 #endif
 	}
 
-	return info.Env().Undefined();
+	return;
 }
 
-Napi::Value js_connect(const Napi::CallbackInfo& info)
+void js_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	if (info.Length() == 0) {
-		Napi::Error::New(info.Env(), "Too few arguments, usage: connect(<string> uri).").ThrowAsJavaScriptException();
-		return info.Env().Undefined();
-	} else if (info.Length() > 1) {
-		Napi::Error::New(info.Env(), "Too many arguments.").ThrowAsJavaScriptException();
-		return info.Env().Undefined();
-	} else if (!info[0].IsString()) {
-		Napi::Error::New(info.Env(), "Argument 'uri' must be of type 'String'.").ThrowAsJavaScriptException();
-		return info.Env().Undefined();
+	auto isol = args.GetIsolate();
+	if (args.Length() == 0) {
+		isol->ThrowException(v8::Exception::SyntaxError(
+		    Nan::New<v8::String>("Too few arguments, usage: connect(<string> uri).").ToLocalChecked()));
+		return;
+	} else if (args.Length() > 1) {
+		isol->ThrowException(v8::Exception::SyntaxError(Nan::New<v8::String>("Too many arguments.").ToLocalChecked()));
+		return;
+	} else if (!args[0]->IsString()) {
+		isol->ThrowException(v8::Exception::TypeError(
+		    Nan::New<v8::String>("Argument 'uri' must be of type 'String'.").ToLocalChecked()));
+		return;
 	}
 
-	std::string uri = info[0].ToString().Utf8Value();
+	std::string uri = *v8::String::Utf8Value(args[0]);
 	auto        cl  = Controller::GetInstance().connect(uri);
 	if (!cl) {
-		Napi::Error::New(info.Env(), "Failed to connect.").ThrowAsJavaScriptException();
-		return info.Env().Undefined();
+		isol->ThrowException(v8::Exception::Error(Nan::New<v8::String>("Failed to connect.").ToLocalChecked()));
+		return;
 	}
 
-	return info.Env().Undefined();
+	return;
 }
 
-Napi::Value js_host(const Napi::CallbackInfo& info)
+void js_host(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-	if (info.Length() == 0) {
-		Napi::Error::New(info.Env(), "Too few arguments, usage: host(uri).").ThrowAsJavaScriptException();
-		return info.Env().Undefined();
-	} else if (info.Length() > 1) {
-		Napi::Error::New(info.Env(), "Too many arguments.").ThrowAsJavaScriptException();
-		return info.Env().Undefined();
-	} else if (!info[0].IsString()) {
-		Napi::Error::New(info.Env(), "Argument 'uri' must be of type 'String'.").ThrowAsJavaScriptException();
-		return info.Env().Undefined();
+	auto isol = args.GetIsolate();
+	if (args.Length() == 0) {
+		isol->ThrowException(
+		    v8::Exception::SyntaxError(Nan::New<v8::String>("Too few arguments, usage: host(uri).").ToLocalChecked()));
+		return;
+	} else if (args.Length() > 1) {
+		isol->ThrowException(v8::Exception::SyntaxError(Nan::New<v8::String>("Too many arguments.").ToLocalChecked()));
+		return;
+	} else if (!args[0]->IsString()) {
+		isol->ThrowException(v8::Exception::TypeError(
+		    Nan::New<v8::String>("Argument 'uri' must be of type 'String'.").ToLocalChecked()));
+		return;
 	}
 
-	std::string uri = info[0].ToString().Utf8Value();
+	std::string uri = *v8::String::Utf8Value(args[0]);
 	auto        cl  = Controller::GetInstance().host(uri);
 	if (!cl) {
-		Napi::Error::New(info.Env(), "Failed to host and connect.").ThrowAsJavaScriptException();
-		return info.Env().Undefined();
+		isol->ThrowException(
+		    v8::Exception::Error(Nan::New<v8::String>("Failed to host and connect.").ToLocalChecked()));
+		return;
 	}
 
-	return info.Env().Undefined();
+	return;
 }
 
-Napi::Value js_disconnect(const Napi::CallbackInfo& info)
+void js_disconnect(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
 	Controller::GetInstance().disconnect();
-	return info.Env().Undefined();
 }
 
-void Controller::Init(Napi::Env env, Napi::Object exports)
+INITIALIZER(js_ipc)
 {
-	auto obj = Napi::Object::New(env);
-	obj.Set(Napi::String::New(env, "setServerPath"), Napi::Function::New(env, js_setServerPath));
-	obj.Set(Napi::String::New(env, "connect"), Napi::Function::New(env, js_connect));
-	obj.Set(Napi::String::New(env, "host"), Napi::Function::New(env, js_host));
-	obj.Set(Napi::String::New(env, "disconnect"), Napi::Function::New(env, js_disconnect));
-	exports.Set("IPC", obj);
+	initializerFunctions->push([](v8::Local<v8::Object> exports) {
+		// IPC related functions will be under the IPC object.
+		auto obj = v8::Object::New(exports->GetIsolate());
+		NODE_SET_METHOD(obj, "setServerPath", js_setServerPath);
+		NODE_SET_METHOD(obj, "connect", js_connect);
+		NODE_SET_METHOD(obj, "host", js_host);
+		NODE_SET_METHOD(obj, "disconnect", js_disconnect);
+		exports->Set(v8::String::NewFromUtf8(exports->GetIsolate(), "IPC").ToLocalChecked(), obj);
+	});
 }

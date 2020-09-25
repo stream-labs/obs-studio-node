@@ -22,74 +22,107 @@
 #include <vector>
 #include "controller.hpp"
 #include "error.hpp"
-#include "input.hpp"
+#include "isource.hpp"
 #include "shared.hpp"
 #include "utility-v8.hpp"
 #include "utility.hpp"
 
-bool osn::Volmeter::m_all_workers_stop = false;
+Nan::Persistent<v8::FunctionTemplate> osn::VolMeter::prototype;
 
-void osn::Volmeter::start_worker(napi_env env, Napi::Function async_callback)
+bool osn::VolMeter::m_all_workers_stop = false;
+
+osn::VolMeter::VolMeter(uint64_t p_uid)
 {
-	if (!worker_stop)
-		return;
-
-	worker_stop = false;
-	js_thread = Napi::ThreadSafeFunction::New(
-      env,
-      async_callback,
-      "Volmeter " + this->m_uid,
-      0,
-      1,
-      []( Napi::Env ) {} );
-	worker_thread = new std::thread(&osn::Volmeter::worker, this);
+	m_uid = p_uid;
 }
 
-void osn::Volmeter::stop_worker(void)
+osn::VolMeter::~VolMeter()
 {
-	if (worker_stop != false)
+}
+
+uint64_t osn::VolMeter::GetId() 
+{
+	return m_uid;
+}
+
+void osn::VolMeter::start_async_runner()
+{
+	if (m_async_callback)
 		return;
 
-	worker_stop = true;
-	if (worker_thread->joinable()) {
-		worker_thread->join();
+	std::unique_lock<std::mutex> ul(m_worker_lock);
+
+	// Start v8/uv asynchronous runner.
+	m_async_callback = new osn::VolMeterCallback();
+	m_async_callback->set_handler(std::bind(&VolMeter::callback_handler, this, std::placeholders::_1, std::placeholders::_2), nullptr);
+}
+
+void osn::VolMeter::stop_async_runner()
+{
+	if (!m_async_callback)
+		return;
+
+	std::unique_lock<std::mutex> ul(m_worker_lock);
+
+	// Stop v8/uv asynchronous runner.
+	m_async_callback->clear();
+	m_async_callback->finalize();
+	m_async_callback = nullptr;
+}
+
+void osn::VolMeter::callback_handler(void* data, std::shared_ptr<osn::VolMeterData> item)
+{
+	// utilv8::ToValue on a std::vector<> creates a v8::Local<v8::Array> automatically.
+	v8::Local<v8::Value> args[] = {
+	    utilv8::ToValue(item->magnitude), utilv8::ToValue(item->peak), utilv8::ToValue(item->input_peak)};
+
+	Nan::Call(m_callback_function, 3, args);
+}
+
+void osn::VolMeter::start_worker()
+{
+	if (!m_worker_stop)
+		return;
+
+	// Launch worker thread.
+	m_worker_stop = false;
+	m_worker      = std::thread(std::bind(&osn::VolMeter::worker, this));
+}
+
+void osn::VolMeter::stop_worker()
+{
+	if (m_worker_stop != false)
+		return;
+
+	// Stop worker thread.
+	m_worker_stop = true;
+	if (m_worker.joinable()) {
+		m_worker.join();
 	}
 }
 
-void osn::Volmeter::worker()
+void osn::VolMeter::worker()
 {
-    auto callback = []( Napi::Env env, Napi::Function jsCallback, VolmeterData* data ) {
-		Napi::Array magnitude = Napi::Array::New(env);
-		Napi::Array peak = Napi::Array::New(env);
-		Napi::Array input_peak = Napi::Array::New(env);
-
-		for (size_t i = 0; i < data->magnitude.size(); i++) {
-			magnitude.Set(i, Napi::Number::New(env, data->magnitude[i]));
-		}
-		for (size_t i = 0; i < data->peak.size(); i++) {
-			peak.Set(i, Napi::Number::New(env, data->peak[i]));
-		}
-		for (size_t i = 0; i < data->input_peak.size(); i++) {
-			input_peak.Set(i, Napi::Number::New(env, data->input_peak[i]));
-		}
-
-		if (data->magnitude.size() > 0 && data->peak.size() > 0 && data->input_peak.size() > 0) {
-			jsCallback.Call({ magnitude, peak, input_peak });
-		}
-    };
 	size_t totalSleepMS = 0;
 
-	while (!worker_stop && !m_all_workers_stop) {
+	while (!m_worker_stop && !m_all_workers_stop) {
 		auto tp_start = std::chrono::high_resolution_clock::now();
 
+		// Validate Connection
 		auto conn = Controller::GetInstance().GetConnection();
 		if (!conn) {
 			goto do_sleep;
 		}
 
+		// Call
 		try {
+			std::unique_lock<std::mutex> ul(m_worker_lock);
+
+			if (!m_async_callback)
+				goto do_sleep;
+
 			std::vector<ipc::value> response = conn->call_synchronous_helper(
-			    "Volmeter",
+			    "VolMeter",
 			    "Query",
 			    {
 			        ipc::value(m_uid),
@@ -103,18 +136,18 @@ void osn::Volmeter::worker()
 
 			ErrorCode error = (ErrorCode)response[0].value_union.ui64;
 			if (error == ErrorCode::Ok) {
-				VolmeterData* data     = new VolmeterData{{}, {}, {}};
+				std::shared_ptr<osn::VolMeterData> data     = std::make_shared<osn::VolMeterData>();
 				size_t                             channels = response[1].value_union.i32;
 				data->magnitude.resize(channels);
 				data->peak.resize(channels);
 				data->input_peak.resize(channels);
-
+				data->param = this;
 				for (size_t ch = 0; ch < channels; ch++) {
 					data->magnitude[ch]  = response[2 + ch * 3 + 0].value_union.fp32;
 					data->peak[ch]       = response[2 + ch * 3 + 1].value_union.fp32;
 					data->input_peak[ch] = response[2 + ch * 3 + 2].value_union.fp32;
 				}
-				js_thread.BlockingCall( data, callback );
+				m_async_callback->queue(std::move(data));
 			} else if(error == ErrorCode::InvalidReference) {
 				goto do_sleep;
 			}
@@ -130,167 +163,260 @@ void osn::Volmeter::worker()
 	do_sleep:
 		auto tp_end  = std::chrono::high_resolution_clock::now();
 		auto dur     = std::chrono::duration_cast<std::chrono::milliseconds>(tp_end - tp_start);
-		totalSleepMS = sleepIntervalMS - dur.count();
+		totalSleepMS = m_sleep_interval - dur.count();
 		std::this_thread::sleep_for(std::chrono::milliseconds(totalSleepMS));
 	}
-	js_thread.Release();
 }
 
-Napi::FunctionReference osn::Volmeter::constructor;
-
-Napi::Object osn::Volmeter::Init(Napi::Env env, Napi::Object exports) {
-	Napi::HandleScope scope(env);
-	Napi::Function func =
-		DefineClass(env,
-		"Volmeter",
-		{
-			StaticMethod("create", &osn::Volmeter::Create),
-
-			InstanceAccessor("updateInterval", &osn::Volmeter::GetUpdateInterval, &osn::Volmeter::SetUpdateInterval),
-
-			InstanceMethod("attach", &osn::Volmeter::Attach),
-			InstanceMethod("detach", &osn::Volmeter::Detach),
-			InstanceMethod("addCallback", &osn::Volmeter::AddCallback),
-			InstanceMethod("removeCallback", &osn::Volmeter::RemoveCallback),
-		});
-	exports.Set("Volmeter", func);
-	osn::Volmeter::constructor = Napi::Persistent(func);
-	osn::Volmeter::constructor.SuppressDestruct();
-	return exports;
-}
-
-osn::Volmeter::Volmeter(const Napi::CallbackInfo& info)
-    : Napi::ObjectWrap<osn::Volmeter>(info) {
-    Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
-    int length = info.Length();
-
-    if (length <= 0 || !info[0].IsNumber()) {
-        Napi::TypeError::New(env, "Number expected").ThrowAsJavaScriptException();
-        return;
-    }
-
-	this->m_uid = (uint64_t)info[0].ToNumber().Int64Value();
-	isWorkerRunning = false;
-	worker_stop = true;
-	sleepIntervalMS = info[1].ToNumber().Uint32Value();
-	worker_thread = nullptr;
-}
-
-Napi::Value osn::Volmeter::Create(const Napi::CallbackInfo& info)
+void osn::VolMeter::set_keepalive(v8::Local<v8::Object> obj)
 {
-	int32_t type = info[0].ToNumber().Int32Value();
+	if (!m_async_callback)
+		return;
+	m_async_callback->set_keepalive(obj);
+}
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+void osn::VolMeter::Register(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
+{
+	auto fnctemplate = Nan::New<v8::FunctionTemplate>();
+	fnctemplate->InstanceTemplate()->SetInternalFieldCount(1);
+	fnctemplate->SetClassName(Nan::New<v8::String>("Volmeter").ToLocalChecked());
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Volmeter",
+	// Class Template
+	utilv8::SetTemplateField(fnctemplate, "create", Create);
+
+	// Instance Template
+	auto objtemplate = fnctemplate->PrototypeTemplate();
+	utilv8::SetTemplateAccessorProperty(objtemplate, "updateInterval", GetUpdateInterval, SetUpdateInterval);
+	utilv8::SetTemplateField(objtemplate, "attach", Attach);
+	utilv8::SetTemplateField(objtemplate, "detach", Detach);
+	utilv8::SetTemplateField(objtemplate, "addCallback", AddCallback);
+	utilv8::SetTemplateField(objtemplate, "removeCallback", RemoveCallback);
+
+	// Stuff
+	utilv8::SetObjectField(
+	    target, "Volmeter", fnctemplate->GetFunction(target->GetIsolate()->GetCurrentContext()).ToLocalChecked());
+	prototype.Reset(fnctemplate);
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Create(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	int32_t fader_type;
+
+	// Validate and retrieve parameters.
+	ASSERT_INFO_LENGTH(info, 1);
+	ASSERT_GET_VALUE(info[0], fader_type);
+
+	// Validate Connection
+	auto conn = Controller::GetInstance().GetConnection();
+	if (!conn) {
+		Nan::ThrowError("IPC is not connected.");
+		return;
+	}
+
+	// Call
+	std::vector<ipc::value> rval = conn->call_synchronous_helper(
+	    "VolMeter",
 	    "Create",
 	    {
-	        ipc::value(type),
+	        ipc::value(fader_type),
 	    });
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+	if (!ValidateResponse(rval)) {
+		return;
+	}
 
-    auto instance =
-        osn::Volmeter::constructor.New({
-            Napi::Number::New(info.Env(), response[1].value_union.ui64),
-            Napi::Number::New(info.Env(), response[2].value_union.ui32)
-            });
-    return instance;
+	// Return created Object
+	auto* newVolmeter              = new osn::VolMeter(rval[1].value_union.ui64);
+	newVolmeter->m_sleep_interval  = rval[2].value_union.ui32;
+	info.GetReturnValue().Set(Store(newVolmeter));
 }
 
-Napi::Value osn::Volmeter::GetUpdateInterval(const Napi::CallbackInfo& info)
+Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::GetUpdateInterval(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	osn::VolMeter* self;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Volmeter",
+	// Validate and retrieve parameters.
+	ASSERT_INFO_LENGTH(info, 0);
+
+	if (!Retrieve(info.This(), self)) {
+		return;
+	}
+
+	// Validate Connection
+	auto conn = Controller::GetInstance().GetConnection();
+	if (!conn) {
+		Nan::ThrowError("IPC is not connected.");
+		return;
+	}
+
+	// Call
+	std::vector<ipc::value> rval = conn->call_synchronous_helper(
+	    "VolMeter",
 	    "GetUpdateInterval",
 	    {
-	        ipc::value(this->m_uid),
+	        ipc::value(self->m_uid),
 	    });
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	this->sleepIntervalMS = response[1].value_union.ui32;
-	return Napi::Number::New(info.Env(), this->sleepIntervalMS);
-}
-
-void osn::Volmeter::SetUpdateInterval(const Napi::CallbackInfo& info, const Napi::Value &value)
-{
-	auto conn = GetConnection(info);
-	if (!conn)
+	if (!ValidateResponse(rval)) {
 		return;
+	}
 
-	conn->call("Volmeter", "SetUpdateInterval", {
-		ipc::value(this->m_uid),
-		ipc::value(value.ToNumber().Uint32Value())
-		});
+	self->m_sleep_interval = rval[1].value_union.ui32;
+
+	// Return DeziBel Value
+	info.GetReturnValue().Set(rval[1].value_union.ui32);
 }
 
-Napi::Value osn::Volmeter::Attach(const Napi::CallbackInfo& info)
+Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::SetUpdateInterval(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	osn::Input* input = Napi::ObjectWrap<osn::Input>::Unwrap(info[0].ToObject());
+	uint32_t       interval;
+	osn::VolMeter* self;
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	// Validate and retrieve parameters.
+	ASSERT_INFO_LENGTH(info, 1);
+	ASSERT_GET_VALUE(info[0], interval);
 
-	conn->call("Volmeter", "Attach", {ipc::value(this->m_uid), ipc::value(input->sourceId)});
-	return info.Env().Undefined();
+	if (!Retrieve(info.This(), self)) {
+		return;
+	}
+
+	// Validate Connection
+	auto conn = Controller::GetInstance().GetConnection();
+	if (!conn) {
+		Nan::ThrowError("IPC is not connected.");
+		return;
+	}
+
+	// Call
+	conn->call("VolMeter", "SetUpdateInterval", {ipc::value(self->m_uid), ipc::value(interval)});
 }
 
-Napi::Value osn::Volmeter::Detach(const Napi::CallbackInfo& info)
+Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Attach(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	osn::VolMeter* fader;
+	osn::ISource*  source;
 
-	conn->call("Volmeter", "Detach", {ipc::value(this->m_uid)});
-	return info.Env().Undefined();
+	// Validate and retrieve parameters.
+	ASSERT_INFO_LENGTH(info, 1);
+
+	if (!Retrieve(info.This(), fader)) {
+		return;
+	}
+
+	v8::Local<v8::Object> sourceObj;
+	ASSERT_GET_VALUE(info[0], sourceObj);
+	if (!osn::ISource::Retrieve(sourceObj, source)) {
+		return;
+	}
+
+	// Validate Connection
+	auto conn = Controller::GetInstance().GetConnection();
+	if (!conn) {
+		Nan::ThrowError("IPC is not connected.");
+		return;
+	}
+
+	// Call
+	conn->call("VolMeter", "Attach", {ipc::value(fader->m_uid), ipc::value(source->sourceId)});
 }
 
-Napi::Value osn::Volmeter::AddCallback(const Napi::CallbackInfo& info)
+Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::Detach(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	Napi::Function async_callback = info[0].As<Napi::Function>();
+	osn::VolMeter* fader;
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	// Validate and retrieve parameters.
+	ASSERT_INFO_LENGTH(info, 0);
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Volmeter", "AddCallback", {ipc::value(this->m_uid)});
+	if (!Retrieve(info.This(), fader)) {
+		return;
+	}
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+	// Validate Connection
+	auto conn = Controller::GetInstance().GetConnection();
+	if (!conn) {
+		Nan::ThrowError("IPC is not connected.");
+		return;
+	}
 
-	start_worker(info.Env(), async_callback);
-	isWorkerRunning = true;
-
-	return Napi::Boolean::New(info.Env(), true);
+	// Call
+	conn->call("VolMeter", "Detach", {ipc::value(fader->m_uid)});
 }
 
-Napi::Value osn::Volmeter::RemoveCallback(const Napi::CallbackInfo& info)
+Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::AddCallback(Nan::NAN_METHOD_ARGS_TYPE info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	osn::VolMeter*          self;
+	v8::Local<v8::Function> callback;
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Volmeter", "RemoveCallback", {ipc::value(this->m_uid)});
+	{
+		// Arguments
+		ASSERT_INFO_LENGTH(info, 1);
+		if (!Retrieve(info.This(), self)) {
+			return;
+		}
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+		ASSERT_GET_VALUE(info[0], callback);
+	}
 
-	if (isWorkerRunning)
-		stop_worker();
+	{
+		// Grab IPC Connection
+		std::shared_ptr<ipc::client> conn = nullptr;
+		if (!(conn = GetConnection())) {
+			return;
+		}
 
-	return Napi::Boolean::New(info.Env(), true);
+		// Send request
+		std::vector<ipc::value> rval =
+		    conn->call_synchronous_helper("VolMeter", "AddCallback", {ipc::value(self->m_uid)});
+
+		if (!ValidateResponse(rval)) {
+			info.GetReturnValue().Set(Nan::Null());
+			return;
+		}
+	}
+
+	self->m_callback_function.Reset(callback);
+	self->start_async_runner();
+	self->set_keepalive(info.This());
+	self->start_worker();
+
+	info.GetReturnValue().Set(true);
+}
+
+Nan::NAN_METHOD_RETURN_TYPE osn::VolMeter::RemoveCallback(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+	osn::VolMeter* self;
+
+	{
+		ASSERT_INFO_LENGTH(info, 1);
+		if (!Retrieve(info.This(), self)) {
+			return;
+		}
+	}
+
+	self->stop_worker();
+	self->stop_async_runner();
+	self->m_callback_function.Reset();
+
+	// Grab IPC Connection
+	{
+		std::shared_ptr<ipc::client> conn = nullptr;
+		if (!(conn = GetConnection())) {
+			return;
+		}
+
+		// Send request
+		std::vector<ipc::value> rval =
+		    conn->call_synchronous_helper("VolMeter", "RemoveCallback", {ipc::value(self->m_uid)});
+
+		if (!ValidateResponse(rval)) {
+			info.GetReturnValue().Set(Nan::Null());
+			return;
+		}
+	}
+
+	info.GetReturnValue().Set(true);
+}
+
+INITIALIZER(nodeobs_volmeter)
+{
 }

@@ -21,25 +21,21 @@
 #endif
 
 #include <fstream>
-#include <string>
-#include "controller.hpp"
+#include <node.h>
 #include "fader.hpp"
 #include "filter.hpp"
 #include "global.hpp"
 #include "input.hpp"
+#include "isource.hpp"
 #include "module.hpp"
 #include "nodeobs_api.hpp"
 #include "properties.hpp"
 #include "scene.hpp"
 #include "sceneitem.hpp"
+#include "shared.hpp"
 #include "transition.hpp"
 #include "video.hpp"
 #include "volmeter.hpp"
-#include "nodeobs_settings.hpp"
-#include "nodeobs_display.hpp"
-#include "nodeobs_service.hpp"
-#include "nodeobs_autoconfig.hpp"
-#include "callback-manager.hpp"
 
 #if defined(_WIN32)
 // Checks ForceGPUAsRenderDevice setting
@@ -85,31 +81,31 @@ extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = [] {
 
 int main(int, char ** , char **){}
 
-Napi::Object main_node(Napi::Env env, Napi::Object exports) {
+// Definition based on addon_register_func, see 'node.h:L384'.
+void main_node(v8::Local<v8::Object> exports, v8::Local<v8::Value> module, void* priv)
+{
 #ifdef __APPLE__
 	g_util_osx = new UtilInt();
 	g_util_osx->init();
 #endif
-	osn::Fader::Init(env, exports);
-	Controller::Init(env, exports);
-	api::Init(env, exports);
-	osn::Input::Init(env, exports);
-	osn::Properties::Init(env, exports);
-	osn::PropertyObject::Init(env, exports);
-	osn::Filter::Init(env, exports);
-	osn::Global::Init(env, exports);
-	osn::Scene::Init(env, exports);
-	osn::SceneItem::Init(env, exports);
-	osn::Transition::Init(env, exports);
-	osn::Module::Init(env, exports);
-	osn::Video::Init(env, exports);
-	osn::Volmeter::Init(env, exports);
-	settings::Init(env, exports);
-	display::Init(env, exports);
-	service::Init(env, exports);
-	autoConfig::Init(env, exports);
-	sourceCallback::Init(env, exports);
-	return exports;
+	osn::Global::Register(exports);
+	osn::ISource::Register(exports);
+	osn::Input::Register(exports);
+	osn::Filter::Register(exports);
+	osn::Transition::Register(exports);
+	osn::Scene::Register(exports);
+	osn::SceneItem::Register(exports);
+	osn::Properties::Register(exports);
+	osn::PropertyObject::Register(exports);
+	osn::Fader::Register(exports);
+	osn::VolMeter::Register(exports);
+	osn::Video::Register(exports);
+	osn::Module::Register(exports);
+
+	while (initializerFunctions->size() > 0) {
+		initializerFunctions->front()(exports);
+		initializerFunctions->pop();
+	}
 };
 
-NODE_API_MODULE(obs_studio_node, main_node);
+NODE_MODULE(obs_studio_node, main_node); // Upgrade to NAPI_MODULE once N-API hits stable/beta.
