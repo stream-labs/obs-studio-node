@@ -29,11 +29,12 @@ Napi::FunctionReference osn::Fader::constructor;
 
 Napi::Object osn::Fader::Init(Napi::Env env, Napi::Object exports) {
 	Napi::HandleScope scope(env);
-	Napi::Function func =
+
+	Napi::Function sync =
 		DefineClass(env,
 		"Fader",
 		{
-			StaticMethod("create", &osn::Fader::Create),
+			StaticMethod("create", &osn::Fader::CreateSync),
 
 			InstanceMethod("attach", &osn::Fader::Attach),
 			InstanceMethod("detach", &osn::Fader::Detach),
@@ -44,8 +45,25 @@ Napi::Object osn::Fader::Init(Napi::Env env, Napi::Object exports) {
 			InstanceAccessor("deflection", &osn::Fader::GetDeflection, &osn::Fader::SetDeflection),
 			InstanceAccessor("mul", &osn::Fader::GetMultiplier, &osn::Fader::SetMultiplier),
 		});
-	exports.Set("Fader", func);
-	osn::Fader::constructor = Napi::Persistent(func);
+
+	Napi::Function async_func =
+		DefineClass(env,
+		"async",
+		{
+			StaticMethod("create", &osn::Fader::CreateAsync),
+		});
+	
+	Napi::Function promise_func =
+		DefineClass(env,
+		"return",
+		{
+			StaticMethod("create", &osn::Fader::CreatePromise),
+		});
+
+	async_func.Set("return", promise_func);
+	sync.Set("async", async_func);
+	exports.Set("Fader", sync);
+	osn::Fader::constructor = Napi::Persistent(sync);
 	osn::Fader::constructor.SuppressDestruct();
 	return exports;
 }
@@ -64,7 +82,7 @@ osn::Fader::Fader(const Napi::CallbackInfo& info)
 	this->uid = (uint64_t)info[0].ToNumber().Int64Value();
 }
 
-Napi::Value osn::Fader::Create(const Napi::CallbackInfo& info)
+Napi::Value osn::Fader::CreateSync(const Napi::CallbackInfo& info)
 {
 	int32_t fader_type = info[0].ToNumber().Int32Value();
 
@@ -88,6 +106,19 @@ Napi::Value osn::Fader::Create(const Napi::CallbackInfo& info)
 			});
 
 	return instance;
+}
+
+void osn::Fader::CreateAsync(const Napi::CallbackInfo& info)
+{
+	std::cout << "CreateAsync" << std::endl;
+}
+
+Napi::Value osn::Fader::CreatePromise(const Napi::CallbackInfo& info)
+{
+	std::cout << "CreatePromise" << std::endl;
+	auto deferred = Napi::Promise::Deferred::New(info.Env());
+
+	return deferred.Promise();
 }
 
 Napi::Value osn::Fader::GetDeziBel(const Napi::CallbackInfo& info)

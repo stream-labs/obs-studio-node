@@ -33,7 +33,9 @@ namespace osn
 		static Napi::Object Init(Napi::Env env, Napi::Object exports);
 		Fader(const Napi::CallbackInfo& info);
 
-		static Napi::Value Create(const Napi::CallbackInfo& info);
+		static Napi::Value CreateSync(const Napi::CallbackInfo& info);
+		static void CreateAsync(const Napi::CallbackInfo& info);
+		static Napi::Value CreatePromise(const Napi::CallbackInfo& info);
 
 		Napi::Value GetDeziBel(const Napi::CallbackInfo& info);
 		void SetDezibel(const Napi::CallbackInfo& info, const Napi::Value &value);
