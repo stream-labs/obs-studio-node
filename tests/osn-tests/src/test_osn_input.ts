@@ -183,9 +183,6 @@ describe(testName, () => {
             }
 
             const input = osn.InputFactory.create(inputType, 'input', settings);
-            console.log(inputType);
-            console.log(input.settings);
-            console.log(settings);
 
             // Checking if input source was created correctly
             expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
