@@ -951,7 +951,7 @@ describe(testName, function() {
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.ReplayBuffer, EOBSOutputSignal.Stop);
         expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
-        expect(signalInfo.code).to.equal(-4, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+        expect(signalInfo.code).to.equal(-8, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
     });
 
     it('Fail test - Advanced mode - Record with invalid path', async function() {
@@ -1002,7 +1002,7 @@ describe(testName, function() {
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.ReplayBuffer, EOBSOutputSignal.Stop);
         expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
-        expect(signalInfo.code).to.equal(-4, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+        expect(signalInfo.code).to.equal(-8, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
     });
 
     it('Reset video context', function() {
