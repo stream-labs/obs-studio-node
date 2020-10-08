@@ -29,7 +29,6 @@ struct Permissions
 
 namespace api
 {
-    Napi::ThreadSafeFunction js_thread;
     void Init(Napi::Env env, Napi::Object exports);
 
 	Napi::Value OBS_API_initAPI(const Napi::CallbackInfo& info);

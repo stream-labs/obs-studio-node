@@ -26,7 +26,9 @@
 #include "volmeter.hpp"
 #include "callback-manager.hpp"
 
-api::Worker* worker = nullptr;
+//api::Worker* worker = nullptr;
+
+Napi::ThreadSafeFunction js_thread;
 
 Napi::Value api::OBS_API_initAPI(const Napi::CallbackInfo& info)
 {
@@ -271,7 +273,7 @@ Napi::Value api::RequestPermissions(const Napi::CallbackInfo& info)
 #ifdef __APPLE__
 	Napi::Function async_callback = info[0].As<Napi::Function>();
 	js_thread = Napi::ThreadSafeFunction::New(
-		env,
+        info.Env(),
 		async_callback,
 		"RequestPermissionsThread",
 		0,
@@ -279,19 +281,19 @@ Napi::Value api::RequestPermissions(const Napi::CallbackInfo& info)
 		[]( Napi::Env ) {} );
 
 	auto cb = [](void* data, bool webcam, bool mic) {
-		Napi::ThreadSafeFunctionr* worker =
+		Napi::ThreadSafeFunction* worker =
 			reinterpret_cast<Napi::ThreadSafeFunction*>(data);
 
 		auto callback = []( Napi::Env env, Napi::Function jsCallback, Permissions* data ) {
-			Napi::Object result = Napi::Object::New(Env());
+			Napi::Object result = Napi::Object::New(env);
 
 			result.Set(
-				Napi::String::New(Env(), "webcamPermission"),
-				Napi::Boolean::New(Env(), perms_status->webcam)
+				Napi::String::New(env, "webcamPermission"),
+				Napi::Boolean::New(env, data->webcam)
 			);
 			result.Set(
-				Napi::String::New(Env(), "micPermission"),
-				Napi::Boolean::New(Env(), perms_status->mic)
+				Napi::String::New(env, "micPermission"),
+				Napi::Boolean::New(env, data->mic)
 			);
 
 			jsCallback.Call({ result });
