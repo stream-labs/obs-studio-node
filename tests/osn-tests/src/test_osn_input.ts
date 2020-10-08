@@ -72,6 +72,16 @@ describe(testName, () => {
                     settings['height'] = 500;
                     break;
                 }
+                case 'color_source_v2': {
+                    settings = inputSettings.colorSource;
+                    settings['height'] = 500;
+                    break;
+                }
+                case 'color_source_v3': {
+                    settings = inputSettings.colorSource;
+                    settings['height'] = 500;
+                    break;
+                }
                 case 'slideshow': {
                     settings = inputSettings.slideshow;
                     settings['loop'] = false;
@@ -85,6 +95,7 @@ describe(testName, () => {
                 case 'ffmpeg_source': {
                     settings = inputSettings.ffmpegSource;
                     settings['speed_percent'] = 80;
+                    settings['reconnect_delay_sec'] = 10;
                     break;
                 }
                 case 'ndi_source': {
@@ -98,12 +109,15 @@ describe(testName, () => {
                 case 'text_gdiplus_v2': {
                     settings = inputSettings.textGDIPlus;
                     settings['align'] = 'right';
+                    settings['antialiasing'] = true;
+                    settings['transform'] = 0;
                     break;
                 }
                 case 'text_ft2_source':
                 case 'text_ft2_source_v2': {
                     settings = inputSettings.textFT2Source;
                     settings['log_lines'] = 5;
+                    settings['antialiasing'] = true;
                     break;
                 }
                 case 'vlc_source': {
@@ -169,7 +183,6 @@ describe(testName, () => {
             }
 
             const input = osn.InputFactory.create(inputType, 'input', settings);
-
 
             // Checking if input source was created correctly
             expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));

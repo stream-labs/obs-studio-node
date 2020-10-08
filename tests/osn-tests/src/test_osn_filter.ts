@@ -114,7 +114,14 @@ describe(testName, () => {
                 }
                 case 'noise_suppress_filter': {
                     settings = filterSettings.noiseSuppress;
+                    settings['method'] = "speex";
                     settings['suppress_level'] = -20;
+                    break;
+                }
+                case 'noise_suppress_filter_v2': {
+                    settings = filterSettings.noiseSuppress;
+                    settings['method'] = "rnnoise";
+                    settings['suppress_level'] = -30;
                     break;
                 }
                 case 'noise_gate_filter': {
