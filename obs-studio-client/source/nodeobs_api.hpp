@@ -29,35 +29,6 @@ struct Permissions
 
 namespace api
 {
-    class Worker: public Napi::AsyncWorker
-    {
-        public:
-        Permissions* perms_status;
-
-        public:
-        Worker(Napi::Function& callback) : AsyncWorker(callback){};
-        virtual ~Worker() {};
-
-        void Execute() {
-            if (!perms_status)
-                SetError("Invalid permission object");
-        };
-        void OnOK() {
-            Napi::Object result = Napi::Object::New(Env());
-
-            result.Set(
-                Napi::String::New(Env(), "webcamPermission"),
-                Napi::Boolean::New(Env(), perms_status->webcam)
-            );
-            result.Set(
-                Napi::String::New(Env(), "micPermission"),
-                Napi::Boolean::New(Env(), perms_status->mic)
-            );
-
-            Callback().Call({ result });
-        };
-    };
-
     void Init(Napi::Env env, Napi::Object exports);
 
 	Napi::Value OBS_API_initAPI(const Napi::CallbackInfo& info);
