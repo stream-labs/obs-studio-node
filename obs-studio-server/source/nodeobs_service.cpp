@@ -2451,6 +2451,17 @@ uint32_t oldMixer_desktopSource2 = 0;
 
 void OBS_service::startTwitchSoundtrackAudio(void) {
 	bool sourceExists = false;
+
+	if (!service)
+		return;
+
+	obs_data_t *settings = obs_service_get_settings(service);
+	const char *serviceName = obs_data_get_string(settings, "service");
+	obs_data_release(settings);
+
+	if (serviceName && strcmp(serviceName, "Twitch") != 0)
+		return;
+
 	obs_enum_sources(
 		[](void *param, obs_source_t *source) {
 			auto id = obs_source_get_id(source);
@@ -2513,6 +2524,16 @@ void OBS_service::startTwitchSoundtrackAudio(void) {
 }
 
 void OBS_service::stopTwitchSoundtrackAudio(void) {
+	if (!service)
+		return;
+
+	obs_data_t *settings = obs_service_get_settings(service);
+	const char *serviceName = obs_data_get_string(settings, "service");
+	obs_data_release(settings);
+
+	if (serviceName && strcmp(serviceName, "Twitch") != 0)
+		return;
+
 	if (!archiveEncoder)
 		return;
 
