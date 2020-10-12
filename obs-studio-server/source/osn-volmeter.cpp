@@ -354,3 +354,21 @@ bool osn::Volmeter::CheckIdle(std::chrono::milliseconds currentTime, std::chrono
 
 	return false;
 }
+
+void osn::Volmeter::getAudioData(uint64_t id, std::vector<ipc::value>& rval)
+{
+	auto meter = Manager::GetInstance().find(id);
+	if (!meter) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
+	}
+	
+	std::unique_lock<std::mutex> ulockMutex(meter->current_data_mtx);
+
+	rval.push_back(ipc::value(meter->current_data.ch));
+
+	for (size_t ch = 0; ch < meter->current_data.ch; ch++) {
+		rval.push_back(ipc::value(meter->current_data.magnitude[ch]));
+		rval.push_back(ipc::value(meter->current_data.peak[ch]));
+		rval.push_back(ipc::value(meter->current_data.input_peak[ch]));
+	}
+}

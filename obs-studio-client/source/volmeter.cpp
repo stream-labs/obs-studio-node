@@ -26,6 +26,7 @@
 #include "shared.hpp"
 #include "utility-v8.hpp"
 #include "utility.hpp"
+#include "callback-manager.hpp"
 
 bool osn::Volmeter::m_all_workers_stop = false;
 
@@ -58,82 +59,82 @@ void osn::Volmeter::stop_worker(void)
 
 void osn::Volmeter::worker()
 {
-    auto callback = []( Napi::Env env, Napi::Function jsCallback, VolmeterData* data ) {
-		Napi::Array magnitude = Napi::Array::New(env);
-		Napi::Array peak = Napi::Array::New(env);
-		Napi::Array input_peak = Napi::Array::New(env);
+    // auto callback = []( Napi::Env env, Napi::Function jsCallback, VolmeterData* data ) {
+	// 	Napi::Array magnitude = Napi::Array::New(env);
+	// 	Napi::Array peak = Napi::Array::New(env);
+	// 	Napi::Array input_peak = Napi::Array::New(env);
 
-		for (size_t i = 0; i < data->magnitude.size(); i++) {
-			magnitude.Set(i, Napi::Number::New(env, data->magnitude[i]));
-		}
-		for (size_t i = 0; i < data->peak.size(); i++) {
-			peak.Set(i, Napi::Number::New(env, data->peak[i]));
-		}
-		for (size_t i = 0; i < data->input_peak.size(); i++) {
-			input_peak.Set(i, Napi::Number::New(env, data->input_peak[i]));
-		}
+	// 	for (size_t i = 0; i < data->magnitude.size(); i++) {
+	// 		magnitude.Set(i, Napi::Number::New(env, data->magnitude[i]));
+	// 	}
+	// 	for (size_t i = 0; i < data->peak.size(); i++) {
+	// 		peak.Set(i, Napi::Number::New(env, data->peak[i]));
+	// 	}
+	// 	for (size_t i = 0; i < data->input_peak.size(); i++) {
+	// 		input_peak.Set(i, Napi::Number::New(env, data->input_peak[i]));
+	// 	}
 
-		if (data->magnitude.size() > 0 && data->peak.size() > 0 && data->input_peak.size() > 0) {
-			jsCallback.Call({ magnitude, peak, input_peak });
-		}
-    };
-	size_t totalSleepMS = 0;
+	// 	if (data->magnitude.size() > 0 && data->peak.size() > 0 && data->input_peak.size() > 0) {
+	// 		jsCallback.Call({ magnitude, peak, input_peak });
+	// 	}
+    // };
+	// size_t totalSleepMS = 0;
 
-	while (!worker_stop && !m_all_workers_stop) {
-		auto tp_start = std::chrono::high_resolution_clock::now();
+	// while (!worker_stop && !m_all_workers_stop) {
+	// 	auto tp_start = std::chrono::high_resolution_clock::now();
 
-		auto conn = Controller::GetInstance().GetConnection();
-		if (!conn) {
-			goto do_sleep;
-		}
+	// 	auto conn = Controller::GetInstance().GetConnection();
+	// 	if (!conn) {
+	// 		goto do_sleep;
+	// 	}
 
-		try {
-			std::vector<ipc::value> response = conn->call_synchronous_helper(
-			    "Volmeter",
-			    "Query",
-			    {
-			        ipc::value(m_uid),
-			    });
-			if (!response.size()) {
-				goto do_sleep;
-			}
-			if ((response.size() == 1) && (response[0].type == ipc::type::Null)) {
-				goto do_sleep;
-			}
+	// 	try {
+	// 		std::vector<ipc::value> response = conn->call_synchronous_helper(
+	// 		    "Volmeter",
+	// 		    "Query",
+	// 		    {
+	// 		        ipc::value(m_uid),
+	// 		    });
+	// 		if (!response.size()) {
+	// 			goto do_sleep;
+	// 		}
+	// 		if ((response.size() == 1) && (response[0].type == ipc::type::Null)) {
+	// 			goto do_sleep;
+	// 		}
 
-			ErrorCode error = (ErrorCode)response[0].value_union.ui64;
-			if (error == ErrorCode::Ok) {
-				VolmeterData* data     = new VolmeterData{{}, {}, {}};
-				size_t                             channels = response[1].value_union.i32;
-				data->magnitude.resize(channels);
-				data->peak.resize(channels);
-				data->input_peak.resize(channels);
+	// 		ErrorCode error = (ErrorCode)response[0].value_union.ui64;
+	// 		if (error == ErrorCode::Ok) {
+	// 			VolmeterData* data     = new VolmeterData{{}, {}, {}};
+	// 			size_t                             channels = response[1].value_union.i32;
+	// 			data->magnitude.resize(channels);
+	// 			data->peak.resize(channels);
+	// 			data->input_peak.resize(channels);
 
-				for (size_t ch = 0; ch < channels; ch++) {
-					data->magnitude[ch]  = response[2 + ch * 3 + 0].value_union.fp32;
-					data->peak[ch]       = response[2 + ch * 3 + 1].value_union.fp32;
-					data->input_peak[ch] = response[2 + ch * 3 + 2].value_union.fp32;
-				}
-				js_thread.BlockingCall( data, callback );
-			} else if(error == ErrorCode::InvalidReference) {
-				goto do_sleep;
-			}
-			else
-			{
-				std::cerr << "Failed VolMeter" << std::endl;
-				break;
-			}
-		} catch (std::exception e) {
-			goto do_sleep;
-		}
+	// 			for (size_t ch = 0; ch < channels; ch++) {
+	// 				data->magnitude[ch]  = response[2 + ch * 3 + 0].value_union.fp32;
+	// 				data->peak[ch]       = response[2 + ch * 3 + 1].value_union.fp32;
+	// 				data->input_peak[ch] = response[2 + ch * 3 + 2].value_union.fp32;
+	// 			}
+	// 			js_thread.BlockingCall( data, callback );
+	// 		} else if(error == ErrorCode::InvalidReference) {
+	// 			goto do_sleep;
+	// 		}
+	// 		else
+	// 		{
+	// 			std::cerr << "Failed VolMeter" << std::endl;
+	// 			break;
+	// 		}
+	// 	} catch (std::exception e) {
+	// 		goto do_sleep;
+	// 	}
 
-	do_sleep:
-		auto tp_end  = std::chrono::high_resolution_clock::now();
-		auto dur     = std::chrono::duration_cast<std::chrono::milliseconds>(tp_end - tp_start);
-		totalSleepMS = sleepIntervalMS - dur.count();
-		std::this_thread::sleep_for(std::chrono::milliseconds(totalSleepMS));
-	}
-	js_thread.Release();
+	// do_sleep:
+	// 	auto tp_end  = std::chrono::high_resolution_clock::now();
+	// 	auto dur     = std::chrono::duration_cast<std::chrono::milliseconds>(tp_end - tp_start);
+	// 	totalSleepMS = sleepIntervalMS - dur.count();
+	// 	std::this_thread::sleep_for(std::chrono::milliseconds(totalSleepMS));
+	// }
+	// js_thread.Release();
 }
 
 Napi::FunctionReference osn::Volmeter::constructor;
@@ -271,8 +272,10 @@ Napi::Value osn::Volmeter::AddCallback(const Napi::CallbackInfo& info)
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-	start_worker(info.Env(), async_callback);
-	isWorkerRunning = true;
+	// start_worker(info.Env(), async_callback);
+	// isWorkerRunning = true;
+
+	globalCallback::add_volmeter(info.Env(), this->m_uid, async_callback);
 
 	return Napi::Boolean::New(info.Env(), true);
 }
@@ -289,8 +292,10 @@ Napi::Value osn::Volmeter::RemoveCallback(const Napi::CallbackInfo& info)
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-	if (isWorkerRunning)
-		stop_worker();
+	// if (isWorkerRunning)
+	// 	stop_worker();
+
+	globalCallback::remove_volmeter(this->m_uid);
 
 	return Napi::Boolean::New(info.Env(), true);
 }

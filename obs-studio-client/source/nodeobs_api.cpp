@@ -154,7 +154,7 @@ Napi::Value api::SetWorkingDirectory(const Napi::CallbackInfo& info)
 Napi::Value api::InitShutdownSequence(const Napi::CallbackInfo& info)
 {
 	osn::Volmeter::m_all_workers_stop = true;
-	sourceCallback::m_all_workers_stop = true;
+	globalCallback::m_all_workers_stop = true;
 
 	auto conn = GetConnection(info);
 	if (!conn)
