@@ -324,11 +324,14 @@ void OBS_content::OBS_content_destroyDisplay(
 
 	if (windowMessage != NULL && windowMessage->joinable())
 		windowMessage->join();
+
+	bool isMain = found->second->GetDrawUI();
     
     delete found->second;
     displays.erase(found);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(isMain));
 	AUTO_DEBUG;
 }
 

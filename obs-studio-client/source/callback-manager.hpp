@@ -77,4 +77,7 @@ namespace globalCallback
 
 	Napi::Value RegisterGlobalCallback(const Napi::CallbackInfo& info);
 	Napi::Value RemoveGlobalCallback(const Napi::CallbackInfo& info);
+
+	void start_cb_manager();
+	void stop_cb_manager();
 }

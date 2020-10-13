@@ -192,7 +192,6 @@ void globalCallback::start_worker(napi_env env, Napi::Function async_callback)
 	if (!worker_stop)
 		return;
 
-	worker_stop = false;
 	js_thread = Napi::ThreadSafeFunction::New(
       env,
       async_callback,
@@ -200,7 +199,8 @@ void globalCallback::start_worker(napi_env env, Napi::Function async_callback)
       0,
       1,
       []( Napi::Env ) {} );
-	worker_thread = new std::thread(&globalCallback::worker);
+	// worker_stop = false;
+	// worker_thread = new std::thread(&globalCallback::worker);
 }
 
 void globalCallback::stop_worker(void)
@@ -354,4 +354,21 @@ void globalCallback::remove_volmeter(uint64_t id)
 	
 	volmeters[id].Release();
 	volmeters.erase(id);
+}
+
+void globalCallback::start_cb_manager()
+{
+	worker_stop = false;
+	worker_thread = new std::thread(&globalCallback::worker);
+}
+
+void globalCallback::stop_cb_manager()
+{
+	if (worker_stop != false)
+		return;
+
+	worker_stop = true;
+	if (worker_thread->joinable()) {
+		worker_thread->join();
+	}
 }
