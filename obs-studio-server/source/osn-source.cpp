@@ -112,8 +112,6 @@ void osn::Source::Register(ipc::server& srv)
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Source");
 	cls->register_function(
 	    std::make_shared<ipc::function>("GetDefaults", std::vector<ipc::type>{ipc::type::String}, GetTypeDefaults));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetOutputFlags", std::vector<ipc::type>{ipc::type::String}, GetTypeOutputFlags));
 
 	cls->register_function(
 	    std::make_shared<ipc::function>("Remove", std::vector<ipc::type>{ipc::type::UInt64}, Remove));
