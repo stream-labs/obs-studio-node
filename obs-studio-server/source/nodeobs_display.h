@@ -65,12 +65,6 @@ namespace OBS
 		    std::string                   sourceName); // Create a Source-Specific one
 		~Display();
 
-		void                          SetPosition(uint32_t x, uint32_t y);
-		std::pair<uint32_t, uint32_t> GetPosition();
-
-		void                          SetSize(uint32_t width, uint32_t height);
-		std::pair<uint32_t, uint32_t> GetSize();
-
 		std::pair<int32_t, int32_t>   GetPreviewOffset();
 		std::pair<uint32_t, uint32_t> GetPreviewSize();
 
@@ -131,17 +125,5 @@ namespace OBS
 		bool     m_shouldDrawUI     = true;
 
 		enum obs_video_rendering_mode m_renderingMode = OBS_MAIN_VIDEO_RENDERING;
-
-#if defined(_WIN32)
-		HWND              m_ourWindow;
-		HWND              m_parentWindow;
-		static bool       DisplayWndClassRegistered;
-		static WNDCLASSEX DisplayWndClassObj;
-		static ATOM       DisplayWndClassAtom;
-		static void       DisplayWndClass();
-		static LRESULT CALLBACK DisplayWndProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam);
-#elif defined(__APPLE__)
-#elif defined(__linux__) || defined(__FreeBSD__)
-#endif
 	};
 } // namespace OBS

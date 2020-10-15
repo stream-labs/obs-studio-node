@@ -27,13 +27,9 @@
 #include "error.hpp"
 #include "shared.hpp"
 
-#include <thread>
-
 std::map<std::string, OBS::Display*> displays;
 std::string                          sourceSelected;
-bool                                 firstDisplayCreation = true;
 
-std::thread* windowMessage = NULL;
 ipc::server* g_srv;
 bool displayCreated = false;
 
@@ -126,28 +122,6 @@ static bool MultiplySelectedItemScale(obs_scene_t* scene, obs_sceneitem_t* item,
 	return true;
 }
 
-#ifdef _WIN32
-
-static void OnDeviceLost(void* data)
-{
-	// Do nothing
-	UNUSED_PARAMETER(data);
-}
-
-static void OnDeviceRebuilt(void* device, void* data)
-{
-	for (const auto& p : displays) {
-		if (auto display = p.second) {
-			// After device is rebuilt, there are can be problems with incorrect size of display
-			// In order to fix this, need to update the display by adjusting it's size
-			// TODO: find a better way to fix this
-			const auto size = display->GetSize();
-			display->SetSize(size.first, size.second);
-		}
-	}
-}
-#endif
-
 void OBS_content::Register(ipc::server& srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Display");
@@ -227,21 +201,6 @@ void OBS_content::Register(ipc::server& srv)
 	g_srv = &srv;
 }
 
-void popupAeroDisabledWindow(void)
-{
-#ifdef WIN32
-	MessageBox(
-	    NULL,
-	    TEXT("Streamlabs OBS needs Aero enabled to run properly on Windows 7.  "
-	         "If you've disabled Aero for performance reasons, "
-	         "you may still use the app, but you will need to keep the window maximized.\n\n\n\n\n"
-	         "This is a workaround to keep Streamlabs OBS running and not the preferred route. "
-	         "We recommend upgrading to Windows 10 or enabling Aero."),
-	    TEXT("Aero is disabled"),
-	    MB_OK);
-#endif
-}
-
 void OBS_content::OBS_content_createDisplay(
     void*                          data,
     const int64_t                  id,
@@ -275,34 +234,11 @@ void OBS_content::OBS_content_createDisplay(
 
 #ifdef WIN32
 	displays.insert_or_assign(args[1].value_str, new OBS::Display(windowHandle, mode));
-	if (!IsWindows8OrGreater()) {
-		BOOL enabled = FALSE;
-		DwmIsCompositionEnabled(&enabled);
-		if (!enabled && firstDisplayCreation) {
-			windowMessage = new std::thread(popupAeroDisabledWindow);
-		}
-	}
 #else
 	OBS::Display *display = new OBS::Display(windowHandle, mode);
 	displays.insert_or_assign(args[1].value_str, display);
 #endif
 
-	// device rebuild functionality available only with D3D
-#ifdef _WIN32
-	if (firstDisplayCreation) {
-		obs_enter_graphics();
-
-		gs_device_loss callbacks;
-		callbacks.device_loss_release = &OnDeviceLost;
-		callbacks.device_loss_rebuild = &OnDeviceRebuilt;
-		callbacks.data                = nullptr;
-
-		gs_register_loss_callbacks(&callbacks);
-		obs_leave_graphics();
-	}
-#endif
-
-	firstDisplayCreation = false;
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -321,10 +257,7 @@ void OBS_content::OBS_content_destroyDisplay(
 		rval.push_back(ipc::value("Failed to find key for destruction: " + args[0].value_str));
 		return;
 	}
-
-	if (windowMessage != NULL && windowMessage->joinable())
-		windowMessage->join();
-    
+ 
     delete found->second;
     displays.erase(found);
 
@@ -384,9 +317,6 @@ void OBS_content::OBS_content_resizeDisplay(
     // Store new size.
     display->UpdatePreviewArea();
 
-#ifdef WIN32
-	display->SetSize(display->m_gsInitData.cx, display->m_gsInitData.cy);
-#endif
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -412,7 +342,6 @@ void OBS_content::OBS_content_moveDisplay(
 	display->m_position.first  = x;
 	display->m_position.second = y;
 
-	display->SetPosition(x, y);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }

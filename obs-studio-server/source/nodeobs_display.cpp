@@ -236,15 +236,6 @@ void OBS::Display::SystemWorker()
 
 OBS::Display::Display()
 {
-#if defined(_WIN32)
-	DisplayWndClass();
-#elif defined(__APPLE__)
-#elif defined(__linux__) || defined(__FreeBSD__)
-#endif
-
-#ifdef WIN32
-	worker = std::thread(std::bind(&OBS::Display::SystemWorker, this));
-#endif
 	m_gsInitData.adapter         = 0;
 	m_gsInitData.cx              = 960;
 	m_gsInitData.cy              = 540;
@@ -324,37 +315,6 @@ OBS::Display::Display()
 
 OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode) : Display()
 {
-#ifdef _WIN32
-	CreateWindowMessageQuestion question;
-	CreateWindowMessageAnswer   answer;
-
-	question.parentWindow = (HWND)windowHandle;
-	question.width        = m_gsInitData.cx;
-	question.height       = m_gsInitData.cy;
-	while (!PostThreadMessage(
-	    GetThreadId(worker.native_handle()),
-	    (UINT)SystemWorkerMessage::CreateWindow,
-	    reinterpret_cast<intptr_t>(&question),
-	    reinterpret_cast<intptr_t>(&answer))) {
-		Sleep(0);
-	}
-
-	if (!answer.try_wait()) {
-		while (!answer.wait()) {
-			if (answer.called)
-				break;
-			Sleep(0);
-		}
-	}
-
-	if (!answer.success) {
-		throw std::system_error(answer.errorCode, std::system_category(), answer.errorMessage);
-	}
-
-	m_ourWindow              = answer.windowHandle;
-	m_parentWindow           = reinterpret_cast<HWND>(windowHandle);
-	m_gsInitData.window.hwnd = reinterpret_cast<void*>(m_ourWindow);
-#endif
 	m_display = obs_display_create(&m_gsInitData, 0x0);
     if (!m_display) {
         blog(LOG_INFO, "Failed to create the display");
@@ -397,189 +357,19 @@ OBS::Display::~Display()
 	m_boxLine = nullptr;
 	m_boxTris = nullptr;
 	obs_leave_graphics();
-
-#ifdef _WIN32
-	DestroyWindowMessageQuestion question;
-	DestroyWindowMessageAnswer   answer;
-
-	question.window = m_ourWindow;
-	PostThreadMessage(
-	    GetThreadId(worker.native_handle()),
-	    (UINT)SystemWorkerMessage::DestroyWindow,
-	    reinterpret_cast<intptr_t>(&question),
-	    reinterpret_cast<intptr_t>(&answer));
-
-	if (!answer.try_wait()) {
-		while (!answer.wait()) {
-			if (answer.called)
-				break;
-			Sleep(0);
-		}
-	}
-
-	if (!answer.success) {
-		std::cerr << "OBS::Display::~Display: " << answer.errorMessage << std::endl;
-	}
-
-	PostThreadMessage(GetThreadId(worker.native_handle()), (UINT)SystemWorkerMessage::StopThread, NULL, NULL);
-
-	if (worker.joinable())
-		worker.join();
-#endif
-}
-
-void OBS::Display::SetPosition(uint32_t x, uint32_t y)
-{
-#if defined(_WIN32)
-	// Store new position.
-	m_position.first  = x;
-	m_position.second = y;
-
-	if (m_source != NULL) {
-       std::string msg = "<" + std::string(__FUNCTION__) + "> Adjusting display position for source %s to %ldx%ld. hwnd %d";
-		blog(
-		    LOG_DEBUG,
-		    msg.c_str(),
-		    obs_source_get_name(m_source), x, y, m_ourWindow);
-	}
-
-	SetWindowPos( m_ourWindow, NULL, m_position.first, m_position.second, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE);
-#endif
-}
-
-std::pair<uint32_t, uint32_t> OBS::Display::GetPosition()
-{
-	return m_position;
-}
-
-bool isNewerThanWindows7()
-{
-#ifdef WIN32
-	static bool versionIsHigherThan7 = false; 
-	static bool versionIsChecked = false; 
-	if( !versionIsChecked )
-	{
-		OSVERSIONINFO osvi;
-		BOOL bIsWindowsXPorLater;
-
-		ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
-		osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-
-		GetVersionEx(&osvi);
-
-		versionIsHigherThan7 = 
-		( (osvi.dwMajorVersion > 6 ) ||
-		( (osvi.dwMajorVersion == 6) && 
-		(osvi.dwMinorVersion > 1) ));
-
-		versionIsChecked = true;
-	}
-	return versionIsHigherThan7;
-#else
-    return false;
-#endif
-}
-
-void OBS::Display::setSizeCall(int step)
-{
-	int use_x, use_y;
-	int use_width, use_height;
-	const float presizes[] = {1 ,1.05, 1.25, 1.5, 2.0 , 3.0};
-
-	switch( step ) 
-	{
-	case -1:
-		use_width = m_gsInitData.cx;
-		use_height = m_gsInitData.cy;
-		use_x = m_position.first;
-		use_y = m_position.second;
-		break;
-	case 0:
-		use_width = m_gsInitData.cx-2;
-		use_height = m_gsInitData.cy-2;
-		use_x = m_position.first + 1;
-		use_y = m_position.second + 1;
-		break;
-	case 1:
-	case 2:
-	case 3:
-	case 4:
-	case 5:
-		use_width = float(m_gsInitData.cx)/presizes[step];
-		use_height = float(m_gsInitData.cy)/presizes[step];
-		use_x = m_position.first + (m_gsInitData.cx-use_width)/2;
-		use_y = m_position.second + (m_gsInitData.cy-use_height)/2;
-		break;
-	}
-	
-	BOOL ret = true;
-	// Resize Window
-#if defined(_WIN32)
-	if(step > 0)
-	{
-		ret = SetWindowPos( m_ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_HIDEWINDOW);
-	} else {
-		ret = SetWindowPos( m_ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_SHOWWINDOW);
-		if(ret)
-			RedrawWindow( m_ourWindow, NULL, NULL, RDW_ERASE | RDW_INVALIDATE);
-	}
-#elif defined(__APPLE__)
-#elif defined(__linux__) || defined(__FreeBSD__)
-#endif
-
-	if(step >= 0 && ret)
-	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
-		std::thread{&OBS::Display::setSizeCall, this, step -1 }.detach();
-	}
-};
-
-
-void OBS::Display::SetSize(uint32_t width, uint32_t height)
-{
-#ifdef WIN32
-	if (m_source != NULL) {
-       std::string msg = "<" + std::string(__FUNCTION__) + "> Adjusting display size for source %s to %ldx%ld. hwnd %d";
-		blog(
-			LOG_DEBUG,
-			msg.c_str(),
-			obs_source_get_name(m_source), width, height, m_ourWindow);
-	}
-
-	m_gsInitData.cx = width;
-	m_gsInitData.cy = height;
-
-	if(width == 0 || height == 0 || isNewerThanWindows7())
-	{
-		setSizeCall(-1);
-	} else {
-		setSizeCall(4);
-	}
-
-	// Resize Display
-	obs_display_resize(m_display, m_gsInitData.cx, m_gsInitData.cy);
-
-	// Store new size.
-	UpdatePreviewArea();
-#endif
-}
-
-std::pair<uint32_t, uint32_t> OBS::Display::GetSize()
-{
-	return std::make_pair(m_gsInitData.cx, m_gsInitData.cy);
 }
 
 std::pair<int32_t, int32_t> OBS::Display::GetPreviewOffset()
 {
-	return m_previewOffset;
+       return m_previewOffset;
 }
 
 std::pair<uint32_t, uint32_t> OBS::Display::GetPreviewSize()
 {
-	return m_previewSize;
+       return m_previewSize;
 }
 
-void OBS::Display::SetDrawUI(bool v /*= true*/)
+void OBS::Display::SetDrawUI(bool v)
 {
 	m_shouldDrawUI = v;
 }
@@ -1290,54 +1080,6 @@ void OBS::Display::UpdatePreviewArea()
 	m_previewToWorldScale.x = float_t(sourceW) / float_t(m_previewSize.first);
 	m_previewToWorldScale.y = float_t(sourceH) / float_t(m_previewSize.second);
 }
-
-#if defined(_WIN32)
-
-bool OBS::Display::DisplayWndClassRegistered;
-
-WNDCLASSEX OBS::Display::DisplayWndClassObj;
-
-ATOM OBS::Display::DisplayWndClassAtom;
-
-void OBS::Display::DisplayWndClass()
-{
-	if (DisplayWndClassRegistered)
-		return;
-
-	DisplayWndClassObj.cbSize = sizeof(WNDCLASSEX);
-	DisplayWndClassObj.style  = CS_OWNDC | CS_NOCLOSE | CS_HREDRAW
-	                           | CS_VREDRAW; // CS_DBLCLKS | CS_HREDRAW | CS_NOCLOSE | CS_VREDRAW | CS_OWNDC;
-	DisplayWndClassObj.lpfnWndProc   = DisplayWndProc;
-	DisplayWndClassObj.cbClsExtra    = 0;
-	DisplayWndClassObj.cbWndExtra    = 0;
-	DisplayWndClassObj.hInstance     = NULL; // HINST_THISCOMPONENT;
-	DisplayWndClassObj.hIcon         = NULL;
-	DisplayWndClassObj.hCursor       = NULL;
-	DisplayWndClassObj.hbrBackground = NULL;
-	DisplayWndClassObj.lpszMenuName  = NULL;
-	DisplayWndClassObj.lpszClassName = TEXT("Win32DisplayClass");
-	DisplayWndClassObj.hIconSm       = NULL;
-
-	DisplayWndClassAtom = RegisterClassEx(&DisplayWndClassObj);
-	if (DisplayWndClassAtom == NULL) {
-		HandleWin32ErrorMessage(GetLastError());
-	}
-
-	DisplayWndClassRegistered = true;
-}
-
-LRESULT CALLBACK OBS::Display::DisplayWndProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam)
-{
-	OBS::Display* self = nullptr;
-	switch (uMsg) {
-	case WM_NCHITTEST:
-		return HTTRANSPARENT;
-	}
-
-	return DefWindowProc(hwnd, uMsg, wParam, lParam);
-}
-
-#endif
 
 bool OBS::Display::GetDrawGuideLines(void)
 {
