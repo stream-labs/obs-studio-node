@@ -153,6 +153,8 @@ void osn::Input::Create(
 	rval.push_back(ipc::value(uid));
 	rval.push_back(ipc::value(obs_data_get_full_json(settingsSource)));
 	rval.push_back(ipc::value(obs_source_get_audio_mixers(source)));
+
+	obs_data_release(settingsSource);
 	AUTO_DEBUG;
 }
 
