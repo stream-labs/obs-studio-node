@@ -349,6 +349,45 @@ Napi::Value service::OBS_service_installVirtualCamPlugin(const Napi::CallbackInf
 	return info.Env().Undefined();
 }
 
+Napi::Value service::OBS_service_uninstallVirtualCamPlugin(const Napi::CallbackInfo& info) {
+#ifdef WIN32
+	std::wstring pathToRegFile = L"/u \"" + utfWorkingDir;
+	pathToRegFile += L"\\obs-virtualsource.dll\"";
+	SHELLEXECUTEINFO ShExecInfo = {0};
+	ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
+	ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
+	ShExecInfo.hwnd = NULL;
+	ShExecInfo.lpVerb = L"runas";
+	ShExecInfo.lpFile = L"regsvr32.exe";
+	ShExecInfo.lpParameters = pathToRegFile.c_str();
+	ShExecInfo.lpDirectory = NULL;
+	ShExecInfo.nShow = SW_HIDE;
+	ShExecInfo.hInstApp = NULL;
+	ShellExecuteEx(&ShExecInfo);
+	WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
+	CloseHandle(ShExecInfo.hProcess);
+
+	std::wstring pathToRegFile32 = L"/u \"" + utfWorkingDir;
+	pathToRegFile32 += L"\\data\\obs-plugins\\obs-virtualoutput\\obs-virtualsource_32bit\\obs-virtualsource.dll\"";
+	SHELLEXECUTEINFO ShExecInfob = {0};
+	ShExecInfob.cbSize = sizeof(SHELLEXECUTEINFO);
+	ShExecInfob.fMask = SEE_MASK_NOCLOSEPROCESS;
+	ShExecInfob.hwnd = NULL;
+	ShExecInfob.lpVerb = L"runas";
+	ShExecInfob.lpFile = L"regsvr32.exe";
+	ShExecInfob.lpParameters = pathToRegFile32.c_str();
+	ShExecInfob.lpDirectory = NULL;
+	ShExecInfob.nShow = SW_HIDE;
+	ShExecInfob.hInstApp = NULL;
+	ShellExecuteEx(&ShExecInfob);
+	WaitForSingleObject(ShExecInfob.hProcess, INFINITE);
+	CloseHandle(ShExecInfob.hProcess);
+#elif __APPLE__
+	// g_util_osx->installPlugin();
+#endif
+	return info.Env().Undefined();
+}
+
 Napi::Value service::OBS_service_isVirtualCamPluginInstalled(const Napi::CallbackInfo& info) {
 #ifdef WIN32
 	HKEY OpenResult;
@@ -414,6 +453,9 @@ void service::Init(Napi::Env env, Napi::Object exports)
 	exports.Set(
 		Napi::String::New(env, "OBS_service_installVirtualCamPlugin"),
 		Napi::Function::New(env, service::OBS_service_installVirtualCamPlugin));
+	exports.Set(
+		Napi::String::New(env, "OBS_service_uninstallVirtualCamPlugin"),
+		Napi::Function::New(env, service::OBS_service_uninstallVirtualCamPlugin));
 	exports.Set(
 		Napi::String::New(env, "OBS_service_isVirtualCamPluginInstalled"),
 		Napi::Function::New(env, service::OBS_service_isVirtualCamPluginInstalled));
