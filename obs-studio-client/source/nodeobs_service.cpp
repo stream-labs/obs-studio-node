@@ -383,7 +383,7 @@ Napi::Value service::OBS_service_uninstallVirtualCamPlugin(const Napi::CallbackI
 	WaitForSingleObject(ShExecInfob.hProcess, INFINITE);
 	CloseHandle(ShExecInfob.hProcess);
 #elif __APPLE__
-	// g_util_osx->installPlugin();
+	g_util_osx->uninstallPlugin();
 #endif
 	return info.Env().Undefined();
 }
