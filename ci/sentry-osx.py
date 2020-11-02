@@ -17,6 +17,6 @@ process_sentry('obs-client', os.path.join(os.environ['PWD'], os.environ['SLBUILD
 process_sentry('obs-server', os.path.join(os.environ['PWD'], os.environ['SLBUILDDIRECTORY'], 'obs-studio-server', os.environ['BUILDCONFIG']))
 
 # # Upload client debug files
-process_sentry('obs-client', os.path.join(os.environ['PWD'], os.environ['SLBUILDDIRECTORY'], 'obs-studio-client', os.environ['BUILDCONFIG']))
+process_sentry('obs-client-preview', os.path.join(os.environ['PWD'], os.environ['SLBUILDDIRECTORY'], 'obs-studio-client', os.environ['BUILDCONFIG']))
 # # Upload server debug files
-process_sentry('obs-server', os.path.join(os.environ['PWD'], os.environ['SLBUILDDIRECTORY'], 'obs-studio-server', os.environ['BUILDCONFIG']))
+process_sentry('obs-server-preview', os.path.join(os.environ['PWD'], os.environ['SLBUILDDIRECTORY'], 'obs-studio-server', os.environ['BUILDCONFIG']))
