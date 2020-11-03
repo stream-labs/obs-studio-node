@@ -299,4 +299,7 @@ class OBS_service
 
 	static bool EncoderAvailable(const char* encoder);
 	static void stopAllOutputs(void);
+
+	static void startTwitchSoundtrackAudio(void);
+	static void stopTwitchSoundtrackAudio(void);
 };

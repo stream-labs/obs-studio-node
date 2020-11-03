@@ -338,11 +338,11 @@ Napi::Value osn::Scene::AddSource(const Napi::CallbackInfo& info)
 		sid->rotationChanged = false;
 
 		// Stream visible
-		sid->isStreamVisible      = crop.Get("streamVisible").ToBoolean().Value();
+		sid->isStreamVisible      = transform.Get("streamVisible").ToBoolean().Value();
 		sid->streamVisibleChanged = false;
 
 		// Recording visible
-		sid->isRecordingVisible      = crop.Get("recordingVisible").ToBoolean().Value();
+		sid->isRecordingVisible      = transform.Get("recordingVisible").ToBoolean().Value();
 		sid->recordingVisibleChanged = false;
 	}
 
