@@ -163,16 +163,16 @@ void OBS::Display::SystemWorker()
 			DWORD windowStyle;
 
 			if (IsWindows8OrGreater() || !enabled) {
-				windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST;
+				windowStyle = WS_EX_LAYERED;
 			} else {
-				windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_COMPOSITED;
+				windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_COMPOSITED;
 			}
 
 			HWND newWindow = CreateWindowEx(
 			    windowStyle,
 			    TEXT("Win32DisplayClass"),
 			    TEXT("SlobsChildWindowPreview"),
-			    WS_VISIBLE | WS_POPUP | WS_CHILD,
+			    WS_VISIBLE |  WS_POPUP | WS_CHILD,
 			    0,
 			    0,
 			    question->width,
@@ -190,7 +190,7 @@ void OBS::Display::SystemWorker()
 					SetLayeredWindowAttributes(newWindow, 0, 255, LWA_ALPHA);
 				}
 
-				SetParent(newWindow, question->parentWindow);
+				// SetParent(newWindow, question->parentWindow);
 				answer->windowHandle = newWindow;
 				answer->success      = true;
 			}
@@ -443,7 +443,7 @@ void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 		    obs_source_get_name(m_source), x, y, m_ourWindow);
 	}
 
-	SetWindowPos( m_ourWindow, NULL, m_position.first, m_position.second, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE);
+	SetWindowPos( m_ourWindow, HWND_BOTTOM, m_position.first, m_position.second, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE);
 #endif
 }
 
