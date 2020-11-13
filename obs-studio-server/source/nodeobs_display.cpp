@@ -190,7 +190,7 @@ void OBS::Display::SystemWorker()
 					SetLayeredWindowAttributes(newWindow, 0, 255, LWA_ALPHA);
 				}
 
-				// SetParent(newWindow, question->parentWindow);
+				SetParent(newWindow, question->parentWindow);
 				answer->windowHandle = newWindow;
 				answer->success      = true;
 			}
