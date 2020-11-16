@@ -463,7 +463,20 @@ void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 		return;
 	GetWindowRect(m_intermediateChrome, &rect_intermediate);
 
+	blog(LOG_INFO, "Parent window");
+	blog(LOG_INFO, "rect_parent.left: %d", rect_parent.left);
+	blog(LOG_INFO, "rect_parent.right: %d", rect_parent.right);
+	blog(LOG_INFO, "rect_parent.top: %d", rect_parent.top);
+	blog(LOG_INFO, "rect_parent.bottom: %d", rect_parent.bottom);
+	blog(LOG_INFO, "Intermediate window");
+	blog(LOG_INFO, "rect_intermediate.left: %d", rect_intermediate.left);
+	blog(LOG_INFO, "rect_intermediate.right: %d", rect_intermediate.right);
+	blog(LOG_INFO, "rect_intermediate.top: %d", rect_intermediate.top);
+	blog(LOG_INFO, "rect_intermediate.bottom: %d", rect_intermediate.bottom);
+
 	uint32_t offset_y = rect_intermediate.top - rect_parent.top;
+
+	blog(LOG_INFO, "offset_y: %d", offset_y);
 
 	SetWindowPos( m_ourWindow, NULL, m_position.first, m_position.second + offset_y, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE);
 #endif
