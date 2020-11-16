@@ -133,8 +133,10 @@ namespace OBS
 		enum obs_video_rendering_mode m_renderingMode = OBS_MAIN_VIDEO_RENDERING;
 
 #if defined(_WIN32)
+		public:
 		HWND              m_ourWindow;
 		HWND              m_parentWindow;
+		HWND              m_intermediateChrome;
 		static bool       DisplayWndClassRegistered;
 		static WNDCLASSEX DisplayWndClassObj;
 		static ATOM       DisplayWndClassAtom;
