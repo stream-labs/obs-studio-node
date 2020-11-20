@@ -1328,8 +1328,8 @@ void OBS::Display::DisplayWndClass()
 		return;
 
 	DisplayWndClassObj.cbSize = sizeof(WNDCLASSEX);
-	DisplayWndClassObj.style  = 0; //CS_OWNDC | CS_NOCLOSE | CS_HREDRAW
-	                           //| CS_VREDRAW; // CS_DBLCLKS | CS_HREDRAW | CS_NOCLOSE | CS_VREDRAW | CS_OWNDC;
+	DisplayWndClassObj.style  = CS_OWNDC | CS_NOCLOSE | CS_HREDRAW
+	                           | CS_VREDRAW; // CS_DBLCLKS | CS_HREDRAW | CS_NOCLOSE | CS_VREDRAW | CS_OWNDC;
 	DisplayWndClassObj.lpfnWndProc   = DisplayWndProc;
 	DisplayWndClassObj.cbClsExtra    = 0;
 	DisplayWndClassObj.cbWndExtra    = 0;
