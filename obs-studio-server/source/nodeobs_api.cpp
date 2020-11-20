@@ -1305,6 +1305,8 @@ void OBS_API::StopCrashHandler(
 {
 	util::CrashManager::setAppState("shutdown");
 
+	blog(LOG_DEBUG, "OBS_API::StopCrashHandler called, objects allocated %d", bnum_allocs());
+
 	if (crash_handler_responce_thread) {
 		writeCrashHandler(unregisterProcess());
 
@@ -1333,7 +1335,7 @@ void OBS_API::InformCrashHandler(const int crash_id)
 
 void OBS_API::destroyOBS_API(void)
 {
-	blog(LOG_DEBUG, "OBS_API::destroyOBS_API started");
+	blog(LOG_DEBUG, "OBS_API::destroyOBS_API started, objects allocated %d", bnum_allocs());
 
 	os_cpu_usage_info_destroy(cpuUsageInfo);
 
@@ -1414,13 +1416,14 @@ void OBS_API::destroyOBS_API(void)
 
 		util::CrashManager::DisableReports();
 #endif
+		blog(LOG_DEBUG, "OBS_API::destroyOBS_API unreleased objects detected before obs_shutdown, objects allocated %d", bnum_allocs());
 		// Try-catch should suppress any error message that could be thrown to the user
 		try {
 			obs_shutdown();
 		} catch (...) {}
 
 	} else {
-	
+		blog(LOG_DEBUG, "OBS_API::destroyOBS_API calling obs_shutdown, objects allocated %d", bnum_allocs());
 		obs_shutdown();
 	}
 
@@ -1437,6 +1440,7 @@ void OBS_API::destroyOBS_API(void)
 	if (totalLeaks) {
 		// throw "OBS has memory leaks";
 	}
+	blog(LOG_DEBUG, "OBS_API::destroyOBS_API after obs_shutdown, objects allocated %d", bnum_allocs());
 }
 
 struct ci_char_traits : public std::char_traits<char>
