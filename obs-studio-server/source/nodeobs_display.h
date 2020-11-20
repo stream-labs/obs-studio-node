@@ -59,10 +59,12 @@ namespace OBS
 
 		public:
 		Display(uint64_t windowHandle,
-		    enum obs_video_rendering_mode mode);       // Create a Main Preview one
+		    enum obs_video_rendering_mode mode, // Create a Main Preview one
+			bool renderAtBottom);
 		Display(uint64_t windowHandle,
 		    enum obs_video_rendering_mode mode,
-		    std::string                   sourceName); // Create a Source-Specific one
+		    std::string                   sourceName, // Create a Source-Specific one
+			bool renderAtBottom);
 		~Display();
 
 		void                          SetPosition(uint32_t x, uint32_t y);
@@ -129,6 +131,7 @@ namespace OBS
 		uint32_t m_resizeOuterColor = 0xFF7E7E7E;
 		uint32_t m_resizeInnerColor = 0xFFFFFFFF;
 		bool     m_shouldDrawUI     = true;
+		bool     m_renderAtBottom   = false;
 
 		enum obs_video_rendering_mode m_renderingMode = OBS_MAIN_VIDEO_RENDERING;
 
