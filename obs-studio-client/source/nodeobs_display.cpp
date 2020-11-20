@@ -160,7 +160,7 @@ Napi::Value display::OBS_content_createSourcePreviewDisplay(const Napi::Callback
 		return info.Env().Undefined();
 
 	conn->call("Display", "OBS_content_createSourcePreviewDisplay",
-	    {
+		{
 			ipc::value((uint64_t)windowHandle),
 			ipc::value(sourceName),
 			ipc::value(key),
