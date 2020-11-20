@@ -433,7 +433,7 @@ static BOOL CALLBACK EnumChromeWindowsProc(HWND hwnd, LPARAM lParam)
 {
 	char buf[256];
 	if (GetClassNameA(hwnd, buf, sizeof(buf) / sizeof(*buf)) &&
-			strcmp(buf, "Chrome_RenderWidgetHostHWND") == 0) {
+			strcmp(buf, "Win32DisplayClass") != 0) {
 		OBS::Display *display = reinterpret_cast<OBS::Display*>(lParam);
 		display->m_intermediateChrome = hwnd;
 	}
