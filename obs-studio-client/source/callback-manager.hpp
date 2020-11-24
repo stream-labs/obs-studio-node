@@ -35,25 +35,6 @@ struct SourceSizeInfoData
 	std::vector<SourceSizeInfo*> items;
 };
 
-namespace sourceCallback
-{
-	extern bool isWorkerRunning;
-	extern bool worker_stop;
-	extern uint32_t sleepIntervalMS;
-	extern std::thread* worker_thread;
-	extern Napi::ThreadSafeFunction js_thread;
-	extern bool m_all_workers_stop;
-
-	void worker(void);
-	void start_worker(napi_env env, Napi::Function async_callback);
-	void stop_worker(void);
-
-	void Init(Napi::Env env, Napi::Object exports);
-
-	Napi::Value RegisterSourceCallback(const Napi::CallbackInfo& info);
-	Napi::Value RemoveSourceCallback(const Napi::CallbackInfo& info);
-}
-
 namespace globalCallback
 {
 	extern bool isWorkerRunning;

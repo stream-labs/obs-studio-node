@@ -108,7 +108,6 @@ Napi::Object main_node(Napi::Env env, Napi::Object exports) {
 	display::Init(env, exports);
 	service::Init(env, exports);
 	autoConfig::Init(env, exports);
-	// sourceCallback::Init(env, exports);
 	globalCallback::Init(env, exports);
 	return exports;
 };
