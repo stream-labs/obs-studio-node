@@ -53,6 +53,9 @@ Napi::Value globalCallback::RegisterGlobalCallback(const Napi::CallbackInfo& inf
 
 	start_worker(info.Env(), async_callback);
 	isWorkerRunning = true;
+	worker_stop = false;
+
+	worker_thread = new std::thread(&globalCallback::worker);
 
 	return Napi::Boolean::New(info.Env(), true);
 }
@@ -172,19 +175,20 @@ void globalCallback::worker()
 				data->items.push_back(item);
 				index = i;
 			}
-			js_thread.NonBlockingCall( data, sources_callback );
+
+			if (data->items.size() > 0)
+				js_thread.NonBlockingCall( data, sources_callback );
 
 			index++;
 
 			for (auto vol: volmeters) {
 				VolmeterData* data     = new VolmeterData{{}, {}, {}};
-				size_t channels = response[index].value_union.i32;
+				size_t channels = response[index++].value_union.i32;
 				if (!channels)
-					break;
+					continue;
 				data->magnitude.resize(channels);
 				data->peak.resize(channels);
 				data->input_peak.resize(channels);
-				index++;
 				for (size_t ch = 0; ch < channels; ch++) {
 					data->magnitude[ch]  = response[index + ch * 3 + 0].value_union.fp32;
 					data->peak[ch]       = response[index + ch * 3 + 1].value_union.fp32;
@@ -228,21 +232,4 @@ void globalCallback::remove_volmeter(uint64_t id)
 	
 	volmeters[id].Release();
 	volmeters.erase(id);
-}
-
-void globalCallback::start_cb_manager()
-{
-	worker_stop = false;
-	worker_thread = new std::thread(&globalCallback::worker);
-}
-
-void globalCallback::stop_cb_manager()
-{
-	if (worker_stop != false)
-		return;
-
-	worker_stop = true;
-	if (worker_thread->joinable()) {
-		worker_thread->join();
-	}
 }
