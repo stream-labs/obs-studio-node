@@ -48,6 +48,11 @@ void UtilInt::installPlugin(void)
     _impl->installPlugin();
 }
 
+void UtilInt::uninstallPlugin(void)
+{
+    _impl->uninstallPlugin();
+}
+
 void UtilInt::setServerWorkingDirectoryPath(std::string path)
 {
     _impl->setServerWorkingDirectoryPath(path);

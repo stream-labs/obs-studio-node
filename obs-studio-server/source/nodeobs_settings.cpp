@@ -2079,13 +2079,7 @@ void OBS_settings::getStandardRecordingSettings(
 	subCategoryParameters->params.push_back(recEncoder);
 
 	const char* streamEncoderCurrentValue = config_get_string(config, "AdvOut", "Encoder");
-	bool        streamScaleAvailable      = true;
-
-	if (strcmp(recEncoderCurrentValue, "none") == 0) {
-		if (strcmp(streamEncoderCurrentValue, ENCODER_NEW_NVENC) == 0) {
-			streamScaleAvailable = false;
-		}
-	}
+	bool streamScaleAvailable  = strcmp(recEncoderCurrentValue, "none") != 0;
 
 	// Rescale Output : boolean
 	Parameter recRescale;
