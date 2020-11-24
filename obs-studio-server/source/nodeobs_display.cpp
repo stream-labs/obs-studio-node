@@ -428,19 +428,6 @@ OBS::Display::~Display()
 #endif
 }
 
-#if defined(_WIN32)
-static BOOL CALLBACK EnumChromeWindowsProc(HWND hwnd, LPARAM lParam)
-{
-	char buf[256];
-	if (GetClassNameA(hwnd, buf, sizeof(buf) / sizeof(*buf)) &&
-			strcmp(buf, "Chrome_RenderWidgetHostHWND") == 0) {
-		OBS::Display *display = reinterpret_cast<OBS::Display*>(lParam);
-		display->m_intermediateChrome = hwnd;
-	}
-	return TRUE;
-}
-#endif
-
 void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 {
 #if defined(_WIN32)
@@ -456,16 +443,7 @@ void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 		    obs_source_get_name(m_source), x, y, m_ourWindow);
 	}
 
-	RECT rect_parent, rect_intermediate;
-	GetWindowRect(m_parentWindow, &rect_parent);
-	(void)EnumChildWindows(m_parentWindow, EnumChromeWindowsProc, reinterpret_cast<LPARAM>(this));
-	if (!m_intermediateChrome)
-		return;
-	GetWindowRect(m_intermediateChrome, &rect_intermediate);
-
-	uint32_t offset_y = rect_intermediate.top - rect_parent.top;
-
-	SetWindowPos( m_ourWindow, NULL, m_position.first, m_position.second + offset_y, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE);
+	SetWindowPos( m_ourWindow, NULL, m_position.first, m_position.second, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE);
 #endif
 }
 
