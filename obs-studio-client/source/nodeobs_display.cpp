@@ -27,42 +27,10 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
-#ifdef WIN32
-static BOOL CALLBACK EnumChromeWindowsProc(HWND hwnd, LPARAM lParam)
-{
-	char buf[256];
-	if (GetClassNameA(hwnd, buf, sizeof(buf) / sizeof(*buf))) {
-		if (strstr(buf, "Intermediate D3D Window")) {
-			LONG_PTR style = GetWindowLongPtr(hwnd, GWL_STYLE);
-			if ((style & WS_CLIPSIBLINGS) == 0) {
-				style |= WS_CLIPSIBLINGS;
-				SetWindowLongPtr(hwnd, GWL_STYLE, style);
-			}
-		}
-	}
-	return TRUE;
-}
-
-static void FixChromeD3DIssue(HWND chromeWindow)
-{
-	(void)EnumChildWindows(chromeWindow, EnumChromeWindowsProc, (LPARAM)NULL);
-
-	LONG_PTR style = GetWindowLongPtr(chromeWindow, GWL_STYLE);
-	if ((style & WS_CLIPCHILDREN) == 0) {
-		style |= WS_CLIPCHILDREN;
-		SetWindowLongPtr(chromeWindow, GWL_STYLE, style);
-	}
-}
-#endif
-
 Napi::Value display::OBS_content_createDisplay(const Napi::CallbackInfo& info)
 {
 	Napi::Buffer<void *> bufferData = info[0].As<Napi::Buffer<void*>>();
 	uint64_t* windowHandle = static_cast<uint64_t*>(*reinterpret_cast<void **>(bufferData.Data()));
-
-#ifdef WIN32
-	FixChromeD3DIssue((HWND)windowHandle);
-#endif
 
 	std::string key = info[1].ToString().Utf8Value();
 	int32_t mode = info[2].ToNumber().Int32Value();
@@ -131,10 +99,6 @@ Napi::Value display::OBS_content_createSourcePreviewDisplay(const Napi::Callback
 {
 	Napi::Buffer<void *> bufferData = info[0].As<Napi::Buffer<void*>>();
 	uint64_t* windowHandle = static_cast<uint64_t*>(*reinterpret_cast<void **>(bufferData.Data()));
-
-#ifdef WIN32
-	FixChromeD3DIssue((HWND)windowHandle);
-#endif
 
 	std::string sourceName = info[1].ToString().Utf8Value();
 	std::string key = info[2].ToString().Utf8Value();
