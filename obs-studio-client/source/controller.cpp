@@ -161,7 +161,8 @@ bool is_process_alive(ProcessInfo& pinfo)
 		pinfo.exit_code = status;
 		return false;
 	}
-	pinfo.exit_code = 3;
+	//could not get exit code status, so assign a generic one
+	pinfo.exit_code = ProcessInfo::ExitCode::OTHER_ERROR;
 	return false;
 }
 
