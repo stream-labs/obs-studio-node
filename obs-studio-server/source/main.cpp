@@ -198,6 +198,10 @@ int main(int argc, char* argv[])
 #ifdef __APPLE__
 		socketPath = "/tmp/";
 #endif
+		if (argc != 3) {
+			throw std::exception("Version mismatch. Expected <socketpath> <version> params");
+		}
+
 		socketPath += argv[1];
 		receivedVersion = argv[2];
 		// Check versions
