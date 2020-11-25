@@ -142,6 +142,24 @@ int main(int argc, char* argv[])
 	g_util_osx = new UtilInt();
 	g_util_osx->init();
 #endif
+	std::string socketPath      = "";
+	std::string receivedVersion = "";
+#ifdef __APPLE__
+	socketPath = "/tmp/";
+#endif
+	if (argc != 3) {
+		std::cerr << "Version mismatch. Expected <socketpath> <version> params";
+		return -3;
+	}
+
+	socketPath += argv[1];
+	receivedVersion = argv[2];
+	// Check versions
+	std::string myVersion = OSN_VERSION;
+	if (receivedVersion != myVersion) {
+		std::cerr << "Versions mismatch. Server version: " << myVersion << "but received client version: " << receivedVersion;
+		return -3;
+	}
 
 	// Usage:
 	// argv[0] = Path to this application. (Usually given by default if run via path-based command!)
@@ -193,25 +211,6 @@ int main(int argc, char* argv[])
 
 	// Initialize Server
 	try {
-		std::string socketPath = "";
-		std::string receivedVersion = "";
-#ifdef __APPLE__
-		socketPath = "/tmp/";
-#endif
-		if (argc != 3) {
-			throw std::exception("Version mismatch. Expected <socketpath> <version> params");
-		}
-
-		socketPath += argv[1];
-		receivedVersion = argv[2];
-		// Check versions
-		std::string myVersion = OSN_VERSION;
-		if (receivedVersion != myVersion) {
-			std::stringstream ss;
-			ss << "Versions mismatch. Server version: " << myVersion
-			   << "but received client version: " << receivedVersion;
-			throw std::exception(ss.str().c_str());
-		}
 		myServer.initialize(socketPath.c_str());
 	} catch (std::exception& e) {
 		std::cerr << "Initialization failed with error " << e.what() << "." << std::endl;
