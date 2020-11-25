@@ -146,6 +146,7 @@ int main(int argc, char* argv[])
 	// Usage:
 	// argv[0] = Path to this application. (Usually given by default if run via path-based command!)
 	// argv[1] = Path to a named socket.
+	// argv[2] = version from client ; must match the server version
 
 	// Instance
 	ipc::server myServer;
@@ -193,10 +194,20 @@ int main(int argc, char* argv[])
 	// Initialize Server
 	try {
 		std::string socketPath = "";
+		std::string receivedVersion = "";
 #ifdef __APPLE__
 		socketPath = "/tmp/";
 #endif
 		socketPath += argv[1];
+		receivedVersion = argv[2];
+		// Check versions
+		std::string myVersion = OSN_VERSION;
+		if (receivedVersion != myVersion) {
+			std::stringstream ss;
+			ss << "Versions mismatch. Server version: " << myVersion
+			   << "but received client version: " << receivedVersion;
+			throw std::exception(ss.str().c_str());
+		}
 		myServer.initialize(socketPath.c_str());
 	} catch (std::exception& e) {
 		std::cerr << "Initialization failed with error " << e.what() << "." << std::endl;

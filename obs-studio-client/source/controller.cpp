@@ -243,9 +243,11 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 	if (m_isServer)
 		return nullptr;
 
+	const std::string version = OSN_VERSION;
+
 	std::stringstream commandLine;
 	commandLine << "\"" << serverBinaryPath << "\""
-	            << " " << uri;
+	            << " " << uri << " " << version;
 
 	std::string workingDirectory;
 
