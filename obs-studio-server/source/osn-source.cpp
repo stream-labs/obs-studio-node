@@ -297,6 +297,7 @@ void osn::Source::GetProperties(
 		obs_source_update(src, settings);
 		MemoryManager::GetInstance().updateSourceCache(src);
 	}
+	obs_data_release(settings);
 	AUTO_DEBUG;
 }
 

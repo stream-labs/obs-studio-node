@@ -108,4 +108,17 @@ void UtilObjCInt::installPlugin()
 	NSLog(@"errors: %@", error);
 }
 
+void UtilObjCInt::uninstallPlugin()
+{
+	NSDictionary *error = [NSDictionary dictionary];
+	std::string cmd =
+		"do shell script \"rm -rf /Library/CoreMediaIO/Plug-Ins/DAL/vcam-plugin.plugin \" with administrator privileges";
+
+	NSString *script = [NSString stringWithCString:cmd.c_str()
+	                            encoding:[NSString defaultCStringEncoding]];
+	NSAppleScript *run = [[NSAppleScript alloc]initWithSource:script];
+	[run executeAndReturnError:&error];
+	NSLog(@"errors: %@", error);
+}
+
 @end
