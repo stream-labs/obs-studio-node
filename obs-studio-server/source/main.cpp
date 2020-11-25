@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
 #endif
 	if (argc != 3) {
 		std::cerr << "Version mismatch. Expected <socketpath> <version> params";
-		return -3;
+		return 252;
 	}
 
 	socketPath += argv[1];
@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
 	std::string myVersion = OSN_VERSION;
 	if (receivedVersion != myVersion) {
 		std::cerr << "Versions mismatch. Server version: " << myVersion << "but received client version: " << receivedVersion;
-		return -3;
+		return 252;
 	}
 
 	// Usage:
@@ -214,10 +214,10 @@ int main(int argc, char* argv[])
 		myServer.initialize(socketPath.c_str());
 	} catch (std::exception& e) {
 		std::cerr << "Initialization failed with error " << e.what() << "." << std::endl;
-		return -2;
+		return 253;
 	} catch (...) {
 		std::cerr << "Failed to initialize server" << std::endl;
-		return -2;
+		return 253;
 	}
 
 	// Reset Connect/Disconnect time.

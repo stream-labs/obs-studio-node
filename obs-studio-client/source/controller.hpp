@@ -18,6 +18,7 @@
 
 #pragma once
 #include <memory>
+#include <map>
 #include <string>
 #include "ipc-client.hpp"
 #include <napi.h>
@@ -33,17 +34,38 @@ struct ProcessInfo
 {
 	uint64_t handle;
 	uint64_t id;
+	DWORD    exit_code;
 
-	ProcessInfo()
+	enum ExitCode
 	{
-		this->handle = 0;
-		this->id     = 0;
+		STILL_RUNNING = 259,
+		VERSION_MISMATCH = 252,
+		OTHER_ERROR = 253,
+		NORMAL_EXIT = 0
 	};
-	ProcessInfo(uint64_t h, uint64_t i)
-	{
-		this->handle = h;
-		this->id     = i;
-	}
+
+	typedef std::map<ProcessInfo::ExitCode, std::string> ProcessDescriptionMap;
+
+	private:
+		static ProcessDescriptionMap descriptions;
+		static ProcessDescriptionMap initDescriptions();
+
+	public:
+		ProcessInfo() : handle(0), id(0), exit_code(0)
+		{
+	
+		};
+		ProcessInfo(uint64_t h, uint64_t i) : handle(h), id(i), exit_code(0)
+		{
+		
+		}
+		static std::string getDescription(DWORD key) {
+		    ProcessInfo::ExitCode k = static_cast<ProcessInfo::ExitCode>(key);
+		    if (descriptions.find(k) != descriptions.end()) {
+			    return descriptions[k];
+			}
+		    return "Generic Error";
+		}
 };
 
 class Controller
@@ -69,6 +91,8 @@ class Controller
 	std::shared_ptr<ipc::client> host(const std::string& uri);
 
 	std::shared_ptr<ipc::client> connect(const std::string& uri);
+
+	DWORD GetExitCode();
 
 	void disconnect();
 

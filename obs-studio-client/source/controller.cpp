@@ -19,6 +19,7 @@
 #include "controller.hpp"
 #include <codecvt>
 #include <fstream>
+#include <sstream>
 #include <locale>
 #include <sstream>
 #include <string>
@@ -85,6 +86,18 @@ ProcessInfo open_process(uint64_t handle)
 	return pi;
 }
 
+ProcessInfo::ProcessDescriptionMap ProcessInfo::initDescriptions()
+{
+	ProcessDescriptionMap descriptions;
+	descriptions[ProcessInfo::ExitCode::STILL_RUNNING] = "Still runnings";
+	descriptions[ProcessInfo::ExitCode::NORMAL_EXIT]   = "Normal exit";
+	descriptions[ProcessInfo::ExitCode::OTHER_ERROR]   = "Unknown error - check logs";
+	descriptions[ProcessInfo::ExitCode::VERSION_MISMATCH] = "Version mismatch";
+	return descriptions;
+}
+
+ProcessInfo::ProcessDescriptionMap ProcessInfo::descriptions = ProcessInfo::initDescriptions(); 
+
 bool close_process(ProcessInfo pi)
 {
 	return !!CloseHandle((HANDLE)pi.handle);
@@ -137,13 +150,18 @@ std::string get_process_name(ProcessInfo pi)
 	return {};
 }
 
-bool is_process_alive(ProcessInfo pinfo)
+bool is_process_alive(ProcessInfo& pinfo)
 {
 	DWORD status;
 
-	if (GetExitCodeProcess(reinterpret_cast<HANDLE>(pinfo.handle), &status) && status ==  static_cast<uint64_t>(259))
-		return true;
-
+	if (GetExitCodeProcess(reinterpret_cast<HANDLE>(pinfo.handle), &status)) {
+		if (status == static_cast<uint64_t>(ProcessInfo::ExitCode::STILL_RUNNING)) {
+			return true;	
+		}
+		pinfo.exit_code = status;
+		return false;
+	}
+	pinfo.exit_code = 3;
 	return false;
 }
 
@@ -320,6 +338,7 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 std::shared_ptr<ipc::client> Controller::connect(
     const std::string& uri)
 {
+	procId.exit_code = 0;
 	if (m_isServer)
 		return nullptr;
 
@@ -372,6 +391,10 @@ void Controller::disconnect()
 	m_connection = nullptr;
 }
 
+DWORD Controller::GetExitCode() {
+	return procId.exit_code;
+}
+ 
 std::shared_ptr<ipc::client> Controller::GetConnection()
 {
 	return m_connection;
@@ -425,7 +448,14 @@ Napi::Value js_connect(const Napi::CallbackInfo& info)
 
 	std::string uri = info[0].ToString().Utf8Value();
 	auto        cl  = Controller::GetInstance().connect(uri);
+	DWORD        exit_code = Controller::GetInstance().GetExitCode();
 	if (!cl) {
+		if (exit_code != ProcessInfo::NORMAL_EXIT) {
+			std::stringstream ss;
+			ss << "Failed to connect. Exit code error: " << ProcessInfo::getDescription(exit_code);
+			Napi::Error::New(info.Env(), ss.str().c_str()).ThrowAsJavaScriptException();
+			return info.Env().Undefined();
+		}
 		Napi::Error::New(info.Env(), "Failed to connect.").ThrowAsJavaScriptException();
 		return info.Env().Undefined();
 	}
