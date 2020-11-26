@@ -150,8 +150,7 @@ target_link_libraries(${PROJECT_NAME} ${LIBOBS_LIBRARIES})
 add_definitions(-DNAPI_VERSION=4)
 
 #Define the OSN_VERSION
-add_compile_definitions(OSN_VERSION=$ENV{tagartifact}) 
- 
+add_compile_definitions(OSN_VERSION=\"$ENV{tagartifact}\") 
 set_target_properties(
 	obs_studio_client
 	PROPERTIES

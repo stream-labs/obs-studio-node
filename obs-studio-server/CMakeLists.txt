@@ -334,8 +334,7 @@ else()
 endif()
 
 #Define the OSN_VERSION
-add_compile_definitions(OSN_VERSION=$ENV{tagartifact}) 
-
+add_compile_definitions(OSN_VERSION=\"$ENV{tagartifact}\")
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "obs${BITS}")
 
 if(WIN32)
