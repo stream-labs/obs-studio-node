@@ -61,13 +61,7 @@ struct ProcessInfo
 		{
 		
 		}
-		static std::string getDescription(DWORD key) {
-		    ProcessInfo::ExitCode k = static_cast<ProcessInfo::ExitCode>(key);
-		    if (descriptions.find(k) != descriptions.end()) {
-			    return descriptions[k];
-			}
-		    return "Generic Error";
-		}
+	    static std::string getDescription(DWORD key);
 };
 
 class Controller
