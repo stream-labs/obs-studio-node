@@ -2449,8 +2449,32 @@ static inline uint32_t setMixer(obs_source_t *source, const int mixerIdx, const 
 uint32_t oldMixer_desktopSource1 = 0;
 uint32_t oldMixer_desktopSource2 = 0;
 
+void removeOutdatedSources()
+{
+    obs_enum_sources(
+        [](void *, obs_source_t *source) {
+            auto id = obs_source_get_id(source);
+            if(strcmp(id, "soundtrack_source") == 0) {
+                obs_source_remove(source);
+            }
+            return true;
+        },
+        NULL);
+}
+
+void createSoundtrackSource()
+{
+    // Create a floating instance of our SoundtrackSource and set it as output channel 63
+    obs_source_t *newSource = obs_source_create(
+        "soundtrack_global_source", "VOD Audio for Soundtrack by Twitch", NULL, NULL);
+    obs_set_output_source(kSoundtrackArchiveTrackIdx, newSource);
+    obs_source_release(newSource);
+}
+
 void OBS_service::startTwitchSoundtrackAudio(void) {
-	bool sourceExists = false;
+	obs_module_t *soundtrack = obs_get_module("soundtrack-plugin-64");
+	if (!soundtrack)
+		return;
 
 	if (!service)
 		return;
@@ -2462,18 +2486,42 @@ void OBS_service::startTwitchSoundtrackAudio(void) {
 	if (serviceName && strcmp(serviceName, "Twitch") != 0)
 		return;
 
+	removeOutdatedSources();
+
+	bool sourceExists = false;
 	obs_enum_sources(
-		[](void *param, obs_source_t *source) {
+		[](void *p, obs_source_t *source) {
 			auto id = obs_source_get_id(source);
-			if(strcmp(id, "soundtrack_source") == 0) {
-				*reinterpret_cast<bool *>(param) = true;
+			if(strcmp(id, "soundtrack_global_source") == 0) {
+				*reinterpret_cast<bool *>(p) = true;
 				return false;
 			}
 			return true;
 		},
-		&sourceExists);
+		reinterpret_cast<void *>(&sourceExists));
+	if(!sourceExists) {
+		createSoundtrackSource();
+	}
 
-	if (!sourceExists)
+	bool sourceConnected = false;
+	obs_enum_sources(
+		[](void *p, obs_source_t *source) {
+			auto id = obs_source_get_unversioned_id(source);
+			if(strcmp(id, "soundtrack_global_source") == 0) {
+				proc_handler_t* ph = obs_source_get_proc_handler(source);
+				calldata_t      cd = {0};
+				proc_handler_call(ph, "isConnected", &cd);
+				bool isConnected = calldata_bool(&cd, "connected");
+				if(isConnected) {
+					*reinterpret_cast<bool *>(p) = true;
+					return false;
+				}
+			}
+			return true;
+		},
+		reinterpret_cast<void *>(&sourceConnected));
+
+	if (!sourceConnected)
 		return;
 
 	// These are magic ints provided by OBS for default sources:
