@@ -78,10 +78,17 @@ void CallbackManager::QuerySourceSize(
 
 void CallbackManager::addSource(obs_source_t* source)
 {
-	std::unique_lock<std::mutex> ulock(sources_sizes_mtx);
-
-	if (!source || obs_source_get_type(source) == OBS_SOURCE_TYPE_FILTER)
+	uint32_t flags= obs_source_get_output_flags(source);
+	if ((flags & OBS_SOURCE_VIDEO) == 0)
 		return;
+
+	if (!source ||
+		obs_source_get_type(source) == OBS_SOURCE_TYPE_FILTER ||
+		obs_source_get_type(source) == OBS_SOURCE_TYPE_TRANSITION ||
+		obs_source_get_type(source) == OBS_SOURCE_TYPE_SCENE)
+		return;
+
+	std::unique_lock<std::mutex> ulock(sources_sizes_mtx);
 
 	SourceSizeInfo* si               = new SourceSizeInfo;
 	si->source                       = source;
