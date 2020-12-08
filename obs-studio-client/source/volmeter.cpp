@@ -113,6 +113,7 @@ Napi::Value osn::Volmeter::Detach(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Volmeter::AddCallback(const Napi::CallbackInfo& info)
 {
+	std::unique_lock<std::mutex> lck(globalCallback::mtx_volmeters);
 	Napi::Function async_callback = info[0].As<Napi::Function>();
 
 	auto conn = GetConnection(info);
@@ -132,6 +133,7 @@ Napi::Value osn::Volmeter::AddCallback(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Volmeter::RemoveCallback(const Napi::CallbackInfo& info)
 {
+	std::unique_lock<std::mutex> lck(globalCallback::mtx_volmeters);
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();

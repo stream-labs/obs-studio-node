@@ -212,7 +212,6 @@ void globalCallback::worker()
 
 void globalCallback::add_volmeter(napi_env env, uint64_t id, Napi::Function cb)
 {
-	std::unique_lock<std::mutex> lck(mtx_volmeters);
 	Napi::ThreadSafeFunction vol_thread = Napi::ThreadSafeFunction::New(
       env,
       cb,
@@ -225,8 +224,6 @@ void globalCallback::add_volmeter(napi_env env, uint64_t id, Napi::Function cb)
 
 void globalCallback::remove_volmeter(uint64_t id)
 {
-	std::unique_lock<std::mutex> lck(mtx_volmeters);
-	
 	if (volmeters.find(id) == volmeters.end())
 		return;
 	
