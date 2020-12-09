@@ -45,27 +45,6 @@ extern char **environ;
 
 using namespace ipc;
 
-std::string ProcessInfo::getDescription(DWORD key)
-{
-	ProcessInfo::ExitCode k = static_cast<ProcessInfo::ExitCode>(key);
-	if (descriptions.find(k) != descriptions.end()) {
-		return descriptions[k];
-	}
-	return "Generic Error";
-}
-
-ProcessInfo::ProcessDescriptionMap ProcessInfo::initDescriptions()
-{
-	ProcessDescriptionMap descriptions;
-	descriptions[ProcessInfo::ExitCode::STILL_RUNNING]    = "Still runnings";
-	descriptions[ProcessInfo::ExitCode::NORMAL_EXIT]      = "Normal exit";
-	descriptions[ProcessInfo::ExitCode::OTHER_ERROR]      = "Unknown error - check logs";
-	descriptions[ProcessInfo::ExitCode::VERSION_MISMATCH] = "Version mismatch";
-	return descriptions;
-}
-
-ProcessInfo::ProcessDescriptionMap ProcessInfo::descriptions = ProcessInfo::initDescriptions(); 
-
 #ifdef _WIN32
 ProcessInfo spawn(const std::string& program, const std::string& commandLine, const std::string& workingDirectory)
 {
