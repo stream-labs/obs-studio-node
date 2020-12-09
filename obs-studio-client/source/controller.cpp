@@ -43,6 +43,7 @@ std::wstring utfWorkingDir = L"";
 extern char **environ;
 #endif
 
+using namespace ipc;
 
 std::string ProcessInfo::getDescription(DWORD key)
 {

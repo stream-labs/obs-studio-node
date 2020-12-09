@@ -20,6 +20,7 @@
 #include <inttypes.h>
 #include <iostream>
 #include <ipc-class.hpp>
+#include <ipc.hpp>
 #include <ipc-function.hpp>
 #include <ipc-server.hpp>
 #include <memory>
@@ -149,7 +150,7 @@ int main(int argc, char* argv[])
 #endif
 	if (argc != 3) {
 		std::cerr << "Version mismatch. Expected <socketpath> <version> params";
-		return 252;
+		return ipc::ProcessInfo::ExitCode::VERSION_MISMATCH;
 	}
 
 	socketPath += argv[1];
@@ -158,7 +159,7 @@ int main(int argc, char* argv[])
 	std::string myVersion = OSN_VERSION;
 	if (receivedVersion != myVersion) {
 		std::cerr << "Versions mismatch. Server version: " << myVersion << "but received client version: " << receivedVersion;
-		return 252;
+		return ipc::ProcessInfo::ExitCode::VERSION_MISMATCH;
 	}
 
 	// Usage:
@@ -214,10 +215,10 @@ int main(int argc, char* argv[])
 		myServer.initialize(socketPath.c_str());
 	} catch (std::exception& e) {
 		std::cerr << "Initialization failed with error " << e.what() << "." << std::endl;
-		return 253;
+		return ipc::ProcessInfo::ExitCode::OTHER_ERROR;
 	} catch (...) {
 		std::cerr << "Failed to initialize server" << std::endl;
-		return 253;
+		return ipc::ProcessInfo::ExitCode::OTHER_ERROR;
 	}
 
 	// Reset Connect/Disconnect time.
