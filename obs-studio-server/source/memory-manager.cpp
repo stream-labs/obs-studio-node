@@ -90,8 +90,13 @@ bool MemoryManager::shouldCacheSource(source_info* si)
 	bool looping        = obs_data_get_bool(settings, "looping");
 	bool local_file     = obs_data_get_bool(settings, "is_local_file");
 	bool enable_caching = config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "fileCaching");
-	bool is_small       = current_cached_size + si->size < allowed_cached_size;
 	bool showing        = obs_source_showing(si->source);
+
+	bool is_small = false;
+	if (obs_data_get_bool(settings, "caching"))
+		is_small = current_cached_size < allowed_cached_size;
+	else
+		is_small = current_cached_size + si->size < allowed_cached_size;
 
 	if (!showing && !obs_data_get_bool(settings, "close_when_inactive"))
 		showing = true;
