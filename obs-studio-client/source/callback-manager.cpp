@@ -140,9 +140,9 @@ void globalCallback::worker()
 		if (!conn)
 			return;
 
+		std::unique_lock<std::mutex> lck(mtx_volmeters);
 		std::vector<char> volmeters_ids;
 		{
-			std::unique_lock<std::mutex> lck(mtx_volmeters);
 			uint32_t index = 0;
 			volmeters_ids.resize(sizeof(uint64_t) * volmeters.size());
 			for (auto vol: volmeters) {

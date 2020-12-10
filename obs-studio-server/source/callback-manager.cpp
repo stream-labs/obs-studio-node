@@ -74,6 +74,8 @@ void CallbackManager::GlobalQuery(
 
 		rval.insert(rval.begin() + 1, ipc::value(size));
 		sources_sizes_mtx.unlock();
+	} else {
+		rval.insert(rval.begin() + 1, ipc::value((uint32_t)0));
 	}
 	
 	uint64_t size_buffer = args[0].value_union.ui64;
