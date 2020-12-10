@@ -475,7 +475,21 @@ Napi::Value js_host(const Napi::CallbackInfo& info)
 
 	std::string uri = info[0].ToString().Utf8Value();
 	auto        cl  = Controller::GetInstance().host(uri);
+	DWORD        exit_code = Controller::GetInstance().GetExitCode();
+
 	if (!cl) {
+		if (exit_code == ProcessInfo::VERSION_MISMATCH) {
+			std::stringstream ss;
+			ss << "Version mismatch between client and server. Please reinstall Streamlabs OBS " ;
+			Napi::Error::New(info.Env(), ss.str().c_str()).ThrowAsJavaScriptException();
+			return info.Env().Undefined();
+		}
+		if (exit_code != ProcessInfo::NORMAL_EXIT) {
+			std::stringstream ss;
+			ss << "Failed to connect. Exit code error: " << ProcessInfo::getDescription(exit_code);
+			Napi::Error::New(info.Env(), ss.str().c_str()).ThrowAsJavaScriptException();
+			return info.Env().Undefined();
+		}
 		Napi::Error::New(info.Env(), "Failed to host and connect.").ThrowAsJavaScriptException();
 		return info.Env().Undefined();
 	}
