@@ -140,7 +140,7 @@ void globalCallback::worker()
 		if (!conn)
 			return;
 
-		std::unique_lock<std::mutex> lck(mtx_volmeters);
+		mtx_volmeters.lock();
 		std::vector<char> volmeters_ids;
 		{
 			uint32_t index = 0;
@@ -201,6 +201,7 @@ void globalCallback::worker()
 		}
 
 	do_sleep:
+		mtx_volmeters.unlock();
 		auto tp_end  = std::chrono::high_resolution_clock::now();
 		auto dur     = std::chrono::duration_cast<std::chrono::milliseconds>(tp_end - tp_start);
 		totalSleepMS = sleepIntervalMS - dur.count();
