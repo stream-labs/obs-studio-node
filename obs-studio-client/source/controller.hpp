@@ -57,5 +57,5 @@ class Controller
 	private:
 	bool                         m_isServer = false;
 	std::shared_ptr<ipc::client> m_connection;
-	ProcessInfo                  procId;
+	ipc::ProcessInfo                  procId;
 };
