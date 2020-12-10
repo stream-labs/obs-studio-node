@@ -447,7 +447,7 @@ Napi::Value js_connect(const Napi::CallbackInfo& info)
 			Napi::Error::New(info.Env(), ss.str().c_str()).ThrowAsJavaScriptException();
 			return info.Env().Undefined();
 		}
-		else if (exit_code != ProcessInfo::NORMAL_EXIT) {
+		if (exit_code != ProcessInfo::NORMAL_EXIT) {
 			std::stringstream ss;
 			ss << "Failed to connect. Exit code error: " << ProcessInfo::getDescription(exit_code);
 			Napi::Error::New(info.Env(), ss.str().c_str()).ThrowAsJavaScriptException();
