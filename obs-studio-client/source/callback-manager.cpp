@@ -195,7 +195,7 @@ void globalCallback::worker()
 					data->input_peak[ch] = response[index + ch * 3 + 2].value_union.fp32;
 				}
 				vol.second.NonBlockingCall(data, volmeter_callback);
-				index += 6;
+				index += (3 * channels);
 			}
 
 		}
