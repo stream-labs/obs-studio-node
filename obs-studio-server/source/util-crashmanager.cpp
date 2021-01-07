@@ -66,7 +66,7 @@ std::vector<std::string>                   handledOBSCrashes;
 PDH_HQUERY                                 cpuQuery;
 PDH_HCOUNTER                               cpuTotal;
 std::vector<nlohmann::json>                breadcrumbs;
-std::queue<std::pair<int, nlohmann::json>> lastActions;
+std::queue<std::pair<int, std::string>>    lastActions;
 std::vector<std::string>                   warnings;
 std::mutex                                 messageMutex;
 util::MetricsProvider                      metricsClient;
@@ -712,7 +712,7 @@ nlohmann::json util::CrashManager::ComputeActions()
 
 		// Update the message to reflect the count amount, if applicable
 		if (counter > 0) {
-			message["repeat"] = counter;
+			message = message + std::string("#") + std::to_string(counter);;
 		}
 
 		result.push_back(message);
@@ -900,14 +900,14 @@ void util::CrashManager::AddWarning(const std::string& warning)
 #endif
 }
 
-void RegisterAction(const nlohmann::json& message)
+void RegisterAction(const std::string& message)
 {
 #ifdef WIN32
 	static const int            MaximumActionsRegistered = 50;
 	std::lock_guard<std::mutex> lock(messageMutex);
 
 	// Check if this and the last message are the same, if true just add a counter
-	if (lastActions.size() > 0 && lastActions.back().second == message) {
+	if (lastActions.size() > 0 && lastActions.back().second.compare(message) == 0) {
 		lastActions.back().first++;
 	} else {
 		lastActions.push({0, message});
@@ -984,10 +984,6 @@ std::string util::CrashManager::getAppState()
 
 void util::CrashManager::ProcessPreServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args)
 {
-	nlohmann::json jsonEntry;
-	jsonEntry["cname"] = cname;
-	jsonEntry["fname"] = fname;
-
 	// Perform this only if this user have a high crash rate (TODO: this check must be implemented)
 	/*
 	nlohmann::json ipcValues = nlohmann::json::array();
@@ -995,7 +991,7 @@ void util::CrashManager::ProcessPreServerCall(std::string cname, std::string fna
 	jsonEntry["ipc values"] = ipcValues;
 	*/
 
-	RegisterAction(jsonEntry);
+	RegisterAction( cname + "::" + fname);
 }
 
 void util::CrashManager::ProcessPostServerCall(
