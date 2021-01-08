@@ -463,6 +463,8 @@ void osn::Source::ProcessProperties(
 				prop2->options.push_back(std::move(option));
 			}
 
+			prop2->current_value_str = (buf = obs_data_get_string(settings, name)) != nullptr ? buf : "";
+
 			prop = prop2;
 			break;
 		}

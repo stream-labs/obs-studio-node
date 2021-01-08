@@ -295,6 +295,8 @@ namespace obs
 		};
 		std::list<Option> options;
 
+		std::string current_value_str;
+
 		virtual ~FrameRateProperty(){};
 
 		virtual obs::Property::Type type() override;
