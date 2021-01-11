@@ -295,7 +295,8 @@ namespace obs
 		};
 		std::list<Option> options;
 
-		std::string current_value_str;
+		uint32_t current_numerator;
+		uint32_t current_denominator;
 
 		virtual ~FrameRateProperty(){};
 

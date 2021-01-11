@@ -237,7 +237,11 @@ Napi::Value osn::ISource::GetProperties(const Napi::CallbackInfo& info, uint64_t
 			std::shared_ptr<osn::ListProperty> pr2 = std::make_shared<osn::ListProperty>();
 			pr2->field_type                        = osn::ListProperty::Type::LIST;
 			pr2->item_format                       = osn::ListProperty::Format::STRING;
-			pr2->current_value_str                 = cast_property->current_value_str;
+
+			nlohmann::json fps;
+			fps["numerator"] = cast_property->current_numerator;
+			fps["denominator"] = cast_property->current_denominator;
+			pr2->current_value_str = fps.dump();
 
 			for (auto& option : cast_property->ranges) {
 				nlohmann::json fps;
@@ -264,6 +268,8 @@ Napi::Value osn::ISource::GetProperties(const Napi::CallbackInfo& info, uint64_t
 			pr->description      = raw_property->description;
 			pr->long_description = raw_property->long_description;
 			pr->type             = osn::Property::Type(raw_property->type());
+			if (pr->type == osn::Property::Type::FRAMERATE)
+				pr->type = osn::Property::Type::LIST;
 			pr->enabled          = raw_property->enabled;
 			pr->visible          = raw_property->visible;
 
