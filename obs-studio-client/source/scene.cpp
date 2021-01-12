@@ -292,7 +292,7 @@ Napi::Value osn::Scene::AddSource(const Napi::CallbackInfo& info)
 		return info.Env().Undefined();
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Scene", "AddSource", params);
+	    "Scene", info.Length() >= 2 ? "AddSourceWithTransform" : "AddSource", params);
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -395,10 +395,18 @@ Napi::Value osn::Scene::FindItem(const Napi::CallbackInfo& info)
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Scene",
-	    "FindItem",
-	    std::vector<ipc::value>{ipc::value(this->sourceId), (haveName ? ipc::value(name) : ipc::value(position))});
+	std::vector<ipc::value> response;
+	if (haveName) {
+		response = conn->call_synchronous_helper(
+			"Scene",
+			"FindItemByName",
+			std::vector<ipc::value>{ipc::value(this->sourceId), ipc::value(name) });
+	} else {
+		response = conn->call_synchronous_helper(
+			"Scene",
+			"FindItemById",
+			std::vector<ipc::value>{ipc::value(this->sourceId), ipc::value(position) });
+	}
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
