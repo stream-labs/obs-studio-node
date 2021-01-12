@@ -94,6 +94,7 @@ namespace OBS
 		obs_display_t* m_display;
 		obs_source_t*  m_source;
 		bool           m_drawGuideLines;
+		uint32_t       m_sharedHandle = 0;
 
 		// Preview
 		/// Window Position

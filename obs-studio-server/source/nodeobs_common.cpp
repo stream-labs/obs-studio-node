@@ -584,7 +584,19 @@ void OBS_content::OBS_content_createIOSurface(
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint32_t)surfaceID));
 #elif WIN32
+	// Find Display
+	auto it = displays.find(args[0].value_str);
+	if (it == displays.end()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Display key is not valid!"));
+		return;
+	}
+	
+	// uint32_t sharedHandle =
+	// 	obs_display_get_shared_handle(it->second->m_display);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(it->second->m_sharedHandle));
+	// rval.push_back(ipc::value((uint32_t)sharedHandle));
 #endif
 	AUTO_DEBUG;
 }

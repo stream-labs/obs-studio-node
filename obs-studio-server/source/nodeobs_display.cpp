@@ -968,13 +968,13 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 	} else {
 		switch (dp->m_renderingMode) {
 		case OBS_MAIN_VIDEO_RENDERING:
-			obs_render_main_texture();
+			dp->m_sharedHandle = obs_render_main_texture();
 			break;
 		case OBS_STREAMING_VIDEO_RENDERING:
-			obs_render_streaming_texture();
+			dp->m_sharedHandle = obs_render_streaming_texture();
 			break;
 		case OBS_RECORDING_VIDEO_RENDERING:
-			obs_render_recording_texture();
+			dp->m_sharedHandle = obs_render_recording_texture();
 			break;
 		}
 		

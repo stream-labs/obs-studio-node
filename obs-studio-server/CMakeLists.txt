@@ -152,7 +152,7 @@ set(
 string(
 	CONCAT OSN_DEFAULT_LIBOBS_URL
 	"https://obsstudios3.streamlabs.com/"
-	"libobs-${LIBOBS_PLATFORM}-${LIBOBS_BUILD_TYPE}-${LIBOBS_VERSION}.7z"
+	"libobs-${LIBOBS_PLATFORM}-debug-${LIBOBS_VERSION}.7z"
 )
 
 set(
