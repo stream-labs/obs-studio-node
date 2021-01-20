@@ -2568,7 +2568,7 @@ std::vector<SubCategory> OBS_settings::getOutputSettings(CategoryTypes& type)
 	outputMode.push_back(std::make_pair("maxVal", ipc::value((double)0)));
 	outputMode.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 	outputMode.push_back(std::make_pair("Simple", ipc::value("Simple")));
-	outputMode.push_back(std::make_pair("Advanced", ipc::value("Advanced")));
+	// outputMode.push_back(std::make_pair("Advanced", ipc::value("Advanced")));
 	entries.push_back(outputMode);
 
 	outputSettings.push_back(serializeSettingsData(
@@ -2707,6 +2707,8 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 	if (!applyServiceSettings && encoderID.compare(APPLE_HARDWARE_VIDEO_ENCODER) == 0)
 		config_set_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "ApplyServiceSettings", true);
 #endif
+
+	obs_data_set_int(encoderSettings, "bitrate", 1000);
 
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 
@@ -3380,6 +3382,7 @@ void OBS_settings::saveVideoSettings(std::vector<SubCategory> videoSettings)
 std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 {
 	std::vector<SubCategory> advancedSettings;
+	return advancedSettings;
 
 	std::vector<std::vector<std::pair<std::string, ipc::value>>> entries;
 
@@ -3766,6 +3769,7 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 
 void OBS_settings::saveAdvancedSettings(std::vector<SubCategory> advancedSettings)
 {
+	return;
 	uint32_t index = 0;
 #ifdef WIN32
 	//General

@@ -171,17 +171,19 @@ void OBS_service::OBS_service_startRecording(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	if (isRecordingOutputActive()) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-		AUTO_DEBUG;
-		return;
-	}
+	// if (isRecordingOutputActive()) {
+	// 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	// 	AUTO_DEBUG;
+	// 	return;
+	// }
 
-	if (!startRecording()) {
-		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to start recording!");
-	} else {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	}
+	// if (!startRecording()) {
+	// 	PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to start recording!");
+	// } else {
+	// 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	// }
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
 
@@ -1465,7 +1467,7 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
 		obs_data_t* h264Settings = obs_data_create();
 		obs_data_t* aacSettings  = obs_data_create();
 
-		int  videoBitrate = int(config_get_uint(ConfigManager::getInstance().getBasic(), "SimpleOutput", "VBitrate"));
+		int  videoBitrate = 1000;
 		int  audioBitrate = GetSimpleAudioBitrate();
 		bool advanced     = config_get_bool(ConfigManager::getInstance().getBasic(), "SimpleOutput", "UseAdvanced");
 		bool enforceBitrate =
