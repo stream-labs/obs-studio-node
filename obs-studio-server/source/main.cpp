@@ -147,8 +147,10 @@ int main(int argc, char* argv[])
 	std::string receivedVersion = "";
 #ifdef __APPLE__
 	socketPath = "/tmp/";
-#endif
+	if (argc != 4) {
+#else
 	if (argc != 3) {
+#endif
 		std::cerr << "Version mismatch. Expected <socketpath> <version> params";
 		return ipc::ProcessInfo::ExitCode::VERSION_MISMATCH;
 	}
