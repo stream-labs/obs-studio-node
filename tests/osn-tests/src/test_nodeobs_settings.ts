@@ -126,8 +126,6 @@ describe(testName, function() {
                         index_p++;
                         found = parameter.name === updatedStreamSettings[index_sc].parameters[index_p].name;
                     }
-            //        console.log(' Param current Value ', parameter.currentValue);
-              //      console.log(' 2nd param ', updatedStreamSettings[index_sc].parameters[index_p].currentValue);
                     let updatedCurVal = updatedStreamSettings[index_sc].parameters[index_p].currentValue;
                     if (updatedCurVal[updatedCurVal.length-1] == '/') {
                         updatedCurVal = updatedCurVal.substring(0, updatedCurVal.length-1);
