@@ -20,6 +20,7 @@
 #include <ipc-server.hpp>
 #include <obs.h>
 #include "utility.hpp"
+#include "nlohmann/json.hpp"
 
 namespace osn
 {

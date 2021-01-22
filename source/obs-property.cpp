@@ -995,6 +995,8 @@ size_t obs::FrameRateProperty::size()
 		total += sizeof(size_t);
 		total += option.description.size();
 	}
+	total += sizeof(uint32_t); // current_numerator
+	total += sizeof(uint32_t); // current_denominator
 	return total;
 }
 
@@ -1039,6 +1041,11 @@ bool obs::FrameRateProperty::serialize(std::vector<char>& buf)
 			offset += option.description.size();
 		}
 	}
+
+	reinterpret_cast<uint32_t&>(buf[offset]) = current_numerator;
+	offset += sizeof(uint32_t);
+	reinterpret_cast<uint32_t&>(buf[offset]) = current_denominator;
+	offset += sizeof(uint32_t);
 
 	return true;
 }
@@ -1087,6 +1094,11 @@ bool obs::FrameRateProperty::read(std::vector<char> const& buf)
 		}
 		options.push_back(std::move(option));
 	}
+
+	current_numerator = reinterpret_cast<const uint32_t&>(buf[offset]);
+	offset += sizeof(uint32_t);
+	current_denominator = reinterpret_cast<const uint32_t&>(buf[offset]);
+	offset += sizeof(uint32_t);
 
 	return true;
 }
