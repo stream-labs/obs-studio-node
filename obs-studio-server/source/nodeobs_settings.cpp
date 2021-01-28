@@ -778,13 +778,8 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 				param.values.insert(param.values.end(), name.begin(), name.end());
 
 				std::string value = obs_property_list_item_string(property, i);
+
 				uint64_t          sizeValue = value.length();
-
-				if (value[sizeValue-1] == '/') {
-					sizeValue--;
-					value.resize(sizeValue);
-				}
-
 				std::vector<char> sizeValueBuffer;
 				sizeValueBuffer.resize(sizeof(sizeValue));
 				memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));

@@ -126,11 +126,7 @@ describe(testName, function() {
                         index_p++;
                         found = parameter.name === updatedStreamSettings[index_sc].parameters[index_p].name;
                     }
-                    let updatedCurVal = updatedStreamSettings[index_sc].parameters[index_p].currentValue;
-                    if (updatedCurVal[updatedCurVal.length-1] == '/') {
-                        updatedCurVal = updatedCurVal.substring(0, updatedCurVal.length-1);
-                    }
-                    expect(parameter.currentValue).to.equal(updatedCurVal);
+                    expect(parameter.currentValue).to.equal(updatedStreamSettings[index_sc].parameters[index_p].currentValue);
                 });
                 index_sc++;
             });
