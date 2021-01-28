@@ -18,11 +18,33 @@
 
 #pragma once
 #include <memory>
-#include <map>
 #include <string>
-#include "ipc.hpp"
 #include "ipc-client.hpp"
 #include <napi.h>
+
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#endif
+
+struct ProcessInfo
+{
+	uint64_t handle;
+	uint64_t id;
+
+	ProcessInfo()
+	{
+		this->handle = 0;
+		this->id     = 0;
+	};
+	ProcessInfo(uint64_t h, uint64_t i)
+	{
+		this->handle = h;
+		this->id     = i;
+	}
+};
 
 class Controller
 {
@@ -48,8 +70,6 @@ class Controller
 
 	std::shared_ptr<ipc::client> connect(const std::string& uri);
 
-	DWORD GetExitCode();
-
 	void disconnect();
 
 	std::shared_ptr<ipc::client> GetConnection();
@@ -57,5 +77,5 @@ class Controller
 	private:
 	bool                         m_isServer = false;
 	std::shared_ptr<ipc::client> m_connection;
-	ipc::ProcessInfo                  procId;
+	ProcessInfo                  procId;
 };

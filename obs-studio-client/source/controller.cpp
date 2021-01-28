@@ -19,7 +19,6 @@
 #include "controller.hpp"
 #include <codecvt>
 #include <fstream>
-#include <sstream>
 #include <locale>
 #include <sstream>
 #include <string>
@@ -42,8 +41,6 @@ std::wstring utfWorkingDir = L"";
 #include <spawn.h>
 extern char **environ;
 #endif
-
-using namespace ipc;
 
 #ifdef _WIN32
 ProcessInfo spawn(const std::string& program, const std::string& commandLine, const std::string& workingDirectory)
@@ -140,19 +137,13 @@ std::string get_process_name(ProcessInfo pi)
 	return {};
 }
 
-bool is_process_alive(ProcessInfo& pinfo)
+bool is_process_alive(ProcessInfo pinfo)
 {
 	DWORD status;
 
-	if (GetExitCodeProcess(reinterpret_cast<HANDLE>(pinfo.handle), &status)) {
-		if (status == static_cast<uint64_t>(ProcessInfo::ExitCode::STILL_RUNNING)) {
-			return true;	
-		}
-		pinfo.exit_code = status;
-		return false;
-	}
-	//could not get exit code status, so assign a generic one
-	pinfo.exit_code = ProcessInfo::ExitCode::OTHER_ERROR;
+	if (GetExitCodeProcess(reinterpret_cast<HANDLE>(pinfo.handle), &status) && status ==  static_cast<uint64_t>(259))
+		return true;
+
 	return false;
 }
 
@@ -252,11 +243,9 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 	if (m_isServer)
 		return nullptr;
 
-	const std::string version = OSN_VERSION;
-
 	std::stringstream commandLine;
 	commandLine << "\"" << serverBinaryPath << "\""
-	            << " " << uri << " " << version;
+	            << " " << uri;
 
 	std::string workingDirectory;
 
@@ -308,7 +297,7 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 
     pid_t pid;
     std::vector<char> uri_str(uri.c_str(), uri.c_str() + uri.size() + 1);
-    char *argv[] = {"obs64", uri_str.data(), (char*)version.c_str(), (char*)serverBinaryPath.c_str(), NULL};
+    char *argv[] = {"obs64", uri_str.data(), (char*)serverBinaryPath.c_str(), NULL};
     remove(uri.c_str());
 
 	int ret  = posix_spawnp(&pid, serverBinaryPath.c_str(), NULL, NULL, argv, environ);
@@ -329,7 +318,6 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 std::shared_ptr<ipc::client> Controller::connect(
     const std::string& uri)
 {
-	procId.exit_code = 0;
 	if (m_isServer)
 		return nullptr;
 
@@ -382,10 +370,6 @@ void Controller::disconnect()
 	m_connection = nullptr;
 }
 
-DWORD Controller::GetExitCode() {
-	return procId.exit_code;
-}
- 
 std::shared_ptr<ipc::client> Controller::GetConnection()
 {
 	return m_connection;
@@ -439,20 +423,7 @@ Napi::Value js_connect(const Napi::CallbackInfo& info)
 
 	std::string uri = info[0].ToString().Utf8Value();
 	auto        cl  = Controller::GetInstance().connect(uri);
-	DWORD        exit_code = Controller::GetInstance().GetExitCode();
 	if (!cl) {
-		if (exit_code == ProcessInfo::VERSION_MISMATCH) {
-			std::stringstream ss;
-			ss << "Version mismatch between client and server. Please reinstall Streamlabs OBS " ;
-			Napi::Error::New(info.Env(), ss.str().c_str()).ThrowAsJavaScriptException();
-			return info.Env().Undefined();
-		}
-		if (exit_code != ProcessInfo::NORMAL_EXIT) {
-			std::stringstream ss;
-			ss << "Failed to connect. Exit code error: " << ProcessInfo::getDescription(exit_code);
-			Napi::Error::New(info.Env(), ss.str().c_str()).ThrowAsJavaScriptException();
-			return info.Env().Undefined();
-		}
 		Napi::Error::New(info.Env(), "Failed to connect.").ThrowAsJavaScriptException();
 		return info.Env().Undefined();
 	}
@@ -475,21 +446,7 @@ Napi::Value js_host(const Napi::CallbackInfo& info)
 
 	std::string uri = info[0].ToString().Utf8Value();
 	auto        cl  = Controller::GetInstance().host(uri);
-	DWORD        exit_code = Controller::GetInstance().GetExitCode();
-
 	if (!cl) {
-		if (exit_code == ProcessInfo::VERSION_MISMATCH) {
-			std::stringstream ss;
-			ss << "Version mismatch between client and server. Please reinstall Streamlabs OBS " ;
-			Napi::Error::New(info.Env(), ss.str().c_str()).ThrowAsJavaScriptException();
-			return info.Env().Undefined();
-		}
-		if (exit_code != ProcessInfo::NORMAL_EXIT) {
-			std::stringstream ss;
-			ss << "Failed to connect. Exit code error: " << ProcessInfo::getDescription(exit_code);
-			Napi::Error::New(info.Env(), ss.str().c_str()).ThrowAsJavaScriptException();
-			return info.Env().Undefined();
-		}
 		Napi::Error::New(info.Env(), "Failed to host and connect.").ThrowAsJavaScriptException();
 		return info.Env().Undefined();
 	}

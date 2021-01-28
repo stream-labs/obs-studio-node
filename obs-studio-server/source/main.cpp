@@ -20,7 +20,6 @@
 #include <inttypes.h>
 #include <iostream>
 #include <ipc-class.hpp>
-#include <ipc.hpp>
 #include <ipc-function.hpp>
 #include <ipc-server.hpp>
 #include <memory>
@@ -143,31 +142,10 @@ int main(int argc, char* argv[])
 	g_util_osx = new UtilInt();
 	g_util_osx->init();
 #endif
-	std::string socketPath      = "";
-	std::string receivedVersion = "";
-#ifdef __APPLE__
-	socketPath = "/tmp/";
-	if (argc != 4) {
-#else
-	if (argc != 3) {
-#endif
-		std::cerr << "Version mismatch. Expected <socketpath> <version> params";
-		return ipc::ProcessInfo::ExitCode::VERSION_MISMATCH;
-	}
-
-	socketPath += argv[1];
-	receivedVersion = argv[2];
-	// Check versions
-	std::string myVersion = OSN_VERSION;
-	if (receivedVersion != myVersion) {
-		std::cerr << "Versions mismatch. Server version: " << myVersion << "but received client version: " << receivedVersion;
-		return ipc::ProcessInfo::ExitCode::VERSION_MISMATCH;
-	}
 
 	// Usage:
 	// argv[0] = Path to this application. (Usually given by default if run via path-based command!)
 	// argv[1] = Path to a named socket.
-	// argv[2] = version from client ; must match the server version
 
 	// Instance
 	ipc::server myServer;
@@ -214,13 +192,18 @@ int main(int argc, char* argv[])
 
 	// Initialize Server
 	try {
+		std::string socketPath = "";
+#ifdef __APPLE__
+		socketPath = "/tmp/";
+#endif
+		socketPath += argv[1];
 		myServer.initialize(socketPath.c_str());
 	} catch (std::exception& e) {
 		std::cerr << "Initialization failed with error " << e.what() << "." << std::endl;
-		return ipc::ProcessInfo::ExitCode::OTHER_ERROR;
+		return -2;
 	} catch (...) {
 		std::cerr << "Failed to initialize server" << std::endl;
-		return ipc::ProcessInfo::ExitCode::OTHER_ERROR;
+		return -2;
 	}
 
 	// Reset Connect/Disconnect time.
