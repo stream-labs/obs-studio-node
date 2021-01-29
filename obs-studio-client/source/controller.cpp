@@ -30,6 +30,20 @@ static std::string serverBinaryPath  = "";
 static std::string serverWorkingPath = "";
 std::wstring utfWorkingDir = L"";
 
+#ifndef OSN_VERSION
+#define OSN_VERSION "DEVMODE_VERSION"
+#endif
+
+#define GET_OSN_VERSION \
+[]() { \
+const char *__CHECK_EMPTY = OSN_VERSION; \
+if (strlen(__CHECK_EMPTY) < 3) { \
+    return "DEVMODE_VERSION"; \
+}  \
+return OSN_VERSION; \
+}()
+
+
 #ifdef _WIN32
 #include <direct.h>
 #include <psapi.h>
@@ -252,7 +266,7 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 	if (m_isServer)
 		return nullptr;
 
-	const std::string version = OSN_VERSION;
+	const std::string version = GET_OSN_VERSION;
 
 	std::stringstream commandLine;
 	commandLine << "\"" << serverBinaryPath << "\""
