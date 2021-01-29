@@ -47,8 +47,21 @@
 #include "callback-manager.h"
 
 #include "util-crashmanager.h"
-
 #include "shared.hpp"
+
+#ifndef OSN_VERSION
+#define OSN_VERSION "DEVMODE_VERSION"
+#endif
+
+#define GET_OSN_VERSION \
+[]() { \
+const char *__CHECK_EMPTY = OSN_VERSION; \
+if (strlen(__CHECK_EMPTY) < 3) { \
+    return "DEVMODE_VERSION"; \
+}  \
+return OSN_VERSION; \
+}()
+
 
 #ifdef __APPLE__
 #include <unistd.h>
@@ -157,8 +170,15 @@ int main(int argc, char* argv[])
 
 	socketPath += argv[1];
 	receivedVersion = argv[2];
+
+    std::string myVersion = GET_OSN_VERSION;
+
+    #ifdef __APPLE__
+        std::cerr << "Version recv: " << receivedVersion << std::endl;
+        std::cerr << "Version compiled " << myVersion << std::endl;
+    #endif
+
 	// Check versions
-	std::string myVersion = OSN_VERSION;
 	if (receivedVersion != myVersion) {
 		std::cerr << "Versions mismatch. Server version: " << myVersion << "but received client version: " << receivedVersion;
 		return ipc::ProcessInfo::ExitCode::VERSION_MISMATCH;
