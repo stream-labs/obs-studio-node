@@ -592,11 +592,15 @@ void OBS_content::OBS_content_createIOSurface(
 		return;
 	}
 	
-	// uint32_t sharedHandle =
-	// 	obs_display_get_shared_handle(it->second->m_display);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	// uint32_t sharedHandle = 0;
+	// while(!sharedHandle) {
+	// 	std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	// 	sharedHandle = obs_display_get_shared_handle(it->second->m_display);
+	// }
+
+	// rval.push_back(ipc::value(sharedHandle));
 	rval.push_back(ipc::value(it->second->m_sharedHandle));
-	// rval.push_back(ipc::value((uint32_t)sharedHandle));
 #endif
 	AUTO_DEBUG;
 }

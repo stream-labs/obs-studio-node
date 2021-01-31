@@ -315,6 +315,7 @@ OBS::Display::Display()
 
 OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode) : Display()
 {
+	// m_gsInitData.window.hwnd = reinterpret_cast<void*>(windowHandle);
 	m_display = obs_display_create(&m_gsInitData, 0x0);
     if (!m_display) {
         blog(LOG_INFO, "Failed to create the display");
