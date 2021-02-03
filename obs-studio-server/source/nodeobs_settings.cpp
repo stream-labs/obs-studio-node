@@ -4092,5 +4092,7 @@ void OBS_settings::OBS_settings_getVideoDevices(
 #endif
 
 	getDevices(source_id, property_name, rval);
+#ifdef WIN32
 	getDevices(source_id, property_name2, rval);
+#endif
 }
