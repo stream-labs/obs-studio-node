@@ -167,6 +167,22 @@ class OBS_settings
 
 	static void saveGenericSettings(std::vector<SubCategory> genericSettings, std::string section, config_t* config);
 
+	static void OBS_settings_getInputAudioDevices(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_settings_getOutputAudioDevices(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_settings_getVideoDevices(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+
 	private:
 	// Exposed methods to the frontend
 	static std::vector<SubCategory> getSettings(std::string nameCategory, CategoryTypes&);

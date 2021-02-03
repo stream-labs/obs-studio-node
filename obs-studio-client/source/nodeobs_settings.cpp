@@ -447,6 +447,69 @@ Napi::Value settings::OBS_settings_getListCategories(const Napi::CallbackInfo& i
 	return categories;
 }
 
+Napi::Array devices_to_js(const Napi::CallbackInfo& info, const std::vector<ipc::value> &response)
+{
+	Napi::Array devices = Napi::Array::New(info.Env());
+
+	uint32_t js_array_index = 0;
+	uint64_t items = response[1].value_union.ui64;
+	if (items > 0) {
+		for (uint64_t idx = 2; idx <= items + 2; idx += 2) {
+				Napi::Object device = Napi::Object::New(info.Env());
+				device.Set("description", Napi::String::New(info.Env(), response[idx].value_str.c_str()));
+				device.Set("id", Napi::String::New(info.Env(), response[idx + 1].value_str.c_str()));
+				devices.Set(js_array_index++, device);
+		}
+	}
+
+	return devices;
+}
+
+Napi::Value settings::OBS_settings_getInputAudioDevices(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Settings", "OBS_settings_getInputAudioDevices", {});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	return devices_to_js(info, response);
+}
+
+Napi::Value settings::OBS_settings_getOutputAudioDevices(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Settings", "OBS_settings_getOutputAudioDevices", {});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	return devices_to_js(info, response);
+}
+
+Napi::Value settings::OBS_settings_getVideoDevices(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Settings", "OBS_settings_getVideoDevices", {});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	return devices_to_js(info, response);
+}
+
 void settings::Init(Napi::Env env, Napi::Object exports)
 {
 	exports.Set(
@@ -460,5 +523,17 @@ void settings::Init(Napi::Env env, Napi::Object exports)
 	exports.Set(
 		Napi::String::New(env, "OBS_settings_getListCategories"),
 		Napi::Function::New(env, settings::OBS_settings_getListCategories)
+		);
+	exports.Set(
+		Napi::String::New(env, "OBS_settings_getInputAudioDevices"),
+		Napi::Function::New(env, settings::OBS_settings_getInputAudioDevices)
+		);
+	exports.Set(
+		Napi::String::New(env, "OBS_settings_getOutputAudioDevices"),
+		Napi::Function::New(env, settings::OBS_settings_getOutputAudioDevices)
+		);
+	exports.Set(
+		Napi::String::New(env, "OBS_settings_getVideoDevices"),
+		Napi::Function::New(env, settings::OBS_settings_getVideoDevices)
 		);
 }
