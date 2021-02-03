@@ -4014,7 +4014,7 @@ void getDevices(
 		return;
 
 	size_t items = obs_property_list_item_count(prop);
-	rval.push_back(ipc::value(items));
+	rval.push_back(ipc::value((uint64_t)items));
 	for (size_t idx = 0; idx < items; idx++) {
 		const char* description = obs_property_list_item_name(prop, idx);
 		const char* device_id = obs_property_list_item_string(prop, idx);
@@ -4084,5 +4084,5 @@ void OBS_settings::OBS_settings_getVideoDevices(
 	const char* source_id = "av_capture_input";
 #endif
 
-	getDevices(source_id, "video_device_id", rval);
+	getDevices(source_id, "device", rval);
 }

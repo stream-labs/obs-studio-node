@@ -462,7 +462,7 @@ Napi::Value settings::OBS_settings_getInputAudioDevices(const Napi::CallbackInfo
 
 	uint32_t js_array_index = 0;
 	uint64_t items = response[1].value_union.ui64;
-	for (uint64_t idx = 2; idx < items + 2; idx += 2) {
+	for (uint64_t idx = 2; idx <= items + 2; idx += 2) {
 			Napi::Object device = Napi::Object::New(info.Env());
 			device.Set("description", Napi::String::New(info.Env(), response[idx].value_str.c_str()));
 			device.Set("id", Napi::String::New(info.Env(), response[idx + 1].value_str.c_str()));
@@ -487,11 +487,13 @@ Napi::Value settings::OBS_settings_getOutputAudioDevices(const Napi::CallbackInf
 
 	uint32_t js_array_index = 0;
 	uint64_t items = response[1].value_union.ui64;
-	for (uint64_t idx = 2; idx < items + 2; idx += 2) {
-			Napi::Object device = Napi::Object::New(info.Env());
-			device.Set("description", Napi::String::New(info.Env(), response[idx].value_str.c_str()));
-			device.Set("id", Napi::String::New(info.Env(), response[idx + 1].value_str.c_str()));
-			devices.Set(js_array_index++, device);
+	if (items > 0) {
+		for (uint64_t idx = 2; idx <= items + 2; idx += 2) {
+				Napi::Object device = Napi::Object::New(info.Env());
+				device.Set("description", Napi::String::New(info.Env(), response[idx].value_str.c_str()));
+				device.Set("id", Napi::String::New(info.Env(), response[idx + 1].value_str.c_str()));
+				devices.Set(js_array_index++, device);
+		}
 	}
 
 	return devices;
@@ -512,7 +514,7 @@ Napi::Value settings::OBS_settings_getVideoDevices(const Napi::CallbackInfo& inf
 
 	uint32_t js_array_index = 0;
 	uint64_t items = response[1].value_union.ui64;
-	for (uint64_t idx = 2; idx < items + 2; idx += 2) {
+	for (uint64_t idx = 2; idx <= items + 2; idx += 2) {
 			Napi::Object device = Napi::Object::New(info.Env());
 			device.Set("description", Napi::String::New(info.Env(), response[idx].value_str.c_str()));
 			device.Set("id", Napi::String::New(info.Env(), response[idx + 1].value_str.c_str()));
