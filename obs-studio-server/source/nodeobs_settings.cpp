@@ -4014,7 +4014,11 @@ void getDevices(
 		return;
 
 	size_t items = obs_property_list_item_count(prop);
-	rval.push_back(ipc::value((uint64_t)items));
+	if (rval.size() > 1)
+		rval[1].value_union.ui64 += items;
+	else
+		rval.push_back(ipc::value((uint64_t)items));
+
 	for (size_t idx = 0; idx < items; idx++) {
 		const char* description = obs_property_list_item_name(prop, idx);
 		const char* device_id = obs_property_list_item_string(prop, idx);
@@ -4081,10 +4085,12 @@ void OBS_settings::OBS_settings_getVideoDevices(
 #ifdef WIN32
 	const char* source_id = "dshow_input";
 	const char* property_name = "video_device_id";
+	const char* property_name2 = "audio_device_id";
 #elif __APPLE__
 	const char* source_id = "av_capture_input";
 	const char* property_name = "device";
 #endif
 
 	getDevices(source_id, property_name, rval);
+	getDevices(source_id, property_name2, rval);
 }
