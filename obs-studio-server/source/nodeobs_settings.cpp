@@ -60,6 +60,12 @@ void OBS_settings::Register(ipc::server& srv)
 	    "OBS_settings_saveSettings",
 	    std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::Binary},
 	    OBS_settings_saveSettings));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_settings_getInputAudioDevices", std::vector<ipc::type>{}, OBS_settings_getInputAudioDevices));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_settings_getOutputAudioDevices", std::vector<ipc::type>{}, OBS_settings_getOutputAudioDevices));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_settings_getVideoDevices", std::vector<ipc::type>{}, OBS_settings_getVideoDevices));
 
 	srv.register_collection(cls);
 }
@@ -3983,4 +3989,100 @@ void OBS_settings::saveGenericSettings(std::vector<SubCategory> genericSettings,
 		}
 	}
 	config_save_safe(config, "tmp", nullptr);
+}
+
+void getDevices(
+	const char* source_id,
+	const char* property_name,
+	std::vector<ipc::value>& rval)
+{
+	auto settings = obs_get_source_defaults(source_id);
+	if (!settings)
+		return;
+
+	obs_data_set_string(settings, property_name, "dummy_device_id");
+	auto dummy_source = obs_source_create(source_id, "dummy_audio_input", settings, nullptr);
+	if (!dummy_source)
+		return;
+
+	auto props = obs_source_properties(dummy_source);
+	if (!props)
+		return;
+
+	auto prop = obs_properties_get(props, property_name);
+	if (!prop)
+		return;
+
+	size_t items = obs_property_list_item_count(prop);
+	rval.push_back(ipc::value(items));
+	for (size_t idx = 0; idx < items; idx++) {
+		const char* description = obs_property_list_item_name(prop, idx);
+		const char* device_id = obs_property_list_item_string(prop, idx);
+
+		if (!description || !strcmp(description, "") ||
+			!device_id || !strcmp(device_id, "")) {
+			rval[1].value_union.ui64--;
+			continue;
+		}
+
+		rval.push_back(ipc::value(description));
+		rval.push_back(ipc::value(device_id));
+	}
+
+	obs_properties_destroy(props);
+	obs_data_release(settings);
+	obs_source_release(dummy_source);
+}
+
+void OBS_settings::OBS_settings_getInputAudioDevices(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+#ifdef WIN32
+	const char* source_id = "wasapi_input_capture";
+#elif __APPLE__
+	const char* source_id = "coreaudio_input_capture";
+#endif
+
+	getDevices(source_id, "device_id", rval);
+	AUTO_DEBUG;
+}
+
+void OBS_settings::OBS_settings_getOutputAudioDevices(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+#ifdef WIN32
+	const char* source_id = "wasapi_output_capture";
+#elif __APPLE__
+	const char* source_id = "coreaudio_output_capture";
+#endif
+
+	getDevices(source_id, "device_id", rval);
+	AUTO_DEBUG;
+}
+
+void OBS_settings::OBS_settings_getVideoDevices(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+#ifdef WIN32
+	const char* source_id = "dshow_input";
+#elif __APPLE__
+	const char* source_id = "av_capture_input";
+#endif
+
+	getDevices(source_id, "video_device_id", rval);
 }
