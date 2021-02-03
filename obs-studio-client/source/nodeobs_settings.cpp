@@ -447,7 +447,7 @@ Napi::Value settings::OBS_settings_getListCategories(const Napi::CallbackInfo& i
 	return categories;
 }
 
-Napi::Array devices_to_js(const Napi::CallbackInfo& info, std::vector<ipc::value> response)
+Napi::Array devices_to_js(const Napi::CallbackInfo& info, const std::vector<ipc::value> &response)
 {
 	Napi::Array devices = Napi::Array::New(info.Env());
 
