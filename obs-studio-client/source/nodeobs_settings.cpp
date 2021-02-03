@@ -447,43 +447,9 @@ Napi::Value settings::OBS_settings_getListCategories(const Napi::CallbackInfo& i
 	return categories;
 }
 
-Napi::Value settings::OBS_settings_getInputAudioDevices(const Napi::CallbackInfo& info)
+Napi::Array devices_to_js(const Napi::CallbackInfo& info, std::vector<ipc::value> response)
 {
 	Napi::Array devices = Napi::Array::New(info.Env());
-	auto conn = GetConnection(info);
-	if (!conn)
-		return devices;
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Settings", "OBS_settings_getInputAudioDevices", {});
-
-	if (!ValidateResponse(info, response))
-		return devices;
-
-	uint32_t js_array_index = 0;
-	uint64_t items = response[1].value_union.ui64;
-	for (uint64_t idx = 2; idx <= items + 2; idx += 2) {
-			Napi::Object device = Napi::Object::New(info.Env());
-			device.Set("description", Napi::String::New(info.Env(), response[idx].value_str.c_str()));
-			device.Set("id", Napi::String::New(info.Env(), response[idx + 1].value_str.c_str()));
-			devices.Set(js_array_index++, device);
-	}
-
-	return devices;
-}
-
-Napi::Value settings::OBS_settings_getOutputAudioDevices(const Napi::CallbackInfo& info)
-{
-	Napi::Array devices = Napi::Array::New(info.Env());
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Settings", "OBS_settings_getOutputAudioDevices", {});
-
-	if (!ValidateResponse(info, response))
-		return devices;
 
 	uint32_t js_array_index = 0;
 	uint64_t items = response[1].value_union.ui64;
@@ -499,9 +465,38 @@ Napi::Value settings::OBS_settings_getOutputAudioDevices(const Napi::CallbackInf
 	return devices;
 }
 
+Napi::Value settings::OBS_settings_getInputAudioDevices(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Settings", "OBS_settings_getInputAudioDevices", {});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	return devices_to_js(info, response);
+}
+
+Napi::Value settings::OBS_settings_getOutputAudioDevices(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Settings", "OBS_settings_getOutputAudioDevices", {});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	return devices_to_js(info, response);
+}
+
 Napi::Value settings::OBS_settings_getVideoDevices(const Napi::CallbackInfo& info)
 {
-	Napi::Array devices = Napi::Array::New(info.Env());
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
@@ -510,18 +505,9 @@ Napi::Value settings::OBS_settings_getVideoDevices(const Napi::CallbackInfo& inf
 	    conn->call_synchronous_helper("Settings", "OBS_settings_getVideoDevices", {});
 
 	if (!ValidateResponse(info, response))
-		return devices;
+		return info.Env().Undefined();
 
-	uint32_t js_array_index = 0;
-	uint64_t items = response[1].value_union.ui64;
-	for (uint64_t idx = 2; idx <= items + 2; idx += 2) {
-			Napi::Object device = Napi::Object::New(info.Env());
-			device.Set("description", Napi::String::New(info.Env(), response[idx].value_str.c_str()));
-			device.Set("id", Napi::String::New(info.Env(), response[idx + 1].value_str.c_str()));
-			devices.Set(js_array_index++, device);
-	}
-
-	return devices;
+	return devices_to_js(info, response);
 }
 
 void settings::Init(Napi::Env env, Napi::Object exports)

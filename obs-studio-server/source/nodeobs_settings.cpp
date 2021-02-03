@@ -4080,9 +4080,11 @@ void OBS_settings::OBS_settings_getVideoDevices(
 
 #ifdef WIN32
 	const char* source_id = "dshow_input";
+	const char* property_name = "video_device_id";
 #elif __APPLE__
 	const char* source_id = "av_capture_input";
+	const char* property_name = "device";
 #endif
 
-	getDevices(source_id, "device", rval);
+	getDevices(source_id, property_name, rval);
 }
