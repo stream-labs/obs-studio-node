@@ -904,8 +904,7 @@ describe(testName, function() {
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.code).to.equal(-3, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
-        // Reserving user from pool
-        await obs.reserveUser();
+        obs.setSetting('Stream', 'key', obs.userStreamKey);
     });
 
     it('Fail test - Simple mode - Record with invalid path', async function() {

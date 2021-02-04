@@ -81,6 +81,8 @@ export class OBSHandler {
     transitionTypes: string[];
     os: string;
 
+    userStreamKey: string;
+
     constructor(testName: string) {
         this.os = process.platform;
         this.osnTestName = testName;
@@ -132,16 +134,16 @@ export class OBSHandler {
     }
 
     async reserveUser() {
-        let streamKey: string = "";
+        this.userStreamKey = "";
 
         try {
             logInfo(this.osnTestName, 'Getting stream key from user pool');
-            streamKey = await this.userPoolHandler.getStreamKey();
+            this.userStreamKey = await this.userPoolHandler.getStreamKey();
             this.hasUserFromPool = true;
         } catch(e) {
             logWarning(this.osnTestName, e);
             logWarning(this.osnTestName, 'Using predefined stream key');
-            streamKey = process.env.SLOBS_BE_STREAMKEY;
+            this.userStreamKey = process.env.SLOBS_BE_STREAMKEY;
             this.hasUserFromPool = false;
         }
 
@@ -149,7 +151,7 @@ export class OBSHandler {
         this.setSetting(EOBSSettingsCategories.Stream, 'key', streamKey);
 
         let savedStreamKey = this.getSetting(EOBSSettingsCategories.Stream, 'key');
-        if (savedStreamKey == streamKey) {
+        if (savedStreamKey == this.userStreamKey) {
             logInfo(this.osnTestName, 'Stream key saved successfully');
         } else {
             throw Error('Failed to save stream key');
