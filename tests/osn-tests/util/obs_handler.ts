@@ -148,7 +148,7 @@ export class OBSHandler {
         }
 
         logInfo(this.osnTestName, 'Saving stream key');
-        this.setSetting(EOBSSettingsCategories.Stream, 'key', streamKey);
+        this.setSetting(EOBSSettingsCategories.Stream, 'key', this.userStreamKey);
 
         let savedStreamKey = this.getSetting(EOBSSettingsCategories.Stream, 'key');
         if (savedStreamKey == this.userStreamKey) {
