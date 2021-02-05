@@ -446,10 +446,14 @@ int OBS_service::resetVideoContext(bool reload)
 	ovi.output_height = (uint32_t)config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCY");
 
 	std::vector<std::pair<uint32_t, uint32_t>> resolutions = OBS_API::availableResolutions();
+	uint32_t limit_cx = 1920;
+	uint32_t limit_cy = 1080;
 
 	if (ovi.base_width == 0 || ovi.base_height == 0) {
 		for (int i = 0; i < resolutions.size(); i++) {
-			if (int(ovi.base_width * ovi.base_height) < resolutions.at(i).first * resolutions.at(i).second) {
+			uint32_t nbPixels = resolutions.at(i).first * resolutions.at(i).second;
+			if (int(ovi.base_width * ovi.base_height) < nbPixels &&
+					nbPixels <= limit_cx * limit_cy) {
 				ovi.base_width  = resolutions.at(i).first;
 				ovi.base_height = resolutions.at(i).second;
 			}
