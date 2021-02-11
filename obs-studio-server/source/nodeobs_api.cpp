@@ -1407,6 +1407,32 @@ void OBS_API::destroyOBS_API(void)
 		osn::Transition::Manager::GetInstance().size() > 0	||
 		osn::Filter::Manager::GetInstance().size() > 0		||
 		osn::Input::Manager::GetInstance().size() > 0) {
+
+		for (int i = 0; i < MAX_CHANNELS; i++)
+			obs_set_output_source(i, nullptr);
+
+		std::vector<obs_source_t*> sources;
+		osn::Source::Manager::GetInstance().for_each([&sources](obs_source_t* source)
+		{
+			sources.push_back(source);
+		});
+
+		for (const auto &source: sources) {
+			if (!strcmp(obs_source_get_id(source), "scene")) {
+				std::list<obs_sceneitem_t*> items;
+				auto cb = [](obs_scene_t* scene, obs_sceneitem_t* item, void* data) {
+					obs_sceneitem_release(item);
+					obs_sceneitem_remove(item);
+					return true;
+				};
+				obs_scene_t* scene = obs_scene_from_source(source);
+				obs_scene_enum_items(scene, cb, nullptr);
+			}
+		}
+
+		for (const auto &source: sources)
+				obs_source_release(source);
+
 #ifdef WIN32
 		// Directly blame the frontend since it didn't release all objects and that could cause 
 		// a crash on the backend
