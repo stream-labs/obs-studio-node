@@ -1426,15 +1426,18 @@ void OBS_API::destroyOBS_API(void)
 			if (!source_id)
 				continue;
 
-			if (!strcmp(obs_source_get_id(source), "scene")) {
+			if (!strcmp(source_id, "scene")) {
 				std::list<obs_sceneitem_t*> items;
 				auto cb = [](obs_scene_t* scene, obs_sceneitem_t* item, void* data) {
-					obs_sceneitem_release(item);
-					obs_sceneitem_remove(item);
+					if (item) {
+						obs_sceneitem_release(item);
+						obs_sceneitem_remove(item);
+					}
 					return true;
 				};
 				obs_scene_t* scene = obs_scene_from_source(source);
-				obs_scene_enum_items(scene, cb, nullptr);
+				if (scene)
+					obs_scene_enum_items(scene, cb, nullptr);
 			}
 		}
 
