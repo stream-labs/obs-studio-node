@@ -1414,10 +1414,18 @@ void OBS_API::destroyOBS_API(void)
 		std::vector<obs_source_t*> sources;
 		osn::Source::Manager::GetInstance().for_each([&sources](obs_source_t* source)
 		{
-			sources.push_back(source);
+			if (source)
+				sources.push_back(source);
 		});
 
 		for (const auto &source: sources) {
+			if (!source)
+				continue;
+
+			const char* source_id = obs_source_get_id(source);
+			if (!source_id)
+				continue;
+
 			if (!strcmp(obs_source_get_id(source), "scene")) {
 				std::list<obs_sceneitem_t*> items;
 				auto cb = [](obs_scene_t* scene, obs_sceneitem_t* item, void* data) {
@@ -1430,8 +1438,10 @@ void OBS_API::destroyOBS_API(void)
 			}
 		}
 
-		for (const auto &source: sources)
-				obs_source_release(source);
+		for (const auto &source: sources) {
+				if (source)
+					obs_source_release(source);
+		}
 
 #ifdef WIN32
 		// Directly blame the frontend since it didn't release all objects and that could cause 
