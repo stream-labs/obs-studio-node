@@ -266,7 +266,7 @@ void osn::Scene::Duplicate(
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to get source from duplicate scene.");
 	}
 
-	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source2);
+	uint64_t uid = osn::Source::Manager::GetInstance().find(source2);
 	if (uid == UINT64_MAX) {
 		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
