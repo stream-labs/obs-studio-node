@@ -270,6 +270,8 @@ void MemoryManager::registerSource(obs_source_t* source)
 
 void MemoryManager::unregisterSource(obs_source_t * source)
 {
+	if (!source)
+		return;
 	const char* source_id = obs_source_get_id(source);
 	if (!source_id)
 		return;
