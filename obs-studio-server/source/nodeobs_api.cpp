@@ -1407,6 +1407,62 @@ void OBS_API::destroyOBS_API(void)
 		osn::Transition::Manager::GetInstance().size() > 0	||
 		osn::Filter::Manager::GetInstance().size() > 0		||
 		osn::Input::Manager::GetInstance().size() > 0) {
+
+		for (int i = 0; i < MAX_CHANNELS; i++)
+			obs_set_output_source(i, nullptr);
+
+		std::vector<obs_source_t*> sources;
+		osn::Source::Manager::GetInstance().for_each([&sources](obs_source_t* source)
+		{
+			if (source)
+				sources.push_back(source);
+		});
+
+		for (const auto &source: sources) {
+			if (!source)
+				continue;
+
+			const char* source_id = obs_source_get_id(source);
+			if (!source_id)
+				continue;
+
+			if (!strcmp(source_id, "scene")) {
+				std::list<obs_sceneitem_t*> items;
+				auto cb = [](obs_scene_t* scene, obs_sceneitem_t* item, void* data) {
+					if (item) {
+						obs_sceneitem_release(item);
+						obs_sceneitem_remove(item);
+					}
+					return true;
+				};
+				obs_scene_t* scene = obs_scene_from_source(source);
+				if (scene)
+					obs_scene_enum_items(scene, cb, nullptr);
+			}
+		}
+
+		// Release filters only
+		for (int i = 0; i < sources.size(); i++) {
+			if (sources[i] && obs_source_get_type(sources[i]) == OBS_SOURCE_TYPE_FILTER) {
+				obs_source_release(sources[i]);
+				sources[i] = nullptr;
+			}
+		}
+
+		// Release all remaining sources that are not transitions
+		for (int i = 0; i < sources.size(); i++) {
+			if (sources[i] && obs_source_get_type(sources[i]) != OBS_SOURCE_TYPE_TRANSITION) {
+				obs_source_release(sources[i]);
+				sources[i] = nullptr;
+			}
+		}
+
+		// Release all remaning transitions
+		for (auto source: sources) {
+			if (source)
+				obs_source_release(source);
+		}
+
 #ifdef WIN32
 		// Directly blame the frontend since it didn't release all objects and that could cause 
 		// a crash on the backend
