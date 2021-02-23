@@ -270,7 +270,7 @@ void MemoryManager::registerSource(obs_source_t* source)
 
 void MemoryManager::unregisterSource(obs_source_t * source)
 {
-  const char* source_id = obs_source_get_id(source);
+	const char* source_id = obs_source_get_id(source);
 	if (!source_id)
 		return;
 	if (strcmp(source_id, "ffmpeg_source") != 0)
