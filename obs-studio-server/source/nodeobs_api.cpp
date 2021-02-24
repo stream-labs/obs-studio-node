@@ -376,6 +376,8 @@ void outdated_driver_error::catch_error(const char* msg)
 
 inline std::string nodeobs_log_formatted_message(const char* format, va_list args)
 {
+	if (!format)
+		return "";
 #ifdef WIN32
 	size_t            length  = _vscprintf(format, args);
 #else
