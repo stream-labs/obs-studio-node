@@ -92,5 +92,13 @@ namespace osn
 		Napi::Value CallSendMouseWheel(const Napi::CallbackInfo& info);
 		Napi::Value CallSendFocus(const Napi::CallbackInfo& info);
 		Napi::Value CallSendKeyClick(const Napi::CallbackInfo& info);
+
+		Napi::Value GetDuration(const Napi::CallbackInfo& info);
+		Napi::Value GetTime(const Napi::CallbackInfo& info);
+		void SetTime(const Napi::CallbackInfo& info, const Napi::Value &value);
+		void Play(const Napi::CallbackInfo& info);
+		void Pause(const Napi::CallbackInfo& info);
+		void Restart(const Napi::CallbackInfo& info);
+		void Stop(const Napi::CallbackInfo& info);
 	};
 }

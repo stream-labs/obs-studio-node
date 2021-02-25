@@ -102,6 +102,21 @@ void osn::Input::Register(ipc::server& srv)
 	cls->register_function(std::make_shared<ipc::function>(
 	    "CopyFiltersTo", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, CopyFiltersTo));
 
+	cls->register_function(std::make_shared<ipc::function>(
+	    "GetDuration", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int64}, GetDuration));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "GetTime", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int64}, GetTime));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetTime", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int64}, SetTime));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "Play", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int64}, Play));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "Pause", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int64}, Pause));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "Restart", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int64}, Restart));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "Stop", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int64}, Stop));
+
 	srv.register_collection(cls);
 }
 
@@ -687,6 +702,119 @@ void osn::Input::CopyFiltersTo(
 
 	obs_source_copy_filters(input_to, input_from);
 
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void osn::Input::GetDuration(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!input) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
+	}
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_source_media_get_duration(input)));
+	AUTO_DEBUG;
+}
+
+void osn::Input::GetTime(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!input) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
+	}
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_source_media_get_time(input)));
+	AUTO_DEBUG;
+}
+
+void osn::Input::SetTime(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!input) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
+	}
+
+	obs_source_media_set_time(input, args[1].value_union.i64);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_source_media_get_time(input)));
+	AUTO_DEBUG;
+}
+
+void osn::Input::Play(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+
+	if (!input)
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
+
+	obs_source_media_play_pause ( input, false);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void osn::Input::Pause(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+
+	if (!input)
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
+
+	obs_source_media_play_pause ( input, true);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void osn::Input::Restart(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+
+	if (!input)
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
+
+	obs_source_media_restart ( input );
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void osn::Input::Stop(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+
+	if (!input)
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
+
+	obs_source_media_stop ( input );
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }

@@ -61,6 +61,7 @@ Napi::Object osn::Input::Init(Napi::Env env, Napi::Object exports) {
 			InstanceAccessor("deinterlaceFieldOrder", &osn::Input::GetDeinterlaceFieldOrder, &osn::Input::SetDeinterlaceFieldOrder),
 			InstanceAccessor("deinterlaceMode", &osn::Input::GetDeinterlaceMode, &osn::Input::SetDeinterlaceMode),
 			InstanceAccessor("filters", &osn::Input::Filters, nullptr),
+			InstanceAccessor("seek", &osn::Input::GetTime, &osn::Input::SetTime),
 
 			InstanceAccessor("configurable", &osn::Input::CallIsConfigurable, nullptr),
 			InstanceAccessor("properties", &osn::Input::CallGetProperties, nullptr),
@@ -84,6 +85,11 @@ Napi::Object osn::Input::Init(Napi::Env env, Napi::Object exports) {
 			InstanceMethod("sendMouseWheel", &osn::Input::CallSendMouseWheel),
 			InstanceMethod("sendFocus", &osn::Input::CallSendFocus),
 			InstanceMethod("sendKeyClick", &osn::Input::CallSendKeyClick),
+			InstanceMethod("getDuration", &osn::Input::GetDuration),
+			InstanceMethod("play", &osn::Input::Play),
+			InstanceMethod("pause", &osn::Input::Pause),
+			InstanceMethod("restart", &osn::Input::Restart),
+			InstanceMethod("stop", &osn::Input::Stop)
 		});
 	exports.Set("Input", func);
 	osn::Input::constructor = Napi::Persistent(func);
@@ -846,4 +852,83 @@ Napi::Value osn::Input::CallSendKeyClick(const Napi::CallbackInfo& info)
 	osn::ISource::SendKeyClick(info, this->sourceId);
 
 	return info.Env().Undefined();
+}
+
+Napi::Value osn::Input::GetDuration(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Input", "GetDuration", {ipc::value((uint64_t)this->sourceId)});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	return Napi::Number::New(info.Env(), response[1].value_union.ui64);
+}
+
+Napi::Value osn::Input::GetTime(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Input", "GetTime", {ipc::value((uint64_t)this->sourceId)});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	return Napi::Number::New(info.Env(), response[1].value_union.ui64);
+}
+
+void osn::Input::SetTime(const Napi::CallbackInfo& info, const Napi::Value &value)
+{
+	int64_t ms = info[0].ToNumber().Int64Value();
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
+
+	conn->call("Input", "SetTime", {ipc::value((uint64_t)this->sourceId), ipc::value(ms)});
+}
+
+void osn::Input::Play(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
+
+	conn->call("Input", "Play", {ipc::value((uint64_t)this->sourceId)});
+}
+
+void osn::Input::Pause(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
+
+	conn->call("Input", "Pause", {ipc::value((uint64_t)this->sourceId)});
+}
+
+void osn::Input::Restart(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
+
+	conn->call("Input", "Restart", {ipc::value((uint64_t)this->sourceId)});
+}
+
+void osn::Input::Stop(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
+
+	conn->call("Input", "Stop", {ipc::value((uint64_t)this->sourceId)});
 }
