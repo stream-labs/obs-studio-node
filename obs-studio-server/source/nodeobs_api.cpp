@@ -1349,6 +1349,7 @@ void OBS_API::destroyOBS_API(void)
 			DisableAudioDucking(false);
 	}
 #endif
+	OBS_content::OBS_content_shutdownDisplays();
 
 	autoConfig::WaitPendingTests();
 
