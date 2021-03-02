@@ -49,8 +49,8 @@
 #include <locale>
 #include <mutex>
 #include <string>
-#include "nodeobs_content.h"
 #endif
+#include "nodeobs_content.h"
 
 #ifdef _MSC_VER
 #include <direct.h>
