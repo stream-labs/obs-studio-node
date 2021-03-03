@@ -332,6 +332,16 @@ void OBS_content::OBS_content_destroyDisplay(
 	AUTO_DEBUG;
 }
 
+void OBS_content::OBS_content_shutdownDisplays()
+{
+	blog(LOG_DEBUG, "Displays remaining till shutdown %d", displays.size());
+	while (displays.size() > 0) {
+		auto itr = displays.begin();
+		delete itr->second;
+		displays.erase(itr);
+	}
+}
+
 void OBS_content::OBS_content_createSourcePreviewDisplay(
     void*                          data,
     const int64_t                  id,

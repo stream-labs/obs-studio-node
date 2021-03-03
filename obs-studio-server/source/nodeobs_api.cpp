@@ -49,8 +49,8 @@
 #include <locale>
 #include <mutex>
 #include <string>
-#include "nodeobs_content.h"
 #endif
+#include "nodeobs_content.h"
 
 #ifdef _MSC_VER
 #include <direct.h>
@@ -1349,6 +1349,7 @@ void OBS_API::destroyOBS_API(void)
 			DisableAudioDucking(false);
 	}
 #endif
+	OBS_content::OBS_content_shutdownDisplays();
 
 	autoConfig::WaitPendingTests();
 
