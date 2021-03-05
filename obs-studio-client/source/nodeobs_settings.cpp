@@ -454,7 +454,7 @@ Napi::Array devices_to_js(const Napi::CallbackInfo& info, const std::vector<ipc:
 	uint32_t js_array_index = 0;
 	uint64_t items = response[1].value_union.ui64;
 	if (items > 0) {
-		for (uint64_t idx = 2; idx <= items + 2; idx += 2) {
+		for (uint64_t idx = 2; idx < items*2 + 2; idx += 2) {
 				Napi::Object device = Napi::Object::New(info.Env());
 				device.Set("description", Napi::String::New(info.Env(), response[idx].value_str.c_str()));
 				device.Set("id", Napi::String::New(info.Env(), response[idx + 1].value_str.c_str()));
