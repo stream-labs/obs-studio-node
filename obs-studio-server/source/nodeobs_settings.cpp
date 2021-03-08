@@ -4000,9 +4000,9 @@ void getDevices(
 	if (!settings)
 		return;
 
-	const char * dummy_device_name = "does_not_exist";
+	const char* dummy_device_name = "does_not_exist";
 	obs_data_set_string(settings, property_name, dummy_device_name);
-	if( strcmp(source_id, "dshow_input") == 0) {
+	if (strcmp(source_id, "dshow_input") == 0) {
 		obs_data_set_string(settings, "video_device_id", dummy_device_name);
 		obs_data_set_string(settings, "audio_device_id", dummy_device_name);
 	}
