@@ -630,6 +630,7 @@ export interface IFader {
     db: number;
     deflection: number;
     mul: number;
+    destroy(): void;
     attach(source: IInput): void;
     detach(): void;
     addCallback(cb: (db: number) => void): ICallbackData;
@@ -640,6 +641,7 @@ export interface IVolmeterFactory {
 }
 export interface IVolmeter {
     updateInterval: number;
+    destroy(): void;
     attach(source: IInput): void;
     detach(): void;
     addCallback(cb: (magnitude: number[], peak: number[], inputPeak: number[]) => void): ICallbackData;

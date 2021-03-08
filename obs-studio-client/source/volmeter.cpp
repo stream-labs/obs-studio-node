@@ -38,6 +38,7 @@ Napi::Object osn::Volmeter::Init(Napi::Env env, Napi::Object exports) {
 		{
 			StaticMethod("create", &osn::Volmeter::Create),
 
+			InstanceMethod("destroy", &osn::Volmeter::Destroy),
 			InstanceMethod("attach", &osn::Volmeter::Attach),
 			InstanceMethod("detach", &osn::Volmeter::Detach),
 			InstanceMethod("addCallback", &osn::Volmeter::AddCallback),
@@ -87,6 +88,17 @@ Napi::Value osn::Volmeter::Create(const Napi::CallbackInfo& info)
             Napi::Number::New(info.Env(), response[2].value_union.ui32)
             });
     return instance;
+}
+
+Napi::Value osn::Volmeter::Destroy(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	conn->call("Volmeter", "Destroy", {ipc::value(this->m_uid)});
+
+	return info.Env().Undefined();
 }
 
 Napi::Value osn::Volmeter::Attach(const Napi::CallbackInfo& info)

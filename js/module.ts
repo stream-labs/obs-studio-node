@@ -1412,6 +1412,11 @@ export interface IFader {
     mul: number;
 
     /**
+     * Destroy the fader object object
+     */
+    destroy(): void;
+
+    /**
      * Attach to a source to monitor the volume of
      * @param source Input source to attach to
      */
@@ -1453,6 +1458,11 @@ export interface IVolmeter {
      * The interval at which the volmeter will call the callback.
      */
     updateInterval: number;
+
+    /**
+     * Destroy the volmeter object object
+     */
+    destroy(): void;
 
     /**
      * Attaches to the volmeter object to a source
