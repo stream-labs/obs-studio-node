@@ -46,7 +46,7 @@ namespace autoConfig
         std::shared_ptr<AutoConfigInfo> data = nullptr;
 
         public:
-        Worker(Napi::Function& callback) : AsyncWorker(callback){};
+        Worker(Napi::Function& callback) : AsyncWorker(callback){this->SuppressDestruct();};
         virtual ~Worker() {};
 
         void Execute() {

@@ -118,7 +118,6 @@ Napi::Value autoConfig::InitializeAutoConfig(const Napi::CallbackInfo& info)
 		return info.Env().Undefined();
 
 	asyncWorker = new autoConfig::Worker(async_callback);
-	asyncWorker->SuppressDestruct();
 
 	start_worker();
 	isWorkerRunning = true;
