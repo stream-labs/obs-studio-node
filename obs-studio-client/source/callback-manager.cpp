@@ -91,6 +91,7 @@ void globalCallback::stop_worker(void)
 	if (worker_thread->joinable()) {
 		worker_thread->join();
 	}
+	js_thread.Release();
 }
 
 void globalCallback::worker()
