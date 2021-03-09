@@ -22,7 +22,7 @@
 bool autoConfig::isWorkerRunning = false;
 bool autoConfig::worker_stop = true;
 uint32_t autoConfig::sleepIntervalMS = 33;
-autoConfig::Worker* autoConfig::asyncWorker = nullptr;
+Napi::ThreadSafeFunction  autoConfig::js_thread;
 std::thread* autoConfig::worker_thread = nullptr;
 std::vector<std::thread*> autoConfig::ac_queue_task_workers;
 
@@ -55,7 +55,7 @@ void autoConfig::worker()
 
 			ErrorCode error = (ErrorCode)response[0].value_union.ui64;
 			if (error == ErrorCode::Ok) {
-				std::shared_ptr<AutoConfigInfo> data = std::make_shared<AutoConfigInfo>();
+				AutoConfigInfo * data = new AutoConfigInfo;
 
 				data->event       = response[1].value_str;
 				data->description = response[2].value_str;
@@ -98,6 +98,7 @@ void autoConfig::stop_worker()
 		}
 	}
 	remove_semaphore(ac_sem, ac_sem_name);
+	js_thread.Release();
 }
 
 Napi::Value autoConfig::InitializeAutoConfig(const Napi::CallbackInfo& info)
@@ -117,8 +118,7 @@ Napi::Value autoConfig::InitializeAutoConfig(const Napi::CallbackInfo& info)
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-	asyncWorker = new autoConfig::Worker(async_callback);
-	asyncWorker->SuppressDestruct();
+	js_thread = Napi::ThreadSafeFunction::New(info.Env(), async_callback, "AutoConfig", 0, 1, [](Napi::Env) {});
 
 	start_worker();
 	isWorkerRunning = true;
@@ -165,15 +165,33 @@ Napi::Value autoConfig::StartRecordingEncoderTest(const Napi::CallbackInfo& info
 	return info.Env().Undefined();
 }
 
-void autoConfig::queueTask(std::shared_ptr<AutoConfigInfo> data) {
+void autoConfig::queueTask(AutoConfigInfo* data) {
 	wait_semaphore(ac_sem);
-	asyncWorker->SetData(data);
-	asyncWorker->Queue();
+
+	auto sources_callback = [](Napi::Env env, Napi::Function jsCallback, AutoConfigInfo* event_data) {
+		Napi::Object result = Napi::Object::New(env);
+
+		result.Set(Napi::String::New(env, "event"), Napi::String::New(env, event_data->event));
+		result.Set(Napi::String::New(env, "description"), Napi::String::New(env, event_data->description));
+
+		if (event_data->event.compare("error") != 0) {
+			result.Set(Napi::String::New(env, "percentage"), Napi::Number::New(env, event_data->percentage));
+		}
+		result.Set(Napi::String::New(env, "continent"), Napi::String::New(env, ""));
+
+		jsCallback.Call({result});
+
+		delete event_data;
+	};
+
+	js_thread.NonBlockingCall(data, sources_callback);
+
+	release_semaphore(ac_sem);
 }
 
 Napi::Value autoConfig::StartCheckSettings(const Napi::CallbackInfo& info)
 {
-	std::shared_ptr<AutoConfigInfo> startData = std::make_shared<AutoConfigInfo>();
+	AutoConfigInfo* startData = new AutoConfigInfo;
 	startData->event                          = "starting_step";
 	startData->description                    = "checking_settings";
 	startData->percentage                     = 0;
@@ -189,7 +207,7 @@ Napi::Value autoConfig::StartCheckSettings(const Napi::CallbackInfo& info)
 		return info.Env().Undefined();
 
 	bool                            success  = (bool)response[1].value_union.ui32;
-	std::shared_ptr<AutoConfigInfo> stopData = std::make_shared<AutoConfigInfo>();
+	AutoConfigInfo* stopData = new AutoConfigInfo;
 	if (!success) {
 		stopData->event       = "error";
 		stopData->description = "invalid_settings";
@@ -256,7 +274,7 @@ Napi::Value autoConfig::TerminateAutoConfig(const Napi::CallbackInfo& info)
 
 	if (isWorkerRunning)
 		stop_worker();
-	delete asyncWorker;
+
 	return info.Env().Undefined();
 }
 
