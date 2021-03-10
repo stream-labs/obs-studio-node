@@ -458,6 +458,10 @@ int OBS_service::resetVideoContext(bool reload)
 				ovi.base_height = resolutions.at(i).second;
 			}
 		}
+		if (ovi.base_width == 0 || ovi.base_height == 0) {
+			ovi.base_width = 1920;
+			ovi.base_height = 1080;
+		}
 	}
 
 	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCX", ovi.base_width);
