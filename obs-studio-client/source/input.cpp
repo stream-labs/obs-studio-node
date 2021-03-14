@@ -89,7 +89,8 @@ Napi::Object osn::Input::Init(Napi::Env env, Napi::Object exports) {
 			InstanceMethod("play", &osn::Input::Play),
 			InstanceMethod("pause", &osn::Input::Pause),
 			InstanceMethod("restart", &osn::Input::Restart),
-			InstanceMethod("stop", &osn::Input::Stop)
+			InstanceMethod("stop", &osn::Input::Stop),
+			InstanceMethod("getMediaState", &osn::Input::GetMediaState)
 		});
 	exports.Set("Input", func);
 	osn::Input::constructor = Napi::Persistent(func);
@@ -931,4 +932,20 @@ void osn::Input::Stop(const Napi::CallbackInfo& info)
 		return;
 
 	conn->call("Input", "Stop", {ipc::value((uint64_t)this->sourceId)});
+}
+
+Napi::Value osn::Input::GetMediaState(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Input", "GetMediaState", {ipc::value((uint64_t)this->sourceId)});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	return Napi::Number::New(info.Env(), response[1].value_union.ui64);
 }
