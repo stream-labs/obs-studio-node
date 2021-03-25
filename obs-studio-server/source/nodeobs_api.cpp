@@ -111,7 +111,7 @@ void OBS_API::Register(ipc::server& srv)
 
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_API_initAPI",
-	    std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String},
+	    std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String, ipc::type::String},
 	    OBS_API_initAPI));
 	cls->register_function(
 	    std::make_shared<ipc::function>("OBS_API_destroyOBS_API", std::vector<ipc::type>{}, OBS_API_destroyOBS_API));
@@ -640,6 +640,7 @@ void OBS_API::OBS_API_initAPI(
 	currentVersion      = args[2].value_str;
 	utility::osn_current_version(currentVersion);
 	util::CrashManager::SetVersionName(currentVersion);
+	util::CrashManager::SetReportServerInfo(args[3].value_str);
 
 
 #ifdef ENABLE_CRASHREPORT

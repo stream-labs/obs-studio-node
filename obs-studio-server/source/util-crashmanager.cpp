@@ -74,6 +74,7 @@ LPTOP_LEVEL_EXCEPTION_FILTER               crashpadInternalExceptionFilterMethod
 #endif
 
 std::string                                appState = "starting"; // "starting","idle","encoding","shutdown"
+std::string                                reportServerUrl = "";
 // Crashpad variables
 #ifdef ENABLE_CRASHREPORT
 std::wstring                                   appdata_path;
@@ -320,7 +321,7 @@ void util::CrashManager::Configure()
 
 bool util::CrashManager::SetupCrashpad()
 {
-	if (!reportsEnabled) {
+	if (!reportsEnabled || reportServerUrl.size() == 0) {
 		return false;
 	}
 
@@ -350,10 +351,6 @@ bool util::CrashManager::SetupCrashpad()
 	handler_path.append("crashpad_handler");
 #endif
 
-	url = isPreview
-	          ? std::string("https://sentry.io/api/1406061/minidump/?sentry_key=7376a60665cd40bebbd59d6bf8363172")
-	          : std::string("https://sentry.io/api/1283431/minidump/?sentry_key=ec98eac4e3ce49c7be1d83c8fb2005ef");
-
 #ifdef __APPLE__
 	std::string appdata_path = g_util_osx->getUserDataPath();
 #endif
@@ -366,7 +363,7 @@ bool util::CrashManager::SetupCrashpad()
 
 	database->GetSettings()->SetUploadsEnabled(true);
 
-	bool rc = client.StartHandler(handler, db, db, url, annotations, arguments, true, true);
+	bool rc = client.StartHandler(handler, db, db, reportServerUrl, annotations, arguments, true, true);
 	if (!rc)
 		return false;
 
@@ -505,6 +502,11 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	insideCrashMethod = false;
 
 #endif
+}
+
+void util::CrashManager::SetReportServerInfo(std::string info)
+{
+	reportServerUrl = info;
 }
 
 void util::CrashManager::SetVersionName(std::string name) {
