@@ -640,7 +640,7 @@ void OBS_API::OBS_API_initAPI(
 	currentVersion      = args[2].value_str;
 	utility::osn_current_version(currentVersion);
 	util::CrashManager::SetVersionName(currentVersion);
-	util::CrashManager::SetReportServerInfo(args[3].value_str);
+	util::CrashManager::SetReportServerUrl(args[3].value_str);
 
 
 #ifdef ENABLE_CRASHREPORT

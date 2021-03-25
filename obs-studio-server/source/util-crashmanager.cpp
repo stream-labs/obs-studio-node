@@ -504,9 +504,9 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 #endif
 }
 
-void util::CrashManager::SetReportServerInfo(std::string info)
+void util::CrashManager::SetReportServerUrl(std::string url)
 {
-	reportServerUrl = info;
+	reportServerUrl = url;
 }
 
 void util::CrashManager::SetVersionName(std::string name) {

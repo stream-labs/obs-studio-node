@@ -73,7 +73,7 @@ namespace util
 		static void ProcessPostServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args);
 
 		static void SetVersionName(std::string name);
-		static void SetReportServerInfo(std::string info);
+		static void SetReportServerUrl(std::string url);
 		static void SetUsername(std::string name);
 
 		private:
