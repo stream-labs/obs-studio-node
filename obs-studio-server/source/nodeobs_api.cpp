@@ -639,12 +639,11 @@ void OBS_API::OBS_API_initAPI(
 	std::string locale  = args[1].value_str;
 	currentVersion      = args[2].value_str;
 	utility::osn_current_version(currentVersion);
-	util::CrashManager::SetVersionName(currentVersion);
-	util::CrashManager::SetReportServerUrl(args[3].value_str);
-
 
 #ifdef ENABLE_CRASHREPORT
-   util::CrashManager crashManager;
+	util::CrashManager crashManager;
+	crashManager.SetVersionName(currentVersion);
+	crashManager.SetReportServerUrl(args[3].value_str);
 	char* path = g_moduleDirectory.data();
 	if (crashManager.Initialize(path, appdata)) {
 		crashManager.Configure();
