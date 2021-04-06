@@ -35,6 +35,7 @@ Napi::Object osn::Fader::Init(Napi::Env env, Napi::Object exports) {
 		{
 			StaticMethod("create", &osn::Fader::Create),
 
+			InstanceMethod("destroy", &osn::Fader::Destroy),
 			InstanceMethod("attach", &osn::Fader::Attach),
 			InstanceMethod("detach", &osn::Fader::Detach),
 			InstanceMethod("addCallback", &osn::Fader::AddCallback),
@@ -178,6 +179,17 @@ void osn::Fader::SetMultiplier(const Napi::CallbackInfo& info, const Napi::Value
 		return;
 
 	conn->call("Fader", "SetMultiplier", {ipc::value(this->uid), ipc::value(mul)});
+}
+
+Napi::Value osn::Fader::Destroy(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	conn->call_synchronous_helper("Fader", "Destroy", {ipc::value(this->uid)});
+
+	return info.Env().Undefined();
 }
 
 Napi::Value osn::Fader::Attach(const Napi::CallbackInfo& info)
