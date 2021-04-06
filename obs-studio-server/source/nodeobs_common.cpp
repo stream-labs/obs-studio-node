@@ -651,7 +651,6 @@ void OBS_content::OBS_content_createIOSurface(
 {
 #ifdef __APPLE__
 	// Find Display
-    //blog(LOG_DEBUG, "OBS_content_createIOSurface : Finding display with value %s", args[0].value_str.c_str());
 	auto it = displays.find(args[0].value_str);
 	if (it == displays.end()) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
@@ -659,10 +658,8 @@ void OBS_content::OBS_content_createIOSurface(
 		return;
 	}
     if (it->second->m_display == nullptr) {
-    //    std::cerr << "OBS_content_createIOSurface : display is null " << std::endl;
         return;
     }
-  //  std::cerr << "OBS_content_createIOSurface : Finding display by key " << args[0].value_str.c_str() << ", " << it->second->m_display << std::endl;
 
 	uint32_t surfaceID =
 		obs_display_create_iosurface(it->second->m_display, 

@@ -357,37 +357,37 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode)
 	m_parentWindow           = reinterpret_cast<HWND>(windowHandle);
 	m_gsInitData.window.hwnd = reinterpret_cast<void*>(m_ourWindow);
 #endif
-    pthread_mutex_lock(&m_displayMtx);
+	pthread_mutex_lock(&m_displayMtx);
 
 	m_display = obs_display_create(&m_gsInitData, 0x0);
-   
-    if (!m_display) {
-        blog(LOG_INFO, "Failed to create the display");
-        throw std::runtime_error("unable to create display");
-    }
+	
+	if (!m_display) {
+		blog(LOG_INFO, "Failed to create the display");
+		throw std::runtime_error("unable to create display");
+	}
 
 	m_renderingMode = mode;
 
 	obs_display_add_draw_callback(m_display, DisplayCallback, this);
-    pthread_mutex_unlock(&m_displayMtx);
+	pthread_mutex_unlock(&m_displayMtx);
 }
 
 OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, std::string sourceName)
     : Display(windowHandle, mode)
 {
-    if (!mtx_init) {
-        mtx_init = true;
-        pthread_mutex_t init_val = PTHREAD_MUTEX_INITIALIZER;
-    	m_displayMtx = init_val;
-        pthread_mutex_init(&m_displayMtx, NULL);
-    }
+	if (!mtx_init) {
+		mtx_init = true;
+		pthread_mutex_t init_val = PTHREAD_MUTEX_INITIALIZER;
+		m_displayMtx = init_val;
+		 pthread_mutex_init(&m_displayMtx, NULL);
+	}
 	m_source = obs_get_source_by_name(sourceName.c_str());
 	obs_source_inc_showing(m_source);
 }
 
 OBS::Display::~Display()
 {
-    pthread_mutex_lock(&m_displayMtx);
+	pthread_mutex_lock(&m_displayMtx);
 	obs_display_remove_draw_callback(m_display, DisplayCallback, this);
 
 	if (m_source) {
@@ -400,18 +400,17 @@ OBS::Display::~Display()
 	}
 
 	if (m_textTexture) {
-        obs_enter_graphics();
+		obs_enter_graphics();
 		gs_texture_destroy(m_textTexture);
-        obs_leave_graphics();
+		obs_leave_graphics();
 	}
 
 	m_boxLine = nullptr;
 	m_boxTris = nullptr;
 
-    if (m_display)
-    	obs_display_destroy(m_display);
-    
-    pthread_mutex_unlock(&m_displayMtx);
+	if (m_display)
+			obs_display_destroy(m_display);
+	pthread_mutex_unlock(&m_displayMtx);
 
 
 #ifdef _WIN32

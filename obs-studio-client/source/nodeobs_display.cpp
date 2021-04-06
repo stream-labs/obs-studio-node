@@ -267,7 +267,6 @@ Napi::Value display::OBS_content_setDrawGuideLines(const Napi::CallbackInfo& inf
 Napi::Value display::OBS_content_createIOSurface(const Napi::CallbackInfo& info)
 {
 	std::string key = info[0].ToString().Utf8Value();
-    std::cerr << "OBS_content_createIOSurface key " << key << std::endl;
 
 	auto conn = GetConnection(info);
 	if (!conn)
