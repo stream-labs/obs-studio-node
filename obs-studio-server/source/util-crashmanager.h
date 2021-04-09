@@ -75,6 +75,9 @@ namespace util
 		static void SetVersionName(std::string name);
 		static void SetReportServerUrl(std::string url);
 		static void SetUsername(std::string name);
+		static bool InitializeMemoryDump();
+		static void SignalMemoryDump();
+		static bool IsMemoryDumpEnabled();
 
 		private:
 		static nlohmann::json RequestOBSLog(OBSLogType type);
