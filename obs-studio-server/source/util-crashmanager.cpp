@@ -241,6 +241,16 @@ nlohmann::json RequestProcessList()
 //////////////////
 // CrashManager //
 //////////////////
+std::wstring util::CrashManager::GetMemoryDumpEventName()
+{
+	return L"Global\\SLOBSMEMORYDUMPEVENT";
+}
+
+std::wstring util::CrashManager::GetMemoryDumpFinishedEventName()
+{
+	return L"Global\\SLOBSMEMORYDUMPFINISHEDEVENT";
+}
+
 #ifdef WIN32
 bool util::CrashManager::IsMemoryDumpEnabled()
 {
@@ -265,7 +275,7 @@ bool util::CrashManager::InitializeMemoryDump()
 			eventSecurityAttr.lpSecurityDescriptor = securityDescriptor;
 			eventSecurityAttr.bInheritHandle = FALSE;
 
-			memoryDumpEvent = CreateEvent( &eventSecurityAttr, TRUE, FALSE, L"Global\\OBSMEMORYDUMPEVENT");
+			memoryDumpEvent = CreateEvent( &eventSecurityAttr, TRUE, FALSE, GetMemoryDumpEventName().c_str());
 			if (memoryDumpEvent != NULL && memoryDumpEvent != INVALID_HANDLE_VALUE) {
 				ret = true;
 			}
@@ -280,7 +290,7 @@ void util::CrashManager::SignalMemoryDump()
 {
 	if (memoryDumpEvent != NULL && memoryDumpEvent != INVALID_HANDLE_VALUE) {
 		if (SetEvent(memoryDumpEvent)) {
-			HANDLE dumpFinished = OpenEvent(EVENT_ALL_ACCESS, FALSE, L"Global\\OBSMEMORYDUMPFINISHEDEVENT");
+			HANDLE dumpFinished = OpenEvent(EVENT_ALL_ACCESS, FALSE, GetMemoryDumpFinishedEventName().c_str());
 			if (dumpFinished && dumpFinished != INVALID_HANDLE_VALUE) {
 				WaitForSingleObject(dumpFinished, INFINITE);
 				CloseHandle(dumpFinished);
@@ -290,10 +300,17 @@ void util::CrashManager::SignalMemoryDump()
 		memoryDumpEvent = INVALID_HANDLE_VALUE;
 	}
 }
+
+std::wstring util::CrashManager::GetMemoryDumpPath()
+{
+	return memoryDumpFolder.generic_wstring();
+}
+
 #else
 bool util::CrashManager::IsMemoryDumpEnabled() { return false; }
 bool util::CrashManager::InitializeMemoryDump() { return IsMemoryDumpEnabled(); }
 void util::CrashManager::SignalMemoryDump() {}
+std::wstring util::CrashManager::GetMemoryDumpPath() {return L""; }
 #endif
 
 bool util::CrashManager::Initialize(char* path, std::string appdata)
