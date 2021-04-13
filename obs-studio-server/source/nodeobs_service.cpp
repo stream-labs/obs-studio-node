@@ -2025,6 +2025,11 @@ obs_encoder_t* OBS_service::getAudioSimpleRecordingEncoder(void)
 	return audioSimpleRecordingEncoder;
 }
 
+obs_encoder_t* OBS_service::getArchiveEncoder(void)
+{
+	return streamArchiveEnc;
+}
+
 void OBS_service::setAudioSimpleRecordingEncoder(obs_encoder_t* encoder)
 {
 	obs_encoder_release(audioSimpleRecordingEncoder);
