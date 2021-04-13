@@ -2602,8 +2602,10 @@ void OBS_service::setupVodTrack(bool isSimpleMode) {
 	if (streamArchiveEnc && obs_encoder_active(streamArchiveEnc))
 		return;
 
-	if (streamArchiveEnc)
+	if (streamArchiveEnc) {
 		obs_encoder_release(streamArchiveEnc);
+		streamArchiveEnc = nullptr;
+	}
 
 	int streamTrack = 0;
 	bool vodTrackEnabled = false;
