@@ -1372,6 +1372,10 @@ void OBS_API::destroyOBS_API(void)
 	if (audioRecordingEncoder != NULL && (OBS_service::useRecordingPreset() || obs_get_multiple_rendering()))
 		obs_encoder_release(audioRecordingEncoder);
 
+	obs_encoder_t* archiveEncoder = OBS_service::getArchiveEncoder();
+	if (archiveEncoder != NULL)
+		obs_encoder_release(archiveEncoder);
+
 	obs_output_t* streamingOutput = OBS_service::getStreamingOutput();
 	if (streamingOutput != NULL)
 		obs_output_release(streamingOutput);
