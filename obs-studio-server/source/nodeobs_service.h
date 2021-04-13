@@ -64,6 +64,8 @@
 #define APPLE_SOFTWARE_VIDEO_ENCODER "vt_h264_sw"
 #define APPLE_HARDWARE_VIDEO_ENCODER "vt_h264_hw"
 
+#define ARCHIVE_NAME "archive_aac"
+
 #define MAX_AUDIO_MIXES 6
 
 class SignalInfo
@@ -302,4 +304,8 @@ class OBS_service
 
 	static void startTwitchSoundtrackAudio(void);
 	static void stopTwitchSoundtrackAudio(void);
+	static void setupVodTrack(bool isSimpleMode);
+	static void clear_archive_encoder(
+		obs_output_t *output,
+		const char *expected_name);
 };

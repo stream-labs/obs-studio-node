@@ -43,6 +43,7 @@ obs_encoder_t* audioAdvancedStreamingEncoder = nullptr;
 obs_encoder_t* videoStreamingEncoder         = nullptr;
 obs_encoder_t* videoRecordingEncoder         = nullptr;
 obs_service_t* service                       = nullptr;
+obs_encoder_t* streamArchiveEnc              = nullptr;
 
 obs_encoder_t* aacTracks[MAX_AUDIO_MIXES];
 std::string    aacEncodersID[MAX_AUDIO_MIXES];
@@ -937,6 +938,7 @@ bool OBS_service::startStreaming(void)
 		    audioAdvancedStreamingEncoder, 0);
 
 	startTwitchSoundtrackAudio();
+	setupVodTrack(isSimpleMode);
 
 	isStreaming = obs_output_start(streamingOutput);
 	if (!isStreaming) {
@@ -1204,6 +1206,7 @@ void OBS_service::stopStreaming(bool forceStop)
 	releaseWorker = std::thread(releaseStreamingOutput);
 
 	stopTwitchSoundtrackAudio();
+	clear_archive_encoder(streamingOutput, ARCHIVE_NAME);
 
 	isStreaming = false;
 }
@@ -2561,4 +2564,73 @@ void OBS_service::stopTwitchSoundtrackAudio(void) {
 
 	obs_source_release(desktopSource1);
 	obs_source_release(desktopSource2);
+}
+
+void OBS_service::clear_archive_encoder(obs_output_t *output,
+				  const char *expected_name)
+{
+	obs_encoder_t *last = obs_output_get_audio_encoder(output, 1);
+	bool clear = false;
+
+	/* ensures that we don't remove twitch's soundtrack encoder */
+	if (last) {
+		const char *name = obs_encoder_get_name(last);
+		clear = name && strcmp(name, expected_name) == 0;
+		obs_encoder_release(last);
+	}
+
+	if (clear)
+		obs_output_set_audio_encoder(output, nullptr, 1);
+}
+
+void OBS_service::setupVodTrack(bool isSimpleMode) {
+	if (!service)
+		return;
+
+	obs_data_t *settings = obs_service_get_settings(service);
+	const char *serviceName = obs_data_get_string(settings, "service");
+	obs_data_release(settings);
+
+	if (serviceName && strcmp(serviceName, "Twitch") != 0)
+		return;
+
+	if (streamArchiveEnc && obs_encoder_active(streamArchiveEnc))
+		return;
+
+	if (streamArchiveEnc)
+		obs_encoder_release(streamArchiveEnc);
+
+	int streamTrack = 0;
+	bool vodTrackEnabled = false;
+	int vodTrackIndex = 1;
+
+	if (isSimpleMode) {
+		bool advanced =
+			config_get_bool(ConfigManager::getInstance().getBasic(), "SimpleOutput", "UseAdvanced");
+		vodTrackEnabled = advanced ?
+			config_get_bool(ConfigManager::getInstance().getBasic(), "SimpleOutput", "VodTrackEnabled") : false;
+		blog(LOG_INFO, "vodTrackEnabled: %d", vodTrackEnabled);
+	} else {
+		streamTrack =
+			int(config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex"));
+		vodTrackEnabled =
+			config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "VodTrackEnabled");
+		vodTrackIndex =
+			int(config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "VodTrackIndex"));
+	}
+
+	if (vodTrackEnabled && streamTrack != vodTrackIndex) {
+		std::string id;
+		createAudioEncoder(
+			&streamArchiveEnc,
+			id,
+			isSimpleMode ? GetSimpleAudioBitrate() : GetAdvancedAudioBitrate(vodTrackIndex),
+			ARCHIVE_NAME,
+			vodTrackIndex
+		);
+		obs_encoder_set_audio(streamArchiveEnc, obs_get_audio());
+		obs_output_set_audio_encoder(streamingOutput, streamArchiveEnc, 1);
+	}
+	else
+		clear_archive_encoder(streamingOutput, ARCHIVE_NAME);
 }
