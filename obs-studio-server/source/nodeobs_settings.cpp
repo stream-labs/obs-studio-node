@@ -1207,11 +1207,27 @@ void OBS_settings::getSimpleOutputSettings(
 		obs_data_release(settings);
 
 		if (serviceName && strcmp(serviceName, "Twitch") == 0) {
+			bool soundtrackSourceExists = false;
+			obs_enum_sources(
+				[](void *param, obs_source_t *source) {
+					auto id = obs_source_get_id(source);
+					if(strcmp(id, "soundtrack_source") == 0) {
+						*reinterpret_cast<bool *>(param) = true;
+						return false;
+					}
+					return true;
+				},
+				&soundtrackSourceExists
+			);
+			std::string twitchVODDesc = "Twitch VOD Track (Uses Track 2).";
+			if (soundtrackSourceExists)
+				twitchVODDesc += " Remove Twitch Soundtrack in order to enable this.";
+
 			//Twitch VOD
 			std::vector<std::pair<std::string, ipc::value>> twitchVOD;
 			twitchVOD.push_back(std::make_pair("name", ipc::value("VodTrackEnabled")));
 			twitchVOD.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-			twitchVOD.push_back(std::make_pair("description", ipc::value("Twitch VOD Track (Uses Track 2)")));
+			twitchVOD.push_back(std::make_pair("description", ipc::value(twitchVODDesc.c_str())));
 			twitchVOD.push_back(std::make_pair("subType", ipc::value("")));
 			twitchVOD.push_back(std::make_pair("minVal", ipc::value((double)0)));
 			twitchVOD.push_back(std::make_pair("maxVal", ipc::value((double)0)));
@@ -1736,11 +1752,27 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	obs_data_release(serviceSettings);
 
 	if (serviceName && strcmp(serviceName, "Twitch") == 0) {
+		bool soundtrackSourceExists = false;
+		obs_enum_sources(
+			[](void *param, obs_source_t *source) {
+				auto id = obs_source_get_id(source);
+				if(strcmp(id, "soundtrack_source") == 0) {
+					*reinterpret_cast<bool *>(param) = true;
+					return false;
+				}
+				return true;
+			},
+			&soundtrackSourceExists
+		);
+		std::string twitchVODDesc = "Twitch VOD";
+		if (soundtrackSourceExists)
+			twitchVODDesc += ". Remove Twitch Soundtrack in order to enable this.";
+
 		// Twitch VOD : boolean
 		Parameter twiwchVOD;
 		twiwchVOD.name        = "VodTrackEnabled";
 		twiwchVOD.type        = "OBS_PROPERTY_BOOL";
-		twiwchVOD.description = "Twitch VOD";
+		twiwchVOD.description = twitchVODDesc;
 
 		bool doTwiwchVOD = config_get_bool(config, "AdvOut", "VodTrackEnabled");
 
