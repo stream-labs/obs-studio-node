@@ -70,6 +70,7 @@ std::thread            releaseWorker;
 static constexpr int kSoundtrackArchiveEncoderIdx = 1;
 static constexpr int kSoundtrackArchiveTrackIdx = 5;
 static obs_encoder_t *archiveEncoder = nullptr;
+static bool twitchSoundtrackEnabled = false;
 
 OBS_service::OBS_service() {}
 OBS_service::~OBS_service() {}
@@ -937,8 +938,9 @@ bool OBS_service::startStreaming(void)
 		    streamingOutput,
 		    audioAdvancedStreamingEncoder, 0);
 
-	startTwitchSoundtrackAudio();
-	setupVodTrack(isSimpleMode);
+	twitchSoundtrackEnabled = startTwitchSoundtrackAudio();
+	if (!twitchSoundtrackEnabled)
+		setupVodTrack(isSimpleMode);
 
 	isStreaming = obs_output_start(streamingOutput);
 	if (!isStreaming) {
@@ -1205,9 +1207,12 @@ void OBS_service::stopStreaming(bool forceStop)
 
 	releaseWorker = std::thread(releaseStreamingOutput);
 
-	stopTwitchSoundtrackAudio();
-	clear_archive_encoder(streamingOutput, ARCHIVE_NAME);
+	if (twitchSoundtrackEnabled)
+		stopTwitchSoundtrackAudio();
+	else
+		clear_archive_encoder(streamingOutput, ARCHIVE_NAME);
 
+	twitchSoundtrackEnabled = false;
 	isStreaming = false;
 }
 
@@ -2465,18 +2470,18 @@ static inline uint32_t setMixer(obs_source_t *source, const int mixerIdx, const 
 uint32_t oldMixer_desktopSource1 = 0;
 uint32_t oldMixer_desktopSource2 = 0;
 
-void OBS_service::startTwitchSoundtrackAudio(void) {
+bool OBS_service::startTwitchSoundtrackAudio(void) {
 	bool sourceExists = false;
 
 	if (!service)
-		return;
+		return false;
 
 	obs_data_t *settings = obs_service_get_settings(service);
 	const char *serviceName = obs_data_get_string(settings, "service");
 	obs_data_release(settings);
 
 	if (serviceName && strcmp(serviceName, "Twitch") != 0)
-		return;
+		return false;
 
 	obs_enum_sources(
 		[](void *param, obs_source_t *source) {
@@ -2490,7 +2495,7 @@ void OBS_service::startTwitchSoundtrackAudio(void) {
 		&sourceExists);
 
 	if (!sourceExists)
-		return;
+		return false;
 
 	// These are magic ints provided by OBS for default sources:
 	// 0 is the main scene/transition which you'd see on the main preview,
@@ -2537,6 +2542,7 @@ void OBS_service::startTwitchSoundtrackAudio(void) {
 	obs_data_set_int(aacSettings, "bitrate", bitrate);
 	obs_encoder_update(archiveEncoder, aacSettings);
 	obs_data_release(aacSettings);
+	return true;
 }
 
 void OBS_service::stopTwitchSoundtrackAudio(void) {
@@ -2638,6 +2644,4 @@ void OBS_service::setupVodTrack(bool isSimpleMode) {
 		obs_encoder_set_audio(streamArchiveEnc, obs_get_audio());
 		obs_output_set_audio_encoder(streamingOutput, streamArchiveEnc, 1);
 	}
-	else
-		clear_archive_encoder(streamingOutput, ARCHIVE_NAME);
 }

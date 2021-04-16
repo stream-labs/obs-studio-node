@@ -303,7 +303,7 @@ class OBS_service
 	static bool EncoderAvailable(const char* encoder);
 	static void stopAllOutputs(void);
 
-	static void startTwitchSoundtrackAudio(void);
+	static bool startTwitchSoundtrackAudio(void);
 	static void stopTwitchSoundtrackAudio(void);
 	static void setupVodTrack(bool isSimpleMode);
 	static void clear_archive_encoder(
