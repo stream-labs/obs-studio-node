@@ -88,6 +88,13 @@
 #define GBYTE (1024ULL * 1024ULL * 1024ULL)
 #define TBYTE (1024ULL * 1024ULL * 1024ULL * 1024ULL)
 
+enum crashHandlerCommand {
+	REGISTER = 0,
+	UNREGISTER = 1,
+	REGISTERMEMORYDUMP = 2,
+	CRASHWITHCODE = 3
+};
+
 std::string g_moduleDirectory = "";
 os_cpu_usage_info_t* cpuUsageInfo      = nullptr;
 #ifdef WIN32
@@ -547,7 +554,7 @@ uint32_t pid = (uint32_t)getpid();
 std::vector<char> registerProcess(void)
 {
 	std::vector<char> buffer;
-	uint8_t action     = 0;
+	uint8_t action     = crashHandlerCommand::REGISTER;
 	bool    isCritical = true;
 	buffer.resize(sizeof(action) + sizeof(isCritical) + sizeof(pid));
 
@@ -562,10 +569,46 @@ std::vector<char> registerProcess(void)
 	return buffer;
 }
 
+std::vector<char> registerMemoryDump(void)
+{
+	std::vector<char> buffer;
+	uint8_t action     = crashHandlerCommand::REGISTERMEMORYDUMP;
+	std::wstring eventName = util::CrashManager::GetMemoryDumpEventName();
+	uint32_t eventNameSize = (eventName.size() + 1) * sizeof(wchar_t);
+	std::wstring eventFinishedName = util::CrashManager::GetMemoryDumpFinishedEventName();
+	uint32_t eventFinishedNameSize = (eventFinishedName.size() + 1) * sizeof(wchar_t);
+	std::wstring dumpPath = util::CrashManager::GetMemoryDumpPath();
+	uint32_t dumpPathSize = (dumpPath.size() + 1) * sizeof(wchar_t);
+
+	buffer.resize(sizeof(action) + sizeof(pid) + sizeof(int) + eventNameSize + sizeof(int) + eventFinishedNameSize + sizeof(int) + dumpPathSize);
+	uint32_t offset = 0;
+
+	memcpy(buffer.data(), &action, sizeof(action));
+	offset++;
+	memcpy(buffer.data() + offset, &pid, sizeof(pid));
+	offset+=sizeof(pid);
+	memcpy(buffer.data() + offset, &eventNameSize, sizeof(eventNameSize));
+	offset+=sizeof(eventNameSize);
+	memcpy(buffer.data() + offset, &eventName[0], eventNameSize);
+	offset+=eventNameSize;
+
+	memcpy(buffer.data() + offset, &eventFinishedNameSize, sizeof(eventFinishedNameSize));
+	offset+=sizeof(eventFinishedNameSize);
+	memcpy(buffer.data() + offset, &eventFinishedName[0], eventFinishedNameSize);
+	offset+=eventFinishedNameSize;
+
+	memcpy(buffer.data() + offset, &dumpPathSize, sizeof(dumpPathSize));
+	offset+=sizeof(dumpPathSize);
+	memcpy(buffer.data() + offset, &dumpPath[0], dumpPathSize);
+	offset+=dumpPathSize;
+
+	return buffer;
+}
+
 std::vector<char> unregisterProcess(void)
 {
 	std::vector<char> buffer;
-	uint8_t action = 1;
+	uint8_t action = crashHandlerCommand::UNREGISTER;
 	buffer.resize(sizeof(action) + sizeof(pid));
 
 	uint32_t offset = 0;
@@ -580,7 +623,7 @@ std::vector<char> unregisterProcess(void)
 std::vector<char> crashedProcess(uint32_t crash_id)
 {
 	std::vector<char> buffer;
-	uint8_t action = 3;
+	uint8_t action = crashHandlerCommand::CRASHWITHCODE;
 	buffer.resize(sizeof(action) + sizeof(crash_id) + sizeof(pid));
 
 	uint32_t offset = 0;
@@ -647,6 +690,9 @@ void OBS_API::OBS_API_initAPI(
 	char* path = g_moduleDirectory.data();
 	if (crashManager.Initialize(path, appdata)) {
 		crashManager.Configure();
+		if (crashManager.InitializeMemoryDump()) {
+			writeCrashHandler(registerMemoryDump());
+		}
    }
 
 #ifdef WIN32
