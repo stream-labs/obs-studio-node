@@ -2643,5 +2643,8 @@ void OBS_service::setupVodTrack(bool isSimpleMode) {
 		);
 		obs_encoder_set_audio(streamArchiveEnc, obs_get_audio());
 		obs_output_set_audio_encoder(streamingOutput, streamArchiveEnc, 1);
+
+		if (obs_output_get_audio_encoder(streamingOutput, 1) == streamArchiveEnc)
+			obs_encoder_addref(streamArchiveEnc);
 	}
 }
