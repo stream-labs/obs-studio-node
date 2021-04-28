@@ -43,7 +43,7 @@ obs_encoder_t* audioAdvancedStreamingEncoder = nullptr;
 obs_encoder_t* videoStreamingEncoder         = nullptr;
 obs_encoder_t* videoRecordingEncoder         = nullptr;
 obs_service_t* service                       = nullptr;
-obs_encoder_t* streamArchiveEncVod              = nullptr;
+obs_encoder_t* streamArchiveEncVod           = nullptr;
 
 obs_encoder_t* aacTracks[MAX_AUDIO_MIXES];
 std::string    aacEncodersID[MAX_AUDIO_MIXES];
