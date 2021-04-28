@@ -43,7 +43,7 @@ obs_encoder_t* audioAdvancedStreamingEncoder = nullptr;
 obs_encoder_t* videoStreamingEncoder         = nullptr;
 obs_encoder_t* videoRecordingEncoder         = nullptr;
 obs_service_t* service                       = nullptr;
-obs_encoder_t* streamArchiveEnc              = nullptr;
+obs_encoder_t* streamArchiveEncVod           = nullptr;
 
 obs_encoder_t* aacTracks[MAX_AUDIO_MIXES];
 std::string    aacEncodersID[MAX_AUDIO_MIXES];
@@ -69,7 +69,7 @@ std::thread            releaseWorker;
 
 static constexpr int kSoundtrackArchiveEncoderIdx = 1;
 static constexpr int kSoundtrackArchiveTrackIdx = 5;
-static obs_encoder_t *archiveEncoder = nullptr;
+static obs_encoder_t *streamArchiveEncST = nullptr;
 static bool twitchSoundtrackEnabled = false;
 
 OBS_service::OBS_service() {}
@@ -1207,12 +1207,6 @@ void OBS_service::stopStreaming(bool forceStop)
 
 	releaseWorker = std::thread(releaseStreamingOutput);
 
-	if (twitchSoundtrackEnabled)
-		stopTwitchSoundtrackAudio();
-	else
-		clear_archive_encoder(streamingOutput, ARCHIVE_NAME);
-
-	twitchSoundtrackEnabled = false;
 	isStreaming = false;
 }
 
@@ -2032,7 +2026,7 @@ obs_encoder_t* OBS_service::getAudioSimpleRecordingEncoder(void)
 
 obs_encoder_t* OBS_service::getArchiveEncoder(void)
 {
-	return streamArchiveEnc;
+	return streamArchiveEncVod;
 }
 
 void OBS_service::setAudioSimpleRecordingEncoder(obs_encoder_t* encoder)
@@ -2366,7 +2360,14 @@ void OBS_service::releaseStreamingOutput()
 			delay = obs_output_get_active_delay(streamingOutput);
 		}
 	}
-	
+
+	if (twitchSoundtrackEnabled)
+		stopTwitchSoundtrackAudio();
+	else
+		clearArchiveVodEncoder();
+
+	twitchSoundtrackEnabled = false;
+
 	obs_output_release(streamingOutput);
 	streamingOutput = nullptr;
 }
@@ -2514,17 +2515,17 @@ bool OBS_service::startTwitchSoundtrackAudio(void) {
 	obs_source_release(desktopSource1);
 	obs_source_release(desktopSource2);
 
-	if(!archiveEncoder) {
-		archiveEncoder = obs_audio_encoder_create("ffmpeg_aac",
+	if(!streamArchiveEncST) {
+		streamArchiveEncST = obs_audio_encoder_create("ffmpeg_aac",
 			"Soundtrack by Twitch Archive Encoder",
 			nullptr,
 			kSoundtrackArchiveTrackIdx,
 			nullptr);
-		obs_encoder_set_audio(archiveEncoder, obs_get_audio());
+		obs_encoder_set_audio(streamArchiveEncST, obs_get_audio());
 	}
 
 	obs_output_set_audio_encoder(streamingOutput,
-		archiveEncoder,
+		streamArchiveEncST,
 		kSoundtrackArchiveEncoderIdx);
 
 	std::string currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
@@ -2540,7 +2541,7 @@ bool OBS_service::startTwitchSoundtrackAudio(void) {
 
 	obs_data_t *aacSettings = obs_data_create();
 	obs_data_set_int(aacSettings, "bitrate", bitrate);
-	obs_encoder_update(archiveEncoder, aacSettings);
+	obs_encoder_update(streamArchiveEncST, aacSettings);
 	obs_data_release(aacSettings);
 	return true;
 }
@@ -2556,16 +2557,17 @@ void OBS_service::stopTwitchSoundtrackAudio(void) {
 	if (serviceName && strcmp(serviceName, "Twitch") != 0)
 		return;
 
-	if (!archiveEncoder)
+	if (!streamArchiveEncST)
 		return;
 
-	if (obs_encoder_active(archiveEncoder))
+	if (obs_encoder_active(streamArchiveEncST))
 		return;
 
 	if (streamingOutput && obs_output_active(streamingOutput))
+		return;
 
-	obs_encoder_release(archiveEncoder);
-	archiveEncoder = nullptr;
+	obs_encoder_release(streamArchiveEncST);
+	streamArchiveEncST = nullptr;
 
 	auto desktopSource1 = obs_get_output_source(1);
 	auto desktopSource2 = obs_get_output_source(2);
@@ -2577,21 +2579,12 @@ void OBS_service::stopTwitchSoundtrackAudio(void) {
 	obs_source_release(desktopSource2);
 }
 
-void OBS_service::clear_archive_encoder(obs_output_t *output,
-				  const char *expected_name)
+void OBS_service::clearArchiveVodEncoder()
 {
-	obs_encoder_t *last = obs_output_get_audio_encoder(output, 1);
-	bool clear = false;
-
-	/* ensures that we don't remove twitch's soundtrack encoder */
-	if (last) {
-		const char *name = obs_encoder_get_name(last);
-		clear = name && strcmp(name, expected_name) == 0;
-		obs_encoder_release(last);
+	if (streamArchiveEncVod) {
+		obs_encoder_release(streamArchiveEncVod);
+		streamArchiveEncVod = nullptr;
 	}
-
-	if (clear)
-		obs_output_set_audio_encoder(output, nullptr, 1);
 }
 
 void OBS_service::setupVodTrack(bool isSimpleMode) {
@@ -2605,13 +2598,10 @@ void OBS_service::setupVodTrack(bool isSimpleMode) {
 	if (serviceName && strcmp(serviceName, "Twitch") != 0)
 		return;
 
-	if (streamArchiveEnc && obs_encoder_active(streamArchiveEnc))
+	if (streamArchiveEncVod && obs_encoder_active(streamArchiveEncVod))
 		return;
 
-	if (streamArchiveEnc) {
-		obs_encoder_release(streamArchiveEnc);
-		streamArchiveEnc = nullptr;
-	}
+	clearArchiveVodEncoder();
 
 	int streamTrack = 0;
 	bool vodTrackEnabled = false;
@@ -2634,14 +2624,15 @@ void OBS_service::setupVodTrack(bool isSimpleMode) {
 
 	if (vodTrackEnabled && streamTrack != vodTrackIndex) {
 		std::string id;
-		createAudioEncoder(
-			&streamArchiveEnc,
+		if (createAudioEncoder(
+			&streamArchiveEncVod,
 			id,
 			isSimpleMode ? GetSimpleAudioBitrate() : GetAdvancedAudioBitrate(vodTrackIndex),
 			ARCHIVE_NAME,
 			vodTrackIndex
-		);
-		obs_encoder_set_audio(streamArchiveEnc, obs_get_audio());
-		obs_output_set_audio_encoder(streamingOutput, streamArchiveEnc, 1);
+		)) {
+			obs_encoder_set_audio(streamArchiveEncVod, obs_get_audio());
+			obs_output_set_audio_encoder(streamingOutput, streamArchiveEncVod, 1);
+		}
 	}
 }
