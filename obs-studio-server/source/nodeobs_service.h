@@ -306,7 +306,5 @@ class OBS_service
 	static bool startTwitchSoundtrackAudio(void);
 	static void stopTwitchSoundtrackAudio(void);
 	static void setupVodTrack(bool isSimpleMode);
-	static void clear_archive_encoder(
-		obs_output_t *output,
-		const char *expected_name);
+	static void clearArchiveVodEncoder();
 };
