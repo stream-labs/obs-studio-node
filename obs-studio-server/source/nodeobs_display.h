@@ -113,8 +113,7 @@ namespace OBS
 		// OBS Graphics API
 		gs_effect_t * m_gsSolidEffect, *m_textEffect;
 		gs_texture_t* m_textTexture;
-		static pthread_mutex_t m_displayMtx;
-		static bool mtx_init;
+		static std::mutex m_displayMtx;
 
 		GS::VertexBuffer* m_textVertices;
 
