@@ -2615,11 +2615,11 @@ void OBS_service::setupVodTrack(bool isSimpleMode) {
 		blog(LOG_INFO, "vodTrackEnabled: %d", vodTrackEnabled);
 	} else {
 		streamTrack =
-			int(config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex"));
+			int(config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex")) - 1;
 		vodTrackEnabled =
 			config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "VodTrackEnabled");
 		vodTrackIndex =
-			int(config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "VodTrackIndex"));
+			int(config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "VodTrackIndex")) - 1;
 	}
 
 	if (vodTrackEnabled && streamTrack != vodTrackIndex) {
