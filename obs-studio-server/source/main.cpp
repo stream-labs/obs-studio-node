@@ -195,6 +195,7 @@ int main(int argc, char* argv[])
 	ServerData  sd;
 	sd.last_disconnect = sd.last_connect = std::chrono::high_resolution_clock::now();
 	sd.count_connected                   = 0;
+	OBS_API::SetCrashHandlerPipe(std::wstring(socketPath.begin(), socketPath.end()));
 
 	// Classes
 	/// System

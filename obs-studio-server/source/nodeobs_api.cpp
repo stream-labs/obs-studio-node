@@ -638,9 +638,19 @@ std::vector<char> crashedProcess(uint32_t crash_id)
 }
 
 #ifdef WIN32
+std::wstring crash_handler_pipe;
+
+void OBS_API::SetCrashHandlerPipe(const std::wstring &new_pipe)
+{
+	crash_handler_pipe = std::wstring(L"\\\\.\\pipe\\") + new_pipe + std::wstring(L"-crash-handler");
+}
+
 void writeCrashHandler(std::vector<char> buffer)
 {
-	HANDLE hPipe = CreateFile( TEXT("\\\\.\\pipe\\slobs-crash-handler"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+	HANDLE hPipe = CreateFile( crash_handler_pipe.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+
+	if (hPipe == INVALID_HANDLE_VALUE)
+		hPipe = CreateFile( TEXT("\\\\.\\pipe\\slobs-crash-handler"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 
 	if (hPipe == INVALID_HANDLE_VALUE)
 		return;
@@ -652,11 +662,22 @@ void writeCrashHandler(std::vector<char> buffer)
 	CloseHandle(hPipe);
 }
 #else
+std::string crash_handler_pipe;
+
+void OBS_API::SetCrashHandlerPipe(const std::wstring &new_pipe)
+{
+	crash_handler_pipe = std::string("/tmp/") + std::string(new_pipe.begin(), new_pipe.end()) + std::string("-crash-handler");
+}
+
 void writeCrashHandler(std::vector<char> buffer)
 {
-	int file_descriptor = open("/tmp/slobs-crash-handler", O_WRONLY | O_DSYNC);
+	int file_descriptor = open(crash_handler_pipe.c_str(), O_WRONLY | O_DSYNC);
 	if (file_descriptor < 0) {
-		return;
+		int file_descriptor = open("/tmp/slobs-crash-handler", O_WRONLY | O_DSYNC);
+		if (file_descriptor < 0) {
+			return;
+		}
+
 	}
 
 	::write(file_descriptor, buffer.data(), buffer.size());
