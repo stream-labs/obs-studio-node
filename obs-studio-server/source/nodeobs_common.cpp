@@ -657,9 +657,9 @@ void OBS_content::OBS_content_createIOSurface(
 		rval.push_back(ipc::value("Display key is not valid!"));
 		return;
 	}
-    if (it->second->m_display == nullptr) {
-        return;
-    }
+	if (it->second->m_display == nullptr) {
+		return;
+	}
 
 	uint32_t surfaceID =
 		obs_display_create_iosurface(it->second->m_display, 

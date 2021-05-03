@@ -401,7 +401,7 @@ OBS::Display::~Display()
 	m_boxTris = nullptr;
 
 	if (m_display)
-			obs_display_destroy(m_display);
+		obs_display_destroy(m_display);
 	m_displayMtx.unlock();
 
 #ifdef _WIN32
