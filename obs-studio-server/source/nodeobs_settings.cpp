@@ -2744,8 +2744,15 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 
 	obs_encoder_t* encoder         = OBS_service::getStreamingEncoder();
 	obs_data_t*    encoderSettings = obs_encoder_get_settings(encoder);
+	int indexEncoderSettings = 4;
 
-	int indexEncoderSettings = 5;
+	obs_data_t *service_settings = obs_service_get_settings(OBS_service::getService());
+	const char *serviceName = obs_data_get_string(service_settings, "service");
+	obs_data_release(service_settings);
+
+	if (serviceName && strcmp(serviceName, "Twitch") == 0)
+		indexEncoderSettings++;
+
 
 	bool newEncoderType = false;
 
