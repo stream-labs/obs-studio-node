@@ -2745,7 +2745,7 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 	obs_encoder_t* encoder         = OBS_service::getStreamingEncoder();
 	obs_data_t*    encoderSettings = obs_encoder_get_settings(encoder);
 
-	int indexEncoderSettings = 4;
+	int indexEncoderSettings = 5;
 
 	bool newEncoderType = false;
 
@@ -2783,7 +2783,8 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 		} else if (type.compare("OBS_PROPERTY_BOOL") == 0) {
 			bool* value = reinterpret_cast<bool*>(param.currentValue.data());
 			if (i < indexEncoderSettings) {
-				if (name.compare("Rescale") == 0 && *value) {
+				if (name.compare("Rescale") == 0 && *value ||
+					name.compare("VodTrackEnabled") == 0) {
 					indexEncoderSettings++;
 				}
 				config_set_bool(ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str(), *value);
