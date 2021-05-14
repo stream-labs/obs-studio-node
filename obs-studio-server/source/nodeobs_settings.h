@@ -265,3 +265,151 @@ class OBS_settings
 	                                     bool                    isCategoryEnabled,
 	                                     bool                    recordEncoder);
 };
+
+
+template<typename T>
+inline void config_set(config_t* config, const char* section, const char* name, T value){};
+
+template<>
+inline void config_set<uint64_t>(config_t* config, const char* section, const char* name, uint64_t value)
+{
+	config_set_uint64_t(config, section, name, value);
+}
+
+template<>
+inline void config_set<int>(config_t* config, const char* section, const char* name, int value)
+{
+	config_set_int(config, section, name, value);
+}
+
+template<>
+inline void config_set<bool>(config_t* config, const char* section, const char* name, bool value)
+{
+	config_set_bool(config, section, name, value);
+}
+
+template<>
+inline void config_set<std::string>(config_t* config, const char* section, const char* name, std::string value)
+{
+	config_set_string(config, section, name, value.c_str());
+}
+
+template<>
+inline void config_set<double>(config_t* config, const char* section, const char* name, double value)
+{
+	config_set_double(config, section, name, value);
+}
+
+template<typename T>
+inline void obs_data_set(obs_data_t* config, const char* name, T value){};
+
+template<>
+inline void obs_data_set<std::string>(obs_data_t* config, const char* name, std::string value)
+{
+	obs_data_set_string(config, name, value.c_str());
+}
+
+template<>
+inline void obs_data_set<int>(obs_data_t* config, const char* name, int value)
+{
+	obs_data_set_int(config, name, value);
+}
+
+template<>
+inline void obs_data_set<bool>(obs_data_t* config, const char* name, bool value)
+{
+	obs_data_set_bool(config, name, value);
+}
+
+template<>
+inline void obs_data_set<double>(obs_data_t* config, const char* name, double value)
+{
+	obs_data_set_double(config, name, value);
+}
+
+template<typename T>
+inline void set_in_config(
+    Parameter          param,
+    obs_data_t*        encoderSettings,
+    const std::string& section,
+    const std::string& name,
+    int                i,
+    int                indexEncoderSettings)
+{
+	T* value = reinterpret_cast<T*>(param.currentValue.data());
+	if (i < indexEncoderSettings) {
+		config_set<T>(ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str(), *value);
+	} else {
+		obs_data_set<T>(encoderSettings, name.c_str(), *value);
+	}
+}
+
+template<>
+inline void set_in_config<std::string>(
+    Parameter          param,
+    obs_data_t*        encoderSettings,
+    const std::string& section,
+    const std::string& name,
+    int                i,
+    int                indexEncoderSettings)
+{
+	std::string value(param.currentValue.data(), param.currentValue.size());
+	if (i < indexEncoderSettings) {
+		config_set<std::string>(ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str(), value);
+	} else {
+		obs_data_set<std::string>(encoderSettings, name.c_str(), value);
+	}
+}
+
+
+//
+//template<typename T>
+//void config_set(config_t* config, const char* section, const char* name, T value);
+//
+//template<>
+//void config_set<uint64_t>(config_t* config, const char* section, const char* name, uint64_t value);
+//
+//template<>
+//void config_set<int>(config_t* config, const char* section, const char* name, int value);
+//
+//template<>
+//void config_set<bool>(config_t* config, const char* section, const char* name, bool value);
+//
+//template<>
+//void config_set<std::string>(config_t* config, const char* section, const char* name, std::string value);
+//
+//template<>
+//void config_set<double>(config_t* config, const char* section, const char* name, double value);
+//
+//template<typename T>
+//void obs_data_set(obs_data_t* config, const char* name, T value);
+//
+//template<>
+//void obs_data_set<std::string>(obs_data_t* config, const char* name, std::string value);
+//
+//template<>
+//void obs_data_set<int>(obs_data_t* config, const char* name, int value);
+//
+//template<>
+//void obs_data_set<bool>(obs_data_t* config, const char* name, bool value);
+//
+//template<>
+//void obs_data_set<double>(obs_data_t* config, const char* name, double value);
+//
+//template<typename T>
+//void set_in_config(
+//    Parameter          param,
+//    obs_data_t*        encoderSettings,
+//    const std::string& section,
+//    const std::string& name,
+//    int                i,
+//    int                indexEncoderSettings);
+//
+//template<>
+//void set_in_config<std::string>(
+//    Parameter          param,
+//    obs_data_t*        encoderSettings,
+//    const std::string& section,
+//    const std::string& name,
+//    int                i,
+//    int                indexEncoderSettings);
