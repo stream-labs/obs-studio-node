@@ -31,6 +31,7 @@ std::vector<std::pair<std::string, std::pair<uint32_t, uint32_t>>> sourcesSize;
 extern std::string currentScene; /* defined in OBS_content.cpp */
 
 static const uint32_t grayPaddingArea = 10ul;
+std::mutex OBS::Display::m_displayMtx;
 
 static void RecalculateApectRatioConstrainedSize(
     uint32_t  origW,
@@ -355,15 +356,18 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode)
 	m_parentWindow           = reinterpret_cast<HWND>(windowHandle);
 	m_gsInitData.window.hwnd = reinterpret_cast<void*>(m_ourWindow);
 #endif
+	m_displayMtx.lock();
 	m_display = obs_display_create(&m_gsInitData, 0x0);
-    if (!m_display) {
-        blog(LOG_INFO, "Failed to create the display");
-        throw std::runtime_error("unable to create display");
-    }
+	
+	if (!m_display) {
+		blog(LOG_INFO, "Failed to create the display");
+		throw std::runtime_error("unable to create display");
+	}
 
 	m_renderingMode = mode;
 
 	obs_display_add_draw_callback(m_display, DisplayCallback, this);
+	m_displayMtx.unlock();
 }
 
 OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, std::string sourceName)
@@ -375,28 +379,30 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
 
 OBS::Display::~Display()
 {
+	m_displayMtx.lock();
 	obs_display_remove_draw_callback(m_display, DisplayCallback, this);
 
 	if (m_source) {
 		obs_source_dec_showing(m_source);
 		obs_source_release(m_source);
 	}
-	if (m_display)
-		obs_display_destroy(m_display);
-
-	obs_enter_graphics();
 
 	if (m_textVertices) {
 		delete m_textVertices;
 	}
 
 	if (m_textTexture) {
+		obs_enter_graphics();
 		gs_texture_destroy(m_textTexture);
+		obs_leave_graphics();
 	}
 
 	m_boxLine = nullptr;
 	m_boxTris = nullptr;
-	obs_leave_graphics();
+
+	if (m_display)
+		obs_display_destroy(m_display);
+	m_displayMtx.unlock();
 
 #ifdef _WIN32
 	DestroyWindowMessageQuestion question;
