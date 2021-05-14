@@ -391,7 +391,7 @@ install(DIRECTORY ${crashpad_SOURCE_DIR}/bin/ DESTINATION "./" USE_SOURCE_PERMIS
 install(DIRECTORY "${libobs_SOURCE_DIR}/data/" DESTINATION "./data" USE_SOURCE_PERMISSIONS)
 
 if (APPLE)
-	install(DIRECTORY "${libobs_SOURCE_DIR}/Frameworks/" DESTINATION "./Frameworks")
+	install(DIRECTORY "${libobs_SOURCE_DIR}/Frameworks/" DESTINATION "./Frameworks" USE_SOURCE_PERMISSIONS)
 endif()
 
 if (WIN32)
