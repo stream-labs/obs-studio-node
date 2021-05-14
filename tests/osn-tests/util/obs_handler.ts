@@ -68,6 +68,7 @@ export class OBSHandler {
     private obsPath: string = this.path.join(this.path.normalize(__dirname), '..', 'osnData/slobs-client');
     private pipeName: string = 'osn-tests-pipe-'.concat(this.uuid());
     private version: string = '0.00.00-preview.0';
+    private crashServer: string = '';
 
     // Other variables/objects
     private userPoolHandler: UserPoolHandler;
@@ -104,7 +105,7 @@ export class OBSHandler {
         try {
             osn.NodeObs.IPC.host(this.pipeName);
             osn.NodeObs.SetWorkingDirectory(this.workingDirectory);
-            initResult = osn.NodeObs.OBS_API_initAPI(this.language, this.obsPath, this.version);
+            initResult = osn.NodeObs.OBS_API_initAPI(this.language, this.obsPath, this.version, this.crashServer);
         } catch(e) {
             throw Error('Exception when initializing OBS process: ' + e);
         }

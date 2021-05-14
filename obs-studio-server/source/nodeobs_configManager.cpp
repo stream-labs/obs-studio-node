@@ -143,6 +143,7 @@ void initBasicDefault(config_t* config)
 	config_set_default_bool(config, "AdvOut", "ApplyServiceSettings", true);
 	config_set_default_bool(config, "AdvOut", "UseRescale", false);
 	config_set_default_uint(config, "AdvOut", "TrackIndex", 1);
+	config_set_default_uint(config, "AdvOut", "VodTrackIndex", 2);
 	config_set_default_string(config, "AdvOut", "Encoder", "obs_x264");
 
 	config_set_default_string(config, "AdvOut", "RecType", "Standard");

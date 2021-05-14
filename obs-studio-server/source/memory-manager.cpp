@@ -272,9 +272,10 @@ void MemoryManager::unregisterSource(obs_source_t * source)
 {
 	if (!source)
 		return;
-
 	const char* source_id = obs_source_get_id(source);
-	if (!source_id || strcmp(obs_source_get_id(source), "ffmpeg_source"))
+	if (!source_id)
+		return;
+	if (strcmp(source_id, "ffmpeg_source") != 0)
 		return;
 
 	mtx.lock();

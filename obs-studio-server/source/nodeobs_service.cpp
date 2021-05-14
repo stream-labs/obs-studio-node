@@ -43,6 +43,7 @@ obs_encoder_t* audioAdvancedStreamingEncoder = nullptr;
 obs_encoder_t* videoStreamingEncoder         = nullptr;
 obs_encoder_t* videoRecordingEncoder         = nullptr;
 obs_service_t* service                       = nullptr;
+obs_encoder_t* streamArchiveEncVod           = nullptr;
 
 obs_encoder_t* aacTracks[MAX_AUDIO_MIXES];
 std::string    aacEncodersID[MAX_AUDIO_MIXES];
@@ -68,7 +69,8 @@ std::thread            releaseWorker;
 
 static constexpr int kSoundtrackArchiveEncoderIdx = 1;
 static constexpr int kSoundtrackArchiveTrackIdx = 5;
-static obs_encoder_t *archiveEncoder = nullptr;
+static obs_encoder_t *streamArchiveEncST = nullptr;
+static bool twitchSoundtrackEnabled = false;
 
 OBS_service::OBS_service() {}
 OBS_service::~OBS_service() {}
@@ -936,7 +938,9 @@ bool OBS_service::startStreaming(void)
 		    streamingOutput,
 		    audioAdvancedStreamingEncoder, 0);
 
-	startTwitchSoundtrackAudio();
+	twitchSoundtrackEnabled = startTwitchSoundtrackAudio();
+	if (!twitchSoundtrackEnabled)
+		setupVodTrack(isSimpleMode);
 
 	isStreaming = obs_output_start(streamingOutput);
 	if (!isStreaming) {
@@ -1202,8 +1206,6 @@ void OBS_service::stopStreaming(bool forceStop)
 	waitReleaseWorker();
 
 	releaseWorker = std::thread(releaseStreamingOutput);
-
-	stopTwitchSoundtrackAudio();
 
 	isStreaming = false;
 }
@@ -2022,6 +2024,11 @@ obs_encoder_t* OBS_service::getAudioSimpleRecordingEncoder(void)
 	return audioSimpleRecordingEncoder;
 }
 
+obs_encoder_t* OBS_service::getArchiveEncoder(void)
+{
+	return streamArchiveEncVod;
+}
+
 void OBS_service::setAudioSimpleRecordingEncoder(obs_encoder_t* encoder)
 {
 	obs_encoder_release(audioSimpleRecordingEncoder);
@@ -2353,7 +2360,14 @@ void OBS_service::releaseStreamingOutput()
 			delay = obs_output_get_active_delay(streamingOutput);
 		}
 	}
-	
+
+	if (twitchSoundtrackEnabled)
+		stopTwitchSoundtrackAudio();
+	else
+		clearArchiveVodEncoder();
+
+	twitchSoundtrackEnabled = false;
+
 	obs_output_release(streamingOutput);
 	streamingOutput = nullptr;
 }
@@ -2457,18 +2471,18 @@ static inline uint32_t setMixer(obs_source_t *source, const int mixerIdx, const 
 uint32_t oldMixer_desktopSource1 = 0;
 uint32_t oldMixer_desktopSource2 = 0;
 
-void OBS_service::startTwitchSoundtrackAudio(void) {
+bool OBS_service::startTwitchSoundtrackAudio(void) {
 	bool sourceExists = false;
 
 	if (!service)
-		return;
+		return false;
 
 	obs_data_t *settings = obs_service_get_settings(service);
 	const char *serviceName = obs_data_get_string(settings, "service");
 	obs_data_release(settings);
 
 	if (serviceName && strcmp(serviceName, "Twitch") != 0)
-		return;
+		return false;
 
 	obs_enum_sources(
 		[](void *param, obs_source_t *source) {
@@ -2482,7 +2496,7 @@ void OBS_service::startTwitchSoundtrackAudio(void) {
 		&sourceExists);
 
 	if (!sourceExists)
-		return;
+		return false;
 
 	// These are magic ints provided by OBS for default sources:
 	// 0 is the main scene/transition which you'd see on the main preview,
@@ -2501,17 +2515,17 @@ void OBS_service::startTwitchSoundtrackAudio(void) {
 	obs_source_release(desktopSource1);
 	obs_source_release(desktopSource2);
 
-	if(!archiveEncoder) {
-		archiveEncoder = obs_audio_encoder_create("ffmpeg_aac",
+	if(!streamArchiveEncST) {
+		streamArchiveEncST = obs_audio_encoder_create("ffmpeg_aac",
 			"Soundtrack by Twitch Archive Encoder",
 			nullptr,
 			kSoundtrackArchiveTrackIdx,
 			nullptr);
-		obs_encoder_set_audio(archiveEncoder, obs_get_audio());
+		obs_encoder_set_audio(streamArchiveEncST, obs_get_audio());
 	}
 
 	obs_output_set_audio_encoder(streamingOutput,
-		archiveEncoder,
+		streamArchiveEncST,
 		kSoundtrackArchiveEncoderIdx);
 
 	std::string currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
@@ -2527,8 +2541,9 @@ void OBS_service::startTwitchSoundtrackAudio(void) {
 
 	obs_data_t *aacSettings = obs_data_create();
 	obs_data_set_int(aacSettings, "bitrate", bitrate);
-	obs_encoder_update(archiveEncoder, aacSettings);
+	obs_encoder_update(streamArchiveEncST, aacSettings);
 	obs_data_release(aacSettings);
+	return true;
 }
 
 void OBS_service::stopTwitchSoundtrackAudio(void) {
@@ -2542,16 +2557,17 @@ void OBS_service::stopTwitchSoundtrackAudio(void) {
 	if (serviceName && strcmp(serviceName, "Twitch") != 0)
 		return;
 
-	if (!archiveEncoder)
+	if (!streamArchiveEncST)
 		return;
 
-	if (obs_encoder_active(archiveEncoder))
+	if (obs_encoder_active(streamArchiveEncST))
 		return;
 
 	if (streamingOutput && obs_output_active(streamingOutput))
+		return;
 
-	obs_encoder_release(archiveEncoder);
-	archiveEncoder = nullptr;
+	obs_encoder_release(streamArchiveEncST);
+	streamArchiveEncST = nullptr;
 
 	auto desktopSource1 = obs_get_output_source(1);
 	auto desktopSource2 = obs_get_output_source(2);
@@ -2561,4 +2577,62 @@ void OBS_service::stopTwitchSoundtrackAudio(void) {
 
 	obs_source_release(desktopSource1);
 	obs_source_release(desktopSource2);
+}
+
+void OBS_service::clearArchiveVodEncoder()
+{
+	if (streamArchiveEncVod) {
+		obs_encoder_release(streamArchiveEncVod);
+		streamArchiveEncVod = nullptr;
+	}
+}
+
+void OBS_service::setupVodTrack(bool isSimpleMode) {
+	if (!service)
+		return;
+
+	obs_data_t *settings = obs_service_get_settings(service);
+	const char *serviceName = obs_data_get_string(settings, "service");
+	obs_data_release(settings);
+
+	if (serviceName && strcmp(serviceName, "Twitch") != 0)
+		return;
+
+	if (streamArchiveEncVod && obs_encoder_active(streamArchiveEncVod))
+		return;
+
+	clearArchiveVodEncoder();
+
+	int streamTrack = 0;
+	bool vodTrackEnabled = false;
+	int vodTrackIndex = 1;
+
+	if (isSimpleMode) {
+		bool advanced =
+			config_get_bool(ConfigManager::getInstance().getBasic(), "SimpleOutput", "UseAdvanced");
+		vodTrackEnabled = advanced ?
+			config_get_bool(ConfigManager::getInstance().getBasic(), "SimpleOutput", "VodTrackEnabled") : false;
+		blog(LOG_INFO, "vodTrackEnabled: %d", vodTrackEnabled);
+	} else {
+		streamTrack =
+			int(config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex")) - 1;
+		vodTrackEnabled =
+			config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "VodTrackEnabled");
+		vodTrackIndex =
+			int(config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "VodTrackIndex")) - 1;
+	}
+
+	if (vodTrackEnabled && streamTrack != vodTrackIndex) {
+		std::string id;
+		if (createAudioEncoder(
+			&streamArchiveEncVod,
+			id,
+			isSimpleMode ? GetSimpleAudioBitrate() : GetAdvancedAudioBitrate(vodTrackIndex),
+			ARCHIVE_NAME,
+			vodTrackIndex
+		)) {
+			obs_encoder_set_audio(streamArchiveEncVod, obs_get_audio());
+			obs_output_set_audio_encoder(streamingOutput, streamArchiveEncVod, 1);
+		}
+	}
 }

@@ -1202,6 +1202,39 @@ void OBS_settings::getSimpleOutputSettings(
 		enforceBitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 		entries.push_back(enforceBitrate);
 
+		obs_data_t *settings = obs_service_get_settings(OBS_service::getService());
+		const char *serviceName = obs_data_get_string(settings, "service");
+		obs_data_release(settings);
+
+		if (serviceName && strcmp(serviceName, "Twitch") == 0) {
+			bool soundtrackSourceExists = false;
+			obs_enum_sources(
+				[](void *param, obs_source_t *source) {
+					auto id = obs_source_get_id(source);
+					if(strcmp(id, "soundtrack_source") == 0) {
+						*reinterpret_cast<bool *>(param) = true;
+						return false;
+					}
+					return true;
+				},
+				&soundtrackSourceExists
+			);
+			std::string twitchVODDesc = "Twitch VOD Track (Uses Track 2).";
+			if (soundtrackSourceExists)
+				twitchVODDesc += " Remove Twitch Soundtrack in order to enable this.";
+
+			//Twitch VOD
+			std::vector<std::pair<std::string, ipc::value>> twitchVOD;
+			twitchVOD.push_back(std::make_pair("name", ipc::value("VodTrackEnabled")));
+			twitchVOD.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+			twitchVOD.push_back(std::make_pair("description", ipc::value(twitchVODDesc.c_str())));
+			twitchVOD.push_back(std::make_pair("subType", ipc::value("")));
+			twitchVOD.push_back(std::make_pair("minVal", ipc::value((double)0)));
+			twitchVOD.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+			twitchVOD.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+			entries.push_back(twitchVOD);
+		}
+
 		//Encoder Preset
 		const char* defaultPreset;
 		const char* encoder = config_get_string(config, "SimpleOutput", "StreamEncoder");
@@ -1713,6 +1746,102 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	trackIndex.masked  = false;
 
 	streamingSettings.params.push_back(trackIndex);
+
+	obs_data_t *serviceSettings = obs_service_get_settings(OBS_service::getService());
+	const char *serviceName = obs_data_get_string(serviceSettings, "service");
+	obs_data_release(serviceSettings);
+
+	if (serviceName && strcmp(serviceName, "Twitch") == 0) {
+		bool soundtrackSourceExists = false;
+		obs_enum_sources(
+			[](void *param, obs_source_t *source) {
+				auto id = obs_source_get_id(source);
+				if(strcmp(id, "soundtrack_source") == 0) {
+					*reinterpret_cast<bool *>(param) = true;
+					return false;
+				}
+				return true;
+			},
+			&soundtrackSourceExists
+		);
+		std::string twitchVODDesc = "Twitch VOD";
+		if (soundtrackSourceExists)
+			twitchVODDesc += ". Remove Twitch Soundtrack in order to enable this.";
+
+		// Twitch VOD : boolean
+		Parameter twiwchVOD;
+		twiwchVOD.name        = "VodTrackEnabled";
+		twiwchVOD.type        = "OBS_PROPERTY_BOOL";
+		twiwchVOD.description = twitchVODDesc;
+
+		bool doTwiwchVOD = config_get_bool(config, "AdvOut", "VodTrackEnabled");
+
+		twiwchVOD.currentValue.resize(sizeof(doTwiwchVOD));
+		memcpy(twiwchVOD.currentValue.data(), &doTwiwchVOD, sizeof(doTwiwchVOD));
+		twiwchVOD.sizeOfCurrentValue = sizeof(doTwiwchVOD);
+
+		twiwchVOD.visible = true;
+		twiwchVOD.enabled = isCategoryEnabled;
+		twiwchVOD.masked  = false;
+
+		streamingSettings.params.push_back(twiwchVOD);
+
+		if (doTwiwchVOD) {
+			// Twitch Audio track: list
+			Parameter trackVODIndex;
+			trackVODIndex.name        = "VodTrackIndex";
+			trackVODIndex.type        = "OBS_PROPERTY_LIST";
+			trackVODIndex.subType     = "OBS_COMBO_FORMAT_STRING";
+			trackVODIndex.description = "Twitch VOD Track";
+
+			std::vector<std::pair<std::string, std::string>> trackVODIndexValues;
+			trackVODIndexValues.push_back(std::make_pair("1", "1"));
+			trackVODIndexValues.push_back(std::make_pair("2", "2"));
+			trackVODIndexValues.push_back(std::make_pair("3", "3"));
+			trackVODIndexValues.push_back(std::make_pair("4", "4"));
+			trackVODIndexValues.push_back(std::make_pair("5", "5"));
+			trackVODIndexValues.push_back(std::make_pair("6", "6"));
+
+			for (int i = 0; i < trackVODIndexValues.size(); i++) {
+				std::string name = trackVODIndexValues.at(i).first;
+
+				uint64_t          sizeName = name.length();
+				std::vector<char> sizeNameBuffer;
+				sizeNameBuffer.resize(sizeof(sizeName));
+				memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+
+				trackVODIndex.values.insert(trackVODIndex.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+				trackVODIndex.values.insert(trackVODIndex.values.end(), name.begin(), name.end());
+
+				std::string value = trackVODIndexValues.at(i).second;
+
+				uint64_t          sizeValue = value.length();
+				std::vector<char> sizeValueBuffer;
+				sizeValueBuffer.resize(sizeof(sizeValue));
+				memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+
+				trackVODIndex.values.insert(trackVODIndex.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+				trackVODIndex.values.insert(trackVODIndex.values.end(), value.begin(), value.end());
+			}
+
+			trackVODIndex.sizeOfValues = trackVODIndex.values.size();
+			trackVODIndex.countValues  = trackVODIndexValues.size();
+
+			const char* trackVODIndexCurrentValue = config_get_string(config, "AdvOut", "VodTrackIndex");
+			if (trackVODIndexCurrentValue == NULL)
+				trackVODIndexCurrentValue = "";
+
+			trackVODIndex.currentValue.resize(strlen(trackVODIndexCurrentValue));
+			memcpy(trackVODIndex.currentValue.data(), trackVODIndexCurrentValue, strlen(trackVODIndexCurrentValue));
+			trackVODIndex.sizeOfCurrentValue = strlen(trackVODIndexCurrentValue);
+
+			trackVODIndex.visible = true;
+			trackVODIndex.enabled = isCategoryEnabled;
+			trackVODIndex.masked  = false;
+
+			streamingSettings.params.push_back(trackVODIndex);
+		}
+	}
 
 	// Encoder : list
 	Parameter videoEncoders;
@@ -2615,8 +2744,15 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 
 	obs_encoder_t* encoder         = OBS_service::getStreamingEncoder();
 	obs_data_t*    encoderSettings = obs_encoder_get_settings(encoder);
-
 	int indexEncoderSettings = 4;
+
+	obs_data_t *service_settings = obs_service_get_settings(OBS_service::getService());
+	const char *serviceName = obs_data_get_string(service_settings, "service");
+	obs_data_release(service_settings);
+
+	if (serviceName && strcmp(serviceName, "Twitch") == 0)
+		indexEncoderSettings++;
+
 
 	bool newEncoderType = false;
 
@@ -2654,7 +2790,8 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 		} else if (type.compare("OBS_PROPERTY_BOOL") == 0) {
 			bool* value = reinterpret_cast<bool*>(param.currentValue.data());
 			if (i < indexEncoderSettings) {
-				if (name.compare("Rescale") == 0 && *value) {
+				if (name.compare("Rescale") == 0 && *value ||
+					name.compare("VodTrackEnabled") == 0 && *value) {
 					indexEncoderSettings++;
 				}
 				config_set_bool(ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str(), *value);

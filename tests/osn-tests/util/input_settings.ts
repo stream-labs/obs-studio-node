@@ -31,6 +31,7 @@ let browserSource: ISettings = {
     fps: 30,
     fps_custom: false,
     height: 600,
+    is_media_flag: false,
     reroute_audio: false,
     restart_when_active: false,
     shutdown: false,
@@ -51,6 +52,7 @@ let ffmpegSource: ISettings = {
 export {ffmpegSource};
 
 let ndiSource: ISettings = {
+    latency: 0,
     ndi_bw_mode: 0,
     ndi_fix_alpha_blending: false,
     ndi_sync: 1,

@@ -31,6 +31,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <filesystem>
 
 #ifdef WIN32
 #include "StackWalker.h"
@@ -71,9 +72,12 @@ std::vector<std::string>                   warnings;
 std::mutex                                 messageMutex;
 util::MetricsProvider                      metricsClient;
 LPTOP_LEVEL_EXCEPTION_FILTER               crashpadInternalExceptionFilterMethod = nullptr;
+HANDLE                                     memoryDumpEvent = INVALID_HANDLE_VALUE;
+std::filesystem::path                      memoryDumpFolder;
 #endif
 
 std::string                                appState = "starting"; // "starting","idle","encoding","shutdown"
+std::string                                reportServerUrl = "";
 // Crashpad variables
 #ifdef ENABLE_CRASHREPORT
 std::wstring                                   appdata_path;
@@ -237,10 +241,80 @@ nlohmann::json RequestProcessList()
 //////////////////
 // CrashManager //
 //////////////////
+std::wstring util::CrashManager::GetMemoryDumpEventName()
+{
+	return L"Global\\SLOBSMEMORYDUMPEVENT";
+}
+
+std::wstring util::CrashManager::GetMemoryDumpFinishedEventName()
+{
+	return L"Global\\SLOBSMEMORYDUMPFINISHEDEVENT";
+}
+
+#ifdef WIN32
+bool util::CrashManager::IsMemoryDumpEnabled()
+{
+	if (std::filesystem::exists( memoryDumpFolder ) && std::filesystem::is_directory( memoryDumpFolder )) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool util::CrashManager::InitializeMemoryDump()
+{
+	bool ret = false;
+	if (!IsMemoryDumpEnabled())
+		return ret;
+
+	PSECURITY_DESCRIPTOR securityDescriptor = (PSECURITY_DESCRIPTOR) LocalAlloc(LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH);
+	if (InitializeSecurityDescriptor(securityDescriptor, SECURITY_DESCRIPTOR_REVISION)) {
+		if (SetSecurityDescriptorDacl( securityDescriptor, TRUE, NULL, FALSE)) {
+			SECURITY_ATTRIBUTES eventSecurityAttr = {0};
+			eventSecurityAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+			eventSecurityAttr.lpSecurityDescriptor = securityDescriptor;
+			eventSecurityAttr.bInheritHandle = FALSE;
+
+			memoryDumpEvent = CreateEvent( &eventSecurityAttr, TRUE, FALSE, GetMemoryDumpEventName().c_str());
+			if (memoryDumpEvent != NULL && memoryDumpEvent != INVALID_HANDLE_VALUE) {
+				ret = true;
+			}
+		}
+	}
+	LocalFree(securityDescriptor);
+
+	return ret;
+}
+
+void util::CrashManager::SignalMemoryDump()
+{
+	if (memoryDumpEvent != NULL && memoryDumpEvent != INVALID_HANDLE_VALUE) {
+		if (SetEvent(memoryDumpEvent)) {
+			HANDLE dumpFinished = OpenEvent(EVENT_ALL_ACCESS, FALSE, GetMemoryDumpFinishedEventName().c_str());
+			if (dumpFinished && dumpFinished != INVALID_HANDLE_VALUE) {
+				WaitForSingleObject(dumpFinished, INFINITE);
+				CloseHandle(dumpFinished);
+			}
+		}
+		CloseHandle(memoryDumpEvent);
+		memoryDumpEvent = INVALID_HANDLE_VALUE;
+	}
+}
+
+std::wstring util::CrashManager::GetMemoryDumpPath()
+{
+	return memoryDumpFolder.generic_wstring();
+}
+
+#else
+bool util::CrashManager::IsMemoryDumpEnabled() { return false; }
+bool util::CrashManager::InitializeMemoryDump() { return IsMemoryDumpEnabled(); }
+void util::CrashManager::SignalMemoryDump() {}
+std::wstring util::CrashManager::GetMemoryDumpPath() {return L""; }
+#endif
 
 bool util::CrashManager::Initialize(char* path, std::string appdata)
 {
-
 #ifdef ENABLE_CRASHREPORT
 	appStateFile = appdata + "\\appState";
 
@@ -272,6 +346,7 @@ bool util::CrashManager::Initialize(char* path, std::string appdata)
 	std::set_terminate([]() { HandleCrash("Direct call to std::terminate"); });
 	
 #ifdef WIN32
+	memoryDumpFolder = appdata + "\\CrashMemoryDump";
 
 	// Setup the windows exeption filter
 	auto ExceptionHandlerMethod = [](struct _EXCEPTION_POINTERS* ExceptionInfo) {
@@ -320,7 +395,7 @@ void util::CrashManager::Configure()
 
 bool util::CrashManager::SetupCrashpad()
 {
-	if (!reportsEnabled) {
+	if (!reportsEnabled || reportServerUrl.size() == 0) {
 		return false;
 	}
 
@@ -350,10 +425,6 @@ bool util::CrashManager::SetupCrashpad()
 	handler_path.append("crashpad_handler");
 #endif
 
-	url = isPreview
-	          ? std::string("https://sentry.io/api/1406061/minidump/?sentry_key=7376a60665cd40bebbd59d6bf8363172")
-	          : std::string("https://sentry.io/api/1283431/minidump/?sentry_key=ec98eac4e3ce49c7be1d83c8fb2005ef");
-
 #ifdef __APPLE__
 	std::string appdata_path = g_util_osx->getUserDataPath();
 #endif
@@ -366,7 +437,7 @@ bool util::CrashManager::SetupCrashpad()
 
 	database->GetSettings()->SetUploadsEnabled(true);
 
-	bool rc = client.StartHandler(handler, db, db, url, annotations, arguments, true, true);
+	bool rc = client.StartHandler(handler, db, db, reportServerUrl, annotations, arguments, true, true);
 	if (!rc)
 		return false;
 
@@ -398,6 +469,7 @@ void util::CrashManager::HandleExit() noexcept
 
 void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noexcept
 {
+	SignalMemoryDump();
 #ifdef ENABLE_CRASHREPORT
 
 	// If for any reason this is true, it means that we are crashing inside this same
@@ -505,6 +577,18 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	insideCrashMethod = false;
 
 #endif
+}
+
+void util::CrashManager::SetReportServerUrl(std::string url)
+{
+	if (url.length()) {
+		reportServerUrl = url;
+	} else {
+		bool isPreview = OBS_API::getCurrentVersion().find("preview") != std::string::npos;
+		reportServerUrl = isPreview
+	          ? std::string("https://sentry.io/api/1406061/minidump/?sentry_key=7376a60665cd40bebbd59d6bf8363172")
+	          : std::string("https://sentry.io/api/1283431/minidump/?sentry_key=ec98eac4e3ce49c7be1d83c8fb2005ef");
+	}
 }
 
 void util::CrashManager::SetVersionName(std::string name) {
