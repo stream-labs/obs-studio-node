@@ -37,11 +37,17 @@ typedef std::vector<std::pair<std::string, ipc::value>> ipcpairvector;
 
 struct OBSTypes
 {
-	inline static const char* INPUT_RESOLUTION_LIST = "OBS_INPUT_RESOLUTION_LIST";
+	inline static const char* PROPERTY_INPUT_RESOLUTION_LIST = "OBS_INPUT_RESOLUTION_LIST";
 	inline static const char* PROPERTY_LIST         = "OBS_PROPERTY_LIST";
 	inline static const char* PROPERTY_BOOL         = "OBS_PROPERTY_BOOL";
 	inline static const char* PROPERTY_EDIT_TEXT    = "OBS_PROPERTY_EDIT_TEXT";
 	inline static const char* PROPERTY_INT          = "OBS_PROPERTY_INT";
+	inline static const char* PROPERTY_DOUBLE       = "OBS_PROPERTY_DOUBLE";
+};
+
+struct OBSSubTypes
+{
+	inline static const char* COMBO_FORMAT_STRING = "OBS_COMBO_FORMAT_STRING";
 };
 
 struct Parameter
