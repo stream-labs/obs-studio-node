@@ -961,7 +961,7 @@ void OBS_API::QueryHotkeys(
 
 		    // Discover the type of object registered with this hotkey
 		    switch (registerer_type) {
-		    case OBS_HOTKEY_REGISTERER_NONE:
+		    case OBS_HOTKEY_REGISTERER_NONE: 
 		    case OBS_HOTKEY_REGISTERER_FRONTEND: {
 			    // Ignore any frontend hotkey
 			    return true;
