@@ -2287,180 +2287,29 @@ void OBS_settings::getAdvancedOutputAudioSettings(
 	auto& bitrateMap = GetAACEncoderBitrateMap();
 	UpdateAudioSettings(true);
 
-	// Track 1
-	ipcpairvector Track1Bitrate;
-	Track1Bitrate.push_back(make_pair("name", ipc::value("Track1Bitrate")));
-	Track1Bitrate.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_LIST)));
-	Track1Bitrate.push_back(make_pair("description", ipc::value("Audio Bitrate")));
-	Track1Bitrate.push_back(make_pair("subType", ipc::value(OBSSubTypes::COMBO_FORMAT_STRING)));
-	Track1Bitrate.push_back(make_pair("minVal", ipc::value((double)0)));
-	Track1Bitrate.push_back(make_pair("maxVal", ipc::value((double)0)));
-	Track1Bitrate.push_back(make_pair("stepVal", ipc::value((double)0)));
+	//Track 1 to 6
 
-	for (auto& entry : bitrateMap)
-		Track1Bitrate.push_back(make_pair(std::to_string(entry.first), std::to_string(entry.first)));
+	for (int i = 1; i <= 6; i++) {
+		// Track i
+		char nameBuffer[15] = "";
+		sprintf(nameBuffer, "Track%dBitrate", i);
 
-	entries.push_back(Track1Bitrate);
+		char nameTrackBuffer[12] = "";
+		sprintf(nameTrackBuffer, "Track%dName", i);
 
-	ipcpairvector Track1Name;
-	Track1Name.push_back(make_pair("name", ipc::value("Track1Name")));
-	Track1Name.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_EDIT_TEXT)));
-	Track1Name.push_back(make_pair("description", ipc::value("Name")));
-	Track1Name.push_back(make_pair("subType", ipc::value("")));
-	Track1Name.push_back(make_pair("minVal", ipc::value((double)0)));
-	Track1Name.push_back(make_pair("maxVal", ipc::value((double)0)));
-	Track1Name.push_back(make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(Track1Name);
+		char settingsAudioBuffer[17] = "";
+		sprintf(settingsAudioBuffer, "Audio - Track %d", i);
 
-	outputSettings->push_back(
-	    serializeSettingsData("Audio - Track 1", entries, config, "AdvOut", true, isCategoryEnabled));
-	entries.clear();
+		ipcpairvector& TrackiBitrate = addSubCategory(Parameter(nameBuffer, OBSTypes::PROPERTY_LIST, "Audio Bitrate", OBSSubTypes::COMBO_FORMAT_STRING), entries);
 
-	// Track 2
-	ipcpairvector Track2Bitrate;
-	Track2Bitrate.push_back(make_pair("name", ipc::value("Track2Bitrate")));
-	Track2Bitrate.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_LIST)));
-	Track2Bitrate.push_back(make_pair("description", ipc::value("Audio Bitrate")));
-	Track2Bitrate.push_back(make_pair("subType", ipc::value(OBSSubTypes::COMBO_FORMAT_STRING)));
-	Track2Bitrate.push_back(make_pair("minVal", ipc::value((double)0)));
-	Track2Bitrate.push_back(make_pair("maxVal", ipc::value((double)0)));
-	Track2Bitrate.push_back(make_pair("stepVal", ipc::value((double)0)));
+		for (auto& entry : bitrateMap)
+			TrackiBitrate.push_back(make_pair(std::to_string(entry.first), std::to_string(entry.first)));
 
-	for (auto& entry : bitrateMap)
-		Track2Bitrate.push_back(make_pair(std::to_string(entry.first), std::to_string(entry.first)));
+		addSubCategory(Parameter(nameTrackBuffer, OBSTypes::PROPERTY_EDIT_TEXT, "Name", ""), entries);
 
-	entries.push_back(Track2Bitrate);
-
-	ipcpairvector Track2Name;
-	Track2Name.push_back(make_pair("name", ipc::value("Track2Name")));
-	Track2Name.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_EDIT_TEXT)));
-	Track2Name.push_back(make_pair("description", ipc::value("Name")));
-	Track2Name.push_back(make_pair("subType", ipc::value("")));
-	Track2Name.push_back(make_pair("minVal", ipc::value((double)0)));
-	Track2Name.push_back(make_pair("maxVal", ipc::value((double)0)));
-	Track2Name.push_back(make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(Track2Name);
-
-	outputSettings->push_back(
-	    serializeSettingsData("Audio - Track 2", entries, config, "AdvOut", true, isCategoryEnabled));
-	entries.clear();
-
-	// Track 3
-	ipcpairvector Track3Bitrate;
-	Track3Bitrate.push_back(make_pair("name", ipc::value("Track3Bitrate")));
-	Track3Bitrate.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_LIST)));
-	Track3Bitrate.push_back(make_pair("description", ipc::value("Audio Bitrate")));
-	Track3Bitrate.push_back(make_pair("subType", ipc::value(OBSSubTypes::COMBO_FORMAT_STRING)));
-	Track3Bitrate.push_back(make_pair("minVal", ipc::value((double)0)));
-	Track3Bitrate.push_back(make_pair("maxVal", ipc::value((double)0)));
-	Track3Bitrate.push_back(make_pair("stepVal", ipc::value((double)0)));
-
-	for (auto& entry : bitrateMap)
-		Track3Bitrate.push_back(make_pair(std::to_string(entry.first), std::to_string(entry.first)));
-
-	entries.push_back(Track3Bitrate);
-
-	ipcpairvector Track3Name;
-	Track3Name.push_back(make_pair("name", ipc::value("Track3Name")));
-	Track3Name.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_EDIT_TEXT)));
-	Track3Name.push_back(make_pair("description", ipc::value("Name")));
-	Track3Name.push_back(make_pair("subType", ipc::value("")));
-	Track3Name.push_back(make_pair("minVal", ipc::value((double)0)));
-	Track3Name.push_back(make_pair("maxVal", ipc::value((double)0)));
-	Track3Name.push_back(make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(Track3Name);
-
-	outputSettings->push_back(
-	    serializeSettingsData("Audio - Track 3", entries, config, "AdvOut", true, isCategoryEnabled));
-	entries.clear();
-
-	// Track 4
-	ipcpairvector Track4Bitrate;
-	Track4Bitrate.push_back(make_pair("name", ipc::value("Track4Bitrate")));
-	Track4Bitrate.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_LIST)));
-	Track4Bitrate.push_back(make_pair("description", ipc::value("Audio Bitrate")));
-	Track4Bitrate.push_back(make_pair("subType", ipc::value(OBSSubTypes::COMBO_FORMAT_STRING)));
-	Track4Bitrate.push_back(make_pair("minVal", ipc::value((double)0)));
-	Track4Bitrate.push_back(make_pair("maxVal", ipc::value((double)0)));
-	Track4Bitrate.push_back(make_pair("stepVal", ipc::value((double)0)));
-
-	for (auto& entry : bitrateMap)
-		Track4Bitrate.push_back(make_pair(std::to_string(entry.first), std::to_string(entry.first)));
-
-	entries.push_back(Track4Bitrate);
-
-	ipcpairvector Track4Name;
-	Track4Name.push_back(make_pair("name", ipc::value("Track4Name")));
-	Track4Name.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_EDIT_TEXT)));
-	Track4Name.push_back(make_pair("description", ipc::value("Name")));
-	Track4Name.push_back(make_pair("subType", ipc::value("")));
-	Track4Name.push_back(make_pair("minVal", ipc::value((double)0)));
-	Track4Name.push_back(make_pair("maxVal", ipc::value((double)0)));
-	Track4Name.push_back(make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(Track4Name);
-
-	outputSettings->push_back(
-	    serializeSettingsData("Audio - Track 4", entries, config, "AdvOut", true, isCategoryEnabled));
-	entries.clear();
-
-	// Track 5
-	ipcpairvector Track5Bitrate;
-	Track5Bitrate.push_back(make_pair("name", ipc::value("Track5Bitrate")));
-	Track5Bitrate.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_LIST)));
-	Track5Bitrate.push_back(make_pair("description", ipc::value("Audio Bitrate")));
-	Track5Bitrate.push_back(make_pair("subType", ipc::value(OBSSubTypes::COMBO_FORMAT_STRING)));
-	Track5Bitrate.push_back(make_pair("minVal", ipc::value((double)0)));
-	Track5Bitrate.push_back(make_pair("maxVal", ipc::value((double)0)));
-	Track5Bitrate.push_back(make_pair("stepVal", ipc::value((double)0)));
-
-	for (auto& entry : bitrateMap)
-		Track5Bitrate.push_back(make_pair(std::to_string(entry.first), std::to_string(entry.first)));
-
-	entries.push_back(Track5Bitrate);
-
-	ipcpairvector Track5Name;
-	Track5Name.push_back(make_pair("name", ipc::value("Track5Name")));
-	Track5Name.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_EDIT_TEXT)));
-	Track5Name.push_back(make_pair("description", ipc::value("Name")));
-	Track5Name.push_back(make_pair("subType", ipc::value("")));
-	Track5Name.push_back(make_pair("minVal", ipc::value((double)0)));
-	Track5Name.push_back(make_pair("maxVal", ipc::value((double)0)));
-	Track5Name.push_back(make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(Track5Name);
-
-	outputSettings->push_back(
-	    serializeSettingsData("Audio - Track 5", entries, config, "AdvOut", true, isCategoryEnabled));
-	entries.clear();
-
-	// Track 6
-	ipcpairvector Track6Bitrate;
-	Track6Bitrate.push_back(make_pair("name", ipc::value("Track6Bitrate")));
-	Track6Bitrate.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_LIST)));
-	Track6Bitrate.push_back(make_pair("description", ipc::value("Audio Bitrate")));
-	Track6Bitrate.push_back(make_pair("subType", ipc::value(OBSSubTypes::COMBO_FORMAT_STRING)));
-	Track6Bitrate.push_back(make_pair("minVal", ipc::value((double)0)));
-	Track6Bitrate.push_back(make_pair("maxVal", ipc::value((double)0)));
-	Track6Bitrate.push_back(make_pair("stepVal", ipc::value((double)0)));
-
-	for (auto& entry : bitrateMap)
-		Track6Bitrate.push_back(make_pair(std::to_string(entry.first), std::to_string(entry.first)));
-
-	entries.push_back(Track6Bitrate);
-
-	ipcpairvector Track6Name;
-	Track6Name.push_back(make_pair("name", ipc::value("Track6Name")));
-	Track6Name.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_EDIT_TEXT)));
-	Track6Name.push_back(make_pair("description", ipc::value("Name")));
-	Track6Name.push_back(make_pair("subType", ipc::value("")));
-	Track6Name.push_back(make_pair("minVal", ipc::value((double)0)));
-	Track6Name.push_back(make_pair("maxVal", ipc::value((double)0)));
-	Track6Name.push_back(make_pair("stepVal", ipc::value((double)0)));
-
-	entries.push_back(Track6Name);
-
-	outputSettings->push_back(
-	    serializeSettingsData("Audio - Track 6", entries, config, "AdvOut", true, isCategoryEnabled));
-	entries.clear();
+		outputSettings->push_back(serializeSettingsData(settingsAudioBuffer, entries, config, "AdvOut", true, isCategoryEnabled));
+		entries.clear();
+	}
 
 	// Save the audio config
 	currentAudioSettings =
@@ -2474,7 +2323,7 @@ void OBS_settings::getReplayBufferSettings(
     bool                      isCategoryEnabled)
 {
 	std::vector<ipcpairvector> entries;
-	addSubCategory(Parameter("RecRB", OBSTypes::PROPERTY_BOOL, "Enable Replay Buffer"), entries));
+	addSubCategory(Parameter("RecRB", OBSTypes::PROPERTY_BOOL, "Enable Replay Buffer"), entries);
 
 	bool currentRecRb = config_get_bool(config, advanced ? "AdvOut" : "SimpleOutput", "RecRB");
 
@@ -2483,7 +2332,7 @@ void OBS_settings::getReplayBufferSettings(
 	}
 
 	if (obs_get_multiple_rendering()) {
-		addSubCategory(Parameter("replayBufferUseStreamOutput", OBSTypes::PROPERTY_BOOL, "Use stream output"), entries));
+		addSubCategory(Parameter("replayBufferUseStreamOutput", OBSTypes::PROPERTY_BOOL, "Use stream output"), entries);
 	}
 
 	outputSettings->push_back(serializeSettingsData(
@@ -3286,7 +3135,7 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	colorRange.push_back(make_pair("Full", ipc::value("Full")));
 
 	//GPU Render
-	addSubCategory(Parameter("ForceGPUAsRenderDevice", OBSTypes::PROPERTY_BOOL, "Force GPU as render device"), entries));
+	addSubCategory(Parameter("ForceGPUAsRenderDevice", OBSTypes::PROPERTY_BOOL, "Force GPU as render device"), entries);
 
 	advancedSettings.push_back(serializeSettingsData(
 	    "Video",
@@ -3327,7 +3176,7 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 
 #if defined(_WIN32)
 	//Windows audio ducking
-	addSubCategory(Parameter("DisableAudioDucking", OBSTypes::PROPERTY_BOOL, "Disable Windows audio ducking"), entries));
+	addSubCategory(Parameter("DisableAudioDucking", OBSTypes::PROPERTY_BOOL, "Disable Windows audio ducking"), entries);
 
 #endif
 
@@ -3338,10 +3187,10 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	//Recording
 
 	//Filename Formatting
-	addSubCategory(Parameter("FilenameFormatting", OBSTypes::PROPERTY_EDIT_TEXT, "Filename Formatting"), entries));
+	addSubCategory(Parameter("FilenameFormatting", OBSTypes::PROPERTY_EDIT_TEXT, "Filename Formatting"), entries);
 
 	//Overwrite if file exists
-	addSubCategory(Parameter("OverwriteIfExists", OBSTypes::PROPERTY_BOOL, "Overwrite if file exists"), entries));
+	addSubCategory(Parameter("OverwriteIfExists", OBSTypes::PROPERTY_BOOL, "Overwrite if file exists"), entries);
 
 	advancedSettings.push_back(
 	    serializeSettingsData("Recording", entries, ConfigManager::getInstance().getBasic(), "Output", true, true));
@@ -3361,13 +3210,13 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	//Stream Delay
 
 	//Enable
-	addSubCategory(Parameter("DelayEnable", OBSTypes::PROPERTY_BOOL, "Enable"), entries));
+	addSubCategory(Parameter("DelayEnable", OBSTypes::PROPERTY_BOOL, "Enable"), entries);
 
 	//Duration (seconds)
 	addSubCategory(Parameter("DelaySec", OBSTypes::PROPERTY_INT, "Duration (seconds)", "", 0, 1800, 0), entries);
 
 	//Preserved cutoff point (increase delay) when reconnecting
-	addSubCategory(Parameter("DelayPreserve", OBSTypes::PROPERTY_BOOL, "Preserved cutoff point (increase delay) when reconnecting"), entries));
+	addSubCategory(Parameter("DelayPreserve", OBSTypes::PROPERTY_BOOL, "Preserved cutoff point (increase delay) when reconnecting"), entries);
 
 	advancedSettings.push_back(
 	    serializeSettingsData("Stream Delay", entries, ConfigManager::getInstance().getBasic(), "Output", true, true));
@@ -3376,7 +3225,7 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	//Automatically Reconnect
 
 	//Enable
-	addSubCategory(Parameter("Reconnect", OBSTypes::PROPERTY_BOOL, "Enable"), entries));
+	addSubCategory(Parameter("Reconnect", OBSTypes::PROPERTY_BOOL, "Enable"), entries);
 
 	//Retry Delay (seconds)
 	addSubCategory(Parameter("RetryDelay", OBSTypes::PROPERTY_INT, "Retry Delay (seconds)", "", 0, 30, 0), entries);
@@ -3406,14 +3255,14 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	}
 
 	//Enable dynamic bitrate
-	addSubCategory(Parameter("DynamicBitrate", OBSTypes::PROPERTY_BOOL, "Dynamically change bitrate when dropping frames while streaming"), entries));
+	addSubCategory(Parameter("DynamicBitrate", OBSTypes::PROPERTY_BOOL, "Dynamically change bitrate when dropping frames while streaming"), entries);
 
 #ifdef WIN32
 	//Enable new networking code
-	addSubCategory(Parameter("NewSocketLoopEnable", OBSTypes::PROPERTY_BOOL, "Enable new networking code"), entries));
+	addSubCategory(Parameter("NewSocketLoopEnable", OBSTypes::PROPERTY_BOOL, "Enable new networking code"), entries);
 
 	//Low latency mode
-	addSubCategory(Parameter("LowLatencyEnable", OBSTypes::PROPERTY_BOOL, "Low latency mode"), entries));
+	addSubCategory(Parameter("LowLatencyEnable", OBSTypes::PROPERTY_BOOL, "Low latency mode"), entries);
 #endif
 
 	advancedSettings.push_back(
@@ -3423,14 +3272,14 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	obs_properties_destroy(ppts);
 
 	//Sources
-	addSubCategory(Parameter("browserHWAccel", OBSTypes::PROPERTY_BOOL, "Enable Browser Source Hardware Acceleration (requires a restart)"), entries));
+	addSubCategory(Parameter("browserHWAccel", OBSTypes::PROPERTY_BOOL, "Enable Browser Source Hardware Acceleration (requires a restart)"), entries);
 
 	advancedSettings.push_back(
 	    serializeSettingsData("Sources", entries, ConfigManager::getInstance().getGlobal(), "General", true, true));
 	entries.clear();
 
 	//Media Files
-	addSubCategory(Parameter("fileCaching", OBSTypes::PROPERTY_BOOL, "Enable media file caching"), entries));
+	addSubCategory(Parameter("fileCaching", OBSTypes::PROPERTY_BOOL, "Enable media file caching"), entries);
 
 	advancedSettings.push_back(
 	    serializeSettingsData("Media Files", entries, ConfigManager::getInstance().getGlobal(), "General", true, true));

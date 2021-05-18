@@ -84,10 +84,7 @@ struct Parameter
 	    bool        visible            = false)
 	    : name(name), type(type), description(description), subType(subType), minVal(minVal), maxVal(maxVal), 
 		stepVal(stepVal), sizeOfCurrentValue(sizeOfCurrentValue), sizeOfValues(sizeOfValues),
-	      countValues(countValues), enabled(enabled), masked(masked), visible(visible)
-	{
-		const char *p = OBSTypes::INPUT_RESOLUTION_LIST;
-	}
+	      countValues(countValues), enabled(enabled), masked(masked), visible(visible) {}
 
 	std::vector<char> serialize()
 	{
