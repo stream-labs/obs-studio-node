@@ -673,12 +673,14 @@ void writeCrashHandler(std::vector<char> buffer)
 {
 	int file_descriptor = open(crash_handler_pipe.c_str(), O_WRONLY | O_DSYNC);
 	if (file_descriptor < 0) {
-		int file_descriptor = open("/tmp/slobs-crash-handler", O_WRONLY | O_DSYNC);
+		std::cerr << "writeCrashHandler, could not open " << crash_handler_pipe.c_str() << ", opening /tmp/slobs-crash-handler " << std::endl;
+		file_descriptor = open("/tmp/slobs-crash-handler", O_WRONLY | O_DSYNC);
 		if (file_descriptor < 0) {
+			std::cerr << "writeCrashHandler () => FATAL opening /tmp/slobs-crash-handler, errno: " << errno << ", " <<  strerror(errno) << std::endl;
 			return;
 		}
-
 	}
+	std::cout << "writeCrashHandler, FD: " << file_descriptor << " write " << buffer.data() << std::endl;
 
 	::write(file_descriptor, buffer.data(), buffer.size());
 	close(file_descriptor);
@@ -959,7 +961,6 @@ void OBS_API::QueryHotkeys(
 
 		    // Discover the type of object registered with this hotkey
 		    switch (registerer_type) {
-		    case OBS_HOTKEY_REGISTERER_NONE: 
 		    case OBS_HOTKEY_REGISTERER_FRONTEND: {
 			    // Ignore any frontend hotkey
 			    return true;
