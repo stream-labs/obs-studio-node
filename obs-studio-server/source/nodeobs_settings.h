@@ -35,6 +35,15 @@ enum CategoryTypes : uint32_t
 
 typedef std::vector<std::pair<std::string, ipc::value>> ipcpairvector;
 
+struct OBSTypes
+{
+	inline static const char* INPUT_RESOLUTION_LIST = "OBS_INPUT_RESOLUTION_LIST";
+	inline static const char* PROPERTY_LIST         = "OBS_PROPERTY_LIST";
+	inline static const char* PROPERTY_BOOL         = "OBS_PROPERTY_BOOL";
+	inline static const char* PROPERTY_EDIT_TEXT    = "OBS_PROPERTY_EDIT_TEXT";
+	inline static const char* PROPERTY_INT          = "OBS_PROPERTY_INT";
+};
+
 struct Parameter
 {
 	std::string       name;
@@ -54,16 +63,16 @@ struct Parameter
 	std::vector<char> values;
 
 	Parameter(
-	    std::string name               = "",
+	    std::string name = "",
 	    std::string type = "",
 		std::string description = "",
 		std::string subType = "",
-		double            minVal = -200,
-		double            maxVal = 200,
-		double            stepVal = 1,
-		uint64_t          sizeOfCurrentValue = 0,
-		uint64_t          sizeOfValues = 0,
-		uint64_t          countValues = 0, 
+		double minVal = -200,
+		double maxVal = 200,
+		double stepVal = 1,
+		uint64_t sizeOfCurrentValue = 0,
+		uint64_t sizeOfValues = 0,
+		uint64_t countValues = 0, 
 		bool enabled = false,
 		bool masked = false,
 	    bool        visible            = false)
@@ -71,7 +80,7 @@ struct Parameter
 		stepVal(stepVal), sizeOfCurrentValue(sizeOfCurrentValue), sizeOfValues(sizeOfValues),
 	      countValues(countValues), enabled(enabled), masked(masked), visible(visible)
 	{
-
+		const char *p = OBSTypes::INPUT_RESOLUTION_LIST;
 	}
 
 	std::vector<char> serialize()

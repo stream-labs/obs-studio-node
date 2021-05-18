@@ -3161,7 +3161,7 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 	int indexFirstValue = 7;
 	baseResolution.insert(baseResolution.begin() + indexFirstValue, newBaseResolution);
 
-	ipcpairvector& outputResolution = addSubCategory(Parameter("Output", "OBS_INPUT_RESOLUTION_LIST", "Output (Scaled) Resolution", "OBS_COMBO_FORMAT_STRING", 0, 0, 0), entries);
+	ipcpairvector& outputResolution = addSubCategory(Parameter("Output", OBSTypes::INPUT_RESOLUTION_LIST, "Output (Scaled) Resolution", "OBS_COMBO_FORMAT_STRING", 0, 0, 0), entries);
 	
 	uint64_t out_cx = config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCX");
 	uint64_t out_cy = config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCY");
@@ -3178,7 +3178,7 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 	}
 
 	//Downscale Filter
-	ipcpairvector& scaleType = addSubCategory(Parameter("ScaleType", "OBS_PROPERTY_LIST", "Downscale Filter", "OBS_COMBO_FORMAT_STRING", 0, 0, 0), entries);
+	ipcpairvector& scaleType = addSubCategory(Parameter("ScaleType", OBSTypes::PROPERTY_LIST, "Downscale Filter", "OBS_COMBO_FORMAT_STRING", 0, 0, 0), entries);
 
 	scaleType.push_back(std::make_pair("Bilinear (Fastest, but blurry if scaling)", ipc::value("bilinear")));
 	scaleType.push_back(std::make_pair("Bicubic (Sharpened scaling, 16 samples)", ipc::value("bicubic")));
@@ -3189,14 +3189,14 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 	//FPS Type
 	
 	if (fpsTypeValue == 0) {
-		ipcpairvector& fpsType = addSubCategory(Parameter("FPSType", "OBS_PROPERTY_LIST", "FPS Type", "OBS_COMBO_FORMAT_STRING", 0, 0, 0), entries);
+		ipcpairvector& fpsType = addSubCategory(Parameter("FPSType", OBSTypes::PROPERTY_LIST, "FPS Type", "OBS_COMBO_FORMAT_STRING", 0, 0, 0), entries);
 		fpsType.push_back(std::make_pair("currentValue", ipc::value("Common FPS Values")));
 		fpsType.push_back(std::make_pair("Common FPS Values", ipc::value("Common FPS Values")));
 		fpsType.push_back(std::make_pair("Integer FPS Value", ipc::value("Integer FPS Value")));
 		fpsType.push_back(std::make_pair("Fractional FPS Value", ipc::value("Fractional FPS Value")));
 
 		//Common FPS Values
-		ipcpairvector& fpsCommon = addSubCategory(Parameter("FPSCommon", "OBS_PROPERTY_LIST", "Common FPS Values", "OBS_COMBO_FORMAT_STRING", 0, 0, 0), entries);
+		ipcpairvector& fpsCommon = addSubCategory(Parameter("FPSCommon", OBSTypes::PROPERTY_LIST, "Common FPS Values", "OBS_COMBO_FORMAT_STRING", 0, 0, 0), entries);
 
 		fpsCommon.push_back(std::make_pair("10", ipc::value("10")));
 		fpsCommon.push_back(std::make_pair("20", ipc::value("20")));
@@ -3207,7 +3207,7 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 		fpsCommon.push_back(std::make_pair("59.94", ipc::value("59.94")));
 		fpsCommon.push_back(std::make_pair("60", ipc::value("60")));
 	} else if (fpsTypeValue == 1) {
-		ipcpairvector& fpsType = addSubCategory(Parameter("FPSType", "OBS_PROPERTY_LIST", "FPS Type", "OBS_COMBO_FORMAT_STRING", 0, 0, 0), entries);
+		ipcpairvector& fpsType = addSubCategory(Parameter("FPSType", OBSTypes::PROPERTY_LIST, "FPS Type", "OBS_COMBO_FORMAT_STRING", 0, 0, 0), entries);
 
 		fpsType.push_back(std::make_pair("currentValue", ipc::value("Integer FPS Value")));
 		fpsType.push_back(std::make_pair("Common FPS Values", ipc::value("Common FPS Values")));
@@ -3216,7 +3216,7 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 
 		addSubCategory(Parameter("FPSInt", "OBS_PROPERTY_UINT", "Integer FPS Value", "", 0, 120, 0), entries);	
 	} else if (fpsTypeValue == 2) {
-		ipcpairvector& fpsType = addSubCategory(Parameter("FPSType", "OBS_PROPERTY_LIST", "FPS Type", "OBS_COMBO_FORMAT_STRING", 0, 0, 0), entries);
+		ipcpairvector& fpsType = addSubCategory(Parameter("FPSType", OBSTypes::PROPERTY_LIST, "FPS Type", "OBS_COMBO_FORMAT_STRING", 0, 0, 0), entries);
 
 		fpsType.push_back(std::make_pair("currentValue", ipc::value("Fractional FPS Value")));
 		fpsType.push_back(std::make_pair("Common FPS Values", ipc::value("Common FPS Values")));
@@ -3388,14 +3388,8 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	//General
 
 	//Process Priority
-	ipcpairvector processPriority;
-	processPriority.push_back(std::make_pair("name", ipc::value("ProcessPriority")));
-	processPriority.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-	processPriority.push_back(std::make_pair("description", ipc::value("Process Priority")));
-	processPriority.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	processPriority.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	processPriority.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	processPriority.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	ipcpairvector& processPriority = addSubCategory(Parameter("ProcessPriority", OBSTypes::PROPERTY_LIST, "Process Priority", "OBS_COMBO_FORMAT_STRING", 0, 0, 0), entries);
+
 	processPriority.push_back(std::make_pair("High", ipc::value("High")));
 	processPriority.push_back(std::make_pair("Above Normal", ipc::value("AboveNormal")));
 	processPriority.push_back(std::make_pair("Normal", ipc::value("Normal")));
@@ -3413,8 +3407,6 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 
 	OBS_API::SetProcessPriority(processPriorityCurrentValue);
 
-	entries.push_back(processPriority);
-
 	advancedSettings.push_back(
 	    serializeSettingsData("General", entries, ConfigManager::getInstance().getGlobal(), "General", true, true));
 	entries.clear();
@@ -3426,56 +3418,27 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	const char* videoColorRange  = config_get_string(ConfigManager::getInstance().getBasic(), "Video", "ColorRange");
 
 	//Color Format
-	ipcpairvector colorFormat;
-	colorFormat.push_back(std::make_pair("name", ipc::value("ColorFormat")));
-	colorFormat.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-	colorFormat.push_back(std::make_pair("description", ipc::value("Color Format")));
-	colorFormat.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	colorFormat.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	colorFormat.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	colorFormat.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	ipcpairvector& colorFormat = addSubCategory(Parameter("ColorFormat", OBSTypes::PROPERTY_LIST, "Color Format", "OBS_COMBO_FORMAT_STRING", 0, 0, 0), entries);
+
 	colorFormat.push_back(std::make_pair("NV12", ipc::value("NV12")));
 	colorFormat.push_back(std::make_pair("I420", ipc::value("I420")));
 	colorFormat.push_back(std::make_pair("I444", ipc::value("I444")));
 	colorFormat.push_back(std::make_pair("RGB", ipc::value("RGB")));
-	entries.push_back(colorFormat);
 
 	//YUV Color Space
-	ipcpairvector colorSpace;
-	colorSpace.push_back(std::make_pair("name", ipc::value("ColorSpace")));
-	colorSpace.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-	colorSpace.push_back(std::make_pair("description", ipc::value("YUV Color Space")));
-	colorSpace.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	colorSpace.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	colorSpace.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	colorSpace.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	ipcpairvector& colorSpace = addSubCategory(Parameter("ColorSpace", OBSTypes::PROPERTY_LIST, "YUV Color space", "OBS_COMBO_FORMAT_STRING", 0, 0, 0), entries);
+
 	colorSpace.push_back(std::make_pair("601", ipc::value("601")));
 	colorSpace.push_back(std::make_pair("709", ipc::value("709")));
-	entries.push_back(colorSpace);
 
 	//YUV Color Range
-	ipcpairvector colorRange;
-	colorRange.push_back(std::make_pair("name", ipc::value("ColorRange")));
-	colorRange.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-	colorRange.push_back(std::make_pair("description", ipc::value("YUV Color Range")));
-	colorRange.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	colorRange.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	colorRange.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	colorRange.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	ipcpairvector& colorRange = addSubCategory(Parameter("ColorRange", OBSTypes::PROPERTY_LIST, "YUV Color Range", "OBS_COMBO_FORMAT_STRING", 0, 0, 0), entries);
+	
 	colorRange.push_back(std::make_pair("Partial", ipc::value("Partial")));
 	colorRange.push_back(std::make_pair("Full", ipc::value("Full")));
-	entries.push_back(colorRange);
 
 	//GPU Render
-	ipcpairvector forceGPUAsRenderDevice;
-	forceGPUAsRenderDevice.push_back(std::make_pair("name", ipc::value("ForceGPUAsRenderDevice")));
-	forceGPUAsRenderDevice.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	forceGPUAsRenderDevice.push_back(std::make_pair("description", ipc::value("Force GPU as render device")));
-	forceGPUAsRenderDevice.push_back(std::make_pair("subType", ipc::value("")));
-	forceGPUAsRenderDevice.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	forceGPUAsRenderDevice.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	forceGPUAsRenderDevice.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(forceGPUAsRenderDevice);
+	addSubCategory(Parameter("ForceGPUAsRenderDevice", OBSTypes::PROPERTY_BOOL, "Force GPU as render device", "", 0, 0, 0), entries);
 
 	advancedSettings.push_back(serializeSettingsData(
 	    "Video",
@@ -3516,15 +3479,8 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 
 #if defined(_WIN32)
 	//Windows audio ducking
-	ipcpairvector disableAudioDucking;
-	disableAudioDucking.push_back(std::make_pair("name", ipc::value("DisableAudioDucking")));
-	disableAudioDucking.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	disableAudioDucking.push_back(std::make_pair("description", ipc::value("Disable Windows audio ducking")));
-	disableAudioDucking.push_back(std::make_pair("subType", ipc::value("")));
-	disableAudioDucking.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	disableAudioDucking.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	disableAudioDucking.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(disableAudioDucking);
+	addSubCategory(Parameter("DisableAudioDucking", OBSTypes::PROPERTY_BOOL, "Disable Windows audio ducking", "", 0, 0, 0), entries);
+
 #endif
 
 	advancedSettings.push_back(
@@ -3534,52 +3490,21 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	//Recording
 
 	//Filename Formatting
-	ipcpairvector filenameFormatting;
-	filenameFormatting.push_back(std::make_pair("name", ipc::value("FilenameFormatting")));
-	filenameFormatting.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
-	filenameFormatting.push_back(std::make_pair("description", ipc::value("Filename Formatting")));
-	filenameFormatting.push_back(std::make_pair("subType", ipc::value("")));
-	filenameFormatting.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	filenameFormatting.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	filenameFormatting.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(filenameFormatting);
+	addSubCategory(Parameter("FilenameFormatting", OBSTypes::PROPERTY_EDIT_TEXT, "Filename Formatting", "", 0, 0, 0), entries);
 
 	//Overwrite if file exists
-	ipcpairvector overwriteIfExists;
-	overwriteIfExists.push_back(std::make_pair("name", ipc::value("OverwriteIfExists")));
-	overwriteIfExists.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	overwriteIfExists.push_back(std::make_pair("description", ipc::value("Overwrite if file exists")));
-	overwriteIfExists.push_back(std::make_pair("subType", ipc::value("")));
-	overwriteIfExists.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	overwriteIfExists.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	overwriteIfExists.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(overwriteIfExists);
+	addSubCategory(Parameter("OverwriteIfExists", OBSTypes::PROPERTY_BOOL, "Overwrite if file exists", "", 0, 0, 0), entries);
 
 	advancedSettings.push_back(
 	    serializeSettingsData("Recording", entries, ConfigManager::getInstance().getBasic(), "Output", true, true));
 	entries.clear();
 
 	//Replay Buffer Filename Prefix
-	ipcpairvector recRBPrefix;
-	recRBPrefix.push_back(std::make_pair("name", ipc::value("RecRBPrefix")));
-	recRBPrefix.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
-	recRBPrefix.push_back(std::make_pair("description", ipc::value("Replay Buffer Filename Prefix")));
-	recRBPrefix.push_back(std::make_pair("subType", ipc::value("")));
-	recRBPrefix.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	recRBPrefix.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	recRBPrefix.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(recRBPrefix);
+	addSubCategory(Parameter("RecRBPrefix", OBSTypes::PROPERTY_EDIT_TEXT, "Replay Buffer Filename Prefix"), entries);
 
 	//Replay Buffer Filename Suffix
-	ipcpairvector recRBSuffix;
-	recRBSuffix.push_back(std::make_pair("name", ipc::value("RecRBSuffix")));
-	recRBSuffix.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
-	recRBSuffix.push_back(std::make_pair("description", ipc::value("Replay Buffer Filename Suffix")));
-	recRBSuffix.push_back(std::make_pair("subType", ipc::value("")));
-	recRBSuffix.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	recRBSuffix.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	recRBSuffix.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(recRBSuffix);
+	addSubCategory(Parameter("RecRBSuffix", OBSTypes::PROPERTY_EDIT_TEXT, "Replay Buffer Filename Suffix"), entries);
+
 
 	advancedSettings.push_back(serializeSettingsData(
 	    "Replay Buffer", entries, ConfigManager::getInstance().getBasic(), "SimpleOutput", true, true));
@@ -3588,38 +3513,13 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	//Stream Delay
 
 	//Enable
-	ipcpairvector delayEnable;
-	delayEnable.push_back(std::make_pair("name", ipc::value("DelayEnable")));
-	delayEnable.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	delayEnable.push_back(std::make_pair("description", ipc::value("Enable")));
-	delayEnable.push_back(std::make_pair("subType", ipc::value("")));
-	delayEnable.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	delayEnable.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	delayEnable.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(delayEnable);
+	addSubCategory(Parameter("DelayEnable", OBSTypes::PROPERTY_BOOL, "Enable", "", 0, 0, 0), entries);
 
 	//Duration (seconds)
-	ipcpairvector delaySec;
-	delaySec.push_back(std::make_pair("name", ipc::value("DelaySec")));
-	delaySec.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_INT")));
-	delaySec.push_back(std::make_pair("description", ipc::value("Duration (seconds)")));
-	delaySec.push_back(std::make_pair("subType", ipc::value("")));
-	delaySec.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	delaySec.push_back(std::make_pair("maxVal", ipc::value((double)1800)));
-	delaySec.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(delaySec);
+	addSubCategory(Parameter("DelaySec", OBSTypes::PROPERTY_INT, "Duration (seconds)", "", 0, 1800, 0), entries);
 
 	//Preserved cutoff point (increase delay) when reconnecting
-	ipcpairvector delayPreserve;
-	delayPreserve.push_back(std::make_pair("name", ipc::value("DelayPreserve")));
-	delayPreserve.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	delayPreserve.push_back(
-	    std::make_pair("description", ipc::value("Preserved cutoff point (increase delay) when reconnecting")));
-	delayPreserve.push_back(std::make_pair("subType", ipc::value("")));
-	delayPreserve.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	delayPreserve.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	delayPreserve.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(delayPreserve);
+	addSubCategory(Parameter("DelayPreserve", OBSTypes::PROPERTY_BOOL, "Preserved cutoff point (increase delay) when reconnecting", "", 0, 0, 0), entries);
 
 	advancedSettings.push_back(
 	    serializeSettingsData("Stream Delay", entries, ConfigManager::getInstance().getBasic(), "Output", true, true));
@@ -3628,37 +3528,14 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	//Automatically Reconnect
 
 	//Enable
-	ipcpairvector reconnect;
-	reconnect.push_back(std::make_pair("name", ipc::value("Reconnect")));
-	reconnect.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	reconnect.push_back(std::make_pair("description", ipc::value("Enable")));
-	reconnect.push_back(std::make_pair("subType", ipc::value("")));
-	reconnect.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	reconnect.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	reconnect.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(reconnect);
+	addSubCategory(Parameter("Reconnect", OBSTypes::PROPERTY_BOOL, "Enable", "", 0, 0, 0), entries);
 
 	//Retry Delay (seconds)
-	ipcpairvector retryDelay;
-	retryDelay.push_back(std::make_pair("name", ipc::value("RetryDelay")));
-	retryDelay.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_INT")));
-	retryDelay.push_back(std::make_pair("description", ipc::value("Retry Delay (seconds)")));
-	retryDelay.push_back(std::make_pair("subType", ipc::value("")));
-	retryDelay.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	retryDelay.push_back(std::make_pair("maxVal", ipc::value((double)30)));
-	retryDelay.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(retryDelay);
+	addSubCategory(Parameter("RetryDelay", OBSTypes::PROPERTY_INT, "Retry Delay (seconds)", "", 0, 30, 0), entries);
 
 	//Maximum Retries
-	ipcpairvector maxRetries;
-	maxRetries.push_back(std::make_pair("name", ipc::value("MaxRetries")));
-	maxRetries.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_INT")));
-	maxRetries.push_back(std::make_pair("description", ipc::value("Maximum Retries")));
-	maxRetries.push_back(std::make_pair("subType", ipc::value("")));
-	maxRetries.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	maxRetries.push_back(std::make_pair("maxVal", ipc::value((double)10000)));
-	maxRetries.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(maxRetries);
+	addSubCategory(Parameter("MaxRetries", OBSTypes::PROPERTY_INT, "Maximum Retries", "", 0, 10000, 0), entries);
+
 
 	advancedSettings.push_back(serializeSettingsData(
 	    "Automatically Reconnect", entries, ConfigManager::getInstance().getBasic(), "Output", true, true));
@@ -3667,14 +3544,7 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	//Network
 
 	//Bind to IP
-	ipcpairvector bindIP;
-	bindIP.push_back(std::make_pair("name", ipc::value("BindIP")));
-	bindIP.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-	bindIP.push_back(std::make_pair("description", ipc::value("Bind to IP")));
-	bindIP.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	bindIP.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	bindIP.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	bindIP.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	ipcpairvector& bindIP = addSubCategory(Parameter("BindIP", OBSTypes::PROPERTY_LIST, "Bind to IP", "OBS_COMBO_FORMAT_STRING", 0, 0, 0), entries);
 
 	obs_properties_t* ppts = obs_get_output_properties("rtmp_output");
 	obs_property_t*   p    = obs_properties_get(ppts, "bind_ip");
@@ -3687,42 +3557,15 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 		bindIP.push_back(std::make_pair(name, ipc::value(val)));
 	}
 
-	entries.push_back(bindIP);
-
 	//Enable dynamic bitrate
-	ipcpairvector dynamicBitrate;
-	dynamicBitrate.push_back(std::make_pair("name", ipc::value("DynamicBitrate")));
-	dynamicBitrate.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	dynamicBitrate.push_back(
-	    std::make_pair("description", ipc::value("Dynamically change bitrate when dropping frames while streaming")));
-	dynamicBitrate.push_back(std::make_pair("subType", ipc::value("")));
-	dynamicBitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	dynamicBitrate.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	dynamicBitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(dynamicBitrate);
+	addSubCategory(Parameter("DynamicBitrate", OBSTypes::PROPERTY_BOOL, "Dynamically change bitrate when dropping frames while streaming", "", 0, 0, 0), entries);
 
 #ifdef WIN32
 	//Enable new networking code
-	ipcpairvector newSocketLoopEnable;
-	newSocketLoopEnable.push_back(std::make_pair("name", ipc::value("NewSocketLoopEnable")));
-	newSocketLoopEnable.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	newSocketLoopEnable.push_back(std::make_pair("description", ipc::value("Enable new networking code")));
-	newSocketLoopEnable.push_back(std::make_pair("subType", ipc::value("")));
-	newSocketLoopEnable.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	newSocketLoopEnable.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	newSocketLoopEnable.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(newSocketLoopEnable);
+	addSubCategory(Parameter("NewSocketLoopEnable", OBSTypes::PROPERTY_BOOL, "Enable new networking code", "", 0, 0, 0), entries);
 
 	//Low latency mode
-	ipcpairvector lowLatencyEnable;
-	lowLatencyEnable.push_back(std::make_pair("name", ipc::value("LowLatencyEnable")));
-	lowLatencyEnable.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	lowLatencyEnable.push_back(std::make_pair("description", ipc::value("Low latency mode")));
-	lowLatencyEnable.push_back(std::make_pair("subType", ipc::value("")));
-	lowLatencyEnable.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	lowLatencyEnable.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	lowLatencyEnable.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(lowLatencyEnable);
+	addSubCategory(Parameter("LowLatencyEnable", OBSTypes::PROPERTY_BOOL, "Low latency mode", "", 0, 0, 0), entries);
 #endif
 
 	advancedSettings.push_back(
@@ -3732,31 +3575,14 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	obs_properties_destroy(ppts);
 
 	//Sources
-	ipcpairvector browserHWAccel;
-	browserHWAccel.push_back(std::make_pair("name", ipc::value("browserHWAccel")));
-	browserHWAccel.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	browserHWAccel.push_back(
-	    std::make_pair("description", ipc::value("Enable Browser Source Hardware Acceleration (requires a restart)")));
-	browserHWAccel.push_back(std::make_pair("subType", ipc::value("")));
-	browserHWAccel.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	browserHWAccel.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	browserHWAccel.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(browserHWAccel);
+	addSubCategory(Parameter("browserHWAccel", OBSTypes::PROPERTY_BOOL, "Enable Browser Source Hardware Acceleration (requires a restart)", "", 0, 0, 0), entries);
 
 	advancedSettings.push_back(
 	    serializeSettingsData("Sources", entries, ConfigManager::getInstance().getGlobal(), "General", true, true));
 	entries.clear();
 
 	//Media Files
-	ipcpairvector fileCaching;
-	fileCaching.push_back(std::make_pair("name", ipc::value("fileCaching")));
-	fileCaching.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	fileCaching.push_back(std::make_pair("description", ipc::value("Enable media file caching")));
-	fileCaching.push_back(std::make_pair("subType", ipc::value("")));
-	fileCaching.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	fileCaching.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	fileCaching.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(fileCaching);
+	addSubCategory(Parameter("fileCaching", OBSTypes::PROPERTY_BOOL, "Enable media file caching", "", 0, 0, 0), entries);
 
 	advancedSettings.push_back(
 	    serializeSettingsData("Media Files", entries, ConfigManager::getInstance().getGlobal(), "General", true, true));
