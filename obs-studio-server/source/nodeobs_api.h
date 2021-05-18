@@ -169,7 +169,6 @@ class OBS_API
 	static void SetProcessPriority(const char* priority);
 	static void destroyOBS_API(void);
 
-	static void SetCrashHandlerPipe(const std::wstring&);
 	static void CreateCrashHandlerExitPipe();
 	static void WaitCrashHandlerClose(bool waitBeforeClosing);
 };
