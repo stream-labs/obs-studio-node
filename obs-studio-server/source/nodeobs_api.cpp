@@ -666,7 +666,7 @@ std::string crash_handler_pipe;
 
 void OBS_API::SetCrashHandlerPipe(const std::wstring &new_pipe)
 {
-	crash_handler_pipe = std::string("/tmp/") + std::string(new_pipe.begin(), new_pipe.end()) + std::string("-crash-handler");
+	crash_handler_pipe = std::string(new_pipe.begin(), new_pipe.end()) + std::string("-crash-handler");
 }
 
 void writeCrashHandler(std::vector<char> buffer)
