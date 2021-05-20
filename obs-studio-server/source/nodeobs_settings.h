@@ -40,15 +40,20 @@ struct OBSTypes
 	inline static const char* PROPERTY_INPUT_RESOLUTION_LIST = "OBS_INPUT_RESOLUTION_LIST";
 	inline static const char* PROPERTY_LIST         = "OBS_PROPERTY_LIST";
 	inline static const char* PROPERTY_BOOL         = "OBS_PROPERTY_BOOL";
-	inline static const char* PROPERTY_EDIT_TEXT    = "OBS_PROPERTY_EDIT_TEXT";
-	inline static const char* PROPERTY_INT          = "OBS_PROPERTY_INT";
 	inline static const char* PROPERTY_DOUBLE       = "OBS_PROPERTY_DOUBLE";
+	inline static const char* PROPERTY_FLOAT        = "OBS_PROPERTY_FLOAT";
+	inline static const char* PROPERTY_EDIT_TEXT    = "OBS_PROPERTY_EDIT_TEXT";
+	inline static const char* PROPERTY_TEXT         = "OBS_PROPERTY_TEXT";
+	inline static const char* PROPERTY_INT          = "OBS_PROPERTY_INT";
+	inline static const char* PROPERTY_UINT         = "OBS_PROPERTY_UINT";
 	inline static const char* PROPERTY_PATH			= "OBS_PROPERTY_PATH";
 };
 
 struct OBSSubTypes
 {
-	inline static const char* COMBO_FORMAT_STRING = "OBS_COMBO_FORMAT_STRING";
+	inline static const char* COMBO_FORMAT_STRING	= "OBS_COMBO_FORMAT_STRING";
+	inline static const char* COMBO_FORMAT_INT		= "OBS_COMBO_FORMAT_INT";
+	inline static const char* COMBO_FORMAT_FLOAT    = "OBS_COMBO_FORMAT_FLOAT";
 };
 
 struct Parameter
@@ -320,6 +325,12 @@ inline void config_set<int>(config_t* config, const char* section, const char* n
 }
 
 template<>
+inline void config_set<int64_t>(config_t* config, const char* section, const char* name, int64_t value)
+{
+	config_set_int(config, section, name, value);
+}
+
+template<>
 inline void config_set<bool>(config_t* config, const char* section, const char* name, bool value)
 {
 	config_set_bool(config, section, name, value);
@@ -348,6 +359,12 @@ inline void obs_data_set<std::string>(obs_data_t* config, const char* name, std:
 
 template<>
 inline void obs_data_set<int>(obs_data_t* config, const char* name, int value)
+{
+	obs_data_set_int(config, name, value);
+}
+
+template<>
+inline void obs_data_set<int64_t>(obs_data_t* config, const char* name, int64_t value)
 {
 	obs_data_set_int(config, name, value);
 }

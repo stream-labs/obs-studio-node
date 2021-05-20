@@ -2300,12 +2300,12 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 		std::string name = param.name;
 		std::string type = param.type;
 
-		if (type.compare(OBSTypes::PROPERTY_EDIT_TEXT) == 0 || type.compare("OBS_PROPERTY_PATH") == 0
-		    || type.compare("OBS_PROPERTY_TEXT") == 0 || type.compare(OBSTypes::PROPERTY_INPUT_RESOLUTION_LIST) == 0) {
+		if (type.compare(OBSTypes::PROPERTY_EDIT_TEXT) == 0 || type.compare(OBSTypes::PROPERTY_PATH) == 0
+		    || type.compare(OBSTypes::PROPERTY_TEXT) == 0 || type.compare(OBSTypes::PROPERTY_INPUT_RESOLUTION_LIST) == 0) {
 			set_in_config<std::string>(param, encoderSettings, section.c_str(), name.c_str(), i, indexEncoderSettings);
 		} else if (type.compare(OBSTypes::PROPERTY_INT) == 0) {
 			set_in_config<int64_t>(param, encoderSettings, section.c_str(), name.c_str(), i, indexEncoderSettings);
-		} else if (type.compare("OBS_PROPERTY_UINT") == 0) {
+		} else if (type.compare(OBSTypes::PROPERTY_UINT) == 0) {
 			set_in_config<uint64_t>(param, encoderSettings, section.c_str(), name.c_str(), i, indexEncoderSettings);
 		} else if (type.compare(OBSTypes::PROPERTY_BOOL) == 0) {
 			bool* value = reinterpret_cast<bool*>(param.currentValue.data());
@@ -2313,17 +2313,19 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 				if (name.compare("Rescale") == 0 && *value || name.compare("VodTrackEnabled") == 0 && *value) {
 					indexEncoderSettings++;
 				}
+				config_set_bool(ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str(), *value);
+			} else {
+				obs_data_set_bool(encoderSettings, name.c_str(), *value);
 			}
-
-			set_in_config<bool>(param, encoderSettings, section.c_str(), name.c_str(), i, indexEncoderSettings);
-		} else if (type.compare("OBS_PROPERTY_DOUBLE") == 0 || type.compare("OBS_PROPERTY_FLOAT") == 0) {
-			set_in_config<double>(param, encoderSettings, section.c_str(), name.c_str(), i, indexEncoderSettings);
+		} else if (type.compare(OBSTypes::PROPERTY_DOUBLE) == 0 || type.compare(OBSTypes::PROPERTY_FLOAT) == 0) {
+			set_in_config<double>(param, encoderSettings, section, name, i, indexEncoderSettings);
 		} else if (type.compare(OBSTypes::PROPERTY_LIST) == 0) {
 			std::string subType(param.subType.data(), param.subType.size());
-			if (subType.compare("OBS_COMBO_FORMAT_INT") == 0) {
-				set_in_config<int64_t>(param, encoderSettings, section.c_str(), name.c_str(), i, indexEncoderSettings);
-			} else if (subType.compare("OBS_COMBO_FORMAT_FLOAT") == 0) {
-				set_in_config<double>(param, encoderSettings, section.c_str(), name.c_str(), i, indexEncoderSettings);
+
+			if (subType.compare(OBSSubTypes::COMBO_FORMAT_INT) == 0) {
+				set_in_config<int64_t>(param, encoderSettings, section, name, i, indexEncoderSettings);
+			} else if (subType.compare(OBSSubTypes::COMBO_FORMAT_FLOAT) == 0) {
+				set_in_config<double>(param, encoderSettings, section, name, i, indexEncoderSettings);
 			} else {
 				std::string value(param.currentValue.data(), param.currentValue.size());
 				if (i < indexEncoderSettings) {
