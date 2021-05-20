@@ -43,6 +43,7 @@ struct OBSTypes
 	inline static const char* PROPERTY_EDIT_TEXT    = "OBS_PROPERTY_EDIT_TEXT";
 	inline static const char* PROPERTY_INT          = "OBS_PROPERTY_INT";
 	inline static const char* PROPERTY_DOUBLE       = "OBS_PROPERTY_DOUBLE";
+	inline static const char* PROPERTY_PATH			= "OBS_PROPERTY_PATH";
 };
 
 struct OBSSubTypes
@@ -73,9 +74,9 @@ struct Parameter
 	    std::string type = "",
 		std::string description = "",
 		std::string subType = "",
-		double minVal = -200,
-		double maxVal = 200,
-		double stepVal = 1,
+		double minVal = 0,
+		double maxVal = 0,
+		double stepVal = 0,
 		uint64_t sizeOfCurrentValue = 0,
 		uint64_t sizeOfValues = 0,
 		uint64_t countValues = 0, 

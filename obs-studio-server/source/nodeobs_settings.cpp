@@ -988,67 +988,25 @@ void OBS_settings::getSimpleOutputSettings(
 	//Streaming
 
 	//Video Bitrate
-	ipcpairvector vBitrate;
-	vBitrate.push_back(make_pair("name", ipc::value("VBitrate")));
-	vBitrate.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_INT)));
-	vBitrate.push_back(make_pair("description", ipc::value("Video Bitrate")));
-	vBitrate.push_back(make_pair("subType", ipc::value("")));
-	vBitrate.push_back(make_pair("minVal", ipc::value((double)0)));
-	vBitrate.push_back(make_pair("maxVal", ipc::value((double)1000000)));
-	vBitrate.push_back(make_pair("stepVal", ipc::value((double)1)));
-	entries.push_back(vBitrate);
+	addSubCategory(Parameter("VBitrate", OBSTypes::PROPERTY_INT, "Video Bitrate", "", 0, 1000000, 1), entries);
 
 	//Encoder
-	ipcpairvector streamEncoder;
-	streamEncoder.push_back(make_pair("name", ipc::value("StreamEncoder")));
-	streamEncoder.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_LIST)));
-	streamEncoder.push_back(make_pair("description", ipc::value("Encoder")));
-	streamEncoder.push_back(make_pair("subType", ipc::value(OBSSubTypes::COMBO_FORMAT_STRING)));
-	streamEncoder.push_back(make_pair("minVal", ipc::value((double)0)));
-	streamEncoder.push_back(make_pair("maxVal", ipc::value((double)0)));
-	streamEncoder.push_back(make_pair("stepVal", ipc::value((double)0)));
-
+	ipcpairvector& streamEncoder = addSubCategory(Parameter("StreamEncoder", OBSTypes::PROPERTY_LIST, "Encoder", OBSSubTypes::COMBO_FORMAT_STRING, 0, 0, 0), entries);
 	getSimpleAvailableEncoders(&streamEncoder, false);
 
-	entries.push_back(streamEncoder);
-
 	//Audio Bitrate
-	ipcpairvector aBitrate;
-	aBitrate.push_back(make_pair("name", ipc::value("ABitrate")));
-	aBitrate.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_LIST)));
-	aBitrate.push_back(make_pair("description", ipc::value("Audio Bitrate")));
-	aBitrate.push_back(make_pair("subType", ipc::value(OBSSubTypes::COMBO_FORMAT_STRING)));
-	aBitrate.push_back(make_pair("minVal", ipc::value((double)0)));
-	aBitrate.push_back(make_pair("maxVal", ipc::value((double)0)));
-	aBitrate.push_back(make_pair("stepVal", ipc::value((double)0)));
+	ipcpairvector& aBitrate = addSubCategory(Parameter("ABitrate", OBSTypes::PROPERTY_LIST, "Audio Bitrate", OBSSubTypes::COMBO_FORMAT_STRING, 0, 0, 0), entries);
 
 	auto& bitrateMap = GetAACEncoderBitrateMap();
 	for (auto& entry : bitrateMap)
 		aBitrate.push_back(make_pair(std::to_string(entry.first), std::to_string(entry.first)));
-	entries.push_back(aBitrate);
 
 	//Enable Advanced Encoder Settings
-	ipcpairvector useAdvanced;
-	useAdvanced.push_back(make_pair("name", ipc::value("UseAdvanced")));
-	useAdvanced.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_BOOL)));
-	useAdvanced.push_back(make_pair("description", ipc::value("Enable Advanced Encoder Settings")));
-	useAdvanced.push_back(make_pair("subType", ipc::value("")));
-	useAdvanced.push_back(make_pair("minVal", ipc::value((double)0)));
-	useAdvanced.push_back(make_pair("maxVal", ipc::value((double)0)));
-	useAdvanced.push_back(make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(useAdvanced);
+	addSubCategory(Parameter("UseAdvanced", OBSTypes::PROPERTY_BOOL, "Enable Advanced Encoder Settings", "", 0, 0, 0), entries);
 
 	if (config_get_bool(config, "SimpleOutput", "UseAdvanced")) {
 		//Enforce streaming service bitrate limits
-		ipcpairvector enforceBitrate;
-		enforceBitrate.push_back(make_pair("name", ipc::value("EnforceBitrate")));
-		enforceBitrate.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_BOOL)));
-		enforceBitrate.push_back(make_pair("description", ipc::value("Enforce streaming service bitrate limits")));
-		enforceBitrate.push_back(make_pair("subType", ipc::value("")));
-		enforceBitrate.push_back(make_pair("minVal", ipc::value((double)0)));
-		enforceBitrate.push_back(make_pair("maxVal", ipc::value((double)0)));
-		enforceBitrate.push_back(make_pair("stepVal", ipc::value((double)0)));
-		entries.push_back(enforceBitrate);
+		addSubCategory(Parameter("EnforceBitrate", OBSTypes::PROPERTY_BOOL, "Enforce streaming service bitrate limits", "", 0, 0, 0), entries);
 
 		obs_data_t *settings = obs_service_get_settings(OBS_service::getService());
 		const char *serviceName = obs_data_get_string(settings, "service");
@@ -1072,49 +1030,26 @@ void OBS_settings::getSimpleOutputSettings(
 				twitchVODDesc += " Remove Twitch Soundtrack in order to enable this.";
 
 			//Twitch VOD
-			ipcpairvector twitchVOD;
-			twitchVOD.push_back(make_pair("name", ipc::value("VodTrackEnabled")));
-			twitchVOD.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_BOOL)));
-			twitchVOD.push_back(make_pair("description", ipc::value(twitchVODDesc.c_str())));
-			twitchVOD.push_back(make_pair("subType", ipc::value("")));
-			twitchVOD.push_back(make_pair("minVal", ipc::value((double)0)));
-			twitchVOD.push_back(make_pair("maxVal", ipc::value((double)0)));
-			twitchVOD.push_back(make_pair("stepVal", ipc::value((double)0)));
-			entries.push_back(twitchVOD);
+			addSubCategory(Parameter("VodTrackEnabled", OBSTypes::PROPERTY_BOOL, twitchVODDesc.c_str(), "", 0, 0, 0), entries);
 		}
 
 		//Encoder Preset
 		const char* defaultPreset;
 		const char* encoder = config_get_string(config, "SimpleOutput", "StreamEncoder");
 
-		ipcpairvector preset;
-
 		if (strcmp(encoder, SIMPLE_ENCODER_QSV) == 0 || strcmp(encoder, ADVANCED_ENCODER_QSV) == 0) {
-			preset.push_back(make_pair("name", ipc::value("QSVPreset")));
-			preset.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_LIST)));
-			preset.push_back(make_pair("description", ipc::value("Encoder Preset (higher = less CPU)")));
-			preset.push_back(make_pair("subType", ipc::value(OBSSubTypes::COMBO_FORMAT_STRING)));
-			preset.push_back(make_pair("minVal", ipc::value((double)0)));
-			preset.push_back(make_pair("maxVal", ipc::value((double)0)));
-			preset.push_back(make_pair("stepVal", ipc::value((double)0)));
+			ipcpairvector& preset = addSubCategory(Parameter("QSVPreset", OBSTypes::PROPERTY_LIST, "Encoder Preset (higher = less CPU)", OBSSubTypes::COMBO_FORMAT_STRING, 0, 0, 0), entries);
+
 			preset.push_back(make_pair("Speed", ipc::value("speed")));
 			preset.push_back(make_pair("Balanced", ipc::value("balanced")));
 			preset.push_back(make_pair("Quality", ipc::value("quality")));
 
 			defaultPreset = "balanced";
 			// preset = curQSVPreset;
-			entries.push_back(preset);
 		} else if (
 		    strcmp(encoder, SIMPLE_ENCODER_NVENC) == 0 || strcmp(encoder, ADVANCED_ENCODER_NVENC) == 0
 		    || strcmp(encoder, ENCODER_NEW_NVENC) == 0) {
-			preset.push_back(make_pair("name", ipc::value("NVENCPreset")));
-			preset.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_LIST)));
-			preset.push_back(make_pair("description", ipc::value("Encoder Preset (higher = less CPU)")));
-			preset.push_back(make_pair("subType", ipc::value(OBSSubTypes::COMBO_FORMAT_STRING)));
-			preset.push_back(make_pair("minVal", ipc::value((double)0)));
-			preset.push_back(make_pair("maxVal", ipc::value((double)0)));
-			preset.push_back(make_pair("stepVal", ipc::value((double)0)));
-
+			ipcpairvector& preset = addSubCategory(Parameter("NVENCPreset", OBSTypes::PROPERTY_LIST, "Encoder Preset (higher = less CPU)", OBSSubTypes::COMBO_FORMAT_STRING, 0, 0, 0), entries);
 			obs_properties_t* props = obs_get_encoder_properties("ffmpeg_nvenc");
 
 			obs_property_t* p   = obs_properties_get(props, "preset");
@@ -1138,43 +1073,23 @@ void OBS_settings::getSimpleOutputSettings(
 
 			defaultPreset = "default";
 			// preset = curNVENCPreset;
-			entries.push_back(preset);
 		} else if (strcmp(encoder, SIMPLE_ENCODER_AMD) == 0 || strcmp(encoder, ADVANCED_ENCODER_AMD) == 0) {
-			preset.push_back(make_pair("name", ipc::value("AMDPreset")));
-			preset.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_LIST)));
-			preset.push_back(make_pair("description", ipc::value("Encoder Preset (higher = less CPU)")));
-			preset.push_back(make_pair("subType", ipc::value(OBSSubTypes::COMBO_FORMAT_STRING)));
-			preset.push_back(make_pair("minVal", ipc::value((double)0)));
-			preset.push_back(make_pair("maxVal", ipc::value((double)0)));
-			preset.push_back(make_pair("stepVal", ipc::value((double)0)));
+			ipcpairvector& preset = addSubCategory(Parameter("AMDPreset", OBSTypes::PROPERTY_LIST, "Encoder Preset (higher = less CPU)", OBSSubTypes::COMBO_FORMAT_STRING, 0, 0, 0), entries);
 			preset.push_back(make_pair("Speed", ipc::value("speed")));
 			preset.push_back(make_pair("Balanced", ipc::value("balanced")));
 			preset.push_back(make_pair("Quality", ipc::value("quality")));
 
 			defaultPreset = "balanced";
 			// preset = curAMDPreset;
-			entries.push_back(preset);
 		} else if (strcmp(encoder, APPLE_SOFTWARE_VIDEO_ENCODER) == 0 || strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER) == 0) {
-			preset.push_back(make_pair("name", ipc::value("Profile")));
-			preset.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_LIST)));
-			preset.push_back(make_pair("description", ipc::value("")));
-			preset.push_back(make_pair("subType", ipc::value(OBSSubTypes::COMBO_FORMAT_STRING)));
-			preset.push_back(make_pair("minVal", ipc::value((double)0)));
-			preset.push_back(make_pair("maxVal", ipc::value((double)0)));
-			preset.push_back(make_pair("stepVal", ipc::value((double)0)));
+			ipcpairvector& preset = addSubCategory(Parameter("Profile", OBSTypes::PROPERTY_LIST, "", OBSSubTypes::COMBO_FORMAT_STRING, 0, 0, 0), entries);
 			preset.push_back(make_pair("(None)", ipc::value("")));
 			preset.push_back(make_pair("baseline", ipc::value("baseline")));
 			preset.push_back(make_pair("main", ipc::value("main")));
 			preset.push_back(make_pair("high", ipc::value("high")));
-			entries.push_back(preset);
 		} else {
-			preset.push_back(make_pair("name", ipc::value("Preset")));
-			preset.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_LIST)));
-			preset.push_back(make_pair("description", ipc::value("Encoder Preset (higher = less CPU)")));
-			preset.push_back(make_pair("subType", ipc::value(OBSSubTypes::COMBO_FORMAT_STRING)));
-			preset.push_back(make_pair("minVal", ipc::value((double)0)));
-			preset.push_back(make_pair("maxVal", ipc::value((double)0)));
-			preset.push_back(make_pair("stepVal", ipc::value((double)0)));
+			ipcpairvector& preset = addSubCategory(Parameter("Preset", OBSTypes::PROPERTY_LIST, "Encoder Preset (higher = less CPU)", OBSSubTypes::COMBO_FORMAT_STRING, 0, 0, 0), entries);
+
 			preset.push_back(make_pair("ultrafast", ipc::value("ultrafast")));
 			preset.push_back(make_pair("superfast", ipc::value("superfast")));
 			preset.push_back(make_pair("veryfast", ipc::value("veryfast")));
@@ -1186,18 +1101,9 @@ void OBS_settings::getSimpleOutputSettings(
 
 			defaultPreset = "veryfast";
 			// preset = curPreset;
-			entries.push_back(preset);
 
 			//Custom Encoder Settings
-			ipcpairvector x264opts;
-			x264opts.push_back(make_pair("name", ipc::value("x264Settings")));
-			x264opts.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_EDIT_TEXT)));
-			x264opts.push_back(make_pair("description", ipc::value("Custom Encoder Settings")));
-			x264opts.push_back(make_pair("subType", ipc::value("")));
-			x264opts.push_back(make_pair("minVal", ipc::value((double)0)));
-			x264opts.push_back(make_pair("maxVal", ipc::value((double)0)));
-			x264opts.push_back(make_pair("stepVal", ipc::value((double)0)));
-			entries.push_back(x264opts);
+			addSubCategory(Parameter("x264Settings", OBSTypes::PROPERTY_EDIT_TEXT, "Custom Encoder Settings"), entries);
 		}
 	}
 
@@ -1208,88 +1114,38 @@ void OBS_settings::getSimpleOutputSettings(
 	//Recording
 
 	//Recording Path
-	ipcpairvector filePath;
-	filePath.push_back(make_pair("name", ipc::value("FilePath")));
-	filePath.push_back(make_pair("type", ipc::value("OBS_PROPERTY_PATH")));
-	filePath.push_back(make_pair("description", ipc::value("Recording Path")));
-	filePath.push_back(make_pair("subType", ipc::value("")));
-	filePath.push_back(make_pair("minVal", ipc::value((double)0)));
-	filePath.push_back(make_pair("maxVal", ipc::value((double)0)));
-	filePath.push_back(make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(filePath);
+	addSubCategory(Parameter("FilePath", OBSTypes::PROPERTY_PATH, "Recording Path"), entries);
 
 	//Generate File Name without Space
-	ipcpairvector fileNameWithoutSpace;
-	fileNameWithoutSpace.push_back(make_pair("name", ipc::value("FileNameWithoutSpace")));
-	fileNameWithoutSpace.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_BOOL)));
-	fileNameWithoutSpace.push_back(make_pair("description", ipc::value("Generate File Name without Space")));
-	fileNameWithoutSpace.push_back(make_pair("subType", ipc::value("")));
-	fileNameWithoutSpace.push_back(make_pair("minVal", ipc::value((double)0)));
-	fileNameWithoutSpace.push_back(make_pair("maxVal", ipc::value((double)0)));
-	fileNameWithoutSpace.push_back(make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(fileNameWithoutSpace);
+	addSubCategory(Parameter("FileNameWithoutSpace", OBSTypes::PROPERTY_BOOL, "Generate File Name without Space"), entries);
 
 	//Recording Quality
-	ipcpairvector recQuality;
-	recQuality.push_back(make_pair("name", ipc::value("RecQuality")));
-	recQuality.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_LIST)));
-	recQuality.push_back(make_pair("description", ipc::value("Recording Quality")));
-	recQuality.push_back(make_pair("subType", ipc::value(OBSSubTypes::COMBO_FORMAT_STRING)));
-	recQuality.push_back(make_pair("minVal", ipc::value((double)0)));
-	recQuality.push_back(make_pair("maxVal", ipc::value((double)0)));
-	recQuality.push_back(make_pair("stepVal", ipc::value((double)0)));
+	ipcpairvector& recQuality = addSubCategory(Parameter("RecQuality", OBSTypes::PROPERTY_LIST, "Recording Quality", OBSSubTypes::COMBO_FORMAT_STRING), entries);
 	recQuality.push_back(make_pair("Same as stream", ipc::value("Stream")));
 	recQuality.push_back(make_pair("High Quality, Medium File Size", ipc::value("Small")));
 	recQuality.push_back(make_pair("Indistinguishable Quality, Large File Size", ipc::value("HQ")));
 	recQuality.push_back(make_pair("Lossless Quality, Tremendously Large File Size", ipc::value("Lossless")));
-	entries.push_back(recQuality);
 
 	//Recording Format
-	ipcpairvector recFormat;
-	recFormat.push_back(make_pair("name", ipc::value("RecFormat")));
-	recFormat.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_LIST)));
-	recFormat.push_back(make_pair("description", ipc::value("Recording Format")));
-	recFormat.push_back(make_pair("subType", ipc::value(OBSSubTypes::COMBO_FORMAT_STRING)));
-	recFormat.push_back(make_pair("minVal", ipc::value((double)0)));
-	recFormat.push_back(make_pair("maxVal", ipc::value((double)0)));
-	recFormat.push_back(make_pair("stepVal", ipc::value((double)0)));
+	ipcpairvector& recFormat = addSubCategory(Parameter("RecFormat", OBSTypes::PROPERTY_LIST, "Recording Format", OBSSubTypes::COMBO_FORMAT_STRING), entries);
 	recFormat.push_back(make_pair("flv", ipc::value("flv")));
 	recFormat.push_back(make_pair("mp4", ipc::value("mp4")));
 	recFormat.push_back(make_pair("mov", ipc::value("mov")));
 	recFormat.push_back(make_pair("mkv", ipc::value("mkv")));
 	recFormat.push_back(make_pair("ts", ipc::value("ts")));
 	recFormat.push_back(make_pair("m3u8", ipc::value("m3u8")));
-	entries.push_back(recFormat);
 
 	//Rec Encoder
 	std::string currentRecQuality =
 	    config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
 
 	if (currentRecQuality.compare("Small") == 0 || currentRecQuality.compare("HQ") == 0) {
-		ipcpairvector recEncoder;
-		recEncoder.push_back(make_pair("name", ipc::value("RecEncoder")));
-		recEncoder.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_LIST)));
-		recEncoder.push_back(make_pair("description", ipc::value("Encoder")));
-		recEncoder.push_back(make_pair("subType", ipc::value(OBSSubTypes::COMBO_FORMAT_STRING)));
-		recEncoder.push_back(make_pair("minVal", ipc::value((double)0)));
-		recEncoder.push_back(make_pair("maxVal", ipc::value((double)0)));
-		recEncoder.push_back(make_pair("stepVal", ipc::value((double)0)));
-
+		ipcpairvector& recEncoder = addSubCategory(Parameter("RecEncoder", OBSTypes::PROPERTY_LIST, "Encoder", OBSSubTypes::COMBO_FORMAT_STRING), entries);
 		getSimpleAvailableEncoders(&recEncoder, true);
-
-		entries.push_back(recEncoder);
 	}
 
 	//Custom Muxer Settings
-	ipcpairvector muxerCustom;
-	muxerCustom.push_back(make_pair("name", ipc::value("MuxerCustom")));
-	muxerCustom.push_back(make_pair("type", ipc::value(OBSTypes::PROPERTY_EDIT_TEXT)));
-	muxerCustom.push_back(make_pair("description", ipc::value("Custom Muxer Settings")));
-	muxerCustom.push_back(make_pair("subType", ipc::value("")));
-	muxerCustom.push_back(make_pair("minVal", ipc::value((double)0)));
-	muxerCustom.push_back(make_pair("maxVal", ipc::value((double)0)));
-	muxerCustom.push_back(make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(muxerCustom);
+	addSubCategory(Parameter("MuxerCustom", OBSTypes::PROPERTY_EDIT_TEXT, "Custom Muxer Settings", ""), entries);
 
 	outputSettings->push_back(
 	    serializeSettingsData("Recording", entries, config, "SimpleOutput", true, isCategoryEnabled));
