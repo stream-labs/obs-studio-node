@@ -1145,6 +1145,7 @@ void OBS_settings::getSimpleOutputSettings(
 	}
 
 	//Custom Muxer Settings
+
 	addSubCategory(Parameter("MuxerCustom", OBSTypes::PROPERTY_EDIT_TEXT, "Custom Muxer Settings", ""), entries);
 
 	outputSettings->push_back(

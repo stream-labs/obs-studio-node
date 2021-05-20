@@ -72,17 +72,17 @@ struct Parameter
 	Parameter(
 	    std::string name = "",
 	    std::string type = "",
-		std::string description = "",
-		std::string subType = "",
-		double minVal = 0,
-		double maxVal = 0,
-		double stepVal = 0,
-		uint64_t sizeOfCurrentValue = 0,
-		uint64_t sizeOfValues = 0,
-		uint64_t countValues = 0, 
-		bool enabled = false,
-		bool masked = false,
-	    bool        visible            = false)
+	    std::string description = "",
+	    std::string subType = "",
+	    double minVal = 0,
+	    double maxVal = 0,
+	    double stepVal = 0,
+	    uint64_t sizeOfCurrentValue = 0,
+	    uint64_t sizeOfValues = 0,
+	    uint64_t countValues = 0, 
+	    bool enabled = false,
+	    bool masked = false,
+	    bool visible = false)
 	    : name(name), type(type), description(description), subType(subType), minVal(minVal), maxVal(maxVal), 
 		stepVal(stepVal), sizeOfCurrentValue(sizeOfCurrentValue), sizeOfValues(sizeOfValues),
 	      countValues(countValues), enabled(enabled), masked(masked), visible(visible) {}
@@ -271,8 +271,7 @@ class OBS_settings
 	    config_t*                 config,
 	    bool                      isCategoryEnabled);
 
-	static std::vector<std::pair<std::string, ipc::value>>& addSubCategory(const Parameter& param, std::vector<std::vector<std::pair<std::string, ipc::value>>>& entries);
-
+	static ipcpairvector& addSubCategory(const Parameter& param, std::vector<ipcpairvector>& entries);
 	static void getReplayBufferSettings(
 	    std::vector<SubCategory>* outputSettings,
 	    config_t*                 config,
