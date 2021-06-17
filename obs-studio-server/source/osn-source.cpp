@@ -397,6 +397,7 @@ void osn::Source::ProcessProperties(
 			prop = prop2;
 			break;
 		}
+		case OBS_PROPERTY_COLOR_ALPHA:
 		case OBS_PROPERTY_COLOR: {
 			auto prop2        = std::make_shared<obs::ColorProperty>();
 			prop2->field_type = obs::NumberProperty::NumberType(obs_property_int_type(p));
