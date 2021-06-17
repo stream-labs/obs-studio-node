@@ -20,3 +20,5 @@ docs/
 .vscode 
 /*.log
 /streamlabs-build
+
+tests/osn-tests/*-cache-local.zip
