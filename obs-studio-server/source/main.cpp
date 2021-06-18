@@ -65,6 +65,7 @@ return OSN_VERSION; \
 
 #ifdef __APPLE__
 #include <unistd.h>
+#include <fcntl.h>
 #endif
 
 #if defined(_WIN32)
@@ -153,6 +154,8 @@ namespace System
 int main(int argc, char* argv[])
 {
 #ifdef __APPLE__
+	int out_pid = open("/tmp/slobs-stdout", O_WRONLY| O_CREAT | O_DSYNC);
+	int out_err = open("/tmp/slobs-stderr", O_WRONLY| O_CREAT | O_DSYNC);
 	g_util_osx = new UtilInt();
 	g_util_osx->init();
 #endif
