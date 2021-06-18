@@ -55,115 +55,129 @@ describe(testName, () => {
         });
     });
 
-    // it('Create all filter types with settings', () => {
-    //     // Create each filter type availabe passing settings parameter
-    //     obs.filterTypes.forEach(function(filterType) {
-    //         let settings: ISettings = {};
+    it('Create all filter types with settings', () => {
+        // Create each filter type availabe passing settings parameter
+        obs.filterTypes.forEach(function(filterType) {
+            let settings: ISettings = {};
 
-    //         switch(filterType) {
-    //             case 'mask_filter': {
-    //                 settings = filterSettings.mask;
-    //                 settings['opacity'] = 80;
-    //                 break; 
-    //             }
-    //             case 'crop_filter': {
-    //                 settings = filterSettings.crop;
-    //                 settings['relative'] = false;
-    //                 break;
-    //             }
-    //             case 'gain_filter': {
-    //                 settings = filterSettings.gain;
-    //                 settings['db'] = 10;
-    //                 break;
-    //             }
-    //             case 'color_filter': {
-    //                 settings = filterSettings.color;
-    //                 settings['brightness'] = 50;
-    //                 break;
-    //             }
-    //             case 'scale_filter': {
-    //                 settings = filterSettings.scale;
-    //                 settings['undistort'] = true;
-    //                 break;
-    //             }
-    //             case 'scroll_filter': {
-    //                 settings = filterSettings.scroll;
-    //                 settings['cx'] = 200;
-    //                 settings['loop'] = true;
-    //                 break;
-    //             }
-    //             case 'color_key_filter': {
-    //                 settings = filterSettings.colorKey;
-    //                 settings['smoothness'] = 80;
-    //                 break;
-    //             }
-    //             case 'clut_filter': {
-    //                 settings = filterSettings.clut;
-    //                 settings['clut_amount'] = 2;
-    //                 break;
-    //             }
-    //             case 'sharpness_filter': {
-    //                 settings = filterSettings.sharpness;
-    //                 settings['sharpness'] = 0.15;
-    //                 break;
-    //             }
-    //             case 'chroma_key_filter': {
-    //                 settings = filterSettings.chromaKey;
-    //                 settings['spill'] = 75;
-    //                 break;
-    //             }
-    //             case 'noise_suppress_filter': {
-    //                 settings = filterSettings.noiseSuppress;
-    //                 settings['method'] = "speex";
-    //                 settings['suppress_level'] = -20;
-    //                 break;
-    //             }
-    //             case 'noise_suppress_filter_v2': {
-    //                 settings = filterSettings.noiseSuppress;
-    //                 settings['method'] = "rnnoise";
-    //                 settings['suppress_level'] = -30;
-    //                 break;
-    //             }
-    //             case 'noise_gate_filter': {
-    //                 settings = filterSettings.noiseGate;
-    //                 settings['hold_time'] = 300;
-    //                 break; 
-    //             }
-    //             case 'compressor_filter': {
-    //                 settings = filterSettings.compressor;
-    //                 settings['ratio'] = 5;
-    //                 break;
-    //             }
-    //             case 'limiter_filter': {
-    //                 settings = filterSettings.limiter;
-    //                 settings['threshold'] = -5;
-    //                 break;
-    //             }
-    //             case 'expander_filter': {
-    //                 settings = filterSettings.expander;
-    //                 settings['attack_time'] = 20;
-    //                 break;
-    //             }
-    //             case 'luma_key_filter': {
-    //                 settings = filterSettings.lumaKey;
-    //                 settings['luma_max'] = 2;
-    //                 break;
-    //             }
-    //             case 'ndi_filter': 
-    //             case 'ndi_audiofilter': {
-    //                 settings = filterSettings.ndi;
-    //                 settings['ndi_filter_ndiname'] = 'Test Output';
-    //             }
-    //         }
+            switch(filterType) {
+                case 'mask_filter_v2':
+                case 'mask_filter': {
+                    settings = filterSettings.mask;
+                    settings['opacity'] = 80;
+                    break; 
+                }
+                case 'crop_filter': {
+                    settings = filterSettings.crop;
+                    settings['relative'] = false;
+                    break;
+                }
+                case 'gain_filter': {
+                    settings = filterSettings.gain;
+                    settings['db'] = 10;
+                    break;
+                }
+                case 'color_filter_v2': {
+                    settings = filterSettings.color;
+                    settings['brightness'] = 50;
+                    settings['color_multiply'] = 16777215;
+                    settings['color_add'] = 0;
+                    break;
+                }
+                case 'color_filter': {
+                    settings = filterSettings.color;
+                    settings['brightness'] = 50;
+                    break;
+                }
+                case 'scale_filter': {
+                    settings = filterSettings.scale;
+                    settings['undistort'] = true;
+                    break;
+                }
+                case 'scroll_filter': {
+                    settings = filterSettings.scroll;
+                    settings['cx'] = 200;
+                    settings['loop'] = true;
+                    break;
+                }
+                case 'color_key_filter_v2':
+                case 'color_key_filter': {
+                    settings = filterSettings.colorKey;
+                    settings['smoothness'] = 80;
+                    break;
+                }
+                case 'clut_filter': {
+                    settings = filterSettings.clut;
+                    settings['clut_amount'] = 2;
+                    break;
+                }
+                case 'sharpness_filter_v2':
+                case 'sharpness_filter': {
+                    settings = filterSettings.sharpness;
+                    settings['sharpness'] = 0.15;
+                    break;
+                }
+                case 'chroma_key_filter_v2':
+                case 'chroma_key_filter': {
+                    settings = filterSettings.chromaKey;
+                    settings['spill'] = 75;
+                    break;
+                }
+                case 'noise_suppress_filter': {
+                    settings = filterSettings.noiseSuppress;
+                    settings['method'] = "speex";
+                    settings['suppress_level'] = -20;
+                    settings['intensity'] = 1;
+                    break;
+                }
+                case 'noise_suppress_filter_v2': {
+                    settings = filterSettings.noiseSuppress;
+                    settings['method'] = "rnnoise";
+                    settings['suppress_level'] = -30;
+                    settings['intensity'] = 1;
+                    break;
+                }
+                case 'noise_gate_filter': {
+                    settings = filterSettings.noiseGate;
+                    settings['hold_time'] = 300;
+                    break; 
+                }
+                case 'compressor_filter': {
+                    settings = filterSettings.compressor;
+                    settings['ratio'] = 5;
+                    break;
+                }
+                case 'limiter_filter': {
+                    settings = filterSettings.limiter;
+                    settings['threshold'] = -5;
+                    break;
+                }
+                case 'expander_filter': {
+                    settings = filterSettings.expander;
+                    settings['attack_time'] = 20;
+                    break;
+                }
+                case 'luma_key_filter_v2':
+                case 'luma_key_filter': {
+                    settings = filterSettings.lumaKey;
+                    settings['luma_max'] = 2;
+                    break;
+                }
+                case 'ndi_filter': 
+                case 'ndi_audiofilter': {
+                    settings = filterSettings.ndi;
+                    settings['ndi_filter_ndiname'] = 'Test Output';
+                }
+            }
 
-    //         const filter = osn.FilterFactory.create(filterType, 'filter', settings);
+            const filter = osn.FilterFactory.create(filterType, 'filter', settings);
 
-    //         // Checking if filter was created correctly
-    //         expect(filter).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, filterType));
-    //         expect(filter.id).to.equal(filterType, GetErrorMessage(ETestErrorMsg.FilterId, filterType));
-    //         expect(filter.name).to.equal('filter', GetErrorMessage(ETestErrorMsg.FilterName, filterType));
-    //         expect(filter.settings).to.eql(settings, ETestErrorMsg.FilterSetting);
-    //         filter.release();
-    //     });
-    // });
+            // Checking if filter was created correctly
+            expect(filter).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, filterType));
+            expect(filter.id).to.equal(filterType, GetErrorMessage(ETestErrorMsg.FilterId, filterType));
+            expect(filter.name).to.equal('filter', GetErrorMessage(ETestErrorMsg.FilterName, filterType));
+            expect(filter.settings).to.eql(settings, ETestErrorMsg.FilterSetting);
+            filter.release();
+        });
+    });
 });
