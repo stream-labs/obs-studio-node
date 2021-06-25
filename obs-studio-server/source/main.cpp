@@ -65,6 +65,9 @@ return OSN_VERSION; \
 
 #ifdef __APPLE__
 #include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #endif
 
 #if defined(_WIN32)
@@ -153,6 +156,17 @@ namespace System
 int main(int argc, char* argv[])
 {
 #ifdef __APPLE__
+ 	// Reuse file discriptors 1 and 2 in case they not open at launch so output to stdout and stderr not redirected to unexpected file
+	struct stat sb;
+	bool override_std_fd = false;
+	int out_pid = -1;
+	int out_err = -1;
+	if (fstat(1, &sb) != 0) {
+		override_std_fd = true;
+		int out_pid = open("/tmp/slobs-stdout", O_WRONLY| O_CREAT | O_DSYNC);
+		int out_err = open("/tmp/slobs-stderr", O_WRONLY| O_CREAT | O_DSYNC);
+	}
+
 	g_util_osx = new UtilInt();
 	g_util_osx->init();
 #endif
@@ -276,6 +290,11 @@ int main(int argc, char* argv[])
 
 	// Finalize Server
 	myServer.finalize();
-
+#ifdef __APPLE__
+	if (override_std_fd) {
+		close(out_pid);
+		close(out_err);
+	}
+#endif		
 	return 0;
 }
