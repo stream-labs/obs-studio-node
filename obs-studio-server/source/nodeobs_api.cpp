@@ -674,7 +674,7 @@ void writeCrashHandler(std::vector<char> buffer)
 	int file_descriptor = open(crash_handler_pipe.c_str(), O_WRONLY | O_DSYNC);
 	if (file_descriptor < 0) {
 		blog(LOG_DEBUG, "failed to open pipe %s ", crash_handler_pipe.c_str());
-		int file_descriptor = open("/tmp/slobs-crash-handler", O_WRONLY | O_DSYNC);
+		file_descriptor = open("/tmp/slobs-crash-handler", O_WRONLY | O_DSYNC);
 		if (file_descriptor < 0) {
 			blog(LOG_DEBUG, "failed to open pipe /tmp/slobs-crash-handler ");
 			return;
