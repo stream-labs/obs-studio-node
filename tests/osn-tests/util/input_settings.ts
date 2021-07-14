@@ -45,6 +45,7 @@ let ffmpegSource: ISettings = {
     caching: false,
     clear_on_media_end: true,
     is_local_file: true,
+    linear_alpha: false,
     looping: false,
     restart_on_activate: true,
     speed_percent: 100
