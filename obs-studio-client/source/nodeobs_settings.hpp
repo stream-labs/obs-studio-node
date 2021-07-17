@@ -38,6 +38,25 @@ namespace settings
 		uint64_t          countValues  = 0;
 		std::vector<char> values;
 
+		Parameter(
+		std::string name = "",
+		std::string type = "",
+		std::string description = "",
+		std::string subType = "",
+		double minVal = -200,
+		double maxVal = 200,
+		double stepVal = 1,
+		uint64_t sizeOfCurrentValue = 0,
+		uint64_t sizeOfValues = 0,
+		uint64_t countValues = 0,
+		bool enabled = false,
+		bool masked = false,
+		bool visible = false)
+		: name(name), type(type), description(description), subType(subType), minVal(minVal), maxVal(maxVal),
+		    stepVal(stepVal), sizeOfCurrentValue(sizeOfCurrentValue), sizeOfValues(sizeOfValues),
+		    countValues(countValues), enabled(enabled), masked(masked), visible(visible)
+		{}
+
 		std::vector<char> serialize()
 		{
 			std::vector<char> buffer;

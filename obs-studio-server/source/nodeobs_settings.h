@@ -33,6 +33,29 @@ enum CategoryTypes : uint32_t
 	NODEOBS_CATEGORY_TAB = 1
 };
 
+typedef std::vector<std::pair<std::string, ipc::value>> ipcpairvector;
+
+struct OBSTypes
+{
+	inline static const char* PROPERTY_INPUT_RESOLUTION_LIST = "OBS_INPUT_RESOLUTION_LIST";
+	inline static const char* PROPERTY_LIST         = "OBS_PROPERTY_LIST";
+	inline static const char* PROPERTY_BOOL         = "OBS_PROPERTY_BOOL";
+	inline static const char* PROPERTY_DOUBLE       = "OBS_PROPERTY_DOUBLE";
+	inline static const char* PROPERTY_FLOAT        = "OBS_PROPERTY_FLOAT";
+	inline static const char* PROPERTY_EDIT_TEXT    = "OBS_PROPERTY_EDIT_TEXT";
+	inline static const char* PROPERTY_TEXT         = "OBS_PROPERTY_TEXT";
+	inline static const char* PROPERTY_INT          = "OBS_PROPERTY_INT";
+	inline static const char* PROPERTY_UINT         = "OBS_PROPERTY_UINT";
+	inline static const char* PROPERTY_PATH			= "OBS_PROPERTY_PATH";
+};
+
+struct OBSSubTypes
+{
+	inline static const char* COMBO_FORMAT_STRING	= "OBS_COMBO_FORMAT_STRING";
+	inline static const char* COMBO_FORMAT_INT		= "OBS_COMBO_FORMAT_INT";
+	inline static const char* COMBO_FORMAT_FLOAT    = "OBS_COMBO_FORMAT_FLOAT";
+};
+
 struct Parameter
 {
 	std::string       name;
@@ -50,6 +73,24 @@ struct Parameter
 	uint64_t          sizeOfValues = 0;
 	uint64_t          countValues  = 0;
 	std::vector<char> values;
+
+	Parameter(
+	    std::string name = "",
+	    std::string type = "",
+	    std::string description = "",
+	    std::string subType = "",
+	    double minVal = 0,
+	    double maxVal = 0,
+	    double stepVal = 0,
+	    uint64_t sizeOfCurrentValue = 0,
+	    uint64_t sizeOfValues = 0,
+	    uint64_t countValues = 0, 
+	    bool enabled = false,
+	    bool masked = false,
+	    bool visible = false)
+	    : name(name), type(type), description(description), subType(subType), minVal(minVal), maxVal(maxVal), 
+		stepVal(stepVal), sizeOfCurrentValue(sizeOfCurrentValue), sizeOfValues(sizeOfValues),
+	      countValues(countValues), enabled(enabled), masked(masked), visible(visible) {}
 
 	std::vector<char> serialize()
 	{
@@ -235,6 +276,7 @@ class OBS_settings
 	    config_t*                 config,
 	    bool                      isCategoryEnabled);
 
+	static ipcpairvector& addSubCategory(const Parameter& param, std::vector<ipcpairvector>& entries);
 	static void getReplayBufferSettings(
 	    std::vector<SubCategory>* outputSettings,
 	    config_t*                 config,
@@ -265,3 +307,110 @@ class OBS_settings
 	                                     bool                    isCategoryEnabled,
 	                                     bool                    recordEncoder);
 };
+
+
+template<typename T>
+inline void config_set(config_t* config, const char* section, const char* name, T value){};
+
+template<>
+inline void config_set<uint64_t>(config_t* config, const char* section, const char* name, uint64_t value)
+{
+	config_set_uint64_t(config, section, name, value);
+}
+
+template<>
+inline void config_set<int>(config_t* config, const char* section, const char* name, int value)
+{
+	config_set_int(config, section, name, value);
+}
+
+template<>
+inline void config_set<int64_t>(config_t* config, const char* section, const char* name, int64_t value)
+{
+	config_set_int(config, section, name, value);
+}
+
+template<>
+inline void config_set<bool>(config_t* config, const char* section, const char* name, bool value)
+{
+	config_set_bool(config, section, name, value);
+}
+
+template<>
+inline void config_set<std::string>(config_t* config, const char* section, const char* name, std::string value)
+{
+	config_set_string(config, section, name, value.c_str());
+}
+
+template<>
+inline void config_set<double>(config_t* config, const char* section, const char* name, double value)
+{
+	config_set_double(config, section, name, value);
+}
+
+template<typename T>
+inline void obs_data_set(obs_data_t* config, const char* name, T value){};
+
+template<>
+inline void obs_data_set<std::string>(obs_data_t* config, const char* name, std::string value)
+{
+	obs_data_set_string(config, name, value.c_str());
+}
+
+template<>
+inline void obs_data_set<int>(obs_data_t* config, const char* name, int value)
+{
+	obs_data_set_int(config, name, value);
+}
+
+template<>
+inline void obs_data_set<int64_t>(obs_data_t* config, const char* name, int64_t value)
+{
+	obs_data_set_int(config, name, value);
+}
+
+template<>
+inline void obs_data_set<bool>(obs_data_t* config, const char* name, bool value)
+{
+	obs_data_set_bool(config, name, value);
+}
+
+template<>
+inline void obs_data_set<double>(obs_data_t* config, const char* name, double value)
+{
+	obs_data_set_double(config, name, value);
+}
+
+template<typename T>
+inline void set_in_config(
+    Parameter          param,
+    obs_data_t*        encoderSettings,
+    const std::string& section,
+    const std::string& name,
+    int                i,
+    int                indexEncoderSettings)
+{
+	T* value = reinterpret_cast<T*>(param.currentValue.data());
+	if (i < indexEncoderSettings) {
+		config_set<T>(ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str(), *value);
+	} else {
+		obs_data_set<T>(encoderSettings, name.c_str(), *value);
+	}
+}
+
+template<>
+inline void set_in_config<std::string>(
+    Parameter          param,
+    obs_data_t*        encoderSettings,
+    const std::string& section,
+    const std::string& name,
+    int                i,
+    int                indexEncoderSettings)
+{
+	std::string value(param.currentValue.data(), param.currentValue.size());
+	if (i < indexEncoderSettings) {
+		config_set<std::string>(ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str(), value);
+	} else {
+		obs_data_set<std::string>(encoderSettings, name.c_str(), value);
+	}
+}
