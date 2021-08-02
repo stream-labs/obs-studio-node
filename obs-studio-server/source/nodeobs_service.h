@@ -61,8 +61,8 @@
 
 #define ENCODER_NEW_NVENC "jim_nvenc"
 
-#define APPLE_SOFTWARE_VIDEO_ENCODER "vt_h264_sw"
-#define APPLE_HARDWARE_VIDEO_ENCODER "vt_h264_hw"
+#define APPLE_SOFTWARE_VIDEO_ENCODER "com.apple.videotoolbox.videoencoder.h264"
+#define APPLE_HARDWARE_VIDEO_ENCODER "com.apple.videotoolbox.videoencoder.h264.gva"
 
 #define ARCHIVE_NAME "archive_aac"
 

@@ -284,7 +284,7 @@ void autoConfig::TestHardwareEncoding(void)
 			hardwareEncodingAvailable = qsvAvailable = true;
 		else if (strcmp(id, "amd_amf_h264") == 0)
 			hardwareEncodingAvailable = vceAvailable = true;
-		else if (strcmp(id, "vt_h264_hw") == 0)
+		else if (strcmp(id, APPLE_HARDWARE_VIDEO_ENCODER) == 0)
 			hardwareEncodingAvailable = appleHWAvailable = true;
 	}
 }
@@ -1363,7 +1363,7 @@ inline const char* GetEncoderId(Encoder enc)
 	case Encoder::AMD:
 		return "amd_amf_h264";
 	case Encoder::appleHW:
-		return "vt_h264_hw";
+		return APPLE_HARDWARE_VIDEO_ENCODER;
 	case Encoder::x264:
 		return "obs_x264";
 	default:
