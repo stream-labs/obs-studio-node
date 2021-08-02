@@ -52,6 +52,7 @@ namespace osn
 		uint64_t        id;
 		size_t          callback_count = 0;
 		uint64_t*       id2            = nullptr;
+		uint64_t        uid_source     = 0;
 
 		struct AudioData
 		{

@@ -91,6 +91,7 @@ void globalCallback::stop_worker(void)
 	if (worker_thread->joinable()) {
 		worker_thread->join();
 	}
+	js_thread.Release();
 }
 
 void globalCallback::worker()
@@ -184,18 +185,21 @@ void globalCallback::worker()
 			for (auto vol: volmeters) {
 				VolmeterData* data     = new VolmeterData{{}, {}, {}};
 				size_t channels = response[index++].value_union.i32;
+				bool isMuted = response[index++].value_union.i32;
 				if (!channels)
 					continue;
-				data->magnitude.resize(channels);
-				data->peak.resize(channels);
-				data->input_peak.resize(channels);
-				for (size_t ch = 0; ch < channels; ch++) {
-					data->magnitude[ch]  = response[index + ch * 3 + 0].value_union.fp32;
-					data->peak[ch]       = response[index + ch * 3 + 1].value_union.fp32;
-					data->input_peak[ch] = response[index + ch * 3 + 2].value_union.fp32;
+				if (!isMuted) {
+					data->magnitude.resize(channels);
+					data->peak.resize(channels);
+					data->input_peak.resize(channels);
+					for (size_t ch = 0; ch < channels; ch++) {
+						data->magnitude[ch]  = response[index + ch * 3 + 0].value_union.fp32;
+						data->peak[ch]       = response[index + ch * 3 + 1].value_union.fp32;
+						data->input_peak[ch] = response[index + ch * 3 + 2].value_union.fp32;
+					}
+					vol.second.NonBlockingCall(data, volmeter_callback);
+					index += (3 * channels);
 				}
-				vol.second.NonBlockingCall(data, volmeter_callback);
-				index += (3 * channels);
 			}
 
 		}

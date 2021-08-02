@@ -61,7 +61,8 @@ void UtilObjCInt::getPermissionsStatus(bool &webcam, bool &mic)
 void UtilObjCInt::requestPermissions(void *async_cb, perms_cb cb)
 {
 	NSOperatingSystemVersion OSversion = [NSProcessInfo processInfo].operatingSystemVersion;
-	if (OSversion.majorVersion >= 10 && OSversion.minorVersion >= 14) {
+	if ((OSversion.majorVersion >= 10 && OSversion.minorVersion >= 14) ||
+		OSversion.majorVersion > 10) {
 		m_async_cb = async_cb;
 		[AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted)
 		{

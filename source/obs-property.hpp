@@ -295,6 +295,9 @@ namespace obs
 		};
 		std::list<Option> options;
 
+		uint32_t current_numerator;
+		uint32_t current_denominator;
+
 		virtual ~FrameRateProperty(){};
 
 		virtual obs::Property::Type type() override;

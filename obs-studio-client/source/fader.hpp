@@ -41,6 +41,7 @@ namespace osn
 		void SetDeflection(const Napi::CallbackInfo& info, const Napi::Value &value);
 		Napi::Value GetMultiplier(const Napi::CallbackInfo& info);
 		void SetMultiplier(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value Destroy(const Napi::CallbackInfo& info);
 		Napi::Value Attach(const Napi::CallbackInfo& info);
 		Napi::Value Detach(const Napi::CallbackInfo& info);
 		Napi::Value AddCallback(const Napi::CallbackInfo& info);

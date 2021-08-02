@@ -68,6 +68,7 @@ export class OBSHandler {
     private obsPath: string = this.path.join(this.path.normalize(__dirname), '..', 'osnData/slobs-client');
     private pipeName: string = 'osn-tests-pipe-'.concat(this.uuid());
     private version: string = '0.00.00-preview.0';
+    private crashServer: string = '';
 
     // Other variables/objects
     private userPoolHandler: UserPoolHandler;
@@ -80,6 +81,8 @@ export class OBSHandler {
     filterTypes: string[];
     transitionTypes: string[];
     os: string;
+
+    userStreamKey: string;
 
     constructor(testName: string) {
         this.os = process.platform;
@@ -102,7 +105,7 @@ export class OBSHandler {
         try {
             osn.NodeObs.IPC.host(this.pipeName);
             osn.NodeObs.SetWorkingDirectory(this.workingDirectory);
-            initResult = osn.NodeObs.OBS_API_initAPI(this.language, this.obsPath, this.version);
+            initResult = osn.NodeObs.OBS_API_initAPI(this.language, this.obsPath, this.version, this.crashServer);
         } catch(e) {
             throw Error('Exception when initializing OBS process: ' + e);
         }
@@ -132,24 +135,24 @@ export class OBSHandler {
     }
 
     async reserveUser() {
-        let streamKey: string = "";
+        this.userStreamKey = "";
 
         try {
             logInfo(this.osnTestName, 'Getting stream key from user pool');
-            streamKey = await this.userPoolHandler.getStreamKey();
+            this.userStreamKey = await this.userPoolHandler.getStreamKey();
             this.hasUserFromPool = true;
         } catch(e) {
             logWarning(this.osnTestName, e);
             logWarning(this.osnTestName, 'Using predefined stream key');
-            streamKey = process.env.SLOBS_BE_STREAMKEY;
+            this.userStreamKey = process.env.SLOBS_BE_STREAMKEY;
             this.hasUserFromPool = false;
         }
 
         logInfo(this.osnTestName, 'Saving stream key');
-        this.setSetting(EOBSSettingsCategories.Stream, 'key', streamKey);
+        this.setSetting(EOBSSettingsCategories.Stream, 'key', this.userStreamKey);
 
         let savedStreamKey = this.getSetting(EOBSSettingsCategories.Stream, 'key');
-        if (savedStreamKey == streamKey) {
+        if (savedStreamKey == this.userStreamKey) {
             logInfo(this.osnTestName, 'Stream key saved successfully');
         } else {
             throw Error('Failed to save stream key');
