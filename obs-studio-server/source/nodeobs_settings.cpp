@@ -1100,10 +1100,10 @@ void OBS_settings::getSimpleAvailableEncoders(std::vector<std::pair<std::string,
 	if (EncoderAvailable("jim_nvenc"))
 		encoders->push_back(std::make_pair("Hardware (NVENC) (new)", ipc::value(ENCODER_NEW_NVENC)));
 
-	if (EncoderAvailable("vt_h264_sw"))
+	if (EncoderAvailable(APPLE_SOFTWARE_VIDEO_ENCODER))
 		encoders->push_back(std::make_pair("Apple VT H264 Software Encoder", ipc::value(APPLE_SOFTWARE_VIDEO_ENCODER)));
 
-	if (EncoderAvailable("vt_h264_hw"))
+	if (EncoderAvailable(APPLE_HARDWARE_VIDEO_ENCODER))
 		encoders->push_back(std::make_pair("Apple VT H264 Hardware Encoder", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER)));
 }
 
@@ -1123,12 +1123,28 @@ void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::strin
 	if (EncoderAvailable("jim_nvenc"))
 		streamEncoder->push_back(std::make_pair("Hardware (NVENC) (new)", ipc::value(ENCODER_NEW_NVENC)));
 
-	if (EncoderAvailable("vt_h264_sw"))
+	if (EncoderAvailable(APPLE_SOFTWARE_VIDEO_ENCODER))
 		streamEncoder->push_back(std::make_pair("Apple VT H264 Software Encoder", ipc::value(APPLE_SOFTWARE_VIDEO_ENCODER)));
 
-	if (EncoderAvailable("vt_h264_hw"))
+	if (EncoderAvailable(APPLE_HARDWARE_VIDEO_ENCODER))
 		streamEncoder->push_back(std::make_pair("Apple VT H264 Hardware Encoder", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER)));
 }
+
+#ifdef __APPLE__
+	std::string newValue;
+static const char* translate_macvth264_encoder(std::string encoder)
+{
+	if (strcmp(encoder.c_str(), "vt_h264_hw") == 0) {
+		newValue = "com.apple.videotoolbox.videoencoder.h264.gva";
+	} else if (strcmp(encoder.c_str(), "vt_h264_sw") == 0) {
+		newValue = "com.apple.videotoolbox.videoencoder.h264";
+	} else {
+		newValue = std::string(encoder);
+	}
+
+	return newValue.c_str();
+}
+#endif
 
 void OBS_settings::getSimpleOutputSettings(
     std::vector<SubCategory>* outputSettings,
@@ -1161,6 +1177,13 @@ void OBS_settings::getSimpleOutputSettings(
 	streamEncoder.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 
 	getSimpleAvailableEncoders(&streamEncoder, false);
+
+#ifdef __APPLE__
+	const char* sEncoder = config_get_string(config, "SimpleOutput", "StreamEncoder");
+	config_set_string(config, "SimpleOutput", "StreamEncoder", translate_macvth264_encoder(std::string(sEncoder)));
+	const char* rEncoder = config_get_string(config, "SimpleOutput", "RecEncoder");
+	config_set_string(config, "SimpleOutput", "RecEncoder", translate_macvth264_encoder(std::string(rEncoder)));
+#endif
 
 	entries.push_back(streamEncoder);
 
@@ -1855,6 +1878,12 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 		encoderCurrentValue = "";
 	}
 
+#ifdef __APPLE__
+	encoderCurrentValue = translate_macvth264_encoder(std::string(encoderCurrentValue));
+	config_set_string(config, "AdvOut", "Encoder", encoderCurrentValue);
+
+#endif
+
 	videoEncoders.currentValue.resize(strlen(encoderCurrentValue));
 	memcpy(videoEncoders.currentValue.data(), encoderCurrentValue, strlen(encoderCurrentValue));
 	videoEncoders.sizeOfCurrentValue = strlen(encoderCurrentValue);
@@ -2176,6 +2205,11 @@ void OBS_settings::getStandardRecordingSettings(
 	const char* recEncoderCurrentValue = config_get_string(config, "AdvOut", "RecEncoder");
 	if (!recEncoderCurrentValue)
 		recEncoderCurrentValue = "none";
+
+#ifdef __APPLE__
+	recEncoderCurrentValue = translate_macvth264_encoder(std::string(recEncoderCurrentValue));
+	config_set_string(config, "AdvOut", "RecEncoder", recEncoderCurrentValue);
+#endif
 
 	recEncoder.currentValue.resize(strlen(recEncoderCurrentValue));
 	memcpy(recEncoder.currentValue.data(), recEncoderCurrentValue, strlen(recEncoderCurrentValue));
