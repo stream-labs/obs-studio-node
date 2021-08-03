@@ -1131,13 +1131,18 @@ void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::strin
 }
 
 #ifdef __APPLE__
-static void translate_macvth264_encoder(const char *&encoder)
+	std::string newValue;
+static const char* translate_macvth264_encoder(std::string encoder)
 {
-	if (strcmp(encoder, "vt_h264_hw") == 0) {
-		encoder = "com.apple.videotoolbox.videoencoder.h264.gva";
-	} else if (strcmp(encoder, "vt_h264_sw") == 0) {
-		encoder = "com.apple.videotoolbox.videoencoder.h264";
+	if (strcmp(encoder.c_str(), "vt_h264_hw") == 0) {
+		newValue = "com.apple.videotoolbox.videoencoder.h264.gva";
+	} else if (strcmp(encoder.c_str(), "vt_h264_sw") == 0) {
+		newValue = "com.apple.videotoolbox.videoencoder.h264";
+	} else {
+		newValue = std::string(encoder);
 	}
+
+	return newValue.c_str();
 }
 #endif
 
@@ -1175,11 +1180,9 @@ void OBS_settings::getSimpleOutputSettings(
 
 #ifdef __APPLE__
 	const char* sEncoder = config_get_string(config, "SimpleOutput", "StreamEncoder");
-	translate_macvth264_encoder(sEncoder);
-	config_set_string(config, "SimpleOutput", "StreamEncoder", sEncoder);
+	config_set_string(config, "SimpleOutput", "StreamEncoder", translate_macvth264_encoder(std::string(sEncoder)));
 	const char* rEncoder = config_get_string(config, "SimpleOutput", "RecEncoder");
-	translate_macvth264_encoder(rEncoder);
-	config_set_string(config, "SimpleOutput", "RecEncoder", rEncoder);
+	config_set_string(config, "SimpleOutput", "RecEncoder", translate_macvth264_encoder(std::string(rEncoder)));
 #endif
 
 	entries.push_back(streamEncoder);
@@ -1876,8 +1879,9 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	}
 
 #ifdef __APPLE__
-	translate_macvth264_encoder(encoderCurrentValue);
+	encoderCurrentValue = translate_macvth264_encoder(std::string(encoderCurrentValue));
 	config_set_string(config, "AdvOut", "Encoder", encoderCurrentValue);
+
 #endif
 
 	videoEncoders.currentValue.resize(strlen(encoderCurrentValue));
@@ -2203,7 +2207,7 @@ void OBS_settings::getStandardRecordingSettings(
 		recEncoderCurrentValue = "none";
 
 #ifdef __APPLE__
-	translate_macvth264_encoder(recEncoderCurrentValue);
+	recEncoderCurrentValue = translate_macvth264_encoder(std::string(recEncoderCurrentValue));
 	config_set_string(config, "AdvOut", "RecEncoder", recEncoderCurrentValue);
 #endif
 
