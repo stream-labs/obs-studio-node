@@ -1054,18 +1054,21 @@ void OBS_service::updateVideoRecordingEncoder(bool isSimpleMode)
 		usingRecordingPreset = true;
 		updateVideoRecordingEncoderSettings();
 	} else {
-		unsigned int cx = 0;
-		unsigned int cy = 0;
+		const char* recordingEncoder = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecEncoder");
+		if (recordingEncoder && strcmp(recordingEncoder, ENCODER_NEW_NVENC) != 0) {
+			unsigned int cx = 0;
+			unsigned int cy = 0;
 
-		bool        rescale    = config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecRescale");
-		const char* rescaleRes = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecRescaleRes");
+			bool        rescale    = config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecRescale");
+			const char* rescaleRes = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecRescaleRes");
 
-		if (rescale && rescaleRes && *rescaleRes) {
-			if (sscanf(rescaleRes, "%ux%u", &cx, &cy) != 2) {
-				cx = 0;
-				cy = 0;
+			if (rescale && rescaleRes && *rescaleRes) {
+				if (sscanf(rescaleRes, "%ux%u", &cx, &cy) != 2) {
+					cx = 0;
+					cy = 0;
+				}
+				obs_encoder_set_scaled_size(videoRecordingEncoder, cx, cy);
 			}
-			obs_encoder_set_scaled_size(videoRecordingEncoder, cx, cy);
 		}
 	}
 	obs_encoder_set_video(videoRecordingEncoder, obs_get_video());
@@ -1564,18 +1567,21 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
 		obs_data_release(h264Settings);
 		obs_data_release(aacSettings);
 	} else {
-		unsigned int cx = 0;
-		unsigned int cy = 0;
+		const char* streamEncoder = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "Encoder");
+		if (streamEncoder && strcmp(streamEncoder, ENCODER_NEW_NVENC) != 0) {
+			unsigned int cx = 0;
+			unsigned int cy = 0;
 
-		bool        rescale    = config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "Rescale");
-		const char* rescaleRes = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RescaleRes");
+			bool        rescale    = config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "Rescale");
+			const char* rescaleRes = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RescaleRes");
 
-		if (rescale && rescaleRes && *rescaleRes) {
-			if (sscanf(rescaleRes, "%ux%u", &cx, &cy) != 2) {
-				cx = 0;
-				cy = 0;
+			if (rescale && rescaleRes && *rescaleRes) {
+				if (sscanf(rescaleRes, "%ux%u", &cx, &cy) != 2) {
+					cx = 0;
+					cy = 0;
+				}
+				obs_encoder_set_scaled_size(videoStreamingEncoder, cx, cy);
 			}
-			obs_encoder_set_scaled_size(videoStreamingEncoder, cx, cy);
 		}
 	}
 	obs_encoder_set_video(videoStreamingEncoder, obs_get_video());
