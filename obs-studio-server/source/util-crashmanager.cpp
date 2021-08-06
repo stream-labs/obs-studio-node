@@ -101,7 +101,7 @@ std::map<std::string, std::string>             annotations;
 /////////////
 
 std::string    FormatVAString(const char* const format, va_list args);
-nlohmann::json RewindCallStack(std::string& crashedMethod);
+void           RewindCallStack();
 
 typedef long long LongLong;
 
@@ -482,28 +482,8 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	
 	SaveToAppStateFile();
 
-	insideCrashMethod = true;
 	annotations.clear();
-	// This will manually rewind the callstack, we will use this info to populate an
-	// crash report attribute, avoiding some cases that the memory dump is corrupted
-	// and we don't have access to the callstack.
-	std::string    crashedMethodName;
-	nlohmann::json callStack;
-	try {
-		if(!insideRewindCallstack)
-		{
-			insideRewindCallstack = true;
-			callStack = RewindCallStack(crashedMethodName);
-			insideRewindCallstack = false;
-		} else {
-			annotations.insert({{"Recrashed_in", "RewindCallStack" }});
-			callStack =  nlohmann::json::array();
-		}
-	} catch (...) {
-		//ignore exceptions to not loose current crash info 
-		callStack =  nlohmann::json::array();
-	}
-	
+
 	int  known_crash_id = 0;
 	
 	if (is_allocator_failed()) {
@@ -550,12 +530,13 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	try {
 		annotations.insert({{"Process List", RequestProcessList().dump(4)}});
 	} catch (...) {}
-	
+
 	try {
 		annotations.insert({{"OBS log general", RequestOBSLog(OBSLogType::General).dump(4)}});
 		annotations.insert({{"Crash reason", _crashInfo}});
 		annotations.insert({{"Computer name", computerName}});
-		annotations.insert({{"Breadcrumbs", ComputeBreadcrumbs().dump(4)}});
+		if (breadcrumbs.size()>0)
+			annotations.insert({{"Breadcrumbs", ComputeBreadcrumbs().dump(4)}});
 		annotations.insert({{"Last actions", ComputeActions().dump(4)}});
 		annotations.insert({{"Warnings", ComputeWarnings().dump(4)}});
 	} catch (...) {}
@@ -564,8 +545,19 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	annotations.insert({{"sentry[user][username]", OBS_API::getUsername()}});
 	annotations.insert({{"sentry[environment]", getAppState()}});
 
-	// If the callstack rewind operation returned an error, use it instead its result
-	annotations.insert({{"Manual callstack", callStack.dump(4)}});
+	insideCrashMethod = true;
+	try {
+		if(!insideRewindCallstack)
+		{
+			insideRewindCallstack = true;
+			RewindCallStack();
+			insideRewindCallstack = false;
+		} else {
+			blog(LOG_INFO, "Recrashed in RewindCallStack");
+		}
+	} catch (...) {
+		//ignore exceptions to not loose current crash info 
+	}
 
 	// Recreate crashpad instance, this is a well defined/supported operation
 	SetupCrashpad();
@@ -670,15 +662,13 @@ std::string FormatVAString(const char* const format, va_list args)
 	return std::string{temp.data(), length};
 }
 
-nlohmann::json RewindCallStack(std::string& crashedMethod)
+void RewindCallStack()
 {
 #ifdef WIN32
 	class MyStackWalker : public StackWalker
 	{
 		public:
-		MyStackWalker(nlohmann::json& _outJson, std::string& _crashMethod)
-		    : StackWalker(), m_OutJson(_outJson), m_OutCrashMethodName(_crashMethod)
-		{}
+		MyStackWalker(): StackWalker(){}
 
 		protected:
 		virtual void OnCallstackEntry(CallstackEntryType eType, CallstackEntry& entry)
@@ -692,48 +682,39 @@ nlohmann::json RewindCallStack(std::string& crashedMethod)
 			if (fileName.find("util-crashmanager.cpp") != std::string::npos
 			    || fileName.find("stackwalker.cpp") != std::string::npos)
 				return;
-
-			nlohmann::json jsonEntry;
 			if(strlen(entry.name) > 0)
 			{
-				jsonEntry["function"] = std::string(entry.name);
+				std::string function = std::string(entry.name);
 				entry.name[0] = 0x00;
 
 				if(strlen(entry.lineFileName) > 0 )
-					jsonEntry["filename"] = entry.lineFileName;
+					function += std::string(" ") + std::string(entry.lineFileName);
 				entry.lineFileName[0] = 0x00;
 
 				if(entry.lineNumber > 0)
-					jsonEntry["lineno"] = entry.lineNumber;
+					function += std::string(":") + std::to_string(entry.lineNumber);
 
 				if(strlen(entry.moduleName) > 0)
-					jsonEntry["module"] = std::string(entry.moduleName);
-					entry.moduleName[0] = 0x00;
+					function += std::string(" ") + std::string(entry.moduleName);
+				entry.moduleName[0] = 0x00;
 
+				blog(LOG_INFO, "ST: %s", function.c_str());
 			} else {
-				jsonEntry["function"] = "unknown";
+				std::string function = std::string("unknown function");
+
+				if(strlen(entry.moduleName) > 0)
+					function += std::string(" ") + std::string(entry.moduleName);
+				entry.moduleName[0] = 0x00;
+
+				blog(LOG_INFO, "ST: %s", function.c_str());
 			}
-			
-			// Check if we should update the crash method variable
-			if (m_OutCrashMethodName.length() == 0)
-				m_OutCrashMethodName = std::string(entry.name);
-
-			m_OutJson.push_back(jsonEntry);
 		}
-
-		private:
-		nlohmann::json& m_OutJson;
-		std::string&    m_OutCrashMethodName;
 	};
 
-	nlohmann::json result = nlohmann::json::array();
-	MyStackWalker  sw(result, crashedMethod);
+	MyStackWalker  sw;
 	sw.ShowCallstack();
-
-	return result;
-#else
-    return NULL;
 #endif
+	return;
 }
 
 nlohmann::json util::CrashManager::RequestOBSLog(OBSLogType type)
@@ -796,7 +777,7 @@ nlohmann::json util::CrashManager::ComputeActions()
 
 		// Update the message to reflect the count amount, if applicable
 		if (counter > 0) {
-			message["repeat"] = counter;
+			message += std::string("|") + std::to_string(counter);
 		}
 
 		result.push_back(message);
@@ -1068,9 +1049,7 @@ std::string util::CrashManager::getAppState()
 
 void util::CrashManager::ProcessPreServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args)
 {
-	nlohmann::json jsonEntry;
-	jsonEntry["cname"] = cname;
-	jsonEntry["fname"] = fname;
+	nlohmann::json jsonEntry = cname + std::string("::") + fname;
 
 	// Perform this only if this user have a high crash rate (TODO: this check must be implemented)
 	/*
