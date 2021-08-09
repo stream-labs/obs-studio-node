@@ -67,7 +67,7 @@ std::vector<std::string>                   handledOBSCrashes;
 PDH_HQUERY                                 cpuQuery;
 PDH_HCOUNTER                               cpuTotal;
 std::vector<nlohmann::json>                breadcrumbs;
-std::queue<std::pair<int, nlohmann::json>> lastActions;
+std::queue<std::pair<int, std::string>>    lastActions;
 std::vector<std::string>                   warnings;
 std::mutex                                 messageMutex;
 util::MetricsProvider                      metricsClient;
@@ -479,13 +479,13 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	static bool insideRewindCallstack = false; //if this is true then we already crashed inside StackWalker and try to skip it this time.
 	if (insideCrashMethod && !insideRewindCallstack)
 		abort();
-	
+
 	SaveToAppStateFile();
 
 	annotations.clear();
 
 	int  known_crash_id = 0;
-	
+
 	if (is_allocator_failed()) {
 		known_crash_id = 0x1;
 	}
@@ -498,7 +498,7 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	long long commitMemTotal = 0ll;
 	long long commitMemLimit = 1ll;
 	std::string computerName;
-	
+
 	try {
 		RequestComputerUsageParams(
 		    totalPhysMem, physMemUsed, physMemUsedByMe, totalCPUUsed, commitMemTotal, commitMemLimit);
@@ -507,7 +507,6 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	} catch (...) { }
 
 	auto timeElapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - initialTime);
-
 
 	// Setup all the custom annotations that are important too our crash report
 	nlohmann::json systemResources = nlohmann::json::object();
@@ -547,8 +546,7 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 
 	insideCrashMethod = true;
 	try {
-		if(!insideRewindCallstack)
-		{
+		if (!insideRewindCallstack) {
 			insideRewindCallstack = true;
 			RewindCallStack();
 			insideRewindCallstack = false;
@@ -682,8 +680,7 @@ void RewindCallStack()
 			if (fileName.find("util-crashmanager.cpp") != std::string::npos
 			    || fileName.find("stackwalker.cpp") != std::string::npos)
 				return;
-			if(strlen(entry.name) > 0)
-			{
+			if (strlen(entry.name) > 0) {
 				std::string function = std::string(entry.name);
 				entry.name[0] = 0x00;
 
@@ -777,7 +774,7 @@ nlohmann::json util::CrashManager::ComputeActions()
 
 		// Update the message to reflect the count amount, if applicable
 		if (counter > 0) {
-			message += std::string("|") + std::to_string(counter);
+			message = message + std::string("|") + std::to_string(counter);
 		}
 
 		result.push_back(message);
@@ -965,14 +962,14 @@ void util::CrashManager::AddWarning(const std::string& warning)
 #endif
 }
 
-void RegisterAction(const nlohmann::json& message)
+void RegisterAction(const std::string& message)
 {
 #ifdef WIN32
 	static const int            MaximumActionsRegistered = 50;
 	std::lock_guard<std::mutex> lock(messageMutex);
 
 	// Check if this and the last message are the same, if true just add a counter
-	if (lastActions.size() > 0 && lastActions.back().second == message) {
+	if (lastActions.size() > 0 && message.compare(lastActions.back().second) == 0) {
 		lastActions.back().first++;
 	} else {
 		lastActions.push({0, message});
@@ -1049,7 +1046,7 @@ std::string util::CrashManager::getAppState()
 
 void util::CrashManager::ProcessPreServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args)
 {
-	nlohmann::json jsonEntry = cname + std::string("::") + fname;
+	std::string jsonEntry = cname + std::string("::") + fname;
 
 	// Perform this only if this user have a high crash rate (TODO: this check must be implemented)
 	/*
