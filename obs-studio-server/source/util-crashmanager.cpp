@@ -534,8 +534,7 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 		annotations.insert({{"OBS log general", RequestOBSLog(OBSLogType::General).dump(4)}});
 		annotations.insert({{"Crash reason", _crashInfo}});
 		annotations.insert({{"Computer name", computerName}});
-		if (breadcrumbs.size()>0)
-			annotations.insert({{"Breadcrumbs", ComputeBreadcrumbs().dump(4)}});
+		annotations.insert({{"Breadcrumbs", ComputeBreadcrumbs().dump(4)}});
 		annotations.insert({{"Last actions", ComputeActions().dump(4)}});
 		annotations.insert({{"Warnings", ComputeWarnings().dump(4)}});
 	} catch (...) {}
