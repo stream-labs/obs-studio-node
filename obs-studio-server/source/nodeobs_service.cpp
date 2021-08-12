@@ -1010,7 +1010,7 @@ void OBS_service::updateAudioStreamingEncoder(bool isSimpleMode)
 
 void OBS_service::updateAudioRecordingEncoder(bool isSimpleMode)
 {
-	if (isRecording || rpUsesRec)
+	if (isRecording && rpUsesRec)
 		return;
 
 	if (isSimpleMode) {
@@ -1025,7 +1025,7 @@ void OBS_service::updateAudioRecordingEncoder(bool isSimpleMode)
 
 void OBS_service::updateVideoRecordingEncoder(bool isSimpleMode)
 {
-	if (isRecording || rpUsesRec)
+	if (isRecording && rpUsesRec)
 		return;
 
 	const char* quality = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
