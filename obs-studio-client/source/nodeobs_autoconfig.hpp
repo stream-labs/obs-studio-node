@@ -40,54 +40,17 @@ extern sem_t *ac_sem;
 
 namespace autoConfig
 {
-	class Worker: public Napi::AsyncWorker
-    {
-        public:
-        std::shared_ptr<AutoConfigInfo> data = nullptr;
-
-        public:
-        Worker(Napi::Function& callback) : AsyncWorker(callback){};
-        virtual ~Worker() {};
-
-        void Execute() {
-            if (!data)
-                SetError("Invalid signal object");
-        };
-        void OnOK() {
-            Napi::Object result = Napi::Object::New(Env());
-
-            result.Set(
-                Napi::String::New(Env(), "event"),
-                Napi::String::New(Env(), data->event));
-            result.Set(
-                Napi::String::New(Env(), "description"),
-                Napi::String::New(Env(), data->description));
-
-			if (data->event.compare("error") != 0) {
-				result.Set(
-					Napi::String::New(Env(), "percentage"),
-					Napi::Number::New(Env(), data->percentage));
-			}
-
-            Callback().Call({ result });
-			release_semaphore(ac_sem);
-        };
-		void SetData(std::shared_ptr<AutoConfigInfo> new_data) {
-			data = new_data;
-		};
-    };
-
 	extern bool isWorkerRunning;
 	extern bool worker_stop;
 	extern uint32_t sleepIntervalMS;
-	extern autoConfig::Worker* asyncWorker;
+	extern Napi::ThreadSafeFunction js_thread;
 	extern std::thread* worker_thread;
 	extern std::vector<std::thread*> ac_queue_task_workers;
 
 	void worker(void);
 	void start_worker(void);
 	void stop_worker(void);
-	void queueTask(std::shared_ptr<AutoConfigInfo> data);
+	void queueTask(AutoConfigInfo *data);
 
     void Init(Napi::Env env, Napi::Object exports);
 

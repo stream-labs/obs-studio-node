@@ -46,14 +46,14 @@ void osn::Scene::Register(ipc::server& srv)
 	    "AddSource", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, AddSource));
 
 	cls->register_function(std::make_shared<ipc::function>(
-        "AddSource", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64,
+        "AddSourceWithTransform", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64,
         ipc::type::Double,ipc::type::Double, ipc::type::Int32, ipc::type::Double, ipc::type::Double, ipc::type::Double,
         ipc::type::Int64, ipc::type::Int64, ipc::type::Int64, ipc::type::Int64, ipc::type::Int32, ipc::type::Int32}, AddSource));
 
 	cls->register_function(std::make_shared<ipc::function>(
-	    "FindItem", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, FindItemByName));
+	    "FindItemByName", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, FindItemByName));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "FindItem", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int64}, FindItemByItemId));
+	    "FindItemById", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int64}, FindItemByItemId));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "MoveItem", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32, ipc::type::Int32}, MoveItem));
 	cls->register_function(std::make_shared<ipc::function>(
@@ -266,7 +266,7 @@ void osn::Scene::Duplicate(
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to get source from duplicate scene.");
 	}
 
-	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source2);
+	uint64_t uid = osn::Source::Manager::GetInstance().find(source2);
 	if (uid == UINT64_MAX) {
 		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}

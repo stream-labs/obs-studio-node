@@ -59,6 +59,7 @@ class OBS_content
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
+	static void OBS_content_shutdownDisplays();
 	static void OBS_content_getDisplayPreviewOffset(
 	    void*                          data,
 	    const int64_t                  id,

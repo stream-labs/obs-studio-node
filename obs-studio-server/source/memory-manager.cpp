@@ -90,8 +90,11 @@ bool MemoryManager::shouldCacheSource(source_info* si)
 	bool looping        = obs_data_get_bool(settings, "looping");
 	bool local_file     = obs_data_get_bool(settings, "is_local_file");
 	bool enable_caching = config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "fileCaching");
-	bool is_small       = current_cached_size + si->size < allowed_cached_size;
 	bool showing        = obs_source_showing(si->source);
+
+	bool is_small = obs_data_get_bool(settings, "caching") ?
+		current_cached_size < allowed_cached_size :
+		current_cached_size + si->size < allowed_cached_size;
 
 	if (!showing && !obs_data_get_bool(settings, "close_when_inactive"))
 		showing = true;
@@ -244,7 +247,11 @@ void MemoryManager::updateSourcesCache(void)
 
 void MemoryManager::registerSource(obs_source_t* source)
 {
-	if (strcmp(obs_source_get_id(source), "ffmpeg_source") != 0)
+	if (!source)
+		return;
+
+	const char* source_id = obs_source_get_id(source);
+	if (!source_id || strcmp(obs_source_get_id(source), "ffmpeg_source"))
 		return;
 
 	std::unique_lock<std::mutex> ulock(mtx);
@@ -263,7 +270,12 @@ void MemoryManager::registerSource(obs_source_t* source)
 
 void MemoryManager::unregisterSource(obs_source_t * source)
 {
-	if (strcmp(obs_source_get_id(source), "ffmpeg_source") != 0)
+	if (!source)
+		return;
+	const char* source_id = obs_source_get_id(source);
+	if (!source_id)
+		return;
+	if (strcmp(source_id, "ffmpeg_source") != 0)
 		return;
 
 	mtx.lock();

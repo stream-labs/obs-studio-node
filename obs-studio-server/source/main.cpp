@@ -20,6 +20,7 @@
 #include <inttypes.h>
 #include <iostream>
 #include <ipc-class.hpp>
+#include <ipc.hpp>
 #include <ipc-function.hpp>
 #include <ipc-server.hpp>
 #include <memory>
@@ -46,11 +47,27 @@
 #include "callback-manager.h"
 
 #include "util-crashmanager.h"
-
 #include "shared.hpp"
+
+#ifndef OSN_VERSION
+#define OSN_VERSION "DEVMODE_VERSION"
+#endif
+
+#define GET_OSN_VERSION \
+[]() { \
+const char *__CHECK_EMPTY = OSN_VERSION; \
+if (strlen(__CHECK_EMPTY) < 3) { \
+    return "DEVMODE_VERSION"; \
+}  \
+return OSN_VERSION; \
+}()
+
 
 #ifdef __APPLE__
 #include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #endif
 
 #if defined(_WIN32)
@@ -139,13 +156,52 @@ namespace System
 int main(int argc, char* argv[])
 {
 #ifdef __APPLE__
+ 	// Reuse file discriptors 1 and 2 in case they not open at launch so output to stdout and stderr not redirected to unexpected file
+	struct stat sb;
+	bool override_std_fd = false;
+	int out_pid = -1;
+	int out_err = -1;
+	if (fstat(1, &sb) != 0) {
+		override_std_fd = true;
+		int out_pid = open("/tmp/slobs-stdout", O_WRONLY| O_CREAT | O_DSYNC);
+		int out_err = open("/tmp/slobs-stderr", O_WRONLY| O_CREAT | O_DSYNC);
+	}
+
 	g_util_osx = new UtilInt();
 	g_util_osx->init();
 #endif
+	std::string socketPath      = "";
+	std::string receivedVersion = "";
+#ifdef __APPLE__
+	socketPath = "/tmp/";
+	if (argc != 4) {
+#else
+	if (argc != 3) {
+#endif
+		std::cerr << "Version mismatch. Expected <socketpath> <version> params";
+		return ipc::ProcessInfo::ExitCode::VERSION_MISMATCH;
+	}
+
+	socketPath += argv[1];
+	receivedVersion = argv[2];
+
+    std::string myVersion = GET_OSN_VERSION;
+
+    #ifdef __APPLE__
+        std::cerr << "Version recv: " << receivedVersion << std::endl;
+        std::cerr << "Version compiled " << myVersion << std::endl;
+    #endif
+
+	// Check versions
+	if (receivedVersion != myVersion) {
+		std::cerr << "Versions mismatch. Server version: " << myVersion << "but received client version: " << receivedVersion;
+		return ipc::ProcessInfo::ExitCode::VERSION_MISMATCH;
+	}
 
 	// Usage:
 	// argv[0] = Path to this application. (Usually given by default if run via path-based command!)
 	// argv[1] = Path to a named socket.
+	// argv[2] = version from client ; must match the server version
 
 	// Instance
 	ipc::server myServer;
@@ -153,6 +209,7 @@ int main(int argc, char* argv[])
 	ServerData  sd;
 	sd.last_disconnect = sd.last_connect = std::chrono::high_resolution_clock::now();
 	sd.count_connected                   = 0;
+	OBS_API::SetCrashHandlerPipe(std::wstring(socketPath.begin(), socketPath.end()));
 
 	// Classes
 	/// System
@@ -192,18 +249,13 @@ int main(int argc, char* argv[])
 
 	// Initialize Server
 	try {
-		std::string socketPath = "";
-#ifdef __APPLE__
-		socketPath = "/tmp/";
-#endif
-		socketPath += argv[1];
 		myServer.initialize(socketPath.c_str());
 	} catch (std::exception& e) {
 		std::cerr << "Initialization failed with error " << e.what() << "." << std::endl;
-		return -2;
+		return ipc::ProcessInfo::ExitCode::OTHER_ERROR;
 	} catch (...) {
 		std::cerr << "Failed to initialize server" << std::endl;
-		return -2;
+		return ipc::ProcessInfo::ExitCode::OTHER_ERROR;
 	}
 
 	// Reset Connect/Disconnect time.
@@ -238,6 +290,11 @@ int main(int argc, char* argv[])
 
 	// Finalize Server
 	myServer.finalize();
-
+#ifdef __APPLE__
+	if (override_std_fd) {
+		close(out_pid);
+		close(out_err);
+	}
+#endif		
 	return 0;
 }

@@ -333,6 +333,8 @@ else()
 	target_link_libraries(${PROJECT_NAME} ${PROJECT_LIBRARIES} crashpad ${COREFOUNDATION} ${COCOA} ${IOSURF} ${GLKIT} ${AVFOUNDATION} ${IOKit} ${SECURITY_LIBRARY} ${BSM_LIBRARY})
 endif()
 
+#Define the OSN_VERSION
+add_compile_definitions(OSN_VERSION=\"$ENV{tagartifact}\")
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "obs${BITS}")
 
 if(WIN32)
@@ -389,7 +391,7 @@ install(DIRECTORY ${crashpad_SOURCE_DIR}/bin/ DESTINATION "./" USE_SOURCE_PERMIS
 install(DIRECTORY "${libobs_SOURCE_DIR}/data/" DESTINATION "./data" USE_SOURCE_PERMISSIONS)
 
 if (APPLE)
-	install(DIRECTORY "${libobs_SOURCE_DIR}/Frameworks/" DESTINATION "./Frameworks")
+	install(DIRECTORY "${libobs_SOURCE_DIR}/Frameworks/" DESTINATION "./Frameworks" USE_SOURCE_PERMISSIONS)
 endif()
 
 if (WIN32)

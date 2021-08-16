@@ -112,8 +112,6 @@ void osn::Source::Register(ipc::server& srv)
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Source");
 	cls->register_function(
 	    std::make_shared<ipc::function>("GetDefaults", std::vector<ipc::type>{ipc::type::String}, GetTypeDefaults));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetOutputFlags", std::vector<ipc::type>{ipc::type::String}, GetTypeOutputFlags));
 
 	cls->register_function(
 	    std::make_shared<ipc::function>("Remove", std::vector<ipc::type>{ipc::type::UInt64}, Remove));
@@ -399,6 +397,7 @@ void osn::Source::ProcessProperties(
 			prop = prop2;
 			break;
 		}
+		case OBS_PROPERTY_COLOR_ALPHA:
 		case OBS_PROPERTY_COLOR: {
 			auto prop2        = std::make_shared<obs::ColorProperty>();
 			prop2->field_type = obs::NumberProperty::NumberType(obs_property_int_type(p));
@@ -465,6 +464,12 @@ void osn::Source::ProcessProperties(
 				prop2->options.push_back(std::move(option));
 			}
 
+			media_frames_per_second fps = {};
+			if (obs_data_get_frames_per_second(settings, name, &fps, nullptr)) {
+				prop2->current_numerator = fps.numerator;
+				prop2->current_denominator = fps.denominator;
+			}
+
 			prop = prop2;
 			break;
 		}
@@ -525,6 +530,18 @@ void osn::Source::Update(
 	}
 
 	obs_data_t* sets = obs_data_create_from_json(args[1].value_str.c_str());
+
+	if (strcmp(obs_source_get_id(src), "av_capture_input") == 0) {
+		const char* frame_rate_string = obs_data_get_string(sets, "frame_rate");
+		if (frame_rate_string && strcmp(frame_rate_string, "") != 0) {
+			nlohmann::json fps = nlohmann::json::parse(frame_rate_string);
+			media_frames_per_second obs_fps = {};
+			obs_fps.numerator = fps["numerator"];
+			obs_fps.denominator = fps["denominator"];
+			obs_data_set_frames_per_second(sets, "frame_rate", obs_fps, nullptr);
+		}
+	}
+
 	obs_source_update(src, sets);
 	MemoryManager::GetInstance().updateSourceCache(src);
 	obs_data_release(sets);

@@ -65,6 +65,7 @@ describe(testName, () => {
                 case 'image_source': {
                     settings = inputSettings.imageSource;
                     settings['unload'] = true;
+                    settings['linear_alpha'] = false;
                     break;
                 }
                 case 'color_source': {
@@ -118,6 +119,9 @@ describe(testName, () => {
                     settings = inputSettings.textFT2Source;
                     settings['log_lines'] = 5;
                     settings['antialiasing'] = true;
+                    settings['drop_shadow'] = false;
+                    settings['outline'] = false;
+                    settings['word_wrap'] = false;
                     break;
                 }
                 case 'vlc_source': {
@@ -128,6 +132,8 @@ describe(testName, () => {
                 case 'monitor_capture': {
                     settings = inputSettings.monitorCapture;
                     settings['capture_cursor'] = false;
+                    settings['method'] = 0;
+                    settings['monitor_wgc'] = 0;
                     break;
                 }
                 case 'window_capture': {
@@ -150,6 +156,7 @@ describe(testName, () => {
                 case 'dshow_input': {
                     settings = inputSettings.dshowInput;
                     settings['video_format'] = 1;
+                    settings['autorotation'] = true;
                     break;
                 }
                 case 'wasapi_input_capture': 

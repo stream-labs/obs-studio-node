@@ -26,6 +26,7 @@
 #include <string>
 #include "shared.hpp"
 #include "utility.hpp"
+#include "callback-manager.hpp"
 
 #ifdef WIN32
 static BOOL CALLBACK EnumChromeWindowsProc(HWND hwnd, LPARAM lParam)
@@ -94,7 +95,12 @@ Napi::Value display::OBS_content_destroyDisplay(const Napi::CallbackInfo& info)
 	if (!conn)
 		return info.Env().Undefined();
 
-    conn->call("Display", "OBS_content_destroyDisplay", {ipc::value(key)});
+    std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Display", "OBS_content_destroyDisplay", {ipc::value(key)});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
 	return info.Env().Undefined();
 }
 

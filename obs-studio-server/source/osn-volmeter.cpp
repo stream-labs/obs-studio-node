@@ -51,10 +51,6 @@ void osn::Volmeter::Register(ipc::server& srv)
 	cls->register_function(
 	    std::make_shared<ipc::function>("Destroy", std::vector<ipc::type>{ipc::type::UInt64}, Destroy));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "GetUpdateInterval", std::vector<ipc::type>{ipc::type::UInt64}, GetUpdateInterval));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetUpdateInterval", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetUpdateInterval));
-	cls->register_function(std::make_shared<ipc::function>(
 	    "Attach", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, Attach));
 	cls->register_function(
 	    std::make_shared<ipc::function>("Detach", std::vector<ipc::type>{ipc::type::UInt64}, Detach));
@@ -133,46 +129,6 @@ void osn::Volmeter::Destroy(
 	AUTO_DEBUG;
 }
 
-void osn::Volmeter::GetUpdateInterval(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	auto uid = args[0].value_union.ui64;
-
-	std::unique_lock<std::mutex> ulock(mtx);
-	auto meter = Manager::GetInstance().find(uid);
-	if (!meter) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
-	}
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(obs_volmeter_get_update_interval(meter->self)));
-	AUTO_DEBUG;
-}
-
-void osn::Volmeter::SetUpdateInterval(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	auto uid = args[0].value_union.ui64;
-
-	std::unique_lock<std::mutex> ulock(mtx);
-	auto meter = Manager::GetInstance().find(uid);
-	if (!meter) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
-	}
-
-	obs_volmeter_set_update_interval(meter->self, args[1].value_union.ui32);
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(obs_volmeter_get_update_interval(meter->self)));
-	AUTO_DEBUG;
-}
-
 void osn::Volmeter::Attach(
     void*                          data,
     const int64_t                  id,
@@ -197,6 +153,8 @@ void osn::Volmeter::Attach(
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Error attaching source.");
 	}
 
+	meter->uid_source = uid_source;
+
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -215,6 +173,7 @@ void osn::Volmeter::Detach(
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
 	}
 
+	meter->uid_source = 0;
 	obs_volmeter_detach_source(meter->self);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -353,4 +312,31 @@ bool osn::Volmeter::CheckIdle(std::chrono::milliseconds currentTime, std::chrono
 	}
 
 	return false;
+}
+
+void osn::Volmeter::getAudioData(uint64_t id, std::vector<ipc::value>& rval)
+{
+	std::unique_lock<std::mutex> ulockMutex(mtx);
+
+	auto meter = Manager::GetInstance().find(id);
+	if (!meter) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
+	}
+	
+	std::unique_lock<std::mutex> ulock(meter->current_data_mtx);
+
+	rval.push_back(ipc::value(meter->current_data.ch));
+
+	auto source = osn::Source::Manager::GetInstance().find(meter->uid_source);
+	bool isMuted = source ? obs_source_muted(source) : true;
+	rval.push_back(ipc::value(isMuted));
+
+	if (isMuted)
+		return;
+
+	for (size_t ch = 0; ch < meter->current_data.ch; ch++) {
+		rval.push_back(ipc::value(meter->current_data.magnitude[ch]));
+		rval.push_back(ipc::value(meter->current_data.peak[ch]));
+		rval.push_back(ipc::value(meter->current_data.input_peak[ch]));
+	}
 }

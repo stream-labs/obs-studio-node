@@ -60,6 +60,12 @@ void OBS_settings::Register(ipc::server& srv)
 	    "OBS_settings_saveSettings",
 	    std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::Binary},
 	    OBS_settings_saveSettings));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_settings_getInputAudioDevices", std::vector<ipc::type>{}, OBS_settings_getInputAudioDevices));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_settings_getOutputAudioDevices", std::vector<ipc::type>{}, OBS_settings_getOutputAudioDevices));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_settings_getVideoDevices", std::vector<ipc::type>{}, OBS_settings_getVideoDevices));
 
 	srv.register_collection(cls);
 }
@@ -778,8 +784,13 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 				param.values.insert(param.values.end(), name.begin(), name.end());
 
 				std::string value = obs_property_list_item_string(property, i);
-
 				uint64_t          sizeValue = value.length();
+
+				if (value[sizeValue-1] == '/') {
+					sizeValue--;
+					value.resize(sizeValue);
+				}
+
 				std::vector<char> sizeValueBuffer;
 				sizeValueBuffer.resize(sizeof(sizeValue));
 				memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
@@ -1089,10 +1100,10 @@ void OBS_settings::getSimpleAvailableEncoders(std::vector<std::pair<std::string,
 	if (EncoderAvailable("jim_nvenc"))
 		encoders->push_back(std::make_pair("Hardware (NVENC) (new)", ipc::value(ENCODER_NEW_NVENC)));
 
-	if (EncoderAvailable("vt_h264_sw"))
+	if (EncoderAvailable(APPLE_SOFTWARE_VIDEO_ENCODER))
 		encoders->push_back(std::make_pair("Apple VT H264 Software Encoder", ipc::value(APPLE_SOFTWARE_VIDEO_ENCODER)));
 
-	if (EncoderAvailable("vt_h264_hw"))
+	if (EncoderAvailable(APPLE_HARDWARE_VIDEO_ENCODER))
 		encoders->push_back(std::make_pair("Apple VT H264 Hardware Encoder", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER)));
 }
 
@@ -1112,12 +1123,28 @@ void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::strin
 	if (EncoderAvailable("jim_nvenc"))
 		streamEncoder->push_back(std::make_pair("Hardware (NVENC) (new)", ipc::value(ENCODER_NEW_NVENC)));
 
-	if (EncoderAvailable("vt_h264_sw"))
+	if (EncoderAvailable(APPLE_SOFTWARE_VIDEO_ENCODER))
 		streamEncoder->push_back(std::make_pair("Apple VT H264 Software Encoder", ipc::value(APPLE_SOFTWARE_VIDEO_ENCODER)));
 
-	if (EncoderAvailable("vt_h264_hw"))
+	if (EncoderAvailable(APPLE_HARDWARE_VIDEO_ENCODER))
 		streamEncoder->push_back(std::make_pair("Apple VT H264 Hardware Encoder", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER)));
 }
+
+#ifdef __APPLE__
+	std::string newValue;
+static const char* translate_macvth264_encoder(std::string encoder)
+{
+	if (strcmp(encoder.c_str(), "vt_h264_hw") == 0) {
+		newValue = "com.apple.videotoolbox.videoencoder.h264.gva";
+	} else if (strcmp(encoder.c_str(), "vt_h264_sw") == 0) {
+		newValue = "com.apple.videotoolbox.videoencoder.h264";
+	} else {
+		newValue = std::string(encoder);
+	}
+
+	return newValue.c_str();
+}
+#endif
 
 void OBS_settings::getSimpleOutputSettings(
     std::vector<SubCategory>* outputSettings,
@@ -1150,6 +1177,13 @@ void OBS_settings::getSimpleOutputSettings(
 	streamEncoder.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 
 	getSimpleAvailableEncoders(&streamEncoder, false);
+
+#ifdef __APPLE__
+	const char* sEncoder = config_get_string(config, "SimpleOutput", "StreamEncoder");
+	config_set_string(config, "SimpleOutput", "StreamEncoder", translate_macvth264_encoder(std::string(sEncoder)));
+	const char* rEncoder = config_get_string(config, "SimpleOutput", "RecEncoder");
+	config_set_string(config, "SimpleOutput", "RecEncoder", translate_macvth264_encoder(std::string(rEncoder)));
+#endif
 
 	entries.push_back(streamEncoder);
 
@@ -1190,6 +1224,39 @@ void OBS_settings::getSimpleOutputSettings(
 		enforceBitrate.push_back(std::make_pair("maxVal", ipc::value((double)0)));
 		enforceBitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 		entries.push_back(enforceBitrate);
+
+		obs_data_t *settings = obs_service_get_settings(OBS_service::getService());
+		const char *serviceName = obs_data_get_string(settings, "service");
+		obs_data_release(settings);
+
+		if (serviceName && strcmp(serviceName, "Twitch") == 0) {
+			bool soundtrackSourceExists = false;
+			obs_enum_sources(
+				[](void *param, obs_source_t *source) {
+					auto id = obs_source_get_id(source);
+					if(strcmp(id, "soundtrack_source") == 0) {
+						*reinterpret_cast<bool *>(param) = true;
+						return false;
+					}
+					return true;
+				},
+				&soundtrackSourceExists
+			);
+			std::string twitchVODDesc = "Twitch VOD Track (Uses Track 2).";
+			if (soundtrackSourceExists)
+				twitchVODDesc += " Remove Twitch Soundtrack in order to enable this.";
+
+			//Twitch VOD
+			std::vector<std::pair<std::string, ipc::value>> twitchVOD;
+			twitchVOD.push_back(std::make_pair("name", ipc::value("VodTrackEnabled")));
+			twitchVOD.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+			twitchVOD.push_back(std::make_pair("description", ipc::value(twitchVODDesc.c_str())));
+			twitchVOD.push_back(std::make_pair("subType", ipc::value("")));
+			twitchVOD.push_back(std::make_pair("minVal", ipc::value((double)0)));
+			twitchVOD.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+			twitchVOD.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+			entries.push_back(twitchVOD);
+		}
 
 		//Encoder Preset
 		const char* defaultPreset;
@@ -1703,6 +1770,102 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 
 	streamingSettings.params.push_back(trackIndex);
 
+	obs_data_t *serviceSettings = obs_service_get_settings(OBS_service::getService());
+	const char *serviceName = obs_data_get_string(serviceSettings, "service");
+	obs_data_release(serviceSettings);
+
+	if (serviceName && strcmp(serviceName, "Twitch") == 0) {
+		bool soundtrackSourceExists = false;
+		obs_enum_sources(
+			[](void *param, obs_source_t *source) {
+				auto id = obs_source_get_id(source);
+				if(strcmp(id, "soundtrack_source") == 0) {
+					*reinterpret_cast<bool *>(param) = true;
+					return false;
+				}
+				return true;
+			},
+			&soundtrackSourceExists
+		);
+		std::string twitchVODDesc = "Twitch VOD";
+		if (soundtrackSourceExists)
+			twitchVODDesc += ". Remove Twitch Soundtrack in order to enable this.";
+
+		// Twitch VOD : boolean
+		Parameter twiwchVOD;
+		twiwchVOD.name        = "VodTrackEnabled";
+		twiwchVOD.type        = "OBS_PROPERTY_BOOL";
+		twiwchVOD.description = twitchVODDesc;
+
+		bool doTwiwchVOD = config_get_bool(config, "AdvOut", "VodTrackEnabled");
+
+		twiwchVOD.currentValue.resize(sizeof(doTwiwchVOD));
+		memcpy(twiwchVOD.currentValue.data(), &doTwiwchVOD, sizeof(doTwiwchVOD));
+		twiwchVOD.sizeOfCurrentValue = sizeof(doTwiwchVOD);
+
+		twiwchVOD.visible = true;
+		twiwchVOD.enabled = isCategoryEnabled;
+		twiwchVOD.masked  = false;
+
+		streamingSettings.params.push_back(twiwchVOD);
+
+		if (doTwiwchVOD) {
+			// Twitch Audio track: list
+			Parameter trackVODIndex;
+			trackVODIndex.name        = "VodTrackIndex";
+			trackVODIndex.type        = "OBS_PROPERTY_LIST";
+			trackVODIndex.subType     = "OBS_COMBO_FORMAT_STRING";
+			trackVODIndex.description = "Twitch VOD Track";
+
+			std::vector<std::pair<std::string, std::string>> trackVODIndexValues;
+			trackVODIndexValues.push_back(std::make_pair("1", "1"));
+			trackVODIndexValues.push_back(std::make_pair("2", "2"));
+			trackVODIndexValues.push_back(std::make_pair("3", "3"));
+			trackVODIndexValues.push_back(std::make_pair("4", "4"));
+			trackVODIndexValues.push_back(std::make_pair("5", "5"));
+			trackVODIndexValues.push_back(std::make_pair("6", "6"));
+
+			for (int i = 0; i < trackVODIndexValues.size(); i++) {
+				std::string name = trackVODIndexValues.at(i).first;
+
+				uint64_t          sizeName = name.length();
+				std::vector<char> sizeNameBuffer;
+				sizeNameBuffer.resize(sizeof(sizeName));
+				memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+
+				trackVODIndex.values.insert(trackVODIndex.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+				trackVODIndex.values.insert(trackVODIndex.values.end(), name.begin(), name.end());
+
+				std::string value = trackVODIndexValues.at(i).second;
+
+				uint64_t          sizeValue = value.length();
+				std::vector<char> sizeValueBuffer;
+				sizeValueBuffer.resize(sizeof(sizeValue));
+				memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+
+				trackVODIndex.values.insert(trackVODIndex.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+				trackVODIndex.values.insert(trackVODIndex.values.end(), value.begin(), value.end());
+			}
+
+			trackVODIndex.sizeOfValues = trackVODIndex.values.size();
+			trackVODIndex.countValues  = trackVODIndexValues.size();
+
+			const char* trackVODIndexCurrentValue = config_get_string(config, "AdvOut", "VodTrackIndex");
+			if (trackVODIndexCurrentValue == NULL)
+				trackVODIndexCurrentValue = "";
+
+			trackVODIndex.currentValue.resize(strlen(trackVODIndexCurrentValue));
+			memcpy(trackVODIndex.currentValue.data(), trackVODIndexCurrentValue, strlen(trackVODIndexCurrentValue));
+			trackVODIndex.sizeOfCurrentValue = strlen(trackVODIndexCurrentValue);
+
+			trackVODIndex.visible = true;
+			trackVODIndex.enabled = isCategoryEnabled;
+			trackVODIndex.masked  = false;
+
+			streamingSettings.params.push_back(trackVODIndex);
+		}
+	}
+
 	// Encoder : list
 	Parameter videoEncoders;
 	videoEncoders.name        = "Encoder";
@@ -1714,6 +1877,12 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	if (encoderCurrentValue == NULL) {
 		encoderCurrentValue = "";
 	}
+
+#ifdef __APPLE__
+	encoderCurrentValue = translate_macvth264_encoder(std::string(encoderCurrentValue));
+	config_set_string(config, "AdvOut", "Encoder", encoderCurrentValue);
+
+#endif
 
 	videoEncoders.currentValue.resize(strlen(encoderCurrentValue));
 	memcpy(videoEncoders.currentValue.data(), encoderCurrentValue, strlen(encoderCurrentValue));
@@ -2036,6 +2205,11 @@ void OBS_settings::getStandardRecordingSettings(
 	const char* recEncoderCurrentValue = config_get_string(config, "AdvOut", "RecEncoder");
 	if (!recEncoderCurrentValue)
 		recEncoderCurrentValue = "none";
+
+#ifdef __APPLE__
+	recEncoderCurrentValue = translate_macvth264_encoder(std::string(recEncoderCurrentValue));
+	config_set_string(config, "AdvOut", "RecEncoder", recEncoderCurrentValue);
+#endif
 
 	recEncoder.currentValue.resize(strlen(recEncoderCurrentValue));
 	memcpy(recEncoder.currentValue.data(), recEncoderCurrentValue, strlen(recEncoderCurrentValue));
@@ -2604,8 +2778,15 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 
 	obs_encoder_t* encoder         = OBS_service::getStreamingEncoder();
 	obs_data_t*    encoderSettings = obs_encoder_get_settings(encoder);
-
 	int indexEncoderSettings = 4;
+
+	obs_data_t *service_settings = obs_service_get_settings(OBS_service::getService());
+	const char *serviceName = obs_data_get_string(service_settings, "service");
+	obs_data_release(service_settings);
+
+	if (serviceName && strcmp(serviceName, "Twitch") == 0)
+		indexEncoderSettings++;
+
 
 	bool newEncoderType = false;
 
@@ -2643,7 +2824,8 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 		} else if (type.compare("OBS_PROPERTY_BOOL") == 0) {
 			bool* value = reinterpret_cast<bool*>(param.currentValue.data());
 			if (i < indexEncoderSettings) {
-				if (name.compare("Rescale") == 0 && *value) {
+				if (name.compare("Rescale") == 0 && *value ||
+					name.compare("VodTrackEnabled") == 0 && *value) {
 					indexEncoderSettings++;
 				}
 				config_set_bool(ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str(), *value);
@@ -3978,4 +4160,112 @@ void OBS_settings::saveGenericSettings(std::vector<SubCategory> genericSettings,
 		}
 	}
 	config_save_safe(config, "tmp", nullptr);
+}
+
+void getDevices(
+	const char* source_id,
+	const char* property_name,
+	std::vector<ipc::value>& rval)
+{
+	auto settings = obs_get_source_defaults(source_id);
+	if (!settings)
+		return;
+
+	const char* dummy_device_name = "does_not_exist";
+	obs_data_set_string(settings, property_name, dummy_device_name);
+	if (strcmp(source_id, "dshow_input") == 0) {
+		obs_data_set_string(settings, "video_device_id", dummy_device_name);
+		obs_data_set_string(settings, "audio_device_id", dummy_device_name);
+	}
+
+	auto dummy_source = obs_source_create(source_id, dummy_device_name, settings, nullptr);
+	if (!dummy_source)
+		return;
+
+	auto props = obs_source_properties(dummy_source);
+	if (!props)
+		return;
+
+	auto prop = obs_properties_get(props, property_name);
+	if (!prop)
+		return;
+
+	size_t items = obs_property_list_item_count(prop);
+	if (rval.size() > 1)
+		rval[1].value_union.ui64 += items;
+	else
+		rval.push_back(ipc::value((uint64_t)items));
+
+	for (size_t idx = 0; idx < items; idx++) {
+		const char* description = obs_property_list_item_name(prop, idx);
+		const char* device_id = obs_property_list_item_string(prop, idx);
+
+		if (!description || !strcmp(description, "") ||
+			!device_id || !strcmp(device_id, "")) {
+			rval[1].value_union.ui64--;
+			continue;
+		}
+
+		rval.push_back(ipc::value(description));
+		rval.push_back(ipc::value(device_id));
+	}
+
+	obs_properties_destroy(props);
+	obs_data_release(settings);
+	obs_source_release(dummy_source);
+}
+
+void OBS_settings::OBS_settings_getInputAudioDevices(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+#ifdef WIN32
+	const char* source_id = "wasapi_input_capture";
+#elif __APPLE__
+	const char* source_id = "coreaudio_input_capture";
+#endif
+
+	getDevices(source_id, "device_id", rval);
+	AUTO_DEBUG;
+}
+
+void OBS_settings::OBS_settings_getOutputAudioDevices(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+#ifdef WIN32
+	const char* source_id = "wasapi_output_capture";
+#elif __APPLE__
+	const char* source_id = "coreaudio_output_capture";
+#endif
+
+	getDevices(source_id, "device_id", rval);
+	AUTO_DEBUG;
+}
+
+void OBS_settings::OBS_settings_getVideoDevices(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+#ifdef WIN32
+	const char* source_id = "dshow_input";
+	const char* property_name = "video_device_id";
+#elif __APPLE__
+	const char* source_id = "av_capture_input";
+	const char* property_name = "device";
+#endif
+
+	getDevices(source_id, property_name, rval);
 }

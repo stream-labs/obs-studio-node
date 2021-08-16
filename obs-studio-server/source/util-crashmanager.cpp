@@ -31,6 +31,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <filesystem>
 
 #ifdef WIN32
 #include "StackWalker.h"
@@ -66,14 +67,17 @@ std::vector<std::string>                   handledOBSCrashes;
 PDH_HQUERY                                 cpuQuery;
 PDH_HCOUNTER                               cpuTotal;
 std::vector<nlohmann::json>                breadcrumbs;
-std::queue<std::pair<int, nlohmann::json>> lastActions;
+std::queue<std::pair<int, std::string>>    lastActions;
 std::vector<std::string>                   warnings;
 std::mutex                                 messageMutex;
 util::MetricsProvider                      metricsClient;
 LPTOP_LEVEL_EXCEPTION_FILTER               crashpadInternalExceptionFilterMethod = nullptr;
+HANDLE                                     memoryDumpEvent = INVALID_HANDLE_VALUE;
+std::filesystem::path                      memoryDumpFolder;
 #endif
 
 std::string                                appState = "starting"; // "starting","idle","encoding","shutdown"
+std::string                                reportServerUrl = "";
 // Crashpad variables
 #ifdef ENABLE_CRASHREPORT
 std::wstring                                   appdata_path;
@@ -97,7 +101,7 @@ std::map<std::string, std::string>             annotations;
 /////////////
 
 std::string    FormatVAString(const char* const format, va_list args);
-nlohmann::json RewindCallStack(std::string& crashedMethod);
+void           RewindCallStack();
 
 typedef long long LongLong;
 
@@ -237,10 +241,80 @@ nlohmann::json RequestProcessList()
 //////////////////
 // CrashManager //
 //////////////////
+std::wstring util::CrashManager::GetMemoryDumpEventName()
+{
+	return L"Global\\SLOBSMEMORYDUMPEVENT";
+}
+
+std::wstring util::CrashManager::GetMemoryDumpFinishedEventName()
+{
+	return L"Global\\SLOBSMEMORYDUMPFINISHEDEVENT";
+}
+
+#ifdef WIN32
+bool util::CrashManager::IsMemoryDumpEnabled()
+{
+	if (std::filesystem::exists( memoryDumpFolder ) && std::filesystem::is_directory( memoryDumpFolder )) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool util::CrashManager::InitializeMemoryDump()
+{
+	bool ret = false;
+	if (!IsMemoryDumpEnabled())
+		return ret;
+
+	PSECURITY_DESCRIPTOR securityDescriptor = (PSECURITY_DESCRIPTOR) LocalAlloc(LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH);
+	if (InitializeSecurityDescriptor(securityDescriptor, SECURITY_DESCRIPTOR_REVISION)) {
+		if (SetSecurityDescriptorDacl( securityDescriptor, TRUE, NULL, FALSE)) {
+			SECURITY_ATTRIBUTES eventSecurityAttr = {0};
+			eventSecurityAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+			eventSecurityAttr.lpSecurityDescriptor = securityDescriptor;
+			eventSecurityAttr.bInheritHandle = FALSE;
+
+			memoryDumpEvent = CreateEvent( &eventSecurityAttr, TRUE, FALSE, GetMemoryDumpEventName().c_str());
+			if (memoryDumpEvent != NULL && memoryDumpEvent != INVALID_HANDLE_VALUE) {
+				ret = true;
+			}
+		}
+	}
+	LocalFree(securityDescriptor);
+
+	return ret;
+}
+
+void util::CrashManager::SignalMemoryDump()
+{
+	if (memoryDumpEvent != NULL && memoryDumpEvent != INVALID_HANDLE_VALUE) {
+		if (SetEvent(memoryDumpEvent)) {
+			HANDLE dumpFinished = OpenEvent(EVENT_ALL_ACCESS, FALSE, GetMemoryDumpFinishedEventName().c_str());
+			if (dumpFinished && dumpFinished != INVALID_HANDLE_VALUE) {
+				WaitForSingleObject(dumpFinished, INFINITE);
+				CloseHandle(dumpFinished);
+			}
+		}
+		CloseHandle(memoryDumpEvent);
+		memoryDumpEvent = INVALID_HANDLE_VALUE;
+	}
+}
+
+std::wstring util::CrashManager::GetMemoryDumpPath()
+{
+	return memoryDumpFolder.generic_wstring();
+}
+
+#else
+bool util::CrashManager::IsMemoryDumpEnabled() { return false; }
+bool util::CrashManager::InitializeMemoryDump() { return IsMemoryDumpEnabled(); }
+void util::CrashManager::SignalMemoryDump() {}
+std::wstring util::CrashManager::GetMemoryDumpPath() {return L""; }
+#endif
 
 bool util::CrashManager::Initialize(char* path, std::string appdata)
 {
-
 #ifdef ENABLE_CRASHREPORT
 	appStateFile = appdata + "\\appState";
 
@@ -272,6 +346,7 @@ bool util::CrashManager::Initialize(char* path, std::string appdata)
 	std::set_terminate([]() { HandleCrash("Direct call to std::terminate"); });
 	
 #ifdef WIN32
+	memoryDumpFolder = appdata + "\\CrashMemoryDump";
 
 	// Setup the windows exeption filter
 	auto ExceptionHandlerMethod = [](struct _EXCEPTION_POINTERS* ExceptionInfo) {
@@ -320,7 +395,7 @@ void util::CrashManager::Configure()
 
 bool util::CrashManager::SetupCrashpad()
 {
-	if (!reportsEnabled) {
+	if (!reportsEnabled || reportServerUrl.size() == 0) {
 		return false;
 	}
 
@@ -350,10 +425,6 @@ bool util::CrashManager::SetupCrashpad()
 	handler_path.append("crashpad_handler");
 #endif
 
-	url = isPreview
-	          ? std::string("https://sentry.io/api/1406061/minidump/?sentry_key=7376a60665cd40bebbd59d6bf8363172")
-	          : std::string("https://sentry.io/api/1283431/minidump/?sentry_key=ec98eac4e3ce49c7be1d83c8fb2005ef");
-
 #ifdef __APPLE__
 	std::string appdata_path = g_util_osx->getUserDataPath();
 #endif
@@ -366,7 +437,7 @@ bool util::CrashManager::SetupCrashpad()
 
 	database->GetSettings()->SetUploadsEnabled(true);
 
-	bool rc = client.StartHandler(handler, db, db, url, annotations, arguments, true, true);
+	bool rc = client.StartHandler(handler, db, db, reportServerUrl, annotations, arguments, true, true);
 	if (!rc)
 		return false;
 
@@ -398,6 +469,7 @@ void util::CrashManager::HandleExit() noexcept
 
 void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noexcept
 {
+	SignalMemoryDump();
 #ifdef ENABLE_CRASHREPORT
 
 	// If for any reason this is true, it means that we are crashing inside this same
@@ -407,33 +479,13 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	static bool insideRewindCallstack = false; //if this is true then we already crashed inside StackWalker and try to skip it this time.
 	if (insideCrashMethod && !insideRewindCallstack)
 		abort();
-	
+
 	SaveToAppStateFile();
 
-	insideCrashMethod = true;
 	annotations.clear();
-	// This will manually rewind the callstack, we will use this info to populate an
-	// crash report attribute, avoiding some cases that the memory dump is corrupted
-	// and we don't have access to the callstack.
-	std::string    crashedMethodName;
-	nlohmann::json callStack;
-	try {
-		if(!insideRewindCallstack)
-		{
-			insideRewindCallstack = true;
-			callStack = RewindCallStack(crashedMethodName);
-			insideRewindCallstack = false;
-		} else {
-			annotations.insert({{"Recrashed_in", "RewindCallStack" }});
-			callStack =  nlohmann::json::array();
-		}
-	} catch (...) {
-		//ignore exceptions to not loose current crash info 
-		callStack =  nlohmann::json::array();
-	}
-	
+
 	int  known_crash_id = 0;
-	
+
 	if (is_allocator_failed()) {
 		known_crash_id = 0x1;
 	}
@@ -446,7 +498,7 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	long long commitMemTotal = 0ll;
 	long long commitMemLimit = 1ll;
 	std::string computerName;
-	
+
 	try {
 		RequestComputerUsageParams(
 		    totalPhysMem, physMemUsed, physMemUsedByMe, totalCPUUsed, commitMemTotal, commitMemLimit);
@@ -455,7 +507,6 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	} catch (...) { }
 
 	auto timeElapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - initialTime);
-
 
 	// Setup all the custom annotations that are important too our crash report
 	nlohmann::json systemResources = nlohmann::json::object();
@@ -478,7 +529,7 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	try {
 		annotations.insert({{"Process List", RequestProcessList().dump(4)}});
 	} catch (...) {}
-	
+
 	try {
 		annotations.insert({{"OBS log general", RequestOBSLog(OBSLogType::General).dump(4)}});
 		annotations.insert({{"Crash reason", _crashInfo}});
@@ -492,8 +543,18 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	annotations.insert({{"sentry[user][username]", OBS_API::getUsername()}});
 	annotations.insert({{"sentry[environment]", getAppState()}});
 
-	// If the callstack rewind operation returned an error, use it instead its result
-	annotations.insert({{"Manual callstack", callStack.dump(4)}});
+	insideCrashMethod = true;
+	try {
+		if (!insideRewindCallstack) {
+			insideRewindCallstack = true;
+			RewindCallStack();
+			insideRewindCallstack = false;
+		} else {
+			blog(LOG_INFO, "Recrashed in RewindCallStack");
+		}
+	} catch (...) {
+		//ignore exceptions to not loose current crash info 
+	}
 
 	// Recreate crashpad instance, this is a well defined/supported operation
 	SetupCrashpad();
@@ -505,6 +566,18 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	insideCrashMethod = false;
 
 #endif
+}
+
+void util::CrashManager::SetReportServerUrl(std::string url)
+{
+	if (url.length()) {
+		reportServerUrl = url;
+	} else {
+		bool isPreview = OBS_API::getCurrentVersion().find("preview") != std::string::npos;
+		reportServerUrl = isPreview
+	          ? std::string("https://sentry.io/api/1406061/minidump/?sentry_key=7376a60665cd40bebbd59d6bf8363172")
+	          : std::string("https://sentry.io/api/1283431/minidump/?sentry_key=ec98eac4e3ce49c7be1d83c8fb2005ef");
+	}
 }
 
 void util::CrashManager::SetVersionName(std::string name) {
@@ -586,15 +659,13 @@ std::string FormatVAString(const char* const format, va_list args)
 	return std::string{temp.data(), length};
 }
 
-nlohmann::json RewindCallStack(std::string& crashedMethod)
+void RewindCallStack()
 {
 #ifdef WIN32
 	class MyStackWalker : public StackWalker
 	{
 		public:
-		MyStackWalker(nlohmann::json& _outJson, std::string& _crashMethod)
-		    : StackWalker(), m_OutJson(_outJson), m_OutCrashMethodName(_crashMethod)
-		{}
+		MyStackWalker(): StackWalker(){}
 
 		protected:
 		virtual void OnCallstackEntry(CallstackEntryType eType, CallstackEntry& entry)
@@ -608,48 +679,38 @@ nlohmann::json RewindCallStack(std::string& crashedMethod)
 			if (fileName.find("util-crashmanager.cpp") != std::string::npos
 			    || fileName.find("stackwalker.cpp") != std::string::npos)
 				return;
-
-			nlohmann::json jsonEntry;
-			if(strlen(entry.name) > 0)
-			{
-				jsonEntry["function"] = std::string(entry.name);
+			if (strlen(entry.name) > 0) {
+				std::string function = std::string(entry.name);
 				entry.name[0] = 0x00;
 
 				if(strlen(entry.lineFileName) > 0 )
-					jsonEntry["filename"] = entry.lineFileName;
+					function += std::string(" ") + std::string(entry.lineFileName);
 				entry.lineFileName[0] = 0x00;
 
 				if(entry.lineNumber > 0)
-					jsonEntry["lineno"] = entry.lineNumber;
+					function += std::string(":") + std::to_string(entry.lineNumber);
 
 				if(strlen(entry.moduleName) > 0)
-					jsonEntry["module"] = std::string(entry.moduleName);
-					entry.moduleName[0] = 0x00;
+					function += std::string(" ") + std::string(entry.moduleName);
+				entry.moduleName[0] = 0x00;
 
+				blog(LOG_INFO, "ST: %s", function.c_str());
 			} else {
-				jsonEntry["function"] = "unknown";
+				std::string function = std::string("unknown function");
+
+				if(strlen(entry.moduleName) > 0)
+					function += std::string(" ") + std::string(entry.moduleName);
+				entry.moduleName[0] = 0x00;
+
+				blog(LOG_INFO, "ST: %s", function.c_str());
 			}
-			
-			// Check if we should update the crash method variable
-			if (m_OutCrashMethodName.length() == 0)
-				m_OutCrashMethodName = std::string(entry.name);
-
-			m_OutJson.push_back(jsonEntry);
 		}
-
-		private:
-		nlohmann::json& m_OutJson;
-		std::string&    m_OutCrashMethodName;
 	};
 
-	nlohmann::json result = nlohmann::json::array();
-	MyStackWalker  sw(result, crashedMethod);
+	MyStackWalker  sw;
 	sw.ShowCallstack();
-
-	return result;
-#else
-    return NULL;
 #endif
+	return;
 }
 
 nlohmann::json util::CrashManager::RequestOBSLog(OBSLogType type)
@@ -712,7 +773,7 @@ nlohmann::json util::CrashManager::ComputeActions()
 
 		// Update the message to reflect the count amount, if applicable
 		if (counter > 0) {
-			message["repeat"] = counter;
+			message = message + std::string("|") + std::to_string(counter);
 		}
 
 		result.push_back(message);
@@ -900,14 +961,14 @@ void util::CrashManager::AddWarning(const std::string& warning)
 #endif
 }
 
-void RegisterAction(const nlohmann::json& message)
+void RegisterAction(const std::string& message)
 {
 #ifdef WIN32
 	static const int            MaximumActionsRegistered = 50;
 	std::lock_guard<std::mutex> lock(messageMutex);
 
 	// Check if this and the last message are the same, if true just add a counter
-	if (lastActions.size() > 0 && lastActions.back().second == message) {
+	if (lastActions.size() > 0 && message.compare(lastActions.back().second) == 0) {
 		lastActions.back().first++;
 	} else {
 		lastActions.push({0, message});
@@ -984,9 +1045,7 @@ std::string util::CrashManager::getAppState()
 
 void util::CrashManager::ProcessPreServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args)
 {
-	nlohmann::json jsonEntry;
-	jsonEntry["cname"] = cname;
-	jsonEntry["fname"] = fname;
+	std::string jsonEntry = cname + std::string("::") + fname;
 
 	// Perform this only if this user have a high crash rate (TODO: this check must be implemented)
 	/*

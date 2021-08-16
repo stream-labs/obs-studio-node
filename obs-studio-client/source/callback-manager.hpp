@@ -35,7 +35,7 @@ struct SourceSizeInfoData
 	std::vector<SourceSizeInfo*> items;
 };
 
-namespace sourceCallback
+namespace globalCallback
 {
 	extern bool isWorkerRunning;
 	extern bool worker_stop;
@@ -44,12 +44,18 @@ namespace sourceCallback
 	extern Napi::ThreadSafeFunction js_thread;
 	extern bool m_all_workers_stop;
 
+	extern std::mutex mtx_volmeters;
+	extern std::map<uint64_t, Napi::ThreadSafeFunction> volmeters;
+
 	void worker(void);
 	void start_worker(napi_env env, Napi::Function async_callback);
 	void stop_worker(void);
 
+	void add_volmeter(napi_env env, uint64_t id, Napi::Function cb);
+	void remove_volmeter(uint64_t id);
+
 	void Init(Napi::Env env, Napi::Object exports);
 
-	Napi::Value RegisterSourceCallback(const Napi::CallbackInfo& info);
-	Napi::Value RemoveSourceCallback(const Napi::CallbackInfo& info);
+	Napi::Value RegisterGlobalCallback(const Napi::CallbackInfo& info);
+	Napi::Value RemoveGlobalCallback(const Napi::CallbackInfo& info);
 }

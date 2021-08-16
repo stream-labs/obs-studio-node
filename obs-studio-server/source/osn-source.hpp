@@ -20,6 +20,8 @@
 #include <ipc-server.hpp>
 #include <obs.h>
 #include "utility.hpp"
+#undef strtoll
+#include "nlohmann/json.hpp"
 
 namespace osn
 {

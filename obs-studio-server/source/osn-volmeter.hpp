@@ -52,6 +52,7 @@ namespace osn
 		uint64_t        id;
 		size_t          callback_count = 0;
 		uint64_t*       id2            = nullptr;
+		uint64_t        uid_source     = 0;
 
 		struct AudioData
 		{
@@ -71,7 +72,7 @@ namespace osn
 		};
 
 		AudioData current_data;
-		std::mutex                 current_data_mtx;
+		std::mutex current_data_mtx;
 
 		public:
 		Volmeter(obs_fader_type type);
@@ -81,22 +82,13 @@ namespace osn
 		static void Register(ipc::server&);
 
         static void ClearVolmeters();
+		static void getAudioData(uint64_t id, std::vector<ipc::value>& rval);
 
 		static void
 		    Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 		static void
 		    Destroy(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 
-		static void GetUpdateInterval(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetUpdateInterval(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
 		static void
 		    Attach(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 		static void

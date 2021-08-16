@@ -35,26 +35,13 @@ namespace osn
 		public:
 		uint64_t m_uid;
 
-		bool isWorkerRunning;
-		bool worker_stop;
-		uint32_t sleepIntervalMS;
-		std::thread* worker_thread;
-		Napi::ThreadSafeFunction js_thread;
-
-		void worker(void);
-		void start_worker(napi_env env, Napi::Function async_callback);
-		void stop_worker(void);
-
-		static bool m_all_workers_stop;
-
 		public:
 		static Napi::FunctionReference constructor;
 		static Napi::Object Init(Napi::Env env, Napi::Object exports);
 		Volmeter(const Napi::CallbackInfo& info);
 
 		static Napi::Value Create(const Napi::CallbackInfo& info);
-		Napi::Value GetUpdateInterval(const Napi::CallbackInfo& info);
-		void SetUpdateInterval(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value Destroy(const Napi::CallbackInfo& info);
 		Napi::Value Attach(const Napi::CallbackInfo& info);
 		Napi::Value Detach(const Napi::CallbackInfo& info);
 		Napi::Value AddCallback(const Napi::CallbackInfo& info);

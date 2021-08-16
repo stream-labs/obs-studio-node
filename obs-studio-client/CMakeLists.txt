@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 SET(NODEJS_URL "https://atom.io/download/atom-shell" CACHE STRING "Node.JS URL")
 SET(NODEJS_NAME "iojs" CACHE STRING "Node.JS Name")
-SET(NODEJS_VERSION "v9.3.3" CACHE STRING "Node.JS Version")
+SET(NODEJS_VERSION "v10.4.2" CACHE STRING "Node.JS Version")
 
 if(WIN32)
 	# Resource VersionInfo
@@ -148,7 +148,9 @@ target_link_libraries(${PROJECT_NAME} ${LIBOBS_LIBRARIES})
 
 # Define NAPI_VERSION
 add_definitions(-DNAPI_VERSION=4)
- 
+
+#Define the OSN_VERSION
+add_compile_definitions(OSN_VERSION=\"$ENV{tagartifact}\") 
 set_target_properties(
 	obs_studio_client
 	PROPERTIES

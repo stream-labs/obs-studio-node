@@ -31,6 +31,7 @@ std::vector<std::pair<std::string, std::pair<uint32_t, uint32_t>>> sourcesSize;
 extern std::string currentScene; /* defined in OBS_content.cpp */
 
 static const uint32_t grayPaddingArea = 10ul;
+std::mutex OBS::Display::m_displayMtx;
 
 static void RecalculateApectRatioConstrainedSize(
     uint32_t  origW,
@@ -355,16 +356,19 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
 	m_parentWindow           = reinterpret_cast<HWND>(windowHandle);
 	m_gsInitData.window.hwnd = reinterpret_cast<void*>(m_ourWindow);
 #endif
+	m_displayMtx.lock();
 	m_display = obs_display_create(&m_gsInitData, 0x0);
-    if (!m_display) {
-        blog(LOG_INFO, "Failed to create the display");
-        throw std::runtime_error("unable to create display");
-    }
+	
+	if (!m_display) {
+		blog(LOG_INFO, "Failed to create the display");
+		throw std::runtime_error("unable to create display");
+	}
 
 	m_renderingMode = mode;
 	m_renderAtBottom = renderAtBottom;
 
 	obs_display_add_draw_callback(m_display, DisplayCallback, this);
+	m_displayMtx.unlock();
 }
 
 OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, std::string sourceName, bool renderAtBottom)
@@ -376,28 +380,30 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
 
 OBS::Display::~Display()
 {
+	m_displayMtx.lock();
 	obs_display_remove_draw_callback(m_display, DisplayCallback, this);
 
 	if (m_source) {
 		obs_source_dec_showing(m_source);
 		obs_source_release(m_source);
 	}
-	if (m_display)
-		obs_display_destroy(m_display);
-
-	obs_enter_graphics();
 
 	if (m_textVertices) {
 		delete m_textVertices;
 	}
 
 	if (m_textTexture) {
+		obs_enter_graphics();
 		gs_texture_destroy(m_textTexture);
+		obs_leave_graphics();
 	}
 
 	m_boxLine = nullptr;
 	m_boxTris = nullptr;
-	obs_leave_graphics();
+
+	if (m_display)
+		obs_display_destroy(m_display);
+	m_displayMtx.unlock();
 
 #ifdef _WIN32
 	DestroyWindowMessageQuestion question;
@@ -1166,29 +1172,11 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 		 * is for Studio Mode and that the scene it contains is a 
 		 * duplicate of the current scene, apply selective recording
 		 * layer rendering if it is enabled */
-		if (obs_get_multiple_rendering() && obs_source_get_type(dp->m_source) == OBS_SOURCE_TYPE_TRANSITION) {
-			uint8_t start = OBS_MAIN_VIDEO_RENDERING;
-			uint8_t end = obs_get_multiple_rendering() ? OBS_RECORDING_VIDEO_RENDERING : OBS_MAIN_VIDEO_RENDERING;
+		if (obs_get_multiple_rendering() &&
+			obs_source_get_type(dp->m_source) == OBS_SOURCE_TYPE_TRANSITION)
+				obs_set_video_rendering_mode(dp->m_renderingMode);
 
-			for (uint8_t mode = start; mode <= end; mode++) {
-				switch (mode) {
-				case 0:
-					obs_set_video_rendering_mode(OBS_MAIN_VIDEO_RENDERING);
-					break;
-				case 1:
-					obs_set_video_rendering_mode(OBS_STREAMING_VIDEO_RENDERING);
-					break;
-				case 2:
-					obs_set_video_rendering_mode(OBS_RECORDING_VIDEO_RENDERING);
-					break;
-				}
-			
-				obs_source_video_render(dp->m_source);
-			}
-		} else {
-			obs_source_video_render(dp->m_source);
-		}
-		
+		obs_source_video_render(dp->m_source);
 		/* If we want to draw guidelines, we need a scene,
 		 * not a transition. This may not be a scene which
 		 * we'll check later. */
