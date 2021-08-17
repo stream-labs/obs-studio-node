@@ -243,7 +243,11 @@ nlohmann::json RequestProcessList()
 
 					CloseHandle(hProcess);
 				}
+			} else {
+				skipped_processes_count++;
 			}
+		} else {
+			skipped_processes_count++;
 		}
 		if (reported_processes_count >= 149) {
 			unprocessed_processes_count = cProcesses - i;
