@@ -205,6 +205,8 @@ nlohmann::json RequestProcessList()
 	// Calculate how many process identifiers were returned
 	cProcesses = cbNeeded / sizeof(DWORD);
 	unsigned reported_processes_count = 0;
+	unsigned skipped_processes_count = 0;
+	unsigned unprocessed_processes_count = 0;
 	// Get the name and process identifier for each process
 	for (unsigned i = 0; i < cProcesses; i++) {
 		if (aProcesses[i] != 0) {
@@ -225,7 +227,7 @@ nlohmann::json RequestProcessList()
 					PROCESS_MEMORY_COUNTERS pmc = {};
 					if (GetProcessMemoryInfo(hProcess, &pmc, sizeof(pmc))) {
 						SIZE_T totalProcessMemory = pmc.PagefileUsage + pmc.WorkingSetSize;
-						if (totalProcessMemory > 1024*1024 * 10) {
+						if (totalProcessMemory > 1024*1024 * 32) {
 							result.push_back(
 							{std::to_string(processID),
 							std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().to_bytes(szProcessName)
@@ -234,6 +236,8 @@ nlohmann::json RequestProcessList()
 							+ std::string("Mb") });
 
 							reported_processes_count++;
+						} else {
+							skipped_processes_count++;
 						}
 					}
 
@@ -241,9 +245,18 @@ nlohmann::json RequestProcessList()
 				}
 			}
 		}
-		if (reported_processes_count >= 150)
+		if (reported_processes_count >= 149) {
+			unprocessed_processes_count = cProcesses - i;
 			break;
+		}
 	}
+	result.push_back({std::string("0"),
+		std::string("Total:")
+		+ std::to_string(cProcesses)
+		+ std::string(", Skipped:")
+		+ std::to_string(skipped_processes_count)
+		+ std::string(", Unprocessd:")
+		+ std::to_string(unprocessed_processes_count)});
     
     return result;
 #else
