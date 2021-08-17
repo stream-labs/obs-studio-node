@@ -154,7 +154,7 @@ void RequestComputerUsageParams(
 
 	totalPhysMem    = memInfo.ullTotalPhys;
 	physMemUsed     = (memInfo.ullTotalPhys - memInfo.ullAvailPhys);
-	physMemUsedByMe = pmc.WorkingSetSize;
+	physMemUsedByMe = pmc.WorkingSetSize + pmc.PagefileUsage;
 	totalCPUUsed    = counterVal.doubleValue;
 	perfInfo.cb = sizeof(PERFORMANCE_INFORMATION);
 	if (GetPerformanceInfo(&perfInfo, sizeof(PERFORMANCE_INFORMATION))) {
@@ -204,7 +204,7 @@ nlohmann::json RequestProcessList()
 
 	// Calculate how many process identifiers were returned
 	cProcesses = cbNeeded / sizeof(DWORD);
-
+	unsigned reported_processes_count = 0;
 	// Get the name and process identifier for each process
 	for (unsigned i = 0; i < cProcesses; i++) {
 		if (aProcesses[i] != 0) {
@@ -221,15 +221,28 @@ nlohmann::json RequestProcessList()
 
 				if (EnumProcessModules(hProcess, &hMod, sizeof(hMod), &cbNeeded)) {
 					GetModuleBaseName(hProcess, hMod, szProcessName, sizeof(szProcessName) / sizeof(TCHAR));
+					
+					PROCESS_MEMORY_COUNTERS pmc = {};
+					if (GetProcessMemoryInfo(hProcess, &pmc, sizeof(pmc))) {
+						SIZE_T totalProcessMemory = pmc.PagefileUsage + pmc.WorkingSetSize;
+						if (totalProcessMemory > 1024*1024 * 10) {
+							result.push_back(
+							{std::to_string(processID),
+							std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().to_bytes(szProcessName)
+							+ std::string(", ")
+							+ std::to_string(totalProcessMemory/1024/1024)
+							+ std::string("Mb") });
 
-					result.push_back(
-					    {std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().to_bytes(szProcessName),
-					     std::to_string(processID)});
+							reported_processes_count++;
+						}
+					}
 
 					CloseHandle(hProcess);
 				}
 			}
 		}
+		if (reported_processes_count >= 150)
+			break;
 	}
     
     return result;
