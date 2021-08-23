@@ -19,7 +19,7 @@
 #pragma once
 #include <ipc-server.hpp>
 #include <obs.h>
-#include "utility.hpp"
+#include "utility-server.hpp"
 
 namespace osn
 {

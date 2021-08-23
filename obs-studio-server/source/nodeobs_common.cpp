@@ -25,7 +25,7 @@
 #include <graphics/matrix4.h>
 
 #include "error.hpp"
-#include "shared.hpp"
+#include "shared-server.hpp"
 
 #include <thread>
 

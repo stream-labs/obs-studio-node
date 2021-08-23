@@ -20,7 +20,7 @@
 #include <array>
 #include <future>
 #include "error.hpp"
-#include "shared.hpp"
+#include "shared-server.hpp"
 
 enum class Type
 {

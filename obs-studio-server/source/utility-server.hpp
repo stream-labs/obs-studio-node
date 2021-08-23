@@ -33,7 +33,7 @@
 
 #define PRETTY_ERROR_RETURN(_error_code, _message)                                             \
 {                                                                                              \
-if (utility::osn_current_version() == "0.00.00-preview.0") {                                   \
+if (utility_server::osn_current_version() == "0.00.00-preview.0") {                                   \
     rval.push_back((uint64_t)ErrorCode::Error);                                                \
     return;                                                                                    \
 } else {                                                                                       \
@@ -45,7 +45,7 @@ if (utility::osn_current_version() == "0.00.00-preview.0") {                    
 }                                                                                              \
 }
 
-namespace utility
+namespace utility_server
 {
 	std::string osn_current_version(std::string _version = "");
 
@@ -79,8 +79,8 @@ namespace utility
 	class unique_object_manager
 	{
 		protected:
-		utility::unique_id                     id_generator;
-		std::map<utility::unique_id::id_t, T*> object_map;
+		utility_server::unique_id                     id_generator;
+		std::map<utility_server::unique_id::id_t, T*> object_map;
 		std::recursive_mutex                   internal_mutex;
 
 		public:
@@ -90,19 +90,19 @@ namespace utility
 			clear();
 		}
 
-		utility::unique_id::id_t allocate(T* obj)
+		utility_server::unique_id::id_t allocate(T* obj)
 		{
 			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
 
-			utility::unique_id::id_t uid = id_generator.allocate();
-			if (uid == std::numeric_limits<utility::unique_id::id_t>::max()) {
+			utility_server::unique_id::id_t uid = id_generator.allocate();
+			if (uid == std::numeric_limits<utility_server::unique_id::id_t>::max()) {
 				return uid;
 			}
 			object_map.insert_or_assign(uid, obj);
 			return uid;
 		}
 
-		utility::unique_id::id_t find(T* obj)
+		utility_server::unique_id::id_t find(T* obj)
 		{
 			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
 
@@ -111,9 +111,9 @@ namespace utility
 					return kv.first;
 				}
 			}
-			return std::numeric_limits<utility::unique_id::id_t>::max();
+			return std::numeric_limits<utility_server::unique_id::id_t>::max();
 		}
-		T* find(utility::unique_id::id_t id)
+		T* find(utility_server::unique_id::id_t id)
 		{
 			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
 
@@ -124,11 +124,11 @@ namespace utility
 			return nullptr;
 		}
 
-		utility::unique_id::id_t free(T* obj)
+		utility_server::unique_id::id_t free(T* obj)
 		{
 			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
 
-			utility::unique_id::id_t uid = std::numeric_limits<utility::unique_id::id_t>::max();
+			utility_server::unique_id::id_t uid = std::numeric_limits<utility_server::unique_id::id_t>::max();
 			for (auto kv : object_map) {
 				if (kv.second == obj) {
 					uid = kv.first;
@@ -138,7 +138,7 @@ namespace utility
 			}
 			return uid;
 		}
-		T* free(utility::unique_id::id_t id)
+		T* free(utility_server::unique_id::id_t id)
 		{
 			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
 
@@ -173,8 +173,8 @@ namespace utility
 	class generic_object_manager
 	{
 		protected:
-		utility::unique_id                    id_generator;
-		std::map<utility::unique_id::id_t, T> object_map;
+		utility_server::unique_id                    id_generator;
+		std::map<utility_server::unique_id::id_t, T> object_map;
 		std::recursive_mutex                  internal_mutex;
 
 		public:
@@ -184,19 +184,19 @@ namespace utility
 			clear();
 		}
 
-		utility::unique_id::id_t allocate(T obj)
+		utility_server::unique_id::id_t allocate(T obj)
 		{
 			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
 
-			utility::unique_id::id_t uid = id_generator.allocate();
-			if (uid == std::numeric_limits<utility::unique_id::id_t>::max()) {
+			utility_server::unique_id::id_t uid = id_generator.allocate();
+			if (uid == std::numeric_limits<utility_server::unique_id::id_t>::max()) {
 				return uid;
 			}
 			object_map.insert_or_assign(uid, obj);
 			return uid;
 		}
 
-		utility::unique_id::id_t find(T obj)
+		utility_server::unique_id::id_t find(T obj)
 		{
 			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
 
@@ -205,9 +205,9 @@ namespace utility
 					return kv.first;
 				}
 			}
-			return std::numeric_limits<utility::unique_id::id_t>::max();
+			return std::numeric_limits<utility_server::unique_id::id_t>::max();
 		}
-		T find(utility::unique_id::id_t id)
+		T find(utility_server::unique_id::id_t id)
 		{
 			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
 
@@ -218,11 +218,11 @@ namespace utility
 			return nullptr;
 		}
 
-		utility::unique_id::id_t free(T obj)
+		utility_server::unique_id::id_t free(T obj)
 		{
 			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
 
-			utility::unique_id::id_t uid = std::numeric_limits<utility::unique_id::id_t>::max();
+			utility_server::unique_id::id_t uid = std::numeric_limits<utility_server::unique_id::id_t>::max();
 			for (auto kv : object_map) {
 				if (kv.second == obj) {
 					uid = kv.first;
@@ -232,7 +232,7 @@ namespace utility
 			}
 			return uid;
 		}
-		T free(utility::unique_id::id_t id)
+		T free(utility_server::unique_id::id_t id)
 		{
 			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
 

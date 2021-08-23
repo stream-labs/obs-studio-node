@@ -20,7 +20,7 @@
 #include <list>
 #include "error.hpp"
 #include "osn-sceneitem.hpp"
-#include "shared.hpp"
+#include "shared-server.hpp"
 
 void osn::Scene::Register(ipc::server& srv)
 {
@@ -299,7 +299,7 @@ void osn::Scene::AddSource(
 
 	obs_sceneitem_t* item = obs_scene_add(scene, added_source);
 
-	utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().allocate(item);
+	utility_server::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().allocate(item);
 	if (uid == UINT64_MAX) {
 		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
@@ -360,7 +360,7 @@ void osn::Scene::FindItemByName(
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Source not found.");
 	}
 
-	utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
+	utility_server::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
 	if (uid == UINT64_MAX) {
 		uid = osn::SceneItem::Manager::GetInstance().allocate(item);
 		if (uid == UINT64_MAX) {
@@ -395,7 +395,7 @@ void osn::Scene::FindItemByItemId(
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Source not found.");
 	}
 
-	utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
+	utility_server::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
 	if (uid == UINT64_MAX) {
 		uid = osn::SceneItem::Manager::GetInstance().allocate(item);
 		if (uid == UINT64_MAX) {
@@ -441,7 +441,7 @@ void osn::Scene::OrderItems(
 	obs_scene_enum_items(scene, cb_items, &items);
 
 	for (obs_sceneitem_t* item : items) {
-		utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
+		utility_server::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
 		if (uid == UINT64_MAX) {
 			uid = osn::SceneItem::Manager::GetInstance().allocate(item);
 			if (uid == UINT64_MAX) {
@@ -520,7 +520,7 @@ void osn::Scene::MoveItem(
 	obs_scene_enum_items(scene, cb_items, &items);
 
 	for (obs_sceneitem_t* item : items) {
-		utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
+		utility_server::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
 		if (uid == UINT64_MAX) {
 			uid = osn::SceneItem::Manager::GetInstance().allocate(item);
 			if (uid == UINT64_MAX) {
@@ -573,7 +573,7 @@ void osn::Scene::GetItem(
 		PRETTY_ERROR_RETURN(ErrorCode::OutOfBounds, "Index not found in Scene.");
 	}
 
-	utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(ed.item);
+	utility_server::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(ed.item);
 	if (uid == UINT64_MAX) {
 		uid = osn::SceneItem::Manager::GetInstance().allocate(ed.item);
 		if (uid == UINT64_MAX) {
@@ -613,7 +613,7 @@ void osn::Scene::GetItems(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	for (obs_sceneitem_t* item : items) {
-		utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
+		utility_server::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
 		if (uid == UINT64_MAX) {
 			uid = osn::SceneItem::Manager::GetInstance().allocate(item);
 			if (uid == UINT64_MAX) {
@@ -666,7 +666,7 @@ void osn::Scene::GetItemsInRange(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	for (obs_sceneitem_t* item : ed.items) {
-		utility::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
+		utility_server::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
 		if (uid == UINT64_MAX) {
 			uid = osn::SceneItem::Manager::GetInstance().allocate(item);
 			if (uid == UINT64_MAX) {

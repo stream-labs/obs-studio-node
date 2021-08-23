@@ -22,7 +22,7 @@
 #include <windows.h>
 #endif
 #include "error.hpp"
-#include "shared.hpp"
+#include "shared-server.hpp"
 #include "osn-source.hpp"
 #include "osn-volmeter.hpp"
 

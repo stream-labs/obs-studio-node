@@ -19,7 +19,7 @@
 #pragma once
 #include <ipc-server.hpp>
 #include <obs.h>
-#include "utility.hpp"
+#include "utility-server.hpp"
 #undef strtoll
 #include "nlohmann/json.hpp"
 
@@ -28,7 +28,7 @@ namespace osn
 	class Source
 	{
 		public:
-		class Manager : public utility::unique_object_manager<obs_source_t>
+		class Manager : public utility_server::unique_object_manager<obs_source_t>
 		{
 			friend class std::shared_ptr<Manager>;
 

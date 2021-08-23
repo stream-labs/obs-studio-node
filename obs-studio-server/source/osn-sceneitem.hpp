@@ -19,14 +19,14 @@
 #pragma once
 #include <ipc-server.hpp>
 #include <obs.h>
-#include <utility.hpp>
+#include "utility-server.hpp"
 
 namespace osn
 {
 	class SceneItem
 	{
 		public:
-		class Manager : public utility::unique_object_manager<obs_sceneitem_t>
+		class Manager : public utility_server::unique_object_manager<obs_sceneitem_t>
 		{
 			friend class std::shared_ptr<Manager>;
 

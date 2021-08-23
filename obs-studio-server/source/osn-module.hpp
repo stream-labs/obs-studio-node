@@ -19,7 +19,7 @@
 #pragma once
 #include <ipc-server.hpp>
 #include <obs.h>
-#include "utility.hpp"
+#include "utility-server.hpp"
 
 namespace osn
 {
@@ -29,7 +29,7 @@ namespace osn
 		static void Register(ipc::server&);
 
 		public:
-		class Manager : public utility::unique_object_manager<obs_module_t>
+		class Manager : public utility_server::unique_object_manager<obs_module_t>
 		{
 			friend class std::shared_ptr<Manager>;
 

@@ -24,7 +24,7 @@
 #include <algorithm>
 #include <vector>
 #include <thread>
-#include <shared.hpp>
+#include "shared-server.hpp"
 
 #ifdef WIN32
 #include <windows.h>

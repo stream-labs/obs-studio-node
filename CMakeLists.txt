@@ -2,9 +2,6 @@
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 IF(CLANG_ANALYZE_CONFIG)
 	set(CMAKE_C_COMPILER_WORKS 1)
 	set(CMAKE_CXX_COMPILER_WORKS 1)
@@ -96,6 +93,5 @@ endif()
 
 add_subdirectory(lib-streamlabs-ipc)
 add_subdirectory(obs-studio-client)
-add_subdirectory(obs-studio-server)
 
 include(CPack)

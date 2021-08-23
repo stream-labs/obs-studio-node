@@ -20,7 +20,7 @@
 #include <ipc-server.hpp>
 #include <obs.h>
 #include "error.hpp"
-#include "shared.hpp"
+#include "shared-server.hpp"
 
 void osn::Video::Register(ipc::server& srv)
 {

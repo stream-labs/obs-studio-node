@@ -47,7 +47,7 @@
 #include "callback-manager.h"
 
 #include "util-crashmanager.h"
-#include "shared.hpp"
+#include "shared-server.hpp"
 
 #ifndef OSN_VERSION
 #define OSN_VERSION "DEVMODE_VERSION"

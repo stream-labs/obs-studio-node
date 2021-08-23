@@ -19,7 +19,7 @@
 #include "osn-sceneitem.hpp"
 #include <error.hpp>
 #include "osn-source.hpp"
-#include "shared.hpp"
+#include "shared-server.hpp"
 
 void osn::SceneItem::Register(ipc::server& srv)
 {

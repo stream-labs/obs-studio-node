@@ -123,12 +123,7 @@ static bool ValidateResponse(const Napi::CallbackInfo& info, std::vector<ipc::va
 
 static FORCE_INLINE std::shared_ptr<ipc::client> GetConnection(const Napi::CallbackInfo& info)
 {
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		Napi::Error::New(info.Env(), "Failed to obtain IPC connection.").ThrowAsJavaScriptException();
-		exit(1);
-	}
-	return conn;
+	return NULL;
 }
 
 namespace utility

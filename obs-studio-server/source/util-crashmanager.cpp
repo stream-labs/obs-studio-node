@@ -31,7 +31,8 @@
 #include <string>
 #include <thread>
 #include <vector>
-#include <filesystem>
+#define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
+#include <experimental/filesystem>
 
 #ifdef WIN32
 #include "StackWalker.h"
@@ -50,7 +51,7 @@
 
 #include "nodeobs_api.h"
 #include "error.hpp"
-#include "shared.hpp"
+#include "shared-server.hpp"
 
 #ifdef ENABLE_CRASHREPORT
 #include "client/crash_report_database.h"
@@ -73,7 +74,7 @@ std::mutex                                 messageMutex;
 util::MetricsProvider                      metricsClient;
 LPTOP_LEVEL_EXCEPTION_FILTER               crashpadInternalExceptionFilterMethod = nullptr;
 HANDLE                                     memoryDumpEvent = INVALID_HANDLE_VALUE;
-std::filesystem::path                      memoryDumpFolder;
+std::experimental::filesystem::path                      memoryDumpFolder;
 #endif
 
 std::string                                appState = "starting"; // "starting","idle","encoding","shutdown"
@@ -254,7 +255,8 @@ std::wstring util::CrashManager::GetMemoryDumpFinishedEventName()
 #ifdef WIN32
 bool util::CrashManager::IsMemoryDumpEnabled()
 {
-	if (std::filesystem::exists( memoryDumpFolder ) && std::filesystem::is_directory( memoryDumpFolder )) {
+	if (std::experimental::filesystem::exists(memoryDumpFolder)
+	    && std::experimental::filesystem::is_directory(memoryDumpFolder)) {
 		return true;
 	} else {
 		return false;

@@ -23,8 +23,8 @@
 #include <filesystem>
 #endif
 #include "error.hpp"
-#include "shared.hpp"
-#include "utility.hpp"
+#include "shared-server.hpp"
+#include "utility-server.hpp"
 
 #ifdef __APPLE__
 #include <sys/types.h>

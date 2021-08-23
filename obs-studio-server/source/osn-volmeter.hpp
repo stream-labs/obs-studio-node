@@ -22,7 +22,7 @@
 #include <queue>
 #include <array>
 #include "obs.h"
-#include "utility.hpp"
+#include "utility-server.hpp"
 
 extern std::mutex mtx;
 
@@ -31,7 +31,7 @@ namespace osn
 	class Volmeter
 	{
 		public:
-		class Manager : public utility::generic_object_manager<std::shared_ptr<Volmeter>>
+		class Manager : public utility_server::generic_object_manager<std::shared_ptr<Volmeter>>
 		{
 			friend class std::shared_ptr<Manager>;
 

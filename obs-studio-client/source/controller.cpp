@@ -407,113 +407,21 @@ std::shared_ptr<ipc::client> Controller::GetConnection()
 
 Napi::Value js_setServerPath(const Napi::CallbackInfo& info)
 {
-	if (info.Length() == 0) {
-		Napi::Error::New(info.Env(), "Too few arguments, usage: setServerPath(<string> binaryPath[, <string> workingDirectoryPath = "
-		    "get_working_directory()]).").ThrowAsJavaScriptException();
-		return info.Env().Undefined();
-	} else if (info.Length() > 2) {
-		Napi::Error::New(info.Env(), "Too many arguments.").ThrowAsJavaScriptException();
-		return info.Env().Undefined();
-	}
-
-	if (!info[0].IsString()) {
-		Napi::Error::New(info.Env(), "Argument 'binaryPath' must be of type 'String'.").ThrowAsJavaScriptException();
-		return info.Env().Undefined();
-	}
-	serverBinaryPath = info[0].ToString().Utf8Value();
-
-	if (info.Length() == 2) {
-		if (!info[1].IsString()) {
-			Napi::Error::New(info.Env(), "Argument 'workingDirectoryPath' must be of type 'String'.").ThrowAsJavaScriptException();
-			return info.Env().Undefined();
-		}
-
-		serverWorkingPath = info[1].ToString().Utf8Value();
-	} else {
-#ifdef WIN32
-		serverWorkingPath = get_working_directory();
-#endif
-	}
-
 	return info.Env().Undefined();
 }
 
 Napi::Value js_connect(const Napi::CallbackInfo& info)
 {
-	if (info.Length() == 0) {
-		Napi::Error::New(info.Env(), "Too few arguments, usage: connect(<string> uri).").ThrowAsJavaScriptException();
-		return info.Env().Undefined();
-	} else if (info.Length() > 1) {
-		Napi::Error::New(info.Env(), "Too many arguments.").ThrowAsJavaScriptException();
-		return info.Env().Undefined();
-	} else if (!info[0].IsString()) {
-		Napi::Error::New(info.Env(), "Argument 'uri' must be of type 'String'.").ThrowAsJavaScriptException();
-		return info.Env().Undefined();
-	}
-
-	std::string uri = info[0].ToString().Utf8Value();
-	auto        cl  = Controller::GetInstance().connect(uri);
-	DWORD        exit_code = Controller::GetInstance().GetExitCode();
-	if (!cl) {
-		if (exit_code == ProcessInfo::VERSION_MISMATCH) {
-			std::stringstream ss;
-			ss << "Version mismatch between client and server. Please reinstall Streamlabs OBS " ;
-			Napi::Error::New(info.Env(), ss.str().c_str()).ThrowAsJavaScriptException();
-			return info.Env().Undefined();
-		}
-		if (exit_code != ProcessInfo::NORMAL_EXIT) {
-			std::stringstream ss;
-			ss << "Failed to connect. Exit code error: " << ProcessInfo::getDescription(exit_code);
-			Napi::Error::New(info.Env(), ss.str().c_str()).ThrowAsJavaScriptException();
-			return info.Env().Undefined();
-		}
-		Napi::Error::New(info.Env(), "Failed to connect.").ThrowAsJavaScriptException();
-		return info.Env().Undefined();
-	}
-
 	return info.Env().Undefined();
 }
 
 Napi::Value js_host(const Napi::CallbackInfo& info)
 {
-	if (info.Length() == 0) {
-		Napi::Error::New(info.Env(), "Too few arguments, usage: host(uri).").ThrowAsJavaScriptException();
-		return info.Env().Undefined();
-	} else if (info.Length() > 1) {
-		Napi::Error::New(info.Env(), "Too many arguments.").ThrowAsJavaScriptException();
-		return info.Env().Undefined();
-	} else if (!info[0].IsString()) {
-		Napi::Error::New(info.Env(), "Argument 'uri' must be of type 'String'.").ThrowAsJavaScriptException();
-		return info.Env().Undefined();
-	}
-
-	std::string uri = info[0].ToString().Utf8Value();
-	auto        cl  = Controller::GetInstance().host(uri);
-	DWORD        exit_code = Controller::GetInstance().GetExitCode();
-
-	if (!cl) {
-		if (exit_code == ProcessInfo::VERSION_MISMATCH) {
-			std::stringstream ss;
-			ss << "Version mismatch between client and server. Please reinstall Streamlabs OBS " ;
-			Napi::Error::New(info.Env(), ss.str().c_str()).ThrowAsJavaScriptException();
-			return info.Env().Undefined();
-		}
-		if (exit_code != ProcessInfo::NORMAL_EXIT) {
-			std::stringstream ss;
-			ss << "Failed to connect. Exit code error: " << ProcessInfo::getDescription(exit_code);
-			Napi::Error::New(info.Env(), ss.str().c_str()).ThrowAsJavaScriptException();
-			return info.Env().Undefined();
-		}
-		Napi::Error::New(info.Env(), "Failed to host and connect.").ThrowAsJavaScriptException();
-		return info.Env().Undefined();
-	}
-
 	return info.Env().Undefined();
 }
 
 Napi::Value js_disconnect(const Napi::CallbackInfo& info)
 {
-	Controller::GetInstance().disconnect();
 	return info.Env().Undefined();
 }
 

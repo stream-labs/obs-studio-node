@@ -18,7 +18,7 @@
 
 #include "osn-IEncoder.hpp"
 #include "error.hpp"
-#include "utility.hpp"
+#include "utility-server.hpp"
 #include <obs.h>
 
 void osn::IEncoder::Register(ipc::server& srv)

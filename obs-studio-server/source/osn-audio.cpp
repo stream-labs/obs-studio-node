@@ -17,5 +17,5 @@
 ******************************************************************************/
 
 #include "osn-Audio.hpp"
-#include "shared.hpp"
-#include "utility.hpp"
+#include "shared-server.hpp"
+#include "utility-server.hpp"

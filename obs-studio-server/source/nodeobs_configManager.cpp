@@ -24,7 +24,7 @@
 #endif
 
 #include <util/platform.h>
-#include "shared.hpp"
+#include "shared-server.hpp"
 
 void ConfigManager::setAppdataPath(std::string path)
 {

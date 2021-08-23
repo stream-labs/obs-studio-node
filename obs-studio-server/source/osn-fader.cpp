@@ -20,8 +20,8 @@
 #include "error.hpp"
 #include "obs.h"
 #include "osn-source.hpp"
-#include "shared.hpp"
-#include "utility.hpp"
+#include "shared-server.hpp"
+#include "utility-server.hpp"
 
 osn::Fader::Manager& osn::Fader::Manager::GetInstance()
 {
@@ -82,7 +82,7 @@ void osn::Fader::Create(
 	}
 
 	auto uid = Manager::GetInstance().allocate(fader);
-	if (uid == std::numeric_limits<utility::unique_id::id_t>::max()) {
+	if (uid == std::numeric_limits<utility_server::unique_id::id_t>::max()) {
 		obs_fader_destroy(fader);
 		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Failed to allocate unique id for Fader.");
 	}

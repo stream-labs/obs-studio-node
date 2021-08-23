@@ -20,14 +20,14 @@
 #include <ipc-server.hpp>
 #include <memory>
 #include "obs.h"
-#include "utility.hpp"
+#include "utility-server.hpp"
 
 namespace osn
 {
 	class Fader
 	{
 		public:
-		class Manager : public utility::unique_object_manager<obs_fader_t>
+		class Manager : public utility_server::unique_object_manager<obs_fader_t>
 		{
 			friend class std::shared_ptr<Manager>;
 

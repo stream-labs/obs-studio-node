@@ -30,6 +30,11 @@ if (APPLE)
 	find_library(AVFOUNDATION AVFoundation)
 	find_library(SECURITY_FRAMEWORK Security)
 	find_library(FOUNDATION Foundation)
+	find_library(IOSURF IOSurface)
+	find_library(GLKIT GLKit)
+	find_library(IOKit IOKit)
+	find_library(SECURITY_LIBRARY Security)
+	find_library(BSM_LIBRARY bsm)
 
 	include_directories(
 		${COREFOUNDATION}
@@ -39,6 +44,148 @@ if (APPLE)
 		${Foundation}
 	)
 endif ()
+
+############################
+# Setup crashpad binaries
+############################
+
+if(WIN32)
+	download_project(
+		PROJ crashpad
+		URL https://obsstudionodes3.streamlabs.com/crashpad/crashpad-release-1.0.21-win-x64.tar.gz
+		UPDATE_DISCONNECTED 1
+	)
+elseif(APPLE)
+	download_project(
+		PROJ crashpad
+		URL https://obsstudionodes3.streamlabs.com/crashpad/crashpad-release-1.0.21-osx.zip
+		UPDATE_DISCONNECTED 1
+	)
+endif()
+
+ExternalProject_Add(
+	crashpad_ep
+	DOWNLOAD_COMMAND ""
+	SOURCE_DIR "${crashpad_SOURCE_DIR}"
+	INSTALL_COMMAND ""
+	BUILD_COMMAND ""
+	CONFIGURE_COMMAND ""
+	BUILD_BYPRODUCTS
+		"<SOURCE_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}base${CMAKE_STATIC_LIBRARY_SUFFIX}"
+		"<SOURCE_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}util${CMAKE_STATIC_LIBRARY_SUFFIX}"
+		"<SOURCE_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}client${CMAKE_STATIC_LIBRARY_SUFFIX}"
+		"<SOURCE_DIR>/bin/crashpad_database_util${CMAKE_EXECUTABLE_SUFFIX}"
+		"<SOURCE_DIR>/bin/crashpad_handler${CMAKE_EXECUTABLE_SUFFIX}"
+		"<SOURCE_DIR>/bin/crashpad_http_upload${CMAKE_EXECUTABLE_SUFFIX}"
+)
+
+# Our crashpad artifacts assume a particular format
+# <dir>\bin contains external processes
+# <dir>\lib contains static libraries we need to link against
+# <dir>\include contains the primary include path
+# <dir>\include\third_party\mini_chromium contains chromium include files
+
+add_library(crashpad_util STATIC IMPORTED)
+add_library(crashpad_base STATIC IMPORTED)
+add_library(crashpad_client STATIC IMPORTED)
+add_executable(crashpad_handler IMPORTED)
+add_executable(crashpad_database_util IMPORTED)
+add_executable(crashpad_http_upload IMPORTED)
+
+# From this, we get three total targets:
+#   crashpad_base
+#   crashpad_util
+#   crashpad_client
+# It's recommended to use util but not required as far as I know.
+
+ExternalProject_Get_Property(crashpad_ep source_dir)
+
+set_property(TARGET crashpad_base PROPERTY IMPORTED_LOCATION
+	"${source_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}base${CMAKE_STATIC_LIBRARY_SUFFIX}")
+
+set_property(TARGET crashpad_util PROPERTY IMPORTED_LOCATION
+	"${source_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}util${CMAKE_STATIC_LIBRARY_SUFFIX}")
+
+set_property(TARGET crashpad_client PROPERTY IMPORTED_LOCATION
+	"${source_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}client${CMAKE_STATIC_LIBRARY_SUFFIX}")
+
+set_property(TARGET crashpad_handler PROPERTY IMPORTED_LOCATION
+	"${source_dir}/bin/crashpad_handler${CMAKE_EXECUTABLE_SUFFIX}")
+
+set_property(TARGET crashpad_database_util PROPERTY IMPORTED_LOCATION
+	"${source_dir}/bin/crashpad_database_util${CMAKE_EXECUTABLE_SUFFIX}")
+
+set_property(TARGET crashpad_http_upload PROPERTY IMPORTED_LOCATION
+	"${source_dir}/bin/crashpad_http_upload${CMAKE_EXECUTABLE_SUFFIX}")
+
+target_include_directories(
+	crashpad_base
+	INTERFACE "${source_dir}/include/third_party/mini_chromium/mini_chromium"
+)
+
+target_include_directories(
+	crashpad_client
+	INTERFACE "${source_dir}/include"
+)
+
+add_library(crashpad INTERFACE)
+
+target_link_libraries(
+	crashpad
+	INTERFACE
+		crashpad_base
+		crashpad_client
+		crashpad_util
+)
+
+target_link_libraries(crashpad_util INTERFACE crashpad_client)
+
+add_dependencies(crashpad_base crashpad_ep)
+add_dependencies(crashpad_client crashpad_base)
+add_dependencies(crashpad_util crashpad_client)
+
+# Getting LIBOBS_VERSION from azure script
+file(STRINGS ../azure-pipelines.yml VERSION_LINE REGEX "LibOBSVersion")
+string(REGEX MATCH "[^: ]*$" CURRENT_VERSION ${VERSION_LINE})
+
+set(
+	LIBOBS_VERSION
+	${CURRENT_VERSION}
+	CACHE STRING "Version of libobs being used"
+)
+
+set(
+	LIBOBS_BUILD_TYPE
+	"release"
+	CACHE STRING "Build type of libobs artifact"
+)
+
+if(WIN32)
+	set(LIBOBS_PLATFORM "windows64")
+endif()
+if(APPLE)
+	set(LIBOBS_PLATFORM "osx")
+endif()
+
+string(
+	CONCAT OSN_DEFAULT_LIBOBS_URL
+	"https://obsstudios3.streamlabs.com/"
+	"libobs-${LIBOBS_PLATFORM}-${LIBOBS_BUILD_TYPE}-${LIBOBS_VERSION}.7z"
+)
+
+set(
+	OSN_LIBOBS_URL
+	${OSN_DEFAULT_LIBOBS_URL}
+	CACHE STRING "Location of libobs archive to base on"
+)
+
+download_project(
+	PROJ libobs
+	URL ${OSN_LIBOBS_URL}
+	UPDATE_DISCONNECTED 1
+)
+
+include("${libobs_SOURCE_DIR}/cmake/LibObs/LibObsConfig.cmake")
 
 SET(osn-client_SOURCES
 	"${CMAKE_SOURCE_DIR}/source/error.hpp"
@@ -94,6 +241,94 @@ SET(osn-client_SOURCES
 	###### callback-manager ######
 	"source/callback-manager.cpp"
 	"source/callback-manager.hpp"
+
+	###### obs-studio-server ######
+	# "${CMAKE_SOURCE_DIR}/obs-studio-server/source/main.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/shared-server.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/shared-server.hpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/utility-server.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/utility-server.hpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-nodeobs.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-nodeobs.hpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-audio.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-audio.hpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-calldata.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-calldata.hpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-common.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-common.hpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-display.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-display.hpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-fader.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-fader.hpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-filter.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-filter.hpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-global.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-global.hpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-iencoder.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-iencoder.hpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-input.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-input.hpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-module.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-module.hpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-output.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-output.hpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-properties.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-properties.hpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-scene.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-scene.hpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-sceneitem.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-sceneitem.hpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-service.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-service.hpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-source.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-source.hpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-transition.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-transition.hpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-video.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-video.hpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-volmeter.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/osn-volmeter.hpp"
+
+	###### utlity graphics ######
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/gs-limits.h"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/gs-vertex.h"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/gs-vertex.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/gs-vertexbuffer.h"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/gs-vertexbuffer.cpp"
+
+	###### node-obs ######
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/nodeobs_api.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/nodeobs_api.h"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/nodeobs_audio_encoders.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/nodeobs_audio_encoders.h"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/nodeobs_autoconfig.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/nodeobs_autoconfig.h"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/nodeobs_configManager.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/nodeobs_configManager.hpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/nodeobs_display.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/nodeobs_display.h"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/nodeobs_content.h"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/nodeobs_common.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/nodeobs_service.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/nodeobs_service.h"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/nodeobs_settings.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/nodeobs_settings.h"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/util-memory.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/util-memory.h"
+
+	###### crash-manager ######
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/util-crashmanager.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/util-crashmanager.h"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/util-metricsprovider.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/util-metricsprovider.h"
+	
+	###### callback-manager ######
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/callback-manager.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/callback-manager.h"
+
+	###### memory-manager ######
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/memory-manager.cpp"
+	"${CMAKE_SOURCE_DIR}/obs-studio-server/source/memory-manager.h"
 )
 
 if (APPLE)
@@ -123,9 +358,9 @@ set(PROJECT_INCLUDE_PATHS
 
 if(WIN32)
 	target_sources(obs_studio_client PUBLIC ${PROJECT_BINARY_DIR}/version.rc)
-	target_link_libraries(obs_studio_client lib-streamlabs-ipc)
+	target_link_libraries(obs_studio_client lib-streamlabs-ipc ${LIBOBS_LIBRARIES} dwmapi.lib optimized crashpad StackWalker)
 else ()
-	target_link_libraries(obs_studio_client lib-streamlabs-ipc ${COREFOUNDATION} ${COCOA} ${AVFOUNDATION} ${Security} ${Foundation})
+	target_link_libraries(obs_studio_client lib-streamlabs-ipc ${LIBOBS_LIBRARIES} ${COREFOUNDATION} ${COCOA} ${AVFOUNDATION} ${Security} ${Foundation})
 endif()
 
 target_include_directories(
@@ -134,6 +369,9 @@ target_include_directories(
 		"${CMAKE_SOURCE_DIR}/source/"
 		"${CMAKE_SOURCE_DIR}/lib-streamlabs-ipc/include"
 		${PROJECT_INCLUDE_PATHS}
+		${LIBOBS_INCLUDE_DIRS}
+		"${stackwalker_SOURCE_DIR}/Main/StackWalker"
+		"${nlohmannjson_SOURCE_DIR}/single_include"
 )
 
 # Include N-API wrappers
@@ -181,8 +419,37 @@ IF(WIN32 AND NOT CLANG_ANALYZE_CONFIG)
 ENDIF()
 install(FILES "${CMAKE_SOURCE_DIR}/package.json" DESTINATION "./")
 
+install(DIRECTORY ${PROJECT_DATA} DESTINATION "./" OPTIONAL USE_SOURCE_PERMISSIONS)
+install(DIRECTORY ${crashpad_SOURCE_DIR}/bin/ DESTINATION "./" USE_SOURCE_PERMISSIONS)
+install(DIRECTORY "${libobs_SOURCE_DIR}/data/" DESTINATION "./data" USE_SOURCE_PERMISSIONS)
+
+if (WIN32)
+	install(
+		DIRECTORY "${libobs_SOURCE_DIR}/bin/64bit/"
+		DESTINATION "./" PATTERN "*.lib" EXCLUDE
+	)
+else ()
+	install(
+		DIRECTORY "${libobs_SOURCE_DIR}/bin/"
+		DESTINATION "./" USE_SOURCE_PERMISSIONS PATTERN "*.lib" EXCLUDE
+	)
+endif ()
+
+if (WIN32)
 install(
-	DIRECTORY "${PROJECT_SOURCE_DIR}/../js/"
+	DIRECTORY "${libobs_SOURCE_DIR}/obs-plugins/"
+	DESTINATION "./obs-plugins"
+)
+else ()
+install(
+	DIRECTORY "${libobs_SOURCE_DIR}/obs-plugins/"
+	DESTINATION "./obs-plugins"
+	USE_SOURCE_PERMISSIONS
+)
+endif()
+
+install(
+	DIRECTORY "${CMAKE_SOURCE_DIR}/obs-studio-server/../js/"
 	DESTINATION "./"
 	PATTERN "*.json" EXCLUDE
 )

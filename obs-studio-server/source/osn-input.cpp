@@ -23,7 +23,7 @@
 #include <obs.h>
 #include "error.hpp"
 #include "osn-source.hpp"
-#include "shared.hpp"
+#include "shared-server.hpp"
 
 void osn::Input::Register(ipc::server& srv)
 {

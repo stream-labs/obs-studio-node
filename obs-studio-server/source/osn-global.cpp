@@ -20,7 +20,7 @@
 #include <error.hpp>
 #include <obs.h>
 #include "osn-source.hpp"
-#include "shared.hpp"
+#include "shared-server.hpp"
 
 void osn::Global::Register(ipc::server& srv)
 {

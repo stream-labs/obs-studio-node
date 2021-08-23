@@ -19,7 +19,7 @@
 #include "nodeobs_settings.h"
 #include "error.hpp"
 #include "nodeobs_api.h"
-#include "shared.hpp"
+#include "shared-server.hpp"
 #include "memory-manager.h"
 
 #ifdef WIN32

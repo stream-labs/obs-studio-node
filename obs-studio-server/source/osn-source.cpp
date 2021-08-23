@@ -29,7 +29,7 @@
 #include "error.hpp"
 #include "obs-property.hpp"
 #include "osn-common.hpp"
-#include "shared.hpp"
+#include "shared-server.hpp"
 #include "callback-manager.h"
 #include "memory-manager.h"
 

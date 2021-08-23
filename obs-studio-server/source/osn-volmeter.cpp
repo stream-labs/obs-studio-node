@@ -20,8 +20,8 @@
 #include "error.hpp"
 #include "obs.h"
 #include "osn-source.hpp"
-#include "shared.hpp"
-#include "utility.hpp"
+#include "shared-server.hpp"
+#include "utility-server.hpp"
 #include <cmath>
 
 std::mutex mtx;
@@ -93,7 +93,7 @@ void osn::Volmeter::Create(
 	}
 
 	meter->id = Manager::GetInstance().allocate(meter);
-	if (meter->id == std::numeric_limits<utility::unique_id::id_t>::max()) {
+	if (meter->id == std::numeric_limits<utility_server::unique_id::id_t>::max()) {
 		meter.reset();
 		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Failed to allocate unique id for Meter.");
 	}
