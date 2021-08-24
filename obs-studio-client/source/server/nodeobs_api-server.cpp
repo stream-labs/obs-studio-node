@@ -16,7 +16,7 @@
 
 ******************************************************************************/
 
-#include "nodeobs_api.h"
+#include "nodeobs_api-server.h"
 #include "osn-source.hpp"
 #include "osn-scene.hpp"
 #include "osn-sceneitem.hpp"
@@ -25,7 +25,7 @@
 #include "osn-filter.hpp"
 #include "osn-volmeter.hpp"
 #include "osn-fader.hpp"
-#include "nodeobs_autoconfig.h"
+#include "nodeobs_autoconfig-server.h"
 #include "util/lexer.h"
 #include "util-crashmanager.h"
 #include "util-metricsprovider.h"
@@ -111,57 +111,11 @@ std::string                                            currentVersion;
 std::string                                            username("unknown");
 std::chrono::high_resolution_clock::time_point         start_wait_acknowledge;
 
-ipc::server* g_server = nullptr;
-
-void OBS_API::Register(ipc::server& srv)
+void OBS_API::SetWorkingDirectory(std::string path)
 {
-	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("API");
-
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_API_initAPI",
-	    std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String, ipc::type::String},
-	    OBS_API_initAPI));
-	cls->register_function(
-	    std::make_shared<ipc::function>("OBS_API_destroyOBS_API", std::vector<ipc::type>{}, OBS_API_destroyOBS_API));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_API_getPerformanceStatistics", std::vector<ipc::type>{}, OBS_API_getPerformanceStatistics));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetWorkingDirectory", std::vector<ipc::type>{ipc::type::String}, SetWorkingDirectory));
-	cls->register_function(
-	    std::make_shared<ipc::function>("StopCrashHandler", std::vector<ipc::type>{}, StopCrashHandler));
-	cls->register_function(std::make_shared<ipc::function>("OBS_API_QueryHotkeys", std::vector<ipc::type>{}, QueryHotkeys));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_API_ProcessHotkeyStatus",
-	    std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32},
-	    ProcessHotkeyStatus));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetUsername", std::vector<ipc::type>{ipc::type::String}, SetUsername));
-
-	srv.register_collection(cls);
-	g_server = &srv;
-}
-
-// void replaceAll(std::string& str, const std::string& from, const std::string& to)
-// {
-// 	if (from.empty())
-// 		return;
-// 	size_t start_pos = 0;
-// 	while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
-// 		str.replace(start_pos, from.length(), to);
-// 		start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
-// 	}
-// };
-
-void OBS_API::SetWorkingDirectory(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	g_moduleDirectory = args[0].value_str;
+	g_moduleDirectory = path;
 	replaceAll(g_moduleDirectory, "\\", "/");
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(g_moduleDirectory));
+
 	AUTO_DEBUG;
 }
 
@@ -686,11 +640,11 @@ void writeCrashHandler(std::vector<char> buffer)
 	close(file_descriptor);
 }
 #endif
-void OBS_API::OBS_API_initAPI(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+int OBS_API::OBS_API_initAPI(
+    std::string appdata,
+    std::string locale,
+    std::string a_currentVersion,
+	std::string crashserverurl)
 {
 	writeCrashHandler(registerProcess());
 
@@ -699,17 +653,13 @@ void OBS_API::OBS_API_initAPI(
 	* any functions from obs else if we delay-loaded the dll, it will
 	* fail miserably. */
 
-	/* FIXME These should be configurable */
-	/* FIXME g_moduleDirectory really needs to be a wstring */
-	std::string appdata = args[0].value_str;
-	std::string locale  = args[1].value_str;
-	currentVersion      = args[2].value_str;
+	currentVersion = a_currentVersion;
 	utility_server::osn_current_version(currentVersion);
 
 #ifdef ENABLE_CRASHREPORT
 	util::CrashManager crashManager;
 	crashManager.SetVersionName(currentVersion);
-	crashManager.SetReportServerUrl(args[3].value_str);
+	crashManager.SetReportServerUrl(crashserverurl);
 	char* path = g_moduleDirectory.data();
 	if (crashManager.Initialize(path, appdata)) {
 		crashManager.Configure();
@@ -817,10 +767,8 @@ void OBS_API::OBS_API_initAPI(
 		util::CrashManager::GetMetricsProvider()->BlameUser();
 
 		blog(LOG_INFO, "Error returning now");
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-		rval.push_back(ipc::value(videoError));
 		AUTO_DEBUG;
-		return;
+		return videoError;
 #endif
 	}
 
@@ -870,19 +818,14 @@ void OBS_API::OBS_API_initAPI(
 
 	util::CrashManager::setAppState("idle");
 
+	AUTO_DEBUG;
+
 	// We are returning a video result here because the frontend needs to know if we sucessfully
 	// initialized the Dx11 API
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(OBS_VIDEO_SUCCESS));
-
-	AUTO_DEBUG;
+	return OBS_VIDEO_SUCCESS;
 }
 
-void OBS_API::OBS_API_destroyOBS_API(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_API::OBS_API_destroyOBS_API()
 {
 	/* INJECT osn::Source::Manager */
 	// Alright, you're probably wondering: Why is osn code here?
@@ -892,52 +835,11 @@ void OBS_API::OBS_API_destroyOBS_API(
 	osn::Source::finalize_global_signals();
 	/* END INJECT osn::Source::Manager */
 	destroyOBS_API();
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
 
-void OBS_API::OBS_API_getPerformanceStatistics(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+std::vector<OBS_API::HotkeyInfo> OBS_API::QueryHotkeys()
 {
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-
-	rval.push_back(ipc::value(getCPU_Percentage()));
-	rval.push_back(ipc::value(getNumberOfDroppedFrames()));
-	rval.push_back(ipc::value(getDroppedFramesPercentage()));
-
-	getCurrentOutputStats(OBS_service::getStreamingOutput(), streamingOutputStats);
-	rval.push_back(ipc::value(streamingOutputStats.kbitsPerSec));
-	rval.push_back(ipc::value(streamingOutputStats.dataOutput));
-
-	getCurrentOutputStats(OBS_service::getRecordingOutput(), recordingOutputStats);
-	rval.push_back(ipc::value(recordingOutputStats.kbitsPerSec));
-	rval.push_back(ipc::value(recordingOutputStats.dataOutput));
-
-	rval.push_back(ipc::value(getCurrentFrameRate()));
-	rval.push_back(ipc::value(getAverageTimeToRenderFrame()));
-	rval.push_back(ipc::value(getMemoryUsage()));
-	rval.push_back(ipc::value(getDiskSpaceAvailable()));
-	AUTO_DEBUG;
-}
-
-void OBS_API::QueryHotkeys(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	struct HotkeyInfo
-	{
-		std::string                objectName;
-		obs_hotkey_registerer_type objectType;
-		std::string                hotkeyName;
-		std::string                hotkeyDesc;
-		obs_hotkey_id              hotkeyId;
-	};
-
 	// For each registered hotkey
 	std::vector<HotkeyInfo> hotkeyInfos;
 	obs_enum_hotkeys(
@@ -1035,48 +937,22 @@ void OBS_API::QueryHotkeys(
 	    },
 	    &hotkeyInfos);
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-
-	// For each hotkey that we've found
-	for (auto& hotkeyInfo : hotkeyInfos) {
-		rval.push_back(ipc::value(hotkeyInfo.objectName));
-		rval.push_back(ipc::value(uint32_t(hotkeyInfo.objectType)));
-		rval.push_back(ipc::value(hotkeyInfo.hotkeyName));
-		rval.push_back(ipc::value(hotkeyInfo.hotkeyDesc));
-		rval.push_back(ipc::value(uint64_t(hotkeyInfo.hotkeyId)));
-	}
-
 	AUTO_DEBUG;
+	return hotkeyInfos;
 }
 
-void OBS_API::ProcessHotkeyStatus(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_API::ProcessHotkeyStatus(obs_hotkey_id hotkeyId, bool pressed)
 {
-	obs_hotkey_id hotkeyId = args[0].value_union.ui64;
-	uint64_t      press    = args[1].value_union.i32;
-
 	// TODO: Check if the hotkey ID is valid
-	obs_hotkey_trigger_routed_callback(hotkeyId, (bool)press);
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	obs_hotkey_trigger_routed_callback(hotkeyId, pressed);
 
 	AUTO_DEBUG;
 }
 
-void OBS_API::SetUsername(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_API::SetUsername(std::string a_username)
 {
-	username = args[0].value_str;
+	username = a_username;
 	util::CrashManager::SetUsername(username);
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-
 	AUTO_DEBUG;
 }
 
@@ -1370,36 +1246,36 @@ void OBS_API::WaitCrashHandlerClose(bool waitBeforeClosing)
 	}
 }
 
-void OBS_API::StopCrashHandler(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	util::CrashManager::setAppState("shutdown");
+// void OBS_API::StopCrashHandler(
+//     void*                          data,
+//     const int64_t                  id,
+//     const std::vector<ipc::value>& args,
+//     std::vector<ipc::value>&       rval)
+// {
+// 	util::CrashManager::setAppState("shutdown");
 
-	blog(LOG_DEBUG, "OBS_API::StopCrashHandler called, objects allocated %d", bnum_allocs());
+// 	blog(LOG_DEBUG, "OBS_API::StopCrashHandler called, objects allocated %d", bnum_allocs());
 
-	if (crash_handler_responce_thread) {
-		writeCrashHandler(unregisterProcess());
+// 	if (crash_handler_responce_thread) {
+// 		writeCrashHandler(unregisterProcess());
 
-		start_wait_acknowledge = std::chrono::high_resolution_clock::now();
-		crash_handler_timeout_activated = true;
+// 		start_wait_acknowledge = std::chrono::high_resolution_clock::now();
+// 		crash_handler_timeout_activated = true;
 
-		if (crash_handler_responce_thread->joinable())
-			crash_handler_responce_thread->join();
-	} else {
-		writeCrashHandler(unregisterProcess());
+// 		if (crash_handler_responce_thread->joinable())
+// 			crash_handler_responce_thread->join();
+// 	} else {
+// 		writeCrashHandler(unregisterProcess());
 
-		// Waiting 1 sec to let crash handler process unregister command before continuing 
-		// with shutdown sequence. 
-		// Only for a case when it failed to create a pipe to recieve confirmation from crash handler.  
-		std::this_thread::sleep_for(std::chrono::seconds(1));
-	}
+// 		// Waiting 1 sec to let crash handler process unregister command before continuing 
+// 		// with shutdown sequence. 
+// 		// Only for a case when it failed to create a pipe to recieve confirmation from crash handler.  
+// 		std::this_thread::sleep_for(std::chrono::seconds(1));
+// 	}
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
-}
+// 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+// 	AUTO_DEBUG;
+// }
 
 void OBS_API::InformCrashHandler(const int crash_id)
 {
@@ -1765,14 +1641,23 @@ double OBS_API::getDroppedFramesPercentage(void)
 	return percent;
 }
 
-void OBS_API::getCurrentOutputStats(obs_output_t* output, OBS_API::OutputStats &outputStats)
+OBS_API::OutputStats OBS_API::getCurrentOutputStats(std::string type) // obs_output_t* output, OBS_API::OutputStats &outputStats)
 {
+	OBS_API::OutputStats outputStats = {0};
 	outputStats.kbitsPerSec = 0.0;
 	outputStats.dataOutput  = 0.0;
+	obs_output_t* output = nullptr;
 
-	if (!output) {
-		return;
+	if (type.compare("stream") == 0) {
+		output = OBS_service::getStreamingOutput();
+	} else if (type.compare("recording")) {
+		output = OBS_service::getRecordingOutput();
+	} else {
+		return outputStats;
 	}
+
+	if (!output)
+		return outputStats;
 
 	if (obs_output_active(output)) {
 		uint64_t bytesSent = obs_output_get_total_bytes(output);
@@ -1797,6 +1682,8 @@ void OBS_API::getCurrentOutputStats(obs_output_t* output, OBS_API::OutputStats &
 		outputStats.lastBytesSentTime = bytesSentTime;
 		outputStats.dataOutput = bytesSent / (1024.0 * 1024.0);
 	}
+
+	return outputStats;
 }
 
 double OBS_API::getCurrentFrameRate(void)

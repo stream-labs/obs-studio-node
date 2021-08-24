@@ -16,9 +16,9 @@
 
 ******************************************************************************/
 
-#include "nodeobs_settings.h"
+#include "nodeobs_settings-server.h"
 #include "error.hpp"
-#include "nodeobs_api.h"
+#include "nodeobs_api-server.h"
 #include "shared-server.hpp"
 #include "memory-manager.h"
 

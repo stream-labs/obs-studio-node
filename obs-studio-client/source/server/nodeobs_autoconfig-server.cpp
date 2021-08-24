@@ -16,7 +16,7 @@
 
 ******************************************************************************/
 
-#include "nodeobs_autoconfig.h"
+#include "nodeobs_autoconfig-server.h"
 #include <array>
 #include <future>
 #include "error.hpp"

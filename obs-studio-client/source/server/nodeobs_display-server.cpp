@@ -16,11 +16,11 @@
 
 ******************************************************************************/
 
-#include "nodeobs_display.h"
+#include "nodeobs_display-server.h"
 #include <iostream>
 #include <map>
 #include <string>
-#include "nodeobs_api.h"
+#include "nodeobs_api-server.h"
 
 #include <graphics/matrix4.h>
 #include <graphics/vec4.h>

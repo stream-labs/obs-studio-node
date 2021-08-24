@@ -30,7 +30,7 @@
 #include <vector>
 #include <queue>
 #include "nodeobs_configManager.hpp"
-#include "nodeobs_service.h"
+#include "nodeobs_service-server.h"
 #include "util-osx.hpp"
 
 extern std::string g_moduleDirectory;
@@ -78,54 +78,35 @@ class OBS_API
         uint64_t lastBytesSentTime = 0;
     };
 
+	struct HotkeyInfo
+	{
+		std::string objectName = "";
+		uint32_t objectType = 0;
+		std::string hotkeyName = "";
+		std::string hotkeyDesc = "";
+		uint64_t hotkeyId = 0;
+	};
+
     public:
 	OBS_API();
 	~OBS_API();
 
-	static void Register(ipc::server&);
-
-	static void OBS_API_initAPI(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_API_destroyOBS_API(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_API_getPerformanceStatistics(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void SetWorkingDirectory(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
+	static int OBS_API_initAPI(
+		std::string appdata,
+		std::string locale,
+		std::string a_currentVersion,
+		std::string crashserverurl);
+	static void OBS_API_destroyOBS_API();
+	static void SetWorkingDirectory(std::string path);
 	static void StopCrashHandler(
 	    void*                          data,
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
 	static void InformCrashHandler(const int crash_id);
-	static void
-	            QueryHotkeys(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-	static void ProcessHotkeyStatus(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void SetUsername(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-
-	protected:
-	static void initAPI(void);
-	static bool openAllModules(int& video_err);
+	static std::vector<OBS_API::HotkeyInfo> QueryHotkeys();
+	static void ProcessHotkeyStatus(obs_hotkey_id hotkeyId, bool pressed);
+	static void SetUsername(std::string a_username);
 
 	static double getCPU_Percentage(void);
 	static int    getNumberOfDroppedFrames(void);
@@ -134,7 +115,11 @@ class OBS_API
 	static double getAverageTimeToRenderFrame();
 	static std::string getDiskSpaceAvailable();
 	static double getMemoryUsage();
-	static void getCurrentOutputStats(obs_output_t *output, OBS_API::OutputStats &outputStats);
+	static OBS_API::OutputStats getCurrentOutputStats(std::string type);
+
+	protected:
+	static void initAPI(void);
+	static bool openAllModules(int& video_err);
 
 
     static const std::vector<std::string>& getOBSLogErrors();

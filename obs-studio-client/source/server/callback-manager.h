@@ -30,7 +30,7 @@
 #include <util/config-file.h>
 #include <util/dstr.h>
 #include <util/platform.h>
-#include "nodeobs_api.h"
+#include "nodeobs_api-server.h"
 
 #include "nodeobs_audio_encoders.h"
 

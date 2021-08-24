@@ -26,7 +26,7 @@
 #include "volmeter.hpp"
 #include "callback-manager.hpp"
 
-//api::Worker* worker = nullptr;
+#include "server/nodeobs_api-server.h"
 
 Napi::ThreadSafeFunction js_thread;
 
@@ -43,27 +43,12 @@ Napi::Value api::OBS_API_initAPI(const Napi::CallbackInfo& info)
 	if (info.Length()>3)
 		ASSERT_GET_VALUE(info, info[3], crashserverurl);
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	conn->set_freez_callback(ipc_freez_callback, path);
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "API", "OBS_API_initAPI", {ipc::value(path), ipc::value(language), ipc::value(version), ipc::value(crashserverurl)});
-
-	// The API init method will return a response error + graphical error
-	// If there is a problem with the IPC the number of responses here will be zero so we must validate the
-	// response.
-	// If the method call was sucessfull we will have 2 arguments, also there is no need to validate the
-	// response
-	if (response.size() < 2) {
-		if (!ValidateResponse(info, response)) {
-			return info.Env().Undefined();
-		}
-	}
-
-	return Napi::Number::New(info.Env(), response[1].value_union.i32);
+	return Napi::Number::New(info.Env(), OBS_API::OBS_API_initAPI(
+		path,
+		language,
+		version,
+		crashserverurl
+	));
 }
 
 Napi::Value api::OBS_API_destroyOBS_API(const Napi::CallbackInfo& info)
@@ -72,7 +57,7 @@ Napi::Value api::OBS_API_destroyOBS_API(const Napi::CallbackInfo& info)
 	if (!conn)
 		return info.Env().Undefined();
 
-	conn->call("API", "OBS_API_destroyOBS_API", {});
+	OBS_API::OBS_API_destroyOBS_API();
 
 #ifdef __APPLE__
 	if (js_thread)
@@ -84,60 +69,52 @@ Napi::Value api::OBS_API_destroyOBS_API(const Napi::CallbackInfo& info)
 
 Napi::Value api::OBS_API_getPerformanceStatistics(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper("API", "OBS_API_getPerformanceStatistics", {});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
 	Napi::Object statistics = Napi::Object::New(info.Env());
 
 	statistics.Set(
 		Napi::String::New(info.Env(), "CPU"),
-		Napi::Number::New(info.Env(), response[1].value_union.fp64));
+		Napi::Number::New(info.Env(), OBS_API::getCPU_Percentage()));
 	statistics.Set(
 		Napi::String::New(info.Env(), "numberDroppedFrames"),
-		Napi::Number::New(info.Env(), response[2].value_union.i32));
+		Napi::Number::New(info.Env(), OBS_API::getNumberOfDroppedFrames()));
 	statistics.Set(
 		Napi::String::New(info.Env(), "percentageDroppedFrames"),
-		Napi::Number::New(info.Env(), response[3].value_union.fp64));
+		Napi::Number::New(info.Env(), OBS_API::getDroppedFramesPercentage()));
+	
+	OBS_API::OutputStats streamStats = OBS_API::getCurrentOutputStats("stream");
 	statistics.Set(
 		Napi::String::New(info.Env(), "streamingBandwidth"),
-		Napi::Number::New(info.Env(), response[4].value_union.fp64));
+		Napi::Number::New(info.Env(), streamStats.kbitsPerSec));
 	statistics.Set(
 		Napi::String::New(info.Env(), "streamingDataOutput"),
-		Napi::Number::New(info.Env(), response[5].value_union.fp64));
+		Napi::Number::New(info.Env(), streamStats.dataOutput));
+
+	OBS_API::OutputStats recordingStats = OBS_API::getCurrentOutputStats("recording");
 	statistics.Set(
 		Napi::String::New(info.Env(), "recordingBandwidth"),
-		Napi::Number::New(info.Env(), response[6].value_union.fp64));
+		Napi::Number::New(info.Env(), recordingStats.kbitsPerSec));
 	statistics.Set(
 		Napi::String::New(info.Env(), "recordingDataOutput"),
-		Napi::Number::New(info.Env(), response[7].value_union.fp64));
+		Napi::Number::New(info.Env(), recordingStats.dataOutput));
+
 	statistics.Set(
 		Napi::String::New(info.Env(), "frameRate"),
-		Napi::Number::New(info.Env(), response[8].value_union.fp64));
+		Napi::Number::New(info.Env(), OBS_API::getCurrentFrameRate()));
 	statistics.Set(
 		Napi::String::New(info.Env(), "averageTimeToRenderFrame"),
-		Napi::Number::New(info.Env(), response[9].value_union.fp64));
+		Napi::Number::New(info.Env(), OBS_API::getAverageTimeToRenderFrame()));
 	statistics.Set(
 		Napi::String::New(info.Env(), "memoryUsage"),
-		Napi::Number::New(info.Env(), response[10].value_union.fp64));
+		Napi::Number::New(info.Env(), OBS_API::getMemoryUsage()));
 
-	std::string diskSpaceAvailable; // workaround for a strlen crash
-	if (response.size() < 12
-	 || response[11].type != ipc::type::String
-	 || response[11].value_str.c_str() == nullptr 
-	 || response[11].value_str.empty()) {
+	std::string diskSpaceAvailable = OBS_API::getDiskSpaceAvailable();
+	if ( diskSpaceAvailable.c_str() == nullptr ||
+		diskSpaceAvailable.empty())
 		diskSpaceAvailable = "0 MB";
-	} else {
-		diskSpaceAvailable = response[11].value_str;
-	}
+
 	statistics.Set(
 		Napi::String::New(info.Env(), "diskSpaceAvailable"),
-		Napi::String::New(info.Env(),diskSpaceAvailable));
+		Napi::String::New(info.Env(), diskSpaceAvailable));
 
 	return statistics;
 }
@@ -145,12 +122,8 @@ Napi::Value api::OBS_API_getPerformanceStatistics(const Napi::CallbackInfo& info
 Napi::Value api::SetWorkingDirectory(const Napi::CallbackInfo& info)
 {
 	std::string path = info[0].ToString().Utf8Value();
+	OBS_API::SetWorkingDirectory(path);
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	conn->call("API", "SetWorkingDirectory", {ipc::value(path)});
 	return info.Env().Undefined();
 }
 
@@ -158,62 +131,39 @@ Napi::Value api::InitShutdownSequence(const Napi::CallbackInfo& info)
 {
 	globalCallback::m_all_workers_stop = true;
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper("API", "StopCrashHandler", {});
-
-	// This is a shutdown operation, no response validation needed
-	// ValidateResponse(info, response);
-
 	return info.Env().Undefined();
 }
 
 Napi::Value api::OBS_API_QueryHotkeys(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper("API", "OBS_API_QueryHotkeys", {});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
 	Napi::Array hotkeyInfos = Napi::Array::New(info.Env());
+	auto hotkeysArray = OBS_API::QueryHotkeys();
 
 	// For each hotkey info that we need to fill
-	for (int i = 0; i < (response.size() - 1) / 5; i++) {
-		int                   responseIndex = i * 5 + 1;
+	uint32_t index = 0;
+	for (auto hotkey: hotkeysArray) {
 		Napi::Object object     = Napi::Object::New(info.Env());
-		std::string  objectName = response[responseIndex + 0].value_str;
-		uint32_t     objectType = response[responseIndex + 1].value_union.ui32;
-		std::string  hotkeyName = response[responseIndex + 2].value_str;
-		std::string  hotkeyDesc = response[responseIndex + 3].value_str;
-		uint64_t     hotkeyId   = response[responseIndex + 4].value_union.ui64;
-
 		object.Set(
 			Napi::String::New(info.Env(), "ObjectName"),
-			Napi::String::New(info.Env(), objectName));
+			Napi::String::New(info.Env(), hotkey.objectName));
 
 		object.Set(
 			Napi::String::New(info.Env(), "ObjectType"),
-			Napi::Number::New(info.Env(), objectType));
+			Napi::Number::New(info.Env(), hotkey.objectType));
 
 		object.Set(
 			Napi::String::New(info.Env(), "HotkeyName"),
-			Napi::String::New(info.Env(), hotkeyName));
+			Napi::String::New(info.Env(), hotkey.hotkeyName));
 
 		object.Set(
 			Napi::String::New(info.Env(), "HotkeyDesc"),
-			Napi::String::New(info.Env(), hotkeyDesc));
+			Napi::String::New(info.Env(), hotkey.hotkeyDesc));
 
 		object.Set(
 			Napi::String::New(info.Env(), "HotkeyId"),
-			Napi::Number::New(info.Env(), hotkeyId));
+			Napi::Number::New(info.Env(), hotkey.hotkeyId));
 
-		hotkeyInfos.Set(i, object);
+		hotkeyInfos.Set(index++, object);
 	}
 
 	return hotkeyInfos;
@@ -222,16 +172,12 @@ Napi::Value api::OBS_API_QueryHotkeys(const Napi::CallbackInfo& info)
 Napi::Value api::OBS_API_ProcessHotkeyStatus(const Napi::CallbackInfo& info)
 {
 	uint64_t    hotkeyId;
-	bool        press;
+	bool        pressed;
 
 	ASSERT_GET_VALUE(info, info[0], hotkeyId);
-	ASSERT_GET_VALUE(info, info[1], press);
+	ASSERT_GET_VALUE(info, info[1], pressed);
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	conn->call("API", "OBS_API_ProcessHotkeyStatus", {ipc::value(hotkeyId), ipc::value(press)});
+	OBS_API::ProcessHotkeyStatus(hotkeyId, pressed);
 
 	return info.Env().Undefined();
 }
@@ -242,11 +188,7 @@ Napi::Value api::SetUsername(const Napi::CallbackInfo& info)
 
 	ASSERT_GET_VALUE(info, info[0], username);
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	conn->call("API", "SetUsername", {ipc::value(username)});
+	OBS_API::SetUsername(username);
 
 	return info.Env().Undefined();
 }

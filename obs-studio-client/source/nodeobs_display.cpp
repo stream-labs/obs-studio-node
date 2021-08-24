@@ -27,6 +27,7 @@
 #include "shared.hpp"
 #include "utility.hpp"
 #include "callback-manager.hpp"
+#include "server/nodeobs_content.h"
 
 #ifdef WIN32
 static BOOL CALLBACK EnumChromeWindowsProc(HWND hwnd, LPARAM lParam)
@@ -68,11 +69,7 @@ Napi::Value display::OBS_content_createDisplay(const Napi::CallbackInfo& info)
 	std::string key = info[1].ToString().Utf8Value();
 	int32_t mode = info[2].ToNumber().Int32Value();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
- 
-	conn->call("Display", "OBS_content_createDisplay", {ipc::value((uint64_t)windowHandle), ipc::value(key), ipc::value(mode)});
+	OBS_content::OBS_content_createDisplay((uint64_t)windowHandle, key, mode);
 
 	return info.Env().Undefined();
 }
@@ -81,15 +78,7 @@ Napi::Value display::OBS_content_destroyDisplay(const Napi::CallbackInfo& info)
 {
 	std::string key = info[0].ToString().Utf8Value();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-    std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Display", "OBS_content_destroyDisplay", {ipc::value(key)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+	OBS_content::OBS_content_destroyDisplay(key);
 
 	return info.Env().Undefined();
 }
@@ -98,19 +87,11 @@ Napi::Value display::OBS_content_getDisplayPreviewOffset(const Napi::CallbackInf
 {
 	std::string key = info[0].ToString().Utf8Value();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Display", "OBS_content_getDisplayPreviewOffset", {ipc::value(key)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
 	Napi::Object previewOffset = Napi::Object::New(info.Env());
-	previewOffset.Set("x", Napi::Number::New(info.Env(), response[1].value_union.i32));
-	previewOffset.Set("y", Napi::Number::New(info.Env(), response[2].value_union.i32));
+	auto offset = OBS_content::OBS_content_getDisplayPreviewOffset(key);
+
+	previewOffset.Set("x", Napi::Number::New(info.Env(), offset.first));
+	previewOffset.Set("y", Napi::Number::New(info.Env(), offset.second));
 	return previewOffset;
 }
 
@@ -118,19 +99,10 @@ Napi::Value display::OBS_content_getDisplayPreviewSize(const Napi::CallbackInfo&
 {
 	std::string key = info[0].ToString().Utf8Value();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Display", "OBS_content_getDisplayPreviewSize", {ipc::value(key)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
 	Napi::Object previewSize = Napi::Object::New(info.Env());
-	previewSize.Set("width", Napi::Number::New(info.Env(), response[1].value_union.i32));
-	previewSize.Set("height", Napi::Number::New(info.Env(), response[2].value_union.i32));
+	auto size = OBS_content::OBS_content_getDisplayPreviewSize(key);
+	previewSize.Set("width", Napi::Number::New(info.Env(), size.first));
+	previewSize.Set("height", Napi::Number::New(info.Env(), size.second));
 	return previewSize;
 }
 
@@ -146,12 +118,7 @@ Napi::Value display::OBS_content_createSourcePreviewDisplay(const Napi::Callback
 	std::string sourceName = info[1].ToString().Utf8Value();
 	std::string key = info[2].ToString().Utf8Value();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	conn->call("Display", "OBS_content_createSourcePreviewDisplay",
-	    {ipc::value((uint64_t)windowHandle), ipc::value(sourceName), ipc::value(key)});
+	OBS_content::OBS_content_createSourcePreviewDisplay((uint64_t)windowHandle, sourceName, key);
 
 	return info.Env().Undefined();
 }
@@ -162,12 +129,7 @@ Napi::Value display::OBS_content_resizeDisplay(const Napi::CallbackInfo& info)
 	uint32_t width = info[1].ToNumber().Uint32Value();
 	uint32_t height = info[2].ToNumber().Uint32Value();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	conn->call("Display", "OBS_content_resizeDisplay", {ipc::value(key), ipc::value(width), ipc::value(height)});
-
+	OBS_content::OBS_content_resizeDisplay(key, width, height);
 	return info.Env().Undefined();
 }
 
@@ -177,11 +139,7 @@ Napi::Value display::OBS_content_moveDisplay(const Napi::CallbackInfo& info)
 	uint32_t x = info[1].ToNumber().Uint32Value();
 	uint32_t y = info[2].ToNumber().Uint32Value();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	conn->call("Display", "OBS_content_moveDisplay", {ipc::value(key), ipc::value(x), ipc::value(y)});
+	OBS_content::OBS_content_moveDisplay(key, x, y);
 	return info.Env().Undefined();
 }
 
@@ -190,11 +148,7 @@ Napi::Value display::OBS_content_setPaddingSize(const Napi::CallbackInfo& info)
 	std::string key = info[0].ToString().Utf8Value();
 	uint32_t paddingSize = info[1].ToNumber().Uint32Value();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	conn->call("Display", "OBS_content_setPaddingSize", {ipc::value(key), ipc::value(paddingSize)});
+	OBS_content::OBS_content_setPaddingSize(key, paddingSize);
 	return info.Env().Undefined();
 }
 
@@ -209,12 +163,7 @@ Napi::Value display::OBS_content_setPaddingColor(const Napi::CallbackInfo& info)
 	if (info.Length() > 4)
 		a = info[4].ToNumber().Uint32Value();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	conn->call("Display", "OBS_content_setPaddingColor",
-	    {ipc::value(key), ipc::value(r), ipc::value(g), ipc::value(b), ipc::value(a)});
+	OBS_content::OBS_content_setPaddingColor(key, r, g, b, a);
 	return info.Env().Undefined();
 }
 
@@ -229,12 +178,7 @@ Napi::Value display::OBS_content_setOutlineColor(const Napi::CallbackInfo& info)
 	if (info.Length() > 4)
 		a = info[4].ToNumber().Uint32Value();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	conn->call("Display", "OBS_content_setOutlineColor",
-	    {ipc::value(key), ipc::value(r), ipc::value(g), ipc::value(b), ipc::value(a)});
+	OBS_content::OBS_content_setOutlineColor(key, r, g, b, a);
 	return info.Env().Undefined();
 }
 
@@ -243,11 +187,7 @@ Napi::Value display::OBS_content_setShouldDrawUI(const Napi::CallbackInfo& info)
 	std::string key = info[0].ToString().Utf8Value();
 	bool drawUI = info[1].ToBoolean().Value();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	conn->call("Display", "OBS_content_setShouldDrawUI", {ipc::value(key), ipc::value(drawUI)});
+	OBS_content::OBS_content_setShouldDrawUI(key, drawUI);
 	return info.Env().Undefined();
 }
 
@@ -256,11 +196,7 @@ Napi::Value display::OBS_content_setDrawGuideLines(const Napi::CallbackInfo& inf
 	std::string key = info[0].ToString().Utf8Value();
 	bool drawGuideLines = info[1].ToBoolean().Value();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	conn->call("Display", "OBS_content_setDrawGuideLines", {ipc::value(key), ipc::value(drawGuideLines)});
+	OBS_content::OBS_content_setDrawGuideLines(key, drawGuideLines);
 	return info.Env().Undefined();
 }
 

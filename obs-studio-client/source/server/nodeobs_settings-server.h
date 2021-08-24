@@ -23,7 +23,7 @@
 #include <string>
 #include <util/lexer.h>
 #include <util/platform.h>
-#include "nodeobs_service.h"
+#include "nodeobs_service-server.h"
 
 #include "nodeobs_audio_encoders.h"
 

@@ -16,7 +16,7 @@
 
 ******************************************************************************/
 
-#include "nodeobs_service.h"
+#include "nodeobs_service-server.h"
 #ifdef WIN32
 #include <ShlObj.h>
 #include <windows.h>
@@ -424,11 +424,11 @@ static const size_t numVals = sizeof(vals) / sizeof(double);
 int OBS_service::resetVideoContext(bool reload)
 {
 	obs_video_info ovi;
-	std::string    gslib = "";
+	std::string    gslib = g_moduleDirectory;
 #ifdef _WIN32
-	gslib = "libobs-d3d11.dll";
+	gslib += "/libobs-d3d11.dll";
 #else
-	gslib = "libobs-opengl";
+	gslib += "/libobs-opengl";
 #endif
 	ovi.graphics_module = gslib.c_str();
 
