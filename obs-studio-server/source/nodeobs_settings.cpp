@@ -2017,7 +2017,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 		config_save_safe(config, "tmp", nullptr);
 	}
 
-	struct stat buffer;
+	struct _stat64 buffer;
 
 	std::string streamName = ConfigManager::getInstance().getStream();
 	bool        fileExist  = (os_stat(streamName.c_str(), &buffer) == 0);
@@ -2346,7 +2346,7 @@ void OBS_settings::getStandardRecordingSettings(
 	subCategoryParameters->params.push_back(recMuxerCustom);
 
 	// Encoder settings
-	struct stat buffer;
+	struct _stat64 buffer;
 
 	bool fileExist = (os_stat(ConfigManager::getInstance().getRecord().c_str(), &buffer) == 0);
 

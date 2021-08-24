@@ -771,7 +771,7 @@ bool OBS_service::createService()
 	obs_data_t* data        = nullptr;
 	obs_data_t* settings    = nullptr;
 	obs_data_t* hotkey_data = nullptr;
-	struct stat buffer;
+	struct _stat64 buffer;
 
 	auto CreateNewService = [&]() {
 		service = obs_service_create("rtmp_common", "default_service", nullptr, nullptr);
