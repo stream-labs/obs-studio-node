@@ -146,42 +146,38 @@ struct SubCategory
 	}
 };
 
+struct GetSettingsInfo
+{
+	uint64_t settingsSize;
+	uint64_t bufferSize;
+	std::vector<char> buffer;
+	uint32_t type;
+};
+
+struct DeviceInfo
+{
+	std::string description;
+	std::string id;
+};
+
 class OBS_settings
 {
 	public:
 	OBS_settings();
 	~OBS_settings();
 
-	static void Register(ipc::server&);
-
-	static void OBS_settings_getSettings(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
+	static struct GetSettingsInfo OBS_settings_getSettings(std::string category);
 	static void OBS_settings_saveSettings(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
+	    std::string       category,
+		uint32_t          subCategoriesCount,
+		uint32_t          sizeStruct,
+		std::vector<char> buffer);
 
 	static void saveGenericSettings(std::vector<SubCategory> genericSettings, std::string section, config_t* config);
 
-	static void OBS_settings_getInputAudioDevices(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_settings_getOutputAudioDevices(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_settings_getVideoDevices(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
+	static std::vector<DeviceInfo> OBS_settings_getInputAudioDevices();
+	static std::vector<DeviceInfo> OBS_settings_getOutputAudioDevices();
+	static std::vector<DeviceInfo> OBS_settings_getVideoDevices();
 
 	private:
 	// Exposed methods to the frontend

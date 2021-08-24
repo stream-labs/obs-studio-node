@@ -27,6 +27,8 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
+#include "server/nodeobs_settings-server.h"
+
 std::vector<settings::SubCategory>
     serializeCategory(uint32_t subCategoriesCount, uint32_t sizeStruct, std::vector<char> buffer)
 {
@@ -140,21 +142,13 @@ Napi::Value settings::OBS_settings_getSettings(const Napi::CallbackInfo& info)
 	if (it == listSettings.end())
 		return Napi::Array::New(info.Env());
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Settings", "OBS_settings_getSettings", {ipc::value(category)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+	auto settingsData = OBS_settings::OBS_settings_getSettings(category);
 
 	Napi::Array array = Napi::Array::New(info.Env());
 	Napi::Object settings = Napi::Object::New(info.Env());
 
 	std::vector<settings::SubCategory> categorySettings = serializeCategory(
-	    uint32_t(response[1].value_union.ui64), uint32_t(response[2].value_union.ui64), response[3].value_bin);
+	    settingsData.settingsSize, settingsData.bufferSize, settingsData.buffer);
 
 	for (int i = 0; i < categorySettings.size(); i++) {
 		Napi::Object subCategory = Napi::Object::New(info.Env());
@@ -301,7 +295,7 @@ Napi::Value settings::OBS_settings_getSettings(const Napi::CallbackInfo& info)
 		subCategory.Set("parameters", subCategoryParameters);
 		array.Set(i, subCategory);
 		settings.Set("data", array);
-		settings.Set("type", Napi::Number::New(info.Env(), response[4].value_union.ui32));
+		settings.Set("type", Napi::Number::New(info.Env(), settingsData.type));
 	}
 	return settings;
 }
@@ -408,16 +402,7 @@ void settings::OBS_settings_saveSettings(const Napi::CallbackInfo& info)
 	uint32_t subCategoriesCount, sizeStruct;
 
 	std::vector<char> buffer = deserializeCategory(&subCategoriesCount, &sizeStruct, settings);
-
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Settings", "OBS_settings_saveSettings",
-	    {ipc::value(category), ipc::value(subCategoriesCount), ipc::value(sizeStruct), ipc::value(buffer)});
-
-	if (!ValidateResponse(info, response))
-		return;
+	OBS_settings::OBS_settings_saveSettings(category, subCategoriesCount, sizeStruct, buffer);
 }
 
 std::vector<std::string> settings::getListCategories(void)
@@ -447,19 +432,16 @@ Napi::Value settings::OBS_settings_getListCategories(const Napi::CallbackInfo& i
 	return categories;
 }
 
-Napi::Array devices_to_js(const Napi::CallbackInfo& info, const std::vector<ipc::value> &response)
+Napi::Array devices_to_js(const Napi::CallbackInfo& info, const std::vector<DeviceInfo> &data)
 {
 	Napi::Array devices = Napi::Array::New(info.Env());
 
 	uint32_t js_array_index = 0;
-	uint64_t items = response[1].value_union.ui64;
-	if (items > 0) {
-		for (uint64_t idx = 2; idx < items*2 + 2; idx += 2) {
-				Napi::Object device = Napi::Object::New(info.Env());
-				device.Set("description", Napi::String::New(info.Env(), response[idx].value_str.c_str()));
-				device.Set("id", Napi::String::New(info.Env(), response[idx + 1].value_str.c_str()));
-				devices.Set(js_array_index++, device);
-		}
+	for (auto obj: data) {
+		Napi::Object device = Napi::Object::New(info.Env());
+		device.Set("description", Napi::String::New(info.Env(), obj.description));
+		device.Set("id", Napi::String::New(info.Env(), obj.id));
+		devices.Set(js_array_index++, device);
 	}
 
 	return devices;
@@ -467,47 +449,17 @@ Napi::Array devices_to_js(const Napi::CallbackInfo& info, const std::vector<ipc:
 
 Napi::Value settings::OBS_settings_getInputAudioDevices(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Settings", "OBS_settings_getInputAudioDevices", {});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return devices_to_js(info, response);
+	return devices_to_js(info, OBS_settings::OBS_settings_getInputAudioDevices());
 }
 
 Napi::Value settings::OBS_settings_getOutputAudioDevices(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Settings", "OBS_settings_getOutputAudioDevices", {});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return devices_to_js(info, response);
+	return devices_to_js(info, OBS_settings::OBS_settings_getOutputAudioDevices());
 }
 
 Napi::Value settings::OBS_settings_getVideoDevices(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Settings", "OBS_settings_getVideoDevices", {});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return devices_to_js(info, response);
+	return devices_to_js(info, OBS_settings::OBS_settings_getVideoDevices());
 }
 
 void settings::Init(Napi::Env env, Napi::Object exports)
