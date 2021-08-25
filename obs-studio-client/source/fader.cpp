@@ -24,6 +24,7 @@
 #include "input.hpp"
 #include "shared.hpp"
 #include <iostream>
+#include "server/osn-fader.hpp"
 
 Napi::FunctionReference osn::Fader::constructor;
 
@@ -69,23 +70,11 @@ Napi::Value osn::Fader::Create(const Napi::CallbackInfo& info)
 {
 	int32_t fader_type = info[0].ToNumber().Int32Value();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-		"Fader",
-		"Create",
-		{
-			ipc::value(fader_type),
-		});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+	auto uid = obs::Fader::Create(fader_type);
 
 	auto instance =
 		osn::Fader::constructor.New({
-			Napi::Number::New(info.Env(), response[1].value_union.ui64)
+			Napi::Number::New(info.Env(), uid)
 			});
 
 	return instance;
@@ -93,101 +82,49 @@ Napi::Value osn::Fader::Create(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Fader::GetDeziBel(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	float_t db = obs::Fader::GetDeziBel(this->uid);
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-		"Fader",
-		"GetDeziBel",
-		{
-			ipc::value(this->uid),
-		});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return Napi::Number::New(Env(), response[1].value_union.fp32);
+	return Napi::Number::New(Env(), db);
 }
 
 void osn::Fader::SetDezibel(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
 	float_t db = value.ToNumber().FloatValue();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
-
-	conn->call("Fader", "SetDeziBel", {ipc::value(this->uid), ipc::value(db)});
+	obs::Fader::SetDeziBel(this->uid, db);
 }
 
 Napi::Value osn::Fader::GetDeflection(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	float_t deflection = obs::Fader::GetDeflection(this->uid);
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-		"Fader",
-		"GetDeflection",
-		{
-			ipc::value(this->uid),
-		});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-    return Napi::Number::New(Env(), response[1].value_union.fp32);
+    return Napi::Number::New(Env(), deflection);
 }
 
 void osn::Fader::SetDeflection(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
 	float_t deflection = value.ToNumber().FloatValue();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
-
-	conn->call("Fader", "SetDeflection", {ipc::value(this->uid), ipc::value(deflection)});
+	obs::Fader::SetDeflection(this->uid, deflection);
 }
 
 Napi::Value osn::Fader::GetMultiplier(const Napi::CallbackInfo& info)
 {
-    auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	float_t mul = obs::Fader::GetMultiplier(this->uid);
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-		"Fader",
-		"GetMultiplier",
-		{
-			ipc::value(this->uid),
-		});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-    return Napi::Number::New(Env(), response[1].value_union.fp32);
+    return Napi::Number::New(Env(), mul);
 }
 
 void osn::Fader::SetMultiplier(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
 	float_t mul = value.ToNumber().FloatValue();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
-
-	conn->call("Fader", "SetMultiplier", {ipc::value(this->uid), ipc::value(mul)});
+	obs::Fader::SetMultiplier(this->uid, mul);
 }
 
 Napi::Value osn::Fader::Destroy(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	conn->call_synchronous_helper("Fader", "Destroy", {ipc::value(this->uid)});
+	obs::Fader::Destroy(this->uid);
 
 	return info.Env().Undefined();
 }
@@ -195,69 +132,24 @@ Napi::Value osn::Fader::Destroy(const Napi::CallbackInfo& info)
 Napi::Value osn::Fader::Attach(const Napi::CallbackInfo& info)
 {
     osn::Input* input = Napi::ObjectWrap<osn::Input>::Unwrap(info[0].ToObject());
-
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Fader", "Attach", {ipc::value(this->uid), ipc::value(input->sourceId)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+	obs::Fader::Attach(this->uid, input->sourceId);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Fader::Detach(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Fader", "Detach", {ipc::value(this->uid)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+	obs::Fader::Detach(this->uid);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Fader::AddCallback(const Napi::CallbackInfo& info)
 {
-	//obs::fader &handle = Fader::Object::GetHandle(info.Holder());
-	//Fader* binding = Nan::ObjectWrap::Unwrap<Fader>(info.Holder());
-
-	//ASSERT_INFO_LENGTH(info, 1);
-
-	//v8::Local<v8::Function> callback;
-	//ASSERT_GET_VALUE(info[0], callback);
-
-	//FaderCallback *cb_binding =
-	//	new FaderCallback(binding, Fader::Callback, callback);
-
-	//handle.add_callback(fader_cb_wrapper, cb_binding);
-
-	//auto object = FaderCallback::Object::GenerateObject(cb_binding);
-	//cb_binding->obj_ref.Reset(object);
-	//info.GetReturnValue().Set(object);
-    return info.Env().Undefined();
+	return info.Env().Undefined();
 }
 
 Napi::Value osn::Fader::RemoveCallback(const Napi::CallbackInfo& info)
 {
-	//obs::fader &handle = Fader::Object::GetHandle(info.Holder());
-
-	//v8::Local<v8::Object> cb_object;
-	//ASSERT_GET_VALUE(info[0], cb_object);
-
-	//FaderCallback *cb_binding =
-	//	FaderCallback::Object::GetHandle(cb_object);
-
-	//cb_binding->stopped = true;
-
-	//handle.remove_callback(fader_cb_wrapper, cb_binding);
-	//cb_binding->obj_ref.Reset();
-    return info.Env().Undefined();
+	return info.Env().Undefined();
 }

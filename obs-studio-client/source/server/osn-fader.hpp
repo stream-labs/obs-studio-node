@@ -22,7 +22,7 @@
 #include "obs.h"
 #include "utility-server.hpp"
 
-namespace osn
+namespace obs
 {
 	class Fader
 	{
@@ -44,48 +44,19 @@ namespace osn
 		};
 
 		public:
-		static void Register(ipc::server&);
 		static void ClearFaders();
 
-		static void
-		    Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		    Destroy(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static uint64_t Create(int32_t fader_type);
+		static void Destroy(uint64_t uid);
 
-		static void GetDeziBel(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetDeziBel(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetDeflection(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetDeflection(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetMultiplier(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetMultiplier(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void
-		    Attach(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		            Detach(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static float_t GetDeziBel(uint64_t uid);
+		static float_t SetDeziBel(uint64_t uid, float_t db);
+		static float_t GetDeflection(uint64_t uid);
+		static float_t SetDeflection(uint64_t uid, float_t deflection);
+		static float_t GetMultiplier(uint64_t uid);
+		static float_t SetMultiplier(uint64_t uid, float_t mul);
+		static void Attach(uint64_t uid_fader, uint64_t uid_source);
+		static void Detach(uint64_t uid);
 		static void AddCallback(
 		    void*                          data,
 		    const int64_t                  id,
