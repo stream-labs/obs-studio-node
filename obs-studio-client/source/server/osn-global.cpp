@@ -22,71 +22,38 @@
 #include "osn-source.hpp"
 #include "shared-server.hpp"
 
-void osn::Global::Register(ipc::server& srv)
+std::pair<uint64_t, int32_t> obs::Global::GetOutputSource(uint32_t channel)
 {
-	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Global");
-	cls->register_function(
-	    std::make_shared<ipc::function>("GetOutputSource", std::vector<ipc::type>{ipc::type::UInt32}, GetOutputSource));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetOutputSource", std::vector<ipc::type>{ipc::type::UInt32, ipc::type::UInt64}, SetOutputSource));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetOutputFlagsFromId", std::vector<ipc::type>{ipc::type::String}, GetOutputFlagsFromId));
-	cls->register_function(std::make_shared<ipc::function>("LaggedFrames", std::vector<ipc::type>{}, LaggedFrames));
-	cls->register_function(std::make_shared<ipc::function>("TotalFrames", std::vector<ipc::type>{}, TotalFrames));
-	cls->register_function(std::make_shared<ipc::function>("GetLocale", std::vector<ipc::type>{}, GetLocale));
-	cls->register_function(
-	    std::make_shared<ipc::function>("SetLocale", std::vector<ipc::type>{ipc::type::String}, SetLocale));
-	cls->register_function(
-	    std::make_shared<ipc::function>("GetMultipleRendering", std::vector<ipc::type>{}, GetMultipleRendering));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetMultipleRendering", std::vector<ipc::type>{ipc::type::Int32}, SetMultipleRendering));
-	srv.register_collection(cls);
-}
-
-void osn::Global::GetOutputSource(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	obs_source_t* source = obs_get_output_source(args[0].value_union.ui32);
+	obs_source_t* source = obs_get_output_source(channel);
 	if (!source) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-		rval.push_back(ipc::value(UINT64_MAX));
-		rval.push_back(ipc::value(-1));
-		AUTO_DEBUG;
-		return;
+		blog(LOG_ERROR, "Source not found.");
+		return std::make_pair(UINT64_MAX, -1);
 	}
 
 	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
-		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Source found but not indexed.");
+		blog(LOG_ERROR, "Source found but not indexed.");
+		return std::make_pair(UINT64_MAX, -1);
 	}
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(uid));
-	rval.push_back(ipc::value(obs_source_get_type(source)));
 	obs_source_release(source);
-	AUTO_DEBUG;
+	return std::make_pair(uid, obs_source_get_type(source));
 }
 
-void osn::Global::SetOutputSource(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void obs::Global::SetOutputSource(uint32_t channel, uint64_t sourceId)
 {
 	obs_source_t* source = nullptr;
-	uint32_t      channel = args[0].value_union.ui32;
 
 	if (channel >= MAX_CHANNELS) {
-		PRETTY_ERROR_RETURN(ErrorCode::OutOfBounds, "Invalid output channel.");
+		blog(LOG_ERROR, "Invalid output channel.");
+		return;
 	}
 
-	if (args[1].value_union.ui64 != UINT64_MAX) {
-		source = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
+	if (sourceId != UINT64_MAX) {
+		source = osn::Source::Manager::GetInstance().find(sourceId);
 		if (!source) {
-			PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
+			blog(LOG_ERROR, "Source reference is not valid.");
+			return;
 		}
 	}
 
@@ -94,89 +61,44 @@ void osn::Global::SetOutputSource(
 	obs_source_t* newsource = obs_get_output_source(channel);
 	if (newsource != source) {
 		obs_source_release(newsource);
-		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to set output source.");
-	} else {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+		blog(LOG_ERROR, "Failed to set output source.");
+		return;
 	}
 	obs_source_release(newsource);
-	AUTO_DEBUG;
+	return;
 }
 
-void osn::Global::GetOutputFlagsFromId(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+uint32_t obs::Global::GetOutputFlagsFromId(std::string id)
 {
-	uint32_t flags = obs_get_source_output_flags(args[0].value_str.c_str());
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(flags));
-	AUTO_DEBUG;
+	return obs_get_source_output_flags(id.c_str());
 }
 
-void osn::Global::LaggedFrames(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+uint32_t obs::Global::LaggedFrames()
 {
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(obs_get_lagged_frames()));
-	AUTO_DEBUG;
+	return obs_get_lagged_frames();
 }
 
-void osn::Global::TotalFrames(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+uint32_t obs::Global::TotalFrames()
 {
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(obs_get_total_frames()));
-	AUTO_DEBUG;
+	return obs_get_total_frames();
 }
 
-void osn::Global::GetLocale(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+std::string obs::Global::GetLocale()
 {
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(obs_get_locale()));
-	AUTO_DEBUG;
+	return std::string(obs_get_locale());
 }
 
-void osn::Global::SetLocale(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void obs::Global::SetLocale(std::string locale)
 {
-	obs_set_locale(args[0].value_str.c_str());
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
+	obs_set_locale(locale.c_str());
 }
 
-void osn::Global::GetMultipleRendering(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+bool obs::Global::GetMultipleRendering()
 {
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(obs_get_multiple_rendering()));
-	AUTO_DEBUG;
+	return obs_get_multiple_rendering();
 }
 
-void osn::Global::SetMultipleRendering(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void obs::Global::SetMultipleRendering(bool multipleRendering)
 {
-	obs_set_multiple_rendering(args[0].value_union.i32);
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
+	obs_set_multiple_rendering(multipleRendering);
 }

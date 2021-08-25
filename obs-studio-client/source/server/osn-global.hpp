@@ -19,52 +19,19 @@
 #pragma once
 #include <ipc-server.hpp>
 
-namespace osn
+namespace obs
 {
 	class Global
 	{
 		public:
-		static void Register(ipc::server&);
-
-		static void GetOutputSource(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetOutputSource(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetOutputFlagsFromId(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void LaggedFrames(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void TotalFrames(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void
-		    GetLocale(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		    SetLocale(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-
-		static void GetMultipleRendering(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetMultipleRendering(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
+		static std::pair<uint64_t, int32_t> GetOutputSource(uint32_t channel);
+		static void SetOutputSource(uint32_t channel, uint64_t sourceId);
+		static uint32_t GetOutputFlagsFromId(std::string id);
+		static uint32_t LaggedFrames();
+		static uint32_t TotalFrames();
+		static std::string GetLocale();
+		static void SetLocale(std::string locale);
+		static bool GetMultipleRendering();
+		static void SetMultipleRendering(bool multipleRendering);
 	};
 } // namespace osn

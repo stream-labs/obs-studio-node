@@ -221,7 +221,7 @@ int main(int argc, char* argv[])
 	};
 
 	/// OBS Studio Node
-	osn::Global::Register(myServer);
+	obs::Global::Register(myServer);
 	osn::Source::Register(myServer);
 	osn::Input::Register(myServer);
 	obs::Filter::Register(myServer);

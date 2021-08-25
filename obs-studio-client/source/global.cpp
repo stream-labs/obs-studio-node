@@ -26,6 +26,7 @@
 #include "scene.hpp"
 #include "transition.hpp"
 #include "utility-v8.hpp"
+#include "server/osn-global.hpp"
 
 Napi::FunctionReference osn::Global::constructor;
 
@@ -61,35 +62,26 @@ osn::Global::Global(const Napi::CallbackInfo& info)
 Napi::Value osn::Global::getOutputSource(const Napi::CallbackInfo& info)
 {
 	uint32_t channel = info[0].ToNumber().Uint32Value();
+	auto res = obs::Global::GetOutputSource(channel);
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Global", "GetOutputSource", {ipc::value(channel)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	if (response[2].value_union.i32 == 0) {
+	if (res.second == 0) {
 		auto instance =
 			osn::Input::constructor.New({
-				Napi::Number::New(info.Env(), response[1].value_union.ui64)
+				Napi::Number::New(info.Env(), res.first)
 				});
 
 		return instance;
-	} else if (response[2].value_union.i32 == 2) {
+	} else if (res.second == 2) {
 		auto instance =
 			osn::Transition::constructor.New({
-				Napi::Number::New(info.Env(), response[1].value_union.ui64)
+				Napi::Number::New(info.Env(), res.first)
 				});
 
 		return instance;
-	} else if (response[2].value_union.i32 == 3) {
+	} else if (res.second == 3) {
 		auto instance =
 			osn::Scene::constructor.New({
-				Napi::Number::New(info.Env(), response[1].value_union.ui64)
+				Napi::Number::New(info.Env(), res.first)
 				});
 
 		return instance;
@@ -105,11 +97,7 @@ Napi::Value osn::Global::setOutputSource(const Napi::CallbackInfo& info)
 	if (info[1].IsObject())
 		input = Napi::ObjectWrap<osn::Input>::Unwrap(info[1].ToObject());
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	conn->call("Global", "SetOutputSource", {ipc::value(channel), ipc::value(input ? input->sourceId : UINT64_MAX)});
+	obs::Global::SetOutputSource(channel, input ? input->sourceId : UINT64_MAX);
 
 	return info.Env().Undefined();
 }
@@ -117,90 +105,37 @@ Napi::Value osn::Global::setOutputSource(const Napi::CallbackInfo& info)
 Napi::Value osn::Global::getOutputFlagsFromId(const Napi::CallbackInfo& info)
 {
 	std::string id = info[0].ToString().Utf8Value();
+	auto flags = obs::Global::GetOutputFlagsFromId(id);
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Global", "GetOutputFlagsFromId", {ipc::value(id)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+	return Napi::Number::New(info.Env(), flags);
 }
 
 Napi::Value osn::Global::laggedFrames(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Global", "LaggedFrames", {});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+	return Napi::Number::New(info.Env(), obs::Global::LaggedFrames());
 }
 
 Napi::Value osn::Global::totalFrames(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Global", "TotalFrames", {});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+	return Napi::Number::New(info.Env(), obs::Global::TotalFrames());
 }
 
 Napi::Value osn::Global::getLocale(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Global", "GetLocale", {});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return Napi::String::New(info.Env(), response[1].value_str);
+	return Napi::String::New(info.Env(), obs::Global::GetLocale());
 }
 
 void osn::Global::setLocale(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
-
-	conn->call("Global", "SetLocale", {ipc::value(value.ToString().Utf8Value())});
+	obs::Global::SetLocale(value.ToString().Utf8Value());
 }
 
 Napi::Value osn::Global::getMultipleRendering(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Global", "GetMultipleRendering", {});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return Napi::Boolean::New(info.Env(), response[1].value_union.i32);
+	return Napi::Boolean::New(info.Env(), obs::Global::GetMultipleRendering());
 }
 
 void osn::Global::setMultipleRendering(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
-
-	conn->call("Global", "SetMultipleRendering", {ipc::value(value.ToBoolean().Value())});
+	obs::Global::SetMultipleRendering(value.ToBoolean().Value());
 }
