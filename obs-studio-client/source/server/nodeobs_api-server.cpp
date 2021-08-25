@@ -1359,7 +1359,7 @@ void OBS_API::destroyOBS_API(void)
 		osn::Scene::Manager::GetInstance().size() > 0		||
 		osn::SceneItem::Manager::GetInstance().size() > 0	||
 		osn::Transition::Manager::GetInstance().size() > 0	||
-		osn::Filter::Manager::GetInstance().size() > 0		||
+		obs::Filter::Manager::GetInstance().size() > 0		||
 		osn::Input::Manager::GetInstance().size() > 0) {
 
 		for (int i = 0; i < MAX_CHANNELS; i++)

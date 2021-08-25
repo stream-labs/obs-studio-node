@@ -19,17 +19,12 @@
 #pragma once
 #include "osn-source.hpp"
 
-namespace osn
+namespace obs
 {
-	class Filter : public Source
+	class Filter : public osn::Source
 	{
 		public:
-		static void Register(ipc::server&);
-
-		// Function
-		static void
-		    Types(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		    Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static std::vector<std::string> Types();
+		static uint64_t Create(std::string sourceId, std::string name, std::string settingsData);
 	};
-} // namespace osn
+}

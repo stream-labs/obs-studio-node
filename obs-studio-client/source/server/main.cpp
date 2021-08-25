@@ -224,7 +224,7 @@ int main(int argc, char* argv[])
 	osn::Global::Register(myServer);
 	osn::Source::Register(myServer);
 	osn::Input::Register(myServer);
-	osn::Filter::Register(myServer);
+	obs::Filter::Register(myServer);
 	osn::Transition::Register(myServer);
 	osn::Scene::Register(myServer);
 	osn::SceneItem::Register(myServer);

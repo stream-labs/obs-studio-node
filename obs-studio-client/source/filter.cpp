@@ -25,6 +25,7 @@
 #include "ipc-value.hpp"
 #include "shared.hpp"
 #include "utility.hpp"
+#include "server/osn-filter.hpp"
 
 Napi::FunctionReference osn::Filter::constructor;
 
@@ -82,20 +83,12 @@ osn::Filter::Filter(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Filter::Types(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	auto typesArray = obs::Filter::Types();
+	Napi::Array types = Napi::Array::New(info.Env(), typesArray.size());
+	uint32_t index = 0;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Filter", "Types", {});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	size_t count = response.size() - 1;
-	Napi::Array types = Napi::Array::New(info.Env(), count);
-
-	for (size_t idx = 0; idx < count; idx++)
-		types.Set(idx, Napi::String::New(info.Env(), response[1 + idx].value_str));
+	for (auto type: typesArray)
+		types.Set(index++, Napi::String::New(info.Env(), type));
 
 	return types;
 }
@@ -114,31 +107,24 @@ Napi::Value osn::Filter::Create(const Napi::CallbackInfo& info)
 		settings = stringify.Call(json, { setobj }).As<Napi::String>();
 	}
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
 	auto params = std::vector<ipc::value>{ipc::value(type), ipc::value(name)};
 	std::string settings_str = settings.Utf8Value();
 	if (settings_str.size() != 0) {
 		params.push_back(ipc::value(settings_str));
 	}
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Filter", "Create", {std::move(params)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+	uint64_t uid = obs::Filter::Create(type, name, settings_str);
 
 	SourceDataInfo* sdi = new SourceDataInfo;
 	sdi->name           = name;
 	sdi->obs_sourceId   = type;
-	sdi->id             = response[1].value_union.ui64;
+	sdi->id             = uid;
 
-	CacheManager<SourceDataInfo*>::getInstance().Store(response[1].value_union.ui64, name, sdi);
+	CacheManager<SourceDataInfo*>::getInstance().Store(uid, name, sdi);
 
     auto instance =
         osn::Filter::constructor.New({
-            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+            Napi::Number::New(info.Env(), uid)
             });
 
     return instance;

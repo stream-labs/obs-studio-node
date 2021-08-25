@@ -24,63 +24,37 @@
 #include "osn-source.hpp"
 #include "shared-server.hpp"
 
-void osn::Filter::Register(ipc::server& srv)
+std::vector<std::string> obs::Filter::Types()
 {
-	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Filter");
-	cls->register_function(std::make_shared<ipc::function>("Types", std::vector<ipc::type>{}, Types));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, Create));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String}, Create));
-	srv.register_collection(cls);
-}
+	std::vector<std::string> types;
 
-void osn::Filter::Types(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	const char* typeId = nullptr;
 	for (size_t idx = 0; obs_enum_filter_types(idx, &typeId); idx++) {
-		rval.push_back(ipc::value(typeId ? typeId : ""));
+		if (typeId)
+			types.push_back(std::string(typeId));
 	}
-	AUTO_DEBUG;
+
+	return types;
 }
 
-void osn::Filter::Create(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+uint64_t obs::Filter::Create(std::string sourceId, std::string name, std::string settingsData)
 {
-	std::string sourceId, name;
 	obs_data_t* settings = nullptr;
-
-	switch (args.size()) {
-	case 3:
-		settings = obs_data_create_from_json(args[2].value_str.c_str());
-	case 2:
-		name     = args[1].value_str;
-		sourceId = args[0].value_str;
-		break;
-	}
+	if (!settingsData.empty())
+		settings = obs_data_create_from_json(settingsData.c_str());
 
 	obs_source_t* source = obs_source_create_private(sourceId.c_str(), name.c_str(), settings);
 	if (!source) {
-		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to create filter.");
+		blog(LOG_ERROR, "Failed to create filter.");
 	}
 
 	obs_data_release(settings);
 
 	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
 	if (uid == UINT64_MAX) {
-		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
+		blog(LOG_ERROR, "Index list is full.");
 	}
 	osn::Source::attach_source_signals(source);
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(uid));
-	AUTO_DEBUG;
+	return uid;
 }
