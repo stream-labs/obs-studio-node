@@ -34,4 +34,4 @@ namespace obs
 		static bool GetMultipleRendering();
 		static void SetMultipleRendering(bool multipleRendering);
 	};
-} // namespace osn
+}
