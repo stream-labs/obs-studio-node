@@ -966,7 +966,22 @@ bool OBS_service::startStreaming(void)
 
 void OBS_service::updateAudioStreamingEncoder(bool isSimpleMode)
 {
-	const char* codec = obs_output_get_supported_audio_codecs(streamingOutput);
+	const char* codec = nullptr;
+
+	if (streamingOutput) {
+		codec = obs_output_get_supported_audio_codecs(streamingOutput);
+	} else {
+		const char* type = obs_service_get_output_type(service);
+		if (!type)
+			type = "rtmp_output";
+
+		obs_output_t* currentOutput = obs_output_create(type, "temp_stream", nullptr, nullptr);
+		if (!currentOutput)
+			return;
+
+		codec = obs_output_get_supported_audio_codecs(currentOutput);
+		obs_output_release(currentOutput);
+	}
 
 	if (!codec) {
 		return;
