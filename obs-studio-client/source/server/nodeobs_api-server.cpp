@@ -1360,7 +1360,7 @@ void OBS_API::destroyOBS_API(void)
 		osn::SceneItem::Manager::GetInstance().size() > 0	||
 		osn::Transition::Manager::GetInstance().size() > 0	||
 		obs::Filter::Manager::GetInstance().size() > 0		||
-		osn::Input::Manager::GetInstance().size() > 0) {
+		obs::Input::Manager::GetInstance().size() > 0) {
 
 		for (int i = 0; i < MAX_CHANNELS; i++)
 			obs_set_output_source(i, nullptr);

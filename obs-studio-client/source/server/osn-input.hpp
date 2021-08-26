@@ -18,170 +18,60 @@
 
 #pragma once
 #include "osn-source.hpp"
+#include <tuple>
 
-namespace osn
+namespace obs
 {
-	class Input : public Source
+	class Input : public osn::Source
 	{
 		public:
-		static void Register(ipc::server&);
+		static std::vector<std::string> Types();
+		static std::tuple<uint64_t, std::string, uint32_t>
+		            Create(
+						std::string sourceId, std::string name,
+						std::string settingsData, std::string hotkeyData);
+		static uint64_t CreatePrivate(
+						std::string sourceId, std::string name,
+						std::string settingsData);
+		static uint64_t Duplicate(uint64_t sourceId);
+		static uint64_t FromName(std::string name);
+		static std::vector<uint64_t> GetPublicSources();
 
-		// Function
-		static void
-		    Types(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		            Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void CreatePrivate(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void
-		    Duplicate(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		            FromName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void GetPublicSources(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-
-		// Methods
 		/// Status
-		static void
-		            GetActive(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void GetShowing(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
+		static bool GetActive(uint64_t uid);
+		static bool GetShowing(uint64_t uid);
+
 		/// Audio
-		static void
-		    GetVolume(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		            SetVolume(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void GetSyncOffset(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetSyncOffset(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetAudioMixers(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetAudioMixers(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetMonitoringType(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetMonitoringType(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
+		static float_t GetVolume(uint64_t uid);
+		static float_t SetVolume(uint64_t uid, float_t volume);
+		static int64_t GetSyncOffset(uint64_t uid);
+		static int64_t SetSyncOffset(uint64_t uid, int64_t offset);
+		static uint32_t GetAudioMixers(uint64_t uid);
+		static uint32_t SetAudioMixers(uint64_t uid, uint32_t mixers);
+		static int32_t GetMonitoringType(uint64_t uid);
+		static int32_t SetMonitoringType(uint64_t uid, int32_t monitoringType);
+
 		/// Video
-		static void
-		    GetWidth(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		            GetHeight(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void GetDeInterlaceFieldOrder(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetDeInterlaceFieldOrder(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetDeInterlaceMode(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetDeInterlaceMode(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
+		static uint32_t GetWidth(uint64_t uid);
+		static uint32_t GetHeight(uint64_t uid);
+		static int32_t GetDeInterlaceFieldOrder(uint64_t uid);
+		static int32_t SetDeInterlaceFieldOrder(uint64_t uid, int32_t deinterlaceOrder);
+		static int32_t GetDeInterlaceMode(uint64_t uid);
+		static int32_t SetDeInterlaceMode(uint64_t uid, int32_t deinterlaceMode);
 		/// Filters
-		static void
-		            AddFilter(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void RemoveFilter(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void MoveFilter(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void FindFilter(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetFilters(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void CopyFiltersTo(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetDuration(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetTime(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetTime(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void Play(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void Pause(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void Restart(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void Stop(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetMediaState(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
+		static void AddFilter(uint64_t sourceId, uint64_t filterId);
+		static void RemoveFilter(uint64_t sourceId, uint64_t filterId);
+		static void MoveFilter(uint64_t sourceId, uint64_t filterId, uint32_t move);
+		static uint64_t FindFilter(uint64_t sourceId, std::string name);
+		static std::vector<uint64_t> GetFilters(uint64_t uid);
+		static void CopyFiltersTo(uint64_t inputIdFrom, uint64_t inputIdTo);
+		static int64_t GetDuration(uint64_t uid);
+		static int64_t GetTime(uint64_t uid);
+		static int64_t SetTime(uint64_t uid, int64_t time);
+		static void Play(uint64_t uid);
+		static void Pause(uint64_t uid);
+		static void Restart(uint64_t uid);
+		static void Stop(uint64_t uid);
+		static uint64_t GetMediaState(uint64_t uid);
 	};
-} // namespace osn
+}
