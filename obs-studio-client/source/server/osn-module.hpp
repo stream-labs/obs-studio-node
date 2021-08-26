@@ -21,13 +21,10 @@
 #include <obs.h>
 #include "utility-server.hpp"
 
-namespace osn
+namespace obs
 {
 	class Module
 	{
-		public:
-		static void Register(ipc::server&);
-
 		public:
 		class Manager : public utility_server::unique_object_manager<obs_module_t>
 		{
@@ -47,41 +44,17 @@ namespace osn
 
 
 		// Functions
-		static void
-		            Open(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		            Modules(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void Initialize(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
+		static uint64_t Open(std::string bin_path, std::string data_path);
+		static std::vector<std::string> Modules();
+		static bool Initialize(uint64_t uid);
 
 		// Methods
-		static void
-		            GetName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void GetFileName(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void
-		    GetAuthor(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void GetDescription(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetBinaryPath(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetDataPath(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
+		static std::string GetName(uint64_t uid);
+		static std::string GetFileName(uint64_t uid);
+		static std::string GetAuthor(uint64_t uid);
+		static std::string GetDescription(uint64_t uid);
+		static std::string GetBinaryPath(uint64_t uid);
+		static std::string GetDataPath(uint64_t uid);
 		static void GetFilePath(
 		    void*                          data,
 		    const int64_t                  id,

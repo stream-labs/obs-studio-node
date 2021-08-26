@@ -232,7 +232,7 @@ int main(int argc, char* argv[])
 	osn::Volmeter::Register(myServer);
 	osn::Properties::Register(myServer);
 	osn::Video::Register(myServer);
-	osn::Module::Register(myServer);
+	obs::Module::Register(myServer);
 	CallbackManager::Register(myServer);
 	OBS_API::Register(myServer);
 	OBS_content::Register(myServer);

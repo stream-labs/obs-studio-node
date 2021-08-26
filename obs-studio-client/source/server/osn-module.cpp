@@ -20,56 +20,20 @@
 #include "error.hpp"
 #include "shared-server.hpp"
 
-void osn::Module::Register(ipc::server& srv)
-{
-	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Module");
-
-	cls->register_function(
-	    std::make_shared<ipc::function>("Open", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, Open));
-	cls->register_function(
-	    std::make_shared<ipc::function>("Modules", std::vector<ipc::type>{}, Modules));
-	cls->register_function(
-	    std::make_shared<ipc::function>("Initialize", std::vector<ipc::type>{ipc::type::UInt64}, Initialize));
-	cls->register_function(
-	    std::make_shared<ipc::function>("GetName", std::vector<ipc::type>{ipc::type::UInt64}, GetName));
-	cls->register_function(
-	    std::make_shared<ipc::function>("GetFileName", std::vector<ipc::type>{ipc::type::UInt64}, GetFileName));
-	cls->register_function(
-	    std::make_shared<ipc::function>("GetAuthor", std::vector<ipc::type>{ipc::type::UInt64}, GetAuthor));
-	cls->register_function(
-	    std::make_shared<ipc::function>("GetDescription", std::vector<ipc::type>{ipc::type::UInt64}, GetDescription));
-	cls->register_function(
-	    std::make_shared<ipc::function>("GetBinaryPath", std::vector<ipc::type>{ipc::type::UInt64}, GetBinaryPath));
-	cls->register_function(
-	    std::make_shared<ipc::function>("GetDataPath", std::vector<ipc::type>{ipc::type::UInt64}, GetDataPath));
-	cls->register_function(
-	    std::make_shared<ipc::function>("GetDataPath", std::vector<ipc::type>{ipc::type::UInt64}, GetDataPath));
-
-	srv.register_collection(cls);
-}
-
-void osn::Module::Open(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
+uint64_t obs::Module::Open(std::string bin_path, std::string data_path)
 {
 	obs_module_t*     module;
-
-	const std::string bin_path  = args[0].value_str.c_str();
-	const std::string data_path = args[1].value_str.c_str();
-
 	int64_t result = obs_open_module(&module, bin_path.c_str(), data_path.c_str());
 
 	if (result == MODULE_SUCCESS) {
-		uint64_t uid = osn::Module::Manager::GetInstance().allocate(module);
-
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-		rval.push_back(ipc::value(uid));
+		return obs::Module::Manager::GetInstance().allocate(module);
 	} else {
-		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to create module.");
+		blog(LOG_ERROR, "Failed to create module.");
+		return UINT64_MAX;
 	}
-
-	AUTO_DEBUG;
 }
 
-void osn::Module::Modules(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
+std::vector<std::string> obs::Module::Modules()
 {
 	std::vector<std::string> modules;
 
@@ -80,154 +44,94 @@ void osn::Module::Modules(void* data, const int64_t id, const std::vector<ipc::v
 				modules.push_back(name);
 	},&modules);
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value((uint64_t)modules.size()));
-
-	for (size_t i = 0; i < modules.size(); i++) {
-		rval.push_back(ipc::value(modules.at(i).c_str()));
-	}
-
-	AUTO_DEBUG;
+	return modules;
 }
-void osn::Module::Initialize(
-	void*                          data,
-	const int64_t                  id,
-	const std::vector<ipc::value>& args,
-	std::vector<ipc::value>&       rval)
+bool obs::Module::Initialize(uint64_t uid)
 {
-	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_module_t* module = obs::Module::Manager::GetInstance().find(uid);
 
 	if (!module) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Module reference is not valid.");
+		blog(LOG_ERROR, "Module reference is not valid.");
+		return false;
 	}
-	
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(obs_init_module(module)));
-	AUTO_DEBUG;
+
+	return obs_init_module(module);
 }
 
-void osn::Module::GetName(
-	void*                          data,
-	const int64_t                  id,
-	const std::vector<ipc::value>& args,
-	std::vector<ipc::value>&       rval)
+std::string obs::Module::GetName(uint64_t uid)
 {
-	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_module_t* module = obs::Module::Manager::GetInstance().find(uid);
 
 	if (!module) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Module reference is not valid.");
+		blog(LOG_ERROR, "Module reference is not valid.");
+		return "";
 	}
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(obs_get_module_name(module)));
-	AUTO_DEBUG;
+	return std::string(obs_get_module_name(module));
 }
 
-void osn::Module::GetFileName(
-	void*                          data,
-	const int64_t                  id,
-	const std::vector<ipc::value>& args,
-	std::vector<ipc::value>&       rval)
+std::string obs::Module::GetFileName(uint64_t uid)
 {
-	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_module_t* module = obs::Module::Manager::GetInstance().find(uid);
 
 	if (!module) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Module reference is not valid.");
+		blog(LOG_ERROR, "Module reference is not valid.");
+		return "";
 	}
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(obs_get_module_file_name(module)));
-	AUTO_DEBUG;
+	return std::string(obs_get_module_file_name(module));
 }
 
-void osn::Module::GetAuthor(
-	void*                          data,
-	const int64_t                  id,
-	const std::vector<ipc::value>& args,
-	std::vector<ipc::value>&       rval)
+std::string obs::Module::GetAuthor(uint64_t uid)
 {
-	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_module_t* module = obs::Module::Manager::GetInstance().find(uid);
 
 	if (!module) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Module reference is not valid.");
+		blog(LOG_ERROR, "Module reference is not valid.");
+		return "";
 	}
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(obs_get_module_author(module)));
-	AUTO_DEBUG;
+	return std::string(obs_get_module_author(module));
 }
 
-void osn::Module::GetDescription(
-	void*                          data,
-	const int64_t                  id,
-	const std::vector<ipc::value>& args,
-	std::vector<ipc::value>&       rval)
+std::string obs::Module::GetDescription(uint64_t uid)
 {
-	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_module_t* module = obs::Module::Manager::GetInstance().find(uid);
 
 	if (!module) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Module reference is not valid.");
+		blog(LOG_ERROR, "Module reference is not valid.");
+		return "";
 	}
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(obs_get_module_description(module)));
-	AUTO_DEBUG;
+	return std::string(obs_get_module_description(module));
 }
 
-void osn::Module::GetBinaryPath(
-	void*                          data,
-	const int64_t                  id,
-	const std::vector<ipc::value>& args,
-	std::vector<ipc::value>&       rval)
+std::string obs::Module::GetBinaryPath(uint64_t uid)
 {
-	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_module_t* module = obs::Module::Manager::GetInstance().find(uid);
 
 	if (!module) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Module reference is not valid.");
+		blog(LOG_ERROR, "Module reference is not valid.");
+		return "";
 	}
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(obs_get_module_binary_path(module)));
-	AUTO_DEBUG;
+	return std::string(obs_get_module_binary_path(module));
 }
 
-void osn::Module::GetDataPath(
-	void*                          data,
-	const int64_t                  id,
-	const std::vector<ipc::value>& args,
-	std::vector<ipc::value>&       rval)
+std::string obs::Module::GetDataPath(uint64_t uid)
 {
-	obs_module_t* module = osn::Module::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_module_t* module = obs::Module::Manager::GetInstance().find(uid);
 
 	if (!module) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Module reference is not valid.");
+		blog(LOG_ERROR, "Module reference is not valid.");
+		return "";
 	}
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(obs_get_module_data_path(module)));
-	AUTO_DEBUG;
+	return std::string(obs_get_module_data_path(module));
 }
 
-void osn::Module::GetFilePath(
-	void*                          data,
-	const int64_t                  id,
-	const std::vector<ipc::value>& args,
-	std::vector<ipc::value>&       rval)
+obs::Module::Manager& obs::Module::Manager::GetInstance()
 {
-
-}
-
-void osn::Module::GetConfigFilePath(
-	void*                          data,
-	const int64_t                  id,
-	const std::vector<ipc::value>& args,
-	std::vector<ipc::value>&       rval)
-{
-
-}
-
-osn::Module::Manager& osn::Module::Manager::GetInstance()
-{
-	static osn::Module::Manager _inst;
+	static obs::Module::Manager _inst;
 	return _inst;
 }
