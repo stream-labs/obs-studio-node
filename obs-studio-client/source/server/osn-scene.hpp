@@ -19,66 +19,45 @@
 #pragma once
 #include "osn-source.hpp"
 
-namespace osn
+namespace obs
 {
-	class Scene : public Source
+	struct TransformInfo {
+		float_t scaleX = 0.0;
+		float_t scaleY = 0.0;
+		bool visible = false;
+		float_t positionX = 0.0;
+		float_t positionY = 0.0;
+		float_t rotation = 0.0;
+		int64_t cropLeft = 0;
+		int64_t cropTop = 0;
+		int64_t cropRight = 0;
+		int64_t cropBottom = 0;
+		bool streamVisible = false;
+		bool recordingVisible = false;
+	};
+
+	class Scene : public osn::Source
 	{
 		public:
-		static void Register(ipc::server&);
+		static uint64_t Create(std::string name);
+		static uint64_t CreatePrivate(std::string name);
+		static uint64_t FromName(std::string name);
 
-		static void
-		            Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void CreatePrivate(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void
-		    FromName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static void Release(uint64_t uid);
+		static void Remove(uint64_t uid);
 
-		static void
-		    Release(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		    Remove(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static uint64_t Duplicate(uint64_t sourceId, std::string name, int32_t duplicateType);
 
-		static void
-		    AsSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		    Duplicate(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-
-		static void
-		            AddSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void FindItemByName(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void FindItemByItemId(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void
-		    OrderItems(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		    MoveItem(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		    GetItem(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		            GetItems(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void GetItemsInRange(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-
-		// Signals?
-		static void
-		            Connect(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void Disconnect(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
+		static std::pair<uint64_t, int64_t> AddSource(uint64_t uid, uint64_t sourceId);
+		static std::pair<uint64_t, int64_t> AddSource(uint64_t uid, uint64_t sourceId, struct TransformInfo transform);
+		static uint64_t FindItem(uint64_t sourceid, std::string name);
+		static uint64_t FindItem(uint64_t sourceid, int64_t position);
+		static std::vector<std::pair<uint64_t, int64_t>>
+		    OrderItems(uint64_t uid, const std::vector<char> &new_items_order);
+		static std::vector<std::pair<uint64_t, int64_t>>
+		    MoveItem(uint64_t uid, int32_t from, int32_t to);
+		static uint64_t GetItem(uint64_t sourceId, uint64_t index);
+		static std::vector<std::pair<uint64_t, int64_t>> GetItems(uint64_t sourceId);
+		static std::vector<uint64_t> GetItemsInRange(uint64_t sourceId, uint64_t from, uint64_t to);
 	};
-} // namespace osn
+}

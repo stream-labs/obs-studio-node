@@ -1356,7 +1356,7 @@ void OBS_API::destroyOBS_API(void)
 	// problem since obs doesn't handle releasing leaked sources very well. The best we can
 	// do is to insert a try-catch block and disable the crash handler to avoid false positives
 	if (osn::Source::Manager::GetInstance().size() > 0		||
-		osn::Scene::Manager::GetInstance().size() > 0		||
+		obs::Scene::Manager::GetInstance().size() > 0		||
 		osn::SceneItem::Manager::GetInstance().size() > 0	||
 		osn::Transition::Manager::GetInstance().size() > 0	||
 		obs::Filter::Manager::GetInstance().size() > 0		||

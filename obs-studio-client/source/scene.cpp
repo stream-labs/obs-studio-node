@@ -27,6 +27,7 @@
 #include "sceneitem.hpp"
 #include "shared.hpp"
 #include "utility.hpp"
+#include "server/osn-scene.hpp"
 
 Napi::FunctionReference osn::Scene::constructor;
 
@@ -98,18 +99,7 @@ osn::Scene::Scene(const Napi::CallbackInfo& info)
 Napi::Value osn::Scene::Create(const Napi::CallbackInfo& info)
 {
 	std::string name = info[0].ToString().Utf8Value();
-
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Scene", "Create", std::vector<ipc::value>{ipc::value(name)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	uint64_t sourceId = response[1].value_union.ui64;
+	uint64_t sourceId = obs::Scene::Create(name);
 
 	SceneInfo* si       = new SceneInfo();
 	si->name            = name;
@@ -117,14 +107,14 @@ Napi::Value osn::Scene::Create(const Napi::CallbackInfo& info)
 	SourceDataInfo* sdi = new SourceDataInfo;
 	sdi->name           = name;
 	sdi->obs_sourceId   = "scene";
-	sdi->id             = response[1].value_union.ui64;
+	sdi->id             = sourceId;
 
 	CacheManager<SourceDataInfo*>::getInstance().Store(sourceId, name, sdi);
 	CacheManager<SceneInfo*>::getInstance().Store(sourceId, name, si);
 
     auto instance =
         osn::Scene::constructor.New({
-            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+            Napi::Number::New(info.Env(), sourceId)
             });
 
     return instance;
@@ -133,18 +123,7 @@ Napi::Value osn::Scene::Create(const Napi::CallbackInfo& info)
 Napi::Value osn::Scene::CreatePrivate(const Napi::CallbackInfo& info)
 {
 	std::string name = info[0].ToString().Utf8Value();
-
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Scene", "CreatePrivate", std::vector<ipc::value>{ipc::value(name)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	uint64_t sourceId = response[1].value_union.ui64;
+	uint64_t sourceId = obs::Scene::CreatePrivate(name);
 
 	SceneInfo* si       = new SceneInfo();
 	si->name            = name;
@@ -152,14 +131,14 @@ Napi::Value osn::Scene::CreatePrivate(const Napi::CallbackInfo& info)
 	SourceDataInfo* sdi = new SourceDataInfo;
 	sdi->name           = name;
 	sdi->obs_sourceId   = "scene";
-	sdi->id             = response[1].value_union.ui64;
+	sdi->id             = sourceId;
 
 	CacheManager<SourceDataInfo*>::getInstance().Store(sourceId, name, sdi);
 	CacheManager<SceneInfo*>::getInstance().Store(sourceId, name, si);
 
     auto instance =
         osn::Scene::constructor.New({
-            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+            Napi::Number::New(info.Env(), sourceId)
             });
 
     return instance;
@@ -171,19 +150,11 @@ Napi::Value osn::Scene::FromName(const Napi::CallbackInfo& info)
 	SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(name);
 
 	if (!si) {
-		auto conn = GetConnection(info);
-		if (!conn)
-			return info.Env().Undefined();
-
-		std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "FromName", {ipc::value(name)});
-
-		if (!ValidateResponse(info, response))
-			return info.Env().Undefined();
-
+		uint64_t uid = obs::Scene::FromName(name);
 		si = new SceneInfo;
-		si->id = response[1].value_union.ui64;
+		si->id = uid;
 		si->name = name;
-		CacheManager<SceneInfo*>::getInstance().Store(response[1].value_union.ui64, name, si);
+		CacheManager<SceneInfo*>::getInstance().Store(uid, name, si);
 	}
     auto instance =
         osn::Scene::constructor.New({
@@ -195,21 +166,15 @@ Napi::Value osn::Scene::FromName(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::Release(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	obs::Scene::Release(this->sourceId);
 
-	conn->call("Scene", "Release", std::vector<ipc::value>{ipc::value(this->sourceId)});
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Scene::Remove(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	obs::Scene::Remove(this->sourceId);
 
-	conn->call("Scene", "Remove", std::vector<ipc::value>{ipc::value(this->sourceId)});
 	return info.Env().Undefined();
 }
 
@@ -228,24 +193,12 @@ Napi::Value osn::Scene::Duplicate(const Napi::CallbackInfo& info)
 	std::string name = info[0].ToString().Utf8Value();
 	int duplicate_type = info[1].ToNumber().Int64Value();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Scene",
-	    "Duplicate",
-	    std::vector<ipc::value>{ipc::value(this->sourceId), ipc::value(name), ipc::value(duplicate_type)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	uint64_t sourceId = response[1].value_union.ui64;
+	uint64_t sourceId = obs::Scene::Duplicate(this->sourceId, name, duplicate_type);
 
 	SourceDataInfo* sdi = new SourceDataInfo;
 	sdi->name           = name;
 	sdi->obs_sourceId   = "scene";
-	sdi->id             = response[1].value_union.ui64;
+	sdi->id             = sourceId;
 
 	CacheManager<SourceDataInfo*>::getInstance().Store(sourceId, name, sdi);
 	CacheManager<SceneInfo*>::getInstance().Store(sourceId, name, new SceneInfo);
@@ -267,41 +220,37 @@ Napi::Value osn::Scene::AddSource(const Napi::CallbackInfo& info)
 	params.push_back(ipc::value(input->sourceId));
 	Napi::Object transform = Napi::Object::New(info.Env());
 	Napi::Object crop = Napi::Object::New(info.Env());
+	
+	uint64_t id     = 0;
+	int64_t  obs_id = 0;
+	obs::TransformInfo transformInfo;
 
 	if (info.Length() >= 2) {
 		transform = info[1].ToObject();
-		params.push_back(ipc::value(transform.Get("scaleX").ToNumber().DoubleValue()));
-		params.push_back(ipc::value(transform.Get("scaleY").ToNumber().DoubleValue()));
-		params.push_back(ipc::value(transform.Get("visible").ToBoolean().Value()));
-		params.push_back(ipc::value(transform.Get("x").ToNumber().DoubleValue()));
-		params.push_back(ipc::value(transform.Get("y").ToNumber().DoubleValue()));
-		params.push_back(ipc::value(transform.Get("rotation").ToNumber().DoubleValue()));
-
+		transformInfo.scaleX = transform.Get("scaleX").ToNumber().DoubleValue();
+		transformInfo.scaleY = transform.Get("scaleY").ToNumber().DoubleValue();
+		transformInfo.visible = transform.Get("visible").ToBoolean().Value();
+		transformInfo.positionX = transform.Get("x").ToNumber().DoubleValue();
+		transformInfo.positionY = transform.Get("y").ToNumber().DoubleValue();
+		transformInfo.rotation = transform.Get("rotation").ToNumber().DoubleValue();
 		crop = transform.Get("crop").ToObject();
-		params.push_back(ipc::value(crop.Get("left").ToNumber().Int64Value()));
-		params.push_back(ipc::value(crop.Get("top").ToNumber().Int64Value()));
-		params.push_back(ipc::value(crop.Get("right").ToNumber().Int64Value()));
-		params.push_back(ipc::value(crop.Get("bottom").ToNumber().Int64Value()));
+		transformInfo.cropLeft = crop.Get("left").ToNumber().Int64Value();
+		transformInfo.cropTop = crop.Get("top").ToNumber().Int64Value();
+		transformInfo.cropRight = crop.Get("right").ToNumber().Int64Value();
+		transformInfo.cropBottom = crop.Get("bottom").ToNumber().Int64Value();
+		transformInfo.streamVisible = transform.Get("streamVisible").ToBoolean().Value();
+		transformInfo.recordingVisible = transform.Get("recordingVisible").ToBoolean().Value();
 
-		params.push_back(ipc::value(transform.Get("streamVisible").ToBoolean().Value()));
-		params.push_back(ipc::value(transform.Get("recordingVisible").ToBoolean().Value()));
+		auto res = obs::Scene::AddSource(this->sourceId, input->sourceId, transformInfo);
+		id = res.first;
+		obs_id = res.second;
+	} else {
+		auto res = obs::Scene::AddSource(this->sourceId, input->sourceId);
+		id = res.first;
+		obs_id = res.second;
 	}
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Scene", info.Length() >= 2 ? "AddSourceWithTransform" : "AddSource", params);
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	uint64_t id     = response[1].value_union.ui64;
-	int64_t  obs_id = response[2].value_union.i64;
-
-	SceneInfo*      si  = CacheManager<SceneInfo*>::getInstance().Retrieve(this->sourceId);
-
+	SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(this->sourceId);
 	if (si) {
 		si->items.push_back(std::make_pair(obs_id, id));
 		si->itemsOrderCached = true;
@@ -313,36 +262,36 @@ Napi::Value osn::Scene::AddSource(const Napi::CallbackInfo& info)
 
 	if (info.Length() >= 2) {
 		// Position
-		sid->posX = transform.Get("x").ToNumber().FloatValue();
-		sid->posY = transform.Get("y").ToNumber().FloatValue();
+		sid->posX = transformInfo.positionX;
+		sid->posY = transformInfo.positionY;
 		sid->posChanged = false;
 
 		// Scale
-		sid->scaleX = transform.Get("scaleX").ToNumber().FloatValue();
-		sid->scaleY = transform.Get("scaleY").ToNumber().FloatValue();
+		sid->scaleX = transformInfo.scaleX;
+		sid->scaleY = transformInfo.scaleY;
 		sid->scaleChanged = false;
 
 		// Visibility
-		sid->isVisible      = transform.Get("visible").ToBoolean().Value();
+		sid->isVisible      = transformInfo.visible;
 		sid->visibleChanged = false;
 
 		// Crop
-		sid->cropLeft    = crop.Get("left").ToNumber().Int32Value();
-		sid->cropTop     = crop.Get("top").ToNumber().Int32Value();
-		sid->cropRight   = crop.Get("right").ToNumber().Int32Value();
-		sid->cropBottom  = crop.Get("bottom").ToNumber().Int32Value();
+		sid->cropLeft    = transformInfo.cropLeft;
+		sid->cropTop     = transformInfo.cropTop;
+		sid->cropRight   = transformInfo.cropRight;
+		sid->cropBottom  = transformInfo.cropBottom;
 		sid->cropChanged = false;
 
 		// Rotation
-		sid->rotation = transform.Get("rotation").ToNumber().FloatValue();
+		sid->rotation = transformInfo.rotation;
 		sid->rotationChanged = false;
 
 		// Stream visible
-		sid->isStreamVisible      = transform.Get("streamVisible").ToBoolean().Value();
+		sid->isStreamVisible      = transformInfo.streamVisible;
 		sid->streamVisibleChanged = false;
 
 		// Recording visible
-		sid->isRecordingVisible      = transform.Get("recordingVisible").ToBoolean().Value();
+		sid->isRecordingVisible      = transformInfo.recordingVisible;
 		sid->recordingVisibleChanged = false;
 	}
 
@@ -358,15 +307,15 @@ Napi::Value osn::Scene::AddSource(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::FindItem(const Napi::CallbackInfo& info)
 {
-	bool        haveName = false;
+	bool        hasName = false;
 	std::string name;
 	int64_t     position;
 
 	if (info[0].IsNumber()) {
-		haveName = false;
+		hasName = false;
 		position = info[0].ToNumber().Int64Value();
 	} else if (info[0].IsString()) {
-		haveName = true;
+		hasName = true;
 		name = info[0].ToString().Utf8Value();
 	} else {
 		Napi::TypeError::New(info.Env(), "Expected string or number").ThrowAsJavaScriptException();
@@ -375,7 +324,7 @@ Napi::Value osn::Scene::FindItem(const Napi::CallbackInfo& info)
 
 	SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(this->sourceId);
 
-	if (si && !haveName) {
+	if (si && !hasName) {
 		auto find = [position](const std::pair<int64_t, uint64_t> &item) {
 			return item.first == position;
 		};
@@ -391,27 +340,11 @@ Napi::Value osn::Scene::FindItem(const Napi::CallbackInfo& info)
 		}
 	}
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response;
-	if (haveName) {
-		response = conn->call_synchronous_helper(
-			"Scene",
-			"FindItemByName",
-			std::vector<ipc::value>{ipc::value(this->sourceId), ipc::value(name) });
-	} else {
-		response = conn->call_synchronous_helper(
-			"Scene",
-			"FindItemById",
-			std::vector<ipc::value>{ipc::value(this->sourceId), ipc::value(position) });
-	}
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	uint64_t id = response[1].value_union.ui64;
+	uint64_t id = 0;
+	if (hasName)
+		id = obs::Scene::FindItem(this->sourceId, name);
+	else
+		id = obs::Scene::FindItem(this->sourceId, position);
 
 	auto instance =
 		osn::SceneItem::constructor.New({
@@ -436,14 +369,15 @@ Napi::Value osn::Scene::MoveItem(const Napi::CallbackInfo& info)
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
+	auto res = obs::Scene::MoveItem(this->sourceId, from, to);
 	SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(this->sourceId);
 
-	if (si && response.size() > 2) {
+	if (si && res.size()) {
 		si->items.clear();
 
-		for (size_t i = 1; i < response.size(); i += 2) {
-			si->items.push_back(std::make_pair(response[i + 1].value_union.i64, response[i].value_union.ui64));
-		}
+		for (auto item: res)
+			si->items.push_back(std::make_pair(item.second, item.first));
+
 		si->itemsOrderCached = true;
 	}
 	return info.Env().Undefined();
@@ -473,15 +407,17 @@ Napi::Value osn::Scene::OrderItems(const Napi::CallbackInfo& info)
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
+	
+	auto res = obs::Scene::OrderItems(this->sourceId, order_char);
 
 	SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(this->sourceId);
 
-	if (si && response.size() > 2) {
+	if (si && res.size()) {
 		si->items.clear();
 
-		for (size_t i = 1; i < response.size(); i += 2) {
-			si->items.push_back(std::make_pair(response[i + 1].value_union.i64, response[i].value_union.ui64));
-		}
+		for (auto item: res)
+			si->items.push_back(std::make_pair(item.second, item.first));
+
 		si->itemsOrderCached = true;
 	}
 
@@ -492,17 +428,7 @@ Napi::Value osn::Scene::GetItemAtIndex(const Napi::CallbackInfo& info)
 {
 	int32_t index = info[0].ToNumber().Int32Value();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Scene", "GetItem", std::vector<ipc::value>{ipc::value(this->sourceId), ipc::value(index)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	uint64_t id = response[1].value_union.ui64;
+	uint64_t id = obs::Scene::GetItem(this->sourceId, (int64_t)index);
 
     auto instance =
         osn::SceneItem::constructor.New({
@@ -538,34 +464,24 @@ Napi::Value osn::Scene::GetItems(const Napi::CallbackInfo& info)
 		}
 	}
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Scene", "GetItems", std::vector<ipc::value>{ipc::value(this->sourceId)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	Napi::Array array = Napi::Array::New(info.Env(), int((response.size()) - 1)/2);
-	size_t index = 0;
-	for (size_t i = 1; i < response.size(); i++) {
-		auto instance =
-			osn::SceneItem::constructor.New({
-				Napi::Number::New(info.Env(), response[i++].value_union.ui64)
-				});
-		array.Set(uint32_t(index++), instance);
-	}
+	auto res = obs::Scene::GetItems(this->sourceId);
+	Napi::Array array = Napi::Array::New(info.Env(), res.size());
+	uint32_t index = 0;
 
 	if (si) {
 		si->items.clear();
-
-		for (size_t i = 1; i < response.size(); i+= 2) {
-			si->items.push_back(std::make_pair(response[i + 1].value_union.i64, response[i].value_union.ui64));
-		}
-
 		si->itemsOrderCached = true;
+	}
+
+	for (auto item: res) {
+		auto instance =
+			osn::SceneItem::constructor.New({
+				Napi::Number::New(info.Env(), item.first)
+				});
+		array.Set(index, instance);
+		if (si)
+			si->items.push_back(std::make_pair(item.second, item.first));
+		index++;
 	}
 
 	return array;
@@ -588,13 +504,16 @@ Napi::Value osn::Scene::GetItemsInRange(const Napi::CallbackInfo& info)
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-	Napi::Array array = Napi::Array::New(info.Env(), int(response.size() - 1));
-	for (size_t i = 1; i < response.size(); i++) {
+	auto res = obs::Scene::GetItemsInRange(this->sourceId, from, to);
+	Napi::Array array = Napi::Array::New(info.Env(), res.size());
+	uint32_t index = 0;
+
+	for (auto item: res) {
 		auto instance =
 			osn::SceneItem::constructor.New({
-				Napi::Number::New(info.Env(), response[i].value_union.ui64)
+				Napi::Number::New(info.Env(), item)
 				});
-		array.Set(uint32_t(i - 1), instance);
+		array.Set(index++, instance);
 	}
 
 	return array;
