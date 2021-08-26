@@ -55,15 +55,5 @@ namespace obs
 		static std::string GetDescription(uint64_t uid);
 		static std::string GetBinaryPath(uint64_t uid);
 		static std::string GetDataPath(uint64_t uid);
-		static void GetFilePath(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetConfigFilePath(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
 	};
 }
