@@ -19,16 +19,12 @@
 #pragma once
 #include <ipc-server.hpp>
 
-namespace osn
+namespace obs
 {
 	class Properties
 	{
 		public:
-		static void Register(ipc::server& srv);
-
-		static void
-		    Modified(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		    Clicked(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static bool Modified(uint64_t sourceId, std::string name, std::string value);
+		static bool Clicked(uint64_t sourceId, std::string name);
 	};
-} // namespace osn
+}

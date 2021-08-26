@@ -19,6 +19,7 @@
 #include "properties.hpp"
 #include "isource.hpp"
 #include "utility-v8.hpp"
+#include "server/osn-properties.hpp"
 
 std::shared_ptr<osn::property_map_t> osn::Properties::GetProperties()
 {
@@ -579,25 +580,13 @@ Napi::Value osn::PropertyObject::Modified(const Napi::CallbackInfo& info)
 	Napi::String settings_str = stringify.Call(json, { settings }).As<Napi::String>();
 	std::string value = settings_str.Utf8Value();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	auto rval = conn->call_synchronous_helper(
-	    "Properties",
-	    "Modified",
-	    {ipc::value(parent->sourceId), ipc::value(iter->second->name), ipc::value(value)});
-
-	if (!ValidateResponse(info, rval))
-		return Napi::Boolean::New(info.Env(), false);
-
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(parent->sourceId);
 	if (sdi) {
 		sdi->propertiesChanged = true;
 		sdi->settingsChanged   = true;
 	}
 
-	return Napi::Boolean::New(info.Env(), !!rval[1].value_union.i32);
+	return Napi::Boolean::New(info.Env(), obs::Properties::Modified(parent->sourceId, iter->second->name, value));
 }
 
 Napi::Value osn::PropertyObject::ButtonClicked(const Napi::CallbackInfo& info)
@@ -614,30 +603,12 @@ Napi::Value osn::PropertyObject::ButtonClicked(const Napi::CallbackInfo& info)
 	if (iter == parent->GetProperties()->end())
 		return info.Env().Null();
 
-	// Call
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	auto rval = conn->call_synchronous_helper(
-	    "Properties", "Clicked", {ipc::value(parent->sourceId), ipc::value(iter->second->name)});
-
-	if (!ValidateResponse(info, rval))
-		return Napi::Boolean::New(info.Env(), false);
-
-	rval = conn->call_synchronous_helper(
-	    "Properties",
-	    "Modified",
-	    {ipc::value(parent->sourceId), ipc::value(iter->second->name), ipc::value("")});
-	bool settings_changed = false;
-	if (ValidateResponse(info, rval))
-		settings_changed = true;
-
+	bool res = obs::Properties::Clicked(parent->sourceId, iter->second->name);
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(parent->sourceId);
 	if (sdi) {
 		sdi->propertiesChanged = true;
-		sdi->settingsChanged   = settings_changed;
+		sdi->settingsChanged   = res;
 	}
 
-	return Napi::Boolean::New(info.Env(), true);
+	return Napi::Boolean::New(info.Env(), res);
 }

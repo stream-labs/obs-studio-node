@@ -22,71 +22,49 @@
 #include "osn-source.hpp"
 #include "shared-server.hpp"
 
-void osn::Properties::Register(ipc::server& srv)
+bool obs::Properties::Modified(uint64_t sourceId, std::string name, std::string value)
 {
-	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Properties");
-	cls->register_function(std::make_shared<ipc::function>(
-	    "Modified", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::String}, Modified));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "Clicked", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, Clicked));
-	srv.register_collection(cls);
-}
-
-void osn::Properties::Modified(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	uint64_t    sourceId = args[0].value_union.ui64;
-	std::string name     = args[1].value_str;
-
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(sourceId);
+	bool res = false;
 	if (!source) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid reference.");
+		blog(LOG_ERROR, "Invalid reference.");
+		return res;
 	}
-	obs_data_t* settings = obs_data_create_from_json(args[2].value_str.c_str());
+	obs_data_t* settings = obs_data_create_from_json(value.c_str());
 
 	obs_properties_t* props = obs_source_properties(source);
 	obs_property_t*   prop  = obs_properties_get(props, name.c_str());
 	if (!prop) {
 		obs_properties_destroy(props);
 		obs_data_release(settings);
-		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to find property in source.");
+		blog(LOG_ERROR, "Failed to find property in source.");
+		return res;
 	} else {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-		rval.push_back(ipc::value((int32_t)obs_property_modified(prop, settings)));
+		res = obs_property_modified(prop, settings);
 	}
 	obs_properties_destroy(props);
 	obs_data_release(settings);
-
-	AUTO_DEBUG;
+	return res;
 }
 
-void osn::Properties::Clicked(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+bool obs::Properties::Clicked(uint64_t sourceId, std::string name)
 {
-	uint64_t    sourceId = args[0].value_union.ui64;
-	std::string name     = args[1].value_str;
-
 	obs_source_t* source = osn::Source::Manager::GetInstance().find(sourceId);
+	bool res = false;
 	if (!source) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid reference.");
+		blog(LOG_ERROR, "Invalid reference.");
+		return res;
 	}
 
 	obs_properties_t* props = obs_source_properties(source);
 	obs_property_t*   prop  = obs_properties_get(props, name.c_str());
 	if (!prop) {
 		obs_properties_destroy(props);
-		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to find property in source.");
+		blog(LOG_ERROR, "Failed to find property in source.");
+		return res;
 	} else {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-		rval.push_back(ipc::value((int32_t)obs_property_button_clicked(prop, source)));
+		res = obs_property_button_clicked(prop, source);
 	}
 	obs_properties_destroy(props);
-
-	AUTO_DEBUG;
+	return res;
 }

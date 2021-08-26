@@ -230,7 +230,7 @@ int main(int argc, char* argv[])
 	osn::SceneItem::Register(myServer);
 	obs::Fader::Register(myServer);
 	osn::Volmeter::Register(myServer);
-	osn::Properties::Register(myServer);
+	obs::Properties::Register(myServer);
 	osn::Video::Register(myServer);
 	obs::Module::Register(myServer);
 	CallbackManager::Register(myServer);
