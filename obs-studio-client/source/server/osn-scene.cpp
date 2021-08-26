@@ -144,7 +144,7 @@ void obs::Scene::Remove(uint64_t uid)
 	osn::Source::Manager::GetInstance().free(uid);
 
 	for (auto item : items) {
-		osn::SceneItem::Manager::GetInstance().free(item);
+		obs::SceneItem::Manager::GetInstance().free(item);
 		obs_sceneitem_release(item);
 		obs_sceneitem_release(item);
 	}
@@ -208,7 +208,7 @@ std::pair<uint64_t, int64_t> obs::Scene::AddSource(uint64_t sceneId, uint64_t so
 
 	obs_sceneitem_t* item = obs_scene_add(scene, added_source);
 
-	utility_server::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().allocate(item);
+	utility_server::unique_id::id_t uid = obs::SceneItem::Manager::GetInstance().allocate(item);
 	if (uid == UINT64_MAX) {
 		blog(LOG_ERROR, "Index list is full.");
 		return std::make_pair(UINT64_MAX, INT64_MAX);
@@ -241,7 +241,7 @@ std::pair<uint64_t, int64_t> obs::Scene::AddSource(uint64_t sceneId, uint64_t so
 
 	obs_sceneitem_t* item = obs_scene_add(scene, added_source);
 
-	utility_server::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().allocate(item);
+	utility_server::unique_id::id_t uid = obs::SceneItem::Manager::GetInstance().allocate(item);
 	if (uid == UINT64_MAX) {
 		blog(LOG_ERROR, "Index list is full.");
 		return std::make_pair(UINT64_MAX, INT64_MAX);
@@ -297,9 +297,9 @@ uint64_t obs::Scene::FindItem(uint64_t sourceid, std::string name)
 		return UINT64_MAX;
 	}
 
-	utility_server::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
+	utility_server::unique_id::id_t uid = obs::SceneItem::Manager::GetInstance().find(item);
 	if (uid == UINT64_MAX) {
-		uid = osn::SceneItem::Manager::GetInstance().allocate(item);
+		uid = obs::SceneItem::Manager::GetInstance().allocate(item);
 		if (uid == UINT64_MAX) {
 			blog(LOG_ERROR, "Index list is full.");
 			return UINT64_MAX;
@@ -330,9 +330,9 @@ uint64_t obs::Scene::FindItem(uint64_t sourceid, int64_t position)
 		return UINT64_MAX;
 	}
 
-	utility_server::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
+	utility_server::unique_id::id_t uid = obs::SceneItem::Manager::GetInstance().find(item);
 	if (uid == UINT64_MAX) {
-		uid = osn::SceneItem::Manager::GetInstance().allocate(item);
+		uid = obs::SceneItem::Manager::GetInstance().allocate(item);
 		if (uid == UINT64_MAX) {
 			blog(LOG_ERROR, "Index list is full.");
 			return UINT64_MAX;
@@ -373,9 +373,9 @@ std::vector<std::pair<uint64_t, int64_t>>
 	obs_scene_enum_items(scene, cb_items, &items);
 
 	for (obs_sceneitem_t* item : items) {
-		utility_server::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
+		utility_server::unique_id::id_t uid = obs::SceneItem::Manager::GetInstance().find(item);
 		if (uid == UINT64_MAX) {
-			uid = osn::SceneItem::Manager::GetInstance().allocate(item);
+			uid = obs::SceneItem::Manager::GetInstance().allocate(item);
 			if (uid == UINT64_MAX) {
 				blog(LOG_ERROR, "Index list is full.");
 				return res;
@@ -452,9 +452,9 @@ std::vector<std::pair<uint64_t, int64_t>>
 	obs_scene_enum_items(scene, cb_items, &items);
 
 	for (obs_sceneitem_t* item : items) {
-		utility_server::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
+		utility_server::unique_id::id_t uid = obs::SceneItem::Manager::GetInstance().find(item);
 		if (uid == UINT64_MAX) {
-			uid = osn::SceneItem::Manager::GetInstance().allocate(item);
+			uid = obs::SceneItem::Manager::GetInstance().allocate(item);
 			if (uid == UINT64_MAX) {
 				blog(LOG_ERROR, "Index list is full.");
 				return res;
@@ -504,9 +504,9 @@ uint64_t obs::Scene::GetItem(uint64_t sourceId, uint64_t index)
 		return UINT64_MAX;
 	}
 
-	utility_server::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(ed.item);
+	utility_server::unique_id::id_t uid = obs::SceneItem::Manager::GetInstance().find(ed.item);
 	if (uid == UINT64_MAX) {
-		uid = osn::SceneItem::Manager::GetInstance().allocate(ed.item);
+		uid = obs::SceneItem::Manager::GetInstance().allocate(ed.item);
 		if (uid == UINT64_MAX) {
 			blog(LOG_ERROR, "Index list is full.");
 			return UINT64_MAX;
@@ -542,9 +542,9 @@ std::vector<std::pair<uint64_t, int64_t>> obs::Scene::GetItems(uint64_t sourceId
 	obs_scene_enum_items(scene, cb, &items);
 
 	for (obs_sceneitem_t* item : items) {
-		utility_server::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
+		utility_server::unique_id::id_t uid = obs::SceneItem::Manager::GetInstance().find(item);
 		if (uid == UINT64_MAX) {
-			uid = osn::SceneItem::Manager::GetInstance().allocate(item);
+			uid = obs::SceneItem::Manager::GetInstance().allocate(item);
 			if (uid == UINT64_MAX) {
 				blog(LOG_ERROR, "Index list is full.");
 				return res;
@@ -595,9 +595,9 @@ std::vector<uint64_t> obs::Scene::GetItemsInRange(uint64_t sourceId, uint64_t fr
 	obs_scene_enum_items(scene, cb, &ed);
 
 	for (obs_sceneitem_t* item : ed.items) {
-		utility_server::unique_id::id_t uid = osn::SceneItem::Manager::GetInstance().find(item);
+		utility_server::unique_id::id_t uid = obs::SceneItem::Manager::GetInstance().find(item);
 		if (uid == UINT64_MAX) {
-			uid = osn::SceneItem::Manager::GetInstance().allocate(item);
+			uid = obs::SceneItem::Manager::GetInstance().allocate(item);
 			if (uid == UINT64_MAX) {
 				blog(LOG_ERROR, "Index list is full.");
 				return items;

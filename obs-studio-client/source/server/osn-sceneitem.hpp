@@ -21,7 +21,7 @@
 #include <obs.h>
 #include "utility-server.hpp"
 
-namespace osn
+namespace obs
 {
 	class SceneItem
 	{
@@ -43,151 +43,46 @@ namespace osn
 		};
 
 		public:
-		static void Register(ipc::server&);
+		static uint64_t GetSource(uint64_t itemId);
+		static uint64_t GetScene(uint64_t itemId);
 
-		static void
-		    GetSource(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		    GetScene(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static void Remove(uint64_t itemId);
 
-		static void
-		    Remove(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static bool IsVisible(uint64_t itemId);
+		static bool SetVisible(uint64_t itemId, bool visible);
+		static bool IsSelected(uint64_t itemId);
+		static bool SetSelected(uint64_t itemId, bool selected);
+		static bool IsStreamVisible(uint64_t itemId);
+		static bool SetStreamVisible(uint64_t itemId, bool streamVisible);
+		static bool IsRecordingVisible(uint64_t itemId);
+		static bool SetRecordingVisible(uint64_t itemId, bool recordingVisible);
+		static std::pair<float_t, float_t> GetPosition(uint64_t itemId);
+		static std::pair<float_t, float_t> SetPosition(uint64_t itemId, float_t x, float_t y);
+		static float_t GetRotation(uint64_t itemId);
+		static float_t SetRotation(uint64_t itemId, float_t rotation);
+		static std::pair<float_t, float_t> GetScale(uint64_t itemId);
+		static std::pair<float_t, float_t> SetScale(uint64_t itemId, float_t scaleX, float_t scaleY);
+		static uint32_t GetAlignment(uint64_t itemId);
+		static uint32_t SetAlignment(uint64_t itemId, uint32_t align);
+		static std::pair<float_t, float_t> GetBounds(uint64_t itemId);
+		static std::pair<float_t, float_t> SetBounds(uint64_t itemId, float_t boundsX, float_t boundsY);
+		static uint32_t GetBoundsAlignment(uint64_t itemId);
+		static uint32_t SetBoundsAlignment(uint64_t itemId, uint32_t aligment);
+		static uint32_t GetBoundsType(uint64_t itemId);
+		static uint32_t SetBoundsType(uint64_t itemId, uint32_t boundsType);
+		static obs_sceneitem_crop GetCrop(uint64_t itemId);
+		static obs_sceneitem_crop SetCrop(uint64_t itemId, obs_sceneitem_crop crop);
+		static uint32_t GetScaleFilter(uint64_t itemId);
+		static uint32_t SetScaleFilter(uint64_t itemId, uint32_t scaleFilter);
+		static int64_t GetId(uint64_t itemId);
 
-		static void
-		            IsVisible(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void SetVisible(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void IsSelected(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetSelected(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void IsStreamVisible(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetStreamVisible(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void IsRecordingVisible(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetRecordingVisible(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetPosition(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetPosition(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetRotation(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetRotation(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void
-		    GetScale(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		            SetScale(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void GetAlignment(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetAlignment(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void
-		    GetBounds(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		            SetBounds(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void GetBoundsAlignment(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetBoundsAlignment(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetBoundsType(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetBoundsType(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void
-		    GetCrop(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		            SetCrop(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void GetScaleFilter(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetScaleFilter(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void
-		    GetId(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static void MoveUp(uint64_t itemId);
+		static void MoveDown(uint64_t itemId);
+		static void MoveTop(uint64_t itemId);
+		static void MoveBottom(uint64_t itemId);
+		static void Move(uint64_t itemId, int32_t position);
 
-		static void
-		    MoveUp(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		    MoveDown(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		            MoveTop(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void MoveBottom(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void
-		    Move(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-
-		static void DeferUpdateBegin(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void DeferUpdateEnd(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
+		static void DeferUpdateBegin(uint64_t itemId);
+		static void DeferUpdateEnd(uint64_t itemId);
 	};
-} // namespace osn
+}
