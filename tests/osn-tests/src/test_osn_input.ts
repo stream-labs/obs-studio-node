@@ -614,9 +614,7 @@ describe(testName, () => {
 
     it('Fail test - Try to find an input that does not exist', () => {
         let inputFromName: IInput;
-
-        expect(function () {
-            inputFromName = osn.InputFactory.fromName('doesNotExist');
-        }).to.throw();
+        inputFromName = osn.InputFactory.fromName('doesNotExist');
+        expect(inputFromName).to.undefined;
     });
 });

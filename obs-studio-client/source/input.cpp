@@ -206,6 +206,8 @@ Napi::Value osn::Input::FromName(const Napi::CallbackInfo& info)
 	}
 
 	auto uid = obs::Input::FromName(name);
+	if (uid == UINT64_MAX)
+		return info.Env().Undefined();
 
     auto instance =
         osn::Input::constructor.New({
@@ -372,16 +374,6 @@ Napi::Value osn::Input::Filters(const Napi::CallbackInfo& info)
 		return array;
 	}
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Input", "GetFilters", {ipc::value(this->sourceId)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
 	std::vector<uint64_t>* filters;
 	if (sdi) {
 		filters = sdi->filters;
@@ -389,7 +381,7 @@ Napi::Value osn::Input::Filters(const Napi::CallbackInfo& info)
 	}
 
 	auto filtersArray = obs::Input::GetFilters(this->sourceId);
-	Napi::Array array = Napi::Array::New(info.Env(), response.size() - 1);
+	Napi::Array array = Napi::Array::New(info.Env(), filtersArray.size());
 	uint32_t index = 0;
 
 	for (auto filterId: filtersArray) {
