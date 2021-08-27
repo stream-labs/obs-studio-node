@@ -23,7 +23,7 @@
 #undef strtoll
 #include "nlohmann/json.hpp"
 
-namespace osn
+namespace obs
 {
 	class Source
 	{
@@ -55,112 +55,53 @@ namespace osn
 		static void detach_source_signals(obs_source_t* src);
 
 		public:
-		static void Register(ipc::server&);
-
-		// Type Info
-		static void GetTypeDefaults(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetTypeOutputFlags(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-
 		// References
-		static void
-		    Remove(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		    Release(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static void Remove(uint64_t uid);
+		static void Release(uint64_t uid);
 
 		// Settings & Properties
-		static void IsConfigurable(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetProperties(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void ProcessProperties(
+		static bool IsConfigurable(uint64_t uid);
+		static std::vector<std::vector<char>> GetProperties(uint64_t uid);
+		static std::vector<std::vector<char>> ProcessProperties(
 		    obs_properties_t*              prp,
 		    obs_data*                      settings,
-		    bool&                          updateSource,
-		    std::vector<ipc::value>&       rval);
-		static void GetSettings(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void
-		    Update(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		    Load(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		    Save(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		    bool&                          updateSource);
+		static std::string GetSettings(uint64_t uid);
+		static std::string Update(uint64_t uid, std::string jsonData);
+		static void Load(uint64_t uid);
+		static void Save(uint64_t uid);
 
-		static void
-		    GetType(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		    GetName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		            SetName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void GetOutputFlags(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void
-		    GetFlags(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		    SetFlags(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		    GetStatus(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		    GetId(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static uint32_t GetType(uint64_t uid);
+		static std::string GetName(uint64_t uid);
+		static std::string SetName(uint64_t uid, std::string name);
+		static uint32_t GetOutputFlags(uint64_t uid);
+		static uint32_t GetFlags(uint64_t uid);
+		static uint32_t SetFlags(uint64_t uid, uint32_t flags);
+		static bool GetStatus(uint64_t uid);
+		static std::string GetId(uint64_t uid);
 
 		// Flags
-		static void
-		    GetMuted(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		    SetMuted(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void GetEnabled(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetEnabled(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
+		static bool GetMuted(uint64_t uid);
+		static bool SetMuted(uint64_t uid, bool muted);
+		static bool GetEnabled(uint64_t uid);
+		static bool SetEnabled(uint64_t uid, bool enabled);
 
 		// Browser source interaction
 		static void SendMouseClick(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
+				uint64_t uid, uint32_t modifiers,
+				int32_t x, int32_t y, int32_t type,
+				bool mouseUp, uint32_t clickCount);
 		static void SendMouseMove(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
+		    uint64_t uid, uint32_t modifiers,
+			int32_t x, int32_t y, bool mouseLeave);
 		static void SendMouseWheel(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void
-		    SendFocus(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		    uint64_t uid, uint32_t modifiers,
+			int32_t x, int32_t y, int32_t x_delta,
+			int32_t y_delta);
+		static void SendFocus(uint64_t uid, bool focus);
 		static void SendKeyClick(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
+		    uint64_t uid, std::string a_text, uint32_t modifiers,
+			uint32_t nativeModifiers, uint32_t nativeScancode,
+			uint32_t nativeVkey, int32_t keyUp);
 	};
-} // namespace osn
+}

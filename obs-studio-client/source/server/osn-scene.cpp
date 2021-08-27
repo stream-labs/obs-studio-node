@@ -36,7 +36,7 @@ uint64_t obs::Scene::Create(std::string name)
 		return UINT64_MAX;
 	}
 
-	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
+	uint64_t uid = obs::Source::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
 		blog(LOG_ERROR, "Index list is full.");
 		return UINT64_MAX;
@@ -59,7 +59,7 @@ uint64_t obs::Scene::CreatePrivate(std::string name)
 		return UINT64_MAX;
 	}
 
-	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
+	uint64_t uid = obs::Source::Manager::GetInstance().allocate(source);
 	if (uid == UINT64_MAX) {
 		blog(LOG_ERROR, "Index list is full.");
 		return UINT64_MAX;
@@ -76,7 +76,7 @@ uint64_t obs::Scene::FromName(std::string name)
 		return UINT64_MAX;
 	}
 
-	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
+	uint64_t uid = obs::Source::Manager::GetInstance().find(source);
 	obs_source_release(source);
 
 	if (uid == UINT64_MAX) {
@@ -89,7 +89,7 @@ uint64_t obs::Scene::FromName(std::string name)
 
 void obs::Scene::Release(uint64_t uid)
 {
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(uid);
+	obs_source_t* source = obs::Source::Manager::GetInstance().find(uid);
 	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
 		return;
@@ -119,7 +119,7 @@ void obs::Scene::Release(uint64_t uid)
 
 void obs::Scene::Remove(uint64_t uid)
 {
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(uid);
+	obs_source_t* source = obs::Source::Manager::GetInstance().find(uid);
 	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
 		return;
@@ -141,7 +141,7 @@ void obs::Scene::Remove(uint64_t uid)
 	obs_scene_enum_items(scene, cb, &items);
 
 	obs_source_remove(source);
-	osn::Source::Manager::GetInstance().free(uid);
+	obs::Source::Manager::GetInstance().free(uid);
 
 	for (auto item : items) {
 		obs::SceneItem::Manager::GetInstance().free(item);
@@ -152,7 +152,7 @@ void obs::Scene::Remove(uint64_t uid)
 
 uint64_t obs::Scene::Duplicate(uint64_t sourceId, std::string name, int32_t duplicateType)
 {
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(sourceId);
+	obs_source_t* source = obs::Source::Manager::GetInstance().find(sourceId);
 	if (!source) {
 		blog(LOG_ERROR, "Source reference is not a scene.");
 		return UINT64_MAX;
@@ -177,7 +177,7 @@ uint64_t obs::Scene::Duplicate(uint64_t sourceId, std::string name, int32_t dupl
 		return UINT64_MAX;
 	}
 
-	uint64_t uid = osn::Source::Manager::GetInstance().find(source2);
+	uint64_t uid = obs::Source::Manager::GetInstance().find(source2);
 	if (uid == UINT64_MAX) {
 		blog(LOG_ERROR, "Index list is full.");
 		return UINT64_MAX;
@@ -188,7 +188,7 @@ uint64_t obs::Scene::Duplicate(uint64_t sourceId, std::string name, int32_t dupl
 
 std::pair<uint64_t, int64_t> obs::Scene::AddSource(uint64_t sceneId, uint64_t sourceId)
 {
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(sceneId);
+	obs_source_t* source = obs::Source::Manager::GetInstance().find(sceneId);
 	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
 		return std::make_pair(UINT64_MAX, INT64_MAX);
@@ -200,7 +200,7 @@ std::pair<uint64_t, int64_t> obs::Scene::AddSource(uint64_t sceneId, uint64_t so
 		return std::make_pair(UINT64_MAX, INT64_MAX);
 	}
 
-	obs_source_t* added_source = osn::Source::Manager::GetInstance().find(sourceId);
+	obs_source_t* added_source = obs::Source::Manager::GetInstance().find(sourceId);
 	if (!added_source) {
 		blog(LOG_ERROR, "Source reference to add is not valid.");
 		return std::make_pair(UINT64_MAX, INT64_MAX);
@@ -221,7 +221,7 @@ std::pair<uint64_t, int64_t> obs::Scene::AddSource(uint64_t sceneId, uint64_t so
 
 std::pair<uint64_t, int64_t> obs::Scene::AddSource(uint64_t sceneId, uint64_t sourceId, struct TransformInfo transform)
 {
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(sceneId);
+	obs_source_t* source = obs::Source::Manager::GetInstance().find(sceneId);
 	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
 		return std::make_pair(UINT64_MAX, INT64_MAX);
@@ -233,7 +233,7 @@ std::pair<uint64_t, int64_t> obs::Scene::AddSource(uint64_t sceneId, uint64_t so
 		return std::make_pair(UINT64_MAX, INT64_MAX);
 	}
 
-	obs_source_t* added_source = osn::Source::Manager::GetInstance().find(sourceId);
+	obs_source_t* added_source = obs::Source::Manager::GetInstance().find(sourceId);
 	if (!added_source) {
 		blog(LOG_ERROR, "Source reference to add is not valid.");
 		return std::make_pair(UINT64_MAX, INT64_MAX);
@@ -279,7 +279,7 @@ std::pair<uint64_t, int64_t> obs::Scene::AddSource(uint64_t sceneId, uint64_t so
 
 uint64_t obs::Scene::FindItem(uint64_t sourceid, std::string name)
 {
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(sourceid);
+	obs_source_t* source = obs::Source::Manager::GetInstance().find(sourceid);
 	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
 		return UINT64_MAX;
@@ -312,7 +312,7 @@ uint64_t obs::Scene::FindItem(uint64_t sourceid, std::string name)
 
 uint64_t obs::Scene::FindItem(uint64_t sourceid, int64_t position)
 {
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(sourceid);
+	obs_source_t* source = obs::Source::Manager::GetInstance().find(sourceid);
 	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
 		return UINT64_MAX;
@@ -348,7 +348,7 @@ std::vector<std::pair<uint64_t, int64_t>>
 {
 	std::vector<std::pair<uint64_t, int64_t>> res;
 
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(uid);
+	obs_source_t* source = obs::Source::Manager::GetInstance().find(uid);
 	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
 		return res;
@@ -392,7 +392,7 @@ std::vector<std::pair<uint64_t, int64_t>>
 {
 	std::vector<std::pair<uint64_t, int64_t>> res;
 
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(uid);
+	obs_source_t* source = obs::Source::Manager::GetInstance().find(uid);
 	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
 		return res;
@@ -468,7 +468,7 @@ std::vector<std::pair<uint64_t, int64_t>>
 
 uint64_t obs::Scene::GetItem(uint64_t sourceId, uint64_t index)
 {
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(sourceId);
+	obs_source_t* source = obs::Source::Manager::GetInstance().find(sourceId);
 	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
 		return UINT64_MAX;
@@ -521,7 +521,7 @@ std::vector<std::pair<uint64_t, int64_t>> obs::Scene::GetItems(uint64_t sourceId
 {
 	std::vector<std::pair<uint64_t, int64_t>> res;
 
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(sourceId);
+	obs_source_t* source = obs::Source::Manager::GetInstance().find(sourceId);
 	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
 		return res;
@@ -561,7 +561,7 @@ std::vector<uint64_t> obs::Scene::GetItemsInRange(uint64_t sourceId, uint64_t fr
 {
 	std::vector<uint64_t> items;
 
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(sourceId);
+	obs_source_t* source = obs::Source::Manager::GetInstance().find(sourceId);
 	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
 		return items;

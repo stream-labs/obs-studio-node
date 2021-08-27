@@ -222,7 +222,7 @@ int main(int argc, char* argv[])
 
 	/// OBS Studio Node
 	obs::Global::Register(myServer);
-	osn::Source::Register(myServer);
+	obs::Source::Register(myServer);
 	obs::Input::Register(myServer);
 	obs::Filter::Register(myServer);
 	osn::Transition::Register(myServer);
@@ -285,7 +285,7 @@ int main(int argc, char* argv[])
 	// continue streaming till user confirms exit in crash-handler.
 	OBS_API::WaitCrashHandlerClose(waitBeforeClosing);
 #endif
-	osn::Source::finalize_global_signals();
+	obs::Source::finalize_global_signals();
 	OBS_API::destroyOBS_API();
 
 	// Finalize Server

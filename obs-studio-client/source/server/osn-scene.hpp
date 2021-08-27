@@ -36,7 +36,7 @@ namespace obs
 		bool recordingVisible = false;
 	};
 
-	class Scene : public osn::Source
+	class Scene : public obs::Source
 	{
 		public:
 		static uint64_t Create(std::string name);

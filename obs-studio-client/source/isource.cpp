@@ -23,25 +23,18 @@
 #include "shared.hpp"
 #include "utility-v8.hpp"
 #include "utility.hpp"
+#include "server/osn-source.hpp"
 
 void osn::ISource::Release(const Napi::CallbackInfo& info, uint64_t id)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
-
-	conn->call("Source", "Release", {ipc::value(id)});
+	obs::Source::Release(id);
 }
 
 void osn::ISource::Remove(const Napi::CallbackInfo& info, uint64_t id)
 {
 	CacheManager<SourceDataInfo*>::getInstance().Remove(id);
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
-
-	conn->call("Source", "Remove", {ipc::value(id)});
+	obs::Source::Remove(id);
 }
 
 Napi::Value osn::ISource::IsConfigurable(const Napi::CallbackInfo& info, uint64_t id)
@@ -51,17 +44,7 @@ Napi::Value osn::ISource::IsConfigurable(const Napi::CallbackInfo& info, uint64_
 	if (!source)
 		return info.Env().Undefined();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Source", "IsConfigurable", {ipc::value(id)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return Napi::Boolean::New(info.Env(), (bool)response[1].value_union.i32);
+	return Napi::Boolean::New(info.Env(), obs::Source::IsConfigurable(id));
 }
 
 Napi::Value osn::ISource::GetProperties(const Napi::CallbackInfo& info, uint64_t id)
@@ -85,22 +68,10 @@ Napi::Value osn::ISource::GetProperties(const Napi::CallbackInfo& info, uint64_t
 		return instance;
 	}
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Source", "GetProperties", {ipc::value(id)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	if (response.size() == 1)
-		return info.Env().Null();
-
+	auto res = obs::Source::GetProperties(id);
 	osn::property_map_t pmap;
-	for (size_t idx = 1; idx < response.size(); ++idx) {
-		auto raw_property = obs::Property::deserialize(response[idx].value_bin);
+	for (size_t idx = 0; idx < res.size(); ++idx) {
+		auto raw_property = obs::Property::deserialize(res[idx]);
 
 		std::shared_ptr<osn::Property> pr;
 
@@ -319,11 +290,12 @@ Napi::Value osn::ISource::GetSettings(const Napi::CallbackInfo& info, uint64_t i
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-	Napi::String jsondata = Napi::String::New(info.Env(), response[1].value_str);
+	auto res = obs::Source::GetSettings(id);
+	Napi::String jsondata = Napi::String::New(info.Env(), res);
 	Napi::Object jsonObj = parse.Call(json, {jsondata}).As<Napi::Object>();
 
 	if (sdi) {
-		sdi->setting         = response[1].value_str;
+		sdi->setting         = res;
 		sdi->settingsChanged = false;
 	}
 
@@ -359,20 +331,9 @@ void osn::ISource::Update(const Napi::CallbackInfo& info, uint64_t id)
 	}
 
 	if (shouldUpdate) {
-		auto conn = GetConnection(info);
-		if (!conn)
-			return;
-
-		std::vector<ipc::value> response = conn->call_synchronous_helper(
-		    "Source",
-		    "Update",
-		    {ipc::value(id), ipc::value(jsondata)});
-
-		if (!ValidateResponse(info, response))
-			return;
-
+		auto res = obs::Source::Update(id, jsondata);
 		if (sdi) {
-			sdi->setting           = response[1].value_str;
+			sdi->setting           = res;
 			sdi->settingsChanged   = false;
 			sdi->propertiesChanged = true;
 		}
@@ -381,49 +342,21 @@ void osn::ISource::Update(const Napi::CallbackInfo& info, uint64_t id)
 
 void osn::ISource::Load(const Napi::CallbackInfo& info, uint64_t id)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
-
-	conn->call("Source", "Load", {ipc::value(id)});
+	obs::Source::Load(id);
 }
 
 void osn::ISource::Save(const Napi::CallbackInfo& info, uint64_t id)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
-
-	conn->call("Source", "Save", {ipc::value(id)});
+	obs::Source::Save(id);
 }
 
 Napi::Value osn::ISource::GetType(const Napi::CallbackInfo& info, uint64_t id)
 {
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
-		return info.Env().Undefined();
-
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Source", "GetType", {ipc::value(id)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return Napi::Number::New(info.Env(), response[1].value_union.i32);
+	return Napi::Number::New(info.Env(), obs::Source::GetType(id));
 }
 
 Napi::Value osn::ISource::GetName(const Napi::CallbackInfo& info, uint64_t id)
 {
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
-		return info.Env().Undefined();
-
 	SourceDataInfo* sdi =
 		CacheManager<SourceDataInfo*>::getInstance().Retrieve(id);
 
@@ -433,121 +366,44 @@ Napi::Value osn::ISource::GetName(const Napi::CallbackInfo& info, uint64_t id)
 		}
 	}
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Source", "GetName", {ipc::value(id)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
+	auto name = obs::Source::GetName(id);
 	if (sdi)
-		sdi->name = response[1].value_str.c_str();
+		sdi->name = name.c_str();
 
-	return Napi::String::New(info.Env(), response[1].value_str);
+	return Napi::String::New(info.Env(), name);
 }
 
 void osn::ISource::SetName(const Napi::CallbackInfo& info, const Napi::Value &value, uint64_t id)
 {
 	std::string name = value.ToString().Utf8Value();
 
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
-		return;
-
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
-
-	conn->call("Source", "SetName", {ipc::value(id), ipc::value(name)});
+	obs::Source::SetName(id, name);
 }
 
 Napi::Value osn::ISource::GetOutputFlags(const Napi::CallbackInfo& info, uint64_t id)
 {
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
-		return info.Env().Undefined();
-
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Source", "GetOutputFlags", {ipc::value(id)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+	return Napi::Number::New(info.Env(), obs::Source::GetOutputFlags(id));
 }
 
 Napi::Value osn::ISource::GetFlags(const Napi::CallbackInfo& info, uint64_t id)
 {
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
-		return info.Env().Undefined();
-
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Source", "GetFlags", {ipc::value(id)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+	return Napi::Number::New(info.Env(), obs::Source::GetFlags(id));
 }
 
 void osn::ISource::SetFlags(const Napi::CallbackInfo& info, const Napi::Value &value, uint64_t id)
 {
 	uint32_t flags = value.ToNumber().Uint32Value();
 
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
-		return;
-
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
-
-	conn->call("Source", "SetFlags", {ipc::value(id), ipc::value(flags)});
+	obs::Source::SetFlags(id, flags);
 }
 
 Napi::Value osn::ISource::GetStatus(const Napi::CallbackInfo& info, uint64_t id)
 {
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
-		return info.Env().Undefined();
-
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Source", "GetStatus", {ipc::value(id)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+	return Napi::Number::New(info.Env(), obs::Source::GetStatus(id));
 }
 
 Napi::Value osn::ISource::GetId(const Napi::CallbackInfo& info, uint64_t id)
 {
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
-		return info.Env().Undefined();
-
 	SourceDataInfo* sdi =
 		CacheManager<SourceDataInfo*>::getInstance().Retrieve(id);
 
@@ -556,30 +412,16 @@ Napi::Value osn::ISource::GetId(const Napi::CallbackInfo& info, uint64_t id)
 			return Napi::String::New(info.Env(), sdi->obs_sourceId);
 	}
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Source", "GetId", {ipc::value(id)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
+	auto res = obs::Source::GetId(id);
 	if (sdi) {
-		sdi->obs_sourceId = response[1].value_str;
+		sdi->obs_sourceId = res;
 	}
 
-	return Napi::String::New(info.Env(), response[1].value_str);
+	return Napi::String::New(info.Env(), res);
 }
 
 Napi::Value osn::ISource::GetMuted(const Napi::CallbackInfo& info, uint64_t id)
 {
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
-		return info.Env().Undefined();
-
 	SourceDataInfo* sdi =
 		CacheManager<SourceDataInfo*>::getInstance().Retrieve(id);
 
@@ -588,38 +430,20 @@ Napi::Value osn::ISource::GetMuted(const Napi::CallbackInfo& info, uint64_t id)
 			return Napi::Boolean::New(info.Env(), sdi->isMuted);
 	}
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Source", "GetMuted", {ipc::value(id)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
+	auto muted = obs::Source::GetMuted(id);
 	if (sdi) {
-		sdi->isMuted      = (bool)response[1].value_union.i32;
+		sdi->isMuted      = muted;
 		sdi->mutedChanged = false;
 	}
 
-	return Napi::Boolean::New(info.Env(),(bool)response[1].value_union.i32);
+	return Napi::Boolean::New(info.Env(), muted);
 }
 
 void osn::ISource::SetMuted(const Napi::CallbackInfo& info, const Napi::Value &value, uint64_t id)
 {
 	bool muted = value.ToBoolean().Value();
 
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
-		return;
-
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
-
-	conn->call("Source", "SetMuted", {ipc::value(id), ipc::value(muted)});
+	obs::Source::SetMuted(id, muted);
 
 	SourceDataInfo* sdi =
 		CacheManager<SourceDataInfo*>::getInstance().Retrieve(id);
@@ -629,38 +453,14 @@ void osn::ISource::SetMuted(const Napi::CallbackInfo& info, const Napi::Value &v
 
 Napi::Value osn::ISource::GetEnabled(const Napi::CallbackInfo& info, uint64_t id)
 {
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
-		return info.Env().Undefined();
-
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Source", "GetEnabled", {ipc::value(id)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return Napi::Boolean::New(info.Env(), (bool)response[1].value_union.i32);
+	return Napi::Boolean::New(info.Env(), obs::Source::GetEnabled(id));
 }
 
 void osn::ISource::SetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value, uint64_t id)
 {
 	bool enabled = value.ToBoolean().Value();
 
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
-		return;
-
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
-
-	conn->call("Source", "SetEnabled", {ipc::value(id), ipc::value(enabled)});
+	obs::Source::SetEnabled(id, enabled);
 }
 
 void osn::ISource::SendMouseClick(const Napi::CallbackInfo& info, uint64_t id)
@@ -678,18 +478,14 @@ void osn::ISource::SendMouseClick(const Napi::CallbackInfo& info, uint64_t id)
 	uint32_t x = mouse_event_obj.Get("x").ToNumber().Uint32Value();
 	uint32_t y = mouse_event_obj.Get("y").ToNumber().Uint32Value();
 
-	conn->call(
-	    "Source",
-	    "SendMouseClick",
-	    {
-			ipc::value(id),
-			ipc::value(modifiers),
-			ipc::value(x),
-			ipc::value(y),
-			ipc::value(type),
-			ipc::value(mouse_up),
-			ipc::value(click_count)
-		}
+	obs::Source::SendMouseClick(
+		id,
+		modifiers,
+		x,
+		y,
+		type,
+		mouse_up,
+		click_count
 	);
 }
 
@@ -706,16 +502,12 @@ void osn::ISource::SendMouseMove(const Napi::CallbackInfo& info, uint64_t id)
 	uint32_t x = mouse_event_obj.Get("x").ToNumber().Uint32Value();
 	uint32_t y = mouse_event_obj.Get("y").ToNumber().Uint32Value();
 
-	conn->call(
-		"Source",
-		"SendMouseMove",
-		{
-			ipc::value(id),
-			ipc::value(modifiers),
-			ipc::value(x),
-			ipc::value(y),
-			ipc::value(mouse_leave)
-		}
+	obs::Source::SendMouseMove(
+		id,
+		modifiers,
+		x,
+		y,
+		mouse_leave
 	);
 }
 
@@ -733,17 +525,13 @@ void osn::ISource::SendMouseWheel(const Napi::CallbackInfo& info, uint64_t id)
 	uint32_t x = mouse_event_obj.Get("x").ToNumber().Uint32Value();
 	uint32_t y = mouse_event_obj.Get("y").ToNumber().Uint32Value();
 
-	conn->call(
-	    "Source",
-	    "SendMouseWheel",
-	    {
-			ipc::value(id),
-			ipc::value(modifiers),
-			ipc::value(x),
-			ipc::value(y),
-			ipc::value(x_delta),
-			ipc::value(y_delta)
-		}
+	obs::Source::SendMouseWheel(
+		id,
+		modifiers,
+		x,
+		y,
+		x_delta,
+		y_delta
 	);
 }
 
@@ -751,11 +539,7 @@ void osn::ISource::SendFocus(const Napi::CallbackInfo& info, uint64_t id)
 {
 	bool focus = info[0].ToBoolean().Value();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
-
-    conn->call("Source", "SendFocus", {ipc::value(id), ipc::value(focus)});
+	obs::Source::SendFocus(id, focus);
 }
 
 void osn::ISource::SendKeyClick(const Napi::CallbackInfo& info, uint64_t id)
@@ -772,17 +556,13 @@ void osn::ISource::SendKeyClick(const Napi::CallbackInfo& info, uint64_t id)
 	uint32_t native_vkey = key_event_obj.Get("nativeVkey").ToNumber().Uint32Value();
 	std::string text = key_event_obj.Get("text").ToString().Utf8Value();
 
-	conn->call(
-	    "Source",
-	    "SendKeyClick",
-	    {
-			ipc::value(id),
-			ipc::value(modifiers),
-			ipc::value(text),
-			ipc::value(native_modifiers),
-			ipc::value(native_scancode),
-			ipc::value(native_vkey),
-			ipc::value((int32_t)key_up)
-		}
+	obs::Source::SendKeyClick(
+		id,
+		text,
+		modifiers,
+		native_modifiers,
+		native_scancode,
+		native_vkey,
+		key_up
 	);
 }

@@ -144,7 +144,7 @@ void osn::Volmeter::Attach(
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
 	}
 
-	auto source = osn::Source::Manager::GetInstance().find(uid_source);
+	auto source = obs::Source::Manager::GetInstance().find(uid_source);
 	if (!source) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Source reference.");
 	}
@@ -327,7 +327,7 @@ void osn::Volmeter::getAudioData(uint64_t id, std::vector<ipc::value>& rval)
 
 	rval.push_back(ipc::value(meter->current_data.ch));
 
-	auto source = osn::Source::Manager::GetInstance().find(meter->uid_source);
+	auto source = obs::Source::Manager::GetInstance().find(meter->uid_source);
 	bool isMuted = source ? obs_source_muted(source) : true;
 	rval.push_back(ipc::value(isMuted));
 

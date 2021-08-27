@@ -22,7 +22,7 @@
 
 namespace obs
 {
-	class Input : public osn::Source
+	class Input : public obs::Source
 	{
 		public:
 		static std::vector<std::string> Types();

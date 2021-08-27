@@ -749,7 +749,7 @@ int OBS_API::OBS_API_initAPI(
 	SetPrivilegeForGPUPriority();
 #endif
 
-	osn::Source::initialize_global_signals();
+	obs::Source::initialize_global_signals();
 
 	cpuUsageInfo = os_cpu_usage_info_start();
 	ConfigManager::getInstance().setAppdataPath(appdata);
@@ -827,13 +827,13 @@ int OBS_API::OBS_API_initAPI(
 
 void OBS_API::OBS_API_destroyOBS_API()
 {
-	/* INJECT osn::Source::Manager */
+	/* INJECT obs::Source::Manager */
 	// Alright, you're probably wondering: Why is osn code here?
 	// Well, simply because the hooks need to run as soon as possible. We don't
 	//  want to miss a single create or destroy signal OBS gives us for the
-	//  osn::Source::Manager.
-	osn::Source::finalize_global_signals();
-	/* END INJECT osn::Source::Manager */
+	//  obs::Source::Manager.
+	obs::Source::finalize_global_signals();
+	/* END INJECT obs::Source::Manager */
 	destroyOBS_API();
 	AUTO_DEBUG;
 }
@@ -1355,7 +1355,7 @@ void OBS_API::destroyOBS_API(void)
 	// If there are some sources here it's because it ended unexpectedly, this represents a 
 	// problem since obs doesn't handle releasing leaked sources very well. The best we can
 	// do is to insert a try-catch block and disable the crash handler to avoid false positives
-	if (osn::Source::Manager::GetInstance().size() > 0		||
+	if (obs::Source::Manager::GetInstance().size() > 0		||
 		obs::Scene::Manager::GetInstance().size() > 0		||
 		obs::SceneItem::Manager::GetInstance().size() > 0	||
 		osn::Transition::Manager::GetInstance().size() > 0	||
@@ -1366,7 +1366,7 @@ void OBS_API::destroyOBS_API(void)
 			obs_set_output_source(i, nullptr);
 
 		std::vector<obs_source_t*> sources;
-		osn::Source::Manager::GetInstance().for_each([&sources](obs_source_t* source)
+		obs::Source::Manager::GetInstance().for_each([&sources](obs_source_t* source)
 		{
 			if (source)
 				sources.push_back(source);

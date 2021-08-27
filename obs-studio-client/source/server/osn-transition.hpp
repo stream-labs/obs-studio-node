@@ -21,7 +21,7 @@
 
 namespace osn
 {
-	class Transition : public Source
+	class Transition : public obs::Source
 	{
 		public:
 		static void Register(ipc::server&);

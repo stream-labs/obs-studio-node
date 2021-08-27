@@ -139,7 +139,7 @@ void obs::Fader::Attach(uint64_t uid_fader, uint64_t uid_source)
 		blog(LOG_ERROR, "Invalid Fader Reference.");
 	}
 
-	auto source = osn::Source::Manager::GetInstance().find(uid_source);
+	auto source = obs::Source::Manager::GetInstance().find(uid_source);
 	if (!source) {
 		blog(LOG_ERROR, "Invalid Source Reference.");
 	}

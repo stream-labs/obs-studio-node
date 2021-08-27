@@ -50,11 +50,11 @@ uint64_t obs::Filter::Create(std::string sourceId, std::string name, std::string
 
 	obs_data_release(settings);
 
-	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
+	uint64_t uid = obs::Source::Manager::GetInstance().allocate(source);
 	if (uid == UINT64_MAX) {
 		blog(LOG_ERROR, "Index list is full.");
 	}
-	osn::Source::attach_source_signals(source);
+	obs::Source::attach_source_signals(source);
 
 	return uid;
 }

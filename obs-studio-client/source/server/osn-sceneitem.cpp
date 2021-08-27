@@ -35,7 +35,7 @@ uint64_t obs::SceneItem::GetSource(uint64_t itemId)
 		return UINT64_MAX;
 	}
 
-	return osn::Source::Manager::GetInstance().find(source);
+	return obs::Source::Manager::GetInstance().find(source);
 }
 
 uint64_t obs::SceneItem::GetScene(uint64_t itemId)
@@ -58,7 +58,7 @@ uint64_t obs::SceneItem::GetScene(uint64_t itemId)
 		return UINT64_MAX;
 	}
 
-	return  osn::Source::Manager::GetInstance().find(source);
+	return  obs::Source::Manager::GetInstance().find(source);
 }
 
 void obs::SceneItem::Remove(uint64_t itemId)

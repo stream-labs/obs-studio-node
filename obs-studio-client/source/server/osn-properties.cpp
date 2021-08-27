@@ -24,7 +24,7 @@
 
 bool obs::Properties::Modified(uint64_t sourceId, std::string name, std::string value)
 {
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(sourceId);
+	obs_source_t* source = obs::Source::Manager::GetInstance().find(sourceId);
 	bool res = false;
 	if (!source) {
 		blog(LOG_ERROR, "Invalid reference.");
@@ -49,7 +49,7 @@ bool obs::Properties::Modified(uint64_t sourceId, std::string name, std::string 
 
 bool obs::Properties::Clicked(uint64_t sourceId, std::string name)
 {
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(sourceId);
+	obs_source_t* source = obs::Source::Manager::GetInstance().find(sourceId);
 	bool res = false;
 	if (!source) {
 		blog(LOG_ERROR, "Invalid reference.");

@@ -30,7 +30,7 @@ std::pair<uint64_t, int32_t> obs::Global::GetOutputSource(uint32_t channel)
 		return std::make_pair(UINT64_MAX, -1);
 	}
 
-	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
+	uint64_t uid = obs::Source::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
 		blog(LOG_ERROR, "Source found but not indexed.");
 		return std::make_pair(UINT64_MAX, -1);
@@ -50,7 +50,7 @@ void obs::Global::SetOutputSource(uint32_t channel, uint64_t sourceId)
 	}
 
 	if (sourceId != UINT64_MAX) {
-		source = osn::Source::Manager::GetInstance().find(sourceId);
+		source = obs::Source::Manager::GetInstance().find(sourceId);
 		if (!source) {
 			blog(LOG_ERROR, "Source reference is not valid.");
 			return;

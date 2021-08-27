@@ -21,7 +21,7 @@
 
 namespace obs
 {
-	class Filter : public osn::Source
+	class Filter : public obs::Source
 	{
 		public:
 		static std::vector<std::string> Types();
