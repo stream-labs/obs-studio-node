@@ -21,22 +21,12 @@
 #include <obs.h>
 #include "utility-server.hpp"
 
-namespace osn
+namespace obs
 {
 	class Video
 	{
 		public:
-		static void Register(ipc::server&);
-
-		static void GetSkippedFrames(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetTotalFrames(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
+		static uint32_t GetSkippedFrames();
+		static uint32_t GetTotalFrames();
 	};
-} // namespace osn
+}

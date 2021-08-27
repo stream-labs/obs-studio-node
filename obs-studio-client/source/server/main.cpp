@@ -231,7 +231,7 @@ int main(int argc, char* argv[])
 	obs::Fader::Register(myServer);
 	osn::Volmeter::Register(myServer);
 	obs::Properties::Register(myServer);
-	osn::Video::Register(myServer);
+	obs::Video::Register(myServer);
 	obs::Module::Register(myServer);
 	CallbackManager::Register(myServer);
 	OBS_API::Register(myServer);

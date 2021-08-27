@@ -22,6 +22,7 @@
 #include "shared.hpp"
 #include "utility-v8.hpp"
 #include "utility.hpp"
+#include "server/osn-video.hpp"
 
 
 Napi::FunctionReference osn::Video::constructor;
@@ -49,30 +50,10 @@ osn::Video::Video(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Video::skippedFrames(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Video", "GetSkippedFrames", {});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+	return Napi::Number::New(info.Env(), obs::Video::GetSkippedFrames());
 }
 
 Napi::Value osn::Video::encodedFrames(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Video", "GetTotalFrames", {});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+	return Napi::Number::New(info.Env(), obs::Video::GetTotalFrames());
 }

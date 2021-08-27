@@ -22,34 +22,12 @@
 #include "error.hpp"
 #include "shared-server.hpp"
 
-void osn::Video::Register(ipc::server& srv)
+uint32_t obs::Video::GetSkippedFrames()
 {
-	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Video");
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetSkippedFrames", std::vector<ipc::type>{}, GetSkippedFrames));
-	cls->register_function(
-	    std::make_shared<ipc::function>("GetTotalFrames", std::vector<ipc::type>{}, GetTotalFrames));
-	srv.register_collection(cls);
+    return video_output_get_skipped_frames(obs_get_video());
 }
 
-void osn::Video::GetSkippedFrames(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+uint32_t obs::Video::GetTotalFrames()
 {
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(video_output_get_skipped_frames(obs_get_video())));
-	AUTO_DEBUG;
-}
-
-void osn::Video::GetTotalFrames(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(video_output_get_total_frames(obs_get_video())));
-	AUTO_DEBUG;
+    return video_output_get_total_frames(obs_get_video());
 }
