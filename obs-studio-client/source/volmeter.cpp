@@ -27,6 +27,7 @@
 #include "utility-v8.hpp"
 #include "utility.hpp"
 #include "callback-manager.hpp"
+#include "server/osn-volmeter.hpp"
 
 Napi::FunctionReference osn::Volmeter::constructor;
 
@@ -68,35 +69,19 @@ Napi::Value osn::Volmeter::Create(const Napi::CallbackInfo& info)
 {
 	int32_t type = info[0].ToNumber().Int32Value();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Volmeter",
-	    "Create",
-	    {
-	        ipc::value(type),
-	    });
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+	auto res = obs::Volmeter::Create(type);
 
     auto instance =
         osn::Volmeter::constructor.New({
-            Napi::Number::New(info.Env(), response[1].value_union.ui64),
-            Napi::Number::New(info.Env(), response[2].value_union.ui32)
+            Napi::Number::New(info.Env(), res.first),
+            Napi::Number::New(info.Env(), res.second)
             });
     return instance;
 }
 
 Napi::Value osn::Volmeter::Destroy(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	conn->call("Volmeter", "Destroy", {ipc::value(this->m_uid)});
+	obs::Volmeter::Destroy(this->m_uid);
 
 	return info.Env().Undefined();
 }
@@ -105,58 +90,52 @@ Napi::Value osn::Volmeter::Attach(const Napi::CallbackInfo& info)
 {
 	osn::Input* input = Napi::ObjectWrap<osn::Input>::Unwrap(info[0].ToObject());
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	obs::Volmeter::Attach(this->m_uid, input->sourceId);
 
-	conn->call("Volmeter", "Attach", {ipc::value(this->m_uid), ipc::value(input->sourceId)});
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Volmeter::Detach(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	obs::Volmeter::Detach(this->m_uid);
 
-	conn->call("Volmeter", "Detach", {ipc::value(this->m_uid)});
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Volmeter::AddCallback(const Napi::CallbackInfo& info)
 {
-	std::unique_lock<std::mutex> lck(globalCallback::mtx_volmeters);
-	Napi::Function async_callback = info[0].As<Napi::Function>();
+	// std::unique_lock<std::mutex> lck(globalCallback::mtx_volmeters);
+	// Napi::Function async_callback = info[0].As<Napi::Function>();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	// auto conn = GetConnection(info);
+	// if (!conn)
+	// 	return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Volmeter", "AddCallback", {ipc::value(this->m_uid)});
+	// std::vector<ipc::value> response =
+	// 	conn->call_synchronous_helper("Volmeter", "AddCallback", {ipc::value(this->m_uid)});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+	// if (!ValidateResponse(info, response))
+	// 	return info.Env().Undefined();
 
-	globalCallback::add_volmeter(info.Env(), this->m_uid, async_callback);
+	// globalCallback::add_volmeter(info.Env(), this->m_uid, async_callback);
 
 	return Napi::Boolean::New(info.Env(), true);
 }
 
 Napi::Value osn::Volmeter::RemoveCallback(const Napi::CallbackInfo& info)
 {
-	std::unique_lock<std::mutex> lck(globalCallback::mtx_volmeters);
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	// std::unique_lock<std::mutex> lck(globalCallback::mtx_volmeters);
+	// auto conn = GetConnection(info);
+	// if (!conn)
+	// 	return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Volmeter", "RemoveCallback", {ipc::value(this->m_uid)});
+	// std::vector<ipc::value> response =
+	// 	conn->call_synchronous_helper("Volmeter", "RemoveCallback", {ipc::value(this->m_uid)});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+	// if (!ValidateResponse(info, response))
+	// 	return info.Env().Undefined();
 
-	globalCallback::remove_volmeter(this->m_uid);
+	// globalCallback::remove_volmeter(this->m_uid);
 
 	return Napi::Boolean::New(info.Env(), true);
 }

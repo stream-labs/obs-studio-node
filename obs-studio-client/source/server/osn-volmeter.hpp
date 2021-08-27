@@ -26,7 +26,7 @@
 
 extern std::mutex mtx;
 
-namespace osn
+namespace obs
 {
 	class Volmeter
 	{
@@ -79,20 +79,14 @@ namespace osn
 		~Volmeter();
 
 		public:
-		static void Register(ipc::server&);
-
         static void ClearVolmeters();
 		static void getAudioData(uint64_t id, std::vector<ipc::value>& rval);
 
-		static void
-		    Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		    Destroy(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static std::pair<uint64_t, uint32_t> Create(int32_t a_type);
+		static void Destroy(uint64_t uid);
 
-		static void
-		    Attach(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		            Detach(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static void Attach(uint64_t uid_fader, uint64_t uid_source);
+		static void Detach(uint64_t uid);
 		static void AddCallback(
 		    void*                          data,
 		    const int64_t                  id,

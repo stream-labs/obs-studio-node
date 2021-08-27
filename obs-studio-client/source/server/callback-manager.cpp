@@ -89,7 +89,7 @@ void CallbackManager::GlobalQuery(
 
 	for (int i = 0; i < nb_volmeters; i++) {
 		uint64_t id = *reinterpret_cast<uint64_t*>(buffer.data() + index);
-		osn::Volmeter::getAudioData(id, rval);
+		obs::Volmeter::getAudioData(id, rval);
 		index += sizeof(uint64_t);
 	}
 
