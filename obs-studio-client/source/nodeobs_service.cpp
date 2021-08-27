@@ -168,16 +168,16 @@ static v8::Persistent<v8::Object> serviceCallbackObject;
 
 Napi::Value service::OBS_service_connectOutputSignals(const Napi::CallbackInfo& info)
 {
-	Napi::Function async_callback = info[0].As<Napi::Function>();
+	// Napi::Function async_callback = info[0].As<Napi::Function>();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	// auto conn = GetConnection(info);
+	// if (!conn)
+	// 	return info.Env().Undefined();
 
-	conn->call("Service", "OBS_service_connectOutputSignals", {});
+	// conn->call("Service", "OBS_service_connectOutputSignals", {});
 
-	cb = Napi::Persistent(async_callback);
-	cb.SuppressDestruct();
+	// cb = Napi::Persistent(async_callback);
+	// cb.SuppressDestruct();
 	return Napi::Boolean::New(info.Env(), true);
 }
 

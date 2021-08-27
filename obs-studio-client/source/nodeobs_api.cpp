@@ -53,10 +53,6 @@ Napi::Value api::OBS_API_initAPI(const Napi::CallbackInfo& info)
 
 Napi::Value api::OBS_API_destroyOBS_API(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
 	OBS_API::OBS_API_destroyOBS_API();
 
 #ifdef __APPLE__

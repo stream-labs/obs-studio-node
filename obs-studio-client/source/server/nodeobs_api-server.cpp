@@ -111,6 +111,10 @@ std::string                                            currentVersion;
 std::string                                            username("unknown");
 std::chrono::high_resolution_clock::time_point         start_wait_acknowledge;
 
+inline std::wstring make_wide_string(std::string text) {
+	return converter.from_bytes(text);
+}
+
 void OBS_API::SetWorkingDirectory(std::string path)
 {
 	g_moduleDirectory = path;
@@ -690,6 +694,7 @@ int OBS_API::OBS_API_initAPI(
 	// and enabling metrics
 	util::CrashManager::GetMetricsProvider()->Initialize("\\\\.\\pipe\\metrics_pipe", currentVersion, false);
 #endif
+	blog(LOG_INFO, "g_moduleDirectory: %s", g_moduleDirectory.c_str());
 	obs_add_data_path((g_moduleDirectory + "/data/libobs/").c_str());
 	slobs_plugin = appdata.substr(0, appdata.size() - strlen("/slobs-client"));
 	slobs_plugin.append("/slobs-plugins");
@@ -1527,6 +1532,13 @@ bool OBS_API::openAllModules(int& video_err)
 			std::cerr << "Failed to open plugin diretory: " << plugins_path << std::endl;
 			continue;
 		}
+
+
+		SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_USER_DIRS);
+		AddDllDirectory(make_wide_string(g_moduleDirectory).c_str());
+		WCHAR system[MAX_PATH];
+		GetSystemDirectory(system, sizeof(system));
+		AddDllDirectory(system);
 
 		for (os_dirent* ent = os_readdir(plugin_dir); ent != nullptr; ent = os_readdir(plugin_dir)) {
 			std::string fullname = ent->d_name;

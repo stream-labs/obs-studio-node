@@ -103,7 +103,6 @@ export class OBSHandler {
         logInfo(this.osnTestName, 'Initializing OBS');
 
         try {
-            osn.NodeObs.IPC.host(this.pipeName);
             osn.NodeObs.SetWorkingDirectory(this.workingDirectory);
             initResult = osn.NodeObs.OBS_API_initAPI(this.language, this.obsPath, this.version, this.crashServer);
         } catch(e) {
@@ -121,8 +120,7 @@ export class OBSHandler {
         logInfo(this.osnTestName, 'Shutting down OBS');
 
         try {
-            osn.NodeObs.OBS_service_removeCallback();
-            osn.NodeObs.IPC.disconnect();
+            osn.NodeObs.OBS_API_destroyOBS_API();
         } catch(e) {
             throw Error('Exception when shutting down OBS process: ' + e);
         }

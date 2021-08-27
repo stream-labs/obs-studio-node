@@ -389,11 +389,11 @@ std::shared_ptr<ipc::client> Controller::connect(
 
 void Controller::disconnect()
 {
-	if (m_isServer) {
-		m_connection->call_synchronous_helper("System", "Shutdown", {});
-		m_isServer = false;
-	}
-	m_connection = nullptr;
+	// if (m_isServer) {
+	// 	m_connection->call_synchronous_helper("System", "Shutdown", {});
+	// 	m_isServer = false;
+	// }
+	// m_connection = nullptr;
 }
 
 DWORD Controller::GetExitCode() {
