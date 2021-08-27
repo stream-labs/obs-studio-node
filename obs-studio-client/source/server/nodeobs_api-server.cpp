@@ -661,30 +661,30 @@ int OBS_API::OBS_API_initAPI(
 	utility_server::osn_current_version(currentVersion);
 
 #ifdef ENABLE_CRASHREPORT
-	util::CrashManager crashManager;
-	crashManager.SetVersionName(currentVersion);
-	crashManager.SetReportServerUrl(crashserverurl);
-	char* path = g_moduleDirectory.data();
-	if (crashManager.Initialize(path, appdata)) {
-		crashManager.Configure();
-		if (crashManager.InitializeMemoryDump()) {
-			writeCrashHandler(registerMemoryDump());
-		}
-   }
+// 	util::CrashManager crashManager;
+// 	crashManager.SetVersionName(currentVersion);
+// 	crashManager.SetReportServerUrl(crashserverurl);
+// 	char* path = g_moduleDirectory.data();
+// 	if (crashManager.Initialize(path, appdata)) {
+// 		crashManager.Configure();
+// 		if (crashManager.InitializeMemoryDump()) {
+// 			writeCrashHandler(registerMemoryDump());
+// 		}
+//    }
 
 #ifdef WIN32
 	// Register the pre and post server callbacks to log the data into the crashmanager
-	g_server->set_pre_callback([](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data)
-	{ 
-		util::CrashManager& crashManager = *static_cast<util::CrashManager*>(data);
-		crashManager.ProcessPreServerCall(cname, fname, args);
+	// g_server->set_pre_callback([](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data)
+	// { 
+	// 	util::CrashManager& crashManager = *static_cast<util::CrashManager*>(data);
+	// 	crashManager.ProcessPreServerCall(cname, fname, args);
 
-	}, &crashManager);
-	g_server->set_post_callback([](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data)
-	{
-		util::CrashManager& crashManager = *static_cast<util::CrashManager*>(data);
-		crashManager.ProcessPostServerCall(cname, fname, args);
-	}, &crashManager);
+	// }, &crashManager);
+	// g_server->set_post_callback([](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data)
+	// {
+	// 	util::CrashManager& crashManager = *static_cast<util::CrashManager*>(data);
+	// 	crashManager.ProcessPostServerCall(cname, fname, args);
+	// }, &crashManager);
 
 #endif
 #endif
