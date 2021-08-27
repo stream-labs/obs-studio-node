@@ -225,7 +225,7 @@ int main(int argc, char* argv[])
 	obs::Source::Register(myServer);
 	obs::Input::Register(myServer);
 	obs::Filter::Register(myServer);
-	osn::Transition::Register(myServer);
+	obs::Transition::Register(myServer);
 	osn::Scene::Register(myServer);
 	obs::SceneItem::Register(myServer);
 	obs::Fader::Register(myServer);

@@ -25,6 +25,7 @@
 #include "ipc-value.hpp"
 #include "shared.hpp"
 #include "utility.hpp"
+#include "server/osn-transition.hpp"
 
 Napi::FunctionReference osn::Transition::constructor;
 
@@ -89,21 +90,12 @@ osn::Transition::Transition(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Transition::Types(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	auto res = obs::Transition::Types();
+	Napi::Array types = Napi::Array::New(info.Env(), res.size());
+	uint32_t index = 0;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Transition", "Types", {});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	size_t count = response.size() - 1;
-	Napi::Array types = Napi::Array::New(info.Env(), count);
-
-	for (size_t idx = 0; idx < count; idx++) {
-		types.Set(idx, Napi::String::New(info.Env(), response[1 + idx].value_str));
-	}
+	for (auto type: res)
+		types.Set(index++, Napi::String::New(info.Env(), type));
 
 	return types;
 }
@@ -123,30 +115,22 @@ Napi::Value osn::Transition::Create(const Napi::CallbackInfo& info)
 		settings = stringify.Call(json, { setobj }).As<Napi::String>();
 	}
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
 	auto params = std::vector<ipc::value>{ipc::value(type), ipc::value(name)};
 	std::string settings_str = settings.Utf8Value();
 	if (settings_str.size() != 0)
 		params.push_back(ipc::value(settings_str));
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Transition", "Create", {std::move(params)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
+	auto uid = obs::Transition::Create(type, name, settings_str);
 	SourceDataInfo* sdi = new SourceDataInfo;
 	sdi->name           = name;
 	sdi->obs_sourceId   = type;
-	sdi->id             = response[1].value_union.ui64;
+	sdi->id             = uid;
 
-	CacheManager<SourceDataInfo*>::getInstance().Store(response[1].value_union.ui64, name, sdi);
+	CacheManager<SourceDataInfo*>::getInstance().Store(uid, name, sdi);
 
     auto instance =
         osn::Transition::constructor.New({
-            Napi::Number::New(info.Env(),response[1].value_union.ui64)
+            Napi::Number::New(info.Env(), uid)
             });
 
     return instance;
@@ -167,31 +151,22 @@ Napi::Value osn::Transition::CreatePrivate(const Napi::CallbackInfo& info)
 		settings = stringify.Call(json, { setobj }).As<Napi::String>();
 	}
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
 	auto params = std::vector<ipc::value>{ipc::value(type), ipc::value(name)};
 	std::string settings_str = settings.Utf8Value();
 	if (settings_str.size() != 0)
 		params.push_back(ipc::value(settings_str));
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Transition", "CreatePrivate", {std::move(params)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
+	auto uid = obs::Transition::CreatePrivate(type, name, settings_str);
 	SourceDataInfo* sdi = new SourceDataInfo;
 	sdi->name           = name;
 	sdi->obs_sourceId   = type;
-	sdi->id             = response[1].value_union.ui64;
+	sdi->id             = uid;
 
-	CacheManager<SourceDataInfo*>::getInstance().Store(response[1].value_union.ui64, name, sdi);
+	CacheManager<SourceDataInfo*>::getInstance().Store(uid, name, sdi);
 
     auto instance =
         osn::Transition::constructor.New({
-            Napi::Number::New(info.Env(),response[1].value_union.ui64)
+            Napi::Number::New(info.Env(), uid)
             });
 
     return instance;
@@ -201,20 +176,9 @@ Napi::Value osn::Transition::FromName(const Napi::CallbackInfo& info)
 {
 	std::string name = info[0].ToString().Utf8Value();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	auto params = std::vector<ipc::value>{ipc::value(name)};
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Transition", "FromName", {std::move(params)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
     auto instance =
         osn::Transition::constructor.New({
-            Napi::Number::New(info.Env(),response[1].value_union.ui64)
+            Napi::Number::New(info.Env(), obs::Transition::FromName(name))
             });
 
     return instance;
@@ -234,19 +198,20 @@ Napi::Value osn::Transition::GetActiveSource(const Napi::CallbackInfo& info)
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-	if (response[2].value_union.ui32 == 0) {
+	auto res = obs::Transition::GetActiveSource(this->sourceId);
+	if (res.second == 0) {
 		// Input
 		auto instance =
 			osn::Input::constructor.New({
-				Napi::Number::New(info.Env(), response[1].value_union.ui64)
+				Napi::Number::New(info.Env(), res.first)
 				});
 
 		return instance;
-	} else if (response[2].value_union.ui32 == 3) {
+	} else if (res.second == 3) {
 		// Scene
 		auto instance =
 			osn::Scene::constructor.New({
-				Napi::Number::New(info.Env(), response[1].value_union.ui64)
+				Napi::Number::New(info.Env(), res.first)
 				});
 
 		return instance;
@@ -257,13 +222,8 @@ Napi::Value osn::Transition::GetActiveSource(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Transition::Clear(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	obs::Transition::Clear(this->sourceId);
 
-	auto params = std::vector<ipc::value>{ipc::value(this->sourceId)};
-
-	conn->call("Transition", "Clear", {std::move(params)});
 	return info.Env().Undefined();
 }
 
@@ -271,13 +231,8 @@ Napi::Value osn::Transition::Set(const Napi::CallbackInfo& info)
 {
 	osn::Scene* scene = Napi::ObjectWrap<osn::Scene>::Unwrap(info[0].ToObject());
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	obs::Transition::Set(this->sourceId, scene->sourceId);
 
-	auto params = std::vector<ipc::value>{ipc::value(this->sourceId), ipc::value(scene->sourceId)};
-
-	conn->call("Transition", "Set", {std::move(params)});
 	return info.Env().Undefined();
 }
 
@@ -286,17 +241,7 @@ Napi::Value osn::Transition::Start(const Napi::CallbackInfo& info)
 	uint32_t ms = info[0].ToNumber().Uint32Value();
 	osn::Scene* scene = Napi::ObjectWrap<osn::Scene>::Unwrap(info[1].ToObject());
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	auto params = std::vector<ipc::value>{ipc::value(this->sourceId), ipc::value(ms), ipc::value(scene->sourceId)};
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Transition", "Start", {std::move(params)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-	return Napi::Boolean::New(info.Env(), !!response[1].value_union.i32);
+	return Napi::Boolean::New(info.Env(), obs::Transition::Start(this->sourceId, ms, scene->sourceId));
 }
 
 Napi::Value osn::Transition::CallIsConfigurable(const Napi::CallbackInfo& info)

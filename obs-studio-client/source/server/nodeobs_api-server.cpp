@@ -1358,7 +1358,7 @@ void OBS_API::destroyOBS_API(void)
 	if (obs::Source::Manager::GetInstance().size() > 0		||
 		obs::Scene::Manager::GetInstance().size() > 0		||
 		obs::SceneItem::Manager::GetInstance().size() > 0	||
-		osn::Transition::Manager::GetInstance().size() > 0	||
+		obs::Transition::Manager::GetInstance().size() > 0	||
 		obs::Filter::Manager::GetInstance().size() > 0		||
 		obs::Input::Manager::GetInstance().size() > 0) {
 

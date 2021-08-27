@@ -19,37 +19,21 @@
 #pragma once
 #include "osn-source.hpp"
 
-namespace osn
+namespace obs
 {
 	class Transition : public obs::Source
 	{
 		public:
-		static void Register(ipc::server&);
-
 		// Function
-		static void
-		    Types(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		            Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void CreatePrivate(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void
-		    FromName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static std::vector<std::string> Types();
+		static uint64_t Create(std::string sourceId, std::string name, std::string settingsData);
+		static uint64_t CreatePrivate(std::string sourceId, std::string name, std::string settingsData);
+		static uint64_t FromName(std::string name);
 
 		// Method
-		static void GetActiveSource(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void
-		    Clear(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		    Set(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		    Start(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+		static std::pair<uint64_t, uint32_t> GetActiveSource(uint64_t sourceId);
+		static void Clear(uint64_t sourceId);
+		static void Set(uint64_t transitionId, uint64_t sourceId);
+		static bool Start(uint64_t transitionId, uint32_t ms, uint64_t sourceId);
 	};
-} // namespace osn
+}
