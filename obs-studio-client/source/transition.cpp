@@ -186,19 +186,10 @@ Napi::Value osn::Transition::FromName(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Transition::GetActiveSource(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	auto params = std::vector<ipc::value>{ipc::value(this->sourceId)};
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Transition", "GetActiveSource", {std::move(params)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
 	auto res = obs::Transition::GetActiveSource(this->sourceId);
+	if (res.first == UINT64_MAX)
+		return info.Env().Undefined();
+
 	if (res.second == 0) {
 		// Input
 		auto instance =

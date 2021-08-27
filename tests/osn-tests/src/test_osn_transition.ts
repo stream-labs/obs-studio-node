@@ -106,9 +106,8 @@ describe(testName, () => {
 
         transition.clear();
 
-        expect(function() {
-            source = transition.getActiveSource();
-        }).to.throw();
+        source = transition.getActiveSource();
+        expect(source).to.undefined;
 
         transition.release();
         scene.release();         
@@ -137,10 +136,9 @@ describe(testName, () => {
         let source: ISource;
         let transition: ITransition;
         transition = osn.TransitionFactory.create(EOBSTransitionTypes.Cut, 'transition');  
-            
-        expect(function () {
-            source = transition.getActiveSource();
-        }).to.throw();
+
+        source = transition.getActiveSource();
+        expect(source).to.undefined;
 
         transition.release();
     });
