@@ -151,6 +151,8 @@ Napi::Value osn::Scene::FromName(const Napi::CallbackInfo& info)
 
 	if (!si) {
 		uint64_t uid = obs::Scene::FromName(name);
+		if (uid == UINT64_MAX)
+			return info.Env().Undefined();
 		si = new SceneInfo;
 		si->id = uid;
 		si->name = name;
@@ -346,6 +348,9 @@ Napi::Value osn::Scene::FindItem(const Napi::CallbackInfo& info)
 	else
 		id = obs::Scene::FindItem(this->sourceId, position);
 
+	if (id == UINT64_MAX)
+		return info.Env().Undefined();
+
 	auto instance =
 		osn::SceneItem::constructor.New({
 			Napi::Number::New(info.Env(), id)
@@ -359,17 +364,10 @@ Napi::Value osn::Scene::MoveItem(const Napi::CallbackInfo& info)
 	int from = info[0].ToNumber().Int64Value();
 	int to = info[1].ToNumber().Int64Value();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Scene", "MoveItem", std::vector<ipc::value>{ipc::value(this->sourceId), ipc::value(from), ipc::value(to)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
 	auto res = obs::Scene::MoveItem(this->sourceId, from, to);
+	if (res.empty())
+		Napi::TypeError::New(info.Env() , "Unable to move the specified item.").ThrowAsJavaScriptException();
+
 	SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(this->sourceId);
 
 	if (si && res.size()) {
@@ -398,16 +396,6 @@ Napi::Value osn::Scene::OrderItems(const Napi::CallbackInfo& info)
 	order_char.resize(order.size()*sizeof(int64_t));
 	memcpy(order_char.data(), order.data(), order_char.size());
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Scene", "OrderItems", std::vector<ipc::value>{ipc::value(this->sourceId), ipc::value(order_char)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-	
 	auto res = obs::Scene::OrderItems(this->sourceId, order_char);
 
 	SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(this->sourceId);
@@ -491,18 +479,6 @@ Napi::Value osn::Scene::GetItemsInRange(const Napi::CallbackInfo& info)
 {
 	int32_t from = info[0].ToNumber().Int32Value();
 	int32_t to = info[1].ToNumber().Int32Value();
-
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Scene",
-	    "GetItemsInRange",
-	    std::vector<ipc::value>{ipc::value(this->sourceId), ipc::value(from), ipc::value(to)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
 
 	auto res = obs::Scene::GetItemsInRange(this->sourceId, from, to);
 	Napi::Array array = Napi::Array::New(info.Env(), res.size());

@@ -286,9 +286,8 @@ describe(testName, () => {
     });
 
     it('Fail test - Get scene from name that don\'t exist ', () => {
-        expect(function() {
-            const failSceneFromName = osn.SceneFactory.fromName('does_not_exist');
-        }).to.throw();
+        const failSceneFromName = osn.SceneFactory.fromName('does_not_exist');
+        expect(failSceneFromName).to.undefined;
     });
 
     it('Fail test - Try to find scene that don\'t exist', () => {
@@ -304,9 +303,8 @@ describe(testName, () => {
         expect(scene.type).to.equal(osn.ESourceType.Scene, GetErrorMessage(ETestErrorMsg.SceneType, sceneName));
 
         // Getting scene item with id that does not exist
-        expect(function () {
-            const sceneItem = scene.findItem('does_not_exist');
-        }).to.throw();
+        const sceneItem = scene.findItem('does_not_exist');
+        expect(sceneItem).to.undefined;
 
         scene.release();
     });
