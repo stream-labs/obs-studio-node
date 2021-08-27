@@ -64,7 +64,7 @@ bool        rpUsesRec            = false;
 bool        rpUsesStream         = false;
 
 std::mutex             signalMutex;
-std::queue<SignalInfo> outputSignal;
+std::queue<obs::SignalInfo> outputSignal;
 std::thread            releaseWorker;
 
 static constexpr int kSoundtrackArchiveEncoderIdx = 1;
@@ -75,171 +75,59 @@ static bool twitchSoundtrackEnabled = false;
 OBS_service::OBS_service() {}
 OBS_service::~OBS_service() {}
 
-void OBS_service::Register(ipc::server& srv)
+void OBS_service::OBS_service_resetAudioContext()
 {
-	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Service");
-
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_resetAudioContext", std::vector<ipc::type>{}, OBS_service_resetAudioContext));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_resetVideoContext", std::vector<ipc::type>{}, OBS_service_resetVideoContext));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_startStreaming", std::vector<ipc::type>{}, OBS_service_startStreaming));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_startRecording", std::vector<ipc::type>{}, OBS_service_startRecording));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_startReplayBuffer", std::vector<ipc::type>{}, OBS_service_startReplayBuffer));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_stopStreaming", std::vector<ipc::type>{ipc::type::Int32}, OBS_service_stopStreaming));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_stopRecording", std::vector<ipc::type>{}, OBS_service_stopRecording));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_stopReplayBuffer", std::vector<ipc::type>{ipc::type::Int32}, OBS_service_stopReplayBuffer));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_connectOutputSignals", std::vector<ipc::type>{}, OBS_service_connectOutputSignals));
-	cls->register_function(std::make_shared<ipc::function>("Query", std::vector<ipc::type>{}, Query));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_processReplayBufferHotkey", std::vector<ipc::type>{}, OBS_service_processReplayBufferHotkey));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_getLastReplay", std::vector<ipc::type>{}, OBS_service_getLastReplay));
-
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_createVirtualWebcam", std::vector<ipc::type>{ipc::type::String}, OBS_service_createVirtualWebcam));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_removeVirtualWebcam", std::vector<ipc::type>{}, OBS_service_removeVirtualWebcam));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_startVirtualWebcam", std::vector<ipc::type>{}, OBS_service_startVirtualWebcam));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_service_stopVirtualWebcan", std::vector<ipc::type>{}, OBS_service_stopVirtualWebcan));
-
-	srv.register_collection(cls);
+	if (!resetAudioContext(true))
+		blog(LOG_ERROR, "Failed OBS_service_resetAudioContext.");
 }
 
-void OBS_service::OBS_service_resetAudioContext(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+int OBS_service::OBS_service_resetVideoContext()
 {
-	if (!resetAudioContext(true)) {
-		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed OBS_service_resetAudioContext.");
-	} else {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	}
-	AUTO_DEBUG;
+	return resetVideoContext(true);
 }
 
-void OBS_service::OBS_service_resetVideoContext(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_service::OBS_service_startStreaming()
 {
-	int result = resetVideoContext(true);
-	if (result == OBS_VIDEO_SUCCESS) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	} else {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-		rval.push_back(ipc::value(result));
-	}
-
-	AUTO_DEBUG;
-}
-
-void OBS_service::OBS_service_startStreaming(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	if (isStreamingOutputActive()) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-		AUTO_DEBUG;
+	if (isStreamingOutputActive())
 		return;
-	}
 
-	if (!startStreaming()) {
-		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to start streaming!");
-	} else {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	}
-
-	AUTO_DEBUG;
+	if (!startStreaming())
+		blog(LOG_ERROR, "Failed to start streaming!");
 }
 
-void OBS_service::OBS_service_startRecording(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_service::OBS_service_startRecording()
 {
-	if (isRecordingOutputActive()) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-		AUTO_DEBUG;
+	if (isRecordingOutputActive())
 		return;
-	}
 
-	if (!startRecording()) {
-		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to start recording!");
-	} else {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	}
-	AUTO_DEBUG;
+	if (!startRecording())
+		blog(LOG_ERROR, "Failed to start recording!");
 }
 
-void OBS_service::OBS_service_startReplayBuffer(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_service::OBS_service_startReplayBuffer()
 {
-	if (isReplayBufferOutputActive()) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-		AUTO_DEBUG;
+	if (isReplayBufferOutputActive())
 		return;
-	}
 
-	if (!startReplayBuffer()) {
-		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to start the replay buffer!");
-	} else {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	}
-	AUTO_DEBUG;
+	if (!startReplayBuffer())
+		blog(LOG_ERROR,  "Failed to start the replay buffer!");
 }
 
-void OBS_service::OBS_service_stopStreaming(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_service::OBS_service_stopStreaming(bool forceStop)
 {
-	stopStreaming((bool)args[0].value_union.i32);
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
+	stopStreaming(forceStop);
 }
 
-void OBS_service::OBS_service_stopRecording(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_service::OBS_service_stopRecording()
 {
 	stopRecording();
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
 }
 
-void OBS_service::OBS_service_stopReplayBuffer(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_service::OBS_service_stopReplayBuffer(bool forceStop)
 {
-	stopReplayBuffer((bool)args[0].value_union.i32);
+	stopReplayBuffer(forceStop);
 	rpUsesRec    = false;
 	rpUsesStream = false;
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
 }
 
 bool OBS_service::resetAudioContext(bool reload)
@@ -944,7 +832,7 @@ bool OBS_service::startStreaming(void)
 
 	isStreaming = obs_output_start(streamingOutput);
 	if (!isStreaming) {
-		SignalInfo  signal = SignalInfo("streaming", "stop");
+		obs::SignalInfo  signal = obs::SignalInfo("streaming", "stop");
 		std::string outdated_driver_error = outdated_driver_error::instance()->get_error();
 		if (outdated_driver_error.size() != 0) {
 			signal.setErrorMessage(outdated_driver_error);
@@ -1174,7 +1062,7 @@ bool OBS_service::startRecording(void)
 
 	isRecording = obs_output_start(recordingOutput);
 	if (!isRecording) {
-		SignalInfo signal = SignalInfo("recording", "stop");
+		obs::SignalInfo signal = obs::SignalInfo("recording", "stop");
 		std::string outdated_driver_error = outdated_driver_error::instance()->get_error();
 		if (outdated_driver_error.size() != 0) {
 			signal.setErrorMessage(outdated_driver_error);
@@ -1347,7 +1235,7 @@ bool OBS_service::startReplayBuffer(void)
 
 	bool result = obs_output_start(replayBufferOutput);
 	if (!result) {
-		SignalInfo signal    = SignalInfo("replay-buffer", "stop");
+		obs::SignalInfo signal    = obs::SignalInfo("replay-buffer", "stop");
 		isReplayBufferActive = false;
 		rpUsesRec            = false;
 		rpUsesStream         = false;
@@ -2145,9 +2033,9 @@ void OBS_service::updateStreamingOutput()
 	obs_output_set_reconnect_settings(streamingOutput, maxRetries, retryDelay);
 }
 
-std::vector<SignalInfo> streamingSignals;
-std::vector<SignalInfo> recordingSignals;
-std::vector<SignalInfo> replayBufferSignals;
+std::vector<obs::SignalInfo> streamingSignals;
+std::vector<obs::SignalInfo> recordingSignals;
+std::vector<obs::SignalInfo> replayBufferSignals;
 
 void OBS_service::OBS_service_connectOutputSignals(
     void*                          data,
@@ -2155,26 +2043,26 @@ void OBS_service::OBS_service_connectOutputSignals(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	streamingSignals.push_back(SignalInfo("streaming", "start"));
-	streamingSignals.push_back(SignalInfo("streaming", "stop"));
-	streamingSignals.push_back(SignalInfo("streaming", "starting"));
-	streamingSignals.push_back(SignalInfo("streaming", "stopping"));
-	streamingSignals.push_back(SignalInfo("streaming", "activate"));
-	streamingSignals.push_back(SignalInfo("streaming", "deactivate"));
-	streamingSignals.push_back(SignalInfo("streaming", "reconnect"));
-	streamingSignals.push_back(SignalInfo("streaming", "reconnect_success"));
+	streamingSignals.push_back(obs::SignalInfo("streaming", "start"));
+	streamingSignals.push_back(obs::SignalInfo("streaming", "stop"));
+	streamingSignals.push_back(obs::SignalInfo("streaming", "starting"));
+	streamingSignals.push_back(obs::SignalInfo("streaming", "stopping"));
+	streamingSignals.push_back(obs::SignalInfo("streaming", "activate"));
+	streamingSignals.push_back(obs::SignalInfo("streaming", "deactivate"));
+	streamingSignals.push_back(obs::SignalInfo("streaming", "reconnect"));
+	streamingSignals.push_back(obs::SignalInfo("streaming", "reconnect_success"));
 
-	recordingSignals.push_back(SignalInfo("recording", "start"));
-	recordingSignals.push_back(SignalInfo("recording", "stop"));
-	recordingSignals.push_back(SignalInfo("recording", "stopping"));
+	recordingSignals.push_back(obs::SignalInfo("recording", "start"));
+	recordingSignals.push_back(obs::SignalInfo("recording", "stop"));
+	recordingSignals.push_back(obs::SignalInfo("recording", "stopping"));
 
-	replayBufferSignals.push_back(SignalInfo("replay-buffer", "start"));
-	replayBufferSignals.push_back(SignalInfo("replay-buffer", "stop"));
-	replayBufferSignals.push_back(SignalInfo("replay-buffer", "stopping"));
+	replayBufferSignals.push_back(obs::SignalInfo("replay-buffer", "start"));
+	replayBufferSignals.push_back(obs::SignalInfo("replay-buffer", "stop"));
+	replayBufferSignals.push_back(obs::SignalInfo("replay-buffer", "stopping"));
 
-	replayBufferSignals.push_back(SignalInfo("replay-buffer", "writing"));
-	replayBufferSignals.push_back(SignalInfo("replay-buffer", "wrote"));
-	replayBufferSignals.push_back(SignalInfo("replay-buffer", "writing_error"));
+	replayBufferSignals.push_back(obs::SignalInfo("replay-buffer", "writing"));
+	replayBufferSignals.push_back(obs::SignalInfo("replay-buffer", "wrote"));
+	replayBufferSignals.push_back(obs::SignalInfo("replay-buffer", "writing_error"));
 
 	connectOutputSignals();
 
@@ -2208,7 +2096,7 @@ void OBS_service::Query(
 
 void OBS_service::JSCallbackOutputSignal(void* data, calldata_t* params)
 {
-	SignalInfo& signal = *reinterpret_cast<SignalInfo*>(data);
+	obs::SignalInfo& signal = *reinterpret_cast<obs::SignalInfo*>(data);
 
 	std::string signalReceived = signal.getSignal();
 
@@ -2291,11 +2179,7 @@ struct HotkeyInfo
 	obs_hotkey_id              hotkeyId;
 };
 
-void OBS_service::OBS_service_processReplayBufferHotkey(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_service::OBS_service_processReplayBufferHotkey()
 {
 	obs_enum_hotkeys(
 	    [](void* data, obs_hotkey_id id, obs_hotkey_t* key) {
@@ -2309,15 +2193,9 @@ void OBS_service::OBS_service_processReplayBufferHotkey(
 		    return true;
 	    },
 	    nullptr);
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
-void OBS_service::OBS_service_getLastReplay(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+std::string OBS_service::OBS_service_getLastReplay()
 {
 	calldata_t cd = {0};
 
@@ -2329,8 +2207,7 @@ void OBS_service::OBS_service_getLastReplay(
 	if (path == NULL)
 		path = "";
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(path));
+	return std::string(path);
 }
 
 bool OBS_service::useRecordingPreset()
@@ -2384,14 +2261,9 @@ void OBS_service::waitReleaseWorker()
 	}
 }
 
-void OBS_service::OBS_service_createVirtualWebcam(
-	void*                          data,
-	const int64_t                  id,
-	const std::vector<ipc::value>& args,
-	std::vector<ipc::value>&       rval)
+void OBS_service::OBS_service_createVirtualWebcam(std::string name)
 {
 	virtualWebcamOutput = nullptr;
-	std::string name = args[0].value_str;
 	if (name.empty())
 		return;
 
@@ -2409,11 +2281,7 @@ void OBS_service::OBS_service_createVirtualWebcam(
 	obs_data_release(settings);
 }
 
-void OBS_service::OBS_service_removeVirtualWebcam(
-	void*                          data,
-	const int64_t                  id,
-	const std::vector<ipc::value>& args,
-	std::vector<ipc::value>&       rval)
+void OBS_service::OBS_service_removeVirtualWebcam()
 {
 	if (!virtualWebcamOutput)
 		return;
@@ -2422,11 +2290,7 @@ void OBS_service::OBS_service_removeVirtualWebcam(
 	virtualWebcamOutput = nullptr;
 }
 
-void OBS_service::OBS_service_startVirtualWebcam(
-	void*                          data,
-	const int64_t                  id,
-	const std::vector<ipc::value>& args,
-	std::vector<ipc::value>&       rval)
+void OBS_service::OBS_service_startVirtualWebcam()
 {
 	if (!virtualWebcamOutput)
 		return;
@@ -2437,11 +2301,7 @@ void OBS_service::OBS_service_startVirtualWebcam(
 		blog(LOG_ERROR, "Failed to start the Virtual Webcam Output");
 }
 
-void OBS_service::OBS_service_stopVirtualWebcan(
-	void*                          data,
-	const int64_t                  id,
-	const std::vector<ipc::value>& args,
-	std::vector<ipc::value>&       rval)
+void OBS_service::OBS_service_stopVirtualWebcam()
 {
 	if (!virtualWebcamOutput)
 		return;

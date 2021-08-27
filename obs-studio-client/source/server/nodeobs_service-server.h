@@ -68,49 +68,51 @@
 
 #define MAX_AUDIO_MIXES 6
 
-class SignalInfo
-{
-	private:
-	std::string m_outputType;
-	std::string m_signal;
-	int         m_code;
-	std::string m_errorMessage;
+namespace obs {
+	class SignalInfo
+	{
+		private:
+		std::string m_outputType;
+		std::string m_signal;
+		int         m_code;
+		std::string m_errorMessage;
 
-	public:
-	SignalInfo(){};
-	SignalInfo(std::string outputType, std::string signal)
-	{
-		m_outputType   = outputType;
-		m_signal       = signal;
-		m_code         = 0;
-		m_errorMessage = "";
-	}
-	std::string getOutputType(void)
-	{
-		return m_outputType;
-	};
-	std::string getSignal(void)
-	{
-		return m_signal;
-	};
+		public:
+		SignalInfo(){};
+		SignalInfo(std::string outputType, std::string signal)
+		{
+			m_outputType   = outputType;
+			m_signal       = signal;
+			m_code         = 0;
+			m_errorMessage = "";
+		}
+		std::string getOutputType(void)
+		{
+			return m_outputType;
+		};
+		std::string getSignal(void)
+		{
+			return m_signal;
+		};
 
-	int getCode(void)
-	{
-		return m_code;
+		int getCode(void)
+		{
+			return m_code;
+		};
+		void setCode(int code)
+		{
+			m_code = code;
+		};
+		std::string getErrorMessage(void)
+		{
+			return m_errorMessage;
+		};
+		void setErrorMessage(std::string errorMessage)
+		{
+			m_errorMessage = errorMessage;
+		};
 	};
-	void setCode(int code)
-	{
-		m_code = code;
-	};
-	std::string getErrorMessage(void)
-	{
-		return m_errorMessage;
-	};
-	void setErrorMessage(std::string errorMessage)
-	{
-		m_errorMessage = errorMessage;
-	};
-};
+}
 
 class OBS_service
 {
@@ -118,85 +120,27 @@ class OBS_service
 	OBS_service();
 	~OBS_service();
 
-	static void Register(ipc::server&);
-
-	static void OBS_service_resetAudioContext(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_resetVideoContext(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_startStreaming(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_startRecording(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_startReplayBuffer(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_stopStreaming(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_stopRecording(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_stopReplayBuffer(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
+	static void OBS_service_resetAudioContext();
+	static int OBS_service_resetVideoContext();
+	static void OBS_service_startStreaming();
+	static void OBS_service_startRecording();
+	static void OBS_service_startReplayBuffer();
+	static void OBS_service_stopStreaming(bool forceStop);
+	static void OBS_service_stopRecording();
+	static void OBS_service_stopReplayBuffer(bool forceStop);
 	static void OBS_service_connectOutputSignals(
 	    void*                          data,
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
-	static void OBS_service_processReplayBufferHotkey(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_getLastReplay(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
+	static void OBS_service_processReplayBufferHotkey();
+	static std::string OBS_service_getLastReplay();
 	static void Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 
-	static void OBS_service_createVirtualWebcam(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_removeVirtualWebcam(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_startVirtualWebcam(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_stopVirtualWebcan(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
+	static void OBS_service_createVirtualWebcam(std::string name);
+	static void OBS_service_removeVirtualWebcam();
+	static void OBS_service_startVirtualWebcam();
+	static void OBS_service_stopVirtualWebcam();
 
 	private:
 	static bool startStreaming(void);

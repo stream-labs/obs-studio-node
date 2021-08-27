@@ -26,6 +26,7 @@
 #include <string>
 #include "shared.hpp"
 #include "utility.hpp"
+#include "server/nodeobs_service-server.h"
 
 #ifdef WIN32
 #include <shellapi.h>
@@ -67,21 +68,15 @@ void service::stop_worker(void)
 
 Napi::Value service::OBS_service_resetAudioContext(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	OBS_service::OBS_service_resetAudioContext();
 
-	conn->call("Service", "OBS_service_resetAudioContext", {});
 	return info.Env().Undefined();
 }
 
 Napi::Value service::OBS_service_resetVideoContext(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	OBS_service::OBS_service_resetVideoContext();
 
-	conn->call("Service", "OBS_service_resetVideoContext", {});
 	return info.Env().Undefined();
 }
 
@@ -92,11 +87,8 @@ Napi::Value service::OBS_service_startStreaming(const Napi::CallbackInfo& info)
 		isWorkerRunning = true;
 	}
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	OBS_service::OBS_service_startStreaming();
 
-	conn->call("Service", "OBS_service_startStreaming", {});
 	return info.Env().Undefined();
 }
 
@@ -107,11 +99,8 @@ Napi::Value service::OBS_service_startRecording(const Napi::CallbackInfo& info)
 		isWorkerRunning = true;
 	}
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	OBS_service::OBS_service_startRecording();
 
-	conn->call("Service", "OBS_service_startRecording", {});
 	return info.Env().Undefined();
 }
 
@@ -122,11 +111,8 @@ Napi::Value service::OBS_service_startReplayBuffer(const Napi::CallbackInfo& inf
 		isWorkerRunning = true;
 	}
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	OBS_service::OBS_service_startReplayBuffer();
 
-	conn->call("Service", "OBS_service_startReplayBuffer", {});
 	return info.Env().Undefined();
 }
 
@@ -134,21 +120,15 @@ Napi::Value service::OBS_service_stopStreaming(const Napi::CallbackInfo& info)
 {
 	bool forceStop = info[0].ToBoolean().Value();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	OBS_service::OBS_service_stopStreaming(forceStop);
 
-	conn->call("Service", "OBS_service_stopStreaming", {ipc::value(forceStop)});
 	return info.Env().Undefined();
 }
 
 Napi::Value service::OBS_service_stopRecording(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	OBS_service::OBS_service_stopRecording();
 
-	conn->call("Service", "OBS_service_stopRecording", {});
 	return info.Env().Undefined();
 }
 
@@ -156,11 +136,8 @@ Napi::Value service::OBS_service_stopReplayBuffer(const Napi::CallbackInfo& info
 {
 	bool forceStop = info[0].ToBoolean().Value();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	OBS_service::OBS_service_stopReplayBuffer(forceStop);
 
-	conn->call("Service", "OBS_service_stopReplayBuffer", {ipc::value(forceStop)});
 	return info.Env().Undefined();
 }
 
@@ -183,27 +160,14 @@ Napi::Value service::OBS_service_connectOutputSignals(const Napi::CallbackInfo& 
 
 Napi::Value service::OBS_service_processReplayBufferHotkey(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	OBS_service::OBS_service_processReplayBufferHotkey();
 
-    conn->call("Service", "OBS_service_processReplayBufferHotkey", {});
 	return info.Env().Undefined();
 }
 
 Napi::Value service::OBS_service_getLastReplay(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Service", "OBS_service_getLastReplay", {});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return Napi::String::New(info.Env(), response.at(1).value_str);
+	return Napi::String::New(info.Env(), OBS_service::OBS_service_getLastReplay());
 }
 
 void service::worker()
@@ -272,41 +236,33 @@ Napi::Value service::OBS_service_removeCallback(const Napi::CallbackInfo& info)
 	return info.Env().Undefined();
 }
 
-Napi::Value service::OBS_service_createVirtualWebcam(const Napi::CallbackInfo& info) {
+Napi::Value service::OBS_service_createVirtualWebcam(const Napi::CallbackInfo& info)
+{
 	std::string name = info[0].ToString().Utf8Value();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	OBS_service::OBS_service_createVirtualWebcam(name);
 
-	conn->call("Service", "OBS_service_createVirtualWebcam", {ipc::value(name)});
 	return info.Env().Undefined();
 }
 
-Napi::Value service::OBS_service_removeVirtualWebcam(const Napi::CallbackInfo& info) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+Napi::Value service::OBS_service_removeVirtualWebcam(const Napi::CallbackInfo& info)
+{
+	OBS_service::OBS_service_removeVirtualWebcam();
 
-	conn->call("Service", "OBS_service_removeVirtualWebcam", {});
 	return info.Env().Undefined();
 }
 
-Napi::Value service::OBS_service_startVirtualWebcam(const Napi::CallbackInfo& info) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+Napi::Value service::OBS_service_startVirtualWebcam(const Napi::CallbackInfo& info)
+{
+	OBS_service::OBS_service_startVirtualWebcam();
 
-	conn->call("Service", "OBS_service_startVirtualWebcam", {});
 	return info.Env().Undefined();
 }
 
-Napi::Value service::OBS_service_stopVirtualWebcam(const Napi::CallbackInfo& info) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+Napi::Value service::OBS_service_stopVirtualWebcam(const Napi::CallbackInfo& info)
+{
+	OBS_service::OBS_service_stopVirtualWebcam();
 
-	conn->call("Service", "OBS_service_stopVirtualWebcam", {});
 	return info.Env().Undefined();
 }
 
