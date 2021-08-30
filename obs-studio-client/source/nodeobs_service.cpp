@@ -37,34 +37,6 @@ bool service::worker_stop = true;
 uint32_t service::sleepIntervalMS = 33;
 std::thread* service::worker_thread = nullptr;
 Napi::ThreadSafeFunction service::js_thread;
-Napi::FunctionReference service::cb;
-
-void service::start_worker(napi_env env, Napi::Function async_callback)
-{
-	if (!worker_stop)
-		return;
-
-	worker_stop = false;
-	js_thread = Napi::ThreadSafeFunction::New(
-		env,
-		async_callback,
-		"Service",
-		0,
-		1,
-		[]( Napi::Env ) {} );
-	worker_thread = new std::thread(&service::worker);
-}
-
-void service::stop_worker(void)
-{
-	if (worker_stop != false)
-		return;
-
-	worker_stop = true;
-	if (worker_thread->joinable()) {
-		worker_thread->join();
-	}
-}
 
 Napi::Value service::OBS_service_resetAudioContext(const Napi::CallbackInfo& info)
 {
@@ -82,11 +54,6 @@ Napi::Value service::OBS_service_resetVideoContext(const Napi::CallbackInfo& inf
 
 Napi::Value service::OBS_service_startStreaming(const Napi::CallbackInfo& info)
 {
-	if (!isWorkerRunning) {
-		start_worker(info.Env(), cb.Value());
-		isWorkerRunning = true;
-	}
-
 	OBS_service::OBS_service_startStreaming();
 
 	return info.Env().Undefined();
@@ -94,11 +61,6 @@ Napi::Value service::OBS_service_startStreaming(const Napi::CallbackInfo& info)
 
 Napi::Value service::OBS_service_startRecording(const Napi::CallbackInfo& info)
 {
-	if (!isWorkerRunning) {
-		start_worker(info.Env(), cb.Value());
-		isWorkerRunning = true;
-	}
-
 	OBS_service::OBS_service_startRecording();
 
 	return info.Env().Undefined();
@@ -106,11 +68,6 @@ Napi::Value service::OBS_service_startRecording(const Napi::CallbackInfo& info)
 
 Napi::Value service::OBS_service_startReplayBuffer(const Napi::CallbackInfo& info)
 {
-	if (!isWorkerRunning) {
-		start_worker(info.Env(), cb.Value());
-		isWorkerRunning = true;
-	}
-
 	OBS_service::OBS_service_startReplayBuffer();
 
 	return info.Env().Undefined();
@@ -143,36 +100,9 @@ Napi::Value service::OBS_service_stopReplayBuffer(const Napi::CallbackInfo& info
 
 static v8::Persistent<v8::Object> serviceCallbackObject;
 
-Napi::Value service::OBS_service_connectOutputSignals(const Napi::CallbackInfo& info)
+void JSCallbackOutputSignal(void* data, calldata_t* params)
 {
-	// Napi::Function async_callback = info[0].As<Napi::Function>();
-
-	// auto conn = GetConnection(info);
-	// if (!conn)
-	// 	return info.Env().Undefined();
-
-	// conn->call("Service", "OBS_service_connectOutputSignals", {});
-
-	// cb = Napi::Persistent(async_callback);
-	// cb.SuppressDestruct();
-	return Napi::Boolean::New(info.Env(), true);
-}
-
-Napi::Value service::OBS_service_processReplayBufferHotkey(const Napi::CallbackInfo& info)
-{
-	OBS_service::OBS_service_processReplayBufferHotkey();
-
-	return info.Env().Undefined();
-}
-
-Napi::Value service::OBS_service_getLastReplay(const Napi::CallbackInfo& info)
-{
-	return Napi::String::New(info.Env(), OBS_service::OBS_service_getLastReplay());
-}
-
-void service::worker()
-{
-    auto callback = []( Napi::Env env, Napi::Function jsCallback, SignalInfo* data ) {
+	auto callback = []( Napi::Env env, Napi::Function jsCallback, SignalInfo* data ) {
 		Napi::Object result = Napi::Object::New(env);
 
 		result.Set(
@@ -190,49 +120,78 @@ void service::worker()
 
 		jsCallback.Call({ result });
     };
-	size_t totalSleepMS = 0;
 
-	while (!worker_stop) {
-		auto tp_start = std::chrono::high_resolution_clock::now();
+	obs::SignalInfo& signal = *reinterpret_cast<obs::SignalInfo*>(data);
+	int code = 0;
+	std::string errorMessage = "";
 
-		// Validate Connection
-		auto conn = Controller::GetInstance().GetConnection();
-		if (!conn) {
-			goto do_sleep;
+	if (signal.signal.compare("stop") == 0) {
+		code = (int)calldata_int(params, "code");
+
+		obs_output_t* output;
+
+		if (signal.outputType.compare("streaming") == 0) {
+			output = streamingOutput;
+			isStreaming = false;
+		} else if (signal.outputType.compare("recording") == 0) {
+			output = recordingOutput;
+			isRecording = false;
+		} else {
+			output = replayBufferOutput;
+			isReplayBufferActive = false;
 		}
 
-		// Call
-		{
-			std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "Query", {});
-			if (!response.size() || (response.size() == 1)) {
-				goto do_sleep;
-			}
-
-			ErrorCode error = (ErrorCode)response[0].value_union.ui64;
-			if (error == ErrorCode::Ok) {
-				SignalInfo* data = new SignalInfo{ "", "", 0, ""};
-				data->outputType   = response[1].value_str;
-				data->signal       = response[2].value_str;
-				data->code         = response[3].value_union.i32;
-				data->errorMessage = response[4].value_str;
-				js_thread.BlockingCall( data, callback );
-			}
+		const char* error = obs_output_get_last_error(output);
+		if (error) {
+			if (signal.outputType.compare("recording") == 0 && !code)
+				code OBS_OUTPUT_ERROR;
+			errorMessage = std::string(error);
 		}
-
-	do_sleep:
-		auto tp_end  = std::chrono::high_resolution_clock::now();
-		auto dur     = std::chrono::duration_cast<std::chrono::milliseconds>(tp_end - tp_start);
-		totalSleepMS = sleepIntervalMS - dur.count();
-		std::this_thread::sleep_for(std::chrono::milliseconds(totalSleepMS));
 	}
-	return;
+
+	SignalInfo* dataSignal = new SignalInfo{ "", "", 0, ""};
+	dataSignal->outputType   = signal.outputType;
+	dataSignal->signal       = signal.signal;
+	dataSignal->code         = code;
+	dataSignal->errorMessage = errorMessage;
+
+	if (signal.jsThread) {
+		Napi::ThreadSafeFunction& jsThread =
+			*reinterpret_cast<Napi::ThreadSafeFunction*>(signal.jsThread);
+		jsThread.BlockingCall( dataSignal, callback );
+	}
+}
+
+Napi::Value service::OBS_service_connectOutputSignals(const Napi::CallbackInfo& info)
+{
+	Napi::Function async_callback = info[0].As<Napi::Function>();
+	js_thread = Napi::ThreadSafeFunction::New(
+		info.Env(),
+		async_callback,
+		"Service",
+		0,
+		1,
+		[]( Napi::Env ) {} );
+
+	OBS_service::OBS_service_connectOutputSignals(JSCallbackOutputSignal, &js_thread);
+	return Napi::Boolean::New(info.Env(), true);
+}
+
+Napi::Value service::OBS_service_processReplayBufferHotkey(const Napi::CallbackInfo& info)
+{
+	OBS_service::OBS_service_processReplayBufferHotkey();
+
+	return info.Env().Undefined();
+}
+
+Napi::Value service::OBS_service_getLastReplay(const Napi::CallbackInfo& info)
+{
+	return Napi::String::New(info.Env(), OBS_service::OBS_service_getLastReplay());
 }
 
 Napi::Value service::OBS_service_removeCallback(const Napi::CallbackInfo& info)
 {
-	if (isWorkerRunning) {
-		stop_worker();
-	}
+	// TODO
 	return info.Env().Undefined();
 }
 

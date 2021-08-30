@@ -69,50 +69,31 @@
 #define MAX_AUDIO_MIXES 6
 
 namespace obs {
-	class SignalInfo
-	{
-		private:
-		std::string m_outputType;
-		std::string m_signal;
-		int         m_code;
-		std::string m_errorMessage;
-
-		public:
-		SignalInfo(){};
-		SignalInfo(std::string outputType, std::string signal)
-		{
-			m_outputType   = outputType;
-			m_signal       = signal;
-			m_code         = 0;
-			m_errorMessage = "";
-		}
-		std::string getOutputType(void)
-		{
-			return m_outputType;
-		};
-		std::string getSignal(void)
-		{
-			return m_signal;
-		};
-
-		int getCode(void)
-		{
-			return m_code;
-		};
-		void setCode(int code)
-		{
-			m_code = code;
-		};
-		std::string getErrorMessage(void)
-		{
-			return m_errorMessage;
-		};
-		void setErrorMessage(std::string errorMessage)
-		{
-			m_errorMessage = errorMessage;
-		};
+	struct SignalInfo {
+		std::string outputType;
+		std::string signal;
+		void* jsThread;
 	};
 }
+
+extern obs_output_t* streamingOutput;
+extern obs_output_t* recordingOutput;
+extern obs_output_t* replayBufferOutput;
+extern obs_output_t* virtualWebcamOutput;
+
+extern bool        usingRecordingPreset;
+extern bool        recordingConfigured;
+extern bool        ffmpegOutput;
+extern bool        lowCPUx264;
+extern bool        isStreaming;
+extern bool        isRecording;
+extern bool        isReplayBufferActive;
+extern bool        rpUsesRec;
+extern bool        rpUsesStream;
+
+extern void* g_jsThread;
+
+extern signal_callback_t g_ouput_callback;
 
 class OBS_service
 {
@@ -128,11 +109,7 @@ class OBS_service
 	static void OBS_service_stopStreaming(bool forceStop);
 	static void OBS_service_stopRecording();
 	static void OBS_service_stopReplayBuffer(bool forceStop);
-	static void OBS_service_connectOutputSignals(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
+	static void OBS_service_connectOutputSignals(signal_callback_t callbac, void* jsThread);
 	static void OBS_service_processReplayBufferHotkey();
 	static std::string OBS_service_getLastReplay();
 	static void Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
@@ -237,7 +214,7 @@ class OBS_service
 	static int GetAdvancedAudioBitrate(int i);
 
 	// Output signals
-	static void connectOutputSignals(void);
+	static void connectOutputSignals(signal_callback_t callback = NULL);
 	static void JSCallbackOutputSignal(void* data, calldata_t*);
 
 	static bool useRecordingPreset();
