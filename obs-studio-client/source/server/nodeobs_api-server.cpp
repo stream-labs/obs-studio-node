@@ -1353,7 +1353,6 @@ void OBS_API::destroyOBS_API(void)
 
     OBS_service::waitReleaseWorker();
     OBS_service::clearAudioEncoder();
-    obs::Volmeter::ClearVolmeters();
     obs::Fader::ClearFaders();
 
 	// Check if the frontend was able to shutdown correctly:

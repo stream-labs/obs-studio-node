@@ -24,6 +24,8 @@
 #include "obs.h"
 #include "utility-server.hpp"
 
+#define MAKE_FLOAT_SANE(db) (std::isfinite(db) ? db : (db > 0 ? 0.0f : -65535.0f))
+
 extern std::mutex mtx;
 
 namespace obs
@@ -47,67 +49,28 @@ namespace obs
 			static Manager& GetInstance();
 		};
 
-		private:
+		public:
 		obs_volmeter_t* self;
 		uint64_t        id;
 		size_t          callback_count = 0;
 		uint64_t*       id2            = nullptr;
 		uint64_t        uid_source     = 0;
-
-		struct AudioData
-		{
-			std::array<float, MAX_AUDIO_CHANNELS> magnitude{0};
-			std::array<float, MAX_AUDIO_CHANNELS> peak{0};
-			std::array<float, MAX_AUDIO_CHANNELS> input_peak{0};
-			std::chrono::milliseconds             lastUpdateTime = std::chrono::milliseconds(0);
-			int32_t ch                             = 0;
-
-			void resetData()
-			{
-				std::fill(magnitude.begin(), magnitude.end(), -65535.0f);
-				std::fill(peak.begin(), peak.end(), -65535.0f);
-				std::fill(input_peak.begin(), input_peak.end(), -65535.0f);
-				lastUpdateTime = std::chrono::milliseconds(0);
-			}
-		};
-
-		AudioData current_data;
-		std::mutex current_data_mtx;
+		void*           m_jsThread     = nullptr;
 
 		public:
 		Volmeter(obs_fader_type type);
 		~Volmeter();
 
 		public:
-        static void ClearVolmeters();
-		static void getAudioData(uint64_t id, std::vector<ipc::value>& rval);
-
 		static std::pair<uint64_t, uint32_t> Create(int32_t a_type);
 		static void Destroy(uint64_t uid);
 
 		static void Attach(uint64_t uid_fader, uint64_t uid_source);
 		static void Detach(uint64_t uid);
 		static void AddCallback(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void RemoveCallback(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-
-		static void
-		            Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void OBSCallback(
-		    void*       param,
-		    const float magnitude[MAX_AUDIO_CHANNELS],
-		    const float peak[MAX_AUDIO_CHANNELS],
-		    const float input_peak[MAX_AUDIO_CHANNELS]);
-
-		private:
-		static std::chrono::milliseconds GetTime();
-		static bool CheckIdle(std::chrono::milliseconds currentTime, std::chrono::milliseconds lastUpdateTime);
+			uint64_t uid,
+			obs_volmeter_updated_t callback,
+			void* jsThread);
+		static void RemoveCallback(uint64_t uid);
 	};
-} // namespace osn
+}

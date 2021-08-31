@@ -44,20 +44,6 @@ obs::Volmeter::~Volmeter()
 	obs_volmeter_destroy(self);
 }
 
-void obs::Volmeter::ClearVolmeters()
-{
-    Manager::GetInstance().for_each([](const std::shared_ptr<obs::Volmeter>& volmeter)
-    {
-        if (volmeter->id2) {
-            obs_volmeter_remove_callback(volmeter->self, OBSCallback, volmeter->id2);
-            delete volmeter->id2;
-            volmeter->id2 = nullptr;
-        }
-    });
-
-    Manager::GetInstance().clear();
-}
-
 std::pair<uint64_t, uint32_t> obs::Volmeter::Create(int32_t a_type)
 {
 	obs_fader_type            type = (obs_fader_type)a_type;
@@ -92,7 +78,7 @@ void obs::Volmeter::Destroy(uint64_t uid)
 
 	Manager::GetInstance().free(uid);
 	if (meter->id2) { // Ensure there are no more callbacks
-		obs_volmeter_remove_callback(meter->self, OBSCallback, meter->id2);
+		// obs_volmeter_remove_callback(meter->self, OBSCallback, meter->id2);
 		delete meter->id2;
 		meter->id2 = nullptr;
 	}
@@ -135,162 +121,40 @@ void obs::Volmeter::Detach(uint64_t uid)
 }
 
 void obs::Volmeter::AddCallback(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+	uint64_t uid,
+	obs_volmeter_updated_t callback,
+	void* jsThread)
 {
-	auto uid   = args[0].value_union.ui64;
 	std::unique_lock<std::mutex> ulock(mtx);
 	auto meter = Manager::GetInstance().find(uid);
 	if (!meter) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
+		blog(LOG_ERROR, "Invalid Meter reference.");
+		return;
 	}
 
+	meter->m_jsThread = jsThread;
 	meter->callback_count++;
 	if (meter->callback_count == 1) {
 		meter->id2  = new uint64_t;
 		*meter->id2 = meter->id;
-		obs_volmeter_add_callback(meter->self, OBSCallback, meter->id2);
+		obs_volmeter_add_callback(meter->self, callback, meter->id2);
 	}
-
-	rval.push_back(ipc::value(uint64_t(ErrorCode::Ok)));
-	rval.push_back(ipc::value(uint64_t(meter->callback_count)));
-	AUTO_DEBUG;
 }
 
-void obs::Volmeter::RemoveCallback(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void obs::Volmeter::RemoveCallback(uint64_t uid)
 {
-	auto uid   = args[0].value_union.ui64;
 	std::unique_lock<std::mutex> ulock(mtx);
 	auto meter = Manager::GetInstance().find(uid);
 	if (!meter) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
+		blog(LOG_ERROR, "Invalid Meter reference.");
+		return;
 	}
 
+	meter->m_jsThread = nullptr;
 	meter->callback_count--;
 	if (meter->callback_count == 0) {
-		obs_volmeter_remove_callback(meter->self, OBSCallback, meter->id2);
+		// obs_volmeter_remove_callback(meter->self, OBSCallback, meter->id2);
 		delete meter->id2;
 		meter->id2 = nullptr;
-	}
-
-	rval.push_back(ipc::value(uint64_t(ErrorCode::Ok)));
-	rval.push_back(ipc::value(uint64_t(meter->callback_count)));
-	AUTO_DEBUG;
-}
-
-void obs::Volmeter::Query(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	auto uid   = args[0].value_union.ui64;
-	std::unique_lock<std::mutex> ulockMutex(mtx);
-	auto meter = Manager::GetInstance().find(uid);
-	if (!meter) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
-	}
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-
-	std::unique_lock<std::mutex> ulock(meter->current_data_mtx);
-
-	// Reset audio data if OBSCallBack is idle
-	if (meter->current_data.lastUpdateTime != std::chrono::milliseconds(0)) {
-		if (CheckIdle(GetTime(), meter->current_data.lastUpdateTime)) {
-			meter->current_data.resetData();
-		}
-	}
-	
-
-	rval.push_back(ipc::value(meter->current_data.ch));
-
-	for (size_t ch = 0; ch < meter->current_data.ch; ch++) {
-		rval.push_back(ipc::value(meter->current_data.magnitude[ch]));
-		rval.push_back(ipc::value(meter->current_data.peak[ch]));
-		rval.push_back(ipc::value(meter->current_data.input_peak[ch]));
-	}
-
-	ulock.unlock();
-
-	AUTO_DEBUG;
-}
-
-void obs::Volmeter::OBSCallback(
-    void*       param,
-    const float magnitude[MAX_AUDIO_CHANNELS],
-    const float peak[MAX_AUDIO_CHANNELS],
-    const float input_peak[MAX_AUDIO_CHANNELS])
-{
-	std::unique_lock<std::mutex> ulockMutex(mtx);
-	auto meter = Manager::GetInstance().find(*reinterpret_cast<uint64_t*>(param));
-	if (!meter) {
-		return;
-	}
-
-#define MAKE_FLOAT_SANE(db) (std::isfinite(db) ? db : (db > 0 ? 0.0f : -65535.0f))
-#define PREVIOUS_FRAME_WEIGHT
-
-	std::unique_lock<std::mutex> ulock(meter->current_data_mtx);
-
-	meter->current_data.lastUpdateTime = GetTime();
-	meter->current_data.ch = obs_volmeter_get_nr_channels(meter->self);
-	for (size_t ch = 0; ch < MAX_AUDIO_CHANNELS; ch++) {
-		meter->current_data.magnitude[ch]  = MAKE_FLOAT_SANE(magnitude[ch]);
-		meter->current_data.peak[ch]       = MAKE_FLOAT_SANE(peak[ch]);
-		meter->current_data.input_peak[ch] = MAKE_FLOAT_SANE(input_peak[ch]);
-	}
-
-#undef MAKE_FLOAT_SANE
-}
-
-std::chrono::milliseconds obs::Volmeter::GetTime()
-{
-	auto currentTime   = std::chrono::high_resolution_clock::now();
-	auto currentTimeMs = std::chrono::time_point_cast<std::chrono::milliseconds>(currentTime);
-	return currentTimeMs.time_since_epoch();
-}
-
-bool obs::Volmeter::CheckIdle(std::chrono::milliseconds currentTime, std::chrono::milliseconds lastUpdateTime)
-{
-	auto idleTime = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastUpdateTime);
-
-	if (idleTime > std::chrono::milliseconds(300)) {
-		return true;
-	}
-
-	return false;
-}
-
-void obs::Volmeter::getAudioData(uint64_t id, std::vector<ipc::value>& rval)
-{
-	std::unique_lock<std::mutex> ulockMutex(mtx);
-
-	auto meter = Manager::GetInstance().find(id);
-	if (!meter) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
-	}
-	
-	std::unique_lock<std::mutex> ulock(meter->current_data_mtx);
-
-	rval.push_back(ipc::value(meter->current_data.ch));
-
-	auto source = obs::Source::Manager::GetInstance().find(meter->uid_source);
-	bool isMuted = source ? obs_source_muted(source) : true;
-	rval.push_back(ipc::value(isMuted));
-
-	if (isMuted)
-		return;
-
-	for (size_t ch = 0; ch < meter->current_data.ch; ch++) {
-		rval.push_back(ipc::value(meter->current_data.magnitude[ch]));
-		rval.push_back(ipc::value(meter->current_data.peak[ch]));
-		rval.push_back(ipc::value(meter->current_data.input_peak[ch]));
 	}
 }

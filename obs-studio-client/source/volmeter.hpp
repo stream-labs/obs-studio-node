@@ -35,6 +35,9 @@ namespace osn
 		public:
 		uint64_t m_uid;
 
+		private:
+		Napi::ThreadSafeFunction m_jsThread;
+
 		public:
 		static Napi::FunctionReference constructor;
 		static Napi::Object Init(Napi::Env env, Napi::Object exports);
