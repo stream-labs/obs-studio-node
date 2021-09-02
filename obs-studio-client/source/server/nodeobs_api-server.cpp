@@ -1303,7 +1303,7 @@ void OBS_API::destroyOBS_API(void)
 #endif
 	OBS_content::OBS_content_shutdownDisplays();
 
-	autoConfig::WaitPendingTests();
+	obs::autoConfig::WaitPendingTests();
 
 	OBS_service::stopAllOutputs();
 

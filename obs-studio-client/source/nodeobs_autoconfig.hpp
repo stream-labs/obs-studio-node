@@ -24,13 +24,6 @@
 #include <semaphore.h>
 #endif
 
-struct AutoConfigInfo
-{
-	std::string event;
-	std::string description;
-	double      percentage;
-};
-
 extern const char* ac_sem_name;
 #ifdef WIN32
 extern HANDLE ac_sem;
@@ -40,17 +33,7 @@ extern sem_t *ac_sem;
 
 namespace autoConfig
 {
-	extern bool isWorkerRunning;
-	extern bool worker_stop;
-	extern uint32_t sleepIntervalMS;
 	extern Napi::ThreadSafeFunction js_thread;
-	extern std::thread* worker_thread;
-	extern std::vector<std::thread*> ac_queue_task_workers;
-
-	void worker(void);
-	void start_worker(void);
-	void stop_worker(void);
-	void queueTask(AutoConfigInfo *data);
 
     void Init(Napi::Env env, Napi::Object exports);
 
@@ -62,5 +45,4 @@ namespace autoConfig
 	Napi::Value StartSetDefaultSettings(const Napi::CallbackInfo& info);
 	Napi::Value StartSaveStreamSettings(const Napi::CallbackInfo& info);
 	Napi::Value StartSaveSettings(const Napi::CallbackInfo& info);
-	Napi::Value TerminateAutoConfig(const Napi::CallbackInfo& info);
 }

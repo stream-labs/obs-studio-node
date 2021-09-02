@@ -75,32 +75,13 @@ enum ThreadedTests : int
 
 struct Event
 {
-	// obs::CallbackInfo *cb_info;
-
 	std::string event;
 	std::string description;
 	int         percentage;
 };
 
-class AutoConfigInfo
-{
-	public:
-	AutoConfigInfo(std::string a_event, std::string a_description, double a_percentage)
-	{
-		event       = a_event;
-		description = a_description;
-		percentage  = a_percentage;
-	};
-	~AutoConfigInfo(){};
-
-	std::string event;
-	std::string description;
-	double      percentage;
-};
 
 std::array<std::future<void>, ThreadedTests::Count> asyncTests;
-std::mutex                                          eventsMutex;
-std::queue<AutoConfigInfo>                          events;
 
 Service     serviceSelected   = Service::Other;
 Quality     recordingQuality  = Quality::Stream;
@@ -148,6 +129,9 @@ bool                    cancel  = false;
 bool                    started = false;
 
 bool softwareTested = false;
+
+void* g_jsAutoConfigThread = nullptr;
+callbackAutoConfig g_callback = NULL;
 
 struct ServerInfo
 {
@@ -220,36 +204,7 @@ class TestMode
 	}
 };
 
-void autoConfig::Register(ipc::server& srv)
-{
-	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("AutoConfig");
-
-	cls->register_function(std::make_shared<ipc::function>(
-	    "InitializeAutoConfig",
-	    std::vector<ipc::type>{ipc::type::String, ipc::type::String},
-	    autoConfig::InitializeAutoConfig));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "StartBandwidthTest", std::vector<ipc::type>{}, autoConfig::StartBandwidthTest));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "StartStreamEncoderTest", std::vector<ipc::type>{}, autoConfig::StartStreamEncoderTest));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "StartRecordingEncoderTest", std::vector<ipc::type>{}, autoConfig::StartRecordingEncoderTest));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "StartCheckSettings", std::vector<ipc::type>{}, autoConfig::StartCheckSettings));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "StartSetDefaultSettings", std::vector<ipc::type>{}, autoConfig::StartSetDefaultSettings));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "StartSaveStreamSettings", std::vector<ipc::type>{}, autoConfig::StartSaveStreamSettings));
-	cls->register_function(
-	    std::make_shared<ipc::function>("StartSaveSettings", std::vector<ipc::type>{}, autoConfig::StartSaveSettings));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "TerminateAutoConfig", std::vector<ipc::type>{}, autoConfig::TerminateAutoConfig));
-	cls->register_function(std::make_shared<ipc::function>("Query", std::vector<ipc::type>{}, autoConfig::Query));
-
-	srv.register_collection(cls);
-}
-
-void autoConfig::WaitPendingTests(double timeout)
+void obs::autoConfig::WaitPendingTests(double timeout)
 {
 	clock_t start_time = clock();
 	while ((float(clock() - start_time) / CLOCKS_PER_SEC) < timeout) {
@@ -271,7 +226,7 @@ void autoConfig::WaitPendingTests(double timeout)
 	}
 }
 
-void autoConfig::TestHardwareEncoding(void)
+void obs::autoConfig::TestHardwareEncoding(void)
 {
 	size_t      idx = 0;
 	const char* id;
@@ -300,7 +255,7 @@ static inline void string_depad_key(std::string& key)
 	}
 }
 
-bool autoConfig::CanTestServer(const char* server)
+bool obs::autoConfig::CanTestServer(const char* server)
 {
 	if (!testRegions || (regionNA && regionSA && regionEU && regionAS && regionOC))
 		return true;
@@ -381,7 +336,7 @@ void GetServers(std::vector<ServerInfo>& servers)
 		const char* name   = obs_property_list_item_name(p, i);
 		const char* server = obs_property_list_item_string(p, i);
 
-		if (autoConfig::CanTestServer(name)) {
+		if (obs::autoConfig::CanTestServer(name)) {
 			ServerInfo info(name, server);
 			servers.push_back(info);
 		}
@@ -390,57 +345,15 @@ void GetServers(std::vector<ServerInfo>& servers)
 	obs_properties_destroy(ppts);
 }
 
-void start_next_step(void (*task)(), std::string event, std::string description, int percentage)
-{
-	/*eventCallbackQueue.work_queue.push_back({cb, event, description, percentage});
-    eventCallbackQueue.Signal();
-
-    if(task)
-    	std::thread(*task).detach();*/
-}
-
-void autoConfig::TerminateAutoConfig(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	StopThread();
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-}
-
-void autoConfig::Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
-{
-	std::unique_lock<std::mutex> ulock(eventsMutex);
-	if (events.empty()) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-		AUTO_DEBUG;
-		return;
-	}
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-
-	rval.push_back(ipc::value(events.front().event));
-	rval.push_back(ipc::value(events.front().description));
-	rval.push_back(ipc::value(events.front().percentage));
-
-	events.pop();
-
-	AUTO_DEBUG;
-}
-
-void autoConfig::StopThread(void)
+void obs::autoConfig::StopThread(void)
 {
 	std::unique_lock<std::mutex> ul(m);
 	cancel = true;
 	cv.notify_one();
 }
 
-void autoConfig::InitializeAutoConfig(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void obs::autoConfig::InitializeAutoConfig(
+	callbackAutoConfig cb, void* jsThread)
 {
 	serverName = "Auto (Recommended)";
 	server     = "auto";
@@ -450,88 +363,65 @@ void autoConfig::InitializeAutoConfig(
 		OBS_service::setStreamingOutput(nullptr);
 
 	cancel = false;
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	g_jsAutoConfigThread = jsThread;
+	g_callback = cb;
 }
 
-void autoConfig::StartBandwidthTest(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void obs::autoConfig::StartBandwidthTest()
 {
-	asyncTests[ThreadedTests::BandwidthTest] = std::async(std::launch::async, TestBandwidthThread);
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	asyncTests[ThreadedTests::BandwidthTest] =
+		std::async(std::launch::async, TestBandwidthThread);
 }
 
-void autoConfig::StartStreamEncoderTest(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void obs::autoConfig::StartStreamEncoderTest()
 {
-	asyncTests[ThreadedTests::StreamEncoderTest] = std::async(std::launch::async, TestStreamEncoderThread);
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	asyncTests[ThreadedTests::StreamEncoderTest] =
+		std::async(std::launch::async, TestStreamEncoderThread);
 }
 
-void autoConfig::StartRecordingEncoderTest(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void obs::autoConfig::StartRecordingEncoderTest()
 {
-	asyncTests[ThreadedTests::RecordingEncoderTest] = std::async(std::launch::async, TestRecordingEncoderThread);
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	asyncTests[ThreadedTests::RecordingEncoderTest] =
+		std::async(std::launch::async, TestRecordingEncoderThread);
 }
 
-void autoConfig::StartSaveStreamSettings(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void obs::autoConfig::StartSaveStreamSettings()
 {
-	asyncTests[ThreadedTests::SaveStreamSettings] = std::async(std::launch::async, SaveStreamSettings);
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	asyncTests[ThreadedTests::SaveStreamSettings] =
+		std::async(std::launch::async, SaveStreamSettings);
 }
 
-void autoConfig::StartSaveSettings(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void obs::autoConfig::StartSaveSettings()
 {
-	asyncTests[ThreadedTests::SaveSettings] = std::async(std::launch::async, SaveSettings);
+	asyncTests[ThreadedTests::SaveSettings] =
+		std::async(std::launch::async, SaveSettings);
 
 	cancel = false;
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
-void autoConfig::StartCheckSettings(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void obs::autoConfig::StartCheckSettings()
 {
-	bool sucess = CheckSettings();
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value((uint32_t)sucess));
+	g_callback(new AutoConfigInfo(
+		std::string("starting_step"),
+		std::string("checking_settings"),
+		(double)0), g_jsAutoConfigThread);
+	
+	if (CheckSettings())
+		g_callback(new AutoConfigInfo(
+			std::string("stopping_step"),
+			std::string("checking_settings"),
+			(double)100), g_jsAutoConfigThread);
+	else
+		g_callback(new AutoConfigInfo(
+			std::string("error"),
+			std::string("invalid_settings"),
+			(double)100), g_jsAutoConfigThread);
 }
 
-void autoConfig::StartSetDefaultSettings(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void obs::autoConfig::StartSetDefaultSettings()
 {
-	asyncTests[ThreadedTests::SetDefaultSettings] = std::async(std::launch::async, SetDefaultSettings);
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	asyncTests[ThreadedTests::SetDefaultSettings] =
+		std::async(std::launch::async, SetDefaultSettings);
 }
 
 int EvaluateBandwidth(
@@ -622,16 +512,18 @@ int EvaluateBandwidth(
 }
 
 void sendErrorMessage(std::string message) {
-	eventsMutex.lock();
-	events.push(AutoConfigInfo("error", message.c_str(), 0));
-	eventsMutex.unlock();
+	g_callback(new AutoConfigInfo(
+		std::string("error"),
+		message,
+		(double)0), g_jsAutoConfigThread);
 }
 
-void autoConfig::TestBandwidthThread(void)
+void obs::autoConfig::TestBandwidthThread(void)
 {
-	eventsMutex.lock();
-	events.push(AutoConfigInfo("starting_step", "bandwidth_test", 0));
-	eventsMutex.unlock();
+	g_callback(new AutoConfigInfo(
+		std::string("starting_step"),
+		std::string("bandwidth_test"),
+		(double)0), g_jsAutoConfigThread);
 
 	bool connected   = false;
 	bool stopped     = false;
@@ -841,32 +733,36 @@ void autoConfig::TestBandwidthThread(void)
 		ServerInfo info(serverName.c_str(), server.c_str());
 
 		if (EvaluateBandwidth(info, connected, stopped, success, errorOnStop, service_settings, service, output, vencoder_settings) < 0) {
-			eventsMutex.lock();
-			events.push(AutoConfigInfo("error", "invalid_stream_settings", 0));
-			eventsMutex.unlock();
+			g_callback(new AutoConfigInfo(
+				std::string("error"),
+				std::string("invalid_stream_settings"),
+				(double)0), g_jsAutoConfigThread);
 			gotError = true;
 		} else {
 			bestServer     = info.address;
 			bestServerName = info.name;
 			bestBitrate    = info.bitrate;
-
-			eventsMutex.lock();
-			events.push(AutoConfigInfo("progress", "bandwidth_test", 100));
-			eventsMutex.unlock();
+			g_callback(new AutoConfigInfo(
+				std::string("progress"),
+				std::string("bandwidth_test"),
+				(double)100), g_jsAutoConfigThread);
 		}
 	} else {
 		for (size_t i = 0; i < servers.size(); i++) {
 			EvaluateBandwidth(servers[i], connected, stopped, success, errorOnStop, service_settings, service, output, vencoder_settings);
-			eventsMutex.lock();
-			events.push(AutoConfigInfo("progress", "bandwidth_test", (double)(i + 1) * 100 / servers.size()));
-			eventsMutex.unlock();
+			g_callback(new AutoConfigInfo(
+				std::string("progress"),
+				std::string("bandwidth_test"),
+				(double)(double)(i + 1) * 100 / servers.size()
+			), g_jsAutoConfigThread);
 		}
 	}
 
 	if (!success && !gotError) {
-		eventsMutex.lock();
-		events.push(AutoConfigInfo("error", "invalid_stream_settings", 0));
-		eventsMutex.unlock();
+		g_callback(new AutoConfigInfo(
+			std::string("error"),
+			std::string("invalid_stream_settings"),
+			(double)0), g_jsAutoConfigThread);
 		gotError = true;
 	}
 
@@ -892,9 +788,10 @@ void autoConfig::TestBandwidthThread(void)
 	obs_service_release(service);
 
 	if(!gotError) { 
-		eventsMutex.lock();
-		events.push(AutoConfigInfo("stopping_step", "bandwidth_test", 100));
-		eventsMutex.unlock();
+		g_callback(new AutoConfigInfo(
+			std::string("stopping_step"),
+			std::string("bandwidth_test"),
+			(double)100), g_jsAutoConfigThread);
 	}
 }
 
@@ -939,7 +836,7 @@ struct Result
 	{}
 };
 
-void autoConfig::FindIdealHardwareResolution()
+void obs::autoConfig::FindIdealHardwareResolution()
 {
 	int baseCX = (int)baseResolutionCX;
 	int baseCY = (int)baseResolutionCY;
@@ -1024,7 +921,7 @@ void autoConfig::FindIdealHardwareResolution()
 	idealFPSDen = result.fps_den;
 }
 
-bool autoConfig::TestSoftwareEncoding()
+bool obs::autoConfig::TestSoftwareEncoding()
 {
 	OBSEncoder vencoder = obs_video_encoder_create("obs_x264", "test_x264", nullptr, nullptr);
 	OBSEncoder aencoder = obs_audio_encoder_create("ffmpeg_aac", "test_aac", nullptr, 0, nullptr);
@@ -1265,11 +1162,12 @@ bool autoConfig::TestSoftwareEncoding()
 	return true;
 }
 
-void autoConfig::TestStreamEncoderThread()
+void obs::autoConfig::TestStreamEncoderThread()
 {
-	eventsMutex.lock();
-	events.push(AutoConfigInfo("starting_step", "streamingEncoder_test", 0));
-	eventsMutex.unlock();
+	g_callback(new AutoConfigInfo(
+		std::string("starting_step"),
+		std::string("streamingEncoder_test"),
+		(double)0), g_jsAutoConfigThread);
 
 	baseResolutionCX = config_get_int(ConfigManager::getInstance().getBasic(), "Video", "BaseCX");
 	baseResolutionCY = config_get_int(ConfigManager::getInstance().getBasic(), "Video", "BaseCY");
@@ -1301,16 +1199,18 @@ void autoConfig::TestStreamEncoderThread()
 		streamingEncoder = Encoder::x264;
 	}
 
-	eventsMutex.lock();
-	events.push(AutoConfigInfo("stopping_step", "streamingEncoder_test", 100));
-	eventsMutex.unlock();
+	g_callback(new AutoConfigInfo(
+		std::string("stopping_step"),
+		std::string("streamingEncoder_test"),
+		(double)100), g_jsAutoConfigThread);
 }
 
-void autoConfig::TestRecordingEncoderThread()
+void obs::autoConfig::TestRecordingEncoderThread()
 {
-	eventsMutex.lock();
-	events.push(AutoConfigInfo("starting_step", "recordingEncoder_test", 0));
-	eventsMutex.unlock();
+	g_callback(new AutoConfigInfo(
+		std::string("starting_step"),
+		std::string("recordingEncoder_test"),
+		(double)0), g_jsAutoConfigThread);
 
 	TestHardwareEncoding();
 
@@ -1348,9 +1248,10 @@ void autoConfig::TestRecordingEncoderThread()
 		}
 	}
 
-	eventsMutex.lock();
-	events.push(AutoConfigInfo("stopping_step", "recordingEncoder_test", 100));
-	eventsMutex.unlock();
+	g_callback(new AutoConfigInfo(
+		std::string("stopping_step"),
+		std::string("recordingEncoder_test"),
+		(double)100), g_jsAutoConfigThread);
 }
 
 inline const char* GetEncoderId(Encoder enc)
@@ -1387,7 +1288,7 @@ inline const char* GetEncoderDisplayName(Encoder enc)
 	}
 };
 
-bool autoConfig::CheckSettings(void)
+bool obs::autoConfig::CheckSettings(void)
 {
 	OBSData settings = obs_data_create();
 
@@ -1405,9 +1306,10 @@ bool autoConfig::CheckSettings(void)
 	OBSService service = obs_service_create("rtmp_common", "serviceTest", settings, NULL);
 
 	if (!service) {
-		eventsMutex.lock();
-		events.push(AutoConfigInfo("error", "invalid_service", 100));
-		eventsMutex.unlock();
+		g_callback(new AutoConfigInfo(
+			std::string("error"),
+			std::string("invalid_service"),
+			(double)100), g_jsAutoConfigThread);
 		return false;
 	}
 
@@ -1517,11 +1419,12 @@ bool autoConfig::CheckSettings(void)
 	return success;
 }
 
-void autoConfig::SetDefaultSettings(void)
+void obs::autoConfig::SetDefaultSettings(void)
 {
-	eventsMutex.lock();
-	events.push(AutoConfigInfo("starting_step", "setting_default_settings", 0));
-	eventsMutex.unlock();
+	g_callback(new AutoConfigInfo(
+		std::string("starting_step"),
+		std::string("setting_default_settings"),
+		(double)0), g_jsAutoConfigThread);
 
 	idealResolutionCX = 1280;
 	idealResolutionCY = 720;
@@ -1531,19 +1434,21 @@ void autoConfig::SetDefaultSettings(void)
 	streamingEncoder = Encoder::x264;
 	recordingEncoder = Encoder::Stream;
 
-	eventsMutex.lock();
-	events.push(AutoConfigInfo("stopping_step", "setting_default_settings", 100));
-	eventsMutex.unlock();
+	g_callback(new AutoConfigInfo(
+		std::string("stopping_step"),
+		std::string("setting_default_settings"),
+		(double)100), g_jsAutoConfigThread);
 }
 
-void autoConfig::SaveStreamSettings()
+void obs::autoConfig::SaveStreamSettings()
 {
 	/* ---------------------------------- */
 	/* save service                       */
 
-	eventsMutex.lock();
-	events.push(AutoConfigInfo("starting_step", "saving_service", 0));
-	eventsMutex.unlock();
+	g_callback(new AutoConfigInfo(
+		std::string("starting_step"),
+		std::string("saving_service"),
+		(double)0), g_jsAutoConfigThread);
 
 	const char* service_id = "rtmp_common";
 
@@ -1576,16 +1481,18 @@ void autoConfig::SaveStreamSettings()
 
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 	
-	eventsMutex.lock();
-	events.push(AutoConfigInfo("stopping_step", "saving_service", 100));
-	eventsMutex.unlock();
+	g_callback(new AutoConfigInfo(
+		std::string("stopping_step"),
+		std::string("saving_service"),
+		(double)100), g_jsAutoConfigThread);
 }
 
-void autoConfig::SaveSettings()
+void obs::autoConfig::SaveSettings()
 {
-	eventsMutex.lock();
-	events.push(AutoConfigInfo("starting_step", "saving_settings", 0));
-	eventsMutex.unlock();
+	g_callback(new AutoConfigInfo(
+		std::string("starting_step"),
+		std::string("saving_settings"),
+		(double)0), g_jsAutoConfigThread);
 	
 	if (recordingEncoder != Encoder::Stream)
 		config_set_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecEncoder",
@@ -1610,8 +1517,12 @@ void autoConfig::SaveSettings()
 
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 
-	eventsMutex.lock();
-	events.push(AutoConfigInfo("stopping_step", "saving_settings", 100));
-	events.push(AutoConfigInfo("done", "", 0));
-	eventsMutex.unlock();
+	g_callback(new AutoConfigInfo(
+		std::string("stopping_step"),
+		std::string("saving_settings"),
+		(double)100), g_jsAutoConfigThread);
+	g_callback(new AutoConfigInfo(
+		std::string("done"),
+		std::string(""),
+		(double)0), g_jsAutoConfigThread);
 }

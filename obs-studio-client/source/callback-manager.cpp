@@ -27,6 +27,8 @@
 #include "shared.hpp"
 #include "utility.hpp"
 #include "volmeter.hpp"
+#include <future>
+#include <thread>
 
 bool globalCallback::isWorkerRunning = false;
 bool globalCallback::worker_stop = true;
@@ -49,13 +51,15 @@ void globalCallback::Init(Napi::Env env, Napi::Object exports)
 
 Napi::Value globalCallback::RegisterGlobalCallback(const Napi::CallbackInfo& info)
 {
-	// Napi::Function async_callback = info[0].As<Napi::Function>();
+	Napi::Function async_callback = info[0].As<Napi::Function>();
 
 	// start_worker(info.Env(), async_callback);
 	// isWorkerRunning = true;
 	// worker_stop = false;
 
 	// worker_thread = new std::thread(&globalCallback::worker);
+
+
 
 	return Napi::Boolean::New(info.Env(), true);
 }
@@ -70,28 +74,28 @@ Napi::Value globalCallback::RemoveGlobalCallback(const Napi::CallbackInfo& info)
 
 void globalCallback::start_worker(napi_env env, Napi::Function async_callback)
 {
-	if (!worker_stop)
-		return;
+	// if (!worker_stop)
+	// 	return;
 
-	js_thread = Napi::ThreadSafeFunction::New(
-      env,
-      async_callback,
-      "GlobalCallback",
-      0,
-      1,
-      []( Napi::Env ) {} );
+	// js_thread = Napi::ThreadSafeFunction::New(
+    //   env,
+    //   async_callback,
+    //   "GlobalCallback",
+    //   0,
+    //   1,
+    //   []( Napi::Env ) {} );
 }
 
 void globalCallback::stop_worker(void)
 {
-	if (worker_stop != false)
-		return;
+	// if (worker_stop != false)
+	// 	return;
 
-	worker_stop = true;
-	if (worker_thread->joinable()) {
-		worker_thread->join();
-	}
-	js_thread.Release();
+	// worker_stop = true;
+	// if (worker_thread->joinable()) {
+	// 	worker_thread->join();
+	// }
+	// js_thread.Release();
 }
 
 void globalCallback::worker()
@@ -163,21 +167,21 @@ void globalCallback::worker()
 
 void globalCallback::add_volmeter(napi_env env, uint64_t id, Napi::Function cb)
 {
-	Napi::ThreadSafeFunction vol_thread = Napi::ThreadSafeFunction::New(
-      env,
-      cb,
-      "Volmeter",
-      0,
-      1,
-      []( Napi::Env ) {} );
-	volmeters.insert(std::make_pair(id, vol_thread));
+	// Napi::ThreadSafeFunction vol_thread = Napi::ThreadSafeFunction::New(
+    //   env,
+    //   cb,
+    //   "Volmeter",
+    //   0,
+    //   1,
+    //   []( Napi::Env ) {} );
+	// volmeters.insert(std::make_pair(id, vol_thread));
 }
 
 void globalCallback::remove_volmeter(uint64_t id)
 {
-	if (volmeters.find(id) == volmeters.end())
-		return;
+	// if (volmeters.find(id) == volmeters.end())
+	// 	return;
 	
-	volmeters[id].Release();
-	volmeters.erase(id);
+	// volmeters[id].Release();
+	// volmeters.erase(id);
 }
