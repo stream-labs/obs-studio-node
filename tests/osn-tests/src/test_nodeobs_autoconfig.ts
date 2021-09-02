@@ -153,7 +153,5 @@ describe(testName, function() {
             settingValue = obs.getSetting('Video', 'FPSCommon');
             expect(settingValue).to.equal('30', GetErrorMessage(ETestErrorMsg.DefaultFPSCommon));
         }
-
-	osn.NodeObs.TerminateAutoConfig();
     });
 });
