@@ -405,6 +405,13 @@ void osn::Source::ProcessProperties(
 			prop              = prop2;
 			break;
 		}
+		case OBS_PROPERTY_CAPTURE: {
+			auto prop2        = std::make_shared<obs::CaptureProperty>();
+			prop2->field_type = obs::NumberProperty::NumberType(obs_property_int_type(p));
+			prop2->value      = (int)obs_data_get_int(settings, name);
+			prop              = prop2;
+			break;
+		}		
 		case OBS_PROPERTY_BUTTON:
 			prop = std::make_shared<obs::ButtonProperty>();
 			break;

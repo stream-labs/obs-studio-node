@@ -48,6 +48,9 @@ std::shared_ptr<obs::Property> obs::Property::deserialize(std::vector<char> cons
 	case Type::Color:
 		prop = std::make_shared<ColorProperty>();
 		break;
+	case Type::Capture:
+		prop = std::make_shared<CaptureProperty>();
+		break;
 	case Type::Button:
 		prop = std::make_shared<ButtonProperty>();
 		break;
@@ -732,6 +735,52 @@ bool obs::ColorProperty::serialize(std::vector<char>& buf)
 }
 
 bool obs::ColorProperty::read(std::vector<char> const& buf)
+{
+	if (buf.size() < size()) {
+		return false;
+	}
+
+    if (!NumberProperty::read(buf)) {
+		return false;
+	}
+
+    size_t offset = NumberProperty::size();
+	value         = *reinterpret_cast<const int64_t*>(&buf[offset]);
+	offset += sizeof(int64_t);
+
+	return true;
+}
+
+obs::Property::Type obs::CaptureProperty::type()
+{
+	return Type::Capture;
+}
+
+size_t obs::CaptureProperty::size()
+{
+	size_t total = NumberProperty::size();
+	total += sizeof(int64_t);
+	return total;
+}
+
+bool obs::CaptureProperty::serialize(std::vector<char>& buf)
+{
+	if (buf.size() < size()) {
+		return false;
+	}
+
+	if (!NumberProperty::serialize(buf)) {
+		return false;
+	}
+
+	size_t offset                             = NumberProperty::size();
+	*reinterpret_cast<int64_t*>(&buf[offset]) = value;
+	offset += sizeof(int64_t);
+
+	return true;
+}
+
+bool obs::CaptureProperty::read(std::vector<char> const& buf)
 {
 	if (buf.size() < size()) {
 		return false;

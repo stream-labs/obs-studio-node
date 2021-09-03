@@ -33,6 +33,10 @@ export function isColorProperty(property: obs.IProperty): property is obs.IColor
     return property.type === obs.EPropertyType.Color;
 }
 
+export function isCaptureProperty(property: obs.IProperty): property is obs.ICaptureProperty {
+    return property.type === obs.EPropertyType.Capture;
+}
+
 export function isFontProperty(property: obs.IProperty): property is obs.IFontProperty {
     return property.type === obs.EPropertyType.Font;
 }
