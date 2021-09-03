@@ -21,14 +21,6 @@
 #include <thread>
 #include "utility-v8.hpp"
 
-struct SignalInfo
-{
-	std::string outputType;
-	std::string signal;
-	int         code;
-	std::string errorMessage;
-};
-
 namespace service
 {
 

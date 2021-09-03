@@ -38,6 +38,33 @@ uint32_t service::sleepIntervalMS = 33;
 std::thread* service::worker_thread = nullptr;
 Napi::ThreadSafeFunction service::js_thread;
 
+void callJS(SignalInfo* data)
+{
+	Napi::ThreadSafeFunction& l_jsThread =
+		*reinterpret_cast<Napi::ThreadSafeFunction*>(data->m_jsThread);
+
+	auto callback = []( Napi::Env env, Napi::Function jsCallback, SignalInfo* data ) {
+		Napi::Object result = Napi::Object::New(env);
+
+		result.Set(
+			Napi::String::New(env, "type"),
+			Napi::String::New(env, data->m_outputType));
+		result.Set(
+			Napi::String::New(env, "signal"),
+			Napi::String::New(env, data->m_signal));
+		result.Set(
+			Napi::String::New(env, "code"),
+			Napi::Number::New(env, data->m_code));
+		result.Set(
+			Napi::String::New(env, "error"),
+			Napi::String::New(env, data->m_errorMessage));
+
+		jsCallback.Call({ result });
+    };
+
+	l_jsThread.BlockingCall( data, callback );
+}
+
 Napi::Value service::OBS_service_resetAudioContext(const Napi::CallbackInfo& info)
 {
 	OBS_service::OBS_service_resetAudioContext();
@@ -54,21 +81,21 @@ Napi::Value service::OBS_service_resetVideoContext(const Napi::CallbackInfo& inf
 
 Napi::Value service::OBS_service_startStreaming(const Napi::CallbackInfo& info)
 {
-	OBS_service::OBS_service_startStreaming();
+	OBS_service::OBS_service_startStreaming(callJS);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value service::OBS_service_startRecording(const Napi::CallbackInfo& info)
 {
-	OBS_service::OBS_service_startRecording();
+	OBS_service::OBS_service_startRecording(callJS);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value service::OBS_service_startReplayBuffer(const Napi::CallbackInfo& info)
 {
-	OBS_service::OBS_service_startReplayBuffer();
+	OBS_service::OBS_service_startReplayBuffer(callJS);
 
 	return info.Env().Undefined();
 }
@@ -102,38 +129,17 @@ static v8::Persistent<v8::Object> serviceCallbackObject;
 
 void JSCallbackOutputSignal(void* data, calldata_t* params)
 {
-	auto callback = []( Napi::Env env, Napi::Function jsCallback, SignalInfo* data ) {
-		Napi::Object result = Napi::Object::New(env);
+	SignalInfo* signal = reinterpret_cast<SignalInfo*>(data);
 
-		result.Set(
-			Napi::String::New(env, "type"),
-			Napi::String::New(env, data->outputType));
-		result.Set(
-			Napi::String::New(env, "signal"),
-			Napi::String::New(env, data->signal));
-		result.Set(
-			Napi::String::New(env, "code"),
-			Napi::Number::New(env, data->code));
-		result.Set(
-			Napi::String::New(env, "error"),
-			Napi::String::New(env, data->errorMessage));
-
-		jsCallback.Call({ result });
-    };
-
-	obs::SignalInfo& signal = *reinterpret_cast<obs::SignalInfo*>(data);
-	int code = 0;
-	std::string errorMessage = "";
-
-	if (signal.signal.compare("stop") == 0) {
-		code = (int)calldata_int(params, "code");
+	if (signal->m_signal.compare("stop") == 0) {
+		signal->m_code = (int)calldata_int(params, "code");
 
 		obs_output_t* output;
 
-		if (signal.outputType.compare("streaming") == 0) {
+		if (signal->m_outputType.compare("streaming") == 0) {
 			output = streamingOutput;
 			isStreaming = false;
-		} else if (signal.outputType.compare("recording") == 0) {
+		} else if (signal->m_outputType.compare("recording") == 0) {
 			output = recordingOutput;
 			isRecording = false;
 		} else {
@@ -143,23 +149,14 @@ void JSCallbackOutputSignal(void* data, calldata_t* params)
 
 		const char* error = obs_output_get_last_error(output);
 		if (error) {
-			if (signal.outputType.compare("recording") == 0 && !code)
-				code OBS_OUTPUT_ERROR;
-			errorMessage = std::string(error);
+			if (signal->m_outputType.compare("recording") == 0 && !signal->m_code)
+				signal->m_code = OBS_OUTPUT_ERROR;
+			signal->m_errorMessage = std::string(error);
 		}
 	}
 
-	SignalInfo* dataSignal = new SignalInfo{ "", "", 0, ""};
-	dataSignal->outputType   = signal.outputType;
-	dataSignal->signal       = signal.signal;
-	dataSignal->code         = code;
-	dataSignal->errorMessage = errorMessage;
-
-	if (signal.jsThread) {
-		Napi::ThreadSafeFunction& jsThread =
-			*reinterpret_cast<Napi::ThreadSafeFunction*>(signal.jsThread);
-		jsThread.BlockingCall( dataSignal, callback );
-	}
+	if (signal->m_jsThread)
+		callJS(signal);
 }
 
 Napi::Value service::OBS_service_connectOutputSignals(const Napi::CallbackInfo& info)

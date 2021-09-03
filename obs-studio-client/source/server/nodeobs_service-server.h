@@ -68,13 +68,32 @@
 
 #define MAX_AUDIO_MIXES 6
 
-namespace obs {
-	struct SignalInfo {
-		std::string outputType;
-		std::string signal;
-		void* jsThread;
+class SignalInfo {
+	public:
+	SignalInfo(
+		std::string outputType,
+		std::string signal,
+		int code,
+		std::string errorMessage,
+		void* jsThread
+	) {
+		this->m_outputType = outputType;
+		this->m_signal = signal;
+		this->m_code = code;
+		this->m_errorMessage = errorMessage;
+		this->m_jsThread = jsThread;
 	};
-}
+	~SignalInfo() {};
+
+
+	std::string m_outputType;
+	std::string m_signal;
+	int m_code;
+	std::string m_errorMessage;
+	void* m_jsThread;
+};
+
+typedef void (*callbackService)(SignalInfo* data);
 
 extern obs_output_t* streamingOutput;
 extern obs_output_t* recordingOutput;
@@ -103,9 +122,9 @@ class OBS_service
 
 	static void OBS_service_resetAudioContext();
 	static int OBS_service_resetVideoContext();
-	static void OBS_service_startStreaming();
-	static void OBS_service_startRecording();
-	static void OBS_service_startReplayBuffer();
+	static void OBS_service_startStreaming(callbackService callJS);
+	static void OBS_service_startRecording(callbackService callJS);
+	static void OBS_service_startReplayBuffer(callbackService callJS);
 	static void OBS_service_stopStreaming(bool forceStop);
 	static void OBS_service_stopRecording();
 	static void OBS_service_stopReplayBuffer(bool forceStop);
@@ -120,10 +139,10 @@ class OBS_service
 	static void OBS_service_stopVirtualWebcam();
 
 	private:
-	static bool startStreaming(void);
+	static bool startStreaming(callbackService callJS);
 	static void stopStreaming(bool forceStop);
-	static bool startRecording(void);
-	static bool startReplayBuffer(void);
+	static bool startRecording(callbackService callJS);
+	static bool startReplayBuffer(callbackService callJS);
 	static void stopReplayBuffer(bool forceStop);
 	static void stopRecording(void);
 

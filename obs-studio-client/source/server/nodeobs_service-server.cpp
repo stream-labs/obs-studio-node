@@ -49,7 +49,7 @@ std::string videoEncoder;
 std::string videoQuality;
 
 std::mutex             signalMutex;
-std::queue<obs::SignalInfo> outputSignal;
+std::queue<SignalInfo> outputSignal;
 std::thread            releaseWorker;
 
 static constexpr int kSoundtrackArchiveEncoderIdx = 1;
@@ -89,30 +89,30 @@ int OBS_service::OBS_service_resetVideoContext()
 	return resetVideoContext(true);
 }
 
-void OBS_service::OBS_service_startStreaming()
+void OBS_service::OBS_service_startStreaming(callbackService callJS)
 {
 	if (isStreamingOutputActive())
 		return;
 
-	if (!startStreaming())
+	if (!startStreaming(callJS))
 		blog(LOG_ERROR, "Failed to start streaming!");
 }
 
-void OBS_service::OBS_service_startRecording()
+void OBS_service::OBS_service_startRecording(callbackService callJS)
 {
 	if (isRecordingOutputActive())
 		return;
 
-	if (!startRecording())
+	if (!startRecording(callJS))
 		blog(LOG_ERROR, "Failed to start recording!");
 }
 
-void OBS_service::OBS_service_startReplayBuffer()
+void OBS_service::OBS_service_startReplayBuffer(callbackService callJS)
 {
 	if (isReplayBufferOutputActive())
 		return;
 
-	if (!startReplayBuffer())
+	if (!startReplayBuffer(callJS))
 		blog(LOG_ERROR,  "Failed to start the replay buffer!");
 }
 
@@ -798,7 +798,7 @@ void OBS_service::updateStreamingEncoders(bool isSimpleMode)
 	}
 }
 
-bool OBS_service::startStreaming(void)
+bool OBS_service::startStreaming(callbackService callJS)
 {
 	const char* type = obs_service_get_output_type(service);
 	if (!type)
@@ -835,22 +835,27 @@ bool OBS_service::startStreaming(void)
 
 	isStreaming = obs_output_start(streamingOutput);
 	if (!isStreaming) {
-		// obs::SignalInfo  signal = obs::SignalInfo("streaming", "stop", g_jsThread);
-		// std::string outdated_driver_error = outdated_driver_error::instance()->get_error();
-		// if (outdated_driver_error.size() != 0) {
-		// 	signal.setErrorMessage(outdated_driver_error);
-		// 	signal.setCode(OBS_OUTPUT_OUTDATED_DRIVER);
-		// } else {
-		// 	const char* error = obs_output_get_last_error(streamingOutput);
-		// 	if (error) {
-		// 		signal.setErrorMessage(error);
-		// 		blog(LOG_INFO, "Last streaming error: %s", error);
-		// 	}
-		// 	signal.setCode(OBS_OUTPUT_ERROR);
-		// }
+		SignalInfo* signal = new SignalInfo(
+			std::string("streaming"),
+			std::string("stop"),
+			0,
+			std::string(""),
+			g_jsThread
+		);
+		std::string outdated_driver_error = outdated_driver_error::instance()->get_error();
+		if (outdated_driver_error.size() != 0) {
+			signal->m_errorMessage = outdated_driver_error;
+			signal->m_code = OBS_OUTPUT_OUTDATED_DRIVER;
+		} else {
+			const char* error = obs_output_get_last_error(streamingOutput);
+			if (error) {
+				signal->m_errorMessage = error;
+				blog(LOG_INFO, "Last streaming error: %s", error);
+			}
+			signal->m_code = OBS_OUTPUT_ERROR;
+		}
 
-		// std::unique_lock<std::mutex> ulock(signalMutex);
-		// outputSignal.push(signal);
+		callJS(signal);
 	}
 	return isStreaming;
 }
@@ -1015,7 +1020,7 @@ bool OBS_service::updateRecordingEncoders(bool isSimpleMode)
 	return useStreamEncoder;
 }
 
-bool OBS_service::startRecording(void)
+bool OBS_service::startRecording(callbackService callJS)
 {
 	if (recordingOutput)
 		obs_output_release(recordingOutput);
@@ -1065,21 +1070,27 @@ bool OBS_service::startRecording(void)
 
 	isRecording = obs_output_start(recordingOutput);
 	if (!isRecording) {
-		// obs::SignalInfo signal = obs::SignalInfo("recording", "stop", g_jsThread);
-		// std::string outdated_driver_error = outdated_driver_error::instance()->get_error();
-		// if (outdated_driver_error.size() != 0) {
-		// 	signal.setErrorMessage(outdated_driver_error);
-		// 	signal.setCode(OBS_OUTPUT_OUTDATED_DRIVER);
-		// } else {
-		// 	const char* error = obs_output_get_last_error(recordingOutput);
-		// 	if (error) {
-		// 		signal.setErrorMessage(error);
-		// 		blog(LOG_INFO, "Last recording error: %s", error);
-		// 	}
-		// 	signal.setCode(OBS_OUTPUT_ERROR);
-		// }
-		// std::unique_lock<std::mutex> ulock(signalMutex);
-		// outputSignal.push(signal);
+		SignalInfo* signal = new SignalInfo(
+			std::string("recording"),
+			std::string("stop"),
+			0,
+			std::string(""),
+			g_jsThread
+		);
+		std::string outdated_driver_error = outdated_driver_error::instance()->get_error();
+		if (outdated_driver_error.size() != 0) {
+			signal->m_errorMessage = outdated_driver_error;
+			signal->m_code = OBS_OUTPUT_OUTDATED_DRIVER;
+		} else {
+			const char* error = obs_output_get_last_error(recordingOutput);
+			if (error) {
+				signal->m_errorMessage = error;
+				blog(LOG_INFO, "Last recording error: %s", error);
+			}
+			signal->m_code = OBS_OUTPUT_ERROR;
+		}
+
+		callJS(signal);
 	}
 	return isRecording;
 }
@@ -1188,7 +1199,7 @@ void OBS_service::updateReplayBufferOutput(bool isSimpleMode, bool useStreamEnco
 	obs_data_release(settings);
 }
 
-bool OBS_service::startReplayBuffer(void)
+bool OBS_service::startReplayBuffer(callbackService callJS)
 {
 	if (replayBufferOutput)
 		obs_output_release(replayBufferOutput);
@@ -1238,24 +1249,31 @@ bool OBS_service::startReplayBuffer(void)
 
 	bool result = obs_output_start(replayBufferOutput);
 	if (!result) {
+		SignalInfo* signal = new SignalInfo(
+			std::string("replay-buffer"),
+			std::string("stop"),
+			0,
+			std::string(""),
+			g_jsThread
+		);
 		// obs::SignalInfo signal    = obs::SignalInfo("replay-buffer", "stop", g_jsThread);
-		// isReplayBufferActive = false;
-		// rpUsesRec            = false;
-		// rpUsesStream         = false;
-		// std::string outdated_driver_error = outdated_driver_error::instance()->get_error();
-		// if (outdated_driver_error.size() != 0) {
-		// 	signal.setErrorMessage(outdated_driver_error);
-		// 	signal.setCode(OBS_OUTPUT_OUTDATED_DRIVER);
-		// } else {
-		// 	const char* error = obs_output_get_last_error(replayBufferOutput);
-		// 	if (error) {
-		// 		signal.setErrorMessage(error);
-		// 		blog(LOG_INFO, "Last replay buffer error: %s", error);
-		// 	}
-		// 	signal.setCode(OBS_OUTPUT_ERROR);
-		// }
-		// std::unique_lock<std::mutex> ulock(signalMutex);
-		// outputSignal.push(signal);
+		isReplayBufferActive = false;
+		rpUsesRec            = false;
+		rpUsesStream         = false;
+		std::string outdated_driver_error = outdated_driver_error::instance()->get_error();
+		if (outdated_driver_error.size() != 0) {
+			signal->m_errorMessage = outdated_driver_error;
+			signal->m_code = OBS_OUTPUT_OUTDATED_DRIVER;
+		} else {
+			const char* error = obs_output_get_last_error(replayBufferOutput);
+			if (error) {
+				signal->m_errorMessage = error;
+				blog(LOG_INFO, "Last replay buffer error: %s", error);
+			}
+			signal->m_code = OBS_OUTPUT_ERROR;
+		}
+
+		callJS(signal);
 	} else {
 		isReplayBufferActive = true;
 	}
@@ -2036,33 +2054,118 @@ void OBS_service::updateStreamingOutput()
 	obs_output_set_reconnect_settings(streamingOutput, maxRetries, retryDelay);
 }
 
-std::vector<struct obs::SignalInfo> streamingSignals;
-std::vector<struct obs::SignalInfo> recordingSignals;
-std::vector<struct obs::SignalInfo> replayBufferSignals;
+std::vector<SignalInfo*> streamingSignals;
+std::vector<SignalInfo*> recordingSignals;
+std::vector<SignalInfo*> replayBufferSignals;
 
 void OBS_service::OBS_service_connectOutputSignals(signal_callback_t callback, void* jsThread)
 {
 	g_jsThread = jsThread;
-	streamingSignals.push_back({ "streaming", "start", g_jsThread });
-	streamingSignals.push_back({ "streaming", "stop", g_jsThread });
-	streamingSignals.push_back({ "streaming", "starting", g_jsThread });
-	streamingSignals.push_back({ "streaming", "stopping", g_jsThread });
-	streamingSignals.push_back({ "streaming", "activate", g_jsThread });
-	streamingSignals.push_back({ "streaming", "deactivate", g_jsThread });
-	streamingSignals.push_back({ "streaming", "reconnect", g_jsThread });
-	streamingSignals.push_back({ "streaming", "reconnect_success", g_jsThread });
+	streamingSignals.push_back(new SignalInfo(
+		std::string("streaming"),
+		std::string("start"),
+		0,
+		std::string(""),
+		g_jsThread));
+	streamingSignals.push_back(new SignalInfo(
+		std::string("streaming"),
+		std::string("stop"),
+		0,
+		std::string(""),
+		g_jsThread));
+	streamingSignals.push_back(new SignalInfo(
+		std::string("streaming"),
+		std::string("starting"),
+		0,
+		std::string(""),
+		g_jsThread));
+	streamingSignals.push_back(new SignalInfo(
+		std::string("streaming"),
+		std::string("stopping"),
+		0,
+		std::string(""),
+		g_jsThread));
+	streamingSignals.push_back(new SignalInfo(
+		std::string("streaming"),
+		std::string("activate"),
+		0,
+		std::string(""),
+		g_jsThread));
+	streamingSignals.push_back(new SignalInfo(
+		std::string("streaming"),
+		std::string("deactivate"),
+		0,
+		std::string(""),
+		g_jsThread));
+	streamingSignals.push_back(new SignalInfo(
+		std::string("streaming"),
+		std::string("reconnect"),
+		0,
+		std::string(""),
+		g_jsThread));
+	streamingSignals.push_back(new SignalInfo(
+		std::string("streaming"),
+		std::string("reconnect_success"),
+		0,
+		std::string(""),
+		g_jsThread));
 
-	recordingSignals.push_back({ "recording", "start", g_jsThread });
-	recordingSignals.push_back({ "recording", "stop", g_jsThread });
-	recordingSignals.push_back({ "recording", "stopping", g_jsThread });
+	recordingSignals.push_back(new SignalInfo(
+		std::string("recording"),
+		std::string("start"),
+		0,
+		std::string(""),
+		g_jsThread));
+	recordingSignals.push_back(new SignalInfo(
+		std::string("recording"),
+		std::string("stop"),
+		0,
+		std::string(""),
+		g_jsThread));
+	recordingSignals.push_back(new SignalInfo(
+		std::string("recording"),
+		std::string("stopping"),
+		0,
+		std::string(""),
+		g_jsThread));
 
-	replayBufferSignals.push_back({ "replay-buffer", "start", g_jsThread });
-	replayBufferSignals.push_back({ "replay-buffer", "stop", g_jsThread });
-	replayBufferSignals.push_back({ "replay-buffer", "stopping", g_jsThread });
+	replayBufferSignals.push_back(new SignalInfo(
+		std::string("replay-buffer"),
+		std::string("start"),
+		0,
+		std::string(""),
+		g_jsThread));
+	replayBufferSignals.push_back(new SignalInfo(
+		std::string("replay-buffer"),
+		std::string("stop"),
+		0,
+		std::string(""),
+		g_jsThread));
+	replayBufferSignals.push_back(new SignalInfo(
+		std::string("replay-buffer"),
+		std::string("stopping"),
+		0,
+		std::string(""),
+		g_jsThread));
 
-	replayBufferSignals.push_back({ "replay-buffer", "writing", g_jsThread });
-	replayBufferSignals.push_back({ "replay-buffer", "wrote", g_jsThread });
-	replayBufferSignals.push_back({ "replay-buffer", "writing_error", g_jsThread });
+	replayBufferSignals.push_back(new SignalInfo(
+		std::string("replay-buffer"),
+		std::string("writing"),
+		0,
+		std::string(""),
+		g_jsThread));
+	replayBufferSignals.push_back(new SignalInfo(
+		std::string("replay-buffer"),
+		std::string("wrote"),
+		0,
+		std::string(""),
+		g_jsThread));
+	replayBufferSignals.push_back(new SignalInfo(
+		std::string("replay-buffer"),
+		std::string("writing_error"),
+		0,
+		std::string(""),
+		g_jsThread));
 
 	g_ouput_callback = callback;
 	connectOutputSignals(g_ouput_callback);
@@ -2077,9 +2180,9 @@ void OBS_service::connectOutputSignals(signal_callback_t callback)
 		for (int i = 0; i < streamingSignals.size(); i++) {
 			signal_handler_connect(
 			    streamingOutputSignalHandler,
-			    streamingSignals.at(i).signal.c_str(),
+			    streamingSignals.at(i)->m_signal.c_str(),
 			    callback == NULL ? g_ouput_callback : callback,
-			    &(streamingSignals.at(i)));
+			    streamingSignals.at(i));
 		}
 	}
 
@@ -2090,9 +2193,9 @@ void OBS_service::connectOutputSignals(signal_callback_t callback)
 		for (int i = 0; i < recordingSignals.size(); i++) {
 			signal_handler_connect(
 			    recordingOutputSignalHandler,
-			    recordingSignals.at(i).signal.c_str(),
+			    recordingSignals.at(i)->m_signal.c_str(),
 			    callback == NULL ? g_ouput_callback : callback,
-			    &(recordingSignals.at(i)));
+			    recordingSignals.at(i));
 		}
 	}
 
@@ -2103,9 +2206,9 @@ void OBS_service::connectOutputSignals(signal_callback_t callback)
 		for (int i = 0; i < replayBufferSignals.size(); i++) {
 			signal_handler_connect(
 			    replayBufferOutputSignalHandler,
-			    replayBufferSignals.at(i).signal.c_str(),
+			    replayBufferSignals.at(i)->m_signal.c_str(),
 			    callback == NULL ? g_ouput_callback : callback,
-			    &(replayBufferSignals.at(i)));
+			    replayBufferSignals.at(i));
 		}
 	}
 }
