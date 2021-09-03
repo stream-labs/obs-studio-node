@@ -185,6 +185,7 @@ class OBS_service
 	static void           setupAudioEncoder(void);
 	static void           clearAudioEncoder(void);
 	static obs_encoder_t* getArchiveEncoder(void);
+	static void           setArchiveEncoder(obs_encoder_t* encoder);
 
 	// Outputs
 	static bool          createStreamingOutput(void);

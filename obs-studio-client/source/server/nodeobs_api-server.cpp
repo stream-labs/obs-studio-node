@@ -823,8 +823,6 @@ int OBS_API::OBS_API_initAPI(
 
 	util::CrashManager::setAppState("idle");
 
-	AUTO_DEBUG;
-
 	// We are returning a video result here because the frontend needs to know if we sucessfully
 	// initialized the Dx11 API
 	return OBS_VIDEO_SUCCESS;
@@ -1304,40 +1302,15 @@ void OBS_API::destroyOBS_API(void)
 	OBS_content::OBS_content_shutdownDisplays();
 
 	obs::autoConfig::WaitPendingTests();
-
 	OBS_service::stopAllOutputs();
-
-	obs_encoder_t* streamingEncoder = OBS_service::getStreamingEncoder();
-	if (streamingEncoder != NULL)
-		obs_encoder_release(streamingEncoder);
-
-	obs_encoder_t* recordingEncoder = OBS_service::getRecordingEncoder();
-	if (recordingEncoder != NULL && (OBS_service::useRecordingPreset() || obs_get_multiple_rendering()))
-		obs_encoder_release(recordingEncoder);
-
-	obs_encoder_t* audioStreamingEncoder = OBS_service::getAudioSimpleStreamingEncoder();
-	if (audioStreamingEncoder != NULL)
-		obs_encoder_release(audioStreamingEncoder);
-
-	obs_encoder_t* audioRecordingEncoder = OBS_service::getAudioSimpleRecordingEncoder();
-	if (audioRecordingEncoder != NULL && (OBS_service::useRecordingPreset() || obs_get_multiple_rendering()))
-		obs_encoder_release(audioRecordingEncoder);
-
-	obs_encoder_t* archiveEncoder = OBS_service::getArchiveEncoder();
-	if (archiveEncoder != NULL)
-		obs_encoder_release(archiveEncoder);
-
-	obs_output_t* streamingOutput = OBS_service::getStreamingOutput();
-	if (streamingOutput != NULL)
-		obs_output_release(streamingOutput);
-
-	obs_output_t* recordingOutput = OBS_service::getRecordingOutput();
-	if (recordingOutput != NULL)
-		obs_output_release(recordingOutput);
-
-	obs_output_t* replayBufferOutput = OBS_service::getReplayBufferOutput();
-	if (replayBufferOutput != NULL)
-		obs_output_release(replayBufferOutput);
+	OBS_service::setStreamingEncoder(nullptr);
+	OBS_service::setRecordingEncoder(nullptr);
+	OBS_service::setAudioSimpleStreamingEncoder(nullptr);
+	OBS_service::setAudioSimpleRecordingEncoder(nullptr);
+	OBS_service::setArchiveEncoder(nullptr);
+	OBS_service::setStreamingOutput(nullptr);
+	OBS_service::setRecordingOutput(nullptr);
+	OBS_service::setReplayBufferOutput(nullptr);
 
 	obs_output* virtualWebcamOutput = OBS_service::getVirtualWebcamOutput();
 	if (virtualWebcamOutput != NULL) {
@@ -1347,10 +1320,7 @@ void OBS_API::destroyOBS_API(void)
 		obs_output_release(virtualWebcamOutput);
 	}
 
-	obs_service_t* service = OBS_service::getService();
-	if (service != NULL)
-		obs_service_release(service);
-
+	OBS_service::setService(nullptr);
     OBS_service::waitReleaseWorker();
     OBS_service::clearAudioEncoder();
     obs::Fader::ClearFaders();

@@ -785,8 +785,10 @@ void OBS_service::setupAudioEncoder(void)
 void OBS_service::clearAudioEncoder(void)
 {
 	for (int i = 0; i < MAX_AUDIO_MIXES; i++) {
-		if (aacTracks[i])
+		if (aacTracks[i]) {
 			obs_encoder_release(aacTracks[i]);
+			aacTracks[i] = nullptr;
+		}
 	}
 }
 
@@ -1941,6 +1943,12 @@ obs_encoder_t* OBS_service::getAudioSimpleRecordingEncoder(void)
 obs_encoder_t* OBS_service::getArchiveEncoder(void)
 {
 	return streamArchiveEncVod;
+}
+
+void OBS_service::setArchiveEncoder(obs_encoder_t* encoder)
+{
+	obs_encoder_release(streamArchiveEncVod);
+	streamArchiveEncVod = encoder;
 }
 
 void OBS_service::setAudioSimpleRecordingEncoder(obs_encoder_t* encoder)
