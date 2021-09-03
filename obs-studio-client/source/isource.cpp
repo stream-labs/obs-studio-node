@@ -134,6 +134,15 @@ Napi::Value osn::ISource::GetProperties(const Napi::CallbackInfo& info, uint64_t
 			pr                                       = std::static_pointer_cast<osn::Property>(pr2);
 			break;
 		}
+		case obs::Property::Type::Capture: {
+			std::shared_ptr<obs::CaptureProperty> cast_property =
+			    std::dynamic_pointer_cast<obs::CaptureProperty>(raw_property);
+			std::shared_ptr<osn::NumberProperty> pr2 = std::make_shared<osn::NumberProperty>();
+			pr2->field_type                          = osn::NumberProperty::Type(cast_property->field_type);
+			pr2->int_value.value                     = cast_property->value;
+			pr                                       = std::static_pointer_cast<osn::Property>(pr2);
+			break;
+		}
 		case obs::Property::Type::Float: {
 			std::shared_ptr<obs::FloatProperty> cast_property =
 			    std::dynamic_pointer_cast<obs::FloatProperty>(raw_property);
