@@ -125,7 +125,6 @@ export {macWindowCapture};
 let gameCapture: ISettings = {
     allow_transparency: false,
     anti_cheat_hook: true,
-    auto_capture_list_path: "",
     auto_capture_rules_path: '',
     auto_fit_to_output: true,
     auto_placeholder_image: "",
@@ -143,6 +142,16 @@ let gameCapture: ISettings = {
     user_placeholder_use: false
 };
 export {gameCapture};
+
+let simpleCapture: ISettings = {
+    auto_capture_rules_path: '',
+    auto_placeholder_image: '',
+    auto_placeholder_message: 'Looking for a game to capture',
+    capture_source_list: 'game:0',
+    capture_source_prev: 'game:0',
+    user_placeholder_use: false
+};
+export {simpleCapture};
 
 let dshowInput: ISettings = {
   active: true,
