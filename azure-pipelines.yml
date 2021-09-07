@@ -45,14 +45,140 @@ jobs:
   - script: ./ci/build-osn.cmd
     displayName: 'Build obs-studio-node'
 
-  - script: 'yarn run test'
+  - script: 'yarn run test --grep nodeobs_api'
     env:
       SLOBS_BE_STREAMKEY: $(testsStreamKey)
       SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
       OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
       OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
       RELEASE_NAME: $(ReleaseName)
-    displayName: 'Run tests'
+    displayName: 'Run tests - nodeobs_api'
+
+  - script: 'yarn run test --grep nodeobs_autoconfig'
+    env:
+      SLOBS_BE_STREAMKEY: $(testsStreamKey)
+      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+      RELEASE_NAME: $(ReleaseName)
+    displayName: 'Run tests - nodeobs_autoconfig'
+
+  - script: 'yarn run test --grep nodeobs_service'
+    env:
+      SLOBS_BE_STREAMKEY: $(testsStreamKey)
+      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+      RELEASE_NAME: $(ReleaseName)
+    displayName: 'Run tests - nodeobs_service'
+
+  - script: 'yarn run test --grep nodeobs_settings'
+    env:
+      SLOBS_BE_STREAMKEY: $(testsStreamKey)
+      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+      RELEASE_NAME: $(ReleaseName)
+    displayName: 'Run tests - nodeobs_settings'
+
+  - script: 'yarn run test --grep osn-fader'
+    env:
+      SLOBS_BE_STREAMKEY: $(testsStreamKey)
+      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+      RELEASE_NAME: $(ReleaseName)
+    displayName: 'Run tests - osn-fader'
+
+  - script: 'yarn run test --grep osn-filter'
+    env:
+      SLOBS_BE_STREAMKEY: $(testsStreamKey)
+      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+      RELEASE_NAME: $(ReleaseName)
+    displayName: 'Run tests - osn-filter'
+
+  - script: 'yarn run test --grep osn-global'
+    env:
+      SLOBS_BE_STREAMKEY: $(testsStreamKey)
+      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+      RELEASE_NAME: $(ReleaseName)
+    displayName: 'Run tests - osn-global'
+
+  - script: 'yarn run test --grep osn-input'
+    env:
+      SLOBS_BE_STREAMKEY: $(testsStreamKey)
+      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+      RELEASE_NAME: $(ReleaseName)
+    displayName: 'Run tests - osn-input'
+
+  # - script: 'yarn run test --grep osn-module'
+  #   env:
+  #     SLOBS_BE_STREAMKEY: $(testsStreamKey)
+  #     SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+  #     OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+  #     OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+  #     RELEASE_NAME: $(ReleaseName)
+  #   displayName: 'Run tests - osn-module'
+
+  # - script: 'yarn run test --grep osn-scene'
+  #   env:
+  #     SLOBS_BE_STREAMKEY: $(testsStreamKey)
+  #     SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+  #     OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+  #     OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+  #     RELEASE_NAME: $(ReleaseName)
+  #   displayName: 'Run tests - osn-scene'
+
+  - script: 'yarn run test --grep osn-sceneitem'
+    env:
+      SLOBS_BE_STREAMKEY: $(testsStreamKey)
+      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+      RELEASE_NAME: $(ReleaseName)
+    displayName: 'Run tests - osn-sceneitem'
+
+  - script: 'yarn run test --grep osn-source'
+    env:
+      SLOBS_BE_STREAMKEY: $(testsStreamKey)
+      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+      RELEASE_NAME: $(ReleaseName)
+    displayName: 'Run tests - osn-source'
+
+  - script: 'yarn run test --grep osn-transition'
+    env:
+      SLOBS_BE_STREAMKEY: $(testsStreamKey)
+      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+      RELEASE_NAME: $(ReleaseName)
+    displayName: 'Run tests - osn-transition'
+
+  - script: 'yarn run test --grep osn-video'
+    env:
+      SLOBS_BE_STREAMKEY: $(testsStreamKey)
+      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+      RELEASE_NAME: $(ReleaseName)
+    displayName: 'Run tests - osn-video'
+
+  - script: 'yarn run test --grep osn-volmeter'
+    env:
+      SLOBS_BE_STREAMKEY: $(testsStreamKey)
+      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+      RELEASE_NAME: $(ReleaseName)
+    displayName: 'Run tests - osn-volmeter'
 
   - script: ./ci/copy-files.cmd
     displayName: 'Copy necessary dll files'
