@@ -82,6 +82,7 @@ void obs::Volmeter::Destroy(uint64_t uid)
 		delete meter->id2;
 		meter->id2 = nullptr;
 	}
+	meter.reset();
 }
 
 void obs::Volmeter::Attach(uint64_t uid_fader, uint64_t uid_source)
@@ -134,14 +135,16 @@ void obs::Volmeter::AddCallback(
 
 	meter->m_jsThread = jsThread;
 	meter->callback_count++;
+	meter->cbReady = true;
+	meter->lastProcessed = std::chrono::high_resolution_clock::now();
 	if (meter->callback_count == 1) {
 		meter->id2  = new uint64_t;
 		*meter->id2 = meter->id;
-		obs_volmeter_add_callback(meter->self, callback, meter->id2);
+		obs_volmeter_add_callback(meter->self, callback, meter.get());
 	}
 }
 
-void obs::Volmeter::RemoveCallback(uint64_t uid)
+void obs::Volmeter::RemoveCallback(uint64_t uid, obs_volmeter_updated_t callback)
 {
 	std::unique_lock<std::mutex> ulock(mtx);
 	auto meter = Manager::GetInstance().find(uid);
@@ -152,8 +155,9 @@ void obs::Volmeter::RemoveCallback(uint64_t uid)
 
 	meter->m_jsThread = nullptr;
 	meter->callback_count--;
+	meter->cbReady = false;
 	if (meter->callback_count == 0) {
-		// obs_volmeter_remove_callback(meter->self, OBSCallback, meter->id2);
+		obs_volmeter_remove_callback(meter->self, callback, meter.get());
 		delete meter->id2;
 		meter->id2 = nullptr;
 	}

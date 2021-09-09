@@ -20,12 +20,15 @@
 #include <napi.h>
 #include <thread>
 #include "utility-v8.hpp"
+#include "server/osn-volmeter.hpp"
 
 struct VolmeterData
 {
-	std::vector<float> magnitude;
-	std::vector<float> peak;
-	std::vector<float> input_peak;
+    std::vector<float> magnitude;
+    std::vector<float> peak;
+    std::vector<float> input_peak;
+	int channels;
+	obs::Volmeter* volmeter;
 };
 
 namespace osn

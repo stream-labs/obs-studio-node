@@ -27,7 +27,6 @@
 #include "utility-v8.hpp"
 #include "utility.hpp"
 #include "callback-manager.hpp"
-#include "server/osn-volmeter.hpp"
 
 Napi::FunctionReference osn::Volmeter::constructor;
 
@@ -102,40 +101,58 @@ Napi::Value osn::Volmeter::Detach(const Napi::CallbackInfo& info)
 	return info.Env().Undefined();
 }
 
+auto volmeter_callback = []( Napi::Env env, Napi::Function jsCallback, VolmeterData* data ) {
+	Napi::Array magnitude = Napi::Array::New(env);
+	Napi::Array peak = Napi::Array::New(env);
+	Napi::Array input_peak = Napi::Array::New(env);
+
+	if (!data->magnitude.size() || !data->peak.size() || !data->input_peak.size())
+		return;
+
+	for (size_t i = 0; i < data->channels; i++) {
+		magnitude.Set(i, Napi::Number::New(env, data->magnitude[i]));
+		peak.Set(i, Napi::Number::New(env, data->peak[i]));
+		input_peak.Set(i, Napi::Number::New(env, data->input_peak[i]));
+	}
+
+	jsCallback.Call({ magnitude, peak, input_peak });
+
+	data->volmeter->cbReady = true;
+	delete data;
+};
+
 void OBSCallback(
     void*       param,
     const float magnitude[MAX_AUDIO_CHANNELS],
     const float peak[MAX_AUDIO_CHANNELS],
     const float input_peak[MAX_AUDIO_CHANNELS])
 {
-	std::unique_lock<std::mutex> ulockMutex(mtx);
-	auto meter = obs::Volmeter::Manager::GetInstance().find(*reinterpret_cast<uint64_t*>(param));
+	auto meter = reinterpret_cast<obs::Volmeter*>(param);
 	if (!meter) {
 		return;
 	}
 
-    auto volmeter_callback = []( Napi::Env env, Napi::Function jsCallback, VolmeterData* data ) {
-		Napi::Array magnitude = Napi::Array::New(env);
-		Napi::Array peak = Napi::Array::New(env);
-		Napi::Array input_peak = Napi::Array::New(env);
+	bool cbReady = meter->cbReady;
+	if (cbReady != true)
+		return;
 
-		for (size_t i = 0; i < data->magnitude.size(); i++) {
-			magnitude.Set(i, Napi::Number::New(env, data->magnitude[i]));
-		}
-		for (size_t i = 0; i < data->peak.size(); i++) {
-			peak.Set(i, Napi::Number::New(env, data->peak[i]));
-		}
-		for (size_t i = 0; i < data->input_peak.size(); i++) {
-			input_peak.Set(i, Napi::Number::New(env, data->input_peak[i]));
-		}
+	auto now = std::chrono::high_resolution_clock::now();
+	auto delta = now - meter->lastProcessed;
 
-		if (data->magnitude.size() > 0 && data->peak.size() > 0 && data->input_peak.size() > 0) {
-			jsCallback.Call({ magnitude, peak, input_peak });
-		}
-    };
+	if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() < 50)
+		return;
 
-	VolmeterData* data     = new VolmeterData{{}, {}, {}};
-	size_t channels = obs_volmeter_get_nr_channels(meter->self);
+	meter->lastProcessed = now;
+	meter->cbReady = false;
+
+	int channels = obs_volmeter_get_nr_channels(meter->self);
+	VolmeterData* data     = new VolmeterData{
+		{},
+		{},
+		{},
+		obs_volmeter_get_nr_channels(meter->self),
+		meter
+	};
 
 	data->magnitude.resize(channels);
 	data->peak.resize(channels);
@@ -146,10 +163,12 @@ void OBSCallback(
 		data->input_peak[ch] = MAKE_FLOAT_SANE(input_peak[ch]);
 	}
 
+	auto end = std::chrono::high_resolution_clock::now();
+
 	Napi::ThreadSafeFunction& jsThread =
 		*reinterpret_cast<Napi::ThreadSafeFunction*>(meter->m_jsThread);
-	jsThread.NonBlockingCall(data, volmeter_callback);
-
+	if (jsThread != NULL)
+		jsThread.NonBlockingCall(data, volmeter_callback);
 }
 
 Napi::Value osn::Volmeter::AddCallback(const Napi::CallbackInfo& info)
@@ -171,7 +190,7 @@ Napi::Value osn::Volmeter::AddCallback(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Volmeter::RemoveCallback(const Napi::CallbackInfo& info)
 {
-	obs::Volmeter::RemoveCallback(this->m_uid);
+	obs::Volmeter::RemoveCallback(this->m_uid, OBSCallback);
 	m_jsThread.Release();
 	return Napi::Boolean::New(info.Env(), true);
 }

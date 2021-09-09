@@ -1587,7 +1587,7 @@ double OBS_API::getCPU_Percentage(void)
 	cpuPercentage = trunc(cpuPercentage);
 	cpuPercentage /= 10;
 
-	return cpuPercentage;
+	return 0;
 }
 
 int OBS_API::getNumberOfDroppedFrames(void)

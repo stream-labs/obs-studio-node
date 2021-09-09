@@ -56,6 +56,9 @@ namespace obs
 		uint64_t*       id2            = nullptr;
 		uint64_t        uid_source     = 0;
 		void*           m_jsThread     = nullptr;
+		bool            cbReady;
+
+		std::chrono::steady_clock::time_point lastProcessed;
 
 		public:
 		Volmeter(obs_fader_type type);
@@ -71,6 +74,8 @@ namespace obs
 			uint64_t uid,
 			obs_volmeter_updated_t callback,
 			void* jsThread);
-		static void RemoveCallback(uint64_t uid);
+		static void RemoveCallback(
+			uint64_t uid,
+			obs_volmeter_updated_t callback);
 	};
 }
