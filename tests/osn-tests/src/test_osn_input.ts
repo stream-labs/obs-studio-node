@@ -187,7 +187,7 @@ describe(testName, () => {
                     settings['righteye'] = true;
                     break;
                 }
-                case 'slobs_capture': {
+                case 'screen_capture': {
                     settings = inputSettings.simpleCapture;
                     break;
                 }                

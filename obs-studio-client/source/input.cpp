@@ -720,7 +720,13 @@ Napi::Value osn::Input::CallGetProperties(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::CallGetSettings(const Napi::CallbackInfo& info)
 {
-	return osn::ISource::GetSettings(info, this->sourceId);
+	Napi::Value ret = osn::ISource::GetSettings(info, this->sourceId);
+
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(this->sourceId);
+	if (sdi && sdi->obs_sourceId.compare("screen_capture") == 0) {
+		sdi->settingsChanged = true;
+	}
+	return ret;
 }
 
 
@@ -802,6 +808,11 @@ Napi::Value osn::Input::CallRemove(const Napi::CallbackInfo& info)
 Napi::Value osn::Input::CallUpdate(const Napi::CallbackInfo& info)
 {
 	osn::ISource::Update(info, this->sourceId);
+
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(this->sourceId);
+	if (sdi && sdi->obs_sourceId.compare("screen_capture") == 0) {
+		sdi->settingsChanged = true;
+	}
 
 	return info.Env().Undefined();
 }
