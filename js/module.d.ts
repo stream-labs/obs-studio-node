@@ -337,6 +337,8 @@ export interface IBooleanProperty extends IProperty {
 }
 export interface IColorProperty extends IProperty {
 }
+export interface ICaptureProperty extends IProperty {
+}
 export interface IButtonProperty extends IProperty {
     buttonClicked(source: object): void;
 }

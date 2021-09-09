@@ -7,5 +7,6 @@ export declare function isEditableListProperty(property: obs.IProperty): propert
 export declare function isBooleanProperty(property: obs.IProperty): property is obs.IBooleanProperty;
 export declare function isButtonProperty(property: obs.IProperty): property is obs.IButtonProperty;
 export declare function isColorProperty(property: obs.IProperty): property is obs.IColorProperty;
+export declare function isCaptureProperty(property: obs.IProperty): property is obs.ICaptureProperty;
 export declare function isFontProperty(property: obs.IProperty): property is obs.IFontProperty;
 export declare function isEmptyProperty(property: obs.IProperty): boolean;
