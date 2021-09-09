@@ -148,7 +148,8 @@ let simpleCapture: ISettings = {
     auto_placeholder_image: '',
     auto_placeholder_message: 'Looking for a game to capture',
     capture_source_list: 'game:0',
-    capture_source_prev: 'game:0',
+    capture_cursor: false,
+    capture_window_line: '',
     user_placeholder_use: false
 };
 export {simpleCapture};
