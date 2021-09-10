@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 SET(NODEJS_URL "https://atom.io/download/atom-shell" CACHE STRING "Node.JS URL")
 SET(NODEJS_NAME "iojs" CACHE STRING "Node.JS Name")
-SET(NODEJS_VERSION "v10.4.2" CACHE STRING "Node.JS Version")
+SET(NODEJS_VERSION "v12.1.0" CACHE STRING "Node.JS Version")
 
 if(WIN32)
 	# Resource VersionInfo
