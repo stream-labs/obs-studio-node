@@ -27,11 +27,9 @@
 #include "utility.hpp"
 #include "server/osn-source.hpp"
 
-std::vector<std::future<void>> async_cbs;
-
 void osn::ISource::Release(const Napi::CallbackInfo& info, uint64_t id)
 {
-	async_cbs.push_back(std::async(std::launch::async, obs::Source::Release, id));
+	obs::Source::Release(id);
 }
 
 void osn::ISource::Remove(const Napi::CallbackInfo& info, uint64_t id)
