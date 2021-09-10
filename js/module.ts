@@ -101,7 +101,10 @@ export const enum EPropertyType {
     Button,
     Font,
     EditableList,
-    FrameRate
+    FrameRate,
+    Group,
+    ColorAlpha,
+    Capture,
 }
 
 export const enum EListFormat {
@@ -545,6 +548,9 @@ export interface IBooleanProperty extends IProperty {
 }
 
 export interface IColorProperty extends IProperty {
+
+}
+export interface ICaptureProperty extends IProperty {
 
 }
 
