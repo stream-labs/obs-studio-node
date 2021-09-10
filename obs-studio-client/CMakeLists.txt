@@ -147,7 +147,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${NODE_ADDON_API_DIR})
 target_link_libraries(${PROJECT_NAME} ${LIBOBS_LIBRARIES})
 
 # Define NAPI_VERSION
-add_definitions(-DNAPI_VERSION=4)
+add_definitions(-DNAPI_VERSION=7)
 
 #Define the OSN_VERSION
 add_compile_definitions(OSN_VERSION=\"$ENV{tagartifact}\") 
