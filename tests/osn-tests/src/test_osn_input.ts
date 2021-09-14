@@ -187,6 +187,10 @@ describe(testName, () => {
                     settings['righteye'] = true;
                     break;
                 }
+                case 'screen_capture': {
+                    settings = inputSettings.simpleCapture;
+                    break;
+                }                
             }
 
             const input = osn.InputFactory.create(inputType, 'input', settings);
