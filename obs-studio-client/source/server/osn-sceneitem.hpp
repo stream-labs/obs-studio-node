@@ -43,46 +43,46 @@ namespace obs
 		};
 
 		public:
-		static uint64_t GetSource(uint64_t itemId);
-		static uint64_t GetScene(uint64_t itemId);
+		static uint64_t GetSource(obs_sceneitem_t* item);
+		static uint64_t GetScene(obs_sceneitem_t* item);
 
-		static void Remove(uint64_t itemId);
+		static void Remove(obs_sceneitem_t* item);
 
-		static bool IsVisible(uint64_t itemId);
-		static bool SetVisible(uint64_t itemId, bool visible);
-		static bool IsSelected(uint64_t itemId);
-		static bool SetSelected(uint64_t itemId, bool selected);
-		static bool IsStreamVisible(uint64_t itemId);
-		static bool SetStreamVisible(uint64_t itemId, bool streamVisible);
-		static bool IsRecordingVisible(uint64_t itemId);
-		static bool SetRecordingVisible(uint64_t itemId, bool recordingVisible);
-		static std::pair<float_t, float_t> GetPosition(uint64_t itemId);
-		static std::pair<float_t, float_t> SetPosition(uint64_t itemId, float_t x, float_t y);
-		static float_t GetRotation(uint64_t itemId);
-		static float_t SetRotation(uint64_t itemId, float_t rotation);
-		static std::pair<float_t, float_t> GetScale(uint64_t itemId);
-		static std::pair<float_t, float_t> SetScale(uint64_t itemId, float_t scaleX, float_t scaleY);
-		static uint32_t GetAlignment(uint64_t itemId);
-		static uint32_t SetAlignment(uint64_t itemId, uint32_t align);
-		static std::pair<float_t, float_t> GetBounds(uint64_t itemId);
-		static std::pair<float_t, float_t> SetBounds(uint64_t itemId, float_t boundsX, float_t boundsY);
-		static uint32_t GetBoundsAlignment(uint64_t itemId);
-		static uint32_t SetBoundsAlignment(uint64_t itemId, uint32_t aligment);
-		static uint32_t GetBoundsType(uint64_t itemId);
-		static uint32_t SetBoundsType(uint64_t itemId, uint32_t boundsType);
-		static obs_sceneitem_crop GetCrop(uint64_t itemId);
-		static obs_sceneitem_crop SetCrop(uint64_t itemId, obs_sceneitem_crop crop);
-		static uint32_t GetScaleFilter(uint64_t itemId);
-		static uint32_t SetScaleFilter(uint64_t itemId, uint32_t scaleFilter);
-		static int64_t GetId(uint64_t itemId);
+		static bool IsVisible(obs_sceneitem_t* item);
+		static bool SetVisible(obs_sceneitem_t* item, bool visible);
+		static bool IsSelected(obs_sceneitem_t* item);
+		static bool SetSelected(obs_sceneitem_t* item, bool selected);
+		static bool IsStreamVisible(obs_sceneitem_t* item);
+		static bool SetStreamVisible(obs_sceneitem_t* item, bool streamVisible);
+		static bool IsRecordingVisible(obs_sceneitem_t* item);
+		static bool SetRecordingVisible(obs_sceneitem_t* item, bool recordingVisible);
+		static std::pair<float_t, float_t> GetPosition(obs_sceneitem_t* item);
+		static std::pair<float_t, float_t> SetPosition(obs_sceneitem_t* item, float_t x, float_t y);
+		static float_t GetRotation(obs_sceneitem_t* item);
+		static float_t SetRotation(obs_sceneitem_t* item, float_t rotation);
+		static std::pair<float_t, float_t> GetScale(obs_sceneitem_t* item);
+		static std::pair<float_t, float_t> SetScale(obs_sceneitem_t* item, float_t scaleX, float_t scaleY);
+		static uint32_t GetAlignment(obs_sceneitem_t* item);
+		static uint32_t SetAlignment(obs_sceneitem_t* item, uint32_t align);
+		static std::pair<float_t, float_t> GetBounds(obs_sceneitem_t* item);
+		static std::pair<float_t, float_t> SetBounds(obs_sceneitem_t* item, float_t boundsX, float_t boundsY);
+		static uint32_t GetBoundsAlignment(obs_sceneitem_t* item);
+		static uint32_t SetBoundsAlignment(obs_sceneitem_t* item, uint32_t aligment);
+		static uint32_t GetBoundsType(obs_sceneitem_t* item);
+		static uint32_t SetBoundsType(obs_sceneitem_t* item, uint32_t boundsType);
+		static obs_sceneitem_crop GetCrop(obs_sceneitem_t* item);
+		static obs_sceneitem_crop SetCrop(obs_sceneitem_t* item, obs_sceneitem_crop crop);
+		static uint32_t GetScaleFilter(obs_sceneitem_t* item);
+		static uint32_t SetScaleFilter(obs_sceneitem_t* item, uint32_t scaleFilter);
+		static int64_t GetId(obs_sceneitem_t* item);
 
-		static void MoveUp(uint64_t itemId);
-		static void MoveDown(uint64_t itemId);
-		static void MoveTop(uint64_t itemId);
-		static void MoveBottom(uint64_t itemId);
-		static void Move(uint64_t itemId, int32_t position);
+		static void MoveUp(obs_sceneitem_t* item);
+		static void MoveDown(obs_sceneitem_t* item);
+		static void MoveTop(obs_sceneitem_t* item);
+		static void MoveBottom(obs_sceneitem_t* item);
+		static void Move(obs_sceneitem_t* item, int32_t position);
 
-		static void DeferUpdateBegin(uint64_t itemId);
-		static void DeferUpdateEnd(uint64_t itemId);
+		static void DeferUpdateBegin(obs_sceneitem_t* item);
+		static void DeferUpdateEnd(obs_sceneitem_t* item);
 	};
 }

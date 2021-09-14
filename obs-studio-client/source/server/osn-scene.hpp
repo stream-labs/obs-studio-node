@@ -48,16 +48,14 @@ namespace obs
 
 		static uint64_t Duplicate(uint64_t sourceId, std::string name, int32_t duplicateType);
 
-		static std::pair<uint64_t, int64_t> AddSource(uint64_t uid, uint64_t sourceId);
-		static std::pair<uint64_t, int64_t> AddSource(uint64_t uid, uint64_t sourceId, struct TransformInfo transform);
-		static uint64_t FindItem(uint64_t sourceid, std::string name);
-		static uint64_t FindItem(uint64_t sourceid, int64_t position);
-		static std::vector<std::pair<uint64_t, int64_t>>
-		    OrderItems(uint64_t uid, const std::vector<char> &new_items_order);
-		static std::vector<std::pair<uint64_t, int64_t>>
-		    MoveItem(uint64_t uid, int32_t from, int32_t to);
-		static uint64_t GetItem(uint64_t sourceId, uint64_t index);
-		static std::vector<std::pair<uint64_t, int64_t>> GetItems(uint64_t sourceId);
-		static std::vector<uint64_t> GetItemsInRange(uint64_t sourceId, uint64_t from, uint64_t to);
+		static std::pair<obs_sceneitem_t*, int64_t> AddSource(uint64_t uid, uint64_t sourceId);
+		static std::pair<obs_sceneitem_t*, int64_t> AddSource(uint64_t uid, uint64_t sourceId, struct TransformInfo transform);
+		static obs_sceneitem_t* FindItem(uint64_t sourceid, std::string name);
+		static obs_sceneitem_t* FindItem(uint64_t sourceid, int64_t position);
+		static void OrderItems(uint64_t uid, const std::vector<char> &new_items_order);
+		static bool MoveItem(uint64_t uid, int32_t from, int32_t to);
+		static obs_sceneitem_t* GetItem(uint64_t sourceId, uint64_t index);
+		static std::vector<obs_sceneitem_t*> GetItems(uint64_t sourceId);
+		static std::vector<obs_sceneitem_t*> GetItemsInRange(uint64_t sourceId, uint64_t from, uint64_t to);
 	};
 }

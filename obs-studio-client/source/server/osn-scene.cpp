@@ -144,7 +144,6 @@ void obs::Scene::Remove(uint64_t uid)
 	obs::Source::Manager::GetInstance().free(uid);
 
 	for (auto item : items) {
-		obs::SceneItem::Manager::GetInstance().free(item);
 		obs_sceneitem_release(item);
 		obs_sceneitem_release(item);
 	}
@@ -186,66 +185,54 @@ uint64_t obs::Scene::Duplicate(uint64_t sourceId, std::string name, int32_t dupl
 	return uid;
 }
 
-std::pair<uint64_t, int64_t> obs::Scene::AddSource(uint64_t sceneId, uint64_t sourceId)
+std::pair<obs_sceneitem_t*, int64_t> obs::Scene::AddSource(uint64_t sceneId, uint64_t sourceId)
 {
 	obs_source_t* source = obs::Source::Manager::GetInstance().find(sceneId);
 	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
-		return std::make_pair(UINT64_MAX, INT64_MAX);
+		return std::make_pair(nullptr, INT64_MAX);
 	}
 
 	obs_scene_t* scene = obs_scene_from_source(source);
 	if (!scene) {
 		blog(LOG_ERROR, "Source reference is not a scene.");
-		return std::make_pair(UINT64_MAX, INT64_MAX);
+		return std::make_pair(nullptr, INT64_MAX);
 	}
 
 	obs_source_t* added_source = obs::Source::Manager::GetInstance().find(sourceId);
 	if (!added_source) {
 		blog(LOG_ERROR, "Source reference to add is not valid.");
-		return std::make_pair(UINT64_MAX, INT64_MAX);
+		return std::make_pair(nullptr, INT64_MAX);
 	}
 
 	obs_sceneitem_t* item = obs_scene_add(scene, added_source);
-
-	utility_server::unique_id::id_t uid = obs::SceneItem::Manager::GetInstance().allocate(item);
-	if (uid == UINT64_MAX) {
-		blog(LOG_ERROR, "Index list is full.");
-		return std::make_pair(UINT64_MAX, INT64_MAX);
-	}
 
 	obs_sceneitem_addref(item);
 
-	return std::make_pair(uid, obs_sceneitem_get_id(item));
+	return std::make_pair(item, obs_sceneitem_get_id(item));
 }
 
-std::pair<uint64_t, int64_t> obs::Scene::AddSource(uint64_t sceneId, uint64_t sourceId, struct TransformInfo transform)
+std::pair<obs_sceneitem_t*, int64_t> obs::Scene::AddSource(uint64_t sceneId, uint64_t sourceId, struct TransformInfo transform)
 {
 	obs_source_t* source = obs::Source::Manager::GetInstance().find(sceneId);
 	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
-		return std::make_pair(UINT64_MAX, INT64_MAX);
+		return std::make_pair(nullptr, INT64_MAX);
 	}
 
 	obs_scene_t* scene = obs_scene_from_source(source);
 	if (!scene) {
 		blog(LOG_ERROR, "Source reference is not a scene.");
-		return std::make_pair(UINT64_MAX, INT64_MAX);
+		return std::make_pair(nullptr, INT64_MAX);
 	}
 
 	obs_source_t* added_source = obs::Source::Manager::GetInstance().find(sourceId);
 	if (!added_source) {
 		blog(LOG_ERROR, "Source reference to add is not valid.");
-		return std::make_pair(UINT64_MAX, INT64_MAX);
+		return std::make_pair(nullptr, INT64_MAX);
 	}
 
 	obs_sceneitem_t* item = obs_scene_add(scene, added_source);
-
-	utility_server::unique_id::id_t uid = obs::SceneItem::Manager::GetInstance().allocate(item);
-	if (uid == UINT64_MAX) {
-		blog(LOG_ERROR, "Index list is full.");
-		return std::make_pair(UINT64_MAX, INT64_MAX);
-	}
 
 	vec2 scale;
 	scale.x = transform.scaleX;
@@ -274,134 +261,88 @@ std::pair<uint64_t, int64_t> obs::Scene::AddSource(uint64_t sceneId, uint64_t so
 
 	obs_sceneitem_addref(item);
 
-	return std::make_pair(uid, obs_sceneitem_get_id(item));
+	return std::make_pair(item, obs_sceneitem_get_id(item));
 }
 
-uint64_t obs::Scene::FindItem(uint64_t sourceid, std::string name)
+obs_sceneitem_t* obs::Scene::FindItem(uint64_t sourceid, std::string name)
 {
 	obs_source_t* source = obs::Source::Manager::GetInstance().find(sourceid);
 	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
-		return UINT64_MAX;
+		return nullptr;
 	}
 
 	obs_scene_t* scene = obs_scene_from_source(source);
 	if (!scene) {
 		blog(LOG_ERROR, "Source reference is not a scene.");
-		return UINT64_MAX;
+		return nullptr;
 	}
 
 	obs_sceneitem_t* item = obs_scene_find_source(scene, name.c_str());
 	if (!item) {
 		blog(LOG_ERROR, "Source not found.");
-		return UINT64_MAX;
+		return nullptr;
 	}
+	obs_sceneitem_addref(item);
 
-	utility_server::unique_id::id_t uid = obs::SceneItem::Manager::GetInstance().find(item);
-	if (uid == UINT64_MAX) {
-		uid = obs::SceneItem::Manager::GetInstance().allocate(item);
-		if (uid == UINT64_MAX) {
-			blog(LOG_ERROR, "Index list is full.");
-			return UINT64_MAX;
-		}
-		obs_sceneitem_addref(item);
-	}
-
-	return uid;
+	return item;
 }
 
-uint64_t obs::Scene::FindItem(uint64_t sourceid, int64_t position)
+obs_sceneitem_t* obs::Scene::FindItem(uint64_t sourceid, int64_t position)
 {
 	obs_source_t* source = obs::Source::Manager::GetInstance().find(sourceid);
 	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
-		return UINT64_MAX;
+		return nullptr;
 	}
 
 	obs_scene_t* scene = obs_scene_from_source(source);
 	if (!scene) {
 		blog(LOG_ERROR, "Source reference is not a scene.");
-		return UINT64_MAX;
+		return nullptr;
 	}
 
 	obs_sceneitem_t* item = obs_scene_find_sceneitem_by_id(scene, position);
 	if (!item) {
 		blog(LOG_ERROR, "Source not found.");
-		return UINT64_MAX;
+		return nullptr;
 	}
+	obs_sceneitem_addref(item);
 
-	utility_server::unique_id::id_t uid = obs::SceneItem::Manager::GetInstance().find(item);
-	if (uid == UINT64_MAX) {
-		uid = obs::SceneItem::Manager::GetInstance().allocate(item);
-		if (uid == UINT64_MAX) {
-			blog(LOG_ERROR, "Index list is full.");
-			return UINT64_MAX;
-		}
-		obs_sceneitem_addref(item);
-	}
-
-	return uid;
+	return item;
 }
 
-std::vector<std::pair<uint64_t, int64_t>>
-	obs::Scene::OrderItems(uint64_t uid, const std::vector<char> &new_items_order)
+void obs::Scene::OrderItems(uint64_t uid, const std::vector<char> &new_items_order)
 {
-	std::vector<std::pair<uint64_t, int64_t>> res;
-
 	obs_source_t* source = obs::Source::Manager::GetInstance().find(uid);
 	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
-		return res;
+		return;
 	}
 
 	obs_scene_t* scene = obs_scene_from_source(source);
 	if (!scene) {
 		blog(LOG_ERROR, "Source reference is not a scene.");
-		return res;
+		return;
 	}
 
 	size_t items_count = new_items_order.size()/sizeof(int64_t);
 
     obs_scene_set_items_order(scene, (int64_t*)new_items_order.data(), items_count);
-
-	std::list<obs_sceneitem_t*> items;
-	auto                        cb_items = [](obs_scene_t* scene, obs_sceneitem_t* item, void* data) {
-        std::list<obs_sceneitem_t*>* items = reinterpret_cast<std::list<obs_sceneitem_t*>*>(data);
-        items->push_back(item);
-        return true;
-	};
-	obs_scene_enum_items(scene, cb_items, &items);
-
-	for (obs_sceneitem_t* item : items) {
-		utility_server::unique_id::id_t uid = obs::SceneItem::Manager::GetInstance().find(item);
-		if (uid == UINT64_MAX) {
-			uid = obs::SceneItem::Manager::GetInstance().allocate(item);
-			if (uid == UINT64_MAX) {
-				blog(LOG_ERROR, "Index list is full.");
-				return res;
-			}
-			obs_sceneitem_addref(item);
-		}
-		res.push_back(std::make_pair(uid, obs_sceneitem_get_id(item)));
-	}
-	return res;
 }
 
-std::vector<std::pair<uint64_t, int64_t>>
-	obs::Scene::MoveItem(uint64_t uid, int32_t from, int32_t to)
+bool obs::Scene::MoveItem(uint64_t uid, int32_t from, int32_t to)
 {
-	std::vector<std::pair<uint64_t, int64_t>> res;
-
 	obs_source_t* source = obs::Source::Manager::GetInstance().find(uid);
 	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
-		return res;
+		return false;
 	}
 
 	obs_scene_t* scene = obs_scene_from_source(source);
 	if (!scene) {
 		blog(LOG_ERROR, "Source reference is not a scene.");
-		return res;
+		return false;
 	}
 
 	// Listen up! This function does not work as you might expect it to (lowest index is furthest
@@ -438,46 +379,26 @@ std::vector<std::pair<uint64_t, int64_t>>
 
 	if (!ed.item) {
 		blog(LOG_ERROR, "Index not found in Scene.");
-		return res;
+		return false;
 	}
 
 	obs_sceneitem_set_order_position(ed.item, (int(num_items) - 1) - to);
 
-	std::list<obs_sceneitem_t*> items;
-	auto                        cb_items = [](obs_scene_t* scene, obs_sceneitem_t* item, void* data) {
-        std::list<obs_sceneitem_t*>* items = reinterpret_cast<std::list<obs_sceneitem_t*>*>(data);
-        items->push_back(item);
-        return true;
-	};
-	obs_scene_enum_items(scene, cb_items, &items);
-
-	for (obs_sceneitem_t* item : items) {
-		utility_server::unique_id::id_t uid = obs::SceneItem::Manager::GetInstance().find(item);
-		if (uid == UINT64_MAX) {
-			uid = obs::SceneItem::Manager::GetInstance().allocate(item);
-			if (uid == UINT64_MAX) {
-				blog(LOG_ERROR, "Index list is full.");
-				return res;
-			}
-			obs_sceneitem_addref(item);
-		}
-		res.push_back(std::make_pair(uid, obs_sceneitem_get_id(item)));
-	}
-	return res;
+	return true;
 }
 
-uint64_t obs::Scene::GetItem(uint64_t sourceId, uint64_t index)
+obs_sceneitem_t* obs::Scene::GetItem(uint64_t sourceId, uint64_t index)
 {
 	obs_source_t* source = obs::Source::Manager::GetInstance().find(sourceId);
 	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
-		return UINT64_MAX;
+		return nullptr;
 	}
 
 	obs_scene_t* scene = obs_scene_from_source(source);
 	if (!scene) {
 		blog(LOG_ERROR, "Source reference is not a scene.");
-		return UINT64_MAX;
+		return nullptr;
 	}
 
 	struct EnumData
@@ -501,86 +422,63 @@ uint64_t obs::Scene::GetItem(uint64_t sourceId, uint64_t index)
 
 	if (!ed.item) {
 		blog(LOG_ERROR, "Index not found in Scene.");
-		return UINT64_MAX;
+		return nullptr;
 	}
 
-	utility_server::unique_id::id_t uid = obs::SceneItem::Manager::GetInstance().find(ed.item);
-	if (uid == UINT64_MAX) {
-		uid = obs::SceneItem::Manager::GetInstance().allocate(ed.item);
-		if (uid == UINT64_MAX) {
-			blog(LOG_ERROR, "Index list is full.");
-			return UINT64_MAX;
-		}
-		obs_sceneitem_addref(ed.item);
-	}
+	obs_sceneitem_addref(ed.item);
 
-	return uid;
+	return ed.item;
 }
 
-std::vector<std::pair<uint64_t, int64_t>> obs::Scene::GetItems(uint64_t sourceId)
+std::vector<obs_sceneitem_t*> obs::Scene::GetItems(uint64_t sourceId)
 {
-	std::vector<std::pair<uint64_t, int64_t>> res;
+	std::vector<obs_sceneitem_t*> items;
 
 	obs_source_t* source = obs::Source::Manager::GetInstance().find(sourceId);
 	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
-		return res;
+		return items;
 	}
 
 	obs_scene_t* scene = obs_scene_from_source(source);
 	if (!scene) {
 		blog(LOG_ERROR, "Source reference is not a scene.");
-		return res;
+		return items;
 	}
 
-	std::list<obs_sceneitem_t*> items;
-	auto                        cb = [](obs_scene_t* scene, obs_sceneitem_t* item, void* data) {
-        std::list<obs_sceneitem_t*>* items = reinterpret_cast<std::list<obs_sceneitem_t*>*>(data);
+	auto cb = [](obs_scene_t* scene, obs_sceneitem_t* item, void* data) {
+		std::vector<obs_sceneitem_t*>* items = reinterpret_cast<std::vector<obs_sceneitem_t*>*>(data);
         items->push_back(item);
         return true;
 	};
 	obs_scene_enum_items(scene, cb, &items);
 
-	for (obs_sceneitem_t* item : items) {
-		utility_server::unique_id::id_t uid = obs::SceneItem::Manager::GetInstance().find(item);
-		if (uid == UINT64_MAX) {
-			uid = obs::SceneItem::Manager::GetInstance().allocate(item);
-			if (uid == UINT64_MAX) {
-				blog(LOG_ERROR, "Index list is full.");
-				return res;
-			}
-			obs_sceneitem_addref(item);
-		}
-		res.push_back(std::make_pair(uid, obs_sceneitem_get_id(item)));
-	}
-
-	return res;
+	return items;
 }
 
-std::vector<uint64_t> obs::Scene::GetItemsInRange(uint64_t sourceId, uint64_t from, uint64_t to)
+std::vector<obs_sceneitem_t*> obs::Scene::GetItemsInRange(uint64_t sourceId, uint64_t from, uint64_t to)
 {
-	std::vector<uint64_t> items;
-
-	obs_source_t* source = obs::Source::Manager::GetInstance().find(sourceId);
-	if (!source) {
-		blog(LOG_ERROR, "Source reference is not valid.");
-		return items;
-	}
-
-	obs_scene_t* scene = obs_scene_from_source(source);
-	if (!scene) {
-		blog(LOG_ERROR, "Source reference is not a scene.");
-		return items;
-	}
-
 	struct EnumData
 	{
-		std::list<obs_sceneitem_t*> items;
+		std::vector<obs_sceneitem_t*> items;
 		size_t                      index_from = 0, index_to = 0;
 		size_t                      index = 0;
 	} ed;
 	ed.index_from = from;
 	ed.index_to   = to;
+
+	obs_source_t* source = obs::Source::Manager::GetInstance().find(sourceId);
+	if (!source) {
+		blog(LOG_ERROR, "Source reference is not valid.");
+		return ed.items;
+	}
+
+	obs_scene_t* scene = obs_scene_from_source(source);
+	if (!scene) {
+		blog(LOG_ERROR, "Source reference is not a scene.");
+		return ed.items;
+	}
+
 
 	auto cb = [](obs_scene_t* scene, obs_sceneitem_t* item, void* data) {
 		EnumData* ed = reinterpret_cast<EnumData*>(data);
@@ -594,18 +492,5 @@ std::vector<uint64_t> obs::Scene::GetItemsInRange(uint64_t sourceId, uint64_t fr
 	};
 	obs_scene_enum_items(scene, cb, &ed);
 
-	for (obs_sceneitem_t* item : ed.items) {
-		utility_server::unique_id::id_t uid = obs::SceneItem::Manager::GetInstance().find(item);
-		if (uid == UINT64_MAX) {
-			uid = obs::SceneItem::Manager::GetInstance().allocate(item);
-			if (uid == UINT64_MAX) {
-				blog(LOG_ERROR, "Index list is full.");
-				return items;
-			}
-			obs_sceneitem_addref(item);
-		}
-		items.push_back(uid);
-	}
-
-	return items;
+	return ed.items;
 }

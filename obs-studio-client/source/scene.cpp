@@ -215,18 +215,13 @@ Napi::Value osn::Scene::Duplicate(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::AddSource(const Napi::CallbackInfo& info)
 {
-	std::vector<ipc::value> params;
 	osn::Input* input = Napi::ObjectWrap<osn::Input>::Unwrap(info[0].ToObject());
 
-	params.push_back(ipc::value(this->sourceId));
-	params.push_back(ipc::value(input->sourceId));
 	Napi::Object transform = Napi::Object::New(info.Env());
 	Napi::Object crop = Napi::Object::New(info.Env());
-	
-	uint64_t id     = 0;
-	int64_t  obs_id = 0;
 	obs::TransformInfo transformInfo;
 
+	std::pair<obs_sceneitem_t *, int64_t> res;
 	if (info.Length() >= 2) {
 		transform = info[1].ToObject();
 		transformInfo.scaleX = transform.Get("scaleX").ToNumber().DoubleValue();
@@ -243,67 +238,15 @@ Napi::Value osn::Scene::AddSource(const Napi::CallbackInfo& info)
 		transformInfo.streamVisible = transform.Get("streamVisible").ToBoolean().Value();
 		transformInfo.recordingVisible = transform.Get("recordingVisible").ToBoolean().Value();
 
-		auto res = obs::Scene::AddSource(this->sourceId, input->sourceId, transformInfo);
-		id = res.first;
-		obs_id = res.second;
+		res = obs::Scene::AddSource(this->sourceId, input->sourceId, transformInfo);
 	} else {
-		auto res = obs::Scene::AddSource(this->sourceId, input->sourceId);
-		id = res.first;
-		obs_id = res.second;
+		res = obs::Scene::AddSource(this->sourceId, input->sourceId);
 	}
-
-	SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(this->sourceId);
-	if (si) {
-		si->items.push_back(std::make_pair(obs_id, id));
-		si->itemsOrderCached = true;
-	}
-
-	SceneItemData* sid = new SceneItemData;
-	sid->obs_itemId    = obs_id;
-	sid->scene_id      = this->sourceId;
-
-	if (info.Length() >= 2) {
-		// Position
-		sid->posX = transformInfo.positionX;
-		sid->posY = transformInfo.positionY;
-		sid->posChanged = false;
-
-		// Scale
-		sid->scaleX = transformInfo.scaleX;
-		sid->scaleY = transformInfo.scaleY;
-		sid->scaleChanged = false;
-
-		// Visibility
-		sid->isVisible      = transformInfo.visible;
-		sid->visibleChanged = false;
-
-		// Crop
-		sid->cropLeft    = transformInfo.cropLeft;
-		sid->cropTop     = transformInfo.cropTop;
-		sid->cropRight   = transformInfo.cropRight;
-		sid->cropBottom  = transformInfo.cropBottom;
-		sid->cropChanged = false;
-
-		// Rotation
-		sid->rotation = transformInfo.rotation;
-		sid->rotationChanged = false;
-
-		// Stream visible
-		sid->isStreamVisible      = transformInfo.streamVisible;
-		sid->streamVisibleChanged = false;
-
-		// Recording visible
-		sid->isRecordingVisible      = transformInfo.recordingVisible;
-		sid->recordingVisibleChanged = false;
-	}
-
-	CacheManager<SceneItemData*>::getInstance().Store(id, sid);	
 
     auto instance =
         osn::SceneItem::constructor.New({
-            Napi::Number::New(info.Env(), id)
-            });
-
+			Napi::External<obs_sceneitem_t*>::New(info.Env(), &res.first)
+		});
     return instance;
 }
 
@@ -324,37 +267,17 @@ Napi::Value osn::Scene::FindItem(const Napi::CallbackInfo& info)
 		return info.Env().Undefined();
 	}
 
-	SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(this->sourceId);
+	obs_sceneitem_t* item = nullptr;
+	if (hasName) item = obs::Scene::FindItem(this->sourceId, name);
+	else item  = obs::Scene::FindItem(this->sourceId, position);
 
-	if (si && !hasName) {
-		auto find = [position](const std::pair<int64_t, uint64_t> &item) {
-			return item.first == position;
-		};
-
-		auto itemIt = std::find_if(si->items.begin(), si->items.end(), find);
-		if (itemIt != si->items.end()) {
-			auto instance =
-				osn::SceneItem::constructor.New({
-					Napi::Number::New(info.Env(), itemIt->second)
-					});
-
-			return instance;
-		}
-	}
-
-	uint64_t id = 0;
-	if (hasName)
-		id = obs::Scene::FindItem(this->sourceId, name);
-	else
-		id = obs::Scene::FindItem(this->sourceId, position);
-
-	if (id == UINT64_MAX)
+	if (!item)
 		return info.Env().Undefined();
 
 	auto instance =
 		osn::SceneItem::constructor.New({
-			Napi::Number::New(info.Env(), id)
-			});
+			Napi::External<obs_sceneitem_t*>::New(info.Env(), &item)
+		});
 
 	return instance;
 }
@@ -364,20 +287,11 @@ Napi::Value osn::Scene::MoveItem(const Napi::CallbackInfo& info)
 	int from = info[0].ToNumber().Int64Value();
 	int to = info[1].ToNumber().Int64Value();
 
-	auto res = obs::Scene::MoveItem(this->sourceId, from, to);
-	if (res.empty())
-		Napi::TypeError::New(info.Env() , "Unable to move the specified item.").ThrowAsJavaScriptException();
+	if(!obs::Scene::MoveItem(this->sourceId, from, to))
+		Napi::TypeError::New(
+			info.Env(),
+			"Unable to move the specified item.").ThrowAsJavaScriptException();
 
-	SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(this->sourceId);
-
-	if (si && res.size()) {
-		si->items.clear();
-
-		for (auto item: res)
-			si->items.push_back(std::make_pair(item.second, item.first));
-
-		si->itemsOrderCached = true;
-	}
 	return info.Env().Undefined();
 }
 
@@ -396,18 +310,7 @@ Napi::Value osn::Scene::OrderItems(const Napi::CallbackInfo& info)
 	order_char.resize(order.size()*sizeof(int64_t));
 	memcpy(order_char.data(), order.data(), order_char.size());
 
-	auto res = obs::Scene::OrderItems(this->sourceId, order_char);
-
-	SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(this->sourceId);
-
-	if (si && res.size()) {
-		si->items.clear();
-
-		for (auto item: res)
-			si->items.push_back(std::make_pair(item.second, item.first));
-
-		si->itemsOrderCached = true;
-	}
+	obs::Scene::OrderItems(this->sourceId, order_char);
 
 	return info.Env().Undefined();
 }
@@ -416,60 +319,28 @@ Napi::Value osn::Scene::GetItemAtIndex(const Napi::CallbackInfo& info)
 {
 	int32_t index = info[0].ToNumber().Int32Value();
 
-	uint64_t id = obs::Scene::GetItem(this->sourceId, (int64_t)index);
+	auto item = obs::Scene::GetItem(this->sourceId, (int64_t)index);
 
     auto instance =
         osn::SceneItem::constructor.New({
-            Napi::Number::New(info.Env(), id)
-            });
+            Napi::External<obs_sceneitem_t*>::New(info.Env(), &item)
+		});
 
     return instance;
 }
 
 Napi::Value osn::Scene::GetItems(const Napi::CallbackInfo& info)
 {
-	SceneInfo* si = CacheManager<SceneInfo*>::getInstance().Retrieve(this->sourceId);
-
-	if (si && si->itemsOrderCached) {
-		Napi::Array array = Napi::Array::New(info.Env(), int(si->items.size()) - 1);
-		size_t index = 0;
-		bool itemRemoved = false;
-
-		for (auto item : si->items) {
-			SceneItemData*  sid = CacheManager<SceneItemData*>::getInstance().Retrieve(item.first);
-			if (!sid) {
-				itemRemoved = true;
-				break;
-			}
-			auto instance =
-				osn::SceneItem::constructor.New({
-					Napi::Number::New(info.Env(), item.second)
-					});
-			array.Set(uint32_t(index++), instance);
-		}
-		if (!itemRemoved) {
-			return array;
-		}
-	}
-
 	auto res = obs::Scene::GetItems(this->sourceId);
 	Napi::Array array = Napi::Array::New(info.Env(), res.size());
 	uint32_t index = 0;
 
-	if (si) {
-		si->items.clear();
-		si->itemsOrderCached = true;
-	}
-
 	for (auto item: res) {
 		auto instance =
 			osn::SceneItem::constructor.New({
-				Napi::Number::New(info.Env(), item.first)
-				});
-		array.Set(index, instance);
-		if (si)
-			si->items.push_back(std::make_pair(item.second, item.first));
-		index++;
+				Napi::External<obs_sceneitem_t*>::New(info.Env(), &item)
+			});
+		array.Set(index++, instance);
 	}
 
 	return array;
@@ -487,8 +358,8 @@ Napi::Value osn::Scene::GetItemsInRange(const Napi::CallbackInfo& info)
 	for (auto item: res) {
 		auto instance =
 			osn::SceneItem::constructor.New({
-				Napi::Number::New(info.Env(), item)
-				});
+				Napi::External<obs_sceneitem_t*>::New(info.Env(), &item)
+			});
 		array.Set(index++, instance);
 	}
 
