@@ -130,13 +130,13 @@ Napi::Value osn::Scene::FromName(const Napi::CallbackInfo& info)
 	if (!source)
 		return info.Env().Undefined();
 
-    auto instance =
-        osn::Scene::constructor.New({
+	auto instance =
+		osn::Scene::constructor.New({
 			Napi::External<obs_source_t*>::New(info.Env(), &source)
 		});
 
 	obs_source_release(source);
-    return instance;
+	return instance;
 }
 
 Napi::Value osn::Scene::Release(const Napi::CallbackInfo& info)

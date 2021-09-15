@@ -70,6 +70,7 @@ Napi::Value osn::Global::getOutputSource(const Napi::CallbackInfo& info)
 				Napi::External<obs_source_t*>::New(info.Env(), &res.first)
 			});
 
+		obs_source_release(res.first);
 		return instance;
 	} else if (res.second == 2) {
 		auto instance =
@@ -77,6 +78,7 @@ Napi::Value osn::Global::getOutputSource(const Napi::CallbackInfo& info)
 				Napi::External<obs_source_t*>::New(info.Env(), &res.first)
 			});
 
+		obs_source_release(res.first);
 		return instance;
 	} else if (res.second == 3) {
 		auto instance =
@@ -84,10 +86,10 @@ Napi::Value osn::Global::getOutputSource(const Napi::CallbackInfo& info)
 				Napi::External<obs_source_t*>::New(info.Env(), &res.first)
 			});
 
+		obs_source_release(res.first);
 		return instance;
 	}
 
-	obs_source_release(res.first);
 	return info.Env().Undefined();
 }
 
