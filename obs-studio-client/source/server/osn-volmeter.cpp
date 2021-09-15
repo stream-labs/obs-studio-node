@@ -85,7 +85,7 @@ void obs::Volmeter::Destroy(uint64_t uid)
 	meter.reset();
 }
 
-void obs::Volmeter::Attach(uint64_t uid_fader, uint64_t uid_source)
+void obs::Volmeter::Attach(uint64_t uid_fader, obs_source_t* source)
 {
 	std::unique_lock<std::mutex> ulock(mtx);
 	auto meter = Manager::GetInstance().find(uid_fader);
@@ -94,7 +94,6 @@ void obs::Volmeter::Attach(uint64_t uid_fader, uint64_t uid_source)
 		return;
 	}
 
-	auto source = obs::Source::Manager::GetInstance().find(uid_source);
 	if (!source) {
 		blog(LOG_ERROR, "Invalid Meter reference.");
 		return;
@@ -104,8 +103,6 @@ void obs::Volmeter::Attach(uint64_t uid_fader, uint64_t uid_source)
 		blog(LOG_ERROR, "Error attaching source.");
 		return;
 	}
-
-	meter->uid_source = uid_source;
 }
 
 void obs::Volmeter::Detach(uint64_t uid)

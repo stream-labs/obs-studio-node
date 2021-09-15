@@ -55,7 +55,7 @@ namespace obs
 		static float_t SetDeflection(uint64_t uid, float_t deflection);
 		static float_t GetMultiplier(uint64_t uid);
 		static float_t SetMultiplier(uint64_t uid, float_t mul);
-		static void Attach(uint64_t uid_fader, uint64_t uid_source);
+		static void Attach(uint64_t uid_fader, obs_source_t* source);
 		static void Detach(uint64_t uid);
 		static void AddCallback(
 		    void*                          data,

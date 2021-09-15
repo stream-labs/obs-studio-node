@@ -68,7 +68,7 @@ namespace obs
 		static std::pair<uint64_t, uint32_t> Create(int32_t a_type);
 		static void Destroy(uint64_t uid);
 
-		static void Attach(uint64_t uid_fader, uint64_t uid_source);
+		static void Attach(uint64_t uid_fader, obs_source_t* source);
 		static void Detach(uint64_t uid);
 		static void AddCallback(
 			uint64_t uid,

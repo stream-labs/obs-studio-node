@@ -20,13 +20,14 @@
 #include <napi.h>
 #include "isource.hpp"
 #include "utility-v8.hpp"
+#include "server/osn-filter.hpp"
 
 namespace osn
 {
 	class Filter : public Napi::ObjectWrap<osn::Filter>
 	{
 		public:
-		uint64_t sourceId;
+		obs_source_t* m_source;
 
 		public:
 		static Napi::FunctionReference constructor;

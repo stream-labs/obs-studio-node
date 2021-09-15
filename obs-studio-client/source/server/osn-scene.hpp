@@ -39,23 +39,23 @@ namespace obs
 	class Scene : public obs::Source
 	{
 		public:
-		static uint64_t Create(std::string name);
-		static uint64_t CreatePrivate(std::string name);
-		static uint64_t FromName(std::string name);
+		static obs_source_t* Create(std::string name);
+		static obs_source_t* CreatePrivate(std::string name);
+		static obs_source_t* FromName(std::string name);
 
-		static void Release(uint64_t uid);
-		static void Remove(uint64_t uid);
+		static void Release(obs_source_t* source);
+		static void Remove(obs_source_t* source);
 
-		static uint64_t Duplicate(uint64_t sourceId, std::string name, int32_t duplicateType);
+		static obs_source_t* Duplicate(obs_source_t*, std::string name, int32_t duplicateType);
 
-		static std::pair<obs_sceneitem_t*, int64_t> AddSource(uint64_t uid, uint64_t sourceId);
-		static std::pair<obs_sceneitem_t*, int64_t> AddSource(uint64_t uid, uint64_t sourceId, struct TransformInfo transform);
-		static obs_sceneitem_t* FindItem(uint64_t sourceid, std::string name);
-		static obs_sceneitem_t* FindItem(uint64_t sourceid, int64_t position);
-		static void OrderItems(uint64_t uid, const std::vector<char> &new_items_order);
-		static bool MoveItem(uint64_t uid, int32_t from, int32_t to);
-		static obs_sceneitem_t* GetItem(uint64_t sourceId, uint64_t index);
-		static std::vector<obs_sceneitem_t*> GetItems(uint64_t sourceId);
-		static std::vector<obs_sceneitem_t*> GetItemsInRange(uint64_t sourceId, uint64_t from, uint64_t to);
+		static obs_sceneitem_t* AddSource(obs_source_t* source, obs_source_t* addedSource);
+		static obs_sceneitem_t* AddSource(obs_source_t* source, obs_source_t* addedSource, struct TransformInfo transform);
+		static obs_sceneitem_t* FindItem(obs_source_t* source, std::string name);
+		static obs_sceneitem_t* FindItem(obs_source_t* source, int64_t position);
+		static void OrderItems(obs_source_t* source, const std::vector<char> &new_items_order);
+		static bool MoveItem(obs_source_t* source, int32_t from, int32_t to);
+		static obs_sceneitem_t* GetItem(obs_source_t* source, uint64_t index);
+		static std::vector<obs_sceneitem_t*> GetItems(obs_source_t* source);
+		static std::vector<obs_sceneitem_t*> GetItemsInRange(obs_source_t* source, uint64_t from, uint64_t to);
 	};
 }

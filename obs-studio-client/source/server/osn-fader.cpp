@@ -132,14 +132,13 @@ float_t obs::Fader::SetMultiplier(uint64_t uid, float_t mul)
 	return obs_fader_get_mul(fader);
 }
 
-void obs::Fader::Attach(uint64_t uid_fader, uint64_t uid_source)
+void obs::Fader::Attach(uint64_t uid_fader, obs_source_t* source)
 {
 	auto fader = Manager::GetInstance().find(uid_fader);
 	if (!fader) {
 		blog(LOG_ERROR, "Invalid Fader Reference.");
 	}
 
-	auto source = obs::Source::Manager::GetInstance().find(uid_source);
 	if (!source) {
 		blog(LOG_ERROR, "Invalid Source Reference.");
 	}

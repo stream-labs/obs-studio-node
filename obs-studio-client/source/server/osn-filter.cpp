@@ -37,7 +37,7 @@ std::vector<std::string> obs::Filter::Types()
 	return types;
 }
 
-uint64_t obs::Filter::Create(std::string sourceId, std::string name, std::string settingsData)
+obs_source_t* obs::Filter::Create(std::string sourceId, std::string name, std::string settingsData)
 {
 	obs_data_t* settings = nullptr;
 	if (!settingsData.empty())
@@ -50,11 +50,7 @@ uint64_t obs::Filter::Create(std::string sourceId, std::string name, std::string
 
 	obs_data_release(settings);
 
-	uint64_t uid = obs::Source::Manager::GetInstance().allocate(source);
-	if (uid == UINT64_MAX) {
-		blog(LOG_ERROR, "Index list is full.");
-	}
 	obs::Source::attach_source_signals(source);
 
-	return uid;
+	return source;
 }

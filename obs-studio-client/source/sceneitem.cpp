@@ -92,20 +92,23 @@ void osn::SceneItem::SetOBSSceneItem(obs_sceneitem_t* item)
 
 Napi::Value osn::SceneItem::GetSource(const Napi::CallbackInfo& info)
 {
+	auto source = obs::SceneItem::GetSource(this->m_item);
+
     auto instance =
         osn::Input::constructor.New({
-            Napi::Number::New(info.Env(), obs::SceneItem::GetSource(this->m_item))
-            });
+			Napi::External<obs_source_t*>::New(info.Env(), &source)
+		});
 
     return instance;
 }
 
 Napi::Value osn::SceneItem::GetScene(const Napi::CallbackInfo& info)
 {
+	auto source = obs::SceneItem::GetScene(this->m_item);
     auto instance =
         osn::Scene::constructor.New({
-            Napi::Number::New(info.Env(), obs::SceneItem::GetScene(this->m_item))
-            });
+            Napi::External<obs_source_t*>::New(info.Env(), &source)
+		});
 
     return instance;
 }

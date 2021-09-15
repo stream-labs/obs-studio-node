@@ -56,51 +56,51 @@ namespace obs
 
 		public:
 		// References
-		static void Remove(uint64_t uid);
-		static void Release(uint64_t uid);
+		static void Remove(obs_source_t* source);
+		static void Release(obs_source_t* source);
 
 		// Settings & Properties
-		static bool IsConfigurable(uint64_t uid);
-		static std::vector<std::vector<char>> GetProperties(uint64_t uid);
+		static bool IsConfigurable(obs_source_t* source);
+		static std::vector<std::vector<char>> GetProperties(obs_source_t* source);
 		static std::vector<std::vector<char>> ProcessProperties(
 		    obs_properties_t*              prp,
 		    obs_data*                      settings,
 		    bool&                          updateSource);
-		static std::string GetSettings(uint64_t uid);
-		static std::string Update(uint64_t uid, std::string jsonData);
-		static void Load(uint64_t uid);
-		static void Save(uint64_t uid);
+		static std::string GetSettings(obs_source_t* source);
+		static std::string Update(obs_source_t* source, std::string jsonData);
+		static void Load(obs_source_t* source);
+		static void Save(obs_source_t* source);
 
-		static uint32_t GetType(uint64_t uid);
-		static std::string GetName(uint64_t uid);
-		static std::string SetName(uint64_t uid, std::string name);
-		static uint32_t GetOutputFlags(uint64_t uid);
-		static uint32_t GetFlags(uint64_t uid);
-		static uint32_t SetFlags(uint64_t uid, uint32_t flags);
-		static bool GetStatus(uint64_t uid);
-		static std::string GetId(uint64_t uid);
+		static uint32_t GetType(obs_source_t* source);
+		static std::string GetName(obs_source_t* source);
+		static std::string SetName(obs_source_t* source, std::string name);
+		static uint32_t GetOutputFlags(obs_source_t* source);
+		static uint32_t GetFlags(obs_source_t* source);
+		static uint32_t SetFlags(obs_source_t* source, uint32_t flags);
+		static bool GetStatus(obs_source_t* source);
+		static std::string GetId(obs_source_t* source);
 
 		// Flags
-		static bool GetMuted(uint64_t uid);
-		static bool SetMuted(uint64_t uid, bool muted);
-		static bool GetEnabled(uint64_t uid);
-		static bool SetEnabled(uint64_t uid, bool enabled);
+		static bool GetMuted(obs_source_t* source);
+		static bool SetMuted(obs_source_t* source, bool muted);
+		static bool GetEnabled(obs_source_t* source);
+		static bool SetEnabled(obs_source_t* source, bool enabled);
 
 		// Browser source interaction
 		static void SendMouseClick(
-				uint64_t uid, uint32_t modifiers,
+				obs_source_t* source, uint32_t modifiers,
 				int32_t x, int32_t y, int32_t type,
 				bool mouseUp, uint32_t clickCount);
 		static void SendMouseMove(
-		    uint64_t uid, uint32_t modifiers,
+		    obs_source_t* source, uint32_t modifiers,
 			int32_t x, int32_t y, bool mouseLeave);
 		static void SendMouseWheel(
-		    uint64_t uid, uint32_t modifiers,
+		    obs_source_t* source, uint32_t modifiers,
 			int32_t x, int32_t y, int32_t x_delta,
 			int32_t y_delta);
-		static void SendFocus(uint64_t uid, bool focus);
+		static void SendFocus(obs_source_t* source, bool focus);
 		static void SendKeyClick(
-		    uint64_t uid, std::string a_text, uint32_t modifiers,
+		    obs_source_t* source, std::string a_text, uint32_t modifiers,
 			uint32_t nativeModifiers, uint32_t nativeScancode,
 			uint32_t nativeVkey, int32_t keyUp);
 	};

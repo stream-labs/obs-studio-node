@@ -27,50 +27,24 @@
 #include "utility.hpp"
 #include "server/osn-source.hpp"
 
-void osn::ISource::Release(const Napi::CallbackInfo& info, uint64_t id)
+void osn::ISource::Release(const Napi::CallbackInfo& info, obs_source_t* source)
 {
-	obs::Source::Release(id);
+	obs::Source::Release(source);
 }
 
-void osn::ISource::Remove(const Napi::CallbackInfo& info, uint64_t id)
+void osn::ISource::Remove(const Napi::CallbackInfo& info, obs_source_t* source)
 {
-	CacheManager<SourceDataInfo*>::getInstance().Remove(id);
-
-	obs::Source::Remove(id);
+	obs::Source::Remove(source);
 }
 
-Napi::Value osn::ISource::IsConfigurable(const Napi::CallbackInfo& info, uint64_t id)
+Napi::Value osn::ISource::IsConfigurable(const Napi::CallbackInfo& info, obs_source_t* source)
 {
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
-		return info.Env().Undefined();
-
-	return Napi::Boolean::New(info.Env(), obs::Source::IsConfigurable(id));
+	return Napi::Boolean::New(info.Env(), obs::Source::IsConfigurable(source));
 }
 
-Napi::Value osn::ISource::GetProperties(const Napi::CallbackInfo& info, uint64_t id)
+Napi::Value osn::ISource::GetProperties(const Napi::CallbackInfo& info, obs_source_t* source)
 {
-	osn::ISource* source =
-		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
-	if (!source)
-		return info.Env().Undefined();
-
-	SourceDataInfo* sdi =
-		CacheManager<SourceDataInfo*>::getInstance().Retrieve(id);
-
-	if (sdi && !sdi->propertiesChanged && sdi->properties.size() > 0) {
-		std::shared_ptr<property_map_t> pSomeObject = std::make_shared<property_map_t>(sdi->properties);
-		auto prop_ptr = Napi::External<property_map_t>::New(info.Env(), pSomeObject.get());
-		auto instance =
-			osn::Properties::constructor.New({
-				prop_ptr,
-				Napi::Number::New(info.Env(), (uint32_t)id)
-				});
-		return instance;
-	}
-
-	auto res = obs::Source::GetProperties(id);
+	auto res = obs::Source::GetProperties(source);
 	osn::property_map_t pmap;
 	for (size_t idx = 0; idx < res.size(); ++idx) {
 		auto raw_property = obs::Property::deserialize(res[idx]);
@@ -250,212 +224,120 @@ Napi::Value osn::ISource::GetProperties(const Napi::CallbackInfo& info, uint64_t
 		}
 	}
 
-	if (sdi) {
-		sdi->properties        = pmap;
-		sdi->propertiesChanged = false;
-	}
 	std::shared_ptr<property_map_t> pSomeObject = std::make_shared<property_map_t>(pmap);
 	auto prop_ptr = Napi::External<property_map_t>::New(info.Env(), pSomeObject.get());
 	auto instance =
 		osn::Properties::constructor.New({
 			prop_ptr,
-			Napi::Number::New(info.Env(), (uint32_t)id)
-			});
+			Napi::External<obs_source_t*>::New(info.Env(), &source)
+		});
 	return instance;
 }
 
-Napi::Value osn::ISource::GetSettings(const Napi::CallbackInfo& info, uint64_t id)
+Napi::Value osn::ISource::GetSettings(const Napi::CallbackInfo& info, obs_source_t* source)
 {
 	Napi::Object json = info.Env().Global().Get("JSON").As<Napi::Object>();
 	Napi::Function parse = json.Get("parse").As<Napi::Function>();
 
-	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(id);
-
-	if (sdi && !sdi->settingsChanged && sdi->setting.size() > 0) {
-		Napi::String jsondata = Napi::String::New(info.Env(), sdi->setting);
-		Napi::Object jsonObj = parse.Call(json, {jsondata}).As<Napi::Object>();
-		return jsonObj;
-	}
-
-	auto res = obs::Source::GetSettings(id);
+	auto res = obs::Source::GetSettings(source);
 	Napi::String jsondata = Napi::String::New(info.Env(), res);
 	Napi::Object jsonObj = parse.Call(json, {jsondata}).As<Napi::Object>();
-
-	if (sdi) {
-		sdi->setting         = res;
-		sdi->settingsChanged = false;
-	}
 
 	return jsonObj;
 }
 
-void osn::ISource::Update(const Napi::CallbackInfo& info, uint64_t id)
+void osn::ISource::Update(const Napi::CallbackInfo& info, obs_source_t* source)
 {
 	Napi::Object jsonObj = info[0].ToObject();
-	bool shouldUpdate = true;
 
 	Napi::Object json = info.Env().Global().Get("JSON").As<Napi::Object>();
 	Napi::Function stringify = json.Get("stringify").As<Napi::Function>();
 
 	std::string jsondata = stringify.Call(json, { jsonObj }).As<Napi::String>();
 
-	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(id);
-
-	if (sdi && sdi->setting.size() > 0) {
-		auto newSettings = nlohmann::json::parse(jsondata);
-		auto settings    = nlohmann::json::parse(sdi->setting);
-
-		nlohmann::json::iterator it = newSettings.begin();
-		while (!shouldUpdate && it != newSettings.end()) {
-			nlohmann::json::iterator item = settings.find(it.key());
-			if (item != settings.end()) {
-				if (it.value() != item.value()) {
-					shouldUpdate = false;
-				}
-			}
-			it++;
-		}
-	}
-
-	if (shouldUpdate) {
-		auto res = obs::Source::Update(id, jsondata);
-		if (sdi) {
-			sdi->setting           = res;
-			sdi->settingsChanged   = false;
-			sdi->propertiesChanged = true;
-		}
-	}
+	obs::Source::Update(source, jsondata);
 }
 
-void osn::ISource::Load(const Napi::CallbackInfo& info, uint64_t id)
+void osn::ISource::Load(const Napi::CallbackInfo& info, obs_source_t* source)
 {
-	obs::Source::Load(id);
+	obs::Source::Load(source);
 }
 
-void osn::ISource::Save(const Napi::CallbackInfo& info, uint64_t id)
+void osn::ISource::Save(const Napi::CallbackInfo& info, obs_source_t* source)
 {
-	obs::Source::Save(id);
+	obs::Source::Save(source);
 }
 
-Napi::Value osn::ISource::GetType(const Napi::CallbackInfo& info, uint64_t id)
+Napi::Value osn::ISource::GetType(const Napi::CallbackInfo& info, obs_source_t* source)
 {
-	return Napi::Number::New(info.Env(), obs::Source::GetType(id));
+	return Napi::Number::New(info.Env(), obs::Source::GetType(source));
 }
 
-Napi::Value osn::ISource::GetName(const Napi::CallbackInfo& info, uint64_t id)
+Napi::Value osn::ISource::GetName(const Napi::CallbackInfo& info, obs_source_t* source)
 {
-	SourceDataInfo* sdi =
-		CacheManager<SourceDataInfo*>::getInstance().Retrieve(id);
-
-	if (sdi) {
-		if (sdi->name.size() > 0) {
-			return Napi::String::New(info.Env(), sdi->name);
-		}
-	}
-
-	auto name = obs::Source::GetName(id);
-	if (sdi)
-		sdi->name = name.c_str();
-
-	return Napi::String::New(info.Env(), name);
+	return Napi::String::New(info.Env(), obs::Source::GetName(source));
 }
 
-void osn::ISource::SetName(const Napi::CallbackInfo& info, const Napi::Value &value, uint64_t id)
+void osn::ISource::SetName(const Napi::CallbackInfo& info, const Napi::Value &value, obs_source_t* source)
 {
 	std::string name = value.ToString().Utf8Value();
 
-	obs::Source::SetName(id, name);
+	obs::Source::SetName(source, name);
 }
 
-Napi::Value osn::ISource::GetOutputFlags(const Napi::CallbackInfo& info, uint64_t id)
+Napi::Value osn::ISource::GetOutputFlags(const Napi::CallbackInfo& info, obs_source_t* source)
 {
-	return Napi::Number::New(info.Env(), obs::Source::GetOutputFlags(id));
+	return Napi::Number::New(info.Env(), obs::Source::GetOutputFlags(source));
 }
 
-Napi::Value osn::ISource::GetFlags(const Napi::CallbackInfo& info, uint64_t id)
+Napi::Value osn::ISource::GetFlags(const Napi::CallbackInfo& info, obs_source_t* source)
 {
-	return Napi::Number::New(info.Env(), obs::Source::GetFlags(id));
+	return Napi::Number::New(info.Env(), obs::Source::GetFlags(source));
 }
 
-void osn::ISource::SetFlags(const Napi::CallbackInfo& info, const Napi::Value &value, uint64_t id)
+void osn::ISource::SetFlags(const Napi::CallbackInfo& info, const Napi::Value &value, obs_source_t* source)
 {
 	uint32_t flags = value.ToNumber().Uint32Value();
 
-	obs::Source::SetFlags(id, flags);
+	obs::Source::SetFlags(source, flags);
 }
 
-Napi::Value osn::ISource::GetStatus(const Napi::CallbackInfo& info, uint64_t id)
+Napi::Value osn::ISource::GetStatus(const Napi::CallbackInfo& info, obs_source_t* source)
 {
-	return Napi::Number::New(info.Env(), obs::Source::GetStatus(id));
+	return Napi::Number::New(info.Env(), obs::Source::GetStatus(source));
 }
 
-Napi::Value osn::ISource::GetId(const Napi::CallbackInfo& info, uint64_t id)
+Napi::Value osn::ISource::GetId(const Napi::CallbackInfo& info, obs_source_t* source)
 {
-	SourceDataInfo* sdi =
-		CacheManager<SourceDataInfo*>::getInstance().Retrieve(id);
-
-	if (sdi) {
-		if (sdi->obs_sourceId.size() > 0)
-			return Napi::String::New(info.Env(), sdi->obs_sourceId);
-	}
-
-	auto res = obs::Source::GetId(id);
-	if (sdi) {
-		sdi->obs_sourceId = res;
-	}
-
-	return Napi::String::New(info.Env(), res);
+	return Napi::String::New(info.Env(), obs::Source::GetId(source));
 }
 
-Napi::Value osn::ISource::GetMuted(const Napi::CallbackInfo& info, uint64_t id)
+Napi::Value osn::ISource::GetMuted(const Napi::CallbackInfo& info, obs_source_t* source)
 {
-	SourceDataInfo* sdi =
-		CacheManager<SourceDataInfo*>::getInstance().Retrieve(id);
-
-	if (sdi) {
-		if (sdi && !sdi->mutedChanged)
-			return Napi::Boolean::New(info.Env(), sdi->isMuted);
-	}
-
-	auto muted = obs::Source::GetMuted(id);
-	if (sdi) {
-		sdi->isMuted      = muted;
-		sdi->mutedChanged = false;
-	}
-
-	return Napi::Boolean::New(info.Env(), muted);
+	return Napi::Boolean::New(info.Env(), obs::Source::GetMuted(source));
 }
 
-void osn::ISource::SetMuted(const Napi::CallbackInfo& info, const Napi::Value &value, uint64_t id)
+void osn::ISource::SetMuted(const Napi::CallbackInfo& info, const Napi::Value &value, obs_source_t* source)
 {
 	bool muted = value.ToBoolean().Value();
 
-	obs::Source::SetMuted(id, muted);
-
-	SourceDataInfo* sdi =
-		CacheManager<SourceDataInfo*>::getInstance().Retrieve(id);
-	if (sdi)
-		sdi->mutedChanged = true;
+	obs::Source::SetMuted(source, muted);
 }
 
-Napi::Value osn::ISource::GetEnabled(const Napi::CallbackInfo& info, uint64_t id)
+Napi::Value osn::ISource::GetEnabled(const Napi::CallbackInfo& info, obs_source_t* source)
 {
-	return Napi::Boolean::New(info.Env(), obs::Source::GetEnabled(id));
+	return Napi::Boolean::New(info.Env(), obs::Source::GetEnabled(source));
 }
 
-void osn::ISource::SetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value, uint64_t id)
+void osn::ISource::SetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value, obs_source_t* source)
 {
 	bool enabled = value.ToBoolean().Value();
 
-	obs::Source::SetEnabled(id, enabled);
+	obs::Source::SetEnabled(source, enabled);
 }
 
-void osn::ISource::SendMouseClick(const Napi::CallbackInfo& info, uint64_t id)
+void osn::ISource::SendMouseClick(const Napi::CallbackInfo& info, obs_source_t* source)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
-
 	Napi::Object mouse_event_obj = info[0].ToObject();
 	uint32_t type = info[1].ToNumber().Uint32Value();
 	bool mouse_up = info[2].ToBoolean().Value();
@@ -466,7 +348,7 @@ void osn::ISource::SendMouseClick(const Napi::CallbackInfo& info, uint64_t id)
 	uint32_t y = mouse_event_obj.Get("y").ToNumber().Uint32Value();
 
 	obs::Source::SendMouseClick(
-		id,
+		source,
 		modifiers,
 		x,
 		y,
@@ -476,12 +358,8 @@ void osn::ISource::SendMouseClick(const Napi::CallbackInfo& info, uint64_t id)
 	);
 }
 
-void osn::ISource::SendMouseMove(const Napi::CallbackInfo& info, uint64_t id)
+void osn::ISource::SendMouseMove(const Napi::CallbackInfo& info, obs_source_t* source)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
-
 	Napi::Object mouse_event_obj = info[0].ToObject();
 	bool mouse_leave = info[1].ToBoolean().Value();
 
@@ -490,7 +368,7 @@ void osn::ISource::SendMouseMove(const Napi::CallbackInfo& info, uint64_t id)
 	uint32_t y = mouse_event_obj.Get("y").ToNumber().Uint32Value();
 
 	obs::Source::SendMouseMove(
-		id,
+		source,
 		modifiers,
 		x,
 		y,
@@ -498,12 +376,8 @@ void osn::ISource::SendMouseMove(const Napi::CallbackInfo& info, uint64_t id)
 	);
 }
 
-void osn::ISource::SendMouseWheel(const Napi::CallbackInfo& info, uint64_t id)
+void osn::ISource::SendMouseWheel(const Napi::CallbackInfo& info, obs_source_t* source)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
-
 	Napi::Object mouse_event_obj = info[0].ToObject();
 	int32_t x_delta = info[1].ToNumber().Int32Value();
 	int32_t y_delta = info[2].ToNumber().Int32Value();
@@ -513,7 +387,7 @@ void osn::ISource::SendMouseWheel(const Napi::CallbackInfo& info, uint64_t id)
 	uint32_t y = mouse_event_obj.Get("y").ToNumber().Uint32Value();
 
 	obs::Source::SendMouseWheel(
-		id,
+		source,
 		modifiers,
 		x,
 		y,
@@ -522,18 +396,15 @@ void osn::ISource::SendMouseWheel(const Napi::CallbackInfo& info, uint64_t id)
 	);
 }
 
-void osn::ISource::SendFocus(const Napi::CallbackInfo& info, uint64_t id)
+void osn::ISource::SendFocus(const Napi::CallbackInfo& info, obs_source_t* source)
 {
 	bool focus = info[0].ToBoolean().Value();
 
-	obs::Source::SendFocus(id, focus);
+	obs::Source::SendFocus(source, focus);
 }
 
-void osn::ISource::SendKeyClick(const Napi::CallbackInfo& info, uint64_t id)
+void osn::ISource::SendKeyClick(const Napi::CallbackInfo& info, obs_source_t* source)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
 	Napi::Object key_event_obj = info[0].ToObject();
 	bool key_up = info[1].ToBoolean().Value();
 
@@ -544,7 +415,7 @@ void osn::ISource::SendKeyClick(const Napi::CallbackInfo& info, uint64_t id)
 	std::string text = key_event_obj.Get("text").ToString().Utf8Value();
 
 	obs::Source::SendKeyClick(
-		id,
+		source,
 		text,
 		modifiers,
 		native_modifiers,

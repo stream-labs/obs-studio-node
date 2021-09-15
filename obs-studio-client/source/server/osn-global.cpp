@@ -22,39 +22,27 @@
 #include "osn-source.hpp"
 #include "shared-server.hpp"
 
-std::pair<uint64_t, int32_t> obs::Global::GetOutputSource(uint32_t channel)
+std::pair<obs_source_t*, int32_t> obs::Global::GetOutputSource(uint32_t channel)
 {
 	obs_source_t* source = obs_get_output_source(channel);
 	if (!source) {
 		blog(LOG_ERROR, "Source not found.");
-		return std::make_pair(UINT64_MAX, -1);
+		return std::make_pair(nullptr, -1);
 	}
 
-	uint64_t uid = obs::Source::Manager::GetInstance().find(source);
-	if (uid == UINT64_MAX) {
-		blog(LOG_ERROR, "Source found but not indexed.");
-		return std::make_pair(UINT64_MAX, -1);
-	}
-
-	obs_source_release(source);
-	return std::make_pair(uid, obs_source_get_type(source));
+	return std::make_pair(source, obs_source_get_type(source));
 }
 
-void obs::Global::SetOutputSource(uint32_t channel, uint64_t sourceId)
+void obs::Global::SetOutputSource(uint32_t channel, obs_source_t* source)
 {
-	obs_source_t* source = nullptr;
-
 	if (channel >= MAX_CHANNELS) {
 		blog(LOG_ERROR, "Invalid output channel.");
 		return;
 	}
 
-	if (sourceId != UINT64_MAX) {
-		source = obs::Source::Manager::GetInstance().find(sourceId);
-		if (!source) {
-			blog(LOG_ERROR, "Source reference is not valid.");
-			return;
-		}
+	if (!source) {
+		blog(LOG_ERROR, "Source reference is not valid.");
+		return;
 	}
 
 	obs_set_output_source(channel, source);

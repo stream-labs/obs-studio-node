@@ -67,22 +67,22 @@ Napi::Value osn::Global::getOutputSource(const Napi::CallbackInfo& info)
 	if (res.second == 0) {
 		auto instance =
 			osn::Input::constructor.New({
-				Napi::Number::New(info.Env(), res.first)
-				});
+				Napi::External<obs_source_t*>::New(info.Env(), &res.first)
+			});
 
 		return instance;
 	} else if (res.second == 2) {
 		auto instance =
 			osn::Transition::constructor.New({
-				Napi::Number::New(info.Env(), res.first)
-				});
+				Napi::External<obs_source_t*>::New(info.Env(), &res.first)
+			});
 
 		return instance;
 	} else if (res.second == 3) {
 		auto instance =
 			osn::Scene::constructor.New({
-				Napi::Number::New(info.Env(), res.first)
-				});
+				Napi::External<obs_source_t*>::New(info.Env(), &res.first)
+			});
 
 		return instance;
 	}
@@ -97,7 +97,7 @@ Napi::Value osn::Global::setOutputSource(const Napi::CallbackInfo& info)
 	if (info[1].IsObject())
 		input = Napi::ObjectWrap<osn::Input>::Unwrap(info[1].ToObject());
 
-	obs::Global::SetOutputSource(channel, input ? input->sourceId : UINT64_MAX);
+	obs::Global::SetOutputSource(channel, input ? input->m_source : nullptr);
 
 	return info.Env().Undefined();
 }

@@ -107,65 +107,36 @@ void obs::Source::global_source_destroy_cb(void* ptr, calldata_t* cd)
 	MemoryManager::GetInstance().unregisterSource(source);
 }
 
-void obs::Source::Remove(uint64_t uid)
+void obs::Source::Remove(obs_source_t* source)
 {
-	// Attempt to find the source asked to load.
-	obs_source_t* src = obs::Source::Manager::GetInstance().find(uid);
-	if (src == nullptr) {
-		blog(LOG_ERROR, "Source reference is not valid.");
-		return;
-	}
-
-	obs_source_remove(src);
+	obs_source_remove(source);
 }
 
-void obs::Source::Release(uint64_t uid)
+void obs::Source::Release(obs_source_t* source)
 {
-	// Attempt to find the source asked to load.
-	obs_source_t* src = obs::Source::Manager::GetInstance().find(uid);
-	if (src == nullptr) {
-		blog(LOG_ERROR, "Source reference is not valid.");
-		return;
-	}
-
-	obs_source_release(src);
+	obs_source_release(source);
 }
 
-bool obs::Source::IsConfigurable(uint64_t uid)
+bool obs::Source::IsConfigurable(obs_source_t* source)
 {
-	// Attempt to find the source asked to load.
-	obs_source_t* src = obs::Source::Manager::GetInstance().find(uid);
-	if (src == nullptr) {
-		blog(LOG_ERROR, "Source reference is not valid.");
-		return false;
-	}
-
-	return obs_source_configurable(src);
+	return obs_source_configurable(source);
 }
 
-std::vector<std::vector<char>> obs::Source::GetProperties(uint64_t uid)
+std::vector<std::vector<char>> obs::Source::GetProperties(obs_source_t* source)
 {
 	std::vector<std::vector<char>> buff;
-	// Attempt to find the source asked to load.
-	obs_source_t* src = obs::Source::Manager::GetInstance().find(uid);
-	if (src == nullptr) {
-		blog(LOG_ERROR, "Source reference is not valid.");
-		return buff;
-	}
-
 	bool updateSource = false;
 
-	obs_properties_t* prp = obs_source_properties(src);
-	obs_data* settings = obs_source_get_settings(src);
+	obs_properties_t* prp = obs_source_properties(source);
+	obs_data* settings = obs_source_get_settings(source);
 
 	buff = ProcessProperties(prp, settings, updateSource);
 
 	obs_properties_destroy(prp);
 
-	if (updateSource) {
-		obs_source_update(src, settings);
-		MemoryManager::GetInstance().updateSourceCache(src);
-	}
+	if (updateSource)
+		obs_source_update(source, settings);
+
 	obs_data_release(settings);
 	
 	return buff;
@@ -372,33 +343,19 @@ std::vector<std::vector<char>> obs::Source::ProcessProperties(
 	return res;
 }
 
-std::string obs::Source::GetSettings(uint64_t uid)
+std::string obs::Source::GetSettings(obs_source_t* source)
 {
-	// Attempt to find the source asked to load.
-	obs_source_t* src = obs::Source::Manager::GetInstance().find(uid);
-	if (src == nullptr) {
-		blog(LOG_ERROR, "Source reference is not valid.");
-		return "";
-	}
-
-	obs_data_t* sets = obs_source_get_settings(src);
+	obs_data_t* sets = obs_source_get_settings(source);
 	std::string res(obs_data_get_full_json(sets));
 	obs_data_release(sets);
 	return res;
 }
 
-std::string obs::Source::Update(uint64_t uid, std::string jsonData)
+std::string obs::Source::Update(obs_source_t* source, std::string jsonData)
 {
-	// Attempt to find the source asked to load.
-	obs_source_t* src = obs::Source::Manager::GetInstance().find(uid);
-	if (src == nullptr) {
-		blog(LOG_ERROR, "Source reference is not valid.");
-		return "";
-	}
-
 	obs_data_t* sets = obs_data_create_from_json(jsonData.c_str());
 
-	if (strcmp(obs_source_get_id(src), "av_capture_input") == 0) {
+	if (strcmp(obs_source_get_id(source), "av_capture_input") == 0) {
 		const char* frame_rate_string = obs_data_get_string(sets, "frame_rate");
 		if (frame_rate_string && strcmp(frame_rate_string, "") != 0) {
 			nlohmann::json fps = nlohmann::json::parse(frame_rate_string);
@@ -409,205 +366,104 @@ std::string obs::Source::Update(uint64_t uid, std::string jsonData)
 		}
 	}
 
-	obs_source_update(src, sets);
-	MemoryManager::GetInstance().updateSourceCache(src);
+	obs_source_update(source, sets);
 	obs_data_release(sets);
 
-	obs_data_t* updatedSettings = obs_source_get_settings(src);
+	obs_data_t* updatedSettings = obs_source_get_settings(source);
 
 	std::string res(obs_data_get_full_json(updatedSettings));
 	obs_data_release(updatedSettings);
 	return res;
 }
 
-void obs::Source::Load(uint64_t uid)
+void obs::Source::Load(obs_source_t* source)
 {
-	// Attempt to find the source asked to load.
-	obs_source_t* src = obs::Source::Manager::GetInstance().find(uid);
-	if (src == nullptr) {
-		blog(LOG_ERROR, "Source reference is not valid.");
-		return;
-	}
-
-	obs_source_load(src);
+	obs_source_load(source);
 }
 
-void obs::Source::Save(uint64_t uid)
+void obs::Source::Save(obs_source_t* source)
 {
-	// Attempt to find the source asked to load.
-	obs_source_t* src = obs::Source::Manager::GetInstance().find(uid);
-	if (src == nullptr) {
-		blog(LOG_ERROR, "Source reference is not valid.");
-		return;
-	}
-
-	obs_source_save(src);
+	obs_source_save(source);
 }
 
-uint32_t obs::Source::GetType(uint64_t uid)
+uint32_t obs::Source::GetType(obs_source_t* source)
 {
-	// Attempt to find the source asked to load.
-	obs_source_t* src = obs::Source::Manager::GetInstance().find(uid);
-	if (src == nullptr) {
-		blog(LOG_ERROR, "Source reference is not valid.");
-		return UINT32_MAX;
-	}
-
-	return obs_source_get_type(src);
+	return obs_source_get_type(source);
 }
 
-std::string obs::Source::GetName(uint64_t uid)
+std::string obs::Source::GetName(obs_source_t* source)
 {
-	// Attempt to find the source asked to load.
-	obs_source_t* src = obs::Source::Manager::GetInstance().find(uid);
-	if (src == nullptr) {
-		blog(LOG_ERROR, "Source reference is not valid.");
-		return "";
-	}
-
-	return std::string(obs_source_get_name(src));
+	return std::string(obs_source_get_name(source));
 }
 
-std::string obs::Source::SetName(uint64_t uid, std::string name)
+std::string obs::Source::SetName(obs_source_t* source, std::string name)
 {
-	// Attempt to find the source asked to load.
-	obs_source_t* src = obs::Source::Manager::GetInstance().find(uid);
-	if (src == nullptr) {
-		blog(LOG_ERROR, "Source reference is not valid.");
-		return "";
-	}
+	obs_source_set_name(source, name.c_str());
 
-	obs_source_set_name(src, name.c_str());
-
-	return obs_source_get_name(src);
+	return obs_source_get_name(source);
 }
 
-uint32_t obs::Source::GetOutputFlags(uint64_t uid)
+uint32_t obs::Source::GetOutputFlags(obs_source_t* source)
 {
-	// Attempt to find the source asked to load.
-	obs_source_t* src = obs::Source::Manager::GetInstance().find(uid);
-	if (src == nullptr) {
-		blog(LOG_ERROR, "Source reference is not valid.");
-		return UINT32_MAX;
-	}
-
-	return obs_source_get_output_flags(src);
+	return obs_source_get_output_flags(source);
 }
 
-uint32_t obs::Source::GetFlags(uint64_t uid)
+uint32_t obs::Source::GetFlags(obs_source_t* source)
 {
-	// Attempt to find the source asked to load.
-	obs_source_t* src = obs::Source::Manager::GetInstance().find(uid);
-	if (src == nullptr) {
-		blog(LOG_ERROR, "Source reference is not valid.");
-		return UINT32_MAX;
-	}
-
-	return obs_source_get_flags(src);
+	return obs_source_get_flags(source);
 }
 
-uint32_t obs::Source::SetFlags(uint64_t uid, uint32_t flags)
+uint32_t obs::Source::SetFlags(obs_source_t* source, uint32_t flags)
 {
-	// Attempt to find the source asked to load.
-	obs_source_t* src = obs::Source::Manager::GetInstance().find(uid);
-	if (src == nullptr) {
-		blog(LOG_ERROR, "Source reference is not valid.");
-		return UINT32_MAX;
-	}
+	obs_source_set_flags(source, flags);
 
-	obs_source_set_flags(src, flags);
-
-	return obs_source_get_flags(src);
+	return obs_source_get_flags(source);
 }
 
-bool obs::Source::GetStatus(uint64_t uid)
+bool obs::Source::GetStatus(obs_source_t* source)
 {
-	// Attempt to find the source asked to load.
-	obs_source_t* src = obs::Source::Manager::GetInstance().find(uid);
-	if (src == nullptr) {
-		blog(LOG_ERROR, "Source reference is not valid.");
-		return false;
-	}
-
 	return true;
 }
 
-std::string obs::Source::GetId(uint64_t uid)
+std::string obs::Source::GetId(obs_source_t* source)
 {
-	// Attempt to find the source asked to load.
-	obs_source_t* src = obs::Source::Manager::GetInstance().find(uid);
-	if (src == nullptr) {
-		blog(LOG_ERROR, "Source reference is not valid.");
-		return "";
-	}
-
-	const char* sid = obs_source_get_id(src);
+	const char* sid = obs_source_get_id(source);
 	if (sid)
 		return std::string(sid);
 	else
 		return std::string("");
 }
 
-bool obs::Source::GetMuted(uint64_t uid)
+bool obs::Source::GetMuted(obs_source_t* source)
 {
-	// Attempt to find the source asked to load.
-	obs_source_t* src = obs::Source::Manager::GetInstance().find(uid);
-	if (src == nullptr) {
-		blog(LOG_ERROR, "Source reference is not valid.");
-		return false;
-	}
-
-	return obs_source_muted(src);
+	return obs_source_muted(source);
 }
 
-bool obs::Source::SetMuted(uint64_t uid, bool muted)
+bool obs::Source::SetMuted(obs_source_t* source, bool muted)
 {
-	// Attempt to find the source asked to load.
-	obs_source_t* src = obs::Source::Manager::GetInstance().find(uid);
-	if (src == nullptr) {
-		blog(LOG_ERROR, "Source reference is not valid.");
-		return false;
-	}
+	obs_source_set_muted(source, muted);
 
-	obs_source_set_muted(src, muted);
-
-	return obs_source_muted(src);
+	return obs_source_muted(source);
 }
 
-bool obs::Source::GetEnabled(uint64_t uid)
+bool obs::Source::GetEnabled(obs_source_t* source)
 {
-	// Attempt to find the source asked to load.
-	obs_source_t* src = obs::Source::Manager::GetInstance().find(uid);
-	if (src == nullptr) {
-		blog(LOG_ERROR, "Source reference is not valid.");
-		return false;
-	}
-
-	return obs_source_enabled(src);
+	return obs_source_enabled(source);
 }
 
-bool obs::Source::SetEnabled(uint64_t uid, bool enabled)
+bool obs::Source::SetEnabled(obs_source_t* source, bool enabled)
 {
-	// Attempt to find the source asked to load.
-	obs_source_t* src = obs::Source::Manager::GetInstance().find(uid);
-	if (src == nullptr) {
-		blog(LOG_ERROR, "Source reference is not valid.");
-		return false;
-	}
+	obs_source_set_enabled(source, enabled);
 
-	obs_source_set_enabled(src, enabled);
-
-	return obs_source_enabled(src);
+	return obs_source_enabled(source);
 }
 
 void obs::Source::SendMouseClick(
-	uint64_t uid, uint32_t modifiers,
+	obs_source_t* source, uint32_t modifiers,
 	int32_t x, int32_t y, int32_t type,
 	bool mouseUp, uint32_t clickCount)
 {
-	obs_source_t* src = obs::Source::Manager::GetInstance().find(uid);
-
-	if (src == nullptr) {
+	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
 		return;
 	}
@@ -618,16 +474,14 @@ void obs::Source::SendMouseClick(
 	    y,
 	};
 
-	obs_source_send_mouse_click(src, &event, type, mouseUp, clickCount);
+	obs_source_send_mouse_click(source, &event, type, mouseUp, clickCount);
 }
 
 void obs::Source::SendMouseMove(
-	uint64_t uid, uint32_t modifiers,
+	obs_source_t* source, uint32_t modifiers,
 	int32_t x, int32_t y, bool mouseLeave)
 {
-	obs_source_t* src = obs::Source::Manager::GetInstance().find(uid);
-
-	if (src == nullptr) {
+	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
 		return;
 	}
@@ -638,16 +492,14 @@ void obs::Source::SendMouseMove(
 		y
 	};
 
-	obs_source_send_mouse_move(src, &event, mouseLeave);}
+	obs_source_send_mouse_move(source, &event, mouseLeave);}
 
 void obs::Source::SendMouseWheel(
-		uint64_t uid, uint32_t modifiers,
+		obs_source_t* source, uint32_t modifiers,
 		int32_t x, int32_t y, int32_t x_delta,
 		int32_t y_delta)
 {
-	obs_source_t* src = obs::Source::Manager::GetInstance().find(uid);
-
-	if (src == nullptr) {
+	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
 		return;
 	}
@@ -658,29 +510,25 @@ void obs::Source::SendMouseWheel(
 		y
 	};
 
-	obs_source_send_mouse_wheel(src, &event, x_delta, y_delta);
+	obs_source_send_mouse_wheel(source, &event, x_delta, y_delta);
 }
 
-void obs::Source::SendFocus(uint64_t uid, bool focus)
+void obs::Source::SendFocus(obs_source_t* source, bool focus)
 {
-	obs_source_t* src = obs::Source::Manager::GetInstance().find(uid);
-
-	if (src == nullptr) {
+	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
 		return;
 	}
 
-	obs_source_send_focus(src, focus);
+	obs_source_send_focus(source, focus);
 }
 
 void obs::Source::SendKeyClick(
-    uint64_t uid, std::string a_text, uint32_t modifiers,
+    obs_source_t* source, std::string a_text, uint32_t modifiers,
 	uint32_t nativeModifiers, uint32_t nativeScancode,
 	uint32_t nativeVkey, int32_t keyUp)
 {
-	obs_source_t* src = obs::Source::Manager::GetInstance().find(uid);
-
-	if (src == nullptr) {
+	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
 		return;
 	}
@@ -697,7 +545,7 @@ void obs::Source::SendKeyClick(
 		nativeVkey
 	};
 
-	obs_source_send_key_click(src, &event, keyUp);
+	obs_source_send_key_click(source, &event, keyUp);
 
 	delete[] text;
 }

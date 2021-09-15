@@ -18,13 +18,14 @@
 
 #pragma once
 #include <ipc-server.hpp>
+#include "obs.h"
 
 namespace obs
 {
 	class Properties
 	{
 		public:
-		static bool Modified(uint64_t sourceId, std::string name, std::string value);
-		static bool Clicked(uint64_t sourceId, std::string name);
+		static bool Modified(obs_source_t* source, std::string name, std::string value);
+		static bool Clicked(obs_source_t* source, std::string name);
 	};
 }

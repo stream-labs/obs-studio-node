@@ -18,14 +18,15 @@
 
 #pragma once
 #include <ipc-server.hpp>
+#include "obs.h"
 
 namespace obs
 {
 	class Global
 	{
 		public:
-		static std::pair<uint64_t, int32_t> GetOutputSource(uint32_t channel);
-		static void SetOutputSource(uint32_t channel, uint64_t sourceId);
+		static std::pair<obs_source_t*, int32_t> GetOutputSource(uint32_t channel);
+		static void SetOutputSource(uint32_t channel, obs_source_t* source);
 		static uint32_t GetOutputFlagsFromId(std::string id);
 		static uint32_t LaggedFrames();
 		static uint32_t TotalFrames();

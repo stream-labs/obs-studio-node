@@ -19,7 +19,6 @@
 #include "properties.hpp"
 #include "isource.hpp"
 #include "utility-v8.hpp"
-#include "server/osn-properties.hpp"
 
 std::shared_ptr<osn::property_map_t> osn::Properties::GetProperties()
 {
@@ -49,7 +48,9 @@ osn::Properties::Properties(const Napi::CallbackInfo& info)
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
 	this->properties = std::make_shared<property_map_t>(*info[0].As<const Napi::External<property_map_t>>().Data());
-	this->sourceId = (uint64_t)info[1].ToNumber().Uint32Value();
+
+	auto externalItem = info[1].As<Napi::External<obs_source_t*>>();
+	this->m_source = *externalItem.Data();
 }
 
 Napi::Value osn::Properties::Count(const Napi::CallbackInfo& info)
@@ -203,7 +204,7 @@ Napi::Value osn::PropertyObject::Next(const Napi::CallbackInfo& info)
 		return info.Env().Undefined();
 
 	auto prop_ptr = Napi::External<property_map_t>::New(info.Env(), parent->properties.get());
-	auto obj = osn::Properties::constructor.New( {prop_ptr, Napi::Number::New(info.Env(), (uint32_t)parent->sourceId) });
+	auto obj = osn::Properties::constructor.New( {prop_ptr, Napi::Number::New(info.Env(), (uint32_t)parent->m_source) });
 
 	auto instance =
 		osn::PropertyObject::constructor.New({
@@ -580,13 +581,7 @@ Napi::Value osn::PropertyObject::Modified(const Napi::CallbackInfo& info)
 	Napi::String settings_str = stringify.Call(json, { settings }).As<Napi::String>();
 	std::string value = settings_str.Utf8Value();
 
-	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(parent->sourceId);
-	if (sdi) {
-		sdi->propertiesChanged = true;
-		sdi->settingsChanged   = true;
-	}
-
-	return Napi::Boolean::New(info.Env(), obs::Properties::Modified(parent->sourceId, iter->second->name, value));
+	return Napi::Boolean::New(info.Env(), obs::Properties::Modified(parent->m_source, iter->second->name, value));
 }
 
 Napi::Value osn::PropertyObject::ButtonClicked(const Napi::CallbackInfo& info)
@@ -603,12 +598,7 @@ Napi::Value osn::PropertyObject::ButtonClicked(const Napi::CallbackInfo& info)
 	if (iter == parent->GetProperties()->end())
 		return info.Env().Null();
 
-	bool res = obs::Properties::Clicked(parent->sourceId, iter->second->name);
-	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(parent->sourceId);
-	if (sdi) {
-		sdi->propertiesChanged = true;
-		sdi->settingsChanged   = res;
-	}
+	bool res = obs::Properties::Clicked(parent->m_source, iter->second->name);
 
 	return Napi::Boolean::New(info.Env(), res);
 }

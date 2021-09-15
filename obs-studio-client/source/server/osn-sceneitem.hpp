@@ -43,8 +43,8 @@ namespace obs
 		};
 
 		public:
-		static uint64_t GetSource(obs_sceneitem_t* item);
-		static uint64_t GetScene(obs_sceneitem_t* item);
+		static obs_source_t* GetSource(obs_sceneitem_t* item);
+		static obs_source_t* GetScene(obs_sceneitem_t* item);
 
 		static void Remove(obs_sceneitem_t* item);
 

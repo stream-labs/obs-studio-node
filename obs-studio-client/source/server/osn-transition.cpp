@@ -35,7 +35,7 @@ std::vector<std::string> obs::Transition::Types()
 	return types;
 }
 
-uint64_t obs::Transition::Create(
+obs_source_t* obs::Transition::Create(
     std::string sourceId, std::string name,
 	std::string settingsData)
 {
@@ -46,21 +46,17 @@ uint64_t obs::Transition::Create(
 	obs_source_t* source = obs_source_create(sourceId.c_str(), name.c_str(), settings, nullptr);
 	if (!source) {
 		blog(LOG_ERROR, "Failed to create transition.");
-		return UINT64_MAX;
+		return nullptr;
 	}
 
 	obs_data_release(settings);
 
-	uint64_t uid = obs::Source::Manager::GetInstance().find(source);
-	if (uid == UINT64_MAX) {
-		blog(LOG_ERROR, "Index list is full.");
-		return UINT64_MAX;
-	}
+	obs::Source::attach_source_signals(source);
 
-	return uid;
+	return source;
 }
 
-uint64_t obs::Transition::CreatePrivate(
+obs_source_t* obs::Transition::CreatePrivate(
     std::string sourceId, std::string name,
 	std::string settingsData)
 {
@@ -72,49 +68,36 @@ uint64_t obs::Transition::CreatePrivate(
 	obs_source_t* source = obs_source_create_private(sourceId.c_str(), name.c_str(), settings);
 	if (!source) {
 		blog(LOG_ERROR, "Failed to create transition.");
-		return UINT64_MAX;
+		return nullptr;
 	}
 
 	obs_data_release(settings);
 
-	uint64_t uid = obs::Source::Manager::GetInstance().allocate(source);
-	if (uid == UINT64_MAX) {
-		blog(LOG_ERROR, "Index list is full.");
-		return UINT64_MAX;
-	}
 	obs::Source::attach_source_signals(source);
 
-	return uid;
+	return source;
 }
 
-uint64_t obs::Transition::FromName(std::string name)
+obs_source_t* obs::Transition::FromName(std::string name)
 {
 	obs_source_t* source = obs_get_source_by_name(name.c_str());
 	if (!source) {
 		blog(LOG_ERROR, "Named transition could not be found.");
-		return UINT64_MAX;
-	}
-
-	uint64_t uid = obs::Source::Manager::GetInstance().find(source);
-	if (uid == UINT64_MAX) {
-		blog(LOG_ERROR, "Source found but not indexed.");
-		return UINT64_MAX;
+		return nullptr;
 	}
 
 	obs_source_release(source);
 
-	return uid;
+	return source;
 }
 
-std::pair<uint64_t, uint32_t> obs::Transition::GetActiveSource(uint64_t sourceId)
+std::pair<obs_source_t*, uint32_t> obs::Transition::GetActiveSource(obs_source_t* transition)
 {
 	uint64_t uid = -1;
 
-	// Attempt to find the source asked to load.
-	obs_source_t* transition = obs::Source::Manager::GetInstance().find(sourceId);
 	if (!transition) {
 		blog(LOG_ERROR, "Transition reference is not valid.");
-		return std::make_pair(UINT64_MAX, UINT32_MAX);
+		return std::make_pair(nullptr, UINT32_MAX);
 	}
 
 	obs_source_type type   = OBS_SOURCE_TYPE_INPUT;
@@ -125,18 +108,11 @@ std::pair<uint64_t, uint32_t> obs::Transition::GetActiveSource(uint64_t sourceId
 		obs_source_release(source);
 	}
 
-	if (uid == UINT64_MAX) {
-		blog(LOG_ERROR, "Source found but not indexed.");
-		return std::make_pair(UINT64_MAX, UINT32_MAX);
-	}
-
-	return std::make_pair(uid, type);
+	return std::make_pair(source, type);
 }
 
-void obs::Transition::Clear(uint64_t sourceId)
+void obs::Transition::Clear(obs_source_t* transition)
 {
-	// Attempt to find the source asked to load.
-	obs_source_t* transition = obs::Source::Manager::GetInstance().find(sourceId);
 	if (!transition) {
 		blog(LOG_ERROR, "Transition reference is not valid.");
 		return;
@@ -145,16 +121,13 @@ void obs::Transition::Clear(uint64_t sourceId)
 	obs_transition_clear(transition);
 }
 
-void obs::Transition::Set(uint64_t transitionId, uint64_t sourceId)
+void obs::Transition::Set(obs_source_t* transition, obs_source_t* source)
 {
-	// Attempt to find the source asked to load.
-	obs_source_t* transition = obs::Source::Manager::GetInstance().find(transitionId);
 	if (!transition) {
 		blog(LOG_ERROR, "Transition reference is not valid.");
 		return;
 	}
 
-	obs_source_t* source = obs::Source::Manager::GetInstance().find(sourceId);
 	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
 		return;
@@ -164,16 +137,13 @@ void obs::Transition::Set(uint64_t transitionId, uint64_t sourceId)
 }
 
 bool obs::Transition::Start(
-	uint64_t transitionId, uint32_t ms, uint64_t sourceId)
+	obs_source_t* transition, uint32_t ms, obs_source_t* source)
 {
-	// Attempt to find the source asked to load.
-	obs_source_t* transition = obs::Source::Manager::GetInstance().find(transitionId);
 	if (!transition) {
 		blog(LOG_ERROR, "Transition reference is not valid.");
 		return false;
 	}
 
-	obs_source_t* source = obs::Source::Manager::GetInstance().find(sourceId);
 	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
 		return false;

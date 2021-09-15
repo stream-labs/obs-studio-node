@@ -89,7 +89,7 @@ Napi::Value osn::Volmeter::Attach(const Napi::CallbackInfo& info)
 {
 	osn::Input* input = Napi::ObjectWrap<osn::Input>::Unwrap(info[0].ToObject());
 
-	obs::Volmeter::Attach(this->m_uid, input->sourceId);
+	obs::Volmeter::Attach(this->m_uid, input->m_source);
 
 	return info.Env().Undefined();
 }

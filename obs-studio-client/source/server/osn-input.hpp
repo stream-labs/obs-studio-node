@@ -26,52 +26,51 @@ namespace obs
 	{
 		public:
 		static std::vector<std::string> Types();
-		static std::tuple<uint64_t, std::string, uint32_t>
-		            Create(
+		static obs_source* Create(
 						std::string sourceId, std::string name,
 						std::string settingsData, std::string hotkeyData);
-		static uint64_t CreatePrivate(
+		static obs_source* CreatePrivate(
 						std::string sourceId, std::string name,
 						std::string settingsData);
-		static uint64_t Duplicate(uint64_t sourceId);
-		static uint64_t FromName(std::string name);
-		static std::vector<uint64_t> GetPublicSources();
+		static obs_source* Duplicate(obs_source* sourceOld);
+		static obs_source* FromName(std::string name);
+		static std::vector<obs_source_t*> GetPublicSources();
 
 		/// Status
-		static bool GetActive(uint64_t uid);
-		static bool GetShowing(uint64_t uid);
+		static bool GetActive(obs_source* input);
+		static bool GetShowing(obs_source* input);
 
 		/// Audio
-		static float_t GetVolume(uint64_t uid);
-		static float_t SetVolume(uint64_t uid, float_t volume);
-		static int64_t GetSyncOffset(uint64_t uid);
-		static int64_t SetSyncOffset(uint64_t uid, int64_t offset);
-		static uint32_t GetAudioMixers(uint64_t uid);
-		static uint32_t SetAudioMixers(uint64_t uid, uint32_t mixers);
-		static int32_t GetMonitoringType(uint64_t uid);
-		static int32_t SetMonitoringType(uint64_t uid, int32_t monitoringType);
+		static float_t GetVolume(obs_source* input);
+		static float_t SetVolume(obs_source* input, float_t volume);
+		static int64_t GetSyncOffset(obs_source* input);
+		static int64_t SetSyncOffset(obs_source* input, int64_t offset);
+		static uint32_t GetAudioMixers(obs_source* input);
+		static uint32_t SetAudioMixers(obs_source* input, uint32_t mixers);
+		static int32_t GetMonitoringType(obs_source* input);
+		static int32_t SetMonitoringType(obs_source* input, int32_t monitoringType);
 
 		/// Video
-		static uint32_t GetWidth(uint64_t uid);
-		static uint32_t GetHeight(uint64_t uid);
-		static int32_t GetDeInterlaceFieldOrder(uint64_t uid);
-		static int32_t SetDeInterlaceFieldOrder(uint64_t uid, int32_t deinterlaceOrder);
-		static int32_t GetDeInterlaceMode(uint64_t uid);
-		static int32_t SetDeInterlaceMode(uint64_t uid, int32_t deinterlaceMode);
+		static uint32_t GetWidth(obs_source* input);
+		static uint32_t GetHeight(obs_source* input);
+		static int32_t GetDeInterlaceFieldOrder(obs_source* input);
+		static int32_t SetDeInterlaceFieldOrder(obs_source* input, int32_t deinterlaceOrder);
+		static int32_t GetDeInterlaceMode(obs_source* input);
+		static int32_t SetDeInterlaceMode(obs_source* input, int32_t deinterlaceMode);
 		/// Filters
-		static void AddFilter(uint64_t sourceId, uint64_t filterId);
-		static void RemoveFilter(uint64_t sourceId, uint64_t filterId);
-		static void MoveFilter(uint64_t sourceId, uint64_t filterId, uint32_t move);
-		static uint64_t FindFilter(uint64_t sourceId, std::string name);
-		static std::vector<uint64_t> GetFilters(uint64_t uid);
-		static void CopyFiltersTo(uint64_t inputIdFrom, uint64_t inputIdTo);
-		static int64_t GetDuration(uint64_t uid);
-		static int64_t GetTime(uint64_t uid);
-		static int64_t SetTime(uint64_t uid, int64_t time);
-		static void Play(uint64_t uid);
-		static void Pause(uint64_t uid);
-		static void Restart(uint64_t uid);
-		static void Stop(uint64_t uid);
-		static uint64_t GetMediaState(uint64_t uid);
+		static void AddFilter(obs_source* input, obs_source* filter);
+		static void RemoveFilter(obs_source* input, obs_source* filter);
+		static void MoveFilter(obs_source* input, obs_source* filter, uint32_t move);
+		static obs_source_t* FindFilter(obs_source* input, std::string name);
+		static std::vector<obs_source_t*> GetFilters(obs_source_t* input);
+		static void CopyFiltersTo(obs_source_t* inputFrom, obs_source_t* inputTo);
+		static int64_t GetDuration(obs_source_t* input);
+		static int64_t GetTime(obs_source_t* input);
+		static int64_t SetTime(obs_source_t* input, int64_t time);
+		static void Play(obs_source_t* input);
+		static void Pause(obs_source_t* input);
+		static void Restart(obs_source_t* input);
+		static void Stop(obs_source_t* input);
+		static uint64_t GetMediaState(obs_source_t* input);
 	};
 }

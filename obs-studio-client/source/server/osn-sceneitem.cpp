@@ -21,32 +21,32 @@
 #include "osn-source.hpp"
 #include "shared-server.hpp"
 
-uint64_t obs::SceneItem::GetSource(obs_sceneitem_t* item)
+obs_source_t* obs::SceneItem::GetSource(obs_sceneitem_t* item)
 {
 	obs_source_t* source = obs_sceneitem_get_source(item);
 	if (!source) {
 		blog(LOG_ERROR, "Item does not contain a source.");
-		return UINT64_MAX;
+		return nullptr;
 	}
 
-	return obs::Source::Manager::GetInstance().find(source);
+	return source;
 }
 
-uint64_t obs::SceneItem::GetScene(obs_sceneitem_t* item)
+obs_source_t* obs::SceneItem::GetScene(obs_sceneitem_t* item)
 {
 	obs_scene_t* scene = obs_sceneitem_get_scene(item);
 	if (!scene) {
 		blog(LOG_ERROR, "Item does not contain a source.");
-		return UINT64_MAX;
+		return nullptr;
 	}
 
 	obs_source_t* source = obs_scene_get_source(scene);
 	if (!source) {
 		blog(LOG_ERROR, "Scene is invalid.");
-		return UINT64_MAX;
+		return nullptr;
 	}
 
-	return  obs::Source::Manager::GetInstance().find(source);
+	return  source;
 }
 
 void obs::SceneItem::Remove(obs_sceneitem_t* item)

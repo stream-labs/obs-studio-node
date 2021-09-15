@@ -38,7 +38,7 @@ std::vector<std::string> obs::Input::Types()
 	return types;
 }
 
-std::tuple<uint64_t, std::string, uint32_t> obs::Input::Create(
+obs_source* obs::Input::Create(
 	std::string sourceId, std::string name,
 	std::string settingsData, std::string hotkeyData)
 {
@@ -53,28 +53,18 @@ std::tuple<uint64_t, std::string, uint32_t> obs::Input::Create(
 	obs_source_t* source = obs_source_create(sourceId.c_str(), name.c_str(), settings, hotkeys);
 	if (!source) {
 		blog(LOG_ERROR, "Failed to create input.");
-		return std::make_tuple(UINT64_MAX, "", UINT32_MAX);
+		return nullptr;
 	}
 
 	obs_data_release(hotkeys);
 	obs_data_release(settings);
 
-	uint64_t uid = obs::Source::Manager::GetInstance().find(source);
-	if (uid == UINT64_MAX) {
-		blog(LOG_ERROR, "Index list is full.");
-		return std::make_tuple(UINT64_MAX, "", UINT32_MAX);
-	}
-	obs_data_t* settingsSource = obs_source_get_settings(source);
+	obs::Source::attach_source_signals(source);
 
-	obs_data_release(settingsSource);
-	return std::make_tuple(
-		uid,
-		obs_data_get_full_json(settingsSource),
-		obs_source_get_audio_mixers(source)
-	);
+	return source;
 }
 
-uint64_t obs::Input::CreatePrivate(
+obs_source* obs::Input::CreatePrivate(
     std::string sourceId, std::string name,
 	std::string settingsData)
 {
@@ -85,27 +75,21 @@ uint64_t obs::Input::CreatePrivate(
 	obs_source_t* source = obs_source_create_private(sourceId.c_str(), name.c_str(), settings);
 	if (!source) {
 		blog(LOG_ERROR, "Failed to create input.");
-		return UINT64_MAX;
+		return nullptr;
 	}
 
 	obs_data_release(settings);
 
-	uint64_t uid = obs::Source::Manager::GetInstance().allocate(source);
-	if (uid == UINT64_MAX) {
-		blog(LOG_ERROR, "Index list is full.");
-		return UINT64_MAX;
-	}
 	obs::Source::attach_source_signals(source);
 
-	return uid;
+	return source;
 }
 
-uint64_t obs::Input::Duplicate(uint64_t sourceId)
+obs_source* obs::Input::Duplicate(obs_source* sourceOld)
 {
-	obs_source_t* sourceOld = obs::Source::Manager::GetInstance().find(sourceId);
 	if (!sourceOld) {
 		blog(LOG_ERROR, "Input reference is not valid.");
-		return UINT64_MAX;
+		return nullptr;
 	}
 
 	bool        isPrivate    = false;
@@ -116,50 +100,31 @@ uint64_t obs::Input::Duplicate(uint64_t sourceId)
 
 	if (!source) {
 		blog(LOG_ERROR, "Failed to duplicate input.");
-		return UINT64_MAX;
+		return nullptr;
 	}
 
-	if (source != sourceOld) {
-		uint64_t uid = obs::Source::Manager::GetInstance().allocate(source);
-		if (uid == UINT64_MAX) {
-			blog(LOG_ERROR, "Index list is full.");
-			return UINT64_MAX;
-		}
-		return uid;
-	} else {
-		return sourceId;
-	}
+	return source;
 }
 
-uint64_t obs::Input::FromName(std::string name)
+obs_source* obs::Input::FromName(std::string name)
 {
 	obs_source_t* source = obs_get_source_by_name(name.c_str());
 	if (!source) {
 		blog(LOG_ERROR, "Named input could not be found.");
-		return UINT64_MAX;
+		return nullptr;
 	}
 
-	uint64_t uid = obs::Source::Manager::GetInstance().find(source);
-	if (uid == UINT64_MAX) {
-		blog(LOG_ERROR, "Source found but not indexed.");
-		return UINT64_MAX;
-	}
-
-	obs_source_release(source);
-
-	return uid;
+	return source;
 }
 
-std::vector<uint64_t> obs::Input::GetPublicSources()
+std::vector<obs_source_t*> obs::Input::GetPublicSources()
 {
-	std::vector<uint64_t> inputs;
+	std::vector<obs_source_t*> inputs;
 
 	// !FIXME! Optimize for zero-copy operation, can directly write to rval.
 	auto enum_cb = [](void* data, obs_source_t* source) {
-		uint64_t uid = obs::Source::Manager::GetInstance().find(source);
-		if (uid != UINT64_MAX) {
-			static_cast<std::list<uint64_t>*>(data)->push_back(uid);
-		}
+		if (source)
+			static_cast<std::vector<obs_source_t*>*>(data)->push_back(source);
 		return true;
 	};
 
@@ -168,9 +133,8 @@ std::vector<uint64_t> obs::Input::GetPublicSources()
 	return inputs;
 }
 
-bool obs::Input::GetActive(uint64_t uid)
+bool obs::Input::GetActive(obs_source* input)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(uid);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return false;
@@ -179,9 +143,8 @@ bool obs::Input::GetActive(uint64_t uid)
 	return obs_source_active(input);
 }
 
-bool obs::Input::GetShowing(uint64_t uid)
+bool obs::Input::GetShowing(obs_source* input)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(uid);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return false;
@@ -190,9 +153,8 @@ bool obs::Input::GetShowing(uint64_t uid)
 	return obs_source_showing(input);
 }
 
-float_t obs::Input::GetVolume(uint64_t uid)
+float_t obs::Input::GetVolume(obs_source* input)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(uid);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return 0.0;
@@ -201,9 +163,8 @@ float_t obs::Input::GetVolume(uint64_t uid)
 	return obs_source_get_volume(input);
 }
 
-float_t obs::Input::SetVolume(uint64_t uid, float_t volume)
+float_t obs::Input::SetVolume(obs_source* input, float_t volume)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(uid);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return 0.0;
@@ -214,9 +175,8 @@ float_t obs::Input::SetVolume(uint64_t uid, float_t volume)
 	return obs_source_get_volume(input);
 }
 
-int64_t obs::Input::GetSyncOffset(uint64_t uid)
+int64_t obs::Input::GetSyncOffset(obs_source* input)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(uid);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return INT64_MAX;
@@ -225,9 +185,8 @@ int64_t obs::Input::GetSyncOffset(uint64_t uid)
 	return obs_source_get_sync_offset(input);
 }
 
-int64_t obs::Input::SetSyncOffset(uint64_t uid, int64_t offset)
+int64_t obs::Input::SetSyncOffset(obs_source* input, int64_t offset)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(uid);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return INT64_MAX;
@@ -238,9 +197,8 @@ int64_t obs::Input::SetSyncOffset(uint64_t uid, int64_t offset)
 	return obs_source_get_sync_offset(input);
 }
 
-uint32_t obs::Input::GetAudioMixers(uint64_t uid)
+uint32_t obs::Input::GetAudioMixers(obs_source* input)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(uid);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return UINT32_MAX;
@@ -249,9 +207,8 @@ uint32_t obs::Input::GetAudioMixers(uint64_t uid)
 	return obs_source_get_audio_mixers(input);
 }
 
-uint32_t obs::Input::SetAudioMixers(uint64_t uid, uint32_t mixers)
+uint32_t obs::Input::SetAudioMixers(obs_source* input, uint32_t mixers)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(uid);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return UINT32_MAX;
@@ -262,9 +219,8 @@ uint32_t obs::Input::SetAudioMixers(uint64_t uid, uint32_t mixers)
 	return obs_source_get_audio_mixers(input);
 }
 
-int32_t obs::Input::GetMonitoringType(uint64_t uid)
+int32_t obs::Input::GetMonitoringType(obs_source* input)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(uid);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return INT32_MAX;
@@ -273,9 +229,8 @@ int32_t obs::Input::GetMonitoringType(uint64_t uid)
 	return obs_source_get_monitoring_type(input);
 }
 
-int32_t obs::Input::SetMonitoringType(uint64_t uid, int32_t monitoringType)
+int32_t obs::Input::SetMonitoringType(obs_source* input, int32_t monitoringType)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(uid);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return INT32_MAX;
@@ -286,9 +241,8 @@ int32_t obs::Input::SetMonitoringType(uint64_t uid, int32_t monitoringType)
 	return obs_source_get_monitoring_type(input);
 }
 
-uint32_t obs::Input::GetWidth(uint64_t uid)
+uint32_t obs::Input::GetWidth(obs_source* input)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(uid);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return UINT32_MAX;
@@ -297,9 +251,8 @@ uint32_t obs::Input::GetWidth(uint64_t uid)
 	return obs_source_get_width(input);
 }
 
-uint32_t obs::Input::GetHeight(uint64_t uid)
+uint32_t obs::Input::GetHeight(obs_source* input)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(uid);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return UINT32_MAX;
@@ -308,9 +261,8 @@ uint32_t obs::Input::GetHeight(uint64_t uid)
 	return obs_source_get_height(input);
 }
 
-int32_t obs::Input::GetDeInterlaceFieldOrder(uint64_t uid)
+int32_t obs::Input::GetDeInterlaceFieldOrder(obs_source* input)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(uid);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return INT32_MAX;
@@ -319,9 +271,8 @@ int32_t obs::Input::GetDeInterlaceFieldOrder(uint64_t uid)
 	return obs_source_get_deinterlace_field_order(input);
 }
 
-int32_t obs::Input::SetDeInterlaceFieldOrder(uint64_t uid, int32_t deinterlaceOrder)
+int32_t obs::Input::SetDeInterlaceFieldOrder(obs_source* input, int32_t deinterlaceOrder)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(uid);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return INT32_MAX;
@@ -332,9 +283,8 @@ int32_t obs::Input::SetDeInterlaceFieldOrder(uint64_t uid, int32_t deinterlaceOr
 	return obs_source_get_deinterlace_field_order(input);
 }
 
-int32_t obs::Input::GetDeInterlaceMode(uint64_t uid)
+int32_t obs::Input::GetDeInterlaceMode(obs_source* input)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(uid);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return INT32_MAX;
@@ -343,9 +293,8 @@ int32_t obs::Input::GetDeInterlaceMode(uint64_t uid)
 	return obs_source_get_deinterlace_mode(input);
 }
 
-int32_t obs::Input::SetDeInterlaceMode(uint64_t uid, int32_t deinterlaceMode)
+int32_t obs::Input::SetDeInterlaceMode(obs_source* input, int32_t deinterlaceMode)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(uid);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return INT32_MAX;
@@ -356,15 +305,13 @@ int32_t obs::Input::SetDeInterlaceMode(uint64_t uid, int32_t deinterlaceMode)
 	return obs_source_get_deinterlace_mode(input);
 }
 
-void obs::Input::AddFilter(uint64_t sourceId, uint64_t filterId)
+void obs::Input::AddFilter(obs_source* input, obs_source* filter)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(sourceId);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return;
 	}
 
-	obs_source_t* filter = obs::Source::Manager::GetInstance().find(filterId);
 	if (!filter) {
 		blog(LOG_ERROR, "Filter reference is not valid.");
 		return;
@@ -373,15 +320,13 @@ void obs::Input::AddFilter(uint64_t sourceId, uint64_t filterId)
 	obs_source_filter_add(input, filter);
 }
 
-void obs::Input::RemoveFilter(uint64_t sourceId, uint64_t filterId)
+void obs::Input::RemoveFilter(obs_source* input, obs_source* filter)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(sourceId);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return;
 	}
 
-	obs_source_t* filter = obs::Source::Manager::GetInstance().find(filterId);
 	if (!filter) {
 		blog(LOG_ERROR, "Filter reference is not valid.");
 		return;
@@ -390,15 +335,13 @@ void obs::Input::RemoveFilter(uint64_t sourceId, uint64_t filterId)
 	obs_source_filter_remove(input, filter);
 }
 
-void obs::Input::MoveFilter(uint64_t sourceId, uint64_t filterId, uint32_t move)
+void obs::Input::MoveFilter(obs_source* input, obs_source* filter, uint32_t move)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(sourceId);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return;
 	}
 
-	obs_source_t* filter = obs::Source::Manager::GetInstance().find(filterId);
 	if (!filter) {
 		blog(LOG_ERROR, "Filter reference is not valid.");
 		return;
@@ -409,73 +352,58 @@ void obs::Input::MoveFilter(uint64_t sourceId, uint64_t filterId, uint32_t move)
 	obs_source_filter_set_order(input, filter, movement);
 }
 
-uint64_t obs::Input::FindFilter(uint64_t sourceId, std::string name)
+obs_source_t* obs::Input::FindFilter(obs_source* input, std::string name)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(sourceId);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
-		return UINT64_MAX;
+		return nullptr;
 	}
 
 	obs_source_t* filter = obs_source_get_filter_by_name(input, name.c_str());
 	if (!filter) {
 		blog(LOG_ERROR, "Filter reference is not valid.");
-		return UINT64_MAX;
-	}
-	obs_source_release(filter);
-
-	uint64_t uid = obs::Source::Manager::GetInstance().find(filter);
-	if (uid == UINT64_MAX) {
-		blog(LOG_ERROR, "Filter found but not indexed.");
-		return UINT64_MAX;
+		return nullptr;
 	}
 
-	return uid;
+	return filter;
 }
 
-std::vector<uint64_t> obs::Input::GetFilters(uint64_t uid)
+std::vector<obs_source_t*> obs::Input::GetFilters(obs_source_t* input)
 {
-	std::vector<uint64_t> filters;
+	std::vector<obs_source_t*> filters;
 
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(uid);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return filters;
 	}
 
 	auto enum_cb = [](obs_source_t* parent, obs_source_t* filter, void* data) {
-		std::vector<uint64_t>* filters = reinterpret_cast<std::vector<uint64_t>*>(data);
-
-		uint64_t id = obs::Source::Manager::GetInstance().find(filter);
-		if (id != UINT64_MAX) {
-			filters->push_back(id);
-		}
+		std::vector<obs_source_t*>* filters = reinterpret_cast<std::vector<obs_source_t*>*>(data);
+		if (filter)
+			filters->push_back(filter);
 	};
 
 	obs_source_enum_filters(input, enum_cb, &filters);
 	return filters;
 }
 
-void obs::Input::CopyFiltersTo(uint64_t inputIdFrom, uint64_t inputIdTo)
+void obs::Input::CopyFiltersTo(obs_source_t* inputFrom, obs_source_t* inputTo)
 {
-	obs_source_t* input_from = obs::Source::Manager::GetInstance().find(inputIdFrom);
-	if (!input_from) {
+	if (!inputFrom) {
 		blog(LOG_ERROR, "1st Input reference is not valid.");
 		return;
 	}
 
-	obs_source_t* input_to = obs::Source::Manager::GetInstance().find(inputIdTo);
-	if (!input_to) {
+	if (!inputTo) {
 		blog(LOG_ERROR, "2nd Input reference is not valid.");
 		return;
 	}
 
-	obs_source_copy_filters(input_to, input_from);
+	obs_source_copy_filters(inputTo, inputFrom);
 }
 
-int64_t obs::Input::GetDuration(uint64_t uid)
+int64_t obs::Input::GetDuration(obs_source_t* input)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(uid);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return INT64_MAX;
@@ -484,9 +412,8 @@ int64_t obs::Input::GetDuration(uint64_t uid)
 	return obs_source_media_get_duration(input);
 }
 
-int64_t obs::Input::GetTime(uint64_t uid)
+int64_t obs::Input::GetTime(obs_source_t* input)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(uid);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return INT64_MAX;
@@ -495,9 +422,8 @@ int64_t obs::Input::GetTime(uint64_t uid)
 	return obs_source_media_get_time(input);
 }
 
-int64_t obs::Input::SetTime(uint64_t uid, int64_t time)
+int64_t obs::Input::SetTime(obs_source_t* input, int64_t time)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(uid);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return INT64_MAX;
@@ -508,9 +434,8 @@ int64_t obs::Input::SetTime(uint64_t uid, int64_t time)
 	return obs_source_media_get_time(input);
 }
 
-void obs::Input::Play(uint64_t uid)
+void obs::Input::Play(obs_source_t* input)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(uid);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return;
@@ -519,9 +444,8 @@ void obs::Input::Play(uint64_t uid)
 	obs_source_media_play_pause(input, false);
 }
 
-void obs::Input::Pause(uint64_t uid)
+void obs::Input::Pause(obs_source_t* input)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(uid);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return;
@@ -530,9 +454,8 @@ void obs::Input::Pause(uint64_t uid)
 	obs_source_media_play_pause(input, true);
 }
 
-void obs::Input::Restart(uint64_t uid)
+void obs::Input::Restart(obs_source_t* input)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(uid);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return;
@@ -541,9 +464,8 @@ void obs::Input::Restart(uint64_t uid)
 	obs_source_media_restart(input);
 }
 
-void obs::Input::Stop(uint64_t uid)
+void obs::Input::Stop(obs_source_t* input)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(uid);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return;
@@ -552,9 +474,8 @@ void obs::Input::Stop(uint64_t uid)
 	obs_source_media_stop(input);
 }
 
-uint64_t obs::Input::GetMediaState(uint64_t uid)
+uint64_t obs::Input::GetMediaState(obs_source_t* input)
 {
-	obs_source_t* input = obs::Source::Manager::GetInstance().find(uid);
 	if (!input) {
 		blog(LOG_ERROR, "Input reference is not valid.");
 		return UINT64_MAX;

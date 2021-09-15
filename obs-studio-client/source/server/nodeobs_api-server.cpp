@@ -1288,7 +1288,7 @@ void OBS_API::InformCrashHandler(const int crash_id)
 void OBS_API::destroyOBS_API(void)
 {
 	blog(LOG_DEBUG, "OBS_API::destroyOBS_API started, objects allocated %d", bnum_allocs());
-
+	blog(LOG_INFO, "destroyOBS_API - 0");
 	os_cpu_usage_info_destroy(cpuUsageInfo);
 
 #ifdef _WIN32
@@ -1301,6 +1301,7 @@ void OBS_API::destroyOBS_API(void)
 #endif
 	OBS_content::OBS_content_shutdownDisplays();
 
+	blog(LOG_INFO, "destroyOBS_API - 1");
 	obs::autoConfig::WaitPendingTests();
 	OBS_service::stopAllOutputs();
 	OBS_service::setStreamingEncoder(nullptr);
@@ -1312,6 +1313,7 @@ void OBS_API::destroyOBS_API(void)
 	OBS_service::setRecordingOutput(nullptr);
 	OBS_service::setReplayBufferOutput(nullptr);
 
+	blog(LOG_INFO, "destroyOBS_API - 2");
 	obs_output* virtualWebcamOutput = OBS_service::getVirtualWebcamOutput();
 	if (virtualWebcamOutput != NULL) {
 		if (obs_output_active(virtualWebcamOutput))
@@ -1320,11 +1322,17 @@ void OBS_API::destroyOBS_API(void)
 		obs_output_release(virtualWebcamOutput);
 	}
 
+	blog(LOG_INFO, "destroyOBS_API - 3");
 	OBS_service::setService(nullptr);
+	blog(LOG_INFO, "destroyOBS_API - 3.1");
     OBS_service::waitReleaseWorker();
+	blog(LOG_INFO, "destroyOBS_API - 3.2");
     OBS_service::clearAudioEncoder();
+	blog(LOG_INFO, "destroyOBS_API - 3.3");
     obs::Fader::ClearFaders();
+	blog(LOG_INFO, "destroyOBS_API - 3.4");
 
+	blog(LOG_INFO, "destroyOBS_API - 4");
 	// Check if the frontend was able to shutdown correctly:
 	// If there are some sources here it's because it ended unexpectedly, this represents a 
 	// problem since obs doesn't handle releasing leaked sources very well. The best we can
@@ -1411,6 +1419,7 @@ void OBS_API::destroyOBS_API(void)
 		obs_shutdown();
 	}
 
+	blog(LOG_INFO, "destroyOBS_API - 5");
 	// Release each obs module (dlls for windows)
 	// TODO: We should release these modules (dlls) manually and not let the garbage
 	// collector do this for us on shutdown

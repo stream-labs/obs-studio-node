@@ -22,6 +22,7 @@
 #include "properties.hpp"
 #include "obs-property.hpp"
 #include "cache-manager.hpp"
+#include "server/osn-source.hpp"
 
 #undef strtoll
 #include "nlohmann/json.hpp"
@@ -39,33 +40,33 @@ namespace osn
 	class ISource
 	{
 		public:
-		static void Release(const Napi::CallbackInfo& info, uint64_t id);
-		static void Remove(const Napi::CallbackInfo& info, uint64_t id);
-		static void Update(const Napi::CallbackInfo& info, uint64_t id);
-		static void Load(const Napi::CallbackInfo& info, uint64_t id);
-		static void Save(const Napi::CallbackInfo& info, uint64_t id);
+		static void Release(const Napi::CallbackInfo& info, obs_source_t* source);
+		static void Remove(const Napi::CallbackInfo& info, obs_source_t* source);
+		static void Update(const Napi::CallbackInfo& info, obs_source_t* source);
+		static void Load(const Napi::CallbackInfo& info, obs_source_t* source);
+		static void Save(const Napi::CallbackInfo& info, obs_source_t* source);
 
-		static Napi::Value IsConfigurable(const Napi::CallbackInfo& info, uint64_t id);
-		static Napi::Value GetProperties(const Napi::CallbackInfo& info, uint64_t id);
-		static Napi::Value GetSettings(const Napi::CallbackInfo& info, uint64_t id);
+		static Napi::Value IsConfigurable(const Napi::CallbackInfo& info, obs_source_t* source);
+		static Napi::Value GetProperties(const Napi::CallbackInfo& info, obs_source_t* source);
+		static Napi::Value GetSettings(const Napi::CallbackInfo& info, obs_source_t* source);
 
-		static Napi::Value GetType(const Napi::CallbackInfo& info, uint64_t id);
-		static Napi::Value GetName(const Napi::CallbackInfo& info, uint64_t id);
-		static void SetName(const Napi::CallbackInfo& info, const Napi::Value &value, uint64_t id);
-		static Napi::Value GetOutputFlags(const Napi::CallbackInfo& info, uint64_t id);
-		static Napi::Value GetFlags(const Napi::CallbackInfo& info, uint64_t id);
-		static void SetFlags(const Napi::CallbackInfo& info, const Napi::Value &value, uint64_t id);
-		static Napi::Value GetStatus(const Napi::CallbackInfo& info, uint64_t id);
-		static Napi::Value GetId(const Napi::CallbackInfo& info, uint64_t id);
-		static Napi::Value GetMuted(const Napi::CallbackInfo& info, uint64_t id);
-		static void SetMuted(const Napi::CallbackInfo& info, const Napi::Value &value, uint64_t id);
-		static Napi::Value GetEnabled(const Napi::CallbackInfo& info, uint64_t id);
-		static void SetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value, uint64_t id);
+		static Napi::Value GetType(const Napi::CallbackInfo& info, obs_source_t* source);
+		static Napi::Value GetName(const Napi::CallbackInfo& info, obs_source_t* source);
+		static void SetName(const Napi::CallbackInfo& info, const Napi::Value &value, obs_source_t* source);
+		static Napi::Value GetOutputFlags(const Napi::CallbackInfo& info, obs_source_t* source);
+		static Napi::Value GetFlags(const Napi::CallbackInfo& info, obs_source_t* source);
+		static void SetFlags(const Napi::CallbackInfo& info, const Napi::Value &value, obs_source_t* source);
+		static Napi::Value GetStatus(const Napi::CallbackInfo& info, obs_source_t* source);
+		static Napi::Value GetId(const Napi::CallbackInfo& info, obs_source_t* source);
+		static Napi::Value GetMuted(const Napi::CallbackInfo& info, obs_source_t* source);
+		static void SetMuted(const Napi::CallbackInfo& info, const Napi::Value &value, obs_source_t* source);
+		static Napi::Value GetEnabled(const Napi::CallbackInfo& info, obs_source_t* source);
+		static void SetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value, obs_source_t* source);
 
-		static void SendMouseClick(const Napi::CallbackInfo& info, uint64_t id);
-		static void SendMouseMove(const Napi::CallbackInfo& info, uint64_t id);
-		static void SendMouseWheel(const Napi::CallbackInfo& info, uint64_t id);
-		static void SendFocus(const Napi::CallbackInfo& info, uint64_t id);
-		static void SendKeyClick(const Napi::CallbackInfo& info, uint64_t id);
+		static void SendMouseClick(const Napi::CallbackInfo& info, obs_source_t* source);
+		static void SendMouseMove(const Napi::CallbackInfo& info, obs_source_t* source);
+		static void SendMouseWheel(const Napi::CallbackInfo& info, obs_source_t* source);
+		static void SendFocus(const Napi::CallbackInfo& info, obs_source_t* source);
+		static void SendKeyClick(const Napi::CallbackInfo& info, obs_source_t* source);
 	};
 }

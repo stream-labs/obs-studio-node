@@ -23,6 +23,7 @@
 #include <napi.h>
 #include <unordered_map>
 #include "utility-v8.hpp"
+#include "server/osn-properties.hpp"
 
 namespace osn
 {
@@ -200,7 +201,7 @@ namespace osn
 	{
 		public:
 		std::shared_ptr<property_map_t> properties;
-		uint64_t sourceId;
+		obs_source_t* m_source;
 
 		public:
 		std::shared_ptr<property_map_t> GetProperties();

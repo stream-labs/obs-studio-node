@@ -20,13 +20,14 @@
 #include <napi.h>
 #include "isource.hpp"
 #include "utility-v8.hpp"
+#include "server/osn-input.hpp"
 
 namespace osn
 {
 	class Input : public Napi::ObjectWrap<osn::Input>
 	{
 		public:
-		uint64_t sourceId;
+		obs_source_t* m_source;
 
 		public:
 		static Napi::FunctionReference constructor;

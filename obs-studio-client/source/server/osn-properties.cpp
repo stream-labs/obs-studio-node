@@ -18,13 +18,11 @@
 
 #include "osn-Properties.hpp"
 #include "error.hpp"
-#include "obs.h"
 #include "osn-source.hpp"
 #include "shared-server.hpp"
 
-bool obs::Properties::Modified(uint64_t sourceId, std::string name, std::string value)
+bool obs::Properties::Modified(obs_source_t* source, std::string name, std::string value)
 {
-	obs_source_t* source = obs::Source::Manager::GetInstance().find(sourceId);
 	bool res = false;
 	if (!source) {
 		blog(LOG_ERROR, "Invalid reference.");
@@ -47,9 +45,8 @@ bool obs::Properties::Modified(uint64_t sourceId, std::string name, std::string 
 	return res;
 }
 
-bool obs::Properties::Clicked(uint64_t sourceId, std::string name)
+bool obs::Properties::Clicked(obs_source_t* source, std::string name)
 {
-	obs_source_t* source = obs::Source::Manager::GetInstance().find(sourceId);
 	bool res = false;
 	if (!source) {
 		blog(LOG_ERROR, "Invalid reference.");

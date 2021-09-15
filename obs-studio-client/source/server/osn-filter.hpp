@@ -25,6 +25,6 @@ namespace obs
 	{
 		public:
 		static std::vector<std::string> Types();
-		static uint64_t Create(std::string sourceId, std::string name, std::string settingsData);
+		static obs_source_t* Create(std::string sourceId, std::string name, std::string settingsData);
 	};
 }

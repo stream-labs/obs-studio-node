@@ -26,14 +26,14 @@ namespace obs
 		public:
 		// Function
 		static std::vector<std::string> Types();
-		static uint64_t Create(std::string sourceId, std::string name, std::string settingsData);
-		static uint64_t CreatePrivate(std::string sourceId, std::string name, std::string settingsData);
-		static uint64_t FromName(std::string name);
+		static obs_source_t* Create(std::string sourceId, std::string name, std::string settingsData);
+		static obs_source_t* CreatePrivate(std::string sourceId, std::string name, std::string settingsData);
+		static obs_source_t* FromName(std::string name);
 
 		// Method
-		static std::pair<uint64_t, uint32_t> GetActiveSource(uint64_t sourceId);
-		static void Clear(uint64_t sourceId);
-		static void Set(uint64_t transitionId, uint64_t sourceId);
-		static bool Start(uint64_t transitionId, uint32_t ms, uint64_t sourceId);
+		static std::pair<obs_source_t*, uint32_t> GetActiveSource(obs_source_t* transition);
+		static void Clear(obs_source_t* source);
+		static void Set(obs_source_t* transition, obs_source_t* source);
+		static bool Start(obs_source_t* transition, uint32_t ms, obs_source_t* source);
 	};
 }
