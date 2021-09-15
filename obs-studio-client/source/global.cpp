@@ -86,6 +86,8 @@ Napi::Value osn::Global::getOutputSource(const Napi::CallbackInfo& info)
 
 		return instance;
 	}
+
+	obs_source_release(res.first);
 	return info.Env().Undefined();
 }
 
@@ -94,10 +96,10 @@ Napi::Value osn::Global::setOutputSource(const Napi::CallbackInfo& info)
 	uint32_t channel = info[0].ToNumber().Uint32Value();
 	osn::Input* input = nullptr;
 
-	if (info[1].IsObject())
+	if (info[1].IsObject()) {
 		input = Napi::ObjectWrap<osn::Input>::Unwrap(info[1].ToObject());
-
-	obs::Global::SetOutputSource(channel, input ? input->m_source : nullptr);
+		obs::Global::SetOutputSource(channel, input ? input->m_source : nullptr);
+	}
 
 	return info.Env().Undefined();
 }

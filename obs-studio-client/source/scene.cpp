@@ -135,6 +135,7 @@ Napi::Value osn::Scene::FromName(const Napi::CallbackInfo& info)
 			Napi::External<obs_source_t*>::New(info.Env(), &source)
 		});
 
+	obs_source_release(source);
     return instance;
 }
 

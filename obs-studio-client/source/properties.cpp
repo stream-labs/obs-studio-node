@@ -204,7 +204,11 @@ Napi::Value osn::PropertyObject::Next(const Napi::CallbackInfo& info)
 		return info.Env().Undefined();
 
 	auto prop_ptr = Napi::External<property_map_t>::New(info.Env(), parent->properties.get());
-	auto obj = osn::Properties::constructor.New( {prop_ptr, Napi::Number::New(info.Env(), (uint32_t)parent->m_source) });
+	auto obj = osn::Properties::constructor.New(
+		{
+			prop_ptr,
+			Napi::External<obs_source_t*>::New(info.Env(), &parent->m_source),
+		});
 
 	auto instance =
 		osn::PropertyObject::constructor.New({

@@ -188,6 +188,7 @@ Napi::Value osn::Input::FromName(const Napi::CallbackInfo& info)
             Napi::External<obs_source_t*>::New(info.Env(), &source)
 		});
 
+	obs_source_release(source);
     return instance;
 }
 
@@ -373,8 +374,10 @@ Napi::Value osn::Input::FindFilter(const Napi::CallbackInfo& info)
 			osn::Filter::constructor.New({
 				Napi::External<obs_source_t*>::New(info.Env(), &filter)
 			});
+		obs_source_release(filter);
 		return instance;
 	}
+
 	return info.Env().Undefined();
 }
 
