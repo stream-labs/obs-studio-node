@@ -208,7 +208,8 @@ Napi::Value service::OBS_service_getLastReplay(const Napi::CallbackInfo& info)
 
 void service::worker()
 {
-    auto callback = []( Napi::Env env, Napi::Function jsCallback, SignalInfo* data ) {
+	auto callback = []( Napi::Env env, Napi::Function jsCallback, SignalInfo* data ) {
+		try {
 		Napi::Object result = Napi::Object::New(env);
 
 		result.Set(
@@ -225,7 +226,10 @@ void service::worker()
 			Napi::String::New(env, data->errorMessage));
 
 		jsCallback.Call({ result });
-    };
+		} catch (...) {}
+		delete data;
+
+	};
 	size_t totalSleepMS = 0;
 
 	while (!worker_stop) {
@@ -251,7 +255,10 @@ void service::worker()
 				data->signal       = response[2].value_str;
 				data->code         = response[3].value_union.i32;
 				data->errorMessage = response[4].value_str;
-				js_thread.BlockingCall( data, callback );
+				napi_status status = js_thread.BlockingCall( data, callback );
+				if (status != napi_ok) {
+					delete data;
+				}
 			}
 		}
 
