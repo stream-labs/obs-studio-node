@@ -27,6 +27,8 @@ struct SignalInfo
 	std::string signal;
 	int         code;
 	std::string errorMessage;
+	bool        sent;
+	bool        tosend;
 };
 
 namespace service
