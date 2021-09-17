@@ -823,17 +823,6 @@ void OBS_API::OBS_API_initAPI(
 #endif
 	}
 
-	if(!OBS_service::EncoderAvailable(SIMPLE_ENCODER_AMD)) {
-		blog(LOG_INFO, "AMD Encoder %s not available. Loading old AMD", SIMPLE_ENCODER_AMD);
-		obs_module_t *module;
-		std::string module_path = g_moduleDirectory + "/enc-amf_old/obs-plugins/64bit/enc-amf";
-		std::string data_path = g_moduleDirectory + "/enc-amf_old/data/obs-plugins/enc-amf/";
-		int res = obs_open_module(&module, module_path.c_str(), data_path.c_str());
-
-		if (res == MODULE_SUCCESS)
-			obs_init_module(module);
-	}
-
 	OBS_service::createService();
 	OBS_service::createStreamingOutput();
 	OBS_service::createRecordingOutput();

@@ -1,4 +1,4 @@
-PROJECT(obs-studio-server VERSION ${obs-studio-node_VERSION})
+﻿PROJECT(obs-studio-server VERSION ${obs-studio-node_VERSION})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -418,5 +418,3 @@ install(
 	USE_SOURCE_PERMISSIONS
 )
 endif()
-
-install(DIRECTORY "${libobs_SOURCE_DIR}/enc-amf_old" DESTINATION "./" OPTIONAL)
