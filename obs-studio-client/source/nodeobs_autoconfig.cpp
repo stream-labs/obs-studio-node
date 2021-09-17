@@ -184,8 +184,10 @@ void autoConfig::queueTask(AutoConfigInfo* data) {
 		delete event_data;
 	};
 
-	js_thread.NonBlockingCall(data, sources_callback);
-
+	napi_status status = js_thread.NonBlockingCall(data, sources_callback);
+	if (status != napi_ok) {
+		delete data;
+	}
 	release_semaphore(ac_sem);
 }
 
