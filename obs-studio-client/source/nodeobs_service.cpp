@@ -42,6 +42,7 @@ void callJS(SignalInfo* data)
 		*reinterpret_cast<Napi::ThreadSafeFunction*>(data->m_jsThread);
 
 	auto callback = []( Napi::Env env, Napi::Function jsCallback, SignalInfo* data ) {
+		try {
 		Napi::Object result = Napi::Object::New(env);
 
 		result.Set(
@@ -58,6 +59,9 @@ void callJS(SignalInfo* data)
 			Napi::String::New(env, data->m_errorMessage));
 
 		jsCallback.Call({ result });
+		} catch (...) {}
+		delete data;
+
     };
 
 	l_jsThread.BlockingCall( data, callback );
