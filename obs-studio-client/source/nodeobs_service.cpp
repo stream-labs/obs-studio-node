@@ -208,6 +208,7 @@ Napi::Value service::OBS_service_getLastReplay(const Napi::CallbackInfo& info)
 
 void service::worker()
 {
+	const static int maximum_signals_in_queue = 100;
 	auto callback = []( Napi::Env env, Napi::Function jsCallback, SignalInfo* data ) {
 		try {
 		Napi::Object result = Napi::Object::New(env);
@@ -242,7 +243,7 @@ void service::worker()
 		auto conn = Controller::GetInstance().GetConnection();
 		if (conn) {
 			std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "Query", {});
-			if (response.size() && (response.size() == 5)) {
+			if (response.size() && (response.size() == 5) && signalsList.size() < maximum_signals_in_queue) {
 				ErrorCode error = (ErrorCode)response[0].value_union.ui64;
 				if (error == ErrorCode::Ok) {
 					SignalInfo* data = new SignalInfo{ "", "", 0, ""};
@@ -260,7 +261,7 @@ void service::worker()
 			while (i != signalsList.end()) {
 				if ((*i)->tosend) {
 					(*i)->tosend = false;
-					napi_status status = js_thread.BlockingCall( (*i), callback );
+					napi_status status = js_thread.BlockingCall((*i), callback);
 					if (status != napi_ok) {
 						break;
 					}
