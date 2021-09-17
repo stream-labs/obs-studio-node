@@ -661,16 +661,17 @@ int OBS_API::OBS_API_initAPI(
 	utility_server::osn_current_version(currentVersion);
 
 #ifdef ENABLE_CRASHREPORT
-// 	util::CrashManager crashManager;
-// 	crashManager.SetVersionName(currentVersion);
-// 	crashManager.SetReportServerUrl(crashserverurl);
-// 	char* path = g_moduleDirectory.data();
-// 	if (crashManager.Initialize(path, appdata)) {
-// 		crashManager.Configure();
-// 		if (crashManager.InitializeMemoryDump()) {
-// 			writeCrashHandler(registerMemoryDump());
-// 		}
-//    }
+	util::CrashManager crashManager;
+	crashManager.SetVersionName(currentVersion);
+	crashManager.SetReportServerUrl(crashserverurl);
+	char* path = new char [g_moduleDirectory.length()+1];
+	std::strcpy (path, g_moduleDirectory.c_str());
+	if (crashManager.Initialize(path, appdata)) {
+		crashManager.Configure();
+		if (crashManager.InitializeMemoryDump()) {
+			writeCrashHandler(registerMemoryDump());
+		}
+   }
 
 #ifdef WIN32
 	// Register the pre and post server callbacks to log the data into the crashmanager
@@ -1330,7 +1331,7 @@ void OBS_API::destroyOBS_API(void)
     OBS_service::clearAudioEncoder();
 	blog(LOG_INFO, "destroyOBS_API - 3.3");
     obs::Fader::ClearFaders();
-	blog(LOG_INFO, "destroyOBS_API - 3.4");
+	blog(LOG_INFO, "destroyOBS_API - 3");
 
 	blog(LOG_INFO, "destroyOBS_API - 4");
 	// Check if the frontend was able to shutdown correctly:
@@ -1533,6 +1534,7 @@ bool OBS_API::openAllModules(int& video_err)
 				continue;
 			}
 #endif
+			if (basename.compare("obs-browser") == 0) continue;
 
 			obs_module_t* module = nullptr;
 			int           result = MODULE_ERROR;

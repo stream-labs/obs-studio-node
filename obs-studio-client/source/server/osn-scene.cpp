@@ -248,7 +248,6 @@ obs_sceneitem_t* obs::Scene::FindItem(obs_source_t* source, std::string name)
 		blog(LOG_ERROR, "Source not found.");
 		return nullptr;
 	}
-	obs_sceneitem_addref(item);
 
 	return item;
 }
@@ -271,7 +270,6 @@ obs_sceneitem_t* obs::Scene::FindItem(obs_source_t* source, int64_t position)
 		blog(LOG_ERROR, "Source not found.");
 		return nullptr;
 	}
-	obs_sceneitem_addref(item);
 
 	return item;
 }
@@ -385,8 +383,6 @@ obs_sceneitem_t* obs::Scene::GetItem(obs_source_t* source, uint64_t index)
 		blog(LOG_ERROR, "Index not found in Scene.");
 		return nullptr;
 	}
-
-	obs_sceneitem_addref(ed.item);
 
 	return ed.item;
 }
