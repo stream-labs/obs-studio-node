@@ -98,7 +98,7 @@ void globalCallback::stop_worker(void)
 
 void globalCallback::worker()
 {
-    // auto sources_callback = []( Napi::Env env, 
+	// auto sources_callback = []( Napi::Env env, 
 	// 		Napi::Function jsCallback,
 	// 		SourceSizeInfoData* data ) {
 	// 	Napi::Array result = Napi::Array::New(env, data->items.size());
@@ -112,7 +112,29 @@ void globalCallback::worker()
 	// 		result.Set(i, obj);
 	// 	}
 	// 	jsCallback.Call({ result });
-    // };
+	// 	delete data;
+	// };
+
+	// auto volmeter_callback = []( Napi::Env env, Napi::Function jsCallback, VolmeterData* data ) {
+	// 	Napi::Array magnitude = Napi::Array::New(env);
+	// 	Napi::Array peak = Napi::Array::New(env);
+	// 	Napi::Array input_peak = Napi::Array::New(env);
+
+	// 	for (size_t i = 0; i < data->magnitude.size(); i++) {
+	// 		magnitude.Set(i, Napi::Number::New(env, data->magnitude[i]));
+	// 	}
+	// 	for (size_t i = 0; i < data->peak.size(); i++) {
+	// 		peak.Set(i, Napi::Number::New(env, data->peak[i]));
+	// 	}
+	// 	for (size_t i = 0; i < data->input_peak.size(); i++) {
+	// 		input_peak.Set(i, Napi::Number::New(env, data->input_peak[i]));
+	// 	}
+
+	// 	if (data->magnitude.size() > 0 && data->peak.size() > 0 && data->input_peak.size() > 0) {
+	// 		jsCallback.Call({ magnitude, peak, input_peak });
+	// 	}
+	// 	delete data;
+	// };
 
 	// size_t totalSleepMS = 0;
 
@@ -123,10 +145,23 @@ void globalCallback::worker()
 	// 	if (!conn)
 	// 		return;
 
+	// 	mtx_volmeters.lock();
+	// 	std::vector<char> volmeters_ids;
+	// 	{
+	// 		uint32_t index = 0;
+	// 		volmeters_ids.resize(sizeof(uint64_t) * volmeters.size());
+	// 		for (auto vol: volmeters) {
+	// 			*reinterpret_cast<uint64_t*>(volmeters_ids.data() + index) = vol.first;
+	// 			index += sizeof(uint64_t);
+	// 		}
+	// 	}
+
 	// 	{
 	// 		std::vector<ipc::value> response =
 	// 			conn->call_synchronous_helper("CallbackManager", "GlobalQuery",
 	// 			{
+	// 				ipc::value((uint64_t)volmeters_ids.size()),
+	// 				ipc::value(volmeters_ids)
 	// 			});
 	// 		if (!response.size() || (response.size() == 1)) {
 	// 			goto do_sleep;
@@ -146,10 +181,39 @@ void globalCallback::worker()
 	// 			index = i;
 	// 		}
 
-	// 		if (data->items.size() > 0)
-	// 			js_thread.NonBlockingCall( data, sources_callback );
+	// 		if (data->items.size() > 0) {
+	// 			napi_status status = js_thread.NonBlockingCall( data, sources_callback );
+	// 			if (status != napi_ok) {
+	// 				delete data;
+	// 			}
+	// 		}
 
 	// 		index++;
+
+	// 		for (auto vol: volmeters) {
+	// 			VolmeterData* data     = new VolmeterData{{}, {}, {}};
+	// 			size_t channels = response[index++].value_union.i32;
+	// 			bool isMuted = response[index++].value_union.i32;
+	// 			if (!channels)
+	// 				continue;
+	// 			if (!isMuted) {
+	// 				data->magnitude.resize(channels);
+	// 				data->peak.resize(channels);
+	// 				data->input_peak.resize(channels);
+	// 				for (size_t ch = 0; ch < channels; ch++) {
+	// 					data->magnitude[ch]  = response[index + ch * 3 + 0].value_union.fp32;
+	// 					data->peak[ch]       = response[index + ch * 3 + 1].value_union.fp32;
+	// 					data->input_peak[ch] = response[index + ch * 3 + 2].value_union.fp32;
+	// 				}
+	// 				napi_status status = vol.second.NonBlockingCall(data, volmeter_callback);
+	// 				if (status != napi_ok) {
+	// 					delete data;
+	// 				}
+
+	// 				index += (3 * channels);
+	// 			}
+	// 		}
+
 	// 	}
 
 	// do_sleep:

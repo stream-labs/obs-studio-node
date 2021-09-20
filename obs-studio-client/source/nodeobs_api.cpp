@@ -239,11 +239,15 @@ Napi::Value api::RequestPermissions(const Napi::CallbackInfo& info)
 			);
 
 			jsCallback.Call({ result });
+			delete data;
 		};
 		Permissions* perms_status = new Permissions();
 		perms_status->webcam = webcam;
 		perms_status->mic = mic;
-		js_thread.BlockingCall( perms_status, callback );
+		napi_status status = js_thread.BlockingCall( perms_status, callback );
+		if (status != napi_ok) {
+			delete perms_status;
+		}
 	};
 
 	g_util_osx->requestPermissions(js_thread, cb);

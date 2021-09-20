@@ -90,6 +90,8 @@ class SignalInfo {
 	int m_code;
 	std::string m_errorMessage;
 	void* m_jsThread;
+	bool sent;
+	bool tosend;
 };
 
 typedef void (*callbackService)(SignalInfo* data);
