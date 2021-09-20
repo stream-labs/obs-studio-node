@@ -96,7 +96,7 @@ void globalCallback::stop_worker(void)
 
 void globalCallback::worker()
 {
-    auto sources_callback = []( Napi::Env env, 
+	auto sources_callback = []( Napi::Env env, 
 			Napi::Function jsCallback,
 			SourceSizeInfoData* data ) {
 		Napi::Array result = Napi::Array::New(env, data->items.size());
@@ -110,9 +110,10 @@ void globalCallback::worker()
 			result.Set(i, obj);
 		}
 		jsCallback.Call({ result });
-    };
+		delete data;
+	};
 
-    auto volmeter_callback = []( Napi::Env env, Napi::Function jsCallback, VolmeterData* data ) {
+	auto volmeter_callback = []( Napi::Env env, Napi::Function jsCallback, VolmeterData* data ) {
 		Napi::Array magnitude = Napi::Array::New(env);
 		Napi::Array peak = Napi::Array::New(env);
 		Napi::Array input_peak = Napi::Array::New(env);
@@ -130,7 +131,8 @@ void globalCallback::worker()
 		if (data->magnitude.size() > 0 && data->peak.size() > 0 && data->input_peak.size() > 0) {
 			jsCallback.Call({ magnitude, peak, input_peak });
 		}
-    };
+		delete data;
+	};
 
 	size_t totalSleepMS = 0;
 
@@ -177,8 +179,12 @@ void globalCallback::worker()
 				index = i;
 			}
 
-			if (data->items.size() > 0)
-				js_thread.NonBlockingCall( data, sources_callback );
+			if (data->items.size() > 0) {
+				napi_status status = js_thread.NonBlockingCall( data, sources_callback );
+				if (status != napi_ok) {
+					delete data;
+				}
+			}
 
 			index++;
 
@@ -197,7 +203,11 @@ void globalCallback::worker()
 						data->peak[ch]       = response[index + ch * 3 + 1].value_union.fp32;
 						data->input_peak[ch] = response[index + ch * 3 + 2].value_union.fp32;
 					}
-					vol.second.NonBlockingCall(data, volmeter_callback);
+					napi_status status = vol.second.NonBlockingCall(data, volmeter_callback);
+					if (status != napi_ok) {
+						delete data;
+					}
+
 					index += (3 * channels);
 				}
 			}
