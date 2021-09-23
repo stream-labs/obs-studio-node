@@ -68,7 +68,8 @@ export declare const enum EPropertyType {
     Button = "OBS_PROPERTY_BUTTON",
     Font = "OBS_PROPERTY_FONT",
     EditableList = "OBS_PROPERTY_EDITABLE_LIST",
-    FrameRate = "OBS_PROPERTY_FRAME_RATE"
+    FrameRate = "OBS_PROPERTY_FRAME_RATE",
+    Capture = "OBS_PROPERTY_CAPTURE"
 }
 export declare const enum EListFormat {
     Invalid = "OBS_COMBO_FORMAT_INVALID",
@@ -338,6 +339,8 @@ export interface IGlobal {
 export interface IBooleanProperty extends IProperty {
 }
 export interface IColorProperty extends IProperty {
+}
+export interface ICaptureProperty extends IProperty {
 }
 export interface IButtonProperty extends IProperty {
     buttonClicked(source: object): void;

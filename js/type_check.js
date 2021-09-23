@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isEmptyProperty = exports.isFontProperty = exports.isColorProperty = exports.isButtonProperty = exports.isBooleanProperty = exports.isEditableListProperty = exports.isListProperty = exports.isPathProperty = exports.isTextProperty = exports.isNumberProperty = void 0;
 function isNumberProperty(property) {
     return property.type === "OBS_PROPERTY_INT" ||
         property.type === "OBS_PROPERTY_FLOAT";
@@ -34,6 +33,10 @@ function isColorProperty(property) {
     return property.type === "OBS_PROPERTY_COLOR";
 }
 exports.isColorProperty = isColorProperty;
+function isCaptureProperty(property) {
+    return property.type === "OBS_PROPERTY_CAPTURE";
+}
+exports.isCaptureProperty = isCaptureProperty;
 function isFontProperty(property) {
     return property.type === "OBS_PROPERTY_FONT";
 }
