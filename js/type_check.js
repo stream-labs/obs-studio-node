@@ -33,6 +33,10 @@ function isColorProperty(property) {
     return property.type === 7;
 }
 exports.isColorProperty = isColorProperty;
+function isCaptureProperty(property) {
+    return property.type === 14;
+}
+exports.isCaptureProperty = isCaptureProperty;
 function isFontProperty(property) {
     return property.type === 9;
 }
