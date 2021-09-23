@@ -377,7 +377,7 @@ bool util::CrashManager::Initialize(char* path, std::string appdata)
 	std::set_terminate([]() { HandleCrash("Direct call to std::terminate"); });
 	
 #ifdef WIN32
-	memoryDumpFolder = appdata + "\\CrashMemoryDump";
+	memoryDumpFolder = std::filesystem::u8path(appdata+"\\CrashMemoryDump");
 
 	// Setup the windows exeption filter
 	auto ExceptionHandlerMethod = [](struct _EXCEPTION_POINTERS* ExceptionInfo) {
