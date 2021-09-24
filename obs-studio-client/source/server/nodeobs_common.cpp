@@ -198,7 +198,7 @@ void OBS_content::OBS_content_createDisplay(uint64_t windowHandle, std::string k
 	}
 #else
 	OBS::Display *display = new OBS::Display(windowHandle, mode);
-	displays.insert_or_assign(args[1].value_str, display);
+	displays.insert_or_assign(key, display);
 #endif
 
 	// device rebuild functionality available only with D3D

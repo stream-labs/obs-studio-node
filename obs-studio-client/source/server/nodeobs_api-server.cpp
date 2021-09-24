@@ -98,9 +98,7 @@ enum crashHandlerCommand {
 
 std::string g_moduleDirectory = "";
 os_cpu_usage_info_t* cpuUsageInfo      = nullptr;
-#ifdef WIN32
-std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-#endif
+
 std::string                                            slobs_plugin;
 std::vector<std::pair<std::string, obs_module_t*>>     obsModules;
 OBS_API::LogReport                                     logReport;
@@ -111,9 +109,12 @@ std::string                                            currentVersion;
 std::string                                            username("unknown");
 std::chrono::high_resolution_clock::time_point         start_wait_acknowledge;
 
+#ifdef WIN32
+std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 inline std::wstring make_wide_string(std::string text) {
 	return converter.from_bytes(text);
 }
+#endif
 
 void OBS_API::SetWorkingDirectory(std::string path)
 {
@@ -360,13 +361,14 @@ std::chrono::high_resolution_clock             hrc;
 std::chrono::high_resolution_clock::time_point tp = std::chrono::high_resolution_clock::now();
 static void                                    node_obs_log(int log_level, const char* msg, va_list args, void* param)
 {
+	blog(LOG_INFO, "node_obs_log 0");
 	std::lock_guard<std::mutex> lock(logMutex);
-
 	if (param == nullptr)
 		return;
 	
 	outdated_driver_error::instance()->catch_error(msg);
 
+	blog(LOG_INFO, "node_obs_log 1");
 	// Calculate log time.
 	auto timeSinceStart = (std::chrono::high_resolution_clock::now() - tp);
 	auto days           = std::chrono::duration_cast<std::chrono::duration<int, std::ratio<86400>>>(timeSinceStart);
@@ -414,6 +416,7 @@ static void                                    node_obs_log(int log_level, const
 		break;
 	}
 
+	blog(LOG_INFO, "node_obs_log 2");
 	std::vector<char> timebuf(128, '\0');
 	std::string       timeformat = "[%.3d:%.2d:%.2d:%.2d.%.3d.%.3d.%.3d][%*s]"; // "%*s";
 #ifdef WIN32
@@ -450,6 +453,7 @@ static void                                    node_obs_log(int log_level, const
 
 	std::string time_and_level = std::string(timebuf.data(), length);
 
+	blog(LOG_INFO, "node_obs_log 3");
 	// Format incoming text
 	std::string text = nodeobs_log_formatted_message(msg, args);
 
@@ -661,18 +665,26 @@ int OBS_API::OBS_API_initAPI(
 	utility_server::osn_current_version(currentVersion);
 
 #ifdef ENABLE_CRASHREPORT
-	util::CrashManager crashManager;
-	crashManager.SetVersionName(currentVersion);
-	crashManager.SetReportServerUrl(crashserverurl);
-	char* path = new char [g_moduleDirectory.length()+1];
-	std::strcpy (path, g_moduleDirectory.c_str());
-	if (crashManager.Initialize(path, appdata)) {
-		crashManager.Configure();
-		if (crashManager.InitializeMemoryDump()) {
-			writeCrashHandler(registerMemoryDump());
-		}
-   }
+// 	util::CrashManager crashManager;
+// 	crashManager.SetVersionName(currentVersion);
+// 	blog(LOG_INFO, "INIT - 1");
+// 	crashManager.SetReportServerUrl(crashserverurl);
+// 	blog(LOG_INFO, "INIT - 2");
+// 	char* path = new char [g_moduleDirectory.length()+1];
+// 	blog(LOG_INFO, "INIT - 3");
+// 	std::strcpy (path, g_moduleDirectory.c_str());
+// 	blog(LOG_INFO, "INIT - 4");
+// 	if (crashManager.Initialize(path, appdata)) {
+// 		blog(LOG_INFO, "INIT - 5");
+// 		crashManager.Configure();
+// 		blog(LOG_INFO, "INIT - 6");
+// 		if (crashManager.InitializeMemoryDump()) {
+// 			writeCrashHandler(registerMemoryDump());
+// 		}
+// 		blog(LOG_INFO, "INIT - 7");
+//    }
 
+// 	blog(LOG_INFO, "INIT - 1");
 #ifdef WIN32
 	// Register the pre and post server callbacks to log the data into the crashmanager
 	// g_server->set_pre_callback([](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data)
@@ -701,6 +713,7 @@ int OBS_API::OBS_API_initAPI(
 	slobs_plugin.append("/slobs-plugins");
 	obs_add_data_path((slobs_plugin + "/data/").c_str());
 
+	blog(LOG_INFO, "INIT - 0");
 	std::vector<char> userData = std::vector<char>(1024);
 	os_get_config_path(userData.data(), userData.capacity() - 1, "slobs-client/plugin_config");
     if (!obs_startup(locale.c_str(), userData.data(), NULL)) {
@@ -714,11 +727,13 @@ int OBS_API::OBS_API_initAPI(
 #endif
 	}
 
+	blog(LOG_INFO, "INIT - 1");
 	/* Logging */
 	std::string filename = GenerateTimeDateFilename("txt");
 	std::string log_path = appdata;
 	log_path.append("/node-obs/logs/");
 
+	blog(LOG_INFO, "INIT - 2");
 	/* Make sure the path is created
 	before attempting to make a file there. */
 	if (os_mkdirs(log_path.c_str()) == MKDIR_ERROR) {
@@ -728,6 +743,7 @@ int OBS_API::OBS_API_initAPI(
 #endif	
 	}
 
+	blog(LOG_INFO, "INIT - 3");
 	/* Delete oldest file in the folder to imitate rotating */
 	DeleteOldestFile(log_path.c_str(), 3);
 	log_path.append(filename);
@@ -736,6 +752,8 @@ int OBS_API::OBS_API_initAPI(
 	std::fstream* logfile =
 	    new std::fstream(converter.from_bytes(log_path.c_str()).c_str(), std::ios_base::out | std::ios_base::trunc);
 #else
+	blog(LOG_INFO, "INIT - 3.1");
+	blog(LOG_INFO, "log_path: %s", log_path.c_str());
 	std::fstream* logfile = new std::fstream(log_path, std::ios_base::out | std::ios_base::trunc);
 #endif
 	if (!logfile->is_open()) {
@@ -743,7 +761,9 @@ int OBS_API::OBS_API_initAPI(
 		util::CrashManager::AddWarning("Error on log file, failed to open: " + log_path);
 		std::cerr << "Failed to open log file" << std::endl;
 	}
+	blog(LOG_INFO, "INIT - 3.2");
 	base_set_log_handler(node_obs_log, logfile);
+	blog(LOG_INFO, "INIT - 3.3");
 #ifndef _DEBUG
 	// Redirect the ipc log callbacks to our log handler
 	ipc::register_log_callback([](void* data, const char* fmt, va_list args) { 
@@ -751,6 +771,7 @@ int OBS_API::OBS_API_initAPI(
 	}, nullptr);
 #endif
 
+	blog(LOG_INFO, "INIT - 4");
 #ifdef _WIN32
 	SetPrivilegeForGPUPriority();
 #endif
@@ -760,6 +781,7 @@ int OBS_API::OBS_API_initAPI(
 	cpuUsageInfo = os_cpu_usage_info_start();
 	ConfigManager::getInstance().setAppdataPath(appdata);
 
+	blog(LOG_INFO, "INIT - 5");
 	/* Set global private settings for whomever it concerns */
 	bool        browserHWAccel   = config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "BrowserHWAccel");
 	obs_data_t* private_settings = obs_data_create();
@@ -1512,13 +1534,13 @@ bool OBS_API::openAllModules(int& video_err)
 			continue;
 		}
 
-
+#ifdef WIN32
 		SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_USER_DIRS);
 		AddDllDirectory(make_wide_string(g_moduleDirectory).c_str());
 		WCHAR system[MAX_PATH];
 		GetSystemDirectory(system, sizeof(system));
 		AddDllDirectory(system);
-
+#endif
 		for (os_dirent* ent = os_readdir(plugin_dir); ent != nullptr; ent = os_readdir(plugin_dir)) {
 			std::string fullname = ent->d_name;
 			std::string basename = fullname.substr(0, fullname.find_last_of('.'));
@@ -1778,7 +1800,7 @@ std::vector<std::pair<uint32_t, uint32_t>> OBS_API::availableResolutions(void)
 #ifdef WIN32
 	EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, reinterpret_cast<LPARAM>(&resolutions));
 #else
-	resolutions = g_util_osx->getAvailableScreenResolutions();
+	resolutions = g_util_osx_server->getAvailableScreenResolutions();
 #endif
 	return resolutions;
 }

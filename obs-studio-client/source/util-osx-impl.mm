@@ -122,4 +122,32 @@ void UtilObjCInt::uninstallPlugin()
 	NSLog(@"errors: %@", error);
 }
 
+std::string UtilObjCInt::getUserDataPath(void)
+{
+    NSArray* paths = NSSearchPathForDirectoriesInDomains(
+        NSApplicationSupportDirectory,
+        NSUserDomainMask,
+        YES);
+    if ([paths count] == 0)
+        return "";
+
+    NSString* userPath = [paths objectAtIndex:0];
+    return std::string([userPath UTF8String]);
+}
+
+std::string UtilObjCInt::getDefaultVideoSavePath(void)
+{
+	NSFileManager *fm = [NSFileManager defaultManager];
+	NSURL *url = [fm URLForDirectory:NSMoviesDirectory
+				inDomain:NSUserDomainMask
+		       appropriateForURL:nil
+				  create:true
+				   error:nil];
+
+	if (!url)
+		return getenv("HOME");
+
+	return url.path.fileSystemRepresentation;
+}
+
 @end

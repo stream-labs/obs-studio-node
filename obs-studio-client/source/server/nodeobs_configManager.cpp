@@ -80,7 +80,7 @@ static inline std::string GetDefaultVideoSavePath()
 	os_wcs_to_utf8(path_utf16, wcslen(path_utf16), path_utf8, MAX_PATH);
 	return std::string(path_utf8);
 #else
-    return g_util_osx->getDefaultVideoSavePath();
+    return g_util_osx_server->getDefaultVideoSavePath();
 #endif
 }
 

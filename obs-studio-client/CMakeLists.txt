@@ -360,7 +360,7 @@ if(WIN32)
 	target_sources(obs_studio_client PUBLIC ${PROJECT_BINARY_DIR}/version.rc)
 	target_link_libraries(obs_studio_client lib-streamlabs-ipc ${LIBOBS_LIBRARIES} dwmapi.lib optimized crashpad StackWalker)
 else ()
-	target_link_libraries(obs_studio_client lib-streamlabs-ipc ${LIBOBS_LIBRARIES} ${COREFOUNDATION} ${COCOA} ${AVFOUNDATION} ${Security} ${Foundation})
+	target_link_libraries(obs_studio_client lib-streamlabs-ipc ${LIBOBS_LIBRARIES} ${COREFOUNDATION} ${COCOA} ${AVFOUNDATION} ${Security} ${Foundation} crashpad)
 endif()
 
 target_include_directories(
@@ -386,6 +386,9 @@ target_link_libraries(${PROJECT_NAME} ${LIBOBS_LIBRARIES})
 
 # Define NAPI_VERSION
 add_definitions(-DNAPI_VERSION=4)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+add_definitions(-std=c++17)
 
 #Define the OSN_VERSION
 add_compile_definitions(OSN_VERSION=\"$ENV{tagartifact}\") 
@@ -451,7 +454,7 @@ install(
 endif()
 
 install(
-	DIRECTORY "${CMAKE_SOURCE_DIR}/obs-studio-server/../js/"
+	DIRECTORY "${CMAKE_SOURCE_DIR}/obs-studio-client/../js/"
 	DESTINATION "./"
 	PATTERN "*.json" EXCLUDE
 )

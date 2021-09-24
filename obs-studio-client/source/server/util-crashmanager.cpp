@@ -428,7 +428,7 @@ bool util::CrashManager::SetupCrashpad()
 #endif
 
 #ifdef __APPLE__
-	std::string appdata_path = g_util_osx->getUserDataPath();
+	std::string appdata_path = g_util_osx_server->getUserDataPath();
 #endif
 	db      = base::FilePath(appdata_path);
 	handler = base::FilePath(handler_path);
