@@ -129,7 +129,7 @@ void write_app_state_data(std::string app_state_path, std::string updated_status
 	}
 }
 
-void ipc_freez_callback(bool freez_detected, std::string app_state_path)
+void ipc_freez_callback(bool freez_detected, std::string app_state_path, std::string call_name, int timeout)
 {
 	static int freez_counter = 0;
 	if (freez_detected) {
@@ -146,6 +146,7 @@ void ipc_freez_callback(bool freez_detected, std::string app_state_path)
 	const std::string flag_value = "ipc_freez";
 	const std::string flag_name = "detected";
 
+	static std::string call_log_path = app_state_path + "\\long_calls.txt";
 	app_state_path += "\\appState";
 	std::string current_status = read_app_state_data(app_state_path);
 
@@ -171,5 +172,20 @@ void ipc_freez_callback(bool freez_detected, std::string app_state_path)
 		} catch (...) {
 
 		}
+	}
+
+	try {
+		std::ofstream out_state_file;
+		out_state_file.open(call_log_path, std::ios::app | std::ios::out);
+		if (out_state_file.is_open()) {
+			if (freez_detected) {
+				out_state_file << "[" <<  getpid() << "]" << call_name << ":" << timeout;
+			} else {
+				out_state_file << ":"<< timeout << "ms\n";
+			}
+			out_state_file.flush();
+			out_state_file.close();
+		}
+	} catch (...) {
 	}
 }
