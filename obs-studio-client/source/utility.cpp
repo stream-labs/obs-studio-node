@@ -44,7 +44,7 @@
 
 const DWORD MS_VC_EXCEPTION = 0x406D1388;
 
-#if defined(WIN32)
+#if defined(_WIN32)
 #include <process.h>
 #else
 #include <sys/types.h>
