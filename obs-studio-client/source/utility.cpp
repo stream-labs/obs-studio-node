@@ -44,13 +44,6 @@
 
 const DWORD MS_VC_EXCEPTION = 0x406D1388;
 
-#if defined(_WIN32)
-#include <process.h>
-#else
-#include <sys/types.h>
-#include <unistd.h>
-#endif
-
 #pragma pack(push, 8)
 typedef struct tagTHREADNAME_INFO
 {
@@ -80,6 +73,13 @@ void utility::SetThreadName(const char* threadName)
 {
 	utility::SetThreadName(GetCurrentThreadId(), threadName);
 }
+#endif
+
+#if (defined _WIN32) || (defined _WIN64) // Windows
+#include <process.h>
+#else
+#include <sys/types.h>
+#include <unistd.h>
 #endif
 
 static thread_local std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
