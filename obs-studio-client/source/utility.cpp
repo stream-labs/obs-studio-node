@@ -44,6 +44,12 @@
 
 const DWORD MS_VC_EXCEPTION = 0x406D1388;
 
+#if defined(WIN32)
+#include <process.h>
+#else
+#include <unistd.h>
+#endif
+
 #pragma pack(push, 8)
 typedef struct tagTHREADNAME_INFO
 {
@@ -129,6 +135,19 @@ void write_app_state_data(std::string app_state_path, std::string updated_status
 	}
 }
 
+void truncate_long_log_file(std::string log_file, size_t limit)
+{
+	long size = 0;
+	FILE *fp = fopen(log_file.c_str(), "r");
+	if (fp != NULL) {
+		if (fseek(fp, 0, SEEK_END) != -1) 
+			size = ftell(fp);
+		fclose(fp);
+	}
+	if (size > limit)
+		remove(log_file.c_str());
+}
+
 void ipc_freez_callback(bool freez_detected, std::string app_state_path, std::string call_name, int timeout)
 {
 	static int freez_counter = 0;
@@ -176,10 +195,11 @@ void ipc_freez_callback(bool freez_detected, std::string app_state_path, std::st
 
 	try {
 		std::ofstream out_state_file;
+		truncate_long_log_file(call_log_path, 1024*1024);
 		out_state_file.open(call_log_path, std::ios::app | std::ios::out);
 		if (out_state_file.is_open()) {
 			if (freez_detected) {
-				out_state_file << "[" <<  getpid() << "]" << call_name << ":" << timeout;
+				out_state_file << "[" << getpid() << "]" << call_name << ":" << timeout;
 			} else {
 				out_state_file << ":"<< timeout << "ms\n";
 			}
