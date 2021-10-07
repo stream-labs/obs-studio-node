@@ -571,36 +571,68 @@ std::vector<char> registerProcess(void)
 
 std::vector<char> registerMemoryDump(void)
 {
-	std::vector<char> buffer;
-	uint8_t action     = crashHandlerCommand::REGISTERMEMORYDUMP;
-	std::wstring eventName = util::CrashManager::GetMemoryDumpEventName();
-	uint32_t eventNameSize = (eventName.size() + 1) * sizeof(wchar_t);
-	std::wstring eventFinishedName = util::CrashManager::GetMemoryDumpFinishedEventName();
-	uint32_t eventFinishedNameSize = (eventFinishedName.size() + 1) * sizeof(wchar_t);
+	const uint8_t action = crashHandlerCommand::REGISTERMEMORYDUMP;
+
+	//str
+	std::wstring eventName_Start = util::CrashManager::GetMemoryDumpEventName_Start();
+	uint32_t eventName_Start_Size = (eventName_Start.size() + 1) * sizeof(wchar_t);
+
+	//str
+	std::wstring eventName_Fail = util::CrashManager::GetMemoryDumpEventName_Fail();
+	uint32_t eventName_Fail_Size = (eventName_Fail.size() + 1) * sizeof(wchar_t);
+
+	//str
+	std::wstring eventName_Success = util::CrashManager::GetMemoryDumpEventName_Success();
+	uint32_t eventName_Success_Size = (eventName_Success.size() + 1) * sizeof(wchar_t);
+
+	//str
 	std::wstring dumpPath = util::CrashManager::GetMemoryDumpPath();
 	uint32_t dumpPathSize = (dumpPath.size() + 1) * sizeof(wchar_t);
 
-	buffer.resize(sizeof(action) + sizeof(pid) + sizeof(int) + eventNameSize + sizeof(int) + eventFinishedNameSize + sizeof(int) + dumpPathSize);
+	//str
+	std::wstring dumpName = util::CrashManager::GetMemoryDumpName();
+	uint32_t dumpNameSize = (dumpName.size() + 1) * sizeof(wchar_t);
+
+	// Buffer
+	std::vector<char> buffer;
+	buffer.resize(sizeof(action) + sizeof(pid) + sizeof(int) + eventName_Start_Size + sizeof(int) + eventName_Fail_Size + sizeof(int) + eventName_Success_Size + sizeof(int) + dumpPathSize + sizeof(int) + dumpNameSize);
 	uint32_t offset = 0;
 
+	//@uint32_t - pid
 	memcpy(buffer.data(), &action, sizeof(action));
 	offset++;
 	memcpy(buffer.data() + offset, &pid, sizeof(pid));
-	offset+=sizeof(pid);
-	memcpy(buffer.data() + offset, &eventNameSize, sizeof(eventNameSize));
-	offset+=sizeof(eventNameSize);
-	memcpy(buffer.data() + offset, &eventName[0], eventNameSize);
-	offset+=eventNameSize;
+	offset += sizeof(pid);
 
-	memcpy(buffer.data() + offset, &eventFinishedNameSize, sizeof(eventFinishedNameSize));
-	offset+=sizeof(eventFinishedNameSize);
-	memcpy(buffer.data() + offset, &eventFinishedName[0], eventFinishedNameSize);
-	offset+=eventFinishedNameSize;
+	//@str - eventName_Start
+	memcpy(buffer.data() + offset, &eventName_Start_Size, sizeof(eventName_Start_Size));
+	offset += sizeof(eventName_Start_Size);
+	memcpy(buffer.data() + offset, &eventName_Start[0], eventName_Start_Size);
+	offset += eventName_Start_Size;
 
+	//@str - eventName_Fail
+	memcpy(buffer.data() + offset, &eventName_Fail_Size, sizeof(eventName_Fail_Size));
+	offset += sizeof(eventName_Fail_Size);
+	memcpy(buffer.data() + offset, &eventName_Fail[0], eventName_Fail_Size);
+	offset += eventName_Fail_Size;
+
+	//@str - eventName_Success
+	memcpy(buffer.data() + offset, &eventName_Success_Size, sizeof(eventName_Success_Size));
+	offset += sizeof(eventName_Success_Size);
+	memcpy(buffer.data() + offset, &eventName_Success[0], eventName_Success_Size);
+	offset += eventName_Success_Size;
+
+	//@str - dumpPath
 	memcpy(buffer.data() + offset, &dumpPathSize, sizeof(dumpPathSize));
 	offset+=sizeof(dumpPathSize);
 	memcpy(buffer.data() + offset, &dumpPath[0], dumpPathSize);
 	offset+=dumpPathSize;
+
+	//@str - dumpName
+	memcpy(buffer.data() + offset, &dumpNameSize, sizeof(dumpNameSize));
+	offset += sizeof(dumpNameSize);
+	memcpy(buffer.data() + offset, &dumpName[0], dumpNameSize);
+	offset += dumpNameSize;
 
 	return buffer;
 }
