@@ -25,6 +25,7 @@
 
 #include <util/platform.h>
 #include "shared.hpp"
+#include "nodeobs_service.h"
 
 void ConfigManager::setAppdataPath(std::string path)
 {
@@ -124,14 +125,14 @@ void initBasicDefault(config_t* config)
 	config_set_default_string(config, "SimpleOutput", "FilePath", filePath.c_str());
 	config_set_default_string(config, "SimpleOutput", "RecFormat", "mp4");
 	config_set_default_uint(config, "SimpleOutput", "VBitrate", 2500);
-	config_set_default_string(config, "SimpleOutput", "StreamEncoder", "obs_x264");
+	config_set_default_string(config, "SimpleOutput", "StreamEncoder", SIMPLE_ENCODER_X264);
 
 	config_set_default_uint(config, "SimpleOutput", "ABitrate", 160);
 	config_set_default_bool(config, "SimpleOutput", "UseAdvanced", false);
 	config_set_default_bool(config, "SimpleOutput", "EnforceBitrate", true);
 	config_set_default_string(config, "SimpleOutput", "Preset", "veryfast");
 	config_set_default_string(config, "SimpleOutput", "RecQuality", "Stream");
-	config_set_default_string(config, "SimpleOutput", "RecEncoder", "obs_x264");
+	config_set_default_string(config, "SimpleOutput", "RecEncoder", SIMPLE_ENCODER_X264);
 
 	config_set_default_bool(config, "SimpleOutput", "RecRB", true);
 	config_set_default_int(config, "SimpleOutput", "RecRBTime", 20);
@@ -144,7 +145,7 @@ void initBasicDefault(config_t* config)
 	config_set_default_bool(config, "AdvOut", "UseRescale", false);
 	config_set_default_uint(config, "AdvOut", "TrackIndex", 1);
 	config_set_default_uint(config, "AdvOut", "VodTrackIndex", 2);
-	config_set_default_string(config, "AdvOut", "Encoder", "obs_x264");
+	config_set_default_string(config, "AdvOut", "Encoder", ADVANCED_ENCODER_X264);
 
 	config_set_default_string(config, "AdvOut", "RecType", "Standard");
 
