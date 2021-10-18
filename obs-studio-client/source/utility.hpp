@@ -185,4 +185,4 @@ std::string  from_utf16_wide_to_utf8(const wchar_t* from, size_t length = -1);
 std::wstring from_utf8_to_utf16_wide(const char* from, size_t length = -1);
 
 //write detected possible reason of abnormal app close to a file used to submit statistics 
-void ipc_freez_callback(bool freez_detected, std::string app_state_path);
+void ipc_freez_callback(bool freez_detected, std::string app_state_path, std::string call_name, int tiemout);
