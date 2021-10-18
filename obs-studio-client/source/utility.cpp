@@ -136,7 +136,7 @@ void write_app_state_data(std::string app_state_path, std::string updated_status
 	}
 }
 
-void truncate_long_log_file(std::string log_file, size_t limit)
+void limit_log_file_size(const std::string log_file, size_t limit)
 {
 	long size = 0;
 	FILE *fp = fopen(log_file.c_str(), "r");
@@ -145,8 +145,11 @@ void truncate_long_log_file(std::string log_file, size_t limit)
 			size = ftell(fp);
 		fclose(fp);
 	}
-	if (size > limit)
-		remove(log_file.c_str());
+	if (size > limit) {
+		const std::string old_log_name = log_file+".old";
+		remove(old_log_name.c_str());
+		rename(log_file.c_str(), old_log_name.c_str());
+	}
 }
 
 void ipc_freez_callback(bool freez_detected, std::string app_state_path, std::string call_name, int timeout)
@@ -196,7 +199,7 @@ void ipc_freez_callback(bool freez_detected, std::string app_state_path, std::st
 
 	try {
 		std::ofstream out_state_file;
-		truncate_long_log_file(call_log_path, 1024*1024);
+		limit_log_file_size(call_log_path, 1024*1024);
 		out_state_file.open(call_log_path, std::ios::app | std::ios::out);
 		if (out_state_file.is_open()) {
 			if (freez_detected) {
