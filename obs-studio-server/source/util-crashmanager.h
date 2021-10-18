@@ -77,11 +77,13 @@ namespace util
 		static void SetUsername(std::string name);
 
 		static bool InitializeMemoryDump();
-		static void SignalMemoryDump();
+		static bool SignalMemoryDump();
 		static bool IsMemoryDumpEnabled();
-		static std::wstring GetMemoryDumpEventName();
-		static std::wstring GetMemoryDumpFinishedEventName();
+		static std::wstring GetMemoryDumpEventName_Start();
+		static std::wstring GetMemoryDumpEventName_Fail();
+		static std::wstring GetMemoryDumpEventName_Success();
 		static std::wstring GetMemoryDumpPath();
+		static std::wstring GetMemoryDumpName();
 
 
 		private:
