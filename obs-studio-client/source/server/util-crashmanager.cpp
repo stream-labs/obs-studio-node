@@ -31,8 +31,8 @@
 #include <string>
 #include <thread>
 #include <vector>
-#define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
-#include <experimental/filesystem>
+#include <filesystem>
+#include <random>
 
 #ifdef WIN32
 #include "StackWalker.h"
@@ -73,7 +73,7 @@ std::mutex                                 messageMutex;
 util::MetricsProvider                      metricsClient;
 LPTOP_LEVEL_EXCEPTION_FILTER               crashpadInternalExceptionFilterMethod = nullptr;
 HANDLE                                     memoryDumpEvent = INVALID_HANDLE_VALUE;
-std::experimental::filesystem::path                      memoryDumpFolder;
+std::filesystem::path                      memoryDumpFolder;
 #endif
 
 std::string                                appState = "starting"; // "starting","idle","encoding","shutdown"
@@ -271,21 +271,25 @@ nlohmann::json RequestProcessList()
 //////////////////
 // CrashManager //
 //////////////////
-std::wstring util::CrashManager::GetMemoryDumpEventName()
+std::wstring util::CrashManager::GetMemoryDumpEventName_Start()
 {
 	return L"Global\\SLOBSMEMORYDUMPEVENT";
 }
 
-std::wstring util::CrashManager::GetMemoryDumpFinishedEventName()
+std::wstring util::CrashManager::GetMemoryDumpEventName_Fail()
 {
-	return L"Global\\SLOBSMEMORYDUMPFINISHEDEVENT";
+	return L"Global\\SLOBSMEMORYDUMPEVENTFAIL";
+}
+
+std::wstring util::CrashManager::GetMemoryDumpEventName_Success()
+{
+	return L"Global\\SLOBSMEMORYDUMPEVENTSUCCESS";
 }
 
 #ifdef WIN32
 bool util::CrashManager::IsMemoryDumpEnabled()
 {
-	if (std::experimental::filesystem::exists(memoryDumpFolder)
-	    && std::experimental::filesystem::is_directory(memoryDumpFolder)) {
+	if (std::filesystem::exists(memoryDumpFolder) && std::filesystem::is_directory(memoryDumpFolder)) {
 		return true;
 	} else {
 		return false;
@@ -306,7 +310,7 @@ bool util::CrashManager::InitializeMemoryDump()
 			eventSecurityAttr.lpSecurityDescriptor = securityDescriptor;
 			eventSecurityAttr.bInheritHandle = FALSE;
 
-			memoryDumpEvent = CreateEvent( &eventSecurityAttr, TRUE, FALSE, GetMemoryDumpEventName().c_str());
+			memoryDumpEvent = CreateEvent( &eventSecurityAttr, TRUE, FALSE, GetMemoryDumpEventName_Start().c_str());
 			if (memoryDumpEvent != NULL && memoryDumpEvent != INVALID_HANDLE_VALUE) {
 				ret = true;
 			}
@@ -317,19 +321,41 @@ bool util::CrashManager::InitializeMemoryDump()
 	return ret;
 }
 
-void util::CrashManager::SignalMemoryDump()
+bool util::CrashManager::SignalMemoryDump()
 {
+	bool result = false;
+
 	if (memoryDumpEvent != NULL && memoryDumpEvent != INVALID_HANDLE_VALUE) {
 		if (SetEvent(memoryDumpEvent)) {
-			HANDLE dumpFinished = OpenEvent(EVENT_ALL_ACCESS, FALSE, GetMemoryDumpFinishedEventName().c_str());
-			if (dumpFinished && dumpFinished != INVALID_HANDLE_VALUE) {
-				WaitForSingleObject(dumpFinished, INFINITE);
-				CloseHandle(dumpFinished);
-			}
+			
+			constexpr int failEvent = 0;
+			constexpr int successEvent = 1;
+
+			HANDLE handles[2] = { 
+				OpenEvent(EVENT_ALL_ACCESS, FALSE, GetMemoryDumpEventName_Fail().c_str()),
+				OpenEvent(EVENT_ALL_ACCESS, FALSE, GetMemoryDumpEventName_Success().c_str())
+			};
+
+			if (handles[0] != NULL && handles[0] != INVALID_HANDLE_VALUE && handles[1] != NULL && handles[1] != INVALID_HANDLE_VALUE) {				
+				DWORD ret = WaitForMultipleObjects(2, handles, FALSE, INFINITE);
+
+				if (ret - WAIT_OBJECT_0 == successEvent) {
+					result = true;
+				}
+			} 
+
+			if (handles[0] != NULL && handles[0] != INVALID_HANDLE_VALUE)
+				CloseHandle(handles[0]);
+			
+			if (handles[1] != NULL && handles[1] != INVALID_HANDLE_VALUE)
+				CloseHandle(handles[1]);
 		}
+
 		CloseHandle(memoryDumpEvent);
 		memoryDumpEvent = INVALID_HANDLE_VALUE;
 	}
+
+	return result;
 }
 
 std::wstring util::CrashManager::GetMemoryDumpPath()
@@ -337,11 +363,41 @@ std::wstring util::CrashManager::GetMemoryDumpPath()
 	return memoryDumpFolder.generic_wstring();
 }
 
+std::wstring util::CrashManager::GetMemoryDumpName()
+{
+	static std::wstring dmpName;
+
+	if (!dmpName.empty())
+		return dmpName;
+
+	std::mt19937 rangen(std::random_device{}());
+	
+	auto randomCharacter = [&]() {
+		auto crand = [&](char min, char max) {
+			std::uniform_int_distribution<char> distribution(min, max);
+			return distribution(rangen);
+		};	
+		
+		// ascinum for simplicity
+		return crand(0, 1) == 0 ? crand('A', 'Z') : crand('0', '9');
+	};
+
+	std::wstring randomCode;
+
+	for (int i = 0; i < 15; ++i)
+		randomCode.push_back(randomCharacter());
+	
+	using namespace std::chrono;
+	seconds ms = duration_cast<seconds>(system_clock::now().time_since_epoch());
+	return dmpName = L"obs." + std::to_wstring(ms.count()) + L"." + randomCode;
+}
+
 #else
 bool util::CrashManager::IsMemoryDumpEnabled() { return false; }
 bool util::CrashManager::InitializeMemoryDump() { return IsMemoryDumpEnabled(); }
-void util::CrashManager::SignalMemoryDump() {}
+bool util::CrashManager::SignalMemoryDump() {}
 std::wstring util::CrashManager::GetMemoryDumpPath() {return L""; }
+std::wstring util::CrashManager::GetMemoryDumpName() {return L""; }
 #endif
 
 bool util::CrashManager::Initialize(char* path, std::string appdata)
@@ -378,6 +434,9 @@ bool util::CrashManager::Initialize(char* path, std::string appdata)
 	
 #ifdef WIN32
 	memoryDumpFolder = std::filesystem::u8path(appdata+"\\CrashMemoryDump");
+
+	// There's a static local wstring inside this function, now it's cached for thread safe read access
+	util::CrashManager::GetMemoryDumpName();
 
 	// Setup the windows exeption filter
 	auto ExceptionHandlerMethod = [](struct _EXCEPTION_POINTERS* ExceptionInfo) {
@@ -500,7 +559,8 @@ void util::CrashManager::HandleExit() noexcept
 
 void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noexcept
 {
-	SignalMemoryDump();
+	const bool uploadedFullDump = SignalMemoryDump();
+
 #ifdef ENABLE_CRASHREPORT
 
 	// If for any reason this is true, it means that we are crashing inside this same
@@ -574,6 +634,15 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	annotations.insert({{"sentry[user][username]", OBS_API::getUsername()}});
 	annotations.insert({{"sentry[environment]", getAppState()}});
 
+	// if saved memory dump
+	if (uploadedFullDump) {
+		std::string dmpNameA;
+		std::wstring dmpNameW = util::CrashManager::GetMemoryDumpName();		
+		std::transform(dmpNameW.begin(), dmpNameW.end(), std::back_inserter(dmpNameA), [] (wchar_t c) { return (char)c;});
+		annotations.insert({{"sentry[tags][memorydump]", "true"}});
+		annotations.insert({{"sentry[tags][s3dmp]", dmpNameA.c_str()}});
+	}
+
 	insideCrashMethod = true;
 	try {
 		if (!insideRewindCallstack) {
@@ -590,9 +659,11 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	// Recreate crashpad instance, this is a well defined/supported operation
 	SetupCrashpad();
 
-	// Finish the execution and let crashpad handle the crash
+	// This value is true by default and only false if we're planning to let crashpad handle cleanup
 	if (callAbort)
 		abort();
+	else
+		blog(LOG_INFO, "Server finished 'HandleCrash', crashpad will now make a sentry report");
 
 	insideCrashMethod = false;
 
@@ -601,6 +672,9 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 
 void util::CrashManager::SetReportServerUrl(std::string url)
 {
+	// dev environment
+	//url = "https://o114354.ingest.sentry.io/api/252950/minidump/?sentry_key=8f444a81edd446b69ce75421d5e91d4d";
+
 	if (url.length()) {
 		reportServerUrl = url;
 	} else {
