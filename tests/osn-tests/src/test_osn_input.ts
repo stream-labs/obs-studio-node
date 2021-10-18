@@ -91,6 +91,7 @@ describe(testName, () => {
                 case 'browser_source': {
                     settings = inputSettings.browserSource;
                     settings['restart_when_active'] = true;
+                    settings['webpage_control_level'] = 0;
                     break;
                 }
                 case 'ffmpeg_source': {
