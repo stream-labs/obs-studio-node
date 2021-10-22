@@ -99,6 +99,7 @@ void globalCallback::worker()
 	auto sources_callback = []( Napi::Env env, 
 			Napi::Function jsCallback,
 			SourceSizeInfoData* data ) {
+		try {
 		Napi::Array result = Napi::Array::New(env, data->items.size());
 
 		for (size_t i = 0; i < data->items.size(); i++) {
@@ -110,10 +111,12 @@ void globalCallback::worker()
 			result.Set(i, obj);
 		}
 		jsCallback.Call({ result });
+		} catch (...) {}
 		delete data;
 	};
 
 	auto volmeter_callback = []( Napi::Env env, Napi::Function jsCallback, VolmeterData* data ) {
+		try {
 		Napi::Array magnitude = Napi::Array::New(env);
 		Napi::Array peak = Napi::Array::New(env);
 		Napi::Array input_peak = Napi::Array::New(env);
@@ -131,6 +134,7 @@ void globalCallback::worker()
 		if (data->magnitude.size() > 0 && data->peak.size() > 0 && data->input_peak.size() > 0) {
 			jsCallback.Call({ magnitude, peak, input_peak });
 		}
+		} catch (...) {}
 		delete data;
 	};
 
