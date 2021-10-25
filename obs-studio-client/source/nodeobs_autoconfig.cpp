@@ -28,23 +28,25 @@ void JSCallback(AutoConfigInfo* data, void* jsThread)
 			Napi::Env env, 
 			Napi::Function jsCallback,
 			AutoConfigInfo* event_data) {
-		Napi::Object result = Napi::Object::New(env);
+		try {
+			Napi::Object result = Napi::Object::New(env);
 
-		result.Set(
-			Napi::String::New(env, "event"),
-			Napi::String::New(env, event_data->m_event));
-		result.Set(
-			Napi::String::New(env, "description"),
-			Napi::String::New(env, event_data->m_description));
-
-		if (event_data->m_event.compare("error") != 0) {
 			result.Set(
-				Napi::String::New(env, "percentage"),
-				Napi::Number::New(env, event_data->m_percentage));
-		}
-		result.Set(Napi::String::New(env, "continent"), Napi::String::New(env, ""));
+				Napi::String::New(env, "event"),
+				Napi::String::New(env, event_data->m_event));
+			result.Set(
+				Napi::String::New(env, "description"),
+				Napi::String::New(env, event_data->m_description));
 
-		jsCallback.Call({result});
+			if (event_data->m_event.compare("error") != 0) {
+				result.Set(
+					Napi::String::New(env, "percentage"),
+					Napi::Number::New(env, event_data->m_percentage));
+			}
+			result.Set(Napi::String::New(env, "continent"), Napi::String::New(env, ""));
+
+			jsCallback.Call({result});
+		} catch (...) {}
 		delete event_data;
 	};
 
