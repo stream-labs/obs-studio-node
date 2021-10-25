@@ -211,22 +211,22 @@ void service::worker()
 	const static int maximum_signals_in_queue = 100;
 	auto callback = []( Napi::Env env, Napi::Function jsCallback, SignalInfo* data ) {
 		try {
-		Napi::Object result = Napi::Object::New(env);
+			Napi::Object result = Napi::Object::New(env);
 
-		result.Set(
-			Napi::String::New(env, "type"),
-			Napi::String::New(env, data->outputType));
-		result.Set(
-			Napi::String::New(env, "signal"),
-			Napi::String::New(env, data->signal));
-		result.Set(
-			Napi::String::New(env, "code"),
-			Napi::Number::New(env, data->code));
-		result.Set(
-			Napi::String::New(env, "error"),
-			Napi::String::New(env, data->errorMessage));
+			result.Set(
+				Napi::String::New(env, "type"),
+				Napi::String::New(env, data->outputType));
+			result.Set(
+				Napi::String::New(env, "signal"),
+				Napi::String::New(env, data->signal));
+			result.Set(
+				Napi::String::New(env, "code"),
+				Napi::Number::New(env, data->code));
+			result.Set(
+				Napi::String::New(env, "error"),
+				Napi::String::New(env, data->errorMessage));
 
-		jsCallback.Call({ result });
+			jsCallback.Call({ result });
 		} catch (...) {
 			data->tosend = true;
 			return;

@@ -169,18 +169,19 @@ void autoConfig::queueTask(AutoConfigInfo* data) {
 	wait_semaphore(ac_sem);
 
 	auto sources_callback = [](Napi::Env env, Napi::Function jsCallback, AutoConfigInfo* event_data) {
-		Napi::Object result = Napi::Object::New(env);
+		try {
+			Napi::Object result = Napi::Object::New(env);
 
-		result.Set(Napi::String::New(env, "event"), Napi::String::New(env, event_data->event));
-		result.Set(Napi::String::New(env, "description"), Napi::String::New(env, event_data->description));
+			result.Set(Napi::String::New(env, "event"), Napi::String::New(env, event_data->event));
+			result.Set(Napi::String::New(env, "description"), Napi::String::New(env, event_data->description));
 
-		if (event_data->event.compare("error") != 0) {
-			result.Set(Napi::String::New(env, "percentage"), Napi::Number::New(env, event_data->percentage));
-		}
-		result.Set(Napi::String::New(env, "continent"), Napi::String::New(env, ""));
+			if (event_data->event.compare("error") != 0) {
+				result.Set(Napi::String::New(env, "percentage"), Napi::Number::New(env, event_data->percentage));
+			}
+			result.Set(Napi::String::New(env, "continent"), Napi::String::New(env, ""));
 
-		jsCallback.Call({result});
-
+			jsCallback.Call({result});
+		} catch (...) {}
 		delete event_data;
 	};
 
