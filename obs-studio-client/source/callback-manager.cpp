@@ -99,38 +99,42 @@ void globalCallback::worker()
 	auto sources_callback = []( Napi::Env env, 
 			Napi::Function jsCallback,
 			SourceSizeInfoData* data ) {
-		Napi::Array result = Napi::Array::New(env, data->items.size());
+		try {
+			Napi::Array result = Napi::Array::New(env, data->items.size());
 
-		for (size_t i = 0; i < data->items.size(); i++) {
-			Napi::Object obj = Napi::Object::New(env);
-			obj.Set("name", Napi::String::New(env, data->items[i]->name));
-			obj.Set("width", Napi::Number::New(env, data->items[i]->width));
-			obj.Set("height", Napi::Number::New(env, data->items[i]->height));
-			obj.Set("flags", Napi::Number::New(env, data->items[i]->flags));
-			result.Set(i, obj);
-		}
-		jsCallback.Call({ result });
+			for (size_t i = 0; i < data->items.size(); i++) {
+				Napi::Object obj = Napi::Object::New(env);
+				obj.Set("name", Napi::String::New(env, data->items[i]->name));
+				obj.Set("width", Napi::Number::New(env, data->items[i]->width));
+				obj.Set("height", Napi::Number::New(env, data->items[i]->height));
+				obj.Set("flags", Napi::Number::New(env, data->items[i]->flags));
+				result.Set(i, obj);
+			}
+			jsCallback.Call({ result });
+		} catch (...) {}
 		delete data;
 	};
 
 	auto volmeter_callback = []( Napi::Env env, Napi::Function jsCallback, VolmeterData* data ) {
-		Napi::Array magnitude = Napi::Array::New(env);
-		Napi::Array peak = Napi::Array::New(env);
-		Napi::Array input_peak = Napi::Array::New(env);
+		try {
+			Napi::Array magnitude = Napi::Array::New(env);
+			Napi::Array peak = Napi::Array::New(env);
+			Napi::Array input_peak = Napi::Array::New(env);
 
-		for (size_t i = 0; i < data->magnitude.size(); i++) {
-			magnitude.Set(i, Napi::Number::New(env, data->magnitude[i]));
-		}
-		for (size_t i = 0; i < data->peak.size(); i++) {
-			peak.Set(i, Napi::Number::New(env, data->peak[i]));
-		}
-		for (size_t i = 0; i < data->input_peak.size(); i++) {
-			input_peak.Set(i, Napi::Number::New(env, data->input_peak[i]));
-		}
+			for (size_t i = 0; i < data->magnitude.size(); i++) {
+				magnitude.Set(i, Napi::Number::New(env, data->magnitude[i]));
+			}
+			for (size_t i = 0; i < data->peak.size(); i++) {
+				peak.Set(i, Napi::Number::New(env, data->peak[i]));
+			}
+			for (size_t i = 0; i < data->input_peak.size(); i++) {
+				input_peak.Set(i, Napi::Number::New(env, data->input_peak[i]));
+			}
 
-		if (data->magnitude.size() > 0 && data->peak.size() > 0 && data->input_peak.size() > 0) {
-			jsCallback.Call({ magnitude, peak, input_peak });
-		}
+			if (data->magnitude.size() > 0 && data->peak.size() > 0 && data->input_peak.size() > 0) {
+				jsCallback.Call({ magnitude, peak, input_peak });
+			}
+		} catch (...) {}
 		delete data;
 	};
 
