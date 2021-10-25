@@ -263,6 +263,7 @@ void service::worker()
 					(*i)->tosend = false;
 					napi_status status = js_thread.BlockingCall((*i), callback);
 					if (status != napi_ok) {
+						(*i)->tosend = true;
 						break;
 					}
 				}
