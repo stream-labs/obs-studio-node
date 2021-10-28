@@ -47,12 +47,14 @@ jobs:
 
   - script: 'git clone https://github.com/stream-labs/symsrv-scripts.git'
     displayName: 'Fetch symsrv-scripts'
+    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
   - script: ./symsrv-scripts/main.bat "%CD%/symsrv-scripts" ".\main.ps1 -localSourceDir '%CD%/%FullDistributePath%' -repo_userId 'stream-labs' -repo_name 'obs-studio-node' -repo_branch '$(Build.SourceBranch)' -subModules 'lib-streamlabs-ipc,stream-labs,lib-streamlabs-ipc,streamlabs'"
     displayName: 'Run symbol server scripts'
     env:
       AWS_SYMB_ACCESS_KEY_ID: $(AWS_SYMB_ACCESS_KEY_ID)
       AWS_SYMB_SECRET_ACCESS_KEY: $(AWS_SYMB_SECRET_ACCESS_KEY)
+    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
   - script: 'yarn run test'
     env:
