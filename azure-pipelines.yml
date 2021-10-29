@@ -180,6 +180,15 @@ jobs:
   #     RELEASE_NAME: $(ReleaseName)
   #   displayName: 'Run tests - osn-volmeter'
 
+  - script: 'git clone https://github.com/stream-labs/symsrv-scripts.git'
+    displayName: 'Fetch symsrv-scripts'
+
+  - script: ./symsrv-scripts/main.bat "%CD%/symsrv-scripts" ".\main.ps1 -localSourceDir '%CD%' -repo_userId 'stream-labs' -repo_name 'obs-studio-node' -repo_branch '$(Build.SourceVersion)' -subModules 'lib-streamlabs-ipc,stream-labs,lib-streamlabs-ipc,streamlabs'"
+    displayName: 'Run symbol server scripts'
+    env:
+      AWS_SYMB_ACCESS_KEY_ID: $(AWS_SYMB_ACCESS_KEY_ID)
+      AWS_SYMB_SECRET_ACCESS_KEY: $(AWS_SYMB_SECRET_ACCESS_KEY)
+
   - script: ./ci/copy-files.cmd
     displayName: 'Copy necessary dll files'
 
