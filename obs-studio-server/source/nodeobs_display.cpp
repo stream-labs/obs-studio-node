@@ -247,8 +247,8 @@ OBS::Display::Display()
 	worker = std::thread(std::bind(&OBS::Display::SystemWorker, this));
 #endif
 	m_gsInitData.adapter         = 0;
-	m_gsInitData.cx              = 960;
-	m_gsInitData.cy              = 540;
+	m_gsInitData.cx              = 0;
+	m_gsInitData.cy              = 0;
 	m_gsInitData.format          = GS_RGBA;
 	m_gsInitData.zsformat        = GS_ZS_NONE;
 	m_gsInitData.num_backbuffers = 1;
