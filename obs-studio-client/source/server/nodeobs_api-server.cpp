@@ -361,14 +361,12 @@ std::chrono::high_resolution_clock             hrc;
 std::chrono::high_resolution_clock::time_point tp = std::chrono::high_resolution_clock::now();
 static void                                    node_obs_log(int log_level, const char* msg, va_list args, void* param)
 {
-	blog(LOG_INFO, "node_obs_log 0");
 	std::lock_guard<std::mutex> lock(logMutex);
 	if (param == nullptr)
 		return;
 	
 	outdated_driver_error::instance()->catch_error(msg);
 
-	blog(LOG_INFO, "node_obs_log 1");
 	// Calculate log time.
 	auto timeSinceStart = (std::chrono::high_resolution_clock::now() - tp);
 	auto days           = std::chrono::duration_cast<std::chrono::duration<int, std::ratio<86400>>>(timeSinceStart);
@@ -416,7 +414,6 @@ static void                                    node_obs_log(int log_level, const
 		break;
 	}
 
-	blog(LOG_INFO, "node_obs_log 2");
 	std::vector<char> timebuf(128, '\0');
 	std::string       timeformat = "[%.3d:%.2d:%.2d:%.2d.%.3d.%.3d.%.3d][%*s]"; // "%*s";
 #ifdef WIN32
@@ -453,7 +450,6 @@ static void                                    node_obs_log(int log_level, const
 
 	std::string time_and_level = std::string(timebuf.data(), length);
 
-	blog(LOG_INFO, "node_obs_log 3");
 	// Format incoming text
 	std::string text = nodeobs_log_formatted_message(msg, args);
 
