@@ -109,7 +109,7 @@ void UpdateAudioSettings(bool saveOnlyIfLimitApplied)
 	}
 }
 
-std::vector<SubCategory> serializeCategory(uint32_t subCategoriesCount, uint32_t sizeStruct, std::vector<char> buffer)
+std::vector<SubCategory> serializeSettingsCategory(uint32_t subCategoriesCount, uint32_t sizeStruct, std::vector<char> buffer)
 {
 	std::vector<SubCategory> category;
 
@@ -218,7 +218,7 @@ void OBS_settings::OBS_settings_saveSettings(
 	uint32_t          sizeStruct,
 	std::vector<char> buffer)
 {
-	std::vector<SubCategory> settings = serializeCategory(subCategoriesCount, sizeStruct, buffer);
+	std::vector<SubCategory> settings = serializeSettingsCategory(subCategoriesCount, sizeStruct, buffer);
 	saveSettings(category, settings);
 }
 

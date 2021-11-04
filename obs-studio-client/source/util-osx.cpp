@@ -57,3 +57,13 @@ void UtilInt::setServerWorkingDirectoryPath(std::string path)
 {
     _impl->setServerWorkingDirectoryPath(path);
 }
+
+std::string UtilInt::getUserDataPath(void)
+{
+    return _impl->getUserDataPath();
+}
+
+std::string UtilInt::getDefaultVideoSavePath(void)
+{
+    return _impl->getDefaultVideoSavePath();
+}

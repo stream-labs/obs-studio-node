@@ -146,7 +146,7 @@ namespace System
 		bool* shutdown = (bool*)data;
 		*shutdown      = true;
 #ifdef __APPLE__
-		g_util_osx->stopApplication();
+		g_util_osx_server->stopApplication();
 #endif
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		return;
@@ -167,8 +167,8 @@ int main(int argc, char* argv[])
 		int out_err = open("/tmp/slobs-stderr", O_WRONLY| O_CREAT | O_DSYNC);
 	}
 
-	g_util_osx = new UtilInt();
-	g_util_osx->init();
+	g_util_osx_server = new UtilInt();
+	g_util_osx_server->init();
 #endif
 	std::string socketPath      = "";
 	std::string receivedVersion = "";
@@ -264,7 +264,7 @@ int main(int argc, char* argv[])
 #ifdef __APPLE__
 	// WARNING: Blocking function -> this won't return until the application
 	// receives a stop or terminate event
-	g_util_osx->runApplication();
+	g_util_osx_server->runApplication();
 #endif
 #ifdef WIN32
 	bool waitBeforeClosing = false;

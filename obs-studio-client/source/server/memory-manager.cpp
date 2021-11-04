@@ -32,7 +32,7 @@ MemoryManager::MemoryManager()
 		allowed_cached_size = LIMIT;
 	}
 #elif __APPLE__
-	available_memory = g_util_osx->getTotalPhysicalMemory();
+	available_memory = g_util_osx_server->getTotalPhysicalMemory();
 	allowed_cached_size = std::min((uint64_t)LIMIT, (uint64_t)available_memory / 2);
 #endif
 }
@@ -328,8 +328,8 @@ void MemoryManager::monitorMemory()
 // 		uint64_t memory_in_use_without_cache = memory_in_use - current_cached_size;
 // 		uint64_t totalMeory                  = statex.ullTotalPhys;
 // #ifdef __APPLE__
-// 		uint64_t totalMeory = g_util_osx->getTotalPhysicalMemory();
-// 		uint64_t availableMemory = g_util_osx->getAvailableMemory();
+// 		uint64_t totalMeory = g_util_osx_server->getTotalPhysicalMemory();
+// 		uint64_t availableMemory = g_util_osx_server->getAvailableMemory();
 // 		uint64_t memory_in_use = totalMeory - availableMemory;
 // 		uint64_t memory_in_use_without_cache =
 // 			memory_in_use - current_cached_size;

@@ -34,7 +34,7 @@
 #endif
 
 #ifdef __APPLE__
-	extern UtilInt* g_util_osx;
+	extern UtilInt* g_util_osx_server;
 #endif
 
 static inline std::string StringFromIPCValueVector(std::vector<ipc::value> const& val)

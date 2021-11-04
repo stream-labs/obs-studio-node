@@ -52,8 +52,8 @@ class OBS_content
 	static void OBS_content_createDisplay(uint64_t windowHandle, std::string key, int32_t displayMode);
 	static void OBS_content_destroyDisplay(std::string key);
 	static void OBS_content_shutdownDisplays();
-	static std::pair<int32_t, int32_t> OBS_content::OBS_content_getDisplayPreviewOffset(std::string key);
-	static std::pair<int32_t, int32_t> OBS_content::OBS_content_getDisplayPreviewSize(std::string key);
+	static std::pair<int32_t, int32_t> OBS_content_getDisplayPreviewOffset(std::string key);
+	static std::pair<int32_t, int32_t> OBS_content_getDisplayPreviewSize(std::string key);
 	static void OBS_content_createSourcePreviewDisplay(uint64_t windowHandle, std::string sourceName, std::string key);
 	static void OBS_content_resizeDisplay(std::string key, uint32_t width, uint32_t height);
 	static void OBS_content_moveDisplay(std::string key, uint32_t x, uint32_t y);

@@ -41,6 +41,8 @@ public:
     void installPlugin(void);
     void uninstallPlugin(void);
     void setServerWorkingDirectoryPath(std::string path);
+    std::string getUserDataPath(void);
+    std::string getDefaultVideoSavePath(void);
 
 private:
     void * self;
