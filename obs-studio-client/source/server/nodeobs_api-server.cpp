@@ -1534,7 +1534,6 @@ bool OBS_API::openAllModules(int& video_err)
 				continue;
 			}
 #endif
-			if (basename.compare("obs-browser") == 0) continue;
 
 			obs_module_t* module = nullptr;
 			int           result = MODULE_ERROR;
